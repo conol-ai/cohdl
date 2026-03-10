@@ -83,3 +83,11 @@ jobs:
             ${{ runner.os }}-cargo-docs-
             ${{ runner.os }}-cargo-
       - run: cargo doc --workspace --no-deps
+
+  mdbook:
+    name: mdBook
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo install mdbook
+      - run: mdbook build docs/

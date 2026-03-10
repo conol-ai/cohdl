@@ -1,0 +1,6 @@
+[book]
+title = "cohdl — PCB HDL Reference"
+src = "src"
+
+[build]
+build-dir = "book"

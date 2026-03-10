@@ -50,6 +50,8 @@ pub struct Instance {
     pub device: String,
     /// Primary MPN if backed by a part.
     pub mpn: Option<String>,
+    /// Alternate MPNs from the part's AVL entries.
+    pub alt_mpns: Vec<String>,
     /// Generic parameter substitutions.
     pub generic_substitutions: HashMap<String, String>,
 }
@@ -137,6 +139,7 @@ pub fn build_connectivity(
             hierarchical_path: format!("{}::{}", design.name, ci.name),
             device: ci.device.clone(),
             mpn: ci.mpn.clone(),
+            alt_mpns: ci.alt_mpns.clone(),
             generic_substitutions: ci.generic_substitutions.clone(),
         })
         .collect();
@@ -360,6 +363,7 @@ mod tests {
             name: name.to_string(),
             device: device.to_string(),
             mpn: None,
+            alt_mpns: Vec::new(),
             generic_substitutions: HashMap::new(),
             designator_override: None,
             impl_traits: Vec::new(),
@@ -638,6 +642,7 @@ mod tests {
                 name: "c1".into(),
                 device: "MLCC".into(),
                 mpn: Some("CL05B104KO5NNNC".into()),
+                alt_mpns: Vec::new(),
                 generic_substitutions: subs.clone(),
                 designator_override: None,
                 impl_traits: Vec::new(),

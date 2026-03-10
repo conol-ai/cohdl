@@ -90,6 +90,8 @@ pub struct ComponentInstance {
     pub device: std::string::String,
     /// If this instance is backed by a `part`, the primary MPN.
     pub mpn: Option<std::string::String>,
+    /// Alternate MPNs from the part's AVL entries.
+    pub alt_mpns: Vec<std::string::String>,
     /// Generic parameter substitutions (param name → resolved value string).
     pub generic_substitutions: HashMap<std::string::String, std::string::String>,
     /// Explicit designator override from `#[designator("U1")]`.
@@ -171,6 +173,8 @@ struct PartDef {
     generic_args: HashMap<std::string::String, std::string::String>,
     /// Primary MPN from the AVL.
     primary_mpn: Option<std::string::String>,
+    /// Alternate MPNs from the AVL.
+    alt_mpns: Vec<std::string::String>,
 }
 
 /// A collected function definition.
@@ -342,12 +346,25 @@ impl TypeChecker {
                     .map(|f| f.value.value.clone())
             });
 
+        let alt_mpns: Vec<std::string::String> = p
+            .avl_entries
+            .iter()
+            .filter(|e| e.kind == ast::AvlKind::Alt)
+            .filter_map(|e| {
+                e.fields
+                    .iter()
+                    .find(|f| f.name.name == "mpn")
+                    .map(|f| f.value.value.clone())
+            })
+            .collect();
+
         self.parts.insert(
             qname.clone(),
             PartDef {
                 device_name,
                 generic_args,
                 primary_mpn,
+                alt_mpns,
             },
         );
     }
@@ -622,15 +639,16 @@ impl TypeChecker {
                 let (device_name, base_args) = self.resolve_type_name(&type_name, module_path);
 
                 // Check if this is a part or a device.
-                let (final_device, mpn, part_args) =
+                let (final_device, mpn, alt_mpns, part_args) =
                     if let Some(part) = self.find_part(&type_name, module_path) {
                         (
                             part.device_name.clone(),
                             part.primary_mpn.clone(),
+                            part.alt_mpns.clone(),
                             part.generic_args.clone(),
                         )
                     } else {
-                        (device_name.clone(), None, HashMap::new())
+                        (device_name.clone(), None, Vec::new(), HashMap::new())
                     };
 
                 // Merge args: base_args (from alias) < part_args < inst args.
@@ -688,6 +706,7 @@ impl TypeChecker {
                     name: inst.name.name.clone(),
                     device: final_device,
                     mpn,
+                    alt_mpns,
                     generic_substitutions: all_args,
                     designator_override,
                     impl_traits,

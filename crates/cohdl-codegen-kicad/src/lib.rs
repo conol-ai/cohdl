@@ -3,6 +3,9 @@
 //! Generates a netlist string from a [`ConnectivityIR`] that can be imported
 //! into KiCad via **File → Import Netlist**.
 
+mod bom;
+pub use bom::{emit_avl_bom, emit_simple_bom};
+
 use std::collections::HashMap;
 use std::fmt::Write;
 
@@ -177,6 +180,7 @@ mod tests {
                     hierarchical_path: "Board::U1".into(),
                     device: "LQFP48".into(),
                     mpn: Some("STM32F103C8T6".into()),
+                    alt_mpns: vec![],
                     generic_substitutions: {
                         let mut m = HashMap::new();
                         m.insert("value".to_string(), "STM32F103".to_string());
@@ -189,6 +193,7 @@ mod tests {
                     hierarchical_path: "Board::R1".into(),
                     device: "R0402".into(),
                     mpn: None,
+                    alt_mpns: vec![],
                     generic_substitutions: {
                         let mut m = HashMap::new();
                         m.insert("value".to_string(), "10k".to_string());
@@ -201,6 +206,7 @@ mod tests {
                     hierarchical_path: "Board::C1".into(),
                     device: "C0402".into(),
                     mpn: None,
+                    alt_mpns: vec![],
                     generic_substitutions: {
                         let mut m = HashMap::new();
                         m.insert("value".to_string(), "100nF".to_string());
@@ -350,6 +356,7 @@ mod tests {
                 hierarchical_path: "Board::X1".into(),
                 device: "MY_CUSTOM_PKG".into(),
                 mpn: None,
+                alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
             }],
             nets: vec![],
@@ -367,6 +374,7 @@ mod tests {
                 hierarchical_path: "Board::U1".into(),
                 device: "QFN32".into(),
                 mpn: None,
+                alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
             }],
             nets: vec![],
@@ -388,6 +396,7 @@ mod tests {
                 hierarchical_path: "Board::U1".into(),
                 device: "R0402".into(),
                 mpn: Some("Part<1>&\"2\"".into()),
+                alt_mpns: vec![],
                 generic_substitutions: {
                     let mut m = HashMap::new();
                     m.insert("value".to_string(), "R<10>".to_string());

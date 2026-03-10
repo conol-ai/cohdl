@@ -561,6 +561,7 @@ mod tests {
                     hierarchical_path: "Board::c1".into(),
                     device: "MLCC".into(),
                     mpn: None,
+                    alt_mpns: vec![],
                     generic_substitutions: HashMap::new(),
                 },
                 Instance {
@@ -569,6 +570,7 @@ mod tests {
                     hierarchical_path: "Board::mcu".into(),
                     device: "STM32".into(),
                     mpn: None,
+                    alt_mpns: vec![],
                     generic_substitutions: HashMap::new(),
                 },
             ],

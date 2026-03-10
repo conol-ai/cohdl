@@ -6,6 +6,7 @@
 //! `#[allow(rule_name)]` annotation on the owning instance are suppressed.
 
 pub mod rules;
+pub mod user_rules;
 
 use cohdl_sema::connectivity::ConnectivityIR;
 use cohdl_syntax::ast::Span;
@@ -69,6 +70,13 @@ impl DrcRunner {
             ],
             suppressed: Vec::new(),
         }
+    }
+
+    /// Add a [`UserDefinedRuleSet`] containing user-defined rules from `trait`
+    /// and `device` definitions.  User-defined diagnostics appear alongside
+    /// built-in ones in the output.
+    pub fn add_user_rules(&mut self, rule_set: user_rules::UserDefinedRuleSet) {
+        self.rules.push(Box::new(rule_set));
     }
 
     /// Register an `#[allow(rule_name)]` suppression for a given instance path.

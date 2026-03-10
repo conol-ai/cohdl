@@ -84,9 +84,7 @@ struct LowerCtx {
 
 impl LowerCtx {
     fn new() -> Self {
-        Self {
-            errors: Vec::new(),
-        }
+        Self { errors: Vec::new() }
     }
 
     fn error(&mut self, span: ast::Span, msg: impl Into<String>) {
@@ -101,20 +99,17 @@ impl LowerCtx {
 
         // The top-level `pairs` contains a single `file` pair; drill into it.
         for pair in pairs {
-            match pair.as_rule() {
-                Rule::file => {
-                    file_span = span_of(&pair);
-                    for inner in pair.into_inner() {
-                        match inner.as_rule() {
-                            Rule::top_level_item => {
-                                items.push(self.lower_top_level_item(inner));
-                            }
-                            Rule::EOI => {}
-                            _ => {}
+            if pair.as_rule() == Rule::file {
+                file_span = span_of(&pair);
+                for inner in pair.into_inner() {
+                    match inner.as_rule() {
+                        Rule::top_level_item => {
+                            items.push(self.lower_top_level_item(inner));
                         }
+                        Rule::EOI => {}
+                        _ => {}
                     }
                 }
-                _ => {}
             }
         }
 
@@ -560,7 +555,9 @@ impl LowerCtx {
     fn lower_multiplicative_expr(&mut self, pair: Pair<'_>) -> ast::Expr {
         let me_span = span_of(&pair);
         let mut children = pair.into_inner();
-        let first = children.next().expect("multiplicative_expr must have operand");
+        let first = children
+            .next()
+            .expect("multiplicative_expr must have operand");
         let mut result = self.lower_unary_expr(first);
 
         while let Some(op_pair) = children.next() {
@@ -621,7 +618,10 @@ impl LowerCtx {
 
     fn lower_atom_expr(&mut self, pair: Pair<'_>) -> ast::Expr {
         let atom_span = span_of(&pair);
-        let inner = pair.into_inner().next().expect("atom_expr must have content");
+        let inner = pair
+            .into_inner()
+            .next()
+            .expect("atom_expr must have content");
 
         match inner.as_rule() {
             Rule::expr => {
@@ -673,10 +673,7 @@ impl LowerCtx {
                 // Check if this looks like a plain integer (single ident that's all digits)
                 if te.generic_args.is_none()
                     && te.path.segments.len() == 1
-                    && te.path.segments[0]
-                        .name
-                        .chars()
-                        .all(|c| c.is_ascii_digit())
+                    && te.path.segments[0].name.chars().all(|c| c.is_ascii_digit())
                 {
                     if let Ok(n) = te.path.segments[0].name.parse::<u64>() {
                         return ast::Expr {
@@ -691,7 +688,10 @@ impl LowerCtx {
                 }
             }
             _ => {
-                self.error(atom_span, format!("unexpected atom expression: {:?}", inner.as_rule()));
+                self.error(
+                    atom_span,
+                    format!("unexpected atom expression: {:?}", inner.as_rule()),
+                );
                 ast::Expr {
                     kind: ast::ExprKind::Bool(false),
                     span: atom_span,
@@ -996,13 +996,12 @@ impl LowerCtx {
         }
     }
 
-    fn lower_pin_value_or_type(
-        &mut self,
-        name: ast::Ident,
-        pair: Pair<'_>,
-    ) -> ast::PinEntryKind {
+    fn lower_pin_value_or_type(&mut self, name: ast::Ident, pair: Pair<'_>) -> ast::PinEntryKind {
         // pin_value_or_type = { pin_value | ident }
-        let inner = pair.into_inner().next().expect("pin_value_or_type must have content");
+        let inner = pair
+            .into_inner()
+            .next()
+            .expect("pin_value_or_type must have content");
 
         match inner.as_rule() {
             Rule::pin_value => self.lower_pin_value(name, inner),
@@ -1020,7 +1019,10 @@ impl LowerCtx {
 
     fn lower_pin_value(&mut self, name: ast::Ident, pair: Pair<'_>) -> ast::PinEntryKind {
         // pin_value = { pin_range | pin_list | integer }
-        let inner = pair.into_inner().next().expect("pin_value must have content");
+        let inner = pair
+            .into_inner()
+            .next()
+            .expect("pin_value must have content");
 
         match inner.as_rule() {
             Rule::pin_range => {
@@ -1232,9 +1234,9 @@ impl LowerCtx {
     fn lower_device_body_item(&mut self, pair: Pair<'_>) -> Option<ast::DeviceBodyItem> {
         let inner = pair.into_inner().next()?;
         match inner.as_rule() {
-            Rule::package_decl => Some(ast::DeviceBodyItem::Package(
-                self.lower_package_decl(inner),
-            )),
+            Rule::package_decl => {
+                Some(ast::DeviceBodyItem::Package(self.lower_package_decl(inner)))
+            }
             Rule::pins_block => Some(ast::DeviceBodyItem::Pins(self.lower_pins_block(inner))),
             Rule::spec_block => Some(ast::DeviceBodyItem::Spec(self.lower_spec_block(inner))),
             Rule::rule_block => Some(ast::DeviceBodyItem::Rule(self.lower_rule_block(inner))),

@@ -193,7 +193,10 @@ design USBBoard {
 
     // Verify all spans are non-degenerate
     for item in &sf.items {
-        assert!(item.span.start < item.span.end, "item span should be non-empty");
+        assert!(
+            item.span.start < item.span.end,
+            "item span should be non-empty"
+        );
     }
 }
 
@@ -466,7 +469,10 @@ fn syntax_errors_produce_errors_with_spans() {
         "error span start should be within source"
     );
     // Error should have a non-empty message
-    assert!(!errors[0].message.is_empty(), "error message should not be empty");
+    assert!(
+        !errors[0].message.is_empty(),
+        "error message should not be empty"
+    );
 
     // Verify Display impl works
     let display = format!("{}", errors[0]);

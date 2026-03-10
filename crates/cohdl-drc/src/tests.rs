@@ -4,6 +4,9 @@ use cohdl_sema::connectivity::{ConnectivityIR, Instance, Net, PinRef};
 use cohdl_sema::typeck::{InstanceId, EXTERNAL_INSTANCE};
 
 use crate::rules::*;
+use crate::user_rules::{
+    RuleAppliesTo, RuleBinOp, RuleExpr, UserDefinedRule, UserDefinedRuleSet,
+};
 use crate::{DiagnosticLevel, DrcRule, DrcRunner};
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
@@ -375,4 +378,420 @@ fn runner_empty_design_no_diagnostics() {
     let runner = DrcRunner::new();
     let diags = runner.run(&design);
     assert!(diags.is_empty());
+}
+
+// ── User-defined rules: expression evaluation ──────────────────────────────
+
+#[test]
+fn user_rule_spec_field_float_literal() {
+    // Simple assertion: self.spec.voltage_rating >= 5.0
+    let rule = UserDefinedRule {
+        name: "min_voltage".into(),
+        level: DiagnosticLevel::Warning,
+        assertion: RuleExpr::Binary {
+            op: RuleBinOp::Ge,
+            lhs: Box::new(RuleExpr::SpecField("voltage_rating".into())),
+            rhs: Box::new(RuleExpr::Float(5.0)),
+        },
+        message_template: "voltage_rating {voltage_rating} is below 5V".into(),
+        applies_to: RuleAppliesTo::Trait("Capacitor".into()),
+    };
+
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(rule);
+
+    // Instance with rating 3.3V — should trigger.
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "3.3V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![],
+    );
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].rule_id, "min_voltage");
+    assert_eq!(diags[0].level, DiagnosticLevel::Warning);
+    assert!(diags[0].message.contains("3.3V"));
+}
+
+#[test]
+fn user_rule_no_trigger_when_assertion_holds() {
+    let rule = UserDefinedRule {
+        name: "min_voltage".into(),
+        level: DiagnosticLevel::Warning,
+        assertion: RuleExpr::Binary {
+            op: RuleBinOp::Ge,
+            lhs: Box::new(RuleExpr::SpecField("voltage_rating".into())),
+            rhs: Box::new(RuleExpr::Float(5.0)),
+        },
+        message_template: "too low".into(),
+        applies_to: RuleAppliesTo::Trait("Capacitor".into()),
+    };
+
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(rule);
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![],
+    );
+    let diags = rules.check(&design);
+    assert!(diags.is_empty());
+}
+
+#[test]
+fn user_rule_does_not_apply_to_unrelated_device() {
+    let rule = UserDefinedRule {
+        name: "cap_check".into(),
+        level: DiagnosticLevel::Warning,
+        assertion: RuleExpr::Float(0.0), // Would always be falsy, but shouldn't apply.
+        message_template: "should not fire".into(),
+        applies_to: RuleAppliesTo::Trait("Capacitor".into()),
+    };
+
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(rule);
+
+    // Instance is a Resistor, not a Capacitor.
+    let design = ir(
+        vec![inst(0, "r1", "RES", &[("impl_traits", "Resistor")])],
+        vec![],
+    );
+    let diags = rules.check(&design);
+    assert!(diags.is_empty());
+}
+
+// ── User-defined rules: voltage_derating from Capacitor trait ──────────────
+
+/// Build the `voltage_derating` rule as it would appear in a `Capacitor` trait:
+///
+/// ```hdl
+/// rule voltage_derating(level: Warning) {
+///     assert self.spec.voltage_rating * 0.8 >= net_voltage(self.A, self.B)
+///     message: "net voltage {net_voltage}V exceeds 80% derating of {voltage_rating}"
+/// }
+/// ```
+fn capacitor_voltage_derating_rule() -> UserDefinedRule {
+    UserDefinedRule {
+        name: "voltage_derating".into(),
+        level: DiagnosticLevel::Warning,
+        assertion: RuleExpr::Binary {
+            op: RuleBinOp::Ge,
+            lhs: Box::new(RuleExpr::Binary {
+                op: RuleBinOp::Mul,
+                lhs: Box::new(RuleExpr::SpecField("voltage_rating".into())),
+                rhs: Box::new(RuleExpr::Float(0.8)),
+            }),
+            rhs: Box::new(RuleExpr::NetVoltage {
+                pin_a: "A".into(),
+                pin_b: "B".into(),
+            }),
+        },
+        message_template:
+            "net voltage {net_voltage}V exceeds 80% derating of {voltage_rating}".into(),
+        applies_to: RuleAppliesTo::Trait("Capacitor".into()),
+    }
+}
+
+#[test]
+fn voltage_derating_triggers_when_close_to_rating() {
+    // Capacitor rated 10V on a 9V net — 9 > 10*0.8 = 8, so should trigger.
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
+    );
+
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].rule_id, "voltage_derating");
+    assert_eq!(diags[0].level, DiagnosticLevel::Warning);
+    assert_eq!(diags[0].instance_path, "Board::c1");
+    assert!(diags[0].message.contains("9"));
+    assert!(diags[0].message.contains("derating"));
+}
+
+#[test]
+fn voltage_derating_no_trigger_within_margin() {
+    // Capacitor rated 10V on a 5V net — 5 <= 10*0.8 = 8, so should NOT trigger.
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("5V", vec![pinref(0, "A"), ext_pin("5V")])],
+    );
+
+    let diags = rules.check(&design);
+    assert!(diags.is_empty());
+}
+
+// ── User-defined rules: device override of trait rule ──────────────────────
+
+/// Build a stricter `voltage_derating` rule for an `Electrolytic` device:
+/// 50% derating instead of 80%.
+///
+/// ```hdl
+/// device Electrolytic: impl Capacitor {
+///     rule voltage_derating(level: Warning) {
+///         assert self.spec.voltage_rating * 0.5 >= net_voltage(self.A, self.B)
+///         message: "net voltage {net_voltage}V exceeds 50% derating of {voltage_rating}"
+///     }
+/// }
+/// ```
+fn electrolytic_voltage_derating_override() -> UserDefinedRule {
+    UserDefinedRule {
+        name: "voltage_derating".into(),
+        level: DiagnosticLevel::Warning,
+        assertion: RuleExpr::Binary {
+            op: RuleBinOp::Ge,
+            lhs: Box::new(RuleExpr::Binary {
+                op: RuleBinOp::Mul,
+                lhs: Box::new(RuleExpr::SpecField("voltage_rating".into())),
+                rhs: Box::new(RuleExpr::Float(0.5)),
+            }),
+            rhs: Box::new(RuleExpr::NetVoltage {
+                pin_a: "A".into(),
+                pin_b: "B".into(),
+            }),
+        },
+        message_template:
+            "net voltage {net_voltage}V exceeds 50% derating of {voltage_rating}".into(),
+        applies_to: RuleAppliesTo::Device("Electrolytic".into()),
+    }
+}
+
+#[test]
+fn device_override_uses_stricter_rule() {
+    // Both the trait rule (80%) and the device rule (50%) are registered.
+    // For an Electrolytic instance, the device rule should override the trait rule.
+    // Rated 10V on a 6V net:
+    //   - 80% rule: 10*0.8 = 8 >= 6 → passes
+    //   - 50% rule: 10*0.5 = 5 >= 6 → FAILS → should trigger
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+    rules.add(electrolytic_voltage_derating_override());
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "Electrolytic",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("6V", vec![pinref(0, "A"), ext_pin("6V")])],
+    );
+
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].rule_id, "voltage_derating");
+    // Confirm it's the device's 50% message, not the trait's 80%.
+    assert!(diags[0].message.contains("50%"));
+}
+
+#[test]
+fn trait_rule_still_applies_to_non_overriding_device() {
+    // An MLCC (non-electrolytic) should still use the trait's 80% derating.
+    // Rated 10V on a 9V net: 10*0.8 = 8 < 9 → triggers.
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+    rules.add(electrolytic_voltage_derating_override());
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
+    );
+
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert!(diags[0].message.contains("80%"));
+}
+
+#[test]
+fn device_override_no_trigger_within_stricter_margin() {
+    // Electrolytic rated 10V on a 4V net: 10*0.5 = 5 >= 4 → passes.
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+    rules.add(electrolytic_voltage_derating_override());
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "Electrolytic",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("4V", vec![pinref(0, "A"), ext_pin("4V")])],
+    );
+
+    let diags = rules.check(&design);
+    assert!(diags.is_empty());
+}
+
+// ── Integration: user-defined rules in DrcRunner ───────────────────────────
+
+#[test]
+fn runner_includes_user_defined_diagnostics() {
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+
+    let mut runner = DrcRunner::new();
+    runner.add_user_rules(rules);
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
+    );
+
+    let diags = runner.run(&design);
+    assert!(diags.iter().any(|d| d.rule_id == "voltage_derating"));
+}
+
+#[test]
+fn runner_suppresses_user_defined_diagnostic() {
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+
+    let mut runner = DrcRunner::new();
+    runner.add_user_rules(rules);
+    runner.allow("Board::c1", "voltage_derating");
+
+    let design = ir(
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[
+                ("voltage_rating", "10V"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
+        vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
+    );
+
+    let diags = runner.run(&design);
+    assert!(!diags.iter().any(|d| d.rule_id == "voltage_derating"));
+}
+
+// ── Expression IR: arithmetic operations ───────────────────────────────────
+
+#[test]
+fn user_rule_mul_and_comparison() {
+    // Assert: self.spec.capacitance * 1000.0 >= 100.0
+    // i.e. capacitance must be at least 100mF = 0.1F when multiplied by 1000.
+    // 100nF = 1e-7 → 1e-7 * 1000 = 1e-4 < 100 → should trigger.
+    let rule = UserDefinedRule {
+        name: "min_cap".into(),
+        level: DiagnosticLevel::Error,
+        assertion: RuleExpr::Binary {
+            op: RuleBinOp::Ge,
+            lhs: Box::new(RuleExpr::Binary {
+                op: RuleBinOp::Mul,
+                lhs: Box::new(RuleExpr::SpecField("capacitance".into())),
+                rhs: Box::new(RuleExpr::Float(1000.0)),
+            }),
+            rhs: Box::new(RuleExpr::Float(100.0)),
+        },
+        message_template: "capacitance too low".into(),
+        applies_to: RuleAppliesTo::Device("MLCC".into()),
+    };
+
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(rule);
+
+    let design = ir(
+        vec![inst(0, "c1", "MLCC", &[("capacitance", "100nF")])],
+        vec![],
+    );
+
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].rule_id, "min_cap");
+    assert_eq!(diags[0].level, DiagnosticLevel::Error);
+}
+
+#[test]
+fn user_rule_net_voltage_with_instance_voltage_annotation() {
+    // Instance carries voltage=5V, so net_voltage should resolve to 5.0.
+    let mut rules = UserDefinedRuleSet::new();
+    rules.add(capacitor_voltage_derating_rule());
+
+    // c1 rated 6V; voltage source instance on same net annotated 5V.
+    // 6*0.8 = 4.8 < 5 → triggers.
+    let design = ir(
+        vec![
+            inst(
+                0,
+                "c1",
+                "MLCC",
+                &[
+                    ("voltage_rating", "6V"),
+                    ("impl_traits", "Capacitor"),
+                ],
+            ),
+            inst(1, "vreg", "LDO", &[("voltage", "5V")]),
+        ],
+        vec![net(
+            "VDD",
+            vec![pinref(0, "A"), pinref(1, "OUT")],
+        )],
+    );
+
+    let diags = rules.check(&design);
+    assert_eq!(diags.len(), 1);
+    assert_eq!(diags[0].rule_id, "voltage_derating");
 }

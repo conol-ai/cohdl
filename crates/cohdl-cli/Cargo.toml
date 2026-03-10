@@ -3,3 +3,23 @@ name = "cohdl-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[[bin]]
+name = "cohdl"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+termcolor = { workspace = true }
+toml = { workspace = true }
+serde = { workspace = true }
+cohdl-parser = { path = "../cohdl-parser" }
+cohdl-sema = { path = "../cohdl-sema" }
+cohdl-drc = { path = "../cohdl-drc" }
+cohdl-codegen-kicad = { path = "../cohdl-codegen-kicad" }
+cohdl-syntax = { path = "../cohdl-syntax" }
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"

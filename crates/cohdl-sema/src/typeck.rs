@@ -124,6 +124,8 @@ pub struct TypeCheckResult {
     pub errors: Vec<SemaError>,
     /// Trait name → designator prefix (e.g. `"Capacitor"` → `"C"`).
     pub trait_prefixes: HashMap<std::string::String, std::string::String>,
+    /// Device name → list of declared pin names (for connectivity building).
+    pub device_pins: HashMap<std::string::String, Vec<std::string::String>>,
 }
 
 // ── Internal: collected definitions ─────────────────────────────────────────
@@ -1200,10 +1202,23 @@ pub fn type_check(source: &SourceFile, resolved: &ResolvedSourceFile) -> TypeChe
         })
         .collect();
 
+    // Collect device pin maps for connectivity building.
+    let device_pins: HashMap<std::string::String, Vec<std::string::String>> = checker
+        .devices
+        .iter()
+        .map(|(name, def)| {
+            (
+                name.clone(),
+                def.declared_pins.iter().cloned().collect(),
+            )
+        })
+        .collect();
+
     TypeCheckResult {
         designs,
         errors: checker.errors,
         trait_prefixes,
+        device_pins,
     }
 }
 

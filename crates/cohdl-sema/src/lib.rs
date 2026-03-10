@@ -721,21 +721,19 @@ mod tests {
         assert!(resolved.symbols.lookup("power").is_some());
         assert!(resolved.symbols.lookup("power::decoupling").is_some());
         assert!(resolved.symbols.lookup("power::internal").is_some());
-        assert_eq!(
+        assert!(
             resolved
                 .symbols
                 .lookup("power::decoupling")
                 .unwrap()
-                .is_public,
-            true
+                .is_public
         );
-        assert_eq!(
-            resolved
+        assert!(
+            !resolved
                 .symbols
                 .lookup("power::internal")
                 .unwrap()
-                .is_public,
-            false
+                .is_public
         );
     }
 

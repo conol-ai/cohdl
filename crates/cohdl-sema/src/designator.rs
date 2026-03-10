@@ -49,6 +49,12 @@ pub struct InstanceInfo {
     pub prefix: Option<String>,
 }
 
+impl Default for DesignatorDb {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DesignatorDb {
     /// Create an empty database.
     pub fn new() -> Self {
@@ -85,11 +91,17 @@ impl DesignatorDb {
     ///   prefix.
     ///
     /// Returns a mapping from hierarchical path → designator, plus any errors.
-    pub fn assign(&mut self, instances: &[InstanceInfo]) -> (BTreeMap<String, String>, Vec<SemaError>) {
+    pub fn assign(
+        &mut self,
+        instances: &[InstanceInfo],
+    ) -> (BTreeMap<String, String>, Vec<SemaError>) {
         let mut errors = Vec::new();
 
         // Collect the set of paths that are currently live.
-        let live_paths: HashSet<&str> = instances.iter().map(|i| i.hierarchical_path.as_str()).collect();
+        let live_paths: HashSet<&str> = instances
+            .iter()
+            .map(|i| i.hierarchical_path.as_str())
+            .collect();
 
         // Phase 1: keep existing assignments for live paths.
         let mut result: BTreeMap<String, String> = BTreeMap::new();
@@ -117,9 +129,9 @@ impl DesignatorDb {
                         // The lock file has a different designator for this path.
                         // The override wins, but only if the override designator
                         // isn't already assigned to a *different* path.
-                        let conflict = result.iter().find(|(p, d)| {
-                            *d == override_desig && **p != inst.hierarchical_path
-                        });
+                        let conflict = result
+                            .iter()
+                            .find(|(p, d)| *d == override_desig && **p != inst.hierarchical_path);
                         if let Some((conflicting_path, _)) = conflict {
                             errors.push(SemaError::new(
                                 format!(
@@ -138,9 +150,9 @@ impl DesignatorDb {
                     // If they match, nothing to do.
                 } else {
                     // No existing assignment.  Check for conflict.
-                    let conflict = result.iter().find(|(p, d)| {
-                        *d == override_desig && **p != inst.hierarchical_path
-                    });
+                    let conflict = result
+                        .iter()
+                        .find(|(p, d)| *d == override_desig && **p != inst.hierarchical_path);
                     if let Some((conflicting_path, _)) = conflict {
                         errors.push(SemaError::new(
                             format!(
@@ -151,7 +163,9 @@ impl DesignatorDb {
                         ));
                         continue;
                     }
-                    if used.contains(override_desig) && !result.values().any(|d| d == override_desig) {
+                    if used.contains(override_desig)
+                        && !result.values().any(|d| d == override_desig)
+                    {
                         // Used in a tombstone — still a conflict.
                         errors.push(SemaError::new(
                             format!(
@@ -240,9 +254,7 @@ pub fn build_instance_infos(
         .map(|inst| {
             let prefix = device_traits
                 .get(&inst.device)
-                .and_then(|traits| {
-                    traits.iter().find_map(|t| trait_prefixes.get(t).cloned())
-                });
+                .and_then(|traits| traits.iter().find_map(|t| trait_prefixes.get(t).cloned()));
             InstanceInfo {
                 hierarchical_path: inst.hierarchical_path.clone(),
                 designator_override: overrides.get(&inst.hierarchical_path).cloned(),
@@ -538,7 +550,7 @@ mod tests {
 
     #[test]
     fn build_instance_infos_derives_prefix() {
-        use crate::connectivity::{Instance, ConnectivityIR};
+        use crate::connectivity::{ConnectivityIR, Instance};
         use crate::typeck::InstanceId;
 
         let ir = ConnectivityIR {

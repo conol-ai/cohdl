@@ -1,0 +1,228 @@
+// ──────────────────────────────────────────────
+// cohdl PEG grammar  (pest 2.x)
+// ──────────────────────────────────────────────
+
+// ── Implicit whitespace & comments ──────────
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "//" ~ (!NEWLINE ~ ANY)* }
+
+// ── File ────────────────────────────────────
+file = { SOI ~ top_level_item* ~ EOI }
+
+// ── Top-level items ─────────────────────────
+top_level_item = {
+    attribute* ~ visibility? ~ (
+        trait_def
+      | device_def
+      | part_def
+      | type_def
+      | fn_def
+      | module_def
+      | design_def
+      | use_decl
+      | mod_decl
+    )
+}
+
+visibility = { "pub" }
+
+// ── Attributes ──────────────────────────────
+attribute      = { "#[" ~ attribute_inner ~ "]" }
+attribute_inner = { ident ~ ("(" ~ attribute_args ~ ")")? }
+attribute_args  = { string_literal ~ ("," ~ string_literal)*
+                  | ident ~ ("," ~ ident)* }
+
+// ── Use declaration ─────────────────────────
+use_decl  = { "use" ~ use_path }
+use_path  = { ident ~ ("::" ~ (use_group | ident))* }
+use_group = { "{" ~ ident ~ ("," ~ ident)* ~ ","? ~ "}" }
+
+// ── Module declaration (pub mod / mod) ──────
+mod_decl = { "mod" ~ ident }
+
+// ── Identifiers & paths ────────────────────
+ident       = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+scoped_path =  { ident ~ ("::" ~ ident)+ }
+
+// ── Literals ────────────────────────────────
+// Engineering-notation number: 100nF  10k  3.3V  48  22R  100m  4.7uF  6.3V  0.8
+eng_number = @{
+    ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ eng_suffix?
+}
+eng_suffix = @{ (ASCII_ALPHA)+ }
+
+integer = @{ ASCII_DIGIT+ }
+
+string_literal = @{ "\"" ~ string_inner ~ "\"" }
+string_inner   = @{ (!"\"" ~ !"\\" ~ ANY | "\\" ~ ANY)* }
+
+boolean = { "true" | "false" }
+
+// ── Pin values ──────────────────────────────
+pin_value = { pin_range | pin_list | integer }
+pin_list  = { "[" ~ integer ~ ("," ~ integer)* ~ "]" }
+pin_range = { "[" ~ integer ~ ".." ~ integer ~ "]" }
+
+// ── Pin-bus macro call ──────────────────────
+pin_bus_call = { "pin_bus!" ~ "(" ~ ident ~ "," ~ integer ~ "," ~ integer ~ ")" }
+
+// ── Generic parameters (definition site) ───
+generic_params   = { "<" ~ generic_param_def ~ ("," ~ generic_param_def)* ~ ">" }
+generic_param_def = { ident ~ ":" ~ (impl_constraint | type_expr) ~ ("=" ~ value_expr)? }
+
+impl_constraint = { "impl" ~ trait_bound }
+trait_bound      = { type_expr ~ ("+" ~ type_expr)* }
+
+// ── Generic arguments (usage site) ──────────
+generic_args = { "<" ~ generic_arg ~ ("," ~ generic_arg)* ~ ">" }
+generic_arg  = { ident ~ ":" ~ value_expr }
+
+// ── Type expression ─────────────────────────
+type_expr = { (scoped_path | ident) ~ generic_args? }
+
+// ── Value expression ────────────────────────
+// Used in generic defaults, spec values, inst types, call args, etc.
+value_expr = { expr }
+
+// ── Expression hierarchy (for rule bodies) ──
+expr            = { comparison_expr }
+comparison_expr = { additive_expr ~ (comparison_op ~ additive_expr)? }
+comparison_op   = { "<=" | ">=" | "!=" | "==" }
+additive_expr   = { multiplicative_expr ~ (additive_op ~ multiplicative_expr)* }
+additive_op     = { "+" | "-" }
+multiplicative_expr = { unary_expr ~ (multiplicative_op ~ unary_expr)* }
+multiplicative_op   = { "*" | "/" }
+unary_expr      = { unary_op? ~ atom_expr }
+unary_op        = { "-" | "!" }
+atom_expr       = { "(" ~ expr ~ ")"
+                   | boolean
+                   | eng_number
+                   | string_literal
+                   | fn_call_expr
+                   | dot_path
+                   | type_expr }
+
+// Dotted path: self.spec.voltage_rating, mcu.VDD_IO, c.A
+dot_path = { (scoped_path | ident) ~ ("." ~ ident)+ }
+
+// Function-call expression (inside rule assert, etc.)
+fn_call_expr = { (scoped_path | ident) ~ "(" ~ (fn_call_expr_arg ~ ("," ~ fn_call_expr_arg)*)? ~ ")" }
+fn_call_expr_arg = { expr }
+
+// ── Trait definition ────────────────────────
+trait_def = {
+    "trait" ~ ident ~ trait_parents? ~ "{" ~ trait_body_item* ~ "}"
+}
+trait_parents   = { ":" ~ type_expr ~ ("+" ~ type_expr)* }
+trait_body_item = {
+    pins_block
+  | spec_block
+  | rule_block
+  | designator_prefix
+}
+
+designator_prefix = { "designator_prefix" ~ ":" ~ string_literal }
+
+// ── Pins block ──────────────────────────────
+// pins { A: 1, B: 2 }                     — unqualified
+// pins[LQFP48] { ... }                   — package-qualified
+pins_block     = { "pins" ~ pins_qualifier? ~ "{" ~ (pin_entry ~ ","?)* ~ "}" }
+pins_qualifier = { "[" ~ ident ~ "]" }
+pin_entry      = { pin_bus_call | ident ~ ":" ~ pin_value_or_type }
+pin_value_or_type = { pin_value | ident }
+
+// ── Spec block ──────────────────────────────
+spec_block = { "spec" ~ "{" ~ (spec_entry ~ ","?)* ~ "}" }
+spec_entry = { ident ~ ":" ~ value_expr }
+
+// ── Rule block ──────────────────────────────
+rule_block     = { "rule" ~ ident ~ "(" ~ rule_level ~ ")" ~ "{" ~ rule_body ~ "}" }
+rule_level     = { "level" ~ ":" ~ ident }
+rule_body      = { rule_assert ~ rule_message }
+rule_assert    = { "assert" ~ expr }
+rule_message   = { "message" ~ ":" ~ interpolated_string }
+
+interpolated_string       = @{ "\"" ~ interpolated_string_inner ~ "\"" }
+interpolated_string_inner = @{
+    (
+        "{" ~ (!"}" ~ ANY)* ~ "}"
+      | !("\"" | "\\") ~ ANY
+      | "\\" ~ ANY
+    )*
+}
+
+// ── Device definition ───────────────────────
+device_def = {
+    "device" ~ ident ~ generic_params?
+    ~ impl_clause?
+    ~ "{" ~ device_body_item* ~ "}"
+}
+
+impl_clause = { ":" ~ "impl" ~ trait_bound }
+
+device_body_item = {
+    package_decl
+  | pins_block
+  | spec_block
+  | rule_block
+}
+
+package_decl = { "package" ~ ":" ~ (scoped_path | ident) }
+
+// ── Part definition ─────────────────────────
+part_def = {
+    "part" ~ ident ~ ":" ~ type_expr
+    ~ "{" ~ avl_entry* ~ "}"
+}
+
+avl_entry     = { avl_kind ~ "{" ~ (avl_field ~ ","?)* ~ "}" }
+avl_kind      = { "primary" | "alt" }
+avl_field     = { ident ~ ":" ~ string_literal }
+
+// ── Type alias ──────────────────────────────
+type_def = {
+    "type" ~ ident ~ generic_params? ~ "=" ~ type_expr
+}
+
+// ── Function definition ─────────────────────
+fn_def = {
+    "fn" ~ ident ~ generic_params?
+    ~ "(" ~ (fn_param ~ ("," ~ fn_param)*)? ~ ")"
+    ~ "{" ~ fn_body_stmt* ~ "}"
+}
+
+fn_param      = { ident ~ ":" ~ (impl_constraint | type_expr) }
+
+fn_body_stmt  = { attribute* ~ (inst_stmt | net_stmt | call_stmt) }
+
+// ── Module definition ───────────────────────
+module_def = {
+    "module" ~ ident ~ "{" ~ top_level_item* ~ "}"
+}
+
+// ── Design definition ───────────────────────
+design_def = {
+    "design" ~ ident ~ "{" ~ design_body_stmt* ~ "}"
+}
+
+design_body_stmt = { attribute* ~ (inst_stmt | net_stmt | call_stmt) }
+
+// ── Statements ──────────────────────────────
+// inst name: Type<...>
+// inst name: Type<...> { primary { ... } alt { ... } }
+inst_stmt = {
+    "inst" ~ ident ~ ":" ~ type_expr ~ ("{" ~ avl_entry* ~ "}")?
+}
+
+// net name: pin_ref, pin_ref, ...
+net_stmt = {
+    "net" ~ net_target ~ ":" ~ net_endpoint ~ ("," ~ net_endpoint)*
+}
+net_target   = { dot_path | ident }
+net_endpoint = { dot_path | ident }
+
+// Function call statement: name(arg: val, ...)  or  path::name(arg: val, ...)
+call_stmt = {
+    (scoped_path | ident) ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")"
+}
+call_arg = { ident ~ ":" ~ value_expr }

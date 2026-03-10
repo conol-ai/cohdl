@@ -3,3 +3,10 @@ name = "cohdl-parser"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[dependencies]
+pest = { workspace = true }
+pest_derive = { workspace = true }
+
+[dev-dependencies]
+pest = { workspace = true }

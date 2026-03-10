@@ -37,6 +37,7 @@ version = "0.1.0"
 name = "cohdl-parser"
 version = "0.1.0"
 dependencies = [
+ "cohdl-syntax",
  "pest",
  "pest_derive",
 ]

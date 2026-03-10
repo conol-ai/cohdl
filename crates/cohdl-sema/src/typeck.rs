@@ -270,7 +270,7 @@ impl TypeChecker {
         let qname = qualify(module_path, &d.name.name);
 
         let generic_params = match &d.generic_params {
-            Some(gp) => gp.params.iter().map(|p| generic_param_to_def(p)).collect(),
+            Some(gp) => gp.params.iter().map(generic_param_to_def).collect(),
             None => Vec::new(),
         };
 
@@ -343,7 +343,7 @@ impl TypeChecker {
         let qname = qualify(module_path, &f.name.name);
 
         let _generic_params: Vec<GenericParamDef> = match &f.generic_params {
-            Some(gp) => gp.params.iter().map(|p| generic_param_to_def(p)).collect(),
+            Some(gp) => gp.params.iter().map(generic_param_to_def).collect(),
             None => Vec::new(),
         };
 
@@ -362,19 +362,14 @@ impl TypeChecker {
             })
             .collect();
 
-        self.fns.insert(
-            qname.clone(),
-            FnDef {
-                params,
-            },
-        );
+        self.fns.insert(qname.clone(), FnDef { params });
     }
 
     fn collect_type_alias(&mut self, ta: &TypeAlias, module_path: &str) {
         let qname = qualify(module_path, &ta.name.name);
 
         let generic_params = match &ta.generic_params {
-            Some(gp) => gp.params.iter().map(|p| generic_param_to_def(p)).collect(),
+            Some(gp) => gp.params.iter().map(generic_param_to_def).collect(),
             None => Vec::new(),
         };
 
@@ -515,10 +510,10 @@ impl TypeChecker {
             None => return,
         };
 
-        let target_device = self
-            .devices
-            .get(&alias.target_device)
-            .or_else(|| self.devices.get(&qualify(module_path, &alias.target_device)));
+        let target_device = self.devices.get(&alias.target_device).or_else(|| {
+            self.devices
+                .get(&qualify(module_path, &alias.target_device))
+        });
         let target_device = match target_device {
             Some(d) => d.clone(),
             None => {
@@ -529,7 +524,7 @@ impl TypeChecker {
 
         // Each alias generic param must be used in the target args.
         // Also check that target args reference valid device params.
-        for (arg_name, _) in &alias.target_args {
+        for arg_name in alias.target_args.keys() {
             let found = target_device
                 .generic_params
                 .iter()
@@ -582,8 +577,7 @@ impl TypeChecker {
                 }
                 TopLevelItemKind::Module(m) => {
                     let child = qualify(module_path, &m.name.name);
-                    let mut child_designs =
-                        self.check_designs(&m.items, resolved, &child);
+                    let mut child_designs = self.check_designs(&m.items, resolved, &child);
                     designs.append(&mut child_designs);
                 }
                 _ => {}
@@ -612,8 +606,7 @@ impl TypeChecker {
                 let type_name = type_expr_name(&inst.ty);
 
                 // Resolve through type aliases.
-                let (device_name, base_args) =
-                    self.resolve_type_name(&type_name, module_path);
+                let (device_name, base_args) = self.resolve_type_name(&type_name, module_path);
 
                 // Check if this is a part or a device.
                 let (final_device, mpn, part_args) =
@@ -673,9 +666,13 @@ impl TypeChecker {
             if let DesignBodyStmtKind::Net(net_stmt) = &stmt.kind {
                 let net_name = match &net_stmt.target.kind {
                     NetEndpointKind::Ident(id) => id.name.clone(),
-                    NetEndpointKind::DotPath(dp) => {
-                        dp.root.segments.iter().map(|s| s.name.as_str()).collect::<Vec<_>>().join(".")
-                    }
+                    NetEndpointKind::DotPath(dp) => dp
+                        .root
+                        .segments
+                        .iter()
+                        .map(|s| s.name.as_str())
+                        .collect::<Vec<_>>()
+                        .join("."),
                 };
 
                 let mut endpoints = Vec::new();
@@ -696,10 +693,7 @@ impl TypeChecker {
                                 }
                             } else {
                                 self.errors.push(SemaError::new(
-                                    format!(
-                                        "unknown instance `{}` in net endpoint",
-                                        root_name
-                                    ),
+                                    format!("unknown instance `{}` in net endpoint", root_name),
                                     ep.span,
                                 ));
                             }
@@ -717,13 +711,13 @@ impl TypeChecker {
         // Third pass: check function calls.
         for stmt in &d.body {
             if let DesignBodyStmtKind::Call(call) = &stmt.kind {
-                let fn_name =
-                    call.path
-                        .segments
-                        .iter()
-                        .map(|s| s.name.as_str())
-                        .collect::<Vec<_>>()
-                        .join("::");
+                let fn_name = call
+                    .path
+                    .segments
+                    .iter()
+                    .map(|s| s.name.as_str())
+                    .collect::<Vec<_>>()
+                    .join("::");
                 self.check_call(&fn_name, &call.args, call.path.span, module_path, resolved);
             }
         }
@@ -777,9 +771,7 @@ impl TypeChecker {
         module_path: &str,
         _resolved: &ResolvedSourceFile,
     ) {
-        let fndef = self
-            .find_fn(fn_name, module_path)
-            .cloned();
+        let fndef = self.find_fn(fn_name, module_path).cloned();
         let fndef = match fndef {
             Some(f) => f,
             None => return, // Name resolution already reported.
@@ -815,20 +807,13 @@ impl TypeChecker {
     }
 
     /// Check whether a given type (device/part) implements a trait.
-    fn type_implements_trait(
-        &self,
-        type_name: &str,
-        trait_name: &str,
-        module_path: &str,
-    ) -> bool {
+    fn type_implements_trait(&self, type_name: &str, trait_name: &str, module_path: &str) -> bool {
         // Check devices.
         if let Some(dev) = self.find_device(type_name, module_path) {
             return dev.impl_traits.iter().any(|t| t == trait_name)
-                || dev
-                    .impl_traits
-                    .iter()
-                    .any(|t| qualify(module_path, t) == trait_name
-                        || *t == qualify(module_path, trait_name));
+                || dev.impl_traits.iter().any(|t| {
+                    qualify(module_path, t) == trait_name || *t == qualify(module_path, trait_name)
+                });
         }
 
         // Check parts—look up the underlying device.
@@ -864,7 +849,10 @@ impl TypeChecker {
         &self,
         name: &str,
         module_path: &str,
-    ) -> (std::string::String, HashMap<std::string::String, std::string::String>) {
+    ) -> (
+        std::string::String,
+        HashMap<std::string::String, std::string::String>,
+    ) {
         let alias = self
             .type_aliases
             .get(name)
@@ -899,9 +887,7 @@ fn type_expr_name(te: &TypeExpr) -> std::string::String {
 }
 
 /// Extract generic arguments from a type expression into a name→value map.
-fn extract_generic_args(
-    te: &TypeExpr,
-) -> HashMap<std::string::String, std::string::String> {
+fn extract_generic_args(te: &TypeExpr) -> HashMap<std::string::String, std::string::String> {
     let mut args = HashMap::new();
     if let Some(ga) = &te.generic_args {
         for arg in &ga.args {
@@ -1004,7 +990,7 @@ fn generic_param_to_def(p: &ast::GenericParam) -> GenericParamDef {
         name: p.name.name.clone(),
         kind,
         has_default: p.default.is_some(),
-        default_text: p.default.as_ref().map(|d| expr_to_string(d)),
+        default_text: p.default.as_ref().map(expr_to_string),
     }
 }
 
@@ -1027,44 +1013,20 @@ fn type_name_to_kind(name: &str) -> ValueKind {
 
 /// Infer the value kind from a string representation of a value.
 fn infer_value_kind(value: &str) -> ValueKind {
+    let starts_with_digit = value.chars().next().is_some_and(|c| c.is_ascii_digit());
+
     // Check for engineering number suffixes.
-    if value.ends_with('F') || value.ends_with('f') {
-        // Could be nF, uF, pF, mF, F
-        if value
-            .chars()
-            .next()
-            .map_or(false, |c| c.is_ascii_digit())
-        {
-            return ValueKind::Farads;
-        }
+    if starts_with_digit && (value.ends_with('F') || value.ends_with('f')) {
+        return ValueKind::Farads;
     }
-    if value.ends_with('V') || value.ends_with('v') {
-        if value
-            .chars()
-            .next()
-            .map_or(false, |c| c.is_ascii_digit())
-        {
-            return ValueKind::Voltage;
-        }
+    if starts_with_digit && (value.ends_with('V') || value.ends_with('v')) {
+        return ValueKind::Voltage;
     }
-    if value.ends_with('R') || value.ends_with("ohm") {
-        if value
-            .chars()
-            .next()
-            .map_or(false, |c| c.is_ascii_digit())
-        {
-            return ValueKind::Ohms;
-        }
+    if starts_with_digit && (value.ends_with('R') || value.ends_with("ohm")) {
+        return ValueKind::Ohms;
     }
-    if value.ends_with('A') || value.ends_with('a') {
-        if value.len() > 1
-            && value
-                .chars()
-                .next()
-                .map_or(false, |c| c.is_ascii_digit())
-        {
-            return ValueKind::Amps;
-        }
+    if starts_with_digit && value.len() > 1 && (value.ends_with('A') || value.ends_with('a')) {
+        return ValueKind::Amps;
     }
     // Check for boolean.
     if value == "true" || value == "false" {
@@ -1079,11 +1041,7 @@ fn infer_value_kind(value: &str) -> ValueKind {
         return ValueKind::Float;
     }
     // Otherwise treat as a Package/identifier.
-    if value
-        .chars()
-        .next()
-        .map_or(false, |c| c.is_ascii_uppercase())
-    {
+    if value.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
         return ValueKind::Package;
     }
 
@@ -1510,10 +1468,7 @@ mod tests {
         assert_eq!(c2.generic_substitutions.get("C"), Some(&"22nF".into()));
         assert_eq!(c2.generic_substitutions.get("V"), Some(&"16V".into()));
         // pkg should have been filled from default.
-        assert_eq!(
-            c2.generic_substitutions.get("pkg"),
-            Some(&"C0402".into())
-        );
+        assert_eq!(c2.generic_substitutions.get("pkg"), Some(&"C0402".into()));
 
         // Nets.
         assert_eq!(design.nets.len(), 2);

@@ -3,3 +3,7 @@ name = "cohdl-sema"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[dependencies]
+cohdl-syntax = { path = "../cohdl-syntax" }
+cohdl-parser = { path = "../cohdl-parser" }

@@ -3,8 +3,8 @@
 use cohdl_sema::connectivity::{ConnectivityIR, Instance, Net, PinRef};
 use cohdl_sema::typeck::{InstanceId, EXTERNAL_INSTANCE};
 
-use crate::{DiagnosticLevel, DrcRule, DrcRunner};
 use crate::rules::*;
+use crate::{DiagnosticLevel, DrcRule, DrcRunner};
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -52,7 +52,12 @@ fn ir(instances: Vec<Instance>, nets: Vec<Net>) -> ConnectivityIR {
 #[test]
 fn e001_triggers_when_rating_below_net_voltage() {
     let design = ir(
-        vec![inst(0, "c1", "MLCC", &[("voltage_rating", "3.3V"), ("voltage", "5V")])],
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[("voltage_rating", "3.3V"), ("voltage", "5V")],
+        )],
         vec![net("5V", vec![pinref(0, "A")])],
     );
     let diags = VoltageExceed.check(&design);
@@ -66,7 +71,12 @@ fn e001_triggers_when_rating_below_net_voltage() {
 #[test]
 fn e001_no_trigger_when_rating_sufficient() {
     let design = ir(
-        vec![inst(0, "c1", "MLCC", &[("voltage_rating", "10V"), ("voltage", "5V")])],
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[("voltage_rating", "10V"), ("voltage", "5V")],
+        )],
         vec![net("5V", vec![pinref(0, "A")])],
     );
     let diags = VoltageExceed.check(&design);
@@ -124,7 +134,12 @@ fn e002_no_trigger_non_polarized() {
 #[test]
 fn e003_triggers_missing_spec() {
     let design = ir(
-        vec![inst(0, "c1", "MLCC", &[("required_specs", "capacitance,voltage_rating")])],
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[("required_specs", "capacitance,voltage_rating")],
+        )],
         vec![],
     );
     let diags = SpecNotSatisfied.check(&design);
@@ -139,10 +154,7 @@ fn e003_no_trigger_when_specs_present() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("required_specs", "capacitance"),
-                ("capacitance", "100nF"),
-            ],
+            &[("required_specs", "capacitance"), ("capacitance", "100nF")],
         )],
         vec![],
     );
@@ -155,7 +167,15 @@ fn e003_no_trigger_when_specs_present() {
 #[test]
 fn e004_triggers_missing_trait() {
     let design = ir(
-        vec![inst(0, "x", "Generic", &[("required_traits", "Capacitor"), ("impl_traits", "Resistor")])],
+        vec![inst(
+            0,
+            "x",
+            "Generic",
+            &[
+                ("required_traits", "Capacitor"),
+                ("impl_traits", "Resistor"),
+            ],
+        )],
         vec![],
     );
     let diags = TraitNotImpl.check(&design);
@@ -167,7 +187,15 @@ fn e004_triggers_missing_trait() {
 #[test]
 fn e004_no_trigger_when_trait_present() {
     let design = ir(
-        vec![inst(0, "x", "Generic", &[("required_traits", "Capacitor"), ("impl_traits", "Capacitor")])],
+        vec![inst(
+            0,
+            "x",
+            "Generic",
+            &[
+                ("required_traits", "Capacitor"),
+                ("impl_traits", "Capacitor"),
+            ],
+        )],
         vec![],
     );
     let diags = TraitNotImpl.check(&design);
@@ -179,7 +207,12 @@ fn e004_no_trigger_when_trait_present() {
 #[test]
 fn e005_triggers_missing_field() {
     let design = ir(
-        vec![inst(0, "c1", "MLCC", &[("expected_spec_fields", "capacitance,tolerance")])],
+        vec![inst(
+            0,
+            "c1",
+            "MLCC",
+            &[("expected_spec_fields", "capacitance,tolerance")],
+        )],
         vec![],
     );
     let diags = MissingSpecField.check(&design);
@@ -237,10 +270,7 @@ fn w001_no_trigger_all_connected() {
 
 #[test]
 fn w002_triggers_on_floating_net() {
-    let design = ir(
-        vec![],
-        vec![net("ORPHAN", vec![ext_pin("ORPHAN")])],
-    );
+    let design = ir(vec![], vec![net("ORPHAN", vec![ext_pin("ORPHAN")])]);
     let diags = FloatingNet.check(&design);
     assert_eq!(diags.len(), 1);
     assert_eq!(diags[0].rule_id, "W002");
@@ -274,10 +304,7 @@ fn w003_triggers_single_instance_pin() {
 #[test]
 fn w003_no_trigger_two_instance_pins() {
     let design = ir(
-        vec![
-            inst(0, "c1", "MLCC", &[]),
-            inst(1, "r1", "RES", &[]),
-        ],
+        vec![inst(0, "c1", "MLCC", &[]), inst(1, "r1", "RES", &[])],
         vec![net("N1", vec![pinref(0, "A"), pinref(1, "A")])],
     );
     let diags = SingleDriver.check(&design);
@@ -337,7 +364,9 @@ fn runner_allow_suppresses_diagnostic() {
     let mut runner = DrcRunner::new();
     runner.allow("Board::d1", "E002");
     let diags = runner.run(&design);
-    assert!(!diags.iter().any(|d| d.rule_id == "E002" && d.instance_path == "Board::d1"));
+    assert!(!diags
+        .iter()
+        .any(|d| d.rule_id == "E002" && d.instance_path == "Board::d1"));
 }
 
 #[test]

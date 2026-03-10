@@ -181,9 +181,7 @@ impl DrcRule for PolarityMismatch {
 fn is_polarized(inst: &Instance) -> bool {
     inst.generic_substitutions
         .iter()
-        .any(|(k, v)| {
-            (k == "impl_traits" || k == "impl_trait") && v.contains("Polarized")
-        })
+        .any(|(k, v)| (k == "impl_traits" || k == "impl_trait") && v.contains("Polarized"))
 }
 
 // ── E003: spec_not_satisfied ─────────────────────────────────────────────────
@@ -196,8 +194,11 @@ impl DrcRule for SpecNotSatisfied {
         let mut out = Vec::new();
         for inst in &ir.instances {
             if let Some(required) = inst.generic_substitutions.get("required_specs") {
-                let required_fields: Vec<&str> =
-                    required.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let required_fields: Vec<&str> = required
+                    .split(',')
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty())
+                    .collect();
                 for field in required_fields {
                     if !inst.generic_substitutions.contains_key(field) {
                         out.push(diag(
@@ -227,8 +228,11 @@ impl DrcRule for TraitNotImpl {
         let mut out = Vec::new();
         for inst in &ir.instances {
             if let Some(required) = inst.generic_substitutions.get("required_traits") {
-                let required_traits: Vec<&str> =
-                    required.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let required_traits: Vec<&str> = required
+                    .split(',')
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty())
+                    .collect();
                 let impl_traits: HashSet<&str> = inst
                     .generic_substitutions
                     .get("impl_traits")
@@ -263,8 +267,11 @@ impl DrcRule for MissingSpecField {
         let mut out = Vec::new();
         for inst in &ir.instances {
             if let Some(expected) = inst.generic_substitutions.get("expected_spec_fields") {
-                let fields: Vec<&str> =
-                    expected.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let fields: Vec<&str> = expected
+                    .split(',')
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty())
+                    .collect();
                 for field in fields {
                     if !inst.generic_substitutions.contains_key(field) {
                         out.push(diag(
@@ -305,8 +312,11 @@ impl DrcRule for UnconnectedPin {
             // If the instance declares expected pins via generic_substitutions,
             // check each one.
             if let Some(pins_str) = inst.generic_substitutions.get("declared_pins") {
-                let declared: Vec<&str> =
-                    pins_str.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+                let declared: Vec<&str> = pins_str
+                    .split(',')
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty())
+                    .collect();
                 for pin in declared {
                     if !connected.contains(&(inst.id, pin)) {
                         out.push(diag(
@@ -342,7 +352,10 @@ impl DrcRule for FloatingNet {
                     "W002",
                     DiagnosticLevel::Error,
                     "",
-                    format!("net `{}` exists but has no instance pins connected", net.name),
+                    format!(
+                        "net `{}` exists but has no instance pins connected",
+                        net.name
+                    ),
                 ));
             }
         }

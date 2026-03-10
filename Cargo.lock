@@ -28,6 +28,10 @@ version = "0.1.0"
 [[package]]
 name = "cohdl-drc"
 version = "0.1.0"
+dependencies = [
+ "cohdl-sema",
+ "cohdl-syntax",
+]
 
 [[package]]
 name = "cohdl-lsp"

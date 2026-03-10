@@ -24,6 +24,9 @@ version = "0.1.0"
 [[package]]
 name = "cohdl-codegen-kicad"
 version = "0.1.0"
+dependencies = [
+ "cohdl-sema",
+]
 
 [[package]]
 name = "cohdl-drc"

@@ -45,6 +45,10 @@ dependencies = [
 [[package]]
 name = "cohdl-sema"
 version = "0.1.0"
+dependencies = [
+ "cohdl-parser",
+ "cohdl-syntax",
+]
 
 [[package]]
 name = "cohdl-syntax"

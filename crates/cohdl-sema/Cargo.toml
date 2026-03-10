@@ -7,3 +7,5 @@ license.workspace = true
 [dependencies]
 cohdl-syntax = { path = "../cohdl-syntax" }
 cohdl-parser = { path = "../cohdl-parser" }
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }

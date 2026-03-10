@@ -19,3 +19,7 @@ repository = "https://github.com/conol/cohdl"
 [workspace.dependencies]
 pest = "2.7"
 pest_derive = "2.7"
+clap = { version = "4", features = ["derive"] }
+termcolor = "1"
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }

@@ -17,7 +17,11 @@ use cohdl_sema::{resolve, ResolvedSourceFile, SemaError};
 // ── CLI definition ──────────────────────────────────────────────────────────
 
 #[derive(Parser)]
-#[command(name = "cohdl", version, about = "The cohdl hardware-description language compiler")]
+#[command(
+    name = "cohdl",
+    version,
+    about = "The cohdl hardware-description language compiler"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -153,37 +157,49 @@ fn render_parse_errors(
         let span_len = (err.span.end - err.span.start).max(1);
 
         // Error[PARSE]: message
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
         write!(stderr, "Error[PARSE]").ok();
         stderr.set_color(ColorSpec::new().set_bold(true)).ok();
         writeln!(stderr, ": parse error").ok();
         stderr.reset().ok();
 
         // --> file:line:col
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "  --> {}:{}:{}", file_path, line, col).ok();
         stderr.reset().ok();
 
         // source line
         let gutter = format!("{}", line_num);
         let padding = " ".repeat(gutter.len());
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "{} |", padding).ok();
         write!(stderr, "{} | ", gutter).ok();
         stderr.reset().ok();
         writeln!(stderr, "{}", line_text).ok();
 
         // underline
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         write!(stderr, "{} | ", padding).ok();
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
         write!(stderr, "{}{}", " ".repeat(col - 1), "^".repeat(span_len)).ok();
         stderr.reset().ok();
         writeln!(stderr).ok();
 
         // message
         let msg_padding = " ".repeat(gutter.len());
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         write!(stderr, "{} | ", msg_padding).ok();
         stderr.reset().ok();
         writeln!(stderr, "{}", err.message).ok();
@@ -202,27 +218,37 @@ fn render_sema_errors(
         let (line_num, line_text) = source_line_at(src, err.span.start);
         let span_len = (err.span.end - err.span.start).max(1);
 
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
         write!(stderr, "Error[SEMA]").ok();
         stderr.set_color(ColorSpec::new().set_bold(true)).ok();
         writeln!(stderr, ": {}", err.message).ok();
         stderr.reset().ok();
 
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "  --> {}:{}:{}", file_path, line, col).ok();
         stderr.reset().ok();
 
         let gutter = format!("{}", line_num);
         let padding = " ".repeat(gutter.len());
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "{} |", padding).ok();
         write!(stderr, "{} | ", gutter).ok();
         stderr.reset().ok();
         writeln!(stderr, "{}", line_text).ok();
 
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         write!(stderr, "{} | ", padding).ok();
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
         write!(stderr, "{}{}", " ".repeat(col - 1), "^".repeat(span_len)).ok();
         stderr.reset().ok();
         writeln!(stderr).ok();
@@ -247,37 +273,49 @@ fn render_drc_diagnostics(
         };
 
         // Error[E001]: message
-        stderr.set_color(ColorSpec::new().set_fg(Some(color)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(color)).set_bold(true))
+            .ok();
         write!(stderr, "{}[{}]", label, diag.rule_id).ok();
         stderr.set_color(ColorSpec::new().set_bold(true)).ok();
         writeln!(stderr, ": {}", diag.instance_path).ok();
         stderr.reset().ok();
 
         // --> file:line:col
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "  --> {}:{}:{}", file_path, line, col).ok();
         stderr.reset().ok();
 
         // source line
         let gutter = format!("{}", line_num);
         let padding = " ".repeat(gutter.len());
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         writeln!(stderr, "{} |", padding).ok();
         write!(stderr, "{} | ", gutter).ok();
         stderr.reset().ok();
         writeln!(stderr, "{}", line_text).ok();
 
         // underline
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         write!(stderr, "{} | ", padding).ok();
-        stderr.set_color(ColorSpec::new().set_fg(Some(color)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(color)).set_bold(true))
+            .ok();
         write!(stderr, "{}{}", " ".repeat(col - 1), "^".repeat(span_len)).ok();
         stderr.reset().ok();
         writeln!(stderr).ok();
 
         // message
         let msg_padding = " ".repeat(gutter.len());
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Cyan))).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .ok();
         write!(stderr, "{} | ", msg_padding).ok();
         stderr.reset().ok();
         writeln!(stderr, "{}", diag.message).ok();
@@ -331,7 +369,9 @@ fn run_pipeline(
     let design = match design {
         Some(d) => d,
         None => {
-            stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": design `{}` not found", top_design).ok();
@@ -354,10 +394,7 @@ fn run_pipeline(
     let drc_diags = runner.run(&conn_result.ir);
     if !drc_diags.is_empty() {
         render_drc_diagnostics(stderr, file_path, src, &drc_diags);
-        if drc_diags
-            .iter()
-            .any(|d| d.level == DiagnosticLevel::Error)
-        {
+        if drc_diags.iter().any(|d| d.level == DiagnosticLevel::Error) {
             has_errors = true;
         }
     }
@@ -379,7 +416,9 @@ fn cmd_build(
     let manifest = match load_manifest() {
         Ok(m) => m,
         Err(e) => {
-            stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": {}", e).ok();
@@ -387,15 +426,15 @@ fn cmd_build(
         }
     };
 
-    let top_design = design_override
-        .as_deref()
-        .unwrap_or(&manifest.design.top);
+    let top_design = design_override.as_deref().unwrap_or(&manifest.design.top);
     let file_path = &manifest.design.root;
 
     let src = match fs::read_to_string(file_path) {
         Ok(s) => s,
         Err(e) => {
-            stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": could not read {}: {}", file_path, e).ok();
@@ -418,7 +457,9 @@ fn cmd_build(
     let emit_all = emit.contains(&EmitTarget::All);
 
     if let Err(e) = fs::create_dir_all(&out_dir) {
-        stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
         write!(stderr, "Error").ok();
         stderr.reset().ok();
         writeln!(stderr, ": could not create output directory: {}", e).ok();
@@ -462,7 +503,9 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
     let manifest = match load_manifest() {
         Ok(m) => m,
         Err(e) => {
-            stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": {}", e).ok();
@@ -474,7 +517,9 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
     let src = match fs::read_to_string(file_path) {
         Ok(s) => s,
         Err(e) => {
-            stderr.set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true)).ok();
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": could not read {}: {}", file_path, e).ok();

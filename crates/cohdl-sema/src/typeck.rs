@@ -1206,12 +1206,7 @@ pub fn type_check(source: &SourceFile, resolved: &ResolvedSourceFile) -> TypeChe
     let device_pins: HashMap<std::string::String, Vec<std::string::String>> = checker
         .devices
         .iter()
-        .map(|(name, def)| {
-            (
-                name.clone(),
-                def.declared_pins.iter().cloned().collect(),
-            )
-        })
+        .map(|(name, def)| (name.clone(), def.declared_pins.iter().cloned().collect()))
         .collect();
 
     TypeCheckResult {

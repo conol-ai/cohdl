@@ -7,16 +7,14 @@ use tempfile::TempDir;
 fn setup_project(source: &str) -> TempDir {
     let dir = TempDir::new().unwrap();
 
-    let manifest = format!(
-        r#"[package]
+    let manifest = r#"[package]
 name    = "test-board"
 version = "0.1.0"
 
 [design]
 root = "src/main.cohdl"
 top  = "MainBoard"
-"#
-    );
+"#;
 
     fs::create_dir_all(dir.path().join("src")).unwrap();
     fs::write(dir.path().join("cohdl.toml"), manifest).unwrap();
@@ -241,10 +239,7 @@ fn color_flag_always() {
 
 #[test]
 fn color_flag_never() {
-    cohdl()
-        .args(["--color", "never", "fmt"])
-        .assert()
-        .success();
+    cohdl().args(["--color", "never", "fmt"]).assert().success();
 }
 
 // ── diagnostic output contains source span ──────────────────────────────────
@@ -262,8 +257,5 @@ fn diagnostic_shows_source_location() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr(
-            predicate::str::contains("-->")
-                .and(predicate::str::contains("src/main.cohdl")),
-        );
+        .stderr(predicate::str::contains("-->").and(predicate::str::contains("src/main.cohdl")));
 }

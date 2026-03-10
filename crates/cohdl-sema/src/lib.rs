@@ -10,10 +10,9 @@
 use std::collections::HashMap;
 
 use cohdl_syntax::ast::{
-    CallStmt, DesignBodyStmtKind, DesignDecl, DeviceDecl, Expr, ExprKind, FnBodyStmtKind,
-    FnDecl, FnParamKind, GenericParamKind, Ident, InstStmt, NetStmt,
-    PartDecl, Path, SourceFile, Span, TopLevelItem, TopLevelItemKind, TraitDecl, TypeAlias,
-    TypeExpr, UseDecl,
+    CallStmt, DesignBodyStmtKind, DesignDecl, DeviceDecl, Expr, ExprKind, FnBodyStmtKind, FnDecl,
+    FnParamKind, GenericParamKind, Ident, InstStmt, NetStmt, PartDecl, Path, SourceFile, Span,
+    TopLevelItem, TopLevelItemKind, TraitDecl, TypeAlias, TypeExpr, UseDecl,
 };
 
 // ── Symbol identifiers ─────────────────────────────────────────────────────
@@ -271,10 +270,8 @@ impl Resolver {
             None => {
                 // `use a::b::c` — import the final segment
                 if tree.prefix.is_empty() {
-                    self.errors.push(SemaError::new(
-                        "empty use path",
-                        use_decl.span,
-                    ));
+                    self.errors
+                        .push(SemaError::new("empty use path", use_decl.span));
                     return;
                 }
                 let imported_name = tree.prefix.last().unwrap();
@@ -548,7 +545,10 @@ impl Resolver {
             let sym_id = sym.id;
             let sym_public = sym.is_public;
             let sym_parent = sym.parent_module.clone();
-            if !sym_public && sym_parent != module_path && !module_path.starts_with(&format!("{}::", sym_parent)) {
+            if !sym_public
+                && sym_parent != module_path
+                && !module_path.starts_with(&format!("{}::", sym_parent))
+            {
                 self.errors.push(SemaError::new(
                     format!(
                         "`{}` is private and cannot be accessed from `{}`",
@@ -613,8 +613,25 @@ impl Resolver {
 fn is_builtin(name: &str) -> bool {
     matches!(
         name,
-        "Pin" | "Net" | "Farads" | "Voltage" | "Ohms" | "Amps" | "Package" | "bool" | "u8"
-            | "u16" | "u32" | "u64" | "i8" | "i16" | "i32" | "i64" | "f32" | "f64" | "String"
+        "Pin"
+            | "Net"
+            | "Farads"
+            | "Voltage"
+            | "Ohms"
+            | "Amps"
+            | "Package"
+            | "bool"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "i8"
+            | "i16"
+            | "i32"
+            | "i64"
+            | "f32"
+            | "f64"
+            | "String"
     )
 }
 
@@ -668,10 +685,7 @@ mod tests {
 
     /// Helper: check that the error list contains a message matching the given substring.
     fn has_error(resolved: &ResolvedSourceFile, substr: &str) -> bool {
-        resolved
-            .errors
-            .iter()
-            .any(|e| e.message.contains(substr))
+        resolved.errors.iter().any(|e| e.message.contains(substr))
     }
 
     // ── Basic declaration collection ────────────────────────────────────
@@ -708,11 +722,19 @@ mod tests {
         assert!(resolved.symbols.lookup("power::decoupling").is_some());
         assert!(resolved.symbols.lookup("power::internal").is_some());
         assert_eq!(
-            resolved.symbols.lookup("power::decoupling").unwrap().is_public,
+            resolved
+                .symbols
+                .lookup("power::decoupling")
+                .unwrap()
+                .is_public,
             true
         );
         assert_eq!(
-            resolved.symbols.lookup("power::internal").unwrap().is_public,
+            resolved
+                .symbols
+                .lookup("power::internal")
+                .unwrap()
+                .is_public,
             false
         );
     }
@@ -850,7 +872,10 @@ mod tests {
         "#;
         let resolved = resolve_src(src);
         // The use declarations should succeed (no errors about the imports themselves)
-        assert!(!has_error(&resolved, "undefined path `passives::Capacitor`"));
+        assert!(!has_error(
+            &resolved,
+            "undefined path `passives::Capacitor`"
+        ));
         assert!(!has_error(&resolved, "undefined path `passives::MLCC`"));
         // The inst in Board should resolve MLCC via imports
         assert!(!has_error(&resolved, "undefined symbol `MLCC`"));

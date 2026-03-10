@@ -4,9 +4,7 @@ use cohdl_sema::connectivity::{ConnectivityIR, Instance, Net, PinRef};
 use cohdl_sema::typeck::{InstanceId, EXTERNAL_INSTANCE};
 
 use crate::rules::*;
-use crate::user_rules::{
-    RuleAppliesTo, RuleBinOp, RuleExpr, UserDefinedRule, UserDefinedRuleSet,
-};
+use crate::user_rules::{RuleAppliesTo, RuleBinOp, RuleExpr, UserDefinedRule, UserDefinedRuleSet};
 use crate::{DiagnosticLevel, DrcRule, DrcRunner};
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
@@ -406,10 +404,7 @@ fn user_rule_spec_field_float_literal() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "3.3V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "3.3V"), ("impl_traits", "Capacitor")],
         )],
         vec![],
     );
@@ -442,10 +437,7 @@ fn user_rule_no_trigger_when_assertion_holds() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![],
     );
@@ -501,8 +493,8 @@ fn capacitor_voltage_derating_rule() -> UserDefinedRule {
                 pin_b: "B".into(),
             }),
         },
-        message_template:
-            "net voltage {net_voltage}V exceeds 80% derating of {voltage_rating}".into(),
+        message_template: "net voltage {net_voltage}V exceeds 80% derating of {voltage_rating}"
+            .into(),
         applies_to: RuleAppliesTo::Trait("Capacitor".into()),
     }
 }
@@ -518,10 +510,7 @@ fn voltage_derating_triggers_when_close_to_rating() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
     );
@@ -546,10 +535,7 @@ fn voltage_derating_no_trigger_within_margin() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("5V", vec![pinref(0, "A"), ext_pin("5V")])],
     );
@@ -587,8 +573,8 @@ fn electrolytic_voltage_derating_override() -> UserDefinedRule {
                 pin_b: "B".into(),
             }),
         },
-        message_template:
-            "net voltage {net_voltage}V exceeds 50% derating of {voltage_rating}".into(),
+        message_template: "net voltage {net_voltage}V exceeds 50% derating of {voltage_rating}"
+            .into(),
         applies_to: RuleAppliesTo::Device("Electrolytic".into()),
     }
 }
@@ -609,10 +595,7 @@ fn device_override_uses_stricter_rule() {
             0,
             "c1",
             "Electrolytic",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("6V", vec![pinref(0, "A"), ext_pin("6V")])],
     );
@@ -637,10 +620,7 @@ fn trait_rule_still_applies_to_non_overriding_device() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
     );
@@ -662,10 +642,7 @@ fn device_override_no_trigger_within_stricter_margin() {
             0,
             "c1",
             "Electrolytic",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("4V", vec![pinref(0, "A"), ext_pin("4V")])],
     );
@@ -689,10 +666,7 @@ fn runner_includes_user_defined_diagnostics() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
     );
@@ -715,10 +689,7 @@ fn runner_suppresses_user_defined_diagnostic() {
             0,
             "c1",
             "MLCC",
-            &[
-                ("voltage_rating", "10V"),
-                ("impl_traits", "Capacitor"),
-            ],
+            &[("voltage_rating", "10V"), ("impl_traits", "Capacitor")],
         )],
         vec![net("9V", vec![pinref(0, "A"), ext_pin("9V")])],
     );
@@ -778,17 +749,11 @@ fn user_rule_net_voltage_with_instance_voltage_annotation() {
                 0,
                 "c1",
                 "MLCC",
-                &[
-                    ("voltage_rating", "6V"),
-                    ("impl_traits", "Capacitor"),
-                ],
+                &[("voltage_rating", "6V"), ("impl_traits", "Capacitor")],
             ),
             inst(1, "vreg", "LDO", &[("voltage", "5V")]),
         ],
-        vec![net(
-            "VDD",
-            vec![pinref(0, "A"), pinref(1, "OUT")],
-        )],
+        vec![net("VDD", vec![pinref(0, "A"), pinref(1, "OUT")])],
     );
 
     let diags = rules.check(&design);

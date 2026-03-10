@@ -7,6 +7,8 @@
 //! Errors (undefined paths, duplicate definitions, visibility violations) are
 //! collected with [`Span`] information rather than aborting on the first error.
 
+pub mod typeck;
+
 use std::collections::HashMap;
 
 use cohdl_syntax::ast::{

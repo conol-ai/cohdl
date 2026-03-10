@@ -73,10 +73,21 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
             .cloned()
             .unwrap_or_else(|| inst.device.clone());
 
-        writeln!(out, "    (comp (ref \"{}\") (value \"{}\")", inst.name, xml_escape(&value)).unwrap();
+        writeln!(
+            out,
+            "    (comp (ref \"{}\") (value \"{}\")",
+            inst.name,
+            xml_escape(&value)
+        )
+        .unwrap();
         writeln!(out, "      (footprint \"{}\")", xml_escape(&footprint)).unwrap();
         if let Some(mpn) = &inst.mpn {
-            writeln!(out, "      (fields (field (name \"MPN\") \"{}\"))", xml_escape(mpn)).unwrap();
+            writeln!(
+                out,
+                "      (fields (field (name \"MPN\") \"{}\"))",
+                xml_escape(mpn)
+            )
+            .unwrap();
         }
         writeln!(out, "    )").unwrap();
     }
@@ -98,11 +109,23 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
             continue;
         }
 
-        write!(out, "    (net (code {}) (name \"{}\")", code, xml_escape(&net.name)).unwrap();
+        write!(
+            out,
+            "    (net (code {}) (name \"{}\")",
+            code,
+            xml_escape(&net.name)
+        )
+        .unwrap();
 
         for pin in &nodes {
             if let Some(inst) = instance_by_id.get(&pin.instance_id.0) {
-                write!(out, "\n      (node (ref \"{}\") (pin \"{}\"))", inst.name, xml_escape(&pin.pin)).unwrap();
+                write!(
+                    out,
+                    "\n      (node (ref \"{}\") (pin \"{}\"))",
+                    inst.name,
+                    xml_escape(&pin.pin)
+                )
+                .unwrap();
             }
         }
 

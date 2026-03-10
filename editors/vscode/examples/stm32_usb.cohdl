@@ -1,0 +1,122 @@
+// STM32 USB Power Supply — exercises every token category
+// for visual grammar testing in VS Code.
+
+/* Block comment: full design of an STM32-based
+   USB-C power delivery board. */
+
+use std::io;
+use chips::st::STM32G431;
+use passives::capacitor::MLCC;
+
+// ---------- type aliases ----------
+type SupplyVoltage = Voltage;
+type DecouplingCap = Capacitance;
+
+// ---------- trait ----------
+trait PowerRegulator {
+    fn output_voltage() -> Voltage;
+    fn max_current() -> Net;
+}
+
+// ---------- device ----------
+#[designator("U")]
+pub device STM32G4 {
+    pins {
+        vdd:   Pin<Net>,
+        vss:   Pin<Net>,
+        usb_dp: Pin<Net>,
+        usb_dm: Pin<Net>,
+        pa0:   Pin<Net>,
+        pa1:   Pin<Net>,
+    }
+
+    spec {
+        rule vdd_decoupling {
+            primary: inst bypass_cap = MLCC { value: 100nF };
+            alt:     inst bulk_cap  = MLCC { value: 4.7uF };
+        }
+    }
+}
+
+// ---------- part ----------
+#[designator("C")]
+part CeramicCap {
+    value: Farads,
+    package: Package,
+}
+
+#[designator("R")]
+part Resistor {
+    value: Ohms,
+    package: Package,
+}
+
+#[designator("L")]
+part Inductor {
+    value: Henries,
+    package: Package,
+}
+
+// ---------- impl ----------
+impl PowerRegulator for STM32G4 {
+    fn output_voltage() -> Voltage {
+        3.3V
+    }
+
+    fn max_current() -> Net {
+        net usb_vbus
+    }
+}
+
+// ---------- module ----------
+pub module UsbPhy {
+    inst mcu = STM32G4;
+
+    // Bus macro invocations
+    pin_bus!(data, 2);
+
+    net usb_dp;
+    net usb_dm;
+
+    inst r_dp = Resistor { value: 22R, package: Package::R0402 };
+    inst r_dm = Resistor { value: 22R, package: Package::R0402 };
+
+    inst esd_cap = CeramicCap { value: 100pF, package: Package::C0201 };
+}
+
+// ---------- design (top-level) ----------
+#[allow(unused)]
+pub design StmUsbBoard {
+    inst phy = UsbPhy;
+
+    // Decoupling network
+    inst c1 = CeramicCap { value: 100nF, package: Package::C0402 };
+    inst c2 = CeramicCap { value: 4.7uF, package: Package::C0805 };
+    inst c3 = CeramicCap { value: 10uF,  package: Package::C0805 };
+
+    // Pull-up resistor
+    inst r_pullup = Resistor { value: 10k, package: Package::R0402 };
+
+    // Ferrite / inductor for power filtering
+    inst l_filter = Inductor { value: 2.2uH, package: Package::L0603 };
+
+    // Engineering-notation numeric literals of every unit
+    fn voltage_divider() {
+        let vref     = 1.25V;
+        let r_top    = 10k;
+        let r_bottom = 4.7k;
+        let c_filter = 22nF;
+        let l_choke  = 100uH;
+        let freq     = 48MHz;
+        let esr      = 0.1Ohm;
+        let plain    = 48;
+        let decimal  = 0.1;
+        let pico     = 33pF;
+        let mega     = 8MH;
+        let giga     = 1GHz;
+        let tera     = 1THz;
+    }
+
+    // Macro usage (macro keyword + macro! invocation)
+    macro generate_nets! count(8);
+}

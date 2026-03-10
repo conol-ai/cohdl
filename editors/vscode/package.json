@@ -1,0 +1,37 @@
+{
+  "name": "cohdl-lang",
+  "displayName": "cohdl PCB HDL",
+  "description": "Syntax highlighting for the cohdl hardware description language",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:cohdl"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "cohdl",
+        "aliases": [
+          "cohdl",
+          "COHDL"
+        ],
+        "extensions": [
+          ".cohdl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cohdl",
+        "scopeName": "source.cohdl",
+        "path": "./syntaxes/cohdl.tmLanguage.json"
+      }
+    ]
+  }
+}

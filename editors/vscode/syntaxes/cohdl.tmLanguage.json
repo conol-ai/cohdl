@@ -1,0 +1,138 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "cohdl",
+  "scopeName": "source.cohdl",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#attributes" },
+    { "include": "#strings" },
+    { "include": "#macros" },
+    { "include": "#keywords" },
+    { "include": "#builtinTypes" },
+    { "include": "#numerics" },
+    { "include": "#scopedPath" },
+    { "include": "#typeNames" },
+    { "include": "#identifiers" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.cohdl",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.cohdl",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.cohdl",
+          "match": "\\b(trait|device|part|type|fn|module|design|use|pub|inst|net|impl|pins|spec|rule|primary|alt|macro)\\b"
+        }
+      ]
+    },
+    "builtinTypes": {
+      "patterns": [
+        {
+          "name": "support.type.cohdl",
+          "match": "\\b(Net|Pin|Package|Farads|Voltage|Ohms|Henries|Capacitance|Inductance)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.cohdl",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.cohdl",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numerics": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cohdl",
+          "match": "-?[0-9]+(\\.[0-9]+)?([munpkMGT]?(F|V|R|H|Hz|Ohm)?)\\b"
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "meta.attribute.cohdl",
+          "begin": "(#\\[)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.attribute.cohdl" }
+          },
+          "end": "(\\])",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.attribute.cohdl" }
+          },
+          "patterns": [
+            {
+              "name": "entity.other.attribute-name.cohdl",
+              "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+            },
+            { "include": "#strings" }
+          ]
+        }
+      ]
+    },
+    "macros": {
+      "patterns": [
+        {
+          "name": "meta.macro.cohdl",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(!)",
+          "captures": {
+            "1": { "name": "entity.name.function.macro.cohdl" },
+            "2": { "name": "keyword.operator.macro.cohdl" }
+          }
+        }
+      ]
+    },
+    "scopedPath": {
+      "patterns": [
+        {
+          "name": "punctuation.accessor.cohdl",
+          "match": "::"
+        }
+      ]
+    },
+    "typeNames": {
+      "patterns": [
+        {
+          "name": "entity.name.type.cohdl",
+          "match": "\\b[A-Z][a-zA-Z0-9]*\\b"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.cohdl",
+          "match": "\\b[a-z_][a-z0-9_]*\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "punctuation.cohdl",
+          "match": "[{}\\[\\]<>(),:\\.!=]"
+        }
+      ]
+    }
+  }
+}

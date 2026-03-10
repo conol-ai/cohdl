@@ -68,6 +68,11 @@ enum Command {
     Check,
     /// Format source files (placeholder)
     Fmt,
+    /// Initialize a new cohdl project
+    Init {
+        /// Project name (defaults to directory name)
+        name: Option<String>,
+    },
 }
 
 #[derive(Clone, ValueEnum, PartialEq, Eq)]
@@ -537,6 +542,86 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
     }
 }
 
+fn cmd_init(stderr: &mut StandardStream, name: Option<String>) -> i32 {
+    // Determine project name: explicit arg > current directory name > fallback
+    let project_name = match name {
+        Some(n) => n,
+        None => std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|f| f.to_string_lossy().into_owned()))
+            .unwrap_or_else(|| "my-project".to_string()),
+    };
+
+    // Refuse to overwrite an existing cohdl.toml
+    if std::path::Path::new("cohdl.toml").exists() {
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
+        write!(stderr, "Error").ok();
+        stderr.reset().ok();
+        writeln!(stderr, ": cohdl.toml already exists").ok();
+        return 1;
+    }
+
+    let manifest = format!(
+        r#"[package]
+name    = "{}"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top  = "MainBoard"
+"#,
+        project_name
+    );
+
+    let starter_source = r#"design MainBoard {
+}
+"#;
+
+    if let Err(e) = fs::create_dir_all("src") {
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
+        write!(stderr, "Error").ok();
+        stderr.reset().ok();
+        writeln!(stderr, ": could not create src directory: {}", e).ok();
+        return 1;
+    }
+
+    if let Err(e) = fs::write("cohdl.toml", &manifest) {
+        stderr
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+            .ok();
+        write!(stderr, "Error").ok();
+        stderr.reset().ok();
+        writeln!(stderr, ": could not write cohdl.toml: {}", e).ok();
+        return 1;
+    }
+
+    let source_path = std::path::Path::new("src/main.cohdl");
+    if !source_path.exists() {
+        if let Err(e) = fs::write(source_path, starter_source) {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(stderr, ": could not write src/main.cohdl: {}", e).ok();
+            return 1;
+        }
+    }
+
+    stderr
+        .set_color(ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))
+        .ok();
+    write!(stderr, "  Created").ok();
+    stderr.reset().ok();
+    writeln!(stderr, " project `{}`", project_name).ok();
+
+    0
+}
+
 // ── main ────────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -554,6 +639,7 @@ fn main() {
             println!("formatter not yet implemented");
             0
         }
+        Command::Init { name } => cmd_init(&mut stderr, name),
     };
 
     process::exit(exit_code);

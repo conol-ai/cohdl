@@ -242,6 +242,72 @@ fn color_flag_never() {
     cohdl().args(["--color", "never", "fmt"]).assert().success();
 }
 
+// ── init subcommand ─────────────────────────────────────────────────────────
+
+#[test]
+fn init_creates_project_files() {
+    let dir = TempDir::new().unwrap();
+    cohdl()
+        .args(["init", "my-board"])
+        .current_dir(dir.path())
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Created").and(predicate::str::contains("my-board")));
+
+    let manifest = fs::read_to_string(dir.path().join("cohdl.toml")).unwrap();
+    assert!(manifest.contains("my-board"));
+    assert!(manifest.contains("[package]"));
+    assert!(manifest.contains("[design]"));
+    assert!(dir.path().join("src/main.cohdl").exists());
+}
+
+#[test]
+fn init_defaults_name_to_dir() {
+    let dir = TempDir::new().unwrap();
+    let project_dir = dir.path().join("cool-project");
+    fs::create_dir_all(&project_dir).unwrap();
+
+    cohdl()
+        .arg("init")
+        .current_dir(&project_dir)
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("cool-project"));
+
+    let manifest = fs::read_to_string(project_dir.join("cohdl.toml")).unwrap();
+    assert!(manifest.contains("cool-project"));
+}
+
+#[test]
+fn init_fails_if_manifest_exists() {
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("cohdl.toml"), "existing").unwrap();
+
+    cohdl()
+        .args(["init", "test"])
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cohdl.toml already exists"));
+}
+
+#[test]
+fn init_then_check_works() {
+    let dir = TempDir::new().unwrap();
+    cohdl()
+        .args(["init", "test-board"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // The initialized project should be valid enough for `check` to succeed
+    cohdl()
+        .arg("check")
+        .current_dir(dir.path())
+        .assert()
+        .success();
+}
+
 // ── diagnostic output contains source span ──────────────────────────────────
 
 #[test]

@@ -157,7 +157,10 @@ pub fn build_connectivity(
     let mut net_name_to_first: HashMap<String, usize> = HashMap::new();
 
     // Helper: get-or-insert a PinRef, returning its index.
-    let intern_pin = |pr: PinRef, pin_index: &mut Vec<PinRef>, pin_to_idx: &mut HashMap<PinRef, usize>| -> usize {
+    let intern_pin = |pr: PinRef,
+                      pin_index: &mut Vec<PinRef>,
+                      pin_to_idx: &mut HashMap<PinRef, usize>|
+     -> usize {
         if let Some(&idx) = pin_to_idx.get(&pr) {
             idx
         } else {
@@ -174,7 +177,7 @@ pub fn build_connectivity(
     for net in &design.nets {
         let mut ep_indices = Vec::new();
 
-        for &(ref inst_id, ref pin_name) in &net.endpoints {
+        for (inst_id, pin_name) in &net.endpoints {
             // Validate pin reference (skip external nets).
             if *inst_id != EXTERNAL_INSTANCE {
                 if let Some(device_name) = instance_device.get(inst_id) {
@@ -200,7 +203,11 @@ pub fn build_connectivity(
                                 .iter()
                                 .filter_map(|p| {
                                     let (vb, vi) = parse_bus_pin(p);
-                                    if vb == base_pin { vi } else { None }
+                                    if vb == base_pin {
+                                        vi
+                                    } else {
+                                        None
+                                    }
                                 })
                                 .max();
                             if let Some(max) = max_idx {
@@ -283,17 +290,16 @@ pub fn build_connectivity(
             .find_map(|&idx| {
                 let r = uf.find(idx);
                 // Check if this specific index was the first for some net name.
-                idx_to_net_name.get(&idx).cloned()
-                    .or_else(|| {
-                        // Fallback: find any net name whose first index has same root.
-                        net_name_to_first.iter().find_map(|(name, &first)| {
-                            if uf.find(first) == r {
-                                Some(name.clone())
-                            } else {
-                                None
-                            }
-                        })
+                idx_to_net_name.get(&idx).cloned().or_else(|| {
+                    // Fallback: find any net name whose first index has same root.
+                    net_name_to_first.iter().find_map(|(name, &first)| {
+                        if uf.find(first) == r {
+                            Some(name.clone())
+                        } else {
+                            None
+                        }
                     })
+                })
             })
             .unwrap_or_else(|| format!("__net_{}", root));
 
@@ -471,10 +477,7 @@ mod tests {
             nets: vec![
                 TypedNet {
                     name: "N1".into(),
-                    endpoints: vec![
-                        (InstanceId(0), "B".into()),
-                        (InstanceId(1), "A".into()),
-                    ],
+                    endpoints: vec![(InstanceId(0), "B".into()), (InstanceId(1), "A".into())],
                 },
                 TypedNet {
                     name: "N2".into(),
@@ -543,7 +546,9 @@ mod tests {
         let result = build_connectivity(&design, &dp);
 
         assert_eq!(result.errors.len(), 1);
-        assert!(result.errors[0].message.contains("bus index 99 out of range"));
+        assert!(result.errors[0]
+            .message
+            .contains("bus index 99 out of range"));
     }
 
     // ── Hierarchical instance paths ─────────────────────────────────────

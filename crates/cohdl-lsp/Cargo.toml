@@ -3,3 +3,19 @@ name = "cohdl-lsp"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[[bin]]
+name = "cohdl-lsp"
+path = "src/main.rs"
+
+[dependencies]
+tower-lsp = { workspace = true }
+tokio = { workspace = true }
+cohdl-syntax = { path = "../cohdl-syntax" }
+cohdl-parser = { path = "../cohdl-parser" }
+cohdl-sema = { path = "../cohdl-sema" }
+cohdl-drc = { path = "../cohdl-drc" }
+
+[dev-dependencies]
+tokio = { workspace = true }
+tower-lsp = { workspace = true }

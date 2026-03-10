@@ -156,10 +156,7 @@ fn generic_params_with_defaults() {
 #[test]
 fn generic_params_impl_constraint() {
     assert_parses!(Rule::generic_params, "<P: impl Capacitor>");
-    assert_parses!(
-        Rule::generic_params,
-        "<P: impl Capacitor + Polarized>"
-    );
+    assert_parses!(Rule::generic_params, "<P: impl Capacitor + Polarized>");
 }
 
 #[test]
@@ -447,10 +444,7 @@ fn type_alias_no_params() {
         Rule::type_def,
         "type BypassCap = MLCC<C: 100nF, V: 10V, pkg: C0402>"
     );
-    assert_parses!(
-        Rule::type_def,
-        "type BulkCap = Tantalum<C: 10uF, V: 6.3V>"
-    );
+    assert_parses!(Rule::type_def, "type BulkCap = Tantalum<C: 10uF, V: 6.3V>");
     assert_parses!(
         Rule::type_def,
         "type PullupRes = Resistor<R: 10k, pkg: R0402>"
@@ -892,7 +886,10 @@ fn spec_block_values() {
 
 #[test]
 fn spec_block_comma_separated() {
-    assert_parses!(Rule::spec_block, "spec { capacitance: C, voltage_rating: V }");
+    assert_parses!(
+        Rule::spec_block,
+        "spec { capacitance: C, voltage_rating: V }"
+    );
 }
 
 #[test]

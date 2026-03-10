@@ -314,14 +314,25 @@ fn format_device_hover(d: &ast::DeviceDecl) -> String {
             .iter()
             .map(|p| {
                 let kind = match &p.kind {
-                    ast::GenericParamKind::Type(te) => {
-                        te.path.segments.iter().map(|s| s.name.as_str()).collect::<Vec<_>>().join("::")
-                    }
+                    ast::GenericParamKind::Type(te) => te
+                        .path
+                        .segments
+                        .iter()
+                        .map(|s| s.name.as_str())
+                        .collect::<Vec<_>>()
+                        .join("::"),
                     ast::GenericParamKind::ImplConstraint(tb) => {
                         let bounds: Vec<String> = tb
                             .bounds
                             .iter()
-                            .map(|b| b.path.segments.iter().map(|s| s.name.as_str()).collect::<Vec<_>>().join("::"))
+                            .map(|b| {
+                                b.path
+                                    .segments
+                                    .iter()
+                                    .map(|s| s.name.as_str())
+                                    .collect::<Vec<_>>()
+                                    .join("::")
+                            })
                             .collect();
                         format!("impl {}", bounds.join(" + "))
                     }
@@ -503,11 +514,7 @@ fn find_net_for_pin(
     pin_name: &str,
 ) -> Option<String> {
     // Find instance ID
-    let inst_id = design
-        .instances
-        .iter()
-        .find(|i| i.name == inst_name)?
-        .id;
+    let inst_id = design.instances.iter().find(|i| i.name == inst_name)?.id;
     // Find net containing this pin
     for net in &design.nets {
         for (id, pname) in &net.endpoints {
@@ -964,7 +971,11 @@ mod tests {
             })
             .collect();
         // This source has no errors
-        assert!(error_diags.is_empty(), "unexpected errors: {:?}", error_diags);
+        assert!(
+            error_diags.is_empty(),
+            "unexpected errors: {:?}",
+            error_diags
+        );
     }
 
     #[test]
@@ -984,9 +995,7 @@ mod tests {
         // map to the correct line/col.
         let src = "design X {\n    inst c: Missing\n}\n";
         let (diagnostics, _) = run_diagnostics(src);
-        let undef = diagnostics
-            .iter()
-            .find(|d| d.message.contains("undefined"));
+        let undef = diagnostics.iter().find(|d| d.message.contains("undefined"));
         assert!(undef.is_some());
         let range = undef.unwrap().range;
         // "Missing" is on line 1 (0-based), column 12

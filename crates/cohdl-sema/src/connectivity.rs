@@ -361,6 +361,8 @@ mod tests {
             device: device.to_string(),
             mpn: None,
             generic_substitutions: HashMap::new(),
+            designator_override: None,
+            impl_traits: Vec::new(),
         }
     }
 
@@ -637,6 +639,8 @@ mod tests {
                 device: "MLCC".into(),
                 mpn: Some("CL05B104KO5NNNC".into()),
                 generic_substitutions: subs.clone(),
+                designator_override: None,
+                impl_traits: Vec::new(),
             }],
             nets: vec![],
         };

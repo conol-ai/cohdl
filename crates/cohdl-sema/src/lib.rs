@@ -8,6 +8,7 @@
 //! collected with [`Span`] information rather than aborting on the first error.
 
 pub mod connectivity;
+pub mod designator;
 pub mod typeck;
 
 use std::collections::HashMap;

@@ -92,6 +92,10 @@ pub struct ComponentInstance {
     pub mpn: Option<std::string::String>,
     /// Generic parameter substitutions (param name → resolved value string).
     pub generic_substitutions: HashMap<std::string::String, std::string::String>,
+    /// Explicit designator override from `#[designator("U1")]`.
+    pub designator_override: Option<std::string::String>,
+    /// Traits the underlying device implements (used for prefix derivation).
+    pub impl_traits: Vec<std::string::String>,
 }
 
 /// A net in the typed design, connecting a set of `(instance_id, pin_name)` endpoints.
@@ -116,6 +120,8 @@ pub struct TypeCheckResult {
     pub designs: Vec<TypedDesign>,
     /// All errors encountered during type checking.
     pub errors: Vec<SemaError>,
+    /// Trait name → designator prefix (e.g. `"Capacitor"` → `"C"`).
+    pub trait_prefixes: HashMap<std::string::String, std::string::String>,
 }
 
 // ── Internal: collected definitions ─────────────────────────────────────────
@@ -129,6 +135,8 @@ struct TraitDef {
     required_specs: Vec<(std::string::String, ValueKind)>,
     /// Parent trait names (super-traits).
     parents: Vec<std::string::String>,
+    /// Designator prefix declared via `designator_prefix: "C"`.
+    designator_prefix: Option<std::string::String>,
 }
 
 /// A collected device definition.
@@ -230,6 +238,7 @@ impl TypeChecker {
         let mut required_pins = HashSet::new();
         let mut required_specs = Vec::new();
         let mut parents = Vec::new();
+        let mut designator_prefix = None;
 
         if let Some(parent_bound) = &t.parents {
             for b in &parent_bound.bounds {
@@ -252,7 +261,10 @@ impl TypeChecker {
                         required_specs.push((entry.name.name.clone(), kind));
                     }
                 }
-                TraitBodyItem::Rule(_) | TraitBodyItem::DesignatorPrefix(_) => {}
+                TraitBodyItem::DesignatorPrefix(dp) => {
+                    designator_prefix = Some(dp.prefix.value.clone());
+                }
+                TraitBodyItem::Rule(_) => {}
             }
         }
 
@@ -262,6 +274,7 @@ impl TypeChecker {
                 required_pins,
                 required_specs,
                 parents,
+                designator_prefix,
             },
         );
     }
@@ -649,6 +662,25 @@ impl TypeChecker {
                     }
                 }
 
+                // Extract #[designator("X")] from statement attributes.
+                let designator_override = stmt.attributes.iter().find_map(|attr| {
+                    if attr.name.name == "designator" {
+                        if let Some(ast::AttributeArgs::Strings(ref strings)) = attr.args {
+                            strings.first().map(|s| s.value.clone())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                });
+
+                // Look up the device's impl_traits.
+                let impl_traits = self
+                    .find_device(&final_device, module_path)
+                    .map(|dev| dev.impl_traits.clone())
+                    .unwrap_or_default();
+
                 instance_map.insert(inst.name.name.clone(), id);
 
                 instances.push(ComponentInstance {
@@ -657,6 +689,8 @@ impl TypeChecker {
                     device: final_device,
                     mpn,
                     generic_substitutions: all_args,
+                    designator_override,
+                    impl_traits,
                 });
             }
         }
@@ -1136,9 +1170,21 @@ pub fn type_check(source: &SourceFile, resolved: &ResolvedSourceFile) -> TypeChe
     // Phase 3: Type-check designs and produce IR.
     let designs = checker.check_designs(&source.items, resolved, "");
 
+    // Collect trait prefixes for designator assignment.
+    let trait_prefixes: HashMap<std::string::String, std::string::String> = checker
+        .traits
+        .iter()
+        .filter_map(|(name, def)| {
+            def.designator_prefix
+                .as_ref()
+                .map(|p| (name.clone(), p.clone()))
+        })
+        .collect();
+
     TypeCheckResult {
         designs,
         errors: checker.errors,
+        trait_prefixes,
     }
 }
 

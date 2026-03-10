@@ -112,24 +112,22 @@ fn eval(expr: &RuleExpr, ctx: &EvalCtx<'_>) -> Option<Value> {
             let l = eval(lhs, ctx)?;
             let r = eval(rhs, ctx)?;
             match (l, r) {
-                (Value::Float(a), Value::Float(b)) => {
-                    match op {
-                        RuleBinOp::Mul => Some(Value::Float(a * b)),
-                        RuleBinOp::Div => {
-                            if b == 0.0 {
-                                None
-                            } else {
-                                Some(Value::Float(a / b))
-                            }
+                (Value::Float(a), Value::Float(b)) => match op {
+                    RuleBinOp::Mul => Some(Value::Float(a * b)),
+                    RuleBinOp::Div => {
+                        if b == 0.0 {
+                            None
+                        } else {
+                            Some(Value::Float(a / b))
                         }
-                        RuleBinOp::Add => Some(Value::Float(a + b)),
-                        RuleBinOp::Sub => Some(Value::Float(a - b)),
-                        RuleBinOp::Le => Some(Value::Bool(a <= b)),
-                        RuleBinOp::Ge => Some(Value::Bool(a >= b)),
-                        RuleBinOp::Lt => Some(Value::Bool(a < b)),
-                        RuleBinOp::Gt => Some(Value::Bool(a > b)),
                     }
-                }
+                    RuleBinOp::Add => Some(Value::Float(a + b)),
+                    RuleBinOp::Sub => Some(Value::Float(a - b)),
+                    RuleBinOp::Le => Some(Value::Bool(a <= b)),
+                    RuleBinOp::Ge => Some(Value::Bool(a >= b)),
+                    RuleBinOp::Lt => Some(Value::Bool(a < b)),
+                    RuleBinOp::Gt => Some(Value::Bool(a > b)),
+                },
                 // Type mismatch — skip silently.
                 _ => None,
             }
@@ -215,10 +213,7 @@ fn parse_numeric(s: &str) -> Option<f64> {
 
 /// Parse a voltage string like `"3.3V"` or `"5V"` into an f64.
 fn parse_voltage_str(s: &str) -> Option<f64> {
-    let numeric = s
-        .trim()
-        .trim_end_matches('V')
-        .trim_end_matches('v');
+    let numeric = s.trim().trim_end_matches('V').trim_end_matches('v');
     numeric.parse::<f64>().ok()
 }
 
@@ -247,11 +242,7 @@ fn parse_net_name_voltage(name: &str) -> Option<f64> {
 /// Supported placeholders:
 /// - `{field}` — looks up `field` in `generic_substitutions`.
 /// - `{net_voltage}` — uses the pre-computed net voltage (if available).
-fn interpolate_message(
-    template: &str,
-    inst: &Instance,
-    net_voltage_val: Option<f64>,
-) -> String {
+fn interpolate_message(template: &str, inst: &Instance, net_voltage_val: Option<f64>) -> String {
     let mut result = String::with_capacity(template.len());
     let mut chars = template.chars().peekable();
 
@@ -268,12 +259,12 @@ fn interpolate_message(
                 if let Some(v) = net_voltage_val {
                     result.push_str(&format!("{v}"));
                 } else {
-                    result.push_str("?");
+                    result.push('?');
                 }
             } else if let Some(val) = inst.generic_substitutions.get(&name) {
                 result.push_str(val);
             } else {
-                result.push_str("?");
+                result.push('?');
             }
         } else {
             result.push(ch);
@@ -318,11 +309,7 @@ fn rule_matches(rule: &UserDefinedRule, inst: &Instance) -> bool {
         RuleAppliesTo::Trait(trait_name) => inst
             .generic_substitutions
             .get("impl_traits")
-            .map(|traits| {
-                traits
-                    .split(',')
-                    .any(|t| t.trim() == trait_name.as_str())
-            })
+            .map(|traits| traits.split(',').any(|t| t.trim() == trait_name.as_str()))
             .unwrap_or(false),
     }
 }
@@ -383,8 +370,7 @@ impl Default for UserDefinedRuleSet {
 
 impl DrcRule for UserDefinedRuleSet {
     fn check(&self, ir: &ConnectivityIR) -> Vec<DrcDiagnostic> {
-        let imap: HashMap<InstanceId, &Instance> =
-            ir.instances.iter().map(|i| (i.id, i)).collect();
+        let imap: HashMap<InstanceId, &Instance> = ir.instances.iter().map(|i| (i.id, i)).collect();
 
         let mut out = Vec::new();
 
@@ -406,8 +392,7 @@ impl DrcRule for UserDefinedRuleSet {
                         // Assertion holds — no diagnostic.
                     }
                     Some(Value::Bool(false)) => {
-                        let message =
-                            interpolate_message(&rule.message_template, inst, nv);
+                        let message = interpolate_message(&rule.message_template, inst, nv);
                         out.push(DrcDiagnostic {
                             rule_id: rule.name.clone(),
                             level: rule.level,
@@ -437,10 +422,8 @@ fn compute_net_voltage_for_rule(expr: &RuleExpr, ctx: &EvalCtx<'_>) -> Option<f6
                 None
             }
         }
-        RuleExpr::Binary { lhs, rhs, .. } => {
-            compute_net_voltage_for_rule(lhs, ctx)
-                .or_else(|| compute_net_voltage_for_rule(rhs, ctx))
-        }
+        RuleExpr::Binary { lhs, rhs, .. } => compute_net_voltage_for_rule(lhs, ctx)
+            .or_else(|| compute_net_voltage_for_rule(rhs, ctx)),
         _ => None,
     }
 }

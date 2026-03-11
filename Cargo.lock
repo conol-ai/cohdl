@@ -255,7 +255,9 @@ dependencies = [
  "cohdl-parser",
  "cohdl-sema",
  "cohdl-syntax",
+ "serde",
  "tokio",
+ "toml",
  "tower-lsp",
 ]
 

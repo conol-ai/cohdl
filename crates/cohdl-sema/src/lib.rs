@@ -125,7 +125,7 @@ pub struct SemaError {
 }
 
 impl SemaError {
-    fn new(message: impl Into<String>, span: Span) -> Self {
+    pub fn new(message: impl Into<String>, span: Span) -> Self {
         Self {
             message: message.into(),
             span,
@@ -297,13 +297,42 @@ impl Resolver {
     }
 
     /// Resolve a use-tree prefix to a fully-qualified path.
-    /// Tries the path as-is first (absolute), then relative to current module.
-    fn resolve_prefix_to_qualified(&self, segments: &[Ident], _current_module: &str) -> String {
+    /// Tries the path as-is first (absolute), then walks up ancestor modules.
+    fn resolve_prefix_to_qualified(&self, segments: &[Ident], current_module: &str) -> String {
         let path_str = segments
             .iter()
             .map(|s| s.name.as_str())
             .collect::<Vec<_>>()
             .join("::");
+
+        if segments.is_empty() {
+            return path_str;
+        }
+
+        let first_seg = &segments[0].name;
+
+        // 1. Try as-is (absolute from root)
+        if self.table.lookup(first_seg).is_some() {
+            return path_str;
+        }
+
+        // 2. Walk current module and its ancestors
+        let mut module = current_module.to_string();
+        loop {
+            let candidate_first = qualified(&module, first_seg);
+            if self.table.lookup(&candidate_first).is_some() {
+                return qualified(&module, &path_str);
+            }
+            if let Some(pos) = module.rfind("::") {
+                module = module[..pos].to_string();
+            } else if !module.is_empty() {
+                module = String::new();
+            } else {
+                break;
+            }
+        }
+
+        // 3. Fall back to literal path (will error downstream)
         path_str
     }
 
@@ -623,6 +652,8 @@ fn is_builtin(name: &str) -> bool {
             | "Voltage"
             | "Ohms"
             | "Amps"
+            | "Henries"
+            | "Hertz"
             | "Package"
             | "bool"
             | "u8"
@@ -997,5 +1028,85 @@ mod tests {
         "#;
         let resolved = resolve_src(src);
         assert!(has_error(&resolved, "private"));
+    }
+
+    // ── Ancestor-relative use resolution ────────────────────────────────
+
+    #[test]
+    fn use_resolves_sibling_module_via_ancestor() {
+        let src = r#"
+            module std {
+                pub module traits {
+                    pub trait Resistor {
+                        pins { A: Pin, B: Pin }
+                    }
+                }
+                pub module passive {
+                    use traits::Resistor
+                    pub device MyRes: impl Resistor {
+                        pins { A: 1, B: 2 }
+                    }
+                }
+            }
+        "#;
+        let resolved = resolve_src(src);
+        assert!(
+            !has_error(&resolved, "undefined"),
+            "errors: {:?}",
+            resolved.errors
+        );
+    }
+
+    #[test]
+    fn use_grouped_resolves_sibling_module_via_ancestor() {
+        let src = r#"
+            module std {
+                pub module traits {
+                    pub trait Resistor {
+                        pins { A: Pin, B: Pin }
+                    }
+                    pub trait Capacitor {
+                        pins { A: Pin, B: Pin }
+                    }
+                }
+                pub module passive {
+                    use traits::{Resistor, Capacitor}
+                    pub device MyRes: impl Resistor {
+                        pins { A: 1, B: 2 }
+                    }
+                }
+            }
+        "#;
+        let resolved = resolve_src(src);
+        assert!(
+            !has_error(&resolved, "undefined"),
+            "errors: {:?}",
+            resolved.errors
+        );
+    }
+
+    #[test]
+    fn deeply_nested_use_resolves_via_ancestor_walk() {
+        let src = r#"
+            module a {
+                pub module b {
+                    pub trait Foo {}
+                }
+                pub module c {
+                    pub module d {
+                        use b::Foo
+                        pub device Bar: impl Foo {
+                            pins {}
+                        }
+                    }
+                }
+            }
+        "#;
+        let resolved = resolve_src(src);
+        assert!(
+            !has_error(&resolved, "undefined"),
+            "errors: {:?}",
+            resolved.errors
+        );
     }
 }

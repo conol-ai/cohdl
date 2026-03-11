@@ -1,0 +1,12 @@
+use std::passive::{MLCC, Resistor}
+use std::traits::Capacitor
+
+design TestBoard {
+    inst c1: MLCC<C: 100nF, V: 16V>
+    inst c2: MLCC<C: 10uF, V: 25V>
+    inst r1: Resistor<R: 10kohm>
+
+    net VCC:  c1.A, c2.A, r1.A
+    net GND:  c1.B, c2.B
+    net PULL: r1.B
+}

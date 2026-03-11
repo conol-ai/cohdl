@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use serde::Deserialize;
 use tokio::sync::RwLock;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
@@ -12,6 +14,146 @@ use cohdl_sema::connectivity::build_connectivity;
 use cohdl_sema::typeck::{type_check, TypeCheckResult};
 use cohdl_sema::{resolve, ResolvedSourceFile, SemaError};
 use cohdl_syntax::ast::{self, DeviceBodyItem, PinEntryKind, SourceFile, TopLevelItemKind};
+
+// ── Embedded std library ─────────────────────────────────────────────────────
+
+const STD_LIB_COHDL: &str = include_str!("../../../std/src/lib.cohdl");
+const STD_TRAITS_COHDL: &str = include_str!("../../../std/src/traits.cohdl");
+const STD_PASSIVE_COHDL: &str = include_str!("../../../std/src/passive.cohdl");
+
+// ── Project resolution ──────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct LspManifest {
+    #[allow(dead_code)]
+    design: LspDesignSection,
+    #[serde(default)]
+    dependencies: HashMap<String, toml::Value>,
+}
+
+#[derive(Deserialize)]
+struct LspDesignSection {
+    #[allow(dead_code)]
+    root: String,
+    #[allow(dead_code)]
+    top: Option<String>,
+}
+
+/// Walk up from `start_dir` looking for `cohdl.toml`.
+fn find_project_root(start_dir: &Path) -> Option<PathBuf> {
+    let mut dir = start_dir.to_path_buf();
+    loop {
+        if dir.join("cohdl.toml").exists() {
+            return Some(dir);
+        }
+        if !dir.pop() {
+            return None;
+        }
+    }
+}
+
+/// Resolve `module` declarations in source text by loading sibling `.cohdl` files.
+fn resolve_modules_for_lsp(src_dir: &Path, root_src: &str) -> String {
+    let source_file = match parse_source_file(root_src) {
+        Ok(sf) => sf,
+        Err(_) => return root_src.to_string(),
+    };
+
+    let mod_names: Vec<(&str, bool)> = source_file
+        .items
+        .iter()
+        .filter_map(|item| match &item.kind {
+            TopLevelItemKind::Mod(m) => Some((m.name.name.as_str(), item.visibility.is_some())),
+            _ => None,
+        })
+        .collect();
+
+    if mod_names.is_empty() {
+        return root_src.to_string();
+    }
+
+    let mut combined = String::new();
+    for (name, is_pub) in &mod_names {
+        let mod_path = src_dir.join(format!("{}.cohdl", name));
+        if let Ok(content) = std::fs::read_to_string(&mod_path) {
+            let vis = if *is_pub { "pub " } else { "" };
+            combined.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, name, content));
+        }
+    }
+    combined.push_str(root_src);
+    combined
+}
+
+/// Synthesize the bundled `std` dependency as a `module std { ... }` block.
+fn synthesize_std() -> String {
+    let source_file = match parse_source_file(STD_LIB_COHDL) {
+        Ok(sf) => sf,
+        Err(_) => return String::new(),
+    };
+
+    let embedded: HashMap<&str, &str> = [
+        ("traits", STD_TRAITS_COHDL),
+        ("passive", STD_PASSIVE_COHDL),
+    ]
+    .into_iter()
+    .collect();
+
+    let mut inner = String::new();
+    for item in &source_file.items {
+        if let TopLevelItemKind::Mod(m) = &item.kind {
+            let name = &m.name.name;
+            if let Some(content) = embedded.get(name.as_str()) {
+                let vis = if item.visibility.is_some() { "pub " } else { "" };
+                inner.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, name, content));
+            }
+        }
+    }
+
+    format!("module std {{\n{}\n}}\n", inner)
+}
+
+/// Resolve all dependencies from a manifest. Currently only supports bundled `std`.
+fn resolve_deps_for_lsp(deps: &HashMap<String, toml::Value>) -> String {
+    let mut dep_src = String::new();
+    for name in deps.keys() {
+        if name == "std" {
+            dep_src.push_str(&synthesize_std());
+            dep_src.push('\n');
+        }
+    }
+    dep_src
+}
+
+/// Build the full project source for analysis, returning `(combined_src, prefix_len)`.
+/// `prefix_len` is the byte offset where the open file's content starts in the combined source.
+fn build_project_source(file_path: &Path, file_src: &str) -> (String, usize) {
+    let file_dir = file_path.parent().unwrap_or_else(|| Path::new("."));
+
+    // Try to find the project root
+    let project_root = find_project_root(file_dir);
+
+    // Resolve dependencies
+    let mut dep_src = String::new();
+    if let Some(ref root) = project_root {
+        let manifest_path = root.join("cohdl.toml");
+        if let Ok(content) = std::fs::read_to_string(&manifest_path) {
+            if let Ok(manifest) = toml::from_str::<LspManifest>(&content) {
+                dep_src = resolve_deps_for_lsp(&manifest.dependencies);
+            }
+        }
+    }
+
+    // Resolve module declarations from the current file
+    let user_src = resolve_modules_for_lsp(file_dir, file_src);
+
+    // The prefix is dep_src + module content (everything before the original file)
+    // user_src = [module wrappers] + file_src
+    // The original file content starts at: dep_src.len() + (user_src.len() - file_src.len())
+    let prefix_len = dep_src.len() + (user_src.len() - file_src.len());
+
+    let combined = format!("{}{}", dep_src, user_src);
+    (combined, prefix_len)
+}
 
 // ── Document store ──────────────────────────────────────────────────────────
 
@@ -98,15 +240,31 @@ fn position_to_offset(src: &str, pos: Position) -> usize {
 // ── Diagnostics pipeline ────────────────────────────────────────────────────
 
 /// Run the full parse → sema → DRC pipeline and collect all diagnostics.
-fn run_diagnostics(src: &str) -> (Vec<Diagnostic>, AnalysisResult) {
+/// `prefix_len` is the byte offset where the user's file starts in `src`;
+/// diagnostics outside that range are suppressed, and spans are adjusted.
+fn run_diagnostics(
+    src: &str,
+    user_src: &str,
+    prefix_len: usize,
+) -> (Vec<Diagnostic>, AnalysisResult) {
     let mut diagnostics = Vec::new();
+    let user_end = prefix_len + user_src.len();
 
     // ── Parse ────────────────────────────────────────────────────────────
     let source_file = match parse_source_file(src) {
         Ok(sf) => sf,
         Err(errors) => {
             for err in &errors {
-                diagnostics.push(parse_error_to_diagnostic(src, err));
+                if err.span.start >= prefix_len && err.span.start < user_end {
+                    let adjusted = ParseError {
+                        message: err.message.clone(),
+                        span: ast::Span {
+                            start: err.span.start - prefix_len,
+                            end: err.span.end - prefix_len,
+                        },
+                    };
+                    diagnostics.push(parse_error_to_diagnostic(user_src, &adjusted));
+                }
             }
             return (
                 diagnostics,
@@ -122,25 +280,64 @@ fn run_diagnostics(src: &str) -> (Vec<Diagnostic>, AnalysisResult) {
     // ── Name resolution ──────────────────────────────────────────────────
     let resolved = resolve(&source_file);
     for err in &resolved.errors {
-        diagnostics.push(sema_error_to_diagnostic(src, err));
+        if err.span.start >= prefix_len && err.span.start < user_end {
+            let adjusted = SemaError::new(
+                err.message.clone(),
+                ast::Span {
+                    start: err.span.start - prefix_len,
+                    end: err.span.end - prefix_len,
+                },
+            );
+            diagnostics.push(sema_error_to_diagnostic(user_src, &adjusted));
+        }
     }
 
     // ── Type checking ────────────────────────────────────────────────────
     let tc_result = type_check(&source_file, &resolved);
     for err in &tc_result.errors {
-        diagnostics.push(sema_error_to_diagnostic(src, err));
+        if err.span.start >= prefix_len && err.span.start < user_end {
+            let adjusted = SemaError::new(
+                err.message.clone(),
+                ast::Span {
+                    start: err.span.start - prefix_len,
+                    end: err.span.end - prefix_len,
+                },
+            );
+            diagnostics.push(sema_error_to_diagnostic(user_src, &adjusted));
+        }
     }
 
     // ── Connectivity + DRC (for each design) ─────────────────────────────
     for design in &tc_result.designs {
         let conn_result = build_connectivity(design, &tc_result.device_pins);
         for err in &conn_result.errors {
-            diagnostics.push(sema_error_to_diagnostic(src, err));
+            if err.span.start >= prefix_len && err.span.start < user_end {
+                let adjusted = SemaError::new(
+                    err.message.clone(),
+                    ast::Span {
+                        start: err.span.start - prefix_len,
+                        end: err.span.end - prefix_len,
+                    },
+                );
+                diagnostics.push(sema_error_to_diagnostic(user_src, &adjusted));
+            }
         }
         let runner = DrcRunner::new();
         let drc_diags = runner.run(&conn_result.ir);
         for diag in &drc_diags {
-            diagnostics.push(drc_diagnostic_to_diagnostic(src, diag));
+            if diag.span.start >= prefix_len && diag.span.start < user_end {
+                let adjusted = DrcDiagnostic {
+                    rule_id: diag.rule_id.clone(),
+                    level: diag.level,
+                    span: ast::Span {
+                        start: diag.span.start - prefix_len,
+                        end: diag.span.end - prefix_len,
+                    },
+                    instance_path: diag.instance_path.clone(),
+                    message: diag.message.clone(),
+                };
+                diagnostics.push(drc_diagnostic_to_diagnostic(user_src, &adjusted));
+            }
         }
     }
 
@@ -677,7 +874,14 @@ impl CohdlLanguageServer {
     }
 
     async fn on_change(&self, uri: Url, text: String) {
-        let (diagnostics, analysis) = run_diagnostics(&text);
+        // Try to resolve the full project source (modules + dependencies)
+        let (combined, prefix_len) = if let Ok(file_path) = uri.to_file_path() {
+            build_project_source(&file_path, &text)
+        } else {
+            (text.clone(), 0)
+        };
+
+        let (diagnostics, analysis) = run_diagnostics(&combined, &text, prefix_len);
 
         {
             let mut state = self.state.write().await;
@@ -938,7 +1142,7 @@ mod tests {
     #[test]
     fn diagnostics_for_parse_error() {
         let src = "device {"; // Invalid syntax
-        let (diagnostics, analysis) = run_diagnostics(src);
+        let (diagnostics, analysis) = run_diagnostics(src, src, 0);
         assert!(!diagnostics.is_empty());
         assert!(analysis.source_file.is_none());
         assert!(diagnostics
@@ -956,7 +1160,7 @@ mod tests {
                 pins { A: 1, B: 2 }
             }
         "#;
-        let (diagnostics, analysis) = run_diagnostics(src);
+        let (diagnostics, analysis) = run_diagnostics(src, src, 0);
         // Should parse and analyze successfully (no diagnostics expected for
         // well-formed source without a design)
         assert!(analysis.source_file.is_some());
@@ -985,7 +1189,7 @@ mod tests {
                 inst c: NonExistent
             }
         "#;
-        let (diagnostics, _) = run_diagnostics(src);
+        let (diagnostics, _) = run_diagnostics(src, src, 0);
         assert!(diagnostics.iter().any(|d| d.message.contains("undefined")));
     }
 
@@ -994,7 +1198,7 @@ mod tests {
         // A small file with an undefined reference — the diagnostic span should
         // map to the correct line/col.
         let src = "design X {\n    inst c: Missing\n}\n";
-        let (diagnostics, _) = run_diagnostics(src);
+        let (diagnostics, _) = run_diagnostics(src, src, 0);
         let undef = diagnostics.iter().find(|d| d.message.contains("undefined"));
         assert!(undef.is_some());
         let range = undef.unwrap().range;

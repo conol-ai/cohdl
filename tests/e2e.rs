@@ -84,6 +84,26 @@ fn run_pipeline(src: &str) -> PipelineOutput {
     }
 }
 
+/// Synthesize the bundled `std` dependency source by wrapping the std source
+/// files into `module std { pub module traits { ... } pub module passive { ... } }`.
+fn synthesize_std_source() -> String {
+    let traits_src = std::fs::read_to_string("std/src/traits.cohdl").expect("cannot read std/src/traits.cohdl");
+    let passive_src = std::fs::read_to_string("std/src/passive.cohdl").expect("cannot read std/src/passive.cohdl");
+
+    format!(
+        "module std {{\npub module traits {{\n{}\n}}\npub module passive {{\n{}\n}}\n}}\n",
+        traits_src, passive_src,
+    )
+}
+
+/// Load a fixture that declares `[dependencies] std = "0.1.0"` — prepends the
+/// synthesized std source before the fixture's own source files.
+fn load_fixture_source_with_std(fixture_dir: &str) -> String {
+    let std_src = synthesize_std_source();
+    let user_src = load_fixture_source(fixture_dir);
+    format!("{}\n{}", std_src, user_src)
+}
+
 // ── Test 1: stm32_minimal ────────────────────────────────────────────────────
 
 #[test]
@@ -444,6 +464,85 @@ fn multi_module() {
     assert!(
         drc_errors.is_empty(),
         "expected no DRC errors on valid portion, got: {:?}",
+        drc_errors
+    );
+}
+
+// ── Test 5: std_dependency ───────────────────────────────────────────────────
+
+#[test]
+fn std_dependency() {
+    let src = load_fixture_source_with_std("tests/fixtures/std_dependency");
+    let output = run_pipeline(&src);
+
+    // No parse errors.
+    assert!(
+        output.parse_errors.is_none(),
+        "unexpected parse errors: {:?}",
+        output.parse_errors
+    );
+
+    // No sema errors.
+    assert!(
+        output.sema_errors.is_empty(),
+        "unexpected sema errors: {:?}",
+        output.sema_errors
+    );
+
+    let tc = output.tc_result.as_ref().unwrap();
+
+    // Find the TestBoard design.
+    let design = tc
+        .designs
+        .iter()
+        .find(|d| d.name == "TestBoard")
+        .expect("TestBoard design not found");
+
+    // Build connectivity IR.
+    let conn = build_connectivity(design, &tc.device_pins);
+    assert!(
+        conn.errors.is_empty(),
+        "connectivity errors: {:?}",
+        conn.errors
+    );
+    let ir = &conn.ir;
+
+    // ── Instance count: c1, c2, r1 = 3
+    assert_eq!(
+        ir.instances.len(),
+        3,
+        "expected 3 instances, got {}",
+        ir.instances.len()
+    );
+
+    // ── Net "VCC" connects exactly 3 instance pin-refs (c1.A, c2.A, r1.A).
+    let vcc_net = ir
+        .nets
+        .iter()
+        .find(|n| n.name == "VCC")
+        .expect("VCC net not found");
+    let vcc_inst_pins: Vec<_> = vcc_net
+        .pins
+        .iter()
+        .filter(|p| p.instance_id != EXTERNAL_INSTANCE)
+        .collect();
+    assert_eq!(
+        vcc_inst_pins.len(),
+        3,
+        "VCC should connect exactly 3 instance pins, got {}",
+        vcc_inst_pins.len()
+    );
+
+    // ── DRC: zero errors.
+    let runner = DrcRunner::default();
+    let drc_diags = runner.run(ir);
+    let drc_errors: Vec<_> = drc_diags
+        .iter()
+        .filter(|d| d.level == DiagnosticLevel::Error)
+        .collect();
+    assert!(
+        drc_errors.is_empty(),
+        "expected no DRC errors, got: {:?}",
         drc_errors
     );
 }

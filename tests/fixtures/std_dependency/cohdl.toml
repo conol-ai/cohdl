@@ -1,0 +1,10 @@
+[package]
+name    = "std-dep-test"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top  = "TestBoard"
+
+[dependencies]
+std = "0.1.0"

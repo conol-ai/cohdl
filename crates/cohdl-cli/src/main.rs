@@ -93,6 +93,8 @@ enum EmitTarget {
 struct CohdlManifest {
     package: PackageSection,
     design: DesignSection,
+    #[serde(default)]
+    dependencies: std::collections::HashMap<String, DependencySpec>,
 }
 
 #[derive(Deserialize)]
@@ -105,7 +107,17 @@ struct PackageSection {
 #[derive(Deserialize)]
 struct DesignSection {
     root: String,
-    top: String,
+    top: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum DependencySpec {
+    Simple(String),
+    Table {
+        #[allow(dead_code)]
+        path: Option<String>,
+    },
 }
 
 fn load_manifest() -> Result<CohdlManifest, String> {
@@ -162,6 +174,158 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
     }
     combined.push_str(root_src);
     Ok(combined)
+}
+
+// ── Embedded std library ─────────────────────────────────────────────────────
+
+const STD_LIB_COHDL: &str = include_str!("../../../std/src/lib.cohdl");
+const STD_TRAITS_COHDL: &str = include_str!("../../../std/src/traits.cohdl");
+const STD_PASSIVE_COHDL: &str = include_str!("../../../std/src/passive.cohdl");
+
+// ── Dependency resolution ───────────────────────────────────────────────────
+
+/// Resolve a single dependency's source into a `module <name> { ... }` block.
+fn resolve_dependency_source(name: &str, spec: &DependencySpec) -> Result<String, String> {
+    match spec {
+        DependencySpec::Simple(_version) => {
+            if name == "std" {
+                resolve_bundled_std()
+            } else {
+                Err(format!(
+                    "unknown bundled dependency `{}`; only `std` is supported",
+                    name
+                ))
+            }
+        }
+        DependencySpec::Table { path } => {
+            if let Some(dep_path) = path {
+                resolve_path_dependency(name, dep_path)
+            } else {
+                Err(format!(
+                    "dependency `{}` has no `path`; only path and bundled dependencies are supported",
+                    name
+                ))
+            }
+        }
+    }
+}
+
+/// Build the synthesized source for the bundled `std` dependency.
+fn resolve_bundled_std() -> Result<String, String> {
+    use cohdl_syntax::ast::TopLevelItemKind;
+
+    let source_file = parse_source_file(STD_LIB_COHDL)
+        .map_err(|e| format!("failed to parse std/src/lib.cohdl: {:?}", e))?;
+
+    let embedded_sources: std::collections::HashMap<&str, &str> = [
+        ("traits", STD_TRAITS_COHDL),
+        ("passive", STD_PASSIVE_COHDL),
+    ]
+    .into_iter()
+    .collect();
+
+    let mut inner = String::new();
+    for item in &source_file.items {
+        if let TopLevelItemKind::Mod(m) = &item.kind {
+            let mod_name = &m.name.name;
+            let content = embedded_sources.get(mod_name.as_str()).ok_or_else(|| {
+                format!(
+                    "std/src/lib.cohdl references module `{}` which is not embedded",
+                    mod_name
+                )
+            })?;
+            let vis = if item.visibility.is_some() {
+                "pub "
+            } else {
+                ""
+            };
+            inner.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, mod_name, content));
+        }
+    }
+
+    // Note: we skip appending lib.cohdl's bare `mod` declarations since the
+    // inline module blocks above already define those modules.
+
+    Ok(format!("module std {{\n{}\n}}\n", inner))
+}
+
+/// Build the synthesized source for a path-based dependency.
+fn resolve_path_dependency(name: &str, dep_path: &str) -> Result<String, String> {
+    use cohdl_syntax::ast::TopLevelItemKind;
+
+    let dep_dir = Path::new(dep_path);
+    let manifest_path = dep_dir.join("cohdl.toml");
+    let manifest_content = fs::read_to_string(&manifest_path).map_err(|e| {
+        format!(
+            "could not read dependency `{}` manifest ({}): {}",
+            name,
+            manifest_path.display(),
+            e
+        )
+    })?;
+    let manifest: CohdlManifest =
+        toml::from_str(&manifest_content).map_err(|e| {
+            format!("invalid cohdl.toml for dependency `{}`: {}", name, e)
+        })?;
+
+    let root_path = dep_dir.join(&manifest.design.root);
+    let root_src = fs::read_to_string(&root_path).map_err(|e| {
+        format!(
+            "could not read dependency `{}` root ({}): {}",
+            name,
+            root_path.display(),
+            e
+        )
+    })?;
+
+    let source_file = match parse_source_file(&root_src) {
+        Ok(sf) => sf,
+        Err(_) => return Ok(format!("module {} {{\n{}\n}}\n", name, root_src)),
+    };
+
+    let src_dir = root_path.parent().unwrap_or_else(|| Path::new("."));
+    let mut inner = String::new();
+
+    for item in &source_file.items {
+        if let TopLevelItemKind::Mod(m) = &item.kind {
+            let mod_name = &m.name.name;
+            let mod_path = src_dir.join(format!("{}.cohdl", mod_name));
+            let content = fs::read_to_string(&mod_path).map_err(|e| {
+                format!(
+                    "could not read module `{}` of dependency `{}` ({}): {}",
+                    mod_name,
+                    name,
+                    mod_path.display(),
+                    e
+                )
+            })?;
+            let vis = if item.visibility.is_some() {
+                "pub "
+            } else {
+                ""
+            };
+            inner.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, mod_name, content));
+        }
+    }
+
+    // Note: we skip appending root_src's bare `mod` declarations since the
+    // inline module blocks above already define those modules.
+    Ok(format!("module {} {{\n{}\n}}\n", name, inner))
+}
+
+/// Resolve all dependencies and return concatenated source to prepend.
+fn resolve_dependencies(manifest: &CohdlManifest) -> Result<String, String> {
+    let mut dep_src = String::new();
+    // Sort dependency names for deterministic output
+    let mut dep_names: Vec<&String> = manifest.dependencies.keys().collect();
+    dep_names.sort();
+    for name in dep_names {
+        let spec = &manifest.dependencies[name];
+        let src = resolve_dependency_source(name, spec)?;
+        dep_src.push_str(&src);
+        dep_src.push('\n');
+    }
+    Ok(dep_src)
 }
 
 // ── Diagnostic rendering ────────────────────────────────────────────────────
@@ -485,7 +649,22 @@ fn cmd_build(
         }
     };
 
-    let top_design = design_override.as_deref().unwrap_or(&manifest.design.top);
+    let top_design = match design_override.as_deref().or(manifest.design.top.as_deref()) {
+        Some(t) => t,
+        None => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(
+                stderr,
+                ": no top design specified (use --design or set design.top in cohdl.toml)"
+            )
+            .ok();
+            return 1;
+        }
+    };
     let file_path = &manifest.design.root;
 
     let root_src = match fs::read_to_string(file_path) {
@@ -501,7 +680,7 @@ fn cmd_build(
         }
     };
 
-    let src = match resolve_modules(file_path, &root_src) {
+    let user_src = match resolve_modules(file_path, &root_src) {
         Ok(s) => s,
         Err(e) => {
             stderr
@@ -513,6 +692,21 @@ fn cmd_build(
             return 1;
         }
     };
+
+    let dep_src = match resolve_dependencies(&manifest) {
+        Ok(s) => s,
+        Err(e) => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(stderr, ": {}", e).ok();
+            return 1;
+        }
+    };
+
+    let src = format!("{}{}", dep_src, user_src);
 
     let result = run_pipeline(stderr, file_path, &src, top_design);
 
@@ -595,6 +789,23 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
         }
     };
 
+    let top_design = match manifest.design.top.as_deref() {
+        Some(t) => t,
+        None => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(
+                stderr,
+                ": no top design specified (set design.top in cohdl.toml)"
+            )
+            .ok();
+            return 1;
+        }
+    };
+
     let file_path = &manifest.design.root;
     let root_src = match fs::read_to_string(file_path) {
         Ok(s) => s,
@@ -609,7 +820,7 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
         }
     };
 
-    let src = match resolve_modules(file_path, &root_src) {
+    let user_src = match resolve_modules(file_path, &root_src) {
         Ok(s) => s,
         Err(e) => {
             stderr
@@ -622,7 +833,22 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
         }
     };
 
-    let result = run_pipeline(stderr, file_path, &src, &manifest.design.top);
+    let dep_src = match resolve_dependencies(&manifest) {
+        Ok(s) => s,
+        Err(e) => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(stderr, ": {}", e).ok();
+            return 1;
+        }
+    };
+
+    let src = format!("{}{}", dep_src, user_src);
+
+    let result = run_pipeline(stderr, file_path, &src, top_design);
 
     if result.has_errors {
         1
@@ -661,6 +887,9 @@ version = "0.1.0"
 [design]
 root = "src/main.cohdl"
 top  = "MainBoard"
+
+[dependencies]
+std = "0.1.0"
 "#,
         project_name
     );

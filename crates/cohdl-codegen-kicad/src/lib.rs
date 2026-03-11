@@ -84,6 +84,12 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
         )
         .unwrap();
         writeln!(out, "      (footprint \"{}\")", xml_escape(&footprint)).unwrap();
+        writeln!(
+            out,
+            "      (libsource (lib \"cohdl\") (part \"{}\") (description \"\"))",
+            xml_escape(&inst.device)
+        )
+        .unwrap();
         if let Some(mpn) = &inst.mpn {
             writeln!(
                 out,
@@ -92,6 +98,12 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
             )
             .unwrap();
         }
+        writeln!(
+            out,
+            "      (sheetpath (names \"/\") (tstamps \"/\"))"
+        )
+        .unwrap();
+        writeln!(out, "      (tstamp \"{:08X}\")", inst.id.0).unwrap();
         writeln!(out, "    )").unwrap();
     }
     writeln!(out, "  )").unwrap();
@@ -385,6 +397,23 @@ mod tests {
             .insert("QFN32".into(), "Package_DFN_QFN:QFN-32_5x5mm".into());
         let netlist = emit_kicad_netlist_with_config(&ir, &config);
         assert!(netlist.contains(r#"(footprint "Package_DFN_QFN:QFN-32_5x5mm")"#));
+    }
+
+    #[test]
+    fn netlist_contains_libsource() {
+        let netlist = emit_kicad_netlist(&fixture_ir());
+        assert!(netlist.contains(r#"(libsource (lib "cohdl") (part "LQFP48") (description ""))"#));
+        assert!(netlist.contains(r#"(libsource (lib "cohdl") (part "R0402") (description ""))"#));
+        assert!(netlist.contains(r#"(libsource (lib "cohdl") (part "C0402") (description ""))"#));
+    }
+
+    #[test]
+    fn netlist_contains_sheetpath_and_tstamp() {
+        let netlist = emit_kicad_netlist(&fixture_ir());
+        assert!(netlist.contains(r#"(sheetpath (names "/") (tstamps "/"))"#));
+        assert!(netlist.contains(r#"(tstamp "00000000")"#));
+        assert!(netlist.contains(r#"(tstamp "00000001")"#));
+        assert!(netlist.contains(r#"(tstamp "00000002")"#));
     }
 
     #[test]

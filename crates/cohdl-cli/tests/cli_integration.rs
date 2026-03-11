@@ -119,7 +119,7 @@ fn build_valid_source_produces_netlist() {
         .success();
 
     // Default --out-dir is "out"
-    assert!(dir.path().join("out/test-board.net").exists());
+    assert!(dir.path().join("out/test-board.enet").exists());
     assert!(dir.path().join("out/test-board-bom.csv").exists());
     assert!(dir.path().join("out/test-board-bom-avl.csv").exists());
 }
@@ -176,7 +176,7 @@ top  = "MainBoard"
         .assert()
         .success();
 
-    assert!(dir.path().join("out/test-board.net").exists());
+    assert!(dir.path().join("out/test-board.enet").exists());
 }
 
 #[test]
@@ -221,7 +221,7 @@ fn build_custom_out_dir() {
         .assert()
         .success();
 
-    assert!(dir.path().join("build-output/test-board.net").exists());
+    assert!(dir.path().join("build-output/test-board.enet").exists());
 }
 
 // ── build with --emit netlist only ──────────────────────────────────────────
@@ -247,7 +247,7 @@ fn build_emit_netlist_only() {
         .assert()
         .success();
 
-    assert!(dir.path().join("out/test-board.net").exists());
+    assert!(dir.path().join("out/test-board.enet").exists());
     assert!(!dir.path().join("out/test-board-bom.csv").exists());
     assert!(!dir.path().join("out/test-board-bom-avl.csv").exists());
 }

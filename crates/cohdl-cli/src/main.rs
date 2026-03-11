@@ -8,6 +8,7 @@ use serde::Deserialize;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use cohdl_codegen_kicad::{emit_avl_bom, emit_kicad_netlist, emit_simple_bom};
+use cohdl_codegen_lceda::emit_lceda_netlist;
 use cohdl_drc::{DiagnosticLevel, DrcDiagnostic, DrcRunner};
 use cohdl_parser::{parse_source_file, ParseError};
 use cohdl_sema::connectivity::{build_connectivity, ConnectivityResult};
@@ -77,7 +78,10 @@ enum Command {
 
 #[derive(Clone, ValueEnum, PartialEq, Eq)]
 enum EmitTarget {
+    /// LCEDA Pro netlist (.enet) — default
     Netlist,
+    /// KiCad legacy netlist (.net)
+    NetlistKicad,
     BomSimple,
     BomAvl,
     All,
@@ -535,6 +539,16 @@ fn cmd_build(
     }
 
     if emit_all || emit.contains(&EmitTarget::Netlist) {
+        let netlist = emit_lceda_netlist(&conn.ir);
+        let path = out_dir.join(format!("{}.enet", manifest.package.name));
+        if let Err(e) = fs::write(&path, &netlist) {
+            writeln!(stderr, "Error: could not write {}: {}", path.display(), e).ok();
+            return 1;
+        }
+        writeln!(stderr, "  Wrote {}", path.display()).ok();
+    }
+
+    if emit.contains(&EmitTarget::NetlistKicad) {
         let netlist = emit_kicad_netlist(&conn.ir);
         let path = out_dir.join(format!("{}.net", manifest.package.name));
         if let Err(e) = fs::write(&path, &netlist) {

@@ -17,6 +17,7 @@ cohdl-parser = { path = "../cohdl-parser" }
 cohdl-sema = { path = "../cohdl-sema" }
 cohdl-drc = { path = "../cohdl-drc" }
 cohdl-codegen-kicad = { path = "../cohdl-codegen-kicad" }
+cohdl-codegen-lceda = { path = "../cohdl-codegen-lceda" }
 cohdl-syntax = { path = "../cohdl-syntax" }
 
 [dev-dependencies]

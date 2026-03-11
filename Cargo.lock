@@ -211,6 +211,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "cohdl-codegen-kicad",
+ "cohdl-codegen-lceda",
  "cohdl-drc",
  "cohdl-parser",
  "cohdl-sema",
@@ -227,6 +228,15 @@ name = "cohdl-codegen-kicad"
 version = "0.1.0"
 dependencies = [
  "cohdl-sema",
+]
+
+[[package]]
+name = "cohdl-codegen-lceda"
+version = "0.1.0"
+dependencies = [
+ "cohdl-sema",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

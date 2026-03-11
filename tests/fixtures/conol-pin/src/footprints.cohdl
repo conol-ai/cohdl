@@ -1,0 +1,41 @@
+// Custom footprint aliases for the conol-pin board.
+
+pub footprint_alias QFN56_7x7 {
+    lceda: "QFN-56_L7.0-W7.0-P0.40-TL-EP4.0"
+}
+
+pub footprint_alias BGA153 {
+    lceda: "FBGA-153_L13.0-W11.5-P0.50_MKEMA032GD1E-C"
+}
+
+pub footprint_alias SOT23_5 {
+    lceda: "SOT-23-5_L3.0-W1.6-P0.95-LS2.8-BL"
+}
+
+pub footprint_alias SOT23_6 {
+    lceda: "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL"
+}
+
+pub footprint_alias USB_C_16P {
+    lceda: "USB-C-SMD_TYPE-C-6PIN-2MD-073"
+}
+
+pub footprint_alias LED0402 {
+    lceda: "LED0402"
+}
+
+pub footprint_alias MEMS_MIC {
+    lceda: "MIC-SMD_7P-L3.5-W2.7_MMICT5837-00-012"
+}
+
+pub footprint_alias SOT363 {
+    lceda: "SOT-363_L2.0-W1.25-P0.65-LS1.7-BL"
+}
+
+pub footprint_alias SW_TACT {
+    lceda: "SW-SMD_L3.0-W2.5"
+}
+
+pub footprint_alias POGO_2P {
+    lceda: "POGO-2PIN-2.54"
+}

@@ -1,0 +1,10 @@
+[package]
+name    = "conol-pin"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top  = "MainBoard"
+
+[dependencies]
+std = "0.1.0"

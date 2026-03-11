@@ -1,0 +1,261 @@
+// conol-pin — Plaud NotePin S clone, wearable AI recorder.
+// Hardware: ESP32-S3 (Wi-Fi + BLE + audio, single SoC)
+//           64GB eMMC, 2x MEMS mic, bone conduction VPU
+//           BQ24075 charger, dual LDO, direct antenna
+
+use std::passive::{Resistor, MLCC, Crystal, Inductor}
+use std::traits::Capacitor
+
+module footprints
+module device_traits
+module soc
+module power
+module audio
+module storage
+module rf
+module connectors
+module parts
+
+// Reusable decoupling cap sub-circuit
+fn decoupling<P: impl Capacitor>(vdd: Net, gnd: Net) {
+    inst c: P
+    net vdd: c.A
+    net gnd: c.B
+}
+
+design MainBoard {
+
+    // ════════════════════════════════════════════════════════════════════
+    // CORE SoC
+    // ════════════════════════════════════════════════════════════════════
+
+    inst mcu: soc::ESP32_S3
+
+    // ════════════════════════════════════════════════════════════════════
+    // POWER SUBSYSTEM
+    // ════════════════════════════════════════════════════════════════════
+
+    inst bat:   power::BatteryPad
+    inst usb:   connectors::USB_TypeC_Power
+    inst esd:   connectors::ESD_USB
+    inst chrg:  power::BQ24075
+    inst ldo33: power::AP2112K_3V3
+    inst ldo18: power::AP2112K_1V8
+    inst pogo:  connectors::PogoPins
+
+    // USB-C CC pull-down resistors (5.1k for UFP/sink identification)
+    inst r_cc1: Resistor<R: 5.1kohm, pkg: "R0402">
+    inst r_cc2: Resistor<R: 5.1kohm, pkg: "R0402">
+
+    // ════════════════════════════════════════════════════════════════════
+    // CRYSTALS
+    // ════════════════════════════════════════════════════════════════════
+
+    // 40 MHz for ESP32-S3
+    inst x_40m:   Crystal<F: 40MHz, CL: 10pF, pkg: "XTAL2016">
+    inst c_40m_a: MLCC<C: 10pF, pkg: "C0402">
+    inst c_40m_b: MLCC<C: 10pF, pkg: "C0402">
+
+    // 32.768 kHz RTC
+    inst x_32k:   Crystal<F: 32.768kHz, CL: 7pF, pkg: "XTAL1610">
+    inst c_32k_a: MLCC<C: 7pF, pkg: "C0402">
+    inst c_32k_b: MLCC<C: 7pF, pkg: "C0402">
+
+    // ════════════════════════════════════════════════════════════════════
+    // STORAGE
+    // ════════════════════════════════════════════════════════════════════
+
+    inst emmc: storage::EMMC_64GB
+
+    // ════════════════════════════════════════════════════════════════════
+    // AUDIO
+    // ════════════════════════════════════════════════════════════════════
+
+    // Two PDM MEMS microphones (stereo environment recording)
+    inst mic1: audio::MMICT5837
+    inst mic2: audio::MMICT5837
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // RF SUBSYSTEM
+    // ════════════════════════════════════════════════════════════════════
+
+    inst ant: rf::AntConnector
+
+    // RF matching network (ESP32-S3 LNA_IN → pi-match → antenna)
+    inst l_match: Inductor<L: 2.7nH, pkg: "L0402">
+    inst c_match: MLCC<C: 1pF, pkg: "C0402">
+
+    // ════════════════════════════════════════════════════════════════════
+    // USER INTERFACE
+    // ════════════════════════════════════════════════════════════════════
+
+    inst btn_rec:  connectors::TactButton
+    inst btn_mark: connectors::TactButton
+    inst led:      connectors::LED_Status
+
+    // Button pull-ups
+    inst r_rec:  Resistor<R: 10kohm, pkg: "R0402">
+    inst r_mark: Resistor<R: 10kohm, pkg: "R0402">
+
+    // LED current-limiting resistor
+    inst r_led: Resistor<R: 1kohm, pkg: "R0402">
+
+    // ════════════════════════════════════════════════════════════════════
+    // SUPPORT COMPONENTS
+    // ════════════════════════════════════════════════════════════════════
+
+    // ESP32-S3 CHIP_PU pull-up (active high enable)
+    inst r_chip_en: Resistor<R: 10kohm, pkg: "R0402">
+
+    // ════════════════════════════════════════════════════════════════════
+    // DECOUPLING CAPACITORS (via inline function expansion)
+    // ════════════════════════════════════════════════════════════════════
+
+    // ESP32-S3 VDD3P3 decoupling (4x 100nF + 1x 10uF bulk)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 10uF, V: 10V, pkg: "C0603">>(vdd: VDD_3V3, gnd: GND)
+
+    // ESP32-S3 VDDA decoupling (2x 100nF + 1x 10uF)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 10uF, V: 10V, pkg: "C0603">>(vdd: VDD_3V3, gnd: GND)
+
+    // ESP32-S3 VDD3P3_RTC decoupling
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+
+    // ESP32-S3 VDD_SPI decoupling
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+
+    // LDO output bulk capacitors
+    decoupling<MLCC<C: 10uF, V: 10V, pkg: "C0603">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 10uF, V: 10V, pkg: "C0603">>(vdd: VDD_1V8, gnd: GND)
+
+    // Charger input/output bulk caps
+    decoupling<MLCC<C: 10uF, V: 25V, pkg: "C0805">>(vdd: VBUS, gnd: GND)
+    decoupling<MLCC<C: 10uF, V: 10V, pkg: "C0805">>(vdd: VSYS, gnd: GND)
+
+    // eMMC decoupling
+    decoupling<MLCC<C: 100nF, pkg: "C0402">>(vdd: VDD_3V3, gnd: GND)
+    decoupling<MLCC<C: 4.7uF, V: 10V, pkg: "C0402">>(vdd: VDD_1V8, gnd: GND)
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — Power Tree
+    // ════════════════════════════════════════════════════════════════════
+
+    // USB VBUS (5V from USB-C or magnetic pogo pins)
+    net VBUS: usb.VBUS, pogo.VIN, chrg.IN, esd.VCC
+
+    // System power (charger output → LDO inputs, ~3.7-4.2V)
+    net VSYS: chrg.OUT, ldo33.VIN, ldo18.VIN
+
+    // Battery
+    net VBAT: bat.VBAT, chrg.BAT
+
+    // 3.3V rail — all 3.3V consumers
+    net VDD_3V3: ldo33.VOUT,
+                 mcu.VDD3P3, mcu.VDD3P3_RTC, mcu.VDD_SPI, mcu.VDDA,
+                 emmc.VCC,
+                 mic1.VDD, mic2.VDD,
+                 r_chip_en.A, r_rec.A, r_mark.A,
+                 mic2.LR
+
+    // 1.8V rail — eMMC I/O
+    net VDD_1V8: ldo18.VOUT, emmc.VCCQ
+
+    // Charger / LDO enable (tie to VSYS for always-on)
+    net CHRG_EN: chrg.CE, ldo33.EN, ldo18.EN
+
+    // Power good indicator → ESP32-S3 GPIO
+    net PGOOD: chrg.PGOOD, mcu.GPIO6
+
+    // Ground — all grounds merged
+    net GND: bat.GND, usb.GND, usb.SHIELD, pogo.GND,
+             chrg.VSS, ldo33.GND, ldo18.GND,
+             mcu.GND, mcu.EP,
+             emmc.VSS,
+             mic1.GND, mic2.GND,
+             ant.GND,
+             esd.GND,
+             btn_rec.B, btn_mark.B,
+             r_cc1.B, r_cc2.B,
+             c_40m_a.B, c_40m_b.B,
+             c_32k_a.B, c_32k_b.B,
+             c_match.B,
+             led.K,
+             mic1.LR
+
+    // USB-C CC resistors (5.1k to GND for sink/UFP role)
+    net CC1: usb.CC1, r_cc1.A
+    net CC2: usb.CC2, r_cc2.A
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — Crystals
+    // ════════════════════════════════════════════════════════════════════
+
+    // ESP32-S3 40 MHz crystal
+    net XTAL_P_40M: mcu.XTAL_P, x_40m.A, c_40m_a.A
+    net XTAL_N_40M: mcu.XTAL_N, x_40m.B, c_40m_b.A
+
+    // ESP32-S3 32.768 kHz RTC crystal
+    net XTAL_P_32K: mcu.XTAL_32K_P, x_32k.A, c_32k_a.A
+    net XTAL_N_32K: mcu.XTAL_32K_N, x_32k.B, c_32k_b.A
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — eMMC / SDIO
+    // ════════════════════════════════════════════════════════════════════
+
+    net SDIO_CLK: mcu.SD_CLK, emmc.CLK
+    net SDIO_CMD: mcu.SD_CMD, emmc.CMD
+    net SDIO_D0:  mcu.SD_D0,  emmc.DAT0
+    net SDIO_D1:  mcu.SD_D1,  emmc.DAT1
+    net SDIO_D2:  mcu.SD_D2,  emmc.DAT2
+    net SDIO_D3:  mcu.SD_D3,  emmc.DAT3
+
+    // eMMC reset (active low, driven by MCU GPIO)
+    net EMMC_RST: mcu.GPIO0, emmc.RST_N
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — Audio (PDM Microphones + VPU)
+    // ════════════════════════════════════════════════════════════════════
+
+    // PDM clock (shared between both mics)
+    net PDM_CLK: mcu.PDM_CLK, mic1.CLK, mic2.CLK
+
+    // PDM data — mic1 left channel (LR=GND), mic2 right channel (LR=VDD)
+    net PDM_DATA0: mcu.PDM_DATA0, mic1.DATA
+    net PDM_DATA1: mcu.PDM_DATA1, mic2.DATA
+
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — RF Subsystem (Direct Antenna)
+    // ════════════════════════════════════════════════════════════════════
+
+    // ESP32-S3 LNA_IN → L-match → antenna connector
+    net RF_ANT:   mcu.LNA_IN, l_match.A
+    net RF_MATCH: l_match.B, c_match.A, ant.SIG
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — User Interface
+    // ════════════════════════════════════════════════════════════════════
+
+    // Record button (active low, ESP32-S3 GPIO with 10k pull-up)
+    net BTN_REC:  btn_rec.A, mcu.GPIO3, r_rec.B
+
+    // Highlight / bookmark button
+    net BTN_MARK: btn_mark.A, mcu.GPIO4, r_mark.B
+
+    // Status LED (ESP32-S3 GPIO → resistor → LED anode → cathode to GND)
+    net LED_DRV: mcu.GPIO5, r_led.A
+    net LED_K:   r_led.B, led.A
+
+    // ════════════════════════════════════════════════════════════════════
+    // NET DEFINITIONS — Miscellaneous
+    // ════════════════════════════════════════════════════════════════════
+
+    // ESP32-S3 CHIP_PU pull-up (active high enable)
+    net CHIP_PU: mcu.CHIP_PU, r_chip_en.B
+}

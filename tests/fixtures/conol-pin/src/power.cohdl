@@ -1,0 +1,64 @@
+// Power management: charger IC, LDOs, battery pad.
+
+use device_traits::{IC, Connector}
+
+// BQ24075 — Single-cell LiPo charger with power path management
+// SOT-23-6 (simplified representation)
+pub device BQ24075<pkg: Package = "SOT23_6">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::SOT23_6
+    }
+
+    pins {
+        IN:     1
+        VSS:    2
+        OUT:    3
+        PGOOD:  4
+        CE:     5
+        BAT:    6
+    }
+}
+
+// AP2112K-3.3 — 600mA LDO, 3.3V fixed output
+pub device AP2112K_3V3<pkg: Package = "SOT23_5">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::SOT23_5
+    }
+
+    pins {
+        VIN:    1
+        GND:    2
+        EN:     3
+        NC:     4
+        VOUT:   5
+    }
+}
+
+// AP2112K-1.8 — 600mA LDO, 1.8V fixed output
+pub device AP2112K_1V8<pkg: Package = "SOT23_5">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::SOT23_5
+    }
+
+    pins {
+        VIN:    1
+        GND:    2
+        EN:     3
+        NC:     4
+        VOUT:   5
+    }
+}
+
+// Battery pad (2-pin solder pad for LiPo cell)
+pub device BatteryPad: impl Connector {
+    pins {
+        VBAT:  1
+        GND:   2
+    }
+}

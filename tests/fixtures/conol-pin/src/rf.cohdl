@@ -1,0 +1,13 @@
+// RF subsystem: antenna connector.
+// ESP32-S3 has integrated Wi-Fi + BLE with single antenna port;
+// no external RF switch needed.
+
+use device_traits::Connector
+
+// U.FL antenna connector
+pub device AntConnector: impl Connector {
+    pins {
+        SIG:   1
+        GND:   2
+    }
+}

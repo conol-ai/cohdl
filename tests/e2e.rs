@@ -836,3 +836,101 @@ fn stm32_core() {
         drc_errors
     );
 }
+
+// ── Test: conol-pin (Plaud NotePin S clone) ─────────────────────────────────
+
+#[test]
+fn conol_pin() {
+    let std_src = synthesize_std_source();
+    let user_src = load_fixture_source_with_file_modules("tests/fixtures/conol-pin");
+    let src = format!("{}\n{}", std_src, user_src);
+    let output = run_pipeline(&src);
+
+    // No parse errors.
+    assert!(
+        output.parse_errors.is_none(),
+        "unexpected parse errors: {:?}",
+        output.parse_errors
+    );
+
+    // No sema errors.
+    assert!(
+        output.sema_errors.is_empty(),
+        "unexpected sema errors: {:?}",
+        output.sema_errors
+    );
+
+    let tc = output.tc_result.as_ref().unwrap();
+
+    // Find the MainBoard design.
+    let design = tc
+        .designs
+        .iter()
+        .find(|d| d.name == "MainBoard")
+        .expect("MainBoard design not found");
+
+    // Build connectivity IR.
+    let conn = build_connectivity(design, &tc.device_pins);
+    assert!(
+        conn.errors.is_empty(),
+        "connectivity errors: {:?}",
+        conn.errors
+    );
+    let ir = &conn.ir;
+
+    // ── Verify we have a substantial number of instances.
+    // Single-SoC (ESP32-S3) design has fewer parts than dual-SoC.
+    assert!(
+        ir.instances.len() >= 40,
+        "expected at least 40 instances, got {}",
+        ir.instances.len()
+    );
+
+    // ── Verify function-expanded decoupling caps exist.
+    let fn_mlcc_count = ir
+        .instances
+        .iter()
+        .filter(|i| i.name.starts_with("__fn") && i.device == "std::passive::MLCC")
+        .count();
+    assert!(
+        fn_mlcc_count >= 14,
+        "expected at least 14 function-expanded MLCC instances, got {}",
+        fn_mlcc_count
+    );
+
+    // ── Key nets exist.
+    let net_names: Vec<&str> = ir.nets.iter().map(|n| n.name.as_str()).collect();
+    for expected in &[
+        "GND", "VDD_3V3", "VDD_1V8", "VBUS", "VSYS", "VBAT",
+        "SDIO_CLK", "PDM_CLK", "RF_ANT",
+        "BTN_REC", "BTN_MARK", "LED_DRV",
+    ] {
+        assert!(
+            net_names.contains(expected),
+            "expected net '{}' not found in {:?}",
+            expected,
+            net_names
+        );
+    }
+
+    // ── GND net should have many pins (all grounds merged).
+    let gnd_net = ir.nets.iter().find(|n| n.name == "GND").unwrap();
+    assert!(
+        gnd_net.pins.len() >= 30,
+        "GND should connect at least 30 pins, got {}",
+        gnd_net.pins.len()
+    );
+
+    // ── DRC: zero errors (conol-pin).
+    let runner = DrcRunner::default();
+    let drc_diags = runner.run(ir);
+    let drc_errors: Vec<_> = drc_diags
+        .iter()
+        .filter(|d| d.level == DiagnosticLevel::Error)
+        .collect();
+    assert!(
+        drc_errors.is_empty(),
+        "expected no DRC errors, got: {:?}",
+        drc_errors
+    );
+}

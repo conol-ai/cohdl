@@ -1,0 +1,21 @@
+// Audio devices: MEMS digital microphones and bone conduction VPU.
+
+use device_traits::Microphone
+
+// MMICT5837 — PDM MEMS digital microphone (7-pin)
+pub device MMICT5837<pkg: Package = "MEMS_MIC">: impl Microphone {
+    package: pkg
+
+    spec {
+        footprint: footprints::MEMS_MIC
+    }
+
+    pins {
+        VDD:   1
+        GND:   [2, 3, 7]
+        CLK:   4
+        DATA:  5
+        LR:    6
+    }
+}
+

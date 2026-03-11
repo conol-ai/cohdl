@@ -65,6 +65,48 @@ pub footprint_alias C2512 {
     lceda: "C2512"
 }
 
+// inductors
+pub footprint_alias L0201 {
+    lceda: "L0201"
+}
+
+pub footprint_alias L0402 {
+    lceda: "L0402"
+}
+
+pub footprint_alias L0603 {
+    lceda: "L0603"
+}
+
+pub footprint_alias L0805 {
+    lceda: "L0805"
+}
+
+pub footprint_alias L1206 {
+    lceda: "L1206"
+}
+
+pub footprint_alias L1210 {
+    lceda: "L1210"
+}
+
+pub footprint_alias L2010 {
+    lceda: "L2010"
+}
+
+pub footprint_alias L2512 {
+    lceda: "L2512"
+}
+
+// crystals
+pub footprint_alias XTAL1610 {
+    lceda: "CRYSTAL-SMD_L1.6-W1.0"
+}
+
+pub footprint_alias XTAL2016 {
+    lceda: "CRYSTAL-SMD_4P-L2.0-W1.6-BL"
+}
+
 // ufqfpn
 pub footprint_alias UFQFPN48 {
     lceda: "UFQFPN-48_L7.0-W7.0-P0.50-BL-EP"

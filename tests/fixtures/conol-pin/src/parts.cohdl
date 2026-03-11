@@ -1,0 +1,37 @@
+// Part definitions — bind devices to manufacturer part numbers.
+
+use soc::ESP32_S3
+use storage::EMMC_64GB
+use audio::MMICT5837
+use power::{BQ24075, AP2112K_3V3, AP2112K_1V8}
+use connectors::ESD_USB
+
+pub part esp32_s3: ESP32_S3 {
+    primary { mfr: "Espressif", mpn: "ESP32-S3FN8" }
+}
+
+pub part emmc_64gb: EMMC_64GB {
+    primary { mfr: "Longsys", mpn: "FEMDNN064G-A3A55" }
+    alt { mfr: "Samsung", mpn: "KLMAG1JETD-B041" }
+}
+
+pub part mic_mmict5837: MMICT5837 {
+    primary { mfr: "MICIT", mpn: "MMICT5837-00-012" }
+}
+
+
+pub part charger_ic: BQ24075 {
+    primary { mfr: "Texas Instruments", mpn: "BQ24075RGTR" }
+}
+
+pub part ldo_3v3: AP2112K_3V3 {
+    primary { mfr: "Diodes Inc", mpn: "AP2112K-3.3TRG1" }
+}
+
+pub part ldo_1v8: AP2112K_1V8 {
+    primary { mfr: "Diodes Inc", mpn: "AP2112K-1.8TRG1" }
+}
+
+pub part esd_usb: ESD_USB {
+    primary { mfr: "Texas Instruments", mpn: "TPD2EUSB30DCKR" }
+}

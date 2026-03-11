@@ -1,0 +1,84 @@
+// SoC device definition for conol-pin.
+// ESP32-S3: Single SoC with integrated Wi-Fi 802.11 b/g/n + BLE 5.0.
+
+use device_traits::IC
+
+// ESP32-S3 — Dual-core Xtensa LX7, Wi-Fi + BLE 5.0, integrated RF
+// QFN-56 (7x7mm), 0.40mm pitch
+pub device ESP32_S3<pkg: Package = "QFN56_7x7">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::QFN56_7x7
+    }
+
+    pins {
+        // Power
+        VDD3P3:     [41, 42]
+        VDD3P3_RTC: 44
+        VDD_SPI:    49
+        VDDA:       [52, 53]
+        GND:        [1, 2, 8, 19, 24, 30, 35, 40, 51, 56]
+        EP:         57
+
+        // 40 MHz crystal
+        XTAL_P:     39
+        XTAL_N:     38
+
+        // 32.768 kHz RTC crystal
+        XTAL_32K_P: 3
+        XTAL_32K_N: 4
+
+        // RF antenna
+        LNA_IN:     43
+
+        // Chip enable (active high)
+        CHIP_PU:    50
+
+        // SDIO host (eMMC interface)
+        SD_CLK:     27
+        SD_CMD:     26
+        SD_D0:      28
+        SD_D1:      29
+        SD_D2:      31
+        SD_D3:      32
+
+        // PDM microphone interface (via I2S peripheral)
+        PDM_CLK:    33
+        PDM_DATA0:  34
+        PDM_DATA1:  36
+
+        // ADC (bone conduction VPU)
+        AD_1:       37
+
+        // GPIO
+        GPIO0:      25
+        GPIO3:      11
+        GPIO4:      48
+        GPIO5:      47
+        GPIO6:      46
+        GPIO7:      45
+        GPIO8:       7
+        GPIO9:      13
+        GPIO10:     14
+        GPIO11:     15
+        GPIO12:     16
+        GPIO13:     17
+        GPIO14:     18
+        GPIO17:      5
+        GPIO18:      6
+        GPIO21:     20
+        GPIO45:     23
+        GPIO46:     12
+        GPIO47:     21
+        GPIO48:     22
+
+        // USB (built-in USB-OTG)
+        USB_DN:      9
+        USB_DP:     10
+
+        // UART0 (debug)
+        LOG_TX:     54
+        LOG_RX:     55
+    }
+}

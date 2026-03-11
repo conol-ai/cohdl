@@ -1,0 +1,39 @@
+// eMMC storage device definition.
+
+use device_traits::IC
+
+// Longsys FEMDNN064G-A3A55 — 64GB eMMC 5.1
+// BGA-153 package with alphanumeric BGA pin identifiers
+pub device EMMC_64GB<pkg: Package = "BGA153">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::BGA153
+    }
+
+    pins {
+        // eMMC interface
+        CMD:    C2
+        CLK:    C3
+        DAT0:   E2
+        DAT1:   E3
+        DAT2:   D3
+        DAT3:   D2
+        DAT4:   D1
+        DAT5:   E1
+        DAT6:   C1
+        DAT7:   B1
+
+        // Reset
+        RST_N:  B3
+
+        // Power — 3.3V flash core
+        VCC:    [A1, A2, A3]
+
+        // Power — 1.8V / 3.3V I/O
+        VCCQ:   [H1, H2, H3]
+
+        // Ground
+        VSS:    [F1, F2, F3, G1, G2, G3]
+    }
+}

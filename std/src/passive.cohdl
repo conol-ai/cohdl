@@ -53,11 +53,22 @@ pub device Inductor<L: Henries, I: Amps = 100mA, pkg: Package = "L0402">: impl I
     package: pkg
     pins { A: 1, B: 2 }
     spec { inductance: L, current_rating: I }
+    spec[L0201] { footprint: footprints::L0201 }
+    spec[L0402] { footprint: footprints::L0402 }
+    spec[L0603] { footprint: footprints::L0603 }
+    spec[L0805] { footprint: footprints::L0805 }
+    spec[L1206] { footprint: footprints::L1206 }
+    spec[L1210] { footprint: footprints::L1210 }
+    spec[L2010] { footprint: footprints::L2010 }
+    spec[L2512] { footprint: footprints::L2512 }
 }
 
 pub device Crystal<F: Hertz, CL: Farads = 12pF, pkg: Package = "HC49">: impl Crystal {
     package: pkg
     pins { A: 1, B: 2 }
     spec { frequency: F, load_cap: CL }
+
+    spec[XTAL1610] { footprint: footprints::XTAL1610 }
+    spec[XTAL2016] { footprint: footprints::XTAL2016 }
 }
 

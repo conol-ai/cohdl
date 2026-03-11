@@ -1,0 +1,22 @@
+// Reusable trait contracts for the conol-pin design.
+// designator_prefix can only be declared inside traits, not devices.
+
+pub trait IC {
+    designator_prefix: "U"
+}
+
+pub trait Connector {
+    designator_prefix: "J"
+}
+
+pub trait Microphone {
+    designator_prefix: "MK"
+}
+
+pub trait LEDDevice {
+    designator_prefix: "D"
+}
+
+pub trait SwitchDevice {
+    designator_prefix: "SW"
+}

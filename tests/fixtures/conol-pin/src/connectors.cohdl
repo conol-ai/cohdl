@@ -1,0 +1,80 @@
+// Connectors, buttons, LED, ESD protection.
+
+use device_traits::{IC, Connector, LEDDevice, SwitchDevice}
+
+// USB Type-C receptacle (power-only, simplified)
+pub device USB_TypeC_Power<pkg: Package = "USB_C_16P">: impl Connector {
+    package: pkg
+
+    spec {
+        footprint: footprints::USB_C_16P
+    }
+
+    pins {
+        VBUS:    1
+        GND:     2
+        CC1:     3
+        CC2:     4
+        SHIELD:  5
+    }
+}
+
+// ESD Protection TVS diode array (e.g., TPD2EUSB30)
+pub device ESD_USB<pkg: Package = "SOT23_6">: impl IC {
+    package: pkg
+
+    spec {
+        footprint: footprints::SOT23_6
+    }
+
+    pins {
+        IO1:   1
+        GND:   2
+        IO2:   3
+        NC1:   4
+        NC2:   5
+        VCC:   6
+    }
+}
+
+// Tactile push button
+pub device TactButton<pkg: Package = "SW_TACT">: impl SwitchDevice {
+    package: pkg
+
+    spec {
+        footprint: footprints::SW_TACT
+    }
+
+    pins {
+        A:   1
+        B:   2
+    }
+}
+
+// Single-color LED (status indicator)
+pub device LED_Status<pkg: Package = "LED0402">: impl LEDDevice {
+    package: pkg
+
+    spec {
+        footprint: footprints::LED0402
+    }
+
+    pins {
+        A:   1
+        K:   2
+    }
+}
+
+// Magnetic pogo pin charging connector
+pub device PogoPins<pkg: Package = "POGO_2P">: impl Connector {
+    package: pkg
+
+    spec {
+        footprint: footprints::POGO_2P
+    }
+
+    pins {
+        VIN:   1
+        GND:   2
+    }
+}

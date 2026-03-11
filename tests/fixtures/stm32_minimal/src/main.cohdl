@@ -1,5 +1,9 @@
 // MainBoard design: STM32F103C8T6 + USB Type-C + 4x decoupling caps.
 
+module devices
+module connectors
+module passives
+
 design MainBoard {
     inst mcu: STM32F103<pkg: "LQFP48">
     inst usb: USB_TypeC_Receptacle

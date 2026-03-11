@@ -37,8 +37,8 @@ use_decl  = { "use" ~ use_path }
 use_path  = { ident ~ ("::" ~ (use_group | ident))* }
 use_group = { "{" ~ ident ~ ("," ~ ident)* ~ ","? ~ "}" }
 
-// ── Module declaration (pub mod / mod) ──────
-mod_decl = { "mod" ~ ident }
+// ── Module declaration (file-level reference) ──
+mod_decl = { "module" ~ ident ~ !"{" }
 
 // ── Identifiers & paths ────────────────────
 ident       = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }

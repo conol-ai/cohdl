@@ -124,6 +124,78 @@ fn build_valid_source_produces_netlist() {
     assert!(dir.path().join("out/test-board-bom-avl.csv").exists());
 }
 
+// ── build with module declarations resolves multi-file projects ─────────────
+
+#[test]
+fn build_multi_file_with_module_decl() {
+    let dir = TempDir::new().unwrap();
+
+    let manifest = r#"[package]
+name    = "test-board"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top  = "MainBoard"
+"#;
+
+    fs::create_dir_all(dir.path().join("src")).unwrap();
+    fs::write(dir.path().join("cohdl.toml"), manifest).unwrap();
+
+    // Module file: defines the device
+    fs::write(
+        dir.path().join("src/parts.cohdl"),
+        r#"
+        trait TwoTerminal {
+            pins { A: Pin, B: Pin }
+        }
+        device MLCC<C: Farads, V: Voltage = 10V>: impl TwoTerminal {
+            pins { A: 1, B: 2 }
+            spec { capacitance: C, voltage_rating: V }
+        }
+        "#,
+    )
+    .unwrap();
+
+    // Root file: references the module
+    fs::write(
+        dir.path().join("src/main.cohdl"),
+        r#"
+        module parts
+
+        design MainBoard {
+            inst c1: MLCC<C: 100nF>
+        }
+        "#,
+    )
+    .unwrap();
+
+    cohdl()
+        .args(["build", "--color", "never"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    assert!(dir.path().join("out/test-board.net").exists());
+}
+
+#[test]
+fn build_missing_module_file_exits_1() {
+    let dir = setup_project(
+        r#"
+        module nonexistent
+
+        design MainBoard {}
+        "#,
+    );
+    cohdl()
+        .args(["build", "--color", "never"])
+        .current_dir(dir.path())
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("could not read module `nonexistent`"));
+}
+
 // ── build with custom out-dir ───────────────────────────────────────────────
 
 #[test]

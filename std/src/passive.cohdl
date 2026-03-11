@@ -37,7 +37,3 @@ pub device Crystal<F: Hertz, CL: Farads = 12pF, pkg: Package = "HC49">: impl Cry
     spec { frequency: F, load_cap: CL }
 }
 
-pub type BypassCap   = MLCC<C: 100nF, V: 10V, pkg: "C0402">
-pub type BulkCap     = Tantalum<C: 10uF, V: 10V, pkg: "C0805">
-pub type PullupRes   = Resistor<R: 10kohm, pkg: "R0402">
-pub type PulldownRes = Resistor<R: 10kohm, pkg: "R0402">

@@ -99,7 +99,7 @@ top = "MyBoard"
 |-------------|-----------|------------------------------------------------|
 | `[package]` | `name`    | Project name (used for output file naming)     |
 | `[package]` | `version` | Project version                                |
-| `[design]`  | `root`    | Path to the root `.cohdl` source file          |
+| `[design]`  | `root`    | Path to the root `.cohdl` source file. Any `module` declarations in this file are resolved to sibling `.cohdl` files in the same directory. |
 | `[design]`  | `top`     | Name of the top-level `design` to compile      |
 
 The `--design` flag overrides the `top` field from the manifest.
@@ -109,7 +109,7 @@ The `--design` flag overrides the `top` field from the manifest.
 The compiler runs these stages in order:
 
 ```
-1. Parse        Read and parse .cohdl source files
+1. Parse        Read root file, resolve `module` declarations, parse all sources
 2. Resolve      Name resolution and symbol table construction
 3. Type check   Generic instantiation and type validation
 4. Connectivity Flatten design into instances and merged nets

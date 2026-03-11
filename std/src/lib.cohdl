@@ -1,12 +1,4 @@
 // std — cohdl standard library.
-//
-// Dependency order (lower modules never import higher ones):
-//   traits -> passive -> power -> discrete -> connector
-//                             \-> mux (imports passive for bypass caps)
 
 pub module traits
 pub module passive
-pub module power
-pub module discrete
-pub module connector
-pub module mux

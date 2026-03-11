@@ -29,10 +29,24 @@ module passives {
 Reference a module defined in a separate file:
 
 ```cohdl
-mod common
+module common
 ```
 
-This tells the compiler to look for a file named `common.cohdl` and include its contents under the `common` namespace.
+This tells the compiler to look for a file named `common.cohdl` in the same directory and include its contents. This works like Rust's `mod` keyword — the `module` declaration without braces loads the corresponding `.cohdl` file.
+
+Multiple modules can be declared:
+
+```cohdl
+module devices
+module connectors
+module passives
+
+design MainBoard {
+    inst mcu: STM32F103<pkg: "LQFP48">
+    inst c1: mlcc_100nF_0402
+    // ...
+}
+```
 
 ## Visibility
 
@@ -74,7 +88,7 @@ A module can contain any top-level item:
 - `type` aliases
 - `fn` definitions
 - `use` imports
-- `mod` references
+- `module` references (external file modules)
 - Nested `module` definitions
 
 ## Using items from modules

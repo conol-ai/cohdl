@@ -38,15 +38,15 @@ design Board {
 }
 ```
 
-### `mod` declarations
+### `module` declarations
 
 Reference an external module defined in a separate file:
 
 ```cohdl
-mod common
+module common
 ```
 
-This imports the contents of `common.cohdl` as a module named `common`.
+This loads `common.cohdl` from the same directory and includes its contents. See [Modules](modules.md) for more details.
 
 ## Physical packages
 

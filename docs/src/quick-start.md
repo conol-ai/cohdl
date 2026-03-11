@@ -22,7 +22,7 @@ root = "main.cohdl"
 top = "MyBoard"
 ```
 
-- `root` — the source file to compile
+- `root` — the root source file to compile (use `module` declarations inside it to include other files)
 - `top` — the name of the top-level `design` to compile
 
 ## 3. Write your first design

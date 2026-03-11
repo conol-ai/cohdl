@@ -674,7 +674,7 @@ fn use_group_import() {
 
 #[test]
 fn mod_decl_basic() {
-    assert_parses!(Rule::mod_decl, "mod common");
+    assert_parses!(Rule::mod_decl, "module common");
 }
 
 // ═══════════════════════════════════════════════
@@ -1000,9 +1000,9 @@ fn file_use_and_design() {
 fn file_mod_declarations() {
     assert_parses!(
         Rule::file,
-        "pub mod stm32f1
-        pub mod stm32f4
-        mod common"
+        "pub module stm32f1
+        pub module stm32f4
+        module common"
     );
 }
 
@@ -1353,11 +1353,11 @@ fn parses_to_attribute_designator() {
 fn parses_to_mod_decl() {
     parses_to! {
         parser: CohdlParser,
-        input: "mod common",
+        input: "module common",
         rule: Rule::mod_decl,
         tokens: [
-            mod_decl(0, 10, [
-                ident(4, 10)
+            mod_decl(0, 13, [
+                ident(7, 13)
             ])
         ]
     };

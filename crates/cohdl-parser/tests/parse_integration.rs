@@ -231,12 +231,12 @@ part mlcc_100nF_0402: MLCC<C: 100nF, V: 10V, pkg: C0402> {
     alt { mfr: "Yageo", mpn: "CC0402KRX5R9BB104" }
 }
 
-mod common
+module common
 "#;
 
     let sf = parse_source_file(src).expect("should parse module file");
 
-    // 2 use + 2 type + 1 fn + 1 part + 1 mod = 7
+    // 2 use + 2 type + 1 fn + 1 part + 1 module = 7
     assert_eq!(sf.items.len(), 7);
 
     // use power::decoupling

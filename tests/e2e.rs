@@ -11,8 +11,8 @@ use cohdl_drc::{DiagnosticLevel, DrcRunner};
 use cohdl_parser::parse_source_file;
 use cohdl_sema::connectivity::build_connectivity;
 use cohdl_sema::designator::{instance_infos_from_typed_design, DesignatorDb};
-use cohdl_sema::typeck::{type_check, EXTERNAL_INSTANCE};
 use cohdl_sema::resolve;
+use cohdl_sema::typeck::{type_check, EXTERNAL_INSTANCE};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -36,18 +36,8 @@ fn load_fixture_source(fixture_dir: &str) -> String {
 
     // Sort: non-main files first, main last.
     files.sort_by(|a, b| {
-        let a_is_main = a
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("main");
-        let b_is_main = b
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .starts_with("main");
+        let a_is_main = a.file_name().unwrap().to_str().unwrap().starts_with("main");
+        let b_is_main = b.file_name().unwrap().to_str().unwrap().starts_with("main");
         a_is_main.cmp(&b_is_main).then_with(|| a.cmp(b))
     });
 
@@ -134,7 +124,12 @@ fn stm32_minimal() {
     let ir = &conn.ir;
 
     // ── Instance count: 1 MCU + 1 connector + 4 caps = 6
-    assert_eq!(ir.instances.len(), 6, "expected 6 instances, got {}", ir.instances.len());
+    assert_eq!(
+        ir.instances.len(),
+        6,
+        "expected 6 instances, got {}",
+        ir.instances.len()
+    );
 
     // ── Net "USB_DM" connects exactly 2 instance pin-refs.
     let usb_dm_net = ir
@@ -301,7 +296,10 @@ fn drc_violations() {
 
     // No other diagnostics.
     let expected_rules: Vec<&str> = vec!["E001", "E002", "W001", "W002"];
-    let total_expected: usize = expected_rules.iter().map(|r| counts.get(r).unwrap_or(&0)).sum();
+    let total_expected: usize = expected_rules
+        .iter()
+        .map(|r| counts.get(r).unwrap_or(&0))
+        .sum();
     assert_eq!(
         drc_diags.len(),
         total_expected,

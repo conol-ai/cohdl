@@ -1,7 +1,7 @@
 {
   "name": "cohdl-lang",
   "displayName": "cohdl PCB HDL",
-  "description": "Syntax highlighting for the cohdl hardware description language",
+  "description": "Syntax highlighting and language server support for the cohdl hardware description language",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.80.0"
@@ -12,6 +12,7 @@
   "activationEvents": [
     "onLanguage:cohdl"
   ],
+  "main": "./out/extension.js",
   "contributes": {
     "languages": [
       {
@@ -32,6 +33,35 @@
         "scopeName": "source.cohdl",
         "path": "./syntaxes/cohdl.tmLanguage.json"
       }
+    ],
+    "configuration": {
+      "title": "cohdl",
+      "properties": {
+        "cohdl.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the cohdl-lsp binary. Leave empty to use PATH."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "cohdl.restartServer",
+        "title": "cohdl: Restart Language Server"
+      }
     ]
+  },
+  "scripts": {
+    "compile": "tsc",
+    "watch": "tsc -w",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }

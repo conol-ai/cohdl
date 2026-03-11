@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 
 use cohdl_sema::connectivity::{ConnectivityIR, Instance};
-use cohdl_sema::typeck::EXTERNAL_INSTANCE;
+use cohdl_sema::typeck::{ResolvedFootprint, EXTERNAL_INSTANCE};
 use serde::Serialize;
 
 // ── JSON schema types ───────────────────────────────────────────────────────
@@ -131,8 +131,8 @@ fn build_component(
     set(&mut props, "Name", &value);
     set(&mut props, "Unique ID", unique_id);
     set(&mut props, "DeviceName", &inst.device);
-    let footprint_name = inst.footprint_override.as_deref().unwrap_or(&inst.device);
-    set(&mut props, "FootprintName", footprint_name);
+    let footprint_name = resolve_footprint_for_lceda(&inst.footprint_override, &inst.device);
+    set(&mut props, "FootprintName", &footprint_name);
 
     // Populate MPN-related fields if available.
     if let Some(mpn) = &inst.mpn {
@@ -176,6 +176,25 @@ fn build_component(
     ComponentEntry {
         props,
         pin_info_map,
+    }
+}
+
+/// Resolve a `ResolvedFootprint` to an LCEDA footprint string.
+fn resolve_footprint_for_lceda(fp: &Option<ResolvedFootprint>, device: &str) -> String {
+    match fp {
+        Some(ResolvedFootprint::String(s)) => s.clone(),
+        Some(ResolvedFootprint::Alias { mappings, .. }) => mappings
+            .get("lceda")
+            .or_else(|| mappings.get("default"))
+            .cloned()
+            .unwrap_or_else(|| device.to_string()),
+        Some(ResolvedFootprint::InlineMap(map)) => map
+            .get("lceda")
+            .or_else(|| map.get("default"))
+            .cloned()
+            .unwrap_or_else(|| device.to_string()),
+        Some(ResolvedFootprint::NoFootprint) => String::new(),
+        None => device.to_string(),
     }
 }
 
@@ -375,7 +394,7 @@ mod tests {
                 mpn: None,
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
-                footprint_override: Some("LQFP-48_Custom".into()),
+                footprint_override: Some(ResolvedFootprint::String("LQFP-48_Custom".into())),
             }],
             nets: vec![],
         };

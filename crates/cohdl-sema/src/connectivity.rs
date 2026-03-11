@@ -13,7 +13,7 @@
 
 use std::collections::HashMap;
 
-use crate::typeck::{InstanceId, TypedDesign, EXTERNAL_INSTANCE};
+use crate::typeck::{InstanceId, ResolvedFootprint, TypedDesign, EXTERNAL_INSTANCE};
 use crate::SemaError;
 use cohdl_syntax::ast::Span;
 
@@ -54,8 +54,8 @@ pub struct Instance {
     pub alt_mpns: Vec<String>,
     /// Generic parameter substitutions.
     pub generic_substitutions: HashMap<String, String>,
-    /// Footprint override from `#[footprint("...")]` attribute or device spec.
-    pub footprint_override: Option<String>,
+    /// Resolved footprint from device spec, design override, or instance attribute.
+    pub footprint_override: Option<ResolvedFootprint>,
 }
 
 /// The connectivity IR: a flat list of instances and merged nets.

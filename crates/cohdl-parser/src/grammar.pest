@@ -19,6 +19,7 @@ top_level_item = {
       | fn_def
       | module_def
       | design_def
+      | footprint_alias_def
       | use_decl
       | mod_decl
     )
@@ -29,8 +30,10 @@ visibility = { "pub" }
 // ── Attributes ──────────────────────────────
 attribute      = { "#[" ~ attribute_inner ~ "]" }
 attribute_inner = { ident ~ ("(" ~ attribute_args ~ ")")? }
-attribute_args  = { string_literal ~ ("," ~ string_literal)*
+attribute_args  = { key_value_pair ~ ("," ~ key_value_pair)*
+                  | string_literal ~ ("," ~ string_literal)*
                   | ident ~ ("," ~ ident)* }
+key_value_pair  = { ident ~ ":" ~ string_literal }
 
 // ── Use declaration ─────────────────────────
 use_decl  = { "use" ~ use_path }
@@ -39,6 +42,12 @@ use_group = { "{" ~ ident ~ ("," ~ ident)* ~ ","? ~ "}" }
 
 // ── Module declaration (file-level reference) ──
 mod_decl = { "module" ~ ident ~ !"{" }
+
+// ── Footprint alias ───────────────────────
+footprint_alias_def = {
+    "footprint_alias" ~ ident ~ "{" ~ (footprint_map_entry ~ ","?)* ~ "}"
+}
+footprint_map_entry = { ident ~ ":" ~ string_literal }
 
 // ── Identifiers & paths ────────────────────
 ident       = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
@@ -132,8 +141,10 @@ pin_entry      = { pin_bus_call | ident ~ ":" ~ pin_value_or_type }
 pin_value_or_type = { pin_value | ident }
 
 // ── Spec block ──────────────────────────────
-spec_block = { "spec" ~ "{" ~ (spec_entry ~ ","?)* ~ "}" }
-spec_entry = { ident ~ ":" ~ value_expr }
+spec_block = { "spec" ~ spec_qualifier? ~ "{" ~ (spec_entry ~ ","?)* ~ "}" }
+spec_qualifier = { "[" ~ ident ~ "]" }
+spec_entry = { ident ~ ":" ~ (footprint_inline_map | value_expr) }
+footprint_inline_map = { "{" ~ (footprint_map_entry ~ ","?)* ~ "}" }
 
 // ── Rule block ──────────────────────────────
 rule_block     = { "rule" ~ ident ~ "(" ~ rule_level ~ ")" ~ "{" ~ rule_body ~ "}" }
@@ -205,7 +216,14 @@ design_def = {
     "design" ~ ident ~ "{" ~ design_body_stmt* ~ "}"
 }
 
-design_body_stmt = { attribute* ~ (inst_stmt | net_stmt | call_stmt) }
+design_body_stmt = { attribute* ~ (footprint_override_block | inst_stmt | net_stmt | call_stmt) }
+
+footprint_override_block = {
+    "footprint_override" ~ "{" ~ (footprint_override_entry ~ ","?)* ~ "}"
+}
+footprint_override_entry = {
+    (scoped_path | ident) ~ "->" ~ (string_literal | scoped_path | ident)
+}
 
 // ── Statements ──────────────────────────────
 // inst name: Type<...>

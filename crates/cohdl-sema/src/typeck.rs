@@ -13,11 +13,30 @@ use std::collections::{HashMap, HashSet};
 
 use cohdl_syntax::ast::{
     self, DesignBodyStmtKind, DesignDecl, DeviceBodyItem, DeviceDecl, Expr, ExprKind, FnDecl,
-    FnParamKind, GenericParamKind, NetEndpointKind, PartDecl, PinEntryKind, SourceFile, Span,
-    TopLevelItem, TopLevelItemKind, TraitBodyItem, TraitDecl, TypeAlias, TypeExpr,
+    FnParamKind, FootprintOverrideValue, GenericParamKind, NetEndpointKind, PartDecl, PinEntryKind,
+    SourceFile, Span, SpecEntryValue, TopLevelItem, TopLevelItemKind, TraitBodyItem, TraitDecl,
+    TypeAlias, TypeExpr,
 };
 
 use crate::{ResolvedSourceFile, SemaError};
+
+// ── Resolved footprint ──────────────────────────────────────────────────────
+
+/// A resolved footprint specification carried through the IR.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ResolvedFootprint {
+    /// A plain string (used verbatim for all backends).
+    String(std::string::String),
+    /// A named alias with backend-keyed mappings.
+    Alias {
+        name: std::string::String,
+        mappings: HashMap<std::string::String, std::string::String>,
+    },
+    /// An inline per-backend map (no alias name).
+    InlineMap(HashMap<std::string::String, std::string::String>),
+    /// Explicitly no footprint (virtual/schematic-only device).
+    NoFootprint,
+}
 
 // ── Value kinds ─────────────────────────────────────────────────────────────
 
@@ -96,8 +115,8 @@ pub struct ComponentInstance {
     pub generic_substitutions: HashMap<std::string::String, std::string::String>,
     /// Explicit designator override from `#[designator("U1")]`.
     pub designator_override: Option<std::string::String>,
-    /// Footprint override from `#[footprint("...")]` attribute or device spec.
-    pub footprint_override: Option<std::string::String>,
+    /// Resolved footprint from device spec, design override, or instance attribute.
+    pub footprint_override: Option<ResolvedFootprint>,
     /// Traits the underlying device implements (used for prefix derivation).
     pub impl_traits: Vec<std::string::String>,
 }
@@ -157,8 +176,10 @@ struct DeviceDef {
     declared_pins: HashSet<std::string::String>,
     /// Spec fields declared by this device: (name, kind).
     declared_specs: Vec<(std::string::String, ValueKind)>,
-    /// Footprint string from `spec { footprint: "..." }`, if present.
-    footprint: Option<std::string::String>,
+    /// Resolved footprint from `spec { footprint: ... }`, if present.
+    footprint: Option<ResolvedFootprint>,
+    /// Variant-specific footprints: variant_name → ResolvedFootprint.
+    variant_footprints: HashMap<std::string::String, ResolvedFootprint>,
 }
 
 /// A collected generic parameter definition.
@@ -200,6 +221,9 @@ struct TypeAliasDef {
 
 // ── Type checker ────────────────────────────────────────────────────────────
 
+/// Per-module import map: simple name → (qualified path, span).
+type ImportMap = HashMap<std::string::String, (std::string::String, Span)>;
+
 /// The main type checker state.
 struct TypeChecker {
     traits: HashMap<std::string::String, TraitDef>,
@@ -207,6 +231,10 @@ struct TypeChecker {
     parts: HashMap<std::string::String, PartDef>,
     fns: HashMap<std::string::String, FnDef>,
     type_aliases: HashMap<std::string::String, TypeAliasDef>,
+    footprint_aliases:
+        HashMap<std::string::String, HashMap<std::string::String, std::string::String>>,
+    /// Import maps from name resolution, keyed by module path.
+    imports: HashMap<std::string::String, ImportMap>,
     errors: Vec<SemaError>,
 }
 
@@ -218,11 +246,44 @@ impl TypeChecker {
             parts: HashMap::new(),
             fns: HashMap::new(),
             type_aliases: HashMap::new(),
+            footprint_aliases: HashMap::new(),
+            imports: HashMap::new(),
             errors: Vec::new(),
         }
     }
 
+    /// Resolve a name through imports: if `name` is a single-segment identifier
+    /// that was imported into `module_path`, return the qualified path.
+    /// Otherwise return the name unchanged.
+    fn resolve_name_via_imports(&self, name: &str, module_path: &str) -> std::string::String {
+        // Only resolve single-segment names (no :: in the name).
+        if !name.contains("::") {
+            if let Some(import_map) = self.imports.get(module_path) {
+                if let Some((qualified, _)) = import_map.get(name) {
+                    return qualified.clone();
+                }
+            }
+        }
+        name.to_string()
+    }
+
     // ── Phase 1: Collect definitions from AST ───────────────────────────
+
+    /// Pre-collect all footprint aliases so they are available for forward references.
+    fn collect_footprint_aliases(&mut self, items: &[TopLevelItem], module_path: &str) {
+        for item in items {
+            match &item.kind {
+                TopLevelItemKind::FootprintAlias(fa) => {
+                    self.collect_footprint_alias(fa, module_path);
+                }
+                TopLevelItemKind::Module(m) => {
+                    let child = qualify(module_path, &m.name.name);
+                    self.collect_footprint_aliases(&m.items, &child);
+                }
+                _ => {}
+            }
+        }
+    }
 
     fn collect_definitions(&mut self, items: &[TopLevelItem], module_path: &str) {
         for item in items {
@@ -236,10 +297,84 @@ impl TypeChecker {
                     let child = qualify(module_path, &m.name.name);
                     self.collect_definitions(&m.items, &child);
                 }
-                TopLevelItemKind::Design(_)
+                TopLevelItemKind::FootprintAlias(_)
+                | TopLevelItemKind::Design(_)
                 | TopLevelItemKind::Use(_)
                 | TopLevelItemKind::Mod(_) => {}
             }
+        }
+    }
+
+    fn collect_footprint_alias(&mut self, fa: &ast::FootprintAliasDecl, module_path: &str) {
+        let qname = qualify(module_path, &fa.name.name);
+        let mappings: HashMap<std::string::String, std::string::String> = fa
+            .entries
+            .iter()
+            .map(|e| (e.backend.name.clone(), e.value.value.clone()))
+            .collect();
+        self.footprint_aliases.insert(qname, mappings);
+    }
+
+    fn find_footprint_alias(
+        &self,
+        name: &str,
+        module_path: &str,
+    ) -> Option<&HashMap<std::string::String, std::string::String>> {
+        // 1. Try as-is (absolute)
+        if let Some(m) = self.footprint_aliases.get(name) {
+            return Some(m);
+        }
+
+        // 2. Try relative to current module
+        if let Some(m) = self.footprint_aliases.get(&qualify(module_path, name)) {
+            return Some(m);
+        }
+
+        // 3. Walk ancestor modules (e.g. `footprints::R0402` from `std::passive`
+        //    resolves to `std::footprints::R0402`).
+        let mut module = module_path.to_string();
+        while let Some(pos) = module.rfind("::") {
+            module.truncate(pos);
+            if let Some(m) = self.footprint_aliases.get(&qualify(&module, name)) {
+                return Some(m);
+            }
+        }
+
+        None
+    }
+
+    /// Resolve a spec entry value to a `ResolvedFootprint`.
+    fn resolve_spec_footprint(
+        &self,
+        value: &SpecEntryValue,
+        module_path: &str,
+    ) -> Option<ResolvedFootprint> {
+        match value {
+            SpecEntryValue::FootprintMap(entries) => {
+                let map: HashMap<std::string::String, std::string::String> = entries
+                    .iter()
+                    .map(|e| (e.backend.name.clone(), e.value.value.clone()))
+                    .collect();
+                Some(ResolvedFootprint::InlineMap(map))
+            }
+            SpecEntryValue::Expr(expr) => match &expr.kind {
+                ExprKind::String(ref s) => Some(ResolvedFootprint::String(s.value.clone())),
+                ExprKind::Type(ref te) => {
+                    let name = type_expr_name(te);
+                    if name == "no_footprint" {
+                        Some(ResolvedFootprint::NoFootprint)
+                    } else if let Some(mappings) = self.find_footprint_alias(&name, module_path) {
+                        Some(ResolvedFootprint::Alias {
+                            name: name.clone(),
+                            mappings: mappings.clone(),
+                        })
+                    } else {
+                        // Treat as a plain string (e.g. a package name identifier).
+                        Some(ResolvedFootprint::String(name))
+                    }
+                }
+                _ => None,
+            },
         }
     }
 
@@ -267,7 +402,10 @@ impl TypeChecker {
                 }
                 TraitBodyItem::Spec(spec) => {
                     for entry in &spec.entries {
-                        let kind = expr_to_value_kind(&entry.value);
+                        let kind = match &entry.value {
+                            SpecEntryValue::Expr(expr) => expr_to_value_kind(expr),
+                            SpecEntryValue::FootprintMap(_) => ValueKind::String,
+                        };
                         required_specs.push((entry.name.name.clone(), kind));
                     }
                 }
@@ -305,6 +443,9 @@ impl TypeChecker {
         let mut declared_pins = HashSet::new();
         let mut declared_specs = Vec::new();
 
+        let mut variant_footprints: HashMap<std::string::String, ResolvedFootprint> =
+            HashMap::new();
+
         for body_item in &d.body {
             match body_item {
                 DeviceBodyItem::Pins(pins) => {
@@ -315,29 +456,42 @@ impl TypeChecker {
                     }
                 }
                 DeviceBodyItem::Spec(spec) => {
-                    for entry in &spec.entries {
-                        let kind = expr_to_value_kind(&entry.value);
-                        declared_specs.push((entry.name.name.clone(), kind));
+                    if spec.qualifier.is_some() {
+                        // Variant-qualified spec: collect only the footprint.
+                        let variant = spec.qualifier.as_ref().unwrap().name.clone();
+                        for entry in &spec.entries {
+                            if entry.name.name == "footprint" {
+                                if let Some(fp) =
+                                    self.resolve_spec_footprint(&entry.value, module_path)
+                                {
+                                    variant_footprints.insert(variant.clone(), fp);
+                                }
+                            }
+                        }
+                    } else {
+                        for entry in &spec.entries {
+                            let kind = match &entry.value {
+                                SpecEntryValue::Expr(expr) => expr_to_value_kind(expr),
+                                SpecEntryValue::FootprintMap(_) => ValueKind::String,
+                            };
+                            declared_specs.push((entry.name.name.clone(), kind));
+                        }
                     }
                 }
                 DeviceBodyItem::Package(_) | DeviceBodyItem::Rule(_) => {}
             }
         }
 
-        // Extract footprint from spec block if present.
+        // Extract footprint from base spec block (no qualifier) if present.
         let footprint = d.body.iter().find_map(|item| {
             if let DeviceBodyItem::Spec(spec) = item {
-                spec.entries.iter().find_map(|e| {
-                    if e.name.name == "footprint" {
-                        if let ExprKind::String(ref s) = e.value.kind {
-                            Some(s.value.clone())
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                })
+                if spec.qualifier.is_some() {
+                    return None;
+                }
+                spec.entries
+                    .iter()
+                    .find(|e| e.name.name == "footprint")
+                    .and_then(|e| self.resolve_spec_footprint(&e.value, module_path))
             } else {
                 None
             }
@@ -352,6 +506,7 @@ impl TypeChecker {
                 declared_pins,
                 declared_specs,
                 footprint,
+                variant_footprints,
             },
         );
     }
@@ -653,6 +808,51 @@ impl TypeChecker {
         let mut instance_map: HashMap<std::string::String, InstanceId> = HashMap::new();
         let mut next_id: u32 = 0;
 
+        // Collect design-level footprint overrides.
+        let mut design_fp_overrides: HashMap<std::string::String, ResolvedFootprint> =
+            HashMap::new();
+        for stmt in &d.body {
+            if let DesignBodyStmtKind::FootprintOverride(block) = &stmt.kind {
+                for entry in &block.entries {
+                    let device_name = entry
+                        .device
+                        .segments
+                        .iter()
+                        .map(|s| s.name.as_str())
+                        .collect::<Vec<_>>()
+                        .join("::");
+                    let resolved_fp = match &entry.value {
+                        FootprintOverrideValue::String(s) => {
+                            ResolvedFootprint::String(s.value.clone())
+                        }
+                        FootprintOverrideValue::AliasRef(path) => {
+                            let alias_name = path
+                                .segments
+                                .iter()
+                                .map(|s| s.name.as_str())
+                                .collect::<Vec<_>>()
+                                .join("::");
+                            if let Some(mappings) =
+                                self.find_footprint_alias(&alias_name, module_path)
+                            {
+                                ResolvedFootprint::Alias {
+                                    name: alias_name,
+                                    mappings: mappings.clone(),
+                                }
+                            } else {
+                                self.errors.push(SemaError::new(
+                                    format!("unknown footprint alias `{}`", alias_name),
+                                    path.span,
+                                ));
+                                continue;
+                            }
+                        }
+                    };
+                    design_fp_overrides.insert(device_name, resolved_fp);
+                }
+            }
+        }
+
         // First pass: collect instances.
         for stmt in &d.body {
             if let DesignBodyStmtKind::Inst(inst) = &stmt.kind {
@@ -719,24 +919,50 @@ impl TypeChecker {
                     }
                 });
 
-                // Extract #[footprint("...")] from statement attributes.
-                let footprint_attr = stmt.attributes.iter().find_map(|attr| {
-                    if attr.name.name == "footprint" {
-                        if let Some(ast::AttributeArgs::Strings(ref strings)) = attr.args {
-                            strings.first().map(|s| s.value.clone())
+                // Extract #[footprint(...)] from statement attributes.
+                let footprint_attr: Option<ResolvedFootprint> =
+                    stmt.attributes.iter().find_map(|attr| {
+                        if attr.name.name == "footprint" {
+                            match &attr.args {
+                                Some(ast::AttributeArgs::Strings(ref strings)) => strings
+                                    .first()
+                                    .map(|s| ResolvedFootprint::String(s.value.clone())),
+                                Some(ast::AttributeArgs::Idents(ref idents)) => {
+                                    idents.first().and_then(|id| {
+                                        self.find_footprint_alias(&id.name, module_path).map(
+                                            |mappings| ResolvedFootprint::Alias {
+                                                name: id.name.clone(),
+                                                mappings: mappings.clone(),
+                                            },
+                                        )
+                                    })
+                                }
+                                Some(ast::AttributeArgs::KeyValues(ref kvs)) => {
+                                    let map: HashMap<std::string::String, std::string::String> =
+                                        kvs.iter()
+                                            .map(|kv| (kv.key.name.clone(), kv.value.value.clone()))
+                                            .collect();
+                                    Some(ResolvedFootprint::InlineMap(map))
+                                }
+                                None => None,
+                            }
                         } else {
                             None
                         }
-                    } else {
-                        None
-                    }
-                });
+                    });
 
-                // Footprint priority: #[footprint()] attribute > device spec > None.
-                let footprint_override = footprint_attr.or_else(|| {
-                    self.find_device(&final_device, module_path)
-                        .and_then(|dev| dev.footprint.clone())
-                });
+                // Priority: instance attr > design override > variant spec > device base spec > None.
+                let footprint_override = footprint_attr
+                    .or_else(|| design_fp_overrides.get(&final_device).cloned())
+                    .or_else(|| {
+                        let dev = self.find_device(&final_device, module_path)?;
+                        let pkg_value = all_args.get("pkg")?;
+                        dev.variant_footprints.get(pkg_value).cloned()
+                    })
+                    .or_else(|| {
+                        self.find_device(&final_device, module_path)
+                            .and_then(|dev| dev.footprint.clone())
+                    });
 
                 // Look up the device's impl_traits.
                 let impl_traits = self
@@ -929,18 +1155,30 @@ impl TypeChecker {
         self.devices
             .get(name)
             .or_else(|| self.devices.get(&qualify(module_path, name)))
+            .or_else(|| {
+                let resolved = self.resolve_name_via_imports(name, module_path);
+                self.devices.get(&resolved)
+            })
     }
 
     fn find_part(&self, name: &str, module_path: &str) -> Option<&PartDef> {
         self.parts
             .get(name)
             .or_else(|| self.parts.get(&qualify(module_path, name)))
+            .or_else(|| {
+                let resolved = self.resolve_name_via_imports(name, module_path);
+                self.parts.get(&resolved)
+            })
     }
 
     fn find_fn(&self, name: &str, module_path: &str) -> Option<&FnDef> {
         self.fns
             .get(name)
             .or_else(|| self.fns.get(&qualify(module_path, name)))
+            .or_else(|| {
+                let resolved = self.resolve_name_via_imports(name, module_path);
+                self.fns.get(&resolved)
+            })
     }
 
     /// Resolve a type name through aliases, returning (device_name, base_generic_args).
@@ -952,14 +1190,16 @@ impl TypeChecker {
         std::string::String,
         HashMap<std::string::String, std::string::String>,
     ) {
+        let resolved_name = self.resolve_name_via_imports(name, module_path);
         let alias = self
             .type_aliases
             .get(name)
-            .or_else(|| self.type_aliases.get(&qualify(module_path, name)));
+            .or_else(|| self.type_aliases.get(&qualify(module_path, name)))
+            .or_else(|| self.type_aliases.get(&resolved_name));
         if let Some(alias) = alias {
             (alias.target_device.clone(), alias.target_args.clone())
         } else {
-            (name.to_string(), HashMap::new())
+            (resolved_name, HashMap::new())
         }
     }
 }
@@ -1225,6 +1465,14 @@ fn pin_entry_name(kind: &PinEntryKind) -> Option<std::string::String> {
 /// Returns a [`TypeCheckResult`] containing type-checked designs and any errors.
 pub fn type_check(source: &SourceFile, resolved: &ResolvedSourceFile) -> TypeCheckResult {
     let mut checker = TypeChecker::new();
+
+    // Load import maps from name resolution so the type checker can resolve
+    // imported names (e.g. `Resistor` → `std::passive::Resistor`).
+    checker.imports = resolved.imports.clone();
+
+    // Phase 0: Pre-collect footprint aliases so they are available when devices
+    // reference them (order-independent).
+    checker.collect_footprint_aliases(&source.items, "");
 
     // Phase 1: Collect all definitions.
     checker.collect_definitions(&source.items, "");

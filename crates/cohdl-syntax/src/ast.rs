@@ -95,6 +95,8 @@ pub enum TopLevelItemKind {
     Use(UseDecl),
     /// `mod foo` (file-level module reference)
     Mod(ModDecl),
+    /// `footprint_alias Name { kicad: "...", lceda: "..." }`
+    FootprintAlias(FootprintAliasDecl),
 }
 
 // ── Visibility ──────────────────────────────────────────────────────────────
@@ -126,6 +128,19 @@ pub enum AttributeArgs {
     Strings(Vec<StringLiteral>),
     /// Identifier arguments: `#[allow(unconnected_pin, voltage_derating)]`.
     Idents(Vec<Ident>),
+    /// Key-value pairs: `#[footprint(kicad: "...", lceda: "...")]`.
+    KeyValues(Vec<KeyValueArg>),
+}
+
+/// A single key-value argument in an attribute, e.g. `kicad: "..."`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct KeyValueArg {
+    /// The key identifier.
+    pub key: Ident,
+    /// The string value.
+    pub value: StringLiteral,
+    /// Source location.
+    pub span: Span,
 }
 
 /// A quoted string literal.
@@ -412,6 +427,38 @@ pub struct DesignatorPrefix {
     pub span: Span,
 }
 
+// ── Footprint alias ─────────────────────────────────────────────────────────
+
+/// A `footprint_alias` declaration mapping backend names to footprint strings.
+///
+/// ```hdl
+/// footprint_alias LQFP64_10x10 {
+///     kicad: "Package_QFP:LQFP-64_10x10mm_P0.5mm"
+///     lceda: "LQFP-64_L10.0-W10.0-P0.50-LS12.0-BL"
+///     default: "LQFP-64"
+/// }
+/// ```
+#[derive(Debug, Clone, PartialEq)]
+pub struct FootprintAliasDecl {
+    /// Alias name.
+    pub name: Ident,
+    /// Backend → footprint string mappings.
+    pub entries: Vec<FootprintMapEntry>,
+    /// Source location.
+    pub span: Span,
+}
+
+/// A single backend → footprint string mapping entry.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FootprintMapEntry {
+    /// Backend name (e.g. `"kicad"`, `"lceda"`, `"default"`).
+    pub backend: Ident,
+    /// Footprint string value.
+    pub value: StringLiteral,
+    /// Source location.
+    pub span: Span,
+}
+
 // ── Pins block ──────────────────────────────────────────────────────────────
 
 /// A `pins` block, optionally qualified by a package name.
@@ -488,9 +535,12 @@ pub enum PinEntryKind {
 
 // ── Spec block ──────────────────────────────────────────────────────────────
 
-/// A `spec { ... }` block declaring electrical specifications.
+/// A `spec { ... }` block declaring electrical specifications,
+/// optionally qualified by a package variant: `spec[LQFP48] { ... }`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SpecBlock {
+    /// Optional package variant qualifier (e.g. `LQFP48` in `spec[LQFP48] { ... }`).
+    pub qualifier: Option<Ident>,
     /// Spec entries in declaration order.
     pub entries: Vec<SpecEntry>,
     /// Source location.
@@ -503,10 +553,20 @@ pub struct SpecBlock {
 pub struct SpecEntry {
     /// Spec field name.
     pub name: Ident,
-    /// Value expression (may be a type name, a value, or `true`/`false`).
-    pub value: Expr,
+    /// Value (expression or inline footprint map).
+    pub value: SpecEntryValue,
     /// Source location.
     pub span: Span,
+}
+
+/// The value of a spec entry.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SpecEntryValue {
+    /// A normal expression value (e.g. `capacitance: C`, `voltage_rating: 3.3V`).
+    Expr(Expr),
+    /// An inline backend map (only valid for `footprint`).
+    /// `footprint { kicad: "...", lceda: "...", default: "..." }`
+    FootprintMap(Vec<FootprintMapEntry>),
 }
 
 // ── Rule block ──────────────────────────────────────────────────────────────
@@ -788,6 +848,37 @@ pub enum DesignBodyStmtKind {
     Net(NetStmt),
     /// A function call statement.
     Call(CallStmt),
+    /// A `footprint_override { ... }` block.
+    FootprintOverride(FootprintOverrideBlock),
+}
+
+/// A `footprint_override { ... }` block inside a design.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FootprintOverrideBlock {
+    /// Override entries mapping device types to footprints.
+    pub entries: Vec<FootprintOverrideEntry>,
+    /// Source location.
+    pub span: Span,
+}
+
+/// A single entry in a `footprint_override` block.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FootprintOverrideEntry {
+    /// The device type path.
+    pub device: Path,
+    /// What to override with.
+    pub value: FootprintOverrideValue,
+    /// Source location.
+    pub span: Span,
+}
+
+/// The value of a footprint override entry.
+#[derive(Debug, Clone, PartialEq)]
+pub enum FootprintOverrideValue {
+    /// A raw string: `-> "HouseLib:LQFP-64_Special"`
+    String(StringLiteral),
+    /// An alias reference: `-> LQFP64_10x10`
+    AliasRef(Path),
 }
 
 // ── Statements ──────────────────────────────────────────────────────────────

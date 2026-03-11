@@ -8,9 +8,9 @@ cargo install --path crates/cohdl-lsp
 
 # ── Install std library ──────────────────────────────────────────────────────
 
-rm -rf ~/.cohal/lib/std
-mkdir -p ~/.cohal/lib
-cp -r std ~/.cohal/lib/
+rm -rf ~/.cohdl/lib/std
+mkdir -p ~/.cohdl/lib
+cp -r std ~/.cohdl/lib/
 
 # ── Build & install VS Code extension ────────────────────────────────────────
 

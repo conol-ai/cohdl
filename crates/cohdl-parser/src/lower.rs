@@ -166,6 +166,11 @@ impl LowerCtx {
                 Rule::mod_decl => {
                     kind = Some(ast::TopLevelItemKind::Mod(self.lower_mod_decl(inner)));
                 }
+                Rule::footprint_alias_def => {
+                    kind = Some(ast::TopLevelItemKind::FootprintAlias(
+                        self.lower_footprint_alias_def(inner),
+                    ));
+                }
                 _ => {}
             }
         }
@@ -207,8 +212,12 @@ impl LowerCtx {
             // attribute_args
             let mut strings = Vec::new();
             let mut idents = Vec::new();
+            let mut kvs = Vec::new();
             for child in args_pair.into_inner() {
                 match child.as_rule() {
+                    Rule::key_value_pair => {
+                        kvs.push(self.lower_key_value_pair(child));
+                    }
                     Rule::string_literal => {
                         strings.push(self.lower_string_literal(child));
                     }
@@ -218,7 +227,9 @@ impl LowerCtx {
                     _ => {}
                 }
             }
-            if !strings.is_empty() {
+            if !kvs.is_empty() {
+                ast::AttributeArgs::KeyValues(kvs)
+            } else if !strings.is_empty() {
                 ast::AttributeArgs::Strings(strings)
             } else {
                 ast::AttributeArgs::Idents(idents)
@@ -1061,13 +1072,25 @@ impl LowerCtx {
 
     fn lower_spec_block(&mut self, pair: Pair<'_>) -> ast::SpecBlock {
         let sb_span = span_of(&pair);
-        let entries: Vec<ast::SpecEntry> = pair
-            .into_inner()
-            .filter(|p| p.as_rule() == Rule::spec_entry)
-            .map(|p| self.lower_spec_entry(p))
-            .collect();
+        let mut qualifier = None;
+        let mut entries = Vec::new();
+
+        for child in pair.into_inner() {
+            match child.as_rule() {
+                Rule::spec_qualifier => {
+                    let inner = child
+                        .into_inner()
+                        .find(|p| p.as_rule() == Rule::ident)
+                        .expect("spec_qualifier must have ident");
+                    qualifier = Some(self.lower_ident(inner));
+                }
+                Rule::spec_entry => entries.push(self.lower_spec_entry(child)),
+                _ => {}
+            }
+        }
 
         ast::SpecBlock {
+            qualifier,
             entries,
             span: sb_span,
         }
@@ -1078,7 +1101,17 @@ impl LowerCtx {
         let mut children = pair.into_inner();
         let name = self.lower_ident(children.next().expect("spec_entry must have name"));
         let value_pair = children.next().expect("spec_entry must have value");
-        let value = self.lower_value_expr(value_pair);
+        let value = match value_pair.as_rule() {
+            Rule::footprint_inline_map => {
+                let entries = value_pair
+                    .into_inner()
+                    .filter(|p| p.as_rule() == Rule::footprint_map_entry)
+                    .map(|p| self.lower_footprint_map_entry(p))
+                    .collect();
+                ast::SpecEntryValue::FootprintMap(entries)
+            }
+            _ => ast::SpecEntryValue::Expr(self.lower_value_expr(value_pair)),
+        };
 
         ast::SpecEntry {
             name,
@@ -1635,6 +1668,11 @@ impl LowerCtx {
                 Rule::attribute => {
                     attributes.push(self.lower_attribute(child));
                 }
+                Rule::footprint_override_block => {
+                    kind = Some(ast::DesignBodyStmtKind::FootprintOverride(
+                        self.lower_footprint_override_block(child),
+                    ));
+                }
                 Rule::inst_stmt => {
                     kind = Some(ast::DesignBodyStmtKind::Inst(self.lower_inst_stmt(child)));
                 }
@@ -1831,6 +1869,78 @@ impl LowerCtx {
             name,
             value,
             span: ca_span,
+        }
+    }
+
+    // ── Footprint alias ─────────────────────────────────────────────────────
+
+    fn lower_footprint_alias_def(&mut self, pair: Pair<'_>) -> ast::FootprintAliasDecl {
+        let sp = span_of(&pair);
+        let mut children = pair.into_inner();
+        let name = self.lower_ident(children.next().expect("alias name"));
+        let entries = children
+            .filter(|p| p.as_rule() == Rule::footprint_map_entry)
+            .map(|p| self.lower_footprint_map_entry(p))
+            .collect();
+        ast::FootprintAliasDecl {
+            name,
+            entries,
+            span: sp,
+        }
+    }
+
+    fn lower_footprint_map_entry(&mut self, pair: Pair<'_>) -> ast::FootprintMapEntry {
+        let sp = span_of(&pair);
+        let mut children = pair.into_inner();
+        let backend = self.lower_ident(children.next().expect("backend name"));
+        let value = self.lower_string_literal(children.next().expect("value"));
+        ast::FootprintMapEntry {
+            backend,
+            value,
+            span: sp,
+        }
+    }
+
+    fn lower_key_value_pair(&mut self, pair: Pair<'_>) -> ast::KeyValueArg {
+        let sp = span_of(&pair);
+        let mut children = pair.into_inner();
+        let key = self.lower_ident(children.next().expect("key"));
+        let value = self.lower_string_literal(children.next().expect("value"));
+        ast::KeyValueArg {
+            key,
+            value,
+            span: sp,
+        }
+    }
+
+    // ── Footprint override block ────────────────────────────────────────────
+
+    fn lower_footprint_override_block(&mut self, pair: Pair<'_>) -> ast::FootprintOverrideBlock {
+        let sp = span_of(&pair);
+        let entries = pair
+            .into_inner()
+            .filter(|p| p.as_rule() == Rule::footprint_override_entry)
+            .map(|p| self.lower_footprint_override_entry(p))
+            .collect();
+        ast::FootprintOverrideBlock { entries, span: sp }
+    }
+
+    fn lower_footprint_override_entry(&mut self, pair: Pair<'_>) -> ast::FootprintOverrideEntry {
+        let sp = span_of(&pair);
+        let mut children = pair.into_inner();
+        let device_pair = children.next().expect("device path");
+        let device = self.lower_path_from_pair(device_pair);
+        let value_pair = children.next().expect("override value");
+        let value = match value_pair.as_rule() {
+            Rule::string_literal => {
+                ast::FootprintOverrideValue::String(self.lower_string_literal(value_pair))
+            }
+            _ => ast::FootprintOverrideValue::AliasRef(self.lower_path_from_pair(value_pair)),
+        };
+        ast::FootprintOverrideEntry {
+            device,
+            value,
+            span: sp,
         }
     }
 }

@@ -53,6 +53,7 @@ fn find_project_root(start_dir: &Path) -> Option<PathBuf> {
 }
 
 /// Resolve `module` declarations in source text by loading sibling `.cohdl` files.
+/// Each module's content is wrapped in `module name { ... }` to preserve namespacing.
 fn resolve_modules_for_lsp(src_dir: &Path, root_src: &str) -> String {
     let source_file = match parse_source_file(root_src) {
         Ok(sf) => sf,
@@ -126,15 +127,97 @@ fn resolve_deps_for_lsp(deps: &HashMap<String, toml::Value>) -> String {
     dep_src
 }
 
+/// Like `resolve_deps_for_lsp`, but skips dependencies whose source directory
+/// contains the file being edited (to avoid duplication).
+fn resolve_deps_for_lsp_excluding(
+    deps: &HashMap<String, toml::Value>,
+    file_dir: &Path,
+    project_root: &Path,
+) -> String {
+    let mut dep_src = String::new();
+    for name in deps.keys() {
+        if name == "std" {
+            let std_src_dir = project_root.join("std").join("src");
+            if file_dir.starts_with(&std_src_dir) {
+                continue;
+            }
+            dep_src.push_str(&synthesize_std());
+            dep_src.push('\n');
+        }
+    }
+    dep_src
+}
+
 /// Build the full project source for analysis, returning `(combined_src, prefix_len)`.
 /// `prefix_len` is the byte offset where the open file's content starts in the combined source.
 fn build_project_source(file_path: &Path, file_src: &str) -> (String, usize) {
     let file_dir = file_path.parent().unwrap_or_else(|| Path::new("."));
+    let file_stem = file_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("");
 
     // Try to find the project root
     let project_root = find_project_root(file_dir);
 
-    // Resolve dependencies
+    // Check if this file is a sub-module declared in a parent lib.cohdl.
+    // When editing e.g. `std/src/passive.cohdl`, we need sibling modules
+    // (like `traits`) at the same level so `use traits::{...}` resolves.
+    if file_stem != "lib" {
+        let lib_path = file_dir.join("lib.cohdl");
+        if let Ok(lib_src) = std::fs::read_to_string(&lib_path) {
+            if let Ok(lib_ast) = parse_source_file(&lib_src) {
+                let is_submodule = lib_ast.items.iter().any(|item| {
+                    matches!(&item.kind, TopLevelItemKind::Mod(m) if m.name.name == file_stem)
+                });
+                if is_submodule {
+                    // Load sibling modules declared in lib.cohdl
+                    let mut sibling_src = String::new();
+                    for item in &lib_ast.items {
+                        if let TopLevelItemKind::Mod(m) = &item.kind {
+                            if m.name.name == file_stem {
+                                continue;
+                            }
+                            let vis = if item.visibility.is_some() {
+                                "pub "
+                            } else {
+                                ""
+                            };
+                            let mod_path =
+                                file_dir.join(format!("{}.cohdl", m.name.name));
+                            if let Ok(content) = std::fs::read_to_string(&mod_path) {
+                                sibling_src.push_str(&format!(
+                                    "{}module {} {{\n{}\n}}\n",
+                                    vis, m.name.name, content
+                                ));
+                            }
+                        }
+                    }
+
+                    // Resolve dependencies, skipping any that contain this file
+                    let mut dep_src = String::new();
+                    if let Some(ref root) = project_root {
+                        let manifest_path = root.join("cohdl.toml");
+                        if let Ok(content) = std::fs::read_to_string(&manifest_path) {
+                            if let Ok(manifest) = toml::from_str::<LspManifest>(&content) {
+                                dep_src = resolve_deps_for_lsp_excluding(
+                                    &manifest.dependencies,
+                                    file_dir,
+                                    root,
+                                );
+                            }
+                        }
+                    }
+
+                    let prefix_len = dep_src.len() + sibling_src.len();
+                    let combined = format!("{}{}{}", dep_src, sibling_src, file_src);
+                    return (combined, prefix_len);
+                }
+            }
+        }
+    }
+
+    // Default path: resolve dependencies and module declarations from the current file
     let mut dep_src = String::new();
     if let Some(ref root) = project_root {
         let manifest_path = root.join("cohdl.toml");

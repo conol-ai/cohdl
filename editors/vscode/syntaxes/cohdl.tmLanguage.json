@@ -33,7 +33,7 @@
       "patterns": [
         {
           "name": "keyword.control.cohdl",
-          "match": "\\b(trait|device|part|type|fn|module|design|use|pub|inst|net|impl|pins|spec|rule|primary|alt|macro)\\b"
+          "match": "\\b(trait|device|part|type|fn|module|design|use|pub|inst|net|impl|pins|spec|rule|primary|alt|macro|footprint_alias|footprint_override|no_footprint)\\b"
         }
       ]
     },
@@ -130,7 +130,7 @@
       "patterns": [
         {
           "name": "punctuation.cohdl",
-          "match": "[{}\\[\\]<>(),:\\.!=]"
+          "match": "->|[{}\\[\\]<>(),:\\.!=]"
         }
       ]
     }

@@ -37,6 +37,7 @@ pub enum SymbolKind {
     Fn,
     Module,
     Design,
+    FootprintAlias,
 }
 
 // ── Symbol ──────────────────────────────────────────────────────────────────
@@ -155,6 +156,9 @@ pub struct ResolvedSourceFile {
     pub symbols: SymbolTable,
     /// All resolved name references found in the file.
     pub resolved_names: Vec<ResolvedName>,
+    /// Per-module import maps. Key is module path (empty string = root).
+    /// Value maps simple name → (qualified path, span).
+    pub imports: HashMap<String, HashMap<String, (String, Span)>>,
     /// All errors encountered during resolution (empty on success).
     pub errors: Vec<SemaError>,
 }
@@ -214,6 +218,9 @@ impl Resolver {
                 }
                 TopLevelItemKind::Design(d) => {
                     self.define(&d.name, SymbolKind::Design, is_public, module_path);
+                }
+                TopLevelItemKind::FootprintAlias(fa) => {
+                    self.define(&fa.name, SymbolKind::FootprintAlias, is_public, module_path);
                 }
                 TopLevelItemKind::Use(_) | TopLevelItemKind::Mod(_) => {
                     // handled in pass 2
@@ -412,6 +419,7 @@ impl Resolver {
                     self.resolve_references(&m.items, &child);
                 }
                 TopLevelItemKind::Design(d) => self.resolve_design(d, module_path),
+                TopLevelItemKind::FootprintAlias(_) => {}
                 TopLevelItemKind::Use(_) | TopLevelItemKind::Mod(_) => {}
             }
         }
@@ -503,6 +511,7 @@ impl Resolver {
                 DesignBodyStmtKind::Inst(inst) => self.resolve_inst(inst, module_path),
                 DesignBodyStmtKind::Net(net) => self.resolve_net(net, module_path),
                 DesignBodyStmtKind::Call(call) => self.resolve_call(call, module_path),
+                DesignBodyStmtKind::FootprintOverride(_) => {}
             }
         }
     }
@@ -701,6 +710,7 @@ pub fn resolve(source: &SourceFile) -> ResolvedSourceFile {
     ResolvedSourceFile {
         symbols: resolver.table,
         resolved_names: resolver.resolved,
+        imports: resolver.imports,
         errors: resolver.errors,
     }
 }

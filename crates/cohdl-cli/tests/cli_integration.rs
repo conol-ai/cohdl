@@ -146,10 +146,10 @@ top  = "MainBoard"
     fs::write(
         dir.path().join("src/parts.cohdl"),
         r#"
-        trait TwoTerminal {
+        pub trait TwoTerminal {
             pins { A: Pin, B: Pin }
         }
-        device MLCC<C: Farads, V: Voltage = 10V>: impl TwoTerminal {
+        pub device MLCC<C: Farads, V: Voltage = 10V>: impl TwoTerminal {
             pins { A: 1, B: 2 }
             spec { capacitance: C, voltage_rating: V }
         }
@@ -162,6 +162,7 @@ top  = "MainBoard"
         dir.path().join("src/main.cohdl"),
         r#"
         module parts
+        use parts::MLCC
 
         design MainBoard {
             inst c1: MLCC<C: 100nF>

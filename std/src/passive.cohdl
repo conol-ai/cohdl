@@ -6,18 +6,42 @@ pub device Resistor<R: Ohms, pkg: Package = "R0402">: impl Resistor {
     package: pkg
     pins { A: 1, B: 2 }
     spec { resistance: R }
+    spec[R0201] { footprint: footprints::R0201 }
+    spec[R0402] { footprint: footprints::R0402 }
+    spec[R0603] { footprint: footprints::R0603 }
+    spec[R0805] { footprint: footprints::R0805 }
+    spec[R1206] { footprint: footprints::R1206 }
+    spec[R1210] { footprint: footprints::R1210 }
+    spec[R2010] { footprint: footprints::R2010 }
+    spec[R2512] { footprint: footprints::R2512 }
 }
 
 pub device MLCC<C: Farads, V: Voltage = 10V, pkg: Package = "C0402">: impl Capacitor {
     package: pkg
     pins { A: 1, B: 2 }
     spec { capacitance: C, voltage_rating: V }
+    spec[C0201] { footprint: footprints::C0201 }
+    spec[C0402] { footprint: footprints::C0402 }
+    spec[C0603] { footprint: footprints::C0603 }
+    spec[C0805] { footprint: footprints::C0805 }
+    spec[C1206] { footprint: footprints::C1206 }
+    spec[C1210] { footprint: footprints::C1210 }
+    spec[C2010] { footprint: footprints::C2010 }
+    spec[C2512] { footprint: footprints::C2512 }
 }
 
 pub device Tantalum<C: Farads, V: Voltage = 10V, pkg: Package = "C0805">: impl Capacitor + Polarized {
     package: pkg
     pins { A: 1, B: 2 }
     spec { capacitance: C, voltage_rating: V }
+    spec[C0201] { footprint: footprints::C0201 }
+    spec[C0402] { footprint: footprints::C0402 }
+    spec[C0603] { footprint: footprints::C0603 }
+    spec[C0805] { footprint: footprints::C0805 }
+    spec[C1206] { footprint: footprints::C1206 }
+    spec[C1210] { footprint: footprints::C1210 }
+    spec[C2010] { footprint: footprints::C2010 }
+    spec[C2512] { footprint: footprints::C2512 }
 
     rule voltage_derating(level: Warning) {
         assert net_voltage(self.A, self.B) <= self.spec.voltage_rating * 0.5

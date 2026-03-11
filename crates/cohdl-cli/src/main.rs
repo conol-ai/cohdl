@@ -141,16 +141,16 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
         Err(_) => return Ok(root_src.to_string()),
     };
 
-    let mod_names: Vec<&str> = source_file
+    let mod_items: Vec<(&str, bool)> = source_file
         .items
         .iter()
         .filter_map(|item| match &item.kind {
-            TopLevelItemKind::Mod(m) => Some(m.name.name.as_str()),
+            TopLevelItemKind::Mod(m) => Some((m.name.name.as_str(), item.visibility.is_some())),
             _ => None,
         })
         .collect();
 
-    if mod_names.is_empty() {
+    if mod_items.is_empty() {
         return Ok(root_src.to_string());
     }
 
@@ -159,7 +159,7 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
         .unwrap_or_else(|| Path::new("."));
 
     let mut combined = String::new();
-    for name in &mod_names {
+    for (name, is_pub) in &mod_items {
         let mod_path = src_dir.join(format!("{}.cohdl", name));
         let content = fs::read_to_string(&mod_path).map_err(|e| {
             format!(
@@ -169,18 +169,12 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
                 e
             )
         })?;
-        combined.push_str(&content);
-        combined.push('\n');
+        let vis = if *is_pub { "pub " } else { "" };
+        combined.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, name, content));
     }
     combined.push_str(root_src);
     Ok(combined)
 }
-
-// ── Embedded std library ─────────────────────────────────────────────────────
-
-const STD_LIB_COHDL: &str = include_str!("../../../std/src/lib.cohdl");
-const STD_TRAITS_COHDL: &str = include_str!("../../../std/src/traits.cohdl");
-const STD_PASSIVE_COHDL: &str = include_str!("../../../std/src/passive.cohdl");
 
 // ── Dependency resolution ───────────────────────────────────────────────────
 
@@ -211,40 +205,18 @@ fn resolve_dependency_source(name: &str, spec: &DependencySpec) -> Result<String
 }
 
 /// Build the synthesized source for the bundled `std` dependency.
+///
+/// Reads the std library from `~/.cohdl/lib/std` (installed by `scripts/install.sh`).
 fn resolve_bundled_std() -> Result<String, String> {
-    use cohdl_syntax::ast::TopLevelItemKind;
-
-    let source_file = parse_source_file(STD_LIB_COHDL)
-        .map_err(|e| format!("failed to parse std/src/lib.cohdl: {:?}", e))?;
-
-    let embedded_sources: std::collections::HashMap<&str, &str> =
-        [("traits", STD_TRAITS_COHDL), ("passive", STD_PASSIVE_COHDL)]
-            .into_iter()
-            .collect();
-
-    let mut inner = String::new();
-    for item in &source_file.items {
-        if let TopLevelItemKind::Mod(m) = &item.kind {
-            let mod_name = &m.name.name;
-            let content = embedded_sources.get(mod_name.as_str()).ok_or_else(|| {
-                format!(
-                    "std/src/lib.cohdl references module `{}` which is not embedded",
-                    mod_name
-                )
-            })?;
-            let vis = if item.visibility.is_some() {
-                "pub "
-            } else {
-                ""
-            };
-            inner.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, mod_name, content));
-        }
+    let home = std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
+    let std_path = PathBuf::from(home).join(".cohdl").join("lib").join("std");
+    if !std_path.exists() {
+        return Err(format!(
+            "std library not found at {}; run `scripts/install.sh` to install it",
+            std_path.display()
+        ));
     }
-
-    // Note: we skip appending lib.cohdl's bare `mod` declarations since the
-    // inline module blocks above already define those modules.
-
-    Ok(format!("module std {{\n{}\n}}\n", inner))
+    resolve_path_dependency("std", std_path.to_str().unwrap())
 }
 
 /// Build the synthesized source for a path-based dependency.

@@ -1,0 +1,102 @@
+pub device STM32F103<pkg: Package = "LQFP48"> {
+    spec[UFQFPN48] {
+        footprint: std::footprints::UFQFPN48
+    }
+    pins[UFQFPN48] {
+        VBAT: 1
+        VDDA: 9
+        VSSA: 8
+        VDD: [24, 36, 48]
+        VSS: [23, 35, 47]
+        BOOT0: 44
+        NRST: 7
+        EP: 49
+        PA0: 10
+        PA1: 11
+        PA2: 12
+        PA3: 13
+        PA4: 14
+        PA5: 15
+        PA6: 16
+        PA7: 17
+        PA8: 29
+        PA9: 30
+        PA10: 31
+        PA11: 32
+        PA12: 33
+        PA13: 34
+        PA14: 37
+        PA15: 38
+        PB0: 18
+        PB1: 19
+        PB2: 20
+        PB3: 39
+        PB4: 40
+        PB5: 41
+        PB6: 42
+        PB7: 43
+        PB8: 45
+        PB9: 46
+        PB10: 21
+        PB11: 22
+        PB12: 25
+        PB13: 26
+        PB14: 27
+        PB15: 28
+        PC15: 4
+        PC14: 3
+        PC13: 2
+        PD0: 5
+        PD1: 6
+    }
+
+    spec[LQFP48] {
+        footprint: std::footprints::LQFP48
+    }
+    pins[LQFP48] {
+        VBAT: 1
+        VDDA: 9
+        VSSA: 8
+        VDD: [24, 36, 48]
+        VSS: [23, 35, 47]
+        BOOT0: 44
+        NRST: 7
+        PA0: 10
+        PA1: 11
+        PA2: 12
+        PA3: 13
+        PA4: 14
+        PA5: 15
+        PA6: 16
+        PA7: 17
+        PA8: 29
+        PA9: 30
+        PA10: 31
+        PA11: 32
+        PA12: 33
+        PA13: 34
+        PA14: 37
+        PA15: 38
+        PB0: 18
+        PB1: 19
+        PB2: 20
+        PB3: 39
+        PB4: 40
+        PB5: 41
+        PB6: 42
+        PB7: 43
+        PB8: 45
+        PB9: 46
+        PB10: 21
+        PB11: 22
+        PB12: 25
+        PB13: 26
+        PB14: 27
+        PB15: 28
+        PC15: 4
+        PC14: 3
+        PC13: 2
+        PD0: 5
+        PD1: 6
+    }
+}

@@ -1,0 +1,16 @@
+use std::passive::{Resistor, MLCC}
+use stm32::STM32F103
+
+module stm32
+
+// Top-level board design
+design MainBoard {
+    inst mcu: STM32F103<pkg: "UFQFPN48">
+
+    // reset circuit
+    inst r_rst: Resistor<pkg: "R0603", R: "10K">
+    inst c_rst: MLCC<pkg: "C0603", C: "100nF">
+    net GND: mcu.VSS, mcu.VSSA, c_rst.B
+    net VCC_3V3: mcu.VDD, mcu.VDDA, r_rst.A
+    net NRST: mcu.NRST, r_rst.B, c_rst.A
+}

@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::fmt::Write;
 
 use cohdl_sema::connectivity::{ConnectivityIR, Instance, PinRef};
-use cohdl_sema::typeck::EXTERNAL_INSTANCE;
+use cohdl_sema::typeck::{ResolvedFootprint, EXTERNAL_INSTANCE};
 
 // ── Footprint mapping ────────────────────────────────────────────────────────
 
@@ -69,10 +69,15 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
     // ── Components
     writeln!(out, "  (components").unwrap();
     for inst in &ir.instances {
-        let footprint = inst
-            .footprint_override
-            .clone()
-            .unwrap_or_else(|| resolve_footprint(&inst.device, config));
+        // Skip components with NoFootprint.
+        if matches!(
+            inst.footprint_override,
+            Some(ResolvedFootprint::NoFootprint)
+        ) {
+            continue;
+        }
+
+        let footprint = resolve_footprint_for_kicad(&inst.footprint_override, &inst.device, config);
         let value = inst
             .generic_substitutions
             .get("value")
@@ -152,6 +157,29 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
     writeln!(out, ")").unwrap();
 
     out
+}
+
+/// Resolve a `ResolvedFootprint` to a KiCad footprint string.
+fn resolve_footprint_for_kicad(
+    fp: &Option<ResolvedFootprint>,
+    device: &str,
+    config: &KicadNetlistConfig,
+) -> String {
+    match fp {
+        Some(ResolvedFootprint::String(s)) => s.clone(),
+        Some(ResolvedFootprint::Alias { mappings, .. }) => mappings
+            .get("kicad")
+            .or_else(|| mappings.get("default"))
+            .cloned()
+            .unwrap_or_else(|| resolve_footprint(device, config)),
+        Some(ResolvedFootprint::InlineMap(map)) => map
+            .get("kicad")
+            .or_else(|| map.get("default"))
+            .cloned()
+            .unwrap_or_else(|| resolve_footprint(device, config)),
+        Some(ResolvedFootprint::NoFootprint) => String::new(),
+        None => resolve_footprint(device, config),
+    }
 }
 
 /// Resolve a cohdl device name to a KiCad footprint string.
@@ -455,7 +483,7 @@ mod tests {
                 mpn: None,
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
-                footprint_override: Some("Custom:LQFP-48_Custom".into()),
+                footprint_override: Some(ResolvedFootprint::String("Custom:LQFP-48_Custom".into())),
             }],
             nets: vec![],
         };

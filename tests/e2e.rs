@@ -85,16 +85,18 @@ fn run_pipeline(src: &str) -> PipelineOutput {
 }
 
 /// Synthesize the bundled `std` dependency source by wrapping the std source
-/// files into `module std { pub module traits { ... } pub module passive { ... } }`.
+/// files into `module std { pub module traits { ... } pub module passive { ... } pub module footprints { ... } }`.
 fn synthesize_std_source() -> String {
     let traits_src =
         std::fs::read_to_string("std/src/traits.cohdl").expect("cannot read std/src/traits.cohdl");
     let passive_src = std::fs::read_to_string("std/src/passive.cohdl")
         .expect("cannot read std/src/passive.cohdl");
+    let footprints_src = std::fs::read_to_string("std/src/footprints.cohdl")
+        .expect("cannot read std/src/footprints.cohdl");
 
     format!(
-        "module std {{\npub module traits {{\n{}\n}}\npub module passive {{\n{}\n}}\n}}\n",
-        traits_src, passive_src,
+        "module std {{\npub module traits {{\n{}\n}}\npub module footprints {{\n{}\n}}\npub module passive {{\n{}\n}}\n}}\n",
+        traits_src, footprints_src, passive_src,
     )
 }
 

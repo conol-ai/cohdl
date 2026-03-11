@@ -1,0 +1,76 @@
+// chip resistors
+pub footprint_alias R0201 {
+    lceda: "R0201"
+}
+
+pub footprint_alias R0402 {
+    lceda: "R0402"
+}
+
+pub footprint_alias R0603 {
+    lceda: "R0603"
+}
+
+pub footprint_alias R0805 {
+    lceda: "R0805"
+}
+
+pub footprint_alias R1206 {
+    lceda: "R1206"
+}
+
+pub footprint_alias R1210 {
+    lceda: "R1210"
+}
+
+pub footprint_alias R2010 {
+    lceda: "R2010"
+}
+
+pub footprint_alias R2512 {
+    lceda: "R2512"
+}
+
+// chip capacitors
+
+pub footprint_alias C0201 {
+    lceda: "C0201"
+}
+
+pub footprint_alias C0402 {
+    lceda: "C0402"
+}
+
+pub footprint_alias C0603 {
+    lceda: "C0603"
+}
+
+pub footprint_alias C0805 {
+    lceda: "C0805"
+}
+
+pub footprint_alias C1206 {
+    lceda: "C1206"
+}
+
+pub footprint_alias C1210 {
+    lceda: "C1210"
+}
+
+pub footprint_alias C2010 {
+    lceda: "C2010"
+}
+
+pub footprint_alias C2512 {
+    lceda: "C2512"
+}
+
+// ufqfpn
+pub footprint_alias UFQFPN48 {
+    lceda: "UFQFPN-48_L7.0-W7.0-P0.50-BL-EP"
+}
+
+// lqfp
+pub footprint_alias LQFP48 {
+    lceda: "LQFP-48_L7.0-W7.0-P0.50-LS9.0-BL"
+}

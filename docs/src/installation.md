@@ -14,7 +14,7 @@ If you plan to use the KiCad backend:
 Clone the repository and build with Cargo:
 
 ```bash
-git clone https://github.com/conol/cohdl.git
+git clone https://github.com/conol-ai/cohdl.git
 cd cohdl
 cargo build --release
 ```

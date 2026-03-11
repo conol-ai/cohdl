@@ -1,19 +1,12 @@
-// std/passive — Jellybean discrete devices.
-//
-// Generic parametric devices for resistors, capacitors, inductors, crystals.
-// No MPN — that is what `part` is for.
+// std/passive — Generic parametric passive devices.
 
-use traits::{Resistor, Capacitor, Inductor, FerriteBead, Polarized, Crystal, IC}
-
-// ── Resistors ───────────────────────────────────────────────────────────────
+use traits::{Resistor, Capacitor, Inductor, Polarized, Crystal}
 
 pub device Resistor<R: Ohms, pkg: Package = "R0402">: impl Resistor {
     package: pkg
     pins { A: 1, B: 2 }
     spec { resistance: R }
 }
-
-// ── Capacitors ──────────────────────────────────────────────────────────────
 
 pub device MLCC<C: Farads, V: Voltage = 10V, pkg: Package = "C0402">: impl Capacitor {
     package: pkg
@@ -32,32 +25,11 @@ pub device Tantalum<C: Farads, V: Voltage = 10V, pkg: Package = "C0805">: impl C
     }
 }
 
-pub device Electrolytic<C: Farads, V: Voltage, pkg: Package = "RADIAL_D5">: impl Capacitor + Polarized {
-    package: pkg
-    pins { A: 1, B: 2 }
-    spec { capacitance: C, voltage_rating: V }
-
-    rule voltage_derating(level: Warning) {
-        assert net_voltage(self.A, self.B) <= self.spec.voltage_rating * 0.6
-        message: "Electrolytic capacitor voltage exceeds 60% derating"
-    }
-}
-
-// ── Inductors & Ferrite Beads ───────────────────────────────────────────────
-
 pub device Inductor<L: Henries, I: Amps = 100mA, pkg: Package = "L0402">: impl Inductor {
     package: pkg
     pins { A: 1, B: 2 }
     spec { inductance: L, current_rating: I }
 }
-
-pub device FerriteBead<Z: Ohms, I: Amps = 500mA, pkg: Package = "L0402">: impl FerriteBead {
-    package: pkg
-    pins { A: 1, B: 2 }
-    spec { impedance_100mhz: Z, current_rating: I }
-}
-
-// ── Crystals & Resonators ───────────────────────────────────────────────────
 
 pub device Crystal<F: Hertz, CL: Farads = 12pF, pkg: Package = "HC49">: impl Crystal {
     package: pkg
@@ -65,20 +37,7 @@ pub device Crystal<F: Hertz, CL: Farads = 12pF, pkg: Package = "HC49">: impl Cry
     spec { frequency: F, load_cap: CL }
 }
 
-pub device TCXO<F: Hertz, pkg: Package = "OSC_3225">: impl IC {
-    // Temperature-compensated oscillator with enable and single-ended output
-    package: pkg
-    pins { VCC: 1, EN: 2, GND: 3, OUT: 4 }
-    spec { frequency: F }
-}
-
-// ── Common type aliases ─────────────────────────────────────────────────────
-
 pub type BypassCap   = MLCC<C: 100nF, V: 10V, pkg: "C0402">
 pub type BulkCap     = Tantalum<C: 10uF, V: 10V, pkg: "C0805">
 pub type PullupRes   = Resistor<R: 10kohm, pkg: "R0402">
 pub type PulldownRes = Resistor<R: 10kohm, pkg: "R0402">
-pub type SmallCap    = MLCC<C: 100nF, V: 10V, pkg: "C0402">
-pub type LargeCap    = Tantalum<C: 10uF, V: 10V, pkg: "C0805">
-pub type SeriesRes   = Resistor<R: 100ohm, pkg: "R0402">
-pub type PowerRes    = Resistor<R: 100ohm, pkg: "R2512">

@@ -84,10 +84,11 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
             .cloned()
             .unwrap_or_else(|| inst.device.clone());
 
+        let refdes = inst.designator.as_deref().unwrap_or(&inst.name);
         writeln!(
             out,
             "    (comp (ref \"{}\") (value \"{}\")",
-            inst.name,
+            refdes,
             xml_escape(&value)
         )
         .unwrap();
@@ -138,10 +139,11 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
 
         for pin in &nodes {
             if let Some(inst) = instance_by_id.get(&pin.instance_id.0) {
+                let refdes = inst.designator.as_deref().unwrap_or(&inst.name);
                 write!(
                     out,
                     "\n      (node (ref \"{}\") (pin \"{}\"))",
-                    inst.name,
+                    refdes,
                     xml_escape(&pin.pin)
                 )
                 .unwrap();
@@ -217,6 +219,7 @@ mod tests {
                     id: InstanceId(0),
                     name: "U1".into(),
                     hierarchical_path: "Board::U1".into(),
+                    designator: Some("U1".into()),
                     device: "LQFP48".into(),
                     mpn: Some("STM32F103C8T6".into()),
                     alt_mpns: vec![],
@@ -232,6 +235,7 @@ mod tests {
                     id: InstanceId(1),
                     name: "R1".into(),
                     hierarchical_path: "Board::R1".into(),
+                    designator: Some("R1".into()),
                     device: "R0402".into(),
                     mpn: None,
                     alt_mpns: vec![],
@@ -247,6 +251,7 @@ mod tests {
                     id: InstanceId(2),
                     name: "C1".into(),
                     hierarchical_path: "Board::C1".into(),
+                    designator: Some("C1".into()),
                     device: "C0402".into(),
                     mpn: None,
                     alt_mpns: vec![],
@@ -399,6 +404,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "X1".into(),
                 hierarchical_path: "Board::X1".into(),
+                designator: Some("X1".into()),
                 device: "MY_CUSTOM_PKG".into(),
                 mpn: None,
                 alt_mpns: vec![],
@@ -419,6 +425,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "QFN32".into(),
                 mpn: None,
                 alt_mpns: vec![],
@@ -460,6 +467,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "R0402".into(),
                 mpn: Some("Part<1>&\"2\"".into()),
                 alt_mpns: vec![],
@@ -485,6 +493,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "LQFP48".into(),
                 mpn: None,
                 alt_mpns: vec![],
@@ -507,6 +516,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "LQFP48".into(),
                 mpn: None,
                 alt_mpns: vec![],

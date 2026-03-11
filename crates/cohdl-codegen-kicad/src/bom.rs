@@ -24,7 +24,8 @@ pub fn emit_simple_bom(ir: &ConnectivityIR) -> String {
 
     for inst in &ir.instances {
         let mpn = inst.mpn.as_deref().unwrap_or(UNSPECIFIED);
-        groups.entry(mpn).or_default().push(&inst.name);
+        let refdes = inst.designator.as_deref().unwrap_or(&inst.name);
+        groups.entry(mpn).or_default().push(refdes);
     }
 
     let mut out = String::new();
@@ -62,13 +63,18 @@ pub fn emit_avl_bom(ir: &ConnectivityIR) -> String {
     }
     writeln!(out).unwrap();
 
-    // Sort instances by name for deterministic output.
+    // Sort instances by designator (or name) for deterministic output.
     let mut sorted: Vec<_> = ir.instances.iter().collect();
-    sorted.sort_by(|a, b| a.name.cmp(&b.name));
+    sorted.sort_by(|a, b| {
+        let a_ref = a.designator.as_deref().unwrap_or(&a.name);
+        let b_ref = b.designator.as_deref().unwrap_or(&b.name);
+        a_ref.cmp(b_ref)
+    });
 
     for inst in sorted {
+        let refdes = inst.designator.as_deref().unwrap_or(&inst.name);
         let primary = inst.mpn.as_deref().unwrap_or(UNSPECIFIED);
-        write!(out, "\"{}\",\"{}\"", inst.name, primary).unwrap();
+        write!(out, "\"{}\",\"{}\"", refdes, primary).unwrap();
         for i in 0..max_alts {
             let alt = inst.alt_mpns.get(i).map(|s| s.as_str()).unwrap_or("");
             write!(out, ",\"{}\"", alt).unwrap();
@@ -93,6 +99,7 @@ mod tests {
             id: InstanceId(id),
             name: name.into(),
             hierarchical_path: format!("Board::{}", name),
+            designator: Some(name.into()),
             device: "DEV".into(),
             mpn: mpn.map(|s| s.into()),
             alt_mpns: alt_mpns.iter().map(|s| s.to_string()).collect(),

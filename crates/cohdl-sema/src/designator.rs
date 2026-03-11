@@ -254,7 +254,11 @@ pub fn build_instance_infos(
         .map(|inst| {
             let prefix = device_traits
                 .get(&inst.device)
-                .and_then(|traits| traits.iter().find_map(|t| trait_prefixes.get(t).cloned()));
+                .and_then(|traits| {
+                    traits
+                        .iter()
+                        .find_map(|t| lookup_trait_prefix(t, trait_prefixes))
+                });
             InstanceInfo {
                 hierarchical_path: inst.hierarchical_path.clone(),
                 designator_override: overrides.get(&inst.hierarchical_path).cloned(),
@@ -293,7 +297,7 @@ pub fn instance_infos_from_typed_design(
 
             let prefix = impl_traits
                 .iter()
-                .find_map(|t| trait_prefixes.get(t).cloned());
+                .find_map(|t| lookup_trait_prefix(t, trait_prefixes));
 
             InstanceInfo {
                 hierarchical_path: inst.hierarchical_path.clone(),
@@ -302,6 +306,28 @@ pub fn instance_infos_from_typed_design(
             }
         })
         .collect()
+}
+
+/// Look up a designator prefix for a trait name.
+///
+/// Device `impl_traits` may use unqualified names (e.g. `"Capacitor"`) while
+/// `trait_prefixes` uses fully-qualified keys (e.g. `"std::traits::Capacitor"`).
+/// This function tries an exact match first, then falls back to suffix matching
+/// (i.e. finds a key that ends with `::<trait_name>`).
+fn lookup_trait_prefix(
+    trait_name: &str,
+    trait_prefixes: &std::collections::HashMap<String, String>,
+) -> Option<String> {
+    // Exact match.
+    if let Some(prefix) = trait_prefixes.get(trait_name) {
+        return Some(prefix.clone());
+    }
+    // Suffix match: the qualified key ends with `::<trait_name>`.
+    let suffix = format!("::{}", trait_name);
+    trait_prefixes
+        .iter()
+        .find(|(k, _)| k.ends_with(&suffix))
+        .map(|(_, v)| v.clone())
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -559,6 +585,7 @@ mod tests {
                     id: InstanceId(0),
                     name: "c1".into(),
                     hierarchical_path: "Board::c1".into(),
+                    designator: None,
                     device: "MLCC".into(),
                     mpn: None,
                     alt_mpns: vec![],
@@ -570,6 +597,7 @@ mod tests {
                     id: InstanceId(1),
                     name: "mcu".into(),
                     hierarchical_path: "Board::mcu".into(),
+                    designator: None,
                     device: "STM32".into(),
                     mpn: None,
                     alt_mpns: vec![],

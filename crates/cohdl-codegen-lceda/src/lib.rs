@@ -125,9 +125,10 @@ fn build_component(
         m.insert(k.into(), serde_json::Value::String(v.into()));
     };
 
+    let refdes = inst.designator.as_deref().unwrap_or(&inst.name);
     set(&mut props, "Add into BOM", "yes");
     set(&mut props, "Convert to PCB", "yes");
-    set(&mut props, "Designator", &inst.name);
+    set(&mut props, "Designator", refdes);
     set(&mut props, "Name", &value);
     set(&mut props, "Unique ID", unique_id);
     set(&mut props, "DeviceName", &inst.device);
@@ -226,6 +227,7 @@ mod tests {
                     id: InstanceId(0),
                     name: "U1".into(),
                     hierarchical_path: "Board::U1".into(),
+                    designator: Some("U1".into()),
                     device: "LQFP48".into(),
                     mpn: Some("STM32F103C8T6".into()),
                     alt_mpns: vec![],
@@ -241,6 +243,7 @@ mod tests {
                     id: InstanceId(1),
                     name: "C1".into(),
                     hierarchical_path: "Board::C1".into(),
+                    designator: Some("C1".into()),
                     device: "C0402".into(),
                     mpn: Some("CL05B104KO5NNNC".into()),
                     alt_mpns: vec![],
@@ -405,6 +408,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "LQFP48".into(),
                 mpn: None,
                 alt_mpns: vec![],
@@ -429,6 +433,7 @@ mod tests {
                 id: InstanceId(0),
                 name: "U1".into(),
                 hierarchical_path: "Board::U1".into(),
+                designator: Some("U1".into()),
                 device: "LQFP48".into(),
                 mpn: None,
                 alt_mpns: vec![],

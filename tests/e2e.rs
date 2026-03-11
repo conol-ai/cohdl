@@ -629,6 +629,127 @@ fn std_dependency() {
     );
 }
 
+// ── Test 5b: designator lock file lifecycle ──────────────────────────────────
+
+#[test]
+fn designator_lock_lifecycle() {
+    let src = load_fixture_source("tests/fixtures/stm32_minimal");
+    let output = run_pipeline(&src);
+    assert!(output.parse_errors.is_none());
+    assert!(output.sema_errors.is_empty());
+
+    let tc = output.tc_result.as_ref().unwrap();
+    let design = tc
+        .designs
+        .iter()
+        .find(|d| d.name == "MainBoard")
+        .expect("MainBoard design not found");
+    let conn = build_connectivity(design, &tc.device_pins);
+    let ir = &conn.ir;
+
+    // ── Phase 1: fresh assignment ────────────────────────────────────────
+    let infos = instance_infos_from_typed_design(design, ir, &tc.trait_prefixes);
+    let mut db = DesignatorDb::new();
+    let (assignments, errors) = db.assign(&infos);
+    assert!(errors.is_empty(), "designator errors: {:?}", errors);
+
+    // Verify prefixes are correctly applied.
+    let cap_desigs: Vec<&str> = assignments
+        .iter()
+        .filter(|(_, d)| d.starts_with('C'))
+        .map(|(_, d)| d.as_str())
+        .collect();
+    assert_eq!(cap_desigs.len(), 4, "expected 4 capacitor designators");
+
+    let u_desigs: Vec<&str> = assignments
+        .iter()
+        .filter(|(_, d)| d.starts_with('U'))
+        .map(|(_, d)| d.as_str())
+        .collect();
+    assert_eq!(u_desigs.len(), 1, "expected 1 IC designator");
+
+    let j_desigs: Vec<&str> = assignments
+        .iter()
+        .filter(|(_, d)| d.starts_with('J'))
+        .map(|(_, d)| d.as_str())
+        .collect();
+    assert_eq!(j_desigs.len(), 1, "expected 1 connector designator");
+
+    // ── Phase 2: stable reassignment ─────────────────────────────────────
+    let mut db2 = db.clone();
+    let (assignments2, errors2) = db2.assign(&infos);
+    assert!(errors2.is_empty());
+    assert_eq!(
+        assignments, assignments2,
+        "reassignment should be stable"
+    );
+
+    // ── Phase 3: save/load round-trip ────────────────────────────────────
+    let lock_path = std::env::temp_dir().join("cohdl_e2e_designator.lock");
+    let _ = std::fs::remove_file(&lock_path);
+    db.save(&lock_path).unwrap();
+
+    let mut db3 = DesignatorDb::load(&lock_path).unwrap();
+    let (assignments3, errors3) = db3.assign(&infos);
+    assert!(errors3.is_empty());
+    assert_eq!(
+        assignments, assignments3,
+        "assignment after load should match"
+    );
+
+    // ── Phase 4: removal triggers tombstone ──────────────────────────────
+    // Simulate removing the first capacitor instance.
+    let cap_path = assignments
+        .iter()
+        .find(|(_, d)| *d == "C1")
+        .map(|(p, _)| p.clone())
+        .unwrap();
+    db3.tombstone_removed(&[cap_path.clone()]);
+
+    // C1's designator should now be in tombstones.
+    assert!(db3.tombstones().contains_key(&cap_path));
+    assert!(!db3.designators().contains_key(&cap_path));
+
+    // Adding a new capacitor should skip C1 (tombstoned).
+    let mut reduced_infos: Vec<_> = infos
+        .iter()
+        .filter(|i| i.hierarchical_path != cap_path)
+        .cloned()
+        .collect();
+    reduced_infos.push(cohdl_sema::designator::InstanceInfo {
+        hierarchical_path: "MainBoard::c_new".to_string(),
+        designator_override: None,
+        prefix: Some("C".to_string()),
+    });
+    let (assignments4, errors4) = db3.assign(&reduced_infos);
+    assert!(errors4.is_empty());
+    assert!(
+        !assignments4.values().any(|d| d == "C1"),
+        "C1 should be tombstoned and never reused; got {:?}",
+        assignments4
+    );
+    let new_desig = &assignments4["MainBoard::c_new"];
+    assert!(
+        new_desig.starts_with('C'),
+        "new cap should get C prefix; got {}",
+        new_desig
+    );
+
+    // ── Phase 5: apply_designators populates the IR ──────────────────────
+    let mut ir_clone = ir.clone();
+    ir_clone.apply_designators(&assignments);
+    for inst in &ir_clone.instances {
+        assert!(
+            inst.designator.is_some(),
+            "instance {} should have designator",
+            inst.name
+        );
+    }
+
+    // Clean up.
+    let _ = std::fs::remove_file(&lock_path);
+}
+
 // ── Test 6: stm32_core (generics + function calls) ──────────────────────────
 
 #[test]

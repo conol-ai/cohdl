@@ -12,6 +12,7 @@ use cohdl_codegen_lceda::emit_lceda_netlist;
 use cohdl_drc::{DiagnosticLevel, DrcDiagnostic, DrcRunner};
 use cohdl_parser::{parse_source_file, ParseError};
 use cohdl_sema::connectivity::{build_connectivity, ConnectivityResult};
+use cohdl_sema::designator::{instance_infos_from_typed_design, DesignatorDb};
 use cohdl_sema::typeck::{type_check, TypeCheckResult};
 use cohdl_sema::{resolve, ResolvedSourceFile, SemaError};
 
@@ -519,6 +520,8 @@ fn render_drc_diagnostics(
 
 struct PipelineResult {
     connectivity: Option<ConnectivityResult>,
+    tc_result: Option<TypeCheckResult>,
+    design_name: Option<String>,
     has_errors: bool,
 }
 
@@ -537,6 +540,8 @@ fn run_pipeline(
             render_parse_errors(stderr, file_path, src, &errors);
             return PipelineResult {
                 connectivity: None,
+                tc_result: None,
+                design_name: None,
                 has_errors: true,
             };
         }
@@ -569,10 +574,14 @@ fn run_pipeline(
             writeln!(stderr, ": design `{}` not found", top_design).ok();
             return PipelineResult {
                 connectivity: None,
+                tc_result: Some(tc_result),
+                design_name: None,
                 has_errors: true,
             };
         }
     };
+
+    let design_name = design.name.clone();
 
     // ── Connectivity ─────────────────────────────────────────────────────
     let conn_result = build_connectivity(design, &tc_result.device_pins);
@@ -593,6 +602,8 @@ fn run_pipeline(
 
     PipelineResult {
         connectivity: Some(conn_result),
+        tc_result: Some(tc_result),
+        design_name: Some(design_name),
         has_errors,
     }
 }
@@ -686,10 +697,66 @@ fn cmd_build(
         return 1;
     }
 
-    let conn = match result.connectivity {
+    let mut conn = match result.connectivity {
         Some(c) => c,
         None => return 1,
     };
+
+    // ── Designator assignment ────────────────────────────────────────────
+    if let (Some(tc_result), Some(design_name)) = (&result.tc_result, &result.design_name) {
+        if let Some(design) = tc_result.designs.iter().find(|d| &d.name == design_name) {
+            let lock_path = Path::new("design.lock");
+            let mut db = match DesignatorDb::load(lock_path) {
+                Ok(db) => db,
+                Err(e) => {
+                    stderr
+                        .set_color(ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
+                        .ok();
+                    write!(stderr, "Warning").ok();
+                    stderr.reset().ok();
+                    writeln!(stderr, ": {}", e).ok();
+                    DesignatorDb::new()
+                }
+            };
+
+            // Collect old paths before assignment for tombstoning.
+            let old_paths: Vec<String> = db.designators().keys().cloned().collect();
+
+            let infos =
+                instance_infos_from_typed_design(design, &conn.ir, &tc_result.trait_prefixes);
+            let (assignments, desig_errors) = db.assign(&infos);
+
+            if !desig_errors.is_empty() {
+                render_sema_errors(stderr, file_path, &src, &desig_errors);
+                return 1;
+            }
+
+            // Tombstone removed instances (paths in old_paths that are no longer live).
+            let live_paths: std::collections::HashSet<&str> =
+                infos.iter().map(|i| i.hierarchical_path.as_str()).collect();
+            let removed: Vec<String> = old_paths
+                .into_iter()
+                .filter(|p| !live_paths.contains(p.as_str()))
+                .collect();
+            if !removed.is_empty() {
+                db.tombstone_removed(&removed);
+            }
+
+            // Apply designators to the connectivity IR.
+            conn.ir.apply_designators(&assignments);
+
+            // Save the lock file.
+            if let Err(e) = db.save(lock_path) {
+                stderr
+                    .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                    .ok();
+                write!(stderr, "Error").ok();
+                stderr.reset().ok();
+                writeln!(stderr, ": {}", e).ok();
+                return 1;
+            }
+        }
+    }
 
     // ── Codegen ──────────────────────────────────────────────────────────
     let emit_all = emit.contains(&EmitTarget::All);

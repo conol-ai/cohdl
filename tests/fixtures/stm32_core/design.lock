@@ -1,0 +1,10 @@
+[designators]
+"MainBoard::__fn0_decoupling_c" = "C2"
+"MainBoard::__fn1_decoupling_c" = "C3"
+"MainBoard::__fn2_decoupling_c" = "C4"
+"MainBoard::__fn3_decoupling_c" = "C5"
+"MainBoard::c_rst" = "C1"
+"MainBoard::mcu" = "U1"
+"MainBoard::r_rst" = "R1"
+
+[tombstones]

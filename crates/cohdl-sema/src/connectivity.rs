@@ -46,6 +46,9 @@ pub struct Instance {
     pub name: String,
     /// Hierarchical path for designator locking (e.g. `"MainBoard::usb::r_dm"`).
     pub hierarchical_path: String,
+    /// Assigned reference designator (e.g. `"C1"`, `"U3"`).
+    /// `None` until designator assignment has run.
+    pub designator: Option<String>,
     /// Resolved device name.
     pub device: String,
     /// Primary MPN if backed by a part.
@@ -76,6 +79,23 @@ pub struct ConnectivityResult {
     pub ir: ConnectivityIR,
     /// Errors encountered during IR construction.
     pub errors: Vec<SemaError>,
+}
+
+impl ConnectivityIR {
+    /// Apply designator assignments to all instances.
+    ///
+    /// `assignments` maps hierarchical path → designator string (e.g. `"C1"`).
+    /// After this call, each instance's `designator` field is set.
+    pub fn apply_designators(
+        &mut self,
+        assignments: &std::collections::BTreeMap<String, String>,
+    ) {
+        for inst in &mut self.instances {
+            if let Some(desig) = assignments.get(&inst.hierarchical_path) {
+                inst.designator = Some(desig.clone());
+            }
+        }
+    }
 }
 
 // ── Union-Find ──────────────────────────────────────────────────────────────
@@ -141,6 +161,7 @@ pub fn build_connectivity(
             id: ci.id,
             name: ci.name.clone(),
             hierarchical_path: format!("{}::{}", design.name, ci.name),
+            designator: None,
             device: ci.device.clone(),
             mpn: ci.mpn.clone(),
             alt_mpns: ci.alt_mpns.clone(),
@@ -667,6 +688,7 @@ mod tests {
         assert_eq!(inst.device, "MLCC");
         assert_eq!(inst.mpn, Some("CL05B104KO5NNNC".into()));
         assert_eq!(inst.generic_substitutions, subs);
+        assert_eq!(inst.designator, None);
     }
 
     // ── Multiple errors collected ───────────────────────────────────────

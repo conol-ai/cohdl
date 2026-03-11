@@ -16,6 +16,7 @@ fn inst(id: u32, name: &str, device: &str, subs: &[(&str, &str)]) -> Instance {
         id: InstanceId(id),
         name: name.to_string(),
         hierarchical_path: format!("Board::{}", name),
+        designator: None,
         device: device.to_string(),
         mpn: None,
         alt_mpns: vec![],

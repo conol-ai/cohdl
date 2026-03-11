@@ -400,3 +400,84 @@ fn diagnostic_shows_source_location() {
         .failure()
         .stderr(predicate::str::contains("-->").and(predicate::str::contains("src/main.cohdl")));
 }
+
+// ── build generates design.lock with designators ────────────────────────────
+
+#[test]
+fn build_generates_design_lock() {
+    let src = r#"
+        trait TwoTerminal {
+            pins { A: Pin, B: Pin }
+        }
+        trait Capacitor: TwoTerminal {
+            designator_prefix: "C"
+            spec { capacitance: Farads, voltage_rating: Voltage }
+        }
+        trait Resistor: TwoTerminal {
+            designator_prefix: "R"
+            spec { resistance: Ohms }
+        }
+        device MLCC<C: Farads, V: Voltage = 10V>: impl Capacitor {
+            pins { A: 1, B: 2 }
+            spec { capacitance: C, voltage_rating: V }
+        }
+        device Res<R: Ohms>: impl Resistor {
+            pins { A: 1, B: 2 }
+            spec { resistance: R }
+        }
+        design MainBoard {
+            inst c1: MLCC<C: 100nF>
+            inst c2: MLCC<C: 10nF>
+            inst r1: Res<R: 10k>
+        }
+    "#;
+    let dir = setup_project(src);
+    cohdl()
+        .args(["build", "--color", "never"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+
+    // design.lock should have been created.
+    let lock_path = dir.path().join("design.lock");
+    assert!(lock_path.exists(), "design.lock should be generated");
+
+    let lock_content = fs::read_to_string(&lock_path).unwrap();
+    // Should contain designator assignments.
+    assert!(
+        lock_content.contains("[designators]"),
+        "lock file should have [designators] section"
+    );
+    assert!(
+        lock_content.contains("C1"),
+        "lock file should contain C1 designator"
+    );
+    assert!(
+        lock_content.contains("C2"),
+        "lock file should contain C2 designator"
+    );
+    assert!(
+        lock_content.contains("R1"),
+        "lock file should contain R1 designator"
+    );
+
+    // BOM should use designators, not raw instance names.
+    let bom = fs::read_to_string(dir.path().join("out/test-board-bom.csv")).unwrap();
+    assert!(
+        bom.contains("C1") || bom.contains("C2"),
+        "BOM should use designator-style RefDes, got: {}",
+        bom
+    );
+
+    // Second build should preserve designators (stable).
+    cohdl()
+        .args(["build", "--color", "never"])
+        .current_dir(dir.path())
+        .assert()
+        .success();
+    let lock_content2 = fs::read_to_string(&lock_path).unwrap();
+    assert_eq!(
+        lock_content, lock_content2,
+        "lock file should be stable across builds"
+    );
+}

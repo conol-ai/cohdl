@@ -1,0 +1,7 @@
+[package]
+name = "std"
+version = "0.1.0"
+description = "cohdl standard library — traits, passive devices, power circuits, discretes, connectors, and pin-mux infrastructure"
+
+[design]
+root = "src/lib.cohdl"

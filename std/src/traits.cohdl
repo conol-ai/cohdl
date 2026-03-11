@@ -1,0 +1,137 @@
+// std/traits — Core electrical behavior contracts.
+//
+// The foundation everything else builds on. Traits declare pin structure,
+// spec fields, designator prefix, and optional DRC rules.
+
+// ── Structural primitives ───────────────────────────────────────────────────
+
+pub trait TwoTerminal {
+    designator_prefix: "U"
+    pins { A: Pin, B: Pin }
+}
+
+pub trait ThreeTerminal {
+    pins { A: Pin, B: Pin, C: Pin }
+}
+
+// ── Passive traits ──────────────────────────────────────────────────────────
+
+pub trait Resistor: TwoTerminal {
+    designator_prefix: "R"
+    spec {
+        resistance: Ohms
+    }
+}
+
+pub trait Capacitor: TwoTerminal {
+    designator_prefix: "C"
+    spec {
+        capacitance: Farads,
+        voltage_rating: Voltage
+    }
+
+    rule voltage_exceed(level: Error) {
+        assert net_voltage(self.A, self.B) <= self.spec.voltage_rating
+        message: "Capacitor voltage {net_voltage(self.A, self.B)}V exceeds voltage_rating {self.spec.voltage_rating}V"
+    }
+
+    rule voltage_derating(level: Warning) {
+        assert net_voltage(self.A, self.B) <= self.spec.voltage_rating * 0.8
+        message: "Capacitor voltage exceeds 80% derating ({net_voltage(self.A, self.B)}V > {self.spec.voltage_rating * 0.8}V)"
+    }
+}
+
+pub trait Inductor: TwoTerminal {
+    designator_prefix: "L"
+    spec {
+        inductance: Henries,
+        current_rating: Amps
+    }
+}
+
+pub trait FerriteBead: TwoTerminal {
+    designator_prefix: "FB"
+    spec {
+        impedance_100mhz: Ohms,
+        current_rating: Amps
+    }
+}
+
+pub trait Polarized: TwoTerminal {
+    // A = anode (+), B = cathode (-)
+    rule polarity_mismatch(level: Error) {
+        assert net_voltage(self.A, self.B) >= 0
+        message: "Polarized component has A (anode) at lower potential than B (cathode)"
+    }
+}
+
+pub trait Crystal: TwoTerminal {
+    designator_prefix: "X"
+    spec {
+        frequency: Hertz,
+        load_cap: Farads
+    }
+}
+
+// ── Semiconductor traits ────────────────────────────────────────────────────
+
+pub trait Diode: TwoTerminal {
+    // A = anode, B = cathode
+    designator_prefix: "D"
+    spec {
+        forward_voltage: Voltage,
+        reverse_voltage: Voltage,
+        current_rating: Amps
+    }
+}
+
+pub trait LED: Diode {
+    spec {
+        forward_voltage: Voltage,
+        reverse_voltage: Voltage,
+        current_rating: Amps,
+        color: String
+    }
+}
+
+// BJT: A=Base, B=Collector, C=Emitter
+pub trait NPN: ThreeTerminal {
+    designator_prefix: "Q"
+    spec { vceo: Voltage, ic_max: Amps, hfe_min: int }
+}
+
+pub trait PNP: ThreeTerminal {
+    designator_prefix: "Q"
+    spec { vceo: Voltage, ic_max: Amps, hfe_min: int }
+}
+
+// MOSFET: A=Gate, B=Drain, C=Source
+pub trait NMOS: ThreeTerminal {
+    designator_prefix: "Q"
+    spec { vds_max: Voltage, id_max: Amps, vgs_th: Voltage, rds_on: Ohms }
+}
+
+pub trait PMOS: ThreeTerminal {
+    designator_prefix: "Q"
+    spec { vds_max: Voltage, id_max: Amps, vgs_th: Voltage, rds_on: Ohms }
+}
+
+// ── Connector / mechanical traits ───────────────────────────────────────────
+
+pub trait Connector {
+    designator_prefix: "J"
+}
+
+pub trait IC {
+    designator_prefix: "U"
+}
+
+pub trait TestPoint {
+    designator_prefix: "TP"
+    pins { TP: Pin }
+}
+
+pub trait MountingHole {
+    designator_prefix: "MH"
+    // no electrical pins
+}

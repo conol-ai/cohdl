@@ -563,6 +563,7 @@ mod tests {
                     mpn: None,
                     alt_mpns: vec![],
                     generic_substitutions: HashMap::new(),
+                    footprint_override: None,
                 },
                 Instance {
                     id: InstanceId(1),
@@ -572,6 +573,7 @@ mod tests {
                     mpn: None,
                     alt_mpns: vec![],
                     generic_substitutions: HashMap::new(),
+                    footprint_override: None,
                 },
             ],
             nets: vec![],

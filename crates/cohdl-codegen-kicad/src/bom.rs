@@ -97,6 +97,7 @@ mod tests {
             mpn: mpn.map(|s| s.into()),
             alt_mpns: alt_mpns.iter().map(|s| s.to_string()).collect(),
             generic_substitutions: HashMap::new(),
+            footprint_override: None,
         }
     }
 

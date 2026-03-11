@@ -134,7 +134,11 @@ fn build_component(
     set(&mut props, "Name", &value);
     set(&mut props, "Unique ID", unique_id);
     set(&mut props, "DeviceName", &inst.device);
-    set(&mut props, "FootprintName", &inst.device);
+    let footprint_name = inst
+        .footprint_override
+        .as_deref()
+        .unwrap_or(&inst.device);
+    set(&mut props, "FootprintName", footprint_name);
 
     // Populate MPN-related fields if available.
     if let Some(mpn) = &inst.mpn {
@@ -207,6 +211,7 @@ mod tests {
                         m.insert("value".to_string(), "STM32F103".to_string());
                         m
                     },
+                    footprint_override: None,
                 },
                 Instance {
                     id: InstanceId(1),
@@ -221,6 +226,7 @@ mod tests {
                         m.insert("lcsc".to_string(), "C1525".to_string());
                         m
                     },
+                    footprint_override: None,
                 },
             ],
             nets: vec![
@@ -368,5 +374,51 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
         assert_eq!(parsed["version"], "2.0.0");
         assert_eq!(parsed["components"].as_object().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn footprint_override_used_when_present() {
+        let ir = ConnectivityIR {
+            instances: vec![Instance {
+                id: InstanceId(0),
+                name: "U1".into(),
+                hierarchical_path: "Board::U1".into(),
+                device: "LQFP48".into(),
+                mpn: None,
+                alt_mpns: vec![],
+                generic_substitutions: HashMap::new(),
+                footprint_override: Some("LQFP-48_Custom".into()),
+            }],
+            nets: vec![],
+        };
+        let output = emit_lceda_netlist(&ir);
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(
+            parsed["components"]["gge1"]["props"]["FootprintName"],
+            "LQFP-48_Custom"
+        );
+    }
+
+    #[test]
+    fn footprint_falls_back_to_device_when_no_override() {
+        let ir = ConnectivityIR {
+            instances: vec![Instance {
+                id: InstanceId(0),
+                name: "U1".into(),
+                hierarchical_path: "Board::U1".into(),
+                device: "LQFP48".into(),
+                mpn: None,
+                alt_mpns: vec![],
+                generic_substitutions: HashMap::new(),
+                footprint_override: None,
+            }],
+            nets: vec![],
+        };
+        let output = emit_lceda_netlist(&ir);
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(
+            parsed["components"]["gge1"]["props"]["FootprintName"],
+            "LQFP48"
+        );
     }
 }

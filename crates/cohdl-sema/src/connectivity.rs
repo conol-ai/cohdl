@@ -54,6 +54,8 @@ pub struct Instance {
     pub alt_mpns: Vec<String>,
     /// Generic parameter substitutions.
     pub generic_substitutions: HashMap<String, String>,
+    /// Footprint override from `#[footprint("...")]` attribute or device spec.
+    pub footprint_override: Option<String>,
 }
 
 /// The connectivity IR: a flat list of instances and merged nets.
@@ -141,6 +143,7 @@ pub fn build_connectivity(
             mpn: ci.mpn.clone(),
             alt_mpns: ci.alt_mpns.clone(),
             generic_substitutions: ci.generic_substitutions.clone(),
+            footprint_override: ci.footprint_override.clone(),
         })
         .collect();
 
@@ -366,6 +369,7 @@ mod tests {
             alt_mpns: Vec::new(),
             generic_substitutions: HashMap::new(),
             designator_override: None,
+            footprint_override: None,
             impl_traits: Vec::new(),
         }
     }
@@ -645,6 +649,7 @@ mod tests {
                 alt_mpns: Vec::new(),
                 generic_substitutions: subs.clone(),
                 designator_override: None,
+                footprint_override: None,
                 impl_traits: Vec::new(),
             }],
             nets: vec![],

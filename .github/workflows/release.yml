@@ -74,9 +74,30 @@ jobs:
           name: cohdl-${{ matrix.target }}
           path: cohdl-${{ matrix.target }}.*
 
+  vscode-ext:
+    name: VS Code Extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - run: npm ci
+      - run: npx @vscode/vsce package --no-dependencies -o cohdl-lang.vsix
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cohdl-lang-vsix
+          path: editors/vscode/cohdl-lang.vsix
+
   release:
     name: Release
-    needs: build
+    needs: [build, vscode-ext]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

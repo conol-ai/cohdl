@@ -1,0 +1,22 @@
+// USB Type-C receptacle connector declaration.
+
+trait Connector {
+    pins {
+        GND: Pin
+    }
+    designator_prefix: "J"
+}
+
+device USB_TypeC_Receptacle: impl Connector {
+    pins {
+        VBUS: 1,
+        DM: 2,
+        DP: 3,
+        CC1: 4,
+        CC2: 5,
+        SBU1: 6,
+        SBU2: 7,
+        SHIELD: 8,
+        GND: 9
+    }
+}

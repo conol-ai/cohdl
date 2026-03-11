@@ -1,0 +1,7 @@
+[package]
+name = "multi-module"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top = "Board"

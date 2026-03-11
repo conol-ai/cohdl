@@ -1,0 +1,5 @@
+// Power utility functions with generic fn templates.
+
+fn decoupling(vdd: Net, gnd: Net, cap: impl Capacitor) {}
+
+fn voltage_divider(vin: Net, vout: Net, gnd: Net, r_top: Ohms, r_bot: Ohms) {}

@@ -1,0 +1,64 @@
+// STM32F103C8T6 in LQFP48 package — minimal pin set for the test.
+
+trait Microcontroller {
+    pins {
+        VDD: Pin,
+        GND: Pin
+    }
+    designator_prefix: "U"
+}
+
+device STM32F103<pkg: Package = "LQFP48">: impl Microcontroller {
+    package: pkg
+
+    pins {
+        VDD: 1,
+        GND: 2,
+        NRST: 3,
+        VDDA: 4,
+        PA0: 5,
+        PA1: 6,
+        PA2: 7,
+        PA3: 8,
+        PA4: 9,
+        PA5: 10,
+        PA6: 11,
+        PA7: 12,
+        PB0: 13,
+        PB1: 14,
+        PB2: 15,
+        PB10: 16,
+        PB11: 17,
+        USB_DM: 18,
+        USB_DP: 19,
+        PA8: 20,
+        PA9: 21,
+        PA10: 22,
+        PA11: 23,
+        PA12: 24,
+        PA13: 25,
+        PA14: 26,
+        PA15: 27,
+        PB3: 28,
+        PB4: 29,
+        PB5: 30,
+        PB6: 31,
+        PB7: 32,
+        VDD_IO: 33,
+        GND_IO: 34,
+        OSC_IN: 35,
+        OSC_OUT: 36,
+        PB8: 37,
+        PB9: 38,
+        PB12: 39,
+        PB13: 40,
+        PB14: 41,
+        PB15: 42,
+        PC13: 43,
+        PC14: 44,
+        PC15: 45,
+        BOOT0: 46,
+        VSSA: 47,
+        VBAT: 48
+    }
+}

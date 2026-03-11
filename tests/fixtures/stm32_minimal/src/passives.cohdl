@@ -1,0 +1,29 @@
+// Passive components: MLCC device, BypassCap alias, and 100 nF 0402 part.
+
+trait TwoTerminal {
+    pins { A: Pin, B: Pin }
+}
+
+trait Capacitor: TwoTerminal {
+    spec {
+        capacitance: Farads,
+        voltage_rating: Voltage
+    }
+    designator_prefix: "C"
+}
+
+device MLCC<C: Farads, V: Voltage = 10V, pkg: Package = "C0402">: impl Capacitor {
+    package: pkg
+    pins { A: 1, B: 2 }
+    spec {
+        capacitance: C,
+        voltage_rating: V
+    }
+}
+
+type BypassCap = MLCC<C: 100nF, V: 10V, pkg: "C0402">
+
+part mlcc_100nF_0402: MLCC<C: 100nF, V: 10V, pkg: "C0402"> {
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC" }
+    alt { mfr: "Murata", mpn: "GRM155R61C104KA88D" }
+}

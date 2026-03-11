@@ -1,0 +1,30 @@
+// Base traits and devices for passive components.
+
+trait TwoTerminal {
+    pins { A: Pin, B: Pin }
+}
+
+trait Capacitor: TwoTerminal {
+    spec { capacitance: Farads }
+    designator_prefix: "C"
+}
+
+trait Resistor: TwoTerminal {
+    spec { resistance: Ohms }
+    designator_prefix: "R"
+}
+
+device MLCC<C: Farads, V: Voltage = 10V>: impl Capacitor {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+
+device RES<R: Ohms>: impl Resistor {
+    pins { A: 1, B: 2 }
+    spec { resistance: R }
+}
+
+// Type aliases — non-generic to avoid resolver issues with bare param refs.
+type SmallCap = MLCC<C: 100nF, V: 10V>
+type SmallCap47 = MLCC<C: 4.7nF, V: 10V>
+type PullupRes = RES<R: 10kohm>

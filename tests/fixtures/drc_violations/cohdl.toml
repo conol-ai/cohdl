@@ -1,0 +1,7 @@
+[package]
+name = "drc-violations"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top = "DrcTest"

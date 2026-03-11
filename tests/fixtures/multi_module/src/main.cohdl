@@ -1,0 +1,16 @@
+// Board design: uses public items from sensors and power modules.
+// Deliberately attempts to access private items to trigger sema errors.
+
+use sensors::TempSensor
+use power::ldo
+
+design Board {
+    inst temp: sensors::TempSensor
+
+    // Valid public function call.
+    power::ldo(vdd: VDD, gnd: GND)
+
+    // --- These two calls should produce private_access sema errors ---
+    sensors::_calibrate()
+    internal::_internal_helper()
+}

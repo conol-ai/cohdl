@@ -1,0 +1,33 @@
+// Module declarations — sensors and power are pub, internal is private.
+
+pub module sensors {
+    pub device TempSensor {
+        pins { OUT: 1, VDD: 2, GND: 3 }
+    }
+
+    fn _calibrate() {}
+}
+
+pub module power {
+    pub trait TwoTerminal {
+        pins { A: Pin, B: Pin }
+    }
+
+    pub trait Capacitor: TwoTerminal {
+        spec { capacitance: Farads }
+        designator_prefix: "C"
+    }
+
+    pub device MLCC<C: Farads>: impl Capacitor {
+        pins { A: 1, B: 2 }
+        spec { capacitance: C }
+    }
+
+    pub fn ldo(vdd: Net, gnd: Net) {}
+
+    pub type Rail3V3 = MLCC<C: 100nF>
+}
+
+module internal {
+    fn _internal_helper() {}
+}

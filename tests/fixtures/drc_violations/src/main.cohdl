@@ -1,0 +1,72 @@
+// DRC violations fixture: one of each built-in error/warning.
+//
+// E001  voltage_exceed    — cap voltage_rating < net voltage
+// E002  polarity_mismatch — polarised device anode on GND
+// W001  unconnected_pin   — MCU pin left unwired
+// W002  floating_net      — net with no instance pins
+
+trait TwoTerminal {
+    pins { A: Pin, B: Pin }
+}
+
+trait Capacitor: TwoTerminal {
+    spec { capacitance: Farads }
+    designator_prefix: "C"
+}
+
+// A capacitor whose voltage_rating is exposed as a generic param
+// so it appears in generic_substitutions for DRC E001.
+device LowVCap<C: Farads, voltage_rating: Voltage = 3V>: impl Capacitor {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+
+// A plain capacitor (no voltage_rating in substitutions).
+device MLCC<C: Farads>: impl Capacitor {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+
+// A single-pin power source with a `voltage` annotation so
+// net_voltage_annotation() can discover the net voltage.
+device PowerSource<voltage: Voltage = 5V> {
+    pins { OUT: 1 }
+}
+
+// A polarised capacitor: impl_traits is a generic param so the DRC
+// engine can detect the Polarized trait in generic_substitutions.
+device PolarizedCap<C: Farads, impl_traits: Package = "Polarized">: impl Capacitor {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+
+// A simple MCU whose pin list is carried in generic_substitutions
+// so DRC W001 can detect the unconnected pin.
+device SimpleMCU<declared_pins: Package = "VDD_GND_PA0"> {
+    pins { VDD: 1, GND: 2, PA0: 3 }
+}
+
+design DrcTest {
+    // E001: voltage_rating 3 V on a 5 V net → voltage_exceed
+    inst c_low: LowVCap<C: 100nF, voltage_rating: 3V>
+
+    // Normal cap (no voltage_rating key → E001 will NOT fire for this one).
+    inst c_ok: MLCC<C: 100nF>
+
+    // Single-pin power source — provides the 5 V annotation on PWR_5V net.
+    inst pwr: PowerSource<voltage: 5V>
+
+    // E002: polarised device with anode on GND → polarity_mismatch
+    inst pol_cap: PolarizedCap<C: 10uF, impl_traits: "Polarized">
+
+    // W001: MCU with pin PA0 deliberately unconnected
+    inst mcu: SimpleMCU<declared_pins: "VDD_GND_PA0">
+
+    // Nets — use PWR_5V (valid identifier; voltage from PowerSource annotation).
+    net PWR_5V: c_low.A, c_ok.A, pwr.OUT
+    net GND: c_low.B, c_ok.B, pol_cap.A, mcu.GND
+    net VDD: mcu.VDD, pol_cap.B
+
+    // W002: a net declared with no instance-pin connections → floating_net
+    net FLOATING_NET: FLOATING_NET
+}

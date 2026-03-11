@@ -1,0 +1,2 @@
+// power module — pub fn ldo, pub type Rail3V3.
+// (Content is inlined in lib.cohdl via module block for single-file parsing.)

@@ -117,6 +117,8 @@ pub struct ComponentInstance {
     pub designator_override: Option<std::string::String>,
     /// Resolved footprint from device spec, design override, or instance attribute.
     pub footprint_override: Option<ResolvedFootprint>,
+    /// Pin name → physical pin number(s) for this instance's selected variant.
+    pub pin_numbers: HashMap<std::string::String, Vec<std::string::String>>,
     /// Traits the underlying device implements (used for prefix derivation).
     pub impl_traits: Vec<std::string::String>,
 }
@@ -174,6 +176,11 @@ struct DeviceDef {
     impl_traits: Vec<std::string::String>,
     /// Pin names declared by this device.
     declared_pins: HashSet<std::string::String>,
+    /// Pin name → physical pin number(s) from the base (unqualified) pins block.
+    pin_numbers: HashMap<std::string::String, Vec<std::string::String>>,
+    /// Variant-specific pin number mappings: variant_name → (pin_name → numbers).
+    variant_pin_numbers:
+        HashMap<std::string::String, HashMap<std::string::String, Vec<std::string::String>>>,
     /// Spec fields declared by this device: (name, kind).
     declared_specs: Vec<(std::string::String, ValueKind)>,
     /// Resolved footprint from `spec { footprint: ... }`, if present.
@@ -441,6 +448,12 @@ impl TypeChecker {
         };
 
         let mut declared_pins = HashSet::new();
+        let mut pin_numbers: HashMap<std::string::String, Vec<std::string::String>> =
+            HashMap::new();
+        let mut variant_pin_numbers: HashMap<
+            std::string::String,
+            HashMap<std::string::String, Vec<std::string::String>>,
+        > = HashMap::new();
         let mut declared_specs = Vec::new();
 
         let mut variant_footprints: HashMap<std::string::String, ResolvedFootprint> =
@@ -452,6 +465,16 @@ impl TypeChecker {
                     for entry in &pins.entries {
                         if let Some(name) = pin_entry_name(&entry.kind) {
                             declared_pins.insert(name);
+                        }
+                        for (pname, pnums) in pin_entry_numbers(&entry.kind) {
+                            if let Some(ref variant) = pins.qualifier {
+                                variant_pin_numbers
+                                    .entry(variant.name.clone())
+                                    .or_default()
+                                    .insert(pname, pnums);
+                            } else {
+                                pin_numbers.insert(pname, pnums);
+                            }
                         }
                     }
                 }
@@ -504,6 +527,8 @@ impl TypeChecker {
                 generic_params,
                 impl_traits,
                 declared_pins,
+                pin_numbers,
+                variant_pin_numbers,
                 declared_specs,
                 footprint,
                 variant_footprints,
@@ -964,11 +989,21 @@ impl TypeChecker {
                             .and_then(|dev| dev.footprint.clone())
                     });
 
-                // Look up the device's impl_traits.
-                let impl_traits = self
-                    .find_device(&final_device, module_path)
-                    .map(|dev| dev.impl_traits.clone())
-                    .unwrap_or_default();
+                // Look up the device's impl_traits and pin numbers.
+                let (impl_traits, pin_numbers) = if let Some(dev) =
+                    self.find_device(&final_device, module_path)
+                {
+                    let traits = dev.impl_traits.clone();
+                    // Resolve pin numbers: variant-specific (by pkg) > base.
+                    let pins = all_args
+                        .get("pkg")
+                        .and_then(|pkg| dev.variant_pin_numbers.get(pkg))
+                        .cloned()
+                        .unwrap_or_else(|| dev.pin_numbers.clone());
+                    (traits, pins)
+                } else {
+                    (Vec::new(), HashMap::new())
+                };
 
                 instance_map.insert(inst.name.name.clone(), id);
 
@@ -981,6 +1016,7 @@ impl TypeChecker {
                     generic_substitutions: all_args,
                     designator_override,
                     footprint_override,
+                    pin_numbers,
                     impl_traits,
                 });
             }
@@ -1455,6 +1491,29 @@ fn pin_entry_name(kind: &PinEntryKind) -> Option<std::string::String> {
         | PinEntryKind::Range { name, .. }
         | PinEntryKind::BusMacro { name, .. }
         | PinEntryKind::Typed { name, .. } => Some(name.name.clone()),
+    }
+}
+
+/// Extract pin name → physical pin number(s) from a PinEntryKind.
+fn pin_entry_numbers(kind: &PinEntryKind) -> Vec<(std::string::String, Vec<std::string::String>)> {
+    match kind {
+        PinEntryKind::Single { name, number } => {
+            vec![(name.name.clone(), vec![number.clone()])]
+        }
+        PinEntryKind::List { name, numbers } => {
+            vec![(name.name.clone(), numbers.clone())]
+        }
+        PinEntryKind::Range { name, start, end } => {
+            vec![(name.name.clone(), (*start..=*end).map(|n| n.to_string()).collect())]
+        }
+        PinEntryKind::BusMacro {
+            name,
+            start_pin,
+            count,
+        } => (0..*count)
+            .map(|i| (format!("{}[{}]", name.name, i), vec![(*start_pin + i).to_string()]))
+            .collect(),
+        PinEntryKind::Typed { .. } => vec![],
     }
 }
 

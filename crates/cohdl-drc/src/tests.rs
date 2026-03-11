@@ -1,5 +1,7 @@
 //! Unit tests for DRC rules using synthetic ConnectivityIR fixtures.
 
+use std::collections::HashMap;
+
 use cohdl_sema::connectivity::{ConnectivityIR, Instance, Net, PinRef};
 use cohdl_sema::typeck::{InstanceId, EXTERNAL_INSTANCE};
 
@@ -22,6 +24,7 @@ fn inst(id: u32, name: &str, device: &str, subs: &[(&str, &str)]) -> Instance {
             .map(|(k, v)| (k.to_string(), v.to_string()))
             .collect(),
         footprint_override: None,
+        pin_numbers: HashMap::new(),
     }
 }
 

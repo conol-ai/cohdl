@@ -68,9 +68,12 @@ string_inner   = @{ (!"\"" ~ !"\\" ~ ANY | "\\" ~ ANY)* }
 boolean = { "true" | "false" }
 
 // ── Pin values ──────────────────────────────
-pin_value = { pin_range | pin_list | integer }
-pin_list  = { "[" ~ integer ~ ("," ~ integer)* ~ "]" }
-pin_range = { "[" ~ integer ~ ".." ~ integer ~ "]" }
+// Pin numbers can be integers (1, 48) or alphanumeric identifiers (A1, N10) for BGA.
+// Must contain at least one digit to avoid matching type names like "Pin".
+pin_number = @{ ASCII_DIGIT+ | ASCII_ALPHA+ ~ ASCII_DIGIT ~ ASCII_ALPHANUMERIC* }
+pin_value  = { pin_range | pin_list | pin_number }
+pin_list   = { "[" ~ pin_number ~ ("," ~ pin_number)* ~ "]" }
+pin_range  = { "[" ~ integer ~ ".." ~ integer ~ "]" }
 
 // ── Pin-bus macro call ──────────────────────
 pin_bus_call = { "pin_bus!" ~ "(" ~ ident ~ "," ~ integer ~ "," ~ integer ~ ")" }

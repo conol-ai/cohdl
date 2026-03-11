@@ -492,19 +492,19 @@ pub struct PinEntry {
 /// Discriminant for [`PinEntry`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum PinEntryKind {
-    /// A single pin mapping: `VDD_CORE: 1`.
+    /// A single pin mapping: `VDD_CORE: 1` or `VDD_CORE: A1` (BGA).
     Single {
         /// Pin name.
         name: Ident,
-        /// Pin number.
-        number: u64,
+        /// Pin number/identifier (e.g. `"1"`, `"A1"`).
+        number: String,
     },
     /// A pin mapped to a list of numbers: `GND: [8, 23, 35, 47]`.
     List {
         /// Pin name.
         name: Ident,
-        /// Pin numbers.
-        numbers: Vec<u64>,
+        /// Pin numbers/identifiers.
+        numbers: Vec<String>,
     },
     /// A pin mapped to a contiguous range: `DATA: [0..7]`.
     Range {

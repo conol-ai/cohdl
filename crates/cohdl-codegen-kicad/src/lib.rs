@@ -226,6 +226,7 @@ mod tests {
                         m
                     },
                     footprint_override: None,
+                    pin_numbers: HashMap::new(),
                 },
                 Instance {
                     id: InstanceId(1),
@@ -240,6 +241,7 @@ mod tests {
                         m
                     },
                     footprint_override: None,
+                    pin_numbers: HashMap::new(),
                 },
                 Instance {
                     id: InstanceId(2),
@@ -254,6 +256,7 @@ mod tests {
                         m
                     },
                     footprint_override: None,
+                    pin_numbers: HashMap::new(),
                 },
             ],
             nets: vec![
@@ -401,6 +404,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };
@@ -420,6 +424,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };
@@ -464,6 +469,7 @@ mod tests {
                     m
                 },
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };
@@ -484,6 +490,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: Some(ResolvedFootprint::String("Custom:LQFP-48_Custom".into())),
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };
@@ -505,6 +512,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };

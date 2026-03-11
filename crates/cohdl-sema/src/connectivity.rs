@@ -56,6 +56,8 @@ pub struct Instance {
     pub generic_substitutions: HashMap<String, String>,
     /// Resolved footprint from device spec, design override, or instance attribute.
     pub footprint_override: Option<ResolvedFootprint>,
+    /// Pin name → physical pin number(s) for this instance's selected variant.
+    pub pin_numbers: HashMap<String, Vec<String>>,
 }
 
 /// The connectivity IR: a flat list of instances and merged nets.
@@ -144,6 +146,7 @@ pub fn build_connectivity(
             alt_mpns: ci.alt_mpns.clone(),
             generic_substitutions: ci.generic_substitutions.clone(),
             footprint_override: ci.footprint_override.clone(),
+            pin_numbers: ci.pin_numbers.clone(),
         })
         .collect();
 
@@ -370,6 +373,7 @@ mod tests {
             generic_substitutions: HashMap::new(),
             designator_override: None,
             footprint_override: None,
+            pin_numbers: HashMap::new(),
             impl_traits: Vec::new(),
         }
     }
@@ -650,6 +654,7 @@ mod tests {
                 generic_substitutions: subs.clone(),
                 designator_override: None,
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
                 impl_traits: Vec::new(),
             }],
             nets: vec![],

@@ -996,7 +996,7 @@ impl LowerCtx {
                         name: String::new(),
                         span: pe_span,
                     },
-                    number: 0,
+                    number: String::new(),
                 }
             }
         };
@@ -1023,7 +1023,7 @@ impl LowerCtx {
             _ => {
                 let sp = span_of(&inner);
                 self.error(sp, "expected pin value or type");
-                ast::PinEntryKind::Single { name, number: 0 }
+                ast::PinEntryKind::Single { name, number: String::new() }
             }
         }
     }
@@ -1049,21 +1049,21 @@ impl LowerCtx {
                 }
             }
             Rule::pin_list => {
-                let numbers: Vec<u64> = inner
+                let numbers: Vec<String> = inner
                     .into_inner()
-                    .filter(|p| p.as_rule() == Rule::integer)
-                    .map(|p| p.as_str().parse::<u64>().unwrap_or(0))
+                    .filter(|p| p.as_rule() == Rule::pin_number)
+                    .map(|p| p.as_str().to_string())
                     .collect();
                 ast::PinEntryKind::List { name, numbers }
             }
-            Rule::integer => {
-                let number = inner.as_str().parse::<u64>().unwrap_or(0);
+            Rule::pin_number => {
+                let number = inner.as_str().to_string();
                 ast::PinEntryKind::Single { name, number }
             }
             _ => {
                 let sp = span_of(&inner);
                 self.error(sp, "expected pin value");
-                ast::PinEntryKind::Single { name, number: 0 }
+                ast::PinEntryKind::Single { name, number: String::new() }
             }
         }
     }

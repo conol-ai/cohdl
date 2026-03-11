@@ -1,11 +1,24 @@
 use std::passive::{Resistor, MLCC}
+use std::traits::Capacitor
 use stm32::STM32F103
 
 module stm32
 
+fn decoupling<P: impl Capacitor>(vdd: Net, gnd: Net) {
+    inst c: P
+    net vdd: c.A
+    net gnd: c.B
+}
+
 // Top-level board design
 design MainBoard {
-    inst mcu: STM32F103<pkg: "UFQFPN48">
+    inst mcu: STM32F103<pkg: "LQFP48">
+
+    // power decoupling
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
 
     // reset circuit
     inst r_rst: Resistor<pkg: "R0603", R: "10K">

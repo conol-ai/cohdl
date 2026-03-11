@@ -145,7 +145,7 @@ fn build_component(
         set(&mut props, "Supplier", "LCSC");
     }
 
-    // Build pinInfoMap: assign sequential pin numbers.
+    // Build pinInfoMap using actual device pin numbers when available.
     let mut pin_info_map = serde_json::Map::new();
 
     if let Some(pins) = pins {
@@ -157,19 +157,35 @@ fn build_component(
             }
         }
 
-        for (i, (pin_name, net_name)) in seen.iter().enumerate() {
-            let num = (i + 1).to_string();
-            let pin = PinInfo {
-                name: pin_name.to_string(),
-                number: num.clone(),
-                net: net_name.to_string(),
-                props: {
-                    let mut m = serde_json::Map::new();
-                    m.insert("Pin Number".into(), serde_json::Value::String(num.clone()));
-                    m
-                },
-            };
-            pin_info_map.insert(num, serde_json::to_value(pin).unwrap());
+        let mut fallback_counter = 1u32;
+        for (pin_name, net_name) in &seen {
+            // Look up actual physical pin numbers from the device definition.
+            let physical_numbers: Vec<String> =
+                if let Some(nums) = inst.pin_numbers.get(*pin_name) {
+                    nums.clone()
+                } else {
+                    // Fallback: assign sequential numbers.
+                    let num = fallback_counter.to_string();
+                    fallback_counter += 1;
+                    vec![num]
+                };
+
+            for num in &physical_numbers {
+                let pin = PinInfo {
+                    name: pin_name.to_string(),
+                    number: num.clone(),
+                    net: net_name.to_string(),
+                    props: {
+                        let mut m = serde_json::Map::new();
+                        m.insert(
+                            "Pin Number".into(),
+                            serde_json::Value::String(num.clone()),
+                        );
+                        m
+                    },
+                };
+                pin_info_map.insert(num.clone(), serde_json::to_value(pin).unwrap());
+            }
         }
     }
 
@@ -222,6 +238,7 @@ mod tests {
                         m
                     },
                     footprint_override: None,
+                    pin_numbers: HashMap::new(),
                 },
                 Instance {
                     id: InstanceId(1),
@@ -237,6 +254,7 @@ mod tests {
                         m
                     },
                     footprint_override: None,
+                    pin_numbers: HashMap::new(),
                 },
             ],
             nets: vec![
@@ -395,6 +413,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: Some(ResolvedFootprint::String("LQFP-48_Custom".into())),
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };
@@ -418,6 +437,7 @@ mod tests {
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
                 footprint_override: None,
+                pin_numbers: HashMap::new(),
             }],
             nets: vec![],
         };

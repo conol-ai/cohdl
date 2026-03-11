@@ -1175,9 +1175,9 @@ fn parses_to_pin_list() {
         rule: Rule::pin_list,
         tokens: [
             pin_list(0, 9, [
-                integer(1, 2),
-                integer(4, 5),
-                integer(7, 8)
+                pin_number(1, 2),
+                pin_number(4, 5),
+                pin_number(7, 8)
             ])
         ]
     };

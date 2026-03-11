@@ -15,24 +15,19 @@ cp -r std ~/.cohal/lib/
 # ── Build & install VS Code extension ────────────────────────────────────────
 
 EXT_DIR="editors/vscode"
+VSIX="${EXT_DIR}/cohdl-lang.vsix"
 
 install_extension() {
     local cmd="$1"
     local name="$2"
 
     echo "  Installing cohdl extension for ${name}..."
-    "$cmd" --install-extension "${EXT_DIR}/cohdl-lang-0.1.0.vsix" --force
+    "$cmd" --install-extension "$VSIX" --force
 }
 
 if [ -d "$EXT_DIR" ]; then
     echo "Building VS Code extension..."
-    (cd "$EXT_DIR" && npm install && npm run compile)
-
-    # Package the extension into a .vsix
-    if ! command -v vsce &>/dev/null; then
-        npm install -g @vscode/vsce
-    fi
-    (cd "$EXT_DIR" && vsce package --no-dependencies)
+    (cd "$EXT_DIR" && npm ci && npx @vscode/vsce package -o cohdl-lang.vsix)
 
     # Install into VS Code if available
     if command -v code &>/dev/null; then
@@ -45,5 +40,5 @@ if [ -d "$EXT_DIR" ]; then
     fi
 
     # Clean up .vsix
-    rm -f "${EXT_DIR}/cohdl-lang-0.1.0.vsix"
+    rm -f "$VSIX"
 fi

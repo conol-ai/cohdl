@@ -1,6 +1,8 @@
 // Board design: uses public items from sensors and power modules.
 // Deliberately attempts to access private items to trigger sema errors.
 
+module lib
+
 use sensors::TempSensor
 use power::ldo
 

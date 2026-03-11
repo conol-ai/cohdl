@@ -7,6 +7,9 @@
 //   r_bot    — RES<R: 10kohm>   (voltage divider bottom)
 //   c_dec    — SmallCap   (MLCC<C: 100nF>)
 
+module lib
+module power
+
 design TestBoard {
     inst c1: SmallCap47
     inst r1: PullupRes

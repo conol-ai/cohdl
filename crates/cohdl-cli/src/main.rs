@@ -1,6 +1,6 @@
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -108,6 +108,56 @@ fn load_manifest() -> Result<CohdlManifest, String> {
     let content = fs::read_to_string("cohdl.toml")
         .map_err(|e| format!("could not read cohdl.toml: {}", e))?;
     toml::from_str(&content).map_err(|e| format!("invalid cohdl.toml: {}", e))
+}
+
+/// Resolve `module <name>` declarations in the root source file.
+///
+/// Parses the root file to find `ModDecl` nodes, loads each referenced
+/// `<name>.cohdl` from the same directory, and returns the combined source
+/// with module files prepended before the root source (like Rust's `mod`).
+fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
+    use cohdl_syntax::ast::TopLevelItemKind;
+
+    let source_file = match parse_source_file(root_src) {
+        Ok(sf) => sf,
+        // Parse errors will be reported with full diagnostics by run_pipeline;
+        // just return the root source as-is so the pipeline can handle it.
+        Err(_) => return Ok(root_src.to_string()),
+    };
+
+    let mod_names: Vec<&str> = source_file
+        .items
+        .iter()
+        .filter_map(|item| match &item.kind {
+            TopLevelItemKind::Mod(m) => Some(m.name.name.as_str()),
+            _ => None,
+        })
+        .collect();
+
+    if mod_names.is_empty() {
+        return Ok(root_src.to_string());
+    }
+
+    let src_dir = Path::new(root_path)
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+
+    let mut combined = String::new();
+    for name in &mod_names {
+        let mod_path = src_dir.join(format!("{}.cohdl", name));
+        let content = fs::read_to_string(&mod_path).map_err(|e| {
+            format!(
+                "could not read module `{}` ({}): {}",
+                name,
+                mod_path.display(),
+                e
+            )
+        })?;
+        combined.push_str(&content);
+        combined.push('\n');
+    }
+    combined.push_str(root_src);
+    Ok(combined)
 }
 
 // ── Diagnostic rendering ────────────────────────────────────────────────────
@@ -434,7 +484,7 @@ fn cmd_build(
     let top_design = design_override.as_deref().unwrap_or(&manifest.design.top);
     let file_path = &manifest.design.root;
 
-    let src = match fs::read_to_string(file_path) {
+    let root_src = match fs::read_to_string(file_path) {
         Ok(s) => s,
         Err(e) => {
             stderr
@@ -443,6 +493,19 @@ fn cmd_build(
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": could not read {}: {}", file_path, e).ok();
+            return 1;
+        }
+    };
+
+    let src = match resolve_modules(file_path, &root_src) {
+        Ok(s) => s,
+        Err(e) => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(stderr, ": {}", e).ok();
             return 1;
         }
     };
@@ -519,7 +582,7 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
     };
 
     let file_path = &manifest.design.root;
-    let src = match fs::read_to_string(file_path) {
+    let root_src = match fs::read_to_string(file_path) {
         Ok(s) => s,
         Err(e) => {
             stderr
@@ -528,6 +591,19 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
             write!(stderr, "Error").ok();
             stderr.reset().ok();
             writeln!(stderr, ": could not read {}: {}", file_path, e).ok();
+            return 1;
+        }
+    };
+
+    let src = match resolve_modules(file_path, &root_src) {
+        Ok(s) => s,
+        Err(e) => {
+            stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                .ok();
+            write!(stderr, "Error").ok();
+            stderr.reset().ok();
+            writeln!(stderr, ": {}", e).ok();
             return 1;
         }
     };

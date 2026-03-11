@@ -51,6 +51,84 @@ fn load_fixture_source(fixture_dir: &str) -> String {
     source
 }
 
+/// Load a fixture where non-main `.cohdl` files should be wrapped in their
+/// corresponding `module <name> { ... }` blocks (matching bare `module <name>`
+/// directives in main.cohdl).
+fn load_fixture_source_with_file_modules(fixture_dir: &str) -> String {
+    let src_dir = Path::new(fixture_dir).join("src");
+    let mut files: Vec<_> = std::fs::read_dir(&src_dir)
+        .unwrap_or_else(|e| panic!("cannot read {}: {}", src_dir.display(), e))
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) == Some("cohdl") {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    files.sort_by(|a, b| {
+        let a_is_main = a.file_name().unwrap().to_str().unwrap().starts_with("main");
+        let b_is_main = b.file_name().unwrap().to_str().unwrap().starts_with("main");
+        a_is_main.cmp(&b_is_main).then_with(|| a.cmp(b))
+    });
+
+    // Detect bare `module <name>` directives in the main file.
+    let main_file = files
+        .iter()
+        .find(|p| p.file_name().unwrap().to_str().unwrap().starts_with("main"));
+    let mut mod_decl_names: Vec<String> = Vec::new();
+    if let Some(main_path) = main_file {
+        let main_content = std::fs::read_to_string(main_path).unwrap();
+        for line in main_content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("module ") && !trimmed.contains('{') {
+                if let Some(name) = trimmed.strip_prefix("module ") {
+                    let name = name.trim();
+                    if !name.is_empty() {
+                        mod_decl_names.push(name.to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    let mut source = String::new();
+    for path in &files {
+        let content = std::fs::read_to_string(path)
+            .unwrap_or_else(|e| panic!("cannot read {}: {}", path.display(), e));
+        let stem = path.file_stem().unwrap().to_str().unwrap();
+        let is_main = stem.starts_with("main");
+
+        if !is_main && mod_decl_names.contains(&stem.to_string()) {
+            source.push_str(&format!("module {} {{\n", stem));
+            source.push_str(&content);
+            source.push_str("\n}\n");
+        } else if is_main {
+            let mut filtered = String::new();
+            for line in content.lines() {
+                let trimmed = line.trim();
+                let is_mod_decl = trimmed.starts_with("module ")
+                    && !trimmed.contains('{')
+                    && mod_decl_names
+                        .iter()
+                        .any(|m| trimmed == format!("module {}", m));
+                if !is_mod_decl {
+                    filtered.push_str(line);
+                    filtered.push('\n');
+                }
+            }
+            source.push_str(&filtered);
+        } else {
+            source.push_str(&content);
+            source.push('\n');
+        }
+    }
+    source
+}
+
 /// Run the full pipeline (parse → resolve → type-check) and return everything
 /// needed for downstream assertions.
 struct PipelineOutput {
@@ -535,6 +613,93 @@ fn std_dependency() {
         3,
         "VCC should connect exactly 3 instance pins, got {}",
         vcc_inst_pins.len()
+    );
+
+    // ── DRC: zero errors.
+    let runner = DrcRunner::default();
+    let drc_diags = runner.run(ir);
+    let drc_errors: Vec<_> = drc_diags
+        .iter()
+        .filter(|d| d.level == DiagnosticLevel::Error)
+        .collect();
+    assert!(
+        drc_errors.is_empty(),
+        "expected no DRC errors, got: {:?}",
+        drc_errors
+    );
+}
+
+// ── Test 6: stm32_core (generics + function calls) ──────────────────────────
+
+#[test]
+fn stm32_core() {
+    let std_src = synthesize_std_source();
+    let user_src = load_fixture_source_with_file_modules("tests/fixtures/stm32_core");
+    let src = format!("{}\n{}", std_src, user_src);
+    let output = run_pipeline(&src);
+
+    // No parse errors.
+    assert!(
+        output.parse_errors.is_none(),
+        "unexpected parse errors: {:?}",
+        output.parse_errors
+    );
+
+    // No sema errors.
+    assert!(
+        output.sema_errors.is_empty(),
+        "unexpected sema errors: {:?}",
+        output.sema_errors
+    );
+
+    let tc = output.tc_result.as_ref().unwrap();
+
+    // Find the MainBoard design.
+    let design = tc
+        .designs
+        .iter()
+        .find(|d| d.name == "MainBoard")
+        .expect("MainBoard design not found");
+
+    // Build connectivity IR.
+    let conn = build_connectivity(design, &tc.device_pins);
+    assert!(
+        conn.errors.is_empty(),
+        "connectivity errors: {:?}",
+        conn.errors
+    );
+    let ir = &conn.ir;
+
+    // ── Instance count: 1 MCU + 4 decoupling caps + 1 resistor + 1 cap = 7
+    assert_eq!(
+        ir.instances.len(),
+        7,
+        "expected 7 instances, got {}",
+        ir.instances.len()
+    );
+
+    // ── Verify 4 function-expanded MLCC decoupling instances exist.
+    let fn_mlcc_count = ir
+        .instances
+        .iter()
+        .filter(|i| i.name.starts_with("__fn") && i.device == "std::passive::MLCC")
+        .count();
+    assert_eq!(
+        fn_mlcc_count, 4,
+        "expected 4 function-expanded MLCC instances, got {}",
+        fn_mlcc_count
+    );
+
+    // ── Net "GND" connects MCU VSS/VSSA + c_rst + 4 decoupling caps.
+    let gnd_net = ir
+        .nets
+        .iter()
+        .find(|n| n.name == "GND")
+        .expect("GND net not found");
+    assert!(
+        gnd_net.pins.len() >= 7,
+        "GND should connect at least 7 pins, got {}",
+        gnd_net.pins.len()
     );
 
     // ── DRC: zero errors.

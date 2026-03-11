@@ -15,10 +15,10 @@ design MainBoard {
     inst mcu: STM32F103<pkg: "LQFP48">
 
     // power decoupling
-    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
-    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
-    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
-    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: mcu.VSS)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: mcu.VSS)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: mcu.VSS)
+    decoupling<MLCC<C: 10nF, pkg: "C0603">>(vdd: mcu.VDDA, gnd: mcu.VSSA)
 
     // reset circuit
     inst r_rst: Resistor<pkg: "R0603", R: "10K">

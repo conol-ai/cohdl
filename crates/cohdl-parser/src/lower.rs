@@ -1023,7 +1023,10 @@ impl LowerCtx {
             _ => {
                 let sp = span_of(&inner);
                 self.error(sp, "expected pin value or type");
-                ast::PinEntryKind::Single { name, number: String::new() }
+                ast::PinEntryKind::Single {
+                    name,
+                    number: String::new(),
+                }
             }
         }
     }
@@ -1063,7 +1066,10 @@ impl LowerCtx {
             _ => {
                 let sp = span_of(&inner);
                 self.error(sp, "expected pin value");
-                ast::PinEntryKind::Single { name, number: String::new() }
+                ast::PinEntryKind::Single {
+                    name,
+                    number: String::new(),
+                }
             }
         }
     }
@@ -1829,12 +1835,26 @@ impl LowerCtx {
     fn lower_call_stmt(&mut self, pair: Pair<'_>) -> ast::CallStmt {
         let cs_span = span_of(&pair);
         let mut path = None;
+        let mut generic_args = None;
         let mut args = Vec::new();
 
         for child in pair.into_inner() {
             match child.as_rule() {
                 Rule::scoped_path | Rule::ident => {
                     path = Some(self.lower_path_from_pair(child));
+                }
+                Rule::call_generic_args => {
+                    let mut type_args = Vec::new();
+                    for ga_child in child.into_inner() {
+                        if ga_child.as_rule() == Rule::call_generic_arg {
+                            let te_pair = ga_child
+                                .into_inner()
+                                .next()
+                                .expect("call_generic_arg must have type_expr");
+                            type_args.push(self.lower_type_expr(te_pair));
+                        }
+                    }
+                    generic_args = Some(type_args);
                 }
                 Rule::call_arg => {
                     args.push(self.lower_call_arg(child));
@@ -1853,6 +1873,7 @@ impl LowerCtx {
 
         ast::CallStmt {
             path,
+            generic_args,
             args,
             span: cs_span,
         }

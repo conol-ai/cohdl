@@ -208,7 +208,8 @@ fn resolve_dependency_source(name: &str, spec: &DependencySpec) -> Result<String
 ///
 /// Reads the std library from `~/.cohdl/lib/std` (installed by `scripts/install.sh`).
 fn resolve_bundled_std() -> Result<String, String> {
-    let home = std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
+    let home =
+        std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
     let std_path = PathBuf::from(home).join(".cohdl").join("lib").join("std");
     if !std_path.exists() {
         return Err(format!(

@@ -12,10 +12,10 @@
 use std::collections::{HashMap, HashSet};
 
 use cohdl_syntax::ast::{
-    self, DesignBodyStmtKind, DesignDecl, DeviceBodyItem, DeviceDecl, Expr, ExprKind, FnDecl,
-    FnParamKind, FootprintOverrideValue, GenericParamKind, NetEndpointKind, PartDecl, PinEntryKind,
-    SourceFile, Span, SpecEntryValue, TopLevelItem, TopLevelItemKind, TraitBodyItem, TraitDecl,
-    TypeAlias, TypeExpr,
+    self, DesignBodyStmtKind, DesignDecl, DeviceBodyItem, DeviceDecl, Expr, ExprKind,
+    FnBodyStmtKind, FnDecl, FnParamKind, FootprintOverrideValue, GenericParamKind, NetEndpointKind,
+    PartDecl, PinEntryKind, SourceFile, Span, SpecEntryValue, TopLevelItem, TopLevelItemKind,
+    TraitBodyItem, TraitDecl, TypeAlias, TypeExpr,
 };
 
 use crate::{ResolvedSourceFile, SemaError};
@@ -214,8 +214,12 @@ struct PartDef {
 /// A collected function definition.
 #[derive(Debug, Clone)]
 struct FnDef {
+    /// Generic parameters.
+    generic_params: Vec<GenericParamDef>,
     /// Parameters: (name, kind).
     params: Vec<(std::string::String, ValueKind)>,
+    /// The function body statements (for expansion).
+    body: Vec<ast::FnBodyStmt>,
 }
 
 /// A collected type alias definition.
@@ -578,7 +582,7 @@ impl TypeChecker {
     fn collect_fn(&mut self, f: &FnDecl, module_path: &str) {
         let qname = qualify(module_path, &f.name.name);
 
-        let _generic_params: Vec<GenericParamDef> = match &f.generic_params {
+        let generic_params: Vec<GenericParamDef> = match &f.generic_params {
             Some(gp) => gp.params.iter().map(generic_param_to_def).collect(),
             None => Vec::new(),
         };
@@ -598,7 +602,14 @@ impl TypeChecker {
             })
             .collect();
 
-        self.fns.insert(qname.clone(), FnDef { params });
+        self.fns.insert(
+            qname.clone(),
+            FnDef {
+                generic_params,
+                params,
+                body: f.body.clone(),
+            },
+        );
     }
 
     fn collect_type_alias(&mut self, ta: &TypeAlias, module_path: &str) {
@@ -990,20 +1001,19 @@ impl TypeChecker {
                     });
 
                 // Look up the device's impl_traits and pin numbers.
-                let (impl_traits, pin_numbers) = if let Some(dev) =
-                    self.find_device(&final_device, module_path)
-                {
-                    let traits = dev.impl_traits.clone();
-                    // Resolve pin numbers: variant-specific (by pkg) > base.
-                    let pins = all_args
-                        .get("pkg")
-                        .and_then(|pkg| dev.variant_pin_numbers.get(pkg))
-                        .cloned()
-                        .unwrap_or_else(|| dev.pin_numbers.clone());
-                    (traits, pins)
-                } else {
-                    (Vec::new(), HashMap::new())
-                };
+                let (impl_traits, pin_numbers) =
+                    if let Some(dev) = self.find_device(&final_device, module_path) {
+                        let traits = dev.impl_traits.clone();
+                        // Resolve pin numbers: variant-specific (by pkg) > base.
+                        let pins = all_args
+                            .get("pkg")
+                            .and_then(|pkg| dev.variant_pin_numbers.get(pkg))
+                            .cloned()
+                            .unwrap_or_else(|| dev.pin_numbers.clone());
+                        (traits, pins)
+                    } else {
+                        (Vec::new(), HashMap::new())
+                    };
 
                 instance_map.insert(inst.name.name.clone(), id);
 
@@ -1069,7 +1079,8 @@ impl TypeChecker {
             }
         }
 
-        // Third pass: check function calls.
+        // Third pass: expand function calls into instances and nets.
+        let mut call_counter = 0u32;
         for stmt in &d.body {
             if let DesignBodyStmtKind::Call(call) = &stmt.kind {
                 let fn_name = call
@@ -1079,7 +1090,290 @@ impl TypeChecker {
                     .map(|s| s.name.as_str())
                     .collect::<Vec<_>>()
                     .join("::");
+
+                let fndef = self.find_fn(&fn_name, module_path).cloned();
+                let fndef = match fndef {
+                    Some(f) => f,
+                    None => continue, // Name resolution already reported.
+                };
+
+                // Build generic type substitution: positional matching of call
+                // generic args to function generic params.
+                let mut type_subst: HashMap<std::string::String, TypeExpr> = HashMap::new();
+                if let Some(call_gargs) = &call.generic_args {
+                    for (i, te) in call_gargs.iter().enumerate() {
+                        if i < fndef.generic_params.len() {
+                            let param = &fndef.generic_params[i];
+                            // Check impl trait constraint on the generic param.
+                            if let ValueKind::ImplTrait(ref required_traits) = param.kind {
+                                let arg_type_name = type_expr_name(te);
+                                for required_trait in required_traits {
+                                    if !self.type_implements_trait(
+                                        &arg_type_name,
+                                        required_trait,
+                                        module_path,
+                                    ) {
+                                        self.errors.push(SemaError::new(
+                                            format!(
+                                                "generic argument `{}` of `{}` requires `impl {}`, \
+                                                 but `{}` does not implement `{}`",
+                                                param.name, fn_name, required_trait,
+                                                arg_type_name, required_trait
+                                            ),
+                                            call.span,
+                                        ));
+                                    }
+                                }
+                            }
+                            type_subst.insert(param.name.clone(), te.clone());
+                        }
+                    }
+                }
+
+                // Also run the existing param-level check_call validation.
                 self.check_call(&fn_name, &call.args, call.path.span, module_path, resolved);
+
+                // Build argument map: param_name → call arg expression.
+                let arg_map: HashMap<&str, &Expr> = call
+                    .args
+                    .iter()
+                    .map(|a| (a.name.name.as_str(), &a.value))
+                    .collect();
+
+                // Track function-local instance names → InstanceId.
+                let mut fn_instance_map: HashMap<std::string::String, InstanceId> = HashMap::new();
+                let mut fn_net_counter = 0u32;
+
+                // Expand function body statements.
+                for body_stmt in &fndef.body {
+                    match &body_stmt.kind {
+                        FnBodyStmtKind::Inst(inst) => {
+                            let inst_name =
+                                format!("__fn{}_{}_{}", call_counter, fn_name, inst.name.name);
+                            let id = InstanceId(next_id);
+                            next_id += 1;
+
+                            // Check if the inst type is a generic type param.
+                            let type_name = type_expr_name(&inst.ty);
+                            let (resolved_type_expr, effective_type_name) =
+                                if let Some(te) = type_subst.get(&type_name) {
+                                    (Some(te.clone()), type_expr_name(te))
+                                } else {
+                                    (None, type_name.clone())
+                                };
+
+                            // Resolve through type aliases.
+                            let (device_name, base_args) =
+                                self.resolve_type_name(&effective_type_name, module_path);
+
+                            // Check if this is a part or a device.
+                            let (final_device, mpn, alt_mpns, part_args) = if let Some(part) =
+                                self.find_part(&effective_type_name, module_path)
+                            {
+                                (
+                                    part.device_name.clone(),
+                                    part.primary_mpn.clone(),
+                                    part.alt_mpns.clone(),
+                                    part.generic_args.clone(),
+                                )
+                            } else {
+                                (device_name.clone(), None, Vec::new(), HashMap::new())
+                            };
+
+                            // Merge generic args: base_args < part_args < inst args.
+                            let mut all_args = base_args;
+                            for (k, v) in part_args {
+                                all_args.insert(k, v);
+                            }
+                            // Generic args from the substituted type expression.
+                            let subst_args = if let Some(ref te) = resolved_type_expr {
+                                extract_generic_args(te)
+                            } else {
+                                extract_generic_args(&inst.ty)
+                            };
+                            for (k, v) in subst_args {
+                                all_args.insert(k, v);
+                            }
+
+                            // Validate generic arguments against the device definition.
+                            if let Some(dev) = self.find_device(&final_device, module_path) {
+                                let dev = dev.clone();
+                                self.check_generic_args(
+                                    &dev.generic_params,
+                                    &all_args,
+                                    &effective_type_name,
+                                    call.span,
+                                );
+                                for param in &dev.generic_params {
+                                    if !all_args.contains_key(&param.name) {
+                                        if let Some(default) = &param.default_text {
+                                            all_args.insert(param.name.clone(), default.clone());
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Resolve footprint.
+                            let footprint_override = design_fp_overrides
+                                .get(&final_device)
+                                .cloned()
+                                .or_else(|| {
+                                    let dev = self.find_device(&final_device, module_path)?;
+                                    let pkg_value = all_args.get("pkg")?;
+                                    dev.variant_footprints.get(pkg_value).cloned()
+                                })
+                                .or_else(|| {
+                                    self.find_device(&final_device, module_path)
+                                        .and_then(|dev| dev.footprint.clone())
+                                });
+
+                            // Look up impl_traits and pin numbers.
+                            let (impl_traits, pin_numbers) =
+                                if let Some(dev) = self.find_device(&final_device, module_path) {
+                                    let traits = dev.impl_traits.clone();
+                                    let pins = all_args
+                                        .get("pkg")
+                                        .and_then(|pkg| dev.variant_pin_numbers.get(pkg))
+                                        .cloned()
+                                        .unwrap_or_else(|| dev.pin_numbers.clone());
+                                    (traits, pins)
+                                } else {
+                                    (Vec::new(), HashMap::new())
+                                };
+
+                            fn_instance_map.insert(inst.name.name.clone(), id);
+                            instance_map.insert(inst_name.clone(), id);
+
+                            instances.push(ComponentInstance {
+                                id,
+                                name: inst_name,
+                                device: final_device,
+                                mpn,
+                                alt_mpns,
+                                generic_substitutions: all_args,
+                                designator_override: None,
+                                footprint_override,
+                                pin_numbers,
+                                impl_traits,
+                            });
+                        }
+                        FnBodyStmtKind::Net(net_stmt) => {
+                            let mut endpoints = Vec::new();
+                            let mut net_name = None;
+
+                            // Resolve the net target. If it matches a parameter
+                            // name, resolve to the call argument's endpoint.
+                            match &net_stmt.target.kind {
+                                NetEndpointKind::Ident(id) => {
+                                    if let Some(arg_expr) = arg_map.get(id.name.as_str()) {
+                                        // Resolve arg expression to an endpoint.
+                                        match &arg_expr.kind {
+                                            ExprKind::DotPath(dp) => {
+                                                let root = &dp.root.segments[0].name;
+                                                if let Some(&inst_id) =
+                                                    instance_map.get(root.as_str())
+                                                {
+                                                    if let Some(field) = dp.fields.first() {
+                                                        endpoints
+                                                            .push((inst_id, field.name.clone()));
+                                                    }
+                                                }
+                                            }
+                                            ExprKind::Type(te) => {
+                                                let name = type_expr_name(te);
+                                                net_name = Some(name.clone());
+                                                endpoints.push((EXTERNAL_INSTANCE, name));
+                                            }
+                                            _ => {
+                                                let s = expr_to_string(arg_expr);
+                                                net_name = Some(s.clone());
+                                                endpoints.push((EXTERNAL_INSTANCE, s));
+                                            }
+                                        }
+                                    } else {
+                                        // Not a parameter → global net name.
+                                        net_name = Some(id.name.clone());
+                                        endpoints.push((EXTERNAL_INSTANCE, id.name.clone()));
+                                    }
+                                }
+                                NetEndpointKind::DotPath(dp) => {
+                                    let root = &dp.root.segments[0].name;
+                                    if let Some(&inst_id) = fn_instance_map.get(root.as_str()) {
+                                        if let Some(field) = dp.fields.first() {
+                                            endpoints.push((inst_id, field.name.clone()));
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Resolve right-hand-side endpoints.
+                            for ep in &net_stmt.endpoints {
+                                match &ep.kind {
+                                    NetEndpointKind::DotPath(dp) => {
+                                        let root = &dp.root.segments[0].name;
+                                        if let Some(&inst_id) = fn_instance_map.get(root.as_str()) {
+                                            if let Some(field) = dp.fields.first() {
+                                                endpoints.push((inst_id, field.name.clone()));
+                                            }
+                                        } else if let Some(&inst_id) =
+                                            instance_map.get(root.as_str())
+                                        {
+                                            if let Some(field) = dp.fields.first() {
+                                                endpoints.push((inst_id, field.name.clone()));
+                                            }
+                                        }
+                                    }
+                                    NetEndpointKind::Ident(id) => {
+                                        if let Some(arg_expr) = arg_map.get(id.name.as_str()) {
+                                            match &arg_expr.kind {
+                                                ExprKind::DotPath(dp) => {
+                                                    let root = &dp.root.segments[0].name;
+                                                    if let Some(&inst_id) =
+                                                        instance_map.get(root.as_str())
+                                                    {
+                                                        if let Some(field) = dp.fields.first() {
+                                                            endpoints.push((
+                                                                inst_id,
+                                                                field.name.clone(),
+                                                            ));
+                                                        }
+                                                    }
+                                                }
+                                                ExprKind::Type(te) => {
+                                                    let name = type_expr_name(te);
+                                                    endpoints.push((EXTERNAL_INSTANCE, name));
+                                                }
+                                                _ => {
+                                                    let s = expr_to_string(arg_expr);
+                                                    endpoints.push((EXTERNAL_INSTANCE, s));
+                                                }
+                                            }
+                                        } else {
+                                            endpoints.push((EXTERNAL_INSTANCE, id.name.clone()));
+                                        }
+                                    }
+                                }
+                            }
+
+                            let final_net_name = net_name.unwrap_or_else(|| {
+                                let name =
+                                    format!("__fn{}_{}_{}", call_counter, fn_name, fn_net_counter);
+                                fn_net_counter += 1;
+                                name
+                            });
+
+                            nets.push(TypedNet {
+                                name: final_net_name,
+                                endpoints,
+                            });
+                        }
+                        FnBodyStmtKind::Call(_) => {
+                            // Nested function calls not yet supported.
+                        }
+                    }
+                }
+
+                call_counter += 1;
             }
         }
 
@@ -1504,14 +1798,22 @@ fn pin_entry_numbers(kind: &PinEntryKind) -> Vec<(std::string::String, Vec<std::
             vec![(name.name.clone(), numbers.clone())]
         }
         PinEntryKind::Range { name, start, end } => {
-            vec![(name.name.clone(), (*start..=*end).map(|n| n.to_string()).collect())]
+            vec![(
+                name.name.clone(),
+                (*start..=*end).map(|n| n.to_string()).collect(),
+            )]
         }
         PinEntryKind::BusMacro {
             name,
             start_pin,
             count,
         } => (0..*count)
-            .map(|i| (format!("{}[{}]", name.name, i), vec![(*start_pin + i).to_string()]))
+            .map(|i| {
+                (
+                    format!("{}[{}]", name.name, i),
+                    vec![(*start_pin + i).to_string()],
+                )
+            })
             .collect(),
         PinEntryKind::Typed { .. } => vec![],
     }

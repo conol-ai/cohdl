@@ -934,15 +934,18 @@ pub enum NetEndpointKind {
     DotPath(DotPath),
 }
 
-/// A function call statement with named arguments.
+/// A function call statement with optional generic type arguments and named arguments.
 ///
 /// ```hdl
+/// decoupling<MLCC<C: 100nF, pkg: "C0603">>(vdd: mcu.VDD, gnd: GND)
 /// decoupling(vdd: mcu.VDD_IO, gnd: GND, cap: mlcc_100nF_0402)
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct CallStmt {
     /// The function path (simple or scoped).
     pub path: Path,
+    /// Optional generic type arguments (e.g. `<MLCC<C: 100nF>>`).
+    pub generic_args: Option<Vec<TypeExpr>>,
     /// Named arguments.
     pub args: Vec<CallArg>,
     /// Source location.

@@ -242,8 +242,10 @@ net_stmt = {
 net_target   = { dot_path | ident }
 net_endpoint = { dot_path | ident }
 
-// Function call statement: name(arg: val, ...)  or  path::name(arg: val, ...)
+// Function call statement: name<Type>(arg: val, ...)  or  path::name(arg: val, ...)
 call_stmt = {
-    (scoped_path | ident) ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")"
+    (scoped_path | ident) ~ call_generic_args? ~ "(" ~ (call_arg ~ ("," ~ call_arg)*)? ~ ")"
 }
+call_generic_args = { "<" ~ call_generic_arg ~ ("," ~ call_generic_arg)* ~ ">" }
+call_generic_arg  = { type_expr }
 call_arg = { ident ~ ":" ~ value_expr }

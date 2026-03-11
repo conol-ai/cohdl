@@ -160,15 +160,15 @@ fn build_component(
         let mut fallback_counter = 1u32;
         for (pin_name, net_name) in &seen {
             // Look up actual physical pin numbers from the device definition.
-            let physical_numbers: Vec<String> =
-                if let Some(nums) = inst.pin_numbers.get(*pin_name) {
-                    nums.clone()
-                } else {
-                    // Fallback: assign sequential numbers.
-                    let num = fallback_counter.to_string();
-                    fallback_counter += 1;
-                    vec![num]
-                };
+            let physical_numbers: Vec<String> = if let Some(nums) = inst.pin_numbers.get(*pin_name)
+            {
+                nums.clone()
+            } else {
+                // Fallback: assign sequential numbers.
+                let num = fallback_counter.to_string();
+                fallback_counter += 1;
+                vec![num]
+            };
 
             for num in &physical_numbers {
                 let pin = PinInfo {
@@ -177,10 +177,7 @@ fn build_component(
                     net: net_name.to_string(),
                     props: {
                         let mut m = serde_json::Map::new();
-                        m.insert(
-                            "Pin Number".into(),
-                            serde_json::Value::String(num.clone()),
-                        );
+                        m.insert("Pin Number".into(), serde_json::Value::String(num.clone()));
                         m
                     },
                 };

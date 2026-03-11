@@ -152,10 +152,7 @@ fn resolve_deps_for_lsp_excluding(
 /// `prefix_len` is the byte offset where the open file's content starts in the combined source.
 fn build_project_source(file_path: &Path, file_src: &str) -> (String, usize) {
     let file_dir = file_path.parent().unwrap_or_else(|| Path::new("."));
-    let file_stem = file_path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
+    let file_stem = file_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
 
     // Try to find the project root
     let project_root = find_project_root(file_dir);
@@ -183,8 +180,7 @@ fn build_project_source(file_path: &Path, file_src: &str) -> (String, usize) {
                             } else {
                                 ""
                             };
-                            let mod_path =
-                                file_dir.join(format!("{}.cohdl", m.name.name));
+                            let mod_path = file_dir.join(format!("{}.cohdl", m.name.name));
                             if let Ok(content) = std::fs::read_to_string(&mod_path) {
                                 sibling_src.push_str(&format!(
                                     "{}module {} {{\n{}\n}}\n",

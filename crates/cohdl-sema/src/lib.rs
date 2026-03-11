@@ -178,6 +178,8 @@ struct Resolver {
     imports: HashMap<String, ImportMap>,
     resolved: Vec<ResolvedName>,
     errors: Vec<SemaError>,
+    /// Generic type parameter names currently in scope (from enclosing fn).
+    generic_scope: Vec<String>,
 }
 
 impl Resolver {
@@ -187,6 +189,7 @@ impl Resolver {
             imports: HashMap::new(),
             resolved: Vec::new(),
             errors: Vec::new(),
+            generic_scope: Vec::new(),
         }
     }
 
@@ -474,8 +477,12 @@ impl Resolver {
     }
 
     fn resolve_fn(&mut self, f: &FnDecl, module_path: &str) {
+        // Collect generic param names into scope so function body resolution
+        // can skip them (they are not defined symbols).
+        let prev_scope = std::mem::take(&mut self.generic_scope);
         if let Some(generics) = &f.generic_params {
             for p in &generics.params {
+                self.generic_scope.push(p.name.name.clone());
                 match &p.kind {
                     GenericParamKind::Type(te) => self.resolve_type_expr(te, module_path),
                     GenericParamKind::ImplConstraint(tb) => {
@@ -503,6 +510,7 @@ impl Resolver {
                 FnBodyStmtKind::Call(call) => self.resolve_call(call, module_path),
             }
         }
+        self.generic_scope = prev_scope;
     }
 
     fn resolve_design(&mut self, d: &DesignDecl, module_path: &str) {
@@ -527,9 +535,14 @@ impl Resolver {
 
     fn resolve_call(&mut self, call: &CallStmt, module_path: &str) {
         self.resolve_path(&call.path, module_path);
-        for arg in &call.args {
-            self.resolve_expr(&arg.value, module_path);
+        if let Some(generic_args) = &call.generic_args {
+            for te in generic_args {
+                self.resolve_type_expr(te, module_path);
+            }
         }
+        // Call argument values may contain net names (bare identifiers like GND)
+        // or pin references (dot_paths like mcu.VDD) that are not resolvable as
+        // symbols. Type checking validates these later.
     }
 
     fn resolve_expr(&mut self, expr: &Expr, module_path: &str) {
@@ -572,6 +585,11 @@ impl Resolver {
 
         // Skip built-in type names that are not user-defined symbols.
         if segments.len() == 1 && is_builtin(segments[0]) {
+            return;
+        }
+
+        // Skip generic type parameter names that are in scope.
+        if segments.len() == 1 && self.generic_scope.iter().any(|g| g == segments[0]) {
             return;
         }
 

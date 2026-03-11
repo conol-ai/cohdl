@@ -193,7 +193,9 @@ fn build_missing_module_file_exits_1() {
         .current_dir(dir.path())
         .assert()
         .failure()
-        .stderr(predicate::str::contains("could not read module `nonexistent`"));
+        .stderr(predicate::str::contains(
+            "could not read module `nonexistent`",
+        ));
 }
 
 // ── build with custom out-dir ───────────────────────────────────────────────

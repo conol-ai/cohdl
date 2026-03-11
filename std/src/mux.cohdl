@@ -1,0 +1,14 @@
+// std/mux — GPIO pin multiplexing for MCU devices.
+//
+// Provides the pinmux! macro and DRC rules. Actual device declarations
+// live in vendor packages (cohdl-st, cohdl-espressif, etc.).
+
+// Macro that generates the pin-function table entries inside a device
+// declaration. Used by vendor packages, not by end users directly.
+pub macro! pinmux_table(entries)
+
+// Marks a pin-function allocation in the design — ties a physical pin net
+// to a specific alternate function identifier for DRC validation.
+pub fn pin_as<af: String>(pin: Net) {
+    // compiler-intrinsic: records (pin -> af) in DRC metadata
+}

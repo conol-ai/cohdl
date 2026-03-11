@@ -1,0 +1,87 @@
+// std/discrete — Semiconductor devices and sub-circuits.
+//
+// Diodes, transistors, MOSFETs, and LEDs.
+
+use traits::{Diode, LED, NPN, PNP, NMOS, PMOS}
+use passive::Resistor
+
+// ── Diodes ──────────────────────────────────────────────────────────────────
+
+// Generic small-signal diode
+pub device SmallSignalDiode<Vf: Voltage = 0.7V, Vr: Voltage = 75V, pkg: Package = "SOD323">:
+    impl Diode
+{
+    package: pkg
+    pins { A: 1, B: 2 }
+    spec { forward_voltage: Vf, reverse_voltage: Vr, current_rating: 200mA }
+}
+
+// Schottky diode
+pub device SchottkyDiode<Vf: Voltage = 0.3V, Vr: Voltage = 40V, pkg: Package = "SOD323">:
+    impl Diode
+{
+    package: pkg
+    pins { A: 1, B: 2 }
+    spec { forward_voltage: Vf, reverse_voltage: Vr, current_rating: 200mA }
+}
+
+// ── LEDs ────────────────────────────────────────────────────────────────────
+
+// Generic LED
+pub device LED<Vf: Voltage = 2.0V, color: String = "red", pkg: Package = "LED0402">:
+    impl LED
+{
+    package: pkg
+    pins { A: 1, B: 2 }
+    spec { forward_voltage: Vf, reverse_voltage: 5V, current_rating: 20mA, color: color }
+}
+
+// ── BJT Transistors ─────────────────────────────────────────────────────────
+
+// Small-signal NPN (A=Base, B=Collector, C=Emitter)
+pub device NPN_SmallSignal<pkg: Package = "SOT23">: impl NPN {
+    package: pkg
+    pins { A: 1, B: 2, C: 3 }
+    spec { vceo: 45V, ic_max: 100mA, hfe_min: 100 }
+}
+
+// Small-signal PNP (A=Base, B=Collector, C=Emitter)
+pub device PNP_SmallSignal<pkg: Package = "SOT23">: impl PNP {
+    package: pkg
+    pins { A: 1, B: 2, C: 3 }
+    spec { vceo: 45V, ic_max: 100mA, hfe_min: 100 }
+}
+
+// ── MOSFETs ─────────────────────────────────────────────────────────────────
+
+// Generic N-channel MOSFET (A=Gate, B=Drain, C=Source)
+pub device NMOS_LowSide<Vds: Voltage = 20V, Id: Amps = 2A, pkg: Package = "SOT23">: impl NMOS {
+    package: pkg
+    pins { A: 1, B: 2, C: 3 }
+    spec { vds_max: Vds, id_max: Id, vgs_th: 1.5V, rds_on: 100mohm }
+}
+
+// Generic P-channel MOSFET (A=Gate, B=Drain, C=Source)
+pub device PMOS_HighSide<Vds: Voltage = 20V, Id: Amps = 2A, pkg: Package = "SOT23">: impl PMOS {
+    package: pkg
+    pins { A: 1, B: 2, C: 3 }
+    spec { vds_max: Vds, id_max: Id, vgs_th: 1.5V, rds_on: 200mohm }
+}
+
+// ── Sub-circuits ────────────────────────────────────────────────────────────
+
+// NMOS low-side switch with gate series resistor and pull-down
+pub fn nmos_switch(
+    gate_drive: Net,
+    switched:   Net,
+    gnd:        Net
+) {
+    inst q:      NMOS_LowSide
+    inst r_gate: Resistor<R: 100ohm>    // gate series resistor (damping)
+    inst r_pull: Resistor<R: 100kohm>   // gate pull-down
+    net gate_drive:  r_gate.A
+    net q.A:         r_gate.B, r_pull.A  // gate
+    net gnd:         r_pull.B
+    net switched:    q.B                 // drain
+    net gnd:         q.C                 // source
+}

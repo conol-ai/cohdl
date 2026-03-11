@@ -69,7 +69,10 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
     // ── Components
     writeln!(out, "  (components").unwrap();
     for inst in &ir.instances {
-        let footprint = resolve_footprint(&inst.device, config);
+        let footprint = inst
+            .footprint_override
+            .clone()
+            .unwrap_or_else(|| resolve_footprint(&inst.device, config));
         let value = inst
             .generic_substitutions
             .get("value")
@@ -198,6 +201,7 @@ mod tests {
                         m.insert("value".to_string(), "STM32F103".to_string());
                         m
                     },
+                    footprint_override: None,
                 },
                 Instance {
                     id: InstanceId(1),
@@ -211,6 +215,7 @@ mod tests {
                         m.insert("value".to_string(), "10k".to_string());
                         m
                     },
+                    footprint_override: None,
                 },
                 Instance {
                     id: InstanceId(2),
@@ -224,6 +229,7 @@ mod tests {
                         m.insert("value".to_string(), "100nF".to_string());
                         m
                     },
+                    footprint_override: None,
                 },
             ],
             nets: vec![
@@ -370,6 +376,7 @@ mod tests {
                 mpn: None,
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
+                footprint_override: None,
             }],
             nets: vec![],
         };
@@ -388,6 +395,7 @@ mod tests {
                 mpn: None,
                 alt_mpns: vec![],
                 generic_substitutions: HashMap::new(),
+                footprint_override: None,
             }],
             nets: vec![],
         };
@@ -431,11 +439,52 @@ mod tests {
                     m.insert("value".to_string(), "R<10>".to_string());
                     m
                 },
+                footprint_override: None,
             }],
             nets: vec![],
         };
         let netlist = emit_kicad_netlist(&ir);
         assert!(netlist.contains("R&lt;10&gt;"));
         assert!(netlist.contains("Part&lt;1&gt;&amp;&quot;2&quot;"));
+    }
+
+    #[test]
+    fn footprint_override_takes_precedence() {
+        let ir = ConnectivityIR {
+            instances: vec![Instance {
+                id: InstanceId(0),
+                name: "U1".into(),
+                hierarchical_path: "Board::U1".into(),
+                device: "LQFP48".into(),
+                mpn: None,
+                alt_mpns: vec![],
+                generic_substitutions: HashMap::new(),
+                footprint_override: Some("Custom:LQFP-48_Custom".into()),
+            }],
+            nets: vec![],
+        };
+        let netlist = emit_kicad_netlist(&ir);
+        // Should use the override, not the table lookup.
+        assert!(netlist.contains(r#"(footprint "Custom:LQFP-48_Custom")"#));
+        assert!(!netlist.contains("Package_QFP:LQFP-48_7x7mm_P0.5mm"));
+    }
+
+    #[test]
+    fn footprint_override_none_falls_back_to_table() {
+        let ir = ConnectivityIR {
+            instances: vec![Instance {
+                id: InstanceId(0),
+                name: "U1".into(),
+                hierarchical_path: "Board::U1".into(),
+                device: "LQFP48".into(),
+                mpn: None,
+                alt_mpns: vec![],
+                generic_substitutions: HashMap::new(),
+                footprint_override: None,
+            }],
+            nets: vec![],
+        };
+        let netlist = emit_kicad_netlist(&ir);
+        assert!(netlist.contains(r#"(footprint "Package_QFP:LQFP-48_7x7mm_P0.5mm")"#));
     }
 }

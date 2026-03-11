@@ -96,6 +96,8 @@ pub struct ComponentInstance {
     pub generic_substitutions: HashMap<std::string::String, std::string::String>,
     /// Explicit designator override from `#[designator("U1")]`.
     pub designator_override: Option<std::string::String>,
+    /// Footprint override from `#[footprint("...")]` attribute or device spec.
+    pub footprint_override: Option<std::string::String>,
     /// Traits the underlying device implements (used for prefix derivation).
     pub impl_traits: Vec<std::string::String>,
 }
@@ -155,6 +157,8 @@ struct DeviceDef {
     declared_pins: HashSet<std::string::String>,
     /// Spec fields declared by this device: (name, kind).
     declared_specs: Vec<(std::string::String, ValueKind)>,
+    /// Footprint string from `spec { footprint: "..." }`, if present.
+    footprint: Option<std::string::String>,
 }
 
 /// A collected generic parameter definition.
@@ -320,6 +324,25 @@ impl TypeChecker {
             }
         }
 
+        // Extract footprint from spec block if present.
+        let footprint = d.body.iter().find_map(|item| {
+            if let DeviceBodyItem::Spec(spec) = item {
+                spec.entries.iter().find_map(|e| {
+                    if e.name.name == "footprint" {
+                        if let ExprKind::String(ref s) = e.value.kind {
+                            Some(s.value.clone())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+            } else {
+                None
+            }
+        });
+
         self.devices.insert(
             qname.clone(),
             DeviceDef {
@@ -328,6 +351,7 @@ impl TypeChecker {
                 impl_traits,
                 declared_pins,
                 declared_specs,
+                footprint,
             },
         );
     }
@@ -695,6 +719,25 @@ impl TypeChecker {
                     }
                 });
 
+                // Extract #[footprint("...")] from statement attributes.
+                let footprint_attr = stmt.attributes.iter().find_map(|attr| {
+                    if attr.name.name == "footprint" {
+                        if let Some(ast::AttributeArgs::Strings(ref strings)) = attr.args {
+                            strings.first().map(|s| s.value.clone())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                });
+
+                // Footprint priority: #[footprint()] attribute > device spec > None.
+                let footprint_override = footprint_attr.or_else(|| {
+                    self.find_device(&final_device, module_path)
+                        .and_then(|dev| dev.footprint.clone())
+                });
+
                 // Look up the device's impl_traits.
                 let impl_traits = self
                     .find_device(&final_device, module_path)
@@ -711,6 +754,7 @@ impl TypeChecker {
                     alt_mpns,
                     generic_substitutions: all_args,
                     designator_override,
+                    footprint_override,
                     impl_traits,
                 });
             }

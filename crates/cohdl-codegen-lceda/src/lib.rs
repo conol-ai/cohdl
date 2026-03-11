@@ -77,10 +77,7 @@ pub fn emit_lceda_netlist(ir: &ConnectivityIR) -> String {
     // Collect all unique net names for designRule.netRule.
     let mut net_rule = serde_json::Map::new();
     for net in &ir.nets {
-        let has_internal_pin = net
-            .pins
-            .iter()
-            .any(|p| p.instance_id != EXTERNAL_INSTANCE);
+        let has_internal_pin = net.pins.iter().any(|p| p.instance_id != EXTERNAL_INSTANCE);
         if !has_internal_pin {
             continue;
         }
@@ -134,10 +131,7 @@ fn build_component(
     set(&mut props, "Name", &value);
     set(&mut props, "Unique ID", unique_id);
     set(&mut props, "DeviceName", &inst.device);
-    let footprint_name = inst
-        .footprint_override
-        .as_deref()
-        .unwrap_or(&inst.device);
+    let footprint_name = inst.footprint_override.as_deref().unwrap_or(&inst.device);
     set(&mut props, "FootprintName", footprint_name);
 
     // Populate MPN-related fields if available.
@@ -171,10 +165,7 @@ fn build_component(
                 net: net_name.to_string(),
                 props: {
                     let mut m = serde_json::Map::new();
-                    m.insert(
-                        "Pin Number".into(),
-                        serde_json::Value::String(num.clone()),
-                    );
+                    m.insert("Pin Number".into(), serde_json::Value::String(num.clone()));
                     m
                 },
             };
@@ -314,10 +305,7 @@ mod tests {
             parsed["components"]["gge2"]["props"]["Supplier Part"],
             "C1525"
         );
-        assert_eq!(
-            parsed["components"]["gge2"]["props"]["Supplier"],
-            "LCSC"
-        );
+        assert_eq!(parsed["components"]["gge2"]["props"]["Supplier"], "LCSC");
     }
 
     #[test]

@@ -101,11 +101,7 @@ pub fn emit_kicad_netlist_with_config(ir: &ConnectivityIR, config: &KicadNetlist
             )
             .unwrap();
         }
-        writeln!(
-            out,
-            "      (sheetpath (names \"/\") (tstamps \"/\"))"
-        )
-        .unwrap();
+        writeln!(out, "      (sheetpath (names \"/\") (tstamps \"/\"))").unwrap();
         writeln!(out, "      (tstamp \"{:08X}\")", inst.id.0).unwrap();
         writeln!(out, "    )").unwrap();
     }

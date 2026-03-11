@@ -91,19 +91,21 @@ fn synthesize_std() -> String {
         Err(_) => return String::new(),
     };
 
-    let embedded: HashMap<&str, &str> = [
-        ("traits", STD_TRAITS_COHDL),
-        ("passive", STD_PASSIVE_COHDL),
-    ]
-    .into_iter()
-    .collect();
+    let embedded: HashMap<&str, &str> =
+        [("traits", STD_TRAITS_COHDL), ("passive", STD_PASSIVE_COHDL)]
+            .into_iter()
+            .collect();
 
     let mut inner = String::new();
     for item in &source_file.items {
         if let TopLevelItemKind::Mod(m) = &item.kind {
             let name = &m.name.name;
             if let Some(content) = embedded.get(name.as_str()) {
-                let vis = if item.visibility.is_some() { "pub " } else { "" };
+                let vis = if item.visibility.is_some() {
+                    "pub "
+                } else {
+                    ""
+                };
                 inner.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, name, content));
             }
         }

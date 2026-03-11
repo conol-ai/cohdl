@@ -217,12 +217,10 @@ fn resolve_bundled_std() -> Result<String, String> {
     let source_file = parse_source_file(STD_LIB_COHDL)
         .map_err(|e| format!("failed to parse std/src/lib.cohdl: {:?}", e))?;
 
-    let embedded_sources: std::collections::HashMap<&str, &str> = [
-        ("traits", STD_TRAITS_COHDL),
-        ("passive", STD_PASSIVE_COHDL),
-    ]
-    .into_iter()
-    .collect();
+    let embedded_sources: std::collections::HashMap<&str, &str> =
+        [("traits", STD_TRAITS_COHDL), ("passive", STD_PASSIVE_COHDL)]
+            .into_iter()
+            .collect();
 
     let mut inner = String::new();
     for item in &source_file.items {
@@ -263,10 +261,8 @@ fn resolve_path_dependency(name: &str, dep_path: &str) -> Result<String, String>
             e
         )
     })?;
-    let manifest: CohdlManifest =
-        toml::from_str(&manifest_content).map_err(|e| {
-            format!("invalid cohdl.toml for dependency `{}`: {}", name, e)
-        })?;
+    let manifest: CohdlManifest = toml::from_str(&manifest_content)
+        .map_err(|e| format!("invalid cohdl.toml for dependency `{}`: {}", name, e))?;
 
     let root_path = dep_dir.join(&manifest.design.root);
     let root_src = fs::read_to_string(&root_path).map_err(|e| {
@@ -649,7 +645,10 @@ fn cmd_build(
         }
     };
 
-    let top_design = match design_override.as_deref().or(manifest.design.top.as_deref()) {
+    let top_design = match design_override
+        .as_deref()
+        .or(manifest.design.top.as_deref())
+    {
         Some(t) => t,
         None => {
             stderr

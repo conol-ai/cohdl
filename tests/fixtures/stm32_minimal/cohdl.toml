@@ -1,0 +1,7 @@
+[package]
+name = "stm32-minimal"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top = "MainBoard"

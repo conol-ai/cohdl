@@ -1,0 +1,21 @@
+// TestBoard: exercises type aliases and named-parameter instantiation.
+//
+// Instances (5 total):
+//   c1       — SmallCap47 (MLCC<C: 4.7nF>)
+//   r1       — PullupRes  (RES<R: 10kohm>)
+//   r_top    — RES<R: 10kohm>   (voltage divider top)
+//   r_bot    — RES<R: 10kohm>   (voltage divider bottom)
+//   c_dec    — SmallCap   (MLCC<C: 100nF>)
+
+design TestBoard {
+    inst c1: SmallCap47
+    inst r1: PullupRes
+    inst r_top: RES<R: 10kohm>
+    inst r_bot: RES<R: 10kohm>
+    inst c_dec: SmallCap
+
+    net VDD: c1.A, c_dec.A
+    net GND: c1.B, c_dec.B, r_bot.B
+    net VIN: r_top.A, r1.A
+    net VOUT: r_top.B, r_bot.A, r1.B
+}

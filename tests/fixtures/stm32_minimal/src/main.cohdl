@@ -1,0 +1,20 @@
+// MainBoard design: STM32F103C8T6 + USB Type-C + 4x decoupling caps.
+
+design MainBoard {
+    inst mcu: STM32F103<pkg: "LQFP48">
+    inst usb: USB_TypeC_Receptacle
+    inst c1: mlcc_100nF_0402
+    inst c2: mlcc_100nF_0402
+    inst c3: mlcc_100nF_0402
+    inst c4: mlcc_100nF_0402
+
+    // USB data lines
+    net USB_DM: mcu.USB_DM, usb.DM
+    net USB_DP: mcu.USB_DP, usb.DP
+
+    // Power rails — MCU VDD + all four decoupling caps
+    net VDD: mcu.VDD, mcu.VDD_IO, mcu.VDDA, c1.A, c2.A, c3.A, c4.A
+
+    // Ground — MCU, USB shield/GND, and all four decoupling caps
+    net GND: mcu.GND, mcu.GND_IO, mcu.VSSA, usb.GND, usb.SHIELD, c1.B, c2.B, c3.B, c4.B
+}

@@ -25,3 +25,17 @@ toml = "0.8"
 serde = { version = "1", features = ["derive"] }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["full"] }
+
+[package]
+name = "cohdl"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+cohdl-parser = { path = "crates/cohdl-parser" }
+cohdl-syntax = { path = "crates/cohdl-syntax" }
+cohdl-sema = { path = "crates/cohdl-sema" }
+cohdl-drc = { path = "crates/cohdl-drc" }

@@ -401,6 +401,62 @@ fn diagnostic_shows_source_location() {
         .stderr(predicate::str::contains("-->").and(predicate::str::contains("src/main.cohdl")));
 }
 
+// ── multi-file error reports correct file name ──────────────────────────────
+
+#[test]
+fn diagnostic_shows_correct_file_in_multi_file_project() {
+    let dir = TempDir::new().unwrap();
+
+    let manifest = r#"[package]
+name    = "test-board"
+version = "0.1.0"
+
+[design]
+root = "src/main.cohdl"
+top  = "MainBoard"
+"#;
+
+    fs::create_dir_all(dir.path().join("src")).unwrap();
+    fs::write(dir.path().join("cohdl.toml"), manifest).unwrap();
+
+    // Module file with an error (undefined symbol `Bogus`)
+    fs::write(
+        dir.path().join("src/parts.cohdl"),
+        r#"
+        pub trait TwoTerminal {
+            pins { A: Pin, B: Pin }
+        }
+        pub device BadDev: impl Bogus {
+            pins { A: 1, B: 2 }
+        }
+        "#,
+    )
+    .unwrap();
+
+    // Root file is fine — the error is in the module file
+    fs::write(
+        dir.path().join("src/main.cohdl"),
+        r#"
+        module parts
+        use parts::TwoTerminal
+
+        design MainBoard {}
+        "#,
+    )
+    .unwrap();
+
+    let output = cohdl()
+        .args(["check", "--color", "never"])
+        .current_dir(dir.path())
+        .assert()
+        .failure();
+
+    // The error must point to src/parts.cohdl, NOT src/main.cohdl
+    output
+        .stderr(predicate::str::contains("src/parts.cohdl"))
+        .stderr(predicate::str::contains("src/main.cohdl").not());
+}
+
 // ── build generates design.lock with designators ────────────────────────────
 
 #[test]

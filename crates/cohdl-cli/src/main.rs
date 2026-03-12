@@ -127,19 +127,77 @@ fn load_manifest() -> Result<CohdlManifest, String> {
     toml::from_str(&content).map_err(|e| format!("invalid cohdl.toml: {}", e))
 }
 
+// ── Source map ──────────────────────────────────────────────────────────────
+
+/// Tracks which regions of the combined source string belong to which file.
+struct SourceMap {
+    entries: Vec<SourceMapEntry>,
+}
+
+struct SourceMapEntry {
+    /// Start byte offset of the file's content in the combined source.
+    content_start: usize,
+    /// Length of the file's content.
+    content_len: usize,
+    /// File path to display in diagnostics.
+    file: String,
+}
+
+impl SourceMap {
+    fn new() -> Self {
+        Self {
+            entries: Vec::new(),
+        }
+    }
+
+    /// Look up which file a byte offset belongs to.
+    /// Returns `(file_path, content_slice, local_offset)`.
+    fn lookup<'a>(&self, combined_src: &'a str, offset: usize) -> (&str, &'a str, usize) {
+        for entry in &self.entries {
+            if offset >= entry.content_start
+                && offset < entry.content_start + entry.content_len
+            {
+                let slice = &combined_src
+                    [entry.content_start..entry.content_start + entry.content_len];
+                return (&entry.file, slice, offset - entry.content_start);
+            }
+        }
+        // Fallback: treat the whole source as a single file.
+        ("unknown", combined_src, offset)
+    }
+
+    /// Shift all entry offsets by `delta` (used when prepending dependency source).
+    fn shift(&mut self, delta: usize) {
+        for entry in &mut self.entries {
+            entry.content_start += delta;
+        }
+    }
+}
+
 /// Resolve `module <name>` declarations in the root source file.
 ///
 /// Parses the root file to find `ModDecl` nodes, loads each referenced
 /// `<name>.cohdl` from the same directory, and returns the combined source
 /// with module files prepended before the root source (like Rust's `mod`).
-fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
+fn resolve_modules(
+    root_path: &str,
+    root_src: &str,
+) -> Result<(String, SourceMap), String> {
     use cohdl_syntax::ast::TopLevelItemKind;
 
     let source_file = match parse_source_file(root_src) {
         Ok(sf) => sf,
         // Parse errors will be reported with full diagnostics by run_pipeline;
         // just return the root source as-is so the pipeline can handle it.
-        Err(_) => return Ok(root_src.to_string()),
+        Err(_) => {
+            let mut sm = SourceMap::new();
+            sm.entries.push(SourceMapEntry {
+                content_start: 0,
+                content_len: root_src.len(),
+                file: root_path.to_string(),
+            });
+            return Ok((root_src.to_string(), sm));
+        }
     };
 
     let mod_items: Vec<(&str, bool)> = source_file
@@ -152,7 +210,13 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
         .collect();
 
     if mod_items.is_empty() {
-        return Ok(root_src.to_string());
+        let mut sm = SourceMap::new();
+        sm.entries.push(SourceMapEntry {
+            content_start: 0,
+            content_len: root_src.len(),
+            file: root_path.to_string(),
+        });
+        return Ok((root_src.to_string(), sm));
     }
 
     let src_dir = Path::new(root_path)
@@ -160,6 +224,7 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
         .unwrap_or_else(|| Path::new("."));
 
     let mut combined = String::new();
+    let mut sm = SourceMap::new();
     for (name, is_pub) in &mod_items {
         let mod_path = src_dir.join(format!("{}.cohdl", name));
         let content = fs::read_to_string(&mod_path).map_err(|e| {
@@ -171,10 +236,25 @@ fn resolve_modules(root_path: &str, root_src: &str) -> Result<String, String> {
             )
         })?;
         let vis = if *is_pub { "pub " } else { "" };
-        combined.push_str(&format!("{}module {} {{\n{}\n}}\n", vis, name, content));
+        let prefix = format!("{}module {} {{\n", vis, name);
+        let content_start = combined.len() + prefix.len();
+        combined.push_str(&prefix);
+        combined.push_str(&content);
+        sm.entries.push(SourceMapEntry {
+            content_start,
+            content_len: content.len(),
+            file: mod_path.display().to_string(),
+        });
+        combined.push_str("\n}\n");
     }
+    let root_start = combined.len();
     combined.push_str(root_src);
-    Ok(combined)
+    sm.entries.push(SourceMapEntry {
+        content_start: root_start,
+        content_len: root_src.len(),
+        file: root_path.to_string(),
+    });
+    Ok((combined, sm))
 }
 
 // ── Dependency resolution ───────────────────────────────────────────────────
@@ -284,8 +364,9 @@ fn resolve_path_dependency(name: &str, dep_path: &str) -> Result<String, String>
 }
 
 /// Resolve all dependencies and return concatenated source to prepend.
-fn resolve_dependencies(manifest: &CohdlManifest) -> Result<String, String> {
+fn resolve_dependencies(manifest: &CohdlManifest) -> Result<(String, SourceMap), String> {
     let mut dep_src = String::new();
+    let sm = SourceMap::new();
     // Sort dependency names for deterministic output
     let mut dep_names: Vec<&String> = manifest.dependencies.keys().collect();
     dep_names.sort();
@@ -295,7 +376,7 @@ fn resolve_dependencies(manifest: &CohdlManifest) -> Result<String, String> {
         dep_src.push_str(&src);
         dep_src.push('\n');
     }
-    Ok(dep_src)
+    Ok((dep_src, sm))
 }
 
 // ── Diagnostic rendering ────────────────────────────────────────────────────
@@ -340,13 +421,14 @@ fn source_line_at(src: &str, offset: usize) -> (usize, &str) {
 
 fn render_parse_errors(
     stderr: &mut StandardStream,
-    file_path: &str,
+    source_map: &SourceMap,
     src: &str,
     errors: &[ParseError],
 ) {
     for err in errors {
-        let (line, col) = line_col(src, err.span.start);
-        let (line_num, line_text) = source_line_at(src, err.span.start);
+        let (file_path, file_src, local_offset) = source_map.lookup(src, err.span.start);
+        let (line, col) = line_col(file_src, local_offset);
+        let (line_num, line_text) = source_line_at(file_src, local_offset);
         let span_len = (err.span.end - err.span.start).max(1);
 
         // Error[PARSE]: message
@@ -402,13 +484,14 @@ fn render_parse_errors(
 
 fn render_sema_errors(
     stderr: &mut StandardStream,
-    file_path: &str,
+    source_map: &SourceMap,
     src: &str,
     errors: &[SemaError],
 ) {
     for err in errors {
-        let (line, col) = line_col(src, err.span.start);
-        let (line_num, line_text) = source_line_at(src, err.span.start);
+        let (file_path, file_src, local_offset) = source_map.lookup(src, err.span.start);
+        let (line, col) = line_col(file_src, local_offset);
+        let (line_num, line_text) = source_line_at(file_src, local_offset);
         let span_len = (err.span.end - err.span.start).max(1);
 
         stderr
@@ -451,13 +534,14 @@ fn render_sema_errors(
 
 fn render_drc_diagnostics(
     stderr: &mut StandardStream,
-    file_path: &str,
+    source_map: &SourceMap,
     src: &str,
     diagnostics: &[DrcDiagnostic],
 ) {
     for diag in diagnostics {
-        let (line, col) = line_col(src, diag.span.start);
-        let (line_num, line_text) = source_line_at(src, diag.span.start);
+        let (file_path, file_src, local_offset) = source_map.lookup(src, diag.span.start);
+        let (line, col) = line_col(file_src, local_offset);
+        let (line_num, line_text) = source_line_at(file_src, local_offset);
         let span_len = (diag.span.end - diag.span.start).max(1);
 
         let (color, label) = match diag.level {
@@ -527,7 +611,7 @@ struct PipelineResult {
 
 fn run_pipeline(
     stderr: &mut StandardStream,
-    file_path: &str,
+    source_map: &SourceMap,
     src: &str,
     top_design: &str,
 ) -> PipelineResult {
@@ -537,7 +621,7 @@ fn run_pipeline(
     let source_file = match parse_source_file(src) {
         Ok(sf) => sf,
         Err(errors) => {
-            render_parse_errors(stderr, file_path, src, &errors);
+            render_parse_errors(stderr, source_map, src, &errors);
             return PipelineResult {
                 connectivity: None,
                 tc_result: None,
@@ -550,14 +634,14 @@ fn run_pipeline(
     // ── Sema: name resolution ────────────────────────────────────────────
     let resolved: ResolvedSourceFile = resolve(&source_file);
     if !resolved.errors.is_empty() {
-        render_sema_errors(stderr, file_path, src, &resolved.errors);
+        render_sema_errors(stderr, source_map, src, &resolved.errors);
         has_errors = true;
     }
 
     // ── Sema: type checking ──────────────────────────────────────────────
     let tc_result: TypeCheckResult = type_check(&source_file, &resolved);
     if !tc_result.errors.is_empty() {
-        render_sema_errors(stderr, file_path, src, &tc_result.errors);
+        render_sema_errors(stderr, source_map, src, &tc_result.errors);
         has_errors = true;
     }
 
@@ -586,7 +670,7 @@ fn run_pipeline(
     // ── Connectivity ─────────────────────────────────────────────────────
     let conn_result = build_connectivity(design, &tc_result.device_pins);
     if !conn_result.errors.is_empty() {
-        render_sema_errors(stderr, file_path, src, &conn_result.errors);
+        render_sema_errors(stderr, source_map, src, &conn_result.errors);
         has_errors = true;
     }
 
@@ -594,7 +678,7 @@ fn run_pipeline(
     let runner = DrcRunner::new();
     let drc_diags = runner.run(&conn_result.ir);
     if !drc_diags.is_empty() {
-        render_drc_diagnostics(stderr, file_path, src, &drc_diags);
+        render_drc_diagnostics(stderr, source_map, src, &drc_diags);
         if drc_diags.iter().any(|d| d.level == DiagnosticLevel::Error) {
             has_errors = true;
         }
@@ -663,8 +747,8 @@ fn cmd_build(
         }
     };
 
-    let user_src = match resolve_modules(file_path, &root_src) {
-        Ok(s) => s,
+    let (user_src, mut user_sm) = match resolve_modules(file_path, &root_src) {
+        Ok(pair) => pair,
         Err(e) => {
             stderr
                 .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
@@ -676,8 +760,8 @@ fn cmd_build(
         }
     };
 
-    let dep_src = match resolve_dependencies(&manifest) {
-        Ok(s) => s,
+    let (dep_src, mut dep_sm) = match resolve_dependencies(&manifest) {
+        Ok(pair) => pair,
         Err(e) => {
             stderr
                 .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
@@ -690,8 +774,13 @@ fn cmd_build(
     };
 
     let src = format!("{}{}", dep_src, user_src);
+    // Shift user source map entries by the length of the dependency source prefix.
+    user_sm.shift(dep_src.len());
+    let mut source_map = SourceMap::new();
+    source_map.entries.append(&mut dep_sm.entries);
+    source_map.entries.append(&mut user_sm.entries);
 
-    let result = run_pipeline(stderr, file_path, &src, top_design);
+    let result = run_pipeline(stderr, &source_map, &src, top_design);
 
     if result.has_errors {
         return 1;
@@ -727,7 +816,7 @@ fn cmd_build(
             let (assignments, desig_errors) = db.assign(&infos);
 
             if !desig_errors.is_empty() {
-                render_sema_errors(stderr, file_path, &src, &desig_errors);
+                render_sema_errors(stderr, &source_map, &src, &desig_errors);
                 return 1;
             }
 
@@ -859,8 +948,8 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
         }
     };
 
-    let user_src = match resolve_modules(file_path, &root_src) {
-        Ok(s) => s,
+    let (user_src, mut user_sm) = match resolve_modules(file_path, &root_src) {
+        Ok(pair) => pair,
         Err(e) => {
             stderr
                 .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
@@ -872,8 +961,8 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
         }
     };
 
-    let dep_src = match resolve_dependencies(&manifest) {
-        Ok(s) => s,
+    let (dep_src, mut dep_sm) = match resolve_dependencies(&manifest) {
+        Ok(pair) => pair,
         Err(e) => {
             stderr
                 .set_color(ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
@@ -886,8 +975,12 @@ fn cmd_check(stderr: &mut StandardStream) -> i32 {
     };
 
     let src = format!("{}{}", dep_src, user_src);
+    user_sm.shift(dep_src.len());
+    let mut source_map = SourceMap::new();
+    source_map.entries.append(&mut dep_sm.entries);
+    source_map.entries.append(&mut user_sm.entries);
 
-    let result = run_pipeline(stderr, file_path, &src, top_design);
+    let result = run_pipeline(stderr, &source_map, &src, top_design);
 
     if result.has_errors {
         1

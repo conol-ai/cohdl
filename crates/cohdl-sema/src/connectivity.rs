@@ -86,10 +86,7 @@ impl ConnectivityIR {
     ///
     /// `assignments` maps hierarchical path → designator string (e.g. `"C1"`).
     /// After this call, each instance's `designator` field is set.
-    pub fn apply_designators(
-        &mut self,
-        assignments: &std::collections::BTreeMap<String, String>,
-    ) {
+    pub fn apply_designators(&mut self, assignments: &std::collections::BTreeMap<String, String>) {
         for inst in &mut self.instances {
             if let Some(desig) = assignments.get(&inst.hierarchical_path) {
                 inst.designator = Some(desig.clone());

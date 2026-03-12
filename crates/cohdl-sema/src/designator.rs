@@ -252,13 +252,11 @@ pub fn build_instance_infos(
     ir.instances
         .iter()
         .map(|inst| {
-            let prefix = device_traits
-                .get(&inst.device)
-                .and_then(|traits| {
-                    traits
-                        .iter()
-                        .find_map(|t| lookup_trait_prefix(t, trait_prefixes))
-                });
+            let prefix = device_traits.get(&inst.device).and_then(|traits| {
+                traits
+                    .iter()
+                    .find_map(|t| lookup_trait_prefix(t, trait_prefixes))
+            });
             InstanceInfo {
                 hierarchical_path: inst.hierarchical_path.clone(),
                 designator_override: overrides.get(&inst.hierarchical_path).cloned(),

@@ -154,11 +154,9 @@ impl SourceMap {
     /// Returns `(file_path, content_slice, local_offset)`.
     fn lookup<'a>(&self, combined_src: &'a str, offset: usize) -> (&str, &'a str, usize) {
         for entry in &self.entries {
-            if offset >= entry.content_start
-                && offset < entry.content_start + entry.content_len
-            {
-                let slice = &combined_src
-                    [entry.content_start..entry.content_start + entry.content_len];
+            if offset >= entry.content_start && offset < entry.content_start + entry.content_len {
+                let slice =
+                    &combined_src[entry.content_start..entry.content_start + entry.content_len];
                 return (&entry.file, slice, offset - entry.content_start);
             }
         }
@@ -179,10 +177,7 @@ impl SourceMap {
 /// Parses the root file to find `ModDecl` nodes, loads each referenced
 /// `<name>.cohdl` from the same directory, and returns the combined source
 /// with module files prepended before the root source (like Rust's `mod`).
-fn resolve_modules(
-    root_path: &str,
-    root_src: &str,
-) -> Result<(String, SourceMap), String> {
+fn resolve_modules(root_path: &str, root_src: &str) -> Result<(String, SourceMap), String> {
     use cohdl_syntax::ast::TopLevelItemKind;
 
     let source_file = match parse_source_file(root_src) {

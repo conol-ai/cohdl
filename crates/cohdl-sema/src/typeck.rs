@@ -483,9 +483,9 @@ impl TypeChecker {
                     }
                 }
                 DeviceBodyItem::Spec(spec) => {
-                    if spec.qualifier.is_some() {
+                    if let Some(qualifier) = &spec.qualifier {
                         // Variant-qualified spec: collect only the footprint.
-                        let variant = spec.qualifier.as_ref().unwrap().name.clone();
+                        let variant = qualifier.name.clone();
                         for entry in &spec.entries {
                             if entry.name.name == "footprint" {
                                 if let Some(fp) =

@@ -679,10 +679,7 @@ fn designator_lock_lifecycle() {
     let mut db2 = db.clone();
     let (assignments2, errors2) = db2.assign(&infos);
     assert!(errors2.is_empty());
-    assert_eq!(
-        assignments, assignments2,
-        "reassignment should be stable"
-    );
+    assert_eq!(assignments, assignments2, "reassignment should be stable");
 
     // ── Phase 3: save/load round-trip ────────────────────────────────────
     let lock_path = std::env::temp_dir().join("cohdl_e2e_designator.lock");
@@ -704,7 +701,7 @@ fn designator_lock_lifecycle() {
         .find(|(_, d)| *d == "C1")
         .map(|(p, _)| p.clone())
         .unwrap();
-    db3.tombstone_removed(&[cap_path.clone()]);
+    db3.tombstone_removed(std::slice::from_ref(&cap_path));
 
     // C1's designator should now be in tombstones.
     assert!(db3.tombstones().contains_key(&cap_path));
@@ -901,8 +898,7 @@ fn conol_pin() {
     // ── Key nets exist.
     let net_names: Vec<&str> = ir.nets.iter().map(|n| n.name.as_str()).collect();
     for expected in &[
-        "GND", "VDD_3V3", "VDD_1V8", "VBUS", "VSYS", "VBAT",
-        "SDIO_CLK", "PDM_CLK", "RF_ANT",
+        "GND", "VDD_3V3", "VDD_1V8", "VBUS", "VSYS", "VBAT", "SDIO_CLK", "PDM_CLK", "RF_ANT",
         "BTN_REC", "BTN_MARK", "LED_DRV",
     ] {
         assert!(

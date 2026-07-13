@@ -6,9 +6,14 @@
 pub mod ast;
 pub mod check;
 pub mod diag;
+pub mod drc;
+pub mod emit;
 pub mod ir;
 pub mod lex;
+pub mod lock;
 pub mod parse;
+pub mod pipeline;
+pub mod project;
 pub mod resolve;
 pub mod span;
 pub mod units;

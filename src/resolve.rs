@@ -318,18 +318,19 @@ fn validate_fns(world: &World, diags: &mut Diagnostics) {
         for p in &f.params {
             match &p.ty {
                 FnParamTy::Pin(_) => {}
-                FnParamTy::Generic(g) => match f.generics.iter().find(|gp| gp.name.name == g.name) {
-                    None => diags.push(Diagnostic::error(
-                        "E202",
-                        g.span,
-                        format!(
+                FnParamTy::Generic(g) => {
+                    match f.generics.iter().find(|gp| gp.name.name == g.name) {
+                        None => diags.push(Diagnostic::error(
+                            "E202",
+                            g.span,
+                            format!(
                             "`{}` is not `Pin`, `impl Trait`, or a generic parameter of fn `{}`",
                             g.name, f.name.name
                         ),
-                    )),
-                    Some(gp) => {
-                        if let GenericBound::Unit(u) = &gp.bound {
-                            diags.push(Diagnostic::error(
+                        )),
+                        Some(gp) => {
+                            if let GenericBound::Unit(u) = &gp.bound {
+                                diags.push(Diagnostic::error(
                                     "E205",
                                     g.span,
                                     format!(
@@ -338,9 +339,10 @@ fn validate_fns(world: &World, diags: &mut Diagnostics) {
                                         u.unit.type_name()
                                     ),
                                 ));
+                            }
                         }
                     }
-                },
+                }
                 FnParamTy::ImplTrait(traits, _) => {
                     for t in traits {
                         check_trait_ref(world, t, diags);

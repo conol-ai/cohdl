@@ -98,9 +98,9 @@ The v1 backlog (RFC-001…010) described defects and features in a discarded imp
 | RFC-006 | Nested `fn` call semantics (monomorphization + inlining across call depth) — **Accepted 2026-07-13**, see child note RFC-006 + DR-015 | **P0 — done** | Must be first-class from v2 launch, not a P1 patch — composability depends on it |
 | RFC-007 | Generics-over-specs syntax + visible-default rules — **Accepted 2026-07-13**, see child note RFC-007 + DR-016 | **P0 — done** | The expressiveness half of the core bet; must land alongside RFC-001–003, not after |
 | RFC-008 | Grammar design for exhaustive pattern-matching over structural variants — **Accepted 2026-07-13**, see child note RFC-008 + DR-017 | **P1 — done** | Needed once devices/packages have enough variants to require it; can follow the P0 core |
-| RFC-009 | `cohdl fmt` canonical form, co-designed with the grammar | P1 | Ship-from-launch requirement per the Constitution; design the form as the grammar is finalized, not after |
-| RFC-010 | `cohdl check --json` schema, co-designed with the type checker's diagnostic shape | P1 | Same co-design discipline as RFC-009 |
-| RFC-011 | Error-code registry (v2 baseline, informed by RFC-004's classification pass) | P1 | Depends on RFC-004 landing first — can't finalize codes until we know what moved from DRC to type-checking |
+| RFC-009 | `cohdl fmt` canonical form, co-designed with the grammar — **Accepted 2026-07-13**, see child note RFC-009 + DR-018 | **P1 — done** | Ship-from-launch requirement per the Constitution; design the form as the grammar is finalized, not after |
+| RFC-010 | `cohdl check --json` schema, co-designed with the type checker's diagnostic shape — **Accepted 2026-07-13**, see child note RFC-010 + DR-019 | **P1 — done** | Same co-design discipline as RFC-009 |
+| RFC-011 | Error-code registry (v2 baseline, informed by RFC-004's classification pass) — **Accepted 2026-07-13**, see child note RFC-011 + DR-009 | **P1 — done** | Depends on RFC-004 landing first — can't finalize codes until we know what moved from DRC to type-checking |
 | RFC-012 | `#[intent(...)]` annotations (pure metadata) | P2 | Gated on zero-netlist-impact, same as v1; not urgent for the redesign's core bet |
 | RFC-013 | Layout-constraint concept (the door) | **Gated** | Unchanged from v1 — needs a goal-change proposal, not just an RFC |
 

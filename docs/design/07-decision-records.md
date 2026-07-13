@@ -389,7 +389,102 @@ Option 1 was rejected as an inconsistent half-measure — if exhaustiveness is w
 
 If a genuine third use case for closed-variant exhaustiveness emerges (beyond pin roles and package variants) — e.g. differential-pair roles or AVL alternates needing the same discipline — extend this same mechanism rather than inventing a parallel one.
 
+# DR-018: cohdl fmt canonical form — a pure AST-to-text serializer, grounded in the real repository's existing style + real drift
+
+## Context
+
+RFC-009 (note 6) defined cohdl fmt's canonical form, informed by reading the actual std library and demo example on the real main branch rather than designing in the abstract. This surfaced two concrete, pre-existing gaps: std/passives.cohdl was never updated for RFC-008's mandatory pin-role annotations, and std/connectors.cohdl's SBU1/SBU2 pins are missing their role brackets entirely — both real RFC-008 compliance bugs, found while grounding this RFC, not invented by it.
+
+## Options
+
+1. A configurable formatter (indent width, line length, etc. as options).
+2. A pure AST-to-text serializer with one canonical form, no configuration — parse the existing grammar, re-serialize deterministically; idempotent and semantically inert by construction, checked by dedicated regression tests (RFC-009's proposal).
+3. A regex/text-munging pass over the existing source instead of an AST-based serializer.
+4. Defer fmt entirely until a later maturity stage, since the MVP shipped without it.
+
+## Decision
+
+Option 2. One canonical textual form for every construct across RFC-001–008, codified from the styling conventions already universal in the real repository (4-space indent, one statement per block line, comma-space separation, trailing comments preserved verbatim). cohdl fmt parses to the existing AST and re-serializes — never text-level munging — which is what makes idempotence and semantic inertness properties of the construction, not just testing goals. fmt does not fix missing required syntax (e.g. a missing pin-role bracket stays a parse error); formatting and repair are different jobs.
+
+## Rationale
+
+Option 1 was rejected per the "one canonical way" principle applied to layout, the same as it's applied to syntax — configurability would just relocate the "two ways to express the same thing" smell from the grammar to the formatter. Option 3 (text-munging) was rejected because it can't cleanly guarantee idempotence/semantic-inertness the way an AST-based serializer can by construction — a regex pass risks subtly different behavior on inputs it wasn't tested against, while an AST re-serialization is total by definition (anything that parses has exactly one canonical output). Option 4 (defer) was rejected: the real repository already shows concrete drift (the passives/connectors gaps above) that a formatter would have caught immediately, and the Constitution already classifies a canonical form as a generatability constraint, not optional polish — deferring it further just lets more drift accumulate.
+
+## Consequences
+
+- No new concept, syntax, or grammar — pure tooling.
+- Real, one-time diff when first run on the existing repository: std/passives.cohdl needs role brackets added; std/connectors.cohdl's SBU1/SBU2 gap must be fixed by hand first (fmt requires already-parsing source).
+- cohdl fmt --check (non-mutating, CI-friendly) ships alongside the mutating cohdl fmt.
+- The repair-loop harness should run generated source through fmt before diffing attempts, directly serving the AI-generatability goal this RFC targets.
+- Idempotence and semantic-inertness are the two mechanically-checkable correctness properties for fmt itself, tested against every existing fixture plus the std library and demo example.
+
+## Revisit when
+
+If a genuine need for configurable style emerges from real multi-team/multi-organization usage (unlikely at this stage, and would need strong justification against the "one canonical way" principle) — that's a future RFC, not a silent addition of flags.
+
+# DR-019: cohdl check --json schema — a direct, versioned re-projection of the existing Diagnostic struct
+
+## Context
+
+RFC-010 (note 6) defined --json's schema, grounded in the real Diagnostic/Span/SourceMap types (src/diag.rs, src/span.rs) already shipped — code, severity, message, a primary Label (span + message), secondary labels, and help lines. main.rs's own header comment confirms the MVP explicitly cut this ("no --json"), leaving the repair-loop harness dependent on scraping the same text a human reads.
+
+## Options
+
+1. A machine-parseable prefix line format (e.g. file:line:col: code: message) layered onto the existing text renderer, instead of full JSON.
+2. A versioned JSON schema that directly re-projects the existing Diagnostic struct's fields with zero invented content, plus a top-level verdict computed identically to the CLI's existing exit-code logic (RFC-010's proposal).
+3. A full LSP server.
+4. Diagnostics nested per pipeline stage (parse/typecheck/DRC) rather than one flat list.
+
+## Decision
+
+Option 2. cohdl check --json / cohdl build --json emit exactly one JSON document to stdout: schema_version (int, bumped only on breaking schema shape changes), verdict ("pass"/"fail", matching diagnostics.has_errors()), and a flat diagnostics array whose entries map 1:1 onto the real Diagnostic struct's fields (code, severity, message, primary, secondary, help), with spans resolved to 1-based file/line/col via the existing SourceMap.
+
+## Rationale
+
+Option 1 was rejected: still text-format-coupled, and loses structure (secondary labels, multi-line help) JSON represents naturally. Option 3 (LSP) was rejected per note 9's explicit MVP cut ("full LSP") — a stateful protocol server is much more than the repair-loop harness needs to stop text-scraping. Option 4 (per-stage nesting) was rejected because the existing Diagnostics collector already flattens across pipeline stages — diagnostics don't self-report which stage produced them — so inventing that categorization for JSON alone would mean the JSON schema carries information the plain-text renderer doesn't have either, violating this RFC's own gradeability principle (JSON output must be provably equivalent to plain-text output, not a superset or divergent view).
+
+## Consequences
+
+- No new concept, no new diagnostic content — purely a structured re-projection of existing pipeline output.
+- Mandatory equivalence test: for every fixture, --json output and plain-text output must report the identical set of diagnostics (code/severity/span/message/help), field-for-field — any divergence is a bug in one of the two renderers, not an accepted difference.
+- schema_version must be checked by any consumer before parsing further — a versioning discipline that protects RFC-011 (error-code registry) from needing to touch this schema's shape when it formalizes code's guarantees.
+- The repair-loop harness migrates off text-scraping onto --json in the same implementation pass, per the project's "ship with its consumer" precedent (RFC-008/009).
+
+## Revisit when
+
+If a genuine need for incremental/query-style diagnostic access (ask about one span, one file) emerges from real LSP work — that's the eventual LSP RFC's job, not a silent extension of this single request/response schema.
+
+# DR-009: Error-code registry v2 baseline — formalize stability, close three real gaps found against real source
+
+## Context
+
+RFC-011 (note 6) formalized the informal registry (docs/error-codes.md), which had itself already flagged two "wrinkles" in its own text (unit-mismatch checks at generic sites reporting as E402/E404 instead of an E1xx code; a standalone Ω reporting under E001 instead of E101). Auditing the registry against the real compiler source and against RFC-008/RFC-010 (both landed after the informal registry was written) surfaced a third, more serious gap: RFC-008's three promised structural-variant diagnostics were never wired to any code at all — no call site exists in source for any of them.
+
+## Options
+
+1. Treat "formalize" as "freeze the informal registry as-is," documenting the two known wrinkles as accepted quirks rather than fixing them.
+2. Formalize the registry's stability rule (issue once, never repurpose, only deprecate) as an enforced, mechanically-checked contract; fix the two flagged misfilings (E402→E112, E404→E113; standalone Ω gets its own E107); and close the RFC-008 gap with a real E9xx block (five codes, not the RFC's originally-estimated three, since deriving them properly split "missing selector" into two distinct cases) (RFC-011's proposal).
+3. Leave RFC-008's codes unimplemented indefinitely, since MVP-scope demo fixtures don't currently exercise them.
+
+## Decision
+
+Option 2. The registry keeps its existing block-per-mechanism structure but the organizing principle is now explicit: a block is chosen by kind of mistake, not by which compiler pass happens to catch it — this is what E402/E404's misfiling violated. Two real renumberings (E402→E112, E404→E113) and one real split (Ω gets E107, distinct from E101). A new E9xx block (five codes: E901–E905) closes the RFC-008 gap with real call sites, not just registry rows. A new E00x entry (E000) documents the pre-pipeline CLI-invocation failure path RFC-010 left implicit. A mechanical, CI-enforced completeness test runs in both directions: every code in source has a registry row; every non-deprecated registry row has a real call site.
+
+## Rationale
+
+Option 1 was rejected: the informal registry's own text explicitly anticipated RFC-011 fixing these wrinkles ("clean up when RFC-011 formalizes codes") — freezing them as accepted quirks would mean this RFC skipped the one job it was flagged to do. Option 3 was rejected: RFC-008 is already Accepted and its own text promised these diagnostics; leaving them permanently unwired reproduces exactly the "structurally present but not actually enforced" failure class DR-006 named for DRC rules, now in the diagnostics-registry domain instead. The two-directional completeness test is what prevents this exact gap from recurring silently for any future RFC.
+
+## Consequences
+
+- Real, one-time breaking renumbering: E402→E112, E404→E113. Acceptable pre-first-release (no external consumer depends on these two codes yet); this is precisely the kind of change the stability rule exists to prevent from happening again post-launch.
+- RFC-008's real diagnostic count is five (E901–E905), not the three originally estimated in RFC-008's own text — a correction surfaced by deriving the exhaustiveness rules properly rather than re-using an unverified estimate.
+- The completeness test becomes a permanent CI gate, not a one-time audit — every future diagnostic-producing code change is checked against the registry automatically.
+- Note 10 gains a summary "Error-code registry" section (block-ownership table + stability rule); the full code-by-code listing stays solely in docs/error-codes.md to avoid two sources of truth.
+
+## Revisit when
+
+If a future RFC's diagnostic needs don't fit any existing block's "kind of mistake" grouping — that RFC should propose its own new block (as RFC-008 did for E9xx here), not force-fit into an existing one for the sake of avoiding a new block number.
+
 # Pending decision records (to be written as RFCs land)
 
-- DR-009 — Error-code registry v2 baseline, once RFC-004 + RFC-011 land.
 - DR-010 — #[intent(...)] as pure non-netlist metadata, once RFC-012 is decided (carried forward from v1's pending DR-007, renumbered).

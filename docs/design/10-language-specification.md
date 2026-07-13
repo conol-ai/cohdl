@@ -208,7 +208,7 @@ Rules:
 - Every produced instance/net is named from its full call-chain path, guaranteeing no collision between different call sites — including two separate calls to the same fn, or the same fn reached via different nesting paths. The __-prefixed namespace this naming scheme uses is compiler-reserved — a user-declared instance/net name beginning with __ is a compile error, so the guarantee can't be forged.
 - Cyclic call chains are a compile error. If expanding a call would re-enter a fn already active earlier in the same chain, this is rejected with a diagnostic naming the full cycle — never a silent infinite/truncated expansion.
 - There is no depth limit on (acyclic) nesting.
-- Calls use name::<generic-args>(args) (turbofish) when the fn has generic parameters, or name(args) otherwise. Generic arguments are positional.
+- Calls use name::(args) (turbofish) when the fn has generic parameters, or name(args) otherwise. Generic arguments are positional.
 
 # Generics-over-specs and generic trait bounds
 
@@ -295,13 +295,96 @@ Rules:
 - An instance of a device with declared variants must select one via a [VARIANT] suffix — there is no implicit default variant; omitting the selector is a compile error listing the valid variant set.
 - A device with no variants {} block is unaffected — plain pins { ... } (no bracket) as shown throughout this note.
 
+# Canonical form (cohdl fmt)
+
+Accepted via RFC-009, see RFC-009: cohdl fmt canonical form + DR-018.
+
+cohdl fmt defines exactly one canonical textual serialization for every construct above — no configuration, no style options. It is a pure function of the parsed AST (parse → re-serialize, never text-level munging), which makes it idempotent (fmt(fmt(x)) == fmt(x)) and semantically inert (never changes a design's parse tree, type-check verdict, or emitted netlist/BOM bytes) by construction, not just by testing.
+
+Rules:
+
+- 4-space indentation, no tabs. One statement per line inside any block (pins {}, spec {}, net, variants {}).
+- Trailing line comments (// ...) are preserved verbatim, never reformatted or moved.
+- At most one consecutive blank line; existing author-placed blank lines (e.g. grouping related declarations) are preserved, never inserted.
+- No trailing whitespace; exactly one trailing newline per file.
+- Pin declarations: required NAME: PINSPEC [role] — one space before [role], no space inside the brackets. Pin buses wrap with continuation lines aligned under the first pin number when they'd exceed the line-length target.
+- spec {} / generic argument lists: comma-space-separated (MLCC<100nF, 16V, 10%>).
+- net declarations: net NAME [annotation]: member, member, … — no space before the annotation bracket; members wrap aligned under the first member after the colon.
+- impl Trait for Device {} stays on one line when the body is empty (the common case) — never split just because it's empty.
+- variants {} / pins[VARIANT] / spec[VARIANT]: no space between the keyword and [.
+- Turbofish (name::<Arg1, Arg2>(args)): no space around ::.
+- Soft line-length target: 100 columns before wrapping is triggered.
+
+fmt does not fix missing required syntax — a pin missing its [role] bracket is a parse error already (per RFC-008); cohdl fmt requires already-parsing source and is not a repair tool. cohdl fmt --check (non-mutating) is the CI/review-gate variant of the mutating cohdl fmt.
+
+# Structured diagnostics (cohdl check --json)
+
+Accepted via RFC-010, see RFC-010: cohdl check --json schema + DR-019.
+
+cohdl check --json / cohdl build --json emit exactly one JSON document to stdout — a direct, versioned re-projection of the existing diagnostic pipeline's output, with zero invented content and zero information loss relative to the plain-text renderer.
+
+```json
+{
+  "schema_version": 1,
+  "verdict": "fail",
+  "diagnostics": [
+    {
+      "code": "E110",
+      "severity": "error",
+      "message": "expected `Voltage`, found `Capacitance`",
+      "primary": {
+        "file": "src/main.cohdl",
+        "start_line": 12, "start_col": 18,
+        "end_line": 12, "end_col": 24,
+        "message": "this net annotation must be Voltage-typed"
+      },
+      "secondary": [],
+      "help": ["did you mean `net VBUS [5V]: ...`?"]
+    }
+  ]
+}
+```
+
+Rules:
+
+- schema_version — an integer, bumped only on a breaking change to this schema's own shape (new diagnostic codes/messages are ordinary content, not schema changes) — any consumer must check it before parsing further.
+- verdict — "pass" or "fail", computed identically to the plain-text CLI's existing exit-code logic (any error-severity diagnostic present ⇒ "fail").
+- diagnostics — a flat, ordered list (no per-pipeline-stage nesting — the pipeline doesn't tag diagnostics by stage, and --json never carries information plain-text output lacks). Each entry: code, severity ("error"/"warning"), message, primary (span resolved to 1-based file/start_line/start_col/end_line/end_col, plus its own message), secondary (zero or more, same shape), help (a string list, verbatim).
+- cohdl build --json additionally includes a build object naming emitted artifact paths, present only when verdict is "pass".
+- Equivalence guarantee: --json output and plain-text output always report the identical diagnostic set for the same input, field-for-field — this is a tested property (see RFC-010's Gradeability), not just a design intention.
+- --json is not a repair tool and does not fix anything — it is the same read-only diagnostic pipeline, restructured.
+
+# Error-code registry
+
+Accepted via RFC-011, see RFC-011: Error-code registry (formal v2 baseline) + DR-009.
+
+The full code-by-code listing lives in `docs/error-codes.md` (the single source of truth — not duplicated here). This section states the organizing principle and stability rule.
+
+**Stability rule**: a code is issued once and never repurposed. If a check's behavior changes enough that its old meaning no longer applies, the code is retired (marked `[DEPRECATED]`, kept documented) and a new one is issued — never edited in place.
+
+**Organizing principle**: a block is chosen by **kind of mistake**, not by which compiler pass happens to catch it.
+
+| Block | Owner mechanism |
+|---|---|
+| E00x | CLI invocation (pre-pipeline, not a source diagnostic) |
+| E0xx | Lexing & parsing |
+| E1xx | Unit system (RFC-001) — all unit-mismatch diagnostics, regardless of call site |
+| E2xx | Name resolution |
+| E3xx | Trait satisfaction at impl (RFC-003) |
+| E4xx | Generics (RFC-007), excluding unit-mismatch (that's E1xx) |
+| E5xx | Sub-circuit fns (RFC-006) |
+| E6xx | Design assembly & nets |
+| E7xx | Pin connection obligations (RFC-002) |
+| E8xx | Designators & parts (RFC-005) |
+| E9xx | Structural variants (RFC-008) |
+| D00x | Residual DRC (RFC-004) — exactly four, never more |
+
+**Enforcement**: a mechanical, CI-run completeness test checks both directions — every diagnostic code literal in compiler source has a registry row, and every non-deprecated registry row has a real call site in source. This closes the same "structurally present but not actually enforced" gap class DR-006 named for DRC rules, applied here to the diagnostics registry.
+
 # Not yet specified
 
 The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have **no Accepted RFC yet**, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
 
-- `cohdl fmt` canonical form (RFC-009)
-- `cohdl check --json` schema (RFC-010)
-- Error-code registry (RFC-011)
 - `#[intent(...)]` annotations (RFC-012)
 - Everything else in the Conceptual Model (Part, Instance, Net, Module, Design) that hasn't yet had its concrete syntax/semantics pinned down by an Accepted RFC — note 2 describes their intended shape and philosophy; this note will gain a section for each only once an RFC formally accepts its concrete syntax.
 

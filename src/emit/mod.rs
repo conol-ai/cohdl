@@ -4,6 +4,7 @@
 //! explicit sort; nothing iterates a hash map.
 
 pub mod bom;
+pub mod json;
 pub mod kicad;
 
 use crate::diag::{Diagnostic, Diagnostics};

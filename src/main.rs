@@ -1,6 +1,7 @@
-//! `cohdl` CLI: `check` and `build` (the MVP surface — no fmt, no LSP,
-//! no --json; see docs/design/09-mvp-definition.md's cut list).
+//! `cohdl` CLI: `check` and `build`, each with an optional `--json`
+//! (RFC-010: structured diagnostics). `fmt` (RFC-009) is a separate command.
 
+use cohdl::emit;
 use cohdl::lock::LockState;
 use cohdl::pipeline;
 use cohdl::project;
@@ -11,14 +12,17 @@ const USAGE: &str = "\
 cohdl — the CoHDL v2 compiler
 
 USAGE:
-    cohdl check [PATH] [--design NAME] [--std DIR | --no-std]
-    cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
+    cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]
+    cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR] [--json]
 
 PATH is a project directory (with cohdl.toml + src/) or a single .cohdl file;
 defaults to the current directory.
 
     check    parse, resolve, type-check, and run residual DRC
     build    check + assign designators + bind parts + emit KiCad .net + BOM CSV
+
+    --json   emit one JSON document to stdout instead of human-readable text
+             (RFC-010)
 ";
 
 struct Args {
@@ -28,6 +32,7 @@ struct Args {
     std_flag: Option<PathBuf>,
     no_std: bool,
     out_dir: PathBuf,
+    json: bool,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -40,6 +45,7 @@ fn parse_args() -> Result<Args, String> {
         std_flag: None,
         no_std: false,
         out_dir: PathBuf::from("out"),
+        json: false,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -51,6 +57,7 @@ fn parse_args() -> Result<Args, String> {
                 args.std_flag = Some(PathBuf::from(argv.next().ok_or("--std needs a value")?));
             }
             "--no-std" => args.no_std = true,
+            "--json" => args.json = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
             }
@@ -94,8 +101,9 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Args) -> Result<bool, String> {
-    if args.command != "check" && args.command != "build" {
-        return Err(format!("unknown command `{}`\n\n{}", args.command, USAGE));
+    match args.command.as_str() {
+        "check" | "build" => {}
+        other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }
 
     let std_dir = if args.no_std {
@@ -116,6 +124,10 @@ fn run(args: &Args) -> Result<bool, String> {
         pipeline::check_files(&proj.files, args.design.as_deref().or(proj.top.as_deref()))?;
 
     if args.command == "check" {
+        if args.json {
+            print!("{}", emit::json::render(&checked, None));
+            return Ok(!checked.diags.has_errors());
+        }
         eprint!("{}", checked.diags.render(&checked.sm));
         if checked.diags.has_errors() {
             return Ok(false);
@@ -129,7 +141,11 @@ fn run(args: &Args) -> Result<bool, String> {
 
     // ---- build ----
     if checked.diags.has_errors() {
-        eprint!("{}", checked.diags.render(&checked.sm));
+        if args.json {
+            print!("{}", emit::json::render(&checked, None));
+        } else {
+            eprint!("{}", checked.diags.render(&checked.sm));
+        }
         return Ok(false);
     }
     if checked.ir.is_none() {
@@ -143,14 +159,23 @@ fn run(args: &Args) -> Result<bool, String> {
     };
 
     let artifacts = pipeline::build_artifacts(&mut checked, &prior_lock);
-    eprint!("{}", checked.diags.render(&checked.sm));
     let Some(artifacts) = artifacts else {
+        if args.json {
+            print!("{}", emit::json::render(&checked, None));
+        } else {
+            eprint!("{}", checked.diags.render(&checked.sm));
+        }
         return Ok(false);
     };
-    for note in &artifacts.notes {
-        eprintln!("note: {}", note);
-    }
     if checked.diags.has_errors() {
+        if args.json {
+            print!("{}", emit::json::render(&checked, None));
+        } else {
+            eprint!("{}", checked.diags.render(&checked.sm));
+            for note in &artifacts.notes {
+                eprintln!("note: {}", note);
+            }
+        }
         return Ok(false);
     }
 
@@ -166,6 +191,19 @@ fn run(args: &Args) -> Result<bool, String> {
     std::fs::write(&lock_path, artifacts.lock.render())
         .map_err(|e| format!("cannot write `{}`: {}", lock_path.display(), e))?;
 
+    if args.json {
+        let build = emit::json::BuildArtifacts {
+            netlist: net_path.display().to_string(),
+            bom: bom_path.display().to_string(),
+        };
+        print!("{}", emit::json::render(&checked, Some(&build)));
+        return Ok(true);
+    }
+
+    // Non-JSON: surface any build notes (e.g. part-binding ambiguity) as prose.
+    for note in &artifacts.notes {
+        eprintln!("note: {}", note);
+    }
     let ir = checked.ir.as_ref().unwrap();
     eprintln!(
         "  Built design `{}`: {} instances, {} nets",

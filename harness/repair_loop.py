@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import json
 import os
 import pathlib
 import re
@@ -74,14 +75,61 @@ def extract_cohdl(text: str) -> str | None:
     return blocks[-1] if blocks else None
 
 
-def run_build(compiler: pathlib.Path, project_dir: pathlib.Path) -> tuple[bool, str]:
+SCHEMA_VERSION = 1  # RFC-010: check before parsing further.
+
+
+def run_build(compiler: pathlib.Path, project_dir: pathlib.Path) -> dict:
+    """Run `cohdl build --json` and return the parsed RFC-010 document.
+
+    Retires text-scraping entirely (RFC-010): the harness now consumes the
+    structured diagnostics contract, not the human-readable render. A verdict
+    of "pass" means the design built; `diagnostics` is the flat list to feed
+    back; `build` (on pass) names the emitted artifacts.
+    """
     proc = subprocess.run(
-        [str(compiler), "build", str(project_dir), "--std", str(REPO_ROOT / "std")],
+        [str(compiler), "build", str(project_dir), "--std", str(REPO_ROOT / "std"), "--json"],
         capture_output=True,
         text=True,
     )
-    output = (proc.stderr + proc.stdout).strip()
-    return proc.returncode == 0, output
+    try:
+        doc = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        # Exit code 2: a pre-pipeline invocation failure (E000), which is never
+        # part of the diagnostics array — surface stderr as a synthetic verdict.
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "verdict": "fail",
+            "diagnostics": [],
+            "invocation_error": proc.stderr.strip() or "cohdl invocation failed",
+        }
+    got = doc.get("schema_version")
+    if got != SCHEMA_VERSION:
+        raise SystemExit(
+            f"cohdl --json schema_version {got!r} != expected {SCHEMA_VERSION} — "
+            "update the harness before parsing"
+        )
+    return doc
+
+
+def format_diagnostics(doc: dict) -> str:
+    """Render RFC-010 diagnostics as readable text — from the structured data,
+    never by regex-scraping the compiler's own text output."""
+    if err := doc.get("invocation_error"):
+        return f"cohdl could not run: {err}"
+    lines = []
+    for d in doc["diagnostics"]:
+        p = d["primary"]
+        loc = f'{p["file"]}:{p["start_line"]}:{p["start_col"]}'
+        head = f'{d["severity"]}[{d["code"]}] at {loc}: {d["message"]}'
+        lines.append(head)
+        if p.get("message"):
+            lines.append(f'    {loc}: {p["message"]}')
+        for s in d.get("secondary", []):
+            sloc = f'{s["file"]}:{s["start_line"]}:{s["start_col"]}'
+            lines.append(f'    note: {sloc}: {s["message"]}')
+        for h in d.get("help", []):
+            lines.append(f"    help: {h}")
+    return "\n".join(lines) if lines else "(no diagnostics)"
 
 
 class ApiBackend:
@@ -255,14 +303,16 @@ def main() -> int:
             '[package]\nname = "sensor-node"\n'
         )
 
-        ok, compiler_output = run_build(compiler, attempt_dir)
+        doc = run_build(compiler, attempt_dir)
+        ok = doc["verdict"] == "pass"
+        compiler_output = format_diagnostics(doc)
         transcript.append("### Generated source")
         transcript.append("")
         transcript.append("```cohdl")
         transcript.append(source.rstrip("\n"))
         transcript.append("```")
         transcript.append("")
-        transcript.append("### Compiler verdict")
+        transcript.append("### Compiler verdict (RFC-010 `--json`)")
         transcript.append("")
         transcript.append("```text")
         transcript.append(compiler_output if compiler_output else "(no output)")
@@ -271,19 +321,23 @@ def main() -> int:
 
         if ok:
             print(f"attempt {attempt}: CLEAN — netlist + BOM emitted")
+            build = doc.get("build", {})
+            netlist = build.get("netlist", str(attempt_dir / "out" / "sensor-node.net"))
+            bom = build.get("bom", str(attempt_dir / "out" / "sensor-node-bom.csv"))
             transcript.append(
                 f"**Attempt {attempt} is clean** — the design parses, resolves, "
                 "type-checks, passes residual DRC, and emitted a KiCad netlist + BOM."
             )
             transcript.append("")
-            transcript.append(f"- Netlist: `{attempt_dir / 'out' / 'sensor-node.net'}`")
-            transcript.append(f"- BOM: `{attempt_dir / 'out' / 'sensor-node-bom.csv'}`")
+            transcript.append(f"- Netlist: `{netlist}`")
+            transcript.append(f"- BOM: `{bom}`")
             transcript.append("")
             success = True
             break
 
-        # Count type-checker/DRC catches for the proof requirement.
-        n_errors = len(re.findall(r"^(error|warning)\[", compiler_output, re.MULTILINE))
+        # Count type-checker/DRC catches for the proof requirement — straight
+        # from the structured diagnostics list, no text-scraping.
+        n_errors = len(doc["diagnostics"]) or (1 if doc.get("invocation_error") else 0)
         caught_errors += n_errors
         print(f"attempt {attempt}: {n_errors} diagnostics — feeding back verbatim")
 

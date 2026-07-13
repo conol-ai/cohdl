@@ -21,6 +21,8 @@ Backends (--backend, default auto):
   claude-cli  `claude -p` print mode (uses your existing Claude Code login)
 """
 
+from __future__ import annotations
+
 import argparse
 import datetime
 import os
@@ -131,9 +133,9 @@ class ClaudeCliBackend:
                 "claude", "-p",
                 "--model", self.model,
                 "--system-prompt", self.system_prompt,
-                "--disallowedTools", "*",
-                prompt,
+                "--tools", "",
             ],
+            input=prompt,
             capture_output=True,
             text=True,
             timeout=1200,

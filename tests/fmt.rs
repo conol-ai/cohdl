@@ -393,6 +393,86 @@ fn shared_line_trailing_comment_attaches_to_last_statement() {
 }
 
 #[test]
+fn whole_construct_comment_stays_on_the_construct() {
+    // Review-2 regression: a comment trailing a ONE-line construct describes
+    // the whole construct — after expansion it must ride the construct's
+    // LAST line (the closer), not the opening header.
+    let src = "pub device D { pins { A: 1 [passive] } } // whole device comment\ndesign B { inst d: D net N: d.A } // whole design comment";
+    let once = format_source("whole.cohdl", src).unwrap();
+    assert!(
+        once.contains("} // whole device comment"),
+        "device comment must ride the closer:\n{}",
+        once
+    );
+    assert!(
+        once.contains("} // whole design comment"),
+        "design comment must ride the closer:\n{}",
+        once
+    );
+    assert!(
+        !once.contains("{ // whole"),
+        "comment must not move to the opener:\n{}",
+        once
+    );
+    assert_idempotent("whole.cohdl", src);
+}
+
+#[test]
+fn empty_body_comments_stay_inside_braces() {
+    // Review-2 regression: comment-only trait/impl bodies must not collapse
+    // to {} with the comments exiled to EOF.
+    let src = "pub device D { pins { A: 1 [passive] } }\npub trait T {\n    // only trait body comment\n}\nimpl T for D {\n    // only impl body comment\n}";
+    let once = format_source("emptyb.cohdl", src).unwrap();
+    let t_open = once.find("pub trait T {").unwrap();
+    let t_note = once.find("// only trait body comment").unwrap();
+    let i_open = once.find("impl T for D {").unwrap();
+    let i_note = once.find("// only impl body comment").unwrap();
+    assert!(
+        t_open < t_note && t_note < i_open && i_open < i_note,
+        "body comments must stay inside their braces:\n{}",
+        once
+    );
+    assert_idempotent("emptyb.cohdl", src);
+}
+
+#[test]
+fn attributes_keep_source_order_and_comments() {
+    // Review-2: attributes serialize in SOURCE order (designator before
+    // intent as written), so comments between them cannot migrate.
+    let src = "pub device D { pins { A: 1 [passive] } }\ndesign B {\n    #[designator(\"U7\")] // keep-d\n    // between attrs\n    #[intent(\"why\")] // keep-i\n    inst d: D\n    net N: d.A\n}";
+    let once = format_source("attrord.cohdl", src).unwrap();
+    let d_pos = once.find("#[designator").unwrap();
+    let between = once.find("// between attrs").unwrap();
+    let i_pos = once.find("#[intent").unwrap();
+    assert!(
+        d_pos < between && between < i_pos,
+        "source order + comment position must hold:\n{}",
+        once
+    );
+    assert!(
+        once.contains("// keep-d") && once.contains("// keep-i"),
+        "{}",
+        once
+    );
+    assert_idempotent("attrord.cohdl", src);
+}
+
+#[test]
+fn attr_sharing_line_with_decl_leaves_comment_to_the_decl() {
+    // Review-2: `#[intent("x")] inst d: D // note` — the comment belongs to
+    // the statement, not the attribute.
+    let src = "pub device D { pins { A: 1 [passive] } }\ndesign B {\n    #[intent(\"x\")] inst d: D // decl note\n    net N: d.A\n}";
+    let once = format_source("attrshare.cohdl", src).unwrap();
+    assert!(
+        once.contains("inst d: D // decl note"),
+        "comment must follow the declaration:\n{}",
+        once
+    );
+    assert!(!once.contains(")] // decl note"), "{}", once);
+    assert_idempotent("attrshare.cohdl", src);
+}
+
+#[test]
 fn blank_after_open_brace_is_preserved() {
     // RFC-009: an author-placed blank is never removed (only runs collapse).
     let src = "design B {\n\n    inst d: D\n    net N: d.A\n}";

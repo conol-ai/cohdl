@@ -18,13 +18,18 @@ pub struct Checked {
     pub ir: Option<DesignIr>,
     /// The design that was compiled (None if selection failed).
     pub design_name: Option<String>,
+    /// A design-selection failure (no such design / ambiguous designs). The
+    /// pipeline still returns everything collected up to that point — source
+    /// diagnostics are NEVER discarded because selection failed.
+    pub selection_error: Option<String>,
 }
 
 /// Parse + resolve + type-check + expand + residual DRC.
 ///
 /// `design` selection: explicit override > manifest top > the only design in
-/// the project. Selection failures are returned as `Err(message)` — they are
-/// project-level, not source-level, so they carry no span.
+/// the project. A selection failure is reported via `Checked.selection_error`
+/// (project-level, no span) alongside all collected diagnostics; `Err` is
+/// reserved for conditions where nothing could be compiled at all.
 pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<Checked, String> {
     let mut sm = SourceMap::new();
     let mut diags = Diagnostics::new();
@@ -36,11 +41,12 @@ pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<C
     }
     let world = crate::check::check_declarations(parsed, &mut diags);
 
+    let mut selection_error = None;
     let design_name = match design {
         Some(d) => {
             if !world.designs.contains_key(d) {
                 let available: Vec<&String> = world.designs.keys().collect();
-                return Err(format!(
+                selection_error = Some(format!(
                     "no design named `{}` (available: {})",
                     d,
                     if available.is_empty() {
@@ -53,18 +59,21 @@ pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<C
                             .join(", ")
                     }
                 ));
+                None
+            } else {
+                Some(d.to_string())
             }
-            Some(d.to_string())
         }
         None => match world.designs.len() {
             0 => None, // declaration-only project: still checkable
             1 => Some(world.designs.keys().next().unwrap().clone()),
             _ => {
-                return Err(format!(
-                "project has {} designs ({}) — pass --design or set `[design] top` in cohdl.toml",
-                world.designs.len(),
-                world.designs.keys().cloned().collect::<Vec<_>>().join(", ")
-            ))
+                selection_error = Some(format!(
+                    "project has {} designs ({}) — pass --design or set `[design] top` in cohdl.toml",
+                    world.designs.len(),
+                    world.designs.keys().cloned().collect::<Vec<_>>().join(", ")
+                ));
+                None
             }
         },
     };
@@ -84,6 +93,7 @@ pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<C
         world,
         ir,
         design_name,
+        selection_error,
     })
 }
 

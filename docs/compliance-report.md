@@ -136,9 +136,14 @@ carry regression tests.
 
 - F9 — invocation-level failures (bad flags, missing project, design
   selection, nothing-to-build) are the `E000` class: exit 2, prose on stderr,
-  never a JSON document. Machine consumers key on the exit code (the harness
-  already does). Documented in README and docs/error-codes.md; tested in
-  tests/cli.rs.
+  never a JSON document; collected source diagnostics render to stderr first
+  (they are never discarded). Machine consumers key on the exit code (the
+  harness already does). NOTE (review 2): RFC-010's accepted text reserves
+  stderr prose for failures *before* diagnostic collection begins, and design
+  selection runs after — so this is a **deliberate deviation pending a
+  note-side amendment** (or a v2 schema invocation-error envelope), not
+  accepted-contract compliance. Documented in README and docs/error-codes.md;
+  tested in tests/cli.rs.
 - RFC-012 target set — the parser accepts `#[intent]` on `design` and call
   statements (a superset of the spec's list, matching the RFC's own "any
   top-level or body statement" heading). Zero-impact makes the superset
@@ -170,3 +175,57 @@ carry regression tests.
   wording; RFC-001's in-`rule` comparison surface and RFC-007's literal
   impl-Trait desugaring remain out of scope pending `rule` syntax / a
   dedicated refactor, as previously documented above.
+
+## External review round 2 (Codex, at 83567b9): dispositions
+
+The second review verified the round-1 fixes held, corrected several
+overstatements in the reply, and reproduced new residuals. Fixed in code:
+
+- fmt: a comment trailing a ONE-line construct now rides the construct's last
+  emitted line (closer), not the opening header — one-line trailing comments
+  are held before interior emission and re-attached after it.
+- fmt: comment-only trait/impl bodies keep their comments inside the braces
+  instead of collapsing to `{}` with the comments exiled to EOF.
+- fmt: instance attributes serialize in SOURCE order (never a fixed canonical
+  order), so comments between/after attributes cannot migrate; an attribute
+  sharing its line with the declaration leaves that line's comment to the
+  declaration.
+- Tolerance unit literals restricted to `Time` (RFC-013's
+  `<Time-or-length-unit>`); `5V`/`100nF`/`1kohm` now E110 with a targeted
+  help. Lengths remain the string escape hatch pending the note decision.
+- Design-selection failures no longer discard collected source diagnostics:
+  the pipeline carries `selection_error` alongside everything collected, and
+  the CLI renders diagnostics to stderr before the exit-2 error (both modes);
+  same for nothing-to-build.
+- Command-specific flags validated: `--json` rejected on `fmt`, `--check`
+  rejected on `check`/`build`.
+- The registry-to-source completeness direction now requires a REAL
+  `Diagnostic::error/warning` constructor call site (not any quoted literal);
+  the lexer's shared error helper was restructured so E001/E107 are literal
+  call sites.
+- `10kΩ` is pinned end-to-end (tests/cli.rs): exactly one E101 with the
+  rewrite help, no E103/E107 cascade, plus the documented E401 recovery
+  follow-on — classified **partial** (lexer targeted; parser-recovery fallout
+  is the pipeline's standing recovery policy, applied uniformly to all lex
+  errors in value position).
+- Gradeability: the JSON decoder test now asserts primary/secondary file and
+  full secondary start/end positions on a fixture with guaranteed secondary
+  labels; the intent non-leak assertion uses substrings that actually occur;
+  the intent failing-fixture comparison covers codes, severities, messages,
+  label texts, and help (everything but positions, which the attribute's
+  physical presence necessarily shifts); layout zero-impact compares verdict,
+  diagnostics, --json document, netlist, BOM, and designator lock.
+
+Standing honest classifications (unchanged by code):
+
+- F6/F11 remain **partial** against RFC-009's literal "never moved": interior
+  comments of a construct that fmt reflows or collapses move to an adjacent
+  line (never dropped — enforced by the EOF backstop). Full positional
+  preservation needs comment-anchored trivia ownership or an RFC-009
+  amendment.
+- Blank-line handling: file-leading blanks and blanks inside a reflowed
+  member list are dropped (canonical choice; deviation from "never removed").
+- RFC-010/012/013 gradeability is materially stronger but still not the
+  accepted "every fixture, every field" wording — tracked, not claimed.
+- E9xx, E1005, tolerance-`mm`, the placement example, RFC-012's target list,
+  and the zero-impact wording still require note-side amendments.

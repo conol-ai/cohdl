@@ -288,9 +288,14 @@ fn parse_value(b: &[char], pos: &mut usize) -> Json {
 
 #[test]
 fn document_is_valid_json_and_fields_decode() {
-    // Errors with secondary labels + help, plus unicode/quotes in messages.
+    // Errors with GUARANTEED secondary labels (E906 duplicate variant carries
+    // a "first declared here" secondary) + help, plus unit-type errors.
     let checked = check(
-        "pub device D { pins { A: 1 [passive] } }\nimpl D for D {}\ndesign B {\n    inst c: Foo\n    net V [3.3F]: c.A\n}",
+        "pub device V {\n    variants { X, X }\n    pins[X] { A: 1 [passive] }\n}\npub device D { pins { A: 1 [passive] } }\nimpl D for D {}\ndesign B {\n    inst c: Foo\n    net V [3.3F]: c.A\n}",
+    );
+    assert!(
+        checked.diags.iter().any(|d| !d.secondary.is_empty()),
+        "fixture must exercise secondary labels"
     );
     let doc = json::render(&checked, None);
     let parsed = parse_json(&doc);
@@ -327,12 +332,26 @@ fn document_is_valid_json_and_fields_decode() {
         assert_eq!(p.get("end_col").unwrap().as_u32(), end.col);
         assert_eq!(p.get("message").unwrap().as_str(), d.primary.message);
 
+        // Primary file is asserted too (not just positions).
+        assert_eq!(
+            p.get("file").unwrap().as_str(),
+            checked.sm.name(d.primary.span.file)
+        );
+
         let secondary = j.get("secondary").unwrap().as_arr();
         assert_eq!(secondary.len(), d.secondary.len(), "secondary label count");
         for (sl, sj) in d.secondary.iter().zip(secondary) {
             assert_eq!(sj.get("message").unwrap().as_str(), sl.message);
+            assert_eq!(
+                sj.get("file").unwrap().as_str(),
+                checked.sm.name(sl.span.file)
+            );
             let s = checked.sm.line_col(sl.span.file, sl.span.start);
+            let e = checked.sm.line_col(sl.span.file, sl.span.end);
             assert_eq!(sj.get("start_line").unwrap().as_u32(), s.line);
+            assert_eq!(sj.get("start_col").unwrap().as_u32(), s.col);
+            assert_eq!(sj.get("end_line").unwrap().as_u32(), e.line);
+            assert_eq!(sj.get("end_col").unwrap().as_u32(), e.col);
         }
 
         let help = j.get("help").unwrap().as_arr();

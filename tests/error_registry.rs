@@ -50,7 +50,9 @@ fn is_code(s: &str) -> bool {
         && b[1..].iter().all(|c| c.is_ascii_digit())
 }
 
-/// All `"E###"` / `"E####"` / `"D###"` string literals in the compiler source.
+/// All `"E###"` / `"E####"` / `"D###"` string literals in the compiler source
+/// (the source → registry direction: even a stray code-shaped literal must be
+/// documented).
 fn codes_in_source() -> BTreeSet<String> {
     let mut codes = BTreeSet::new();
     for path in src_files() {
@@ -71,6 +73,37 @@ fn codes_in_source() -> BTreeSet<String> {
                 }
             }
             i += 1;
+        }
+    }
+    codes
+}
+
+/// Codes that appear as the FIRST argument of a real
+/// `Diagnostic::error(…)` / `Diagnostic::warning(…)` call — the registry →
+/// source direction demands an actual call site, not a quoted mention in a
+/// comment or an unused constant.
+fn call_site_codes() -> BTreeSet<String> {
+    let mut codes = BTreeSet::new();
+    for path in src_files() {
+        let text = std::fs::read_to_string(&path).unwrap();
+        for kw in ["Diagnostic::error(", "Diagnostic::warning("] {
+            let mut from = 0;
+            while let Some(pos) = text[from..].find(kw) {
+                let after = from + pos + kw.len();
+                // Skip whitespace/newlines to the first argument.
+                let rest = text[after..].trim_start();
+                if let Some(stripped) = rest.strip_prefix('"') {
+                    for len in [4usize, 5] {
+                        if stripped.len() > len && stripped.as_bytes()[len] == b'"' {
+                            let inner = &stripped[..len];
+                            if is_code(inner) {
+                                codes.insert(inner.to_string());
+                            }
+                        }
+                    }
+                }
+                from = after;
+            }
         }
     }
     codes
@@ -124,19 +157,37 @@ fn every_source_code_has_a_registry_row() {
 
 #[test]
 fn every_live_registry_row_has_a_call_site() {
-    let in_source = codes_in_source();
+    // The strict direction: a REAL `Diagnostic::error/warning` constructor
+    // call, not any quoted mention of the code.
+    let call_sites = call_site_codes();
     let dead: Vec<String> = registry_rows()
         .into_iter()
-        .filter(|r| !r.exempt && !in_source.contains(&r.code))
+        .filter(|r| !r.exempt && !call_sites.contains(&r.code))
         .map(|r| r.code)
         .collect();
     assert!(
         dead.is_empty(),
-        "registry rows with no call site in src/: {:?}\n\
+        "registry rows with no Diagnostic::error/warning call site in src/: {:?}\n\
          (RFC-011: a documented-but-dead code must be marked [DEPRECATED] or \
          [RESERVED, not yet implemented])",
         dead
     );
+}
+
+#[test]
+fn call_site_scanner_finds_known_sites() {
+    // Self-check on the scanner: codes constructed in obviously different
+    // styles (inline literal, multi-line construction) are all found.
+    let sites = call_site_codes();
+    for known in ["E010", "E101", "E701", "E1001", "D003"] {
+        assert!(
+            sites.contains(known),
+            "scanner failed to find the known call site for {}",
+            known
+        );
+    }
+    // And it is strictly narrower than the any-literal scan.
+    assert!(sites.is_subset(&codes_in_source()));
 }
 
 #[test]

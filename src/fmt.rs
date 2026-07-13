@@ -224,6 +224,36 @@ impl Formatter<'_> {
         self.cursor = self.cursor.max(past);
     }
 
+    /// For a construct that starts and ends on ONE source line, take that
+    /// line's trailing comment out of circulation so no interior emitter
+    /// steals it — the caller re-attaches it to the construct's LAST emitted
+    /// line (`append_held`), preserving "this comment describes the whole
+    /// construct" association.
+    fn hold_line_comment(&mut self, start: u32, end: u32) -> Option<String> {
+        if start == end {
+            self.c.trailing.remove(&end)
+        } else {
+            None
+        }
+    }
+
+    fn append_held(&mut self, held: Option<String>) {
+        if let Some(c) = held {
+            if let Some(last) = self.out.last_mut() {
+                if !last.is_empty() {
+                    last.push(' ');
+                    last.push_str(&c);
+                }
+            }
+        }
+    }
+
+    /// Any comment on a line strictly between `after` and `before`?
+    fn has_comments_between(&self, after: u32, before: u32) -> bool {
+        (after + 1..before)
+            .any(|l| self.c.full_line.contains_key(&l) || self.c.trailing.contains_key(&l))
+    }
+
     fn finish(mut self) -> String {
         // RFC-009 "never dropped" backstop: any comment not consumed by a
         // structural emitter (e.g. trailing a brace on its own line) is
@@ -253,11 +283,15 @@ impl Formatter<'_> {
     fn file(&mut self, ast: &SourceFile) {
         for item in &ast.items {
             self.flush_leading(self.line_start(item.span), 0);
+            let end = self.line_end(item.span);
+            // A comment trailing a ONE-line item describes the whole item —
+            // hold it so no interior emitter claims it, then re-attach to the
+            // item's last emitted line.
+            let held = self.hold_line_comment(self.line_start(item.span), end);
             self.item(item);
-            // A trailing comment on the item's own line (e.g. `impl X for Y {}
-            // // note`); the item's body already handled its interior comments.
-            self.attach_trailing(self.line_end(item.span));
-            self.cursor = self.cursor.max(self.line_end(item.span) + 1);
+            self.append_held(held);
+            // A trailing comment on a multi-line item's closing line.
+            self.attach_trailing(end);
         }
         // Any comments trailing the last item.
         self.flush_leading(self.c.max_line + 1, 0);
@@ -268,16 +302,28 @@ impl Formatter<'_> {
     /// `#[placement_hint]`, same placement as `#[designator]`. Comment-aware:
     /// leading comments before the attribute stay before it, and a trailing
     /// comment on the attribute's own line survives.
-    fn emit_string_attr(&mut self, name: &str, value: &Option<(String, Span)>, indent: usize) {
+    /// `stop_line` is where the annotated construct begins: a comment on that
+    /// line belongs to the construct, not the attribute, so the attach is
+    /// skipped when the attribute shares it.
+    fn emit_string_attr(
+        &mut self,
+        name: &str,
+        value: &Option<(String, Span)>,
+        indent: usize,
+        stop_line: u32,
+    ) {
         if let Some((text, span)) = value {
             self.flush_leading(self.line_start(*span), indent);
             self.push(indent, format!("#[{}({})]", name, str_lit(text)));
-            self.attach_trailing(self.line_end(*span));
+            let end = self.line_end(*span);
+            if end < stop_line {
+                self.attach_trailing(end);
+            }
         }
     }
 
     fn item(&mut self, item: &Item) {
-        self.emit_string_attr("intent", &item.intent, 0);
+        self.emit_string_attr("intent", &item.intent, 0, self.line_start(item.decl_span));
         // Comments between the attribute and the declaration stay between.
         self.flush_leading(self.line_start(item.decl_span), 0);
         let vis = if item.is_pub { "pub " } else { "" };
@@ -301,7 +347,17 @@ impl Formatter<'_> {
         }
         let has_body = t.designator_prefix.is_some() || !t.pins.is_empty() || !t.specs.is_empty();
         if !has_body {
-            self.push(0, format!("{} {{}}", header));
+            // A member-less body may still hold comments — keep them inside
+            // the braces rather than collapsing to `{}`.
+            let end = self.line_end(item.span);
+            if self.has_comments_between(self.line_start(item.decl_span), end) {
+                self.push(0, format!("{} {{", header));
+                self.attach_trailing(self.line_start(item.decl_span));
+                self.flush_leading(end, 1);
+                self.push(0, "}");
+            } else {
+                self.push(0, format!("{} {{}}", header));
+            }
             return;
         }
         self.push(0, format!("{} {{", header));
@@ -336,6 +392,7 @@ impl Formatter<'_> {
                 }
                 Member::Pins => {
                     let ps = t.pins_span.unwrap();
+                    let held = self.hold_line_comment(self.line_start(ps), self.line_end(ps));
                     self.push(1, "pins {");
                     self.attach_trailing(self.line_start(ps));
                     for p in &t.pins {
@@ -348,10 +405,12 @@ impl Formatter<'_> {
                     }
                     self.flush_leading(self.line_end(ps), 2);
                     self.push(1, "}");
+                    self.append_held(held);
                     self.attach_trailing(self.line_end(ps));
                 }
                 Member::Spec => {
                     let ss = t.spec_span.unwrap();
+                    let held = self.hold_line_comment(self.line_start(ss), self.line_end(ss));
                     self.push(1, "spec {");
                     self.attach_trailing(self.line_start(ss));
                     for s in &t.specs {
@@ -361,6 +420,7 @@ impl Formatter<'_> {
                     }
                     self.flush_leading(self.line_end(ss), 2);
                     self.push(1, "}");
+                    self.append_held(held);
                     self.attach_trailing(self.line_end(ss));
                 }
             }
@@ -425,6 +485,7 @@ impl Formatter<'_> {
             Some(v) => format!("pins[{}] {{", v.name),
             None => "pins {".to_string(),
         };
+        let held = self.hold_line_comment(self.line_start(pb.span), self.line_end(pb.span));
         self.push(indent, open);
         self.attach_trailing(self.line_start(pb.span));
         for pin in &pb.pins {
@@ -446,6 +507,7 @@ impl Formatter<'_> {
         }
         self.flush_leading(self.line_end(pb.span), indent + 1);
         self.push(indent, "}");
+        self.append_held(held);
         self.attach_trailing(self.line_end(pb.span));
     }
 
@@ -454,6 +516,7 @@ impl Formatter<'_> {
             Some(v) => format!("spec[{}] {{", v.name),
             None => "spec {".to_string(),
         };
+        let held = self.hold_line_comment(self.line_start(sb.span), self.line_end(sb.span));
         self.push(indent, open);
         self.attach_trailing(self.line_start(sb.span));
         for field in &sb.fields {
@@ -467,6 +530,7 @@ impl Formatter<'_> {
         }
         self.flush_leading(self.line_end(sb.span), indent + 1);
         self.push(indent, "}");
+        self.append_held(held);
         self.attach_trailing(self.line_end(sb.span));
     }
 
@@ -475,7 +539,15 @@ impl Formatter<'_> {
     fn impl_def(&mut self, i: &ImplDef) {
         let header = format!("impl {} for {}", i.trait_name.name, i.device_name.name);
         if i.pin_map.is_empty() && i.spec_map.is_empty() {
-            self.push(0, format!("{} {{}}", header));
+            let end = self.line_end(i.span);
+            if self.has_comments_between(self.line_start(i.span), end) {
+                self.push(0, format!("{} {{", header));
+                self.attach_trailing(self.line_start(i.span));
+                self.flush_leading(end, 1);
+                self.push(0, "}");
+            } else {
+                self.push(0, format!("{} {{}}", header));
+            }
             return;
         }
         self.push(0, format!("{} {{", header));
@@ -497,6 +569,7 @@ impl Formatter<'_> {
             } else {
                 ("spec {", i.spec_span.unwrap(), &i.spec_map)
             };
+            let held = self.hold_line_comment(self.line_start(span), self.line_end(span));
             self.push(1, kw);
             self.attach_trailing(self.line_start(span));
             for e in entries {
@@ -506,6 +579,7 @@ impl Formatter<'_> {
             }
             self.flush_leading(self.line_end(span), 2);
             self.push(1, "}");
+            self.append_held(held);
             self.attach_trailing(self.line_end(span));
         }
         self.flush_leading(self.line_end(i.span), 1);
@@ -596,21 +670,45 @@ impl Formatter<'_> {
     fn stmt(&mut self, stmt: &Stmt, indent: usize) {
         match stmt {
             Stmt::Inst(s) => {
-                self.emit_string_attr("intent", &s.intent, indent);
-                self.emit_string_attr("placement_hint", &s.placement_hint, indent);
-                for attr in &s.attrs {
-                    self.flush_leading(self.line_start(attr.span), indent);
-                    self.push(indent, attr_text(attr));
-                    self.attach_trailing(self.line_end(attr.span));
+                // All attributes in SOURCE order (never a fixed canonical
+                // order — reordering would drag comments with it), with the
+                // inst line's own comment left for the statement.
+                let stop = self.line_start(s.span);
+                let mut attrs: Vec<(u32, String, Span)> = Vec::new();
+                if let Some((v, sp)) = &s.intent {
+                    attrs.push((
+                        self.line_start(*sp),
+                        format!("#[intent({})]", str_lit(v)),
+                        *sp,
+                    ));
                 }
-                self.flush_leading(self.line_start(s.span), indent);
+                if let Some((v, sp)) = &s.placement_hint {
+                    attrs.push((
+                        self.line_start(*sp),
+                        format!("#[placement_hint({})]", str_lit(v)),
+                        *sp,
+                    ));
+                }
+                for attr in &s.attrs {
+                    attrs.push((self.line_start(attr.span), attr_text(attr), attr.span));
+                }
+                attrs.sort_by_key(|(l, _, _)| *l);
+                for (line, text, sp) in attrs {
+                    self.flush_leading(line, indent);
+                    self.push(indent, text);
+                    let end = self.line_end(sp);
+                    if end < stop {
+                        self.attach_trailing(end);
+                    }
+                }
+                self.flush_leading(stop, indent);
                 self.push(
                     indent,
                     format!("inst {}: {}", s.name.name, type_ref_text(&s.ty)),
                 );
             }
             Stmt::Net(s) => {
-                self.emit_string_attr("intent", &s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
                 self.flush_leading(self.line_start(s.span), indent);
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
                 let ann = match &s.annotation {
@@ -623,7 +721,7 @@ impl Formatter<'_> {
                 self.wrapped(indent, &prefix, &members, "");
             }
             Stmt::Nc(s) => {
-                self.emit_string_attr("intent", &s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
                 self.flush_leading(self.line_start(s.span), indent);
                 let members: Vec<String> = s.members.iter().map(|m| m.to_string()).collect();
                 self.wrapped(indent, "nc: ", &members, "");
@@ -631,6 +729,7 @@ impl Formatter<'_> {
             Stmt::Layout(s) => {
                 // Comment-aware like pins/spec blocks (RFC-013 uses the same
                 // block-formatting rules), with per-constraint wrapping.
+                let held = self.hold_line_comment(self.line_start(s.span), self.line_end(s.span));
                 self.push(indent, "layout {");
                 self.attach_trailing(self.line_start(s.span));
                 for c in &s.constraints {
@@ -644,10 +743,11 @@ impl Formatter<'_> {
                 }
                 self.flush_leading(self.line_end(s.span), indent + 1);
                 self.push(indent, "}");
+                self.append_held(held);
                 self.cursor = self.cursor.max(self.line_end(s.span) + 1);
             }
             Stmt::Call(s) => {
-                self.emit_string_attr("intent", &s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
                 self.flush_leading(self.line_start(s.span), indent);
                 let generics = if s.generic_args.is_empty() {
                     String::new()

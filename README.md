@@ -34,7 +34,7 @@ The proof: an AI writes a board from a plain-language spec, the type checker cat
 
 ## Status
 
-All MVP exit criteria are met, and all thirteen Accepted RFCs (RFC-001…013) are implemented and tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
+All MVP exit criteria are met, and all thirteen Accepted RFCs (RFC-001…013) are implemented with conformance suites; where the implementation deliberately deviates from (or cannot yet satisfy) the accepted text, each deviation is recorded with its rationale in [`docs/compliance-report.md`](docs/compliance-report.md) — pending note-side amendments are listed there too. Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
 
 ## Using it
 
@@ -54,4 +54,4 @@ Two reference designs live in `examples/`: the ESP32-S3 **sensor-node** (the MVP
 
 ### Exit codes
 
-`0` = clean (warnings allowed), `1` = source diagnostics reported (errors; text on stderr, or one JSON document on stdout with `--json`), `2` = invocation-level failure (bad flags, missing project, design selection) — prose on stderr, never a JSON document (the `E000` class in [`docs/error-codes.md`](docs/error-codes.md)).
+`0` = clean (warnings allowed), `1` = source diagnostics reported (errors; text on stderr, or one JSON document on stdout with `--json`), `2` = invocation-level failure (bad flags, invalid flag for the command, missing project, design selection, nothing to build) — prose on stderr, never a JSON document (the `E000` class in [`docs/error-codes.md`](docs/error-codes.md)); source diagnostics collected before the failure still render to stderr first. Note: RFC-010's text reserves stderr prose for pre-collection failures, so classifying post-collection selection failures this way is a documented deviation pending a note-side amendment (or a v2 schema envelope).

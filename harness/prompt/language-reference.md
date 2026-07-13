@@ -161,7 +161,8 @@ design SensorNode {
 ## Rationale metadata (`#[intent]`)
 
 `#[intent("why this choice")]` on the line before any declaration or
-statement attaches a rationale string. It is exactly one string, at most one
+statement (except a `layout {}` block, which takes no attributes) attaches a
+rationale string. It is exactly one string, at most one
 per declaration, and is NEVER checked or compiled — it cannot change the
 verdict, diagnostics, or netlist. Use a real `net`/`spec`/trait mechanism for
 anything that must be enforced.
@@ -204,12 +205,12 @@ Devices and their pins:
 
 | Device | Pins (name: number [role]) |
 |---|---|
-| `MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%>` — variants `C0402`, `C0603` | A: 1, B: 2 (both variants) |
-| `ChipResistor<R: Resistance, T: Tolerance = 1%>` | A: 1, B: 2 |
-| `ChipLED` | Cathode: 1, Anode: 2 (implements Polarized, Diode) |
+| `MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%>` — variants `C0402`, `C0603` | A: 1 [passive], B: 2 [passive] (both variants) |
+| `ChipResistor<R: Resistance, T: Tolerance = 1%>` | A: 1 [passive], B: 2 [passive] |
+| `ChipLED` | Cathode: 1 [passive], Anode: 2 [passive] (implements Polarized, Diode) |
 | `ESP32_S3_WROOM_1` | required GND: 1,40,41 [power_in]; required VDD: 2 [power_in]; required EN: 3 [input]; optional IO0–IO48 [bidirectional] (IO19 = USB D-, IO20 = USB D+); optional TXD0: 36 [output]; optional RXD0: 37 [input] |
-| `AP2112K_3V3` (3.3V LDO, 600mA) | required VIN: 1 [power_in]; required GND: 2 [power_in]; required EN: 3 [input]; optional NC: 4; required VOUT: 5 [power_out]; spec voltage_rating: 6V |
-| `USB_C_Receptacle_2_0` | required GND: A1,A12,B1,B12 [power_in]; required VBUS: A4,A9,B4,B9 [power_out]; required CC1: A5; required CC2: B5; required DP: A6,B6 [bidirectional]; required DN: A7,B7 [bidirectional]; optional SBU1: A8; optional SBU2: B8; required SHIELD: SH |
+| `AP2112K_3V3` (3.3V LDO, 600mA) | required VIN: 1 [power_in]; required GND: 2 [power_in]; required EN: 3 [input]; optional NC: 4 [passive]; required VOUT: 5 [power_out]; spec voltage_rating: 6V |
+| `USB_C_Receptacle_2_0` | required GND: A1,A12,B1,B12 [power_in]; required VBUS: A4,A9,B4,B9 [power_out]; required CC1: A5 [passive]; required CC2: B5 [passive]; required DP: A6,B6 [bidirectional]; required DN: A7,B7 [bidirectional]; optional SBU1: A8 [passive]; optional SBU2: B8 [passive]; required SHIELD: SH [passive] |
 | `ICS43434` (I2S MEMS mic) | required WS: 1 [input]; required LR: 2 [input]; required SCK: 3 [input]; required SD: 4 [output]; required VDD: 5 [power_in]; required GND: 6 [power_in] |
 
 Parts (instantiate these by name so the BOM resolves):

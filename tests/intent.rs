@@ -128,12 +128,20 @@ fn intent_is_zero_impact() {
         "expected a real netlist:\n{}",
         base.netlist
     );
-    // Intent content never leaks into the JSON diagnostics document.
-    assert!(
-        !ann.json.contains("datasheet"),
-        "intent text leaked into --json:\n{}",
-        ann.json
-    );
+    // Intent content never leaks into the JSON diagnostics document — check
+    // with substrings that actually occur in ANNOTATED's intent strings.
+    for leak in [
+        "table 4-15",
+        "two-terminal passive contract",
+        "naive reader",
+    ] {
+        assert!(
+            !ann.json.contains(leak),
+            "intent text `{}` leaked into --json:\n{}",
+            leak,
+            ann.json
+        );
+    }
 }
 
 #[test]
@@ -197,13 +205,32 @@ design B {
         "{}",
         b.diags
     );
-    let codes = |j: &str| -> Vec<String> {
+    // Compare EVERYTHING except position fields (the attribute occupies
+    // source space, so line/col shift; nothing else may move): codes,
+    // severities, top-level messages, label texts, and help lines.
+    let content = |j: &str| -> Vec<String> {
         j.lines()
-            .filter(|l| l.contains("\"code\":"))
-            .map(|l| l.trim().to_string())
+            .map(str::trim)
+            .filter(|l| {
+                l.starts_with("\"code\":")
+                    || l.starts_with("\"severity\":")
+                    || l.starts_with("\"message\":")
+                    || l.starts_with("\"help\":")
+                    || (!l.contains("_line")
+                        && !l.contains("_col")
+                        && l.starts_with('"')
+                        && l.contains("\"message\""))
+            })
+            .map(|l| l.to_string())
             .collect()
     };
-    assert_eq!(codes(&a.json), codes(&b.json), "diagnostic codes diverged");
+    assert_eq!(
+        content(&a.json),
+        content(&b.json),
+        "diagnostic content diverged:\n--- a ---\n{}\n--- b ---\n{}",
+        a.json,
+        b.json
+    );
 }
 
 // ---------------------------------------------------------------------------

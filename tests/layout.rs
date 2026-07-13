@@ -44,9 +44,13 @@ design Board {
 "#;
 
 struct Built {
+    verdict: &'static str,
     diags: String,
+    json: String,
     netlist: String,
     bom: String,
+    /// Rendered design.lock — designator assignment, byte-for-byte.
+    lock: String,
     layout: Option<String>,
 }
 
@@ -56,17 +60,25 @@ fn build(src: &str) -> Built {
     let artifacts = build_artifacts(&mut checked, &LockState::default());
     checked.diags.sort(&checked.sm);
     let diags = checked.diags.render(&checked.sm);
+    let json = cohdl::emit::json::render(&checked, None);
+    let verdict = cohdl::emit::json::verdict(&checked);
     match artifacts {
         Some(a) => Built {
+            verdict,
             diags,
+            json,
             netlist: a.netlist,
             bom: a.bom,
+            lock: a.lock.render(),
             layout: a.layout,
         },
         None => Built {
+            verdict,
             diags,
+            json,
             netlist: String::new(),
             bom: String::new(),
+            lock: String::new(),
             layout: None,
         },
     }
@@ -89,9 +101,14 @@ fn layout_is_zero_impact_on_netlist_and_diagnostics() {
     let base = build(BASE);
     let laid = build(WITH_LAYOUT);
     assert!(base.netlist.contains("(export"), "base must build cleanly");
+    // The full observable surface: verdict, diagnostics, --json document,
+    // netlist, BOM, and designator lock.
+    assert_eq!(base.verdict, laid.verdict, "layout changed the verdict");
     assert_eq!(base.netlist, laid.netlist, "layout changed the netlist");
     assert_eq!(base.bom, laid.bom, "layout changed the BOM");
     assert_eq!(base.diags, laid.diags, "layout changed the diagnostics");
+    assert_eq!(base.json, laid.json, "layout changed the --json document");
+    assert_eq!(base.lock, laid.lock, "layout changed the designator lock");
     // BASE emits no layout.json; the annotated one does.
     assert!(base.layout.is_none(), "base has no layout artifact");
     assert!(laid.layout.is_some(), "annotated design emits layout.json");
@@ -111,6 +128,9 @@ fn mutating_layout_content_is_zero_impact() {
         "mutating layout moved the netlist"
     );
     assert_eq!(laid.bom, mutated.bom, "mutating layout moved the BOM");
+    assert_eq!(laid.verdict, mutated.verdict, "verdict moved");
+    assert_eq!(laid.diags, mutated.diags, "diagnostics moved");
+    assert_eq!(laid.lock, mutated.lock, "designator lock moved");
     // The layout artifact itself DOES reflect the change.
     assert_ne!(
         laid.layout, mutated.layout,
@@ -295,6 +315,23 @@ design Board {
         "message must lead with the source name:\n{}",
         r
     );
+}
+
+// Review-2: tolerance unit literals are restricted to Time — RFC-013 says
+// `<Time-or-length-unit>`, and lengths use the string escape hatch.
+#[test]
+fn tolerance_non_time_units_are_rejected() {
+    for bad in ["5V", "100nF", "1kohm"] {
+        let r = check_err(
+            &WITH_LAYOUT.replace("[tolerance: \"0.15mm\"]", &format!("[tolerance: {}]", bad)),
+        );
+        assert!(
+            r.contains("E110") && r.contains("`Time`"),
+            "`{}` must be rejected as a tolerance:\n{}",
+            bad,
+            r
+        );
+    }
 }
 
 // A layout-bearing fn is reusable: fn-local net_class names get call-chain

@@ -108,9 +108,22 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Args) -> Result<bool, String> {
+    // Per-command flag validation (E000-class invocation errors).
     match args.command.as_str() {
-        "check" | "build" => {}
-        "fmt" => return fmt_command(args),
+        "check" | "build" => {
+            if args.fmt_check {
+                return Err(format!(
+                    "`--check` is a `fmt` flag; it is not valid with `{}`\n\n{}",
+                    args.command, USAGE
+                ));
+            }
+        }
+        "fmt" => {
+            if args.json {
+                return Err(format!("`--json` is not valid with `fmt`\n\n{}", USAGE));
+            }
+            return fmt_command(args);
+        }
         other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }
 
@@ -130,6 +143,14 @@ fn run(args: &Args) -> Result<bool, String> {
     let proj = project::load_project(&args.path, std_dir.as_deref())?;
     let mut checked =
         pipeline::check_files(&proj.files, args.design.as_deref().or(proj.top.as_deref()))?;
+
+    // A design-selection failure is an invocation-level error (exit 2), but
+    // the source diagnostics collected before it are NEVER discarded — they
+    // render to stderr first, in both plain and --json modes.
+    if let Some(sel_err) = &checked.selection_error {
+        eprint!("{}", checked.diags.render(&checked.sm));
+        return Err(sel_err.clone());
+    }
 
     if args.command == "check" {
         if args.json {
@@ -157,6 +178,9 @@ fn run(args: &Args) -> Result<bool, String> {
         return Ok(false);
     }
     if checked.ir.is_none() {
+        // Same rule: never discard collected diagnostics (warnings) on an
+        // invocation-level failure.
+        eprint!("{}", checked.diags.render(&checked.sm));
         return Err("nothing to build: the project declares no `design`".to_string());
     }
 

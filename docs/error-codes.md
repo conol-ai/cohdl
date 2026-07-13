@@ -39,7 +39,7 @@ CLI-only has at least one real call site in `src/`.
 
 | Code | Meaning |
 |---|---|
-| E000 | malformed CLI invocation (bad flags, missing path) — exit code 2, never appears inside a `--json` diagnostics array. CLI-only; not a source diagnostic, so it has no `Diagnostic` call site by design |
+| E000 | invocation-level failure — bad flags, an invalid flag for the command, missing path/project, design-selection failure, or nothing-to-build. Exit code 2, prose on stderr, never inside a `--json` diagnostics array; source diagnostics collected before the failure still render to stderr first. CLI-only; not a source diagnostic, so it has no `Diagnostic` call site by design. (Classifying post-collection selection failures here is a documented deviation from RFC-010's pre-collection wording, pending amendment.) |
 
 ## E0xx — lexing & parsing
 

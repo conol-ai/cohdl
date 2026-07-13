@@ -198,11 +198,12 @@ impl<'a> Lexer<'a> {
                             // as E101). RFC-011 gives the standalone case its
                             // own E1xx code, E107, so its message can be maximally
                             // specific instead of falling through to E001.
-                            self.error_char_code(
-                                start,
+                            let span = self.consume_char_span(start);
+                            self.diags.push(Diagnostic::error(
                                 "E107",
+                                span,
                                 "use `ohm`, not `Ω` — CoHDL resistance literals are ASCII-only (e.g. `10kohm`)",
-                            );
+                            ));
                         }
                         '\u{00B0}' => {
                             self.error_char(
@@ -243,18 +244,18 @@ impl<'a> Lexer<'a> {
     }
 
     fn error_char(&mut self, start: usize, message: impl Into<String>) {
-        self.error_char_code(start, "E001", message);
+        let span = self.consume_char_span(start);
+        self.diags.push(Diagnostic::error("E001", span, message));
     }
 
-    fn error_char_code(&mut self, start: usize, code: &'static str, message: impl Into<String>) {
-        // Consume one char so lexing can continue.
+    /// Consume one char (so lexing can continue) and return its span.
+    fn consume_char_span(&mut self, start: usize) -> Span {
         let ch_len = self.text[self.pos..]
             .chars()
             .next()
             .map_or(1, char::len_utf8);
         self.pos += ch_len;
-        let span = Span::new(self.file, start as u32, self.pos as u32);
-        self.diags.push(Diagnostic::error(code, span, message));
+        Span::new(self.file, start as u32, self.pos as u32)
     }
 
     fn string(&mut self, start: usize) {

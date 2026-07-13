@@ -1446,11 +1446,32 @@ impl<'a> Parser<'a> {
                 let TokenKind::Unit(v) = t.kind else {
                     unreachable!()
                 };
-                Some((v.text.clone(), t.span))
+                // RFC-013 says `<Time-or-length-unit>`: of RFC-001's ten
+                // types, only Time qualifies (there is no length unit —
+                // lengths use the string form pending a note amendment).
+                if v.unit == UnitType::Time {
+                    Some((v.text.clone(), t.span))
+                } else {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E110",
+                            t.span,
+                            format!(
+                                "a `tolerance` unit literal must be a `Time` value, found `{}` (`{}`)",
+                                v.unit.type_name(),
+                                v.text
+                            ),
+                        )
+                        .with_help(
+                            "write a Time literal (e.g. `[tolerance: 1ms]`) or a string for length units (e.g. `[tolerance: \"0.15mm\"]`)",
+                        ),
+                    );
+                    None
+                }
             }
             other => {
                 self.error_here(format!(
-                    "the `tolerance` value must be a unit literal or a string (e.g. `[tolerance: 1ms]` or `[tolerance: \"0.15mm\"]`), found {}",
+                    "the `tolerance` value must be a `Time` literal or a string (e.g. `[tolerance: 1ms]` or `[tolerance: \"0.15mm\"]`), found {}",
                     other.describe()
                 ));
                 None

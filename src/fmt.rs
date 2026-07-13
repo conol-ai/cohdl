@@ -193,6 +193,26 @@ impl Formatter<'_> {
         self.cursor = self.cursor.max(end_line + 1);
     }
 
+    /// Close out a leaf construct spanning source lines `[start, end]` (a
+    /// statement, pin, or spec field): attach a trailing comment on its last
+    /// line, then rescue any comment stranded on an *interior* line — a
+    /// full-line comment inside a wrapped member list, or a trailing comment on
+    /// a non-final line — by re-emitting it as a full-line comment (RFC-009:
+    /// comments are never dropped; a reflowed statement cannot keep a comment
+    /// mid-list, so it moves to its own line rather than vanishing). No-op for
+    /// the common single-line construct (`start == end`).
+    fn finish_construct(&mut self, start: u32, end: u32, indent: usize) {
+        self.attach_trailing(end);
+        for l in start..end {
+            if let Some(c) = self.c.full_line.get(&l).cloned() {
+                self.push(indent, c);
+            } else if let Some(c) = self.c.trailing.get(&l).cloned() {
+                self.push(indent, c);
+            }
+        }
+        self.cursor = self.cursor.max(end + 1);
+    }
+
     fn finish(mut self) -> String {
         while self.out.last().is_some_and(|l| l.is_empty()) {
             self.out.pop();
@@ -208,6 +228,9 @@ impl Formatter<'_> {
         for item in &ast.items {
             self.flush_leading(self.line_start(item.span), 0);
             self.item(item);
+            // A trailing comment on the item's own line (e.g. `impl X for Y {}
+            // // note`); the item's body already handled its interior comments.
+            self.attach_trailing(self.line_end(item.span));
             self.cursor = self.cursor.max(self.line_end(item.span) + 1);
         }
         // Any comments trailing the last item.
@@ -320,7 +343,11 @@ impl Formatter<'_> {
         for pin in &pb.pins {
             self.flush_leading(self.line_start(pin.span), indent + 1);
             self.push(indent + 1, pin_text(pin));
-            self.attach_trailing(self.line_end(pin.span));
+            self.finish_construct(
+                self.line_start(pin.span),
+                self.line_end(pin.span),
+                indent + 1,
+            );
         }
         self.flush_leading(self.line_end(pb.span), indent + 1);
         self.push(indent, "}");
@@ -337,7 +364,11 @@ impl Formatter<'_> {
         for field in &sb.fields {
             self.flush_leading(self.line_start(field.span), indent + 1);
             self.push(indent + 1, spec_field_text(field));
-            self.attach_trailing(self.line_end(field.span));
+            self.finish_construct(
+                self.line_start(field.span),
+                self.line_end(field.span),
+                indent + 1,
+            );
         }
         self.flush_leading(self.line_end(sb.span), indent + 1);
         self.push(indent, "}");
@@ -394,7 +425,7 @@ impl Formatter<'_> {
         for stmt in stmts {
             self.flush_leading(self.line_start(stmt.span()), 1);
             self.stmt(stmt, 1);
-            self.attach_trailing(self.line_end(stmt.span()));
+            self.finish_construct(self.line_start(stmt.span()), self.line_end(stmt.span()), 1);
         }
         self.flush_leading(self.line_end(item.span), 1);
     }
@@ -591,20 +622,15 @@ fn avl_text(keyword: &str, entry: &AvlEntry) -> String {
     format!("{} {{ {} }}", keyword, fields)
 }
 
-/// A double-quoted string literal, escaping `"` and `\` (CoHDL strings carry no
-/// other escapes and cannot span lines).
+/// A double-quoted string literal, emitted verbatim. The CoHDL grammar has no
+/// string escapes: the lexer reads the raw bytes between quotes and never
+/// unescapes (src/lex.rs), so a value can contain neither `"` nor a newline
+/// (either would terminate the literal). Introducing a `\"`/`\\` escape here
+/// would therefore NOT round-trip — the escape would be re-read as literal
+/// backslashes and grow on every `fmt` pass, breaking idempotence and semantic
+/// inertness (RFC-009). So the value is emitted exactly as parsed.
 fn str_lit(s: &str) -> String {
-    let mut out = String::with_capacity(s.len() + 2);
-    out.push('"');
-    for ch in s.chars() {
-        match ch {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-    out
+    format!("\"{}\"", s)
 }
 
 fn join(items: impl Iterator<Item = String>, sep: &str) -> String {

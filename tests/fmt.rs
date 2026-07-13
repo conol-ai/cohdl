@@ -146,6 +146,69 @@ fn comment_start(line: &str) -> Option<usize> {
 }
 
 // ---------------------------------------------------------------------------
+// Adversarial edge cases surfaced by verification (all four must round-trip and
+// never drop a comment) — the repo files don't exercise these paths.
+
+/// Format twice; assert idempotent and that every listed comment survives.
+fn assert_edge(name: &str, src: &str, comments: &[&str]) {
+    let once = format_source(name, src).expect("parses");
+    let twice = format_source(name, &once).expect("formatted output parses");
+    assert_eq!(once, twice, "not idempotent for `{}`:\n{}", name, once);
+    for c in comments {
+        assert!(
+            once.contains(c),
+            "comment `{}` dropped by fmt for `{}`:\n{}",
+            c,
+            name,
+            once
+        );
+    }
+}
+
+#[test]
+fn backslash_string_round_trips() {
+    // The grammar has no string escapes: a value with a backslash must survive
+    // formatting unchanged and not grow (str_lit must not introduce escapes).
+    let src = "pub device D {\n    pins { A: 1 [passive] }\n}\npub part P: D {\n    primary { mfr: \"A\\B\", mpn: \"M\", footprint: \"F\" }\n}";
+    let once = format_source("bs.cohdl", src).unwrap();
+    assert!(once.contains("\"A\\B\""), "backslash mangled:\n{}", once);
+    let twice = format_source("bs.cohdl", &once).unwrap();
+    assert_eq!(
+        once, twice,
+        "backslash string is not idempotent:\n{}",
+        twice
+    );
+    // Count backslashes: must stay exactly one (no doubling).
+    assert_eq!(
+        twice.matches('\\').count(),
+        1,
+        "backslash count grew:\n{}",
+        twice
+    );
+}
+
+#[test]
+fn trailing_comment_on_first_line_of_multiline_statement_survives() {
+    // Trailing comment on a non-final line of a wrapped net member list.
+    let src =
+        "design B {\n    inst a: D\n    inst b: D\n    net N: a.A, // keep first\n        b.A\n}";
+    assert_edge("t1.cohdl", src, &["// keep first"]);
+}
+
+#[test]
+fn interior_full_line_comment_in_multiline_statement_survives() {
+    let src = "design B {\n    inst a: D\n    inst b: D\n    net N: a.A,\n        // interior note\n        b.A\n    nc: a.A,\n        // dead pins\n        b.A\n}";
+    assert_edge("t2.cohdl", src, &["// interior note", "// dead pins"]);
+}
+
+#[test]
+fn trailing_comment_on_one_line_item_survives() {
+    let src =
+        "pub trait Foo { pins { required A: pin } } // trait note\nimpl Bar for D {} // impl note";
+    assert_edge("t3.cohdl", src, &["// trait note", "// impl note"]);
+}
+
+// ---------------------------------------------------------------------------
 // fmt is a serializer, not a repair tool: non-parsing source is an error.
 
 #[test]

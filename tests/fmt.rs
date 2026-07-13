@@ -332,6 +332,67 @@ fn long_lines_wrap_at_100_columns() {
 }
 
 #[test]
+fn trailing_comments_on_header_and_brace_lines_survive() {
+    // Re-verification residual: trailing comments on a declaration's header
+    // line (both `header { // note` and `header // note NEWLINE {` styles),
+    // on block-opener lines, and on block-closer lines must survive.
+    let src = "pub trait T // C-T\n{\n    pins { // C-PINS\n        required A: pin\n    } // C-CLOSE\n}\npub device D { // C-DEV\n    pins { A: 1 [passive] }\n    spec // C-SPEC\n    {\n        x: 1nF\n    }\n}\nimpl T for D // C-IMPL\n{\n    pins {\n        A: A\n    }\n}\npub part P: D // C-PART\n{\n    primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" }\n}\npub fn h(p: Pin) // C-FN\n{\n    net _: p\n}\ndesign B // C-DSN\n{\n    inst d: P\n    net N: d.A\n    layout { // C-LAY\n        net_class K { N }\n    }\n}";
+    assert_edge(
+        "hdr.cohdl",
+        src,
+        &[
+            "// C-T",
+            "// C-PINS",
+            "// C-CLOSE",
+            "// C-DEV",
+            "// C-SPEC",
+            "// C-IMPL",
+            "// C-PART",
+            "// C-FN",
+            "// C-DSN",
+            "// C-LAY",
+        ],
+    );
+    // The layout-header comment stays INSIDE the block (residual #4).
+    let once = format_source("hdr.cohdl", src).unwrap();
+    let lay = once
+        .find("layout { // C-LAY")
+        .expect("layout header keeps its comment");
+    let close = once[lay..].find('}').unwrap();
+    assert!(once[lay..lay + close].contains("net_class"), "{}", once);
+}
+
+#[test]
+fn eof_backstop_never_drops_a_comment() {
+    // A trailing comment on a brace-on-its-own-line — no emitter owns that
+    // line's code, so the backstop must still preserve the comment.
+    let src = "pub device D\n{ // stray on the brace line\n    pins { A: 1 [passive] }\n}";
+    let once = format_source("stray.cohdl", src).unwrap();
+    assert!(
+        once.contains("// stray on the brace line"),
+        "backstop failed:\n{}",
+        once
+    );
+    let twice = format_source("stray.cohdl", &once).unwrap();
+    assert_eq!(once, twice);
+}
+
+#[test]
+fn shared_line_trailing_comment_attaches_to_last_statement() {
+    // Two statements on one source line: the line's trailing comment belongs
+    // to the LAST construct on the line, not the first.
+    let src = "design B {\n    inst d: P\n    net A: d.X  net C: d.Y // belongs to C\n}";
+    let once = format_source("shared.cohdl", src).unwrap();
+    assert!(
+        once.contains("net C: d.Y // belongs to C"),
+        "comment attached to the wrong statement:\n{}",
+        once
+    );
+    let twice = format_source("shared.cohdl", &once).unwrap();
+    assert_eq!(once, twice);
+}
+
+#[test]
 fn blank_after_open_brace_is_preserved() {
     // RFC-009: an author-placed blank is never removed (only runs collapse).
     let src = "design B {\n\n    inst d: D\n    net N: d.A\n}";

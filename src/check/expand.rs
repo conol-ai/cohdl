@@ -1082,15 +1082,20 @@ fn build_layout_ir(
             } => {
                 let (mapped, _) = map_layout_nets(nets, declared_to_merged, diags);
                 if !seen_classes.insert(scoped_name.clone()) {
-                    diags.push(Diagnostic::error(
-                        "E1002",
-                        name.span,
-                        format!("duplicate `net_class` name `{}`", scoped_name),
-                    ));
+                    // Report the SOURCE name (with its scope for fn-local
+                    // classes) — never the raw mangled identity.
+                    let msg = match scoped_name.strip_suffix(&format!("::{}", name.name)) {
+                        Some(prefix) => format!(
+                            "duplicate `net_class` name `{}` (in `{}`)",
+                            name.name, prefix
+                        ),
+                        None => format!("duplicate `net_class` name `{}`", name.name),
+                    };
+                    diags.push(Diagnostic::error("E1002", name.span, msg));
                 }
                 layout.net_classes.push(LayoutNetClass {
                     name: scoped_name.clone(),
-                    nets: mapped,
+                    nets: dedup_in_order(mapped),
                 });
             }
             RawLayout::DiffPair { nets, span } => {
@@ -1149,7 +1154,10 @@ fn build_layout_ir(
                     ));
                 } else {
                     layout.length_matches.push(LayoutLengthMatch {
-                        nets: mapped,
+                        // Aliases of one merged net collapse to a single
+                        // entry, first-occurrence order (the artifact
+                        // advertises distinct nets).
+                        nets: dedup_in_order(mapped),
                         tolerance: tolerance.clone(),
                     });
                 }
@@ -1188,6 +1196,15 @@ fn map_layout_nets(
         })
         .collect();
     (mapped, all_known)
+}
+
+/// Deduplicate, preserving first-occurrence order (never sort — the artifact's
+/// determinism comes from source order).
+fn dedup_in_order(nets: Vec<String>) -> Vec<String> {
+    let mut seen = BTreeSet::new();
+    nets.into_iter()
+        .filter(|n| seen.insert(n.clone()))
+        .collect()
 }
 
 /// RFC-002 exhaustiveness: every `required` pin of every instance appears in

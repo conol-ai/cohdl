@@ -204,7 +204,15 @@ impl Formatter<'_> {
     /// mid-list, so it moves to its own line rather than vanishing). No-op for
     /// the common single-line construct (`start == end`).
     fn finish_construct(&mut self, start: u32, end: u32, indent: usize) {
-        self.attach_trailing(end);
+        self.finish_construct_ext(start, end, indent, true);
+    }
+
+    /// `finish_construct` with control over the end-line trailing attach —
+    /// deferred when a sibling construct continues on the same source line.
+    fn finish_construct_ext(&mut self, start: u32, end: u32, indent: usize, attach_end: bool) {
+        if attach_end {
+            self.attach_trailing(end);
+        }
         for l in start..end {
             if let Some(c) = self.c.full_line.remove(&l) {
                 self.push(indent, c);
@@ -212,10 +220,26 @@ impl Formatter<'_> {
                 self.push(indent, c);
             }
         }
-        self.cursor = self.cursor.max(end + 1);
+        let past = if attach_end { end + 1 } else { end };
+        self.cursor = self.cursor.max(past);
     }
 
     fn finish(mut self) -> String {
+        // RFC-009 "never dropped" backstop: any comment not consumed by a
+        // structural emitter (e.g. trailing a brace on its own line) is
+        // appended at the end rather than lost. The emitters above handle
+        // positioning for every common shape; this guarantees totality.
+        let mut leftovers: Vec<(u32, String)> = self
+            .c
+            .full_line
+            .iter()
+            .map(|(l, c)| (*l, c.clone()))
+            .chain(self.c.trailing.iter().map(|(l, c)| (*l, c.clone())))
+            .collect();
+        leftovers.sort_by_key(|(l, _)| *l);
+        for (_, c) in leftovers {
+            self.push(0, c);
+        }
         while self.out.last().is_some_and(|l| l.is_empty()) {
             self.out.pop();
         }
@@ -281,7 +305,7 @@ impl Formatter<'_> {
             return;
         }
         self.push(0, format!("{} {{", header));
-        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
+        self.attach_trailing(self.line_start(item.decl_span));
 
         // Body members in source order, so interleaved comments/blanks keep
         // their author-chosen positions.
@@ -313,7 +337,7 @@ impl Formatter<'_> {
                 Member::Pins => {
                     let ps = t.pins_span.unwrap();
                     self.push(1, "pins {");
-                    self.cursor = self.cursor.max(self.line_start(ps) + 1);
+                    self.attach_trailing(self.line_start(ps));
                     for p in &t.pins {
                         self.flush_leading(self.line_start(p.span), 2);
                         self.push(
@@ -324,12 +348,12 @@ impl Formatter<'_> {
                     }
                     self.flush_leading(self.line_end(ps), 2);
                     self.push(1, "}");
-                    self.cursor = self.cursor.max(self.line_end(ps) + 1);
+                    self.attach_trailing(self.line_end(ps));
                 }
                 Member::Spec => {
                     let ss = t.spec_span.unwrap();
                     self.push(1, "spec {");
-                    self.cursor = self.cursor.max(self.line_start(ss) + 1);
+                    self.attach_trailing(self.line_start(ss));
                     for s in &t.specs {
                         self.flush_leading(self.line_start(s.span), 2);
                         self.push(2, format!("{}: {}", s.name.name, s.ty.unit.type_name()));
@@ -337,7 +361,7 @@ impl Formatter<'_> {
                     }
                     self.flush_leading(self.line_end(ss), 2);
                     self.push(1, "}");
-                    self.cursor = self.cursor.max(self.line_end(ss) + 1);
+                    self.attach_trailing(self.line_end(ss));
                 }
             }
         }
@@ -353,7 +377,7 @@ impl Formatter<'_> {
             header.push_str(&generic_params(&d.generics));
         }
         self.push(0, format!("{} {{", header));
-        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
+        self.attach_trailing(self.line_start(item.decl_span));
 
         // Device-body members, emitted in source order so author blank lines
         // and comments between them are preserved.
@@ -402,7 +426,7 @@ impl Formatter<'_> {
             None => "pins {".to_string(),
         };
         self.push(indent, open);
-        self.cursor = self.cursor.max(self.line_start(pb.span) + 1);
+        self.attach_trailing(self.line_start(pb.span));
         for pin in &pb.pins {
             self.flush_leading(self.line_start(pin.span), indent + 1);
             // Pin buses wrap aligned under the first pin number, with the
@@ -422,7 +446,7 @@ impl Formatter<'_> {
         }
         self.flush_leading(self.line_end(pb.span), indent + 1);
         self.push(indent, "}");
-        self.cursor = self.cursor.max(self.line_end(pb.span) + 1);
+        self.attach_trailing(self.line_end(pb.span));
     }
 
     fn spec_block(&mut self, sb: &SpecBlock, indent: usize) {
@@ -431,7 +455,7 @@ impl Formatter<'_> {
             None => "spec {".to_string(),
         };
         self.push(indent, open);
-        self.cursor = self.cursor.max(self.line_start(sb.span) + 1);
+        self.attach_trailing(self.line_start(sb.span));
         for field in &sb.fields {
             self.flush_leading(self.line_start(field.span), indent + 1);
             self.push(indent + 1, spec_field_text(field));
@@ -443,7 +467,7 @@ impl Formatter<'_> {
         }
         self.flush_leading(self.line_end(sb.span), indent + 1);
         self.push(indent, "}");
-        self.cursor = self.cursor.max(self.line_end(sb.span) + 1);
+        self.attach_trailing(self.line_end(sb.span));
     }
 
     // -- impls ---------------------------------------------------------------
@@ -455,7 +479,7 @@ impl Formatter<'_> {
             return;
         }
         self.push(0, format!("{} {{", header));
-        self.cursor = self.cursor.max(self.line_start(i.span) + 1);
+        self.attach_trailing(self.line_start(i.span));
 
         // Mapping sub-blocks in source order, comment-aware (like traits).
         let mut blocks: Vec<(u32, bool)> = Vec::new(); // (line, is_pins)
@@ -474,7 +498,7 @@ impl Formatter<'_> {
                 ("spec {", i.spec_span.unwrap(), &i.spec_map)
             };
             self.push(1, kw);
-            self.cursor = self.cursor.max(self.line_start(span) + 1);
+            self.attach_trailing(self.line_start(span));
             for e in entries {
                 self.flush_leading(self.line_start(e.span), 2);
                 self.push(2, format!("{}: {}", e.role.name, e.target.name));
@@ -482,7 +506,7 @@ impl Formatter<'_> {
             }
             self.flush_leading(self.line_end(span), 2);
             self.push(1, "}");
-            self.cursor = self.cursor.max(self.line_end(span) + 1);
+            self.attach_trailing(self.line_end(span));
         }
         self.flush_leading(self.line_end(i.span), 1);
         self.push(0, "}");
@@ -508,14 +532,22 @@ impl Formatter<'_> {
     }
 
     fn body(&mut self, stmts: &[Stmt], item: &Item) {
-        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
-        for stmt in stmts {
+        // A trailing comment on the fn/design header line survives.
+        self.attach_trailing(self.line_start(item.decl_span));
+        for (idx, stmt) in stmts.iter().enumerate() {
             // Flush to the FIRST line of the whole statement group — its
             // attributes included — so comments before an attribute stay
             // before it.
             self.flush_leading(self.stmt_first_line(stmt), 1);
             self.stmt(stmt, 1);
-            self.finish_construct(self.line_start(stmt.span()), self.line_end(stmt.span()), 1);
+            let end = self.line_end(stmt.span());
+            // When the NEXT statement starts on this statement's last source
+            // line, the line's trailing comment belongs to the last construct
+            // on that line — defer it (sweep interiors only).
+            let next_shares = stmts
+                .get(idx + 1)
+                .is_some_and(|n| self.stmt_first_line(n) == end);
+            self.finish_construct_ext(self.line_start(stmt.span()), end, 1, !next_shares);
         }
         self.flush_leading(self.line_end(item.span), 1);
     }
@@ -600,7 +632,7 @@ impl Formatter<'_> {
                 // Comment-aware like pins/spec blocks (RFC-013 uses the same
                 // block-formatting rules), with per-constraint wrapping.
                 self.push(indent, "layout {");
-                self.cursor = self.cursor.max(self.line_start(s.span) + 1);
+                self.attach_trailing(self.line_start(s.span));
                 for c in &s.constraints {
                     self.flush_leading(self.line_start(c.span()), indent + 1);
                     self.layout_constraint(c, indent + 1);
@@ -712,7 +744,7 @@ impl Formatter<'_> {
                 type_ref_text(&p.device)
             ),
         );
-        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
+        self.attach_trailing(self.line_start(item.decl_span));
         let mut entries: Vec<(&'static str, &AvlEntry)> = vec![("primary", &p.primary)];
         for alt in &p.alts {
             entries.push(("alt", alt));

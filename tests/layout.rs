@@ -247,6 +247,56 @@ fn length_match_all_same_net_is_rejected() {
     assert!(r.contains("E1004") && r.contains("distinct"), "{}", r);
 }
 
+// Re-verification residual #1: a partially-merged group deduplicates on
+// emission — the merged name appears once, first-occurrence order.
+#[test]
+fn partially_merged_group_deduplicates_in_layout_json() {
+    // ZZZ merges with USB_DP (shared pin r1.A); USB_DM stays distinct. The
+    // group is legal (2 distinct nets) but must not list USB_DP twice.
+    let src = BASE.replace(
+        "net USB_DM: r1.B, r2.B",
+        "net USB_DM: r1.B, r2.B\n    net ZZZ: r1.A\n    layout { net_class G { USB_DP, ZZZ, USB_DM }\n    length_match(USB_DP, ZZZ, USB_DM) }",
+    );
+    let built = build(&src);
+    assert!(!built.diags.contains("error"), "{}", built.diags);
+    let json = built.layout.expect("layout.json");
+    assert!(
+        json.contains("\"nets\": [\"USB_DP\", \"USB_DM\"]"),
+        "merged alias must dedup to one entry:\n{}",
+        json
+    );
+    assert!(!json.contains("USB_DP\", \"USB_DP"), "{}", json);
+}
+
+// Re-verification residual #2: the fn-scope E1002 message names the SOURCE
+// class name with scope context — never the raw mangled identity.
+#[test]
+fn fn_scope_duplicate_class_message_uses_source_name() {
+    let src = r#"
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+fn pair(a: Pin, b: Pin) {
+    net N: a, b
+    layout {
+        net_class K { N }
+        net_class K { N }
+    }
+}
+design Board {
+    inst d1: D
+    inst d2: D
+    pair(d1.A, d2.A)
+    net GND: d1.B, d2.B
+}
+"#;
+    let r = check_err(src);
+    assert!(r.contains("E1002"), "{}", r);
+    assert!(
+        r.contains("duplicate `net_class` name `K` (in `__fn0_pair`)"),
+        "message must lead with the source name:\n{}",
+        r
+    );
+}
+
 // A layout-bearing fn is reusable: fn-local net_class names get call-chain
 // identity (like fn-local nets, RFC-006), so two calls do not collide.
 #[test]

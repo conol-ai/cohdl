@@ -252,7 +252,7 @@ fn fmt_command(args: &Args) -> Result<bool, String> {
                 ok = false;
             }
             Ok(formatted) if formatted == original => {}
-            Ok(formatted) if args.fmt_check => {
+            Ok(_) if args.fmt_check => {
                 eprintln!("would reformat {}", name);
                 ok = false;
             }

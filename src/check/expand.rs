@@ -932,8 +932,24 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
 
         let mut nets = Vec::new();
+        // RFC-013: every declared net name (including aliases merged into a
+        // differently-named group) maps to that group's final name, so a layout
+        // reference validates against *declared identity*, not the post-merge
+        // name it may have lost to the naming race.
+        let mut declared_to_merged: BTreeMap<String, String> = BTreeMap::new();
         for decl_idxs in groups.values() {
             let decls: Vec<&NetDecl> = decl_idxs.iter().map(|&i| &self.net_decls[i]).collect();
+            // Name: smallest design-level name, else smallest scoped name.
+            let name = decls
+                .iter()
+                .filter(|d| d.is_design_level_name)
+                .map(|d| d.display_name.clone())
+                .min()
+                .or_else(|| decls.iter().map(|d| d.display_name.clone()).min())
+                .unwrap();
+            for d in &decls {
+                declared_to_merged.insert(d.display_name.clone(), name.clone());
+            }
             let members: BTreeSet<(String, String)> = decls
                 .iter()
                 .flat_map(|d| d.members.iter().cloned())
@@ -943,14 +959,6 @@ impl<'w, 'd> Expander<'w, 'd> {
                 // (a zero-member net is unrepresentable in the grammar).
                 continue;
             }
-            // Name: smallest design-level name, else smallest scoped name.
-            let name = decls
-                .iter()
-                .filter(|d| d.is_design_level_name)
-                .map(|d| d.display_name.clone())
-                .min()
-                .or_else(|| decls.iter().map(|d| d.display_name.clone()).min())
-                .unwrap();
             let span = decls
                 .iter()
                 .map(|d| d.span)
@@ -1010,10 +1018,9 @@ impl<'w, 'd> Expander<'w, 'd> {
         let nc_pins: BTreeSet<(String, String)> =
             self.nc_pins.iter().map(|(p, _)| p.clone()).collect();
 
-        // RFC-013: validate layout constraints against the final net set and
-        // build the (connectivity-independent) layout IR.
-        let net_names: BTreeSet<String> = nets.iter().map(|n| n.name.clone()).collect();
-        let layout = build_layout_ir(&self.layout_raw, &net_names, self.diags);
+        // RFC-013: validate layout constraints against declared-net identity
+        // and build the (connectivity-independent) layout IR.
+        let layout = build_layout_ir(&self.layout_raw, &declared_to_merged, self.diags);
 
         let ir = DesignIr {
             name: design.name.name.clone(),
@@ -1045,12 +1052,15 @@ fn resolve_net_name(name: &str, scope: &Scope) -> String {
 }
 
 /// RFC-013: validate layout constraints against their own closed vocabulary and
-/// the final net set, and build the resolved layout IR. Every check here is
-/// structural (net existence, arity, name uniqueness) — none touches the
-/// connectivity graph's emergent properties, and none can alter the netlist.
+/// build the resolved layout IR. Every check here is structural (net existence,
+/// arity, name uniqueness) — none touches the connectivity graph's emergent
+/// properties, and none can alter the netlist. Net references are validated
+/// against declared identity (`declared_to_merged` maps every declared net name
+/// to its final merged name) and rewritten to the merged name the `.net` file
+/// uses, so `layout.json` stays consistent with the netlist.
 fn build_layout_ir(
     raw: &[RawLayout],
-    net_names: &BTreeSet<String>,
+    declared_to_merged: &BTreeMap<String, String>,
     diags: &mut Diagnostics,
 ) -> LayoutIr {
     let mut layout = LayoutIr::default();
@@ -1058,7 +1068,7 @@ fn build_layout_ir(
     for c in raw {
         match c {
             RawLayout::NetClass { name, nets } => {
-                check_layout_nets(nets, net_names, diags);
+                let mapped = map_layout_nets(nets, declared_to_merged, diags);
                 if !seen_classes.insert(name.name.clone()) {
                     diags.push(Diagnostic::error(
                         "E1002",
@@ -1068,11 +1078,11 @@ fn build_layout_ir(
                 }
                 layout.net_classes.push(LayoutNetClass {
                     name: name.name.clone(),
-                    nets: nets.iter().map(|(r, _)| r.clone()).collect(),
+                    nets: mapped,
                 });
             }
             RawLayout::DiffPair { nets, span } => {
-                check_layout_nets(nets, net_names, diags);
+                let mapped = map_layout_nets(nets, declared_to_merged, diags);
                 if nets.len() != 2 {
                     diags.push(Diagnostic::error(
                         "E1003",
@@ -1084,8 +1094,8 @@ fn build_layout_ir(
                     ));
                 } else {
                     layout.diff_pairs.push(LayoutDiffPair {
-                        p: nets[0].0.clone(),
-                        n: nets[1].0.clone(),
+                        p: mapped[0].clone(),
+                        n: mapped[1].clone(),
                     });
                 }
             }
@@ -1094,7 +1104,7 @@ fn build_layout_ir(
                 tolerance,
                 span,
             } => {
-                check_layout_nets(nets, net_names, diags);
+                let mapped = map_layout_nets(nets, declared_to_merged, diags);
                 if nets.len() < 2 {
                     diags.push(Diagnostic::error(
                         "E1004",
@@ -1106,7 +1116,7 @@ fn build_layout_ir(
                     ));
                 } else {
                     layout.length_matches.push(LayoutLengthMatch {
-                        nets: nets.iter().map(|(r, _)| r.clone()).collect(),
+                        nets: mapped,
                         tolerance: tolerance.clone(),
                     });
                 }
@@ -1116,24 +1126,30 @@ fn build_layout_ir(
     layout
 }
 
-/// E1001: every net a layout constraint references must be a declared net.
-fn check_layout_nets(
+/// Resolve each layout net reference to its merged IR net name, emitting E1001
+/// for any reference to a net that was never declared (in the applicable
+/// design/fn scope).
+fn map_layout_nets(
     nets: &[(String, Ident)],
-    net_names: &BTreeSet<String>,
+    declared_to_merged: &BTreeMap<String, String>,
     diags: &mut Diagnostics,
-) {
-    for (resolved, orig) in nets {
-        if !net_names.contains(resolved) {
-            diags.push(Diagnostic::error(
-                "E1001",
-                orig.span,
-                format!(
-                    "unknown net `{}` in a layout constraint — no such net is declared in this design",
-                    orig.name
-                ),
-            ));
-        }
-    }
+) -> Vec<String> {
+    nets.iter()
+        .map(|(resolved, orig)| match declared_to_merged.get(resolved) {
+            Some(merged) => merged.clone(),
+            None => {
+                diags.push(Diagnostic::error(
+                    "E1001",
+                    orig.span,
+                    format!(
+                        "unknown net `{}` in a layout constraint — no such net is declared in this design",
+                        orig.name
+                    ),
+                ));
+                resolved.clone()
+            }
+        })
+        .collect()
 }
 
 /// RFC-002 exhaustiveness: every `required` pin of every instance appears in

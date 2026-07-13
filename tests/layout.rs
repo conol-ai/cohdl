@@ -155,6 +155,35 @@ fn unknown_net_is_e1001() {
 }
 
 #[test]
+fn merged_away_net_is_not_a_false_e1001() {
+    // ZZZ shares pin r1.A with USB_DP, so the two merge and the group keeps the
+    // smaller name (USB_DP). A layout reference to ZZZ — a genuinely declared
+    // net — must NOT spuriously E1001, and must resolve to the merged name in
+    // layout.json (regression: validation was against post-merge names).
+    let src = BASE.replace(
+        "net USB_DM: r1.B, r2.B",
+        "net USB_DM: r1.B, r2.B\n    net ZZZ: r1.A\n    layout { net_class C { ZZZ } }",
+    );
+    let built = build(&src);
+    assert!(
+        !built.diags.contains("E1001"),
+        "declared-but-merged net wrongly flagged:\n{}",
+        built.diags
+    );
+    let json = built.layout.expect("layout.json");
+    assert!(
+        json.contains("\"USB_DP\""),
+        "merged name not used:\n{}",
+        json
+    );
+    assert!(
+        !json.contains("\"ZZZ\""),
+        "pre-merge name leaked into layout.json:\n{}",
+        json
+    );
+}
+
+#[test]
 fn duplicate_net_class_is_e1002() {
     let r = check_err(&BASE.replace(
         "design Board {",

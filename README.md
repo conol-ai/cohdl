@@ -33,7 +33,7 @@ The proof: an AI writes a board from a plain-language spec, the type checker cat
 
 ## Status: MVP exit criteria
 
-All compiler-side exit criteria are met and tested (`cargo test`, 65 tests — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The one remaining step is the human KiCad checkpoint (instructions in `docs/demo/README.md`).
+All compiler-side exit criteria are met and tested (`cargo test`, 65 tests — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
 
 ## Using it
 

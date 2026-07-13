@@ -1,0 +1,11 @@
+RefDes,Value,MPN,Manufacturer,Qty
+"U1","AP2112K_3V3","AP2112K-3.3TRG1","Diodes Inc",1
+"C1,C3,C5,C7","100nF","CL05B104KO5NNNC","Samsung",4
+"C2,C4,C6","10uF","CL10A106KP8NNNC","Samsung",3
+"U2","ESP32_S3_WROOM_1","ESP32-S3-WROOM-1-N8","Espressif",1
+"MK1","ICS43434","ICS-43434","TDK InvenSense",1
+"D1","ChipLED","LTST-C193KRKT-5A","Lite-On",1
+"R4","10kohm","RC0402FR-0710KL","Yageo",1
+"R1","1kohm","RC0402FR-071KL","Yageo",1
+"R2,R3","5.1kohm","RC0402FR-075K1L","Yageo",2
+"J1","USB_C_Receptacle_2_0","TYPE-C-31-M-12","HRO",1

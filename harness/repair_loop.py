@@ -176,6 +176,12 @@ def main() -> int:
     parser.add_argument("--model", default="claude-opus-4-8")
     parser.add_argument("--backend", choices=["auto", "api", "claude-cli"], default="auto")
     parser.add_argument(
+        "--lean-reference",
+        action="store_true",
+        help="prompt with the language reference only — strip the electrical "
+        "design-notes section (the MVP-faithful mode: note 10 + snippets, no hand-holding)",
+    )
+    parser.add_argument(
         "--run-dir",
         default=None,
         help="output directory (default harness/runs/<timestamp>)",
@@ -183,6 +189,8 @@ def main() -> int:
     args = parser.parse_args()
 
     reference = (REPO_ROOT / "harness" / "prompt" / "language-reference.md").read_text()
+    if args.lean_reference:
+        reference = reference.split("## Electrical design notes")[0].rstrip() + "\n"
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(reference=reference)
     backend = pick_backend(args.backend, args.model, system_prompt)
 

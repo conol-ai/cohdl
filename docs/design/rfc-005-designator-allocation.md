@@ -27,7 +27,48 @@ Who this is for: **every author whose design gets compiled** — designator coll
 Model assignment as: given (a) the **prior lock-file state** (existing designator assignments + tombstones, both immutable inputs) and (b) the **live instance set** for this compilation (each with its hierarchical path, optional override, and prefix), produce a new assignment map via a single deterministic computation with an explicit, checkable invariant — rather than v1's mutate-`used`-as-you-go loop.
 
 ```text
-$64
+fn assign_designators(
+    prior: LockState,                    // immutable: existing designators + tombstones
+    live: Set<InstanceInfo>,              // this compilation's instances
+) -> Result<AssignmentMap, DuplicateOverrideError> {
+
+    // Step 1 — partition live instances into three deterministic, disjoint groups:
+    //   (a) paths with an existing prior assignment (keep as-is)
+    //   (b) paths with an explicit #[designator(...)] override (resolve conflicts, Step 2)
+    //   (c) paths needing a fresh assignment (Step 3)
+    // This partition is itself total and non-overlapping BY CONSTRUCTION — every
+    // live path falls into exactly one group, checked as a compile-time invariant
+    // on the partition function itself (not trusted to "just work out").
+
+    // Step 2 — validate overrides: reject if an override collides with another
+    // live path's assignment (existing or another override). This step is a
+    // pure conflict-detection pass over the already-partitioned groups — no
+    // shared mutable set threaded through a loop.
+
+    // Step 3 — assign fresh designators via a TOTAL, INJECTIVE numbering function,
+    // not a "keep incrementing until free" search against mutable state:
+    //   For each prefix P, gather the FINAL reserved-number set for P from
+    //   {prior assignments with prefix P} ∪ {tombstones with prefix P} ∪
+    //   {overrides with prefix P}, computed ONCE, as an immutable set, BEFORE
+    //   any fresh numbers are chosen.
+    //   Then assign fresh numbers to prefix-P instances (sorted by hierarchical
+    //   path, for determinism) as the sorted sequence of positive integers NOT
+    //   in that reserved set — the Nth fresh instance for prefix P gets the Nth
+    //   integer missing from the reserved set. This is a pure, referentially
+    //   transparent computation over immutable inputs: same reserved set + same
+    //   sorted instance list ALWAYS produces the same assignment, and two
+    //   different instances in the same prefix group provably get different
+    //   numbers because they consume different positions in one sorted sequence
+    //   — not two independent "first free slot" searches against a set that
+    //   might not yet reflect each other's choice.
+
+    // Step 4 — assert the whole result is injective (no two distinct live paths
+    // map to the same designator) as an explicit, checked postcondition before
+    // returning — not merely assumed from the construction. This is the
+    // "provable, not just tested" requirement made concrete: the invariant is
+    // checked in the algorithm's own return path, every single run, not just in
+    // a unit test that happens to be included.
+}
 ```
 
 The critical difference from v1: **Step 3 computes the full reserved-number set for a prefix once, immutably, before assigning any fresh numbers**, and assigns fresh numbers as *positions in one sorted sequence* rather than repeated independent "scan up from 1 until free" searches against a set that's being mutated concurrently with the scanning. Two instances needing the same prefix can never race to claim the same number, because there is no shared mutable state being updated between one instance's assignment and the next — the entire reserved set and the entire list of "who needs a fresh number" are fixed before any assignment happens.

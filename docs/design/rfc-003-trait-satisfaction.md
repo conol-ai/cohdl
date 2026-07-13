@@ -106,7 +106,32 @@ impl Capacitor for MLCC {}
 ### Example: what this actually enables
 
 ```cohdl
-$6a
+// devices/passives.cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+
+pub device TantalumCap<C: Capacitance, V: Voltage = 10V> {
+    pins { Anode: 1, Cathode: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+
+// traits/passive_traits.cohdl
+pub trait TwoTerminal { pins { required A: pin, required B: pin } }
+pub trait Polarized { pins { required Anode: pin, required Cathode: pin } }
+pub trait Capacitor: TwoTerminal { spec { capacitance: Capacitance, voltage_rating: Voltage } }
+
+// impls/capacitor_impls.cohdl — grouped by trait, the idiomatic Rust organization,
+// now possible because impl is decoupled from both trait and device declarations
+impl TwoTerminal for MLCC {}
+impl Capacitor for MLCC {}
+
+impl Polarized for TantalumCap {}
+// note: TantalumCap does NOT implement Capacitor or TwoTerminal here —
+// its pins are named Anode/Cathode, not A/B, so it would need its own
+// impl TwoTerminal for TantalumCap if that trait were desired, or simply
+// doesn't need to claim it — nothing forces every device into every trait
 ```
 
 MLCC and TantalumCap are declared once, in devices/passives.cohdl, and never touched again. Their trait memberships live in impls/capacitor_impls.cohdl, organized by trait rather than scattered across every device's own declaration — exactly the organizational freedom the C#-like coupling in the first draft prevented.

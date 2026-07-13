@@ -16,7 +16,63 @@ Small fixes don't need an RFC. An RFC is required when a change touches a core c
 # RFC template — one new mandatory section (marked NEW)
 
 ```text
-$3a
+# RFC-NNNN: [short title]
+
+## Problem
+What real problem does this solve? For whom (AI author / human reviewer / tool builder)?
+
+## Goals
+Which product goals + priority-ladder ranks does it serve?
+
+## Non-goals
+What does it deliberately NOT solve?
+
+## Design
+Proposed behavior, syntax, and/or IR change. Show example .cohdl source.
+
+## Type-system-first test (NEW, mandatory if proposing a `rule`/DRC check)
+Could this be expressed as a trait bound, a required spec, a pin obligation,
+or another type-system mechanism instead of a `rule`? If not, why not —
+specifically, what makes it emergent/cross-cutting/numeric rather than
+structural? A `rule` proposal that skips this section is incomplete.
+
+## Conceptual impact
+Does it add/change a core concept? (If yes: justify the permanent cost.)
+Guard the canonical vocabulary — does any name overlap an existing concept?
+
+## Coherence matrix row
+| Concepts | Grammar | Oracle | Diagnostics | Netlist | Compat | Trust |
+Fill each cell Low/Med/High/Crit, then address every High/Crit.
+
+## Gradeability
+How does the compiler CHECK this? Which stage/rule/code enforces "correct"?
+Prefer the earliest possible stage (type-check over DRC over review).
+
+## AI-generatability
+Can a model emit this without memorizing a special case? Is meaning local?
+
+## Alternatives
+What else was considered? Why not a `fn` / existing trait / existing rule?
+
+## Compatibility
+Breaks existing source, error codes, designators, or netlist bytes?
+Deprecation cycle needed? (N/A until v2's first stable release ships.)
+
+## Tooling & operations
+What must be observable, formattable, diffable, reversible?
+Does it change the `check --json` / error-code public surface?
+
+## Teaching cost
+What must an AI-context author + a human reviewer now learn?
+
+## Failure modes
+How can this be misused, misgenerated, or misunderstood?
+
+## Migration path
+How do existing designs move into the new model? (N/A pre-launch.)
+
+## Decision
+Accepted / Rejected / Delayed / Experimental — with date + link to decision record.
 ```
 
 # The lifecycle of an RFC — unchanged, one step added

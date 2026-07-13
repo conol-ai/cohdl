@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+"""The MVP generate → check → repair harness (a script, not a product UI).
+
+Loop (docs/design/09-mvp-definition.md, "Demo scenario"):
+  1. Prompt an LLM with the language reference for .cohdl source.
+  2. Run `cohdl build` (type checker + residual DRC + emitters).
+  3. On failure, feed the compiler diagnostics back VERBATIM and regenerate.
+  4. Repeat until clean or the attempt cap (default 5) is hit.
+
+Writes a full markdown transcript of every attempt — the transcript showing at
+least one genuine type-checker catch + repair is the MVP's proof artifact.
+
+Usage:
+  python3 harness/repair_loop.py                # runs the canonical demo spec
+  python3 harness/repair_loop.py --spec "..."   # custom natural-language spec
+  python3 harness/repair_loop.py --max-attempts 5 --model claude-opus-4-8
+
+Backends (--backend, default auto):
+  api         the Anthropic SDK (`pip install anthropic` + ANTHROPIC_API_KEY
+              or an `ant auth login` profile)
+  claude-cli  `claude -p` print mode (uses your existing Claude Code login)
+"""
+
+import argparse
+import datetime
+import os
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+DEFAULT_SPEC = (
+    "An ESP32-S3-based sensor node: USB-C power/data, one MEMS microphone, "
+    "one status LED, a 3.3V LDO regulator, standard decoupling."
+)
+
+SYSTEM_PROMPT_TEMPLATE = """\
+You are an expert electronics engineer writing CoHDL, a typed hardware
+description language for PCB schematics. You will be given a natural-language
+board specification. Respond with a complete .cohdl source file implementing
+it.
+
+Rules:
+- Output exactly one fenced code block marked ```cohdl containing the full
+  source file, and nothing else of substance.
+- The file must contain exactly one `design` declaration.
+- Use ONLY the constructs and standard-library items in the reference below.
+- Every instance must be a std part (instantiated by name) so the BOM
+  resolves.
+- If you receive compiler diagnostics, fix exactly what they report and
+  return the corrected complete file.
+
+{reference}
+"""
+
+
+def build_compiler() -> pathlib.Path:
+    subprocess.run(
+        ["cargo", "build", "--quiet"], cwd=REPO_ROOT, check=True
+    )
+    return REPO_ROOT / "target" / "debug" / "cohdl"
+
+
+def extract_cohdl(text: str) -> str | None:
+    blocks = re.findall(r"```cohdl\n(.*?)```", text, re.DOTALL)
+    if blocks:
+        return blocks[-1]
+    # Fall back to any fenced block.
+    blocks = re.findall(r"```\w*\n(.*?)```", text, re.DOTALL)
+    return blocks[-1] if blocks else None
+
+
+def run_build(compiler: pathlib.Path, project_dir: pathlib.Path) -> tuple[bool, str]:
+    proc = subprocess.run(
+        [str(compiler), "build", str(project_dir), "--std", str(REPO_ROOT / "std")],
+        capture_output=True,
+        text=True,
+    )
+    output = (proc.stderr + proc.stdout).strip()
+    return proc.returncode == 0, output
+
+
+class ApiBackend:
+    """The Anthropic Messages API via the official SDK."""
+
+    def __init__(self, model: str, system_prompt: str):
+        import anthropic
+
+        self.client = anthropic.Anthropic()
+        self.model = model
+        self.system_prompt = system_prompt
+
+    def generate(self, messages: list[dict]) -> str | None:
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=16000,
+            thinking={"type": "adaptive"},
+            system=[{
+                "type": "text",
+                "text": self.system_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }],
+            messages=messages,
+        )
+        if response.stop_reason == "refusal":
+            return None
+        return "".join(b.text for b in response.content if b.type == "text")
+
+
+class ClaudeCliBackend:
+    """`claude -p` print mode — reuses the local Claude Code login.
+
+    Print mode is stateless, so each call sends the full conversation
+    rendered into one prompt.
+    """
+
+    def __init__(self, model: str, system_prompt: str):
+        self.model = model
+        self.system_prompt = system_prompt
+
+    def generate(self, messages: list[dict]) -> str | None:
+        parts = []
+        for m in messages:
+            speaker = "USER" if m["role"] == "user" else "YOUR PREVIOUS REPLY"
+            parts.append(f"[{speaker}]\n{m['content']}")
+        prompt = "\n\n".join(parts)
+        proc = subprocess.run(
+            [
+                "claude", "-p",
+                "--model", self.model,
+                "--system-prompt", self.system_prompt,
+                "--disallowedTools", "*",
+                prompt,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=1200,
+        )
+        if proc.returncode != 0:
+            print(f"claude -p failed: {proc.stderr.strip()}", file=sys.stderr)
+            return None
+        return proc.stdout
+
+
+def pick_backend(name: str, model: str, system_prompt: str):
+    if name == "api":
+        return ApiBackend(model, system_prompt)
+    if name == "claude-cli":
+        return ClaudeCliBackend(model, system_prompt)
+    # auto: prefer the SDK when it's importable and credentialed.
+    try:
+        import anthropic  # noqa: F401
+
+        if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
+            return ApiBackend(model, system_prompt)
+    except ImportError:
+        pass
+    if shutil.which("claude"):
+        return ClaudeCliBackend(model, system_prompt)
+    print(
+        "error: no LLM backend available — pip install anthropic + set "
+        "ANTHROPIC_API_KEY, or install Claude Code",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--spec", default=DEFAULT_SPEC, help="natural-language board spec")
+    parser.add_argument("--max-attempts", type=int, default=5)
+    parser.add_argument("--model", default="claude-opus-4-8")
+    parser.add_argument("--backend", choices=["auto", "api", "claude-cli"], default="auto")
+    parser.add_argument(
+        "--run-dir",
+        default=None,
+        help="output directory (default harness/runs/<timestamp>)",
+    )
+    args = parser.parse_args()
+
+    reference = (REPO_ROOT / "harness" / "prompt" / "language-reference.md").read_text()
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(reference=reference)
+    backend = pick_backend(args.backend, args.model, system_prompt)
+
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_dir = pathlib.Path(args.run_dir) if args.run_dir else REPO_ROOT / "harness" / "runs" / stamp
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    compiler = build_compiler()
+
+    transcript: list[str] = [
+        "# CoHDL generate → check → repair transcript",
+        "",
+        f"- Date: {datetime.datetime.now().isoformat(timespec='seconds')}",
+        f"- Model: {args.model}",
+        f"- Attempt cap: {args.max_attempts}",
+        "",
+        "## Natural-language specification",
+        "",
+        f"> {args.spec}",
+        "",
+    ]
+
+    messages = [
+        {
+            "role": "user",
+            "content": (
+                "Write the complete .cohdl source for this board:\n\n"
+                f"{args.spec}"
+            ),
+        }
+    ]
+
+    success = False
+    caught_errors = 0
+    for attempt in range(1, args.max_attempts + 1):
+        print(f"--- attempt {attempt}/{args.max_attempts}: generating…", flush=True)
+        reply_text = backend.generate(messages)
+        if reply_text is None:
+            print("generation failed; aborting", file=sys.stderr)
+            transcript.append(f"## Attempt {attempt}\n\nGeneration failed (refusal or backend error).\n")
+            break
+        source = extract_cohdl(reply_text)
+
+        transcript.append(f"## Attempt {attempt}")
+        transcript.append("")
+        if source is None:
+            transcript.append("The model returned no code block. Full reply:")
+            transcript.append("")
+            transcript.append(reply_text)
+            transcript.append("")
+            messages.append({"role": "assistant", "content": reply_text})
+            messages.append({
+                "role": "user",
+                "content": "You returned no ```cohdl code block. Return the complete source file in one.",
+            })
+            continue
+
+        attempt_dir = run_dir / f"attempt_{attempt}"
+        (attempt_dir / "src").mkdir(parents=True, exist_ok=True)
+        (attempt_dir / "src" / "main.cohdl").write_text(source)
+        (attempt_dir / "cohdl.toml").write_text(
+            '[package]\nname = "sensor-node"\n'
+        )
+
+        ok, compiler_output = run_build(compiler, attempt_dir)
+        transcript.append("### Generated source")
+        transcript.append("")
+        transcript.append("```cohdl")
+        transcript.append(source.rstrip("\n"))
+        transcript.append("```")
+        transcript.append("")
+        transcript.append("### Compiler verdict")
+        transcript.append("")
+        transcript.append("```text")
+        transcript.append(compiler_output if compiler_output else "(no output)")
+        transcript.append("```")
+        transcript.append("")
+
+        if ok:
+            print(f"attempt {attempt}: CLEAN — netlist + BOM emitted")
+            transcript.append(
+                f"**Attempt {attempt} is clean** — the design parses, resolves, "
+                "type-checks, passes residual DRC, and emitted a KiCad netlist + BOM."
+            )
+            transcript.append("")
+            transcript.append(f"- Netlist: `{attempt_dir / 'out' / 'sensor-node.net'}`")
+            transcript.append(f"- BOM: `{attempt_dir / 'out' / 'sensor-node-bom.csv'}`")
+            transcript.append("")
+            success = True
+            break
+
+        # Count type-checker/DRC catches for the proof requirement.
+        n_errors = len(re.findall(r"^(error|warning)\[", compiler_output, re.MULTILINE))
+        caught_errors += n_errors
+        print(f"attempt {attempt}: {n_errors} diagnostics — feeding back verbatim")
+
+        messages.append({"role": "assistant", "content": reply_text})
+        messages.append({
+            "role": "user",
+            "content": (
+                "The CoHDL compiler rejected this source. Diagnostics, verbatim:\n\n"
+                f"```\n{compiler_output}\n```\n\n"
+                "Fix exactly what is reported and return the corrected complete file."
+            ),
+        })
+
+    transcript.append("## Result")
+    transcript.append("")
+    if success:
+        transcript.append(
+            f"Landed on a clean design. The compiler caught and reported "
+            f"{caught_errors} diagnostics across the failed attempts; every one "
+            "was fed back verbatim and repaired by the model."
+        )
+    else:
+        transcript.append(
+            f"Did NOT land within {args.max_attempts} attempts "
+            f"({caught_errors} diagnostics caught)."
+        )
+    transcript.append("")
+
+    transcript_path = run_dir / "transcript.md"
+    transcript_path.write_text("\n".join(transcript))
+    print(f"transcript: {transcript_path}")
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

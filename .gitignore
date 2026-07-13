@@ -3,3 +3,4 @@ Cargo.lock.orig
 *.orig
 .DS_Store
 /out
+harness/runs/

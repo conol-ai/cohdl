@@ -255,27 +255,9 @@ fn resolve_one(
                     }
                 }
             };
-            let mut ok = true;
-            for bound in bounds {
-                if !world.has_impl(&bound.name, &device) {
-                    diags.push(
-                        Diagnostic::error(
-                            "E403",
-                            name.span,
-                            format!(
-                                "`{}` does not implement `{}`, required by `{}`",
-                                device, bound.name, param.name.name
-                            ),
-                        )
-                        .with_help(format!(
-                            "add `impl {} for {} {{ … }}` (checked at the impl statement, RFC-003), or pass a device that has one",
-                            bound.name, device
-                        )),
-                    );
-                    ok = false;
-                }
-            }
-            ok.then_some(GenericValue::Device(device))
+            let required_by = format!("`{}`", param.name.name);
+            check_trait_bounds(world, &device, bounds, name.span, &required_by, diags)
+                .then_some(GenericValue::Device(device))
         }
         (GenericBound::Traits(_), GenericArg::Unit(val, span)) => {
             diags.push(Diagnostic::error(
@@ -300,6 +282,44 @@ fn resolve_one(
             None
         }
     }
+}
+
+/// THE one trait-bound-checking mechanism (RFC-007 / DR-016).
+///
+/// Every trait bound — whether on a named generic type parameter or on an
+/// `impl Trait`-typed value parameter (which is sugar for an anonymous
+/// generic parameter) — is checked HERE, by looking up free-standing
+/// `impl Trait for Device` statements in scope. There is deliberately no
+/// second code path (the v1 bug DR-016 exists to prevent).
+pub fn check_trait_bounds(
+    world: &World,
+    device: &str,
+    bounds: &[Ident],
+    site: Span,
+    required_by: &str,
+    diags: &mut Diagnostics,
+) -> bool {
+    let mut ok = true;
+    for bound in bounds {
+        if !world.has_impl(&bound.name, device) {
+            diags.push(
+                Diagnostic::error(
+                    "E403",
+                    site,
+                    format!(
+                        "`{}` does not implement `{}`, required by {}",
+                        device, bound.name, required_by
+                    ),
+                )
+                .with_help(format!(
+                    "add `impl {} for {} {{ … }}` (checked at the impl statement, RFC-003), or pass a device that has one",
+                    bound.name, device
+                )),
+            );
+            ok = false;
+        }
+    }
+    ok
 }
 
 /// Validate every `part` declaration (provisional §2): the device exists, the

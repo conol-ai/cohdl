@@ -91,6 +91,9 @@ pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
     pub lock: LockState,
+    /// Informational notes for the build output (e.g. ambiguous part
+    /// bindings resolved deterministically — provisional §2).
+    pub notes: Vec<String>,
 }
 
 /// The `build` half: designators (RFC-005), part binding, emitters.
@@ -98,8 +101,9 @@ pub struct BuildArtifacts {
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
     let ir = checked.ir.as_mut()?;
     let mut diags = Diagnostics::new();
+    let mut notes = Vec::new();
     let lock = crate::lock::assign_designators(&checked.world, ir, prior_lock, &mut diags);
-    crate::emit::bind_parts(&checked.world, ir, &mut diags);
+    crate::emit::bind_parts(&checked.world, ir, &mut diags, &mut notes);
     let failed = diags.has_errors();
     diags.sort(&checked.sm);
     checked.diags.extend(diags);
@@ -111,5 +115,6 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
         lock,
+        notes,
     })
 }

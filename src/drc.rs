@@ -15,16 +15,24 @@ use crate::ast::PinRole;
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::World;
+use crate::units::UnitType;
 
 pub fn run_drc(world: &World, ir: &DesignIr, diags: &mut Diagnostics) {
     for net in &ir.nets {
         // ---- D001 voltage-exceed: an instance's `voltage_rating` spec is
         // less than the voltage annotated on the net it's connected to.
+        // RFC-001 comparison discipline: compare only Voltage against Voltage
+        // (the annotation is grammar-guaranteed Voltage; the spec field is
+        // checked here so a non-Voltage `voltage_rating` is never compared
+        // across unit types).
         if let Some(net_v) = &net.voltage {
             for (path, _pin) in &net.members {
                 let inst = &ir.instances[path];
                 if let Some(rating) = inst.specs.get("voltage_rating") {
-                    if rating.femto < net_v.femto {
+                    if rating.unit == UnitType::Voltage
+                        && net_v.unit == UnitType::Voltage
+                        && rating.femto < net_v.femto
+                    {
                         diags.push(
                             Diagnostic::error(
                                 "D001",

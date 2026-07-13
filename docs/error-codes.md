@@ -36,6 +36,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E203 | unknown pin on device/trait |
 | E204 | unknown spec field |
 | E205 | name is the wrong kind (e.g. a trait used where a device is required) |
+| E206 | instance/net names beginning with `__` are reserved for compiler-generated expansion names |
 
 ## E3xx — trait satisfaction at impl (RFC-003)
 

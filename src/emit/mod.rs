@@ -13,7 +13,14 @@ use crate::resolve::World;
 /// Bind every instance to a part (provisional-syntax.md §2). Instances typed
 /// by a part name are already bound; the rest bind by exact match on
 /// (device, resolved spec values). No match → E801 (the BOM must not lie).
-pub fn bind_parts(world: &World, ir: &mut DesignIr, diags: &mut Diagnostics) {
+/// Ambiguous matches pick the lexicographically-smallest part name and push a
+/// note (surfaced in the build output, per provisional §2).
+pub fn bind_parts(
+    world: &World,
+    ir: &mut DesignIr,
+    diags: &mut Diagnostics,
+    notes: &mut Vec<String>,
+) {
     // (device, sorted spec values) → part names, smallest first.
     let matches_for_instance =
         |device: &str,
@@ -70,7 +77,18 @@ pub fn bind_parts(world: &World, ir: &mut DesignIr, diags: &mut Diagnostics) {
         let candidates = matches_for_instance(&inst.device, &inst.specs);
         let inst = ir.instances.get_mut(&path).unwrap();
         match candidates.first() {
-            Some(part) => inst.part = Some(part.clone()),
+            Some(part) => {
+                if candidates.len() > 1 {
+                    notes.push(format!(
+                        "`{}` matches {} parts ({}); bound to the lexicographically-smallest, `{}`",
+                        path,
+                        candidates.len(),
+                        candidates.join(", "),
+                        part
+                    ));
+                }
+                inst.part = Some(part.clone());
+            }
             None => {
                 diags.push(
                     Diagnostic::error(

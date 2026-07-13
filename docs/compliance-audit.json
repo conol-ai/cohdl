@@ -1,0 +1,606 @@
+[
+  {
+    "document": "docs/design/01-product-constitution.md (audited against the CoHDL v2 implementation at /Users/tony/projects/conol/cohdl, with docs/provisional-syntax.md and docs/design/09-mvp-definition.md as scoping context)",
+    "verified_claims": [
+      {
+        "claim": "The language must be parseable by a deterministic grammar with no unbounded lookahead or context-sensitive tricks",
+        "evidence": "src/parse.rs:1-6 (doc: max 2 tokens lookahead), src/parse.rs:36-39 (peek_ahead, the only lookahead primitive), src/parse.rs:485-495 (device_pin comma disambiguation — the sole peek_ahead(2) site, bounded), src/parse.rs:49-55 (pos monotonic, no backtracking), src/lex.rs:1-8 and 142-221 (single-pass lexer, no backtracking); every in-scope construct parse-tested at src/parse.rs:1195-1440 and tests/exit_criteria.rs:46-58 (full std + demo board parses)"
+      },
+      {
+        "claim": "Every diagnostic must carry a precise source span and a stable, documented error code",
+        "evidence": "src/diag.rs:40-62 (Diagnostic::error/warning constructors force code + span; no span-less constructor exists); all 101 Diagnostic::error/warning call sites across src/ pass static code strings and real token/AST spans; all 44 distinct emitted codes (E001-E804, D001-D004) are documented in docs/error-codes.md; spans survive fn expansion (src/ir.rs:36-39, src/check/expand.rs:255-271); deterministic presentation order src/diag.rs:128-138"
+      },
+      {
+        "claim": "Correctness must be reproducible: same source + same std version -> same verdict, same designators, same netlist bytes",
+        "evidence": "grep confirms zero HashMap/HashSet anywhere in src/; all pipeline collections are BTreeMap/BTreeSet or explicitly sorted Vecs (src/ir.rs:8-19, src/resolve.rs:12-22); source files collected in sorted order (src/project.rs:93-97); net union-find merges to smallest index (src/check/expand.rs:737-744), merged-net naming is lexicographic-min (expand.rs:786-793), nets sorted by name (expand.rs:848); emitters byte-stable by construction (src/emit/mod.rs:1-4, kicad.rs:18-19 and 87-90 sorted, bom.rs:16 BTreeMap, kicad.rs:60 tstamp = deterministic index); allocator is a pure total function over sorted inputs (src/lock.rs:114-210); tests: order-independence tests/exit_criteria.rs:499-533, golden byte-stability tests/exit_criteria.rs:626-659; independently re-verified during this audit: cargo build of examples/sensor-node produced byte-identical .net/.csv/.lock vs the committed golden files"
+      },
+      {
+        "claim": "Generated netlists must be faithful and lossless — no silent drops: every instance emitted, every net member becomes nodes for all physical pins",
+        "evidence": "src/emit/kicad.rs:18-62 (iterates ALL ir.instances into comps), kicad.rs:67-100 (iterates ALL ir.nets), kicad.rs:76-85 (one node per PHYSICAL pin number of every connected logical pin — bus pins like GND: 2,3,4 all emitted); nc pins represented by guaranteed absence per KiCad legacy convention, documented at kicad.rs:1-7; resolution guarantees members are real device pins before emit (src/check/expand.rs:342, src/check/impls.rs:80-90 E305); build refuses any unbound instance with E801 so the BOM cannot lie (src/emit/mod.rs:74-90; test tests/exit_criteria.rs:666-683)"
+      },
+      {
+        "claim": "No pin may be left in an ambiguous or implicit state — connect it or explicitly mark it nc, else fail to compile",
+        "evidence": "src/check/expand.rs:869-913 (RFC-002 exhaustiveness runs once at final assembly: required pin in neither net nor nc -> E701; pin in both -> E702); fixtures tests/exit_criteria.rs:136-204 and tests/checker_smoke.rs:153-187 verify both directions plus the optional-pin non-firing case"
+      },
+      {
+        "claim": "Unit strictness: closed 10-type table, zero coercion, no bare numbers, no silent defaults",
+        "evidence": "src/units.rs:25-117 (closed enum, per-unit prefix table, Temperature-only sign), literal validation at lex time with targeted diagnostics E101-E106 incl. Unicode Ω/°C traps (src/lex.rs:190-211, 306-434); bare numbers rejected everywhere a unit is expected: E111 (src/parse.rs:548-561, 618-627), E404 (src/check/generics.rs:149-163); mismatches always name expected vs actual: E402 (generics.rs:129-148), E110 (src/resolve.rs:360-377); tests tests/exit_criteria.rs:65-128, src/lex.rs:510-541"
+      },
+      {
+        "claim": "Trait requirements are verified at compile time, never skipped: impl satisfaction names the trait and the exact gap; sub-trait bounds produce chain diagnostics",
+        "evidence": "src/check/impls.rs:29-260 (E301 names impl, role/field, and gap with secondary spans; E302 chain diagnostic for missing sub-trait impl; E304/E305 mapping validity; unit type of mapped spec field checked at impls.rs:193-224); duplicate impl E303 (src/resolve.rs:468-481); cyclic sub-trait bounds E306 (resolve.rs:184-198); tests tests/exit_criteria.rs:213-276, tests/checker_smoke.rs:343-353"
+      },
+      {
+        "claim": "Generic trait bounds are checked at instantiation through a single inspectable code path (no convention)",
+        "evidence": "src/check/generics.rs:1-5 (DR-016: one path for device insts, fn calls, impl Trait params), generics.rs:258-278 (E403 names the missing trait and concrete type), impl-Trait desugar checks bounds at src/check/expand.rs:616-659; defaults on trait-bound params rejected E406 (src/resolve.rs:378-392); tests tests/exit_criteria.rs:284-310"
+      },
+      {
+        "claim": "Nested fn expansion is deterministic with cycle detection and collision-free call-chain naming (RFC-006)",
+        "evidence": "src/check/expand.rs:510-528 (cycle detected BEFORE any expansion, E501 shows full chain), expand.rs:667-681 (__fn{N}_{name} globally-countered path segments), outward-in substitution threading expand.rs:532-540; tests: 3-level threading + uniqueness tests/exit_criteria.rs:318-371, cycle tests/exit_criteria.rs:374-389, two-call-site no-collision tests/checker_smoke.rs:307-340"
+      },
+      {
+        "claim": "Identity is persistent: collision-free designator allocator, design.lock with tombstones, overrides resolved before fresh assignment, injectivity as a checked postcondition",
+        "evidence": "src/lock.rs:114-238 (partition -> validate overrides (E803) -> reserved set computed once from kept ∪ overrides ∪ tombstones -> fresh = sorted missing integers -> injectivity assertion); byte-stable lock rendering lock.rs:78-88; tests tests/exit_criteria.rs:397-533 (same-prefix no-collision, stability across rebuilds, tombstone non-reuse, override collision E803, order independence)"
+      },
+      {
+        "claim": "Residual DRC is exactly four rules (voltage-exceed, polarity, single-driver, multi-driver) and nothing more; DRC reads only explicit annotations, never net names",
+        "evidence": "src/drc.rs:19-118 implements only D001-D004 (matching docs/error-codes.md:95-102 'exactly four, never more'); rules consume only net.voltage / net.is_gnd set from explicit [3.3V]/[gnd] syntax (src/parse.rs:1016-1042, src/check/expand.rs:801-846) — no string parsing of net names anywhere; per-rule fixtures tests/exit_criteria.rs:539-619"
+      },
+      {
+        "claim": "Explicitness over hidden magic: a net is connected only because the source says so (merging only via shared pin or same design-level name)",
+        "evidence": "src/check/expand.rs:746-765 (union-find keyed only on identical design-level names and shared resolved pins); no bare-identifier 'external net' endpoints exist (grammar requires pin refs, src/parse.rs:1122-1146), matching provisional §9's removal of v1's convention hack"
+      },
+      {
+        "claim": "Locality of meaning: errors point at the smallest responsible span",
+        "evidence": "sampled across mechanisms: E203 at the pin identifier with device pin list help (src/check/expand.rs:345-363), E701 primary at the inst statement + secondary at the device pin declaration (expand.rs:883-897), E402 at the exact generic argument (src/check/generics.rs:133-144), E301 with secondary spans at both device pin and trait requirement (src/check/impls.rs:132-179)"
+      },
+      {
+        "claim": "Text is the source of truth — no hidden state in a binary or GUI",
+        "evidence": "all persistent state is .cohdl source + design.lock (human-readable two-table TOML, src/lock.rs:10-18, 78-88) + emitted text artifacts; the CLI surface is check/build only (src/main.rs:10-22)"
+      },
+      {
+        "claim": "Error-code stability: codes are deprecated, never silently repurposed",
+        "evidence": "docs/error-codes.md:1-5 declares codes as stable strings with reserved per-mechanism blocks (formal registry RFC-011 correctly deferred per 09-mvp-definition.md cut list); every code emitted in src/ appears in the registry with matching meaning and severity"
+      }
+    ],
+    "violations": [
+      {
+        "claim": "RFC-001 comparison discipline at net annotations: 'a non-Voltage unit literal here is a unit-type error' (provisional-syntax.md §4, backing the Constitution's 'no spec may be left in a state the checker resolves by silent default')",
+        "problem": "The parser accepts ANY unit literal as a net voltage annotation — `net X [100nF]: r.A, r.B` compiles with zero errors (repro confirmed, exit 0). parse.rs wraps any TokenKind::Unit into NetAnnotation::Voltage without checking unit == Voltage, and neither expansion nor DRC re-checks. A Capacitance value silently becomes a net 'voltage' that D001 then compares femto-to-femto against ratings, and merged-annotation conflict detection (expand.rs:806) also compares femto across potentially different units. This is the exact silent-coercion class the redesign exists to forbid.",
+        "evidence": "src/parse.rs:1020-1026 (no Voltage check); src/check/expand.rs:801-846 (no unit check at merge); live repro: `net X [100nF]:` -> 'No errors found.'",
+        "severity": "broken"
+      },
+      {
+        "claim": "D001 voltage-exceed fires when 'an instance has a voltage_rating spec (that exact field name, Voltage-typed) and is connected to a net whose voltage annotation exceeds it' (provisional-syntax.md §7, concretizing RFC-004; comparison legality per RFC-001)",
+        "problem": "drc.rs looks up the spec by name only and compares rating.femto < net_v.femto with no check that rating.unit == UnitType::Voltage. A device declaring `spec { voltage_rating: 10nF }` (legal — device spec field names are free-form unless a trait constrains them) produces the nonsense cross-unit diagnostic 'voltage-exceed: rated `10nF`, but net `V` is annotated `5V`' (repro confirmed). The claimed 'Voltage-typed' guard is not enforced; combined with the annotation gap above, D001's comparison is not guaranteed same-unit.",
+        "evidence": "src/drc.rs:26-27 (no unit guard on rating); live repro emitted D001 comparing Capacitance vs Voltage",
+        "severity": "partial"
+      },
+      {
+        "claim": "Ambiguous part binding: 'if several match, the lexicographically-smallest part name wins (deterministic; noted in the build output)' (provisional-syntax.md §2); Constitution hard constraint: nothing resolved by silent default",
+        "problem": "The deterministic lexicographic pick is implemented (BTreeMap order + candidates.first()), but the promised build-output note does not exist anywhere — with two parts (ZPart, APart) exactly matching one instance, `cohdl build` silently binds APart and prints only the normal success lines (repro confirmed). The ambiguity is resolved by a silent default the user is never shown, which is precisely the state the Constitution's new hard constraint forbids; the provisional doc's own mitigation (the note) is unimplemented.",
+        "evidence": "src/emit/mod.rs:70-73 (silent candidates.first()); src/main.rs:130-176 (build output contains no ambiguity note); live repro: silent MPN-A pick in BOM",
+        "severity": "partial"
+      },
+      {
+        "claim": "'No language feature may exist that the type system or DRC cannot inspect (nothing correct purely by convention)'",
+        "problem": "`pub` is parsed and recorded on every item but enforced by nothing — a keyword with zero semantics. Provisional-syntax.md §1 documents this openly ('pub is accepted and recorded but not enforced' — single flat scope has no visibility boundary yet), so it is a deliberate, visible MVP gap rather than a hidden convention, but it is still accepted syntax carrying no checkable meaning.",
+        "evidence": "src/parse.rs:153 (is_pub consumed), src/ast.rs Item.is_pub has no consumer anywhere in src/ (grep); documented at docs/provisional-syntax.md §1",
+        "severity": "documented-deviation"
+      }
+    ],
+    "notes": "(1) Registry codes E204 (unknown spec field) and E601 (floating net) are documented in docs/error-codes.md but never emitted by any code path. E601's case is structurally unreachable in the MVP: the grammar requires >=1 net member, every member must be a pin (no bare-Ident endpoints per provisional §9), and resolution failures emit E202/E203/E602 and fail the build — so RFC-004's W002-reclassification mechanism (floating net = compile error) IS enforced, just never via the E601 code the docs cite (src/check/expand.rs:781-784 silently skips all-unresolved nets after errors were already reported). Worth reconciling docs vs code, but not a dormant-rule violation since no clean build can contain the condition. (2) Project-level failures (design selection at src/pipeline.rs:39-70, manifest/lock parse errors) are span-less/code-less Err(String)s by explicit design (pipeline.rs:25-27: 'project-level, not source-level'); they are not source diagnostics, so I did not count them against the span+code constraint. (3) D002 is keyed to the literal trait name \\\"Polarized\\\" and role names \\\"Anode\\\"/\\\"Cathode\\\" (src/drc.rs:52-58) — correct with the shipped std, but silently inert for a user-defined polarity trait under --no-std; borderline convention-coupling to keep in mind for the RFC-004 decision-record check (task #12). (4) A hand-edited design.lock mapping two live paths to the same designator crashes via the 'COMPILER BUG' injectivity panic (src/lock.rs:217-227) instead of a user-facing diagnostic — only override collisions get E803 (lock.rs:136-163); robustness gap, not a determinism gap. (5) MVP cut-list items are correctly absent and were NOT reported as violations: no fmt/LSP/--json/formal registry/LCEDA (src/main.rs:1-2 documents the cut explicitly). (6) The demo-scenario exit criterion (transcript with a genuine type-checker catch + repair) is work-in-progress per the task list (task #11); the worktree contains uncommitted harness/repair_loop.py changes and an untracked docs/demo/ directory from that parallel work — untouched by this audit. My rebuild of examples/sensor-node rewrote design.lock byte-identically (repo state for it unchanged). (7) Full test suite passes (30 integration tests + lib unit tests, 0 failures). (8) Designator reproducibility is conditional on the same prior design.lock by design (identity persistence, RFC-005) — same source + same lock -> same bytes, verified."
+  },
+  {
+    "document": "docs/design/rfc-001-units-as-types.md",
+    "verified_claims": [
+      {
+        "claim": "A fixed, enumerable, closed set of exactly ten primitive unit types (Voltage, Capacitance, Resistance, Current, Frequency, Time, Inductance, Power, Temperature, Tolerance), each a distinct type; extending it requires an RFC",
+        "evidence": "src/units.rs:26-50 (enum + ALL_UNIT_TYPES is exactly the ten); src/parse.rs:340-362 (non-unit name in type position -> E010 listing the ten types); src/lex.rs:392-403 (unknown literal suffix -> E103 listing the ten symbols); test src/units.rs:324-336 parses all ten"
+      },
+      {
+        "claim": "Canonical symbols per the RFC table: V, F, ohm, A, Hz, s, H, W, C, %",
+        "evidence": "src/units.rs:72-85 (symbol()); round-trip lex test src/lex.rs:474-494"
+      },
+      {
+        "claim": "The grammar defines a fixed (unit x prefix) table; only physically-meaningful prefixes per unit (RFC-named rows: Capacitance p/n/u, Frequency k/M/G, Inductance p/n/u/m, Power u/m/k; prefix alphabet p n u m k M G); deterministic lexing, no context-sensitive tricks",
+        "evidence": "src/units.rs:99-111 (table), 126-174 (prefix alphabet), 226-241 (deterministic parse_suffix: exact-symbol-match-first, provably non-overlapping), 254-257 (enforcement in make_value); src/lex.rs:404-414 (E104 with per-unit prefix help via units.rs:292-306); table matches the published language reference docs/design/10-language-specification.md:17-30 row for row; tests src/units.rs:354-368, src/lex.rs:521-535"
+      },
+      {
+        "claim": "Temperature and Tolerance take no SI prefix at all; any prefix on them (e.g. 1mC) is rejected outright with a clear diagnostic, not silently parsed as a scaled value (Design note + failure mode 4)",
+        "evidence": "src/units.rs:109 (empty prefix lists); src/lex.rs:404-414 -> E104 'SI prefix `m` is not valid for `Temperature`' with help 'takes no SI prefix at all' (src/units.rs:294-295); test src/lex.rs:521-535 (1mC); empirically verified 10n% -> E104 for Tolerance"
+      },
+      {
+        "claim": "Temperature is the only unit type whose literal may carry a leading '-'; the grammar allows '-' for this type specifically and rejects it elsewhere, including on bare numbers",
+        "evidence": "src/units.rs:113-117 (allows_negative), 259-261 (rejection); src/lex.rs:178-187 ('-' only lexes before a digit, with a Temperature-naming error otherwise), 359-368 (negative bare number -> E102), 415-422 (E105 '-5V cannot be negative'); tests src/lex.rs:537-541, src/units.rs:370-377; -40C accepted end-to-end (src/units.rs:343,351; src/lex.rs:475)"
+      },
+      {
+        "claim": "A unit literal is a number immediately followed by its suffix, no space, one canonical form; its unit type is fixed at parse time from the suffix",
+        "evidence": "src/lex.rs:37-38 (TokenKind::Unit(UnitValue) carries UnitType from lexing), 303-387 (number+suffix lexed as one token; '100 nF' lexes as Number + Ident and fails at the use site); src/lex.rs:503-507 (bare numbers stay bare)"
+      },
+      {
+        "claim": "A bare number is never valid where a unit-typed value is expected — a compile error, not a warning, never a defaulted unit",
+        "evidence": "Device spec values: src/parse.rs:548-562 (E111, test src/parse.rs:1410-1415); generic defaults: src/parse.rs:618-628 (E111); generic args for unit-bound params: src/check/generics.rs:149-163 (E404 with help 'RFC-001: no bare numbers, no default units, no coercion'; exit-criterion test tests/exit_criteria.rs:108-128); trait-bound params: src/check/generics.rs:291-301 (E403); net annotations: src/parse.rs:1032-1038 (rejected, verified empirically). src/ast.rs:251-253 keeps GenericArg::Number solely so the checker can emit the precise diagnostic"
+      },
+      {
+        "claim": "No implicit coercion between unit types: a Capacitance literal is never usable where Voltage is expected; mismatches at spec fields, generic bounds/defaults, and monomorphization are compile errors",
+        "evidence": "E402 src/check/generics.rs:129-147 and 165-197 (literal and name args); E110 wrong-unit generic default src/resolve.rs:359-375; E301 trait-spec vs device-spec unit mismatch src/check/impls.rs:182-257 with device_spec_unit resolving generic-bound fields (impls.rs:265-276); tests tests/exit_criteria.rs:65-106, tests/checker_smoke.rs:189-207"
+      },
+      {
+        "claim": "No arithmetic between unit types; '10V + 5A' does not parse to anything meaningful (no cross-unit operators defined at all)",
+        "evidence": "The grammar has no expression forms; '+' is only legal in trait-bound lists (src/parse.rs:239-244, 599-606, 787-793); any '+' between literals is a parse error"
+      },
+      {
+        "claim": "RFC worked example: swapped generic arguments and a bare number for Tolerance are type errors the moment the instance is declared (caught at monomorphization)",
+        "evidence": "tests/checker_smoke.rs:189-207 (MLCC<16V,100nF> -> E402 'expected `Capacitance`, found `Voltage`'); tests/exit_criteria.rs:108-128 (bare number -> E404); std/passives.cohdl:4 declares the RFC's exact MLCC<C,V=10V,T=10%> signature"
+      },
+      {
+        "claim": "Gradeability: unit enforcement happens at lex/parse/type-check time, before connectivity and DRC ever run; all ten types enforced identically",
+        "evidence": "src/pipeline.rs:28-78 (lex -> parse -> check_declarations -> expand/monomorphize -> run_drc last); every unit diagnostic (E101-E111, E402, E404) is emitted in the lex/parse/check stages; single resolve_generic_args path covers all ten types uniformly (src/check/generics.rs:30-83)"
+      },
+      {
+        "claim": "ASCII 'ohm' is the sole canonical form; Unicode Ω is never accepted, and produces the targeted diagnostic 'use `ohm`, not `Ω`' rather than a generic parse error (failure mode 2)",
+        "evidence": "src/lex.rs:193-200 (standalone U+03A9 and U+2126), 328-339 ('10Ω' -> E101 with help 'write `10ohm`'); test src/lex.rs:510-513; empirically confirmed for both '10Ω' and '10kΩ' forms"
+      },
+      {
+        "claim": "ASCII 'C' for Temperature; '°C'/'°' never accepted, with targeted diagnostic 'use `C`, not `°C`'",
+        "evidence": "src/lex.rs:202-206 (standalone °), 341-357 ('85°C' consumed as one bad literal -> E101 with help 'write `85C`'); test src/lex.rs:516-519"
+      },
+      {
+        "claim": "Informal unit-set extension must fail to parse/type-check rather than silently accept an untyped bare number (failure mode 3)",
+        "evidence": "Unknown suffix -> E103 src/lex.rs:392-403 (test src/units.rs:379-385); unknown unit type name in type position -> E010 src/parse.rs:347-361; bare numbers rejected at every unit-expecting site (see bare-number claim)"
+      },
+      {
+        "claim": "Unit-mismatch diagnostics must state both the expected and actual unit type by name — never a bare 'type mismatch' (Tooling & operations)",
+        "evidence": "src/check/generics.rs:138-147 ('expected `X`, found `Y`' + primary label naming the literal's type), 170-197; src/resolve.rs:364-374; src/check/impls.rs:203-217 ('must be `Capacitance`, but device field ... is `Voltage`'); exit-criterion test tests/exit_criteria.rs:66-106 asserts the exact expected/actual phrasing for both the generic-arg and trait-spec paths"
+      },
+      {
+        "claim": "The (unit x allowed-prefix) table is part of the published language reference and includes the four new types' (no-)prefix rules",
+        "evidence": "docs/design/10-language-specification.md:17-40 carries the full ten-row table (incl. Temperature/Tolerance 'none' + signed-Temperature) and matches src/units.rs:99-117 exactly; src/units.rs:1-21 doc-comment mirrors it as the pinned normative table"
+      }
+    ],
+    "violations": [
+      {
+        "claim": "\"Comparison operators (<=, >=, ==, ...) ... are defined only between two values of the same unit type. Comparing a Voltage to a Current is a compile error ..., not a runtime DRC surprise. This extends naturally to Power, Inductance, Temperature, and Tolerance — e.g. comparing an operating-temperature spec to a tolerance percentage is a compile error, not a nonsensical DRC pass.\"",
+        "problem": "The net-annotation grammar slot accepts ANY unit literal and unconditionally wraps it as NetAnnotation::Voltage — nothing at parse, resolve, or expand time checks that the literal is actually Voltage-typed. `net V [85C]: ...` (or [100nF], [5A]) type-checks with zero diagnostics, and every downstream 'voltage' comparison then operates cross-unit on raw femto counts. This also silently corrupts the merged-net contradictory-annotation check (E603), which compares only .femto: a net annotated [5V] in one declaration and [5A] in another compiles clean ('No errors found', reproduced empirically) because 5V and 5A have equal femto — two different unit types treated as identical annotations. This is not a provisional gap-fill: provisional-syntax.md section 4 itself promises 'A non-Voltage unit literal here is a unit-type error (RFC-001's comparison discipline)', so the provisional doc claims the check and the implementation doesn't have it.",
+        "evidence": "src/parse.rs:1020-1026 (any TokenKind::Unit accepted as annotation); src/check/expand.rs:801-825 (E603 merge check compares prev.femto != v.femto only, no unit field check); src/ast.rs:370-373 (NetAnnotation::Voltage holds an unvalidated UnitValue); reproduced: scratchpad fixtures annot.cohdl (85C annotation accepted) and merge.cohdl ([5V]+[5A] merge passes clean); docs/provisional-syntax.md:104-106",
+        "severity": "broken"
+      },
+      {
+        "claim": "Same claim's concrete instance — the narrowed residual-DRC 'net voltage <= rating' check (RFC-001's own cited example) must only ever compare same-unit values; provisional-syntax.md section 7 additionally pins D001 to a voltage_rating field that is 'that exact field name, Voltage-typed'",
+        "problem": "D001 compares inst.specs[\"voltage_rating\"].femto against the net annotation's femto with no check that either side is Voltage-typed. A device declaring `spec { voltage_rating: 100nF }` (perfectly legal — device spec fields are free-form name:literal pairs unless a trait constrains them) connected to any voltage-annotated net makes DRC compare a Capacitance against a Voltage; combined with the annotation hole it gets fully absurd: empirically, `voltage_rating: 100nF` on a net annotated [85C] type-checks cleanly and then fires 'D001 voltage-exceed: rated `100nF`, but net `V` is annotated `85C`' — a Capacitance-vs-Temperature comparison presented as a passing/failing voltage check. This is precisely the 'nonsensical DRC' outcome the RFC says must instead be a compile-time unit-type error. Note UnitValue::cmp_same_unit (src/units.rs:193-197) exists and guards with debug_assert_eq, but DRC bypasses it and uses raw femto.",
+        "evidence": "src/drc.rs:26-27 (rating.femto < net_v.femto, no unit check); src/units.rs:193-197 (the safe comparator, unused by DRC); reproduced end-to-end with scratchpad/annot.cohdl via `cohdl check`; docs/provisional-syntax.md:156 (D001 row requiring Voltage-typed field)",
+        "severity": "broken"
+      }
+    ],
+    "notes": "Out-of-MVP-scope Tooling & operations items, not reported as violations per 09-mvp-definition.md's cut list: (1) the LSP completion/hover data carrying the prefix table — Full LSP is explicitly cut; (2) the formal error-code registry / 'reserve an E1xx block' discipline — RFC-011 formalization is cut ('codes can exist informally'). On (2), the informal state is mostly coherent (unit lexer/parser codes occupy E101-E111) but has drift worth cleaning when RFC-011 lands: unit-mismatch/bare-number checks at generic sites use E402/E404 (outside E1xx), and the standalone-Unicode-Ω path emits its targeted message under the generic character-error code E001 (src/lex.rs:240-248) while the post-digit path uses E101. Minor quality observation: '10kΩ' (SI prefix + Unicode glyph) yields two diagnostics — E103 '`k` is not one of CoHDL's unit symbols' followed by the targeted 'use `ohm`, not `Ω`' — the RFC-required specific diagnostic is present but arrives as the second error with no combined 'write `10kohm`' help (only the unprefixed '10Ω' form gets the rewrite help); slightly noisy for the repair loop but compliant. Failure mode 1 (plausible-but-wrong prefix, e.g. 100pF for 100nF) is correctly out of scope and indeed not caught. The RFC's comparison-operator claim also mentions in-source `rule` blocks; those are legitimately absent (provisional-syntax.md section 9 cuts in-language rule syntax; the four DRC rules are engine-builtin), so only the engine-builtin comparison surface was audited — and that is where the two violations live. Suggested fix: validate NetAnnotation::Voltage is UnitType::Voltage at parse or expand time, have D001 skip (or better, error on) non-Voltage voltage_rating fields, and route DRC/E603 comparisons through cmp_same_unit with a real (non-debug) unit guard. All 60 existing tests pass (cargo test: 30+11+19 across units/lex/parse unit tests, checker_smoke, exit_criteria); no existing test covers the two violated paths. Repro fixtures left in scratchpad: annot.cohdl, merge.cohdl."
+  },
+  {
+    "document": "docs/design/rfc-002-pin-connection-obligation.md",
+    "verified_claims": [
+      {
+        "claim": "Two connection-obligation kinds (`required`/`optional`) exist and are declared on the device/trait pin definition",
+        "evidence": "src/ast.rs:71-84 (Obligation enum), src/ast.rs:158-164 (TraitPin.obligation), src/ast.rs:191-201 (DevicePin.obligation); parsed only inside trait/device pins blocks: src/parse.rs:307-326 (trait_pin), src/parse.rs:364-374 + 454-458 (device_pin); parse tests src/parse.rs:1241, 1250-1263"
+      },
+      {
+        "claim": "Obligation kind is fixed at definition, not chosen per-instance — an instance cannot downgrade a `required` pin to optional",
+        "evidence": "No instance-level obligation syntax exists: `inst` grammar carries only attrs+name+type (src/parse.rs:1007ff, src/ast.rs Stmt::Inst) and IrInstance stores no obligation (src/check/expand.rs:259-271); the exhaustiveness check always reads the obligation from the device definition (src/check/expand.rs:877-882). Additionally an impl cannot reinterpret obligation: trait-role vs device-pin obligation mismatch is E301 (src/check/impls.rs:132-149)"
+      },
+      {
+        "claim": "\"Forgot to connect a required pin\" is a compile-time type error, not silence: a `required` pin appearing in neither a `net` nor an `nc` declaration is a compile error (E701, unresolved)",
+        "evidence": "src/check/expand.rs:883-897 (Obligation::Required, not in any net, not in nc → E701); enforced at type-check, before DRC (src/pipeline.rs:72-78). Tests: tests/exit_criteria.rs:154-178, tests/checker_smoke.rs:152-170 — both green (cargo test: 19+11 passed)"
+      },
+      {
+        "claim": "A required pin resolves in exactly one of two ways — net membership (unchanged mechanism) or explicit `nc` — with no third silent option (exhaustive match)",
+        "evidence": "src/check/expand.rs:869-912: connected-map built from merged nets (870-875), nc set (850-851, 881), exhaustive match on (obligation, in_net, in_nc) at 882-910 covering unresolved (E701), contradictory (E702), and resolved cases"
+      },
+      {
+        "claim": "A pin appearing in both a `net` and the `nc` list is a compile error, distinct from unresolved (contradictory, E702 ≠ E701), and the two diagnostics carry different messages",
+        "evidence": "src/check/expand.rs:899-908 (E702 'contradictory ... cannot be both connected and explicitly not-connected', naming instance path, pin, and the net) vs 883-897 (E701 'unresolved: add it to a `net` or explicitly mark it `nc`'). Tests: tests/exit_criteria.rs:180-204, tests/checker_smoke.rs:172-187"
+      },
+      {
+        "claim": "The exhaustiveness diagnostic states the instance path and pin name explicitly with the actionable fix (RFC's example wording 'required pin mcu.VDD is unresolved: add to a net or to nc')",
+        "evidence": "src/check/expand.rs:888-891 formats `required pin \\`{inst.path}.{pin}\\` is unresolved: add it to a `net` or explicitly mark it `nc`` plus a secondary span at the device pin's `required` declaration (893-896). Asserted verbatim in tests/exit_criteria.rs:168-177 ('`B::mcu.GND` is unresolved'); live probe output confirmed (E701 naming Board::__fn0_add_filter::fb.OUT)"
+      },
+      {
+        "claim": "`optional` pins may be left unmentioned entirely — no `net`, no `nc`, no diagnostic",
+        "evidence": "src/check/expand.rs:882-910: (Optional, None, false) falls through the `_ => {}` arm at 909. Test: tests/exit_criteria.rs:136-152 (optional TP unmentioned, asserts no E701); tests/checker_smoke.rs:54-83 (optional TEST unmentioned in a clean design)"
+      },
+      {
+        "claim": "The exhaustiveness check runs once, at final `design` assembly, after all `fn` inlining/monomorphization — never inside an unassembled `fn` body",
+        "evidence": "check_pin_obligations has exactly one call site: the end of Expander::assemble (src/check/expand.rs:860-862), which runs once per expand_design (18-39) after all bodies are walked; expand_design's only caller is check_design (src/check/mod.rs:24-27), invoked once for the top design (src/pipeline.rs:72-74). fn bodies are expanded into the same accumulator (handle_call → walk_body, src/check/expand.rs:667-681) and never independently checked. Live probes: an uncalled fn with an unresolved required pin produces no errors; a called fn leaving fb.OUT unresolved produces E701 at assembly with the inlined path Board::__fn0_add_filter::fb.OUT"
+      },
+      {
+        "claim": "A fn's own required-pin obligations are inherited by whatever calls it; pass-through composition works (a fn wiring only some pins of an instance parameter must not fire prematurely — the caller resolves the rest)",
+        "evidence": "Live probe: fn hook_power(target: impl PowerConsumer, …) wires VDD/GND, caller wires the remaining required pin EN → 'No errors found'; same fixture without the caller-side net → E701. Test coverage of fn-internal nc + caller-side resolution: tests/checker_smoke.rs:86-133 (nested_fn_expansion_two_levels), 235-271 (impl_mapping_and_trait_role_access: nc target.B through a trait role inside a fn, ir.nc_pins contains Board::c.Cathode)"
+      },
+      {
+        "claim": "A pin listed under `nc` joins no net — `nc` is marked resolved-as-absent, never a second connectivity mechanism",
+        "evidence": "handle_nc pushes to the separate nc_pins list only (src/check/expand.rs:474-480, 84); nets are built solely from net_decls (725-848) and nc_pins never enter the union-find; DesignIr keeps them as a disjoint set (src/check/expand.rs:850-857, src/ir.rs). Emitted netlist probe: nc'd pin 3 (TAB) of both instances appears in no (net …) node while pins 1/2 do"
+      },
+      {
+        "claim": "`nc` is a design-body declaration syntactically parallel to `net` — a flat list of pin references, a new keyword with no new grammar shape",
+        "evidence": "src/lex.rs:26,292 (nc keyword); src/parse.rs:1052-1061: `nc` `:` followed by the same pin_ref_list used by `net` (no name, no annotation; attributes rejected at 1053); src/ast.rs:384-387 (NcStmt { members: Vec<PinRef> }), sibling of NetStmt in Stmt (332-337); parse test src/parse.rs:1342"
+      },
+      {
+        "claim": "Enforced at type-check time with no `rule`/DRC involvement at all (rejected DRC alternative stays rejected)",
+        "evidence": "The check lives in the type-check phase (src/check/expand.rs:860-869), runs before run_drc (src/pipeline.rs:74-78); the DRC engine contains only the four residual rules D001-D004 (src/drc.rs, per provisional-syntax.md §7) — no unconnected-pin DRC rule exists; 10-language-specification.md:81 records v1's blanket unconnected-pin warning as retired, superseded by this check"
+      },
+      {
+        "claim": "Pin bus (`required GND: 2, 3, 4`) — one logical pin, several physical pins, obligation applies to the logical pin, all physical pads wired together",
+        "evidence": "src/ast.rs:191-201 (DevicePin.numbers: Vec<PinNumber> with the bus comment); exhaustiveness operates on logical pin names (src/check/expand.rs:878-881); emitter expands one node per physical number of a connected logical pin (src/emit/kicad.rs:74-85); parse test src/parse.rs:1250-1263"
+      },
+      {
+        "claim": "nc-marked pins are represented faithfully in the emitted KiCad netlist (KiCad's no-connect convention)",
+        "evidence": "src/emit/kicad.rs:1-7 (doc: legacy .net represents no-connect by guaranteed absence — nc pins join no net) and 66-101 (nodes emitted only for net members); verified by building a probe design: nc'd TAB pins absent from every net in out/e_build_nc.net"
+      },
+      {
+        "claim": "nc stays visible and diffable in one place alongside `net`s (the rejected inline per-pin `#[nc]` attribute form is not implemented)",
+        "evidence": "nc exists only as a body-level statement (src/ast.rs:332-337, 384-387); attributes on `nc` statements are explicitly rejected (src/parse.rs:1053 reject_attrs); no #[nc] attribute is recognized anywhere (src/check/expand.rs:216-253 accepts only #[designator])"
+      },
+      {
+        "claim": "Extends Pin with an obligation kind, no new nullable/Option<T> mechanism for the language (Non-goal)",
+        "evidence": "Obligation appears only on TraitPin/DevicePin (src/ast.rs:161,193); no optional/nullable wrapper exists in the type system (src/ast.rs GenericBound/FnParamTy are Unit/Traits/Pin/Generic/ImplTrait only)"
+      }
+    ],
+    "violations": [],
+    "notes": "No violations found — every mechanism RFC-002 claims is actually enforced, and the exit-criterion tests for it pass (tests/exit_criteria.rs 19/19, tests/checker_smoke.rs 11/11). Borderline items examined and resolved as non-violations: (1) The parser accepts an omitted obligation keyword, defaulting to `required` (src/parse.rs:364-374). RFC-002's prose says every pin \\\"carries an explicit obligation kind\\\", but Accepted RFC-003 (line 78-81, 111, 116) and RFC-007 (lines 31, 56) themselves write `pins { A: 1, B: 2 }` with no keyword in their normative examples, so accepting omission is required to compile Accepted-RFC code; the default is the strictest reading (nothing can be silently weakened) and is documented at src/ast.rs:160 and src/parse.rs:370-372. (2) `nc` is allowed inside `fn` bodies as well as design bodies — a provisional-syntax.md §5 choice, explicitly justified there as the reading that lets a sub-circuit fn resolve its own instances' unused pins; the RFC's \\\"top-level design-body declaration\\\" wording is not contradicted in effect since the exhaustiveness check still runs exactly once at final assembly (verified by probe). (3) E702 (contradictory) fires for *optional* pins in both a net and nc too (src/check/expand.rs:899 matches any obligation; probe confirmed) — a strict superset of the RFC's required-scoped wording, consistent with its rationale that \\\"the same pin can't be both connected and explicitly not-connected\\\". Out-of-MVP-scope RFC items per 09-mvp-definition.md's cut list, not reported as violations: LSP hover showing obligation kind (Tooling bullet 3); the formal error-code sub-block reservation / final numbering deferred to RFC-011 (registry formalization cut — the implementation does use a coherent informal E70x block: E701/E702); LCEDA no-connect representation (LCEDA emitter cut; KiCad, the one MVP target, verified). E701's primary span is the `inst` statement with a secondary span at the device pin's `required` declaration, and the message uses the full inlined instance path (e.g. `Board::__fn0_add_filter::fb.OUT`) — this exceeds the RFC's `mcu.VDD` example in precision and is exactly what the repair loop needs after fn inlining. Probe fixtures used for live verification are in the session scratchpad (scratchpad/probe/*.cohdl), not the repo."
+  },
+  {
+    "document": "docs/design/rfc-003-trait-satisfaction.md (RFC-003: Trait-satisfaction-at-impl-time checking, Accepted 2026-07-13)",
+    "verified_claims": [
+      {
+        "claim": "Traits are declared independently of any type: required pins (abstract roles), required unit-typed spec fields, optional sub-trait bounds; traits never reference any specific device",
+        "evidence": "src/ast.rs:146-171 (TraitDef holds only name/super_traits/designator_prefix/pins/specs — no device reference is representable); src/check/impls.rs:40,120,183 consume exactly those three requirement kinds"
+      },
+      {
+        "claim": "Devices are declared independently of any trait — device has no `: impl Trait` clause at all; a device is just pins + specs (+ generics)",
+        "evidence": "src/ast.rs:177-182 (DeviceDef = name, generics, pins, specs only); grammar offers no trait clause on device (src/parse.rs device parsing; tests/exit_criteria.rs:46-58 parses the full std+demo)"
+      },
+      {
+        "claim": "`impl Trait for Device` is its own free-standing top-level statement, not nested in the trait's or device's declaration",
+        "evidence": "src/parse.rs:157 (ItemKind::Impl is a top-level item), src/parse.rs:709 (impl_def); src/ast.rs:278-287 (ImplDef); src/resolve.rs:127-129 (collected as top-level items)"
+      },
+      {
+        "claim": "An impl can appear anywhere in scope (including a different file from the device/trait), a device may have any number of separate impl blocks, and impls can be organized by trait",
+        "evidence": "src/resolve.rs:1-2,87-136 (one flat global scope across all files, per provisional-syntax.md §1 which maps RFC-003's 'different module' to different files); exercised for real: traits in std/prelude.cohdl:9-55, impls in std/led.cohdl:11-12 and std/passives.cohdl:9-18 (grouped by file, two impls per device); tests/exit_criteria.rs:46-58 compiles it all; src/resolve.rs:20,467-483 (impl_index keyed by (trait, device) admits any number of impls per device)"
+      },
+      {
+        "claim": "Each impl block is checked exhaustively the moment it is declared — at declaration-check time, no instance or design required (the gradeability discipline)",
+        "evidence": "src/check/mod.rs:15-20 (check_declarations runs impls::check_impls right after resolution, before any design expansion); src/check/impls.rs:16-27 (every indexed impl checked); tests/exit_criteria.rs:213-276 and tests/checker_smoke.rs:209-232 (fixtures containing no design body at all produce E301/E302); exhaustive = all failures accumulated, not first-failure-stop: src/check/impls.rs:36-259 (`ok` flag pattern across bounds, mapping entries, every pin role, every spec field)"
+      },
+      {
+        "claim": "Satisfaction resolves by matching the trait's required names against the device's own declared pin/spec names by name; an explicit in-body mapping is used only where names differ; empty body is the common case",
+        "evidence": "src/check/impls.rs:119-129 (pin: mapping lookup first, fall back to same-name), 182-192 (spec, same shape); empty-body impls in std/passives.cohdl:9-18 and tests/checker_smoke.rs:50-51 pass by name; mapped-body case tests/checker_smoke.rs:236-271 (impl TwoTerminal for TantalumCap { pins { A: Anode, B: Cathode } } — target.A resolves to Anode through the mapping)"
+      },
+      {
+        "claim": "Sub-trait bounds apply per-impl: impl Capacitor for MLCC requires a separate satisfying impl TwoTerminal for MLCC to exist anywhere in scope, or the compiler reports exactly that missing link at the impl Capacitor statement itself (not deferred)",
+        "evidence": "src/check/impls.rs:39-65 (E302 anchored at im.span — the impl statement — with secondary at the sub-trait-bound declaration and a help suggesting the free-standing sibling impl); tests/exit_criteria.rs:253-276 asserts the exact chain message; tests/checker_smoke.rs:209-232"
+      },
+      {
+        "claim": "Missing sub-trait-bound diagnostic names which trait is missing an impl for which device, distinctly from a same-impl pin/spec mismatch (RFC's two example wordings)",
+        "evidence": "src/check/impls.rs:46-49 emits 'impl `Capacitor` for `MLCC` requires `impl TwoTerminal for MLCC`, which was not found in scope' — near-verbatim the RFC's example; the mismatch counterpart 'impl `X` for `Y` is unsatisfied: … missing required spec field' shape at src/check/impls.rs:200-256; both asserted in tests/exit_criteria.rs:245-250,271-275"
+      },
+      {
+        "claim": "Two distinct error codes for single-impl mismatch vs. missing-sub-trait-bound-impl, not one (Tooling & operations)",
+        "evidence": "E301 (src/check/impls.rs:135,159,203,227) vs E302 (src/check/impls.rs:42) — a dedicated E30x sub-block also containing E303 duplicate, E304/E305 bad mapping names, E306 bound cycles"
+      },
+      {
+        "claim": "Pin-role satisfaction checks the device pin's connection-obligation kind against the trait role's (RFC-002 vocabulary)",
+        "evidence": "src/check/impls.rs:130-155 (obligation equality, E301 naming both keywords with secondaries at both declarations); missing-pin case src/check/impls.rs:156-179 names trait, role, and device (tests/exit_criteria.rs:213-231)"
+      },
+      {
+        "claim": "Spec-field satisfaction checks unit-type equality, including resolving a device spec field that references a generic parameter to that parameter's unit bound (generic devices)",
+        "evidence": "src/check/impls.rs:193-224 (unit equality, E301 naming expected vs actual unit) + device_spec_unit src/check/impls.rs:265-276 (SpecValue::GenericRef → the generic's GenericBound::Unit); tests/exit_criteria.rs:88-106 (literal 10V vs Capacitance → E301 'must be `Capacitance`'), tests/exit_criteria.rs:233-251 (NoRating<C: Capacitance>: capacitance satisfied via the generic bound, missing voltage_rating flagged), tests/checker_smoke.rs:45-51 (generic MLCC positive case)"
+      },
+      {
+        "claim": "Sub-trait bounds are checked transitively: no compile can succeed while any transitive bound lacks a satisfying impl",
+        "evidence": "src/check/impls.rs:40 checks each impl's direct bounds; src/check/impls.rs:18-25 checks every indexed impl, so a gap anywhere in a chain fires E302 at the deepest declared impl. Empirically verified: trait C: B, B: A with only `impl C for D` → E302 for B (compile fails); adding `impl B for D` would surface E302 for A at that impl"
+      },
+      {
+        "claim": "Two conflicting impl statements for the exact same trait and device must be a compile error at the second occurrence, naming the earlier one's location",
+        "evidence": "src/resolve.rs:467-481 (E303 at the second impl's span, secondary 'the earlier impl is here' at world.impls[prev_idx].span); empirically confirmed in rendered output; tests/checker_smoke.rs:342-353; the duplicate is excluded from impl_index so it is never double-checked"
+      },
+      {
+        "claim": "No structural typing: an explicit impl is always required for a device to be considered a member of a trait, regardless of shape compatibility",
+        "evidence": "Every consumer of trait membership is nominal: src/resolve.rs:53-57 (has_impl → impl_index only), src/resolve.rs:77-84 (implemented_traits → impl_index only), src/check/generics.rs:258-277 (E403 trait-bound check via has_impl), src/check/expand.rs:620-641 (impl-Trait params via has_impl), src/check/expand.rs:394-410 (trait-role pin access resolves only through resolved_impls), src/drc.rs:52-56 (D002 keys off impl_traits). Empirically: a device whose pins+specs exactly match the trait shape (PerfectMatch, spec capacitance: C: Capacitance) still fails E403 without an impl; tests/exit_criteria.rs:253-276 fixture's Cap has pins A/B exactly matching TwoTerminal yet E302 fires absent the explicit impl"
+      },
+      {
+        "claim": "Non-goals honored: no default methods, no associated types, no blanket/generic impls, no trait objects/dynamic dispatch",
+        "evidence": "src/ast.rs:278-287 (ImplDef carries only trait name + device name + name mappings — nothing else is representable); src/parse.rs:709 (impl grammar takes two concrete identifiers); src/check/generics.rs:16-20 (GenericValue::Device is always a concrete device name string); src/check/expand.rs fully monomorphizes at compile time"
+      },
+      {
+        "claim": "Diagnostics make gaps immediately locatable for a repair loop (AI-generatability requirement)",
+        "evidence": "E302 help 'add a free-standing `impl X for Y { … }` anywhere in scope' (src/check/impls.rs:58-61); E301 missing-pin/spec help suggests the exact mapping syntax with candidate names (src/check/impls.rs:167-175,240-252); E403 help cites 'checked at the impl statement, RFC-003' (src/check/generics.rs:270-273)"
+      }
+    ],
+    "violations": [],
+    "notes": "No violations found: every mechanism RFC-003 claims is actually enforced, and the full test suite (30 tests) passes. Items excluded per 09-mvp-definition.md's cut list: (1) LSP 'find all impls for this device / of this trait' navigation (RFC Tooling & operations) is explicitly cut at 09-mvp-definition.md:59; the underlying queries already exist (World::implemented_traits resolve.rs:77-84, impl_index) so a future LSP has its data. (2) Formal error-code registry is cut at 09-mvp-definition.md:53; the codes exist as stable informal strings and the RFC's actual requirement (two distinct codes) is met. Nuances worth flagging, none rising to violations: (a) 'different module' is realized as 'different file' — MVP has no modules; provisional-syntax.md §1 explicitly maps RFC-003's cross-module organization to cross-file organization in one flat scope, and the std library exercises it (traits in prelude.cohdl, impls grouped elsewhere). (b) Transitive-chain E302s surface one level at a time (each impl checks only its direct bounds, impls.rs:40); a 2-deep missing chain needs two repair iterations, but the invariant — no clean compile with any transitive gap — holds because every indexed impl is itself checked. (c) Anti-cascade choice: has_impl consults impl_index, which is populated before satisfaction checking (resolve.rs:482), so a sibling sub-trait impl that exists but itself fails E301 suppresses the dependent impl's E302 and even lets the dependent impl enter resolved_impls; compile still fails via the sibling's own E301 (empirically verified), and the RFC's stated failure-mode condition is literally 'no impl … anywhere in scope', so this reads as deliberate root-cause-once diagnostics discipline — but it means resolved_impls can transiently contain an impl whose bound chain is broken (harmless today since errors gate artifact emission; a future consumer of resolved_impls on an erroneous World should know). (d) The duplicate-impl test asserts only the E303 code, not the 'earlier location' secondary (tests/checker_smoke.rs:352) — the secondary is emitted (resolve.rs:478, confirmed in rendered output); minor test-coverage thinness, not an enforcement gap. (e) E304/E305 (mapping entry naming a nonexistent trait role/device pin, impls.rs:67-115) and E306 (cyclic sub-trait bounds, resolve.rs:183-198) are consistent gap-fills beyond RFC-003's text; cycle pre-rejection is what makes super_traits_transitive and the E302 machinery terminate. (f) The concrete mapped-body syntax `pins { A: Anode }` is specified by the language spec (10-language-specification.md:124-137), not RFC-003 itself — the implementation matches the spec, and mapping entries may also legally restate same-name pairs (RFC's 'only when names differ' describes when a mapping is needed, not a prohibition; the implementation gives mapping precedence over by-name, impls.rs:120-129)."
+  },
+  {
+    "document": "docs/design/rfc-004-drc-reclassification.md",
+    "verified_claims": [
+      {
+        "claim": "The residual DRC engine's rule set for v2 is exactly {E001-equivalent, E002-equivalent, W003-equivalent, W004-equivalent} — four rules, not nine (Tooling & operations)",
+        "evidence": "src/drc.rs:1-12 (module doc: 'exactly four rules, never more', table D001 voltage-exceed / D002 polarity-mismatch / D003 single-driver / D004 multi-driver); src/drc.rs:19-118 (run_drc contains exactly those four checks and nothing else); exhaustive grep of src/ shows the only \"D0xx\" diagnostic codes in the codebase are D001-D004, all in drc.rs; src/pipeline.rs:76-78 (run_drc is the sole DRC entry point); docs/design/09-mvp-definition.md:39 (scope line mirrors); tests/exit_criteria.rs:540,562,586,605 (each rule fires on a dedicated fixture, satisfying the MVP exit criterion)"
+      },
+      {
+        "claim": "A fifth 'structural' rule request is a signal to re-run the type-system-first test, not to add it (Tooling & operations)",
+        "evidence": "src/drc.rs:3-5 (discipline restated verbatim in the engine's module doc); docs/provisional-syntax.md:161-162 (restated); no fifth rule exists anywhere (grep of diagnostic codes)"
+      },
+      {
+        "claim": "E001 voltage-exceed stays residual DRC, keyed off the net's explicit voltage annotation (emergent from the net), never net-name string parsing",
+        "evidence": "src/drc.rs:21-45 (D001 iterates net members, compares instance voltage_rating spec to net.voltage); src/check/expand.rs:800-846 (IrNet.voltage/is_gnd populated exclusively from [..] annotations; v1's parse_net_name_voltage/is_gnd_net string heuristics — legacy branch crates/cohdl-drc/src/rules.rs — have no v2 equivalent); tests/exit_criteria.rs:540-559 (fires on 3V-rated part on [5V] net)"
+      },
+      {
+        "claim": "E002 polarity-mismatch stays residual DRC, but its precondition 'does this device implement Polarized' is now answerable via RFC-003's impl mechanism, no longer inferred from a string-matched impl_traits substitution key as v1 did",
+        "evidence": "src/drc.rs:47-73 (D002); src/check/expand.rs:268 (IrInstance.impl_traits = world.implemented_traits(), src/resolve.rs:77-84, derived from real impl declarations in impl_index — not substitution keys as in v1 legacy rules.rs is_polarized()); src/drc.rs:55-58 (Anode pin resolved through world.resolved_impls pin_map, i.e. only impls that passed RFC-003 checking); std/prelude.cohdl:33-40 (Polarized trait declares Anode/Cathode, matching the rule's lookup); tests/exit_criteria.rs:562-583 (fires)"
+      },
+      {
+        "claim": "E003/E005 spec-satisfaction become a type-system mechanism: checked once at the free-standing impl Trait for Device statement (including all required spec fields), not per-instance, not at instantiation, not via meta-keys",
+        "evidence": "src/check/impls.rs:16-27 (check_impls runs per impl statement at declaration level — src/check/mod.rs:15-20 — before any design is expanded); src/check/impls.rs:225-256 (E301 for missing spec field, naming trait + gap), impls.rs:119-180 (E301 for missing/mismatched pin roles), impls.rs:182-224 (spec unit-type match at impl time); no spec-presence rule exists in drc.rs; tests/exit_criteria.rs:213-282 (impl_missing_pin_and_spec / sub-trait chain E302 fixtures)"
+      },
+      {
+        "claim": "E004 generic trait-bound checking — the open dependency RFC-007 had to close — is enforced at the call/instantiation site against the concrete type argument",
+        "evidence": "src/check/generics.rs:1-5 (the ONE trait-bound-checking code path, DR-016), generics.rs:225-279 (E403: '`X` does not implement `T`, required by `P`' with has_impl lookup per bound); src/check/expand.rs:619-645 (same path for fn-call trait-bound parameters); tests/exit_criteria.rs:284-311 (generic_trait_bound_violation_diagnostic fixture, MVP exit criterion)"
+      },
+      {
+        "claim": "W001 is retired and NOT re-implemented as a blanket unconnected-pin check (failure-mode mitigation: 'must not happen'); RFC-002's obligation-aware exhaustiveness replaces it — every required pin resolves to net or explicit nc, optional pins may be silently unmentioned",
+        "evidence": "src/check/expand.rs:860-913 (check_pin_obligations: E701 fires only for (Obligation::Required, None, false) at expand.rs:883; optional unmentioned pins hit the silent `_ => {}` arm at expand.rs:909; E702 for net+nc contradiction at expand.rs:899-908); grep 'unconnected' over src/ returns nothing — no blanket warning exists anywhere; the only warning-severity diagnostic in the whole compiler is D003; tests/exit_criteria.rs:136-152 (asserts optional pin TP does NOT produce E701) and 154-178 (required pin fires E701)"
+      },
+      {
+        "claim": "W002 floating net becomes a compile-time structural check: a net with zero instance-pin members is a compile error, not a DRC warning, firing at the net declaration (Diagnostics row: 'fires earlier')",
+        "evidence": "src/parse.rs:1043-1044 + 1137-1146 + 89-104 (grammar: pin_ref_list requires >=1 pin_ref; empty member list is a parse error — verified empirically: `net EMPTY:` produces error[E010] at the declaration); src/check/expand.rs:276-371,436-442 (every member must resolve to an (instance path, pin) pair or error — v2 has no external/bare-ident net endpoints, provisional §9, so a resolved net always has >=1 instance pin); src/check/expand.rs:781-785 (decl groups with zero resolved members are dropped only after each member already produced its own error). Honest assessment: the condition is unrepresentable rather than diagnosed post-hoc — strictly stronger than the RFC requires, and it does fire earlier (parse time) as the Diagnostics row states"
+      },
+      {
+        "claim": "W003/W004 stay residual DRC as graph-emergent checks; driver-type pins are role-based",
+        "evidence": "src/drc.rs:75-91 (D003, warning severity) and drc.rs:93-116 (D004 error: >=2 driver pins enumerated with names); src/ast.rs:122-124 (is_driver = Output | PowerOut, matching provisional §3's closed vocabulary), ast.rs:204-205 (unannotated pins default to passive — weakest claim); tests/exit_criteria.rs:586-619 (both fire). Note: D003's predicate deviates from the RFC's description — see violations"
+      },
+      {
+        "claim": "Not preserving v1's rule IDs — E00x/W00x numbering does not carry forward",
+        "evidence": "src/drc.rs:7-12 (v2 codes are D001-D004); no E00x/W00x DRC codes exist in src/ (code grep: E-codes start at E010/E1xx and are lexer/parser/type-checker codes)"
+      },
+      {
+        "claim": "Same-unit comparison is the only arithmetic the language defines, exact and totally ordered (RFC-001 basis the E001 row relies on)",
+        "evidence": "src/units.rs:176-197 (UnitValue stores exact integer femto-units with unit tag; cmp_same_unit with debug_assert on unit equality). The representation is sound for same-unit comparison — the violation below is that DRC does not verify same-unit before comparing"
+      }
+    ],
+    "violations": [
+      {
+        "claim": "E001 row: net-voltage comparison is 'now checked with RFC-001's unit-typed Voltage comparison (type-checked for unit-match inside the rule itself, per RFC-001's design)'",
+        "problem": "The rule performs no unit-match check at all: it compares raw femto magnitudes of whatever UnitValue sits in the `voltage_rating` spec slot against the net annotation. Nothing anywhere requires a spec field named voltage_rating to be Voltage-typed (the Capacitor trait does, but D001 keys off the raw field name on any device, impl or not). Confirmed empirically: a device with `spec { voltage_rating: 1% }` on a `[3.3V]` net compiles to `error[D001]: voltage-exceed: rated `1%`, but net `V` is annotated `3.3V`` — a Tolerance-vs-Voltage comparison presented as a real voltage violation (false positive; the inverse direction yields silent false negatives, e.g. any resistance femto value dwarfs volt femto values). UnitValue carries a `unit` field and `cmp_same_unit` exists (units.rs:193-196) but DRC bypasses both.",
+        "evidence": "src/drc.rs:26-27 (`inst.specs.get(\"voltage_rating\")` then `rating.femto < net_v.femto`, no `rating.unit` check); src/units.rs:184-197; repro fixture /private/tmp/claude-501/-Users-tony-projects-conol-cohdl/422ffeec-406b-4028-ac0f-2f11672418a6/scratchpad/audit/b_wrongunit_rating.cohdl (cohdl check → D001 'rated `1%`')",
+        "severity": "partial"
+      },
+      {
+        "claim": "E001's net-side input is a unit-typed Voltage annotation (RFC-004 E001 row; provisional-syntax §4: 'A non-Voltage unit literal here is a unit-type error (RFC-001's comparison discipline)')",
+        "problem": "The parser accepts ANY unit literal inside the net-annotation brackets and stores it as NetAnnotation::Voltage without checking the unit type, and no downstream pass validates it. Confirmed empirically: `net X [100nF]: src.OUT, r.A` compiles with 'No errors found.' — the promised unit-type error never fires anywhere in the codebase, and the capacitance value then participates in D001's femto comparison as if it were a voltage. This is the second half of the unit-unsoundness: both operands of the RFC's 'unit-typed Voltage comparison' are unverified.",
+        "evidence": "src/parse.rs:1017-1042 (TokenKind::Unit(_) matched with no v.unit == UnitType::Voltage check); grep confirms no other code path inspects NetAnnotation::Voltage's unit (only expand.rs:805 for value-conflict E603); repro fixture /private/tmp/claude-501/-Users-tony-projects-conol-cohdl/422ffeec-406b-4028-ac0f-2f11672418a6/scratchpad/audit/a_nonvolt_annotation.cohdl (cohdl check → exit 0, no diagnostics)",
+        "severity": "broken"
+      },
+      {
+        "claim": "W003 row: single_driver checked 'A net has exactly one output-type (driver) pin connected', classified stays-DRC because it 'requires knowing every pin on the net and each one's driver-role'",
+        "problem": "The implemented D003 predicate is `net.members.len() == 1` — it fires on any single-member net regardless of pin role and consults no driver roles for its decision (the lone pin's role is only echoed in the message). So the mechanism the RFC describes (driver-role-aware single-driver detection) is not what is enforced. Mitigating context: v1's real source (legacy branch crates/cohdl-drc/src/rules.rs, SingleDriver) also counted instance pins, not driver roles — meaning RFC-004's description column is wrong about v1 despite claiming to be 'audited against real v1 source' — and provisional-syntax §7 documents the count check explicitly as the 'v1-faithful count check'. The implementation is faithful to v1 and to the provisional doc; it is the RFC's own mechanism description that doesn't match what is enforced, which is precisely the exit-criterion shape ('no RFC claims a mechanism that the implementation doesn't actually enforce').",
+        "evidence": "src/drc.rs:75-91 (member-count predicate at line 77); docs/design/rfc-004-drc-reclassification.md:32 (driver-pin description); docs/provisional-syntax.md:158 (documents the count check); git show legacy:crates/cohdl-drc/src/rules.rs (SingleDriver: instance_pins.len() == 1); tests/exit_criteria.rs:586-602 (fixture's lone pin happens to be [output], so the test cannot distinguish the two predicates)",
+        "severity": "documented-deviation"
+      }
+    ],
+    "notes": "1) E601: provisional-syntax §5 claims a post-expansion 'at least one instance pin' check with code E601; no E601 exists anywhere in src/ or tests/. The condition is unrepresentable (grammar requires >=1 member, every member must resolve to an instance pin or errors, expand.rs:781-785 drops all-failed groups only after those errors), so RFC-004's actual claim ('compile error') holds — but the provisional doc over-claims a specific diagnostic that can never fire. Error-code registry formalization is cut from MVP (09-mvp-definition.md:53), so I did not report this as a violation. 2) src/resolve.rs:53-57: has_impl's doc-comment says '(checked) impl' but it consults impl_index, which includes impls that later fail satisfaction checking; harmless in practice because a failing impl always emits E301/E302 (compilation fails anyway) and D002 pulls its pin map only from resolved_impls (passing impls), but the comment overstates. 3) In-language `rule` blocks are absent — the four rules are engine-builtin (provisional §9). RFC-004's 'still expressible as a rule block' is Conceptual-Model language, not an MVP mandate; treated as a legitimate provisional gap-fill, not a violation. 4) D004 is an error where v1's W004 was warning-tier; RFC-004 explicitly disclaims v1 ID/severity carryforward and provisional §7 pins the severities — not a violation. 5) RFC-004's Tooling items about RFC-011 (registry) are out of MVP scope per the cut list; ignored per instructions, and v2's informal stable codes (D001-D004) are consistent with that cut. 6) DRC runs whenever IR exists, even alongside type errors (pipeline.rs:76-78); with resolved_impls absent for failed impls D002 silently skips — benign since compilation already failed, but worth knowing when reading DRC output on erroring designs. 7) Suggested fixes for the two unit-soundness findings are small: check `rating.unit == UnitType::Voltage` (or use cmp_same_unit) in drc.rs D001, and validate `v.unit == UnitType::Voltage` at parse.rs:1021-1026 (or in expand.rs annotation folding) emitting the E-code provisional §4 promises. 8) The D003 fixture (tests/exit_criteria.rs:586) would still pass after fixing the predicate to be driver-aware, since its lone pin is [output] — but a decision is needed on whether the RFC description or the v1-faithful count check is the intended semantics before RFC-011 assigns final codes."
+  },
+  {
+    "document": "docs/design/rfc-005-designator-allocation.md",
+    "verified_claims": [
+      {
+        "claim": "Allocator is a pure, total function from (live paths + prefixes + prior assignments + tombstones) to an assignment map, computable in one pass with no iteration-order dependency (Goals; Design 'pure function, not a stateful loop')",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:114-239 — single function taking immutable `prior: &LockState`; every intermediate container is BTreeMap/BTreeSet (canonical ordering); /Users/tony/projects/conol/cohdl/src/ir.rs:15 — `instances: BTreeMap<String, IrInstance>` so instance-collection order cannot leak into the allocator at all; no `used`-set is mutated between a lookup and the next assignment"
+      },
+      {
+        "claim": "Step 1: live instances partitioned into kept / overridden / fresh, total and disjoint by construction (every live path in exactly one group)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:120-133 — a single if / else-if / else chain over `ir.instances`; language semantics guarantee exactly one branch per path"
+      },
+      {
+        "claim": "Step 2: overrides validated as a conflict-detection pass — an override colliding with another live path's assignment (kept or another override) is rejected — and this completes before any fresh numbering",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:135-163 — `claimed` seeded from kept (136-139), each override checked against kept + previously-accepted overrides (141-162), E803 diagnostic with span and help (143-155); Step 3 only begins at 166; test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:472-495 (override `U2` vs locked `U2` → E803)"
+      },
+      {
+        "claim": "Validated overrides are folded into the reserved set before Step 3 starts, so a fresh assignment can never step on an override",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:178-186 — `override_ok.values()` chained into the reserved-set computation, which fully precedes the fresh-assignment loop at 199-210"
+      },
+      {
+        "claim": "Step 3: per-prefix reserved-number set computed ONCE, as an immutable set, before any fresh number is chosen (kept ∪ overrides ∪ ALL tombstones including ones newly created this run)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:167-173 (new_tombstones = prior tombstones + newly-removed paths, computed first), 175-186 (reserved built once from kept ∪ override_ok ∪ new_tombstones), 199-210 (assignment loop never mutates `reserved`; per-prefix set cloned at 201 and only read)"
+      },
+      {
+        "claim": "Fresh assignment is a total injective numbering: instances sorted by hierarchical path, the Nth fresh instance per prefix gets the Nth positive integer missing from the reserved set — positions in one sorted sequence, not repeated first-free-slot searches",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:164 (`fresh.sort()`), 188-197 (per-prefix grouping preserves sorted path order), 205-209 (one `(1u64..).filter(|n| !reserved_nums.contains(n))` iterator consumed positionally per prefix)"
+      },
+      {
+        "claim": "Step 4: injectivity asserted as an explicit, checked postcondition in the algorithm's own return path on every run — not only in a unit test (also Gradeability section)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:212-227 — final result map scanned designator→path; any duplicate panics with 'COMPILER BUG (RFC-005 injectivity postcondition)'; it is a hard `panic!`, not `debug_assert!` or `#[cfg(test)]`, so it runs on every real compilation; empirically confirmed to fire (scratch probe: duplicate designators in a hand-edited lock triggered the panic at lock.rs:222)"
+      },
+      {
+        "claim": "Stability: a live path with a prior lock-file assignment keeps it across rebuilds regardless of source-order changes",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:128-129 (pure lookup against immutable `prior.designators`); test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:462-465 ('B::second' keeps U2 after sibling removal/addition)"
+      },
+      {
+        "claim": "Tombstoning: a path removed from the live set is moved to [tombstones]; its designator enters the permanently-reserved set; a fresh assignment can never reuse a tombstoned designator",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:167-173 (removed paths → new_tombstones), 178-186 (all tombstone numbers reserved), 235-238 (tombstones persisted in returned LockState); test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:466-470 (removed `first` tombstoned as U1; new `third` gets U3, never U1)"
+      },
+      {
+        "claim": "Designator format unchanged: PrefixNumber (e.g. C1, U3) (Non-goals)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:208 (`format!(\"{}{}\", prefix, num)`), 100-108 (split_designator: uppercase prefix + u64); override strings format-validated upstream as E804 at /Users/tony/projects/conol/cohdl/src/check/expand.rs:222-233 and 915-921 (uppercase prefix + digits, no leading zero), so every override reaching the allocator parses into the reserved set"
+      },
+      {
+        "claim": "design.lock file format unchanged: TOML with [designators] / [tombstones] tables (Non-goals)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:33-88 (parse accepts exactly those two tables, rejects unknown tables at 43-49 and orphan entries at 62-70; render is byte-stable via BTreeMap order); round-trip test lock.rs:245-252; golden byte-stability test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:633-651; read/write at /Users/tony/projects/conol/cohdl/src/main.rs:139-143 and 163-164"
+      },
+      {
+        "claim": "Order-independence: re-running the same live set in a different collection order produces the identical assignment (Tooling & operations test requirement)",
+        "evidence": "Test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:498-533 (forward vs reversed source order → `assert_eq!(locks[0], locks[1])` on full LockState); structurally guaranteed by /Users/tony/projects/conol/cohdl/src/ir.rs:15 (BTreeMap instance collection) plus BTree containers and explicit sort throughout lock.rs"
+      },
+      {
+        "claim": "Tests directly exercise the 'two new instances, same prefix' esd/ldo33 shape and confirm no collision (Tooling & operations)",
+        "evidence": "Test /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:396-421 — two devices with no prefix-mapped trait both default to \"U\" (the exact v1 collision class), assert_ne on their designators, assert U1/U2; all 19 tests pass (`cargo test`)"
+      },
+      {
+        "claim": "Failure mode 3 mitigation: reserved sets computed per-prefix, never globally; uniqueness is whole-string (C3 and U3 coexist)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:177 (`BTreeMap<String, BTreeSet<u64>>` keyed by prefix), 201 (lookup per prefix only); final injectivity check keyed on the full designator string at 217-227"
+      },
+      {
+        "claim": "Failure mode 2 mitigation: Steps 1-2 fully complete and fold into the reserved set before Step 3 begins, for every prefix",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs — strictly sequential structure: partition 120-133 → override validation 135-163 → tombstones + reserved set 167-186 → fresh assignment 199-210; no interleaving"
+      },
+      {
+        "claim": "Failure mode 1 mitigation: a reversion to a mutable used-set shape is caught by the mandatory injectivity postcondition and the order-independence test",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:217-227 (postcondition, every run) plus /Users/tony/projects/conol/cohdl/tests/exit_criteria.rs:498-533 (order-independence) — both exist as demanded"
+      },
+      {
+        "claim": "Injectivity postcondition is a stable, documented internal invariant with a clear specific signal, and an allocator error is a compiler-internal error, never a silent bad netlist (Tooling & operations, Gradeability)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:1-18 and 110-113 (module/function docs name the invariant), 222-226 (panic message names RFC-005 and both colliding paths); on E803 the build produces no artifacts and design.lock is not written — /Users/tony/projects/conol/cohdl/src/pipeline.rs:103-107 returns None on errors, /Users/tony/projects/conol/cohdl/src/main.rs:147-152 aborts before the writes at 157-164"
+      },
+      {
+        "claim": "Override conflict behavior no longer depends on loop-iteration order (AI-generatability section)",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:122,141 — `overridden` is a BTreeMap keyed by path, so which of two colliding overrides wins (and which gets E803) is canonical path order, independent of source/collection order"
+      }
+    ],
+    "violations": [
+      {
+        "claim": "Step 3: \"gather the FINAL reserved-number set for P from {prior assignments with prefix P} ∪ {tombstones with prefix P} ∪ {overrides with prefix P}\"",
+        "problem": "The implementation builds the reserved set from `kept` (prior assignments of live, non-overridden paths) rather than ALL prior assignments. A prior assignment shadowed by a same-path #[designator] override is neither kept, nor tombstoned (the path is still live), nor reserved — so a fresh instance can silently adopt it in the same run. Empirically confirmed with a scratch probe: prior lock {B::x=U1, B::y=U2}, source adds #[designator(\"U9\")] on x plus a new instance z → z is assigned U1 (recycling x's abandoned designator, no tombstone), where the RFC's formula would reserve U1 for that run and give z U3. No injectivity or determinism impact (the run's output is still collision-free and order-independent), but it recreates exactly the diff/review hazard tombstoning exists to prevent: U1 identifies a different physical part on the next build with no tombstone record.",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/lock.rs:125-129 (override branch checked before the prior-assignment branch, dropping the prior entry from every group), 169-173 (only non-live paths are tombstoned), 178-182 (reserved built from `kept.values()`, not `prior.designators`)",
+        "severity": "partial"
+      },
+      {
+        "claim": "Tooling & operations: \"cohdl build/check output should be able to show, on request, the full reserved-number set computed for a given prefix\"",
+        "problem": "No such affordance exists anywhere: the CLI accepts only check/build with --design/--std/--no-std/--out-dir (no verbose/debug/explain flag), and the allocator computes the reserved set as a local variable it never exposes or logs. This is a debugging affordance, not a correctness mechanism, and 09-mvp-definition.md:59 cuts \"nice-to-have tooling flagged throughout the RFCs' 'Tooling & operations' sections\" with \"a bare CLI (build/check) is sufficient for MVP\" — but that cut item is titled \"Full LSP\" and this affordance is not one of the five explicitly named cuts, so it is reported here rather than silently ignored.",
+        "evidence": "/Users/tony/projects/conol/cohdl/src/main.rs:10-70 (complete CLI surface, no debug flag); /Users/tony/projects/conol/cohdl/src/lock.rs:177-210 (`reserved` never surfaced); cut-list basis at /Users/tony/projects/conol/cohdl/docs/design/09-mvp-definition.md:59",
+        "severity": "documented-deviation"
+      }
+    ],
+    "notes": "Method: read RFC-005 in full, audited src/lock.rs line-by-line, cross-checked pipeline.rs/main.rs/ir.rs/resolve.rs/check/expand.rs, ran the full test suite (19/19 pass), and empirically probed three edge cases via a scratch cargo project outside the repo (repo untouched). Letter-vs-spirit items I classified as verified but flag for the parent's judgment: (1) RFC Step 2 says \"no shared mutable set threaded through a loop\", yet override validation accumulates a mutable `claimed` map through a loop (lock.rs:136-162) — however iteration is over BTreeMaps in canonical path order and the accumulator never feeds fresh numbering, so the v1 order-dependence bug class cannot recur; the fold is equivalent to a pure conflict-detection pass. (2) RFC Step 1 wants the partition \"checked as a compile-time invariant on the partition function itself\"; the implementation has no dedicated partition function or extra check — exclusivity/totality comes from a single if/else-if/else chain, which is a genuine by-construction language-level guarantee. (3) RFC pseudocode returns Result<_, DuplicateOverrideError>; the implementation instead reports E803 and deterministically poisons the collided override into the fresh group so later errors still surface (lock.rs:156-159) — build still fails and design.lock is never written on error (pipeline.rs:103-107, main.rs:147-152), so poisoned assignments never persist; an MVP-pragmatic diagnostics-recovery elaboration, not a violation. Other observations: the injectivity panic is reachable from a hand-corrupted design.lock (two live paths hand-edited to the same designator → panic labeled \"COMPILER BUG\", probe-confirmed) — the backstop works, but the message misattributes corrupt user input as a compiler bug; duplicate-value validation in LockState::parse would make the panic truly bug-only (RFC claims no lock-validation mechanism, so not a violation). \"Never reusing a tombstoned designator\" is enforced for fresh assignment only; an explicit #[designator] override may reuse a tombstoned designator (probe-confirmed: override U1 accepted with tombstone U1 present) — the RFC's Design section explicitly scopes non-reuse to fresh assignment, so this reads as compliant. The override-beats-prior-lock tie-break in Step 1 (lock.rs:126) is unspecified by the RFC but sanctioned by provisional-syntax.md §6 lines 149-150 (\"overrides the full designator... resolved before fresh assignment\"). Prefix mapping (designator_prefix on traits, lexicographically-smallest declaring trait, default \"U\") is provisional §6 filling an RFC gap — resolve.rs:62-75 matches it exactly. Tests are golden/fixture-based, not property-based (no proptest/quickcheck dependency); RFC's \"Golden-file/property-based tests\" is disjunctive and both required shapes (esd/ldo33 same-prefix, order independence) are directly covered, so not a violation. The lock parser is a hand-rolled TOML subset (quoted keys/values, no escape support — lock.rs:91-98), adequate because instance paths are ::-joined identifiers. Per instructions, the informal (unregistered) status of E803/E804 is not reported as a violation — error-code registry formalization is explicitly cut (09-mvp-definition.md:53). Tombstoning is computed slightly earlier than the RFC's \"after assignment\" phrasing specifically so newly-tombstoned numbers are reserved within the same run (lock.rs:167-173) — strictly stronger than the RFC minimum, with identical observable lock output."
+  },
+  {
+    "document": "docs/design/rfc-006-nested-fn-calls.md",
+    "verified_claims": [
+      {
+        "claim": "Nested fn calls (a fn's body calling another fn) work correctly, to arbitrary depth, with the same instantiate-and-wire semantics as a top-level call — the expansion procedure invokes itself on a nested Call instead of doing nothing",
+        "evidence": "src/check/expand.rs:93-108 (walk_body dispatches Stmt::Call → handle_call identically for design bodies and fn bodies — one code path, no is_design_body branch in call handling), src/check/expand.rs:679-681 (handle_call recurses via walk_body on the callee's body). Tests: tests/checker_smoke.rs:86-133 (2-level nesting, nested instance + net + nc all materialize), tests/exit_criteria.rs:318-371 (3-level nesting). Verified by running both suites: all pass."
+      },
+      {
+        "claim": "Substitution threads outward-in: a nested call's generic arguments (turbofish) may reference the outer call's generic parameters and are resolved in the CALLER's substitution env, concrete by the time the innermost fn is expanded — never left as an unresolved symbolic reference",
+        "evidence": "src/check/expand.rs:530-540 (resolve_generic_args called with env = &scope.subst, i.e. the caller's substitution, before the callee scope exists); src/check/generics.rs:165-223 and 225-257 (GenericArg::Name looked up in env first; an unresolvable name is E405 'generic arguments must be concrete by instantiation', generics.rs:211-219); src/check/generics.rs:15-20 (GenericValue has only concrete variants — Unit literal or concrete Device name — a symbolic entry is unrepresentable); src/check/expand.rs:158-167 + 200-214 (inst generic args inside fn bodies resolve against the fn's substitution, producing concrete spec values). Tests: tests/checker_smoke.rs:125-126 (V=3.3V threaded through 2 levels), tests/exit_criteria.rs:353-359 (threaded through 3 levels, two chains with different values)."
+      },
+      {
+        "claim": "naming_context threads a call-chain path, not just a flat counter: every instance/net name is derived from the full call chain (extending the __fn{N}_{name} convention one level per depth), so two different call sites of the same fn — even at the same depth — never collide, and the scheme feeds RFC-005's designator allocator a collision-free input",
+        "evidence": "src/check/expand.rs:667-676 (each call appends segment __fn{N}_{fname} to the caller's path — the counter is embedded WITHIN a chain path, not used flat); expand.rs:255-271 (instance path = scope.path::name, unique BTreeMap key); expand.rs:443-463 (net keys/display names derived from scope path). Tests: tests/checker_smoke.rs:127-132 (asserts Board::__fn0_power_rail::__fn1_decoupling_cap:: prefix), tests/checker_smoke.rs:307-340 (two call sites of same fn → 2 distinct instances), tests/exit_criteria.rs:352-370 (same nested fn reached via two chains at depth 3 → distinct paths, 3 __fn segments each). Adversarial probe: two sibling calls to the same fn inside one fn body → distinct paths Board::__fn0_pair::__fn1_cap::c and Board::__fn0_pair::__fn2_cap::c. Designator allocator consumes these unique paths: tests/exit_criteria.rs:397-421, 499-533. Determinism: golden-file byte-stability test tests/exit_criteria.rs:626-659."
+      },
+      {
+        "claim": "Cyclic recursion is detected via contains_active_call_to on the current (not-yet-returned) call chain, as a compile error — not an infinite expansion, not a silent no-op, not a depth-capped truncation",
+        "evidence": "src/check/expand.rs:508-528 (active_calls.contains check → E501 error → return); expand.rs:677-681 (active_calls is a push/pop stack scoped exactly to the live chain, so sibling calls don't false-positive); detection by fn name is sound because top-level names are globally unique (E201, src/resolve.rs:95-109) and fns are keyed by name (resolve.rs:119). Tests: tests/checker_smoke.rs:136-150 (mutual recursion a→b→a), tests/exit_criteria.rs:374-389 (3-cycle)."
+      },
+      {
+        "claim": "The cycle check runs at the moment a call is about to be expanded, BEFORE any of its instances/nets are created — a cyclic error never leaves partial, half-expanded state behind from the cyclic call",
+        "evidence": "src/check/expand.rs:508-528: the check is the first thing after fn lookup, positioned before generic-arg resolution (line 532), value-param binding (559-665), call_counter increment (667-668), scope creation (669-676), and body walk (680); the error path returns having mutated nothing (no instances, no net_decls, no counter). Probe confirmed: design→x→a→b→a fixture emits only E501 and cleanly compiles the outer chain's own content."
+      },
+      {
+        "claim": "The cyclic-recursion diagnostic must show the full call chain (e.g. 'fn_a → fn_b → fn_a'), not just 'recursion detected'",
+        "evidence": "src/check/expand.rs:510-527 (chain built from active_calls starting at the cycle entry via skip_while, callee appended, joined with ' → ' in the E501 message). Tests assert the exact chain text: tests/checker_smoke.rs:149 ('a → b → a'), tests/exit_criteria.rs:388 ('a → b → c → a'). Probe with a non-cyclic prefix (design→x→a→b→a) renders 'a → b → a' — the actual cycle, matching the RFC's example format."
+      },
+      {
+        "claim": "No artificial depth cap is imposed — deeply-nested acyclic chains are fine; only cycles are rejected",
+        "evidence": "src/check/expand.rs handle_call/walk_body contain no depth parameter, counter-based limit, or cap of any kind (grep for 'depth' in expand.rs: zero hits); the only rejection path is the E501 cycle check at expand.rs:510. Chain length is inherently bounded by the number of distinct fn definitions (a chain cannot revisit a fn), so recursion terminates for any acyclic program."
+      },
+      {
+        "claim": "Never silently skip: every path through call handling that does not expand emits a diagnostic (the exact v1 defect — a no-op Call arm disguised as success — is structurally closed)",
+        "evidence": "src/check/expand.rs:485-505 (unknown fn → E504; device/part used as fn → E205 with fix-it), 510-527 (cycle → E501), 543-557 (arity → E502), 596-611 + 616-659 (bad instance args → E503/E403); every None return in resolve_pin_ref (expand.rs:277-375) and resolve_instance_arg (expand.rs:686-721) pushes a diagnostic first. The one arm that sets bind_failed without pushing (expand.rs:607-610) is only reachable when a prior diagnostic exists: resolve_generic_args reports missing/bad turbofish args (generics.rs:39-79), and declaration-time validation rejects value params typed by unit-bound generics (E205, src/resolve.rs:331-343), unknown param type names (E202, resolve.rs:322-330), and defaults on trait-bound generics (E406, resolve.rs:382-391)."
+      },
+      {
+        "claim": "Generic substitution must be threaded strictly through the actual call tree (stack-like, scoped to the current chain), never a flat/global substitution map shared across unrelated call sites",
+        "evidence": "src/check/expand.rs:532 (a fresh Substitution is built per call) and 669-676 (stored in a per-call Scope passed only down that call's subtree; the Expander struct at expand.rs:79-90 holds no substitution state). Tests: tests/exit_criteria.rs:338-359 (two sibling chains resolve V to 3.3V and 5V independently); probe: sibling calls cap::<V> and cap::<12V> inside one fn body compile with independent substitutions."
+      },
+      {
+        "claim": "Fixture tests directly exercise (a) 2-level nesting, (b) 3+-level nesting, (c) substitution threading through 2+ levels, (d) cyclic-recursion detection, (e) two call sites of the same nested fn at the same depth with no name collision",
+        "evidence": "(a) tests/checker_smoke.rs:86-133; (b) tests/exit_criteria.rs:318-371; (c) checker_smoke.rs:125-126 and exit_criteria.rs:353-359; (d) checker_smoke.rs:136-150 and exit_criteria.rs:374-389; (e) checker_smoke.rs:307-340 (two call sites, depth 1) plus exit_criteria.rs:338-370 (same nested fn expanded via two chains at depth 3, asserting 2 instances with unique paths). All pass (cargo test run during audit)."
+      },
+      {
+        "claim": "Gradeability: the recursive expansion runs at compile time as part of the same design-body-expansion pass (no new pipeline stage), and the cycle check is a compile-time structural check with no DRC involvement",
+        "evidence": "src/check/mod.rs:24-27 (check_design → expand::expand_design, one pass); the cycle check lives inline in handle_call (expand.rs:508-528), decided purely from the active_calls chain built during expansion; DRC is a separate module (src/drc.rs) invoked afterward by the pipeline (src/pipeline.rs:74 vicinity) and plays no role in expansion."
+      },
+      {
+        "claim": "Non-goal honored: no new fn syntax — the fix is purely the expansion algorithm plus the new error case",
+        "evidence": "src/check/expand.rs implements the fix entirely in handle_call/walk_body; fn declaration/call grammar in src/ast.rs:300-326 and src/parse.rs is the pre-existing surface (turbofish call form per provisional-syntax.md §8, which fills the surface-syntax gap without contradicting RFC-006's examples)."
+      }
+    ],
+    "violations": [
+      {
+        "claim": "Naming/hygiene: every instance and net produced by expansion, at any nesting depth, gets a unique, deterministic, hierarchical name (Goals bullet 3); collisions 'must be prevented by construction via the call-chain-path naming scheme' (Failure modes)",
+        "problem": "The mangling namespace (__fn{N}_, __net{N}) is not reserved, so uniqueness is user-forgeable. Proven by probe: (1) a fn-body net literally named __net0 gets key scoped:{path}::__net0 — identical to the key the anonymous-net counter generates in the same scope — so two distinct net declarations silently MERGE into one electrical net (confirmed by giving them contradictory voltage annotations: E603 'net __fn0_f::__net0 has contradictory voltage annotations' fired, proving the merge; without the annotations the design compiles clean with a wrong netlist — the exact 'compiles clean but silently wrong' class this RFC exists to eliminate). (2) At design level, 'net __net0: …' (key named:__net0) plus an anonymous net (key scoped:Board::__net0, display-stripped to __net0) compiles clean and produces two DISTINCT IrNets sharing the emitted name __net0. The RFC's two explicitly enumerated collision classes (cross-call-site instance names; designator allocator input) do hold — instance paths cannot be forged into equality — but the blanket per-net uniqueness guarantee is not 'by construction': no lexer/resolver rule reserves the __ prefix (grep of src/lex.rs, src/parse.rs, src/resolve.rs finds no reserved-identifier handling).",
+        "evidence": "src/check/expand.rs:445-451 (fn-scoped named net key: scoped:{scope.path}::{name}) vs expand.rs:453-462 (anonymous net key: scoped:{scope.path}::__net{n} — same key namespace); expand.rs:443-444 (design-level named key named:{name} vs anon scoped:… — different keys, same display after prefix strip at 456-460); src/lex.rs / src/resolve.rs: no reserved __ prefix check anywhere. Probe fixtures reproduced both cases against the built cohdl CLI.",
+        "severity": "partial"
+      }
+    ],
+    "notes": "Out-of-MVP-scope per 09-mvp-definition.md cut list (not counted as violations): RFC-006 Tooling & operations bullet 3 requires `cohdl check --json`/LSP diagnostics to carry the cycle chain as structured data; both surfaces are explicitly cut (09-mvp-definition.md line 52: --json is RFC-010, cut; line 59: full LSP, cut). Note that the E501 chain currently exists only embedded in the message string (expand.rs:518-526) — when RFC-010 lands, the chain will need to be carried as structured data, so consider storing it on the Diagnostic now or flagging it for that work. Other observations: (1) walk_body uses a declarative two-pass ordering (all insts first, then nets/nc/calls in source order — expand.rs:5-7, 93-108), uniform at every nesting level; RFC-006's pseudocode iterates statements in order but is illustrative of the recursion fix, and provisional-syntax.md fills the body-semantics gap, so this is a provisional choice, not a violation. (2) The RFC pseudocode assumes an unresolvable callee was 'already reported elsewhere'; the implementation instead reports at the call site (E504/E205, expand.rs:485-505) — strictly stronger, never silent. (3) The RFC pseudocode carries an unused depth parameter; the implementation drops it entirely, consistent with the no-depth-cap requirement. Expansion recurses on the host stack, but because a chain can never revisit a fn, depth is bounded by the number of distinct fn definitions — no practical stack risk. (4) A single global call_counter exists (expand.rs:87-88, 667) but only as a per-call segment uniquifier embedded inside the chain path — the emitted name is the full chain, satisfying 'a call-chain path, not just a counter'. (5) The fix for the reported violation is small: reserve the leading-double-underscore identifier namespace at declaration/use sites (or namespace compiler-generated segments unforgeably); this would make the uniqueness guarantee genuinely by-construction. Probe fixtures used during the audit are in the session scratchpad (probe_a.cohdl, probe_c.cohdl, probe_c2.cohdl, probe_forge*.cohdl), not the repo. Both test suites (tests/checker_smoke.rs, tests/exit_criteria.rs — 30 tests) pass as of commit cf3c586."
+  },
+  {
+    "document": "docs/design/rfc-007-generics-over-specs.md (audited together with DR-016 in docs/design/07-decision-records.md:327-360)",
+    "verified_claims": [
+      {
+        "claim": "Two kinds of generic parameter: unit-type (bound by one of RFC-001's ten unit types) and trait-bound (one or more traits via `+`)",
+        "evidence": "src/ast.rs:227-242 (GenericParam, GenericBound::Unit/Traits(Vec<Ident>)); src/parse.rs:579-650 (first bound ident matching a unit type name -> Unit bound, else `+`-separated trait list at 599-606); wired to devices (parse.rs:381-382) and fns (parse.rs:769-773); trait refs in bounds validated at src/resolve.rs:378-381 + 397-423 (E202/E205, including 'unit type, not a trait' mix rejection)"
+      },
+      {
+        "claim": "A unit-type parameter may only be substituted with a literal or another unit-type parameter of the same unit type — RFC-001's zero-coercion rule applies identically to generic substitution (failure mode 3)",
+        "evidence": "src/check/generics.rs:129-148 (literal: unit-identity check, E402 naming expected vs found), 149-164 (bare number -> E404 with help citing 'RFC-001: no bare numbers, no default units, no coercion'), 165-184 (outer generic parameter reference: unit-identity check, E402), 185-222 (device name or unknown name rejected, E402/E405). Tests: tests/exit_criteria.rs:65-128 (E402 'expected `Capacitance`, found `Voltage`' at a generic instantiation site; E404), tests/checker_smoke.rs:189-207"
+      },
+      {
+        "claim": "A trait-bound type parameter may only be substituted with a concrete device type that has a satisfying free-standing `impl Trait for Device` in scope at the point of instantiation",
+        "evidence": "src/check/generics.rs:225-278: argument resolved to a concrete device (outer env value at 227-242, device at 244-245, part->its device at 246-248, unknown -> E202 at 249-254), then per-bound world.has_impl at 260; has_impl (src/resolve.rs:54-57) reads impl_index, built exclusively from free-standing impl statements (src/resolve.rs:425+ index_impls over world.impls). Unit literal / bare number in trait position -> E403 (generics.rs:280-301). Tests: tests/exit_criteria.rs:283-310, tests/checker_smoke.rs:273-304; positive path with impl mapping tests/checker_smoke.rs:234-271"
+      },
+      {
+        "claim": "Multiple trait bounds (`D: Capacitor + Polarized`) require a satisfying impl for EVERY listed trait, each independently looked up",
+        "evidence": "src/check/generics.rs:258-277 loops all bounds, one E403 per missing bound, only fails the ones actually missing. Empirically confirmed (scratch fixture f4_multibound.cohdl via `cargo run -- check`): MLCC with impl Capacitor but no impl Polarized fires exactly one E403 naming Polarized. Parser: src/parse.rs:599-606"
+      },
+      {
+        "claim": "Defaults (`V: Voltage = 10V`) are only valid on unit-type parameters, always visible in source, never a hidden fallback introduced elsewhere (visible-defaults / E406 rule)",
+        "evidence": "src/resolve.rs:356-395 validate_generic_params: trait-bound param with default -> E406 (382-391), unit-bound default with wrong unit -> E110 (360-376); called for devices (resolve.rs:248) and fns (resolve.rs:317); src/parse.rs:608-637 (default must be a unit literal; bare number -> E111); the ONLY default source is the parsed param.default, applied only when the arg is omitted (src/check/generics.rs:62-64); missing arg with no default -> E401 with a describe_param help (generics.rs:66-79, 85-102). Empirically confirmed: f1_default_fill.cohdl (MLCC<100nF> compiles clean using V=10V) and f2_e406_trait_default.cohdl (E406 fires, message cites RFC-007)"
+      },
+      {
+        "claim": "Trait-bound checking is enforced at type-check time at the instantiation site — `device<...>` instantiations and `fn::<...>(...)` calls (Gradeability: earliest possible stage)",
+        "evidence": "src/check/expand.rs:158-167 (inst of a device), 144-152 (inst via part), 532-540 (fn call turbofish, resolved in caller's substitution per RFC-006); src/check/generics.rs:347-355 (part declarations, check_parts); src/emit/mod.rs:30-38 (part binding re-resolution). All run in the check phase before DRC/codegen (src/check/mod.rs:15-27). Bare numbers are deliberately parsed so the TYPE CHECKER rejects them precisely (src/ast.rs:251-253)"
+      },
+      {
+        "claim": "The lookup never reads a device-embedded trait list; the v1 `dev.impl_traits` failure mode is structurally impossible — there is no impl_traits field on Device in v2 (failure mode 4)",
+        "evidence": "src/ast.rs:176-182: DeviceDef has only name/generics/pins/specs — no trait list. The only trait-satisfaction source anywhere is impl_index over free-standing ImplDefs (src/resolve.rs:17-22, 54-57). The parser actively rejects v1's embedded syntax `device X: impl Trait` with a pointed diagnostic telling the user to write a free-standing impl (src/parse.rs:387-395; test src/parse.rs:1399-1407)"
+      },
+      {
+        "claim": "A trait-bound-at-instantiation failure names the specific missing trait and the concrete type argument; a type with no impl at all produces the SAME diagnostic class as a wrong-trait mismatch (failure mode 1, Diagnostics discipline)",
+        "evidence": "src/check/generics.rs:261-274: '`{device}` does not implement `{trait}`, required by `{param}`' + actionable help — single code path means unimplemented-entirely and wrong-trait are indistinguishable inputs (has_impl false either way -> identical E403). Test asserts exact wording: tests/exit_criteria.rs:304-309 ('`Resistor` does not implement `Capacitor`'). Same discipline on the impl-Trait param path: src/check/expand.rs:625-638, empirically confirmed via f3_impl_trait_fail.cohdl (names Resistor, Capacitor, the parameter, and the fn)"
+      },
+      {
+        "claim": "Error-code sub-block for generic-instantiation failures distinct from RFC-003's device-declaration-level impl failures (Tooling & operations)",
+        "evidence": "Generic-instantiation block E401-E406 (src/check/generics.rs:40,68,134,151,170,213,232,262,281,292; src/resolve.rs:384) vs RFC-003 impl-site block E301-E305 (src/check/impls.rs:44,70,81,94,105,133,158,201,226; duplicate impl E303 in resolve). Independently identifiable, as required. (Formal registry numbering is deferred to RFC-011 — cut from MVP, see notes)"
+      },
+      {
+        "claim": "A trait-bound parameter's pins/specs are known only through its trait bound (RFC example comment: `target`'s pins are known through D's trait bound)",
+        "evidence": "src/check/expand.rs:47-53 (Binding::Instance carries via_traits), 377-432 resolve_trait_role: role name looked up only in the bound traits (+ transitive super-traits) and mapped through the CHECKED impl's pin_map (world.resolved_impls); unknown role -> E203 with help 'a trait-bound parameter's pins are known only through its trait bounds (RFC-007)' (expand.rs:412-430). Positive test incl. explicit mapping: tests/checker_smoke.rs:234-271"
+      },
+      {
+        "claim": "The RFC's positive example (impl Capacitor for MLCC in scope -> add_decoupling::<MLCC>(...) OK) is accepted",
+        "evidence": "tests/checker_smoke.rs:234-271 (hook::<TantalumCap> with mapped impl, clean) and tests/checker_smoke.rs:54-83 / STD_SNIPPET (MLCC with free-standing impls, clean design); scratch f5_impl_trait_ok.cohdl (impl-Trait param form, mapped roles, clean)"
+      },
+      {
+        "claim": "Non-goals respected: no const-generics/value-expression parameters, no associated types, no where-clauses beyond simple `+` lists — the generic system stays narrow",
+        "evidence": "src/ast.rs:236-254: GenericBound has exactly two variants; GenericArg is only a unit literal, a name, or a bare number kept solely so the checker can emit the precise E404/E111 (ast.rs:251-253, generics.rs:149-164); parser accepts nothing richer (src/parse.rs:579-650, 652-690)"
+      }
+    ],
+    "violations": [
+      {
+        "claim": "\"These two are equivalent — the compiler desugars the first into the second\" / \"there is exactly ONE trait-bound-checking mechanism in the compiler (the generic-parameter one), not two independent code paths that could silently diverge\" (RFC-007 Design + Gradeability; DR-016 Consequences: \"Exactly one trait-bound-checking code path exists going forward ... via desugaring\"; failure mode 2: \"any implementation that lets them diverge is a bug against this RFC's own design\")",
+        "problem": "No desugaring exists. `param: impl Trait` survives as its own AST variant (FnParamTy::ImplTrait, src/ast.rs:325; parsed at parse.rs:784-794) and is checked by a SECOND bound-checking loop in expand.rs:616-660 that duplicates the loop in generics.rs:258-277 instead of routing through resolve_generic_args. Only the underlying trait-satisfaction lookup (world.has_impl -> impl_index over free-standing impls) is shared — which is precisely the structure the RFC criticizes in v1 (\"Both call the same underlying trait-satisfaction lookup\" yet counted as two mechanisms). The two paths' diagnostics have already diverged in wording: named-generic path says \"required by `D`\" with help \"add `impl X for Y { … }` (checked at the impl statement, RFC-003), or pass a device that has one\" (generics.rs:264-273); impl-Trait path says \"required by parameter `target` of fn `add_decoupling`\" with a shorter help (expand.rs:629-637) — confirmed empirically via scratch fixtures f3/f4. Additionally the two forms are not call-site interchangeable as literal desugaring would imply: a named trait-bound parameter requires an explicit turbofish argument (E401 if omitted, generics.rs:66-79 — no inference), while the impl-Trait form takes none (the turbofish asymmetry itself is pinned by provisional-syntax.md §8, so it is a provisional choice, but it underlines that 'pure sugar' is not what is implemented). Compounding the mismatch, the in-repo docs restate the unimplemented mechanism: src/check/generics.rs:1-5 module header claims impl-Trait params \"(desugared) all resolve through `resolve_generic_args`\" (false), and provisional-syntax.md §8 says \"impl Trait (desugared per RFC-007)\". Observable accept/reject behavior and the E403 code/diagnostic discipline are currently equivalent (both check every bound via world.has_impl, both bind via_traits identically for role access — expand.rs:642-653 vs 575-594), so nothing is dormant — but the mechanism the RFC/DR-016 claim (one code path kept honest by desugaring) is not the mechanism that exists, and the maintained-in-parallel divergence risk the RFC set out to eliminate is present, with message-level divergence already realized.",
+        "evidence": "src/check/expand.rs:616-660 vs src/check/generics.rs:258-277 (duplicated bound loops); src/check/generics.rs:1-5 (false module-header claim); src/ast.rs:325; src/parse.rs:784-794; docs/design/07-decision-records.md:352 (DR-016 'Exactly one trait-bound-checking code path ... via desugaring'); docs/provisional-syntax.md §8; empirical divergence: scratch fixtures f3_impl_trait_fail.cohdl / f4_multibound.cohdl outputs",
+        "severity": "partial"
+      }
+    ],
+    "notes": "Out-of-scope per 09-mvp-definition.md cut list (not reported as violations): RFC-007's LSP hover items (hover full bound; show desugared form — the latter would anyway be unimplementable as specified today, see the violation) fall under 'Full LSP' cut; final error-code numbering deferral to RFC-011 is cut ('codes can exist informally'), and the informal E4xx-vs-E3xx separation already satisfies the sub-block requirement. Other observations: (1) has_impl counts an impl that exists but FAILED RFC-003 satisfaction checking (impl_index is built before check_impls and failed impls are not removed; only resolved_impls is filtered — resolve.rs:17-22, check/impls.rs:16-27). A bound check can therefore 'pass' against a non-satisfying impl, but the E301 at the impl site already fails the compile and role access through resolved_impls degrades silently (expand.rs:399-409 'already reported') — standard error-recovery poisoning, consistent with the E403 help text's '(checked at the impl statement, RFC-003)', not an enforcement gap. (2) IrInstance.impl_traits (src/ir.rs:36) is a similarly-named DERIVED cache filled from checked free-standing impls (expand.rs:268 via world.implemented_traits) and consumed only by DRC D002 (src/drc.rs:52) — not a resurrection of v1's dev.impl_traits. (3) Committed-test coverage gaps for mechanisms that ARE enforced (verified here via scratch fixtures through the real CLI): no test exercises E406, default-fill (no committed source anywhere instantiates a defaulted device omitting the arg — std declares defaults on MLCC/ChipResistor but every use supplies all args), multi-bound `+` semantic checking, or the impl-Trait value-parameter path (only a parser unit test, src/parse.rs:1380-1397; zero semantic tests — notable since the RFC's failure mode 2 demands behavioral equivalence). The MVP exit-criterion fixture for generic trait-bound checking itself exists (tests/exit_criteria.rs:283-310). (4) Provisional gap-fills consistent with the RFC: a part name is accepted as a trait-bound argument and resolves to its device (generics.rs:246-248, provisional §2); `inst` of a generic parameter is rejected with E205 (expand.rs:169-178) — the RFC never grants it; trait-role access also searches transitive super-traits (expand.rs:387-393), consistent with RFC-003's sub-trait impl requirement. (5) Minor robustness nit: resolve_generic_args applies a default whenever one is present regardless of bound kind (generics.rs:62-64 matches (Some(..), _)), so an E406'd trait-bound default would inject a Unit poison value into the substitution — harmless (E406 already failed the compile; downstream treats it as bind failure at expand.rs:607-610) but a stricter guard would skip default-fill for trait-bound params."
+  }
+]

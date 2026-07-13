@@ -1023,7 +1023,29 @@ impl<'a> Parser<'a> {
                             let TokenKind::Unit(v) = t.kind else {
                                 unreachable!()
                             };
-                            annotation = Some(NetAnnotation::Voltage(v, t.span));
+                            if v.unit == UnitType::Voltage {
+                                annotation = Some(NetAnnotation::Voltage(v, t.span));
+                            } else {
+                                // RFC-001 comparison discipline: the annotation
+                                // participates in the D001 Voltage comparison,
+                                // so a non-Voltage literal is a unit-type error.
+                                self.diags.push(
+                                    Diagnostic::error(
+                                        "E110",
+                                        t.span,
+                                        format!(
+                                            "net voltage annotation has the wrong unit type: expected `Voltage`, found `{}`",
+                                            v.unit.type_name()
+                                        ),
+                                    )
+                                    .with_primary_label(format!(
+                                        "`{}` is a `{}`",
+                                        v.text,
+                                        v.unit.type_name()
+                                    ))
+                                    .with_help("annotate with a voltage (e.g. `[3.3V]`), or `[gnd]` for ground"),
+                                );
+                            }
                         }
                         TokenKind::Ident(n) if n == "gnd" => {
                             let t = self.bump();

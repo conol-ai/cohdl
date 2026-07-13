@@ -681,3 +681,151 @@ design B {
     assert!(rendered.contains("E801"), "{}", rendered);
     assert!(rendered.contains("no part binding"), "{}", rendered);
 }
+
+// ---------------------------------------------------------------------------
+// Compliance-audit regressions (confirmed deviations from the RFCs, fixed):
+// see docs/compliance-report.md.
+
+#[test]
+fn net_annotation_must_be_voltage_typed() {
+    // RFC-001 comparison discipline: the D001 comparison input must be
+    // Voltage-typed, so `[100nF]` in the annotation slot is a unit-type error.
+    let (_, rendered) = check(
+        r#"
+pub device R2 { pins { A: 1, B: 2 } }
+design B {
+    inst r: R2
+    net X [100nF]: r.A, r.B
+}
+"#,
+    );
+    assert!(rendered.contains("E110"), "{}", rendered);
+    assert!(
+        rendered.contains("expected `Voltage`, found `Capacitance`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn drc_d001_never_compares_across_unit_types() {
+    // A device whose `voltage_rating` field is (bizarrely but legally)
+    // non-Voltage must not be magnitude-compared against a Voltage net
+    // annotation.
+    let (_, rendered) = check(
+        r#"
+pub device Weird<C: Capacitance> {
+    pins { A: 1, B: 2 }
+    spec { voltage_rating: C }
+}
+pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
+design B {
+    inst src: Source
+    inst w: Weird<100nF>
+    net V [5V]: src.OUT, w.A
+    net G [gnd]: src.GND, w.B
+}
+"#,
+    );
+    assert!(!rendered.contains("D001"), "{}", rendered);
+}
+
+#[test]
+fn overridden_paths_prior_designator_stays_reserved() {
+    // RFC-005 Step 3: the reserved set is built from ALL prior assignments —
+    // a prior number shadowed by an override on the same path is never handed
+    // to a fresh instance.
+    let src_v1 = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst a: D1
+    net X: a.P, a.P
+}
+"#;
+    let (mut checked, _) = check(src_v1);
+    let mut diags = Diagnostics::new();
+    let lock1 = assign_designators(
+        &checked.world,
+        checked.ir.as_mut().unwrap(),
+        &LockState::default(),
+        &mut diags,
+    );
+    assert_eq!(lock1.designators["B::a"], "U1");
+
+    let src_v2 = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    #[designator("U9")]
+    inst a: D1
+    inst b: D1
+    net X: a.P, b.P
+}
+"#;
+    let (mut checked, _) = check(src_v2);
+    let mut diags = Diagnostics::new();
+    let lock2 = assign_designators(
+        &checked.world,
+        checked.ir.as_mut().unwrap(),
+        &lock1,
+        &mut diags,
+    );
+    assert_eq!(lock2.designators["B::a"], "U9", "override wins");
+    assert_eq!(
+        lock2.designators["B::b"], "U2",
+        "a's prior U1 stays reserved for this run — fresh b must not take it"
+    );
+}
+
+#[test]
+fn dunder_names_are_reserved() {
+    let (_, rendered) = check(
+        r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst __fn0_x: D1
+    net __net0: __fn0_x.P, __fn0_x.P
+}
+"#,
+    );
+    assert!(rendered.contains("E206"), "{}", rendered);
+    assert!(
+        rendered.contains("reserved for compiler-generated"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn ambiguous_part_binding_is_deterministic_and_noted() {
+    let (mut checked, rendered) = check(
+        r#"
+pub device MLCC<C: Capacitance> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+pub part ZPart: MLCC<100nF> {
+    primary { mpn: "Z-1", footprint: "F" }
+}
+pub part APart: MLCC<100nF> {
+    primary { mpn: "A-1", footprint: "F" }
+}
+design B {
+    inst c: MLCC<100nF>
+    net X: c.A, c.B
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).unwrap();
+    assert!(
+        artifacts.bom.contains("A-1") && !artifacts.bom.contains("Z-1"),
+        "lexicographically-smallest part name wins:\n{}",
+        artifacts.bom
+    );
+    assert_eq!(artifacts.notes.len(), 1);
+    assert!(
+        artifacts.notes[0].contains("APart, ZPart"),
+        "{}",
+        artifacts.notes[0]
+    );
+}

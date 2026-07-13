@@ -147,6 +147,9 @@ fn run(args: &Args) -> Result<bool, String> {
     let Some(artifacts) = artifacts else {
         return Ok(false);
     };
+    for note in &artifacts.notes {
+        eprintln!("note: {}", note);
+    }
     if checked.diags.has_errors() {
         return Ok(false);
     }

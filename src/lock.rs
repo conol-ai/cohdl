@@ -173,9 +173,13 @@ pub fn assign_designators(
     }
 
     // Reserved numbers per prefix, computed ONCE, immutably, before any fresh
-    // assignment: kept ∪ overrides ∪ all tombstones.
+    // assignment: ALL prior assignments ∪ overrides ∪ all tombstones
+    // (RFC-005 Step 3 — a prior assignment shadowed by an override on the
+    // same path stays reserved; its number is never handed to a fresh
+    // instance in the same run).
     let mut reserved: BTreeMap<String, BTreeSet<u64>> = BTreeMap::new();
-    for d in kept
+    for d in prior
+        .designators
         .values()
         .chain(override_ok.values())
         .chain(new_tombstones.values())

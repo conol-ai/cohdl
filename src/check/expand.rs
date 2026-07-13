@@ -111,6 +111,9 @@ impl<'w, 'd> Expander<'w, 'd> {
     // -- instances -----------------------------------------------------------
 
     fn handle_inst(&mut self, inst: &InstStmt, scope: &mut Scope) {
+        if !self.check_not_reserved(&inst.name, "instance") {
+            return;
+        }
         if scope.local_insts.contains_key(&inst.name.name)
             || scope.bindings.contains_key(&inst.name.name)
         {
@@ -433,7 +436,34 @@ impl<'w, 'd> Expander<'w, 'd> {
 
     // -- nets / nc -----------------------------------------------------------
 
+    /// Names beginning with `__` are reserved for compiler-generated
+    /// expansion names (`__fn{N}_…`, `__net{N}`) — RFC-006's collision-free
+    /// naming guarantee holds only if user names can never enter that
+    /// namespace.
+    fn check_not_reserved(&mut self, name: &Ident, what: &str) -> bool {
+        if name.name.starts_with("__") {
+            self.diags.push(
+                Diagnostic::error(
+                    "E206",
+                    name.span,
+                    format!(
+                        "{} names beginning with `__` are reserved for compiler-generated names",
+                        what
+                    ),
+                )
+                .with_help("pick a name that does not start with `__`"),
+            );
+            return false;
+        }
+        true
+    }
+
     fn handle_net(&mut self, net: &NetStmt, scope: &mut Scope) {
+        if let Some(name) = &net.name {
+            if !self.check_not_reserved(name, "net") {
+                return;
+            }
+        }
         let mut members = Vec::new();
         for m in &net.members {
             if let Some(resolved) = self.resolve_pin_ref(m, scope) {
@@ -615,30 +645,22 @@ impl<'w, 'd> Expander<'w, 'd> {
                 }
                 FnParamTy::ImplTrait(bound_traits, _) => {
                     // Sugar for an anonymous trait-bound generic parameter
-                    // (RFC-007): check the bounds directly against the
-                    // argument's concrete device.
+                    // (RFC-007/DR-016): routed through the ONE trait-bound-
+                    // checking mechanism, exactly like a named parameter.
                     match self.resolve_instance_arg(arg, scope) {
                         Some((path, device)) => {
-                            let mut ok = true;
-                            for bt in bound_traits {
-                                if !self.world.has_impl(&bt.name, &device) {
-                                    self.diags.push(
-                                        Diagnostic::error(
-                                            "E403",
-                                            arg.span,
-                                            format!(
-                                                "`{}` does not implement `{}`, required by parameter `{}` of fn `{}`",
-                                                device, bt.name, param.name.name, fndef.name.name
-                                            ),
-                                        )
-                                        .with_help(format!(
-                                            "add `impl {} for {} {{ … }}`, or pass a device that has one",
-                                            bt.name, device
-                                        )),
-                                    );
-                                    ok = false;
-                                }
-                            }
+                            let required_by = format!(
+                                "parameter `{}` of fn `{}`",
+                                param.name.name, fndef.name.name
+                            );
+                            let ok = crate::check::generics::check_trait_bounds(
+                                self.world,
+                                &device,
+                                bound_traits,
+                                arg.span,
+                                &required_by,
+                                self.diags,
+                            );
                             if ok {
                                 bindings.insert(
                                     param.name.name.clone(),

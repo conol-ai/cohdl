@@ -6,7 +6,7 @@ Snapshot of the CoHDL Coherent Design Repository, extracted 2026-07-13 from
 The conol.ai note tree is the **source of truth**; this snapshot exists so the
 implementation can reference the design offline and so changes to the design
 are visible in review. If a document here disagrees with the live note, the
-live note wins — re-extract rather than hand-edit.
+live note wins — re-extract with `python3 tools/extract_design_repo.py docs/design` rather than hand-edit.
 
 | File | Note |
 |---|---|

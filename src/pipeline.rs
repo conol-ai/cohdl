@@ -59,11 +59,13 @@ pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<C
         None => match world.designs.len() {
             0 => None, // declaration-only project: still checkable
             1 => Some(world.designs.keys().next().unwrap().clone()),
-            _ => return Err(format!(
+            _ => {
+                return Err(format!(
                 "project has {} designs ({}) — pass --design or set `[design] top` in cohdl.toml",
                 world.designs.len(),
                 world.designs.keys().cloned().collect::<Vec<_>>().join(", ")
-            )),
+            ))
+            }
         },
     };
 

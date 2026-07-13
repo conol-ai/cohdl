@@ -1,0 +1,683 @@
+//! Fixture tests mapped 1:1 to the MVP Definition's exit criteria
+//! (docs/design/09-mvp-definition.md, "Exit criteria"). Each test name says
+//! which criterion it proves. The demo-scenario criterion (AI loop) lives in
+//! harness/, not here.
+
+use cohdl::diag::Diagnostics;
+use cohdl::lock::{assign_designators, LockState};
+use cohdl::pipeline::{build_artifacts, check_files};
+
+fn check(src: &str) -> (cohdl::pipeline::Checked, String) {
+    let files = vec![("fixture.cohdl".to_string(), src.to_string())];
+    let mut checked = check_files(&files, None).expect("design selection");
+    checked.diags.sort(&checked.sm);
+    let rendered = checked.diags.render(&checked.sm);
+    (checked, rendered)
+}
+
+/// Load the real std library + a board source, as the CLI would.
+fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
+    let mut files = Vec::new();
+    let std_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("std");
+    let mut entries: Vec<_> = std::fs::read_dir(&std_dir)
+        .unwrap()
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.extension().is_some_and(|e| e == "cohdl"))
+        .collect();
+    entries.sort();
+    for p in entries {
+        files.push((
+            format!("std/{}", p.file_name().unwrap().to_string_lossy()),
+            std::fs::read_to_string(&p).unwrap(),
+        ));
+    }
+    files.push(("board.cohdl".to_string(), board_src.to_string()));
+    let mut checked = check_files(&files, None).expect("design selection");
+    checked.diags.sort(&checked.sm);
+    let rendered = checked.diags.render(&checked.sm);
+    (checked, rendered)
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Grammar parses every construct listed in 'In scope', on at
+// least the demo board's actual source."
+
+#[test]
+fn grammar_parses_demo_board_and_std() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let proj =
+        cohdl::project::load_project(&root.join("examples/sensor-node"), Some(&root.join("std")))
+            .unwrap();
+    let checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    assert!(checked.ir.is_some());
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Unit-type checking fires correctly: a fixture with a
+// deliberately wrong-unit spec produces the correct diagnostic, naming the
+// expected vs. actual unit type."
+
+#[test]
+fn wrong_unit_spec_names_expected_and_actual() {
+    // Wrong unit at a generic instantiation site.
+    let (_, rendered) = check(
+        r#"
+pub device MLCC<C: Capacitance, V: Voltage = 10V> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+design B {
+    inst c1: MLCC<3.3V, 16V>
+    net X: c1.A, c1.B
+}
+"#,
+    );
+    assert!(rendered.contains("E402"), "{}", rendered);
+    assert!(
+        rendered.contains("expected `Capacitance`, found `Voltage`"),
+        "{}",
+        rendered
+    );
+
+    // Wrong unit between a trait requirement and a device spec field.
+    let (_, rendered) = check(
+        r#"
+pub trait Capacitor {
+    spec { capacitance: Capacitance }
+}
+pub device Weird {
+    pins { A: 1 }
+    spec { capacitance: 10V }
+}
+impl Capacitor for Weird {}
+"#,
+    );
+    assert!(rendered.contains("E301"), "{}", rendered);
+    assert!(
+        rendered.contains("must be `Capacitance`") && rendered.contains("`Voltage`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn bare_number_where_unit_expected() {
+    let (_, rendered) = check(
+        r#"
+pub device MLCC<C: Capacitance> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+design B {
+    inst c1: MLCC<100>
+    net X: c1.A, c1.B
+}
+"#,
+    );
+    assert!(rendered.contains("E404"), "{}", rendered);
+    assert!(
+        rendered.contains("100nF") || rendered.contains("write the unit"),
+        "{}",
+        rendered
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Pin exhaustiveness fires correctly: a fixture with an
+// unresolved required pin produces the correct diagnostic; a fixture with a
+// pin in both net and nc produces the contradictory-declaration diagnostic."
+
+#[test]
+fn unresolved_required_pin_diagnostic() {
+    let (_, rendered) = check(
+        r#"
+pub device MCU {
+    pins { required VDD: 1, required GND: 2, optional TP: 3 }
+}
+pub device R2 { pins { A: 1, B: 2 } }
+design B {
+    inst mcu: MCU
+    inst r: R2
+    net VDD: mcu.VDD, r.A
+    net X: r.B, mcu.GND
+}
+"#,
+    );
+    // TP is optional — must NOT fire. VDD/GND connected. Everything clean.
+    assert!(!rendered.contains("E701"), "{}", rendered);
+
+    let (_, rendered) = check(
+        r#"
+pub device MCU {
+    pins { required VDD: 1, required GND: 2 }
+}
+pub device R2 { pins { A: 1, B: 2 } }
+design B {
+    inst mcu: MCU
+    inst r: R2
+    net VDD: mcu.VDD, r.A, r.B
+}
+"#,
+    );
+    assert!(rendered.contains("E701"), "{}", rendered);
+    assert!(
+        rendered.contains("`B::mcu.GND` is unresolved"),
+        "{}",
+        rendered
+    );
+    assert!(
+        rendered.contains("add it to a `net` or explicitly mark it `nc`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn contradictory_net_and_nc_diagnostic() {
+    let (_, rendered) = check(
+        r#"
+pub device MCU {
+    pins { required VDD: 1, required GND: 2 }
+}
+pub device R2 { pins { A: 1, B: 2 } }
+design B {
+    inst mcu: MCU
+    inst r: R2
+    net VDD: mcu.VDD, r.A
+    net G: mcu.GND, r.B
+    nc: mcu.GND
+}
+"#,
+    );
+    assert!(rendered.contains("E702"), "{}", rendered);
+    assert!(rendered.contains("contradictory"), "{}", rendered);
+    assert!(
+        rendered.contains("cannot be both connected and explicitly not-connected"),
+        "{}",
+        rendered
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Trait satisfaction fires correctly: a fixture with a device
+// missing a required pin/spec for its claimed impl produces the correct
+// diagnostic naming the trait and the gap; a fixture with a missing
+// sub-trait-bound impl produces the correct chain diagnostic."
+
+#[test]
+fn impl_missing_pin_and_spec_names_trait_and_gap() {
+    let (_, rendered) = check(
+        r#"
+pub trait TwoTerminal {
+    pins { required A: pin, required B: pin }
+}
+pub device OnePin {
+    pins { A: 1 }
+}
+impl TwoTerminal for OnePin {}
+"#,
+    );
+    assert!(rendered.contains("E301"), "{}", rendered);
+    assert!(
+        rendered.contains("impl `TwoTerminal` for `OnePin`"),
+        "{}",
+        rendered
+    );
+    assert!(rendered.contains("requires pin role `B`"), "{}", rendered);
+
+    let (_, rendered) = check(
+        r#"
+pub trait Capacitor {
+    spec { capacitance: Capacitance, voltage_rating: Voltage }
+}
+pub device NoRating<C: Capacitance> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+impl Capacitor for NoRating {}
+"#,
+    );
+    assert!(rendered.contains("E301"), "{}", rendered);
+    assert!(
+        rendered.contains("requires spec field `voltage_rating` (`Voltage`)"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn missing_subtrait_impl_chain_diagnostic() {
+    let (_, rendered) = check(
+        r#"
+pub trait TwoTerminal {
+    pins { required A: pin, required B: pin }
+}
+pub trait Capacitor: TwoTerminal {
+    spec { capacitance: Capacitance }
+}
+pub device Cap<C: Capacitance> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C }
+}
+impl Capacitor for Cap {}
+"#,
+    );
+    assert!(rendered.contains("E302"), "{}", rendered);
+    assert!(
+        rendered.contains("impl `Capacitor` for `Cap` requires `impl TwoTerminal for Cap`, which was not found in scope"),
+        "{}",
+        rendered
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Generic trait-bound checking fires correctly: a fixture
+// instantiating a generic with a type argument lacking the required impl
+// produces the correct diagnostic."
+
+#[test]
+fn generic_trait_bound_violation_diagnostic() {
+    let (_, rendered) = check(
+        r#"
+pub trait Capacitor { spec { capacitance: Capacitance } }
+pub device Resistor<R: Resistance> {
+    pins { A: 1, B: 2 }
+    spec { resistance: R }
+}
+pub device MCU { pins { required VDD: 1 } }
+fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
+    net _: pin, target.A
+}
+design B {
+    inst mcu: MCU
+    inst r1: Resistor<10kohm>
+    add_decoupling::<Resistor>(r1, mcu.VDD)
+    net X: r1.A, r1.B
+}
+"#,
+    );
+    assert!(rendered.contains("E403"), "{}", rendered);
+    assert!(
+        rendered.contains("`Resistor` does not implement `Capacitor`"),
+        "{}",
+        rendered
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "Nested fn calls expand correctly to at least 2 levels in a
+// fixture, with correct substitution threading and no naming collisions; a
+// cyclic-call fixture produces the cycle diagnostic."
+
+#[test]
+fn nested_fn_three_levels_substitution_threading() {
+    let (checked, rendered) = check(
+        r#"
+pub device MLCC<C: Capacitance, V: Voltage> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+pub device MCU { pins { required VDD: 1, required GND: 2 } }
+
+fn level3<V: Voltage>(p: Pin, g: Pin) {
+    inst c: MLCC<100nF, V>
+    net _: p, c.A
+    net _: g, c.B
+}
+fn level2<V: Voltage>(p: Pin, g: Pin) {
+    level3::<V>(p, g)
+}
+fn level1<V: Voltage>(p: Pin, g: Pin) {
+    level2::<V>(p, g)
+}
+design B {
+    inst mcu: MCU
+    level1::<3.3V>(mcu.VDD, mcu.GND)
+    level1::<5V>(mcu.VDD, mcu.GND)
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let ir = checked.ir.unwrap();
+    let caps: Vec<_> = ir
+        .instances
+        .values()
+        .filter(|i| i.device == "MLCC")
+        .collect();
+    assert_eq!(caps.len(), 2, "two call chains → two instances");
+    let mut voltages: Vec<&str> = caps
+        .iter()
+        .map(|i| i.specs["voltage_rating"].text.as_str())
+        .collect();
+    voltages.sort();
+    // Substitution threaded through three levels, per chain.
+    assert_eq!(voltages, ["3.3V", "5V"]);
+    // Full call-chain naming, no collisions.
+    let paths: Vec<&String> = ir.instances.keys().collect();
+    assert_eq!(
+        paths.len(),
+        ir.instances.len(),
+        "paths unique by construction: {paths:?}"
+    );
+    assert!(
+        caps.iter().all(|c| c.path.matches("::__fn").count() == 3),
+        "3 chain segments each: {paths:?}"
+    );
+}
+
+#[test]
+fn cyclic_call_full_chain_diagnostic() {
+    let (_, rendered) = check(
+        r#"
+pub device MCU { pins { required VDD: 1 } }
+fn a(p: Pin) { b(p) }
+fn b(p: Pin) { c(p) }
+fn c(p: Pin) { a(p) }
+design B {
+    inst mcu: MCU
+    a(mcu.VDD)
+}
+"#,
+    );
+    assert!(rendered.contains("E501"), "{}", rendered);
+    assert!(rendered.contains("a → b → c → a"), "{}", rendered);
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "The designator allocator fixture test confirms no collisions
+// across at least one fixture with multiple same-prefix instances (the
+// esd/ldo33-style case)."
+
+#[test]
+fn designator_same_prefix_no_collision() {
+    // Two devices with no prefix-mapped trait — both default to "U", the
+    // exact v1 esd/ldo33 collision class.
+    let (mut checked, rendered) = check(
+        r#"
+pub device ESD_USB { pins { required VCC: 1 } }
+pub device AP2112K { pins { required VOUT: 1 } }
+design B {
+    inst esd: ESD_USB
+    inst ldo33: AP2112K
+    net X: esd.VCC, ldo33.VOUT
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let mut diags = Diagnostics::new();
+    let ir = checked.ir.as_mut().unwrap();
+    let lock = assign_designators(&checked.world, ir, &LockState::default(), &mut diags);
+    assert!(!diags.has_errors());
+    let d_esd = &lock.designators["B::esd"];
+    let d_ldo = &lock.designators["B::ldo33"];
+    assert_ne!(d_esd, d_ldo, "same-prefix instances must not collide");
+    assert_eq!(d_esd, "U1");
+    assert_eq!(d_ldo, "U2");
+}
+
+#[test]
+fn designator_stability_tombstones_and_overrides() {
+    let src_v1 = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst first: D1
+    inst second: D1
+    net X: first.P, second.P
+}
+"#;
+    let (mut checked, _) = check(src_v1);
+    let mut diags = Diagnostics::new();
+    let lock1 = assign_designators(
+        &checked.world,
+        checked.ir.as_mut().unwrap(),
+        &LockState::default(),
+        &mut diags,
+    );
+    assert_eq!(lock1.designators["B::first"], "U1");
+    assert_eq!(lock1.designators["B::second"], "U2");
+
+    // Remove `first`, add `third`: `second` keeps U2 (stability), `first` is
+    // tombstoned, and U1 is never reused — `third` gets U3.
+    let src_v2 = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst second: D1
+    inst third: D1
+    net X: second.P, third.P
+}
+"#;
+    let (mut checked, _) = check(src_v2);
+    let mut diags = Diagnostics::new();
+    let lock2 = assign_designators(
+        &checked.world,
+        checked.ir.as_mut().unwrap(),
+        &lock1,
+        &mut diags,
+    );
+    assert_eq!(
+        lock2.designators["B::second"], "U2",
+        "stability across rebuilds"
+    );
+    assert_eq!(lock2.tombstones["B::first"], "U1", "removed → tombstoned");
+    assert_eq!(
+        lock2.designators["B::third"], "U3",
+        "tombstoned designator never reused"
+    );
+
+    // Explicit override wins and collision with it is detected.
+    let src_v3 = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    #[designator("U2")]
+    inst fourth: D1
+    inst second: D1
+    net X: second.P, fourth.P
+}
+"#;
+    let (mut checked, _) = check(src_v3);
+    let mut diags = Diagnostics::new();
+    let _ = assign_designators(
+        &checked.world,
+        checked.ir.as_mut().unwrap(),
+        &lock2,
+        &mut diags,
+    );
+    // `second` holds U2 from the lock; the override collides → E803.
+    let rendered = {
+        diags.sort(&checked.sm);
+        diags.render(&checked.sm)
+    };
+    assert!(rendered.contains("E803"), "{}", rendered);
+}
+
+#[test]
+fn designator_assignment_is_order_independent() {
+    // RFC-005 Tooling & operations: same live set in a different collection
+    // order produces the identical assignment. Instance paths are the same
+    // set regardless of source order, so assignments must match exactly.
+    let forward = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst alpha: D1
+    inst beta: D1
+    inst gamma: D1
+    net X: alpha.P, beta.P, gamma.P
+}
+"#;
+    let backward = r#"
+pub device D1 { pins { required P: 1 } }
+design B {
+    inst gamma: D1
+    inst beta: D1
+    inst alpha: D1
+    net X: alpha.P, beta.P, gamma.P
+}
+"#;
+    let mut locks = Vec::new();
+    for src in [forward, backward] {
+        let (mut checked, _) = check(src);
+        let mut diags = Diagnostics::new();
+        locks.push(assign_designators(
+            &checked.world,
+            checked.ir.as_mut().unwrap(),
+            &LockState::default(),
+            &mut diags,
+        ));
+    }
+    assert_eq!(locks[0], locks[1], "collection order must not matter");
+}
+
+// ---------------------------------------------------------------------------
+// Criterion: "The residual DRC engine's 4 rules each fire on a dedicated
+// fixture designed to trigger them."
+
+#[test]
+fn drc_d001_voltage_exceed() {
+    let (_, rendered) = check(
+        r#"
+pub device MLCC<C: Capacitance, V: Voltage> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
+design B {
+    inst src: Source
+    inst c1: MLCC<100nF, 3V>
+    net VBUS [5V]: src.OUT, c1.A
+    net GND [gnd]: src.GND, c1.B
+}
+"#,
+    );
+    assert!(rendered.contains("D001"), "{}", rendered);
+    assert!(rendered.contains("rated `3V`"), "{}", rendered);
+    assert!(rendered.contains("annotated `5V`"), "{}", rendered);
+}
+
+#[test]
+fn drc_d002_polarity_mismatch() {
+    let (_, rendered) = check(
+        r#"
+pub trait Polarized {
+    pins { required Anode: pin, required Cathode: pin }
+}
+pub device TantalumCap {
+    pins { Anode: 1, Cathode: 2 }
+}
+impl Polarized for TantalumCap {}
+pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
+design B {
+    inst src: Source
+    inst c1: TantalumCap
+    net V: src.OUT, c1.Cathode
+    net GND [gnd]: src.GND, c1.Anode
+}
+"#,
+    );
+    assert!(rendered.contains("D002"), "{}", rendered);
+    assert!(rendered.contains("anode pin `B::c1.Anode`"), "{}", rendered);
+}
+
+#[test]
+fn drc_d003_single_driver() {
+    let (_, rendered) = check(
+        r#"
+pub device MCU { pins { required TX: 1 [output], required GND: 2 } }
+pub device R2 { pins { A: 1, B: 2 } }
+design B {
+    inst mcu: MCU
+    inst r: R2
+    net LONELY: mcu.TX
+    net GND: mcu.GND, r.A, r.B
+}
+"#,
+    );
+    assert!(rendered.contains("D003"), "{}", rendered);
+    assert!(rendered.contains("only one connected pin"), "{}", rendered);
+    assert!(rendered.contains("warning"), "{}", rendered);
+}
+
+#[test]
+fn drc_d004_multi_driver() {
+    let (_, rendered) = check(
+        r#"
+pub device MCU { pins { required TX: 1 [output], required GND: 2 } }
+design B {
+    inst a: MCU
+    inst b: MCU
+    net BUS: a.TX, b.TX
+    net GND: a.GND, b.GND
+}
+"#,
+    );
+    assert!(rendered.contains("D004"), "{}", rendered);
+    assert!(rendered.contains("2 driver-type pins"), "{}", rendered);
+}
+
+// ---------------------------------------------------------------------------
+// Build artifacts: netlist + BOM byte-stability against the committed golden
+// files (reproducibility hard constraint).
+
+#[test]
+fn example_build_matches_committed_golden_output() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let proj =
+        cohdl::project::load_project(&root.join("examples/sensor-node"), Some(&root.join("std")))
+            .unwrap();
+    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    assert!(!checked.diags.has_errors());
+    let lock_text = std::fs::read_to_string(root.join("examples/sensor-node/design.lock")).unwrap();
+    let prior = LockState::parse(&lock_text).unwrap();
+    let artifacts = build_artifacts(&mut checked, &prior).expect("build succeeds");
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let golden_net =
+        std::fs::read_to_string(root.join("examples/sensor-node/out/sensor-node.net")).unwrap();
+    let golden_bom =
+        std::fs::read_to_string(root.join("examples/sensor-node/out/sensor-node-bom.csv")).unwrap();
+    assert_eq!(
+        artifacts.netlist, golden_net,
+        "netlist bytes must be stable"
+    );
+    assert_eq!(artifacts.bom, golden_bom, "BOM bytes must be stable");
+    assert_eq!(artifacts.lock.render(), lock_text, "lock must be stable");
+
+    // Every instance carries a real MPN in the BOM (no <UNSPECIFIED>, ever).
+    assert!(
+        !artifacts.bom.contains("\"\""),
+        "no empty MPN cells:\n{}",
+        artifacts.bom
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Part binding: an unbound instance is an E801 build error (the BOM must
+// not lie), while `check` alone passes.
+
+#[test]
+fn unbound_instance_is_a_build_error() {
+    let (mut checked, rendered) = check_with_std(
+        r#"
+design B {
+    inst c1: MLCC<47nF, 16V, 10%>
+    inst r1: RES_1K_0402
+    net X: c1.A, r1.A
+    net Y: c1.B, r1.B
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let artifacts = build_artifacts(&mut checked, &LockState::default());
+    assert!(artifacts.is_none());
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(rendered.contains("E801"), "{}", rendered);
+    assert!(rendered.contains("no part binding"), "{}", rendered);
+}

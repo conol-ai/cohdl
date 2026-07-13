@@ -53,6 +53,7 @@ pub device ESP32_S3_WROOM_1 {
 impl IC for ESP32_S3_WROOM_1 {}
 
 pub part ESP32_S3_WROOM_1_N8: ESP32_S3_WROOM_1 {
-    primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8", footprint: "RF_Module:ESP32-S3-WROOM-1" }
+    primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8",
+              footprint: "RF_Module:ESP32-S3-WROOM-1" }
     alt { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2" }
 }

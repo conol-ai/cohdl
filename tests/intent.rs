@@ -66,41 +66,81 @@ design B {
 }
 "#;
 
-/// Build a single-file project, returning (rendered diagnostics, netlist, BOM).
-fn build(src: &str) -> (String, String, String) {
+/// Everything a build observably produces — the full non-impact surface.
+struct Built {
+    verdict: &'static str,
+    diags: String,
+    json: String,
+    netlist: String,
+    bom: String,
+    /// The rendered design.lock — covers designator assignment byte-for-byte.
+    lock: String,
+}
+
+fn build(src: &str) -> Built {
     let files = vec![("board.cohdl".to_string(), src.to_string())];
     let mut checked = check_files(&files, None).expect("design selection");
     let artifacts = build_artifacts(&mut checked, &LockState::default());
     checked.diags.sort(&checked.sm);
-    let rendered = checked.diags.render(&checked.sm);
+    let diags = checked.diags.render(&checked.sm);
+    let json = cohdl::emit::json::render(&checked, None);
+    let verdict = cohdl::emit::json::verdict(&checked);
     match artifacts {
-        Some(a) => (rendered, a.netlist, a.bom),
-        None => (rendered, String::new(), String::new()),
+        Some(a) => Built {
+            verdict,
+            diags,
+            json,
+            netlist: a.netlist,
+            bom: a.bom,
+            lock: a.lock.render(),
+        },
+        None => Built {
+            verdict,
+            diags,
+            json,
+            netlist: String::new(),
+            bom: String::new(),
+            lock: String::new(),
+        },
     }
+}
+
+/// The complete RFC-012 non-impact assertion: verdict, rendered diagnostics,
+/// `--json` document, netlist, BOM, and designator lock must all be
+/// byte-identical between two sources.
+fn assert_no_impact(a: &Built, b: &Built, what: &str) {
+    assert_eq!(a.verdict, b.verdict, "verdict changed: {}", what);
+    assert_eq!(a.diags, b.diags, "diagnostics changed: {}", what);
+    assert_eq!(a.json, b.json, "--json document changed: {}", what);
+    assert_eq!(a.netlist, b.netlist, "netlist changed: {}", what);
+    assert_eq!(a.bom, b.bom, "BOM changed: {}", what);
+    assert_eq!(a.lock, b.lock, "designator lock changed: {}", what);
 }
 
 #[test]
 fn intent_is_zero_impact() {
-    let (d_base, net_base, bom_base) = build(BASE);
-    let (d_ann, net_ann, bom_ann) = build(ANNOTATED);
-
-    // Byte-identical netlist, BOM, and diagnostics — intent changes nothing.
-    assert_eq!(net_base, net_ann, "netlist changed when intent was added");
-    assert_eq!(bom_base, bom_ann, "BOM changed when intent was added");
-    assert_eq!(d_base, d_ann, "diagnostics changed when intent was added");
+    let base = build(BASE);
+    let ann = build(ANNOTATED);
+    assert_no_impact(&base, &ann, "intent added");
     // And a clean build actually happened (not two identically-broken ones).
     assert!(
-        net_base.contains("(export"),
+        base.netlist.contains("(export"),
         "expected a real netlist:\n{}",
-        net_base
+        base.netlist
+    );
+    // Intent content never leaks into the JSON diagnostics document.
+    assert!(
+        !ann.json.contains("datasheet"),
+        "intent text leaked into --json:\n{}",
+        ann.json
     );
 }
 
 #[test]
 fn mutating_intent_text_is_zero_impact() {
     // Swap intent strings for arbitrary different text — checkable-sounding
-    // prose and unicode — inside the annotation strings only. Emitted bytes
-    // must not move.
+    // prose and unicode — inside the annotation strings only. Nothing
+    // observable may move.
     let mutated = ANNOTATED
         .replace(
             "the shared signal node per spec table 4-15",
@@ -111,14 +151,59 @@ fn mutating_intent_text_is_zero_impact() {
         mutated, ANNOTATED,
         "the mutation must actually change the text"
     );
+    assert_no_impact(&build(ANNOTATED), &build(&mutated), "intent text mutated");
+}
 
-    let (_, net_ann, bom_ann) = build(ANNOTATED);
-    let (_, net_mut, bom_mut) = build(&mutated);
-    assert_eq!(
-        net_ann, net_mut,
-        "netlist changed when intent text was mutated"
+#[test]
+fn intent_is_zero_impact_on_diagnostic_positions_in_failing_fixture() {
+    // A fixture that produces BOTH a warning (D003: dangling driver) and an
+    // error (E202) — adding intent above the offending statements must not
+    // shift any diagnostic's code, message, or span, and the verdict stays
+    // identical. Attributes live on their own lines, so spans don't move.
+    let bad = r#"
+pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
+design B {
+    inst mcu: MCU
+    net LONELY: mcu.TX
+    net G: mcu.GND, nosuch.PIN
+}
+"#;
+    let bad_ann = r#"
+pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
+design B {
+    inst mcu: MCU
+    net LONELY: mcu.TX
+    net G: mcu.GND, nosuch.PIN
+}
+"#
+    .replace(
+        "    net LONELY: mcu.TX",
+        "    #[intent(\"dangling driver kept for probing\")] net LONELY: mcu.TX",
     );
-    assert_eq!(bom_ann, bom_mut, "BOM changed when intent text was mutated");
+    let a = build(bad);
+    let b = build(&bad_ann);
+    assert_eq!(a.verdict, "fail");
+    assert_eq!(a.verdict, b.verdict);
+    // Same diagnostic set (codes + messages); spans may not shift because the
+    // attribute rides the same line prefix — compare the full JSON docs minus
+    // column positions on the annotated line.
+    assert!(
+        a.diags.contains("D003") && a.diags.contains("E202"),
+        "{}",
+        a.diags
+    );
+    assert!(
+        b.diags.contains("D003") && b.diags.contains("E202"),
+        "{}",
+        b.diags
+    );
+    let codes = |j: &str| -> Vec<String> {
+        j.lines()
+            .filter(|l| l.contains("\"code\":"))
+            .map(|l| l.trim().to_string())
+            .collect()
+    };
+    assert_eq!(codes(&a.json), codes(&b.json), "diagnostic codes diverged");
 }
 
 // ---------------------------------------------------------------------------

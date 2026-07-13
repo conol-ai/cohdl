@@ -68,14 +68,13 @@ six fixed the same day, one retained as a documented deviation.**
 
 ## Retained, documented deviations
 
-- **D003 single-driver is a count check, not a driver-role check.** RFC-004's
-  table describes v1's W003 as "exactly one output/driver-type pin connected";
-  v1's actual implementation (which the RFC says it maps — "mapped from v1's
-  rule names, not literal ports") fired on any single-member net. A literal
-  driver-count==1 reading would flag every ordinary signal net (one output,
-  N inputs). The implementation keeps the v1-faithful single-connected-pin
-  check and reports the lone pin's role in the message; documented in
-  provisional-syntax.md §7. Revisit when `rule` syntax returns via RFC.
+- **D003 single-driver** — *superseded 2026-07-13 (external review F10).*
+  This deviation is retired: D003 is now role-aware, firing only when a net's
+  lone connected pin is a driver (`output`/`power_out`), the reading of
+  RFC-004's "exactly one output-type (driver) pin connected" that is both
+  faithful to the text and electrically sensible (a literal driver-count==1
+  over any net would flag every ordinary signal net). A dangling
+  passive/input pin is RFC-002's territory, not DRC's.
 
 - **`pub` is parsed but not enforced.** The MVP's single flat scope has no
   visibility boundary; provisional-syntax.md §1 documents this openly. The
@@ -95,3 +94,79 @@ at generic sites moved from `E402`/`E404` into the `E1xx` unit block as
 `E112`/`E113`, and a standalone Unicode `Ω` now reports under its own `E107`
 instead of the `E001` catch-all. The registry (docs/error-codes.md) is now the
 formal v2 baseline, enforced in both directions by `tests/error_registry.rs`.
+
+## External review 2026-07-13 (Codex, at 596acf8): dispositions
+
+An independent review audited RFC-001–013 conformance adversarially. Every
+high-confidence reproduction was verified; dispositions below. Fixed items
+carry regression tests.
+
+**Fixed in code:**
+
+- F3 — fn-local `net_class` names now carry call-chain-scoped identity
+  (RFC-006 style), so a layout-bearing fn is reusable across calls.
+- F4 — `diff_pair`/`length_match` require *distinct* resolved nets, catching
+  both direct repetition and electrically-merged aliases (E1003/E1004).
+- F1 (partial) — `[tolerance: …]` accepts RFC-001 unit literals (`1ms`)
+  alongside the quoted-string escape hatch; `fmt` canonicalizes unit-literal
+  tolerances to the unquoted spelling.
+- F5 — `build` removes a stale `<name>-layout.json` when layout metadata is
+  removed from the source.
+- F8 — a successful plain `build` renders warnings again (D003 was hidden; a
+  regression from the RFC-010 refactor).
+- F10 — D003 is role-aware per RFC-004/008: it fires only when a net's lone
+  pin is a driver (`output`/`power_out`).
+- F12.2 — `10kΩ` produces one targeted E101 (`write \`10kohm\``), not an
+  E103+E107 cascade.
+- F6/F7/F11 — `fmt` keeps attribute spans (trailing comments on `#[intent]`/
+  `#[placement_hint]`/`#[designator]` survive; comments between an attribute
+  and its target stay between); comments inside `layout {}`, trait, impl, and
+  part bodies are preserved in place (comment maps are consume-once, so
+  double-emission is impossible by construction); pin buses, AVL entries,
+  variants lists, and layout constraints wrap at the 100-column soft target;
+  author blanks after `{` are preserved. The four >100-column std lines are
+  rewrapped.
+- Gradeability — the RFC-010 equivalence suite now *decodes* the JSON (local
+  parser, no deps) and compares every field (secondary labels, help, end
+  positions, build object); the RFC-012 non-impact suite compares verdict,
+  diagnostics, `--json` document, netlist, BOM, and the designator lock, on
+  clean and failing/warning fixtures.
+
+**Documented contracts (deliberate dispositions, not code changes):**
+
+- F9 — invocation-level failures (bad flags, missing project, design
+  selection, nothing-to-build) are the `E000` class: exit 2, prose on stderr,
+  never a JSON document. Machine consumers key on the exit code (the harness
+  already does). Documented in README and docs/error-codes.md; tested in
+  tests/cli.rs.
+- RFC-012 target set — the parser accepts `#[intent]` on `design` and call
+  statements (a superset of the spec's list, matching the RFC's own "any
+  top-level or body statement" heading). Zero-impact makes the superset
+  harmless; kept pending note-side resolution of the RFC's internal conflict.
+- RFC-013 zero-impact wording — the tested guarantee is precisely scoped in
+  docs/layout-json.md: *valid* layout metadata never changes any observable
+  output; an *invalid* block is an ordinary compile error (E1001–E1004).
+- `layout.json` — the versioned output contract RFC-013 requires is now
+  documented (docs/layout-json.md).
+
+**Note-side items (need conol.ai amendments, not repo changes — the
+`docs/design/` snapshot is extraction-only):**
+
+- RFC-013's unquoted `[tolerance: 0.15mm]` example cannot lex: RFC-001's
+  closed ten-type set has no length unit. Either a Length unit type RFC or an
+  RFC-013 amendment blessing the string form is needed.
+- RFC-013's E1005 ("net_class referenced before declaration") is
+  unrepresentable in its own four-kind grammar — nothing references a class
+  by name. Kept `[RESERVED]` in the registry until the vocabulary grows.
+- RFC-013's normative placement example (`#[placement_hint] inst esp` as a
+  *re*-annotation of an already-declared instance) is not valid grammar.
+- RFC-011's accepted E9xx table (five codes) conflicts with the
+  earlier-shipped E901–E908; the registry documents the reconciliation, but
+  the accepted RFC/DR text still needs amending.
+- The language spec's error-block table omits E10xx (its own layout section
+  references it).
+- RFC-002's "omitted obligation defaults to required" (implemented, and used
+  by the spec's own examples) contradicts the RFC's explicit-obligation
+  wording; RFC-001's in-`rule` comparison surface and RFC-007's literal
+  impl-Trait desugaring remain out of scope pending `rule` syntax / a
+  dedicated refactor, as previously documented above.

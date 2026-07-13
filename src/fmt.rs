@@ -150,26 +150,28 @@ impl Formatter<'_> {
         self.out.push(s);
     }
 
-    /// Emit one blank line, collapsing runs and refusing a blank at file start
-    /// or immediately after an opening brace.
+    /// Emit one blank line, collapsing runs (RFC-009: an author-placed blank is
+    /// preserved — including immediately after an opening brace — and 2+
+    /// consecutive blanks collapse to 1; only file-leading blanks are dropped).
     fn push_blank(&mut self) {
         match self.out.last() {
             None => {}
             Some(l) if l.is_empty() => {}
-            Some(l) if l.ends_with('{') => {}
             _ => self.out.push(String::new()),
         }
     }
 
     /// Emit full-line comments and preserved blank lines occupying source lines
-    /// `[cursor, before)`, then advance the cursor to `before`.
+    /// `[cursor, before)`, then advance the cursor to `before`. Comments are
+    /// consumed from the map — each source comment is emitted exactly once, by
+    /// construction.
     fn flush_leading(&mut self, before: u32, indent: usize) {
         if before <= self.cursor {
             return;
         }
         let mut l = self.cursor;
         while l < before {
-            if let Some(cmt) = self.c.full_line.get(&l).cloned() {
+            if let Some(cmt) = self.c.full_line.remove(&l) {
                 self.push(indent, cmt);
             } else if self.c.blank.contains(&l) {
                 self.push_blank();
@@ -179,10 +181,10 @@ impl Formatter<'_> {
         self.cursor = before;
     }
 
-    /// Re-attach a trailing comment sitting on source line `end_line` to the
-    /// last emitted output line, and advance the cursor past it.
+    /// Re-attach (and consume) a trailing comment sitting on source line
+    /// `end_line` to the last emitted output line, and advance the cursor.
     fn attach_trailing(&mut self, end_line: u32) {
-        if let Some(cmt) = self.c.trailing.get(&end_line).cloned() {
+        if let Some(cmt) = self.c.trailing.remove(&end_line) {
             if let Some(last) = self.out.last_mut() {
                 if !last.is_empty() {
                     last.push(' ');
@@ -204,9 +206,9 @@ impl Formatter<'_> {
     fn finish_construct(&mut self, start: u32, end: u32, indent: usize) {
         self.attach_trailing(end);
         for l in start..end {
-            if let Some(c) = self.c.full_line.get(&l).cloned() {
+            if let Some(c) = self.c.full_line.remove(&l) {
                 self.push(indent, c);
-            } else if let Some(c) = self.c.trailing.get(&l).cloned() {
+            } else if let Some(c) = self.c.trailing.remove(&l) {
                 self.push(indent, c);
             }
         }
@@ -239,18 +241,24 @@ impl Formatter<'_> {
 
     /// Emit a single-string opaque attribute (`#[NAME("...")]`) on its own line,
     /// preceding the declaration it annotates — RFC-012 `#[intent]` and RFC-013
-    /// `#[placement_hint]`, same placement as `#[designator]`.
-    fn emit_string_attr(&mut self, name: &str, value: &Option<String>, indent: usize) {
-        if let Some(text) = value {
+    /// `#[placement_hint]`, same placement as `#[designator]`. Comment-aware:
+    /// leading comments before the attribute stay before it, and a trailing
+    /// comment on the attribute's own line survives.
+    fn emit_string_attr(&mut self, name: &str, value: &Option<(String, Span)>, indent: usize) {
+        if let Some((text, span)) = value {
+            self.flush_leading(self.line_start(*span), indent);
             self.push(indent, format!("#[{}({})]", name, str_lit(text)));
+            self.attach_trailing(self.line_end(*span));
         }
     }
 
     fn item(&mut self, item: &Item) {
         self.emit_string_attr("intent", &item.intent, 0);
+        // Comments between the attribute and the declaration stay between.
+        self.flush_leading(self.line_start(item.decl_span), 0);
         let vis = if item.is_pub { "pub " } else { "" };
         match &item.kind {
-            ItemKind::Trait(t) => self.trait_def(vis, t),
+            ItemKind::Trait(t) => self.trait_def(vis, item, t),
             ItemKind::Device(d) => self.device_def(vis, item, d),
             ItemKind::Impl(i) => self.impl_def(i),
             ItemKind::Fn(f) => self.fn_def(vis, item, f),
@@ -261,7 +269,7 @@ impl Formatter<'_> {
 
     // -- traits --------------------------------------------------------------
 
-    fn trait_def(&mut self, vis: &str, t: &TraitDef) {
+    fn trait_def(&mut self, vis: &str, item: &Item, t: &TraitDef) {
         let mut header = format!("{}trait {}", vis, t.name.name);
         if !t.super_traits.is_empty() {
             header.push_str(": ");
@@ -273,26 +281,67 @@ impl Formatter<'_> {
             return;
         }
         self.push(0, format!("{} {{", header));
-        if let Some((prefix, _)) = &t.designator_prefix {
-            self.push(1, format!("designator_prefix: {}", str_lit(prefix)));
+        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
+
+        // Body members in source order, so interleaved comments/blanks keep
+        // their author-chosen positions.
+        enum Member {
+            Prefix,
+            Pins,
+            Spec,
         }
-        if !t.pins.is_empty() {
-            self.push(1, "pins {");
-            for p in &t.pins {
-                self.push(
-                    2,
-                    format!("{} {}: pin", p.obligation.keyword(), p.name.name),
-                );
+        let mut members: Vec<(u32, Member)> = Vec::new();
+        if let Some((_, span)) = &t.designator_prefix {
+            members.push((self.line_start(*span), Member::Prefix));
+        }
+        if let Some(ps) = t.pins_span {
+            members.push((self.line_start(ps), Member::Pins));
+        }
+        if let Some(ss) = t.spec_span {
+            members.push((self.line_start(ss), Member::Spec));
+        }
+        members.sort_by_key(|(l, _)| *l);
+
+        for (start, m) in members {
+            self.flush_leading(start, 1);
+            match m {
+                Member::Prefix => {
+                    let (prefix, span) = t.designator_prefix.as_ref().unwrap();
+                    self.push(1, format!("designator_prefix: {}", str_lit(prefix)));
+                    self.attach_trailing(self.line_end(*span));
+                }
+                Member::Pins => {
+                    let ps = t.pins_span.unwrap();
+                    self.push(1, "pins {");
+                    self.cursor = self.cursor.max(self.line_start(ps) + 1);
+                    for p in &t.pins {
+                        self.flush_leading(self.line_start(p.span), 2);
+                        self.push(
+                            2,
+                            format!("{} {}: pin", p.obligation.keyword(), p.name.name),
+                        );
+                        self.finish_construct(self.line_start(p.span), self.line_end(p.span), 2);
+                    }
+                    self.flush_leading(self.line_end(ps), 2);
+                    self.push(1, "}");
+                    self.cursor = self.cursor.max(self.line_end(ps) + 1);
+                }
+                Member::Spec => {
+                    let ss = t.spec_span.unwrap();
+                    self.push(1, "spec {");
+                    self.cursor = self.cursor.max(self.line_start(ss) + 1);
+                    for s in &t.specs {
+                        self.flush_leading(self.line_start(s.span), 2);
+                        self.push(2, format!("{}: {}", s.name.name, s.ty.unit.type_name()));
+                        self.finish_construct(self.line_start(s.span), self.line_end(s.span), 2);
+                    }
+                    self.flush_leading(self.line_end(ss), 2);
+                    self.push(1, "}");
+                    self.cursor = self.cursor.max(self.line_end(ss) + 1);
+                }
             }
-            self.push(1, "}");
         }
-        if !t.specs.is_empty() {
-            self.push(1, "spec {");
-            for s in &t.specs {
-                self.push(2, format!("{}: {}", s.name.name, s.ty.unit.type_name()));
-            }
-            self.push(1, "}");
-        }
+        self.flush_leading(self.line_end(item.span), 1);
         self.push(0, "}");
     }
 
@@ -304,7 +353,7 @@ impl Formatter<'_> {
             header.push_str(&generic_params(&d.generics));
         }
         self.push(0, format!("{} {{", header));
-        self.cursor = self.cursor.max(self.line_start(item.span) + 1);
+        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
 
         // Device-body members, emitted in source order so author blank lines
         // and comments between them are preserved.
@@ -329,10 +378,14 @@ impl Formatter<'_> {
             self.flush_leading(start, 1);
             match m {
                 Member::Variants => {
-                    let names = join(d.variants.iter().map(|v| v.name.clone()), ", ");
-                    self.push(1, format!("variants {{ {} }}", names));
+                    let names: Vec<String> = d.variants.iter().map(|v| v.name.clone()).collect();
+                    if names.is_empty() {
+                        self.push(1, "variants { }");
+                    } else {
+                        self.wrapped(1, "variants { ", &names, " }");
+                    }
                     if let Some(vs) = d.variants_span {
-                        self.cursor = self.cursor.max(self.line_end(vs) + 1);
+                        self.finish_construct(self.line_start(vs), self.line_end(vs), 1);
                     }
                 }
                 Member::Pins(i) => self.pin_block(&d.pin_blocks[i], 1),
@@ -352,7 +405,15 @@ impl Formatter<'_> {
         self.cursor = self.cursor.max(self.line_start(pb.span) + 1);
         for pin in &pb.pins {
             self.flush_leading(self.line_start(pin.span), indent + 1);
-            self.push(indent + 1, pin_text(pin));
+            // Pin buses wrap aligned under the first pin number, with the
+            // role bracket on the last line (RFC-009).
+            let prefix = format!("{} {}: ", pin.obligation.keyword(), pin.name.name);
+            let numbers: Vec<String> = pin.numbers.iter().map(|n| n.text.clone()).collect();
+            let role = match pin.role {
+                Some((r, _)) => format!(" [{}]", r.name()),
+                None => String::new(),
+            };
+            self.wrapped(indent + 1, &prefix, &numbers, &role);
             self.finish_construct(
                 self.line_start(pin.span),
                 self.line_end(pin.span),
@@ -394,20 +455,36 @@ impl Formatter<'_> {
             return;
         }
         self.push(0, format!("{} {{", header));
-        if !i.pin_map.is_empty() {
-            self.push(1, "pins {");
-            for e in &i.pin_map {
-                self.push(2, format!("{}: {}", e.role.name, e.target.name));
-            }
-            self.push(1, "}");
+        self.cursor = self.cursor.max(self.line_start(i.span) + 1);
+
+        // Mapping sub-blocks in source order, comment-aware (like traits).
+        let mut blocks: Vec<(u32, bool)> = Vec::new(); // (line, is_pins)
+        if let Some(ps) = i.pins_span {
+            blocks.push((self.line_start(ps), true));
         }
-        if !i.spec_map.is_empty() {
-            self.push(1, "spec {");
-            for e in &i.spec_map {
-                self.push(2, format!("{}: {}", e.role.name, e.target.name));
-            }
-            self.push(1, "}");
+        if let Some(ss) = i.spec_span {
+            blocks.push((self.line_start(ss), false));
         }
+        blocks.sort_by_key(|(l, _)| *l);
+        for (start, is_pins) in blocks {
+            self.flush_leading(start, 1);
+            let (kw, span, entries) = if is_pins {
+                ("pins {", i.pins_span.unwrap(), &i.pin_map)
+            } else {
+                ("spec {", i.spec_span.unwrap(), &i.spec_map)
+            };
+            self.push(1, kw);
+            self.cursor = self.cursor.max(self.line_start(span) + 1);
+            for e in entries {
+                self.flush_leading(self.line_start(e.span), 2);
+                self.push(2, format!("{}: {}", e.role.name, e.target.name));
+                self.finish_construct(self.line_start(e.span), self.line_end(e.span), 2);
+            }
+            self.flush_leading(self.line_end(span), 2);
+            self.push(1, "}");
+            self.cursor = self.cursor.max(self.line_end(span) + 1);
+        }
+        self.flush_leading(self.line_end(i.span), 1);
         self.push(0, "}");
     }
 
@@ -431,13 +508,57 @@ impl Formatter<'_> {
     }
 
     fn body(&mut self, stmts: &[Stmt], item: &Item) {
-        self.cursor = self.cursor.max(self.line_start(item.span) + 1);
+        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
         for stmt in stmts {
-            self.flush_leading(self.line_start(stmt.span()), 1);
+            // Flush to the FIRST line of the whole statement group — its
+            // attributes included — so comments before an attribute stay
+            // before it.
+            self.flush_leading(self.stmt_first_line(stmt), 1);
             self.stmt(stmt, 1);
             self.finish_construct(self.line_start(stmt.span()), self.line_end(stmt.span()), 1);
         }
         self.flush_leading(self.line_end(item.span), 1);
+    }
+
+    /// The first source line a statement occupies, attributes included.
+    fn stmt_first_line(&self, stmt: &Stmt) -> u32 {
+        let mut first = self.line_start(stmt.span());
+        let mut consider = |span: &Span| {
+            let l = self.sm.line_col(self.file, span.start).line;
+            if l < first {
+                first = l;
+            }
+        };
+        match stmt {
+            Stmt::Inst(s) => {
+                if let Some((_, sp)) = &s.intent {
+                    consider(sp);
+                }
+                if let Some((_, sp)) = &s.placement_hint {
+                    consider(sp);
+                }
+                for a in &s.attrs {
+                    consider(&a.span);
+                }
+            }
+            Stmt::Net(s) => {
+                if let Some((_, sp)) = &s.intent {
+                    consider(sp);
+                }
+            }
+            Stmt::Nc(s) => {
+                if let Some((_, sp)) = &s.intent {
+                    consider(sp);
+                }
+            }
+            Stmt::Call(s) => {
+                if let Some((_, sp)) = &s.intent {
+                    consider(sp);
+                }
+            }
+            Stmt::Layout(_) => {}
+        }
+        first
     }
 
     fn stmt(&mut self, stmt: &Stmt, indent: usize) {
@@ -446,8 +567,11 @@ impl Formatter<'_> {
                 self.emit_string_attr("intent", &s.intent, indent);
                 self.emit_string_attr("placement_hint", &s.placement_hint, indent);
                 for attr in &s.attrs {
+                    self.flush_leading(self.line_start(attr.span), indent);
                     self.push(indent, attr_text(attr));
+                    self.attach_trailing(self.line_end(attr.span));
                 }
+                self.flush_leading(self.line_start(s.span), indent);
                 self.push(
                     indent,
                     format!("inst {}: {}", s.name.name, type_ref_text(&s.ty)),
@@ -455,6 +579,7 @@ impl Formatter<'_> {
             }
             Stmt::Net(s) => {
                 self.emit_string_attr("intent", &s.intent, indent);
+                self.flush_leading(self.line_start(s.span), indent);
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
                 let ann = match &s.annotation {
                     Some(NetAnnotation::Voltage(v, _)) => format!(" [{}]", v.text),
@@ -463,22 +588,35 @@ impl Formatter<'_> {
                 };
                 let prefix = format!("net {}{}: ", name, ann);
                 let members: Vec<String> = s.members.iter().map(|m| m.to_string()).collect();
-                self.wrapped(indent, &prefix, &members);
+                self.wrapped(indent, &prefix, &members, "");
             }
             Stmt::Nc(s) => {
                 self.emit_string_attr("intent", &s.intent, indent);
+                self.flush_leading(self.line_start(s.span), indent);
                 let members: Vec<String> = s.members.iter().map(|m| m.to_string()).collect();
-                self.wrapped(indent, "nc: ", &members);
+                self.wrapped(indent, "nc: ", &members, "");
             }
             Stmt::Layout(s) => {
+                // Comment-aware like pins/spec blocks (RFC-013 uses the same
+                // block-formatting rules), with per-constraint wrapping.
                 self.push(indent, "layout {");
+                self.cursor = self.cursor.max(self.line_start(s.span) + 1);
                 for c in &s.constraints {
-                    self.push(indent + 1, layout_constraint_text(c));
+                    self.flush_leading(self.line_start(c.span()), indent + 1);
+                    self.layout_constraint(c, indent + 1);
+                    self.finish_construct(
+                        self.line_start(c.span()),
+                        self.line_end(c.span()),
+                        indent + 1,
+                    );
                 }
+                self.flush_leading(self.line_end(s.span), indent + 1);
                 self.push(indent, "}");
+                self.cursor = self.cursor.max(self.line_end(s.span) + 1);
             }
             Stmt::Call(s) => {
                 self.emit_string_attr("intent", &s.intent, indent);
+                self.flush_leading(self.line_start(s.span), indent);
                 let generics = if s.generic_args.is_empty() {
                     String::new()
                 } else {
@@ -493,11 +631,47 @@ impl Formatter<'_> {
         }
     }
 
-    /// Emit a `prefix`-led member list, wrapping onto continuation lines
-    /// aligned under the first member when the single line exceeds `WIDTH`.
-    fn wrapped(&mut self, indent: usize, prefix: &str, members: &[String]) {
+    /// One layout constraint, wrapping long net lists (RFC-009's 100-column
+    /// soft target applies inside `layout {}` too).
+    fn layout_constraint(&mut self, c: &LayoutConstraint, indent: usize) {
+        match c {
+            LayoutConstraint::NetClass { name, nets, .. } => {
+                if nets.is_empty() {
+                    self.push(indent, format!("net_class {} {{ }}", name.name));
+                } else {
+                    let names: Vec<String> = nets.iter().map(|n| n.name.clone()).collect();
+                    self.wrapped(
+                        indent,
+                        &format!("net_class {} {{ ", name.name),
+                        &names,
+                        " }",
+                    );
+                }
+            }
+            LayoutConstraint::DiffPair { nets, .. } => {
+                let names: Vec<String> = nets.iter().map(|n| n.name.clone()).collect();
+                self.wrapped(indent, "diff_pair(", &names, ")");
+            }
+            LayoutConstraint::LengthMatch {
+                nets, tolerance, ..
+            } => {
+                let names: Vec<String> = nets.iter().map(|n| n.name.clone()).collect();
+                let suffix = match tolerance {
+                    Some((s, _)) => format!(") [tolerance: {}]", tolerance_text(s)),
+                    None => ")".to_string(),
+                };
+                self.wrapped(indent, "length_match(", &names, &suffix);
+            }
+        }
+    }
+
+    /// Emit a `prefix`-led, comma-separated member list with a closing
+    /// `suffix`, wrapping onto continuation lines aligned under the first
+    /// member when the single line exceeds `WIDTH`. The suffix rides on the
+    /// last line.
+    fn wrapped(&mut self, indent: usize, prefix: &str, members: &[String], suffix: &str) {
         let base = indent * INDENT.len();
-        let oneline = format!("{}{}", prefix, members.join(", "));
+        let oneline = format!("{}{}{}", prefix, members.join(", "), suffix);
         if base + oneline.len() <= WIDTH || members.len() <= 1 {
             self.push(indent, oneline);
             return;
@@ -509,7 +683,7 @@ impl Formatter<'_> {
             let piece = if i + 1 < members.len() {
                 format!("{},", m)
             } else {
-                m.clone()
+                format!("{}{}", m, suffix)
             };
             let extra = if first_on_line { 0 } else { 1 };
             if !first_on_line && base + line.len() + extra + piece.len() > WIDTH {
@@ -528,7 +702,7 @@ impl Formatter<'_> {
 
     // -- parts ---------------------------------------------------------------
 
-    fn part_def(&mut self, vis: &str, _item: &Item, p: &PartDef) {
+    fn part_def(&mut self, vis: &str, item: &Item, p: &PartDef) {
         self.push(
             0,
             format!(
@@ -538,10 +712,24 @@ impl Formatter<'_> {
                 type_ref_text(&p.device)
             ),
         );
-        self.push(1, avl_text("primary", &p.primary));
+        self.cursor = self.cursor.max(self.line_start(item.decl_span) + 1);
+        let mut entries: Vec<(&'static str, &AvlEntry)> = vec![("primary", &p.primary)];
         for alt in &p.alts {
-            self.push(1, avl_text("alt", alt));
+            entries.push(("alt", alt));
         }
+        entries.sort_by_key(|(_, e)| self.line_start(e.span));
+        for (kw, entry) in entries {
+            self.flush_leading(self.line_start(entry.span), 1);
+            let fields: Vec<String> = entry
+                .fields
+                .iter()
+                .map(|f| format!("{}: {}", f.name.name, str_lit(&f.value)))
+                .collect();
+            // AVL entries wrap like other long argument lists (RFC-009).
+            self.wrapped(1, &format!("{} {{ ", kw), &fields, " }");
+            self.finish_construct(self.line_start(entry.span), self.line_end(entry.span), 1);
+        }
+        self.flush_leading(self.line_end(item.span), 1);
         self.push(0, "}");
     }
 }
@@ -549,50 +737,24 @@ impl Formatter<'_> {
 // ---------------------------------------------------------------------------
 // Text builders (pure functions of the AST — no layout state).
 
-fn layout_constraint_text(c: &LayoutConstraint) -> String {
-    match c {
-        LayoutConstraint::NetClass { name, nets, .. } => {
-            if nets.is_empty() {
-                format!("net_class {} {{ }}", name.name)
-            } else {
-                let list = join(nets.iter().map(|n| n.name.clone()), ", ");
-                format!("net_class {} {{ {} }}", name.name, list)
-            }
-        }
-        LayoutConstraint::DiffPair { nets, .. } => {
-            format!(
-                "diff_pair({})",
-                join(nets.iter().map(|n| n.name.clone()), ", ")
-            )
-        }
-        LayoutConstraint::LengthMatch {
-            nets, tolerance, ..
-        } => {
-            let base = format!(
-                "length_match({})",
-                join(nets.iter().map(|n| n.name.clone()), ", ")
-            );
-            match tolerance {
-                Some((s, _)) => format!("{} [tolerance: {}]", base, str_lit(s)),
-                None => base,
-            }
-        }
+/// Canonical tolerance spelling: a value that lexes as a single RFC-001 unit
+/// literal is emitted unquoted (`[tolerance: 1ms]`); anything else keeps the
+/// quoted-string escape hatch (`[tolerance: "0.15mm"]`). Both spellings parse
+/// to the same AST value, so one canonical output is required — and this
+/// choice round-trips (unquoted re-lexes to the same pass-through text).
+fn tolerance_text(s: &str) -> String {
+    let mut sm = SourceMap::new();
+    let f = sm.add_file("tolerance", s);
+    let mut diags = Diagnostics::new();
+    let tokens = crate::lex::lex(f, sm.text(f), &mut diags);
+    let is_unit = !diags.has_errors()
+        && tokens.len() == 2
+        && matches!(tokens[0].kind, crate::lex::TokenKind::Unit(_));
+    if is_unit {
+        s.to_string()
+    } else {
+        str_lit(s)
     }
-}
-
-fn pin_text(pin: &DevicePin) -> String {
-    let nums = join(pin.numbers.iter().map(|n| n.text.clone()), ", ");
-    let role = match pin.role {
-        Some((r, _)) => format!(" [{}]", r.name()),
-        None => String::new(),
-    };
-    format!(
-        "{} {}: {}{}",
-        pin.obligation.keyword(),
-        pin.name.name,
-        nums,
-        role
-    )
 }
 
 fn spec_field_text(field: &DeviceSpecField) -> String {
@@ -662,17 +824,6 @@ fn param_text(p: &FnParam) -> String {
         }
     };
     format!("{}: {}", p.name.name, ty)
-}
-
-fn avl_text(keyword: &str, entry: &AvlEntry) -> String {
-    let fields = join(
-        entry
-            .fields
-            .iter()
-            .map(|f| format!("{}: {}", f.name.name, str_lit(&f.value))),
-        ", ",
-    );
-    format!("{} {{ {} }}", keyword, fields)
 }
 
 /// A double-quoted string literal, emitted verbatim. The CoHDL grammar has no

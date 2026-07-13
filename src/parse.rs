@@ -153,6 +153,8 @@ impl<'a> Parser<'a> {
         // RFC-012: `#[intent("...")]` is opaque metadata valid on any
         // declaration; any other attribute (`#[designator]`) is inst-only.
         let (intent, rest) = self.take_intent(attrs);
+        // Where the declaration proper begins — after any attributes.
+        let decl_start = self.span();
         let is_pub = self.eat(&TokenKind::Pub);
         let kind = match self.peek() {
             TokenKind::Trait => self.trait_def().map(ItemKind::Trait),
@@ -175,6 +177,7 @@ impl<'a> Parser<'a> {
         Some(Item {
             is_pub,
             intent,
+            decl_span: decl_start,
             span: start.to(self.prev_span()),
             kind,
         })
@@ -183,7 +186,7 @@ impl<'a> Parser<'a> {
     /// Split `#[intent("...")]` (RFC-012) out of `attrs`. Intent is opaque
     /// metadata — never threaded into any checking or emission pass — so it can
     /// never affect a verdict, diagnostic, designator, or emitted byte.
-    fn take_intent(&mut self, attrs: Vec<Attr>) -> (Option<String>, Vec<Attr>) {
+    fn take_intent(&mut self, attrs: Vec<Attr>) -> (Option<(String, Span)>, Vec<Attr>) {
         self.take_string_attr("intent", attrs)
     }
 
@@ -191,7 +194,11 @@ impl<'a> Parser<'a> {
     /// validating exactly one string argument and at most one occurrence. Used
     /// for RFC-012 `#[intent]` and RFC-013 `#[placement_hint]` — both metadata,
     /// never compiled.
-    fn take_string_attr(&mut self, name: &str, attrs: Vec<Attr>) -> (Option<String>, Vec<Attr>) {
+    fn take_string_attr(
+        &mut self,
+        name: &str,
+        attrs: Vec<Attr>,
+    ) -> (Option<(String, Span)>, Vec<Attr>) {
         let mut value = None;
         let mut rest = Vec::new();
         for a in attrs {
@@ -221,7 +228,7 @@ impl<'a> Parser<'a> {
                 ));
                 continue;
             }
-            value = Some(a.args[0].0.clone());
+            value = Some((a.args[0].0.clone(), a.span));
         }
         (value, rest)
     }
@@ -293,9 +300,12 @@ impl<'a> Parser<'a> {
             designator_prefix: None,
             pins: Vec::new(),
             specs: Vec::new(),
+            pins_span: None,
+            spec_span: None,
         };
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
             if self.at(&TokenKind::Pins) {
+                let block_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the pins block");
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -307,7 +317,10 @@ impl<'a> Parser<'a> {
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the pins block");
+                let s = block_start.to(self.prev_span());
+                def.pins_span.get_or_insert(s);
             } else if self.at(&TokenKind::Spec) {
+                let block_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the spec block");
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -319,6 +332,8 @@ impl<'a> Parser<'a> {
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the spec block");
+                let s = block_start.to(self.prev_span());
+                def.spec_span.get_or_insert(s);
             } else if self.at_ident("designator_prefix") {
                 self.bump();
                 self.expect(&TokenKind::Colon, "after `designator_prefix`");
@@ -849,7 +864,11 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace, "to open the impl body");
         let mut pin_map = Vec::new();
         let mut spec_map = Vec::new();
+        let mut pins_span: Option<Span> = None;
+        let mut spec_span: Option<Span> = None;
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let block_start = self.span();
+            let is_pins = self.at(&TokenKind::Pins);
             let target = if self.at(&TokenKind::Pins) {
                 self.bump();
                 &mut pin_map
@@ -884,6 +903,12 @@ impl<'a> Parser<'a> {
                 self.eat(&TokenKind::Comma);
             }
             self.expect(&TokenKind::RBrace, "to close the mapping block");
+            let s = block_start.to(self.prev_span());
+            if is_pins {
+                pins_span.get_or_insert(s);
+            } else {
+                spec_span.get_or_insert(s);
+            }
         }
         self.expect(&TokenKind::RBrace, "to close the impl body");
         Some(ImplDef {
@@ -891,6 +916,8 @@ impl<'a> Parser<'a> {
             device_name,
             pin_map,
             spec_map,
+            pins_span,
+            spec_span,
             span: start.to(self.prev_span()),
         })
     }

@@ -417,7 +417,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 part,
                 designator_override,
                 designator: None,
-                placement_hint: inst.placement_hint.clone(),
+                placement_hint: inst.placement_hint.as_ref().map(|(s, _)| s.clone()),
                 impl_traits: self.world.implemented_traits(&device_name),
                 span: inst.span,
             },

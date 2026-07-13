@@ -27,10 +27,15 @@ pub struct SourceFile {
 pub struct Item {
     /// `pub` is accepted and recorded; the MVP's flat scope doesn't enforce it.
     pub is_pub: bool,
-    /// RFC-012 `#[intent("...")]` rationale — opaque metadata. Deliberately
-    /// never threaded into any checking/emission pass (the zero-impact
-    /// guarantee is structural: intent is not a parameter those functions take).
-    pub intent: Option<String>,
+    /// RFC-012 `#[intent("...")]` rationale — opaque metadata (value + the
+    /// attribute's own span, kept so `fmt` can preserve comments around the
+    /// attribute). Deliberately never threaded into any checking/emission pass
+    /// (the zero-impact guarantee is structural: intent is not a parameter
+    /// those functions take).
+    pub intent: Option<(String, Span)>,
+    /// Where the declaration proper begins (`pub`/keyword) — after any
+    /// attributes. `span` covers the attributes too; `fmt` needs both.
+    pub decl_span: Span,
     pub kind: ItemKind,
     pub span: Span,
 }
@@ -157,6 +162,10 @@ pub struct TraitDef {
     pub pins: Vec<TraitPin>,
     /// Required spec fields with unit types: `capacitance: Capacitance`.
     pub specs: Vec<TraitSpecField>,
+    /// Span of the first `pins { … }` / `spec { … }` block — kept so `fmt`
+    /// can preserve comments around and inside trait bodies.
+    pub pins_span: Option<Span>,
+    pub spec_span: Option<Span>,
 }
 
 #[derive(Debug, Clone)]
@@ -357,6 +366,9 @@ pub struct ImplDef {
     pub pin_map: Vec<MapEntry>,
     /// Explicit trait-spec-field → device-spec-field mapping.
     pub spec_map: Vec<MapEntry>,
+    /// Spans of the mapping sub-blocks (comment preservation in `fmt`).
+    pub pins_span: Option<Span>,
+    pub spec_span: Option<Span>,
     pub span: Span,
 }
 
@@ -473,11 +485,12 @@ pub struct InstStmt {
     /// `#[placement_hint(...)]` are split out into their own fields at parse
     /// time, never left here.
     pub attrs: Vec<Attr>,
-    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
-    pub intent: Option<String>,
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled); the span
+    /// is the attribute's own, for comment-preserving `fmt`.
+    pub intent: Option<(String, Span)>,
     /// RFC-013 opaque `#[placement_hint("...")]` layout metadata — inst-only,
     /// zero-impact (rides into `layout.json`, never into `.net`/BOM/designators).
-    pub placement_hint: Option<String>,
+    pub placement_hint: Option<(String, Span)>,
     pub name: Ident,
     pub ty: TypeRef,
     pub span: Span,
@@ -490,7 +503,7 @@ pub struct NetStmt {
     pub annotation: Option<NetAnnotation>,
     pub members: Vec<PinRef>,
     /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
-    pub intent: Option<String>,
+    pub intent: Option<(String, Span)>,
     pub span: Span,
 }
 
@@ -513,7 +526,7 @@ impl NetAnnotation {
 pub struct NcStmt {
     pub members: Vec<PinRef>,
     /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
-    pub intent: Option<String>,
+    pub intent: Option<(String, Span)>,
     pub span: Span,
 }
 
@@ -543,7 +556,7 @@ pub struct CallStmt {
     pub generic_args: Vec<GenericArg>,
     pub args: Vec<PinRef>,
     /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
-    pub intent: Option<String>,
+    pub intent: Option<(String, Span)>,
     pub span: Span,
 }
 

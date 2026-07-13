@@ -105,7 +105,8 @@ pub device RP2350A {
 impl IC for RP2350A {}
 
 pub part RP2350A_QFN60: RP2350A {
-    primary { mfr: "Raspberry Pi", mpn: "RP2350A", footprint: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm" }
+    primary { mfr: "Raspberry Pi", mpn: "RP2350A",
+              footprint: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm" }
 }
 
 // ---- RT6150B-33GQW: VSYS -> 3V3 buck-boost SMPS (fixed 3.3V) ----
@@ -126,7 +127,8 @@ pub device RT6150B {
 impl IC for RT6150B {}
 
 pub part BUCKBOOST_RT6150B: RT6150B {
-    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm" }
+    primary { mfr: "Richtek", mpn: "RT6150B-33GQW",
+              footprint: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm" }
 }
 
 // ---- W25Q32 4 MiB QSPI NOR flash (USON-8, pin 9 = pad = GND) ----
@@ -147,7 +149,8 @@ pub device W25Q32 {
 impl IC for W25Q32 {}
 
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: "Package_SON:USON-8_1.0x1.5mm_P0.4mm" }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ",
+              footprint: "Package_SON:USON-8_1.0x1.5mm_P0.4mm" }
 }
 
 // ---- 12 MHz crystal (4-pad SMD; pads 2 & 4 = case ground) ----
@@ -163,7 +166,8 @@ pub device Crystal_4pad {
 impl Crystal for Crystal_4pad {}
 
 pub part XTAL_12MHZ: Crystal_4pad {
-    primary { mfr: "Abracon", mpn: "ABM8-272-T3", footprint: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm" }
+    primary { mfr: "Abracon", mpn: "ABM8-272-T3",
+              footprint: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm" }
 }
 
 // ---- micro-USB type-B connector ----
@@ -182,7 +186,8 @@ pub device MicroUSB_B {
 impl Connector for MicroUSB_B {}
 
 pub part USB_MICRO_B: MicroUSB_B {
-    primary { mfr: "Wurth", mpn: "690-005-298-486", footprint: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering" }
+    primary { mfr: "Wurth", mpn: "690-005-298-486",
+              footprint: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering" }
 }
 
 // ---- 40-pin castellated / 0.1" header (the user I/O edge) ----
@@ -352,16 +357,20 @@ pub part R_100K: ChipResistor<100kohm, 1%> {
 
 // Capacitors (std MLCC; std already provides the 100nF/1uF/10uF parts).
 pub part C_15pF: MLCC<15pF, 25V, 5%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: "Capacitor_SMD:C_0201_0603Metric" }
+    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01",
+              footprint: "Capacitor_SMD:C_0201_0603Metric" }
 }
 pub part C_1nF: MLCC<1nF, 25V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: "Capacitor_SMD:C_0201_0603Metric" }
+    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01",
+              footprint: "Capacitor_SMD:C_0201_0603Metric" }
 }
 pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Murata", mpn: "GRM155R60J475ME47",
+              footprint: "Capacitor_SMD:C_0402_1005Metric" }
 }
 pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
-    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: "Capacitor_SMD:C_0805_2012Metric" }
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15",
+              footprint: "Capacitor_SMD:C_0805_2012Metric" }
 }
 
 // Green user LED (reuses std ChipLED).

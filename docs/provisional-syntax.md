@@ -160,7 +160,7 @@ pub trait Capacitor: TwoTerminal {
 |---|---|---|
 | `D001` | voltage-exceed (error) | an instance has a `voltage_rating` spec (that exact field name, `Voltage`-typed) and is connected to a net whose voltage annotation exceeds it |
 | `D002` | polarity-mismatch (error) | a device with `impl Polarized` (std trait: pin roles `Anode`/`Cathode`) has its Anode-mapped pin on a `[gnd]`-annotated net |
-| `D003` | single-driver (warning) | a net has exactly one connected instance pin — likely unfinished wiring (v1-faithful count check; the pin's role is reported in the message) |
+| `D003` | single-driver (warning) | a net whose only connected pin is a driver (`output`/`power_out`) — the driver drives nothing; likely unfinished wiring (role-aware per RFC-004/008) |
 | `D004` | multi-driver (error) | a net has two or more driver-type pins (`output`/`power_out`) |
 
 Nothing beyond these four — a fifth "structural" rule request means re-running

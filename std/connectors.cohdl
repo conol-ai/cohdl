@@ -21,5 +21,6 @@ pub device USB_C_Receptacle_2_0 {
 impl Connector for USB_C_Receptacle_2_0 {}
 
 pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
-    primary { mfr: "HRO", mpn: "TYPE-C-31-M-12", footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12" }
+    primary { mfr: "HRO", mpn: "TYPE-C-31-M-12",
+              footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12" }
 }

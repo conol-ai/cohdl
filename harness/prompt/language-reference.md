@@ -26,9 +26,9 @@ complete: do not assume any syntax that is not shown here.
 ## Devices
 
 ```cohdl
-pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
-    pins { A: 1, B: 2 }
-    spec { capacitance: C, voltage_rating: V, tolerance: T }
+pub device ChipResistor<R: Resistance, T: Tolerance = 1%> {
+    pins { A: 1 [passive], B: 2 [passive] }
+    spec { resistance: R, tolerance: T }
 }
 ```
 
@@ -88,11 +88,14 @@ impl TwoTerminal for TantalumCap {
 ## Parts (purchasable components)
 
 ```cohdl
-pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%> {
+pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%>[C0402] {
     primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: "Capacitor_SMD:C_0402_1005Metric" }
-    alt     { mfr: "Murata",  mpn: "GRM155R71C104KA88D" }
+    alt { mfr: "Murata", mpn: "GRM155R71C104KA88D" }
 }
 ```
+
+- A part whose device declares `variants {}` selects its variant with the
+  `[VARIANT]` suffix on the device reference, as above.
 
 - A part binds a fully-concrete device to real MPNs. Instantiate parts by
   name: `inst c1: MLCC_100nF_16V_0402`. **Every instance in a buildable design
@@ -151,8 +154,41 @@ design SensorNode {
 
 - D001 voltage-exceed: instance `voltage_rating` < annotated net voltage.
 - D002 polarity-mismatch: a `Polarized` device's anode on a `[gnd]` net.
-- D003 single-driver (warning): a net with only one connected pin.
+- D003 single-driver (warning): a net whose only connected pin is a driver
+  (`output`/`power_out`) — the driver drives nothing.
 - D004 multi-driver: two or more `output`/`power_out` pins on one net.
+
+## Rationale metadata (`#[intent]`)
+
+`#[intent("why this choice")]` on the line before any declaration or
+statement attaches a rationale string. It is exactly one string, at most one
+per declaration, and is NEVER checked or compiled — it cannot change the
+verdict, diagnostics, or netlist. Use a real `net`/`spec`/trait mechanism for
+anything that must be enforced.
+
+## Layout constraints (`layout {}`, `#[placement_hint]`)
+
+```cohdl
+design Board {
+    net USB_DP: usb.DP, mcu.USB_DP
+    net USB_DM: usb.DN, mcu.USB_DM
+    layout {
+        net_class HighSpeed { USB_DP, USB_DM }
+        diff_pair(USB_DP, USB_DM)
+        length_match(USB_DP, USB_DM) [tolerance: "0.15mm"]
+    }
+    #[placement_hint("board edge, near the connector")]
+    inst usb: USB_C_HRO_TYPE_C_31_M_12
+}
+```
+
+- Four constraint kinds only: `net_class NAME { nets }`, `diff_pair(a, b)`
+  (exactly two distinct nets), `length_match(nets…)` (two or more distinct
+  nets, optional `[tolerance: 1ms]` unit literal or `[tolerance: "0.15mm"]`
+  string), and inst-only `#[placement_hint("...")]`.
+- Net references must name declared nets (checked); constraints never affect
+  the netlist/BOM — they are emitted to a separate `<name>-layout.json`.
+- CoHDL never enforces a tolerance; it is pass-through data for a layout tool.
 
 ## Comments
 

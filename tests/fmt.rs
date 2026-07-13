@@ -235,6 +235,127 @@ fn trailing_comment_on_one_line_item_survives() {
 }
 
 // ---------------------------------------------------------------------------
+// Review findings F6/F7/F11: comments around attributes, inside layout blocks,
+// and inside trait/impl/part bodies; wrapping; blank-after-brace preservation.
+
+#[test]
+fn trailing_comment_on_attribute_survives() {
+    // F6: `#[intent("why")] // keep this` — the trailing comment must survive,
+    // on items and on statements, for intent, placement_hint, and designator.
+    let src = "#[intent(\"why\")] // keep item note\npub device D {\n    pins { A: 1 [passive] }\n}\ndesign B {\n    #[intent(\"why2\")] // keep stmt note\n    #[placement_hint(\"corner\")] // keep hint note\n    #[designator(\"U7\")] // keep designator note\n    inst d: D\n    net N: d.A\n}";
+    assert_edge(
+        "attr-trail.cohdl",
+        src,
+        &[
+            "// keep item note",
+            "// keep stmt note",
+            "// keep hint note",
+            "// keep designator note",
+        ],
+    );
+}
+
+#[test]
+fn comment_between_attribute_and_target_stays_between() {
+    let src = "#[intent(\"why\")]\n// between attr and device\npub device D {\n    pins { A: 1 [passive] }\n}";
+    let once = format_source("between.cohdl", src).unwrap();
+    let attr_pos = once.find("#[intent").unwrap();
+    let cmt_pos = once.find("// between attr and device").unwrap();
+    let dev_pos = once.find("pub device D").unwrap();
+    assert!(
+        attr_pos < cmt_pos && cmt_pos < dev_pos,
+        "comment must stay between attribute and declaration:\n{}",
+        once
+    );
+    assert_idempotent("between.cohdl", src);
+}
+
+#[test]
+fn comments_inside_layout_blocks_survive_in_place() {
+    // F7: full-line and trailing comments inside layout {} stay inside.
+    let src = "design B {\n    net A: x.p\n    net C: y.p\n    layout {\n        // class note\n        net_class K { A, C } // trailing class\n        diff_pair(A, C)\n    }\n}";
+    let once = format_source("laycmt.cohdl", src).unwrap();
+    let open = once.find("layout {").unwrap();
+    let close = once.rfind('}').unwrap();
+    for c in ["// class note", "// trailing class"] {
+        let pos = once
+            .find(c)
+            .unwrap_or_else(|| panic!("{} dropped:\n{}", c, once));
+        assert!(
+            pos > open && pos < close,
+            "{} moved out of the block:\n{}",
+            c,
+            once
+        );
+    }
+    assert_idempotent("laycmt.cohdl", src);
+}
+
+#[test]
+fn comments_inside_trait_impl_part_survive() {
+    // F11: interior comments in trait/impl/part bodies were deleted.
+    let src = "pub trait T {\n    // prefix note\n    designator_prefix: \"X\"\n    pins {\n        // pin note\n        required A: pin // trailing pin\n    }\n}\npub device D {\n    pins { A: 1 [passive], B: 2 [passive] }\n}\nimpl T for D {\n    pins {\n        // mapping note\n        A: B // trailing map\n    }\n}\npub part P: D {\n    // avl note\n    primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } // trailing avl\n}";
+    assert_edge(
+        "tip.cohdl",
+        src,
+        &[
+            "// prefix note",
+            "// pin note",
+            "// trailing pin",
+            "// mapping note",
+            "// trailing map",
+            "// avl note",
+            "// trailing avl",
+        ],
+    );
+}
+
+#[test]
+fn long_lines_wrap_at_100_columns() {
+    // Pin buses, AVL entries, and layout constraints all wrap.
+    let bus: Vec<String> = (1..=40).map(|i| i.to_string()).collect();
+    let src = format!(
+        "pub device D {{\n    pins {{ GND: {} [power_in] }}\n}}\npub part P: D {{\n    primary {{ mfr: \"SomeVeryLongManufacturerName\", mpn: \"EXTREMELY-LONG-PART-NUMBER-12345\", footprint: \"Library_Name:Some_Extremely_Long_Footprint_Name_3.5x2.65mm\" }}\n}}",
+        bus.join(", ")
+    );
+    let once = format_source("wrap.cohdl", &src).unwrap();
+    for line in once.lines() {
+        assert!(
+            line.len() <= 100 || !line.contains(','),
+            "wrappable line exceeds 100 cols:\n{}",
+            line
+        );
+    }
+    // Role bracket rides the last line of the wrapped bus.
+    assert!(once.contains("[power_in]"), "{}", once);
+    assert_idempotent("wrap.cohdl", &src);
+}
+
+#[test]
+fn blank_after_open_brace_is_preserved() {
+    // RFC-009: an author-placed blank is never removed (only runs collapse).
+    let src = "design B {\n\n    inst d: D\n    net N: d.A\n}";
+    let once = format_source("blank.cohdl", src).unwrap();
+    assert!(
+        once.contains("design B {\n\n    inst"),
+        "author blank after brace was removed:\n{}",
+        once
+    );
+    assert_idempotent("blank.cohdl", src);
+}
+
+#[test]
+fn tolerance_canonicalizes_unit_literal_unquoted() {
+    // A tolerance that lexes as an RFC-001 unit literal canonicalizes to the
+    // unquoted spelling; a length string keeps the quoted escape hatch.
+    let src = "design B {\n    net A: x.p\n    net C: y.p\n    layout {\n        length_match(A, C) [tolerance: \"1ms\"]\n        length_match(A, C) [tolerance: \"0.15mm\"]\n    }\n}";
+    let once = format_source("tol.cohdl", src).unwrap();
+    assert!(once.contains("[tolerance: 1ms]"), "{}", once);
+    assert!(once.contains("[tolerance: \"0.15mm\"]"), "{}", once);
+    assert_idempotent("tol.cohdl", src);
+}
+
+// ---------------------------------------------------------------------------
 // fmt is a serializer, not a repair tool: non-parsing source is an error.
 
 #[test]

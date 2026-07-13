@@ -50,7 +50,8 @@ pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%>[C0402] {
 
 // 1uF X5R 10V 0402 — LDO input/output capacitor.
 pub part MLCC_1uF_10V_0402: MLCC<1uF, 10V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R61A105KE15D", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Murata", mpn: "GRM155R61A105KE15D",
+              footprint: "Capacitor_SMD:C_0402_1005Metric" }
     alt { mfr: "Samsung", mpn: "CL05A105KP5NNNC" }
 }
 

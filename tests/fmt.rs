@@ -87,25 +87,51 @@ fn idempotent_on_messy_input() {
 // ---------------------------------------------------------------------------
 // Property 2: semantic inertness — formatting never changes the emitted bytes.
 
-fn build_netlist_bom(files: &[(String, String)]) -> (String, String) {
-    let mut checked = check_files(files, None).expect("design selection");
+fn build_netlist_bom(files: &[(String, String)], design: Option<&str>) -> (String, String) {
+    let mut checked = check_files(files, design).expect("design selection");
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build succeeds");
     assert!(!checked.diags.has_errors(), "clean build expected");
     (artifacts.netlist, artifacts.bom)
 }
 
+/// Every example project directory, so each is built with its own design.
+fn example_dirs() -> Vec<PathBuf> {
+    let mut dirs: Vec<PathBuf> = std::fs::read_dir(manifest().join("examples"))
+        .unwrap()
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_dir())
+        .collect();
+    dirs.sort();
+    dirs
+}
+
 #[test]
 fn formatting_is_semantically_inert() {
-    let original = repo_cohdl_files();
-    let formatted: Vec<(String, String)> = original
-        .iter()
-        .map(|(name, text)| (name.clone(), format_source(name, text).unwrap()))
-        .collect();
+    let std_dir = manifest().join("std");
+    for ex in example_dirs() {
+        // std + this example's own sources — one design per project.
+        let proj = cohdl::project::load_project(&ex, Some(&std_dir)).unwrap();
+        let original = proj.files.clone();
+        let formatted: Vec<(String, String)> = original
+            .iter()
+            .map(|(name, text)| (name.clone(), format_source(name, text).unwrap()))
+            .collect();
 
-    let (net_a, bom_a) = build_netlist_bom(&original);
-    let (net_b, bom_b) = build_netlist_bom(&formatted);
-    assert_eq!(net_a, net_b, "netlist bytes changed after fmt");
-    assert_eq!(bom_a, bom_b, "BOM bytes changed after fmt");
+        let (net_a, bom_a) = build_netlist_bom(&original, proj.top.as_deref());
+        let (net_b, bom_b) = build_netlist_bom(&formatted, proj.top.as_deref());
+        assert_eq!(
+            net_a,
+            net_b,
+            "netlist bytes changed after fmt for {}",
+            ex.display()
+        );
+        assert_eq!(
+            bom_a,
+            bom_b,
+            "BOM bytes changed after fmt for {}",
+            ex.display()
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------

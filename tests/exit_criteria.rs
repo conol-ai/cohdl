@@ -57,6 +57,41 @@ fn grammar_parses_demo_board_and_std() {
     assert!(checked.ir.is_some());
 }
 
+// A larger, real board: the Raspberry Pi Pico 2 (RP2350A). Exercises the
+// compiler at scale (≈50 instances, ≈60 nets) and the post-MVP RFC features it
+// uses — package variants (RFC-008), `#[intent]` (RFC-012), and a `layout {}`
+// block with `#[placement_hint]` (RFC-013) — all the way to a clean build.
+#[test]
+fn rpi_pico2_example_builds_cleanly() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let proj =
+        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
+            .unwrap();
+    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "pico2 should check cleanly:\n{}",
+        checked.diags.render(&checked.sm)
+    );
+    let artifacts =
+        build_artifacts(&mut checked, &LockState::default()).expect("pico2 should build");
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    // A real netlist, and the RFC-013 layout artifact (it has a layout {} block).
+    assert!(
+        artifacts.netlist.contains("(export"),
+        "expected a KiCad netlist"
+    );
+    let layout = artifacts.layout.expect("pico2 declares layout constraints");
+    assert!(
+        layout.contains("\"diff_pairs\""),
+        "USB diff pair in layout.json"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Criterion: "Unit-type checking fires correctly: a fixture with a
 // deliberately wrong-unit spec produces the correct diagnostic, naming the

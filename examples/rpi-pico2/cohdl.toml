@@ -1,0 +1,5 @@
+[package]
+name = "rpi-pico2"
+
+[design]
+top = "Pico2"

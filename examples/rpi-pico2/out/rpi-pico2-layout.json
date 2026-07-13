@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "HighSpeed", "nets": ["USB_DPX", "USB_DMX"] },
+    { "name": "Clock", "nets": ["XIN", "XR"] }
+  ],
+  "diff_pairs": [
+    { "p": "USB_DPX", "n": "USB_DMX" }
+  ],
+  "length_matches": [
+    { "nets": ["USB_DPX", "USB_DMX"], "tolerance": "0.15mm" }
+  ],
+  "placement_hints": [
+    { "designator": "J3", "instance": "Pico2::usb", "hint": "board edge, USB micro-B cutout" },
+    { "designator": "Y1", "instance": "Pico2::xtal", "hint": "close to XIN/XOUT with short, guarded traces" }
+  ]
+}

@@ -1,0 +1,386 @@
+// Raspberry Pi Pico 2 — board-specific devices and part bindings.
+//
+// Reuses the std passives (ChipResistor / MLCC / ChipLED) and traits, and
+// adds the components unique to the Pico 2: the RP2350A, the RT6150 buck-boost,
+// the QSPI flash, the 12 MHz crystal, the micro-USB connector, the 40-pin
+// castellated header, the SWD header, and the BOOTSEL switch.
+//
+// Pinouts and values transcribed from the Raspberry Pi Pico 2 datasheet
+// (Appendix B, Figure 11 — the board schematic).
+
+// ---- extra designator-prefix traits (std already has IC/Connector/Diode) ----
+
+pub trait Crystal {
+    designator_prefix: "Y"
+}
+
+pub trait Inductor {
+    designator_prefix: "L"
+}
+
+pub trait Transistor {
+    designator_prefix: "Q"
+}
+
+pub trait Switch {
+    designator_prefix: "SW"
+}
+
+// ---- RP2350A: the main microcontroller (QFN-60, pin 61 = center GND pad) ----
+
+pub device RP2350A {
+    pins {
+        // Digital / IO supplies (3V3) and core supply (1V1), as pin buses.
+        required IOVDD: 1, 11, 20, 30, 38, 45 [power_in]
+        required DVDD: 6, 23, 39 [power_in]
+        required QSPI_IOVDD: 54 [power_in]
+        required USB_OTP_VDD: 53 [power_in]
+        required ADC_AVDD: 44 [power_in]
+        required GND: 61 [power_in]
+
+        // On-chip core switching regulator (3V3 -> 1V1 via external inductor).
+        required VREG_VIN: 49 [power_in]
+        required VREG_LX: 48 [passive]
+        required VREG_FB: 50 [passive]
+        required VREG_PGND: 47 [power_in]
+        required VREG_AVDD: 46 [power_in]
+
+        // USB 1.1/2.0 PHY.
+        required USB_DP: 52 [bidirectional]
+        required USB_DM: 51 [bidirectional]
+
+        // 12 MHz crystal oscillator.
+        required XIN: 21 [input]
+        required XOUT: 22 [output]
+
+        // QSPI to the XIP program flash.
+        required QSPI_SS: 60 [output]
+        required QSPI_SCLK: 56 [output]
+        required QSPI_SD0: 57 [bidirectional]
+        required QSPI_SD1: 59 [bidirectional]
+        required QSPI_SD2: 58 [bidirectional]
+        required QSPI_SD3: 55 [bidirectional]
+
+        // ARM SWD debug + RUN (reset, active low).
+        required SWCLK: 24 [input]
+        required SWDIO: 25 [bidirectional]
+        required RUN: 26 [input]
+
+        // GPIOs broken out to the castellated header.
+        required GPIO0: 2 [bidirectional]
+        required GPIO1: 3 [bidirectional]
+        required GPIO2: 4 [bidirectional]
+        required GPIO3: 5 [bidirectional]
+        required GPIO4: 7 [bidirectional]
+        required GPIO5: 8 [bidirectional]
+        required GPIO6: 9 [bidirectional]
+        required GPIO7: 10 [bidirectional]
+        required GPIO8: 12 [bidirectional]
+        required GPIO9: 13 [bidirectional]
+        required GPIO10: 14 [bidirectional]
+        required GPIO11: 15 [bidirectional]
+        required GPIO12: 16 [bidirectional]
+        required GPIO13: 17 [bidirectional]
+        required GPIO14: 18 [bidirectional]
+        required GPIO15: 19 [bidirectional]
+        required GPIO16: 27 [bidirectional]
+        required GPIO17: 28 [bidirectional]
+        required GPIO18: 29 [bidirectional]
+        required GPIO19: 31 [bidirectional]
+        required GPIO20: 32 [bidirectional]
+        required GPIO21: 33 [bidirectional]
+        required GPIO22: 34 [bidirectional]
+        required GPIO26: 40 [bidirectional]
+        required GPIO27: 41 [bidirectional]
+        required GPIO28: 42 [bidirectional]
+
+        // GPIOs used internally on the module (not on the header).
+        required GPIO23: 35 [output] // RT6150 power-save (PS) control
+        required GPIO24: 36 [input] // VBUS-present sense
+        required GPIO25: 37 [output] // user LED
+        required GPIO29: 43 [input] // VSYS/3 monitor (ADC3)
+    }
+}
+
+impl IC for RP2350A {}
+
+pub part RP2350A_QFN60: RP2350A {
+    primary { mfr: "Raspberry Pi", mpn: "RP2350A", footprint: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm" }
+}
+
+// ---- RT6150B-33GQW: VSYS -> 3V3 buck-boost SMPS (fixed 3.3V) ----
+
+pub device RT6150B {
+    pins {
+        required VOUT: 1 [power_out]
+        required LX2: 2 [passive]
+        required GND: 3, 9, 11 [power_in]
+        required LX1: 4 [passive]
+        required VIN: 5, 8 [power_in] // VIN + VINA tied together
+        required EN: 6 [input] // 3V3 enable
+        required PS: 7 [input] // power-save mode select
+        required FB: 10 [input] // output feedback
+    }
+}
+
+impl IC for RT6150B {}
+
+pub part BUCKBOOST_RT6150B: RT6150B {
+    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm" }
+}
+
+// ---- W25Q32 4 MiB QSPI NOR flash (USON-8, pin 9 = pad = GND) ----
+
+pub device W25Q32 {
+    pins {
+        required CS: 1 [input] // chip select, active low
+        required SD1: 2 [bidirectional] // DO / IO1
+        required SD2: 3 [bidirectional] // /WP / IO2
+        required GND: 4, 9 [power_in]
+        required SD0: 5 [bidirectional] // DI / IO0
+        required SCLK: 6 [input]
+        required SD3: 7 [bidirectional] // /HOLD / IO3
+        required VCC: 8 [power_in]
+    }
+}
+
+impl IC for W25Q32 {}
+
+pub part FLASH_W25Q32: W25Q32 {
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: "Package_SON:USON-8_1.0x1.5mm_P0.4mm" }
+}
+
+// ---- 12 MHz crystal (4-pad SMD; pads 2 & 4 = case ground) ----
+
+pub device Crystal_4pad {
+    pins {
+        required XIN: 1 [passive]
+        required GND: 2, 4 [passive]
+        required XOUT: 3 [passive]
+    }
+}
+
+impl Crystal for Crystal_4pad {}
+
+pub part XTAL_12MHZ: Crystal_4pad {
+    primary { mfr: "Abracon", mpn: "ABM8-272-T3", footprint: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm" }
+}
+
+// ---- micro-USB type-B connector ----
+
+pub device MicroUSB_B {
+    pins {
+        required VBUS: 1 [power_out] // 5V from host
+        required DN: 2 [bidirectional]
+        required DP: 3 [bidirectional]
+        optional ID: 4 [passive]
+        required GND: 5 [power_in]
+        required SHIELD: 6, 7, 8, 9 [passive]
+    }
+}
+
+impl Connector for MicroUSB_B {}
+
+pub part USB_MICRO_B: MicroUSB_B {
+    primary { mfr: "Wurth", mpn: "690-005-298-486", footprint: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering" }
+}
+
+// ---- 40-pin castellated / 0.1" header (the user I/O edge) ----
+
+pub device Castellated40 {
+    pins {
+        required GP0: 1 [passive]
+        required GP1: 2 [passive]
+        required GP2: 4 [passive]
+        required GP3: 5 [passive]
+        required GP4: 6 [passive]
+        required GP5: 7 [passive]
+        required GP6: 9 [passive]
+        required GP7: 10 [passive]
+        required GP8: 11 [passive]
+        required GP9: 12 [passive]
+        required GP10: 14 [passive]
+        required GP11: 15 [passive]
+        required GP12: 16 [passive]
+        required GP13: 17 [passive]
+        required GP14: 19 [passive]
+        required GP15: 20 [passive]
+        required GP16: 21 [passive]
+        required GP17: 22 [passive]
+        required GP18: 24 [passive]
+        required GP19: 25 [passive]
+        required GP20: 26 [passive]
+        required GP21: 27 [passive]
+        required GP22: 29 [passive]
+        required GP26: 31 [passive]
+        required GP27: 32 [passive]
+        required GP28: 34 [passive]
+        required RUN: 30 [passive]
+        required V3V3_EN: 37 [passive]
+        required V3V3: 36 [passive]
+        required ADC_VREF: 35 [passive]
+        required VSYS: 39 [passive]
+        required VBUS: 40 [passive]
+        required AGND: 33 [passive]
+        required GND: 3, 8, 13, 18, 23, 28, 38 [passive]
+    }
+}
+
+impl Connector for Castellated40 {}
+
+pub part HEADER_40W: Castellated40 {
+    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_40W", footprint: "Connector:Pico_Castellated_40" }
+}
+
+// ---- 3-pin SWD debug header ----
+
+pub device SWD_Header {
+    pins {
+        required SWCLK: 1 [passive]
+        required GND: 2 [passive]
+        required SWDIO: 3 [passive]
+    }
+}
+
+impl Connector for SWD_Header {}
+
+pub part HEADER_SWD_3W: SWD_Header {
+    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_3W", footprint: "Connector:Pico_Castellated_3" }
+}
+
+// ---- BOOTSEL tactile switch (4-pad; {1,2} one side, {3,4} the other) ----
+
+pub device Bootsel_Switch {
+    pins {
+        required A: 1, 2 [passive]
+        required B: 3, 4 [passive]
+    }
+}
+
+impl Switch for Bootsel_Switch {}
+
+pub part BOOTSEL_SW: Bootsel_Switch {
+    primary { mfr: "XKB", mpn: "TP-1221U-K9K5325", footprint: "Button_Switch_SMD:SW_SPST_TL3342" }
+}
+
+// ---- Schottky power-OR/reverse-block diode (reuses std Polarized/Diode) ----
+
+pub device Schottky_SOD123 {
+    pins {
+        required Anode: 1 [passive]
+        required Cathode: 2 [passive]
+    }
+}
+
+impl Polarized for Schottky_SOD123 {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+impl Diode for Schottky_SOD123 {}
+
+pub part SCHOTTKY_PMEG6010: Schottky_SOD123 {
+    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: "Diode_SMD:D_SOD-123" }
+}
+
+// ---- N-channel MOSFET (isolates the VSYS/3 divider when 3V3 is off) ----
+
+pub device NMOS_SOT523 {
+    pins {
+        required Gate: 1 [input]
+        required Source: 2 [passive]
+        required Drain: 3 [passive]
+    }
+}
+
+impl Transistor for NMOS_SOT523 {}
+
+pub part FET_DMG1012T: NMOS_SOT523 {
+    primary { mfr: "Diodes Inc", mpn: "DMG1012T", footprint: "Package_TO_SOT_SMD:SOT-523" }
+}
+
+// ---- Inductor (reuses a two-terminal shape; L designator via Inductor) ----
+
+pub device ChipInductor<L: Inductance> {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        inductance: L
+    }
+}
+
+impl Inductor for ChipInductor {}
+
+pub part IND_2U2: ChipInductor<2.2uH> {
+    primary { mfr: "Murata", mpn: "DFE201612E-2R2M", footprint: "Inductor_SMD:L_0806_2016Metric" }
+}
+
+pub part IND_3U3: ChipInductor<3.3uH> {
+    primary { mfr: "Murata", mpn: "DFE201612E-3R3M", footprint: "Inductor_SMD:L_0806_2016Metric" }
+}
+
+// ---- Pico-specific passive part bindings on the std devices ----
+
+// Resistors (std ChipResistor; std already provides RES_1K / RES_10K).
+pub part R_470: ChipResistor<470ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+pub part R_27: ChipResistor<27ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+pub part R_33: ChipResistor<33ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+}
+pub part R_200: ChipResistor<200ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+}
+pub part R_100: ChipResistor<100ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+pub part R_1R: ChipResistor<1ohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+pub part R_5K6: ChipResistor<5.6kohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+pub part R_100K: ChipResistor<100kohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+}
+
+// Capacitors (std MLCC; std already provides the 100nF/1uF/10uF parts).
+pub part C_15pF: MLCC<15pF, 25V, 5%>[C0402] {
+    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: "Capacitor_SMD:C_0201_0603Metric" }
+}
+pub part C_1nF: MLCC<1nF, 25V, 10%>[C0402] {
+    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: "Capacitor_SMD:C_0201_0603Metric" }
+}
+pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
+    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+}
+pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: "Capacitor_SMD:C_0805_2012Metric" }
+}
+
+// Green user LED (reuses std ChipLED).
+pub part LED_GREEN: ChipLED {
+    primary { mfr: "Wurth", mpn: "150060GS75000", footprint: "LED_SMD:LED_0603_1608Metric" }
+}
+
+// ---- reusable Pico sub-circuits ----
+
+// 4.7uF bulk/rail capacitor across a supply pin pair.
+pub fn bulk_4u7(vdd: Pin, gnd: Pin) {
+    inst c: C_4u7
+    net _: vdd, c.A
+    net _: gnd, c.B
+}
+
+// 47uF bulk capacitor across a rail.
+pub fn bulk_47u(vdd: Pin, gnd: Pin) {
+    inst c: C_47uF
+    net _: vdd, c.A
+    net _: gnd, c.B
+}

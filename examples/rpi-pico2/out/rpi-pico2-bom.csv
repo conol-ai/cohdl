@@ -1,0 +1,29 @@
+RefDes,Value,MPN,Manufacturer,Qty
+"D2","ChipLED","150060GS75000","Wurth",1
+"J3","MicroUSB_B","690-005-298-486","Wurth",1
+"Y1","Crystal_4pad","ABM8-272-T3","Abracon",1
+"C2,C3,C4,C5,C9,C10,C11,C12,C13,C14","100nF","CL05B104KO5NNNC","Samsung",10
+"J2","SWD_Header","CON_PICO_3W","Raspberry Pi",1
+"J1","Castellated40","CON_PICO_40W","Raspberry Pi",1
+"L2","2.2uH","DFE201612E-2R2M","Murata",1
+"L1","3.3uH","DFE201612E-3R3M","Murata",1
+"Q1","NMOS_SOT523","DMG1012T","Diodes Inc",1
+"C17","1nF","GRM0335C1E102JA01","Murata",1
+"C18,C19","15pF","GRM0335C1E150JA01","Murata",2
+"C7,C8,C15,C16","4.7uF","GRM155R60J475ME47","Murata",4
+"C1,C6","47uF","GRM188R60J476ME15","Murata",2
+"D1","Schottky_SOD123","PMEG6010ELR","Nexperia",1
+"R5,R6,R8,R15,R16","100kohm","RC0201FR-07100KL","Yageo",5
+"R9,R10","100ohm","RC0201FR-07100RL","Yageo",2
+"R1","1ohm","RC0201FR-071RL","Yageo",1
+"R3,R4","27ohm","RC0201FR-0727RL","Yageo",2
+"R7","470ohm","RC0201FR-07470RL","Yageo",1
+"R12","5.6kohm","RC0201FR-075K6L","Yageo",1
+"R11","10kohm","RC0402FR-0710KL","Yageo",1
+"R2,R17","1kohm","RC0402FR-071KL","Yageo",2
+"R13","200ohm","RC0402FR-07200RL","Yageo",1
+"R14","33ohm","RC0402FR-0733RL","Yageo",1
+"U2","RP2350A","RP2350A","Raspberry Pi",1
+"U3","RT6150B","RT6150B-33GQW","Richtek",1
+"SW1","Bootsel_Switch","TP-1221U-K9K5325","XKB",1
+"U1","W25Q32","W25Q32RVXHJQ","Winbond",1

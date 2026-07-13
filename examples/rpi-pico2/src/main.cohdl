@@ -1,0 +1,166 @@
+// Raspberry Pi Pico 2 — a CoHDL implementation of the RP2350A board.
+//
+// Transcribed from the Raspberry Pi Pico 2 datasheet (Appendix B, Figure 11):
+// USB micro-B power/data, RT6150 buck-boost 3V3 rail, RP2350A with its on-chip
+// core regulator, 4 MiB QSPI flash, 12 MHz crystal, BOOTSEL button, user LED,
+// SWD header, and the 40-pin castellated GPIO edge. Device pinouts and part
+// bindings live in pico_parts.cohdl.
+
+design Pico2 {
+    // ---- major devices ----
+    inst mcu: RP2350A_QFN60
+    inst reg: BUCKBOOST_RT6150B
+    inst flash: FLASH_W25Q32
+    #[placement_hint("close to XIN/XOUT with short, guarded traces")]
+    inst xtal: XTAL_12MHZ
+    #[placement_hint("board edge, USB micro-B cutout")]
+    inst usb: USB_MICRO_B
+    inst hdr: HEADER_40W
+    inst swd: HEADER_SWD_3W
+    inst boot: BOOTSEL_SW
+    inst led: LED_GREEN
+    inst d_vbus: SCHOTTKY_PMEG6010
+    inst q_vsys: FET_DMG1012T
+    inst l_reg: IND_2U2
+    inst l_core: IND_3U3
+
+    // ---- discrete R/C ----
+    inst r_led: R_470
+    inst r_dp: R_27
+    inst r_dm: R_27
+    inst r_xosc: RES_1K_0402
+    inst r_boot: RES_1K_0402
+    inst r_swclk: R_100
+    inst r_swdio: R_100
+    inst r_en: R_100K
+    inst r_ps: R_100K
+    inst r_vbus_top: R_5K6
+    inst r_vbus_bot: RES_10K_0402
+    inst r_vsys_top: R_100K
+    inst r_vsys_mid: R_100K
+    inst r_gpio29: R_100K
+    inst r_vreg_avdd: R_33
+    inst r_vref: R_200
+    inst r_avdd: R_1R
+    inst c_xin: C_15pF
+    inst c_xout: C_15pF
+    inst c_vsysdiv: C_1nF
+    inst c_adc: C_4u7
+    inst c_vreg_avdd: C_4u7
+
+    // ---- power in: USB VBUS -> Schottky -> VSYS -> RT6150 buck-boost -> 3V3 ----
+    #[intent("micro-B VBUS is 5V; the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
+    net VBUS [5V]: usb.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
+    net VBUS_SENSE: r_vbus_top.B, r_vbus_bot.A, mcu.GPIO24
+    net VSYS [5V]: d_vbus.Cathode, reg.VIN, r_en.A, r_vsys_top.A, hdr.VSYS
+
+    #[intent("RT6150 buck-boost: any VSYS from 1.8-5.5V yields a stable 3.3V, so the board runs off USB or a single Li-ion cell")]
+    net V3V3_EN: reg.EN, r_en.B, hdr.V3V3_EN
+    net REG_LX1: reg.LX1, l_reg.A
+    net REG_LX2: reg.LX2, l_reg.B
+    net REG_PS: reg.PS, mcu.GPIO23, r_ps.A
+    net V3V3 [3.3V]: reg.VOUT, reg.FB, mcu.IOVDD, mcu.QSPI_IOVDD, mcu.USB_OTP_VDD, mcu.VREG_VIN,
+                     flash.VCC, hdr.V3V3, q_vsys.Gate, r_vreg_avdd.A, r_vref.A
+
+    // ---- RP2350 on-chip core regulator: 3V3 -> switched 1V1 core rail ----
+    net CORE_LX: mcu.VREG_LX, l_core.A
+    net V1V1 [1.1V]: l_core.B, mcu.DVDD, mcu.VREG_FB
+
+    // ---- USB 1.1 data with 27R series terminations ----
+    net USB_DP: usb.DP, r_dp.A
+    net USB_DPX: r_dp.B, mcu.USB_DP
+    net USB_DM: usb.DN, r_dm.A
+    net USB_DMX: r_dm.B, mcu.USB_DM
+
+    // ---- 12 MHz crystal with 15pF loads and a 1k XOUT series resistor ----
+    net XIN: mcu.XIN, xtal.XIN, c_xin.A
+    net XOUT: mcu.XOUT, r_xosc.A
+    net XR: r_xosc.B, xtal.XOUT, c_xout.A
+
+    // ---- QSPI to the XIP flash; QSPI_SS is also the BOOTSEL strap ----
+    net QSPI_SS: mcu.QSPI_SS, flash.CS, r_boot.A
+    net QSPI_SCLK: mcu.QSPI_SCLK, flash.SCLK
+    net QSPI_SD0: mcu.QSPI_SD0, flash.SD0
+    net QSPI_SD1: mcu.QSPI_SD1, flash.SD1
+    net QSPI_SD2: mcu.QSPI_SD2, flash.SD2
+    net QSPI_SD3: mcu.QSPI_SD3, flash.SD3
+    #[intent("holding BOOTSEL at power-up pulls QSPI_SS low, so the RP2350 enters USB mass-storage bootloader instead of running flash")]
+    net BOOTSEL: r_boot.B, boot.A
+
+    // ---- SWD debug (100R series) + RUN reset on the header ----
+    net SWCLK: mcu.SWCLK, r_swclk.A
+    net SWCLK_H: r_swclk.B, swd.SWCLK
+    net SWDIO: mcu.SWDIO, r_swdio.A
+    net SWDIO_H: r_swdio.B, swd.SWDIO
+    net RUN: mcu.RUN, hdr.RUN
+
+    // ---- user LED on GPIO25 ----
+    net LED_A: mcu.GPIO25, r_led.A
+    net LED_K: r_led.B, led.Anode
+
+    // ---- VSYS/3 ADC monitor, isolated by Q1 when 3V3 is off ----
+    net VSYS_DIV: r_vsys_top.B, r_vsys_mid.A, c_vsysdiv.A, q_vsys.Drain
+    net GPIO29_MON: q_vsys.Source, mcu.GPIO29, r_gpio29.A
+
+    // ---- ADC reference filter: 3V3 -> 200R -> ADC_VREF -> 1R -> ADC_AVDD ----
+    net ADC_VREF: r_vref.B, r_avdd.A, hdr.ADC_VREF
+    net ADC_AVDD: r_avdd.B, mcu.ADC_AVDD, c_adc.A
+    net VREG_AVDD: r_vreg_avdd.B, mcu.VREG_AVDD, c_vreg_avdd.A
+
+    // ---- ground (analog ground ties to the digital plane at the header) ----
+    net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
+                   swd.GND, boot.B, led.Cathode, hdr.GND, hdr.AGND, r_vbus_bot.B, r_ps.B,
+                   r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B, c_adc.B, c_vreg_avdd.B
+
+    // ---- GPIO breakout to the 40-pin castellated header ----
+    net GP0: mcu.GPIO0, hdr.GP0
+    net GP1: mcu.GPIO1, hdr.GP1
+    net GP2: mcu.GPIO2, hdr.GP2
+    net GP3: mcu.GPIO3, hdr.GP3
+    net GP4: mcu.GPIO4, hdr.GP4
+    net GP5: mcu.GPIO5, hdr.GP5
+    net GP6: mcu.GPIO6, hdr.GP6
+    net GP7: mcu.GPIO7, hdr.GP7
+    net GP8: mcu.GPIO8, hdr.GP8
+    net GP9: mcu.GPIO9, hdr.GP9
+    net GP10: mcu.GPIO10, hdr.GP10
+    net GP11: mcu.GPIO11, hdr.GP11
+    net GP12: mcu.GPIO12, hdr.GP12
+    net GP13: mcu.GPIO13, hdr.GP13
+    net GP14: mcu.GPIO14, hdr.GP14
+    net GP15: mcu.GPIO15, hdr.GP15
+    net GP16: mcu.GPIO16, hdr.GP16
+    net GP17: mcu.GPIO17, hdr.GP17
+    net GP18: mcu.GPIO18, hdr.GP18
+    net GP19: mcu.GPIO19, hdr.GP19
+    net GP20: mcu.GPIO20, hdr.GP20
+    net GP21: mcu.GPIO21, hdr.GP21
+    net GP22: mcu.GPIO22, hdr.GP22
+    net GP26: mcu.GPIO26, hdr.GP26
+    net GP27: mcu.GPIO27, hdr.GP27
+    net GP28: mcu.GPIO28, hdr.GP28
+
+    // ---- decoupling: 100nF at each supply pin, 4.7uF/47uF bulk on the rails ----
+    bulk_47u(reg.VIN, reg.GND)
+    bulk_47u(reg.VOUT, reg.GND)
+    bulk_4u7(mcu.DVDD, mcu.GND)
+    bulk_4u7(flash.VCC, flash.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.IOVDD, mcu.GND)
+    decoupling_100n(mcu.QSPI_IOVDD, mcu.GND)
+    decoupling_100n(mcu.DVDD, mcu.GND)
+    decoupling_100n(mcu.DVDD, mcu.GND)
+    decoupling_100n(flash.VCC, flash.GND)
+
+    // ---- layout constraints for the partner layout tool (RFC-013) ----
+    layout {
+        net_class HighSpeed { USB_DPX, USB_DMX }
+        diff_pair(USB_DPX, USB_DMX)
+        length_match(USB_DPX, USB_DMX) [tolerance: "0.15mm"]
+        net_class Clock { XIN, XR }
+    }
+}

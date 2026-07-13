@@ -4,3 +4,6 @@ Cargo.lock.orig
 .DS_Store
 /out
 harness/runs/
+
+# Local code-review artifacts (not part of the compiler)
+.co/

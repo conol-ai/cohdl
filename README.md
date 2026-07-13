@@ -30,3 +30,15 @@ The smallest slice of the spec that proves the thesis end-to-end:
 7. **Repair harness** — generate → check → repair loop driving an LLM against the compiler's diagnostics
 
 The proof: an AI writes a board from a plain-language spec, the type checker catches its structural mistakes as precise compile errors, the AI repairs them from those diagnostics, and the result is a real, importable KiCad netlist with an honest BOM.
+
+## Status: MVP exit criteria
+
+All compiler-side exit criteria are met and tested (`cargo test`, 65 tests — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The one remaining step is the human KiCad checkpoint (instructions in `docs/demo/README.md`).
+
+## Using it
+
+```sh
+cargo run -- check examples/sensor-node     # parse → resolve → type-check → residual DRC
+cargo run -- build examples/sensor-node     # + designators, part binding, KiCad .net + BOM CSV
+python3 harness/repair_loop.py              # the generate → check → repair demo
+```

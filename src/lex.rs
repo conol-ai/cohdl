@@ -193,9 +193,14 @@ impl<'a> Lexer<'a> {
                     let ch = self.text[self.pos..].chars().next().unwrap();
                     match ch {
                         '\u{03A9}' | '\u{2126}' => {
-                            // Greek omega / ohm sign.
-                            self.error_char(
+                            // Greek omega / ohm sign, standalone (no preceding
+                            // number — the `<num>Ω` case is caught in number()
+                            // as E101). RFC-011 gives the standalone case its
+                            // own E1xx code, E107, so its message can be maximally
+                            // specific instead of falling through to E001.
+                            self.error_char_code(
                                 start,
+                                "E107",
                                 "use `ohm`, not `Ω` — CoHDL resistance literals are ASCII-only (e.g. `10kohm`)",
                             );
                         }
@@ -238,6 +243,10 @@ impl<'a> Lexer<'a> {
     }
 
     fn error_char(&mut self, start: usize, message: impl Into<String>) {
+        self.error_char_code(start, "E001", message);
+    }
+
+    fn error_char_code(&mut self, start: usize, code: &'static str, message: impl Into<String>) {
         // Consume one char so lexing can continue.
         let ch_len = self.text[self.pos..]
             .chars()
@@ -245,7 +254,7 @@ impl<'a> Lexer<'a> {
             .map_or(1, char::len_utf8);
         self.pos += ch_len;
         let span = Span::new(self.file, start as u32, self.pos as u32);
-        self.diags.push(Diagnostic::error("E001", span, message));
+        self.diags.push(Diagnostic::error(code, span, message));
     }
 
     fn string(&mut self, start: usize) {

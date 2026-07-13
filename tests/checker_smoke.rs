@@ -198,7 +198,7 @@ design Board {{
     );
     let (_, diags, sm) = compile_design(&src, "Board");
     let rendered = diags.render(&sm);
-    assert!(rendered.contains("E402"), "{}", rendered);
+    assert!(rendered.contains("E112"), "{}", rendered);
     assert!(
         rendered.contains("expected `Capacitance`, found `Voltage`"),
         "{}",

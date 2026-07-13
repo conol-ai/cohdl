@@ -132,7 +132,7 @@ fn resolve_one(
             } else {
                 diags.push(
                     Diagnostic::error(
-                        "E402",
+                        "E112",
                         *span,
                         format!(
                             "generic argument for `{}` has the wrong unit type: expected `{}`, found `{}`",
@@ -149,7 +149,7 @@ fn resolve_one(
         (GenericBound::Unit(u), GenericArg::Number(n, span)) => {
             diags.push(
                 Diagnostic::error(
-                    "E404",
+                    "E113",
                     *span,
                     format!(
                         "a bare number is never valid for `{}: {}` — write the unit (e.g. `{}`)",
@@ -168,7 +168,7 @@ fn resolve_one(
                     Some(GenericValue::Unit(val.clone()))
                 } else {
                     diags.push(Diagnostic::error(
-                        "E402",
+                        "E112",
                         name.span,
                         format!(
                             "`{}` resolves to `{}` (`{}`), but `{}` expects a `{}`",
@@ -184,7 +184,7 @@ fn resolve_one(
             }
             Some(GenericValue::Device(d)) => {
                 diags.push(Diagnostic::error(
-                    "E402",
+                    "E112",
                     name.span,
                     format!(
                         "`{}` resolves to device type `{}`, but `{}` expects a `{}` value",
@@ -199,7 +199,7 @@ fn resolve_one(
             None => {
                 if world.devices.contains_key(&name.name) || world.parts.contains_key(&name.name) {
                     diags.push(Diagnostic::error(
-                        "E402",
+                        "E112",
                         name.span,
                         format!(
                             "`{}` is a device type, but `{}` expects a `{}` value",

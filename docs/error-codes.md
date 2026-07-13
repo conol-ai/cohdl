@@ -1,16 +1,50 @@
-# Error-code registry (informal, stable)
+# Error-code registry (formal, v2 baseline — RFC-011)
 
-RFC-011 (formal registry) is cut from the MVP; per the MVP Definition, codes
-exist here as **stable strings** — a code is never repurposed, only
-deprecated. Blocks are reserved per mechanism, mirroring the RFC structure.
+A code is issued once and never repurposed. If a check's behavior changes
+enough that its old meaning no longer applies, retire the code (mark
+`[DEPRECATED]`, keep the row, keep the meaning documented) and issue a new one
+— never edit an existing code's meaning in place.
+
+**Organizing principle** (RFC-011): a block is chosen by **kind of mistake**,
+not by which compiler pass happens to catch it. That is why unit-mismatch
+diagnostics live in E1xx even when the mismatch is caught at a *generic*
+substitution site — unit-mismatch is unit-mismatch regardless of call site.
 
 Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
+
+## Block ownership
+
+| Block | Owner mechanism |
+|---|---|
+| E00x | CLI invocation (pre-pipeline — not a source diagnostic) |
+| E0xx | Lexing & parsing |
+| E1xx | Unit system (RFC-001) — all unit-mismatch/unit-literal diagnostics, regardless of call site |
+| E2xx | Name resolution |
+| E3xx | Trait satisfaction at impl (RFC-003) |
+| E4xx | Generics (RFC-007), excluding unit-mismatch (that is E1xx) |
+| E5xx | Sub-circuit fns (RFC-006) |
+| E6xx | Design assembly & nets |
+| E7xx | Pin connection obligations (RFC-002) |
+| E8xx | Designators & parts (RFC-005) |
+| E9xx | Structural variants (RFC-008) |
+| D00x | Residual DRC (RFC-004) — exactly four, never more |
+
+**Enforcement**: `tests/error_registry.rs` runs the RFC-011 completeness check
+in both directions on every build — every code literal in `src/` appears as a
+row here, and every row here that is not `[DEPRECATED]` / `[RESERVED]` /
+CLI-only has at least one real call site in `src/`.
+
+## E00x — CLI invocation (not a source diagnostic)
+
+| Code | Meaning |
+|---|---|
+| E000 | malformed CLI invocation (bad flags, missing path) — exit code 2, never appears inside a `--json` diagnostics array. CLI-only; not a source diagnostic, so it has no `Diagnostic` call site by design |
 
 ## E0xx — lexing & parsing
 
 | Code | Meaning |
 |---|---|
-| E001 | unexpected character (includes targeted `Ω` → `ohm`, `°C` → `C` guidance) |
+| E001 | unexpected character (includes the targeted `°C` → `C` guidance; standalone `Ω` is E107) |
 | E002 | unterminated string literal |
 | E010 | unexpected token (expected …, found …) |
 
@@ -24,8 +58,11 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E104 | SI prefix not allowed for this unit (incl. any prefix on `Temperature`/`Tolerance`) |
 | E105 | leading `-` on a non-`Temperature` unit literal |
 | E106 | literal not exactly representable (too precise / out of range) |
+| E107 | standalone Unicode `Ω` (no preceding number) — narrower than E101, so the message can be maximally specific (RFC-011) |
 | E110 | unit-type mismatch — always names expected vs. actual (e.g. "expected `Voltage`, found `Capacitance`") |
 | E111 | bare number where a unit-typed value is required |
+| E112 | unit-type generic argument has the wrong unit type (RFC-011: relocated from the retired E402 — unit-mismatch belongs in E1xx) |
+| E113 | bare number as a unit-type generic argument (RFC-011: relocated from the retired E404) |
 
 ## E2xx — name resolution
 
@@ -34,7 +71,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E201 | duplicate top-level declaration |
 | E202 | unknown name |
 | E203 | unknown pin on device/trait |
-| E204 | unknown spec field |
+| E204 | `[RESERVED, not yet implemented]` unknown spec field — no call site yet |
 | E205 | name is the wrong kind (e.g. a trait used where a device is required) |
 | E206 | instance/net names beginning with `__` are reserved for compiler-generated expansion names |
 
@@ -51,12 +88,15 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 
 ## E4xx — generics (RFC-007)
 
+E4xx is generics-*specific* mistakes only; unit-mismatch at a generic site is
+E1xx (E112/E113), not here — see the organizing principle above.
+
 | Code | Meaning |
 |---|---|
 | E401 | wrong number of generic arguments |
-| E402 | unit-type generic argument has the wrong unit type |
+| E402 | `[DEPRECATED → E112]` unit-type generic argument has the wrong unit type — retired name, relocated to E1xx by RFC-011 |
 | E403 | trait-bound not satisfied at instantiation — names the missing trait and the concrete type |
-| E404 | bare number as a unit-type generic argument |
+| E404 | `[DEPRECATED → E113]` bare number as a unit-type generic argument — retired name, relocated to E1xx by RFC-011 |
 | E405 | generic argument is not concrete after substitution |
 | E406 | invalid generic parameter declaration (e.g. default on a trait-bound parameter) |
 
@@ -73,7 +113,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 
 | Code | Meaning |
 |---|---|
-| E601 | floating net — a net resolving to zero instance pins (RFC-004's W002, reclassified as a type error) |
+| E601 | `[RESERVED, not yet implemented]` floating net — a net resolving to zero instance pins (planned reclassification of RFC-004's W002); no call site yet |
 | E602 | net/nc member is not a known pin |
 | E603 | contradictory annotations on a merged net (two voltages, or voltage + `gnd`) |
 
@@ -105,6 +145,20 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E906 | duplicate variant name in `variants { }` (checked at parse) |
 | E907 | `pins[X]`/`spec[X]` qualifier names an undeclared variant |
 | E908 | unqualified `pins { }` block on a device that declares variants |
+
+**Reconciliation with RFC-011's E9xx table.** RFC-011 was drafted against a
+snapshot in which RFC-008's variant diagnostics were *not yet wired* ("no code
+block exists for them"), and so proposed a re-derived five-code block
+(E901–E905) with E902 = "missing selector", E904 = "missing `pins[VARIANT]`",
+E905 = "duplicate variant". In this repository RFC-008 shipped first, issuing
+the eight codes above with real call sites and fixture tests. Because RFC-011's
+own stability rule forbids repurposing an already-issued code, the shipped
+E901–E908 assignment is kept as-is (renumbering E902/E904/E906 to match the
+draft table would *violate* the rule on day one). RFC-011's intent — the E9xx
+block owns structural-variant diagnostics, and completeness is mechanically
+enforced — is fully satisfied; its five-code count was an under-count surfaced
+by drafting before implementation, exactly the kind of drift the completeness
+test now prevents.
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

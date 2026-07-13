@@ -77,7 +77,9 @@ design B {
 }
 "#,
     );
-    assert!(rendered.contains("E402"), "{}", rendered);
+    // RFC-011: unit-mismatch at a generic site is an E1xx (unit) diagnostic,
+    // E112 — not the retired E402 (which lived in the E4xx generics block).
+    assert!(rendered.contains("E112"), "{}", rendered);
     assert!(
         rendered.contains("expected `Capacitance`, found `Voltage`"),
         "{}",
@@ -119,7 +121,8 @@ design B {
 }
 "#,
     );
-    assert!(rendered.contains("E404"), "{}", rendered);
+    // RFC-011: bare number at a generic site is E113 (retired E404).
+    assert!(rendered.contains("E113"), "{}", rendered);
     assert!(
         rendered.contains("100nF") || rendered.contains("write the unit"),
         "{}",

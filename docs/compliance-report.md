@@ -87,10 +87,11 @@ six fixed the same day, one retained as a documented deviation.**
   is a Tooling & operations item; MVP tooling beyond `check`/`build` is
   explicitly cut (09-mvp-definition.md). Tracked for post-MVP.
 
-## Error-code housekeeping (notes from the audits, not violations)
+## Error-code housekeeping (resolved by RFC-011)
 
-The informal registry (docs/error-codes.md) is coherent, with two wrinkles to
-clean up when RFC-011 formalizes codes: unit-mismatch checks at generic sites
-report as `E402`/`E404` (outside the `E1xx` unit block), and a standalone
-Unicode `Ω` (not attached to a number) reports its targeted message under
-`E001` rather than `E101`.
+The two wrinkles the audits flagged in the informal registry are fixed by
+RFC-011 (DR-009, docs/design/rfc-011-error-registry.md): unit-mismatch checks
+at generic sites moved from `E402`/`E404` into the `E1xx` unit block as
+`E112`/`E113`, and a standalone Unicode `Ω` now reports under its own `E107`
+instead of the `E001` catch-all. The registry (docs/error-codes.md) is now the
+formal v2 baseline, enforced in both directions by `tests/error_registry.rs`.

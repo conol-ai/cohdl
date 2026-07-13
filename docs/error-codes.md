@@ -46,6 +46,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E303 | duplicate `impl` for the same (trait, device) — points at the earlier one |
 | E304 | impl mapping names a role/field the trait does not require |
 | E305 | impl mapping target is not a pin/spec of the device |
+| E306 | cyclic sub-trait bounds |
 
 ## E4xx — generics (RFC-007)
 

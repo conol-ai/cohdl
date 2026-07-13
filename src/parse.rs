@@ -785,11 +785,8 @@ impl<'a> Parser<'a> {
                 let impl_start = self.span();
                 self.bump();
                 let mut traits = Vec::new();
-                loop {
-                    match self.ident("as a trait bound after `impl`") {
-                        Some(t) => traits.push(t),
-                        None => break,
-                    }
+                while let Some(t) = self.ident("as a trait bound after `impl`") {
+                    traits.push(t);
                     if !self.eat(&TokenKind::Plus) {
                         break;
                     }
@@ -1139,11 +1136,8 @@ impl<'a> Parser<'a> {
 
     fn pin_ref_list(&mut self) -> Vec<PinRef> {
         let mut members = Vec::new();
-        loop {
-            match self.pin_ref() {
-                Some(r) => members.push(r),
-                None => break,
-            }
+        while let Some(r) = self.pin_ref() {
+            members.push(r);
             if !self.eat(&TokenKind::Comma) {
                 break;
             }

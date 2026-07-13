@@ -99,7 +99,12 @@ struct Expander<'w, 'd> {
 /// name (paired with the original identifier for precise E1001 spans).
 enum RawLayout {
     NetClass {
+        /// The source identifier (span for E1002) and its scope-resolved
+        /// identity — fn-local classes get call-chain-scoped names exactly
+        /// like fn-local nets (RFC-006), so a layout-bearing fn can be called
+        /// more than once without colliding with itself.
         name: Ident,
+        scoped_name: String,
         nets: Vec<(String, Ident)>,
     },
     DiffPair {
@@ -149,6 +154,9 @@ impl<'w, 'd> Expander<'w, 'd> {
             let raw = match c {
                 LayoutConstraint::NetClass { name, nets, .. } => RawLayout::NetClass {
                     name: name.clone(),
+                    // Class identity is scoped like net identity: raw at
+                    // design level, `__fnN_name::CLASS` inside a fn call.
+                    scoped_name: resolve_net_name(&name.name, scope),
                     nets: resolve(nets),
                 },
                 LayoutConstraint::DiffPair { nets, span } => RawLayout::DiffPair {
@@ -1067,22 +1075,26 @@ fn build_layout_ir(
     let mut seen_classes: BTreeSet<String> = BTreeSet::new();
     for c in raw {
         match c {
-            RawLayout::NetClass { name, nets } => {
-                let mapped = map_layout_nets(nets, declared_to_merged, diags);
-                if !seen_classes.insert(name.name.clone()) {
+            RawLayout::NetClass {
+                name,
+                scoped_name,
+                nets,
+            } => {
+                let (mapped, _) = map_layout_nets(nets, declared_to_merged, diags);
+                if !seen_classes.insert(scoped_name.clone()) {
                     diags.push(Diagnostic::error(
                         "E1002",
                         name.span,
-                        format!("duplicate `net_class` name `{}`", name.name),
+                        format!("duplicate `net_class` name `{}`", scoped_name),
                     ));
                 }
                 layout.net_classes.push(LayoutNetClass {
-                    name: name.name.clone(),
+                    name: scoped_name.clone(),
                     nets: mapped,
                 });
             }
             RawLayout::DiffPair { nets, span } => {
-                let mapped = map_layout_nets(nets, declared_to_merged, diags);
+                let (mapped, all_known) = map_layout_nets(nets, declared_to_merged, diags);
                 if nets.len() != 2 {
                     diags.push(Diagnostic::error(
                         "E1003",
@@ -1090,6 +1102,17 @@ fn build_layout_ir(
                         format!(
                             "`diff_pair` must name exactly two nets, found {}",
                             nets.len()
+                        ),
+                    ));
+                } else if all_known && mapped[0] == mapped[1] {
+                    // Two source names may be aliases of one electrical net
+                    // (shared pin merge) — a pair needs two DISTINCT nets.
+                    diags.push(Diagnostic::error(
+                        "E1003",
+                        *span,
+                        format!(
+                            "`diff_pair` must name two distinct nets — `{}` and `{}` resolve to the same net `{}`",
+                            nets[0].1.name, nets[1].1.name, mapped[0]
                         ),
                     ));
                 } else {
@@ -1104,7 +1127,8 @@ fn build_layout_ir(
                 tolerance,
                 span,
             } => {
-                let mapped = map_layout_nets(nets, declared_to_merged, diags);
+                let (mapped, all_known) = map_layout_nets(nets, declared_to_merged, diags);
+                let distinct: BTreeSet<&String> = mapped.iter().collect();
                 if nets.len() < 2 {
                     diags.push(Diagnostic::error(
                         "E1004",
@@ -1112,6 +1136,15 @@ fn build_layout_ir(
                         format!(
                             "`length_match` must name at least two nets, found {}",
                             nets.len()
+                        ),
+                    ));
+                } else if all_known && distinct.len() < 2 {
+                    diags.push(Diagnostic::error(
+                        "E1004",
+                        *span,
+                        format!(
+                            "`length_match` must name at least two distinct nets — all references resolve to the same net `{}`",
+                            mapped[0]
                         ),
                     ));
                 } else {
@@ -1128,16 +1161,20 @@ fn build_layout_ir(
 
 /// Resolve each layout net reference to its merged IR net name, emitting E1001
 /// for any reference to a net that was never declared (in the applicable
-/// design/fn scope).
+/// design/fn scope). The second return is `true` only when every reference
+/// resolved — distinctness checks are skipped otherwise (no error cascades).
 fn map_layout_nets(
     nets: &[(String, Ident)],
     declared_to_merged: &BTreeMap<String, String>,
     diags: &mut Diagnostics,
-) -> Vec<String> {
-    nets.iter()
+) -> (Vec<String>, bool) {
+    let mut all_known = true;
+    let mapped = nets
+        .iter()
         .map(|(resolved, orig)| match declared_to_merged.get(resolved) {
             Some(merged) => merged.clone(),
             None => {
+                all_known = false;
                 diags.push(Diagnostic::error(
                     "E1001",
                     orig.span,
@@ -1149,7 +1186,8 @@ fn map_layout_nets(
                 resolved.clone()
             }
         })
-        .collect()
+        .collect();
+    (mapped, all_known)
 }
 
 /// RFC-002 exhaustiveness: every `required` pin of every instance appears in

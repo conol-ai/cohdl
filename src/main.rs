@@ -200,10 +200,24 @@ fn run(args: &Args) -> Result<bool, String> {
         .map_err(|e| format!("cannot write `{}`: {}", lock_path.display(), e))?;
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
+    // A design that no longer carries layout metadata must not leave a stale
+    // constraints file behind for a partner tool to consume.
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
-    if let Some(layout) = &artifacts.layout {
-        std::fs::write(&layout_path, layout)
-            .map_err(|e| format!("cannot write `{}`: {}", layout_path.display(), e))?;
+    match &artifacts.layout {
+        Some(layout) => {
+            std::fs::write(&layout_path, layout)
+                .map_err(|e| format!("cannot write `{}`: {}", layout_path.display(), e))?;
+        }
+        None => {
+            if layout_path.exists() {
+                std::fs::remove_file(&layout_path).map_err(|e| {
+                    format!("cannot remove stale `{}`: {}", layout_path.display(), e)
+                })?;
+                if !args.json {
+                    eprintln!("  removed stale {}", layout_path.display());
+                }
+            }
+        }
     }
 
     if args.json {
@@ -219,7 +233,10 @@ fn run(args: &Args) -> Result<bool, String> {
         return Ok(true);
     }
 
-    // Non-JSON: surface any build notes (e.g. part-binding ambiguity) as prose.
+    // Non-JSON: a successful build still renders its diagnostics (warnings —
+    // e.g. D003 — must reach the human exactly as they reach `check` and
+    // `--json`; RFC-010 equivalence), then any build notes as prose.
+    eprint!("{}", checked.diags.render(&checked.sm));
     for note in &artifacts.notes {
         eprintln!("note: {}", note);
     }

@@ -334,7 +334,11 @@ impl<'a> Lexer<'a> {
         let ascii_suffix = &rest[..suffix_end];
         let after_suffix = rest[suffix_end..].chars().next();
 
-        if ascii_suffix.is_empty() && matches!(after_suffix, Some('\u{03A9}') | Some('\u{2126}')) {
+        // A Unicode unit glyph directly after the (possibly SI-prefixed)
+        // digits — `10Ω`, `10kΩ`, `85°C` — is ONE targeted E101, never a
+        // cascade of unknown-suffix + stray-character errors (RFC-011).
+        if matches!(after_suffix, Some('\u{03A9}') | Some('\u{2126}')) {
+            self.pos += ascii_suffix.len();
             self.pos += after_suffix.unwrap().len_utf8();
             let span = Span::new(self.file, start as u32, self.pos as u32);
             self.diags.push(
@@ -343,12 +347,14 @@ impl<'a> Lexer<'a> {
                     span,
                     "use `ohm`, not `Ω` — CoHDL resistance literals are ASCII-only",
                 )
-                .with_help(format!("write `{}ohm`", mantissa)),
+                .with_help(format!("write `{}{}ohm`", mantissa, ascii_suffix)),
             );
             return;
         }
-        if matches!(after_suffix, Some('\u{00B0}')) && ascii_suffix.is_empty() {
-            // `85°C` — consume the degree sign and a following C if present.
+        if matches!(after_suffix, Some('\u{00B0}')) {
+            // `85°C` / `1m°C` — consume the suffix, the degree sign, and a
+            // following C if present.
+            self.pos += ascii_suffix.len();
             self.pos += '\u{00B0}'.len_utf8();
             if self.peek(0) == Some(b'C') {
                 self.pos += 1;
@@ -519,6 +525,16 @@ mod tests {
     fn unicode_omega_targeted_error() {
         let rendered = lex_err("10kΩ");
         assert!(rendered.contains("use `ohm`, not `Ω`"), "{}", rendered);
+        // RFC-011: the SI-prefixed form is ONE targeted E101 with the full
+        // rewrite (`10kohm`), not an unknown-suffix + stray-character cascade.
+        assert!(rendered.contains("E101"), "{}", rendered);
+        assert!(rendered.contains("write `10kohm`"), "{}", rendered);
+        assert_eq!(
+            rendered.matches("error[").count(),
+            1,
+            "expected exactly one diagnostic:\n{}",
+            rendered
+        );
     }
 
     #[test]

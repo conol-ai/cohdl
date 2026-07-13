@@ -80,22 +80,28 @@ pub fn run_drc(world: &World, ir: &DesignIr, diags: &mut Diagnostics) {
             }
         }
 
-        // ---- D003 single-driver: a net with exactly one connected pin —
-        // likely unfinished wiring.
+        // ---- D003 single-driver: a net whose only connected pin is a
+        // driver-role pin (`output`/`power_out`) — the driver drives nothing,
+        // likely unfinished wiring. Role-aware per RFC-004 (W003: "a net has
+        // exactly one output-type (driver) pin connected") and RFC-008
+        // ("D003/D004 … classify output/power_out as driver roles"); a lone
+        // passive/input pin is not flagged (pin obligations are RFC-002's job).
         if net.members.len() == 1 {
             let (path, pin) = net.members.iter().next().unwrap();
             let role = pin_role(world, ir, path, pin);
-            diags.push(Diagnostic::warning(
-                "D003",
-                net.span,
-                format!(
-                    "single-driver: net `{}` has only one connected pin (`{}.{}`, role `{}`) — likely unfinished wiring",
-                    net.name,
-                    path,
-                    pin,
-                    role.name()
-                ),
-            ));
+            if role.is_driver() {
+                diags.push(Diagnostic::warning(
+                    "D003",
+                    net.span,
+                    format!(
+                        "single-driver: net `{}` has only one connected pin (`{}.{}`, role `{}`) — the driver drives nothing; likely unfinished wiring",
+                        net.name,
+                        path,
+                        pin,
+                        role.name()
+                    ),
+                ));
+            }
         }
 
         // ---- D004 multi-driver: two or more driver-type pins on one net.

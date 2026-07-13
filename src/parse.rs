@@ -1386,8 +1386,12 @@ impl<'a> Parser<'a> {
         Some(nets)
     }
 
-    /// The optional `[tolerance: "..."]` suffix on `length_match` — an opaque
-    /// pass-through string (CoHDL has no length unit; RFC-013 Failure modes).
+    /// The optional `[tolerance: …]` suffix on `length_match`. Accepts a unit
+    /// literal from RFC-001's closed set (`1ms` — pass-through as its source
+    /// text) or a quoted string (`"0.15mm"` — the escape hatch for length
+    /// units, which RFC-001's ten-type set cannot represent; RFC-013's
+    /// unquoted `0.15mm` example needs a note-side amendment before it can
+    /// lex). The value is never enforced by CoHDL (RFC-013 Failure modes).
     fn layout_tolerance(&mut self) -> Option<(String, Span)> {
         if !self.at(&TokenKind::LBracket) {
             return None;
@@ -1410,9 +1414,16 @@ impl<'a> Parser<'a> {
                 };
                 Some((s, t.span))
             }
+            TokenKind::Unit(_) => {
+                let t = self.bump();
+                let TokenKind::Unit(v) = t.kind else {
+                    unreachable!()
+                };
+                Some((v.text.clone(), t.span))
+            }
             other => {
                 self.error_here(format!(
-                    "the `tolerance` value must be a string (e.g. `[tolerance: \"0.15mm\"]`), found {}",
+                    "the `tolerance` value must be a unit literal or a string (e.g. `[tolerance: 1ms]` or `[tolerance: \"0.15mm\"]`), found {}",
                     other.describe()
                 ));
                 None

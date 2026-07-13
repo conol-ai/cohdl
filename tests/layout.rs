@@ -215,6 +215,105 @@ fn length_match_too_few_is_e1004() {
     assert!(r.contains("E1004"), "{}", r);
 }
 
+// A pair/group must contain DISTINCT final nets — both when the same name is
+// repeated and when two source names merge into one electrical net.
+#[test]
+fn diff_pair_same_net_is_rejected() {
+    // Direct repetition.
+    let r = check_err(&BASE.replace(
+        "design Board {",
+        "design Board {\n    layout { diff_pair(USB_DP, USB_DP) }",
+    ));
+    assert!(r.contains("E1003") && r.contains("distinct"), "{}", r);
+
+    // Merged aliases: ZZZ shares pin r1.A with USB_DP, so they are one net.
+    let r = check_err(&BASE.replace(
+        "net USB_DM: r1.B, r2.B",
+        "net USB_DM: r1.B, r2.B\n    net ZZZ: r1.A\n    layout { diff_pair(USB_DP, ZZZ) }",
+    ));
+    assert!(
+        r.contains("E1003") && r.contains("resolve to the same net"),
+        "{}",
+        r
+    );
+}
+
+#[test]
+fn length_match_all_same_net_is_rejected() {
+    let r = check_err(&BASE.replace(
+        "design Board {",
+        "design Board {\n    layout { length_match(USB_DP, USB_DP, USB_DP) }",
+    ));
+    assert!(r.contains("E1004") && r.contains("distinct"), "{}", r);
+}
+
+// A layout-bearing fn is reusable: fn-local net_class names get call-chain
+// identity (like fn-local nets, RFC-006), so two calls do not collide.
+#[test]
+fn layout_bearing_fn_is_reusable() {
+    let src = r#"
+pub trait TwoTerminal { pins { required A: pin required B: pin } }
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+impl TwoTerminal for Res {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: "fp" } }
+fn routed_pair(a: Pin, b: Pin, c: Pin, d: Pin) {
+    net DP: a, b
+    net DM: c, d
+    layout {
+        net_class HighSpeed { DP, DM }
+        diff_pair(DP, DM)
+    }
+}
+design Board {
+    inst d1: R1
+    inst d2: R1
+    inst d3: R1
+    inst d4: R1
+    routed_pair(d1.A, d2.A, d1.B, d2.B)
+    routed_pair(d3.A, d4.A, d3.B, d4.B)
+}
+"#;
+    let built = build(src);
+    assert!(
+        !built.diags.contains("error"),
+        "two calls must not collide:\n{}",
+        built.diags
+    );
+    let json = built.layout.expect("layout.json");
+    // Two scoped classes, two diff pairs — each call's constraints survive.
+    assert_eq!(
+        json.matches("HighSpeed").count(),
+        2,
+        "expected two scoped HighSpeed classes:\n{}",
+        json
+    );
+    assert_eq!(json.matches("\"p\":").count(), 2, "{}", json);
+}
+
+// Tolerance accepts an RFC-001 unit literal (pass-through text) as well as the
+// quoted-string escape hatch (for length units RFC-001 cannot represent).
+#[test]
+fn tolerance_accepts_unit_literal_and_string() {
+    let unit = build(&WITH_LAYOUT.replace("[tolerance: \"0.15mm\"]", "[tolerance: 1ms]"));
+    assert!(
+        !unit.diags.contains("error"),
+        "unit-literal tolerance must parse:\n{}",
+        unit.diags
+    );
+    assert!(
+        unit.layout
+            .expect("layout.json")
+            .contains("\"tolerance\": \"1ms\""),
+        "unit literal passes through as its source text"
+    );
+
+    let string = build(WITH_LAYOUT);
+    assert!(string
+        .layout
+        .expect("layout.json")
+        .contains("\"tolerance\": \"0.15mm\""));
+}
+
 // ---------------------------------------------------------------------------
 // fmt (RFC-009) round-trips layout blocks + placement hints idempotently.
 

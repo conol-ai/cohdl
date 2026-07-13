@@ -180,5 +180,5 @@ vocabulary — never a connectivity/DRC check, never affecting the netlist bytes
 |---|---|---|
 | D001 | error | voltage-exceed: `voltage_rating` spec < annotated net voltage |
 | D002 | error | polarity-mismatch: `Polarized` anode pin on a `[gnd]` net |
-| D003 | warning | single-driver: net with exactly one connected pin |
+| D003 | warning | single-driver: net whose only connected pin is a driver (`output`/`power_out`) — the driver drives nothing |
 | D004 | error | multi-driver: net with ≥2 driver-type pins (`output`/`power_out`) |

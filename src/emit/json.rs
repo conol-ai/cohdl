@@ -80,7 +80,11 @@ pub fn model(checked: &Checked) -> Vec<JsonDiag> {
             },
             message: d.message.clone(),
             primary: label_loc(&checked.sm, &d.primary),
-            secondary: d.secondary.iter().map(|l| label_loc(&checked.sm, l)).collect(),
+            secondary: d
+                .secondary
+                .iter()
+                .map(|l| label_loc(&checked.sm, l))
+                .collect(),
             help: d.help.clone(),
         })
         .collect()
@@ -141,7 +145,11 @@ fn write_diag(out: &mut String, d: &JsonDiag) {
         for (i, l) in d.secondary.iter().enumerate() {
             out.push_str("        ");
             write_loc(out, l, 8);
-            out.push_str(if i + 1 < d.secondary.len() { ",\n" } else { "\n" });
+            out.push_str(if i + 1 < d.secondary.len() {
+                ",\n"
+            } else {
+                "\n"
+            });
         }
         out.push_str("      ],\n");
     }

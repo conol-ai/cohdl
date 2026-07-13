@@ -44,7 +44,10 @@ fn parse_text(rendered: &str) -> Vec<TextDiag> {
         let (code, message) = rest.split_once("]: ").expect("header shape");
         // Next line is the primary arrow: ` --> file:line:col`.
         let arrow = lines.next().expect("arrow line");
-        let loc = arrow.trim_start().strip_prefix("--> ").expect("arrow prefix");
+        let loc = arrow
+            .trim_start()
+            .strip_prefix("--> ")
+            .expect("arrow prefix");
         // Split off col and line from the right (file may itself be pathy).
         let (rest, col) = loc.rsplit_once(':').expect("col");
         let (file, l) = rest.rsplit_once(':').expect("line");
@@ -85,7 +88,11 @@ fn assert_equivalent(src: &str) {
         src
     );
     // Verdict is computed identically to the CLI exit-code logic.
-    let expect = if checked.diags.has_errors() { "fail" } else { "pass" };
+    let expect = if checked.diags.has_errors() {
+        "fail"
+    } else {
+        "pass"
+    };
     assert_eq!(json::verdict(&checked), expect);
 }
 

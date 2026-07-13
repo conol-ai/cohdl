@@ -230,19 +230,25 @@ fn run(args: &Args) -> Result<bool, String> {
 fn fmt_command(args: &Args) -> Result<bool, String> {
     let files = collect_cohdl_files(&args.path)?;
     if files.is_empty() {
-        return Err(format!("no .cohdl files found at `{}`", args.path.display()));
+        return Err(format!(
+            "no .cohdl files found at `{}`",
+            args.path.display()
+        ));
     }
     let mut ok = true;
     for path in files {
         let name = path.display().to_string();
-        let original = std::fs::read_to_string(&path)
-            .map_err(|e| format!("cannot read `{}`: {}", name, e))?;
+        let original =
+            std::fs::read_to_string(&path).map_err(|e| format!("cannot read `{}`: {}", name, e))?;
         match cohdl::fmt::format_source(&name, &original) {
             Err(diags) => {
                 // fmt is not a repair tool — non-parsing source is a parse error
                 // from the existing pipeline, surfaced verbatim.
                 eprint!("{}", diags);
-                eprintln!("error: `{}` does not parse — fmt only formats valid source", name);
+                eprintln!(
+                    "error: `{}` does not parse — fmt only formats valid source",
+                    name
+                );
                 ok = false;
             }
             Ok(formatted) if formatted == original => {}

@@ -234,8 +234,7 @@ impl Formatter<'_> {
             header.push_str(": ");
             header.push_str(&join(t.super_traits.iter().map(|s| s.name.clone()), " + "));
         }
-        let has_body =
-            t.designator_prefix.is_some() || !t.pins.is_empty() || !t.specs.is_empty();
+        let has_body = t.designator_prefix.is_some() || !t.pins.is_empty() || !t.specs.is_empty();
         if !has_body {
             self.push(0, format!("{} {{}}", header));
             return;
@@ -247,7 +246,10 @@ impl Formatter<'_> {
         if !t.pins.is_empty() {
             self.push(1, "pins {");
             for p in &t.pins {
-                self.push(2, format!("{} {}: pin", p.obligation.keyword(), p.name.name));
+                self.push(
+                    2,
+                    format!("{} {}: pin", p.obligation.keyword(), p.name.name),
+                );
             }
             self.push(1, "}");
         }
@@ -403,7 +405,10 @@ impl Formatter<'_> {
                 for attr in &s.attrs {
                     self.push(indent, attr_text(attr));
                 }
-                self.push(indent, format!("inst {}: {}", s.name.name, type_ref_text(&s.ty)));
+                self.push(
+                    indent,
+                    format!("inst {}: {}", s.name.name, type_ref_text(&s.ty)),
+                );
             }
             Stmt::Net(s) => {
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
@@ -424,7 +429,10 @@ impl Formatter<'_> {
                 let generics = if s.generic_args.is_empty() {
                     String::new()
                 } else {
-                    format!("::<{}>", join(s.generic_args.iter().map(generic_arg_text), ", "))
+                    format!(
+                        "::<{}>",
+                        join(s.generic_args.iter().map(generic_arg_text), ", ")
+                    )
                 };
                 let args = join(s.args.iter().map(|a| a.to_string()), ", ");
                 self.push(indent, format!("{}{}({})", s.callee.name, generics, args));
@@ -470,7 +478,12 @@ impl Formatter<'_> {
     fn part_def(&mut self, vis: &str, _item: &Item, p: &PartDef) {
         self.push(
             0,
-            format!("{}part {}: {} {{", vis, p.name.name, type_ref_text(&p.device)),
+            format!(
+                "{}part {}: {} {{",
+                vis,
+                p.name.name,
+                type_ref_text(&p.device)
+            ),
         );
         self.push(1, avl_text("primary", &p.primary));
         for alt in &p.alts {
@@ -489,7 +502,13 @@ fn pin_text(pin: &DevicePin) -> String {
         Some((r, _)) => format!(" [{}]", r.name()),
         None => String::new(),
     };
-    format!("{} {}: {}{}", pin.obligation.keyword(), pin.name.name, nums, role)
+    format!(
+        "{} {}: {}{}",
+        pin.obligation.keyword(),
+        pin.name.name,
+        nums,
+        role
+    )
 }
 
 fn spec_field_text(field: &DeviceSpecField) -> String {
@@ -563,7 +582,10 @@ fn param_text(p: &FnParam) -> String {
 
 fn avl_text(keyword: &str, entry: &AvlEntry) -> String {
     let fields = join(
-        entry.fields.iter().map(|f| format!("{}: {}", f.name.name, str_lit(&f.value))),
+        entry
+            .fields
+            .iter()
+            .map(|f| format!("{}: {}", f.name.name, str_lit(&f.value))),
         ", ",
     );
     format!("{} {{ {} }}", keyword, fields)

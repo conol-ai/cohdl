@@ -24,7 +24,11 @@ fn repo_cohdl_files() -> Vec<(String, String)> {
             if p.is_dir() {
                 walk(&p, out);
             } else if p.extension().is_some_and(|e| e == "cohdl") {
-                let name = p.strip_prefix(manifest()).unwrap_or(&p).display().to_string();
+                let name = p
+                    .strip_prefix(manifest())
+                    .unwrap_or(&p)
+                    .display()
+                    .to_string();
                 out.push((name, std::fs::read_to_string(&p).unwrap()));
             }
         }
@@ -85,8 +89,7 @@ fn idempotent_on_messy_input() {
 
 fn build_netlist_bom(files: &[(String, String)]) -> (String, String) {
     let mut checked = check_files(files, None).expect("design selection");
-    let artifacts = build_artifacts(&mut checked, &LockState::default())
-        .expect("build succeeds");
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build succeeds");
     assert!(!checked.diags.has_errors(), "clean build expected");
     (artifacts.netlist, artifacts.bom)
 }

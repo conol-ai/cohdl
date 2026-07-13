@@ -466,7 +466,7 @@ impl<'a> Parser<'a> {
                     };
                     numbers.push(PinNumber { text, span: t.span });
                 }
-                TokenKind::Ident(n) if is_bga_pin_number(n) => {
+                TokenKind::Ident(n) if is_pad_name(n) => {
                     let t = self.bump();
                     let TokenKind::Ident(text) = t.kind else {
                         unreachable!()
@@ -487,7 +487,7 @@ impl<'a> Parser<'a> {
                 let next = self.peek_ahead(1).clone();
                 let continues = match &next {
                     TokenKind::Number(_) => true,
-                    TokenKind::Ident(n) if is_bga_pin_number(n) => {
+                    TokenKind::Ident(n) if is_pad_name(n) => {
                         self.peek_ahead(2) != &TokenKind::Colon
                     }
                     _ => false,
@@ -1168,20 +1168,13 @@ impl<'a> Parser<'a> {
     }
 }
 
-/// BGA-style pin numbers: letters followed by at least one digit (`A1`, `C3`).
-fn is_bga_pin_number(s: &str) -> bool {
+/// Non-numeric physical pad names: uppercase alphanumerics starting with a
+/// letter — BGA grid positions (`A1`, `C3`) and named pads as they appear in
+/// real footprints (`SH`, `EP`).
+fn is_pad_name(s: &str) -> bool {
     let mut chars = s.chars();
-    let mut saw_alpha = false;
-    for c in chars.by_ref() {
-        if c.is_ascii_uppercase() {
-            saw_alpha = true;
-        } else if c.is_ascii_digit() {
-            return saw_alpha && chars.all(|c| c.is_ascii_alphanumeric());
-        } else {
-            return false;
-        }
-    }
-    false
+    matches!(chars.next(), Some(c) if c.is_ascii_uppercase())
+        && chars.all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
 }
 
 #[cfg(test)]

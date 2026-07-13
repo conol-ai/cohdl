@@ -68,15 +68,24 @@ reference in context, frontier models err rarely, which is the
 AI-generatability half of the design working as intended (Constitution
 priority #2). The failed attempts are what the compiler-as-oracle is for.
 
-## Human checkpoint (the remaining step)
+## KiCad checkpoint — executed
 
-Per the MVP, a human opens the netlist in real KiCad and confirms a coherent,
-connected schematic with real designators and MPNs:
+The import was driven through real KiCad (pcbnew 10.0.4, its own engine, via
+`tools/kicad_checkpoint.py` — the same work File → Import Netlist performs):
 
-1. Open KiCad → PCB Editor (pcbnew) → File → Import Netlist… →
-   `docs/demo/sensor-node.net`.
-2. Confirm the 14 components (U1 ESP32-S3-WROOM-1, U2 AP2112K, J1 USB-C,
-   MK1 ICS-43434, C1–C5 incl. the 100uF tantalum, R1–R4, D1) appear with
-   their footprints, and ratsnest lines connect VBUS → LDO → 3.3V rail,
-   USB D±, I2S, EN pull-up, CC pulldowns, and the LED chain.
-3. Cross-check `sensor-node-bom.csv` — every line item carries a real MPN.
+- **All 14 footprints resolved from KiCad's official libraries**, every
+  netlist pin matched a real footprint pad, designators verified unique.
+- The resulting board is committed as
+  [`sensor-node.kicad_pcb`](sensor-node.kicad_pcb) (open it directly in
+  pcbnew — footprints placed, pad nets assigned, connectivity drawn), with a
+  rendered [`sensor-node-board.pdf`](sensor-node-board.pdf) showing the
+  components and net connectivity: USB-C → CC pulldowns, VBUS → LDO → 3.3V
+  rail → decoupling bank + tantalum, ESP32 → I2S mic, EN pull-up, LED chain.
+
+The checkpoint caught a real netlist-fidelity bug, exactly as intended: the
+std USB-C device used combined pad names (`A1B12`, `S1`) that don't exist on
+KiCad's official HRO footprint (separate `A1…B12` pads, shield `SH`). The std
+device was corrected against the real footprint and everything regenerated.
+
+To confirm by eye: open `sensor-node.kicad_pcb` in KiCad (or just the PDF),
+and cross-check `sensor-node-bom.csv` — every line item carries a real MPN.

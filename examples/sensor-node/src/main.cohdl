@@ -20,8 +20,8 @@ design SensorNode {
 
     // ESP32-S3 chip-enable: 10k pull-up to 3.3V.
     net ESP_EN: r_en.B, esp.EN
-    net GND [gnd]: usb.GND, usb.SHIELD, ldo.GND, esp.GND, mic.GND, mic.LR,
-                   r_cc1.B, r_cc2.B, c_ldo_in.B, c_ldo_out.B
+    net GND [gnd]: usb.GND, usb.SHIELD, ldo.GND, esp.GND, mic.GND, mic.LR, r_cc1.B, r_cc2.B,
+                   c_ldo_in.B, c_ldo_out.B
 
     // USB-C sink: 5.1k pull-downs on CC, data to the ESP32-S3's USB pins.
     net CC1: usb.CC1, r_cc1.A

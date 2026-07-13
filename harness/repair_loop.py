@@ -111,6 +111,21 @@ def run_build(compiler: pathlib.Path, project_dir: pathlib.Path) -> dict:
     return doc
 
 
+def format_in_place(compiler: pathlib.Path, path: pathlib.Path, fallback: str) -> str:
+    """Run `cohdl fmt` on `path` (RFC-009). Returns the canonical text on
+    success, or `fallback` unchanged if the source does not parse (fmt refuses
+    to touch non-parsing source)."""
+    subprocess.run(
+        [str(compiler), "fmt", str(path)],
+        capture_output=True,
+        text=True,
+    )
+    try:
+        return path.read_text()
+    except OSError:
+        return fallback
+
+
 def format_diagnostics(doc: dict) -> str:
     """Render RFC-010 diagnostics as readable text — from the structured data,
     never by regex-scraping the compiler's own text output."""
@@ -298,10 +313,17 @@ def main() -> int:
 
         attempt_dir = run_dir / f"attempt_{attempt}"
         (attempt_dir / "src").mkdir(parents=True, exist_ok=True)
-        (attempt_dir / "src" / "main.cohdl").write_text(source)
+        main_file = attempt_dir / "src" / "main.cohdl"
+        main_file.write_text(source)
         (attempt_dir / "cohdl.toml").write_text(
             '[package]\nname = "sensor-node"\n'
         )
+
+        # RFC-009: normalize generated source through `cohdl fmt` before we
+        # display/diff it, so a diagnostic-driven repair shows as a small diff
+        # rather than a wall of incidental whitespace. fmt is a no-op on source
+        # that does not parse (it is a serializer, not a repair tool).
+        source = format_in_place(compiler, main_file, fallback=source)
 
         doc = run_build(compiler, attempt_dir)
         ok = doc["verdict"] == "pass"

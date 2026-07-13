@@ -406,11 +406,13 @@ impl<'a> Parser<'a> {
             name,
             generics,
             variants: Vec::new(),
+            variants_span: None,
             pin_blocks: Vec::new(),
             spec_blocks: Vec::new(),
         };
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
             if self.at_ident("variants") {
+                let variants_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the variants block");
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -444,6 +446,7 @@ impl<'a> Parser<'a> {
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the variants block");
+                def.variants_span = Some(variants_start.to(self.prev_span()));
             } else if self.at(&TokenKind::Pins) {
                 let block_start = self.span();
                 self.bump();

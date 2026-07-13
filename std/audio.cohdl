@@ -3,10 +3,10 @@
 
 pub device ICS43434 {
     pins {
-        required WS: 1 [input]      // I2S word select
-        required LR: 2 [input]      // channel select — tie to GND or VDD
-        required SCK: 3 [input]     // I2S clock
-        required SD: 4 [output]     // I2S data out
+        required WS: 1 [input] // I2S word select
+        required LR: 2 [input] // channel select — tie to GND or VDD
+        required SCK: 3 [input] // I2S clock
+        required SD: 4 [output] // I2S data out
         required VDD: 5 [power_in]
         required GND: 6 [power_in]
     }

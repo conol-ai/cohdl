@@ -179,6 +179,9 @@ pub struct DeviceDef {
     pub generics: Vec<GenericParam>,
     /// RFC-008 `variants { C0402, C0603 }` — empty when the device has none.
     pub variants: Vec<Ident>,
+    /// Span of the whole `variants { … }` block, for source-order layout
+    /// (`cohdl fmt`); `None` when the device has no variants block.
+    pub variants_span: Option<Span>,
     /// `pins { … }` blocks; `variant` is the `pins[VARIANT]` qualifier.
     pub pin_blocks: Vec<PinBlock>,
     /// `spec { … }` blocks; `variant` is the `spec[VARIANT]` qualifier.

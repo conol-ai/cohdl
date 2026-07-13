@@ -10,7 +10,7 @@ pub device AP2112K_3V3 {
         required VOUT: 5 [power_out]
     }
     spec {
-        voltage_rating: 6V         // absolute max input voltage
+        voltage_rating: 6V // absolute max input voltage
     }
 }
 

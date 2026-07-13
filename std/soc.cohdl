@@ -20,8 +20,8 @@ pub device ESP32_S3_WROOM_1 {
         optional IO17: 10 [bidirectional]
         optional IO18: 11 [bidirectional]
         optional IO8: 12 [bidirectional]
-        optional IO19: 13 [bidirectional]     // USB D-
-        optional IO20: 14 [bidirectional]     // USB D+
+        optional IO19: 13 [bidirectional] // USB D-
+        optional IO20: 14 [bidirectional] // USB D+
         optional IO3: 15 [bidirectional]
         optional IO46: 16 [bidirectional]
         optional IO9: 17 [bidirectional]
@@ -54,5 +54,5 @@ impl IC for ESP32_S3_WROOM_1 {}
 
 pub part ESP32_S3_WROOM_1_N8: ESP32_S3_WROOM_1 {
     primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8", footprint: "RF_Module:ESP32-S3-WROOM-1" }
-    alt     { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2" }
+    alt { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2" }
 }

@@ -8,6 +8,7 @@ pub mod check;
 pub mod diag;
 pub mod drc;
 pub mod emit;
+pub mod fmt;
 pub mod ir;
 pub mod lex;
 pub mod lock;

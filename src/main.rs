@@ -14,15 +14,19 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR] [--json]
+    cohdl fmt   [PATH] [--check]
 
 PATH is a project directory (with cohdl.toml + src/) or a single .cohdl file;
 defaults to the current directory.
 
     check    parse, resolve, type-check, and run residual DRC
     build    check + assign designators + bind parts + emit KiCad .net + BOM CSV
+    fmt      rewrite every .cohdl file into canonical form (RFC-009)
 
     --json   emit one JSON document to stdout instead of human-readable text
-             (RFC-010)
+             (RFC-010; check/build only)
+    --check  fmt: report drift without rewriting; exit non-zero if any file is
+             not already in canonical form
 ";
 
 struct Args {
@@ -33,6 +37,7 @@ struct Args {
     no_std: bool,
     out_dir: PathBuf,
     json: bool,
+    fmt_check: bool,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -46,6 +51,7 @@ fn parse_args() -> Result<Args, String> {
         no_std: false,
         out_dir: PathBuf::from("out"),
         json: false,
+        fmt_check: false,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -58,6 +64,7 @@ fn parse_args() -> Result<Args, String> {
             }
             "--no-std" => args.no_std = true,
             "--json" => args.json = true,
+            "--check" => args.fmt_check = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
             }
@@ -103,6 +110,7 @@ fn main() -> ExitCode {
 fn run(args: &Args) -> Result<bool, String> {
     match args.command.as_str() {
         "check" | "build" => {}
+        "fmt" => return fmt_command(args),
         other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }
 
@@ -215,4 +223,71 @@ fn run(args: &Args) -> Result<bool, String> {
     eprintln!("  wrote {}", bom_path.display());
     eprintln!("  wrote {}", lock_path.display());
     Ok(true)
+}
+
+/// `cohdl fmt` (RFC-009): rewrite every `.cohdl` file at PATH into canonical
+/// form, or with `--check` report drift without touching anything.
+fn fmt_command(args: &Args) -> Result<bool, String> {
+    let files = collect_cohdl_files(&args.path)?;
+    if files.is_empty() {
+        return Err(format!("no .cohdl files found at `{}`", args.path.display()));
+    }
+    let mut ok = true;
+    for path in files {
+        let name = path.display().to_string();
+        let original = std::fs::read_to_string(&path)
+            .map_err(|e| format!("cannot read `{}`: {}", name, e))?;
+        match cohdl::fmt::format_source(&name, &original) {
+            Err(diags) => {
+                // fmt is not a repair tool — non-parsing source is a parse error
+                // from the existing pipeline, surfaced verbatim.
+                eprint!("{}", diags);
+                eprintln!("error: `{}` does not parse — fmt only formats valid source", name);
+                ok = false;
+            }
+            Ok(formatted) if formatted == original => {}
+            Ok(formatted) if args.fmt_check => {
+                eprintln!("would reformat {}", name);
+                ok = false;
+            }
+            Ok(formatted) => {
+                std::fs::write(&path, formatted)
+                    .map_err(|e| format!("cannot write `{}`: {}", name, e))?;
+                eprintln!("formatted {}", name);
+            }
+        }
+    }
+    if args.fmt_check && ok {
+        eprintln!("  All files are in canonical form.");
+    }
+    Ok(ok)
+}
+
+/// Every `.cohdl` file at `path`: the file itself if it is one, else every
+/// `.cohdl` under the directory (recursively), sorted for determinism.
+fn collect_cohdl_files(path: &std::path::Path) -> Result<Vec<PathBuf>, String> {
+    if path.is_file() {
+        return Ok(vec![path.to_path_buf()]);
+    }
+    if !path.is_dir() {
+        return Err(format!("`{}` is not a file or directory", path.display()));
+    }
+    let mut out = Vec::new();
+    fn walk(dir: &std::path::Path, out: &mut Vec<PathBuf>) -> Result<(), String> {
+        let mut entries: Vec<PathBuf> = std::fs::read_dir(dir)
+            .map_err(|e| format!("cannot read `{}`: {}", dir.display(), e))?
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .collect();
+        entries.sort();
+        for p in entries {
+            if p.is_dir() {
+                walk(&p, out)?;
+            } else if p.extension().is_some_and(|e| e == "cohdl") {
+                out.push(p);
+            }
+        }
+        Ok(())
+    }
+    walk(path, &mut out)?;
+    Ok(out)
 }

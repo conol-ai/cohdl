@@ -13,13 +13,14 @@ The language design lives in `docs/design/` (snapshot of the conol.ai design rep
 3. `docs/design/09-mvp-definition.md` — current scope line + exit criteria
 4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them. (Pin roles and package variants graduated to RFC-008.)
 
-Never implement beyond the MVP cut list in `09-mvp-definition.md` (no fmt, no LSP, no --json API, no LCEDA, no incremental compilation; structural-variant pattern matching landed via RFC-008).
+Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LSP, no LCEDA, no incremental compilation). Some originally-cut items have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), and the formal error-code registry (RFC-011).
 
 ## Commands
 
 - `cargo build` / `cargo test` — build and run all tests
-- `cargo run -- check <file-or-dir>` — parse + resolve + type-check + residual DRC
-- `cargo run -- build <file-or-dir>` — check + emit KiCad `.net` + BOM CSV (+ `design.lock`)
+- `cargo run -- check <file-or-dir> [--json]` — parse + resolve + type-check + residual DRC (RFC-010 `--json`)
+- `cargo run -- build <file-or-dir> [--json]` — check + emit KiCad `.net` + BOM CSV (+ `design.lock`)
+- `cargo run -- fmt <file-or-dir> [--check]` — rewrite `.cohdl` into canonical form (RFC-009)
 - `harness/` — the generate→check→repair demo harness (script, not product)
 
 ## Architecture (pipeline = the verdict ladder)

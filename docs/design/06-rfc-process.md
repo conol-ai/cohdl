@@ -15,6 +15,10 @@ Small fixes don't need an RFC. An RFC is required when a change touches a core c
 
 # RFC template — one new mandatory section (marked NEW)
 
+```text
+$3a
+```
+
 # The lifecycle of an RFC — unchanged, one step added
 
 1. Draft — author fills the template. Incomplete gradeability, coherence, or (new) type-system-first sections = not ready.

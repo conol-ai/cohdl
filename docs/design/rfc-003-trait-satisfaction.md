@@ -4,6 +4,16 @@
 
 Both prior drafts of this RFC were off-target. Draft 1 baked impl Trait directly into the device declaration (device MLCC<...>: impl Capacitor { ... }), which is structurally identical to C#'s class Foo : IBar — the type and its trait membership are declared as one inseparable unit. Draft 2 tried to fix "not flexible enough" by adding default methods, associated types, and blanket impls — all real Rust mechanisms, but none of them were the actual problem Tony pointed at. Tony's own example makes the real gap obvious:
 
+```rust
+pub trait TwoTerminal { /* ... */ }
+pub trait Capacitor { /* ... */ }
+pub trait Polarized { /* ... */ }
+
+pub struct MLCC { /* ... */ }
+impl TwoTerminal for MLCC {}
+impl Capacitor for MLCC {}
+```
+
 The trait and the type are declared completely independently, and impl Trait for Type is its own free-standing declaration — not nested inside the type's own definition. A struct can gain new trait implementations later, in different modules, without ever touching its original definition, and the same struct can implement several unrelated traits via several separate impl blocks. This is the actual mechanism this RFC was missing. This third draft fixes exactly that, and nothing else — no default methods, no associated types, no blanket impls; those are real Rust features but they weren't what was asked for, and adding them now would be solving a problem Tony didn't raise while still not fixing the one he did.
 
 ## Problem
@@ -35,9 +45,47 @@ Who this is for: std-library and device authors (human or AI), who should be abl
 
 Unchanged from earlier drafts in shape — a trait declares required pins (abstract roles, RFC-002 vocabulary) and required spec fields (unit-typed, RFC-001 vocabulary), plus optional sub-trait bounds:
 
+```cohdl
+pub trait TwoTerminal {
+    pins {
+        required A: pin
+        required B: pin
+    }
+}
+
+pub trait Capacitor: TwoTerminal {
+    spec {
+        capacitance: Capacitance
+        voltage_rating: Voltage
+        tolerance: Tolerance
+    }
+}
+
+pub trait Polarized {
+    pins {
+        required Anode: pin
+        required Cathode: pin
+    }
+}
+```
+
 Traits never reference any specific device. This part was already correct in the first draft and is unchanged.
 
 ### Devices are declared independently of any trait
+
+```cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    pins {
+        A: 1
+        B: 2
+    }
+    spec {
+        capacitance: C
+        voltage_rating: V
+        tolerance: T
+    }
+}
+```
 
 This is the actual fix. device no longer has an : impl Trait clause at all. A device is just pins + specs — a plain, self-contained declaration, exactly like Tony's pub struct MLCC { /* ... */ }. Whether it satisfies any trait is not decided here, and doesn't need to be known here.
 
@@ -45,12 +93,21 @@ This is the actual fix. device no longer has an : impl Trait clause at all. A de
 
 ### impl Trait for Device — a free-standing declaration, checked at the point it's written
 
+```cohdl
+impl TwoTerminal for MLCC {}
+impl Capacitor for MLCC {}
+```
+
 - Each impl Trait for Device is its own top-level statement — not nested in, and not required to be co-located with, either the trait's or the device's own declaration. It can appear in the same module as the device, a different module, or a module dedicated to grouping implementations by trait (a common, idiomatic Rust organization this now makes possible in CoHDL too).
 - A device may have any number of separate impl blocks, one per trait, added at any point (including after the device's original definition, in an entirely separate file) — this is the actual expressiveness gap the prior two drafts didn't close.
 - Each impl Trait for Device block is still checked exhaustively, the moment it is written — the gradeability discipline from the first draft is fully preserved, just relocated to apply to the impl statement instead of a clause inside device:
 - Sub-trait bounds still apply per-impl: writing impl Capacitor for MLCC requires the compiler to confirm TwoTerminal (which Capacitor bounds on) is also satisfied — either via an existing separate impl TwoTerminal for MLCC elsewhere in scope, or the compiler reports exactly that missing link (see Failure modes).
 
 ### Example: what this actually enables
+
+```cohdl
+$6a
+```
 
 MLCC and TantalumCap are declared once, in devices/passives.cohdl, and never touched again. Their trait memberships live in impls/capacitor_impls.cohdl, organized by trait rather than scattered across every device's own declaration — exactly the organizational freedom the C#-like coupling in the first draft prevented.
 

@@ -25,6 +25,23 @@ Who this is for: **std-library and device/fn authors** (human or AI) writing any
 
 ### Two kinds of generic parameter — unit-type and trait-bound
 
+```cohdl
+// Unit-type parameter: bound by one of RFC-001's ten unit types, optional visible default
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+
+// Trait-bound type parameter: bound by one or more traits (space via `+`)
+fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
+    net _: pin, target.A   // `target`'s pins/specs are known through D's trait bound
+}
+
+fn add_protected_decoupling<D: Capacitor + Polarized>(target: D, pin: Pin) {
+    // D must satisfy BOTH bounds — both must have a free-standing impl for the concrete type
+}
+```
+
 - A **unit-type parameter** (`C: Capacitance`) may only be substituted with a literal or another unit-type parameter of the *same* unit type (RFC-001's zero-coercion rule applies identically to generic substitution — no exception for generics).
 - A **trait-bound type parameter** (`D: Capacitor`) may only be substituted with a concrete device type that has a satisfying free-standing `impl Capacitor for ThatDevice` statement **somewhere in scope** at the point of instantiation.
 - Multiple trait bounds (`D: Capacitor + Polarized`) require the concrete type argument to have a satisfying `impl` for **every** listed trait, each independently looked up.
@@ -34,11 +51,35 @@ Who this is for: **std-library and device/fn authors** (human or AI) writing any
 
 The actual mechanism this RFC delivers: when a generic type parameter bound by trait(s) is instantiated with a concrete type argument, the compiler checks — for each required trait — whether a satisfying `impl RequiredTrait for ConcreteType` statement exists anywhere in the currently-compiled scope:
 
+```cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+impl TwoTerminal for MLCC {}
+impl Capacitor for MLCC {}
+
+fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
+    net _: pin, target.A
+}
+
+design Board {
+    inst c1: MLCC<100nF, 16V>
+    add_decoupling::<MLCC>(c1, some_pin)   // OK: impl Capacitor for MLCC exists in scope
+}
+```
+
 If no satisfying `impl` exists for the concrete type argument, this is a compile error at the call/instantiation site, naming the missing trait and the concrete type — the same diagnostic discipline RFC-003 established for device-level `impl` checking, just triggered from the generic-instantiation side instead of the device-declaration side.
 
 ### Unifying `impl Trait`-typed value parameters with generic type parameters
 
 v1 had a second, separate mechanism: a function parameter written `param: impl Trait` (not a generic type parameter, but a *value* parameter whose declared type is expressed as a trait bound). This RFC treats this as **pure sugar for an anonymous generic type parameter**, exactly as Rust does:
+
+```cohdl
+// These two are equivalent — the compiler desugars the first into the second:
+fn add_decoupling(target: impl Capacitor, pin: Pin) { ... }
+fn add_decoupling<__Anon0: Capacitor>(target: __Anon0, pin: Pin) { ... }
+```
 
 This means there is exactly **one** trait-bound-checking mechanism in the compiler (the generic-parameter one, rewired above), not two independent code paths that could silently diverge or be maintained inconsistently — directly addressing the "two mechanisms doing overlapping jobs" smell v1's real source exhibited.
 

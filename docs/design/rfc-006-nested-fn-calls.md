@@ -25,11 +25,52 @@ Who this is for: any author (human or AI) composing designs out of reusable sub-
 
 v1's actual bug is a **missing recursive case**, not a wrong architecture — the design-body-level expansion procedure (find the `fn` definition, build generic substitutions, instantiate each `inst` statement, wire each `net` statement) is correct; it simply needs to invoke *itself* when it encounters a `Call` statement inside a `fn` body, instead of doing nothing:
 
+```text
+fn expand_call(call, substitution_context, naming_context, depth):
+    fndef = resolve(call.path)
+    if fndef is None:
+        return  // name resolution already reported an error elsewhere
+
+    if naming_context.contains_active_call_to(fndef):
+        error("recursive fn call: `{fndef}` is already being expanded in this call chain")
+        return
+
+    new_substitution = build_generic_substitution(call, fndef, substitution_context)
+    new_naming = naming_context.push(fndef, call.site)
+
+    for stmt in fndef.body:
+        match stmt:
+            Inst(inst) => instantiate(inst, new_substitution, new_naming)
+            Net(net)   => wire(net, new_naming)
+            Call(nested_call) =>
+                expand_call(nested_call, new_substitution, new_naming, depth + 1)
+                // <-- the actual fix: recurse, instead of doing nothing
+```
+
 - `substitution_context`** threads outward-in.** A nested call's generic arguments may reference the *outer* call's own generic parameters (e.g. `fn_a<C: Capacitance>() { fn_b::<C>() }` — `fn_b`'s argument `C` refers to `fn_a`'s own generic parameter). The substitution map passed into the recursive `expand_call` must already have the outer call's own substitutions resolved, so a nested call's generic arguments are resolved against concrete types by the time the innermost `fn` needs them — never left as an unresolved symbolic reference.
 - `naming_context`** threads a call-chain path, not just a counter.** Every instance/net name is derived from the *full call chain* that produced it (e.g. `__fn0_fn_a::__fn1_fn_b::c1`), not a single flat `call_counter` — this guarantees two different call sites (even of the same `fn`, even at the same nesting depth) never collide, because the chain itself is part of the name, and naturally extends v1's existing `__fn{N}_{name}_{inst}` convention one level per nesting depth instead of leaving it flat.
 - **Cyclic recursion is detected, not silently looped forever or silently skipped.** `naming_context.contains_active_call_to(fndef)` checks whether the *current* call chain already contains an active (not-yet-returned) call to the same `fn` definition — if so, this is a compile error naming the full cycle, not an infinite expansion and not a second silent no-op.
 
 ### Example: what this fixes
+
+```cohdl
+fn decoupling_cap<V: Voltage>(pin: Pin) {
+    inst c: MLCC<100nF, V>
+    net _: pin, c.A
+    // (GND side wired by caller convention, illustrative)
+}
+
+fn power_rail<V: Voltage>(vdd_pin: Pin) {
+    inst ferrite: Ferrite_Bead
+    net _: vdd_pin, ferrite.IN
+    decoupling_cap::<V>(ferrite.OUT)   // <-- nested call
+}
+
+design Board {
+    inst mcu: MCU_ESP32S3
+    power_rail::<3.3V>(mcu.VDD)
+}
+```
 
 In v1, `power_rail`'s own `inst ferrite` and its `net` would be created correctly (it's a top-level call), but the nested `decoupling_cap::<V>(...)` call inside `power_rail`'s body would silently produce nothing — no `c` instance, no net wiring it in — with zero diagnostic, leaving `Board` looking complete while missing a decoupling capacitor entirely. In v2, `decoupling_cap` expands exactly as if it had been called directly from `Board`, with `V` correctly resolved to `3.3V` (threaded through `power_rail`'s own substitution), and its instance named uniquely along the full call-chain path.
 

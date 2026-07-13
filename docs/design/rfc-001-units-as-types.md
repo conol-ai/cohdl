@@ -52,6 +52,13 @@ Notes on the four new types:
 
 Every unit literal is a number immediately followed by an SI-prefixed unit symbol, no space, one canonical form per unit type:
 
+```cohdl
+spec {
+    capacitance: 100nF
+    voltage_rating: 10V
+}
+```
+
 Standard SI prefixes are supported per unit type where physically meaningful (`p`, `n`, `u`, `m`, `k`, `M`, `G` — only the prefixes that make engineering sense for that unit; e.g. `Capacitance` commonly uses `p/n/u`, `Frequency` commonly uses `k/M/G`). `Temperature` and `Tolerance` take no prefix at all (see Design notes above). The **grammar defines a fixed table of (unit symbol × allowed prefixes)** — this keeps the lexer deterministic and avoids the model having to guess which prefixes are "valid enough" for a given unit (a direct application of the "deterministic grammar, no context-sensitive tricks" hard constraint).
 
 **Resistance uses the ASCII symbol **`ohm` (not the Unicode `Ω` glyph) as the sole canonical form — this is a deliberate regularity choice: requiring a non-ASCII character in a token a model must reliably reproduce byte-for-byte is exactly the kind of "context-sensitive trap" the Constitution's grammar constraint warns about. One canonical way to write it; `Ω` is never accepted, not even as an alternate spelling (avoids the "two ways to express the same thing" model smell). The same ASCII-only principle now also governs `Temperature` (`C`, not `°C` or `°`).
@@ -64,6 +71,23 @@ Standard SI prefixes are supported per unit type where physically meaningful (`p
 - Comparison operators (`<=`, `>=`, `==`, etc., used inside `rule` blocks for the narrowed residual-DRC checks like "net voltage ≤ rating") are defined **only between two values of the same unit type**. Comparing a `Voltage` to a `Current` is a compile error in the `rule` block itself, not a runtime DRC surprise. This extends naturally to `Power`, `Inductance`, `Temperature`, and `Tolerance` — e.g. comparing an operating-temperature spec to a tolerance percentage is a compile error, not a nonsensical DRC pass.
 
 ### Example: how this closes a real v1 gap
+
+```cohdl
+pub trait Capacitor: TwoTerminal {
+    designator_prefix: "C"
+    spec { capacitance: Capacitance, voltage_rating: Voltage, tolerance: Tolerance }
+}
+
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%>: impl Capacitor {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+
+inst c1: MLCC<100nF, 16V, 5%>   // fine — types match the generic bounds
+inst c2: MLCC<16V, 100nF, 5>    // compile error: argument order/type mismatch AND
+                                 // a bare number where Tolerance is required,
+                                 // caught at monomorphization, not silently accepted
+```
 
 In v1, all three fields would have been bare-number-adjacent and any mixup was a human-review catch at best. In v2, swapping the arguments — or forgetting a unit suffix on tolerance — is a type error the moment the instance is declared.
 

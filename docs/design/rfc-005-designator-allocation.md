@@ -26,6 +26,10 @@ Who this is for: **every author whose design gets compiled** — designator coll
 
 Model assignment as: given (a) the **prior lock-file state** (existing designator assignments + tombstones, both immutable inputs) and (b) the **live instance set** for this compilation (each with its hierarchical path, optional override, and prefix), produce a new assignment map via a single deterministic computation with an explicit, checkable invariant — rather than v1's mutate-`used`-as-you-go loop.
 
+```text
+$64
+```
+
 The critical difference from v1: **Step 3 computes the full reserved-number set for a prefix once, immutably, before assigning any fresh numbers**, and assigns fresh numbers as *positions in one sorted sequence* rather than repeated independent "scan up from 1 until free" searches against a set that's being mutated concurrently with the scanning. Two instances needing the same prefix can never race to claim the same number, because there is no shared mutable state being updated between one instance's assignment and the next — the entire reserved set and the entire list of "who needs a fresh number" are fixed before any assignment happens.
 
 ### Designator stability and tombstoning — unchanged behavior, now derived from immutable inputs

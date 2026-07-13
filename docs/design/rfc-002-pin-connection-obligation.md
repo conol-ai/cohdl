@@ -24,6 +24,17 @@ Who this is for: primarily the **AI author**, who gets an immediate, local error
 
 Every pin in a `device` or `trait` pin definition carries an explicit obligation kind:
 
+```cohdl
+pub device MCU_ESP32S3: impl PowerConsumer {
+    pins {
+        required VDD: 1
+        required GND: 2, 3, 4        // pin bus — all required
+        optional NC_1: 5             // datasheet-defined no-connect, e.g. reserved/test pin
+        optional NC_2: 6
+    }
+}
+```
+
 - `required` — this pin **must** be resolved (see below) for any instance of this device to type-check.
 - `optional` — this pin may be left unmentioned entirely; it needs no `net` and no `nc` declaration. Reserved for pins the datasheet itself defines as safe to leave floating (test points, truly optional features) — not a way to opt out of the strictness this RFC exists to add.
 
@@ -36,6 +47,16 @@ A `required` pin on an instance resolves in exactly one of two ways:
 1. **Connected** — the instance's pin reference appears in some `net` declaration, same mechanism as v1/unchanged.
 2. **Explicitly not-connected** — the instance's pin reference appears in an `nc` declaration:
 
+```cohdl
+inst mcu: MCU_ESP32S3
+inst rtc_xtal: Crystal32k
+
+net VDD: mcu.VDD, ...
+net GND: mcu.GND, ...
+
+nc: mcu.RTC_XTAL_IN, mcu.RTC_XTAL_OUT   // this board doesn't use the RTC crystal input
+```
+
 `nc` is a **top-level design-body declaration**, syntactically parallel to `net` (a flat list of pin references), so it reads and generates exactly like a `net` block a model already knows how to emit — no new grammar shape, just a new keyword with a different semantic (a pin listed under `nc` joins no net; it is marked resolved-as-absent). This deliberately avoids inventing a structurally new declaration form (regularity over cleverness).
 
 **A **`required`** pin that appears in neither a **`net`** nor an **`nc`** declaration is a compile error** at design type-check time — the exhaustiveness check (see Gradeability). There is no silent third option.
@@ -47,6 +68,17 @@ A `fn` sub-circuit often receives a device/instance as a parameter and only wire
 **Resolution: the exhaustiveness check runs once, at final **`design`** assembly, after all **`fn`** inlining/monomorphization — never inside an unassembled **`fn`** body.** A `fn`'s own required-pin obligations are inherited by whatever calls it; only when a pin's owning instance is finally placed inside a top-level `design` (directly or through nested `fn` inlining) must every one of its `required` pins be resolved. This is consistent with Conceptual Model's fn semantics (nested calls monomorphize and inline; a `fn`'s behavior is fully determined by its parameters — nothing here creates ambient state or a new resolution mechanism, just the obvious point at which the check must apply).
 
 ### Example: what this catches that v1 didn't
+
+```cohdl
+inst mcu: MCU_ESP32S3
+inst c1: MLCC<100nF, 16V, 5%>
+
+net GND: mcu.GND, c1.B
+// mcu.VDD never appears in any net or nc declaration
+
+// compile error: required pin `mcu.VDD` is unresolved —
+// add it to a `net` or explicitly mark it `nc`
+```
 
 In v1 this design might have type-checked and even emitted a netlist with `VDD` simply absent from any connection — a real, physically broken board that the compiler called "correct." In v2 this is a compile error naming the exact pin.
 

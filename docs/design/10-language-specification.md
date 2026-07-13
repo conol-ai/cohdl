@@ -45,6 +45,17 @@ CoHDL has a **closed set of ten primitive unit types**. Each is a distinct type;
 
 Every pin declared on a `device` or `trait` carries an explicit **connection-obligation kind**, fixed at the definition and never overridable per-instance:
 
+```cohdl
+pub device MCU_ESP32S3 {
+    pins {
+        required VDD: 1
+        required GND: 2, 3, 4        // pin bus — all required
+        optional NC_1: 5             // datasheet-defined no-connect
+        optional NC_2: 6
+    }
+}
+```
+
 - `required` — must be resolved (see below) before any design containing an instance of this device can type-check.
 - `optional` — may be left unmentioned entirely; needs no `net` and no `nc` declaration.
 
@@ -52,6 +63,13 @@ Every pin declared on a `device` or `trait` carries an explicit **connection-obl
 
 1. **Connected** — the pin reference appears in some `net` declaration (unchanged mechanism).
 2. **Explicitly not-connected** — the pin reference appears in an `nc` declaration, a top-level design-body construct syntactically parallel to `net` (a flat pin-reference list), but semantically its opposite:
+
+```cohdl
+net VDD: mcu.VDD, ...
+net GND: mcu.GND, ...
+
+nc: mcu.RTC_XTAL_IN, mcu.RTC_XTAL_OUT
+```
 
 **Rules:**
 
@@ -68,6 +86,28 @@ Every pin declared on a `device` or `trait` carries an explicit **connection-obl
 
 **Traits and devices are declared completely independently of each other.** A `device` never has a trait clause — it is only pins + specs, self-contained:
 
+```cohdl
+pub trait TwoTerminal {
+    pins {
+        required A: pin
+        required B: pin
+    }
+}
+
+pub trait Capacitor: TwoTerminal {
+    spec {
+        capacitance: Capacitance
+        voltage_rating: Voltage
+        tolerance: Tolerance
+    }
+}
+
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+```
+
 - `pins { ... }` on a trait declares **abstract pin roles** (not physical pin numbers) with an obligation kind (`required`/`optional`, per RFC-002).
 - `spec { ... }` on a trait declares required spec fields, each with a unit type (per RFC-001's closed unit-type set).
 - `Trait: OtherTrait` is a **sub-trait bound** — implementing the child trait requires satisfying the parent trait's requirements too, transitively.
@@ -76,7 +116,23 @@ Every pin declared on a `device` or `trait` carries an explicit **connection-obl
 
 **Satisfaction is checked by matching the trait's required names against the device's own already-declared pin/spec names, by name:**
 
+```cohdl
+impl TwoTerminal for MLCC {}   // MLCC already has pins A/B — names match, body empty
+impl Capacitor for MLCC {}     // MLCC already has capacitance/voltage_rating/tolerance — empty
+```
+
 When a device's own field names don't match the trait's required roles, the `impl` body contains an explicit mapping (the only thing an `impl` body ever contains):
+
+```cohdl
+pub device TantalumCap<C: Capacitance, V: Voltage = 10V> {
+    pins { Anode: 1, Cathode: 2 }
+    spec { capacitance: C, voltage_rating: V }
+}
+
+impl TwoTerminal for TantalumCap {
+    pins { A: Anode, B: Cathode }   // names differ — explicit mapping
+}
+```
 
 **Rules:**
 
@@ -125,6 +181,24 @@ This section documents guarantees, not new syntax — designator assignment is a
 Accepted via RFC-006, see RFC-006: Nested fn call semantics + DR-015.
 
 A fn is a reusable circuit fragment — parameterized (including generically), instantiated and wired by calling it. fn calls may nest to arbitrary depth: a fn's own body may call other fns, exactly as if those nested calls had been written at the top level of the calling design.
+
+```cohdl
+fn decoupling_cap<V: Voltage>(pin: Pin) {
+    inst c: MLCC<100nF, V>
+    net _: pin, c.A
+}
+
+fn power_rail<V: Voltage>(vdd_pin: Pin) {
+    inst ferrite: Ferrite_Bead
+    net _: vdd_pin, ferrite.IN
+    decoupling_cap::<V>(ferrite.OUT)   // nested call — fully supported
+}
+
+design Board {
+    inst mcu: MCU_ESP32S3
+    power_rail::<3.3V>(mcu.VDD)
+}
+```
 
 Rules:
 

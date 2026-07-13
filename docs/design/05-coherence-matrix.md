@@ -53,6 +53,19 @@ Layout-constraint concept remains the single riskiest row, unchanged from v1 —
 
 # Feature evaluation formula — unchanged
 
+```text
+Feature value
+= Problem severity
+× Use frequency
+× Strategic alignment (AI-native?)
+× Composability
+× Gradeability (can the oracle check it?)
+÷ Conceptual cost (new concepts / exceptions)
+÷ Implementation complexity
+÷ Maintenance burden
+÷ Inconsistency risk (second-way / hidden coupling)
+```
+
 Worked example for v2: units-as-types → very high severity (an entire class of v1-unaddressed mistakes), high strategic alignment (gradeability and generatability — the model can no longer silently emit a wrong-unit spec, and the error appears at the exact line), moderate conceptual cost (a handful of new primitive types, learnable in one sitting) → very high value, build first.
 
 # Output of using this note — unchanged

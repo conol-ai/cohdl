@@ -6,6 +6,16 @@ Complex systems need memory. Every major decision gets a record: what we chose, 
 
 Format for every record:
 
+```text
+# DR-NNNN: [title]
+## Context — what situation led to this?
+## Options — what alternatives were considered?
+## Decision — what did we choose?
+## Rationale — why?
+## Consequences — benefits, costs, risks, constraints that follow.
+## Revisit when — what future conditions would justify changing it?
+```
+
 # DR-001: CoHDL is AI-native, not human-first — unchanged, still in force
 
 ## Context

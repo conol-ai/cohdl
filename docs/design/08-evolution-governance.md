@@ -6,6 +6,15 @@ Goals can change — but not silently. This note holds the governance process, t
 
 # Goal-change proposal format — unchanged
 
+```text
+# GC-NNNN: [title]
+Original goal · New goal · Reason · Strategic context ·
+Affected users · Affected principles · Affected concepts ·
+Affected capabilities · Compatibility risks · Required migrations ·
+Design debt created · Operational risks · Communication plan ·
+Decision: accept / reject / stage / experiment
+```
+
 # GC-001: Reframe CoHDL from "text HDL that's AI-generatable" to "the AI-native schematic language" — unchanged, still accepted
 
 Carried forward from v1 with no changes — this GC is about the mission, which the 2026-07-13 redesign explicitly kept locked. Full text preserved below for continuity.

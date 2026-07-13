@@ -408,6 +408,9 @@ pub enum Stmt {
     Net(NetStmt),
     Nc(NcStmt),
     Call(CallStmt),
+    /// RFC-013 `layout { … }` — layout-constraint metadata, structurally
+    /// checked but never affecting connectivity or emitted netlist bytes.
+    Layout(LayoutBlock),
 }
 
 impl Stmt {
@@ -417,17 +420,64 @@ impl Stmt {
             Stmt::Net(s) => s.span,
             Stmt::Nc(s) => s.span,
             Stmt::Call(s) => s.span,
+            Stmt::Layout(s) => s.span,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Layout constraints (RFC-013 — the door)
+
+#[derive(Debug, Clone)]
+pub struct LayoutBlock {
+    pub constraints: Vec<LayoutConstraint>,
+    pub span: Span,
+}
+
+/// One layout constraint. Net references are net *names* (not pin refs),
+/// resolved against the design/fn's declared nets during expansion.
+#[derive(Debug, Clone)]
+pub enum LayoutConstraint {
+    /// `net_class NAME { net, net, … }` — a named group sharing a layout
+    /// treatment (e.g. impedance control).
+    NetClass {
+        name: Ident,
+        nets: Vec<Ident>,
+        span: Span,
+    },
+    /// `diff_pair(net_p, net_n)` — exactly two nets (checked: E1003).
+    DiffPair { nets: Vec<Ident>, span: Span },
+    /// `length_match(net, net, …) [tolerance: "..."]` — two or more nets
+    /// (checked: E1004). Tolerance is an opaque pass-through string (CoHDL has
+    /// no length unit; the value is never enforced — RFC-013 Failure modes).
+    LengthMatch {
+        nets: Vec<Ident>,
+        tolerance: Option<(String, Span)>,
+        span: Span,
+    },
+}
+
+impl LayoutConstraint {
+    pub fn span(&self) -> Span {
+        match self {
+            LayoutConstraint::NetClass { span, .. }
+            | LayoutConstraint::DiffPair { span, .. }
+            | LayoutConstraint::LengthMatch { span, .. } => *span,
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct InstStmt {
-    /// Recognized: `#[designator("U7")]` (RFC-005). `#[intent(...)]` is split
-    /// out into `intent` at parse time, never left here.
+    /// Recognized: `#[designator("U7")]` (RFC-005). `#[intent(...)]` and
+    /// `#[placement_hint(...)]` are split out into their own fields at parse
+    /// time, never left here.
     pub attrs: Vec<Attr>,
     /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
     pub intent: Option<String>,
+    /// RFC-013 opaque `#[placement_hint("...")]` layout metadata — inst-only,
+    /// zero-impact (rides into `layout.json`, never into `.net`/BOM/designators).
+    pub placement_hint: Option<String>,
     pub name: Ident,
     pub ty: TypeRef,
     pub span: Span,

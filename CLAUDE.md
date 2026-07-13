@@ -13,7 +13,7 @@ The language design lives in `docs/design/` (snapshot of the conol.ai design rep
 3. `docs/design/09-mvp-definition.md` — current scope line + exit criteria
 4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them. (Pin roles and package variants graduated to RFC-008.)
 
-Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LSP, no LCEDA, no incremental compilation). Some originally-cut items have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), and `#[intent("...")]` opaque-metadata annotations (RFC-012). RFC-013 (layout-constraint concept) is Accepted but gated pending its own goal-change proposal — not yet implemented.
+Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LSP, no LCEDA, no incremental compilation). Some originally-cut items have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), `#[intent("...")]` opaque-metadata annotations (RFC-012), and layout constraints — `layout {}` (net_class/diff_pair/length_match) + `#[placement_hint]`, emitted to a separate `layout.json`, E10xx checks (RFC-013). RFC-001…013 are all Accepted and implemented.
 
 ## Commands
 

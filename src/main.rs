@@ -199,10 +199,21 @@ fn run(args: &Args) -> Result<bool, String> {
     std::fs::write(&lock_path, artifacts.lock.render())
         .map_err(|e| format!("cannot write `{}`: {}", lock_path.display(), e))?;
 
+    // RFC-013: the layout-constraint artifact, only when there is layout data.
+    let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
+    if let Some(layout) = &artifacts.layout {
+        std::fs::write(&layout_path, layout)
+            .map_err(|e| format!("cannot write `{}`: {}", layout_path.display(), e))?;
+    }
+
     if args.json {
         let build = emit::json::BuildArtifacts {
             netlist: net_path.display().to_string(),
             bom: bom_path.display().to_string(),
+            layout: artifacts
+                .layout
+                .as_ref()
+                .map(|_| layout_path.display().to_string()),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
         return Ok(true);
@@ -221,6 +232,9 @@ fn run(args: &Args) -> Result<bool, String> {
     );
     eprintln!("  wrote {}", net_path.display());
     eprintln!("  wrote {}", bom_path.display());
+    if artifacts.layout.is_some() {
+        eprintln!("  wrote {}", layout_path.display());
+    }
     eprintln!("  wrote {}", lock_path.display());
     Ok(true)
 }

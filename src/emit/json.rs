@@ -25,6 +25,8 @@ pub const SCHEMA_VERSION: u32 = 1;
 pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
+    /// RFC-013 `layout.json` path, present only when the design emits one.
+    pub layout: Option<String>,
 }
 
 /// A span resolved to the JSON schema's location shape (1-based line/col).
@@ -123,7 +125,15 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
     if let Some(b) = build {
         out.push_str(",\n  \"build\": {\n");
         let _ = writeln!(out, "    \"netlist\": {},", json_str(&b.netlist));
-        let _ = writeln!(out, "    \"bom\": {}", json_str(&b.bom));
+        match &b.layout {
+            Some(path) => {
+                let _ = writeln!(out, "    \"bom\": {},", json_str(&b.bom));
+                let _ = writeln!(out, "    \"layout\": {}", json_str(path));
+            }
+            None => {
+                let _ = writeln!(out, "    \"bom\": {}", json_str(&b.bom));
+            }
+        }
         out.push_str("  }");
     }
     out.push_str("\n}\n");
@@ -181,7 +191,7 @@ fn write_loc(out: &mut String, l: &JsonLoc, indent: usize) {
 }
 
 /// A JSON string literal, escaped per RFC 8259.
-fn json_str(s: &str) -> String {
+pub(crate) fn json_str(s: &str) -> String {
     let mut out = String::with_capacity(s.len() + 2);
     out.push('"');
     for c in s.chars() {

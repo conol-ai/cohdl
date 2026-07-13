@@ -27,6 +27,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E7xx | Pin connection obligations (RFC-002) |
 | E8xx | Designators & parts (RFC-005) |
 | E9xx | Structural variants (RFC-008) |
+| E10xx | Layout constraints (RFC-013) |
 | D00x | Residual DRC (RFC-004) — exactly four, never more |
 
 **Enforcement**: `tests/error_registry.rs` runs the RFC-011 completeness check
@@ -159,6 +160,19 @@ block owns structural-variant diagnostics, and completeness is mechanically
 enforced — is fully satisfied; its five-code count was an under-count surfaced
 by drafting before implementation, exactly the kind of drift the completeness
 test now prevents.
+
+## E10xx — layout constraints (RFC-013)
+
+Structural validation of `layout {}` constraints against their own closed
+vocabulary — never a connectivity/DRC check, never affecting the netlist bytes.
+
+| Code | Meaning |
+|---|---|
+| E1001 | a layout constraint references a net that is not declared in the design |
+| E1002 | duplicate `net_class` name |
+| E1003 | `diff_pair` does not name exactly two nets |
+| E1004 | `length_match` names fewer than two nets |
+| E1005 | `[RESERVED, not yet implemented]` `net_class` referenced before declaration — activates only once a future constraint kind references a `net_class` by name (the four current kinds reference nets, not classes) |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

@@ -91,6 +91,10 @@ pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
     pub lock: LockState,
+    /// RFC-013 `layout.json`, present only when the design carries layout
+    /// metadata (constraints or `#[placement_hint]`). Never affects the
+    /// netlist/BOM bytes.
+    pub layout: Option<String>,
     /// Informational notes for the build output (e.g. ambiguous part
     /// bindings resolved deterministically — provisional §2).
     pub notes: Vec<String>,
@@ -115,6 +119,7 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
         lock,
+        layout: crate::emit::layout::emit_layout_json(ir),
         notes,
     })
 }

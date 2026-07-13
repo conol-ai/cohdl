@@ -237,16 +237,17 @@ impl Formatter<'_> {
         self.flush_leading(self.c.max_line + 1, 0);
     }
 
-    /// RFC-012: emit `#[intent("...")]` on its own line, preceding the
-    /// declaration it annotates (same placement as `#[designator]`).
-    fn emit_intent(&mut self, intent: &Option<String>, indent: usize) {
-        if let Some(text) = intent {
-            self.push(indent, format!("#[intent({})]", str_lit(text)));
+    /// Emit a single-string opaque attribute (`#[NAME("...")]`) on its own line,
+    /// preceding the declaration it annotates — RFC-012 `#[intent]` and RFC-013
+    /// `#[placement_hint]`, same placement as `#[designator]`.
+    fn emit_string_attr(&mut self, name: &str, value: &Option<String>, indent: usize) {
+        if let Some(text) = value {
+            self.push(indent, format!("#[{}({})]", name, str_lit(text)));
         }
     }
 
     fn item(&mut self, item: &Item) {
-        self.emit_intent(&item.intent, 0);
+        self.emit_string_attr("intent", &item.intent, 0);
         let vis = if item.is_pub { "pub " } else { "" };
         match &item.kind {
             ItemKind::Trait(t) => self.trait_def(vis, t),
@@ -442,7 +443,8 @@ impl Formatter<'_> {
     fn stmt(&mut self, stmt: &Stmt, indent: usize) {
         match stmt {
             Stmt::Inst(s) => {
-                self.emit_intent(&s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent);
+                self.emit_string_attr("placement_hint", &s.placement_hint, indent);
                 for attr in &s.attrs {
                     self.push(indent, attr_text(attr));
                 }
@@ -452,7 +454,7 @@ impl Formatter<'_> {
                 );
             }
             Stmt::Net(s) => {
-                self.emit_intent(&s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent);
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
                 let ann = match &s.annotation {
                     Some(NetAnnotation::Voltage(v, _)) => format!(" [{}]", v.text),
@@ -464,12 +466,19 @@ impl Formatter<'_> {
                 self.wrapped(indent, &prefix, &members);
             }
             Stmt::Nc(s) => {
-                self.emit_intent(&s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent);
                 let members: Vec<String> = s.members.iter().map(|m| m.to_string()).collect();
                 self.wrapped(indent, "nc: ", &members);
             }
+            Stmt::Layout(s) => {
+                self.push(indent, "layout {");
+                for c in &s.constraints {
+                    self.push(indent + 1, layout_constraint_text(c));
+                }
+                self.push(indent, "}");
+            }
             Stmt::Call(s) => {
-                self.emit_intent(&s.intent, indent);
+                self.emit_string_attr("intent", &s.intent, indent);
                 let generics = if s.generic_args.is_empty() {
                     String::new()
                 } else {
@@ -539,6 +548,37 @@ impl Formatter<'_> {
 
 // ---------------------------------------------------------------------------
 // Text builders (pure functions of the AST — no layout state).
+
+fn layout_constraint_text(c: &LayoutConstraint) -> String {
+    match c {
+        LayoutConstraint::NetClass { name, nets, .. } => {
+            if nets.is_empty() {
+                format!("net_class {} {{ }}", name.name)
+            } else {
+                let list = join(nets.iter().map(|n| n.name.clone()), ", ");
+                format!("net_class {} {{ {} }}", name.name, list)
+            }
+        }
+        LayoutConstraint::DiffPair { nets, .. } => {
+            format!(
+                "diff_pair({})",
+                join(nets.iter().map(|n| n.name.clone()), ", ")
+            )
+        }
+        LayoutConstraint::LengthMatch {
+            nets, tolerance, ..
+        } => {
+            let base = format!(
+                "length_match({})",
+                join(nets.iter().map(|n| n.name.clone()), ", ")
+            );
+            match tolerance {
+                Some((s, _)) => format!("{} [tolerance: {}]", base, str_lit(s)),
+                None => base,
+            }
+        }
+    }
+}
 
 fn pin_text(pin: &DevicePin) -> String {
     let nums = join(pin.numbers.iter().map(|n| n.text.clone()), ", ");

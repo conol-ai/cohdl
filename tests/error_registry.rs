@@ -41,25 +41,33 @@ fn src_files() -> Vec<PathBuf> {
     out
 }
 
-/// Is `s` a code string: an uppercase `E`/`D` followed by exactly three digits.
+/// Is `s` a code string: an uppercase `E`/`D` followed by three digits (E402)
+/// or four (E1001, the RFC-013 layout block).
 fn is_code(s: &str) -> bool {
     let b = s.as_bytes();
-    b.len() == 4 && (b[0] == b'E' || b[0] == b'D') && b[1..].iter().all(|c| c.is_ascii_digit())
+    (b.len() == 4 || b.len() == 5)
+        && (b[0] == b'E' || b[0] == b'D')
+        && b[1..].iter().all(|c| c.is_ascii_digit())
 }
 
-/// All `"E###"` / `"D###"` string literals in the compiler source.
+/// All `"E###"` / `"E####"` / `"D###"` string literals in the compiler source.
 fn codes_in_source() -> BTreeSet<String> {
     let mut codes = BTreeSet::new();
     for path in src_files() {
         let text = std::fs::read_to_string(&path).unwrap();
         let bytes = text.as_bytes();
         let mut i = 0;
-        while i + 5 < bytes.len() {
-            // Look for a quote, then a 4-char code, then a quote.
-            if bytes[i] == b'"' && bytes[i + 5] == b'"' {
-                let inner = &text[i + 1..i + 5];
-                if is_code(inner) {
-                    codes.insert(inner.to_string());
+        while i < bytes.len() {
+            if bytes[i] == b'"' {
+                // A quoted 4- or 5-char code closed by another quote.
+                for len in [4usize, 5] {
+                    let close = i + 1 + len;
+                    if close < bytes.len() && bytes[close] == b'"' {
+                        let inner = &text[i + 1..close];
+                        if is_code(inner) {
+                            codes.insert(inner.to_string());
+                        }
+                    }
                 }
             }
             i += 1;

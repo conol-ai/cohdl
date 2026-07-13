@@ -6,6 +6,7 @@
 pub mod bom;
 pub mod json;
 pub mod kicad;
+pub mod layout;
 
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;

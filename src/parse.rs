@@ -180,16 +180,22 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Split `#[intent("...")]` (RFC-012) out of `attrs`: return its opaque
-    /// rationale string (validating exactly one string arg, at most one intent)
-    /// and the remaining non-intent attributes. Intent is metadata — it is
-    /// never threaded into any checking or emission pass, so it can never
-    /// affect a verdict, diagnostic, designator, or emitted byte.
+    /// Split `#[intent("...")]` (RFC-012) out of `attrs`. Intent is opaque
+    /// metadata — never threaded into any checking or emission pass — so it can
+    /// never affect a verdict, diagnostic, designator, or emitted byte.
     fn take_intent(&mut self, attrs: Vec<Attr>) -> (Option<String>, Vec<Attr>) {
-        let mut intent = None;
+        self.take_string_attr("intent", attrs)
+    }
+
+    /// Split a single-string opaque attribute (`#[NAME("...")]`) out of `attrs`,
+    /// validating exactly one string argument and at most one occurrence. Used
+    /// for RFC-012 `#[intent]` and RFC-013 `#[placement_hint]` — both metadata,
+    /// never compiled.
+    fn take_string_attr(&mut self, name: &str, attrs: Vec<Attr>) -> (Option<String>, Vec<Attr>) {
+        let mut value = None;
         let mut rest = Vec::new();
         for a in attrs {
-            if a.name.name != "intent" {
+            if a.name.name != name {
                 rest.push(a);
                 continue;
             }
@@ -197,21 +203,27 @@ impl<'a> Parser<'a> {
                 self.diags.push(Diagnostic::error(
                     "E010",
                     a.span,
-                    "`#[intent(…)]` takes exactly one string, e.g. `#[intent(\"why this choice\")]` (RFC-012)",
+                    format!(
+                        "`#[{}(…)]` takes exactly one string, e.g. `#[{}(\"…\")]`",
+                        name, name
+                    ),
                 ));
                 continue;
             }
-            if intent.is_some() {
+            if value.is_some() {
                 self.diags.push(Diagnostic::error(
                     "E010",
                     a.span,
-                    "at most one `#[intent(…)]` per declaration — use one string, or a `//` comment for anything more (RFC-012)",
+                    format!(
+                        "at most one `#[{}(…)]` per declaration — use one string, or a `//` comment for more",
+                        name
+                    ),
                 ));
                 continue;
             }
-            intent = Some(a.args[0].0.clone());
+            value = Some(a.args[0].0.clone());
         }
-        (intent, rest)
+        (value, rest)
     }
 
     fn attrs(&mut self) -> Vec<Attr> {
@@ -1111,11 +1123,22 @@ impl<'a> Parser<'a> {
 
     fn stmt(&mut self) -> Option<Stmt> {
         let attrs = self.attrs();
+        // RFC-013: a `layout { … }` block is a statement that takes no
+        // attributes. Detect it before attribute handling so `#[intent]` isn't
+        // silently swallowed onto a target that can't carry it.
+        if matches!(self.peek(), TokenKind::Ident(n) if n == "layout")
+            && self.peek_ahead(1) == &TokenKind::LBrace
+        {
+            self.reject_attrs(&attrs);
+            return self.layout_block();
+        }
         // RFC-012: split off `#[intent("...")]` (valid on any statement); the
-        // remaining attributes are inst-only (`#[designator]`).
+        // remaining attributes are inst-only (`#[designator]`/`#[placement_hint]`).
         let (intent, attrs) = self.take_intent(attrs);
         match self.peek() {
             TokenKind::Inst => {
+                // RFC-013: `#[placement_hint(...)]` is inst-only opaque metadata.
+                let (placement_hint, attrs) = self.take_string_attr("placement_hint", attrs);
                 let start = self.span();
                 self.bump();
                 let name = self.ident("as the instance name")?;
@@ -1124,6 +1147,7 @@ impl<'a> Parser<'a> {
                 Some(Stmt::Inst(InstStmt {
                     attrs,
                     intent,
+                    placement_hint,
                     name,
                     span: start.to(self.prev_span()),
                     ty,
@@ -1273,6 +1297,129 @@ impl<'a> Parser<'a> {
                 ),
             ));
         }
+    }
+
+    // -- layout constraints (RFC-013) ----------------------------------------
+
+    fn layout_block(&mut self) -> Option<Stmt> {
+        let start = self.span();
+        self.bump(); // `layout`
+        self.expect(&TokenKind::LBrace, "to open the layout block");
+        let mut constraints = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if let Some(c) = self.layout_constraint() {
+                constraints.push(c);
+            }
+            if self.pos == before {
+                // No progress on a malformed constraint — skip a token so the
+                // block can still close.
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close the layout block");
+        Some(Stmt::Layout(LayoutBlock {
+            constraints,
+            span: start.to(self.prev_span()),
+        }))
+    }
+
+    fn layout_constraint(&mut self) -> Option<LayoutConstraint> {
+        let start = self.span();
+        match self.peek() {
+            TokenKind::Ident(n) if n == "net_class" => {
+                self.bump();
+                let name = self.ident("as the net-class name")?;
+                self.expect(&TokenKind::LBrace, "to open the net_class body");
+                let mut nets = Vec::new();
+                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                    nets.push(self.ident("as a net name in the net_class")?);
+                    self.eat(&TokenKind::Comma);
+                }
+                self.expect(&TokenKind::RBrace, "to close the net_class body");
+                Some(LayoutConstraint::NetClass {
+                    name,
+                    nets,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            TokenKind::Ident(n) if n == "diff_pair" => {
+                self.bump();
+                let nets = self.layout_net_args()?;
+                Some(LayoutConstraint::DiffPair {
+                    nets,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            TokenKind::Ident(n) if n == "length_match" => {
+                self.bump();
+                let nets = self.layout_net_args()?;
+                let tolerance = self.layout_tolerance();
+                Some(LayoutConstraint::LengthMatch {
+                    nets,
+                    tolerance,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            other => {
+                let msg = format!(
+                    "expected a layout constraint (`net_class`, `diff_pair`, or `length_match`), found {}",
+                    other.describe()
+                );
+                self.error_here(msg);
+                None
+            }
+        }
+    }
+
+    /// The parenthesized net-name list of `diff_pair(...)` / `length_match(...)`.
+    fn layout_net_args(&mut self) -> Option<Vec<Ident>> {
+        self.expect(&TokenKind::LParen, "to open the net list");
+        let mut nets = Vec::new();
+        while !self.at(&TokenKind::RParen) && !self.at(&TokenKind::Eof) {
+            nets.push(self.ident("as a net name")?);
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
+        }
+        self.expect(&TokenKind::RParen, "to close the net list");
+        Some(nets)
+    }
+
+    /// The optional `[tolerance: "..."]` suffix on `length_match` — an opaque
+    /// pass-through string (CoHDL has no length unit; RFC-013 Failure modes).
+    fn layout_tolerance(&mut self) -> Option<(String, Span)> {
+        if !self.at(&TokenKind::LBracket) {
+            return None;
+        }
+        self.bump(); // `[`
+        if self.at_ident("tolerance") {
+            self.bump();
+        } else {
+            self.error_here(format!(
+                "expected `tolerance` in the length_match bracket, found {}",
+                self.peek().describe()
+            ));
+        }
+        self.expect(&TokenKind::Colon, "after `tolerance`");
+        let value = match self.peek() {
+            TokenKind::Str(_) => {
+                let t = self.bump();
+                let TokenKind::Str(s) = t.kind else {
+                    unreachable!()
+                };
+                Some((s, t.span))
+            }
+            other => {
+                self.error_here(format!(
+                    "the `tolerance` value must be a string (e.g. `[tolerance: \"0.15mm\"]`), found {}",
+                    other.describe()
+                ));
+                None
+            }
+        };
+        self.expect(&TokenKind::RBracket, "to close the tolerance bracket");
+        value
     }
 
     fn pin_ref(&mut self) -> Option<PinRef> {

@@ -17,6 +17,44 @@ pub struct DesignIr {
     pub nets: Vec<IrNet>,
     /// Pins explicitly marked not-connected: (instance path, logical pin).
     pub nc_pins: BTreeSet<(String, String)>,
+    /// RFC-013 layout constraints, resolved to IR net names. Rides into the
+    /// separate `layout.json` artifact — never the `.net`/BOM connectivity data.
+    pub layout: LayoutIr,
+}
+
+/// Resolved layout constraints (RFC-013). Net references are IR net names.
+/// Emission order is source/collection order — deterministic per source.
+#[derive(Debug, Default)]
+pub struct LayoutIr {
+    pub net_classes: Vec<LayoutNetClass>,
+    pub diff_pairs: Vec<LayoutDiffPair>,
+    pub length_matches: Vec<LayoutLengthMatch>,
+}
+
+impl LayoutIr {
+    pub fn is_empty(&self) -> bool {
+        self.net_classes.is_empty() && self.diff_pairs.is_empty() && self.length_matches.is_empty()
+    }
+}
+
+#[derive(Debug)]
+pub struct LayoutNetClass {
+    pub name: String,
+    pub nets: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct LayoutDiffPair {
+    /// (positive, negative) — pair order is significant, preserved as written.
+    pub p: String,
+    pub n: String,
+}
+
+#[derive(Debug)]
+pub struct LayoutLengthMatch {
+    pub nets: Vec<String>,
+    /// Opaque pass-through tolerance (never enforced by CoHDL).
+    pub tolerance: Option<String>,
 }
 
 #[derive(Debug)]
@@ -35,6 +73,9 @@ pub struct IrInstance {
     pub designator_override: Option<(String, Span)>,
     /// Assigned by the allocator (RFC-005) during `build`.
     pub designator: Option<String>,
+    /// RFC-013 opaque `#[placement_hint("...")]` — layout metadata for the
+    /// separate `layout.json`; never influences designators or the netlist.
+    pub placement_hint: Option<String>,
     /// Traits the device implements (checked impls) — used by DRC D002 and
     /// the designator-prefix rule.
     pub impl_traits: BTreeSet<String>,

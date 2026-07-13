@@ -9,7 +9,9 @@
 use crate::ast::*;
 use crate::check::generics::{resolve_generic_args, GenericValue, Substitution};
 use crate::diag::{Diagnostic, Diagnostics};
-use crate::ir::{DesignIr, IrInstance, IrNet};
+use crate::ir::{
+    DesignIr, IrInstance, IrNet, LayoutDiffPair, LayoutIr, LayoutLengthMatch, LayoutNetClass,
+};
 use crate::resolve::World;
 use crate::span::Span;
 use crate::units::UnitValue;
@@ -22,6 +24,7 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         instances: BTreeMap::new(),
         net_decls: Vec::new(),
         nc_pins: Vec::new(),
+        layout_raw: Vec::new(),
         active_calls: Vec::new(),
         call_counter: 0,
         anon_net_counter: 0,
@@ -82,11 +85,32 @@ struct Expander<'w, 'd> {
     instances: BTreeMap<String, IrInstance>,
     net_decls: Vec<NetDecl>,
     nc_pins: Vec<((String, String), Span)>,
+    /// RFC-013 layout constraints, collected with scope-resolved net names,
+    /// validated against the final net set at assembly.
+    layout_raw: Vec<RawLayout>,
     /// fn names currently being expanded (cycle detection, RFC-006).
     active_calls: Vec<String>,
     /// Global (per-design) call counter — `__fn{N}_{name}` segments.
     call_counter: usize,
     anon_net_counter: usize,
+}
+
+/// A layout constraint with each net reference resolved to its candidate IR net
+/// name (paired with the original identifier for precise E1001 spans).
+enum RawLayout {
+    NetClass {
+        name: Ident,
+        nets: Vec<(String, Ident)>,
+    },
+    DiffPair {
+        nets: Vec<(String, Ident)>,
+        span: Span,
+    },
+    LengthMatch {
+        nets: Vec<(String, Ident)>,
+        tolerance: Option<String>,
+        span: Span,
+    },
 }
 
 impl<'w, 'd> Expander<'w, 'd> {
@@ -104,7 +128,44 @@ impl<'w, 'd> Expander<'w, 'd> {
                 Stmt::Net(net) => self.handle_net(net, scope),
                 Stmt::Nc(nc) => self.handle_nc(nc, scope),
                 Stmt::Call(call) => self.handle_call(call, scope),
+                Stmt::Layout(block) => self.handle_layout(block, scope),
             }
+        }
+    }
+
+    // -- layout constraints (RFC-013) ----------------------------------------
+
+    /// Collect a `layout {}` block's constraints, resolving each net reference
+    /// to its candidate IR net name within the current scope. Validation
+    /// against the final net set happens in `assemble` (net existence is only
+    /// knowable once every declaration in the design is processed).
+    fn handle_layout(&mut self, block: &LayoutBlock, scope: &Scope) {
+        let resolve = |nets: &[Ident]| -> Vec<(String, Ident)> {
+            nets.iter()
+                .map(|nid| (resolve_net_name(&nid.name, scope), nid.clone()))
+                .collect()
+        };
+        for c in &block.constraints {
+            let raw = match c {
+                LayoutConstraint::NetClass { name, nets, .. } => RawLayout::NetClass {
+                    name: name.clone(),
+                    nets: resolve(nets),
+                },
+                LayoutConstraint::DiffPair { nets, span } => RawLayout::DiffPair {
+                    nets: resolve(nets),
+                    span: *span,
+                },
+                LayoutConstraint::LengthMatch {
+                    nets,
+                    tolerance,
+                    span,
+                } => RawLayout::LengthMatch {
+                    nets: resolve(nets),
+                    tolerance: tolerance.as_ref().map(|(s, _)| s.clone()),
+                    span: *span,
+                },
+            };
+            self.layout_raw.push(raw);
         }
     }
 
@@ -348,6 +409,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 part,
                 designator_override,
                 designator: None,
+                placement_hint: inst.placement_hint.clone(),
                 impl_traits: self.world.implemented_traits(&device_name),
                 span: inst.span,
             },
@@ -948,17 +1010,129 @@ impl<'w, 'd> Expander<'w, 'd> {
         let nc_pins: BTreeSet<(String, String)> =
             self.nc_pins.iter().map(|(p, _)| p.clone()).collect();
 
+        // RFC-013: validate layout constraints against the final net set and
+        // build the (connectivity-independent) layout IR.
+        let net_names: BTreeSet<String> = nets.iter().map(|n| n.name.clone()).collect();
+        let layout = build_layout_ir(&self.layout_raw, &net_names, self.diags);
+
         let ir = DesignIr {
             name: design.name.name.clone(),
             instances: self.instances,
             nets,
             nc_pins,
+            layout,
         };
 
         // RFC-002: pin connection-obligation exhaustiveness, once, at final
         // design assembly, after all inlining/monomorphization.
         check_pin_obligations(self.world, &ir, self.diags);
         ir
+    }
+}
+
+/// The IR net name a source net name resolves to in `scope` — identical to the
+/// naming rule `handle_net` applies to a named net (RFC-013).
+fn resolve_net_name(name: &str, scope: &Scope) -> String {
+    if scope.is_design_body {
+        name.to_string()
+    } else {
+        let scoped = format!("{}::{}", scope.path, name);
+        scoped
+            .strip_prefix(&format!("{}::", scope.design_name))
+            .unwrap_or(&scoped)
+            .to_string()
+    }
+}
+
+/// RFC-013: validate layout constraints against their own closed vocabulary and
+/// the final net set, and build the resolved layout IR. Every check here is
+/// structural (net existence, arity, name uniqueness) — none touches the
+/// connectivity graph's emergent properties, and none can alter the netlist.
+fn build_layout_ir(
+    raw: &[RawLayout],
+    net_names: &BTreeSet<String>,
+    diags: &mut Diagnostics,
+) -> LayoutIr {
+    let mut layout = LayoutIr::default();
+    let mut seen_classes: BTreeSet<String> = BTreeSet::new();
+    for c in raw {
+        match c {
+            RawLayout::NetClass { name, nets } => {
+                check_layout_nets(nets, net_names, diags);
+                if !seen_classes.insert(name.name.clone()) {
+                    diags.push(Diagnostic::error(
+                        "E1002",
+                        name.span,
+                        format!("duplicate `net_class` name `{}`", name.name),
+                    ));
+                }
+                layout.net_classes.push(LayoutNetClass {
+                    name: name.name.clone(),
+                    nets: nets.iter().map(|(r, _)| r.clone()).collect(),
+                });
+            }
+            RawLayout::DiffPair { nets, span } => {
+                check_layout_nets(nets, net_names, diags);
+                if nets.len() != 2 {
+                    diags.push(Diagnostic::error(
+                        "E1003",
+                        *span,
+                        format!(
+                            "`diff_pair` must name exactly two nets, found {}",
+                            nets.len()
+                        ),
+                    ));
+                } else {
+                    layout.diff_pairs.push(LayoutDiffPair {
+                        p: nets[0].0.clone(),
+                        n: nets[1].0.clone(),
+                    });
+                }
+            }
+            RawLayout::LengthMatch {
+                nets,
+                tolerance,
+                span,
+            } => {
+                check_layout_nets(nets, net_names, diags);
+                if nets.len() < 2 {
+                    diags.push(Diagnostic::error(
+                        "E1004",
+                        *span,
+                        format!(
+                            "`length_match` must name at least two nets, found {}",
+                            nets.len()
+                        ),
+                    ));
+                } else {
+                    layout.length_matches.push(LayoutLengthMatch {
+                        nets: nets.iter().map(|(r, _)| r.clone()).collect(),
+                        tolerance: tolerance.clone(),
+                    });
+                }
+            }
+        }
+    }
+    layout
+}
+
+/// E1001: every net a layout constraint references must be a declared net.
+fn check_layout_nets(
+    nets: &[(String, Ident)],
+    net_names: &BTreeSet<String>,
+    diags: &mut Diagnostics,
+) {
+    for (resolved, orig) in nets {
+        if !net_names.contains(resolved) {
+            diags.push(Diagnostic::error(
+                "E1001",
+                orig.span,
+                format!(
+                    "unknown net `{}` in a layout constraint — no such net is declared in this design",
+                    orig.name
+                ),
+            ));
+        }
     }
 }
 

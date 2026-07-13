@@ -237,7 +237,16 @@ impl Formatter<'_> {
         self.flush_leading(self.c.max_line + 1, 0);
     }
 
+    /// RFC-012: emit `#[intent("...")]` on its own line, preceding the
+    /// declaration it annotates (same placement as `#[designator]`).
+    fn emit_intent(&mut self, intent: &Option<String>, indent: usize) {
+        if let Some(text) = intent {
+            self.push(indent, format!("#[intent({})]", str_lit(text)));
+        }
+    }
+
     fn item(&mut self, item: &Item) {
+        self.emit_intent(&item.intent, 0);
         let vis = if item.is_pub { "pub " } else { "" };
         match &item.kind {
             ItemKind::Trait(t) => self.trait_def(vis, t),
@@ -433,6 +442,7 @@ impl Formatter<'_> {
     fn stmt(&mut self, stmt: &Stmt, indent: usize) {
         match stmt {
             Stmt::Inst(s) => {
+                self.emit_intent(&s.intent, indent);
                 for attr in &s.attrs {
                     self.push(indent, attr_text(attr));
                 }
@@ -442,6 +452,7 @@ impl Formatter<'_> {
                 );
             }
             Stmt::Net(s) => {
+                self.emit_intent(&s.intent, indent);
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
                 let ann = match &s.annotation {
                     Some(NetAnnotation::Voltage(v, _)) => format!(" [{}]", v.text),
@@ -453,10 +464,12 @@ impl Formatter<'_> {
                 self.wrapped(indent, &prefix, &members);
             }
             Stmt::Nc(s) => {
+                self.emit_intent(&s.intent, indent);
                 let members: Vec<String> = s.members.iter().map(|m| m.to_string()).collect();
                 self.wrapped(indent, "nc: ", &members);
             }
             Stmt::Call(s) => {
+                self.emit_intent(&s.intent, indent);
                 let generics = if s.generic_args.is_empty() {
                     String::new()
                 } else {

@@ -327,7 +327,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                     "E010",
                     attr.span,
                     format!(
-                        "unrecognized attribute `{}` (only `#[designator(\"…\")]` is supported)",
+                        "unrecognized attribute `{}` (only `#[designator(\"…\")]` and `#[intent(\"…\")]` are supported)",
                         attr.name.name
                     ),
                 ));

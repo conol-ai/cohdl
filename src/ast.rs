@@ -27,6 +27,10 @@ pub struct SourceFile {
 pub struct Item {
     /// `pub` is accepted and recorded; the MVP's flat scope doesn't enforce it.
     pub is_pub: bool,
+    /// RFC-012 `#[intent("...")]` rationale — opaque metadata. Deliberately
+    /// never threaded into any checking/emission pass (the zero-impact
+    /// guarantee is structural: intent is not a parameter those functions take).
+    pub intent: Option<String>,
     pub kind: ItemKind,
     pub span: Span,
 }
@@ -419,8 +423,11 @@ impl Stmt {
 
 #[derive(Debug, Clone)]
 pub struct InstStmt {
-    /// Recognized: `#[designator("U7")]` (RFC-005).
+    /// Recognized: `#[designator("U7")]` (RFC-005). `#[intent(...)]` is split
+    /// out into `intent` at parse time, never left here.
     pub attrs: Vec<Attr>,
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
+    pub intent: Option<String>,
     pub name: Ident,
     pub ty: TypeRef,
     pub span: Span,
@@ -432,6 +439,8 @@ pub struct NetStmt {
     pub name: Option<Ident>,
     pub annotation: Option<NetAnnotation>,
     pub members: Vec<PinRef>,
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
+    pub intent: Option<String>,
     pub span: Span,
 }
 
@@ -453,6 +462,8 @@ impl NetAnnotation {
 #[derive(Debug, Clone)]
 pub struct NcStmt {
     pub members: Vec<PinRef>,
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
+    pub intent: Option<String>,
     pub span: Span,
 }
 
@@ -481,6 +492,8 @@ pub struct CallStmt {
     /// Turbofish args: `decoupling_cap::<V>(…)`.
     pub generic_args: Vec<GenericArg>,
     pub args: Vec<PinRef>,
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
+    pub intent: Option<String>,
     pub span: Span,
 }
 

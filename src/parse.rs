@@ -150,6 +150,9 @@ impl<'a> Parser<'a> {
     fn item(&mut self) -> Option<Item> {
         let start = self.span();
         let attrs = self.attrs();
+        // RFC-012: `#[intent("...")]` is opaque metadata valid on any
+        // declaration; any other attribute (`#[designator]`) is inst-only.
+        let (intent, rest) = self.take_intent(attrs);
         let is_pub = self.eat(&TokenKind::Pub);
         let kind = match self.peek() {
             TokenKind::Trait => self.trait_def().map(ItemKind::Trait),
@@ -167,20 +170,48 @@ impl<'a> Parser<'a> {
                 None
             }
         };
-        if !attrs.is_empty() {
-            // Attributes are only meaningful on `inst` statements for MVP.
-            self.diags.push(Diagnostic::error(
-                "E010",
-                attrs[0].span,
-                "attributes are only supported on `inst` statements",
-            ));
-        }
+        self.reject_attrs(&rest);
         let kind = kind?;
         Some(Item {
             is_pub,
+            intent,
             span: start.to(self.prev_span()),
             kind,
         })
+    }
+
+    /// Split `#[intent("...")]` (RFC-012) out of `attrs`: return its opaque
+    /// rationale string (validating exactly one string arg, at most one intent)
+    /// and the remaining non-intent attributes. Intent is metadata — it is
+    /// never threaded into any checking or emission pass, so it can never
+    /// affect a verdict, diagnostic, designator, or emitted byte.
+    fn take_intent(&mut self, attrs: Vec<Attr>) -> (Option<String>, Vec<Attr>) {
+        let mut intent = None;
+        let mut rest = Vec::new();
+        for a in attrs {
+            if a.name.name != "intent" {
+                rest.push(a);
+                continue;
+            }
+            if a.args.len() != 1 {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    a.span,
+                    "`#[intent(…)]` takes exactly one string, e.g. `#[intent(\"why this choice\")]` (RFC-012)",
+                ));
+                continue;
+            }
+            if intent.is_some() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    a.span,
+                    "at most one `#[intent(…)]` per declaration — use one string, or a `//` comment for anything more (RFC-012)",
+                ));
+                continue;
+            }
+            intent = Some(a.args[0].0.clone());
+        }
+        (intent, rest)
     }
 
     fn attrs(&mut self) -> Vec<Attr> {
@@ -1080,6 +1111,9 @@ impl<'a> Parser<'a> {
 
     fn stmt(&mut self) -> Option<Stmt> {
         let attrs = self.attrs();
+        // RFC-012: split off `#[intent("...")]` (valid on any statement); the
+        // remaining attributes are inst-only (`#[designator]`).
+        let (intent, attrs) = self.take_intent(attrs);
         match self.peek() {
             TokenKind::Inst => {
                 let start = self.span();
@@ -1089,6 +1123,7 @@ impl<'a> Parser<'a> {
                 let ty = self.type_ref()?;
                 Some(Stmt::Inst(InstStmt {
                     attrs,
+                    intent,
                     name,
                     span: start.to(self.prev_span()),
                     ty,
@@ -1159,6 +1194,7 @@ impl<'a> Parser<'a> {
                     name,
                     annotation,
                     members,
+                    intent,
                     span: start.to(self.prev_span()),
                 }))
             }
@@ -1170,6 +1206,7 @@ impl<'a> Parser<'a> {
                 let members = self.pin_ref_list();
                 Some(Stmt::Nc(NcStmt {
                     members,
+                    intent,
                     span: start.to(self.prev_span()),
                 }))
             }
@@ -1208,6 +1245,7 @@ impl<'a> Parser<'a> {
                     callee,
                     generic_args,
                     args,
+                    intent,
                     span: start.to(self.prev_span()),
                 }))
             }
@@ -1222,12 +1260,17 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// Reject any non-`#[intent]` attribute left after `take_intent`.
+    /// `#[designator(…)]` is inst-only (RFC-005); no other attribute exists.
     fn reject_attrs(&mut self, attrs: &[Attr]) {
         if let Some(a) = attrs.first() {
             self.diags.push(Diagnostic::error(
                 "E010",
                 a.span,
-                "attributes are only supported on `inst` statements",
+                format!(
+                    "`#[{}]` is not valid here — only `#[intent(\"…\")]` may annotate this (and `#[designator(\"…\")]` on `inst`)",
+                    a.name.name
+                ),
             ));
         }
     }

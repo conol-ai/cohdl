@@ -1,0 +1,21 @@
+// 3.3V LDO regulator: Diodes Inc. AP2112K-3.3 (SOT-23-5).
+// 600mA, fixed 3.3V output; needs 1uF ceramics on input and output.
+
+pub device AP2112K_3V3 {
+    pins {
+        required VIN: 1 [power_in]
+        required GND: 2 [power_in]
+        required EN: 3 [input]
+        optional NC: 4
+        required VOUT: 5 [power_out]
+    }
+    spec {
+        voltage_rating: 6V         // absolute max input voltage
+    }
+}
+
+impl IC for AP2112K_3V3 {}
+
+pub part LDO_AP2112K_3V3: AP2112K_3V3 {
+    primary { mfr: "Diodes Inc", mpn: "AP2112K-3.3TRG1", footprint: "Package_TO_SOT_SMD:SOT-23-5" }
+}

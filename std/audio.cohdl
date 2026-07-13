@@ -1,0 +1,19 @@
+// MEMS microphone: TDK/InvenSense ICS-43434, digital I2S output.
+// NOTE: demo-grade pinout transcription — verify before fabrication.
+
+pub device ICS43434 {
+    pins {
+        required WS: 1 [input]      // I2S word select
+        required LR: 2 [input]      // channel select — tie to GND or VDD
+        required SCK: 3 [input]     // I2S clock
+        required SD: 4 [output]     // I2S data out
+        required VDD: 5 [power_in]
+        required GND: 6 [power_in]
+    }
+}
+
+impl Microphone for ICS43434 {}
+
+pub part MIC_ICS43434: ICS43434 {
+    primary { mfr: "TDK InvenSense", mpn: "ICS-43434", footprint: "Sensor_Audio:InvenSense_ICS-43434-6_3.5x2.65mm" }
+}

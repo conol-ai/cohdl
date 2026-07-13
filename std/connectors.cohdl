@@ -1,0 +1,25 @@
+// USB Type-C receptacle, USB 2.0 only (16 contacts, HRO TYPE-C-31-M-12).
+//
+// Pad names follow the KiCad footprint
+// Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12, where opposing
+// same-signal contacts share a pad (A1B12, B1A12, A4B9, B4A9).
+
+pub device USB_C_Receptacle_2_0 {
+    pins {
+        required GND: A1B12, B1A12 [power_in]
+        required VBUS: A4B9, B4A9 [power_out]   // the upstream source drives VBUS
+        required CC1: A5 [passive]
+        required CC2: B5 [passive]
+        required DP: A6, B6 [bidirectional]
+        required DN: A7, B7 [bidirectional]
+        optional SBU1: A8
+        optional SBU2: B8
+        required SHIELD: S1 [passive]
+    }
+}
+
+impl Connector for USB_C_Receptacle_2_0 {}
+
+pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
+    primary { mfr: "HRO", mpn: "TYPE-C-31-M-12", footprint: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12" }
+}

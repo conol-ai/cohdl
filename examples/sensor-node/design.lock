@@ -1,0 +1,17 @@
+[designators]
+"SensorNode::__fn0_status_led::led" = "D1"
+"SensorNode::__fn0_status_led::r" = "R1"
+"SensorNode::__fn1_bulk_10u::c" = "C1"
+"SensorNode::__fn2_decoupling_100n::c" = "C2"
+"SensorNode::__fn3_decoupling_100n::c" = "C3"
+"SensorNode::c_ldo_in" = "C4"
+"SensorNode::c_ldo_out" = "C5"
+"SensorNode::esp" = "U1"
+"SensorNode::ldo" = "U2"
+"SensorNode::mic" = "MK1"
+"SensorNode::r_cc1" = "R2"
+"SensorNode::r_cc2" = "R3"
+"SensorNode::r_en" = "R4"
+"SensorNode::usb" = "J1"
+
+[tombstones]

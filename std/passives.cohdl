@@ -1,0 +1,72 @@
+// Passives: MLCC capacitors and thick-film chip resistors, with part
+// bindings for exactly the values the demo board needs.
+
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    pins { A: 1, B: 2 }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+
+impl TwoTerminal for MLCC {}
+impl Capacitor for MLCC {}
+
+pub device ChipResistor<R: Resistance, T: Tolerance = 1%> {
+    pins { A: 1, B: 2 }
+    spec { resistance: R, tolerance: T }
+}
+
+impl TwoTerminal for ChipResistor {}
+impl Resistor for ChipResistor {}
+
+// ---- demo-board part bindings ----
+
+// 100nF X7R 16V 0402 — the standard decoupling capacitor.
+pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%> {
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    alt     { mfr: "Murata",  mpn: "GRM155R71C104KA88D" }
+}
+
+// 1uF X5R 10V 0402 — LDO input/output capacitor.
+pub part MLCC_1uF_10V_0402: MLCC<1uF, 10V, 10%> {
+    primary { mfr: "Murata", mpn: "GRM155R61A105KE15D", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    alt     { mfr: "Samsung", mpn: "CL05A105KP5NNNC" }
+}
+
+// 10uF X5R 10V 0603 — bulk capacitor on the 3.3V rail.
+pub part MLCC_10uF_10V_0603: MLCC<10uF, 10V, 20%> {
+    primary { mfr: "Samsung", mpn: "CL10A106KP8NNNC", footprint: "Capacitor_SMD:C_0603_1608Metric" }
+    alt     { mfr: "Murata",  mpn: "GRM188R61A106KE69D" }
+}
+
+// 5.1kohm 1% 0402 — USB-C CC pull-downs (UFP sink advertisement).
+pub part RES_5K1_0402: ChipResistor<5.1kohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-075K1L", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    alt     { mfr: "Vishay", mpn: "CRCW04025K10FKED" }
+}
+
+// 10kohm 1% 0402 — EN/chip-enable pull-up.
+pub part RES_10K_0402: ChipResistor<10kohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-0710KL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    alt     { mfr: "Vishay", mpn: "CRCW040210K0FKED" }
+}
+
+// 1kohm 1% 0402 — status-LED series resistor.
+pub part RES_1K_0402: ChipResistor<1kohm, 1%> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    alt     { mfr: "Vishay", mpn: "CRCW04021K00FKED" }
+}
+
+// ---- reusable sub-circuits ----
+
+// One 100nF decoupling capacitor across a supply pin pair.
+pub fn decoupling_100n(vdd: Pin, gnd: Pin) {
+    inst c: MLCC_100nF_16V_0402
+    net _: vdd, c.A
+    net _: gnd, c.B
+}
+
+// Bulk 10uF across a rail.
+pub fn bulk_10u(vdd: Pin, gnd: Pin) {
+    inst c: MLCC_10uF_10V_0603
+    net _: vdd, c.A
+    net _: gnd, c.B
+}

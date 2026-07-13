@@ -1,0 +1,57 @@
+// CoHDL std library — core traits.
+//
+// MVP discipline (docs/design/09-mvp-definition.md): every trait and device
+// in std exists because the ESP32-S3 sensor-node demo board needs it. Nothing
+// speculative.
+
+// A two-terminal passive element. No designator prefix of its own — the
+// concrete component traits below carry the prefix mapping (RFC-005).
+pub trait TwoTerminal {
+    pins {
+        required A: pin
+        required B: pin
+    }
+}
+
+pub trait Capacitor: TwoTerminal {
+    designator_prefix: "C"
+    spec {
+        capacitance: Capacitance
+        voltage_rating: Voltage
+        tolerance: Tolerance
+    }
+}
+
+pub trait Resistor: TwoTerminal {
+    designator_prefix: "R"
+    spec {
+        resistance: Resistance
+        tolerance: Tolerance
+    }
+}
+
+// A polarized component: Anode must sit at the higher potential.
+// Residual-DRC rule D002 (polarity-mismatch) keys off this trait.
+pub trait Polarized {
+    pins {
+        required Anode: pin
+        required Cathode: pin
+    }
+}
+
+pub trait Diode: Polarized {
+    designator_prefix: "D"
+}
+
+// Marker traits carrying designator-prefix mappings.
+pub trait IC {
+    designator_prefix: "U"
+}
+
+pub trait Connector {
+    designator_prefix: "J"
+}
+
+pub trait Microphone {
+    designator_prefix: "MK"
+}

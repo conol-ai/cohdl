@@ -1,0 +1,58 @@
+// ESP32-S3-WROOM-1 Wi-Fi/BLE module (Espressif).
+//
+// Pinout per the ESP32-S3-WROOM-1 datasheet (41 pads incl. thermal pad).
+// The module integrates flash, crystal, and RF matching, so a sensor node
+// needs only power, EN pull-up, and decoupling.
+// NOTE: demo-grade transcription — verify against the current datasheet
+// revision before fabrication.
+
+pub device ESP32_S3_WROOM_1 {
+    pins {
+        required GND: 1, 40, 41 [power_in]
+        required VDD: 2 [power_in]
+        required EN: 3 [input]
+        optional IO4: 4 [bidirectional]
+        optional IO5: 5 [bidirectional]
+        optional IO6: 6 [bidirectional]
+        optional IO7: 7 [bidirectional]
+        optional IO15: 8 [bidirectional]
+        optional IO16: 9 [bidirectional]
+        optional IO17: 10 [bidirectional]
+        optional IO18: 11 [bidirectional]
+        optional IO8: 12 [bidirectional]
+        optional IO19: 13 [bidirectional]     // USB D-
+        optional IO20: 14 [bidirectional]     // USB D+
+        optional IO3: 15 [bidirectional]
+        optional IO46: 16 [bidirectional]
+        optional IO9: 17 [bidirectional]
+        optional IO10: 18 [bidirectional]
+        optional IO11: 19 [bidirectional]
+        optional IO12: 20 [bidirectional]
+        optional IO13: 21 [bidirectional]
+        optional IO14: 22 [bidirectional]
+        optional IO21: 23 [bidirectional]
+        optional IO47: 24 [bidirectional]
+        optional IO48: 25 [bidirectional]
+        optional IO45: 26 [bidirectional]
+        optional IO0: 27 [bidirectional]
+        optional IO35: 28 [bidirectional]
+        optional IO36: 29 [bidirectional]
+        optional IO37: 30 [bidirectional]
+        optional IO38: 31 [bidirectional]
+        optional IO39: 32 [bidirectional]
+        optional IO40: 33 [bidirectional]
+        optional IO41: 34 [bidirectional]
+        optional IO42: 35 [bidirectional]
+        optional TXD0: 36 [output]
+        optional RXD0: 37 [input]
+        optional IO2: 38 [bidirectional]
+        optional IO1: 39 [bidirectional]
+    }
+}
+
+impl IC for ESP32_S3_WROOM_1 {}
+
+pub part ESP32_S3_WROOM_1_N8: ESP32_S3_WROOM_1 {
+    primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8", footprint: "RF_Module:ESP32-S3-WROOM-1" }
+    alt     { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2" }
+}

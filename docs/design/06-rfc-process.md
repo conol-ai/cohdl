@@ -97,7 +97,7 @@ The v1 backlog (RFC-001…010) described defects and features in a discarded imp
 | RFC-005 | Designator allocator design: a provably collision-free, total/injective function over hierarchical path — **Accepted 2026-07-13**, see child note RFC-005 + DR-008 | **P0 — done** | Replaces v1's incrementing-counter allocator that collided; must be proven correct by construction, not tested after the fact |
 | RFC-006 | Nested `fn` call semantics (monomorphization + inlining across call depth) — **Accepted 2026-07-13**, see child note RFC-006 + DR-015 | **P0 — done** | Must be first-class from v2 launch, not a P1 patch — composability depends on it |
 | RFC-007 | Generics-over-specs syntax + visible-default rules — **Accepted 2026-07-13**, see child note RFC-007 + DR-016 | **P0 — done** | The expressiveness half of the core bet; must land alongside RFC-001–003, not after |
-| RFC-008 | Grammar design for exhaustive pattern-matching over structural variants | P1 | Needed once devices/packages have enough variants to require it; can follow the P0 core |
+| RFC-008 | Grammar design for exhaustive pattern-matching over structural variants — **Accepted 2026-07-13**, see child note RFC-008 + DR-017 | **P1 — done** | Needed once devices/packages have enough variants to require it; can follow the P0 core |
 | RFC-009 | `cohdl fmt` canonical form, co-designed with the grammar | P1 | Ship-from-launch requirement per the Constitution; design the form as the grammar is finalized, not after |
 | RFC-010 | `cohdl check --json` schema, co-designed with the type checker's diagnostic shape | P1 | Same co-design discipline as RFC-009 |
 | RFC-011 | Error-code registry (v2 baseline, informed by RFC-004's classification pass) | P1 | Depends on RFC-004 landing first — can't finalize codes until we know what moved from DRC to type-checking |
@@ -107,6 +107,8 @@ The v1 backlog (RFC-001…010) described defects and features in a discarded imp
 Note the shift in what's P0: in v1, P0 was "fix what's broken in a working compiler." In v2, P0 is "settle the type-system mechanisms that make the whole redesign's thesis true" — there's no partial credit for shipping Layer 3/4 work before these seven land, because nothing downstream can be honest until they do.
 
 Milestone (2026-07-13): all seven P0 RFCs are Accepted. The Layer-1 type-system foundation — units-as-types, pin obligations, trait satisfaction, the DRC/type-system reclassification, a collision-free designator allocator, nested fn semantics, and generics-over-specs — is now formally specified end to end. RFC-004's flagged E004 dependency is closed by RFC-007. The redesign's central thesis (strictness buys expressiveness) has a complete Layer-1 specification to stand on. Remaining backlog (RFC-008–012) is P1/P2 tooling and polish; RFC-013 (layout) stays gated per its own governance. This is the natural point to revisit 9. MVP Definition, which was intentionally left void until this moment.
+
+Milestone (2026-07-13, same day): the MVP is implemented and verified on the real conol-ai/cohdl main branch — 65 passing tests, a self-audited compliance report (docs/compliance-report.md, 8 independent audit agents + adversarial verification, 7 real deviations found and 6 fixed same-day), and an end-to-end demo with a real KiCad-imported netlist. Implementation surfaced two real, concrete needs (a closed-set pin-role default and unspecified package variants) that became RFC-008, drafted and Accepted the same day.
 
 # The principle behind the process — unchanged
 

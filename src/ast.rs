@@ -171,14 +171,75 @@ pub struct TraitSpecField {
 }
 
 // ---------------------------------------------------------------------------
-// Devices (RFC-003; pins per RFC-002, roles per provisional §3)
+// Devices (RFC-003; pins per RFC-002, roles + variants per RFC-008)
 
 #[derive(Debug, Clone)]
 pub struct DeviceDef {
     pub name: Ident,
     pub generics: Vec<GenericParam>,
+    /// RFC-008 `variants { C0402, C0603 }` — empty when the device has none.
+    pub variants: Vec<Ident>,
+    /// `pins { … }` blocks; `variant` is the `pins[VARIANT]` qualifier.
+    pub pin_blocks: Vec<PinBlock>,
+    /// `spec { … }` blocks; `variant` is the `spec[VARIANT]` qualifier.
+    pub spec_blocks: Vec<SpecBlock>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PinBlock {
+    pub variant: Option<Ident>,
     pub pins: Vec<DevicePin>,
-    pub specs: Vec<DeviceSpecField>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpecBlock {
+    pub variant: Option<Ident>,
+    pub fields: Vec<DeviceSpecField>,
+    pub span: Span,
+}
+
+impl DeviceDef {
+    pub fn has_variants(&self) -> bool {
+        !self.variants.is_empty()
+    }
+
+    /// The pin set an instance of `variant` sees. For variant-less devices
+    /// pass `None` (the bare block). Validation guarantees exactly one
+    /// matching block exists in a well-formed device.
+    pub fn pins_for(&self, variant: Option<&str>) -> &[DevicePin] {
+        self.pin_blocks
+            .iter()
+            .find(|b| b.variant.as_ref().map(|v| v.name.as_str()) == variant)
+            .map(|b| b.pins.as_slice())
+            .unwrap_or(&[])
+    }
+
+    /// The merged spec fields an instance of `variant` sees: the base
+    /// `spec {}` block, with `spec[VARIANT]` entries overriding same-named
+    /// fields and appending new ones (RFC-008).
+    pub fn spec_fields_for(&self, variant: Option<&str>) -> Vec<&DeviceSpecField> {
+        let mut out: Vec<&DeviceSpecField> = Vec::new();
+        for block in self.spec_blocks.iter().filter(|b| b.variant.is_none()) {
+            out.extend(block.fields.iter());
+        }
+        if let Some(v) = variant {
+            for block in self
+                .spec_blocks
+                .iter()
+                .filter(|b| b.variant.as_ref().is_some_and(|x| x.name == v))
+            {
+                for field in &block.fields {
+                    if let Some(slot) = out.iter_mut().find(|f| f.name.name == field.name.name) {
+                        *slot = field; // override
+                    } else {
+                        out.push(field); // addition
+                    }
+                }
+            }
+        }
+        out
+    }
 }
 
 /// A physical pin number: `"1"`, `"57"`, or BGA-style `"A3"`.
@@ -195,12 +256,15 @@ pub struct DevicePin {
     /// One or more physical pin numbers (`required GND: 2, 3, 4` is a pin
     /// bus — one logical pin, several physical pins, all wired together).
     pub numbers: Vec<PinNumber>,
-    /// `[output]` etc.; `None` defaults to passive.
+    /// The explicit role annotation — required on every device pin
+    /// (RFC-008; a missing role is E901). `None` only survives parse-error
+    /// recovery, after the diagnostic has already been emitted.
     pub role: Option<(PinRole, Span)>,
     pub span: Span,
 }
 
 impl DevicePin {
+    /// The pin's role. `Passive` only as post-E901 recovery poison.
     pub fn role_or_default(&self) -> PinRole {
         self.role.map_or(PinRole::Passive, |(r, _)| r)
     }
@@ -263,11 +327,14 @@ impl GenericArg {
     }
 }
 
-/// `Name<args>` in type position (`inst c: MLCC<100nF, V>`, part device refs).
+/// `Name<args>[VARIANT]` in type position (`inst c: MLCC<100nF, V>[C0603]`,
+/// part device refs). The `[VARIANT]` selector is RFC-008: required exactly
+/// when the device declares `variants {}`.
 #[derive(Debug, Clone)]
 pub struct TypeRef {
     pub name: Ident,
     pub generic_args: Vec<GenericArg>,
+    pub variant: Option<Ident>,
     pub span: Span,
 }
 

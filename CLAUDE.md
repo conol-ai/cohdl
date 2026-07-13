@@ -11,9 +11,9 @@ The language design lives in `docs/design/` (snapshot of the conol.ai design rep
 1. `docs/design/10-language-specification.md` — what the language IS (Accepted RFCs only)
 2. `docs/design/rfc-001…007-*.md` — the seven Accepted P0 RFCs (normative detail)
 3. `docs/design/09-mvp-definition.md` — current scope line + exit criteria
-4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, pin roles, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them.
+4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them. (Pin roles and package variants graduated to RFC-008.)
 
-Never implement beyond the MVP cut list in `09-mvp-definition.md` (no fmt, no LSP, no --json API, no LCEDA, no pattern matching, no incremental compilation).
+Never implement beyond the MVP cut list in `09-mvp-definition.md` (no fmt, no LSP, no --json API, no LCEDA, no incremental compilation; structural-variant pattern matching landed via RFC-008).
 
 ## Commands
 

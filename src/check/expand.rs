@@ -153,6 +153,18 @@ impl<'w, 'd> Expander<'w, 'd> {
                 part_def.device.span,
                 &mut Diagnostics::new(), // already reported by check_parts
             );
+            // A part is fully bound — its variant comes from the part
+            // declaration, never from the instantiation site.
+            if let Some(sel) = &inst.ty.variant {
+                self.diags.push(Diagnostic::error(
+                    "E905",
+                    sel.span,
+                    format!(
+                        "part `{}` already selects its variant — remove the `[{}]` selector",
+                        part_def.name.name, sel.name
+                    ),
+                ));
+            }
             (
                 dev.name.name.clone(),
                 args,
@@ -200,9 +212,76 @@ impl<'w, 'd> Expander<'w, 'd> {
 
         let device = &self.world.devices[&device_name];
 
-        // Concrete spec values via substitution.
+        // RFC-008: resolve the variant selection. Parts carry their own
+        // selector (validated by check_parts); direct device instantiations
+        // validate here (E903 undeclared / E904 omitted / E905 spurious).
+        let variant: Option<String> = if part.is_some() {
+            self.world.parts[ty_name.name.as_str()]
+                .device
+                .variant
+                .as_ref()
+                .map(|v| v.name.clone())
+        } else {
+            let valid_set = || {
+                device
+                    .variants
+                    .iter()
+                    .map(|v| v.name.clone())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            };
+            match (&inst.ty.variant, device.has_variants()) {
+                (Some(sel), true) => {
+                    if device.variants.iter().any(|v| v.name == sel.name) {
+                        Some(sel.name.clone())
+                    } else {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E903",
+                                sel.span,
+                                format!(
+                                    "device `{}` declares no variant named `{}`",
+                                    device_name, sel.name
+                                ),
+                            )
+                            .with_help(format!("valid variants are: {}", valid_set())),
+                        );
+                        return;
+                    }
+                }
+                (None, true) => {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E904",
+                            inst.ty.span,
+                            format!(
+                                "device `{}` declares variants — select one with a `[VARIANT]` suffix (no implicit default)",
+                                device_name
+                            ),
+                        )
+                        .with_help(format!("valid variants are: {}", valid_set())),
+                    );
+                    return;
+                }
+                (Some(sel), false) => {
+                    self.diags.push(Diagnostic::error(
+                        "E905",
+                        sel.span,
+                        format!(
+                            "device `{}` has no `variants {{ }}` block — remove the `[{}]` selector",
+                            device_name, sel.name
+                        ),
+                    ));
+                    return;
+                }
+                (None, false) => None,
+            }
+        };
+
+        // Concrete spec values via substitution, over the variant-merged
+        // spec fields (base `spec {}` + `spec[VARIANT]` overrides, RFC-008).
         let mut specs = BTreeMap::new();
-        for field in &device.specs {
+        for field in device.spec_fields_for(variant.as_deref()) {
             match &field.value {
                 SpecValue::Lit(v, _) => {
                     specs.insert(field.name.name.clone(), v.clone());
@@ -264,6 +343,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             IrInstance {
                 path,
                 device: device_name.clone(),
+                variant,
                 specs,
                 part,
                 designator_override,
@@ -325,6 +405,8 @@ impl<'w, 'd> Expander<'w, 'd> {
         if let Some(path) = scope.local_insts.get(&r.base.name) {
             let inst = &self.instances[path];
             let device = &self.world.devices[&inst.device];
+            // RFC-008: the instance's pin layout is its selected variant's.
+            let pins = device.pins_for(inst.variant.as_deref());
             let Some(pin) = &r.pin else {
                 self.diags.push(Diagnostic::error(
                     "E602",
@@ -333,16 +415,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                         "`{}` is an instance — reference one of its pins (e.g. `{}.{}`)",
                         r.base.name,
                         r.base.name,
-                        device
-                            .pins
-                            .first()
-                            .map(|p| p.name.name.as_str())
-                            .unwrap_or("PIN")
+                        pins.first().map(|p| p.name.name.as_str()).unwrap_or("PIN")
                     ),
                 ));
                 return None;
             };
-            if device.pins.iter().any(|p| p.name.name == pin.name) {
+            if pins.iter().any(|p| p.name.name == pin.name) {
                 return Some((path.clone(), pin.name.clone()));
             }
             self.diags.push(
@@ -356,9 +434,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 )
                 .with_help(format!(
                     "its pins are: {}",
-                    device
-                        .pins
-                        .iter()
+                    pins.iter()
                         .map(|p| p.name.name.clone())
                         .collect::<Vec<_>>()
                         .join(", ")
@@ -897,7 +973,7 @@ fn check_pin_obligations(world: &World, ir: &DesignIr, diags: &mut Diagnostics) 
     }
     for inst in ir.instances.values() {
         let device = &world.devices[&inst.device];
-        for pin in &device.pins {
+        for pin in device.pins_for(inst.variant.as_deref()) {
             let key = (inst.path.clone(), pin.name.name.clone());
             let in_net = connected.get(&key).copied();
             let in_nc = ir.nc_pins.contains(&key);

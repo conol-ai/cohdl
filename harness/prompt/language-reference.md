@@ -34,11 +34,32 @@ pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
 
 - `pins { ... }`: logical pin name → physical pin number(s). A pin may carry
   several numbers (`required GND: 1, 40, 41` — a pin bus). Obligation keyword
-  `required` (default when omitted) or `optional`. Optional role annotation in
-  brackets: `[input]`, `[output]`, `[bidirectional]`, `[passive]`,
-  `[power_in]`, `[power_out]`.
+  `required` (default when omitted) or `optional`. **Every pin must carry a
+  role annotation** in brackets — one of `[input]`, `[output]`,
+  `[bidirectional]`, `[passive]`, `[power_in]`, `[power_out]`. There is no
+  default; an unannotated pin is a compile error.
 - `spec { ... }`: field → unit literal or one of the device's own generic
   parameters.
+
+### Package variants
+
+A device may declare a closed set of package variants; each variant needs its
+own pin layout, and every instantiation must select one:
+
+```cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    variants { C0402, C0603 }
+    pins[C0402] { A: 1 [passive], B: 2 [passive] }
+    pins[C0603] { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+
+inst c1: MLCC<100nF, 16V, 10%>[C0402]   // [VARIANT] required — no default
+```
+
+`spec[VARIANT] { ... }` optionally overrides/extends the base spec per
+variant. Parts select their variant in the part declaration; instantiating a
+part by name needs no selector.
 
 ## Traits and impls
 
@@ -81,7 +102,7 @@ pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%> {
 
 ```cohdl
 fn decoupling_cap<V: Voltage>(pin: Pin, gnd: Pin) {
-    inst c: MLCC<100nF, V>
+    inst c: MLCC<100nF, V>[C0402]
     net _: pin, c.A
     net _: gnd, c.B
 }
@@ -147,7 +168,7 @@ Devices and their pins:
 
 | Device | Pins (name: number [role]) |
 |---|---|
-| `MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%>` | A: 1, B: 2 |
+| `MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%>` — variants `C0402`, `C0603` | A: 1, B: 2 (both variants) |
 | `ChipResistor<R: Resistance, T: Tolerance = 1%>` | A: 1, B: 2 |
 | `ChipLED` | Cathode: 1, Anode: 2 (implements Polarized, Diode) |
 | `ESP32_S3_WROOM_1` | required GND: 1,40,41 [power_in]; required VDD: 2 [power_in]; required EN: 3 [input]; optional IO0–IO48 [bidirectional] (IO19 = USB D-, IO20 = USB D+); optional TXD0: 36 [output]; optional RXD0: 37 [input] |

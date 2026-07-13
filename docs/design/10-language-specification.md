@@ -8,6 +8,8 @@
 
 **How to read this note:** each section is a construct. Each entry states current, accepted behavior only — no proposals, no "planned," no v1 carryover. A construct not yet covered by an Accepted RFC simply doesn't appear here yet (see "Not yet specified" at the bottom for an honest list of what's still open).
 
+Milestone (2026-07-13): all seven P0 RFCs Accepted, MVP implemented and verified on the real conol-ai/cohdl main branch (65 tests, self-audited compliance report, KiCad-verified demo). RFC-008 (structural variants) is the first RFC drafted in response to a real implementation need, not just design foresight.
+
 # Unit types
 
 *Accepted via RFC-001, see RFC-001: Units-as-types + DR-007.*
@@ -43,15 +45,15 @@ CoHDL has a **closed set of ten primitive unit types**. Each is a distinct type;
 
 *Accepted via RFC-002, see RFC-002: Pin connection-obligation typing + DR-012.*
 
-Every pin declared on a `device` or `trait` carries an explicit **connection-obligation kind**, fixed at the definition and never overridable per-instance:
+Every pin declared on a device or trait carries an explicit connection-obligation kind, fixed at the definition and never overridable per-instance. Every pin (on a device) also carries an explicit role annotation (see Structural variants below — no unannotated pins, per RFC-008):
 
 ```cohdl
 pub device MCU_ESP32S3 {
     pins {
-        required VDD: 1
-        required GND: 2, 3, 4        // pin bus — all required
-        optional NC_1: 5             // datasheet-defined no-connect
-        optional NC_2: 6
+        required VDD: 1 [power_in]
+        required GND: 2, 3, 4 [power_in]        // pin bus — all required
+        optional NC_1: 5 [passive]              // datasheet-defined no-connect
+        optional NC_2: 6 [passive]
     }
 }
 ```
@@ -62,7 +64,7 @@ pub device MCU_ESP32S3 {
 **Resolving a **`required`** pin** — exactly one of two states, checked exhaustively:
 
 1. **Connected** — the pin reference appears in some `net` declaration (unchanged mechanism).
-2. **Explicitly not-connected** — the pin reference appears in an `nc` declaration, a top-level design-body construct syntactically parallel to `net` (a flat pin-reference list), but semantically its opposite:
+2. Explicitly not-connected — the pin reference appears in an nc declaration, a top-level design-body (or fn-body, per implementation) construct syntactically parallel to net (a flat pin-reference list), but semantically its opposite:
 
 ```cohdl
 net VDD: mcu.VDD, ...
@@ -103,12 +105,12 @@ pub trait Capacitor: TwoTerminal {
 }
 
 pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V, tolerance: T }
 }
 ```
 
-- `pins { ... }` on a trait declares **abstract pin roles** (not physical pin numbers) with an obligation kind (`required`/`optional`, per RFC-002).
+- pins { ... } on a trait declares abstract pin roles (not physical pin numbers) with an obligation kind (required/optional, per RFC-002) — trait-level pins do not carry the RFC-008 electrical role annotation (that's a device-pin concept, since abstract trait roles aren't physical pins yet).
 - `spec { ... }` on a trait declares required spec fields, each with a unit type (per RFC-001's closed unit-type set).
 - `Trait: OtherTrait` is a **sub-trait bound** — implementing the child trait requires satisfying the parent trait's requirements too, transitively.
 
@@ -125,7 +127,7 @@ When a device's own field names don't match the trait's required roles, the `imp
 
 ```cohdl
 pub device TantalumCap<C: Capacitance, V: Voltage = 10V> {
-    pins { Anode: 1, Cathode: 2 }
+    pins { Anode: 1 [passive], Cathode: 2 [passive] }
     spec { capacitance: C, voltage_rating: V }
 }
 
@@ -143,8 +145,6 @@ impl TwoTerminal for TantalumCap {
 - Explicit `impl` is always required — CoHDL does not use structural typing; a device is never considered to satisfy a trait just because its shape happens to match, without an explicit `impl` statement asserting it.
 - CoHDL traits declare data-shape requirements only (pins, specs) — they do not have methods/behavior in the Rust sense. `rule` blocks remain the separate, existing mechanism for behavior/assertions.
 
-*Note: the generic-parameter trait-bound case (e.g. *`fn foo<D: Capacitor>(...)`* — does the concrete type argument for *`D`* satisfy *`Capacitor`*?) is distinct from device-level *`impl`* checking above, and is not yet fully specified — see RFC-004's classification (Residual DRC below) and note 6's backlog: RFC-007 (generics-over-specs) must close this gap explicitly.*
-
 # Designators
 
 Accepted via RFC-005, see RFC-005: Collision-free designator allocation + DR-008.
@@ -156,6 +156,7 @@ This section documents guarantees, not new syntax — designator assignment is a
 - Removed instances are tombstoned (moved to design.lock's [tombstones] table) — their designator is never reused by a future fresh assignment.
 - Explicit #[designator("Xxx")] overrides are resolved before any fresh (automatic) designator is assigned — an override can never be silently clobbered by, or silently clobber, an automatic assignment.
 - Two new instances needing the same prefix (e.g. both defaulting to U) are guaranteed different numbers, deterministically, regardless of the order they were declared or collected in — this closes the specific collision class v1 exhibited (two devices both assigned U3).
+- A device's designator prefix comes from designator_prefix: "X" declared on a trait it implements (the lexicographically-smallest such trait name, if it implements several with a prefix); default "U" when none declares one.
 
 # Residual DRC
 
@@ -172,9 +173,9 @@ This section documents guarantees, not new syntax — designator assignment is a
 
 **What is explicitly NOT residual DRC in v2** (retired or moved to the type system — see Traits and Pins above for where each now lives):
 
-- v1's spec-not-satisfied / trait-not-impl / missing-spec-field checks (v1: E003–E005) — now `impl`-time trait satisfaction (see Traits above). E004's generic-parameter-bound half is not yet fully closed — pending RFC-007.
+- v1's spec-not-satisfied / trait-not-impl / missing-spec-field checks (v1: E003–E005) — now impl-time trait satisfaction (see Traits above), plus generic-instantiation trait-bound checking (see Generics below) for the parts of E004 that involve a generic parameter rather than a device declaration.
 - v1's blanket unconnected-pin warning (v1: W001) — retired. Superseded by the pin connection-obligation exhaustiveness check (see Pins above), which is strictly more correct (it doesn't flag intentionally-optional pins the way v1's blanket rule did).
-- v1's floating-net check (v1: W002) — reclassified to the type system: a `net` declaration naming zero instance pins is checkable from that declaration alone, so it becomes a compile-time structural check rather than a DRC rule. (Concrete syntax/mechanism for this is pending whatever RFC formalizes `net`/`design` type-checking rules in full.)
+- v1's floating-net check (v1: W002) — reclassified to the type system: a net declaration naming zero instance pins (after expansion) is a compile-time structural error, not a DRC rule.
 
 # Sub-circuit fns
 
@@ -203,21 +204,101 @@ design Board {
 Rules:
 
 - A nested call expands with the exact same instantiate-and-wire semantics as a top-level call — every inst and net in the nested fn's body is produced, exactly as if it had been called directly.
-- Generic substitutions thread outward-in: a nested call's generic arguments may reference the calling fn's own generic parameters (as in power_rail's V flowing into decoupling_cap:: above), and are fully resolved to concrete types before the innermost fn is expanded.
-- Every produced instance/net is named from its full call-chain path, guaranteeing no collision between different call sites — including two separate calls to the same fn, or the same fn reached via different nesting paths.
+- Generic substitutions thread outward-in: a nested call's generic arguments may reference the calling fn's own generic parameters, fully resolved to concrete types before the innermost fn is expanded.
+- Every produced instance/net is named from its full call-chain path, guaranteeing no collision between different call sites — including two separate calls to the same fn, or the same fn reached via different nesting paths. The __-prefixed namespace this naming scheme uses is compiler-reserved — a user-declared instance/net name beginning with __ is a compile error, so the guarantee can't be forged.
 - Cyclic call chains are a compile error. If expanding a call would re-enter a fn already active earlier in the same chain, this is rejected with a diagnostic naming the full cycle — never a silent infinite/truncated expansion.
 - There is no depth limit on (acyclic) nesting.
+- Calls use name::<generic-args>(args) (turbofish) when the fn has generic parameters, or name(args) otherwise. Generic arguments are positional.
 
-# Generics-over-specs (partially specified)
+# Generics-over-specs and generic trait bounds
 
-Not yet fully accepted — see note 6's backlog, RFC-007. Generic parameters on device/fn declarations (e.g. MLCC<C: Capacitance, V: Voltage = 10V>, fn decoupling_cap<V: Voltage>(...)) are used throughout this note's examples and are load-bearing for RFC-001/002/003/006 as already accepted — but the full generic system (including how a generic parameter's trait bound is checked against a concrete type argument at a call/instantiation site — the "E004" gap flagged in Residual DRC above) has not yet been formally specified by its own RFC. Treat the generic syntax shown elsewhere in this note as provisionally stable (it's already load-bearing for four Accepted RFCs) but not yet a fully closed, standalone specification.
+Accepted via RFC-007, see RFC-007: Generics-over-specs and generic trait bounds + DR-016.
+
+A generic parameter on a device or fn is one of exactly two kinds:
+
+- Unit-type parameter — bound by one of RFC-001's ten unit types, with an optional visible default: C: Capacitance, V: Voltage = 10V.
+- Trait-bound type parameter — bound by one or more traits, joined with +: D: Capacitor, D: Capacitor + Polarized.
+
+```cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    pins { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+}
+impl Capacitor for MLCC {}
+
+fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
+    net _: pin, target.A
+}
+
+fn add_protected_decoupling<D: Capacitor + Polarized>(target: D, pin: Pin) {
+    // D must satisfy BOTH bounds
+}
+```
+
+Trait-bound checking at instantiation — when a trait-bound generic parameter is substituted with a concrete type argument (a device<...> instantiation or a fn::<...>(...) call), the compiler checks, for each required trait, whether a satisfying free-standing impl RequiredTrait for ConcreteType statement (per Traits above) exists anywhere in the currently-compiled scope. If not, this is a compile error at the call/instantiation site naming the missing trait and the concrete type.
+
+impl Trait-typed value parameters are sugar for an anonymous trait-bound generic type parameter — these two are equivalent, and the compiler treats them identically (one trait-bound-checking mechanism, not two).
+
+Rules:
+
+- A unit-type parameter may only be substituted with a literal or another unit-type parameter of the same unit type — RFC-001's zero-coercion rule applies identically to generic substitution, no exception.
+- A trait-bound type parameter's concrete argument must have a satisfying impl for every listed trait bound, each independently checked.
+- Defaults are only valid on unit-type parameters, and are always visible at the parameter declaration — never a hidden fallback introduced elsewhere.
+- Trait-bound checking never looks up a device's own declared-traits list (no such list exists — see Traits above) — it always looks up free-standing impl statements in scope.
+
+# Structural variants
+
+Accepted via RFC-008, see RFC-008: Exhaustive pattern-matching over structural variants + DR-017.
+
+Two closed, exhaustively-matched sets, replacing implicit defaults with explicit, compiler-checked coverage.
+
+Pin roles — every device pin (not trait-abstract pins) carries an explicit role annotation from a closed six-value set:
+
+```cohdl
+pub device AP2112K_3V3 {
+    pins {
+        required VIN:  1 [power_in]
+        required GND:  2 [power_in]
+        required EN:   3 [input]
+        optional NC:   4 [passive]     // explicit — no unannotated pins
+        required VOUT: 5 [power_out]
+    }
+}
+```
+
+- Valid roles: input, output, bidirectional, passive, power_in, power_out.
+- Every pin must have an explicit role — there is no default. An unannotated pin is a compile error listing the six valid roles.
+- Driver-type roles (consumed by residual DRC's multi-driver rule): output, power_out.
+
+Package/footprint variants — a device may declare a closed, finite set of structural shapes, each requiring its own pin layout:
+
+```cohdl
+pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
+    variants { C0402, C0603, C0805 }
+
+    pins[C0402] { A: 1 [passive], B: 2 [passive] }
+    pins[C0603] { A: 1 [passive], B: 2 [passive] }
+    pins[C0805] { A: 1 [passive], B: 2 [passive] }
+
+    spec { capacitance: C, voltage_rating: V, tolerance: T }
+    spec[C0402] { max_capacitance: 100nF }   // optional variant-specific addition/override
+}
+
+inst c1: MLCC<100nF, 16V, 10%>[C0603]   // [VARIANT] selector required at instantiation
+```
+
+Rules:
+
+- variants { ... } declares the closed set; duplicates are a compile error.
+- Every declared variant must have a pins[VARIANT] block — this is the exhaustiveness check, at the device's own declaration. A variant with no pin layout is a compile error naming the missing variant.
+- spec[VARIANT] { ... } is optional per variant (unlike pins[VARIANT]) — a variant needing no spec override is legitimate.
+- An instance of a device with declared variants must select one via a [VARIANT] suffix — there is no implicit default variant; omitting the selector is a compile error listing the valid variant set.
+- A device with no variants {} block is unaffected — plain pins { ... } (no bracket) as shown throughout this note.
 
 # Not yet specified
 
 The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have **no Accepted RFC yet**, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
 
-- Generics-over-specs full specification, including closing the E004 generic-bound trait-check gap flagged in Residual DRC above (RFC-007)
-- Exhaustive pattern-matching over structural variants (RFC-008)
 - `cohdl fmt` canonical form (RFC-009)
 - `cohdl check --json` schema (RFC-010)
 - Error-code registry (RFC-011)

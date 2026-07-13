@@ -65,11 +65,17 @@ pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
   part-bound** (`E801` otherwise) — this is what makes "the BOM lies"
   structurally impossible. `cohdl check` does not require part binding.
 
-## 3. Pin roles (needed by residual-DRC driver rules)
+## 3. Pin roles — superseded by RFC-008 (now Accepted, no longer provisional)
 
-v1 had no pin direction/role concept, which is exactly why its driver rules
-never fired. v2 makes the role an explicit, optional annotation on **device**
-pins (trait pins stay abstract roles):
+This section originally made the role annotation optional with a documented
+`passive` default. **RFC-008 (Accepted 2026-07-13) retired that default**:
+every device pin now carries an explicit role annotation from the closed
+six-value set, and an unannotated pin is a compile error (`E901`). Package
+variants (`variants {}`, `pins[VARIANT]`, `spec[VARIANT]`, `[VARIANT]`
+selectors) are likewise RFC-008-governed. See
+`docs/design/rfc-008-pattern-matching.md` and the Language Specification's
+"Structural variants" section — those are normative; nothing here overrides
+them.
 
 ```cohdl
 pub device AP2112K_3V3 {
@@ -77,16 +83,15 @@ pub device AP2112K_3V3 {
         required VIN:  1 [power_in]
         required GND:  2 [power_in]
         required EN:   3 [input]
-        optional NC:   4
+        optional NC:   4 [passive]     // explicit — no unannotated pins
         required VOUT: 5 [power_out]
     }
 }
 ```
 
 - Role vocabulary (closed): `input`, `output`, `bidirectional`, `passive`,
-  `power_in`, `power_out`. Unannotated pins default to `passive` — the only
-  default in this file, chosen because it is the *weakest* claim (a passive
-  pin never drives), and stated here visibly rather than filled in silently.
+  `power_in`, `power_out`. Trait pins stay abstract (`required A: pin`) and
+  take no role annotation.
 - **Driver-type pins** = `output` and `power_out`. Only the two driver DRC
   rules (D003/D004) consume roles.
 
@@ -174,9 +179,9 @@ the type-system-first test (RFC-004 Tooling & operations).
 
 ## 9. What the MVP deliberately leaves out (beyond the MVP cut list)
 
-No `module`/`use`, no package/footprint variants (`pins[VARIANT]`,
-`spec[VARIANT]`), no `type` aliases, no inline AVL on `inst`, no
+No `module`/`use`, no `type` aliases, no inline AVL on `inst`, no
 `footprint_alias`/`footprint_override`/`no_footprint`, no `rule` blocks in
 source (the four DRC rules are engine-builtin; in-language `rule` syntax
 returns with a future RFC), no bare `Ident` external net endpoints (v1's
-"external" nets — every net member must be a real pin).
+"external" nets — every net member must be a real pin). Package/footprint
+variants, formerly on this list, landed via RFC-008.

@@ -126,9 +126,9 @@ pub fn run_drc(world: &World, ir: &DesignIr, diags: &mut Diagnostics) {
 }
 
 fn pin_role(world: &World, ir: &DesignIr, path: &str, pin: &str) -> PinRole {
-    let device = &ir.instances[path].device;
-    world.devices[device]
-        .pins
+    let inst = &ir.instances[path];
+    world.devices[&inst.device]
+        .pins_for(inst.variant.as_deref())
         .iter()
         .find(|p| p.name.name == pin)
         .map(|p| p.role_or_default())

@@ -24,6 +24,10 @@ pub struct IrInstance {
     /// `Board::__fn0_power_rail::c` — RFC-006 call-chain naming.
     pub path: String,
     pub device: String,
+    /// RFC-008: the selected package/footprint variant (None for devices
+    /// without `variants {}`). Determines the instance's pin layout and
+    /// merged spec set.
+    pub variant: Option<String>,
     /// Fully-concrete spec values after substitution.
     pub specs: BTreeMap<String, UnitValue>,
     /// Part binding (by-name at expansion; by-exact-match filled at build).

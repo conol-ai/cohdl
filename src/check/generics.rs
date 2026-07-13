@@ -347,6 +347,58 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
             diags.push(d);
             continue;
         };
+        // RFC-008: a part is a purchasable component — it must pin down the
+        // variant exactly like it pins down every generic argument.
+        let valid_set = || {
+            device
+                .variants
+                .iter()
+                .map(|v| v.name.clone())
+                .collect::<Vec<_>>()
+                .join(", ")
+        };
+        match (&part.device.variant, device.has_variants()) {
+            (Some(sel), true) => {
+                if !device.variants.iter().any(|v| v.name == sel.name) {
+                    diags.push(
+                        Diagnostic::error(
+                            "E903",
+                            sel.span,
+                            format!(
+                                "device `{}` declares no variant named `{}`",
+                                device.name.name, sel.name
+                            ),
+                        )
+                        .with_help(format!("valid variants are: {}", valid_set())),
+                    );
+                }
+            }
+            (None, true) => {
+                diags.push(
+                    Diagnostic::error(
+                        "E904",
+                        part.device.span,
+                        format!(
+                            "part `{}` binds device `{}`, which declares variants — select one with a `[VARIANT]` suffix",
+                            part.name.name, device.name.name
+                        ),
+                    )
+                    .with_help(format!("valid variants are: {}", valid_set())),
+                );
+            }
+            (Some(sel), false) => {
+                diags.push(Diagnostic::error(
+                    "E905",
+                    sel.span,
+                    format!(
+                        "device `{}` has no `variants {{ }}` block — remove the `[{}]` selector",
+                        device.name.name, sel.name
+                    ),
+                ));
+            }
+            (None, false) => {}
+        }
+
         // No open parameters allowed: every arg must be a literal (an empty
         // env means any Name argument fails as non-concrete).
         for arg in &part.device.generic_args {

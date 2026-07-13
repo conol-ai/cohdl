@@ -43,7 +43,7 @@ pub trait Capacitor: TwoTerminal {
 }
 
 pub device MLCC<C: Capacitance, V: Voltage = 10V> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V }
 }
 
@@ -58,8 +58,8 @@ fn clean_design_type_checks() {
 pub device MCU {{
     pins {{
         required VDD: 1 [power_in]
-        required GND: 2
-        optional TEST: 3
+        required GND: 2 [passive]
+        optional TEST: 3 [passive]
     }}
 }}
 
@@ -87,11 +87,11 @@ fn nested_fn_expansion_two_levels() {
     let src = format!(
         r#"{STD_SNIPPET}
 pub device Ferrite_Bead {{
-    pins {{ IN: 1, OUT: 2 }}
+    pins {{ IN: 1 [passive], OUT: 2 [passive] }}
 }}
 
 pub device MCU {{
-    pins {{ required VDD: 1 }}
+    pins {{ required VDD: 1 [passive] }}
 }}
 
 fn decoupling_cap<V: Voltage>(pin: Pin) {{
@@ -137,7 +137,7 @@ fn cyclic_fn_call_detected() {
     let src = r#"
 fn a(pin: Pin) { b(pin) }
 fn b(pin: Pin) { a(pin) }
-pub device MCU { pins { required VDD: 1 } }
+pub device MCU { pins { required VDD: 1 [passive] } }
 design Board {
     inst mcu: MCU
     a(mcu.VDD)
@@ -154,8 +154,8 @@ fn unresolved_required_pin() {
     let src = r#"
 pub device MCU {
     pins {
-        required VDD: 1
-        required GND: 2
+        required VDD: 1 [passive]
+        required GND: 2 [passive]
     }
 }
 design Board {
@@ -173,7 +173,7 @@ design Board {
 fn contradictory_net_and_nc() {
     let src = r#"
 pub device MCU {
-    pins { required VDD: 1 }
+    pins { required VDD: 1 [passive] }
 }
 design Board {
     inst mcu: MCU
@@ -216,7 +216,7 @@ pub trait Capacitor: TwoTerminal {
     spec { capacitance: Capacitance }
 }
 pub device Cap<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
 impl Capacitor for Cap {}
@@ -238,13 +238,13 @@ pub trait TwoTerminal {
     pins { required A: pin, required B: pin }
 }
 pub device TantalumCap<C: Capacitance> {
-    pins { Anode: 1, Cathode: 2 }
+    pins { Anode: 1 [passive], Cathode: 2 [passive] }
     spec { capacitance: C }
 }
 impl TwoTerminal for TantalumCap {
     pins { A: Anode, B: Cathode }
 }
-pub device MCU { pins { required VDD: 1 } }
+pub device MCU { pins { required VDD: 1 [passive] } }
 
 fn hook<D: TwoTerminal>(target: D, pin: Pin) {
     net _: pin, target.A
@@ -277,10 +277,10 @@ pub trait Capacitor {
     spec { capacitance: Capacitance }
 }
 pub device Resistor<R: Resistance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { resistance: R }
 }
-pub device MCU { pins { required VDD: 1 } }
+pub device MCU { pins { required VDD: 1 [passive] } }
 
 fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
     net _: pin, target.A
@@ -308,7 +308,7 @@ fn same_fn_two_call_sites_no_collision() {
     let src = format!(
         r#"{STD_SNIPPET}
 pub device MCU {{
-    pins {{ required VDD: 1, required VDDA: 2 }}
+    pins {{ required VDD: 1 [passive], required VDDA: 2 [passive] }}
 }}
 
 fn decoupling_cap<V: Voltage>(pin: Pin) {{
@@ -343,7 +343,7 @@ design Board {{
 fn duplicate_impl_rejected() {
     let src = r#"
 pub trait T { pins { required A: pin } }
-pub device D { pins { A: 1 } }
+pub device D { pins { A: 1 [passive] } }
 impl T for D {}
 impl T for D {}
 "#;

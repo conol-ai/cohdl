@@ -78,7 +78,12 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
             let inst = &ir.instances[path];
             let refdes = inst.designator.as_deref().unwrap_or("?").to_string();
             let device = &world.devices[&inst.device];
-            if let Some(dev_pin) = device.pins.iter().find(|p| p.name.name == *pin) {
+            // RFC-008: physical pin numbers come from the selected variant.
+            if let Some(dev_pin) = device
+                .pins_for(inst.variant.as_deref())
+                .iter()
+                .find(|p| p.name.name == *pin)
+            {
                 for num in &dev_pin.numbers {
                     nodes.push((refdes.clone(), num.text.clone()));
                 }

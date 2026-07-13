@@ -6,7 +6,7 @@ pub device AP2112K_3V3 {
         required VIN: 1 [power_in]
         required GND: 2 [power_in]
         required EN: 3 [input]
-        optional NC: 4
+        optional NC: 4 [passive]
         required VOUT: 5 [power_out]
     }
     spec {

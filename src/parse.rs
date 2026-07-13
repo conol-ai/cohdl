@@ -405,37 +405,88 @@ impl<'a> Parser<'a> {
         let mut def = DeviceDef {
             name,
             generics,
-            pins: Vec::new(),
-            specs: Vec::new(),
+            variants: Vec::new(),
+            pin_blocks: Vec::new(),
+            spec_blocks: Vec::new(),
         };
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            if self.at(&TokenKind::Pins) {
+            if self.at_ident("variants") {
                 self.bump();
+                self.expect(&TokenKind::LBrace, "to open the variants block");
+                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                    let Some(v) = self.ident("as a variant name") else {
+                        self.sync_in_block();
+                        continue;
+                    };
+                    // RFC-008 rejects wildcard/default arms outright.
+                    if v.name == "_" {
+                        self.diags.push(Diagnostic::error(
+                            "E010",
+                            v.span,
+                            "`_` is not a valid variant name — every variant is named explicitly, no wildcard/catch-all arms (RFC-008)",
+                        ));
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    }
+                    // RFC-008: the closed set is duplicate-checked at parse.
+                    if let Some(prev) = def.variants.iter().find(|x| x.name == v.name) {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E906",
+                                v.span,
+                                format!("duplicate variant `{}` in `variants {{ }}`", v.name),
+                            )
+                            .with_secondary(prev.span, "first declared here"),
+                        );
+                    } else {
+                        def.variants.push(v);
+                    }
+                    self.eat(&TokenKind::Comma);
+                }
+                self.expect(&TokenKind::RBrace, "to close the variants block");
+            } else if self.at(&TokenKind::Pins) {
+                let block_start = self.span();
+                self.bump();
+                let variant = self.block_variant_qualifier();
                 self.expect(&TokenKind::LBrace, "to open the pins block");
+                let mut pins = Vec::new();
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
                     if let Some(pin) = self.device_pin() {
-                        def.pins.push(pin);
+                        pins.push(pin);
                     } else {
                         self.sync_in_block();
                     }
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the pins block");
+                def.pin_blocks.push(PinBlock {
+                    variant,
+                    pins,
+                    span: block_start.to(self.prev_span()),
+                });
             } else if self.at(&TokenKind::Spec) {
+                let block_start = self.span();
                 self.bump();
+                let variant = self.block_variant_qualifier();
                 self.expect(&TokenKind::LBrace, "to open the spec block");
+                let mut fields = Vec::new();
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
                     if let Some(field) = self.device_spec_field() {
-                        def.specs.push(field);
+                        fields.push(field);
                     } else {
                         self.sync_in_block();
                     }
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the spec block");
+                def.spec_blocks.push(SpecBlock {
+                    variant,
+                    fields,
+                    span: block_start.to(self.prev_span()),
+                });
             } else {
                 self.error_here(format!(
-                    "expected `pins` or `spec` in the device body, found {}",
+                    "expected `pins`, `spec`, or `variants` in the device body, found {}",
                     self.peek().describe()
                 ));
                 self.sync_in_block();
@@ -443,6 +494,17 @@ impl<'a> Parser<'a> {
         }
         self.expect(&TokenKind::RBrace, "to close the device body");
         Some(def)
+    }
+
+    /// The optional `[VARIANT]` qualifier on a `pins`/`spec` block (RFC-008).
+    fn block_variant_qualifier(&mut self) -> Option<Ident> {
+        if !self.at(&TokenKind::LBracket) {
+            return None;
+        }
+        self.bump();
+        let v = self.ident("as the variant qualifier");
+        self.expect(&TokenKind::RBracket, "to close the variant qualifier");
+        v
     }
 
     /// One device pin entry: `[required|optional] NAME: 1, 2, 3 [role]`.
@@ -519,6 +581,22 @@ impl<'a> Parser<'a> {
                 }
             }
             self.expect(&TokenKind::RBracket, "to close the pin role");
+        } else {
+            // RFC-008: every device pin carries an explicit role — the
+            // implicit `passive` default is retired.
+            self.diags.push(
+                Diagnostic::error(
+                    "E901",
+                    name.span,
+                    format!(
+                        "pin `{}` has no role annotation — every device pin needs an explicit role (RFC-008)",
+                        name.name
+                    ),
+                )
+                .with_help(
+                    "annotate with one of the six roles: [input], [output], [bidirectional], [passive], [power_in], [power_out]",
+                ),
+            );
         }
         Some(DevicePin {
             obligation,
@@ -697,9 +775,19 @@ impl<'a> Parser<'a> {
         } else {
             Vec::new()
         };
+        // RFC-008 `[VARIANT]` selector: `MLCC<100nF, 16V>[C0603]`.
+        let variant = if self.at(&TokenKind::LBracket) {
+            self.bump();
+            let v = self.ident("as the variant selector");
+            self.expect(&TokenKind::RBracket, "to close the variant selector");
+            v
+        } else {
+            None
+        };
         Some(TypeRef {
             name,
             generic_args,
+            variant,
             span: start.to(self.prev_span()),
         })
     }
@@ -1242,7 +1330,7 @@ pub trait Capacitor: TwoTerminal {
         let file = parse_ok(
             r#"
 pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V, tolerance: T }
 }
 "#,
@@ -1252,8 +1340,9 @@ pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
         };
         assert_eq!(d.generics.len(), 3);
         assert!(d.generics[1].default.is_some());
-        assert_eq!(d.pins.len(), 2);
-        assert_eq!(d.pins[0].obligation, Obligation::Required);
+        let pins = d.pins_for(None);
+        assert_eq!(pins.len(), 2);
+        assert_eq!(pins[0].obligation, Obligation::Required);
     }
 
     #[test]
@@ -1263,8 +1352,8 @@ pub device MLCC<C: Capacitance, V: Voltage = 10V, T: Tolerance = 10%> {
 pub device MCU_ESP32S3 {
     pins {
         required VDD: 1 [power_in]
-        required GND: 2, 3, 4
-        optional NC_1: 5
+        required GND: 2, 3, 4 [passive]
+        optional NC_1: 5 [passive]
         required TX: 6 [output]
     }
 }
@@ -1273,10 +1362,11 @@ pub device MCU_ESP32S3 {
         let ItemKind::Device(d) = &file.items[0].kind else {
             panic!()
         };
-        assert_eq!(d.pins.len(), 4);
-        assert_eq!(d.pins[1].numbers.len(), 3);
-        assert_eq!(d.pins[2].obligation, Obligation::Optional);
-        assert_eq!(d.pins[3].role.unwrap().0, PinRole::Output);
+        let pins = d.pins_for(None);
+        assert_eq!(pins.len(), 4);
+        assert_eq!(pins[1].numbers.len(), 3);
+        assert_eq!(pins[2].obligation, Obligation::Optional);
+        assert_eq!(pins[3].role.unwrap().0, PinRole::Output);
     }
 
     #[test]

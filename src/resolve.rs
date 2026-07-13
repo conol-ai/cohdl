@@ -233,70 +233,204 @@ fn validate_devices(world: &World, diags: &mut Diagnostics) {
             &dev.name.name,
             diags,
         );
-        check_dup_names(
-            dev.pins.iter().map(|p| &p.name),
-            "pin",
-            &dev.name.name,
-            diags,
-        );
-        check_dup_names(
-            dev.specs.iter().map(|s| &s.name),
-            "spec field",
-            &dev.name.name,
-            diags,
-        );
         validate_generic_params(world, &dev.generics, diags);
-        // Spec fields referencing generic params must name a unit-bound param.
-        for field in &dev.specs {
-            if let SpecValue::GenericRef(r) = &field.value {
-                match dev.generics.iter().find(|g| g.name.name == r.name) {
-                    None => diags.push(
-                        Diagnostic::error(
-                            "E202",
-                            r.span,
-                            format!(
-                                "`{}` is not a generic parameter of device `{}`",
-                                r.name, dev.name.name
-                            ),
-                        )
-                        .with_help(
-                            "device spec values are unit literals or the device's own generic parameters",
-                        ),
-                    ),
-                    Some(g) => {
-                        if let GenericBound::Traits(_) = &g.bound {
-                            diags.push(Diagnostic::error(
-                                "E205",
+        validate_device_variants(dev, diags);
+
+        // Per-block pin checks: duplicate names/numbers within one variant's
+        // layout (two variants legitimately reuse the same numbers).
+        for block in &dev.pin_blocks {
+            check_dup_names(
+                block.pins.iter().map(|p| &p.name),
+                "pin",
+                &dev.name.name,
+                diags,
+            );
+            let mut nums: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
+            for pin in &block.pins {
+                for n in &pin.numbers {
+                    if let Some(prev) = nums.insert(n.text.as_str(), n.span) {
+                        diags.push(
+                            Diagnostic::error(
+                                "E201",
+                                n.span,
+                                format!(
+                                    "physical pin number `{}` is used twice on device `{}`",
+                                    n.text, dev.name.name
+                                ),
+                            )
+                            .with_secondary(prev, "first used here"),
+                        );
+                    }
+                }
+            }
+        }
+
+        for block in &dev.spec_blocks {
+            check_dup_names(
+                block.fields.iter().map(|s| &s.name),
+                "spec field",
+                &dev.name.name,
+                diags,
+            );
+            // Spec fields referencing generic params must name a unit-bound
+            // param, in base and variant blocks alike.
+            for field in &block.fields {
+                if let SpecValue::GenericRef(r) = &field.value {
+                    match dev.generics.iter().find(|g| g.name.name == r.name) {
+                        None => diags.push(
+                            Diagnostic::error(
+                                "E202",
                                 r.span,
                                 format!(
-                                    "generic parameter `{}` is trait-bound and cannot be used as a spec value (spec fields are unit-typed)",
-                                    r.name
+                                    "`{}` is not a generic parameter of device `{}`",
+                                    r.name, dev.name.name
                                 ),
-                            ));
+                            )
+                            .with_help(
+                                "device spec values are unit literals or the device's own generic parameters",
+                            ),
+                        ),
+                        Some(g) => {
+                            if let GenericBound::Traits(_) = &g.bound {
+                                diags.push(Diagnostic::error(
+                                    "E205",
+                                    r.span,
+                                    format!(
+                                        "generic parameter `{}` is trait-bound and cannot be used as a spec value (spec fields are unit-typed)",
+                                        r.name
+                                    ),
+                                ));
+                            }
                         }
                     }
                 }
             }
         }
-        // Duplicate physical pin numbers across the device.
-        let mut nums: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
-        for pin in &dev.pins {
-            for n in &pin.numbers {
-                if let Some(prev) = nums.insert(n.text.as_str(), n.span) {
-                    diags.push(
-                        Diagnostic::error(
-                            "E201",
-                            n.span,
-                            format!(
-                                "physical pin number `{}` is used twice on device `{}`",
-                                n.text, dev.name.name
-                            ),
-                        )
-                        .with_secondary(prev, "first used here"),
-                    );
-                }
+    }
+}
+
+/// RFC-008 structural checks on a device's variant declarations:
+/// exhaustiveness of `pins[VARIANT]` coverage (E902), undeclared qualifiers
+/// (E907), unqualified `pins {}` on a variant device (E908), and duplicate
+/// blocks for the same variant.
+fn validate_device_variants(dev: &DeviceDef, diags: &mut Diagnostics) {
+    let variant_names: Vec<&str> = dev.variants.iter().map(|v| v.name.as_str()).collect();
+
+    // Qualifiers must name declared variants; blocks per variant are unique.
+    let mut seen_pin_blocks: BTreeMap<Option<&str>, crate::span::Span> = BTreeMap::new();
+    for block in &dev.pin_blocks {
+        let v = block.variant.as_ref();
+        if let Some(v) = v {
+            if !variant_names.contains(&v.name.as_str()) {
+                diags.push(undeclared_variant_diag(dev, v, "pins"));
+                continue;
+            }
+        } else if dev.has_variants() {
+            diags.push(
+                Diagnostic::error(
+                    "E908",
+                    block.span,
+                    format!(
+                        "device `{}` declares variants — every `pins` block must be qualified (`pins[VARIANT] {{ … }}`)",
+                        dev.name.name
+                    ),
+                )
+                .with_help(format!("variants are: {}", variant_names.join(", "))),
+            );
+            continue;
+        }
+        let key = v.map(|x| x.name.as_str());
+        if let Some(prev) = seen_pin_blocks.insert(key, block.span) {
+            diags.push(
+                Diagnostic::error(
+                    "E201",
+                    block.span,
+                    match key {
+                        Some(k) => format!(
+                            "duplicate `pins[{}]` block on device `{}`",
+                            k, dev.name.name
+                        ),
+                        None => format!("duplicate `pins` block on device `{}`", dev.name.name),
+                    },
+                )
+                .with_secondary(prev, "the earlier block is here"),
+            );
+        }
+    }
+    let mut seen_spec_blocks: BTreeMap<Option<&str>, crate::span::Span> = BTreeMap::new();
+    for block in &dev.spec_blocks {
+        if let Some(v) = &block.variant {
+            if !variant_names.contains(&v.name.as_str()) {
+                diags.push(undeclared_variant_diag(dev, v, "spec"));
+                continue;
             }
         }
+        let key = block.variant.as_ref().map(|x| x.name.as_str());
+        if let Some(prev) = seen_spec_blocks.insert(key, block.span) {
+            diags.push(
+                Diagnostic::error(
+                    "E201",
+                    block.span,
+                    match key {
+                        Some(k) => format!(
+                            "duplicate `spec[{}]` block on device `{}`",
+                            k, dev.name.name
+                        ),
+                        None => format!("duplicate `spec` block on device `{}`", dev.name.name),
+                    },
+                )
+                .with_secondary(prev, "the earlier block is here"),
+            );
+        }
+    }
+
+    // Exhaustiveness (E902): every declared variant has a pins[VARIANT]
+    // block — checked at the device's own declaration, naming each missing
+    // variant (RFC-008 Tooling & operations).
+    for v in &dev.variants {
+        let covered = dev
+            .pin_blocks
+            .iter()
+            .any(|b| b.variant.as_ref().is_some_and(|x| x.name == v.name));
+        if !covered {
+            diags.push(
+                Diagnostic::error(
+                    "E902",
+                    v.span,
+                    format!(
+                        "variant `{}` of device `{}` has no `pins[{}]` block — every declared variant needs a pin layout",
+                        v.name, dev.name.name, v.name
+                    ),
+                )
+                .with_help("add the missing block, or remove the variant from `variants { }`"),
+            );
+        }
+    }
+}
+
+fn undeclared_variant_diag(dev: &DeviceDef, v: &Ident, block_kind: &str) -> Diagnostic {
+    let d = Diagnostic::error(
+        "E907",
+        v.span,
+        format!(
+            "`{}[{}]`: device `{}` declares no variant named `{}`",
+            block_kind, v.name, dev.name.name, v.name
+        ),
+    );
+    if dev.has_variants() {
+        d.with_help(format!(
+            "declared variants are: {}",
+            dev.variants
+                .iter()
+                .map(|x| x.name.clone())
+                .collect::<Vec<_>>()
+                .join(", ")
+        ))
+    } else {
+        d.with_help(format!(
+            "device `{}` has no `variants {{ }}` block at all",
+            dev.name.name
+        ))
     }
 }
 

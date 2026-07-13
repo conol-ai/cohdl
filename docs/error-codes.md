@@ -93,6 +93,19 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E803 | `#[designator]` override collision |
 | E804 | invalid designator format (must be PREFIX + number, e.g. `U7`) |
 
+## E9xx — structural variants (RFC-008)
+
+| Code | Meaning |
+|---|---|
+| E901 | device pin has no role annotation — every pin needs an explicit role; the message lists the six valid roles |
+| E902 | a declared variant has no `pins[VARIANT]` block (exhaustiveness at the device declaration, naming the missing variant) |
+| E903 | a `[VARIANT]` selector names an undeclared variant — the message lists the valid set |
+| E904 | `[VARIANT]` selector omitted on a device that declares variants (no implicit default) — the message lists the valid set |
+| E905 | `[VARIANT]` selector on a device with no variants, or on a part (parts already select theirs) |
+| E906 | duplicate variant name in `variants { }` (checked at parse) |
+| E907 | `pins[X]`/`spec[X]` qualifier names an undeclared variant |
+| E908 | unqualified `pins { }` block on a device that declares variants |
+
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 
 | Code | Severity | Rule |

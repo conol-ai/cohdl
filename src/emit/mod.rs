@@ -21,9 +21,10 @@ pub fn bind_parts(
     diags: &mut Diagnostics,
     notes: &mut Vec<String>,
 ) {
-    // (device, sorted spec values) → part names, smallest first.
+    // (device, variant, sorted spec values) → part names, smallest first.
     let matches_for_instance =
         |device: &str,
+         variant: Option<&str>,
          specs: &std::collections::BTreeMap<String, crate::units::UnitValue>|
          -> Vec<String> {
             let mut found = Vec::new();
@@ -43,9 +44,15 @@ pub fn bind_parts(
                     part.device.span,
                     &mut Diagnostics::new(),
                 );
-                // Compute the part's resolved spec values the same way instances do.
+                // The exact match includes the RFC-008 variant.
+                let part_variant = part.device.variant.as_ref().map(|v| v.name.as_str());
+                if part_variant != variant {
+                    continue;
+                }
+                // Compute the part's resolved spec values the same way
+                // instances do (variant-merged, RFC-008).
                 let mut part_specs = std::collections::BTreeMap::new();
-                for field in &dev.specs {
+                for field in dev.spec_fields_for(part_variant) {
                     match &field.value {
                         crate::ast::SpecValue::Lit(v, _) => {
                             part_specs.insert(field.name.name.clone(), v.femto);
@@ -74,7 +81,7 @@ pub fn bind_parts(
         if inst.part.is_some() {
             continue;
         }
-        let candidates = matches_for_instance(&inst.device, &inst.specs);
+        let candidates = matches_for_instance(&inst.device, inst.variant.as_deref(), &inst.specs);
         let inst = ir.instances.get_mut(&path).unwrap();
         match candidates.first() {
             Some(part) => {

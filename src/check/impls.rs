@@ -64,6 +64,28 @@ fn check_one(
         }
     }
 
+    // RFC-008: with variants, satisfaction must hold for EVERY variant — an
+    // instance of any variant must satisfy the trait. Each "view" is one
+    // variant's pin set + merged spec fields (or the single bare view).
+    let views: Vec<(Option<&str>, &[DevicePin], Vec<&DeviceSpecField>)> = if dev.has_variants() {
+        dev.variants
+            .iter()
+            .map(|v| {
+                (
+                    Some(v.name.as_str()),
+                    dev.pins_for(Some(&v.name)),
+                    dev.spec_fields_for(Some(&v.name)),
+                )
+            })
+            .collect()
+    } else {
+        vec![(None, dev.pins_for(None), dev.spec_fields_for(None))]
+    };
+    let in_view = |label: Option<&str>| match label {
+        Some(v) => format!(" (variant `{}`)", v),
+        None => String::new(),
+    };
+
     // --- mapping entries must name things that exist (E304/E305) ---
     for entry in &im.pin_map {
         if !tr.pins.iter().any(|p| p.name.name == entry.role.name) {
@@ -77,13 +99,18 @@ fn check_one(
             ));
             ok = false;
         }
-        if !dev.pins.iter().any(|p| p.name.name == entry.target.name) {
+        if let Some((label, ..)) = views
+            .iter()
+            .find(|(_, pins, _)| !pins.iter().any(|p| p.name.name == entry.target.name))
+        {
             diags.push(Diagnostic::error(
                 "E305",
                 entry.target.span,
                 format!(
-                    "device `{}` has no pin named `{}`",
-                    dev.name.name, entry.target.name
+                    "device `{}`{} has no pin named `{}`",
+                    dev.name.name,
+                    in_view(*label),
+                    entry.target.name
                 ),
             ));
             ok = false;
@@ -101,13 +128,18 @@ fn check_one(
             ));
             ok = false;
         }
-        if !dev.specs.iter().any(|s| s.name.name == entry.target.name) {
+        if let Some((label, ..)) = views
+            .iter()
+            .find(|(_, _, fields)| !fields.iter().any(|s| s.name.name == entry.target.name))
+        {
             diags.push(Diagnostic::error(
                 "E305",
                 entry.target.span,
                 format!(
-                    "device `{}` has no spec field named `{}`",
-                    dev.name.name, entry.target.name
+                    "device `{}`{} has no spec field named `{}`",
+                    dev.name.name,
+                    in_view(*label),
+                    entry.target.name
                 ),
             ));
             ok = false;
@@ -116,7 +148,7 @@ fn check_one(
 
     let mut result = ResolvedImpl::default();
 
-    // --- pin roles: explicit mapping, else by-name (E301) ---
+    // --- pin roles: explicit mapping, else by-name, in every view (E301) ---
     for role in &tr.pins {
         let mapped = im
             .pin_map
@@ -127,59 +159,72 @@ fn check_one(
             Some((t, s)) => (t.name.clone(), s),
             None => (role.name.name.clone(), im.span),
         };
-        match dev.pins.iter().find(|p| p.name.name == target_name) {
-            Some(dev_pin) => {
-                if dev_pin.obligation != role.obligation {
+        let mut role_ok = true;
+        for (label, pins, _) in &views {
+            match pins.iter().find(|p| p.name.name == target_name) {
+                Some(dev_pin) => {
+                    if dev_pin.obligation != role.obligation {
+                        diags.push(
+                            Diagnostic::error(
+                                "E301",
+                                ref_span,
+                                format!(
+                                    "{} is unsatisfied: pin role `{}` is `{}` on the trait, but device pin `{}`{} is `{}`",
+                                    impl_desc,
+                                    role.name.name,
+                                    role.obligation.keyword(),
+                                    target_name,
+                                    in_view(*label),
+                                    dev_pin.obligation.keyword()
+                                ),
+                            )
+                            .with_secondary(dev_pin.span, "the device pin is declared here")
+                            .with_secondary(role.span, "the trait requires it here"),
+                        );
+                        role_ok = false;
+                        break;
+                    }
+                }
+                None => {
                     diags.push(
                         Diagnostic::error(
                             "E301",
-                            ref_span,
+                            im.span,
                             format!(
-                                "{} is unsatisfied: pin role `{}` is `{}` on the trait, but device pin `{}` is `{}`",
+                                "{} is unsatisfied: trait `{}` requires pin role `{}`, and device `{}`{} has no pin with that name",
                                 impl_desc,
+                                tr.name.name,
                                 role.name.name,
-                                role.obligation.keyword(),
-                                target_name,
-                                dev_pin.obligation.keyword()
+                                dev.name.name,
+                                in_view(*label)
                             ),
                         )
-                        .with_secondary(dev_pin.span, "the device pin is declared here")
-                        .with_secondary(role.span, "the trait requires it here"),
+                        .with_secondary(role.span, "required here")
+                        .with_help(format!(
+                            "add a mapping in the impl body: `pins {{ {}: <one of {}> }}`",
+                            role.name.name,
+                            pins.iter()
+                                .map(|p| p.name.name.clone())
+                                .collect::<Vec<_>>()
+                                .join("/")
+                        )),
                     );
-                    ok = false;
-                } else {
-                    result
-                        .pin_map
-                        .insert(role.name.name.clone(), target_name.clone());
+                    role_ok = false;
+                    break;
                 }
             }
-            None => {
-                diags.push(
-                    Diagnostic::error(
-                        "E301",
-                        im.span,
-                        format!(
-                            "{} is unsatisfied: trait `{}` requires pin role `{}`, and device `{}` has no pin with that name",
-                            impl_desc, tr.name.name, role.name.name, dev.name.name
-                        ),
-                    )
-                    .with_secondary(role.span, "required here")
-                    .with_help(format!(
-                        "add a mapping in the impl body: `pins {{ {}: <one of {}> }}`",
-                        role.name.name,
-                        dev.pins
-                            .iter()
-                            .map(|p| p.name.name.clone())
-                            .collect::<Vec<_>>()
-                            .join("/")
-                    )),
-                );
-                ok = false;
-            }
+        }
+        if role_ok {
+            result
+                .pin_map
+                .insert(role.name.name.clone(), target_name.clone());
+        } else {
+            ok = false;
         }
     }
 
-    // --- spec fields: explicit mapping, else by-name; unit types must match ---
+    // --- spec fields: explicit mapping, else by-name; unit types must match
+    // in every view ---
     for field in &tr.specs {
         let mapped = im
             .spec_map
@@ -190,69 +235,79 @@ fn check_one(
             Some((t, s)) => (t.name.clone(), s),
             None => (field.name.name.clone(), im.span),
         };
-        match dev.specs.iter().find(|s| s.name.name == target_name) {
-            Some(dev_field) => match device_spec_unit(dev, dev_field) {
-                Some(unit) if unit == field.ty.unit => {
-                    result
-                        .spec_map
-                        .insert(field.name.name.clone(), target_name.clone());
-                }
-                Some(unit) => {
+        let mut field_ok = true;
+        for (label, _, fields) in &views {
+            match fields.iter().find(|s| s.name.name == target_name) {
+                Some(dev_field) => match device_spec_unit(dev, dev_field) {
+                    Some(unit) if unit == field.ty.unit => {}
+                    Some(unit) => {
+                        diags.push(
+                            Diagnostic::error(
+                                "E301",
+                                ref_span,
+                                format!(
+                                    "{} is unsatisfied: spec field `{}` must be `{}`, but device field `{}`{} is `{}`",
+                                    impl_desc,
+                                    field.name.name,
+                                    field.ty.unit.type_name(),
+                                    target_name,
+                                    in_view(*label),
+                                    unit.type_name()
+                                ),
+                            )
+                            .with_secondary(dev_field.span, "the device field is declared here")
+                            .with_secondary(field.span, "the trait requires it here"),
+                        );
+                        field_ok = false;
+                        break;
+                    }
+                    None => {
+                        // Invalid generic ref — already reported by resolve.
+                        field_ok = false;
+                        break;
+                    }
+                },
+                None => {
                     diags.push(
                         Diagnostic::error(
                             "E301",
-                            ref_span,
+                            im.span,
                             format!(
-                                "{} is unsatisfied: spec field `{}` must be `{}`, but device field `{}` is `{}`",
+                                "{} is unsatisfied: trait `{}` requires spec field `{}` (`{}`), and device `{}`{} has no spec field with that name",
                                 impl_desc,
+                                tr.name.name,
                                 field.name.name,
                                 field.ty.unit.type_name(),
-                                target_name,
-                                unit.type_name()
+                                dev.name.name,
+                                in_view(*label)
                             ),
                         )
-                        .with_secondary(dev_field.span, "the device field is declared here")
-                        .with_secondary(field.span, "the trait requires it here"),
+                        .with_secondary(field.span, "required here")
+                        .with_help(if fields.is_empty() {
+                            format!("device `{}` declares no spec fields at all", dev.name.name)
+                        } else {
+                            format!(
+                                "add a mapping in the impl body: `spec {{ {}: <one of {}> }}`",
+                                field.name.name,
+                                fields
+                                    .iter()
+                                    .map(|s| s.name.name.clone())
+                                    .collect::<Vec<_>>()
+                                    .join("/")
+                            )
+                        }),
                     );
-                    ok = false;
+                    field_ok = false;
+                    break;
                 }
-                None => {
-                    // The device field references an invalid generic — already
-                    // reported by resolve; don't cascade.
-                    ok = false;
-                }
-            },
-            None => {
-                diags.push(
-                    Diagnostic::error(
-                        "E301",
-                        im.span,
-                        format!(
-                            "{} is unsatisfied: trait `{}` requires spec field `{}` (`{}`), and device `{}` has no spec field with that name",
-                            impl_desc,
-                            tr.name.name,
-                            field.name.name,
-                            field.ty.unit.type_name(),
-                            dev.name.name
-                        ),
-                    )
-                    .with_secondary(field.span, "required here")
-                    .with_help(if dev.specs.is_empty() {
-                        format!("device `{}` declares no spec fields at all", dev.name.name)
-                    } else {
-                        format!(
-                            "add a mapping in the impl body: `spec {{ {}: <one of {}> }}`",
-                            field.name.name,
-                            dev.specs
-                                .iter()
-                                .map(|s| s.name.name.clone())
-                                .collect::<Vec<_>>()
-                                .join("/")
-                        )
-                    }),
-                );
-                ok = false;
             }
+        }
+        if field_ok {
+            result
+                .spec_map
+                .insert(field.name.name.clone(), target_name.clone());
+        } else {
+            ok = false;
         }
     }
 

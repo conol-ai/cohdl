@@ -356,6 +356,39 @@ Option 1 was rejected: the gap was actively dangerous, not just undocumented —
 
 If a genuine need for const-generics, value-parameter generics, or richer where-clause-style bounds emerges from real std-library authoring — these were explicitly scoped out of this RFC and would need their own proposal, not a silent extension.
 
+# DR-017: Exhaustive pattern-matching over structural variants — package variants + retrofitted pin roles
+
+## Context
+
+RFC-008 (note 6) formalized two related gaps surfaced by the actual MVP implementation (verified on the real main branch, 65 passing tests, self-audited via docs/compliance-report.md): (1) provisional-syntax.md's pin-role annotation already existed as a closed six-value set, but unannotated pins silently defaulted to passive — an implicit default the redesign's own principles forbid; (2) package/footprint variants (pins[VARIANT], spec[VARIANT]) were explicitly named in the same document as needed but deliberately left unspecified, pending this RFC.
+
+## Options
+
+1. Add package variants as a new mechanism; leave the existing pin-role default as-is (inconsistent application of exhaustiveness).
+2. Formalize package variants as a closed variants {} set requiring a pins[VARIANT] block per variant (exhaustive at the device declaration), and retrofit pin roles to require an explicit annotation on every pin, retiring the implicit passive default (RFC-008's proposal).
+3. A general pattern-matching/expression language covering arbitrary destructuring.
+4. Model package variants as entirely separate device types instead of one device with variants.
+
+## Decision
+
+Option 2. variants { ... } declares a device's closed, finite package/footprint set; every declared variant requires a pins[VARIANT] block (exhaustiveness checked at the device's own declaration); spec[VARIANT] is optional per variant. An instance of a device with declared variants must select one via [VARIANT] at the instantiation site — no implicit default variant. Separately, every pin declaration now requires an explicit role annotation from the closed six-value set (input/output/bidirectional/passive/power_in/power_out) — the previous "unannotated → passive" convention is retired.
+
+## Rationale
+
+Option 1 was rejected as an inconsistent half-measure — if exhaustiveness is worth adding for a new mechanism (package variants), it's worth applying to the closed set that already existed with a silent default (pin roles), especially since that default was itself flagged by this exact RFC's own motivating problem statement. Option 3 (general pattern matching) was rejected per the established narrow-generics precedent (RFC-007 rejected const-generics/richer bounds for the same reason: no concrete need beyond closed structural variants, and a general expression language is conceptual cost disproportionate to the job). Option 4 (separate device types per variant) was rejected: it duplicates every trait impl per variant, a real composability regression, and doesn't match the Conceptual Model's original "one device, several shapes" framing.
+
+## Consequences
+
+- Extends Device and Pin (existing concepts) — no new core concept.
+- Real, one-time compatibility break: every existing device declaration in the MVP-scope std library and demo board needs an explicit pin-role annotation added — mechanical and compiler-flagged, not a silent behavior change (every currently-unannotated pin becomes explicitly [passive], preserving current DRC behavior exactly).
+- Package variants are additive — no existing device without variants {} is affected.
+- This RFC's migration (adding roles everywhere) ships in the same implementation pass as the RFC itself, per the project's "ship with its check" discipline — no interim state where the std library fails to compile against its own spec.
+- Reserves three new error-code sub-blocks: missing pin-role annotation, undeclared variant selected at instantiation, missing pins[VARIANT] block for a declared variant.
+
+## Revisit when
+
+If a genuine third use case for closed-variant exhaustiveness emerges (beyond pin roles and package variants) — e.g. differential-pair roles or AVL alternates needing the same discipline — extend this same mechanism rather than inventing a parallel one.
+
 # Pending decision records (to be written as RFCs land)
 
 - DR-009 — Error-code registry v2 baseline, once RFC-004 + RFC-011 land.

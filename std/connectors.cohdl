@@ -12,8 +12,8 @@ pub device USB_C_Receptacle_2_0 {
         required CC2: B5 [passive]
         required DP: A6, B6 [bidirectional]
         required DN: A7, B7 [bidirectional]
-        optional SBU1: A8
-        optional SBU2: B8
+        optional SBU1: A8 [passive]
+        optional SBU2: B8 [passive]
         required SHIELD: SH [passive]
     }
 }

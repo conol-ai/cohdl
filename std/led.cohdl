@@ -3,8 +3,8 @@
 
 pub device ChipLED {
     pins {
-        required Cathode: 1
-        required Anode: 2
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
     }
 }
 

@@ -68,7 +68,7 @@ fn wrong_unit_spec_names_expected_and_actual() {
     let (_, rendered) = check(
         r#"
 pub device MLCC<C: Capacitance, V: Voltage = 10V> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V }
 }
 design B {
@@ -91,7 +91,7 @@ pub trait Capacitor {
     spec { capacitance: Capacitance }
 }
 pub device Weird {
-    pins { A: 1 }
+    pins { A: 1 [passive] }
     spec { capacitance: 10V }
 }
 impl Capacitor for Weird {}
@@ -110,7 +110,7 @@ fn bare_number_where_unit_expected() {
     let (_, rendered) = check(
         r#"
 pub device MLCC<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
 design B {
@@ -137,9 +137,9 @@ fn unresolved_required_pin_diagnostic() {
     let (_, rendered) = check(
         r#"
 pub device MCU {
-    pins { required VDD: 1, required GND: 2, optional TP: 3 }
+    pins { required VDD: 1 [passive], required GND: 2 [passive], optional TP: 3 [passive] }
 }
-pub device R2 { pins { A: 1, B: 2 } }
+pub device R2 { pins { A: 1 [passive], B: 2 [passive] } }
 design B {
     inst mcu: MCU
     inst r: R2
@@ -154,9 +154,9 @@ design B {
     let (_, rendered) = check(
         r#"
 pub device MCU {
-    pins { required VDD: 1, required GND: 2 }
+    pins { required VDD: 1 [passive], required GND: 2 [passive] }
 }
-pub device R2 { pins { A: 1, B: 2 } }
+pub device R2 { pins { A: 1 [passive], B: 2 [passive] } }
 design B {
     inst mcu: MCU
     inst r: R2
@@ -182,9 +182,9 @@ fn contradictory_net_and_nc_diagnostic() {
     let (_, rendered) = check(
         r#"
 pub device MCU {
-    pins { required VDD: 1, required GND: 2 }
+    pins { required VDD: 1 [passive], required GND: 2 [passive] }
 }
-pub device R2 { pins { A: 1, B: 2 } }
+pub device R2 { pins { A: 1 [passive], B: 2 [passive] } }
 design B {
     inst mcu: MCU
     inst r: R2
@@ -217,7 +217,7 @@ pub trait TwoTerminal {
     pins { required A: pin, required B: pin }
 }
 pub device OnePin {
-    pins { A: 1 }
+    pins { A: 1 [passive] }
 }
 impl TwoTerminal for OnePin {}
 "#,
@@ -236,7 +236,7 @@ pub trait Capacitor {
     spec { capacitance: Capacitance, voltage_rating: Voltage }
 }
 pub device NoRating<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
 impl Capacitor for NoRating {}
@@ -261,7 +261,7 @@ pub trait Capacitor: TwoTerminal {
     spec { capacitance: Capacitance }
 }
 pub device Cap<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
 impl Capacitor for Cap {}
@@ -286,10 +286,10 @@ fn generic_trait_bound_violation_diagnostic() {
         r#"
 pub trait Capacitor { spec { capacitance: Capacitance } }
 pub device Resistor<R: Resistance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { resistance: R }
 }
-pub device MCU { pins { required VDD: 1 } }
+pub device MCU { pins { required VDD: 1 [passive] } }
 fn add_decoupling<D: Capacitor>(target: D, pin: Pin) {
     net _: pin, target.A
 }
@@ -319,10 +319,10 @@ fn nested_fn_three_levels_substitution_threading() {
     let (checked, rendered) = check(
         r#"
 pub device MLCC<C: Capacitance, V: Voltage> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V }
 }
-pub device MCU { pins { required VDD: 1, required GND: 2 } }
+pub device MCU { pins { required VDD: 1 [passive], required GND: 2 [passive] } }
 
 fn level3<V: Voltage>(p: Pin, g: Pin) {
     inst c: MLCC<100nF, V>
@@ -374,7 +374,7 @@ design B {
 fn cyclic_call_full_chain_diagnostic() {
     let (_, rendered) = check(
         r#"
-pub device MCU { pins { required VDD: 1 } }
+pub device MCU { pins { required VDD: 1 [passive] } }
 fn a(p: Pin) { b(p) }
 fn b(p: Pin) { c(p) }
 fn c(p: Pin) { a(p) }
@@ -399,8 +399,8 @@ fn designator_same_prefix_no_collision() {
     // exact v1 esd/ldo33 collision class.
     let (mut checked, rendered) = check(
         r#"
-pub device ESD_USB { pins { required VCC: 1 } }
-pub device AP2112K { pins { required VOUT: 1 } }
+pub device ESD_USB { pins { required VCC: 1 [passive] } }
+pub device AP2112K { pins { required VOUT: 1 [passive] } }
 design B {
     inst esd: ESD_USB
     inst ldo33: AP2112K
@@ -423,7 +423,7 @@ design B {
 #[test]
 fn designator_stability_tombstones_and_overrides() {
     let src_v1 = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst first: D1
     inst second: D1
@@ -444,7 +444,7 @@ design B {
     // Remove `first`, add `third`: `second` keeps U2 (stability), `first` is
     // tombstoned, and U1 is never reused — `third` gets U3.
     let src_v2 = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst second: D1
     inst third: D1
@@ -471,7 +471,7 @@ design B {
 
     // Explicit override wins and collision with it is detected.
     let src_v3 = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     #[designator("U2")]
     inst fourth: D1
@@ -501,7 +501,7 @@ fn designator_assignment_is_order_independent() {
     // order produces the identical assignment. Instance paths are the same
     // set regardless of source order, so assignments must match exactly.
     let forward = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst alpha: D1
     inst beta: D1
@@ -510,7 +510,7 @@ design B {
 }
 "#;
     let backward = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst gamma: D1
     inst beta: D1
@@ -541,7 +541,7 @@ fn drc_d001_voltage_exceed() {
     let (_, rendered) = check(
         r#"
 pub device MLCC<C: Capacitance, V: Voltage> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C, voltage_rating: V }
 }
 pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
@@ -566,7 +566,7 @@ pub trait Polarized {
     pins { required Anode: pin, required Cathode: pin }
 }
 pub device TantalumCap {
-    pins { Anode: 1, Cathode: 2 }
+    pins { Anode: 1 [passive], Cathode: 2 [passive] }
 }
 impl Polarized for TantalumCap {}
 pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
@@ -587,7 +587,7 @@ fn drc_d003_single_driver() {
     let (_, rendered) = check(
         r#"
 pub device MCU { pins { required TX: 1 [output], required GND: 2 } }
-pub device R2 { pins { A: 1, B: 2 } }
+pub device R2 { pins { A: 1 [passive], B: 2 [passive] } }
 design B {
     inst mcu: MCU
     inst r: R2
@@ -667,7 +667,7 @@ fn unbound_instance_is_a_build_error() {
     let (mut checked, rendered) = check_with_std(
         r#"
 design B {
-    inst c1: MLCC<47nF, 16V, 10%>
+    inst c1: MLCC<47nF, 16V, 10%>[C0402]
     inst r1: RES_1K_0402
     net X: c1.A, r1.A
     net Y: c1.B, r1.B
@@ -692,7 +692,7 @@ fn net_annotation_must_be_voltage_typed() {
     // Voltage-typed, so `[100nF]` in the annotation slot is a unit-type error.
     let (_, rendered) = check(
         r#"
-pub device R2 { pins { A: 1, B: 2 } }
+pub device R2 { pins { A: 1 [passive], B: 2 [passive] } }
 design B {
     inst r: R2
     net X [100nF]: r.A, r.B
@@ -715,7 +715,7 @@ fn drc_d001_never_compares_across_unit_types() {
     let (_, rendered) = check(
         r#"
 pub device Weird<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { voltage_rating: C }
 }
 pub device Source { pins { required OUT: 1 [power_out], required GND: 2 } }
@@ -736,7 +736,7 @@ fn overridden_paths_prior_designator_stays_reserved() {
     // a prior number shadowed by an override on the same path is never handed
     // to a fresh instance.
     let src_v1 = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst a: D1
     net X: a.P, a.P
@@ -753,7 +753,7 @@ design B {
     assert_eq!(lock1.designators["B::a"], "U1");
 
     let src_v2 = r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     #[designator("U9")]
     inst a: D1
@@ -780,7 +780,7 @@ design B {
 fn dunder_names_are_reserved() {
     let (_, rendered) = check(
         r#"
-pub device D1 { pins { required P: 1 } }
+pub device D1 { pins { required P: 1 [passive] } }
 design B {
     inst __fn0_x: D1
     net __net0: __fn0_x.P, __fn0_x.P
@@ -800,7 +800,7 @@ fn ambiguous_part_binding_is_deterministic_and_noted() {
     let (mut checked, rendered) = check(
         r#"
 pub device MLCC<C: Capacitance> {
-    pins { A: 1, B: 2 }
+    pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
 pub part ZPart: MLCC<100nF> {
@@ -827,5 +827,326 @@ design B {
         artifacts.notes[0].contains("APart, ZPart"),
         "{}",
         artifacts.notes[0]
+    );
+}
+
+// ---------------------------------------------------------------------------
+// RFC-008: exhaustive pattern-matching over structural variants.
+
+#[test]
+fn rfc008_missing_pin_role_is_e901_listing_roles() {
+    let (_, rendered) = check(
+        r#"
+pub device Bare { pins { required VDD: 1 } }
+"#,
+    );
+    assert!(rendered.contains("E901"), "{}", rendered);
+    assert!(
+        rendered.contains("pin `VDD` has no role annotation"),
+        "{}",
+        rendered
+    );
+    for role in [
+        "[input]",
+        "[output]",
+        "[bidirectional]",
+        "[passive]",
+        "[power_in]",
+        "[power_out]",
+    ] {
+        assert!(
+            rendered.contains(role),
+            "missing {role} in help: {rendered}"
+        );
+    }
+}
+
+#[test]
+fn rfc008_variant_without_pins_block_is_e902_naming_it() {
+    let (_, rendered) = check(
+        r#"
+pub device V3<C: Capacitance> {
+    variants { C0402, C0603, C0805 }
+    pins[C0402] { A: 1 [passive], B: 2 [passive] }
+    pins[C0603] { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C }
+}
+"#,
+    );
+    assert!(rendered.contains("E902"), "{}", rendered);
+    assert!(
+        rendered.contains("variant `C0805` of device `V3` has no `pins[C0805]` block"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_undeclared_variant_selected_is_e903_with_valid_set() {
+    let (_, rendered) = check(
+        r#"
+pub device V2 {
+    variants { A1, A2 }
+    pins[A1] { P: 1 [passive] }
+    pins[A2] { P: 1 [passive] }
+}
+design B {
+    inst x: V2[A9]
+    net N: x.P, x.P
+}
+"#,
+    );
+    assert!(rendered.contains("E903"), "{}", rendered);
+    assert!(rendered.contains("no variant named `A9`"), "{}", rendered);
+    assert!(
+        rendered.contains("valid variants are: A1, A2"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_omitted_selector_is_e904_no_implicit_default() {
+    let (_, rendered) = check(
+        r#"
+pub device V2 {
+    variants { A1, A2 }
+    pins[A1] { P: 1 [passive] }
+    pins[A2] { P: 1 [passive] }
+}
+design B {
+    inst x: V2
+    net N: x.P, x.P
+}
+"#,
+    );
+    assert!(rendered.contains("E904"), "{}", rendered);
+    assert!(rendered.contains("no implicit default"), "{}", rendered);
+    assert!(
+        rendered.contains("valid variants are: A1, A2"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_selector_on_plain_device_is_e905() {
+    let (_, rendered) = check(
+        r#"
+pub device Plain { pins { P: 1 [passive] } }
+design B {
+    inst x: Plain[C0402]
+    net N: x.P, x.P
+}
+"#,
+    );
+    assert!(rendered.contains("E905"), "{}", rendered);
+    assert!(
+        rendered.contains("has no `variants { }` block"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_duplicate_variant_is_e906() {
+    let (_, rendered) = check(
+        r#"
+pub device V {
+    variants { C0402, C0402 }
+    pins[C0402] { P: 1 [passive] }
+}
+"#,
+    );
+    assert!(rendered.contains("E906"), "{}", rendered);
+    assert!(
+        rendered.contains("duplicate variant `C0402`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_undeclared_qualifier_is_e907() {
+    let (_, rendered) = check(
+        r#"
+pub device V {
+    variants { C0402 }
+    pins[C0402] { P: 1 [passive] }
+    spec[C9999] { }
+}
+"#,
+    );
+    assert!(rendered.contains("E907"), "{}", rendered);
+    assert!(
+        rendered.contains("no variant named `C9999`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_bare_pins_on_variant_device_is_e908() {
+    let (_, rendered) = check(
+        r#"
+pub device V {
+    variants { C0402 }
+    pins[C0402] { P: 1 [passive] }
+    pins { Q: 2 [passive] }
+}
+"#,
+    );
+    assert!(rendered.contains("E908"), "{}", rendered);
+    assert!(rendered.contains("must be qualified"), "{}", rendered);
+}
+
+#[test]
+fn rfc008_variant_spec_merge_override_and_addition() {
+    let (checked, rendered) = check(
+        r#"
+pub device V<C: Capacitance> {
+    variants { SMALL, BIG }
+    pins[SMALL] { A: 1 [passive], B: 2 [passive] }
+    pins[BIG] { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C, voltage_rating: 10V }
+    spec[BIG] { voltage_rating: 25V, max_ripple: 100mA }
+}
+design B {
+    inst small: V<100nF>[SMALL]
+    inst big: V<100nF>[BIG]
+    net N: small.A, big.A
+    net M: small.B, big.B
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let ir = checked.ir.unwrap();
+    let small = &ir.instances["B::small"];
+    let big = &ir.instances["B::big"];
+    // Base value for SMALL; override + addition for BIG (RFC-008 merge).
+    assert_eq!(small.specs["voltage_rating"].text, "10V");
+    assert!(!small.specs.contains_key("max_ripple"));
+    assert_eq!(big.specs["voltage_rating"].text, "25V");
+    assert_eq!(big.specs["max_ripple"].text, "100mA");
+}
+
+#[test]
+fn rfc008_per_variant_pin_numbers_reach_the_netlist() {
+    let (mut checked, rendered) = check(
+        r#"
+pub device Dual {
+    variants { QFN, DIP }
+    pins[QFN] { required SIG: 7 [passive], required GND: 8 [passive] }
+    pins[DIP] { required SIG: 1 [passive], required GND: 2 [passive] }
+}
+pub part DUAL_QFN: Dual[QFN] {
+    primary { mpn: "D-QFN", footprint: "F1" }
+}
+pub part DUAL_DIP: Dual[DIP] {
+    primary { mpn: "D-DIP", footprint: "F2" }
+}
+design B {
+    inst q: DUAL_QFN
+    inst d: DUAL_DIP
+    net S: q.SIG, d.SIG
+    net G: q.GND, d.GND
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).unwrap();
+    // Same logical pin, different physical pads per variant.
+    assert!(
+        artifacts.netlist.contains("(pin \"7\")"),
+        "{}",
+        artifacts.netlist
+    );
+    assert!(
+        artifacts.netlist.contains("(pin \"1\")"),
+        "{}",
+        artifacts.netlist
+    );
+    // Variant-aware part binding matched each instance to its own part.
+    assert!(
+        artifacts.bom.contains("D-QFN") && artifacts.bom.contains("D-DIP"),
+        "{}",
+        artifacts.bom
+    );
+}
+
+#[test]
+fn rfc008_impl_satisfaction_must_hold_for_every_variant() {
+    let (_, rendered) = check(
+        r#"
+pub trait TwoTerminal {
+    pins { required A: pin, required B: pin }
+}
+pub device Lopsided {
+    variants { GOOD, BAD }
+    pins[GOOD] { A: 1 [passive], B: 2 [passive] }
+    pins[BAD] { A: 1 [passive] }
+}
+impl TwoTerminal for Lopsided {}
+"#,
+    );
+    assert!(rendered.contains("E301"), "{}", rendered);
+    assert!(rendered.contains("(variant `BAD`)"), "{}", rendered);
+    assert!(rendered.contains("no pin with that name"), "{}", rendered);
+}
+
+#[test]
+fn rfc008_part_must_select_variant() {
+    let (_, rendered) = check(
+        r#"
+pub device V<C: Capacitance> {
+    variants { C0402 }
+    pins[C0402] { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C }
+}
+pub part P1: V<100nF> {
+    primary { mpn: "X", footprint: "F" }
+}
+"#,
+    );
+    assert!(rendered.contains("E904"), "{}", rendered);
+    assert!(
+        rendered.contains("part `P1` binds device `V`"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_selector_on_part_instantiation_is_rejected() {
+    let (_, rendered) = check_with_std(
+        r#"
+design B {
+    inst c: MLCC_100nF_16V_0402[C0603]
+    net N: c.A, c.B
+}
+"#,
+    );
+    assert!(rendered.contains("E905"), "{}", rendered);
+    assert!(
+        rendered.contains("already selects its variant"),
+        "{}",
+        rendered
+    );
+}
+
+#[test]
+fn rfc008_wildcard_variant_arm_is_rejected() {
+    let (_, rendered) = check(
+        r#"
+pub device V {
+    variants { C0402, _ }
+    pins[C0402] { P: 1 [passive] }
+}
+"#,
+    );
+    assert!(
+        rendered.contains("no wildcard/catch-all arms"),
+        "{}",
+        rendered
     );
 }

@@ -19,6 +19,7 @@ PAGES = [
     ("b1jxsdyp7yoix4dx0e4xwm1s", "rfc-005-designator-allocation"),
     ("tgl56zp1fp4dcekn39592yj3", "rfc-006-nested-fn-calls"),
     ("sdvm1pmfs8s2y3ovje4e9td2", "rfc-007-generics-over-specs"),
+    ("z3vpfowxnku0w0phczzb977q", "rfc-008-pattern-matching"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),
     ("rca8yxw24xn3o25c2rh7ovt6", "09-mvp-definition"),

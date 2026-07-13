@@ -2,13 +2,16 @@
 
 # Status
 
-v2 — reset for the ground-up redesign, 2026-07-13. The v1 map showed what a working 141-crate implementation already did. That implementation is being discarded/rewritten to match the new design (per Tony's decision), so this map can no longer honestly claim anything is "✅ working." It instead maps the same five capability layers as a build-order dependency graph for the new design — which layer's guarantees must exist before the next layer can be honest.
+v2 — updated 2026-07-13 to reflect the complete backlog (RFC-001 through RFC-013, all Accepted) and the real, independently-verified MVP implementation on conol-ai/cohdl's main branch. This replaces the prior version of this note, which described the discarded v1 implementation's status symbols against v2-named capabilities — an artifact of writing this map before any RFC had landed. Every capability below is now stated against what's actually been designed (an Accepted RFC exists) and, where checked, what's actually been implemented (verified against real repo state, not memory).
 
-Status legend, redefined for a pre-implementation redesign: 🎯 required at v2 launch · 🚪 reserved door (not v2) · ⛔ deliberately cut (see Constitution non-goals).
+Status legend:
+
+- ✅ designed + implemented — Accepted RFC exists AND confirmed present/working in the real main branch (65 passing tests as of the last verification pass).
+- 📐 designed, implementation pending — Accepted RFC exists (note 6/7/10 all in sync) but the real repo does not yet implement it. A separate implementation-focused agent is currently catching the codebase up to the full RFC backlog.
+- 🚪 reserved door, exercised — a seam note 2 pre-designed has now been formally opened via an Accepted RFC (layout constraints).
+- ⛔ deliberately cut — see Constitution non-goals or note 9's MVP scope line.
 
 # Layer 1 — Core concepts (the language engine)
-
-This is where the redesign's central bet lives: push correctness into types, not into a later rule pass.
 
 | Capability | Status | Notes |
 |---|---|---|
@@ -21,11 +24,9 @@ This is where the redesign's central bet lives: push correctness into types, not
 | MPN propagation to instances | ◐ | field exists, type checker never populates it → BOM `<UNSPECIFIED>` |
 | Intent annotations (`#[intent(...)]`) | 🚪 | reserved seam; metadata, never affects netlist |
 
-Coherence stakes: almost everything in this layer is now "the thing that used to be a dormant DRC rule." If this layer is done right, Layer 2 (below) shrinks dramatically — which is the whole point of the redesign.
+Coherence stakes unchanged from the redesign's own thesis: this layer does most of the correctness work that used to be spread across dormant DRC rules. All seven P0 RFCs plus RFC-008 are now real Layer-1 design — the gap remaining is purely implementation catch-up, not design.
 
 # Layer 2 — Correctness & verification (the oracle)
-
-Narrower than v1 by design. The oracle's job is now split: most of it lives in Layer 1's type checker; only genuinely emergent/numeric checks remain here.
 
 | Capability | Status | Notes |
 |---|---|---|
@@ -40,8 +41,6 @@ Narrower than v1 by design. The oracle's job is now split: most of it lives in L
 
 # Layer 3 — Ecosystem output (the bridge to the physical world)
 
-Mostly unchanged in purpose from v1; what changes is that its inputs (MPN, specs) are now type-guaranteed complete, so the emitters get simpler, not more complex.
-
 | Capability | Status | Notes |
 |---|---|---|
 | KiCad legacy `.net` (S-expr) emitter | ✅ | `cohdl-codegen-kicad`; 477-line real output on `conol-pin` |
@@ -52,8 +51,6 @@ Mostly unchanged in purpose from v1; what changes is that its inputs (MPN, specs
 | Additional targets (Altium, gEDA, SPICE deck) | ○ | evaluate via RFC; not by "competitor has it" |
 
 # Layer 4 — Authoring & tooling (the AI-native interface)
-
-Unchanged in importance; unchanged in requirement that tooling is the product, not polish.
 
 | Capability | Status | Notes |
 |---|---|---|
@@ -67,8 +64,6 @@ Unchanged in importance; unchanged in requirement that tooling is the product, n
 | **Batch / server mode** for high-throughput generation grading | ○ | needed for RL / dataset generation at scale |
 
 # Layer 5 — AI generation loop (the reason the language exists)
-
-Unchanged in importance; sequencing is, if anything, more strict this time, because the redesign's whole premise is "don't build the reward loop on a lying oracle" — and this time we're building the oracle right from the start instead of discovering it lied after the fact.
 
 | Capability | Status | Notes |
 |---|---|---|
@@ -88,11 +83,4 @@ Unchanged in importance; sequencing is, if anything, more strict this time, beca
 
 # How to read this map when proposing a feature
 
-Unchanged mechanism from v1: a feature proposal states which layer(s) it touches and which verdict rung it strengthens. What changed is the map's shape — Layer 1 is now doing more of the correctness work, Layer 2 is deliberately smaller, and the bar for adding anything to Layer 2 is "prove it can't be a Layer-1 type-system mechanism first" (see Conceptual Model's new model smell).
-
-The v2 critical path, in priority order:
-
-1. Design and freeze the type system's strictness mechanisms (Layer 1: units-as-types, trait-at-impl-time checking, pin obligations, generics) — this is the actual redesign; everything else is downstream of it.
-2. Design the narrowed residual-DRC + collision-free designator allocator (Layer 2) — prove by construction, not by patching after a bug report.
-3. Co-design the error-code registry + cohdl check --json schema with the type checker itself (Layers 2/4) — don't defer this to "after the compiler works," since in v1 deferring it is exactly what let the schema lag behind the implementation.
-4. Only then build the repair loop and RL environment (Layer 5) — same discipline as v1, reasserted with more force since there's no partial implementation to fall back on if this order is skipped.
+Unchanged mechanism: a feature proposal states which layer(s) it touches and which verdict rung it strengthens. New as of this update: the map now distinguishes designed (RFC Accepted) from implemented (verified in real source) — a real, separate implementation-focused agent is currently working through the 📐 items to bring the actual conol-ai/cohdl repository up to the full, now-complete RFC-001–013 design. This design repository (notes 1–10) is fully specified; the remaining work is implementation catch-up, not further design — with one exception: RFC-013's layout-constraint vocabulary is explicitly flagged provisional and may need a follow-up RFC once a real partner integration is scoped (see note 8, GC-002's amendment).

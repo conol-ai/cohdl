@@ -23,6 +23,8 @@ PAGES = [
     ("ke8hndl2xb8f5u11shrvwxib", "rfc-009-fmt"),
     ("gh5vfukafa549owcr8uz15ra", "rfc-010-check-json"),
     ("r8oj9xfx4g7657dptne3p2uz", "rfc-011-error-registry"),
+    ("xd3mrnbompcglnwl1ygn34cu", "rfc-012-intent-annotations"),
+    ("mss6eauuemfswvbjflarwrvp", "rfc-013-layout-constraint"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),
     ("rca8yxw24xn3o25c2rh7ovt6", "09-mvp-definition"),

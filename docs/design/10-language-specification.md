@@ -381,11 +381,67 @@ The full code-by-code listing lives in `docs/error-codes.md` (the single source 
 
 **Enforcement**: a mechanical, CI-run completeness test checks both directions — every diagnostic code literal in compiler source has a registry row, and every non-deprecated registry row has a real call site in source. This closes the same "structurally present but not actually enforced" gap class DR-006 named for DRC rules, applied here to the diagnostics registry.
 
+# #[intent(...)] annotations
+
+Accepted via RFC-012, see RFC-012: #[intent(...)] annotations (pure metadata) + DR-010.
+
+#[intent("...")] attaches a single, opaque, human-readable rationale string to a declaration — structured attribution distinct from an ordinary // comment, with a guaranteed zero impact on compilation.
+
+```cohdl
+#[intent("100nF chosen per ESP32-S3 datasheet §3.4 decoupling recommendation, not a generic default")]
+inst c_esp_decouple: MLCC_100nF_16V_0402
+```
+
+Rules:
+
+- Exactly one string literal argument — no structured sub-fields.
+- Attachable to: inst, net, nc, impl, device, trait, fn, part. At most one #[intent(...)] per declaration — a duplicate is a compile error.
+- Zero compiler impact, by construction: the type checker, residual DRC, designator allocator, and netlist/BOM emitters never read this field — it is not a parameter any of those passes' functions accept. Mutating an #[intent(...)] string can never change a design's verdict, diagnostics, designator assignment, or emitted netlist/BOM bytes.
+- cohdl fmt places it as a single-line attribute directly preceding its target, matching the existing #[designator("Xxx")] convention.
+- cohdl check --json does not surface #[intent(...)] content in its diagnostics schema.
+- If a stated "intent" reads like a checkable constraint, it is not enforced — it's decorative prose. Real constraints belong in the type system (RFC-001/002/003/007) or residual DRC (RFC-004), never in an #[intent(...)] string.
+
+# Layout constraints (the door)
+
+Accepted via RFC-013, see RFC-013: Layout-constraint concept (the door) + DR-011. Enabled by GC-002's amendment (note 8) — Tony's explicit decision to open the layout door ahead of its originally-stated "concrete partner requirement" trigger.
+
+Layout Constraint is a new core concept, positioned adjacent to Net/Rule (per note 2's pre-designed seam) — never a second connectivity mechanism, never a DRC rule. It lets an author state a layout-relevant fact for a partner layout tool to consume; CoHDL itself never places, routes, or reasons about physical geometry.
+
+```cohdl
+design SensorNode {
+    net USB_DP: usb.DP, esp.IO20
+    net USB_DM: usb.DN, esp.IO19
+
+    layout {
+        net_class HighSpeed { USB_DP, USB_DM }
+        diff_pair(USB_DP, USB_DM)
+        length_match(USB_DP, USB_DM) [tolerance: 0.15mm]
+    }
+
+    #[placement_hint("near USB connector, short trace to ESP32-S3 USB pins")]
+    inst esp
+}
+```
+
+Four closed constraint kinds:
+
+- net_class NAME { net, net, ... } — a named group of nets sharing a layout treatment. NAME must be declared before use.
+- diff_pair(net_p, net_n) — exactly two existing nets, declared as a differential pair.
+- length_match(net, net, ...) — two or more existing nets that must be length-matched, with an optional [tolerance: ...] bracket.
+- #[placement_hint("...")] — a single opaque string on an inst, same shape and zero-impact discipline as #[intent(...)] (RFC-012).
+
+Rules:
+
+- layout { ... } is a new top-level block inside a design (or fn body). Referenced nets must already exist.
+- The first three kinds are exhaustively type-checked against their own closed vocabulary (unknown net reference, duplicate net_class name, wrong diff_pair arity, length_match with fewer than two nets, net_class referenced before declaration are all compile errors — see error-code block E10xx).
+- Zero schematic-correctness impact, by construction: layout-constraint data is emitted as a separate artifact (layout.json/netlist addendum) — the type checker, residual DRC, designator allocator, and .net/BOM emitters never read it. Mutating any layout {} content can never change a design's verdict, RFC-001–011 diagnostics, designator assignment, or .net/BOM bytes.
+- CoHDL does not verify that a length_match tolerance is actually met, or that a diff_pair is physically routed as one — it has no geometry to check against. The data is purely passed through to whatever partner tool consumes it.
+- The four constraint kinds are explicitly provisional — per GC-002's disclosed design debt, expected to be revisited once a real partner layout-tool integration is scoped. A future reshaping is anticipated, not a stability violation of this RFC.
+
 # Not yet specified
 
 The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have **no Accepted RFC yet**, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
 
-- `#[intent(...)]` annotations (RFC-012)
-- Everything else in the Conceptual Model (Part, Instance, Net, Module, Design) that hasn't yet had its concrete syntax/semantics pinned down by an Accepted RFC — note 2 describes their intended shape and philosophy; this note will gain a section for each only once an RFC formally accepts its concrete syntax.
+- Everything else in the Conceptual Model (Part, Instance, Net, Module, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-This section should shrink over time as RFCs land — treat its length as an honest progress indicator for the redesign, not a to-do list to rush.
+As of 2026-07-13, RFC-001 through RFC-013 are all Accepted — every backlog item, including the previously-gated layout door. This section is now the shortest it has ever been.

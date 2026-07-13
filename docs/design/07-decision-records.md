@@ -485,6 +485,69 @@ Option 1 was rejected: the informal registry's own text explicitly anticipated R
 
 If a future RFC's diagnostic needs don't fit any existing block's "kind of mistake" grouping — that RFC should propose its own new block (as RFC-008 did for E9xx here), not force-fit into an existing one for the sake of avoiding a new block number.
 
-# Pending decision records (to be written as RFCs land)
+# DR-010: #[intent(...)] annotations — a single opaque string, structurally enforced zero compiler impact
 
-- DR-010 — #[intent(...)] as pure non-netlist metadata, once RFC-012 is decided (carried forward from v1's pending DR-007, renumbered).
+## Context
+
+RFC-012 (note 6) designed the last backlog item before the gated RFC-013: a way to attach structured, human-readable design rationale to a declaration, distinct from an ordinary // comment, while guaranteeing it can never influence compilation. No real v1 implementation of this existed to ground against (checked origin/legacy — zero real intent code, only the license text's unrelated use of the word) — this was always a design-note-level proposal, never built, so this RFC designs it fresh against the same P2/gated-on-zero-netlist-impact framing v1's backlog stated.
+
+## Options
+
+1. Structured sub-fields (reason, ticket, author, etc.) inside the attribute.
+2. A single opaque string argument, attachable to any top-level or body statement, with zero-impact enforced structurally (never threaded into any checking/emission function's input types) and tested via a mandatory non-impact regression (RFC-012's proposal).
+3. A dedicated top-level intent {} block per design, decoupled from the specific declaration it explains.
+4. Repurpose doc-comment syntax (/// ...) with implicit tooling conventions distinguishing it from prose.
+
+## Decision
+
+Option 2. #[intent("...")] — exactly one string literal, attachable to inst/net/nc/impl/device/trait/fn/part declarations, at most one per declaration. Parsed into the AST as an opaque, uninterpreted string field on its target node; the type checker, residual DRC, designator allocator, and netlist/BOM emitters never read this field — it is not a parameter any of those passes' functions accept, making the zero-impact guarantee true by construction, not convention.
+
+## Rationale
+
+Option 1 was rejected: structured sub-fields invite exactly the "why not make this field checkable too" slope this RFC exists to avoid — a single string keeps the temptation to encode real constraints as far from the mechanism as possible. Option 3 was rejected: decoupling rationale from its specific instance/net reproduces the "scattered prose, not locally attributable" problem // comments already have — attribution to one specific declaration is the entire point. Option 4 was rejected per the redesign's own established discipline (RFC-008 retired an implicit pin-role default for the same reason): making "is this comment structured metadata or prose" a matter of tooling convention rather than explicit syntax is exactly the ambiguity the project avoids everywhere else.
+
+## Consequences
+
+- No new core concept — same shape as the already-accepted #[designator("Xxx")] override attribute (RFC-005).
+- Mandatory non-impact regression test: mutating any #[intent(...)] string (including strings that read like constraints) must never change a fixture's verdict, diagnostics, designator assignment, or emitted netlist/BOM bytes, byte-for-byte.
+- cohdl fmt treats it as a single-line attribute preceding its target, reusing the existing attribute-placement convention — no new formatting category.
+- cohdl check --json does not surface #[intent(...)] content — an explicit non-inclusion, not an oversight, until some future tooling RFC deliberately adds it.
+
+## Revisit when
+
+If real authoring reveals a genuine need for structured sub-fields (e.g. linking rationale to an external ticket system) — that would be its own RFC extending this mechanism, evaluated against the same "does this invite checkable-constraint creep" question this RFC asked and answered "no" to for the MVP-baseline single-string form.
+
+# DR-011: Layout constraints — a closed, four-kind declarative vocabulary, zero schematic-correctness impact
+
+## Context
+
+RFC-013 (note 6) opened the layout door per GC-002's amendment (note 8) — Tony's explicit decision to admit layout constraints into the conceptual model now, ahead of GC-002's originally-stated "concrete partner requirement" trigger. Note 2's Conceptual Model had already pre-designed the seam for this moment: "a net_class/constraint decoration adjacent to Net/Rule, never a second connectivity mechanism, inspectable and gradeable like a rule, losslessly ignorable/passable through codegen." This RFC is the first exercise of that seam.
+
+## Options
+
+1. Fold layout constraints into rule (residual DRC), or wait for real in-language rule syntax before adding this at all.
+2. A new layout { ... } top-level block with four closed constraint kinds (net_class, diff_pair, length_match, #[placement_hint(...)]), type-checked against their own closed vocabulary, threaded into a separate output artifact never read by the type checker/DRC/designator allocator (RFC-013's proposal).
+3. Opaque-string-only constraints (extend #[intent(...)]'s pattern, no structured kinds).
+4. A fully general, partner-schema-defined extensible constraint plugin system.
+
+## Decision
+
+Option 2. Layout Constraint becomes a new core concept, positioned adjacent to Net/Rule per the pre-designed seam — not a new connectivity mechanism, not a DRC rule. Four closed kinds cover the most common real PCB layout needs (impedance-class grouping, differential pairs, length matching, placement hints). Constraint data is emitted as a separate artifact (layout.json/netlist addendum), never merged into .net/BOM connectivity data, never read by any existing checking/emission pass — the same "not a parameter any pass accepts" structural guarantee RFC-012 established for #[intent(...)], now extended to a small, independently-type-checked vocabulary.
+
+## Rationale
+
+Option 1 was rejected: layout constraints are neither emergent-across-the-connectivity-graph (DR-006's DRC-classification criterion) nor structural-about-one-device (the type-system criterion) — they're declarative metadata about an orthogonal physical domain, and forcing them into rule's shape would misclassify them the same way RFC-011's E402/E404 misfiling misclassified unit-mismatch-at-generic-sites. Option 3 was rejected: unlike design rationale, these four kinds have real checkable structure (arity, net existence, declaration-before-use) worth type-checking — reducing them to prose would discard gradeability the redesign's whole thesis says is worth having wherever real structure exists. Option 4 was rejected as premature: with no concrete partner integration in hand (GC-002's honestly-disclosed gap), building general extensibility now is speculative generality with no real use case to validate it against.
+
+## Consequences
+
+- First genuinely new core concept added since the ground-up redesign began — the canonical vocabulary grows by one (Layout Constraint), a permanent addition whose cost is accepted per GC-002's explicit decision.
+- Reserves a new error-code block, E10xx (five codes: E1001–E1005), following RFC-011's kind-of-mistake organizing principle.
+- cohdl build gains a new, versioned output artifact alongside the existing .net/BOM.
+- The constraint-kind list is explicitly provisional — per GC-002's disclosed design debt, expected to be revisited once a real partner layout-tool integration is scoped; a future reshaping of these four kinds is anticipated, not a stability violation.
+- A mandatory zero-impact regression test (mirroring RFC-012's) must show that any layout {} content never changes the schematic-correctness verdict, any RFC-001–011 diagnostic, designator assignment, or .net/BOM bytes.
+
+## Revisit when
+
+The moment a real partner layout-tool integration is scoped — at that point, validate (and likely reshape) the four constraint kinds against the partner's actual schema needs, via a follow-up RFC extending this one, not a silent change to already-Accepted syntax.
+
+(Numbering note: DR-011 is the next open decision-record number in the DR track; it is unrelated to RFC-011 "Error-code registry," which used its own number in the RFC track — the same non-collision pattern already noted for DR-013/RFC-013 earlier in this backlog.)

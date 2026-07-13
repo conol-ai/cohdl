@@ -24,11 +24,11 @@ Carried forward from v1 with no changes — this GC is about the mission, which 
 - Reason — Tony's directive (2026-07-09).
 - Decision — Accepted (2026-07-09). Still in force; unaffected by the 2026-07-13 conceptual-model redesign.
 
-# GC-002: Admit layout *constraints* into the conceptual model — unchanged, still gated
+# GC-002: Admit layout *constraints* into the conceptual model — AMENDED, now Accepted (2026-07-13)
 
-Carried forward from v1 with no changes — the layout door is untouched by this redesign.
+Carried forward from v1 as "staged, requires a concrete partner requirement." Amended and Accepted 2026-07-13 per Tony's explicit directive to open the layout door now — see the full amended proposal as its own child note for the complete GC-NNNN format writeup (original goal, reason, strategic context, affected users/principles/concepts/capabilities, compatibility risks, design debt, decision). Key point carried into that note honestly: the original "concrete partner requirement" trigger was not met — this decision explicitly waives it rather than pretending it was satisfied.
 
-- Decision — Staged / not yet accepted. Requires a concrete partner requirement + a full RFC before acceptance. Still the hardest gate in the system.
+- Decision — Accepted (2026-07-13), amended from "staged." See child note for full text. Resulting RFC: RFC-013 (note 6).
 
 # GC-003: Ground-up redesign of the conceptual model around "strictness buys expressiveness" (NEW)
 

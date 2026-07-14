@@ -30,9 +30,15 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 
-/// Run the server on stdio until `exit`. The return distinguishes a clean
-/// `shutdown`-then-`exit` (Ok) from an abrupt stream end.
-pub fn run_stdio() -> Result<(), String> {
+/// How the server session ended — the LSP spec assigns exit codes: 0 for
+/// `exit` after `shutdown`, 1 for `exit` without it.
+pub enum LspExit {
+    Clean,
+    WithoutShutdown,
+}
+
+/// Run the server on stdio until `exit`.
+pub fn run_stdio() -> Result<LspExit, String> {
     let stdin = std::io::stdin();
     let stdout = std::io::stdout();
     let mut server = Server {
@@ -44,17 +50,35 @@ pub fn run_stdio() -> Result<(), String> {
     let mut reader = stdin.lock();
     let mut writer = stdout.lock();
     loop {
-        let Some(msg) = read_message(&mut reader)? else {
-            // Stream closed without `exit` — treat as done.
-            return Ok(());
+        let msg = match read_message(&mut reader) {
+            Ok(Read::Message(m)) => m,
+            Ok(Read::Eof) => {
+                // Stream closed without `exit` — treat as done.
+                return Ok(LspExit::Clean);
+            }
+            Ok(Read::Malformed(detail)) => {
+                // JSON-RPC 2.0 §5.1: a parse error is an error RESPONSE
+                // (id null), never process death — the editor session (and
+                // its unsaved-buffer overlays) survives one corrupt frame.
+                write_message(
+                    &mut writer,
+                    &json!({
+                        "jsonrpc": "2.0",
+                        "id": Value::Null,
+                        "error": { "code": -32700, "message": format!("Parse error: {}", detail) },
+                    }),
+                )?;
+                continue;
+            }
+            Err(io) => return Err(io), // genuine I/O failure
         };
         let method = msg.get("method").and_then(Value::as_str).unwrap_or("");
         if method == "exit" {
             // LSP: exit after shutdown is clean; exit without it is not.
             return if server.shutdown_requested {
-                Ok(())
+                Ok(LspExit::Clean)
             } else {
-                Err("lsp: `exit` received before `shutdown`".to_string())
+                Ok(LspExit::WithoutShutdown)
             };
         }
         if let Some(response) = server.handle(method, &msg) {
@@ -70,7 +94,15 @@ pub fn run_stdio() -> Result<(), String> {
 // ---------------------------------------------------------------------------
 // Transport: hand-rolled JSON-RPC framing (Content-Length header + payload).
 
-fn read_message(reader: &mut impl BufRead) -> Result<Option<Value>, String> {
+/// One framed read: a message, EOF, or a recoverable framing/parse problem
+/// (the frame boundary is known, so the session continues).
+enum Read {
+    Message(Value),
+    Eof,
+    Malformed(String),
+}
+
+fn read_message(reader: &mut impl BufRead) -> Result<Read, String> {
     let mut content_length: Option<usize> = None;
     loop {
         let mut line = String::new();
@@ -78,7 +110,7 @@ fn read_message(reader: &mut impl BufRead) -> Result<Option<Value>, String> {
             .read_line(&mut line)
             .map_err(|e| format!("lsp: read error: {}", e))?;
         if n == 0 {
-            return Ok(None); // EOF
+            return Ok(Read::Eof);
         }
         let line = line.trim_end();
         if line.is_empty() {
@@ -88,14 +120,19 @@ fn read_message(reader: &mut impl BufRead) -> Result<Option<Value>, String> {
             content_length = v.trim().parse().ok();
         }
     }
-    let len = content_length.ok_or("lsp: missing Content-Length header")?;
+    let Some(len) = content_length else {
+        // The header block was cleanly delimited; resume at the next one.
+        return Ok(Read::Malformed("missing Content-Length header".to_string()));
+    };
     let mut buf = vec![0u8; len];
     reader
         .read_exact(&mut buf)
         .map_err(|e| format!("lsp: payload read error: {}", e))?;
-    let value: Value = serde_json::from_slice(&buf)
-        .map_err(|e| format!("lsp: malformed JSON-RPC payload: {}", e))?;
-    Ok(Some(value))
+    match serde_json::from_slice(&buf) {
+        Ok(value) => Ok(Read::Message(value)),
+        // The payload was fully consumed — recoverable.
+        Err(e) => Ok(Read::Malformed(format!("invalid JSON payload: {}", e))),
+    }
 }
 
 fn write_message(writer: &mut impl Write, value: &Value) -> Result<(), String> {
@@ -260,10 +297,24 @@ impl Server {
                 now_published.insert(u);
             }
         }
-        // The touched file always gets a publish (possibly empty).
-        if !now_published.contains(&uri) {
+        // The touched file always gets a publish (possibly empty) — matched
+        // by PATH identity, not URI spelling (the client's percent-encoding
+        // may differ from ours).
+        let touched_fid = analysis.fid_for(&path);
+        let touched_covered = touched_fid.is_some_and(|fid| per_file.contains_key(&fid.0));
+        if !touched_covered {
             notes.push(publish_note(&uri, Vec::new()));
             now_published.insert(uri);
+        }
+        // A design-selection failure has no source span — surface it as an
+        // editor message so the file never silently LOOKS clean while the CLI
+        // errors (review finding; parallels the CLI's exit-2 prose).
+        if let Some(err) = &analysis.checked.selection_error {
+            notes.push(json!({
+                "jsonrpc": "2.0",
+                "method": "window/showMessage",
+                "params": { "type": 1, "message": format!("cohdl: {}", err) },
+            }));
         }
         // Clear diagnostics for files that had them before but not now.
         for stale in self.published.difference(&now_published) {
@@ -284,11 +335,35 @@ impl Server {
             .map(Path::to_path_buf);
         let std_dir = crate::project::find_std_dir(None);
         let target: &Path = project_root.as_deref().unwrap_or(path);
-        let mut proj = crate::project::load_project(target, std_dir.as_deref()).ok()?;
+        let mut proj = match crate::project::load_project(target, std_dir.as_deref()) {
+            Ok(p) => p,
+            // The buffer may not exist on disk at all (a new unsaved file):
+            // fall back to std + the overlay contents.
+            Err(_) => {
+                let text = self.overlays.get(path)?.clone();
+                let (mut files, mut abs) = crate::project::load_std_files(std_dir.as_deref())?;
+                files.push((path.display().to_string(), text));
+                abs.push(path.to_path_buf());
+                crate::project::Project {
+                    name: "buffer".to_string(),
+                    dir: path.parent().map(Path::to_path_buf).unwrap_or_default(),
+                    top: None,
+                    files,
+                    abs_paths: abs,
+                }
+            }
+        };
         // Overlays: unsaved buffer contents win over the disk.
         for (i, abs) in proj.abs_paths.iter().enumerate() {
             if let Some(text) = self.overlays.get(abs) {
                 proj.files[i].1 = text.clone();
+            }
+        }
+        // A buffer inside a project dir that isn't on disk yet joins the set.
+        if !proj.abs_paths.iter().any(|p| p == path) {
+            if let Some(text) = self.overlays.get(path) {
+                proj.files.push((path.display().to_string(), text.clone()));
+                proj.abs_paths.push(path.to_path_buf());
             }
         }
         let checked = pipeline::check_files(&proj.files, proj.top.as_deref()).ok()?;
@@ -472,7 +547,7 @@ impl Server {
 impl Analysis {
     fn uri_for(&self, fid: FileId) -> Option<lt::Uri> {
         let path = self.abs_paths.get(fid.0 as usize)?;
-        format!("file://{}", path.display()).parse().ok()
+        encode_file_uri(path).parse().ok()
     }
 
     fn fid_for(&self, path: &Path) -> Option<FileId> {
@@ -594,10 +669,44 @@ fn publish_note(uri: &str, diagnostics: Vec<Value>) -> Value {
 
 fn uri_to_path(uri: &str) -> Option<PathBuf> {
     let raw = uri.strip_prefix("file://")?;
-    // Minimal percent-decoding for the common cases (space).
-    let decoded = raw.replace("%20", " ");
-    let p = PathBuf::from(decoded);
+    let p = PathBuf::from(percent_decode(raw));
     Some(p.canonicalize().unwrap_or(p))
+}
+
+/// RFC 3986 percent-encoding of a filesystem path into a `file://` URI —
+/// everything outside unreserved + `/` is encoded, so `lsp_types::Uri::parse`
+/// accepts paths with spaces (and any other byte) and the URI round-trips
+/// through `uri_to_path`.
+fn encode_file_uri(path: &Path) -> String {
+    let mut out = String::from("file://");
+    for &b in path.display().to_string().as_bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' | b'/' => {
+                out.push(b as char)
+            }
+            _ => out.push_str(&format!("%{:02X}", b)),
+        }
+    }
+    out
+}
+
+/// Full percent-decoding (any %XX escape), byte-accurate for UTF-8 paths.
+fn percent_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(v) = u8::from_str_radix(&s[i + 1..i + 3], 16) {
+                out.push(v);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 // ---------------------------------------------------------------------------
@@ -689,8 +798,17 @@ fn body_use_site(body: &[Stmt], hit: &impl Fn(&Ident) -> bool) -> Option<String>
                     }
                 }
             }
-            Stmt::Call(s) if hit(&s.callee) => {
-                return Some(s.callee.name.clone());
+            Stmt::Call(s) => {
+                if hit(&s.callee) {
+                    return Some(s.callee.name.clone());
+                }
+                for arg in &s.generic_args {
+                    if let GenericArg::Name(id) = arg {
+                        if hit(id) {
+                            return Some(id.name.clone());
+                        }
+                    }
+                }
             }
             _ => {}
         }

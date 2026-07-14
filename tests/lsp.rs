@@ -404,3 +404,181 @@ design LspB {
     assert_eq!(refs.as_array().unwrap().len(), 1, "{}", refs);
     lsp.shutdown();
 }
+
+// ---------------------------------------------------------------------------
+// Adversarial-verification regressions (RFC-014 round 1).
+
+// Finding 1/5 (high): paths needing percent-encoding must not lose diagnostics.
+#[test]
+fn percent_encoded_paths_keep_diagnostics() {
+    let dir = std::env::temp_dir().join(format!("cohdl lsp space {}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("space fixture.cohdl");
+    std::fs::write(&path, DIAG_FIXTURE).unwrap();
+    let canonical = path.canonicalize().unwrap();
+    let uri = format!(
+        "file://{}",
+        canonical.display().to_string().replace(' ', "%20")
+    );
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, DIAG_FIXTURE);
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(
+        diags.iter().any(|d| d["code"] == "E202"),
+        "diagnostics must survive percent-encoded paths:\n{:?}",
+        diags
+    );
+    // goto-def also works through the encoded URI.
+    let col = DIAG_FIXTURE
+        .lines()
+        .nth(2)
+        .unwrap()
+        .find("LspProbe")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": col + 1 } }),
+    );
+    assert!(def.is_object(), "definition must resolve: {}", def);
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Finding 2 (medium): one corrupt frame must not kill the session.
+#[test]
+fn malformed_frames_get_parse_errors_and_session_survives() {
+    let (_path, uri, text) = fixture("robust.cohdl", DIAG_FIXTURE);
+    let mut lsp = Lsp::start();
+
+    // Garbage JSON with valid framing -> -32700 response, id null.
+    let garbage = b"{this is : not json";
+    write!(lsp.stdin, "Content-Length: {}\r\n\r\n", garbage.len()).unwrap();
+    lsp.stdin.write_all(garbage).unwrap();
+    lsp.stdin.flush().unwrap();
+    let err = lsp.read_message();
+    assert_eq!(err["error"]["code"].as_i64(), Some(-32700), "{}", err);
+    assert!(err["id"].is_null(), "{}", err);
+
+    // Headers without Content-Length -> also recoverable.
+    lsp.stdin.write_all(b"X-Garbage: yes\r\n\r\n").unwrap();
+    lsp.stdin.flush().unwrap();
+    let err = lsp.read_message();
+    assert_eq!(err["error"]["code"].as_i64(), Some(-32700), "{}", err);
+
+    // The session still works end-to-end afterwards.
+    did_open(&mut lsp, &uri, &text);
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(!diags.is_empty(), "session must survive corrupt frames");
+    lsp.shutdown();
+}
+
+// Finding 3 (medium): a buffer that does not exist on disk still checks.
+#[test]
+fn phantom_buffer_gets_diagnostics_from_overlay() {
+    let dir = std::env::temp_dir().join(format!("cohdl-lsp-phantom-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    // NOTE: the path is never written to disk.
+    let path = dir.canonicalize().unwrap().join("unsaved.cohdl");
+    let uri = format!("file://{}", path.display());
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, DIAG_FIXTURE);
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(
+        diags.iter().any(|d| d["code"] == "E202"),
+        "overlay-only buffer must be checked:\n{:?}",
+        diags
+    );
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Findings 4/8 (low): exit without shutdown is exit code 1 (LSP spec).
+#[test]
+fn exit_without_shutdown_is_exit_code_1() {
+    let mut lsp = Lsp::start();
+    lsp.notify("exit", Value::Null);
+    let status = lsp.child.wait().unwrap();
+    assert_eq!(status.code(), Some(1), "spec: exit w/o shutdown -> 1");
+}
+
+// Finding 6 (medium): a design-selection failure surfaces as showMessage,
+// while declaration-stage diagnostics still publish. (Body-stage diagnostics
+// cannot exist here — no design is selected, so no expansion runs; that
+// matches the CLI exactly.)
+#[test]
+fn selection_error_surfaces_as_show_message() {
+    let src = "\
+pub device ZzSel { pins { A: 1 [passive] } }
+impl ZzNoSuchTrait for ZzSel {}
+design SelOne { inst d: ZzSel
+net N: d.A }
+design SelTwo { inst d: ZzSel
+net N: d.A }
+";
+    let (_path, uri, text) = fixture("sel.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    // Expect BOTH (each guaranteed to be sent): a publish carrying the
+    // declaration-stage E202 (unknown trait), and a window/showMessage with
+    // the selection error.
+    let mut saw_show_message = false;
+    let mut saw_e202 = false;
+    while !(saw_show_message && saw_e202) {
+        let msg = lsp.read_message();
+        match msg.get("method").and_then(Value::as_str) {
+            Some("window/showMessage") => {
+                let m = msg["params"]["message"].as_str().unwrap_or("");
+                assert!(m.contains("designs"), "{}", m);
+                saw_show_message = true;
+            }
+            Some("textDocument/publishDiagnostics") => {
+                if msg["params"]["uri"].as_str() == Some(uri.as_str()) {
+                    let ds = msg["params"]["diagnostics"].as_array().unwrap();
+                    if ds.iter().any(|d| d["code"] == "E202") {
+                        saw_e202 = true;
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    lsp.shutdown();
+}
+
+// Finding 7 (low): goto-def works on a turbofish generic argument in a call.
+#[test]
+fn goto_definition_resolves_call_turbofish_arg() {
+    let src = "\
+pub device ZzTfDev { pins { A: 1 [passive] } }
+pub trait ZzTfTrait { pins { required A: pin } }
+impl ZzTfTrait for ZzTfDev {}
+fn zzuse<D: ZzTfTrait>(target: D, p: Pin) {
+    net _: p, target.A
+}
+design ZzTfB {
+    inst d: ZzTfDev
+    inst e: ZzTfDev
+    zzuse::<ZzTfDev>(d, e.A)
+    net N: d.A
+}
+";
+    let (_path, uri, text) = fixture("tf.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    // Cursor on `ZzTfDev` inside `zzuse::<ZzTfDev>(...)`.
+    let line = src.lines().position(|l| l.contains("zzuse::<")).unwrap() as u64;
+    let col = src
+        .lines()
+        .find(|l| l.contains("zzuse::<"))
+        .unwrap()
+        .find("ZzTfDev")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col + 1 } }),
+    );
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    lsp.shutdown();
+}

@@ -89,6 +89,21 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
     })
 }
 
+/// A loaded file set: (display name, content) pairs plus the parallel
+/// absolute-path vector.
+pub type LoadedFiles = (Vec<(String, String)>, Vec<PathBuf>);
+
+/// Just the std library's files, for callers assembling a synthetic project
+/// (the LSP's not-on-disk buffer fallback). `None` std_dir → empty.
+pub fn load_std_files(std_dir: Option<&Path>) -> Option<LoadedFiles> {
+    let mut files = Vec::new();
+    let mut abs = Vec::new();
+    if let Some(dir) = std_dir {
+        collect_cohdl_files(dir, dir, "std", &mut files, &mut abs).ok()?;
+    }
+    Some((files, abs))
+}
+
 /// Recursively collect `.cohdl` files in sorted order. Display names are
 /// `prefix/relative/path` (prefix distinguishes std files in diagnostics).
 fn collect_cohdl_files(

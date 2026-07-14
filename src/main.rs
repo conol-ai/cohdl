@@ -130,8 +130,15 @@ fn run(args: &Args) -> Result<bool, String> {
             if args.json || args.fmt_check {
                 return Err(format!("`lsp` takes no flags\n\n{}", USAGE));
             }
-            cohdl::lsp::run_stdio()?;
-            return Ok(true);
+            // LSP exit codes: 0 after shutdown+exit; 1 for exit without
+            // shutdown (per the spec); 2 for transport/I/O failures.
+            return match cohdl::lsp::run_stdio()? {
+                cohdl::lsp::LspExit::Clean => Ok(true),
+                cohdl::lsp::LspExit::WithoutShutdown => {
+                    eprintln!("lsp: `exit` received before `shutdown`");
+                    Ok(false)
+                }
+            };
         }
         other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }

@@ -12,6 +12,7 @@ pub mod fmt;
 pub mod ir;
 pub mod lex;
 pub mod lock;
+pub mod lsp;
 pub mod parse;
 pub mod pipeline;
 pub mod project;

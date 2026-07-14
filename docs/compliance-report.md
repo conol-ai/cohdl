@@ -229,3 +229,21 @@ Standing honest classifications (unchanged by code):
   accepted "every fixture, every field" wording — tracked, not claimed.
 - E9xx, E1005, tolerance-`mm`, the placement example, RFC-012's target list,
   and the zero-impact wording still require note-side amendments.
+
+## RFC-014 (LSP) implementation notes (2026-07-14)
+
+Implemented per DR-020: `cohdl lsp` (src/lsp.rs) — hand-rolled JSON-RPC/stdio
+transport; `lsp-types` (pinned `=0.97.0`) + its serde requirements as the
+project's single scoped dependency exception, confined to the LSP layer. All
+four RFC capabilities ship with fixture tests (tests/lsp.rs), including the
+mandatory diagnostics-equivalence test against `cohdl check --json` and an
+unsaved-buffer overlay test. Editor launch snippets: docs/lsp.md.
+
+Honest boundaries: the equivalence test maps encodings (LSP 0-based/UTF-16 vs
+JSON 1-based/scalar) over an ASCII fixture — a non-ASCII-position fixture is a
+reasonable future addition; `help:` lines ride `relatedInformation` so the four
+equivalence fields stay exactly RFC-010's values; validation against a live VS
+Code session has not been run in CI (the protocol-level tests run the real
+binary over real framing) — the RFC's "test against at least one real client"
+acceptance item is satisfied at protocol level and documented here as pending a
+manual editor pass.

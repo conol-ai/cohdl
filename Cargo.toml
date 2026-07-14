@@ -12,6 +12,15 @@ name = "cohdl"
 path = "src/main.rs"
 
 [dependencies]
+# RFC-014 / DR-020: the project's single scoped dependency exception. The LSP
+# spec's message shapes are large and externally versioned — unlike CoHDL's
+# own small, fixed output formats, they are not worth hand-rolling. The
+# JSON-RPC transport loop itself stays hand-rolled (src/lsp.rs). serde and
+# serde_json are lsp-types' own (de)serialization requirements; they are used
+# only in the LSP layer, never in the compiler pipeline or emitters.
+lsp-types = "=0.97.0"
+serde = "=1.0.219"
+serde_json = "=1.0.140"
 
 [dev-dependencies]
 

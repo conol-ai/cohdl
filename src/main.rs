@@ -15,6 +15,7 @@ USAGE:
     cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR] [--json]
     cohdl fmt   [PATH] [--check]
+    cohdl lsp
 
 PATH is a project directory (with cohdl.toml + src/) or a single .cohdl file;
 defaults to the current directory.
@@ -22,6 +23,7 @@ defaults to the current directory.
     check    parse, resolve, type-check, and run residual DRC
     build    check + assign designators + bind parts + emit KiCad .net + BOM CSV
     fmt      rewrite every .cohdl file into canonical form (RFC-009)
+    lsp      start the Language Server Protocol server on stdio (RFC-014)
 
     --json   emit one JSON document to stdout instead of human-readable text
              (RFC-010; check/build only)
@@ -123,6 +125,13 @@ fn run(args: &Args) -> Result<bool, String> {
                 return Err(format!("`--json` is not valid with `fmt`\n\n{}", USAGE));
             }
             return fmt_command(args);
+        }
+        "lsp" => {
+            if args.json || args.fmt_check {
+                return Err(format!("`lsp` takes no flags\n\n{}", USAGE));
+            }
+            cohdl::lsp::run_stdio()?;
+            return Ok(true);
         }
         other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }

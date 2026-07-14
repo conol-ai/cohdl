@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-CoHDL v2 — a compiler for the AI-native PCB schematic language. Rust, single crate, **zero external dependencies** (a deliberate choice: byte-stable, reproducible output is a hard constraint, so everything — TOML lock file, S-expression netlist, diagnostics — is hand-rolled and deterministic).
+CoHDL v2 — a compiler for the AI-native PCB schematic language. Rust, single crate. The compiler pipeline and emitters have **zero external dependencies** (a deliberate choice: byte-stable, reproducible output is a hard constraint, so everything — TOML lock file, S-expression netlist, diagnostics JSON — is hand-rolled and deterministic). One scoped exception per RFC-014/DR-020: the LSP layer (`src/lsp.rs`) depends on pinned `lsp-types` (+ its `serde`/`serde_json` requirements) for the protocol's message shapes only — the JSON-RPC transport loop stays hand-rolled, and nothing outside the LSP layer may use these crates.
 
 The previous implementation is on the `legacy` branch. It is reference material only — v2 is a ground-up rebuild; do not port legacy code.
 
@@ -13,7 +13,7 @@ The language design lives in `docs/design/` (snapshot of the conol.ai design rep
 3. `docs/design/09-mvp-definition.md` — current scope line + exit criteria
 4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them. (Pin roles and package variants graduated to RFC-008.)
 
-Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LSP, no LCEDA, no incremental compilation). Some originally-cut items have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), `#[intent("...")]` opaque-metadata annotations (RFC-012), and layout constraints — `layout {}` (net_class/diff_pair/length_match) + `#[placement_hint]`, emitted to a separate `layout.json`, E10xx checks (RFC-013). RFC-001…013 are all Accepted and implemented.
+Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LCEDA, no incremental compilation). Originally-cut items that have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), `#[intent("...")]` opaque-metadata annotations (RFC-012), layout constraints — `layout {}` + `#[placement_hint]` → `layout.json`, E10xx checks (RFC-013), and the LSP server `cohdl lsp` (RFC-014). RFC-001…014 are all Accepted and implemented; deviations from accepted text are ledgered in `docs/compliance-report.md`.
 
 ## Commands
 
@@ -21,6 +21,7 @@ Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LSP, no LC
 - `cargo run -- check <file-or-dir> [--json]` — parse + resolve + type-check + residual DRC (RFC-010 `--json`)
 - `cargo run -- build <file-or-dir> [--json]` — check + emit KiCad `.net` + BOM CSV (+ `design.lock`)
 - `cargo run -- fmt <file-or-dir> [--check]` — rewrite `.cohdl` into canonical form (RFC-009)
+- `cargo run -- lsp` — the LSP server on stdio (RFC-014; editor setup in `docs/lsp.md`)
 - `harness/` — the generate→check→repair demo harness (script, not product)
 
 ## Architecture (pipeline = the verdict ladder)

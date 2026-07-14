@@ -16,7 +16,7 @@ A snapshot (taken 2026-07-13) is committed under [`docs/design/`](docs/design/).
 - [MVP Definition](docs/design/09-mvp-definition.md) — the scope line, demo scenario, and exit criteria this repository was built toward
 - [Language Specification](docs/design/10-language-specification.md) — the compiled statement of what the language is (Accepted RFCs only)
 - RFC-001…RFC-007 — the seven Accepted P0 RFCs: units-as-types, pin connection-obligation typing, trait satisfaction at impl time, DRC/type-system reclassification, collision-free designator allocation, nested fn call semantics, generics-over-specs
-- RFC-008…RFC-013 — the post-MVP Accepted RFCs, all implemented: structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints
+- RFC-008…RFC-014 — the post-MVP Accepted RFCs, all implemented: structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints, and the LSP server (`cohdl lsp`, [`docs/lsp.md`](docs/lsp.md))
 
 ## MVP (v0.1) scope
 
@@ -34,7 +34,7 @@ The proof: an AI writes a board from a plain-language spec, the type checker cat
 
 ## Status
 
-All MVP exit criteria are met, and all thirteen Accepted RFCs (RFC-001…013) are implemented with conformance suites; where the implementation deliberately deviates from (or cannot yet satisfy) the accepted text, each deviation is recorded with its rationale in [`docs/compliance-report.md`](docs/compliance-report.md) — pending note-side amendments are listed there too. Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
+All MVP exit criteria are met, and all fourteen Accepted RFCs (RFC-001…014) are implemented with conformance suites; where the implementation deliberately deviates from (or cannot yet satisfy) the accepted text, each deviation is recorded with its rationale in [`docs/compliance-report.md`](docs/compliance-report.md) — pending note-side amendments are listed there too. Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
 
 ## Using it
 
@@ -43,6 +43,7 @@ cargo run -- check examples/sensor-node          # parse → resolve → type-ch
 cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .net + BOM CSV
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
 cargo run -- fmt std --check                     # canonical-form gate (RFC-009)
+cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
 

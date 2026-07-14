@@ -14,14 +14,18 @@ pub struct Project {
     pub top: Option<String>,
     /// (display name, content), std first, deterministic order.
     pub files: Vec<(String, String)>,
+    /// Absolute on-disk path per entry in `files` (same order) — used by the
+    /// LSP (RFC-014) for URI mapping and unsaved-buffer overlays.
+    pub abs_paths: Vec<PathBuf>,
 }
 
 /// Load a project from a directory (with `cohdl.toml`) or a single `.cohdl`
 /// file. `std_dir` of `None` means "compile without the std library".
 pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, String> {
     let mut files = Vec::new();
+    let mut abs_paths = Vec::new();
     if let Some(std_dir) = std_dir {
-        collect_cohdl_files(std_dir, std_dir, "std", &mut files)?;
+        collect_cohdl_files(std_dir, std_dir, "std", &mut files, &mut abs_paths)?;
         if files.is_empty() {
             return Err(format!(
                 "std library directory `{}` contains no .cohdl files",
@@ -38,6 +42,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_else(|| "design".to_string());
         files.push((path.display().to_string(), content));
+        abs_paths.push(path.canonicalize().unwrap_or_else(|_| path.to_path_buf()));
         return Ok(Project {
             name,
             dir: path
@@ -47,6 +52,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
                 .unwrap_or_else(|| PathBuf::from(".")),
             top: None,
             files,
+            abs_paths,
         });
     }
 
@@ -69,7 +75,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
         return Err(format!("`{}` has no `src/` directory", path.display()));
     }
     let before = files.len();
-    collect_cohdl_files(&src_dir, path, "", &mut files)?;
+    collect_cohdl_files(&src_dir, path, "", &mut files, &mut abs_paths)?;
     if files.len() == before {
         return Err(format!("`{}` contains no .cohdl files", src_dir.display()));
     }
@@ -79,6 +85,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
         dir: path.to_path_buf(),
         top: manifest.top,
         files,
+        abs_paths,
     })
 }
 
@@ -89,6 +96,7 @@ fn collect_cohdl_files(
     base: &Path,
     prefix: &str,
     out: &mut Vec<(String, String)>,
+    abs: &mut Vec<PathBuf>,
 ) -> Result<(), String> {
     let mut entries: Vec<PathBuf> = fs::read_dir(dir)
         .map_err(|e| format!("cannot read `{}`: {}", dir.display(), e))?
@@ -97,7 +105,7 @@ fn collect_cohdl_files(
     entries.sort();
     for entry in entries {
         if entry.is_dir() {
-            collect_cohdl_files(&entry, base, prefix, out)?;
+            collect_cohdl_files(&entry, base, prefix, out, abs)?;
         } else if entry.extension().is_some_and(|e| e == "cohdl") {
             let content = fs::read_to_string(&entry)
                 .map_err(|e| format!("cannot read `{}`: {}", entry.display(), e))?;
@@ -108,6 +116,7 @@ fn collect_cohdl_files(
                 format!("{}/{}", prefix, rel.display())
             };
             out.push((display, content));
+            abs.push(entry.canonicalize().unwrap_or(entry));
         }
     }
     Ok(())

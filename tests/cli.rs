@@ -229,7 +229,8 @@ fn nothing_to_build_is_exit_2_with_no_json() {
     let _ = std::fs::remove_dir_all(&tmp);
 }
 
-// Review-2: command-specific flags are validated.
+// Review-2/Review-3 (R3): command-specific flags are validated — the full
+// matrix, not just the two flags the first fix covered.
 #[test]
 fn command_specific_flags_are_validated() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -246,6 +247,88 @@ fn command_specific_flags_are_validated() {
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2), "--json rejected on fmt");
+
+    // R3: the rest of the matrix. Every invalid (command, flag) pair is
+    // exit 2 with a message naming the flag.
+    let cases: &[(&[&str], &str)] = &[
+        (&["check", "--out-dir", "x"], "--out-dir"),
+        (&["fmt", "--design", "B"], "--design"),
+        (&["fmt", "--std", "std"], "--std"),
+        (&["fmt", "--no-std"], "--no-std"),
+        (&["fmt", "--out-dir", "x"], "--out-dir"),
+        (&["lsp", "--json"], "lsp"),
+        (&["lsp", "--design", "B"], "lsp"),
+        (&["lsp", "some-path"], "lsp"),
+        (&["check", "--std", "std", "--no-std"], "mutually exclusive"),
+        (&["build", "--std", "std", "--no-std"], "mutually exclusive"),
+    ];
+    for (args, needle) in cases {
+        let out = cohdl().args(*args).output().unwrap();
+        assert_eq!(
+            out.status.code(),
+            Some(2),
+            "`cohdl {}` must be rejected",
+            args.join(" ")
+        );
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(
+            stderr.contains(needle),
+            "`cohdl {}` error must mention `{}`:\n{}",
+            args.join(" "),
+            needle,
+            stderr
+        );
+    }
+}
+
+// Review-3 (R3): post-check invocation failures (unwritable out dir, bad
+// lock file) must render already-collected diagnostics before the error —
+// same rule as selection failures. Reviewer's reproduction: warnings-only
+// build with an out dir under /dev/null hid the D003 entirely.
+#[test]
+fn post_check_failures_preserve_collected_diagnostics() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r3-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, WITH_D003);
+
+    for json in [false, true] {
+        let mut args = vec![
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--out-dir",
+            "/dev/null/x",
+        ];
+        if json {
+            args.push("--json");
+        }
+        let out = cohdl().args(&args).output().unwrap();
+        assert_eq!(out.status.code(), Some(2), "unwritable out dir is exit 2");
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(
+            stderr.contains("D003"),
+            "collected D003 must render before the invocation error (json={}):\n{}",
+            json,
+            stderr
+        );
+        assert!(stderr.contains("cannot create"), "{}", stderr);
+        assert!(out.stdout.is_empty(), "no JSON document on exit 2");
+    }
+
+    // A corrupt design.lock is the same class: diagnostics first, then error.
+    std::fs::write(tmp.join("design.lock"), "not a lock file }{").unwrap();
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2), "corrupt lock is exit 2");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("D003"),
+        "collected D003 must render before the lock-parse error:\n{}",
+        stderr
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
 }
 
 // Review-2: `10kΩ` end-to-end — the lexer emits ONE targeted E101; the

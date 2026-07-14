@@ -1,12 +1,20 @@
 //! RFC-014 `cohdl lsp` conformance.
 //!
-//! The load-bearing property is the RFC's equivalence test: the LSP's
-//! `publishDiagnostics` payload for a file must match `cohdl check --json`'s
-//! diagnostics for the same file, field-for-field (code, severity, message,
-//! position — LSP is 0-based/UTF-16 where the JSON is 1-based/scalar, so the
-//! comparison maps encodings, not meanings). Hover/goto-def/references are
-//! fixture-driven per the RFC's Gradeability section. Everything runs over the
-//! real binary and real JSON-RPC framing — no in-process shortcuts.
+//! The load-bearing property is the RFC's equivalence discipline: for every
+//! fixture in the diagnostic corpus below, the LSP's `publishDiagnostics`
+//! payload must match `cohdl check --json` on the complete four-field
+//! projection — code, severity, message, and BOTH range endpoints (LSP is
+//! 0-based/UTF-16 where the JSON is 1-based/scalar, so the comparison maps
+//! encodings from the fixture text itself, which also covers the non-ASCII
+//! case) — plus the full relatedInformation projection (secondary locations
+//! and help lines). Hover/goto-def/references assert exact text and exact
+//! spans per the RFC's Gradeability section. Everything runs over the real
+//! binary and real JSON-RPC framing — no in-process shortcuts.
+//!
+//! NOT covered here: the RFC's real-VS-Code acceptance item. A subprocess
+//! protocol test is exactly what the Accepted text distinguishes from a live
+//! client session; that item stays open until a real editor pass is recorded
+//! (docs/compliance-report.md).
 
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -20,14 +28,16 @@ struct Lsp {
     next_id: i64,
 }
 
+fn repo_std() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("std")
+}
+
 impl Lsp {
-    fn start() -> Lsp {
+    /// Spawn the server WITHOUT the initialize handshake (lifecycle tests).
+    fn spawn_with_std(std_dir: &Path) -> Lsp {
         let mut child = Command::new(env!("CARGO_BIN_EXE_cohdl"))
             .arg("lsp")
-            .env(
-                "COHDL_STD",
-                Path::new(env!("CARGO_MANIFEST_DIR")).join("std"),
-            )
+            .env("COHDL_STD", std_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -35,13 +45,26 @@ impl Lsp {
             .expect("spawn cohdl lsp");
         let stdin = child.stdin.take().unwrap();
         let stdout = BufReader::new(child.stdout.take().unwrap());
-        let mut lsp = Lsp {
+        Lsp {
             child,
             stdin,
             stdout,
             next_id: 1,
-        };
-        let init = lsp.request("initialize", json!({ "capabilities": {} }));
+        }
+    }
+
+    fn spawn() -> Lsp {
+        Self::spawn_with_std(&repo_std())
+    }
+
+    /// Spawn + initialize, advertising `relatedInformation` support (the
+    /// equivalence tests rely on help/secondary riding relatedInformation).
+    fn start() -> Lsp {
+        let mut lsp = Self::spawn();
+        let init = lsp.request(
+            "initialize",
+            json!({ "capabilities": { "textDocument": { "publishDiagnostics": { "relatedInformation": true } } } }),
+        );
         assert!(
             init["capabilities"]["hoverProvider"].as_bool() == Some(true),
             "server must advertise hover: {}",
@@ -67,29 +90,60 @@ impl Lsp {
         self.send(&json!({ "jsonrpc": "2.0", "method": method, "params": params }));
     }
 
-    /// Send a request and read messages until its response arrives; any
-    /// notifications read along the way are dropped.
-    fn request(&mut self, method: &str, params: Value) -> Value {
+    /// Send a request and read messages until its response arrives; returns
+    /// the FULL response message (so tests can assert on `error`).
+    fn request_full(&mut self, method: &str, params: Value) -> Value {
         let id = self.next_id;
         self.next_id += 1;
         self.send(&json!({ "jsonrpc": "2.0", "id": id, "method": method, "params": params }));
         loop {
             let msg = self.read_message();
             if msg.get("id").and_then(Value::as_i64) == Some(id) {
-                return msg["result"].clone();
+                return msg;
             }
         }
     }
 
+    fn request(&mut self, method: &str, params: Value) -> Value {
+        self.request_full(method, params)["result"].clone()
+    }
+
     /// Read messages until a `publishDiagnostics` for `uri` arrives.
     fn await_diagnostics(&mut self, uri: &str) -> Vec<Value> {
+        self.await_diagnostics_capturing(uri).0
+    }
+
+    /// Same, but also return every OTHER message read along the way (for
+    /// asserting what was NOT sent — e.g. cross-project clears).
+    fn await_diagnostics_capturing(&mut self, uri: &str) -> (Vec<Value>, Vec<Value>) {
+        let mut seen = Vec::new();
         loop {
             let msg = self.read_message();
             if msg.get("method").and_then(Value::as_str) == Some("textDocument/publishDiagnostics")
                 && msg["params"]["uri"].as_str() == Some(uri)
             {
-                return msg["params"]["diagnostics"].as_array().unwrap().clone();
+                return (
+                    msg["params"]["diagnostics"].as_array().unwrap().clone(),
+                    seen,
+                );
             }
+            seen.push(msg);
+        }
+    }
+
+    /// Round-trip a no-op request and return every message that arrived
+    /// before its response — flushes any pending server-to-client traffic.
+    fn drain(&mut self) -> Vec<Value> {
+        let id = self.next_id;
+        self.next_id += 1;
+        self.send(&json!({ "jsonrpc": "2.0", "id": id, "method": "zz/drain", "params": {} }));
+        let mut seen = Vec::new();
+        loop {
+            let msg = self.read_message();
+            if msg.get("id").and_then(Value::as_i64) == Some(id) {
+                return seen;
+            }
+            seen.push(msg);
         }
     }
 
@@ -138,31 +192,53 @@ fn did_open(lsp: &mut Lsp, uri: &str, text: &str) {
     );
 }
 
-// Unique names so the fixture never collides with std declarations.
-const DIAG_FIXTURE: &str = "\
-pub device LspProbe { pins { A: 1 [passive], B: 2 [output] } }
-design LspBoard {
-    inst p: LspProbe
-    inst bad: NoSuchDeviceHere
-    net LONELY: p.B
-    net N: p.A, ghost.PIN
+fn is_empty_publish_for(msg: &Value, uri: &str) -> bool {
+    msg.get("method").and_then(Value::as_str) == Some("textDocument/publishDiagnostics")
+        && msg["params"]["uri"].as_str() == Some(uri)
+        && msg["params"]["diagnostics"]
+            .as_array()
+            .is_some_and(Vec::is_empty)
 }
-";
 
 // ---------------------------------------------------------------------------
-// The RFC's mandatory equivalence test: LSP diagnostics == `check --json`.
+// The RFC's mandatory equivalence gate: LSP diagnostics == `check --json`,
+// full four-field projection, over a corpus of fixtures.
 
-#[test]
-fn publish_diagnostics_matches_check_json() {
-    let (path, uri, text) = fixture("diag.cohdl", DIAG_FIXTURE);
+/// 1-based Unicode-scalar column → 0-based UTF-16 code-unit column, computed
+/// from the fixture text itself (so non-ASCII fixtures are covered).
+fn utf16_col(text: &str, line0: u64, scalar_col1: u64) -> u64 {
+    let line = text.split('\n').nth(line0 as usize).unwrap_or("");
+    line.chars()
+        .take(scalar_col1 as usize - 1)
+        .map(|c| c.len_utf16() as u64)
+        .sum()
+}
+
+/// Assert one LSP position equals a JSON (1-based line, 1-based scalar col).
+fn assert_pos(text: &str, lsp_pos: &Value, j_line: u64, j_col: u64, what: &str) {
+    assert_eq!(
+        lsp_pos["line"].as_u64().unwrap() + 1,
+        j_line,
+        "{} line",
+        what
+    );
+    let line0 = j_line - 1;
+    assert_eq!(
+        lsp_pos["character"].as_u64().unwrap(),
+        utf16_col(text, line0, j_col),
+        "{} character (utf-16)",
+        what
+    );
+}
+
+/// The full equivalence check for one fixture source.
+fn assert_equivalence(name: &str, src: &str) {
+    let (path, uri, text) = fixture(name, src);
 
     // Ground truth: the CLI's --json output for the same file + same std.
     let out = Command::new(env!("CARGO_BIN_EXE_cohdl"))
         .args(["check", path.to_str().unwrap(), "--json"])
-        .env(
-            "COHDL_STD",
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("std"),
-        )
+        .env("COHDL_STD", repo_std())
         .output()
         .unwrap();
     let doc: Value = serde_json::from_slice(&out.stdout).expect("check --json parses");
@@ -173,8 +249,9 @@ fn publish_diagnostics_matches_check_json() {
         .filter(|d| d["primary"]["file"].as_str() == Some(path.to_str().unwrap()))
         .collect();
     assert!(
-        json_diags.len() >= 2,
-        "fixture must produce diagnostics: {}",
+        !json_diags.is_empty(),
+        "corpus fixture `{}` must produce diagnostics: {}",
+        name,
         doc
     );
 
@@ -186,53 +263,160 @@ fn publish_diagnostics_matches_check_json() {
     assert_eq!(
         lsp_diags.len(),
         json_diags.len(),
-        "diagnostic count must match:\nlsp={:?}\njson={:?}",
+        "[{}] diagnostic count must match:\nlsp={:?}\njson={:?}",
+        name,
         lsp_diags,
         json_diags
     );
     for (l, j) in lsp_diags.iter().zip(&json_diags) {
-        assert_eq!(l["code"].as_str(), j["code"].as_str(), "code");
+        assert_eq!(l["code"].as_str(), j["code"].as_str(), "[{}] code", name);
         let sev = match j["severity"].as_str().unwrap() {
             "error" => 1,
             "warning" => 2,
             other => panic!("unknown severity {}", other),
         };
-        assert_eq!(l["severity"].as_i64(), Some(sev), "severity");
-        assert_eq!(l["message"].as_str(), j["message"].as_str(), "message");
-        // Encoding map: LSP 0-based; JSON 1-based (ASCII fixture, so UTF-16
-        // char == scalar col).
+        assert_eq!(l["severity"].as_i64(), Some(sev), "[{}] severity", name);
         assert_eq!(
-            l["range"]["start"]["line"].as_u64().unwrap() + 1,
-            j["primary"]["start_line"].as_u64().unwrap(),
-            "start line"
+            l["message"].as_str(),
+            j["message"].as_str(),
+            "[{}] message",
+            name
         );
-        assert_eq!(
-            l["range"]["start"]["character"].as_u64().unwrap() + 1,
-            j["primary"]["start_col"].as_u64().unwrap(),
-            "start col"
+        // Both range endpoints, UTF-16-mapped from the fixture text.
+        let p = &j["primary"];
+        assert_pos(
+            &text,
+            &l["range"]["start"],
+            p["start_line"].as_u64().unwrap(),
+            p["start_col"].as_u64().unwrap(),
+            &format!("[{}] start", name),
         );
-        assert_eq!(
-            l["range"]["end"]["line"].as_u64().unwrap() + 1,
-            j["primary"]["end_line"].as_u64().unwrap(),
-            "end line"
+        assert_pos(
+            &text,
+            &l["range"]["end"],
+            p["end_line"].as_u64().unwrap(),
+            p["end_col"].as_u64().unwrap(),
+            &format!("[{}] end", name),
         );
-        // Help lines ride relatedInformation, prefixed.
+        // relatedInformation carries EXACTLY the secondary locations plus the
+        // help lines (anchored at the primary range), in that order.
+        let secondary = j["secondary"].as_array().unwrap();
         let help = j["help"].as_array().unwrap();
-        if !help.is_empty() {
-            let related = l["relatedInformation"].as_array().unwrap();
-            for h in help {
-                let expect = format!("help: {}", h.as_str().unwrap());
-                assert!(
-                    related
-                        .iter()
-                        .any(|r| r["message"].as_str() == Some(expect.as_str())),
-                    "help line missing from relatedInformation: {}",
-                    expect
-                );
-            }
+        let related = l["relatedInformation"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            related.len(),
+            secondary.len() + help.len(),
+            "[{}] relatedInformation must be secondary+help exactly:\n{:?}",
+            name,
+            l
+        );
+        for (r, s) in related.iter().zip(secondary) {
+            assert_eq!(
+                r["message"].as_str(),
+                s["message"].as_str(),
+                "[{}] secondary message",
+                name
+            );
+            // Fixtures keep secondaries in-file, so the URI is ours.
+            assert_eq!(
+                r["location"]["uri"].as_str(),
+                Some(uri.as_str()),
+                "[{}] secondary uri",
+                name
+            );
+            assert_pos(
+                &text,
+                &r["location"]["range"]["start"],
+                s["start_line"].as_u64().unwrap(),
+                s["start_col"].as_u64().unwrap(),
+                &format!("[{}] secondary start", name),
+            );
+            assert_pos(
+                &text,
+                &r["location"]["range"]["end"],
+                s["end_line"].as_u64().unwrap(),
+                s["end_col"].as_u64().unwrap(),
+                &format!("[{}] secondary end", name),
+            );
+        }
+        for (r, h) in related.iter().skip(secondary.len()).zip(help) {
+            let expect = format!("help: {}", h.as_str().unwrap());
+            assert_eq!(
+                r["message"].as_str(),
+                Some(expect.as_str()),
+                "[{}] help line",
+                name
+            );
+            // Help anchors at the primary range.
+            assert_pos(
+                &text,
+                &r["location"]["range"]["start"],
+                p["start_line"].as_u64().unwrap(),
+                p["start_col"].as_u64().unwrap(),
+                &format!("[{}] help anchor", name),
+            );
         }
     }
     lsp.shutdown();
+}
+
+// Unique names so the fixtures never collide with std declarations.
+const DIAG_FIXTURE: &str = "\
+pub device LspProbe { pins { A: 1 [passive], B: 2 [output] } }
+design LspBoard {
+    inst p: LspProbe
+    inst bad: NoSuchDeviceHere
+    net LONELY: p.B
+    net N: p.A, ghost.PIN
+}
+";
+
+/// The diagnostic corpus: one fixture per pipeline stage (lex, parse,
+/// resolve, units, roles, DRC), plus a non-ASCII fixture for the UTF-16
+/// mapping. Every entry runs the FULL equivalence check.
+const CORPUS: &[(&str, &str)] = &[
+    ("corpus-resolve.cohdl", DIAG_FIXTURE),
+    // Lex: Unicode Ω (targeted E101 with rewrite help) + recovery fallout.
+    (
+        "corpus-lex.cohdl",
+        "pub device ZqLex { pins { A: 1 [passive] } spec { r: 10kΩ } }\n",
+    ),
+    // Parse: E010 on a malformed attribute.
+    (
+        "corpus-parse.cohdl",
+        "pub device ZqPar { pins { A: 1 [passive] } }\ndesign ZqB {\n    #[designator(no_string)] inst d: ZqPar\n    net N: d.A\n}\n",
+    ),
+    // Units: bare number where a unit literal is expected.
+    (
+        "corpus-units.cohdl",
+        "pub device ZqU<C: Capacitance> { pins { A: 1 [passive] } spec { c: C } }\ndesign ZqB {\n    inst d: ZqU<100>\n    net N: d.A\n}\n",
+    ),
+    // Roles: RFC-008 missing pin role (E901).
+    (
+        "corpus-roles.cohdl",
+        "pub device ZqR { pins { A: 1 } }\ndesign ZqB {\n    inst d: ZqR\n    net N: d.A\n}\n",
+    ),
+    // Non-ASCII: an emoji-bearing intent string BEFORE the error span on the
+    // same line — scalar columns and UTF-16 columns diverge here.
+    (
+        "corpus-utf16.cohdl",
+        "pub device ZqNa { pins { A: 1 [passive] } }\ndesign ZqB {\n    #[intent(\"héllo wörld 🌍🌍\")] inst bad: ZqNoSuchDev\n    inst d: ZqNa\n    net N: d.A\n}\n",
+    ),
+];
+
+#[test]
+fn publish_diagnostics_matches_check_json() {
+    assert_equivalence("diag.cohdl", DIAG_FIXTURE);
+}
+
+#[test]
+fn equivalence_over_diagnostic_corpus() {
+    for (name, src) in CORPUS {
+        assert_equivalence(name, src);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -269,7 +453,7 @@ fn did_change_overlay_updates_diagnostics() {
 }
 
 // ---------------------------------------------------------------------------
-// Hover: the DR-013 empty-impl resolved mapping, and pin obligation/role.
+// Hover: exact text and exact anchor ranges (RFC-014 Gradeability).
 
 #[test]
 fn hover_empty_impl_and_pin() {
@@ -287,40 +471,115 @@ design LspB {
     did_open(&mut lsp, &uri, &text);
     let _ = lsp.await_diagnostics(&uri);
 
-    // Hover over the empty impl (line 2, inside `impl LspTrait for LspDev {}`).
+    // Hover over the empty impl (line 2) — EXACT resolved-mapping markdown.
     let hover = lsp.request(
         "textDocument/hover",
         json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": 6 } }),
     );
-    let md = hover["contents"]["value"].as_str().unwrap_or("");
-    assert!(
-        md.contains("`A` ← `A`"),
-        "resolved pin mapping on hover:\n{}",
-        md
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**impl** `LspTrait` **for** `LspDev`\n\npins:\n- `A` ← `A`\n\nspec:\n- `resistance` ← `resistance`"
+        ),
+        "exact impl hover text:\n{}",
+        hover
     );
-    assert!(
-        md.contains("`resistance` ← `resistance`"),
-        "resolved spec mapping on hover:\n{}",
-        md
+    // Anchor: the whole impl statement on line 2.
+    assert_eq!(hover["range"]["start"]["line"].as_u64(), Some(2));
+    assert_eq!(hover["range"]["start"]["character"].as_u64(), Some(0));
+    assert_eq!(hover["range"]["end"]["line"].as_u64(), Some(2));
+    assert_eq!(
+        hover["range"]["end"]["character"].as_u64(),
+        Some("impl LspTrait for LspDev {}".len() as u64),
+        "{}",
+        hover
     );
 
-    // Hover over the device pin declaration `A` (line 1).
+    // Hover over the device pin declaration `A` (line 1) — EXACT text and
+    // the pin-name anchor range.
     let col = src.lines().nth(1).unwrap().find("A:").unwrap() as u64;
     let hover = lsp.request(
         "textDocument/hover",
         json!({ "textDocument": { "uri": uri }, "position": { "line": 1, "character": col } }),
     );
-    let md = hover["contents"]["value"].as_str().unwrap_or("");
-    assert!(
-        md.contains("required") && md.contains("`passive`"),
-        "pin obligation/role on hover:\n{}",
-        md
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**required pin** `A` on device `LspDev`\n\n- role: `passive`\n- pads: 1"),
+        "exact pin hover text:\n{}",
+        hover
+    );
+    assert_eq!(hover["range"]["start"]["line"].as_u64(), Some(1));
+    assert_eq!(hover["range"]["start"]["character"].as_u64(), Some(col));
+    assert_eq!(hover["range"]["end"]["character"].as_u64(), Some(col + 1));
+    lsp.shutdown();
+}
+
+// Review R10 (RFC-002 / RFC-001 inherited obligations): hover works on pin
+// USE SITES (`d.A`) and on unit literals (allowed-prefix table row).
+#[test]
+fn hover_pin_reference_and_unit_literal() {
+    let src = "\
+pub device ZzHovDev { pins { A: 1 [passive], K: 2 [power_in] } spec { r: 1kohm } }
+design ZzHovB {
+    inst d: ZzHovDev
+    net VIN [3.3V]: d.A
+    net GND: d.K
+}
+";
+    let (_path, uri, text) = fixture("hoverref.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Pin USE SITE: the `A` in `net VIN [3.3V]: d.A` (line 3).
+    let line = 3u64;
+    let col = (src.lines().nth(3).unwrap().find("d.A").unwrap() + 2) as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**required pin** `A` on device `ZzHovDev`\n\n- role: `passive`\n- pads: 1"),
+        "pin use-site hover:\n{}",
+        hover
+    );
+    assert_eq!(hover["range"]["start"]["character"].as_u64(), Some(col));
+
+    // Unit literal: `3.3V` in the net annotation (RFC-001 prefix table row).
+    let vcol = src.lines().nth(3).unwrap().find("3.3V").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 3, "character": vcol + 1 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**Voltage literal** `3.3V`\n\n- allowed prefixes on `V`: `p`, `n`, `u`, `m`, `k`, `M`, `G`"
+        ),
+        "unit-literal hover:\n{}",
+        hover
+    );
+
+    // Unit literal in a device spec: `1kohm` (line 0).
+    let rcol = src.lines().next().unwrap().find("1kohm").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": rcol } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**Resistance literal** `1kohm`\n\n- allowed prefixes on `ohm`: `p`, `n`, `u`, `m`, `k`, `M`, `G`"
+        ),
+        "spec unit-literal hover:\n{}",
+        hover
     );
     lsp.shutdown();
 }
 
 // ---------------------------------------------------------------------------
-// Goto-definition: a use site resolves to the declaration.
+// Goto-definition: exact declaration span (both endpoints).
 
 #[test]
 fn goto_definition_resolves_inst_type() {
@@ -343,20 +602,27 @@ design LspB {
         json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": col + 2 } }),
     );
     assert_eq!(def["uri"].as_str(), Some(uri.as_str()), "{}", def);
-    // The declaration's name is on line 0.
-    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    // The EXACT declaration-name span: line 0, covering `LspTarget` only.
     let decl_col = src.lines().next().unwrap().find("LspTarget").unwrap() as u64;
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
     assert_eq!(
         def["range"]["start"]["character"].as_u64(),
         Some(decl_col),
         "{}",
         def
     );
+    assert_eq!(def["range"]["end"]["line"].as_u64(), Some(0), "{}", def);
+    assert_eq!(
+        def["range"]["end"]["character"].as_u64(),
+        Some(decl_col + "LspTarget".len() as u64),
+        "exact end of the declaration name: {}",
+        def
+    );
     lsp.shutdown();
 }
 
 // ---------------------------------------------------------------------------
-// References: find all impls for a trait / of a device (DR-013's ask).
+// References: exact locations (URI + full ranges), not just counts.
 
 #[test]
 fn references_lists_all_impls() {
@@ -388,8 +654,34 @@ design LspB {
     );
     let arr = refs.as_array().unwrap();
     assert_eq!(arr.len(), 2, "two impls of LspMulti:\n{}", refs);
+    // EXACT locations: each impl statement's full span on its own line.
+    for (loc, (line, stmt)) in arr.iter().zip([
+        (3u64, "impl LspMulti for DevOne {}"),
+        (4u64, "impl LspMulti for DevTwo {}"),
+    ]) {
+        assert_eq!(loc["uri"].as_str(), Some(uri.as_str()), "{}", loc);
+        assert_eq!(
+            loc["range"]["start"]["line"].as_u64(),
+            Some(line),
+            "{}",
+            loc
+        );
+        assert_eq!(
+            loc["range"]["start"]["character"].as_u64(),
+            Some(0),
+            "{}",
+            loc
+        );
+        assert_eq!(loc["range"]["end"]["line"].as_u64(), Some(line), "{}", loc);
+        assert_eq!(
+            loc["range"]["end"]["character"].as_u64(),
+            Some(stmt.len() as u64),
+            "{}",
+            loc
+        );
+    }
 
-    // On a device name inside an impl statement (line 3) — one impl.
+    // On a device name inside an impl statement (line 3) — exactly DevOne's.
     let col = src.lines().nth(3).unwrap().find("DevOne").unwrap() as u64;
     let refs = lsp.request(
         "textDocument/references",
@@ -399,9 +691,9 @@ design LspB {
             "context": { "includeDeclaration": false },
         }),
     );
-    // DevOne appears in exactly one impl (plus LspMulti matches that same
-    // impl — cursor is on the device name, so device matching applies).
-    assert_eq!(refs.as_array().unwrap().len(), 1, "{}", refs);
+    let arr = refs.as_array().unwrap();
+    assert_eq!(arr.len(), 1, "{:?}", arr);
+    assert_eq!(arr[0]["range"]["start"]["line"].as_u64(), Some(3));
     lsp.shutdown();
 }
 
@@ -460,7 +752,10 @@ fn malformed_frames_get_parse_errors_and_session_survives() {
     assert_eq!(err["error"]["code"].as_i64(), Some(-32700), "{}", err);
     assert!(err["id"].is_null(), "{}", err);
 
-    // Headers without Content-Length -> also recoverable.
+    // A bodyless header block without Content-Length -> also recoverable.
+    // (Honest limitation, pinned as such: if a BODY had followed these
+    // headers, its bytes would be misread as the next frame's headers —
+    // recovery is only guaranteed at clean blank-line boundaries.)
     lsp.stdin.write_all(b"X-Garbage: yes\r\n\r\n").unwrap();
     lsp.stdin.flush().unwrap();
     let err = lsp.read_message();
@@ -487,6 +782,20 @@ fn phantom_buffer_gets_diagnostics_from_overlay() {
     assert!(
         diags.iter().any(|d| d["code"] == "E202"),
         "overlay-only buffer must be checked:\n{:?}",
+        diags
+    );
+
+    // Review R6: closing the phantom buffer publishes an EXPLICIT empty
+    // list — the editor must not keep showing diagnostics for a document
+    // that no longer exists anywhere.
+    lsp.notify(
+        "textDocument/didClose",
+        json!({ "textDocument": { "uri": uri } }),
+    );
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(
+        diags.is_empty(),
+        "didClose of a phantom buffer must clear its diagnostics:\n{:?}",
         diags
     );
     lsp.shutdown();
@@ -580,5 +889,296 @@ design ZzTfB {
         json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col + 1 } }),
     );
     assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    lsp.shutdown();
+}
+
+// ---------------------------------------------------------------------------
+// Review-3 regressions.
+
+// R6 (high): a real project-load failure must SURFACE, not silently degrade
+// into a false-clean synthetic check.
+#[test]
+fn project_load_failure_surfaces_not_false_clean() {
+    let root = std::env::temp_dir().join(format!("cohdl-lsp-badproj-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    // Manifest missing `[package] name` — `cohdl check` exits 2 on this.
+    std::fs::write(root.join("cohdl.toml"), "[design]\ntop = \"B\"\n").unwrap();
+    std::fs::write(root.join("src/main.cohdl"), DIAG_FIXTURE).unwrap();
+    let file = root.join("src/main.cohdl").canonicalize().unwrap();
+    let uri = format!("file://{}", file.display());
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, DIAG_FIXTURE);
+    // The FIRST server message must be the load-failure showMessage — in
+    // particular, NOT an empty publish claiming the file is clean.
+    let msg = lsp.read_message();
+    assert_eq!(
+        msg.get("method").and_then(Value::as_str),
+        Some("window/showMessage"),
+        "load failure must surface, got: {}",
+        msg
+    );
+    let m = msg["params"]["message"].as_str().unwrap();
+    assert!(m.contains("missing `[package] name`"), "{}", m);
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+// R6: a broken std library is a surfaced failure too (the CLI refuses to run
+// without std unless --no-std is explicit; the LSP has no --no-std).
+#[test]
+fn broken_std_surfaces_as_message() {
+    let empty_std = std::env::temp_dir().join(format!("cohdl-lsp-nostd-{}", std::process::id()));
+    std::fs::create_dir_all(&empty_std).unwrap();
+    let (_path, uri, text) = fixture("stdless.cohdl", DIAG_FIXTURE);
+
+    let mut lsp = Lsp::spawn_with_std(&empty_std);
+    let _ = lsp.request("initialize", json!({ "capabilities": {} }));
+    lsp.notify("initialized", json!({}));
+    did_open(&mut lsp, &uri, &text);
+    let msg = lsp.read_message();
+    assert_eq!(
+        msg.get("method").and_then(Value::as_str),
+        Some("window/showMessage"),
+        "std failure must surface, got: {}",
+        msg
+    );
+    assert!(
+        msg["params"]["message"].as_str().unwrap().contains("std"),
+        "{}",
+        msg
+    );
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&empty_std);
+}
+
+// R7 (high): re-checking one analysis unit must not clear another's live
+// diagnostics — two loose files in the same directory are separate units.
+#[test]
+fn two_loose_files_keep_independent_diagnostics() {
+    let dir = std::env::temp_dir().join(format!("cohdl-lsp-two-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let broken =
+        "pub device ZzTwo { pins { A: 1 [passive] } }\ndesign B { inst d: ZzNope\nnet N: d.A }\n";
+    let a = dir.join("a.cohdl");
+    let b = dir.join("b.cohdl");
+    std::fs::write(&a, broken).unwrap();
+    std::fs::write(&b, broken).unwrap();
+    let uri_a = format!("file://{}", a.canonicalize().unwrap().display());
+    let uri_b = format!("file://{}", b.canonicalize().unwrap().display());
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri_a, broken);
+    let da = lsp.await_diagnostics(&uri_a);
+    assert!(!da.is_empty(), "a.cohdl has errors");
+
+    did_open(&mut lsp, &uri_b, broken);
+    let (db, before) = lsp.await_diagnostics_capturing(&uri_b);
+    assert!(!db.is_empty(), "b.cohdl has errors");
+    // Neither while B was analyzed nor afterwards may A's diagnostics be
+    // cleared (the old global published-set did exactly that).
+    let after = lsp.drain();
+    for msg in before.iter().chain(&after) {
+        assert!(
+            !is_empty_publish_for(msg, &uri_a),
+            "opening B must not clear A's diagnostics: {}",
+            msg
+        );
+    }
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// R7: within ONE project, a file whose diagnostics persist across re-checks
+// keeps them; the file that was fixed clears.
+#[test]
+fn two_files_one_project_clear_independently() {
+    let root = std::env::temp_dir().join(format!("cohdl-lsp-proj2-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        "[package]\nname = \"t\"\n[design]\ntop = \"PB\"\n",
+    )
+    .unwrap();
+    // one.cohdl: unknown trait (E202); two.cohdl: another unknown trait.
+    std::fs::write(
+        root.join("src/one.cohdl"),
+        "pub device ZzP1 { pins { A: 1 [passive] } }\nimpl ZzNoTraitOne for ZzP1 {}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("src/two.cohdl"),
+        "pub device ZzP2 { pins { A: 1 [passive] } }\nimpl ZzNoTraitTwo for ZzP2 {}\ndesign PB {\n    inst d: ZzP2\n    net N: d.A\n}\n",
+    )
+    .unwrap();
+    let one = root.join("src/one.cohdl").canonicalize().unwrap();
+    let uri_one = format!("file://{}", one.display());
+    let uri_two = format!(
+        "file://{}",
+        root.join("src/two.cohdl").canonicalize().unwrap().display()
+    );
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri_one, &std::fs::read_to_string(&one).unwrap());
+    // Both files' diagnostics publish (same project, one analysis).
+    let d_one = lsp.await_diagnostics(&uri_one);
+    assert!(!d_one.is_empty());
+    let d_two = lsp.await_diagnostics(&uri_two);
+    assert!(!d_two.is_empty());
+
+    // Fix one.cohdl in the buffer: its diagnostics clear; two.cohdl's stay.
+    lsp.notify(
+        "textDocument/didChange",
+        json!({
+            "textDocument": { "uri": uri_one, "version": 2 },
+            "contentChanges": [ { "text": "pub device ZzP1 { pins { A: 1 [passive] } }\n" } ],
+        }),
+    );
+    let (d_one, before) = lsp.await_diagnostics_capturing(&uri_one);
+    assert!(d_one.is_empty(), "fixed file clears: {:?}", d_one);
+    let after = lsp.drain();
+    for msg in before.iter().chain(&after) {
+        assert!(
+            !is_empty_publish_for(msg, &uri_two),
+            "two.cohdl still has errors; must not be cleared: {}",
+            msg
+        );
+    }
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+// R8: the LSP lifecycle state machine — -32002 before initialize, one
+// initialize only, InvalidRequest after shutdown.
+#[test]
+fn lifecycle_gates_requests() {
+    let mut lsp = Lsp::spawn();
+    // Request before initialize: -32002 ServerNotInitialized.
+    let resp = lsp.request_full(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": "file:///nope" }, "position": { "line": 0, "character": 0 } }),
+    );
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32002), "{}", resp);
+
+    // Initialize succeeds once…
+    let resp = lsp.request_full("initialize", json!({ "capabilities": {} }));
+    assert!(resp["result"]["capabilities"].is_object(), "{}", resp);
+    // …and only once.
+    let resp = lsp.request_full("initialize", json!({ "capabilities": {} }));
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+
+    // After shutdown, further requests are InvalidRequest.
+    let resp = lsp.request_full("shutdown", Value::Null);
+    assert!(
+        resp["result"].is_null() && resp.get("error").is_none(),
+        "{}",
+        resp
+    );
+    let resp = lsp.request_full(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": "file:///nope" }, "position": { "line": 0, "character": 0 } }),
+    );
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+
+    lsp.notify("exit", Value::Null);
+    let status = lsp.child.wait().unwrap();
+    assert_eq!(status.code(), Some(0), "exit after shutdown is clean");
+}
+
+// R8: the sync advertisement includes save (docs/lsp.md promises didSave
+// re-checks; conforming clients only send it when asked to).
+#[test]
+fn initialize_advertises_save_sync() {
+    let mut lsp = Lsp::spawn();
+    let init = lsp.request("initialize", json!({ "capabilities": {} }));
+    let sync = &init["capabilities"]["textDocumentSync"];
+    assert_eq!(sync["openClose"].as_bool(), Some(true), "{}", init);
+    assert_eq!(sync["change"].as_i64(), Some(1), "{}", init);
+    assert_eq!(sync["save"].as_bool(), Some(true), "{}", init);
+    lsp.notify("initialized", json!({}));
+    lsp.shutdown();
+}
+
+// R8: relatedInformation is capability-negotiated — a client that did not
+// advertise support never receives it.
+#[test]
+fn related_information_requires_client_capability() {
+    // The Ω fixture always carries a help line.
+    let src = "pub device ZqCap { pins { A: 1 [passive] } spec { r: 10kΩ } }\n";
+    let (_path, uri, text) = fixture("caps.cohdl", src);
+    let mut lsp = Lsp::spawn();
+    let _ = lsp.request("initialize", json!({ "capabilities": {} }));
+    lsp.notify("initialized", json!({}));
+    did_open(&mut lsp, &uri, &text);
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(!diags.is_empty());
+    for d in &diags {
+        assert!(
+            d.get("relatedInformation").is_none(),
+            "relatedInformation must not be sent without the client capability:\n{}",
+            d
+        );
+    }
+    lsp.shutdown();
+}
+
+// R8: header field names are case-insensitive (HTTP semantics).
+#[test]
+fn lowercase_content_length_header_accepted() {
+    let mut lsp = Lsp::spawn();
+    let payload = serde_json::to_string(
+        &json!({ "jsonrpc": "2.0", "id": 1, "method": "initialize", "params": { "capabilities": {} } }),
+    )
+    .unwrap();
+    write!(
+        lsp.stdin,
+        "content-length: {}\r\n\r\n{}",
+        payload.len(),
+        payload
+    )
+    .unwrap();
+    lsp.stdin.flush().unwrap();
+    let resp = lsp.read_message();
+    assert!(
+        resp["result"]["capabilities"].is_object(),
+        "lowercase header must frame correctly: {}",
+        resp
+    );
+    lsp.notify("initialized", json!({}));
+    lsp.shutdown();
+}
+
+// R8: `file://localhost/...` is a local URI (RFC 8089); other authorities
+// are rejected rather than misparsed.
+#[test]
+fn localhost_authority_uri_accepted() {
+    let (path, _uri, text) = fixture("localhost.cohdl", DIAG_FIXTURE);
+    let uri = format!("file://localhost{}", path.display());
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let diags = lsp.await_diagnostics(&uri);
+    assert!(
+        diags.iter().any(|d| d["code"] == "E202"),
+        "localhost-authority URIs must work:\n{:?}",
+        diags
+    );
+    lsp.shutdown();
+}
+
+// R8: malformed positional params are InvalidParams (-32602), not a silent
+// null result.
+#[test]
+fn invalid_position_params_get_invalid_params_error() {
+    let mut lsp = Lsp::start();
+    let resp = lsp.request_full(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": "file:///x.cohdl" } }), // no position
+    );
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32602), "{}", resp);
+    let resp = lsp.request_full("textDocument/definition", json!({}));
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32602), "{}", resp);
     lsp.shutdown();
 }

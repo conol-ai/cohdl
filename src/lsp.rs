@@ -2,20 +2,27 @@
 //! existing pipeline.
 //!
 //! Architecture (DR-020): the JSON-RPC/stdio transport loop is hand-rolled
-//! (Content-Length framing below, consistent with the project's style); the
-//! protocol's message *shapes* come from the `lsp-types` crate — the project's
-//! single scoped dependency exception, because the LSP spec's type surface is
-//! large and externally versioned, unlike CoHDL's own small fixed formats.
+//! (Content-Length framing below, consistent with the project's style).
+//! `lsp-types` — the project's single scoped dependency exception — supplies
+//! the typed response shapes (`Hover`, `Location`, `Range`, `Position`,
+//! `Uri`); the request envelopes, dispatch, and publishDiagnostics payloads
+//! are raw `serde_json` values (an honest narrowing of DR-020's original
+//! framing — see docs/compliance-report.md, review R10).
 //!
-//! Every request re-runs the exact same `pipeline::check_files` the CLI uses —
-//! zero new diagnostic logic, no parallel reimplementation (the RFC's
-//! equivalence discipline: the LSP's diagnostics must match `cohdl check
-//! --json` field-for-field; see tests/lsp.rs).
+//! Diagnostics come from the exact same `pipeline::check_files` the CLI
+//! uses — the same `Checked.diags` source, independently projected into LSP
+//! shape here (`lsp_diagnostic`; the RFC's equivalence discipline is that
+//! the four fields code/severity/message/range must match `cohdl check
+//! --json`, enforced in tests/lsp.rs).
+//!
+//! Scope: POSIX hosts only — `file://` URIs with empty/`localhost`
+//! authority; Windows drive/UNC forms are not supported.
 //!
 //! Capabilities (exactly the four RFC-014 names, no more):
 //! - `textDocument/publishDiagnostics` — re-projection of the RFC-010 output.
 //! - `textDocument/hover` — resolved by-name mappings on an empty `impl`
-//!   block; obligation/role on a pin declaration (both pre-named by DR-013).
+//!   block; obligation/role on a pin declaration or pin USE SITE (RFC-002);
+//!   RFC-001's allowed-prefix row on a unit literal.
 //! - `textDocument/definition` — device/trait/fn/part name at a use site
 //!   resolves to its declaration.
 //! - `textDocument/references` — on a trait/device name: every `impl`
@@ -43,9 +50,11 @@ pub fn run_stdio() -> Result<LspExit, String> {
     let stdout = std::io::stdout();
     let mut server = Server {
         overlays: BTreeMap::new(),
-        published: BTreeSet::new(),
+        published: BTreeMap::new(),
+        client_uris: BTreeMap::new(),
         touched: None,
-        shutdown_requested: false,
+        state: Lifecycle::PreInit,
+        related_info: false,
     };
     let mut reader = stdin.lock();
     let mut writer = stdout.lock();
@@ -75,7 +84,7 @@ pub fn run_stdio() -> Result<LspExit, String> {
         let method = msg.get("method").and_then(Value::as_str).unwrap_or("");
         if method == "exit" {
             // LSP: exit after shutdown is clean; exit without it is not.
-            return if server.shutdown_requested {
+            return if matches!(server.state, Lifecycle::ShutDown) {
                 Ok(LspExit::Clean)
             } else {
                 Ok(LspExit::WithoutShutdown)
@@ -116,12 +125,18 @@ fn read_message(reader: &mut impl BufRead) -> Result<Read, String> {
         if line.is_empty() {
             break; // end of headers
         }
-        if let Some(v) = line.strip_prefix("Content-Length:") {
-            content_length = v.trim().parse().ok();
+        // LSP headers follow HTTP field semantics: names are case-insensitive.
+        if let Some((name, v)) = line.split_once(':') {
+            if name.eq_ignore_ascii_case("Content-Length") {
+                content_length = v.trim().parse().ok();
+            }
         }
     }
     let Some(len) = content_length else {
         // The header block was cleanly delimited; resume at the next one.
+        // Honest limitation: if a BODY followed the corrupt headers, its
+        // bytes are misread as the next frame's headers — recovery is
+        // best-effort at blank-line boundaries, not guaranteed resync.
         return Ok(Read::Malformed("missing Content-Length header".to_string()));
     };
     let mut buf = vec![0u8; len];
@@ -150,22 +165,55 @@ fn write_message(writer: &mut impl Write, value: &Value) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 // The server.
 
+/// LSP 3.17 lifecycle: requests before `initialize` get -32002; a second
+/// `initialize` and any request after `shutdown` get InvalidRequest.
+enum Lifecycle {
+    PreInit,
+    Running,
+    ShutDown,
+}
+
 struct Server {
     /// Unsaved buffer contents, keyed by canonical file path — these override
     /// on-disk contents when the project is loaded.
     overlays: BTreeMap<PathBuf, String>,
-    /// URIs we last published diagnostics for (so stale ones self-clear).
-    published: BTreeSet<String>,
+    /// Diagnostic ownership, keyed by analysis unit (project root, or the
+    /// file itself for loose files): the URIs last published under that key.
+    /// Re-analyzing one project must never clear another's diagnostics
+    /// (review R7 — multi-root sessions).
+    published: BTreeMap<String, BTreeSet<String>>,
+    /// The client's own URI spelling per canonical path (didOpen/didChange).
+    /// Publishes for an open document use the CLIENT's spelling — its
+    /// percent-encoding or `localhost` authority may differ from ours, and
+    /// the editor keys diagnostics by the URI it opened.
+    client_uris: BTreeMap<PathBuf, String>,
     /// The document URI touched by the last did* notification — triggers a
     /// re-check + publish after the message is handled.
     touched: Option<String>,
-    shutdown_requested: bool,
+    state: Lifecycle,
+    /// Did the client advertise `publishDiagnostics.relatedInformation`?
+    /// Secondary/help locations are only attached when it did.
+    related_info: bool,
 }
 
 /// One analyzed project: the pipeline result plus FileId → absolute path.
 struct Analysis {
     checked: Checked,
     abs_paths: Vec<PathBuf>,
+    /// Diagnostic-ownership key (see `Server::published`).
+    key: String,
+}
+
+/// Why a document could not be analyzed (review R6: these must not be
+/// conflated — one is "nothing to check", the other is a real failure the
+/// editor has to see instead of a false-clean empty publish).
+enum AnalyzeError {
+    /// The file neither exists on disk nor has an overlay (e.g. a phantom
+    /// buffer after `didClose`) — clear its diagnostics and move on.
+    Gone,
+    /// A real project/std load or pipeline failure — surface it; never
+    /// publish an empty list that claims the file is clean.
+    Project(String),
 }
 
 impl Server {
@@ -174,28 +222,60 @@ impl Server {
     fn handle(&mut self, method: &str, msg: &Value) -> Option<Value> {
         let id = msg.get("id").cloned();
         let params = msg.get("params").cloned().unwrap_or(Value::Null);
+        // Lifecycle gates (`exit` never reaches here — run_stdio owns it).
+        match self.state {
+            Lifecycle::PreInit if method != "initialize" => {
+                // Requests: -32002 ServerNotInitialized. Notifications: dropped.
+                return id.map(|id| error_response(id, -32002, "server not initialized"));
+            }
+            Lifecycle::ShutDown => {
+                return id.map(|id| {
+                    error_response(id, -32600, "invalid request: shutdown already received")
+                });
+            }
+            _ => {}
+        }
         match method {
-            "initialize" => Some(respond(
-                id?,
-                json!({
-                    "capabilities": {
-                        "textDocumentSync": 1, // FULL — didChange carries the whole text
-                        "hoverProvider": true,
-                        "definitionProvider": true,
-                        "referencesProvider": true,
-                    },
-                    "serverInfo": { "name": "cohdl-lsp", "version": env!("CARGO_PKG_VERSION") },
-                }),
-            )),
+            "initialize" => {
+                if !matches!(self.state, Lifecycle::PreInit) {
+                    return Some(error_response(
+                        id?,
+                        -32600,
+                        "invalid request: initialize may only be sent once",
+                    ));
+                }
+                self.state = Lifecycle::Running;
+                // Capability negotiation: only attach relatedInformation when
+                // the client advertised support for it.
+                self.related_info = params["capabilities"]["textDocument"]["publishDiagnostics"]
+                    ["relatedInformation"]
+                    .as_bool()
+                    == Some(true);
+                Some(respond(
+                    id?,
+                    json!({
+                        "capabilities": {
+                            // FULL sync — didChange carries the whole text; save
+                            // is advertised so conforming clients send didSave.
+                            "textDocumentSync": { "openClose": true, "change": 1, "save": true },
+                            "hoverProvider": true,
+                            "definitionProvider": true,
+                            "referencesProvider": true,
+                        },
+                        "serverInfo": { "name": "cohdl-lsp", "version": env!("CARGO_PKG_VERSION") },
+                    }),
+                ))
+            }
             "initialized" => None,
             "shutdown" => {
-                self.shutdown_requested = true;
+                self.state = Lifecycle::ShutDown;
                 Some(respond(id?, Value::Null))
             }
             "textDocument/didOpen" => {
                 let uri = params["textDocument"]["uri"].as_str()?.to_string();
                 let text = params["textDocument"]["text"].as_str()?.to_string();
                 if let Some(path) = uri_to_path(&uri) {
+                    self.client_uris.insert(path.clone(), uri.clone());
                     self.overlays.insert(path, text);
                 }
                 self.touched = Some(uri);
@@ -211,6 +291,7 @@ impl Server {
                     .as_str()?
                     .to_string();
                 if let Some(path) = uri_to_path(&uri) {
+                    self.client_uris.insert(path.clone(), uri.clone());
                     self.overlays.insert(path, text);
                 }
                 self.touched = Some(uri);
@@ -225,23 +306,33 @@ impl Server {
                 let uri = params["textDocument"]["uri"].as_str()?.to_string();
                 if let Some(path) = uri_to_path(&uri) {
                     self.overlays.remove(&path);
+                    self.client_uris.remove(&path);
                 }
                 self.touched = Some(uri);
                 None
             }
             "textDocument/hover" => {
+                if position_params(&params).is_none() {
+                    return Some(invalid_params(id?, method));
+                }
                 let result = self.hover(&params).map_or(Value::Null, |h| {
                     serde_json::to_value(h).unwrap_or(Value::Null)
                 });
                 Some(respond(id?, result))
             }
             "textDocument/definition" => {
+                if position_params(&params).is_none() {
+                    return Some(invalid_params(id?, method));
+                }
                 let result = self.definition(&params).map_or(Value::Null, |l| {
                     serde_json::to_value(l).unwrap_or(Value::Null)
                 });
                 Some(respond(id?, result))
             }
             "textDocument/references" => {
+                if position_params(&params).is_none() {
+                    return Some(invalid_params(id?, method));
+                }
                 let locs = self.references(&params);
                 Some(respond(
                     id?,
@@ -266,6 +357,31 @@ fn respond(id: Value, result: Value) -> Value {
     json!({ "jsonrpc": "2.0", "id": id, "result": result })
 }
 
+fn error_response(id: Value, code: i64, message: &str) -> Value {
+    json!({ "jsonrpc": "2.0", "id": id, "error": { "code": code, "message": message } })
+}
+
+fn invalid_params(id: Value, method: &str) -> Value {
+    error_response(
+        id,
+        -32602,
+        &format!(
+            "invalid params for {}: need textDocument.uri and position",
+            method
+        ),
+    )
+}
+
+/// The (uri, line, character) triple every positional request needs; `None`
+/// means the params are malformed (InvalidParams, not a null result).
+fn position_params(params: &Value) -> Option<(&str, u32, u32)> {
+    Some((
+        params["textDocument"]["uri"].as_str()?,
+        params["position"]["line"].as_u64()? as u32,
+        params["position"]["character"].as_u64()? as u32,
+    ))
+}
+
 // The `touched` field lives outside `handle`'s match for borrow simplicity.
 impl Server {
     fn take_pending_publishes(&mut self) -> Vec<Value> {
@@ -275,24 +391,40 @@ impl Server {
         let Some(path) = uri_to_path(&uri) else {
             return Vec::new();
         };
-        let Some(analysis) = self.analyze(&path) else {
-            return Vec::new();
-        };
-        // Group diagnostics per file, then publish: every file with
-        // diagnostics + the touched file, and clear anything stale.
+        match self.analyze(&path) {
+            Ok(analysis) => self.publish_analysis(&uri, &path, analysis),
+            // The document is gone (a phantom buffer after didClose): clear
+            // its diagnostics explicitly and drop ownership (review R6).
+            Err(AnalyzeError::Gone) => {
+                for owned in self.published.values_mut() {
+                    owned.remove(&uri);
+                }
+                vec![publish_note(&uri, Vec::new())]
+            }
+            // A real load failure: NEVER publish an empty list that claims
+            // the file is clean — surface the failure instead, and leave
+            // prior diagnostics owned (review R6). Matches the CLI, which
+            // exits 2 with prose here.
+            Err(AnalyzeError::Project(err)) => vec![show_message(&err)],
+        }
+    }
+
+    /// Publish one analysis: every file with diagnostics + the touched file,
+    /// then clear whatever THIS analysis unit owned before but not now.
+    fn publish_analysis(&mut self, uri: &str, path: &Path, analysis: Analysis) -> Vec<Value> {
         let mut per_file: BTreeMap<u32, Vec<Value>> = BTreeMap::new();
         for d in analysis.checked.diags.iter() {
             let fid = d.primary.span.file;
-            per_file
-                .entry(fid.0)
-                .or_default()
-                .push(lsp_diagnostic(&analysis, d));
+            per_file.entry(fid.0).or_default().push(lsp_diagnostic(
+                &analysis,
+                d,
+                self.related_info,
+            ));
         }
         let mut notes = Vec::new();
         let mut now_published: BTreeSet<String> = BTreeSet::new();
         for (fid, diags) in &per_file {
-            if let Some(u) = analysis.uri_for(FileId(*fid)) {
-                let u = u.as_str().to_string();
+            if let Some(u) = self.uri_spelling(&analysis, FileId(*fid)) {
                 notes.push(publish_note(&u, diags.clone()));
                 now_published.insert(u);
             }
@@ -300,49 +432,66 @@ impl Server {
         // The touched file always gets a publish (possibly empty) — matched
         // by PATH identity, not URI spelling (the client's percent-encoding
         // may differ from ours).
-        let touched_fid = analysis.fid_for(&path);
+        let touched_fid = analysis.fid_for(path);
         let touched_covered = touched_fid.is_some_and(|fid| per_file.contains_key(&fid.0));
         if !touched_covered {
-            notes.push(publish_note(&uri, Vec::new()));
-            now_published.insert(uri);
+            notes.push(publish_note(uri, Vec::new()));
+            now_published.insert(uri.to_string());
         }
         // A design-selection failure has no source span — surface it as an
         // editor message so the file never silently LOOKS clean while the CLI
         // errors (review finding; parallels the CLI's exit-2 prose).
         if let Some(err) = &analysis.checked.selection_error {
-            notes.push(json!({
-                "jsonrpc": "2.0",
-                "method": "window/showMessage",
-                "params": { "type": 1, "message": format!("cohdl: {}", err) },
-            }));
+            notes.push(show_message(err));
         }
-        // Clear diagnostics for files that had them before but not now.
-        for stale in self.published.difference(&now_published) {
+        // Clear diagnostics that THIS analysis unit owned before but not now.
+        // Ownership is keyed per project/loose file: re-checking one project
+        // must not clear another's live diagnostics (review R7).
+        let owned = self.published.entry(analysis.key).or_default();
+        for stale in owned.difference(&now_published) {
             notes.push(publish_note(stale, Vec::new()));
         }
-        self.published = now_published;
+        *owned = now_published;
         notes
     }
 
     /// Locate the project containing `path` (walk up for `cohdl.toml`, else
     /// single-file), load it with overlays applied, and run the exact same
     /// `pipeline::check_files` the CLI uses.
-    fn analyze(&self, path: &Path) -> Option<Analysis> {
+    fn analyze(&self, path: &Path) -> Result<Analysis, AnalyzeError> {
         let project_root = path
             .ancestors()
             .skip(1)
             .find(|a| a.join("cohdl.toml").is_file())
             .map(Path::to_path_buf);
+        // The CLI refuses to run without a std library unless --no-std is
+        // explicit; the LSP has no --no-std, so a missing std is a real
+        // failure to surface, not a silent degradation (review R6).
         let std_dir = crate::project::find_std_dir(None);
+        if std_dir.is_none() {
+            return Err(AnalyzeError::Project(
+                "cannot locate the std library — set COHDL_STD".to_string(),
+            ));
+        }
         let target: &Path = project_root.as_deref().unwrap_or(path);
         let mut proj = match crate::project::load_project(target, std_dir.as_deref()) {
             Ok(p) => p,
-            // The buffer may not exist on disk at all (a new unsaved file):
-            // fall back to std + the overlay contents.
-            Err(_) => {
-                let text = self.overlays.get(path)?.clone();
-                let (mut files, mut abs) = crate::project::load_std_files(std_dir.as_deref())?;
-                files.push((path.display().to_string(), text));
+            Err(e) => {
+                // Fall back to a synthetic std+overlay project ONLY for a
+                // genuinely nonexistent unsaved loose file. A cohdl.toml that
+                // fails to load, an unreadable source, or a broken std is a
+                // real error the editor must see (review R6).
+                if project_root.is_some() || path.exists() {
+                    return Err(AnalyzeError::Project(e));
+                }
+                let Some(text) = self.overlays.get(path) else {
+                    return Err(AnalyzeError::Gone);
+                };
+                let (mut files, mut abs) = crate::project::load_std_files(std_dir.as_deref())
+                    .ok_or_else(|| {
+                        AnalyzeError::Project("cannot load the std library".to_string())
+                    })?;
+                files.push((path.display().to_string(), text.clone()));
                 abs.push(path.to_path_buf());
                 crate::project::Project {
                     name: "buffer".to_string(),
@@ -366,10 +515,20 @@ impl Server {
                 proj.abs_paths.push(path.to_path_buf());
             }
         }
-        let checked = pipeline::check_files(&proj.files, proj.top.as_deref()).ok()?;
-        Some(Analysis {
+        // Diagnostic-ownership key: the project root for manifest projects,
+        // the file itself for loose/phantom files (two loose files in one
+        // directory are separate analysis units).
+        let key = project_root
+            .as_deref()
+            .unwrap_or(path)
+            .display()
+            .to_string();
+        let checked = pipeline::check_files(&proj.files, proj.top.as_deref())
+            .map_err(AnalyzeError::Project)?;
+        Ok(Analysis {
             checked,
             abs_paths: proj.abs_paths,
+            key,
         })
     }
 
@@ -384,28 +543,8 @@ impl Server {
             for pb in &dev.pin_blocks {
                 for pin in &pb.pins {
                     if contains(pin.name.span, fid, offset) {
-                        let role = pin.role.map(|(r, _)| r.name()).unwrap_or("(missing role)");
-                        let pads = pin
-                            .numbers
-                            .iter()
-                            .map(|n| n.text.clone())
-                            .collect::<Vec<_>>()
-                            .join(", ");
-                        let variant = pb
-                            .variant
-                            .as_ref()
-                            .map(|v| format!(" (variant `{}`)", v.name))
-                            .unwrap_or_default();
                         return Some(hover_markdown(
-                            format!(
-                                "**{} pin** `{}` on device `{}`{}\n\n- role: `{}`\n- pads: {}",
-                                pin.obligation.keyword(),
-                                pin.name.name,
-                                dev.name.name,
-                                variant,
-                                role,
-                                pads
-                            ),
+                            device_pin_text(dev, pb, pin),
                             span_to_range(&analysis, pin.name.span),
                         ));
                     }
@@ -417,16 +556,22 @@ impl Server {
             for pin in &tr.pins {
                 if contains(pin.name.span, fid, offset) {
                     return Some(hover_markdown(
-                        format!(
-                            "**{} pin role** `{}` on trait `{}` (abstract — mapped per `impl`)",
-                            pin.obligation.keyword(),
-                            pin.name.name,
-                            tr.name.name
-                        ),
+                        trait_pin_text(tr, pin),
                         span_to_range(&analysis, pin.name.span),
                     ));
                 }
             }
+        }
+        // Pin USE-SITE hover (RFC-002: any pin reference reveals its
+        // obligation/role, not only the declaration): `d.A` in net/nc/call
+        // statements resolves through the inst's type (part → device) or a
+        // trait-typed fn parameter.
+        if let Some(h) = pin_ref_hover(&analysis, fid, offset) {
+            return Some(h);
+        }
+        // Unit-literal hover: RFC-001's (unit × allowed-prefix) table row.
+        if let Some(h) = unit_literal_hover(&analysis, fid, offset) {
+            return Some(h);
         }
         // Empty-impl hover: the resolved by-name mapping DR-013 asked for.
         for imp in &world.impls {
@@ -530,15 +675,24 @@ impl Server {
         locs
     }
 
+    /// The URI to publish under for `fid`: the CLIENT's own spelling when
+    /// the document is open (its percent-encoding or `localhost` authority
+    /// may differ from ours), else our canonical `file://` encoding.
+    fn uri_spelling(&self, analysis: &Analysis, fid: FileId) -> Option<String> {
+        let path = analysis.abs_paths.get(fid.0 as usize)?;
+        if let Some(u) = self.client_uris.get(path) {
+            return Some(u.clone());
+        }
+        Some(encode_file_uri(path))
+    }
+
     /// Shared request plumbing: analyze the document's project and convert the
     /// LSP position to (FileId, byte offset).
     fn locate(&mut self, params: &Value) -> Option<(Analysis, FileId, u32)> {
-        let uri = params["textDocument"]["uri"].as_str()?;
+        let (uri, line, character) = position_params(params)?;
         let path = uri_to_path(uri)?;
-        let analysis = self.analyze(&path)?;
+        let analysis = self.analyze(&path).ok()?;
         let fid = analysis.fid_for(&path)?;
-        let line = params["position"]["line"].as_u64()? as u32;
-        let character = params["position"]["character"].as_u64()? as u32;
         let offset = position_to_offset(&analysis, fid, line, character)?;
         Some((analysis, fid, offset))
     }
@@ -621,14 +775,223 @@ fn hover_markdown(text: String, range: lt::Range) -> lt::Hover {
     }
 }
 
+/// The device-pin hover body — shared between the declaration hover and pin
+/// USE-SITE hover (RFC-002 asks for the obligation at any pin reference).
+fn device_pin_text(dev: &DeviceDef, pb: &PinBlock, pin: &DevicePin) -> String {
+    let role = pin.role.map(|(r, _)| r.name()).unwrap_or("(missing role)");
+    let pads = pin
+        .numbers
+        .iter()
+        .map(|n| n.text.clone())
+        .collect::<Vec<_>>()
+        .join(", ");
+    let variant = pb
+        .variant
+        .as_ref()
+        .map(|v| format!(" (variant `{}`)", v.name))
+        .unwrap_or_default();
+    format!(
+        "**{} pin** `{}` on device `{}`{}\n\n- role: `{}`\n- pads: {}",
+        pin.obligation.keyword(),
+        pin.name.name,
+        dev.name.name,
+        variant,
+        role,
+        pads
+    )
+}
+
+fn trait_pin_text(tr: &TraitDef, pin: &TraitPin) -> String {
+    format!(
+        "**{} pin role** `{}` on trait `{}` (abstract — mapped per `impl`)",
+        pin.obligation.keyword(),
+        pin.name.name,
+        tr.name.name
+    )
+}
+
+/// Every `PinRef` in a statement body (net members, nc members, call args).
+fn body_pin_refs(body: &[Stmt]) -> Vec<&PinRef> {
+    let mut out = Vec::new();
+    for stmt in body {
+        match stmt {
+            Stmt::Net(s) => out.extend(s.members.iter()),
+            Stmt::Nc(s) => out.extend(s.members.iter()),
+            Stmt::Call(s) => out.extend(s.args.iter()),
+            _ => {}
+        }
+    }
+    out
+}
+
+/// Pin USE-SITE hover (review R10 / RFC-002): `d.A` resolves through the
+/// inst's type (part → device) to the pin declaration; `target.A` on a
+/// trait-typed fn parameter resolves to the trait pin role.
+fn pin_ref_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Hover> {
+    let world = &analysis.checked.world;
+    let bodies: Vec<(&[Stmt], Option<&FnDef>)> = world
+        .designs
+        .values()
+        .map(|d| (d.body.as_slice(), None))
+        .chain(world.fns.values().map(|f| (f.body.as_slice(), Some(f))))
+        .collect();
+    for (body, func) in bodies {
+        for pr in body_pin_refs(body) {
+            let Some(pin_id) = &pr.pin else { continue };
+            if !contains(pin_id.span, fid, offset) {
+                continue;
+            }
+            // An instance in this body: its type, through parts, to a device.
+            let inst_ty = body.iter().find_map(|s| match s {
+                Stmt::Inst(i) if i.name.name == pr.base.name => Some(i.ty.name.name.clone()),
+                _ => None,
+            });
+            if let Some(ty) = inst_ty {
+                let dev_name = world
+                    .parts
+                    .get(&ty)
+                    .map(|p| p.device.name.name.clone())
+                    .unwrap_or(ty);
+                if let Some(dev) = world.devices.get(&dev_name) {
+                    for pb in &dev.pin_blocks {
+                        for pin in &pb.pins {
+                            if pin.name.name == pin_id.name {
+                                return Some(hover_markdown(
+                                    device_pin_text(dev, pb, pin),
+                                    span_to_range(analysis, pin_id.span),
+                                ));
+                            }
+                        }
+                    }
+                }
+                continue;
+            }
+            // A trait-typed fn parameter: the pin is a trait role.
+            let f = func?;
+            let trait_names: Vec<String> = f
+                .params
+                .iter()
+                .filter(|p| p.name.name == pr.base.name)
+                .filter_map(|p| match &p.ty {
+                    FnParamTy::Generic(g) => f
+                        .generics
+                        .iter()
+                        .find(|gp| gp.name.name == g.name)
+                        .and_then(|gp| match &gp.bound {
+                            GenericBound::Traits(ts) => {
+                                Some(ts.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
+                            }
+                            GenericBound::Unit(_) => None,
+                        }),
+                    FnParamTy::ImplTrait(ts, _) => {
+                        Some(ts.iter().map(|t| t.name.clone()).collect())
+                    }
+                    FnParamTy::Pin(_) => None,
+                })
+                .flatten()
+                .collect();
+            for tn in trait_names {
+                if let Some(tr) = world.traits.get(&tn) {
+                    for pin in &tr.pins {
+                        if pin.name.name == pin_id.name {
+                            return Some(hover_markdown(
+                                trait_pin_text(tr, pin),
+                                span_to_range(analysis, pin_id.span),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Unit-literal hover (review R10 / RFC-001): the literal's unit type plus
+/// its row of the (unit × allowed-prefix) table.
+fn unit_literal_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Hover> {
+    let world = &analysis.checked.world;
+    let check = |v: &crate::units::UnitValue, s: Span| -> Option<(String, Span)> {
+        if contains(s, fid, offset) {
+            Some((unit_value_text(v), s))
+        } else {
+            None
+        }
+    };
+    let arg_hits = |args: &[GenericArg]| -> Option<(String, Span)> {
+        args.iter().find_map(|a| match a {
+            GenericArg::Unit(v, s) => check(v, *s),
+            _ => None,
+        })
+    };
+    let body_hits = |body: &[Stmt]| -> Option<(String, Span)> {
+        body.iter().find_map(|stmt| match stmt {
+            Stmt::Inst(i) => arg_hits(&i.ty.generic_args),
+            Stmt::Call(c) => arg_hits(&c.generic_args),
+            Stmt::Net(n) => match &n.annotation {
+                Some(NetAnnotation::Voltage(v, s)) => check(v, *s),
+                _ => None,
+            },
+            _ => None,
+        })
+    };
+    let (text, span) = world
+        .devices
+        .values()
+        .find_map(|dev| {
+            dev.spec_blocks
+                .iter()
+                .flat_map(|b| &b.fields)
+                .find_map(|f| match &f.value {
+                    SpecValue::Lit(v, s) => check(v, *s),
+                    SpecValue::GenericRef(_) => None,
+                })
+                .or_else(|| {
+                    dev.generics
+                        .iter()
+                        .find_map(|g| g.default.as_ref().and_then(|(v, s)| check(v, *s)))
+                })
+        })
+        .or_else(|| {
+            world
+                .parts
+                .values()
+                .find_map(|p| arg_hits(&p.device.generic_args))
+        })
+        .or_else(|| world.designs.values().find_map(|d| body_hits(&d.body)))
+        .or_else(|| world.fns.values().find_map(|f| body_hits(&f.body)))?;
+    Some(hover_markdown(text, span_to_range(analysis, span)))
+}
+
+fn unit_value_text(v: &crate::units::UnitValue) -> String {
+    format!(
+        "**{} literal** `{}`\n\n{}",
+        v.unit.type_name(),
+        v.text,
+        v.unit.prefix_table_help()
+    )
+}
+
 // ---------------------------------------------------------------------------
 // Diagnostics mapping (the RFC-010 equivalence surface).
 
-fn lsp_diagnostic(analysis: &Analysis, d: &crate::diag::Diagnostic) -> Value {
+fn lsp_diagnostic(analysis: &Analysis, d: &crate::diag::Diagnostic, related_info: bool) -> Value {
     let severity = match d.severity {
         crate::diag::Severity::Error => 1,
         crate::diag::Severity::Warning => 2,
     };
+    let mut out = json!({
+        "range": span_to_range(analysis, d.primary.span),
+        "severity": severity,
+        "code": d.code,
+        "source": "cohdl",
+        "message": d.message,
+    });
+    // relatedInformation only when the client advertised support for it
+    // (capability negotiation — review R8).
+    if !related_info {
+        return out;
+    }
     let mut related = Vec::new();
     for sec in &d.secondary {
         if let Some(uri) = analysis.uri_for(sec.span.file) {
@@ -649,14 +1012,8 @@ fn lsp_diagnostic(analysis: &Analysis, d: &crate::diag::Diagnostic) -> Value {
             }));
         }
     }
-    json!({
-        "range": span_to_range(analysis, d.primary.span),
-        "severity": severity,
-        "code": d.code,
-        "source": "cohdl",
-        "message": d.message,
-        "relatedInformation": related,
-    })
+    out["relatedInformation"] = Value::Array(related);
+    out
 }
 
 fn publish_note(uri: &str, diagnostics: Vec<Value>) -> Value {
@@ -667,9 +1024,26 @@ fn publish_note(uri: &str, diagnostics: Vec<Value>) -> Value {
     })
 }
 
+fn show_message(message: &str) -> Value {
+    json!({
+        "jsonrpc": "2.0",
+        "method": "window/showMessage",
+        "params": { "type": 1, "message": format!("cohdl: {}", message) },
+    })
+}
+
+/// POSIX `file://` URI → path. The empty and `localhost` authorities are
+/// local (RFC 8089); any other authority is rejected. Windows drive letters,
+/// backslashes, and UNC forms are NOT supported — this server targets POSIX
+/// hosts only (documented in docs/lsp.md).
 fn uri_to_path(uri: &str) -> Option<PathBuf> {
-    let raw = uri.strip_prefix("file://")?;
-    let p = PathBuf::from(percent_decode(raw));
+    let rest = uri.strip_prefix("file://")?;
+    let path = match rest.find('/') {
+        Some(0) => rest,
+        Some(i) if &rest[..i] == "localhost" => &rest[i..],
+        _ => return None,
+    };
+    let p = PathBuf::from(percent_decode(path));
     Some(p.canonicalize().unwrap_or(p))
 }
 

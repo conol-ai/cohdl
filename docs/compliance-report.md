@@ -68,13 +68,16 @@ six fixed the same day, one retained as a documented deviation.**
 
 ## Retained, documented deviations
 
-- **D003 single-driver** — *superseded 2026-07-13 (external review F10).*
-  This deviation is retired: D003 is now role-aware, firing only when a net's
-  lone connected pin is a driver (`output`/`power_out`), the reading of
-  RFC-004's "exactly one output-type (driver) pin connected" that is both
-  faithful to the text and electrically sensible (a literal driver-count==1
-  over any net would flag every ordinary signal net). A dangling
-  passive/input pin is RFC-002's territory, not DRC's.
+- **D003 single-driver** — **deviation pending a note-side amendment**
+  (classification corrected 2026-07-14, review 3; the earlier "retired /
+  faithful to the text" wording here overstated it). What is implemented:
+  D003 fires only when a net's lone connected pin is a *driver*
+  (`output`/`power_out`). RFC-004's accepted sentence ("exactly one
+  output-type (driver) pin connected") admits more than one reading; the
+  implemented reading is the electrically sensible one (a literal
+  lone-pin-of-any-role rule would flag every ordinary two-pin signal net),
+  but implemented behavior is not accepted-contract compliance — the RFC
+  text needs an amendment that picks this reading explicitly.
 
 - **`pub` is parsed but not enforced.** The MVP's single flat scope has no
   visibility boundary; provisional-syntax.md §1 documents this openly. The
@@ -114,10 +117,14 @@ carry regression tests.
   removed from the source.
 - F8 — a successful plain `build` renders warnings again (D003 was hidden; a
   regression from the RFC-010 refactor).
-- F10 — D003 is role-aware per RFC-004/008: it fires only when a net's lone
-  pin is a driver (`output`/`power_out`).
-- F12.2 — `10kΩ` produces one targeted E101 (`write \`10kohm\``), not an
-  E103+E107 cascade.
+- F10 — *reclassified (review 2/3): not "fixed" —* D003's role-aware firing
+  is a **deviation pending amendment**; see "Retained, documented
+  deviations" above. The code change (role-awareness) shipped; the
+  accepted-text conflict remains.
+- F12.2 — *reclassified (review 2/3): partial —* `10kΩ` produces one
+  targeted E101 (`write \`10kohm\``), not an E103+E107 cascade; the
+  documented E401 parser-recovery follow-on remains (the pipeline's uniform
+  recovery policy, pinned in tests/cli.rs).
 - F6/F7/F11 — `fmt` keeps attribute spans (trailing comments on `#[intent]`/
   `#[placement_hint]`/`#[designator]` survive; comments between an attribute
   and its target stay between); comments inside `layout {}`, trait, impl, and
@@ -166,8 +173,11 @@ carry regression tests.
 - RFC-013's normative placement example (`#[placement_hint] inst esp` as a
   *re*-annotation of an already-declared instance) is not valid grammar.
 - RFC-011's accepted E9xx table (five codes) conflicts with the
-  earlier-shipped E901–E908; the registry documents the reconciliation, but
-  the accepted RFC/DR text still needs amending.
+  implementation's pre-existing E901–E908. Keeping E901–E908 is a
+  **deviation from the Accepted RFC-011 text** — "the implementation got
+  there first" is a reason to amend the note, not a claim of compliance.
+  The registry documents the mapping; the accepted RFC/DR text still needs
+  amending.
 - The language spec's error-block table omits E10xx (its own layout section
   references it).
 - RFC-002's "omitted obligation defaults to required" (implemented, and used
@@ -236,14 +246,110 @@ Implemented per DR-020: `cohdl lsp` (src/lsp.rs) — hand-rolled JSON-RPC/stdio
 transport; `lsp-types` (pinned `=0.97.0`) + its serde requirements as the
 project's single scoped dependency exception, confined to the LSP layer. All
 four RFC capabilities ship with fixture tests (tests/lsp.rs), including the
-mandatory diagnostics-equivalence test against `cohdl check --json` and an
+diagnostics-equivalence suite against `cohdl check --json` (full four-field
+projection over a multi-stage fixture corpus, both range endpoints, UTF-16
+mapping with a non-ASCII fixture, secondary+help projection) and an
 unsaved-buffer overlay test. Editor launch snippets: docs/lsp.md.
 
-Honest boundaries: the equivalence test maps encodings (LSP 0-based/UTF-16 vs
-JSON 1-based/scalar) over an ASCII fixture — a non-ASCII-position fixture is a
-reasonable future addition; `help:` lines ride `relatedInformation` so the four
-equivalence fields stay exactly RFC-010's values; validation against a live VS
-Code session has not been run in CI (the protocol-level tests run the real
-binary over real framing) — the RFC's "test against at least one real client"
-acceptance item is satisfied at protocol level and documented here as pending a
-manual editor pass.
+Scope honesty (review 3 corrections):
+
+- **The real-client acceptance item is NOT satisfied.** RFC-014 explicitly
+  requires at least one test against a real editor client, "not just
+  unit-testing"; a subprocess protocol test is exactly what that sentence
+  distinguishes from a live client. The item stays open until a real VS Code
+  session is run and recorded here. (The earlier "satisfied at protocol
+  level" wording contradicted itself and is withdrawn.)
+- **DR-020's dependency rationale is narrower in practice than its text.**
+  `lsp-types` supplies the typed response shapes (`Hover`, `Location`,
+  `Range`, `Position`, `Uri`); initialize, dispatch, and publishDiagnostics
+  payloads are raw `serde_json` values. This is an honest narrowing pending
+  either consistent typed usage or a DR amendment.
+- **POSIX only:** `file://` URIs with empty/`localhost` authority; Windows
+  drive letters, backslashes, and UNC forms are not supported (documented in
+  docs/lsp.md).
+- Lifecycle (-32002 before initialize, single initialize, InvalidRequest
+  after shutdown), save-included sync advertisement, case-insensitive
+  headers, and `relatedInformation` capability negotiation are implemented
+  and pinned in tests/lsp.rs. Transport recovery after a header block with
+  no Content-Length is best-effort at blank-line boundaries only (pinned
+  honestly in the malformed-frames test).
+
+## Inherited tooling obligations from earlier RFCs (review 3, R10)
+
+- **RFC-002 pin-reference hover — implemented (2026-07-14).** Hover on a pin
+  USE SITE (`d.A` in net/nc/call statements, `target.A` on a trait-typed fn
+  parameter) resolves to the pin's obligation/role, not only the
+  declaration. Tested in tests/lsp.rs.
+- **RFC-001 unit×prefix hover — implemented (2026-07-14).** Hover on a unit
+  literal (device spec values, generic defaults/args, net voltage
+  annotations) shows the literal's unit type and its allowed-prefix table
+  row. Tested in tests/lsp.rs.
+- **RFC-001 completion data — note-side conflict, needs a decision.**
+  RFC-001 says the unit×prefix table must appear in LSP *completion*/hover
+  data; RFC-014 scopes the server to exactly four capabilities and
+  explicitly excludes completion. The hover half is now implemented; the
+  completion half is a direct contradiction between two Accepted texts that
+  only a note-side amendment can resolve. Not implemented.
+
+## External review round 3 (Codex, at f901cdf): dispositions
+
+Fixed in code (regression tests named in parentheses):
+
+- R1 — `fmt` unquotes a `[tolerance: …]` string only when it lexes as a
+  `Time` literal; `"5V"`, `"100nF"`, `"abc"` stay quoted and idempotent
+  (tests/fmt.rs `tolerance_quoted_non_time_stays_quoted`).
+- R2 — same-line instance attributes serialize by source span, not
+  category; empty trait/impl bodies with an opener-line trailing comment
+  keep the braces open with the comment attached (tests/fmt.rs).
+- R3 — `Args::validate()` enforces the full per-command flag matrix
+  (including `lsp` rejecting all flags/positionals and `--std`/`--no-std`
+  mutual exclusion), and every post-check exit-2 path (lock parse, out-dir
+  creation, artifact writes, stale-layout removal) renders collected
+  diagnostics before the error (tests/cli.rs).
+- R4 — the intent failing-fixture comparison strips only positions from the
+  parsed JSON model (file names, label messages, and help values all
+  compared) on a fixture with guaranteed secondary+help; a new
+  own-line-attribute mutation test requires the ENTIRE `--json` document
+  byte-identical; the layout mutation test now compares the `--json`
+  document; the registry scanner strips Rust comments (string/char-literal
+  aware) before matching (tests/intent.rs, tests/layout.rs,
+  tests/error_registry.rs).
+- R6 — `analyze` distinguishes a genuinely nonexistent unsaved loose file
+  (phantom fallback) from real project/std/pipeline load failures, which
+  surface as `window/showMessage` and never publish a false-clean empty
+  list; closing a phantom buffer publishes an explicit empty list
+  (tests/lsp.rs `project_load_failure_surfaces_not_false_clean`,
+  `broken_std_surfaces_as_message`, phantom-close case).
+- R7 — diagnostic ownership is keyed per analysis unit (project root, or
+  the file itself for loose files); re-checking one unit clears only its
+  own stale URIs (tests/lsp.rs two-loose-files and two-files-one-project
+  regressions).
+- R8 — lifecycle state machine, `textDocumentSync` object with `save`,
+  case-insensitive headers, `relatedInformation` gating, `-32602` for
+  malformed positional params, `file://localhost` authority support, and
+  client-URI-spelling preservation on publishes (tests/lsp.rs).
+- R9 (gradeability half) — corpus equivalence harness with full-field
+  comparison incl. `range.end.character`, exact hover text/ranges, exact
+  definition end span, exact reference URIs+ranges, non-ASCII fixture.
+- R10 (hover half) — pin-reference and unit-literal hover, above.
+
+Documented/classified (not code):
+
+- R5 — this report's older sections rewritten to remove the contradictory
+  "retired"/"shipped-first"/"Fixed" framings (D003, E9xx, F10/F12); the
+  README status wording made exact; src/ast.rs and src/lsp.rs header claims
+  narrowed to what is true.
+- R9 (client half) — the real-VS-Code acceptance item is open, above.
+- R10 (completion half) — note-side conflict, above.
+
+Note-side contradictions surfaced by review 3 (the `docs/design/` snapshot
+is extraction-only — these need conol.ai edits, listed here so they are not
+lost):
+
+- `03-capability-architecture.md` describes a `tower-lsp` server with
+  completion, a real VS Code extension, "no real formatter", and no JSON
+  API — all stale against the actual `cohdl lsp`/`fmt`/`--json`.
+- `00-root.md` still counts thirteen RFCs; newer pages say fourteen.
+- `rfc-011-error-registry.md` records itself as DR-020 while note 7 says
+  DR-009, and DR-020 is now RFC-014's dependency exception — two live
+  DR-020s collide.

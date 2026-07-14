@@ -347,12 +347,15 @@ impl Formatter<'_> {
         }
         let has_body = t.designator_prefix.is_some() || !t.pins.is_empty() || !t.specs.is_empty();
         if !has_body {
-            // A member-less body may still hold comments — keep them inside
-            // the braces rather than collapsing to `{}`.
+            // A member-less body may still hold comments — interior full-line
+            // comments AND a trailing comment on the opener line both keep
+            // the braces open (collapsing would exile them).
+            let start = self.line_start(item.decl_span);
             let end = self.line_end(item.span);
-            if self.has_comments_between(self.line_start(item.decl_span), end) {
+            let opener_comment = start != end && self.c.trailing.contains_key(&start);
+            if opener_comment || self.has_comments_between(start, end) {
                 self.push(0, format!("{} {{", header));
-                self.attach_trailing(self.line_start(item.decl_span));
+                self.attach_trailing(start);
                 self.flush_leading(end, 1);
                 self.push(0, "}");
             } else {
@@ -539,10 +542,12 @@ impl Formatter<'_> {
     fn impl_def(&mut self, i: &ImplDef) {
         let header = format!("impl {} for {}", i.trait_name.name, i.device_name.name);
         if i.pin_map.is_empty() && i.spec_map.is_empty() {
+            let start = self.line_start(i.span);
             let end = self.line_end(i.span);
-            if self.has_comments_between(self.line_start(i.span), end) {
+            let opener_comment = start != end && self.c.trailing.contains_key(&start);
+            if opener_comment || self.has_comments_between(start, end) {
                 self.push(0, format!("{} {{", header));
-                self.attach_trailing(self.line_start(i.span));
+                self.attach_trailing(start);
                 self.flush_leading(end, 1);
                 self.push(0, "}");
             } else {
@@ -674,30 +679,31 @@ impl Formatter<'_> {
                 // order — reordering would drag comments with it), with the
                 // inst line's own comment left for the statement.
                 let stop = self.line_start(s.span);
-                let mut attrs: Vec<(u32, String, Span)> = Vec::new();
+                let mut attrs: Vec<(String, Span)> = Vec::new();
                 if let Some((v, sp)) = &s.intent {
-                    attrs.push((
-                        self.line_start(*sp),
-                        format!("#[intent({})]", str_lit(v)),
-                        *sp,
-                    ));
+                    attrs.push((format!("#[intent({})]", str_lit(v)), *sp));
                 }
                 if let Some((v, sp)) = &s.placement_hint {
-                    attrs.push((
-                        self.line_start(*sp),
-                        format!("#[placement_hint({})]", str_lit(v)),
-                        *sp,
-                    ));
+                    attrs.push((format!("#[placement_hint({})]", str_lit(v)), *sp));
                 }
                 for attr in &s.attrs {
-                    attrs.push((self.line_start(attr.span), attr_text(attr), attr.span));
+                    attrs.push((attr_text(attr), attr.span));
                 }
-                attrs.sort_by_key(|(l, _, _)| *l);
-                for (line, text, sp) in attrs {
-                    self.flush_leading(line, indent);
+                // Byte-offset order — several attributes on ONE source line
+                // keep their exact written order (line-sorting would fall back
+                // to category insertion order).
+                attrs.sort_by_key(|(_, sp)| sp.start);
+                for (i, (text, sp)) in attrs.iter().enumerate() {
+                    self.flush_leading(self.line_start(*sp), indent);
                     self.push(indent, text);
-                    let end = self.line_end(sp);
-                    if end < stop {
+                    let end = self.line_end(*sp);
+                    // A trailing comment on an attribute line belongs to the
+                    // LAST attribute sharing that line (or the declaration,
+                    // when the declaration shares it).
+                    let next_shares_line = attrs
+                        .get(i + 1)
+                        .is_some_and(|(_, nsp)| self.line_start(*nsp) == end);
+                    if end < stop && !next_shares_line {
                         self.attach_trailing(end);
                     }
                 }
@@ -879,10 +885,17 @@ fn tolerance_text(s: &str) -> String {
     let f = sm.add_file("tolerance", s);
     let mut diags = Diagnostics::new();
     let tokens = crate::lex::lex(f, sm.text(f), &mut diags);
-    let is_unit = !diags.has_errors()
+    // Only a TIME literal may unquote: the parser accepts unquoted tolerances
+    // only when their unit type is Time (RFC-013's <Time-or-length-unit>), so
+    // unquoting any other unit-shaped string would make valid source invalid
+    // after formatting — breaking RFC-009 semantic inertness.
+    let is_time = !diags.has_errors()
         && tokens.len() == 2
-        && matches!(tokens[0].kind, crate::lex::TokenKind::Unit(_));
-    if is_unit {
+        && matches!(
+            &tokens[0].kind,
+            crate::lex::TokenKind::Unit(v) if v.unit == crate::units::UnitType::Time
+        );
+    if is_time {
         s.to_string()
     } else {
         str_lit(s)

@@ -1,16 +1,19 @@
 # The CoHDL language server (`cohdl lsp`)
 
 RFC-014's LSP server: a thin JSON-RPC/stdio frontend over the exact same
-`pipeline::check` the CLI runs — zero new diagnostic logic. Implementation:
-`src/lsp.rs`; conformance tests (including the mandatory diagnostics
-equivalence against `cohdl check --json`): `tests/lsp.rs`.
+`pipeline::check` the CLI runs — the same diagnostics source, projected into
+LSP shape. Implementation: `src/lsp.rs`; conformance tests (the diagnostics
+equivalence suite against `cohdl check --json` runs the full four-field
+projection over a fixture corpus): `tests/lsp.rs`. A pass in a live VS Code
+session has not yet been recorded — the RFC's real-client acceptance item is
+open (docs/compliance-report.md).
 
 ## Capabilities (exactly RFC-014's four)
 
 | Capability | Behavior |
 |---|---|
-| `textDocument/publishDiagnostics` | On didOpen/didChange/didSave: re-checks the file's containing project (walks up to `cohdl.toml`, else single-file + std) and publishes the RFC-010 diagnostics — code, severity, message, and range are field-identical to `cohdl check --json`; secondary labels and `help:` lines ride `relatedInformation` |
-| `textDocument/hover` | On an `impl Trait for Device {}` block: the resolved by-name pin/spec mappings (DR-013's ask — the information exists only in the compiler's resolution when the body is empty). On a device/trait pin declaration: obligation and role |
+| `textDocument/publishDiagnostics` | On didOpen/didChange/didSave: re-checks the file's containing project (walks up to `cohdl.toml`, else single-file + std) and publishes the RFC-010 diagnostics — code, severity, message, and range are equivalence-tested against `cohdl check --json` over the corpus in tests/lsp.rs; secondary labels and `help:` lines ride `relatedInformation` when the client advertises support for it. A project that fails to LOAD (bad manifest, broken std) surfaces as `window/showMessage` — never a false-clean empty publish |
+| `textDocument/hover` | On an `impl Trait for Device {}` block: the resolved by-name pin/spec mappings (DR-013's ask). On a device/trait pin declaration OR any pin use site (`d.A` in net/nc/call statements, `target.A` on a trait-typed fn param — RFC-002's inherited obligation): obligation and role. On a unit literal: its unit type and RFC-001's allowed-prefix table row |
 | `textDocument/definition` | A device/trait/fn/part name at any use site (inst type, impl names, generic bounds, super-traits, calls, part device refs) resolves to its declaration |
 | `textDocument/references` | On a trait or device name (in an `impl` or at its declaration): every `impl` statement involving it, across the project and std |
 
@@ -20,15 +23,24 @@ so diagnostics track what the editor shows, not what was last saved.
 Not included, per the RFC's non-goals: code actions, rename, semantic tokens,
 workspace symbols, incremental compilation (every event re-runs the full
 check — acceptable at current project scale; incremental compilation is
-tracked separately).
+tracked separately). Completion is excluded by RFC-014 even though RFC-001
+asks for unit×prefix data in completion — a direct conflict between two
+Accepted texts awaiting a note-side decision (docs/compliance-report.md).
+
+Platform scope: POSIX hosts only. `file://` URIs with an empty or
+`localhost` authority are accepted; Windows drive letters, backslashes, and
+UNC paths are not supported.
 
 ## Dependency note (DR-020)
 
 This is the project's single scoped dependency exception: `lsp-types`
-(pinned) supplies the protocol's message shapes, with `serde`/`serde_json` as
-its serialization requirements — used only in the LSP layer. The JSON-RPC
-transport loop itself (Content-Length framing, dispatch) is hand-rolled in
-`src/lsp.rs`, and the compiler pipeline/emitters remain dependency-free.
+(pinned) with `serde`/`serde_json` as its serialization requirements — used
+only in the LSP layer. In practice `lsp-types` supplies the typed RESPONSE
+shapes (`Hover`, `Location`, `Range`, `Position`, `Uri`); the JSON-RPC
+transport loop, request dispatch, and publishDiagnostics payloads are
+hand-rolled `serde_json` values (an honest narrowing of DR-020's original
+framing — see docs/compliance-report.md). The compiler pipeline/emitters
+remain dependency-free.
 
 ## Editor setup
 

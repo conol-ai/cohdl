@@ -162,74 +162,116 @@ fn mutating_intent_text_is_zero_impact() {
     assert_no_impact(&build(ANNOTATED), &build(&mutated), "intent text mutated");
 }
 
+/// Recursively strip the position fields from a `--json` document, leaving
+/// everything else (codes, severities, messages, FILE names, secondary
+/// label messages, help strings) for exact comparison.
+fn strip_positions(v: &mut serde_json::Value) {
+    match v {
+        serde_json::Value::Object(map) => {
+            for k in ["start_line", "start_col", "end_line", "end_col"] {
+                map.remove(k);
+            }
+            for (_, child) in map.iter_mut() {
+                strip_positions(child);
+            }
+        }
+        serde_json::Value::Array(items) => items.iter_mut().for_each(strip_positions),
+        _ => {}
+    }
+}
+
 #[test]
 fn intent_is_zero_impact_on_diagnostic_positions_in_failing_fixture() {
-    // A fixture that produces BOTH a warning (D003: dangling driver) and an
-    // error (E202) — adding intent above the offending statements must not
-    // shift any diagnostic's code, message, or span, and the verdict stays
-    // identical. Attributes live on their own lines, so spans don't move.
+    // A fixture whose diagnostics carry the FULL label structure — a
+    // warning (D003), an error with secondary labels AND a help line (E30x
+    // impl satisfaction), and a resolve error (E202) — so this comparison is
+    // not vacuous (review R4). Adding intent above the offending statements
+    // must not change anything but positions.
     let bad = r#"
+pub trait Needs { pins { required MISSING: pin } }
 pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
+impl Needs for MCU {}
 design B {
     inst mcu: MCU
     net LONELY: mcu.TX
     net G: mcu.GND, nosuch.PIN
 }
 "#;
-    let bad_ann = r#"
-pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
-design B {
-    inst mcu: MCU
-    net LONELY: mcu.TX
-    net G: mcu.GND, nosuch.PIN
-}
-"#
-    .replace(
-        "    net LONELY: mcu.TX",
-        "    #[intent(\"dangling driver kept for probing\")] net LONELY: mcu.TX",
-    );
+    let bad_ann = bad
+        .replace(
+            "    net LONELY: mcu.TX",
+            "    #[intent(\"dangling driver kept for probing\")]\n    net LONELY: mcu.TX",
+        )
+        .replace(
+            "impl Needs for MCU {}",
+            "#[intent(\"deliberately unsatisfiable\")]\nimpl Needs for MCU {}",
+        );
     let a = build(bad);
     let b = build(&bad_ann);
     assert_eq!(a.verdict, "fail");
     assert_eq!(a.verdict, b.verdict);
-    // Same diagnostic set (codes + messages); spans may not shift because the
-    // attribute rides the same line prefix — compare the full JSON docs minus
-    // column positions on the annotated line.
+    // Prove the fixture exercises help + secondary labels (non-vacuous).
     assert!(
         a.diags.contains("D003") && a.diags.contains("E202"),
         "{}",
         a.diags
     );
+    let a_doc: serde_json::Value = serde_json::from_str(&a.json).unwrap();
     assert!(
-        b.diags.contains("D003") && b.diags.contains("E202"),
-        "{}",
-        b.diags
+        a_doc["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| !d["secondary"].as_array().unwrap().is_empty()
+                && !d["help"].as_array().unwrap().is_empty()),
+        "fixture must produce a diagnostic with secondary labels AND help:\n{}",
+        a.json
     );
-    // Compare EVERYTHING except position fields (the attribute occupies
-    // source space, so line/col shift; nothing else may move): codes,
-    // severities, top-level messages, label texts, and help lines.
-    let content = |j: &str| -> Vec<String> {
-        j.lines()
-            .map(str::trim)
-            .filter(|l| {
-                l.starts_with("\"code\":")
-                    || l.starts_with("\"severity\":")
-                    || l.starts_with("\"message\":")
-                    || l.starts_with("\"help\":")
-                    || (!l.contains("_line")
-                        && !l.contains("_col")
-                        && l.starts_with('"')
-                        && l.contains("\"message\""))
-            })
-            .map(|l| l.to_string())
-            .collect()
-    };
+    // Compare the COMPLETE JSON models minus only positions (the attributes
+    // occupy source lines, so spans shift; every other field — including
+    // file names, label messages, and the actual help strings — must match).
+    let mut a_stripped: serde_json::Value = serde_json::from_str(&a.json).unwrap();
+    let mut b_stripped: serde_json::Value = serde_json::from_str(&b.json).unwrap();
+    strip_positions(&mut a_stripped);
+    strip_positions(&mut b_stripped);
     assert_eq!(
-        content(&a.json),
-        content(&b.json),
+        a_stripped, b_stripped,
         "diagnostic content diverged:\n--- a ---\n{}\n--- b ---\n{}",
-        a.json,
-        b.json
+        a.json, b.json
+    );
+}
+
+#[test]
+fn mutating_intent_on_failing_fixture_is_fully_json_identical() {
+    // RFC-012's mandatory mutation test on a FAILING fixture: the attribute
+    // sits on its own line, so mutating the intent STRING (same line count)
+    // moves no diagnostic position at all — the entire --json document must
+    // be byte-identical, no field excluded (review R4).
+    let annotated = r#"
+pub trait Needs { pins { required MISSING: pin } }
+pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
+impl Needs for MCU {}
+design B {
+    inst mcu: MCU
+    #[intent("dangling driver kept for probing")]
+    net LONELY: mcu.TX
+    net G: mcu.GND, nosuch.PIN
+}
+"#;
+    let mutated = annotated.replace(
+        "dangling driver kept for probing",
+        "voltage must never exceed 5V 🌍",
+    );
+    assert_ne!(annotated, mutated);
+    let a = build(annotated);
+    let b = build(&mutated);
+    assert_eq!(a.verdict, "fail");
+    assert_no_impact(&a, &b, "intent text mutated on a failing fixture");
+    // assert_no_impact already compares the json byte-for-byte; restate the
+    // load-bearing one explicitly.
+    assert_eq!(
+        a.json, b.json,
+        "full --json document must be byte-identical"
     );
 }
 

@@ -114,6 +114,25 @@ impl UnitType {
     pub fn allows_negative(self) -> bool {
         self == UnitType::Temperature
     }
+
+    /// RFC-001's (unit × allowed-prefix) table row, formatted for editor
+    /// hover (RFC-014 inherits RFC-001's "surfaced via LSP hover" ask).
+    pub fn prefix_table_help(self) -> String {
+        let prefixes = self.allowed_prefixes();
+        if prefixes.is_empty() {
+            format!("- suffix `{}` takes no SI prefix", self.symbol())
+        } else {
+            format!(
+                "- allowed prefixes on `{}`: {}",
+                self.symbol(),
+                prefixes
+                    .iter()
+                    .map(|p| format!("`{}`", p.letter()))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        }
+    }
 }
 
 impl fmt::Display for UnitType {

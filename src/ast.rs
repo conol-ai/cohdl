@@ -29,9 +29,11 @@ pub struct Item {
     pub is_pub: bool,
     /// RFC-012 `#[intent("...")]` rationale — opaque metadata (value + the
     /// attribute's own span, kept so `fmt` can preserve comments around the
-    /// attribute). Deliberately never threaded into any checking/emission pass
-    /// (the zero-impact guarantee is structural: intent is not a parameter
-    /// those functions take).
+    /// attribute). Never READ by any checking/emission pass. (Honesty note,
+    /// review 3: the guarantee is by-discipline, not fully structural — the
+    /// AST that check functions receive does carry this field; what is
+    /// enforced is that nothing looks at it, pinned by the byte-identity
+    /// tests in tests/intent.rs.)
     pub intent: Option<(String, Span)>,
     /// Where the declaration proper begins (`pub`/keyword) — after any
     /// attributes. `span` covers the attributes too; `fmt` needs both.

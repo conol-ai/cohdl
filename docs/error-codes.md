@@ -147,19 +147,19 @@ E1xx (E112/E113), not here — see the organizing principle above.
 | E907 | `pins[X]`/`spec[X]` qualifier names an undeclared variant |
 | E908 | unqualified `pins { }` block on a device that declares variants |
 
-**Reconciliation with RFC-011's E9xx table.** RFC-011 was drafted against a
-snapshot in which RFC-008's variant diagnostics were *not yet wired* ("no code
-block exists for them"), and so proposed a re-derived five-code block
+**Reconciliation with RFC-011's E9xx table — a deviation pending amendment,
+not compliance.** RFC-011's Accepted text proposes a five-code block
 (E901–E905) with E902 = "missing selector", E904 = "missing `pins[VARIANT]`",
-E905 = "duplicate variant". In this repository RFC-008 shipped first, issuing
-the eight codes above with real call sites and fixture tests. Because RFC-011's
-own stability rule forbids repurposing an already-issued code, the shipped
-E901–E908 assignment is kept as-is (renumbering E902/E904/E906 to match the
-draft table would *violate* the rule on day one). RFC-011's intent — the E9xx
-block owns structural-variant diagnostics, and completeness is mechanically
-enforced — is fully satisfied; its five-code count was an under-count surfaced
-by drafting before implementation, exactly the kind of drift the completeness
-test now prevents.
+E905 = "duplicate variant"; this repository issues the eight codes above
+instead. The engineering reasons to keep them: the eight predate the accepted
+table (RFC-011 was drafted against a snapshot where the variant diagnostics
+were "not yet wired"), they have real call sites and fixture tests, and
+RFC-011's own stability rule forbids repurposing an already-issued code —
+renumbering E902/E904/E906 to match the table would violate that rule on day
+one. But implemented-first is a reason to *amend the note*, not a claim that
+the Accepted text is satisfied: until the RFC-011 table is amended to the
+eight-code assignment, this block is a **documented deviation**
+(docs/compliance-report.md tracks it).
 
 ## E10xx — layout constraints (RFC-013)
 

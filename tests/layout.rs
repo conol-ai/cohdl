@@ -130,6 +130,11 @@ fn mutating_layout_content_is_zero_impact() {
     assert_eq!(laid.bom, mutated.bom, "mutating layout moved the BOM");
     assert_eq!(laid.verdict, mutated.verdict, "verdict moved");
     assert_eq!(laid.diags, mutated.diags, "diagnostics moved");
+    assert_eq!(
+        laid.json, mutated.json,
+        "mutating layout moved the --json document (review R4: this was the
+         missing surface — reply2 claimed it was compared)"
+    );
     assert_eq!(laid.lock, mutated.lock, "designator lock moved");
     // The layout artifact itself DOES reflect the change.
     assert_ne!(

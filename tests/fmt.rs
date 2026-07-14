@@ -507,3 +507,79 @@ fn fmt_rejects_nonparsing_source() {
         .expect_err("missing role must not format");
     assert!(err.contains("E901"), "{}", err);
 }
+
+// ---------------------------------------------------------------------------
+// Review-3 regressions (R1/R2).
+
+// R1: a QUOTED tolerance that happens to lex as a non-Time unit literal
+// ("5V", "100nF", "1kohm") must stay quoted — unquoting it produces source
+// the parser rejects (E110), breaking fmt validity and idempotence.
+#[test]
+fn tolerance_quoted_non_time_stays_quoted() {
+    for lit in ["5V", "100nF", "1kohm", "50%"] {
+        let src = format!(
+            "design B {{\n    net A: x.p\n    net C: y.p\n    layout {{\n        length_match(A, C) [tolerance: \"{}\"]\n    }}\n}}",
+            lit
+        );
+        let once = format_source("tolq.cohdl", &src).unwrap();
+        assert!(
+            once.contains(&format!("[tolerance: \"{}\"]", lit)),
+            "non-Time tolerance `{}` must stay quoted:\n{}",
+            lit,
+            once
+        );
+        assert_idempotent("tolq.cohdl", &src);
+    }
+}
+
+// R2a: attributes sharing ONE line serialize in written (span) order, never
+// re-grouped by category.
+#[test]
+fn same_line_mixed_attributes_keep_written_order() {
+    let src = "design B {\n    #[designator(\"U7\")] #[intent(\"why\")] #[placement_hint(\"near\")] inst d: D\n    net N: d.A\n}";
+    let once = format_source("attrs.cohdl", src).unwrap();
+    let d = once.find("#[designator").unwrap();
+    let i = once.find("#[intent").unwrap();
+    let p = once.find("#[placement_hint").unwrap();
+    assert!(
+        d < i && i < p,
+        "written order (designator, intent, placement_hint) must survive:\n{}",
+        once
+    );
+    assert_idempotent("attrs.cohdl", src);
+
+    // And a different written order also survives.
+    let src2 =
+        "design B {\n    #[intent(\"why\")] #[designator(\"U7\")] inst d: D\n    net N: d.A\n}";
+    let once2 = format_source("attrs2.cohdl", src2).unwrap();
+    assert!(
+        once2.find("#[intent").unwrap() < once2.find("#[designator").unwrap(),
+        "reversed written order must survive too:\n{}",
+        once2
+    );
+    assert_idempotent("attrs2.cohdl", src2);
+}
+
+// R2b: an EMPTY trait/impl whose opener line carries a trailing comment
+// keeps the comment on that line (braces open up) — never exiled to EOF.
+#[test]
+fn empty_body_opener_comment_stays_attached() {
+    let src = "pub trait T { // review 3 fixture\n}\npub device D { pins { A: 1 [passive] } }\nimpl T for D { // impl comment\n}\n";
+    let once = format_source("empty.cohdl", src).unwrap();
+    assert!(
+        once.contains("pub trait T { // review 3 fixture"),
+        "trait opener comment must stay attached:\n{}",
+        once
+    );
+    assert!(
+        once.contains("impl T for D { // impl comment"),
+        "impl opener comment must stay attached:\n{}",
+        once
+    );
+    assert!(
+        !once.trim_end().ends_with("// impl comment"),
+        "comment must not be exiled to EOF:\n{}",
+        once
+    );
+    assert_idempotent("empty.cohdl", src);
+}

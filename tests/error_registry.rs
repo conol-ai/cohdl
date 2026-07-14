@@ -78,33 +78,116 @@ fn codes_in_source() -> BTreeSet<String> {
     codes
 }
 
+/// Strip Rust comments (line + nested block) from source while copying
+/// string and char literals verbatim (so `"file://…"` is never misread as a
+/// comment, and `'"'` never flips the string state). The registry → source
+/// direction must not count commented-out constructors (review R4).
+fn strip_comments(text: &str) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        let next = chars.get(i + 1).copied();
+        if c == '/' && next == Some('/') {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
+            continue; // the newline itself is copied on the next pass
+        }
+        if c == '/' && next == Some('*') {
+            let mut depth = 1;
+            i += 2;
+            while i < chars.len() && depth > 0 {
+                if chars[i] == '/' && chars.get(i + 1) == Some(&'*') {
+                    depth += 1;
+                    i += 2;
+                } else if chars[i] == '*' && chars.get(i + 1) == Some(&'/') {
+                    depth -= 1;
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+            }
+            out.push(' ');
+            continue;
+        }
+        if c == '\'' {
+            // A char literal ('x', '\n', '"') is copied atomically so a
+            // quote inside it cannot open a phantom string. A lifetime
+            // tick ('a in generics) falls through as a lone quote.
+            if next == Some('\\') && chars.get(i + 3) == Some(&'\'') {
+                out.extend(&chars[i..i + 4]);
+                i += 4;
+                continue;
+            }
+            if chars.get(i + 2) == Some(&'\'') && next.is_some() {
+                out.extend(&chars[i..i + 3]);
+                i += 3;
+                continue;
+            }
+        }
+        if c == '"' {
+            // Copy the string literal verbatim, honoring escapes.
+            out.push('"');
+            i += 1;
+            while i < chars.len() {
+                if chars[i] == '\\' && i + 1 < chars.len() {
+                    out.push(chars[i]);
+                    out.push(chars[i + 1]);
+                    i += 2;
+                    continue;
+                }
+                out.push(chars[i]);
+                let closed = chars[i] == '"';
+                i += 1;
+                if closed {
+                    break;
+                }
+            }
+            continue;
+        }
+        out.push(c);
+        i += 1;
+    }
+    out
+}
+
 /// Codes that appear as the FIRST argument of a real
-/// `Diagnostic::error(…)` / `Diagnostic::warning(…)` call — the registry →
-/// source direction demands an actual call site, not a quoted mention in a
-/// comment or an unused constant.
+/// `Diagnostic::error(…)` / `Diagnostic::warning(…)` call in `text` — after
+/// comment stripping, so a commented-out constructor never counts.
+fn call_sites_in(text: &str) -> BTreeSet<String> {
+    let text = strip_comments(text);
+    let mut codes = BTreeSet::new();
+    for kw in ["Diagnostic::error(", "Diagnostic::warning("] {
+        let mut from = 0;
+        while let Some(pos) = text[from..].find(kw) {
+            let after = from + pos + kw.len();
+            // Skip whitespace/newlines to the first argument.
+            let rest = text[after..].trim_start();
+            if let Some(stripped) = rest.strip_prefix('"') {
+                for len in [4usize, 5] {
+                    if stripped.len() > len && stripped.as_bytes()[len] == b'"' {
+                        let inner = &stripped[..len];
+                        if is_code(inner) {
+                            codes.insert(inner.to_string());
+                        }
+                    }
+                }
+            }
+            from = after;
+        }
+    }
+    codes
+}
+
+/// The registry → source direction demands an actual call site, not a quoted
+/// mention in a comment or an unused constant.
 fn call_site_codes() -> BTreeSet<String> {
     let mut codes = BTreeSet::new();
     for path in src_files() {
         let text = std::fs::read_to_string(&path).unwrap();
-        for kw in ["Diagnostic::error(", "Diagnostic::warning("] {
-            let mut from = 0;
-            while let Some(pos) = text[from..].find(kw) {
-                let after = from + pos + kw.len();
-                // Skip whitespace/newlines to the first argument.
-                let rest = text[after..].trim_start();
-                if let Some(stripped) = rest.strip_prefix('"') {
-                    for len in [4usize, 5] {
-                        if stripped.len() > len && stripped.as_bytes()[len] == b'"' {
-                            let inner = &stripped[..len];
-                            if is_code(inner) {
-                                codes.insert(inner.to_string());
-                            }
-                        }
-                    }
-                }
-                from = after;
-            }
-        }
+        codes.extend(call_sites_in(&text));
     }
     codes
 }
@@ -188,6 +271,35 @@ fn call_site_scanner_finds_known_sites() {
     }
     // And it is strictly narrower than the any-literal scan.
     assert!(sites.is_subset(&codes_in_source()));
+}
+
+// Review R4: the scanner is comment-aware — a commented-out constructor (in
+// either comment style) must NOT satisfy the registry → source direction,
+// while string contents survive stripping (`//` inside a string is not a
+// comment).
+#[test]
+fn scanner_ignores_commented_constructors() {
+    let sample = r#"
+// Diagnostic::error("E999", span, "commented out")
+/* Diagnostic::warning("D999", span, "block comment") */
+/* nested /* Diagnostic::error("E888", ...) */ still dead */
+fn live() {
+    let _u = "file://not-a-comment";
+    let _c = '"';
+    Diagnostic::error("E997", span, "a real call site");
+}
+"#;
+    let sites = call_sites_in(sample);
+    assert!(
+        !sites.contains("E999") && !sites.contains("D999") && !sites.contains("E888"),
+        "commented-out constructors must not count: {:?}",
+        sites
+    );
+    assert!(
+        sites.contains("E997"),
+        "the real call site must still be found: {:?}",
+        sites
+    );
 }
 
 #[test]

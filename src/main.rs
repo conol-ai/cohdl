@@ -34,12 +34,81 @@ defaults to the current directory.
 struct Args {
     command: String,
     path: PathBuf,
+    /// Whether a positional PATH was explicitly given (lsp takes none).
+    path_given: bool,
     design: Option<String>,
     std_flag: Option<PathBuf>,
     no_std: bool,
     out_dir: PathBuf,
+    out_dir_given: bool,
     json: bool,
     fmt_check: bool,
+}
+
+impl Args {
+    /// The E000-class option matrix: every flag is validated against the
+    /// command (review finding: global parsing silently ignored invalid
+    /// combinations, e.g. `lsp --design`, `fmt --out-dir`).
+    fn validate(&self) -> Result<(), String> {
+        let bad = |what: &str| {
+            Err(format!(
+                "`{}` is not valid with `{}`\n\n{}",
+                what, self.command, USAGE
+            ))
+        };
+        if self.std_flag.is_some() && self.no_std {
+            return Err(format!(
+                "`--std` and `--no-std` are mutually exclusive\n\n{}",
+                USAGE
+            ));
+        }
+        match self.command.as_str() {
+            "check" => {
+                if self.fmt_check {
+                    return bad("--check");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+            }
+            "build" => {
+                if self.fmt_check {
+                    return bad("--check");
+                }
+            }
+            "fmt" => {
+                if self.json {
+                    return bad("--json");
+                }
+                if self.design.is_some() {
+                    return bad("--design");
+                }
+                if self.std_flag.is_some() {
+                    return bad("--std");
+                }
+                if self.no_std {
+                    return bad("--no-std");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+            }
+            "lsp" => {
+                if self.json
+                    || self.fmt_check
+                    || self.design.is_some()
+                    || self.std_flag.is_some()
+                    || self.no_std
+                    || self.out_dir_given
+                    || self.path_given
+                {
+                    return Err(format!("`lsp` takes no flags or arguments\n\n{}", USAGE));
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -48,10 +117,12 @@ fn parse_args() -> Result<Args, String> {
     let mut args = Args {
         command,
         path: PathBuf::from("."),
+        path_given: false,
         design: None,
         std_flag: None,
         no_std: false,
         out_dir: PathBuf::from("out"),
+        out_dir_given: false,
         json: false,
         fmt_check: false,
     };
@@ -69,6 +140,7 @@ fn parse_args() -> Result<Args, String> {
             "--check" => args.fmt_check = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
+                args.out_dir_given = true;
             }
             "-h" | "--help" => return Err(USAGE.to_string()),
             other if other.starts_with('-') => {
@@ -82,6 +154,7 @@ fn parse_args() -> Result<Args, String> {
     }
     if let Some(p) = positional.pop() {
         args.path = PathBuf::from(p);
+        args.path_given = true;
     }
     Ok(args)
 }
@@ -111,25 +184,11 @@ fn main() -> ExitCode {
 
 fn run(args: &Args) -> Result<bool, String> {
     // Per-command flag validation (E000-class invocation errors).
+    args.validate()?;
     match args.command.as_str() {
-        "check" | "build" => {
-            if args.fmt_check {
-                return Err(format!(
-                    "`--check` is a `fmt` flag; it is not valid with `{}`\n\n{}",
-                    args.command, USAGE
-                ));
-            }
-        }
-        "fmt" => {
-            if args.json {
-                return Err(format!("`--json` is not valid with `fmt`\n\n{}", USAGE));
-            }
-            return fmt_command(args);
-        }
+        "check" | "build" => {}
+        "fmt" => return fmt_command(args),
         "lsp" => {
-            if args.json || args.fmt_check {
-                return Err(format!("`lsp` takes no flags\n\n{}", USAGE));
-            }
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
             // shutdown (per the spec); 2 for transport/I/O failures.
             return match cohdl::lsp::run_stdio()? {
@@ -200,9 +259,18 @@ fn run(args: &Args) -> Result<bool, String> {
         return Err("nothing to build: the project declares no `design`".to_string());
     }
 
+    // R3: an invocation-level failure after the check phase (lock parse,
+    // directory creation, artifact writes) must never hide the diagnostics
+    // already collected — warnings render to stderr first, then the error.
+    // Same rule as the selection-error path above.
+    fn diags_then(checked: &pipeline::Checked, e: String) -> String {
+        eprint!("{}", checked.diags.render(&checked.sm));
+        e
+    }
+
     let lock_path = proj.dir.join("design.lock");
     let prior_lock = match std::fs::read_to_string(&lock_path) {
-        Ok(text) => LockState::parse(&text).map_err(|e| e.to_string())?,
+        Ok(text) => LockState::parse(&text).map_err(|e| diags_then(&checked, e.to_string()))?,
         Err(_) => LockState::default(),
     };
 
@@ -228,16 +296,32 @@ fn run(args: &Args) -> Result<bool, String> {
     }
 
     let out_dir = proj.dir.join(&args.out_dir);
-    std::fs::create_dir_all(&out_dir)
-        .map_err(|e| format!("cannot create `{}`: {}", out_dir.display(), e))?;
+    std::fs::create_dir_all(&out_dir).map_err(|e| {
+        diags_then(
+            &checked,
+            format!("cannot create `{}`: {}", out_dir.display(), e),
+        )
+    })?;
     let net_path = out_dir.join(format!("{}.net", proj.name));
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
-    std::fs::write(&net_path, &artifacts.netlist)
-        .map_err(|e| format!("cannot write `{}`: {}", net_path.display(), e))?;
-    std::fs::write(&bom_path, &artifacts.bom)
-        .map_err(|e| format!("cannot write `{}`: {}", bom_path.display(), e))?;
-    std::fs::write(&lock_path, artifacts.lock.render())
-        .map_err(|e| format!("cannot write `{}`: {}", lock_path.display(), e))?;
+    std::fs::write(&net_path, &artifacts.netlist).map_err(|e| {
+        diags_then(
+            &checked,
+            format!("cannot write `{}`: {}", net_path.display(), e),
+        )
+    })?;
+    std::fs::write(&bom_path, &artifacts.bom).map_err(|e| {
+        diags_then(
+            &checked,
+            format!("cannot write `{}`: {}", bom_path.display(), e),
+        )
+    })?;
+    std::fs::write(&lock_path, artifacts.lock.render()).map_err(|e| {
+        diags_then(
+            &checked,
+            format!("cannot write `{}`: {}", lock_path.display(), e),
+        )
+    })?;
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
     // A design that no longer carries layout metadata must not leave a stale
@@ -245,13 +329,20 @@ fn run(args: &Args) -> Result<bool, String> {
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     match &artifacts.layout {
         Some(layout) => {
-            std::fs::write(&layout_path, layout)
-                .map_err(|e| format!("cannot write `{}`: {}", layout_path.display(), e))?;
+            std::fs::write(&layout_path, layout).map_err(|e| {
+                diags_then(
+                    &checked,
+                    format!("cannot write `{}`: {}", layout_path.display(), e),
+                )
+            })?;
         }
         None => {
             if layout_path.exists() {
                 std::fs::remove_file(&layout_path).map_err(|e| {
-                    format!("cannot remove stale `{}`: {}", layout_path.display(), e)
+                    diags_then(
+                        &checked,
+                        format!("cannot remove stale `{}`: {}", layout_path.display(), e),
+                    )
                 })?;
                 if !args.json {
                     eprintln!("  removed stale {}", layout_path.display());

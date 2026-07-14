@@ -30,6 +30,9 @@ pub struct BuildArtifacts {
     /// RFC-015 IPC-2581 document path, present only when `--emit ipc2581`
     /// was requested (same only-when-emitted pattern as `layout`).
     pub ipc2581: Option<String>,
+    /// RFC-018 `.kicad_mod` projections, present only when the design uses
+    /// pad-bearing footprints (one path per projected footprint).
+    pub kicad_mod: Vec<String>,
 }
 
 /// A span resolved to the JSON schema's location shape (1-based line/col).
@@ -137,9 +140,22 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
         if let Some(path) = &b.ipc2581 {
             entries.push(("ipc2581", path));
         }
+        let has_mods = !b.kicad_mod.is_empty();
         for (i, (key, path)) in entries.iter().enumerate() {
-            let comma = if i + 1 < entries.len() { "," } else { "" };
+            let comma = if i + 1 < entries.len() || has_mods {
+                ","
+            } else {
+                ""
+            };
             let _ = writeln!(out, "    \"{}\": {}{}", key, json_str(path), comma);
+        }
+        if has_mods {
+            out.push_str("    \"kicad_mod\": [\n");
+            for (i, p) in b.kicad_mod.iter().enumerate() {
+                let comma = if i + 1 < b.kicad_mod.len() { "," } else { "" };
+                let _ = writeln!(out, "      {}{}", json_str(p), comma);
+            }
+            out.push_str("    ]\n");
         }
         out.push_str("  }");
     }

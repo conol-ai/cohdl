@@ -4,9 +4,11 @@
 //! explicit sort; nothing iterates a hash map.
 
 pub mod bom;
+pub mod geom;
 pub mod ipc2581;
 pub mod json;
 pub mod kicad;
+pub mod kicad_mod;
 pub mod layout;
 
 use crate::diag::{Diagnostic, Diagnostics};

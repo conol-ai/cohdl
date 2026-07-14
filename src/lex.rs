@@ -186,7 +186,7 @@ impl<'a> Lexer<'a> {
                         self.pos += 1;
                         self.number(start, true);
                     } else {
-                        self.error_char(start, "`-` is only valid as the sign of a `Temperature` literal (e.g. `-40C`)");
+                        self.error_char(start, "`-` is only valid as the sign of a `Temperature` or `Length` literal (e.g. `-40C`, `-1.5mm`)");
                     }
                 }
                 b'0'..=b'9' => self.number(start, false),
@@ -382,7 +382,7 @@ impl<'a> Lexer<'a> {
                 self.diags.push(Diagnostic::error(
                     "E102",
                     span,
-                    "a bare number cannot be negative — only `Temperature` literals may carry a leading `-` (e.g. `-40C`)",
+                    "a bare number cannot be negative — only `Temperature` and `Length` literals may carry a leading `-` (e.g. `-40C`, `-0.5mm`)",
                 ));
                 return;
             }
@@ -418,7 +418,7 @@ fn unit_error_diag(err: UnitLexError, span: Span, literal: &str) -> Diagnostic {
             ),
         )
         .with_help(
-            "the ten unit symbols are: V, F, ohm, A, Hz, s, H, W, C, % \
+            "the eleven unit symbols are: V, F, ohm, A, Hz, s, H, W, C, %, mm \
              (optionally SI-prefixed, e.g. `100nF`, `10kohm`)",
         ),
         UnitLexError::PrefixNotAllowed { unit, prefix } => Diagnostic::error(
@@ -436,7 +436,7 @@ fn unit_error_diag(err: UnitLexError, span: Span, literal: &str) -> Diagnostic {
             "E105",
             span,
             format!(
-                "`{}` cannot be negative — `Temperature` is the only unit type whose literal may carry a leading `-`",
+                "`{}` cannot be negative — only `Temperature` and `Length` literals may carry a leading `-`",
                 unit.type_name()
             ),
         ),

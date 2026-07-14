@@ -61,7 +61,9 @@ pub struct World {
     pub devices: BTreeMap<String, DeviceDef>,
     pub fns: BTreeMap<String, FnDef>,
     pub parts: BTreeMap<String, PartDef>,
-    /// RFC-017 footprint symbols (placeholder bodies until RFC-018).
+    /// RFC-018 reusable pad definitions.
+    pub pads: BTreeMap<String, PadDef>,
+    /// RFC-017/018 footprints (empty body = stage-one placeholder).
     pub footprints: BTreeMap<String, FootprintDef>,
     pub designs: BTreeMap<String, DesignDef>,
     pub impls: Vec<ImplDef>,
@@ -401,6 +403,9 @@ pub fn build_world_in(
                         .parts
                         .insert(format!("{}::{}", module, p.name.name), p);
                 }
+                ItemKind::Pad(p) => {
+                    world.pads.insert(format!("{}::{}", module, p.name.name), p);
+                }
                 ItemKind::Footprint(f) => {
                     world
                         .footprints
@@ -498,7 +503,14 @@ impl Resolver<'_> {
                         }
                     }
                 }
-                ItemKind::Footprint(_) => {}
+                ItemKind::Pad(_) => {}
+                ItemKind::Footprint(f) => {
+                    // RFC-018: pad symbol references resolve like every
+                    // other cross-library name.
+                    for place in &mut f.pads {
+                        self.resolve(&mut place.pad, module, &no_shadow, diags);
+                    }
+                }
                 ItemKind::Design(d) => {
                     let body = &mut d.body;
                     self.rewrite_body(body, module, &no_shadow, diags);
@@ -651,8 +663,243 @@ fn validate(world: &mut World, diags: &mut Diagnostics) {
     validate_traits(world, diags);
     validate_devices(world, diags);
     validate_fns(world, diags);
+    validate_pads(world, diags);
+    validate_footprints(world, diags);
     index_impls(world, diags);
     // Parts are validated in check::generics (they need generic-arg checking).
+}
+
+/// RFC-018 pad declaration checks — all local, at declaration time:
+/// required fields, Length-typed dimensions, size arity vs shape, and the
+/// drill ⇔ plated_through_hole biconditional.
+fn validate_pads(world: &World, diags: &mut Diagnostics) {
+    use crate::units::UnitType;
+    for pad in world.pads.values() {
+        let mut require = |present: bool, what: &str| {
+            if !present {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.name.span,
+                    format!("pad `{}` is missing `{}`", pad.name.name, what),
+                ));
+            }
+        };
+        require(pad.shape.is_some(), "shape");
+        require(pad.size_span.is_some(), "size");
+        require(pad.layer.is_some(), "layer");
+        require(pad.plating.is_some(), "plating");
+
+        if let (Some((shape, _)), Some(size_span)) = (&pad.shape, &pad.size_span) {
+            if pad.size.len() != shape.size_arity() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *size_span,
+                    format!(
+                        "`{}` pads take {} — `{}` has {} dimension{}",
+                        shape.name(),
+                        match shape.size_arity() {
+                            1 => "`size: (d)`",
+                            _ => "`size: (w, h)`",
+                        },
+                        pad.name.name,
+                        pad.size.len(),
+                        if pad.size.len() == 1 { "" } else { "s" }
+                    ),
+                ));
+            }
+        }
+        for v in &pad.size {
+            if v.unit != UnitType::Length {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.size_span.unwrap_or(pad.name.span),
+                    format!(
+                        "pad dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                        v.text,
+                        v.unit.type_name()
+                    ),
+                ));
+            } else if v.femto <= 0 {
+                // Length is signed for placement OFFSETS; an extent must be
+                // a positive distance or the projected geometry is invalid.
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.size_span.unwrap_or(pad.name.span),
+                    format!(
+                        "pad `{}` has a non-positive dimension `{}` — a size is an extent and must be > 0mm",
+                        pad.name.name, v.text
+                    ),
+                ));
+            }
+        }
+        match (&pad.plating, &pad.drill) {
+            (Some((crate::ast::PadPlating::PlatedThroughHole, span)), None) => {
+                diags.push(
+                    Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` is `plated_through_hole` but has no `drill:`",
+                            pad.name.name
+                        ),
+                    )
+                    .with_help("add `drill: <diameter>` (a `mm` literal)"),
+                );
+            }
+            (Some((crate::ast::PadPlating::Smd, _)), Some((_, drill_span))) => {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *drill_span,
+                    format!(
+                        "pad `{}` is `smd` — `drill:` is only valid with `plating: plated_through_hole`",
+                        pad.name.name
+                    ),
+                ));
+            }
+            _ => {}
+        }
+        if let Some((v, span)) = &pad.drill {
+            if v.unit != UnitType::Length {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "the drill diameter is a `Length` (`mm`) literal — `{}` is a `{}`",
+                        v.text,
+                        v.unit.type_name()
+                    ),
+                ));
+            } else if v.femto <= 0 {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a non-positive drill diameter `{}` — a drill must be > 0mm",
+                        pad.name.name, v.text
+                    ),
+                ));
+            }
+        }
+    }
+}
+
+/// RFC-018 footprint body checks: pad references resolve to PAD symbols,
+/// pad numbers are unique, and coordinates/courtyard dimensions are Length.
+fn validate_footprints(world: &World, diags: &mut Diagnostics) {
+    use crate::units::UnitType;
+    for fp in world.footprints.values() {
+        let mut seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
+        for place in &fp.pads {
+            if let Some(prev) = seen.insert(place.number.text.as_str(), place.number.span) {
+                diags.push(
+                    Diagnostic::error(
+                        "E806",
+                        place.number.span,
+                        format!(
+                            "duplicate pad number `{}` in footprint `{}`",
+                            place.number.text, fp.name.name
+                        ),
+                    )
+                    .with_secondary(prev, "first placed here".to_string()),
+                );
+            }
+            if !world.pads.contains_key(&place.pad.name) {
+                let d = if world.symbols.contains_key(&place.pad.name) {
+                    let kind = world
+                        .symbols
+                        .get(&place.pad.name)
+                        .map(|s| s.kind)
+                        .unwrap_or("name");
+                    Diagnostic::error(
+                        "E205",
+                        place.pad.span,
+                        format!(
+                            "`{}` is a {}, not a pad — pad placements reference `pad` declarations",
+                            place.pad.name, kind
+                        ),
+                    )
+                } else {
+                    with_suggestion(
+                        world,
+                        &place.pad.name,
+                        Diagnostic::error(
+                            "E202",
+                            place.pad.span,
+                            format!("unknown pad `{}`", place.pad.name),
+                        ),
+                    )
+                };
+                diags.push(d);
+            }
+            for v in [&place.x, &place.y] {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        place.span,
+                        format!(
+                            "pad offsets are `Length` (`mm`) literals — `{}` is a `{}`",
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                }
+            }
+        }
+        if let Some(c) = &fp.courtyard {
+            if c.size.len() != c.shape.0.size_arity() {
+                diags.push(Diagnostic::error(
+                    "E806",
+                    c.size_span,
+                    format!(
+                        "`{}` courtyards take {} dimension{}",
+                        c.shape.0.name(),
+                        c.shape.0.size_arity(),
+                        if c.shape.0.size_arity() == 1 { "" } else { "s" }
+                    ),
+                ));
+            }
+            for v in c.size.iter().chain([&c.at.0, &c.at.1]) {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        c.span,
+                        format!(
+                            "courtyard dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                }
+            }
+            for v in &c.size {
+                if v.unit == UnitType::Length && v.femto <= 0 {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        c.size_span,
+                        format!(
+                            "courtyard of footprint `{}` has a non-positive dimension `{}` — a size is an extent and must be > 0mm",
+                            fp.name.name, v.text
+                        ),
+                    ));
+                }
+            }
+        }
+        if let Some((x, y, span)) = &fp.silkscreen_ref {
+            for v in [x, y] {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        *span,
+                        format!(
+                            "`silkscreen_ref` coordinates are `Length` (`mm`) literals — `{}` is a `{}`",
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                }
+            }
+        }
+    }
 }
 
 fn validate_traits(world: &World, diags: &mut Diagnostics) {

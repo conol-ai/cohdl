@@ -160,7 +160,7 @@ design Pico2 {
     layout {
         net_class HighSpeed { USB_DPX, USB_DMX }
         diff_pair(USB_DPX, USB_DMX)
-        length_match(USB_DPX, USB_DMX) [tolerance: "0.15mm"]
+        length_match(USB_DPX, USB_DMX) [tolerance: 0.15mm]
         net_class Clock { XIN, XR }
     }
 }

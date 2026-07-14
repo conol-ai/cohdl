@@ -148,17 +148,19 @@ fn footprint_string_gets_the_migration_error() {
 }
 
 #[test]
-fn footprint_body_content_is_deferred_to_rfc018() {
+fn footprint_body_is_real_since_rfc018() {
+    // RFC-018 gave the body content: a malformed placement is a precise
+    // grammar error, not the old "format not yet specified" deferral.
     let (_checked, rendered) = check(
         "board",
         &[("src/main.cohdl", "pub footprint FP { pad 1 }\n")],
     );
+    assert!(rendered.contains("E010"), "{}", rendered);
     assert!(
-        rendered.contains("not yet specified"),
-        "non-empty body is a targeted error:\n{}",
+        !rendered.contains("not yet specified"),
+        "the deferral message is retired:\n{}",
         rendered
     );
-    assert!(rendered.contains("RFC-018"), "{}", rendered);
 }
 
 #[test]
@@ -348,38 +350,26 @@ fn inst_attrs_are_validated_at_parse_even_in_uncalled_fns() {
     );
 }
 
-// Finding (low): body-content recovery cascaded past the closing brace; an
-// unclosed body anchored its error on the NEXT declaration.
+// Finding (low, RFC-017 round; semantics updated for RFC-018): malformed
+// body content must not cascade past the closing brace or loop forever.
 #[test]
 fn footprint_body_recovery_is_contained() {
-    // Depth-0 comma: exactly the one targeted error, nothing spills.
-    let (_checked, rendered) = check(
+    // Malformed placements: errors stay inside the body, following
+    // declarations survive, and the parser always makes progress.
+    let (checked, rendered) = check(
         "board",
         &[(
             "src/main.cohdl",
             "pub footprint FP { pad 1, pad 2 }\npub device D { pins { A: 1 [passive] } }\n",
         )],
     );
-    assert!(rendered.contains("not yet specified"), "{}", rendered);
+    assert!(rendered.contains("E010"), "{}", rendered);
     assert!(
         !rendered.contains("expected a top-level declaration"),
         "body content must not cascade to file scope:\n{}",
         rendered
     );
-
-    // Unclosed body: anchored at the declaration, not the next item.
-    let (_checked, rendered) = check(
-        "board",
-        &[(
-            "src/main.cohdl",
-            "pub footprint FP { pad 1\npub device D { pins { A: 1 [passive] } }\n",
-        )],
-    );
-    assert!(
-        rendered.contains("unclosed body") && rendered.contains("main.cohdl:1:"),
-        "unclosed body anchors at the opener:\n{}",
-        rendered
-    );
+    assert!(checked.world.devices.contains_key("board::D"));
 }
 
 // Finding (low): `footprint {}` (missing name) got the generic

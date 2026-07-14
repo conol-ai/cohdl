@@ -188,6 +188,7 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
     let mut notes = Vec::new();
     let lock = crate::lock::assign_designators(&checked.world, ir, prior_lock, &mut diags);
     crate::emit::bind_parts(&checked.world, ir, &mut diags, &mut notes);
+    crate::check::footprints::check_pad_consistency(&checked.world, ir, &mut diags);
     let failed = diags.has_errors();
     diags.sort(&checked.sm);
     checked.diags.extend(diags);

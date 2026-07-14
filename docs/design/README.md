@@ -24,6 +24,18 @@ live note wins — re-extract with `python3 tools/extract_design_repo.py docs/de
 | `rfc-005-designator-allocation.md` | 🏷️ RFC-005: Collision-free designator allocation |
 | `rfc-006-nested-fn-calls.md` | 🧵 RFC-006: Nested fn call semantics |
 | `rfc-007-generics-over-specs.md` | 🧬 RFC-007: Generics-over-specs and generic trait bounds |
+| `rfc-008-pattern-matching.md` | RFC-008: Exhaustive pattern-matching over structural variants |
+| `rfc-009-fmt.md` | RFC-009: cohdl fmt canonical form |
+| `rfc-010-check-json.md` | RFC-010: cohdl check --json schema |
+| `rfc-011-error-registry.md` | RFC-011: Error-code registry (formal v2 baseline) |
+| `rfc-012-intent-annotations.md` | RFC-012: #[intent(...)] annotations (pure metadata) |
+| `rfc-013-layout-constraint.md` | RFC-013: Layout-constraint concept (the door) |
+| `rfc-014-lsp.md` | RFC-014: Language Server Protocol support |
+| `rfc-015-ipc2581.md` | RFC-015: IPC-2581 codegen backend (Quilter handoff) |
+| `rfc-016-modules.md` | RFC-016: Module system (package::module::submodule::name) |
+| `rfc-017-library-registry.md` | RFC-017: Library registry (cohdl source + docs + footprint symbols) |
+| `rfc-018-footprint-format.md` | RFC-018: Footprint format — Cadence-style pad/footprint split |
+| `gc-002-amended-layout-door.md` | GC-002 (amended): Admit layout constraints into the conceptual model |
 | `07-decision-records.md` | 🗂️ 7. Decision Records |
 | `08-evolution-governance.md` | 🧬 8. Evolution Governance & Design Regression |
 | `09-mvp-definition.md` | 🎯 9. MVP Definition |

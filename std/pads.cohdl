@@ -1,0 +1,24 @@
+// RFC-018 starter pad library: common SMD chip pads, one per land-pattern
+// role. Dimensions follow the KiCad official footprints named in the
+// `was:` comments of std/footprints.cohdl (roundrect pads project to
+// `rect` — the closed shape vocabulary has no rounded rectangle).
+//
+// Reuse cuts both ways (RFC-018 Failure modes): a wrong dimension here
+// propagates to every footprint that references the pad. Treat edits to
+// this file as library-review work, not local tweaks.
+
+// KiCad Resistor_SMD:R_0402_1005Metric pad (0.54 x 0.64 at ±0.51).
+pub pad P_Chip_R0402 {
+    shape: rect
+    size: (0.54mm, 0.64mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad Capacitor_SMD:C_0402_1005Metric pad (0.56 x 0.62 at ±0.48).
+pub pad P_Chip_C0402 {
+    shape: rect
+    size: (0.56mm, 0.62mm)
+    layer: top_copper
+    plating: smd
+}

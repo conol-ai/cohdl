@@ -324,8 +324,9 @@ design Board {
     );
 }
 
-// Review-2: tolerance unit literals are restricted to Time — RFC-013 says
-// `<Time-or-length-unit>`, and lengths use the string escape hatch.
+// RFC-013 says `<Time-or-length-unit>` — Time and (since RFC-018 made
+// Length real) mm literals are legal unquoted; every other unit type is
+// still rejected.
 #[test]
 fn tolerance_non_time_units_are_rejected() {
     for bad in ["5V", "100nF", "1kohm"] {
@@ -339,6 +340,17 @@ fn tolerance_non_time_units_are_rejected() {
             r
         );
     }
+    // The accepted RFC-013 example, finally representable (RFC-018 Length).
+    let ok = build(&WITH_LAYOUT.replace("[tolerance: \"0.15mm\"]", "[tolerance: 0.15mm]"));
+    assert!(
+        !ok.diags.contains("error"),
+        "unquoted mm tolerance must parse:\n{}",
+        ok.diags
+    );
+    assert!(ok
+        .layout
+        .expect("layout.json")
+        .contains("\"tolerance\": \"0.15mm\""));
 }
 
 // A layout-bearing fn is reusable: fn-local net_class names get call-chain
@@ -420,7 +432,9 @@ fn fmt_normalizes_layout() {
     assert!(once.contains("net_class K { A, C }"), "{}", once);
     assert!(once.contains("diff_pair(A, C)"), "{}", once);
     assert!(
-        once.contains("length_match(A, C) [tolerance: \"1mm\"]"),
+        // `1mm` lexes as a Length literal since RFC-018 — canonical form is
+        // unquoted.
+        once.contains("length_match(A, C) [tolerance: 1mm]"),
         "{}",
         once
     );

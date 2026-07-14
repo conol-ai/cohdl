@@ -487,12 +487,15 @@ fn blank_after_open_brace_is_preserved() {
 
 #[test]
 fn tolerance_canonicalizes_unit_literal_unquoted() {
-    // A tolerance that lexes as an RFC-001 unit literal canonicalizes to the
-    // unquoted spelling; a length string keeps the quoted escape hatch.
-    let src = "design B {\n    net A: x.p\n    net C: y.p\n    layout {\n        length_match(A, C) [tolerance: \"1ms\"]\n        length_match(A, C) [tolerance: \"0.15mm\"]\n    }\n}";
+    // A tolerance that lexes as a Time or Length literal canonicalizes to
+    // the unquoted spelling (Length is real since RFC-018 — the accepted
+    // RFC-013 example `[tolerance: 0.15mm]` finally parses); anything else
+    // keeps the quoted escape hatch.
+    let src = "design B {\n    net A: x.p\n    net C: y.p\n    layout {\n        length_match(A, C) [tolerance: \"1ms\"]\n        length_match(A, C) [tolerance: \"0.15mm\"]\n        length_match(A, C) [tolerance: \"about a mil\"]\n    }\n}";
     let once = format_source("tol.cohdl", src).unwrap();
     assert!(once.contains("[tolerance: 1ms]"), "{}", once);
-    assert!(once.contains("[tolerance: \"0.15mm\"]"), "{}", once);
+    assert!(once.contains("[tolerance: 0.15mm]"), "{}", once);
+    assert!(once.contains("[tolerance: \"about a mil\"]"), "{}", once);
     assert_idempotent("tol.cohdl", src);
 }
 

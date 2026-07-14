@@ -114,6 +114,7 @@ fn example_literal(unit: crate::units::UnitType) -> String {
         Power => "250mW".into(),
         Temperature => "85C".into(),
         Tolerance => "1%".into(),
+        Length => "0.5mm".into(),
     }
 }
 
@@ -477,6 +478,7 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                     || world.parts.contains_key(&fp.name)
                     || world.traits.contains_key(&fp.name)
                     || world.fns.contains_key(&fp.name)
+                    || world.pads.contains_key(&fp.name)
                 {
                     let kind = world
                         .symbols

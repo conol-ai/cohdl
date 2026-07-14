@@ -72,12 +72,135 @@ impl UseDecl {
     }
 }
 
-/// RFC-017: `pub footprint NAME {}` — a named, resolvable footprint symbol.
-/// The body is DELIBERATELY empty ("symbol-resolution-complete,
-/// format-empty"): its content format is RFC-018's, not this declaration's.
+/// RFC-018 pad vocabulary (closed sets — extension needs a follow-up RFC).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PadShape {
+    Rect,
+    Circle,
+    Oval,
+}
+
+impl PadShape {
+    pub fn name(self) -> &'static str {
+        match self {
+            PadShape::Rect => "rect",
+            PadShape::Circle => "circle",
+            PadShape::Oval => "oval",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<PadShape> {
+        Some(match s {
+            "rect" => PadShape::Rect,
+            "circle" => PadShape::Circle,
+            "oval" => PadShape::Oval,
+            _ => return None,
+        })
+    }
+    /// `(w, h)` for rect/oval; `(d)` for circle.
+    pub fn size_arity(self) -> usize {
+        match self {
+            PadShape::Circle => 1,
+            PadShape::Rect | PadShape::Oval => 2,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PadLayer {
+    TopCopper,
+    BottomCopper,
+    ThroughAll,
+}
+
+impl PadLayer {
+    pub fn name(self) -> &'static str {
+        match self {
+            PadLayer::TopCopper => "top_copper",
+            PadLayer::BottomCopper => "bottom_copper",
+            PadLayer::ThroughAll => "through_all",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<PadLayer> {
+        Some(match s {
+            "top_copper" => PadLayer::TopCopper,
+            "bottom_copper" => PadLayer::BottomCopper,
+            "through_all" => PadLayer::ThroughAll,
+            _ => return None,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PadPlating {
+    Smd,
+    PlatedThroughHole,
+}
+
+impl PadPlating {
+    pub fn name(self) -> &'static str {
+        match self {
+            PadPlating::Smd => "smd",
+            PadPlating::PlatedThroughHole => "plated_through_hole",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<PadPlating> {
+        Some(match s {
+            "smd" => PadPlating::Smd,
+            "plated_through_hole" => PadPlating::PlatedThroughHole,
+            _ => return None,
+        })
+    }
+}
+
+/// RFC-018 `pad NAME { shape/size/layer/plating[/drill] }` — one reusable
+/// pad definition, referenced (never inlined) by footprints.
+#[derive(Debug, Clone)]
+pub struct PadDef {
+    pub name: Ident,
+    /// `None` only survives a missing-field parse error (reported).
+    pub shape: Option<(PadShape, Span)>,
+    /// `(w, h)` or `(d)` — arity validated against the shape.
+    pub size: Vec<UnitValue>,
+    pub size_span: Option<Span>,
+    pub layer: Option<(PadLayer, Span)>,
+    pub plating: Option<(PadPlating, Span)>,
+    /// Required iff `plating: plated_through_hole`.
+    pub drill: Option<(UnitValue, Span)>,
+    pub span: Span,
+}
+
+/// One `pad N: PadSymbol at (x, y)` placement inside a footprint body.
+#[derive(Debug, Clone)]
+pub struct PadPlace {
+    /// Must match one of the bound device's physical pin numbers.
+    pub number: PinNumber,
+    /// The referenced pad symbol (fq after resolution).
+    pub pad: Ident,
+    pub x: UnitValue,
+    pub y: UnitValue,
+    pub span: Span,
+}
+
+/// `courtyard { shape: rect, at: (x, y), size: (…) }`.
+#[derive(Debug, Clone)]
+pub struct Courtyard {
+    pub shape: (PadShape, Span),
+    pub at: (UnitValue, UnitValue),
+    pub size: Vec<UnitValue>,
+    pub size_span: Span,
+    pub span: Span,
+}
+
+/// RFC-017/018: `pub footprint NAME { … }` — a named, resolvable footprint.
+/// RFC-018 gave the body real content: pad placements + optional courtyard
+/// and silkscreen reference. An EMPTY body remains legal — it is RFC-017's
+/// stage-one placeholder (the pad-count check only applies once pads exist).
 #[derive(Debug, Clone)]
 pub struct FootprintDef {
     pub name: Ident,
+    pub pads: Vec<PadPlace>,
+    pub courtyard: Option<Courtyard>,
+    pub silkscreen_ref: Option<(UnitValue, UnitValue, Span)>,
     pub span: Span,
 }
 
@@ -89,7 +212,9 @@ pub enum ItemKind {
     Fn(FnDef),
     Part(PartDef),
     Design(DesignDef),
-    /// RFC-017 footprint symbol (placeholder body until RFC-018).
+    /// RFC-018 reusable pad definition.
+    Pad(PadDef),
+    /// RFC-017/018 footprint (pad placements; empty = stage-one placeholder).
     Footprint(FootprintDef),
     /// RFC-016 `use path::Name;` — a file-scoped import, not a declaration.
     Use(UseDecl),
@@ -103,6 +228,7 @@ impl ItemKind {
             ItemKind::Fn(f) => Some(&f.name),
             ItemKind::Part(p) => Some(&p.name),
             ItemKind::Design(d) => Some(&d.name),
+            ItemKind::Pad(p) => Some(&p.name),
             ItemKind::Footprint(f) => Some(&f.name),
             ItemKind::Impl(_) | ItemKind::Use(_) => None,
         }
@@ -116,6 +242,7 @@ impl ItemKind {
             ItemKind::Fn(_) => "fn",
             ItemKind::Part(_) => "part",
             ItemKind::Design(_) => "design",
+            ItemKind::Pad(_) => "pad",
             ItemKind::Footprint(_) => "footprint",
             ItemKind::Use(_) => "use",
         }
@@ -181,7 +308,7 @@ impl PinRole {
     }
 }
 
-/// Reference to one of the ten unit types by name, e.g. `Capacitance`.
+/// Reference to one of the eleven unit types by name, e.g. `Capacitance`.
 #[derive(Debug, Clone)]
 pub struct UnitTypeRef {
     pub unit: UnitType,

@@ -136,6 +136,9 @@ E1xx (E112/E113), not here — see the organizing principle above.
 | E802 | invalid `part` declaration (missing `mpn`/`footprint` on `primary`, missing `mpn` on `alt`, non-concrete device) |
 | E803 | `#[designator]` override collision |
 | E804 | invalid designator format (must be PREFIX + number, e.g. `U7`) |
+| E805 | invalid `pad` declaration (RFC-018) — missing/unknown field, non-`Length` dimension, non-positive size/drill extent, size arity vs shape, or the `drill` ⇔ `plated_through_hole` biconditional |
+| E806 | invalid `footprint` body (RFC-018) — duplicate pad number, malformed member, duplicate courtyard/silkscreen_ref, non-`Length` coordinate, non-positive courtyard extent |
+| E807 | footprint/device pad mismatch at `build` (RFC-018) — the footprint's pad numbers must exactly match the bound device's physical pin numbers; names the missing/extra numbers |
 
 ## E9xx — structural variants (RFC-008)
 

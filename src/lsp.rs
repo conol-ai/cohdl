@@ -581,6 +581,48 @@ impl Server {
                 }
             }
         }
+        // Pad placement hover (RFC-018): the resolved pad's shape, size,
+        // layer, and plating — the same "resolve and show" precedent as the
+        // empty-impl hover.
+        for fp in world.footprints.values() {
+            for place in &fp.pads {
+                if !contains(place.pad.span, fid, offset)
+                    && !contains(place.number.span, fid, offset)
+                {
+                    continue;
+                }
+                let Some(pad) = world.pads.get(&place.pad.name) else {
+                    continue;
+                };
+                let mut text = format!(
+                    "**pad** `{}` (placed as pad `{}` at ({}, {}))",
+                    crate::resolve::short(&place.pad.name),
+                    place.number.text,
+                    place.x.text,
+                    place.y.text
+                );
+                if let Some((shape, _)) = &pad.shape {
+                    text.push_str(&format!("\n\n- shape: `{}`", shape.name()));
+                }
+                if !pad.size.is_empty() {
+                    let dims: Vec<&str> = pad.size.iter().map(|v| v.text.as_str()).collect();
+                    text.push_str(&format!("\n- size: `({})`", dims.join(", ")));
+                }
+                if let Some((layer, _)) = &pad.layer {
+                    text.push_str(&format!("\n- layer: `{}`", layer.name()));
+                }
+                if let Some((plating, _)) = &pad.plating {
+                    text.push_str(&format!("\n- plating: `{}`", plating.name()));
+                }
+                if let Some((drill, _)) = &pad.drill {
+                    text.push_str(&format!("\n- drill: `{}`", drill.text));
+                }
+                return Some(hover_markdown(
+                    text,
+                    span_to_range(&analysis, place.pad.span),
+                ));
+            }
+        }
         // Part declaration hover (RFC-017): MPN/MFR, the resolved footprint
         // symbol, and any #[doc] reference documents.
         for (fq, part) in &world.parts {
@@ -671,7 +713,8 @@ impl Server {
             .or_else(|| world.traits.get(&name).map(|t| t.name.span))
             .or_else(|| world.fns.get(&name).map(|f| f.name.span))
             .or_else(|| world.parts.get(&name).map(|p| p.name.span))
-            .or_else(|| world.footprints.get(&name).map(|f| f.name.span))?;
+            .or_else(|| world.footprints.get(&name).map(|f| f.name.span))
+            .or_else(|| world.pads.get(&name).map(|p| p.name.span))?;
         Some(lt::Location {
             uri: analysis.uri_for(target.file)?,
             range: span_to_range(&analysis, target),
@@ -1194,6 +1237,14 @@ fn use_site_name(world: &crate::resolve::World, fid: FileId, offset: u32) -> Opt
         }
         if let Some(n) = body_use_site(&f.body, &hit) {
             return Some(n);
+        }
+    }
+    // Footprint pad placements reference pad symbols (RFC-018).
+    for fp in world.footprints.values() {
+        for place in &fp.pads {
+            if hit(&place.pad) {
+                return Some(place.pad.name.clone());
+            }
         }
     }
     // Part device references + footprint symbol references (RFC-017).

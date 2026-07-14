@@ -1,11 +1,19 @@
-// RFC-017 stage-one migration: placeholder footprint SYMBOLS, one per
-// KiCad footprint the std library's parts previously named as a string.
-// Bodies are deliberately empty — the footprint FORMAT (pad geometry)
-// is RFC-018's; until it lands these are resolvable names only. Each
-// `was:` comment records the original KiCad footprint id.
+// Footprint declarations, one per KiCad footprint the std library's
+// parts previously named as a string. Each `was:` comment records the
+// original KiCad footprint id. RFC-018 stage-two migration is underway:
+// footprints with authored pad geometry (from std/pads.cohdl) get the
+// full build-time pad-consistency check (E807) and project into
+// .kicad_mod / IPC-2581; the rest are still RFC-017 stage-one
+// placeholders (empty body = resolvable name only, exempt from E807)
+// pending real datasheet-derived authoring.
 
-// was: "Capacitor_SMD:C_0402_1005Metric"
-pub footprint FP_C_0402_1005Metric {}
+// was: "Capacitor_SMD:C_0402_1005Metric" (geometry from that footprint)
+pub footprint FP_C_0402_1005Metric {
+    pad 1: P_Chip_C0402 at (-0.48mm, 0mm)
+    pad 2: P_Chip_C0402 at (0.48mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.82mm, 1.12mm) }
+    silkscreen_ref { at: (0mm, -1.16mm) }
+}
 
 // was: "Capacitor_SMD:C_0603_1608Metric"
 pub footprint FP_C_0603_1608Metric {}
@@ -19,8 +27,13 @@ pub footprint FP_InvenSense_ICS_43434_6_3_5x2_65mm {}
 // was: "LED_SMD:LED_0603_1608Metric"
 pub footprint FP_LED_0603_1608Metric {}
 
-// was: "Resistor_SMD:R_0402_1005Metric"
-pub footprint FP_R_0402_1005Metric {}
+// was: "Resistor_SMD:R_0402_1005Metric" (geometry from that footprint)
+pub footprint FP_R_0402_1005Metric {
+    pad 1: P_Chip_R0402 at (-0.51mm, 0mm)
+    pad 2: P_Chip_R0402 at (0.51mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.06mm, 1.14mm) }
+    silkscreen_ref { at: (0mm, -1.17mm) }
+}
 
 // was: "Package_TO_SOT_SMD:SOT-23-5"
 pub footprint FP_SOT_23_5 {}

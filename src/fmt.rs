@@ -29,6 +29,7 @@
 use crate::ast::*;
 use crate::diag::Diagnostics;
 use crate::span::{FileId, SourceMap, Span};
+use crate::units::UnitValue;
 use std::collections::{BTreeMap, BTreeSet};
 
 const INDENT: &str = "    ";
@@ -417,6 +418,7 @@ impl Formatter<'_> {
             ItemKind::Fn(f) => self.fn_def(vis, item, f),
             ItemKind::Part(p) => self.part_def(vis, item, p),
             ItemKind::Design(d) => self.design_def(vis, item, d),
+            ItemKind::Pad(p) => self.pad_def(vis, item, p),
             ItemKind::Footprint(f) => self.footprint_def(vis, item, f),
             // Reached only when a use import is emitted outside a run.
             ItemKind::Use(u) => self.push(0, format!("use {};", u.path_text())),
@@ -926,22 +928,111 @@ impl Formatter<'_> {
 
     // -- parts ---------------------------------------------------------------
 
-    /// RFC-017 `footprint NAME {}` — the body is empty by definition until
-    /// RFC-018; comments inside/on the braces keep them open (same rule as
-    /// member-less traits).
+    /// RFC-018 `pad NAME { … }` — one field per line, canonical field order
+    /// as written (source order; the closed vocabulary has no mandated
+    /// ordering).
+    fn pad_def(&mut self, vis: &str, item: &Item, p: &PadDef) {
+        self.push(0, format!("{}pad {} {{", vis, p.name.name));
+        self.attach_trailing(self.line_start(item.decl_span));
+        let mut fields: Vec<(u32, String)> = Vec::new();
+        if let Some((shape, sp)) = &p.shape {
+            fields.push((sp.start, format!("shape: {}", shape.name())));
+        }
+        if let Some(sp) = &p.size_span {
+            fields.push((sp.start, format!("size: ({})", unit_list(&p.size))));
+        }
+        if let Some((layer, sp)) = &p.layer {
+            fields.push((sp.start, format!("layer: {}", layer.name())));
+        }
+        if let Some((plating, sp)) = &p.plating {
+            fields.push((sp.start, format!("plating: {}", plating.name())));
+        }
+        if let Some((v, sp)) = &p.drill {
+            fields.push((sp.start, format!("drill: {}", v.text)));
+        }
+        fields.sort_by_key(|(s, _)| *s);
+        for (offset, line) in fields {
+            let l = self.sm.line_col(self.file, offset).line;
+            self.flush_leading(l, 1);
+            self.push(1, line);
+            self.attach_trailing(l);
+        }
+        self.flush_leading(self.line_end(item.span), 1);
+        self.push(0, "}");
+    }
+
+    /// RFC-017/018 `footprint NAME { … }` — pad placements one per line in
+    /// source order; an empty placeholder body stays `{}` (comments keep the
+    /// braces open, same rule as member-less traits).
     fn footprint_def(&mut self, vis: &str, item: &Item, f: &FootprintDef) {
         let header = format!("{}footprint {}", vis, f.name.name);
         let start = self.line_start(item.decl_span);
         let end = self.line_end(item.span);
-        let opener_comment = start != end && self.c.trailing.contains_key(&start);
-        if opener_comment || self.has_comments_between(start, end) {
-            self.push(0, format!("{} {{", header));
-            self.attach_trailing(start);
-            self.flush_leading(end, 1);
-            self.push(0, "}");
-        } else {
-            self.push(0, format!("{} {{}}", header));
+        let has_body = !f.pads.is_empty() || f.courtyard.is_some() || f.silkscreen_ref.is_some();
+        if !has_body {
+            let opener_comment = start != end && self.c.trailing.contains_key(&start);
+            if opener_comment || self.has_comments_between(start, end) {
+                self.push(0, format!("{} {{", header));
+                self.attach_trailing(start);
+                self.flush_leading(end, 1);
+                self.push(0, "}");
+            } else {
+                self.push(0, format!("{} {{}}", header));
+            }
+            return;
         }
+        self.push(0, format!("{} {{", header));
+        self.attach_trailing(start);
+        // Body members in source order (comments keep their positions).
+        enum M<'a> {
+            Pad(&'a PadPlace),
+            Courtyard(&'a Courtyard),
+            Silk(&'a (UnitValue, UnitValue, Span)),
+        }
+        let mut members: Vec<(u32, M)> = f.pads.iter().map(|p| (p.span.start, M::Pad(p))).collect();
+        if let Some(c) = &f.courtyard {
+            members.push((c.span.start, M::Courtyard(c)));
+        }
+        if let Some(s) = &f.silkscreen_ref {
+            members.push((s.2.start, M::Silk(s)));
+        }
+        members.sort_by_key(|(s, _)| *s);
+        for (offset, m) in members {
+            let l = self.sm.line_col(self.file, offset).line;
+            self.flush_leading(l, 1);
+            match m {
+                M::Pad(p) => {
+                    self.push(
+                        1,
+                        format!(
+                            "pad {}: {} at ({}, {})",
+                            p.number.text, p.pad.name, p.x.text, p.y.text
+                        ),
+                    );
+                }
+                M::Courtyard(c) => {
+                    self.push(
+                        1,
+                        format!(
+                            "courtyard {{ shape: {}, at: ({}, {}), size: ({}) }}",
+                            c.shape.0.name(),
+                            c.at.0.text,
+                            c.at.1.text,
+                            unit_list(&c.size)
+                        ),
+                    );
+                }
+                M::Silk(s) => {
+                    self.push(
+                        1,
+                        format!("silkscreen_ref {{ at: ({}, {}) }}", s.0.text, s.1.text),
+                    );
+                }
+            }
+            self.attach_trailing(l);
+        }
+        self.flush_leading(end, 1);
+        self.push(0, "}");
     }
 
     fn part_def(&mut self, vis: &str, item: &Item, p: &PartDef) {
@@ -991,6 +1082,14 @@ impl Formatter<'_> {
 // ---------------------------------------------------------------------------
 // Text builders (pure functions of the AST — no layout state).
 
+/// Comma-space list of unit literal texts (`0.3mm, 0.9mm`).
+fn unit_list(vals: &[UnitValue]) -> String {
+    vals.iter()
+        .map(|v| v.text.as_str())
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 /// Canonical tolerance spelling: a value that lexes as a single RFC-001 unit
 /// literal is emitted unquoted (`[tolerance: 1ms]`); anything else keeps the
 /// quoted-string escape hatch (`[tolerance: "0.15mm"]`). Both spellings parse
@@ -1001,17 +1100,18 @@ fn tolerance_text(s: &str) -> String {
     let f = sm.add_file("tolerance", s);
     let mut diags = Diagnostics::new();
     let tokens = crate::lex::lex(f, sm.text(f), &mut diags);
-    // Only a TIME literal may unquote: the parser accepts unquoted tolerances
-    // only when their unit type is Time (RFC-013's <Time-or-length-unit>), so
-    // unquoting any other unit-shaped string would make valid source invalid
-    // after formatting — breaking RFC-009 semantic inertness.
-    let is_time = !diags.has_errors()
+    // Only a TIME or LENGTH literal may unquote (exactly what the parser
+    // accepts unquoted — RFC-013's <Time-or-length-unit>, with Length real
+    // since RFC-018); unquoting any other unit-shaped string would make
+    // valid source invalid after formatting.
+    let unquotable = !diags.has_errors()
         && tokens.len() == 2
         && matches!(
             &tokens[0].kind,
-            crate::lex::TokenKind::Unit(v) if v.unit == crate::units::UnitType::Time
+            crate::lex::TokenKind::Unit(v)
+                if matches!(v.unit, crate::units::UnitType::Time | crate::units::UnitType::Length)
         );
-    if is_time {
+    if unquotable {
         s.to_string()
     } else {
         str_lit(s)

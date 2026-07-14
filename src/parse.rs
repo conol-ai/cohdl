@@ -9,7 +9,7 @@ use crate::ast::*;
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::lex::{Token, TokenKind};
 use crate::span::Span;
-use crate::units::UnitType;
+use crate::units::{UnitType, UnitValue};
 
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
     Parser {
@@ -158,7 +158,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
-                TokenKind::Ident(n) if n == "use" || n == "footprint" => return,
+                TokenKind::Ident(n) if n == "use" || n == "footprint" || n == "pad" => return,
                 _ => {
                     self.bump();
                 }
@@ -226,6 +226,32 @@ impl<'a> Parser<'a> {
                 "a `footprint` declaration needs a name: `footprint NAME {}`".to_string(),
             ));
             self.bump(); // footprint
+            self.bump(); // `{` — skip_braced_body expects the opener consumed
+            self.skip_braced_body(span);
+            return None;
+        }
+        if self.at_ident("pad") && matches!(self.peek_ahead(1), TokenKind::Ident(_)) {
+            let kind = self.pad_def().map(ItemKind::Pad);
+            self.reject_attrs(&rest);
+            let kind = kind?;
+            return Some(Item {
+                is_pub,
+                intent,
+                docs,
+                decl_span: decl_start,
+                span: start.to(self.prev_span()),
+                kind,
+            });
+        }
+        if self.at_ident("pad") && self.peek_ahead(1) == &TokenKind::LBrace {
+            let span = self.span();
+            self.diags.push(Diagnostic::error(
+                "E010",
+                span,
+                "a `pad` declaration needs a name: `pad NAME { … }`".to_string(),
+            ));
+            self.bump(); // pad
+            self.bump(); // `{` — skip_braced_body expects the opener consumed
             self.skip_braced_body(span);
             return None;
         }
@@ -261,7 +287,7 @@ impl<'a> Parser<'a> {
             TokenKind::Design => self.design_def().map(ItemKind::Design),
             other => {
                 self.error_here(format!(
-                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `footprint`, or `use`), found {}",
+                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `footprint`, `pad`, or `use`), found {}",
                     other.describe()
                 ));
                 self.sync_top_level();
@@ -333,36 +359,477 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// RFC-017: `footprint NAME {}` — the body is DELIBERATELY empty; its
-    /// content format arrives with RFC-018. Anything inside the braces is a
-    /// targeted error, not silently-accepted garbage.
+    /// RFC-018: `footprint NAME { pad N: Sym at (x, y) … [courtyard {…}]
+    /// [silkscreen_ref {…}] }`. An empty body is RFC-017's stage-one
+    /// placeholder and stays legal.
     fn footprint_def(&mut self) -> Option<FootprintDef> {
         let start = self.span();
         self.bump(); // `footprint`
         let name = self.ident("as the footprint name")?;
+        let open_span = self.span();
         if !self.expect(&TokenKind::LBrace, "to open the footprint body") {
             self.sync_top_level();
             return None;
         }
-        if !self.at(&TokenKind::RBrace) {
-            // Anchor at the first body token; recovery skips to the MATCHING
-            // brace so body content (commas, nesting) never cascades to file
-            // scope, and an unclosed body anchors at the declaration.
-            self.error_here(
-                "the footprint body format is not yet specified (RFC-018, the footprint format RFC) — leave it empty: `footprint NAME {}`"
-                    .to_string(),
-            );
-            self.skip_braced_body(name.span);
-            return Some(FootprintDef {
-                span: start.to(self.prev_span()),
-                name,
-            });
+        let mut pads = Vec::new();
+        let mut courtyard: Option<Courtyard> = None;
+        let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
+        let mut unclosed = false;
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            // A top-level declaration keyword means the body's `}` is
+            // missing (nothing top-level is legal in a footprint body) —
+            // stop WITHOUT consuming so the declaration survives.
+            if self.at_decl_keyword() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    open_span,
+                    format!(
+                        "unclosed footprint body — missing `}}` before {}",
+                        self.peek().describe()
+                    ),
+                ));
+                unclosed = true;
+                break;
+            }
+            if self.at_ident("pad") {
+                if let Some(p) = self.pad_place() {
+                    pads.push(p);
+                } else {
+                    self.sync_footprint_body();
+                }
+            } else if self.at_ident("courtyard") {
+                let c = self.courtyard();
+                match (&courtyard, c) {
+                    (Some(prev), Some(next)) => {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E806",
+                                next.span,
+                                "a footprint has at most one `courtyard`".to_string(),
+                            )
+                            .with_secondary(prev.span, "the first courtyard is here".to_string()),
+                        );
+                    }
+                    (None, Some(next)) => courtyard = Some(next),
+                    // courtyard() recovers internally (its body is consumed
+                    // or it stopped at a safe boundary) — do not sync again.
+                    (_, None) => {}
+                }
+            } else if self.at_ident("silkscreen_ref") {
+                let start_sr = self.span();
+                self.bump();
+                if !self.expect(&TokenKind::LBrace, "to open `silkscreen_ref`") {
+                    self.sync_footprint_body();
+                    continue;
+                }
+                if !self.eat_ident("at") {
+                    self.error_here(format!(
+                        "expected `at: (x, y)` in `silkscreen_ref`, found {}",
+                        self.peek().describe()
+                    ));
+                    self.sync_footprint_body();
+                    continue;
+                }
+                self.expect(&TokenKind::Colon, "after `at`");
+                let Some((x, y)) = self.length_pair() else {
+                    self.sync_footprint_body();
+                    continue;
+                };
+                self.expect(&TokenKind::RBrace, "to close `silkscreen_ref`");
+                let span = start_sr.to(self.prev_span());
+                if let Some((_, _, prev)) = &silkscreen_ref {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E806",
+                            span,
+                            "a footprint has at most one `silkscreen_ref`".to_string(),
+                        )
+                        .with_secondary(*prev, "the first one is here".to_string()),
+                    );
+                } else {
+                    silkscreen_ref = Some((x, y, span));
+                }
+            } else {
+                self.diags.push(Diagnostic::error(
+                    "E806",
+                    self.span(),
+                    format!(
+                        "a footprint body contains `pad N: Symbol at (x, y)` placements, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
+                        self.peek().describe()
+                    ),
+                ));
+                self.sync_footprint_body();
+            }
+            // Recovery stops AT boundary tokens without consuming —
+            // guarantee progress so a stray token can never loop forever.
+            if self.pos == before {
+                self.bump();
+            }
         }
-        self.expect(&TokenKind::RBrace, "to close the footprint body");
+        if !unclosed {
+            self.expect(&TokenKind::RBrace, "to close the footprint body");
+        }
         Some(FootprintDef {
             name,
+            pads,
+            courtyard,
+            silkscreen_ref,
             span: start.to(self.prev_span()),
         })
+    }
+
+    /// One `pad N: PadSymbol at (x, y)` placement line.
+    fn pad_place(&mut self) -> Option<PadPlace> {
+        let start = self.span();
+        self.bump(); // `pad`
+        let number = match self.peek() {
+            TokenKind::Number(_) => {
+                let t = self.bump();
+                let TokenKind::Number(text) = t.kind else {
+                    unreachable!()
+                };
+                PinNumber { text, span: t.span }
+            }
+            TokenKind::Ident(_) => {
+                let t = self.bump();
+                let TokenKind::Ident(text) = t.kind else {
+                    unreachable!()
+                };
+                PinNumber { text, span: t.span }
+            }
+            other => {
+                self.error_here(format!(
+                    "expected the pad number (matching a device pin number, e.g. `1` or `A3`), found {}",
+                    other.describe()
+                ));
+                return None;
+            }
+        };
+        self.expect(&TokenKind::Colon, "after the pad number");
+        let pad = self.path_ident("as the pad symbol")?;
+        if !self.eat_ident("at") {
+            self.error_here(format!(
+                "expected `at (x, y)` after the pad symbol, found {}",
+                self.peek().describe()
+            ));
+            return None;
+        }
+        let (x, y) = self.length_pair()?;
+        Some(PadPlace {
+            number,
+            pad,
+            x,
+            y,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// `courtyard { shape: rect, at: (x, y), size: (…) }`. Recovers from
+    /// broken fields internally (sync to the next comma) so a typo never
+    /// spills phantom errors past the courtyard; a runaway into a member
+    /// keyword or top-level declaration stops WITHOUT consuming, so an
+    /// unclosed courtyard cannot steal the footprint's closing brace.
+    fn courtyard(&mut self) -> Option<Courtyard> {
+        let start = self.span();
+        self.bump(); // `courtyard`
+        let open_span = self.span();
+        if !self.expect(&TokenKind::LBrace, "to open `courtyard`") {
+            self.sync_footprint_body();
+            return None;
+        }
+        let mut shape: Option<(PadShape, Span)> = None;
+        let mut at: Option<(UnitValue, UnitValue)> = None;
+        let mut size: Option<(Vec<UnitValue>, Span)> = None;
+        let mut unclosed = false;
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if self.at_ident("pad")
+                || self.at_ident("courtyard")
+                || self.at_ident("silkscreen_ref")
+                || self.at_decl_keyword()
+            {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    open_span,
+                    format!(
+                        "unclosed `courtyard` — missing `}}` before {}",
+                        self.peek().describe()
+                    ),
+                ));
+                unclosed = true;
+                break;
+            }
+            let Some(field) = self.ident("as a courtyard field (`shape`, `at`, `size`)") else {
+                self.sync_in_block();
+                self.eat(&TokenKind::Comma);
+                continue;
+            };
+            self.expect(&TokenKind::Colon, "after the courtyard field name");
+            match field.name.as_str() {
+                "shape" => match self.ident("as the shape") {
+                    Some(v) => match PadShape::from_name(&v.name) {
+                        Some(s) => shape = Some((s, v.span)),
+                        None => self.diags.push(Diagnostic::error(
+                            "E806",
+                            v.span,
+                            format!(
+                                "`{}` is not a shape — shapes are: rect, circle, oval",
+                                v.name
+                            ),
+                        )),
+                    },
+                    None => {
+                        self.sync_in_block();
+                    }
+                },
+                "at" => match self.length_pair() {
+                    Some(pair) => at = Some(pair),
+                    None => {
+                        self.sync_in_block();
+                    }
+                },
+                "size" => match self.length_tuple() {
+                    Some(tuple) => size = Some(tuple),
+                    None => {
+                        self.sync_in_block();
+                    }
+                },
+                other => {
+                    self.diags.push(Diagnostic::error(
+                        "E806",
+                        field.span,
+                        format!(
+                            "unknown courtyard field `{}` (expected `shape`, `at`, or `size`)",
+                            other
+                        ),
+                    ));
+                    self.sync_in_block();
+                }
+            }
+            self.eat(&TokenKind::Comma);
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        if !unclosed {
+            self.expect(&TokenKind::RBrace, "to close `courtyard`");
+        }
+        let span = start.to(self.prev_span());
+        let (Some(shape), Some(at), Some((size, size_span))) = (shape, at, size) else {
+            self.diags.push(Diagnostic::error(
+                "E806",
+                span,
+                "`courtyard` needs `shape`, `at`, and `size`".to_string(),
+            ));
+            return None;
+        };
+        Some(Courtyard {
+            shape,
+            at,
+            size,
+            size_span,
+            span,
+        })
+    }
+
+    /// `(x, y)` — exactly two unit literals (unit TYPE checked later).
+    fn length_pair(&mut self) -> Option<(UnitValue, UnitValue)> {
+        if !self.expect(&TokenKind::LParen, "to open the coordinate pair") {
+            // One defect, one diagnostic — a missing `(` already implies the
+            // offsets are absent; don't also report each of them.
+            return None;
+        }
+        let x = self.unit_literal("as the x offset")?;
+        self.expect(&TokenKind::Comma, "between the coordinates");
+        let y = self.unit_literal("as the y offset")?;
+        self.expect(&TokenKind::RParen, "to close the coordinate pair");
+        Some((x, y))
+    }
+
+    /// `(a)` or `(a, b)` — one or two unit literals, with the whole span.
+    fn length_tuple(&mut self) -> Option<(Vec<UnitValue>, Span)> {
+        let start = self.span();
+        if !self.expect(&TokenKind::LParen, "to open the size tuple") {
+            return None;
+        }
+        let mut out = vec![self.unit_literal("as a dimension")?];
+        while self.eat(&TokenKind::Comma) {
+            out.push(self.unit_literal("as a dimension")?);
+        }
+        self.expect(&TokenKind::RParen, "to close the size tuple");
+        Some((out, start.to(self.prev_span())))
+    }
+
+    fn unit_literal(&mut self, ctx: &str) -> Option<UnitValue> {
+        match self.peek() {
+            TokenKind::Unit(_) => {
+                let t = self.bump();
+                let TokenKind::Unit(v) = t.kind else {
+                    unreachable!()
+                };
+                Some(v)
+            }
+            other => {
+                self.error_here(format!(
+                    "expected a unit literal {} (e.g. `0.5mm`), found {}",
+                    ctx,
+                    other.describe()
+                ));
+                None
+            }
+        }
+    }
+
+    fn eat_ident(&mut self, word: &str) -> bool {
+        if self.at_ident(word) {
+            self.bump();
+            true
+        } else {
+            false
+        }
+    }
+
+    /// RFC-018: `pad NAME { shape: …, size: (…), layer: …, plating: …[,
+    /// drill: …] }` — a reusable pad definition (closed vocabulary).
+    fn pad_def(&mut self) -> Option<PadDef> {
+        let start = self.span();
+        self.bump(); // `pad`
+        let name = self.ident("as the pad name")?;
+        let open_span = self.span();
+        if !self.expect(&TokenKind::LBrace, "to open the pad body") {
+            self.sync_top_level();
+            return None;
+        }
+        let mut unclosed = false;
+        let mut def = PadDef {
+            name,
+            shape: None,
+            size: Vec::new(),
+            size_span: None,
+            layer: None,
+            plating: None,
+            drill: None,
+            span: start,
+        };
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if self.at_decl_keyword() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    open_span,
+                    format!(
+                        "unclosed pad body — missing `}}` before {}",
+                        self.peek().describe()
+                    ),
+                ));
+                unclosed = true;
+                break;
+            }
+            let Some(field) =
+                self.ident("as a pad field (`shape`, `size`, `layer`, `plating`, `drill`)")
+            else {
+                self.sync_in_block();
+                self.eat(&TokenKind::Comma);
+                continue;
+            };
+            self.expect(&TokenKind::Colon, "after the pad field name");
+            match field.name.as_str() {
+                "shape" => {
+                    let Some(v) = self.ident("as the shape") else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    match PadShape::from_name(&v.name) {
+                        Some(s) => def.shape = Some((s, v.span)),
+                        None => self.diags.push(Diagnostic::error(
+                            "E805",
+                            v.span,
+                            format!(
+                                "`{}` is not a pad shape — shapes are: rect, circle, oval",
+                                v.name
+                            ),
+                        )),
+                    }
+                }
+                "size" => {
+                    let Some((vals, span)) = self.length_tuple() else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    def.size = vals;
+                    def.size_span = Some(span);
+                }
+                "layer" => {
+                    let Some(v) = self.ident("as the layer") else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    match PadLayer::from_name(&v.name) {
+                        Some(l) => def.layer = Some((l, v.span)),
+                        None => self.diags.push(Diagnostic::error(
+                            "E805",
+                            v.span,
+                            format!(
+                                "`{}` is not a pad layer — layers are: top_copper, bottom_copper, through_all",
+                                v.name
+                            ),
+                        )),
+                    }
+                }
+                "plating" => {
+                    let Some(v) = self.ident("as the plating") else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    match PadPlating::from_name(&v.name) {
+                        Some(p) => def.plating = Some((p, v.span)),
+                        None => self.diags.push(Diagnostic::error(
+                            "E805",
+                            v.span,
+                            format!(
+                                "`{}` is not a pad plating — platings are: smd, plated_through_hole",
+                                v.name
+                            ),
+                        )),
+                    }
+                }
+                "drill" => {
+                    let Some(v) = self.unit_literal("as the drill diameter") else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    def.drill = Some((v, field.span));
+                }
+                other => {
+                    self.diags.push(Diagnostic::error(
+                        "E805",
+                        field.span,
+                        format!(
+                            "unknown pad field `{}` (expected `shape`, `size`, `layer`, `plating`, or `drill`)",
+                            other
+                        ),
+                    ));
+                    self.sync_in_block();
+                    self.eat(&TokenKind::Comma);
+                    continue;
+                }
+            }
+            self.eat(&TokenKind::Comma);
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        if !unclosed {
+            self.expect(&TokenKind::RBrace, "to close the pad body");
+        }
+        def.span = start.to(self.prev_span());
+        Some(def)
     }
 
     /// Skip a brace-balanced body whose `{` was already consumed. An EOF
@@ -416,7 +883,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
-                TokenKind::Ident(n) if n == "footprint" => return,
+                TokenKind::Ident(n) if n == "footprint" || n == "pad" => return,
                 _ => {
                     self.bump();
                 }
@@ -671,8 +1138,8 @@ impl<'a> Parser<'a> {
                         format!("`{}` is not a unit type", ident.name),
                     )
                     .with_help(
-                        "the ten unit types are: Voltage, Capacitance, Resistance, Current, \
-                         Frequency, Time, Inductance, Power, Temperature, Tolerance",
+                        "the eleven unit types are: Voltage, Capacitance, Resistance, Current, \
+                         Frequency, Time, Inductance, Power, Temperature, Tolerance, Length",
                     ),
                 );
                 None
@@ -1447,11 +1914,14 @@ impl<'a> Parser<'a> {
 
     fn sync_in_block(&mut self) {
         // Inside a `{ … }` block: skip to the next comma or closing brace.
+        // Paren-aware — a comma inside a tuple like `(x, y)` is part of the
+        // broken construct, not a synchronization point.
         let mut depth = 0usize;
+        let mut paren = 0usize;
         loop {
             match self.peek() {
                 TokenKind::Eof => return,
-                TokenKind::Comma if depth == 0 => return,
+                TokenKind::Comma if depth == 0 && paren == 0 => return,
                 TokenKind::RBrace if depth == 0 => return,
                 TokenKind::LBrace => {
                     depth += 1;
@@ -1459,6 +1929,75 @@ impl<'a> Parser<'a> {
                 }
                 TokenKind::RBrace => {
                     depth -= 1;
+                    self.bump();
+                }
+                TokenKind::LParen => {
+                    paren += 1;
+                    self.bump();
+                }
+                TokenKind::RParen => {
+                    paren = paren.saturating_sub(1);
+                    self.bump();
+                }
+                _ => {
+                    self.bump();
+                }
+            }
+        }
+    }
+
+    /// True when the cursor can only be the start of a top-level declaration
+    /// — a body loop seeing one of these has run past its own (missing)
+    /// closing brace. Used to keep an unclosed pad/footprint body from
+    /// swallowing the declarations that follow it.
+    fn at_decl_keyword(&self) -> bool {
+        matches!(
+            self.peek(),
+            TokenKind::Pub
+                | TokenKind::Trait
+                | TokenKind::Device
+                | TokenKind::Impl
+                | TokenKind::Fn
+                | TokenKind::Part
+                | TokenKind::Design
+                | TokenKind::Hash
+        ) || self.at_ident("use")
+    }
+
+    /// Recovery inside a footprint body: skip to the next member keyword
+    /// (`pad` / `courtyard` / `silkscreen_ref`), the body's closing brace, or
+    /// a top-level declaration start — so one broken member never consumes
+    /// the valid members (or declarations) after it. Paren/brace aware.
+    fn sync_footprint_body(&mut self) {
+        let mut depth = 0usize;
+        let mut paren = 0usize;
+        loop {
+            if depth == 0
+                && paren == 0
+                && (self.at_ident("pad")
+                    || self.at_ident("courtyard")
+                    || self.at_ident("silkscreen_ref")
+                    || self.at_decl_keyword())
+            {
+                return;
+            }
+            match self.peek() {
+                TokenKind::Eof => return,
+                TokenKind::RBrace if depth == 0 => return,
+                TokenKind::LBrace => {
+                    depth += 1;
+                    self.bump();
+                }
+                TokenKind::RBrace => {
+                    depth -= 1;
+                    self.bump();
+                }
+                TokenKind::LParen => {
+                    paren += 1;
+                    self.bump();
+                }
+                TokenKind::RParen => {
+                    paren = paren.saturating_sub(1);
                     self.bump();
                 }
                 _ => {
@@ -1600,6 +2139,31 @@ impl<'a> Parser<'a> {
                     intent,
                     span: start.to(self.prev_span()),
                 }))
+            }
+            TokenKind::Ident(n)
+                if n == "pad"
+                    && matches!(
+                        self.peek_ahead(1),
+                        TokenKind::Ident(_) | TokenKind::Number(_)
+                    ) =>
+            {
+                self.reject_attrs(&attrs);
+                let span = self.span();
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`pad` lines live in `footprint { … }` bodies (placements) or at top level (declarations) — not in a design/fn body"
+                        .to_string(),
+                ));
+                // Consume whichever form it is so the body keeps parsing.
+                if matches!(self.peek_ahead(0), TokenKind::Ident(_))
+                    && matches!(self.peek_ahead(1), TokenKind::Number(_))
+                {
+                    let _ = self.pad_place();
+                } else {
+                    let _ = self.pad_def();
+                }
+                None
             }
             TokenKind::Ident(n)
                 if n == "footprint" && matches!(self.peek_ahead(1), TokenKind::Ident(_)) =>
@@ -1815,10 +2379,11 @@ impl<'a> Parser<'a> {
                 let TokenKind::Unit(v) = t.kind else {
                     unreachable!()
                 };
-                // RFC-013 says `<Time-or-length-unit>`: of RFC-001's ten
-                // types, only Time qualifies (there is no length unit —
-                // lengths use the string form pending a note amendment).
-                if v.unit == UnitType::Time {
+                // RFC-013 says `<Time-or-length-unit>`: Time, and — since
+                // RFC-018 added the Length unit — mm literals too. The
+                // accepted RFC-013 example `[tolerance: 0.15mm]` is finally
+                // representable (closing that note-side item).
+                if matches!(v.unit, UnitType::Time | UnitType::Length) {
                     Some((v.text.clone(), t.span))
                 } else {
                     self.diags.push(
@@ -1826,13 +2391,13 @@ impl<'a> Parser<'a> {
                             "E110",
                             t.span,
                             format!(
-                                "a `tolerance` unit literal must be a `Time` value, found `{}` (`{}`)",
+                                "a `tolerance` unit literal must be a `Time` or `Length` value, found `{}` (`{}`)",
                                 v.unit.type_name(),
                                 v.text
                             ),
                         )
                         .with_help(
-                            "write a Time literal (e.g. `[tolerance: 1ms]`) or a string for length units (e.g. `[tolerance: \"0.15mm\"]`)",
+                            "write a Time or Length literal (e.g. `[tolerance: 1ms]`, `[tolerance: 0.15mm]`) or a string",
                         ),
                     );
                     None
@@ -1840,7 +2405,7 @@ impl<'a> Parser<'a> {
             }
             other => {
                 self.error_here(format!(
-                    "the `tolerance` value must be a `Time` literal or a string (e.g. `[tolerance: 1ms]` or `[tolerance: \"0.15mm\"]`), found {}",
+                    "the `tolerance` value must be a `Time`/`Length` literal or a string (e.g. `[tolerance: 1ms]` or `[tolerance: 0.15mm]`), found {}",
                     other.describe()
                 ));
                 None

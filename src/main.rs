@@ -389,6 +389,40 @@ fn run(args: &Args) -> Result<bool, String> {
         }
     }
 
+    // RFC-018: `.kicad_mod` projections for pad-bearing footprints — one
+    // file per footprint under out/footprints/. The directory is rebuilt
+    // from scratch each time (stale projections of renamed/removed
+    // footprints must not linger; same partner-safety rule as layout.json).
+    let mods_dir = out_dir.join("footprints");
+    let mods = {
+        let ir = checked.ir.as_ref().unwrap();
+        emit::kicad_mod::emit_kicad_mods(&checked.world, ir)
+    };
+    let mut mod_paths: Vec<String> = Vec::new();
+    if mods_dir.exists() {
+        std::fs::remove_dir_all(&mods_dir).map_err(|e| {
+            diags_then(
+                &checked,
+                format!("cannot clear `{}`: {}", mods_dir.display(), e),
+            )
+        })?;
+    }
+    if !mods.is_empty() {
+        std::fs::create_dir_all(&mods_dir).map_err(|e| {
+            diags_then(
+                &checked,
+                format!("cannot create `{}`: {}", mods_dir.display(), e),
+            )
+        })?;
+        for (_fq, base, content) in &mods {
+            let p = mods_dir.join(format!("{}.kicad_mod", base));
+            std::fs::write(&p, content).map_err(|e| {
+                diags_then(&checked, format!("cannot write `{}`: {}", p.display(), e))
+            })?;
+            mod_paths.push(p.display().to_string());
+        }
+    }
+
     // RFC-015: the IPC-2581 handoff artifact, only when `--emit ipc2581` was
     // requested. Same stale-file rule as layout.json: a partner-consumed
     // document that no longer matches the netlist must not linger.
@@ -423,6 +457,7 @@ fn run(args: &Args) -> Result<bool, String> {
                 .as_ref()
                 .map(|_| layout_path.display().to_string()),
             ipc2581: args.emit_ipc2581().then(|| ipc_path.display().to_string()),
+            kicad_mod: mod_paths.clone(),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
         return Ok(true);
@@ -449,6 +484,9 @@ fn run(args: &Args) -> Result<bool, String> {
     }
     if args.emit_ipc2581() {
         eprintln!("  wrote {}", ipc_path.display());
+    }
+    for p in &mod_paths {
+        eprintln!("  wrote {}", p);
     }
     eprintln!("  wrote {}", lock_path.display());
     Ok(true)

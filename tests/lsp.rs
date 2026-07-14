@@ -1329,3 +1329,56 @@ design B {
     assert!(md.contains("doc: `app-notes/zz-layout.pdf`"), "{}", md);
     lsp.shutdown();
 }
+
+// RFC-018 Tooling: hover on a `pad N: Sym at (x, y)` placement shows the
+// resolved pad's geometry; goto-def on the pad symbol lands on its decl.
+#[test]
+fn hover_and_goto_definition_on_pad_placement() {
+    let src = "\
+pub pad ZzPadRect { shape: rect, size: (0.6mm, 0.7mm), layer: top_copper, plating: smd }
+pub footprint ZzFpR {
+    pad 1: ZzPadRect at (-0.5mm, 0mm)
+    pad 2: ZzPadRect at (0.5mm, 0mm)
+}
+";
+    let (_path, uri, text) = fixture("padhover.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Hover on the pad symbol in the first placement (line 2) — EXACT text.
+    let col = src.lines().nth(2).unwrap().find("ZzPadRect").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": col + 1 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**pad** `ZzPadRect` (placed as pad `1` at (-0.5mm, 0mm))\n\n\
+             - shape: `rect`\n- size: `(0.6mm, 0.7mm)`\n- layer: `top_copper`\n\
+             - plating: `smd`"
+        ),
+        "exact pad-placement hover text:\n{}",
+        hover
+    );
+    assert_eq!(hover["range"]["start"]["line"].as_u64(), Some(2));
+    assert_eq!(hover["range"]["start"]["character"].as_u64(), Some(col));
+
+    // Goto-definition on the second placement's symbol → the pad decl.
+    let col = src.lines().nth(3).unwrap().find("ZzPadRect").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 3, "character": col + 1 } }),
+    );
+    assert_eq!(def["uri"].as_str(), Some(uri.as_str()), "{}", def);
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    let decl_col = src.find("ZzPadRect").unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["character"].as_u64(),
+        Some(decl_col),
+        "{}",
+        def
+    );
+    lsp.shutdown();
+}

@@ -22,6 +22,7 @@
 //! document against it and cross-checks fidelity against the `.net`/BOM/
 //! `layout.json` emitters.
 
+use crate::emit::geom;
 use crate::ir::DesignIr;
 use crate::resolve::World;
 use std::collections::{BTreeMap, BTreeSet};
@@ -160,9 +161,10 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     );
     out.push_str("        <Datum x=\"0\" y=\"0\"/>\n");
 
-    // Packages: one per distinct footprint name. The outline is the schema's
-    // minimal-valid idiom (a zero-size placeholder polygon) — CoHDL has no
-    // footprint geometry; the completeness marker declares that.
+    // Packages: one per distinct footprint symbol. RFC-018: a pad-bearing
+    // footprint projects REAL geometry (courtyard outline + one Pin per
+    // pad); an RFC-017 stage-one placeholder keeps the zero-size idiom
+    // (the completeness marker declares that).
     for (footprint, pkg) in &packages {
         let comment = if pkg != footprint {
             format!(" comment=\"{}\"", esc(footprint))
@@ -175,13 +177,109 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             esc(pkg),
             comment
         );
-        out.push_str("          <Outline>\n");
-        out.push_str("            <Polygon>\n");
-        out.push_str("              <PolyBegin x=\"0\" y=\"0\"/>\n");
-        out.push_str("              <PolyStepSegment x=\"0\" y=\"0\"/>\n");
-        out.push_str("            </Polygon>\n");
-        out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0\"/>\n");
-        out.push_str("          </Outline>\n");
+        let fp = world
+            .footprints
+            .get(footprint)
+            .filter(|f| !crate::check::footprints::is_placeholder(f));
+        match fp.and_then(|f| f.courtyard.as_ref()) {
+            // A courtyard becomes the package outline (the schema's Outline
+            // requires a Polygon, so a CIRCLE courtyard projects as its
+            // bounding square — a disclosed approximation; .kicad_mod keeps
+            // the true circle). Corners are computed exactly over the femto
+            // integers (emit::geom) — never floats.
+            Some(c) if !c.size.is_empty() => {
+                let (w, h) = match c.size.as_slice() {
+                    [d] => (d, d),
+                    [w, h, ..] => (w, h),
+                    [] => unreachable!(),
+                };
+                out.push_str("          <Outline>\n");
+                out.push_str("            <Polygon>\n");
+                let corners = [
+                    (geom::corner_lo(&c.at.0, w), geom::corner_lo(&c.at.1, h)),
+                    (geom::corner_hi(&c.at.0, w), geom::corner_lo(&c.at.1, h)),
+                    (geom::corner_hi(&c.at.0, w), geom::corner_hi(&c.at.1, h)),
+                    (geom::corner_lo(&c.at.0, w), geom::corner_hi(&c.at.1, h)),
+                ];
+                let _ = writeln!(
+                    out,
+                    "              <PolyBegin x=\"{}\" y=\"{}\"/>",
+                    corners[0].0, corners[0].1
+                );
+                for (x, y) in corners.iter().skip(1).chain([corners[0].clone()].iter()) {
+                    let _ = writeln!(
+                        out,
+                        "              <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                        x, y
+                    );
+                }
+                out.push_str("            </Polygon>\n");
+                out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0.05\"/>\n");
+                out.push_str("          </Outline>\n");
+            }
+            _ => {
+                out.push_str("          <Outline>\n");
+                out.push_str("            <Polygon>\n");
+                out.push_str("              <PolyBegin x=\"0\" y=\"0\"/>\n");
+                out.push_str("              <PolyStepSegment x=\"0\" y=\"0\"/>\n");
+                out.push_str("            </Polygon>\n");
+                out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0\"/>\n");
+                out.push_str("          </Outline>\n");
+            }
+        }
+        if let Some(f) = fp {
+            for place in &f.pads {
+                let Some(pad) = world.pads.get(&place.pad.name) else {
+                    continue;
+                };
+                let (Some((shape, _)), Some((plating, _))) = (&pad.shape, &pad.plating) else {
+                    continue;
+                };
+                let pin_type = match plating {
+                    crate::ast::PadPlating::Smd => "SURFACE",
+                    crate::ast::PadPlating::PlatedThroughHole => "THRU",
+                };
+                let _ = writeln!(
+                    out,
+                    "          <Pin number=\"{}\" type=\"{}\">",
+                    esc(&sanitize(&place.number.text, true)),
+                    pin_type
+                );
+                let _ = writeln!(
+                    out,
+                    "            <Location x=\"{}\" y=\"{}\"/>",
+                    geom::mm(&place.x),
+                    geom::mm(&place.y)
+                );
+                match (shape, pad.size.as_slice()) {
+                    (crate::ast::PadShape::Circle, [d]) => {
+                        let _ = writeln!(out, "            <Circle diameter=\"{}\"/>", geom::mm(d));
+                    }
+                    (crate::ast::PadShape::Rect, [w, h]) => {
+                        let _ = writeln!(
+                            out,
+                            "            <RectCenter width=\"{}\" height=\"{}\"/>",
+                            geom::mm(w),
+                            geom::mm(h)
+                        );
+                    }
+                    (crate::ast::PadShape::Oval, [w, h]) => {
+                        let _ = writeln!(
+                            out,
+                            "            <Oval width=\"{}\" height=\"{}\"/>",
+                            geom::mm(w),
+                            geom::mm(h)
+                        );
+                    }
+                    _ => {
+                        // Arity errors were reported at declaration check;
+                        // keep the document well-formed with a zero circle.
+                        out.push_str("            <Circle diameter=\"0\"/>\n");
+                    }
+                }
+                out.push_str("          </Pin>\n");
+            }
+        }
         out.push_str("        </Package>\n");
     }
 

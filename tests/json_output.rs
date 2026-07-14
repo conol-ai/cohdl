@@ -372,6 +372,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: Some("out/x-layout.json".into()),
             ipc2581: Some("out/x.xml".into()),
+            kicad_mod: vec!["out/footprints/a.kicad_mod".into()],
         }),
     );
     let parsed = parse_json(&with);
@@ -380,6 +381,9 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     assert_eq!(build.get("bom").unwrap().as_str(), "out/x-bom.csv");
     assert_eq!(build.get("layout").unwrap().as_str(), "out/x-layout.json");
     assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
+    // RFC-018: kicad_mod is an array, present only when non-empty.
+    let mods = parsed.get("build").unwrap().get("kicad_mod").unwrap();
+    assert_eq!(mods.as_arr().len(), 1);
 
     let without = json::render(
         &checked,
@@ -388,6 +392,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: None,
             ipc2581: None,
+            kicad_mod: Vec::new(),
         }),
     );
     let parsed = parse_json(&without);
@@ -402,12 +407,15 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: None,
             ipc2581: Some("out/x.xml".into()),
+            kicad_mod: Vec::new(),
         }),
     );
     let parsed = parse_json(&ipc_only);
     let build = parsed.get("build").unwrap();
     assert!(build.get("layout").is_none());
     assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
+    // RFC-018: kicad_mod absent when no footprint projected.
+    assert!(build.get("kicad_mod").is_none());
 }
 
 #[test]

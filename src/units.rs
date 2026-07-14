@@ -1,6 +1,7 @@
 //! RFC-001: Units-as-types.
 //!
-//! A closed set of ten primitive unit types. Zero implicit coercion between
+//! A closed set of eleven primitive unit types (ten from RFC-001 + Length
+//! from RFC-018). Zero implicit coercion between
 //! unit types or from bare numbers. The (unit × allowed-prefix) table below is
 //! the normative grammar table from the Language Specification (note 10):
 //!
@@ -16,6 +17,7 @@
 //! | Power        | W      | u m k           | no     |
 //! | Temperature  | C      | (none)          | YES    |
 //! | Tolerance    | %      | (none)          | no     |
+//! | Length       | mm     | (none)          | YES    |
 //!
 //! "standard" prefixes in the spec table are pinned here as `p n u m k M G`.
 //! An unprefixed literal (`5V`, `330ohm`) is always valid for its unit.
@@ -34,9 +36,13 @@ pub enum UnitType {
     Power,
     Temperature,
     Tolerance,
+    /// RFC-018: physical dimensions for pads/footprints (`0.3mm`,
+    /// `-1.5mm` — signed, coordinates are offsets). The eleventh unit
+    /// type; `mm` is the whole suffix (no SI prefixes).
+    Length,
 }
 
-pub const ALL_UNIT_TYPES: [UnitType; 10] = [
+pub const ALL_UNIT_TYPES: [UnitType; 11] = [
     UnitType::Voltage,
     UnitType::Capacitance,
     UnitType::Resistance,
@@ -47,6 +53,7 @@ pub const ALL_UNIT_TYPES: [UnitType; 10] = [
     UnitType::Power,
     UnitType::Temperature,
     UnitType::Tolerance,
+    UnitType::Length,
 ];
 
 impl UnitType {
@@ -64,6 +71,7 @@ impl UnitType {
             UnitType::Power => "Power",
             UnitType::Temperature => "Temperature",
             UnitType::Tolerance => "Tolerance",
+            UnitType::Length => "Length",
         }
     }
 
@@ -81,6 +89,7 @@ impl UnitType {
             UnitType::Power => "W",
             UnitType::Temperature => "C",
             UnitType::Tolerance => "%",
+            UnitType::Length => "mm",
         }
     }
 
@@ -106,13 +115,14 @@ impl UnitType {
             UnitType::Frequency => &[Kilo, Mega, Giga],
             UnitType::Time | UnitType::Inductance => &[Pico, Nano, Micro, Milli],
             UnitType::Power => &[Micro, Milli, Kilo],
-            UnitType::Temperature | UnitType::Tolerance => &[],
+            UnitType::Temperature | UnitType::Tolerance | UnitType::Length => &[],
         }
     }
 
-    /// Only Temperature literals may carry a leading `-`.
+    /// Temperature (below-zero ratings) and Length (signed pad-placement
+    /// coordinates, RFC-018) may carry a leading `-`.
     pub fn allows_negative(self) -> bool {
-        self == UnitType::Temperature
+        matches!(self, UnitType::Temperature | UnitType::Length)
     }
 
     /// RFC-001's (unit × allowed-prefix) table row, formatted for editor

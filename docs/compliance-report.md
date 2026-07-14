@@ -167,6 +167,10 @@ carry regression tests.
 - RFC-013's unquoted `[tolerance: 0.15mm]` example cannot lex: RFC-001's
   closed ten-type set has no length unit. Either a Length unit type RFC or an
   RFC-013 amendment blessing the string form is needed.
+  **CLOSED by RFC-018** (2026-07-14): its `mm` literals extend RFC-001's
+  closed set with an eleventh `Length` type, which also legalizes the
+  RFC-013 example — `[tolerance: 0.15mm]` now lexes, type-checks (E110
+  accepts Time or Length), and is the canonical unquoted spelling.
 - RFC-013's E1005 ("net_class referenced before declaration") is
   unrepresentable in its own four-kind grammar — nothing references a class
   by name. Kept `[RESERVED]` in the registry until the vocabulary grows.
@@ -540,6 +544,114 @@ provisional-syntax §2 still specified the string form; the committed
 rpi-pico2 golden netlist had not been regenerated (now it is); the LSP
 part-hover doc claim was untested (now asserted); and the RFC-016
 section's multi-package-loading promise was corrected (above).
+
+## RFC-018 (pad/footprint format) implementation notes (2026-07-14)
+
+Implemented per DR-024 and RFC-018's same-day naming correction (plain
+`pad`/`footprint`, no `copad`/`cofp` rename — the spec snapshot's section
+remains stale, ledgered under RFC-017). `pad` is a sixth top-level
+declaration kind (closed vocabulary: shape rect/circle/oval, layer
+top_copper/bottom_copper/through_all, plating smd/plated_through_hole,
+`drill` ⇔ plated_through_hole); `footprint` bodies gain `pad N: Symbol at
+(x, y)` placements plus optional `courtyard`/`silkscreen_ref`. Both
+resolve through RFC-016's machinery unchanged. Conformance:
+tests/footprint.rs + LSP additions in tests/lsp.rs.
+
+Decisions under latitude, and honest boundaries:
+
+- **`Length` is an eleventh RFC-001 unit type** (symbol `mm`, no SI
+  prefixes, signed — footprint offsets need negatives, same latitude
+  Temperature already uses). RFC-018 writes `mm` literals throughout
+  without amending RFC-001 explicitly; treating that as an implied
+  amendment is the only reading under which the RFC's own examples lex.
+  Side effect, deliberately embraced: RFC-013's `[tolerance: 0.15mm]`
+  example is finally representable — E110 now accepts Time or Length,
+  `fmt` unquotes `"0.15mm"` tolerances, and the note-side amendment item
+  above is closed. A note-side RFC-001 amendment formalizing `Length`
+  remains desirable and is requested here.
+- **Pad-consistency (E807) runs at `cohdl build` only**, per the RFC:
+  `check` does not bind parts, and the footprint-vs-device comparison is
+  meaningless without a binding. The check compares the footprint's pad
+  NUMBER SET against the bound device's physical pin numbers for the
+  instance's variant, naming each missing/extra number, one report per
+  (part, footprint) pair — over EVERY AVL entry's footprint (primary and
+  alts; adversarial round — an alt-sourced part must fit the same land
+  pattern, or the lie stays latent until a fab swaps sources).
+- **Placeholder footprints are exempt from E807** — a placeholder is a
+  footprint with a fully EMPTY body (no pads, no courtyard, no
+  silkscreen_ref): RFC-017's stage-one shape, kept legal by the RFC's own
+  Migration path while stage-two authoring proceeds. A placeholder emits
+  no `.kicad_mod` and keeps the IPC-2581 zero-size-outline idiom. A
+  courtyard-only footprint is NOT a placeholder (adversarial round): its
+  empty pad set is checked against the device (and fails), and its
+  authored geometry projects — authored content never silently vanishes.
+- **Error codes**: E805 (pad declaration inconsistency), E806 (footprint
+  body inconsistency), E807 (pad/device mismatch at build), all in the
+  E8xx block the RFC reserves. Unresolved pad references reuse RFC-016's
+  E202/E205, as the RFC itself prescribes.
+- **Geometry projection**: `cohdl build` writes
+  `out/footprints/<pkg>-<Name>.kicad_mod` (fq path with `::` → `-`, which
+  is INJECTIVE because `-` cannot appear in identifiers — the first-cut
+  `__` separator collided on names containing `__` and silently clobbered
+  one artifact, an adversarial HIGH; the directory is removed and
+  rewritten each build) for every content-bearing footprint referenced by
+  a bound part's primary or alt entries; `build --json` lists them under
+  `"kicad_mod"` (present only when non-empty — the same only-when-emitted
+  pattern as `layout`/`ipc2581`). The IPC-2581 `Package` gains a real
+  courtyard `Outline` and one `Pin` element per placement (the schema's
+  `Outline` requires a Polygon, so a CIRCLE courtyard projects there as
+  its bounding square — disclosed; `.kicad_mod` keeps the true circle).
+  Roundrect is not in the closed shape vocabulary, so KiCad-derived
+  roundrect pads project as `rect` — a disclosed approximation, not a
+  claim of identity. Both emitters share `emit::geom`: all arithmetic on
+  the lexer's exact femto-mm integers (corner halving at 10^-16 mm), no
+  floats, no re-parsing of source text, canonical minimal rendering — the
+  emitters cannot disagree, `1.0mm`/`1mm` project identically, and
+  7..15-decimal literals survive exactly (the first cut truncated at six
+  decimals and used f64 in the IPC-2581 corners).
+- **Sizes are extents**: pad `size`, `drill`, and courtyard `size` must
+  be > 0mm (E805/E806) — `Length` is signed for placement offsets only;
+  a negative or zero extent produced schema-invalid IPC-2581 (the XSD's
+  nonNegativeDoubleType) and inverted KiCad rects (adversarial round).
+- **Stage-two migration is STARTED, not finished** — exactly as the RFC's
+  completion bar allows ("real, non-mechanical authoring work"). A starter
+  pad library (`std/pads.cohdl`) plus real KiCad-derived geometry for the
+  two 0402 chip footprints landed; both example boards now project them,
+  with the `.kicad_mod` outputs committed as goldens (netlist/BOM/lock
+  bytes unchanged). The remaining six std footprints stay as exempt
+  placeholders pending datasheet-derived authoring.
+- LSP (RFC-018 Tooling): hover on a pad placement shows the resolved
+  pad's shape/size/layer/plating (+drill); goto-definition works on pad
+  symbols in placements.
+- `fmt` canonical form: pad fields one per line in source order;
+  footprint body members (placements, courtyard, silkscreen_ref) one per
+  line in source order; `courtyard`/`silkscreen_ref` inline their fields
+  like same-line attribute blocks.
+
+Adversarial verification (same-day round, 5 attackers + 3-skeptic
+majority refutation per finding, 74 agents): 15 findings confirmed (3
+high), 8 refuted. All confirmed findings fixed pre-landing, each with a
+named regression in tests/footprint.rs: E807/projection skipped alt-entry
+footprints; the `::`→`__` artifact naming was not injective (two distinct
+footprints silently collapsed into one file, reported twice in `--json`,
+verdict still "pass" — now `::`→`-`); nameless `pad {`/`footprint {`
+recovery double-counted the brace and swallowed every following
+declaration plus a phantom unclosed-body error; an unclosed `courtyard {`
+stole the footprint's closer and produced a phantom E202 for a declared
+symbol (body loops now stop, without consuming, at top-level declaration
+keywords and report the unclosed opener); one field typo cascaded into
+5-8 phantom errors (sync is now paren-aware, field loops recover per
+field instead of bailing, `length_pair`/`length_tuple` report a missing
+`(` once); negative/zero extents passed and emitted schema-invalid XML;
+the two emitters computed the same geometry differently (f64 vs 6-decimal
+truncation) contradicting this ledger's own exactness claim; a circle
+courtyard projected in `.kicad_mod` but was silently dropped from
+IPC-2581; a courtyard-only footprint was misclassified as a placeholder;
+`footprint:` naming a pad fell through to E202 instead of the E205
+kind error; and E102/E105/top-level-list messages still described the
+pre-Length world. Refuted (attacker taste, not normative): tabular
+column alignment in fmt, duplicate-field last-wins (spec'd elsewhere),
+negative length_match tolerance (magnitude semantics not normative).
 
 ## External review round 3 (Codex, at f901cdf): dispositions
 

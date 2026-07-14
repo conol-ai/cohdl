@@ -2,12 +2,12 @@
 
 # Status
 
-v2 — updated 2026-07-13 to reflect the complete backlog (RFC-001 through RFC-013, all Accepted) and the real, independently-verified MVP implementation on conol-ai/cohdl's main branch. This replaces the prior version of this note, which described the discarded v1 implementation's status symbols against v2-named capabilities — an artifact of writing this map before any RFC had landed. Every capability below is now stated against what's actually been designed (an Accepted RFC exists) and, where checked, what's actually been implemented (verified against real repo state, not memory).
+v2 — updated 2026-07-13 to reflect the complete backlog (RFC-001 through RFC-014, all Accepted) and the real, independently-verified implementation on conol-ai/cohdl's main branch (131 passing tests, confirmed by direct inspection, not memory). This replaces the prior version of this note, which described the discarded v1 implementation's status symbols against v2-named capabilities — an artifact of writing this map before any RFC had landed.
 
 Status legend:
 
-- ✅ designed + implemented — Accepted RFC exists AND confirmed present/working in the real main branch (65 passing tests as of the last verification pass).
-- 📐 designed, implementation pending — Accepted RFC exists (note 6/7/10 all in sync) but the real repo does not yet implement it. A separate implementation-focused agent is currently catching the codebase up to the full RFC backlog.
+- ✅ designed + implemented — Accepted RFC exists AND confirmed present/working in the real main branch.
+- 📐 designed, implementation pending — Accepted RFC exists (note 6/7/10 all in sync) but the real repo does not yet implement it.
 - 🚪 reserved door, exercised — a seam note 2 pre-designed has now been formally opened via an Accepted RFC (layout constraints).
 - ⛔ deliberately cut — see Constitution non-goals or note 9's MVP scope line.
 
@@ -23,8 +23,6 @@ Status legend:
 | Nested `fn` calls (fn inside fn) | ◐ | **silently skipped** (`typeck.rs:1371`) — breaks composability principle |
 | MPN propagation to instances | ◐ | field exists, type checker never populates it → BOM `<UNSPECIFIED>` |
 | Intent annotations (`#[intent(...)]`) | 🚪 | reserved seam; metadata, never affects netlist |
-
-Coherence stakes unchanged from the redesign's own thesis: this layer does most of the correctness work that used to be spread across dormant DRC rules. All seven P0 RFCs plus RFC-008 are now real Layer-1 design — the gap remaining is purely implementation catch-up, not design.
 
 # Layer 2 — Correctness & verification (the oracle)
 
@@ -83,4 +81,4 @@ Coherence stakes unchanged from the redesign's own thesis: this layer does most 
 
 # How to read this map when proposing a feature
 
-Unchanged mechanism: a feature proposal states which layer(s) it touches and which verdict rung it strengthens. New as of this update: the map now distinguishes designed (RFC Accepted) from implemented (verified in real source) — a real, separate implementation-focused agent is currently working through the 📐 items to bring the actual conol-ai/cohdl repository up to the full, now-complete RFC-001–013 design. This design repository (notes 1–10) is fully specified; the remaining work is implementation catch-up, not further design — with one exception: RFC-013's layout-constraint vocabulary is explicitly flagged provisional and may need a follow-up RFC once a real partner integration is scoped (see note 8, GC-002's amendment).
+Unchanged mechanism: a feature proposal states which layer(s) it touches and which verdict rung it strengthens. The map distinguishes designed (RFC Accepted) from implemented (verified in real source) — a real, separate implementation-focused agent is currently working through the 📐 items to bring the actual conol-ai/cohdl repository up to the full RFC-001–014 design. This design repository (notes 1–10) is fully specified; the remaining work is implementation catch-up, not further design — with one exception: RFC-013's layout-constraint vocabulary is explicitly flagged provisional and may need a follow-up RFC once a real partner integration is scoped (see note 8, GC-002's amendment).

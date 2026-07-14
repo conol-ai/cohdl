@@ -438,10 +438,29 @@ Rules:
 - CoHDL does not verify that a length_match tolerance is actually met, or that a diff_pair is physically routed as one — it has no geometry to check against. The data is purely passed through to whatever partner tool consumes it.
 - The four constraint kinds are explicitly provisional — per GC-002's disclosed design debt, expected to be revisited once a real partner layout-tool integration is scoped. A future reshaping is anticipated, not a stability violation of this RFC.
 
+# Language Server (cohdl lsp)
+
+Accepted via RFC-014, see RFC-014: Language Server Protocol support + DR-020.
+
+cohdl lsp starts a JSON-RPC/stdio server for editor integration — a thin frontend over the exact same pipeline::check() the CLI already uses. No new diagnostic logic, no new checks.
+
+Capabilities:
+
+- textDocument/publishDiagnostics — the same diagnostics cohdl check --json reports for a file, pushed live on open/change/save. Guaranteed field-for-field identical to the CLI's --json output for the same input (mandatory equivalence test).
+- textDocument/hover — on an empty impl Trait for Device {} block, shows the resolved by-name matches (which device field satisfied which trait requirement) even though the source body is empty; on a pin, shows its resolved obligation kind and role.
+- textDocument/definition — a device/trait/fn/part name at any use site resolves to its declaration's span.
+- textDocument/references — invoked on a trait or device name in an impl statement, lists every matching impl in the currently-open project ("find all impls of this trait" / "find all impls for this device").
+
+Rules:
+
+- Every request re-runs the full pipeline from scratch — no incremental compilation (tracked separately as future work, not a blocking prerequisite).
+- The server depends on the lsp-types crate for the LSP spec's own message shapes — the project's first scoped exception to its otherwise hand-rolled, zero-external-dependency style. The JSON-RPC transport loop itself stays hand-rolled.
+- cohdl lsp introduces no new error codes, no new syntax, no new diagnostic content — it is purely a new transport/frontend for what RFC-001–013 already check.
+
 # Not yet specified
 
-The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have **no Accepted RFC yet**, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
+The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have no Accepted RFC yet, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
 
 - Everything else in the Conceptual Model (Part, Instance, Net, Module, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-13, RFC-001 through RFC-013 are all Accepted — every backlog item, including the previously-gated layout door. This section is now the shortest it has ever been.
+As of 2026-07-13, RFC-001 through RFC-014 are all Accepted.

@@ -551,3 +551,39 @@ Option 1 was rejected: layout constraints are neither emergent-across-the-connec
 The moment a real partner layout-tool integration is scoped — at that point, validate (and likely reshape) the four constraint kinds against the partner's actual schema needs, via a follow-up RFC extending this one, not a silent change to already-Accepted syntax.
 
 (Numbering note: DR-011 is the next open decision-record number in the DR track; it is unrelated to RFC-011 "Error-code registry," which used its own number in the RFC track — the same non-collision pattern already noted for DR-013/RFC-013 earlier in this backlog.)
+
+# DR-020: LSP support — a thin protocol server wrapping the existing pipeline, one scoped dependency exception
+
+## Context
+
+RFC-014 (note 6) closed a gap two of the project's own earlier Decision Records had already named as needed but never built: RFC-003's DR-013 explicitly flagged "LSP tooling must provide 'find all impls for this device' / 'find all impls of this trait' navigation, and must show the resolved by-name matches on hover for any empty impl block" — work deferred, not forgotten, at the time. With the MVP complete (RFC-001–013 implemented, 131 tests passing, real --json/fmt in place), this RFC picks that up as real Layer-4 tooling.
+
+## Options
+
+1. Hand-roll the entire LSP protocol (JSON-RPC transport and all LSP message data types) to preserve the project's zero-external-dependencies property exactly.
+2. A thin JSON-RPC/stdio server (cohdl lsp) wrapping the existing pipeline::check()/json modules unchanged — diagnostics via publishDiagnostics (direct re-projection of the already-existing JsonDiag shape), hover for resolved impl mappings and pin obligations, goto-def, and "find all impls" references — depending on the lsp-types crate (pure data types, no I/O) for the protocol's message shapes while keeping the transport loop hand-rolled (RFC-014's proposal).
+3. Ship diagnostics-only, defer hover/goto-def/references to a later RFC.
+4. Build incremental compilation first, then the LSP, so re-checks are fast from day one.
+
+## Decision
+
+Option 2. cohdl lsp is a new subcommand, a thin server that calls the exact same pipeline::check() the CLI already uses — zero new diagnostic logic. Diagnostics, hover (on empty impl blocks and pins), goto-def, and trait/device reference-finding are all in scope, since all four were either RFC-010's existing output or explicitly pre-named as needed by DR-013. The lsp-types crate is accepted as a scoped, justified dependency exception — the LSP spec's own type surface is large and externally versioned, unlike CoHDL's own small, fixed output formats the project has good reason to hand-roll precisely.
+
+## Rationale
+
+Option 1 was rejected: hand-rolling an external, independently-evolving protocol's entire type surface has real ongoing maintenance cost with no corresponding coherence benefit — unlike the project's own JSON/netlist formats (small, fixed, worth controlling precisely), the LSP spec isn't CoHDL's to design. Option 3 was rejected: DR-013 already flagged hover/references as needed, not speculative — deferring them again would mean a second RFC still not closing a gap the project identified as real. Option 4 was rejected as unnecessary sequencing: the existing pipeline already runs the full 131-test suite in ~0.04s, fast enough at current project scale; incremental compilation remains real future work (tracked in note 3) but isn't a blocking prerequisite.
+
+## Consequences
+
+- First scoped dependency exception in the project's history — Cargo.toml gains lsp-types; the JSON-RPC transport loop itself stays hand-rolled, consistent with existing style.
+- Mandatory equivalence test: the LSP's diagnostics must exactly match cohdl check --json's output for the same file, field-for-field — the same discipline RFC-010 established, extended to a second consumer of the same underlying Checked data.
+- Note 3's capability map LSP row updates from ⛔ (cut) to 📐 (designed, implementation pending).
+- A minimal editor-client launch snippet ships alongside the server as a usage example — not a full marketplace extension, which stays separate scope.
+
+## Revisit when
+
+If incremental compilation (already tracked separately) becomes necessary because real project sizes make full-recheck-per-edit noticeably slow — that's its own RFC, coordinated with this one's re-check trigger points, not a silent latency workaround bolted onto the LSP server itself.
+
+# Pending decision records (to be written as RFCs land)
+
+(none — the backlog through RFC-014 is fully recorded above.)

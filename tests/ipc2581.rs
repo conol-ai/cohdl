@@ -851,3 +851,174 @@ fn cli_emit_flag_matrix() {
     );
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+// ---------------------------------------------------------------------------
+// Fourth-review (2026-07-14) regressions.
+
+/// F7: the fidelity gate must actually check Component attributes and prove
+/// the semantic PinRef→Component reference the XSD keyref does NOT enforce.
+#[test]
+fn component_attributes_and_pinrefs_are_semantically_faithful() {
+    let b = build("frev", WITH_LAYOUT);
+    xsd_validate("frev", &b.xml);
+    let comps = blocks(&b.xml, "Component");
+    let refset: std::collections::BTreeSet<String> = comps
+        .iter()
+        .map(|(h, _)| attr(h, "refDes").unwrap())
+        .collect();
+    let packages: std::collections::BTreeSet<String> = elements(&b.xml, "Package")
+        .iter()
+        .map(|p| attr(p, "name").unwrap())
+        .collect();
+    for (head, body) in &comps {
+        // Every component carries a non-empty MPN (@part), a packageRef that
+        // resolves to a declared Package, and its COHDL_DEVICE attribute —
+        // mutating any of these must now fail a test (previously invisible).
+        assert!(
+            !attr(head, "part").unwrap().is_empty(),
+            "Component @part must be a real MPN:\n{}",
+            head
+        );
+        assert!(
+            packages.contains(&attr(head, "packageRef").unwrap()),
+            "@packageRef must resolve to a Package: {}",
+            attr(head, "packageRef").unwrap()
+        );
+        assert!(
+            body.contains("name=\"COHDL_DEVICE\""),
+            "each Component names its device"
+        );
+    }
+    // Every PinRef/@componentRef resolves to a real Component/@refDes. The
+    // vendored XSD's keyref binds LogicalNetPin (which we do not emit), not
+    // PinRef, so this invariant is the emitter's to guarantee and the
+    // test's to check (review F7).
+    for net in elements_multiline(&b.xml, "LogicalNet") {
+        for pr in elements(&net, "PinRef") {
+            let cref = attr(pr, "componentRef").unwrap();
+            assert!(
+                refset.contains(&cref),
+                "PinRef componentRef `{}` has no Component:\n{:?}",
+                cref,
+                refset
+            );
+        }
+    }
+}
+
+/// F5: two parts sharing an MPN under different manufacturers must both keep
+/// their identity — no vendor or value silently erased in CSV or XML.
+#[test]
+fn duplicate_mpn_across_manufacturers_keeps_both() {
+    let src = "\
+pub device Da { pins { A: 1 [passive] } spec { resistance: 1kohm } }
+pub device Db { pins { A: 1 [passive] } spec { resistance: 2kohm } }
+pub footprint TFP {}
+pub part PA: Da { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: TFP } }
+pub part PB: Db { primary { mfr: \"Beta\", mpn: \"SHARED\", footprint: TFP } }
+design B { inst a: PA  inst b: PB  net N: a.A, b.A }
+";
+    let b = build("dupmpn", src);
+    xsd_validate("dupmpn", &b.xml);
+    // Both manufacturers survive in the CSV.
+    assert!(b.bom.contains("Alpha"), "Alpha row:\n{}", b.bom);
+    assert!(b.bom.contains("Beta"), "Beta row (was dropped):\n{}", b.bom);
+    assert!(
+        b.bom.contains("1kohm") && b.bom.contains("2kohm"),
+        "both values:\n{}",
+        b.bom
+    );
+    // Two distinct AVL items, two enterprises.
+    assert_eq!(
+        blocks(&b.xml, "AvlItem").len(),
+        2,
+        "two AVL items:\n{}",
+        b.xml
+    );
+    let ents: Vec<String> = elements(&b.xml, "Enterprise")
+        .iter()
+        .map(|e| attr(e, "id").unwrap())
+        .collect();
+    assert!(ents.iter().any(|e| e.contains("Alpha")), "{:?}", ents);
+    assert!(ents.iter().any(|e| e.contains("Beta")), "{:?}", ents);
+}
+
+/// F3: XML-1.0-forbidden scalars beyond the C0 block (U+FFFE/U+FFFF) must be
+/// projected, and two manufacturers differing only in distinct control
+/// characters must not collapse to one Enterprise id (schema enterpriseKey).
+#[test]
+fn forbidden_scalars_projected_and_enterprise_ids_unique() {
+    // U+FFFE in a manufacturer name — previously slipped through esc() and
+    // produced a document xmllint rejects.
+    let src = format!(
+        "pub device D {{ pins {{ A: 1 [passive] }} }}
+pub footprint TFP {{}}
+pub part P: D {{ primary {{ mfr: \"Ac{}me\", mpn: \"M1\", footprint: TFP }} }}
+design B {{ inst a: P  net N: a.A }}",
+        '\u{FFFE}'
+    );
+    let b = build("fffe", &src);
+    xsd_validate("fffe", &b.xml); // must still validate
+
+    // Two manufacturers differing only in distinct C0 controls both project
+    // to `…\u{FFFD}`; the enterprise-id table must `_`-disambiguate them.
+    let src = format!(
+        "pub device Da {{ pins {{ A: 1 [passive] }} }}
+pub device Db {{ pins {{ A: 1 [passive] }} }}
+pub footprint TFP {{}}
+pub part PA: Da {{ primary {{ mfr: \"Ac{}me\", mpn: \"MA\", footprint: TFP }} }}
+pub part PB: Db {{ primary {{ mfr: \"Ac{}me\", mpn: \"MB\", footprint: TFP }} }}
+design B {{ inst a: PA  inst b: PB  net N: a.A, b.A }}",
+        '\u{8}', '\u{B}'
+    );
+    let b = build("c0", &src);
+    xsd_validate("c0", &b.xml); // duplicate enterpriseKey would fail here
+    let ents: Vec<String> = elements(&b.xml, "Enterprise")
+        .iter()
+        .map(|e| attr(e, "id").unwrap())
+        .collect();
+    let uniq: std::collections::BTreeSet<&String> = ents.iter().collect();
+    assert_eq!(
+        ents.len(),
+        uniq.len(),
+        "enterprise ids must be unique: {:?}",
+        ents
+    );
+}
+
+/// F6: the review's designator-divergence reproduction (`R<1` becoming `R_1`
+/// in the XML alone) is UNREACHABLE at HEAD — E804 rejects any designator
+/// that is not `[A-Z]+[0-9]+` at the source, so `<`/`>` never enters a
+/// designator to diverge in the first place (the review's "make the source
+/// rule reject them" resolution, already in place). `sanitize` was
+/// nonetheless widened to the true XSD charset (`<`/`>` are legal in both
+/// `qualifiedNameType` and `shortName`) as defense-in-depth; this test pins
+/// the source-side guarantee that makes the divergence impossible.
+#[test]
+fn designator_special_chars_are_rejected_at_source() {
+    let files = vec![(
+        "d.cohdl".to_string(),
+        "pub device R { pins { A: 1 [passive] } }
+pub footprint TFP {}
+pub part RP: R { primary { mfr: \"Y\", mpn: \"M1\", footprint: TFP } }
+design B { #[designator(\"R<1\")] inst a: RP  net N: a.A }
+"
+        .to_string(),
+    )];
+    let mut checked = check_files(&files, None).expect("selection");
+    checked.diags.sort(&checked.sm);
+    let r = checked.diags.render(&checked.sm);
+    assert!(
+        r.contains("E804") && r.contains("not a valid designator"),
+        "a designator with `<` must be rejected at the source:\n{}",
+        r
+    );
+}
+
+/// Helper: container elements whose body spans multiple lines (LogicalNet).
+fn elements_multiline(xml: &str, tag: &str) -> Vec<String> {
+    blocks(xml, tag)
+        .into_iter()
+        .map(|(h, b)| format!("{}{}", h, b))
+        .collect()
+}

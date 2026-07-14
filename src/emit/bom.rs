@@ -12,8 +12,13 @@ use crate::resolve::World;
 use std::collections::BTreeMap;
 
 pub fn emit_bom_csv(world: &World, ir: &DesignIr) -> String {
-    // MPN → (refdes list, value, manufacturer).
-    let mut groups: BTreeMap<String, (Vec<String>, String, String)> = BTreeMap::new();
+    // (MPN, manufacturer) → (refdes list, value). Keyed by both because an
+    // MPN is not unique without its manufacturer — two parts may share an
+    // MPN under different manufacturers, and keying by MPN alone dropped the
+    // second manufacturer's row entirely (review F5). MPN stays the primary
+    // sort key; the IPC-2581 emitter uses the identical key so the two
+    // artifacts always agree.
+    let mut groups: BTreeMap<(String, String), (Vec<String>, String)> = BTreeMap::new();
 
     for inst in ir.instances.values() {
         let refdes = inst.designator.clone().unwrap_or_else(|| "?".to_string());
@@ -28,13 +33,13 @@ pub fn emit_bom_csv(world: &World, ir: &DesignIr) -> String {
             .unwrap_or_default();
         let value = principal_value(inst);
         let entry = groups
-            .entry(mpn)
-            .or_insert_with(|| (Vec::new(), value.clone(), mfr));
+            .entry((mpn, mfr))
+            .or_insert_with(|| (Vec::new(), value.clone()));
         entry.0.push(refdes);
     }
 
     let mut out = String::from("RefDes,Value,MPN,Manufacturer,Qty\n");
-    for (mpn, (mut refdes, value, mfr)) in groups {
+    for ((mpn, mfr), (mut refdes, value)) in groups {
         refdes.sort_by_key(|d| crate::emit::designator_sort_key(d));
         out.push_str(&format!(
             "{},{},{},{},{}\n",

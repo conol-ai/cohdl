@@ -81,7 +81,29 @@ pub fn run_stdio() -> Result<LspExit, String> {
             }
             Err(io) => return Err(io), // genuine I/O failure
         };
-        let method = msg.get("method").and_then(Value::as_str).unwrap_or("");
+        // JSON-RPC 2.0 envelope validation (review F10): a frame must carry
+        // `"jsonrpc": "2.0"` and a string `method`. A malformed request (has
+        // an id) gets InvalidRequest; a malformed notification is dropped.
+        let has_id = msg.get("id").is_some_and(|v| !v.is_null());
+        let version_ok = msg.get("jsonrpc").and_then(Value::as_str) == Some("2.0");
+        let method_val = msg.get("method").and_then(Value::as_str);
+        if !version_ok || method_val.is_none() {
+            if has_id {
+                write_message(
+                    &mut writer,
+                    &json!({
+                        "jsonrpc": "2.0",
+                        "id": msg.get("id").cloned().unwrap_or(Value::Null),
+                        "error": {
+                            "code": -32600,
+                            "message": "Invalid Request: expected jsonrpc \"2.0\" and a string method",
+                        },
+                    }),
+                )?;
+            }
+            continue;
+        }
+        let method = method_val.unwrap_or("");
         if method == "exit" {
             // LSP: exit after shutdown is clean; exit without it is not.
             return if matches!(server.state, Lifecycle::ShutDown) {
@@ -244,6 +266,10 @@ impl Server {
                         "invalid request: initialize may only be sent once",
                     ));
                 }
+                // `initialize` is a REQUEST — bind its id BEFORE mutating
+                // lifecycle state, so an `initialize` NOTIFICATION (no id)
+                // cannot silently consume initialization (review F10).
+                let id = id?;
                 self.state = Lifecycle::Running;
                 // Capability negotiation: only attach relatedInformation when
                 // the client advertised support for it.
@@ -252,7 +278,7 @@ impl Server {
                     .as_bool()
                     == Some(true);
                 Some(respond(
-                    id?,
+                    id,
                     json!({
                         "capabilities": {
                             // FULL sync — didChange carries the whole text; save
@@ -268,8 +294,11 @@ impl Server {
             }
             "initialized" => None,
             "shutdown" => {
+                // Also a REQUEST — a `shutdown` notification must not shut the
+                // server down (review F10). Bind the id before mutating state.
+                let id = id?;
                 self.state = Lifecycle::ShutDown;
-                Some(respond(id?, Value::Null))
+                Some(respond(id, Value::Null))
             }
             "textDocument/didOpen" => {
                 let uri = params["textDocument"]["uri"].as_str()?.to_string();
@@ -375,10 +404,13 @@ fn invalid_params(id: Value, method: &str) -> Value {
 /// The (uri, line, character) triple every positional request needs; `None`
 /// means the params are malformed (InvalidParams, not a null result).
 fn position_params(params: &Value) -> Option<(&str, u32, u32)> {
+    // Checked conversion (review F10): a line/character above `u32::MAX`
+    // must be InvalidParams (None), never a silent `as u32` wrap that lands
+    // on a valid in-range position.
     Some((
         params["textDocument"]["uri"].as_str()?,
-        params["position"]["line"].as_u64()? as u32,
-        params["position"]["character"].as_u64()? as u32,
+        u32::try_from(params["position"]["line"].as_u64()?).ok()?,
+        u32::try_from(params["position"]["character"].as_u64()?).ok()?,
     ))
 }
 
@@ -940,17 +972,29 @@ fn pin_ref_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Ho
             }
             // An instance in this body: its type, through parts, to a device.
             let inst_ty = body.iter().find_map(|s| match s {
-                Stmt::Inst(i) if i.name.name == pr.base.name => Some(i.ty.name.name.clone()),
+                Stmt::Inst(i) if i.name.name == pr.base.name => {
+                    Some((i.ty.name.name.clone(), i.ty.variant.clone()))
+                }
                 _ => None,
             });
-            if let Some(ty) = inst_ty {
-                let dev_name = world
-                    .parts
-                    .get(&ty)
-                    .map(|p| p.device.name.name.clone())
-                    .unwrap_or(ty);
+            if let Some((ty, inst_variant)) = inst_ty {
+                // Resolve BOTH the device and the SELECTED structural variant
+                // (review F9): a part pins its own variant; a direct device
+                // instantiation carries a `[VARIANT]` selector. Scanning the
+                // first matching pin block regardless of variant reported the
+                // wrong physical pad/role for any multi-variant device.
+                let part = world.parts.get(&ty);
+                let dev_name = part.map(|p| p.device.name.name.clone()).unwrap_or(ty);
+                let variant: Option<String> = match part {
+                    Some(p) => p.device.variant.as_ref().map(|v| v.name.clone()),
+                    None => inst_variant.as_ref().map(|v| v.name.clone()),
+                };
                 if let Some(dev) = world.devices.get(&dev_name) {
-                    for pb in &dev.pin_blocks {
+                    if let Some(pb) = dev
+                        .pin_blocks
+                        .iter()
+                        .find(|b| b.variant.as_ref().map(|v| v.name.as_str()) == variant.as_deref())
+                    {
                         for pin in &pb.pins {
                             if pin.name.name == pin_id.name {
                                 return Some(hover_markdown(
@@ -1056,7 +1100,17 @@ fn unit_literal_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<l
                 .find_map(|p| arg_hits(&p.device.generic_args))
         })
         .or_else(|| world.designs.values().find_map(|d| body_hits(&d.body)))
-        .or_else(|| world.fns.values().find_map(|f| body_hits(&f.body)))?;
+        .or_else(|| world.fns.values().find_map(|f| body_hits(&f.body)))
+        // A function's own generic defaults (`fn f<V: Voltage = 3.3V>`) are
+        // unit literals too — the device path scanned `dev.generics` but the
+        // fn path never scanned `f.generics` (review F11).
+        .or_else(|| {
+            world.fns.values().find_map(|f| {
+                f.generics
+                    .iter()
+                    .find_map(|g| g.default.as_ref().and_then(|(v, s)| check(v, *s)))
+            })
+        })?;
     Some(hover_markdown(text, span_to_range(analysis, span)))
 }
 
@@ -1137,7 +1191,9 @@ fn uri_to_path(uri: &str) -> Option<PathBuf> {
     let rest = uri.strip_prefix("file://")?;
     let path = match rest.find('/') {
         Some(0) => rest,
-        Some(i) if &rest[..i] == "localhost" => &rest[i..],
+        // URI hosts are case-insensitive (RFC 3986 §3.2.2) — `LOCALHOST`
+        // and `Localhost` are the same local authority (review F10).
+        Some(i) if rest[..i].eq_ignore_ascii_case("localhost") => &rest[i..],
         _ => return None,
     };
     let p = PathBuf::from(percent_decode(path));

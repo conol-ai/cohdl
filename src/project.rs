@@ -71,6 +71,8 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
     let manifest = parse_manifest(&manifest_text)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     reject_std_package(&manifest.name)?;
+    valid_package_name(&manifest.name)
+        .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
 
     let src_dir = path.join("src");
     if !src_dir.is_dir() {
@@ -102,6 +104,14 @@ pub fn load_std_files(std_dir: Option<&Path>) -> Option<LoadedFiles> {
     let mut abs = Vec::new();
     if let Some(dir) = std_dir {
         collect_cohdl_files(dir, dir, "std", &mut files, &mut abs).ok()?;
+        // A std directory that exists but holds no `.cohdl` files is the same
+        // error `load_project` rejects — NOT a silent std-less project. The
+        // LSP phantom-buffer fallback relied on the old always-`Some` return
+        // to publish a false-clean `[]` (review F8); return `None` so the
+        // caller surfaces "cannot load the std library" instead.
+        if files.is_empty() {
+            return None;
+        }
     }
     Some((files, abs))
 }
@@ -151,6 +161,28 @@ fn reject_std_package(name: &str) -> Result<(), String> {
         ));
     }
     Ok(())
+}
+
+/// The package name becomes the basename of every emitted artifact
+/// (`<name>.net`, `<name>.xml`, …) and the root of every module path, so it
+/// must be a plain identifier-shaped token. Rejecting path separators,
+/// `.`/`..`, and absolute markers closes a directory-traversal hole: a
+/// manifest `name = "../escaped"` otherwise wrote — and the stale-artifact
+/// cleanup deleted — files outside the output directory (review F4).
+pub fn valid_package_name(name: &str) -> Result<(), String> {
+    let ok = !name.is_empty()
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        && !name.starts_with('-');
+    if ok {
+        Ok(())
+    } else {
+        Err(format!(
+            "package name `{}` is not a valid identifier — use letters, digits, `_`, and `-` (no path separators, `.`, or `..`); it becomes both the module root and the output-file basename",
+            name
+        ))
+    }
 }
 
 struct Manifest {

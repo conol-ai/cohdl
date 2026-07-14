@@ -1,5 +1,8 @@
 [
   {
+    "_historical_snapshot": "This file is the 2026-07-13 claim-by-claim audit of RFC-001..007 + the Constitution, frozen as of that date. It is NOT continuously updated. Where it disagrees with docs/compliance-report.md, the report is authoritative. Known drift (review F12.2): the D003 evidence/violation entries below describe the pre-2026-07-14 role-AGNOSTIC member-count predicate; D003 was made driver-role-AWARE on 2026-07-14 (a deviation pending note-side amendment, see the report's 'Retained, documented deviations'). Treat every D003 entry here as historical."
+  },
+  {
     "document": "docs/design/01-product-constitution.md (audited against the CoHDL v2 implementation at /Users/tony/projects/conol/cohdl, with docs/provisional-syntax.md and docs/design/09-mvp-definition.md as scoping context)",
     "verified_claims": [
       {

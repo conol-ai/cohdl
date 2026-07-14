@@ -127,6 +127,41 @@ fn strip_comments(text: &str) -> String {
                 continue;
             }
         }
+        // A Rust RAW string `r#*"…"#*` — its body is inert text, never code,
+        // and may itself contain `"` and `Diagnostic::error("E999")` (review
+        // F12.1). Recognize it only at a token boundary (the `r` in `error`
+        // or `for` is not a prefix) and blank the whole thing so no phantom
+        // call site is counted.
+        if c == 'r'
+            && !out
+                .chars()
+                .last()
+                .is_some_and(|p| p.is_alphanumeric() || p == '_')
+        {
+            let mut j = i + 1;
+            let mut hashes = 0;
+            while chars.get(j) == Some(&'#') {
+                hashes += 1;
+                j += 1;
+            }
+            if chars.get(j) == Some(&'"') {
+                // Scan to the closing `"` followed by `hashes` `#`s.
+                j += 1;
+                let close: Vec<char> = std::iter::once('"')
+                    .chain(std::iter::repeat_n('#', hashes))
+                    .collect();
+                while j < chars.len() {
+                    if chars[j] == '"' && chars[j + 1..].starts_with(&close[1..]) {
+                        j += close.len();
+                        break;
+                    }
+                    j += 1;
+                }
+                out.push(' '); // the whole raw string becomes inert whitespace
+                i = j;
+                continue;
+            }
+        }
         if c == '"' {
             // Copy the string literal verbatim, honoring escapes.
             out.push('"');
@@ -315,5 +350,29 @@ fn no_duplicate_registry_rows() {
         dups.is_empty(),
         "a code is issued once and never repurposed — duplicate registry rows: {:?}",
         dups
+    );
+}
+
+// Review F12.1: a Rust RAW string is inert text, not code — a
+// `Diagnostic::error("E999", …)` written inside `r#"…"#` must NOT be counted
+// as a live call site (the comment stripper previously only understood
+// ordinary `"…"` strings, so a raw string could inject a phantom code).
+#[test]
+fn raw_strings_are_not_call_sites() {
+    let sample = r####"
+        let normal = Diagnostic::error("E101", span, "real");
+        let _doc = r#"see Diagnostic::error("E999", span, "not code")"#;
+        let _nested = r##"a raw "quote" and Diagnostic::error("E998", ...)"##;
+    "####;
+    let sites = call_sites_in(sample);
+    assert!(
+        sites.contains("E101"),
+        "the real call site is found: {:?}",
+        sites
+    );
+    assert!(
+        !sites.contains("E999") && !sites.contains("E998"),
+        "raw-string bodies must not count as call sites: {:?}",
+        sites
     );
 }

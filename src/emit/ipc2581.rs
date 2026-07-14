@@ -1,10 +1,15 @@
 //! RFC-015: IPC-2581 (revision B1) emitter — the partner-handoff artifact.
 //!
 //! A *partially-specified* IPC-2581 document: logical design complete
-//! (netlist, components, resolved specs, RFC-013 layout constraints),
-//! physical layout deliberately minimal (no placement, no routing, no board
-//! outline, no real footprint geometry — CoHDL does not own any of those
-//! today). The document says so, visibly and machine-readably: the
+//! (netlist, components, resolved specs, RFC-013 layout constraints) and,
+//! since RFC-018, real footprint geometry (per-pad `Package/Pin` + courtyard
+//! `Outline`) for pad-bearing footprints — but physical layout is still
+//! deliberately minimal: no component PLACEMENT (every `Component/Location`
+//! is `(0,0)`), no routing, no board outline/`Profile`, no stackup. It is
+//! therefore NOT yet a complete Quilter starter board (which needs a board
+//! outline and placed footprints); the real-partner gate is open (review
+//! F1, docs/compliance-report.md). The document says so, visibly and
+//! machine-readably: the
 //! `FunctionMode` comment and a `COHDL_COMPLETENESS` attribute both carry
 //! the `logical-complete,physical-minimal` marker (DR-021 calls this the
 //! single most load-bearing design decision of the RFC — the output must
@@ -41,12 +46,17 @@ const EPOCH: &str = "1970-01-01T00:00:00Z";
 pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String {
     let insts = sorted_instances(ir);
     let bom = bom_groups(world, ir);
+    let enterprises = enterprise_map(&bom);
     let packages = package_table(world, ir);
-    // Designators become the XSD-enforced componentKey — sanitize them ONCE,
-    // collision-free, and use the same spelling everywhere a refdes appears
-    // (Component/@refDes, RefDes/@name, PinRef/@componentRef); the schema's
-    // keyrefs require exact agreement (adversarial finding: two prefixes
-    // sanitizing identically produced a duplicate key).
+    // Designators become the componentKey — sanitize them ONCE, collision-
+    // free, and use the same spelling everywhere a refdes appears
+    // (Component/@refDes, RefDes/@name, PinRef/@componentRef). NOTE (review
+    // F7): the vendored B1 schema's `componentKeyRef` keyref binds
+    // `LogicalNetPin/@componentRef` and `RefDes/@name` to `componentKey`,
+    // NOT `PinRef/@componentRef` — so PinRef agreement is NOT XSD-enforced.
+    // We route every refdes through this one table so the emitter guarantees
+    // it, and tests/ipc2581.rs asserts it semantically rather than relying
+    // on the schema.
     let refdes_map = refdes_table(ir);
     let name = sanitize(package_name, false);
     let step = sanitize(&ir.name, false);
@@ -76,12 +86,8 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     out.push_str("  <LogisticHeader>\n");
     out.push_str("    <Role id=\"Owner\" roleFunction=\"OWNER\"/>\n");
     out.push_str("    <Enterprise id=\"cohdl\" code=\"NONE\"/>\n");
-    for mfr in manufacturers(&bom) {
-        let _ = writeln!(
-            out,
-            "    <Enterprise id=\"{}\" code=\"NONE\"/>",
-            esc(&enterprise_id(&mfr))
-        );
+    for id in enterprises.values() {
+        let _ = writeln!(out, "    <Enterprise id=\"{}\" code=\"NONE\"/>", esc(id));
     }
     out.push_str("    <Person name=\"cohdl\" enterpriseRef=\"cohdl\" roleRef=\"Owner\"/>\n");
     out.push_str("  </LogisticHeader>\n");
@@ -380,7 +386,10 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             let _ = writeln!(
                 out,
                 "        <AvlVendor enterpriseRef=\"{}\"/>",
-                esc(&enterprise_id(&g.mfr))
+                esc(enterprises
+                    .get(&g.mfr)
+                    .map(String::as_str)
+                    .unwrap_or("cohdl"))
             );
             out.push_str("      </AvlVmpn>\n");
             out.push_str("    </AvlItem>\n");
@@ -457,24 +466,30 @@ struct BomGroup {
     refdes: Vec<(String, String)>,
 }
 
-/// Accumulator per MPN: (value, manufacturer, refdes+footprint list).
-type GroupAcc = (String, String, Vec<(String, String)>);
+/// Accumulator per (MPN, manufacturer): (value, refdes+footprint list).
+type GroupAcc = (String, Vec<(String, String)>);
 
 fn bom_groups(world: &World, ir: &DesignIr) -> Vec<BomGroup> {
-    let mut groups: BTreeMap<String, GroupAcc> = BTreeMap::new();
+    // Keyed by (MPN, manufacturer), NOT MPN alone: an MPN is not globally
+    // unique without its manufacturer, and the language permits two parts
+    // that share an MPN under different manufacturers. Keying by MPN alone
+    // silently dropped the second manufacturer's identity and value from
+    // both the CSV and the XML (review F5). MPN stays the primary sort key
+    // (BOM readability); manufacturer only breaks genuine ties.
+    let mut groups: BTreeMap<(String, String), GroupAcc> = BTreeMap::new();
     for inst in ir.instances.values() {
         let refdes = inst.designator.clone().unwrap_or_else(|| "?".to_string());
         let (mpn, mfr, footprint) = part_fields(world, inst);
         let value = principal_value(inst);
         groups
-            .entry(mpn)
-            .or_insert_with(|| (value, mfr, Vec::new()))
-            .2
+            .entry((mpn, mfr))
+            .or_insert_with(|| (value, Vec::new()))
+            .1
             .push((refdes, footprint));
     }
     let mut used = BTreeSet::new();
     let mut out = Vec::new();
-    for (mpn, (value, mfr, mut refdes)) in groups {
+    for ((mpn, mfr), (value, mut refdes)) in groups {
         refdes.sort_by_key(|(d, _)| crate::emit::designator_sort_key(d));
         let mut key = sanitize(&mpn, false);
         while !used.insert(key.clone()) {
@@ -643,11 +658,60 @@ fn esc(s: &str) -> String {
             '\t' => out.push_str("&#9;"),
             '\n' => out.push_str("&#10;"),
             '\r' => out.push_str("&#13;"),
-            '\u{0}'..='\u{1F}' => out.push('\u{FFFD}'),
+            // Every scalar XML 1.0 forbids OUTRIGHT (illegal even as a
+            // character reference) is replaced with U+FFFD. This is the
+            // full `Char` predicate, not just C0: U+FFFE/U+FFFF are equally
+            // forbidden and previously slipped through the catch-all
+            // (review F3), yielding a well-formed-looking build that
+            // `xmllint` rejects. Disclosed lossy projection (docs/ipc2581.md).
+            c if !xml_char_ok(c) => out.push('\u{FFFD}'),
             _ => out.push(c),
         }
     }
     out
+}
+
+/// The XML 1.0 `Char` production (§2.2): tab/LF/CR, U+0020–U+D7FF,
+/// U+E000–U+FFFD, U+10000–U+10FFFF. Surrogates cannot be a Rust `char`;
+/// U+FFFE, U+FFFF, and the C0 controls other than tab/LF/CR are the
+/// reachable exclusions.
+fn xml_char_ok(c: char) -> bool {
+    matches!(c,
+        '\u{9}' | '\u{A}' | '\u{D}'
+        | '\u{20}'..='\u{D7FF}'
+        | '\u{E000}'..='\u{FFFD}'
+        | '\u{10000}'..='\u{10FFFF}')
+}
+
+/// The lossy char projection `esc` applies (forbidden scalar → U+FFFD),
+/// WITHOUT the XML entity escaping — the key on which post-projection
+/// collisions must be resolved. Two manufacturer strings differing only in
+/// distinct forbidden control characters both project here to the same
+/// bytes, so an id/key table built over this value can `_`-disambiguate
+/// them before they reach the schema as duplicate keys (review F3).
+fn project_forbidden(s: &str) -> String {
+    s.chars()
+        .map(|c| if xml_char_ok(c) { c } else { '\u{FFFD}' })
+        .collect()
+}
+
+/// Raw manufacturer name → its collision-free `Enterprise/@id`. Built once
+/// over the sorted manufacturer set and used for both the `<Enterprise>`
+/// declarations and every `AvlVendor/@enterpriseRef`, so the two always
+/// agree and no two manufacturers ever share an id (the schema's
+/// `enterpriseKey` forbids duplicate ids — review F3).
+fn enterprise_map(bom: &[BomGroup]) -> BTreeMap<String, String> {
+    let mut used = BTreeSet::new();
+    used.insert("cohdl".to_string()); // the fixed owner Enterprise id
+    let mut table = BTreeMap::new();
+    for mfr in manufacturers(bom) {
+        let mut id = project_forbidden(&enterprise_id(&mfr));
+        while !used.insert(id.clone()) {
+            id.push('_');
+        }
+        table.insert(mfr, id);
+    }
+    table
 }
 
 /// Restrict a name to the XSD's identifier charsets: `qualifiedNameType`
@@ -655,14 +719,19 @@ fn esc(s: &str) -> String {
 /// empty input becomes `_` (the patterns allow empty, but an empty key/ref
 /// is useless to a consumer).
 fn sanitize(s: &str, allow_colon: bool) -> String {
-    let mut out: String = s
-        .chars()
-        .map(|c| match c {
-            'a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '-' | '.' | '+' => c,
-            ':' if allow_colon => c,
-            _ => '_',
-        })
-        .collect();
+    // The vendored-XSD character classes (review F6): both `qualifiedNameType`
+    // and `shortName` allow `<` and `>`, which the old invented set stripped
+    // — diverging the XML refdes (`R<1` → `R_1`) from the `.net`/CSV. Colon
+    // is qualifiedNameType-only. `shortName` also allows `#`/`/`, but the BOM
+    // `key` is emitted in BOTH a shortName slot (`OEMDesignNumber`) and a
+    // qualifiedNameType slot (`AvlMpn/@name`), so those two are deliberately
+    // NOT admitted here — the intersection is what is always safe.
+    let ok = |c: char| match c {
+        'a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '-' | '.' | '+' | '<' | '>' => true,
+        ':' => allow_colon,
+        _ => false,
+    };
+    let mut out: String = s.chars().map(|c| if ok(c) { c } else { '_' }).collect();
     if out.is_empty() {
         out.push('_');
     }

@@ -1382,3 +1382,179 @@ pub footprint ZzFpR {
     );
     lsp.shutdown();
 }
+
+// ---------------------------------------------------------------------------
+// Fourth-review (2026-07-14) LSP regressions.
+
+// F10: an `initialize` NOTIFICATION (no id) must NOT consume initialization —
+// lifecycle state may change only for a real request. If it had advanced to
+// Running, a subsequent `shutdown` request would succeed; it must instead hit
+// the not-initialized gate.
+#[test]
+fn initialize_notification_does_not_consume_lifecycle() {
+    let mut lsp = Lsp::spawn();
+    lsp.notify("initialize", json!({ "capabilities": {} })); // no id: a notification
+    let resp = lsp.request_full("shutdown", json!({}));
+    assert_eq!(
+        resp["error"]["code"].as_i64(),
+        Some(-32002),
+        "server must still be uninitialized:\n{}",
+        resp
+    );
+    lsp.child.kill().ok();
+}
+
+// F10: a malformed JSON-RPC envelope (wrong version) with an id gets
+// InvalidRequest; the server does not dispatch it.
+#[test]
+fn bad_jsonrpc_envelope_is_invalid_request() {
+    let mut lsp = Lsp::spawn();
+    lsp.send(&json!({ "jsonrpc": "1.0", "id": 4242, "method": "initialize", "params": {} }));
+    let resp = loop {
+        let m = lsp.read_message();
+        if m.get("id").and_then(Value::as_i64) == Some(4242) {
+            break m;
+        }
+    };
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+    lsp.child.kill().ok();
+}
+
+// F10: an out-of-`u32`-range position must be InvalidParams, never a silent
+// `as u32` wrap onto a valid in-range position.
+#[test]
+fn out_of_range_position_is_invalid_params() {
+    let src =
+        "pub device D { pins { A: 1 [passive] } }\ndesign B {\n    inst a: D\n    net N: a.A\n}\n";
+    let (_p, uri, text) = fixture("oob.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let resp = lsp.request_full(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 5_000_000_000u64, "character": 0 } }),
+    );
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32602), "{}", resp);
+    lsp.shutdown();
+}
+
+// F8: a std directory that exists but is EMPTY plus a phantom (not-on-disk)
+// buffer must surface a window/showMessage, never a false-clean empty
+// publishDiagnostics.
+#[test]
+fn empty_std_with_phantom_buffer_shows_message() {
+    let empty = std::env::temp_dir().join(format!("cohdl-lsp-emptystd-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&empty);
+    std::fs::create_dir_all(&empty).unwrap();
+    let mut lsp = Lsp::spawn_with_std(&empty);
+    lsp.request(
+        "initialize",
+        json!({ "capabilities": { "textDocument": { "publishDiagnostics": { "relatedInformation": true } } } }),
+    );
+    lsp.notify("initialized", json!({}));
+    // A buffer at a path with no cohdl.toml and not on disk (phantom).
+    let phantom = empty.join("ghost.cohdl");
+    let uri = format!("file://{}", phantom.display());
+    lsp.notify(
+        "textDocument/didOpen",
+        json!({ "textDocument": { "uri": uri, "languageId": "cohdl", "version": 1,
+                 "text": "pub device D { pins { A: 1 [passive] } }\ndesign B { inst a: D  net N: a.A }\n" } }),
+    );
+    let mut saw_message = false;
+    for m in lsp.drain() {
+        if m.get("method").and_then(Value::as_str) == Some("window/showMessage") {
+            saw_message = true;
+        }
+        assert_ne!(
+            m.get("method").and_then(Value::as_str),
+            Some("textDocument/publishDiagnostics"),
+            "must NOT publish a (false-clean) diagnostic set with no std:\n{}",
+            m
+        );
+    }
+    assert!(
+        saw_message,
+        "an empty std must produce a window/showMessage"
+    );
+    lsp.child.kill().ok();
+    let _ = std::fs::remove_dir_all(&empty);
+}
+
+// F9: pin use-site hover must reflect the SELECTED structural variant — a
+// part bound to one variant must not show another variant's physical pad.
+#[test]
+fn pin_hover_respects_selected_variant() {
+    let src = "\
+pub device ZzVarDev {
+    variants { QFN, DIP }
+    pins[QFN] { required SIG: 7 [passive] }
+    pins[DIP] { required SIG: 2 [passive] }
+}
+pub footprint TFP {}
+pub part ZzVarDIP: ZzVarDev[DIP] { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }
+design ZzVarB {
+    inst u: ZzVarDIP
+    net N: u.SIG
+}
+";
+    let (_p, uri, text) = fixture("varhover.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let line = src
+        .lines()
+        .position(|l| l.contains("net N: u.SIG"))
+        .unwrap() as u64;
+    let col = src.lines().nth(line as usize).unwrap().find("SIG").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let md = hover["contents"]["value"].as_str().unwrap_or("");
+    assert!(md.contains("pads: 2"), "DIP variant → pad 2, got:\n{}", md);
+    assert!(
+        !md.contains("pads: 7"),
+        "must NOT show the QFN pad:\n{}",
+        md
+    );
+    lsp.shutdown();
+}
+
+// F11: hover on a function's own generic-parameter DEFAULT unit literal
+// (`fn f<V: Voltage = 3.3V>`) must work — the device path scanned generics
+// but the fn path did not.
+#[test]
+fn hover_on_fn_generic_default_literal() {
+    let src = "\
+pub device Cap { pins { A: 1 [passive], B: 2 [passive] } spec { voltage_rating: Voltage } }
+pub footprint TFP {}
+pub part C1: Cap { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }
+pub fn rail<V: Voltage = 3.3V>(a: Pin, b: Pin) {
+    inst c: C1<V>
+    net _: c.A, a
+    net _: c.B, b
+}
+";
+    let (_p, uri, text) = fixture("fngen.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let line = src.lines().position(|l| l.contains("fn rail")).unwrap() as u64;
+    let col = src
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("3.3V")
+        .unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col + 1 } }),
+    );
+    let md = hover["contents"]["value"].as_str().unwrap_or("");
+    assert!(
+        md.contains("Voltage literal") && md.contains("3.3V"),
+        "fn generic default must hover:\n{}",
+        md
+    );
+    lsp.shutdown();
+}

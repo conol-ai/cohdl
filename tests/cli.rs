@@ -371,3 +371,116 @@ fn unicode_omega_full_pipeline_recovery() {
     assert!(stdout.contains("\"code\": \"E401\""), "{}", stdout);
     let _ = std::fs::remove_file(&tmp);
 }
+
+// ---------------------------------------------------------------------------
+// Fourth-review (2026-07-14) CLI regressions.
+
+/// F4: a build WITHOUT `--emit ipc2581` must not delete a user-owned file
+/// that merely shares the `<name>.xml` path — only a document CoHDL wrote
+/// (identified by its completeness marker) is stale output.
+#[test]
+fn build_leaves_a_foreign_xml_untouched() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r4own-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, WITH_LAYOUT);
+    let out = tmp.join("out");
+    std::fs::create_dir_all(&out).unwrap();
+    // A user's own file at the exact stale-artifact path.
+    let foreign = out.join("t.xml");
+    std::fs::write(&foreign, "<my-own-file/>\n").unwrap();
+    let status = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .status()
+        .unwrap();
+    assert!(status.success());
+    assert_eq!(
+        std::fs::read_to_string(&foreign).unwrap(),
+        "<my-own-file/>\n",
+        "a foreign xml must survive a no-emit build"
+    );
+    // A genuine stale CoHDL document (carrying the marker) IS removed.
+    cohdl()
+        .args([
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--emit",
+            "ipc2581",
+        ])
+        .status()
+        .unwrap();
+    assert!(foreign.exists(), "our real xml exists after --emit");
+    // Overwrite with a genuine cohdl doc, then a no-emit build removes it.
+    assert!(std::fs::read_to_string(&foreign)
+        .unwrap()
+        .contains("logical-complete,physical-minimal"));
+    cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .status()
+        .unwrap();
+    assert!(!foreign.exists(), "a marked stale doc is removed");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+/// F4: a manifest package name that is not a safe basename (path separators,
+/// `..`) must be rejected — otherwise artifact writes/deletes escape `out/`.
+#[test]
+fn traversal_package_name_is_rejected() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r4esc-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    std::fs::create_dir_all(tmp.join("src")).unwrap();
+    std::fs::write(
+        tmp.join("cohdl.toml"),
+        "[package]\nname = \"../escaped\"\n[design]\ntop = \"B\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        tmp.join("src/main.cohdl"),
+        "pub device D { pins { A: 1 [passive] } }\ndesign B { inst a: D  net N: a.A }\n",
+    )
+    .unwrap();
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2), "traversal name must be exit 2");
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("not a valid identifier") || err.contains("not a safe output basename"),
+        "must reject the traversal name:\n{}",
+        err
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+/// F12.5: `--emit` given twice must be rejected, not silently last-one-wins
+/// (which made `--emit bogus --emit ipc2581` succeed but the reverse fail).
+#[test]
+fn duplicate_emit_flag_is_rejected() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r4emit-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, WITH_LAYOUT);
+    let out = cohdl()
+        .args([
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--emit",
+            "ipc2581",
+            "--emit",
+            "ipc2581",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "duplicate --emit must be exit 2"
+    );
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("more than once"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}

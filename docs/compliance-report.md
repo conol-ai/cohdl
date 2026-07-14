@@ -347,21 +347,42 @@ Honest boundaries and decisions taken under the RFC's own latitude:
   every `xsd:dateTime` is the epoch instant, because byte-stable output is
   a Constitution hard constraint and the wall clock may not enter an
   artifact.
-- **Constraint mapping**: IPC-2581B1 has no user-named net-class element
-  (`LogicalNet/@netClass` is a closed enum, mapped from `[gnd]`/voltage
-  annotations), so RFC-013 constraints ride `CadHeader/Spec` +
-  `General/Property` entries under `cohdl:`-prefixed names — the schema's
-  own named-specification mechanism. This is the "native constraint
-  elements" reading documented in docs/ipc2581.md; if a partner integration
-  later needs a different projection, that's a docs-level contract change,
-  not a language change.
+- **Constraint mapping — vendor extension, NOT native IPC semantics
+  (review F2, corrected 2026-07-14)**: IPC-2581B1 has no user-named
+  net-class constraint element — `LogicalNet/@netClass` is a closed enum
+  (GROUND/POWER/SIGNAL, mapped from `[gnd]`/voltage annotations), and there
+  is no standard `SpecRef` from a `LogicalNet` to a named constraint. So
+  RFC-013 constraints ride `CadHeader/Spec` + `General/Property` entries
+  under `cohdl:`-prefixed names, and placement hints ride a
+  `COHDL_PLACEMENT_HINT` nonstandard attribute. These are **CoHDL vendor
+  extensions recoverable only by a CoHDL-aware decoder** — they are NOT the
+  self-describing native constraint semantics a generic IPC consumer (or
+  Quilter's differential-pair flow) will honor. The earlier ledger wording
+  ("this is the native-constraint-elements reading") **overstated it**: a
+  compliance report cannot narrow RFC-015's Accepted text, which promises a
+  direct mapping into native constraint elements
+  (`rfc-015:42`, `10-language-specification.md:471`). This is recorded as a
+  **deviation pending a note-side amendment**: either RFC-015/spec/DR-021
+  are amended to state these are proprietary vendor extensions requiring a
+  CoHDL adapter, or a partner-recognized mapping is obtained and tested in
+  that consumer. Listed in the note-side amendment section below.
 - **xmllint gate**: authoritative in CI (libxml2-utils installed in
   ci.yml); locally the validity test skips with a loud warning when xmllint
   is absent rather than failing unrelated work.
-- **Not claimed**: end-to-end validation against a real consuming tool
-  (Quilter). DR-021's own "revisit when" gates that on real access; tracked
-  future work alongside footprint geometry (RFC-018 now Accepted for that)
-  and board outline/stackup.
+- **Not yet a complete Quilter handoff — real-partner gate OPEN (review
+  F1)**: RFC-018 gave the document real footprint geometry (per-pad
+  `Package/Pin`, courtyard `Outline`), closing RFC-015's named
+  footprint-geometry future-work item. But a Quilter starter board also
+  requires a valid board **outline** and **placed** footprints, and the
+  document supplies neither: there is no `Profile`, and every
+  `Component/Location` is `(0,0)` (layout has not been performed). So the
+  artifact is a **schema-valid logical-interchange document with real
+  footprint geometry**, not yet "a board a router can place and route"
+  (`rfc-015:11`). The completeness marker states this honestly and must
+  stay; the RFC's own instruction to validate against a real target before
+  declaring done (`rfc-015:98`) remains **open** — no import/job-creation
+  pass against a real IPC consumer has been recorded. This is the RFC-015
+  acceptance blocker, alongside the RFC-014 real-VS-Code pass.
 
 ## RFC-016 (module system) implementation notes (2026-07-14)
 
@@ -718,3 +739,126 @@ lost):
 - `rfc-011-error-registry.md` records itself as DR-020 while note 7 says
   DR-009, and DR-020 is now RFC-014's dependency exception — two live
   DR-020s collide.
+
+## External review round 4 (Codex, at b89b1b9): dispositions
+
+Review 4 audited the RFC-015 IPC-2581 emitter (and reply3 residuals)
+against commit b89b1b9. This repo is now at HEAD (717ccbc) with RFC-016,
+RFC-017, and RFC-018 landed since — several findings were re-verified
+against HEAD, where later work changed the picture. All twelve findings
+were reproduced or contract-checked directly against HEAD; disposition:
+
+Fixed in code (each with a named regression):
+
+- **F3** — the XML escaper now applies the full XML 1.0 `Char` predicate:
+  U+FFFE/U+FFFF (and any other forbidden scalar, not just C0) project to
+  U+FFFD, and manufacturer `Enterprise/@id`s are built through a
+  collision-free table over the post-projection value, so two vendors
+  differing only in distinct control characters no longer alias one
+  `enterpriseKey` (`src/emit/ipc2581.rs`; tests/ipc2581.rs
+  `forbidden_scalars_projected_and_enterprise_ids_unique`).
+- **F4** — the manifest package name is validated as an identifier
+  (`valid_package_name`, `src/project.rs`) and a single-file basename is
+  re-checked before any write, closing the `name = "../escaped"`
+  write/delete traversal; a build without `--emit` deletes the stale
+  `<name>.xml` ONLY when it carries the completeness marker (ownership
+  established), and the `out/footprints/` cleanup removes only
+  `.kicad_mod` files it owns (`src/main.rs`; tests/cli.rs
+  `build_leaves_a_foreign_xml_untouched`, `traversal_package_name_is_rejected`).
+  Transactional staging of the artifact set (atomic temp-file renames) is
+  NOT implemented — a mid-write failure can still leave a mixed set; the
+  completeness marker distinguishes ours, and this is recorded as a known
+  limitation rather than claimed fixed.
+- **F5** — the BOM/AVL identity is now `(MPN, manufacturer)` in BOTH the
+  CSV and IPC emitters, so two parts sharing an MPN under different
+  manufacturers keep their distinct rows/vendors/values (was: MPN-only,
+  second vendor silently erased). MPN stays the primary sort key so the
+  committed goldens are byte-unchanged. Empty required `mpn`/`mfr` values
+  are rejected (E802) (`src/emit/bom.rs`, `src/emit/ipc2581.rs`,
+  `src/check/generics.rs`; tests/ipc2581.rs
+  `duplicate_mpn_across_manufacturers_keeps_both`).
+- **F6** — `sanitize` now uses the ACTUAL vendored-XSD character classes
+  (`<`/`>` are legal in both `qualifiedNameType` and `shortName` and are
+  no longer stripped); the intersection is used for the BOM key, which is
+  emitted in both a shortName and a qualifiedNameType slot. NOTE: the
+  review's specific reproduction (a designator `R<1` diverging to `R_1`)
+  is UNREACHABLE at HEAD — E804 rejects any designator that is not
+  `[A-Z]+[0-9]+` at the source, so `<`/`>` never enters a designator to
+  diverge. The test pins that source-side guarantee (tests/ipc2581.rs
+  `designator_special_chars_are_rejected_at_source`).
+- **F7** — the fidelity battery now checks `Component/@part` (non-empty),
+  `@packageRef` resolution, `COHDL_DEVICE` presence, and — crucially —
+  that every `PinRef/@componentRef` resolves to a real `Component/@refDes`.
+  The false emitter/schema comments (the vendored XSD's `componentKeyRef`
+  binds `LogicalNetPin`/`RefDes`, NOT `PinRef`, so PinRef agreement is the
+  emitter's to guarantee, not the schema's) are corrected in place
+  (`src/emit/ipc2581.rs`; tests/ipc2581.rs
+  `component_attributes_and_pinrefs_are_semantically_faithful`).
+- **F8** — `load_std_files` now returns `None` (a real error, surfaced as
+  `window/showMessage`) for an existing-but-empty std directory, matching
+  `load_project`; the LSP phantom-buffer fallback no longer publishes a
+  false-clean `[]` (`src/project.rs`; tests/lsp.rs
+  `empty_std_with_phantom_buffer_shows_message`).
+- **F9** — pin use-site hover resolves `(device, selected variant)` and
+  calls `pins_for` instead of scanning the first pin block, so a part
+  bound to one variant shows that variant's physical pad (`src/lsp.rs`;
+  tests/lsp.rs `pin_hover_respects_selected_variant`).
+- **F10** — `initialize`/`shutdown` bind the request id BEFORE mutating
+  lifecycle state (a notification can no longer consume init or shut the
+  server down); the transport validates the JSON-RPC envelope
+  (`jsonrpc == "2.0"` + string `method`, InvalidRequest otherwise);
+  positions use checked `u32::try_from` (out-of-range → InvalidParams, no
+  wrap); `localhost` matching is case-insensitive (`src/lsp.rs`;
+  tests/lsp.rs `initialize_notification_does_not_consume_lifecycle`,
+  `bad_jsonrpc_envelope_is_invalid_request`,
+  `out_of_range_position_is_invalid_params`).
+- **F11** — `unit_literal_hover` now scans `FnDef.generics` defaults, so
+  hover on `fn f<V: Voltage = 3.3V>` works (`src/lsp.rs`; tests/lsp.rs
+  `hover_on_fn_generic_default_literal`). The `Stmt::Layout` tolerance
+  hover is NOT added — tolerance is stored as opaque source text (RFC-013),
+  not a `UnitValue`, so there is no literal node to attach a hover to;
+  noted rather than silently skipped.
+- **F12.1** — the error-registry comment stripper recognizes Rust raw
+  strings (`r#"…"#`) so a `Diagnostic::error("E999")` inside one is not a
+  phantom call site (tests/error_registry.rs `raw_strings_are_not_call_sites`).
+- **F12.3** — README updated: eighteen RFC areas (RFC-001…018), and the
+  build-artifact list now names `out/footprints/*.kicad_mod` and the
+  `--emit ipc2581` document.
+- **F12.5** — a duplicate `--emit` flag is rejected rather than silently
+  last-one-wins (`src/main.rs`; tests/cli.rs `duplicate_emit_flag_is_rejected`).
+
+Documented / classified (not code):
+
+- **F1 — the document is not yet a usable Quilter handoff (real-partner
+  gate OPEN)**: recorded above in the RFC-015 notes and in docs/ipc2581.md.
+  RFC-018 added real footprint geometry, but there is still no board
+  outline/`Profile` and every component is at `(0,0)`; no real import pass
+  has been recorded. This is an RFC-015 acceptance blocker, not claimed
+  closed.
+- **F2 — constraint mapping is a vendor extension, not native IPC
+  semantics**: the earlier ledger wording was corrected in place (a
+  compliance report cannot narrow Accepted text). Listed as a note-side
+  amendment item below.
+- **F4 (transactional staging)** — not implemented; known limitation, above.
+- **F6 (designator divergence)** — unreachable at HEAD (E804); the sanitize
+  charset was still corrected to the true XSD set as defense-in-depth.
+- **F11 (layout-tolerance hover)** — not applicable (opaque text storage).
+- **F12.2** — `docs/compliance-audit.json` now carries a leading
+  `_historical_snapshot` marker: it is the frozen 2026-07-13 audit; the
+  report is authoritative, and its D003 entries predate the 2026-07-14
+  role-aware change.
+- **F12.4** — the spec's copad/cofp inconsistency was already resolved
+  note-side (snapshot refreshed at 717ccbc); confirmed pad/footprint.
+- **F12.6** — the false PinRef-keyref schema comment is corrected (F7).
+
+Note-side amendment item added by review 4 (needs a conol.ai edit):
+
+- **RFC-015 constraint mapping (F2)**: RFC-015 (`rfc-015:42`) and the
+  language spec (`10-language-specification.md:471`) promise RFC-013
+  constraints mapped into IPC-2581's *native* constraint/net-class
+  elements. IPC-2581B1 has no such user-named element, so the
+  implementation emits `cohdl:`-prefixed `Spec`/`Property` vendor
+  extensions + a `COHDL_PLACEMENT_HINT` attribute. Either RFC-015/spec/
+  DR-021 should be amended to state these are proprietary vendor extensions
+  requiring a CoHDL adapter, or a partner-recognized native mapping must be
+  found and tested in that consumer.

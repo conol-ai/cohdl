@@ -16,7 +16,7 @@ A snapshot (taken 2026-07-13) is committed under [`docs/design/`](docs/design/).
 - [MVP Definition](docs/design/09-mvp-definition.md) — the scope line, demo scenario, and exit criteria this repository was built toward
 - [Language Specification](docs/design/10-language-specification.md) — the compiled statement of what the language is (Accepted RFCs only)
 - RFC-001…RFC-007 — the seven Accepted P0 RFCs: units-as-types, pin connection-obligation typing, trait satisfaction at impl time, DRC/type-system reclassification, collision-free designator allocation, nested fn call semantics, generics-over-specs
-- RFC-008…RFC-014 — the post-MVP Accepted RFCs, all implemented: structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints, and the LSP server (`cohdl lsp`, [`docs/lsp.md`](docs/lsp.md))
+- RFC-008…RFC-018 — the post-MVP Accepted RFCs, all implemented: structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints, the LSP server (`cohdl lsp`, [`docs/lsp.md`](docs/lsp.md)), the IPC-2581 handoff document (`build --emit ipc2581`, [`docs/ipc2581.md`](docs/ipc2581.md)), the module system, the library registry, and the pad/footprint format (`pad`/`footprint` geometry → `.kicad_mod` + IPC-2581 pins)
 
 ## MVP (v0.1) scope
 
@@ -34,7 +34,7 @@ The proof: an AI writes a board from a plain-language spec, the type checker cat
 
 ## Status
 
-All MVP exit criteria are met, and all fourteen Accepted RFC areas (RFC-001…014) have implementation work with conformance suites. That is deliberately not a claim of full accepted-text compliance: requirements that are incomplete (e.g. RFC-014's real-editor acceptance pass), deliberately deviating (e.g. the E9xx code assignment, D003's role-aware reading), or unrepresentable pending note-side amendments (e.g. RFC-013's E1005) are each recorded with rationale in the ledger, [`docs/compliance-report.md`](docs/compliance-report.md). Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
+All MVP exit criteria are met, and all eighteen Accepted RFC areas (RFC-001…018) have implementation work with conformance suites. That is deliberately not a claim of full accepted-text compliance: requirements that are incomplete (e.g. RFC-014's real-editor acceptance pass and RFC-015's real-partner/Quilter import pass — both open), deliberately deviating (e.g. the E9xx code assignment, D003's role-aware reading, RFC-015's constraint mapping riding vendor extensions rather than native IPC semantics), or unrepresentable pending note-side amendments (e.g. RFC-013's E1005) are each recorded with rationale in the ledger, [`docs/compliance-report.md`](docs/compliance-report.md). Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
 
 ## Using it
 
@@ -52,7 +52,7 @@ Two reference designs live in `examples/`: the ESP32-S3 **sensor-node** (the MVP
 
 ### Build artifacts
 
-`cohdl build` writes to `out/` (or `--out-dir`): the KiCad netlist (`<name>.net`), the BOM (`<name>-bom.csv`), the designator lock (`design.lock` in the project root), and — only when the design declares layout metadata — the layout-constraint artifact `<name>-layout.json` (schema: [`docs/layout-json.md`](docs/layout-json.md)); a stale layout artifact is removed when the metadata is gone.
+`cohdl build` writes to `out/` (or `--out-dir`): the KiCad netlist (`<name>.net`), the BOM (`<name>-bom.csv`), the designator lock (`design.lock` in the project root), a `.kicad_mod` per pad-bearing footprint under `out/footprints/` (RFC-018), and — only when the design declares layout metadata — the layout-constraint artifact `<name>-layout.json` (schema: [`docs/layout-json.md`](docs/layout-json.md)). With `--emit ipc2581` it additionally writes the IPC-2581B1 handoff document `<name>.xml` (RFC-015; [`docs/ipc2581.md`](docs/ipc2581.md)). Stale layout/IPC artifacts are removed when their source data is gone (the IPC document only if CoHDL wrote it — its completeness marker establishes ownership).
 
 ### Exit codes
 

@@ -441,16 +441,42 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
         for (entry, is_primary) in
             std::iter::once((&part.primary, true)).chain(part.alts.iter().map(|a| (a, false)))
         {
-            if entry.field("mpn").is_none() {
-                diags.push(Diagnostic::error(
+            let entry_kind = if is_primary { "`primary`" } else { "`alt`" };
+            match entry.field("mpn") {
+                None => diags.push(Diagnostic::error(
                     "E802",
                     entry.span,
                     format!(
                         "{} entry of part `{}` is missing `mpn` — MPN binding is non-optional the moment a part is declared",
-                        if is_primary { "`primary`" } else { "`alt`" },
-                        part.name.name
+                        entry_kind, part.name.name
                     ),
-                ));
+                )),
+                // An empty string parses but is not a binding — it would emit
+                // `Component part=""` and a synthetic `_` package (review F5).
+                Some(f) if f.value.trim().is_empty() => diags.push(Diagnostic::error(
+                    "E802",
+                    f.span,
+                    format!(
+                        "{} entry of part `{}` has an empty `mpn` — an MPN must name a real part number",
+                        entry_kind, part.name.name
+                    ),
+                )),
+                Some(_) => {}
+            }
+            // Manufacturer is likewise a supply-chain identity, not decorative:
+            // every emitted component carries it (RFC-015 AVL), so an empty
+            // `mfr` is rejected rather than silently written as a blank vendor.
+            if let Some(f) = entry.field("mfr") {
+                if f.value.trim().is_empty() {
+                    diags.push(Diagnostic::error(
+                        "E802",
+                        f.span,
+                        format!(
+                            "{} entry of part `{}` has an empty `mfr` — name the manufacturer or omit the field",
+                            entry_kind, part.name.name
+                        ),
+                    ));
+                }
             }
             if is_primary && entry.footprint.is_none() {
                 diags.push(

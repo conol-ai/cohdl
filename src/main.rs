@@ -175,6 +175,9 @@ fn parse_args() -> Result<Args, String> {
                 args.out_dir_given = true;
             }
             "--emit" => {
+                if args.emit.is_some() {
+                    return Err(format!("`--emit` given more than once\n\n{}", USAGE));
+                }
                 args.emit = Some(argv.next().ok_or("--emit needs a value")?);
             }
             "-h" | "--help" => return Err(USAGE.to_string()),
@@ -333,6 +336,25 @@ fn run(args: &Args) -> Result<bool, String> {
         return Ok(false);
     }
 
+    // Defence in depth (review F4): the artifact basename is `proj.name`,
+    // which for a manifest project is already an identifier, but a
+    // single-file target derives it from the filename stem. Refuse anything
+    // that is not a safe basename so no artifact write — or the stale-file
+    // cleanup that deletes — can ever escape the output directory.
+    if proj.name.is_empty()
+        || proj.name.contains(['/', '\\'])
+        || proj.name == "."
+        || proj.name == ".."
+    {
+        return Err(diags_then(
+            &checked,
+            format!(
+                "`{}` is not a safe output basename (path separators or `.`/`..`); rename the file or set `[package] name`",
+                proj.name
+            ),
+        ));
+    }
+
     let out_dir = proj.dir.join(&args.out_dir);
     std::fs::create_dir_all(&out_dir).map_err(|e| {
         diags_then(
@@ -399,13 +421,30 @@ fn run(args: &Args) -> Result<bool, String> {
         emit::kicad_mod::emit_kicad_mods(&checked.world, ir)
     };
     let mut mod_paths: Vec<String> = Vec::new();
-    if mods_dir.exists() {
-        std::fs::remove_dir_all(&mods_dir).map_err(|e| {
-            diags_then(
-                &checked,
-                format!("cannot clear `{}`: {}", mods_dir.display(), e),
-            )
-        })?;
+    // Clear only the `.kicad_mod` files CoHDL owns — not the whole directory
+    // (review F4 ownership discipline): a user file that happens to share
+    // out/footprints/ must survive, while a renamed/removed footprint's stale
+    // projection must not linger.
+    if mods_dir.is_dir() {
+        for entry in std::fs::read_dir(&mods_dir)
+            .map_err(|e| {
+                diags_then(
+                    &checked,
+                    format!("cannot read `{}`: {}", mods_dir.display(), e),
+                )
+            })?
+            .flatten()
+        {
+            let p = entry.path();
+            if p.extension().is_some_and(|e| e == "kicad_mod") {
+                std::fs::remove_file(&p).map_err(|e| {
+                    diags_then(
+                        &checked,
+                        format!("cannot remove stale `{}`: {}", p.display(), e),
+                    )
+                })?;
+            }
+        }
     }
     if !mods.is_empty() {
         std::fs::create_dir_all(&mods_dir).map_err(|e| {
@@ -437,14 +476,29 @@ fn run(args: &Args) -> Result<bool, String> {
             )
         })?;
     } else if ipc_path.exists() {
-        std::fs::remove_file(&ipc_path).map_err(|e| {
-            diags_then(
-                &checked,
-                format!("cannot remove stale `{}`: {}", ipc_path.display(), e),
-            )
-        })?;
-        if !args.json {
-            eprintln!("  removed stale {}", ipc_path.display());
+        // Only delete an XML file CoHDL demonstrably wrote — identified by
+        // the completeness marker every emitted document carries. A
+        // user-owned file that merely shares the `<name>.xml` path is left
+        // untouched with a warning (review F4: an ordinary build must never
+        // silently delete a file it did not create).
+        let ours = std::fs::read_to_string(&ipc_path)
+            .map(|t| t.contains(emit::ipc2581::COMPLETENESS))
+            .unwrap_or(false);
+        if ours {
+            std::fs::remove_file(&ipc_path).map_err(|e| {
+                diags_then(
+                    &checked,
+                    format!("cannot remove stale `{}`: {}", ipc_path.display(), e),
+                )
+            })?;
+            if !args.json {
+                eprintln!("  removed stale {}", ipc_path.display());
+            }
+        } else if !args.json {
+            eprintln!(
+                "  note: {} exists but was not written by cohdl (no completeness marker) — left untouched",
+                ipc_path.display()
+            );
         }
     }
 

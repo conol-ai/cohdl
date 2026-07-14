@@ -515,10 +515,13 @@ Decisions and honest boundaries:
   assumed.
 - LSP: goto-definition works on footprint references; hover on a part
   name shows MPN/MFR, the resolved footprint symbol, and `#[doc]` paths.
-- The spec snapshot's "Footprints and pads (copad/cofp)" section is STALE
-  against RFC-018's same-day naming correction (plain `pad`/`footprint`,
-  "no rename" per its Alternatives/Decision) — a note-side amendment
-  item; the implementation follows the RFCs' accepted text.
+- The spec snapshot's "Footprints and pads (copad/cofp)" section was
+  STALE against RFC-018's same-day naming correction (plain
+  `pad`/`footprint`, "no rename" per its Alternatives/Decision); the
+  implementation followed the RFCs' accepted text. **RESOLVED note-side
+  2026-07-14**: the live spec now reads pad/footprint (with an explicit
+  correction note) — snapshot refreshed, and the corrected section's own
+  examples compile and project end-to-end against the implementation.
 - **On-disk dependency loading is NOT part of this landing.** The
   resolver handles arbitrary package sets (tests drive it directly), but
   `load_project` still assembles exactly project+std; placing a second
@@ -548,8 +551,8 @@ section's multi-package-loading promise was corrected (above).
 ## RFC-018 (pad/footprint format) implementation notes (2026-07-14)
 
 Implemented per DR-024 and RFC-018's same-day naming correction (plain
-`pad`/`footprint`, no `copad`/`cofp` rename — the spec snapshot's section
-remains stale, ledgered under RFC-017). `pad` is a sixth top-level
+`pad`/`footprint`, no `copad`/`cofp` rename — the spec's section was
+corrected note-side the same day; see the RFC-017 notes). `pad` is a sixth top-level
 declaration kind (closed vocabulary: shape rect/circle/oval, layer
 top_copper/bottom_copper/through_all, plating smd/plated_through_hole,
 `drill` ⇔ plated_through_hole); `footprint` bodies gain `pad N: Symbol at

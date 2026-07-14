@@ -522,25 +522,25 @@ pub device TPS62840<...> { ... }
 - One or more #[doc("relative/path")] attributes per declaration (unlike #[intent(...)]'s at-most-one rule).
 - Paths are relative to the library's package root. The compiler never opens these files — same zero-compilation-impact discipline as #[intent(...)] (RFC-012) and #[placement_hint(...)] (RFC-013). cohdl lsp (RFC-014) may surface these paths on hover as a natural extension of its existing hover capability.
 
-Footprints and pads — see "Footprints and pads (copad/cofp)" section below for the real, Accepted design (RFC-018, same day). RFC-017's original placeholder footprint keyword never shipped with real content; cofp takes over its exact role.
+Footprints and pads — see "Footprints and pads (pad/footprint)" section below for the real, Accepted design (RFC-018, same day). RFC-017's original placeholder footprint keyword never shipped with real content; RFC-018 gives it real content for the first time (no rename).
 
-# Footprints and pads (copad/cofp)
+# Footprints and pads (pad/footprint)
 
-Accepted via RFC-018, see RFC-018: Footprint format — copad/cofp, Cadence-style pad/footprint split + DR-024. Supersedes RFC-017's placeholder footprint keyword (which shipped deliberately empty, "symbol-resolution-complete, format-empty") — cofp takes over footprint's exact role (what part's footprint: field points to), now with real content, adopting Cadence Allegro's proven design: pads are defined once, standalone, and reused by reference across footprints, rather than inlined per footprint.
+Accepted via RFC-018, see RFC-018: Footprint format — pad/footprint, Cadence-style pad/footprint split + DR-024 (+ same-day naming correction). Supersedes RFC-017's placeholder footprint keyword's empty body (which shipped deliberately empty, "symbol-resolution-complete, format-empty") — footprint (unchanged keyword, RFC-017's own declaration kind) now has real content for the first time, adopting Cadence Allegro's proven design: pads are defined once, standalone, and reused by reference across footprints, rather than inlined per footprint. (Note: the same-day first draft of RFC-018 used invented names copad/cofp; Tony corrected these to plain pad/footprint before acceptance — this section reflects the final, corrected names.)
 
-copad — one reusable pad definition:
+pad — one reusable pad definition:
 
 ```cohdl
 // sparkfun/src/pads/smd.cohdl → module path sparkfun::pads::smd
 
-pub copad Rect_0_3x0_9mm {
+pub pad Rect_0_3x0_9mm {
     shape: rect
     size: (0.3mm, 0.9mm)
     layer: top_copper
     plating: smd
 }
 
-pub copad Round_0_5mm_THT {
+pub pad Round_0_5mm_THT {
     shape: circle
     size: (0.5mm)
     layer: through_all
@@ -555,14 +555,14 @@ pub copad Round_0_5mm_THT {
 - plating: smd or plated_through_hole.
 - drill: required when plating: plated_through_hole; a compile error if present when plating: smd.
 
-cofp — a footprint, composed of pad references:
+footprint — composed of pad references:
 
 ```cohdl
 // sparkfun/src/footprints/qfn.cohdl → module path sparkfun::footprints::qfn
 
 use sparkfun::pads::smd::Rect_0_3x0_9mm;
 
-pub cofp QFN10_3x3 {
+pub footprint QFN10_3x3 {
     pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
     pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
     pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
@@ -582,13 +582,13 @@ pub part TPS62840_QFN10: TPS62840<...> {
 
 Rules:
 
-- copad and cofp are both top-level declaration kinds, resolved through RFC-016's module-path/use/pub machinery exactly like device/trait/fn/part — no new resolution mechanism.
-- Each pad N: PadSymbol at (x, y) line in a cofp places one instance of a copad symbol at an offset relative to the footprint's own origin. PadSymbol resolves like any other cross-library reference.
-- Pad numbers (N) must exactly match the bound device's declared pin numbers (RFC-002) — checked at the point a part's footprint: field resolves to a cofp symbol, at cohdl build (the same point MPN completeness is checked, RFC-003's precedent). This is the check RFC-017 deferred, now real because cofp's pad list is real structured data.
-- The same copad symbol may be referenced by any number of cofp declarations, in any package that can resolve it — a single point of correction for a reused pad shape. The flip side, disclosed honestly: a wrong copad dimension is a single point of failure across every referencing cofp.
-- No versioning/pinning for copad references — a cofp always resolves to whatever the referenced copad currently is, the same as every other use-based resolution in the language today.
-- cohdl build projects a resolved cofp's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
-- copad/cofp's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
+- pad and footprint are both top-level declaration kinds, resolved through RFC-016's module-path/use/pub machinery exactly like device/trait/fn/part — no new resolution mechanism. footprint keeps the same keyword RFC-017 already introduced; pad is the one genuinely new top-level keyword.
+- Each pad N: PadSymbol at (x, y) line in a footprint places one instance of a pad symbol at an offset relative to the footprint's own origin. PadSymbol resolves like any other cross-library reference. This body-level pad N: ... placement statement and the top-level pad { ... } declaration share the same keyword but occupy different grammatical positions (the same pattern already used for net/nc as body-level statements vs. other top-level forms).
+- Pad numbers (N) must exactly match the bound device's declared pin numbers (RFC-002) — checked at the point a part's footprint: field resolves to a footprint symbol, at cohdl build (the same point MPN completeness is checked, RFC-003's precedent). This is the check RFC-017 deferred, now real because footprint's pad list is real structured data.
+- The same pad symbol may be referenced by any number of footprint declarations, in any package that can resolve it — a single point of correction for a reused pad shape. The flip side, disclosed honestly: a wrong pad dimension is a single point of failure across every referencing footprint.
+- No versioning/pinning for pad references — a footprint always resolves to whatever the referenced pad currently is, the same as every other use-based resolution in the language today.
+- cohdl build projects a resolved footprint's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
+- pad/footprint's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
 
 # Not yet specified
 
@@ -600,4 +600,4 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-14, RFC-001 through RFC-018 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 supersedes RFC-017's placeholder footprint keyword with real copad/cofp content).
+As of 2026-07-14, RFC-001 through RFC-018 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint).

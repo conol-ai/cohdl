@@ -532,12 +532,12 @@ net N: d.A }
                 assert!(m.contains("designs"), "{}", m);
                 saw_show_message = true;
             }
-            Some("textDocument/publishDiagnostics") => {
-                if msg["params"]["uri"].as_str() == Some(uri.as_str()) {
-                    let ds = msg["params"]["diagnostics"].as_array().unwrap();
-                    if ds.iter().any(|d| d["code"] == "E202") {
-                        saw_e202 = true;
-                    }
+            Some("textDocument/publishDiagnostics")
+                if msg["params"]["uri"].as_str() == Some(uri.as_str()) =>
+            {
+                let ds = msg["params"]["diagnostics"].as_array().unwrap();
+                if ds.iter().any(|d| d["code"] == "E202") {
+                    saw_e202 = true;
                 }
             }
             _ => {}

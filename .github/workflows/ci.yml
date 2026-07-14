@@ -13,8 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      # The toolchain (incl. clippy lint set) is pinned by rust-toolchain.toml
+      # so CI and local runs never skew; dtolnay@stable would override the
+      # pin, so pass the pinned version explicitly.
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.92.0
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Format

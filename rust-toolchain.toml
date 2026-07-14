@@ -1,0 +1,6 @@
+# Pin the toolchain so local builds and CI run the SAME rustc/clippy —
+# three CI-only clippy breaks came from version skew (newer stable lints).
+# Bump deliberately (update this file + fix new lints in the same change).
+[toolchain]
+channel = "1.92.0"
+components = ["rustfmt", "clippy"]

@@ -41,6 +41,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
             .file_stem()
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_else(|| "design".to_string());
+        reject_std_package(&name)?;
         files.push((path.display().to_string(), content));
         abs_paths.push(path.canonicalize().unwrap_or_else(|_| path.to_path_buf()));
         return Ok(Project {
@@ -69,6 +70,7 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
     })?;
     let manifest = parse_manifest(&manifest_text)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    reject_std_package(&manifest.name)?;
 
     let src_dir = path.join("src");
     if !src_dir.is_dir() {
@@ -133,6 +135,20 @@ fn collect_cohdl_files(
             out.push((display, content));
             abs.push(entry.canonicalize().unwrap_or(entry));
         }
+    }
+    Ok(())
+}
+
+/// RFC-016: `std` is the standard library's package root — a project that
+/// claimed it would MERGE into std's namespace (duplicate errors and
+/// cascading diagnostics with spans inside std/ files the user cannot
+/// edit; adversarial finding). Rejected up front, precisely.
+fn reject_std_package(name: &str) -> Result<(), String> {
+    if crate::pipeline::package_root(name) == "std" {
+        return Err(format!(
+            "package name `{}` is reserved for the standard library — pick another `[package] name`",
+            name
+        ));
     }
     Ok(())
 }

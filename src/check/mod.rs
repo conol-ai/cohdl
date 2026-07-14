@@ -19,6 +19,19 @@ pub fn check_declarations(files: Vec<SourceFile>, diags: &mut Diagnostics) -> Wo
     world
 }
 
+/// RFC-016 module-aware variant: `modules[i]` names file i's package and
+/// module path.
+pub fn check_declarations_in(
+    files: Vec<SourceFile>,
+    modules: &[crate::resolve::ModuleInfo],
+    diags: &mut Diagnostics,
+) -> World {
+    let mut world = crate::resolve::build_world_in(files, modules, diags);
+    impls::check_impls(&mut world, diags);
+    generics::check_parts(&world, diags);
+    world
+}
+
 /// Expand and check one design end-to-end (RFC-006 expansion, RFC-002
 /// exhaustiveness, net merging).
 pub fn check_design(world: &World, design_name: &str, diags: &mut Diagnostics) -> Option<DesignIr> {

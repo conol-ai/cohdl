@@ -19,7 +19,7 @@ pub fn check_impls(world: &mut World, diags: &mut Diagnostics) {
         let im = &world.impls[idx];
         let tr = &world.traits[&key.0];
         let dev = &world.devices[&key.1];
-        if let Some(r) = check_one(world, im, tr, dev, diags) {
+        if let Some(r) = check_one(world, im, tr, dev, &key.1, diags) {
             resolved.insert(key.clone(), r);
         }
     }
@@ -31,33 +31,37 @@ fn check_one(
     im: &ImplDef,
     tr: &TraitDef,
     dev: &DeviceDef,
+    dev_key: &str,
     diags: &mut Diagnostics,
 ) -> Option<ResolvedImpl> {
     let mut ok = true;
     let impl_desc = format!("impl `{}` for `{}`", tr.name.name, dev.name.name);
 
     // --- sub-trait bounds: a separate satisfying impl must exist (E302) ---
+    // RFC-016: identity checks use fq keys (`sup.name` was rewritten,
+    // `dev_key` is the impl-index key); message text stays short.
     for sup in &tr.super_traits {
-        if world.traits.contains_key(&sup.name) && !world.has_impl(&sup.name, &dev.name.name) {
+        if world.traits.contains_key(&sup.name) && !world.has_impl(&sup.name, dev_key) {
+            let sup_short = crate::resolve::short(&sup.name);
             diags.push(
                 Diagnostic::error(
                     "E302",
                     im.span,
                     format!(
                         "{} requires `impl {} for {}`, which was not found in scope",
-                        impl_desc, sup.name, dev.name.name
+                        impl_desc, sup_short, dev.name.name
                     ),
                 )
                 .with_secondary(
                     sup.span,
                     format!(
                         "`{}: {}` — the sub-trait bound is declared here",
-                        tr.name.name, sup.name
+                        tr.name.name, sup_short
                     ),
                 )
                 .with_help(format!(
                     "add a free-standing `impl {} for {} {{ … }}` anywhere in scope",
-                    sup.name, dev.name.name
+                    sup_short, dev.name.name
                 )),
             );
             ok = false;

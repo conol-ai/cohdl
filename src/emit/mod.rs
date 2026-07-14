@@ -75,6 +75,12 @@ pub fn bind_parts(
                     found.push(name.clone());
                 }
             }
+            // "Lexicographically-smallest part name" compares the SHORT
+            // name (pre-RFC-016 order — a part moved between modules must
+            // not change which MPN is bought), fq path as tiebreaker.
+            found.sort_by(|a, b| {
+                (crate::resolve::short(a), a.as_str()).cmp(&(crate::resolve::short(b), b.as_str()))
+            });
             found
         };
 
@@ -93,8 +99,12 @@ pub fn bind_parts(
                         "`{}` matches {} parts ({}); bound to the lexicographically-smallest, `{}`",
                         path,
                         candidates.len(),
-                        candidates.join(", "),
-                        part
+                        candidates
+                            .iter()
+                            .map(|c| crate::resolve::short(c))
+                            .collect::<Vec<_>>()
+                            .join(", "),
+                        crate::resolve::short(part)
                     ));
                 }
                 inst.part = Some(part.clone());

@@ -42,6 +42,31 @@ pub struct Item {
     pub span: Span,
 }
 
+/// RFC-016 `use package::module::Name;` — imports exactly one name into the
+/// current FILE's local scope. `path` holds every segment; the last one is
+/// the local name the import binds.
+#[derive(Debug, Clone)]
+pub struct UseDecl {
+    pub path: Vec<Ident>,
+    pub span: Span,
+}
+
+impl UseDecl {
+    /// The imported local name (the path's last segment).
+    pub fn local(&self) -> &Ident {
+        self.path.last().expect("use path is never empty")
+    }
+
+    /// The full path as written, `::`-joined.
+    pub fn path_text(&self) -> String {
+        self.path
+            .iter()
+            .map(|s| s.name.as_str())
+            .collect::<Vec<_>>()
+            .join("::")
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum ItemKind {
     Trait(TraitDef),
@@ -50,6 +75,8 @@ pub enum ItemKind {
     Fn(FnDef),
     Part(PartDef),
     Design(DesignDef),
+    /// RFC-016 `use path::Name;` — a file-scoped import, not a declaration.
+    Use(UseDecl),
 }
 
 impl ItemKind {
@@ -60,7 +87,7 @@ impl ItemKind {
             ItemKind::Fn(f) => Some(&f.name),
             ItemKind::Part(p) => Some(&p.name),
             ItemKind::Design(d) => Some(&d.name),
-            ItemKind::Impl(_) => None,
+            ItemKind::Impl(_) | ItemKind::Use(_) => None,
         }
     }
 
@@ -72,6 +99,7 @@ impl ItemKind {
             ItemKind::Fn(_) => "fn",
             ItemKind::Part(_) => "part",
             ItemKind::Design(_) => "design",
+            ItemKind::Use(_) => "use",
         }
     }
 }

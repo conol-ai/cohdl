@@ -235,9 +235,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                 ));
             }
             (
-                dev.name.name.clone(),
+                // RFC-016: map keys are fq paths — the part's device ref was
+                // rewritten to the device's fq key; the part's own key is the
+                // reference text that just matched.
+                part_def.device.name.name.clone(),
                 args,
-                Some(part_def.name.name.clone()),
+                Some(ty_name.name.clone()),
             )
         } else if let Some(dev) = self.world.devices.get(&ty_name.name) {
             let args = resolve_generic_args(
@@ -249,7 +252,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 inst.ty.span,
                 self.diags,
             );
-            (dev.name.name.clone(), args, None)
+            (ty_name.name.clone(), args, None)
         } else if scope.subst.contains_key(&ty_name.name) {
             self.diags.push(Diagnostic::error(
                     "E205",
@@ -271,11 +274,15 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         } else {
-            self.diags.push(Diagnostic::error(
+            let mut d = Diagnostic::error(
                 "E202",
                 ty_name.span,
                 format!("unknown device or part `{}`", ty_name.name),
-            ));
+            );
+            if let Some(sugg) = self.world.suggest(&ty_name.name) {
+                d = d.with_help(format!("did you mean `{}`?", sugg));
+            }
+            self.diags.push(d);
             return;
         };
 
@@ -499,7 +506,9 @@ impl<'w, 'd> Expander<'w, 'd> {
                     pin.span,
                     format!(
                         "device `{}` (instance `{}`) has no pin named `{}`",
-                        inst.device, r.base.name, pin.name
+                        crate::resolve::short(&inst.device),
+                        r.base.name,
+                        pin.name
                     ),
                 )
                 .with_help(format!(
@@ -671,11 +680,15 @@ impl<'w, 'd> Expander<'w, 'd> {
                     ),
                 )
             } else {
-                Diagnostic::error(
+                let mut d = Diagnostic::error(
                     "E504",
                     call.callee.span,
                     format!("unknown fn `{}`", call.callee.name),
-                )
+                );
+                if let Some(sugg) = self.world.suggest(&call.callee.name) {
+                    d = d.with_help(format!("did you mean `{}`?", sugg));
+                }
+                d
             };
             self.diags.push(d);
             return;
@@ -696,8 +709,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                 call.span,
                 format!(
                     "recursive fn call: `{}` is already being expanded in this call chain: {}",
-                    call.callee.name,
-                    chain.join(" → ")
+                    crate::resolve::short(&call.callee.name),
+                    chain
+                        .iter()
+                        .map(|s| crate::resolve::short(s))
+                        .collect::<Vec<_>>()
+                        .join(" → ")
                 ),
             ));
             return;
@@ -1235,7 +1252,7 @@ fn check_pin_obligations(world: &World, ir: &DesignIr, diags: &mut Diagnostics) 
                         )
                         .with_secondary(pin.span, format!(
                             "`{}` is declared `required` on device `{}` here",
-                            pin.name.name, inst.device
+                            pin.name.name, crate::resolve::short(&inst.device)
                         )),
                     );
                 }

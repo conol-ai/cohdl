@@ -508,8 +508,27 @@ impl Server {
                 proj.files[i].1 = text.clone();
             }
         }
-        // A buffer inside a project dir that isn't on disk yet joins the set.
-        if !proj.abs_paths.iter().any(|p| p == path) {
+        // For a MANIFEST project: every unsaved buffer inside the project
+        // dir that isn't on disk yet joins the set (not just the touched
+        // one — a use import in one file must see a device declared in
+        // another, still-unsaved file), with its PROJECT-RELATIVE display so
+        // RFC-016 module inference matches the CLI's for nested files (an
+        // absolute display would land the buffer at the package root;
+        // adversarial finding). Overlays iterate in BTreeMap order —
+        // deterministic. Loose files stay single-file analysis units (two
+        // loose files in one directory are SEPARATE units — review R7).
+        if project_root.is_some() {
+            for (opath, text) in &self.overlays {
+                if proj.abs_paths.iter().any(|p| p == opath) {
+                    continue;
+                }
+                let Ok(rel) = opath.strip_prefix(&proj.dir) else {
+                    continue; // an unrelated project's buffer
+                };
+                proj.files.push((rel.display().to_string(), text.clone()));
+                proj.abs_paths.push(opath.clone());
+            }
+        } else if !proj.abs_paths.iter().any(|p| p == path) {
             if let Some(text) = self.overlays.get(path) {
                 proj.files.push((path.display().to_string(), text.clone()));
                 proj.abs_paths.push(path.to_path_buf());
@@ -523,7 +542,7 @@ impl Server {
             .unwrap_or(path)
             .display()
             .to_string();
-        let checked = pipeline::check_files(&proj.files, proj.top.as_deref())
+        let checked = pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref())
             .map_err(AnalyzeError::Project)?;
         Ok(Analysis {
             checked,
@@ -577,9 +596,11 @@ impl Server {
         for imp in &world.impls {
             if contains(imp.span, fid, offset) {
                 let key = (imp.trait_name.name.clone(), imp.device_name.name.clone());
+                // Display uses the short spelling; identity stays fq.
                 let mut text = format!(
                     "**impl** `{}` **for** `{}`",
-                    imp.trait_name.name, imp.device_name.name
+                    crate::resolve::short(&imp.trait_name.name),
+                    crate::resolve::short(&imp.device_name.name)
                 );
                 match world.resolved_impls.get(&key) {
                     Some(resolved) => {
@@ -645,14 +666,16 @@ impl Server {
                 device_name = Some(imp.device_name.name.clone());
             }
         }
-        for tr in world.traits.values() {
+        // Declaration cursors: capture the fq KEY (impl names are fq after
+        // RFC-016 resolution; the decl's own ident is bare).
+        for (fq, tr) in &world.traits {
             if contains(tr.name.span, fid, offset) {
-                trait_name = Some(tr.name.name.clone());
+                trait_name = Some(fq.clone());
             }
         }
-        for dev in world.devices.values() {
+        for (fq, dev) in &world.devices {
             if contains(dev.name.span, fid, offset) {
-                device_name = Some(dev.name.name.clone());
+                device_name = Some(fq.clone());
             }
         }
         let mut locs = Vec::new();

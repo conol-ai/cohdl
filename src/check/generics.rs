@@ -246,10 +246,14 @@ fn resolve_one(
                     } else if let Some(part) = world.parts.get(&name.name) {
                         part.device.name.name.clone()
                     } else {
-                        diags.push(Diagnostic::error(
-                            "E202",
-                            name.span,
-                            format!("unknown device `{}`", name.name),
+                        diags.push(suggested(
+                            world,
+                            &name.name,
+                            Diagnostic::error(
+                                "E202",
+                                name.span,
+                                format!("unknown device `{}`", name.name),
+                            ),
                         ));
                         return None;
                     }
@@ -308,12 +312,15 @@ pub fn check_trait_bounds(
                     site,
                     format!(
                         "`{}` does not implement `{}`, required by {}",
-                        device, bound.name, required_by
+                        crate::resolve::short(device),
+                        crate::resolve::short(&bound.name),
+                        required_by
                     ),
                 )
                 .with_help(format!(
                     "add `impl {} for {} {{ … }}` (checked at the impl statement, RFC-003), or pass a device that has one",
-                    bound.name, device
+                    crate::resolve::short(&bound.name),
+                    crate::resolve::short(device)
                 )),
             );
             ok = false;
@@ -338,10 +345,14 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                     ),
                 )
             } else {
-                Diagnostic::error(
-                    "E202",
-                    part.device.name.span,
-                    format!("unknown device `{}`", part.device.name.name),
+                suggested(
+                    world,
+                    &part.device.name.name,
+                    Diagnostic::error(
+                        "E202",
+                        part.device.name.span,
+                        format!("unknown device `{}`", part.device.name.name),
+                    ),
                 )
             };
             diags.push(d);
@@ -466,5 +477,17 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
+    }
+}
+
+/// Attach RFC-016's closest-match help to an unknown-name diagnostic.
+pub(crate) fn suggested(
+    world: &World,
+    name: &str,
+    d: crate::diag::Diagnostic,
+) -> crate::diag::Diagnostic {
+    match world.suggest(name) {
+        Some(s) => d.with_help(format!("did you mean `{}`?", s)),
+        None => d,
     }
 }

@@ -56,6 +56,8 @@ pub enum TokenKind {
     Plus,
     Hash,
     Percent,
+    /// `;` — only the RFC-016 `use` import ends with one.
+    Semi,
 
     Eof,
 }
@@ -100,6 +102,7 @@ impl TokenKind {
             TokenKind::Gt => ">",
             TokenKind::Colon => ":",
             TokenKind::PathSep => "::",
+            TokenKind::Semi => ";",
             TokenKind::Comma => ",",
             TokenKind::Dot => ".",
             TokenKind::Eq => "=",
@@ -166,6 +169,7 @@ impl<'a> Lexer<'a> {
                 b'+' => self.punct(TokenKind::Plus),
                 b'#' => self.punct(TokenKind::Hash),
                 b'%' => self.punct(TokenKind::Percent),
+                b';' => self.punct(TokenKind::Semi),
                 b':' => {
                     if self.peek(1) == Some(b':') {
                         self.pos += 2;

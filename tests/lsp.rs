@@ -1182,3 +1182,106 @@ fn invalid_position_params_get_invalid_params_error() {
     assert_eq!(resp["error"]["code"].as_i64(), Some(-32602), "{}", resp);
     lsp.shutdown();
 }
+
+// RFC-016: goto-definition resolves qualified paths and `use`-imported
+// names to the same declaration span (name resolution feeds the existing
+// lookup; no new capability).
+#[test]
+fn goto_definition_resolves_imported_and_qualified_names() {
+    let root = std::env::temp_dir().join(format!("cohdl-lsp-mod-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src/parts")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        "[package]\nname = \"modproj\"\n[design]\ntop = \"B\"\n",
+    )
+    .unwrap();
+    let decl = "pub device ZzModDev { pins { A: 1 [passive] } }\n";
+    std::fs::write(root.join("src/parts/lib.cohdl"), decl).unwrap();
+    let main_src = "\
+use modproj::parts::lib::ZzModDev;
+design B {
+    inst a: ZzModDev
+    inst b: modproj::parts::lib::ZzModDev
+    net N: a.A, b.A
+}
+";
+    std::fs::write(root.join("src/main.cohdl"), main_src).unwrap();
+    let main_path = root.join("src/main.cohdl").canonicalize().unwrap();
+    let decl_uri = format!(
+        "file://{}",
+        root.join("src/parts/lib.cohdl")
+            .canonicalize()
+            .unwrap()
+            .display()
+    );
+    let uri = format!("file://{}", main_path.display());
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, main_src);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Imported bare name at the inst site (line 2).
+    let col = main_src.lines().nth(2).unwrap().find("ZzModDev").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": col + 1 } }),
+    );
+    assert_eq!(def["uri"].as_str(), Some(decl_uri.as_str()), "{}", def);
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    let decl_col = decl.find("ZzModDev").unwrap() as u64;
+    assert_eq!(def["range"]["start"]["character"].as_u64(), Some(decl_col));
+
+    // Fully-qualified path at the inst site (line 3): same declaration.
+    let col = main_src.lines().nth(3).unwrap().find("modproj::").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 3, "character": col + 3 } }),
+    );
+    assert_eq!(def["uri"].as_str(), Some(decl_uri.as_str()), "{}", def);
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+// RFC-016 adversarial round 2 (medium): a nested not-yet-saved buffer under
+// src/ got an ABSOLUTE display name, landing it at the package root — its
+// module path diverged from the CLI's, producing phantom E202 on imports
+// the CLI resolves. The buffer now joins the project with its project-
+// relative display.
+#[test]
+fn nested_phantom_buffer_gets_the_cli_module_path() {
+    let root = std::env::temp_dir().join(format!("cohdl-lsp-nest-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src/parts")).unwrap();
+    std::fs::write(root.join("cohdl.toml"), "[package]\nname = \"modx\"\n").unwrap();
+    let main_src = "use modx::parts::newmod::ZzNew;\n";
+    std::fs::write(root.join("src/main.cohdl"), main_src).unwrap();
+    let main_uri = format!(
+        "file://{}",
+        root.join("src/main.cohdl")
+            .canonicalize()
+            .unwrap()
+            .display()
+    );
+    // The nested buffer exists ONLY as an overlay (never written to disk).
+    let phantom = root.canonicalize().unwrap().join("src/parts/newmod.cohdl");
+    let phantom_uri = format!("file://{}", phantom.display());
+
+    let mut lsp = Lsp::start();
+    did_open(
+        &mut lsp,
+        &phantom_uri,
+        "pub device ZzNew { pins { A: 1 [passive] } }\n",
+    );
+    let _ = lsp.await_diagnostics(&phantom_uri);
+    did_open(&mut lsp, &main_uri, main_src);
+    let diags = lsp.await_diagnostics(&main_uri);
+    assert!(
+        !diags.iter().any(|d| d["code"] == "E202"),
+        "the unsaved nested buffer must resolve at its CLI module path:\n{:?}",
+        diags
+    );
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&root);
+}

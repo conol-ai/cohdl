@@ -251,8 +251,11 @@ fn run(args: &Args) -> Result<bool, String> {
     };
 
     let proj = project::load_project(&args.path, std_dir.as_deref())?;
-    let mut checked =
-        pipeline::check_files(&proj.files, args.design.as_deref().or(proj.top.as_deref()))?;
+    let mut checked = pipeline::check_files_in(
+        &proj.name,
+        &proj.files,
+        args.design.as_deref().or(proj.top.as_deref()),
+    )?;
 
     // A design-selection failure is an invocation-level error (exit 2), but
     // the source diagnostics collected before it are NEVER discarded — they

@@ -31,15 +31,85 @@ pub struct Checked {
 /// (project-level, no span) alongside all collected diagnostics; `Err` is
 /// reserved for conditions where nothing could be compiled at all.
 pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<Checked, String> {
+    check_files_in("main", files, design)
+}
+
+/// RFC-016: sanitize a package name into its path-root segment — path
+/// segments must lex as identifiers, so `-` (common in package names, e.g.
+/// `rpi-pico2`) becomes `_`, as do any other non-identifier characters.
+pub fn package_root(name: &str) -> String {
+    let mut out: String = name
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    if out.is_empty() || out.chars().next().unwrap().is_ascii_digit() {
+        out.insert(0, '_');
+    }
+    out
+}
+
+/// Derive a file's RFC-016 module identity from its display name: `std/…`
+/// displays are the std package; `src/dir/file.cohdl` displays nest under
+/// the project package (directories + file stem become segments — files
+/// directly under `src/` live at the package root); anything else (loose
+/// files, test fixtures) is the package root.
+fn infer_module(package: &str, display: &str) -> crate::resolve::ModuleInfo {
+    let d = display.replace('\\', "/");
+    let (root, rel) = if d == "std" || d.starts_with("std/") {
+        (
+            "std".to_string(),
+            d.strip_prefix("std/").unwrap_or("").to_string(),
+        )
+    } else if let Some(rel) = d.strip_prefix("src/") {
+        (package.to_string(), rel.to_string())
+    } else {
+        (package.to_string(), String::new())
+    };
+    let mut segs = vec![root.clone()];
+    let parts: Vec<&str> = rel.split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() > 1 {
+        for dir in &parts[..parts.len() - 1] {
+            segs.push(package_root(dir));
+        }
+        let stem = parts
+            .last()
+            .unwrap()
+            .strip_suffix(".cohdl")
+            .unwrap_or(parts.last().unwrap());
+        segs.push(package_root(stem));
+    }
+    crate::resolve::ModuleInfo {
+        package: root,
+        module: segs.join("::"),
+    }
+}
+
+/// `check_files` with an explicit project package name (RFC-016). Files
+/// displayed under `std/` form the `std` package; everything else belongs
+/// to `package` with modules mirroring the `src/` file tree.
+pub fn check_files_in(
+    package: &str,
+    files: &[(String, String)],
+    design: Option<&str>,
+) -> Result<Checked, String> {
+    let root = package_root(package);
     let mut sm = SourceMap::new();
     let mut diags = Diagnostics::new();
     let mut parsed = Vec::new();
+    let mut modules = Vec::new();
     for (name, content) in files {
         let file_id = sm.add_file(name.clone(), content.clone());
         let tokens = crate::lex::lex(file_id, sm.text(file_id), &mut diags);
         parsed.push(crate::parse::parse(tokens, &mut diags));
+        modules.push(infer_module(&root, name));
     }
-    let world = crate::check::check_declarations(parsed, &mut diags);
+    let world = crate::check::check_declarations_in(parsed, &modules, &mut diags);
 
     let mut selection_error = None;
     let design_name = match design {

@@ -75,6 +75,9 @@ CLI-only has at least one real call site in `src/`.
 | E204 | `[RESERVED, not yet implemented]` unknown spec field — no call site yet |
 | E205 | name is the wrong kind (e.g. a trait used where a device is required) |
 | E206 | instance/net names beginning with `__` are reserved for compiler-generated expansion names |
+| E207 | ambiguous unqualified name (RFC-016) — declared at more than one module path; names every candidate, suggests qualifying or `use` |
+| E208 | `use` collision (RFC-016) — one local name imported from two different paths; names both |
+| E209 | visibility violation (RFC-016) — a non-`pub` item referenced from another package; names the item and its declaring package |
 
 ## E3xx — trait satisfaction at impl (RFC-003)
 

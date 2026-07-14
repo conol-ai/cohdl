@@ -111,6 +111,24 @@ impl<'a> Parser<'a> {
         matches!(self.peek(), TokenKind::Ident(n) if n == word)
     }
 
+    /// RFC-016: a possibly-qualified reference — `Name` or
+    /// `package::module::Name`. Segments join into ONE Ident whose name
+    /// carries the `::`s and whose span covers the whole path (resolution
+    /// interprets the text; every downstream consumer keeps treating names
+    /// as opaque strings). `::` followed by `<` is turbofish (RFC-007), not
+    /// a path separator — fixed two-token lookahead, still deterministic.
+    fn path_ident(&mut self, ctx: &str) -> Option<Ident> {
+        let mut id = self.ident(ctx)?;
+        while self.at(&TokenKind::PathSep) && matches!(self.peek_ahead(1), TokenKind::Ident(_)) {
+            self.bump(); // ::
+            let seg = self.ident("after `::` in a path")?;
+            id.name.push_str("::");
+            id.name.push_str(&seg.name);
+            id.span = id.span.to(seg.span);
+        }
+        Some(id)
+    }
+
     // -- file / items --------------------------------------------------------
 
     fn file(mut self) -> SourceFile {
@@ -140,6 +158,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
+                TokenKind::Ident(n) if n == "use" => return,
                 _ => {
                     self.bump();
                 }
@@ -156,6 +175,38 @@ impl<'a> Parser<'a> {
         // Where the declaration proper begins — after any attributes.
         let decl_start = self.span();
         let is_pub = self.eat(&TokenKind::Pub);
+        // RFC-016 `use path::Name;` — contextual keyword (an item can't
+        // otherwise start with a bare identifier).
+        if self.at_ident("use") {
+            if is_pub {
+                // Anchor at the `pub` token itself (decl_start), not `use`.
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    decl_start,
+                    "`pub use` re-exports are not in RFC-016's first pass — remove `pub`"
+                        .to_string(),
+                ));
+            }
+            let kind = self.use_decl().map(ItemKind::Use);
+            self.reject_attrs(&rest);
+            if let Some((_, intent_span)) = &intent {
+                // Anchor at the attribute, not whatever token follows the
+                // already-consumed statement.
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    *intent_span,
+                    "`#[intent]` is not valid on a `use` import".to_string(),
+                ));
+            }
+            let kind = kind?;
+            return Some(Item {
+                is_pub: false,
+                intent: None,
+                decl_span: decl_start,
+                span: start.to(self.prev_span()),
+                kind,
+            });
+        }
         let kind = match self.peek() {
             TokenKind::Trait => self.trait_def().map(ItemKind::Trait),
             TokenKind::Device => self.device_def().map(ItemKind::Device),
@@ -188,6 +239,77 @@ impl<'a> Parser<'a> {
     /// never affect a verdict, diagnostic, designator, or emitted byte.
     fn take_intent(&mut self, attrs: Vec<Attr>) -> (Option<(String, Span)>, Vec<Attr>) {
         self.take_string_attr("intent", attrs)
+    }
+
+    /// RFC-016: `use package::module::Name;` — at least two segments (a
+    /// lone `use Name;` imports nothing a bare name doesn't already reach).
+    fn use_decl(&mut self) -> Option<UseDecl> {
+        let start = self.span();
+        self.bump(); // `use`
+        let Some(first) = self.ident("as the first path segment of `use`") else {
+            self.sync_use();
+            return None;
+        };
+        let mut path = vec![first];
+        while self.eat(&TokenKind::PathSep) {
+            match self.ident("after `::` in the `use` path") {
+                Some(seg) => path.push(seg),
+                None => {
+                    // Resynchronize past the broken statement so leftover
+                    // tokens (e.g. a keyword inside the path) can't misparse
+                    // as a phantom declaration.
+                    self.sync_use();
+                    return None;
+                }
+            }
+        }
+        if path.len() < 2 {
+            // Anchor at the lone segment, not the token after it.
+            self.diags.push(Diagnostic::error(
+                "E010",
+                path[0].span,
+                format!(
+                    "`use` needs a qualified path (`use package::module::Name;`) — `{}` has no package segment",
+                    path[0].name
+                ),
+            ));
+        }
+        // The spec's canonical form carries the semicolon.
+        if !self.eat(&TokenKind::Semi) {
+            self.error_here(format!(
+                "expected `;` to end the `use` import, found {}",
+                self.peek().describe()
+            ));
+        }
+        Some(UseDecl {
+            path,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// Panic-mode recovery for a broken `use`: skip to its `;` (consumed) or
+    /// the next top-level synchronization point.
+    fn sync_use(&mut self) {
+        loop {
+            match self.peek() {
+                TokenKind::Semi => {
+                    self.bump();
+                    return;
+                }
+                TokenKind::Eof
+                | TokenKind::Pub
+                | TokenKind::Trait
+                | TokenKind::Device
+                | TokenKind::Impl
+                | TokenKind::Fn
+                | TokenKind::Part
+                | TokenKind::Design
+                | TokenKind::Hash => return,
+                _ => {
+                    self.bump();
+                }
+            }
+        }
     }
 
     /// Split a single-string opaque attribute (`#[NAME("...")]`) out of `attrs`,
@@ -287,13 +409,16 @@ impl<'a> Parser<'a> {
         let mut super_traits = Vec::new();
         if self.eat(&TokenKind::Colon) {
             loop {
-                super_traits.push(self.ident("as a sub-trait bound")?);
+                super_traits.push(self.path_ident("as a sub-trait bound")?);
                 if !self.eat(&TokenKind::Plus) {
                     break;
                 }
             }
         }
-        self.expect(&TokenKind::LBrace, "to open the trait body");
+        if !self.expect(&TokenKind::LBrace, "to open the trait body") {
+            self.sync_top_level();
+            return None;
+        }
         let mut def = TraitDef {
             name,
             super_traits,
@@ -459,7 +584,10 @@ impl<'a> Parser<'a> {
                 self.bump();
             }
         }
-        self.expect(&TokenKind::LBrace, "to open the device body");
+        if !self.expect(&TokenKind::LBrace, "to open the device body") {
+            self.sync_top_level();
+            return None;
+        }
         let mut def = DeviceDef {
             name,
             generics,
@@ -726,7 +854,7 @@ impl<'a> Parser<'a> {
             if !self.expect(&TokenKind::Colon, "after the generic parameter name") {
                 break;
             }
-            let Some(first) = self.ident("as the generic bound") else {
+            let Some(first) = self.path_ident("as the generic bound") else {
                 break;
             };
             let bound = if let Some(unit) = UnitType::from_type_name(&first.name) {
@@ -737,7 +865,7 @@ impl<'a> Parser<'a> {
             } else {
                 let mut traits = vec![first];
                 while self.eat(&TokenKind::Plus) {
-                    match self.ident("as a trait bound") {
+                    match self.path_ident("as a trait bound") {
                         Some(t) => traits.push(t),
                         None => break,
                     }
@@ -808,7 +936,7 @@ impl<'a> Parser<'a> {
                     args.push(GenericArg::Number(n, t.span));
                 }
                 TokenKind::Ident(_) => {
-                    let ident = self.ident("").unwrap();
+                    let ident = self.path_ident("").unwrap();
                     args.push(GenericArg::Name(ident));
                 }
                 other => {
@@ -829,7 +957,7 @@ impl<'a> Parser<'a> {
     }
 
     fn type_ref(&mut self) -> Option<TypeRef> {
-        let name = self.ident("as a type name")?;
+        let name = self.path_ident("as a type name")?;
         let start = name.span;
         let generic_args = if self.at(&TokenKind::Lt) {
             self.generic_args()
@@ -858,10 +986,13 @@ impl<'a> Parser<'a> {
     fn impl_def(&mut self) -> Option<ImplDef> {
         let start = self.span();
         self.bump(); // impl
-        let trait_name = self.ident("as the trait name")?;
+        let trait_name = self.path_ident("as the trait name")?;
         self.expect(&TokenKind::For, "between the trait and device names");
-        let device_name = self.ident("as the device name")?;
-        self.expect(&TokenKind::LBrace, "to open the impl body");
+        let device_name = self.path_ident("as the device name")?;
+        if !self.expect(&TokenKind::LBrace, "to open the impl body") {
+            self.sync_top_level();
+            return None;
+        }
         let mut pin_map = Vec::new();
         let mut spec_map = Vec::new();
         let mut pins_span: Option<Span> = None;
@@ -946,7 +1077,7 @@ impl<'a> Parser<'a> {
                 let impl_start = self.span();
                 self.bump();
                 let mut traits = Vec::new();
-                while let Some(t) = self.ident("as a trait bound after `impl`") {
+                while let Some(t) = self.path_ident("as a trait bound after `impl`") {
                     traits.push(t);
                     if !self.eat(&TokenKind::Plus) {
                         break;
@@ -970,7 +1101,10 @@ impl<'a> Parser<'a> {
             }
         }
         self.expect(&TokenKind::RParen, "to close the parameter list");
-        self.expect(&TokenKind::LBrace, "to open the fn body");
+        if !self.expect(&TokenKind::LBrace, "to open the fn body") {
+            self.sync_top_level();
+            return None;
+        }
         let body = self.stmt_block();
         self.expect(&TokenKind::RBrace, "to close the fn body");
         Some(FnDef {
@@ -1087,7 +1221,10 @@ impl<'a> Parser<'a> {
     fn design_def(&mut self) -> Option<DesignDef> {
         self.bump(); // design
         let name = self.ident("as the design name")?;
-        self.expect(&TokenKind::LBrace, "to open the design body");
+        if !self.expect(&TokenKind::LBrace, "to open the design body") {
+            self.sync_top_level();
+            return None;
+        }
         let body = self.stmt_block();
         self.expect(&TokenKind::RBrace, "to close the design body");
         Some(DesignDef { name, body })
@@ -1261,9 +1398,23 @@ impl<'a> Parser<'a> {
                     span: start.to(self.prev_span()),
                 }))
             }
+            TokenKind::Ident(n) if n == "use" => {
+                self.reject_attrs(&attrs);
+                let span = self.span();
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`use` imports are file-level — move it above the design/fn body".to_string(),
+                ));
+                // Consume the statement so it can't misparse as a call.
+                let _ = self.use_decl();
+                None
+            }
             TokenKind::Ident(_) => {
                 self.reject_attrs(&attrs);
-                let callee = self.ident("").unwrap();
+                // The callee may be a qualified path; `::<` stays turbofish
+                // (path_ident's two-token lookahead never eats `::` + `<`).
+                let callee = self.path_ident("").unwrap();
                 let start = callee.span;
                 let generic_args = if self.at(&TokenKind::PathSep) {
                     self.bump();

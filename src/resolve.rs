@@ -1,12 +1,60 @@
-//! Name resolution: one flat global scope over every parsed file
-//! (provisional-syntax.md §1), plus structural validation of declarations.
+//! Name resolution (RFC-016): per-package module trees with explicit `use`
+//! imports, replacing the original flat global scope.
+//!
+//! Architecture: after declarations are indexed (fully-qualified paths,
+//! `package::module::Name`), every reference identifier in the AST is
+//! REWRITTEN in place to its resolved fully-qualified path. Downstream
+//! stages (check/expand/emit/LSP) keep doing exact-key lookups against the
+//! fq-keyed maps below — no per-site resolution logic anywhere else.
+//! Spans never change, so diagnostics stay precise; unresolved references
+//! keep their as-written text and fail downstream lookups exactly as the
+//! flat model did.
+//!
+//! Scope per the accepted text: trait/device/part/fn paths only. Designs
+//! are NOT importable/qualifiable — they stay bare-named and project-global.
 
 use crate::ast::*;
 use crate::diag::{Diagnostic, Diagnostics};
+use crate::span::FileId;
 use crate::units::UnitType;
 use std::collections::{BTreeMap, BTreeSet};
 
-/// Everything declared across the compilation, indexed by name.
+/// Per-file module identity (RFC-016): the owning package's root segment
+/// (sanitized to an identifier) and the file's full module path — which
+/// INCLUDES the root, e.g. `std` or `sparkfun::power::buck`.
+#[derive(Debug, Clone)]
+pub struct ModuleInfo {
+    pub package: String,
+    pub module: String,
+}
+
+impl ModuleInfo {
+    pub fn root(package: &str) -> ModuleInfo {
+        ModuleInfo {
+            package: package.to_string(),
+            module: package.to_string(),
+        }
+    }
+}
+
+/// One entry in the union namespace: everything reference resolution needs
+/// to know about a declared trait/device/fn/part.
+#[derive(Debug, Clone)]
+pub struct Symbol {
+    pub kind: &'static str,
+    pub is_pub: bool,
+    pub span: crate::span::Span,
+}
+
+/// The last `::` segment of a (possibly fully-qualified) name — the display
+/// spelling for humans; emitters and message text use this so a resolved
+/// `std::MLCC` still reads `MLCC`.
+pub fn short(name: &str) -> &str {
+    name.rsplit("::").next().unwrap_or(name)
+}
+
+/// Everything declared across the compilation. `traits`/`devices`/`fns`/
+/// `parts` are keyed by FULLY-QUALIFIED path; `designs` by bare name.
 #[derive(Debug, Default)]
 pub struct World {
     pub traits: BTreeMap<String, TraitDef>,
@@ -15,11 +63,13 @@ pub struct World {
     pub parts: BTreeMap<String, PartDef>,
     pub designs: BTreeMap<String, DesignDef>,
     pub impls: Vec<ImplDef>,
-    /// (trait name, device name) → index into `impls`. Populated only for
-    /// non-duplicate impls.
+    /// (trait fq path, device fq path) → index into `impls`. Populated only
+    /// for non-duplicate impls.
     pub impl_index: BTreeMap<(String, String), usize>,
     /// Resolved role/field maps per impl, filled by `check::impls`.
     pub resolved_impls: BTreeMap<(String, String), ResolvedImpl>,
+    /// fq path → symbol facts, for suggestions and the LSP.
+    pub symbols: BTreeMap<String, Symbol>,
 }
 
 /// The outcome of checking one `impl Trait for Device`: every trait-required
@@ -58,20 +108,21 @@ impl World {
 
     /// The designator prefix for a device: the prefix of the
     /// lexicographically-smallest implemented trait that declares one;
-    /// `"U"` when none does (provisional §6).
+    /// `"U"` when none does (provisional §6). RFC-016: "smallest" compares
+    /// the trait's SHORT name (the pre-module flat order, so moving a trait
+    /// between modules/packages never changes designators — adversarial
+    /// finding), with the fq path as a deterministic tiebreaker.
     pub fn designator_prefix(&self, device: &str) -> String {
-        let mut best: Option<(&String, &str)> = None;
-        for (trait_name, _) in self.impl_index.keys().filter(|(_, d)| d == device) {
-            if let Some(t) = self.traits.get(trait_name) {
-                if let Some((prefix, _)) = &t.designator_prefix {
-                    match best {
-                        Some((bn, _)) if bn <= trait_name => {}
-                        _ => best = Some((trait_name, prefix)),
-                    }
-                }
-            }
-        }
-        best.map_or_else(|| "U".to_string(), |(_, p)| p.to_string())
+        self.impl_index
+            .keys()
+            .filter(|(_, d)| d == device)
+            .filter_map(|(trait_name, _)| {
+                let t = self.traits.get(trait_name)?;
+                let (prefix, _) = t.designator_prefix.as_ref()?;
+                Some(((short(trait_name), trait_name), prefix.as_str()))
+            })
+            .min_by(|a, b| a.0.cmp(&b.0))
+            .map_or_else(|| "U".to_string(), |(_, p)| p.to_string())
     }
 
     /// All trait names `device` implements (checked impls only).
@@ -82,44 +133,260 @@ impl World {
             .map(|(t, _)| t.clone())
             .collect()
     }
+
+    /// RFC-016's "suggest the closest match": a declared fq path whose last
+    /// segment equals `path`'s last segment (smallest fq wins,
+    /// deterministically). Used by unknown-name diagnostics.
+    pub fn suggest(&self, path: &str) -> Option<&str> {
+        let want = short(path);
+        self.symbols
+            .keys()
+            .find(|fq| short(fq) == want && *fq != path)
+            .map(String::as_str)
+    }
 }
 
+/// Compat entry: every file in one package rooted at `main` (plus the `std`
+/// package inferred from `std/` display prefixes) — the exact single-flat-
+/// scope ergonomics older callers/tests expect.
 pub fn build_world(files: Vec<SourceFile>, diags: &mut Diagnostics) -> World {
-    let mut world = World::default();
-    let mut seen: BTreeMap<String, (&'static str, crate::span::Span)> = BTreeMap::new();
+    let modules: Vec<ModuleInfo> = (0..files.len()).map(|_| ModuleInfo::root("main")).collect();
+    build_world_in(files, &modules, diags)
+}
 
-    for file in files {
-        for item in file.items {
+pub fn build_world_in(
+    mut files: Vec<SourceFile>,
+    modules: &[ModuleInfo],
+    diags: &mut Diagnostics,
+) -> World {
+    debug_assert_eq!(files.len(), modules.len());
+
+    // ---- pass 1: index declarations (fq) + designs (bare, global) ----------
+    let mut symbols: BTreeMap<String, Symbol> = BTreeMap::new();
+    let mut seen_designs: BTreeMap<String, crate::span::Span> = BTreeMap::new();
+    for (i, file) in files.iter().enumerate() {
+        let module = &modules[i].module;
+        for item in &file.items {
             let kind_str = item.kind.kind_str();
-            if let Some(name) = item.kind.name() {
-                if let Some((prev_kind, prev_span)) = seen.get(&name.name) {
-                    diags.push(
+            match &item.kind {
+                ItemKind::Design(d) => {
+                    // Designs are project-global and never importable
+                    // (RFC-016 scope) — bare-name duplicate check.
+                    if let Some(prev) = seen_designs.insert(d.name.name.clone(), d.name.span) {
+                        diags.push(
+                            Diagnostic::error(
+                                "E201",
+                                d.name.span,
+                                format!(
+                                    "duplicate declaration of `{}` (design names are project-global)",
+                                    d.name.name
+                                ),
+                            )
+                            .with_secondary(prev, "earlier declared here as a design".to_string()),
+                        );
+                    }
+                }
+                ItemKind::Impl(_) | ItemKind::Use(_) => {}
+                _ => {
+                    if let Some(name) = item.kind.name() {
+                        let fq = format!("{}::{}", module, name.name);
+                        if let Some(prev) = symbols.get(&fq) {
+                            diags.push(
+                                Diagnostic::error(
+                                    "E201",
+                                    name.span,
+                                    format!(
+                                        "duplicate declaration of `{}` in module `{}` (top-level names share one scope per module)",
+                                        name.name, module
+                                    ),
+                                )
+                                .with_secondary(
+                                    prev.span,
+                                    format!("earlier declared here as a {}", prev.kind),
+                                ),
+                            );
+                            continue;
+                        }
+                        symbols.insert(
+                            fq,
+                            Symbol {
+                                kind: kind_str,
+                                is_pub: item.is_pub,
+                                span: name.span,
+                            },
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // A design sharing a bare name with a same-package declaration was an
+    // error in the flat model and stays one — the shadowing latitude covers
+    // std only, not confusion inside one project (adversarial finding).
+    for (i, file) in files.iter().enumerate() {
+        let package = &modules[i].package;
+        for item in &file.items {
+            let ItemKind::Design(d) = &item.kind else {
+                continue;
+            };
+            let decl = symbols
+                .iter()
+                .find(|(fq, _)| root_of(fq) == package && short(fq) == d.name.name);
+            if let Some((fq, sym)) = decl {
+                diags.push(
+                    Diagnostic::error(
+                        "E201",
+                        d.name.span,
+                        format!(
+                            "duplicate declaration of `{}` — a design and a {} share the name in package `{}`",
+                            d.name.name, sym.kind, package
+                        ),
+                    )
+                    .with_secondary(sym.span, format!("`{}` is declared here", fq)),
+                );
+            }
+        }
+    }
+
+    // ---- pass 2: per-file `use` imports (validated at the use site) --------
+    // FileId → local name → (fq path, use span).
+    let mut imports: BTreeMap<u32, BTreeMap<String, (String, crate::span::Span)>> = BTreeMap::new();
+    for (i, file) in files.iter().enumerate() {
+        let package = &modules[i].package;
+        for item in &file.items {
+            let ItemKind::Use(u) = &item.kind else {
+                continue;
+            };
+            let fq = u.path_text();
+            let local = u.local().name.clone();
+            let fid = u.span.file.0;
+            match symbols.get(&fq) {
+                None => {
+                    // A design at that path is a real declaration — say so
+                    // precisely instead of "nothing is declared there".
+                    let local_name = &u.local().name;
+                    let mut d = if seen_designs.contains_key(local_name) {
                         Diagnostic::error(
-                            "E201",
-                            name.span,
+                            "E202",
+                            u.span,
                             format!(
-                                "duplicate declaration of `{}` (all top-level names share one flat scope)",
-                                name.name
+                                "`{}` is a design — designs are project-global and cannot be imported",
+                                local_name
                             ),
                         )
-                        .with_secondary(*prev_span, format!("earlier declared here as a {}", prev_kind)),
-                    );
+                    } else {
+                        Diagnostic::error(
+                            "E202",
+                            u.span,
+                            format!("unresolved `use` path `{}` — nothing is declared there", fq),
+                        )
+                    };
+                    if let Some(sugg) = suggest_in(&symbols, &fq) {
+                        d = d.with_help(format!("did you mean `use {};`?", sugg));
+                    }
+                    diags.push(d);
                     continue;
                 }
-                seen.insert(name.name.clone(), (kind_str, name.span));
+                Some(sym) => {
+                    if root_of(&fq) != package && !sym.is_pub {
+                        diags.push(
+                            Diagnostic::error(
+                                "E209",
+                                u.span,
+                                format!(
+                                    "`{}` is not `pub` — it is only visible inside package `{}`",
+                                    fq,
+                                    root_of(&fq)
+                                ),
+                            )
+                            .with_secondary(sym.span, "declared here without `pub`".to_string())
+                            .with_help(format!(
+                                "mark the {} `pub` in its own package to export it",
+                                sym.kind
+                            )),
+                        );
+                        // Recovery: import anyway so downstream stays quiet.
+                    }
+                }
             }
+            let file_imports = imports.entry(fid).or_default();
+            if let Some((prev_fq, prev_span)) = file_imports.get(&local) {
+                if prev_fq != &fq {
+                    diags.push(
+                        Diagnostic::error(
+                            "E208",
+                            u.span,
+                            format!(
+                                "`{}` is already imported from `{}` — one local name, one import",
+                                local, prev_fq
+                            ),
+                        )
+                        .with_secondary(
+                            *prev_span,
+                            format!("earlier imported here from `{}`", prev_fq),
+                        ),
+                    );
+                }
+                continue;
+            }
+            file_imports.insert(local, (fq, u.span));
+        }
+    }
+
+    // ---- pass 3: resolution indexes ----------------------------------------
+    // (package, bare name) → sorted fq candidates; std prelude (pub only).
+    let mut unqualified: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+    let mut prelude: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for fq in symbols.keys() {
+        let pkg = root_of(fq).to_string();
+        let bare = short(fq).to_string();
+        unqualified
+            .entry((pkg.clone(), bare.clone()))
+            .or_default()
+            .push(fq.clone());
+        if pkg == "std" && symbols[fq].is_pub {
+            prelude.entry(bare).or_default().push(fq.clone());
+        }
+    }
+
+    // ---- pass 4: rewrite every reference ident to its resolved fq path -----
+    let resolver = Resolver {
+        symbols: &symbols,
+        unqualified: &unqualified,
+        prelude: &prelude,
+        imports: &imports,
+    };
+    for (i, file) in files.iter_mut().enumerate() {
+        resolver.rewrite_file(file, &modules[i], diags);
+    }
+
+    // ---- pass 5: move declarations into the fq-keyed maps ------------------
+    let mut world = World {
+        symbols,
+        ..World::default()
+    };
+    for (i, file) in files.into_iter().enumerate() {
+        let module = &modules[i].module;
+        for item in file.items {
             match item.kind {
                 ItemKind::Trait(t) => {
-                    world.traits.insert(t.name.name.clone(), t);
+                    world
+                        .traits
+                        .insert(format!("{}::{}", module, t.name.name), t);
                 }
                 ItemKind::Device(d) => {
-                    world.devices.insert(d.name.name.clone(), d);
+                    world
+                        .devices
+                        .insert(format!("{}::{}", module, d.name.name), d);
                 }
                 ItemKind::Fn(f) => {
-                    world.fns.insert(f.name.name.clone(), f);
+                    world.fns.insert(format!("{}::{}", module, f.name.name), f);
                 }
                 ItemKind::Part(p) => {
-                    world.parts.insert(p.name.name.clone(), p);
+                    world
+                        .parts
+                        .insert(format!("{}::{}", module, p.name.name), p);
                 }
                 ItemKind::Design(d) => {
                     world.designs.insert(d.name.name.clone(), d);
@@ -127,12 +394,231 @@ pub fn build_world(files: Vec<SourceFile>, diags: &mut Diagnostics) -> World {
                 ItemKind::Impl(i) => {
                     world.impls.push(i);
                 }
+                ItemKind::Use(_) => {}
             }
         }
     }
 
     validate(&mut world, diags);
     world
+}
+
+/// The package root segment of a qualified path.
+fn root_of(path: &str) -> &str {
+    path.split("::").next().unwrap_or(path)
+}
+
+fn suggest_in<'a>(symbols: &'a BTreeMap<String, Symbol>, path: &str) -> Option<&'a str> {
+    let want = short(path);
+    symbols
+        .keys()
+        .find(|fq| short(fq) == want && *fq != path)
+        .map(String::as_str)
+}
+
+/// The reference-rewriting pass (see the module header): every trait/device/
+/// part/fn reference ident becomes its resolved fq path, in place.
+struct Resolver<'a> {
+    symbols: &'a BTreeMap<String, Symbol>,
+    unqualified: &'a BTreeMap<(String, String), Vec<String>>,
+    prelude: &'a BTreeMap<String, Vec<String>>,
+    imports: &'a BTreeMap<u32, BTreeMap<String, (String, crate::span::Span)>>,
+}
+
+impl Resolver<'_> {
+    fn rewrite_file(&self, file: &mut SourceFile, module: &ModuleInfo, diags: &mut Diagnostics) {
+        let no_shadow: BTreeSet<String> = BTreeSet::new();
+        for item in &mut file.items {
+            match &mut item.kind {
+                ItemKind::Trait(t) => {
+                    for sup in &mut t.super_traits {
+                        self.resolve(sup, module, &no_shadow, diags);
+                    }
+                }
+                ItemKind::Device(d) => {
+                    for g in &mut d.generics {
+                        if let GenericBound::Traits(ts) = &mut g.bound {
+                            for t in ts {
+                                self.resolve(t, module, &no_shadow, diags);
+                            }
+                        }
+                    }
+                }
+                ItemKind::Fn(f) => {
+                    // The fn's own generic parameter names shadow globals
+                    // (unchanged precedence from the flat model).
+                    let shadow: BTreeSet<String> =
+                        f.generics.iter().map(|g| g.name.name.clone()).collect();
+                    for g in &mut f.generics {
+                        if let GenericBound::Traits(ts) = &mut g.bound {
+                            for t in ts {
+                                self.resolve(t, module, &no_shadow, diags);
+                            }
+                        }
+                    }
+                    for p in &mut f.params {
+                        if let FnParamTy::ImplTrait(ts, _) = &mut p.ty {
+                            for t in ts {
+                                self.resolve(t, module, &no_shadow, diags);
+                            }
+                        }
+                    }
+                    self.rewrite_body(&mut f.body, module, &shadow, diags);
+                }
+                ItemKind::Part(p) => {
+                    self.resolve(&mut p.device.name, module, &no_shadow, diags);
+                    for arg in &mut p.device.generic_args {
+                        if let GenericArg::Name(id) = arg {
+                            self.resolve(id, module, &no_shadow, diags);
+                        }
+                    }
+                }
+                ItemKind::Design(d) => {
+                    let body = &mut d.body;
+                    self.rewrite_body(body, module, &no_shadow, diags);
+                }
+                ItemKind::Impl(im) => {
+                    self.resolve(&mut im.trait_name, module, &no_shadow, diags);
+                    self.resolve(&mut im.device_name, module, &no_shadow, diags);
+                }
+                ItemKind::Use(_) => {}
+            }
+        }
+    }
+
+    fn rewrite_body(
+        &self,
+        body: &mut [Stmt],
+        module: &ModuleInfo,
+        shadow: &BTreeSet<String>,
+        diags: &mut Diagnostics,
+    ) {
+        for stmt in body {
+            match stmt {
+                Stmt::Inst(s) => {
+                    if !shadow.contains(&s.ty.name.name) {
+                        self.resolve(&mut s.ty.name, module, shadow, diags);
+                    }
+                    for arg in &mut s.ty.generic_args {
+                        if let GenericArg::Name(id) = arg {
+                            if !shadow.contains(&id.name) {
+                                self.resolve(id, module, shadow, diags);
+                            }
+                        }
+                    }
+                }
+                Stmt::Call(s) => {
+                    self.resolve(&mut s.callee, module, shadow, diags);
+                    for arg in &mut s.generic_args {
+                        if let GenericArg::Name(id) = arg {
+                            if !shadow.contains(&id.name) {
+                                self.resolve(id, module, shadow, diags);
+                            }
+                        }
+                    }
+                }
+                Stmt::Net(_) | Stmt::Nc(_) | Stmt::Layout(_) => {}
+            }
+        }
+    }
+
+    /// Resolve one reference ident in place. Resolution order for bare
+    /// names: the file's `use` imports, then the own package's modules,
+    /// then the std prelude (pub items). Unresolved names keep their text
+    /// (downstream unknown-name diagnostics fire, exactly as before).
+    fn resolve(
+        &self,
+        id: &mut Ident,
+        module: &ModuleInfo,
+        _shadow: &BTreeSet<String>,
+        diags: &mut Diagnostics,
+    ) {
+        if id.name.contains("::") {
+            // Qualified path: exact symbol, with cross-package pub check.
+            if let Some(sym) = self.symbols.get(&id.name) {
+                if root_of(&id.name) != module.package && !sym.is_pub {
+                    diags.push(
+                        Diagnostic::error(
+                            "E209",
+                            id.span,
+                            format!(
+                                "`{}` is not `pub` — it is only visible inside package `{}`",
+                                id.name,
+                                root_of(&id.name)
+                            ),
+                        )
+                        .with_secondary(sym.span, "declared here without `pub`".to_string())
+                        .with_help(format!(
+                            "mark the {} `pub` in its own package to export it",
+                            sym.kind
+                        )),
+                    );
+                }
+            }
+            // Found or not, the text already IS the path — nothing to do.
+            return;
+        }
+        let fid = FileId(id.span.file.0);
+        // 1. Explicit imports.
+        if let Some(file_imports) = self.imports.get(&fid.0) {
+            if let Some((fq, _)) = file_imports.get(&id.name) {
+                id.name = fq.clone();
+                return;
+            }
+        }
+        // 2. The own package's modules (all of them — intra-package names
+        //    stay visible unqualified everywhere in the package).
+        if let Some(cands) = self
+            .unqualified
+            .get(&(module.package.clone(), id.name.clone()))
+        {
+            if cands.len() > 1 {
+                diags.push(
+                    Diagnostic::error(
+                        "E207",
+                        id.span,
+                        format!(
+                            "`{}` is ambiguous — it is declared at {}",
+                            id.name,
+                            cands
+                                .iter()
+                                .map(|c| format!("`{}`", c))
+                                .collect::<Vec<_>>()
+                                .join(" and ")
+                        ),
+                    )
+                    .with_help("qualify the path, or import one with `use`"),
+                );
+            }
+            id.name = cands[0].clone();
+            return;
+        }
+        // 3. The std prelude (pub std items, implicitly in scope — the
+        //    standard library is the one package whose exports need no
+        //    `use`; documented in docs/compliance-report.md).
+        if let Some(cands) = self.prelude.get(&id.name) {
+            if cands.len() > 1 {
+                diags.push(
+                    Diagnostic::error(
+                        "E207",
+                        id.span,
+                        format!(
+                            "`{}` is ambiguous — it is declared at {}",
+                            id.name,
+                            cands
+                                .iter()
+                                .map(|c| format!("`{}`", c))
+                                .collect::<Vec<_>>()
+                                .join(" and ")
+                        ),
+                    )
+                    .with_help("qualify the path, or import one with `use`"),
+                );
+            }
+            id.name = cands[0].clone();
+        }
+        // Unresolved: leave as written.
+    }
 }
 
 fn validate(world: &mut World, diags: &mut Diagnostics) {
@@ -160,7 +646,15 @@ fn validate_traits(world: &World, diags: &mut Diagnostics) {
                         ),
                     )
                 } else {
-                    Diagnostic::error("E202", sup.span, format!("unknown trait `{}`", sup.name))
+                    with_suggestion(
+                        world,
+                        &sup.name,
+                        Diagnostic::error(
+                            "E202",
+                            sup.span,
+                            format!("unknown trait `{}`", sup.name),
+                        ),
+                    )
                 };
                 diags.push(d);
             }
@@ -551,7 +1045,11 @@ fn check_trait_ref(world: &World, t: &Ident, diags: &mut Diagnostics) {
             format!("`{}` is a unit type, not a trait", t.name),
         )
     } else {
-        Diagnostic::error("E202", t.span, format!("unknown trait `{}`", t.name))
+        with_suggestion(
+            world,
+            &t.name,
+            Diagnostic::error("E202", t.span, format!("unknown trait `{}`", t.name)),
+        )
     };
     diags.push(diag);
 }
@@ -568,10 +1066,14 @@ fn index_impls(world: &mut World, diags: &mut Diagnostics) {
                     format!("`{}` is a device, not a trait", im.trait_name.name),
                 )
             } else {
-                Diagnostic::error(
-                    "E202",
-                    im.trait_name.span,
-                    format!("unknown trait `{}`", im.trait_name.name),
+                with_suggestion(
+                    world,
+                    &im.trait_name.name,
+                    Diagnostic::error(
+                        "E202",
+                        im.trait_name.span,
+                        format!("unknown trait `{}`", im.trait_name.name),
+                    ),
                 )
             };
             diags.push(d);
@@ -587,10 +1089,14 @@ fn index_impls(world: &mut World, diags: &mut Diagnostics) {
                     ),
                 )
             } else {
-                Diagnostic::error(
-                    "E202",
-                    im.device_name.span,
-                    format!("unknown device `{}`", im.device_name.name),
+                with_suggestion(
+                    world,
+                    &im.device_name.name,
+                    Diagnostic::error(
+                        "E202",
+                        im.device_name.span,
+                        format!("unknown device `{}`", im.device_name.name),
+                    ),
                 )
             };
             diags.push(d);
@@ -635,5 +1141,13 @@ fn check_dup_names<'i>(
                 .with_secondary(prev, "first declared here"),
             );
         }
+    }
+}
+
+/// Attach RFC-016's closest-match help to an unknown-name diagnostic.
+fn with_suggestion(world: &World, name: &str, d: Diagnostic) -> Diagnostic {
+    match world.suggest(name) {
+        Some(s) => d.with_help(format!("did you mean `{}`?", s)),
+        None => d,
     }
 }

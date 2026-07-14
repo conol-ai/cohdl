@@ -55,7 +55,7 @@ fn principal_value(inst: &crate::ir::IrInstance) -> String {
             return v.text.clone();
         }
     }
-    inst.device.clone()
+    crate::resolve::short(&inst.device).to_string()
 }
 
 fn csv_quote(s: &str) -> String {

@@ -385,7 +385,7 @@ design B {
     let caps: Vec<_> = ir
         .instances
         .values()
-        .filter(|i| i.device == "MLCC")
+        .filter(|i| cohdl::resolve::short(&i.device) == "MLCC")
         .collect();
     assert_eq!(caps.len(), 2, "two call chains → two instances");
     let mut voltages: Vec<&str> = caps

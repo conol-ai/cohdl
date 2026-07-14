@@ -79,7 +79,8 @@ design Board {{
     let c1 = &ir.instances["Board::c1"];
     assert_eq!(c1.specs["capacitance"].text, "100nF");
     assert_eq!(c1.specs["voltage_rating"].text, "16V");
-    assert!(c1.impl_traits.contains("Capacitor"));
+    // RFC-016: trait identities in the IR are fully-qualified paths.
+    assert!(c1.impl_traits.contains("main::Capacitor"));
 }
 
 #[test]

@@ -359,6 +359,110 @@ Honest boundaries and decisions taken under the RFC's own latitude:
   future work alongside footprint geometry (RFC-018 now Accepted for that)
   and board outline/stackup.
 
+## RFC-016 (module system) implementation notes (2026-07-14)
+
+Implemented per DR-022: file-tree-mirrors-module-tree (rooted at
+`[package] name`), `use path::Name;` one-name imports, qualified
+`pkg::mod::Name` references, per-module-path collision scoping, and `pub`
+enforced across package boundaries. Architecture: `resolve.rs` REWRITES
+every trait/device/part/fn reference identifier in place to its resolved
+fully-qualified path (union symbol table + per-file imports + own-package
+index + std prelude); the `World` maps are fq-keyed and every downstream
+stage keeps exact-key lookups. New diagnostics: E207 (ambiguous unqualified
+name, names every candidate), E208 (`use` collision, names both paths),
+E209 (visibility violation, names the item and its package); unresolved
+`use`/qualified paths reuse E202 with a closest-match suggestion.
+Conformance: tests/modules.rs (including the RFC's mandatory two-package
+colliding-name regression), plus fmt/LSP additions.
+
+Decisions taken under the accepted text's latitude (each a candidate for a
+note-side blessing, none contradicting it):
+
+- **The std prelude.** The RFC is silent on std, but its load-bearing
+  compatibility property ("a project that never imports anything doesn't
+  feel modules' weight") requires std names to stay visible unqualified —
+  so `std` is a real package whose `pub` items are implicitly in scope
+  (Rust's prelude precedent, "Rust-inspired, not Rust-copied"). Qualified
+  `std::Name` also works. Every std item was already `pub`.
+- **Resolution precedence**: explicit `use` imports, then the own package's
+  modules, then the std prelude. A project declaring `MLCC` therefore
+  SHADOWS std's for bare references (previously a global duplicate error —
+  the one observable behavior change for existing single-package projects,
+  and a strictly-more-permissive one).
+- **Files directly under `src/` live at the package root** (their stem is
+  not a module segment) — the spec's own tree example says so
+  (`prelude.cohdl → sparkfun`); nested files contribute directories + stem.
+- **Package names sanitize to path-root segments** (`rpi-pico2` →
+  `rpi_pico2`): `::`-path segments must lex as identifiers.
+- **Intra-package cross-module name collisions are legal declarations**
+  (per-module scoping) **and ambiguous at a bare reference** — E207 at the
+  reference site naming every candidate, with deterministic first-candidate
+  recovery. The RFC defines collision handling for same-module and
+  use-site cases; this completes the matrix in its spirit.
+- **Designs are excluded** (the RFC scopes itself to trait/device/part/fn
+  paths): design names stay bare and project-global.
+- **`pub use` is rejected** with a targeted parse error (Non-goals), and
+  `use` requires the spec's canonical trailing `;`. An identical duplicate
+  import is not an E208 collision (the RFC's wording: "from different
+  paths").
+- **fmt**: contiguous `use` runs sort by path (Tooling & operations);
+  a full-line comment inside a run pins the author's order instead —
+  comment preservation outranks sorting, consistent with every previous
+  fmt decision (tests pin both behaviors).
+- **Display vs identity**: diagnostics and emitters show the short (last-
+  segment) spelling where they showed bare names before — netlist/BOM
+  bytes for existing projects are byte-identical; identities in the IR
+  (`IrInstance.device`, `impl_traits`) are fully-qualified. D002's
+  `Polarized` anchor matches the trait's short name (and checks EVERY
+  short-named candidate, so a same-named project trait cannot shade the
+  std check out).
+- **Byte-stability tie-breaks compare SHORT names.** Wherever "the
+  lexicographically-smallest name wins" feeds output bytes — the RFC-005
+  designator-prefix rule and provisional §2's ambiguous part binding —
+  the comparison is on the short name (the pre-module flat order), with
+  the fq path as a deterministic tiebreaker. Moving a declaration between
+  modules/packages therefore never changes designators or the BOM.
+- **`std` is a reserved package name** — a project claiming it would merge
+  into the standard library's namespace (with cascading diagnostics inside
+  std/ files the user cannot edit); rejected at project load.
+- **A design sharing a bare name with a same-package declaration is E201**
+  (the flat model's protection, kept; only cross-package/std shadowing is
+  the disclosed new permissiveness).
+
+Not implemented (RFC Non-goals): glob imports, `pub use` re-exports,
+aliasing. Multi-package loading beyond project+std arrives with RFC-017;
+the resolver already handles arbitrary package sets (exercised directly in
+tests/modules.rs).
+
+Adversarial verification (two same-day rounds, 4 attackers + skeptic
+refuters each; refuted findings were documented decisions): all confirmed
+findings fixed pre-landing, each with a named regression.
+
+Round 1 (contract/semantics): the designator-prefix order flip under fq
+keys (HIGH: violated the RFC's own "behavior unchanged" compatibility
+promise on fresh builds), the part-binding order flip + self-contradictory
+build note, the `std` package-name merge, missing closest-match suggestions
+at reference sites (World::suggest was dead code — now wired into every
+unknown-name diagnostic), the undisclosed loss of design-vs-declaration
+collision detection, the D002 shading case, and the false "nothing is
+declared there" message for design imports (tests/modules.rs).
+
+Round 2 (fmt/LSP/grammar, re-run after round 1's attackers were lost to
+API errors — refuters confirmed every round-1 fix held): fmt idempotence
+broke when a full-line comment sat INSIDE a multi-line `use` path (HIGH:
+the pin/sort decision now depends only on between-import comments, and an
+import's interior comments ride just above its canonicalized line —
+tests/fmt.rs); trailing comments on non-final lines of a multi-line `use`
+were exiled to EOF; the LSP's nested unsaved buffers landed at the package
+root (module inference diverged from the CLI — every in-project overlay
+now joins with its project-relative display; loose files stay separate
+units per review R7 — tests/lsp.rs); the mandatory two-package regression
+was strengthened to reference level (both qualified paths + a bare-name
+probe); and four parser-recovery/span defects (`#[intent]`-on-use and
+`pub use` anchoring, lone-segment span, broken-`use` resynchronization, a
+stray `;` body swallowing following declarations, `use` inside a body
+misparsing as a call) — tests/modules.rs `use_grammar_errors_anchor_and_recover`.
+
 ## External review round 3 (Codex, at f901cdf): dispositions
 
 Fixed in code (regression tests named in parentheses):

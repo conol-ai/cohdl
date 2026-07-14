@@ -27,12 +27,16 @@ v1 (branch `legacy`) had a convention-hack, v2 makes the fact explicit syntax.
 - Source files are all `*.cohdl` under the project's `src/`, plus the std
   library (all `*.cohdl` under the compiler's `std/`; `--std <dir>` overrides,
   `--no-std` omits).
-- **One flat global scope.** All top-level declarations across all files share
-  one namespace; duplicate names are a compile error (`E201`). There are no
-  `module`/`use` declarations in the MVP (modules are "Not yet specified" in
-  note 10; RFC-003's "different module" organization is still expressible as
-  different *files*). `pub` is accepted and recorded but not enforced (single
-  flat scope has no visibility boundary yet).
+- **Scope — graduated to RFC-016 (2026-07-14).** The original provisional
+  choice here ("one flat global scope, no `module`/`use`, `pub` recorded but
+  not enforced") is superseded by the Accepted module system: a package's
+  module tree mirrors its file tree under `src/`, `use path::Name;` imports
+  one name, `pub` is enforced across package boundaries, and same-name
+  declarations collide per module path (`E201`) rather than globally.
+  Single-package ergonomics are unchanged by design (every name in the
+  package stays visible unqualified, and pub `std` items remain implicitly
+  in scope as the standard prelude). See `docs/design/rfc-016-modules.md`
+  and the RFC-016 section of `docs/compliance-report.md`.
 - `cohdl check <dir>` / `cohdl build <dir>` also accept a single `.cohdl` file
   (treated as a one-file project named after the file, std included).
 
@@ -59,7 +63,9 @@ pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
   2. **By exact match:** `inst c1: MLCC<100nF, 16V, 10%>` — after
      monomorphization, if a part exists whose device and resolved spec values
      match exactly, the instance binds to it. If several match, the
-     lexicographically-smallest part name wins (deterministic; noted in the
+     lexicographically-smallest part name wins (the SHORT name since
+     RFC-016, fq path as tiebreaker — module layout never changes the BOM;
+     deterministic; noted in the
      build output).
 - `cohdl build` (emitting netlist + BOM) **requires every instance to be
   part-bound** (`E801` otherwise) — this is what makes "the BOM lies"
@@ -149,7 +155,8 @@ pub trait Capacitor: TwoTerminal {
 ```
 
 - Only traits carry `designator_prefix`. A device's prefix = the prefix of the
-  lexicographically-smallest trait name among its implemented traits that
+  lexicographically-smallest trait name (SHORT name since RFC-016, fq path
+  as tiebreaker) among its implemented traits that
   declares one; default `"U"` when none does (v1-compatible).
 - `#[designator("U7")]` on an `inst` statement overrides the full designator
   (prefix + number), resolved before fresh assignment per RFC-005.

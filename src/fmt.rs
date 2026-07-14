@@ -281,7 +281,23 @@ impl Formatter<'_> {
     // -- top level -----------------------------------------------------------
 
     fn file(&mut self, ast: &SourceFile) {
-        for item in &ast.items {
+        let items = &ast.items;
+        let mut i = 0;
+        while i < items.len() {
+            // RFC-016: a contiguous run of `use` imports is canonical when
+            // sorted by path. Interior full-line comments pin the author's
+            // order instead (comment preservation outranks sorting — the
+            // formatter never separates a comment from its statement).
+            if matches!(items[i].kind, ItemKind::Use(_)) {
+                let mut j = i;
+                while j < items.len() && matches!(items[j].kind, ItemKind::Use(_)) {
+                    j += 1;
+                }
+                self.use_run(&items[i..j]);
+                i = j;
+                continue;
+            }
+            let item = &items[i];
             self.flush_leading(self.line_start(item.span), 0);
             let end = self.line_end(item.span);
             // A comment trailing a ONE-line item describes the whole item —
@@ -292,9 +308,61 @@ impl Formatter<'_> {
             self.append_held(held);
             // A trailing comment on a multi-line item's closing line.
             self.attach_trailing(end);
+            i += 1;
         }
         // Any comments trailing the last item.
         self.flush_leading(self.c.max_line + 1, 0);
+    }
+
+    /// One contiguous run of `use` imports: sorted by path when no full-line
+    /// comment BETWEEN imports pins the source order; each import keeps its
+    /// own comments either way. A comment inside a single import's own
+    /// (multi-line) path is that import's — it rides along when the run
+    /// sorts, emitted just above its canonicalized one-line form (an
+    /// interior-comment line has no in-line home after canonicalization).
+    /// This keeps fmt(fmt(x)) == fmt(x): the pin/sort decision depends only
+    /// on BETWEEN-import comments, which emission preserves in place.
+    fn use_run(&mut self, run: &[Item]) {
+        let first_line = self.line_start(run[0].span);
+        let last_line = self.line_end(run[run.len() - 1].span);
+        self.flush_leading(first_line, 0);
+        // Line ranges each import's own span occupies.
+        let intra: Vec<(u32, u32)> = run
+            .iter()
+            .map(|it| (self.line_start(it.span), self.line_end(it.span)))
+            .collect();
+        let has_between = (first_line + 1..=last_line).any(|l| {
+            self.c.full_line.contains_key(&l) && !intra.iter().any(|(s, e)| l > *s && l <= *e)
+        });
+        let mut order: Vec<&Item> = run.iter().collect();
+        if !has_between {
+            order.sort_by_key(|it| match &it.kind {
+                ItemKind::Use(u) => u.path_text(),
+                _ => unreachable!("use_run only receives use items"),
+            });
+        }
+        for it in order {
+            if has_between {
+                self.flush_leading(self.line_start(it.span), 0);
+            }
+            let (start, end) = (self.line_start(it.span), self.line_end(it.span));
+            // Comments inside the import's own multi-line path: just above.
+            for l in start + 1..=end {
+                if let Some(c) = self.c.full_line.remove(&l) {
+                    self.push(0, c);
+                }
+            }
+            let ItemKind::Use(u) = &it.kind else {
+                unreachable!("use_run only receives use items")
+            };
+            self.push(0, format!("use {};", u.path_text()));
+            // Trailing comments on ANY of the import's source lines ride the
+            // emitted line (a multi-line path collapses to one).
+            for l in start..=end {
+                self.attach_trailing(l);
+            }
+        }
+        self.cursor = self.cursor.max(last_line + 1);
     }
 
     /// Emit a single-string opaque attribute (`#[NAME("...")]`) on its own line,
@@ -334,6 +402,8 @@ impl Formatter<'_> {
             ItemKind::Fn(f) => self.fn_def(vis, item, f),
             ItemKind::Part(p) => self.part_def(vis, item, p),
             ItemKind::Design(d) => self.design_def(vis, item, d),
+            // Reached only when a use import is emitted outside a run.
+            ItemKind::Use(u) => self.push(0, format!("use {};", u.path_text())),
         }
     }
 

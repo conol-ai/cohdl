@@ -53,25 +53,34 @@ pub fn run_drc(world: &World, ir: &DesignIr, diags: &mut Diagnostics) {
         }
 
         // ---- D002 polarity-mismatch: a `Polarized` device's anode pin on a
-        // GND-annotated net.
+        // GND-annotated net. RFC-016: trait identities are fully-qualified
+        // paths now; D002's anchor is the trait NAMED `Polarized`, whichever
+        // package declares it (matched on the path's last segment).
         if net.is_gnd {
             for (path, pin) in &net.members {
                 let inst = &ir.instances[path];
-                if !inst.impl_traits.contains("Polarized") {
-                    continue;
-                }
-                let anode = world
-                    .resolved_impls
-                    .get(&("Polarized".to_string(), inst.device.clone()))
-                    .and_then(|r| r.pin_map.get("Anode"));
-                if anode == Some(pin) {
+                // EVERY implemented trait named `Polarized` is a candidate —
+                // a project trait sharing the name must not shade the std
+                // one out of the check (adversarial finding).
+                let anode_hit = inst
+                    .impl_traits
+                    .iter()
+                    .filter(|t| crate::resolve::short(t) == "Polarized")
+                    .any(|polarized| {
+                        world
+                            .resolved_impls
+                            .get(&(polarized.clone(), inst.device.clone()))
+                            .and_then(|r| r.pin_map.get("Anode"))
+                            == Some(pin)
+                    });
+                if anode_hit {
                     diags.push(
                         Diagnostic::error(
                             "D002",
                             inst.span,
                             format!(
                                 "polarity-mismatch: anode pin `{}.{}` (device `{}` implements `Polarized`) is connected to GND-annotated net `{}`",
-                                path, pin, inst.device, net.name
+                                path, pin, crate::resolve::short(&inst.device), net.name
                             ),
                         )
                         .with_help("polarized components connect their cathode toward ground"),

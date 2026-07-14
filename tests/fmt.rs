@@ -583,3 +583,94 @@ fn empty_body_opener_comment_stays_attached() {
     );
     assert_idempotent("empty.cohdl", src);
 }
+
+// ---------------------------------------------------------------------------
+// RFC-016: `use` imports and qualified paths.
+
+#[test]
+fn use_statements_canonicalize_and_sort() {
+    let src = "use zeta::b::C;\nuse   alpha::a::B  ;\nuse mid::x::Y;\npub device D { pins { A: 1 [passive] } }\n";
+    let once = format_source("u.cohdl", src).unwrap();
+    let za = once.find("use alpha::a::B;").expect("canonical spacing");
+    let zm = once.find("use mid::x::Y;").unwrap();
+    let zz = once.find("use zeta::b::C;").unwrap();
+    assert!(za < zm && zm < zz, "sorted by path:\n{}", once);
+    assert_idempotent("u.cohdl", src);
+}
+
+#[test]
+fn use_run_with_interior_comment_keeps_author_order() {
+    // A full-line comment inside the run pins the order (the formatter
+    // never separates a comment from its statement).
+    let src = "use zeta::b::C;\n// alpha is special\nuse alpha::a::B;\npub device D { pins { A: 1 [passive] } }\n";
+    let once = format_source("uc.cohdl", src).unwrap();
+    let zz = once.find("use zeta::b::C;").unwrap();
+    let zc = once.find("// alpha is special").unwrap();
+    let za = once.find("use alpha::a::B;").unwrap();
+    assert!(zz < zc && zc < za, "comment-pinned order:\n{}", once);
+    assert_idempotent("uc.cohdl", src);
+}
+
+#[test]
+fn use_trailing_comments_ride_their_import_when_sorted() {
+    let src = "use zeta::b::C; // the zeta one\nuse alpha::a::B; // the alpha one\npub device D { pins { A: 1 [passive] } }\n";
+    let once = format_source("ut.cohdl", src).unwrap();
+    assert!(
+        once.contains("use alpha::a::B; // the alpha one"),
+        "{}",
+        once
+    );
+    assert!(once.contains("use zeta::b::C; // the zeta one"), "{}", once);
+    assert!(
+        once.find("alpha").unwrap() < once.find("zeta").unwrap(),
+        "sorted with comments attached:\n{}",
+        once
+    );
+    assert_idempotent("ut.cohdl", src);
+}
+
+#[test]
+fn qualified_paths_survive_formatting() {
+    let src = "design B {\n    inst d: pkg::power::buck::TPS62840\n    net N: d.A\n}";
+    let once = format_source("q.cohdl", src).unwrap();
+    assert!(
+        once.contains("inst d: pkg::power::buck::TPS62840"),
+        "{}",
+        once
+    );
+    assert_idempotent("q.cohdl", src);
+}
+
+// Adversarial round 2 (high): a full-line comment INSIDE a multi-line `use`
+// path flipped the run from pinned to sorted on the second pass (fmt not
+// idempotent; the comment was exiled to EOF). Interior-of-one-import
+// comments now ride just above their import and never affect sorting.
+#[test]
+fn multi_line_use_with_inner_comment_is_idempotent() {
+    let src = "use zeta::\n  // inner comment\n  z::Z;\nuse alpha::a::B;\npub device D { pins { A: 1 [passive] } }\n";
+    let once = format_source("mlu.cohdl", src).unwrap();
+    // Sorted (the comment belongs to one import, it doesn't pin the run)…
+    assert!(
+        once.find("use alpha::a::B;").unwrap() < once.find("use zeta::z::Z;").unwrap(),
+        "{}",
+        once
+    );
+    // …and the comment rides immediately above its import, not at EOF.
+    assert!(
+        once.contains("// inner comment\nuse zeta::z::Z;"),
+        "comment stays with its import:\n{}",
+        once
+    );
+    assert!(!once.trim_end().ends_with("// inner comment"), "{}", once);
+    assert_idempotent("mlu.cohdl", src);
+}
+
+// Adversarial round 2 (low): a trailing comment on a non-final line of a
+// multi-line `use` was exiled to EOF; it now rides the emitted line.
+#[test]
+fn multi_line_use_trailing_comment_rides_the_import() {
+    let src = "use zeta:: // why zeta\n  z::Z;\npub device D { pins { A: 1 [passive] } }\n";
+    let once = format_source("mlt.cohdl", src).unwrap();
+    assert!(once.contains("use zeta::z::Z; // why zeta"), "{}", once);
+    assert_idempotent("mlt.cohdl", src);
+}

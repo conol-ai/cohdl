@@ -44,7 +44,7 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
         let _ = writeln!(
             out,
             "      (libsource (lib \"cohdl\") (part {}) (description \"\"))",
-            quote(&inst.device)
+            quote(crate::resolve::short(&inst.device))
         );
         if mpn.is_some() || mfr.is_some() {
             out.push_str("      (fields\n");
@@ -118,7 +118,7 @@ fn principal_value(world: &World, inst: &crate::ir::IrInstance) -> String {
         }
     }
     let _ = world;
-    inst.device.clone()
+    crate::resolve::short(&inst.device).to_string()
 }
 
 fn pin_sort_key(pin: &str) -> (u64, String) {

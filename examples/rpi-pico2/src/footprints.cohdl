@@ -1,0 +1,47 @@
+// RFC-017 stage-one migration: placeholder footprint SYMBOLS, one per
+// KiCad footprint the board's own parts previously named as a string.
+// Bodies are deliberately empty — the footprint FORMAT (pad geometry)
+// is RFC-018's; until it lands these are resolvable names only. Each
+// `was:` comment records the original KiCad footprint id.
+
+// was: "Capacitor_SMD:C_0201_0603Metric"
+pub footprint FP_C_0201_0603Metric {}
+
+// was: "Capacitor_SMD:C_0805_2012Metric"
+pub footprint FP_C_0805_2012Metric {}
+
+// was: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
+pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {}
+
+// was: "Diode_SMD:D_SOD-123"
+pub footprint FP_D_SOD_123 {}
+
+// was: "Inductor_SMD:L_0806_2016Metric"
+pub footprint FP_L_0806_2016Metric {}
+
+// was: "Connector:Pico_Castellated_3"
+pub footprint FP_Pico_Castellated_3 {}
+
+// was: "Connector:Pico_Castellated_40"
+pub footprint FP_Pico_Castellated_40 {}
+
+// was: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm"
+pub footprint FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm {}
+
+// was: "Resistor_SMD:R_0201_0603Metric"
+pub footprint FP_R_0201_0603Metric {}
+
+// was: "Package_TO_SOT_SMD:SOT-523"
+pub footprint FP_SOT_523 {}
+
+// was: "Button_Switch_SMD:SW_SPST_TL3342"
+pub footprint FP_SW_SPST_TL3342 {}
+
+// was: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering"
+pub footprint FP_USB_Micro_B_Wuerth_614105150721_HandSoldering {}
+
+// was: "Package_SON:USON-8_1.0x1.5mm_P0.4mm"
+pub footprint FP_USON_8_1_0x1_5mm_P0_4mm {}
+
+// was: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm"
+pub footprint FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm {}

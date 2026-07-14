@@ -1,7 +1,7 @@
 (export (version D)
   (components
     (comp (ref "C1") (value "10uF")
-      (footprint "Capacitor_SMD:C_0603_1608Metric")
+      (footprint "std::FP_C_0603_1608Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL10A106KP8NNNC")
@@ -11,7 +11,7 @@
       (tstamp "00000000")
     )
     (comp (ref "C2") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -21,7 +21,7 @@
       (tstamp "00000001")
     )
     (comp (ref "C3") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -31,7 +31,7 @@
       (tstamp "00000002")
     )
     (comp (ref "C4") (value "1uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R61A105KE15D")
@@ -41,7 +41,7 @@
       (tstamp "00000003")
     )
     (comp (ref "C5") (value "1uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R61A105KE15D")
@@ -51,7 +51,7 @@
       (tstamp "00000004")
     )
     (comp (ref "D1") (value "ChipLED")
-      (footprint "LED_SMD:LED_0603_1608Metric")
+      (footprint "std::FP_LED_0603_1608Metric")
       (libsource (lib "cohdl") (part "ChipLED") (description ""))
       (fields
         (field (name "MPN") "LTST-C193KRKT-5A")
@@ -61,7 +61,7 @@
       (tstamp "00000005")
     )
     (comp (ref "J1") (value "USB_C_Receptacle_2_0")
-      (footprint "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12")
+      (footprint "std::FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12")
       (libsource (lib "cohdl") (part "USB_C_Receptacle_2_0") (description ""))
       (fields
         (field (name "MPN") "TYPE-C-31-M-12")
@@ -71,7 +71,7 @@
       (tstamp "00000006")
     )
     (comp (ref "MK1") (value "ICS43434")
-      (footprint "Sensor_Audio:InvenSense_ICS-43434-6_3.5x2.65mm")
+      (footprint "std::FP_InvenSense_ICS_43434_6_3_5x2_65mm")
       (libsource (lib "cohdl") (part "ICS43434") (description ""))
       (fields
         (field (name "MPN") "ICS-43434")
@@ -81,7 +81,7 @@
       (tstamp "00000007")
     )
     (comp (ref "R1") (value "1kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-071KL")
@@ -91,7 +91,7 @@
       (tstamp "00000008")
     )
     (comp (ref "R2") (value "5.1kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-075K1L")
@@ -101,7 +101,7 @@
       (tstamp "00000009")
     )
     (comp (ref "R3") (value "5.1kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-075K1L")
@@ -111,7 +111,7 @@
       (tstamp "0000000A")
     )
     (comp (ref "R4") (value "10kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-0710KL")
@@ -121,7 +121,7 @@
       (tstamp "0000000B")
     )
     (comp (ref "U1") (value "ESP32_S3_WROOM_1")
-      (footprint "RF_Module:ESP32-S3-WROOM-1")
+      (footprint "std::FP_ESP32_S3_WROOM_1")
       (libsource (lib "cohdl") (part "ESP32_S3_WROOM_1") (description ""))
       (fields
         (field (name "MPN") "ESP32-S3-WROOM-1-N8")
@@ -131,7 +131,7 @@
       (tstamp "0000000C")
     )
     (comp (ref "U2") (value "AP2112K_3V3")
-      (footprint "Package_TO_SOT_SMD:SOT-23-5")
+      (footprint "std::FP_SOT_23_5")
       (libsource (lib "cohdl") (part "AP2112K_3V3") (description ""))
       (fields
         (field (name "MPN") "AP2112K-3.3TRG1")

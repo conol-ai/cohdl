@@ -12,7 +12,7 @@ impl Polarized for ChipLED {}
 impl Diode for ChipLED {}
 
 pub part LED_RED_0603: ChipLED {
-    primary { mfr: "Lite-On", mpn: "LTST-C193KRKT-5A", footprint: "LED_SMD:LED_0603_1608Metric" }
+    primary { mfr: "Lite-On", mpn: "LTST-C193KRKT-5A", footprint: FP_LED_0603_1608Metric }
 }
 
 // A status LED with its series resistor: signal → R → LED → GND.

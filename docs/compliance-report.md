@@ -430,9 +430,13 @@ note-side blessing, none contradicting it):
   the disclosed new permissiveness).
 
 Not implemented (RFC Non-goals): glob imports, `pub use` re-exports,
-aliasing. Multi-package loading beyond project+std arrives with RFC-017;
-the resolver already handles arbitrary package sets (exercised directly in
-tests/modules.rs).
+aliasing. Multi-package loading beyond project+std is NOT yet loadable
+from disk — the resolver handles arbitrary package sets (exercised
+directly in tests/modules.rs and tests/library.rs), but the project
+loader still assembles exactly project+std; on-disk dependency loading
+needs the distribution mechanics RFC-017 itself defers (a future RFC).
+(Corrected 2026-07-14: this line originally promised the loading half
+"arrives with RFC-017" — that overstated RFC-017's scope.)
 
 Adversarial verification (two same-day rounds, 4 attackers + skeptic
 refuters each; refuted findings were documented decisions): all confirmed
@@ -462,6 +466,80 @@ probe); and four parser-recovery/span defects (`#[intent]`-on-use and
 `pub use` anchoring, lone-segment span, broken-`use` resynchronization, a
 stray `;` body swallowing following declarations, `use` inside a body
 misparsing as a call) — tests/modules.rs `use_grammar_errors_anchor_and_recover`.
+
+## RFC-017 (library registry) implementation notes (2026-07-14)
+
+Implemented per DR-023 (as revised): `#[doc("relative/path")]` reference
+documents (one or MORE per declaration, zero compilation impact — the
+compiler never opens the files; paths recorded in `World::docs` and
+surfaced by LSP part hover), and `footprint` as a fifth top-level
+declaration kind resolved through RFC-016's machinery unchanged (module
+paths, `use`, `pub`/E209, E207 ambiguity, closest-match suggestions).
+`part`'s `footprint:` field is a SYMBOL reference — the string form is a
+targeted parse error with migration help. Conformance: tests/library.rs +
+LSP additions.
+
+Decisions and honest boundaries:
+
+- **The body is enforced EMPTY.** RFC-017 leaves footprint content
+  unspecified; rather than silently accepting arbitrary tokens, a
+  non-empty body is a targeted error naming RFC-018. "Symbol-resolution-
+  complete, format-empty", made mechanical.
+- **The netlist's footprint field now carries the resolved symbol's
+  fully-qualified path** (`std::FP_C_0402_1005Metric`), not a KiCad
+  library id. This is the disclosed breaking change's observable half:
+  pcbnew can no longer resolve footprints from the emitted `.net` until
+  RFC-018 gives `footprint` real geometry to project into `.kicad_mod`.
+  The historical KiCad checkpoint (docs/demo) predates this and stands as
+  executed; BOTH committed golden netlists (sensor-node and rpi-pico2)
+  were regenerated (footprint fields only — designators, nets, BOM, and
+  lock bytes are unchanged). The IPC-2581 document's package names become fq symbol
+  paths (identifier-safe by construction; the hostile-footprint-string
+  sanitization case is now unrepresentable and its regression was
+  retired).
+- **Stage-one migration executed** per the RFC's own two-stage plan:
+  placeholder `pub footprint FP_<name> {}` declarations in
+  `std/footprints.cohdl` and `examples/rpi-pico2/src/footprints.cohdl`,
+  each carrying a `// was: "<KiCad id>"` comment preserving the original
+  mapping for RFC-018's real-content stage. Placeholder names carry an
+  `FP_` prefix (one KiCad name, `ESP32-S3-WROOM-1`, collided with the std
+  DEVICE of the same sanitized name — the shared per-module namespace
+  makes unprefixed placeholders unsafe).
+- **`#[doc]` targets**: top-level declarations (rejected on `use`, which
+  is an import, not a declaration). Doc paths are not existence-checked —
+  the RFC names that as a real gap for a future lint, not silently
+  assumed.
+- LSP: goto-definition works on footprint references; hover on a part
+  name shows MPN/MFR, the resolved footprint symbol, and `#[doc]` paths.
+- The spec snapshot's "Footprints and pads (copad/cofp)" section is STALE
+  against RFC-018's same-day naming correction (plain `pad`/`footprint`,
+  "no rename" per its Alternatives/Decision) — a note-side amendment
+  item; the implementation follows the RFCs' accepted text.
+- **On-disk dependency loading is NOT part of this landing.** The
+  resolver handles arbitrary package sets (tests drive it directly), but
+  `load_project` still assembles exactly project+std; placing a second
+  library on disk and compiling against it needs the distribution
+  mechanics RFC-017 itself defers. The RFC-016 section's original
+  forward promise was corrected accordingly.
+
+Adversarial verification (same-day round, 3 attackers + skeptic refuters;
+17 of 18 findings confirmed, 1 refuted as the documented import-precedence
+contract): all fixed pre-landing, each with a named regression in
+tests/library.rs — panic-mode recovery didn't know the `footprint`
+contextual keyword (a preceding parse error silently swallowed a following
+footprint declaration → phantom E202s); a misplaced footprint in a body
+misparsed as a fn call and destroyed the rest of the body; invalid inst
+attributes inside never-expanded fns were silently accepted (attr
+validation moved to parse); footprint-body recovery cascaded past the
+closing brace and unclosed bodies anchored their error on the NEXT
+declaration (matched-brace skip + opener anchoring); `footprint {}`
+missing its name got the generic message; `#[doc]` on an impl was
+silently dropped (now a targeted error — impls are unnamed); the E802
+help and reject-attrs messages still taught pre-RFC-017 forms;
+provisional-syntax §2 still specified the string form; the committed
+rpi-pico2 golden netlist had not been regenerated (now it is); the LSP
+part-hover doc claim was untested (now asserted); and the RFC-016
+section's multi-package-loading promise was corrected (above).
 
 ## External review round 3 (Codex, at f901cdf): dispositions
 

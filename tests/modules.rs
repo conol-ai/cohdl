@@ -110,7 +110,7 @@ fn single_package_projects_are_unchanged() {
     let (checked, rendered) = check(
         "board",
         &[
-            ("src/parts.cohdl", "pub device Res { pins { A: 1 [passive], B: 2 [passive] } }\npub part R1: Res { primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } }\n"),
+            ("src/parts.cohdl", "pub device Res { pins { A: 1 [passive], B: 2 [passive] } }\npub footprint TFP {}\npub part R1: Res { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n"),
             ("src/main.cohdl", "design B {\n    inst r1: R1\n    inst r2: R1\n    net N: r1.A, r2.A\n    net M: r1.B, r2.B\n}\n"),
         ],
     );
@@ -171,7 +171,8 @@ fn project_name_shadows_std_prelude() {
     files.push((
         "src/main.cohdl".to_string(),
         "pub device MLCC { pins { A: 1 [passive], B: 2 [passive] } }\n\
-         pub part M1: MLCC { primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } }\n\
+         pub footprint TFP {}\n\
+         pub part M1: MLCC { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n\
          design B {\n    inst c: M1\n    net N: c.A\n    net G: c.B\n}\n"
             .to_string(),
     ));
@@ -217,7 +218,7 @@ fn qualified_and_imported_references_work_intra_package() {
         &[
             (
                 "src/parts/res.cohdl",
-                "pub device Res { pins { A: 1 [passive], B: 2 [passive] } }\npub part R1: Res { primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } }\n",
+                "pub device Res { pins { A: 1 [passive], B: 2 [passive] } }\npub footprint TFP {}\npub part R1: Res { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n",
             ),
             (
                 "src/main.cohdl",
@@ -450,7 +451,8 @@ fn designator_prefix_ignores_module_paths() {
              pub device Chip { pins { VDD: 1 [power_in], A: 2 [passive] } }\n\
              impl IC for Chip {}\n\
              impl Watchdog for Chip {}\n\
-             pub part P: Chip { primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } }\n\
+             pub footprint TFP {}\n\
+             pub part P: Chip { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n\
              design B {\n    inst u1: P\n    net N: u1.VDD\n    net M: u1.A\n}\n"
                 .to_string(),
         ),
@@ -483,8 +485,9 @@ fn part_binding_order_ignores_module_paths() {
         &[(
             "src/main.cohdl",
             "pub device Res { pins { A: 1 [passive], B: 2 [passive] } spec { r: 10kohm } }\n\
-             pub part AAA_RES: Res { primary { mfr: \"Yageo\", mpn: \"AAA-10K\", footprint: \"f\" } }\n\
-             pub part BBB_RES: Res { primary { mfr: \"Vishay\", mpn: \"BBB-10K\", footprint: \"f\" } }\n\
+             pub footprint TFP {}\n\
+             pub part AAA_RES: Res { primary { mfr: \"Yageo\", mpn: \"AAA-10K\", footprint: TFP } }\n\
+             pub part BBB_RES: Res { primary { mfr: \"Vishay\", mpn: \"BBB-10K\", footprint: TFP } }\n\
              design B {\n    inst r: Res\n    net N: r.A\n    net M: r.B\n}\n",
         )],
     );
@@ -494,12 +497,13 @@ fn part_binding_order_ignores_module_paths() {
         &[
             (
                 "src/zz/parts.cohdl",
-                "pub part AAA_RES: Res { primary { mfr: \"Yageo\", mpn: \"AAA-10K\", footprint: \"f\" } }\n",
+                "pub part AAA_RES: Res { primary { mfr: \"Yageo\", mpn: \"AAA-10K\", footprint: TFP } }\n",
             ),
             (
                 "src/main.cohdl",
                 "pub device Res { pins { A: 1 [passive], B: 2 [passive] } spec { r: 10kohm } }\n\
-                 pub part BBB_RES: Res { primary { mfr: \"Vishay\", mpn: \"BBB-10K\", footprint: \"f\" } }\n\
+                 pub footprint TFP {}\n\
+                 pub part BBB_RES: Res { primary { mfr: \"Vishay\", mpn: \"BBB-10K\", footprint: TFP } }\n\
                  design B {\n    inst r: Res\n    net N: r.A\n    net M: r.B\n}\n",
             ),
         ],
@@ -589,7 +593,8 @@ fn project_polarized_trait_does_not_shade_d002() {
              pub device Cap { pins { Anode: 1 [passive], Cathode: 2 [passive] } }\n\
              impl std::Polarized for Cap {}\n\
              impl board::Polarized for Cap {}\n\
-             pub part CP: Cap { primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } }\n\
+             pub footprint TFP {}\n\
+             pub part CP: Cap { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n\
              design B {\n    inst c: CP\n    net GND [gnd]: c.Anode\n    net N: c.Cathode\n}\n"
                 .to_string(),
         ),
@@ -650,8 +655,8 @@ fn colliding_names_resolve_at_reference_level() {
         ),
         (
             "consumer/src/main.cohdl",
-            "pub part PA: sparkfun::power::buck::TPS62840 { primary { mfr: \"m\", mpn: \"a\", footprint: \"f\" } }\n\
-             pub part PB: acme::power::TPS62840 { primary { mfr: \"m\", mpn: \"b\", footprint: \"f\" } }\n",
+            "pub footprint TFP {}\npub part PA: sparkfun::power::buck::TPS62840 { primary { mfr: \"m\", mpn: \"a\", footprint: TFP } }\n\
+             pub part PB: acme::power::TPS62840 { primary { mfr: \"m\", mpn: \"b\", footprint: TFP } }\n",
             "consumer",
             "consumer",
         ),
@@ -683,7 +688,7 @@ fn colliding_names_resolve_at_reference_level() {
         ),
         (
             "consumer/src/main.cohdl",
-            "pub part PX: TPS62840 { primary { mfr: \"m\", mpn: \"x\", footprint: \"f\" } }\n",
+            "pub footprint TFP {}\npub part PX: TPS62840 { primary { mfr: \"m\", mpn: \"x\", footprint: TFP } }\n",
             "consumer",
             "consumer",
         ),

@@ -106,7 +106,7 @@ impl IC for RP2350A {}
 
 pub part RP2350A_QFN60: RP2350A {
     primary { mfr: "Raspberry Pi", mpn: "RP2350A",
-              footprint: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm" }
+              footprint: FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm }
 }
 
 // ---- RT6150B-33GQW: VSYS -> 3V3 buck-boost SMPS (fixed 3.3V) ----
@@ -128,7 +128,7 @@ impl IC for RT6150B {}
 
 pub part BUCKBOOST_RT6150B: RT6150B {
     primary { mfr: "Richtek", mpn: "RT6150B-33GQW",
-              footprint: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm" }
+              footprint: FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm }
 }
 
 // ---- W25Q32 4 MiB QSPI NOR flash (USON-8, pin 9 = pad = GND) ----
@@ -149,8 +149,7 @@ pub device W25Q32 {
 impl IC for W25Q32 {}
 
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ",
-              footprint: "Package_SON:USON-8_1.0x1.5mm_P0.4mm" }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: FP_USON_8_1_0x1_5mm_P0_4mm }
 }
 
 // ---- 12 MHz crystal (4-pad SMD; pads 2 & 4 = case ground) ----
@@ -166,8 +165,7 @@ pub device Crystal_4pad {
 impl Crystal for Crystal_4pad {}
 
 pub part XTAL_12MHZ: Crystal_4pad {
-    primary { mfr: "Abracon", mpn: "ABM8-272-T3",
-              footprint: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm" }
+    primary { mfr: "Abracon", mpn: "ABM8-272-T3", footprint: FP_Crystal_SMD_3225_4Pin_3_2x2_5mm }
 }
 
 // ---- micro-USB type-B connector ----
@@ -187,7 +185,7 @@ impl Connector for MicroUSB_B {}
 
 pub part USB_MICRO_B: MicroUSB_B {
     primary { mfr: "Wurth", mpn: "690-005-298-486",
-              footprint: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering" }
+              footprint: FP_USB_Micro_B_Wuerth_614105150721_HandSoldering }
 }
 
 // ---- 40-pin castellated / 0.1" header (the user I/O edge) ----
@@ -234,7 +232,7 @@ pub device Castellated40 {
 impl Connector for Castellated40 {}
 
 pub part HEADER_40W: Castellated40 {
-    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_40W", footprint: "Connector:Pico_Castellated_40" }
+    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_40W", footprint: FP_Pico_Castellated_40 }
 }
 
 // ---- 3-pin SWD debug header ----
@@ -250,7 +248,7 @@ pub device SWD_Header {
 impl Connector for SWD_Header {}
 
 pub part HEADER_SWD_3W: SWD_Header {
-    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_3W", footprint: "Connector:Pico_Castellated_3" }
+    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_3W", footprint: FP_Pico_Castellated_3 }
 }
 
 // ---- BOOTSEL tactile switch (4-pad; {1,2} one side, {3,4} the other) ----
@@ -265,7 +263,7 @@ pub device Bootsel_Switch {
 impl Switch for Bootsel_Switch {}
 
 pub part BOOTSEL_SW: Bootsel_Switch {
-    primary { mfr: "XKB", mpn: "TP-1221U-K9K5325", footprint: "Button_Switch_SMD:SW_SPST_TL3342" }
+    primary { mfr: "XKB", mpn: "TP-1221U-K9K5325", footprint: FP_SW_SPST_TL3342 }
 }
 
 // ---- Schottky power-OR/reverse-block diode (reuses std Polarized/Diode) ----
@@ -286,7 +284,7 @@ impl Polarized for Schottky_SOD123 {
 impl Diode for Schottky_SOD123 {}
 
 pub part SCHOTTKY_PMEG6010: Schottky_SOD123 {
-    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: "Diode_SMD:D_SOD-123" }
+    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: FP_D_SOD_123 }
 }
 
 // ---- N-channel MOSFET (isolates the VSYS/3 divider when 3V3 is off) ----
@@ -302,7 +300,7 @@ pub device NMOS_SOT523 {
 impl Transistor for NMOS_SOT523 {}
 
 pub part FET_DMG1012T: NMOS_SOT523 {
-    primary { mfr: "Diodes Inc", mpn: "DMG1012T", footprint: "Package_TO_SOT_SMD:SOT-523" }
+    primary { mfr: "Diodes Inc", mpn: "DMG1012T", footprint: FP_SOT_523 }
 }
 
 // ---- Inductor (reuses a two-terminal shape; L designator via Inductor) ----
@@ -320,62 +318,58 @@ pub device ChipInductor<L: Inductance> {
 impl Inductor for ChipInductor {}
 
 pub part IND_2U2: ChipInductor<2.2uH> {
-    primary { mfr: "Murata", mpn: "DFE201612E-2R2M", footprint: "Inductor_SMD:L_0806_2016Metric" }
+    primary { mfr: "Murata", mpn: "DFE201612E-2R2M", footprint: FP_L_0806_2016Metric }
 }
 
 pub part IND_3U3: ChipInductor<3.3uH> {
-    primary { mfr: "Murata", mpn: "DFE201612E-3R3M", footprint: "Inductor_SMD:L_0806_2016Metric" }
+    primary { mfr: "Murata", mpn: "DFE201612E-3R3M", footprint: FP_L_0806_2016Metric }
 }
 
 // ---- Pico-specific passive part bindings on the std devices ----
 
 // Resistors (std ChipResistor; std already provides RES_1K / RES_10K).
 pub part R_470: ChipResistor<470ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: FP_R_0201_0603Metric }
 }
 pub part R_27: ChipResistor<27ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: FP_R_0201_0603Metric }
 }
 pub part R_33: ChipResistor<33ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: FP_R_0402_1005Metric }
 }
 pub part R_200: ChipResistor<200ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: FP_R_0402_1005Metric }
 }
 pub part R_100: ChipResistor<100ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: FP_R_0201_0603Metric }
 }
 pub part R_1R: ChipResistor<1ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: FP_R_0201_0603Metric }
 }
 pub part R_5K6: ChipResistor<5.6kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: FP_R_0201_0603Metric }
 }
 pub part R_100K: ChipResistor<100kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: "Resistor_SMD:R_0201_0603Metric" }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: FP_R_0201_0603Metric }
 }
 
 // Capacitors (std MLCC; std already provides the 100nF/1uF/10uF parts).
 pub part C_15pF: MLCC<15pF, 25V, 5%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01",
-              footprint: "Capacitor_SMD:C_0201_0603Metric" }
+    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: FP_C_0201_0603Metric }
 }
 pub part C_1nF: MLCC<1nF, 25V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01",
-              footprint: "Capacitor_SMD:C_0201_0603Metric" }
+    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: FP_C_0201_0603Metric }
 }
 pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R60J475ME47",
-              footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: FP_C_0402_1005Metric }
 }
 pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
-    primary { mfr: "Murata", mpn: "GRM188R60J476ME15",
-              footprint: "Capacitor_SMD:C_0805_2012Metric" }
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: FP_C_0805_2012Metric }
 }
 
 // Green user LED (reuses std ChipLED).
 pub part LED_GREEN: ChipLED {
-    primary { mfr: "Wurth", mpn: "150060GS75000", footprint: "LED_SMD:LED_0603_1608Metric" }
+    primary { mfr: "Wurth", mpn: "150060GS75000", footprint: FP_LED_0603_1608Metric }
 }
 
 // ---- reusable Pico sub-circuits ----

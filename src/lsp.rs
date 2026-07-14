@@ -581,6 +581,36 @@ impl Server {
                 }
             }
         }
+        // Part declaration hover (RFC-017): MPN/MFR, the resolved footprint
+        // symbol, and any #[doc] reference documents.
+        for (fq, part) in &world.parts {
+            if !contains(part.name.span, fid, offset) {
+                continue;
+            }
+            let mut text = format!(
+                "**part** `{}`: `{}`",
+                part.name.name,
+                crate::resolve::short(&part.device.name.name)
+            );
+            if let Some(mpn) = part.primary.field("mpn") {
+                text.push_str(&format!("\n\n- mpn: `{}`", mpn.value));
+            }
+            if let Some(mfr) = part.primary.field("mfr") {
+                text.push_str(&format!("\n- mfr: `{}`", mfr.value));
+            }
+            if let Some(fp) = &part.primary.footprint {
+                text.push_str(&format!("\n- footprint: `{}`", fp.name));
+            }
+            if let Some(docs) = analysis.checked.world.docs.get(fq) {
+                for d in docs {
+                    text.push_str(&format!("\n- doc: `{}`", d));
+                }
+            }
+            return Some(hover_markdown(
+                text,
+                span_to_range(&analysis, part.name.span),
+            ));
+        }
         // Pin USE-SITE hover (RFC-002: any pin reference reveals its
         // obligation/role, not only the declaration): `d.A` in net/nc/call
         // statements resolves through the inst's type (part → device) or a
@@ -640,7 +670,8 @@ impl Server {
             .map(|d| d.name.span)
             .or_else(|| world.traits.get(&name).map(|t| t.name.span))
             .or_else(|| world.fns.get(&name).map(|f| f.name.span))
-            .or_else(|| world.parts.get(&name).map(|p| p.name.span))?;
+            .or_else(|| world.parts.get(&name).map(|p| p.name.span))
+            .or_else(|| world.footprints.get(&name).map(|f| f.name.span))?;
         Some(lt::Location {
             uri: analysis.uri_for(target.file)?,
             range: span_to_range(&analysis, target),
@@ -1165,10 +1196,17 @@ fn use_site_name(world: &crate::resolve::World, fid: FileId, offset: u32) -> Opt
             return Some(n);
         }
     }
-    // Part device references.
+    // Part device references + footprint symbol references (RFC-017).
     for part in world.parts.values() {
         if hit(&part.device.name) {
             return Some(part.device.name.name.clone());
+        }
+        for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+            if let Some(fp) = &entry.footprint {
+                if hit(fp) {
+                    return Some(fp.name.clone());
+                }
+            }
         }
     }
     // Design bodies: inst types and fn calls.

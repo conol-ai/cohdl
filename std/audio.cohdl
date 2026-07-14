@@ -16,5 +16,5 @@ impl Microphone for ICS43434 {}
 
 pub part MIC_ICS43434: ICS43434 {
     primary { mfr: "TDK InvenSense", mpn: "ICS-43434",
-              footprint: "Sensor_Audio:InvenSense_ICS-43434-6_3.5x2.65mm" }
+              footprint: FP_InvenSense_ICS_43434_6_3_5x2_65mm }
 }

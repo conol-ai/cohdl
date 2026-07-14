@@ -23,9 +23,11 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let value = principal_value(world, inst);
         let part = inst.part.as_ref().and_then(|p| world.parts.get(p));
+        // RFC-017: the footprint field emits the resolved footprint SYMBOL's
+        // fully-qualified path (real geometry projection is RFC-018's).
         let footprint = part
-            .and_then(|p| p.primary.field("footprint"))
-            .map(|f| f.value.as_str())
+            .and_then(|p| p.primary.footprint.as_ref())
+            .map(|f| f.name.as_str())
             .unwrap_or("");
         let mpn = part
             .and_then(|p| p.primary.field("mpn"))

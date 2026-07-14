@@ -1,0 +1,29 @@
+// RFC-017 stage-one migration: placeholder footprint SYMBOLS, one per
+// KiCad footprint the std library's parts previously named as a string.
+// Bodies are deliberately empty — the footprint FORMAT (pad geometry)
+// is RFC-018's; until it lands these are resolvable names only. Each
+// `was:` comment records the original KiCad footprint id.
+
+// was: "Capacitor_SMD:C_0402_1005Metric"
+pub footprint FP_C_0402_1005Metric {}
+
+// was: "Capacitor_SMD:C_0603_1608Metric"
+pub footprint FP_C_0603_1608Metric {}
+
+// was: "RF_Module:ESP32-S3-WROOM-1"
+pub footprint FP_ESP32_S3_WROOM_1 {}
+
+// was: "Sensor_Audio:InvenSense_ICS-43434-6_3.5x2.65mm"
+pub footprint FP_InvenSense_ICS_43434_6_3_5x2_65mm {}
+
+// was: "LED_SMD:LED_0603_1608Metric"
+pub footprint FP_LED_0603_1608Metric {}
+
+// was: "Resistor_SMD:R_0402_1005Metric"
+pub footprint FP_R_0402_1005Metric {}
+
+// was: "Package_TO_SOT_SMD:SOT-23-5"
+pub footprint FP_SOT_23_5 {}
+
+// was: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {}

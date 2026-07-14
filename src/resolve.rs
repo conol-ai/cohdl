@@ -61,6 +61,8 @@ pub struct World {
     pub devices: BTreeMap<String, DeviceDef>,
     pub fns: BTreeMap<String, FnDef>,
     pub parts: BTreeMap<String, PartDef>,
+    /// RFC-017 footprint symbols (placeholder bodies until RFC-018).
+    pub footprints: BTreeMap<String, FootprintDef>,
     pub designs: BTreeMap<String, DesignDef>,
     pub impls: Vec<ImplDef>,
     /// (trait fq path, device fq path) → index into `impls`. Populated only
@@ -70,6 +72,9 @@ pub struct World {
     pub resolved_impls: BTreeMap<(String, String), ResolvedImpl>,
     /// fq path → symbol facts, for suggestions and the LSP.
     pub symbols: BTreeMap<String, Symbol>,
+    /// RFC-017 `#[doc("path")]` reference documents, fq path → paths in
+    /// source order. Opaque to compilation; surfaced by the LSP.
+    pub docs: BTreeMap<String, Vec<String>>,
 }
 
 /// The outcome of checking one `impl Trait for Device`: every trait-required
@@ -369,6 +374,14 @@ pub fn build_world_in(
     for (i, file) in files.into_iter().enumerate() {
         let module = &modules[i].module;
         for item in file.items {
+            if !item.docs.is_empty() {
+                if let Some(name) = item.kind.name() {
+                    world.docs.insert(
+                        format!("{}::{}", module, name.name),
+                        item.docs.iter().map(|(p, _)| p.clone()).collect(),
+                    );
+                }
+            }
             match item.kind {
                 ItemKind::Trait(t) => {
                     world
@@ -387,6 +400,11 @@ pub fn build_world_in(
                     world
                         .parts
                         .insert(format!("{}::{}", module, p.name.name), p);
+                }
+                ItemKind::Footprint(f) => {
+                    world
+                        .footprints
+                        .insert(format!("{}::{}", module, f.name.name), f);
                 }
                 ItemKind::Design(d) => {
                     world.designs.insert(d.name.name.clone(), d);
@@ -472,7 +490,15 @@ impl Resolver<'_> {
                             self.resolve(id, module, &no_shadow, diags);
                         }
                     }
+                    // RFC-017: footprint symbol references resolve exactly
+                    // like every other cross-library name.
+                    for entry in std::iter::once(&mut p.primary).chain(p.alts.iter_mut()) {
+                        if let Some(fp) = &mut entry.footprint {
+                            self.resolve(fp, module, &no_shadow, diags);
+                        }
+                    }
                 }
+                ItemKind::Footprint(_) => {}
                 ItemKind::Design(d) => {
                     let body = &mut d.body;
                     self.rewrite_body(body, module, &no_shadow, diags);

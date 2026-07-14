@@ -1285,3 +1285,47 @@ fn nested_phantom_buffer_gets_the_cli_module_path() {
     lsp.shutdown();
     let _ = std::fs::remove_dir_all(&root);
 }
+
+// RFC-017: goto-definition on a part's footprint symbol reference, and part
+// hover surfacing #[doc] paths + the resolved footprint.
+#[test]
+fn footprint_ref_definition_and_part_hover() {
+    let src = "\
+pub footprint ZzFp {}
+pub device ZzDev { pins { A: 1 [passive] } }
+#[doc(\"datasheets/zz.pdf\")]
+#[doc(\"app-notes/zz-layout.pdf\")]
+pub part ZzPart: ZzDev { primary { mfr: \"Acme\", mpn: \"ZZ-1\", footprint: ZzFp } }
+design B {
+    inst d: ZzPart
+    net N: d.A
+}
+";
+    let (_path, uri, text) = fixture("library.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Goto-def on the footprint reference (line 4) → its declaration (line 0).
+    let col = src.lines().nth(4).unwrap().rfind("ZzFp").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 4, "character": col + 1 } }),
+    );
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+
+    // Hover on the part name → mpn/mfr, footprint symbol, AND its #[doc]
+    // reference documents (adversarial finding: the doc half was untested).
+    let pcol = src.lines().nth(4).unwrap().find("ZzPart").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 4, "character": pcol } }),
+    );
+    let md = hover["contents"]["value"].as_str().unwrap_or("");
+    assert!(md.contains("**part** `ZzPart`"), "{}", md);
+    assert!(md.contains("mpn: `ZZ-1`"), "{}", md);
+    assert!(md.contains("footprint: `library::ZzFp`"), "{}", md);
+    assert!(md.contains("doc: `datasheets/zz.pdf`"), "{}", md);
+    assert!(md.contains("doc: `app-notes/zz-layout.pdf`"), "{}", md);
+    lsp.shutdown();
+}

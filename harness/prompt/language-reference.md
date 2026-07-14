@@ -89,10 +89,15 @@ impl TwoTerminal for TantalumCap {
 
 ```cohdl
 pub part MLCC_100nF_16V_0402: MLCC<100nF, 16V, 10%>[C0402] {
-    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: FP_C_0402_1005Metric }
     alt { mfr: "Murata", mpn: "GRM155R71C104KA88D" }
 }
 ```
+
+- `footprint:` references a `footprint` SYMBOL (RFC-017) — a declared
+  `pub footprint FP_X {}`, reached by bare name, `use` import, or a
+  qualified path. It is never a string. The std library declares
+  placeholders (`std/footprints.cohdl`) for the common packages.
 
 - A part whose device declares `variants {}` selects its variant with the
   `[VARIANT]` suffix on the device reference, as above.

@@ -46,7 +46,7 @@ Carried forward from v1's real shape, adapted to v2's positional generics:
 
 ```cohdl
 pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
-    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: FP_C_0402_1005Metric }
     alt     { mfr: "Murata",  mpn: "GRM155R71C104KA88D" }
 }
 ```
@@ -56,8 +56,10 @@ pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
 - Exactly one `primary`, zero or more `alt`. `primary` **must** carry `mpn`
   and `footprint` (checked the moment the `part` is declared — the Conceptual
   Model's "MPN binding is non-optional at declaration" promise). `alt` must
-  carry `mpn`. `mfr` is optional metadata. `footprint` is a verbatim KiCad
-  footprint string (the MVP's one codegen target).
+  carry `mpn`. `mfr` is optional metadata. `footprint` — **graduated to
+  RFC-017 (2026-07-14)** — is a SYMBOL reference to a `footprint`
+  declaration (never a string), resolved via RFC-016's module rules; the
+  original verbatim-KiCad-string form is now a targeted parse error.
 - An instance binds to a part in one of two ways:
   1. **By name:** `inst c1: MLCC_100nF_16V` — the part is used as the type.
   2. **By exact match:** `inst c1: MLCC<100nF, 16V, 10%>` — after

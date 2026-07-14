@@ -841,11 +841,12 @@ pub device MLCC<C: Capacitance> {
     pins { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
+pub footprint TFP {}
 pub part ZPart: MLCC<100nF> {
-    primary { mpn: "Z-1", footprint: "F" }
+    primary { mpn: "Z-1", footprint: TFP }
 }
 pub part APart: MLCC<100nF> {
-    primary { mpn: "A-1", footprint: "F" }
+    primary { mpn: "A-1", footprint: TFP }
 }
 design B {
     inst c: MLCC<100nF>
@@ -1077,11 +1078,12 @@ pub device Dual {
     pins[QFN] { required SIG: 7 [passive], required GND: 8 [passive] }
     pins[DIP] { required SIG: 1 [passive], required GND: 2 [passive] }
 }
+pub footprint TFP {}
 pub part DUAL_QFN: Dual[QFN] {
-    primary { mpn: "D-QFN", footprint: "F1" }
+    primary { mpn: "D-QFN", footprint: TFP }
 }
 pub part DUAL_DIP: Dual[DIP] {
-    primary { mpn: "D-DIP", footprint: "F2" }
+    primary { mpn: "D-DIP", footprint: TFP }
 }
 design B {
     inst q: DUAL_QFN
@@ -1141,8 +1143,9 @@ pub device V<C: Capacitance> {
     pins[C0402] { A: 1 [passive], B: 2 [passive] }
     spec { capacitance: C }
 }
+pub footprint TFP {}
 pub part P1: V<100nF> {
-    primary { mpn: "X", footprint: "F" }
+    primary { mpn: "X", footprint: TFP }
 }
 "#,
     );

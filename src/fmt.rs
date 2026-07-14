@@ -391,7 +391,22 @@ impl Formatter<'_> {
     }
 
     fn item(&mut self, item: &Item) {
-        self.emit_string_attr("intent", &item.intent, 0, self.line_start(item.decl_span));
+        // Item-level attributes (#[doc] × N + #[intent]) in SOURCE order —
+        // reordering would migrate their comments (RFC-016 round-2 lesson).
+        let mut attrs: Vec<(&str, &(String, Span))> =
+            item.docs.iter().map(|d| ("doc", d)).collect();
+        if let Some(i) = &item.intent {
+            attrs.push(("intent", i));
+        }
+        attrs.sort_by_key(|(_, (_, sp))| sp.start);
+        for (name, value) in attrs {
+            self.emit_string_attr(
+                name,
+                &Some(value.clone()),
+                0,
+                self.line_start(item.decl_span),
+            );
+        }
         // Comments between the attribute and the declaration stay between.
         self.flush_leading(self.line_start(item.decl_span), 0);
         let vis = if item.is_pub { "pub " } else { "" };
@@ -402,6 +417,7 @@ impl Formatter<'_> {
             ItemKind::Fn(f) => self.fn_def(vis, item, f),
             ItemKind::Part(p) => self.part_def(vis, item, p),
             ItemKind::Design(d) => self.design_def(vis, item, d),
+            ItemKind::Footprint(f) => self.footprint_def(vis, item, f),
             // Reached only when a use import is emitted outside a run.
             ItemKind::Use(u) => self.push(0, format!("use {};", u.path_text())),
         }
@@ -910,6 +926,24 @@ impl Formatter<'_> {
 
     // -- parts ---------------------------------------------------------------
 
+    /// RFC-017 `footprint NAME {}` — the body is empty by definition until
+    /// RFC-018; comments inside/on the braces keep them open (same rule as
+    /// member-less traits).
+    fn footprint_def(&mut self, vis: &str, item: &Item, f: &FootprintDef) {
+        let header = format!("{}footprint {}", vis, f.name.name);
+        let start = self.line_start(item.decl_span);
+        let end = self.line_end(item.span);
+        let opener_comment = start != end && self.c.trailing.contains_key(&start);
+        if opener_comment || self.has_comments_between(start, end) {
+            self.push(0, format!("{} {{", header));
+            self.attach_trailing(start);
+            self.flush_leading(end, 1);
+            self.push(0, "}");
+        } else {
+            self.push(0, format!("{} {{}}", header));
+        }
+    }
+
     fn part_def(&mut self, vis: &str, item: &Item, p: &PartDef) {
         self.push(
             0,
@@ -928,11 +962,23 @@ impl Formatter<'_> {
         entries.sort_by_key(|(_, e)| self.line_start(e.span));
         for (kw, entry) in entries {
             self.flush_leading(self.line_start(entry.span), 1);
-            let fields: Vec<String> = entry
+            // String fields + the footprint SYMBOL (RFC-017, unquoted),
+            // in source order by span.
+            let mut cells: Vec<(u32, String)> = entry
                 .fields
                 .iter()
-                .map(|f| format!("{}: {}", f.name.name, str_lit(&f.value)))
+                .map(|f| {
+                    (
+                        f.span.start,
+                        format!("{}: {}", f.name.name, str_lit(&f.value)),
+                    )
+                })
                 .collect();
+            if let Some(fp) = &entry.footprint {
+                cells.push((fp.span.start, format!("footprint: {}", fp.name)));
+            }
+            cells.sort_by_key(|(s, _)| *s);
+            let fields: Vec<String> = cells.into_iter().map(|(_, t)| t).collect();
             // AVL entries wrap like other long argument lists (RFC-009).
             self.wrapped(1, &format!("{} {{ ", kw), &fields, " }");
             self.finish_construct(self.line_start(entry.span), self.line_end(entry.span), 1);

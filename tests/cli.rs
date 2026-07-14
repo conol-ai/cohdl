@@ -24,7 +24,8 @@ const WITH_LAYOUT: &str = r#"
 pub trait TwoTerminal { pins { required A: pin required B: pin } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
 impl TwoTerminal for Res {}
-pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: "fp" } }
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
 design B {
     inst r1: R1
     inst r2: R1
@@ -77,8 +78,9 @@ fn stale_layout_artifact_is_removed() {
 const WITH_D003: &str = r#"
 pub device MCU { pins { required TX: 1 [output], required GND: 2 [power_in] } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
-pub part MCU_P: MCU { primary { mfr: "m", mpn: "n", footprint: "fp" } }
-pub part R1: Res { primary { mfr: "m", mpn: "r", footprint: "fp" } }
+pub footprint TFP {}
+pub part MCU_P: MCU { primary { mfr: "m", mpn: "n", footprint: TFP } }
+pub part R1: Res { primary { mfr: "m", mpn: "r", footprint: TFP } }
 design B {
     inst mcu: MCU_P
     inst r: Res

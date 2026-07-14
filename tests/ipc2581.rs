@@ -117,7 +117,8 @@ fn xsd_validate(name: &str, xml: &str) -> bool {
 /// Two-resistor board (clean, no layout metadata).
 const BASIC: &str = r#"
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } spec { resistance: 1kohm } }
-pub part R1K: Res { primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: "Resistor_SMD:R_0402_1005Metric" } }
+pub footprint TFP {}
+pub part R1K: Res { primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: TFP } }
 design B {
     inst r1: R1K
     inst r2: R1K
@@ -130,8 +131,9 @@ design B {
 const WITH_LAYOUT: &str = r#"
 pub device Mcu { pins { required DP: 1 [bidirectional], required DM: 2 [bidirectional], required VDD: 3 [power_in], required GND: 4, 5 [power_in] } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
-pub part MCU_P: Mcu { primary { mfr: "Acme", mpn: "MCU-1", footprint: "Package_DFN_QFN:QFN-16" } }
-pub part R0: Res { primary { mfr: "Yageo", mpn: "RC-0", footprint: "Resistor_SMD:R_0402_1005Metric" } }
+pub footprint TFP {}
+pub part MCU_P: Mcu { primary { mfr: "Acme", mpn: "MCU-1", footprint: TFP } }
+pub part R0: Res { primary { mfr: "Yageo", mpn: "RC-0", footprint: TFP } }
 design B {
     #[placement_hint("near the USB connector")]
     inst u1: MCU_P
@@ -149,11 +151,13 @@ design B {
 }
 "#;
 
-/// XML-hostile strings: footprint with spaces/angle brackets/ampersand
-/// (sanitized package name + raw kept in the comment), MPN/MFR with quotes.
+/// XML-hostile strings in MPN/MFR (footprints are symbols since RFC-017 —
+/// identifier-safe by construction, so only free-text part fields can be
+/// hostile now).
 const NASTY: &str = r#"
 pub device D { pins { A: 1 [passive], B: 2 [passive] } }
-pub part P1: D { primary { mfr: "ACME & Co 'Ltd'", mpn: "MPN <X> & 'Y'", footprint: "My Lib:R 0402 <A&B>" } }
+pub footprint TFP {}
+pub part P1: D { primary { mfr: "ACME & Co 'Ltd'", mpn: "MPN <X> & 'Y'", footprint: TFP } }
 design B {
     inst d1: P1
     inst d2: P1
@@ -529,19 +533,17 @@ fn hostile_strings_are_escaped_and_names_sanitized() {
     };
     assert_eq!(textual("MPN"), "MPN <X> & 'Y'");
     assert_eq!(textual("MFR"), "ACME & Co 'Ltd'");
-    // The Package name is sanitized to the XSD charset; the raw footprint
-    // rides the comment attribute.
+    // RFC-017: footprints are SYMBOLS now — package names are fq module
+    // paths, identifier-safe by construction (the hostile-footprint-string
+    // case is unrepresentable since the migration; sanitization remains as
+    // defense-in-depth only).
     let pkg = elements(&b.xml, "Package")[0];
     let name = attr(pkg, "name").unwrap();
+    assert_eq!(name, "main::TFP", "package name is the fq footprint symbol");
     assert!(
-        name.chars()
-            .all(|c| c.is_ascii_alphanumeric() || "_-.+:".contains(c)),
-        "package name must be schema-safe: {}",
-        name
+        attr(pkg, "comment").is_none(),
+        "no raw-name comment needed — the symbol IS the name"
     );
-    assert_eq!(attr(pkg, "comment").as_deref(), Some("My Lib:R 0402 <A&B>"));
-    // And the document stays well-formed under xmllint (validity checked in
-    // the corpus test; here a plain parse suffices even without the XSD).
     let _ = &b.checked;
 }
 
@@ -556,8 +558,9 @@ fn hostile_strings_are_escaped_and_names_sanitized() {
 fn control_characters_stay_well_formed_and_tabs_survive() {
     let src = "\
 pub device D { pins { A: 1 [passive], B: 2 [passive] } }
-pub part P1: D { primary { mfr: \"ACME\tCo\", mpn: \"MPN\u{8}X\", footprint: \"fp\" } }
-pub part P2: D { primary { mfr: \"ACME Co\", mpn: \"OTHER\", footprint: \"fp\" } }
+pub footprint TFP {}
+pub part P1: D { primary { mfr: \"ACME\tCo\", mpn: \"MPN\u{8}X\", footprint: TFP } }
+pub part P2: D { primary { mfr: \"ACME Co\", mpn: \"OTHER\", footprint: TFP } }
 design B {
     #[placement_hint(\"near\tUSB\")]
     inst d1: P1
@@ -602,8 +605,9 @@ pub device Da { pins { A: 1 [passive], B: 2 [passive] } }
 pub device Db { pins { A: 1 [passive], B: 2 [passive] } }
 impl TA for Da {}
 impl TB for Db {}
-pub part PA: Da { primary { mfr: \"m\", mpn: \"a\", footprint: \"f\" } }
-pub part PB: Db { primary { mfr: \"m\", mpn: \"b\", footprint: \"f\" } }
+pub footprint TFP {}
+pub part PA: Da { primary { mfr: \"m\", mpn: \"a\", footprint: TFP } }
+pub part PB: Db { primary { mfr: \"m\", mpn: \"b\", footprint: TFP } }
 design B {
     inst a: PA
     inst b: PB
@@ -645,8 +649,9 @@ fn avl_mpns_stay_distinct_and_carry_raw_mpn() {
     let src = "\
 pub device Da { pins { A: 1 [passive], B: 2 [passive] } }
 pub device Db { pins { A: 1 [passive], B: 2 [passive] } }
-pub part PA: Da { primary { mfr: \"NXP\", mpn: \"BAT54S/SOT23\", footprint: \"f\" } }
-pub part PB: Db { primary { mfr: \"Other\", mpn: \"BAT54S_SOT23\", footprint: \"f\" } }
+pub footprint TFP {}
+pub part PA: Da { primary { mfr: \"NXP\", mpn: \"BAT54S/SOT23\", footprint: TFP } }
+pub part PB: Db { primary { mfr: \"Other\", mpn: \"BAT54S_SOT23\", footprint: TFP } }
 design B {
     inst a: PA
     inst b: PB

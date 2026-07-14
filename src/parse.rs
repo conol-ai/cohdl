@@ -158,7 +158,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
-                TokenKind::Ident(n) if n == "use" => return,
+                TokenKind::Ident(n) if n == "use" || n == "footprint" => return,
                 _ => {
                     self.bump();
                 }
@@ -172,6 +172,8 @@ impl<'a> Parser<'a> {
         // RFC-012: `#[intent("...")]` is opaque metadata valid on any
         // declaration; any other attribute (`#[designator]`) is inst-only.
         let (intent, rest) = self.take_intent(attrs);
+        // RFC-017: `#[doc("relative/path")]` — one or MORE per declaration.
+        let (docs, rest) = self.take_docs(rest);
         // Where the declaration proper begins — after any attributes.
         let decl_start = self.span();
         let is_pub = self.eat(&TokenKind::Pub);
@@ -198,14 +200,57 @@ impl<'a> Parser<'a> {
                     "`#[intent]` is not valid on a `use` import".to_string(),
                 ));
             }
+            for (_, doc_span) in &docs {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    *doc_span,
+                    "`#[doc]` is not valid on a `use` import".to_string(),
+                ));
+            }
             let kind = kind?;
             return Some(Item {
                 is_pub: false,
                 intent: None,
+                docs: Vec::new(),
                 decl_span: decl_start,
                 span: start.to(self.prev_span()),
                 kind,
             });
+        }
+        // RFC-017 `footprint NAME {}` — contextual keyword, like `use`.
+        if self.at_ident("footprint") && self.peek_ahead(1) == &TokenKind::LBrace {
+            let span = self.span();
+            self.diags.push(Diagnostic::error(
+                "E010",
+                span,
+                "a `footprint` declaration needs a name: `footprint NAME {}`".to_string(),
+            ));
+            self.bump(); // footprint
+            self.skip_braced_body(span);
+            return None;
+        }
+        if self.at_ident("footprint") && matches!(self.peek_ahead(1), TokenKind::Ident(_)) {
+            let kind = self.footprint_def().map(ItemKind::Footprint);
+            self.reject_attrs(&rest);
+            let kind = kind?;
+            return Some(Item {
+                is_pub,
+                intent,
+                docs,
+                decl_span: decl_start,
+                span: start.to(self.prev_span()),
+                kind,
+            });
+        }
+        if !docs.is_empty() && matches!(self.peek(), TokenKind::Impl) {
+            for (_, doc_span) in &docs {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    *doc_span,
+                    "`#[doc]` is not valid on an `impl` — impls are unnamed; attach the document to the trait or device"
+                        .to_string(),
+                ));
+            }
         }
         let kind = match self.peek() {
             TokenKind::Trait => self.trait_def().map(ItemKind::Trait),
@@ -216,7 +261,7 @@ impl<'a> Parser<'a> {
             TokenKind::Design => self.design_def().map(ItemKind::Design),
             other => {
                 self.error_here(format!(
-                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, or `design`), found {}",
+                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `footprint`, or `use`), found {}",
                     other.describe()
                 ));
                 self.sync_top_level();
@@ -228,6 +273,7 @@ impl<'a> Parser<'a> {
         Some(Item {
             is_pub,
             intent,
+            docs,
             decl_span: decl_start,
             span: start.to(self.prev_span()),
             kind,
@@ -287,6 +333,71 @@ impl<'a> Parser<'a> {
         })
     }
 
+    /// RFC-017: `footprint NAME {}` — the body is DELIBERATELY empty; its
+    /// content format arrives with RFC-018. Anything inside the braces is a
+    /// targeted error, not silently-accepted garbage.
+    fn footprint_def(&mut self) -> Option<FootprintDef> {
+        let start = self.span();
+        self.bump(); // `footprint`
+        let name = self.ident("as the footprint name")?;
+        if !self.expect(&TokenKind::LBrace, "to open the footprint body") {
+            self.sync_top_level();
+            return None;
+        }
+        if !self.at(&TokenKind::RBrace) {
+            // Anchor at the first body token; recovery skips to the MATCHING
+            // brace so body content (commas, nesting) never cascades to file
+            // scope, and an unclosed body anchors at the declaration.
+            self.error_here(
+                "the footprint body format is not yet specified (RFC-018, the footprint format RFC) — leave it empty: `footprint NAME {}`"
+                    .to_string(),
+            );
+            self.skip_braced_body(name.span);
+            return Some(FootprintDef {
+                span: start.to(self.prev_span()),
+                name,
+            });
+        }
+        self.expect(&TokenKind::RBrace, "to close the footprint body");
+        Some(FootprintDef {
+            name,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// Skip a brace-balanced body whose `{` was already consumed. An EOF
+    /// before the matching `}` reports an unclosed body anchored at
+    /// `opened_at` (never at whatever declaration happens to follow).
+    fn skip_braced_body(&mut self, opened_at: Span) {
+        let mut depth = 1usize;
+        loop {
+            match self.peek() {
+                TokenKind::Eof => {
+                    self.diags.push(Diagnostic::error(
+                        "E010",
+                        opened_at,
+                        "unclosed body — missing `}` before end of file".to_string(),
+                    ));
+                    return;
+                }
+                TokenKind::LBrace => {
+                    depth += 1;
+                    self.bump();
+                }
+                TokenKind::RBrace => {
+                    depth -= 1;
+                    self.bump();
+                    if depth == 0 {
+                        return;
+                    }
+                }
+                _ => {
+                    self.bump();
+                }
+            }
+        }
+    }
+
     /// Panic-mode recovery for a broken `use`: skip to its `;` (consumed) or
     /// the next top-level synchronization point.
     fn sync_use(&mut self) {
@@ -305,11 +416,36 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
+                TokenKind::Ident(n) if n == "footprint" => return,
                 _ => {
                     self.bump();
                 }
             }
         }
+    }
+
+    /// RFC-017: split every `#[doc("...")]` out of `attrs` — multiple are
+    /// legitimate (datasheet, app note, errata), each exactly one string.
+    fn take_docs(&mut self, attrs: Vec<Attr>) -> (Vec<(String, Span)>, Vec<Attr>) {
+        let mut docs = Vec::new();
+        let mut rest = Vec::new();
+        for a in attrs {
+            if a.name.name != "doc" {
+                rest.push(a);
+                continue;
+            }
+            if a.args.len() != 1 {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    a.span,
+                    "`#[doc(…)]` takes exactly one string per attribute — use several `#[doc]`s for several documents"
+                        .to_string(),
+                ));
+                continue;
+            }
+            docs.push((a.args[0].0.clone(), a.span));
+        }
+        (docs, rest)
     }
 
     /// Split a single-string opaque attribute (`#[NAME("...")]`) out of `attrs`,
@@ -1143,12 +1279,58 @@ impl<'a> Parser<'a> {
             self.bump();
             self.expect(&TokenKind::LBrace, "to open the AVL entry");
             let mut fields = Vec::new();
+            let mut footprint: Option<Ident> = None;
             while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
                 let Some(fname) = self.ident("as the AVL field name (e.g. `mpn`)") else {
                     self.sync_in_block();
                     break;
                 };
                 self.expect(&TokenKind::Colon, "after the AVL field name");
+                // RFC-017: `footprint:` takes a SYMBOL reference (resolved
+                // via RFC-016) — never a string.
+                if fname.name == "footprint" {
+                    match self.peek() {
+                        TokenKind::Ident(_) => {
+                            if let Some(sym) = self.path_ident("as the footprint symbol") {
+                                if let Some(prev) = &footprint {
+                                    self.diags.push(
+                                        Diagnostic::error(
+                                            "E802",
+                                            sym.span,
+                                            "duplicate `footprint` in one AVL entry".to_string(),
+                                        )
+                                        .with_secondary(prev.span, "first given here".to_string()),
+                                    );
+                                } else {
+                                    footprint = Some(sym);
+                                }
+                            }
+                        }
+                        TokenKind::Str(_) => {
+                            let t = self.bump();
+                            self.diags.push(
+                                Diagnostic::error(
+                                    "E010",
+                                    t.span,
+                                    "`footprint:` now references a footprint SYMBOL (RFC-017), not a string"
+                                        .to_string(),
+                                )
+                                .with_help(
+                                    "declare `pub footprint SomeName {}` and write `footprint: SomeName` (or a qualified path)",
+                                ),
+                            );
+                        }
+                        other => {
+                            let msg = format!(
+                                "expected a footprint symbol after `footprint:`, found {}",
+                                other.describe()
+                            );
+                            self.error_here(msg);
+                        }
+                    }
+                    self.eat(&TokenKind::Comma);
+                    continue;
+                }
                 match self.peek() {
                     TokenKind::Str(_) => {
                         let t = self.bump();
@@ -1176,6 +1358,7 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::RBrace, "to close the AVL entry");
             let entry = AvlEntry {
                 fields,
+                footprint,
                 span: entry_start.to(self.prev_span()),
             };
             if is_primary {
@@ -1202,7 +1385,7 @@ impl<'a> Parser<'a> {
                     format!("part `{}` has no `primary` entry", name.name),
                 )
                 .with_help(
-                    "every part needs exactly one `primary { mpn: \"…\", footprint: \"…\" }`",
+                    "every part needs exactly one `primary { mpn: \"…\", footprint: SomeFootprint }` (RFC-017: footprint is a symbol)",
                 ),
             );
             return None;
@@ -1303,6 +1486,26 @@ impl<'a> Parser<'a> {
             TokenKind::Inst => {
                 // RFC-013: `#[placement_hint(...)]` is inst-only opaque metadata.
                 let (placement_hint, attrs) = self.take_string_attr("placement_hint", attrs);
+                // Attr validation happens HERE, at parse — an inst inside a
+                // never-expanded fn must not silently accept garbage
+                // (adversarial finding; expansion-time validation only runs
+                // for reachable bodies).
+                for a in &attrs {
+                    if a.name.name != "designator" {
+                        self.diags.push(Diagnostic::error(
+                            "E010",
+                            a.span,
+                            format!(
+                                "unrecognized attribute `{}` (an `inst` takes `#[designator(\"…\")]`, `#[intent(\"…\")]`, or `#[placement_hint(\"…\")]`)",
+                                a.name.name
+                            ),
+                        ));
+                    }
+                }
+                let attrs: Vec<Attr> = attrs
+                    .into_iter()
+                    .filter(|a| a.name.name == "designator")
+                    .collect();
                 let start = self.span();
                 self.bump();
                 let name = self.ident("as the instance name")?;
@@ -1398,6 +1601,21 @@ impl<'a> Parser<'a> {
                     span: start.to(self.prev_span()),
                 }))
             }
+            TokenKind::Ident(n)
+                if n == "footprint" && matches!(self.peek_ahead(1), TokenKind::Ident(_)) =>
+            {
+                self.reject_attrs(&attrs);
+                let span = self.span();
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`footprint` declarations are top-level — move it out of the design/fn body"
+                        .to_string(),
+                ));
+                // Consume it so the body keeps parsing cleanly.
+                let _ = self.footprint_def();
+                None
+            }
             TokenKind::Ident(n) if n == "use" => {
                 self.reject_attrs(&attrs);
                 let span = self.span();
@@ -1470,7 +1688,7 @@ impl<'a> Parser<'a> {
                 "E010",
                 a.span,
                 format!(
-                    "`#[{}]` is not valid here — only `#[intent(\"…\")]` may annotate this (and `#[designator(\"…\")]` on `inst`)",
+                    "`#[{}]` is not valid here — declarations take `#[intent(\"…\")]`/`#[doc(\"…\")]`, and `inst` additionally `#[designator]`/`#[placement_hint]`",
                     a.name.name
                 ),
             ));
@@ -1873,7 +2091,7 @@ design Board {
         let file = parse_ok(
             r#"
 pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
-    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: "Capacitor_SMD:C_0402_1005Metric" }
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: FP_C_0402 }
     alt { mfr: "Murata", mpn: "GRM155R71C104KA88D" }
 }
 "#,
@@ -1882,6 +2100,8 @@ pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
             panic!()
         };
         assert_eq!(p.primary.field("mpn").unwrap().value, "CL05B104KO5NNNC");
+        // RFC-017: footprint is a symbol reference, not a string field.
+        assert_eq!(p.primary.footprint.as_ref().unwrap().name, "FP_C_0402");
         assert_eq!(p.alts.len(), 1);
     }
 

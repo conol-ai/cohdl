@@ -24,8 +24,9 @@ pub device Res<R: Resistance, T: Tolerance = 1%> {
 }
 impl TwoTerminal for Res {}
 impl Resistor for Res {}
+pub footprint TFP {}
 pub part R1K: Res<1kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: TFP }
 }
 design B {
     inst r1: R1K
@@ -52,8 +53,9 @@ pub device Res<R: Resistance, T: Tolerance = 1%> {
 impl TwoTerminal for Res {}
 impl Resistor for Res {}
 #[intent("1k 1% 0402 — the only value this demo needs")]
+pub footprint TFP {}
 pub part R1K: Res<1kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: "Resistor_SMD:R_0402_1005Metric" }
+    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: TFP }
 }
 #[intent("the whole board")]
 design B {
@@ -310,7 +312,7 @@ fn intent_valid_on_every_declared_target() {
          #[intent(\"b\")] pub device D { pins { A: 1 [passive] } }\n\
          #[intent(\"c\")] impl T for D {}\n\
          #[intent(\"d\")] pub fn f(p: Pin) { net _: p }\n\
-         #[intent(\"e\")] pub part P: D { primary { mfr: \"m\", mpn: \"n\", footprint: \"fp\" } }\n\
+         #[intent(\"e\")] pub part P: D { primary { mfr: \"m\", mpn: \"n\", footprint: TFP } }\n\
          #[intent(\"f\")] design Z {\n\
          #[intent(\"g\")] inst d: P\n\
          #[intent(\"h\")] net N: d.A\n\

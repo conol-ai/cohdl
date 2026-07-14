@@ -1,0 +1,405 @@
+//! RFC-017 library-registry conformance: `#[doc(...)]` reference documents
+//! and `footprint` as a resolvable declaration kind (symbol-resolution-
+//! complete, format-empty — the body arrives with RFC-018).
+
+use cohdl::check::check_declarations_in;
+use cohdl::diag::Diagnostics;
+use cohdl::lock::LockState;
+use cohdl::pipeline::{build_artifacts, check_files, check_files_in};
+use cohdl::resolve::ModuleInfo;
+use cohdl::span::SourceMap;
+
+fn check(pkg: &str, files: &[(&str, &str)]) -> (cohdl::pipeline::Checked, String) {
+    let files: Vec<(String, String)> = files
+        .iter()
+        .map(|(n, c)| (n.to_string(), c.to_string()))
+        .collect();
+    let mut checked = check_files_in(pkg, &files, None).expect("selection");
+    checked.diags.sort(&checked.sm);
+    let rendered = checked.diags.render(&checked.sm);
+    (checked, rendered)
+}
+
+fn world_of(files: &[(&str, &str, &str, &str)]) -> (cohdl::resolve::World, String) {
+    let mut sm = SourceMap::new();
+    let mut diags = Diagnostics::new();
+    let mut parsed = Vec::new();
+    let mut modules = Vec::new();
+    for (name, content, package, module) in files {
+        let fid = sm.add_file(name.to_string(), content.to_string());
+        let tokens = cohdl::lex::lex(fid, sm.text(fid), &mut diags);
+        parsed.push(cohdl::parse::parse(tokens, &mut diags));
+        modules.push(ModuleInfo {
+            package: package.to_string(),
+            module: module.to_string(),
+        });
+    }
+    let world = check_declarations_in(parsed, &modules, &mut diags);
+    diags.sort(&sm);
+    (world, diags.render(&sm))
+}
+
+const BOARD: &str = r#"
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub footprint FP_0402 {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: FP_0402 } }
+design B {
+    inst r1: R1
+    inst r2: R1
+    net N: r1.A, r2.A
+    net M: r1.B, r2.B
+}
+"#;
+
+// ---------------------------------------------------------------------------
+// footprint: a resolvable declaration kind.
+
+#[test]
+fn footprint_resolves_like_every_other_declaration() {
+    // Cross-package: a library's pub footprint, imported and qualified.
+    let (world, rendered) = world_of(&[
+        (
+            "sparkfun/src/footprints/qfn.cohdl",
+            "pub footprint QFN10_3x3 {}\n",
+            "sparkfun",
+            "sparkfun::footprints::qfn",
+        ),
+        (
+            "app/src/main.cohdl",
+            "use sparkfun::footprints::qfn::QFN10_3x3;\n\
+             pub device D { pins { A: 1 [passive] } }\n\
+             pub part P1: D { primary { mfr: \"m\", mpn: \"a\", footprint: QFN10_3x3 } }\n\
+             pub part P2: D { primary { mfr: \"m\", mpn: \"b\", footprint: sparkfun::footprints::qfn::QFN10_3x3 } }\n",
+            "app",
+            "app",
+        ),
+    ]);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    assert!(world
+        .footprints
+        .contains_key("sparkfun::footprints::qfn::QFN10_3x3"));
+    // Both references resolved to the same fq symbol.
+    for part in ["app::P1", "app::P2"] {
+        assert_eq!(
+            world.parts[part].primary.footprint.as_ref().unwrap().name,
+            "sparkfun::footprints::qfn::QFN10_3x3"
+        );
+    }
+}
+
+#[test]
+fn non_pub_footprint_is_invisible_cross_package() {
+    let (_world, rendered) = world_of(&[
+        ("lib/src/main.cohdl", "footprint Hidden {}\n", "lib", "lib"),
+        (
+            "app/src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } }\n\
+             pub part P: D { primary { mfr: \"m\", mpn: \"n\", footprint: lib::Hidden } }\n",
+            "app",
+            "app",
+        ),
+    ]);
+    assert!(rendered.contains("E209"), "{}", rendered);
+}
+
+#[test]
+fn footprint_reference_must_be_a_footprint() {
+    // A device where a footprint is required: wrong kind, E205.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Res { pins { A: 1 [passive] } }\npub part P: Res { primary { mfr: \"m\", mpn: \"n\", footprint: Res } }\n",
+        )],
+    );
+    assert!(rendered.contains("E205"), "{}", rendered);
+    assert!(rendered.contains("not a footprint"), "{}", rendered);
+
+    // Unknown symbol: E202 with the closest-match suggestion.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Res { pins { A: 1 [passive] } }\npub footprint FP_0402 {}\npub part P: Res { primary { mfr: \"m\", mpn: \"n\", footprint: FP_0403 } }\n",
+        )],
+    );
+    assert!(rendered.contains("unknown footprint"), "{}", rendered);
+}
+
+#[test]
+fn footprint_string_gets_the_migration_error() {
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Res { pins { A: 1 [passive] } }\npub part P: Res { primary { mfr: \"m\", mpn: \"n\", footprint: \"Lib:Name\" } }\n",
+        )],
+    );
+    assert!(
+        rendered.contains("references a footprint SYMBOL"),
+        "{}",
+        rendered
+    );
+    assert!(
+        rendered.contains("pub footprint"),
+        "targeted help:\n{}",
+        rendered
+    );
+}
+
+#[test]
+fn footprint_body_content_is_deferred_to_rfc018() {
+    let (_checked, rendered) = check(
+        "board",
+        &[("src/main.cohdl", "pub footprint FP { pad 1 }\n")],
+    );
+    assert!(
+        rendered.contains("not yet specified"),
+        "non-empty body is a targeted error:\n{}",
+        rendered
+    );
+    assert!(rendered.contains("RFC-018"), "{}", rendered);
+}
+
+#[test]
+fn netlist_emits_the_resolved_footprint_symbol() {
+    let files = vec![("src/main.cohdl".to_string(), BOARD.to_string())];
+    let mut checked = check_files_in("board", &files, None).expect("selection");
+    assert!(!checked.diags.has_errors());
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
+    assert!(
+        artifacts.netlist.contains("(footprint \"board::FP_0402\")"),
+        "the .net carries the fq footprint symbol:\n{}",
+        artifacts.netlist
+    );
+}
+
+// ---------------------------------------------------------------------------
+// #[doc(...)]: multiple per declaration, zero compilation impact.
+
+#[test]
+fn docs_are_zero_impact_and_recorded() {
+    let plain = BOARD;
+    let documented = BOARD.replace(
+        "pub device Res",
+        "#[doc(\"datasheets/res.pdf\")]\n#[doc(\"app-notes/res-layout.pdf\")]\npub device Res",
+    );
+    let build = |src: &str| {
+        let files = vec![("src/main.cohdl".to_string(), src.to_string())];
+        let mut checked = check_files_in("board", &files, None).expect("selection");
+        let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
+        checked.diags.sort(&checked.sm);
+        (
+            checked.diags.render(&checked.sm),
+            artifacts.netlist,
+            artifacts.bom,
+            artifacts.lock.render(),
+            checked,
+        )
+    };
+    let (d1, n1, b1, l1, _c1) = build(plain);
+    let (d2, n2, b2, l2, c2) = build(&documented);
+    assert_eq!(d1, d2, "docs changed diagnostics");
+    assert_eq!(n1, n2, "docs changed the netlist");
+    assert_eq!(b1, b2, "docs changed the BOM");
+    assert_eq!(l1, l2, "docs changed the designator lock");
+    // …and the paths are recorded for tooling.
+    assert_eq!(
+        c2.world.docs.get("board::Res").map(Vec::as_slice),
+        Some(
+            &[
+                "datasheets/res.pdf".to_string(),
+                "app-notes/res-layout.pdf".to_string()
+            ][..]
+        )
+    );
+}
+
+#[test]
+fn doc_attr_shape_is_validated() {
+    // No argument.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "#[doc]\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(rendered.contains("exactly one string"), "{}", rendered);
+    // Two arguments in one attribute.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "#[doc(\"a.pdf\", \"b.pdf\")]\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(rendered.contains("exactly one string"), "{}", rendered);
+    // On a use import: rejected.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub footprint F {}\n#[doc(\"x.pdf\")]\nuse board::F;\n",
+        )],
+    );
+    assert!(rendered.contains("not valid on a `use`"), "{}", rendered);
+}
+
+// ---------------------------------------------------------------------------
+// fmt round-trips the new constructs.
+
+#[test]
+fn fmt_round_trips_footprint_and_docs() {
+    use cohdl::fmt::format_source;
+    let src = "#[doc(\"ds.pdf\")]\n#[doc(\"an.pdf\")]\npub device D { pins { A: 1 [passive] } }\npub footprint FP_X {} // placeholder\npub part P: D { primary { mfr: \"m\", mpn: \"n\", footprint: FP_X } }\n";
+    let once = format_source("lib.cohdl", src).unwrap();
+    assert!(
+        once.contains("#[doc(\"ds.pdf\")]\n#[doc(\"an.pdf\")]\n"),
+        "{}",
+        once
+    );
+    assert!(
+        once.contains("pub footprint FP_X {} // placeholder"),
+        "{}",
+        once
+    );
+    assert!(
+        once.contains("footprint: FP_X"),
+        "unquoted symbol:\n{}",
+        once
+    );
+    let twice = format_source("lib.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "not idempotent:\n{}", once);
+}
+
+// Backstop: the compat single-package path still accepts everything.
+#[test]
+fn compat_entry_supports_footprints() {
+    let files = vec![("f.cohdl".to_string(), BOARD.to_string())];
+    let checked = check_files(&files, None).expect("selection");
+    assert!(!checked.diags.has_errors());
+    assert!(checked.world.footprints.contains_key("main::FP_0402"));
+}
+
+// ---------------------------------------------------------------------------
+// Adversarial-verification regressions (RFC-017 round 1).
+
+// Finding (high/medium): panic-mode recovery swallowed a following bare
+// `footprint` declaration (sync sets knew `use` but not `footprint`),
+// manufacturing phantom E202s.
+#[test]
+fn recovery_stops_at_footprint_declarations() {
+    let (checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "garbage\nfootprint FP_X {}\npub device Res { pins { A: 1 [passive] } }\npub part P: Res { primary { mfr: \"m\", mpn: \"n\", footprint: FP_X } }\n",
+        )],
+    );
+    assert!(rendered.contains("E010"), "{}", rendered);
+    assert!(
+        !rendered.contains("unknown footprint"),
+        "the footprint decl must survive recovery:\n{}",
+        rendered
+    );
+    assert!(checked.world.footprints.contains_key("board::FP_X"));
+}
+
+// Finding (medium): a misplaced footprint decl inside a design body
+// misparsed as a fn call and destroyed the rest of the body.
+#[test]
+fn footprint_in_a_body_gets_a_targeted_error() {
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } }\ndesign B {\n    footprint FP {}\n    inst d: D\n    net N: d.A\n}\n",
+        )],
+    );
+    assert!(rendered.contains("top-level"), "{}", rendered);
+    assert!(
+        !rendered.contains("expected `(`"),
+        "no fn-call misparse:\n{}",
+        rendered
+    );
+    assert!(
+        !rendered.contains("unknown instance"),
+        "the body keeps parsing:\n{}",
+        rendered
+    );
+}
+
+// Finding (medium): invalid attributes on an inst inside a NEVER-CALLED fn
+// were silently accepted (attr validation only ran at expansion).
+#[test]
+fn inst_attrs_are_validated_at_parse_even_in_uncalled_fns() {
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } }\nfn unused(p: Pin) {\n    #[frobnicate(\"x\")]\n    inst d: D\n    net _: p, d.A\n}\n",
+        )],
+    );
+    assert!(
+        rendered.contains("unrecognized attribute `frobnicate`"),
+        "{}",
+        rendered
+    );
+}
+
+// Finding (low): body-content recovery cascaded past the closing brace; an
+// unclosed body anchored its error on the NEXT declaration.
+#[test]
+fn footprint_body_recovery_is_contained() {
+    // Depth-0 comma: exactly the one targeted error, nothing spills.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub footprint FP { pad 1, pad 2 }\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(rendered.contains("not yet specified"), "{}", rendered);
+    assert!(
+        !rendered.contains("expected a top-level declaration"),
+        "body content must not cascade to file scope:\n{}",
+        rendered
+    );
+
+    // Unclosed body: anchored at the declaration, not the next item.
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub footprint FP { pad 1\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(
+        rendered.contains("unclosed body") && rendered.contains("main.cohdl:1:"),
+        "unclosed body anchors at the opener:\n{}",
+        rendered
+    );
+}
+
+// Finding (low): `footprint {}` (missing name) got the generic
+// expected-a-declaration message.
+#[test]
+fn footprint_missing_name_is_named() {
+    let (_checked, rendered) = check("board", &[("src/main.cohdl", "pub footprint {}\n")]);
+    assert!(rendered.contains("needs a name"), "{}", rendered);
+}
+
+// Finding (low): #[doc] on an impl was silently dropped (impls are unnamed
+// — the paths were recorded nowhere).
+#[test]
+fn doc_on_impl_is_rejected_with_the_reason() {
+    let (_checked, rendered) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub trait T { pins { required A: pin } }\npub device D { pins { A: 1 [passive] } }\n#[doc(\"impl-notes.pdf\")]\nimpl T for D {}\n",
+        )],
+    );
+    assert!(rendered.contains("impls are unnamed"), "{}", rendered);
+}

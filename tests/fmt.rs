@@ -195,7 +195,7 @@ fn assert_edge(name: &str, src: &str, comments: &[&str]) {
 fn backslash_string_round_trips() {
     // The grammar has no string escapes: a value with a backslash must survive
     // formatting unchanged and not grow (str_lit must not introduce escapes).
-    let src = "pub device D {\n    pins { A: 1 [passive] }\n}\npub part P: D {\n    primary { mfr: \"A\\B\", mpn: \"M\", footprint: \"F\" }\n}";
+    let src = "pub device D {\n    pins { A: 1 [passive] }\n}\npub part P: D {\n    primary { mfr: \"A\\B\", mpn: \"M\", footprint: TFP }\n}";
     let once = format_source("bs.cohdl", src).unwrap();
     assert!(once.contains("\"A\\B\""), "backslash mangled:\n{}", once);
     let twice = format_source("bs.cohdl", &once).unwrap();
@@ -294,7 +294,7 @@ fn comments_inside_layout_blocks_survive_in_place() {
 #[test]
 fn comments_inside_trait_impl_part_survive() {
     // F11: interior comments in trait/impl/part bodies were deleted.
-    let src = "pub trait T {\n    // prefix note\n    designator_prefix: \"X\"\n    pins {\n        // pin note\n        required A: pin // trailing pin\n    }\n}\npub device D {\n    pins { A: 1 [passive], B: 2 [passive] }\n}\nimpl T for D {\n    pins {\n        // mapping note\n        A: B // trailing map\n    }\n}\npub part P: D {\n    // avl note\n    primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" } // trailing avl\n}";
+    let src = "pub trait T {\n    // prefix note\n    designator_prefix: \"X\"\n    pins {\n        // pin note\n        required A: pin // trailing pin\n    }\n}\npub device D {\n    pins { A: 1 [passive], B: 2 [passive] }\n}\nimpl T for D {\n    pins {\n        // mapping note\n        A: B // trailing map\n    }\n}\npub part P: D {\n    // avl note\n    primary { mfr: \"m\", mpn: \"n\", footprint: TFP } // trailing avl\n}";
     assert_edge(
         "tip.cohdl",
         src,
@@ -315,7 +315,7 @@ fn long_lines_wrap_at_100_columns() {
     // Pin buses, AVL entries, and layout constraints all wrap.
     let bus: Vec<String> = (1..=40).map(|i| i.to_string()).collect();
     let src = format!(
-        "pub device D {{\n    pins {{ GND: {} [power_in] }}\n}}\npub part P: D {{\n    primary {{ mfr: \"SomeVeryLongManufacturerName\", mpn: \"EXTREMELY-LONG-PART-NUMBER-12345\", footprint: \"Library_Name:Some_Extremely_Long_Footprint_Name_3.5x2.65mm\" }}\n}}",
+        "pub device D {{\n    pins {{ GND: {} [power_in] }}\n}}\npub part P: D {{\n    primary {{ mfr: \"SomeVeryLongManufacturerName\", mpn: \"EXTREMELY-LONG-PART-NUMBER-12345\", footprint: TFP }}\n}}",
         bus.join(", ")
     );
     let once = format_source("wrap.cohdl", &src).unwrap();
@@ -336,7 +336,7 @@ fn trailing_comments_on_header_and_brace_lines_survive() {
     // Re-verification residual: trailing comments on a declaration's header
     // line (both `header { // note` and `header // note NEWLINE {` styles),
     // on block-opener lines, and on block-closer lines must survive.
-    let src = "pub trait T // C-T\n{\n    pins { // C-PINS\n        required A: pin\n    } // C-CLOSE\n}\npub device D { // C-DEV\n    pins { A: 1 [passive] }\n    spec // C-SPEC\n    {\n        x: 1nF\n    }\n}\nimpl T for D // C-IMPL\n{\n    pins {\n        A: A\n    }\n}\npub part P: D // C-PART\n{\n    primary { mfr: \"m\", mpn: \"n\", footprint: \"f\" }\n}\npub fn h(p: Pin) // C-FN\n{\n    net _: p\n}\ndesign B // C-DSN\n{\n    inst d: P\n    net N: d.A\n    layout { // C-LAY\n        net_class K { N }\n    }\n}";
+    let src = "pub trait T // C-T\n{\n    pins { // C-PINS\n        required A: pin\n    } // C-CLOSE\n}\npub device D { // C-DEV\n    pins { A: 1 [passive] }\n    spec // C-SPEC\n    {\n        x: 1nF\n    }\n}\nimpl T for D // C-IMPL\n{\n    pins {\n        A: A\n    }\n}\npub part P: D // C-PART\n{\n    primary { mfr: \"m\", mpn: \"n\", footprint: TFP }\n}\npub fn h(p: Pin) // C-FN\n{\n    net _: p\n}\ndesign B // C-DSN\n{\n    inst d: P\n    net N: d.A\n    layout { // C-LAY\n        net_class K { N }\n    }\n}";
     assert_edge(
         "hdr.cohdl",
         src,

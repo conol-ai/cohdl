@@ -435,7 +435,12 @@ fn part_fields(world: &World, inst: &crate::ir::IrInstance) -> (String, String, 
             .map(|f| f.value.clone())
             .unwrap_or_default()
     };
-    (field("mpn"), field("mfr"), field("footprint"))
+    // RFC-017: the footprint identity is the resolved symbol's fq path.
+    let footprint = part
+        .and_then(|p| p.primary.footprint.as_ref())
+        .map(|f| f.name.clone())
+        .unwrap_or_default();
+    (field("mpn"), field("mfr"), footprint)
 }
 
 /// Same principal-value rule as the KiCad/BOM emitters.

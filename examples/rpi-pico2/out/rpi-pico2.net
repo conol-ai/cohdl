@@ -1,7 +1,7 @@
 (export (version D)
   (components
     (comp (ref "C1") (value "47uF")
-      (footprint "Capacitor_SMD:C_0805_2012Metric")
+      (footprint "rpi_pico2::FP_C_0805_2012Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM188R60J476ME15")
@@ -11,7 +11,7 @@
       (tstamp "00000000")
     )
     (comp (ref "C2") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -21,7 +21,7 @@
       (tstamp "00000001")
     )
     (comp (ref "C3") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -31,7 +31,7 @@
       (tstamp "00000002")
     )
     (comp (ref "C4") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -41,7 +41,7 @@
       (tstamp "00000003")
     )
     (comp (ref "C5") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -51,7 +51,7 @@
       (tstamp "00000004")
     )
     (comp (ref "C6") (value "47uF")
-      (footprint "Capacitor_SMD:C_0805_2012Metric")
+      (footprint "rpi_pico2::FP_C_0805_2012Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM188R60J476ME15")
@@ -61,7 +61,7 @@
       (tstamp "00000005")
     )
     (comp (ref "C7") (value "4.7uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R60J475ME47")
@@ -71,7 +71,7 @@
       (tstamp "00000006")
     )
     (comp (ref "C8") (value "4.7uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R60J475ME47")
@@ -81,7 +81,7 @@
       (tstamp "00000007")
     )
     (comp (ref "C9") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -91,7 +91,7 @@
       (tstamp "00000008")
     )
     (comp (ref "C10") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -101,7 +101,7 @@
       (tstamp "00000009")
     )
     (comp (ref "C11") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -111,7 +111,7 @@
       (tstamp "0000000A")
     )
     (comp (ref "C12") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -121,7 +121,7 @@
       (tstamp "0000000B")
     )
     (comp (ref "C13") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -131,7 +131,7 @@
       (tstamp "0000000C")
     )
     (comp (ref "C14") (value "100nF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "CL05B104KO5NNNC")
@@ -141,7 +141,7 @@
       (tstamp "0000000D")
     )
     (comp (ref "C15") (value "4.7uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R60J475ME47")
@@ -151,7 +151,7 @@
       (tstamp "0000000E")
     )
     (comp (ref "C16") (value "4.7uF")
-      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (footprint "std::FP_C_0402_1005Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM155R60J475ME47")
@@ -161,7 +161,7 @@
       (tstamp "0000000F")
     )
     (comp (ref "C17") (value "1nF")
-      (footprint "Capacitor_SMD:C_0201_0603Metric")
+      (footprint "rpi_pico2::FP_C_0201_0603Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM0335C1E102JA01")
@@ -171,7 +171,7 @@
       (tstamp "00000010")
     )
     (comp (ref "C18") (value "15pF")
-      (footprint "Capacitor_SMD:C_0201_0603Metric")
+      (footprint "rpi_pico2::FP_C_0201_0603Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM0335C1E150JA01")
@@ -181,7 +181,7 @@
       (tstamp "00000011")
     )
     (comp (ref "C19") (value "15pF")
-      (footprint "Capacitor_SMD:C_0201_0603Metric")
+      (footprint "rpi_pico2::FP_C_0201_0603Metric")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM0335C1E150JA01")
@@ -191,7 +191,7 @@
       (tstamp "00000012")
     )
     (comp (ref "D1") (value "Schottky_SOD123")
-      (footprint "Diode_SMD:D_SOD-123")
+      (footprint "rpi_pico2::FP_D_SOD_123")
       (libsource (lib "cohdl") (part "Schottky_SOD123") (description ""))
       (fields
         (field (name "MPN") "PMEG6010ELR")
@@ -201,7 +201,7 @@
       (tstamp "00000013")
     )
     (comp (ref "D2") (value "ChipLED")
-      (footprint "LED_SMD:LED_0603_1608Metric")
+      (footprint "std::FP_LED_0603_1608Metric")
       (libsource (lib "cohdl") (part "ChipLED") (description ""))
       (fields
         (field (name "MPN") "150060GS75000")
@@ -211,7 +211,7 @@
       (tstamp "00000014")
     )
     (comp (ref "J1") (value "Castellated40")
-      (footprint "Connector:Pico_Castellated_40")
+      (footprint "rpi_pico2::FP_Pico_Castellated_40")
       (libsource (lib "cohdl") (part "Castellated40") (description ""))
       (fields
         (field (name "MPN") "CON_PICO_40W")
@@ -221,7 +221,7 @@
       (tstamp "00000015")
     )
     (comp (ref "J2") (value "SWD_Header")
-      (footprint "Connector:Pico_Castellated_3")
+      (footprint "rpi_pico2::FP_Pico_Castellated_3")
       (libsource (lib "cohdl") (part "SWD_Header") (description ""))
       (fields
         (field (name "MPN") "CON_PICO_3W")
@@ -231,7 +231,7 @@
       (tstamp "00000016")
     )
     (comp (ref "J3") (value "MicroUSB_B")
-      (footprint "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering")
+      (footprint "rpi_pico2::FP_USB_Micro_B_Wuerth_614105150721_HandSoldering")
       (libsource (lib "cohdl") (part "MicroUSB_B") (description ""))
       (fields
         (field (name "MPN") "690-005-298-486")
@@ -241,7 +241,7 @@
       (tstamp "00000017")
     )
     (comp (ref "L1") (value "3.3uH")
-      (footprint "Inductor_SMD:L_0806_2016Metric")
+      (footprint "rpi_pico2::FP_L_0806_2016Metric")
       (libsource (lib "cohdl") (part "ChipInductor") (description ""))
       (fields
         (field (name "MPN") "DFE201612E-3R3M")
@@ -251,7 +251,7 @@
       (tstamp "00000018")
     )
     (comp (ref "L2") (value "2.2uH")
-      (footprint "Inductor_SMD:L_0806_2016Metric")
+      (footprint "rpi_pico2::FP_L_0806_2016Metric")
       (libsource (lib "cohdl") (part "ChipInductor") (description ""))
       (fields
         (field (name "MPN") "DFE201612E-2R2M")
@@ -261,7 +261,7 @@
       (tstamp "00000019")
     )
     (comp (ref "Q1") (value "NMOS_SOT523")
-      (footprint "Package_TO_SOT_SMD:SOT-523")
+      (footprint "rpi_pico2::FP_SOT_523")
       (libsource (lib "cohdl") (part "NMOS_SOT523") (description ""))
       (fields
         (field (name "MPN") "DMG1012T")
@@ -271,7 +271,7 @@
       (tstamp "0000001A")
     )
     (comp (ref "R1") (value "1ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-071RL")
@@ -281,7 +281,7 @@
       (tstamp "0000001B")
     )
     (comp (ref "R2") (value "1kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-071KL")
@@ -291,7 +291,7 @@
       (tstamp "0000001C")
     )
     (comp (ref "R3") (value "27ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-0727RL")
@@ -301,7 +301,7 @@
       (tstamp "0000001D")
     )
     (comp (ref "R4") (value "27ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-0727RL")
@@ -311,7 +311,7 @@
       (tstamp "0000001E")
     )
     (comp (ref "R5") (value "100kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100KL")
@@ -321,7 +321,7 @@
       (tstamp "0000001F")
     )
     (comp (ref "R6") (value "100kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100KL")
@@ -331,7 +331,7 @@
       (tstamp "00000020")
     )
     (comp (ref "R7") (value "470ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07470RL")
@@ -341,7 +341,7 @@
       (tstamp "00000021")
     )
     (comp (ref "R8") (value "100kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100KL")
@@ -351,7 +351,7 @@
       (tstamp "00000022")
     )
     (comp (ref "R9") (value "100ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100RL")
@@ -361,7 +361,7 @@
       (tstamp "00000023")
     )
     (comp (ref "R10") (value "100ohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100RL")
@@ -371,7 +371,7 @@
       (tstamp "00000024")
     )
     (comp (ref "R11") (value "10kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-0710KL")
@@ -381,7 +381,7 @@
       (tstamp "00000025")
     )
     (comp (ref "R12") (value "5.6kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-075K6L")
@@ -391,7 +391,7 @@
       (tstamp "00000026")
     )
     (comp (ref "R13") (value "200ohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-07200RL")
@@ -401,7 +401,7 @@
       (tstamp "00000027")
     )
     (comp (ref "R14") (value "33ohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-0733RL")
@@ -411,7 +411,7 @@
       (tstamp "00000028")
     )
     (comp (ref "R15") (value "100kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100KL")
@@ -421,7 +421,7 @@
       (tstamp "00000029")
     )
     (comp (ref "R16") (value "100kohm")
-      (footprint "Resistor_SMD:R_0201_0603Metric")
+      (footprint "rpi_pico2::FP_R_0201_0603Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0201FR-07100KL")
@@ -431,7 +431,7 @@
       (tstamp "0000002A")
     )
     (comp (ref "R17") (value "1kohm")
-      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (footprint "std::FP_R_0402_1005Metric")
       (libsource (lib "cohdl") (part "ChipResistor") (description ""))
       (fields
         (field (name "MPN") "RC0402FR-071KL")
@@ -441,7 +441,7 @@
       (tstamp "0000002B")
     )
     (comp (ref "SW1") (value "Bootsel_Switch")
-      (footprint "Button_Switch_SMD:SW_SPST_TL3342")
+      (footprint "rpi_pico2::FP_SW_SPST_TL3342")
       (libsource (lib "cohdl") (part "Bootsel_Switch") (description ""))
       (fields
         (field (name "MPN") "TP-1221U-K9K5325")
@@ -451,7 +451,7 @@
       (tstamp "0000002C")
     )
     (comp (ref "U1") (value "W25Q32")
-      (footprint "Package_SON:USON-8_1.0x1.5mm_P0.4mm")
+      (footprint "rpi_pico2::FP_USON_8_1_0x1_5mm_P0_4mm")
       (libsource (lib "cohdl") (part "W25Q32") (description ""))
       (fields
         (field (name "MPN") "W25Q32RVXHJQ")
@@ -461,7 +461,7 @@
       (tstamp "0000002D")
     )
     (comp (ref "U2") (value "RP2350A")
-      (footprint "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm")
+      (footprint "rpi_pico2::FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm")
       (libsource (lib "cohdl") (part "RP2350A") (description ""))
       (fields
         (field (name "MPN") "RP2350A")
@@ -471,7 +471,7 @@
       (tstamp "0000002E")
     )
     (comp (ref "U3") (value "RT6150B")
-      (footprint "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm")
+      (footprint "rpi_pico2::FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm")
       (libsource (lib "cohdl") (part "RT6150B") (description ""))
       (fields
         (field (name "MPN") "RT6150B-33GQW")
@@ -481,7 +481,7 @@
       (tstamp "0000002F")
     )
     (comp (ref "Y1") (value "Crystal_4pad")
-      (footprint "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm")
+      (footprint "rpi_pico2::FP_Crystal_SMD_3225_4Pin_3_2x2_5mm")
       (libsource (lib "cohdl") (part "Crystal_4pad") (description ""))
       (fields
         (field (name "MPN") "ABM8-272-T3")

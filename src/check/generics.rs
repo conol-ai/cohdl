@@ -451,7 +451,7 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                     ),
                 ));
             }
-            if is_primary && entry.field("footprint").is_none() {
+            if is_primary && entry.footprint.is_none() {
                 diags.push(
                     Diagnostic::error(
                         "E802",
@@ -461,11 +461,51 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                             part.name.name
                         ),
                     )
-                    .with_help("e.g. `footprint: \"Capacitor_SMD:C_0402_1005Metric\"` (a KiCad footprint id)"),
+                    .with_help(
+                        "reference a footprint symbol, e.g. `footprint: C_0402_1005Metric` (RFC-017)",
+                    ),
                 );
             }
+            // RFC-017: the footprint reference must resolve to a FOOTPRINT
+            // symbol — unknown and wrong-kind get the standard RFC-016
+            // diagnostics.
+            for fp in entry.footprint.iter() {
+                if world.footprints.contains_key(&fp.name) {
+                    continue;
+                }
+                let d = if world.devices.contains_key(&fp.name)
+                    || world.parts.contains_key(&fp.name)
+                    || world.traits.contains_key(&fp.name)
+                    || world.fns.contains_key(&fp.name)
+                {
+                    let kind = world
+                        .symbols
+                        .get(&fp.name)
+                        .map(|s| s.kind)
+                        .unwrap_or("name");
+                    Diagnostic::error(
+                        "E205",
+                        fp.span,
+                        format!(
+                            "`{}` is a {}, not a footprint — `footprint:` references a `footprint` declaration",
+                            fp.name, kind
+                        ),
+                    )
+                } else {
+                    suggested(
+                        world,
+                        &fp.name,
+                        Diagnostic::error(
+                            "E202",
+                            fp.span,
+                            format!("unknown footprint `{}`", fp.name),
+                        ),
+                    )
+                };
+                diags.push(d);
+            }
             for field in &entry.fields {
-                if !matches!(field.name.name.as_str(), "mpn" | "mfr" | "footprint") {
+                if !matches!(field.name.name.as_str(), "mpn" | "mfr") {
                     diags.push(Diagnostic::error(
                         "E802",
                         field.span,

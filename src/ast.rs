@@ -35,6 +35,11 @@ pub struct Item {
     /// enforced is that nothing looks at it, pinned by the byte-identity
     /// tests in tests/intent.rs.)
     pub intent: Option<(String, Span)>,
+    /// RFC-017 `#[doc("relative/path")]` reference documents — one or MORE
+    /// per declaration (unlike intent's at-most-one). Opaque metadata: the
+    /// compiler never opens the referenced files; surfaced by tooling (LSP
+    /// hover) only.
+    pub docs: Vec<(String, Span)>,
     /// Where the declaration proper begins (`pub`/keyword) — after any
     /// attributes. `span` covers the attributes too; `fmt` needs both.
     pub decl_span: Span,
@@ -67,6 +72,15 @@ impl UseDecl {
     }
 }
 
+/// RFC-017: `pub footprint NAME {}` — a named, resolvable footprint symbol.
+/// The body is DELIBERATELY empty ("symbol-resolution-complete,
+/// format-empty"): its content format is RFC-018's, not this declaration's.
+#[derive(Debug, Clone)]
+pub struct FootprintDef {
+    pub name: Ident,
+    pub span: Span,
+}
+
 #[derive(Debug, Clone)]
 pub enum ItemKind {
     Trait(TraitDef),
@@ -75,6 +89,8 @@ pub enum ItemKind {
     Fn(FnDef),
     Part(PartDef),
     Design(DesignDef),
+    /// RFC-017 footprint symbol (placeholder body until RFC-018).
+    Footprint(FootprintDef),
     /// RFC-016 `use path::Name;` — a file-scoped import, not a declaration.
     Use(UseDecl),
 }
@@ -87,6 +103,7 @@ impl ItemKind {
             ItemKind::Fn(f) => Some(&f.name),
             ItemKind::Part(p) => Some(&p.name),
             ItemKind::Design(d) => Some(&d.name),
+            ItemKind::Footprint(f) => Some(&f.name),
             ItemKind::Impl(_) | ItemKind::Use(_) => None,
         }
     }
@@ -99,6 +116,7 @@ impl ItemKind {
             ItemKind::Fn(_) => "fn",
             ItemKind::Part(_) => "part",
             ItemKind::Design(_) => "design",
+            ItemKind::Footprint(_) => "footprint",
             ItemKind::Use(_) => "use",
         }
     }
@@ -605,6 +623,10 @@ pub struct PartDef {
 #[derive(Debug, Clone)]
 pub struct AvlEntry {
     pub fields: Vec<AvlField>,
+    /// RFC-017: `footprint:` holds a SYMBOL reference (resolved via
+    /// RFC-016), never a string. The Ident's name is the fq path after
+    /// resolution.
+    pub footprint: Option<Ident>,
     pub span: Span,
 }
 

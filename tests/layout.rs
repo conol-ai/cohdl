@@ -15,7 +15,8 @@ const BASE: &str = r#"
 pub trait TwoTerminal { pins { required A: pin required B: pin } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
 impl TwoTerminal for Res {}
-pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: "fp" } }
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
 design Board {
     inst r1: R1
     inst r2: R1
@@ -28,7 +29,8 @@ const WITH_LAYOUT: &str = r#"
 pub trait TwoTerminal { pins { required A: pin required B: pin } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
 impl TwoTerminal for Res {}
-pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: "fp" } }
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
 design Board {
     #[placement_hint("near the USB connector")]
     inst r1: R1
@@ -347,7 +349,8 @@ fn layout_bearing_fn_is_reusable() {
 pub trait TwoTerminal { pins { required A: pin required B: pin } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
 impl TwoTerminal for Res {}
-pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: "fp" } }
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
 fn routed_pair(a: Pin, b: Pin, c: Pin, d: Pin) {
     net DP: a, b
     net DM: c, d

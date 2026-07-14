@@ -363,7 +363,7 @@ fn document_is_valid_json_and_fields_decode() {
 }
 
 #[test]
-fn build_object_decodes_with_and_without_layout() {
+fn build_object_decodes_with_and_without_optional_artifacts() {
     let checked = check("pub trait T { pins { required A: pin } }");
     let with = json::render(
         &checked,
@@ -371,6 +371,7 @@ fn build_object_decodes_with_and_without_layout() {
             netlist: "out/x.net".into(),
             bom: "out/x-bom.csv".into(),
             layout: Some("out/x-layout.json".into()),
+            ipc2581: Some("out/x.xml".into()),
         }),
     );
     let parsed = parse_json(&with);
@@ -378,6 +379,7 @@ fn build_object_decodes_with_and_without_layout() {
     assert_eq!(build.get("netlist").unwrap().as_str(), "out/x.net");
     assert_eq!(build.get("bom").unwrap().as_str(), "out/x-bom.csv");
     assert_eq!(build.get("layout").unwrap().as_str(), "out/x-layout.json");
+    assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
 
     let without = json::render(
         &checked,
@@ -385,10 +387,27 @@ fn build_object_decodes_with_and_without_layout() {
             netlist: "out/x.net".into(),
             bom: "out/x-bom.csv".into(),
             layout: None,
+            ipc2581: None,
         }),
     );
     let parsed = parse_json(&without);
     assert!(parsed.get("build").unwrap().get("layout").is_none());
+    assert!(parsed.get("build").unwrap().get("ipc2581").is_none());
+
+    // RFC-015 without layout: ipc2581 is then the LAST key (comma handling).
+    let ipc_only = json::render(
+        &checked,
+        Some(&json::BuildArtifacts {
+            netlist: "out/x.net".into(),
+            bom: "out/x-bom.csv".into(),
+            layout: None,
+            ipc2581: Some("out/x.xml".into()),
+        }),
+    );
+    let parsed = parse_json(&ipc_only);
+    let build = parsed.get("build").unwrap();
+    assert!(build.get("layout").is_none());
+    assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
 }
 
 #[test]

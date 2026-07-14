@@ -457,10 +457,147 @@ Rules:
 - The server depends on the lsp-types crate for the LSP spec's own message shapes — the project's first scoped exception to its otherwise hand-rolled, zero-external-dependency style. The JSON-RPC transport loop itself stays hand-rolled.
 - cohdl lsp introduces no new error codes, no new syntax, no new diagnostic content — it is purely a new transport/frontend for what RFC-001–013 already check.
 
+# IPC-2581 output (ipc2581.xml)
+
+Accepted via RFC-015, see RFC-015: IPC-2581 codegen backend (Quilter handoff) + DR-021.
+
+cohdl build gains a new emitted artifact — a partially-specified IPC-2581 document (.xml, conforming to IPC-2581B1.xsd) — alongside the existing .net/BOM/layout.json outputs, never replacing them. Grounded in real prior research (the "Quilter as a CoHDL Backend Partner — Fit Analysis" note): IPC-2581 is the vendor-neutral contract that reaches Cadence Allegro and Siemens Xpedition (KiCad-only handoffs can't), and carries netlist + specs + layout constraints in one file.
+
+What the document carries (all mapped from existing, already-validated CoHDL data — no new type-checking):
+
+- The logical netlist — every net and its member pins, from the same connectivity data the KiCad emitter already uses.
+- Every instance's resolved designator (RFC-005), bound part's MPN/manufacturer (RFC-003-guaranteed complete), and footprint name (referenced, not resolved to pad geometry).
+- Resolved unit-typed spec values (RFC-001), carried via IPC-2581's own component-attribute mechanism.
+- RFC-013's layout constraints (net_classes/diff_pairs/length_matches/placement_hints), mapped into IPC-2581's native constraint/net-class elements.
+
+Rules:
+
+- The document is deliberately, visibly partial — a document-level marker states "logical-complete, physical-minimal," since CoHDL has no footprint-geometry resolution or board-outline/stackup concept today. The document never silently claims completeness it doesn't have.
+- CoHDL does not (and this RFC does not make it) own footprint pad geometry — a part's footprint field stays a name reference, same as it is for the KiCad emitter.
+- cohdl build --json's build object gains an "ipc2581" key (path), present only when the artifact is emitted — same pattern as the existing "layout" key.
+- This is explicitly phase one of a multi-phase partner integration. Footprint-geometry resolution, board-outline/stackup support, and real end-to-end validation against an actual layout partner are named, tracked future work — not silently assumed solved by this RFC.
+- Does not solve the layout-partner ECO/re-routing mismatch some generative routers exhibit (full re-route on every netlist change, no incremental update) — a workflow-level limitation for whoever operates the loop, not something this emitter's format can fix.
+
+# Modules and packages
+
+Accepted via RFC-016, see RFC-016: Module system (package::module::submodule::name) + DR-022.
+
+CoHDL's first real namespace mechanism. A package's module tree mirrors its file tree under src/, rooted at cohdl.toml's [package] name field — no separate mod declaration needed.
+
+```cohdl
+// sparkfun/src/power/buck.cohdl → module path sparkfun::power::buck
+
+// Fully qualified, always valid:
+inst ldo1: sparkfun::power::buck::TPS62840
+
+// Or import once, use unqualified thereafter:
+use sparkfun::power::buck::TPS62840;
+inst ldo1: TPS62840
+```
+
+Rules:
+
+- Each file's path under src/ becomes its module segment (/ → ::, extension dropped). A top-level declaration's fully-qualified path is package::its-file's-module-path::Name.
+- use path::Name; imports exactly one name into local scope. Importing the same local name twice (from different paths) is a compile error naming both source paths.
+- Within a single package with no use statements, every name in every one of the package's own files stays visible unqualified everywhere else in the package — unchanged from today's behavior for any project with no external dependencies.
+- Cross-package names are never implicitly visible — reachable only via a qualified path or an explicit use.
+- pub is now enforced, but only across package boundaries — referencing a non-pub item from another package is a compile error naming the item and its actual visibility. Intra-package visibility is unaffected by pub (unchanged from today).
+- Two declarations at the same module path with the same name is a compile error, now scoped per-module-path instead of globally — a sparkfun::power::buck::TPS62840 and an unrelated acme::power::TPS62840 never collide.
+- No glob imports (use path::*) or re-export sugar in this pass — explicit, one-name-per-use only. Deferred pending real usage friction, not because they're rejected in principle.
+
+# Library registry: documents and footprints
+
+Accepted (revised) via RFC-017, see RFC-017: Library registry (cohdl source + docs + footprint symbols) + DR-023 (+ same-day amendment). Revision note: the original acceptance defined a native .cfp footprint file format with a path-string reference from part. Same day, Tony corrected this: footprints must resolve as named symbols under the module system (for cross-library reuse), and the footprint format itself is deferred to a future, separately-numbered RFC. This section reflects the revised design.
+
+A Library is just a Package (see Modules and packages above) with two new optional content kinds. Skills (manufacturer best-practice content) are explicitly deferred to a future RFC — this registry ships with exactly three content kinds: .cohdl source, reference documents, and footprint symbols (with the footprint symbol's internal content itself deferred — see below).
+
+Reference documents — #[doc(...)]:
+
+```cohdl
+#[doc("datasheets/TPS62840.pdf")]
+#[doc("app-notes/buck-converter-layout-guidelines.pdf")]
+pub device TPS62840<...> { ... }
+```
+
+- One or more #[doc("relative/path")] attributes per declaration (unlike #[intent(...)]'s at-most-one rule).
+- Paths are relative to the library's package root. The compiler never opens these files — same zero-compilation-impact discipline as #[intent(...)] (RFC-012) and #[placement_hint(...)] (RFC-013). cohdl lsp (RFC-014) may surface these paths on hover as a natural extension of its existing hover capability.
+
+Footprints and pads — see "Footprints and pads (copad/cofp)" section below for the real, Accepted design (RFC-018, same day). RFC-017's original placeholder footprint keyword never shipped with real content; cofp takes over its exact role.
+
+# Footprints and pads (copad/cofp)
+
+Accepted via RFC-018, see RFC-018: Footprint format — copad/cofp, Cadence-style pad/footprint split + DR-024. Supersedes RFC-017's placeholder footprint keyword (which shipped deliberately empty, "symbol-resolution-complete, format-empty") — cofp takes over footprint's exact role (what part's footprint: field points to), now with real content, adopting Cadence Allegro's proven design: pads are defined once, standalone, and reused by reference across footprints, rather than inlined per footprint.
+
+copad — one reusable pad definition:
+
+```cohdl
+// sparkfun/src/pads/smd.cohdl → module path sparkfun::pads::smd
+
+pub copad Rect_0_3x0_9mm {
+    shape: rect
+    size: (0.3mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub copad Round_0_5mm_THT {
+    shape: circle
+    size: (0.5mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.3mm
+}
+```
+
+- shape: one of rect, circle, oval (closed set).
+- size: shape-dependent — (w, h) for rect/oval, (d) for circle.
+- layer: one of top_copper, bottom_copper, through_all (closed set).
+- plating: smd or plated_through_hole.
+- drill: required when plating: plated_through_hole; a compile error if present when plating: smd.
+
+cofp — a footprint, composed of pad references:
+
+```cohdl
+// sparkfun/src/footprints/qfn.cohdl → module path sparkfun::footprints::qfn
+
+use sparkfun::pads::smd::Rect_0_3x0_9mm;
+
+pub cofp QFN10_3x3 {
+    pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
+    pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
+    pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
+    // ... one entry per pad, matching the bound device's pin count and numbering
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.5mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+```
+
+```cohdl
+use sparkfun::footprints::qfn::QFN10_3x3;
+
+pub part TPS62840_QFN10: TPS62840<...> {
+    primary { mfr: "Texas Instruments", mpn: "TPS62840DLCT", footprint: QFN10_3x3 }
+}
+```
+
+Rules:
+
+- copad and cofp are both top-level declaration kinds, resolved through RFC-016's module-path/use/pub machinery exactly like device/trait/fn/part — no new resolution mechanism.
+- Each pad N: PadSymbol at (x, y) line in a cofp places one instance of a copad symbol at an offset relative to the footprint's own origin. PadSymbol resolves like any other cross-library reference.
+- Pad numbers (N) must exactly match the bound device's declared pin numbers (RFC-002) — checked at the point a part's footprint: field resolves to a cofp symbol, at cohdl build (the same point MPN completeness is checked, RFC-003's precedent). This is the check RFC-017 deferred, now real because cofp's pad list is real structured data.
+- The same copad symbol may be referenced by any number of cofp declarations, in any package that can resolve it — a single point of correction for a reused pad shape. The flip side, disclosed honestly: a wrong copad dimension is a single point of failure across every referencing cofp.
+- No versioning/pinning for copad references — a cofp always resolves to whatever the referenced copad currently is, the same as every other use-based resolution in the language today.
+- cohdl build projects a resolved cofp's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
+- copad/cofp's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
+
 # Not yet specified
 
 The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have no Accepted RFC yet, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
 
-- Everything else in the Conceptual Model (Part, Instance, Net, Module, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
+- Skills (manufacturer best-practice guidance) — explicitly deferred per RFC-017's own direct decision; not yet even scoped (free-form doc vs. structured/checkable data is an open question).
+- A richer padstack model (per-layer-independent geometry, vias, thermal reliefs) — explicitly out of scope per RFC-018, likely only meaningful once board outline/stackup (below) is addressed.
+- Board outline / layer stackup as a real CoHDL concept — named future work per RFC-015, still not addressed by RFC-018 either.
+- Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
+- Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-13, RFC-001 through RFC-014 are all Accepted.
+As of 2026-07-14, RFC-001 through RFC-018 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 supersedes RFC-017's placeholder footprint keyword with real copad/cofp content).

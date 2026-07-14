@@ -42,6 +42,7 @@ All MVP exit criteria are met, and all fourteen Accepted RFC areas (RFC-001…01
 cargo run -- check examples/sensor-node          # parse → resolve → type-check → residual DRC
 cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .net + BOM CSV
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
+cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
 cargo run -- fmt std --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 python3 harness/repair_loop.py                   # the generate → check → repair demo

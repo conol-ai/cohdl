@@ -1,9 +1,10 @@
-//! Codegen: KiCad `.net` netlist + BOM CSV (Layer 3).
+//! Codegen: KiCad `.net` netlist + BOM CSV + layout.json + IPC-2581 (Layer 3).
 //!
 //! Emitters are byte-stable: same IR → same bytes. Every ordering is an
 //! explicit sort; nothing iterates a hash map.
 
 pub mod bom;
+pub mod ipc2581;
 pub mod json;
 pub mod kicad;
 pub mod layout;

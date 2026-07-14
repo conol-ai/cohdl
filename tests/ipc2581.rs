@@ -1,0 +1,848 @@
+//! RFC-015 IPC-2581 emitter conformance.
+//!
+//! The two mandatory gradeability properties (DR-021):
+//!
+//! 1. **Schema validity** — every fixture document validates against the
+//!    real `IPC-2581B1.xsd` (the IPC 2581 Consortium's published copy,
+//!    vendored at `tests/schema/IPC-2581B1.xsd`), via `xmllint --schema`.
+//!    xmllint ships with macOS and is installed in CI (the authoritative
+//!    gate); if it is genuinely absent locally the validity tests skip with
+//!    a loud warning rather than failing unrelated work.
+//! 2. **Fidelity equivalence** — the document's netlist/component/spec/BOM/
+//!    constraint content must agree with what the KiCad `.net`, BOM CSV,
+//!    `layout.json` emitters and the shared IR report for the same design
+//!    ("two consumers of the same data must agree", the RFC-010/RFC-014
+//!    discipline) — over the fixture corpus AND both repo examples.
+//!
+//! Plus: byte-determinism, the completeness marker, XML escaping/name
+//! sanitization (incl. the adversarial-round regressions: control chars,
+//! tab normalization, hostile designator prefixes, AVL MPN collisions),
+//! zero impact on the existing artifacts, and the CLI surface
+//! (`--emit ipc2581`, the `--json` build key, stale-file removal).
+
+use cohdl::lock::LockState;
+use cohdl::pipeline::{build_artifacts, check_files, Checked};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+fn manifest() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+fn xsd() -> PathBuf {
+    manifest().join("tests/schema/IPC-2581B1.xsd")
+}
+
+/// Build a single-file design through the library pipeline and emit all four
+/// artifacts. Panics on any check/build failure (fixtures must be clean).
+struct Built {
+    checked: Checked,
+    netlist: String,
+    bom: String,
+    layout: Option<String>,
+    xml: String,
+}
+
+fn build(name: &str, src: &str) -> Built {
+    let files = vec![(format!("{}.cohdl", name), src.to_string())];
+    let mut checked = check_files(&files, None).expect("design selection");
+    assert!(
+        !checked.diags.has_errors(),
+        "fixture `{}` must check cleanly:\n{}",
+        name,
+        checked.diags.render(&checked.sm)
+    );
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
+    let ir = checked.ir.as_ref().unwrap();
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, name);
+    Built {
+        netlist: artifacts.netlist,
+        bom: artifacts.bom,
+        layout: artifacts.layout,
+        xml,
+        checked,
+    }
+}
+
+/// Build a repo example project (with the real std) and emit the document.
+fn build_example(dir: &str) -> Built {
+    let root = manifest();
+    let proj = cohdl::project::load_project(&root.join(dir), Some(&root.join("std"))).unwrap();
+    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    assert!(!checked.diags.has_errors());
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
+    let ir = checked.ir.as_ref().unwrap();
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
+    Built {
+        netlist: artifacts.netlist,
+        bom: artifacts.bom,
+        layout: artifacts.layout,
+        xml,
+        checked,
+    }
+}
+
+/// Validate one document against the vendored XSD. Returns false (with a
+/// loud warning) only when xmllint itself is unavailable.
+fn xsd_validate(name: &str, xml: &str) -> bool {
+    let dir = std::env::temp_dir().join(format!("cohdl-ipc2581-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(format!("{}.xml", name));
+    std::fs::write(&path, xml).unwrap();
+    let out = match Command::new("xmllint")
+        .args(["--noout", "--schema"])
+        .arg(xsd())
+        .arg(&path)
+        .output()
+    {
+        Ok(out) => out,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!("WARNING: xmllint not found — schema validity NOT checked locally (CI is the authoritative gate)");
+            return false;
+        }
+        Err(e) => panic!("xmllint failed to run: {}", e),
+    };
+    assert!(
+        out.status.success(),
+        "`{}` does not validate against IPC-2581B1.xsd:\n{}",
+        name,
+        String::from_utf8_lossy(&out.stderr)
+    );
+    true
+}
+
+// ---------------------------------------------------------------------------
+// Fixtures.
+
+/// Two-resistor board (clean, no layout metadata).
+const BASIC: &str = r#"
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } spec { resistance: 1kohm } }
+pub part R1K: Res { primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: "Resistor_SMD:R_0402_1005Metric" } }
+design B {
+    inst r1: R1K
+    inst r2: R1K
+    net N: r1.A, r2.A
+    net GND [gnd]: r1.B, r2.B
+}
+"#;
+
+/// A board exercising every RFC-013 construct + a POWER net + a pin bus.
+const WITH_LAYOUT: &str = r#"
+pub device Mcu { pins { required DP: 1 [bidirectional], required DM: 2 [bidirectional], required VDD: 3 [power_in], required GND: 4, 5 [power_in] } }
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub part MCU_P: Mcu { primary { mfr: "Acme", mpn: "MCU-1", footprint: "Package_DFN_QFN:QFN-16" } }
+pub part R0: Res { primary { mfr: "Yageo", mpn: "RC-0", footprint: "Resistor_SMD:R_0402_1005Metric" } }
+design B {
+    #[placement_hint("near the USB connector")]
+    inst u1: MCU_P
+    inst r1: R0
+    inst r2: R0
+    net USB_DP: u1.DP, r1.A
+    net USB_DM: u1.DM, r2.A
+    net VDD [3.3V]: u1.VDD, r1.B
+    net GND [gnd]: u1.GND, r2.B
+    layout {
+        net_class HighSpeed { USB_DP, USB_DM }
+        diff_pair(USB_DP, USB_DM)
+        length_match(USB_DP, USB_DM) [tolerance: "0.15mm"]
+    }
+}
+"#;
+
+/// XML-hostile strings: footprint with spaces/angle brackets/ampersand
+/// (sanitized package name + raw kept in the comment), MPN/MFR with quotes.
+const NASTY: &str = r#"
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+pub part P1: D { primary { mfr: "ACME & Co 'Ltd'", mpn: "MPN <X> & 'Y'", footprint: "My Lib:R 0402 <A&B>" } }
+design B {
+    inst d1: P1
+    inst d2: P1
+    net N: d1.A, d2.A
+    net M: d1.B, d2.B
+}
+"#;
+
+// ---------------------------------------------------------------------------
+// Tiny test-local XML scanners (no XML dependency, same spirit as the local
+// JSON parser in tests/json_output.rs).
+
+/// Every element named `tag`: the raw text of its start tag (attrs only).
+fn elements<'a>(xml: &'a str, tag: &str) -> Vec<&'a str> {
+    let mut out = Vec::new();
+    let open = format!("<{} ", tag);
+    let mut from = 0;
+    while let Some(pos) = xml[from..].find(&open) {
+        let start = from + pos;
+        let end = start + xml[start..].find('>').expect("closed tag");
+        out.push(&xml[start..end]);
+        from = end;
+    }
+    out
+}
+
+/// The blocks `<tag …> … </tag>` (start tag text, inner text).
+fn blocks<'a>(xml: &'a str, tag: &str) -> Vec<(&'a str, &'a str)> {
+    let mut out = Vec::new();
+    let open = format!("<{} ", tag);
+    let close = format!("</{}>", tag);
+    let mut from = 0;
+    while let Some(pos) = xml[from..].find(&open) {
+        let start = from + pos;
+        let head_end = start + xml[start..].find('>').expect("closed tag");
+        let body_end = head_end + xml[head_end..].find(&close).expect("closing tag");
+        out.push((&xml[start..head_end], &xml[head_end + 1..body_end]));
+        from = body_end;
+    }
+    out
+}
+
+/// Attribute value from a start-tag text, XML-unescaped.
+fn attr(elem: &str, name: &str) -> Option<String> {
+    let needle = format!(" {}=\"", name);
+    let pos = elem.find(&needle)? + needle.len();
+    let end = pos + elem[pos..].find('"')?;
+    Some(
+        elem[pos..end]
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
+            .replace("&amp;", "&"),
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Property 1: schema validity, over the fixture corpus + both repo examples.
+
+#[test]
+fn schema_validity_over_corpus() {
+    let mut ran = false;
+    for (name, src) in [
+        ("basic", BASIC),
+        ("with-layout", WITH_LAYOUT),
+        ("nasty", NASTY),
+    ] {
+        ran |= xsd_validate(name, &build(name, src).xml);
+    }
+    for dir in ["examples/sensor-node", "examples/rpi-pico2"] {
+        let b = build_example(dir);
+        ran |= xsd_validate(dir.rsplit('/').next().unwrap(), &b.xml);
+    }
+    if !ran {
+        eprintln!("WARNING: schema validity not checked (no xmllint)");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Property 2: fidelity equivalence against the .net / BOM CSV / layout.json.
+
+/// (ref, pin) node set per net name, parsed from the KiCad `.net` text.
+fn net_nodes(netlist: &str) -> Vec<(String, Vec<(String, String)>)> {
+    let mut out = Vec::new();
+    for chunk in netlist.split("(net (code ").skip(1) {
+        let name_start = chunk.find("(name \"").unwrap() + 7;
+        let name_end = name_start + chunk[name_start..].find('"').unwrap();
+        let name = chunk[name_start..name_end].to_string();
+        let mut nodes = Vec::new();
+        let body_end = chunk.find("\n    )").unwrap_or(chunk.len());
+        for node in chunk[..body_end].split("(node (ref \"").skip(1) {
+            let r_end = node.find('"').unwrap();
+            let r = node[..r_end].to_string();
+            let p_start = node.find("(pin \"").unwrap() + 6;
+            let p_end = p_start + node[p_start..].find('"').unwrap();
+            nodes.push((r, node[p_start..p_end].to_string()));
+        }
+        out.push((name, nodes));
+    }
+    out
+}
+
+/// Netlist/component fidelity: the same refdes order as the `.net`'s comps
+/// (modulo the documented XSD-charset sanitization, which is identity for
+/// every clean designator), and every net's physical node list exactly.
+fn assert_net_fidelity(name: &str, b: &Built) {
+    let comps = elements(&b.xml, "Component");
+    let net_refs: Vec<String> = b
+        .netlist
+        .split("(comp (ref \"")
+        .skip(1)
+        .map(|c| c[..c.find('"').unwrap()].to_string())
+        .collect();
+    let xml_refs: Vec<String> = comps.iter().map(|c| attr(c, "refDes").unwrap()).collect();
+    assert_eq!(xml_refs, net_refs, "[{}] component refdes order/set", name);
+
+    let nets = blocks(&b.xml, "LogicalNet");
+    let kicad = net_nodes(&b.netlist);
+    assert_eq!(nets.len(), kicad.len(), "[{}] net count", name);
+    for ((head, body), (kname, knodes)) in nets.iter().zip(&kicad) {
+        assert_eq!(&attr(head, "name").unwrap(), kname, "[{}] net name", name);
+        let pins: Vec<(String, String)> = elements(body, "PinRef")
+            .iter()
+            .map(|p| (attr(p, "componentRef").unwrap(), attr(p, "pin").unwrap()))
+            .collect();
+        assert_eq!(&pins, knodes, "[{}] net `{}` nodes", name, kname);
+    }
+}
+
+/// BOM fidelity: one BomItem per CSV row, same refdes list/quantity/values.
+fn assert_bom_fidelity(name: &str, b: &Built) {
+    // CSV rows: "RefDes","Value","MPN","Manufacturer",Qty — the first four
+    // quoted (with "" escaping), the count bare.
+    let rows: Vec<Vec<String>> = b
+        .bom
+        .lines()
+        .skip(1)
+        .map(|l| {
+            let (quoted, qty) = l.rsplit_once(',').unwrap();
+            let mut cells: Vec<String> = quoted
+                .trim_matches('"')
+                .split("\",\"")
+                .map(|c| c.replace("\"\"", "\""))
+                .collect();
+            cells.push(qty.to_string());
+            cells
+        })
+        .collect();
+    let items = blocks(&b.xml, "BomItem");
+    assert_eq!(items.len(), rows.len(), "[{}] BOM group count", name);
+    for ((head, body), row) in items.iter().zip(&rows) {
+        let refdes: Vec<String> = elements(body, "RefDes")
+            .iter()
+            .map(|r| attr(r, "name").unwrap())
+            .collect();
+        assert_eq!(refdes.join(","), row[0], "[{}] refdes list", name);
+        let qty: usize = row[4].parse().unwrap();
+        assert_eq!(
+            attr(head, "quantity").unwrap(),
+            qty.to_string(),
+            "[{}] quantity",
+            name
+        );
+        let textual = |k: &str| -> String {
+            elements(body, "Textual")
+                .iter()
+                .find(|t| attr(t, "textualCharacteristicName").as_deref() == Some(k))
+                .and_then(|t| attr(t, "textualCharacteristicValue"))
+                .unwrap()
+        };
+        assert_eq!(textual("VALUE"), row[1], "[{}] value", name);
+        assert_eq!(textual("MPN"), row[2], "[{}] mpn", name);
+        assert_eq!(textual("MFR"), row[3], "[{}] mfr", name);
+    }
+}
+
+/// Spec fidelity (adversarial finding: previously untested — deleting the
+/// spec emission passed the whole suite): every Component's COHDL_SPEC_*
+/// attribute map equals the IR's resolved spec map for that instance, keyed
+/// through COHDL_PATH. Every emitter consumes the same IR, so this pins the
+/// document's spec content to the shared source of truth.
+fn assert_spec_fidelity(name: &str, b: &Built) {
+    use std::collections::BTreeMap;
+    let ir = b.checked.ir.as_ref().unwrap();
+    let comps = blocks(&b.xml, "Component");
+    assert_eq!(
+        comps.len(),
+        ir.instances.len(),
+        "[{}] component count",
+        name
+    );
+    for (_, body) in &comps {
+        let attrs = elements(body, "NonstandardAttribute");
+        let path = attrs
+            .iter()
+            .find(|a| attr(a, "name").as_deref() == Some("COHDL_PATH"))
+            .and_then(|a| attr(a, "value"))
+            .unwrap_or_else(|| panic!("[{}] component missing COHDL_PATH", name));
+        let inst = &ir.instances[&path];
+        let xml_specs: BTreeMap<String, String> = attrs
+            .iter()
+            .filter_map(|a| {
+                let field = attr(a, "name")?.strip_prefix("COHDL_SPEC_")?.to_string();
+                Some((field, attr(a, "value").unwrap()))
+            })
+            .collect();
+        let ir_specs: BTreeMap<String, String> = inst
+            .specs
+            .iter()
+            .map(|(k, v)| (k.clone(), v.text.clone()))
+            .collect();
+        assert_eq!(xml_specs, ir_specs, "[{}] specs for `{}`", name, path);
+    }
+}
+
+/// Constraint fidelity, generically against the parsed layout.json (not
+/// hand-picked names): every net_class/diff_pair/length_match/hint in the
+/// RFC-013 artifact appears in the document with the same members.
+fn assert_constraint_fidelity(name: &str, b: &Built) {
+    let Some(layout) = &b.layout else { return };
+    let doc: serde_json::Value = serde_json::from_str(layout).unwrap();
+    let arr = |k: &str| doc[k].as_array().cloned().unwrap_or_default();
+    let specs = blocks(&b.xml, "Spec");
+    let spec = |sname: &str| -> &str {
+        specs
+            .iter()
+            .find(|(h, _)| attr(h, "name").as_deref() == Some(sname))
+            .map(|(_, body)| *body)
+            .unwrap_or_else(|| panic!("[{}] missing Spec `{}`", name, sname))
+    };
+    let props = |body: &str, key: &str| -> Vec<String> {
+        elements(body, "Property")
+            .iter()
+            .filter(|p| attr(p, "name").as_deref() == Some(key))
+            .map(|p| attr(p, "text").unwrap())
+            .collect()
+    };
+    let strs = |v: &serde_json::Value| -> Vec<String> {
+        v.as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s.as_str().unwrap().to_string())
+            .collect()
+    };
+    for nc in arr("net_classes") {
+        let body = spec(&format!("cohdl:net_class:{}", nc["name"].as_str().unwrap()));
+        assert_eq!(
+            props(body, "net"),
+            strs(&nc["nets"]),
+            "[{}] net_class",
+            name
+        );
+    }
+    for dp in arr("diff_pairs") {
+        let (p, n) = (dp["p"].as_str().unwrap(), dp["n"].as_str().unwrap());
+        let body = spec(&format!("cohdl:diff_pair:{}:{}", p, n));
+        assert_eq!(props(body, "positive"), [p], "[{}] diff_pair p", name);
+        assert_eq!(props(body, "negative"), [n], "[{}] diff_pair n", name);
+    }
+    for (i, lm) in arr("length_matches").iter().enumerate() {
+        let body = spec(&format!("cohdl:length_match:{}", i + 1));
+        assert_eq!(props(body, "net"), strs(&lm["nets"]), "[{}] lm nets", name);
+        match lm["tolerance"].as_str() {
+            Some(t) => assert_eq!(props(body, "tolerance"), [t], "[{}] tolerance", name),
+            None => assert!(
+                props(body, "tolerance").is_empty(),
+                "[{}] no tolerance",
+                name
+            ),
+        }
+    }
+    // Every placement hint in layout.json rides exactly one component.
+    let xml_hints: Vec<String> = elements(&b.xml, "NonstandardAttribute")
+        .iter()
+        .filter(|a| attr(a, "name").as_deref() == Some("COHDL_PLACEMENT_HINT"))
+        .map(|a| attr(a, "value").unwrap())
+        .collect();
+    let json_hints: Vec<String> = arr("placement_hints")
+        .iter()
+        .map(|h| h["hint"].as_str().unwrap().to_string())
+        .collect();
+    assert_eq!(xml_hints, json_hints, "[{}] placement hints", name);
+}
+
+/// The full fidelity battery over the fixture corpus AND both repo examples
+/// (the examples are the only boards with multi-pin buses across many parts
+/// — adversarial finding: they were previously only schema-checked).
+#[test]
+fn fidelity_over_corpus_and_examples() {
+    let mut builds: Vec<(String, Built)> = [
+        ("basic", BASIC),
+        ("with-layout", WITH_LAYOUT),
+        ("nasty", NASTY),
+    ]
+    .into_iter()
+    .map(|(n, s)| (n.to_string(), build(n, s)))
+    .collect();
+    for dir in ["examples/sensor-node", "examples/rpi-pico2"] {
+        builds.push((dir.to_string(), build_example(dir)));
+    }
+    for (name, b) in &builds {
+        assert_net_fidelity(name, b);
+        assert_bom_fidelity(name, b);
+        assert_spec_fidelity(name, b);
+        assert_constraint_fidelity(name, b);
+    }
+}
+
+#[test]
+fn net_class_attribute_mirrors_annotations() {
+    // [gnd] → GROUND, voltage → POWER, else SIGNAL.
+    let b = build("classes", WITH_LAYOUT);
+    let class_of = |net: &str| -> String {
+        blocks(&b.xml, "LogicalNet")
+            .iter()
+            .find(|(h, _)| attr(h, "name").as_deref() == Some(net))
+            .map(|(h, _)| attr(h, "netClass").unwrap())
+            .unwrap()
+    };
+    assert_eq!(class_of("GND"), "GROUND");
+    assert_eq!(class_of("VDD"), "POWER");
+    assert_eq!(class_of("USB_DP"), "SIGNAL");
+}
+
+// ---------------------------------------------------------------------------
+// Determinism, marker, escaping.
+
+#[test]
+fn emission_is_byte_deterministic() {
+    let a = build("det", WITH_LAYOUT).xml;
+    let b = build("det", WITH_LAYOUT).xml;
+    assert_eq!(a, b, "same source must emit identical bytes");
+    // No wall-clock leakage: every dateTime is the fixed epoch instant.
+    assert!(
+        !a.contains("202"),
+        "a live timestamp leaked into the artifact"
+    );
+}
+
+#[test]
+fn completeness_marker_is_machine_readable() {
+    let b = build("marker", BASIC);
+    // The machine-readable attribute…
+    let marker = elements(&b.xml, "NonstandardAttribute")
+        .into_iter()
+        .find(|a| attr(a, "name").as_deref() == Some("COHDL_COMPLETENESS"))
+        .map(|a| a.to_string())
+        .expect("COHDL_COMPLETENESS attribute present");
+    assert_eq!(
+        attr(&marker, "value").as_deref(),
+        Some("logical-complete,physical-minimal")
+    );
+    // …and the human-visible FunctionMode comment.
+    let fm = elements(&b.xml, "FunctionMode")[0];
+    assert!(attr(fm, "comment")
+        .unwrap()
+        .contains("logical-complete,physical-minimal"));
+}
+
+#[test]
+fn hostile_strings_are_escaped_and_names_sanitized() {
+    let b = build("nasty", NASTY);
+    // Raw MPN/MFR strings survive (escaped) in the BOM characteristics.
+    let items = blocks(&b.xml, "BomItem");
+    let (_, body) = &items[0];
+    let textual = |k: &str| -> String {
+        elements(body, "Textual")
+            .iter()
+            .find(|t| attr(t, "textualCharacteristicName").as_deref() == Some(k))
+            .and_then(|t| attr(t, "textualCharacteristicValue"))
+            .unwrap()
+    };
+    assert_eq!(textual("MPN"), "MPN <X> & 'Y'");
+    assert_eq!(textual("MFR"), "ACME & Co 'Ltd'");
+    // The Package name is sanitized to the XSD charset; the raw footprint
+    // rides the comment attribute.
+    let pkg = elements(&b.xml, "Package")[0];
+    let name = attr(pkg, "name").unwrap();
+    assert!(
+        name.chars()
+            .all(|c| c.is_ascii_alphanumeric() || "_-.+:".contains(c)),
+        "package name must be schema-safe: {}",
+        name
+    );
+    assert_eq!(attr(pkg, "comment").as_deref(), Some("My Lib:R 0402 <A&B>"));
+    // And the document stays well-formed under xmllint (validity checked in
+    // the corpus test; here a plain parse suffices even without the XSD).
+    let _ = &b.checked;
+}
+
+// ---------------------------------------------------------------------------
+// Adversarial-verification regressions (RFC-015 round 1).
+
+// Finding (high): XML-1.0-illegal control characters in CoHDL strings made
+// the document non-well-formed; literal tabs were silently normalized to
+// spaces by conforming parsers (diverging from layout.json/BOM) and could
+// collide XSD key values ("ACME\tCo" vs "ACME Co" as enterprise ids).
+#[test]
+fn control_characters_stay_well_formed_and_tabs_survive() {
+    let src = "\
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+pub part P1: D { primary { mfr: \"ACME\tCo\", mpn: \"MPN\u{8}X\", footprint: \"fp\" } }
+pub part P2: D { primary { mfr: \"ACME Co\", mpn: \"OTHER\", footprint: \"fp\" } }
+design B {
+    #[placement_hint(\"near\tUSB\")]
+    inst d1: P1
+    inst d2: P2
+    net N: d1.A, d2.A
+    net M: d1.B, d2.B
+    layout {
+        length_match(N, M) [tolerance: \"0.15\tmm\"]
+    }
+}
+";
+    let b = build("ctrl", src);
+    // Well-formed AND schema-valid, including the two tab-distinct
+    // manufacturers as distinct enterprise keys.
+    xsd_validate("ctrl", &b.xml);
+    // Tabs are character references, so conforming parsers preserve them.
+    assert!(
+        b.xml.contains("ACME&#9;Co"),
+        "tab must survive as &#9;:\n{}",
+        b.xml
+    );
+    assert!(b.xml.contains("near&#9;USB"), "hint tab as &#9;");
+    assert!(b.xml.contains("0.15&#9;mm"), "tolerance tab as &#9;");
+    // The XML-illegal 0x08 is replaced with U+FFFD (disclosed lossy case).
+    assert!(
+        b.xml.contains("MPN\u{FFFD}X"),
+        "illegal control char replaced with U+FFFD"
+    );
+    assert!(!b.xml.contains('\u{8}'), "no raw control bytes in the XML");
+}
+
+// Finding (high): a trait `designator_prefix` may carry any string; raw
+// designators reached RefDes/@name (XSD pattern violation) and two prefixes
+// sanitizing identically produced duplicate componentKeys. All refdes
+// spellings now route through one collision-free table.
+#[test]
+fn hostile_designator_prefixes_stay_schema_valid_and_distinct() {
+    let src = "\
+pub trait TA { designator_prefix: \"R<\" pins { required A: pin } }
+pub trait TB { designator_prefix: \"R>\" pins { required A: pin } }
+pub device Da { pins { A: 1 [passive], B: 2 [passive] } }
+pub device Db { pins { A: 1 [passive], B: 2 [passive] } }
+impl TA for Da {}
+impl TB for Db {}
+pub part PA: Da { primary { mfr: \"m\", mpn: \"a\", footprint: \"f\" } }
+pub part PB: Db { primary { mfr: \"m\", mpn: \"b\", footprint: \"f\" } }
+design B {
+    inst a: PA
+    inst b: PB
+    net N: a.A, b.A
+    net M: a.B, b.B
+}
+";
+    let b = build("prefix", src);
+    xsd_validate("prefix", &b.xml);
+    // Distinct components stay distinct after sanitization…
+    let refs: Vec<String> = elements(&b.xml, "Component")
+        .iter()
+        .map(|c| attr(c, "refDes").unwrap())
+        .collect();
+    let unique: std::collections::BTreeSet<&String> = refs.iter().collect();
+    assert_eq!(
+        refs.len(),
+        unique.len(),
+        "refdes must be unique: {:?}",
+        refs
+    );
+    // …and every RefDes/@name and PinRef/@componentRef uses exactly those
+    // spellings (the XSD keyrefs require it; asserted here for clarity).
+    for r in elements(&b.xml, "RefDes") {
+        let n = attr(r, "name").unwrap();
+        assert!(refs.contains(&n), "RefDes `{}` not a componentKey", n);
+    }
+    for p in elements(&b.xml, "PinRef") {
+        let n = attr(p, "componentRef").unwrap();
+        assert!(refs.contains(&n), "PinRef `{}` not a componentKey", n);
+    }
+}
+
+// Finding (medium): distinct MPNs whose sanitized forms collide collapsed to
+// one AvlMpn/@name — one vendor's item literally naming a competitor's MPN.
+// @name now uses the collision-free group key; the TRUE MPN rides @other.
+#[test]
+fn avl_mpns_stay_distinct_and_carry_raw_mpn() {
+    let src = "\
+pub device Da { pins { A: 1 [passive], B: 2 [passive] } }
+pub device Db { pins { A: 1 [passive], B: 2 [passive] } }
+pub part PA: Da { primary { mfr: \"NXP\", mpn: \"BAT54S/SOT23\", footprint: \"f\" } }
+pub part PB: Db { primary { mfr: \"Other\", mpn: \"BAT54S_SOT23\", footprint: \"f\" } }
+design B {
+    inst a: PA
+    inst b: PB
+    net N: a.A, b.A
+    net M: a.B, b.B
+}
+";
+    let b = build("avl", src);
+    xsd_validate("avl", &b.xml);
+    let mpns: Vec<(String, String)> = elements(&b.xml, "AvlMpn")
+        .iter()
+        .map(|m| (attr(m, "name").unwrap(), attr(m, "other").unwrap()))
+        .collect();
+    let names: std::collections::BTreeSet<&String> = mpns.iter().map(|(n, _)| n).collect();
+    assert_eq!(
+        mpns.len(),
+        names.len(),
+        "AvlMpn names must be unique: {:?}",
+        mpns
+    );
+    let raw: Vec<&str> = mpns.iter().map(|(_, o)| o.as_str()).collect();
+    assert!(
+        raw.contains(&"BAT54S/SOT23"),
+        "raw MPN preserved: {:?}",
+        raw
+    );
+    assert!(
+        raw.contains(&"BAT54S_SOT23"),
+        "raw MPN preserved: {:?}",
+        raw
+    );
+    // Each AvlItem's name matches its BomItem key (the XSD keyref) and its
+    // vendor: the NXP-backed item must carry the NXP MPN, not the other's.
+    let nxp_item = blocks(&b.xml, "AvlItem")
+        .into_iter()
+        .find(|(_, body)| body.contains("mfr:NXP"))
+        .expect("NXP AvlItem");
+    let nxp_mpn = elements(nxp_item.1, "AvlMpn")
+        .first()
+        .and_then(|m| attr(m, "other"))
+        .unwrap();
+    assert_eq!(nxp_mpn, "BAT54S/SOT23", "vendor keeps its own MPN");
+}
+
+// ---------------------------------------------------------------------------
+// Zero impact + CLI surface (the real binary).
+
+fn cohdl() -> Command {
+    let mut c = Command::new(env!("CARGO_BIN_EXE_cohdl"));
+    c.env("COHDL_STD", manifest().join("std"));
+    c
+}
+
+fn make_project(root: &Path, main_src: &str) {
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        "[package]\nname = \"t\"\n[design]\ntop = \"B\"\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("src/main.cohdl"), main_src).unwrap();
+}
+
+#[test]
+fn cli_emit_writes_documents_and_stays_zero_impact() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-ipc-cli-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, BASIC);
+
+    // Build WITHOUT --emit: no .xml.
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let read = |p: &str| std::fs::read_to_string(tmp.join(p)).unwrap();
+    let (net0, bom0, lock0) = (
+        read("out/t.net"),
+        read("out/t-bom.csv"),
+        read("design.lock"),
+    );
+    assert!(!tmp.join("out/t.xml").exists(), "no .xml without --emit");
+
+    // Build WITH --emit ipc2581: .xml appears; nothing else moves a byte.
+    let out = cohdl()
+        .args([
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--emit",
+            "ipc2581",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(tmp.join("out/t.xml").exists());
+    assert!(read("out/t.xml").contains("<IPC-2581 revision=\"B1\""));
+    assert_eq!(
+        read("out/t.net"),
+        net0,
+        "--emit must not change the netlist"
+    );
+    assert_eq!(
+        read("out/t-bom.csv"),
+        bom0,
+        "--emit must not change the BOM"
+    );
+    assert_eq!(
+        read("design.lock"),
+        lock0,
+        "--emit must not change the lock"
+    );
+
+    // --json: the build object gains the ipc2581 key (present only w/ flag).
+    let out = cohdl()
+        .args([
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--emit",
+            "ipc2581",
+            "--json",
+        ])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("\"ipc2581\":"), "{}", stdout);
+
+    // Rebuild without the flag: stale .xml is removed, key absent.
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std", "--json"])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(out.status.success());
+    assert!(!stdout.contains("\"ipc2581\":"), "{}", stdout);
+    assert!(
+        !tmp.join("out/t.xml").exists(),
+        "stale IPC-2581 document must be removed on a build without --emit"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn cli_emit_flag_matrix() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-ipc-flags-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, BASIC);
+
+    // --emit is build-only — and command compatibility outranks value
+    // validity (adversarial finding: `fmt --emit bogus` used to recommend
+    // `ipc2581`, which fmt would then reject anyway).
+    for cmd in ["check", "fmt"] {
+        for value in ["ipc2581", "bogus"] {
+            let out = cohdl()
+                .args([cmd, tmp.to_str().unwrap(), "--emit", value])
+                .output()
+                .unwrap();
+            assert_eq!(out.status.code(), Some(2), "--emit rejected on {}", cmd);
+            let stderr = String::from_utf8_lossy(&out.stderr);
+            assert!(
+                stderr.contains("is not valid with"),
+                "command error must outrank the value error ({} --emit {}):\n{}",
+                cmd,
+                value,
+                stderr
+            );
+        }
+    }
+    for value in ["ipc2581", "bogus"] {
+        let out = cohdl().args(["lsp", "--emit", value]).output().unwrap();
+        assert_eq!(out.status.code(), Some(2));
+        assert!(
+            String::from_utf8_lossy(&out.stderr).contains("takes no flags"),
+            "lsp rejects --emit before the value is judged"
+        );
+    }
+
+    // Unknown format value (on build, where --emit is legal).
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--emit", "gerber"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("valid: ipc2581"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}

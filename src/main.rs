@@ -13,7 +13,8 @@ cohdl — the CoHDL v2 compiler
 
 USAGE:
     cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]
-    cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR] [--json]
+    cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
+                [--emit ipc2581] [--json]
     cohdl fmt   [PATH] [--check]
     cohdl lsp
 
@@ -27,6 +28,9 @@ defaults to the current directory.
 
     --json   emit one JSON document to stdout instead of human-readable text
              (RFC-010; check/build only)
+    --emit   build: emit an additional output format. The only value today is
+             `ipc2581` — a partially-specified IPC-2581B1 document
+             (<name>.xml, logical-complete/physical-minimal; RFC-015)
     --check  fmt: report drift without rewriting; exit non-zero if any file is
              not already in canonical form
 ";
@@ -43,6 +47,11 @@ struct Args {
     out_dir_given: bool,
     json: bool,
     fmt_check: bool,
+    /// RFC-015: `--emit <FORMAT>` on `build`. The raw value is kept so
+    /// validate() can check command compatibility BEFORE the value — `fmt
+    /// --emit bogus` must say "--emit is not valid with fmt", not suggest a
+    /// format that would then be rejected anyway.
+    emit: Option<String>,
 }
 
 impl Args {
@@ -70,10 +79,23 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
+                if self.emit.is_some() {
+                    return bad("--emit");
+                }
             }
             "build" => {
                 if self.fmt_check {
                     return bad("--check");
+                }
+                // Command compatibility above value validity: only here,
+                // where --emit is legal at all, is the value checked.
+                if let Some(format) = &self.emit {
+                    if format != "ipc2581" {
+                        return Err(format!(
+                            "unknown `--emit` format `{}` (valid: ipc2581)\n\n{}",
+                            format, USAGE
+                        ));
+                    }
                 }
             }
             "fmt" => {
@@ -92,6 +114,9 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
+                if self.emit.is_some() {
+                    return bad("--emit");
+                }
             }
             "lsp" => {
                 if self.json
@@ -101,6 +126,7 @@ impl Args {
                     || self.no_std
                     || self.out_dir_given
                     || self.path_given
+                    || self.emit.is_some()
                 {
                     return Err(format!("`lsp` takes no flags or arguments\n\n{}", USAGE));
                 }
@@ -108,6 +134,11 @@ impl Args {
             _ => {}
         }
         Ok(())
+    }
+
+    /// RFC-015: was `--emit ipc2581` requested (call after validate()).
+    fn emit_ipc2581(&self) -> bool {
+        self.emit.as_deref() == Some("ipc2581")
     }
 }
 
@@ -125,6 +156,7 @@ fn parse_args() -> Result<Args, String> {
         out_dir_given: false,
         json: false,
         fmt_check: false,
+        emit: None,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -141,6 +173,9 @@ fn parse_args() -> Result<Args, String> {
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
                 args.out_dir_given = true;
+            }
+            "--emit" => {
+                args.emit = Some(argv.next().ok_or("--emit needs a value")?);
             }
             "-h" | "--help" => return Err(USAGE.to_string()),
             other if other.starts_with('-') => {
@@ -351,6 +386,31 @@ fn run(args: &Args) -> Result<bool, String> {
         }
     }
 
+    // RFC-015: the IPC-2581 handoff artifact, only when `--emit ipc2581` was
+    // requested. Same stale-file rule as layout.json: a partner-consumed
+    // document that no longer matches the netlist must not linger.
+    let ipc_path = out_dir.join(format!("{}.xml", proj.name));
+    if args.emit_ipc2581() {
+        let ir = checked.ir.as_ref().unwrap();
+        let doc = emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
+        std::fs::write(&ipc_path, doc).map_err(|e| {
+            diags_then(
+                &checked,
+                format!("cannot write `{}`: {}", ipc_path.display(), e),
+            )
+        })?;
+    } else if ipc_path.exists() {
+        std::fs::remove_file(&ipc_path).map_err(|e| {
+            diags_then(
+                &checked,
+                format!("cannot remove stale `{}`: {}", ipc_path.display(), e),
+            )
+        })?;
+        if !args.json {
+            eprintln!("  removed stale {}", ipc_path.display());
+        }
+    }
+
     if args.json {
         let build = emit::json::BuildArtifacts {
             netlist: net_path.display().to_string(),
@@ -359,6 +419,7 @@ fn run(args: &Args) -> Result<bool, String> {
                 .layout
                 .as_ref()
                 .map(|_| layout_path.display().to_string()),
+            ipc2581: args.emit_ipc2581().then(|| ipc_path.display().to_string()),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
         return Ok(true);
@@ -382,6 +443,9 @@ fn run(args: &Args) -> Result<bool, String> {
     eprintln!("  wrote {}", bom_path.display());
     if artifacts.layout.is_some() {
         eprintln!("  wrote {}", layout_path.display());
+    }
+    if args.emit_ipc2581() {
+        eprintln!("  wrote {}", ipc_path.display());
     }
     eprintln!("  wrote {}", lock_path.display());
     Ok(true)

@@ -584,6 +584,194 @@ Option 1 was rejected: hand-rolling an external, independently-evolving protocol
 
 If incremental compilation (already tracked separately) becomes necessary because real project sizes make full-recheck-per-edit noticeably slow — that's its own RFC, coordinated with this one's re-check trigger points, not a silent latency workaround bolted onto the LSP server itself.
 
+# DR-021: IPC-2581 codegen backend — an honestly-partial handoff, phase one of the Quilter integration
+
+## Context
+
+RFC-015 (note 6) picked up RFC-013's own disclosed gap — a layout-constraint vocabulary built without a concrete partner requirement — using real prior research already in the workspace: the "Quilter as a CoHDL Backend Partner — Fit Analysis" note (Business workspace), which investigated Quilter's actual multi-vendor contract and concluded IPC-2581, not a bare KiCad .net, is the right long-term handoff format — but also flagged that CoHDL's part declarations reference footprints by name only (no geometry) and that CoHDL has no board-outline/stackup concept at all. Confirmed directly against real source (src/ast.rs, std/passives.cohdl): footprint fields are indeed name-only strings; grepping the whole repo for stackup/board-outline concepts returned nothing.
+
+## Options
+
+1. Ship only the existing KiCad .net handoff, treat it as sufficient, skip IPC-2581.
+2. A new cohdl-codegen-style native Rust IPC-2581 emitter (src/emit/ipc2581.rs), built from the existing DesignIr, carrying netlist + components + specs + RFC-013's layout constraints inline, with an explicit "logical-complete, physical-minimal" honesty marker for the parts CoHDL genuinely cannot yet provide (footprint geometry, board outline/stackup) — scoped explicitly as phase one of a multi-phase integration (RFC-015's proposal).
+3. Build full footprint-geometry resolution and board-outline support in the same RFC, so the document is physically complete.
+4. Wrap KiCad's own C++ IPC-2581 I/O rather than emit natively.
+
+## Decision
+
+Option 2. cohdl build gains a new IPC-2581 emitter alongside (never replacing) the existing .net/BOM/layout.json outputs, hand-rolled in the project's existing style (no XML library dependency, the same discipline as the hand-rolled JSON emitters). The document is deliberately, visibly partial — a document-level marker states "logical-complete, physical-minimal" rather than letting the output silently overclaim completeness it doesn't have.
+
+## Rationale
+
+Option 1 was rejected: the fit-analysis note's own investigation superseded its original "just use .net" sketch once it examined Quilter's real multi-vendor contract (Allegro/Xpedition only reachable via IPC-2581). Option 3 was rejected as scope creep — the fit-analysis note itself named footprint sourcing as "the real gap, not the format," a separate, larger engineering problem that would make this RFC undeliverable if bundled in. Option 4 was rejected: CoHDL's data lives natively as a DesignIr, not a KiCad BOARD object; wrapping KiCad's I/O would require a lossy synthetic-board round-trip for no benefit over emitting directly from the IR the project already has, and breaks from the established native-Rust-emitter pattern (cohdl-codegen-kicad/-lceda).
+
+## Consequences
+
+- First new output format since the ground-up redesign began — real new netlist-dimension surface area (Coherence Matrix: Netlist High), even though it's a pure projection of already-validated data.
+- The "logical-complete, physical-minimal" honesty marker is the single most load-bearing design decision here — it's what keeps this RFC consistent with the Constitution's "no silent gaps" hard constraint, applied to a new artifact rather than a new check.
+- Mandatory schema-validity test (against the real IPC-2581B1.xsd) and fidelity-equivalence test (this emitter's content must agree with the existing KiCad/BOM/layout.json emitters for the same fixture) — the same "two consumers of the same data must agree" discipline RFC-010/RFC-014 already established.
+- Explicitly named, tracked future work, not silently assumed solved: footprint-geometry resolution, board-outline/stackup as a real CoHDL concept, and actual end-to-end validation against Quilter once real API/import access exists.
+- Does not solve the ECO/re-routing mismatch the fit-analysis note flagged (Quilter re-routes from scratch, no incremental update) — named as a workflow-level limitation, not an emitter-format problem.
+
+## Revisit when
+
+Once real access to Quilter's API or import flow exists — validate the emitted document against it directly, and use that real feedback (not assumption) to decide whether footprint-geometry resolution or board-outline support should be the next phase, and in what shape.
+
+# DR-022: Module system — file-tree-mirrors-module-tree, explicit use, enforced pub
+
+## Context
+
+RFC-016 (note 6) is CoHDL's first real module/namespace system. Confirmed against real source (project.rs, resolve.rs): CoHDL has always had exactly one flat global name bucket, across every file including std — provisional-syntax.md already documented this as provisional, and RFC-008 explicitly deferred designing the real mechanism. This RFC was triggered by a concrete need: Tony's proposed centralized library registry (RFC-017) requires naming and resolving cross-package references, which a flat namespace cannot express safely.
+
+## Options
+
+1. No module system — grow the library registry on top of the flat namespace, disambiguating collisions ad hoc (e.g. auto-prefixing).
+2. File-tree-mirrors-module-tree (no separate mod declaration), explicit one-name-per-use imports, pub enforced only across package boundaries (intra-package visibility stays fully open) — chosen per Tony's explicit decision to design the full general module system (project-internal + cross-library) in one RFC (RFC-016's proposal).
+3. Explicit Rust-style mod foo; declarations instead of implicit file-tree mirroring.
+4. Scope narrowly to only what the library registry needs (name → library + exported item), deferring general in-project module/use/visibility semantics.
+
+## Decision
+
+Option 2, per Tony's explicit choice to design the full general module system now rather than a registry-scoped narrow version. A package's module tree mirrors its file tree under src/, rooted at cohdl.toml's existing [package] name field. use path::Name; imports exactly one name; unqualified names stay fully visible within a single package with no imports (preserving today's ergonomics for the common single-package case). pub is enforced only across package boundaries — intra-package visibility is unaffected.
+
+## Rationale
+
+Option 1 was rejected: ad hoc disambiguation (e.g. auto-prefixing on conflict) is exactly the "correct by convention, not by the compiler" smell the Constitution forbids — an author couldn't know which MLCC they got without reading generated disambiguation output. Option 3 (explicit mod) was rejected: CoHDL has no use case for mod's actual justifications in Rust (non-file-tree-shaped organization, conditional compilation gating) — implicit mirroring is simpler and has one fewer thing that can drift from its own declared location. Option 4 (registry-scoped only) was explicitly not chosen — Tony's direct decision was to design the general system now, since project-internal and cross-library resolution are "deeply related anyway" and designing them separately risks solving the same problem twice, inconsistently.
+
+## Consequences
+
+- Second genuinely new core concept since the redesign began (after RFC-013's Layout Constraint) — Module/Package joins the canonical vocabulary, but formalizes a boundary note 2 and provisional-syntax.md already anticipated as inevitable, not a surprise addition.
+- Real, disclosed breaking change: pub becomes enforced — but only across package boundaries; every current single-package project (std library, example boards) is unaffected until it's ever depended on by another package.
+- Direct prerequisite for RFC-017 (library registry) — RFC-017 must not be implemented before this RFC's use/qualified-path/pub-enforcement mechanism exists.
+- No glob imports or re-export sugar in this pass — explicit, one-name-per-use, deferred pending real usage friction.
+
+## Revisit when
+
+If real multi-package usage (once RFC-017 ships) reveals genuine friction from the lack of glob imports/re-export sugar, or from file-tree-mirroring being awkward for some library's natural organization — either is a scoped follow-up RFC, not evidence this RFC's defaults were wrong.
+
+# DR-023: Library registry — source + documents + native footprints, skills explicitly deferred
+
+## Context
+
+RFC-017 (note 6) is the concrete registry Tony directed: a centralized place to publish/discover reusable .cohdl source, reference documents, manufacturer best-practice "skills," and footprints. Research confirmed no open, portable footprint file standard exists industry-wide — IPC-7351 is a naming/calculation methodology, not a file format; every CAD tool has its own proprietary/de-facto format (KiCad's .kicad_mod being the most "open" in spirit, but still KiCad's own). Given this real gap — and RFC-015's own named future work ("footprint-geometry resolution... named future work") — this RFC had to pick a format, not just a distribution mechanism.
+
+## Options
+
+1. Adopt KiCad's .kicad_mod as the library format.
+2. Define a new, native, minimal CoHDL footprint format (.cfp — pads/shapes/layers only), authored directly by library maintainers, structurally checked against a device's declared pins at the point a part references it, projected by cohdl build into .kicad_mod/IPC-2581 geometry as needed — chosen per Tony's explicit decision favoring more control over an existing ecosystem (RFC-017's proposal).
+3. Carry footprint geometry inline in .cohdl device/part declarations instead of a separate file.
+4. Ship source + documents only for v1, defer footprints to a follow-up RFC.
+
+## Decision
+
+Option 2, per Tony's explicit choice. A Library is just a Package (RFC-016) with two new optional attachments: #[doc("path")] (one or more reference-document paths per declaration, same zero-impact discipline as #[intent(...)]/#[placement_hint(...)]) and a changed meaning for part's existing footprint: field — now a path to a .cfp file instead of a KiCad-library-reference string. .cfp pad numbers are checked against the bound device's declared pins at build time. Skills (manufacturer best-practice content) are explicitly deferred — this registry ships with exactly three content kinds (source, documents, footprints), not four, per direct decision.
+
+## Rationale
+
+Option 1 was the alternative directly considered and explicitly not chosen — Tony's stated reasoning: a native format gives CoHDL more control (structural validation at type-check time, projection into multiple downstream formats) at the cost of no existing ecosystem to leverage; recorded for completeness, not re-opened. Option 3 (inline geometry) was rejected: footprint authoring is a different kind of task (mechanical/geometric) typically done by a different contributor than the one writing electrical specs — keeping it a separate file keeps those authoring roles decoupled, the same reasoning that already keeps #[doc(...)] references separate from inline document text. Option 4 (defer footprints) was rejected: footprints were named by Tony as one of the four registry content kinds up front, and RFC-015 already flagged this gap once — deferring again would be a third RFC not closing it.
+
+## Consequences
+
+- Depends on RFC-016 (module system) landing first — this RFC's path-resolution for #[doc(...)]/footprints assumes RFC-016's package-relative resolution exists.
+- Real, disclosed, non-mechanical breaking change: every existing part declaration's footprint: field changes meaning; the std library and example boards need real .cfp files hand-authored (genuine geometry work, not a mechanical retrofit like RFC-008's pin-role migration).
+- New error codes in the existing E8xx block (designators & parts) for footprint/pin-count mismatches — the same "kind of mistake, not which pass" organizing principle RFC-011 established.
+- Directly closes RFC-015's own named future-work item (footprint-geometry resolution) — cohdl build can now project real .cfp geometry into IPC-2581's physical section, though board-outline/stackup remains separately unaddressed.
+- Skills get their own future RFC once the core registry's shape is proven in real use — not silently folded in, not silently dropped.
+
+## Revisit when
+
+Once skills' actual structure is scoped (free-form doc vs. structured/checkable data — an open question explicitly deferred, not answered by this RFC) — that's a dedicated future RFC. Also revisit if .cfp's deliberately minimal scope (no 3D models, no courtyard-beyond-basics) proves insufficient for real library-authoring needs.
+
+# DR-023 amendment: footprint scope narrowed to symbol resolution, format deferred
+
+## Context
+
+Same day as DR-023's original acceptance, Tony directly corrected RFC-017's footprint design: (1) a footprint must be a named, resolvable symbol under RFC-016's module system — like every other cross-library reference — not a bare path string dangling off a part's footprint: field (which cannot be used, visibility-checked, or safely reused across libraries); (2) the footprint format itself (the .cfp grammar the original draft sketched inline) is out of scope for RFC-017 and belongs in a later, dedicated RFC.
+
+## Options
+
+1. Keep the original draft's design (bare path string + inline .cfp grammar) — rejected outright per Tony's direct correction, not seriously considered as a live option once raised.
+2. Narrow RFC-017 to introduce footprint as a new top-level declaration kind resolved entirely through RFC-016's existing module-path/use/pub machinery — no new resolution mechanism, no format definition — leaving the declaration's internal content (and the pad/pin-count consistency check that depends on it) as an explicit, tracked gap for a future format RFC.
+3. Fold the format question into this RFC anyway, just redesigned to route through symbol resolution (i.e. fix problem 1 but not problem 2).
+
+## Decision
+
+Option 2, per Tony's explicit two-part correction. footprint joins device/trait/fn/part as a fifth top-level declaration kind, resolved identically under RFC-016's rules. part's footprint: field now holds a symbol reference (resolved name), not a path string and not a format-string literal. The footprint { ... } declaration's body is left completely unspecified — RFC-017, as revised, is "symbol-resolution-complete, format-empty."
+
+## Rationale
+
+Option 1 was never a live option once Tony raised the correction — it was the exact defect being pointed out. Option 3 (fix resolution, keep format bundled) was rejected: it would have re-created the same problem DR-023's original text already flagged as a real risk elsewhere in the project (bundling two independently-decidable questions into one RFC) — resolution is answerable now by reusing RFC-016 wholesale; the format is a genuinely separate design problem (pad geometry, shape vocabulary, layer model) deserving its own focused RFC pass, not a rushed sub-section. Treating footprints via symbol resolution rather than a bare path also directly fixes the cross-library-reuse gap Tony named: two libraries can now use the same footprint declaration instead of one library only ever pointing at its own private file.
+
+## Consequences
+
+- RFC-017's Coherence Matrix row is revised downward on Compat/Trust/Grammar/Diagnostics/Netlist (all move from Med/High to Low/Med) — this RFC now delivers less than its original draft claimed, honestly disclosed as a narrower, still-real step rather than re-inflating the same row to look unchanged.
+- The pad/pin-count consistency check between a footprint and its bound device — the original draft's central Trust argument — is no longer specified or enforced by RFC-017. It is explicitly named, tracked future work for the eventual format RFC, not silently assumed solved.
+- Migration becomes two-stage: existing parts get their footprint: field converted to reference placeholder footprint symbols now (mechanical); giving those placeholders real content waits for the format RFC (not mechanical, not part of RFC-017's completion bar).
+- #[doc(...)] (reference documents) is explicitly NOT converted to the same symbol-resolution treatment — a reference document is inert external content with nothing to gain from collision/visibility machinery; only footprints needed this fix, because only footprints needed cross-library reuse of a resolvable thing.
+- A future, separately-numbered RFC now owns the footprint format question outright, inheriting RFC-017's Type-system-first classification (structural check, not DRC) as settled precedent.
+
+## Revisit when
+
+When the footprint format RFC is proposed — at that point, this amendment's "symbol-resolution-complete, format-empty" phasing is exactly what closes, the same way RFC-015's "logical-complete, physical-minimal" phasing is meant to close once footprint-geometry resolution and board-outline support land.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-014 is fully recorded above.)
+(none — the backlog through RFC-017 (as amended above) is fully recorded above. The footprint format itself has no RFC number yet — it is tracked future work, not a pending decision record.)
+
+# DR-024: Footprint format — copad/cofp, adopting Cadence's pad/footprint split
+
+## Context
+
+RFC-017 deliberately deferred the footprint format ("symbol-resolution-complete, format-empty"). Tony directed adopting Cadence Allegro's proven design: pads (padstacks) are defined once as standalone reusable objects; footprints reference pads by name, placing each at an offset, rather than inlining pad geometry per footprint. Tony specified the two new keywords directly: copad for pads, cofp for footprints.
+
+## Options
+
+1. A single declaration kind with pad geometry inlined per footprint (RFC-017's own original, withdrawn draft, before the symbol-resolution correction) — the alternative Cadence's design itself rejects, and the one this RFC exists to avoid re-adopting.
+2. Two declaration kinds — copad (one reusable pad: shape, size, layer, plating) and cofp (a footprint: named pad references placed at offsets, plus courtyard/silkscreen-reference) — both resolved via RFC-016's existing module system, cofp retiring RFC-017's placeholder footprint keyword (RFC-018's proposal, per Tony's direct naming and design direction).
+3. Merge pad and footprint into one keyword, distinguished by a structural-variant tag (RFC-008's pattern).
+4. A richer, Cadence-parity padstack model (per-layer-independent geometry, vias, thermal reliefs).
+
+## Decision
+
+Option 2, per Tony's explicit design direction and naming. copad is a small, closed-vocabulary reusable pad primitive (shape ∈ {rect, circle, oval}, layer ∈ {top_copper, bottom_copper, through_all}, plating ∈ {smd, plated_through_hole}). cofp is a footprint composed of pad N: PadSymbol at (x, y) placements referencing copad symbols by name (resolved via RFC-016), plus courtyard/silkscreen_ref. cofp replaces RFC-017's placeholder footprint keyword outright — same role (what part.footprint: points to), real content for the first time.
+
+## Rationale
+
+Option 1 was rejected for exactly the reason Cadence's own design rejects it: no reuse across footprints, no single point of correction, real duplication risk as a footprint library grows. Option 3 (merge into one keyword with a variant tag) was rejected: pads and footprints have genuinely different reuse patterns and different consumers (many cofps reference one copad; nothing references a cofp) — this is a different relationship than RFC-008's variants (alternate shapes of the same device), so forcing them into that mechanism would misapply a pattern designed for a different problem. Option 4 (full padstack parity) was rejected as premature: CoHDL has no board-outline/stackup concept yet (RFC-015's still-open gap), so a padstack model needing multi-layer-independent geometry has no board context to place itself against — copad's single-layer-plus-through-all scope is the right-sized slice for now.
+
+## Consequences
+
+- One genuinely new core concept: Pad — a reusable geometric primitive referenced (never inlined) by footprints. This is the real conceptual move Cadence's design demonstrates and this RFC adopts, distinct from Footprint itself.
+- Closes RFC-017's own deferred gap for real: the pad-count/numbering-vs-device consistency check RFC-017 could not specify (no real content existed) is now checkable, because cofp's pad list is real structured data.
+- Directly closes RFC-015's named future-work item (footprint-geometry resolution) — cohdl build now has real geometry to project into .kicad_mod/IPC-2581, not an empty placeholder.
+- Real but small, mechanical breaking change: footprint keyword retired in favor of cofp. Because RFC-017 shipped with no real footprint content anywhere (only empty placeholders, per its own two-stage migration), this rename has nothing real to migrate — a keyword swap, not a content rewrite.
+- New failure mode disclosed honestly: because a copad may be referenced by many cofps, a wrong pad dimension is a single point of failure across every footprint referencing it — the flip side of the reuse benefit, not assumed away.
+- No versioning/pinning mechanism for copad references — a cofp always resolves to whatever the referenced copad currently is, mirroring the same absence of version pinning at every other use-based resolution point in the language today.
+
+## Revisit when
+
+If a real need for per-layer-independent padstack geometry (vias, thermal reliefs) emerges — likely only once board-outline/stackup (RFC-015's gap) is itself addressed, giving such geometry a board context to mean something against. Also revisit if real library growth reveals copad's three-shape/two-plating vocabulary is too narrow — extend via a follow-up RFC, not a silent change to already-Accepted syntax.
+
+# DR-024 correction (same day): keywords are pad/footprint, not copad/cofp
+
+## Context
+
+Same day as DR-024's original acceptance, Tony corrected the two invented keyword names: use plain pad and footprint instead of copad/cofp. Since RFC-017 had already claimed footprint as a top-level declaration kind (shipped with an unspecified body), this correction means footprint keeps its existing name and simply gains real, checkable content for the first time — no keyword rename anywhere, unlike the original draft's footprint → cofp swap. pad is newly reserved as the standalone reusable-pad declaration kind, replacing the invented copad name.
+
+## Decision
+
+RFC-018 is revised throughout: every copad reference becomes pad (the top-level reusable-pad declaration kind); every cofp reference becomes footprint (RFC-017's already-Accepted declaration kind, now with real content). The pad N: PadSymbol at (x, y) body-level placement statement inside a footprint declaration and the top-level pad { ... } declaration share the same keyword but occupy different grammatical positions — the same pattern already used elsewhere in the language (e.g. net/nc as body-level statements vs. other top-level forms), not a new ambiguity.
+
+## Consequences
+
+- RFC-018's Compat row moves from Med to Low — there is no keyword rename this time (footprint never changes name), only new content for an existing keyword plus one newly reserved keyword (pad). This is a smaller, more honest characterization than the original copad/cofp draft's.
+- Teaching cost is marginally improved — plain English names need no explanation of an invented abbreviation's meaning, unlike copad/cofp.
+- All downstream documentation (note 6, note 10, note 2) is updated in the same pass to use pad/footprint throughout, replacing copad/cofp.
+
+## Revisit when
+
+N/A — this is a same-day naming correction, not a design decision with its own future trigger. See DR-024's original "Revisit when" (padstack richness, vocabulary breadth) for the design's actual future triggers, unaffected by this naming correction.
+
+# Pending decision records (to be written as RFCs land)
+
+(none — the backlog through RFC-018 is fully recorded above.)

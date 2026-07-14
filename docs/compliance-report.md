@@ -291,6 +291,74 @@ Scope honesty (review 3 corrections):
   completion half is a direct contradiction between two Accepted texts that
   only a note-side amendment can resolve. Not implemented.
 
+## RFC-015 (IPC-2581) implementation notes (2026-07-14)
+
+Implemented per DR-021: `cohdl build --emit ipc2581` writes
+`out/<name>.xml`, an IPC-2581B1 document emitted natively from `DesignIr`
+(`src/emit/ipc2581.rs`, hand-rolled XML — no new dependency). Both DR-021
+gradeability gates are mechanical (tests/ipc2581.rs): schema validity runs
+`xmllint --schema` against the IPC Consortium's published `IPC-2581B1.xsd`
+(vendored at tests/schema/, fetched from webstds.ipc.org) over three
+fixtures and both repo examples, and fidelity equivalence cross-checks
+nets/components (vs. the `.net`), BOM items (vs. the CSV), constraints and
+hints (generically vs. the parsed `layout.json`), and the full per-component
+`COHDL_SPEC_*` map (vs. the IR's resolved specs) over that same corpus —
+fixtures AND examples. The `logical-complete,physical-minimal` marker is
+machine-readable (`COHDL_COMPLETENESS` NonstandardAttribute) and
+human-visible (`FunctionMode/@comment`). Contract: docs/ipc2581.md.
+
+Adversarial verification (same-day round, 4 attackers + skeptic refuters;
+2 of 11 findings refuted as documented decisions): all 9 confirmed findings
+fixed before landing — XML-1.0-illegal control characters made the document
+non-well-formed (now U+FFFD-replaced, disclosed); literal tabs normalized
+to spaces by conforming parsers, silently diverging from layout.json and
+colliding XSD enterprise keys (now `&#9;`/`&#13;` character references);
+hostile `designator_prefix` strings reached `RefDes/@name` raw and could
+collide componentKeys (all refdes spellings now route through one
+collision-free table); distinct MPNs could collapse to one `AvlMpn/@name`
+aliasing a competitor's part (@name now the group key, raw MPN in @other);
+spec-content fidelity was untested (deleting the spec emission passed the
+suite — now pinned per component against the IR); the fidelity corpus
+claim overstated example coverage (examples now genuinely fidelity-checked);
+and `--emit` value errors on non-build commands outranked the command error
+(command compatibility now checked first). Each has a named regression in
+tests/ipc2581.rs.
+
+Honest boundaries and decisions taken under the RFC's own latitude:
+
+- **Opt-in flag, not always-on** — the RFC left "`--emit ipc2581` or an
+  always-on artifact" to implementation review; the flag was chosen because
+  the spec text requires the `--json` `"ipc2581"` key to be present "only
+  when the artifact is emitted". A build *without* the flag removes a stale
+  `<name>.xml` (same partner-safety rule as `layout.json`, review F5).
+- **Artifact name `<name>.xml`** per the RFC's Design section
+  (`<package-name>.xml`); the spec heading's "(ipc2581.xml)" is read as a
+  format label, not a filename.
+- **Physical placeholders**: the XSD requires `Datum`, `Component/Location`,
+  and `Package/Outline` — emitted as zero-size/origin placeholders, which is
+  the "minimal-valid-physical-section idiom" the RFC's Design section
+  anticipated; the completeness marker governs.
+- **Schema-required sections CoHDL has no concept for** (LogisticHeader
+  roles/enterprises/persons, HistoryRecord): fixed deterministic content;
+  every `xsd:dateTime` is the epoch instant, because byte-stable output is
+  a Constitution hard constraint and the wall clock may not enter an
+  artifact.
+- **Constraint mapping**: IPC-2581B1 has no user-named net-class element
+  (`LogicalNet/@netClass` is a closed enum, mapped from `[gnd]`/voltage
+  annotations), so RFC-013 constraints ride `CadHeader/Spec` +
+  `General/Property` entries under `cohdl:`-prefixed names — the schema's
+  own named-specification mechanism. This is the "native constraint
+  elements" reading documented in docs/ipc2581.md; if a partner integration
+  later needs a different projection, that's a docs-level contract change,
+  not a language change.
+- **xmllint gate**: authoritative in CI (libxml2-utils installed in
+  ci.yml); locally the validity test skips with a loud warning when xmllint
+  is absent rather than failing unrelated work.
+- **Not claimed**: end-to-end validation against a real consuming tool
+  (Quilter). DR-021's own "revisit when" gates that on real access; tracked
+  future work alongside footprint geometry (RFC-018 now Accepted for that)
+  and board outline/stackup.
+
 ## External review round 3 (Codex, at f901cdf): dispositions
 
 Fixed in code (regression tests named in parentheses):

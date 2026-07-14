@@ -21,6 +21,10 @@ jobs:
           toolchain: 1.92.0
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+      # RFC-015: the IPC-2581 schema-validity gate needs xmllint. CI is the
+      # authoritative run (locally the test skips with a warning if absent).
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libxml2-utils
       - name: Format
         run: cargo fmt --check
       - name: Clippy

@@ -13,13 +13,13 @@ The language design lives in `docs/design/` (snapshot of the conol.ai design rep
 3. `docs/design/09-mvp-definition.md` — current scope line + exit criteria
 4. `docs/provisional-syntax.md` — MVP-pragmatic choices for constructs with **no Accepted RFC yet** (part/MPN, net annotations, modules). These are provisional; an RFC on conol.ai supersedes them. (Pin roles and package variants graduated to RFC-008.)
 
-Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LCEDA, no incremental compilation). Originally-cut items that have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), `#[intent("...")]` opaque-metadata annotations (RFC-012), layout constraints — `layout {}` + `#[placement_hint]` → `layout.json`, E10xx checks (RFC-013), and the LSP server `cohdl lsp` (RFC-014). RFC-001…014 are all Accepted and implemented; deviations from accepted text are ledgered in `docs/compliance-report.md`.
+Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LCEDA, no incremental compilation). Originally-cut items that have since graduated via Accepted RFCs and ARE implemented: structural-variant pattern matching (RFC-008), `cohdl fmt` canonical form (RFC-009), `cohdl check/build --json` (RFC-010), the formal error-code registry (RFC-011), `#[intent("...")]` opaque-metadata annotations (RFC-012), layout constraints — `layout {}` + `#[placement_hint]` → `layout.json`, E10xx checks (RFC-013), the LSP server `cohdl lsp` (RFC-014), and the IPC-2581 handoff document `build --emit ipc2581` (RFC-015; contract in `docs/ipc2581.md`, schema gate needs `xmllint`). RFC-001…015 are Accepted and implemented; RFC-016 (modules), RFC-017 (library registry), and RFC-018 (footprint format) are Accepted with explicit sequencing 016 → 017 → 018, not yet implemented. Deviations from accepted text are ledgered in `docs/compliance-report.md`.
 
 ## Commands
 
 - `cargo build` / `cargo test` — build and run all tests
 - `cargo run -- check <file-or-dir> [--json]` — parse + resolve + type-check + residual DRC (RFC-010 `--json`)
-- `cargo run -- build <file-or-dir> [--json]` — check + emit KiCad `.net` + BOM CSV (+ `design.lock`)
+- `cargo run -- build <file-or-dir> [--json] [--emit ipc2581]` — check + emit KiCad `.net` + BOM CSV (+ `design.lock`; `--emit ipc2581` adds the RFC-015 partner document)
 - `cargo run -- fmt <file-or-dir> [--check]` — rewrite `.cohdl` into canonical form (RFC-009)
 - `cargo run -- lsp` — the LSP server on stdio (RFC-014; editor setup in `docs/lsp.md`)
 - `harness/` — the generate→check→repair demo harness (script, not product)
@@ -35,7 +35,7 @@ Never implement beyond the MVP cut list in `09-mvp-definition.md` (no LCEDA, no 
 - `src/ir.rs` — flat post-expansion design IR (instances, nets, nc)
 - `src/lock.rs` — design.lock + the pure-function designator allocator with checked injectivity postcondition (RFC-005)
 - `src/drc.rs` — exactly four rules (RFC-004): voltage-exceed, polarity-mismatch, single-driver, multi-driver. **Never add a fifth structural rule** — that's a type-system job.
-- `src/emit/` — KiCad `.net` (S-expr) + BOM CSV
+- `src/emit/` — KiCad `.net` (S-expr) + BOM CSV + `layout.json` (RFC-013) + IPC-2581 XML (RFC-015)
 - `std/` — MVP std library (only what the demo board needs)
 - `tests/` — fixture tests mapped 1:1 to the MVP exit criteria
 

@@ -27,6 +27,9 @@ pub struct BuildArtifacts {
     pub bom: String,
     /// RFC-013 `layout.json` path, present only when the design emits one.
     pub layout: Option<String>,
+    /// RFC-015 IPC-2581 document path, present only when `--emit ipc2581`
+    /// was requested (same only-when-emitted pattern as `layout`).
+    pub ipc2581: Option<String>,
 }
 
 /// A span resolved to the JSON schema's location shape (1-based line/col).
@@ -124,15 +127,19 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
 
     if let Some(b) = build {
         out.push_str(",\n  \"build\": {\n");
-        let _ = writeln!(out, "    \"netlist\": {},", json_str(&b.netlist));
-        match &b.layout {
-            Some(path) => {
-                let _ = writeln!(out, "    \"bom\": {},", json_str(&b.bom));
-                let _ = writeln!(out, "    \"layout\": {}", json_str(path));
-            }
-            None => {
-                let _ = writeln!(out, "    \"bom\": {}", json_str(&b.bom));
-            }
+        // Fixed key order; optional keys (layout, ipc2581) appear only when
+        // their artifact was emitted. The last present key has no comma.
+        let mut entries: Vec<(&str, &str)> =
+            vec![("netlist", b.netlist.as_str()), ("bom", b.bom.as_str())];
+        if let Some(path) = &b.layout {
+            entries.push(("layout", path));
+        }
+        if let Some(path) = &b.ipc2581 {
+            entries.push(("ipc2581", path));
+        }
+        for (i, (key, path)) in entries.iter().enumerate() {
+            let comma = if i + 1 < entries.len() { "," } else { "" };
+            let _ = writeln!(out, "    \"{}\": {}{}", key, json_str(path), comma);
         }
         out.push_str("  }");
     }

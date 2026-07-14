@@ -390,10 +390,17 @@ fn e807_checks_alt_entry_footprints_too() {
 // identifiers, so the mapping is injective by construction.
 #[test]
 fn kicad_mod_file_names_cannot_collide() {
-    let src_a = "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\npub footprint FP {\n    pad 1: P at (0mm, 0mm)\n    pad 2: P at (1mm, 0mm)\n}\n";
+    // Distinct pad names per module (an unqualified `P` declared in both
+    // would be a legitimate E207 ambiguity — unrelated to file naming).
+    let src = |pad: &str| {
+        format!(
+            "pub pad {pad} {{ shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }}\n\
+             pub footprint FP {{\n    pad 1: {pad} at (0mm, 0mm)\n    pad 2: {pad} at (1mm, 0mm)\n}}\n"
+        )
+    };
     let files = vec![
-        ("src/a__b/c.cohdl".to_string(), src_a.to_string()),
-        ("src/a/b__c.cohdl".to_string(), src_a.to_string()),
+        ("src/a__b/c.cohdl".to_string(), src("PadA")),
+        ("src/a/b__c.cohdl".to_string(), src("PadB")),
         (
             "src/main.cohdl".to_string(),
             "pub device Res { pins { A: 1 [passive], B: 2 [passive] } }\n\
@@ -668,6 +675,47 @@ fn negative_literal_messages_name_length() {
     assert!(
         r.contains("`Temperature` and `Length`"),
         "the sign rule must name both signed unit types:\n{}",
+        r
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Fifth-review (2026-07-15) regressions.
+
+// R5-4: the pad/device match is declaration-complete — a part that no design
+// instantiates is still checked (a declaration-only library must be correct
+// without a consumer exercising every export).
+#[test]
+fn unused_part_footprint_mismatch_is_caught() {
+    let (checked, r) = check(&[(
+        "src/main.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub device One { pins { A: 1 [passive] } }\n\
+         pub footprint FP2 {\n    pad 2: P at (0mm, 0mm)\n}\n\
+         pub part Unused: One { primary { mfr: \"m\", mpn: \"n\", footprint: FP2 } }\n\
+         pub device Real { pins { A: 1 [passive] } }\n\
+         design B { inst x: Real  net N: x.A }\n",
+    )]);
+    assert!(
+        r.contains("E807") && r.contains("missing pad `1`") && r.contains("extra pad `2`"),
+        "an unused part's footprint mismatch must be caught:\n{}",
+        r
+    );
+    assert!(checked.diags.has_errors());
+}
+
+// R5-5: a parser-accepted but astronomically large Length must be a clean
+// diagnostic before any emit, never an i128 overflow panic in geometry.
+#[test]
+fn oversized_length_is_diagnosed_not_panicked() {
+    let (_c, r) = check(&[(
+        "src/main.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub footprint FP {\n    pad 1: P at (0mm, 0mm)\n    courtyard { shape: rect, at: (17014118346046923173169mm, 0mm), size: (1mm, 1mm) }\n}\n",
+    )]);
+    assert!(
+        r.contains("E806") && r.contains("too large to project"),
+        "oversized geometry must be a clean diagnostic:\n{}",
         r
     );
 }

@@ -1558,3 +1558,30 @@ pub fn rail<V: Voltage = 3.3V>(a: Pin, b: Pin) {
     );
     lsp.shutdown();
 }
+
+// R5-11: a JSON-RPC request with an invalid id TYPE (object/array/bool) is
+// InvalidRequest and must NOT mutate lifecycle state.
+#[test]
+fn object_id_is_invalid_request() {
+    let mut lsp = Lsp::spawn();
+    lsp.send(
+        &json!({ "jsonrpc": "2.0", "id": {"bad": true}, "method": "initialize", "params": {} }),
+    );
+    // The response echoes a null id (an object id cannot be a response id).
+    let resp = loop {
+        let m = lsp.read_message();
+        if m.get("error").is_some() {
+            break m;
+        }
+    };
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+    assert!(
+        resp["id"].is_null(),
+        "invalid id → null response id: {}",
+        resp
+    );
+    // The server is still uninitialized: a shutdown request hits the gate.
+    let r2 = lsp.request_full("shutdown", json!({}));
+    assert_eq!(r2["error"]["code"].as_i64(), Some(-32002), "{}", r2);
+    lsp.child.kill().ok();
+}

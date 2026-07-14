@@ -2,8 +2,11 @@
 //!
 //! A *partially-specified* IPC-2581 document: logical design complete
 //! (netlist, components, resolved specs, RFC-013 layout constraints) and,
-//! since RFC-018, real footprint geometry (per-pad `Package/Pin` + courtyard
-//! `Outline`) for pad-bearing footprints — but physical layout is still
+//! since RFC-018, PARTIAL footprint geometry (per-pad `Package/Pin` +
+//! courtyard `Outline`) for pad-bearing footprints — the `Pin` subset omits
+//! the pad's copper `layer`, its `drill`, and the footprint's
+//! `silkscreen_ref` (all present in the `.kicad_mod`); see docs/ipc2581.md,
+//! review R5-8. Physical layout is still
 //! deliberately minimal: no component PLACEMENT (every `Component/Location`
 //! is `(0,0)`), no routing, no board outline/`Profile`, no stackup. It is
 //! therefore NOT yet a complete Quilter starter board (which needs a board

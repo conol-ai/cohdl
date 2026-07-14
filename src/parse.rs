@@ -910,6 +910,35 @@ impl<'a> Parser<'a> {
                 ));
                 continue;
             }
+            // RFC-017: a doc path is PACKAGE-RELATIVE (review R5-9). The
+            // compiler never opens the file (existence is a deferred lint),
+            // but the relative-path invariant is enforced lexically: reject
+            // an absolute path, a parent-directory escape, an empty path, or
+            // a URL, so a library never claims a document outside its own
+            // package root.
+            let path = &a.args[0].0;
+            let bad = if path.trim().is_empty() {
+                Some("an empty path")
+            } else if path.starts_with('/') || path.starts_with('\\') {
+                Some("an absolute path")
+            } else if path.contains("://") {
+                Some("a URL")
+            } else if path.split(['/', '\\']).any(|seg| seg == "..") {
+                Some("a `..` parent-directory escape")
+            } else {
+                None
+            };
+            if let Some(why) = bad {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    a.span,
+                    format!(
+                        "`#[doc(\"{}\")]` is not a package-relative path ({}) — doc paths resolve under the library's own root (RFC-017)",
+                        path, why
+                    ),
+                ));
+                continue;
+            }
             docs.push((a.args[0].0.clone(), a.span));
         }
         (docs, rest)

@@ -1,19 +1,22 @@
 //! RFC-018: the footprint/device pad-consistency check — the check RFC-017
 //! deferred, now real because footprint pad lists are real structured data.
 //!
-//! Runs at `cohdl build`, at the point every instance's part binding is
-//! known (the same point MPN completeness is checked — RFC-003's
-//! precedent; `cohdl check` does not require footprint content). Every AVL
-//! entry's footprint is checked — an alt-sourced part must fit the same
-//! land pattern contract, or the mismatch stays latent until a fab swaps
-//! sources. A footprint with a fully EMPTY body is RFC-017's stage-one
-//! placeholder and is exempt — the check applies the moment real content
-//! exists (a courtyard-only footprint is real content whose pad set is ∅,
-//! not a placeholder).
+//! Declaration-complete (review R5-4): the check walks `world.parts`, not
+//! the instantiated IR, so a bad part is caught whether or not a design
+//! happens to instantiate it — the correctness of a declaration-only
+//! library must not depend on a consumer exercising every exported part.
+//! It runs during the CHECK phase (both `cohdl check` and `cohdl build`),
+//! since a part statically declares both its footprint and its device — no
+//! binding is required. Every AVL entry's footprint is checked — an
+//! alt-sourced part must fit the same land pattern, or the mismatch stays
+//! latent until a fab swaps sources. A footprint with a fully EMPTY body is
+//! RFC-017's stage-one placeholder and is exempt (a courtyard-only
+//! footprint is real content whose pad set is ∅, not a placeholder). The
+//! permanence of that exemption is a documented deviation from RFC-018's
+//! exact-match rule (docs/compliance-report.md, review R5-4).
 
 use crate::ast::FootprintDef;
 use crate::diag::{Diagnostic, Diagnostics};
-use crate::ir::DesignIr;
 use crate::resolve::{short, World};
 use std::collections::BTreeSet;
 
@@ -24,36 +27,30 @@ pub fn is_placeholder(fp: &FootprintDef) -> bool {
     fp.pads.is_empty() && fp.courtyard.is_none() && fp.silkscreen_ref.is_none()
 }
 
-pub fn check_pad_consistency(world: &World, ir: &DesignIr, diags: &mut Diagnostics) {
-    // One report per (part, footprint) pair — every instance of the same
-    // part would repeat the identical mismatch.
-    let mut reported: BTreeSet<(String, String)> = BTreeSet::new();
-    for inst in ir.instances.values() {
-        let Some(part_name) = &inst.part else {
-            continue;
+pub fn check_pad_consistency(world: &World, diags: &mut Diagnostics) {
+    // One report per (part, footprint) pair.
+    let mut reported: BTreeSet<(&str, &str)> = BTreeSet::new();
+    for (part_name, part) in &world.parts {
+        let Some(device) = world.devices.get(&part.device.name.name) else {
+            continue; // unresolved device: reported at declaration check
         };
-        let Some(part) = world.parts.get(part_name) else {
-            continue;
-        };
-        let Some(device) = world.devices.get(&inst.device) else {
-            continue;
-        };
-        let entries = std::iter::once(&part.primary).chain(part.alts.iter());
-        for entry in entries {
+        // A part pins its own structural variant (RFC-008).
+        let variant = part.device.variant.as_ref().map(|v| v.name.as_str());
+        for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
             let Some(fp_ref) = &entry.footprint else {
                 continue;
             };
             let Some(fp) = world.footprints.get(&fp_ref.name) else {
-                continue; // unresolved: already reported at declaration check
+                continue; // unresolved footprint: reported at declaration check
             };
             if is_placeholder(fp) {
                 continue; // stage-one placeholder (RFC-017 migration)
             }
-            if !reported.insert((part_name.clone(), fp_ref.name.clone())) {
+            if !reported.insert((part_name.as_str(), fp_ref.name.as_str())) {
                 continue;
             }
             let device_pins: BTreeSet<&str> = device
-                .pins_for(inst.variant.as_deref())
+                .pins_for(variant)
                 .iter()
                 .flat_map(|p| p.numbers.iter().map(|n| n.text.as_str()))
                 .collect();
@@ -93,7 +90,7 @@ pub fn check_pad_consistency(world: &World, ir: &DesignIr, diags: &mut Diagnosti
                     format!(
                         "footprint `{}` does not match device `{}`'s pins: {}",
                         short(&fp_ref.name),
-                        short(&inst.device),
+                        short(&part.device.name.name),
                         parts_msg.join("; ")
                     ),
                 )

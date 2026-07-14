@@ -393,3 +393,104 @@ fn doc_on_impl_is_rejected_with_the_reason() {
     );
     assert!(rendered.contains("impls are unnamed"), "{}", rendered);
 }
+
+// ---------------------------------------------------------------------------
+// Fifth-review (2026-07-15) regressions.
+
+// R5-7(a): a duplicate singleton AVL field (mpn/mfr) is rejected, not
+// silently first-wins (which dropped the shadowed value from the BOM/AVL).
+#[test]
+fn duplicate_avl_field_is_rejected() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } }\n\
+             pub footprint FP {}\n\
+             pub part P: D { primary { mfr: \"A\", mpn: \"X\", mpn: \"Y\", footprint: FP } }\n",
+        )],
+    );
+    assert!(
+        r.contains("E802") && r.contains("duplicate AVL field `mpn`"),
+        "{}",
+        r
+    );
+}
+
+// R5-7(b): two parts sharing (manufacturer, MPN) but describing different
+// components (different device/value) are rejected — one part number names
+// one component, and the lossy BOM grouping would hide the disagreement.
+#[test]
+fn inconsistent_parts_sharing_mfr_mpn_are_rejected() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Da { pins { A: 1 [passive] } spec { resistance: 1kohm } }\n\
+             pub device Db { pins { A: 1 [passive] } spec { resistance: 2kohm } }\n\
+             pub footprint FP {}\n\
+             pub part PA: Da { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n\
+             pub part PB: Db { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n",
+        )],
+    );
+    assert!(
+        r.contains("E802") && r.contains("describes a different component"),
+        "{}",
+        r
+    );
+}
+
+// R5-7(b): two parts that genuinely ARE the same component (identical device,
+// binding, footprint) may share (manufacturer, MPN) without error.
+#[test]
+fn consistent_parts_sharing_mfr_mpn_are_allowed() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } spec { resistance: 1kohm } }\n\
+             pub footprint FP {}\n\
+             pub part PA: D { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n\
+             pub part PB: D { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n",
+        )],
+    );
+    assert!(!r.contains("E802"), "identical parts may share MPN:\n{}", r);
+}
+
+// R5-9: a `#[doc]` path must be package-relative — absolute, parent-escape,
+// empty, and URL forms are rejected lexically.
+#[test]
+fn doc_paths_must_be_package_relative() {
+    for (path, _why) in [
+        ("/etc/passwd", "absolute"),
+        ("../../outside.pdf", "parent escape"),
+        ("", "empty"),
+        ("https://example.com/x.pdf", "url"),
+    ] {
+        let (_c, r) = check(
+            "board",
+            &[(
+                "src/main.cohdl",
+                &format!(
+                    "#[doc(\"{}\")]\npub device D {{ pins {{ A: 1 [passive] }} }}\n",
+                    path
+                ),
+            )],
+        );
+        assert!(
+            r.contains("not a package-relative path"),
+            "doc path `{}` must be rejected:\n{}",
+            path,
+            r
+        );
+    }
+    // A normal relative path is fine.
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "#[doc(\"datasheets/d.pdf\")]\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(!r.contains("not a package-relative"), "{}", r);
+}

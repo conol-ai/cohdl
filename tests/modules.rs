@@ -766,3 +766,85 @@ fn use_grammar_errors_anchor_and_recover() {
         rendered
     );
 }
+
+// ---------------------------------------------------------------------------
+// Fifth-review (2026-07-15) regressions.
+
+// R5-2: an unresolved qualified path in an UNCALLED function must be
+// diagnosed at the rewrite pass — expansion never runs on a dead fn, so
+// relying on it produced a false-clean verdict.
+#[test]
+fn unresolved_reference_in_uncalled_fn_is_caught() {
+    let (checked, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "fn dead(p: Pin) {\n    inst d: missing::module::Device\n    net _: p, d.A\n}\n\
+             pub device Real { pins { A: 1 [passive] } }\n\
+             design B { inst x: Real  net N: x.A }\n",
+        )],
+    );
+    assert!(
+        r.contains("E202") && r.contains("missing::module::Device"),
+        "a dead fn's unresolved reference must fail:\n{}",
+        r
+    );
+    assert!(checked.diags.has_errors());
+}
+
+// R5-2: an unresolved reference reported by BOTH the rewrite pass and
+// expansion (a design body) is deduped to a single diagnostic.
+#[test]
+fn unresolved_reference_is_reported_once() {
+    let (_c, r) = check(
+        "board",
+        &[("src/main.cohdl", "design B { inst d: Nope  net N: d.A }\n")],
+    );
+    assert_eq!(
+        r.matches("unknown device or part `Nope`").count(),
+        1,
+        "exactly one diagnostic:\n{}",
+        r
+    );
+}
+
+// R5-3: a subdirectory named with a reserved keyword indexes declarations at
+// an identity no qualified path can spell — diagnosed (E210).
+#[test]
+fn keyword_directory_is_unspellable_e210() {
+    let (_c, r) = check(
+        "board",
+        &[
+            (
+                "src/device/x.cohdl",
+                "pub device Thing { pins { A: 1 [passive] } }\n",
+            ),
+            ("src/main.cohdl", "design B { inst d: Thing  net N: d.A }\n"),
+        ],
+    );
+    assert!(
+        r.contains("E210") && r.contains("reserved keyword"),
+        "keyword directory must be E210:\n{}",
+        r
+    );
+}
+
+// R5-3: a hyphenated directory is likewise unspellable.
+#[test]
+fn hyphenated_directory_is_unspellable_e210() {
+    let (_c, r) = check(
+        "board",
+        &[
+            (
+                "src/power-supply/x.cohdl",
+                "pub device Thing { pins { A: 1 [passive] } }\n",
+            ),
+            ("src/main.cohdl", "design B { inst d: Thing  net N: d.A }\n"),
+        ],
+    );
+    assert!(
+        r.contains("E210") && r.contains("power-supply"),
+        "hyphenated directory must be E210:\n{}",
+        r
+    );
+}

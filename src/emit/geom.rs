@@ -8,6 +8,16 @@
 
 use crate::units::UnitValue;
 
+/// The largest `Length` magnitude (in femto-mm) the geometry emitters accept.
+/// Corner arithmetic multiplies a femto value by 10 and adds/subtracts
+/// another ×5, so an unbounded `i128` femto could overflow and panic
+/// (review R5-5). `10^30` femto = `10^15` mm = a thousand billion kilometres
+/// — beyond any conceivable footprint, yet 8 orders of magnitude below the
+/// overflow point, so the arithmetic below can never wrap. A `Length` past
+/// this bound is a clean E805/E806 at validation, BEFORE any artifact write
+/// (see `crate::units::UnitValue::length_in_geom_range`).
+pub const MAX_GEOM_FEMTO: i128 = 1_000_000_000_000_000_000_000_000_000_000;
+
 /// A Length literal as a minimal decimal mm string (`-0.5mm` → `-0.5`,
 /// `1.0mm` → `1`).
 pub fn mm(v: &UnitValue) -> String {
@@ -15,14 +25,27 @@ pub fn mm(v: &UnitValue) -> String {
 }
 
 /// `center - size/2`, exact: computed at 10^-16 mm so halving an odd femto
-/// count loses nothing.
+/// count loses nothing. Saturating arithmetic is defense-in-depth — validation
+/// rejects any `Length` past `MAX_GEOM_FEMTO`, so a real input never saturates.
 pub fn corner_lo(center: &UnitValue, size: &UnitValue) -> String {
-    render(center.femto * 10 - size.femto * 5, 16)
+    render(
+        center
+            .femto
+            .saturating_mul(10)
+            .saturating_sub(size.femto.saturating_mul(5)),
+        16,
+    )
 }
 
 /// `center + size/2`, exact (also the circle-radius offset point).
 pub fn corner_hi(center: &UnitValue, size: &UnitValue) -> String {
-    render(center.femto * 10 + size.femto * 5, 16)
+    render(
+        center
+            .femto
+            .saturating_mul(10)
+            .saturating_add(size.femto.saturating_mul(5)),
+        16,
+    )
 }
 
 /// Render `n / 10^scale` as a minimal decimal string.

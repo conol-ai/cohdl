@@ -54,6 +54,35 @@ pub fn package_root(name: &str) -> String {
     out
 }
 
+/// The first directory/file-stem segment of a project file's path that is
+/// NOT a spellable non-keyword identifier, with a human reason — or `None`
+/// if every segment that becomes a module-path component is spellable. Only
+/// files nested in a subdirectory contribute segments (a file directly under
+/// `src/` lives at the package root, so its own name is never a segment).
+fn unspellable_module_segment(display: &str) -> Option<(String, &'static str)> {
+    let d = display.replace('\\', "/");
+    // std files are the library's own, not user-authored here; loose files
+    // (no `src/` prefix) live at the package root with no segments.
+    let rel = d.strip_prefix("src/")?;
+    let parts: Vec<&str> = rel.split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() <= 1 {
+        return None; // directly under src/: no module segment
+    }
+    // Directory segments + the file stem all become path segments.
+    let mut segs: Vec<&str> = parts[..parts.len() - 1].to_vec();
+    let last = parts[parts.len() - 1];
+    segs.push(last.strip_suffix(".cohdl").unwrap_or(last));
+    for seg in segs {
+        if crate::lex::is_keyword(seg) {
+            return Some((seg.to_string(), "it is a reserved keyword"));
+        }
+        if !crate::lex::is_identifier(seg) {
+            return Some((seg.to_string(), "it is not a valid identifier"));
+        }
+    }
+    None
+}
+
 /// Derive a file's RFC-016 module identity from its display name: `std/…`
 /// displays are the std package; `src/dir/file.cohdl` displays nest under
 /// the project package (directories + file stem become segments — files
@@ -105,6 +134,21 @@ pub fn check_files_in(
     let mut modules = Vec::new();
     for (name, content) in files {
         let file_id = sm.add_file(name.clone(), content.clone());
+        // RFC-016 (review R5-3): a subdirectory or nested-file name becomes a
+        // qualified-path SEGMENT, so it must be a spellable non-keyword
+        // identifier — otherwise the declarations under it are indexed at an
+        // identity no source can reference (`src/device/x.cohdl`,
+        // `src/power-supply/x.cohdl`). Diagnose it against the file's start.
+        if let Some((seg, why)) = unspellable_module_segment(name) {
+            diags.push(crate::diag::Diagnostic::error(
+                "E210",
+                crate::span::Span::new(file_id, 0, if content.is_empty() { 0 } else { 1 }),
+                format!(
+                    "`{}` is not a valid module-path segment ({}) — a qualified path could never reference the declarations in `{}`",
+                    seg, why, name
+                ),
+            ).with_help("rename the directory/file to a non-keyword identifier (letters, digits, `_`; no `-`)"));
+        }
         let tokens = crate::lex::lex(file_id, sm.text(file_id), &mut diags);
         parsed.push(crate::parse::parse(tokens, &mut diags));
         modules.push(infer_module(&root, name));
@@ -183,12 +227,20 @@ pub struct BuildArtifacts {
 /// The `build` half: designators (RFC-005), part binding, emitters.
 /// Only call when `checked.diags` has no errors and `checked.ir` is Some.
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
+    // A design that failed the check phase (e.g. an RFC-018 pad/device
+    // mismatch, now diagnosed at check time — R5-4) produces no artifacts:
+    // do not assign designators, bind parts, or emit against a design known
+    // to be invalid.
+    if checked.diags.has_errors() {
+        return None;
+    }
     let ir = checked.ir.as_mut()?;
     let mut diags = Diagnostics::new();
     let mut notes = Vec::new();
     let lock = crate::lock::assign_designators(&checked.world, ir, prior_lock, &mut diags);
     crate::emit::bind_parts(&checked.world, ir, &mut diags, &mut notes);
-    crate::check::footprints::check_pad_consistency(&checked.world, ir, &mut diags);
+    // Pad/device consistency (RFC-018) already ran at the check phase over
+    // every declared part (R5-4); nothing instantiation-specific to add here.
     let failed = diags.has_errors();
     diags.sort(&checked.sm);
     checked.diags.extend(diags);

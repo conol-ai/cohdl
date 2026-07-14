@@ -126,6 +126,10 @@ impl Diagnostics {
     }
 
     /// Deterministic presentation order: by file, then span start, then code.
+    /// Exact duplicates (same span, code, and message) are collapsed — two
+    /// passes can independently diagnose the same construct (e.g. an
+    /// unresolved reference caught at both the rewrite pass and expansion),
+    /// and a construct should be reported once.
     pub fn sort(&mut self, _sm: &SourceMap) {
         self.diags.sort_by_key(|d| {
             (
@@ -134,6 +138,12 @@ impl Diagnostics {
                 d.primary.span.end,
                 d.code,
             )
+        });
+        self.diags.dedup_by(|a, b| {
+            a.code == b.code
+                && a.primary.span == b.primary.span
+                && a.message == b.message
+                && a.primary.message == b.primary.message
         });
     }
 

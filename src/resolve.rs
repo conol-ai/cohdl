@@ -536,6 +536,27 @@ impl Resolver<'_> {
                 Stmt::Inst(s) => {
                     if !shadow.contains(&s.ty.name.name) {
                         self.resolve(&mut s.ty.name, module, shadow, diags);
+                        // R5-2: an instance type that resolves to NOTHING is
+                        // unknown NOW — at the rewrite pass, over EVERY body
+                        // (including functions no design ever calls). The
+                        // old behavior left it for expansion, which never
+                        // runs on an uncalled fn, so a bad qualified path
+                        // there produced a false-clean verdict. A resolved
+                        // reference has been rewritten to an fq path present
+                        // in `symbols`; anything else is genuinely absent.
+                        // The message matches expansion's exactly, so the
+                        // design-body case (reported by both) is deduped.
+                        if !self.symbols.contains_key(&s.ty.name.name) {
+                            let mut d = Diagnostic::error(
+                                "E202",
+                                s.ty.name.span,
+                                format!("unknown device or part `{}`", s.ty.name.name),
+                            );
+                            if let Some(sugg) = suggest_in(self.symbols, &s.ty.name.name) {
+                                d = d.with_help(format!("did you mean `{}`?", sugg));
+                            }
+                            diags.push(d);
+                        }
                     }
                     for arg in &mut s.ty.generic_args {
                         if let GenericArg::Name(id) = arg {
@@ -547,6 +568,20 @@ impl Resolver<'_> {
                 }
                 Stmt::Call(s) => {
                     self.resolve(&mut s.callee, module, shadow, diags);
+                    // R5-2: an unresolved call target, same discipline.
+                    if !shadow.contains(&s.callee.name)
+                        && !self.symbols.contains_key(&s.callee.name)
+                    {
+                        let mut d = Diagnostic::error(
+                            "E504",
+                            s.callee.span,
+                            format!("unknown fn `{}`", s.callee.name),
+                        );
+                        if let Some(sugg) = suggest_in(self.symbols, &s.callee.name) {
+                            d = d.with_help(format!("did you mean `{}`?", sugg));
+                        }
+                        diags.push(d);
+                    }
                     for arg in &mut s.generic_args {
                         if let GenericArg::Name(id) = arg {
                             if !shadow.contains(&id.name) {
@@ -730,6 +765,15 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                         pad.name.name, v.text
                     ),
                 ));
+            } else if !v.length_in_geom_range() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.size_span.unwrap_or(pad.name.span),
+                    format!(
+                        "pad `{}` dimension `{}` is too large to project (review R5-5) — keep footprint geometry under 10^15 mm",
+                        pad.name.name, v.text
+                    ),
+                ));
             }
         }
         match (&pad.plating, &pad.drill) {
@@ -775,6 +819,15 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                     *span,
                     format!(
                         "pad `{}` has a non-positive drill diameter `{}` — a drill must be > 0mm",
+                        pad.name.name, v.text
+                    ),
+                ));
+            } else if !v.length_in_geom_range() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` drill `{}` is too large to project (review R5-5)",
                         pad.name.name, v.text
                     ),
                 ));
@@ -842,6 +895,15 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                             v.unit.type_name()
                         ),
                     ));
+                } else if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        place.span,
+                        format!(
+                            "pad offset `{}` is too large to project (review R5-5)",
+                            v.text
+                        ),
+                    ));
                 }
             }
         }
@@ -867,6 +929,15 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                             "courtyard dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
                             v.text,
                             v.unit.type_name()
+                        ),
+                    ));
+                } else if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        c.span,
+                        format!(
+                            "courtyard dimension `{}` is too large to project (review R5-5)",
+                            v.text
                         ),
                     ));
                 }

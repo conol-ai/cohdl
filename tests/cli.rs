@@ -484,3 +484,46 @@ fn duplicate_emit_flag_is_rejected() {
     );
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+// ---------------------------------------------------------------------------
+// Fifth-review (2026-07-15) CLI regression.
+
+const PAD_PROJECT: &str = "\
+pub pad P { shape: rect, size: (0.6mm, 0.7mm), layer: top_copper, plating: smd }
+pub footprint FP {
+    pad 1: P at (-0.5mm, 0mm)
+    pad 2: P at (0.5mm, 0mm)
+}
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub part R1: Res { primary { mfr: \"m\", mpn: \"n\", footprint: FP } }
+design B { inst r1: R1  inst r2: R1  net N: r1.A, r2.A  net M: r1.B, r2.B }
+";
+
+// R5-6: an ordinary build clears its own `.kicad_mod` projections but must
+// preserve a foreign `.kicad_mod` (a file format is not proof of ownership).
+#[test]
+fn build_preserves_foreign_kicad_mod() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r56-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, PAD_PROJECT);
+    let fpdir = tmp.join("out/footprints");
+    std::fs::create_dir_all(&fpdir).unwrap();
+    let foreign = fpdir.join("foreign.kicad_mod");
+    std::fs::write(&foreign, "(footprint \"mine\" (generator \"kicad\"))\n").unwrap();
+    let status = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .status()
+        .unwrap();
+    assert!(status.success());
+    assert!(
+        foreign.exists(),
+        "a foreign .kicad_mod must survive a build"
+    );
+    assert_eq!(
+        std::fs::read_to_string(&foreign).unwrap(),
+        "(footprint \"mine\" (generator \"kicad\"))\n"
+    );
+    // Our own projections were written.
+    assert!(fpdir.join("board-FP.kicad_mod").exists() || fpdir.join("t-FP.kicad_mod").exists());
+    let _ = std::fs::remove_dir_all(&tmp);
+}

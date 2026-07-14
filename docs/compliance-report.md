@@ -674,8 +674,11 @@ IPC-2581; a courtyard-only footprint was misclassified as a placeholder;
 `footprint:` naming a pad fell through to E202 instead of the E205
 kind error; and E102/E105/top-level-list messages still described the
 pre-Length world. Refuted (attacker taste, not normative): tabular
-column alignment in fmt, duplicate-field last-wins (spec'd elsewhere),
-negative length_match tolerance (magnitude semantics not normative).
+column alignment in fmt and negative length_match tolerance (magnitude
+semantics not normative). (The earlier "duplicate-field last-wins"
+disposition here was doubly wrong — the behavior was first-wins, and
+review 5/R5-7 correctly made duplicate singleton AVL fields an error, so
+neither wins.)
 
 ## External review round 3 (Codex, at f901cdf): dispositions
 
@@ -862,3 +865,130 @@ Note-side amendment item added by review 4 (needs a conol.ai edit):
   DR-021 should be amended to state these are proprietary vendor extensions
   requiring a CoHDL adapter, or a partner-recognized native mapping must be
   found and tested in that consumer.
+
+## External review round 5 (Codex, at 041b2fa): dispositions
+
+Review 5 audited the combined RFC-001–018 implementation (and reply4)
+against `041b2fa`. Thirteen findings (R5-1…R5-13). Nine fixed in code with
+named regressions; the rest are honest deferrals/documented deviations
+recorded here. State after fixes: 283 tests passing.
+
+Fixed in code (regressions named):
+
+- **R5-2 (high) — false-clean unresolved names.** An unresolved qualified
+  path in an UNCALLED function passed with verdict `pass`, because the
+  unknown-name diagnostic came only from expansion, which never runs on a
+  dead fn. The rewrite pass now diagnoses every instance-type/call-target
+  that resolves to nothing — over EVERY body, called or not (E202/E504 with
+  suggestions). Design-body cases reported by both the rewrite pass and
+  expansion are collapsed by new exact-duplicate diagnostic dedup in
+  `Diagnostics::sort`. (tests/modules.rs
+  `unresolved_reference_in_uncalled_fn_is_caught`,
+  `unresolved_reference_is_reported_once`.)
+- **R5-3 (high) — unspellable/non-injective module identities.** A
+  subdirectory or nested-file segment that is a reserved keyword
+  (`src/device/`) or not an identifier (`src/power-supply/`) indexed
+  declarations at an identity no qualified path can spell. Such segments are
+  now rejected (E210) at project load. (tests/modules.rs
+  `keyword_directory_is_unspellable_e210`,
+  `hyphenated_directory_is_unspellable_e210`.) The cross-PACKAGE injectivity
+  half (`acme-parts` vs `acme_parts` merging) is unreachable in the current
+  single-project loader — it becomes reachable only with R5-1 (on-disk
+  dependency loading), and is deferred with it; package NAMES keep the
+  lenient rule (the examples' `rpi-pico2`/`sensor-node` names appear only in
+  the artifact basename and internal keys, never spelled, since intra-package
+  references are unqualified).
+- **R5-4 (high) — pad/device check bypassable.** The check iterated only
+  instantiated IR nodes, so an unused part with a mismatched non-empty
+  footprint passed. It now walks `world.parts` (declaration-complete) and
+  runs at the CHECK phase — a declaration-only library is checked without a
+  consumer instantiating every export. (tests/footprint.rs
+  `unused_part_footprint_mismatch_is_caught`.) The empty-placeholder
+  exemption is RETAINED as a documented deviation from RFC-018's exact-match
+  rule (RFC-017 stage-one migration); ending it is a migration-completion
+  decision noted below.
+- **R5-5 (high) — geometry overflow panic.** A parser-accepted huge `Length`
+  reached `emit::geom` corner arithmetic (`femto * 10`) and panicked on
+  `i128` overflow, after ordinary artifacts had been written. `Length` values
+  are now bounded (`MAX_GEOM_FEMTO`, `length_in_geom_range`) and rejected at
+  pad/footprint validation BEFORE any write (E805/E806); the corner helpers
+  also use saturating arithmetic as defense-in-depth. (tests/footprint.rs
+  `oversized_length_is_diagnosed_not_panicked`.)
+- **R5-6 (high) — destructive foreign-file cleanup.** The build removed
+  every `.kicad_mod` under `out/footprints/` before writing — an extension
+  is not proof of ownership. It now removes only files carrying the
+  `(generator "cohdl")` marker, preserving a foreign `.kicad_mod` exactly as
+  a foreign `.xml` (tests/cli.rs `build_preserves_foreign_kicad_mod`).
+- **R5-7 (high) — supply-chain grouping loses data.** (a) A duplicate
+  singleton AVL field (`mpn`/`mfr`) silently kept the first via
+  `AvlEntry::field`; it is now E802 with both spans. (b) Two parts sharing
+  `(manufacturer, MPN)` but describing different components (device/binding/
+  footprint) are rejected (E802) at declaration — one part number names one
+  component, and the lossy `(MPN, mfr)` grouping would hide the disagreement.
+  (tests/library.rs `duplicate_avl_field_is_rejected`,
+  `inconsistent_parts_sharing_mfr_mpn_are_rejected`,
+  `consistent_parts_sharing_mfr_mpn_are_allowed`.) The compliance-report
+  "last-wins" note was wrong (it was first-wins); moot now — duplicates are
+  an error.
+- **R5-9 (medium) — `#[doc]` path invariant unenforced.** A doc path is
+  package-relative (RFC-017); absolute, `..`-escape, empty, and URL forms
+  are now rejected lexically at parse (existence stays a deferred lint).
+  (tests/library.rs `doc_paths_must_be_package_relative`.)
+- **R5-11 (medium) — JSON-RPC id type.** An object/array/bool id was treated
+  as a request. The transport now validates the id is string/number/null,
+  returns InvalidRequest (with a null response id) otherwise, and does not
+  mutate lifecycle. (tests/lsp.rs `object_id_is_invalid_request`.)
+- **R5-12 (medium-low) — `br#"…"#` byte strings.** The registry scanner
+  recognized `r#"…"#` but not raw BYTE strings; extended to the `br` prefix.
+  (tests/error_registry.rs `raw_strings_are_not_call_sites`.)
+
+Documented / deferred (not code, or scope decisions):
+
+- **R5-1 (high) — on-disk dependency loading is NOT implemented; RFC-016/017
+  scope amendment requested.** The resolver handles arbitrary package sets
+  (the tests drive it directly), but `load_project` still assembles exactly
+  project + std — a `[dependencies]` section is ignored, so cross-library
+  use through the real CLI/LSP is unreachable. Implementing a minimal
+  local/path-dependency loader (manifest shape, recursive load, cycle/dup/
+  missing detection, shared CLI+LSP package set) is the correct fix and is
+  tracked as the next major RFC-016/017 work item. Until it lands, the
+  library registry must NOT be described as usable end-to-end: this is a
+  formal scope deferral, requested as a note-side amendment to RFC-016/017
+  and the living spec, not a claim of completeness. (Publishing/hosting/
+  version selection remain separately deferred by the RFCs themselves.)
+- **R5-8 (medium-high) — IPC footprint geometry omits authored fields.** The
+  IPC `Pin` subset carries shape/size/location/plating-type but NOT the
+  pad's copper `layer`, its `drill`, or the footprint's `silkscreen_ref`
+  (all present in the `.kicad_mod`). docs/ipc2581.md and the emitter header
+  now state exactly what is omitted, and the marker governs; "real footprint
+  geometry" is narrowed to "partial." Projecting the omitted fields needs
+  the schema's `LandPattern`/`PadStackDef`/hole structures — future work,
+  now disclosed rather than silently dropped.
+- **R5-10 (medium) — module diagnostic/navigation polish.** Import goto-def
+  (definition on a `use` path), FQ display when short names are non-unique
+  (`f → f → f`, `(P, P)`), and kind/visibility-aware suggestions remain
+  tooling gaps. Recorded as open RFC-016 human-reviewability items; not
+  soundness. (Internal identity is correct; only the human projection loses
+  information.)
+- **R5-13 (medium) — Length/spec/formatter contract drift.** `Length` as
+  RFC-001's eleventh unit type is an implied amendment (docs/compliance-
+  report RFC-018 notes); the living spec and RFC-001 in `docs/design/` still
+  declare ten (those are extraction-only snapshots — the amendment is a
+  note-side conol.ai edit, requested). docs/lsp.md's capability table was
+  updated to include the RFC-017/018 part-doc, footprint, and pad-placement
+  hover/navigation. The formatter "aligned columns" sentence for footprint
+  pad placements is not implemented (one-per-line, single-space); recorded
+  as a note-side amendment item (implement alignment or amend the RFC) —
+  a ledger cannot downgrade Accepted text, so this is filed, not dismissed.
+
+Note-side amendment items added by review 5:
+
+- Local on-disk dependency loading (R5-1): implement, or formally scope
+  RFC-016/017 + spec to defer it (the library registry is not usable
+  end-to-end until then).
+- `Length` unit (R5-13): formal RFC-001/DR amendment + atomic update of
+  every ten-type reference in the living spec/DRs/README.
+- Formatter pad-placement column alignment (R5-13): implement or amend RFC-018.
+- Empty-footprint placeholder exemption (R5-4): decide how the RFC-017
+  stage-one migration ends — a build consuming an empty footprint currently
+  passes silently rather than signalling incompleteness.

@@ -223,6 +223,14 @@ impl UnitValue {
         debug_assert_eq!(self.unit, other.unit);
         self.femto.cmp(&other.femto)
     }
+
+    /// True when this `Length` (or any) value is small enough for the
+    /// geometry emitters' corner arithmetic to stay within `i128` (review
+    /// R5-5). Checked at pad/footprint validation so an out-of-range value
+    /// is a clean diagnostic, never a panic mid-build.
+    pub fn length_in_geom_range(&self) -> bool {
+        self.femto.unsigned_abs() <= crate::emit::geom::MAX_GEOM_FEMTO as u128
+    }
 }
 
 impl fmt::Display for UnitValue {

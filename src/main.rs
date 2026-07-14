@@ -436,7 +436,15 @@ fn run(args: &Args) -> Result<bool, String> {
             .flatten()
         {
             let p = entry.path();
-            if p.extension().is_some_and(|e| e == "kicad_mod") {
+            // An extension names a format, not an owner (review R5-6): only
+            // remove a `.kicad_mod` that CoHDL demonstrably wrote, identified
+            // by the `(generator "cohdl")` marker every projection carries. A
+            // foreign `.kicad_mod` is preserved exactly as a foreign `.xml` is.
+            let ours = p.extension().is_some_and(|e| e == "kicad_mod")
+                && std::fs::read_to_string(&p)
+                    .map(|t| t.contains("(generator \"cohdl\")"))
+                    .unwrap_or(false);
+            if ours {
                 std::fs::remove_file(&p).map_err(|e| {
                     diags_then(
                         &checked,

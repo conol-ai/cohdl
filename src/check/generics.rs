@@ -532,6 +532,12 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                 };
                 diags.push(d);
             }
+            // Each AVL key is a singleton (review R5-7): a duplicate `mpn`/
+            // `mfr` silently kept the first via `AvlEntry::field`, so the
+            // shadowed value vanished from the BOM/AVL. Duplicate `footprint`
+            // was already rejected; apply the same rule to every key.
+            let mut seen_fields: std::collections::BTreeMap<&str, crate::span::Span> =
+                std::collections::BTreeMap::new();
             for field in &entry.fields {
                 if !matches!(field.name.name.as_str(), "mpn" | "mfr") {
                     diags.push(Diagnostic::error(
@@ -542,9 +548,105 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                             field.name.name
                         ),
                     ));
+                } else if let Some(prev) = seen_fields.insert(field.name.name.as_str(), field.span)
+                {
+                    diags.push(
+                        Diagnostic::error(
+                            "E802",
+                            field.span,
+                            format!(
+                                "duplicate AVL field `{}` — each entry declares it at most once",
+                                field.name.name
+                            ),
+                        )
+                        .with_secondary(prev, "first declared here".to_string()),
+                    );
                 }
             }
         }
+    }
+    check_avl_identity_consistency(world, diags);
+}
+
+/// Review R5-7: a `(manufacturer, MPN)` pair names ONE purchasable
+/// component, so two parts that share it must describe the same thing.
+/// Grouping the BOM/AVL by `(MPN, manufacturer)` keeps the first value and
+/// silently drops any disagreement (a different device, generic binding, or
+/// footprint → a different real component under one part number). Detect it
+/// at declaration time — before any lossy grouping — over the primary entry
+/// of every part.
+fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
+    use std::collections::BTreeMap;
+    // (mfr, mpn) → (identity signature, part name, span).
+    let mut seen: BTreeMap<(String, String), (String, String, crate::span::Span)> = BTreeMap::new();
+    for (part_name, part) in &world.parts {
+        let mfr = part
+            .primary
+            .field("mfr")
+            .map(|f| f.value.clone())
+            .unwrap_or_default();
+        let Some(mpn) = part.primary.field("mpn").map(|f| f.value.clone()) else {
+            continue; // missing mpn already reported (E802)
+        };
+        if mpn.trim().is_empty() {
+            continue;
+        }
+        // The purchasable identity: the bound device (name + generic args +
+        // variant) and the primary footprint. Two parts with the same
+        // (mfr, mpn) must agree on all of it.
+        let sig = format!(
+            "{}<{}>[{}] fp={}",
+            crate::resolve::short(&part.device.name.name),
+            part.device
+                .generic_args
+                .iter()
+                .map(describe_generic_arg)
+                .collect::<Vec<_>>()
+                .join(","),
+            part.device
+                .variant
+                .as_ref()
+                .map(|v| v.name.as_str())
+                .unwrap_or(""),
+            part.primary
+                .footprint
+                .as_ref()
+                .map(|f| crate::resolve::short(&f.name))
+                .unwrap_or("")
+        );
+        match seen.get(&(mfr.clone(), mpn.clone())) {
+            Some((prev_sig, prev_name, prev_span)) if *prev_sig != sig => {
+                diags.push(
+                    Diagnostic::error(
+                        "E802",
+                        part.primary.span,
+                        format!(
+                            "part `{}` shares manufacturer `{}` + MPN `{}` with part `{}` but describes a different component — one part number names one component",
+                            crate::resolve::short(part_name),
+                            mfr,
+                            mpn,
+                            crate::resolve::short(prev_name)
+                        ),
+                    )
+                    .with_secondary(*prev_span, "first declared here".to_string())
+                    .with_help(
+                        "give the parts distinct MPNs, or make their device, generic binding, and footprint identical",
+                    ),
+                );
+            }
+            Some(_) => {}
+            None => {
+                seen.insert((mfr, mpn), (sig, part_name.clone(), part.primary.span));
+            }
+        }
+    }
+}
+
+fn describe_generic_arg(a: &crate::ast::GenericArg) -> String {
+    match a {
+        crate::ast::GenericArg::Unit(v, _) => v.text.clone(),
+        crate::ast::GenericArg::Name(i) => crate::resolve::short(&i.name).to_string(),
+        crate::ast::GenericArg::Number(n, _) => n.clone(),
     }
 }
 

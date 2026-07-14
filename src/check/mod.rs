@@ -30,6 +30,10 @@ pub fn check_declarations_in(
     let mut world = crate::resolve::build_world_in(files, modules, diags);
     impls::check_impls(&mut world, diags);
     generics::check_parts(&world, diags);
+    // RFC-018 pad/device consistency is a pure declaration check (both the
+    // footprint's pad list and the part's device are static), so it runs
+    // here — over every declared part, not only instantiated ones (R5-4).
+    footprints::check_pad_consistency(&world, diags);
     world
 }
 

@@ -84,19 +84,33 @@ pub fn run_stdio() -> Result<LspExit, String> {
         // JSON-RPC 2.0 envelope validation (review F10): a frame must carry
         // `"jsonrpc": "2.0"` and a string `method`. A malformed request (has
         // an id) gets InvalidRequest; a malformed notification is dropped.
-        let has_id = msg.get("id").is_some_and(|v| !v.is_null());
+        // A JSON-RPC id must be a string, number, or null (JSON-RPC 2.0 §4)
+        // — an object/array/bool id is a malformed request (review R5-11).
+        let id_val = msg.get("id");
+        let id_type_ok = match id_val {
+            None => true,
+            Some(v) => v.is_string() || v.is_number() || v.is_null(),
+        };
+        let has_id = id_val.is_some_and(|v| !v.is_null());
         let version_ok = msg.get("jsonrpc").and_then(Value::as_str) == Some("2.0");
         let method_val = msg.get("method").and_then(Value::as_str);
-        if !version_ok || method_val.is_none() {
+        if !version_ok || method_val.is_none() || !id_type_ok {
+            // Respond to a request (something present as an id), but echo the
+            // id only when it is a valid string/number — an invalid-type id
+            // cannot be a response id, so null (JSON-RPC 2.0 §5).
             if has_id {
+                let resp_id = match id_val {
+                    Some(v) if v.is_string() || v.is_number() => v.clone(),
+                    _ => Value::Null,
+                };
                 write_message(
                     &mut writer,
                     &json!({
                         "jsonrpc": "2.0",
-                        "id": msg.get("id").cloned().unwrap_or(Value::Null),
+                        "id": resp_id,
                         "error": {
                             "code": -32600,
-                            "message": "Invalid Request: expected jsonrpc \"2.0\" and a string method",
+                            "message": "Invalid Request: expected jsonrpc \"2.0\", a string method, and a string/number/null id",
                         },
                     }),
                 )?;

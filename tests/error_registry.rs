@@ -127,18 +127,25 @@ fn strip_comments(text: &str) -> String {
                 continue;
             }
         }
-        // A Rust RAW string `r#*"…"#*` — its body is inert text, never code,
-        // and may itself contain `"` and `Diagnostic::error("E999")` (review
-        // F12.1). Recognize it only at a token boundary (the `r` in `error`
-        // or `for` is not a prefix) and blank the whole thing so no phantom
-        // call site is counted.
-        if c == 'r'
-            && !out
-                .chars()
-                .last()
-                .is_some_and(|p| p.is_alphanumeric() || p == '_')
-        {
-            let mut j = i + 1;
+        // A Rust RAW string `r#*"…"#*` — or RAW BYTE string `br#*"…"#*`
+        // (review R5-12) — is inert text, never code, and may itself contain
+        // `"` and `Diagnostic::error("E999")`. Recognize the prefix only at a
+        // token boundary (the `r` in `error`/`for`, or the `b` in `bump`, is
+        // not a prefix) and blank the whole thing so no phantom call site is
+        // counted.
+        let at_boundary = !out
+            .chars()
+            .last()
+            .is_some_and(|p| p.is_alphanumeric() || p == '_');
+        let raw_prefix = if at_boundary && c == 'r' {
+            Some(i + 1)
+        } else if at_boundary && c == 'b' && chars.get(i + 1) == Some(&'r') {
+            Some(i + 2)
+        } else {
+            None
+        };
+        if let Some(after_prefix) = raw_prefix {
+            let mut j = after_prefix;
             let mut hashes = 0;
             while chars.get(j) == Some(&'#') {
                 hashes += 1;
@@ -353,17 +360,19 @@ fn no_duplicate_registry_rows() {
     );
 }
 
-// Review F12.1: a Rust RAW string is inert text, not code — a
-// `Diagnostic::error("E999", …)` written inside `r#"…"#` must NOT be counted
-// as a live call site (the comment stripper previously only understood
-// ordinary `"…"` strings, so a raw string could inject a phantom code).
+// Review F12.1 / R5-12: a Rust RAW string — or RAW BYTE string `br#"…"#` —
+// is inert text, not code. A `Diagnostic::error("E999", …)` written inside
+// one must NOT be counted as a live call site (the stripper first understood
+// only `"…"`, then only `r#"…"#`; `br#"…"#` still leaked through).
 #[test]
 fn raw_strings_are_not_call_sites() {
-    let sample = r####"
-        let normal = Diagnostic::error("E101", span, "real");
-        let _doc = r#"see Diagnostic::error("E999", span, "not code")"#;
-        let _nested = r##"a raw "quote" and Diagnostic::error("E998", ...)"##;
-    "####;
+    let sample = "\n\
+        let normal = Diagnostic::error(\"E101\", span, \"real\");\n\
+        let _doc = r#\"see Diagnostic::error(\"E999\", span, \"not code\")\"#;\n\
+        let _nested = r##\"a raw \"quote\" and Diagnostic::error(\"E998\", ...)\"##;\n\
+        let _bytes = br#\"byte Diagnostic::error(\"E997\", span, \"dead\")\"#;\n\
+        let _b = b\"plain byte string Diagnostic::error(\\\"not-a-code\\\")\";\n\
+    ";
     let sites = call_sites_in(sample);
     assert!(
         sites.contains("E101"),
@@ -371,8 +380,8 @@ fn raw_strings_are_not_call_sites() {
         sites
     );
     assert!(
-        !sites.contains("E999") && !sites.contains("E998"),
-        "raw-string bodies must not count as call sites: {:?}",
+        !sites.contains("E999") && !sites.contains("E998") && !sites.contains("E997"),
+        "raw/byte-string bodies must not count as call sites: {:?}",
         sites
     );
 }

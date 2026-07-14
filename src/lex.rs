@@ -120,6 +120,40 @@ pub struct Token {
     pub span: Span,
 }
 
+/// A reserved keyword — a word the lexer tokenizes as something other than an
+/// `Ident`, so it can never appear as an identifier (or a qualified-path
+/// segment). Used by module-path validation (RFC-016 segments must be
+/// spellable identifiers — review R5-3).
+pub fn is_keyword(s: &str) -> bool {
+    matches!(
+        s,
+        "pub"
+            | "trait"
+            | "device"
+            | "impl"
+            | "for"
+            | "fn"
+            | "design"
+            | "inst"
+            | "net"
+            | "nc"
+            | "part"
+            | "pins"
+            | "spec"
+            | "required"
+            | "optional"
+    )
+}
+
+/// True when `s` can appear as a CoHDL identifier / qualified-path segment:
+/// a non-empty non-keyword word of `[A-Za-z_][A-Za-z0-9_]*`.
+pub fn is_identifier(s: &str) -> bool {
+    let mut chars = s.chars();
+    matches!(chars.next(), Some(c) if c.is_ascii_alphabetic() || c == '_')
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+        && !is_keyword(s)
+}
+
 pub fn lex(file: FileId, text: &str, diags: &mut Diagnostics) -> Vec<Token> {
     Lexer {
         file,

@@ -689,10 +689,8 @@ fn body_use_site(body: &[Stmt], hit: &impl Fn(&Ident) -> bool) -> Option<String>
                     }
                 }
             }
-            Stmt::Call(s) => {
-                if hit(&s.callee) {
-                    return Some(s.callee.name.clone());
-                }
+            Stmt::Call(s) if hit(&s.callee) => {
+                return Some(s.callee.name.clone());
             }
             _ => {}
         }

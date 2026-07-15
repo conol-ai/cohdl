@@ -398,7 +398,32 @@ fn build_leaves_a_foreign_xml_untouched() {
         "<my-own-file/>\n",
         "a foreign xml must survive a no-emit build"
     );
-    // A genuine stale CoHDL document (carrying the marker) IS removed.
+    // `--emit` over a foreign file at the output path is REFUSED (R6-1
+    // ownership) — the build fails and the foreign file is preserved, rather
+    // than being clobbered.
+    let out2 = cohdl()
+        .args([
+            "build",
+            tmp.to_str().unwrap(),
+            "--no-std",
+            "--emit",
+            "ipc2581",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        !out2.status.success(),
+        "--emit must refuse to overwrite a foreign xml"
+    );
+    assert!(String::from_utf8_lossy(&out2.stderr).contains("refusing to overwrite"));
+    assert_eq!(
+        std::fs::read_to_string(&foreign).unwrap(),
+        "<my-own-file/>\n",
+        "the foreign xml is still intact"
+    );
+    // On a CLEAN path, --emit writes our marked doc, and a later no-emit
+    // build removes it (marker-gated stale removal).
+    std::fs::remove_file(&foreign).unwrap();
     cohdl()
         .args([
             "build",
@@ -409,8 +434,6 @@ fn build_leaves_a_foreign_xml_untouched() {
         ])
         .status()
         .unwrap();
-    assert!(foreign.exists(), "our real xml exists after --emit");
-    // Overwrite with a genuine cohdl doc, then a no-emit build removes it.
     assert!(std::fs::read_to_string(&foreign)
         .unwrap()
         .contains("logical-complete,physical-minimal"));
@@ -526,4 +549,62 @@ fn build_preserves_foreign_kicad_mod() {
     // Our own projections were written.
     assert!(fpdir.join("board-FP.kicad_mod").exists() || fpdir.join("t-FP.kicad_mod").exists());
     let _ = std::fs::remove_dir_all(&tmp);
+}
+
+// ---------------------------------------------------------------------------
+// Sixth-review (2026-07-15) CLI regressions.
+
+// R6-1: a foreign file at the EXACT generated `.kicad_mod` destination is
+// refused, not overwritten; a symlink at the destination is refused, so the
+// build cannot escape out/ to mutate the target.
+#[test]
+fn build_refuses_exact_name_foreign_and_symlink() {
+    // Exact-name foreign file.
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r61a-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, PAD_PROJECT);
+    let fpdir = tmp.join("out/footprints");
+    std::fs::create_dir_all(&fpdir).unwrap();
+    let exact = fpdir.join("t-FP.kicad_mod"); // package "t", footprint FP
+    std::fs::write(&exact, "(footprint MINE (generator kicad))\n").unwrap();
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert!(
+        !out.status.success(),
+        "must refuse to overwrite foreign exact-name file"
+    );
+    assert!(String::from_utf8_lossy(&out.stderr).contains("refusing to overwrite"));
+    assert_eq!(
+        std::fs::read_to_string(&exact).unwrap(),
+        "(footprint MINE (generator kicad))\n",
+        "foreign file preserved"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+
+    // Symlink at the destination → refused, target untouched.
+    #[cfg(unix)]
+    {
+        let tmp = std::env::temp_dir().join(format!("cohdl-cli-r61b-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        make_project(&tmp, PAD_PROJECT);
+        let fpdir = tmp.join("out/footprints");
+        std::fs::create_dir_all(&fpdir).unwrap();
+        let victim = tmp.join("victim.txt");
+        std::fs::write(&victim, "VICTIM").unwrap();
+        std::os::unix::fs::symlink("../../victim.txt", fpdir.join("t-FP.kicad_mod")).unwrap();
+        let out = cohdl()
+            .args(["build", tmp.to_str().unwrap(), "--no-std"])
+            .output()
+            .unwrap();
+        assert!(!out.status.success(), "must refuse a symlink destination");
+        assert!(String::from_utf8_lossy(&out.stderr).contains("symlink"));
+        assert_eq!(
+            std::fs::read_to_string(&victim).unwrap(),
+            "VICTIM",
+            "symlink target must be untouched"
+        );
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
 }

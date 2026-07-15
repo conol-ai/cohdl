@@ -54,7 +54,7 @@ CLI-only has at least one real call site in `src/`.
 | Code | Meaning |
 |---|---|
 | E101 | non-ASCII unit spelling (`Ω`, `°C`) directly after a number |
-| E102 | negative bare number (only `Temperature` literals may be negative) |
+| E102 | negative bare number (only `Temperature` and `Length` literals may be negative) |
 | E103 | unknown unit suffix |
 | E104 | SI prefix not allowed for this unit (incl. any prefix on `Temperature`/`Tolerance`) |
 | E105 | leading `-` on a non-`Temperature` unit literal |

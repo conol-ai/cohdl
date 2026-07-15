@@ -16,13 +16,13 @@ A snapshot (taken 2026-07-13) is committed under [`docs/design/`](docs/design/).
 - [MVP Definition](docs/design/09-mvp-definition.md) — the scope line, demo scenario, and exit criteria this repository was built toward
 - [Language Specification](docs/design/10-language-specification.md) — the compiled statement of what the language is (Accepted RFCs only)
 - RFC-001…RFC-007 — the seven Accepted P0 RFCs: units-as-types, pin connection-obligation typing, trait satisfaction at impl time, DRC/type-system reclassification, collision-free designator allocation, nested fn call semantics, generics-over-specs
-- RFC-008…RFC-018 — the post-MVP Accepted RFCs, all implemented: structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints, the LSP server (`cohdl lsp`, [`docs/lsp.md`](docs/lsp.md)), the IPC-2581 handoff document (`build --emit ipc2581`, [`docs/ipc2581.md`](docs/ipc2581.md)), the module system, the library registry, and the pad/footprint format (`pad`/`footprint` geometry → `.kicad_mod` + IPC-2581 pins)
+- RFC-008…RFC-018 — the post-MVP Accepted RFCs (compiler-implemented, with named open gaps recorded in [`docs/compliance-report.md`](docs/compliance-report.md) — notably RFC-016/017 on-disk dependency loading is not yet built, and RFC-014/015 real-client/partner acceptance passes remain open): structural variants, `cohdl fmt`, `cohdl check --json`, the formal error-code registry, `#[intent]` annotations, layout constraints, the LSP server (`cohdl lsp`, [`docs/lsp.md`](docs/lsp.md)), the IPC-2581 handoff document (`build --emit ipc2581`, [`docs/ipc2581.md`](docs/ipc2581.md)), the module system, the library registry, and the pad/footprint format (`pad`/`footprint` geometry → `.kicad_mod` + IPC-2581 pins)
 
 ## MVP (v0.1) scope
 
 The smallest slice of the spec that proves the thesis end-to-end:
 
-1. **Parser** — traits, devices, free-standing `impl`, `fn` declarations/calls (nested), design bodies (`inst`, `net`, `nc`), the ten unit-type literal forms
+1. **Parser** — traits, devices, free-standing `impl`, `fn` declarations/calls (nested), design bodies (`inst`, `net`, `nc`), the eleven unit-type literal forms
 2. **Type checker** (the heart) — zero-coercion unit types, pin connection-obligation exhaustiveness, trait satisfaction with explicit mapping, generic resolution with trait-bound checking, nested fn expansion with cycle detection
 3. **Residual DRC** — exactly four rules: voltage-exceed, polarity-mismatch, single-driver, multi-driver
 4. **Designators** — collision-free allocator, `design.lock` with tombstones, `#[designator("…")]` overrides

@@ -197,6 +197,63 @@ fn parse_args() -> Result<Args, String> {
     Ok(args)
 }
 
+/// Write a generated artifact safely (review R6-1). Two guarantees:
+///
+/// - **Containment**: never follow a symlink at the destination — a planted
+///   output symlink must not let a build mutate a file outside the output
+///   directory. An existing symlink (live OR dangling) is refused, and the
+///   final write uses `create_new` (O_EXCL) so a symlink racing into the path
+///   after the check still cannot be followed.
+/// - **Ownership**: when `marker` is given, refuse to overwrite an existing
+///   regular file that does not contain it — CoHDL replaces only files it
+///   demonstrably wrote, and leaves a foreign file (even one that happens to
+///   share a generated name) untouched.
+fn write_artifact(
+    path: &std::path::Path,
+    content: &str,
+    marker: Option<&str>,
+) -> Result<(), String> {
+    use std::io::Write as _;
+    match std::fs::symlink_metadata(path) {
+        Ok(md) if md.file_type().is_symlink() => {
+            return Err(format!(
+                "refusing to write `{}`: it is a symlink (a build must not follow a symlink out of the output directory)",
+                path.display()
+            ));
+        }
+        Ok(md) if md.is_dir() => {
+            return Err(format!(
+                "refusing to write `{}`: a directory exists at that path",
+                path.display()
+            ));
+        }
+        Ok(_) => {
+            if let Some(m) = marker {
+                let ours = std::fs::read_to_string(path)
+                    .map(|t| t.contains(m))
+                    .unwrap_or(false);
+                if !ours {
+                    return Err(format!(
+                        "refusing to overwrite `{}`: it was not written by cohdl (no ownership marker)",
+                        path.display()
+                    ));
+                }
+            }
+            std::fs::remove_file(path)
+                .map_err(|e| format!("cannot replace `{}`: {}", path.display(), e))?;
+        }
+        Err(_) => {} // does not exist
+    }
+    let mut f = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|e| format!("cannot write `{}`: {}", path.display(), e))?;
+    f.write_all(content.as_bytes())
+        .map_err(|e| format!("cannot write `{}`: {}", path.display(), e))?;
+    Ok(())
+}
+
 fn main() -> ExitCode {
     let args = match parse_args() {
         Ok(a) => a,
@@ -364,24 +421,10 @@ fn run(args: &Args) -> Result<bool, String> {
     })?;
     let net_path = out_dir.join(format!("{}.net", proj.name));
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
-    std::fs::write(&net_path, &artifacts.netlist).map_err(|e| {
-        diags_then(
-            &checked,
-            format!("cannot write `{}`: {}", net_path.display(), e),
-        )
-    })?;
-    std::fs::write(&bom_path, &artifacts.bom).map_err(|e| {
-        diags_then(
-            &checked,
-            format!("cannot write `{}`: {}", bom_path.display(), e),
-        )
-    })?;
-    std::fs::write(&lock_path, artifacts.lock.render()).map_err(|e| {
-        diags_then(
-            &checked,
-            format!("cannot write `{}`: {}", lock_path.display(), e),
-        )
-    })?;
+    write_artifact(&net_path, &artifacts.netlist, None).map_err(|e| diags_then(&checked, e))?;
+    write_artifact(&bom_path, &artifacts.bom, None).map_err(|e| diags_then(&checked, e))?;
+    write_artifact(&lock_path, &artifacts.lock.render(), None)
+        .map_err(|e| diags_then(&checked, e))?;
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
     // A design that no longer carries layout metadata must not leave a stale
@@ -389,12 +432,7 @@ fn run(args: &Args) -> Result<bool, String> {
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     match &artifacts.layout {
         Some(layout) => {
-            std::fs::write(&layout_path, layout).map_err(|e| {
-                diags_then(
-                    &checked,
-                    format!("cannot write `{}`: {}", layout_path.display(), e),
-                )
-            })?;
+            write_artifact(&layout_path, layout, None).map_err(|e| diags_then(&checked, e))?;
         }
         None => {
             if layout_path.exists() {
@@ -463,9 +501,10 @@ fn run(args: &Args) -> Result<bool, String> {
         })?;
         for (_fq, base, content) in &mods {
             let p = mods_dir.join(format!("{}.kicad_mod", base));
-            std::fs::write(&p, content).map_err(|e| {
-                diags_then(&checked, format!("cannot write `{}`: {}", p.display(), e))
-            })?;
+            // Ownership + symlink safe (R6-1): a foreign file at this exact
+            // generated name is refused, not overwritten; a symlink is refused.
+            write_artifact(&p, content, Some("(generator \"cohdl\")"))
+                .map_err(|e| diags_then(&checked, e))?;
             mod_paths.push(p.display().to_string());
         }
     }
@@ -477,12 +516,8 @@ fn run(args: &Args) -> Result<bool, String> {
     if args.emit_ipc2581() {
         let ir = checked.ir.as_ref().unwrap();
         let doc = emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
-        std::fs::write(&ipc_path, doc).map_err(|e| {
-            diags_then(
-                &checked,
-                format!("cannot write `{}`: {}", ipc_path.display(), e),
-            )
-        })?;
+        write_artifact(&ipc_path, &doc, Some(emit::ipc2581::COMPLETENESS))
+            .map_err(|e| diags_then(&checked, e))?;
     } else if ipc_path.exists() {
         // Only delete an XML file CoHDL demonstrably wrote — identified by
         // the completeness marker every emitted document carries. A

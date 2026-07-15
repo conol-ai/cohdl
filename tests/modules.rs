@@ -848,3 +848,105 @@ fn hyphenated_directory_is_unspellable_e210() {
         r
     );
 }
+
+// ---------------------------------------------------------------------------
+// Sixth-review (2026-07-15) regressions.
+
+// R6-3: an UNCALLED function body is semantically validated — wrong-kind
+// instance/call targets, unresolved generic arguments, and net references to
+// unknown locals all fail, not just missing bare targets.
+#[test]
+fn uncalled_fn_body_is_semantically_checked() {
+    // Wrong-kind: a fn as an instance type, a device as a call target.
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Dev { pins { A: 1 [passive] } }\n\
+             fn Helper() {}\n\
+             fn dead() { inst x: Helper  Dev() }\n\
+             design B { inst d: Dev  net N: d.A }\n",
+        )],
+    );
+    assert!(
+        r.contains("E205") && r.contains("`board::Helper` is a fn"),
+        "{}",
+        r
+    );
+    assert!(r.contains("is a device/part"), "{}", r);
+
+    // Unresolved generic argument in an uncalled fn.
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Gen<V: Voltage> { pins { A: 1 [passive] } }\n\
+             fn dead(p: Pin) { inst x: Gen<Missing>  net _: p, x.A }\n\
+             design B {}\n",
+        )],
+    );
+    assert!(
+        r.contains("E202") && r.contains("cannot find `Missing`"),
+        "{}",
+        r
+    );
+
+    // Net reference to an unknown local in an uncalled fn.
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "fn dead(p: Pin) { net _: p, missing.A }\ndesign B {}\n",
+        )],
+    );
+    assert!(
+        r.contains("E202") && r.contains("unknown instance or parameter `missing`"),
+        "{}",
+        r
+    );
+}
+
+// R6-3: a VALID uncalled fn body still passes (no false positives from the
+// new declaration checks).
+#[test]
+fn valid_uncalled_fn_body_passes() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Dev { pins { A: 1 [passive], B: 2 [passive] } }\n\
+             fn helper(p: Pin, q: Pin) { inst d: Dev  net _: p, d.A  net _: q, d.B }\n\
+             design B {}\n",
+        )],
+    );
+    assert!(!r.contains("error"), "valid fn body must pass:\n{}", r);
+}
+
+// R6-4: a keyword PACKAGE ROOT is unspellable in a single-package project
+// today (RFC-016 permits qualified intra-package references) — E210.
+#[test]
+fn keyword_package_root_is_e210() {
+    let (_c, r) = check("device", &[("src/main.cohdl", "design B {}\n")]);
+    assert!(
+        r.contains("E210") && r.contains("package root `device`"),
+        "{}",
+        r
+    );
+}
+
+// R6-4: a supplied std tree with a keyword/non-identifier segment is also
+// caught (E210 no longer skips std paths).
+#[test]
+fn keyword_std_segment_is_e210() {
+    let (_c, r) = check(
+        "board",
+        &[
+            (
+                "std/device/x.cohdl",
+                "pub device Thing { pins { A: 1 [passive] } }\n",
+            ),
+            ("src/main.cohdl", "design B {}\n"),
+        ],
+    );
+    assert!(r.contains("E210") && r.contains("device"), "{}", r);
+}

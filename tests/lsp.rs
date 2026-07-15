@@ -1585,3 +1585,33 @@ fn object_id_is_invalid_request() {
     assert_eq!(r2["error"]["code"].as_i64(), Some(-32002), "{}", r2);
     lsp.child.kill().ok();
 }
+
+// R6-7: a malformed envelope carrying an explicit `"id": null` is a request
+// (not a notification, which OMITS id) — it must get InvalidRequest with a
+// null response id, not be silently dropped.
+#[test]
+fn malformed_request_with_null_id_gets_response() {
+    let mut lsp = Lsp::spawn();
+    lsp.send(&json!({ "jsonrpc": "1.0", "id": null, "method": "initialize", "params": {} }));
+    let resp = lsp.read_message();
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+    assert!(resp["id"].is_null(), "null response id: {}", resp);
+    lsp.child.kill().ok();
+}
+
+// R6-7 counterpart: a well-formed NOTIFICATION (no id at all) with a bad
+// version is dropped silently — no response.
+#[test]
+fn malformed_notification_is_dropped() {
+    let mut lsp = Lsp::spawn();
+    lsp.send(&json!({ "jsonrpc": "1.0", "method": "initialized", "params": {} }));
+    // Follow with a real request; the only response must be to THIS request,
+    // proving the malformed notification produced nothing.
+    let resp = lsp.request_full("initialize", json!({ "capabilities": {} }));
+    assert!(
+        resp["result"].is_object() || resp["error"].is_object(),
+        "{}",
+        resp
+    );
+    lsp.child.kill().ok();
+}

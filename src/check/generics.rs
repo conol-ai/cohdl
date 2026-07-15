@@ -577,75 +577,82 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
 /// of every part.
 fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
     use std::collections::BTreeMap;
-    // (mfr, mpn) → (identity signature, part name, span).
+    // (mfr, mpn) → (identity signature, part name, entry span). The signature
+    // is built from FULLY-QUALIFIED identities and NORMALIZED unit values
+    // (review R6-2): `short()` collapsed distinct fq devices/footprints that
+    // share a leaf name, and raw text made `1kohm` ≠ `1000ohm`. Every AVL
+    // entry (primary AND alts) is keyed on its own (mfr, mpn) and footprint.
     let mut seen: BTreeMap<(String, String), (String, String, crate::span::Span)> = BTreeMap::new();
     for (part_name, part) in &world.parts {
-        let mfr = part
-            .primary
-            .field("mfr")
-            .map(|f| f.value.clone())
-            .unwrap_or_default();
-        let Some(mpn) = part.primary.field("mpn").map(|f| f.value.clone()) else {
-            continue; // missing mpn already reported (E802)
-        };
-        if mpn.trim().is_empty() {
-            continue;
-        }
-        // The purchasable identity: the bound device (name + generic args +
-        // variant) and the primary footprint. Two parts with the same
-        // (mfr, mpn) must agree on all of it.
-        let sig = format!(
-            "{}<{}>[{}] fp={}",
-            crate::resolve::short(&part.device.name.name),
-            part.device
-                .generic_args
-                .iter()
-                .map(describe_generic_arg)
-                .collect::<Vec<_>>()
-                .join(","),
-            part.device
-                .variant
-                .as_ref()
-                .map(|v| v.name.as_str())
-                .unwrap_or(""),
-            part.primary
-                .footprint
-                .as_ref()
-                .map(|f| crate::resolve::short(&f.name))
-                .unwrap_or("")
-        );
-        match seen.get(&(mfr.clone(), mpn.clone())) {
-            Some((prev_sig, prev_name, prev_span)) if *prev_sig != sig => {
-                diags.push(
-                    Diagnostic::error(
-                        "E802",
-                        part.primary.span,
-                        format!(
-                            "part `{}` shares manufacturer `{}` + MPN `{}` with part `{}` but describes a different component — one part number names one component",
-                            crate::resolve::short(part_name),
-                            mfr,
-                            mpn,
-                            crate::resolve::short(prev_name)
-                        ),
-                    )
-                    .with_secondary(*prev_span, "first declared here".to_string())
-                    .with_help(
-                        "give the parts distinct MPNs, or make their device, generic binding, and footprint identical",
-                    ),
-                );
+        for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+            let mfr = entry
+                .field("mfr")
+                .map(|f| f.value.clone())
+                .unwrap_or_default();
+            let Some(mpn) = entry.field("mpn").map(|f| f.value.clone()) else {
+                continue; // missing mpn already reported (E802)
+            };
+            if mpn.trim().is_empty() {
+                continue;
             }
-            Some(_) => {}
-            None => {
-                seen.insert((mfr, mpn), (sig, part_name.clone(), part.primary.span));
+            // Purchasable identity: the FQ device, its NORMALIZED generic
+            // binding, the selected variant, and THIS entry's FQ footprint.
+            let sig = format!(
+                "{}<{}>[{}] fp={}",
+                part.device.name.name,
+                part.device
+                    .generic_args
+                    .iter()
+                    .map(normalize_generic_arg)
+                    .collect::<Vec<_>>()
+                    .join(","),
+                part.device
+                    .variant
+                    .as_ref()
+                    .map(|v| v.name.as_str())
+                    .unwrap_or(""),
+                entry
+                    .footprint
+                    .as_ref()
+                    .map(|f| f.name.as_str())
+                    .unwrap_or("")
+            );
+            match seen.get(&(mfr.clone(), mpn.clone())) {
+                Some((prev_sig, prev_name, prev_span)) if *prev_sig != sig => {
+                    diags.push(
+                        Diagnostic::error(
+                            "E802",
+                            entry.span,
+                            format!(
+                                "part `{}` shares manufacturer `{}` + MPN `{}` with part `{}` but describes a different component — one part number names one component",
+                                crate::resolve::short(part_name),
+                                mfr,
+                                mpn,
+                                crate::resolve::short(prev_name)
+                            ),
+                        )
+                        .with_secondary(*prev_span, "first declared here".to_string())
+                        .with_help(
+                            "give the parts distinct MPNs, or make their device, generic binding, and footprint identical",
+                        ),
+                    );
+                }
+                Some(_) => {}
+                None => {
+                    seen.insert((mfr, mpn), (sig, part_name.clone(), entry.span));
+                }
             }
         }
     }
 }
 
-fn describe_generic_arg(a: &crate::ast::GenericArg) -> String {
+/// A generic argument as a NORMALIZED identity string (review R6-2): a unit
+/// value by its exact femto count + unit type (so `1kohm` and `1000ohm` are
+/// the same identity), a name by its resolved fully-qualified path.
+fn normalize_generic_arg(a: &crate::ast::GenericArg) -> String {
     match a {
-        crate::ast::GenericArg::Unit(v, _) => v.text.clone(),
-        crate::ast::GenericArg::Name(i) => crate::resolve::short(&i.name).to_string(),
+        crate::ast::GenericArg::Unit(v, _) => format!("{}{}", v.femto, v.unit.type_name()),
+        crate::ast::GenericArg::Name(i) => i.name.clone(),
         crate::ast::GenericArg::Number(n, _) => n.clone(),
     }
 }

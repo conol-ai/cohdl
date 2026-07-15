@@ -61,9 +61,11 @@ pub fn package_root(name: &str) -> String {
 /// `src/` lives at the package root, so its own name is never a segment).
 fn unspellable_module_segment(display: &str) -> Option<(String, &'static str)> {
     let d = display.replace('\\', "/");
-    // std files are the library's own, not user-authored here; loose files
-    // (no `src/` prefix) live at the package root with no segments.
-    let rel = d.strip_prefix("src/")?;
+    // Both a project (`src/…`) and a supplied std tree (`std/…`) contribute
+    // module segments; a keyword/non-identifier segment in either is
+    // unspellable (review R6-4 extends this to std). Loose files (neither
+    // prefix) live at the package root with no segments.
+    let rel = d.strip_prefix("src/").or_else(|| d.strip_prefix("std/"))?;
     let parts: Vec<&str> = rel.split('/').filter(|s| !s.is_empty()).collect();
     if parts.len() <= 1 {
         return None; // directly under src/: no module segment
@@ -128,12 +130,37 @@ pub fn check_files_in(
     design: Option<&str>,
 ) -> Result<Checked, String> {
     let root = package_root(package);
+    // The projected package root is itself a qualified-path segment (RFC-016
+    // permits fully-qualified intra-package references), so it must be a
+    // spellable non-keyword identifier NOW — a manifest `name = "device"`
+    // otherwise indexes the whole package at a root no `device::…::Name`
+    // path can spell (review R6-4). This is reachable in a single-package
+    // project, independent of dependency loading.
+    let root_unspellable: Option<&'static str> = if crate::lex::is_keyword(&root) {
+        Some("it is a reserved keyword")
+    } else if !crate::lex::is_identifier(&root) {
+        Some("it is not a valid identifier")
+    } else {
+        None
+    };
     let mut sm = SourceMap::new();
     let mut diags = Diagnostics::new();
     let mut parsed = Vec::new();
     let mut modules = Vec::new();
-    for (name, content) in files {
+    for (i, (name, content)) in files.iter().enumerate() {
         let file_id = sm.add_file(name.clone(), content.clone());
+        if i == 0 {
+            if let Some(why) = root_unspellable {
+                diags.push(crate::diag::Diagnostic::error(
+                    "E210",
+                    crate::span::Span::new(file_id, 0, if content.is_empty() { 0 } else { 1 }),
+                    format!(
+                        "package root `{}` is not a valid module-path segment ({}) — a qualified `{}::…` reference could never be written",
+                        root, why, root
+                    ),
+                ).with_help("set `[package] name` to a non-keyword identifier (letters, digits, `_`)"));
+            }
+        }
         // RFC-016 (review R5-3): a subdirectory or nested-file name becomes a
         // qualified-path SEGMENT, so it must be a spellable non-keyword
         // identifier — otherwise the declarations under it are indexed at an
@@ -227,20 +254,21 @@ pub struct BuildArtifacts {
 /// The `build` half: designators (RFC-005), part binding, emitters.
 /// Only call when `checked.diags` has no errors and `checked.ir` is Some.
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
-    // A design that failed the check phase (e.g. an RFC-018 pad/device
-    // mismatch, now diagnosed at check time — R5-4) produces no artifacts:
-    // do not assign designators, bind parts, or emit against a design known
-    // to be invalid.
+    // A design that failed the check phase produces no artifacts: do not
+    // assign designators, bind parts, or emit against a design known invalid.
     if checked.diags.has_errors() {
         return None;
     }
-    let ir = checked.ir.as_mut()?;
     let mut diags = Diagnostics::new();
+    // RFC-018 pad/device consistency runs at BUILD (the RFC pins it here, and
+    // the compliance ledger/error registry all say build-only — review R6-5),
+    // but declaration-complete: it walks `world.parts`, not the instantiated
+    // IR, so an unused part's mismatched footprint is still caught (R5-4).
+    crate::check::footprints::check_pad_consistency(&checked.world, &mut diags);
+    let ir = checked.ir.as_mut()?;
     let mut notes = Vec::new();
     let lock = crate::lock::assign_designators(&checked.world, ir, prior_lock, &mut diags);
     crate::emit::bind_parts(&checked.world, ir, &mut diags, &mut notes);
-    // Pad/device consistency (RFC-018) already ran at the check phase over
-    // every declared part (R5-4); nothing instantiation-specific to add here.
     let failed = diags.has_errors();
     diags.sort(&checked.sm);
     checked.diags.extend(diags);

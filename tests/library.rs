@@ -494,3 +494,119 @@ fn doc_paths_must_be_package_relative() {
     );
     assert!(!r.contains("not a package-relative"), "{}", r);
 }
+
+// ---------------------------------------------------------------------------
+// Sixth-review (2026-07-15) regressions.
+
+// R6-2: the same-MPN identity comparison uses FULLY-QUALIFIED names — two
+// parts whose devices share a leaf name but differ in module (and value) are
+// distinct components and must be rejected, not collapsed by short().
+#[test]
+fn same_mpn_distinct_fq_devices_are_rejected() {
+    let (_c, r) = check(
+        "board",
+        &[
+            (
+                "src/a/dev.cohdl",
+                "pub device D { pins { A: 1 [passive] } spec { resistance: 1kohm } }\npub footprint FP {}\n",
+            ),
+            (
+                "src/b/dev.cohdl",
+                "pub device D { pins { A: 1 [passive] } spec { resistance: 2kohm } }\npub footprint FP {}\n",
+            ),
+            (
+                "src/main.cohdl",
+                "pub part PA: board::a::dev::D { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: board::a::dev::FP } }\n\
+                 pub part PB: board::b::dev::D { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: board::b::dev::FP } }\n\
+                 design B {}\n",
+            ),
+        ],
+    );
+    assert!(
+        r.contains("E802") && r.contains("different component"),
+        "distinct fq devices under one MPN must be rejected:\n{}",
+        r
+    );
+}
+
+// R6-2: generic bindings compare NORMALIZED unit values — `1kohm` and
+// `1000ohm` are the same component, so sharing an MPN is allowed.
+#[test]
+fn equivalent_unit_spellings_are_the_same_component() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device R<V: Resistance> { pins { A: 1 [passive] } }\npub footprint FP {}\n\
+             pub part PA: R<1kohm> { primary { mfr: \"Y\", mpn: \"SHARED\", footprint: FP } }\n\
+             pub part PB: R<1000ohm> { primary { mfr: \"Y\", mpn: \"SHARED\", footprint: FP } }\n",
+        )],
+    );
+    assert!(
+        !r.contains("E802"),
+        "1kohm and 1000ohm are the same value — no conflict:\n{}",
+        r
+    );
+}
+
+// R6-2: an ALTERNATE AVL entry sharing another part's manufacturer/MPN with a
+// different component is also caught (not only primary entries).
+#[test]
+fn alt_entry_mpn_conflict_is_checked() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device Da { pins { A: 1 [passive] } spec { resistance: 1kohm } }\n\
+             pub device Db { pins { A: 1 [passive] } spec { resistance: 2kohm } }\n\
+             pub footprint FP {}\n\
+             pub part PA: Da { primary { mfr: \"Z\", mpn: \"SHARED\", footprint: FP } }\n\
+             pub part PB: Db { primary { mfr: \"Z\", mpn: \"OTHER\", footprint: FP }\n\
+                 alt { mfr: \"Z\", mpn: \"SHARED\", footprint: FP } }\n",
+        )],
+    );
+    assert!(
+        r.contains("E802") && r.contains("different component"),
+        "an alt entry conflict must be caught:\n{}",
+        r
+    );
+}
+
+// R6-6: doc-path validation rejects drive roots and every URI-scheme form,
+// not just the four originally named.
+#[test]
+fn doc_paths_reject_drive_roots_and_uri_schemes() {
+    for path in [
+        "C:/Windows/System32/manual.pdf",
+        "file:/etc/passwd",
+        "mailto:docs@example.com",
+        "data:text/plain,hello",
+        "docs\\win.pdf",
+    ] {
+        let (_c, r) = check(
+            "board",
+            &[(
+                "src/main.cohdl",
+                &format!(
+                    "#[doc(\"{}\")]\npub device D {{ pins {{ A: 1 [passive] }} }}\n",
+                    path
+                ),
+            )],
+        );
+        assert!(
+            r.contains("not a package-relative path"),
+            "doc path `{}` must be rejected:\n{}",
+            path,
+            r
+        );
+    }
+    // A relative path with a colon deeper (not first segment) is still fine.
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "#[doc(\"notes/a:b.txt\")]\npub device D { pins { A: 1 [passive] } }\n",
+        )],
+    );
+    assert!(!r.contains("not a package-relative"), "{}", r);
+}

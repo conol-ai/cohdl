@@ -682,20 +682,21 @@ fn negative_literal_messages_name_length() {
 // ---------------------------------------------------------------------------
 // Fifth-review (2026-07-15) regressions.
 
-// R5-4: the pad/device match is declaration-complete — a part that no design
-// instantiates is still checked (a declaration-only library must be correct
-// without a consumer exercising every export).
+// R5-4 / R6-5: the pad/device match is declaration-complete — a part that no
+// design instantiates is still checked — but runs at BUILD (RFC-018's phase
+// contract), walking every declared part rather than only instantiated IR.
 #[test]
 fn unused_part_footprint_mismatch_is_caught() {
-    let (checked, r) = check(&[(
-        "src/main.cohdl",
+    let (checked, artifacts) = build_real(
         "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
          pub device One { pins { A: 1 [passive] } }\n\
          pub footprint FP2 {\n    pad 2: P at (0mm, 0mm)\n}\n\
          pub part Unused: One { primary { mfr: \"m\", mpn: \"n\", footprint: FP2 } }\n\
          pub device Real { pins { A: 1 [passive] } }\n\
          design B { inst x: Real  net N: x.A }\n",
-    )]);
+    );
+    let r = checked.diags.render(&checked.sm);
+    assert!(artifacts.is_none(), "the mismatch must fail the build");
     assert!(
         r.contains("E807") && r.contains("missing pad `1`") && r.contains("extra pad `2`"),
         "an unused part's footprint mismatch must be caught:\n{}",
@@ -716,6 +717,48 @@ fn oversized_length_is_diagnosed_not_panicked() {
     assert!(
         r.contains("E806") && r.contains("too large to project"),
         "oversized geometry must be a clean diagnostic:\n{}",
+        r
+    );
+}
+
+// R6-5: an invalid variant selector must not fabricate a false E807 "extra
+// pad" on top of the real E903/E904.
+#[test]
+fn invalid_variant_selection_does_not_cascade_to_e807() {
+    // Device with variants A/B; part selects nonexistent variant, footprint
+    // matches variant A's pins.
+    let (checked, _artifacts) = build_real(
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub device VarDev {\n    variants { A, B }\n    pins[A] { required S: 1 [passive] }\n    pins[B] { required S: 2 [passive] }\n}\n\
+         pub footprint FP {\n    pad 1: P at (0mm, 0mm)\n}\n\
+         pub part BadSel: VarDev[Z] { primary { mfr: \"m\", mpn: \"n\", footprint: FP } }\n\
+         design B {}\n",
+    );
+    let r = checked.diags.render(&checked.sm);
+    assert!(
+        r.contains("E903"),
+        "the real variant error must fire:\n{}",
+        r
+    );
+    assert!(
+        !r.contains("E807"),
+        "no fabricated E807 from empty pins_for:\n{}",
+        r
+    );
+}
+
+// R6-9: an oversized silkscreen_ref coordinate is range-checked like every
+// other geometry-bearing Length (it previously slipped the check).
+#[test]
+fn oversized_silkscreen_ref_is_rejected() {
+    let (_c, r) = check(&[(
+        "src/main.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub footprint FP {\n    pad 1: P at (0mm, 0mm)\n    silkscreen_ref { at: (17014118346046923173169mm, 0mm) }\n}\n",
+    )]);
+    assert!(
+        r.contains("E806") && r.contains("too large to project"),
+        "silkscreen coordinate must be range-checked:\n{}",
         r
     );
 }

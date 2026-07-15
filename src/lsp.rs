@@ -91,14 +91,17 @@ pub fn run_stdio() -> Result<LspExit, String> {
             None => true,
             Some(v) => v.is_string() || v.is_number() || v.is_null(),
         };
-        let has_id = id_val.is_some_and(|v| !v.is_null());
         let version_ok = msg.get("jsonrpc").and_then(Value::as_str) == Some("2.0");
         let method_val = msg.get("method").and_then(Value::as_str);
         if !version_ok || method_val.is_none() || !id_type_ok {
-            // Respond to a request (something present as an id), but echo the
-            // id only when it is a valid string/number — an invalid-type id
-            // cannot be a response id, so null (JSON-RPC 2.0 §5).
-            if has_id {
+            // Respond whenever an `id` FIELD is present — a request, even a
+            // malformed one carrying `"id": null`, is not a notification
+            // (which OMITS id entirely). Distinguishing presence from
+            // non-null (review R6-7) stops a bad-envelope null-id request from
+            // being silently dropped. Echo the id only when it is a valid
+            // string/number — an invalid-type or null id cannot be a response
+            // id, so null (JSON-RPC 2.0 §5).
+            if id_val.is_some() {
                 let resp_id = match id_val {
                     Some(v) if v.is_string() || v.is_number() => v.clone(),
                     _ => Value::Null,

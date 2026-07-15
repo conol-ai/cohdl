@@ -127,20 +127,20 @@ fn strip_comments(text: &str) -> String {
                 continue;
             }
         }
-        // A Rust RAW string `r#*"…"#*` — or RAW BYTE string `br#*"…"#*`
-        // (review R5-12) — is inert text, never code, and may itself contain
-        // `"` and `Diagnostic::error("E999")`. Recognize the prefix only at a
-        // token boundary (the `r` in `error`/`for`, or the `b` in `bump`, is
-        // not a prefix) and blank the whole thing so no phantom call site is
-        // counted.
+        // A Rust RAW string `r#*"…"#*` — or RAW BYTE `br#*"…"#*` (R5-12) or
+        // RAW C `cr#*"…"#*` (R6-8) string — is inert text, never code, and may
+        // itself contain `"` and `Diagnostic::error("E999")`. Recognize the
+        // prefix only at a token boundary (the `r` in `error`/`for`, the `b`
+        // in `bump`, the `c` in `code` are not prefixes) and blank the whole
+        // thing so no phantom call site is counted.
         let at_boundary = !out
             .chars()
             .last()
             .is_some_and(|p| p.is_alphanumeric() || p == '_');
         let raw_prefix = if at_boundary && c == 'r' {
             Some(i + 1)
-        } else if at_boundary && c == 'b' && chars.get(i + 1) == Some(&'r') {
-            Some(i + 2)
+        } else if at_boundary && (c == 'b' || c == 'c') && chars.get(i + 1) == Some(&'r') {
+            Some(i + 2) // `br` (byte) or `cr` (C) raw-string prefix
         } else {
             None
         };
@@ -360,10 +360,11 @@ fn no_duplicate_registry_rows() {
     );
 }
 
-// Review F12.1 / R5-12: a Rust RAW string — or RAW BYTE string `br#"…"#` —
-// is inert text, not code. A `Diagnostic::error("E999", …)` written inside
-// one must NOT be counted as a live call site (the stripper first understood
-// only `"…"`, then only `r#"…"#`; `br#"…"#` still leaked through).
+// Review F12.1 / R5-12 / R6-8: a Rust RAW string — or RAW BYTE `br#"…"#` or
+// RAW C `cr#"…"#` string — is inert text, not code. A
+// `Diagnostic::error("E999", …)` written inside one must NOT be counted as a
+// live call site (the stripper understood only `"…"`, then `r#`, then `br#`;
+// `cr#` still leaked through).
 #[test]
 fn raw_strings_are_not_call_sites() {
     let sample = "\n\
@@ -371,6 +372,7 @@ fn raw_strings_are_not_call_sites() {
         let _doc = r#\"see Diagnostic::error(\"E999\", span, \"not code\")\"#;\n\
         let _nested = r##\"a raw \"quote\" and Diagnostic::error(\"E998\", ...)\"##;\n\
         let _bytes = br#\"byte Diagnostic::error(\"E997\", span, \"dead\")\"#;\n\
+        let _cstr = cr#\"C Diagnostic::error(\"E996\", span, \"dead\")\"#;\n\
         let _b = b\"plain byte string Diagnostic::error(\\\"not-a-code\\\")\";\n\
     ";
     let sites = call_sites_in(sample);
@@ -380,8 +382,11 @@ fn raw_strings_are_not_call_sites() {
         sites
     );
     assert!(
-        !sites.contains("E999") && !sites.contains("E998") && !sites.contains("E997"),
-        "raw/byte-string bodies must not count as call sites: {:?}",
+        !sites.contains("E999")
+            && !sites.contains("E998")
+            && !sites.contains("E997")
+            && !sites.contains("E996"),
+        "raw/byte/c-string bodies must not count as call sites: {:?}",
         sites
     );
 }

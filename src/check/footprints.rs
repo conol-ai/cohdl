@@ -36,6 +36,15 @@ pub fn check_pad_consistency(world: &World, diags: &mut Diagnostics) {
         };
         // A part pins its own structural variant (RFC-008).
         let variant = part.device.variant.as_ref().map(|v| v.name.as_str());
+        // Skip the pad comparison when the variant selection is structurally
+        // invalid (review R6-5): `pins_for` returns an empty set for a
+        // missing/unknown variant, which would fabricate a spurious "extra
+        // pad" E807 on top of the real E903/E904 already reported.
+        if device.has_variants()
+            && !variant.is_some_and(|v| device.variants.iter().any(|dv| dv.name == v))
+        {
+            continue;
+        }
         for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
             let Some(fp_ref) = &entry.footprint else {
                 continue;

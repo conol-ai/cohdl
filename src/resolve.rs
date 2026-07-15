@@ -967,6 +967,15 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                             v.unit.type_name()
                         ),
                     ));
+                } else if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E806",
+                        *span,
+                        format!(
+                            "`silkscreen_ref` coordinate `{}` is too large to project (review R5-5/R6-9)",
+                            v.text
+                        ),
+                    ));
                 }
             }
         }

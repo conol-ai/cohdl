@@ -900,13 +900,14 @@ Fixed in code (regressions named):
   references are unqualified).
 - **R5-4 (high) — pad/device check bypassable.** The check iterated only
   instantiated IR nodes, so an unused part with a mismatched non-empty
-  footprint passed. It now walks `world.parts` (declaration-complete) and
-  runs at the CHECK phase — a declaration-only library is checked without a
-  consumer instantiating every export. (tests/footprint.rs
-  `unused_part_footprint_mismatch_is_caught`.) The empty-placeholder
-  exemption is RETAINED as a documented deviation from RFC-018's exact-match
-  rule (RFC-017 stage-one migration); ending it is a migration-completion
-  decision noted below.
+  footprint passed. It now walks `world.parts` (declaration-complete), so an
+  unused part is caught. **PHASE CORRECTED by R6-5**: it runs at BUILD (not
+  the check phase this entry originally moved it to) — RFC-018 pins the
+  pad/device comparison to `cohdl build`, and moving it to `check` created a
+  contract contradiction against the RFC and the error registry. The
+  empty-placeholder exemption is RETAINED as a documented deviation from
+  RFC-018's exact-match rule (RFC-017 stage-one migration); ending it is a
+  migration-completion decision noted below.
 - **R5-5 (high) — geometry overflow panic.** A parser-accepted huge `Length`
   reached `emit::geom` corner arithmetic (`femto * 10`) and panicked on
   `i128` overflow, after ordinary artifacts had been written. `Length` values
@@ -992,3 +993,103 @@ Note-side amendment items added by review 5:
 - Empty-footprint placeholder exemption (R5-4): decide how the RFC-017
   stage-one migration ends — a build consuming an empty footprint currently
   passes silently rather than signalling incompleteness.
+
+## External review round 6 (Codex, at 3f3ee20): dispositions
+
+Review 6 found that several review-5 fixes were too close to the original
+reproductions — the same defect classes survived in deeper forms. All ten
+findings verified; nine fixed in code with adversarial regressions, one
+(R6-10) is this consistency pass over the docs. State: 296 tests passing.
+
+Fixed in code (regressions named):
+
+- **R6-1 (high) — foreign-file overwrite + symlink escape.** Review-5's
+  cleanup preserved a non-colliding foreign `.kicad_mod`, but the WRITE loop
+  still overwrote a foreign file at the exact generated name and followed a
+  symlink there to mutate a file outside `out/`. A single ownership-and-
+  symlink-aware writer (`write_artifact`, src/main.rs) now backs every
+  artifact write: it refuses a symlink destination (containment, via
+  `symlink_metadata` + `create_new`/O_EXCL), and refuses to overwrite an
+  existing regular file lacking the CoHDL ownership marker. (tests/cli.rs
+  `build_refuses_exact_name_foreign_and_symlink`; the review-4 XML test was
+  updated — `--emit` over a foreign file is now refused, not clobbered.)
+- **R6-2 (high) — non-injective supply-chain identity.** The same-MPN guard
+  compared `short()` names and raw generic text, so two parts with distinct
+  fq devices sharing a leaf name (and different values) collapsed and the
+  BOM/IPC kept the first value. It now compares FULLY-QUALIFIED device and
+  footprint identities and NORMALIZED unit values (femto + unit, so `1kohm`
+  ≡ `1000ohm`), over EVERY AVL entry (primary and alts). Because an
+  inconsistency is now a check error and `build_artifacts` bails on check
+  errors, the lossy emitter grouping never sees an inconsistent group.
+  (tests/library.rs `same_mpn_distinct_fq_devices_are_rejected`,
+  `equivalent_unit_spellings_are_the_same_component`,
+  `alt_entry_mpn_conflict_is_checked`.)
+- **R6-3 (high) — uncalled fn bodies unchecked.** Review-5 checked only that
+  instance/call targets EXIST. A new pass (`check::bodies::check_fn_bodies`)
+  semantically validates every fn body regardless of reachability: wrong-kind
+  instance targets (trait/fn/pad → E205), wrong-kind call targets
+  (device/part → E205), unresolved named generic arguments (E202), and
+  net/nc references to unknown locals (E202). Messages mirror expansion's, so
+  a called fn reported by both dedups. Full generic BOUND-checking stays a
+  call-time concern (abstract fn generics have no concrete value at
+  declaration). (tests/modules.rs `uncalled_fn_body_is_semantically_checked`,
+  `valid_uncalled_fn_body_passes`.)
+- **R6-4 (high) — package-root spellability.** E210 validated only `src/…`
+  module segments. It now also validates the projected PACKAGE ROOT (a
+  keyword manifest name like `device` is unspellable in a single-package
+  project today) and `std/…` segments of a supplied std tree. (tests/modules.rs
+  `keyword_package_root_is_e210`, `keyword_std_segment_is_e210`.)
+- **R6-5 (medium) — E807 phase/cascade/API.** (a) The pad/device check moved
+  BACK to the BUILD phase, restoring RFC-018's Accepted build-only contract
+  (the check-phase move contradicted the RFC and registry); it keeps the
+  declaration-complete `world.parts` walk. (b) It now SKIPS a part whose
+  variant selection is structurally invalid, so a bad `[VARIANT]` selector no
+  longer fabricates a spurious "extra pad" E807 on top of the real E903/E904.
+  (c) Both declaration APIs (`check_declarations`/`check_declarations_in`)
+  route through one `run_declaration_checks`. (tests/footprint.rs
+  `invalid_variant_selection_does_not_cascade_to_e807`; the R5-4 test builds.)
+- **R6-6 (medium) — doc-path grammar.** The lexical check accepted drive
+  roots (`C:/…`), single-slash and non-`://` URI schemes (`file:/…`,
+  `mailto:`, `data:`), and backslashes. It now rejects a backslash, any
+  scheme/drive marker (a `:` in the first path segment), leading separators,
+  `..` components, and empty paths. (tests/library.rs
+  `doc_paths_reject_drive_roots_and_uri_schemes`.)
+- **R6-7 (medium-low) — null id vs absent.** A malformed envelope carrying an
+  explicit `"id": null` was dropped as a notification. The transport now
+  responds to any frame with an `id` FIELD present (a request, even with a
+  null id) — InvalidRequest with a null response id — while a true
+  notification (no id) with a bad envelope is still dropped. (tests/lsp.rs
+  `malformed_request_with_null_id_gets_response`, `malformed_notification_is_dropped`.)
+- **R6-8 (medium-low) — raw C strings.** The registry stripper recognized
+  `r#`/`br#` but not `cr#` (raw C string). Extended to the `cr` prefix.
+  (tests/error_registry.rs `raw_strings_are_not_call_sites`.)
+- **R6-9 (low/medium) — silkscreen range check.** `silkscreen_ref`
+  coordinates skipped the `length_in_geom_range` bound every other geometry
+  Length gets. Now routed through it. (tests/footprint.rs
+  `oversized_silkscreen_ref_is_rejected`.) A full accepted-boundary matrix
+  across every corner path remains a nice-to-have, noted.
+
+Documentation consistency (R6-10):
+
+- README no longer says RFC-008–018 are flatly "all implemented" — it names
+  the open gaps (RFC-016/017 dependency loading, RFC-014/015 acceptance
+  passes) inline; "ten unit-type literal forms" → eleven.
+- docs/error-codes.md E102 now names both `Temperature` AND `Length` as
+  signed.
+- docs/lsp.md narrows `definition` to REFERENCE use sites and records that
+  goto-def on a `use`-import path is an open R5-10 item.
+- The R5-4 ledger entry's "CHECK phase" wording is corrected to build-only
+  (R6-5), removing the both-contracts-asserted contradiction.
+
+Still open (unchanged from review 5, restated honestly):
+
+- R5-1 on-disk dependency loading (the compiler half of RFC-016/017 usability).
+- R5-8 IPC layer/drill/silkscreen projection (documented omission).
+- R5-10 import goto-def, collision-aware FQ display, kind/visibility-aware
+  suggestions; the RFC-017/018 LSP doc-exposure gaps (device-declaration doc
+  hover, footprint declaration location, footprint-reference hover, FQ-keyed
+  nested-design docs).
+- R5-13 note-side amendments: `Length` in RFC-001/spec, formatter pad
+  alignment, empty-placeholder migration end-state.
+- Transactional artifact staging; the real-VS-Code and real-IPC-consumer
+  acceptance passes.

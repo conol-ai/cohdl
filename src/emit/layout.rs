@@ -81,6 +81,15 @@ pub fn emit_layout_json(ir: &DesignIr) -> Option<String> {
         }
         None => out.push_str("  \"board_outline\": null,\n"),
     }
+    // Locked component placements (`place <inst> at …`), instance-path order.
+    array(&mut out, "placements", &ir.layout.placements, |p| {
+        format!(
+            "{{ \"instance\": {}, \"at\": [{}, {}] }}",
+            json_str(&p.path),
+            crate::emit::geom::mm(&p.at.0),
+            crate::emit::geom::mm(&p.at.1)
+        )
+    });
     array(
         &mut out,
         "placement_hints",

@@ -33,6 +33,9 @@ pub struct LayoutIr {
     /// see `ast::BoardOutline`). Projects into the IPC-2581 `Step/Profile`
     /// (RFC-015, the Quilter handoff) and into `layout.json`.
     pub board_outline: Option<BoardOutlineIr>,
+    /// Locked component placements (`place <inst> at (x, y)`), resolved to IR
+    /// instance paths. A placement tool treats these as pre-placed.
+    pub placements: Vec<LayoutPlacement>,
 }
 
 impl LayoutIr {
@@ -41,6 +44,7 @@ impl LayoutIr {
             && self.diff_pairs.is_empty()
             && self.length_matches.is_empty()
             && self.board_outline.is_none()
+            && self.placements.is_empty()
     }
 }
 
@@ -50,6 +54,14 @@ impl LayoutIr {
 pub struct BoardOutlineIr {
     pub at: (UnitValue, UnitValue),
     pub size: (UnitValue, UnitValue),
+}
+
+/// A locked placement: the IR instance path + its fixed origin (`Length`
+/// values in geometry range, checked at assembly, E1007).
+#[derive(Debug)]
+pub struct LayoutPlacement {
+    pub path: String,
+    pub at: (UnitValue, UnitValue),
 }
 
 #[derive(Debug)]

@@ -78,7 +78,11 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     // outline — the IPC/Quilter idiom for "unplaced, please place me" — instead
     // of piling them all at (0,0) (inside the outline = 49 locked components
     // stacked at the board center). No outline → keep the (0,0) placeholder.
-    let staging = staging_positions(world, ir, &insts);
+    // Locked placements (`place <inst> at …`) take their fixed position and
+    // are NOT staged — a placement tool treats them as pre-placed. Everything
+    // else is staged outside the outline.
+    let placed = placed_positions(ir);
+    let staging = staging_positions(world, ir, &insts, &placed);
     let name = sanitize(package_name, false);
     let step = sanitize(&ir.name, false);
 
@@ -384,7 +388,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 esc(hint)
             );
         }
-        let (lx, ly) = match staging.get(&inst.path) {
+        let (lx, ly) = match placed.get(&inst.path).or_else(|| staging.get(&inst.path)) {
             Some((x, y)) => (geom::mm_femto(*x), geom::mm_femto(*y)),
             None => ("0".to_string(), "0".to_string()),
         };
@@ -664,16 +668,28 @@ fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
     b.unwrap_or((-NOMINAL_HALF, -NOMINAL_HALF, NOMINAL_HALF, NOMINAL_HALF))
 }
 
+/// Locked placements (`place <inst> at (x, y)`) as component path → origin in
+/// femto-mm. A placement tool treats these as pre-placed/fixed.
+fn placed_positions(ir: &DesignIr) -> BTreeMap<String, (i128, i128)> {
+    ir.layout
+        .placements
+        .iter()
+        .map(|p| (p.path.clone(), (p.at.0.femto, p.at.1.femto)))
+        .collect()
+}
+
 /// Component staging positions (component path → origin in femto-mm), keyed so
 /// the emit loop can look each one up. Empty when the design declares no
 /// `board_outline` (nothing to stage against — components keep the (0,0)
 /// placeholder). Otherwise: a deterministic shelf-packed grid immediately to
 /// the RIGHT of the outline, so every component's full footprint lies outside
 /// the perimeter (Quilter's "please place me" signal) and no two overlap.
+/// Locked (`placed`) components are skipped — they keep their fixed position.
 fn staging_positions(
     world: &World,
     ir: &DesignIr,
     insts: &[&crate::ir::IrInstance],
+    placed: &BTreeMap<String, (i128, i128)>,
 ) -> BTreeMap<String, (i128, i128)> {
     let mut out = BTreeMap::new();
     let Some(bo) = &ir.layout.board_outline else {
@@ -688,7 +704,12 @@ fn staging_positions(
     // component (so no component overflows its shelf and the block stays a
     // tidy rectangle beside the board rather than a long strip).
     let bbox = |inst: &crate::ir::IrInstance| footprint_bbox(world, &part_fields(world, inst).2);
-    let widest = insts
+    let to_stage: Vec<&crate::ir::IrInstance> = insts
+        .iter()
+        .copied()
+        .filter(|i| !placed.contains_key(&i.path))
+        .collect();
+    let widest = to_stage
         .iter()
         .map(|i| {
             let (lo_x, _, hi_x, _) = bbox(i);
@@ -700,7 +721,7 @@ fn staging_positions(
     let mut cursor_x = start_x;
     let mut row_top = out_top; // rows extend downward from the board's top edge
     let mut row_h = 0i128;
-    for inst in insts {
+    for inst in &to_stage {
         let (lo_x, lo_y, hi_x, hi_y) = bbox(inst);
         let (bw, bh) = (hi_x - lo_x, hi_y - lo_y);
         if cursor_x > start_x && cursor_x + bw > limit_x {

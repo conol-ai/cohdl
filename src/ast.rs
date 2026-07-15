@@ -624,6 +624,19 @@ pub struct LayoutBlock {
     /// needs. Board-level, not net-level — at most one, design top level only.
     /// Ledgered in docs/compliance-report.md as an extension pending an RFC.
     pub board_outline: Option<BoardOutline>,
+    /// `place <inst> at (x, y)` — fixed (locked) component positions. A
+    /// downstream placement tool treats these as pre-placed and positions only
+    /// the rest; used for board-edge/mechanical parts (connectors, mounting).
+    /// Same pragmatic-extension status as `board_outline`.
+    pub placements: Vec<Placement>,
+    pub span: Span,
+}
+
+/// `place <inst> at (x, y)` — a locked placement of one instance.
+#[derive(Debug, Clone)]
+pub struct Placement {
+    pub inst: Ident,
+    pub at: (UnitValue, UnitValue),
     pub span: Span,
 }
 

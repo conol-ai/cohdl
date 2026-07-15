@@ -1318,3 +1318,32 @@ outline with zero overlapping pairs. Designs with no `board_outline` keep the
 placement — it is the "unplaced, please place me" input a placement engine
 consumes — so the `logical-complete,physical-minimal` marker is unchanged.
 Tests: `tests/ipc2581.rs` gains staged-outside / origin-without-outline cases.
+
+### Follow-up 2: locked placements + board-edge sizing (2026-07-15)
+
+Second round of Quilter feedback (after component staging landed): the file
+parsed, but two errors — "total component area exceeds the board" and "J1
+dimensions exceed the board's dimensions". Root cause: `FP_Pico_Castellated_40`
+(the 40-pin castellated header, J1) was (a) built rotated 90° so its ~50mm pad
+span sat across the board's 21mm axis, and (b) board-sized — as a *movable*
+component it alone ≈ the whole board area, so no placement fits.
+
+Two fixes:
+
+1. `FP_Pico_Castellated_40` re-authored — pads run along the two long (51mm)
+   edges (pins 1-20 bottom, 21-40 top, 17.78mm row spacing), so J1 is
+   ~50×20mm and fits inside the 51×21mm outline; its board-filling courtyard
+   was dropped so the interior stays free for placement (the header is the
+   board edge, not a solid keep-out).
+2. New `place <inst> at (x, y)` layout statement (E1007) — a locked component
+   placement. A placement tool treats a component positioned inside the
+   outline as pre-placed/fixed, so `place` emits that component's
+   `Component/Location` at the given point and excludes it from staging. The
+   example locks the castellated header centred (`place hdr at (0mm, 0mm)`);
+   the rest stage outside. Same pragmatic-extension status as `board_outline`
+   (E10xx family, design-top-level only, projected into `layout.json` too).
+
+Verified for rpi-pico2: J1 fits inside the outline and is locked; the 48
+placeable components total 232mm² vs the 1071mm² board, all outside the
+outline, none exceeding board dimensions, zero overlaps, schema-valid. This is
+still not a real layout — it is a correctly-shaped placement-engine input.

@@ -26,6 +26,7 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         nc_pins: Vec::new(),
         layout_raw: Vec::new(),
         board_outline: None,
+        placements: Vec::new(),
         active_calls: Vec::new(),
         call_counter: 0,
         anon_net_counter: 0,
@@ -93,6 +94,9 @@ struct Expander<'w, 'd> {
     /// Collected once, at the design top level — a `board_outline` inside a
     /// called fn is rejected (E1006). Geometry is validated on collection.
     board_outline: Option<crate::ir::BoardOutlineIr>,
+    /// Locked component placements (`place <inst> at (x, y)`), design-level
+    /// only, resolved to IR paths and validated on collection (E1007).
+    placements: Vec<crate::ir::LayoutPlacement>,
     /// fn names currently being expanded (cycle detection, RFC-006).
     active_calls: Vec<String>,
     /// Global (per-design) call counter — `__fn{N}_{name}` segments.
@@ -183,6 +187,73 @@ impl<'w, 'd> Expander<'w, 'd> {
         if let Some(outline) = &block.board_outline {
             self.handle_board_outline(outline);
         }
+        for placement in &block.placements {
+            self.handle_placement(placement, scope);
+        }
+    }
+
+    /// Validate and record a locked component placement (E1007): design-level
+    /// only, the instance must exist, and the coordinates must be `Length`
+    /// values in geometry range.
+    fn handle_placement(&mut self, placement: &crate::ast::Placement, scope: &Scope) {
+        use crate::units::UnitType;
+        if !self.active_calls.is_empty() {
+            self.diags.push(Diagnostic::error(
+                "E1007",
+                placement.span,
+                "`place` is only valid in the design's own `layout {}` block, not inside a called `fn`".to_string(),
+            ));
+            return;
+        }
+        let Some(path) = scope.local_insts.get(&placement.inst.name).cloned() else {
+            self.diags.push(Diagnostic::error(
+                "E1007",
+                placement.inst.span,
+                format!(
+                    "`place` names `{}`, which is not an instance in this design",
+                    placement.inst.name
+                ),
+            ));
+            return;
+        };
+        for (v, what) in [(&placement.at.0, "x"), (&placement.at.1, "y")] {
+            if v.unit != UnitType::Length {
+                self.diags.push(Diagnostic::error(
+                    "E1007",
+                    placement.span,
+                    format!(
+                        "placement {} is a `Length` (`mm`) literal — `{}` is a `{}`",
+                        what,
+                        v.text,
+                        v.unit.type_name()
+                    ),
+                ));
+                return;
+            }
+            if !v.length_in_geom_range() {
+                self.diags.push(Diagnostic::error(
+                    "E1007",
+                    placement.span,
+                    format!(
+                        "placement {} `{}` is too large to project (review R5-5)",
+                        what, v.text
+                    ),
+                ));
+                return;
+            }
+        }
+        if self.placements.iter().any(|p| p.path == path) {
+            self.diags.push(Diagnostic::error(
+                "E1007",
+                placement.inst.span,
+                format!("`{}` is placed more than once", placement.inst.name),
+            ));
+            return;
+        }
+        self.placements.push(crate::ir::LayoutPlacement {
+            path,
+            at: (placement.at.0.clone(), placement.at.1.clone()),
+        });
     }
 
     /// Validate and record the board outline (E1006). A rectangle whose
@@ -1150,8 +1221,10 @@ impl<'w, 'd> Expander<'w, 'd> {
         // RFC-013: validate layout constraints against declared-net identity
         // and build the (connectivity-independent) layout IR.
         let mut layout = build_layout_ir(&self.layout_raw, &declared_to_merged, self.diags);
-        // The board outline (validated on collection) rides the same IR.
+        // The board outline + locked placements (validated on collection) ride
+        // the same IR.
         layout.board_outline = self.board_outline;
+        layout.placements = self.placements;
 
         let ir = DesignIr {
             name: design.name.name.clone(),

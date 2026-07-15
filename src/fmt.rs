@@ -852,6 +852,21 @@ impl Formatter<'_> {
                         indent + 1,
                     );
                 }
+                for p in &s.placements {
+                    self.flush_leading(self.line_start(p.span), indent + 1);
+                    self.push(
+                        indent + 1,
+                        format!(
+                            "place {} at ({}, {})",
+                            p.inst.name, p.at.0.text, p.at.1.text
+                        ),
+                    );
+                    self.finish_construct(
+                        self.line_start(p.span),
+                        self.line_end(p.span),
+                        indent + 1,
+                    );
+                }
                 self.flush_leading(self.line_end(s.span), indent + 1);
                 self.push(indent, "}");
                 self.append_held(held);

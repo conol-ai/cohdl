@@ -570,6 +570,87 @@ design Board {
 }
 
 #[test]
+fn placement_projects_to_layout_json() {
+    let built = build(&with_outline(
+        "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) } place r1 at (1mm, -2mm)",
+    ));
+    assert!(
+        !built.diags.contains("E1007"),
+        "unexpected error:\n{}",
+        built.diags
+    );
+    let json = built.layout.expect("layout.json");
+    assert!(
+        json.contains("\"placements\": [")
+            && json.contains("\"instance\": \"Board::r1\"")
+            && json.contains("\"at\": [1, -2]"),
+        "placement missing/wrong in layout.json:\n{}",
+        json
+    );
+}
+
+#[test]
+fn placement_is_zero_impact_on_netlist_and_bom() {
+    let base = build(BASE);
+    let laid = build(&with_outline("place r1 at (0mm, 0mm)"));
+    assert_eq!(base.netlist, laid.netlist, "place moved the netlist");
+    assert_eq!(base.bom, laid.bom, "place moved the BOM");
+    assert_eq!(base.lock, laid.lock, "place moved the designator lock");
+}
+
+#[test]
+fn place_unknown_instance_is_e1007() {
+    let r = check_err(&with_outline("place nope at (0mm, 0mm)"));
+    assert!(r.contains("E1007") && r.contains("nope"), "{}", r);
+}
+
+#[test]
+fn place_non_length_is_e1007() {
+    let r = check_err(&with_outline("place r1 at (0mm, 3V)"));
+    assert!(r.contains("E1007") && r.contains("Length"), "{}", r);
+}
+
+#[test]
+fn duplicate_place_is_e1007() {
+    let r = check_err(&with_outline(
+        "place r1 at (0mm, 0mm) place r1 at (1mm, 1mm)",
+    ));
+    assert!(r.contains("E1007") && r.contains("more than once"), "{}", r);
+}
+
+#[test]
+fn place_inside_fn_is_e1007() {
+    let src = r#"
+pub trait TwoTerminal { pins { required A: pin required B: pin } }
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+impl TwoTerminal for Res {}
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
+pub fn sub(x: Pin) {
+    inst r: R1
+    net _: x, r.A
+    layout { place r at (0mm, 0mm) }
+}
+design Board {
+    inst r2: R1
+    net N: r2.A
+    sub(r2.B)
+}
+"#;
+    let r = check_err(src);
+    assert!(r.contains("E1007") && r.contains("fn"), "{}", r);
+}
+
+#[test]
+fn fmt_round_trips_place() {
+    let src = "design B{layout{place hdr at (0mm,-1mm)}}";
+    let once = format_source("b.cohdl", src).unwrap();
+    assert!(once.contains("place hdr at (0mm, -1mm)"), "{}", once);
+    let twice = format_source("b.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "place formatting is not idempotent:\n{}", once);
+}
+
+#[test]
 fn fmt_round_trips_board_outline() {
     let src = "design B{layout{board_outline{at:(0mm,-1mm),size:(51mm,21mm)}}}";
     let once = format_source("b.cohdl", src).unwrap();

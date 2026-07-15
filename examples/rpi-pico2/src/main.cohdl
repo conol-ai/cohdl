@@ -165,5 +165,8 @@ design Pico2 {
         // Raspberry Pi Pico 2 board outline (51 x 21 mm), the single closed
         // perimeter the layout partner (Quilter) seeds placement against.
         board_outline { at: (0mm, 0mm), size: (51mm, 21mm) }
+        // The 40-pin castellated header IS the board edge — lock it centered so
+        // the layout partner treats it as pre-placed and positions the rest.
+        place hdr at (0mm, 0mm)
     }
 }

@@ -11,6 +11,9 @@
     { "nets": ["USB_DPX", "USB_DMX"], "tolerance": "0.15mm" }
   ],
   "board_outline": { "at": [0, 0], "size": [51, 21] },
+  "placements": [
+    { "instance": "Pico2::hdr", "at": [0, 0] }
+  ],
   "placement_hints": [
     { "designator": "J3", "instance": "Pico2::usb", "hint": "board edge, USB micro-B cutout" },
     { "designator": "Y1", "instance": "Pico2::xtal", "hint": "close to XIN/XOUT with short, guarded traces" }

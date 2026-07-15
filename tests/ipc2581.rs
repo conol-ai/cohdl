@@ -1110,6 +1110,51 @@ fn components_stage_outside_board_outline() {
     );
 }
 
+const WITH_PLACE: &str = r#"
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub device Con { pins { P: 1 [passive] } }
+pub pad P { shape: rect size: (0.5mm, 0.6mm) layer: top_copper plating: smd }
+pub footprint FP { pad 1: P at (-0.5mm, 0mm) pad 2: P at (0.5mm, 0mm) courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 1mm) } }
+pub footprint FPC { pad 1: P at (0mm, 0mm) }
+pub part R0: Res { primary { mfr: "m", mpn: "n", footprint: FP } }
+pub part J0: Con { primary { mfr: "m", mpn: "c", footprint: FPC } }
+design B {
+    inst r1: R0
+    inst j1: J0
+    net N: r1.A, j1.P
+    nc: r1.B
+    layout {
+        board_outline { at: (0mm, 0mm), size: (30mm, 20mm) }
+        place j1 at (3mm, -4mm)
+    }
+}
+"#;
+
+#[test]
+fn placed_component_locks_at_position_and_is_not_staged() {
+    let b = build("place", WITH_PLACE);
+    // Identify components by their (module-qualified) package: FPC = the
+    // placed connector, FP = the staged resistor.
+    let locs: Vec<(String, (f64, f64))> = blocks(&b.xml, "Component")
+        .into_iter()
+        .map(|(h, body)| (attr(h, "packageRef").unwrap(), component_location(body)))
+        .collect();
+    let find = |suffix: &str| locs.iter().find(|(p, _)| p.ends_with(suffix)).unwrap().1;
+    // The placed connector is locked at its exact place position (3, -4).
+    assert_eq!(
+        find("FPC"),
+        (3.0, -4.0),
+        "placed component not locked at (3,-4)"
+    );
+    // The resistor is staged OUTSIDE the 30mm-wide outline (right of +15mm).
+    assert!(
+        find("::FP").0 > 15.0,
+        "staged resistor should be outside the outline, got {:?}",
+        find("::FP")
+    );
+    assert!(xsd_validate("place", &b.xml));
+}
+
 #[test]
 fn components_stay_at_origin_without_outline() {
     // No board outline → nothing to stage against → keep the (0,0) placeholder.

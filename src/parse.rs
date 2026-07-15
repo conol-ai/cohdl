@@ -2308,6 +2308,7 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace, "to open the layout block");
         let mut constraints = Vec::new();
         let mut board_outline: Option<BoardOutline> = None;
+        let mut placements = Vec::new();
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
             let before = self.pos;
             if self.at_ident("board_outline") {
@@ -2323,6 +2324,10 @@ impl<'a> Parser<'a> {
                     (None, Some(next)) => board_outline = Some(next),
                     (_, None) => {}
                 }
+            } else if self.at_ident("place") {
+                if let Some(p) = self.placement() {
+                    placements.push(p);
+                }
             } else if let Some(c) = self.layout_constraint() {
                 constraints.push(c);
             }
@@ -2336,6 +2341,7 @@ impl<'a> Parser<'a> {
         Some(Stmt::Layout(LayoutBlock {
             constraints,
             board_outline,
+            placements,
             span: start.to(self.prev_span()),
         }))
     }
@@ -2420,6 +2426,26 @@ impl<'a> Parser<'a> {
             size,
             size_span,
             span,
+        })
+    }
+
+    /// `place <inst> at (x, y)` — a locked component placement. Instance
+    /// existence and coordinate unit-type are validated at assembly (E1007),
+    /// like the net checks on the other layout constraints.
+    fn placement(&mut self) -> Option<Placement> {
+        let start = self.span();
+        self.bump(); // `place`
+        let inst = self.ident("as the instance to place")?;
+        if !self.at_ident("at") {
+            self.error_here("expected `at (x, y)` after the instance name".to_string());
+            return None;
+        }
+        self.bump(); // `at`
+        let at = self.length_pair()?;
+        Some(Placement {
+            inst,
+            at,
+            span: start.to(self.prev_span()),
         })
     }
 

@@ -24,6 +24,14 @@ pub fn mm(v: &UnitValue) -> String {
     render(v.femto, 15)
 }
 
+/// A raw femto-mm integer as a minimal decimal mm string — for values the
+/// emitter *computes* (e.g. component staging positions) rather than reads
+/// from a `Length` literal. Same canonical rendering as [`mm`], so computed
+/// and literal geometry project identically.
+pub fn mm_femto(femto: i128) -> String {
+    render(femto, 15)
+}
+
 /// `center - size/2`, exact: computed at 10^-16 mm so halving an odd femto
 /// count loses nothing. Saturating arithmetic is defense-in-depth — validation
 /// rejects any `Length` past `MAX_GEOM_FEMTO`, so a real input never saturates.

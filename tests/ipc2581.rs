@@ -1076,6 +1076,53 @@ fn board_outline_emits_profile_polygon() {
     xsd_validate("outline", &b.xml);
 }
 
+fn component_location(block: &str) -> (f64, f64) {
+    let l = block.split("<Location").nth(1).expect("Location");
+    let x = attr(&format!("<Location{}", l), "x")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let y = attr(&format!("<Location{}", l), "y")
+        .unwrap()
+        .parse()
+        .unwrap();
+    (x, y)
+}
+
+#[test]
+fn components_stage_outside_board_outline() {
+    // Quilter locks components INSIDE the outline and only places those
+    // outside it, so a component must be staged outside (not piled at 0,0).
+    let b = build("stage", WITH_OUTLINE);
+    let comp = blocks(&b.xml, "Component")[0].1;
+    let (x, _y) = component_location(comp);
+    // Outline is 51x21 at origin → right edge 25.5mm; the staged origin sits
+    // past the +5mm margin. Definitely not the (0,0) interior placeholder.
+    assert!(
+        x > 25.5,
+        "component must be staged outside the outline, got x={}",
+        x
+    );
+    assert!(
+        !comp.contains("<Location x=\"0\" y=\"0\"/>"),
+        "component still at origin:\n{}",
+        comp
+    );
+}
+
+#[test]
+fn components_stay_at_origin_without_outline() {
+    // No board outline → nothing to stage against → keep the (0,0) placeholder.
+    let b = build("no-stage", BASIC);
+    assert!(!b.xml.contains("<Profile>"), "BASIC has no outline");
+    let comp = blocks(&b.xml, "Component")[0].1;
+    assert_eq!(
+        component_location(comp),
+        (0.0, 0.0),
+        "no-outline component must stay at origin"
+    );
+}
+
 #[test]
 fn no_board_outline_emits_no_profile() {
     // WITH_LAYOUT carries net-level constraints but no board_outline.

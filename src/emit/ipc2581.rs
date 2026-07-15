@@ -10,8 +10,12 @@
 //! the exact `drill` diameter still have no home on `PinType` (they need a
 //! Step-level `PadStackDef`, deferred — moot for this all-SMD, single-layer
 //! board where every pad is `top_copper`/`smd`/drill-less). Physical layout
-//! is otherwise still minimal: no component PLACEMENT (every
-//! `Component/Location` is `(0,0)`), no routing, no stackup. A `Step/Profile`
+//! is otherwise still minimal: no routing, no stackup, and no real PLACEMENT —
+//! when a board outline exists, components are STAGED in a grid just outside
+//! the outline (a layout tool like Quilter treats components inside the
+//! outline as locked/pre-placed and only places the ones left outside, so
+//! staging outside is the idiom for "unplaced, please place me"; without an
+//! outline they keep the `(0,0)` placeholder). A `Step/Profile`
 //! board outline IS emitted when the design declares a `board_outline` (a
 //! pragmatic extension beyond RFC-015's original cut —
 //! docs/compliance-report.md); with real per-pad footprints (RFC-018) and
@@ -67,6 +71,14 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     // it, and tests/ipc2581.rs asserts it semantically rather than relying
     // on the schema.
     let refdes_map = refdes_table(ir);
+    // Component staging (Quilter): a layout tool treats components INSIDE the
+    // board outline as pre-placed/locked and only places/routes components
+    // left OUTSIDE it (docs.quilter.ai). So when a board outline exists, stage
+    // every component in a deterministic, non-overlapping grid just OUTSIDE the
+    // outline — the IPC/Quilter idiom for "unplaced, please place me" — instead
+    // of piling them all at (0,0) (inside the outline = 49 locked components
+    // stacked at the board center). No outline → keep the (0,0) placeholder.
+    let staging = staging_positions(world, ir, &insts);
     let name = sanitize(package_name, false);
     let step = sanitize(&ir.name, false);
 
@@ -334,8 +346,9 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         out.push_str("        </Package>\n");
     }
 
-    // Components: designator order, placeholder location (physical-minimal),
-    // resolved specs + placement hint as machine-readable attributes.
+    // Components: designator order, resolved specs + placement hint as
+    // machine-readable attributes. Location is the staged position outside the
+    // board outline (Quilter places from there) or (0,0) when no outline.
     for inst in &insts {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let (mpn, _mfr, footprint) = part_fields(world, inst);
@@ -371,7 +384,11 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 esc(hint)
             );
         }
-        out.push_str("          <Location x=\"0\" y=\"0\"/>\n");
+        let (lx, ly) = match staging.get(&inst.path) {
+            Some((x, y)) => (geom::mm_femto(*x), geom::mm_femto(*y)),
+            None => ("0".to_string(), "0".to_string()),
+        };
+        let _ = writeln!(out, "          <Location x=\"{}\" y=\"{}\"/>", lx, ly);
         out.push_str("        </Component>\n");
     }
 
@@ -599,6 +616,105 @@ fn part_fields(world: &World, inst: &crate::ir::IrInstance) -> (String, String, 
         .map(|f| f.name.clone())
         .unwrap_or_default();
     (field("mpn"), field("mfr"), footprint)
+}
+
+/// One femto-mm. Staging geometry is computed on the same exact-integer scale
+/// the lexer/`emit::geom` use, so it is byte-stable and renders canonically.
+const FEMTO_MM: i128 = 1_000_000_000_000_000;
+
+/// Grow the running bbox `(min_x, min_y, max_x, max_y)` to include a rect
+/// centered at `(cx, cy)` with half-extents `(hw, hh)` — all femto-mm.
+fn union_bbox(b: &mut Option<(i128, i128, i128, i128)>, cx: i128, cy: i128, hw: i128, hh: i128) {
+    let r = (cx - hw, cy - hh, cx + hw, cy + hh);
+    *b = Some(match *b {
+        None => r,
+        Some(o) => (o.0.min(r.0), o.1.min(r.1), o.2.max(r.2), o.3.max(r.3)),
+    });
+}
+
+/// A footprint's bounding box in femto-mm `(min_x, min_y, max_x, max_y)` — the
+/// union of every pad extent and the courtyard. An empty (RFC-017 placeholder)
+/// footprint has no geometry, so it gets a nominal 1×1 mm box, enough to stage
+/// it beside its neighbors without a zero-size overlap.
+fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
+    const NOMINAL_HALF: i128 = FEMTO_MM / 2; // 0.5mm → a 1×1mm nominal box
+    let mut b: Option<(i128, i128, i128, i128)> = None;
+    if let Some(fp) = world.footprints.get(fp_name) {
+        for place in &fp.pads {
+            if let Some(pad) = world.pads.get(&place.pad.name) {
+                let (w, h) = match pad.size.as_slice() {
+                    [w, h] => (w.femto, h.femto),
+                    [d] => (d.femto, d.femto),
+                    _ => continue,
+                };
+                union_bbox(&mut b, place.x.femto, place.y.femto, w / 2, h / 2);
+            }
+        }
+        if let Some(c) = &fp.courtyard {
+            let (w, h) = match c.size.as_slice() {
+                [w, h] => (w.femto, h.femto),
+                [d] => (d.femto, d.femto),
+                _ => (0, 0),
+            };
+            if w > 0 && h > 0 {
+                union_bbox(&mut b, c.at.0.femto, c.at.1.femto, w / 2, h / 2);
+            }
+        }
+    }
+    b.unwrap_or((-NOMINAL_HALF, -NOMINAL_HALF, NOMINAL_HALF, NOMINAL_HALF))
+}
+
+/// Component staging positions (component path → origin in femto-mm), keyed so
+/// the emit loop can look each one up. Empty when the design declares no
+/// `board_outline` (nothing to stage against — components keep the (0,0)
+/// placeholder). Otherwise: a deterministic shelf-packed grid immediately to
+/// the RIGHT of the outline, so every component's full footprint lies outside
+/// the perimeter (Quilter's "please place me" signal) and no two overlap.
+fn staging_positions(
+    world: &World,
+    ir: &DesignIr,
+    insts: &[&crate::ir::IrInstance],
+) -> BTreeMap<String, (i128, i128)> {
+    let mut out = BTreeMap::new();
+    let Some(bo) = &ir.layout.board_outline else {
+        return out;
+    };
+    let margin = 5 * FEMTO_MM;
+    let gap = 2 * FEMTO_MM;
+    let out_right = bo.at.0.femto + bo.size.0.femto / 2;
+    let out_top = bo.at.1.femto + bo.size.1.femto / 2;
+    let start_x = out_right + margin;
+    // Shelf width ≈ the board width, but never narrower than the widest
+    // component (so no component overflows its shelf and the block stays a
+    // tidy rectangle beside the board rather than a long strip).
+    let bbox = |inst: &crate::ir::IrInstance| footprint_bbox(world, &part_fields(world, inst).2);
+    let widest = insts
+        .iter()
+        .map(|i| {
+            let (lo_x, _, hi_x, _) = bbox(i);
+            hi_x - lo_x
+        })
+        .max()
+        .unwrap_or(0);
+    let limit_x = start_x + bo.size.0.femto.max(widest);
+    let mut cursor_x = start_x;
+    let mut row_top = out_top; // rows extend downward from the board's top edge
+    let mut row_h = 0i128;
+    for inst in insts {
+        let (lo_x, lo_y, hi_x, hi_y) = bbox(inst);
+        let (bw, bh) = (hi_x - lo_x, hi_y - lo_y);
+        if cursor_x > start_x && cursor_x + bw > limit_x {
+            row_top -= row_h + gap;
+            cursor_x = start_x;
+            row_h = 0;
+        }
+        // Left edge of the bbox at cursor_x, top at row_top; the ORIGIN is
+        // offset by the bbox's own min corner (footprints aren't origin-centered).
+        out.insert(inst.path.clone(), (cursor_x - lo_x, (row_top - bh) - lo_y));
+        cursor_x += bw + gap;
+        row_h = row_h.max(bh);
+    }
+    out
 }
 
 /// Same principal-value rule as the KiCad/BOM emitters.

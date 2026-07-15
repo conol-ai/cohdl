@@ -1297,3 +1297,24 @@ Honest boundaries / deviations:
   schema-valid — not that a Quilter round-trip has been run. Component
   placement remains Quilter's to perform; the `logical-complete,
   physical-minimal` marker still governs.
+
+### Follow-up: component staging outside the outline (2026-07-15)
+
+Loading the emitted document into Quilter surfaced a placement-model mismatch:
+Quilter treats every component INSIDE the board outline as pre-placed/locked
+and only places/routes the components left OUTSIDE it (docs.quilter.ai —
+"prepare your input board file", "pre-placed components"). The
+`physical-minimal` all-at-`(0,0)` placeholder therefore read as 49 components
+locked at the board centre ("Components to Place: 0"), stacked in a blob.
+
+Fix: `emit_ipc2581` now stages every component in a deterministic,
+non-overlapping shelf-packed grid immediately to the RIGHT of the outline
+(each component's full footprint bbox — pad extents ∪ courtyard — lies past
+`outline_right + 5mm`), so Quilter treats all of them as placeable. Geometry
+is exact over the femto integers (`emit::geom::mm_femto`), byte-stable, and
+verified: for rpi-pico2 all 49 components sit fully outside the 51×21mm
+outline with zero overlapping pairs. Designs with no `board_outline` keep the
+`(0,0)` placeholder (nothing to stage against). This is still NOT a real
+placement — it is the "unplaced, please place me" input a placement engine
+consumes — so the `logical-complete,physical-minimal` marker is unchanged.
+Tests: `tests/ipc2581.rs` gains staged-outside / origin-without-outline cases.

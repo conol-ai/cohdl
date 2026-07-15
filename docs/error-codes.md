@@ -57,7 +57,7 @@ CLI-only has at least one real call site in `src/`.
 | E102 | negative bare number (only `Temperature` and `Length` literals may be negative) |
 | E103 | unknown unit suffix |
 | E104 | SI prefix not allowed for this unit (incl. any prefix on `Temperature`/`Tolerance`) |
-| E105 | leading `-` on a non-`Temperature` unit literal |
+| E105 | leading `-` on a unit literal whose type is not signed (only `Temperature` and `Length` may carry a sign) |
 | E106 | literal not exactly representable (too precise / out of range) |
 | E107 | standalone Unicode `Ω` (no preceding number) — narrower than E101, so the message can be maximally specific (RFC-011) |
 | E110 | unit-type mismatch — always names expected vs. actual (e.g. "expected `Voltage`, found `Capacitance`") |
@@ -78,7 +78,7 @@ CLI-only has at least one real call site in `src/`.
 | E207 | ambiguous unqualified name (RFC-016) — declared at more than one module path; names every candidate, suggests qualifying or `use` |
 | E208 | `use` collision (RFC-016) — one local name imported from two different paths; names both |
 | E209 | visibility violation (RFC-016) — a non-`pub` item referenced from another package; names the item and its declaring package |
-| E210 | unspellable module-path segment (RFC-016) — a subdirectory or nested-file name is a keyword or non-identifier, so its declarations cannot be referenced by any qualified path |
+| E210 | unspellable module-path segment (RFC-016) — the package root, a `src/`/`std/` subdirectory, or a nested-file name is a keyword or non-identifier, so its declarations cannot be referenced by any qualified path |
 
 ## E3xx — trait satisfaction at impl (RFC-003)
 

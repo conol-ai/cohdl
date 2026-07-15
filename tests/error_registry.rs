@@ -56,24 +56,35 @@ fn is_code(s: &str) -> bool {
 fn codes_in_source() -> BTreeSet<String> {
     let mut codes = BTreeSet::new();
     for path in src_files() {
-        let text = std::fs::read_to_string(&path).unwrap();
-        let bytes = text.as_bytes();
-        let mut i = 0;
-        while i < bytes.len() {
-            if bytes[i] == b'"' {
-                // A quoted 4- or 5-char code closed by another quote.
-                for len in [4usize, 5] {
-                    let close = i + 1 + len;
-                    if close < bytes.len() && bytes[close] == b'"' {
-                        let inner = &text[i + 1..close];
-                        if is_code(inner) {
-                            codes.insert(inner.to_string());
-                        }
+        codes.extend(codes_in_text(&std::fs::read_to_string(&path).unwrap()));
+    }
+    codes
+}
+
+/// Code-shaped string literals in one source text. Both registry directions
+/// share ONE literal-aware view (review R7-7): `strip_comments` blanks
+/// comments AND every raw-string form (`r#`/`br#`/`cr#`) while copying
+/// ordinary string literals verbatim, so a code-shaped word inside inert raw
+/// prose no longer creates a false registry obligation, but a real `"E###"`
+/// literal still counts.
+fn codes_in_text(raw: &str) -> BTreeSet<String> {
+    let mut codes = BTreeSet::new();
+    let text = strip_comments(raw);
+    let bytes = text.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'"' {
+            for len in [4usize, 5] {
+                let close = i + 1 + len;
+                if close < bytes.len() && bytes[close] == b'"' {
+                    let inner = &text[i + 1..close];
+                    if is_code(inner) {
+                        codes.insert(inner.to_string());
                     }
                 }
             }
-            i += 1;
         }
+        i += 1;
     }
     codes
 }
@@ -389,4 +400,29 @@ fn raw_strings_are_not_call_sites() {
         "raw/byte/c-string bodies must not count as call sites: {:?}",
         sites
     );
+}
+
+// R7-7: the source→registry scan is raw-string aware — a code inside inert
+// raw C/byte/raw prose is not a registry obligation, but a genuine literal is.
+#[test]
+fn codes_in_text_ignores_raw_literals() {
+    let real = codes_in_text("let d = Diagnostic::error(\"E101\", s, m);");
+    assert!(
+        real.contains("E101"),
+        "a genuine code literal counts: {:?}",
+        real
+    );
+    for raw in [
+        "const N: &str = cr#\"Diagnostic::error(\"E996\", s, \"x\")\"#;",
+        "const N: &str = br#\"E995 inside a raw byte string\"#;",
+        "// commented \"E994\"",
+    ] {
+        let found = codes_in_text(raw);
+        assert!(
+            found.is_empty(),
+            "raw/comment prose must not register a code: {:?} from `{}`",
+            found,
+            raw
+        );
+    }
 }

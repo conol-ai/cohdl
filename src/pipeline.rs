@@ -147,9 +147,16 @@ pub fn check_files_in(
     let mut diags = Diagnostics::new();
     let mut parsed = Vec::new();
     let mut modules = Vec::new();
-    for (i, (name, content)) in files.iter().enumerate() {
+    let mut root_error_emitted = false;
+    for (name, content) in files.iter() {
         let file_id = sm.add_file(name.clone(), content.clone());
-        if i == 0 {
+        // The package-root error belongs to the PROJECT, not to a compiler-
+        // owned std file that happens to load first (review R7-4). Anchor it
+        // to the first non-`std/` source so the CLI/LSP surface it on the file
+        // the author can actually fix.
+        let is_std = name == "std" || name.starts_with("std/");
+        if !root_error_emitted && !is_std {
+            root_error_emitted = true;
             if let Some(why) = root_unspellable {
                 diags.push(crate::diag::Diagnostic::error(
                     "E210",

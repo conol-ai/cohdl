@@ -1,0 +1,5 @@
+design.lock
+out/footprints/std-FP_C_0402_1005Metric.kicad_mod
+out/footprints/std-FP_R_0402_1005Metric.kicad_mod
+out/sensor-node-bom.csv
+out/sensor-node.net

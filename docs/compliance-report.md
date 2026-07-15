@@ -1093,3 +1093,82 @@ Still open (unchanged from review 5, restated honestly):
   alignment, empty-placeholder migration end-state.
 - Transactional artifact staging; the real-VS-Code and real-IPC-consumer
   acceptance passes.
+
+## External review round 7 (Codex, at 4122a33): dispositions
+
+Review 7 found the review-6 fixes still split across shallow mechanisms —
+final-filename vs directory traversal, the fn-body pass vs expansion, written
+generic syntax vs resolved substitution, malformed-envelope vs method
+dispatch, one registry scan direction vs the other. Nine findings; all fixed
+or extended in code with regressions, plus honest scoping on the two that are
+larger architectural items. State: 308 tests passing.
+
+- **R7-1 (high) — containment + ownership.** The writer checked only the
+  final path component and opted net/BOM/lock/layout out of ownership. Now:
+  (a) `ensure_contained` refuses to build into an `out/` (or `out/footprints/`)
+  reachable through a symlinked ancestor — a planted `out -> ../victim` no
+  longer lets a build escape the project; (b) a per-build GENERATED-FILE
+  MANIFEST (`out/.cohdl-manifest`, project-relative, sorted) is the single
+  ownership primitive for EVERY artifact — `write_artifact` refuses to
+  overwrite a file not in the prior manifest, and the stale sweep removes only
+  manifest files, safely (`remove_owned` never follows a symlink to its
+  target). `design.lock` is exempt (format-validated as `prior_lock` at build
+  start, and committed for designator stability). The example goldens carry a
+  committed manifest; a pre-manifest project's first build refuses its old
+  outputs (delete `out/` once) — the SAFE migration. (tests/cli.rs
+  `build_refuses_symlinked_out_dir`, `build_refuses_foreign_net_and_bom`,
+  `build_manifest_enables_reownership`, plus the R6-1 exact-name/symlink
+  tests.) Transactional staging across a mid-build refusal remains open.
+- **R7-2 (high) — fn-body semantics.** The pass was extended well beyond
+  existence: concrete-device pin existence (E203/E602), a unit-typed generic
+  used as an instance type (E205), call arity (E502) and argument bases,
+  device generic arity (E401) + concrete unit-literal type mismatch (E112),
+  and missing structural-variant selectors (E904) — all now caught in an
+  UNCALLED fn. (tests/modules.rs `uncalled_fn_body_deeper_semantics`.) Stated
+  honestly (and the module doc no longer overclaims): this is NOT yet the
+  single unified semantic checker shared with expansion — bound satisfaction
+  over abstract fn generics, layout-constraint arity in fn bodies,
+  duplicate-local and call-graph-cycle detection remain expansion's at call
+  time. That unification is the deferred architectural item.
+- **R7-3 (medium) — resolved identity.** The same-MPN signature now resolves
+  generic DEFAULTS (so `R` and `R<1kohm>` with `V = 1kohm` are one component)
+  and uses the EFFECTIVE footprint (an `alt` that omits `footprint:` inherits
+  the primary's, not compared as empty). (tests/library.rs
+  `default_equivalent_generics_are_the_same_component`,
+  `omitted_alt_footprint_inherits_primary`.) A structured typed
+  `ComponentIdentity` (vs a formatted string) and a defensive emitter-boundary
+  assertion remain nice-to-haves.
+- **R7-4 (medium) — E210 anchoring.** The package-root error is anchored to
+  the first PROJECT source, not a compiler-owned `std/` file that loads first.
+  (tests/modules.rs `keyword_package_root_anchors_to_project_file`.) The LSP
+  false-clean-publish concern is noted; a dedicated manifest-error surface
+  (`window/showMessage`) is a follow-up.
+- **R7-5 (medium-low) — doc-path grammar.** A component-based grammar now
+  rejects `./`, `..`, empty components (`docs//x`, trailing `docs/`), and a
+  scheme/drive after `./` normalization — not just direct forms.
+  (tests/library.rs `doc_paths_reject_dot_slash_and_empty_components`.)
+- **R7-6 (medium-low) — method-shape id.** The transport classifies each
+  method as request or notification and validates id presence: a
+  notification presented with an id (including `exit`) gets InvalidRequest and
+  does NOT perform the action; a request without an id is dropped.
+  (tests/lsp.rs `notification_with_id_is_invalid_request`,
+  `exit_with_id_does_not_terminate`.)
+- **R7-7 (medium-low) — registry scan.** Both directions now share ONE
+  literal-aware view (`strip_comments`, raw-string aware including `cr#`), so a
+  code inside inert raw prose creates no obligation in EITHER direction.
+  (tests/error_registry.rs `codes_in_text_ignores_raw_literals`.)
+- **R7-8 (low) — variant guard.** The guard now skips the pad comparison for
+  ANY ill-formed variant selection (including a selector on a non-variant
+  device → E905), and a regression exercises the checker DIRECTLY (the branch
+  the normal pipeline never reaches because E90x already blocks the build).
+  (tests/footprint.rs `selector_on_non_variant_device_does_not_cascade_e807`.)
+- **R7-9 (low/medium) — comment/name sweep.** Live source drift updated:
+  E105/E210 registry rows, the footprints module comment (build phase),
+  lex.rs and units.rs signed-unit comments, and the unit test names
+  (`parses_all_unit_types`, `rejects_negative_except_signed_types`). The
+  normative `docs/design` `Length` amendment stays separately open note-side.
+
+Still open (unchanged): the fn-body/expansion unification (R7-2), transactional
+staging (R7-1), R5-1 dependency loading, R5-8 IPC geometry fidelity, R5-10 LSP
+polish + the LSP manifest-error surface (R7-4), R5-13 note-side amendments, and
+the real editor/consumer acceptance passes.

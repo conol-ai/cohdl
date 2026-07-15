@@ -5,9 +5,9 @@
 //! the instantiated IR, so a bad part is caught whether or not a design
 //! happens to instantiate it — the correctness of a declaration-only
 //! library must not depend on a consumer exercising every exported part.
-//! It runs during the CHECK phase (both `cohdl check` and `cohdl build`),
-//! since a part statically declares both its footprint and its device — no
-//! binding is required. Every AVL entry's footprint is checked — an
+//! It runs at BUILD (RFC-018 pins the pad/device comparison to `cohdl build`;
+//! review R6-5), but declaration-complete — it walks `world.parts`, not the
+//! instantiated IR, so an unused part is still checked. Every AVL entry's footprint is checked — an
 //! alt-sourced part must fit the same land pattern, or the mismatch stays
 //! latent until a fab swaps sources. A footprint with a fully EMPTY body is
 //! RFC-017's stage-one placeholder and is exempt (a courtyard-only
@@ -36,13 +36,18 @@ pub fn check_pad_consistency(world: &World, diags: &mut Diagnostics) {
         };
         // A part pins its own structural variant (RFC-008).
         let variant = part.device.variant.as_ref().map(|v| v.name.as_str());
-        // Skip the pad comparison when the variant selection is structurally
-        // invalid (review R6-5): `pins_for` returns an empty set for a
-        // missing/unknown variant, which would fabricate a spurious "extra
-        // pad" E807 on top of the real E903/E904 already reported.
-        if device.has_variants()
-            && !variant.is_some_and(|v| device.variants.iter().any(|dv| dv.name == v))
-        {
+        // Skip the pad comparison unless the variant selection is structurally
+        // VALID (review R6-5/R7-8): `pins_for` returns an empty set for any
+        // ill-formed selection, which would fabricate a spurious "extra pad"
+        // E807 on top of the real E903 (unknown variant) / E904 (missing
+        // selector) / E905 (selector on a non-variant device).
+        let variant_ok = match (device.has_variants(), variant) {
+            (true, Some(v)) => device.variants.iter().any(|dv| dv.name == v),
+            (true, None) => false, // E904: a variant device needs a selector
+            (false, None) => true, // ordinary device, no selector: fine
+            (false, Some(_)) => false, // E905: selector on a non-variant device
+        };
+        if !variant_ok {
             continue;
         }
         for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {

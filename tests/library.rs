@@ -610,3 +610,76 @@ fn doc_paths_reject_drive_roots_and_uri_schemes() {
     );
     assert!(!r.contains("not a package-relative"), "{}", r);
 }
+
+// R7-3: the same-MPN identity resolves generic DEFAULTS — a part relying on a
+// default and one writing the same value explicitly are the same component.
+#[test]
+fn default_equivalent_generics_are_the_same_component() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device R<V: Resistance = 1kohm> { pins { A: 1 [passive] } }\npub footprint FP {}\n\
+             pub part PA: R { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n\
+             pub part PB: R<1kohm> { primary { mfr: \"Alpha\", mpn: \"SHARED\", footprint: FP } }\n",
+        )],
+    );
+    assert!(
+        !r.contains("E802"),
+        "default 1kohm and explicit 1kohm are the same component:\n{}",
+        r
+    );
+}
+
+// R7-3: an alt entry that omits its optional footprint inherits the primary's
+// effective footprint, so it is not falsely compared as empty.
+#[test]
+fn omitted_alt_footprint_inherits_primary() {
+    let (_c, r) = check(
+        "board",
+        &[(
+            "src/main.cohdl",
+            "pub device D { pins { A: 1 [passive] } }\npub footprint FP {}\n\
+             pub part PX: D { primary { mfr: \"Z\", mpn: \"AAA\", footprint: FP } }\n\
+             pub part PY: D { primary { mfr: \"Z\", mpn: \"BBB\", footprint: FP }\n\
+                 alt { mfr: \"Z\", mpn: \"AAA\" } }\n",
+        )],
+    );
+    // PY's alt (mfr Z, mpn AAA, inheriting FP) matches PX (mfr Z, mpn AAA, FP)
+    // — same component, no false conflict.
+    assert!(
+        !r.contains("E802"),
+        "omitted alt footprint inherits primary:\n{}",
+        r
+    );
+}
+
+// R7-5: doc-path validation rejects `./`, empty components, and trailing
+// separators — not just direct scheme/drive forms.
+#[test]
+fn doc_paths_reject_dot_slash_and_empty_components() {
+    for path in [
+        "./file:/etc/passwd",
+        "./C:/Windows/System32/manual.pdf",
+        "docs//manual.pdf",
+        "docs/",
+        "./docs/x.pdf",
+    ] {
+        let (_c, r) = check(
+            "board",
+            &[(
+                "src/main.cohdl",
+                &format!(
+                    "#[doc(\"{}\")]\npub device D {{ pins {{ A: 1 [passive] }} }}\n",
+                    path
+                ),
+            )],
+        );
+        assert!(
+            r.contains("not a package-relative path"),
+            "doc path `{}` must be rejected:\n{}",
+            path,
+            r
+        );
+    }
+}

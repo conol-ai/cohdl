@@ -215,7 +215,7 @@ impl<'a> Lexer<'a> {
                 b'"' => self.string(start),
                 b'-' => {
                     // A `-` is only meaningful directly before a numeric
-                    // literal (Temperature is the sole signed unit type).
+                    // literal (Temperature and Length are the signed unit types).
                     if self.peek(1).is_some_and(|c| c.is_ascii_digit()) {
                         self.pos += 1;
                         self.number(start, true);

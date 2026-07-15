@@ -595,27 +595,50 @@ fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
             if mpn.trim().is_empty() {
                 continue;
             }
-            // Purchasable identity: the FQ device, its NORMALIZED generic
-            // binding, the selected variant, and THIS entry's FQ footprint.
-            let sig = format!(
-                "{}<{}>[{}] fp={}",
-                part.device.name.name,
-                part.device
+            // Purchasable identity (review R7-3): the FQ device, its RESOLVED
+            // generic binding (a written argument, else the parameter's
+            // default — so `R` and `R<1kohm>` with `V = 1kohm` are one
+            // component), the selected variant, and the EFFECTIVE footprint
+            // (an `alt` may omit `footprint:` and inherit the primary's, so an
+            // omitted alt footprint is not compared as empty).
+            let generic_sig = match world.devices.get(&part.device.name.name) {
+                Some(dev) => dev
+                    .generics
+                    .iter()
+                    .enumerate()
+                    .map(|(i, param)| match part.device.generic_args.get(i) {
+                        Some(arg) => normalize_generic_arg(arg),
+                        None => match &param.default {
+                            Some((v, _)) => format!("{}{}", v.femto, v.unit.type_name()),
+                            None => String::new(),
+                        },
+                    })
+                    .collect::<Vec<_>>()
+                    .join(","),
+                None => part
+                    .device
                     .generic_args
                     .iter()
                     .map(normalize_generic_arg)
                     .collect::<Vec<_>>()
                     .join(","),
+            };
+            let effective_fp = entry
+                .footprint
+                .as_ref()
+                .or(part.primary.footprint.as_ref())
+                .map(|f| f.name.as_str())
+                .unwrap_or("");
+            let sig = format!(
+                "{}<{}>[{}] fp={}",
+                part.device.name.name,
+                generic_sig,
                 part.device
                     .variant
                     .as_ref()
                     .map(|v| v.name.as_str())
                     .unwrap_or(""),
-                entry
-                    .footprint
-                    .as_ref()
-                    .map(|f| f.name.as_str())
-                    .unwrap_or("")
+                effective_fp
             );
             match seen.get(&(mfr.clone(), mpn.clone())) {
                 Some((prev_sig, prev_name, prev_span)) if *prev_sig != sig => {

@@ -608,3 +608,76 @@ fn build_refuses_exact_name_foreign_and_symlink() {
         let _ = std::fs::remove_dir_all(&tmp);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Seventh-review (2026-07-15) CLI regressions.
+
+// R7-1: a symlinked output directory must not let a build escape the project.
+#[cfg(unix)]
+#[test]
+fn build_refuses_symlinked_out_dir() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r71a-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, PAD_PROJECT);
+    let victim = std::env::temp_dir().join(format!("cohdl-victim-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&victim);
+    std::fs::create_dir_all(&victim).unwrap();
+    std::os::unix::fs::symlink(&victim, tmp.join("out")).unwrap();
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "symlinked out/ must be refused");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("symlink"));
+    assert_eq!(
+        std::fs::read_dir(&victim).unwrap().count(),
+        0,
+        "nothing written into the victim dir"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+    let _ = std::fs::remove_dir_all(&victim);
+}
+
+// R7-1: a foreign regular file at a generated NET/BOM path (no marker, no
+// manifest) is refused, not silently replaced.
+#[test]
+fn build_refuses_foreign_net_and_bom() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r71b-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, PAD_PROJECT);
+    std::fs::create_dir_all(tmp.join("out")).unwrap();
+    std::fs::write(tmp.join("out/t.net"), "FOREIGN NET\n").unwrap();
+    let out = cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "foreign net must be refused");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("refusing to overwrite"));
+    assert_eq!(
+        std::fs::read_to_string(tmp.join("out/t.net")).unwrap(),
+        "FOREIGN NET\n"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+// R7-1: a clean build writes a deterministic manifest, and a second build
+// (manifest present) overwrites its own files without complaint.
+#[test]
+fn build_manifest_enables_reownership() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-r71c-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, PAD_PROJECT);
+    assert!(cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .status()
+        .unwrap()
+        .success());
+    assert!(tmp.join("out/.cohdl-manifest").exists(), "manifest written");
+    // Second build succeeds (ownership via the manifest).
+    assert!(cohdl()
+        .args(["build", tmp.to_str().unwrap(), "--no-std"])
+        .status()
+        .unwrap()
+        .success());
+    let _ = std::fs::remove_dir_all(&tmp);
+}

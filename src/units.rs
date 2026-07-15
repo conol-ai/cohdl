@@ -212,7 +212,7 @@ impl SiPrefix {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnitValue {
     pub unit: UnitType,
-    /// Value in 10^-15 units. Negative only for Temperature.
+    /// Value in 10^-15 units. Negative only for the signed types (Temperature, Length).
     pub femto: i128,
     /// The literal as written in source, e.g. `100nF`.
     pub text: String,
@@ -359,7 +359,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_all_ten_units() {
+    fn parses_all_unit_types() {
         assert_eq!(v("3.3V").unit, UnitType::Voltage);
         assert_eq!(v("100nF").unit, UnitType::Capacitance);
         assert_eq!(v("10kohm").unit, UnitType::Resistance);
@@ -405,7 +405,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_negative_except_temperature() {
+    fn rejects_negative_except_signed_types() {
         let (p, u) = parse_suffix("V").unwrap();
         assert!(matches!(
             make_value(true, "5", p, u, "-5V"),

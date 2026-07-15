@@ -762,3 +762,32 @@ fn oversized_silkscreen_ref_is_rejected() {
         r
     );
 }
+
+// R7-8: the pad-consistency checker is recovery-safe for an ill-formed variant
+// selection (a selector on a non-variant device), even when invoked directly
+// — no fabricated E807 on top of the real E905.
+#[test]
+fn selector_on_non_variant_device_does_not_cascade_e807() {
+    use cohdl::check::footprints::check_pad_consistency;
+    use cohdl::diag::Diagnostics;
+    let files = vec![(
+        "src/main.cohdl".to_string(),
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub device Plain { pins { A: 1 [passive] } }\n\
+         pub footprint FP {\n    pad 1: P at (0mm, 0mm)\n}\n\
+         pub part BadSel: Plain[Z] { primary { mfr: \"m\", mpn: \"n\", footprint: FP } }\n\
+         design B {}\n"
+            .to_string(),
+    )];
+    let checked = check_files_in("board", &files, None).expect("selection");
+    // Call the checker directly (the branch the normal pipeline never reaches
+    // because E905 already blocks the build).
+    let mut diags = Diagnostics::new();
+    check_pad_consistency(&checked.world, &mut diags);
+    let r = diags.render(&checked.sm);
+    assert!(
+        !r.contains("E807"),
+        "no fabricated E807 for a bad selector:\n{}",
+        r
+    );
+}

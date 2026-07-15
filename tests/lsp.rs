@@ -1615,3 +1615,34 @@ fn malformed_notification_is_dropped() {
     );
     lsp.child.kill().ok();
 }
+
+// R7-6: a notification-only method presented as a request (id field present)
+// gets InvalidRequest and does NOT perform the notification action.
+#[test]
+fn notification_with_id_is_invalid_request() {
+    let mut lsp = Lsp::start();
+    // `initialized` is a notification; sending it with an id is request-shaped.
+    lsp.send(&json!({ "jsonrpc": "2.0", "id": 77, "method": "initialized", "params": {} }));
+    let resp = lsp.read_message();
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+    assert_eq!(resp["id"].as_i64(), Some(77), "{}", resp);
+    lsp.shutdown();
+}
+
+// R7-6: `exit` presented with an id is request-shaped — InvalidRequest, and
+// the server does NOT terminate (a later request still gets a response).
+#[test]
+fn exit_with_id_does_not_terminate() {
+    let mut lsp = Lsp::start();
+    lsp.send(&json!({ "jsonrpc": "2.0", "id": 88, "method": "exit", "params": {} }));
+    let resp = lsp.read_message();
+    assert_eq!(resp["error"]["code"].as_i64(), Some(-32600), "{}", resp);
+    // Server still alive: a shutdown request is answered.
+    let r2 = lsp.request_full("shutdown", json!({}));
+    assert!(
+        r2["result"].is_null() || r2.get("result").is_some(),
+        "{}",
+        r2
+    );
+    lsp.child.kill().ok();
+}

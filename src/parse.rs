@@ -917,21 +917,26 @@ impl<'a> Parser<'a> {
             // a URL, so a library never claims a document outside its own
             // package root.
             let path = &a.args[0].0;
-            // The first path segment (before the first `/`). A `:` there is a
-            // URI scheme (`file:`, `mailto:`, `data:`, `https:`) or a Windows
-            // drive root (`C:`) — both non-relative (review R6-6). A colon
-            // deeper in the path (a subdirectory/filename) is left alone.
-            let first_seg = path.split('/').next().unwrap_or(path);
+            // Canonical package-relative path grammar (review R6-6/R7-5): the
+            // ONLY separator is `/`; every component must be non-empty and not
+            // `.`/`..`; the FIRST component must not carry a URI scheme or
+            // Windows drive (`file:`, `mailto:`, `C:`). Splitting on `/` and
+            // validating each component catches leading `./`, `docs//x`,
+            // trailing `docs/`, and `./file:/…` (which a substring check
+            // missed by normalizing away the `./` first).
+            let components: Vec<&str> = path.split('/').collect();
             let bad = if path.trim().is_empty() {
                 Some("an empty path")
-            } else if path.starts_with('/') || path.starts_with('\\') {
-                Some("an absolute path")
             } else if path.contains('\\') {
                 Some("a `\\` backslash (not a canonical path separator)")
-            } else if first_seg.contains(':') {
+            } else if path.starts_with('/') {
+                Some("an absolute path")
+            } else if components.iter().any(|c| c.is_empty()) {
+                Some("an empty path component (leading, trailing, or doubled `/`)")
+            } else if components.iter().any(|c| *c == "." || *c == "..") {
+                Some("a `.`/`..` component (not a canonical relative path)")
+            } else if components[0].contains(':') {
                 Some("a URI scheme or drive root")
-            } else if path.split('/').any(|seg| seg == "..") {
-                Some("a `..` parent-directory escape")
             } else {
                 None
             };

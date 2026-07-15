@@ -197,21 +197,51 @@ fn parse_args() -> Result<Args, String> {
     Ok(args)
 }
 
-/// Write a generated artifact safely (review R6-1). Two guarantees:
-///
-/// - **Containment**: never follow a symlink at the destination — a planted
-///   output symlink must not let a build mutate a file outside the output
-///   directory. An existing symlink (live OR dangling) is refused, and the
-///   final write uses `create_new` (O_EXCL) so a symlink racing into the path
-///   after the check still cannot be followed.
-/// - **Ownership**: when `marker` is given, refuse to overwrite an existing
-///   regular file that does not contain it — CoHDL replaces only files it
-///   demonstrably wrote, and leaves a foreign file (even one that happens to
-///   share a generated name) untouched.
+/// Refuse to descend into an output directory reachable through a symlink
+/// (review R7-1): a build must be contained under the project root, so no
+/// symlinked ancestor between `root` and `dir` (inclusive) may be followed —
+/// otherwise a planted `out -> ../victim` lets a successful build write
+/// outside the project entirely. Checked before any `create_dir_all`.
+fn ensure_contained(root: &std::path::Path, dir: &std::path::Path) -> Result<(), String> {
+    // Walk the ancestors of `dir` that lie strictly below `root`, nearest
+    // first, and refuse any that exists as a symlink.
+    let mut chain: Vec<&std::path::Path> = Vec::new();
+    let mut cur = dir;
+    loop {
+        if cur == root {
+            break;
+        }
+        chain.push(cur);
+        match cur.parent() {
+            Some(p) => cur = p,
+            None => break, // dir is not under root; the caller joins under it
+        }
+    }
+    for c in chain {
+        if let Ok(md) = std::fs::symlink_metadata(c) {
+            if md.file_type().is_symlink() {
+                return Err(format!(
+                    "refusing to build into `{}`: `{}` is a symlink (a build must stay within the project directory)",
+                    dir.display(),
+                    c.display()
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Write a generated artifact safely (review R6-1/R7-1). Containment: never
+/// follow a symlink at the destination (an existing symlink — live or
+/// dangling — is refused, and the write uses `create_new`/O_EXCL so a
+/// symlink racing into the path cannot be followed). Ownership: refuse to
+/// overwrite an existing regular file CoHDL did not write last time —
+/// `owned` is the set of paths from the prior build manifest, so every
+/// artifact kind (not just marker-bearing ones) is protected uniformly.
 fn write_artifact(
     path: &std::path::Path,
     content: &str,
-    marker: Option<&str>,
+    owned: &std::collections::BTreeSet<std::path::PathBuf>,
 ) -> Result<(), String> {
     use std::io::Write as _;
     match std::fs::symlink_metadata(path) {
@@ -228,16 +258,11 @@ fn write_artifact(
             ));
         }
         Ok(_) => {
-            if let Some(m) = marker {
-                let ours = std::fs::read_to_string(path)
-                    .map(|t| t.contains(m))
-                    .unwrap_or(false);
-                if !ours {
-                    return Err(format!(
-                        "refusing to overwrite `{}`: it was not written by cohdl (no ownership marker)",
-                        path.display()
-                    ));
-                }
+            if !owned.contains(path) {
+                return Err(format!(
+                    "refusing to overwrite `{}`: it was not written by cohdl (not in the build manifest)",
+                    path.display()
+                ));
             }
             std::fs::remove_file(path)
                 .map_err(|e| format!("cannot replace `{}`: {}", path.display(), e))?;
@@ -252,6 +277,37 @@ fn write_artifact(
     f.write_all(content.as_bytes())
         .map_err(|e| format!("cannot write `{}`: {}", path.display(), e))?;
     Ok(())
+}
+
+/// Remove a file CoHDL wrote last time (in the prior manifest), safely:
+/// `symlink_metadata` so a symlink is unlinked (never followed to its
+/// target) and a directory is left alone (review R7-1).
+fn remove_owned(path: &std::path::Path) -> Result<(), String> {
+    match std::fs::symlink_metadata(path) {
+        Ok(md) if md.is_dir() => Ok(()), // never rmdir here
+        Ok(_) => std::fs::remove_file(path)
+            .map_err(|e| format!("cannot remove stale `{}`: {}", path.display(), e)),
+        Err(_) => Ok(()), // already gone
+    }
+}
+
+/// The prior build's manifest: the set of paths CoHDL wrote last time,
+/// one per line, relative to the manifest's directory. Absent/unreadable →
+/// empty (a first build owns nothing, so any pre-existing file is foreign).
+fn read_manifest(
+    manifest_path: &std::path::Path,
+    base: &std::path::Path,
+) -> std::collections::BTreeSet<std::path::PathBuf> {
+    let mut owned = std::collections::BTreeSet::new();
+    if let Ok(text) = std::fs::read_to_string(manifest_path) {
+        for line in text.lines() {
+            let line = line.trim();
+            if !line.is_empty() {
+                owned.insert(base.join(line));
+            }
+        }
+    }
+    owned
 }
 
 fn main() -> ExitCode {
@@ -413,86 +469,61 @@ fn run(args: &Args) -> Result<bool, String> {
     }
 
     let out_dir = proj.dir.join(&args.out_dir);
+    let mods_dir = out_dir.join("footprints");
+    // Containment (R7-1): refuse to build into an output dir reachable through
+    // a symlinked ancestor — a planted `out -> ../victim` must not let the
+    // build write outside the project.
+    ensure_contained(&proj.dir, &out_dir).map_err(|e| diags_then(&checked, e))?;
     std::fs::create_dir_all(&out_dir).map_err(|e| {
         diags_then(
             &checked,
             format!("cannot create `{}`: {}", out_dir.display(), e),
         )
     })?;
+
+    // Ownership manifest (R7-1): the set of files CoHDL wrote LAST build,
+    // stored project-relative so every artifact kind — netlist, BOM, lock,
+    // layout, `.kicad_mod`, IPC — shares one owner set. `write_artifact`
+    // refuses to overwrite an existing file NOT in this set (foreign), and
+    // stale removal only touches files that ARE in it.
+    let manifest_path = out_dir.join(".cohdl-manifest");
+    let mut owned = read_manifest(&manifest_path, &proj.dir);
+    // `design.lock` is always CoHDL's: the build already read and format-
+    // validated it as `prior_lock` (an unparseable lock errored earlier), and
+    // it is committed for designator stability — so it is owned regardless of
+    // the manifest (which a fresh checkout won't carry).
+    owned.insert(lock_path.clone());
+    let mut written: Vec<std::path::PathBuf> = Vec::new();
+
     let net_path = out_dir.join(format!("{}.net", proj.name));
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
-    write_artifact(&net_path, &artifacts.netlist, None).map_err(|e| diags_then(&checked, e))?;
-    write_artifact(&bom_path, &artifacts.bom, None).map_err(|e| diags_then(&checked, e))?;
-    write_artifact(&lock_path, &artifacts.lock.render(), None)
+    let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
+    let ipc_path = out_dir.join(format!("{}.xml", proj.name));
+
+    write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
+    written.push(net_path.clone());
+    write_artifact(&bom_path, &artifacts.bom, &owned).map_err(|e| diags_then(&checked, e))?;
+    written.push(bom_path.clone());
+    write_artifact(&lock_path, &artifacts.lock.render(), &owned)
         .map_err(|e| diags_then(&checked, e))?;
+    written.push(lock_path.clone());
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
-    // A design that no longer carries layout metadata must not leave a stale
-    // constraints file behind for a partner tool to consume.
-    let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
-    match &artifacts.layout {
-        Some(layout) => {
-            write_artifact(&layout_path, layout, None).map_err(|e| diags_then(&checked, e))?;
-        }
-        None => {
-            if layout_path.exists() {
-                std::fs::remove_file(&layout_path).map_err(|e| {
-                    diags_then(
-                        &checked,
-                        format!("cannot remove stale `{}`: {}", layout_path.display(), e),
-                    )
-                })?;
-                if !args.json {
-                    eprintln!("  removed stale {}", layout_path.display());
-                }
-            }
-        }
+    // A design that no longer carries layout metadata leaves it out of the new
+    // manifest, so the stale-file sweep below removes it.
+    if let Some(layout) = &artifacts.layout {
+        write_artifact(&layout_path, layout, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(layout_path.clone());
     }
 
-    // RFC-018: `.kicad_mod` projections for pad-bearing footprints — one
-    // file per footprint under out/footprints/. The directory is rebuilt
-    // from scratch each time (stale projections of renamed/removed
-    // footprints must not linger; same partner-safety rule as layout.json).
-    let mods_dir = out_dir.join("footprints");
+    // RFC-018: `.kicad_mod` projections for pad-bearing footprints.
     let mods = {
         let ir = checked.ir.as_ref().unwrap();
         emit::kicad_mod::emit_kicad_mods(&checked.world, ir)
     };
     let mut mod_paths: Vec<String> = Vec::new();
-    // Clear only the `.kicad_mod` files CoHDL owns — not the whole directory
-    // (review F4 ownership discipline): a user file that happens to share
-    // out/footprints/ must survive, while a renamed/removed footprint's stale
-    // projection must not linger.
-    if mods_dir.is_dir() {
-        for entry in std::fs::read_dir(&mods_dir)
-            .map_err(|e| {
-                diags_then(
-                    &checked,
-                    format!("cannot read `{}`: {}", mods_dir.display(), e),
-                )
-            })?
-            .flatten()
-        {
-            let p = entry.path();
-            // An extension names a format, not an owner (review R5-6): only
-            // remove a `.kicad_mod` that CoHDL demonstrably wrote, identified
-            // by the `(generator "cohdl")` marker every projection carries. A
-            // foreign `.kicad_mod` is preserved exactly as a foreign `.xml` is.
-            let ours = p.extension().is_some_and(|e| e == "kicad_mod")
-                && std::fs::read_to_string(&p)
-                    .map(|t| t.contains("(generator \"cohdl\")"))
-                    .unwrap_or(false);
-            if ours {
-                std::fs::remove_file(&p).map_err(|e| {
-                    diags_then(
-                        &checked,
-                        format!("cannot remove stale `{}`: {}", p.display(), e),
-                    )
-                })?;
-            }
-        }
-    }
     if !mods.is_empty() {
+        ensure_contained(&proj.dir, &mods_dir).map_err(|e| diags_then(&checked, e))?;
         std::fs::create_dir_all(&mods_dir).map_err(|e| {
             diags_then(
                 &checked,
@@ -501,49 +532,59 @@ fn run(args: &Args) -> Result<bool, String> {
         })?;
         for (_fq, base, content) in &mods {
             let p = mods_dir.join(format!("{}.kicad_mod", base));
-            // Ownership + symlink safe (R6-1): a foreign file at this exact
-            // generated name is refused, not overwritten; a symlink is refused.
-            write_artifact(&p, content, Some("(generator \"cohdl\")"))
-                .map_err(|e| diags_then(&checked, e))?;
+            write_artifact(&p, content, &owned).map_err(|e| diags_then(&checked, e))?;
+            written.push(p.clone());
             mod_paths.push(p.display().to_string());
         }
     }
 
-    // RFC-015: the IPC-2581 handoff artifact, only when `--emit ipc2581` was
-    // requested. Same stale-file rule as layout.json: a partner-consumed
-    // document that no longer matches the netlist must not linger.
-    let ipc_path = out_dir.join(format!("{}.xml", proj.name));
+    // RFC-015: the IPC-2581 handoff artifact, only when `--emit ipc2581`.
     if args.emit_ipc2581() {
         let ir = checked.ir.as_ref().unwrap();
         let doc = emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
-        write_artifact(&ipc_path, &doc, Some(emit::ipc2581::COMPLETENESS))
-            .map_err(|e| diags_then(&checked, e))?;
-    } else if ipc_path.exists() {
-        // Only delete an XML file CoHDL demonstrably wrote — identified by
-        // the completeness marker every emitted document carries. A
-        // user-owned file that merely shares the `<name>.xml` path is left
-        // untouched with a warning (review F4: an ordinary build must never
-        // silently delete a file it did not create).
-        let ours = std::fs::read_to_string(&ipc_path)
-            .map(|t| t.contains(emit::ipc2581::COMPLETENESS))
-            .unwrap_or(false);
-        if ours {
-            std::fs::remove_file(&ipc_path).map_err(|e| {
-                diags_then(
-                    &checked,
-                    format!("cannot remove stale `{}`: {}", ipc_path.display(), e),
-                )
-            })?;
+        write_artifact(&ipc_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(ipc_path.clone());
+    }
+
+    // Stale sweep (R7-1): every prior-owned file we did NOT rewrite this build
+    // is removed, safely (a symlink is unlinked, never followed to its target).
+    let written_set: std::collections::BTreeSet<&std::path::PathBuf> = written.iter().collect();
+    for old in &owned {
+        if !written_set.contains(old) {
+            remove_owned(old).map_err(|e| diags_then(&checked, e))?;
             if !args.json {
-                eprintln!("  removed stale {}", ipc_path.display());
+                eprintln!("  removed stale {}", old.display());
             }
-        } else if !args.json {
-            eprintln!(
-                "  note: {} exists but was not written by cohdl (no completeness marker) — left untouched",
-                ipc_path.display()
-            );
         }
     }
+
+    // Persist the new manifest (project-relative, sorted — byte-stable).
+    let mut rels: Vec<String> = written
+        .iter()
+        .filter_map(|p| p.strip_prefix(&proj.dir).ok())
+        .map(|rel| rel.display().to_string())
+        .collect();
+    rels.sort();
+    let manifest_body = format!("{}\n", rels.join("\n"));
+    // The manifest is CoHDL's own metadata: symlink-safe overwrite.
+    if std::fs::symlink_metadata(&manifest_path)
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false)
+    {
+        return Err(diags_then(
+            &checked,
+            format!(
+                "refusing to write `{}`: it is a symlink",
+                manifest_path.display()
+            ),
+        ));
+    }
+    std::fs::write(&manifest_path, &manifest_body).map_err(|e| {
+        diags_then(
+            &checked,
+            format!("cannot write `{}`: {}", manifest_path.display(), e),
+        )
+    })?;
 
     if args.json {
         let build = emit::json::BuildArtifacts {

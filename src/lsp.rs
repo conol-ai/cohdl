@@ -121,6 +121,35 @@ pub fn run_stdio() -> Result<LspExit, String> {
             continue;
         }
         let method = method_val.unwrap_or("");
+        // Method-shape validation (review R7-6): the id FIELD's presence must
+        // match the method's direction. A NOTIFICATION-only method presented
+        // as a request (id field present) is InvalidRequest and must NOT
+        // perform the notification action; a REQUEST-only method with no id is
+        // likewise InvalidRequest. Unknown methods fall through to `handle`.
+        let id_present = msg.get("id").is_some();
+        let shape_error = (is_notification_method(method) && id_present)
+            || (is_request_method(method) && !id_present);
+        if shape_error {
+            if id_present {
+                let resp_id = match id_val {
+                    Some(v) if v.is_string() || v.is_number() => v.clone(),
+                    _ => Value::Null,
+                };
+                write_message(
+                    &mut writer,
+                    &json!({
+                        "jsonrpc": "2.0",
+                        "id": resp_id,
+                        "error": {
+                            "code": -32600,
+                            "message": format!("Invalid Request: `{}` is a notification and takes no id", method),
+                        },
+                    }),
+                )?;
+            }
+            // A request-only method with no id has no id to answer under; drop.
+            continue;
+        }
         if method == "exit" {
             // LSP: exit after shutdown is clean; exit without it is not.
             return if matches!(server.state, Lifecycle::ShutDown) {
@@ -137,6 +166,31 @@ pub fn run_stdio() -> Result<LspExit, String> {
             write_message(&mut writer, &note)?;
         }
     }
+}
+
+/// LSP methods this server treats as REQUESTS (expect an id + a response).
+fn is_request_method(method: &str) -> bool {
+    matches!(
+        method,
+        "initialize"
+            | "shutdown"
+            | "textDocument/hover"
+            | "textDocument/definition"
+            | "textDocument/references"
+    )
+}
+
+/// LSP methods this server treats as NOTIFICATIONS (no id, no response).
+fn is_notification_method(method: &str) -> bool {
+    matches!(
+        method,
+        "initialized"
+            | "exit"
+            | "textDocument/didOpen"
+            | "textDocument/didChange"
+            | "textDocument/didSave"
+            | "textDocument/didClose"
+    )
 }
 
 // ---------------------------------------------------------------------------

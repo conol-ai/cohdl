@@ -950,3 +950,77 @@ fn keyword_std_segment_is_e210() {
     );
     assert!(r.contains("E210") && r.contains("device"), "{}", r);
 }
+
+// R7-2: uncalled fn bodies are checked for the deeper semantic classes, not
+// just wrong-kind/missing names: concrete-device pin existence, unit-generic
+// as an instance type, call arity, generic unit-type mismatch, and missing
+// structural-variant selectors.
+#[test]
+fn uncalled_fn_body_deeper_semantics() {
+    let cases: &[(&str, &str)] = &[
+        // concrete pin that does not exist
+        (
+            "pub device D { pins { A: 1 [passive] } }\nfn dead(p: Pin) { inst d: D  net _: p, d.NOPE }\ndesign B {}\n",
+            "E203",
+        ),
+        // a unit-typed generic used as an instance type
+        (
+            "fn dead<V: Voltage>() { inst x: V  net _: x }\ndesign B {}\n",
+            "E205",
+        ),
+        // call with the wrong argument count
+        (
+            "fn sink(p: Pin) {}\nfn dead(q: Pin) { sink() }\ndesign B {}\n",
+            "E502",
+        ),
+        // a generic unit-type mismatch on an instance
+        (
+            "pub device G<V: Voltage> { pins { A: 1 [passive] } }\nfn dead() { inst g: G<1kohm> }\ndesign B {}\n",
+            "E112",
+        ),
+        // a variant device instantiated with no selector
+        (
+            "pub device Var { variants { A, B }  pins[A] { required S: 1 [passive] }  pins[B] { required S: 2 [passive] } }\nfn dead() { inst v: Var }\ndesign B {}\n",
+            "E904",
+        ),
+    ];
+    for (src, code) in cases {
+        let (_c, r) = check("board", &[("src/main.cohdl", src)]);
+        assert!(
+            r.contains(code),
+            "expected {} for:\n{}\ngot:\n{}",
+            code,
+            src,
+            r
+        );
+    }
+}
+
+// R7-4: the package-root E210 is anchored to the PROJECT file, not a
+// compiler-owned std file that loads first.
+#[test]
+fn keyword_package_root_anchors_to_project_file() {
+    let (checked, r) = check(
+        "device",
+        &[
+            (
+                "std/prelude.cohdl",
+                "pub device StdThing { pins { A: 1 [passive] } }\n",
+            ),
+            ("src/main.cohdl", "design B {}\n"),
+        ],
+    );
+    assert!(r.contains("E210"), "{}", r);
+    // The E210's primary span must be in src/main.cohdl, not std/.
+    let e210 = checked
+        .diags
+        .iter()
+        .find(|d| d.code == "E210")
+        .expect("E210");
+    let file = checked.sm.name(e210.primary.span.file);
+    assert!(
+        file.contains("src/main.cohdl"),
+        "anchored to `{}`, not the project",
+        file
+    );
+}

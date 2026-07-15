@@ -454,3 +454,134 @@ fn fmt_round_trips_placement_hint() {
     let twice = format_source("p.cohdl", &once).unwrap();
     assert_eq!(once, twice);
 }
+
+// ---------------------------------------------------------------------------
+// board_outline — the pragmatic extension (rectangular board perimeter, E1006).
+
+fn with_outline(outline: &str) -> String {
+    BASE.replace(
+        "net USB_DM: r1.B, r2.B",
+        &format!("net USB_DM: r1.B, r2.B\n    layout {{ {} }}", outline),
+    )
+}
+
+#[test]
+fn board_outline_projects_to_layout_json() {
+    let built = build(&with_outline(
+        "board_outline { at: (1mm, -2mm), size: (51mm, 21mm) }",
+    ));
+    assert!(
+        !built.diags.contains("E1006"),
+        "unexpected error:\n{}",
+        built.diags
+    );
+    let json = built.layout.expect("layout.json");
+    assert!(
+        json.contains("\"board_outline\": { \"at\": [1, -2], \"size\": [51, 21] }"),
+        "board_outline missing/wrong in layout.json:\n{}",
+        json
+    );
+    // Byte-stable.
+    assert_eq!(
+        json,
+        build(&with_outline(
+            "board_outline { at: (1mm, -2mm), size: (51mm, 21mm) }"
+        ))
+        .layout
+        .unwrap()
+    );
+}
+
+#[test]
+fn no_board_outline_is_json_null() {
+    let built = build(&with_outline("net_class C { USB_DP }"));
+    let json = built.layout.expect("layout.json");
+    assert!(json.contains("\"board_outline\": null"), "{}", json);
+}
+
+#[test]
+fn board_outline_is_zero_impact_on_netlist_and_bom() {
+    let base = build(BASE);
+    let laid = build(&with_outline(
+        "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) }",
+    ));
+    assert_eq!(
+        base.netlist, laid.netlist,
+        "board_outline moved the netlist"
+    );
+    assert_eq!(base.bom, laid.bom, "board_outline moved the BOM");
+    assert_eq!(
+        base.verdict, laid.verdict,
+        "board_outline moved the verdict"
+    );
+    assert_eq!(
+        base.lock, laid.lock,
+        "board_outline moved the designator lock"
+    );
+}
+
+#[test]
+fn board_outline_non_length_is_e1006() {
+    let r = check_err(&with_outline(
+        "board_outline { at: (0mm, 0mm), size: (10V, 10mm) }",
+    ));
+    assert!(r.contains("E1006") && r.contains("Length"), "{}", r);
+}
+
+#[test]
+fn board_outline_non_positive_size_is_e1006() {
+    let r = check_err(&with_outline(
+        "board_outline { at: (0mm, 0mm), size: (0mm, 10mm) }",
+    ));
+    assert!(r.contains("E1006") && r.contains("positive"), "{}", r);
+}
+
+#[test]
+fn duplicate_board_outline_is_e1006() {
+    let two = "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) } \
+               board_outline { at: (0mm, 0mm), size: (20mm, 20mm) }";
+    let r = check_err(&with_outline(two));
+    assert!(r.contains("E1006") && r.contains("at most one"), "{}", r);
+}
+
+#[test]
+fn board_outline_inside_fn_is_e1006() {
+    // A fn body carrying a board_outline is rejected — a board has one
+    // physical perimeter, not one per sub-circuit call.
+    let src = r#"
+pub trait TwoTerminal { pins { required A: pin required B: pin } }
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+impl TwoTerminal for Res {}
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
+pub fn sub(x: Pin) {
+    inst r: R1
+    net _: x, r.A
+    layout { board_outline { at: (0mm, 0mm), size: (5mm, 5mm) } }
+}
+design Board {
+    inst r2: R1
+    net N: r2.A
+    sub(r2.B)
+}
+"#;
+    let r = check_err(src);
+    assert!(r.contains("E1006") && r.contains("fn"), "{}", r);
+}
+
+#[test]
+fn fmt_round_trips_board_outline() {
+    let src = "design B{layout{board_outline{at:(0mm,-1mm),size:(51mm,21mm)}}}";
+    let once = format_source("b.cohdl", src).unwrap();
+    assert!(
+        once.contains("board_outline { at: (0mm, -1mm), size: (51mm, 21mm) }"),
+        "{}",
+        once
+    );
+    let twice = format_source("b.cohdl", &once).unwrap();
+    assert_eq!(
+        once, twice,
+        "board_outline formatting is not idempotent:\n{}",
+        once
+    );
+}

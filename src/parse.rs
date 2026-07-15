@@ -2307,9 +2307,23 @@ impl<'a> Parser<'a> {
         self.bump(); // `layout`
         self.expect(&TokenKind::LBrace, "to open the layout block");
         let mut constraints = Vec::new();
+        let mut board_outline: Option<BoardOutline> = None;
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
             let before = self.pos;
-            if let Some(c) = self.layout_constraint() {
+            if self.at_ident("board_outline") {
+                match (&board_outline, self.board_outline()) {
+                    (Some(prev), Some(next)) => self.diags.push(
+                        Diagnostic::error(
+                            "E1006",
+                            next.span,
+                            "a design has at most one `board_outline`".to_string(),
+                        )
+                        .with_secondary(prev.span, "the first outline is here".to_string()),
+                    ),
+                    (None, Some(next)) => board_outline = Some(next),
+                    (_, None) => {}
+                }
+            } else if let Some(c) = self.layout_constraint() {
                 constraints.push(c);
             }
             if self.pos == before {
@@ -2321,8 +2335,92 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::RBrace, "to close the layout block");
         Some(Stmt::Layout(LayoutBlock {
             constraints,
+            board_outline,
             span: start.to(self.prev_span()),
         }))
+    }
+
+    /// `board_outline { at: (cx, cy), size: (w, h) }` — the rectangular board
+    /// perimeter. Field parsing mirrors `courtyard` (reuses `length_pair` /
+    /// `length_tuple`); unit-TYPE / range validation happens at assembly
+    /// (E1006), like the net-existence checks on the other layout constraints.
+    fn board_outline(&mut self) -> Option<BoardOutline> {
+        let start = self.span();
+        self.bump(); // `board_outline`
+        let open_span = self.span();
+        if !self.expect(&TokenKind::LBrace, "to open `board_outline`") {
+            return None;
+        }
+        let mut at: Option<(UnitValue, UnitValue)> = None;
+        let mut size: Option<(Vec<UnitValue>, Span)> = None;
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            // A member/decl keyword before the close means the brace is missing;
+            // stop WITHOUT consuming so the layout/design block can still close.
+            if self.at_ident("net_class")
+                || self.at_ident("diff_pair")
+                || self.at_ident("length_match")
+                || self.at_ident("board_outline")
+                || self.at_decl_keyword()
+            {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    open_span,
+                    format!(
+                        "unclosed `board_outline` — missing `}}` before {}",
+                        self.peek().describe()
+                    ),
+                ));
+                return None;
+            }
+            let Some(field) = self.ident("as a board_outline field (`at`, `size`)") else {
+                self.sync_in_block();
+                self.eat(&TokenKind::Comma);
+                continue;
+            };
+            self.expect(&TokenKind::Colon, "after the board_outline field name");
+            match field.name.as_str() {
+                "at" => match self.length_pair() {
+                    Some(pair) => at = Some(pair),
+                    None => self.sync_in_block(),
+                },
+                "size" => match self.length_tuple() {
+                    Some(tuple) => size = Some(tuple),
+                    None => self.sync_in_block(),
+                },
+                other => {
+                    self.diags.push(Diagnostic::error(
+                        "E1006",
+                        field.span,
+                        format!(
+                            "unknown board_outline field `{}` (expected `at` or `size`)",
+                            other
+                        ),
+                    ));
+                    self.sync_in_block();
+                }
+            }
+            self.eat(&TokenKind::Comma);
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close `board_outline`");
+        let span = start.to(self.prev_span());
+        let (Some(at), Some((size, size_span))) = (at, size) else {
+            self.diags.push(Diagnostic::error(
+                "E1006",
+                span,
+                "`board_outline` needs `at` and `size`".to_string(),
+            ));
+            return None;
+        };
+        Some(BoardOutline {
+            at,
+            size,
+            size_span,
+            span,
+        })
     }
 
     fn layout_constraint(&mut self) -> Option<LayoutConstraint> {

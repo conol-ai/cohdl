@@ -277,9 +277,9 @@ fn ipc2581_projects_real_pins_and_stays_schema_valid() {
     let (checked, _artifacts) = build_real(REAL);
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
-    // Real pins with shapes and locations.
+    // Real pins with shapes and locations; plating rides @mountType (R5-8).
     assert!(
-        xml.contains("<Pin number=\"1\" type=\"SURFACE\">"),
+        xml.contains("<Pin number=\"1\" type=\"SURFACE\" mountType=\"SURFACE_MOUNT_PAD\">"),
         "{}",
         xml
     );

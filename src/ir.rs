@@ -29,12 +29,27 @@ pub struct LayoutIr {
     pub net_classes: Vec<LayoutNetClass>,
     pub diff_pairs: Vec<LayoutDiffPair>,
     pub length_matches: Vec<LayoutLengthMatch>,
+    /// The rectangular board perimeter (pragmatic extension beyond RFC-013 —
+    /// see `ast::BoardOutline`). Projects into the IPC-2581 `Step/Profile`
+    /// (RFC-015, the Quilter handoff) and into `layout.json`.
+    pub board_outline: Option<BoardOutlineIr>,
 }
 
 impl LayoutIr {
     pub fn is_empty(&self) -> bool {
-        self.net_classes.is_empty() && self.diff_pairs.is_empty() && self.length_matches.is_empty()
+        self.net_classes.is_empty()
+            && self.diff_pairs.is_empty()
+            && self.length_matches.is_empty()
+            && self.board_outline.is_none()
     }
+}
+
+/// A validated rectangular board outline: center point + (width, height), all
+/// `Length` values in geometry range (checked at assembly, E1006).
+#[derive(Debug)]
+pub struct BoardOutlineIr {
+    pub at: (UnitValue, UnitValue),
+    pub size: (UnitValue, UnitValue),
 }
 
 #[derive(Debug)]

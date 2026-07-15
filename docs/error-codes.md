@@ -180,6 +180,7 @@ vocabulary — never a connectivity/DRC check, never affecting the netlist bytes
 | E1003 | `diff_pair` does not name exactly two nets |
 | E1004 | `length_match` names fewer than two nets |
 | E1005 | `[RESERVED, not yet implemented]` `net_class` referenced before declaration — activates only once a future constraint kind references a `net_class` by name (the four current kinds reference nets, not classes) |
+| E1006 | invalid `board_outline`: not a `Length`/`mm` value, a non-positive width/height, out of geometry range, more than one outline, or an outline inside a called `fn` rather than the design's own `layout {}` block. The board outline is a pragmatic extension beyond RFC-013's net-level vocabulary (docs/compliance-report.md); its structural checks live in the same E10xx family |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

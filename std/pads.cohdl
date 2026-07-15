@@ -1,7 +1,10 @@
-// RFC-018 starter pad library: common SMD chip pads, one per land-pattern
-// role. Dimensions follow the KiCad official footprints named in the
-// `was:` comments of std/footprints.cohdl (roundrect pads project to
-// `rect` — the closed shape vocabulary has no rounded rectangle).
+// RFC-018 pad library: reusable padstacks (shape, size, layer, plating),
+// one per land-pattern role. Dimensions follow the KiCad official footprints
+// named in each `was:` comment of std/footprints.cohdl and
+// examples/rpi-pico2/src/footprints.cohdl (roundrect pads project to `rect` —
+// the closed shape vocabulary has no rounded rectangle), or IPC-7351-nominal /
+// datasheet land patterns where KiCad ships no footprint under the board's
+// exact `was:` name.
 //
 // Reuse cuts both ways (RFC-018 Failure modes): a wrong dimension here
 // propagates to every footprint that references the pad. Treat edits to
@@ -19,6 +22,158 @@ pub pad P_Chip_R0402 {
 pub pad P_Chip_C0402 {
     shape: rect
     size: (0.56mm, 0.62mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad C_0201/R_0201_0603Metric numbered pad.
+pub pad P_Chip_0201 {
+    shape: rect
+    size: (0.46mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad C_0603_1608Metric pad.
+pub pad P_Chip_0603 {
+    shape: rect
+    size: (0.9mm, 0.95mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad C_0805_2012Metric pad.
+pub pad P_Chip_0805 {
+    shape: rect
+    size: (1mm, 1.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad LED_0603_1608Metric pad.
+pub pad P_Chip_LED0603 {
+    shape: rect
+    size: (0.875mm, 0.95mm)
+    layer: top_copper
+    plating: smd
+}
+
+// 0806 (2.0x1.6mm) chip-inductor land, IPC-7351 nominal.
+pub pad P_Ind_0806 {
+    shape: rect
+    size: (1mm, 1.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad SOT-23-5 lead pad.
+pub pad P_SOT23_Lead {
+    shape: rect
+    size: (1.325mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad SOT-523 lead pad.
+pub pad P_SOT523_Lead {
+    shape: rect
+    size: (0.51mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad D_SOD-123 terminal pad.
+pub pad P_SOD123_Term {
+    shape: rect
+    size: (0.9mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// KiCad Crystal_SMD_3225-4Pin hand-solder pad.
+pub pad P_Crystal3225 {
+    shape: rect
+    size: (2.1mm, 1.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+// QFN P0.4mm lead, left/right sides (long axis horizontal).
+pub pad P_QFN_P04_H {
+    shape: rect
+    size: (0.8mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// QFN P0.4mm lead, top/bottom sides (long axis vertical).
+pub pad P_QFN_P04_V {
+    shape: rect
+    size: (0.2mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+// QFN-60 exposed thermal pad (EP3.5x3.5mm).
+pub pad P_QFN60_EP {
+    shape: rect
+    size: (3.5mm, 3.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+// DFN/WQFN/USON P0.4mm lead, left/right sides.
+pub pad P_DFN_P04_Lead {
+    shape: rect
+    size: (0.5mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+
+// WQFN-10 exposed thermal pad (EP0.9x1.5mm).
+pub pad P_WQFN10_EP {
+    shape: rect
+    size: (0.9mm, 1.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+// USON-8 exposed thermal pad.
+pub pad P_USON8_EP {
+    shape: rect
+    size: (0.4mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB SMT signal pad, 0.65mm pitch.
+pub pad P_USB_Signal {
+    shape: rect
+    size: (0.4mm, 1.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB shield/mounting tab.
+pub pad P_USB_Shield {
+    shape: rect
+    size: (1.8mm, 2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Pico 2.54mm castellated edge pad.
+pub pad P_Castellated {
+    shape: rect
+    size: (1.7mm, 2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// TL3342 tactile-switch terminal pad.
+pub pad P_Switch_TL3342 {
+    shape: rect
+    size: (1.7mm, 1mm)
     layer: top_copper
     plating: smd
 }

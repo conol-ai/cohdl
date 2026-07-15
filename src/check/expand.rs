@@ -25,6 +25,7 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         net_decls: Vec::new(),
         nc_pins: Vec::new(),
         layout_raw: Vec::new(),
+        board_outline: None,
         active_calls: Vec::new(),
         call_counter: 0,
         anon_net_counter: 0,
@@ -88,6 +89,10 @@ struct Expander<'w, 'd> {
     /// RFC-013 layout constraints, collected with scope-resolved net names,
     /// validated against the final net set at assembly.
     layout_raw: Vec<RawLayout>,
+    /// The board outline (pragmatic extension; see `ast::BoardOutline`).
+    /// Collected once, at the design top level — a `board_outline` inside a
+    /// called fn is rejected (E1006). Geometry is validated on collection.
+    board_outline: Option<crate::ir::BoardOutlineIr>,
     /// fn names currently being expanded (cycle detection, RFC-006).
     active_calls: Vec<String>,
     /// Global (per-design) call counter — `__fn{N}_{name}` segments.
@@ -175,6 +180,105 @@ impl<'w, 'd> Expander<'w, 'd> {
             };
             self.layout_raw.push(raw);
         }
+        if let Some(outline) = &block.board_outline {
+            self.handle_board_outline(outline);
+        }
+    }
+
+    /// Validate and record the board outline (E1006). A rectangle whose
+    /// `at`/`size` are `Length` values in geometry range; declared at most
+    /// once, and only in the design's own layout block — never inside a
+    /// called fn (a board has one physical perimeter, not one per sub-circuit
+    /// instantiation).
+    fn handle_board_outline(&mut self, outline: &crate::ast::BoardOutline) {
+        use crate::units::UnitType;
+        if !self.active_calls.is_empty() {
+            self.diags.push(Diagnostic::error(
+                "E1006",
+                outline.span,
+                "`board_outline` is only valid in the design's own `layout {}` block, not inside a called `fn`".to_string(),
+            ));
+            return;
+        }
+        // `at` may be any signed Length in range; `size` must be two positive
+        // Length extents. Every geometry error is E1006 (the outline's own
+        // code), consistent with how footprint geometry uses E805/E806.
+        let mut ok = true;
+        let check =
+            |v: &crate::units::UnitValue, positive: bool, what: &str, diags: &mut Diagnostics| {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E1006",
+                        outline.span,
+                        format!(
+                            "board outline {} is a `Length` (`mm`) literal — `{}` is a `{}`",
+                            what,
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                    return false;
+                }
+                if positive && v.femto <= 0 {
+                    diags.push(Diagnostic::error(
+                        "E1006",
+                        outline.span,
+                        format!(
+                            "board outline {} `{}` must be a positive extent (> 0mm)",
+                            what, v.text
+                        ),
+                    ));
+                    return false;
+                }
+                if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E1006",
+                        outline.span,
+                        format!(
+                            "board outline {} `{}` is too large to project (review R5-5)",
+                            what, v.text
+                        ),
+                    ));
+                    return false;
+                }
+                true
+            };
+        ok &= check(&outline.at.0, false, "x", self.diags);
+        ok &= check(&outline.at.1, false, "y", self.diags);
+        let (w, h) = match outline.size.as_slice() {
+            [w, h] => (w, h),
+            _ => {
+                self.diags.push(Diagnostic::error(
+                    "E1006",
+                    outline.size_span,
+                    format!(
+                        "`board_outline` size takes `(width, height)` — found {} value{}",
+                        outline.size.len(),
+                        if outline.size.len() == 1 { "" } else { "s" }
+                    ),
+                ));
+                return;
+            }
+        };
+        ok &= check(w, true, "width", self.diags);
+        ok &= check(h, true, "height", self.diags);
+        if !ok {
+            return;
+        }
+        if self.board_outline.is_some() {
+            // Two design-level layout blocks each carrying an outline. (One
+            // block with two outlines is already rejected at parse time.)
+            self.diags.push(Diagnostic::error(
+                "E1006",
+                outline.span,
+                "a design has at most one `board_outline`".to_string(),
+            ));
+            return;
+        }
+        self.board_outline = Some(crate::ir::BoardOutlineIr {
+            at: (outline.at.0.clone(), outline.at.1.clone()),
+            size: (w.clone(), h.clone()),
+        });
     }
 
     // -- instances -----------------------------------------------------------
@@ -1045,7 +1149,9 @@ impl<'w, 'd> Expander<'w, 'd> {
 
         // RFC-013: validate layout constraints against declared-net identity
         // and build the (connectivity-independent) layout IR.
-        let layout = build_layout_ir(&self.layout_raw, &declared_to_merged, self.diags);
+        let mut layout = build_layout_ir(&self.layout_raw, &declared_to_merged, self.diags);
+        // The board outline (validated on collection) rides the same IR.
+        layout.board_outline = self.board_outline;
 
         let ir = DesignIr {
             name: design.name.name.clone(),

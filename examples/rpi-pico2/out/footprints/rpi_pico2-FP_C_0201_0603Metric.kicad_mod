@@ -1,0 +1,10 @@
+(footprint "rpi_pico2::FP_C_0201_0603Metric"
+  (version 20240108)
+  (generator "cohdl")
+  (layer "F.Cu")
+  (attr smd)
+  (fp_text reference "REF**" (at 0 -0.6) (layer "F.SilkS"))
+  (fp_rect (start -0.435 -0.2) (end 0.435 0.2) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (pad "1" smd rect (at -0.32 0) (size 0.46 0.4) (layers "F.Cu" "F.Paste" "F.Mask"))
+  (pad "2" smd rect (at 0.32 0) (size 0.46 0.4) (layers "F.Cu" "F.Paste" "F.Mask"))
+)

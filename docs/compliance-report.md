@@ -1229,3 +1229,71 @@ Honest boundaries / deviations:
 - **No package-lock.json committed** (gitignored) — the CI job runs
   `npm install` against the pinned `^`-ranges. A committed lockfile for fully
   reproducible extension builds is a reasonable future tightening.
+
+## rpi-pico2 Quilter-deliverability: real footprints + board outline (2026-07-15)
+
+Goal: make `examples/rpi-pico2`'s `build --emit ipc2581` a document a layout
+partner (Quilter) can actually consume. Quilter needs three things — a single
+closed board outline, pre-loaded component footprints (it does not manage
+footprints), and a valid netlist. The netlist was already faithful (RFC-015);
+this change adds the other two.
+
+What landed:
+
+- **Real footprint geometry for every rpi-pico2 footprint.** All ~14 board
+  footprints (`FP_QFN_60…`, `FP_Pico_Castellated_40`/`_3`, `FP_WQFN_10…`,
+  `FP_USON_8…`, `FP_USB_Micro_B_Wuerth…`, `FP_Crystal_SMD_3225…`, `FP_SOT_523`,
+  `FP_D_SOD_123`, `FP_SW_SPST_TL3342`, `FP_L_0806…`, `FP_R_0201…`, `FP_C_0201…`,
+  `FP_C_0805…`) plus the board-used std `FP_LED_0603…` moved from RFC-017
+  stage-one placeholders (empty body) to RFC-018 stage-two authored pad
+  geometry. The std library also gained real bodies for `FP_C_0603…` and
+  `FP_SOT_23_5`. Pad symbols live in an expanded `std/pads.cohdl` (19 pads).
+  The IPC document now carries 160 `Pin` elements across 17 `Package`s — one
+  per device pin, every footprint E807-consistent with its bound device — up
+  from 4 pins on 2 footprints.
+- **Board outline** — a new `board_outline { at: (cx, cy), size: (w, h) }`
+  statement inside the design's `layout {}` block, projecting to the IPC-2581
+  `Step/Profile` (a single closed rectangular polygon, ordered Datum < Profile
+  < Package per the XSD sequence) and to `layout.json`. rpi-pico2 declares the
+  51×21 mm Pico-2 perimeter.
+- **R5-8 narrowed** — pad plating now rides `Pin/@mountType`
+  (`SURFACE_MOUNT_PAD`/`THROUGH_HOLE_HOLE`). Copper layer and exact drill
+  diameter still have no home on the B1 `PinType` (they need a Step-level
+  `PadStackDef`); moot for this all-SMD, single-layer board.
+
+Checks/tests: `E1006` (board-outline geometry — non-Length, non-positive
+extent, out-of-range, duplicate, or inside a called `fn`) registered in
+docs/error-codes.md; `tests/layout.rs` gains 8 board-outline cases
+(layout.json projection, `null` absence, zero-impact on netlist/BOM/verdict/
+lock, the four E1006 failure modes, fmt round-trip); `tests/ipc2581.rs` gains
+Profile-emission, no-Profile-when-absent, and mountType cases and continues to
+schema-validate the real rpi-pico2 output against `IPC-2581B1.xsd`.
+
+Honest boundaries / deviations:
+
+- **`board_outline` is a pragmatic extension, NOT an Accepted-RFC construct.**
+  RFC-013's `layout {}` vocabulary is net-level (net_class/diff_pair/
+  length_match); RFC-015 and RFC-018 both explicitly deferred board outline /
+  stackup as named future work. This admits a board-level rectangular outline
+  into the same block ahead of a governing RFC — the same "the door was opened
+  ahead of its gate" posture RFC-013 itself was implemented under, per Tony's
+  directive. An RFC on conol.ai supersedes this shape (e.g. polygon outlines,
+  a dedicated board-level construct). Recorded here, not assumed permanent.
+- **Footprint geometry is nominal, not fab-golden.** Where KiCad's official
+  library ships the exact footprint named in a `was:` comment (the chip
+  passives, SOT-523, SOD-123, SOT-23-5, Crystal 3225, QFN-60 lead grid), pad
+  positions/sizes derive from it. Where it does not (the Wuerth micro-USB
+  hand-solder land, USON-8 1.0×1.5, WQFN-10 2×2, the 0806 inductor, the Pico
+  castellated headers), geometry is IPC-7351-nominal / datasheet-derived and
+  authored here. Pad COUNT and NUMBERING are exact (E807 enforces match to the
+  device); pad DIMENSIONS are a reasonable land pattern, not a
+  manufacturer-verified one. RFC-018 already names dimensional accuracy as an
+  unenforceable property; a real fab still reviews the library.
+- **Outline shape is rectangle-only.** A closed rectangle is a valid Quilter
+  seed; the true Pico-2 outline has rounded corners and a USB cutout. A
+  polygon/arc outline is future work.
+- **The partner handoff is still a HUMAN checkpoint.** "Deliverable to Quilter"
+  means the document now carries outline + land patterns + netlist and is
+  schema-valid — not that a Quilter round-trip has been run. Component
+  placement remains Quilter's to perform; the `logical-complete,
+  physical-minimal` marker still governs.

@@ -66,6 +66,21 @@ pub fn emit_layout_json(ir: &DesignIr) -> Option<String> {
             )
         },
     );
+    // Board outline (pragmatic extension; mm values, exact over the femto
+    // integers via emit::geom). `null` when the design declares none.
+    match &ir.layout.board_outline {
+        Some(bo) => {
+            let _ = writeln!(
+                out,
+                "  \"board_outline\": {{ \"at\": [{}, {}], \"size\": [{}, {}] }},",
+                crate::emit::geom::mm(&bo.at.0),
+                crate::emit::geom::mm(&bo.at.1),
+                crate::emit::geom::mm(&bo.size.0),
+                crate::emit::geom::mm(&bo.size.1)
+            );
+        }
+        None => out.push_str("  \"board_outline\": null,\n"),
+    }
     array(
         &mut out,
         "placement_hints",

@@ -618,6 +618,23 @@ impl Stmt {
 #[derive(Debug, Clone)]
 pub struct LayoutBlock {
     pub constraints: Vec<LayoutConstraint>,
+    /// A pragmatic extension beyond RFC-013's net-level constraints: an
+    /// optional rectangular board outline (center `at` + `size`), the single
+    /// closed board perimeter a downstream layout tool (Quilter, RFC-015)
+    /// needs. Board-level, not net-level — at most one, design top level only.
+    /// Ledgered in docs/compliance-report.md as an extension pending an RFC.
+    pub board_outline: Option<BoardOutline>,
+    pub span: Span,
+}
+
+/// `board_outline { at: (cx, cy), size: (w, h) }` — a rectangle, the only
+/// outline shape the MVP models (a closed perimeter is all Quilter requires
+/// to seed placement; a polygon outline is future work).
+#[derive(Debug, Clone)]
+pub struct BoardOutline {
+    pub at: (UnitValue, UnitValue),
+    pub size: Vec<UnitValue>,
+    pub size_span: Span,
     pub span: Span,
 }
 

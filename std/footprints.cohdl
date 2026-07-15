@@ -6,6 +6,12 @@
 // .kicad_mod / IPC-2581; the rest are still RFC-017 stage-one
 // placeholders (empty body = resolvable name only, exempt from E807)
 // pending real datasheet-derived authoring.
+//
+// Filled (stage two): the chip passives (0402/0603), LED 0603, SOT-23-5.
+// Still stage-one placeholders: the large multi-pad modules/connectors
+// (ESP32-S3-WROOM-1, InvenSense ICS-43434, USB-C receptacle) — not used by
+// any current example board, so their real land patterns are deferred until
+// a board needs them.
 
 // was: "Capacitor_SMD:C_0402_1005Metric" (geometry from that footprint)
 pub footprint FP_C_0402_1005Metric {
@@ -16,7 +22,12 @@ pub footprint FP_C_0402_1005Metric {
 }
 
 // was: "Capacitor_SMD:C_0603_1608Metric"
-pub footprint FP_C_0603_1608Metric {}
+pub footprint FP_C_0603_1608Metric {
+    pad 1: P_Chip_0603 at (-0.775mm, 0mm)
+    pad 2: P_Chip_0603 at (0.775mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 0.95mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}
 
 // was: "RF_Module:ESP32-S3-WROOM-1"
 pub footprint FP_ESP32_S3_WROOM_1 {}
@@ -25,7 +36,12 @@ pub footprint FP_ESP32_S3_WROOM_1 {}
 pub footprint FP_InvenSense_ICS_43434_6_3_5x2_65mm {}
 
 // was: "LED_SMD:LED_0603_1608Metric"
-pub footprint FP_LED_0603_1608Metric {}
+pub footprint FP_LED_0603_1608Metric {
+    pad 1: P_Chip_LED0603 at (-0.7875mm, 0mm)
+    pad 2: P_Chip_LED0603 at (0.7875mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.0125mm, 0.95mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}
 
 // was: "Resistor_SMD:R_0402_1005Metric" (geometry from that footprint)
 pub footprint FP_R_0402_1005Metric {
@@ -36,7 +52,15 @@ pub footprint FP_R_0402_1005Metric {
 }
 
 // was: "Package_TO_SOT_SMD:SOT-23-5"
-pub footprint FP_SOT_23_5 {}
+pub footprint FP_SOT_23_5 {
+    pad 1: P_SOT23_Lead at (-1.1375mm, -0.95mm)
+    pad 2: P_SOT23_Lead at (-1.1375mm, 0mm)
+    pad 3: P_SOT23_Lead at (-1.1375mm, 0.95mm)
+    pad 4: P_SOT23_Lead at (1.1375mm, 0.95mm)
+    pad 5: P_SOT23_Lead at (1.1375mm, -0.95mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.1mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}
 
 // was: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
 pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {}

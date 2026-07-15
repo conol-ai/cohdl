@@ -835,6 +835,23 @@ impl Formatter<'_> {
                         indent + 1,
                     );
                 }
+                if let Some(bo) = &s.board_outline {
+                    self.flush_leading(self.line_start(bo.span), indent + 1);
+                    self.push(
+                        indent + 1,
+                        format!(
+                            "board_outline {{ at: ({}, {}), size: ({}) }}",
+                            bo.at.0.text,
+                            bo.at.1.text,
+                            unit_list(&bo.size)
+                        ),
+                    );
+                    self.finish_construct(
+                        self.line_start(bo.span),
+                        self.line_end(bo.span),
+                        indent + 1,
+                    );
+                }
                 self.flush_leading(self.line_end(s.span), indent + 1);
                 self.push(indent, "}");
                 self.append_held(held);

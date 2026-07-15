@@ -1022,3 +1022,83 @@ fn elements_multiline(xml: &str, tag: &str) -> Vec<String> {
         .map(|(h, b)| format!("{}{}", h, b))
         .collect()
 }
+
+/// A board that declares a rectangular outline.
+const WITH_OUTLINE: &str = r#"
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub pad P { shape: rect size: (0.5mm, 0.6mm) layer: top_copper plating: smd }
+pub footprint FP { pad 1: P at (-0.5mm, 0mm) pad 2: P at (0.5mm, 0mm) courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 1mm) } }
+pub part R0: Res { primary { mfr: "m", mpn: "n", footprint: FP } }
+design B {
+    inst r1: R0
+    net N: r1.A
+    nc: r1.B
+    layout { board_outline { at: (0mm, 0mm), size: (51mm, 21mm) } }
+}
+"#;
+
+#[test]
+fn board_outline_emits_profile_polygon() {
+    let b = build("outline", WITH_OUTLINE);
+    // `<Profile>` has no attributes (the `blocks` helper matches `<Tag `), so
+    // check the emitted ring directly. 51x21 centered at origin → ±25.5/±10.5.
+    assert_eq!(
+        b.xml.matches("<Profile>").count(),
+        1,
+        "exactly one Profile:\n{}",
+        b.xml
+    );
+    for needle in [
+        "<Profile>",
+        "<PolyBegin x=\"-25.5\" y=\"-10.5\"/>",
+        "<PolyStepSegment x=\"25.5\" y=\"-10.5\"/>",
+        "<PolyStepSegment x=\"25.5\" y=\"10.5\"/>",
+        "<PolyStepSegment x=\"-25.5\" y=\"10.5\"/>",
+        "<PolyStepSegment x=\"-25.5\" y=\"-10.5\"/>",
+    ] {
+        assert!(
+            b.xml.contains(needle),
+            "Profile missing {}:\n{}",
+            needle,
+            b.xml
+        );
+    }
+    // The Profile sits between Datum and the first Package (schema sequence).
+    let (datum, pkg) = (
+        b.xml.find("<Datum").unwrap(),
+        b.xml.find("<Package ").unwrap(),
+    );
+    let prof = b.xml.find("<Profile>").unwrap();
+    assert!(
+        datum < prof && prof < pkg,
+        "Profile must be ordered Datum < Profile < Package"
+    );
+    xsd_validate("outline", &b.xml);
+}
+
+#[test]
+fn no_board_outline_emits_no_profile() {
+    // WITH_LAYOUT carries net-level constraints but no board_outline.
+    let b = build("no-outline", WITH_LAYOUT);
+    assert!(
+        !b.xml.contains("<Profile>"),
+        "unexpected Profile:\n{}",
+        b.xml
+    );
+}
+
+#[test]
+fn smd_pins_carry_mount_type() {
+    // R5-8 narrowing: pad plating now rides Pin/@mountType.
+    let b = build("mount", WITH_OUTLINE);
+    let pins = elements(&b.xml, "Pin");
+    assert!(!pins.is_empty(), "footprint FP has pads → Pins expected");
+    for p in &pins {
+        assert_eq!(
+            attr(p, "mountType").as_deref(),
+            Some("SURFACE_MOUNT_PAD"),
+            "smd pad Pin must carry mountType:\n{}",
+            p
+        );
+    }
+}

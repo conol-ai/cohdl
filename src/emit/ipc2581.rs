@@ -4,14 +4,20 @@
 //! (netlist, components, resolved specs, RFC-013 layout constraints) and,
 //! since RFC-018, PARTIAL footprint geometry (per-pad `Package/Pin` +
 //! courtyard `Outline`) for pad-bearing footprints — the `Pin` subset omits
-//! the pad's copper `layer`, its `drill`, and the footprint's
-//! `silkscreen_ref` (all present in the `.kicad_mod`); see docs/ipc2581.md,
-//! review R5-8. Physical layout is still
-//! deliberately minimal: no component PLACEMENT (every `Component/Location`
-//! is `(0,0)`), no routing, no board outline/`Profile`, no stackup. It is
-//! therefore NOT yet a complete Quilter starter board (which needs a board
-//! outline and placed footprints); the real-partner gate is open (review
-//! F1, docs/compliance-report.md). The document says so, visibly and
+//! the footprint's `silkscreen_ref` (present in the `.kicad_mod`). The pad's
+//! plating now rides the `Pin/@mountType` attribute (SMD → `SURFACE_MOUNT_PAD`,
+//! PTH → `THROUGH_HOLE_HOLE`), narrowing review R5-8: the copper `layer` and
+//! the exact `drill` diameter still have no home on `PinType` (they need a
+//! Step-level `PadStackDef`, deferred — moot for this all-SMD, single-layer
+//! board where every pad is `top_copper`/`smd`/drill-less). Physical layout
+//! is otherwise still minimal: no component PLACEMENT (every
+//! `Component/Location` is `(0,0)`), no routing, no stackup. A `Step/Profile`
+//! board outline IS emitted when the design declares a `board_outline` (a
+//! pragmatic extension beyond RFC-015's original cut —
+//! docs/compliance-report.md); with real per-pad footprints (RFC-018) and
+//! that outline, `--emit ipc2581` now carries the board boundary + land
+//! patterns + netlist a layout partner (Quilter) needs, though component
+//! placement is still theirs to perform. The document says so, visibly and
 //! machine-readably: the
 //! `FunctionMode` comment and a `COHDL_COMPLETENESS` attribute both carry
 //! the `logical-complete,physical-minimal` marker (DR-021 calls this the
@@ -170,6 +176,41 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     );
     out.push_str("        <Datum x=\"0\" y=\"0\"/>\n");
 
+    // Board outline → Step/Profile: the single closed board perimeter a
+    // downstream layout tool (Quilter) seeds placement/routing against. A
+    // pragmatic extension beyond RFC-015's original physical-minimal cut
+    // (which had no outline) — its presence is what lets `--emit ipc2581`
+    // carry a real board boundary; corners are exact over the femto integers
+    // (emit::geom), never floats. Absent when the design declares no
+    // `board_outline` (the completeness marker still says physical-minimal).
+    if let Some(bo) = &ir.layout.board_outline {
+        let (cx, cy) = &bo.at;
+        let (w, h) = &bo.size;
+        let corners = [
+            (geom::corner_lo(cx, w), geom::corner_lo(cy, h)),
+            (geom::corner_hi(cx, w), geom::corner_lo(cy, h)),
+            (geom::corner_hi(cx, w), geom::corner_hi(cy, h)),
+            (geom::corner_lo(cx, w), geom::corner_hi(cy, h)),
+        ];
+        out.push_str("        <Profile>\n");
+        out.push_str("          <Polygon>\n");
+        let _ = writeln!(
+            out,
+            "            <PolyBegin x=\"{}\" y=\"{}\"/>",
+            corners[0].0, corners[0].1
+        );
+        for (x, y) in corners.iter().skip(1).chain([corners[0].clone()].iter()) {
+            let _ = writeln!(
+                out,
+                "            <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                x, y
+            );
+        }
+        out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0.1\"/>\n");
+        out.push_str("          </Polygon>\n");
+        out.push_str("        </Profile>\n");
+    }
+
     // Packages: one per distinct footprint symbol. RFC-018: a pad-bearing
     // footprint projects REAL geometry (courtyard outline + one Pin per
     // pad); an RFC-017 stage-one placeholder keeps the zero-size idiom
@@ -244,15 +285,16 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 let (Some((shape, _)), Some((plating, _))) = (&pad.shape, &pad.plating) else {
                     continue;
                 };
-                let pin_type = match plating {
-                    crate::ast::PadPlating::Smd => "SURFACE",
-                    crate::ast::PadPlating::PlatedThroughHole => "THRU",
+                let (pin_type, mount_type) = match plating {
+                    crate::ast::PadPlating::Smd => ("SURFACE", "SURFACE_MOUNT_PAD"),
+                    crate::ast::PadPlating::PlatedThroughHole => ("THRU", "THROUGH_HOLE_HOLE"),
                 };
                 let _ = writeln!(
                     out,
-                    "          <Pin number=\"{}\" type=\"{}\">",
+                    "          <Pin number=\"{}\" type=\"{}\" mountType=\"{}\">",
                     esc(&sanitize(&place.number.text, true)),
-                    pin_type
+                    pin_type,
+                    mount_type
                 );
                 let _ = writeln!(
                     out,

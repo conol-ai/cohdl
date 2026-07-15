@@ -1,47 +1,249 @@
-// RFC-017 stage-one migration: placeholder footprint SYMBOLS, one per
-// KiCad footprint the board's own parts previously named as a string.
-// Bodies are deliberately empty — the footprint FORMAT (pad geometry)
-// is RFC-018's; until it lands these are resolvable names only. Each
-// `was:` comment records the original KiCad footprint id.
-
-// was: "Capacitor_SMD:C_0201_0603Metric"
-pub footprint FP_C_0201_0603Metric {}
-
-// was: "Capacitor_SMD:C_0805_2012Metric"
-pub footprint FP_C_0805_2012Metric {}
-
-// was: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
-pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {}
-
-// was: "Diode_SMD:D_SOD-123"
-pub footprint FP_D_SOD_123 {}
-
-// was: "Inductor_SMD:L_0806_2016Metric"
-pub footprint FP_L_0806_2016Metric {}
-
-// was: "Connector:Pico_Castellated_3"
-pub footprint FP_Pico_Castellated_3 {}
-
-// was: "Connector:Pico_Castellated_40"
-pub footprint FP_Pico_Castellated_40 {}
+// RFC-018 stage-two footprints for the rpi-pico2 board: real pad geometry
+// for every footprint the board's own parts bind. Pad symbols resolve to the
+// std pad library (std/pads.cohdl) through the std prelude; pad NUMBERS match
+// each bound device's declared pin numbers (RFC-002), so `cohdl build`'s
+// E807 pad-consistency check passes. Each `was:` comment records the KiCad
+// footprint id the geometry derives from (or the datasheet/IPC-7351 nominal
+// land pattern where KiCad ships no exact match — the Wuerth micro-USB
+// hand-solder land, the USON-8 1.0x1.5 / WQFN-10 packages, the 0806 inductor,
+// and the Pico castellated headers). Geometry feeds the .kicad_mod / IPC-2581
+// projection (RFC-015/018); it is nominal land-pattern data for partner
+// layout (Quilter), not a placement.
 
 // was: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm"
-pub footprint FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm {}
-
-// was: "Resistor_SMD:R_0201_0603Metric"
-pub footprint FP_R_0201_0603Metric {}
-
-// was: "Package_TO_SOT_SMD:SOT-523"
-pub footprint FP_SOT_523 {}
-
-// was: "Button_Switch_SMD:SW_SPST_TL3342"
-pub footprint FP_SW_SPST_TL3342 {}
-
-// was: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering"
-pub footprint FP_USB_Micro_B_Wuerth_614105150721_HandSoldering {}
-
-// was: "Package_SON:USON-8_1.0x1.5mm_P0.4mm"
-pub footprint FP_USON_8_1_0x1_5mm_P0_4mm {}
+pub footprint FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm {
+    pad 1: P_QFN_P04_H at (-3.45mm, -2.8mm)
+    pad 2: P_QFN_P04_H at (-3.45mm, -2.4mm)
+    pad 3: P_QFN_P04_H at (-3.45mm, -2mm)
+    pad 4: P_QFN_P04_H at (-3.45mm, -1.6mm)
+    pad 5: P_QFN_P04_H at (-3.45mm, -1.2mm)
+    pad 6: P_QFN_P04_H at (-3.45mm, -0.8mm)
+    pad 7: P_QFN_P04_H at (-3.45mm, -0.4mm)
+    pad 8: P_QFN_P04_H at (-3.45mm, 0mm)
+    pad 9: P_QFN_P04_H at (-3.45mm, 0.4mm)
+    pad 10: P_QFN_P04_H at (-3.45mm, 0.8mm)
+    pad 11: P_QFN_P04_H at (-3.45mm, 1.2mm)
+    pad 12: P_QFN_P04_H at (-3.45mm, 1.6mm)
+    pad 13: P_QFN_P04_H at (-3.45mm, 2mm)
+    pad 14: P_QFN_P04_H at (-3.45mm, 2.4mm)
+    pad 15: P_QFN_P04_H at (-3.45mm, 2.8mm)
+    pad 16: P_QFN_P04_V at (-2.8mm, 3.45mm)
+    pad 17: P_QFN_P04_V at (-2.4mm, 3.45mm)
+    pad 18: P_QFN_P04_V at (-2mm, 3.45mm)
+    pad 19: P_QFN_P04_V at (-1.6mm, 3.45mm)
+    pad 20: P_QFN_P04_V at (-1.2mm, 3.45mm)
+    pad 21: P_QFN_P04_V at (-0.8mm, 3.45mm)
+    pad 22: P_QFN_P04_V at (-0.4mm, 3.45mm)
+    pad 23: P_QFN_P04_V at (0mm, 3.45mm)
+    pad 24: P_QFN_P04_V at (0.4mm, 3.45mm)
+    pad 25: P_QFN_P04_V at (0.8mm, 3.45mm)
+    pad 26: P_QFN_P04_V at (1.2mm, 3.45mm)
+    pad 27: P_QFN_P04_V at (1.6mm, 3.45mm)
+    pad 28: P_QFN_P04_V at (2mm, 3.45mm)
+    pad 29: P_QFN_P04_V at (2.4mm, 3.45mm)
+    pad 30: P_QFN_P04_V at (2.8mm, 3.45mm)
+    pad 31: P_QFN_P04_H at (3.45mm, 2.8mm)
+    pad 32: P_QFN_P04_H at (3.45mm, 2.4mm)
+    pad 33: P_QFN_P04_H at (3.45mm, 2mm)
+    pad 34: P_QFN_P04_H at (3.45mm, 1.6mm)
+    pad 35: P_QFN_P04_H at (3.45mm, 1.2mm)
+    pad 36: P_QFN_P04_H at (3.45mm, 0.8mm)
+    pad 37: P_QFN_P04_H at (3.45mm, 0.4mm)
+    pad 38: P_QFN_P04_H at (3.45mm, 0mm)
+    pad 39: P_QFN_P04_H at (3.45mm, -0.4mm)
+    pad 40: P_QFN_P04_H at (3.45mm, -0.8mm)
+    pad 41: P_QFN_P04_H at (3.45mm, -1.2mm)
+    pad 42: P_QFN_P04_H at (3.45mm, -1.6mm)
+    pad 43: P_QFN_P04_H at (3.45mm, -2mm)
+    pad 44: P_QFN_P04_H at (3.45mm, -2.4mm)
+    pad 45: P_QFN_P04_H at (3.45mm, -2.8mm)
+    pad 46: P_QFN_P04_V at (2.8mm, -3.45mm)
+    pad 47: P_QFN_P04_V at (2.4mm, -3.45mm)
+    pad 48: P_QFN_P04_V at (2mm, -3.45mm)
+    pad 49: P_QFN_P04_V at (1.6mm, -3.45mm)
+    pad 50: P_QFN_P04_V at (1.2mm, -3.45mm)
+    pad 51: P_QFN_P04_V at (0.8mm, -3.45mm)
+    pad 52: P_QFN_P04_V at (0.4mm, -3.45mm)
+    pad 53: P_QFN_P04_V at (0mm, -3.45mm)
+    pad 54: P_QFN_P04_V at (-0.4mm, -3.45mm)
+    pad 55: P_QFN_P04_V at (-0.8mm, -3.45mm)
+    pad 56: P_QFN_P04_V at (-1.2mm, -3.45mm)
+    pad 57: P_QFN_P04_V at (-1.6mm, -3.45mm)
+    pad 58: P_QFN_P04_V at (-2mm, -3.45mm)
+    pad 59: P_QFN_P04_V at (-2.4mm, -3.45mm)
+    pad 60: P_QFN_P04_V at (-2.8mm, -3.45mm)
+    pad 61: P_QFN60_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.7mm, 7.7mm) }
+    silkscreen_ref { at: (0mm, -4.2mm) }
+}
 
 // was: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm"
-pub footprint FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm {}
+pub footprint FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm {
+    pad 1: P_DFN_P04_Lead at (-0.9mm, -0.8mm)
+    pad 2: P_DFN_P04_Lead at (-0.9mm, -0.4mm)
+    pad 3: P_DFN_P04_Lead at (-0.9mm, 0mm)
+    pad 4: P_DFN_P04_Lead at (-0.9mm, 0.4mm)
+    pad 5: P_DFN_P04_Lead at (-0.9mm, 0.8mm)
+    pad 6: P_DFN_P04_Lead at (0.9mm, 0.8mm)
+    pad 7: P_DFN_P04_Lead at (0.9mm, 0.4mm)
+    pad 8: P_DFN_P04_Lead at (0.9mm, 0mm)
+    pad 9: P_DFN_P04_Lead at (0.9mm, -0.4mm)
+    pad 10: P_DFN_P04_Lead at (0.9mm, -0.8mm)
+    pad 11: P_WQFN10_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.4mm, 2.4mm) }
+    silkscreen_ref { at: (0mm, -1.6mm) }
+}
+
+// was: "Package_SON:USON-8_1.0x1.5mm_P0.4mm"
+pub footprint FP_USON_8_1_0x1_5mm_P0_4mm {
+    pad 1: P_DFN_P04_Lead at (-0.4mm, -0.6mm)
+    pad 2: P_DFN_P04_Lead at (-0.4mm, -0.2mm)
+    pad 3: P_DFN_P04_Lead at (-0.4mm, 0.2mm)
+    pad 4: P_DFN_P04_Lead at (-0.4mm, 0.6mm)
+    pad 5: P_DFN_P04_Lead at (0.4mm, 0.6mm)
+    pad 6: P_DFN_P04_Lead at (0.4mm, 0.2mm)
+    pad 7: P_DFN_P04_Lead at (0.4mm, -0.2mm)
+    pad 8: P_DFN_P04_Lead at (0.4mm, -0.6mm)
+    pad 9: P_USON8_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.4mm, 1.9mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}
+
+// was: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
+pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {
+    pad 1: P_Crystal3225 at (-1.45mm, 1.15mm)
+    pad 2: P_Crystal3225 at (1.45mm, 1.15mm)
+    pad 3: P_Crystal3225 at (1.45mm, -1.15mm)
+    pad 4: P_Crystal3225 at (-1.45mm, -1.15mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5mm, 4.1mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}
+
+// was: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering"
+pub footprint FP_USB_Micro_B_Wuerth_614105150721_HandSoldering {
+    pad 1: P_USB_Signal at (-1.3mm, 2.5mm)
+    pad 2: P_USB_Signal at (-0.65mm, 2.5mm)
+    pad 3: P_USB_Signal at (0mm, 2.5mm)
+    pad 4: P_USB_Signal at (0.65mm, 2.5mm)
+    pad 5: P_USB_Signal at (1.3mm, 2.5mm)
+    pad 6: P_USB_Shield at (-2.6mm, 2.6mm)
+    pad 7: P_USB_Shield at (2.6mm, 2.6mm)
+    pad 8: P_USB_Shield at (-2.6mm, -1.3mm)
+    pad 9: P_USB_Shield at (2.6mm, -1.3mm)
+    courtyard { shape: rect, at: (0mm, 0.65mm), size: (7mm, 5.6mm) }
+    silkscreen_ref { at: (0mm, -2.7mm) }
+}
+
+// was: "Connector:Pico_Castellated_40"
+pub footprint FP_Pico_Castellated_40 {
+    pad 1: P_Castellated at (-8.89mm, -24.13mm)
+    pad 2: P_Castellated at (-8.89mm, -21.59mm)
+    pad 3: P_Castellated at (-8.89mm, -19.05mm)
+    pad 4: P_Castellated at (-8.89mm, -16.51mm)
+    pad 5: P_Castellated at (-8.89mm, -13.97mm)
+    pad 6: P_Castellated at (-8.89mm, -11.43mm)
+    pad 7: P_Castellated at (-8.89mm, -8.89mm)
+    pad 8: P_Castellated at (-8.89mm, -6.35mm)
+    pad 9: P_Castellated at (-8.89mm, -3.81mm)
+    pad 10: P_Castellated at (-8.89mm, -1.27mm)
+    pad 11: P_Castellated at (-8.89mm, 1.27mm)
+    pad 12: P_Castellated at (-8.89mm, 3.81mm)
+    pad 13: P_Castellated at (-8.89mm, 6.35mm)
+    pad 14: P_Castellated at (-8.89mm, 8.89mm)
+    pad 15: P_Castellated at (-8.89mm, 11.43mm)
+    pad 16: P_Castellated at (-8.89mm, 13.97mm)
+    pad 17: P_Castellated at (-8.89mm, 16.51mm)
+    pad 18: P_Castellated at (-8.89mm, 19.05mm)
+    pad 19: P_Castellated at (-8.89mm, 21.59mm)
+    pad 20: P_Castellated at (-8.89mm, 24.13mm)
+    pad 21: P_Castellated at (8.89mm, 24.13mm)
+    pad 22: P_Castellated at (8.89mm, 21.59mm)
+    pad 23: P_Castellated at (8.89mm, 19.05mm)
+    pad 24: P_Castellated at (8.89mm, 16.51mm)
+    pad 25: P_Castellated at (8.89mm, 13.97mm)
+    pad 26: P_Castellated at (8.89mm, 11.43mm)
+    pad 27: P_Castellated at (8.89mm, 8.89mm)
+    pad 28: P_Castellated at (8.89mm, 6.35mm)
+    pad 29: P_Castellated at (8.89mm, 3.81mm)
+    pad 30: P_Castellated at (8.89mm, 1.27mm)
+    pad 31: P_Castellated at (8.89mm, -1.27mm)
+    pad 32: P_Castellated at (8.89mm, -3.81mm)
+    pad 33: P_Castellated at (8.89mm, -6.35mm)
+    pad 34: P_Castellated at (8.89mm, -8.89mm)
+    pad 35: P_Castellated at (8.89mm, -11.43mm)
+    pad 36: P_Castellated at (8.89mm, -13.97mm)
+    pad 37: P_Castellated at (8.89mm, -16.51mm)
+    pad 38: P_Castellated at (8.89mm, -19.05mm)
+    pad 39: P_Castellated at (8.89mm, -21.59mm)
+    pad 40: P_Castellated at (8.89mm, -24.13mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (21mm, 51mm) }
+    silkscreen_ref { at: (0mm, -26mm) }
+}
+
+// was: "Connector:Pico_Castellated_3"
+pub footprint FP_Pico_Castellated_3 {
+    pad 1: P_Castellated at (-2.54mm, 0mm)
+    pad 2: P_Castellated at (0mm, 0mm)
+    pad 3: P_Castellated at (2.54mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.3mm, 2.5mm) }
+    silkscreen_ref { at: (0mm, -1.8mm) }
+}
+
+// was: "Button_Switch_SMD:SW_SPST_TL3342"
+pub footprint FP_SW_SPST_TL3342 {
+    pad 1: P_Switch_TL3342 at (-3.15mm, -1.9mm)
+    pad 2: P_Switch_TL3342 at (-3.15mm, 1.9mm)
+    pad 3: P_Switch_TL3342 at (3.15mm, -1.9mm)
+    pad 4: P_Switch_TL3342 at (3.15mm, 1.9mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8mm, 5mm) }
+    silkscreen_ref { at: (0mm, -2.9mm) }
+}
+
+// was: "Diode_SMD:D_SOD-123"
+pub footprint FP_D_SOD_123 {
+    pad 1: P_SOD123_Term at (-1.65mm, 0mm)
+    pad 2: P_SOD123_Term at (1.65mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 1.4mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}
+
+// was: "Package_TO_SOT_SMD:SOT-523"
+pub footprint FP_SOT_523 {
+    pad 1: P_SOT523_Lead at (-0.645mm, -0.5mm)
+    pad 2: P_SOT523_Lead at (-0.645mm, 0.5mm)
+    pad 3: P_SOT523_Lead at (0.645mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.9mm, 1.4mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}
+
+// was: "Inductor_SMD:L_0806_2016Metric"
+pub footprint FP_L_0806_2016Metric {
+    pad 1: P_Ind_0806 at (-0.95mm, 0mm)
+    pad 2: P_Ind_0806 at (0.95mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.9mm, 1.75mm) }
+    silkscreen_ref { at: (0mm, -1.75mm) }
+}
+
+// was: "Resistor_SMD:R_0201_0603Metric"
+pub footprint FP_R_0201_0603Metric {
+    pad 1: P_Chip_0201 at (-0.32mm, 0mm)
+    pad 2: P_Chip_0201 at (0.32mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
+    silkscreen_ref { at: (0mm, -0.6mm) }
+}
+
+// was: "Capacitor_SMD:C_0201_0603Metric"
+pub footprint FP_C_0201_0603Metric {
+    pad 1: P_Chip_0201 at (-0.32mm, 0mm)
+    pad 2: P_Chip_0201 at (0.32mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
+    silkscreen_ref { at: (0mm, -0.6mm) }
+}
+
+// was: "Capacitor_SMD:C_0805_2012Metric"
+pub footprint FP_C_0805_2012Metric {
+    pad 1: P_Chip_0805 at (-0.95mm, 0mm)
+    pad 2: P_Chip_0805 at (0.95mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.4mm, 1.45mm) }
+    silkscreen_ref { at: (0mm, -1.4mm) }
+}

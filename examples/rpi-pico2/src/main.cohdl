@@ -162,5 +162,8 @@ design Pico2 {
         diff_pair(USB_DPX, USB_DMX)
         length_match(USB_DPX, USB_DMX) [tolerance: 0.15mm]
         net_class Clock { XIN, XR }
+        // Raspberry Pi Pico 2 board outline (51 x 21 mm), the single closed
+        // perimeter the layout partner (Quilter) seeds placement against.
+        board_outline { at: (0mm, 0mm), size: (51mm, 21mm) }
     }
 }

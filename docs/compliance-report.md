@@ -1172,3 +1172,60 @@ Still open (unchanged): the fn-body/expansion unification (R7-2), transactional
 staging (R7-1), R5-1 dependency loading, R5-8 IPC geometry fidelity, R5-10 LSP
 polish + the LSP manifest-error surface (R7-4), R5-13 note-side amendments, and
 the real editor/consumer acceptance passes.
+
+## RFC-019 (VS Code extension) implementation notes (2026-07-15)
+
+Implemented per DR-025: a real, buildable, installable VS Code extension at
+`editors/vscode/`, packaging the already-Accepted `cohdl lsp` (RFC-014).
+Closes RFC-014's two explicitly-deferred items — the marketplace-extension
+packaging/grammar scope, and (partly) the real-client acceptance gate.
+
+What shipped:
+
+- **TextMate grammar** (`syntaxes/cohdl.tmLanguage.json`) registering `.cohdl`
+  for syntax highlighting — a static capability the LSP protocol has no verb
+  for, hence a genuinely separate artifact. Scope coverage is hand-authored
+  from the Accepted grammar (RFC-001…018): keywords, pin roles, unit type
+  names, unit literals (one regex class), attributes, strings, comments.
+- **Client wiring** (`src/extension.ts`) — a thin `vscode-languageclient`
+  spawn of `cohdl lsp`, identical in shape to the `docs/lsp.md` snippet, with
+  the one new `cohdl.path` setting (default `"cohdl"`, PATH-resolved) and a
+  VISIBLE activation-failure notification (RFC-019 Failure modes: a missing
+  binary must never be a silent blank Problems panel). ZERO new diagnostic
+  logic — the output is exactly `cohdl lsp`'s.
+- **Grammar-coverage regression test** (`test/grammar.test.mjs`) — tokenizes a
+  representative fixture against the committed grammar via the real
+  `vscode-textmate`/`vscode-oniguruma` engine and asserts every keyword /
+  literal-class token gets a scope (36 token classes; catches a keyword
+  falling through to plain text). Tooling-repo CI only, NOT inside
+  `cohdl check`/`cohdl build`.
+- **CI job** (`vscode-extension` in `.github/workflows/ci.yml`) — npm install,
+  `tsc` compile, grammar test, and `vsce package` the `.vsix`, on the same
+  workflow as the Rust gate.
+
+Honest boundaries / deviations:
+
+- **The dependency-free constitution is a COMPILER constraint, not an editor
+  one.** `editors/vscode/` necessarily uses `vscode-languageclient` (client)
+  and, for its own test, `vscode-textmate`/`vscode-oniguruma`. These are
+  confined to the extension package; the Rust crate (pipeline + emitters) and
+  the DR-020 LSP-layer scope are untouched. This is consistent with RFC-019's
+  "pure Layer-4 tooling" classification — but recorded explicitly so the
+  zero-deps claim's scope stays precise.
+- **The live-VS-Code acceptance pass is still a HUMAN checkpoint** (like the
+  KiCad checkpoint, docs/demo). The extension builds, packages to a `.vsix`,
+  and its grammar coverage is machine-tested; but a person actually installing
+  it and exercising diagnostics/hover/goto in a live editor is not something
+  this environment can run headlessly. RFC-014's real-client acceptance item
+  is therefore MOVED from "no path to try it" to "packaged and buildable,
+  awaiting a recorded human session" — a genuine narrowing, not a closure.
+  Tracked here and in docs/lsp.md.
+- **Grammar drift** is the disclosed maintenance risk (RFC-019 Failure modes):
+  the TextMate grammar is hand-authored, so a future keyword-adding/renaming
+  RFC must update `cohdl.tmLanguage.json` in the same change. The coverage
+  test catches a dropped keyword (plain-text fallthrough) but not a
+  mis-classified one; grammar review stays a human step. No compiler-enforced
+  guarantee is possible for an external editor's grammar file.
+- **No package-lock.json committed** (gitignored) — the CI job runs
+  `npm install` against the pinned `^`-ranges. A committed lockfile for fully
+  reproducible extension builds is a reasonable future tightening.

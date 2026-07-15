@@ -4,9 +4,10 @@ RFC-014's LSP server: a thin JSON-RPC/stdio frontend over the exact same
 `pipeline::check` the CLI runs — the same diagnostics source, projected into
 LSP shape. Implementation: `src/lsp.rs`; conformance tests (the diagnostics
 equivalence suite against `cohdl check --json` runs the full four-field
-projection over a fixture corpus): `tests/lsp.rs`. A pass in a live VS Code
-session has not yet been recorded — the RFC's real-client acceptance item is
-open (docs/compliance-report.md).
+projection over a fixture corpus): `tests/lsp.rs`. RFC-019 (DR-025) packages this server as an
+installable VS Code extension (`editors/vscode/`); a pass in a live VS Code
+session is still a human checkpoint, but the extension is now buildable,
+packaged to a `.vsix`, and grammar-coverage tested (docs/compliance-report.md).
 
 ## Capabilities (exactly RFC-014's four)
 
@@ -46,6 +47,21 @@ remain dependency-free.
 
 Build the binary once (`cargo build --release`), then point any LSP client at
 `cohdl lsp`.
+
+### VS Code — packaged extension (RFC-019)
+
+The recommended path: build and install the real extension at
+[`editors/vscode/`](../editors/vscode/), which registers `.cohdl`, ships a
+TextMate grammar for syntax color, and wires this server automatically —
+
+```sh
+cd editors/vscode && npm install && npm run package
+code --install-extension cohdl.vsix
+```
+
+Set `cohdl.path` if the `cohdl` binary is not on `PATH`. The snippets below
+remain valid for a generic LSP client or a quick extension-development-host
+try-out.
 
 ### VS Code (minimal client, via an extension development host or a generic
 LSP client extension)
@@ -95,5 +111,7 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.filetype.add({ extension = { cohdl = "cohdl" } })
 ```
 
-A full marketplace extension (grammar, packaging) is separate scope per the
-RFC; these snippets are the promised minimal launch configuration.
+The packaged extension (grammar + `.vsix`) that RFC-014 deferred is now real
+at [`editors/vscode/`](../editors/vscode/) (RFC-019). Marketplace publishing
+(publisher account, version cadence) remains a separate distribution decision
+per RFC-019's non-goals.

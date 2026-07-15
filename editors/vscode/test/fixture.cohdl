@@ -1,0 +1,48 @@
+// A representative CoHDL fixture for the grammar-coverage test (RFC-019).
+use std::passives::MLCC;
+
+pub trait TwoTerminal {
+    pins {
+        required A: pin
+        required B: pin
+    }
+}
+
+pub device ChipResistor<R: Resistance, T: Tolerance = 1%> {
+    variants { R0402, R0603 }
+    pins[R0402] {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec { resistance: R  tolerance: T }
+}
+
+impl TwoTerminal for ChipResistor {}
+
+pub pad P_Rect {
+    shape: rect
+    size: (0.6mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_R0402 {
+    pad 1: P_Rect at (-0.5mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.9mm, 1.0mm) }
+}
+
+#[doc("datasheets/r.pdf")]
+pub part R1K: ChipResistor<1kohm> {
+    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: FP_R0402 }
+}
+
+design Demo {
+    #[designator("R7")]
+    inst r1: R1K
+    net VDD [3.3V]: r1.A
+    nc: r1.B
+    layout {
+        net_class HS { VDD }
+        length_match(VDD, VDD) [tolerance: 0.15mm]
+    }
+}

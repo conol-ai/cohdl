@@ -1,0 +1,63 @@
+{
+  "name": "cohdl",
+  "displayName": "CoHDL",
+  "description": "Syntax highlighting and language-server support for CoHDL (.cohdl) — packages the built-in `cohdl lsp` (RFC-019).",
+  "version": "0.1.0",
+  "publisher": "conol-ai",
+  "license": "SEE LICENSE IN ../../LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conol-ai/cohdl"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": ["Programming Languages"],
+  "activationEvents": ["onLanguage:cohdl"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "cohdl",
+        "aliases": ["CoHDL", "cohdl"],
+        "extensions": [".cohdl"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cohdl",
+        "scopeName": "source.cohdl",
+        "path": "./syntaxes/cohdl.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "CoHDL",
+      "properties": {
+        "cohdl.path": {
+          "type": "string",
+          "default": "cohdl",
+          "description": "Path to the `cohdl` binary. Defaults to `cohdl` (resolved via PATH). Point this at a workspace-relative build (e.g. `${workspaceFolder}/target/debug/cohdl`) if the binary is not on PATH."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./test/grammar.test.mjs",
+    "package": "vsce package --no-dependencies -o cohdl.vsix",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.75.0",
+    "@vscode/vsce": "^2.24.0",
+    "typescript": "^5.4.0",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.0.0"
+  }
+}

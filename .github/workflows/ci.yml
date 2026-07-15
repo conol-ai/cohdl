@@ -31,3 +31,26 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test
         run: cargo test
+
+  # RFC-019: the VS Code extension is a separate packaging/grammar layer over
+  # `cohdl lsp` — its own tooling CI (compile, grammar-coverage test, build the
+  # .vsix), not part of the compiler pipeline. Kept in the same workflow so a
+  # change touching either surface is gated together.
+  vscode-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install
+        run: npm ci || npm install
+      - name: Compile
+        run: npm run compile
+      - name: Grammar coverage test
+        run: npm test
+      - name: Package .vsix
+        run: npm run package

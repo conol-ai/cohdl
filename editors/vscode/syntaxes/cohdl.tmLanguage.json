@@ -1,0 +1,126 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "CoHDL",
+  "scopeName": "source.cohdl",
+  "comment": "Hand-authored per RFC-019 (DR-025). Scope coverage derives from the real Accepted grammar (docs/design/10-language-specification.md, RFC-001..018) — NOT from the compiler's lexer. Any RFC that adds/renames a top-level keyword must update this file in the same change (RFC-019 Failure modes).",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#attributes" },
+    { "include": "#declarations" },
+    { "include": "#keywords" },
+    { "include": "#roles" },
+    { "include": "#unit-types" },
+    { "include": "#unit-literals" },
+    { "include": "#numbers" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.cohdl",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.cohdl",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        { "name": "constant.character.escape.cohdl", "match": "\\\\." }
+      ]
+    },
+    "attributes": {
+      "comment": "RFC-012 #[intent], RFC-013 #[placement_hint], RFC-005 #[designator], RFC-017 #[doc]",
+      "name": "meta.attribute.cohdl",
+      "begin": "#\\[",
+      "end": "\\]",
+      "beginCaptures": { "0": { "name": "punctuation.definition.attribute.cohdl" } },
+      "endCaptures": { "0": { "name": "punctuation.definition.attribute.cohdl" } },
+      "patterns": [
+        { "include": "#strings" },
+        { "name": "entity.name.function.attribute.cohdl", "match": "[A-Za-z_][A-Za-z0-9_]*" }
+      ]
+    },
+    "declarations": {
+      "comment": "A declaration keyword followed by the declared name.",
+      "patterns": [
+        {
+          "match": "\\b(device|trait|part|fn|design|footprint|pad)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.other.declaration.cohdl" },
+            "2": { "name": "entity.name.type.cohdl" }
+          }
+        },
+        {
+          "comment": "`impl Trait for Device` — highlight both type names.",
+          "match": "\\b(impl)\\b(?:\\s+([A-Za-z_][A-Za-z0-9_:]*))?(?:\\s+(for)\\s+([A-Za-z_][A-Za-z0-9_:]*))?",
+          "captures": {
+            "1": { "name": "keyword.other.declaration.cohdl" },
+            "2": { "name": "entity.name.type.cohdl" },
+            "3": { "name": "keyword.control.cohdl" },
+            "4": { "name": "entity.name.type.cohdl" }
+          }
+        },
+        {
+          "comment": "`inst name: Type` — the instance name.",
+          "match": "\\b(inst)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.other.declaration.cohdl" },
+            "2": { "name": "variable.other.cohdl" }
+          }
+        },
+        {
+          "comment": "`use pkg::mod::Name;` import path.",
+          "match": "\\b(use)\\s+([A-Za-z_][A-Za-z0-9_:]*)",
+          "captures": {
+            "1": { "name": "keyword.control.import.cohdl" },
+            "2": { "name": "entity.name.namespace.cohdl" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "comment": "Declaration + import keywords (contextual `use`/`pad`/`footprint`/`variants`/`layout` included).",
+          "name": "keyword.other.declaration.cohdl",
+          "match": "\\b(pub|device|trait|part|fn|design|impl|use|pad|footprint)\\b"
+        },
+        {
+          "comment": "Body / statement keywords.",
+          "name": "keyword.control.cohdl",
+          "match": "\\b(pins|spec|net|nc|inst|variants|layout|required|optional|for|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
+        }
+      ]
+    },
+    "roles": {
+      "comment": "RFC-002 pin connection-obligation roles (appear inside [ ]).",
+      "name": "support.constant.role.cohdl",
+      "match": "\\b(passive|power_in|power_out|output|input|bidirectional|gnd)\\b"
+    },
+    "unit-types": {
+      "comment": "RFC-001 unit type names + Pin (RFC-006 fn param type) + `pin` (RFC-002 abstract trait-pin type). support.type — they name types, not values.",
+      "name": "support.type.unit.cohdl",
+      "match": "\\b(Voltage|Capacitance|Resistance|Current|Frequency|Time|Inductance|Power|Temperature|Tolerance|Length|Pin|pin)\\b"
+    },
+    "unit-literals": {
+      "comment": "RFC-001/018 unit literals: a number with an SI-prefixed unit suffix (V F ohm A Hz s H W C % mm). A single class, not one rule per unit (RFC-019 Design).",
+      "name": "constant.numeric.unit.cohdl",
+      "match": "\\b-?[0-9]+(\\.[0-9]+)?(p|n|u|m|k|M|G)?(ohm|Hz|mm|V|F|A|s|H|W|C|%)\\b"
+    },
+    "numbers": {
+      "comment": "Bare integers/decimals (pin numbers, generic arity).",
+      "name": "constant.numeric.cohdl",
+      "match": "\\b-?[0-9]+(\\.[0-9]+)?\\b"
+    },
+    "operators": {
+      "patterns": [
+        { "name": "keyword.operator.path.cohdl", "match": "::" },
+        { "name": "keyword.operator.cohdl", "match": "[<>=+]" }
+      ]
+    }
+  }
+}

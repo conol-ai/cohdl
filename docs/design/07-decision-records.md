@@ -774,4 +774,37 @@ N/A — this is a same-day naming correction, not a design decision with its own
 
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-018 is fully recorded above.)
+(none — the backlog through RFC-019 is fully recorded above.)
+
+# DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
+
+## Context
+
+RFC-014 (LSP support) shipped a real, fully-wired cohdl lsp server (confirmed against real source: src/lsp.rs, tests/lsp.rs, all four capabilities implemented and equivalence-tested) but its own text explicitly deferred packaging: "a full marketplace extension (grammar, packaging) is separate scope per the RFC" — only a bare extension.js doc snippet in docs/lsp.md existed. docs/lsp.md itself flags a still-open acceptance item: "a pass in a live VS Code session has not yet been recorded." RFC-019 (note 6) closes both.
+
+## Options
+
+1. Leave the doc snippet as the only artifact indefinitely — status quo.
+2. A real, buildable VS Code extension (editors/vscode/) — TextMate grammar for syntax highlighting (LSP has no highlighting verb, so this is a genuinely separate static artifact) + vscode-languageclient wiring identical to the existing doc snippet, packaged as an installable .vsix, with a cohdl.path setting replacing the snippet's hardcoded path (RFC-019's proposal).
+3. A cross-editor Tree-sitter grammar instead of a VS-Code-specific TextMate grammar.
+4. Bundle additional features (debugger, snippet library, format-on-save) into the same RFC.
+
+## Decision
+
+Option 2. Zero new diagnostic logic — the extension is a thin transport/packaging layer over the already-Accepted, already-tested cohdl lsp, the same "purely a new frontend" discipline RFC-014 established for the server itself relative to the compiler pipeline. New in this RFC: the TextMate grammar (hand-authored, derived from the real Accepted grammar across RFC-001–018), the .vsix packaging, and the cohdl.path settings key.
+
+## Rationale
+
+Option 1 was rejected: RFC-014's own text already named this exact gap as deferred, not solved — leaving it deferred indefinitely means the "ship with its check" / "ship with its spec update" discipline (note 6) never actually closes for the review-loop persona (a human in VS Code) this whole tooling layer exists to serve. Option 3 (Tree-sitter) was rejected as premature: no other editor's snippet currently asks for shared cross-editor highlighting, and TextMate is the minimum viable format for the one editor that needs packaged grammar today. Option 4 (bundle more features) was rejected as scope creep beyond the specific item RFC-014 deferred — debugger/snippets/format-on-save are separate, additive future RFCs once the base extension exists and is in real use.
+
+## Consequences
+
+- New in-repo directory editors/vscode/ (package.json, language-configuration.json, syntaxes/cohdl.tmLanguage.json, src/extension.ts, README.md) and a new CI job building/testing it.
+- Closes RFC-014's still-open real-client acceptance item — this RFC's own verification step is running the extension against a real fixture in an actual VS Code session, not another round of server-only unit testing.
+- New, disclosed, not-fully-solved risk: the TextMate grammar can drift from the real language grammar as future RFCs add/rename keywords (this project's own pad/footprint naming correction is a concrete recent example of the kind of change that would need a grammar update). A grammar coverage regression test catches some drift (unstyled fallthrough) but not mis-highlighting — mitigated by convention (future RFCs touching top-level keywords should update the grammar file, same discipline as note 10), not by a compiler-enforced guarantee, since none is possible for an external editor's grammar file.
+- cohdl.path is the extension's only new settings surface in v1 — no version-compatibility handshake between the extension and the cohdl binary it spawns, a real named gap for a future RFC if it proves to matter.
+- No change to any existing diagnostic, error code, designator, or netlist byte — purely additive, optional tooling.
+
+## Revisit when
+
+If real usage reveals grammar-drift is a recurring, painful problem — that's when auto-generating the grammar from the compiler's own lexer/parser definitions (rejected this pass as premature tooling investment) becomes worth building. Also revisit if a second editor develops a real, named need for shared highlighting — that's when a Tree-sitter grammar earns its cost.

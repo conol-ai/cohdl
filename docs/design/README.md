@@ -35,6 +35,7 @@ live note wins — re-extract with `python3 tools/extract_design_repo.py docs/de
 | `rfc-016-modules.md` | RFC-016: Module system (package::module::submodule::name) |
 | `rfc-017-library-registry.md` | RFC-017: Library registry (cohdl source + docs + footprint symbols) |
 | `rfc-018-footprint-format.md` | RFC-018: Footprint format — Cadence-style pad/footprint split |
+| `rfc-019-vscode-extension.md` | RFC-019: VS Code extension for CoHDL |
 | `gc-002-amended-layout-door.md` | GC-002 (amended): Admit layout constraints into the conceptual model |
 | `07-decision-records.md` | 🗂️ 7. Decision Records |
 | `08-evolution-governance.md` | 🧬 8. Evolution Governance & Design Regression |

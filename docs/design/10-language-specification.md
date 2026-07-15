@@ -600,4 +600,24 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-14, RFC-001 through RFC-018 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint).
+As of 2026-07-15, RFC-001 through RFC-019 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use).
+
+# Editor support: VS Code extension
+
+Accepted via RFC-019, see RFC-019: VS Code extension for CoHDL + DR-025.
+
+A real, buildable, installable VS Code extension lives at editors/vscode/ — thin packaging over the already-Accepted cohdl lsp (RFC-014). Introduces no new language semantics, no new diagnostic, no new checkable construct.
+
+What it adds:
+
+- A hand-authored TextMate grammar (syntaxes/cohdl.tmLanguage.json) registering .cohdl for syntax highlighting — a static capability the LSP protocol itself has no verb for, so this is a genuinely separate artifact from the server.
+- src/extension.ts wires vscode-languageclient to spawn cohdl lsp, turning on RFC-014's four capabilities (diagnostics, hover, goto-def, references) — identical spawn shape to the pre-existing doc snippet in docs/lsp.md, now packaged rather than copy-paste boilerplate.
+- One new settings key, cohdl.path (default "cohdl", resolved via PATH), replacing the doc snippet's hardcoded binary path.
+
+Rules:
+
+- Zero new diagnostic logic — the extension's output is exactly cohdl lsp's output, unmodified; RFC-014's existing equivalence suite (tests/lsp.rs) continues to be the source of truth, not a new server-side test.
+- A new grammar-coverage regression test (CI-only, not part of cohdl check/cohdl build) asserts every real keyword/literal-class token in a fixture corpus gets a TextMate scope, not plain-text fallthrough.
+- The TextMate grammar can drift from the real language grammar as future RFCs add/rename keywords — this is a disclosed, not-fully-solved risk (no compiler-enforced guarantee is possible for an external editor's grammar file); the convention going forward is that any RFC introducing/renaming/removing a top-level keyword should update cohdl.tmLanguage.json in the same change it updates this note.
+- Purely additive — no existing .cohdl source, diagnostic code, designator, or netlist byte is affected; a user who never installs the extension experiences zero change.
+- Closes RFC-014's own explicitly-deferred packaging scope and its still-open real-client acceptance item (a live VS Code session actually exercising cohdl lsp, previously unverified per docs/compliance-report.md).

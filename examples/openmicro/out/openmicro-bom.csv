@@ -1,0 +1,18 @@
+RefDes,Value,MPN,Manufacturer,Qty
+"D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13","Diode_1N4148","1N4148W-7-F","Diodes Inc",13
+"U2","AP2112K_3V3","AP2112K-3.3TRG1","Diodes Inc",1
+"C1,C2,C3,C4,C5,C6,C7,C8,C9,C10","100nF","CL05B104KO5NNNC","Samsung",10
+"C11","4.7uF","CL10A475KP8NNNC","Samsung",1
+"TP1","CapTouchPad","COPPER-TOUCH-9MM","n/a",1
+"SW1","RotaryEC11","EC11E15244A5","Alps Alpine",1
+"SW2","ResetSwitch","EVQ-P7A01P","Panasonic",1
+"C12","1uF","GRM155R61A105KE15D","Murata",1
+"J2","SWD_Header","HDR-1x4-2.54","Generic",1
+"R1","10kohm","RC0402FR-0710KL","Yageo",1
+"R2,R3","5.1kohm","RC0402FR-075K1L","Yageo",2
+"J1","ThumbPointer","RKJXV122400R","Alps Alpine",1
+"LED1,LED2,LED3,LED4,LED5,LED6","SK6812","SK6812MINI-E","Opsco",6
+"U3","STM32F072CBT6","STM32F072CBT6","STMicroelectronics",1
+"J3","USB_C_Receptacle_2_0","TYPE-C-31-M-12","HRO",1
+"U1","USBLC6","USBLC6-2SC6","STMicroelectronics",1
+"SW3,SW4,SW5,SW6,SW7,SW8,SW9,SW10,SW11,SW12,SW13,SW14,SW15","KeySwitch","WL-LP-SW-55G","Work Louder",13

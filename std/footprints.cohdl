@@ -63,5 +63,35 @@ pub footprint SOT5P95X290X160N {
     silkscreen_ref { at: (0mm, -2mm) }
 }
 
-// was: "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
-pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {}
+// USB Type-C receptacle, USB-2.0-only (HRO TYPE-C-31-M-12). Land pattern from
+// KiCad Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12: 16 SMD contacts in
+// one row at y=-4.045 (top-row A* and bottom-row B* contacts merged at the same
+// X where their nets are common), plus four plated shield/mounting tabs. The two
+// non-plated locating holes at (+/-2.89, -2.6) are mechanical only and omitted
+// (RFC-018 has no non-plated plating). KiCad names all four shield tabs `SH`;
+// CoHDL requires unique pad numbers (E806), so they are SH1..SH4 here. Pad
+// names are the device pin numbers.
+pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {
+    pad A1: P_USBC_Sig_L at (-3.25mm, -4.045mm)
+    pad A4: P_USBC_Sig_L at (-2.45mm, -4.045mm)
+    pad A5: P_USBC_Sig_S at (-1.25mm, -4.045mm)
+    pad A6: P_USBC_Sig_S at (-0.25mm, -4.045mm)
+    pad A7: P_USBC_Sig_S at (0.25mm, -4.045mm)
+    pad A8: P_USBC_Sig_S at (1.25mm, -4.045mm)
+    pad A9: P_USBC_Sig_L at (2.45mm, -4.045mm)
+    pad A12: P_USBC_Sig_L at (3.25mm, -4.045mm)
+    pad B1: P_USBC_Sig_L at (3.25mm, -4.045mm)
+    pad B4: P_USBC_Sig_L at (2.45mm, -4.045mm)
+    pad B5: P_USBC_Sig_S at (1.75mm, -4.045mm)
+    pad B6: P_USBC_Sig_S at (0.75mm, -4.045mm)
+    pad B7: P_USBC_Sig_S at (-0.75mm, -4.045mm)
+    pad B8: P_USBC_Sig_S at (-1.75mm, -4.045mm)
+    pad B9: P_USBC_Sig_L at (-2.45mm, -4.045mm)
+    pad B12: P_USBC_Sig_L at (-3.25mm, -4.045mm)
+    pad SH1: P_USBC_Shield_T at (-4.32mm, -3.13mm)
+    pad SH2: P_USBC_Shield_T at (4.32mm, -3.13mm)
+    pad SH3: P_USBC_Shield_B at (-4.32mm, 1.05mm)
+    pad SH4: P_USBC_Shield_B at (4.32mm, 1.05mm)
+    courtyard { shape: rect, at: (0mm, -1.55mm), size: (10.64mm, 9.42mm) }
+    silkscreen_ref { at: (0mm, 2.5mm) }
+}

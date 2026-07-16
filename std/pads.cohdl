@@ -205,6 +205,45 @@ pub pad P_USB_uB_Peg {
     drill: 0.85mm
 }
 
+// USB Type-C (HRO TYPE-C-31-M-12) power/ground contact land — the 0.6mm-wide
+// SMD pads (A1/A4/A9/A12/B1/B4/B9/B12), from KiCad
+// Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12.
+pub pad P_USBC_Sig_L {
+    shape: rect
+    size: (0.6mm, 1.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+// USB Type-C signal contact land — the 0.3mm-wide SMD pads
+// (CC1/CC2/DP/DN/SBU1/SBU2: A5/A6/A7/A8/B5/B6/B7/B8).
+pub pad P_USBC_Sig_S {
+    shape: rect
+    size: (0.3mm, 1.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+// USB Type-C shield mounting tab — upper pair. The real part is a 0.6x1.7mm
+// plated slot; CoHDL drills are round, so approximated as a 0.6mm plated hole
+// under the 1x2.1mm oval tab (demo-grade mechanical).
+pub pad P_USBC_Shield_T {
+    shape: oval
+    size: (1mm, 2.1mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.6mm
+}
+
+// USB Type-C shield mounting tab — lower pair (0.6x1.2mm slot -> 0.6mm hole).
+pub pad P_USBC_Shield_B {
+    shape: oval
+    size: (1mm, 1.6mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.6mm
+}
+
 // Pico 2.54mm castellation — a plated HALF-through-hole at the board edge
 // (drilled, plated, then castellated on depanel). Modeled as a plated
 // through-hole, matching KiCad's RaspberryPi_Pico_Common_THT (drill 1.0mm).

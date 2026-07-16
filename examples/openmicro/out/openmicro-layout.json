@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "net_classes": [],
+  "diff_pairs": [],
+  "length_matches": [],
+  "board_outline": { "source": "mechanical/openmicro-outline.dxf", "start": [-60, -45], "segments": [{ "type": "line", "to": [60, -45] }, { "type": "line", "to": [60, 45] }, { "type": "line", "to": [-60, 45] }, { "type": "line", "to": [-60, -45] }] },
+  "placements": [
+    { "instance": "OpenMicro::sw1", "at": [-47.6, -28.6], "rotate": 0 },
+    { "instance": "OpenMicro::sw2", "at": [-28.55, -28.6], "rotate": 0 },
+    { "instance": "OpenMicro::sw3", "at": [-9.5, -28.6], "rotate": 0 },
+    { "instance": "OpenMicro::sw4", "at": [9.55, -28.6], "rotate": 0 },
+    { "instance": "OpenMicro::sw5", "at": [-47.6, -9.55], "rotate": 0 },
+    { "instance": "OpenMicro::sw6", "at": [-28.55, -9.55], "rotate": 0 },
+    { "instance": "OpenMicro::sw7", "at": [-9.5, -9.55], "rotate": 0 },
+    { "instance": "OpenMicro::sw8", "at": [9.55, -9.55], "rotate": 0 },
+    { "instance": "OpenMicro::sw9", "at": [-47.6, 9.5], "rotate": 0 },
+    { "instance": "OpenMicro::sw10", "at": [-28.55, 9.5], "rotate": 0 },
+    { "instance": "OpenMicro::sw11", "at": [-9.5, 9.5], "rotate": 0 },
+    { "instance": "OpenMicro::sw12", "at": [9.55, 9.5], "rotate": 0 },
+    { "instance": "OpenMicro::sw13", "at": [-47.6, 28.55], "rotate": 0 },
+    { "instance": "OpenMicro::enc", "at": [32, -30], "rotate": 0 },
+    { "instance": "OpenMicro::joy", "at": [38, 8], "rotate": 0 },
+    { "instance": "OpenMicro::touch", "at": [30, 33], "rotate": 0 },
+    { "instance": "OpenMicro::usbc", "at": [0, 41], "rotate": 0 }
+  ],
+  "placement_hints": []
+}

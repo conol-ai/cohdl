@@ -1,0 +1,172 @@
+// OpenMicro — an open-source STM32F072 clone of the OpenAI Codex Micro
+// macropad (13 keys, rotary dial, analog joystick, cap-touch, per-key RGB).
+// Wired USB-C. Every footprint datasheet-verified (see openmicro_parts).
+
+design OpenMicro {
+    // ---- major devices ----
+    inst mcu: MCU_STM32F072
+    inst usbc: USB_C_HRO_TYPE_C_31_M_12
+    inst esd: ESD_USBLC6
+    inst ldo: LDO_AP2112K_3V3
+    inst enc: ENC_EC11
+    inst joy: JOY_RKJXV
+    inst touch: TOUCH_PAD
+    inst rst: SW_RESET
+    inst swd: J_SWD
+
+    // ---- 13 key switches + matrix diodes ----
+    inst sw1: SW_KEY
+    inst sw2: SW_KEY
+    inst sw3: SW_KEY
+    inst sw4: SW_KEY
+    inst sw5: SW_KEY
+    inst sw6: SW_KEY
+    inst sw7: SW_KEY
+    inst sw8: SW_KEY
+    inst sw9: SW_KEY
+    inst sw10: SW_KEY
+    inst sw11: SW_KEY
+    inst sw12: SW_KEY
+    inst sw13: SW_KEY
+    inst d1: D_1N4148W
+    inst d2: D_1N4148W
+    inst d3: D_1N4148W
+    inst d4: D_1N4148W
+    inst d5: D_1N4148W
+    inst d6: D_1N4148W
+    inst d7: D_1N4148W
+    inst d8: D_1N4148W
+    inst d9: D_1N4148W
+    inst d10: D_1N4148W
+    inst d11: D_1N4148W
+    inst d12: D_1N4148W
+    inst d13: D_1N4148W
+    // ---- 6 per-key RGB LEDs ----
+    inst led1: RGB_SK6812
+    inst led2: RGB_SK6812
+    inst led3: RGB_SK6812
+    inst led4: RGB_SK6812
+    inst led5: RGB_SK6812
+    inst led6: RGB_SK6812
+
+    // ---- passives ----
+    inst rcc1: R_5K1
+    inst rcc2: R_5K1
+    inst rboot: R_10K
+    inst c_bulk: C_4u7
+    inst c_vdda: C_1u
+
+    // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3 ----
+    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo.VIN, ldo.EN, c_bulk.A, led1.VDD, led2.VDD, led3.VDD,
+                   led4.VDD, led5.VDD, led6.VDD
+    #[intent("AP2112K enable tied to VIN — always on when USB is present")]
+    net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
+                     joy.Y_END_B, c_vdda.A
+    net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, c_bulk.B, c_vdda.B,
+                   rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2, enc.MNT, joy.X_END_A,
+                   joy.Y_END_A, joy.SW_B, rst.B, led1.GND, led2.GND, led3.GND, led4.GND, led5.GND,
+                   led6.GND
+
+    // ---- USB 2.0 through the ESD array (I/O1 = D+, I/O2 = D-) ----
+    net USBC_DP: usbc.DP, esd.IO1_A
+    net USB_DP: esd.IO1_B, mcu.USB_DP
+    net USBC_DM: usbc.DN, esd.IO2_A
+    net USB_DM: esd.IO2_B, mcu.USB_DM
+    // USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)
+    net CC1: usbc.CC1, rcc1.A
+    net CC2: usbc.CC2, rcc2.A
+
+    // ---- reset + boot ----
+    net NRST: mcu.NRST, rst.A
+    net BOOT0: mcu.BOOT0, rboot.A
+
+    // ---- SWD debug ----
+    net SWDIO: mcu.SWDIO, swd.SWDIO
+    net SWCLK: mcu.SWCLK, swd.SWCLK
+
+    // ---- keyboard matrix (COL2ROW: ROW -> switch -> diode -> COL) ----
+    net KEY1: sw1.B, d1.Anode
+    net KEY2: sw2.B, d2.Anode
+    net KEY3: sw3.B, d3.Anode
+    net KEY4: sw4.B, d4.Anode
+    net KEY5: sw5.B, d5.Anode
+    net KEY6: sw6.B, d6.Anode
+    net KEY7: sw7.B, d7.Anode
+    net KEY8: sw8.B, d8.Anode
+    net KEY9: sw9.B, d9.Anode
+    net KEY10: sw10.B, d10.Anode
+    net KEY11: sw11.B, d11.Anode
+    net KEY12: sw12.B, d12.Anode
+    net KEY13: sw13.B, d13.Anode
+    net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A
+    net ROW1: mcu.ROW1, sw5.A, sw6.A, sw7.A, sw8.A
+    net ROW2: mcu.ROW2, sw9.A, sw10.A, sw11.A, sw12.A
+    net ROW3: mcu.ROW3, sw13.A
+    net COL0: mcu.COL0, d1.Cathode, d5.Cathode, d9.Cathode, d13.Cathode
+    net COL1: mcu.COL1, d2.Cathode, d6.Cathode, d10.Cathode
+    net COL2: mcu.COL2, d3.Cathode, d7.Cathode, d11.Cathode
+    net COL3: mcu.COL3, d4.Cathode, d8.Cathode, d12.Cathode
+
+    // ---- rotary encoder + push ----
+    net ENC_A: mcu.ENC_A, enc.A
+    net ENC_B: mcu.ENC_B, enc.B
+    net ENC_SW: mcu.ENC_SW, enc.SW1
+
+    // ---- analog joystick (X/Y wipers to ADC) + push ----
+    net JOY_X: mcu.JOY_X, joy.X_WIPER
+    net JOY_Y: mcu.JOY_Y, joy.Y_WIPER
+    net JOY_SW: mcu.JOY_SW, joy.SW_A
+
+    // ---- capacitive touch ----
+    net TOUCH: mcu.TOUCH, touch.PAD
+
+    // ---- addressable RGB chain (5V; STM32 drives DIN of the first) ----
+    net LED_D0: mcu.LED_DATA, led1.DIN
+    net LED_D1: led1.DOUT, led2.DIN
+    net LED_D2: led2.DOUT, led3.DIN
+    net LED_D3: led3.DOUT, led4.DIN
+    net LED_D4: led4.DOUT, led5.DIN
+    net LED_D5: led5.DOUT, led6.DIN
+
+    // ---- decoupling (100nF per VDD pin) + unused pins ----
+    decouple(mcu.VDD, mcu.VSS)
+    decouple(mcu.VDD, mcu.VSS)
+    decouple(mcu.VDDA, mcu.VSSA)
+    decouple(usbc.VBUS, usbc.GND)
+    decouple(led1.VDD, led1.GND)
+    decouple(led2.VDD, led2.GND)
+    decouple(led3.VDD, led3.GND)
+    decouple(led4.VDD, led4.GND)
+    decouple(led5.VDD, led5.GND)
+    decouple(led6.VDD, led6.GND)
+    nc: usbc.SBU1, usbc.SBU2, led6.DOUT
+    nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PF0, mcu.PF1, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7,
+        mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB4, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
+
+    // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
+    layout {
+        board_outline: "mechanical/openmicro-outline.dxf"
+        // 13 low-profile keys on a 19.05mm grid (top-left origin)
+        place sw1 at (-47.6mm, -28.6mm)
+        place sw2 at (-28.55mm, -28.6mm)
+        place sw3 at (-9.5mm, -28.6mm)
+        place sw4 at (9.55mm, -28.6mm)
+        place sw5 at (-47.6mm, -9.55mm)
+        place sw6 at (-28.55mm, -9.55mm)
+        place sw7 at (-9.5mm, -9.55mm)
+        place sw8 at (9.55mm, -9.55mm)
+        place sw9 at (-47.6mm, 9.5mm)
+        place sw10 at (-28.55mm, 9.5mm)
+        place sw11 at (-9.5mm, 9.5mm)
+        place sw12 at (9.55mm, 9.5mm)
+        place sw13 at (-47.6mm, 28.55mm)
+        // rotary dial, joystick, touch, USB-C on the right / edges
+        place enc at (32mm, -30mm)
+        place joy at (38mm, 8mm)
+        place touch at (30mm, 33mm)
+        // USB-C at the top edge, mouth (+y, the contact side is -y) flush with
+        // the board edge: courtyard front lands at 41 + 4.15 = 45.15mm, ~flush
+        // with the y=+45 outline; SMD contacts at 41 - 4.045 = 36.96mm stay on-board.
+        place usbc at (0mm, 41mm)
+    }
+}

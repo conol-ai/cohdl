@@ -2,7 +2,8 @@
 //
 // Pad names verified against the KiCad official footprint
 // Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12
-// (pads A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12 SH).
+// (pads A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12; the single KiCad
+// shield pad `SH` becomes SH1..SH4 — CoHDL requires unique pad numbers, E806).
 
 pub device USB_C_Receptacle_2_0 {
     pins {
@@ -14,7 +15,7 @@ pub device USB_C_Receptacle_2_0 {
         required DN: A7, B7 [bidirectional]
         optional SBU1: A8 [passive]
         optional SBU2: B8 [passive]
-        required SHIELD: SH [passive]
+        required SHIELD: SH1, SH2, SH3, SH4 [passive]
     }
 }
 

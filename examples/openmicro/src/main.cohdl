@@ -144,29 +144,36 @@ design OpenMicro {
         mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB4, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
 
     // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
+    // Physical arrangement transcribed from the Work Louder Creator Micro 2 /
+    // Codex Micro product photo: a SQUARE macropad with the analog joystick at
+    // the top-LEFT corner, the rotary encoder at the top-RIGHT corner, a 4-column
+    // key grid between/below them, and a wide 2U "mic / Let's build" key at the
+    // bottom-left. Keys sit on a 19.05mm grid (columns at x = -28.575, -9.525,
+    // +9.525, +28.575). joy/enc origins are back-offset by their footprint
+    // courtyard centers so the stick/knob land on the corner cells.
     layout {
         board_outline: "mechanical/openmicro-outline.dxf"
-        // 13 low-profile keys on a 19.05mm grid (top-left origin)
-        place sw1 at (-47.6mm, -28.6mm)
-        place sw2 at (-28.55mm, -28.6mm)
-        place sw3 at (-9.5mm, -28.6mm)
-        place sw4 at (9.55mm, -28.6mm)
-        place sw5 at (-47.6mm, -9.55mm)
-        place sw6 at (-28.55mm, -9.55mm)
-        place sw7 at (-9.5mm, -9.55mm)
-        place sw8 at (9.55mm, -9.55mm)
-        place sw9 at (-47.6mm, 9.5mm)
-        place sw10 at (-28.55mm, 9.5mm)
-        place sw11 at (-9.5mm, 9.5mm)
-        place sw12 at (9.55mm, 9.5mm)
-        place sw13 at (-47.6mm, 28.55mm)
-        // rotary dial, joystick, touch, USB-C on the right / edges
-        place enc at (32mm, -30mm)
-        place joy at (38mm, 8mm)
-        place touch at (30mm, 33mm)
-        // USB-C at the top edge, mouth (+y, the contact side is -y) flush with
-        // the board edge: courtyard front lands at 41 + 4.15 = 45.15mm, ~flush
-        // with the y=+45 outline; SMD contacts at 41 - 4.045 = 36.96mm stay on-board.
-        place usbc at (0mm, 41mm)
+        // top row: joystick (TL corner), two keys, encoder (TR corner)
+        place joy at (-29.825mm, -28.575mm)
+        place sw1 at (-9.525mm, -28.575mm)
+        place sw2 at (9.525mm, -28.575mm)
+        place enc at (21.575mm, -31.075mm)
+        // middle two rows: four keys each
+        place sw3 at (-28.575mm, -9.525mm)
+        place sw4 at (-9.525mm, -9.525mm)
+        place sw5 at (9.525mm, -9.525mm)
+        place sw6 at (28.575mm, -9.525mm)
+        place sw7 at (-28.575mm, 9.525mm)
+        place sw8 at (-9.525mm, 9.525mm)
+        place sw9 at (9.525mm, 9.525mm)
+        place sw10 at (28.575mm, 9.525mm)
+        // bottom row: 2U mic key (spans the two left columns) + two keys
+        place sw11 at (-19.05mm, 28.575mm)
+        place sw12 at (9.525mm, 28.575mm)
+        place sw13 at (28.575mm, 28.575mm)
+        // USB-C centered on the top edge, mouth (+y local) rotated to face off
+        // the -y edge; cap-touch sense pad centered on the bottom edge.
+        place usbc at (0mm, -43mm) rotate 180
+        place touch at (0mm, 42mm)
     }
 }

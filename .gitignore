@@ -13,6 +13,7 @@ harness/runs/
 # files created when a generated .kicad_pcb is opened in pcbnew.
 examples/*/out/*.xml
 examples/*/out/*.html
+examples/*/out/*.svg
 examples/*/out/*.kicad_pcb
 examples/*/out/*.kicad_pro
 examples/*/out/*.kicad_prl

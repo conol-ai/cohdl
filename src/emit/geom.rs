@@ -32,6 +32,19 @@ pub fn mm_femto(femto: i128) -> String {
     render(femto, 15)
 }
 
+/// A `Length` literal's y-coordinate NEGATED — for emitters whose target frame
+/// has the opposite y-orientation from CoHDL's (IPC-2581 is +y-up; CoHDL/KiCad
+/// author +y-down). Same canonical rendering as [`mm`].
+pub fn mm_y(v: &UnitValue) -> String {
+    render(-v.femto, 15)
+}
+
+/// A computed femto y-coordinate NEGATED (the raw-integer counterpart of
+/// [`mm_y`]).
+pub fn mm_femto_y(femto: i128) -> String {
+    render(-femto, 15)
+}
+
 /// `center - size/2`, exact: computed at 10^-16 mm so halving an odd femto
 /// count loses nothing. Saturating arithmetic is defense-in-depth — validation
 /// rejects any `Length` past `MAX_GEOM_FEMTO`, so a real input never saturates.
@@ -52,6 +65,29 @@ pub fn corner_hi(center: &UnitValue, size: &UnitValue) -> String {
             .femto
             .saturating_mul(10)
             .saturating_add(size.femto.saturating_mul(5)),
+        16,
+    )
+}
+
+/// `-(center - size/2)` — [`corner_lo`] with the y-axis negated (IPC-2581
+/// +y-up projection of a CoHDL +y-down courtyard corner).
+pub fn corner_lo_y(center: &UnitValue, size: &UnitValue) -> String {
+    render(
+        -(center
+            .femto
+            .saturating_mul(10)
+            .saturating_sub(size.femto.saturating_mul(5))),
+        16,
+    )
+}
+
+/// `-(center + size/2)` — [`corner_hi`] with the y-axis negated.
+pub fn corner_hi_y(center: &UnitValue, size: &UnitValue) -> String {
+    render(
+        -(center
+            .femto
+            .saturating_mul(10)
+            .saturating_add(size.femto.saturating_mul(5))),
         16,
     )
 }

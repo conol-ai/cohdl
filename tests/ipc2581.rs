@@ -1083,13 +1083,15 @@ fn board_outline_emits_profile_polygon() {
         "exactly one Profile:\n{}",
         b.xml
     );
+    // y negated throughout: the Profile is projected into IPC's +y-up frame
+    // (matching KiCad's export) from the CoHDL/DXF +y-down outline.
     for needle in [
         "<Profile>",
-        "<PolyBegin x=\"-25.5\" y=\"-10.5\"/>",
-        "<PolyStepSegment x=\"25.5\" y=\"-10.5\"/>",
+        "<PolyBegin x=\"-25.5\" y=\"10.5\"/>",
         "<PolyStepSegment x=\"25.5\" y=\"10.5\"/>",
-        "<PolyStepSegment x=\"-25.5\" y=\"10.5\"/>",
+        "<PolyStepSegment x=\"25.5\" y=\"-10.5\"/>",
         "<PolyStepSegment x=\"-25.5\" y=\"-10.5\"/>",
+        "<PolyStepSegment x=\"-25.5\" y=\"10.5\"/>",
     ] {
         assert!(
             b.xml.contains(needle),
@@ -1176,11 +1178,12 @@ fn placed_component_locks_at_position_and_is_not_staged() {
         .map(|(h, body)| (attr(h, "packageRef").unwrap(), component_location(body)))
         .collect();
     let find = |suffix: &str| locs.iter().find(|(p, _)| p.ends_with(suffix)).unwrap().1;
-    // The placed connector is locked at its exact place position (3, -4).
+    // The placed connector is locked at its `place j1 at (3, -4)` position; its
+    // y is negated to +4 in the IPC +y-up frame (matching KiCad's export).
     assert_eq!(
         find("-FPC"),
-        (3.0, -4.0),
-        "placed component not locked at (3,-4)"
+        (3.0, 4.0),
+        "placed component not locked at (3,-4)->(3,4) in +y-up"
     );
     // The resistor is staged OUTSIDE the 30mm-wide outline (right of +15mm).
     assert!(

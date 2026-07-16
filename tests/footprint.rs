@@ -318,9 +318,11 @@ fn ipc2581_projects_real_pins_and_stays_schema_valid() {
         "Pin must reference its dictionary shape:\n{}",
         pin_block
     );
-    // The courtyard becomes the package outline (4 corners + closing).
+    // The courtyard becomes the package outline (4 corners + closing). The
+    // IPC-2581 frame is +y-up (matching KiCad's export), so the courtyard's
+    // y is negated relative to the CoHDL/.kicad_mod +y-down authoring.
     assert!(
-        xml.contains("<PolyBegin x=\"-0.95\" y=\"-0.5\"/>"),
+        xml.contains("<PolyBegin x=\"-0.95\" y=\"0.5\"/>"),
         "{}",
         xml
     );
@@ -641,9 +643,12 @@ fn geometry_is_exact_beyond_six_decimals_and_canonical() {
         mods[0].2
     );
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    // Both emitters compute the same EXACT femto corners; the IPC frame is
+    // +y-up (KiCad's export convention), so its y is the negation of the
+    // .kicad_mod's +y-down y (x, and both magnitudes, are identical).
     assert!(
-        xml.contains("<PolyBegin x=\"-0.00000095\" y=\"-0.5\"/>"),
-        "both emitters agree on the same corners:\n{}",
+        xml.contains("<PolyBegin x=\"-0.00000095\" y=\"0.5\"/>"),
+        "IPC-2581 corner is the exact +y-up negation of the .kicad_mod corner:\n{}",
         xml
     );
 
@@ -670,8 +675,9 @@ fn circle_courtyard_projects_in_both_emitters() {
     let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
     assert!(mods[0].2.contains("(fp_circle"), "{}", mods[0].2);
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    // Bounding square of the circle, in IPC's +y-up frame (y negated).
     assert!(
-        xml.contains("<PolyBegin x=\"-1\" y=\"-1\"/>"),
+        xml.contains("<PolyBegin x=\"-1\" y=\"1\"/>"),
         "circle courtyard becomes its bounding square, not a zero outline:\n{}",
         xml
     );

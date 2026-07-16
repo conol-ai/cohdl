@@ -1617,3 +1617,25 @@ Honest boundaries (unchanged):
 - **Stackup is a nominal 2-layer fab stack** (0.035/1.51/0.035mm), not a real
   fabricator's stackup — the mask/paste/silk rows are present with nominal
   (mostly zero) thicknesses so the layer model is complete.
+
+## IPC-2581 coordinate frame — +y-up projection matching KiCad's export (2026-07-16)
+
+Follow-up to the pad-render work: the document rendered upside-down relative to
+KiCad (the crystal cluster appeared above the MCU in Quilter, below it in
+pcbnew) because IPC-2581 is a +y-up frame while CoHDL authors +y-down (its
+`place`/DXF coordinates read like KiCad's internal board frame). The emitter now
+NEGATES every emitted y — component `Location`s, placed-copper/hole `Location`s,
+`Package` `Pin`/courtyard `Outline` corners, and the board `Profile` (arc winding
+flipped too) — while KEEPING rotation values. The pad transform negates the local
+offset BEFORE rotation and the component position (not the final absolute; a
+naive reflection mis-places rotated, y-offset pads).
+
+Verified against KiCad's own `kicad-cli pcb export ipc2581 --version B` of the
+same board (the objective ground truth, since KiCad's export renders correctly
+in Quilter): all 49 component `(x, y, rotation)` and all 224 F.Cu copper-pad
+positions match element-for-element (0 mismatches). The centralized helpers
+(`geom::mm_y`/`mm_femto_y`/`corner_lo_y`/`corner_hi_y`) keep the projection
+byte-stable and confined to the IPC emitter — the `.kicad_mod` files stay in
+KiCad's native +y-down frame (their y is the exact negation of the IPC land
+pattern's). The `tools/kicad_board.py` helper negates y on import to keep the
+generated `.kicad_pcb` byte-identical to the pre-fix (correct) board.

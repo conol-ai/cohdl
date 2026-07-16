@@ -279,11 +279,14 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     {
         out.push_str("        <Profile>\n");
         out.push_str("          <Polygon>\n");
+        // The whole outline is projected into IPC's +y-up frame: every y is
+        // negated, and each arc's winding flips (a y-reflection reverses the
+        // sense of rotation), so the board reads the same as in CoHDL/KiCad.
         let _ = writeln!(
             out,
             "            <PolyBegin x=\"{}\" y=\"{}\"/>",
             geom::mm_femto(g.start.0),
-            geom::mm_femto(g.start.1)
+            geom::mm_femto_y(g.start.1)
         );
         for seg in &g.segs {
             match seg {
@@ -292,7 +295,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                         out,
                         "            <PolyStepSegment x=\"{}\" y=\"{}\"/>",
                         geom::mm_femto(to.0),
-                        geom::mm_femto(to.1)
+                        geom::mm_femto_y(to.1)
                     );
                 }
                 crate::dxf::Seg::Arc {
@@ -304,10 +307,10 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                         out,
                         "            <PolyStepCurve x=\"{}\" y=\"{}\" centerX=\"{}\" centerY=\"{}\" clockwise=\"{}\"/>",
                         geom::mm_femto(to.0),
-                        geom::mm_femto(to.1),
+                        geom::mm_femto_y(to.1),
                         geom::mm_femto(center.0),
-                        geom::mm_femto(center.1),
-                        clockwise
+                        geom::mm_femto_y(center.1),
+                        !clockwise
                     );
                 }
             }
@@ -351,11 +354,12 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 };
                 out.push_str("          <Outline>\n");
                 out.push_str("            <Polygon>\n");
+                // y corners negated: IPC +y-up vs CoHDL +y-down.
                 let corners = [
-                    (geom::corner_lo(&c.at.0, w), geom::corner_lo(&c.at.1, h)),
-                    (geom::corner_hi(&c.at.0, w), geom::corner_lo(&c.at.1, h)),
-                    (geom::corner_hi(&c.at.0, w), geom::corner_hi(&c.at.1, h)),
-                    (geom::corner_lo(&c.at.0, w), geom::corner_hi(&c.at.1, h)),
+                    (geom::corner_lo(&c.at.0, w), geom::corner_lo_y(&c.at.1, h)),
+                    (geom::corner_hi(&c.at.0, w), geom::corner_lo_y(&c.at.1, h)),
+                    (geom::corner_hi(&c.at.0, w), geom::corner_hi_y(&c.at.1, h)),
+                    (geom::corner_lo(&c.at.0, w), geom::corner_hi_y(&c.at.1, h)),
                 ];
                 let _ = writeln!(
                     out,
@@ -383,18 +387,19 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 let corners = [(lo_x, lo_y), (hi_x, lo_y), (hi_x, hi_y), (lo_x, hi_y)];
                 out.push_str("          <Outline>\n");
                 out.push_str("            <Polygon>\n");
+                // y negated: IPC +y-up vs CoHDL +y-down.
                 let _ = writeln!(
                     out,
                     "              <PolyBegin x=\"{}\" y=\"{}\"/>",
                     geom::mm_femto(corners[0].0),
-                    geom::mm_femto(corners[0].1)
+                    geom::mm_femto_y(corners[0].1)
                 );
                 for (x, y) in corners.iter().skip(1).chain([corners[0]].iter()) {
                     let _ = writeln!(
                         out,
                         "              <PolyStepSegment x=\"{}\" y=\"{}\"/>",
                         geom::mm_femto(*x),
-                        geom::mm_femto(*y)
+                        geom::mm_femto_y(*y)
                     );
                 }
                 out.push_str("            </Polygon>\n");
@@ -438,7 +443,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                     out,
                     "            <Location x=\"{}\" y=\"{}\"/>",
                     geom::mm(&place.x),
-                    geom::mm(&place.y)
+                    geom::mm_y(&place.y) // y negated: IPC +y-up (see build_physical)
                 );
                 // Geometry as a `StandardPrimitiveRef` into the shared
                 // DictionaryStandard — the encoding consumers implement (an
@@ -536,7 +541,8 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             }
         }
         let (lx, ly) = match placed.get(&inst.path).or_else(|| staging.get(&inst.path)) {
-            Some((x, y)) => (geom::mm_femto(*x), geom::mm_femto(*y)),
+            // y negated: IPC-2581 +y-up vs CoHDL +y-down (see build_physical).
+            Some((x, y)) => (geom::mm_femto(*x), geom::mm_femto_y(*y)),
             None => ("0".to_string(), "0".to_string()),
         };
         let _ = writeln!(out, "          <Location x=\"{}\" y=\"{}\"/>", lx, ly);
@@ -1206,14 +1212,20 @@ fn build_physical(
                 },
             );
             let padstack = dedup(&mut padstacks, PadStack { prim, tht, drill });
-            let (ox, oy) = rotate(place.x.femto, place.y.femto, rot);
+            // IPC-2581 is +y-up; CoHDL/KiCad author +y-down. Project by negating
+            // every y — the local pad offset BEFORE rotation, and the component
+            // position — while keeping the rotation value. (Verified against
+            // KiCad's own `--version B` export: this reproduces its placement of
+            // rotated, y-offset pads exactly; a naive reflection of the final
+            // absolute position does not.)
+            let (ox, oy) = rotate(place.x.femto, -place.y.femto, rot);
             pads.push(PlacedPad {
                 refdes: refdes.clone(),
                 pin: sanitize(&place.number.text, true),
                 padstack,
                 prim,
                 x: cx + ox,
-                y: cy + oy,
+                y: -cy + oy,
                 rot,
                 tht,
             });

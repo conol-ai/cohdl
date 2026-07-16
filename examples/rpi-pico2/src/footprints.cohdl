@@ -102,16 +102,16 @@ pub footprint QFN10N40P200X200_1EP90X150 {
 // IPC-7351 name (RFC-021): USON is the QFN family — 8 leads, density N,
 // 0.40mm pitch, 1.00x1.50mm body, 0.40x1.20mm exposed pad.
 pub footprint QFN8N40P100X150_1EP40X120 {
-    pad 1: P_DFN_P04_Lead at (-0.4mm, -0.6mm)
-    pad 2: P_DFN_P04_Lead at (-0.4mm, -0.2mm)
-    pad 3: P_DFN_P04_Lead at (-0.4mm, 0.2mm)
-    pad 4: P_DFN_P04_Lead at (-0.4mm, 0.6mm)
-    pad 5: P_DFN_P04_Lead at (0.4mm, 0.6mm)
-    pad 6: P_DFN_P04_Lead at (0.4mm, 0.2mm)
-    pad 7: P_DFN_P04_Lead at (0.4mm, -0.2mm)
-    pad 8: P_DFN_P04_Lead at (0.4mm, -0.6mm)
+    pad 1: P_USON8_Lead at (-0.5mm, -0.6mm)
+    pad 2: P_USON8_Lead at (-0.5mm, -0.2mm)
+    pad 3: P_USON8_Lead at (-0.5mm, 0.2mm)
+    pad 4: P_USON8_Lead at (-0.5mm, 0.6mm)
+    pad 5: P_USON8_Lead at (0.5mm, 0.6mm)
+    pad 6: P_USON8_Lead at (0.5mm, 0.2mm)
+    pad 7: P_USON8_Lead at (0.5mm, -0.2mm)
+    pad 8: P_USON8_Lead at (0.5mm, -0.6mm)
     pad 9: P_USON8_EP at (0mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (1.4mm, 1.9mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.5mm, 1.9mm) }
     silkscreen_ref { at: (0mm, -1.3mm) }
 }
 

@@ -146,6 +146,16 @@ pub pad P_USON8_EP {
     plating: smd
 }
 
+// USON-8 P0.4mm perimeter lead — shorter than the DFN/WQFN lead so it clears
+// the exposed pad on the tiny 1.0x1.5mm body (a 0.5mm lead reached x=±0.15 and
+// shorted the EP at x=±0.2; this 0.4mm lead at x=±0.5 leaves a 0.1mm gap).
+pub pad P_USON8_Lead {
+    shape: rect
+    size: (0.4mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
 // Micro-USB (Würth 614105150721) THROUGH-HOLE signal pin — the real
 // receptacle is a through-hole part (KiCad ..._Vertical_CircularHoles: 5
 // thru_hole signal pins, drill 0.44mm).

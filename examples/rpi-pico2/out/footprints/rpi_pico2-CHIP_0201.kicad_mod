@@ -1,4 +1,4 @@
-(footprint "rpi_pico2::FP_R_0201_0603Metric"
+(footprint "rpi_pico2::CHIP_0201"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

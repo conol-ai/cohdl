@@ -1,4 +1,4 @@
-(footprint "rpi_pico2::FP_USON_8_1_0x1_5mm_P0_4mm"
+(footprint "rpi_pico2::QFN8N40P100X150_1EP40X120"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

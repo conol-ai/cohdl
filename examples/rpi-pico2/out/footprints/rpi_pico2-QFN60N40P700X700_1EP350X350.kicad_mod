@@ -1,4 +1,4 @@
-(footprint "rpi_pico2::FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm"
+(footprint "rpi_pico2::QFN60N40P700X700_1EP350X350"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

@@ -1,4 +1,4 @@
-(footprint "rpi_pico2::FP_SOT_523"
+(footprint "rpi_pico2::SOT3P100X160X80N"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

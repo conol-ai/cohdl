@@ -31,6 +31,7 @@ PAGES = [
     ("m3lwb8usadcz42qlew56j7ma", "rfc-017-library-registry"),
     ("ddmxe9f1y4wbsdko8rqmh748", "rfc-018-footprint-format"),
     ("grrt5g3cxqe3x3at6phzjth9", "rfc-019-vscode-extension"),
+    ("csvj6pthmnevabbg3ye8tzmz", "rfc-020-board-outline-dxf"),
     ("a7zrlrt7a910k2x10ja6fdhd", "gc-002-amended-layout-door"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),

@@ -43,7 +43,20 @@ struct Built {
     xml: String,
 }
 
+/// A closed 51x21mm rectangle outline on Edge.Cuts (centered at origin), for
+/// fixtures that declare `board_outline: "…"` — the DXF an in-memory loader
+/// returns (RFC-020; tests are FS-free).
+const DXF_51X21: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n\
+    10\n-25.5\n20\n-10.5\n10\n25.5\n20\n-10.5\n10\n25.5\n20\n10.5\n10\n-25.5\n20\n10.5\n0\nENDSEC\n";
+/// A 30x20mm rectangle for the placement fixture.
+const DXF_30X20: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n\
+    10\n-15\n20\n-10\n10\n15\n20\n-10\n10\n15\n20\n10\n10\n-15\n20\n10\n0\nENDSEC\n";
+
 fn build(name: &str, src: &str) -> Built {
+    build_with_dxf(name, src, DXF_51X21)
+}
+
+fn build_with_dxf(name: &str, src: &str, dxf: &str) -> Built {
     let files = vec![(format!("{}.cohdl", name), src.to_string())];
     let mut checked = check_files(&files, None).expect("design selection");
     assert!(
@@ -52,6 +65,7 @@ fn build(name: &str, src: &str) -> Built {
         name,
         checked.diags.render(&checked.sm)
     );
+    cohdl::pipeline::resolve_board_outline(&mut checked, |_| Ok(dxf.to_string()));
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, name);
@@ -70,6 +84,11 @@ fn build_example(dir: &str) -> Built {
     let proj = cohdl::project::load_project(&root.join(dir), Some(&root.join("std"))).unwrap();
     let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
     assert!(!checked.diags.has_errors());
+    // RFC-020: resolve the example's real DXF outline from disk.
+    let proj_dir = proj.dir.clone();
+    cohdl::pipeline::resolve_board_outline(&mut checked, |p| {
+        std::fs::read_to_string(proj_dir.join(p)).map_err(|e| e.to_string())
+    });
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
@@ -1033,7 +1052,7 @@ design B {
     inst r1: R0
     net N: r1.A
     nc: r1.B
-    layout { board_outline { at: (0mm, 0mm), size: (51mm, 21mm) } }
+    layout { board_outline: "o.dxf" }
 }
 "#;
 
@@ -1124,7 +1143,7 @@ design B {
     net N: r1.A, j1.P
     nc: r1.B
     layout {
-        board_outline { at: (0mm, 0mm), size: (30mm, 20mm) }
+        board_outline: "o.dxf"
         place j1 at (3mm, -4mm)
     }
 }
@@ -1132,7 +1151,7 @@ design B {
 
 #[test]
 fn placed_component_locks_at_position_and_is_not_staged() {
-    let b = build("place", WITH_PLACE);
+    let b = build_with_dxf("place", WITH_PLACE, DXF_30X20);
     // Identify components by their (module-qualified) package: FPC = the
     // placed connector, FP = the staged resistor.
     let locs: Vec<(String, (f64, f64))> = blocks(&b.xml, "Component")

@@ -2346,92 +2346,39 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    /// `board_outline { at: (cx, cy), size: (w, h) }` — the rectangular board
-    /// perimeter. Field parsing mirrors `courtyard` (reuses `length_pair` /
-    /// `length_tuple`); unit-TYPE / range validation happens at assembly
-    /// (E1006), like the net-existence checks on the other layout constraints.
+    /// `board_outline: "path.dxf"` (RFC-020) — a reference to a DXF file. The
+    /// DXF is opened, and its one closed outline entity extracted, at `cohdl
+    /// build` (E1006 sub-cases); here we only capture the path string.
     fn board_outline(&mut self) -> Option<BoardOutline> {
         let start = self.span();
         self.bump(); // `board_outline`
-        let open_span = self.span();
-        if !self.expect(&TokenKind::LBrace, "to open `board_outline`") {
-            return None;
-        }
-        let mut at: Option<(UnitValue, UnitValue)> = None;
-        let mut size: Option<(Vec<UnitValue>, Span)> = None;
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
-            // A member/decl keyword before the close means the brace is missing;
-            // stop WITHOUT consuming so the layout/design block can still close.
-            if self.at_ident("net_class")
-                || self.at_ident("diff_pair")
-                || self.at_ident("length_match")
-                || self.at_ident("board_outline")
-                || self.at_decl_keyword()
-            {
-                self.diags.push(Diagnostic::error(
-                    "E010",
-                    open_span,
-                    format!(
-                        "unclosed `board_outline` — missing `}}` before {}",
-                        self.peek().describe()
-                    ),
+        self.expect(&TokenKind::Colon, "after `board_outline`");
+        let (path, path_span) = match self.peek() {
+            TokenKind::Str(_) => {
+                let t = self.bump();
+                let TokenKind::Str(s) = t.kind else {
+                    unreachable!()
+                };
+                (s, t.span)
+            }
+            _ => {
+                self.error_here(format!(
+                    "expected a DXF file path string after `board_outline:`, found {}",
+                    self.peek().describe()
                 ));
                 return None;
             }
-            let Some(field) = self.ident("as a board_outline field (`at`, `size`)") else {
-                self.sync_in_block();
-                self.eat(&TokenKind::Comma);
-                continue;
-            };
-            self.expect(&TokenKind::Colon, "after the board_outline field name");
-            match field.name.as_str() {
-                "at" => match self.length_pair() {
-                    Some(pair) => at = Some(pair),
-                    None => self.sync_in_block(),
-                },
-                "size" => match self.length_tuple() {
-                    Some(tuple) => size = Some(tuple),
-                    None => self.sync_in_block(),
-                },
-                other => {
-                    self.diags.push(Diagnostic::error(
-                        "E1006",
-                        field.span,
-                        format!(
-                            "unknown board_outline field `{}` (expected `at` or `size`)",
-                            other
-                        ),
-                    ));
-                    self.sync_in_block();
-                }
-            }
-            self.eat(&TokenKind::Comma);
-            if self.pos == before {
-                self.bump();
-            }
-        }
-        self.expect(&TokenKind::RBrace, "to close `board_outline`");
-        let span = start.to(self.prev_span());
-        let (Some(at), Some((size, size_span))) = (at, size) else {
-            self.diags.push(Diagnostic::error(
-                "E1006",
-                span,
-                "`board_outline` needs `at` and `size`".to_string(),
-            ));
-            return None;
         };
         Some(BoardOutline {
-            at,
-            size,
-            size_span,
-            span,
+            path,
+            path_span,
+            span: start.to(self.prev_span()),
         })
     }
 
-    /// `place <inst> at (x, y)` — a locked component placement. Instance
-    /// existence and coordinate unit-type are validated at assembly (E1007),
-    /// like the net checks on the other layout constraints.
+    /// `place <inst> at (x, y) [rotate ANGLE]` (RFC-020) — a locked, optionally
+    /// rotated component placement. Instance existence, coordinate unit-type,
+    /// and the closed-set rotation are validated at assembly (E1007).
     fn placement(&mut self) -> Option<Placement> {
         let start = self.span();
         self.bump(); // `place`
@@ -2442,9 +2389,32 @@ impl<'a> Parser<'a> {
         }
         self.bump(); // `at`
         let at = self.length_pair()?;
+        // Optional `rotate ANGLE` (closed set validated at assembly).
+        let mut rotate = 0u16;
+        if self.at_ident("rotate") {
+            self.bump(); // `rotate`
+            match self.peek() {
+                TokenKind::Number(_) => {
+                    let t = self.bump();
+                    if let TokenKind::Number(n) = t.kind {
+                        // Out-of-set / non-integer values are reported at
+                        // assembly (E1007); an unparseable value maps to a
+                        // sentinel that fails that closed-set check.
+                        rotate = n.parse::<u16>().unwrap_or(u16::MAX);
+                    }
+                }
+                _ => {
+                    self.error_here(format!(
+                        "expected a rotation angle (0, 90, 180, or 270) after `rotate`, found {}",
+                        self.peek().describe()
+                    ));
+                }
+            }
+        }
         Some(Placement {
             inst,
             at,
+            rotate,
             span: start.to(self.prev_span()),
         })
     }

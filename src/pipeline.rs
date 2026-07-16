@@ -291,3 +291,45 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         notes,
     })
 }
+
+/// RFC-020: resolve a design's `board_outline` DXF reference into real
+/// geometry, at `cohdl build`. The bytes come from `load` (the CLI reads the
+/// FS, relative to the project root; tests pass a literal), keeping this
+/// FS-free and testable. A missing/unreadable file or an outline that doesn't
+/// parse / isn't closed is an E1006 sub-case pushed onto `checked.diags`, which
+/// makes the subsequent `build_artifacts` return `None`. A no-op when the
+/// design declares no outline (or one already resolved). Call BEFORE
+/// `build_artifacts` so `layout.json` and the IPC `Profile` see the geometry.
+pub fn resolve_board_outline(checked: &mut Checked, load: impl Fn(&str) -> Result<String, String>) {
+    use crate::diag::Diagnostic;
+    let (path, span) = match checked
+        .ir
+        .as_ref()
+        .and_then(|ir| ir.layout.board_outline.as_ref())
+    {
+        Some(bo) if bo.geom.is_none() => (bo.path.clone(), bo.span),
+        _ => return,
+    };
+    let layer = crate::dxf::OUTLINE_LAYER;
+    match load(&path) {
+        Ok(text) => match crate::dxf::extract_outline(&text, layer) {
+            Ok(geom) => {
+                if let Some(bo) = checked
+                    .ir
+                    .as_mut()
+                    .and_then(|ir| ir.layout.board_outline.as_mut())
+                {
+                    bo.geom = Some(geom);
+                }
+            }
+            Err(e) => checked
+                .diags
+                .push(Diagnostic::error("E1006", span, e.message(layer))),
+        },
+        Err(e) => checked.diags.push(Diagnostic::error(
+            "E1006",
+            span,
+            format!("cannot read board-outline DXF `{}`: {}", path, e),
+        )),
+    }
+}

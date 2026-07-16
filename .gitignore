@@ -7,3 +7,13 @@ harness/runs/
 
 # Local code-review artifacts (not part of the compiler)
 .co/
+
+# On-demand build artifacts (not default `cohdl build` goldens): the IPC-2581
+# document (--emit ipc2581), the tools/ visualizers' output, and KiCad session
+# files created when a generated .kicad_pcb is opened in pcbnew.
+examples/*/out/*.xml
+examples/*/out/*.html
+examples/*/out/*.kicad_pcb
+examples/*/out/*.kicad_pro
+examples/*/out/*.kicad_prl
+examples/*/out/.history/

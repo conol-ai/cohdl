@@ -808,3 +808,76 @@ Option 1 was rejected: RFC-014's own text already named this exact gap as deferr
 ## Revisit when
 
 If real usage reveals grammar-drift is a recurring, painful problem — that's when auto-generating the grammar from the compiler's own lexer/parser definitions (rejected this pass as premature tooling investment) becomes worth building. Also revisit if a second editor develops a real, named need for shared highlighting — that's when a Tree-sitter grammar earns its cost.
+
+# DR-026: Board outline (external file reference) + oriented placement — retroactive formalization + correction of an unauthorized implementation
+
+## Context
+
+board_outline { at: (cx, cy), size: (w, h) } and place at (x, y) were implemented directly on main (commits 86165d9, 1a0ce5f) to make examples/rpi-pico2's IPC-2581 output deliverable to Quilter — with no RFC, no decision record, and no note 6/note 10/note 2 update. The code's own comments acknowledged this ("pragmatic extension... pending an RFC"). Tony's direct review of the real implementation (reading src/ast.rs, src/ir.rs, src/check/expand.rs, docs/compliance-report.md) surfaced two real design defects beyond the process violation: (1) a board outline is a mechanical-engineering artifact (a DXF file from a mechanical engineer), not something CoHDL should author as a rectangle; (2) placement needs rotation, which the original implementation had no way to express at all — confirmed as the actual root cause of a real observed Quilter failure (a board-edge connector rotated 90° from its intended orientation).
+
+## Options
+
+1. Retroactively write an RFC that documents the existing { at, size } rectangle + coordinate-only place shape as-is, closing only the process gap.
+2. Correct both defects while formalizing: board outline becomes a referenced external file path (never authored .cohdl geometry, mirroring RFC-017's #[doc(...)]/footprint-symbol precedent); place gains an optional rotate clause restricted to a closed four-value set (0/90/180/270), following the same closed-vocabulary discipline as RFC-001's units and RFC-008's pin roles (RFC-020's proposal, per Tony's direct correction).
+3. Remove both constructs entirely, reverting to the pre-86165d9 state, and defer to a future RFC designed from scratch with no existing implementation to anchor against.
+4. Add general 2D geometry/polygon-authoring syntax to .cohdl and/or an open-ended Angle unit type for arbitrary-degree rotation.
+
+## Decision
+
+Option 2, per Tony's explicit direction. board_outline: "path" replaces the rectangle-authoring block — a single string-literal path CoHDL never opens or validates. place at (x, y) [rotate ANGLE] gains an optional rotate clause; ANGLE is closed to {0, 90, 180, 270}. Both constructs stay non-DRC, checked structurally at declaration, zero schematic-correctness impact — RFC-013's own discipline, unchanged.
+
+## Rationale
+
+Option 1 was rejected outright: formalizing a shape already identified as wrong on the merits (a rectangle cannot represent a real board's mounting-hole cutouts, connector notches, or non-rectangular perimeter) would be process theater, not a real fix — the whole point of the RFC gate is to catch exactly this kind of defect before it's treated as settled. Option 3 (full revert) was rejected: the underlying capability (a board outline, a locked/oriented placement for edge-interface components) is a real, validated need — the rpi-pico2/Quilter failure was real, not hypothetical — reverting would lose real, working progress over a shape defect, when the shape can be corrected directly. Option 4 (general geometry authoring / open-angle type) was rejected per the project's own established narrow-first discipline (RFC-007 rejected const-generics, RFC-001 kept units closed until Length's concrete RFC-018 need justified extension) — no concrete need for anything beyond cardinal rotation has been shown, and CoHDL authoring real 2D CAD geometry directly contradicts the point of referencing an external mechanical file at all.
+
+## Consequences
+
+- board_outline's grammar surface shrinks (a path string, not an { at, size } geometry block) — a net reduction in what CoHDL's grammar owns, the opposite of conceptual-cost growth.
+- Real, disclosed breaking change: rpi-pico2's existing rectangle-shaped board_outline must be replaced with a real DXF file reference — genuine non-mechanical migration work (an actual DXF must be sourced/authored), not a syntax-only fix, before this RFC is considered landed for that example.
+- place's rotate clause is purely additive — every existing place at (x, y) statement (no rotate) is unchanged in meaning.
+- The IPC-2581 emitter's board-outline responsibility changes shape: from synthesizing a rectangle Polygon to carrying a referenced file's outline geometry into Profile — real, scoped emitter implementation work, not optional.
+- CoHDL still performs zero geometric validation of the referenced board-outline file's content (closed contour, self-intersection, etc.) and zero rotation math/collision reasoning — both disclosed, not silently assumed solved, consistent with DR-003's "layout stays a partner concern" line.
+- Establishes a going-forward process point: any construct implemented directly on main without an RFC (as this one was) must be treated as provisional and non-final until a real RFC pass — including, where warranted, correcting the design rather than merely documenting it after the fact.
+
+## Revisit when
+
+If a genuine need for arbitrary-angle (non-cardinal) rotation emerges from real placement/fab-tooling usage — that's a scoped follow-up extending the closed rotation set, or introducing a real Angle unit type, not a reason to have opened it now. Also revisit if the board-outline file-reference mechanism proves insufficient for some board's real mechanical constraints not expressible as a single external file (unlikely, but not ruled out).
+
+# DR-026 amendment (same day): scoped DXF geometry extraction required; fn-nested placement explicitly deferred
+
+## Context
+
+Same day as DR-026's original acceptance, Tony reviewed the revised design again and raised two further points: (1) a "reference the DXF, never parse it" board outline cannot actually produce IPC-2581's Profile element, which requires closed polygon/arc geometry embedded in the document itself — Quilter cannot import a document that merely points at an external file; (2) place has no way to reach an instance declared inside a called fn (confirmed against real source: src/check/expand.rs's handle_placement resolves only against a scope's local top-level instance names, and rejects place appearing inside a fn body outright). Tony's direction on the second point: defer it — support only top-level instances for now, rather than designing a path-qualification/disambiguation mechanism speculatively.
+
+## Options
+
+For the DXF question:
+
+1. Keep "reference-only, never-parsed" — rejected outright, cannot meet the real requirement.
+2. CoHDL extracts, narrowly, exactly one designated outline entity (a closed polyline, by convention on a fixed documented layer) from the referenced DXF, translates it into IPC-2581's native Profile/Polygon geometry, and ignores everything else in the file — the chosen option.
+3. CoHDL becomes a general DXF/mechanical-CAD parser — rejected, unbounded scope.
+
+For the fn-nested placement question:
+
+1. Add a ::-separated path-qualification mechanism to place, reusing RFC-006's existing call-chain instance-naming scheme, with ambiguity-resolution rules for multiple calls to the same fn — designed in an intermediate draft of this RFC, then withdrawn.
+2. Leave place scoped to top-level instances only, name the fn-nested case as a real, disclosed, deferred gap — chosen, per Tony's direct decision.
+3. Add a new fn-level export/return mechanism so nested instances can be re-bound to a top-level name reachable by place.
+
+## Decision
+
+For board outline: Option 2 — scoped, single-entity DXF extraction, embedded as real IPC-2581 geometry. For placement: Option 2 — place continues to name only top-level design instances; reaching into a called fn is explicitly out of scope for this RFC, to be revisited only once a concrete design need justifies it.
+
+## Rationale
+
+The DXF question has no real alternative — "never parse" was not a real design option once IPC-2581's actual Profile requirement was traced through; this was a defect in the prior revision, not a legitimate trade-off. For the placement question, Option 1 (path-qualification) was withdrawn per Tony's direct call: the underlying gap is real, but no concrete design has yet needed it, and designing the right mechanism (path syntax, ambiguity rules) speculatively risks getting the shape wrong before real usage can inform it — the same reasoning the project has already applied to rejecting const-generics (RFC-007), deferring padstack richness (RFC-018), and keeping this same RFC's own rotation set closed rather than open-ended. Option 3 (a new fn export mechanism) was rejected as a strictly larger, unnecessary language feature for the same underlying reason.
+
+## Consequences
+
+- board_outline's build-time behavior is now real, scoped geometry-extraction work (not a no-op reference) — the IPC-2581 emitter must translate DXF polyline+bulge geometry into Profile/Polygon line+arc segments, a genuine, non-trivial but bounded implementation task.
+- New E1006 sub-cases: missing/malformed/non-closed outline entity, unparseable DXF — real new diagnostic surface, disclosed rather than silently absorbed.
+- place's scope is explicitly unchanged from before this whole RFC sequence began — top-level instances only. A component instantiated inside a called fn (e.g. a reusable connector sub-circuit) cannot be locked/oriented via place today. This is named, in both the RFC and note 10's "Not yet specified" list, as a real and disclosed limitation — not solved, not silently worked around by, e.g., discouraging fn-based connector sub-circuits without saying so.
+- No dependency on RFC-006's call-chain path scheme in this revision (the withdrawn design would have depended on it; this revision does not).
+
+## Revisit when
+
+If a real design genuinely needs to place a component that only exists inside a called fn — at that point, design the path-qualification mechanism (or an export mechanism, or whatever the concrete need actually shows is right) against that real requirement, rather than the speculative shape considered and withdrawn here.

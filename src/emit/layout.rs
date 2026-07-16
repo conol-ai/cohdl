@@ -66,28 +66,55 @@ pub fn emit_layout_json(ir: &DesignIr) -> Option<String> {
             )
         },
     );
-    // Board outline (pragmatic extension; mm values, exact over the femto
-    // integers via emit::geom). `null` when the design declares none.
-    match &ir.layout.board_outline {
-        Some(bo) => {
+    // Board outline (RFC-020): the referenced DXF `source` plus the extracted
+    // closed loop (start + one segment per edge). `null` when the design
+    // declares none, or when it declares a path but the DXF was not resolved
+    // (e.g. `check` never reads the file).
+    use crate::emit::geom::mm_femto;
+    match ir
+        .layout
+        .board_outline
+        .as_ref()
+        .and_then(|b| b.geom.as_ref().map(|g| (b, g)))
+    {
+        Some((bo, g)) => {
+            let seg = |s: &crate::dxf::Seg| {
+                match s {
+                crate::dxf::Seg::Line { to } => format!(
+                    "{{ \"type\": \"line\", \"to\": [{}, {}] }}",
+                    mm_femto(to.0),
+                    mm_femto(to.1)
+                ),
+                crate::dxf::Seg::Arc { to, center, clockwise } => format!(
+                    "{{ \"type\": \"arc\", \"to\": [{}, {}], \"center\": [{}, {}], \"clockwise\": {} }}",
+                    mm_femto(to.0),
+                    mm_femto(to.1),
+                    mm_femto(center.0),
+                    mm_femto(center.1),
+                    clockwise
+                ),
+            }
+            };
+            let segs: Vec<String> = g.segs.iter().map(seg).collect();
             let _ = writeln!(
                 out,
-                "  \"board_outline\": {{ \"at\": [{}, {}], \"size\": [{}, {}] }},",
-                crate::emit::geom::mm(&bo.at.0),
-                crate::emit::geom::mm(&bo.at.1),
-                crate::emit::geom::mm(&bo.size.0),
-                crate::emit::geom::mm(&bo.size.1)
+                "  \"board_outline\": {{ \"source\": {}, \"start\": [{}, {}], \"segments\": [{}] }},",
+                json_str(&bo.path),
+                mm_femto(g.start.0),
+                mm_femto(g.start.1),
+                segs.join(", ")
             );
         }
         None => out.push_str("  \"board_outline\": null,\n"),
     }
-    // Locked component placements (`place <inst> at …`), instance-path order.
+    // Locked component placements (`place <inst> at … [rotate N]`), path order.
     array(&mut out, "placements", &ir.layout.placements, |p| {
         format!(
-            "{{ \"instance\": {}, \"at\": [{}, {}] }}",
+            "{{ \"instance\": {}, \"at\": [{}, {}], \"rotate\": {} }}",
             json_str(&p.path),
             crate::emit::geom::mm(&p.at.0),
-            crate::emit::geom::mm(&p.at.1)
+            crate::emit::geom::mm(&p.at.1),
+            p.rotate
         )
     });
     array(

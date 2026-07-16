@@ -590,18 +590,6 @@ Rules:
 - cohdl build projects a resolved footprint's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
 - pad/footprint's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
 
-# Not yet specified
-
-The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have no Accepted RFC yet, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
-
-- Skills (manufacturer best-practice guidance) — explicitly deferred per RFC-017's own direct decision; not yet even scoped (free-form doc vs. structured/checkable data is an open question).
-- A richer padstack model (per-layer-independent geometry, vias, thermal reliefs) — explicitly out of scope per RFC-018, likely only meaningful once board outline/stackup (below) is addressed.
-- Board outline / layer stackup as a real CoHDL concept — named future work per RFC-015, still not addressed by RFC-018 either.
-- Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
-- Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
-
-As of 2026-07-15, RFC-001 through RFC-019 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use).
-
 # Editor support: VS Code extension
 
 Accepted via RFC-019, see RFC-019: VS Code extension for CoHDL + DR-025.
@@ -621,3 +609,55 @@ Rules:
 - The TextMate grammar can drift from the real language grammar as future RFCs add/rename keywords — this is a disclosed, not-fully-solved risk (no compiler-enforced guarantee is possible for an external editor's grammar file); the convention going forward is that any RFC introducing/renaming/removing a top-level keyword should update cohdl.tmLanguage.json in the same change it updates this note.
 - Purely additive — no existing .cohdl source, diagnostic code, designator, or netlist byte is affected; a user who never installs the extension experiences zero change.
 - Closes RFC-014's own explicitly-deferred packaging scope and its still-open real-client acceptance item (a live VS Code session actually exercising cohdl lsp, previously unverified per docs/compliance-report.md).
+
+# Board outline and oriented placement
+
+Accepted via RFC-020, see RFC-020: Board outline (scoped DXF profile extraction) + oriented placement + DR-026 (+ same-day amendment). Corrects an unauthorized implementation: board_outline/place were built directly on main (no RFC) with a rectangle-authoring shape and coordinate-only placement — Tony's direct review identified both as real design defects (a board outline is a mechanical-engineering DXF artifact, not a CoHDL-authored rectangle; placement needs rotation, the actual cause of a real Quilter failure). This section documents the corrected, Accepted design, revised twice further same day: board_outline requires CoHDL to actually extract the outline geometry from the referenced DXF (a reference-only design cannot produce IPC-2581's required inline Profile geometry); place is scoped to top-level instances only, with reaching into a called fn explicitly deferred (see Not yet specified).
+
+Board outline — scoped extraction of one entity from a referenced DXF:
+
+```cohdl
+design Pico2 {
+    layout {
+        board_outline: "mechanical/pico2-outline.dxf"
+    }
+}
+```
+
+- board_outline: "path" — a single string-literal path, relative to the project root (same convention as #[doc(...)], RFC-017). At most one per design, design-top-level only.
+- At cohdl build, CoHDL opens the referenced DXF and extracts exactly one designated outline entity — by convention, a closed LWPOLYLINE/POLYLINE on a fixed, documented layer name (the convention is emitter documentation, not fixed in the .cohdl grammar — see Tooling & operations below). Straight segments and arc bulges are both supported. Everything else in the DXF is never read — other layers, entities, text, dimensions are out of scope, the same narrow-contract discipline pad/footprint (RFC-018) established for pad geometry. CoHDL is not, and does not become, a general DXF/mechanical-CAD parser.
+- A missing, malformed, non-closed, or unparseable outline entity is a compile error at cohdl build (an E1006 sub-case) naming the specific problem.
+- The extracted geometry is embedded directly in IPC-2581's Profile/Polygon element and in layout.json — this is what makes the emitted document actually Quilter-importable. CoHDL still performs no validation of the outline's mechanical sensibility beyond confirming it's one closed loop — self-intersection, manufacturability, and real-world correctness remain the mechanical engineer's/CAD tool's responsibility.
+
+Placement — coordinates + a closed-set rotation, top-level instances only:
+
+```cohdl
+layout {
+    place hdr at (0mm, 0mm) rotate 90
+}
+```
+
+- place at (x, y) [rotate ANGLE] — rotate is optional (default 0, unrotated); ANGLE is one of a closed set: 0, 90, 180, 270 — not an open-ended angle unit type.
+- at's two Length-typed values, design-top-level-only restriction, and at-most-one-placement-per-instance are unchanged from the construct's original (now-corrected) shape. names a top-level instance of the design only — an instance created inside a called fn is not reachable by place; this is a real, disclosed, deferred gap (see Not yet specified), not silently solved.
+- cohdl build passes the rotation value through unchanged into IPC-2581's Component/Location rotation attribute and layout.json — CoHDL performs no rotation math, no collision reasoning against the rotated footprint's actual extent. A declared fact for a partner tool to act on, identical in spirit to #[placement_hint(...)]'s existing discipline.
+
+Rules (both constructs):
+
+- Both stay non-DRC — structural, checked at declaration/build time (well-formed path string / at-most-one / outline-entity-exists-and-closes for board outline; closed-set membership + top-level-instance-lookup for placement) — never emergent-across-the-graph checks.
+- Zero schematic-correctness impact, by construction — same guarantee RFC-013 established for every layout-adjacent construct; neither construct is read by the type checker, residual DRC, designator allocator, or .net/BOM emitters.
+- Error codes stay in the existing E10xx family (E1006 gains real sub-cases: missing/malformed/non-closed outline entity, unparseable DXF; E1007 gains the rotation sub-case) — no new block, per RFC-011's "kind of mistake" organizing principle.
+- No general 2D geometry/CAD authoring syntax exists in .cohdl — this is a scoped reference-and-extraction mechanism, not a geometry-authoring one. No arbitrary-angle rotation, rotation math, or collision/interference checking — all explicitly out of scope, consistent with DR-003's "layout/routing stays a partner concern" boundary.
+
+# Not yet specified
+
+The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have no Accepted RFC yet, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
+
+- Skills (manufacturer best-practice guidance) — explicitly deferred per RFC-017's own direct decision; not yet even scoped (free-form doc vs. structured/checkable data is an open question).
+- A richer padstack model (per-layer-independent geometry, vias, thermal reliefs) — explicitly out of scope per RFC-018, likely only meaningful once board outline/stackup (below) is addressed.
+- General layer stackup as a real CoHDL concept — named future work per RFC-015, still not addressed by RFC-020 either (RFC-020 covers only the 2D board perimeter, not stackup).
+- Arbitrary-angle (non-cardinal) rotation, or an open Angle unit type — explicitly deferred per RFC-020's own direct decision; a scoped future RFC if a real need emerges.
+- place reaching an instance declared inside a called fn — explicitly deferred per Tony's direct decision (RFC-020/DR-026 amendment). place today resolves only against a design's own top-level instances; a component instantiated by a reusable sub-circuit fn (e.g. a connector helper) cannot currently be locked/oriented. A path-qualification mechanism was considered and withdrawn pending a real concrete need.
+- Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
+- Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
+
+As of 2026-07-16, RFC-001 through RFC-020 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively).

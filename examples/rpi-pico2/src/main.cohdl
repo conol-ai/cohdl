@@ -162,11 +162,17 @@ design Pico2 {
         diff_pair(USB_DPX, USB_DMX)
         length_match(USB_DPX, USB_DMX) [tolerance: 0.15mm]
         net_class Clock { XIN, XR }
-        // Raspberry Pi Pico 2 board outline (51 x 21 mm), the single closed
-        // perimeter the layout partner (Quilter) seeds placement against.
-        board_outline { at: (0mm, 0mm), size: (51mm, 21mm) }
-        // The 40-pin castellated header IS the board edge — lock it centered so
-        // the layout partner treats it as pre-placed and positions the rest.
+        // Raspberry Pi Pico 2 board outline (51 x 21 mm rounded rectangle),
+        // extracted from the DXF's Edge.Cuts layer (RFC-020) — the single
+        // closed perimeter the layout partner (Quilter) seeds placement against.
+        board_outline: "mechanical/pico2-outline.dxf"
+        // Interface ports are pre-positioned (locked) at their board-edge
+        // locations, oriented; the layout partner places the rest around them.
+        // The 40-pin castellated header IS the board edge — centered.
         place hdr at (0mm, 0mm)
+        // Micro-USB at the left short edge, opening facing outward.
+        place usb at (-22mm, 0mm) rotate 90
+        // 3-pin SWD debug header at the right short edge.
+        place swd at (22mm, 0mm) rotate 90
     }
 }

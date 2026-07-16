@@ -428,6 +428,14 @@ fn run(args: &Args) -> Result<bool, String> {
         Err(_) => LockState::default(),
     };
 
+    // RFC-020: resolve a `board_outline: "…dxf"` reference into real geometry
+    // before emitting. The path is project-relative (validated at check — no
+    // absolute/`..`/URL), so it joins under the project directory.
+    let proj_dir = proj.dir.clone();
+    pipeline::resolve_board_outline(&mut checked, |path| {
+        std::fs::read_to_string(proj_dir.join(path)).map_err(|e| e.to_string())
+    });
+
     let artifacts = pipeline::build_artifacts(&mut checked, &prior_lock);
     let Some(artifacts) = artifacts else {
         if args.json {

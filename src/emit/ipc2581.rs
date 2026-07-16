@@ -82,6 +82,12 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     // are NOT staged — a placement tool treats them as pre-placed. Everything
     // else is staged outside the outline.
     let placed = placed_positions(ir);
+    let rotations: BTreeMap<String, u16> = ir
+        .layout
+        .placements
+        .iter()
+        .map(|p| (p.path.clone(), p.rotate))
+        .collect();
     let staging = staging_positions(world, ir, &insts, &placed);
     let name = sanitize(package_name, false);
     let step = sanitize(&ir.name, false);
@@ -193,34 +199,52 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     out.push_str("        <Datum x=\"0\" y=\"0\"/>\n");
 
     // Board outline → Step/Profile: the single closed board perimeter a
-    // downstream layout tool (Quilter) seeds placement/routing against. A
-    // pragmatic extension beyond RFC-015's original physical-minimal cut
-    // (which had no outline) — its presence is what lets `--emit ipc2581`
-    // carry a real board boundary; corners are exact over the femto integers
-    // (emit::geom), never floats. Absent when the design declares no
-    // `board_outline` (the completeness marker still says physical-minimal).
-    if let Some(bo) = &ir.layout.board_outline {
-        let (cx, cy) = &bo.at;
-        let (w, h) = &bo.size;
-        let corners = [
-            (geom::corner_lo(cx, w), geom::corner_lo(cy, h)),
-            (geom::corner_hi(cx, w), geom::corner_lo(cy, h)),
-            (geom::corner_hi(cx, w), geom::corner_hi(cy, h)),
-            (geom::corner_lo(cx, w), geom::corner_hi(cy, h)),
-        ];
+    // downstream layout tool (Quilter) seeds placement/routing against.
+    // RFC-020: real geometry extracted from a referenced DXF (straight
+    // segments become PolyStepSegment, arc bulges become PolyStepCurve). All
+    // coordinates are exact over the femto integers (emit::geom / emit::dxf).
+    // Absent when the design declares no `board_outline`, or when it does but
+    // the DXF wasn't resolved (the completeness marker still says minimal).
+    if let Some(g) = ir
+        .layout
+        .board_outline
+        .as_ref()
+        .and_then(|b| b.geom.as_ref())
+    {
         out.push_str("        <Profile>\n");
         out.push_str("          <Polygon>\n");
         let _ = writeln!(
             out,
             "            <PolyBegin x=\"{}\" y=\"{}\"/>",
-            corners[0].0, corners[0].1
+            geom::mm_femto(g.start.0),
+            geom::mm_femto(g.start.1)
         );
-        for (x, y) in corners.iter().skip(1).chain([corners[0].clone()].iter()) {
-            let _ = writeln!(
-                out,
-                "            <PolyStepSegment x=\"{}\" y=\"{}\"/>",
-                x, y
-            );
+        for seg in &g.segs {
+            match seg {
+                crate::dxf::Seg::Line { to } => {
+                    let _ = writeln!(
+                        out,
+                        "            <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                        geom::mm_femto(to.0),
+                        geom::mm_femto(to.1)
+                    );
+                }
+                crate::dxf::Seg::Arc {
+                    to,
+                    center,
+                    clockwise,
+                } => {
+                    let _ = writeln!(
+                        out,
+                        "            <PolyStepCurve x=\"{}\" y=\"{}\" centerX=\"{}\" centerY=\"{}\" clockwise=\"{}\"/>",
+                        geom::mm_femto(to.0),
+                        geom::mm_femto(to.1),
+                        geom::mm_femto(center.0),
+                        geom::mm_femto(center.1),
+                        clockwise
+                    );
+                }
+            }
         }
         out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0.1\"/>\n");
         out.push_str("          </Polygon>\n");
@@ -387,6 +411,14 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 "          <NonstandardAttribute name=\"COHDL_PLACEMENT_HINT\" type=\"STRING\" value=\"{}\"/>",
                 esc(hint)
             );
+        }
+        // RFC-020: a locked placement's rotation rides Component/Xform
+        // (schema order: NonstandardAttribute*, Xform?, Location). Staged and
+        // unplaced components are unrotated (no Xform).
+        if let Some(rot) = rotations.get(&inst.path) {
+            if *rot != 0 {
+                let _ = writeln!(out, "          <Xform rotation=\"{}\"/>", rot);
+            }
         }
         let (lx, ly) = match placed.get(&inst.path).or_else(|| staging.get(&inst.path)) {
             Some((x, y)) => (geom::mm_femto(*x), geom::mm_femto(*y)),
@@ -692,13 +724,21 @@ fn staging_positions(
     placed: &BTreeMap<String, (i128, i128)>,
 ) -> BTreeMap<String, (i128, i128)> {
     let mut out = BTreeMap::new();
-    let Some(bo) = &ir.layout.board_outline else {
+    // Stage against the RESOLVED outline geometry's bounding box (RFC-020).
+    let Some(g) = ir
+        .layout
+        .board_outline
+        .as_ref()
+        .and_then(|b| b.geom.as_ref())
+    else {
         return out;
     };
+    let ((ob_lo_x, _ob_lo_y), (ob_hi_x, ob_hi_y)) = g.bbox;
+    let board_w = ob_hi_x - ob_lo_x;
     let margin = 5 * FEMTO_MM;
     let gap = 2 * FEMTO_MM;
-    let out_right = bo.at.0.femto + bo.size.0.femto / 2;
-    let out_top = bo.at.1.femto + bo.size.1.femto / 2;
+    let out_right = ob_hi_x;
+    let out_top = ob_hi_y;
     let start_x = out_right + margin;
     // Shelf width ≈ the board width, but never narrower than the widest
     // component (so no component overflows its shelf and the block stays a
@@ -717,7 +757,7 @@ fn staging_positions(
         })
         .max()
         .unwrap_or(0);
-    let limit_x = start_x + bo.size.0.femto.max(widest);
+    let limit_x = start_x + board_w.max(widest);
     let mut cursor_x = start_x;
     let mut row_top = out_top; // rows extend downward from the board's top edge
     let mut row_h = 0i128;

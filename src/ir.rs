@@ -48,20 +48,25 @@ impl LayoutIr {
     }
 }
 
-/// A validated rectangular board outline: center point + (width, height), all
-/// `Length` values in geometry range (checked at assembly, E1006).
+/// A board outline (RFC-020): the referenced DXF `path` (validated as a
+/// project-relative string at assembly, E1006) and the geometry extracted from
+/// it at `cohdl build`. `geom` is `None` until the build step resolves the file
+/// (`cohdl check` never reads the DXF); the emitters use it when present.
 #[derive(Debug)]
 pub struct BoardOutlineIr {
-    pub at: (UnitValue, UnitValue),
-    pub size: (UnitValue, UnitValue),
+    pub path: String,
+    pub span: crate::span::Span,
+    pub geom: Option<crate::dxf::Outline>,
 }
 
-/// A locked placement: the IR instance path + its fixed origin (`Length`
-/// values in geometry range, checked at assembly, E1007).
+/// A locked placement: the IR instance path, its fixed origin (`Length` values
+/// in geometry range), and a closed-set rotation {0,90,180,270} — all checked
+/// at assembly (E1007).
 #[derive(Debug)]
 pub struct LayoutPlacement {
     pub path: String,
     pub at: (UnitValue, UnitValue),
+    pub rotate: u16,
 }
 
 #[derive(Debug)]

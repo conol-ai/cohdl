@@ -56,9 +56,19 @@ struct Built {
     layout: Option<String>,
 }
 
+/// A closed rectangle outline on Edge.Cuts, for `board_outline: "…"` fixtures
+/// (RFC-020; the in-memory DXF the loader returns — tests are FS-free).
+const DXF_RECT: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n\
+    10\n0\n20\n0\n10\n10\n20\n0\n10\n10\n20\n10\n10\n0\n20\n10\n0\nENDSEC\n";
+
 fn build(src: &str) -> Built {
+    build_dxf(src, DXF_RECT)
+}
+
+fn build_dxf(src: &str, dxf: &str) -> Built {
     let files = vec![("board.cohdl".to_string(), src.to_string())];
     let mut checked = check_files(&files, None).expect("selection");
+    cohdl::pipeline::resolve_board_outline(&mut checked, |_| Ok(dxf.to_string()));
     let artifacts = build_artifacts(&mut checked, &LockState::default());
     checked.diags.sort(&checked.sm);
     let diags = checked.diags.render(&checked.sm);
@@ -456,7 +466,7 @@ fn fmt_round_trips_placement_hint() {
 }
 
 // ---------------------------------------------------------------------------
-// board_outline — the pragmatic extension (rectangular board perimeter, E1006).
+// board_outline (RFC-020: DXF extraction) + place [rotate] — E1006/E1007.
 
 fn with_outline(outline: &str) -> String {
     BASE.replace(
@@ -465,30 +475,41 @@ fn with_outline(outline: &str) -> String {
     )
 }
 
+/// Render diagnostics for a source built with a given DXF loader result — the
+/// build-phase E1006 sub-cases (missing/malformed/non-closed DXF) surface here,
+/// not at `check`.
+fn build_err(src: &str, dxf: Result<String, String>) -> String {
+    let files = vec![("board.cohdl".to_string(), src.to_string())];
+    let mut checked = check_files(&files, None).expect("selection");
+    cohdl::pipeline::resolve_board_outline(&mut checked, |_| dxf.clone());
+    checked.diags.sort(&checked.sm);
+    checked.diags.render(&checked.sm)
+}
+
 #[test]
-fn board_outline_projects_to_layout_json() {
-    let built = build(&with_outline(
-        "board_outline { at: (1mm, -2mm), size: (51mm, 21mm) }",
-    ));
+fn board_outline_projects_dxf_geometry_to_layout_json() {
+    let built = build(&with_outline("board_outline: \"o.dxf\""));
     assert!(
         !built.diags.contains("E1006"),
         "unexpected error:\n{}",
         built.diags
     );
     let json = built.layout.expect("layout.json");
+    // The DXF_RECT loader gives a 0..10 square: source + start + straight segs.
     assert!(
-        json.contains("\"board_outline\": { \"at\": [1, -2], \"size\": [51, 21] }"),
-        "board_outline missing/wrong in layout.json:\n{}",
+        json.contains(
+            "\"board_outline\": { \"source\": \"o.dxf\", \"start\": [0, 0], \"segments\": ["
+        ) && json.contains("\"type\": \"line\", \"to\": [10, 0]")
+            && json.contains("\"type\": \"line\", \"to\": [0, 0]"),
+        "board_outline geometry missing/wrong in layout.json:\n{}",
         json
     );
     // Byte-stable.
     assert_eq!(
         json,
-        build(&with_outline(
-            "board_outline { at: (1mm, -2mm), size: (51mm, 21mm) }"
-        ))
-        .layout
-        .unwrap()
+        build(&with_outline("board_outline: \"o.dxf\""))
+            .layout
+            .unwrap()
     );
 }
 
@@ -502,9 +523,7 @@ fn no_board_outline_is_json_null() {
 #[test]
 fn board_outline_is_zero_impact_on_netlist_and_bom() {
     let base = build(BASE);
-    let laid = build(&with_outline(
-        "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) }",
-    ));
+    let laid = build(&with_outline("board_outline: \"o.dxf\""));
     assert_eq!(
         base.netlist, laid.netlist,
         "board_outline moved the netlist"
@@ -521,33 +540,53 @@ fn board_outline_is_zero_impact_on_netlist_and_bom() {
 }
 
 #[test]
-fn board_outline_non_length_is_e1006() {
-    let r = check_err(&with_outline(
-        "board_outline { at: (0mm, 0mm), size: (10V, 10mm) }",
-    ));
-    assert!(r.contains("E1006") && r.contains("Length"), "{}", r);
+fn board_outline_bad_path_is_e1006_at_check() {
+    // Path hygiene is a check-time structural property (no FS needed).
+    for bad in ["/etc/x.dxf", "../escape.dxf", "http://x/y.dxf"] {
+        let r = check_err(&with_outline(&format!("board_outline: \"{}\"", bad)));
+        assert!(
+            r.contains("E1006") && r.contains("project-relative"),
+            "{}: {}",
+            bad,
+            r
+        );
+    }
 }
 
 #[test]
-fn board_outline_non_positive_size_is_e1006() {
-    let r = check_err(&with_outline(
-        "board_outline { at: (0mm, 0mm), size: (0mm, 10mm) }",
-    ));
-    assert!(r.contains("E1006") && r.contains("positive"), "{}", r);
+fn missing_dxf_is_e1006_at_build() {
+    let r = build_err(
+        &with_outline("board_outline: \"o.dxf\""),
+        Err("no such file".into()),
+    );
+    assert!(r.contains("E1006") && r.contains("cannot read"), "{}", r);
+}
+
+#[test]
+fn non_closed_dxf_is_e1006_at_build() {
+    let open = DXF_RECT.replace("70\n1", "70\n0");
+    let r = build_err(&with_outline("board_outline: \"o.dxf\""), Ok(open));
+    assert!(r.contains("E1006") && r.contains("not closed"), "{}", r);
+}
+
+#[test]
+fn unparseable_dxf_is_e1006_at_build() {
+    let r = build_err(
+        &with_outline("board_outline: \"o.dxf\""),
+        Ok("garbage".into()),
+    );
+    assert!(r.contains("E1006"), "{}", r);
 }
 
 #[test]
 fn duplicate_board_outline_is_e1006() {
-    let two = "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) } \
-               board_outline { at: (0mm, 0mm), size: (20mm, 20mm) }";
+    let two = "board_outline: \"a.dxf\" board_outline: \"b.dxf\"";
     let r = check_err(&with_outline(two));
     assert!(r.contains("E1006") && r.contains("at most one"), "{}", r);
 }
 
 #[test]
 fn board_outline_inside_fn_is_e1006() {
-    // A fn body carrying a board_outline is rejected — a board has one
-    // physical perimeter, not one per sub-circuit call.
     let src = r#"
 pub trait TwoTerminal { pins { required A: pin required B: pin } }
 pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
@@ -557,7 +596,7 @@ pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
 pub fn sub(x: Pin) {
     inst r: R1
     net _: x, r.A
-    layout { board_outline { at: (0mm, 0mm), size: (5mm, 5mm) } }
+    layout { board_outline: "o.dxf" }
 }
 design Board {
     inst r2: R1
@@ -570,10 +609,8 @@ design Board {
 }
 
 #[test]
-fn placement_projects_to_layout_json() {
-    let built = build(&with_outline(
-        "board_outline { at: (0mm, 0mm), size: (10mm, 10mm) } place r1 at (1mm, -2mm)",
-    ));
+fn placement_projects_to_layout_json_with_rotation() {
+    let built = build(&with_outline("place r1 at (1mm, -2mm) rotate 90"));
     assert!(
         !built.diags.contains("E1007"),
         "unexpected error:\n{}",
@@ -583,7 +620,8 @@ fn placement_projects_to_layout_json() {
     assert!(
         json.contains("\"placements\": [")
             && json.contains("\"instance\": \"Board::r1\"")
-            && json.contains("\"at\": [1, -2]"),
+            && json.contains("\"at\": [1, -2]")
+            && json.contains("\"rotate\": 90"),
         "placement missing/wrong in layout.json:\n{}",
         json
     );
@@ -592,7 +630,7 @@ fn placement_projects_to_layout_json() {
 #[test]
 fn placement_is_zero_impact_on_netlist_and_bom() {
     let base = build(BASE);
-    let laid = build(&with_outline("place r1 at (0mm, 0mm)"));
+    let laid = build(&with_outline("place r1 at (0mm, 0mm) rotate 180"));
     assert_eq!(base.netlist, laid.netlist, "place moved the netlist");
     assert_eq!(base.bom, laid.bom, "place moved the BOM");
     assert_eq!(base.lock, laid.lock, "place moved the designator lock");
@@ -608,6 +646,12 @@ fn place_unknown_instance_is_e1007() {
 fn place_non_length_is_e1007() {
     let r = check_err(&with_outline("place r1 at (0mm, 3V)"));
     assert!(r.contains("E1007") && r.contains("Length"), "{}", r);
+}
+
+#[test]
+fn place_bad_rotation_is_e1007() {
+    let r = check_err(&with_outline("place r1 at (0mm, 0mm) rotate 45"));
+    assert!(r.contains("E1007") && r.contains("45"), "{}", r);
 }
 
 #[test]
@@ -642,20 +686,24 @@ design Board {
 }
 
 #[test]
-fn fmt_round_trips_place() {
-    let src = "design B{layout{place hdr at (0mm,-1mm)}}";
+fn fmt_round_trips_place_with_rotate() {
+    let src = "design B{layout{place hdr at (0mm,-1mm) rotate 90}}";
     let once = format_source("b.cohdl", src).unwrap();
-    assert!(once.contains("place hdr at (0mm, -1mm)"), "{}", once);
+    assert!(
+        once.contains("place hdr at (0mm, -1mm) rotate 90"),
+        "{}",
+        once
+    );
     let twice = format_source("b.cohdl", &once).unwrap();
     assert_eq!(once, twice, "place formatting is not idempotent:\n{}", once);
 }
 
 #[test]
 fn fmt_round_trips_board_outline() {
-    let src = "design B{layout{board_outline{at:(0mm,-1mm),size:(51mm,21mm)}}}";
+    let src = "design B{layout{board_outline:\"mechanical/o.dxf\"}}";
     let once = format_source("b.cohdl", src).unwrap();
     assert!(
-        once.contains("board_outline { at: (0mm, -1mm), size: (51mm, 21mm) }"),
+        once.contains("board_outline: \"mechanical/o.dxf\""),
         "{}",
         once
     );

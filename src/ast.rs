@@ -632,22 +632,24 @@ pub struct LayoutBlock {
     pub span: Span,
 }
 
-/// `place <inst> at (x, y)` — a locked placement of one instance.
+/// `place <inst> at (x, y) [rotate ANGLE]` — a locked, optionally-rotated
+/// placement of one instance (RFC-020). `rotate` is one of the closed set
+/// {0, 90, 180, 270}; 0 (unrotated) is the default when omitted.
 #[derive(Debug, Clone)]
 pub struct Placement {
     pub inst: Ident,
     pub at: (UnitValue, UnitValue),
+    pub rotate: u16,
     pub span: Span,
 }
 
-/// `board_outline { at: (cx, cy), size: (w, h) }` — a rectangle, the only
-/// outline shape the MVP models (a closed perimeter is all Quilter requires
-/// to seed placement; a polygon outline is future work).
+/// `board_outline: "path.dxf"` (RFC-020) — a reference to a DXF file from
+/// which `cohdl build` extracts one closed outline entity (see `crate::dxf`).
+/// The body is just the path string; the real geometry is resolved at build.
 #[derive(Debug, Clone)]
 pub struct BoardOutline {
-    pub at: (UnitValue, UnitValue),
-    pub size: Vec<UnitValue>,
-    pub size_span: Span,
+    pub path: String,
+    pub path_span: Span,
     pub span: Span,
 }
 

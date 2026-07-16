@@ -242,6 +242,23 @@ impl<'w, 'd> Expander<'w, 'd> {
                 return;
             }
         }
+        // RFC-020: rotation is a closed set {0, 90, 180, 270}.
+        if !matches!(placement.rotate, 0 | 90 | 180 | 270) {
+            let shown = if placement.rotate == u16::MAX {
+                "that value".to_string()
+            } else {
+                placement.rotate.to_string()
+            };
+            self.diags.push(Diagnostic::error(
+                "E1007",
+                placement.span,
+                format!(
+                    "`rotate {}` is not one of the allowed rotations {{0, 90, 180, 270}}",
+                    shown
+                ),
+            ));
+            return;
+        }
         if self.placements.iter().any(|p| p.path == path) {
             self.diags.push(Diagnostic::error(
                 "E1007",
@@ -253,16 +270,16 @@ impl<'w, 'd> Expander<'w, 'd> {
         self.placements.push(crate::ir::LayoutPlacement {
             path,
             at: (placement.at.0.clone(), placement.at.1.clone()),
+            rotate: placement.rotate,
         });
     }
 
-    /// Validate and record the board outline (E1006). A rectangle whose
-    /// `at`/`size` are `Length` values in geometry range; declared at most
-    /// once, and only in the design's own layout block — never inside a
-    /// called fn (a board has one physical perimeter, not one per sub-circuit
-    /// instantiation).
+    /// Validate and record the board outline (RFC-020, E1006): a project-
+    /// relative DXF path, declared at most once, and only in the design's own
+    /// layout block — never inside a called fn (a board has one physical
+    /// perimeter). The DXF is NOT read here — that happens at `cohdl build`
+    /// (`pipeline::resolve_board_outline`); this only validates the reference.
     fn handle_board_outline(&mut self, outline: &crate::ast::BoardOutline) {
-        use crate::units::UnitType;
         if !self.active_calls.is_empty() {
             self.diags.push(Diagnostic::error(
                 "E1006",
@@ -271,74 +288,27 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         }
-        // `at` may be any signed Length in range; `size` must be two positive
-        // Length extents. Every geometry error is E1006 (the outline's own
-        // code), consistent with how footprint geometry uses E805/E806.
-        let mut ok = true;
-        let check =
-            |v: &crate::units::UnitValue, positive: bool, what: &str, diags: &mut Diagnostics| {
-                if v.unit != UnitType::Length {
-                    diags.push(Diagnostic::error(
-                        "E1006",
-                        outline.span,
-                        format!(
-                            "board outline {} is a `Length` (`mm`) literal — `{}` is a `{}`",
-                            what,
-                            v.text,
-                            v.unit.type_name()
-                        ),
-                    ));
-                    return false;
-                }
-                if positive && v.femto <= 0 {
-                    diags.push(Diagnostic::error(
-                        "E1006",
-                        outline.span,
-                        format!(
-                            "board outline {} `{}` must be a positive extent (> 0mm)",
-                            what, v.text
-                        ),
-                    ));
-                    return false;
-                }
-                if !v.length_in_geom_range() {
-                    diags.push(Diagnostic::error(
-                        "E1006",
-                        outline.span,
-                        format!(
-                            "board outline {} `{}` is too large to project (review R5-5)",
-                            what, v.text
-                        ),
-                    ));
-                    return false;
-                }
-                true
-            };
-        ok &= check(&outline.at.0, false, "x", self.diags);
-        ok &= check(&outline.at.1, false, "y", self.diags);
-        let (w, h) = match outline.size.as_slice() {
-            [w, h] => (w, h),
-            _ => {
-                self.diags.push(Diagnostic::error(
-                    "E1006",
-                    outline.size_span,
-                    format!(
-                        "`board_outline` size takes `(width, height)` — found {} value{}",
-                        outline.size.len(),
-                        if outline.size.len() == 1 { "" } else { "s" }
-                    ),
-                ));
-                return;
-            }
-        };
-        ok &= check(w, true, "width", self.diags);
-        ok &= check(h, true, "height", self.diags);
-        if !ok {
+        // Path hygiene, mirroring RFC-017's #[doc] rule (review R5-9): a
+        // project-relative reference only — never absolute, never `..`-escaping,
+        // never a URL. The file itself is opened at build.
+        let p = outline.path.trim();
+        let bad = p.is_empty()
+            || p.starts_with('/')
+            || p.split(['/', '\\']).any(|seg| seg == "..")
+            || p.contains("://")
+            || (p.len() >= 2 && p.as_bytes()[1] == b':'); // drive letter
+        if bad {
+            self.diags.push(Diagnostic::error(
+                "E1006",
+                outline.path_span,
+                format!(
+                    "board outline path `{}` must be a project-relative file path (no absolute, `..`, or URL)",
+                    outline.path
+                ),
+            ));
             return;
         }
         if self.board_outline.is_some() {
-            // Two design-level layout blocks each carrying an outline. (One
-            // block with two outlines is already rejected at parse time.)
             self.diags.push(Diagnostic::error(
                 "E1006",
                 outline.span,
@@ -347,8 +317,9 @@ impl<'w, 'd> Expander<'w, 'd> {
             return;
         }
         self.board_outline = Some(crate::ir::BoardOutlineIr {
-            at: (outline.at.0.clone(), outline.at.1.clone()),
-            size: (w.clone(), h.clone()),
+            path: outline.path.clone(),
+            span: outline.span,
+            geom: None,
         });
     }
 

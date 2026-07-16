@@ -1347,3 +1347,69 @@ Verified for rpi-pico2: J1 fits inside the outline and is locked; the 48
 placeable components total 232mm² vs the 1071mm² board, all outside the
 outline, none exceeding board dimensions, zero overlaps, schema-valid. This is
 still not a real layout — it is a correctly-shaped placement-engine input.
+
+## RFC-020 (board outline via DXF + oriented placement) implementation notes (2026-07-16)
+
+RFC-020 retroactively formalizes — and corrects — the `board_outline` and
+`place` constructs that were implemented ahead of any RFC (commits 86165d9,
+1a0ce5f). The two corrections it mandates are now implemented:
+
+1. **`board_outline` is DXF extraction, not a CoHDL-authored rectangle.** The
+   surface syntax is `board_outline: "path.dxf"` (a project-relative path
+   string, replacing the `{ at, size }` rectangle). At `cohdl build`, a narrow
+   hand-rolled DXF parser (`src/dxf.rs` — pure, testable, zero-dependency,
+   the same narrow-contract discipline RFC-018 set for pad geometry) extracts
+   EXACTLY one closed `LWPOLYLINE`/`POLYLINE` on the `Edge.Cuts` layer;
+   everything else in the file is ignored. Straight segments and arc bulges are
+   both supported and translate directly to IPC-2581 `PolyStepSegment` /
+   `PolyStepCurve` and to `layout.json`. New E1006 sub-cases name each failure
+   (unreadable file, invalid DXF, no closed entity on the layer, not closed,
+   too few vertices). The `pipeline::resolve_board_outline` step reads the file
+   via an injected loader (the CLI reads the FS relative to the project root;
+   tests pass a literal), keeping the pipeline FS-free.
+
+2. **`place` gains an optional `rotate` (closed set {0, 90, 180, 270}).**
+   Additive — every existing `place <inst> at (x, y)` is unchanged. The
+   rotation rides IPC-2581 `Component/Xform/@rotation` and `layout.json`; an
+   invalid value is a new E1007 sub-case. CoHDL performs no rotation math.
+
+Migration (RFC-020's own required work): `examples/rpi-pico2` now references a
+real DXF outline (`mechanical/pico2-outline.dxf`, a 51×21 mm rounded rectangle
+— straight edges + four 90° corner arcs, exercising the arc path end to end)
+and pre-positions its interface ports — the 40-pin castellated header centered,
+the micro-USB and SWD headers at the short edges with `rotate 90`. The document
+stays schema-valid against IPC-2581B1.xsd with the arc `Profile`.
+
+Honest boundaries / deviations:
+
+- **The DXF outline-layer convention is `Edge.Cuts`** (documented in
+  docs/ipc2581.md). RFC-020 leaves the exact layer name to emitter docs; this
+  matches KiCad's board-edge layer so a KiCad DXF export drops in.
+- **Arc centers use `f64`.** The exact femto-rational center overflows i128, so
+  the center a bulge implies is computed in `f64` and rounded to femto ONCE at
+  extraction, then stored — both emitters read the same integer, so output
+  stays byte-stable and the two emitters cannot disagree. Vertex coordinates
+  themselves are parsed to exact femto (no float). Disclosed as the one float
+  path, confined to arc-center derivation.
+- **`place` reaches only top-level design instances** — unchanged from the
+  original construct, and RFC-020 EXPLICITLY defers fn-nested placement (per
+  Tony's direct decision; a real, named gap, not silently worked around). A
+  board-edge component that needs a locked position must be instantiated at the
+  design top level, not inside a reusable `fn`.
+- **Not a general DXF parser** — only a single closed outline entity on one
+  layer is ever read; self-intersecting-but-closed shapes are not validated
+  (the mechanical engineer's / CAD tool's responsibility, RFC-020 Non-goals).
+- **Rotation carrier — `Xform`, not `Location`.** RFC-020 / the spec say the
+  rotation rides "IPC-2581's `Component/Location` rotation attribute", but the
+  vendored B1 schema's `Location` (`PointType`) has NO rotation attribute — the
+  schema's actual placement-transform carrier is `Component/Xform/@rotation`
+  (`XformType`). The emitter uses `Xform` (schema-valid, `xmllint`-gated); the
+  RFC's "Location rotation attribute" phrasing is read as "the component's
+  rotation", faithfully. A note-side wording correction is the clean fix.
+- **LSP hover for `board_outline` deferred.** RFC-020 Tooling says `cohdl lsp`
+  hover on a `board_outline` statement *should* show the extracted bounding-box
+  dimensions + resolved path. The LSP layer does no FS/DXF resolution today
+  (the hover would have to read the file), so this is deferred and disclosed;
+  the path is still shown by the generic string-literal hover. Tracked.
+- **std needs no change** — `board_outline`/`place` are design-level layout
+  constructs; the std library declares neither.

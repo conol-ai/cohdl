@@ -837,15 +837,7 @@ impl Formatter<'_> {
                 }
                 if let Some(bo) = &s.board_outline {
                     self.flush_leading(self.line_start(bo.span), indent + 1);
-                    self.push(
-                        indent + 1,
-                        format!(
-                            "board_outline {{ at: ({}, {}), size: ({}) }}",
-                            bo.at.0.text,
-                            bo.at.1.text,
-                            unit_list(&bo.size)
-                        ),
-                    );
+                    self.push(indent + 1, format!("board_outline: {}", str_lit(&bo.path)));
                     self.finish_construct(
                         self.line_start(bo.span),
                         self.line_end(bo.span),
@@ -854,11 +846,16 @@ impl Formatter<'_> {
                 }
                 for p in &s.placements {
                     self.flush_leading(self.line_start(p.span), indent + 1);
+                    let rot = if p.rotate == 0 {
+                        String::new()
+                    } else {
+                        format!(" rotate {}", p.rotate)
+                    };
                     self.push(
                         indent + 1,
                         format!(
-                            "place {} at ({}, {})",
-                            p.inst.name, p.at.0.text, p.at.1.text
+                            "place {} at ({}, {}){}",
+                            p.inst.name, p.at.0.text, p.at.1.text, rot
                         ),
                     );
                     self.finish_construct(

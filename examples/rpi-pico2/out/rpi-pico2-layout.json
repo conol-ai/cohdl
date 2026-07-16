@@ -14,7 +14,11 @@
   "placements": [
     { "instance": "Pico2::hdr", "at": [0, 0], "rotate": 0 },
     { "instance": "Pico2::usb", "at": [-22, 0], "rotate": 90 },
-    { "instance": "Pico2::swd", "at": [22, 0], "rotate": 90 }
+    { "instance": "Pico2::swd", "at": [22, 0], "rotate": 90 },
+    { "instance": "Pico2::mcu", "at": [0, -2], "rotate": 0 },
+    { "instance": "Pico2::xtal", "at": [0, 5], "rotate": 0 },
+    { "instance": "Pico2::c_xin", "at": [-4, 5], "rotate": 0 },
+    { "instance": "Pico2::c_xout", "at": [4, 5], "rotate": 0 }
   ],
   "placement_hints": [
     { "designator": "J3", "instance": "Pico2::usb", "hint": "board edge, USB micro-B cutout" },

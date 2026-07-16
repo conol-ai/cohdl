@@ -174,5 +174,18 @@ design Pico2 {
         place usb at (-22mm, 0mm) rotate 90
         // 3-pin SWD debug header at the right short edge.
         place swd at (22mm, 0mm) rotate 90
+
+        // The oscillator is timing-critical: its placement determines whether
+        // the 12 MHz clock starts and stays clean, so we seed the MCU and its
+        // crystal + load caps as a locked cluster rather than let the layout
+        // partner scatter them. The RP2350A's XIN/XOUT (pins 21/22) sit on the
+        // QFN's +y edge, so the crystal group sits just above the MCU with the
+        // shortest reach to those pins; c_xin/c_xout flank the crystal (each is
+        // one 15 pF load-cap terminal to GND). The series resistor r_xosc stays
+        // partner-placed, guided by `net_class Clock { XIN, XR }` above.
+        place mcu at (0mm, -2mm)
+        place xtal at (0mm, 5mm)
+        place c_xin at (-4mm, 5mm)
+        place c_xout at (4mm, 5mm)
     }
 }

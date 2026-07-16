@@ -3,12 +3,12 @@
   "net_classes": [],
   "diff_pairs": [],
   "length_matches": [],
-  "board_outline": { "source": "mechanical/openmicro-outline.dxf", "start": [-47.5, -47.5], "segments": [{ "type": "line", "to": [47.5, -47.5] }, { "type": "line", "to": [47.5, 47.5] }, { "type": "line", "to": [-47.5, 47.5] }, { "type": "line", "to": [-47.5, -47.5] }] },
+  "board_outline": { "source": "mechanical/openmicro-outline.dxf", "start": [-41.5, -47.5], "segments": [{ "type": "line", "to": [41.5, -47.5] }, { "type": "arc", "to": [47.5, -41.5], "center": [41.5, -41.5], "clockwise": false }, { "type": "line", "to": [47.5, 41.5] }, { "type": "arc", "to": [41.5, 47.5], "center": [41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-41.5, 47.5] }, { "type": "arc", "to": [-47.5, 41.5], "center": [-41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-47.5, -41.5] }, { "type": "arc", "to": [-41.5, -47.5], "center": [-41.5, -41.5], "clockwise": false }] },
   "placements": [
-    { "instance": "OpenMicro::joy", "at": [-29.825, -28.575], "rotate": 0 },
+    { "instance": "OpenMicro::enc", "at": [-35.575, -31.075], "rotate": 0 },
     { "instance": "OpenMicro::sw1", "at": [-9.525, -28.575], "rotate": 0 },
     { "instance": "OpenMicro::sw2", "at": [9.525, -28.575], "rotate": 0 },
-    { "instance": "OpenMicro::enc", "at": [21.575, -31.075], "rotate": 0 },
+    { "instance": "OpenMicro::joy", "at": [27.325, -28.575], "rotate": 0 },
     { "instance": "OpenMicro::sw3", "at": [-28.575, -9.525], "rotate": 0 },
     { "instance": "OpenMicro::sw4", "at": [-9.525, -9.525], "rotate": 0 },
     { "instance": "OpenMicro::sw5", "at": [9.525, -9.525], "rotate": 0 },
@@ -17,11 +17,11 @@
     { "instance": "OpenMicro::sw8", "at": [-9.525, 9.525], "rotate": 0 },
     { "instance": "OpenMicro::sw9", "at": [9.525, 9.525], "rotate": 0 },
     { "instance": "OpenMicro::sw10", "at": [28.575, 9.525], "rotate": 0 },
-    { "instance": "OpenMicro::sw11", "at": [-19.05, 28.575], "rotate": 0 },
+    { "instance": "OpenMicro::touch", "at": [-28.575, 28.575], "rotate": 0 },
+    { "instance": "OpenMicro::sw11", "at": [-9.525, 28.575], "rotate": 0 },
     { "instance": "OpenMicro::sw12", "at": [9.525, 28.575], "rotate": 0 },
     { "instance": "OpenMicro::sw13", "at": [28.575, 28.575], "rotate": 0 },
-    { "instance": "OpenMicro::usbc", "at": [0, -43], "rotate": 180 },
-    { "instance": "OpenMicro::touch", "at": [0, 42], "rotate": 0 }
+    { "instance": "OpenMicro::usbc", "at": [0, -43], "rotate": 180 }
   ],
   "placement_hints": []
 }

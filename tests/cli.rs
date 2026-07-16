@@ -436,7 +436,7 @@ fn build_leaves_a_foreign_xml_untouched() {
         .unwrap();
     assert!(std::fs::read_to_string(&foreign)
         .unwrap()
-        .contains("logical-complete,physical-minimal"));
+        .contains("logical-complete,placement-staged,unrouted"));
     cohdl()
         .args(["build", tmp.to_str().unwrap(), "--no-std"])
         .status()

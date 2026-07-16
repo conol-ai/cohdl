@@ -528,13 +528,13 @@ fn completeness_marker_is_machine_readable() {
         .expect("COHDL_COMPLETENESS attribute present");
     assert_eq!(
         attr(&marker, "value").as_deref(),
-        Some("logical-complete,physical-minimal")
+        Some("logical-complete,placement-staged,unrouted")
     );
     // …and the human-visible FunctionMode comment.
     let fm = elements(&b.xml, "FunctionMode")[0];
     assert!(attr(fm, "comment")
         .unwrap()
-        .contains("logical-complete,physical-minimal"));
+        .contains("logical-complete,placement-staged,unrouted"));
 }
 
 #[test]
@@ -1212,4 +1212,107 @@ fn smd_pins_carry_mount_type() {
             p
         );
     }
+}
+
+/// A board with a through-hole pad + an SMD pad, for the physical-model check.
+const WITH_PHYSICAL: &str = r#"
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+pub pad SMD { shape: rect size: (0.5mm, 0.6mm) layer: top_copper plating: smd }
+pub pad PTH { shape: circle size: (0.9mm) layer: through_all plating: plated_through_hole drill: 0.5mm }
+pub footprint FP { pad 1: PTH at (-1mm, 0mm) pad 2: SMD at (1mm, 0mm) courtyard { shape: rect, at: (0mm, 0mm), size: (3mm, 2mm) } }
+pub part CON: D { primary { mfr: "m", mpn: "n", footprint: FP } }
+design B {
+    inst j1: CON
+    net N: j1.A
+    nc: j1.B
+    layout { board_outline: "o.dxf" }
+}
+"#;
+
+#[test]
+fn emits_physical_padstacks_layers_and_placed_copper() {
+    let b = build("physical", WITH_PHYSICAL);
+    // Real physical structures (the .co/invalid-ipc2581.xml fix).
+    for needle in [
+        "<DictionaryStandard",
+        "<Layer name=\"F.Cu\"",
+        "<Layer name=\"B.Cu\"",
+        "<Stackup ",
+        "<PadStackDef ",
+        "<PadstackPadDef ",
+        "<LayerFeature layerRef=\"F.Cu\">",
+        "<Pad padstackDefRef=",
+        "<PinRef componentRef=",
+    ] {
+        assert!(
+            b.xml.contains(needle),
+            "physical structure missing {}:\n…",
+            needle
+        );
+    }
+    // The THT pad produces a plated hole with the real drill diameter.
+    assert!(
+        b.xml.contains("<PadstackHoleDef") && b.xml.contains("diameter=\"0.5\""),
+        "no plated hole for the through-hole pad"
+    );
+    assert!(
+        b.xml.contains("platingStatus=\"PLATED\""),
+        "hole not plated"
+    );
+    // A THT component is THMT; its through-hole pin lands on B.Cu too.
+    assert!(
+        b.xml.contains("mountType=\"THMT\""),
+        "connector should be THMT"
+    );
+    assert!(
+        b.xml.contains("<LayerFeature layerRef=\"B.Cu\">"),
+        "THT pad missing from B.Cu"
+    );
+    // Still schema-valid with all the physical structures.
+    assert!(xsd_validate("physical", &b.xml));
+}
+
+#[test]
+fn placed_copper_is_tied_to_net_and_pin() {
+    let b = build("physical", WITH_PHYSICAL);
+    // The F.Cu feature's pad carries both its net (Set/@net) and its pin (PinRef).
+    let fcu = b
+        .xml
+        .split("<LayerFeature layerRef=\"F.Cu\">")
+        .nth(1)
+        .unwrap();
+    assert!(
+        fcu.contains("<Set net=\"N\">"),
+        "pad not tied to its net:\n{}",
+        &fcu[..300.min(fcu.len())]
+    );
+    assert!(
+        fcu.contains("componentRef=\"U1\" pin=\"1\""),
+        "pad not tied to its pin"
+    );
+}
+
+#[test]
+fn courtyardless_footprint_gets_nondegenerate_outline() {
+    // A footprint with pads but no courtyard must get a real bbox outline, not
+    // the degenerate (0,0)-(0,0) polygon (which hid J1 in Quilter).
+    let src = WITH_PHYSICAL.replace(
+        " courtyard { shape: rect, at: (0mm, 0mm), size: (3mm, 2mm) }",
+        "",
+    );
+    let b = build("nocourt", &src);
+    let pkg = b.xml.split("<Package ").nth(1).unwrap();
+    let outline = pkg.split("</Outline>").next().unwrap();
+    assert!(
+        !outline.contains(
+            "<PolyBegin x=\"0\" y=\"0\"/>\n              <PolyStepSegment x=\"0\" y=\"0\"/>"
+        ),
+        "degenerate outline:\n{}",
+        outline
+    );
+    assert!(
+        outline.contains("<PolyBegin x=\"-1.45\""),
+        "outline not from pad extents:\n{}",
+        outline
+    );
 }

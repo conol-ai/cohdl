@@ -1,32 +1,28 @@
 //! RFC-015: IPC-2581 (revision B1) emitter — the partner-handoff artifact.
 //!
-//! A *partially-specified* IPC-2581 document: logical design complete
-//! (netlist, components, resolved specs, RFC-013 layout constraints) and,
-//! since RFC-018, PARTIAL footprint geometry (per-pad `Package/Pin` +
-//! courtyard `Outline`) for pad-bearing footprints — the `Pin` subset omits
-//! the footprint's `silkscreen_ref` (present in the `.kicad_mod`). The pad's
-//! plating now rides the `Pin/@mountType` attribute (SMD → `SURFACE_MOUNT_PAD`,
-//! PTH → `THROUGH_HOLE_HOLE`), narrowing review R5-8: the copper `layer` and
-//! the exact `drill` diameter still have no home on `PinType` (they need a
-//! Step-level `PadStackDef`, deferred — moot for this all-SMD, single-layer
-//! board where every pad is `top_copper`/`smd`/drill-less). Physical layout
-//! is otherwise still minimal: no routing, no stackup, and no real PLACEMENT —
-//! when a board outline exists, components are STAGED in a grid just outside
-//! the outline (a layout tool like Quilter treats components inside the
-//! outline as locked/pre-placed and only places the ones left outside, so
-//! staging outside is the idiom for "unplaced, please place me"; without an
-//! outline they keep the `(0,0)` placeholder). A `Step/Profile`
-//! board outline IS emitted when the design declares a `board_outline` (a
-//! pragmatic extension beyond RFC-015's original cut —
-//! docs/compliance-report.md); with real per-pad footprints (RFC-018) and
-//! that outline, `--emit ipc2581` now carries the board boundary + land
-//! patterns + netlist a layout partner (Quilter) needs, though component
-//! placement is still theirs to perform. The document says so, visibly and
-//! machine-readably: the
-//! `FunctionMode` comment and a `COHDL_COMPLETENESS` attribute both carry
-//! the `logical-complete,physical-minimal` marker (DR-021 calls this the
-//! single most load-bearing design decision of the RFC — the output must
-//! never silently overclaim completeness).
+//! An IPC-2581 document carrying the REAL physical geometry a layout partner
+//! (Quilter) routes — not just the logical design. It emits the logical design
+//! (netlist, components, resolved specs, RFC-013 constraints) and the board
+//! outline (`Step/Profile`, from RFC-020's DXF); a `DictionaryStandard` of
+//! primitive shapes, `PadStackDef`s (copper + mask + paste + a plated
+//! `PadstackHoleDef` for through-hole), and real physical layers
+//! (F.Cu/B.Cu/masks/paste) + a stackup; `LayerFeature`s of PLACED copper pads
+//! on F.Cu/B.Cu — each at its absolute board position (component transform +
+//! rotated pad offset), tied to its component pin (`PinRef`) and net
+//! (`Set/@net`); and accurate `Component/@mountType` (SMT vs THMT) and
+//! `Pin/@mountType` (`SURFACE_MOUNT_PAD` / `THROUGH_HOLE_PIN`).
+//! (This physical layer was added to fix .co/invalid-ipc2581.xml — an
+//! XSD-valid document that carried only abstract `Package/Pin` land patterns
+//! showed no copper/holes/ratsnest in Quilter.) The `Package` land pattern is
+//! still emitted too, with a non-degenerate `Outline` derived from the pad
+//! extents when a footprint deliberately omits its courtyard.
+//!
+//! What is NOT yet done — and the `COHDL_COMPLETENESS` /`FunctionMode` markers
+//! say so, never overclaiming (DR-021): final component PLACEMENT (components
+//! that aren't `place`-locked are STAGED just outside the outline — the "please
+//! place me" idiom) and ROUTING (no copper traces). Hence the marker
+//! `logical-complete,placement-staged,unrouted`. Still omitted: the pad's
+//! `silkscreen_ref` (present in the `.kicad_mod`).
 //!
 //! Hand-rolled XML in the project's existing emitter style (same discipline
 //! as the hand-rolled JSON in `json.rs`/`layout.rs`): the populated subset
@@ -48,7 +44,7 @@ use std::fmt::Write as _;
 
 /// The completeness marker (Non-goals: geometry/outline/stackup are not
 /// CoHDL concepts yet; the receiving tool must be able to detect that).
-pub const COMPLETENESS: &str = "logical-complete,physical-minimal";
+pub const COMPLETENESS: &str = "logical-complete,placement-staged,unrouted";
 
 /// Fixed timestamp for every schema-required `xsd:dateTime`: byte-stable
 /// output is a hard constraint, so the wall clock never enters an artifact.
@@ -89,6 +85,28 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         .map(|p| (p.path.clone(), p.rotate))
         .collect();
     let staging = staging_positions(world, ir, &insts, &placed);
+    // The physical model (the copper Quilter routes): every pad placed at its
+    // absolute board position, deduplicated into primitives + padstacks.
+    let positions: BTreeMap<String, (i128, i128)> = insts
+        .iter()
+        .map(|i| {
+            let p = placed
+                .get(&i.path)
+                .or_else(|| staging.get(&i.path))
+                .copied()
+                .unwrap_or((0, 0));
+            (i.path.clone(), p)
+        })
+        .collect();
+    let phys = build_physical(world, &insts, &positions, &rotations, &refdes_map);
+    let net_of = net_membership(world, ir, &refdes_map);
+    // A component is through-hole-mounted (THMT) if any of its pads is; else SMT.
+    let tht_refdes: BTreeSet<&str> = phys
+        .pads
+        .iter()
+        .filter(|p| p.tht)
+        .map(|p| p.refdes.as_str())
+        .collect();
     let name = sanitize(package_name, false);
     let step = sanitize(&ir.name, false);
 
@@ -104,11 +122,14 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         esc(COMPLETENESS)
     );
     let _ = writeln!(out, "    <StepRef name=\"{}\"/>", esc(&step));
-    out.push_str("    <LayerRef name=\"TOP\"/>\n");
+    out.push_str("    <LayerRef name=\"F.Cu\"/>\n");
+    out.push_str("    <LayerRef name=\"B.Cu\"/>\n");
     if !bom.is_empty() {
         let _ = writeln!(out, "    <BomRef name=\"{}-bom\"/>", esc(&name));
         let _ = writeln!(out, "    <AvlRef name=\"{}-avl\"/>", esc(&name));
     }
+    // Primitive-shape dictionary the padstacks + placed pads reference.
+    emit_dictionary(&mut out, &phys);
     out.push_str("  </Content>\n");
 
     // ---- LogisticHeader: one owner role/enterprise/person (schema-required
@@ -187,15 +208,16 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     emit_layout_specs(&mut out, ir);
     out.push_str("    </CadHeader>\n");
     out.push_str("    <CadData>\n");
-    out.push_str(
-        "      <Layer name=\"TOP\" layerFunction=\"CONDUCTOR\" side=\"TOP\" polarity=\"POSITIVE\"/>\n",
-    );
+    emit_layers(&mut out);
+    emit_stackup(&mut out);
     let _ = writeln!(out, "      <Step name=\"{}\">", esc(&step));
     let _ = writeln!(
         out,
         "        <NonstandardAttribute name=\"COHDL_COMPLETENESS\" type=\"STRING\" value=\"{}\"/>",
         esc(COMPLETENESS)
     );
+    // Reusable padstack definitions (copper/mask/paste + plated holes).
+    emit_padstacks(&mut out, &phys);
     out.push_str("        <Datum x=\"0\" y=\"0\"/>\n");
 
     // Board outline → Step/Profile: the single closed board perimeter a
@@ -307,6 +329,34 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0.05\"/>\n");
                 out.push_str("          </Outline>\n");
             }
+            // No courtyard: derive a real bounding-box outline from the pad
+            // extents (a footprint may deliberately omit its courtyard — e.g.
+            // the castellated header — and a degenerate (0,0)-(0,0) outline
+            // would make the package invisible in a viewer). Only truly empty
+            // (placeholder) footprints keep the zero-size idiom.
+            _ if fp.is_some_and(|f| !f.pads.is_empty()) => {
+                let (lo_x, lo_y, hi_x, hi_y) = footprint_bbox(world, footprint);
+                let corners = [(lo_x, lo_y), (hi_x, lo_y), (hi_x, hi_y), (lo_x, hi_y)];
+                out.push_str("          <Outline>\n");
+                out.push_str("            <Polygon>\n");
+                let _ = writeln!(
+                    out,
+                    "              <PolyBegin x=\"{}\" y=\"{}\"/>",
+                    geom::mm_femto(corners[0].0),
+                    geom::mm_femto(corners[0].1)
+                );
+                for (x, y) in corners.iter().skip(1).chain([corners[0]].iter()) {
+                    let _ = writeln!(
+                        out,
+                        "              <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                        geom::mm_femto(*x),
+                        geom::mm_femto(*y)
+                    );
+                }
+                out.push_str("            </Polygon>\n");
+                out.push_str("            <LineDesc lineEnd=\"NONE\" lineWidth=\"0.05\"/>\n");
+                out.push_str("          </Outline>\n");
+            }
             _ => {
                 out.push_str("          <Outline>\n");
                 out.push_str("            <Polygon>\n");
@@ -327,7 +377,9 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 };
                 let (pin_type, mount_type) = match plating {
                     crate::ast::PadPlating::Smd => ("SURFACE", "SURFACE_MOUNT_PAD"),
-                    crate::ast::PadPlating::PlatedThroughHole => ("THRU", "THROUGH_HOLE_HOLE"),
+                    // An electrical through-hole PIN (not a non-electrical
+                    // mounting HOLE) — every CoHDL PTH pad is a device terminal.
+                    crate::ast::PadPlating::PlatedThroughHole => ("THRU", "THROUGH_HOLE_PIN"),
                 };
                 let _ = writeln!(
                     out,
@@ -380,12 +432,20 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     for inst in &insts {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let (mpn, _mfr, footprint) = part_fields(world, inst);
+        // Real mount type: THMT if the component has any through-hole pad, else
+        // SMT — on the physical F.Cu layer (not the old synthetic TOP/OTHER).
+        let mount = if tht_refdes.contains(refdes_map[refdes].as_str()) {
+            "THMT"
+        } else {
+            "SMT"
+        };
         let _ = writeln!(
             out,
-            "        <Component refDes=\"{}\" packageRef=\"{}\" part=\"{}\" layerRef=\"TOP\" mountType=\"OTHER\">",
+            "        <Component refDes=\"{}\" packageRef=\"{}\" part=\"{}\" layerRef=\"F.Cu\" mountType=\"{}\">",
             esc(&refdes_map[refdes]),
             esc(&packages[&footprint]),
-            esc(&mpn)
+            esc(&mpn),
+            mount
         );
         let _ = writeln!(
             out,
@@ -455,6 +515,9 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         }
         out.push_str("        </LogicalNet>\n");
     }
+    // Placed copper pads (F.Cu / B.Cu), each tied to its component pin + net —
+    // the physical geometry a layout tool routes.
+    emit_layer_features(&mut out, &phys, &net_of);
     out.push_str("      </Step>\n");
     out.push_str("    </CadData>\n");
     out.push_str("  </Ecad>\n");
@@ -956,6 +1019,316 @@ fn sanitize(s: &str, allow_colon: bool) -> String {
     let mut out: String = s.chars().map(|c| if ok(c) { c } else { '_' }).collect();
     if out.is_empty() {
         out.push('_');
+    }
+    out
+}
+
+// ===========================================================================
+// RFC-015 physical model — the real copper Quilter shows and routes.
+//
+// Beyond the abstract `Package/Pin` land pattern, an importable IPC-2581 must
+// carry: a `DictionaryStandard` of primitive shapes, `PadStackDef`s (copper +
+// mask + paste + plated-hole), and `LayerFeature`s of PLACED copper pads at
+// absolute board positions, each tied to its component pin (and thus its net).
+// Without these a consumer (Quilter) can parse the document but sees only
+// package courtyards — no pads, holes, or ratsnest. (Finding: .co/invalid-
+// ipc2581.xml.)
+
+/// A reusable primitive shape (femto). Circle stores `w == h == diameter`.
+#[derive(PartialEq, Eq, Clone)]
+struct Prim {
+    shape: crate::ast::PadShape,
+    w: i128,
+    h: i128,
+}
+
+/// A reusable padstack: a primitive plus an optional plated through-hole.
+#[derive(PartialEq, Eq, Clone)]
+struct PadStack {
+    prim: usize,
+    tht: bool,
+    drill: i128,
+}
+
+/// One placed copper pad — absolute board position + the component pin it is.
+struct PlacedPad {
+    refdes: String,
+    pin: String,
+    padstack: usize,
+    prim: usize,
+    x: i128,
+    y: i128,
+    rot: u16,
+    tht: bool,
+}
+
+struct Physical {
+    prims: Vec<Prim>,
+    padstacks: Vec<PadStack>,
+    pads: Vec<PlacedPad>,
+}
+
+/// Rotate a pad offset by a cardinal angle (0/90/180/270, CCW) — exact
+/// integer, no trig (placements only ever use the closed rotation set, RFC-020).
+fn rotate(px: i128, py: i128, rot: u16) -> (i128, i128) {
+    match rot {
+        90 => (-py, px),
+        180 => (-px, -py),
+        270 => (py, -px),
+        _ => (px, py),
+    }
+}
+
+fn dedup<T: PartialEq>(v: &mut Vec<T>, x: T) -> usize {
+    match v.iter().position(|e| *e == x) {
+        Some(i) => i,
+        None => {
+            v.push(x);
+            v.len() - 1
+        }
+    }
+}
+
+/// Walk every instance's footprint pads, deduplicating shapes → primitives and
+/// (primitive, plating, drill) → padstacks, and placing each pad at
+/// `component_position + rotate(pad_offset)`.
+fn build_physical(
+    world: &World,
+    insts: &[&crate::ir::IrInstance],
+    positions: &BTreeMap<String, (i128, i128)>,
+    rotations: &BTreeMap<String, u16>,
+    refdes_map: &BTreeMap<String, String>,
+) -> Physical {
+    let mut prims: Vec<Prim> = Vec::new();
+    let mut padstacks: Vec<PadStack> = Vec::new();
+    let mut pads: Vec<PlacedPad> = Vec::new();
+    for inst in insts {
+        let raw = inst.designator.as_deref().unwrap_or("?");
+        let refdes = refdes_map[raw].clone();
+        let (cx, cy) = positions.get(&inst.path).copied().unwrap_or((0, 0));
+        let rot = rotations.get(&inst.path).copied().unwrap_or(0);
+        let fp_name = part_fields(world, inst).2;
+        let Some(fp) = world.footprints.get(&fp_name) else {
+            continue;
+        };
+        for place in &fp.pads {
+            let Some(pad) = world.pads.get(&place.pad.name) else {
+                continue;
+            };
+            let (Some((shape, _)), Some((plating, _))) = (&pad.shape, &pad.plating) else {
+                continue;
+            };
+            let (w, h) = match pad.size.as_slice() {
+                [d] => (d.femto, d.femto),
+                [w, h, ..] => (w.femto, h.femto),
+                [] => continue,
+            };
+            let tht = matches!(plating, crate::ast::PadPlating::PlatedThroughHole);
+            let drill = if tht {
+                pad.drill.as_ref().map(|(v, _)| v.femto).unwrap_or(0)
+            } else {
+                0
+            };
+            let prim = dedup(
+                &mut prims,
+                Prim {
+                    shape: *shape,
+                    w,
+                    h,
+                },
+            );
+            let padstack = dedup(&mut padstacks, PadStack { prim, tht, drill });
+            let (ox, oy) = rotate(place.x.femto, place.y.femto, rot);
+            pads.push(PlacedPad {
+                refdes: refdes.clone(),
+                pin: sanitize(&place.number.text, true),
+                padstack,
+                prim,
+                x: cx + ox,
+                y: cy + oy,
+                rot,
+                tht,
+            });
+        }
+    }
+    Physical {
+        prims,
+        padstacks,
+        pads,
+    }
+}
+
+/// The primitive-shape element (`RectCenter`/`Circle`/`Oval`), shared by the
+/// `DictionaryStandard` entry, the padstack pad defs, and the placed pads.
+fn prim_body(p: &Prim) -> String {
+    match p.shape {
+        crate::ast::PadShape::Circle => format!("<Circle diameter=\"{}\"/>", geom::mm_femto(p.w)),
+        crate::ast::PadShape::Rect => format!(
+            "<RectCenter width=\"{}\" height=\"{}\"/>",
+            geom::mm_femto(p.w),
+            geom::mm_femto(p.h)
+        ),
+        crate::ast::PadShape::Oval => format!(
+            "<Oval width=\"{}\" height=\"{}\"/>",
+            geom::mm_femto(p.w),
+            geom::mm_femto(p.h)
+        ),
+    }
+}
+
+/// The `DictionaryStandard` (Content section): one primitive per unique shape.
+fn emit_dictionary(out: &mut String, phys: &Physical) {
+    if phys.prims.is_empty() {
+        return;
+    }
+    out.push_str("    <DictionaryStandard units=\"MILLIMETER\">\n");
+    for (i, p) in phys.prims.iter().enumerate() {
+        let _ = writeln!(
+            out,
+            "      <EntryStandard id=\"PRIM_{}\">{}</EntryStandard>",
+            i,
+            prim_body(p)
+        );
+    }
+    out.push_str("    </DictionaryStandard>\n");
+}
+
+/// The physical layer stack (CadData): real copper/mask/paste/outline layers a
+/// consumer needs (replaces the single synthetic `TOP` layer).
+fn emit_layers(out: &mut String) {
+    for (name, func, side) in [
+        ("F.Cu", "CONDUCTOR", "TOP"),
+        ("B.Cu", "CONDUCTOR", "BOTTOM"),
+        ("F.Mask", "SOLDERMASK", "TOP"),
+        ("F.Paste", "SOLDERPASTE", "TOP"),
+        ("B.Mask", "SOLDERMASK", "BOTTOM"),
+        ("Edge.Cuts", "BOARD_OUTLINE", "ALL"),
+    ] {
+        let _ = writeln!(
+            out,
+            "      <Layer name=\"{}\" layerFunction=\"{}\" polarity=\"POSITIVE\" side=\"{}\"/>",
+            name, func, side
+        );
+    }
+}
+
+/// A minimal 2-layer stackup (CadData): F.Cu / dielectric / B.Cu, 1.6mm.
+fn emit_stackup(out: &mut String) {
+    out.push_str("      <Stackup name=\"stackup\" overallThickness=\"1.6\" tolPlus=\"0\" tolMinus=\"0\" whereMeasured=\"MASK\">\n");
+    out.push_str(
+        "        <StackupGroup name=\"grp\" thickness=\"1.6\" tolPlus=\"0\" tolMinus=\"0\">\n",
+    );
+    for (i, l) in ["F.Cu", "B.Cu"].iter().enumerate() {
+        let _ = writeln!(
+            out,
+            "          <StackupLayer layerOrGroupRef=\"{}\" thickness=\"0.035\" tolPlus=\"0\" tolMinus=\"0\" sequence=\"{}\"/>",
+            l, i
+        );
+    }
+    out.push_str("        </StackupGroup>\n");
+    out.push_str("      </Stackup>\n");
+}
+
+/// The `PadStackDef`s (Step, before `Datum`): copper on F.Cu/F.Mask/F.Paste
+/// (+ B.Cu/B.Mask and a plated `PadstackHoleDef` for through-hole).
+fn emit_padstacks(out: &mut String, phys: &Physical) {
+    for (i, ps) in phys.padstacks.iter().enumerate() {
+        let _ = writeln!(out, "        <PadStackDef name=\"PADSTACK_{}\">", i);
+        if ps.tht && ps.drill > 0 {
+            let _ = writeln!(
+                out,
+                "          <PadstackHoleDef name=\"HOLE_{}\" diameter=\"{}\" platingStatus=\"PLATED\" plusTol=\"0\" minusTol=\"0\" x=\"0\" y=\"0\"/>",
+                i,
+                geom::mm_femto(ps.drill)
+            );
+        }
+        // The copper/mask/paste layers this padstack lands on.
+        let layers: &[&str] = if ps.tht {
+            &["F.Cu", "F.Mask", "B.Cu", "B.Mask"]
+        } else {
+            &["F.Cu", "F.Mask", "F.Paste"]
+        };
+        for layer in layers {
+            let _ = writeln!(
+                out,
+                "          <PadstackPadDef layerRef=\"{}\" padUse=\"REGULAR\"><Location x=\"0\" y=\"0\"/><StandardPrimitiveRef id=\"PRIM_{}\"/></PadstackPadDef>",
+                layer, ps.prim
+            );
+        }
+        out.push_str("        </PadStackDef>\n");
+    }
+}
+
+/// The `LayerFeature`s (Step, after `LogicalNet`): every placed copper pad on
+/// F.Cu (all pads) and B.Cu (through-hole only), each tied to its component pin
+/// (`PinRef`) and its net (`Set/@net`), positioned + rotated on the board.
+fn emit_layer_features(
+    out: &mut String,
+    phys: &Physical,
+    net_of: &BTreeMap<(String, String), String>,
+) {
+    for (layer, only_tht) in [("F.Cu", false), ("B.Cu", true)] {
+        let pads: Vec<&PlacedPad> = phys.pads.iter().filter(|p| !only_tht || p.tht).collect();
+        if pads.is_empty() {
+            continue;
+        }
+        let _ = writeln!(out, "        <LayerFeature layerRef=\"{}\">", layer);
+        for p in pads {
+            let net = net_of.get(&(p.refdes.clone(), p.pin.clone()));
+            match net {
+                Some(n) => {
+                    let _ = writeln!(out, "          <Set net=\"{}\">", esc(n));
+                }
+                None => out.push_str("          <Set>\n"),
+            }
+            let _ = writeln!(
+                out,
+                "            <Pad padstackDefRef=\"PADSTACK_{}\">",
+                p.padstack
+            );
+            if p.rot != 0 {
+                let _ = writeln!(out, "              <Xform rotation=\"{}\"/>", p.rot);
+            }
+            let _ = writeln!(
+                out,
+                "              <Location x=\"{}\" y=\"{}\"/>",
+                geom::mm_femto(p.x),
+                geom::mm_femto(p.y)
+            );
+            let _ = writeln!(
+                out,
+                "              <StandardPrimitiveRef id=\"PRIM_{}\"/>",
+                p.prim
+            );
+            let _ = writeln!(
+                out,
+                "              <PinRef componentRef=\"{}\" pin=\"{}\"/>",
+                esc(&p.refdes),
+                esc(&p.pin)
+            );
+            out.push_str("            </Pad>\n");
+            out.push_str("          </Set>\n");
+        }
+        out.push_str("        </LayerFeature>\n");
+    }
+}
+
+/// (sanitized refdes, sanitized pin) → net name, for tying placed copper to a
+/// net — the same physical-pin expansion the LogicalNets use.
+fn net_membership(
+    world: &World,
+    ir: &DesignIr,
+    refdes_map: &BTreeMap<String, String>,
+) -> BTreeMap<(String, String), String> {
+    let mut out = BTreeMap::new();
+    for net in &ir.nets {
+        let nn = sanitize(&net.name, true);
+        for (refdes, pin) in physical_pins(world, ir, net) {
+            out.insert(
+                (refdes_map[&refdes].clone(), sanitize(&pin, true)),
+                nn.clone(),
+            );
+        }
     }
     out
 }

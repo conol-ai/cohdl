@@ -1500,3 +1500,58 @@ Honest boundaries / deviations:
 - **LSP hover deferred** — RFC-021 Tooling says hover should surface the parsed
   family/pitch/span/density; the LSP layer doesn't yet parse `ipc_name` for
   hover. Deferred + disclosed (the field is still shown as a raw string field).
+
+## IPC-2581 physical model — padstacks + placed copper (2026-07-16)
+
+Finding `.co/invalid-ipc2581.xml` (confirmed, high): the emitted IPC-2581 was
+XSD-valid and semantically faithful (components, nets, placements, outline all
+agreed with the KiCad board), but carried only ABSTRACT `Package/Pin` land
+patterns — no `PadStackDef`, no `LayerFeature/Pad`, no real layers/holes. So
+Quilter parsed it but showed only dark package courtyards: no copper pads,
+drills, references, or ratsnest. It also correctly flagged that the R5-8
+"drills are moot (all-SMD board)" note was stale (the board now has 52
+through-hole pads).
+
+Fixed by emitting the full physical model in `src/emit/ipc2581.rs` (validated
+against `tests/schema/IPC-2581B1.xsd`, and structurally against KiCad's own
+`kicad-cli pcb export ipc2581 --version B` output as the reference):
+
+- **`DictionaryStandard`** (Content) — one `EntryStandard` primitive
+  (`RectCenter`/`Circle`/`Oval`) per unique pad shape.
+- **Real layers + stackup** (CadData) — F.Cu/B.Cu/F.Mask/F.Paste/B.Mask +
+  Edge.Cuts, and a 2-layer stackup, replacing the single synthetic `TOP` layer.
+- **`PadStackDef`** (Step) per unique (shape, plating, drill): `PadstackPadDef`
+  on F.Cu/F.Mask/F.Paste (+ B.Cu/B.Mask for through-hole) and a plated
+  `PadstackHoleDef` carrying the real drill diameter.
+- **`LayerFeature`** (Step) on F.Cu (all pads) + B.Cu (through-hole): each
+  placed `Pad` at its absolute board position (component location + the pad
+  offset rotated by the component's cardinal rotation — exact integer, no
+  trig), referencing its padstack, and tied to its component pin (`PinRef`) and
+  net (`Set/@net`).
+- **Accurate mount types** — `Component/@mountType` SMT vs THMT (THMT if the
+  component has any through-hole pad), on the physical F.Cu layer (was the
+  synthetic `TOP`/`OTHER`); `Pin/@mountType` `THROUGH_HOLE_PIN` (an electrical
+  pin, not a non-electrical `_HOLE`).
+- **Non-degenerate package outline** — a footprint that omits its courtyard
+  (e.g. the castellated header, so its interior stays free) now gets an
+  `Outline` from its pad extents instead of the degenerate `(0,0)-(0,0)`
+  polygon that hid J1.
+
+For rpi-pico2 the output now matches the KiCad reference element-for-element:
+19 `PadStackDef`, 60 `PadstackPadDef`, 3 `PadstackHoleDef`, 46 SMT + 3 THMT
+components, placed copper on F.Cu/B.Cu.
+
+Marker updated: `logical-complete,physical-minimal` →
+`logical-complete,placement-staged,unrouted` — the document now DOES carry
+physical land patterns, so "physical-minimal" was itself an overclaim in the
+wrong direction (understating). The honest remaining gaps are final placement
+(unlocked components are staged, not placed) and routing (no traces).
+
+Honest boundaries:
+
+- **Not a routed/placed board.** Component placement is still staged (or
+  `place`-locked); no copper traces. The marker says so.
+- **No real Quilter import gate in CI.** XSD validity + structural regression
+  tests (padstacks/holes/placed-copper/mount-types present) are the automated
+  gate; an actual Quilter round-trip remains a human checkpoint (like KiCad).
+- **Minimal stackup** — a 2-layer F.Cu/B.Cu stackup, not a real fab stackup.

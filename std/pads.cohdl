@@ -146,28 +146,36 @@ pub pad P_USON8_EP {
     plating: smd
 }
 
-// Micro-USB SMT signal pad, 0.65mm pitch.
-pub pad P_USB_Signal {
-    shape: rect
-    size: (0.4mm, 1.35mm)
-    layer: top_copper
-    plating: smd
+// Micro-USB (Würth 614105150721) THROUGH-HOLE signal pin — the real
+// receptacle is a through-hole part (KiCad ..._Vertical_CircularHoles: 5
+// thru_hole signal pins, drill 0.44mm).
+pub pad P_USB_TH_Signal {
+    shape: circle
+    size: (0.84mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.44mm
 }
 
-// Micro-USB shield/mounting tab.
-pub pad P_USB_Shield {
-    shape: rect
-    size: (1.8mm, 2mm)
-    layer: top_copper
-    plating: smd
+// Micro-USB shield / mounting post — through-hole (drill 1.35mm), the
+// mechanical anchor a real board-edge USB receptacle needs.
+pub pad P_USB_TH_Mount {
+    shape: circle
+    size: (1.85mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1.35mm
 }
 
-// Pico 2.54mm castellated edge pad.
+// Pico 2.54mm castellation — a plated HALF-through-hole at the board edge
+// (drilled, plated, then castellated on depanel). Modeled as a plated
+// through-hole, matching KiCad's RaspberryPi_Pico_Common_THT (drill 1.0mm).
 pub pad P_Castellated {
-    shape: rect
-    size: (1.7mm, 2mm)
-    layer: top_copper
-    plating: smd
+    shape: circle
+    size: (1.7mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1mm
 }
 
 // TL3342 tactile-switch terminal pad.

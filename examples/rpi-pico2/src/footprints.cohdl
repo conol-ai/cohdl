@@ -120,18 +120,21 @@ pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {
 }
 
 // was: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering"
+// Through-hole micro-USB: 5 staggered signal pins (drill 0.44mm) and 4
+// shield/mounting posts (drill 1.35mm), positions from KiCad's real Würth
+// 614105150721 land pattern (signal pins re-centered on x).
 pub footprint FP_USB_Micro_B_Wuerth_614105150721_HandSoldering {
-    pad 1: P_USB_Signal at (-1.3mm, 2.5mm)
-    pad 2: P_USB_Signal at (-0.65mm, 2.5mm)
-    pad 3: P_USB_Signal at (0mm, 2.5mm)
-    pad 4: P_USB_Signal at (0.65mm, 2.5mm)
-    pad 5: P_USB_Signal at (1.3mm, 2.5mm)
-    pad 6: P_USB_Shield at (-2.6mm, 2.6mm)
-    pad 7: P_USB_Shield at (2.6mm, 2.6mm)
-    pad 8: P_USB_Shield at (-2.6mm, -1.3mm)
-    pad 9: P_USB_Shield at (2.6mm, -1.3mm)
-    courtyard { shape: rect, at: (0mm, 0.65mm), size: (7mm, 5.6mm) }
-    silkscreen_ref { at: (0mm, -2.7mm) }
+    pad 1: P_USB_TH_Signal at (-1.3mm, 0mm)
+    pad 2: P_USB_TH_Signal at (-0.65mm, 1mm)
+    pad 3: P_USB_TH_Signal at (0mm, 0mm)
+    pad 4: P_USB_TH_Signal at (0.65mm, 1mm)
+    pad 5: P_USB_TH_Signal at (1.3mm, 0mm)
+    pad 6: P_USB_TH_Mount at (-3.575mm, 1mm)
+    pad 7: P_USB_TH_Mount at (3.575mm, 1mm)
+    pad 8: P_USB_TH_Mount at (-3.575mm, -2mm)
+    pad 9: P_USB_TH_Mount at (3.575mm, -2mm)
+    courtyard { shape: rect, at: (0mm, -0.4mm), size: (8.6mm, 6.4mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
 }
 
 // was: "Connector:Pico_Castellated_40"

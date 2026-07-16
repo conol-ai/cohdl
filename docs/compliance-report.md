@@ -1413,3 +1413,34 @@ Honest boundaries / deviations:
   the path is still shown by the generic string-literal hover. Tracked.
 - **std needs no change** — `board_outline`/`place` are design-level layout
   constructs; the std library declares neither.
+
+### Footprint mounting correction: through-hole USB + castellations (2026-07-16)
+
+Tony flagged that some rpi-pico2 footprints were wrongly all-SMD when the real
+parts are through-hole. A 17-footprint adversarial audit (one classifier + one
+refuter per footprint, cross-checked against the KiCad official library) HIGH-
+confidence-confirmed that 14 are genuinely SMD (QFN-60, WQFN-10, USON-8, SMD
+crystal 3225, SOT-523, SOD-123, 0806 inductor, the 0201/0402/0603/0805 chips,
+0603 LED, the SMD tactile TL3342 — leadless/chip packages with no drilled
+holes; a QFN/DFN exposed thermal pad is still SMD). The three flagged as
+through-hole:
+
+- **Micro-USB (Würth 614105150721)** — the real receptacle is through-hole:
+  KiCad's `..._Vertical_CircularHoles` land pattern is fully `thru_hole` (5
+  signal pins drill 0.44mm + shield/mounting posts drill 1.35mm). Now 5 signal
+  PTH + 4 shield/mount PTH pads. (The audit's automated verifier initially read
+  the already-authored SMD footprint and called it "SMD, but a design-review
+  risk — the real receptacle likely wants THT shell posts"; that circular
+  self-check was overridden by the direct KiCad-library evidence.)
+- **Pico castellations (40-pin header + 3-pin SWD)** — a castellation is a
+  plated HALF-through-hole (drilled, plated, cut on depanel). Modeled as a
+  plated through-hole (drill 1.0mm), matching KiCad's `RaspberryPi_Pico_Common_
+  THT`. (KiCad also ships a fully-SMD `RaspberryPi_Pico_SMD` for the carrier-
+  board view; the through-hole model is the faithful one for the board's OWN
+  edge castellations.)
+
+RFC-018 pads: `plating: plated_through_hole` + `drill:` + `layer: through_all`.
+The `.kicad_mod` projection now carries `thru_hole … (drill …)`; the IPC-2581
+`Pin` carries `type="THRU"` + `mountType="THROUGH_HOLE_HOLE"` (the drill still
+has no IPC `Pin` home — review R5-8, unchanged). E807 still holds (pad numbers
+unchanged), and the document stays schema-valid.

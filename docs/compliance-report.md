@@ -1639,3 +1639,37 @@ byte-stable and confined to the IPC emitter — the `.kicad_mod` files stay in
 KiCad's native +y-down frame (their y is the exact negation of the IPC land
 pattern's). The `tools/kicad_board.py` helper negates y on import to keep the
 generated `.kicad_pcb` byte-identical to the pre-fix (correct) board.
+
+## rpi-pico2 footprint audit — datasheet-verified packages (2026-07-16)
+
+Every rpi-pico2 component footprint was checked against its manufacturer
+datasheet (a fan-out of one verification agent per part). 11 of 17 were correct;
+6 were wrong at the PACKAGE level (not minor land-pattern tweaks) and were
+corrected to the datasheet package:
+
+- **U1 W25Q32RVXHJQ (flash)** — was USON 1.0×1.5mm/0.40mm; real package is
+  **8-XSON 2.0×3.0mm, 0.50mm pitch** (Winbond code "XH"). Now
+  `QFN8N50P200X300_1EP61X220` (KiCad DFN-8 2×3 P0.5 land).
+- **U3 RT6150B-33GQW (buck-boost)** — was QFN-10 2×2mm/0.40mm; real package is
+  **WDFN-10 2.5×2.5mm, 0.50mm pitch, dual-row** (5/side), EP ~1.2×2.0mm (Richtek
+  DS6150AB). Now `QFN10N50P250X250_1EP120X200`.
+- **J3 USB** — was a through-hole micro-USB (modeled on an unrelated Würth part);
+  the real Pico 2 uses a **micro-USB SMD** receptacle. Now `FP_USB_Micro_B_SMD`
+  (5 signal SMD pads on 0.65mm pitch + 4 shield tabs; KiCad Amphenol
+  10103594-0001LF land), and the MPN was corrected to a micro-USB SMD part.
+- **D1 PMEG6010ELR (Schottky)** — was plain SOD-123 (gull-wing); real package is
+  **SOD-123W/F** (Nexperia CFP3, flat-lead). Now `FP_D_SOD_123W`.
+- **C1/C6 47µF (GRM188R60J476ME15)** — was CHIP_0805; Murata "188" size code is
+  **0603**. Now `CHIP_0603`.
+- **SW1 TP-1221U (BOOTSEL)** — was the larger TL3342 land; real body is
+  ~4.2×3.2mm SMD tactile. Now `FP_SW_SPST_TP1221U` (Panasonic EVQPU-class land;
+  demo-grade — flagged to confirm against the XKB drawing).
+
+Correct (unchanged): RP2350A (QFN-60 7×7 — EP could optionally trim 3.5→3.4mm),
+ABM8 crystal, DMG1012T (SOT-523), DFE201612E inductor, Würth 0603 LED, GRM155
+(0402), GRM0335 (0201), Samsung 100nF (0402), Yageo RC0201/RC0402, Pico
+castellations. The nine pads orphaned by the old (wrong) packages were removed
+from `std/pads.cohdl`. Overlap re-scan of all 49 placed footprints: 0
+overlapping pad-pairs. Footprints without an exact datasheet drawing (the switch
+land, the flash EP, the WDFN EP orientation) are noted demo-grade for a human to
+confirm — same status as the KiCad pcbnew checkpoint.

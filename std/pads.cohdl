@@ -42,14 +42,6 @@ pub pad P_Chip_0603 {
     plating: smd
 }
 
-// KiCad C_0805_2012Metric pad.
-pub pad P_Chip_0805 {
-    shape: rect
-    size: (1mm, 1.45mm)
-    layer: top_copper
-    plating: smd
-}
-
 // KiCad LED_0603_1608Metric pad.
 pub pad P_Chip_LED0603 {
     shape: rect
@@ -78,14 +70,6 @@ pub pad P_SOT23_Lead {
 pub pad P_SOT523_Lead {
     shape: rect
     size: (0.51mm, 0.4mm)
-    layer: top_copper
-    plating: smd
-}
-
-// KiCad D_SOD-123 terminal pad.
-pub pad P_SOD123_Term {
-    shape: rect
-    size: (0.9mm, 1.2mm)
     layer: top_copper
     plating: smd
 }
@@ -122,59 +106,73 @@ pub pad P_QFN60_EP {
     plating: smd
 }
 
-// DFN/WQFN/USON P0.4mm lead, left/right sides.
-pub pad P_DFN_P04_Lead {
+// ---- datasheet-verified pads (footprint audit, 2026-07) ----
+
+// DFN-8 2x3mm P0.5mm perimeter lead (Winbond W25Q32 XSON / KiCad
+// Package_DFN_QFN:DFN-8-1EP_2x3mm_P0.5mm).
+pub pad P_DFN8_2x3_Lead {
     shape: rect
-    size: (0.5mm, 0.25mm)
+    size: (0.87mm, 0.25mm)
     layer: top_copper
     plating: smd
 }
 
-// WQFN-10 exposed thermal pad (EP0.9x1.5mm).
-pub pad P_WQFN10_EP {
+// DFN-8 2x3mm exposed thermal pad (0.61x2.2mm, per the KiCad generic land).
+pub pad P_DFN8_2x3_EP {
     shape: rect
-    size: (0.9mm, 1.5mm)
+    size: (0.61mm, 2.2mm)
     layer: top_copper
     plating: smd
 }
 
-// USON-8 exposed thermal pad.
-pub pad P_USON8_EP {
+// WDFN-10 2.5x2.5mm P0.5mm perimeter lead (Richtek RT6150 W-DFN, 5/side).
+pub pad P_WDFN10_Lead {
     shape: rect
-    size: (0.4mm, 1.2mm)
+    size: (0.6mm, 0.25mm)
     layer: top_copper
     plating: smd
 }
 
-// USON-8 P0.4mm perimeter lead — shorter than the DFN/WQFN lead so it clears
-// the exposed pad on the tiny 1.0x1.5mm body (a 0.5mm lead reached x=±0.15 and
-// shorted the EP at x=±0.2; this 0.4mm lead at x=±0.5 leaves a 0.1mm gap).
-pub pad P_USON8_Lead {
+// WDFN-10 exposed thermal pad (1.2mm wide x 2.0mm tall, between the two rows).
+pub pad P_WDFN10_EP {
     shape: rect
-    size: (0.4mm, 0.2mm)
+    size: (1.2mm, 2.0mm)
     layer: top_copper
     plating: smd
 }
 
-// Micro-USB (Würth 614105150721) THROUGH-HOLE signal pin — the real
-// receptacle is a through-hole part (KiCad ..._Vertical_CircularHoles: 5
-// thru_hole signal pins, drill 0.44mm).
-pub pad P_USB_TH_Signal {
-    shape: circle
-    size: (0.84mm)
-    layer: through_all
-    plating: plated_through_hole
-    drill: 0.44mm
+// SOD-123W / SOD-123F flat-lead diode terminal (Nexperia CFP3; pads at
+// ±1.4mm, 1.2x1.2mm — KiCad Diode_SMD:Nexperia_CFP3_SOD-123W).
+pub pad P_SOD123W_Term {
+    shape: rect
+    size: (1.2mm, 1.2mm)
+    layer: top_copper
+    plating: smd
 }
 
-// Micro-USB shield / mounting post — through-hole (drill 1.35mm), the
-// mechanical anchor a real board-edge USB receptacle needs.
-pub pad P_USB_TH_Mount {
-    shape: circle
-    size: (1.85mm)
-    layer: through_all
-    plating: plated_through_hole
-    drill: 1.35mm
+// SMD tactile-switch terminal (Panasonic EVQPU-class land, 1.55x1.0mm).
+pub pad P_Switch_SMD_Tact {
+    shape: rect
+    size: (1.55mm, 1.0mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB Type-B SMD signal pad (0.65mm pitch, 1.65x0.4mm; KiCad
+// Connector_USB:USB_Micro-B_Amphenol_10103594-0001LF_Horizontal).
+pub pad P_USB_SMD_Signal {
+    shape: rect
+    size: (1.65mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB Type-B SMD shield/mounting tab.
+pub pad P_USB_SMD_Shield {
+    shape: rect
+    size: (1.9mm, 2.0mm)
+    layer: top_copper
+    plating: smd
 }
 
 // Pico 2.54mm castellation — a plated HALF-through-hole at the board edge
@@ -186,12 +184,4 @@ pub pad P_Castellated {
     layer: through_all
     plating: plated_through_hole
     drill: 1mm
-}
-
-// TL3342 tactile-switch terminal pad.
-pub pad P_Switch_TL3342 {
-    shape: rect
-    size: (1.7mm, 1mm)
-    layer: top_copper
-    plating: smd
 }

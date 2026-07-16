@@ -1,7 +1,7 @@
 (export (version D)
   (components
     (comp (ref "C1") (value "47uF")
-      (footprint "rpi_pico2::CHIP_0805")
+      (footprint "std::CHIP_0603")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM188R60J476ME15")
@@ -51,7 +51,7 @@
       (tstamp "00000004")
     )
     (comp (ref "C6") (value "47uF")
-      (footprint "rpi_pico2::CHIP_0805")
+      (footprint "std::CHIP_0603")
       (libsource (lib "cohdl") (part "MLCC") (description ""))
       (fields
         (field (name "MPN") "GRM188R60J476ME15")
@@ -191,7 +191,7 @@
       (tstamp "00000012")
     )
     (comp (ref "D1") (value "Schottky_SOD123")
-      (footprint "rpi_pico2::FP_D_SOD_123")
+      (footprint "rpi_pico2::FP_D_SOD_123W")
       (libsource (lib "cohdl") (part "Schottky_SOD123") (description ""))
       (fields
         (field (name "MPN") "PMEG6010ELR")
@@ -231,11 +231,11 @@
       (tstamp "00000016")
     )
     (comp (ref "J3") (value "MicroUSB_B")
-      (footprint "rpi_pico2::FP_USB_Micro_B_Wuerth_614105150721_HandSoldering")
+      (footprint "rpi_pico2::FP_USB_Micro_B_SMD")
       (libsource (lib "cohdl") (part "MicroUSB_B") (description ""))
       (fields
-        (field (name "MPN") "690-005-298-486")
-        (field (name "MFR") "Wurth")
+        (field (name "MPN") "10103594-0001LF")
+        (field (name "MFR") "Amphenol")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000017")
@@ -441,7 +441,7 @@
       (tstamp "0000002B")
     )
     (comp (ref "SW1") (value "Bootsel_Switch")
-      (footprint "rpi_pico2::FP_SW_SPST_TL3342")
+      (footprint "rpi_pico2::FP_SW_SPST_TP1221U")
       (libsource (lib "cohdl") (part "Bootsel_Switch") (description ""))
       (fields
         (field (name "MPN") "TP-1221U-K9K5325")
@@ -451,7 +451,7 @@
       (tstamp "0000002C")
     )
     (comp (ref "U1") (value "W25Q32")
-      (footprint "rpi_pico2::QFN8N40P100X150_1EP40X120")
+      (footprint "rpi_pico2::QFN8N50P200X300_1EP61X220")
       (libsource (lib "cohdl") (part "W25Q32") (description ""))
       (fields
         (field (name "MPN") "W25Q32RVXHJQ")
@@ -471,7 +471,7 @@
       (tstamp "0000002E")
     )
     (comp (ref "U3") (value "RT6150B")
-      (footprint "rpi_pico2::QFN10N40P200X200_1EP90X150")
+      (footprint "rpi_pico2::QFN10N50P250X250_1EP120X200")
       (libsource (lib "cohdl") (part "RT6150B") (description ""))
       (fields
         (field (name "MPN") "RT6150B-33GQW")

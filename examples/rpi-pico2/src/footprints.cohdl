@@ -2,13 +2,13 @@
 // for every footprint the board's own parts bind. Pad symbols resolve to the
 // std pad library (std/pads.cohdl) through the std prelude; pad NUMBERS match
 // each bound device's declared pin numbers (RFC-002), so `cohdl build`'s
-// E807 pad-consistency check passes. Each `was:` comment records the KiCad
-// footprint id the geometry derives from (or the datasheet/IPC-7351 nominal
-// land pattern where KiCad ships no exact match — the Wuerth micro-USB
-// hand-solder land, the USON-8 1.0x1.5 / WQFN-10 packages, the 0806 inductor,
-// and the Pico castellated headers). Geometry feeds the .kicad_mod / IPC-2581
-// projection (RFC-015/018); it is nominal land-pattern data for partner
-// layout (Quilter), not a placement.
+// E807 pad-consistency check passes. Each comment records the KiCad footprint
+// id (or datasheet package) the geometry derives from. The flash (8-XSON 2x3),
+// buck-boost (WDFN-10 2.5x2.5), micro-USB (SMD), Schottky (SOD-123W) and
+// BOOTSEL switch land patterns were corrected to the datasheet packages in a
+// 2026-07 footprint audit (see docs/compliance-report.md). Geometry feeds the
+// .kicad_mod / IPC-2581 projection (RFC-015/018); it is nominal land-pattern
+// data for partner layout (Quilter), not a placement.
 
 // was: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm"
 // IPC-7351 name (RFC-021): 60 leads, density N, 0.40mm pitch, 7.00x7.00mm
@@ -79,40 +79,46 @@ pub footprint QFN60N40P700X700_1EP350X350 {
     silkscreen_ref { at: (0mm, -4.2mm) }
 }
 
-// was: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm"
-// IPC-7351 name (RFC-021): WQFN is the QFN family — 10 leads, density N,
-// 0.40mm pitch, 2.00x2.00mm body, 0.90x1.50mm exposed pad.
-pub footprint QFN10N40P200X200_1EP90X150 {
-    pad 1: P_DFN_P04_Lead at (-0.9mm, -0.8mm)
-    pad 2: P_DFN_P04_Lead at (-0.9mm, -0.4mm)
-    pad 3: P_DFN_P04_Lead at (-0.9mm, 0mm)
-    pad 4: P_DFN_P04_Lead at (-0.9mm, 0.4mm)
-    pad 5: P_DFN_P04_Lead at (-0.9mm, 0.8mm)
-    pad 6: P_DFN_P04_Lead at (0.9mm, 0.8mm)
-    pad 7: P_DFN_P04_Lead at (0.9mm, 0.4mm)
-    pad 8: P_DFN_P04_Lead at (0.9mm, 0mm)
-    pad 9: P_DFN_P04_Lead at (0.9mm, -0.4mm)
-    pad 10: P_DFN_P04_Lead at (0.9mm, -0.8mm)
-    pad 11: P_WQFN10_EP at (0mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.4mm, 2.4mm) }
-    silkscreen_ref { at: (0mm, -1.6mm) }
+// RT6150B-33GQW buck-boost — real package is WDFN-10L 2.5x2.5mm, 0.50mm pitch,
+// dual-row (5 leads per side), exposed pad ~1.2x2.0mm (Richtek datasheet
+// DS6150AB; verified). (The earlier QFN-10 2x2mm/0.40mm footprint was the
+// WRONG package family, body and pitch.)
+// IPC-7351 name (RFC-021, DFN under the QFN family): 10 leads, density N,
+// 0.50mm pitch, 2.50x2.50mm body, 1.20x2.00mm exposed pad.
+pub footprint QFN10N50P250X250_1EP120X200 {
+    pad 1: P_WDFN10_Lead at (-1.15mm, -1.0mm)
+    pad 2: P_WDFN10_Lead at (-1.15mm, -0.5mm)
+    pad 3: P_WDFN10_Lead at (-1.15mm, 0mm)
+    pad 4: P_WDFN10_Lead at (-1.15mm, 0.5mm)
+    pad 5: P_WDFN10_Lead at (-1.15mm, 1.0mm)
+    pad 6: P_WDFN10_Lead at (1.15mm, 1.0mm)
+    pad 7: P_WDFN10_Lead at (1.15mm, 0.5mm)
+    pad 8: P_WDFN10_Lead at (1.15mm, 0mm)
+    pad 9: P_WDFN10_Lead at (1.15mm, -0.5mm)
+    pad 10: P_WDFN10_Lead at (1.15mm, -1.0mm)
+    pad 11: P_WDFN10_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.9mm, 2.9mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
 }
 
-// was: "Package_SON:USON-8_1.0x1.5mm_P0.4mm"
-// IPC-7351 name (RFC-021): USON is the QFN family — 8 leads, density N,
-// 0.40mm pitch, 1.00x1.50mm body, 0.40x1.20mm exposed pad.
-pub footprint QFN8N40P100X150_1EP40X120 {
-    pad 1: P_USON8_Lead at (-0.5mm, -0.6mm)
-    pad 2: P_USON8_Lead at (-0.5mm, -0.2mm)
-    pad 3: P_USON8_Lead at (-0.5mm, 0.2mm)
-    pad 4: P_USON8_Lead at (-0.5mm, 0.6mm)
-    pad 5: P_USON8_Lead at (0.5mm, 0.6mm)
-    pad 6: P_USON8_Lead at (0.5mm, 0.2mm)
-    pad 7: P_USON8_Lead at (0.5mm, -0.2mm)
-    pad 8: P_USON8_Lead at (0.5mm, -0.6mm)
-    pad 9: P_USON8_EP at (0mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (1.5mm, 1.9mm) }
-    silkscreen_ref { at: (0mm, -1.3mm) }
+// W25Q32RVXHJQ flash — real package is 8-XSON 2.0x3.0mm, 0.50mm pitch (Winbond
+// package code "XH"; datasheet-verified). Land pattern from KiCad's generic
+// "Package_DFN_QFN:DFN-8-1EP_2x3mm_P0.5mm_EP0.61x2.2mm". (The earlier
+// USON 1.0x1.5mm/0.40mm footprint was the WRONG package.)
+// IPC-7351 name (RFC-021, SON under the QFN family): 8 leads, density N,
+// 0.50mm pitch, 2.00x3.00mm body, 0.61x2.20mm exposed pad.
+pub footprint QFN8N50P200X300_1EP61X220 {
+    pad 1: P_DFN8_2x3_Lead at (-0.94mm, -0.75mm)
+    pad 2: P_DFN8_2x3_Lead at (-0.94mm, -0.25mm)
+    pad 3: P_DFN8_2x3_Lead at (-0.94mm, 0.25mm)
+    pad 4: P_DFN8_2x3_Lead at (-0.94mm, 0.75mm)
+    pad 5: P_DFN8_2x3_Lead at (0.94mm, 0.75mm)
+    pad 6: P_DFN8_2x3_Lead at (0.94mm, 0.25mm)
+    pad 7: P_DFN8_2x3_Lead at (0.94mm, -0.25mm)
+    pad 8: P_DFN8_2x3_Lead at (0.94mm, -0.75mm)
+    pad 9: P_DFN8_2x3_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.9mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -1.9mm) }
 }
 
 // was: "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm"
@@ -125,21 +131,22 @@ pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {
     silkscreen_ref { at: (0mm, -2.4mm) }
 }
 
-// was: "Connector_USB:USB_Micro-B_Wuerth_614105150721_HandSoldering"
-// Through-hole micro-USB: 5 staggered signal pins (drill 0.44mm) and 4
-// shield/mounting posts (drill 1.35mm), positions from KiCad's real Würth
-// 614105150721 land pattern (signal pins re-centered on x).
-pub footprint FP_USB_Micro_B_Wuerth_614105150721_HandSoldering {
-    pad 1: P_USB_TH_Signal at (-1.3mm, 0mm)
-    pad 2: P_USB_TH_Signal at (-0.65mm, 1mm)
-    pad 3: P_USB_TH_Signal at (0mm, 0mm)
-    pad 4: P_USB_TH_Signal at (0.65mm, 1mm)
-    pad 5: P_USB_TH_Signal at (1.3mm, 0mm)
-    pad 6: P_USB_TH_Mount at (-3.575mm, 1mm)
-    pad 7: P_USB_TH_Mount at (3.575mm, 1mm)
-    pad 8: P_USB_TH_Mount at (-3.575mm, -2mm)
-    pad 9: P_USB_TH_Mount at (3.575mm, -2mm)
-    courtyard { shape: rect, at: (0mm, -0.4mm), size: (8.6mm, 6.4mm) }
+// Micro-USB Type-B SMD receptacle (the real Raspberry Pi Pico 2 connector).
+// Land from KiCad Connector_USB:USB_Micro-B_Amphenol_10103594-0001LF_Horizontal:
+// 5 signal SMD pads on 0.65mm pitch (front row) + 4 SMD shield/mounting tabs.
+// (The earlier through-hole micro-USB footprint was the wrong mounting
+// technology.) Pins: 1=VBUS 2=D- 3=D+ 4=ID 5=GND, 6-9 = shield/GND tabs.
+pub footprint FP_USB_Micro_B_SMD {
+    pad 1: P_USB_SMD_Signal at (-1.3mm, -1.765mm)
+    pad 2: P_USB_SMD_Signal at (-0.65mm, -1.765mm)
+    pad 3: P_USB_SMD_Signal at (0mm, -1.765mm)
+    pad 4: P_USB_SMD_Signal at (0.65mm, -1.765mm)
+    pad 5: P_USB_SMD_Signal at (1.3mm, -1.765mm)
+    pad 6: P_USB_SMD_Shield at (-3.2mm, -0.4mm)
+    pad 7: P_USB_SMD_Shield at (3.2mm, -0.4mm)
+    pad 8: P_USB_SMD_Shield at (-1.1mm, 2.3mm)
+    pad 9: P_USB_SMD_Shield at (1.1mm, 2.3mm)
+    courtyard { shape: rect, at: (0mm, 0.2mm), size: (8.6mm, 7.2mm) }
     silkscreen_ref { at: (0mm, -3.4mm) }
 }
 
@@ -200,22 +207,27 @@ pub footprint FP_Pico_Castellated_3 {
     silkscreen_ref { at: (0mm, -1.8mm) }
 }
 
-// was: "Button_Switch_SMD:SW_SPST_TL3342"
-pub footprint FP_SW_SPST_TL3342 {
-    pad 1: P_Switch_TL3342 at (-3.15mm, -1.9mm)
-    pad 2: P_Switch_TL3342 at (-3.15mm, 1.9mm)
-    pad 3: P_Switch_TL3342 at (3.15mm, -1.9mm)
-    pad 4: P_Switch_TL3342 at (3.15mm, 1.9mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (8mm, 5mm) }
-    silkscreen_ref { at: (0mm, -2.9mm) }
+// TP-1221U-K9K5325 (XKB) BOOTSEL button — SMD tactile switch, ~4.2x3.2mm body,
+// 4 terminals. Land from the Panasonic EVQPU-class SMD tactile (KiCad
+// Button_Switch_SMD:Panasonic_EVQPUJ_EVQPUA); demo-grade — confirm against the
+// XKB drawing. Terminal A = pads 1,2 (left); terminal B = pads 3,4 (right).
+pub footprint FP_SW_SPST_TP1221U {
+    pad 1: P_Switch_SMD_Tact at (-2.625mm, -0.85mm)
+    pad 2: P_Switch_SMD_Tact at (-2.625mm, 0.85mm)
+    pad 3: P_Switch_SMD_Tact at (2.625mm, -0.85mm)
+    pad 4: P_Switch_SMD_Tact at (2.625mm, 0.85mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.9mm, 3.7mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
 }
 
-// was: "Diode_SMD:D_SOD-123"
-pub footprint FP_D_SOD_123 {
-    pad 1: P_SOD123_Term at (-1.65mm, 0mm)
-    pad 2: P_SOD123_Term at (1.65mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 1.4mm) }
-    silkscreen_ref { at: (0mm, -1.3mm) }
+// PMEG6010ELR — real package is SOD-123W / SOD-123F (Nexperia CFP3, flat-lead),
+// NOT plain SOD-123 (gull-wing). Land from KiCad Diode_SMD:Nexperia_CFP3_SOD-123W
+// (pads at ±1.4mm, 1.2x1.2mm). Verified.
+pub footprint FP_D_SOD_123W {
+    pad 1: P_SOD123W_Term at (-1.4mm, 0mm)
+    pad 2: P_SOD123W_Term at (1.4mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.0mm, 1.6mm) }
+    silkscreen_ref { at: (0mm, -1.4mm) }
 }
 
 // was: "Package_TO_SOT_SMD:SOT-523"
@@ -246,13 +258,4 @@ pub footprint CHIP_0201 {
     pad 2: P_Chip_0201 at (0.32mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
     silkscreen_ref { at: (0mm, -0.6mm) }
-}
-
-// was: "Capacitor_SMD:C_0805_2012Metric"
-// IPC-7351 name (RFC-021): the two-terminal 0805 chip land.
-pub footprint CHIP_0805 {
-    pad 1: P_Chip_0805 at (-0.95mm, 0mm)
-    pad 2: P_Chip_0805 at (0.95mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.4mm, 1.45mm) }
-    silkscreen_ref { at: (0mm, -1.4mm) }
 }

@@ -126,7 +126,7 @@ pub device RT6150B {
 impl IC for RT6150B {}
 
 pub part BUCKBOOST_RT6150B: RT6150B {
-    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: QFN10N40P200X200_1EP90X150 }
+    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: QFN10N50P250X250_1EP120X200 }
 }
 
 // ---- W25Q32 4 MiB QSPI NOR flash (USON-8, pin 9 = pad = GND) ----
@@ -147,7 +147,7 @@ pub device W25Q32 {
 impl IC for W25Q32 {}
 
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: QFN8N40P100X150_1EP40X120 }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: QFN8N50P200X300_1EP61X220 }
 }
 
 // ---- 12 MHz crystal (4-pad SMD; pads 2 & 4 = case ground) ----
@@ -182,8 +182,7 @@ pub device MicroUSB_B {
 impl Connector for MicroUSB_B {}
 
 pub part USB_MICRO_B: MicroUSB_B {
-    primary { mfr: "Wurth", mpn: "690-005-298-486",
-              footprint: FP_USB_Micro_B_Wuerth_614105150721_HandSoldering }
+    primary { mfr: "Amphenol", mpn: "10103594-0001LF", footprint: FP_USB_Micro_B_SMD }
 }
 
 // ---- 40-pin castellated / 0.1" header (the user I/O edge) ----
@@ -261,7 +260,7 @@ pub device Bootsel_Switch {
 impl Switch for Bootsel_Switch {}
 
 pub part BOOTSEL_SW: Bootsel_Switch {
-    primary { mfr: "XKB", mpn: "TP-1221U-K9K5325", footprint: FP_SW_SPST_TL3342 }
+    primary { mfr: "XKB", mpn: "TP-1221U-K9K5325", footprint: FP_SW_SPST_TP1221U }
 }
 
 // ---- Schottky power-OR/reverse-block diode (reuses std Polarized/Diode) ----
@@ -282,7 +281,7 @@ impl Polarized for Schottky_SOD123 {
 impl Diode for Schottky_SOD123 {}
 
 pub part SCHOTTKY_PMEG6010: Schottky_SOD123 {
-    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: FP_D_SOD_123 }
+    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: FP_D_SOD_123W }
 }
 
 // ---- N-channel MOSFET (isolates the VSYS/3 divider when 3V3 is off) ----
@@ -362,7 +361,7 @@ pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
     primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: CHIP_0402 }
 }
 pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
-    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: CHIP_0805 }
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: CHIP_0603 }
 }
 
 // Green user LED (reuses std ChipLED).

@@ -158,21 +158,51 @@ pub pad P_Switch_SMD_Tact {
     plating: smd
 }
 
-// Micro-USB Type-B SMD signal pad (0.65mm pitch, 1.65x0.4mm; KiCad
-// Connector_USB:USB_Micro-B_Amphenol_10103594-0001LF_Horizontal).
-pub pad P_USB_SMD_Signal {
+// Micro-USB Type-B SMD land (Molex 105017-0001, KiCad
+// Connector_USB:USB_Micro-B_Molex-105017-0001). The five signal pads are
+// NARROW and TALL (0.4 wide x 1.35 long, 0.65mm pitch) — reaching toward the
+// connector mouth, not sideways.
+pub pad P_USB_uB_Sig {
     shape: rect
-    size: (1.65mm, 0.4mm)
+    size: (0.4mm, 1.35mm)
     layer: top_copper
     plating: smd
 }
 
-// Micro-USB Type-B SMD shield/mounting tab.
-pub pad P_USB_SMD_Shield {
+// Micro-USB shell tab — large SMD ground pad (the two inner shell tabs).
+pub pad P_USB_uB_TabL {
     shape: rect
-    size: (1.9mm, 2.0mm)
+    size: (1.5mm, 1.9mm)
     layer: top_copper
     plating: smd
+}
+
+// Micro-USB shell tab — smaller SMD ground pad (the two outer shell tabs).
+pub pad P_USB_uB_TabS {
+    shape: rect
+    size: (1.2mm, 1.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB corner shell anchor — a plated slotted hole in the real part
+// (0.6x1.3mm oval drill); CoHDL drills are round, so approximated as a 0.9mm
+// plated through-hole under the 1.2x1.9mm oval pad (demo-grade mechanical).
+pub pad P_USB_uB_Slot {
+    shape: oval
+    size: (1.2mm, 1.9mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.9mm
+}
+
+// Micro-USB through-hole mounting peg (0.85mm plated hole, 1.45mm round pad).
+pub pad P_USB_uB_Peg {
+    shape: circle
+    size: (1.45mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.85mm
 }
 
 // Pico 2.54mm castellation — a plated HALF-through-hole at the board edge

@@ -131,23 +131,27 @@ pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {
     silkscreen_ref { at: (0mm, -2.4mm) }
 }
 
-// Micro-USB Type-B SMD receptacle (the real Raspberry Pi Pico 2 connector).
-// Land from KiCad Connector_USB:USB_Micro-B_Amphenol_10103594-0001LF_Horizontal:
-// 5 signal SMD pads on 0.65mm pitch (front row) + 4 SMD shield/mounting tabs.
-// (The earlier through-hole micro-USB footprint was the wrong mounting
-// technology.) Pins: 1=VBUS 2=D- 3=D+ 4=ID 5=GND, 6-9 = shield/GND tabs.
+// Micro-USB Type-B SMD receptacle — real land pattern (Molex 105017-0001,
+// KiCad Connector_USB:USB_Micro-B_Molex-105017-0001): 5 signal SMD pads on
+// 0.65mm pitch reaching toward the mouth, 4 SMD shell tabs, 2 slotted plated
+// anchors and 2 plated mounting pegs (all shield/GND). Pins: 1=VBUS 2=D- 3=D+
+// 4=ID 5=GND; 6-13 = shell/mounting.
 pub footprint FP_USB_Micro_B_SMD {
-    pad 1: P_USB_SMD_Signal at (-1.3mm, -1.765mm)
-    pad 2: P_USB_SMD_Signal at (-0.65mm, -1.765mm)
-    pad 3: P_USB_SMD_Signal at (0mm, -1.765mm)
-    pad 4: P_USB_SMD_Signal at (0.65mm, -1.765mm)
-    pad 5: P_USB_SMD_Signal at (1.3mm, -1.765mm)
-    pad 6: P_USB_SMD_Shield at (-3.2mm, -0.4mm)
-    pad 7: P_USB_SMD_Shield at (3.2mm, -0.4mm)
-    pad 8: P_USB_SMD_Shield at (-1.1mm, 2.3mm)
-    pad 9: P_USB_SMD_Shield at (1.1mm, 2.3mm)
-    courtyard { shape: rect, at: (0mm, 0.2mm), size: (8.6mm, 7.2mm) }
-    silkscreen_ref { at: (0mm, -3.4mm) }
+    pad 1: P_USB_uB_Sig at (-1.3mm, -1.4625mm)
+    pad 2: P_USB_uB_Sig at (-0.65mm, -1.4625mm)
+    pad 3: P_USB_uB_Sig at (0mm, -1.4625mm)
+    pad 4: P_USB_uB_Sig at (0.65mm, -1.4625mm)
+    pad 5: P_USB_uB_Sig at (1.3mm, -1.4625mm)
+    pad 6: P_USB_uB_TabL at (-1mm, 1.2375mm)
+    pad 7: P_USB_uB_TabL at (1mm, 1.2375mm)
+    pad 8: P_USB_uB_TabS at (-2.9mm, 1.2375mm)
+    pad 9: P_USB_uB_TabS at (2.9mm, 1.2375mm)
+    pad 10: P_USB_uB_Slot at (-3.5mm, 1.2375mm)
+    pad 11: P_USB_uB_Slot at (3.5mm, 1.2375mm)
+    pad 12: P_USB_uB_Peg at (-2.5mm, -1.4625mm)
+    pad 13: P_USB_uB_Peg at (2.5mm, -1.4625mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.6mm, 5.2mm) }
+    silkscreen_ref { at: (0mm, -2.8mm) }
 }
 
 // was: "Connector:Pico_Castellated_40"

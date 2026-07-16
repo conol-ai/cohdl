@@ -175,14 +175,16 @@ pub device MicroUSB_B {
         required DP: 3 [bidirectional]
         optional ID: 4 [passive]
         required GND: 5 [power_in]
-        required SHIELD: 6, 7, 8, 9 [passive]
+        // Molex 105017-0001 land: 4 SMD shell tabs (6-9) + 2 slotted anchors
+        // (10-11) + 2 through-hole mounting pegs (12-13), all shield/GND.
+        required SHIELD: 6, 7, 8, 9, 10, 11, 12, 13 [passive]
     }
 }
 
 impl Connector for MicroUSB_B {}
 
 pub part USB_MICRO_B: MicroUSB_B {
-    primary { mfr: "Amphenol", mpn: "10103594-0001LF", footprint: FP_USB_Micro_B_SMD }
+    primary { mfr: "Molex", mpn: "105017-0001", footprint: FP_USB_Micro_B_SMD }
 }
 
 // ---- 40-pin castellated / 0.1" header (the user I/O edge) ----

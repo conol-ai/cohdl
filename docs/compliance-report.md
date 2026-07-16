@@ -1566,4 +1566,54 @@ Honest boundaries:
 - **No real Quilter import gate in CI.** XSD validity + structural regression
   tests (padstacks/holes/placed-copper/mount-types present) are the automated
   gate; an actual Quilter round-trip remains a human checkpoint (like KiCad).
-- **Minimal stackup** — a 2-layer F.Cu/B.Cu stackup, not a real fab stackup.
+
+## IPC-2581 pads render in Quilter — mask apertures, full stackup, colon-free refs (2026-07-16)
+
+Follow-up to the physical-model work: even with placed copper, Quilter rendered
+only dark component courtyards — **no pads**. Diagnosed by structurally diffing
+the emitted document against KiCad 10's own `kicad-cli pcb export ipc2581
+--version B` output (which Quilter renders) across every pad-bearing dimension.
+The document was XSD-valid and carried 276 placed copper `Pad`s throughout; the
+gaps were in what a real consumer composites and resolves, not in validity:
+
+- **Solder-mask apertures were missing.** A consumer renders a visible pad as
+  *copper revealed through a mask opening*; with only copper `LayerFeature`s
+  (F.Cu/B.Cu) and no F.Mask/B.Mask/F.Paste features, there is no aperture to
+  reveal the copper through → nothing drawn. Now every pad is instanced on its
+  mask (and SMD paste) layers too, matching the reference exporter.
+- **The stackup listed only copper.** The `StackupGroup` was F.Cu/dielectric/
+  B.Cu (3 layers); a consumer that builds its renderable-layer model from the
+  `StackupLayer` sequence never saw the mask layers. Now the full top→bottom
+  fabrication stack (silkscreen/paste/mask/Cu/dielectric/Cu/mask/paste/
+  silkscreen, 9 layers) is emitted, matching KiCad exactly, with a `FAB_LAYERS`
+  single-source table feeding the `Layer` defs, `Content/LayerRef`s, and the
+  `StackupLayer` sequence.
+- **Pin land-pattern geometry was inline, not dictionary-referenced.** `<Pin>`
+  carried an inline `<RectCenter>`/`<Circle>` (schema-valid but only the
+  `StandardPrimitiveRef` form is honored by real importers) and lacked
+  `electricalType`. Now every pin references a `PRIM_n` dictionary entry
+  (closed over all package pads up front) and is `electricalType="ELECTRICAL"`.
+- **Package names/refs carried the CoHDL `::` separator.** `:` is the XML
+  QName/namespace delimiter; a consumer whose pin/pad resolution treats a
+  package name as an NCName can fail to bind pins to their land pattern. The
+  `<Package name>`/`packageRef` now collapse `::` → a single `-`
+  (`rpi_pico2-CHIP_0805`, KiCad's own convention), staying matched to each
+  other, with the original fq symbol preserved in the Package `comment`.
+
+The rpi-pico2 document now matches the KiCad reference element-for-element on
+the pad-render path: 724 copper `Pad`s, 36 `PadStackDef`s, 114 `PadstackPadDef`s,
+F.Mask/B.Mask/F.Paste feature layers, a 9-row stackup, 156 `electricalType`
+pins, zero colons, and every `packageRef` resolving to a `Package`. Determinism
+(byte-identical across runs) and XSD validity are preserved.
+
+Honest boundaries (unchanged):
+
+- **Not a routed/placed board.** Component placement is still staged (or
+  `place`-locked); no copper traces.
+- **No real Quilter import gate in CI.** Structural regression tests + XSD
+  validity are the automated gate; an actual Quilter render remains a human
+  checkpoint (like the KiCad pcbnew checkpoint). Convergence to KiCad's
+  known-renderable structure is the strongest signal available headless.
+- **Stackup is a nominal 2-layer fab stack** (0.035/1.51/0.035mm), not a real
+  fabricator's stackup — the mask/paste/silk rows are present with nominal
+  (mostly zero) thicknesses so the layer model is complete.

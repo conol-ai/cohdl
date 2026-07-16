@@ -98,7 +98,41 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             (i.path.clone(), p)
         })
         .collect();
-    let phys = build_physical(world, &insts, &positions, &rotations, &refdes_map);
+    let mut phys = build_physical(world, &insts, &positions, &rotations, &refdes_map);
+    // Close the shape dictionary over every Package/Pin as well: pin geometry
+    // is emitted as a `StandardPrimitiveRef` into the same `DictionaryStandard`
+    // the padstacks use (the encoding every mainstream consumer implements —
+    // an inline primitive under `<Pin>` is schema-valid via the StandardShape
+    // substitution group but invisible to a real importer), so every package
+    // pad shape must have a `PRIM_n` entry even if no placed instance
+    // contributed it. Same guards + (w, h) derivation as `build_physical`.
+    for footprint in packages.keys() {
+        let Some(fp) = world.footprints.get(footprint) else {
+            continue;
+        };
+        for place in &fp.pads {
+            let Some(pad) = world.pads.get(&place.pad.name) else {
+                continue;
+            };
+            let (Some((shape, _)), Some(_)) = (&pad.shape, &pad.plating) else {
+                continue;
+            };
+            let (w, h) = match pad.size.as_slice() {
+                [d] => (d.femto, d.femto),
+                [w, h, ..] => (w.femto, h.femto),
+                [] => continue,
+            };
+            dedup(
+                &mut phys.prims,
+                Prim {
+                    shape: *shape,
+                    w,
+                    h,
+                },
+            );
+        }
+    }
+    let phys = phys; // frozen — the dictionary is closed from here on
     let net_of = net_membership(world, ir, &refdes_map);
     // A component is through-hole-mounted (THMT) if any of its pads is; else SMT.
     let tht_refdes: BTreeSet<&str> = phys
@@ -116,14 +150,24 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
 
     // ---- Content: what the document contains, and for whom ----
     out.push_str("  <Content roleRef=\"Owner\">\n");
+    // `mode` names the data FUNCTION the document serves (assembly-level:
+    // BOM + components + nets + land patterns + padstacks), not a completeness
+    // claim — real consumers key their fabrication-layer rendering off a
+    // standard mode and skip LayerFeatures under USERDEF. The honest
+    // completeness disclosure stays in @comment and COHDL_COMPLETENESS.
     let _ = writeln!(
         out,
-        "    <FunctionMode mode=\"USERDEF\" level=\"1\" comment=\"{} — layout not yet performed\"/>",
+        "    <FunctionMode mode=\"ASSEMBLY\" level=\"1\" comment=\"{} — layout not yet performed\"/>",
         esc(COMPLETENESS)
     );
     let _ = writeln!(out, "    <StepRef name=\"{}\"/>", esc(&step));
-    out.push_str("    <LayerRef name=\"F.Cu\"/>\n");
-    out.push_str("    <LayerRef name=\"B.Cu\"/>\n");
+    // The physical stack, top→bottom — every layer the padstacks/features
+    // reference is declared here (a consumer may build its renderable-layer
+    // list from these Content declarations). The full `FAB_LAYERS` set, in the
+    // same order the reference exporter (KiCad) lists it.
+    for (layer, _func, _side, _thickness) in FAB_LAYERS {
+        let _ = writeln!(out, "    <LayerRef name=\"{}\"/>", layer);
+    }
     if !bom.is_empty() {
         let _ = writeln!(out, "    <BomRef name=\"{}-bom\"/>", esc(&name));
         let _ = writeln!(out, "    <AvlRef name=\"{}-avl\"/>", esc(&name));
@@ -381,9 +425,11 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                     // mounting HOLE) — every CoHDL PTH pad is a device terminal.
                     crate::ast::PadPlating::PlatedThroughHole => ("THRU", "THROUGH_HOLE_PIN"),
                 };
+                // Every CoHDL pad placement is a device terminal (see THRU
+                // note above) — never a mechanical-only pin.
                 let _ = writeln!(
                     out,
-                    "          <Pin number=\"{}\" type=\"{}\" mountType=\"{}\">",
+                    "          <Pin number=\"{}\" type=\"{}\" electricalType=\"ELECTRICAL\" mountType=\"{}\">",
                     esc(&sanitize(&place.number.text, true)),
                     pin_type,
                     mount_type
@@ -394,30 +440,39 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                     geom::mm(&place.x),
                     geom::mm(&place.y)
                 );
-                match (shape, pad.size.as_slice()) {
-                    (crate::ast::PadShape::Circle, [d]) => {
-                        let _ = writeln!(out, "            <Circle diameter=\"{}\"/>", geom::mm(d));
-                    }
-                    (crate::ast::PadShape::Rect, [w, h]) => {
-                        let _ = writeln!(
-                            out,
-                            "            <RectCenter width=\"{}\" height=\"{}\"/>",
-                            geom::mm(w),
-                            geom::mm(h)
-                        );
-                    }
-                    (crate::ast::PadShape::Oval, [w, h]) => {
-                        let _ = writeln!(
-                            out,
-                            "            <Oval width=\"{}\" height=\"{}\"/>",
-                            geom::mm(w),
-                            geom::mm(h)
-                        );
-                    }
-                    _ => {
+                // Geometry as a `StandardPrimitiveRef` into the shared
+                // DictionaryStandard — the encoding consumers implement (an
+                // inline primitive is schema-valid but real importers resolve
+                // only the dictionary form; pads rendered nowhere). The
+                // dictionary was closed over every package pad up front, so
+                // the lookup is total for any sized pad.
+                match pad.size.as_slice() {
+                    [] => {
                         // Arity errors were reported at declaration check;
                         // keep the document well-formed with a zero circle.
                         out.push_str("            <Circle diameter=\"0\"/>\n");
+                    }
+                    sz => {
+                        let (w, h) = match sz {
+                            [d] => (d.femto, d.femto),
+                            [w, h, ..] => (w.femto, h.femto),
+                            [] => unreachable!(),
+                        };
+                        let want = Prim {
+                            shape: *shape,
+                            w,
+                            h,
+                        };
+                        let idx = phys
+                            .prims
+                            .iter()
+                            .position(|e| *e == want)
+                            .expect("pin shape in dictionary (closure pre-pass)");
+                        let _ = writeln!(
+                            out,
+                            "            <StandardPrimitiveRef id=\"PRIM_{}\"/>",
+                            idx
+                        );
                     }
                 }
                 out.push_str("          </Pin>\n");
@@ -669,6 +724,16 @@ fn bom_groups(world: &World, ir: &DesignIr) -> Vec<BomGroup> {
 
 /// footprint name → sanitized, collision-free Package name (deterministic:
 /// footprints iterate in sorted order).
+///
+/// The name is emitted verbatim as BOTH the `<Package name>` and every
+/// `<Component packageRef>`/`<RefDes packageRef>`, so they always stay matched.
+/// The CoHDL fully-qualified separator `::` is collapsed to a single `-`
+/// (KiCad's own convention: `rpi_pico2-CHIP_0805`) rather than kept as a colon:
+/// `:` is the XML QName/namespace delimiter, and a consumer whose pad-resolution
+/// path treats a package name as an NCName (or splits it on `:`) would fail to
+/// bind pins to their land pattern. The XSD's `qualifiedNameType` permits the
+/// colon, so this is a consumer-safety choice, not a validity fix — it converges
+/// onto the colon-free shape every reference IPC-2581 exporter emits.
 fn package_table(world: &World, ir: &DesignIr) -> BTreeMap<String, String> {
     let footprints: BTreeSet<String> = ir
         .instances
@@ -678,7 +743,10 @@ fn package_table(world: &World, ir: &DesignIr) -> BTreeMap<String, String> {
     let mut used = BTreeSet::new();
     let mut table = BTreeMap::new();
     for f in footprints {
-        let mut name = sanitize(&f, true);
+        // `::` → `-` first (a single separator, not the `__` that char-wise
+        // colon-stripping would give), then sanitize disallowing any stray
+        // colon as a backstop.
+        let mut name = sanitize(&f.replace("::", "-"), false);
         while !used.insert(name.clone()) {
             name.push('_');
         }
@@ -1193,36 +1261,67 @@ fn emit_dictionary(out: &mut String, phys: &Physical) {
     out.push_str("    </DictionaryStandard>\n");
 }
 
-/// The physical layer stack (CadData): real copper/mask/paste/outline layers a
-/// consumer needs (replaces the single synthetic `TOP` layer).
+/// The physical layer set (CadData): the full silkscreen/paste/mask/copper/
+/// dielectric stack a consumer needs (replaces the single synthetic `TOP`
+/// layer), plus the board outline and the through-board drill span the plated
+/// holes live on. Every layer any `PadstackPadDef`, `LayerFeature`, or
+/// `StackupLayer` references must be declared here — the fabrication stack is
+/// listed top→bottom, mirroring the reference exporter (KiCad), so a consumer
+/// that builds its renderable-layer model from these declarations sees the mask
+/// apertures the copper pads are revealed through.
 fn emit_layers(out: &mut String) {
-    for (name, func, side) in [
-        ("F.Cu", "CONDUCTOR", "TOP"),
-        ("B.Cu", "CONDUCTOR", "BOTTOM"),
-        ("F.Mask", "SOLDERMASK", "TOP"),
-        ("F.Paste", "SOLDERPASTE", "TOP"),
-        ("B.Mask", "SOLDERMASK", "BOTTOM"),
-        ("Edge.Cuts", "BOARD_OUTLINE", "ALL"),
-    ] {
+    for (name, func, side, _thickness) in FAB_LAYERS {
         let _ = writeln!(
             out,
             "      <Layer name=\"{}\" layerFunction=\"{}\" polarity=\"POSITIVE\" side=\"{}\"/>",
             name, func, side
         );
     }
+    out.push_str(
+        "      <Layer name=\"Edge.Cuts\" layerFunction=\"BOARD_OUTLINE\" polarity=\"POSITIVE\" side=\"ALL\"/>\n",
+    );
+    // The plated through-holes are emitted as located `<Hole>` features on
+    // this span layer (the board-level form hole-rendering consumers key on;
+    // the padstack-level `PadstackHoleDef` alone stays invisible).
+    out.push_str(
+        "      <Layer name=\"F.Cu_B.Cu\" layerFunction=\"DRILL\" polarity=\"POSITIVE\" side=\"ALL\">\n",
+    );
+    out.push_str("        <Span fromLayer=\"F.Cu\" toLayer=\"B.Cu\"/>\n");
+    out.push_str("      </Layer>\n");
 }
 
-/// A minimal 2-layer stackup (CadData): F.Cu / dielectric / B.Cu, 1.6mm.
+/// The fabrication stack, top→bottom: (name, layerFunction, side, thickness mm).
+/// Non-zero thicknesses sum to the 1.6mm overall (0.01 mask + 0.035 Cu + 1.51
+/// dielectric + 0.035 Cu + 0.01 mask). Silkscreen/paste are zero-thickness
+/// process layers. This is exactly the set + order KiCad's `--version B`
+/// exporter emits, which Quilter renders.
+const FAB_LAYERS: [(&str, &str, &str, &str); 9] = [
+    ("F.Silkscreen", "SILKSCREEN", "TOP", "0"),
+    ("F.Paste", "SOLDERPASTE", "TOP", "0"),
+    ("F.Mask", "SOLDERMASK", "TOP", "0.01"),
+    ("F.Cu", "CONDUCTOR", "TOP", "0.035"),
+    ("DIELECTRIC_1", "DIELCORE", "INTERNAL", "1.51"),
+    ("B.Cu", "CONDUCTOR", "BOTTOM", "0.035"),
+    ("B.Mask", "SOLDERMASK", "BOTTOM", "0.01"),
+    ("B.Paste", "SOLDERPASTE", "BOTTOM", "0"),
+    ("B.Silkscreen", "SILKSCREEN", "BOTTOM", "0"),
+];
+
+/// The stackup (CadData): the full top→bottom fabrication sequence, one
+/// `StackupLayer` per `FAB_LAYERS` row. Listing the mask & paste layers (not
+/// just the copper) matters: a consumer that builds its renderable-layer list
+/// from the `StackupLayer` sequence needs the mask rows present, or it never
+/// composites "copper pad revealed through a mask aperture" and shows no pads.
 fn emit_stackup(out: &mut String) {
     out.push_str("      <Stackup name=\"stackup\" overallThickness=\"1.6\" tolPlus=\"0\" tolMinus=\"0\" whereMeasured=\"MASK\">\n");
     out.push_str(
         "        <StackupGroup name=\"grp\" thickness=\"1.6\" tolPlus=\"0\" tolMinus=\"0\">\n",
     );
-    for (i, l) in ["F.Cu", "B.Cu"].iter().enumerate() {
+    for (i, (l, _func, _side, thickness)) in FAB_LAYERS.iter().enumerate() {
         let _ = writeln!(
             out,
-            "          <StackupLayer layerOrGroupRef=\"{}\" thickness=\"0.035\" tolPlus=\"0\" tolMinus=\"0\" sequence=\"{}\"/>",
-            l, i
+            "          <StackupLayer layerOrGroupRef=\"{}\" thickness=\"{}\" tolPlus=\"0\" tolMinus=\"0\" sequence=\"{}\"/>",
+            l, thickness, i
         );
     }
     out.push_str("        </StackupGroup>\n");
@@ -1259,16 +1358,36 @@ fn emit_padstacks(out: &mut String, phys: &Physical) {
     }
 }
 
-/// The `LayerFeature`s (Step, after `LogicalNet`): every placed copper pad on
-/// F.Cu (all pads) and B.Cu (through-hole only), each tied to its component pin
+/// The `LayerFeature`s (Step, after `LogicalNet`): every placed pad instanced
+/// on each layer its padstack lands on — copper (F.Cu all pads, B.Cu
+/// through-hole), soldermask openings (F.Mask all pads, B.Mask through-hole),
+/// and paste apertures (F.Paste, SMD only) — each tied to its component pin
 /// (`PinRef`) and its net (`Set/@net`), positioned + rotated on the board.
+/// The mask/paste features matter for visibility: a consumer compositing
+/// "visible pad = copper through a mask aperture" sees no pads at all when
+/// only the copper is instanced. A final drill `LayerFeature` (`F.Cu_B.Cu`)
+/// carries one located, plated `<Hole>` per through-hole pad.
+/// The per-layer pad filter mirrors `emit_padstacks`' layer lists exactly:
+/// SMD lands on F.Cu/F.Mask/F.Paste, THT on F.Cu/F.Mask/B.Cu/B.Mask.
 fn emit_layer_features(
     out: &mut String,
     phys: &Physical,
     net_of: &BTreeMap<(String, String), String>,
 ) {
-    for (layer, only_tht) in [("F.Cu", false), ("B.Cu", true)] {
-        let pads: Vec<&PlacedPad> = phys.pads.iter().filter(|p| !only_tht || p.tht).collect();
+    // (layer, pad filter): None = all pads, Some(true) = THT only,
+    // Some(false) = SMD only.
+    for (layer, only) in [
+        ("F.Cu", None),
+        ("B.Cu", Some(true)),
+        ("F.Mask", None),
+        ("B.Mask", Some(true)),
+        ("F.Paste", Some(false)),
+    ] {
+        let pads: Vec<&PlacedPad> = phys
+            .pads
+            .iter()
+            .filter(|p| only.is_none_or(|tht| p.tht == tht))
+            .collect();
         if pads.is_empty() {
             continue;
         }
@@ -1307,6 +1426,46 @@ fn emit_layer_features(
                 esc(&p.pin)
             );
             out.push_str("            </Pad>\n");
+            out.push_str("          </Set>\n");
+        }
+        out.push_str("        </LayerFeature>\n");
+    }
+    // The drill layer: one located, plated `<Hole>` per through-hole pad —
+    // the board-level projection of the padstacks' `PadstackHoleDef` (which
+    // is defined at padstack origin and never placed; hole-rendering
+    // consumers key on these features). `Set/@geometry` names the padstack,
+    // mirroring the reference-exporter corpus.
+    let holes: Vec<(usize, &PlacedPad)> = phys
+        .pads
+        .iter()
+        .filter(|p| p.tht && phys.padstacks[p.padstack].drill > 0)
+        .enumerate()
+        .collect();
+    if !holes.is_empty() {
+        out.push_str("        <LayerFeature layerRef=\"F.Cu_B.Cu\">\n");
+        for (k, p) in holes {
+            let net = net_of.get(&(p.refdes.clone(), p.pin.clone()));
+            match net {
+                Some(n) => {
+                    let _ = writeln!(
+                        out,
+                        "          <Set geometry=\"PADSTACK_{}\" net=\"{}\">",
+                        p.padstack,
+                        esc(n)
+                    );
+                }
+                None => {
+                    let _ = writeln!(out, "          <Set geometry=\"PADSTACK_{}\">", p.padstack);
+                }
+            }
+            let _ = writeln!(
+                out,
+                "            <Hole name=\"H{}\" diameter=\"{}\" platingStatus=\"PLATED\" plusTol=\"0\" minusTol=\"0\" x=\"{}\" y=\"{}\"/>",
+                k,
+                geom::mm_femto(phys.padstacks[p.padstack].drill),
+                geom::mm_femto(p.x),
+                geom::mm_femto(p.y)
+            );
             out.push_str("          </Set>\n");
         }
         out.push_str("        </LayerFeature>\n");

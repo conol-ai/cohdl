@@ -278,16 +278,45 @@ fn ipc2581_projects_real_pins_and_stays_schema_valid() {
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
     // Real pins with shapes and locations; plating rides @mountType (R5-8).
+    // Pin geometry is a StandardPrimitiveRef into the shared dictionary —
+    // the encoding consumers implement; an inline primitive under <Pin> is
+    // schema-valid but was invisible to a real importer (Quilter).
     assert!(
-        xml.contains("<Pin number=\"1\" type=\"SURFACE\" mountType=\"SURFACE_MOUNT_PAD\">"),
+        xml.contains(
+            "<Pin number=\"1\" type=\"SURFACE\" electricalType=\"ELECTRICAL\" mountType=\"SURFACE_MOUNT_PAD\">"
+        ),
         "{}",
         xml
     );
     assert!(xml.contains("<Location x=\"-0.5\" y=\"0\"/>"), "{}", xml);
+    // The pin's shape lives in DictionaryStandard, referenced from the Pin.
+    let entry = xml
+        .lines()
+        .find(|l| l.contains("<RectCenter width=\"0.6\" height=\"0.7\"/>"))
+        .expect("pin shape present in DictionaryStandard");
     assert!(
-        xml.contains("<RectCenter width=\"0.6\" height=\"0.7\"/>"),
-        "{}",
-        xml
+        entry.contains("<EntryStandard id=\"PRIM_"),
+        "pin shape must be a dictionary entry:\n{}",
+        entry
+    );
+    let prim_id = entry
+        .split("id=\"")
+        .nth(1)
+        .unwrap()
+        .split('"')
+        .next()
+        .unwrap();
+    let pin_block = xml
+        .split("<Pin number=\"1\"")
+        .nth(1)
+        .unwrap()
+        .split("</Pin>")
+        .next()
+        .unwrap();
+    assert!(
+        pin_block.contains(&format!("<StandardPrimitiveRef id=\"{}\"/>", prim_id)),
+        "Pin must reference its dictionary shape:\n{}",
+        pin_block
     );
     // The courtyard becomes the package outline (4 corners + closing).
     assert!(

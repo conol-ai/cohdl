@@ -552,16 +552,32 @@ fn hostile_strings_are_escaped_and_names_sanitized() {
     };
     assert_eq!(textual("MPN"), "MPN <X> & 'Y'");
     assert_eq!(textual("MFR"), "ACME & Co 'Ltd'");
-    // RFC-017: footprints are SYMBOLS now — package names are fq module
-    // paths, identifier-safe by construction (the hostile-footprint-string
-    // case is unrepresentable since the migration; sanitization remains as
-    // defense-in-depth only).
+    // RFC-017: footprints are SYMBOLS now — package names derive from the fq
+    // module path, identifier-safe by construction (the hostile-footprint-
+    // string case is unrepresentable since the migration; sanitization remains
+    // as defense-in-depth only). The CoHDL `::` separator is collapsed to a
+    // single `-` for the IPC-2581 Package name / packageRef so a consumer whose
+    // pad-resolution path treats the name as an NCName (splitting on the XML
+    // `:` delimiter) still binds pins to their land pattern.
     let pkg = elements(&b.xml, "Package")[0];
     let name = attr(pkg, "name").unwrap();
-    assert_eq!(name, "main::TFP", "package name is the fq footprint symbol");
-    assert!(
-        attr(pkg, "comment").is_none(),
-        "no raw-name comment needed — the symbol IS the name"
+    assert_eq!(
+        name, "main-TFP",
+        "package name is the colon-free fq footprint symbol"
+    );
+    // Because `::` → `-` changes the name, the raw fq symbol is preserved as
+    // the Package `comment` (traceability back to the CoHDL declaration).
+    assert_eq!(
+        attr(pkg, "comment").as_deref(),
+        Some("main::TFP"),
+        "raw fq footprint symbol preserved in the comment"
+    );
+    // The Component packageRef must still match the Package name byte-for-byte.
+    let comp = elements(&b.xml, "Component")[0];
+    assert_eq!(
+        attr(comp, "packageRef").as_deref(),
+        Some("main-TFP"),
+        "packageRef stays matched to the sanitized Package name"
     );
     let _ = &b.checked;
 }
@@ -1152,8 +1168,9 @@ design B {
 #[test]
 fn placed_component_locks_at_position_and_is_not_staged() {
     let b = build_with_dxf("place", WITH_PLACE, DXF_30X20);
-    // Identify components by their (module-qualified) package: FPC = the
-    // placed connector, FP = the staged resistor.
+    // Identify components by their package name (the `-`-joined fq footprint,
+    // colon-free for consumer safety): FPC = the placed connector, FP = the
+    // staged resistor.
     let locs: Vec<(String, (f64, f64))> = blocks(&b.xml, "Component")
         .into_iter()
         .map(|(h, body)| (attr(h, "packageRef").unwrap(), component_location(body)))
@@ -1161,15 +1178,15 @@ fn placed_component_locks_at_position_and_is_not_staged() {
     let find = |suffix: &str| locs.iter().find(|(p, _)| p.ends_with(suffix)).unwrap().1;
     // The placed connector is locked at its exact place position (3, -4).
     assert_eq!(
-        find("FPC"),
+        find("-FPC"),
         (3.0, -4.0),
         "placed component not locked at (3,-4)"
     );
     // The resistor is staged OUTSIDE the 30mm-wide outline (right of +15mm).
     assert!(
-        find("::FP").0 > 15.0,
+        find("-FP").0 > 15.0,
         "staged resistor should be outside the outline, got {:?}",
-        find("::FP")
+        find("-FP")
     );
     assert!(xsd_validate("place", &b.xml));
 }

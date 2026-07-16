@@ -881,3 +881,37 @@ The DXF question has no real alternative — "never parse" was not a real design
 ## Revisit when
 
 If a real design genuinely needs to place a component that only exists inside a called fn — at that point, design the path-qualification mechanism (or an export mechanism, or whatever the concrete need actually shows is right) against that real requirement, rather than the speculative shape considered and withdrawn here.
+
+# DR-027: Footprint naming — adopt IPC-7351 (not JEDEC JESD30, not an invented scheme)
+
+## Context
+
+RFC-021 closed a gap left open since RFC-016/017/018: footprint declarations have a module-path identifier (for resolution) but no naming convention at all — any identifier that parses is equally legal, and nothing stops two libraries authoring "the same" real-world package from picking two unrelated arbitrary names. Footprint-naming research conducted alongside this RFC (worked examples: STM32F103C8T6's LQFP-48 7×7mm/0.5mm-pitch package, RP2350A's QFN-60 7×7mm/0.4mm-pitch exposed-pad package), cross-checked against real datasheets, JEDEC/manufacturer package data, and KiCad's/SnapEDA's own real library naming, confirmed two distinct real-world standards exist at two different layers: IPC-7351 (land-pattern/footprint naming + sizing methodology) and JEDEC JESD30 (package-body/outline designation). Tony's direct choice: adopt IPC-7351 specifically for footprint.
+
+## Options
+
+1. Leave footprint naming unconstrained — status quo, any identifier that resolves is accepted, no naming convention at all.
+2. Adopt IPC-7351B's naming grammar as a new, optional, checked ipc_name field on footprint — a closed six-family-template set (QFP, QFN/SON, SOIC/SOP, SOT, BGA, CHIP/MELF), grammar-checked always, geometry-cross-checked against the footprint's own pad placements where the layout is regular (RFC-021's proposal, per Tony's direct choice).
+3. Adopt JEDEC JESD30 instead — naming the package body/outline rather than the land pattern.
+4. Require ipc_name (or an equivalent) as the footprint's actual resolvable symbol name, replacing the free-form module-path identifier.
+
+## Decision
+
+Option 2, per Tony's explicit choice of IPC-7351 as the practice. footprint (RFC-017/018's already-Accepted declaration kind) gains a new, optional ipc_name: "..." field. The field is grammar-checked against a closed six-family-template set whenever present, and cross-checked against the footprint's own pad N: ... at (x, y) list for pin-count/pitch consistency when the layout is a regular rectangular-perimeter array (QFP/QFN/SOIC/SOP/SOT; BGA and CHIP/MELF checked analogously against their own template shape). footprint_alias (Footprint Binding — Design note) gains a matching, uncheckable ipc: key for authors still on the pre-RFC-017 alias/string-map path.
+
+## Rationale
+
+Option 1 was rejected: leaving footprint naming permanently unconstrained means no shared convention is even possible by accident, and gives an AI-generating-a-footprint zero signal for a well-formed name beyond "resolves, doesn't collide" — the exact gap this RFC exists to close. Option 3 (JEDEC JESD30) was rejected for footprint specifically because JESD30 names the wrong layer — the package's mechanical body/outline, not the land pattern's copper geometry that footprint/pad (RFC-018) actually declare; IPC-7351 is the standard that names exactly what CoHDL's footprint construct is. Option 4 (make ipc_name the resolvable symbol name itself) was rejected: IPC-7351 names are long, mechanically-derived, and change whenever pitch/span/density changes, while RFC-016's module-path resolution needs a stable, human-memorable identifier — coupling them would force every use site to be rewritten on a routine density-level change, an unnecessary churn source with no benefit over keeping the two fields separate.
+
+## Consequences
+
+- footprint gains one new optional field (ipc_name) and a closed, documented six-family naming grammar — no new core concept, no rename, purely additive per RFC-021's own Compat row (Low).
+- Two new checkable failure classes land in the existing E8xx block (designators & parts): malformed ipc_name (grammar), and ipc_name-vs-pad-geometry mismatch (pin count/pitch) for the geometry-regular families this RFC covers.
+- This is explicitly scoped to a closed six-family-template subset of IPC-7351B (QFP, QFN/SON, SOIC/SOP, SOT, BGA, CHIP/MELF), not full IPC-7351B coverage — extending the set is a scoped follow-up RFC, same discipline as RFC-001's closed unit-type set.
+- Geometrically irregular footprints (mixed pitch, non-perimeter layouts) get grammar-well-formedness checking only for ipc_name — the geometry cross-check is honestly disclosed as not covering these, per RFC-021's Failure modes.
+- Does not solve cross-library footprint deduplication (two libraries' footprints for the same real package still remain two distinct, non-deduplicated symbols) — RFC-017's already-disclosed non-goal, unchanged by this RFC; adopting a derivable standard only makes the duplication visible (same ipc_name, different symbols), it doesn't canonicalize it.
+- The two devices used to validate this RFC's derivation (STM32F103C8T6 → QFP50P900X900X160-48N; RP2350A → QFN60N40P700X700-1EP340X340) are named as the first real worked examples the std library should adopt once their pad content itself is authored.
+
+## Revisit when
+
+If real library authoring reveals the closed six-family-template set is too narrow (a real package family CoHDL needs doesn't fit any template) — extend the set via a scoped follow-up RFC, same discipline as RFC-001/RFC-018's own extension paths. Also revisit whether ipc_name should become mandatory once the family-template set is proven broad enough in real use (deliberately left optional in RFC-021 pending that evidence). Also revisit if a genuine need emerges for JESD30-style naming on package/variants (RFC-008) — a separate, not-yet-proposed RFC, since JESD30 was rejected here only for footprint's specific land-pattern-naming role, not rejected as a concept CoHDL could never use elsewhere.

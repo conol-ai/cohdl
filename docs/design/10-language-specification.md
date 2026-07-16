@@ -590,6 +590,29 @@ Rules:
 - cohdl build projects a resolved footprint's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
 - pad/footprint's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
 
+## Footprint naming: ipc_name (IPC-7351)
+
+Accepted via RFC-021, see RFC-021: IPC-7351 as the canonical footprint naming practice + DR-027. footprint (above) gains a new, optional field carrying an IPC-7351B-derived land-pattern name — CoHDL's canonical footprint-naming practice, adopted in preference to JEDEC JESD30 (which names the package body, not the land pattern) or an invented CoHDL-native scheme.
+
+```cohdl
+pub footprint QFN10_3x3 {
+    ipc_name: "QFN10N40P300X300-1EP180X180"   // IPC-7351B-derived designator
+
+    pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
+    // ...
+}
+```
+
+Rules:
+
+- ipc_name: "..." is a string literal, not a symbol reference — it carries descriptive geometric identity, not a cross-library-resolvable name; a footprint is still reached only via its RFC-016 module-path (use path::Name;), never by ipc_name.
+- Optional on every footprint declaration. Absence changes nothing (RFC-018's behavior is unaffected).
+- CoHDL's closed set of recognized IPC-7351B family templates (pitch/span/height/pin-count/density-suffix encoded per IPC-7351B's own convention — hundredths of a millimeter, no decimal point):Family prefixMeaning`QFP`Quad flat pack (incl. LQFP/TQFP)`QFN`Quad flat no-lead (incl. SON, VQFN)`SOIC` / `SOP`Small-outline IC`SOT`Small-outline transistor`BGA`Ball grid array`CHIP` / `MELF`Two-terminal passives (EIA size code, no density suffix)
+- Density suffix is a closed three-value set: N (Nominal, default), L (Least), M (Most) — a missing or out-of-set suffix is a compile error.
+- When present, ipc_name is checked in two stages: (1) grammar well-formedness against the family-template table above (declaration time); (2) geometry cross-check, for geometrically-regular families only (QFP, QFN, SOIC/SOP, SOT; BGA/CHIP/MELF analogously) — pin count and pitch derived from the footprint's own pad N: ... at (x, y) placements must agree with what ipc_name encodes. A mismatch is a compile error naming the specific disagreement (e.g. declared vs. actual pin count or pitch). Irregular/mixed-pitch layouts get stage (1) only — geometry consistency is explicitly not checked for these (see note 10's "Not yet specified" list is not the right place for this — it's disclosed directly here as a scoped, not a missing, capability).
+- footprint_alias (the pre-RFC-017 backend-map construct, see the Footprint Binding design note) gains a matching, uncheckable ipc: key for authors not yet on the footprint/pad path.
+- Scope is a closed six-family-template subset of IPC-7351B (not full catalog coverage) — chosen to match CoHDL's current real hardware (e.g. STM32F103C8T6 → QFP50P900X900X160-48N; RP2350A → QFN60N40P700X700-1EP340X340). Extending the set is a scoped follow-up RFC, same discipline as RFC-001's closed unit-type set.
+
 # Editor support: VS Code extension
 
 Accepted via RFC-019, see RFC-019: VS Code extension for CoHDL + DR-025.
@@ -660,4 +683,4 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-16, RFC-001 through RFC-020 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively).
+As of 2026-07-16, RFC-001 through RFC-021 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, adding a checked, optional ipc_name field to footprint).

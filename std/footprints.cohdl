@@ -15,6 +15,7 @@
 
 // was: "Capacitor_SMD:C_0402_1005Metric" (geometry from that footprint)
 pub footprint FP_C_0402_1005Metric {
+    ipc_name: "CHIP-0402"
     pad 1: P_Chip_C0402 at (-0.48mm, 0mm)
     pad 2: P_Chip_C0402 at (0.48mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (1.82mm, 1.12mm) }
@@ -23,6 +24,7 @@ pub footprint FP_C_0402_1005Metric {
 
 // was: "Capacitor_SMD:C_0603_1608Metric"
 pub footprint FP_C_0603_1608Metric {
+    ipc_name: "CHIP-0603"
     pad 1: P_Chip_0603 at (-0.775mm, 0mm)
     pad 2: P_Chip_0603 at (0.775mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 0.95mm) }
@@ -45,6 +47,7 @@ pub footprint FP_LED_0603_1608Metric {
 
 // was: "Resistor_SMD:R_0402_1005Metric" (geometry from that footprint)
 pub footprint FP_R_0402_1005Metric {
+    ipc_name: "CHIP-0402"
     pad 1: P_Chip_R0402 at (-0.51mm, 0mm)
     pad 2: P_Chip_R0402 at (0.51mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (2.06mm, 1.14mm) }
@@ -53,6 +56,7 @@ pub footprint FP_R_0402_1005Metric {
 
 // was: "Package_TO_SOT_SMD:SOT-23-5"
 pub footprint FP_SOT_23_5 {
+    ipc_name: "SOT5P95X290X160N"
     pad 1: P_SOT23_Lead at (-1.1375mm, -0.95mm)
     pad 2: P_SOT23_Lead at (-1.1375mm, 0mm)
     pad 3: P_SOT23_Lead at (-1.1375mm, 0.95mm)

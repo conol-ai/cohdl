@@ -1444,3 +1444,59 @@ The `.kicad_mod` projection now carries `thru_hole … (drill …)`; the IPC-258
 `Pin` carries `type="THRU"` + `mountType="THROUGH_HOLE_HOLE"` (the drill still
 has no IPC `Pin` home — review R5-8, unchanged). E807 still holds (pad numbers
 unchanged), and the document stays schema-valid.
+
+## RFC-021 (IPC-7351 canonical footprint naming) implementation notes (2026-07-16)
+
+`footprint` gains an optional, CHECKED `ipc_name: "..."` field carrying an
+IPC-7351B-derived land-pattern designator. The module-path symbol name is
+UNCHANGED in role (RFC-021 explicitly rejects renaming it — `use path::Name`
+resolution must stay stable across density-level changes); `ipc_name` is
+additive metadata.
+
+- **Grammar** (`src/check/ipc7351.rs`, pure + unit-tested): a closed six-family
+  parser — QFP, QFN (incl. SON/VQFN), SOIC/SOP, SOT, BGA, CHIP/MELF — with the
+  density suffix a closed set `{N, L, M}`. Dimensions are hundredths-of-mm
+  integers (IPC-7351B's own convention). The field ORDER genuinely differs
+  between families (QFP puts pitch first, QFN puts pins+density first, etc.);
+  each template is parsed literally as RFC-021's Design table specifies.
+- **Two declaration-time checks** (E808/E809, in `resolve::validate_ipc_name`,
+  never DRC): E808 = malformed name (names the specific parse failure); E809 =
+  name-vs-geometry mismatch — pin count (pad count minus the `-1EP` exposed
+  pad) and pitch (the closest pad-center spacing, exact over the femto integers
+  — the nearest pair in a regular perimeter is axis-aligned, so its squared
+  distance is exactly pitch²). CHIP/MELF check the 2-pad shape only.
+- **fmt**: `ipc_name` renders first in the footprint body (before pads),
+  matching the metadata-first convention; reordered there even if authored
+  later, idempotent.
+
+Applied to the 11 covered footprints (their `ipc_name`s are consistent with
+their own pad geometry): the three QFN-family parts (`QFN60N40P700X700-1EP350X350`
+for the RP2350, `QFN10N40P200X200-1EP90X150`, `QFN8N40P100X150-1EP40X120`), the
+two SOT parts (`SOT3P100X160X80N`, `SOT5P95X290X160N`), and the CHIP passives
+(`CHIP-0201`/`0402`/`0603`/`0805`).
+
+Honest boundaries / deviations:
+
+- **Uncovered families get no `ipc_name`** (allowed — the field is optional):
+  the SMD crystal (3225), the SOD-123 diode, the 0806 inductor (0806 is not a
+  standard EIA code), the micro-USB, the Pico castellated headers, the tactile
+  switch, and the LED (RFC-021 scopes CHIP to resistors/caps; an 0603 LED is a
+  chip but outside that stated scope). Extending the closed family set is the
+  RFC's own named scoped follow-up.
+- **`footprint_alias` `ipc:` key not implemented** — RFC-021 adds an `ipc:`
+  key to the pre-existing `footprint_alias` construct, but CoHDL has no
+  `footprint_alias` (it uses real `footprint`/`pad` declarations, not the
+  alias/string-map path), so there is nothing to add the key to. N/A here.
+- **Irregular-layout downgrade-to-note not implemented** — RFC-021 says a
+  footprint with a genuinely irregular pad layout should get grammar-checking
+  only, with the geometry check emitted as a note rather than an error.
+  Detecting "irregular" reliably is unimplemented; the geometry check runs
+  strictly (a QFN/SOT/QFP `ipc_name` whose pins/pitch disagree with the pads is
+  E809, not a note). Stricter, not looser; disclosed. Moot for the covered
+  footprints (all regular).
+- **`ipc_name` not projected to `.kicad_mod`/IPC-2581** — RFC-021 makes emitter
+  carriage an explicit non-requirement ("a future tooling RFC could optionally
+  add it"); the existing artifacts are byte-unchanged by this RFC.
+- **LSP hover deferred** — RFC-021 Tooling says hover should surface the parsed
+  family/pitch/span/density; the LSP layer doesn't yet parse `ipc_name` for
+  hover. Deferred + disclosed (the field is still shown as a raw string field).

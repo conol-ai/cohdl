@@ -5,6 +5,7 @@ pub mod expand;
 pub mod footprints;
 pub mod generics;
 pub mod impls;
+pub mod ipc7351;
 
 use crate::ast::SourceFile;
 use crate::diag::Diagnostics;

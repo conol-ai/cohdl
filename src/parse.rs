@@ -372,6 +372,7 @@ impl<'a> Parser<'a> {
             return None;
         }
         let mut pads = Vec::new();
+        let mut ipc_name: Option<(String, Span)> = None;
         let mut courtyard: Option<Courtyard> = None;
         let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
         let mut unclosed = false;
@@ -397,6 +398,39 @@ impl<'a> Parser<'a> {
                     pads.push(p);
                 } else {
                     self.sync_footprint_body();
+                }
+            } else if self.at_ident("ipc_name") {
+                // RFC-021: `ipc_name: "<IPC-7351 designator>"` — a string field.
+                let sr = self.span();
+                self.bump();
+                self.expect(&TokenKind::Colon, "after `ipc_name`");
+                match self.peek() {
+                    TokenKind::Str(_) => {
+                        let t = self.bump();
+                        let TokenKind::Str(s) = t.kind else {
+                            unreachable!()
+                        };
+                        let span = sr.to(self.prev_span());
+                        if let Some((_, prev)) = &ipc_name {
+                            self.diags.push(
+                                Diagnostic::error(
+                                    "E806",
+                                    span,
+                                    "a footprint has at most one `ipc_name`".to_string(),
+                                )
+                                .with_secondary(*prev, "the first one is here".to_string()),
+                            );
+                        } else {
+                            ipc_name = Some((s, span));
+                        }
+                    }
+                    _ => {
+                        self.error_here(format!(
+                            "expected an IPC-7351 name string after `ipc_name:`, found {}",
+                            self.peek().describe()
+                        ));
+                        self.sync_footprint_body();
+                    }
                 }
             } else if self.at_ident("courtyard") {
                 let c = self.courtyard();
@@ -472,6 +506,7 @@ impl<'a> Parser<'a> {
         }
         Some(FootprintDef {
             name,
+            ipc_name,
             pads,
             courtyard,
             silkscreen_ref,

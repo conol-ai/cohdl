@@ -979,6 +979,143 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
+        validate_ipc_name(fp, diags);
+    }
+}
+
+/// RFC-021: validate a footprint's optional `ipc_name` — grammar
+/// well-formedness (E808) and, for the geometry-regular families, agreement
+/// between the name's declared pin count / pitch and the footprint's own pad
+/// placements (E809). Both are declaration-local (the footprint's own content),
+/// never DRC.
+fn validate_ipc_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostics) {
+    use crate::check::ipc7351;
+    let Some((name, span)) = &fp.ipc_name else {
+        return;
+    };
+    let parsed = match ipc7351::parse(name) {
+        Ok(p) => p,
+        Err(e) => {
+            diags.push(Diagnostic::error(
+                "E808",
+                *span,
+                format!(
+                    "footprint `{}`'s ipc_name `{}` is not a valid IPC-7351 name: {}",
+                    fp.name.name,
+                    name,
+                    e.message()
+                ),
+            ));
+            return;
+        }
+    };
+    // Geometry cross-check needs real pad content; an empty (placeholder)
+    // footprint has nothing to check the name against.
+    if fp.pads.is_empty() {
+        return;
+    }
+    let pad_count = fp.pads.len() as u32;
+    // Pins the geometry implies: the placed pads minus the one exposed pad a
+    // `-1EP` name declares (QFN family).
+    let geom_pins = pad_count.saturating_sub(u32::from(parsed.has_ep));
+    if let Some(name_pins) = parsed.pins {
+        if geom_pins != name_pins {
+            diags.push(Diagnostic::error(
+                "E809",
+                *span,
+                format!(
+                    "footprint `{}`'s ipc_name declares {} pin{}, but the footprint places {} pad{}{}",
+                    fp.name.name,
+                    name_pins,
+                    plural(name_pins),
+                    pad_count,
+                    plural(pad_count),
+                    if parsed.has_ep {
+                        " (one of which is the `-1EP` exposed pad)"
+                    } else {
+                        ""
+                    }
+                ),
+            ));
+            return; // a wrong pin count makes the pitch report noise
+        }
+    }
+    // Pitch check (families whose template encodes a pitch): the closest pad-
+    // center spacing must equal the declared pitch. Exact over the femto
+    // integers — the nearest pair in a regular perimeter is axis-aligned, so
+    // its squared distance is exactly (pitch_femto)^2.
+    if let Some(name_pitch) = parsed.pitch_hundredths {
+        if let Some(min_sq) = min_pair_sq_femto(fp) {
+            let pitch_femto = i128::from(name_pitch) * 10_000_000_000_000; // 0.01mm in femto
+            if min_sq != pitch_femto * pitch_femto {
+                let actual_h = (isqrt_i128(min_sq) / 10_000_000_000_000) as u32;
+                diags.push(Diagnostic::error(
+                    "E809",
+                    *span,
+                    format!(
+                        "footprint `{}`'s ipc_name declares {} ({}mm) pitch, but its closest pad spacing is {} ({}mm)",
+                        fp.name.name,
+                        name_pitch,
+                        hundredths_mm(name_pitch),
+                        actual_h,
+                        hundredths_mm(actual_h)
+                    ),
+                ));
+            }
+        }
+    }
+}
+
+/// Smallest squared center-to-center distance (femto^2) between any two pad
+/// placements — the layout's pitch for a regular perimeter array.
+fn min_pair_sq_femto(fp: &crate::ast::FootprintDef) -> Option<i128> {
+    let pts: Vec<(i128, i128)> = fp.pads.iter().map(|p| (p.x.femto, p.y.femto)).collect();
+    let mut min: Option<i128> = None;
+    for i in 0..pts.len() {
+        for j in (i + 1)..pts.len() {
+            let dx = pts[i].0 - pts[j].0;
+            let dy = pts[i].1 - pts[j].1;
+            let d = dx * dx + dy * dy;
+            min = Some(min.map_or(d, |m| m.min(d)));
+        }
+    }
+    min
+}
+
+/// Integer square root of a non-negative i128 (for the diagnostic's rendered
+/// actual pitch — never in a comparison, which stays squared/exact).
+fn isqrt_i128(n: i128) -> i128 {
+    if n < 2 {
+        return n.max(0);
+    }
+    let mut x = n;
+    let mut y = (x + 1) / 2;
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
+    x
+}
+
+fn plural(n: u32) -> &'static str {
+    if n == 1 {
+        ""
+    } else {
+        "s"
+    }
+}
+
+/// Render hundredths-of-a-mm as a minimal decimal mm string (`40` → `0.4`).
+fn hundredths_mm(h: u32) -> String {
+    let (whole, rem) = (h / 100, h % 100);
+    if rem == 0 {
+        whole.to_string()
+    } else {
+        let mut f = format!("{:02}", rem);
+        while f.ends_with('0') {
+            f.pop();
+        }
+        format!("{}.{}", whole, f)
     }
 }
 

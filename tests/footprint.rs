@@ -791,3 +791,117 @@ fn selector_on_non_variant_device_does_not_cascade_e807() {
         r
     );
 }
+
+// ---------------------------------------------------------------------------
+// RFC-021: ipc_name — IPC-7351 canonical footprint naming (E808/E809).
+
+/// A footprint with the given ipc_name + a 2-pad body 0.4mm apart.
+fn fp_with_ipc(ipc: &str, body: &str) -> String {
+    format!(
+        "pub pad P {{ shape: rect size: (0.5mm, 0.6mm) layer: top_copper plating: smd }}\n\
+         pub footprint F {{ ipc_name: \"{}\" {} }}\n\
+         design D {{ }}",
+        ipc, body
+    )
+}
+
+#[test]
+fn valid_chip_ipc_name_passes() {
+    let src = fp_with_ipc(
+        "CHIP-0402",
+        "pad 1: P at (-0.5mm, 0mm) pad 2: P at (0.5mm, 0mm)",
+    );
+    let (checked, r) = check(&[("f.cohdl", &src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "valid ipc_name should pass:\n{}",
+        r
+    );
+}
+
+#[test]
+fn qfn_ipc_name_with_ep_passes() {
+    // 4 leads (0.4mm pitch) + 1 EP = 5 pads; ipc declares 4 pins + -1EP.
+    let body = "pad 1: P at (-1mm, -0.4mm) pad 2: P at (-1mm, 0mm) \
+                pad 3: P at (1mm, 0mm) pad 4: P at (1mm, -0.4mm) pad 5: P at (0mm, 0mm)";
+    let src = fp_with_ipc("QFN4N40P200X200-1EP50X50", body);
+    let (checked, r) = check(&[("f.cohdl", &src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "QFN with EP should pass:\n{}",
+        r
+    );
+}
+
+#[test]
+fn malformed_ipc_name_is_e808() {
+    // missing density suffix
+    let src = fp_with_ipc(
+        "QFN10P300X300",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
+    );
+    let (_c, r) = check(&[("f.cohdl", &src)]);
+    assert!(r.contains("E808") && r.contains("density"), "{}", r);
+}
+
+#[test]
+fn unknown_family_is_e808() {
+    let src = fp_with_ipc(
+        "WIDGET-42",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
+    );
+    let (_c, r) = check(&[("f.cohdl", &src)]);
+    assert!(r.contains("E808") && r.contains("family"), "{}", r);
+}
+
+#[test]
+fn ipc_pin_count_mismatch_is_e809() {
+    // ipc says 5 pins, footprint places 2 pads
+    let src = fp_with_ipc(
+        "SOT5P95X290X160N",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (0.95mm, 0mm)",
+    );
+    let (_c, r) = check(&[("f.cohdl", &src)]);
+    assert!(r.contains("E809") && r.contains("pin"), "{}", r);
+}
+
+#[test]
+fn ipc_pitch_mismatch_is_e809() {
+    // ipc says 0.95mm pitch, pads are 0.4mm apart
+    let src = fp_with_ipc(
+        "SOT2P95X100X100N",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
+    );
+    let (_c, r) = check(&[("f.cohdl", &src)]);
+    assert!(r.contains("E809") && r.contains("pitch"), "{}", r);
+}
+
+#[test]
+fn ipc_name_on_empty_footprint_grammar_only() {
+    // No pads → grammar checked, geometry cross-check skipped (nothing to compare).
+    let src = "pub footprint F { ipc_name: \"QFN10N40P300X300\" }\ndesign D { }";
+    let (checked, r) = check(&[("f.cohdl", src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "empty footprint + valid grammar ok:\n{}",
+        r
+    );
+}
+
+#[test]
+fn fmt_renders_ipc_name_first() {
+    use cohdl::fmt::format_source;
+    // ipc_name written AFTER the pads should be reordered to first.
+    let src =
+        "pub footprint F{pad 1: P at (0mm,0mm) pad 2: P at (0.4mm,0mm) ipc_name:\"CHIP-0402\"}";
+    let once = format_source("f.cohdl", src).unwrap();
+    let ipc_pos = once.find("ipc_name").unwrap();
+    let pad_pos = once.find("pad 1").unwrap();
+    assert!(
+        ipc_pos < pad_pos,
+        "ipc_name must render before pads:\n{}",
+        once
+    );
+    let twice = format_source("f.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "not idempotent:\n{}", once);
+}

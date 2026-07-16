@@ -997,7 +997,10 @@ impl Formatter<'_> {
         let header = format!("{}footprint {}", vis, f.name.name);
         let start = self.line_start(item.decl_span);
         let end = self.line_end(item.span);
-        let has_body = !f.pads.is_empty() || f.courtyard.is_some() || f.silkscreen_ref.is_some();
+        let has_body = f.ipc_name.is_some()
+            || !f.pads.is_empty()
+            || f.courtyard.is_some()
+            || f.silkscreen_ref.is_some();
         if !has_body {
             let opener_comment = start != end && self.c.trailing.contains_key(&start);
             if opener_comment || self.has_comments_between(start, end) {
@@ -1012,6 +1015,15 @@ impl Formatter<'_> {
         }
         self.push(0, format!("{} {{", header));
         self.attach_trailing(start);
+        // RFC-021: `ipc_name` is a metadata-like field, rendered first (before
+        // the pad placements), mirroring how `#[placement_hint]` precedes
+        // structural content.
+        if let Some((ipc, ipc_span)) = &f.ipc_name {
+            let l = self.line_start(*ipc_span);
+            self.flush_leading(l, 1);
+            self.push(1, format!("ipc_name: {}", str_lit(ipc)));
+            self.attach_trailing(l);
+        }
         // Body members in source order (comments keep their positions).
         enum M<'a> {
             Pad(&'a PadPlace),

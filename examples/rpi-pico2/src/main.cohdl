@@ -181,11 +181,15 @@ design Pico2 {
         // partner scatter them. The RP2350A's XIN/XOUT (pins 21/22) sit on the
         // QFN's +y edge, so the crystal group sits just above the MCU with the
         // shortest reach to those pins; c_xin/c_xout flank the crystal (each is
-        // one 15 pF load-cap terminal to GND). The series resistor r_xosc stays
+        // one 15 pF load-cap terminal to GND) and are rotated vertical so their
+        // terminals face the crystal's XIN/XOUT pads for a short, direct join.
+        // The two caps sit on opposite sides of the crystal, so they are
+        // mirrored (90 vs 270) — same orientation would leave the right cap
+        // upside-down relative to the left. The series resistor r_xosc stays
         // partner-placed, guided by `net_class Clock { XIN, XR }` above.
         place mcu at (0mm, -2mm)
         place xtal at (0mm, 5mm)
-        place c_xin at (-4mm, 5mm)
-        place c_xout at (4mm, 5mm)
+        place c_xin at (-4mm, 5mm) rotate 90
+        place c_xout at (4mm, 5mm) rotate 270
     }
 }

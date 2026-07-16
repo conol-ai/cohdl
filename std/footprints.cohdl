@@ -7,24 +7,30 @@
 // placeholders (empty body = resolvable name only, exempt from E807)
 // pending real datasheet-derived authoring.
 //
-// Filled (stage two): the chip passives (0402/0603), LED 0603, SOT-23-5.
+// Filled (stage two): the chip passives (CHIP_0402/CHIP_0603 — under RFC-021
+// the footprint's own identifier IS its IPC-7351 name, so the former
+// R_0402/C_0402 lands collapse into the one CHIP_0402), LED 0603, SOT-23-5
+// (SOT5P95X290X160N).
 // Still stage-one placeholders: the large multi-pad modules/connectors
 // (ESP32-S3-WROOM-1, InvenSense ICS-43434, USB-C receptacle) — not used by
 // any current example board, so their real land patterns are deferred until
 // a board needs them.
 
-// was: "Capacitor_SMD:C_0402_1005Metric" (geometry from that footprint)
-pub footprint FP_C_0402_1005Metric {
-    ipc_name: "CHIP-0402"
-    pad 1: P_Chip_C0402 at (-0.48mm, 0mm)
-    pad 2: P_Chip_C0402 at (0.48mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (1.82mm, 1.12mm) }
-    silkscreen_ref { at: (0mm, -1.16mm) }
+// was: "Resistor_SMD:R_0402_1005Metric" / "Capacitor_SMD:C_0402_1005Metric"
+// IPC-7351 name (RFC-021): the two-terminal 0402 chip land. Resistors and
+// capacitors share the one nominal CHIP-0402 land, so the former R_0402 and
+// C_0402 footprints collapse into this single named land (resistor geometry,
+// the more generous of the two).
+pub footprint CHIP_0402 {
+    pad 1: P_Chip_R0402 at (-0.51mm, 0mm)
+    pad 2: P_Chip_R0402 at (0.51mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.06mm, 1.14mm) }
+    silkscreen_ref { at: (0mm, -1.17mm) }
 }
 
 // was: "Capacitor_SMD:C_0603_1608Metric"
-pub footprint FP_C_0603_1608Metric {
-    ipc_name: "CHIP-0603"
+// IPC-7351 name (RFC-021): the two-terminal 0603 chip land.
+pub footprint CHIP_0603 {
     pad 1: P_Chip_0603 at (-0.775mm, 0mm)
     pad 2: P_Chip_0603 at (0.775mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 0.95mm) }
@@ -45,18 +51,9 @@ pub footprint FP_LED_0603_1608Metric {
     silkscreen_ref { at: (0mm, -1.2mm) }
 }
 
-// was: "Resistor_SMD:R_0402_1005Metric" (geometry from that footprint)
-pub footprint FP_R_0402_1005Metric {
-    ipc_name: "CHIP-0402"
-    pad 1: P_Chip_R0402 at (-0.51mm, 0mm)
-    pad 2: P_Chip_R0402 at (0.51mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.06mm, 1.14mm) }
-    silkscreen_ref { at: (0mm, -1.17mm) }
-}
-
 // was: "Package_TO_SOT_SMD:SOT-23-5"
-pub footprint FP_SOT_23_5 {
-    ipc_name: "SOT5P95X290X160N"
+// IPC-7351 name (RFC-021): 5 leads, 0.95mm pitch, 2.90x1.60mm body, density N.
+pub footprint SOT5P95X290X160N {
     pad 1: P_SOT23_Lead at (-1.1375mm, -0.95mm)
     pad 2: P_SOT23_Lead at (-1.1375mm, 0mm)
     pad 3: P_SOT23_Lead at (-1.1375mm, 0.95mm)

@@ -140,8 +140,8 @@ E1xx (E112/E113), not here — see the organizing principle above.
 | E805 | invalid `pad` declaration (RFC-018) — missing/unknown field, non-`Length` dimension, non-positive size/drill extent, size arity vs shape, or the `drill` ⇔ `plated_through_hole` biconditional |
 | E806 | invalid `footprint` body (RFC-018) — duplicate pad number, malformed member, duplicate courtyard/silkscreen_ref, non-`Length` coordinate, non-positive courtyard extent |
 | E807 | footprint/device pad mismatch at `build` (RFC-018) — the footprint's pad numbers must exactly match the bound device's physical pin numbers; names the missing/extra numbers |
-| E808 | malformed `ipc_name` (RFC-021) — the IPC-7351 name string does not parse against the closed family grammar (unknown family prefix, missing/invalid density suffix `{N,L,M}`, non-numeric or misordered dimension field); names the specific parse failure |
-| E809 | `ipc_name`-vs-geometry mismatch (RFC-021) — the name's declared pin count or pitch disagrees with the footprint's own pad placements (pins = pad count, minus the `-1EP` exposed pad; pitch = closest pad-center spacing); names the field and both values |
+| E808 | malformed IPC-7351 footprint name (RFC-021) — a `footprint` identifier whose prefix IS a closed IPC-7351 family (QFP/QFN/SOIC/SOP/SOT/BGA/CHIP/MELF) but does not parse against that family's grammar (missing/invalid density suffix `{N,L,M}`, non-numeric or misordered dimension field, trailing characters); names the specific parse failure. A name whose prefix is outside the closed set is a free-form identifier and is not checked. |
+| E809 | IPC-7351 name-vs-geometry mismatch (RFC-021) — the footprint identifier's declared pin count or pitch disagrees with the footprint's own pad placements (pins = pad count, minus the `_1EP` exposed pad; pitch = closest pad-center spacing); names the footprint and both values |
 
 ## E9xx — structural variants (RFC-008)
 

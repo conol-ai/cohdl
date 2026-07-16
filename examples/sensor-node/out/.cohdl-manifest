@@ -1,5 +1,7 @@
 design.lock
-out/footprints/std-FP_C_0402_1005Metric.kicad_mod
-out/footprints/std-FP_R_0402_1005Metric.kicad_mod
+out/footprints/std-CHIP_0402.kicad_mod
+out/footprints/std-CHIP_0603.kicad_mod
+out/footprints/std-FP_LED_0603_1608Metric.kicad_mod
+out/footprints/std-SOT5P95X290X160N.kicad_mod
 out/sensor-node-bom.csv
 out/sensor-node.net

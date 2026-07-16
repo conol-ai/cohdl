@@ -979,30 +979,31 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
-        validate_ipc_name(fp, diags);
+        validate_footprint_name(fp, diags);
     }
 }
 
-/// RFC-021: validate a footprint's optional `ipc_name` — grammar
-/// well-formedness (E808) and, for the geometry-regular families, agreement
-/// between the name's declared pin count / pitch and the footprint's own pad
-/// placements (E809). Both are declaration-local (the footprint's own content),
-/// never DRC.
-fn validate_ipc_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostics) {
+/// RFC-021 (rewritten): a footprint's OWN identifier is its IPC-7351 name when
+/// its package prefix falls in the closed six-template family set. Validate the
+/// name grammar (E808) and, for the geometry-regular families, agreement between
+/// the name's declared pin count / pitch and the footprint's own pad placements
+/// (E809). A name whose prefix is outside the closed set is an ordinary RFC-016
+/// identifier — `parse` returns `UnknownFamily` and we leave it unchecked. Both
+/// checks are declaration-local (the footprint's own content), never DRC.
+fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostics) {
     use crate::check::ipc7351;
-    let Some((name, span)) = &fp.ipc_name else {
-        return;
-    };
+    let name = &fp.name.name;
+    let span = fp.name.span;
     let parsed = match ipc7351::parse(name) {
         Ok(p) => p,
+        // Outside the closed six-template set → free-form name, unchecked.
+        Err(ipc7351::ParseErr::UnknownFamily) => return,
         Err(e) => {
             diags.push(Diagnostic::error(
                 "E808",
-                *span,
+                span,
                 format!(
-                    "footprint `{}`'s ipc_name `{}` is not a valid IPC-7351 name: {}",
-                    fp.name.name,
-                    name,
+                    "footprint `{name}` is named for a closed IPC-7351 family but is not a valid IPC-7351 name: {}",
                     e.message()
                 ),
             ));
@@ -1022,16 +1023,16 @@ fn validate_ipc_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostics) {
         if geom_pins != name_pins {
             diags.push(Diagnostic::error(
                 "E809",
-                *span,
+                span,
                 format!(
-                    "footprint `{}`'s ipc_name declares {} pin{}, but the footprint places {} pad{}{}",
+                    "footprint `{}` names {} pin{}, but places {} pad{}{}",
                     fp.name.name,
                     name_pins,
                     plural(name_pins),
                     pad_count,
                     plural(pad_count),
                     if parsed.has_ep {
-                        " (one of which is the `-1EP` exposed pad)"
+                        " (one of which is the `_1EP` exposed pad)"
                     } else {
                         ""
                     }
@@ -1051,9 +1052,9 @@ fn validate_ipc_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostics) {
                 let actual_h = (isqrt_i128(min_sq) / 10_000_000_000_000) as u32;
                 diags.push(Diagnostic::error(
                     "E809",
-                    *span,
+                    span,
                     format!(
-                        "footprint `{}`'s ipc_name declares {} ({}mm) pitch, but its closest pad spacing is {} ({}mm)",
+                        "footprint `{}` names {} ({}mm) pitch, but its closest pad spacing is {} ({}mm)",
                         fp.name.name,
                         name_pitch,
                         hundredths_mm(name_pitch),

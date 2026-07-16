@@ -1,26 +1,32 @@
 //! RFC-021: the closed IPC-7351B footprint-naming grammar CoHDL adopts.
 //!
-//! A `footprint`'s optional `ipc_name` string must parse against ONE of six
-//! family templates (the closed set covering CoHDL's real current hardware —
-//! extending it is a scoped follow-up, same discipline as RFC-001's closed
-//! unit-type set). Dimensions are encoded in hundredths of a millimetre with
-//! no decimal point or unit (`50` = 0.50mm, `700` = 7.00mm) — IPC-7351B's own
-//! convention, adopted verbatim so an `ipc_name` is directly comparable with
-//! the real ecosystem's libraries (KiCad, SnapEDA).
+//! A `footprint`'s OWN identifier (when its package prefix is one of the closed
+//! six families below) must parse against that family's template (the closed
+//! set covering CoHDL's real current hardware — extending it is a scoped
+//! follow-up, same discipline as RFC-001's closed unit-type set). Dimensions
+//! are encoded in hundredths of a millimetre with no decimal point or unit
+//! (`50` = 0.50mm, `700` = 7.00mm) — IPC-7351B's own convention, adopted as
+//! CoHDL's own footprint-naming convention. Per RFC-021's second revision this
+//! is purely a naming convention for CoHDL's own native footprints; CoHDL does
+//! not reference or track any third-party CAD tool's footprint library.
 //!
-//! The templates (as written in RFC-021's Design table — note the field ORDER
-//! genuinely differs between families):
+//! RFC-021 (twice-revised): the footprint's OWN identifier IS the IPC-7351 name,
+//! with IPC-7351's `-` mapped to `_` (CoHDL identifiers disallow `-`). So the
+//! templates below are the identifier form (`_` where IPC-7351 writes `-`):
 //!
-//! | Family | Template |
+//! | Family | Template (identifier form) |
 //! |---|---|
-//! | QFP  | `QFP{pitch}P{lsX}X{lsY}X{h}-{pins}{D}` |
-//! | QFN  | `QFN{pins}{D}{pitch}P{bX}X{bY}[-1EP{eX}X{eY}]`  (incl. SON/VQFN) |
+//! | QFP  | `QFP{pitch}P{lsX}X{lsY}X{h}_{pins}{D}` |
+//! | QFN  | `QFN{pins}{D}{pitch}P{bX}X{bY}[_1EP{eX}X{eY}]`  (incl. SON/VQFN) |
 //! | SOIC/SOP | `SOIC{pins}P{pitch}X{ls}X{h}{D}` |
 //! | SOT  | `SOT{pins}P{pitch}X{bX}X{bY}{D}` |
 //! | BGA  | `BGA{pins}{C|N}{pitch}P{cols}X{rows}_{bX}X{bY}X{h}{D}` |
-//! | CHIP/MELF | `CHIP-{EIA}` (e.g. `CHIP-0402`) — no density suffix |
+//! | CHIP/MELF | `CHIP_{EIA}` (e.g. `CHIP_0402`) — no density suffix |
 //!
-//! `D` is the density level, a closed set `{N, L, M}`.
+//! `D` is the density level, a closed set `{N, L, M}`. A name whose prefix is
+//! none of the closed family prefixes is NOT an IPC-7351 name (out of the
+//! closed set, RFC-021 Non-goals) — `parse` returns `UnknownFamily` and the
+//! caller leaves it as an ordinary RFC-016 identifier, unchecked.
 //!
 //! Only the fields the geometry cross-check needs (`pins`, `pitch`, `has_ep`)
 //! are surfaced; the descriptive dimensions are validated as well-formed
@@ -54,9 +60,9 @@ impl Family {
     }
 }
 
-/// A parsed, well-formed `ipc_name`. `pins`/`pitch` are `None` for families
-/// whose template does not encode them (CHIP/MELF have a fixed 2-pin, no-pitch
-/// shape); `has_ep` is the `-1EP…` exposed-pad marker (QFN only).
+/// A parsed, well-formed IPC-7351 footprint name. `pins`/`pitch` are `None` for
+/// families whose template does not encode them (CHIP/MELF have a fixed 2-pin,
+/// no-pitch shape); `has_ep` is the `_1EP…` exposed-pad marker (QFN only).
 #[derive(Debug, Clone)]
 pub struct Ipc7351 {
     pub family: Family,
@@ -177,7 +183,7 @@ fn lit(c: &mut Cur, l: &str, what: &'static str) -> Result<(), ParseErr> {
     }
 }
 
-// `QFP{pitch}P{lsX}X{lsY}X{h}-{pins}{D}`
+// `QFP{pitch}P{lsX}X{lsY}X{h}_{pins}{D}`  (`_` is IPC-7351's `-`)
 fn parse_qfp(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     let pitch = dim(c, "expected the pitch after `QFP`")?;
     lit(c, "P", "expected `P` after the pitch")?;
@@ -186,7 +192,7 @@ fn parse_qfp(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     dim(c, "expected lead-span Y")?;
     lit(c, "X", "expected `X`")?;
     dim(c, "expected height")?;
-    lit(c, "-", "expected `-` before the pin count")?;
+    lit(c, "_", "expected `_` (IPC-7351 `-`) before the pin count")?;
     let pins = dim(c, "expected the pin count")?;
     c.density_at_end()?;
     Ok(Ipc7351 {
@@ -197,7 +203,7 @@ fn parse_qfp(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     })
 }
 
-// `QFN{pins}{D}{pitch}P{bX}X{bY}[-1EP{eX}X{eY}]`
+// `QFN{pins}{D}{pitch}P{bX}X{bY}[_1EP{eX}X{eY}]`  (`_` is IPC-7351's `-`)
 fn parse_qfn(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     let pins = dim(c, "expected the pin count after `QFN`")?;
     // density is INTERIOR here (before the pitch) — read exactly one letter.
@@ -209,9 +215,9 @@ fn parse_qfn(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     dim(c, "expected body X")?;
     lit(c, "X", "expected `X`")?;
     dim(c, "expected body Y")?;
-    let has_ep = c.eat("-1EP");
+    let has_ep = c.eat("_1EP");
     if has_ep {
-        dim(c, "expected exposed-pad X after `-1EP`")?;
+        dim(c, "expected exposed-pad X after `_1EP`")?;
         lit(c, "X", "expected `X` in the exposed-pad size")?;
         dim(c, "expected exposed-pad Y")?;
     }
@@ -290,9 +296,13 @@ fn parse_bga(c: &mut Cur) -> Result<Ipc7351, ParseErr> {
     })
 }
 
-// `CHIP-{EIA}`  /  `MELF-{EIA}` — a two-terminal passive; no density suffix.
+// `CHIP_{EIA}`  /  `MELF_{EIA}` — a two-terminal passive; no density suffix.
 fn parse_chip(c: &mut Cur, fam: Family) -> Result<Ipc7351, ParseErr> {
-    lit(c, "-", "expected `-` after the family prefix")?;
+    lit(
+        c,
+        "_",
+        "expected `_` (IPC-7351 `-`) after the family prefix",
+    )?;
     dim(c, "expected an EIA size code (e.g. 0402)")?;
     if !c.at_end() {
         return Err(ParseErr::Malformed(
@@ -315,19 +325,19 @@ mod tests {
 
     #[test]
     fn parses_the_rfc_examples() {
-        let qfn = parse("QFN60N40P700X700-1EP340X340").unwrap();
+        let qfn = parse("QFN60N40P700X700_1EP340X340").unwrap();
         assert_eq!(qfn.family, Family::Qfn);
         assert_eq!(qfn.pins, Some(60));
         assert_eq!(qfn.pitch_hundredths, Some(40));
         assert!(qfn.has_ep);
 
-        let qfp = parse("QFP50P900X900X160-48N").unwrap();
+        let qfp = parse("QFP50P900X900X160_48N").unwrap();
         assert_eq!(qfp.family, Family::Qfp);
         assert_eq!(qfp.pins, Some(48));
         assert_eq!(qfp.pitch_hundredths, Some(50));
         assert!(!qfp.has_ep);
 
-        let chip = parse("CHIP-0402").unwrap();
+        let chip = parse("CHIP_0402").unwrap();
         assert_eq!(chip.family, Family::Chip);
         assert_eq!(chip.pins, Some(2));
     }
@@ -349,23 +359,33 @@ mod tests {
     }
 
     #[test]
-    fn rejects_malformed() {
+    fn unknown_family_is_free_form() {
+        // A name outside the closed set is not an error here — the caller leaves
+        // it as an ordinary RFC-016 identifier, unchecked.
+        assert!(matches!(
+            parse("FP_Crystal_SMD_3225"),
+            Err(ParseErr::UnknownFamily)
+        ));
         assert!(matches!(
             parse("WHAT10N40P300X300"),
             Err(ParseErr::UnknownFamily)
         ));
+    }
+
+    #[test]
+    fn rejects_malformed() {
         assert!(matches!(
             parse("QFN10P300X300"),
             Err(ParseErr::MissingDensity)
         )); // no density
         assert!(matches!(
-            parse("QFP50P900X900X160-48"),
+            parse("QFP50P900X900X160_48"),
             Err(ParseErr::MissingDensity)
         )); // no density
         assert!(matches!(
             parse("QFN10N40P300X300junk"),
             Err(ParseErr::Malformed(_))
         ));
-        assert!(matches!(parse("CHIP0402"), Err(ParseErr::Malformed(_)))); // missing `-`
+        assert!(matches!(parse("CHIP0402"), Err(ParseErr::Malformed(_)))); // missing `_`
     }
 }

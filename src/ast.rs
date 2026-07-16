@@ -197,13 +197,12 @@ pub struct Courtyard {
 /// stage-one placeholder (the pad-count check only applies once pads exist).
 #[derive(Debug, Clone)]
 pub struct FootprintDef {
+    /// RFC-021: for the closed IPC-7351 family set (QFP/QFN/SOIC/SOP/SOT/BGA/
+    /// CHIP/MELF) the identifier itself IS the IPC-7351B designator (with `-`
+    /// → `_`), checked for grammar well-formedness and against this footprint's
+    /// own pad geometry (pin count + pitch). A name outside those families is
+    /// an ordinary RFC-016 identifier, unchecked. There is no separate field.
     pub name: Ident,
-    /// RFC-021: an optional IPC-7351B-derived land-pattern designator (e.g.
-    /// `"QFN60N40P700X700-1EP350X350"`), checked for grammar well-formedness
-    /// and cross-checked against this footprint's own pad geometry (pin count
-    /// and pitch). Additive metadata — the module-path symbol `name` above is
-    /// unchanged in role (a footprint is still reached by `use path::Name`).
-    pub ipc_name: Option<(String, Span)>,
     pub pads: Vec<PadPlace>,
     pub courtyard: Option<Courtyard>,
     pub silkscreen_ref: Option<(UnitValue, UnitValue, Span)>,

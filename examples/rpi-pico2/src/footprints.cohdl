@@ -11,8 +11,9 @@
 // layout (Quilter), not a placement.
 
 // was: "Package_DFN_QFN:QFN-60-1EP_7x7mm_P0.4mm_EP3.5x3.5mm"
-pub footprint FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm {
-    ipc_name: "QFN60N40P700X700-1EP350X350"
+// IPC-7351 name (RFC-021): 60 leads, density N, 0.40mm pitch, 7.00x7.00mm
+// body, 3.50x3.50mm exposed pad.
+pub footprint QFN60N40P700X700_1EP350X350 {
     pad 1: P_QFN_P04_H at (-3.45mm, -2.8mm)
     pad 2: P_QFN_P04_H at (-3.45mm, -2.4mm)
     pad 3: P_QFN_P04_H at (-3.45mm, -2mm)
@@ -79,8 +80,9 @@ pub footprint FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm {
 }
 
 // was: "Package_DFN_QFN:WQFN-10-1EP_2x2mm_P0.4mm_EP0.9x1.5mm"
-pub footprint FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm {
-    ipc_name: "QFN10N40P200X200-1EP90X150"
+// IPC-7351 name (RFC-021): WQFN is the QFN family — 10 leads, density N,
+// 0.40mm pitch, 2.00x2.00mm body, 0.90x1.50mm exposed pad.
+pub footprint QFN10N40P200X200_1EP90X150 {
     pad 1: P_DFN_P04_Lead at (-0.9mm, -0.8mm)
     pad 2: P_DFN_P04_Lead at (-0.9mm, -0.4mm)
     pad 3: P_DFN_P04_Lead at (-0.9mm, 0mm)
@@ -97,8 +99,9 @@ pub footprint FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm {
 }
 
 // was: "Package_SON:USON-8_1.0x1.5mm_P0.4mm"
-pub footprint FP_USON_8_1_0x1_5mm_P0_4mm {
-    ipc_name: "QFN8N40P100X150-1EP40X120"
+// IPC-7351 name (RFC-021): USON is the QFN family — 8 leads, density N,
+// 0.40mm pitch, 1.00x1.50mm body, 0.40x1.20mm exposed pad.
+pub footprint QFN8N40P100X150_1EP40X120 {
     pad 1: P_DFN_P04_Lead at (-0.4mm, -0.6mm)
     pad 2: P_DFN_P04_Lead at (-0.4mm, -0.2mm)
     pad 3: P_DFN_P04_Lead at (-0.4mm, 0.2mm)
@@ -216,8 +219,9 @@ pub footprint FP_D_SOD_123 {
 }
 
 // was: "Package_TO_SOT_SMD:SOT-523"
-pub footprint FP_SOT_523 {
-    ipc_name: "SOT3P100X160X80N"
+// IPC-7351 name (RFC-021): 3 leads, 1.00mm pitch, 1.60x0.80mm body,
+// density N.
+pub footprint SOT3P100X160X80N {
     pad 1: P_SOT523_Lead at (-0.645mm, -0.5mm)
     pad 2: P_SOT523_Lead at (-0.645mm, 0.5mm)
     pad 3: P_SOT523_Lead at (0.645mm, 0mm)
@@ -233,18 +237,11 @@ pub footprint FP_L_0806_2016Metric {
     silkscreen_ref { at: (0mm, -1.75mm) }
 }
 
-// was: "Resistor_SMD:R_0201_0603Metric"
-pub footprint FP_R_0201_0603Metric {
-    ipc_name: "CHIP-0201"
-    pad 1: P_Chip_0201 at (-0.32mm, 0mm)
-    pad 2: P_Chip_0201 at (0.32mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
-    silkscreen_ref { at: (0mm, -0.6mm) }
-}
-
-// was: "Capacitor_SMD:C_0201_0603Metric"
-pub footprint FP_C_0201_0603Metric {
-    ipc_name: "CHIP-0201"
+// was: "Resistor_SMD:R_0201_0603Metric" / "Capacitor_SMD:C_0201_0603Metric"
+// IPC-7351 name (RFC-021): the two-terminal 0201 chip land. Resistors and
+// capacitors share the one nominal CHIP-0201 land pattern, so the R_0201 and
+// C_0201 footprints (identical geometry) collapse into this single named land.
+pub footprint CHIP_0201 {
     pad 1: P_Chip_0201 at (-0.32mm, 0mm)
     pad 2: P_Chip_0201 at (0.32mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
@@ -252,8 +249,8 @@ pub footprint FP_C_0201_0603Metric {
 }
 
 // was: "Capacitor_SMD:C_0805_2012Metric"
-pub footprint FP_C_0805_2012Metric {
-    ipc_name: "CHIP-0805"
+// IPC-7351 name (RFC-021): the two-terminal 0805 chip land.
+pub footprint CHIP_0805 {
     pad 1: P_Chip_0805 at (-0.95mm, 0mm)
     pad 2: P_Chip_0805 at (0.95mm, 0mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (2.4mm, 1.45mm) }

@@ -105,8 +105,7 @@ pub device RP2350A {
 impl IC for RP2350A {}
 
 pub part RP2350A_QFN60: RP2350A {
-    primary { mfr: "Raspberry Pi", mpn: "RP2350A",
-              footprint: FP_QFN_60_1EP_7x7mm_P0_4mm_EP3_5x3_5mm }
+    primary { mfr: "Raspberry Pi", mpn: "RP2350A", footprint: QFN60N40P700X700_1EP350X350 }
 }
 
 // ---- RT6150B-33GQW: VSYS -> 3V3 buck-boost SMPS (fixed 3.3V) ----
@@ -127,8 +126,7 @@ pub device RT6150B {
 impl IC for RT6150B {}
 
 pub part BUCKBOOST_RT6150B: RT6150B {
-    primary { mfr: "Richtek", mpn: "RT6150B-33GQW",
-              footprint: FP_WQFN_10_1EP_2x2mm_P0_4mm_EP0_9x1_5mm }
+    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: QFN10N40P200X200_1EP90X150 }
 }
 
 // ---- W25Q32 4 MiB QSPI NOR flash (USON-8, pin 9 = pad = GND) ----
@@ -149,7 +147,7 @@ pub device W25Q32 {
 impl IC for W25Q32 {}
 
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: FP_USON_8_1_0x1_5mm_P0_4mm }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: QFN8N40P100X150_1EP40X120 }
 }
 
 // ---- 12 MHz crystal (4-pad SMD; pads 2 & 4 = case ground) ----
@@ -300,7 +298,7 @@ pub device NMOS_SOT523 {
 impl Transistor for NMOS_SOT523 {}
 
 pub part FET_DMG1012T: NMOS_SOT523 {
-    primary { mfr: "Diodes Inc", mpn: "DMG1012T", footprint: FP_SOT_523 }
+    primary { mfr: "Diodes Inc", mpn: "DMG1012T", footprint: SOT3P100X160X80N }
 }
 
 // ---- Inductor (reuses a two-terminal shape; L designator via Inductor) ----
@@ -329,42 +327,42 @@ pub part IND_3U3: ChipInductor<3.3uH> {
 
 // Resistors (std ChipResistor; std already provides RES_1K / RES_10K).
 pub part R_470: ChipResistor<470ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: CHIP_0201 }
 }
 pub part R_27: ChipResistor<27ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: CHIP_0201 }
 }
 pub part R_33: ChipResistor<33ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: FP_R_0402_1005Metric }
+    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: CHIP_0402 }
 }
 pub part R_200: ChipResistor<200ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: FP_R_0402_1005Metric }
+    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: CHIP_0402 }
 }
 pub part R_100: ChipResistor<100ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: CHIP_0201 }
 }
 pub part R_1R: ChipResistor<1ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: CHIP_0201 }
 }
 pub part R_5K6: ChipResistor<5.6kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: CHIP_0201 }
 }
 pub part R_100K: ChipResistor<100kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: FP_R_0201_0603Metric }
+    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: CHIP_0201 }
 }
 
 // Capacitors (std MLCC; std already provides the 100nF/1uF/10uF parts).
 pub part C_15pF: MLCC<15pF, 25V, 5%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: FP_C_0201_0603Metric }
+    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: CHIP_0201 }
 }
 pub part C_1nF: MLCC<1nF, 25V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: FP_C_0201_0603Metric }
+    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: CHIP_0201 }
 }
 pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: FP_C_0402_1005Metric }
+    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: CHIP_0402 }
 }
 pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
-    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: FP_C_0805_2012Metric }
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: CHIP_0805 }
 }
 
 // Green user LED (reuses std ChipLED).

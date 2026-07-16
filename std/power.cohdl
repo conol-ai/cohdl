@@ -17,5 +17,5 @@ pub device AP2112K_3V3 {
 impl IC for AP2112K_3V3 {}
 
 pub part LDO_AP2112K_3V3: AP2112K_3V3 {
-    primary { mfr: "Diodes Inc", mpn: "AP2112K-3.3TRG1", footprint: FP_SOT_23_5 }
+    primary { mfr: "Diodes Inc", mpn: "AP2112K-3.3TRG1", footprint: SOT5P95X290X160N }
 }

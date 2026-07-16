@@ -1,4 +1,4 @@
-(footprint "std::FP_R_0402_1005Metric"
+(footprint "std::CHIP_0402"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

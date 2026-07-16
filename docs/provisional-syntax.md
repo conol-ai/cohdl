@@ -46,7 +46,7 @@ Carried forward from v1's real shape, adapted to v2's positional generics:
 
 ```cohdl
 pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
-    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: FP_C_0402_1005Metric }
+    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: CHIP_0402 }
     alt     { mfr: "Murata",  mpn: "GRM155R71C104KA88D" }
 }
 ```

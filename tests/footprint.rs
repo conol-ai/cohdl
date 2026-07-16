@@ -793,38 +793,42 @@ fn selector_on_non_variant_device_does_not_cascade_e807() {
 }
 
 // ---------------------------------------------------------------------------
-// RFC-021: ipc_name — IPC-7351 canonical footprint naming (E808/E809).
+// RFC-021 (rewritten): a footprint's OWN identifier IS its IPC-7351 name when
+// the package prefix is in the closed family set — checked for grammar (E808)
+// and pin-count/pitch geometry agreement (E809). A name outside the closed set
+// is an ordinary RFC-016 identifier, unchecked.
 
-/// A footprint with the given ipc_name + a 2-pad body 0.4mm apart.
-fn fp_with_ipc(ipc: &str, body: &str) -> String {
+/// A footprint NAMED `name` (the IPC-7351 name is the identifier itself) with
+/// a pad symbol and the given pad body.
+fn fp_named(name: &str, body: &str) -> String {
     format!(
         "pub pad P {{ shape: rect size: (0.5mm, 0.6mm) layer: top_copper plating: smd }}\n\
-         pub footprint F {{ ipc_name: \"{}\" {} }}\n\
+         pub footprint {} {{ {} }}\n\
          design D {{ }}",
-        ipc, body
+        name, body
     )
 }
 
 #[test]
-fn valid_chip_ipc_name_passes() {
-    let src = fp_with_ipc(
-        "CHIP-0402",
+fn valid_chip_name_passes() {
+    let src = fp_named(
+        "CHIP_0402",
         "pad 1: P at (-0.5mm, 0mm) pad 2: P at (0.5mm, 0mm)",
     );
     let (checked, r) = check(&[("f.cohdl", &src)]);
     assert!(
         !checked.diags.has_errors(),
-        "valid ipc_name should pass:\n{}",
+        "valid IPC-7351 name should pass:\n{}",
         r
     );
 }
 
 #[test]
-fn qfn_ipc_name_with_ep_passes() {
-    // 4 leads (0.4mm pitch) + 1 EP = 5 pads; ipc declares 4 pins + -1EP.
+fn qfn_name_with_ep_passes() {
+    // 4 leads (0.4mm pitch) + 1 EP = 5 pads; the name declares 4 pins + _1EP.
     let body = "pad 1: P at (-1mm, -0.4mm) pad 2: P at (-1mm, 0mm) \
                 pad 3: P at (1mm, 0mm) pad 4: P at (1mm, -0.4mm) pad 5: P at (0mm, 0mm)";
-    let src = fp_with_ipc("QFN4N40P200X200-1EP50X50", body);
+    let src = fp_named("QFN4N40P200X200_1EP50X50", body);
     let (checked, r) = check(&[("f.cohdl", &src)]);
     assert!(
         !checked.diags.has_errors(),
@@ -834,9 +838,9 @@ fn qfn_ipc_name_with_ep_passes() {
 }
 
 #[test]
-fn malformed_ipc_name_is_e808() {
-    // missing density suffix
-    let src = fp_with_ipc(
+fn malformed_name_is_e808() {
+    // Closed family prefix (QFN) but missing the density suffix.
+    let src = fp_named(
         "QFN10P300X300",
         "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
     );
@@ -845,19 +849,25 @@ fn malformed_ipc_name_is_e808() {
 }
 
 #[test]
-fn unknown_family_is_e808() {
-    let src = fp_with_ipc(
-        "WIDGET-42",
+fn name_outside_closed_families_is_free_form() {
+    // Prefix is not one of the closed families → ordinary identifier, unchecked
+    // (no E808, no E809), even though the pads look nothing like any template.
+    let src = fp_named(
+        "FP_Widget_42",
         "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
     );
-    let (_c, r) = check(&[("f.cohdl", &src)]);
-    assert!(r.contains("E808") && r.contains("family"), "{}", r);
+    let (checked, r) = check(&[("f.cohdl", &src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "a non-IPC-7351 footprint name is free-form:\n{}",
+        r
+    );
 }
 
 #[test]
-fn ipc_pin_count_mismatch_is_e809() {
-    // ipc says 5 pins, footprint places 2 pads
-    let src = fp_with_ipc(
+fn name_pin_count_mismatch_is_e809() {
+    // Name says 5 pins, footprint places 2 pads.
+    let src = fp_named(
         "SOT5P95X290X160N",
         "pad 1: P at (0mm, 0mm) pad 2: P at (0.95mm, 0mm)",
     );
@@ -866,9 +876,9 @@ fn ipc_pin_count_mismatch_is_e809() {
 }
 
 #[test]
-fn ipc_pitch_mismatch_is_e809() {
-    // ipc says 0.95mm pitch, pads are 0.4mm apart
-    let src = fp_with_ipc(
+fn name_pitch_mismatch_is_e809() {
+    // Name says 0.95mm pitch, pads are 0.4mm apart.
+    let src = fp_named(
         "SOT2P95X100X100N",
         "pad 1: P at (0mm, 0mm) pad 2: P at (0.4mm, 0mm)",
     );
@@ -877,29 +887,27 @@ fn ipc_pitch_mismatch_is_e809() {
 }
 
 #[test]
-fn ipc_name_on_empty_footprint_grammar_only() {
+fn empty_footprint_name_grammar_only() {
     // No pads → grammar checked, geometry cross-check skipped (nothing to compare).
-    let src = "pub footprint F { ipc_name: \"QFN10N40P300X300\" }\ndesign D { }";
+    let src = "pub footprint QFN10N40P300X300 { }\ndesign D { }";
     let (checked, r) = check(&[("f.cohdl", src)]);
     assert!(
         !checked.diags.has_errors(),
-        "empty footprint + valid grammar ok:\n{}",
+        "empty footprint + valid IPC-7351 name is ok:\n{}",
         r
     );
 }
 
 #[test]
-fn fmt_renders_ipc_name_first() {
+fn fmt_preserves_ipc7351_identifier() {
     use cohdl::fmt::format_source;
-    // ipc_name written AFTER the pads should be reordered to first.
-    let src =
-        "pub footprint F{pad 1: P at (0mm,0mm) pad 2: P at (0.4mm,0mm) ipc_name:\"CHIP-0402\"}";
+    // The IPC-7351 name is the identifier — fmt must render it verbatim and be
+    // idempotent (there is no separate metadata field to reorder anymore).
+    let src = "pub footprint CHIP_0402{pad 1: P at (-0.5mm,0mm) pad 2: P at (0.5mm,0mm)}";
     let once = format_source("f.cohdl", src).unwrap();
-    let ipc_pos = once.find("ipc_name").unwrap();
-    let pad_pos = once.find("pad 1").unwrap();
     assert!(
-        ipc_pos < pad_pos,
-        "ipc_name must render before pads:\n{}",
+        once.contains("footprint CHIP_0402"),
+        "footprint identifier preserved:\n{}",
         once
     );
     let twice = format_source("f.cohdl", &once).unwrap();

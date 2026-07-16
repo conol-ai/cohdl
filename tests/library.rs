@@ -60,16 +60,16 @@ fn footprint_resolves_like_every_other_declaration() {
     let (world, rendered) = world_of(&[
         (
             "sparkfun/src/footprints/qfn.cohdl",
-            "pub footprint QFN10_3x3 {}\n",
+            "pub footprint FP_QFN10_3x3 {}\n",
             "sparkfun",
             "sparkfun::footprints::qfn",
         ),
         (
             "app/src/main.cohdl",
-            "use sparkfun::footprints::qfn::QFN10_3x3;\n\
+            "use sparkfun::footprints::qfn::FP_QFN10_3x3;\n\
              pub device D { pins { A: 1 [passive] } }\n\
-             pub part P1: D { primary { mfr: \"m\", mpn: \"a\", footprint: QFN10_3x3 } }\n\
-             pub part P2: D { primary { mfr: \"m\", mpn: \"b\", footprint: sparkfun::footprints::qfn::QFN10_3x3 } }\n",
+             pub part P1: D { primary { mfr: \"m\", mpn: \"a\", footprint: FP_QFN10_3x3 } }\n\
+             pub part P2: D { primary { mfr: \"m\", mpn: \"b\", footprint: sparkfun::footprints::qfn::FP_QFN10_3x3 } }\n",
             "app",
             "app",
         ),
@@ -77,12 +77,12 @@ fn footprint_resolves_like_every_other_declaration() {
     assert!(!rendered.contains("error"), "{}", rendered);
     assert!(world
         .footprints
-        .contains_key("sparkfun::footprints::qfn::QFN10_3x3"));
+        .contains_key("sparkfun::footprints::qfn::FP_QFN10_3x3"));
     // Both references resolved to the same fq symbol.
     for part in ["app::P1", "app::P2"] {
         assert_eq!(
             world.parts[part].primary.footprint.as_ref().unwrap().name,
-            "sparkfun::footprints::qfn::QFN10_3x3"
+            "sparkfun::footprints::qfn::FP_QFN10_3x3"
         );
     }
 }

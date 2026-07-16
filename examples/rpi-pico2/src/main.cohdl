@@ -170,8 +170,11 @@ design Pico2 {
         // locations, oriented; the layout partner places the rest around them.
         // The 40-pin castellated header IS the board edge — centered.
         place hdr at (0mm, 0mm)
-        // Micro-USB at the left short edge, opening facing outward.
-        place usb at (-22mm, 0mm) rotate 90
+        // Micro-USB at the left short edge, mouth facing OUTWARD (-x, off the
+        // board edge at x=-25.5 so a cable plugs in). rotate 270 turns the
+        // footprint's +y "PCB Edge" side to -x; placing the origin at
+        // -25.5 + 2.6875 = -22.8125 lands that PCB-edge marker on the board edge.
+        place usb at (-22.8125mm, 0mm) rotate 270
         // 3-pin SWD debug header at the right short edge.
         place swd at (22mm, 0mm) rotate 90
 

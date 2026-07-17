@@ -17,4 +17,5 @@ examples/*/out/*.svg
 examples/*/out/*.kicad_pcb
 examples/*/out/*.kicad_pro
 examples/*/out/*.kicad_prl
+examples/*/out/*.lck
 examples/*/out/.history/

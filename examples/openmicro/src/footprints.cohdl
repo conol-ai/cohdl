@@ -60,14 +60,17 @@ pub footprint QFP50P900X900X160_48N {
 }
 
 // Kailh Choc V1 low-profile keyswitch electrical land (Work Louder
-// WL-LP-SW-55G; NOT Cherry MX — Choc is a distinct low-profile family with a
-// different pin geometry). The two plated contacts sit 5.0mm x / 2.1mm y apart
-// (Kailh PG1350 datasheet). The central pole (3.4mm) and stabilizer holes
-// (1.8mm at +/-5.5mm) are non-electrical mechanical holes added at fab (CoHDL
-// has no non-plated plating). Pins are a non-polar 2-terminal contact.
+// WL-LP-SW-55G; NOT Cherry MX). STEM-CENTERED: the origin is the central pole,
+// so placing the switch on a grid cell centers its keycap on the grid. The two
+// plated contacts sit on the NORTH side; the SK6812MINI-E reverse-mount LED
+// goes in the SOUTH window 4.7mm away (placed separately). Pin/pole geometry
+// from the KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V1: pins at
+// (0,-5.9) and (5,-3.8). The central pole (3.45mm) and stabilizer holes (1.9mm
+// at +/-5.5mm) are non-electrical mechanical holes added at fab (CoHDL has no
+// non-plated plating). Pins are a non-polar 2-terminal contact.
 pub footprint FP_SW_Choc_V1 {
-    pad 1: P_Choc_Contact at (0mm, 0mm)
-    pad 2: P_Choc_Contact at (-5mm, 2.1mm)
+    pad 1: P_Choc_Contact at (0mm, -5.9mm)
+    pad 2: P_Choc_Contact at (5mm, -3.8mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (14mm, 14mm) }
 }
 

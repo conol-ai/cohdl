@@ -19,12 +19,11 @@ pub pad P_LQFP48_Lead_V {
 }
 
 // Kailh Choc V1 (PG1350) low-profile switch electrical contact — the Work
-// Louder Creator Micro ships Choc low-profile switches, NOT Cherry MX. Choc
-// pins are thinner than MX: 1.2mm plated hole, 2.0mm pad (Kailh CPG135001D01
-// datasheet; the two contacts sit 5.0mm x / 2.1mm y apart).
+// Louder Creator Micro ships Choc low-profile switches, NOT Cherry MX. 1.2mm
+// plated hole, 2.2mm pad (KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V1).
 pub pad P_Choc_Contact {
     shape: circle
-    size: (2mm)
+    size: (2.2mm)
     layer: through_all
     plating: plated_through_hole
     drill: 1.2mm

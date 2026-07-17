@@ -4,6 +4,6 @@
   (layer "F.Cu")
   (attr through_hole)
   (fp_rect (start -7 -7) (end 7 7) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
-  (pad "1" thru_hole circle (at 0 0) (size 2 2) (drill 1.2) (layers "*.Cu" "*.Mask"))
-  (pad "2" thru_hole circle (at -5 2.1) (size 2 2) (drill 1.2) (layers "*.Cu" "*.Mask"))
+  (pad "1" thru_hole circle (at 0 -5.9) (size 2.2 2.2) (drill 1.2) (layers "*.Cu" "*.Mask"))
+  (pad "2" thru_hole circle (at 5 -3.8) (size 2.2 2.2) (drill 1.2) (layers "*.Cu" "*.Mask"))
 )

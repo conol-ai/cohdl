@@ -29,27 +29,6 @@ pub pad P_Choc_Contact {
     drill: 1.2mm
 }
 
-// Choc V2 central box-stem hole — Ø5.05mm. NON-plated in the real part; RFC-018
-// has no NPTH, so modeled as a plated barrel with a minimal annular ring. The
-// defining V2 difference (V1's center pole is only Ø3.45mm).
-pub pad P_ChocV2_Center {
-    shape: circle
-    size: (5.2mm)
-    layer: through_all
-    plating: plated_through_hole
-    drill: 5.05mm
-}
-
-// Choc V2 MX-style mounting/locating peg — Ø1.6mm plated hole, 2.6mm pad. The
-// single MX boss that replaces Choc V1's two ±5.5mm guide pins.
-pub pad P_ChocV2_Peg {
-    shape: circle
-    size: (2.6mm)
-    layer: through_all
-    plating: plated_through_hole
-    drill: 1.6mm
-}
-
 // 1N4148W small-signal diode terminal, SOD-123 (KiCad Diode_SMD:D_SOD-123).
 pub pad P_SOD123_Term {
     shape: rect

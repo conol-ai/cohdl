@@ -258,39 +258,39 @@ design OpenMicro {
         place sw13 at (28.575mm, 28.575mm)
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         place usbc at (0mm, -43mm) rotate 180
-        // per-key RGB LEDs: reverse-mount, 4.7mm SOUTH of each switch stem (the
-        // LED window opposite the north contacts) so the LED clears the plated
-        // through-holes. Each is +4.7mm in y from its key cell.
-        place led1 at (-9.525mm, -23.875mm)
-        place led2 at (9.525mm, -23.875mm)
-        place led3 at (-28.575mm, -4.825mm)
-        place led4 at (-9.525mm, -4.825mm)
-        place led5 at (9.525mm, -4.825mm)
-        place led6 at (28.575mm, -4.825mm)
-        place led7 at (-28.575mm, 14.225mm)
-        place led8 at (-9.525mm, 14.225mm)
-        place led9 at (9.525mm, 14.225mm)
-        place led10 at (28.575mm, 14.225mm)
-        place led11 at (-9.525mm, 33.275mm)
-        place led12 at (9.525mm, 33.275mm)
-        place led13 at (28.575mm, 33.275mm)
-        // perimeter underglow ring (16 LEDs, 4 per side, ~3.5mm inset)
-        place led14 at (-33mm, -44mm)
-        place led15 at (-11mm, -44mm)
-        place led16 at (11mm, -44mm)
-        place led17 at (33mm, -44mm)
-        place led18 at (44mm, -33mm)
-        place led19 at (44mm, -11mm)
-        place led20 at (44mm, 11mm)
-        place led21 at (44mm, 33mm)
-        place led22 at (33mm, 44mm)
-        place led23 at (11mm, 44mm)
-        place led24 at (-11mm, 44mm)
-        place led25 at (-33mm, 44mm)
-        place led26 at (-44mm, 33mm)
-        place led27 at (-44mm, 11mm)
-        place led28 at (-44mm, -11mm)
-        place led29 at (-44mm, -33mm)
+        // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and
+        // +1.5mm x from each switch stem so the LED clears the contacts, the
+        // central box hole, and the mounting peg.
+        place led1 at (-8.025mm, -23.875mm)
+        place led2 at (11.025mm, -23.875mm)
+        place led3 at (-27.075mm, -4.825mm)
+        place led4 at (-8.025mm, -4.825mm)
+        place led5 at (11.025mm, -4.825mm)
+        place led6 at (30.075mm, -4.825mm)
+        place led7 at (-27.075mm, 14.225mm)
+        place led8 at (-8.025mm, 14.225mm)
+        place led9 at (11.025mm, 14.225mm)
+        place led10 at (30.075mm, 14.225mm)
+        place led11 at (-8.025mm, 33.275mm)
+        place led12 at (11.025mm, 33.275mm)
+        place led13 at (30.075mm, 33.275mm)
+        // perimeter underglow ring (16 LEDs, 4 per side, ~5.5mm inset)
+        place led14 at (-33mm, -42mm)
+        place led15 at (-11mm, -42mm)
+        place led16 at (11mm, -42mm)
+        place led17 at (33mm, -42mm)
+        place led18 at (42mm, -33mm) rotate 90
+        place led19 at (42mm, -11mm) rotate 90
+        place led20 at (42mm, 11mm) rotate 90
+        place led21 at (42mm, 33mm) rotate 90
+        place led22 at (33mm, 42mm)
+        place led23 at (11mm, 42mm)
+        place led24 at (-11mm, 42mm)
+        place led25 at (-33mm, 42mm)
+        place led26 at (-42mm, 33mm) rotate 90
+        place led27 at (-42mm, 11mm) rotate 90
+        place led28 at (-42mm, -11mm) rotate 90
+        place led29 at (-42mm, -33mm) rotate 90
         // M2 mounting holes at the four corners (5mm edge inset)
         place mh1 at (-42.5mm, -42.5mm)
         place mh2 at (42.5mm, -42.5mm)

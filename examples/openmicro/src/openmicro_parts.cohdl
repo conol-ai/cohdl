@@ -113,14 +113,12 @@ pub part RGB_SK6812: SK6812 {
 }
 
 // ---- Kailh Choc V2 low-profile keyswitch (MX cross stem): 2 non-polar
-// electrical contacts + 2 mechanical locating holes (central box-stem hole,
-// MX mounting peg) that carry no net. ----
+// electrical contacts. The central box-stem hole and MX mounting peg are
+// RFC-022 mount_holes in the footprint (mechanical, no device pin). ----
 pub device KeySwitch {
     pins {
         required A: 1 [passive]
         required B: 2 [passive]
-        optional CTR: 3 [passive] // central box-stem hole (mechanical)
-        optional MP: 4 [passive] // MX mounting/locating peg (mechanical)
     }
 }
 impl Switch for KeySwitch {}

@@ -63,17 +63,17 @@ pub footprint QFP50P900X900X160_48N {
 // MX-compatible cross stem). STEM-CENTERED: origin = central pole, so placing
 // the switch on a grid cell centers its keycap on the grid. Geometry from the
 // KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V2:
-//   pad 1,2 = the two non-polar electrical contacts, NORTH (0,-5.9) & (5,-3.8);
-//   pad 3   = the Ø5.05 central box-stem hole (locates the MX box stem);
-//   pad 4   = the Ø1.6 MX mounting/locating peg at (-5,+5.15).
-// The SK6812MINI-E reverse-mount LED goes in the SOUTH window 4.7mm away
-// (placed separately). The central hole is NPTH in reality — modeled plated
-// (RFC-018 has no non-plated); pads 3,4 carry no net.
+//   pad 1,2      = the two non-polar electrical contacts, NORTH (0,-5.9) & (5,-3.8);
+//   mount_hole 1 = the Ø5.05 central box-stem hole (locates the MX box stem);
+//   mount_hole 2 = the Ø1.6 MX mounting/locating peg at (-5,+5.15).
+// The SK6812MINI-E reverse-mount LED goes in the SOUTH window ~4.7mm away
+// (placed separately). Both locating holes are RFC-022 non_plated mount_holes —
+// mechanical, no net, numbered disjoint from the pads.
 pub footprint FP_SW_Choc_V2 {
     pad 1: P_Choc_Contact at (0mm, -5.9mm)
     pad 2: P_Choc_Contact at (5mm, -3.8mm)
-    pad 3: P_ChocV2_Center at (0mm, 0mm)
-    pad 4: P_ChocV2_Peg at (-5mm, 5.15mm)
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 5.05mm
+    mount_hole 2: non_plated at (-5mm, 5.15mm) diameter 1.6mm
     courtyard { shape: rect, at: (0mm, 0mm), size: (15.5mm, 15.5mm) }
 }
 

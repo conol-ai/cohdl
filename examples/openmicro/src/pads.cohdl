@@ -95,11 +95,11 @@ pub pad P_Header254 {
     drill: 1mm
 }
 
-// Capacitive-touch sense pad — a plain SMD copper area (no component; the
-// STM32 senses it directly). One terminal.
+// Capacitive-touch sense pad — a plain ROUND SMD copper area (no component;
+// the STM32 senses it directly). One terminal, 9mm diameter.
 pub pad P_TouchPad {
-    shape: rect
-    size: (9mm, 9mm)
+    shape: circle
+    size: (9mm)
     layer: top_copper
     plating: smd
 }

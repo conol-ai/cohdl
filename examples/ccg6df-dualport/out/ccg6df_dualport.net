@@ -261,7 +261,7 @@
       (tstamp "00000019")
     )
     (comp (ref "U1") (value "CCG6DF")
-      (footprint "std::FP_CCG6DF_96BGA")
+      (footprint "std::BGA96C50P11X11_600X600X100N")
       (libsource (lib "cohdl") (part "CCG6DF") (description ""))
       (fields
         (field (name "MPN") "CYPD6227-96BZXI")

@@ -97,11 +97,18 @@ pub device CCG6DF {
         required VBUS_P_P0: C2, D1, D2, E1, E2 [power_in]
         required VBUS_P_P1: G1, G2, H1, H2, J2 [power_in]
         required VSSD: D7, E5, E6, F1, F2, F5, F6, G4, G5, G6 [passive]
+        // DNU balls (Fig 4): present pads, internally unconnected (leave nc).
+        optional DNU_D4: D4 [passive]
+        optional DNU_D5: D5 [passive]
+        optional DNU_E4: E4 [passive]
+        optional DNU_H4: H4 [passive]
+        optional DNU_H5: H5 [passive]
+        optional DNU_H6: H6 [passive]
     }
 }
 
 impl IC for CCG6DF {}
 
 pub part TYPEC_CCG6DF: CCG6DF {
-    primary { mfr: "Infineon", mpn: "CYPD6227-96BZXI", footprint: FP_CCG6DF_96BGA }
+    primary { mfr: "Infineon", mpn: "CYPD6227-96BZXI", footprint: BGA96C50P11X11_600X600X100N }
 }

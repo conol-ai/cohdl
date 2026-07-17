@@ -6,7 +6,7 @@ out/ccg6df_dualport.xml
 out/footprints/ccg6df_dualport-FP_Header_1x20.kicad_mod
 out/footprints/ccg6df_dualport-FP_R2512.kicad_mod
 out/footprints/ccg6df_dualport-SOIC8P127X600X175N.kicad_mod
+out/footprints/std-BGA96C50P11X11_600X600X100N.kicad_mod
 out/footprints/std-CHIP_0402.kicad_mod
 out/footprints/std-CHIP_0603.kicad_mod
-out/footprints/std-FP_CCG6DF_96BGA.kicad_mod
 out/footprints/std-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod

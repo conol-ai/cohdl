@@ -154,11 +154,12 @@ pub footprint QFN48N40P600X600_1EP405X360 {
 }
 
 // Infineon CCG6DF USB Type-C dual-port controller — 96-ball BGA, 6x6mm, 0.5mm
-// pitch, 11x11 grid (datasheet 002-27161). Ball designators A1..L11 (row I
-// skipped). Free-form name: the datasheet Table 2 documents 90 of the 96 balls
-// (the remaining 6 are undocumented reserved/ground per Fig 4) — the 90
-// documented balls are placed here.
-pub footprint FP_CCG6DF_96BGA {
+// pitch, 11x11 grid (datasheet 002-27161). RFC-021 IPC-7351 name. Ball
+// designators A1..L11 (row I skipped). 90 signal/power/ground balls (Table 2)
+// plus the 6 DNU balls D4/D5/E4/H4/H5/H6 (Fig 4) — physically present pads that
+// carry no net (their device pins are optional, left unconnected). The 25
+// unpopulated 11x11 positions have no ball and no pad.
+pub footprint BGA96C50P11X11_600X600X100N {
     pad A1: P_BGA_Ball at (-2.5mm, -2.5mm)
     pad A2: P_BGA_Ball at (-2mm, -2.5mm)
     pad A3: P_BGA_Ball at (-1.5mm, -2.5mm)
@@ -187,12 +188,15 @@ pub footprint FP_CCG6DF_96BGA {
     pad C11: P_BGA_Ball at (2.5mm, -1.5mm)
     pad D1: P_BGA_Ball at (-2.5mm, -1mm)
     pad D2: P_BGA_Ball at (-2mm, -1mm)
+    pad D4: P_BGA_Ball at (-1mm, -1mm)
+    pad D5: P_BGA_Ball at (-0.5mm, -1mm)
     pad D7: P_BGA_Ball at (0.5mm, -1mm)
     pad D8: P_BGA_Ball at (1mm, -1mm)
     pad D10: P_BGA_Ball at (2mm, -1mm)
     pad D11: P_BGA_Ball at (2.5mm, -1mm)
     pad E1: P_BGA_Ball at (-2.5mm, -0.5mm)
     pad E2: P_BGA_Ball at (-2mm, -0.5mm)
+    pad E4: P_BGA_Ball at (-1mm, -0.5mm)
     pad E5: P_BGA_Ball at (-0.5mm, -0.5mm)
     pad E6: P_BGA_Ball at (0mm, -0.5mm)
     pad E7: P_BGA_Ball at (0.5mm, -0.5mm)
@@ -219,6 +223,9 @@ pub footprint FP_CCG6DF_96BGA {
     pad G11: P_BGA_Ball at (2.5mm, 0.5mm)
     pad H1: P_BGA_Ball at (-2.5mm, 1mm)
     pad H2: P_BGA_Ball at (-2mm, 1mm)
+    pad H4: P_BGA_Ball at (-1mm, 1mm)
+    pad H5: P_BGA_Ball at (-0.5mm, 1mm)
+    pad H6: P_BGA_Ball at (0mm, 1mm)
     pad H7: P_BGA_Ball at (0.5mm, 1mm)
     pad H8: P_BGA_Ball at (1mm, 1mm)
     pad H10: P_BGA_Ball at (2mm, 1mm)

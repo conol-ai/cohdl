@@ -134,6 +134,12 @@ pub footprint FP_TouchPad {
     courtyard { shape: rect, at: (0mm, 0mm), size: (9.4mm, 9.4mm) }
 }
 
+// M2 mounting hole — one plated pad (the barrel).
+pub footprint FP_MountingHole_M2 {
+    pad 1: P_MountHole_M2 at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.4mm, 4.4mm) }
+}
+
 // Alps EC11E rotary encoder w/ push switch, vertical (KiCad
 // Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm). Pads:
 // 1=A 2=C(common/GND) 3=B (encoder, 2.5mm pitch), 4/5 = push switch, 6/7 =

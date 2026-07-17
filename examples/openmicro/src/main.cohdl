@@ -41,13 +41,45 @@ design OpenMicro {
     inst d11: D_1N4148W
     inst d12: D_1N4148W
     inst d13: D_1N4148W
-    // ---- 6 per-key RGB LEDs ----
+    // ---- 13 per-key RGB LEDs (SK6812MINI-E reverse-mount, one under each key,
+    // at the switch's north LED window; one WS2812 chain) ----
     inst led1: RGB_SK6812
     inst led2: RGB_SK6812
     inst led3: RGB_SK6812
     inst led4: RGB_SK6812
     inst led5: RGB_SK6812
     inst led6: RGB_SK6812
+    inst led7: RGB_SK6812
+    inst led8: RGB_SK6812
+    inst led9: RGB_SK6812
+    inst led10: RGB_SK6812
+    inst led11: RGB_SK6812
+    inst led12: RGB_SK6812
+    inst led13: RGB_SK6812
+    // ---- 16 perimeter underglow RGB LEDs (SK6812MINI-E up-firing into the
+    // frosted PC frame; a SEPARATE WS2812 chain, 4 per side) ----
+    inst led14: RGB_SK6812
+    inst led15: RGB_SK6812
+    inst led16: RGB_SK6812
+    inst led17: RGB_SK6812
+    inst led18: RGB_SK6812
+    inst led19: RGB_SK6812
+    inst led20: RGB_SK6812
+    inst led21: RGB_SK6812
+    inst led22: RGB_SK6812
+    inst led23: RGB_SK6812
+    inst led24: RGB_SK6812
+    inst led25: RGB_SK6812
+    inst led26: RGB_SK6812
+    inst led27: RGB_SK6812
+    inst led28: RGB_SK6812
+    inst led29: RGB_SK6812
+
+    // ---- 4 M2 mounting holes (corners; plated barrels -> GND) ----
+    inst mh1: MH_M2
+    inst mh2: MH_M2
+    inst mh3: MH_M2
+    inst mh4: MH_M2
 
     // ---- passives ----
     inst rcc1: R_5K1
@@ -56,16 +88,23 @@ design OpenMicro {
     inst c_bulk: C_4u7
     inst c_vdda: C_1u
 
-    // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3 ----
+    // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3; all 29 RGB LEDs run
+    // off the 5V VBUS rail ----
     net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo.VIN, ldo.EN, c_bulk.A, led1.VDD, led2.VDD, led3.VDD,
-                   led4.VDD, led5.VDD, led6.VDD
+                   led4.VDD, led5.VDD, led6.VDD, led7.VDD, led8.VDD, led9.VDD, led10.VDD, led11.VDD,
+                   led12.VDD, led13.VDD, led14.VDD, led15.VDD, led16.VDD, led17.VDD, led18.VDD,
+                   led19.VDD, led20.VDD, led21.VDD, led22.VDD, led23.VDD, led24.VDD, led25.VDD,
+                   led26.VDD, led27.VDD, led28.VDD, led29.VDD
     #[intent("AP2112K enable tied to VIN — always on when USB is present")]
     net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
                      joy.Y_END_B, c_vdda.A
     net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, c_bulk.B, c_vdda.B,
                    rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2, enc.MNT, joy.X_END_A,
-                   joy.Y_END_A, joy.SW_B, rst.B, led1.GND, led2.GND, led3.GND, led4.GND, led5.GND,
-                   led6.GND
+                   joy.Y_END_A, joy.SW_B, rst.B, mh1.PAD, mh2.PAD, mh3.PAD, mh4.PAD, led1.GND,
+                   led2.GND, led3.GND, led4.GND, led5.GND, led6.GND, led7.GND, led8.GND, led9.GND,
+                   led10.GND, led11.GND, led12.GND, led13.GND, led14.GND, led15.GND, led16.GND,
+                   led17.GND, led18.GND, led19.GND, led20.GND, led21.GND, led22.GND, led23.GND,
+                   led24.GND, led25.GND, led26.GND, led27.GND, led28.GND, led29.GND
 
     // ---- USB 2.0 through the ESD array (I/O1 = D+, I/O2 = D-) ----
     net USBC_DP: usbc.DP, esd.IO1_A
@@ -120,28 +159,70 @@ design OpenMicro {
     // ---- capacitive touch ----
     net TOUCH: mcu.TOUCH, touch.PAD
 
-    // ---- addressable RGB chain (5V; STM32 drives DIN of the first) ----
-    net LED_D0: mcu.LED_DATA, led1.DIN
+    // ---- addressable RGB (5V; two independent WS2812 chains) ----
+    // ---- per-key RGB chain (led1..led13 on LED_DATA_KEY) ----
+    net LED_D0: mcu.LED_DATA_KEY, led1.DIN
     net LED_D1: led1.DOUT, led2.DIN
     net LED_D2: led2.DOUT, led3.DIN
     net LED_D3: led3.DOUT, led4.DIN
     net LED_D4: led4.DOUT, led5.DIN
     net LED_D5: led5.DOUT, led6.DIN
+    net LED_D6: led6.DOUT, led7.DIN
+    net LED_D7: led7.DOUT, led8.DIN
+    net LED_D8: led8.DOUT, led9.DIN
+    net LED_D9: led9.DOUT, led10.DIN
+    net LED_D10: led10.DOUT, led11.DIN
+    net LED_D11: led11.DOUT, led12.DIN
+    net LED_D12: led12.DOUT, led13.DIN
+    // ---- perimeter underglow chain (led14..led29 on LED_DATA_UG) ----
+    net UG_D0: mcu.LED_DATA_UG, led14.DIN
+    net UG_D1: led14.DOUT, led15.DIN
+    net UG_D2: led15.DOUT, led16.DIN
+    net UG_D3: led16.DOUT, led17.DIN
+    net UG_D4: led17.DOUT, led18.DIN
+    net UG_D5: led18.DOUT, led19.DIN
+    net UG_D6: led19.DOUT, led20.DIN
+    net UG_D7: led20.DOUT, led21.DIN
+    net UG_D8: led21.DOUT, led22.DIN
+    net UG_D9: led22.DOUT, led23.DIN
+    net UG_D10: led23.DOUT, led24.DIN
+    net UG_D11: led24.DOUT, led25.DIN
+    net UG_D12: led25.DOUT, led26.DIN
+    net UG_D13: led26.DOUT, led27.DIN
+    net UG_D14: led27.DOUT, led28.DIN
+    net UG_D15: led28.DOUT, led29.DIN
 
     // ---- decoupling (100nF per VDD pin) + unused pins ----
     decouple(mcu.VDD, mcu.VSS)
     decouple(mcu.VDD, mcu.VSS)
     decouple(mcu.VDDA, mcu.VSSA)
     decouple(usbc.VBUS, usbc.GND)
+    // per-key LEDs: one 100nF each; underglow LEDs: one per two (shared rail cap)
     decouple(led1.VDD, led1.GND)
     decouple(led2.VDD, led2.GND)
     decouple(led3.VDD, led3.GND)
     decouple(led4.VDD, led4.GND)
     decouple(led5.VDD, led5.GND)
     decouple(led6.VDD, led6.GND)
-    nc: usbc.SBU1, usbc.SBU2, led6.DOUT
+    decouple(led7.VDD, led7.GND)
+    decouple(led8.VDD, led8.GND)
+    decouple(led9.VDD, led9.GND)
+    decouple(led10.VDD, led10.GND)
+    decouple(led11.VDD, led11.GND)
+    decouple(led12.VDD, led12.GND)
+    decouple(led13.VDD, led13.GND)
+    decouple(led14.VDD, led14.GND)
+    decouple(led16.VDD, led16.GND)
+    decouple(led18.VDD, led18.GND)
+    decouple(led20.VDD, led20.GND)
+    decouple(led22.VDD, led22.GND)
+    decouple(led24.VDD, led24.GND)
+    decouple(led26.VDD, led26.GND)
+    decouple(led28.VDD, led28.GND)
+    // chain ends float (last DOUT of each chain); SBU unused
+    nc: usbc.SBU1, usbc.SBU2, led13.DOUT, led29.DOUT
     nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PF0, mcu.PF1, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7,
-        mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB4, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
+        mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
 
     // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
     // Physical arrangement transcribed from the Work Louder Creator Micro 2 /
@@ -177,5 +258,41 @@ design OpenMicro {
         place sw13 at (28.575mm, 28.575mm)
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         place usbc at (0mm, -43mm) rotate 180
+        // per-key RGB LEDs: co-located with each switch (reverse-mount, north window)
+        place led1 at (-9.525mm, -28.575mm)
+        place led2 at (9.525mm, -28.575mm)
+        place led3 at (-28.575mm, -9.525mm)
+        place led4 at (-9.525mm, -9.525mm)
+        place led5 at (9.525mm, -9.525mm)
+        place led6 at (28.575mm, -9.525mm)
+        place led7 at (-28.575mm, 9.525mm)
+        place led8 at (-9.525mm, 9.525mm)
+        place led9 at (9.525mm, 9.525mm)
+        place led10 at (28.575mm, 9.525mm)
+        place led11 at (-9.525mm, 28.575mm)
+        place led12 at (9.525mm, 28.575mm)
+        place led13 at (28.575mm, 28.575mm)
+        // perimeter underglow ring (16 LEDs, 4 per side, ~3.5mm inset)
+        place led14 at (-33mm, -44mm)
+        place led15 at (-11mm, -44mm)
+        place led16 at (11mm, -44mm)
+        place led17 at (33mm, -44mm)
+        place led18 at (44mm, -33mm)
+        place led19 at (44mm, -11mm)
+        place led20 at (44mm, 11mm)
+        place led21 at (44mm, 33mm)
+        place led22 at (33mm, 44mm)
+        place led23 at (11mm, 44mm)
+        place led24 at (-11mm, 44mm)
+        place led25 at (-33mm, 44mm)
+        place led26 at (-44mm, 33mm)
+        place led27 at (-44mm, 11mm)
+        place led28 at (-44mm, -11mm)
+        place led29 at (-44mm, -33mm)
+        // M2 mounting holes at the four corners (5mm edge inset)
+        place mh1 at (-42.5mm, -42.5mm)
+        place mh2 at (42.5mm, -42.5mm)
+        place mh3 at (42.5mm, 42.5mm)
+        place mh4 at (-42.5mm, 42.5mm)
     }
 }

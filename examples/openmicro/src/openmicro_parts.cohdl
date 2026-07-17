@@ -52,8 +52,10 @@ pub device STM32F072CBT6 {
         required JOY_Y: 11 [input] // PA1 / ADC_IN1
         required JOY_SW: 12 [bidirectional] // PA2
         required TOUCH: 13 [bidirectional] // PA3 / TSC
-        // addressable-RGB data out
-        required LED_DATA: 41 [output] // PB5
+        // addressable-RGB data out — two independent WS2812 chains (per-key
+        // backlight + perimeter underglow), mirroring the Work Louder firmware
+        required LED_DATA_KEY: 41 [output] // PB5 — per-key RGB chain
+        required LED_DATA_UG: 40 [output] // PB4 — perimeter underglow chain
         // unused GPIO (declared to cover all 48 pads; left NC)
         optional PC13: 2 [bidirectional]
         optional PC14: 3 [bidirectional]
@@ -67,7 +69,6 @@ pub device STM32F072CBT6 {
         optional PB11: 22 [bidirectional]
         optional PA15: 38 [bidirectional]
         optional PB3: 39 [bidirectional]
-        optional PB4: 40 [bidirectional]
         optional PB6: 42 [bidirectional]
         optional PB7: 43 [bidirectional]
         optional PB8: 45 [bidirectional]
@@ -211,6 +212,21 @@ pub device CapTouchPad {
 impl TestPad for CapTouchPad {}
 pub part TOUCH_PAD: CapTouchPad {
     primary { mfr: "n/a", mpn: "COPPER-TOUCH-9MM", footprint: FP_TouchPad }
+}
+
+// ---- M2 mounting hole (plated barrel tied to GND for chassis bonding to the
+// aluminum standoffs). One pad = the plated hole. ----
+pub trait MountHole {
+    designator_prefix: "H"
+}
+pub device MountingHole {
+    pins {
+        required PAD: 1 [passive]
+    }
+}
+impl MountHole for MountingHole {}
+pub part MH_M2: MountingHole {
+    primary { mfr: "n/a", mpn: "MOUNT-M2-PLATED-2.2MM", footprint: FP_MountingHole_M2 }
 }
 
 // ---- passive part bindings (std ChipResistor / MLCC) ----

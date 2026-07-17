@@ -103,3 +103,13 @@ pub pad P_TouchPad {
     layer: top_copper
     plating: smd
 }
+
+// M2 mounting hole — 2.2mm plated through-hole under a 4.0mm annular pad
+// (RFC-018 has no non-plated; a plated barrel is tied to GND for shield bonding).
+pub pad P_MountHole_M2 {
+    shape: circle
+    size: (4mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 2.2mm
+}

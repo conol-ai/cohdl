@@ -982,7 +982,10 @@ fn mount_hole_parses_disjoint_from_pads() {
         fp.mount_holes[0].plating,
         cohdl::ast::MountHolePlating::NonPlated
     );
-    assert_eq!(fp.mount_holes[1].plating, cohdl::ast::MountHolePlating::Plated);
+    assert_eq!(
+        fp.mount_holes[1].plating,
+        cohdl::ast::MountHolePlating::Plated
+    );
 }
 
 #[test]
@@ -1043,7 +1046,11 @@ fn mount_hole_duplicate_number_is_e810() {
     );
     let (_checked, rendered) = check(&[("src/main.cohdl", &src)]);
     assert!(rendered.contains("E810"), "{}", rendered);
-    assert!(rendered.contains("duplicate mount_hole number"), "{}", rendered);
+    assert!(
+        rendered.contains("duplicate mount_hole number"),
+        "{}",
+        rendered
+    );
 }
 
 #[test]
@@ -1051,11 +1058,19 @@ fn mount_hole_bad_diameter_is_e810() {
     // Non-positive diameter.
     let src = MH.replace("diameter 3mm", "diameter 0mm");
     let (_c, rendered) = check(&[("src/main.cohdl", &src)]);
-    assert!(rendered.contains("E810"), "non-positive diameter:\n{}", rendered);
+    assert!(
+        rendered.contains("E810"),
+        "non-positive diameter:\n{}",
+        rendered
+    );
     // Wrong unit (a bare number is not a Length — RFC-001 zero coercion).
     let src2 = MH.replace("diameter 3mm", "diameter 3ohm");
     let (_c, rendered2) = check(&[("src/main.cohdl", &src2)]);
-    assert!(rendered2.contains("E810"), "non-Length diameter:\n{}", rendered2);
+    assert!(
+        rendered2.contains("E810"),
+        "non-Length diameter:\n{}",
+        rendered2
+    );
 }
 
 #[test]
@@ -1063,7 +1078,11 @@ fn mount_hole_invalid_plating_is_e810() {
     let src = MH.replace("non_plated at (0mm, 2mm)", "smd at (0mm, 2mm)");
     let (_c, rendered) = check(&[("src/main.cohdl", &src)]);
     assert!(rendered.contains("E810"), "{}", rendered);
-    assert!(rendered.contains("not a mount-hole plating"), "{}", rendered);
+    assert!(
+        rendered.contains("not a mount-hole plating"),
+        "{}",
+        rendered
+    );
 }
 
 #[test]

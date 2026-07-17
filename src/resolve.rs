@@ -996,7 +996,11 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                     .with_secondary(prev, "first placed here".to_string()),
                 );
             }
-            for (v, what) in [(&mh.x, "offset"), (&mh.y, "offset"), (&mh.diameter, "diameter")] {
+            for (v, what) in [
+                (&mh.x, "offset"),
+                (&mh.y, "offset"),
+                (&mh.diameter, "diameter"),
+            ] {
                 if v.unit != UnitType::Length {
                     diags.push(Diagnostic::error(
                         "E810",

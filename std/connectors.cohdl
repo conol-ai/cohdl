@@ -98,8 +98,8 @@ pub device CCG6DF {
         required VBUS_P_P1: G1, G2, H1, H2, J2 [power_in]
         required VSSD: D7, E5, E6, F1, F2, F5, F6, G4, G5, G6 [passive]
         // DNU balls (Fig 4): present pads, internally unconnected (leave nc).
-        optional DNU_D4: D4 [passive]
         optional DNU_D5: D5 [passive]
+        optional DNU_D6: D6 [passive]
         optional DNU_E4: E4 [passive]
         optional DNU_H4: H4 [passive]
         optional DNU_H5: H5 [passive]

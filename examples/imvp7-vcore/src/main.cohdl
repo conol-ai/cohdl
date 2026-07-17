@@ -1,0 +1,159 @@
+// Intel IMVP-7 processor Vcore supply built around the TI TPS59650 (std) — the
+// application this chip is actually made for. A dual-channel SVID D-CAP+ design:
+// a 2-phase CPU Vcore rail driven by the controller's TWO INTEGRATED gate drivers,
+// and a 1-phase GPU Vcore rail driven through an EXTERNAL TPS51601A driver off the
+// GPWM1 PWM output — exactly the internal + external driver split from TI reference
+// design TIDA-00021 (which runs 3 CPU + 2 GPU phases). Vcore voltages are commanded
+// by the CPU/PCH over the SVID bus (VCLK/VDIO/ALERT); output = 0.25-1.52V per the
+// controller's 8-bit DAC. Both rails use inductor-DCR current sense and D-CAP+
+// remote voltage sense; CTHERM/GTHERM read 100k NTCs for VR-thermal / VR_HOT.
+//
+// Demo-grade: discrete PowerPAK SO-8 FETs stand in for TIDA's 5x6mm NexFET power
+// blocks; input bulk shown at the std 10V/0603 part (a 9-20V Vbatt rail wants 25V+).
+
+design Imvp7Vcore {
+    // ---- controller + external GPU-phase driver ----
+    inst ctrl: CTRL_TPS59650
+    inst drv: DRV_TPS51601A
+
+    // ---- power FETs: CPU phase 1/2 (internal drivers), GPU phase 1 (external) ----
+    inst q1h: FET_NEXFET
+    inst q1l: FET_NEXFET
+    inst q2h: FET_NEXFET
+    inst q2l: FET_NEXFET
+    inst q3h: FET_NEXFET
+    inst q3l: FET_NEXFET
+    inst l_c1: IND_VCORE
+    inst l_c2: IND_VCORE
+    inst l_g1: IND_VCORE
+
+    // ---- bootstrap + inductor-DCR current sense ----
+    inst c_bst1: MLCC_100nF_16V_0402
+    inst c_bst2: MLCC_100nF_16V_0402
+    inst c_bstg: MLCC_100nF_16V_0402
+    inst r_sns1: RES_5K1_0402
+    inst r_sns2: RES_5K1_0402
+    inst r_snsg: RES_5K1_0402
+    inst c_sns1: MLCC_1uF_10V_0402
+    inst c_sns2: MLCC_1uF_10V_0402
+    inst c_snsg: MLCC_1uF_10V_0402
+
+    // ---- thermal NTC dividers, config, compensation, reference ----
+    inst rt_cpu: NTC_MURATA
+    inst rt_gpu: NTC_MURATA
+    inst r_cth: RES_10K_0402
+    inst r_gth: RES_10K_0402
+    inst r_cocp: RES_10K_0402
+    inst r_cfimax: RES_10K_0402
+    inst r_gocp: RES_10K_0402
+    inst r_gfimax: RES_10K_0402
+    inst r_slew: RES_10K_0402
+    inst c_ccomp: MLCC_100nF_16V_0402
+    inst c_gcomp: MLCC_100nF_16V_0402
+    inst c_vref: MLCC_100nF_16V_0402
+
+    // ---- supply decoupling + input/output bulk ----
+    inst c_v5: MLCC_1uF_10V_0402
+    inst c_v3r3: MLCC_1uF_10V_0402
+    inst c_v5drv: MLCC_1uF_10V_0402
+    inst c_drvvdd: MLCC_1uF_10V_0402
+    inst c_in1: MLCC_10uF_10V_0603
+    inst c_in2: MLCC_10uF_10V_0603
+    inst c_cpu: MLCC_10uF_10V_0603
+    inst c_gpu: MLCC_10uF_10V_0603
+
+    // ---- vbat sense + status pull-ups + interface header ----
+    inst r_vbat: RES_10K_0402
+    inst r_cpgood: RES_10K_0402
+    inst r_alert: RES_10K_0402
+    inst r_vrhot: RES_10K_0402
+    inst r_gpgood: RES_10K_0402
+    inst j1: J_IFACE
+
+    // ---- power rails (from the interface header / board supply) ----
+    net VBAT: j1.VBAT, q1h.D, q2h.D, q3h.D, r_vbat.A, c_in1.A, c_in2.A
+    net V5: j1.V5, ctrl.V5, drv.VDD, c_v5.A, c_drvvdd.A
+    net V3R3: j1.V3R3, ctrl.V3R3, c_v3r3.A, rt_cpu.A, rt_gpu.A, r_cpgood.A, r_alert.A, r_vrhot.A,
+              r_gpgood.A
+    net V5DRV: j1.V5DRV, ctrl.V5DRV, c_v5drv.A
+    net GND: j1.GND, ctrl.PGND, ctrl.EP, ctrl.CGFB, ctrl.GGFB, drv.GND, drv.EP, q1l.S, q2l.S, q3l.S,
+             c_v5.B, c_v3r3.B, c_v5drv.B, c_drvvdd.B, c_vref.B, c_ccomp.B, c_gcomp.B, c_in1.B,
+             c_in2.B, c_cpu.B, c_gpu.B, r_cocp.B, r_cfimax.B, r_gocp.B, r_gfimax.B, r_slew.B,
+             r_cth.B, r_gth.B
+
+    // ---- CPU phase 1 (integrated driver 1) ----
+    net CHG1: ctrl.CDH1, q1h.G
+    net CLG1: ctrl.CDL1, q1l.G
+    net SW_C1: ctrl.CSW1, q1h.S, q1l.D, l_c1.A, c_bst1.B, r_sns1.A
+    net CBST1: ctrl.CBST1, c_bst1.A
+    net CSNS1: ctrl.CCSP1, r_sns1.B, c_sns1.A
+    // ---- CPU phase 2 (integrated driver 2) ----
+    net CHG2: ctrl.CDH2, q2h.G
+    net CLG2: ctrl.CDL2, q2l.G
+    net SW_C2: ctrl.CSW2, q2h.S, q2l.D, l_c2.A, c_bst2.B, r_sns2.A
+    net CBST2: ctrl.CBST2, c_bst2.A
+    net CSNS2: ctrl.CCSP2, r_sns2.B, c_sns2.A
+    // CPU Vcore output (both phases) + D-CAP+ remote/current sense
+    net VCC_CPU: l_c1.B, l_c2.B, j1.VCC_CPU, c_cpu.A, ctrl.CVFB, ctrl.CCSN1, ctrl.CCSN2, c_sns1.B,
+                 c_sns2.B
+
+    // ---- GPU phase 1 (external TPS51601A driver off GPWM1) ----
+    net GPWM1: ctrl.GPWM1, drv.PWM
+    net GSKIP: ctrl.GSKIP, drv.SKIP
+    net GHG1: drv.DRVH, q3h.G
+    net GLG1: drv.DRVL, q3l.G
+    net SW_G1: drv.SW, q3h.S, q3l.D, l_g1.A, c_bstg.B, r_snsg.A
+    net GBST1: drv.BST, c_bstg.A
+    net GSNS1: ctrl.GCSP1, r_snsg.B, c_snsg.A
+    net VCC_GFX: l_g1.B, j1.VCC_GFX, c_gpu.A, ctrl.GVFB, ctrl.GCSN1, c_snsg.B
+
+    // ---- Vbatt on-time sense ----
+    net VBAT_SNS: ctrl.VBAT, r_vbat.B
+
+    // ---- thermal sense (NTC from V3R3, bias R to GND) ----
+    net CTHERM: ctrl.CTHERM, rt_cpu.B, r_cth.A
+    net GTHERM: ctrl.GTHERM, rt_gpu.B, r_gth.A
+
+    // ---- controller configuration ----
+    net COCP: ctrl.COCP_R, r_cocp.A
+    net CFIMAX: ctrl.CF_IMAX, r_cfimax.A
+    net GOCP: ctrl.GOCP_R, r_gocp.A
+    net GFIMAX: ctrl.GF_IMAX, r_gfimax.A
+    net SLEW: ctrl.SLEWA, r_slew.A
+    net CCOMP: ctrl.CCOMP, c_ccomp.A
+    net GCOMP: ctrl.GCOMP, c_gcomp.A
+    net VREF: ctrl.VREF, c_vref.A
+
+    // ---- SVID bus + enable + status (to the CPU/PCH via the header) ----
+    net VR_ON: ctrl.VR_ON, j1.VR_ON
+    net VCLK: ctrl.VCLK, j1.VCLK
+    net VDIO: ctrl.VDIO, j1.VDIO
+    net ALERT: ctrl.ALERT, j1.ALERT, r_alert.B
+    net CPGOOD: ctrl.CPGOOD, j1.CPGOOD, r_cpgood.B
+    net VR_HOT: ctrl.VR_HOT, j1.VR_HOT, r_vrhot.B
+    net GPGOOD: ctrl.GPGOOD, j1.GPGOOD, r_gpgood.B
+
+    // ---- unused: CPU phase 3 and GPU phase 2 ----
+    nc: ctrl.CCSP3, ctrl.CCSN3, ctrl.CPWM3, ctrl.GCSP2, ctrl.GCSN2, ctrl.GPWM2
+
+    // ---- layout: controller + all three phases + external driver placed ----
+    layout {
+        net_class Switching { SW_C1, SW_C2, SW_G1, CHG1, CLG1, CHG2, CLG2, GHG1, GLG1 }
+        board_outline: "mechanical/imvp7-vcore-outline.dxf"
+        place ctrl at (-20mm, 0mm)
+        // CPU phase 1 / phase 2 (integrated drivers) — HS, LS, inductor per row
+        place q1h at (-4mm, 11mm)
+        place q1l at (4mm, 11mm)
+        place l_c1 at (13mm, 11mm)
+        place q2h at (-4mm, 3mm)
+        place q2l at (4mm, 3mm)
+        place l_c2 at (13mm, 3mm)
+        // GPU phase 1 (external TPS51601A driver + HS, LS, inductor)
+        place drv at (-13mm, -8mm)
+        place q3h at (-4mm, -8mm)
+        place q3l at (4mm, -8mm)
+        place l_g1 at (13mm, -8mm)
+        // interface header along the bottom edge
+        place j1 at (0mm, -19mm)
+    }
+}

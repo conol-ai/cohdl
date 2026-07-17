@@ -1,0 +1,60 @@
+// imvp7-vcore example footprints — external driver + power stage + header.
+
+// TPS51601A synchronous MOSFET driver, VSON-8 3x3mm 0.65mm pitch, EP 1.65x2.4
+// (KiCad VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm). RFC-021 IPC-7351 name.
+pub footprint QFN8N65P300X300_1EP165X240 {
+    pad 1: P_VSON8_Lead at (-1.45mm, -0.975mm)
+    pad 2: P_VSON8_Lead at (-1.45mm, -0.325mm)
+    pad 3: P_VSON8_Lead at (-1.45mm, 0.325mm)
+    pad 4: P_VSON8_Lead at (-1.45mm, 0.975mm)
+    pad 5: P_VSON8_Lead at (1.45mm, 0.975mm)
+    pad 6: P_VSON8_Lead at (1.45mm, 0.325mm)
+    pad 7: P_VSON8_Lead at (1.45mm, -0.325mm)
+    pad 8: P_VSON8_Lead at (1.45mm, -0.975mm)
+    pad 9: P_VSON8_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 3.3mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Power SO-8 N-FET (PowerPAK SO-8). IPC-7351: 8 leads, 1.27mm pitch, 6.0mm
+// lead span, 1.75mm height, density N.
+pub footprint SOIC8P127X600X175N {
+    pad 1: P_SOIC_Lead at (-2.7mm, -1.905mm)
+    pad 2: P_SOIC_Lead at (-2.7mm, -0.635mm)
+    pad 3: P_SOIC_Lead at (-2.7mm, 0.635mm)
+    pad 4: P_SOIC_Lead at (-2.7mm, 1.905mm)
+    pad 5: P_SOIC_Lead at (2.7mm, 1.905mm)
+    pad 6: P_SOIC_Lead at (2.7mm, 0.635mm)
+    pad 7: P_SOIC_Lead at (2.7mm, -0.635mm)
+    pad 8: P_SOIC_Lead at (2.7mm, -1.905mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.2mm, 5.4mm) }
+    silkscreen_ref { at: (0mm, -3.2mm) }
+}
+
+// Shielded power inductor (~5x5mm), two lands at +/-2.0mm.
+pub footprint FP_Ind_Pwr_5040 {
+    pad 1: P_Ind_Pwr at (-2mm, 0mm)
+    pad 2: P_Ind_Pwr at (2mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.6mm, 5.4mm) }
+}
+
+// 1x14 2.54mm interface header: VBAT, V5, V3R3, V5DRV, GND, VR_ON, VCLK, VDIO,
+// ALERT, CPGOOD, VR_HOT, GPGOOD, VCC_CPU, VCC_GFX.
+pub footprint FP_Header_1x14 {
+    pad 1: P_Hdr254 at (-16.51mm, 0mm)
+    pad 2: P_Hdr254 at (-13.97mm, 0mm)
+    pad 3: P_Hdr254 at (-11.43mm, 0mm)
+    pad 4: P_Hdr254 at (-8.89mm, 0mm)
+    pad 5: P_Hdr254 at (-6.35mm, 0mm)
+    pad 6: P_Hdr254 at (-3.81mm, 0mm)
+    pad 7: P_Hdr254 at (-1.27mm, 0mm)
+    pad 8: P_Hdr254 at (1.27mm, 0mm)
+    pad 9: P_Hdr254 at (3.81mm, 0mm)
+    pad 10: P_Hdr254 at (6.35mm, 0mm)
+    pad 11: P_Hdr254 at (8.89mm, 0mm)
+    pad 12: P_Hdr254 at (11.43mm, 0mm)
+    pad 13: P_Hdr254 at (13.97mm, 0mm)
+    pad 14: P_Hdr254 at (16.51mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (36.6mm, 2.6mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

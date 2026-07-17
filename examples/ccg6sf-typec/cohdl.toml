@@ -1,5 +1,0 @@
-[package]
-name = "ccg6sf_typec"
-
-[design]
-top = "Ccg6sfTypec"

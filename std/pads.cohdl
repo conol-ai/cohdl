@@ -254,3 +254,28 @@ pub pad P_Castellated {
     plating: plated_through_hole
     drill: 1mm
 }
+
+// 0.4mm-pitch QFN lead land (TI RSL0048 / TPS59650): 0.85mm radial x 0.20mm,
+// NSMD. Left/right sides (long axis horizontal).
+pub pad P_QFN040_Lead_H {
+    shape: rect
+    size: (0.85mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// 0.4mm-pitch QFN lead land, top/bottom sides (long axis vertical).
+pub pad P_QFN040_Lead_V {
+    shape: rect
+    size: (0.2mm, 0.85mm)
+    layer: top_copper
+    plating: smd
+}
+
+// TPS59650 exposed thermal PowerPAD land (4.05 x 3.60mm), TI drawing 4207841.
+pub pad P_TPS59650_EP {
+    shape: rect
+    size: (4.05mm, 3.6mm)
+    layer: top_copper
+    plating: smd
+}

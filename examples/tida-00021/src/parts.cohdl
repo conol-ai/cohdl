@@ -1,0 +1,61 @@
+// tida-00021 example parts — the discrete power stage the TPS59650 controls.
+// The controller itself is std::TPS59650 (CTRL_TPS59650). This board is a
+// representative SINGLE CPU Vcore phase distilled from TI reference design
+// TIDA-00021 (which runs 3 CPU + 2 GPU phases with 5x6mm NexFET power blocks);
+// the unused phases and the whole GPU channel are left nc.
+
+pub trait Transistor {
+    designator_prefix: "Q"
+}
+pub trait Inductor {
+    designator_prefix: "L"
+}
+
+// N-channel power MOSFET, PowerPAK SO-8 pinout (1-3 Source, 4 Gate, 5-8 Drain).
+// Demo-grade stand-in for TIDA-00021's 5x6mm NexFET power blocks.
+pub device NFET_SO8 {
+    pins {
+        required S: 1, 2, 3 [passive]
+        required G: 4 [input]
+        required D: 5, 6, 7, 8 [passive]
+    }
+}
+impl Transistor for NFET_SO8 {}
+pub part FET_NEXFET: NFET_SO8 {
+    primary { mfr: "Infineon", mpn: "IRF7413", footprint: SOIC8P127X600X175N }
+}
+
+// Shielded power inductor for the Vcore output (~0.36uH class).
+pub device PowerInductor {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+}
+impl Inductor for PowerInductor {}
+pub part IND_VCORE: PowerInductor {
+    primary { mfr: "Coilcraft", mpn: "XAL5030-361MEB", footprint: FP_Ind_Pwr_5040 }
+}
+
+// 1x12 interface header: input supply rails + SVID bus + enable + status +
+// Vcore out — the seam to the CPU/PCH and the board-level supplies.
+pub device PwrHeader {
+    pins {
+        required VBAT: 1 [passive]
+        required V5: 2 [passive]
+        required V3R3: 3 [passive]
+        required V5DRV: 4 [passive]
+        required GND: 5 [passive]
+        required VR_ON: 6 [passive]
+        required VCLK: 7 [passive]
+        required VDIO: 8 [passive]
+        required ALERT: 9 [passive]
+        required CPGOOD: 10 [passive]
+        required VR_HOT: 11 [passive]
+        required VCORE: 12 [passive]
+    }
+}
+impl Connector for PwrHeader {}
+pub part J_IFACE: PwrHeader {
+    primary { mfr: "Generic", mpn: "HDR-1x12-2.54", footprint: FP_Header_1x12 }
+}

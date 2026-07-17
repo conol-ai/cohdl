@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "Switching", "nets": ["SW1", "HSG", "LSG", "BST1"] }
+  ],
+  "diff_pairs": [],
+  "length_matches": [],
+  "board_outline": { "source": "mechanical/tida-00021-outline.dxf", "start": [-27, -22], "segments": [{ "type": "line", "to": [27, -22] }, { "type": "line", "to": [27, 22] }, { "type": "line", "to": [-27, 22] }, { "type": "line", "to": [-27, -22] }] },
+  "placements": [
+    { "instance": "Tida00021Phase::ctrl", "at": [-11, 0], "rotate": 0 },
+    { "instance": "Tida00021Phase::q1", "at": [0, -7], "rotate": 0 },
+    { "instance": "Tida00021Phase::q2", "at": [0, 0], "rotate": 0 },
+    { "instance": "Tida00021Phase::l1", "at": [9, -3.5], "rotate": 0 },
+    { "instance": "Tida00021Phase::j1", "at": [0, 18], "rotate": 0 }
+  ],
+  "placement_hints": []
+}

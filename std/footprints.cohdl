@@ -95,3 +95,60 @@ pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {
     courtyard { shape: rect, at: (0mm, -1.55mm), size: (10.64mm, 9.42mm) }
     silkscreen_ref { at: (0mm, 2.5mm) }
 }
+
+// TPS59650 — 48-pin VQFN 6x6mm, 0.4mm pitch, exposed thermal pad 4.05x3.60mm
+// (TI RSL0048 / land drawing 4209046). RFC-021 IPC-7351 name. 16 thermal vias
+// (0.2mm) in the EP are a layout-stage addition, not part of the land pattern.
+pub footprint QFN48N40P600X600_1EP405X360 {
+    pad 1: P_QFN040_Lead_H at (-2.975mm, -2.2mm)
+    pad 2: P_QFN040_Lead_H at (-2.975mm, -1.8mm)
+    pad 3: P_QFN040_Lead_H at (-2.975mm, -1.4mm)
+    pad 4: P_QFN040_Lead_H at (-2.975mm, -1mm)
+    pad 5: P_QFN040_Lead_H at (-2.975mm, -0.6mm)
+    pad 6: P_QFN040_Lead_H at (-2.975mm, -0.2mm)
+    pad 7: P_QFN040_Lead_H at (-2.975mm, 0.2mm)
+    pad 8: P_QFN040_Lead_H at (-2.975mm, 0.6mm)
+    pad 9: P_QFN040_Lead_H at (-2.975mm, 1mm)
+    pad 10: P_QFN040_Lead_H at (-2.975mm, 1.4mm)
+    pad 11: P_QFN040_Lead_H at (-2.975mm, 1.8mm)
+    pad 12: P_QFN040_Lead_H at (-2.975mm, 2.2mm)
+    pad 13: P_QFN040_Lead_V at (-2.2mm, 2.975mm)
+    pad 14: P_QFN040_Lead_V at (-1.8mm, 2.975mm)
+    pad 15: P_QFN040_Lead_V at (-1.4mm, 2.975mm)
+    pad 16: P_QFN040_Lead_V at (-1mm, 2.975mm)
+    pad 17: P_QFN040_Lead_V at (-0.6mm, 2.975mm)
+    pad 18: P_QFN040_Lead_V at (-0.2mm, 2.975mm)
+    pad 19: P_QFN040_Lead_V at (0.2mm, 2.975mm)
+    pad 20: P_QFN040_Lead_V at (0.6mm, 2.975mm)
+    pad 21: P_QFN040_Lead_V at (1mm, 2.975mm)
+    pad 22: P_QFN040_Lead_V at (1.4mm, 2.975mm)
+    pad 23: P_QFN040_Lead_V at (1.8mm, 2.975mm)
+    pad 24: P_QFN040_Lead_V at (2.2mm, 2.975mm)
+    pad 25: P_QFN040_Lead_H at (2.975mm, 2.2mm)
+    pad 26: P_QFN040_Lead_H at (2.975mm, 1.8mm)
+    pad 27: P_QFN040_Lead_H at (2.975mm, 1.4mm)
+    pad 28: P_QFN040_Lead_H at (2.975mm, 1mm)
+    pad 29: P_QFN040_Lead_H at (2.975mm, 0.6mm)
+    pad 30: P_QFN040_Lead_H at (2.975mm, 0.2mm)
+    pad 31: P_QFN040_Lead_H at (2.975mm, -0.2mm)
+    pad 32: P_QFN040_Lead_H at (2.975mm, -0.6mm)
+    pad 33: P_QFN040_Lead_H at (2.975mm, -1mm)
+    pad 34: P_QFN040_Lead_H at (2.975mm, -1.4mm)
+    pad 35: P_QFN040_Lead_H at (2.975mm, -1.8mm)
+    pad 36: P_QFN040_Lead_H at (2.975mm, -2.2mm)
+    pad 37: P_QFN040_Lead_V at (2.2mm, -2.975mm)
+    pad 38: P_QFN040_Lead_V at (1.8mm, -2.975mm)
+    pad 39: P_QFN040_Lead_V at (1.4mm, -2.975mm)
+    pad 40: P_QFN040_Lead_V at (1mm, -2.975mm)
+    pad 41: P_QFN040_Lead_V at (0.6mm, -2.975mm)
+    pad 42: P_QFN040_Lead_V at (0.2mm, -2.975mm)
+    pad 43: P_QFN040_Lead_V at (-0.2mm, -2.975mm)
+    pad 44: P_QFN040_Lead_V at (-0.6mm, -2.975mm)
+    pad 45: P_QFN040_Lead_V at (-1mm, -2.975mm)
+    pad 46: P_QFN040_Lead_V at (-1.4mm, -2.975mm)
+    pad 47: P_QFN040_Lead_V at (-1.8mm, -2.975mm)
+    pad 48: P_QFN040_Lead_V at (-2.2mm, -2.975mm)
+    pad 49: P_TPS59650_EP at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.1mm, 7.1mm) }
+    silkscreen_ref { at: (0mm, -4mm) }
+}

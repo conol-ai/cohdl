@@ -19,3 +19,69 @@ impl IC for AP2112K_3V3 {}
 pub part LDO_AP2112K_3V3: AP2112K_3V3 {
     primary { mfr: "Diodes Inc", mpn: "AP2112K-3.3TRG1", footprint: SOT5P95X290X160N }
 }
+
+// Texas Instruments TPS59650 — Intel IMVP-7 (SVID) D-CAP+ dual-channel
+// multiphase step-down controller (3-phase CPU Vcore + 2-phase GPU Vcore) with
+// two integrated CPU gate drivers; the headline controller of TI reference
+// design TIDA-00021. 48-pin VQFN (6x6mm, 0.4mm pitch) + exposed thermal PowerPAD
+// (pin 49 = EP, tie to GND plane). Pinout from the TPS51650/TPS59650 datasheet.
+pub device TPS59650 {
+    pins {
+        required CTHERM: 1 [bidirectional]
+        required COCP_R: 2 [input]
+        required CF_IMAX: 3 [input]
+        required CCSP1: 4 [input]
+        required CCSN1: 5 [input]
+        required CCSN2: 6 [input]
+        required CCSP2: 7 [input]
+        required CCSP3: 8 [input]
+        required CCSN3: 9 [input]
+        required CCOMP: 10 [output]
+        required CVFB: 11 [input]
+        required CGFB: 12 [input]
+        required GOCP_R: 13 [input]
+        required VREF: 14 [power_out]
+        required V3R3: 15 [power_in]
+        required VR_ON: 16 [input]
+        required CPGOOD: 17 [output]
+        required VCLK: 18 [input]
+        required ALERT: 19 [output]
+        required VDIO: 20 [bidirectional]
+        required VR_HOT: 21 [output]
+        required SLEWA: 22 [input]
+        required GPGOOD: 23 [output]
+        required GF_IMAX: 24 [input]
+        required GGFB: 25 [input]
+        required GVFB: 26 [input]
+        required GCOMP: 27 [output]
+        required GCSN1: 28 [input]
+        required GCSP1: 29 [input]
+        required GCSP2: 30 [input]
+        required GCSN2: 31 [input]
+        required GTHERM: 32 [bidirectional]
+        required GSKIP: 33 [output]
+        required GPWM1: 34 [output]
+        required GPWM2: 35 [output]
+        required CPWM3: 36 [output]
+        required VBAT: 37 [input]
+        required CDH2: 38 [output]
+        required CBST2: 39 [input]
+        required CSW2: 40 [bidirectional]
+        required CDL2: 41 [output]
+        required PGND: 42 [passive]
+        required V5DRV: 43 [power_in]
+        required CDL1: 44 [output]
+        required CSW1: 45 [bidirectional]
+        required CBST1: 46 [input]
+        required CDH1: 47 [output]
+        required V5: 48 [power_in]
+        required EP: 49 [passive] // exposed thermal PowerPAD -> GND
+    }
+}
+
+impl IC for TPS59650 {}
+
+pub part CTRL_TPS59650: TPS59650 {
+    primary { mfr: "Texas Instruments", mpn: "TPS59650RSLR",
+              footprint: QFN48N40P600X600_1EP405X360 }
+}

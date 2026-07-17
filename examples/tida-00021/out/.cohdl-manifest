@@ -1,0 +1,11 @@
+design.lock
+out/footprints/std-CHIP_0402.kicad_mod
+out/footprints/std-CHIP_0603.kicad_mod
+out/footprints/std-QFN48N40P600X600_1EP405X360.kicad_mod
+out/footprints/tida_00021-FP_Header_1x12.kicad_mod
+out/footprints/tida_00021-FP_Ind_Pwr_5040.kicad_mod
+out/footprints/tida_00021-SOIC8P127X600X175N.kicad_mod
+out/tida_00021-bom.csv
+out/tida_00021-layout.json
+out/tida_00021.net
+out/tida_00021.xml

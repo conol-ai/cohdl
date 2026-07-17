@@ -181,6 +181,46 @@ pub struct PadPlace {
     pub span: Span,
 }
 
+/// RFC-022 mount_hole plating — a closed two-value set (no `smd`: a mount_hole
+/// is definitionally a hole, never a surface pad).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MountHolePlating {
+    NonPlated,
+    Plated,
+}
+
+impl MountHolePlating {
+    pub fn name(self) -> &'static str {
+        match self {
+            MountHolePlating::NonPlated => "non_plated",
+            MountHolePlating::Plated => "plated",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<MountHolePlating> {
+        Some(match s {
+            "non_plated" => MountHolePlating::NonPlated,
+            "plated" => MountHolePlating::Plated,
+            _ => return None,
+        })
+    }
+}
+
+/// RFC-022: `mount_hole N: PLATING at (x, y) diameter D` — a mechanical
+/// locating hole in a footprint body. `N` is a locating-hole-local counter,
+/// entirely DISJOINT from `pad`'s pin-bound numbering: it is never checked
+/// against the bound device's declared pins. Always spans `through_all`.
+#[derive(Debug, Clone)]
+pub struct MountHole {
+    /// A footprint-local counter, disjoint from pad numbers (never a pin).
+    pub number: PinNumber,
+    pub plating: MountHolePlating,
+    pub x: UnitValue,
+    pub y: UnitValue,
+    /// Required regardless of plating (a single Length value).
+    pub diameter: UnitValue,
+    pub span: Span,
+}
+
 /// `courtyard { shape: rect, at: (x, y), size: (…) }`.
 #[derive(Debug, Clone)]
 pub struct Courtyard {
@@ -204,6 +244,8 @@ pub struct FootprintDef {
     /// an ordinary RFC-016 identifier, unchecked. There is no separate field.
     pub name: Ident,
     pub pads: Vec<PadPlace>,
+    /// RFC-022 mechanical locating holes — numbered disjoint from `pads`.
+    pub mount_holes: Vec<MountHole>,
     pub courtyard: Option<Courtyard>,
     pub silkscreen_ref: Option<(UnitValue, UnitValue, Span)>,
     pub span: Span,

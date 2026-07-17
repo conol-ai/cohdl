@@ -15,7 +15,7 @@
 //! canonically from the lexer's exact femto integers (emit::geom — KiCad's
 //! native unit is mm, no conversion, no floats).
 
-use crate::ast::{PadLayer, PadPlating, PadShape};
+use crate::ast::{MountHolePlating, PadLayer, PadPlating, PadShape};
 use crate::check::footprints::is_placeholder;
 use crate::emit::geom;
 use crate::ir::DesignIr;
@@ -154,6 +154,26 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             h,
             drill,
             layers
+        );
+    }
+    // RFC-022 mechanical locating holes — projected as KiCad's own hole pad
+    // types with an empty pad number (no net): non_plated → np_thru_hole,
+    // plated → an ordinary thru_hole with the pad ring sized to the drill.
+    for mh in &fp.mount_holes {
+        let kind = match mh.plating {
+            MountHolePlating::NonPlated => "np_thru_hole",
+            MountHolePlating::Plated => "thru_hole",
+        };
+        let d = geom::mm(&mh.diameter);
+        let _ = writeln!(
+            s,
+            "  (pad \"\" {} circle (at {} {}) (size {} {}) (drill {}) (layers \"*.Cu\" \"*.Mask\"))",
+            kind,
+            geom::mm(&mh.x),
+            geom::mm(&mh.y),
+            d,
+            d,
+            d
         );
     }
     s.push_str(")\n");

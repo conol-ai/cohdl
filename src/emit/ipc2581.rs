@@ -134,11 +134,12 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     }
     let phys = phys; // frozen — the dictionary is closed from here on
     let net_of = net_membership(world, ir, &refdes_map);
-    // A component is through-hole-mounted (THMT) if any of its pads is; else SMT.
+    // A component is through-hole-mounted (THMT) if any of its electrical pads
+    // is; an RFC-022 mount_hole is mechanical and does not change mount type.
     let tht_refdes: BTreeSet<&str> = phys
         .pads
         .iter()
-        .filter(|p| p.tht)
+        .filter(|p| p.tht && !p.hole)
         .map(|p| p.refdes.as_str())
         .collect();
     let name = sanitize(package_name, false);
@@ -1116,15 +1117,20 @@ struct Prim {
     h: i128,
 }
 
-/// A reusable padstack: a primitive plus an optional plated through-hole.
+/// A reusable padstack: a primitive plus an optional through-hole. `plated` is
+/// false only for an RFC-022 non_plated mount_hole (a bare drilled hole, no
+/// copper); every electrical pad and every plated mount_hole is `plated`.
 #[derive(PartialEq, Eq, Clone)]
 struct PadStack {
     prim: usize,
     tht: bool,
     drill: i128,
+    plated: bool,
 }
 
 /// One placed copper pad — absolute board position + the component pin it is.
+/// `hole` marks an RFC-022 mount_hole: a mechanical locating hole with no net
+/// and no device pin (no `PinRef`, no copper unless plated).
 struct PlacedPad {
     refdes: String,
     pin: String,
@@ -1134,6 +1140,7 @@ struct PlacedPad {
     y: i128,
     rot: u16,
     tht: bool,
+    hole: bool,
 }
 
 struct Physical {
@@ -1211,7 +1218,15 @@ fn build_physical(
                     h,
                 },
             );
-            let padstack = dedup(&mut padstacks, PadStack { prim, tht, drill });
+            let padstack = dedup(
+                &mut padstacks,
+                PadStack {
+                    prim,
+                    tht,
+                    drill,
+                    plated: true,
+                },
+            );
             // IPC-2581 is +y-up; CoHDL/KiCad author +y-down. Project by negating
             // every y — the local pad offset BEFORE rotation, and the component
             // position — while keeping the rotation value. (Verified against
@@ -1228,6 +1243,46 @@ fn build_physical(
                 y: -cy + oy,
                 rot,
                 tht,
+                hole: false,
+            });
+        }
+        // RFC-022 mechanical locating holes — placed as through-holes with no
+        // net and no PinRef. non_plated has no copper (a bare hole); plated
+        // carries a copper ring sized to the drill.
+        for mh in &fp.mount_holes {
+            let d = mh.diameter.femto;
+            if d <= 0 {
+                continue; // non-positive: reported at declaration check
+            }
+            let plated = matches!(mh.plating, crate::ast::MountHolePlating::Plated);
+            let prim = dedup(
+                &mut prims,
+                Prim {
+                    shape: crate::ast::PadShape::Circle,
+                    w: d,
+                    h: d,
+                },
+            );
+            let padstack = dedup(
+                &mut padstacks,
+                PadStack {
+                    prim,
+                    tht: true,
+                    drill: d,
+                    plated,
+                },
+            );
+            let (ox, oy) = rotate(mh.x.femto, -mh.y.femto, rot);
+            pads.push(PlacedPad {
+                refdes: refdes.clone(),
+                pin: String::new(),
+                padstack,
+                prim,
+                x: cx + ox,
+                y: -cy + oy,
+                rot,
+                tht: true,
+                hole: true,
             });
         }
     }
@@ -1348,13 +1403,17 @@ fn emit_padstacks(out: &mut String, phys: &Physical) {
         if ps.tht && ps.drill > 0 {
             let _ = writeln!(
                 out,
-                "          <PadstackHoleDef name=\"HOLE_{}\" diameter=\"{}\" platingStatus=\"PLATED\" plusTol=\"0\" minusTol=\"0\" x=\"0\" y=\"0\"/>",
+                "          <PadstackHoleDef name=\"HOLE_{}\" diameter=\"{}\" platingStatus=\"{}\" plusTol=\"0\" minusTol=\"0\" x=\"0\" y=\"0\"/>",
                 i,
-                geom::mm_femto(ps.drill)
+                geom::mm_femto(ps.drill),
+                if ps.plated { "PLATED" } else { "NONPLATED" }
             );
         }
-        // The copper/mask/paste layers this padstack lands on.
-        let layers: &[&str] = if ps.tht {
+        // The copper/mask/paste layers this padstack lands on. An RFC-022
+        // non_plated mount_hole is a bare drilled hole — no copper at all.
+        let layers: &[&str] = if !ps.plated {
+            &[]
+        } else if ps.tht {
             &["F.Cu", "F.Mask", "B.Cu", "B.Mask"]
         } else {
             &["F.Cu", "F.Mask", "F.Paste"]
@@ -1398,6 +1457,9 @@ fn emit_layer_features(
         let pads: Vec<&PlacedPad> = phys
             .pads
             .iter()
+            // A non_plated mount_hole (padstack not plated) has no copper — it
+            // appears only on the drill layer below, never here.
+            .filter(|p| phys.padstacks[p.padstack].plated)
             .filter(|p| only.is_none_or(|tht| p.tht == tht))
             .collect();
         if pads.is_empty() {
@@ -1431,12 +1493,15 @@ fn emit_layer_features(
                 "              <StandardPrimitiveRef id=\"PRIM_{}\"/>",
                 p.prim
             );
-            let _ = writeln!(
-                out,
-                "              <PinRef componentRef=\"{}\" pin=\"{}\"/>",
-                esc(&p.refdes),
-                esc(&p.pin)
-            );
+            // A mount_hole is mechanical — no device pin to reference.
+            if !p.hole {
+                let _ = writeln!(
+                    out,
+                    "              <PinRef componentRef=\"{}\" pin=\"{}\"/>",
+                    esc(&p.refdes),
+                    esc(&p.pin)
+                );
+            }
             out.push_str("            </Pad>\n");
             out.push_str("          </Set>\n");
         }
@@ -1472,9 +1537,10 @@ fn emit_layer_features(
             }
             let _ = writeln!(
                 out,
-                "            <Hole name=\"H{}\" diameter=\"{}\" platingStatus=\"PLATED\" plusTol=\"0\" minusTol=\"0\" x=\"{}\" y=\"{}\"/>",
+                "            <Hole name=\"H{}\" diameter=\"{}\" platingStatus=\"{}\" plusTol=\"0\" minusTol=\"0\" x=\"{}\" y=\"{}\"/>",
                 k,
                 geom::mm_femto(phys.padstacks[p.padstack].drill),
+                if phys.padstacks[p.padstack].plated { "PLATED" } else { "NONPLATED" },
                 geom::mm_femto(p.x),
                 geom::mm_femto(p.y)
             );

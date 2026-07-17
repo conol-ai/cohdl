@@ -1673,3 +1673,45 @@ from `std/pads.cohdl`. Overlap re-scan of all 49 placed footprints: 0
 overlapping pad-pairs. Footprints without an exact datasheet drawing (the switch
 land, the flash EP, the WDFN EP orientation) are noted demo-grade for a human to
 confirm — same status as the KiCad pcbnew checkpoint.
+
+## RFC-022 (mechanical locating holes — `mount_hole`) implementation notes (2026-07-17)
+
+RFC-022 (DR-028) adds a third footprint-body construct alongside `pad`,
+`courtyard`, and `silkscreen_ref`: `mount_hole N: PLATING at (x, y) diameter D`,
+for a mechanical locating hole (定位孔) with no electrical function, no net, and
+no device pin to bind to. Grounded in KiCad's own `np_thru_hole` precedent.
+
+Implementation (fully conformant, no deviations):
+- **AST/parse** — `MountHole` + `MountHolePlating {non_plated, plated}`;
+  `FootprintDef.mount_holes`. Parsed in the footprint body next to `pad`.
+- **Disjoint numbering** — `mount_hole` numbers live in their own namespace
+  (`validate_footprints` gives them a separate duplicate-check map) and are
+  NEVER compared with `pad` numbers or the bound device's pins (E807 walks only
+  `fp.pads`). A footprint may have `pad 1..2` and `mount_hole 1..2` with no
+  collision — covered by `mount_hole_parses_disjoint_from_pads`.
+- **Checks (E810)** — duplicate `mount_hole` number, non-`Length`/out-of-range
+  offset or diameter, non-positive diameter, and (at parse) a `PLATING` outside
+  `{non_plated, plated}`. All structural, local to one footprint, never DRC.
+- **KiCad `.kicad_mod`** — `non_plated` → `np_thru_hole`, `plated` → an ordinary
+  `thru_hole`, both with an empty pad number (no net). `is_placeholder` now also
+  checks `mount_holes`, so a hole-bearing footprint is never treated as an empty
+  RFC-017 placeholder.
+- **IPC-2581** — each mount_hole projects into the physical model as a placed
+  through-hole with no `PinRef` and no net (`PadStack.plated` / `PlacedPad.hole`
+  added); the drill `Hole` and `PadstackHoleDef` carry `platingStatus`
+  `PLATED`/`NONPLATED` (the schema's spelling — no underscore). A non_plated
+  hole has no copper on any layer. mount_holes do not change a component's
+  through-hole-mount classification.
+- **fmt** — the RFC-009 formatter emits `mount_hole` lines in source order and
+  round-trips idempotently (a real bug caught in review: the formatter first
+  silently dropped mount_holes on reformat; now fixed + regression-tested).
+
+Out of scope, per RFC-022's own decision: board-level mounting holes (a
+design/board-level concept nearer `board_outline`, RFC-020) and non-circular
+locating features (slots, keyed holes) — both disclosed, deferred gaps.
+
+First consumer: `examples/openmicro`'s Kailh Choc V2 keyswitch footprint
+(`FP_SW_Choc_V2`) now models its central Ø5.05mm box-stem hole and Ø1.6mm MX
+mounting peg as two `non_plated` mount_holes, replacing an earlier plated-pad +
+mechanical-device-pin workaround. Re-scan: 0 per-key LEDs cover a switch hole,
+0 pad shorts, 0 out-of-bounds; IPC-2581 schema-valid.

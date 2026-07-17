@@ -979,6 +979,54 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
+        // RFC-022 mount_hole checks — structural, local, numbered in their OWN
+        // namespace (never compared with pad numbers or the bound device's pins).
+        let mut mh_seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
+        for mh in &fp.mount_holes {
+            if let Some(prev) = mh_seen.insert(mh.number.text.as_str(), mh.number.span) {
+                diags.push(
+                    Diagnostic::error(
+                        "E810",
+                        mh.number.span,
+                        format!(
+                            "duplicate mount_hole number `{}` in footprint `{}`",
+                            mh.number.text, fp.name.name
+                        ),
+                    )
+                    .with_secondary(prev, "first placed here".to_string()),
+                );
+            }
+            for (v, what) in [(&mh.x, "offset"), (&mh.y, "offset"), (&mh.diameter, "diameter")] {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E810",
+                        mh.span,
+                        format!(
+                            "mount_hole {} is a `Length` (`mm`) literal — `{}` is a `{}`",
+                            what,
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                } else if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E810",
+                        mh.span,
+                        format!("mount_hole {} `{}` is too large to project", what, v.text),
+                    ));
+                }
+            }
+            if mh.diameter.unit == UnitType::Length && mh.diameter.femto <= 0 {
+                diags.push(Diagnostic::error(
+                    "E810",
+                    mh.span,
+                    format!(
+                        "mount_hole `{}` in footprint `{}` has a non-positive diameter `{}` — a hole diameter must be > 0mm",
+                        mh.number.text, fp.name.name, mh.diameter.text
+                    ),
+                ));
+            }
+        }
         validate_footprint_name(fp, diags);
     }
 }

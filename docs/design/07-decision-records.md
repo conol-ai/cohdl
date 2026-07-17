@@ -917,3 +917,37 @@ Option 1 was rejected: leaving footprint naming permanently unconstrained means 
 ## Revisit when
 
 If real library authoring reveals the closed six-family-template set is too narrow (a real package family CoHDL needs doesn't fit any template) — extend the set via a scoped follow-up RFC, same discipline as RFC-001/RFC-018's own extension paths. Also revisit if the accepted rename-churn cost (Consequences above) proves too painful in real multi-library use. Also revisit if a genuine, concrete need emerges for CoHDL to export to or interoperate with a third-party CAD tool's footprint library — that would be a new, separately-scoped RFC weighing the real trade-offs of tracking external data, not a silent reintroduction of what was rejected here. Also revisit if a genuine need emerges for JESD30-style naming on package/variants (RFC-008) — a separate, not-yet-proposed RFC.
+
+# DR-028: Mechanical locating holes in footprints — mount_hole, disjoint from pad numbering
+
+## Context
+
+Tony directed a new RFC to close a real gap in RFC-018's footprint model: some real footprints require a mechanical locating hole (定位孔) — e.g. a connector shell's alignment-pin holes — which has no electrical function, no net, and critically, no device pin number to bind to. RFC-018's own completeness guarantee requires every pad N: PadSymbol at (x, y) number to exactly match a bound device's declared pin numbers (RFC-002) — a locating hole cannot be expressed as a pad without breaking that guarantee or requiring a special-cased exception to it. Grounded against real, established practice: KiCad's own footprint format has a dedicated np_thru_hole (non-plated through-hole) pad type for exactly this distinction — a hole that exists in the footprint's manufactured geometry but carries no net, no pad number, no electrical role.
+
+## Options
+
+1. Model a locating hole as a pad with a new plating: mechanical value and no bound device pin — requires a special-cased exception to RFC-018's own pad-count/numbering completeness check, breaking its unconditional guarantee.
+2. Fold locating holes into courtyard — conflates a keep-out boundary (no drill, soft placement convention) with a real drilled, manufactured feature — a category error.
+3. A new footprint-body construct, mount_hole, numbered in its own namespace disjoint from pad numbers, never checked against the bound device's pins — position + diameter + a closed plated/non-plated flag (RFC-022's proposal, grounded in KiCad's np_thru_hole precedent).
+4. A general mechanical-feature sub-language (slots, keyed holes, countersinks, arbitrary shapes) in the same RFC.
+5. Include board-level mounting holes (a board's corner screw holes) in the same construct/RFC.
+
+## Decision
+
+Option 3. mount_hole N: PLATING at (x, y) diameter D is a new, optional footprint-body statement. N is a locating-hole-local counter, entirely disjoint from pad's pin-bound numbering — never checked against, or compared with, the bound device's declared pins. PLATING is a closed two-value set: non_plated (the common case) or plated (e.g. a chassis-ground stud, still with no net). diameter is a single Length-typed value, required regardless of plating. No layer: field — a mount_hole always spans through_all.
+
+## Rationale
+
+Option 1 was rejected: it would force a special case into RFC-018's own central, previously-unconditional pad-completeness guarantee — the same kind of structural inconsistency this project's discipline (DR-006, DR-017) has consistently rejected elsewhere in favor of a clean, disjoint mechanism instead. Option 2 was rejected: courtyard and a locating hole are different kinds of footprint content (soft keep-out convention vs. hard manufactured feature) — the same category-error reasoning RFC-018's own Alternatives already used to reject merging pad/footprint. Option 4 (general mechanical-feature language) was rejected as premature per this project's recurring narrow-scope-first discipline (RFC-007's rejected const-generics, RFC-018's own rect/circle/oval-only pad shapes) — no concrete need beyond circular locating holes has been shown. Option 5 (board-level holes) was rejected as a different owner entirely — a board's own mounting holes are a design/board-level fact analogous to board_outline (RFC-020), not a per-footprint one; bundling the two would conflate a footprint author's scope with a design's own board-level layout.
+
+## Consequences
+
+- footprint gains a third body-level construct (pad, courtyard, silkscreen_ref, now mount_hole) — no new top-level declaration kind, no new resolution mechanism.
+- Real new emitter work: the KiCad .kicad_mod emitter projects non_plated as KiCad's own np_thru_hole pad type (the exact precedent this RFC is grounded in) and plated as an ordinary plated through-hole pad with no net; the IPC-2581 emitter projects both as hole/pin geometry with no net reference.
+- New E8xx sub-cases (designators & parts, RFC-018's home for footprint-completeness checks): duplicate mount_hole number within one footprint, missing/malformed diameter, invalid PLATING value.
+- Purely additive — every existing footprint with no mount_hole entries is completely unaffected, unchanged in emitted bytes.
+- A real, disclosed non-goal: this RFC does not distinguish "this hole should have been board-level, not footprint-level" — that's a documentation/convention matter, not something the type system can catch, since both are geometrically identical (a hole at a position).
+
+## Revisit when
+
+If a real footprint needs a non-circular locating feature (a slot, a keyed/D-shaped hole) — extend mount_hole's shape vocabulary via a scoped follow-up RFC, the same extension discipline RFC-001/018 already established, not a silent grammar change. Also revisit if a genuine need for board-level mounting holes emerges — that is separate, not-yet-proposed scope, closer in spirit to board_outline (RFC-020) than to this RFC's footprint-local construct.

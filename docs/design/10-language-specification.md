@@ -590,6 +590,32 @@ Rules:
 - cohdl build projects a resolved footprint's pad geometry into whatever the active emitter needs: a .kicad_mod file for the KiCad .net output, or inline geometry for RFC-015's IPC-2581 document — directly closing RFC-015's own named future-work item (footprint-geometry resolution).
 - pad/footprint's scope is deliberately minimal: no 3D models, no per-layer-independent padstacks (vias, thermal reliefs), no board outline/stackup (still separately unaddressed, per RFC-015).
 
+## Mechanical locating holes (mount_hole)
+
+Accepted via RFC-022, see RFC-022: Mechanical locating holes in footprints (mount_hole) + DR-028. Closes a real gap in the pad/footprint model above: some real footprints require a mechanical locating hole (定位孔) — e.g. a connector shell's alignment-pin holes — which has no electrical function, no net, and no device pin number to bind to. Grounded in KiCad's own established np_thru_hole (non-plated through-hole) precedent for exactly this distinction.
+
+```cohdl
+pub footprint USBC_16P_Shielded {
+    pad 1: Rect_0_25x0_6mm at (-3.5mm, 2.6mm)
+    // ... pads 2-16 ...
+
+    mount_hole 1: non_plated at (-4.32mm, 0mm) diameter 1.2mm
+    mount_hole 2: non_plated at (4.32mm, 0mm) diameter 1.2mm
+
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.5mm, 8.0mm) }
+    silkscreen_ref { at: (0mm, -4.5mm) }
+}
+```
+
+- mount_hole N: PLATING at (x, y) diameter D — a third footprint-body construct alongside pad, courtyard, and silkscreen_ref.
+- N is a locating-hole-local counter, entirely disjoint from pad's pin-bound numbering — a footprint may have pad 1..16 and mount_hole 1..2 in the same declaration with no collision, since they are independently-numbered sequences. mount_hole numbers are never checked against the bound device's declared pins (RFC-002) — this is the defining structural difference from pad, and it is what keeps RFC-018's pad-count/numbering completeness guarantee unconditional rather than requiring a special-cased exception.
+- PLATING is a closed two-value set: non_plated (the common case — a bare mechanical hole) or plated (e.g. a chassis-ground stud, still carrying no net). There is no smd value — a mount_hole is definitionally a hole, never a surface pad.
+- diameter D — a single Length-typed value, required regardless of plating.
+- No layer: field — a mount_hole always spans through_all.
+- Both checks this construct introduces are structural and local to one footprint declaration: no duplicate mount_hole numbers within one footprint; diameter must be present and Length-typed; PLATING must be one of the two closed values. Neither runs in residual DRC.
+- cohdl build projects non_plated as KiCad's own np_thru_hole pad type in the .kicad_mod emitter, and plated as an ordinary plated through-hole pad with no net assigned; the IPC-2581 emitter projects both as hole/pin geometry with no net reference.
+- Explicitly out of scope: board-level mounting holes (a board's own corner screw holes are a design/board-level concept, closer in spirit to board_outline, RFC-020, than to a per-footprint construct) and any non-circular locating feature (slots, keyed/D-shaped holes) — both real, disclosed, deferred gaps, not silently solved.
+
 ## Footprint naming: names must comply with IPC-7351
 
 Accepted (revised twice, same day) via RFC-021, see RFC-021: IPC-7351 as the canonical footprint naming practice + DR-027 (revised twice). Revision history: the original acceptance added a separate, optional ipc_name field alongside an unconstrained footprint symbol name. Same day, first correction: a footprint has one identity and should have one name — the footprint declaration's own identifier (the same name RFC-016's module system resolves) must itself comply with IPC-7351B naming, no new field. Second correction, same day: an intermediate revision had also carried a third-party-CAD-tool-name reference alongside the identifier — this was removed. CoHDL does not track, reference, or map to any third-party CAD tool's footprint library (KiCad, LCEDA, Allegro, or otherwise). Every footprint is CoHDL's own native geometry declaration (RFC-018); this section's naming discipline applies solely to that declaration's own identifier, and nothing else. This section reflects the final design.
@@ -679,6 +705,7 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Arbitrary-angle (non-cardinal) rotation, or an open Angle unit type — explicitly deferred per RFC-020's own direct decision; a scoped future RFC if a real need emerges.
 - place reaching an instance declared inside a called fn — explicitly deferred per Tony's direct decision (RFC-020/DR-026 amendment). place today resolves only against a design's own top-level instances; a component instantiated by a reusable sub-circuit fn (e.g. a connector helper) cannot currently be locked/oriented. A path-qualification mechanism was considered and withdrawn pending a real concrete need.
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
+- Board-level mounting holes, and any non-circular locating-hole shape (slots, keyed/D-shaped holes) — explicitly deferred per RFC-022's own direct decision; the closest existing analog for board-level holes is board_outline (RFC-020), but no construct exists yet.
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-16, RFC-001 through RFC-021 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections — first from a separate ipc_name field to requiring the footprint declaration's own identifier to comply with IPC-7351B naming directly, then to remove a third-party-CAD-tool-footprint-tracking reference entirely, since CoHDL does not track or care about third-party footprint libraries at all).
+As of 2026-07-17, RFC-001 through RFC-022 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent).

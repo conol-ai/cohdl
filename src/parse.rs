@@ -372,6 +372,7 @@ impl<'a> Parser<'a> {
             return None;
         }
         let mut pads = Vec::new();
+        let mut mount_holes = Vec::new();
         let mut courtyard: Option<Courtyard> = None;
         let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
         let mut unclosed = false;
@@ -395,6 +396,12 @@ impl<'a> Parser<'a> {
             if self.at_ident("pad") {
                 if let Some(p) = self.pad_place() {
                     pads.push(p);
+                } else {
+                    self.sync_footprint_body();
+                }
+            } else if self.at_ident("mount_hole") {
+                if let Some(m) = self.mount_hole() {
+                    mount_holes.push(m);
                 } else {
                     self.sync_footprint_body();
                 }
@@ -455,7 +462,7 @@ impl<'a> Parser<'a> {
                     "E806",
                     self.span(),
                     format!(
-                        "a footprint body contains `pad N: Symbol at (x, y)` placements, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
+                        "a footprint body contains `pad N: Symbol at (x, y)` placements, `mount_hole N: PLATING at (x, y) diameter D` holes, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
                         self.peek().describe()
                     ),
                 ));
@@ -473,8 +480,75 @@ impl<'a> Parser<'a> {
         Some(FootprintDef {
             name,
             pads,
+            mount_holes,
             courtyard,
             silkscreen_ref,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// RFC-022: one `mount_hole N: PLATING at (x, y) diameter D` line.
+    fn mount_hole(&mut self) -> Option<crate::ast::MountHole> {
+        use crate::ast::MountHolePlating;
+        let start = self.span();
+        self.bump(); // `mount_hole`
+        let number = match self.peek() {
+            TokenKind::Number(_) | TokenKind::Ident(_) => {
+                let t = self.bump();
+                let text = match t.kind {
+                    TokenKind::Number(text) | TokenKind::Ident(text) => text,
+                    _ => unreachable!(),
+                };
+                PinNumber { text, span: t.span }
+            }
+            other => {
+                self.error_here(format!(
+                    "expected the mount-hole number (e.g. `1`), found {}",
+                    other.describe()
+                ));
+                return None;
+            }
+        };
+        self.expect(&TokenKind::Colon, "after the mount-hole number");
+        let plating = {
+            let v = self.ident("as the plating (`non_plated` or `plated`)")?;
+            match MountHolePlating::from_name(&v.name) {
+                Some(p) => p,
+                None => {
+                    self.diags.push(Diagnostic::error(
+                        "E810",
+                        v.span,
+                        format!(
+                            "`{}` is not a mount-hole plating — platings are: non_plated, plated",
+                            v.name
+                        ),
+                    ));
+                    return None;
+                }
+            }
+        };
+        if !self.eat_ident("at") {
+            self.error_here(format!(
+                "expected `at (x, y)` after the plating, found {}",
+                self.peek().describe()
+            ));
+            return None;
+        }
+        let (x, y) = self.length_pair()?;
+        if !self.eat_ident("diameter") {
+            self.error_here(format!(
+                "expected `diameter D` after the position, found {}",
+                self.peek().describe()
+            ));
+            return None;
+        }
+        let diameter = self.unit_literal("as the mount-hole diameter")?;
+        Some(crate::ast::MountHole {
+            number,
+            plating,
+            x,
+            y,
+            diameter,
             span: start.to(self.prev_span()),
         })
     }

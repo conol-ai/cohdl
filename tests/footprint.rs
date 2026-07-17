@@ -948,3 +948,139 @@ fn fmt_preserves_ipc7351_identifier() {
     let twice = format_source("f.cohdl", &once).unwrap();
     assert_eq!(once, twice, "not idempotent:\n{}", once);
 }
+
+// ---------------------------------------------------------------------------
+// RFC-022 — mechanical locating holes (mount_hole), disjoint from pad numbering.
+
+/// A footprint with two electrical pads AND two mount_holes whose numbers (1, 2)
+/// COLLIDE with the pad numbers — legal, because the two are separate namespaces.
+const MH: &str = r#"
+pub pad P_Rect { shape: rect, size: (0.6mm, 0.7mm), layer: top_copper, plating: smd }
+pub footprint FP_MH {
+    pad 1: P_Rect at (-0.5mm, 0mm)
+    pad 2: P_Rect at (0.5mm, 0mm)
+    mount_hole 1: non_plated at (0mm, 2mm) diameter 3mm
+    mount_hole 2: plated at (0mm, -2mm) diameter 1.5mm
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4mm, 6mm) }
+}
+pub device Dev { pins { A: 1 [passive], B: 2 [passive] } }
+pub part P1: Dev { primary { mfr: "m", mpn: "n", footprint: FP_MH } }
+design B { inst u1: P1  inst u2: P1  net N: u1.A, u2.A  net M: u1.B, u2.B }
+"#;
+
+#[test]
+fn mount_hole_parses_disjoint_from_pads() {
+    let (checked, rendered) = check(&[("src/main.cohdl", MH)]);
+    // mount_hole numbers 1,2 share values with pad numbers 1,2 — no conflict,
+    // and the E807 pad-vs-device check (pins {1,2} vs pads {1,2}) still passes.
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let fp = &checked.world.footprints["board::FP_MH"];
+    assert_eq!(fp.pads.len(), 2);
+    assert_eq!(fp.mount_holes.len(), 2);
+    assert_eq!(fp.mount_holes[0].diameter.text, "3mm");
+    assert_eq!(
+        fp.mount_holes[0].plating,
+        cohdl::ast::MountHolePlating::NonPlated
+    );
+    assert_eq!(fp.mount_holes[1].plating, cohdl::ast::MountHolePlating::Plated);
+}
+
+#[test]
+fn mount_hole_projects_np_and_plated_thru_hole() {
+    let files = vec![("src/main.cohdl".to_string(), MH.to_string())];
+    let mut checked = check_files_in("board", &files, None).expect("selection");
+    let _ = build_artifacts(&mut checked, &LockState::default());
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let content = &mods[0].2;
+    // non_plated → KiCad's np_thru_hole with an empty pad number (no net).
+    assert!(
+        content.contains("(pad \"\" np_thru_hole circle (at 0 2) (size 3 3) (drill 3) (layers \"*.Cu\" \"*.Mask\"))"),
+        "{}",
+        content
+    );
+    // plated → an ordinary thru_hole, still an empty pad number (no net).
+    assert!(
+        content.contains("(pad \"\" thru_hole circle (at 0 -2) (size 1.5 1.5) (drill 1.5) (layers \"*.Cu\" \"*.Mask\"))"),
+        "{}",
+        content
+    );
+}
+
+#[test]
+fn mount_hole_ipc_is_nonplated_and_schema_valid() {
+    let files = vec![("src/main.cohdl".to_string(), MH.to_string())];
+    let mut checked = check_files_in("board", &files, None).expect("selection");
+    let _ = build_artifacts(&mut checked, &LockState::default());
+    let ir = checked.ir.as_ref().unwrap();
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    // The schema enum is NONPLATED (no underscore) — a non_plated mount_hole
+    // must emit exactly that, both on its PadstackHoleDef and its board Hole.
+    assert!(xml.contains("platingStatus=\"NONPLATED\""), "{}", xml);
+    // Schema-validate (mirrors the other IPC tests' xmllint gate).
+    let schema = manifest().join("tests/schema/IPC-2581B1.xsd");
+    let tmp = std::env::temp_dir().join("cohdl_mh_ipc.xml");
+    std::fs::write(&tmp, &xml).unwrap();
+    let out = std::process::Command::new("xmllint")
+        .args(["--noout", "--schema"])
+        .arg(&schema)
+        .arg(&tmp)
+        .output();
+    if let Ok(o) = out {
+        assert!(
+            o.status.success(),
+            "IPC-2581 with a mount_hole fails schema validation:\n{}",
+            String::from_utf8_lossy(&o.stderr)
+        );
+    }
+}
+
+#[test]
+fn mount_hole_duplicate_number_is_e810() {
+    let src = MH.replace(
+        "mount_hole 2: plated at (0mm, -2mm) diameter 1.5mm",
+        "mount_hole 1: plated at (0mm, -2mm) diameter 1.5mm",
+    );
+    let (_checked, rendered) = check(&[("src/main.cohdl", &src)]);
+    assert!(rendered.contains("E810"), "{}", rendered);
+    assert!(rendered.contains("duplicate mount_hole number"), "{}", rendered);
+}
+
+#[test]
+fn mount_hole_bad_diameter_is_e810() {
+    // Non-positive diameter.
+    let src = MH.replace("diameter 3mm", "diameter 0mm");
+    let (_c, rendered) = check(&[("src/main.cohdl", &src)]);
+    assert!(rendered.contains("E810"), "non-positive diameter:\n{}", rendered);
+    // Wrong unit (a bare number is not a Length — RFC-001 zero coercion).
+    let src2 = MH.replace("diameter 3mm", "diameter 3ohm");
+    let (_c, rendered2) = check(&[("src/main.cohdl", &src2)]);
+    assert!(rendered2.contains("E810"), "non-Length diameter:\n{}", rendered2);
+}
+
+#[test]
+fn mount_hole_invalid_plating_is_e810() {
+    let src = MH.replace("non_plated at (0mm, 2mm)", "smd at (0mm, 2mm)");
+    let (_c, rendered) = check(&[("src/main.cohdl", &src)]);
+    assert!(rendered.contains("E810"), "{}", rendered);
+    assert!(rendered.contains("not a mount-hole plating"), "{}", rendered);
+}
+
+#[test]
+fn mount_hole_round_trips_through_fmt() {
+    use cohdl::fmt::format_source;
+    let src = "pub footprint F {\n    pad 1: P at (0mm, 0mm)\n    mount_hole 1: non_plated at (0mm, 2mm) diameter 3mm\n    mount_hole 2: plated at (0mm, -2mm) diameter 1.5mm\n}\n";
+    let once = format_source("f.cohdl", src).unwrap();
+    assert!(
+        once.contains("mount_hole 1: non_plated at (0mm, 2mm) diameter 3mm"),
+        "mount_hole preserved by fmt:\n{}",
+        once
+    );
+    assert!(
+        once.contains("mount_hole 2: plated at (0mm, -2mm) diameter 1.5mm"),
+        "{}",
+        once
+    );
+    let twice = format_source("f.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "fmt not idempotent:\n{}", once);
+}

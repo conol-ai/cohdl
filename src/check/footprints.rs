@@ -24,7 +24,10 @@ use std::collections::BTreeSet;
 /// placeholder shape, exempt from the pad-consistency check and from
 /// geometry projection.
 pub fn is_placeholder(fp: &FootprintDef) -> bool {
-    fp.pads.is_empty() && fp.courtyard.is_none() && fp.silkscreen_ref.is_none()
+    fp.pads.is_empty()
+        && fp.mount_holes.is_empty()
+        && fp.courtyard.is_none()
+        && fp.silkscreen_ref.is_none()
 }
 
 pub fn check_pad_consistency(world: &World, diags: &mut Diagnostics) {

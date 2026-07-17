@@ -997,7 +997,10 @@ impl Formatter<'_> {
         let header = format!("{}footprint {}", vis, f.name.name);
         let start = self.line_start(item.decl_span);
         let end = self.line_end(item.span);
-        let has_body = !f.pads.is_empty() || f.courtyard.is_some() || f.silkscreen_ref.is_some();
+        let has_body = !f.pads.is_empty()
+            || !f.mount_holes.is_empty()
+            || f.courtyard.is_some()
+            || f.silkscreen_ref.is_some();
         if !has_body {
             let opener_comment = start != end && self.c.trailing.contains_key(&start);
             if opener_comment || self.has_comments_between(start, end) {
@@ -1015,10 +1018,14 @@ impl Formatter<'_> {
         // Body members in source order (comments keep their positions).
         enum M<'a> {
             Pad(&'a PadPlace),
+            MountHole(&'a MountHole),
             Courtyard(&'a Courtyard),
             Silk(&'a (UnitValue, UnitValue, Span)),
         }
         let mut members: Vec<(u32, M)> = f.pads.iter().map(|p| (p.span.start, M::Pad(p))).collect();
+        for m in &f.mount_holes {
+            members.push((m.span.start, M::MountHole(m)));
+        }
         if let Some(c) = &f.courtyard {
             members.push((c.span.start, M::Courtyard(c)));
         }
@@ -1036,6 +1043,19 @@ impl Formatter<'_> {
                         format!(
                             "pad {}: {} at ({}, {})",
                             p.number.text, p.pad.name, p.x.text, p.y.text
+                        ),
+                    );
+                }
+                M::MountHole(m) => {
+                    self.push(
+                        1,
+                        format!(
+                            "mount_hole {}: {} at ({}, {}) diameter {}",
+                            m.number.text,
+                            m.plating.name(),
+                            m.x.text,
+                            m.y.text,
+                            m.diameter.text
                         ),
                     );
                 }

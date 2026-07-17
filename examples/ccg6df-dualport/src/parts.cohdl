@@ -1,0 +1,66 @@
+// ccg6df-dualport example parts — the per-port VBUS power path + interface
+// header around the std::CCG6DF dual-port USB Type-C controller.
+
+pub trait Transistor {
+    designator_prefix: "Q"
+}
+pub trait CurrentSense {
+    designator_prefix: "R"
+}
+
+// External VBUS consumer-path N-FET (gate driven by CCG6DF VBUS_C_CTRL / NGDO),
+// PowerPAK SO-8 (1-3 Source, 4 Gate, 5-8 Drain). One per port.
+pub device NFET_SO8 {
+    pins {
+        required S: 1, 2, 3 [passive]
+        required G: 4 [input]
+        required D: 5, 6, 7, 8 [passive]
+    }
+}
+impl Transistor for NFET_SO8 {}
+pub part FET_CONSUMER: NFET_SO8 {
+    primary { mfr: "Infineon", mpn: "BSC0902NSI", footprint: SOIC8P127X600X175N }
+}
+
+// 5-mOhm VBUS current-sense resistor (2512) for the CCG6DF CSP/CSN inputs.
+pub device SenseResistor {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+}
+impl CurrentSense for SenseResistor {}
+pub part R_SENSE_5M: SenseResistor {
+    primary { mfr: "Bourns", mpn: "CSS2H-2512R-L500F", footprint: FP_R2512 }
+}
+
+// 1x20 interface header: shared 5V/VSYS/GND, both system VBUS rails, EC + SoC
+// I2C, both ports' USB2 data + HPD, SWD, reset.
+pub device IfaceHeader {
+    pins {
+        required VBUS_IN: 1 [passive]
+        required VBUS_SYS0: 2 [passive]
+        required VBUS_SYS1: 3 [passive]
+        required VSYS: 4 [passive]
+        required V5V: 5 [passive]
+        required GND: 6 [passive]
+        required EC_SCL: 7 [passive]
+        required EC_SDA: 8 [passive]
+        required INT_EC: 9 [passive]
+        required SOC_SCL: 10 [passive]
+        required SOC_SDA: 11 [passive]
+        required DP0: 12 [passive]
+        required DM0: 13 [passive]
+        required DP1: 14 [passive]
+        required DM1: 15 [passive]
+        required HPD0: 16 [passive]
+        required HPD1: 17 [passive]
+        required SWDIO: 18 [passive]
+        required SWDCLK: 19 [passive]
+        required XRES: 20 [passive]
+    }
+}
+impl Connector for IfaceHeader {}
+pub part J_IFACE: IfaceHeader {
+    primary { mfr: "Generic", mpn: "HDR-1x20-2.54", footprint: FP_Header_1x20 }
+}

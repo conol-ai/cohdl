@@ -25,59 +25,83 @@ pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
     primary { mfr: "HRO", mpn: "TYPE-C-31-M-12", footprint: FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 }
 }
 
-// Infineon EZ-PD CCG6SF — single-port USB Type-C / USB-PD 3.0 port controller
-// (Arm Cortex-M0, integrated CC Rp/Rd, VCONN FETs, VBUS provider load switch +
-// protections, SBU/HS mux). 48-pin QFN. Pinout from datasheet 002-27161 Table 3.
-pub device CCG6SF {
+// Infineon EZ-PD CCG6DF — DUAL-port USB Type-C / USB-PD 3.0 port controller
+// (Arm Cortex-M0; two full Type-C ports, each with CC Rp/Rd, VCONN FETs, VBUS
+// provider load switch + protections, SBU/HS mux). 96-ball BGA. Pinout from
+// datasheet 002-27161 Table 2 (90 documented balls; the four VBUS_C/VBUS_P
+// power groups and VSSD are multi-ball pins).
+pub device CCG6DF {
     pins {
-        required VBUS_C: 1, 2, 3, 48 [power_in] // Type-C VBUS connector input
-        required VBUS_P: 4, 5, 6, 7 [power_in] // VBUS provider input
-        required VSYS: 8 [power_in]
-        required VCCD: 9 [power_out]
-        required VDDIO: 10 [power_in]
-        required VDDD: 11 [power_out]
-        required P3_3: 12 [bidirectional]
-        required SCL_SCB1: 13 [bidirectional]
-        required SWDIO: 14 [bidirectional]
-        required SWDCLK: 15 [bidirectional]
-        required SDA_SCB1: 16 [bidirectional]
-        required INT_TBT: 17 [bidirectional]
-        required DP_TOP: 18 [bidirectional]
-        required DM_TOP: 19 [bidirectional]
-        required DP_BOT: 20 [bidirectional]
-        required DM_BOT: 21 [bidirectional]
-        required DM_SYS: 22 [bidirectional]
-        required DP_SYS: 23 [bidirectional]
-        required UART_TX: 24 [bidirectional]
-        required UART_RX: 25 [bidirectional]
-        required INT_EC: 26 [bidirectional]
-        required HPD: 27 [bidirectional]
-        required SDA_SCB2: 28 [bidirectional]
-        required SCL_SCB2: 29 [bidirectional]
-        required P2_3: 30 [bidirectional]
-        required P2_4: 31 [bidirectional]
-        required SCL_SCB0: 32 [bidirectional]
-        required SDA_SCB0: 33 [bidirectional]
-        required XRES: 34 [input]
-        required P3_0: 35 [bidirectional]
-        required SDA_SCB3: 36 [bidirectional]
-        required SCL_SCB3: 37 [bidirectional]
-        required CSN: 38 [input]
-        required CSP: 39 [input]
-        required SBU2_SYS: 40 [bidirectional]
-        required SBU1_SYS: 41 [bidirectional]
-        required SBU1: 42 [bidirectional]
-        required SBU2: 43 [bidirectional]
-        required CC2: 44 [bidirectional]
-        required V5V: 45 [power_in]
-        required CC1: 46 [bidirectional]
-        required VBUS_C_CTRL: 47 [output]
-        required EP: 49 [passive] // exposed GND/thermal pad
+        required CC1_P0: B3 [bidirectional]
+        required CC2_P0: B5 [bidirectional]
+        required DP_SYS_P0: K11 [bidirectional]
+        required DM_SYS_P0: J11 [bidirectional]
+        required UART_TX_P0: H10 [bidirectional]
+        required UART_RX_P0: G10 [bidirectional]
+        required DP_BOT_P0: K10 [bidirectional]
+        required DM_BOT_P0: J10 [bidirectional]
+        required DM_TOP_P0: H11 [bidirectional]
+        required DP_TOP_P0: G11 [bidirectional]
+        required SBU2_P0: A4 [bidirectional]
+        required SBU1_P0: A5 [bidirectional]
+        required SBU1_SYS_P0: B6 [bidirectional]
+        required SBU2_SYS_P0: A6 [bidirectional]
+        required VBUS_C_CTRL_P0: A3 [output]
+        required CSP_P0: A11 [input]
+        required CSN_P0: A10 [input]
+        required V5V_P0: B4 [power_in]
+        required HPD_P0: F8 [bidirectional]
+        required INT_TBT_P0: L9 [bidirectional]
+        required CC1_P1: K5 [bidirectional]
+        required CC2_P1: K3 [bidirectional]
+        required DP_SYS_P1: L6 [bidirectional]
+        required DM_SYS_P1: L5 [bidirectional]
+        required UART_TX_P1: L4 [bidirectional]
+        required UART_RX_P1: K6 [bidirectional]
+        required DP_BOT_P1: K8 [bidirectional]
+        required DM_BOT_P1: K7 [bidirectional]
+        required DM_TOP_P1: L7 [bidirectional]
+        required DP_TOP_P1: L8 [bidirectional]
+        required SBU2_P1: A9 [bidirectional]
+        required SBU1_P1: A8 [bidirectional]
+        required SBU1_SYS_P1: B7 [bidirectional]
+        required SBU2_SYS_P1: A7 [bidirectional]
+        required VBUS_C_CTRL_P1: L3 [output]
+        required CSP_P1: L11 [input]
+        required CSN_P1: L10 [input]
+        required V5V_P1: K4 [power_in]
+        required HPD_P1: B8 [bidirectional]
+        required INT_TBT_P1: H8 [bidirectional]
+        required SDA_SCB1: K9 [bidirectional]
+        required SCL_SCB1: H7 [bidirectional]
+        required INT_EC: F11 [bidirectional]
+        required P2_4: D10 [bidirectional]
+        required SWDIO: G8 [bidirectional]
+        required SWDCLK: F10 [bidirectional]
+        required SDA_SCB2: E11 [bidirectional]
+        required SCL_SCB2: E10 [bidirectional]
+        required P2_3: E8 [bidirectional]
+        required P2_5: D8 [bidirectional]
+        required SCL_SCB0: D11 [bidirectional]
+        required SDA_SCB0: C11 [bidirectional]
+        required P3_0: B10 [bidirectional]
+        required SDA_SCB3: B11 [bidirectional]
+        required SCL_SCB3: B9 [bidirectional]
+        required XRES: C10 [input]
+        required VSYS: F4 [power_in]
+        required VDDD: G7 [power_out]
+        required VDDIO: F7 [power_in]
+        required VCCD: E7 [power_out]
+        required VBUS_C_P0: A1, A2, B1, B2, C1 [power_in]
+        required VBUS_C_P1: J1, K1, K2, L1, L2 [power_in]
+        required VBUS_P_P0: C2, D1, D2, E1, E2 [power_in]
+        required VBUS_P_P1: G1, G2, H1, H2, J2 [power_in]
+        required VSSD: D7, E5, E6, F1, F2, F5, F6, G4, G5, G6 [passive]
     }
 }
 
-impl IC for CCG6SF {}
+impl IC for CCG6DF {}
 
-pub part TYPEC_CCG6SF: CCG6SF {
-    primary { mfr: "Infineon", mpn: "CYPD6127-48LQXI", footprint: QFN48N40P600X600_1EP460X460 }
+pub part TYPEC_CCG6DF: CCG6DF {
+    primary { mfr: "Infineon", mpn: "CYPD6227-96BZXI", footprint: FP_CCG6DF_96BGA }
 }

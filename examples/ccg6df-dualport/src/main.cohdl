@@ -1,0 +1,122 @@
+// A DUAL-port USB Type-C / USB-PD sample board built around the Infineon
+// EZ-PD CCG6DF (std) 96-BGA controller — the dual-port application from datasheet
+// 002-27161 (Figure 6). One CCG6DF terminates TWO independent Type-C receptacles
+// (each with CC1/CC2 detection + Rp/Rd, SBU, USB 2.0 DP/DM top+bottom flip),
+// meters each VBUS provider path through its own 5-mOhm sense resistor
+// (CSP/CSN_Px) + integrated provider switch, and drives a per-port external
+// consumer N-FET from VBUS_C_CTRL_Px. It talks to an embedded controller (SCB0)
+// and a host SoC (SCB1) over I2C, with per-port USB2 data + HPD, SWD, and reset
+// broken out to a header.
+
+design Ccg6dfDualport {
+    // ---- controller + two Type-C ports ----
+    inst ctrl: TYPEC_CCG6DF
+    inst usbc0: USB_C_HRO_TYPE_C_31_M_12
+    inst usbc1: USB_C_HRO_TYPE_C_31_M_12
+    inst q0: FET_CONSUMER
+    inst q1: FET_CONSUMER
+    inst r_sense0: R_SENSE_5M
+    inst r_sense1: R_SENSE_5M
+    inst j1: J_IFACE
+
+    // ---- VBUS bulk + supply decoupling ----
+    inst c_in: MLCC_10uF_10V_0603
+    inst c_vbusc0: MLCC_10uF_10V_0603
+    inst c_vbusc1: MLCC_10uF_10V_0603
+    inst c_vbusp0: MLCC_1uF_10V_0402
+    inst c_vbusp1: MLCC_1uF_10V_0402
+    inst c_vsys: MLCC_1uF_10V_0402
+    inst c_v5v: MLCC_1uF_10V_0402
+    inst c_vddd: MLCC_1uF_10V_0402
+    inst c_vccd: MLCC_1uF_10V_0402
+    inst c_cc10: MLCC_100nF_16V_0402
+    inst c_cc20: MLCC_100nF_16V_0402
+    inst c_cc11: MLCC_100nF_16V_0402
+    inst c_cc21: MLCC_100nF_16V_0402
+    inst c_xres: MLCC_100nF_16V_0402
+
+    // ---- I2C pull-ups + reset ----
+    inst r_ec_scl: RES_5K1_0402
+    inst r_ec_sda: RES_5K1_0402
+    inst r_soc_scl: RES_5K1_0402
+    inst r_soc_sda: RES_5K1_0402
+    inst r_xres: RES_10K_0402
+
+    // ---- VBUS: shared 5V provider in -> per-port Rsense -> chip provider FET
+    //      -> Type-C VBUS -> per-port consumer NFET -> system ----
+    net VBUS_IN: j1.VBUS_IN, r_sense0.A, r_sense1.A, ctrl.CSN_P0, ctrl.CSN_P1, c_in.A
+    net VBUS_P0: r_sense0.B, ctrl.VBUS_P_P0, ctrl.CSP_P0, c_vbusp0.A
+    net VBUS_P1: r_sense1.B, ctrl.VBUS_P_P1, ctrl.CSP_P1, c_vbusp1.A
+    net VBUS_C0: ctrl.VBUS_C_P0, usbc0.VBUS, q0.D, c_vbusc0.A
+    net VBUS_C1: ctrl.VBUS_C_P1, usbc1.VBUS, q1.D, c_vbusc1.A
+    net VBUS_SYS0: q0.S, j1.VBUS_SYS0
+    net VBUS_SYS1: q1.S, j1.VBUS_SYS1
+    net NGDO0: ctrl.VBUS_C_CTRL_P0, q0.G
+    net NGDO1: ctrl.VBUS_C_CTRL_P1, q1.G
+
+    // ---- chip supplies ----
+    net VSYS: j1.VSYS, ctrl.VSYS, c_vsys.A
+    net V5V: j1.V5V, ctrl.V5V_P0, ctrl.V5V_P1, c_v5v.A
+    net VDDD: ctrl.VDDD, ctrl.VDDIO, c_vddd.A, r_ec_scl.A, r_ec_sda.A, r_soc_scl.A, r_soc_sda.A,
+              r_xres.A
+    net VCCD: ctrl.VCCD, c_vccd.A
+    net GND: ctrl.VSSD, usbc0.GND, usbc0.SHIELD, usbc1.GND, usbc1.SHIELD, j1.GND, c_in.B,
+             c_vbusc0.B, c_vbusc1.B, c_vbusp0.B, c_vbusp1.B, c_vsys.B, c_v5v.B, c_vddd.B, c_vccd.B,
+             c_cc10.B, c_cc20.B, c_cc11.B, c_cc21.B, c_xres.B
+
+    // ---- port 0: CC + SBU + USB 2.0 (top+bottom flip) ----
+    net CC1_0: usbc0.CC1, ctrl.CC1_P0, c_cc10.A
+    net CC2_0: usbc0.CC2, ctrl.CC2_P0, c_cc20.A
+    net SBU1_0: usbc0.SBU1, ctrl.SBU1_P0
+    net SBU2_0: usbc0.SBU2, ctrl.SBU2_P0
+    net DP0_C: usbc0.DP, ctrl.DP_TOP_P0, ctrl.DP_BOT_P0
+    net DM0_C: usbc0.DN, ctrl.DM_TOP_P0, ctrl.DM_BOT_P0
+    net DP0_SYS: ctrl.DP_SYS_P0, j1.DP0
+    net DM0_SYS: ctrl.DM_SYS_P0, j1.DM0
+    net HPD0: ctrl.HPD_P0, j1.HPD0
+
+    // ---- port 1: CC + SBU + USB 2.0 (top+bottom flip) ----
+    net CC1_1: usbc1.CC1, ctrl.CC1_P1, c_cc11.A
+    net CC2_1: usbc1.CC2, ctrl.CC2_P1, c_cc21.A
+    net SBU1_1: usbc1.SBU1, ctrl.SBU1_P1
+    net SBU2_1: usbc1.SBU2, ctrl.SBU2_P1
+    net DP1_C: usbc1.DP, ctrl.DP_TOP_P1, ctrl.DP_BOT_P1
+    net DM1_C: usbc1.DN, ctrl.DM_TOP_P1, ctrl.DM_BOT_P1
+    net DP1_SYS: ctrl.DP_SYS_P1, j1.DP1
+    net DM1_SYS: ctrl.DM_SYS_P1, j1.DM1
+    net HPD1: ctrl.HPD_P1, j1.HPD1
+
+    // ---- I2C to the embedded controller (SCB0) and the host SoC (SCB1) ----
+    net EC_SCL: ctrl.SCL_SCB0, j1.EC_SCL, r_ec_scl.B
+    net EC_SDA: ctrl.SDA_SCB0, j1.EC_SDA, r_ec_sda.B
+    net SOC_SCL: ctrl.SCL_SCB1, j1.SOC_SCL, r_soc_scl.B
+    net SOC_SDA: ctrl.SDA_SCB1, j1.SOC_SDA, r_soc_sda.B
+    net INT_EC: ctrl.INT_EC, j1.INT_EC
+
+    // ---- SWD debug + reset ----
+    net SWDIO: ctrl.SWDIO, j1.SWDIO
+    net SWDCLK: ctrl.SWDCLK, j1.SWDCLK
+    net XRES: ctrl.XRES, r_xres.B, c_xres.A, j1.XRES
+
+    // ---- unused alt-function / secondary-bus pins ----
+    nc: ctrl.UART_TX_P0, ctrl.UART_RX_P0, ctrl.SBU1_SYS_P0, ctrl.SBU2_SYS_P0, ctrl.INT_TBT_P0,
+        ctrl.UART_TX_P1, ctrl.UART_RX_P1, ctrl.SBU1_SYS_P1, ctrl.SBU2_SYS_P1, ctrl.INT_TBT_P1,
+        ctrl.P2_3, ctrl.P2_4, ctrl.P2_5, ctrl.P3_0, ctrl.SDA_SCB2, ctrl.SCL_SCB2, ctrl.SDA_SCB3,
+        ctrl.SCL_SCB3
+
+    // ---- layout: controller centered, a Type-C port on each side, header below ----
+    layout {
+        net_class HighSpeed { DP0_C, DM0_C, DP1_C, DM1_C, DP0_SYS, DM0_SYS, DP1_SYS, DM1_SYS }
+        diff_pair(DP0_C, DM0_C)
+        diff_pair(DP1_C, DM1_C)
+        board_outline: "mechanical/ccg6df-dualport-outline.dxf"
+        place ctrl at (0mm, 2mm)
+        place usbc0 at (-14mm, -18mm) rotate 180
+        place usbc1 at (14mm, -18mm) rotate 180
+        place r_sense0 at (-14mm, -6mm)
+        place q0 at (-21mm, 2mm)
+        place r_sense1 at (14mm, -6mm)
+        place q1 at (21mm, 2mm)
+        place j1 at (0mm, 23mm)
+    }
+}

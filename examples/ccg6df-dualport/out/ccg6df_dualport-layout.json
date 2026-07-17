@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "HighSpeed", "nets": ["DP0_C", "DM0_C", "DP1_C", "DM1_C", "DP0_SYS", "DM0_SYS", "DP1_SYS", "DM1_SYS"] }
+  ],
+  "diff_pairs": [
+    { "p": "DP0_C", "n": "DM0_C" },
+    { "p": "DP1_C", "n": "DM1_C" }
+  ],
+  "length_matches": [],
+  "board_outline": { "source": "mechanical/ccg6df-dualport-outline.dxf", "start": [-37, -27], "segments": [{ "type": "line", "to": [37, -27] }, { "type": "line", "to": [37, 27] }, { "type": "line", "to": [-37, 27] }, { "type": "line", "to": [-37, -27] }] },
+  "placements": [
+    { "instance": "Ccg6dfDualport::ctrl", "at": [0, 2], "rotate": 0 },
+    { "instance": "Ccg6dfDualport::usbc0", "at": [-14, -18], "rotate": 180 },
+    { "instance": "Ccg6dfDualport::usbc1", "at": [14, -18], "rotate": 180 },
+    { "instance": "Ccg6dfDualport::r_sense0", "at": [-14, -6], "rotate": 0 },
+    { "instance": "Ccg6dfDualport::q0", "at": [-21, 2], "rotate": 0 },
+    { "instance": "Ccg6dfDualport::r_sense1", "at": [14, -6], "rotate": 0 },
+    { "instance": "Ccg6dfDualport::q1", "at": [21, 2], "rotate": 0 },
+    { "instance": "Ccg6dfDualport::j1", "at": [0, 23], "rotate": 0 }
+  ],
+  "placement_hints": []
+}

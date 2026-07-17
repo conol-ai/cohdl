@@ -1,0 +1,12 @@
+design.lock
+out/ccg6sf_typec-bom.csv
+out/ccg6sf_typec-layout.json
+out/ccg6sf_typec.net
+out/ccg6sf_typec.xml
+out/footprints/ccg6sf_typec-FP_Header_1x16.kicad_mod
+out/footprints/ccg6sf_typec-FP_R2512.kicad_mod
+out/footprints/ccg6sf_typec-SOIC8P127X600X175N.kicad_mod
+out/footprints/std-CHIP_0402.kicad_mod
+out/footprints/std-CHIP_0603.kicad_mod
+out/footprints/std-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
+out/footprints/std-QFN48N40P600X600_1EP460X460.kicad_mod

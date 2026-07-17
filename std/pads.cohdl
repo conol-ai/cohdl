@@ -279,3 +279,28 @@ pub pad P_TPS59650_EP {
     layer: top_copper
     plating: smd
 }
+
+// Infineon CCG6SF 48-QFN recommended lead land (datasheet Fig 21: 25mil x 8mil
+// = 0.635 x 0.203mm), left/right sides (long axis horizontal).
+pub pad P_CCG6SF_Lead_H {
+    shape: rect
+    size: (0.635mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// CCG6SF lead land, top/bottom sides (long axis vertical).
+pub pad P_CCG6SF_Lead_V {
+    shape: rect
+    size: (0.2mm, 0.635mm)
+    layer: top_copper
+    plating: smd
+}
+
+// CCG6SF exposed thermal/GND pad (4.60 x 4.60mm, datasheet Fig 31).
+pub pad P_CCG6SF_EP {
+    shape: rect
+    size: (4.6mm, 4.6mm)
+    layer: top_copper
+    plating: smd
+}

@@ -811,7 +811,7 @@
       (tstamp "00000050")
     )
     (comp (ref "SW3") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -821,7 +821,7 @@
       (tstamp "00000051")
     )
     (comp (ref "SW4") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -831,7 +831,7 @@
       (tstamp "00000052")
     )
     (comp (ref "SW5") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -841,7 +841,7 @@
       (tstamp "00000053")
     )
     (comp (ref "SW6") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -851,7 +851,7 @@
       (tstamp "00000054")
     )
     (comp (ref "SW7") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -861,7 +861,7 @@
       (tstamp "00000055")
     )
     (comp (ref "SW8") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -871,7 +871,7 @@
       (tstamp "00000056")
     )
     (comp (ref "SW9") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -881,7 +881,7 @@
       (tstamp "00000057")
     )
     (comp (ref "SW10") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -891,7 +891,7 @@
       (tstamp "00000058")
     )
     (comp (ref "SW11") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -901,7 +901,7 @@
       (tstamp "00000059")
     )
     (comp (ref "SW12") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -911,7 +911,7 @@
       (tstamp "0000005A")
     )
     (comp (ref "SW13") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -921,7 +921,7 @@
       (tstamp "0000005B")
     )
     (comp (ref "SW14") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")
@@ -931,7 +931,7 @@
       (tstamp "0000005C")
     )
     (comp (ref "SW15") (value "KeySwitch")
-      (footprint "openmicro::FP_SW_Choc_V1")
+      (footprint "openmicro::FP_SW_Choc_V2")
       (libsource (lib "cohdl") (part "KeySwitch") (description ""))
       (fields
         (field (name "MPN") "WL-LP-SW-55G")

@@ -59,19 +59,22 @@ pub footprint QFP50P900X900X160_48N {
     silkscreen_ref { at: (0mm, -5.2mm) }
 }
 
-// Kailh Choc V1 low-profile keyswitch electrical land (Work Louder
-// WL-LP-SW-55G; NOT Cherry MX). STEM-CENTERED: the origin is the central pole,
-// so placing the switch on a grid cell centers its keycap on the grid. The two
-// plated contacts sit on the NORTH side; the SK6812MINI-E reverse-mount LED
-// goes in the SOUTH window 4.7mm away (placed separately). Pin/pole geometry
-// from the KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V1: pins at
-// (0,-5.9) and (5,-3.8). The central pole (3.45mm) and stabilizer holes (1.9mm
-// at +/-5.5mm) are non-electrical mechanical holes added at fab (CoHDL has no
-// non-plated plating). Pins are a non-polar 2-terminal contact.
-pub footprint FP_SW_Choc_V1 {
+// Kailh Choc V2 low-profile keyswitch land (Work Louder WL-LP-SW-55G;
+// MX-compatible cross stem). STEM-CENTERED: origin = central pole, so placing
+// the switch on a grid cell centers its keycap on the grid. Geometry from the
+// KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V2:
+//   pad 1,2 = the two non-polar electrical contacts, NORTH (0,-5.9) & (5,-3.8);
+//   pad 3   = the Ø5.05 central box-stem hole (locates the MX box stem);
+//   pad 4   = the Ø1.6 MX mounting/locating peg at (-5,+5.15).
+// The SK6812MINI-E reverse-mount LED goes in the SOUTH window 4.7mm away
+// (placed separately). The central hole is NPTH in reality — modeled plated
+// (RFC-018 has no non-plated); pads 3,4 carry no net.
+pub footprint FP_SW_Choc_V2 {
     pad 1: P_Choc_Contact at (0mm, -5.9mm)
     pad 2: P_Choc_Contact at (5mm, -3.8mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (14mm, 14mm) }
+    pad 3: P_ChocV2_Center at (0mm, 0mm)
+    pad 4: P_ChocV2_Peg at (-5mm, 5.15mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (15.5mm, 15.5mm) }
 }
 
 // 1N4148W small-signal diode, SOD-123 (KiCad Diode_SMD:D_SOD-123).

@@ -18,15 +18,36 @@ pub pad P_LQFP48_Lead_V {
     plating: smd
 }
 
-// Kailh Choc V1 (PG1350) low-profile switch electrical contact — the Work
-// Louder Creator Micro ships Choc low-profile switches, NOT Cherry MX. 1.2mm
-// plated hole, 2.2mm pad (KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V1).
+// Kailh Choc V2 (PG1353) low-profile switch electrical contact — MX-compatible
+// cross stem (takes MX keycaps at 19.05mm). 1.2mm plated hole, 2.2mm pad
+// (KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V2; pins unchanged from V1).
 pub pad P_Choc_Contact {
     shape: circle
     size: (2.2mm)
     layer: through_all
     plating: plated_through_hole
     drill: 1.2mm
+}
+
+// Choc V2 central box-stem hole — Ø5.05mm. NON-plated in the real part; RFC-018
+// has no NPTH, so modeled as a plated barrel with a minimal annular ring. The
+// defining V2 difference (V1's center pole is only Ø3.45mm).
+pub pad P_ChocV2_Center {
+    shape: circle
+    size: (5.2mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 5.05mm
+}
+
+// Choc V2 MX-style mounting/locating peg — Ø1.6mm plated hole, 2.6mm pad. The
+// single MX boss that replaces Choc V1's two ±5.5mm guide pins.
+pub pad P_ChocV2_Peg {
+    shape: circle
+    size: (2.6mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1.6mm
 }
 
 // 1N4148W small-signal diode terminal, SOD-123 (KiCad Diode_SMD:D_SOD-123).

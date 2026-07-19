@@ -179,23 +179,23 @@ design OpenMicro {
         board_outline: "mechanical/openmicro-outline.dxf"
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)
-        place sw[0] at (-9.525mm, -28.575mm)
-        place sw[1] at (9.525mm, -28.575mm)
+        place sw[0] at (-9.525mm, -28.575mm) rotate 270
+        place sw[1] at (9.525mm, -28.575mm) rotate 270
         place joy at (27.325mm, -28.575mm)
         // middle two rows: k3..k6, k7..k10
-        place sw[2] at (-28.575mm, -9.525mm)
-        place sw[3] at (-9.525mm, -9.525mm)
-        place sw[4] at (9.525mm, -9.525mm)
-        place sw[5] at (28.575mm, -9.525mm)
-        place sw[6] at (-28.575mm, 9.525mm)
-        place sw[7] at (-9.525mm, 9.525mm)
-        place sw[8] at (9.525mm, 9.525mm)
-        place sw[9] at (28.575mm, 9.525mm)
+        place sw[2] at (-28.575mm, -9.525mm) rotate 270
+        place sw[3] at (-9.525mm, -9.525mm) rotate 270
+        place sw[4] at (9.525mm, -9.525mm) rotate 270
+        place sw[5] at (28.575mm, -9.525mm) rotate 270
+        place sw[6] at (-28.575mm, 9.525mm) rotate 270
+        place sw[7] at (-9.525mm, 9.525mm) rotate 270
+        place sw[8] at (9.525mm, 9.525mm) rotate 270
+        place sw[9] at (28.575mm, 9.525mm) rotate 270
         // bottom row: touch (BL corner), k11+k12 under the 2U cap, k13
         place touch at (-28.575mm, 28.575mm)
-        place sw[10] at (-9.525mm, 28.575mm)
-        place sw[11] at (9.525mm, 28.575mm)
-        place sw[12] at (28.575mm, 28.575mm)
+        place sw[10] at (-9.525mm, 28.575mm) rotate 270
+        place sw[11] at (9.525mm, 28.575mm) rotate 270
+        place sw[12] at (28.575mm, 28.575mm) rotate 270
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         place usbc at (0mm, -43mm) rotate 180
         // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and

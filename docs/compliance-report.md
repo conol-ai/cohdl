@@ -1833,3 +1833,52 @@ reassigned. Structural equivalence was confirmed instead — 98 components → 9
 70 nets → 70, identical net names, identical part-value multiset, and **0 nets
 whose (part-value, pin) membership changed**. Designators are contiguous per
 prefix (C1-27, D1-13, LED1-29, SW1-15, …).
+
+## Choc V2 footprint orientation correction (2026-07-19)
+
+`FP_SW_Choc_V2` was rotated 270° relative to the Kailh PG1353 datasheet's
+"Recommended PCB Layout (Pattern Side)". Every feature was off by the SAME
+uniform rotation — contacts north instead of west, the mounting-leg slot
+lower-left instead of lower-right.
+
+**Why the earlier audit missed it.** When this footprint was first checked
+against the datasheet, the verification compared *relative* angles between
+features (to rule out mirroring, the classic bottom-view mistake). Relative
+angles are rotation-INVARIANT, so a globally-rotated footprint passes that test
+cleanly. The check proved "not mirrored" and was wrongly read as proving
+"correctly oriented". Absolute per-feature orientation must be compared against
+the datasheet frame, not just relative geometry.
+
+Corrected by rebuilding the footprint directly in the datasheet's own frame —
+the only transform now applied is the pattern-side (bottom) → top mirror plus
+KiCad's Y-down convention, `(x, y)_drawing → (-x, -y)`:
+
+| feature | datasheet (as drawn) | footprint |
+|---|---|---|
+| contact (Ø1.20) | (5.90, 0) | pad 1 @ (-5.9, 0) |
+| contact (Ø1.20) | (3.80, 5.00) | pad 2 @ (-3.8, -5) |
+| central pole | Ø5.00 @ (0,0) | mount_hole 1 |
+| mounting leg | 2.00 x 1.50 @ (-5.15, -5.00) | mount_hole 2, `size: (2mm, 1.5mm)` @ (5.15, 5) |
+| in-switch LED pad | (-4.93, 0) | deliberately not modelled (discrete SK6812MINI-E used) |
+
+Note the leg is now `size: (2mm, 1.5mm)` — the datasheet's literal "2*1.5" with
+NO axis swap, where the previous rotated frame required `(1.5mm, 2mm)`. That the
+swap disappeared is itself corroboration that the frame is now right.
+
+A footprint must reproduce the manufacturer's land pattern in the PART's own
+frame; baking a rotation in means every reuse silently inherits it. The board
+keeps its physical orientation by rotating the INSTANCES instead — all 13 key
+placements gained `rotate 270`.
+
+VERIFIED physically neutral: every switch pad and hole (52 rows across 13
+switches) lands at the identical absolute board position with identical
+rotation-aware extents before and after. Confirmed by comparing pad bounding
+boxes, not local drill dimensions — under a 270° rotation `GetDrillSizeX/Y`
+reports the LOCAL 2.00x1.50, which reads as a change while the absolute slot is
+unchanged at 1.50 wide x 2.00 tall.
+
+Operational note found while verifying: `out/*.xml` (the `--emit ipc2581`
+document) is an on-demand artifact and can go stale relative to `layout.json`.
+A stale `.xml` made `tools/kicad_board.py` place the switches unrotated, which
+looked exactly like an emitter bug dropping `rotate 270`. Delete and re-emit
+before trusting IPC-derived geometry.

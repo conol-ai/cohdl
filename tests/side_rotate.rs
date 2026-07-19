@@ -100,7 +100,10 @@ fn pad_rotate_round_trips_through_fmt() {
     let src = "pub footprint F {\n    pad 1: P at (1mm, 2mm)\n    pad 2: P at (-1mm, -2mm) rotate 90\n    pad 3: P at (0mm, 0mm) rotate 180\n}\n";
     let once = format_source("f.cohdl", src).unwrap();
     assert!(once.contains("pad 1: P at (1mm, 2mm)\n"), "{once}");
-    assert!(once.contains("pad 2: P at (-1mm, -2mm) rotate 90"), "{once}");
+    assert!(
+        once.contains("pad 2: P at (-1mm, -2mm) rotate 90"),
+        "{once}"
+    );
     // 180 is geometrically a no-op on a rect but the author's stated fact is
     // preserved verbatim (the RFC: CoHDL does not second-guess it).
     assert!(once.contains("pad 3: P at (0mm, 0mm) rotate 180"), "{once}");
@@ -158,10 +161,7 @@ fn ipc_carries_side_and_mirrored_pads() {
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
     // Component: bottom side rides layerRef + the Xform mirror attribute.
-    assert!(
-        xml.contains("layerRef=\"B.Cu\" mountType=\"SMT\""),
-        "{xml}"
-    );
+    assert!(xml.contains("layerRef=\"B.Cu\" mountType=\"SMT\""), "{xml}");
     assert!(xml.contains("mirror=\"true\""), "{xml}");
     // u1 (top) keeps the pre-RFC-026 layerRef.
     assert!(xml.contains("layerRef=\"F.Cu\" mountType=\"SMT\""), "{xml}");
@@ -183,7 +183,8 @@ fn ipc_with_side_and_pad_rotate_is_schema_valid() {
     let (checked, _a) = build(&full());
     let ir = checked.ir.as_ref().unwrap();
     let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
-    let schema = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/schema/IPC-2581B1.xsd");
+    let schema =
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/schema/IPC-2581B1.xsd");
     let tmp = std::env::temp_dir().join("cohdl_side_rotate_ipc.xml");
     std::fs::write(&tmp, &xml).unwrap();
     let out = std::process::Command::new("xmllint")

@@ -2615,10 +2615,7 @@ impl<'a> Parser<'a> {
                         self.diags.push(Diagnostic::error(
                             "E1008",
                             v.span,
-                            format!(
-                                "`{}` is not a side — sides are: top, bottom",
-                                v.name
-                            ),
+                            format!("`{}` is not a side — sides are: top, bottom", v.name),
                         ));
                         return None;
                     }

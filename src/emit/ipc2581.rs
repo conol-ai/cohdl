@@ -1269,7 +1269,11 @@ fn build_physical(
             // KiCad's own `--version B` export: this reproduces its placement of
             // rotated, y-offset pads exactly; a naive reflection of the final
             // absolute position does not.)
-            let lx = if bottom { -place.x.femto } else { place.x.femto };
+            let lx = if bottom {
+                -place.x.femto
+            } else {
+                place.x.femto
+            };
             let (ox, oy) = rotate(lx, -place.y.femto, rot);
             pads.push(PlacedPad {
                 refdes: refdes.clone(),

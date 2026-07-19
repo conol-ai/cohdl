@@ -42,6 +42,8 @@
 "OpenMicro::ambient_leds_9" = "LED16"
 "OpenMicro::c_bulk" = "C26"
 "OpenMicro::c_vdda" = "C27"
+"OpenMicro::c_x1" = "C28"
+"OpenMicro::c_x2" = "C29"
 "OpenMicro::d_0" = "D1"
 "OpenMicro::d_1" = "D2"
 "OpenMicro::d_10" = "D3"
@@ -97,5 +99,6 @@
 "OpenMicro::swd" = "J2"
 "OpenMicro::touch" = "TP1"
 "OpenMicro::usbc" = "J3"
+"OpenMicro::xtal" = "Y1"
 
 [tombstones]

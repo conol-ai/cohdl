@@ -1,11 +1,13 @@
 RefDes,Value,MPN,Manufacturer,Qty
 "D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13","Diode_1N4148","1N4148W-7-F","Diodes Inc",13
+"Y1","Crystal8MHz","ABM8-8.000MHZ-10-1-U-T","Abracon",1
 "U2","AP2112K_3V3","AP2112K-3.3TRG1","Diodes Inc",1
 "C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15,C16,C17,C18,C19,C20,C21,C22,C23,C24,C25","100nF","CL05B104KO5NNNC","Samsung",25
 "C26","4.7uF","CL10A475KP8NNNC","Samsung",1
 "TP1","CapTouchPad","COPPER-TOUCH-9MM","n/a",1
 "SW1","RotaryEC11","EC11E15244A5","Alps Alpine",1
 "SW2","ResetSwitch","EVQ-P7A01P","Panasonic",1
+"C28,C29","15pF","GRM1555C1H150JA01D","Murata",2
 "C27","1uF","GRM155R61A105KE15D","Murata",1
 "J2","SWD_Header","HDR-1x4-2.54","Generic",1
 "H1,H2,H3,H4","MountingHole","MOUNT-M2-PLATED-2.2MM","n/a",4

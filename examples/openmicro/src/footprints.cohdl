@@ -198,3 +198,15 @@ pub footprint FP_Joystick_RKJXV {
     courtyard { shape: rect, at: (1.25mm, 0mm), size: (18.2mm, 21.7mm) }
     silkscreen_ref { at: (1.25mm, -11.5mm) }
 }
+
+// 8MHz crystal, 3.2x2.5mm 4-pad (KiCad Crystal_SMD_3225-4Pin_3.2x2.5mm).
+// Pin 1 = XIN (bottom-left), 2 = GND, 3 = XOUT (top-right), 4 = GND —
+// electrodes on the 1/3 diagonal, grounds on 2/4, per the ABM8 datasheet.
+pub footprint FP_Crystal_3225 {
+    pad 1: P_XTAL_3225 at (-1.1mm, 0.8mm)
+    pad 2: P_XTAL_3225 at (1.1mm, 0.8mm)
+    pad 3: P_XTAL_3225 at (1.1mm, -0.8mm)
+    pad 4: P_XTAL_3225 at (-1.1mm, -0.8mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3.1mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

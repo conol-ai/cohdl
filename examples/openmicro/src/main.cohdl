@@ -31,6 +31,9 @@ design OpenMicro {
     inst rcc1: R_5K1
     inst rcc2: R_5K1
     inst rboot: R_10K
+    inst xtal: XTAL_8M
+    inst c_x1: C_15p
+    inst c_x2: C_15p
     inst c_bulk: C_4u7
     inst c_vdda: C_1u
 
@@ -41,10 +44,10 @@ design OpenMicro {
     #[intent("AP2112K enable tied to VIN — always on when USB is present")]
     net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
                      joy.Y_END_B, c_vdda.A
-    net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, c_bulk.B, c_vdda.B,
-                   rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2, enc.MNT, joy.X_END_A,
-                   joy.Y_END_A, joy.SW_B, rst.B, mh[0..=3].PAD, key_leds[0..=12].GND,
-                   ambient_leds[0..=15].GND
+    net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, xtal.GND, c_x1.B,
+                   c_x2.B, c_bulk.B, c_vdda.B, rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2,
+                   enc.MNT, joy.X_END_A, joy.Y_END_A, joy.SW_B, rst.B, mh[0..=3].PAD,
+                   key_leds[0..=12].GND, ambient_leds[0..=15].GND
 
     // ---- USB 2.0 through the ESD array (I/O1 = D+, I/O2 = D-) ----
     net USBC_DP: usbc.DP, esd.IO1_A
@@ -58,6 +61,10 @@ design OpenMicro {
     // ---- reset + boot ----
     net NRST: mcu.NRST, rst.A
     net BOOT0: mcu.BOOT0, rboot.A
+
+    // ---- 8MHz HSE crystal (PF0/PF1), 15pF load caps (AN2867, CL=10pF) ----
+    net HSE_IN: mcu.PF0, xtal.XIN, c_x1.A
+    net HSE_OUT: mcu.PF1, xtal.XOUT, c_x2.A
 
     // ---- SWD debug ----
     net SWDIO: mcu.SWDIO, swd.SWDIO
@@ -161,8 +168,8 @@ design OpenMicro {
     decouple(ambient_leds[14].VDD, ambient_leds[14].GND)
     // chain ends float (last DOUT of each chain); SBU unused
     nc: usbc.SBU1, usbc.SBU2, key_leds[12].DOUT, ambient_leds[15].DOUT
-    nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PF0, mcu.PF1, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7,
-        mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
+    nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7, mcu.PB11, mcu.PA15,
+        mcu.PB3, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
 
     // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
     // Physical arrangement transcribed from the Work Louder Creator Micro 2 /

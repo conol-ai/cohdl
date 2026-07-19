@@ -112,3 +112,11 @@ pub pad P_MountHole_M2 {
     plating: plated_through_hole
     drill: 2.2mm
 }
+
+// 3225 4-pad crystal terminal (ABM8-class).
+pub pad P_XTAL_3225 {
+    shape: rect
+    size: (1.4mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}

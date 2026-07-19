@@ -16,9 +16,30 @@ pub trait TestPad {
     designator_prefix: "TP"
 }
 
+pub trait Crystal {
+    designator_prefix: "Y"
+}
+
+// 8MHz HSE crystal, 3225 4-pad. The F072 can run USB crystal-less (HSI48+CRS,
+// incl. the DFU bootloader) — the crystal is fitted belt-and-braces per direct
+// review: HSE/PLL clocking with HSI48+CRS still available as fallback.
+pub device Crystal8MHz {
+    pins {
+        required XIN: 1 [passive]
+        required XOUT: 3 [passive]
+        required GND: 2, 4 [passive]
+    }
+}
+impl Crystal for Crystal8MHz {}
+// 10pF-load crystal; AN2867: C_load = 2*(CL - Cstray) = 2*(10 - 2.5) = 15pF.
+pub part XTAL_8M: Crystal8MHz {
+    primary { mfr: "Abracon", mpn: "ABM8-8.000MHZ-10-1-U-T", footprint: FP_Crystal_3225 }
+}
+
 // ---- STM32F072CBT6: the MCU (LQFP-48). All 48 pads declared; PA8-PA15
 // (incl. USB PA11/PA12 and SWD PA13/PA14) are VDDIO2-powered (pin 36 tied
-// to VDD). Crystal-less USB via HSI48+CRS. ----
+// to VDD). HSE crystal on PF0/PF1; crystal-less HSI48+CRS remains a
+// fallback. ----
 pub device STM32F072CBT6 {
     pins {
         required VDD: 24, 48 [power_in]
@@ -249,6 +270,9 @@ pub part C_1u: MLCC<1uF, 10V, 10%>[C0402] {
 }
 pub part C_4u7: MLCC<4.7uF, 10V, 20%>[C0603] {
     primary { mfr: "Samsung", mpn: "CL10A475KP8NNNC", footprint: CHIP_0603 }
+}
+pub part C_15p: MLCC<15pF, 50V, 5%>[C0402] {
+    primary { mfr: "Murata", mpn: "GRM1555C1H150JA01D", footprint: CHIP_0402 }
 }
 
 // reusable decoupling sub-circuit

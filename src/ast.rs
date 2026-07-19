@@ -169,7 +169,10 @@ pub struct PadDef {
     pub span: Span,
 }
 
-/// One `pad N: PadSymbol at (x, y)` placement inside a footprint body.
+/// One `pad N: PadSymbol at (x, y) [rotate ANGLE]` placement inside a
+/// footprint body. RFC-025: `rotate` reuses RFC-020's closed {0, 90, 180, 270}
+/// set — a placement-time fact layered on the referenced pad symbol's own
+/// (never-mutated) geometry. 0 = unrotated, the pre-RFC-025 meaning.
 #[derive(Debug, Clone)]
 pub struct PadPlace {
     /// Must match one of the bound device's physical pin numbers.
@@ -178,6 +181,9 @@ pub struct PadPlace {
     pub pad: Ident,
     pub x: UnitValue,
     pub y: UnitValue,
+    /// RFC-025; `u16::MAX` marks an unparseable value (fails the closed-set
+    /// check at declaration, same convention as `Placement::rotate`).
+    pub rotate: u16,
     pub span: Span,
 }
 
@@ -730,7 +736,36 @@ pub struct Placement {
     pub index: Option<(i64, Span)>,
     pub at: (UnitValue, UnitValue),
     pub rotate: u16,
+    /// RFC-026: `side top | bottom` — which outer face the whole component
+    /// sits on. `Top` is the default and the pre-RFC-026 meaning; mirroring a
+    /// bottom-side footprint is emitter work, never computed here.
+    pub side: PlacementSide,
+    /// The `side` clause's span when written (diagnostics); `None` = defaulted.
+    pub side_span: Option<Span>,
     pub span: Span,
+}
+
+/// RFC-026's closed two-value side set. There are exactly two outer faces.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlacementSide {
+    Top,
+    Bottom,
+}
+
+impl PlacementSide {
+    pub fn name(self) -> &'static str {
+        match self {
+            PlacementSide::Top => "top",
+            PlacementSide::Bottom => "bottom",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<PlacementSide> {
+        Some(match s {
+            "top" => PlacementSide::Top,
+            "bottom" => PlacementSide::Bottom,
+            _ => return None,
+        })
+    }
 }
 
 /// `board_outline: "path.dxf"` (RFC-020) — a reference to a DXF file from

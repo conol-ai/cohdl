@@ -979,6 +979,25 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
+        // RFC-025: a pad placement's rotation is RFC-020's closed set,
+        // checked at declaration (E811) exactly like `place`'s own E1007.
+        for pp in &fp.pads {
+            if !matches!(pp.rotate, 0 | 90 | 180 | 270) {
+                let shown = if pp.rotate == u16::MAX {
+                    "that value".to_string()
+                } else {
+                    pp.rotate.to_string()
+                };
+                diags.push(Diagnostic::error(
+                    "E811",
+                    pp.span,
+                    format!(
+                        "pad `{}` in footprint `{}`: `rotate {}` is not one of the allowed rotations {{0, 90, 180, 270}}",
+                        pp.number.text, fp.name.name, shown
+                    ),
+                ));
+            }
+        }
         // RFC-022 mount_hole checks — structural, local, numbered in their OWN
         // namespace (never compared with pad numbers or the bound device's pins).
         let mut mh_seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();

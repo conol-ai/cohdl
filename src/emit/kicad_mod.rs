@@ -142,14 +142,23 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             .as_ref()
             .map(|(v, _)| format!(" (drill {})", geom::mm(v)))
             .unwrap_or_default();
+        // RFC-025: a rotated placement uses KiCad's own 3-argument
+        // `(at x y angle)` pad form, size UNCHANGED — the declared rotation is
+        // preserved losslessly rather than silently swapping w/h.
+        let angle = if place.rotate != 0 {
+            format!(" {}", place.rotate)
+        } else {
+            String::new()
+        };
         let _ = writeln!(
             s,
-            "  (pad \"{}\" {} {} (at {} {}) (size {} {}){} (layers {}))",
+            "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}))",
             place.number.text,
             kind,
             kshape,
             geom::mm(&place.x),
             geom::mm(&place.y),
+            angle,
             w,
             h,
             drill,

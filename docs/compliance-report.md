@@ -1924,3 +1924,48 @@ geometry, misaligning every LED with its switch window. All 13 per-key LEDs are
 now centred on (0, +4.93) switch-relative. Verified: 13/13 centred, zero
 LED-pad-vs-switch-hole clashes (the offset's original reason is gone), zero
 different-net pad overlaps, 385 tests, IPC-2581 schema-valid.
+
+## RFC-025 (rotated pad placements) implementation notes (2026-07-20)
+
+`pad N: Sym at (x, y) [rotate ANGLE]` — RFC-020's closed {0, 90, 180, 270} set
+reused verbatim on `PadPlace`. Checked at declaration as E811 (new row), the
+same shape as `place`'s E1007. `fmt` renders the clause trailing and never
+spells out the default 0, so pre-RFC-025 footprints stay byte-identical.
+KiCad emitter: the accepted text's lossless option — KiCad's own 3-argument
+`(at x y angle)` with `size` UNCHANGED, never a silent w/h swap. IPC-2581: the
+pad's own rotation COMPOSES with the component's (`(comp + pad) % 360`) into
+the per-pad `<Xform rotation>` the emitter already carried; position is
+unaffected (rotation is about the pad's own centre). `rotate 180` on a rect is
+accepted as the documented no-op. Circle pads accept any value (no-op), per
+the RFC.
+
+## RFC-026 (back-side placement) implementation notes (2026-07-20)
+
+`place <inst> at (x, y) [rotate ANGLE] [side SIDE]` — closed {top, bottom},
+default top; E1008 (new row). `rotate` and `side` parse in either order;
+`fmt` canonicalizes to rotate-then-side and never writes `side top`.
+
+- **layout.json**: `"side": "bottom"` emitted ONLY for bottom placements — a
+  top-side placement's JSON object is byte-identical to its pre-RFC-026 form.
+- **IPC-2581**: bottom components ride `layerRef="B.Cu"` + `mirror="true"` on
+  the Component `Xform` (both existing schema machinery; xmllint-gated).
+  Physical model: pad local x mirrors BEFORE rotation — the same
+  flip-then-orient order pcbnew's own native convention applies — verified by
+  an exact-Location test on an asymmetric footprint. Bottom SMD copper/mask/
+  paste land on B.Cu/B.Mask/B.Paste `LayerFeature`s (B.Paste was already in
+  the stackup); SMD padstack DEFS split by side so a bottom padstack's
+  `PadstackPadDef`s name the B-layers. Through-hole pads span both faces
+  regardless of component side; mount_hole positions mirror with the body.
+- **tools/kicad_board.py**: reads Component `layerRef`; a B.Cu component is
+  `Flip(anchor, True)`-ped then rotated — found and fixed a headless-pcbnew
+  segfault: `FOOTPRINT::Flip` consults the owning board's layer table, so it
+  must be called only AFTER `board.Add(fp)`.
+
+First consumer: `examples/openmicro` — all 13 matrix diodes are now pre-placed
+`side bottom`, vertical, one south of each key aligned under the switch's
+B-contact column, and the USBLC6 ESD array is pre-placed at (7, -38.5) tight
+to the USB-C receptacle on the USB2 path. First attempt put the diode column
+NORTH of each key at x+5, which landed D1's pad exactly on J3's shield-hole
+column (caught by the layer-aware overlap scan) — moved south. Verified:
+13/13 diodes on B.Cu, ESD front-side by the port, 0 different-net same-layer
+pad overlaps, 393 tests, fmt canonical, IPC-2581 schema-valid.

@@ -67,6 +67,8 @@ pub struct LayoutPlacement {
     pub path: String,
     pub at: (UnitValue, UnitValue),
     pub rotate: u16,
+    /// RFC-026: which outer face the component sits on.
+    pub side: crate::ast::PlacementSide,
 }
 
 #[derive(Debug)]

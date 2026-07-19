@@ -772,9 +772,75 @@ RFC-018 is revised throughout: every copad reference becomes pad (the top-level 
 
 N/A — this is a same-day naming correction, not a design decision with its own future trigger. See DR-024's original "Revisit when" (padstack richness, vocabulary breadth) for the design's actual future triggers, unaffected by this naming correction.
 
+# DR-031: Rotated pad placements — reuse RFC-020's closed rotation set, explicit field over size-swap
+
+## Context
+
+Tony directed a new RFC to close a real gap: component placement (place, RFC-020) supports rotation, but pad placement (pad N: PadSymbol at (x, y), RFC-018) does not — confirmed against real source (src/ast.rs's PadPlace struct: number, pad, x, y, no rotation field). The real, concrete trigger: QFN and LQFP footprints place the same pad shape on all four package sides, with top/bottom-side pads rotated 90° relative to left/right-side pads — confirmed against a real KiCad QFN-20-1EP_4x4mm footprint (fetched and inspected), which places 0.825mm x 0.25mm pads on the left/right sides and the same physical pad, rotated 90° (rendered as 0.25mm x 0.825mm), on top/bottom. Confirmed the real KiCad .kicad_mod pad format itself does support a genuine (at x y angle) rotation argument (used for non-cardinal cases like 22°-angled connector pads), but the real QFN footprint file inspected does not use it — it achieves the rotated appearance by swapping width/height instead.
+
+## Options
+
+1. Swap size: (w, h) to (h, w) per rotated pad placement, matching what real hand-authored KiCad libraries actually do — no new grammar at all.
+2. An explicit, optional rotate: ANGLE clause on pad's existing at (x, y) placement statement, closed to the same {0, 90, 180, 270} set RFC-020 already established for place, layered on top of the referenced pad symbol's own unchanged geometry (RFC-025's proposal).
+3. A general 2D transform (arbitrary angle + mirroring) on pad placement.
+4. Infer rotation automatically from which edge of the footprint a pad is positioned on.
+
+## Decision
+
+Option 2. pad N: PadSymbol at (x, y) [rotate ANGLE] — rotate is optional, closed to {0, 90, 180, 270}, defaults to 0 (unrotated, preserving every existing pad placement's meaning). The referenced pad symbol's own shape/size fields are never mutated or restated — rotation is purely a placement-time fact, mirroring exactly how RFC-020's place ... rotate relates to a component's already-declared footprint.
+
+## Rationale
+
+Option 1 (size-swap, no new grammar) was rejected despite being real, observed, existing practice: it would force an author to define two separate pad symbols (e.g. Rect_0_825x0_25mm and Rect_0_25x0_825mm) for what is conceptually one physical pad shape used at two orientations — directly undermining RFC-018's own "define once, place by reference many times" reuse discipline, and silently discarding the authorial fact "these are the same pad, just rotated," which a future consumer (a library-consistency linter, a 3D-model viewer) might reasonably need. Option 3 (general transform) was rejected per this project's recurring narrow-scope-first discipline (RFC-001's closed units, RFC-018's rect/circle/oval-only shapes, RFC-020's own closed rotation set) — no concrete need for non-cardinal angles or mirroring has been shown. Option 4 (infer from footprint edge) was rejected: CoHDL has no "footprint edge" concept, and inventing one purely to avoid one explicit field is unjustified new machinery for a fact an author can state directly — the same "explicit over inferred" call already made for shape: in RFC-018/023.
+
+## Consequences
+
+- No new core concept — rotate extends PadPlace (RFC-018's own construct), directly reusing RFC-020's exact closed rotation-angle set and keyword, in a structurally analogous but distinct position (footprint-local coordinates, not board coordinates).
+- Real, disclosed emitter divergence from typical hand-authored KiCad library convention: rather than silently swapping a rotated rect/oval pad's width/height and omitting KiCad's own angle argument (what real KiCad libraries do today), CoHDL's .kicad_mod emitter emits the pad's unrotated size unchanged plus a real (at x y angle) argument — preserving the author's stated rotation fact losslessly, at the cost of not matching the cosmetic convention of hand-authored KiCad libraries byte-for-byte.
+- For circle pads, rotate is accepted but is a structural no-op (a circle has no orientation) — an intentional non-special-case, not an inconsistency, so an author copy-pasting a rotation pattern across mixed pad shapes never needs to branch on shape.
+- Real new emitter work required in both the KiCad .kicad_mod and IPC-2581 backends — this is not a free re-projection of existing data (Coherence Matrix's Netlist row is Med, not Low, honestly reflecting this).
+- Purely additive — every pre-existing pad N: ... at (x, y) statement (no rotate) is unchanged in meaning and in every emitted byte.
+
+## Revisit when
+
+If a real footprint need for arbitrary-angle (non-cardinal) pad rotation or pad mirroring emerges — that would be a scoped follow-up extending the closed set, or a new mechanism, not a reason to have opened it now. Also revisit if real KiCad-library round-tripping reveals the "unchanged size + explicit angle" emitter choice causes real interoperability friction with tools that expect the swapped-size convention instead.
+
+# DR-032: Component placement on the board's back side — a new closed side clause on place, kept distinct from pad.layer
+
+## Context
+
+Tony directed a new RFC to close a real gap: every place statement (RFC-020) is implicitly, unconditionally top-side — confirmed against real source (src/ast.rs's Placement struct: inst, at, rotate, no side/layer field). Dual-sided boards routinely place components on the bottom side (e.g. bulk decoupling caps, secondary connectors, backside shield tabs) — a real, universal PCB fact CoHDL currently cannot express at all. Confirmed against the real KiCad .kicad_pcb format (KiCad's own dev-docs file-format reference): a placed footprint's board side is a real, distinct property of the placement itself — (layer F.Cu) vs (layer B.Cu) — separate from (at x y angle), and placing on the back requires the footprint's pad geometry to be mirrored, a real, standard PCB CAD convention, not mere relabeling.
+
+## Options
+
+1. Model board side as a property of the footprint declaration itself (e.g. a footprint-level default_side field).
+2. Model board side as a property of the inst declaration rather than place.
+3. A new, optional side: SIDE clause on place's existing Placement statement, closed to {top, bottom}, defaulting to top, fully independent of and composable with the existing rotate clause (RFC-026's proposal).
+4. A general mirror/flip transform with an arbitrary reflection axis.
+5. Reuse RFC-018's pad.layer (top_copper/bottom_copper) at the placement level instead of introducing a new side clause.
+
+## Decision
+
+Option 3. place at (x, y) [rotate ANGLE] [side SIDE] — side is optional, closed to {top, bottom}, defaults to top (preserving every existing placement's meaning). Fully independent of rotate — either, both, or neither may appear; rotate's meaning (measured in the placement's own, possibly-mirrored frame) is unchanged by side's value.
+
+## Rationale
+
+Option 1 (footprint-level side) was rejected: a footprint's own declaration describes reusable geometry independent of any specific board's layout — the same generic footprint is placed top-side on some boards and bottom-side on others, so "which side" cannot correctly be a fact of the reusable symbol itself. Option 2 (inst-level side) was rejected for the same reason RFC-020 already keeps rotate on place rather than inst: placement facts (position, rotation, now side) belong together in the layout {} block where a design lays itself out, not scattered across inst declarations. Option 4 (general mirror transform) was rejected per this project's recurring narrow-scope-first discipline (RFC-001's closed units, RFC-020's own closed rotation set, RFC-025's closed pad-rotation set) — a PCB has exactly two sides; no concrete need for an arbitrary reflection axis exists. Option 5 (reuse pad.layer) was rejected: pad.layer answers a narrower, different question (which single copper layer one pad occupies within an otherwise-fixed footprint), not "which side of the board is this whole component on" — conflating the two would repeat exactly the category-error mistake RFC-022 already avoided when it kept mount_hole distinct from pad rather than merging them.
+
+## Consequences
+
+- No new core concept — side extends Placement (RFC-020's own construct), directly parallel in shape and discipline to rotate (same statement, same closed-set-with-default pattern), fully independent and composable with it.
+- Real, disclosed, genuinely new emitter work required: the KiCad .kicad_pcb emitter must emit (layer B.Cu) on a side: bottom instance's placed footprint and mirror every one of its pad coordinates (X-axis reflection) before emission — real geometry work, not a free re-projection of existing data (Coherence Matrix's Netlist row is Med, not Low, honestly reflecting this). The IPC-2581 emitter carries side via its own existing per-component side/layer attribute.
+- Deliberately kept fully independent from RFC-018's pad.layer concept — the two mechanisms answer genuinely different questions (whole-component board side vs. one pad's copper layer within an otherwise-fixed footprint) and must never be confused or merged.
+- Purely additive — every pre-existing place statement (no side) is unchanged in meaning and in every emitted byte.
+
+## Revisit when
+
+If a real need for board-level layer stackup (inner layers, not just the two outer sides) emerges — that remains RFC-015's own separately-named, still-open future work, not something this RFC's two-value {top, bottom} set should be stretched to cover. Also revisit if a genuine need for per-pad side overrides distinct from a whole-component flip emerges from real usage — that would be a scoped extension to pad.layer, not to this RFC's side clause.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-019 is fully recorded above.)
+(none — the backlog through RFC-026 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 
@@ -1019,3 +1085,35 @@ Option 1 was rejected as premature/over-scoped, per this project's own recurring
 ## Revisit when
 
 If a real design's repetition need genuinely requires daisy-chain wiring support or arithmetic-derived per-instance place/decouple data — both are real, named gaps in this RFC's own Non-goals, and either would need its own properly-scoped follow-up RFC, not a silent expansion of this one's grammar. Also revisit if real usage reveals a genuine need for sparse index sets beyond a single stride or explicit list (this RFC's two supported forms) — extend via a scoped follow-up, the same discipline this RFC itself already exercises for its own two-form design.
+
+# DR-030 revision (same day): array-typed instances with real indexed references, not name-expansion sugar
+
+## Context
+
+Same day as DR-030's original acceptance, Tony directly corrected RFC-024's design. The original draft made inst NAME[START..=END]: Device pure name-expansion sugar — sw[1..=13]: SW_KEY meant nothing beyond thirteen separately-named flat instances sw1..sw13, and the range form was usable only inside a net's member list. Tony's actual request: inst key_leds: [RGB_SK6812; 13] — one real, array-typed instance, indexed by a literal (key_leds[0]) anywhere an instance reference is valid, not a naming trick scoped to one syntactic position. Confirmed against real source (src/ast.rs): PinRef.base (used by net members, and by place/decouple's instance arguments per src/check/expand.rs) is always a bare Ident today — there is no indexed-reference grammar anywhere, and the original draft's design would not have helped: OpenMicro's real WS2812 daisy-chain wiring and its real per-LED place statements both need to address one specific array element by index, which a net-member-only range-fan-out sugar cannot express.
+
+## Options
+
+1. Keep the original draft's design (name-expansion sugar, range only inside net-member lists) — rejected outright per Tony's direct correction; cannot address daisy-chain wiring or per-element place/decouple, the actual motivating need.
+2. inst NAME: [Device; N] declares one real array-typed instance; NAME[i] (i a literal integer) is a real reference form valid everywhere an ordinary instance reference already is (net members, place, decouple, fn-call arguments) — resolving to one fully real, individually-checked instance element, with a range/list fan-out sugar kept available inside net-member lists only, now defined over the real indexing mechanism (RFC-024's revised proposal).
+3. Also introduce a general for/loop construct in the same RFC, so daisy-chain nets and per-element place data can be auto-generated.
+4. Multi-dimensional arrays (e.g. sw[row][col]) in the same RFC.
+
+## Decision
+
+Option 2. inst NAME: [Device; N] is the array-typed declaration; NAME[i] is real, generalized, indexed reference syntax, valid in every position a bare instance name already is. A net-member-list-only range/list fan-out sugar (NAME[START..=END].PIN, NAME[i1, i2, ...].PIN) remains available, now defined as sugar over NAME[i] rather than being the only indexing mechanism in the language.
+
+## Rationale
+
+Option 1 was never a live option once Tony raised the correction — it was the exact defect being pointed out: a range usable only inside one net's member list cannot express "wire element i's DOUT to element i+1's DIN across an entire chain" or "place element i at its own specific coordinates," both real needs visible in OpenMicro's actual source. Option 3 (bundle a loop construct in the same RFC) was rejected as still premature, unchanged in spirit from the original draft's own reasoning: a loop construct that usefully closes daisy-chaining and grid-place needs to solve computed/arithmetic per-iteration data, which deserves its own focused design once array-typed instances (this RFC) exist as the foundation such a construct would iterate over — not rushed into this RFC just because the correction made the underlying gap more visible. Option 4 (multi-dimensional arrays) was rejected as premature: OpenMicro's own keyboard matrix is expressed via ROW/COL nets, not a 2D instance grid, and no other concrete need has been shown.
+
+## Consequences
+
+- Real, higher conceptual cost than the withdrawn first draft honestly claimed: an instance reference is no longer always a bare identifier — NAME[i] is a genuine addition to the reference grammar, present everywhere a reference appears (net members, place, decouple, fn-call arguments), not a narrow, disappearing-at-parse-time sugar. This RFC's Coherence Matrix Concepts/Grammar/Diagnostics rows are revised upward (Low → Med) from the withdrawn draft's, honestly disclosed as a bigger, more capable mechanism, not re-inflating the same claim.
+- Real new checking surface at every reference position, not just one: out-of-bounds index checking must run wherever NAME[i] appears (net member, place target, decouple argument, fn-call argument), not only inside net-member lists as the withdrawn draft assumed.
+- Still does NOT solve daisy-chain auto-generation or arithmetic-derived per-element place/decouple data — an author still writes one net/place/decouple statement per array element by hand; this RFC makes each such statement correctly, individually addressable (a real checked reference to a real element) but does not generate the statements. Disclosed as real, deferred future work, not silently implied solved.
+- Purely additive relative to plain, non-array inst statements — every existing hand-declared instance and its bare-name references are completely unaffected.
+
+## Revisit when
+
+If a real design's repetition need genuinely requires auto-generated daisy-chain wiring or arithmetic-derived per-element place/decouple data — array-typed instances (this RFC) are the natural foundation such a construct would iterate over, but designing it well is separate, not-yet-proposed scope, to be triggered by a real concrete need rather than bundled in speculatively. Also revisit if a genuine need for multi-dimensional arrays emerges from real matrix/grid-shaped hardware.

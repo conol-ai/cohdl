@@ -84,6 +84,13 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         .iter()
         .map(|p| (p.path.clone(), p.rotate))
         .collect();
+    // RFC-026: which outer face each placed component sits on.
+    let sides: BTreeMap<String, crate::ast::PlacementSide> = ir
+        .layout
+        .placements
+        .iter()
+        .map(|p| (p.path.clone(), p.side))
+        .collect();
     let staging = staging_positions(world, ir, &insts, &placed);
     // The physical model (the copper Quilter routes): every pad placed at its
     // absolute board position, deduplicated into primitives + padstacks.
@@ -98,7 +105,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             (i.path.clone(), p)
         })
         .collect();
-    let mut phys = build_physical(world, &insts, &positions, &rotations, &refdes_map);
+    let mut phys = build_physical(world, &insts, &positions, &rotations, &sides, &refdes_map);
     // Close the shape dictionary over every Package/Pin as well: pin geometry
     // is emitted as a `StandardPrimitiveRef` into the same `DictionaryStandard`
     // the padstacks use (the encoding every mainstream consumer implements —
@@ -500,12 +507,19 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         } else {
             "SMT"
         };
+        // RFC-026: a bottom-side placement rides layerRef="B.Cu"; everything
+        // else (staged included) stays on the front, the pre-RFC-026 value.
+        let bottom = matches!(
+            sides.get(&inst.path),
+            Some(crate::ast::PlacementSide::Bottom)
+        );
         let _ = writeln!(
             out,
-            "        <Component refDes=\"{}\" packageRef=\"{}\" part=\"{}\" layerRef=\"F.Cu\" mountType=\"{}\">",
+            "        <Component refDes=\"{}\" packageRef=\"{}\" part=\"{}\" layerRef=\"{}\" mountType=\"{}\">",
             esc(&refdes_map[refdes]),
             esc(&packages[&footprint]),
             esc(&mpn),
+            if bottom { "B.Cu" } else { "F.Cu" },
             mount
         );
         let _ = writeln!(
@@ -536,10 +550,17 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         // RFC-020: a locked placement's rotation rides Component/Xform
         // (schema order: NonstandardAttribute*, Xform?, Location). Staged and
         // unplaced components are unrotated (no Xform).
-        if let Some(rot) = rotations.get(&inst.path) {
-            if *rot != 0 {
-                let _ = writeln!(out, "          <Xform rotation=\"{}\"/>", rot);
+        let rot = rotations.get(&inst.path).copied().unwrap_or(0);
+        if rot != 0 || bottom {
+            let mut attrs = String::new();
+            if rot != 0 {
+                let _ = write!(attrs, " rotation=\"{}\"", rot);
             }
+            if bottom {
+                // RFC-026: IPC-2581's own per-component mirror attribute.
+                attrs.push_str(" mirror=\"true\"");
+            }
+            let _ = writeln!(out, "          <Xform{}/>", attrs);
         }
         let (lx, ly) = match placed.get(&inst.path).or_else(|| staging.get(&inst.path)) {
             // y negated: IPC-2581 +y-up vs CoHDL +y-down (see build_physical).
@@ -1126,6 +1147,9 @@ struct PadStack {
     tht: bool,
     drill: i128,
     plated: bool,
+    /// RFC-026: an SMD padstack used by a bottom-side component gets B-layer
+    /// pad defs. Always `false` for THT (one def spans both sides).
+    bottom: bool,
 }
 
 /// One placed copper pad — absolute board position + the component pin it is.
@@ -1141,6 +1165,9 @@ struct PlacedPad {
     rot: u16,
     tht: bool,
     hole: bool,
+    /// RFC-026: pad belongs to a bottom-side component (SMD copper lands on
+    /// the B-layers; a through-hole pad spans both sides regardless).
+    bottom: bool,
 }
 
 struct Physical {
@@ -1178,6 +1205,7 @@ fn build_physical(
     insts: &[&crate::ir::IrInstance],
     positions: &BTreeMap<String, (i128, i128)>,
     rotations: &BTreeMap<String, u16>,
+    sides: &BTreeMap<String, crate::ast::PlacementSide>,
     refdes_map: &BTreeMap<String, String>,
 ) -> Physical {
     let mut prims: Vec<Prim> = Vec::new();
@@ -1188,6 +1216,13 @@ fn build_physical(
         let refdes = refdes_map[raw].clone();
         let (cx, cy) = positions.get(&inst.path).copied().unwrap_or((0, 0));
         let rot = rotations.get(&inst.path).copied().unwrap_or(0);
+        // RFC-026: bottom-side pads mirror their local x BEFORE rotation —
+        // the same order KiCad's own Flip-then-orient applies, so the board
+        // built from this document matches pcbnew's native convention.
+        let bottom = matches!(
+            sides.get(&inst.path),
+            Some(crate::ast::PlacementSide::Bottom)
+        );
         let fp_name = part_fields(world, inst).2;
         let Some(fp) = world.footprints.get(&fp_name) else {
             continue;
@@ -1225,6 +1260,7 @@ fn build_physical(
                     tht,
                     drill,
                     plated: true,
+                    bottom: bottom && !tht,
                 },
             );
             // IPC-2581 is +y-up; CoHDL/KiCad author +y-down. Project by negating
@@ -1233,7 +1269,8 @@ fn build_physical(
             // KiCad's own `--version B` export: this reproduces its placement of
             // rotated, y-offset pads exactly; a naive reflection of the final
             // absolute position does not.)
-            let (ox, oy) = rotate(place.x.femto, -place.y.femto, rot);
+            let lx = if bottom { -place.x.femto } else { place.x.femto };
+            let (ox, oy) = rotate(lx, -place.y.femto, rot);
             pads.push(PlacedPad {
                 refdes: refdes.clone(),
                 pin: sanitize(&place.number.text, true),
@@ -1241,9 +1278,13 @@ fn build_physical(
                 prim,
                 x: cx + ox,
                 y: -cy + oy,
-                rot,
+                // RFC-025: the pad's own declared rotation composes with the
+                // component's — position is unaffected (rotation is about the
+                // pad's own centre); the Xform carries the sum.
+                rot: (rot + place.rotate) % 360,
                 tht,
                 hole: false,
+                bottom,
             });
         }
         // RFC-022 mechanical locating holes — placed as through-holes with no
@@ -1282,9 +1323,13 @@ fn build_physical(
                     // full (w, h) extent is already carried by `prim`.
                     drill: w.min(h),
                     plated,
+                    bottom: false,
                 },
             );
-            let (ox, oy) = rotate(mh.x.femto, -mh.y.femto, rot);
+            // RFC-026: a hole spans the board either way, but its POSITION
+            // still mirrors with a bottom-side component.
+            let lx = if bottom { -mh.x.femto } else { mh.x.femto };
+            let (ox, oy) = rotate(lx, -mh.y.femto, rot);
             pads.push(PlacedPad {
                 refdes: refdes.clone(),
                 pin: String::new(),
@@ -1295,6 +1340,7 @@ fn build_physical(
                 rot,
                 tht: true,
                 hole: true,
+                bottom,
             });
         }
     }
@@ -1427,6 +1473,9 @@ fn emit_padstacks(out: &mut String, phys: &Physical) {
             &[]
         } else if ps.tht {
             &["F.Cu", "F.Mask", "B.Cu", "B.Mask"]
+        } else if ps.bottom {
+            // RFC-026: a bottom-side SMD padstack lands on the B-layers.
+            &["B.Cu", "B.Mask", "B.Paste"]
         } else {
             &["F.Cu", "F.Mask", "F.Paste"]
         };
@@ -1457,22 +1506,26 @@ fn emit_layer_features(
     phys: &Physical,
     net_of: &BTreeMap<(String, String), String>,
 ) {
-    // (layer, pad filter): None = all pads, Some(true) = THT only,
-    // Some(false) = SMD only.
-    for (layer, only) in [
-        ("F.Cu", None),
-        ("B.Cu", Some(true)),
-        ("F.Mask", None),
-        ("B.Mask", Some(true)),
-        ("F.Paste", Some(false)),
-    ] {
+    // Per-layer membership (RFC-026 side-aware): a THT pad spans both outer
+    // faces regardless of its component's side; an SMD pad lands only on its
+    // own side's copper/mask/paste.
+    type LayerFilter = fn(&PlacedPad) -> bool;
+    let layers: [(&str, LayerFilter); 6] = [
+        ("F.Cu", |p| p.tht || !p.bottom),
+        ("B.Cu", |p| p.tht || p.bottom),
+        ("F.Mask", |p| p.tht || !p.bottom),
+        ("B.Mask", |p| p.tht || p.bottom),
+        ("F.Paste", |p| !p.tht && !p.bottom),
+        ("B.Paste", |p| !p.tht && p.bottom),
+    ];
+    for (layer, keep) in layers {
         let pads: Vec<&PlacedPad> = phys
             .pads
             .iter()
             // A non_plated mount_hole (padstack not plated) has no copper — it
             // appears only on the drill layer below, never here.
             .filter(|p| phys.padstacks[p.padstack].plated)
-            .filter(|p| only.is_none_or(|tht| p.tht == tht))
+            .filter(|p| keep(p))
             .collect();
         if pads.is_empty() {
             continue;

@@ -639,11 +639,33 @@ impl<'a> Parser<'a> {
             return None;
         }
         let (x, y) = self.length_pair()?;
+        // RFC-025: optional `rotate ANGLE` — RFC-020's closed set, validated
+        // at declaration check (E811); unparseable values map to the same
+        // fail-the-closed-set sentinel `place` uses.
+        let mut rotate = 0u16;
+        if self.at_ident("rotate") {
+            self.bump();
+            match self.peek() {
+                TokenKind::Number(_) => {
+                    let t = self.bump();
+                    if let TokenKind::Number(n) = t.kind {
+                        rotate = n.parse::<u16>().unwrap_or(u16::MAX);
+                    }
+                }
+                _ => {
+                    self.error_here(format!(
+                        "expected a rotation angle (0, 90, 180, or 270) after `rotate`, found {}",
+                        self.peek().describe()
+                    ));
+                }
+            }
+        }
         Some(PadPlace {
             number,
             pad,
             x,
             y,
+            rotate,
             span: start.to(self.prev_span()),
         })
     }
@@ -2555,26 +2577,54 @@ impl<'a> Parser<'a> {
         }
         self.bump(); // `at`
         let at = self.length_pair()?;
-        // Optional `rotate ANGLE` (closed set validated at assembly).
+        // Optional `rotate ANGLE` (E1007) and `side SIDE` (RFC-026, E1008) —
+        // independent clauses, accepted in either order per the accepted text;
+        // `fmt` canonicalizes to rotate-then-side.
         let mut rotate = 0u16;
-        if self.at_ident("rotate") {
-            self.bump(); // `rotate`
-            match self.peek() {
-                TokenKind::Number(_) => {
-                    let t = self.bump();
-                    if let TokenKind::Number(n) = t.kind {
-                        // Out-of-set / non-integer values are reported at
-                        // assembly (E1007); an unparseable value maps to a
-                        // sentinel that fails that closed-set check.
-                        rotate = n.parse::<u16>().unwrap_or(u16::MAX);
+        let mut saw_rotate = false;
+        let mut side = crate::ast::PlacementSide::Top;
+        let mut side_span = None;
+        loop {
+            if !saw_rotate && self.at_ident("rotate") {
+                saw_rotate = true;
+                self.bump(); // `rotate`
+                match self.peek() {
+                    TokenKind::Number(_) => {
+                        let t = self.bump();
+                        if let TokenKind::Number(n) = t.kind {
+                            // Out-of-set / non-integer values are reported at
+                            // assembly (E1007); an unparseable value maps to a
+                            // sentinel that fails that closed-set check.
+                            rotate = n.parse::<u16>().unwrap_or(u16::MAX);
+                        }
+                    }
+                    _ => {
+                        self.error_here(format!(
+                            "expected a rotation angle (0, 90, 180, or 270) after `rotate`, found {}",
+                            self.peek().describe()
+                        ));
                     }
                 }
-                _ => {
-                    self.error_here(format!(
-                        "expected a rotation angle (0, 90, 180, or 270) after `rotate`, found {}",
-                        self.peek().describe()
-                    ));
+            } else if side_span.is_none() && self.at_ident("side") {
+                self.bump(); // `side`
+                let v = self.ident("as the side (`top` or `bottom`)")?;
+                side_span = Some(v.span);
+                match crate::ast::PlacementSide::from_name(&v.name) {
+                    Some(sd) => side = sd,
+                    None => {
+                        self.diags.push(Diagnostic::error(
+                            "E1008",
+                            v.span,
+                            format!(
+                                "`{}` is not a side — sides are: top, bottom",
+                                v.name
+                            ),
+                        ));
+                        return None;
+                    }
                 }
+            } else {
+                break;
             }
         }
         Some(Placement {
@@ -2582,6 +2632,8 @@ impl<'a> Parser<'a> {
             index,
             at,
             rotate,
+            side,
+            side_span,
             span: start.to(self.prev_span()),
         })
     }

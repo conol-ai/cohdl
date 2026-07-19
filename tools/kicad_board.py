@@ -117,12 +117,14 @@ def parse_ipc(xml_path):
                                 float(e.get("centerX")), -float(e.get("centerY")),
                                 e.get("clockwise") != "true"))
     # Component placements (y negated: IPC +y-up -> KiCad +y-down).
+    # RFC-026: layerRef "B.Cu" marks a bottom-side component.
     place = {}
     for c in step.iter(NS + "Component"):
         loc = c.find(NS + "Location")
         xf = c.find(NS + "Xform")
         rot = float(xf.get("rotation")) if xf is not None and xf.get("rotation") else 0.0
-        place[c.get("refDes")] = (float(loc.get("x")), -float(loc.get("y")), rot)
+        bottom = c.get("layerRef") == "B.Cu"
+        place[c.get("refDes")] = (float(loc.get("x")), -float(loc.get("y")), rot, bottom)
     return outline, place
 
 
@@ -210,16 +212,23 @@ def main():
         fp.SetReference(ref)
         fp.SetValue(value)
         if ref in place:
-            x, y, rot = place[ref]
+            x, y, rot, bottom = place[ref]
             fp.SetPosition(vec(x, y))
-            if rot:
-                fp.SetOrientationDegrees(rot)
         else:
+            rot, bottom = 0, False
             fp.SetPosition(vec(40 + col * 12, 40 + rowy * 12))
             col += 1
             if col == 8:
                 col, rowy = 0, rowy + 1
+        # Flip/rotate only AFTER board.Add — Flip consults the owning board's
+        # layer table, and a board-less footprint segfaults headless pcbnew.
         board.Add(fp)
+        if bottom:
+            # RFC-026: KiCad-native back-side convention — flip left/right
+            # about the anchor FIRST, then apply the declared rotation.
+            fp.Flip(fp.GetPosition(), True)
+        if rot:
+            fp.SetOrientationDegrees(rot)
         placed[ref] = fp
 
     unresolved = []

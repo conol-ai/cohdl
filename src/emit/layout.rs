@@ -107,14 +107,21 @@ pub fn emit_layout_json(ir: &DesignIr) -> Option<String> {
         }
         None => out.push_str("  \"board_outline\": null,\n"),
     }
-    // Locked component placements (`place <inst> at … [rotate N]`), path order.
+    // Locked component placements (`place <inst> at … [rotate N] [side S]`),
+    // path order. RFC-026: `side` is emitted only for `bottom` — a top-side
+    // placement's JSON is byte-identical to its pre-RFC-026 form.
     array(&mut out, "placements", &ir.layout.placements, |p| {
+        let side = match p.side {
+            crate::ast::PlacementSide::Top => String::new(),
+            crate::ast::PlacementSide::Bottom => ", \"side\": \"bottom\"".to_string(),
+        };
         format!(
-            "{{ \"instance\": {}, \"at\": [{}, {}], \"rotate\": {} }}",
+            "{{ \"instance\": {}, \"at\": [{}, {}], \"rotate\": {}{} }}",
             json_str(&p.path),
             crate::emit::geom::mm(&p.at.0),
             crate::emit::geom::mm(&p.at.1),
-            p.rotate
+            p.rotate,
+            side
         )
     });
     array(

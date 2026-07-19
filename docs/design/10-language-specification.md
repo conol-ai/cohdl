@@ -617,47 +617,97 @@ pub footprint KailhChocV2 {
 - cohdl build projects non_plated as KiCad's own np_thru_hole pad type in the .kicad_mod emitter (KiCad's np_thru_hole pads are not restricted to round shapes, so rect/oval mount_hole geometry reuses the same emitter code path as circular ones) and plated as an ordinary plated through-hole pad with no net assigned; the IPC-2581 emitter projects both as hole/pin geometry with no net reference.
 - Explicitly out of scope: board-level mounting holes (a board's own corner screw holes are a design/board-level concept, closer in spirit to board_outline, RFC-020, than to a per-footprint construct) and any locating-hole shape beyond rect/circle/oval (true slots with rounded ends, keyed/D-shaped holes) — both real, disclosed, deferred gaps, not silently solved.
 
-# Instance arrays and range references
+# Array-typed instances and indexed references
 
-Accepted via RFC-024, see RFC-024: Instance arrays and range references + DR-030. Grounded directly in examples/openmicro/src/main.cohdl's real repetition: 42 near-identical inst lines (13 key switches, 13 matrix diodes, 29 addressable RGB LEDs, 4 mounting holes) and multiple uniform-fan-out net-member patterns, one with a real stride (d1, d5, d9, d13). Both mechanisms below are defined purely as expansion sugar over already-existing inst/net semantics — every expansion is checked identically to what an author would have hand-written, with zero new semantic checking beyond two structural, local diagnostics.
+Accepted (redesigned same day) via RFC-024, see RFC-024: Array-typed instances and indexed references + DR-030 revision. Revision note: the original acceptance made inst NAME[START..=END]: Device pure name-expansion sugar, with indexing usable only inside a net's member list. Tony corrected this same day: the real request is inst key_leds: [RGB_SK6812; 13] — one real, array-typed instance, indexed by a literal (key_leds[0]) anywhere an instance reference is valid — not a naming trick scoped to one syntactic position. This section reflects the revised design, grounded directly in examples/openmicro/src/main.cohdl's real repetition (42 near-identical inst lines) and its real WS2812 daisy-chain wiring and per-LED place statements, both of which need to address one specific array element by index.
 
-Instance arrays:
+Array-typed instance declaration:
 
 ```cohdl
 design OpenMicro {
-    inst sw[1..=13]: SW_KEY
-    inst d[1..=13]: D_1N4148W
-    inst led[1..=13]: RGB_SK6812      // per-key chain
-    inst led[14..=29]: RGB_SK6812     // underglow chain — same device, separate array
-    inst mh[1..=4]: MH_M2
+    inst key_leds: [RGB_SK6812; 13]
+    inst ambient_leds: [RGB_SK6812; 16]
+    inst sw: [SW_KEY; 13]
+    inst d: [D_1N4148W; 13]
+    inst mh: [MH_M2; 4]
 }
 ```
 
-- inst NAME[START..=END]: Device declares END - START + 1 real, individually-addressable instances, each with its own hierarchical name (sw1, sw2, ..., sw13) — identical to what an author would have typed by hand. Every existing per-instance mechanism (designator allocation RFC-005, place, decouple, pin obligations RFC-002, trait satisfaction RFC-003) applies completely unchanged to each expanded element.
-- START..=END is inclusive; START need not be 1 — inst led[14..=29]: RGB_SK6812 is a real, valid second array of the same device with a different starting number.
-- Two array declarations whose index ranges overlap (or that collide with an ordinary inst name) is a compile error — the same collision check that already applies to two ordinary inst statements sharing a name.
+- inst NAME: [Device; N] — N is a positive integer literal, the array's fixed length. NAME is the array's own name; unlike a plain inst, a bare NAME (unindexed) is never itself a valid instance reference — an author must always index it: NAME[i].
+- key_leds and ambient_leds are two separate arrays of the same device type — the ordinary way to express two independent chains/families of the same part.
+- A second declaration (array or plain inst) reusing NAME is a compile error, the same collision rule ordinary inst already has.
 
-Range references in net-member lists:
+Indexed references, valid everywhere an ordinary instance reference already is:
 
 ```cohdl
-net ROW0: mcu.ROW0, sw[1..=4].A
-net ROW1: mcu.ROW1, sw[5..=8].A
-net COL0: mcu.COL0, d[1, 5, 9, 13].Cathode
-net COL1: mcu.COL1, d[2, 6, 10].Cathode
+design OpenMicro {
+    net LED_D0: mcu.LED_DATA_KEY, key_leds[0].DIN
+    net LED_D1: key_leds[0].DOUT, key_leds[1].DIN
+    net LED_D2: key_leds[1].DOUT, key_leds[2].DIN
+    // ... one net per chain link ...
+
+    decouple(key_leds[0].VDD, key_leds[0].GND)
+    decouple(key_leds[1].VDD, key_leds[1].GND)
+
+    layout {
+        place key_leds[0] at (-8.025mm, -23.875mm)
+        place key_leds[1] at (11.025mm, -23.875mm)
+    }
+}
 ```
 
-- NAME[START..=END].PIN inside a net's member list expands to one PinRef per index in the range, all referencing the same pin name — net ROW0: mcu.ROW0, sw[1..=4].A means exactly net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A, a pure textual-expansion equivalence.
-- NAME[START..=END step STEP].PIN — the strided form, e.g. d[1..=13 step 4] for the d1, d5, d9, d13 pattern.
-- NAME[i1, i2, i3, ...].PIN — an explicit comma-separated index list, for a genuinely irregular index set a stride can't express.
-- Every index referenced must resolve to a real instance declared by a matching-base-name array — an out-of-declared-range index (e.g. sw[1..=20].A when only sw[1..=13] was declared) is a compile error naming the first invalid index, the same unresolved-name diagnostic class RFC-016 already established.
-- A range/index-list expression is valid only inside a net's member list — it is not usable in place, decouple's arguments, or a fn call's arguments; this is an explicit scope boundary, not an oversight.
+- NAME[i] (i a literal integer, 0 <= i < N) resolves to one real, individually-checked instance element — usable as a net-member base (NAME[i].PIN), as place's target (place NAME[i] at (...)), as decouple's arguments (decouple(NAME[i].PIN, ...)), and as a fn-call argument — every position an ordinary bare instance name is already valid, not restricted to one syntactic position.
+- An out-of-bounds index (e.g. key_leds[13] when N is 13, valid indices 0..=12) is a compile error naming the valid range, checked wherever the reference appears.
+- After resolution, every existing per-instance mechanism applies completely unchanged to NAME[i] — its own designator (RFC-005), its own pin-obligation tracking (RFC-002), its own trait satisfaction (RFC-003) — exactly as if it had been hand-declared with its own bare name.
 
-Rules (both constructs):
+Range/list fan-out, inside a net's member list only:
 
-- Both stay structural, local, checkable at expansion time — never DRC candidates. Every existing check that runs on an ordinary inst/net runs unchanged, once, on the expanded form.
-- This RFC introduces no general loop/iteration construct — fn (RFC-006) remains the sole mechanism for "repeat a parameterized sub-circuit with systematic wiring." Arrays/ranges are scoped to exactly inst declarations and net-member-list references.
-- Does NOT solve daisy-chain wiring (e.g. a WS2812 LED chain's DOUT→DIN nets between consecutive array elements) or arithmetic-derived per-instance data (e.g. place coordinates following a grid formula) — both real, explicitly disclosed, deferred to future work; every place/decouple statement and every daisy-chain net stays exactly as hand-written after this RFC.
-- Error codes stay in the existing E2xx block (name resolution, RFC-016's home): array-name collision, out-of-range index reference, malformed range/stride grammar — no new block, per RFC-011's "kind of mistake" organizing principle.
+```cohdl
+net VBUS [5V]: usbc.VBUS, key_leds[0..=12].VDD, ambient_leds[0..=15].VDD
+net COL0: mcu.COL0, d[0, 4, 8, 12].Cathode
+```
+
+- NAME[START..=END].PIN and NAME[i1, i2, i3, ...].PIN remain valid inside a net's member list, now defined as sugar expanding to individual NAME[i].PIN references — key_leds[0..=12].VDD means exactly key_leds[0].VDD, key_leds[1].VDD, ..., key_leds[12].VDD, a pure textual equivalence.
+- This fan-out sugar is scoped to net-member lists only — place/decouple always take one single index (each array element needs its own coordinates; decouple already takes two explicit pin arguments), so "place/decouple a whole range at once" has no single sensible meaning and is not supported.
+
+Rules:
+
+- NAME[i]'s index (and a range/list's endpoints) must be a literal integer, checked against the array's declared length N wherever the reference appears — never a variable or computed index; this RFC introduces no expression language.
+- No general loop/iteration construct is introduced — fn (RFC-006) remains the sole mechanism for "repeat a parameterized sub-circuit with systematic wiring." Because there is no loop construct, daisy-chain wiring (e.g. a WS2812 chain's DOUT→DIN pattern) and arithmetic-derived per-element place/decouple data (e.g. grid-formula coordinates) are NOT auto-generated — an author still writes one net/place/decouple statement per array element by hand; this RFC makes each such statement correctly, individually addressable via NAME[i], but does not generate the statements. Both are real, explicitly disclosed, deferred future work.
+- No multi-dimensional arrays (NAME[i][j]) and no array-of-non-device element types — an array's element type is always a single device type, the same restriction an ordinary inst already has.
+- Error codes stay in the existing E2xx block (name resolution, RFC-016's home): out-of-bounds index, array-name collision, malformed array-length literal — no new block, per RFC-011's "kind of mistake" organizing principle.
+
+### Rotated pad placements
+
+Accepted via RFC-025, see RFC-025: Rotated pad placements in footprints + DR-031. Closes a real gap in the pad/footprint model above: QFN/LQFP footprints place the same pad shape on all four package sides, with top/bottom-side pads rotated 90° relative to left/right-side pads — a real, common pattern (confirmed against a real KiCad QFN-20-1EP_4x4mm footprint).
+
+```cohdl
+pub footprint QFN20_4x4 {
+    // Left side — pad's natural (unrotated) orientation
+    pad 1: Rect_0_825x0_25mm at (-1.9375mm, -1.0mm)
+    pad 3: Rect_0_825x0_25mm at (-1.9375mm, 0mm)
+
+    // Top side — same pad symbol, rotated 90°
+    pad 6: Rect_0_825x0_25mm at (-1.0mm, 1.9375mm) rotate 90
+    pad 8: Rect_0_825x0_25mm at (0mm, 1.9375mm) rotate 90
+
+    // Right side — rotated 180°
+    pad 11: Rect_0_825x0_25mm at (1.9375mm, 1.0mm) rotate 180
+
+    // Bottom side — rotated 270°
+    pad 16: Rect_0_825x0_25mm at (1.0mm, -1.9375mm) rotate 270
+
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.5mm, 4.5mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}
+```
+
+- pad N: PadSymbol at (x, y) [rotate ANGLE] — rotate is a new, optional clause on pad's existing placement statement. ANGLE is closed to {0, 90, 180, 270} — the exact same set and keyword place ... rotate (RFC-020) already uses, reused here by direct precedent rather than a new mechanism. Omitted rotate defaults to 0 (unrotated) — every existing pad N: ... at (x, y) statement is unchanged in meaning.
+- rotate is purely a placement-time fact — the referenced pad symbol's own shape/size fields are never mutated or restated. One pad definition can be placed at many positions, at many different rotations, exactly mirroring how one place-able component's footprint stays fixed while its board-level orientation varies.
+- For rect/oval pads, 90°/270° visibly swaps the pad's effective width/height; 180° has no visible geometric effect but is still valid (some authors state it for documentation/consistency). For a circle pad, rotate is accepted at any of the four values but is a structural no-op (a circle has no orientation) — intentional, not an inconsistency, so a rotation pattern can be copy-pasted across mixed pad shapes without branching on shape.
+- Unlike real hand-authored KiCad libraries (which achieve the rotated appearance by silently swapping a pad's w/h and omitting any angle), CoHDL's .kicad_mod emitter emits the pad's declared size unchanged plus a real KiCad (at x y angle) rotation argument — this preserves the author's stated rotation fact losslessly, deliberately diverging from typical KiCad-library convention to avoid discarding that fact.
+- rotate's closed-set membership is checked at declaration, identical in shape to place ... rotate's existing check. No other new semantic check is introduced; rotate's value has no bearing on RFC-018's existing pad-count/pin-number-matches-device-pins check.
+- Error codes stay in the existing E8xx block (designators & parts, RFC-018's home for footprint-completeness checks): invalid rotate value on a pad placement — no new block.
 
 ## Footprint naming: names must comply with IPC-7351
 
@@ -749,7 +799,8 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - place reaching an instance declared inside a called fn — explicitly deferred per Tony's direct decision (RFC-020/DR-026 amendment). place today resolves only against a design's own top-level instances; a component instantiated by a reusable sub-circuit fn (e.g. a connector helper) cannot currently be locked/oriented. A path-qualification mechanism was considered and withdrawn pending a real concrete need.
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
 - Board-level mounting holes, and any locating-hole shape beyond rect/circle/oval (true slots with rounded ends, keyed/D-shaped holes) — board-level holes explicitly deferred per RFC-022's own direct decision (closest existing analog is board_outline, RFC-020, but no construct exists yet); non-rect/circle/oval shapes explicitly deferred per RFC-023's own direct decision.
-- Daisy-chain net wiring between consecutive array elements (e.g. a WS2812 LED chain's DOUT→DIN pattern), and arithmetic-derived per-instance place/decouple data (e.g. grid-formula coordinates across an array) — both explicitly deferred per RFC-024's own direct decision; every such statement stays hand-written today.
+- A general loop/iteration construct (e.g. auto-generating daisy-chain net wiring between consecutive array elements, or arithmetic-derived per-instance place/decouple data such as grid-formula coordinates) — explicitly deferred per RFC-024's own direct decision; array-typed instances (NAME: [Device; N], NAME[i] indexing) are the foundation such a construct would iterate over, but every daisy-chain net and every per-element place/decouple statement stays hand-written, one at a time, today.
+- Multi-dimensional array-typed instances (e.g. sw[row][col]) — explicitly deferred per RFC-024's own direct decision; no concrete need has been shown (OpenMicro's own keyboard matrix is expressed via ROW/COL nets, not a 2D instance grid).
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-19, RFC-001 through RFC-024 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds instance arrays and range/strided/explicit-list references inside net-member lists, both pure expansion sugar over already-existing inst/net semantics, grounded in the real OpenMicro macropad's 42-instance repetition, explicitly not solving daisy-chain wiring or arithmetic-derived per-instance place/decouple data).
+As of 2026-07-19, RFC-001 through RFC-025 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds array-typed instances (inst NAME: [Device; N]) with real, indexed instance references (NAME[i]) valid everywhere an ordinary instance reference already is — net members, place, decouple, fn-call arguments — redesigned same day from an initial name-expansion-sugar draft per Tony's direct correction, grounded in the real OpenMicro macropad's 42-instance repetition and its real WS2812 daisy-chain wiring/per-LED placement needs, explicitly not introducing a loop construct or auto-generating daisy-chain/grid-place data; RFC-025 adds an optional rotate clause to pad placements inside footprint, reusing RFC-020's exact closed {0, 90, 180, 270} rotation set and keyword by direct precedent, grounded in a real KiCad QFN footprint's per-side-rotated-pad pattern, deliberately not adopting the KiCad-library convention of silently swapping pad width/height instead).

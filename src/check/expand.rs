@@ -360,6 +360,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             path,
             at: (placement.at.0.clone(), placement.at.1.clone()),
             rotate: placement.rotate,
+            side: placement.side,
         });
     }
 

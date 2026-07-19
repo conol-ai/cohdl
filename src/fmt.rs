@@ -861,11 +861,17 @@ impl Formatter<'_> {
                         Some((i, _)) => format!("[{}]", i),
                         None => String::new(),
                     };
+                    // RFC-026: canonical clause order is `rotate` THEN
+                    // `side`; the default `top` is never spelled out.
+                    let side = match p.side {
+                        crate::ast::PlacementSide::Top => String::new(),
+                        crate::ast::PlacementSide::Bottom => " side bottom".to_string(),
+                    };
                     self.push(
                         indent + 1,
                         format!(
-                            "place {}{} at ({}, {}){}",
-                            p.inst.name, idx, p.at.0.text, p.at.1.text, rot
+                            "place {}{} at ({}, {}){}{}",
+                            p.inst.name, idx, p.at.0.text, p.at.1.text, rot, side
                         ),
                     );
                     self.finish_construct(
@@ -1048,11 +1054,18 @@ impl Formatter<'_> {
             self.flush_leading(l, 1);
             match m {
                 M::Pad(p) => {
+                    // RFC-025: `rotate` is a trailing clause; the default 0 is
+                    // never spelled out, so pre-RFC-025 pads stay byte-stable.
+                    let rot = if p.rotate == 0 {
+                        String::new()
+                    } else {
+                        format!(" rotate {}", p.rotate)
+                    };
                     self.push(
                         1,
                         format!(
-                            "pad {}: {} at ({}, {})",
-                            p.number.text, p.pad.name, p.x.text, p.y.text
+                            "pad {}: {} at ({}, {}){}",
+                            p.number.text, p.pad.name, p.x.text, p.y.text, rot
                         ),
                     );
                 }

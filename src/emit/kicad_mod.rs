@@ -15,7 +15,7 @@
 //! canonically from the lexer's exact femto integers (emit::geom — KiCad's
 //! native unit is mm, no conversion, no floats).
 
-use crate::ast::{MountHolePlating, PadLayer, PadPlating, PadShape};
+use crate::ast::{MountHoleGeom, MountHolePlating, PadLayer, PadPlating, PadShape};
 use crate::check::footprints::is_placeholder;
 use crate::emit::geom;
 use crate::ir::DesignIr;
@@ -159,21 +159,38 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
     // RFC-022 mechanical locating holes — projected as KiCad's own hole pad
     // types with an empty pad number (no net): non_plated → np_thru_hole,
     // plated → an ordinary thru_hole with the pad ring sized to the drill.
+    // RFC-023: a rect/oval hole reuses this same path — KiCad's hole pads are
+    // not restricted to round shapes. Its DRILL vocabulary is, though (round or
+    // oval only), so a non-circular hole gets an oval drill spanning (w, h):
+    // the manufacturable slot that seats a rectangular leg.
     for mh in &fp.mount_holes {
         let kind = match mh.plating {
             MountHolePlating::NonPlated => "np_thru_hole",
             MountHolePlating::Plated => "thru_hole",
         };
-        let d = geom::mm(&mh.diameter);
+        let (w, h, drill) = match &mh.geom {
+            MountHoleGeom::Diameter(d) => {
+                let d = geom::mm(d);
+                (d.clone(), d.clone(), format!("(drill {})", d))
+            }
+            MountHoleGeom::Size(dims, _) => {
+                // Checked to be exactly (w, h) before emit (E810).
+                let w = dims.first().map(geom::mm).unwrap_or_else(|| "0".into());
+                let h = dims.get(1).map(geom::mm).unwrap_or_else(|| "0".into());
+                let drill = format!("(drill oval {} {})", w, h);
+                (w, h, drill)
+            }
+        };
         let _ = writeln!(
             s,
-            "  (pad \"\" {} circle (at {} {}) (size {} {}) (drill {}) (layers \"*.Cu\" \"*.Mask\"))",
+            "  (pad \"\" {} {} (at {} {}) (size {} {}) {} (layers \"*.Cu\" \"*.Mask\"))",
             kind,
+            mh.shape_or_default().name(),
             geom::mm(&mh.x),
             geom::mm(&mh.y),
-            d,
-            d,
-            d
+            w,
+            h,
+            drill
         );
     }
     s.push_str(")\n");

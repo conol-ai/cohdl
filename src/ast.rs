@@ -205,20 +205,60 @@ impl MountHolePlating {
     }
 }
 
-/// RFC-022: `mount_hole N: PLATING at (x, y) diameter D` — a mechanical
-/// locating hole in a footprint body. `N` is a locating-hole-local counter,
-/// entirely DISJOINT from `pad`'s pin-bound numbering: it is never checked
-/// against the bound device's declared pins. Always spans `through_all`.
+/// RFC-023: a `mount_hole`'s geometry. Shape-dependent, mirroring `pad`'s own
+/// established convention exactly: a `circle` (explicit or defaulted) carries a
+/// scalar `diameter D`; a `rect`/`oval` carries `size: (w, h)`.
+#[derive(Debug, Clone)]
+pub enum MountHoleGeom {
+    /// `diameter D` — legal only for `circle`.
+    Diameter(UnitValue),
+    /// `size: (w, h)` — legal only for `rect` / `oval`.
+    Size(Vec<UnitValue>, Span),
+}
+
+impl MountHoleGeom {
+    /// The shape this geometry form belongs to, for mismatch diagnostics.
+    pub fn field_name(&self) -> &'static str {
+        match self {
+            MountHoleGeom::Diameter(_) => "diameter",
+            MountHoleGeom::Size(..) => "size:",
+        }
+    }
+    /// A `size:` tuple carries its own span; a scalar `diameter` has none of
+    /// its own, so callers pass the whole declaration's span as the fallback.
+    pub fn span(&self, fallback: Span) -> Span {
+        match self {
+            MountHoleGeom::Diameter(_) => fallback,
+            MountHoleGeom::Size(_, s) => *s,
+        }
+    }
+}
+
+/// RFC-022, extended by RFC-023:
+/// `mount_hole N: PLATING [shape: SHAPE] at (x, y) [diameter D | size: (w, h)]`
+/// — a mechanical locating hole in a footprint body. `N` is a locating-hole-local
+/// counter, entirely DISJOINT from `pad`'s pin-bound numbering: it is never
+/// checked against the bound device's declared pins. Always spans `through_all`.
 #[derive(Debug, Clone)]
 pub struct MountHole {
     /// A footprint-local counter, disjoint from pad numbers (never a pin).
     pub number: PinNumber,
     pub plating: MountHolePlating,
+    /// RFC-023: optional. Absence defaults to `circle`, which preserves the
+    /// meaning of every `mount_hole` written before the shape/size extension.
+    pub shape: Option<(PadShape, Span)>,
     pub x: UnitValue,
     pub y: UnitValue,
-    /// Required regardless of plating (a single Length value).
-    pub diameter: UnitValue,
+    /// Required regardless of plating; its form must match `shape`.
+    pub geom: MountHoleGeom,
     pub span: Span,
+}
+
+impl MountHole {
+    /// The effective shape: explicit if written, else RFC-023's `circle` default.
+    pub fn shape_or_default(&self) -> PadShape {
+        self.shape.map(|(s, _)| s).unwrap_or(PadShape::Circle)
+    }
 }
 
 /// `courtyard { shape: rect, at: (x, y), size: (…) }`.

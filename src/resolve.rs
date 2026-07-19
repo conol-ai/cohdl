@@ -16,7 +16,7 @@
 use crate::ast::*;
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::span::FileId;
-use crate::units::UnitType;
+use crate::units::{UnitType, UnitValue};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Per-file module identity (RFC-016): the owning package's root segment
@@ -996,11 +996,64 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                     .with_secondary(prev, "first placed here".to_string()),
                 );
             }
-            for (v, what) in [
-                (&mh.x, "offset"),
-                (&mh.y, "offset"),
-                (&mh.diameter, "diameter"),
-            ] {
+            // RFC-023: the geometry form must match the shape — explicit or
+            // defaulted. `circle` takes `diameter`, `rect`/`oval` take `size:`.
+            let shape = mh.shape_or_default();
+            let wants_size = matches!(shape, PadShape::Rect | PadShape::Oval);
+            let has_size = matches!(mh.geom, crate::ast::MountHoleGeom::Size(..));
+            if wants_size != has_size {
+                let (expected, found) = if wants_size {
+                    ("size: (w, h)", "diameter")
+                } else {
+                    ("diameter D", "size:")
+                };
+                let d = Diagnostic::error(
+                    "E810",
+                    mh.geom.span(mh.span),
+                    format!(
+                        "mount_hole `{}` in footprint `{}` is `shape: {}`, which takes `{}` — found `{}`",
+                        mh.number.text,
+                        fp.name.name,
+                        shape.name(),
+                        expected,
+                        found
+                    ),
+                );
+                diags.push(match mh.shape {
+                    Some((_, s)) => d.with_secondary(s, "shape declared here".to_string()),
+                    // No explicit shape: say so, so the default isn't a mystery.
+                    None => d.with_secondary(
+                        mh.number.span,
+                        "no `shape:` written, so this hole defaults to `circle`".to_string(),
+                    ),
+                });
+            }
+            // Dimension count: `size:` is exactly (w, h), like `pad`'s own.
+            if let crate::ast::MountHoleGeom::Size(dims, span) = &mh.geom {
+                if dims.len() != 2 {
+                    diags.push(Diagnostic::error(
+                        "E810",
+                        *span,
+                        format!(
+                            "mount_hole `{}` in footprint `{}` takes `size: (w, h)` — found {} dimension{}",
+                            mh.number.text,
+                            fp.name.name,
+                            dims.len(),
+                            if dims.len() == 1 { "" } else { "s" }
+                        ),
+                    ));
+                }
+            }
+            let geom_vals: Vec<(&UnitValue, &str)> = match &mh.geom {
+                crate::ast::MountHoleGeom::Diameter(d) => vec![(d, "diameter")],
+                crate::ast::MountHoleGeom::Size(dims, _) => {
+                    dims.iter().map(|d| (d, "size")).collect()
+                }
+            };
+            for (v, what) in [(&mh.x, "offset"), (&mh.y, "offset")]
+                .into_iter()
+                .chain(geom_vals.iter().copied())
+            {
                 if v.unit != UnitType::Length {
                     diags.push(Diagnostic::error(
                         "E810",
@@ -1020,15 +1073,18 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                     ));
                 }
             }
-            if mh.diameter.unit == UnitType::Length && mh.diameter.femto <= 0 {
-                diags.push(Diagnostic::error(
-                    "E810",
-                    mh.span,
-                    format!(
-                        "mount_hole `{}` in footprint `{}` has a non-positive diameter `{}` — a hole diameter must be > 0mm",
-                        mh.number.text, fp.name.name, mh.diameter.text
-                    ),
-                ));
+            // A hole with a zero or negative extent is not a hole.
+            for (v, what) in geom_vals {
+                if v.unit == UnitType::Length && v.femto <= 0 {
+                    diags.push(Diagnostic::error(
+                        "E810",
+                        mh.span,
+                        format!(
+                            "mount_hole `{}` in footprint `{}` has a non-positive {} `{}` — a hole must be > 0mm",
+                            mh.number.text, fp.name.name, what, v.text
+                        ),
+                    ));
+                }
             }
         }
         validate_footprint_name(fp, diags);

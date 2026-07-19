@@ -1047,15 +1047,31 @@ impl Formatter<'_> {
                     );
                 }
                 M::MountHole(m) => {
+                    // RFC-023: `shape:` is round-tripped only when written —
+                    // canonical form never spells out the `circle` default, so
+                    // pre-RFC-023 sources stay byte-identical under `fmt`.
+                    let shape = match m.shape {
+                        Some((s, _)) => format!(" shape: {}", s.name()),
+                        None => String::new(),
+                    };
+                    let geom = match &m.geom {
+                        crate::ast::MountHoleGeom::Diameter(d) => {
+                            format!("diameter {}", d.text)
+                        }
+                        crate::ast::MountHoleGeom::Size(dims, _) => {
+                            format!("size: ({})", unit_list(dims))
+                        }
+                    };
                     self.push(
                         1,
                         format!(
-                            "mount_hole {}: {} at ({}, {}) diameter {}",
+                            "mount_hole {}: {}{} at ({}, {}) {}",
                             m.number.text,
                             m.plating.name(),
+                            shape,
                             m.x.text,
                             m.y.text,
-                            m.diameter.text
+                            geom
                         ),
                     );
                 }

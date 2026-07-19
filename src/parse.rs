@@ -462,7 +462,7 @@ impl<'a> Parser<'a> {
                     "E806",
                     self.span(),
                     format!(
-                        "a footprint body contains `pad N: Symbol at (x, y)` placements, `mount_hole N: PLATING at (x, y) diameter D` holes, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
+                        "a footprint body contains `pad N: Symbol at (x, y)` placements, `mount_hole N: PLATING [shape: SHAPE] at (x, y) [diameter D | size: (w, h)]` holes, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
                         self.peek().describe()
                     ),
                 ));
@@ -527,28 +527,77 @@ impl<'a> Parser<'a> {
                 }
             }
         };
-        if !self.eat_ident("at") {
+        // RFC-023 adds an optional `shape:` and makes the geometry field
+        // shape-dependent (`diameter D` for a circle, `size: (w, h)` for a
+        // rect/oval). The accepted text's grammar line orders these
+        // `[shape:] at (x, y) [geometry]` while its own worked example writes
+        // `[shape:] [geometry] at (x, y)`, so both are accepted here — each
+        // component is introduced by a distinct keyword, so this stays a
+        // single-token decision (no lookahead). `fmt` normalizes to the
+        // grammar line's order, which is also RFC-022's existing one.
+        let mut shape = None;
+        let mut at = None;
+        let mut geom = None;
+        loop {
+            if shape.is_none() && self.at_ident("shape") {
+                self.bump();
+                self.expect(&TokenKind::Colon, "after `shape`");
+                let v = self.ident("as the mount-hole shape")?;
+                match PadShape::from_name(&v.name) {
+                    Some(s) => shape = Some((s, v.span)),
+                    None => {
+                        self.diags.push(Diagnostic::error(
+                            "E810",
+                            v.span,
+                            format!(
+                                "`{}` is not a mount-hole shape — shapes are: rect, circle, oval",
+                                v.name
+                            ),
+                        ));
+                        return None;
+                    }
+                }
+            } else if at.is_none() && self.at_ident("at") {
+                self.bump();
+                at = Some(self.length_pair()?);
+            } else if geom.is_none() && self.at_ident("diameter") {
+                self.bump();
+                geom = Some(crate::ast::MountHoleGeom::Diameter(
+                    self.unit_literal("as the mount-hole diameter")?,
+                ));
+            } else if geom.is_none() && self.at_ident("size") {
+                self.bump();
+                self.expect(&TokenKind::Colon, "after `size`");
+                let (dims, span) = self.length_tuple()?;
+                geom = Some(crate::ast::MountHoleGeom::Size(dims, span));
+            } else {
+                break;
+            }
+        }
+        let Some((x, y)) = at else {
             self.error_here(format!(
-                "expected `at (x, y)` after the plating, found {}",
+                "expected `at (x, y)` in the mount_hole, found {}",
                 self.peek().describe()
             ));
             return None;
-        }
-        let (x, y) = self.length_pair()?;
-        if !self.eat_ident("diameter") {
+        };
+        // Whichever geometry was written, its agreement with the (explicit or
+        // defaulted) shape is checked in `resolve` (E810) — so a mismatch
+        // reports the real defect instead of a confusing parse error.
+        let Some(geom) = geom else {
             self.error_here(format!(
-                "expected `diameter D` after the position, found {}",
+                "expected `diameter D` (for a circle) or `size: (w, h)` (for a rect/oval) in the mount_hole, found {}",
                 self.peek().describe()
             ));
             return None;
-        }
-        let diameter = self.unit_literal("as the mount-hole diameter")?;
+        };
         Some(crate::ast::MountHole {
             number,
             plating,
+            shape,
             x,
             y,
-            diameter,
+            geom,
             span: start.to(self.prev_span()),
         })
     }

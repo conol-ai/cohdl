@@ -61,19 +61,32 @@ pub footprint QFP50P900X900X160_48N {
 
 // Kailh Choc V2 low-profile keyswitch land (Work Louder WL-LP-SW-55G;
 // MX-compatible cross stem). STEM-CENTERED: origin = central pole, so placing
-// the switch on a grid cell centers its keycap on the grid. Geometry from the
-// KiCad-official Switch_Keyboard_Kailh SW_Kailh_Choc_V2:
-//   pad 1,2      = the two non-polar electrical contacts, NORTH (0,-5.9) & (5,-3.8);
-//   mount_hole 1 = the Ø5.05 central box-stem hole (locates the MX box stem);
-//   mount_hole 2 = the Ø1.6 MX mounting/locating peg at (-5,+5.15).
+// the switch on a grid cell centers its keycap on the grid.
+//
+// Geometry from the Kailh PG1353 datasheet (P/N CPG135301D01), "Recommended PCB
+// Layout (Pattern Side)". That drawing is a BOTTOM view drawn 90° from the
+// orientation used here; mapping it to this top view is T(x,y) = (y,-x), which
+// reproduces the contacts exactly and preserves every relative angle (verified
+// rotation-invariantly, so it is not mirrored):
+//   pad 1,2      = the two non-polar contacts, Ø1.2 holes, NORTH (0,-5.9) & (5,-3.8);
+//   mount_hole 1 = the Ø5.00 central pole hole;
+//   mount_hole 2 = the locating peg at (-5,+5.15).
 // The SK6812MINI-E reverse-mount LED goes in the SOUTH window ~4.7mm away
-// (placed separately). Both locating holes are RFC-022 non_plated mount_holes —
-// mechanical, no net, numbered disjoint from the pads.
+// (placed separately) — the datasheet's own in-switch LED position, (0,+4.93)
+// under the same mapping, is unused because we drive discrete RGB LEDs.
+//
+// The peg hole is the datasheet's 2.00 x 1.50 rectangular mounting leg, now
+// expressible exactly thanks to RFC-023's `shape:`/`size:` extension to
+// mount_hole (this switch is RFC-023's own motivating part, per DR-029). Note
+// the axes SWAP under the T(x,y) = (y,-x) mapping above: the datasheet's 2.00
+// along ITS x becomes 2.00 along our y, so the hole is size: (1.5mm, 2mm) here,
+// not (2mm, 1.5mm). Both holes are non_plated mount_holes — mechanical, no net,
+// numbered disjoint from the pads.
 pub footprint FP_SW_Choc_V2 {
     pad 1: P_Choc_Contact at (0mm, -5.9mm)
     pad 2: P_Choc_Contact at (5mm, -3.8mm)
-    mount_hole 1: non_plated at (0mm, 0mm) diameter 5.05mm
-    mount_hole 2: non_plated at (-5mm, 5.15mm) diameter 1.6mm
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 5mm
+    mount_hole 2: non_plated shape: rect at (-5mm, 5.15mm) size: (1.5mm, 2mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (15.5mm, 15.5mm) }
 }
 

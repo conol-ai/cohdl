@@ -1,4 +1,4 @@
-# CoHDL — Coherent Design Repository
+# cohdl.dev — Coherent Design Repository
 
 # What this is
 

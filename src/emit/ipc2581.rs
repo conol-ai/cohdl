@@ -1250,17 +1250,25 @@ fn build_physical(
         // net and no PinRef. non_plated has no copper (a bare hole); plated
         // carries a copper ring sized to the drill.
         for mh in &fp.mount_holes {
-            let d = mh.diameter.femto;
-            if d <= 0 {
+            // RFC-023: a circle carries one `diameter`, a rect/oval a `size:
+            // (w, h)`. Both project as hole geometry with no net reference.
+            let (w, h) = match &mh.geom {
+                crate::ast::MountHoleGeom::Diameter(d) => (d.femto, d.femto),
+                crate::ast::MountHoleGeom::Size(dims, _) => (
+                    dims.first().map_or(0, |v| v.femto),
+                    dims.get(1).map_or(0, |v| v.femto),
+                ),
+            };
+            if w <= 0 || h <= 0 {
                 continue; // non-positive: reported at declaration check
             }
             let plated = matches!(mh.plating, crate::ast::MountHolePlating::Plated);
             let prim = dedup(
                 &mut prims,
                 Prim {
-                    shape: crate::ast::PadShape::Circle,
-                    w: d,
-                    h: d,
+                    shape: mh.shape_or_default(),
+                    w,
+                    h,
                 },
             );
             let padstack = dedup(
@@ -1268,7 +1276,11 @@ fn build_physical(
                 PadStack {
                     prim,
                     tht: true,
-                    drill: d,
+                    // IPC's `<Hole>` carries a single scalar diameter, so a
+                    // non-circular hole reports its MINOR axis — the slot
+                    // width, the conventional drill for a slotted hole. The
+                    // full (w, h) extent is already carried by `prim`.
+                    drill: w.min(h),
                     plated,
                 },
             );

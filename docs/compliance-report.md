@@ -1715,3 +1715,49 @@ First consumer: `examples/openmicro`'s Kailh Choc V2 keyswitch footprint
 mounting peg as two `non_plated` mount_holes, replacing an earlier plated-pad +
 mechanical-device-pin workaround. Re-scan: 0 per-key LEDs cover a switch hole,
 0 pad shorts, 0 out-of-bounds; IPC-2581 schema-valid.
+
+## RFC-023 (non-circular locating holes) implementation notes (2026-07-19)
+
+RFC-023 (DR-029) closes the gap RFC-022 disclosed and deferred: `mount_hole`
+gains an optional `shape:` and a shape-dependent geometry field.
+
+- **Grammar** — `mount_hole N: PLATING [shape: SHAPE] at (x, y) [diameter D |
+  size: (w, h)]`. `shape:` reuses RFC-018's existing `PadShape` closed set
+  (`rect`/`circle`/`oval`) verbatim — no new enum was introduced.
+- **Default** — absence of `shape:` means `circle`, so every `mount_hole`
+  written before RFC-023 keeps its exact meaning. `fmt` never spells out the
+  default, so pre-RFC-023 sources are byte-identical after reformatting
+  (regression-tested).
+- **Shape/geometry agreement** — `circle` takes `diameter D`; `rect`/`oval`
+  take `size: (w, h)`. A mismatch is E810 naming expected vs. actual; when the
+  shape was DEFAULTED rather than written, the diagnostic says so explicitly,
+  so the error is not a mystery. `size:` arity is checked to be exactly `(w, h)`.
+- **KiCad** — a rect/oval hole reuses the existing `np_thru_hole`/`thru_hole`
+  path with its declared pad shape. KiCad's DRILL vocabulary is round-or-oval
+  only, so a non-circular hole emits `(drill oval w h)` — the manufacturable
+  slot that actually seats a rectangular leg. Circular holes emit byte-for-byte
+  what RFC-022 already emitted.
+- **IPC-2581** — the hole primitive carries the declared shape and `(w, h)`.
+  IPC's `<Hole>` element carries a single scalar diameter, so a non-circular
+  hole reports its MINOR axis (the slot width, the conventional drill for a
+  slotted hole); the full extent is carried by the padstack primitive.
+  Schema-valid (`xmllint` gate).
+
+DEVIATION (disclosed): the accepted text is internally inconsistent about field
+order. Its grammar line reads `[shape:] at (x, y) [geometry]` — which is also
+RFC-022's existing order — while its own worked `KailhChocV2` example writes
+`[shape:] [geometry] at (x, y)`. Implementing either one alone would make the
+other spelling in the RFC fail to parse. Both are therefore ACCEPTED (each
+component is introduced by a distinct keyword, so this remains a single-token
+decision — no lookahead, Constitution-safe), and `fmt` normalizes to the
+grammar line's order. Worth correcting in the RFC text.
+
+First consumer: `examples/openmicro`'s `FP_SW_Choc_V2` — RFC-023's own
+motivating part. Its locating peg was previously a Ø1.6mm circle, which the
+Kailh PG1353 datasheet ("Recommended PCB Layout", pattern side) shows is really
+a 2.00 x 1.50 rectangular leg; the round hole was 0.4mm short on one axis, so
+the peg could not seat. Now modelled exactly. Note the axes swap under the
+datasheet→footprint mapping `T(x,y) = (y,-x)` (verified rotation-invariantly, so
+the footprint is not mirrored): the datasheet's 2.00 along ITS x is 2.00 along
+our y, giving `size: (1.5mm, 2mm)`. The central pole was corrected 5.05 → 5.00mm
+in the same pass.

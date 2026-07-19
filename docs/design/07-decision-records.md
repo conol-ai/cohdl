@@ -951,3 +951,37 @@ Option 1 was rejected: it would force a special case into RFC-018's own central,
 ## Revisit when
 
 If a real footprint needs a non-circular locating feature (a slot, a keyed/D-shaped hole) — extend mount_hole's shape vocabulary via a scoped follow-up RFC, the same extension discipline RFC-001/018 already established, not a silent grammar change. Also revisit if a genuine need for board-level mounting holes emerges — that is separate, not-yet-proposed scope, closer in spirit to board_outline (RFC-020) than to this RFC's footprint-local construct.
+
+# DR-029: Non-circular locating holes — mount_hole gains shape/size, reusing pad's existing PadShape enum
+
+## Context
+
+RFC-022's own text explicitly named non-circular locating holes as deferred future work, to be triggered "if a real footprint needs" one. That real need materialized: the Kailh Choc V2 (Low Profile) switch's official datasheet ("Recommended PCB Mounting Pad Dimensions" page) was fetched and visually inspected, confirming a real, dimension-labeled 2.00mm × 1.50mm rectangular through-hole pad used as one of the switch's two mechanical mounting/support legs — distinct from its two circular electrical pin pads. Confirmed against real source (src/ast.rs): MountHole has exactly one geometry field (diameter: UnitValue), with no way to express a rectangular or oval shape.
+
+## Options
+
+1. Model the rectangular mounting leg as a pad with no bound device pin — rejected for the same reason RFC-022 itself rejected this for circular locating holes: it is non-electrical, has no pin to bind to, and would either be a category error or require a special-cased exception to RFC-018's unconditional pad-completeness guarantee.
+2. Extend mount_hole with an optional shape: field (reusing RFC-018's existing PadShape enum: rect/circle/oval, unchanged, not redefined) and a shape-dependent geometry field — diameter for circle (the default, preserving every existing declaration's meaning), size: (w, h) for rect/oval, mirroring pad's own established shape-dependent-sizing convention exactly (RFC-023's proposal).
+3. A separate construct (e.g. mount_slot) for non-circular locating holes.
+4. Overload diameter to accept either a scalar or a (w, h) tuple, inferring shape implicitly from the field's arity.
+5. A general 2D CAD/polygon authoring mechanism for arbitrary locating-feature shapes.
+
+## Decision
+
+Option 2. mount_hole gains an optional shape: field, one of {rect, circle, oval} (RFC-018's PadShape, reused verbatim). Absence of shape: defaults to circle, preserving every existing mount_hole declaration unchanged. The geometry field present must match the (explicit or defaulted) shape: diameter for circle, size: (w, h) for rect/oval — writing the wrong field for a given shape is a compile error, the same discipline pad already enforces for its own drill:/plating: pairing.
+
+## Rationale
+
+Option 1 was rejected for the identical reason RFC-022 rejected it for circular holes — no pin to bind to, and forcing it through pad would break RFC-018's unconditional completeness guarantee. Option 3 (a separate construct) was rejected: it would duplicate nearly everything mount_hole already does (disjoint numbering, plating, position, always-through_all) for what is really just a shape variation — the same "two constructs for one relationship" smell RFC-018's own Alternatives already rejected when considering separate pad/footprint constructs. Option 4 (implicit shape inference from field arity) was rejected: this is exactly the "correct by convention, not by the compiler" ambiguity the Constitution forbids elsewhere, and inconsistent with pad's own explicit shape: field precedent. Option 5 (general CAD authoring) was rejected as premature, unchanged from RFC-022's own reasoning — no concrete need beyond rect/circle/oval has been shown.
+
+## Consequences
+
+- mount_hole gains one new optional field and one new shape-dependent geometry rule — no new enum (PadShape already existed), no new top-level construct, no new resolution mechanism.
+- Real new emitter work, but a direct reuse of existing code paths: the KiCad .kicad_mod emitter's np_thru_hole projection (already non-round-capable in KiCad itself) now also handles rect/oval mount_hole geometry; the IPC-2581 emitter projects the corresponding hole/pin geometry with no net reference, unchanged in spirit from RFC-022's circular case.
+- New E8xx sub-cases (designators & parts, RFC-018/022's existing home for footprint-completeness checks): invalid mount_hole shape value, geometry-field/shape mismatch.
+- Purely additive — every existing mount_hole declaration (all necessarily circular, since shape: didn't exist before) is unchanged in meaning; shape:'s default is circle.
+- Real, non-mechanical follow-up work named but not required by this RFC's completion bar: the std library should gain an actual Kailh Choc V2 footprint using this new syntax — genuine content-authoring work, not part of what "Accepted" means here.
+
+## Revisit when
+
+If a real footprint needs a locating-hole shape beyond rect/circle/oval (a true slot with rounded ends, a keyed/D-shaped hole) — extend the shape vocabulary again via a scoped follow-up RFC, the same extension discipline this RFC itself just exercised, not a silent grammar change. Also revisit if real KiCad/IPC-2581 round-tripping reveals the rect/oval approximation is insufficient for some real hardware's actual rounded-rectangle geometry.

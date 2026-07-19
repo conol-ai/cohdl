@@ -1,10 +1,17 @@
-//! RFC-024 conformance: instance arrays and range references.
+//! RFC-024 conformance: array-typed instances and indexed references.
 //!
-//! The RFC defines BOTH constructs purely as expansion sugar — an exact
-//! equivalence to fully-hand-written `inst`/`net` statements. So the load-
-//! bearing test here is `expansion_equivalence_is_byte_identical`: the sugared
-//! design and the hand-written one must emit the same netlist bytes. Everything
-//! else checks the grammar, the two structural diagnostics, and fmt round-trip.
+//! The RFC was REDESIGNED (2026-07-19) from its own withdrawn first draft. The
+//! first draft made `inst sw[1..=13]: SW_KEY` pure name-expansion sugar with
+//! indexing usable only inside a net's member list. The accepted design instead
+//! makes `inst NAME: [Device; N]` one real array-typed instance whose elements
+//! are addressable as `NAME[i]` EVERYWHERE an ordinary instance reference is
+//! valid — net members, `place`, `decouple`, and `fn`-call arguments. The
+//! range/list fan-out survives as sugar over that real mechanism, still scoped
+//! to net-member lists.
+//!
+//! So the load-bearing tests here are `indexed_reference_works_in_place` and
+//! `indexed_reference_works_in_fn_call_args` — the positions the first draft
+//! could not serve, which are exactly why it was withdrawn.
 
 use cohdl::lock::LockState;
 use cohdl::pipeline::{build_artifacts, check_files_in};
@@ -30,7 +37,6 @@ fn netlist(src: &str) -> String {
     artifacts.expect("build").netlist
 }
 
-/// Shared preamble: a two-pin switch-ish device and a diode-ish device.
 const LIB: &str = r#"
 pub trait Sw { designator_prefix: "SW" }
 pub trait Dio { designator_prefix: "D" }
@@ -43,156 +49,230 @@ pub part SW_KEY: SwDev { primary { mfr: "m", mpn: "sw", footprint: FP } }
 pub part D_1N4148W: DioDev { primary { mfr: "m", mpn: "d", footprint: FP } }
 pub device McuDev { pins { ROW0: 1 [passive], ROW1: 2 [passive], COL0: 3 [passive], COL1: 4 [passive] } }
 pub part MCU: McuDev { primary { mfr: "m", mpn: "u", footprint: FP } }
+pub fn pair(a: Pin, b: Pin) {
+    inst x: D_1N4148W
+    net _: a, x.Anode
+    net _: b, x.Cathode
+}
 "#;
 
 // ---------------------------------------------------------------------------
-// Instance arrays.
+// Declaration.
 
 #[test]
-fn array_declares_individually_addressable_instances() {
+fn array_typed_instance_declares_n_real_elements() {
     let src = format!(
         "{LIB}
 design B {{
-    inst sw[1..=4]: SW_KEY
+    inst sw: [SW_KEY; 4]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A
-    net ROW1: mcu.ROW1, sw1.B, sw2.B, sw3.B, sw4.B
+    net ROW0: mcu.ROW0, sw[0].A, sw[1].A, sw[2].A, sw[3].A
+    net ROW1: mcu.ROW1, sw[0].B, sw[1].B, sw[2].B, sw[3].B
     nc: mcu.COL0, mcu.COL1
 }}"
     );
     let (checked, rendered) = check(&src);
     assert!(!rendered.contains("error"), "{}", rendered);
-    let ir = checked.ir.as_ref().expect("ir");
-    // Four real instances, each hierarchically named exactly as hand-typed.
-    for n in ["sw1", "sw2", "sw3", "sw4"] {
+    assert_eq!(checked.ir.as_ref().expect("ir").instances.len(), 5); // 4 + mcu
+                                                                     // Each element is fully real and gets its OWN designator — RFC-005 applies
+                                                                     // to an array element exactly as to a hand-written instance.
+    let net = netlist(&src);
+    for d in ["SW1", "SW2", "SW3", "SW4"] {
         assert!(
-            ir.instances.keys().any(|k| k.ends_with(n)),
-            "missing expanded instance {n}: {:?}",
-            ir.instances.keys().collect::<Vec<_>>()
+            net.contains(&format!("(ref \"{}\")", d)),
+            "missing designator {d}:\n{net}"
         );
     }
 }
 
 #[test]
-fn array_start_need_not_be_one() {
-    // The RFC calls this out explicitly: `inst led[14..=29]` is a real second
-    // array of the same device with a different starting number.
+fn two_arrays_of_the_same_device_are_independent() {
+    // The RFC's own "two independent chains of the same LED part" case.
     let src = format!(
         "{LIB}
 design B {{
-    inst sw[1..=2]: SW_KEY
-    inst sw[14..=15]: SW_KEY
+    inst key_leds: [SW_KEY; 2]
+    inst ambient_leds: [SW_KEY; 3]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw1.A, sw2.A, sw14.A, sw15.A
-    net ROW1: mcu.ROW1, sw1.B, sw2.B, sw14.B, sw15.B
+    net ROW0: mcu.ROW0, key_leds[0..=1].A, ambient_leds[0..=2].A
+    net ROW1: mcu.ROW1, key_leds[0..=1].B, ambient_leds[0..=2].B
     nc: mcu.COL0, mcu.COL1
 }}"
     );
     let (checked, rendered) = check(&src);
     assert!(!rendered.contains("error"), "{}", rendered);
-    let ir = checked.ir.as_ref().expect("ir");
-    assert_eq!(ir.instances.len(), 5); // 2 + 2 + mcu
+    assert_eq!(checked.ir.as_ref().unwrap().instances.len(), 6);
 }
 
 #[test]
-fn overlapping_arrays_collide() {
+fn array_name_collision_is_e201() {
     let src = format!(
         "{LIB}
 design B {{
-    inst sw[1..=4]: SW_KEY
-    inst sw[3..=6]: SW_KEY
+    inst sw: [SW_KEY; 2]
+    inst sw: [SW_KEY; 3]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw1.A
+    net ROW0: mcu.ROW0, sw[0].A
 }}"
     );
-    let (_c, rendered) = check(&src);
-    // Overlap collides on the SHARED element names — the same E201 an author
-    // would get from two ordinary `inst` statements sharing a name.
-    assert!(rendered.contains("E201"), "{}", rendered);
-    assert!(
-        rendered.contains("sw3"),
-        "must name the colliding element:\n{}",
-        rendered
-    );
+    let (_c, r) = check(&src);
+    assert!(r.contains("E201"), "{}", r);
 }
 
 #[test]
-fn array_collides_with_ordinary_inst() {
-    let src = format!(
-        "{LIB}
-design B {{
-    inst sw2: SW_KEY
-    inst sw[1..=3]: SW_KEY
-    inst mcu: MCU
-    net ROW0: mcu.ROW0, sw1.A
-}}"
-    );
-    let (_c, rendered) = check(&src);
-    assert!(rendered.contains("E201"), "{}", rendered);
+fn non_positive_length_is_e211() {
+    let src = format!("{LIB}\ndesign B {{\n    inst sw: [SW_KEY; 0]\n    inst mcu: MCU\n}}");
+    let (_c, r) = check(&src);
+    assert!(r.contains("E211") && r.contains("1 or more"), "{}", r);
 }
 
 // ---------------------------------------------------------------------------
-// Range references in net-member lists.
+// Indexed references — valid EVERYWHERE (the redesign's whole point).
 
 #[test]
-fn range_stride_and_list_references_expand() {
+fn indexed_reference_works_in_place() {
+    // The first draft could NOT do this. It is why the draft was withdrawn.
     let src = format!(
         "{LIB}
 design B {{
-    inst sw[1..=4]: SW_KEY
-    inst d[1..=13]: D_1N4148W
+    inst sw: [SW_KEY; 2]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw[1..=4].A
-    net ROW1: mcu.ROW1, sw[1..=4].B
-    net COL0: mcu.COL0, d[1..=13 step 4].Cathode
-    net COL1: mcu.COL1, d[2, 6, 10].Cathode
-    nc: d1.Anode, d2.Anode, d3.Anode, d4.Anode, d5.Anode, d6.Anode, d7.Anode,
-        d8.Anode, d9.Anode, d10.Anode, d11.Anode, d12.Anode, d13.Anode,
-        d3.Cathode, d4.Cathode, d7.Cathode, d8.Cathode, d11.Cathode, d12.Cathode
+    net ROW0: mcu.ROW0, sw[0].A, sw[1].A
+    net ROW1: mcu.ROW1, sw[0].B, sw[1].B
+    nc: mcu.COL0, mcu.COL1
+    layout {{
+        place sw[0] at (-5mm, 0mm)
+        place sw[1] at (5mm, 0mm) rotate 90
+    }}
 }}"
     );
-    let net = netlist(&src);
-    // ROW0 got all four switch A pins.
-    for r in ["SW1", "SW2", "SW3", "SW4"] {
-        assert!(net.contains(r), "expected {r} in netlist:\n{net}");
-    }
-    // The strided form selected d1, d5, d9, d13 — the RFC's own example.
-    assert!(net.contains("COL0"), "{net}");
-    assert!(net.contains("COL1"), "{net}");
+    let (checked, rendered) = check(&src);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let layout = &checked.ir.as_ref().unwrap().layout;
+    assert_eq!(layout.placements.len(), 2, "both elements placed");
 }
 
 #[test]
-fn expansion_equivalence_is_byte_identical() {
-    // The RFC's core claim: sugar expands to exactly what an author would have
-    // hand-written. Same designators, same nets, same NETLIST BYTES.
+fn indexed_reference_works_in_fn_call_args() {
+    // Also impossible in the first draft.
+    let src = format!(
+        "{LIB}
+design B {{
+    inst sw: [SW_KEY; 2]
+    inst mcu: MCU
+    pair(sw[0].A, sw[0].B)
+    pair(sw[1].A, sw[1].B)
+    nc: mcu.ROW0, mcu.ROW1, mcu.COL0, mcu.COL1
+}}"
+    );
+    let (_c, rendered) = check(&src);
+    assert!(!rendered.contains("error"), "{}", rendered);
+}
+
+#[test]
+fn bare_unindexed_array_reference_is_rejected() {
+    // "NAME alone is never itself a valid instance reference" — the one new
+    // rule the RFC says must be taught.
+    let src = format!(
+        "{LIB}
+design B {{
+    inst sw: [SW_KEY; 2]
+    inst mcu: MCU
+    net ROW0: mcu.ROW0, sw.A
+}}"
+    );
+    let (_c, r) = check(&src);
+    assert!(r.contains("E211"), "{}", r);
+    assert!(r.contains("array-typed"), "{}", r);
+    assert!(r.contains("sw[0]"), "must suggest indexing:\n{}", r);
+}
+
+#[test]
+fn indexing_a_non_array_is_rejected() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst mcu: MCU
+    net ROW0: mcu[0].ROW0
+}}"
+    );
+    let (_c, r) = check(&src);
+    assert!(
+        r.contains("E211") && r.contains("not an array-typed"),
+        "{}",
+        r
+    );
+}
+
+#[test]
+fn out_of_bounds_index_is_e202_naming_the_valid_range() {
+    for (expr, where_) in [
+        ("net ROW0: mcu.ROW0, sw[2].A", "net member"),
+        ("layout { place sw[5] at (0mm, 0mm) }", "place"),
+    ] {
+        let src = format!(
+            "{LIB}
+design B {{
+    inst sw: [SW_KEY; 2]
+    inst mcu: MCU
+    {expr}
+}}"
+        );
+        let (_c, r) = check(&src);
+        assert!(r.contains("E202"), "{where_}:\n{r}");
+        assert!(
+            r.contains("valid indices are 0..=1") && r.contains("length 2"),
+            "{where_} must name the valid range:\n{r}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Range/list fan-out — sugar over the real mechanism, net-member-only.
+
+#[test]
+fn range_and_list_fan_out_in_net_members() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst d: [D_1N4148W; 13]
+    inst mcu: MCU
+    net COL0: mcu.COL0, d[0..=12 step 4].Cathode
+    net COL1: mcu.COL1, d[1, 5, 9].Cathode
+    net ROW0: mcu.ROW0, d[0..=12].Anode
+    nc: mcu.ROW1,
+        d[2].Cathode, d[3].Cathode, d[6].Cathode, d[7].Cathode,
+        d[10].Cathode, d[11].Cathode
+}}"
+    );
+    let net = netlist(&src);
+    assert!(net.contains("COL0") && net.contains("COL1"), "{net}");
+}
+
+#[test]
+fn fan_out_equals_hand_written_indexed_references() {
+    // The sugar is defined as a pure textual expansion over NAME[i].
     let sugared = format!(
         "{LIB}
 design B {{
-    inst sw[1..=4]: SW_KEY
+    inst sw: [SW_KEY; 4]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw[1..=4].A
-    net ROW1: mcu.ROW1, sw[1, 2, 3, 4].B
+    net ROW0: mcu.ROW0, sw[0..=3].A
+    net ROW1: mcu.ROW1, sw[0, 1, 2, 3].B
     nc: mcu.COL0, mcu.COL1
 }}"
     );
-    let hand = format!(
+    let explicit = format!(
         "{LIB}
 design B {{
-    inst sw1: SW_KEY
-    inst sw2: SW_KEY
-    inst sw3: SW_KEY
-    inst sw4: SW_KEY
+    inst sw: [SW_KEY; 4]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A
-    net ROW1: mcu.ROW1, sw1.B, sw2.B, sw3.B, sw4.B
+    net ROW0: mcu.ROW0, sw[0].A, sw[1].A, sw[2].A, sw[3].A
+    net ROW1: mcu.ROW1, sw[0].B, sw[1].B, sw[2].B, sw[3].B
     nc: mcu.COL0, mcu.COL1
 }}"
     );
-    assert_eq!(
-        netlist(&sugared),
-        netlist(&hand),
-        "array/range sugar must be byte-identical to the hand-written form"
-    );
+    assert_eq!(netlist(&sugared), netlist(&explicit));
 }
 
 #[test]
@@ -200,107 +280,58 @@ fn strided_equals_explicit_list() {
     let strided = format!(
         "{LIB}
 design B {{
-    inst d[1..=13]: D_1N4148W
+    inst d: [D_1N4148W; 13]
     inst mcu: MCU
-    net COL0: mcu.COL0, d[1..=13 step 4].Cathode
-    net COL1: mcu.COL1, d[1..=13 step 4].Anode
+    net COL0: mcu.COL0, d[0..=12 step 4].Cathode
+    net COL1: mcu.COL1, d[0..=12 step 4].Anode
     nc: mcu.ROW0, mcu.ROW1,
-        d2.Anode, d2.Cathode, d3.Anode, d3.Cathode, d4.Anode, d4.Cathode,
-        d6.Anode, d6.Cathode, d7.Anode, d7.Cathode, d8.Anode, d8.Cathode,
-        d10.Anode, d10.Cathode, d11.Anode, d11.Cathode, d12.Anode, d12.Cathode
+        d[1].Anode, d[1].Cathode, d[2].Anode, d[2].Cathode, d[3].Anode, d[3].Cathode,
+        d[5].Anode, d[5].Cathode, d[6].Anode, d[6].Cathode, d[7].Anode, d[7].Cathode,
+        d[9].Anode, d[9].Cathode, d[10].Anode, d[10].Cathode, d[11].Anode, d[11].Cathode
 }}"
     );
     let listed = strided
-        .replace("d[1..=13 step 4].Cathode", "d[1, 5, 9, 13].Cathode")
-        .replace("d[1..=13 step 4].Anode", "d[1, 5, 9, 13].Anode");
+        .replace("d[0..=12 step 4].Cathode", "d[0, 4, 8, 12].Cathode")
+        .replace("d[0..=12 step 4].Anode", "d[0, 4, 8, 12].Anode");
     assert_eq!(netlist(&strided), netlist(&listed));
 }
 
 #[test]
-fn out_of_range_index_is_e202_naming_the_first_bad_one() {
-    let src = format!(
-        "{LIB}
+fn range_or_list_outside_net_members_is_e211() {
+    // place and fn args take ONE element — "a range at once" has no meaning.
+    for expr in [
+        "layout { place sw[0..=1] at (0mm, 0mm) }",
+        "pair(sw[0..=1].A, sw[0].B)",
+        "nc: sw[0..=1].A",
+    ] {
+        let src = format!(
+            "{LIB}
 design B {{
-    inst sw[1..=4]: SW_KEY
+    inst sw: [SW_KEY; 2]
     inst mcu: MCU
-    net ROW0: mcu.ROW0, sw[1..=6].A
+    {expr}
 }}"
-    );
-    let (_c, rendered) = check(&src);
-    assert!(rendered.contains("E202"), "{}", rendered);
-    // Names the FIRST invalid index (5), not every one of them.
-    assert!(rendered.contains("index 5"), "{}", rendered);
-    assert!(rendered.contains("sw5"), "{}", rendered);
-    assert_eq!(
-        rendered.matches("E202").count(),
-        1,
-        "one mistyped range must yield ONE diagnostic:\n{}",
-        rendered
-    );
+        );
+        let (_c, r) = check(&src);
+        assert!(r.contains("E211"), "`{expr}` must be rejected:\n{r}");
+    }
 }
 
 // ---------------------------------------------------------------------------
-// RFC-024's explicit scope boundary + malformed grammar (E211).
+// fmt.
 
 #[test]
-fn index_selector_outside_net_members_is_e211() {
-    // `nc` is not a net-member list.
-    let src = format!(
-        "{LIB}
-design B {{
-    inst sw[1..=4]: SW_KEY
-    inst mcu: MCU
-    net ROW0: mcu.ROW0, sw[1..=4].A
-    nc: sw[1..=4].B
-}}"
-    );
-    let (_c, rendered) = check(&src);
-    assert!(rendered.contains("E211"), "{}", rendered);
-    assert!(
-        rendered.contains("only valid in a net's member list"),
-        "{}",
-        rendered
-    );
-}
-
-#[test]
-fn malformed_ranges_are_e211() {
-    let base = |body: &str| format!("{LIB}\ndesign B {{\n    inst mcu: MCU\n{body}\n}}");
-    // Empty range: end below start.
-    let (_c, r) = check(&base("    inst sw[4..=1]: SW_KEY"));
-    assert!(r.contains("E211") && r.contains("empty"), "{}", r);
-    // Stride below 1.
-    let (_c, r) = check(&base(
-        "    inst sw[1..=4]: SW_KEY\n    net N: mcu.ROW0, sw[1..=4 step 0].A",
-    ));
-    assert!(r.contains("E211") && r.contains("stride"), "{}", r);
-    // A stride in a DECLARATION is not a thing — arrays are contiguous.
-    let (_c, r) = check(&base("    inst sw[1..=4 step 2]: SW_KEY"));
-    assert!(r.contains("E211") && r.contains("contiguous"), "{}", r);
-    // Nor is an index list.
-    let (_c, r) = check(&base("    inst sw[1, 2, 3]: SW_KEY"));
-    assert!(
-        r.contains("E211") && r.contains("not an index list"),
-        "{}",
-        r
-    );
-}
-
-// ---------------------------------------------------------------------------
-// fmt (the construct-tracking trap: a formatter that silently drops the
-// bracket would expand a 13-element array into ONE instance on reformat).
-
-#[test]
-fn arrays_and_ranges_round_trip_through_fmt() {
+fn array_syntax_round_trips_through_fmt() {
     use cohdl::fmt::format_source;
-    let src = "design B {\n    inst sw[1..=13]: SW_KEY\n    inst led[14..=29]: RGB\n    net ROW0: mcu.ROW0, sw[1..=4].A\n    net COL0: mcu.COL0, d[1..=13 step 4].Cathode\n    net COL1: mcu.COL1, d[2, 6, 10].Cathode\n}\n";
+    let src = "design B {\n    inst key_leds: [RGB; 13]\n    inst mcu: MCU\n    net V: mcu.A, key_leds[0].VDD, key_leds[0..=12].GND, key_leds[1, 5, 9].DIN\n    net W: key_leds[0..=12 step 4].DOUT\n    layout {\n        place key_leds[0] at (1mm, 2mm) rotate 90\n    }\n}\n";
     let once = format_source("b.cohdl", src).unwrap();
     for want in [
-        "inst sw[1..=13]: SW_KEY",
-        "inst led[14..=29]: RGB",
-        "sw[1..=4].A",
-        "d[1..=13 step 4].Cathode",
-        "d[2, 6, 10].Cathode",
+        "inst key_leds: [RGB; 13]",
+        "key_leds[0].VDD",
+        "key_leds[0..=12].GND",
+        "key_leds[1, 5, 9].DIN",
+        "key_leds[0..=12 step 4].DOUT",
+        "place key_leds[0] at (1mm, 2mm) rotate 90",
     ] {
         assert!(once.contains(want), "fmt dropped `{want}`:\n{once}");
     }
@@ -311,12 +342,12 @@ fn arrays_and_ranges_round_trip_through_fmt() {
 #[test]
 fn unstrided_range_does_not_gain_a_step_in_fmt() {
     use cohdl::fmt::format_source;
-    let src = "design B {\n    net N: mcu.A, sw[1..=4].A\n}\n";
+    let src = "design B {\n    net N: mcu.A, sw[0..=3].A\n}\n";
     let once = format_source("b.cohdl", src).unwrap();
-    assert!(once.contains("sw[1..=4].A"), "{}", once);
+    assert!(once.contains("sw[0..=3].A"), "{}", once);
     assert!(
         !once.contains("step"),
-        "implicit stride must stay implicit:\n{}",
+        "implicit stride stays implicit:\n{}",
         once
     );
 }

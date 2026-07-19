@@ -2212,52 +2212,38 @@ impl<'a> Parser<'a> {
                 let start = self.span();
                 self.bump();
                 let name = self.ident("as the instance name")?;
-                // RFC-024: `inst NAME[START..=END]: Device` — the array form.
-                // Only the plain inclusive range is legal here; a stride or an
-                // index list is a net-member-reference form, not a declaration.
-                let array = if self.at(&TokenKind::LBracket) {
-                    match self.index_sel()? {
-                        IndexSel::Range {
-                            start: s,
-                            end,
-                            explicit_step,
-                            span,
-                            ..
-                        } => {
-                            if explicit_step {
-                                self.diags.push(Diagnostic::error(
-                                    "E211",
-                                    span,
-                                    "an instance array declares a contiguous range — `step` is only valid in a net-member reference".to_string(),
-                                ));
-                                return None;
-                            }
-                            Some(crate::ast::InstArray {
-                                start: s,
-                                end,
-                                span,
-                            })
-                        }
-                        IndexSel::List(_, span) => {
-                            self.diags.push(Diagnostic::error(
-                                "E211",
-                                span,
-                                "an instance array is declared with a range `[START..=END]`, not an index list".to_string(),
-                            ));
-                            return None;
-                        }
-                    }
-                } else {
-                    None
-                };
                 self.expect(&TokenKind::Colon, "after the instance name");
-                let ty = self.type_ref()?;
+                // RFC-024: `[Device; N]` in TYPE position declares an
+                // array-typed instance of fixed length N.
+                let (ty, array_len) = if self.at(&TokenKind::LBracket) {
+                    let open = self.span();
+                    self.bump();
+                    let ty = self.type_ref()?;
+                    self.expect(
+                        &TokenKind::Semi,
+                        "between the element type and the array length",
+                    );
+                    let n = self.index_number("as the array length")?;
+                    self.expect(&TokenKind::RBracket, "to close the array type");
+                    let span = open.to(self.prev_span());
+                    if n < 1 {
+                        self.diags.push(Diagnostic::error(
+                            "E211",
+                            span,
+                            format!("array length `{}` must be 1 or more", n),
+                        ));
+                        return None;
+                    }
+                    (ty, Some((n, span)))
+                } else {
+                    (self.type_ref()?, None)
+                };
                 Some(Stmt::Inst(InstStmt {
                     attrs,
                     intent,
                     placement_hint,
                     name,
-                    array,
+                    array_len,
                     span: start.to(self.prev_span()),
                     ty,
                 }))
@@ -2545,6 +2531,24 @@ impl<'a> Parser<'a> {
         let start = self.span();
         self.bump(); // `place`
         let inst = self.ident("as the instance to place")?;
+        // RFC-024: `place NAME[i]` — always exactly ONE element; a range has
+        // no single sensible meaning here (each element needs its own
+        // coordinates).
+        let index = if self.at(&TokenKind::LBracket) {
+            match self.index_sel()? {
+                IndexSel::Single(i, sp) => Some((i, sp)),
+                other => {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        other.span(),
+                        "`place` takes a single element `NAME[i]` — a range or index list has no single position".to_string(),
+                    ));
+                    return None;
+                }
+            }
+        } else {
+            None
+        };
         if !self.at_ident("at") {
             self.error_here("expected `at (x, y)` after the instance name".to_string());
             return None;
@@ -2575,6 +2579,7 @@ impl<'a> Parser<'a> {
         }
         Some(Placement {
             inst,
+            index,
             at,
             rotate,
             span: start.to(self.prev_span()),
@@ -2793,11 +2798,20 @@ impl<'a> Parser<'a> {
             })
         } else {
             let mut items = vec![first];
+            let mut had_comma = false;
             while self.eat(&TokenKind::Comma) {
+                had_comma = true;
                 items.push(self.index_number("in the index list")?);
             }
             self.expect(&TokenKind::RBracket, "to close the index bracket");
-            Some(IndexSel::List(items, open.to(self.prev_span())))
+            let span = open.to(self.prev_span());
+            // `[i]` is the REAL reference form (valid everywhere); only a
+            // comma-separated set is the net-member-only list sugar.
+            if had_comma {
+                Some(IndexSel::List(items, span))
+            } else {
+                Some(IndexSel::Single(first, span))
+            }
         }
     }
 

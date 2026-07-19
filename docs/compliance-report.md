@@ -1762,51 +1762,74 @@ the footprint is not mirrored): the datasheet's 2.00 along ITS x is 2.00 along
 our y, giving `size: (1.5mm, 2mm)`. The central pole was corrected 5.05 → 5.00mm
 in the same pass.
 
-## RFC-024 (instance arrays and range references) implementation notes (2026-07-19)
+## RFC-024 (array-typed instances and indexed references) implementation notes (2026-07-19)
 
-RFC-024 (DR-030) adds two compact declaration/reference forms, both defined
-purely as expansion sugar over already-existing `inst`/`net` semantics.
+**This RFC was REDESIGNED the same day, superseding its own first draft.** The
+first implementation (commit e5c5628) built the withdrawn draft: `inst
+sw[1..=13]: SW_KEY` as pure name-expansion sugar producing `sw1`…`sw13`, with
+indexing usable ONLY inside a net's member list. That design was withdrawn per
+Tony's direct correction — it could not address the real motivating need
+(OpenMicro's WS2812 daisy-chain and per-element `place`), because those need one
+specific indexed element, not a fan-out inside a single net. The notes below
+describe the accepted redesign, which replaces it entirely.
 
-- **Instance arrays** — `inst NAME[START..=END]: Device` expands, in the
-  expander's existing pass-1 instance loop, to one ordinary `inst` per index
-  named `{NAME}{i}`. Each element goes through the SAME `handle_inst` a
-  hand-written statement does, so designator allocation (RFC-005), `place`/
-  `decouple` targeting, pin obligations (RFC-002) and trait satisfaction
-  (RFC-003) all apply unchanged. `START` need not be 1.
-- **Array collisions need no bespoke check** — overlapping ranges (or a clash
-  with an ordinary `inst`) collide on their shared *element* names, so the
-  existing E201 fires naming the actual colliding instance. This falls out of
-  expansion rather than being special-cased.
-- **Range references** — `NAME[S..=E].PIN`, `NAME[S..=E step N].PIN`, and
-  `NAME[i, j, k].PIN` expand in `handle_net` to a flat `PinRef` list before
-  resolution, so everything downstream is byte-identical to the hand-written
-  form.
-- **Out-of-range indices** are E202 (the unresolved-name class RFC-016
-  established), reported for the FIRST invalid index only — one mistyped range
-  yields one diagnostic, not one per index.
-- **The net-member-only scope boundary** is enforced structurally rather than
-  by convention: `handle_net` expands selectors before resolution, so any
-  selector still intact when it reaches `resolve_pin_ref` is by construction in
-  a disallowed position (`nc`, a `fn` call's arguments, `place`) and is E211.
-- **E211** is a new sub-case in the existing E2xx name-resolution block, per
-  the RFC's "no new block" instruction: malformed ranges (empty range, stride
-  below 1), a `step`/index-list written in an array *declaration* (which takes
-  a plain contiguous `[START..=END]`), and the misplacement case above.
-- **fmt** — `Display for PinRef` renders the selector and the `inst` line
-  renders the array bracket. An implicit stride of 1 is never spelled out, so
-  unstrided ranges round-trip byte-identically. (This is the construct-tracking
-  trap RFC-022 already hit once: a formatter that dropped the bracket would
-  silently collapse a 13-element array into ONE instance on reformat.)
+- **Declaration** — `inst NAME: [Device; N]` in TYPE position (not name
+  position). N is a positive integer literal; `N < 1` is E211.
+- **One array, N real elements** — expansion runs in the expander's existing
+  pass-1 instance loop, creating elements internally named `NAME_0`…
+  `NAME_{N-1}`, exactly the names the RFC says the author would have hand-
+  written. Each goes through the SAME `handle_inst` an ordinary `inst` does, so
+  designator allocation (RFC-005), pin obligations (RFC-002) and trait
+  satisfaction (RFC-003) apply completely unchanged.
+- **`NAME[i]` is 0-based and valid EVERYWHERE** an ordinary instance reference
+  is — net members, `place NAME[i] at (…)`, and `fn`-call arguments. This is the
+  redesign's central correction and is enforced structurally: `resolve_pin_ref`
+  de-indexes a `Single` rather than rejecting it, and `handle_placement` grew
+  the same resolution.
+- **A bare unindexed `NAME` is never a valid reference** for an array-typed
+  instance — E211 suggesting `NAME[0]`. Enforced by construction: an array's
+  NAME is never inserted into `local_insts`, only its elements are.
+- **Bounds** — `0 <= i < N`, checked at every use site (net member, `place`,
+  fan-out endpoints), reported as E202 naming the valid `0..=N-1` range and the
+  length.
+- **Range/list fan-out** — `NAME[a..=b].PIN`, `NAME[a..=b step k].PIN`, and
+  `NAME[i, j, k].PIN` survive as SUGAR over `NAME[i]`, expanded in `handle_net`
+  into individual `Single` references. Still net-member-only: `place`/`nc`/
+  `fn`-args each take one element (E211), since "a range at once" has no single
+  meaning there. The strided form is retained per the RFC's "remain valid,
+  exactly as in the first draft's design", though the redesign's prose
+  enumerates only the range and list forms.
+- **fmt** — `[Device; N]` in type position, `NAME[i]`/`NAME[a..=b]`/
+  `NAME[i, j]` in reference position, and `place NAME[i]`. An implicit stride
+  of 1 is never spelled out, so unstrided ranges round-trip byte-identically.
 
-Not solved, per the RFC's own explicit non-goals: daisy-chain wiring between
-consecutive elements (OpenMicro's real WS2812 DOUT→DIN chain), per-index net
-pairings (its `net KEY{i}: sw{i}.B, d{i}.Anode` matrix), and arithmetic-derived
-per-instance `place` coordinates — all remain hand-written, unchanged.
+DEVIATION (disclosed): `docs/design/10-language-specification.md` still carries
+the WITHDRAWN first draft's "Instance arrays and range references" section. The
+accepted RFC-024 document states that the specification "replaces the withdrawn
+first draft's section with this corrected design", but that edit had not
+propagated to the shared design repo at implementation time. The implementation
+follows the RFC document (explicitly Accepted, dated 2026-07-19, marked as
+superseding), not the stale specification section. Worth reconciling upstream.
 
-First consumer: `examples/openmicro/src/main.cohdl`, RFC-024's own motivating
-design — 300 → 238 lines. Its 42 repeated `inst` lines become 5 arrays
-(`sw[1..=13]`, `d[1..=13]`, `led[1..=13]`, `led[14..=29]`, `mh[1..=4]`), and
-its ROW/COL matrix plus the 29-LED power fan-outs become range/strided
-references. **The emitted netlist is byte-identical to the pre-migration
-golden** — the expansion-equivalence claim verified on real source, not just
-on fixtures.
+Also fixed here: `tools/extract_design_repo.py` carried a HARDCODED page list
+that never included the standalone RFC-022/023/024 documents, so a redesigned
+RFC was invisible to the usual re-extract-and-diff check — the diff came back
+clean while the RFC had in fact changed. The three note IDs are now in the list
+(discovered by scanning the share root for note links).
+
+First consumer: `examples/openmicro/src/main.cohdl` — five array-typed families
+(`sw: [SW_KEY; 13]`, `d: [D_1N4148W; 13]`, `key_leds: [RGB_SK6812; 13]`,
+`ambient_leds: [RGB_SK6812; 16]`, `mh: [MH_M2; 4]`), with its ROW/COL matrix and
+power fan-outs using range/stride sugar, and its WS2812 daisy-chain nets,
+`decouple` calls and per-element `place` statements all now written as
+`key_leds[i]` / `ambient_leds[i]` — positions the withdrawn draft could not
+express at all. Note the old flat `led[1..=29]` became two separate arrays,
+exactly the "two independent chains of the same part" case the RFC names.
+
+VERIFIED NOT netlist-byte-identical, and that is correct: renaming every element
+(`led1` → `key_leds_0`) changes instance PATHS, and RFC-005 allocates
+designators by path, so `design.lock` was regenerated and designators
+reassigned. Structural equivalence was confirmed instead — 98 components → 98,
+70 nets → 70, identical net names, identical part-value multiset, and **0 nets
+whose (part-value, pin) membership changed**. Designators are contiguous per
+prefix (C1-27, D1-13, LED1-29, SW1-15, …).

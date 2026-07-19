@@ -725,6 +725,9 @@ pub struct LayoutBlock {
 #[derive(Debug, Clone)]
 pub struct Placement {
     pub inst: Ident,
+    /// RFC-024: `place NAME[i] at (…)` — always exactly one element, never a
+    /// range (each element needs its own coordinates).
+    pub index: Option<(i64, Span)>,
     pub at: (UnitValue, UnitValue),
     pub rotate: u16,
     pub span: Span,
@@ -786,9 +789,10 @@ pub struct InstStmt {
     /// zero-impact (rides into `layout.json`, never into `.net`/BOM/designators).
     pub placement_hint: Option<(String, Span)>,
     pub name: Ident,
-    /// RFC-024: `inst NAME[START..=END]: Device` declares a whole family of
-    /// real instances; `None` is the ordinary single-instance form.
-    pub array: Option<InstArray>,
+    /// RFC-024: `inst NAME: [Device; N]` — an array-typed instance of fixed
+    /// length N. `None` is the ordinary single-instance form. When set, `NAME`
+    /// alone is NEVER a valid reference; every use must be indexed `NAME[i]`.
+    pub array_len: Option<(i64, Span)>,
     pub ty: TypeRef,
     pub span: Span,
 }
@@ -827,28 +831,17 @@ pub struct NcStmt {
     pub span: Span,
 }
 
-/// RFC-024: `inst NAME[START..=END]: Device` — an instance array's inclusive
-/// bounds. Expansion is textual: element `i` is named `{NAME}{i}`, exactly the
-/// name an author would have hand-typed.
-#[derive(Debug, Clone)]
-pub struct InstArray {
-    pub start: i64,
-    pub end: i64,
-    /// The whole `[START..=END]` bracket, for diagnostics and `fmt`.
-    pub span: Span,
-}
-
-impl InstArray {
-    pub fn indices(&self) -> impl Iterator<Item = i64> {
-        self.start..=self.end
-    }
-}
-
-/// RFC-024: an index selector inside a net-member reference — the three
-/// accepted forms. Valid ONLY in a net's member list (an explicit scope
-/// boundary: never in `place`, `decouple`, or a `fn` call's arguments).
+/// RFC-024: an index selector on an array-typed instance reference.
+///
+/// `Single` — `NAME[i]`, a literal index — is valid EVERYWHERE an ordinary
+/// instance reference is: net members, `place`, `decouple`, and `fn`-call
+/// arguments. `Range`/`List` are fan-out SUGAR over `Single`, and remain
+/// scoped to net-member lists only (placing or decoupling "a range at once"
+/// has no single sensible meaning).
 #[derive(Debug, Clone)]
 pub enum IndexSel {
+    /// `[i]` — one element. The real reference form.
+    Single(i64, Span),
     /// `[START..=END]`, or `[START..=END step STEP]` when `step` is written.
     Range {
         start: i64,
@@ -867,6 +860,7 @@ impl IndexSel {
     /// The selected indices, in written order.
     pub fn indices(&self) -> Vec<i64> {
         match self {
+            IndexSel::Single(i, _) => vec![*i],
             IndexSel::Range {
                 start, end, step, ..
             } => {
@@ -884,7 +878,9 @@ impl IndexSel {
     }
     pub fn span(&self) -> Span {
         match self {
-            IndexSel::Range { span, .. } | IndexSel::List(_, span) => *span,
+            IndexSel::Single(_, span) | IndexSel::Range { span, .. } | IndexSel::List(_, span) => {
+                *span
+            }
         }
     }
 }
@@ -892,6 +888,7 @@ impl IndexSel {
 impl std::fmt::Display for IndexSel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            IndexSel::Single(i, _) => write!(f, "[{}]", i),
             IndexSel::Range {
                 start,
                 end,
@@ -912,12 +909,6 @@ impl std::fmt::Display for IndexSel {
                 write!(f, "[{}]", items.join(", "))
             }
         }
-    }
-}
-
-impl std::fmt::Display for InstArray {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}..={}]", self.start, self.end)
     }
 }
 

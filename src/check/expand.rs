@@ -38,6 +38,7 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         subst: Substitution::new(),
         bindings: BTreeMap::new(),
         local_insts: BTreeMap::new(),
+        arrays: BTreeMap::new(),
     };
     ex.walk_body(&design.body, &mut scope);
     ex.assemble(design)
@@ -66,6 +67,10 @@ struct Scope {
     bindings: BTreeMap<String, Binding>,
     /// local instance name → full path.
     local_insts: BTreeMap<String, String>,
+    /// RFC-024: array-typed instance name → (declared length, decl span).
+    /// An array's NAME is never itself in `local_insts` — only its elements
+    /// (`NAME_0`…`NAME_{N-1}`), so a bare unindexed reference cannot resolve.
+    arrays: BTreeMap<String, (i64, crate::span::Span)>,
 }
 
 /// One `net` declaration with resolved members, pre-merge.
@@ -127,28 +132,45 @@ enum RawLayout {
     },
 }
 
+/// RFC-024: an array element's internal instance name. The RFC defines an
+/// array as behaving exactly as if the author had hand-written
+/// `NAME_0: Device`, `NAME_1: Device`, … — so that is literally the name used.
+fn element_name(base: &str, i: i64) -> String {
+    format!("{}_{}", base, i)
+}
+
 impl<'w, 'd> Expander<'w, 'd> {
     fn walk_body(&mut self, body: &[Stmt], scope: &mut Scope) {
         // Pass 1: instances (declarative bodies — nets may reference later insts).
         for stmt in body {
             if let Stmt::Inst(inst) = stmt {
-                match &inst.array {
-                    // RFC-024: an instance array is pure expansion sugar —
-                    // each element goes through `handle_inst` exactly as a
-                    // hand-written `inst` would, so designator allocation,
-                    // pin obligations, trait satisfaction and the existing
-                    // E201 name-collision check all apply unchanged. Two
-                    // overlapping arrays therefore collide on their shared
-                    // element names, with no bespoke check needed.
+                match inst.array_len {
                     None => self.handle_inst(inst, scope),
-                    Some(arr) => {
-                        for i in arr.indices() {
+                    // RFC-024: `inst NAME: [Device; N]` is ONE array-typed
+                    // instance whose N elements are each fully real. Each
+                    // element goes through the SAME `handle_inst` a hand-
+                    // written `inst` does, so designator allocation (RFC-005),
+                    // pin obligations (RFC-002) and trait satisfaction
+                    // (RFC-003) apply to it completely unchanged.
+                    Some((n, span)) => {
+                        if scope.arrays.contains_key(&inst.name.name)
+                            || scope.local_insts.contains_key(&inst.name.name)
+                        {
+                            self.diags.push(Diagnostic::error(
+                                "E201",
+                                inst.name.span,
+                                format!("`{}` is already defined in this scope", inst.name.name),
+                            ));
+                            continue;
+                        }
+                        scope.arrays.insert(inst.name.name.clone(), (n, span));
+                        for i in 0..n {
                             let mut elem = inst.clone();
                             elem.name = Ident {
-                                name: format!("{}{}", inst.name.name, i),
+                                name: element_name(&inst.name.name, i),
                                 span: inst.name.span,
                             };
-                            elem.array = None;
+                            elem.array_len = None;
                             self.handle_inst(&elem, scope);
                         }
                     }
@@ -225,7 +247,54 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         }
-        let Some(path) = scope.local_insts.get(&placement.inst.name).cloned() else {
+        // RFC-024: `place NAME[i]` targets one real array element — the same
+        // reference form valid in every other instance position.
+        let local = match (
+            placement.index,
+            scope.arrays.get(&placement.inst.name).copied(),
+        ) {
+            (None, None) => placement.inst.name.clone(),
+            (None, Some(_)) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    placement.inst.span,
+                    format!(
+                        "`{}` is array-typed — place one element, e.g. `place {}[0] at (…)`",
+                        placement.inst.name, placement.inst.name
+                    ),
+                ));
+                return;
+            }
+            (Some((_, sp)), None) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    sp,
+                    format!(
+                        "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
+                        placement.inst.name
+                    ),
+                ));
+                return;
+            }
+            (Some((i, sp)), Some((n, _))) => {
+                if i < 0 || i >= n {
+                    self.diags.push(Diagnostic::error(
+                        "E202",
+                        sp,
+                        format!(
+                            "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
+                            i,
+                            placement.inst.name,
+                            n - 1,
+                            n
+                        ),
+                    ));
+                    return;
+                }
+                element_name(&placement.inst.name, i)
+            }
+        };
+        let Some(path) = scope.local_insts.get(&local).cloned() else {
             self.diags.push(Diagnostic::error(
                 "E1007",
                 placement.inst.span,
@@ -600,6 +669,38 @@ impl<'w, 'd> Expander<'w, 'd> {
     // -- pin references ------------------------------------------------------
 
     /// Resolve a pin reference to (instance path, logical pin name).
+    /// RFC-024: an array element's internal identity — exactly as if the
+    /// author had hand-written `NAME_0: Device`, `NAME_1: Device`, … The
+    /// source-facing spelling stays `NAME[i]`.
+    fn array_bounds(&mut self, base: &Ident, sel: &IndexSel, n: i64) -> Option<Vec<i64>> {
+        let idx = sel.indices();
+        if idx.is_empty() {
+            self.diags.push(Diagnostic::error(
+                "E211",
+                sel.span(),
+                format!("`{}[…]` selects no elements", base.name),
+            ));
+            return None;
+        }
+        for i in &idx {
+            if *i < 0 || *i >= n {
+                self.diags.push(Diagnostic::error(
+                    "E202",
+                    sel.span(),
+                    format!(
+                        "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
+                        i,
+                        base.name,
+                        n - 1,
+                        n
+                    ),
+                ));
+                return None;
+            }
+        }
+        Some(idx)
+    }
+
     /// RFC-024: expand a possibly-indexed net member into flat, ordinary
     /// single-instance references — the exact list an author would have
     /// hand-written. Every index must name a real declared instance; the
@@ -607,60 +708,91 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// class RFC-016 established) and the member contributes nothing, so one
     /// mistyped range yields one diagnostic rather than one per index.
     fn expand_member(&mut self, m: &PinRef, scope: &Scope) -> Vec<PinRef> {
-        let Some(sel) = &m.index else {
+        // Only the fan-out SUGAR (range/list) expands here; a `Single` index
+        // is a real reference and is resolved by `resolve_pin_ref` itself.
+        let Some(sel @ (IndexSel::Range { .. } | IndexSel::List(..))) = &m.index else {
             return vec![m.clone()];
         };
-        let indices = sel.indices();
-        if indices.is_empty() {
-            self.diags.push(Diagnostic::error(
-                "E211",
-                sel.span(),
-                format!("`{}[…]` selects no instances", m.base.name),
-            ));
-            return Vec::new();
-        }
-        let mut out = Vec::with_capacity(indices.len());
-        for i in indices {
-            let name = format!("{}{}", m.base.name, i);
-            if !scope.local_insts.contains_key(&name) && !scope.bindings.contains_key(&name) {
-                self.diags.push(Diagnostic::error(
-                    "E202",
-                    sel.span(),
-                    format!(
-                        "index {} selects `{}`, which is not a declared instance — check the `{}` array's declared range",
-                        i, name, m.base.name
-                    ),
-                ));
-                return Vec::new();
-            }
-            out.push(PinRef {
-                base: Ident {
-                    name,
-                    span: m.base.span,
-                },
-                index: None,
-                pin: m.pin.clone(),
-                span: m.span,
-            });
-        }
-        out
-    }
-
-    fn resolve_pin_ref(&mut self, r: &PinRef, scope: &Scope) -> Option<(String, String)> {
-        // RFC-024's explicit scope boundary: an index selector is expanded by
-        // `handle_net` before it ever reaches here, so one arriving intact is
-        // by construction in a position the RFC does not allow.
-        if let Some(sel) = &r.index {
+        let Some((n, _)) = scope.arrays.get(&m.base.name).copied() else {
             self.diags.push(Diagnostic::error(
                 "E211",
                 sel.span(),
                 format!(
-                    "`{}[…]` is only valid in a net's member list — not in `nc`, a `fn` call's arguments, or `place`",
-                    r.base.name
+                    "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
+                    m.base.name
                 ),
             ));
-            return None;
-        }
+            return Vec::new();
+        };
+        let Some(idx) = self.array_bounds(&m.base, sel, n) else {
+            return Vec::new();
+        };
+        idx.into_iter()
+            .map(|i| PinRef {
+                base: m.base.clone(),
+                index: Some(IndexSel::Single(i, sel.span())),
+                pin: m.pin.clone(),
+                span: m.span,
+            })
+            .collect()
+    }
+
+    fn resolve_pin_ref(&mut self, r: &PinRef, scope: &Scope) -> Option<(String, String)> {
+        // RFC-024: resolve an array-typed reference to its one real element.
+        // `NAME[i]` is valid in EVERY position an ordinary instance reference
+        // is; only the range/list fan-out sugar is net-member-only, and that
+        // has already been expanded to `Single`s by `handle_net`.
+        let array = scope.arrays.get(&r.base.name).copied();
+        let owned;
+        let r = match (&r.index, array) {
+            (None, None) => r,
+            (None, Some(_)) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    r.base.span,
+                    format!(
+                        "`{}` is array-typed — reference one element, e.g. `{}[0]`",
+                        r.base.name, r.base.name
+                    ),
+                ));
+                return None;
+            }
+            (Some(sel), None) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    sel.span(),
+                    format!(
+                        "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
+                        r.base.name
+                    ),
+                ));
+                return None;
+            }
+            (Some(sel), Some((n, _))) => {
+                let IndexSel::Single(i, _) = sel else {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        sel.span(),
+                        format!(
+                            "a range or index list is only valid in a net's member list — `{}` needs a single index here",
+                            r.base.name
+                        ),
+                    ));
+                    return None;
+                };
+                self.array_bounds(&r.base, sel, n)?;
+                owned = PinRef {
+                    base: Ident {
+                        name: element_name(&r.base.name, *i),
+                        span: r.base.span,
+                    },
+                    index: None,
+                    pin: r.pin.clone(),
+                    span: r.span,
+                };
+                &owned
+            }
+        };
         // Base: a fn parameter binding?
         if let Some(binding) = scope.bindings.get(&r.base.name) {
             return match (binding, &r.pin) {
@@ -1089,6 +1221,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             subst,
             bindings,
             local_insts: BTreeMap::new(),
+            arrays: BTreeMap::new(),
         };
         self.active_calls.push(call.callee.name.clone());
         // Clone the body to release the borrow on `self.world`.

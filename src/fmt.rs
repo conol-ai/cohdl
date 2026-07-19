@@ -796,14 +796,14 @@ impl Formatter<'_> {
                     }
                 }
                 self.flush_leading(stop, indent);
-                // RFC-024: an instance array's `[START..=END]` is part of the
-                // declaration — dropping it here would silently expand the
-                // array into a single instance on reformat.
-                let arr = s.array.as_ref().map(|a| a.to_string()).unwrap_or_default();
-                self.push(
-                    indent,
-                    format!("inst {}{}: {}", s.name.name, arr, type_ref_text(&s.ty)),
-                );
+                // RFC-024: `[Device; N]` in type position — dropping the array
+                // length here would silently turn an N-element array into a
+                // single instance on reformat.
+                let ty = match s.array_len {
+                    Some((n, _)) => format!("[{}; {}]", type_ref_text(&s.ty), n),
+                    None => type_ref_text(&s.ty),
+                };
+                self.push(indent, format!("inst {}: {}", s.name.name, ty));
             }
             Stmt::Net(s) => {
                 self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
@@ -855,11 +855,17 @@ impl Formatter<'_> {
                     } else {
                         format!(" rotate {}", p.rotate)
                     };
+                    // RFC-024: `place NAME[i]` — the index is part of which
+                    // element is being placed, never droppable.
+                    let idx = match p.index {
+                        Some((i, _)) => format!("[{}]", i),
+                        None => String::new(),
+                    };
                     self.push(
                         indent + 1,
                         format!(
-                            "place {} at ({}, {}){}",
-                            p.inst.name, p.at.0.text, p.at.1.text, rot
+                            "place {}{} at ({}, {}){}",
+                            p.inst.name, idx, p.at.0.text, p.at.1.text, rot
                         ),
                     );
                     self.finish_construct(

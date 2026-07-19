@@ -15,17 +15,17 @@ design OpenMicro {
     inst swd: J_SWD
 
     // ---- 13 key switches + matrix diodes ----
-    inst sw[1..=13]: SW_KEY
-    inst d[1..=13]: D_1N4148W
+    inst sw: [SW_KEY; 13]
+    inst d: [D_1N4148W; 13]
     // ---- 13 per-key RGB LEDs (SK6812MINI-E reverse-mount, one under each key,
     // at the switch's north LED window; one WS2812 chain) ----
-    inst led[1..=13]: RGB_SK6812
+    inst key_leds: [RGB_SK6812; 13]
     // ---- 16 perimeter underglow RGB LEDs (SK6812MINI-E up-firing into the
     // frosted PC frame; a SEPARATE WS2812 chain, 4 per side) ----
-    inst led[14..=29]: RGB_SK6812
+    inst ambient_leds: [RGB_SK6812; 16]
 
     // ---- 4 M2 mounting holes (corners; plated barrels -> GND) ----
-    inst mh[1..=4]: MH_M2
+    inst mh: [MH_M2; 4]
 
     // ---- passives ----
     inst rcc1: R_5K1
@@ -36,13 +36,15 @@ design OpenMicro {
 
     // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3; all 29 RGB LEDs run
     // off the 5V VBUS rail ----
-    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo.VIN, ldo.EN, c_bulk.A, led[1..=29].VDD
+    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo.VIN, ldo.EN, c_bulk.A, key_leds[0..=12].VDD,
+                   ambient_leds[0..=15].VDD
     #[intent("AP2112K enable tied to VIN — always on when USB is present")]
     net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
                      joy.Y_END_B, c_vdda.A
     net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, c_bulk.B, c_vdda.B,
                    rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2, enc.MNT, joy.X_END_A,
-                   joy.Y_END_A, joy.SW_B, rst.B, mh[1..=4].PAD, led[1..=29].GND
+                   joy.Y_END_A, joy.SW_B, rst.B, mh[0..=3].PAD, key_leds[0..=12].GND,
+                   ambient_leds[0..=15].GND
 
     // ---- USB 2.0 through the ESD array (I/O1 = D+, I/O2 = D-) ----
     net USBC_DP: usbc.DP, esd.IO1_A
@@ -62,27 +64,27 @@ design OpenMicro {
     net SWCLK: mcu.SWCLK, swd.SWCLK
 
     // ---- keyboard matrix (COL2ROW: ROW -> switch -> diode -> COL) ----
-    net KEY1: sw1.B, d1.Anode
-    net KEY2: sw2.B, d2.Anode
-    net KEY3: sw3.B, d3.Anode
-    net KEY4: sw4.B, d4.Anode
-    net KEY5: sw5.B, d5.Anode
-    net KEY6: sw6.B, d6.Anode
-    net KEY7: sw7.B, d7.Anode
-    net KEY8: sw8.B, d8.Anode
-    net KEY9: sw9.B, d9.Anode
-    net KEY10: sw10.B, d10.Anode
-    net KEY11: sw11.B, d11.Anode
-    net KEY12: sw12.B, d12.Anode
-    net KEY13: sw13.B, d13.Anode
-    net ROW0: mcu.ROW0, sw[1..=4].A
-    net ROW1: mcu.ROW1, sw[5..=8].A
-    net ROW2: mcu.ROW2, sw[9..=12].A
-    net ROW3: mcu.ROW3, sw13.A
-    net COL0: mcu.COL0, d[1..=13 step 4].Cathode
-    net COL1: mcu.COL1, d[2..=10 step 4].Cathode
-    net COL2: mcu.COL2, d[3..=11 step 4].Cathode
-    net COL3: mcu.COL3, d[4..=12 step 4].Cathode
+    net KEY1: sw[0].B, d[0].Anode
+    net KEY2: sw[1].B, d[1].Anode
+    net KEY3: sw[2].B, d[2].Anode
+    net KEY4: sw[3].B, d[3].Anode
+    net KEY5: sw[4].B, d[4].Anode
+    net KEY6: sw[5].B, d[5].Anode
+    net KEY7: sw[6].B, d[6].Anode
+    net KEY8: sw[7].B, d[7].Anode
+    net KEY9: sw[8].B, d[8].Anode
+    net KEY10: sw[9].B, d[9].Anode
+    net KEY11: sw[10].B, d[10].Anode
+    net KEY12: sw[11].B, d[11].Anode
+    net KEY13: sw[12].B, d[12].Anode
+    net ROW0: mcu.ROW0, sw[0..=3].A
+    net ROW1: mcu.ROW1, sw[4..=7].A
+    net ROW2: mcu.ROW2, sw[8..=11].A
+    net ROW3: mcu.ROW3, sw[12].A
+    net COL0: mcu.COL0, d[0..=12 step 4].Cathode
+    net COL1: mcu.COL1, d[1..=9 step 4].Cathode
+    net COL2: mcu.COL2, d[2..=10 step 4].Cathode
+    net COL3: mcu.COL3, d[3..=11 step 4].Cathode
 
     // ---- rotary encoder + push ----
     net ENC_A: mcu.ENC_A, enc.A
@@ -98,37 +100,37 @@ design OpenMicro {
     net TOUCH: mcu.TOUCH, touch.PAD
 
     // ---- addressable RGB (5V; two independent WS2812 chains) ----
-    // ---- per-key RGB chain (led1..led13 on LED_DATA_KEY) ----
-    net LED_D0: mcu.LED_DATA_KEY, led1.DIN
-    net LED_D1: led1.DOUT, led2.DIN
-    net LED_D2: led2.DOUT, led3.DIN
-    net LED_D3: led3.DOUT, led4.DIN
-    net LED_D4: led4.DOUT, led5.DIN
-    net LED_D5: led5.DOUT, led6.DIN
-    net LED_D6: led6.DOUT, led7.DIN
-    net LED_D7: led7.DOUT, led8.DIN
-    net LED_D8: led8.DOUT, led9.DIN
-    net LED_D9: led9.DOUT, led10.DIN
-    net LED_D10: led10.DOUT, led11.DIN
-    net LED_D11: led11.DOUT, led12.DIN
-    net LED_D12: led12.DOUT, led13.DIN
-    // ---- perimeter underglow chain (led14..led29 on LED_DATA_UG) ----
-    net UG_D0: mcu.LED_DATA_UG, led14.DIN
-    net UG_D1: led14.DOUT, led15.DIN
-    net UG_D2: led15.DOUT, led16.DIN
-    net UG_D3: led16.DOUT, led17.DIN
-    net UG_D4: led17.DOUT, led18.DIN
-    net UG_D5: led18.DOUT, led19.DIN
-    net UG_D6: led19.DOUT, led20.DIN
-    net UG_D7: led20.DOUT, led21.DIN
-    net UG_D8: led21.DOUT, led22.DIN
-    net UG_D9: led22.DOUT, led23.DIN
-    net UG_D10: led23.DOUT, led24.DIN
-    net UG_D11: led24.DOUT, led25.DIN
-    net UG_D12: led25.DOUT, led26.DIN
-    net UG_D13: led26.DOUT, led27.DIN
-    net UG_D14: led27.DOUT, led28.DIN
-    net UG_D15: led28.DOUT, led29.DIN
+    // ---- per-key RGB chain (key_leds[0]..key_leds[12] on LED_DATA_KEY) ----
+    net LED_D0: mcu.LED_DATA_KEY, key_leds[0].DIN
+    net LED_D1: key_leds[0].DOUT, key_leds[1].DIN
+    net LED_D2: key_leds[1].DOUT, key_leds[2].DIN
+    net LED_D3: key_leds[2].DOUT, key_leds[3].DIN
+    net LED_D4: key_leds[3].DOUT, key_leds[4].DIN
+    net LED_D5: key_leds[4].DOUT, key_leds[5].DIN
+    net LED_D6: key_leds[5].DOUT, key_leds[6].DIN
+    net LED_D7: key_leds[6].DOUT, key_leds[7].DIN
+    net LED_D8: key_leds[7].DOUT, key_leds[8].DIN
+    net LED_D9: key_leds[8].DOUT, key_leds[9].DIN
+    net LED_D10: key_leds[9].DOUT, key_leds[10].DIN
+    net LED_D11: key_leds[10].DOUT, key_leds[11].DIN
+    net LED_D12: key_leds[11].DOUT, key_leds[12].DIN
+    // ---- perimeter underglow chain (ambient_leds[0]..ambient_leds[15] on LED_DATA_UG) ----
+    net UG_D0: mcu.LED_DATA_UG, ambient_leds[0].DIN
+    net UG_D1: ambient_leds[0].DOUT, ambient_leds[1].DIN
+    net UG_D2: ambient_leds[1].DOUT, ambient_leds[2].DIN
+    net UG_D3: ambient_leds[2].DOUT, ambient_leds[3].DIN
+    net UG_D4: ambient_leds[3].DOUT, ambient_leds[4].DIN
+    net UG_D5: ambient_leds[4].DOUT, ambient_leds[5].DIN
+    net UG_D6: ambient_leds[5].DOUT, ambient_leds[6].DIN
+    net UG_D7: ambient_leds[6].DOUT, ambient_leds[7].DIN
+    net UG_D8: ambient_leds[7].DOUT, ambient_leds[8].DIN
+    net UG_D9: ambient_leds[8].DOUT, ambient_leds[9].DIN
+    net UG_D10: ambient_leds[9].DOUT, ambient_leds[10].DIN
+    net UG_D11: ambient_leds[10].DOUT, ambient_leds[11].DIN
+    net UG_D12: ambient_leds[11].DOUT, ambient_leds[12].DIN
+    net UG_D13: ambient_leds[12].DOUT, ambient_leds[13].DIN
+    net UG_D14: ambient_leds[13].DOUT, ambient_leds[14].DIN
+    net UG_D15: ambient_leds[14].DOUT, ambient_leds[15].DIN
 
     // ---- decoupling (100nF per VDD pin) + unused pins ----
     decouple(mcu.VDD, mcu.VSS)
@@ -136,29 +138,29 @@ design OpenMicro {
     decouple(mcu.VDDA, mcu.VSSA)
     decouple(usbc.VBUS, usbc.GND)
     // per-key LEDs: one 100nF each; underglow LEDs: one per two (shared rail cap)
-    decouple(led1.VDD, led1.GND)
-    decouple(led2.VDD, led2.GND)
-    decouple(led3.VDD, led3.GND)
-    decouple(led4.VDD, led4.GND)
-    decouple(led5.VDD, led5.GND)
-    decouple(led6.VDD, led6.GND)
-    decouple(led7.VDD, led7.GND)
-    decouple(led8.VDD, led8.GND)
-    decouple(led9.VDD, led9.GND)
-    decouple(led10.VDD, led10.GND)
-    decouple(led11.VDD, led11.GND)
-    decouple(led12.VDD, led12.GND)
-    decouple(led13.VDD, led13.GND)
-    decouple(led14.VDD, led14.GND)
-    decouple(led16.VDD, led16.GND)
-    decouple(led18.VDD, led18.GND)
-    decouple(led20.VDD, led20.GND)
-    decouple(led22.VDD, led22.GND)
-    decouple(led24.VDD, led24.GND)
-    decouple(led26.VDD, led26.GND)
-    decouple(led28.VDD, led28.GND)
+    decouple(key_leds[0].VDD, key_leds[0].GND)
+    decouple(key_leds[1].VDD, key_leds[1].GND)
+    decouple(key_leds[2].VDD, key_leds[2].GND)
+    decouple(key_leds[3].VDD, key_leds[3].GND)
+    decouple(key_leds[4].VDD, key_leds[4].GND)
+    decouple(key_leds[5].VDD, key_leds[5].GND)
+    decouple(key_leds[6].VDD, key_leds[6].GND)
+    decouple(key_leds[7].VDD, key_leds[7].GND)
+    decouple(key_leds[8].VDD, key_leds[8].GND)
+    decouple(key_leds[9].VDD, key_leds[9].GND)
+    decouple(key_leds[10].VDD, key_leds[10].GND)
+    decouple(key_leds[11].VDD, key_leds[11].GND)
+    decouple(key_leds[12].VDD, key_leds[12].GND)
+    decouple(ambient_leds[0].VDD, ambient_leds[0].GND)
+    decouple(ambient_leds[2].VDD, ambient_leds[2].GND)
+    decouple(ambient_leds[4].VDD, ambient_leds[4].GND)
+    decouple(ambient_leds[6].VDD, ambient_leds[6].GND)
+    decouple(ambient_leds[8].VDD, ambient_leds[8].GND)
+    decouple(ambient_leds[10].VDD, ambient_leds[10].GND)
+    decouple(ambient_leds[12].VDD, ambient_leds[12].GND)
+    decouple(ambient_leds[14].VDD, ambient_leds[14].GND)
     // chain ends float (last DOUT of each chain); SBU unused
-    nc: usbc.SBU1, usbc.SBU2, led13.DOUT, led29.DOUT
+    nc: usbc.SBU1, usbc.SBU2, key_leds[12].DOUT, ambient_leds[15].DOUT
     nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PF0, mcu.PF1, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7,
         mcu.PB11, mcu.PA15, mcu.PB3, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
 
@@ -177,62 +179,62 @@ design OpenMicro {
         board_outline: "mechanical/openmicro-outline.dxf"
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)
-        place sw1 at (-9.525mm, -28.575mm)
-        place sw2 at (9.525mm, -28.575mm)
+        place sw[0] at (-9.525mm, -28.575mm)
+        place sw[1] at (9.525mm, -28.575mm)
         place joy at (27.325mm, -28.575mm)
         // middle two rows: k3..k6, k7..k10
-        place sw3 at (-28.575mm, -9.525mm)
-        place sw4 at (-9.525mm, -9.525mm)
-        place sw5 at (9.525mm, -9.525mm)
-        place sw6 at (28.575mm, -9.525mm)
-        place sw7 at (-28.575mm, 9.525mm)
-        place sw8 at (-9.525mm, 9.525mm)
-        place sw9 at (9.525mm, 9.525mm)
-        place sw10 at (28.575mm, 9.525mm)
+        place sw[2] at (-28.575mm, -9.525mm)
+        place sw[3] at (-9.525mm, -9.525mm)
+        place sw[4] at (9.525mm, -9.525mm)
+        place sw[5] at (28.575mm, -9.525mm)
+        place sw[6] at (-28.575mm, 9.525mm)
+        place sw[7] at (-9.525mm, 9.525mm)
+        place sw[8] at (9.525mm, 9.525mm)
+        place sw[9] at (28.575mm, 9.525mm)
         // bottom row: touch (BL corner), k11+k12 under the 2U cap, k13
         place touch at (-28.575mm, 28.575mm)
-        place sw11 at (-9.525mm, 28.575mm)
-        place sw12 at (9.525mm, 28.575mm)
-        place sw13 at (28.575mm, 28.575mm)
+        place sw[10] at (-9.525mm, 28.575mm)
+        place sw[11] at (9.525mm, 28.575mm)
+        place sw[12] at (28.575mm, 28.575mm)
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         place usbc at (0mm, -43mm) rotate 180
         // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and
         // +1.5mm x from each switch stem so the LED clears the contacts, the
         // central box hole, and the mounting peg.
-        place led1 at (-8.025mm, -23.875mm)
-        place led2 at (11.025mm, -23.875mm)
-        place led3 at (-27.075mm, -4.825mm)
-        place led4 at (-8.025mm, -4.825mm)
-        place led5 at (11.025mm, -4.825mm)
-        place led6 at (30.075mm, -4.825mm)
-        place led7 at (-27.075mm, 14.225mm)
-        place led8 at (-8.025mm, 14.225mm)
-        place led9 at (11.025mm, 14.225mm)
-        place led10 at (30.075mm, 14.225mm)
-        place led11 at (-8.025mm, 33.275mm)
-        place led12 at (11.025mm, 33.275mm)
-        place led13 at (30.075mm, 33.275mm)
+        place key_leds[0] at (-8.025mm, -23.875mm)
+        place key_leds[1] at (11.025mm, -23.875mm)
+        place key_leds[2] at (-27.075mm, -4.825mm)
+        place key_leds[3] at (-8.025mm, -4.825mm)
+        place key_leds[4] at (11.025mm, -4.825mm)
+        place key_leds[5] at (30.075mm, -4.825mm)
+        place key_leds[6] at (-27.075mm, 14.225mm)
+        place key_leds[7] at (-8.025mm, 14.225mm)
+        place key_leds[8] at (11.025mm, 14.225mm)
+        place key_leds[9] at (30.075mm, 14.225mm)
+        place key_leds[10] at (-8.025mm, 33.275mm)
+        place key_leds[11] at (11.025mm, 33.275mm)
+        place key_leds[12] at (30.075mm, 33.275mm)
         // perimeter underglow ring (16 LEDs, 4 per side, ~5.5mm inset)
-        place led14 at (-33mm, -42mm)
-        place led15 at (-11mm, -42mm)
-        place led16 at (11mm, -42mm)
-        place led17 at (33mm, -42mm)
-        place led18 at (42mm, -33mm) rotate 90
-        place led19 at (42mm, -11mm) rotate 90
-        place led20 at (42mm, 11mm) rotate 90
-        place led21 at (42mm, 33mm) rotate 90
-        place led22 at (33mm, 42mm)
-        place led23 at (11mm, 42mm)
-        place led24 at (-11mm, 42mm)
-        place led25 at (-33mm, 42mm)
-        place led26 at (-42mm, 33mm) rotate 90
-        place led27 at (-42mm, 11mm) rotate 90
-        place led28 at (-42mm, -11mm) rotate 90
-        place led29 at (-42mm, -33mm) rotate 90
+        place ambient_leds[0] at (-33mm, -42mm)
+        place ambient_leds[1] at (-11mm, -42mm)
+        place ambient_leds[2] at (11mm, -42mm)
+        place ambient_leds[3] at (33mm, -42mm)
+        place ambient_leds[4] at (42mm, -33mm) rotate 90
+        place ambient_leds[5] at (42mm, -11mm) rotate 90
+        place ambient_leds[6] at (42mm, 11mm) rotate 90
+        place ambient_leds[7] at (42mm, 33mm) rotate 90
+        place ambient_leds[8] at (33mm, 42mm)
+        place ambient_leds[9] at (11mm, 42mm)
+        place ambient_leds[10] at (-11mm, 42mm)
+        place ambient_leds[11] at (-33mm, 42mm)
+        place ambient_leds[12] at (-42mm, 33mm) rotate 90
+        place ambient_leds[13] at (-42mm, 11mm) rotate 90
+        place ambient_leds[14] at (-42mm, -11mm) rotate 90
+        place ambient_leds[15] at (-42mm, -33mm) rotate 90
         // M2 mounting holes at the four corners (5mm edge inset)
-        place mh1 at (-42.5mm, -42.5mm)
-        place mh2 at (42.5mm, -42.5mm)
-        place mh3 at (42.5mm, 42.5mm)
-        place mh4 at (-42.5mm, 42.5mm)
+        place mh[0] at (-42.5mm, -42.5mm)
+        place mh[1] at (42.5mm, -42.5mm)
+        place mh[2] at (42.5mm, 42.5mm)
+        place mh[3] at (-42.5mm, 42.5mm)
     }
 }

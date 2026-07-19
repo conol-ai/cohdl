@@ -1882,3 +1882,45 @@ document) is an on-demand artifact and can go stale relative to `layout.json`.
 A stale `.xml` made `tools/kicad_board.py` place the switches unrotated, which
 looked exactly like an emitter bug dropping `rotate 270`. Delete and re-emit
 before trusting IPC-derived geometry.
+
+## Choc V2 footprint: canonical frame restored + LED window centring (2026-07-19)
+
+CORRECTION OF THE PREVIOUS ENTRY. The "orientation correction" ledgered above
+fixed a NON-ERROR: the original footprint frame (contacts N/NE, leg SW) was the
+part's true in-keyboard orientation all along. The Kailh PG1353 datasheet's
+"Recommended PCB Layout (Pattern Side)" is simply DRAWN 90° turned on the page.
+Three independent witnesses agree on the physical part, all matched
+quantitatively (relative feature angles 52.8°/224.2° from contact 1):
+
+1. the kiswitch community footprint `SW_Kailh_Choc_V2` (pads (0,-5.9)/(5,-3.8),
+   leg (-5,5.15); thousands of shipped keyboards);
+2. a bottom-view product photo of the real switch (pin south-centre, pin
+   south-east, locating leg north-west — the leg being exactly the feature the
+   listing circles);
+3. the datasheet's own dimensions under the page→canonical map (x,y)→(y,-x).
+
+The previous entry's mistake: after (correctly) discovering that a rotation-
+invariant check cannot detect global rotation, the footprint was compared
+against the datasheet PAGE frame as if that were the part's frame. It is not.
+"Absolute orientation" must be judged against the part's canonical in-use
+orientation; the page told the truth about dimensions, not about which way is
+up. The 90°-rotated footprint + 13 compensating `rotate 270` placements kept
+the BOARD correct throughout (verified identical a third time), but left the
+footprint's own frame wrong for any reuse. Both are now removed: the footprint
+is back in the canonical frame, instances unrotated.
+
+Kept from the intervening work (real fixes, all verified):
+- the RFC-023 slot for the leg — now `shape: oval size: (1.5mm, 2mm)` at
+  (-5, 5.15): the datasheet's 2.00×1.50 obround (rounded ends as drawn), long
+  axis N-S in the canonical frame. Notably the community footprint drills a
+  Ø1.6 CIRCLE here, which a 2.0mm-long leg cannot enter — the datasheet slot is
+  a genuine improvement over the reference, enabled by RFC-023.
+- the Ø5.00 centre pole (datasheet recommended; community uses 5.05).
+
+REAL deviation found and fixed: the datasheet places the switch's light window
+at (0, +4.93) — on the centreline, due south. Our per-key SK6812MINI-E LEDs sat
+at (+1.5, +4.7), a 1.5mm-east workaround from the era of the wrong hole
+geometry, misaligning every LED with its switch window. All 13 per-key LEDs are
+now centred on (0, +4.93) switch-relative. Verified: 13/13 centred, zero
+LED-pad-vs-switch-hole clashes (the offset's original reason is gone), zero
+different-net pad overlaps, 385 tests, IPC-2581 schema-valid.

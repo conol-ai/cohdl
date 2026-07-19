@@ -179,41 +179,41 @@ design OpenMicro {
         board_outline: "mechanical/openmicro-outline.dxf"
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)
-        place sw[0] at (-9.525mm, -28.575mm) rotate 270
-        place sw[1] at (9.525mm, -28.575mm) rotate 270
+        place sw[0] at (-9.525mm, -28.575mm)
+        place sw[1] at (9.525mm, -28.575mm)
         place joy at (27.325mm, -28.575mm)
         // middle two rows: k3..k6, k7..k10
-        place sw[2] at (-28.575mm, -9.525mm) rotate 270
-        place sw[3] at (-9.525mm, -9.525mm) rotate 270
-        place sw[4] at (9.525mm, -9.525mm) rotate 270
-        place sw[5] at (28.575mm, -9.525mm) rotate 270
-        place sw[6] at (-28.575mm, 9.525mm) rotate 270
-        place sw[7] at (-9.525mm, 9.525mm) rotate 270
-        place sw[8] at (9.525mm, 9.525mm) rotate 270
-        place sw[9] at (28.575mm, 9.525mm) rotate 270
+        place sw[2] at (-28.575mm, -9.525mm)
+        place sw[3] at (-9.525mm, -9.525mm)
+        place sw[4] at (9.525mm, -9.525mm)
+        place sw[5] at (28.575mm, -9.525mm)
+        place sw[6] at (-28.575mm, 9.525mm)
+        place sw[7] at (-9.525mm, 9.525mm)
+        place sw[8] at (9.525mm, 9.525mm)
+        place sw[9] at (28.575mm, 9.525mm)
         // bottom row: touch (BL corner), k11+k12 under the 2U cap, k13
         place touch at (-28.575mm, 28.575mm)
-        place sw[10] at (-9.525mm, 28.575mm) rotate 270
-        place sw[11] at (9.525mm, 28.575mm) rotate 270
-        place sw[12] at (28.575mm, 28.575mm) rotate 270
+        place sw[10] at (-9.525mm, 28.575mm)
+        place sw[11] at (9.525mm, 28.575mm)
+        place sw[12] at (28.575mm, 28.575mm)
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         place usbc at (0mm, -43mm) rotate 180
         // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and
         // +1.5mm x from each switch stem so the LED clears the contacts, the
         // central box hole, and the mounting peg.
-        place key_leds[0] at (-8.025mm, -23.875mm)
-        place key_leds[1] at (11.025mm, -23.875mm)
-        place key_leds[2] at (-27.075mm, -4.825mm)
-        place key_leds[3] at (-8.025mm, -4.825mm)
-        place key_leds[4] at (11.025mm, -4.825mm)
-        place key_leds[5] at (30.075mm, -4.825mm)
-        place key_leds[6] at (-27.075mm, 14.225mm)
-        place key_leds[7] at (-8.025mm, 14.225mm)
-        place key_leds[8] at (11.025mm, 14.225mm)
-        place key_leds[9] at (30.075mm, 14.225mm)
-        place key_leds[10] at (-8.025mm, 33.275mm)
-        place key_leds[11] at (11.025mm, 33.275mm)
-        place key_leds[12] at (30.075mm, 33.275mm)
+        place key_leds[0] at (-9.53mm, -23.64mm)
+        place key_leds[1] at (9.53mm, -23.64mm)
+        place key_leds[2] at (-28.57mm, -4.6mm)
+        place key_leds[3] at (-9.53mm, -4.6mm)
+        place key_leds[4] at (9.53mm, -4.6mm)
+        place key_leds[5] at (28.57mm, -4.6mm)
+        place key_leds[6] at (-28.57mm, 14.46mm)
+        place key_leds[7] at (-9.53mm, 14.46mm)
+        place key_leds[8] at (9.53mm, 14.46mm)
+        place key_leds[9] at (28.57mm, 14.46mm)
+        place key_leds[10] at (-9.53mm, 33.5mm)
+        place key_leds[11] at (9.53mm, 33.5mm)
+        place key_leds[12] at (28.57mm, 33.5mm)
         // perimeter underglow ring (16 LEDs, 4 per side, ~5.5mm inset)
         place ambient_leds[0] at (-33mm, -42mm)
         place ambient_leds[1] at (-11mm, -42mm)

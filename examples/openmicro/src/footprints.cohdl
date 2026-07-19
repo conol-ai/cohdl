@@ -60,34 +60,36 @@ pub footprint QFP50P900X900X160_48N {
 }
 
 // Kailh Choc V2 low-profile keyswitch land (Work Louder WL-LP-SW-55G;
-// MX-compatible cross stem), reproducing the Kailh PG1353 datasheet
-// (P/N CPG135301D01) "Recommended PCB Layout (Pattern Side)" EXACTLY, in the
-// datasheet's own orientation.
+// MX-compatible cross stem), stem-centered, in the part's CANONICAL in-keyboard
+// orientation (keycap north up): contacts NORTH + NORTHEAST, locating leg
+// SOUTHWEST, light window due SOUTH. This frame is confirmed three ways:
+// the community kiswitch SW_Kailh_Choc_V2 (pads (0,-5.9)/(5,-3.8), leg
+// (-5,5.15) — thousands of shipped keyboards), a bottom-view product photo of
+// the real part (pin south-center, pin southeast, leg northwest in bottom
+// view), and the PG1353 datasheet's own dimensions.
 //
-// That drawing is a PATTERN-SIDE (bottom) view, so the only transform applied
-// is the bottom->top mirror in X plus KiCad's Y-down convention -- i.e.
-// (x, y)_drawing -> (-x, -y)_here. No rotation is baked in:
-//   pad 1        = contact at (-5.9, 0)      [drawing (5.90, 0),    O1.20]
-//   pad 2        = contact at (-3.8, -5)     [drawing (3.80, 5.00), O1.20]
-//   mount_hole 1 = the O5.00 central pole hole
-//   mount_hole 2 = the 2.00 x 1.50 rectangular mounting leg at (5.15, 5)
-//                  [drawing (-5.15, -5.00)] -- expressible thanks to RFC-023
-// The datasheet's in-switch LED pad at (4.93, 0) is deliberately NOT modelled:
-// this board drives discrete reverse-mount SK6812MINI-E LEDs instead, so that
-// pad would be an unbound land. The LED WINDOW it marks still sits there in
-// the switch body, which is what the separately-placed LED shines through.
+// The datasheet's "Recommended PCB Layout (Pattern Side)" DRAWING is page-
+// rotated 90 degrees from this orientation; mapping its page frame here is
+// (x, y)_page -> (y, -x). All its dimensions are reproduced exactly:
+//   pad 1        (0, -5.9)     <- page (5.90, 0),  O1.20 drill
+//   pad 2        (5, -3.8)     <- page (3.80, 5.00)
+//   mount_hole 1 O5.00 at (0,0)   the recommended centre-pole hole
+//   mount_hole 2 the 2.00 x 1.50 OBROUND leg hole -> here 1.5 wide x 2.0 tall
+//                at (-5, 5.15) <- page (-5.15, -5.00); RFC-023 oval
+//   light window (0, +4.93)    <- page (-4.93, 0); no land here — the separate
+//                reverse-mount SK6812MINI-E is placed centred on this point.
 //
-// ORIENTATION NOTE: an earlier revision of this footprint had the whole
-// pattern rotated 270 degrees (contacts north instead of west). Relative
-// geometry was correct, so a rotation-invariant check passed it -- but a
-// footprint must reproduce the manufacturer's land pattern in the part's OWN
-// frame, or every reuse inherits a hidden turn. The board keeps its physical
-// orientation by rotating the INSTANCES instead: `place sw[i] ... rotate 270`.
+// LESSON (kept so it is not relearned): an earlier revision rotated this whole
+// footprint 90 degrees to literally match the datasheet PAGE, compensating
+// with `rotate 270` on every instance. The page orientation is not the part's
+// canonical orientation — a rotation-invariant "relative geometry" check
+// cannot catch that, and absolute checks against the page frame alone
+// mis-flag a correct footprint. Canonical frame = how the part sits in use.
 pub footprint FP_SW_Choc_V2 {
-    pad 1: P_Choc_Contact at (-5.9mm, 0mm)
-    pad 2: P_Choc_Contact at (-3.8mm, -5mm)
+    pad 1: P_Choc_Contact at (0mm, -5.9mm)
+    pad 2: P_Choc_Contact at (5mm, -3.8mm)
     mount_hole 1: non_plated at (0mm, 0mm) diameter 5mm
-    mount_hole 2: non_plated shape: rect at (5.15mm, 5mm) size: (2mm, 1.5mm)
+    mount_hole 2: non_plated shape: oval at (-5mm, 5.15mm) size: (1.5mm, 2mm)
     courtyard { shape: rect, at: (0mm, 0mm), size: (15.5mm, 15.5mm) }
 }
 

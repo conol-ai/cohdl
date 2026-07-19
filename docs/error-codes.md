@@ -79,6 +79,7 @@ CLI-only has at least one real call site in `src/`.
 | E208 | `use` collision (RFC-016) — one local name imported from two different paths; names both |
 | E209 | visibility violation (RFC-016) — a non-`pub` item referenced from another package; names the item and its declaring package |
 | E210 | unspellable module-path segment (RFC-016) — the package root, a `src/`/`std/` subdirectory, or a nested-file name is a keyword or non-identifier, so its declarations cannot be referenced by any qualified path |
+| E211 | malformed or misplaced instance-array / index expression (RFC-024) — an empty range (`END` below `START`), a stride below 1, a non-whole-number index, a `step`/index-list written in an `inst` array declaration (which takes a plain `[START..=END]`), or an index selector used outside a net's member list (RFC-024's explicit scope boundary: never in `nc`, a `fn` call's arguments, or `place`). An index that is well-formed but names no declared instance is E202, not this. |
 
 ## E3xx — trait satisfaction at impl (RFC-003)
 

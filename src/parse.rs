@@ -2212,6 +2212,44 @@ impl<'a> Parser<'a> {
                 let start = self.span();
                 self.bump();
                 let name = self.ident("as the instance name")?;
+                // RFC-024: `inst NAME[START..=END]: Device` — the array form.
+                // Only the plain inclusive range is legal here; a stride or an
+                // index list is a net-member-reference form, not a declaration.
+                let array = if self.at(&TokenKind::LBracket) {
+                    match self.index_sel()? {
+                        IndexSel::Range {
+                            start: s,
+                            end,
+                            explicit_step,
+                            span,
+                            ..
+                        } => {
+                            if explicit_step {
+                                self.diags.push(Diagnostic::error(
+                                    "E211",
+                                    span,
+                                    "an instance array declares a contiguous range — `step` is only valid in a net-member reference".to_string(),
+                                ));
+                                return None;
+                            }
+                            Some(crate::ast::InstArray {
+                                start: s,
+                                end,
+                                span,
+                            })
+                        }
+                        IndexSel::List(_, span) => {
+                            self.diags.push(Diagnostic::error(
+                                "E211",
+                                span,
+                                "an instance array is declared with a range `[START..=END]`, not an index list".to_string(),
+                            ));
+                            return None;
+                        }
+                    }
+                } else {
+                    None
+                };
                 self.expect(&TokenKind::Colon, "after the instance name");
                 let ty = self.type_ref()?;
                 Some(Stmt::Inst(InstStmt {
@@ -2219,6 +2257,7 @@ impl<'a> Parser<'a> {
                     intent,
                     placement_hint,
                     name,
+                    array,
                     span: start.to(self.prev_span()),
                     ty,
                 }))
@@ -2673,9 +2712,107 @@ impl<'a> Parser<'a> {
         value
     }
 
+    /// One non-negative integer index (RFC-024). Indices are plain counting
+    /// numbers — an instance name is `{base}{index}`, so nothing else parses.
+    fn index_number(&mut self, ctx: &str) -> Option<i64> {
+        match self.peek() {
+            TokenKind::Number(_) => {
+                let t = self.bump();
+                let TokenKind::Number(text) = t.kind else {
+                    unreachable!()
+                };
+                match text.parse::<i64>() {
+                    Ok(v) => Some(v),
+                    Err(_) => {
+                        self.diags.push(Diagnostic::error(
+                            "E211",
+                            t.span,
+                            format!("`{}` is not a whole-number index", text),
+                        ));
+                        None
+                    }
+                }
+            }
+            other => {
+                self.error_here(format!(
+                    "expected a whole-number index {} (e.g. `1`), found {}",
+                    ctx,
+                    other.describe()
+                ));
+                None
+            }
+        }
+    }
+
+    /// RFC-024 `[…]` after a name: `[S..=E]`, `[S..=E step N]`, or `[i, j, k]`.
+    /// Assumes the caller has confirmed the next token is `[`.
+    fn index_sel(&mut self) -> Option<IndexSel> {
+        let open = self.span();
+        self.bump(); // `[`
+        let first = self.index_number("in the index")?;
+        // `..=` lexes as Dot Dot Eq — the range form; anything else is a list.
+        if self.at(&TokenKind::Dot) {
+            self.bump();
+            self.expect(&TokenKind::Dot, "in the range `..=`");
+            self.expect(&TokenKind::Eq, "in the range `..=` (ranges are inclusive)");
+            let end = self.index_number("as the range end")?;
+            let mut step = 1;
+            let mut explicit_step = false;
+            if self.at_ident("step") {
+                self.bump();
+                step = self.index_number("as the stride")?;
+                explicit_step = true;
+            }
+            self.expect(&TokenKind::RBracket, "to close the index bracket");
+            let span = open.to(self.prev_span());
+            if end < first {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    span,
+                    format!(
+                        "range `{}..={}` is empty — the end must not be below the start",
+                        first, end
+                    ),
+                ));
+                return None;
+            }
+            if step < 1 {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    span,
+                    format!("stride `{}` must be 1 or more", step),
+                ));
+                return None;
+            }
+            Some(IndexSel::Range {
+                start: first,
+                end,
+                step,
+                explicit_step,
+                span,
+            })
+        } else {
+            let mut items = vec![first];
+            while self.eat(&TokenKind::Comma) {
+                items.push(self.index_number("in the index list")?);
+            }
+            self.expect(&TokenKind::RBracket, "to close the index bracket");
+            Some(IndexSel::List(items, open.to(self.prev_span())))
+        }
+    }
+
     fn pin_ref(&mut self) -> Option<PinRef> {
         let base = self.ident("as a pin reference")?;
         let start = base.span;
+        // RFC-024: an index selector binds to the base name. Parsed here for
+        // ALL pin-reference positions so the grammar stays uniform; the
+        // net-member-list-only scope boundary is enforced by the consumers,
+        // which can then say precisely where it is not allowed.
+        let index = if self.at(&TokenKind::LBracket) {
+            Some(self.index_sel()?)
+        } else {
+            None
+        };
         let pin = if self.eat(&TokenKind::Dot) {
             Some(self.ident("as the pin name after `.`")?)
         } else {
@@ -2683,6 +2820,7 @@ impl<'a> Parser<'a> {
         };
         Some(PinRef {
             base,
+            index,
             pin,
             span: start.to(self.prev_span()),
         })

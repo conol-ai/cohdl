@@ -617,6 +617,48 @@ pub footprint KailhChocV2 {
 - cohdl build projects non_plated as KiCad's own np_thru_hole pad type in the .kicad_mod emitter (KiCad's np_thru_hole pads are not restricted to round shapes, so rect/oval mount_hole geometry reuses the same emitter code path as circular ones) and plated as an ordinary plated through-hole pad with no net assigned; the IPC-2581 emitter projects both as hole/pin geometry with no net reference.
 - Explicitly out of scope: board-level mounting holes (a board's own corner screw holes are a design/board-level concept, closer in spirit to board_outline, RFC-020, than to a per-footprint construct) and any locating-hole shape beyond rect/circle/oval (true slots with rounded ends, keyed/D-shaped holes) — both real, disclosed, deferred gaps, not silently solved.
 
+# Instance arrays and range references
+
+Accepted via RFC-024, see RFC-024: Instance arrays and range references + DR-030. Grounded directly in examples/openmicro/src/main.cohdl's real repetition: 42 near-identical inst lines (13 key switches, 13 matrix diodes, 29 addressable RGB LEDs, 4 mounting holes) and multiple uniform-fan-out net-member patterns, one with a real stride (d1, d5, d9, d13). Both mechanisms below are defined purely as expansion sugar over already-existing inst/net semantics — every expansion is checked identically to what an author would have hand-written, with zero new semantic checking beyond two structural, local diagnostics.
+
+Instance arrays:
+
+```cohdl
+design OpenMicro {
+    inst sw[1..=13]: SW_KEY
+    inst d[1..=13]: D_1N4148W
+    inst led[1..=13]: RGB_SK6812      // per-key chain
+    inst led[14..=29]: RGB_SK6812     // underglow chain — same device, separate array
+    inst mh[1..=4]: MH_M2
+}
+```
+
+- inst NAME[START..=END]: Device declares END - START + 1 real, individually-addressable instances, each with its own hierarchical name (sw1, sw2, ..., sw13) — identical to what an author would have typed by hand. Every existing per-instance mechanism (designator allocation RFC-005, place, decouple, pin obligations RFC-002, trait satisfaction RFC-003) applies completely unchanged to each expanded element.
+- START..=END is inclusive; START need not be 1 — inst led[14..=29]: RGB_SK6812 is a real, valid second array of the same device with a different starting number.
+- Two array declarations whose index ranges overlap (or that collide with an ordinary inst name) is a compile error — the same collision check that already applies to two ordinary inst statements sharing a name.
+
+Range references in net-member lists:
+
+```cohdl
+net ROW0: mcu.ROW0, sw[1..=4].A
+net ROW1: mcu.ROW1, sw[5..=8].A
+net COL0: mcu.COL0, d[1, 5, 9, 13].Cathode
+net COL1: mcu.COL1, d[2, 6, 10].Cathode
+```
+
+- NAME[START..=END].PIN inside a net's member list expands to one PinRef per index in the range, all referencing the same pin name — net ROW0: mcu.ROW0, sw[1..=4].A means exactly net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A, a pure textual-expansion equivalence.
+- NAME[START..=END step STEP].PIN — the strided form, e.g. d[1..=13 step 4] for the d1, d5, d9, d13 pattern.
+- NAME[i1, i2, i3, ...].PIN — an explicit comma-separated index list, for a genuinely irregular index set a stride can't express.
+- Every index referenced must resolve to a real instance declared by a matching-base-name array — an out-of-declared-range index (e.g. sw[1..=20].A when only sw[1..=13] was declared) is a compile error naming the first invalid index, the same unresolved-name diagnostic class RFC-016 already established.
+- A range/index-list expression is valid only inside a net's member list — it is not usable in place, decouple's arguments, or a fn call's arguments; this is an explicit scope boundary, not an oversight.
+
+Rules (both constructs):
+
+- Both stay structural, local, checkable at expansion time — never DRC candidates. Every existing check that runs on an ordinary inst/net runs unchanged, once, on the expanded form.
+- This RFC introduces no general loop/iteration construct — fn (RFC-006) remains the sole mechanism for "repeat a parameterized sub-circuit with systematic wiring." Arrays/ranges are scoped to exactly inst declarations and net-member-list references.
+- Does NOT solve daisy-chain wiring (e.g. a WS2812 LED chain's DOUT→DIN nets between consecutive array elements) or arithmetic-derived per-instance data (e.g. place coordinates following a grid formula) — both real, explicitly disclosed, deferred to future work; every place/decouple statement and every daisy-chain net stays exactly as hand-written after this RFC.
+- Error codes stay in the existing E2xx block (name resolution, RFC-016's home): array-name collision, out-of-range index reference, malformed range/stride grammar — no new block, per RFC-011's "kind of mistake" organizing principle.
+
 ## Footprint naming: names must comply with IPC-7351
 
 Accepted (revised twice, same day) via RFC-021, see RFC-021: IPC-7351 as the canonical footprint naming practice + DR-027 (revised twice). Revision history: the original acceptance added a separate, optional ipc_name field alongside an unconstrained footprint symbol name. Same day, first correction: a footprint has one identity and should have one name — the footprint declaration's own identifier (the same name RFC-016's module system resolves) must itself comply with IPC-7351B naming, no new field. Second correction, same day: an intermediate revision had also carried a third-party-CAD-tool-name reference alongside the identifier — this was removed. CoHDL does not track, reference, or map to any third-party CAD tool's footprint library (KiCad, LCEDA, Allegro, or otherwise). Every footprint is CoHDL's own native geometry declaration (RFC-018); this section's naming discipline applies solely to that declaration's own identifier, and nothing else. This section reflects the final design.
@@ -707,6 +749,7 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - place reaching an instance declared inside a called fn — explicitly deferred per Tony's direct decision (RFC-020/DR-026 amendment). place today resolves only against a design's own top-level instances; a component instantiated by a reusable sub-circuit fn (e.g. a connector helper) cannot currently be locked/oriented. A path-qualification mechanism was considered and withdrawn pending a real concrete need.
 - Glob imports / re-export sugar for the module system — deferred per RFC-016, pending real usage friction.
 - Board-level mounting holes, and any locating-hole shape beyond rect/circle/oval (true slots with rounded ends, keyed/D-shaped holes) — board-level holes explicitly deferred per RFC-022's own direct decision (closest existing analog is board_outline, RFC-020, but no construct exists yet); non-rect/circle/oval shapes explicitly deferred per RFC-023's own direct decision.
+- Daisy-chain net wiring between consecutive array elements (e.g. a WS2812 LED chain's DOUT→DIN pattern), and arithmetic-derived per-instance place/decouple data (e.g. grid-formula coordinates across an array) — both explicitly deferred per RFC-024's own direct decision; every such statement stays hand-written today.
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-19, RFC-001 through RFC-023 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs).
+As of 2026-07-19, RFC-001 through RFC-024 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds instance arrays and range/strided/explicit-list references inside net-member lists, both pure expansion sugar over already-existing inst/net semantics, grounded in the real OpenMicro macropad's 42-instance repetition, explicitly not solving daisy-chain wiring or arithmetic-derived per-instance place/decouple data).

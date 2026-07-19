@@ -1761,3 +1761,52 @@ datasheet→footprint mapping `T(x,y) = (y,-x)` (verified rotation-invariantly, 
 the footprint is not mirrored): the datasheet's 2.00 along ITS x is 2.00 along
 our y, giving `size: (1.5mm, 2mm)`. The central pole was corrected 5.05 → 5.00mm
 in the same pass.
+
+## RFC-024 (instance arrays and range references) implementation notes (2026-07-19)
+
+RFC-024 (DR-030) adds two compact declaration/reference forms, both defined
+purely as expansion sugar over already-existing `inst`/`net` semantics.
+
+- **Instance arrays** — `inst NAME[START..=END]: Device` expands, in the
+  expander's existing pass-1 instance loop, to one ordinary `inst` per index
+  named `{NAME}{i}`. Each element goes through the SAME `handle_inst` a
+  hand-written statement does, so designator allocation (RFC-005), `place`/
+  `decouple` targeting, pin obligations (RFC-002) and trait satisfaction
+  (RFC-003) all apply unchanged. `START` need not be 1.
+- **Array collisions need no bespoke check** — overlapping ranges (or a clash
+  with an ordinary `inst`) collide on their shared *element* names, so the
+  existing E201 fires naming the actual colliding instance. This falls out of
+  expansion rather than being special-cased.
+- **Range references** — `NAME[S..=E].PIN`, `NAME[S..=E step N].PIN`, and
+  `NAME[i, j, k].PIN` expand in `handle_net` to a flat `PinRef` list before
+  resolution, so everything downstream is byte-identical to the hand-written
+  form.
+- **Out-of-range indices** are E202 (the unresolved-name class RFC-016
+  established), reported for the FIRST invalid index only — one mistyped range
+  yields one diagnostic, not one per index.
+- **The net-member-only scope boundary** is enforced structurally rather than
+  by convention: `handle_net` expands selectors before resolution, so any
+  selector still intact when it reaches `resolve_pin_ref` is by construction in
+  a disallowed position (`nc`, a `fn` call's arguments, `place`) and is E211.
+- **E211** is a new sub-case in the existing E2xx name-resolution block, per
+  the RFC's "no new block" instruction: malformed ranges (empty range, stride
+  below 1), a `step`/index-list written in an array *declaration* (which takes
+  a plain contiguous `[START..=END]`), and the misplacement case above.
+- **fmt** — `Display for PinRef` renders the selector and the `inst` line
+  renders the array bracket. An implicit stride of 1 is never spelled out, so
+  unstrided ranges round-trip byte-identically. (This is the construct-tracking
+  trap RFC-022 already hit once: a formatter that dropped the bracket would
+  silently collapse a 13-element array into ONE instance on reformat.)
+
+Not solved, per the RFC's own explicit non-goals: daisy-chain wiring between
+consecutive elements (OpenMicro's real WS2812 DOUT→DIN chain), per-index net
+pairings (its `net KEY{i}: sw{i}.B, d{i}.Anode` matrix), and arithmetic-derived
+per-instance `place` coordinates — all remain hand-written, unchanged.
+
+First consumer: `examples/openmicro/src/main.cohdl`, RFC-024's own motivating
+design — 300 → 238 lines. Its 42 repeated `inst` lines become 5 arrays
+(`sw[1..=13]`, `d[1..=13]`, `led[1..=13]`, `led[14..=29]`, `mh[1..=4]`), and
+its ROW/COL matrix plus the 29-LED power fan-outs become range/strided
+references. **The emitted netlist is byte-identical to the pre-migration
+golden** — the expansion-equivalence claim verified on real source, not just
+on fixtures.

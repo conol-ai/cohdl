@@ -985,3 +985,37 @@ Option 1 was rejected for the identical reason RFC-022 rejected it for circular 
 ## Revisit when
 
 If a real footprint needs a locating-hole shape beyond rect/circle/oval (a true slot with rounded ends, a keyed/D-shaped hole) — extend the shape vocabulary again via a scoped follow-up RFC, the same extension discipline this RFC itself just exercised, not a silent grammar change. Also revisit if real KiCad/IPC-2581 round-tripping reveals the rect/oval approximation is insufficient for some real hardware's actual rounded-rectangle geometry.
+
+# DR-030: Instance arrays and range references — expansion-equivalence sugar over inst/net, scoped to two declaration sites
+
+## Context
+
+Tony directed a new RFC to close a real, concrete repetition problem visible in examples/openmicro/src/main.cohdl: 42 near-identical inst lines (13 key switches, 13 matrix diodes, 29 addressable RGB LEDs, 4 mounting holes) and multiple uniform-fan-out net-member lists (e.g. net ROW0: mcu.ROW0, sw1.A, sw2.A, sw3.A, sw4.A; net COL0: mcu.COL0, d1.Cathode, d5.Cathode, d9.Cathode, d13.Cathode — a strided pattern). Confirmed against real source (src/ast.rs): InstStmt has exactly one bare name: Ident field, and NetStmt.members is a flat Vec — no array/range grammar exists anywhere; every repeated instance and every fan-out net member in the real file is individually hand-typed.
+
+## Options
+
+1. A general for/loop construct repeating arbitrary statements (inst, net, place, decouple) N times — rejected as over-scoped: overlaps RFC-006's fn (already owns "repeat a parameterized sub-circuit"), and would need to solve arithmetic-derived per-iteration data (grid coordinates, chain-neighbor references) to be useful for OpenMicro's harder cases, which this RFC deliberately excludes.
+2. Instance arrays (inst NAME[START..=END]: Device) plus range/strided/explicit-list references inside net-member lists (NAME[RANGE].PIN), both defined by an exact expansion equivalence to fully-hand-written inst/net statements — scoped to exactly these two declaration sites, explicitly not touching fn/place/decouple, explicitly not solving daisy-chain wiring or arithmetic-derived per-instance place data (RFC-024's proposal).
+3. Instance arrays only, no net-member range references.
+4. A named "family" object with method-like member access (e.g. sw.pins("A")).
+5. Implicit range inference from instance-naming convention (any sw1..swN treated as an array automatically, no explicit declaration).
+
+## Decision
+
+Option 2. inst NAME[START..=END]: Device declares a contiguous family of real, individually-addressable instances (own designator, own place/decouple target, unchanged from ordinary inst semantics after expansion). Inside a net's member list, NAME[START..=END].PIN, NAME[START..=END step STEP].PIN, and NAME[i1, i2, i3, ...].PIN all expand to an ordinary flat PinRef list — the same shape a hand-written net already has. Both mechanisms are defined purely as expansion sugar: the expanded form is checked identically to what an author would have hand-written, with zero new semantic checking beyond structural array-collision and out-of-declared-range-index diagnostics.
+
+## Rationale
+
+Option 1 was rejected as premature/over-scoped, per this project's own recurring narrow-scope-first discipline (RFC-007's rejected const-generics, RFC-018's rect/circle/oval-only pad shapes, RFC-022's circular-only mount_hole) — a general loop construct would need to solve daisy-chaining and per-iteration arithmetic data to be useful for OpenMicro's actual harder repetition patterns, and doing so well deserves its own focused design, not a rushed bundling into this RFC. Option 3 (arrays only) was rejected: the real file shows both patterns (repeated inst AND uniform-fan-out net members) at real scale in the same design — solving only one leaves the other equally-real repetition unsolved. Option 4 (a family object with method access) was rejected as heavier machinery than the job needs — CoHDL has no expression language today, and inventing one is a much larger conceptual cost than a bracketed range for the same net effect. Option 5 (implicit inference from naming) was rejected outright: this is exactly the "correct by convention, not by the compiler" smell the Constitution forbids everywhere else.
+
+## Consequences
+
+- No new core concept — inst and net are unchanged; this RFC adds compact declaration/reference syntax for a family of same-typed instances, always defined by an exact expansion equivalence to already-existing, already-trusted inst/net semantics.
+- Real, disclosed scope boundary: daisy-chain wiring (OpenMicro's real WS2812 DOUT→DIN chain nets) and arithmetic-derived per-instance place/decouple data (OpenMicro's real 19.05mm-grid place coordinates) are NOT solved by this RFC — both remain hand-written, explicitly named as deferred future work, not silently implied to be closed by this RFC's title.
+- New E2xx sub-cases (name resolution, RFC-016's existing home): array-name collision, out-of-declared-range index reference in a net-member expression, malformed range/stride grammar.
+- Purely additive — every existing hand-written inst/net statement (including OpenMicro's own current, fully-hand-written form) is completely unaffected, unchanged in meaning. Migrating an existing design to array/range syntax is optional, non-mechanical authoring work, not required by this RFC's completion bar.
+- Real, concrete next step named but not required: OpenMicro's own main.cohdl could adopt this syntax for its 42 array-shaped instances and ROW/COL matrix nets, collapsing roughly 55 of its 300 lines — while its daisy-chain and place/decouple repetition stay exactly as hand-written today.
+
+## Revisit when
+
+If a real design's repetition need genuinely requires daisy-chain wiring support or arithmetic-derived per-instance place/decouple data — both are real, named gaps in this RFC's own Non-goals, and either would need its own properly-scoped follow-up RFC, not a silent expansion of this one's grammar. Also revisit if real usage reveals a genuine need for sparse index sets beyond a single stride or explicit list (this RFC's two supported forms) — extend via a scoped follow-up, the same discipline this RFC itself already exercises for its own two-form design.

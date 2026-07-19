@@ -796,9 +796,13 @@ impl Formatter<'_> {
                     }
                 }
                 self.flush_leading(stop, indent);
+                // RFC-024: an instance array's `[START..=END]` is part of the
+                // declaration — dropping it here would silently expand the
+                // array into a single instance on reformat.
+                let arr = s.array.as_ref().map(|a| a.to_string()).unwrap_or_default();
                 self.push(
                     indent,
-                    format!("inst {}: {}", s.name.name, type_ref_text(&s.ty)),
+                    format!("inst {}{}: {}", s.name.name, arr, type_ref_text(&s.ty)),
                 );
             }
             Stmt::Net(s) => {

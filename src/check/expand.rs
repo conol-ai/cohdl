@@ -132,7 +132,27 @@ impl<'w, 'd> Expander<'w, 'd> {
         // Pass 1: instances (declarative bodies — nets may reference later insts).
         for stmt in body {
             if let Stmt::Inst(inst) = stmt {
-                self.handle_inst(inst, scope);
+                match &inst.array {
+                    // RFC-024: an instance array is pure expansion sugar —
+                    // each element goes through `handle_inst` exactly as a
+                    // hand-written `inst` would, so designator allocation,
+                    // pin obligations, trait satisfaction and the existing
+                    // E201 name-collision check all apply unchanged. Two
+                    // overlapping arrays therefore collide on their shared
+                    // element names, with no bespoke check needed.
+                    None => self.handle_inst(inst, scope),
+                    Some(arr) => {
+                        for i in arr.indices() {
+                            let mut elem = inst.clone();
+                            elem.name = Ident {
+                                name: format!("{}{}", inst.name.name, i),
+                                span: inst.name.span,
+                            };
+                            elem.array = None;
+                            self.handle_inst(&elem, scope);
+                        }
+                    }
+                }
             }
         }
         // Pass 2: everything else, in source order.
@@ -580,7 +600,67 @@ impl<'w, 'd> Expander<'w, 'd> {
     // -- pin references ------------------------------------------------------
 
     /// Resolve a pin reference to (instance path, logical pin name).
+    /// RFC-024: expand a possibly-indexed net member into flat, ordinary
+    /// single-instance references — the exact list an author would have
+    /// hand-written. Every index must name a real declared instance; the
+    /// FIRST one that doesn't is reported (E202, the same unresolved-name
+    /// class RFC-016 established) and the member contributes nothing, so one
+    /// mistyped range yields one diagnostic rather than one per index.
+    fn expand_member(&mut self, m: &PinRef, scope: &Scope) -> Vec<PinRef> {
+        let Some(sel) = &m.index else {
+            return vec![m.clone()];
+        };
+        let indices = sel.indices();
+        if indices.is_empty() {
+            self.diags.push(Diagnostic::error(
+                "E211",
+                sel.span(),
+                format!("`{}[…]` selects no instances", m.base.name),
+            ));
+            return Vec::new();
+        }
+        let mut out = Vec::with_capacity(indices.len());
+        for i in indices {
+            let name = format!("{}{}", m.base.name, i);
+            if !scope.local_insts.contains_key(&name) && !scope.bindings.contains_key(&name) {
+                self.diags.push(Diagnostic::error(
+                    "E202",
+                    sel.span(),
+                    format!(
+                        "index {} selects `{}`, which is not a declared instance — check the `{}` array's declared range",
+                        i, name, m.base.name
+                    ),
+                ));
+                return Vec::new();
+            }
+            out.push(PinRef {
+                base: Ident {
+                    name,
+                    span: m.base.span,
+                },
+                index: None,
+                pin: m.pin.clone(),
+                span: m.span,
+            });
+        }
+        out
+    }
+
     fn resolve_pin_ref(&mut self, r: &PinRef, scope: &Scope) -> Option<(String, String)> {
+        // RFC-024's explicit scope boundary: an index selector is expanded by
+        // `handle_net` before it ever reaches here, so one arriving intact is
+        // by construction in a position the RFC does not allow.
+        if let Some(sel) = &r.index {
+            self.diags.push(Diagnostic::error(
+                "E211",
+                sel.span(),
+                format!(
+                    "`{}[…]` is only valid in a net's member list — not in `nc`, a `fn` call's arguments, or `place`",
+                    r.base.name
+                ),
+            ));
+            return None;
+        }
         // Base: a fn parameter binding?
         if let Some(binding) = scope.bindings.get(&r.base.name) {
             return match (binding, &r.pin) {
@@ -767,8 +847,13 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
         let mut members = Vec::new();
         for m in &net.members {
-            if let Some(resolved) = self.resolve_pin_ref(m, scope) {
-                members.push(resolved);
+            // RFC-024: a range/stride/list member expands to the flat PinRef
+            // list first; everything downstream is byte-identical to the
+            // hand-written form.
+            for expanded in self.expand_member(m, scope) {
+                if let Some(resolved) = self.resolve_pin_ref(&expanded, scope) {
+                    members.push(resolved);
+                }
             }
         }
         let (key, display_name, is_design_level_name) = match (&net.name, scope.is_design_body) {

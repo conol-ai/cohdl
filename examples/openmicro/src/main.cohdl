@@ -33,9 +33,10 @@ design OpenMicro {
     inst rboot: R_10K
     #[crystal_oscillator(mcu, PF0, PF1)]
     inst xtal: XTAL_8M
-    #[bypass(mcu.PF0, 15pF)]
+    // c_x1/c_x2 are the crystal's LOAD capacitors (oscillator tank, set CL) —
+    // deliberately NOT #[bypass]: that attribute means supply decoupling, and
+    // the oscillator region is already declared by #[crystal_oscillator] above.
     inst c_x1: C_15p
-    #[bypass(mcu.PF1, 15pF)]
     inst c_x2: C_15p
     #[bypass(ldo.VIN, 4.7uF)]
     inst c_bulk: C_4u7

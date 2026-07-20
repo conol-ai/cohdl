@@ -473,18 +473,22 @@ impl<'w, 'd> Expander<'w, 'd> {
         let Some(owner) = scope.local_insts.get(&inst.name.name).cloned() else {
             return; // the inst itself failed earlier (already reported)
         };
+        // RFC-028: an instance argument may be a local inst OR a fn's
+        // Instance-typed parameter — the same two forms every other instance
+        // reference already resolves through.
         let resolve_inst = |ex: &mut Self, id: &Ident| -> Option<String> {
-            match scope.local_insts.get(&id.name) {
-                Some(p) => Some(p.clone()),
-                None => {
-                    ex.diags.push(Diagnostic::error(
-                        "E1009",
-                        id.span,
-                        format!("`{}` is not an instance in this scope", id.name),
-                    ));
-                    None
-                }
+            if let Some(p) = scope.local_insts.get(&id.name) {
+                return Some(p.clone());
             }
+            if let Some(Binding::Instance { path, .. }) = scope.bindings.get(&id.name) {
+                return Some(path.clone());
+            }
+            ex.diags.push(Diagnostic::error(
+                "E1009",
+                id.span,
+                format!("`{}` is not an instance in this scope", id.name),
+            ));
+            None
         };
         // The referenced instance's device pin, by NAME -> its pad numbers.
         let pin_pads = |ex: &mut Self, path: &str, pin: &Ident| -> Option<Vec<String>> {
@@ -520,11 +524,43 @@ impl<'w, 'd> Expander<'w, 'd> {
                     capacitance,
                     ..
                 } => {
-                    let Some(target_path) = resolve_inst(self, target) else {
-                        continue;
-                    };
-                    let Some(pads) = pin_pads(self, &target_path, pin) else {
-                        continue;
+                    // RFC-028: `TARGET` is INST.PIN, or a bare Pin-typed fn
+                    // parameter resolving through the call site's binding —
+                    // the same Binding::Pin every net member already uses.
+                    let (target_path, pads) = match pin {
+                        Some(pin) => {
+                            let Some(target_path) = resolve_inst(self, target) else {
+                                continue;
+                            };
+                            let Some(pads) = pin_pads(self, &target_path, pin) else {
+                                continue;
+                            };
+                            (target_path, pads)
+                        }
+                        None => match scope.bindings.get(&target.name) {
+                            Some(Binding::Pin((path, pin_name))) => {
+                                let path = path.clone();
+                                let pin_ident = Ident {
+                                    name: pin_name.clone(),
+                                    span: target.span,
+                                };
+                                let Some(pads) = pin_pads(self, &path, &pin_ident) else {
+                                    continue;
+                                };
+                                (path, pads)
+                            }
+                            _ => {
+                                self.diags.push(Diagnostic::error(
+                                    "E1009",
+                                    target.span,
+                                    format!(
+                                        "`{}` is neither an `INST.PIN` reference nor a `Pin`-typed fn parameter in scope",
+                                        target.name
+                                    ),
+                                ));
+                                continue;
+                            }
+                        },
                     };
                     self.phys_bypasses.push(crate::ir::QuilterBypass {
                         cap_path: owner.clone(),

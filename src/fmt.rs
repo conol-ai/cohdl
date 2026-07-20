@@ -408,10 +408,11 @@ impl Formatter<'_> {
                 pin,
                 capacitance,
                 ..
-            } => format!(
-                "#[bypass({}.{}, {})]",
-                inst.name, pin.name, capacitance.text
-            ),
+            } => match pin {
+                Some(p) => format!("#[bypass({}.{}, {})]", inst.name, p.name, capacitance.text),
+                // RFC-028: the bare Pin-parameter form.
+                None => format!("#[bypass({}, {})]", inst.name, capacitance.text),
+            },
             PhysAttr::CrystalOscillator {
                 parent, pin1, pin2, ..
             } => format!(

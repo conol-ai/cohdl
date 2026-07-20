@@ -261,3 +261,79 @@ fn attributes_and_diff_pair_bracket_round_trip_through_fmt() {
     let twice = format_source("m.cohdl", &once).unwrap();
     assert_eq!(once, twice, "fmt not idempotent:\n{once}");
 }
+
+// ---------------------------------------------------------------------------
+// RFC-028: attributes on fn Pin/Instance parameters.
+
+#[test]
+fn bypass_on_fn_pin_parameter_yields_one_row_per_call_site() {
+    let src = format!(
+        "{LIB}
+pub fn dec(vdd: Pin, gnd: Pin) {{
+    #[bypass(vdd, 100nF)]
+    inst c: C100N
+    net _: vdd, c.A
+    net _: gnd, c.B
+}}
+design B {{
+    inst mcu: MCU
+    dec(mcu.VDD, mcu.GND)
+    dec(mcu.DP, mcu.GND)
+    nc: mcu.XIN, mcu.XOUT, mcu.DM
+}}"
+    );
+    let csvs = build_csvs(&src).expect("csvs");
+    // Call site 1 targets VDD (pads 2 AND 6 -> two rows); call site 2 targets
+    // DP (pad 1). One independent resolution per call site, RFC-006 style.
+    assert_eq!(
+        csvs["bypass_capacitors.csv"],
+        "capacitor,bypassed_component,bypassed_pin,capacitance\nC1,U1,2,100\nC1,U1,6,100\nC2,U1,1,100\n"
+    );
+}
+
+#[test]
+fn converter_on_fn_instance_parameters_resolves_per_call_site() {
+    let src = format!(
+        "{LIB}
+pub fn phase(conv: impl Ic, l: impl Ind) {{
+    #[switching_converter(inductor: l)]
+    inst marker: C100N
+    nc: marker.A, marker.B
+}}
+design B {{
+    inst u9: BUCK
+    inst l9: L2U2
+    phase(u9, l9)
+    net N1: u9.SW, l9.A
+    net N2: u9.GND, l9.B
+    nc: u9.VIN
+}}"
+    );
+    let csvs = build_csvs(&src).expect("csvs");
+    assert!(
+        csvs["switching_converters.csv"].contains(",L1,,"),
+        "inductor resolved through the Instance binding:\n{}",
+        csvs["switching_converters.csv"]
+    );
+}
+
+#[test]
+fn unresolvable_bare_target_is_e1009() {
+    let src = full().replace("#[bypass(mcu.VDD, 100nF)]", "#[bypass(nothing, 100nF)]");
+    let (_c, r) = check(&src);
+    assert!(
+        r.contains("E1009")
+            && r.contains("neither an `INST.PIN` reference nor a `Pin`-typed fn parameter"),
+        "{r}"
+    );
+}
+
+#[test]
+fn bare_bypass_form_round_trips_through_fmt() {
+    use cohdl::fmt::format_source;
+    let src = "pub fn dec(vdd: Pin, gnd: Pin) {\n    #[bypass(vdd, 100nF)]\n    inst c: C100N\n    net _: vdd, c.A\n    net _: gnd, c.B\n}\n";
+    let once = format_source("f.cohdl", src).unwrap();
+    assert!(once.contains("#[bypass(vdd, 100nF)]"), "{once}");
+    let twice = format_source("f.cohdl", &once).unwrap();
+    assert_eq!(once, twice);
+}

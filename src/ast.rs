@@ -868,10 +868,13 @@ pub enum PhysAttr {
         frequency: UnitValue,
         span: Span,
     },
-    /// `#[bypass(INST.PIN, CAPACITANCE)]` — on the capacitor's own inst.
+    /// `#[bypass(TARGET, CAPACITANCE)]` — on the capacitor's own inst.
+    /// RFC-028: `TARGET` is either `INST.PIN` (pin: Some) or a bare
+    /// `Pin`-typed `fn` parameter (pin: None), the same two forms `PinRef`
+    /// already has everywhere else in the language.
     Bypass {
         inst: Ident,
-        pin: Ident,
+        pin: Option<Ident>,
         capacitance: UnitValue,
         span: Span,
     },

@@ -875,9 +875,42 @@ Option 2 (bare new statement keywords) was this RFC's own first draft, rejected 
 
 If real usage reveals Quilter's bga_component constraint has real fields beyond the bare fanout flag not yet documented publicly — extend via a scoped follow-up RFC once that schema is confirmed. Also revisit if Quilter's own documented field sets for any of these seven kinds change or grow. Also revisit if real usage reveals the new structured-attribute-argument grammar (distinct from the existing opaque-string Attr shape) creates real parser/tooling friction — that would be a scoped follow-up on the attribute-argument mechanism itself, not a reason to revert to bare statement keywords.
 
+# DR-034: Physics-constraint attributes on fn Pin parameters — reuse existing Binding::Pin/resolve_pin_ref, no new mechanism
+
+## Context
+
+Applying RFC-027's #[bypass(...)] to a real design surfaced a real gap: 25 decoupling capacitors, instantiated via a reusable fn decouple(vdd: Pin, gnd: Pin) { inst c: C_100n; net _: vdd, c.A; ... } (RFC-006's own idiomatic pattern), could not carry #[bypass(INST.PIN, CAPACITANCE)] — the bypassed pin is the fn's own Pin parameter vdd, not a top-level instance's pin, and RFC-027's target-argument grammar/checker only accepted a literal top-level INST.PIN. The only workaround would be flattening all 25 real call sites into 25 hand-written top-level capacitor instances, destroying RFC-006's own reason for existing. Confirmed against real source (src/check/expand.rs): resolve_pin_ref — the single, already-existing function that resolves any bare PinRef — already checks scope.bindings first and resolves a fn parameter of type Pin through Binding::Pin((String, String)), a real (instance path, logical pin name) pair populated per real call site during RFC-006's expansion pass. The same mechanism already resolves a bare fn-parameter Pin reference everywhere else in the language (e.g. inside a net member list) — RFC-027's own checker for #[bypass]/#[crystal_oscillator]/#[switching_converter]'s target arguments simply never called it, having implicitly assumed a top-level-only name.
+
+## Options
+
+1. Require flattening every fn call containing a bypass-worthy capacitor into a hand-written top-level inst — destroys RFC-006's abstraction for the sole purpose of attaching one attribute.
+2. Leave fn-internal bypass/crystal/switching-converter capacitors permanently un-annotatable, relying solely on Quilter's own auto-detection for these (the real, already-working interim state — RFC-027's own Non-goals already frame omission as designed-for, not broken).
+3. A new, separate fn-scoped attribute-declaration mechanism, distinct from RFC-027's existing attributes.
+4. Extend #[bypass(...)], #[crystal_oscillator(...)], and #[switching_converter(...)]'s target/instance arguments to also accept a bare Pin-typed fn parameter name, reusing the existing resolve_pin_ref/Binding::Pin resolution machinery (RFC-006) unchanged — no new grammar, no new binding concept. Each real call site produces its own independently-resolved CSV row (RFC-028's proposal).
+5. Extend all seven RFC-027 attributes uniformly, including the three net-attached ones (#[ground]/#[high_current]/#[impedance]).
+
+## Decision
+
+Option 4. #[bypass(TARGET, CAPACITANCE)]'s TARGET (and the analogous arguments of #[crystal_oscillator]/#[switching_converter]) now also accepts a bare Pin-typed fn parameter name — the exact same PinRef grammar (identifier, optional .pin) already legal everywhere else in the language, simply used with .pin omitted. The checker for these three attributes' target arguments is corrected to call resolve_pin_ref (or the existing instance-resolution equivalent), the same function every other pin/instance reference in the language already resolves through. At expansion, each real call site produces its own real, independently-resolved attribute instance and CSV row, mirroring RFC-006's existing per-call-site inlining discipline exactly.
+
+## Rationale
+
+Option 1 was rejected: real, disproportionate cost — discarding a reusable sub-circuit abstraction to satisfy one attribute's argument grammar. Option 2 (status quo) was rejected as the decision to make, not the fallback to settle for: Quilter's own auto-detection already handles the unannotated case correctly (the real supplied bypass_capacitors.csv's 25 auto-detected C→U2 rows prove this) — so this RFC is not fixing something broken, it is closing a real, avoidable gap between what an author can state explicitly and what is semantically true, at essentially zero marginal mechanism cost, since the resolver already exists. Option 3 (new mechanism) was rejected per this project's "prefer extending an existing concept over inventing a parallel one" discipline (e.g. RFC-016's DR-022 rationale) — the existing PinRef grammar and resolve_pin_ref function already fully cover this case once the checker actually calls them. Option 5 (extend all seven attributes) was rejected: #[ground]/#[high_current]/#[impedance] attach to a net, and a net's own name already resolves identically per call site whether declared inside a fn body or at the top level (unchanged since RFC-006/RFC-024) — there is no analogous gap for these three, so extending them would address a problem that doesn't exist for that subset.
+
+## Consequences
+
+- No new core concept, no new binding mechanism, no new grammar token — this RFC corrects a real, narrow oversight in RFC-027's own target-argument checker, widening which already-fully-supported reference forms three specific attributes accept.
+- Real, disclosed new semantic guarantee: a fn called N times with an attribute-bearing inst inside it now produces N real, independently-resolved attribute facts/CSV rows, one per call site — never one shared/ambiguous fact for the whole fn definition, exactly mirroring RFC-006's "expansion produces what hand-writing would have" discipline extended to attribute-argument resolution.
+- Purely additive — every existing top-level #[bypass(INST.PIN, ...)]/#[crystal_oscillator(...)]/#[switching_converter(...)] attribute is unaffected, unchanged in meaning and in every emitted CSV byte.
+- #[ground]/#[high_current]/#[impedance] are explicitly, deliberately unaffected — no analogous gap exists for net-attached attributes.
+
+## Revisit when
+
+If a genuine need emerges for #[ground]/#[high_current]/#[impedance] to reference something other than an already-resolvable net name — revisit then, as a separately-scoped question; no such gap is known today. Also revisit if a future RFC-027-style attribute is proposed whose target argument shape isn't a bare pin/instance reference — that attribute's fn-body-resolution story (if any) would need its own design, not an assumed extension of this RFC.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-027 is fully recorded above.)
+(none — the backlog through RFC-028 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

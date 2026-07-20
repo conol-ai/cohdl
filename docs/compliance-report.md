@@ -2019,3 +2019,27 @@ the TPS59650 with their real L/C networks. sensor-node/rpi-pico2:
 Verified: 400 tests (7 new: template-exact headers, scale/flatten rows,
 no-facts-no-files byte-compat, E1009/E110 diagnostics, fmt round-trip), all
 six examples check+build, fmt canonical.
+
+## RFC-028 (physics-constraint attributes on fn Pin parameters) implementation notes (2026-07-20)
+
+`#[bypass]`'s target now accepts a bare `Pin`-typed fn parameter (pin part of
+the PinRef omitted — the same bare form net member lists always allowed), and
+the instance arguments of `#[crystal_oscillator]`/`#[switching_converter]`
+accept `Instance`-typed fn parameters — both resolved through the existing
+`Binding::Pin`/`Binding::Instance` call-site machinery (RFC-006), exactly as
+the accepted text specifies. No new grammar token, no new resolver, no new
+error code: an unresolvable bare target is the same E1009 class, its message
+naming both forms ("neither an `INST.PIN` reference nor a `Pin`-typed fn
+parameter in scope").
+
+Each call site of an attribute-bearing fn produces its own independently
+resolved CSV row(s). First consumer: `examples/openmicro`'s `decouple` fn —
+ONE `#[bypass(vdd, 100nF)]` line annotates all 25 call sites, each resolving
+to its real target: the MCU's multi-pad VDD flattens to pads 24 and 48, the
+USB-C receptacle's VBUS to A4/A9/B4/B9, and each per-key/underglow LED's VDD
+individually — rows the supplied template could only approximate under the
+old designator run.
+
+Verified: 404 tests (4 new: per-call-site rows with multi-pad flattening,
+Instance-parameter converter resolution, unresolvable-bare-target diagnostic,
+fmt round-trip of the bare form), all six examples check+build, fmt canonical.

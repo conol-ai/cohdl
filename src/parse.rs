@@ -1401,9 +1401,15 @@ impl<'a> Parser<'a> {
             }
             "bypass" => {
                 self.expect(&TokenKind::LParen, "to open the attribute arguments");
-                let inst = self.ident("as the bypassed instance")?;
-                self.expect(&TokenKind::Dot, "between the instance and its pin");
-                let pin = self.ident("as the bypassed pin")?;
+                let inst = self.ident("as the bypassed target")?;
+                // RFC-028: `.PIN` is optional — a bare identifier is a
+                // `Pin`-typed fn parameter, the same bare-PinRef form already
+                // legal in net member lists.
+                let pin = if self.eat(&TokenKind::Dot) {
+                    Some(self.ident("as the bypassed pin")?)
+                } else {
+                    None
+                };
                 self.expect(&TokenKind::Comma, "before the capacitance");
                 let capacitance = unit_arg(self, UnitType::Capacitance, "capacitance")?;
                 self.expect(&TokenKind::RParen, "to close the attribute arguments");

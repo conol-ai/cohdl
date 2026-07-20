@@ -277,6 +277,10 @@ pub part C_15p: MLCC<15pF, 50V, 5%>[C0402] {
 
 // reusable decoupling sub-circuit
 pub fn decouple(vdd: Pin, gnd: Pin) {
+    // RFC-028: ONE attribute here annotates every call site's capacitor —
+    // each expansion resolves `vdd` to that call's real (instance, pin), one
+    // bypass_capacitors.csv row per pad of the bypassed pin.
+    #[bypass(vdd, 100nF)]
     inst c: C_100n
     net _: vdd, c.A
     net _: gnd, c.B

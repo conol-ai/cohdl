@@ -19,3 +19,4 @@ examples/*/out/*.kicad_pro
 examples/*/out/*.kicad_prl
 examples/*/out/*.lck
 examples/*/out/.history/
+/examples/openmicro/fw/target

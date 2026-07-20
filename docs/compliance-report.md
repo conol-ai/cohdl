@@ -2121,3 +2121,23 @@ fell from ~165-193mm to ~79-98mm. The remaining longest nets (CC1/CC2, HSE) are
 staged pull-down/crystal passives Quilter pulls in at placement, not structural.
 
 Verified: 404 tests, fmt canonical, IPC-2581 schema-valid, 0 pad overlaps.
+
+## openmicro MCU relocated to USB side (2026-07-20, supersedes right-edge spot)
+
+Per direct review — the right-edge placement (40.5, 0) left the USB pair (the
+board's only high-speed signal) ~51mm long. Moved the MCU to the clear back
+spot nearest the USB-C/ESD: `place mcu at (-18, -41) side bottom` (top-left).
+USB FS pair now ~22mm with the fixed USB pins (PA11/12) facing the ESD — a
+clean rightward run, no detour across the body.
+
+Calibration note found doing this: kicad_board.py's `Flip(anchor, True)` then
+`SetOrientationDegrees(R)` gives back-side pad delta = Rot(R-180)·(-lx, ly),
+NOT the naive mirror-then-rotate. A first pass used the wrong model and put the
+USB pins on the far side of the MCU (30mm, wrong way); recalibrating from the
+built board's actual pad positions gave R=0 as the USB-facing rotation.
+
+The position-aware GPIO map was re-optimized for the new spot (greedy + 2-opt,
+same fixed-pin/ADC constraints). Effect vs the original arbitrary layout:
+signal-net wire demand 4148 -> 2916 mm (-30%); the right-edge spot was lower
+total (2667) but its 51mm USB pair was the wrong trade for the one net where
+length matters. 0 different-net same-layer pad overlaps; bijection preserved.

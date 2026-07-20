@@ -185,8 +185,8 @@ design OpenMicro {
     decouple(ambient_leds[14].VDD, ambient_leds[14].GND)
     // chain ends float (last DOUT of each chain); SBU unused
     nc: usbc.SBU1, usbc.SBU2, key_leds[12].DOUT, ambient_leds[15].DOUT
-    nc: mcu.PC13, mcu.PC14, mcu.PC15, mcu.PA8, mcu.PA9, mcu.PA10, mcu.PA15, mcu.PB3, mcu.PB4,
-        mcu.PB5, mcu.PB6, mcu.PB7, mcu.PB8, mcu.PB9
+    nc: mcu.PA1, mcu.PA2, mcu.PA3, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7, mcu.PB2, mcu.PB10, mcu.PB11,
+        mcu.PB12, mcu.PB13, mcu.PB14, mcu.PB15
 
     // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
     // Physical arrangement transcribed from the Work Louder Creator Micro 2 /
@@ -205,13 +205,15 @@ design OpenMicro {
         diff_pair(USB_DP,
                   USB_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         board_outline: "mechanical/openmicro-outline.dxf"
-        // MCU on the BACK, right edge (RFC-026 side bottom). The interior is
-        // walled off by the switch through-holes and the literal top-right by
-        // the 18x22mm joystick module, so this is the clear spot nearest the
-        // matrix on the side facing it — signals exit toward their features via
-        // the position-aware GPIO map in openmicro_parts.cohdl. rotate 90 turns
-        // the fixed USB/SWD pins toward the top edge.
-        place mcu at (40.5mm, 0mm) rotate 90 side bottom
+        // MCU on the BACK (RFC-026 side bottom), top-left — the clear spot
+        // nearest the USB-C/ESD (the board's only high-speed pair): the
+        // interior is walled off by the switch through-holes and the top edge
+        // is congested by the connector, ESD and top LEDs, so this is as close
+        // to the USB endpoint as a 9.4mm part fits (USB FS pair ~21mm, well
+        // within spec). Unrotated (side bottom) already faces the fixed
+        // USB pins (PA11/12) toward the ESD; every other signal's GPIO is
+        // mapped position-aware in openmicro_parts.cohdl.
+        place mcu at (-18mm, -41mm) side bottom
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)
         place sw[0] at (-9.525mm, -28.575mm)

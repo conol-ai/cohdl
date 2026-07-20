@@ -58,42 +58,39 @@ pub device STM32F072CBT6 {
         required USB_DP: 33 [bidirectional] // PA12
         required SWDIO: 34 [bidirectional] // PA13
         required SWCLK: 37 [input] // PA14
-        // keyboard matrix — position-aware GPIO (RFC-024 physical row/col groups)
-        required ROW0: 27 [bidirectional] // PB14
-        required ROW1: 17 [bidirectional] // PA7
-        required ROW2: 13 [bidirectional] // PA3
-        required ROW3: 11 [bidirectional] // PA1
-        required COL0: 14 [bidirectional] // PA4
-        required COL1: 15 [bidirectional] // PA5
-        required COL2: 16 [bidirectional] // PA6
-        required COL3: 10 [bidirectional] // PA0
-        // rotary encoder + push
-        required ENC_A: 22 [bidirectional] // PB11
-        required ENC_B: 21 [bidirectional] // PB10
-        required ENC_SW: 20 [bidirectional] // PB2
-        // analog joystick (ADC) + push, and cap-touch
+        // position-aware GPIO (physical matrix + feature pins facing their targets)
+        required ROW0: 30 [bidirectional] // PA9
+        required ROW1: 39 [bidirectional] // PB3
+        required ROW2: 42 [bidirectional] // PB6
+        required ROW3: 41 [bidirectional] // PB5
+        required COL0: 45 [bidirectional] // PB8
+        required COL1: 43 [bidirectional] // PB7
+        required COL2: 38 [bidirectional] // PA15
+        required COL3: 31 [bidirectional] // PA10
+        required ENC_A: 2 [bidirectional] // PC13
+        required ENC_B: 3 [bidirectional] // PC14
+        required ENC_SW: 4 [bidirectional] // PC15
         required JOY_X: 19 [input] // PB1 / ADC_IN9
         required JOY_Y: 18 [input] // PB0 / ADC_IN8
-        required JOY_SW: 28 [bidirectional] // PB15
-        required TOUCH: 12 [bidirectional] // PA2 / TSC G1_IO3
-        // addressable-RGB data out — two independent WS2812 chains
-        required LED_DATA_KEY: 25 [output] // PB12 — per-key RGB chain
-        required LED_DATA_UG: 26 [output] // PB13 — perimeter underglow chain
+        required JOY_SW: 29 [bidirectional] // PA8
+        required TOUCH: 46 [bidirectional] // PB9
+        required LED_DATA_KEY: 40 [output] // PB4 — per-key RGB chain
+        required LED_DATA_UG: 10 [output] // PA0 — perimeter underglow chain
         // unused GPIO (declared to cover all 48 pads; left NC)
-        optional PC13: 2 [bidirectional]
-        optional PC14: 3 [bidirectional]
-        optional PC15: 4 [bidirectional]
-        optional PA8: 29 [bidirectional]
-        optional PA9: 30 [bidirectional]
-        optional PA10: 31 [bidirectional]
-        optional PA15: 38 [bidirectional]
-        optional PB3: 39 [bidirectional]
-        optional PB4: 40 [bidirectional]
-        optional PB5: 41 [bidirectional]
-        optional PB6: 42 [bidirectional]
-        optional PB7: 43 [bidirectional]
-        optional PB8: 45 [bidirectional]
-        optional PB9: 46 [bidirectional]
+        optional PA1: 11 [bidirectional]
+        optional PA2: 12 [bidirectional]
+        optional PA3: 13 [bidirectional]
+        optional PA4: 14 [bidirectional]
+        optional PA5: 15 [bidirectional]
+        optional PA6: 16 [bidirectional]
+        optional PA7: 17 [bidirectional]
+        optional PB2: 20 [bidirectional]
+        optional PB10: 21 [bidirectional]
+        optional PB11: 22 [bidirectional]
+        optional PB12: 25 [bidirectional]
+        optional PB13: 26 [bidirectional]
+        optional PB14: 27 [bidirectional]
+        optional PB15: 28 [bidirectional]
     }
 }
 impl IC for STM32F072CBT6 {}

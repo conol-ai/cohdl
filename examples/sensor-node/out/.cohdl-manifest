@@ -1,8 +1,16 @@
 design.lock
+out/bga_components.csv
+out/bypass_capacitors.csv
+out/crystal_oscillators.csv
+out/differential_pairs.csv
 out/footprints/std-CHIP_0402.kicad_mod
 out/footprints/std-CHIP_0603.kicad_mod
 out/footprints/std-FP_LED_0603_1608Metric.kicad_mod
 out/footprints/std-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
 out/footprints/std-SOT5P95X290X160N.kicad_mod
+out/ground_nets.csv
+out/high_current_nets.csv
 out/sensor-node-bom.csv
 out/sensor-node.net
+out/single_ended_impedance_signals.csv
+out/switching_converters.csv

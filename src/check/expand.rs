@@ -27,6 +27,13 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         layout_raw: Vec::new(),
         board_outline: None,
         placements: Vec::new(),
+        phys_grounds: Vec::new(),
+        phys_high_currents: Vec::new(),
+        phys_impedances: Vec::new(),
+        phys_bypasses: Vec::new(),
+        phys_crystals: Vec::new(),
+        phys_converters: Vec::new(),
+        phys_bga: Vec::new(),
         active_calls: Vec::new(),
         call_counter: 0,
         anon_net_counter: 0,
@@ -102,6 +109,16 @@ struct Expander<'w, 'd> {
     /// Locked component placements (`place <inst> at (x, y)`), design-level
     /// only, resolved to IR paths and validated on collection (E1007).
     placements: Vec<crate::ir::LayoutPlacement>,
+    /// RFC-027 net-target physics attributes, collected per net declaration
+    /// with spans (duplicate/one-primary validation happens at assembly).
+    phys_grounds: Vec<(crate::ir::QuilterGround, Span)>,
+    phys_high_currents: Vec<(crate::ir::QuilterHighCurrent, Span)>,
+    phys_impedances: Vec<(crate::ir::QuilterImpedance, Span)>,
+    /// RFC-027 inst-target physics attributes, resolved after pass 1.
+    phys_bypasses: Vec<crate::ir::QuilterBypass>,
+    phys_crystals: Vec<crate::ir::QuilterCrystal>,
+    phys_converters: Vec<crate::ir::QuilterConverter>,
+    phys_bga: Vec<String>,
     /// fn names currently being expanded (cycle detection, RFC-006).
     active_calls: Vec<String>,
     /// Global (per-design) call counter — `__fn{N}_{name}` segments.
@@ -123,6 +140,9 @@ enum RawLayout {
     },
     DiffPair {
         nets: Vec<(String, Ident)>,
+        differential_impedance: Option<UnitValue>,
+        single_ended_impedance: Option<UnitValue>,
+        frequency: Option<UnitValue>,
         span: Span,
     },
     LengthMatch {
@@ -177,6 +197,16 @@ impl<'w, 'd> Expander<'w, 'd> {
                 }
             }
         }
+        // Pass 1.5 (RFC-027): inst-target physics attributes, resolved only
+        // after EVERY instance in this body exists — a bypass may reference an
+        // instance declared later in source.
+        for stmt in body {
+            if let Stmt::Inst(inst) = stmt {
+                if !inst.phys.is_empty() {
+                    self.handle_inst_phys(inst, scope);
+                }
+            }
+        }
         // Pass 2: everything else, in source order.
         for stmt in body {
             match stmt {
@@ -210,8 +240,17 @@ impl<'w, 'd> Expander<'w, 'd> {
                     scoped_name: resolve_net_name(&name.name, scope),
                     nets: resolve(nets),
                 },
-                LayoutConstraint::DiffPair { nets, span } => RawLayout::DiffPair {
+                LayoutConstraint::DiffPair {
+                    nets,
+                    differential_impedance,
+                    single_ended_impedance,
+                    frequency,
+                    span,
+                } => RawLayout::DiffPair {
                     nets: resolve(nets),
+                    differential_impedance: differential_impedance.clone(),
+                    single_ended_impedance: single_ended_impedance.clone(),
+                    frequency: frequency.clone(),
                     span: *span,
                 },
                 LayoutConstraint::LengthMatch {
@@ -411,6 +450,159 @@ impl<'w, 'd> Expander<'w, 'd> {
             span: outline.span,
             geom: None,
         });
+    }
+
+    // -- RFC-027 physics-constraint attributes -------------------------------
+
+    /// Resolve one inst's physics attributes. Every referenced name must be an
+    /// instance in the CURRENT scope; pin names resolve against the referenced
+    /// instance's device (its selected variant). All failures are E1009 naming
+    /// exactly what was not found.
+    fn handle_inst_phys(&mut self, inst: &InstStmt, scope: &Scope) {
+        if inst.array_len.is_some() {
+            self.diags.push(Diagnostic::error(
+                "E1009",
+                inst.phys[0].span(),
+                format!(
+                    "physics attributes are not supported on the array-typed instance `{}` — attach them to plain instances",
+                    inst.name.name
+                ),
+            ));
+            return;
+        }
+        let Some(owner) = scope.local_insts.get(&inst.name.name).cloned() else {
+            return; // the inst itself failed earlier (already reported)
+        };
+        let resolve_inst = |ex: &mut Self, id: &Ident| -> Option<String> {
+            match scope.local_insts.get(&id.name) {
+                Some(p) => Some(p.clone()),
+                None => {
+                    ex.diags.push(Diagnostic::error(
+                        "E1009",
+                        id.span,
+                        format!("`{}` is not an instance in this scope", id.name),
+                    ));
+                    None
+                }
+            }
+        };
+        // The referenced instance's device pin, by NAME -> its pad numbers.
+        let pin_pads = |ex: &mut Self, path: &str, pin: &Ident| -> Option<Vec<String>> {
+            let target = &ex.instances[path];
+            let dev = ex.world.devices.get(&target.device)?;
+            let variant = target.variant.clone();
+            match dev
+                .pins_for(variant.as_deref())
+                .iter()
+                .find(|p| p.name.name == pin.name)
+            {
+                Some(p) => Some(p.numbers.iter().map(|n| n.text.clone()).collect()),
+                None => {
+                    ex.diags.push(Diagnostic::error(
+                        "E1009",
+                        pin.span,
+                        format!(
+                            "`{}` has no pin `{}` (device `{}`)",
+                            path.rsplit("::").next().unwrap_or(path),
+                            pin.name,
+                            crate::resolve::short(&target.device)
+                        ),
+                    ));
+                    None
+                }
+            }
+        };
+        for pa in &inst.phys {
+            match pa {
+                PhysAttr::Bypass {
+                    inst: target,
+                    pin,
+                    capacitance,
+                    ..
+                } => {
+                    let Some(target_path) = resolve_inst(self, target) else {
+                        continue;
+                    };
+                    let Some(pads) = pin_pads(self, &target_path, pin) else {
+                        continue;
+                    };
+                    self.phys_bypasses.push(crate::ir::QuilterBypass {
+                        cap_path: owner.clone(),
+                        target_path,
+                        pads,
+                        capacitance: capacitance.clone(),
+                    });
+                }
+                PhysAttr::CrystalOscillator {
+                    parent, pin1, pin2, ..
+                } => {
+                    let Some(parent_path) = resolve_inst(self, parent) else {
+                        continue;
+                    };
+                    let mut pads = Vec::new();
+                    let mut ok = true;
+                    for pin in [pin1, pin2] {
+                        match pin_pads(self, &parent_path, pin) {
+                            Some(nums) if nums.len() == 1 => pads.push(nums[0].clone()),
+                            Some(nums) => {
+                                self.diags.push(Diagnostic::error(
+                                    "E1009",
+                                    pin.span,
+                                    format!(
+                                        "`#[crystal_oscillator]` pin `{}` maps to {} pads — a crystal signal pin must map to exactly one",
+                                        pin.name,
+                                        nums.len()
+                                    ),
+                                ));
+                                ok = false;
+                            }
+                            None => ok = false,
+                        }
+                    }
+                    if ok {
+                        self.phys_crystals.push(crate::ir::QuilterCrystal {
+                            crystal_path: owner.clone(),
+                            parent_path,
+                            pad1: pads[0].clone(),
+                            pad2: pads[1].clone(),
+                        });
+                    }
+                }
+                PhysAttr::SwitchingConverter {
+                    inductor,
+                    input_capacitor,
+                    output_capacitor,
+                    ..
+                } => {
+                    let Some(inductor_path) = resolve_inst(self, inductor) else {
+                        continue;
+                    };
+                    let input_cap_path = match input_capacitor {
+                        Some(c) => match resolve_inst(self, c) {
+                            Some(p) => Some(p),
+                            None => continue,
+                        },
+                        None => None,
+                    };
+                    let output_cap_path = match output_capacitor {
+                        Some(c) => match resolve_inst(self, c) {
+                            Some(p) => Some(p),
+                            None => continue,
+                        },
+                        None => None,
+                    };
+                    self.phys_converters.push(crate::ir::QuilterConverter {
+                        conv_path: owner.clone(),
+                        inductor_path,
+                        input_cap_path,
+                        output_cap_path,
+                    });
+                }
+                PhysAttr::BgaFanout { .. } => self.phys_bga.push(owner.clone()),
+                // Net-target kinds cannot reach an inst (parse enforces).
+                _ => unreachable!("net-target attribute on an inst"),
+            }
+        }
     }
 
     // -- instances -----------------------------------------------------------
@@ -1010,6 +1202,49 @@ impl<'w, 'd> Expander<'w, 'd> {
                 (format!("scoped:{}", scoped), display, false)
             }
         };
+        // RFC-027: record this declaration's physics attributes against the
+        // net's emitted display name (dup/one-primary checks at assembly).
+        for pa in &net.phys {
+            match pa {
+                PhysAttr::Ground {
+                    primary,
+                    region_pour,
+                    ..
+                } => self.phys_grounds.push((
+                    crate::ir::QuilterGround {
+                        net: display_name.clone(),
+                        primary: *primary,
+                        region_pour: *region_pour,
+                    },
+                    pa.span(),
+                )),
+                PhysAttr::HighCurrent {
+                    current,
+                    power_pour,
+                    ..
+                } => self.phys_high_currents.push((
+                    crate::ir::QuilterHighCurrent {
+                        net: display_name.clone(),
+                        current: current.clone(),
+                        power_pour: *power_pour,
+                    },
+                    pa.span(),
+                )),
+                PhysAttr::Impedance {
+                    impedance,
+                    frequency,
+                    ..
+                } => self.phys_impedances.push((
+                    crate::ir::QuilterImpedance {
+                        net: display_name.clone(),
+                        impedance: impedance.clone(),
+                        frequency: frequency.clone(),
+                    },
+                    pa.span(),
+                )),
+                _ => unreachable!("inst-target attribute on a net"),
+            }
+        }
         self.net_decls.push(NetDecl {
             key,
             display_name,
@@ -1416,6 +1651,76 @@ impl<'w, 'd> Expander<'w, 'd> {
         layout.board_outline = self.board_outline;
         layout.placements = self.placements;
 
+        // RFC-027: validate + adopt the physics-constraint facts. At most one
+        // primary ground per design; at most one attribute of each kind per
+        // (merged) net — two source declarations of one net may not both carry
+        // the same kind.
+        {
+            let mut primary_span: Option<Span> = None;
+            let mut seen_ground: BTreeMap<String, Span> = BTreeMap::new();
+            for (g, span) in &self.phys_grounds {
+                if let Some(prev) = seen_ground.insert(g.net.clone(), *span) {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E1009",
+                            *span,
+                            format!("net `{}` carries `#[ground]` more than once", g.net),
+                        )
+                        .with_secondary(prev, "first written here".to_string()),
+                    );
+                    continue;
+                }
+                if g.primary {
+                    if let Some(prev) = primary_span {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E1009",
+                                *span,
+                                "a design has at most one `#[ground(primary)]` net".to_string(),
+                            )
+                            .with_secondary(prev, "the first primary ground".to_string()),
+                        );
+                        continue;
+                    }
+                    primary_span = Some(*span);
+                }
+                layout.grounds.push(g.clone());
+            }
+            let mut seen: BTreeMap<(&str, String), Span> = BTreeMap::new();
+            for (h, span) in &self.phys_high_currents {
+                if let Some(prev) = seen.insert(("hc", h.net.clone()), *span) {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E1009",
+                            *span,
+                            format!("net `{}` carries `#[high_current]` more than once", h.net),
+                        )
+                        .with_secondary(prev, "first written here".to_string()),
+                    );
+                    continue;
+                }
+                layout.high_currents.push(h.clone());
+            }
+            for (i, span) in &self.phys_impedances {
+                if let Some(prev) = seen.insert(("imp", i.net.clone()), *span) {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E1009",
+                            *span,
+                            format!("net `{}` carries `#[impedance]` more than once", i.net),
+                        )
+                        .with_secondary(prev, "first written here".to_string()),
+                    );
+                    continue;
+                }
+                layout.impedances.push(i.clone());
+            }
+            layout.bypasses = self.phys_bypasses;
+            layout.crystals = self.phys_crystals;
+            layout.converters = self.phys_converters;
+            layout.bga_fanouts = self.phys_bga;
+        }
+
         let ir = DesignIr {
             name: design.name.name.clone(),
             instances: self.instances,
@@ -1484,7 +1789,13 @@ fn build_layout_ir(
                     nets: dedup_in_order(mapped),
                 });
             }
-            RawLayout::DiffPair { nets, span } => {
+            RawLayout::DiffPair {
+                nets,
+                differential_impedance,
+                single_ended_impedance,
+                frequency,
+                span,
+            } => {
                 let (mapped, all_known) = map_layout_nets(nets, declared_to_merged, diags);
                 if nets.len() != 2 {
                     diags.push(Diagnostic::error(
@@ -1510,6 +1821,9 @@ fn build_layout_ir(
                     layout.diff_pairs.push(LayoutDiffPair {
                         p: mapped[0].clone(),
                         n: mapped[1].clone(),
+                        differential_impedance: differential_impedance.clone(),
+                        single_ended_impedance: single_ended_impedance.clone(),
+                        frequency: frequency.clone(),
                     });
                 }
             }

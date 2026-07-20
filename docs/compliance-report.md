@@ -1969,3 +1969,53 @@ NORTH of each key at x+5, which landed D1's pad exactly on J3's shield-hole
 column (caught by the layer-aware overlap scan) — moved south. Verified:
 13/13 diodes on B.Cu, ESD front-side by the port, 0 different-net same-layer
 pad overlaps, 393 tests, fmt canonical, IPC-2581 schema-valid.
+
+## RFC-027 (Quilter physics-constraint hints and CSV export) implementation notes (2026-07-20)
+
+Seven structured attributes riding the existing `#[name(...)]` bracket — zero
+new keywords, per the redesigned accepted text — plus the `diff_pair` physics
+bracket, and the eight-file CSV export.
+
+- **Parsing** — the seven names are recognized inside the existing attribute
+  bracket and parsed with their own closed argument grammars (unit literals,
+  `INST.PIN` references, named optional arguments, bare flags) — never as the
+  opaque-string `Attr` shape. Net-only vs inst-only targeting, at-most-one of
+  each kind per declaration, unknown/duplicate/missing arguments: all E1009 at
+  parse. Reference EXISTENCE resolves at expansion (a referenced instance may
+  be declared later in the body), in a pass that runs after every instance in
+  the body exists.
+- **Checks** — one `#[ground(primary)]` per design; per-merged-net duplicate
+  kinds; pin references resolve against the target's device (its selected
+  variant); a crystal signal pin must map to exactly one pad; array-typed
+  instances cannot carry physics attributes (disclosed scope cut). All E1009.
+- **DEVIATION (ledgered)**: unit-type mismatches on numeric arguments are
+  E110/E1xx, NOT the E10xx sub-case RFC-027's Tooling section literally
+  reserves. RFC-011's organizing principle ("unit-mismatch is unit-mismatch
+  regardless of call site" — the same rule that relocated E402/E404 into E1xx)
+  is the older, structural precedent; the E110 message names expected vs
+  actual as required. Worth reconciling in the RFC text.
+- **CSV export** — the eight files' headers/column order match the supplied
+  template files byte-for-byte; scales are the templates' own (max_current mA,
+  capacitance nF, impedances ohm, frequency GHz), booleans lowercase,
+  components as final designators, pins as PAD numbers with a multi-pad pin
+  flattening to one row per pad (the supplied `bypass_capacitors.csv`'s
+  double-row shape). Emitted as a SET (header-only files included) whenever
+  the design carries any physics fact; a design with none emits NO files, so
+  pre-RFC-027 builds stay artifact-identical. `build --json` gains a `quilter`
+  key, present only when emitted.
+- **fmt** — attributes render as single-line prefixes in source order
+  (byte-offset interleaved with `#[intent]`/`#[designator]`/
+  `#[placement_hint]` on insts); the `diff_pair` bracket renders in fixed
+  field order and an unannotated pair renders exactly as before.
+
+First consumers: all six examples. `examples/openmicro` reproduces the
+supplied templates nearly row-for-row (`Y1,U3,5,6`; `GND,true,false`; the two
+USB diff pairs at 100/50/1) — the templates describe that exact board.
+ccg6df-dualport: `#[bga_fanout]` + per-port `#[high_current]` + USB2 pair
+values (90/45/0.48). imvp7-vcore and tida-00021: `#[switching_converter]` on
+the TPS59650 with their real L/C networks. sensor-node/rpi-pico2:
+`#[ground(primary)]` (+ 500mA VBUS on the pico2).
+
+Verified: 400 tests (7 new: template-exact headers, scale/flatten rows,
+no-facts-no-files byte-compat, E1009/E110 diagnostics, fmt round-trip), all
+six examples check+build, fmt canonical.

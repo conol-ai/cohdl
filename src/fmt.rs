@@ -374,6 +374,83 @@ impl Formatter<'_> {
     /// `stop_line` is where the annotated construct begins: a comment on that
     /// line belongs to the construct, not the attribute, so the attach is
     /// skipped when the attribute shares it.
+    /// RFC-027: one physics attribute's canonical text.
+    fn phys_attr_text(pa: &PhysAttr) -> String {
+        match pa {
+            PhysAttr::Ground {
+                primary,
+                region_pour,
+                ..
+            } => format!(
+                "#[ground({}{})]",
+                if *primary { "primary" } else { "secondary" },
+                if *region_pour { ", region_pour" } else { "" }
+            ),
+            PhysAttr::HighCurrent {
+                current,
+                power_pour,
+                ..
+            } => format!(
+                "#[high_current({}{})]",
+                current.text,
+                if *power_pour { ", power_pour" } else { "" }
+            ),
+            PhysAttr::Impedance {
+                impedance,
+                frequency,
+                ..
+            } => format!(
+                "#[impedance({}, frequency: {})]",
+                impedance.text, frequency.text
+            ),
+            PhysAttr::Bypass {
+                inst,
+                pin,
+                capacitance,
+                ..
+            } => format!(
+                "#[bypass({}.{}, {})]",
+                inst.name, pin.name, capacitance.text
+            ),
+            PhysAttr::CrystalOscillator {
+                parent, pin1, pin2, ..
+            } => format!(
+                "#[crystal_oscillator({}, {}, {})]",
+                parent.name, pin1.name, pin2.name
+            ),
+            PhysAttr::SwitchingConverter {
+                inductor,
+                input_capacitor,
+                output_capacitor,
+                ..
+            } => {
+                let mut t = format!("#[switching_converter(inductor: {}", inductor.name);
+                if let Some(c) = input_capacitor {
+                    t.push_str(&format!(", input_capacitor: {}", c.name));
+                }
+                if let Some(c) = output_capacitor {
+                    t.push_str(&format!(", output_capacitor: {}", c.name));
+                }
+                t.push_str(")]");
+                t
+            }
+            PhysAttr::BgaFanout { .. } => "#[bga_fanout]".to_string(),
+        }
+    }
+
+    /// RFC-027: physics attributes as single-line prefixes, in source order.
+    fn emit_phys_attrs(&mut self, phys: &[PhysAttr], indent: usize, stop_line: u32) {
+        for pa in phys {
+            let span = pa.span();
+            self.flush_leading(self.line_start(span), indent);
+            self.push(indent, Self::phys_attr_text(pa));
+            let end = self.line_end(span);
+            if end < stop_line {
+                self.attach_trailing(end);
+            }
+        }
+    }
+
     fn emit_string_attr(
         &mut self,
         name: &str,
@@ -739,10 +816,16 @@ impl Formatter<'_> {
                 for a in &s.attrs {
                     consider(&a.span);
                 }
+                for pa in &s.phys {
+                    consider(&pa.span());
+                }
             }
             Stmt::Net(s) => {
                 if let Some((_, sp)) = &s.intent {
                     consider(sp);
+                }
+                for pa in &s.phys {
+                    consider(&pa.span());
                 }
             }
             Stmt::Nc(s) => {
@@ -777,6 +860,10 @@ impl Formatter<'_> {
                 for attr in &s.attrs {
                     attrs.push((attr_text(attr), attr.span));
                 }
+                // RFC-027 physics attributes join the same source-ordered list.
+                for pa in &s.phys {
+                    attrs.push((Self::phys_attr_text(pa), pa.span()));
+                }
                 // Byte-offset order — several attributes on ONE source line
                 // keep their exact written order (line-sorting would fall back
                 // to category insertion order).
@@ -807,6 +894,7 @@ impl Formatter<'_> {
             }
             Stmt::Net(s) => {
                 self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
+                self.emit_phys_attrs(&s.phys, indent, self.line_start(s.span));
                 self.flush_leading(self.line_start(s.span), indent);
                 let name = s.name.as_ref().map_or("_".to_string(), |n| n.name.clone());
                 let ann = match &s.annotation {
@@ -919,9 +1007,32 @@ impl Formatter<'_> {
                     );
                 }
             }
-            LayoutConstraint::DiffPair { nets, .. } => {
+            LayoutConstraint::DiffPair {
+                nets,
+                differential_impedance,
+                single_ended_impedance,
+                frequency,
+                ..
+            } => {
                 let names: Vec<String> = nets.iter().map(|n| n.name.clone()).collect();
-                self.wrapped(indent, "diff_pair(", &names, ")");
+                // RFC-027: the optional physics bracket, fixed field order;
+                // an unannotated pair renders exactly as before.
+                let mut fields: Vec<String> = Vec::new();
+                if let Some(v) = differential_impedance {
+                    fields.push(format!("differential_impedance: {}", v.text));
+                }
+                if let Some(v) = single_ended_impedance {
+                    fields.push(format!("single_ended_impedance: {}", v.text));
+                }
+                if let Some(v) = frequency {
+                    fields.push(format!("frequency: {}", v.text));
+                }
+                let suffix = if fields.is_empty() {
+                    ")".to_string()
+                } else {
+                    format!(") [{}]", fields.join(", "))
+                };
+                self.wrapped(indent, "diff_pair(", &names, &suffix);
             }
             LayoutConstraint::LengthMatch {
                 nets, tolerance, ..

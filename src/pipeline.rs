@@ -253,6 +253,10 @@ pub struct BuildArtifacts {
     /// metadata (constraints or `#[placement_hint]`). Never affects the
     /// netlist/BOM bytes.
     pub layout: Option<String>,
+    /// RFC-027: the Quilter physics-constraint CSV set (file name, content),
+    /// present only when the design carries at least one physics attribute or
+    /// an annotated `diff_pair`. Never affects the netlist/BOM bytes.
+    pub quilter: Option<Vec<(String, String)>>,
     /// Informational notes for the build output (e.g. ambiguous part
     /// bindings resolved deterministically — provisional §2).
     pub notes: Vec<String>,
@@ -288,6 +292,7 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
         lock,
         layout: crate::emit::layout::emit_layout_json(ir),
+        quilter: crate::emit::quilter::emit_quilter_csvs(ir),
         notes,
     })
 }

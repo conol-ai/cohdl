@@ -372,6 +372,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: Some("out/x-layout.json".into()),
             ipc2581: Some("out/x.xml".into()),
+            quilter: None,
             kicad_mod: vec!["out/footprints/a.kicad_mod".into()],
         }),
     );
@@ -393,6 +394,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             layout: None,
             ipc2581: None,
             kicad_mod: Vec::new(),
+            quilter: None,
         }),
     );
     let parsed = parse_json(&without);
@@ -408,6 +410,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             layout: None,
             ipc2581: Some("out/x.xml".into()),
             kicad_mod: Vec::new(),
+            quilter: None,
         }),
     );
     let parsed = parse_json(&ipc_only);

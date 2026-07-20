@@ -50,6 +50,7 @@ design Pico2 {
 
     // ---- power in: USB VBUS -> Schottky -> VSYS -> RT6150 buck-boost -> 3V3 ----
     #[intent("micro-B VBUS is 5V; the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
+    #[high_current(500mA)]
     net VBUS [5V]: usb.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
     net VBUS_SENSE: r_vbus_top.B, r_vbus_bot.A, mcu.GPIO24
     net VSYS [5V]: d_vbus.Cathode, reg.VIN, r_en.A, r_vsys_top.A, hdr.VSYS
@@ -108,6 +109,7 @@ design Pico2 {
     net VREG_AVDD: r_vreg_avdd.B, mcu.VREG_AVDD, c_vreg_avdd.A
 
     // ---- ground (analog ground ties to the digital plane at the header) ----
+    #[ground(primary)]
     net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
                    swd.GND, boot.B, led.Cathode, hdr.GND, hdr.AGND, r_vbus_bot.B, r_ps.B,
                    r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B, c_adc.B, c_vreg_avdd.B

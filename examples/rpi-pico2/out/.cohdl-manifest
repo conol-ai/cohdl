@@ -1,4 +1,8 @@
 design.lock
+out/bga_components.csv
+out/bypass_capacitors.csv
+out/crystal_oscillators.csv
+out/differential_pairs.csv
 out/footprints/rpi_pico2-CHIP_0201.kicad_mod
 out/footprints/rpi_pico2-FP_Crystal_SMD_3225_4Pin_3_2x2_5mm.kicad_mod
 out/footprints/rpi_pico2-FP_D_SOD_123W.kicad_mod
@@ -14,7 +18,10 @@ out/footprints/rpi_pico2-SOT3P100X160X80N.kicad_mod
 out/footprints/std-CHIP_0402.kicad_mod
 out/footprints/std-CHIP_0603.kicad_mod
 out/footprints/std-FP_LED_0603_1608Metric.kicad_mod
+out/ground_nets.csv
+out/high_current_nets.csv
 out/rpi-pico2-bom.csv
 out/rpi-pico2-layout.json
 out/rpi-pico2.net
-out/rpi-pico2.xml
+out/single_ended_impedance_signals.csv
+out/switching_converters.csv

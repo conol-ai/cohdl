@@ -790,7 +790,16 @@ pub enum LayoutConstraint {
         span: Span,
     },
     /// `diff_pair(net_p, net_n)` — exactly two nets (checked: E1003).
-    DiffPair { nets: Vec<Ident>, span: Span },
+    /// RFC-027: an optional trailing `[differential_impedance: R,
+    /// single_ended_impedance: R, frequency: F]` bracket; omitting it
+    /// preserves RFC-013's original form exactly.
+    DiffPair {
+        nets: Vec<Ident>,
+        differential_impedance: Option<UnitValue>,
+        single_ended_impedance: Option<UnitValue>,
+        frequency: Option<UnitValue>,
+        span: Span,
+    },
     /// `length_match(net, net, …) [tolerance: "..."]` — two or more nets
     /// (checked: E1004). Tolerance is an opaque pass-through string (CoHDL has
     /// no length unit; the value is never enforced — RFC-013 Failure modes).
@@ -823,6 +832,8 @@ pub struct InstStmt {
     /// RFC-013 opaque `#[placement_hint("...")]` layout metadata — inst-only,
     /// zero-impact (rides into `layout.json`, never into `.net`/BOM/designators).
     pub placement_hint: Option<(String, Span)>,
+    /// RFC-027 inst-target physics attributes (at most one of each kind).
+    pub phys: Vec<PhysAttr>,
     pub name: Ident,
     /// RFC-024: `inst NAME: [Device; N]` — an array-typed instance of fixed
     /// length N. `None` is the ordinary single-instance form. When set, `NAME`
@@ -832,11 +843,97 @@ pub struct InstStmt {
     pub span: Span,
 }
 
+/// RFC-027: one structured Quilter physics-constraint attribute — the closed
+/// seven-name set riding the existing `#[name(...)]` bracket syntax. Unlike
+/// the opaque-string `Attr` shape (RFC-012), each carries its own real, parsed
+/// argument grammar. Which statement kind each variant may sit on is enforced
+/// at parse (net-only vs inst-only).
+#[derive(Debug, Clone)]
+pub enum PhysAttr {
+    /// `#[ground(primary | secondary [, region_pour])]` — net-only.
+    Ground {
+        primary: bool,
+        region_pour: bool,
+        span: Span,
+    },
+    /// `#[high_current(CURRENT [, power_pour])]` — net-only.
+    HighCurrent {
+        current: UnitValue,
+        power_pour: bool,
+        span: Span,
+    },
+    /// `#[impedance(RESISTANCE, frequency: FREQUENCY)]` — net-only.
+    Impedance {
+        impedance: UnitValue,
+        frequency: UnitValue,
+        span: Span,
+    },
+    /// `#[bypass(INST.PIN, CAPACITANCE)]` — on the capacitor's own inst.
+    Bypass {
+        inst: Ident,
+        pin: Ident,
+        capacitance: UnitValue,
+        span: Span,
+    },
+    /// `#[crystal_oscillator(PARENT, PIN_1, PIN_2)]` — on the crystal's inst.
+    CrystalOscillator {
+        parent: Ident,
+        pin1: Ident,
+        pin2: Ident,
+        span: Span,
+    },
+    /// `#[switching_converter(inductor: I [, input_capacitor: C]
+    /// [, output_capacitor: C])]` — on the converter's own inst.
+    SwitchingConverter {
+        inductor: Ident,
+        input_capacitor: Option<Ident>,
+        output_capacitor: Option<Ident>,
+        span: Span,
+    },
+    /// `#[bga_fanout]` — bare, on a BGA's own inst.
+    BgaFanout { span: Span },
+}
+
+impl PhysAttr {
+    pub fn span(&self) -> Span {
+        match self {
+            PhysAttr::Ground { span, .. }
+            | PhysAttr::HighCurrent { span, .. }
+            | PhysAttr::Impedance { span, .. }
+            | PhysAttr::Bypass { span, .. }
+            | PhysAttr::CrystalOscillator { span, .. }
+            | PhysAttr::SwitchingConverter { span, .. }
+            | PhysAttr::BgaFanout { span } => *span,
+        }
+    }
+    /// The attribute's name, for diagnostics and fmt.
+    pub fn name(&self) -> &'static str {
+        match self {
+            PhysAttr::Ground { .. } => "ground",
+            PhysAttr::HighCurrent { .. } => "high_current",
+            PhysAttr::Impedance { .. } => "impedance",
+            PhysAttr::Bypass { .. } => "bypass",
+            PhysAttr::CrystalOscillator { .. } => "crystal_oscillator",
+            PhysAttr::SwitchingConverter { .. } => "switching_converter",
+            PhysAttr::BgaFanout { .. } => "bga_fanout",
+        }
+    }
+    /// True for the net-target kinds (the rest are inst-target).
+    pub fn is_net_attr(&self) -> bool {
+        matches!(
+            self,
+            PhysAttr::Ground { .. } | PhysAttr::HighCurrent { .. } | PhysAttr::Impedance { .. }
+        )
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct NetStmt {
     /// `None` for the anonymous form `net _: …`.
     pub name: Option<Ident>,
     pub annotation: Option<NetAnnotation>,
+    /// RFC-027 net-target physics attributes (at most one of each kind).
+    pub phys: Vec<PhysAttr>,
     pub members: Vec<PinRef>,
     /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
     pub intent: Option<(String, Span)>,

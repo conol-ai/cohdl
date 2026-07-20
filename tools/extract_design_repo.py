@@ -38,6 +38,7 @@ PAGES = [
     ("n5yl5oeutwhtti65nr7zi671", "rfc-024-instance-arrays"),
     ("kc64axadqas5u7jr2ay6ef2t", "rfc-025-rotated-pad-placements"),
     ("yzxf6p1ou0el1ruz6ilq1wai", "rfc-026-back-side-placement"),
+    ("r57i101hxidan0eqhb6cp5q5", "rfc-027-quilter-physics-constraints"),
     ("a7zrlrt7a910k2x10ja6fdhd", "gc-002-amended-layout-door"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),

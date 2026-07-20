@@ -1,7 +1,10 @@
 {
   "schema_version": 1,
   "net_classes": [],
-  "diff_pairs": [],
+  "diff_pairs": [
+    { "p": "USBC_DP", "n": "USBC_DM" },
+    { "p": "USB_DP", "n": "USB_DM" }
+  ],
   "length_matches": [],
   "board_outline": { "source": "mechanical/openmicro-outline.dxf", "start": [-41.5, -47.5], "segments": [{ "type": "line", "to": [41.5, -47.5] }, { "type": "arc", "to": [47.5, -41.5], "center": [41.5, -41.5], "clockwise": false }, { "type": "line", "to": [47.5, 41.5] }, { "type": "arc", "to": [41.5, 47.5], "center": [41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-41.5, 47.5] }, { "type": "arc", "to": [-47.5, 41.5], "center": [-41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-47.5, -41.5] }, { "type": "arc", "to": [-41.5, -47.5], "center": [-41.5, -41.5], "clockwise": false }] },
   "placements": [

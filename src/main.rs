@@ -524,6 +524,19 @@ fn run(args: &Args) -> Result<bool, String> {
         written.push(layout_path.clone());
     }
 
+    // RFC-027: the Quilter physics-constraint CSV set, only when the design
+    // carries physics facts. Absent facts leave the files out of the new
+    // manifest, so the stale-file sweep removes them.
+    let mut quilter_paths: Vec<std::path::PathBuf> = Vec::new();
+    if let Some(csvs) = &artifacts.quilter {
+        for (name, content) in csvs {
+            let path = out_dir.join(name);
+            write_artifact(&path, content, &owned).map_err(|e| diags_then(&checked, e))?;
+            written.push(path.clone());
+            quilter_paths.push(path);
+        }
+    }
+
     // RFC-018: `.kicad_mod` projections for pad-bearing footprints.
     let mods = {
         let ir = checked.ir.as_ref().unwrap();
@@ -604,6 +617,12 @@ fn run(args: &Args) -> Result<bool, String> {
                 .map(|_| layout_path.display().to_string()),
             ipc2581: args.emit_ipc2581().then(|| ipc_path.display().to_string()),
             kicad_mod: mod_paths.clone(),
+            quilter: artifacts.quilter.as_ref().map(|_| {
+                quilter_paths
+                    .iter()
+                    .map(|p| p.display().to_string())
+                    .collect()
+            }),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
         return Ok(true);

@@ -10,6 +10,7 @@
 
 design Ccg6dfDualport {
     // ---- controller + two Type-C ports ----
+    #[bga_fanout]
     inst ctrl: TYPEC_CCG6DF
     inst usbc0: USB_C_HRO_TYPE_C_31_M_12
     inst usbc1: USB_C_HRO_TYPE_C_31_M_12
@@ -44,10 +45,13 @@ design Ccg6dfDualport {
 
     // ---- VBUS: shared 5V provider in -> per-port Rsense -> chip provider FET
     //      -> Type-C VBUS -> per-port consumer NFET -> system ----
+    #[high_current(6A)]
     net VBUS_IN: j1.VBUS_IN, r_sense0.A, r_sense1.A, ctrl.CSN_P0, ctrl.CSN_P1, c_in.A
     net VBUS_P0: r_sense0.B, ctrl.VBUS_P_P0, ctrl.CSP_P0, c_vbusp0.A
     net VBUS_P1: r_sense1.B, ctrl.VBUS_P_P1, ctrl.CSP_P1, c_vbusp1.A
+    #[high_current(3A)]
     net VBUS_C0: ctrl.VBUS_C_P0, usbc0.VBUS, q0.D, c_vbusc0.A
+    #[high_current(3A)]
     net VBUS_C1: ctrl.VBUS_C_P1, usbc1.VBUS, q1.D, c_vbusc1.A
     net VBUS_SYS0: q0.S, j1.VBUS_SYS0
     net VBUS_SYS1: q1.S, j1.VBUS_SYS1
@@ -60,6 +64,7 @@ design Ccg6dfDualport {
     net VDDD: ctrl.VDDD, ctrl.VDDIO, c_vddd.A, r_ec_scl.A, r_ec_sda.A, r_soc_scl.A, r_soc_sda.A,
               r_xres.A
     net VCCD: ctrl.VCCD, c_vccd.A
+    #[ground(primary)]
     net GND: ctrl.VSSD, usbc0.GND, usbc0.SHIELD, usbc1.GND, usbc1.SHIELD, j1.GND, c_in.B,
              c_vbusc0.B, c_vbusc1.B, c_vbusp0.B, c_vbusp1.B, c_vsys.B, c_v5v.B, c_vddd.B, c_vccd.B,
              c_cc10.B, c_cc20.B, c_cc11.B, c_cc21.B, c_xres.B
@@ -107,8 +112,10 @@ design Ccg6dfDualport {
     // ---- layout: controller centered, a Type-C port on each side, header below ----
     layout {
         net_class HighSpeed { DP0_C, DM0_C, DP1_C, DM1_C, DP0_SYS, DM0_SYS, DP1_SYS, DM1_SYS }
-        diff_pair(DP0_C, DM0_C)
-        diff_pair(DP1_C, DM1_C)
+        diff_pair(DP0_C,
+                  DM0_C) [differential_impedance: 90ohm, single_ended_impedance: 45ohm, frequency: 480MHz]
+        diff_pair(DP1_C,
+                  DM1_C) [differential_impedance: 90ohm, single_ended_impedance: 45ohm, frequency: 480MHz]
         board_outline: "mechanical/ccg6df-dualport-outline.dxf"
         place ctrl at (0mm, 2mm)
         place usbc0 at (-14mm, -18mm) rotate 180

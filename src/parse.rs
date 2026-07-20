@@ -168,7 +168,17 @@ impl<'a> Parser<'a> {
 
     fn item(&mut self) -> Option<Item> {
         let start = self.span();
-        let attrs = self.attrs();
+        let (attrs, phys) = self.attrs();
+        for pa in &phys {
+            self.diags.push(Diagnostic::error(
+                "E1009",
+                pa.span(),
+                format!(
+                    "`#[{}]` is only valid on a `net` or `inst` declaration inside a design",
+                    pa.name()
+                ),
+            ));
+        }
         // RFC-012: `#[intent("...")]` is opaque metadata valid on any
         // declaration; any other attribute (`#[designator]`) is inst-only.
         let (intent, rest) = self.take_intent(attrs);
@@ -1144,8 +1154,9 @@ impl<'a> Parser<'a> {
         (value, rest)
     }
 
-    fn attrs(&mut self) -> Vec<Attr> {
+    fn attrs(&mut self) -> (Vec<Attr>, Vec<PhysAttr>) {
         let mut attrs = Vec::new();
+        let mut phys = Vec::new();
         while self.at(&TokenKind::Hash) {
             let start = self.span();
             self.bump(); // #
@@ -1155,6 +1166,25 @@ impl<'a> Parser<'a> {
             let Some(name) = self.ident("as the attribute name") else {
                 break;
             };
+            // RFC-027: the seven physics-constraint attributes carry real,
+            // structured argument grammars — parsed here, never as opaque
+            // strings. They share only the bracket SYNTAX with generic attrs.
+            if matches!(
+                name.name.as_str(),
+                "ground"
+                    | "high_current"
+                    | "impedance"
+                    | "bypass"
+                    | "crystal_oscillator"
+                    | "switching_converter"
+                    | "bga_fanout"
+            ) {
+                if let Some(pa) = self.phys_attr(&name, start) {
+                    self.expect(&TokenKind::RBracket, "to close the attribute");
+                    phys.push(pa);
+                }
+                continue;
+            }
             let mut args = Vec::new();
             if self.eat(&TokenKind::LParen) {
                 loop {
@@ -1187,7 +1217,267 @@ impl<'a> Parser<'a> {
                 span: start.to(self.prev_span()),
             });
         }
-        attrs
+        (attrs, phys)
+    }
+
+    /// RFC-027: physics attributes are net/inst-only — reject elsewhere.
+    fn reject_phys(&mut self, phys: &[PhysAttr], what: &str) {
+        for pa in phys {
+            self.diags.push(Diagnostic::error(
+                "E1009",
+                pa.span(),
+                format!("`#[{}]` cannot be attached to {}", pa.name(), what),
+            ));
+        }
+    }
+
+    /// RFC-027: keep the phys attributes matching this statement kind
+    /// (`net_target` true = net declaration), rejecting wrong-target ones and
+    /// duplicates of the same kind ("at most one of each kind", like intent).
+    fn split_phys(&mut self, phys: Vec<PhysAttr>, net_target: bool) -> Vec<PhysAttr> {
+        let mut kept: Vec<PhysAttr> = Vec::new();
+        for pa in phys {
+            if pa.is_net_attr() != net_target {
+                self.diags.push(Diagnostic::error(
+                    "E1009",
+                    pa.span(),
+                    format!(
+                        "`#[{}]` belongs on {} declaration, not {} one",
+                        pa.name(),
+                        if pa.is_net_attr() {
+                            "a `net`"
+                        } else {
+                            "an `inst`"
+                        },
+                        if net_target { "a `net`" } else { "an `inst`" },
+                    ),
+                ));
+                continue;
+            }
+            if let Some(prev) = kept.iter().find(|k| k.name() == pa.name()) {
+                let d = Diagnostic::error(
+                    "E1009",
+                    pa.span(),
+                    format!("duplicate `#[{}]` on one declaration", pa.name()),
+                )
+                .with_secondary(prev.span(), "first written here".to_string());
+                self.diags.push(d);
+                continue;
+            }
+            kept.push(pa);
+        }
+        kept
+    }
+
+    /// RFC-027: one physics-constraint attribute's own argument grammar.
+    /// The caller has consumed `#[NAME`; this parses through the closing `)`
+    /// (the caller closes the `]`). Unit TYPES are checked here (E110 names
+    /// expected vs actual, RFC-001/011); reference EXISTENCE is expansion's
+    /// job (E1009), since the referenced instance may be declared later.
+    fn phys_attr(&mut self, name: &Ident, start: Span) -> Option<PhysAttr> {
+        use crate::units::UnitType;
+        let unit_arg = |p: &mut Self, expected: UnitType, what: &str| -> Option<UnitValue> {
+            let v = p.unit_literal(what)?;
+            if v.unit != expected {
+                p.diags.push(Diagnostic::error(
+                    "E110",
+                    name.span,
+                    format!(
+                        "`#[{}]` {} is a `{}` value — `{}` is a `{}`",
+                        name.name,
+                        what,
+                        expected.type_name(),
+                        v.text,
+                        v.unit.type_name()
+                    ),
+                ));
+                return None;
+            }
+            Some(v)
+        };
+        match name.name.as_str() {
+            "bga_fanout" => {
+                // Bare — no argument list at all.
+                if self.at(&TokenKind::LParen) {
+                    self.diags.push(Diagnostic::error(
+                        "E1009",
+                        name.span,
+                        "`#[bga_fanout]` takes no arguments".to_string(),
+                    ));
+                    return None;
+                }
+                Some(PhysAttr::BgaFanout {
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "ground" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let v = self.ident("as the ground kind (`primary` or `secondary`)")?;
+                let primary = match v.name.as_str() {
+                    "primary" => true,
+                    "secondary" => false,
+                    other => {
+                        self.diags.push(Diagnostic::error(
+                            "E1009",
+                            v.span,
+                            format!(
+                                "`{}` is not a ground kind — kinds are: primary, secondary",
+                                other
+                            ),
+                        ));
+                        return None;
+                    }
+                };
+                let mut region_pour = false;
+                if self.eat(&TokenKind::Comma) {
+                    let f = self.ident("as the flag (`region_pour`)")?;
+                    if f.name != "region_pour" {
+                        self.diags.push(Diagnostic::error(
+                            "E1009",
+                            f.span,
+                            format!(
+                                "`{}` is not a `#[ground]` flag — the only flag is `region_pour`",
+                                f.name
+                            ),
+                        ));
+                        return None;
+                    }
+                    region_pour = true;
+                }
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                Some(PhysAttr::Ground {
+                    primary,
+                    region_pour,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "high_current" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let current = unit_arg(self, UnitType::Current, "current")?;
+                let mut power_pour = false;
+                if self.eat(&TokenKind::Comma) {
+                    let f = self.ident("as the flag (`power_pour`)")?;
+                    if f.name != "power_pour" {
+                        self.diags.push(Diagnostic::error(
+                            "E1009",
+                            f.span,
+                            format!("`{}` is not a `#[high_current]` flag — the only flag is `power_pour`", f.name),
+                        ));
+                        return None;
+                    }
+                    power_pour = true;
+                }
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                Some(PhysAttr::HighCurrent {
+                    current,
+                    power_pour,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "impedance" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let impedance = unit_arg(self, UnitType::Resistance, "impedance")?;
+                self.expect(&TokenKind::Comma, "before `frequency:`");
+                let k = self.ident("as the named argument `frequency`")?;
+                if k.name != "frequency" {
+                    self.diags.push(Diagnostic::error(
+                        "E1009",
+                        k.span,
+                        format!(
+                            "`{}` is not an `#[impedance]` argument — expected `frequency:`",
+                            k.name
+                        ),
+                    ));
+                    return None;
+                }
+                self.expect(&TokenKind::Colon, "after `frequency`");
+                let frequency = unit_arg(self, UnitType::Frequency, "frequency")?;
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                Some(PhysAttr::Impedance {
+                    impedance,
+                    frequency,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "bypass" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let inst = self.ident("as the bypassed instance")?;
+                self.expect(&TokenKind::Dot, "between the instance and its pin");
+                let pin = self.ident("as the bypassed pin")?;
+                self.expect(&TokenKind::Comma, "before the capacitance");
+                let capacitance = unit_arg(self, UnitType::Capacitance, "capacitance")?;
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                Some(PhysAttr::Bypass {
+                    inst,
+                    pin,
+                    capacitance,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "crystal_oscillator" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let parent = self.ident("as the parent instance")?;
+                self.expect(&TokenKind::Comma, "between the arguments");
+                let pin1 = self.ident("as the first parent pin")?;
+                self.expect(&TokenKind::Comma, "between the arguments");
+                let pin2 = self.ident("as the second parent pin")?;
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                Some(PhysAttr::CrystalOscillator {
+                    parent,
+                    pin1,
+                    pin2,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            "switching_converter" => {
+                self.expect(&TokenKind::LParen, "to open the attribute arguments");
+                let mut inductor = None;
+                let mut input_capacitor = None;
+                let mut output_capacitor = None;
+                loop {
+                    let k = self.ident(
+                        "as a named argument (`inductor`, `input_capacitor`, `output_capacitor`)",
+                    )?;
+                    self.expect(&TokenKind::Colon, "after the argument name");
+                    let v = self.ident("as an instance name")?;
+                    match k.name.as_str() {
+                        "inductor" => inductor = Some(v),
+                        "input_capacitor" => input_capacitor = Some(v),
+                        "output_capacitor" => output_capacitor = Some(v),
+                        other => {
+                            self.diags.push(Diagnostic::error(
+                                "E1009",
+                                k.span,
+                                format!(
+                                    "`{}` is not a `#[switching_converter]` argument — arguments are: inductor, input_capacitor, output_capacitor",
+                                    other
+                                ),
+                            ));
+                            return None;
+                        }
+                    }
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
+                }
+                self.expect(&TokenKind::RParen, "to close the attribute arguments");
+                let Some(inductor) = inductor else {
+                    self.diags.push(Diagnostic::error(
+                        "E1009",
+                        name.span,
+                        "`#[switching_converter]` requires the `inductor:` argument".to_string(),
+                    ));
+                    return None;
+                };
+                Some(PhysAttr::SwitchingConverter {
+                    inductor,
+                    input_capacitor,
+                    output_capacitor,
+                    span: start.to(self.prev_span()),
+                })
+            }
+            _ => unreachable!("caller matched the closed name set"),
+        }
     }
 
     // -- traits --------------------------------------------------------------
@@ -2194,7 +2484,7 @@ impl<'a> Parser<'a> {
     }
 
     fn stmt(&mut self) -> Option<Stmt> {
-        let attrs = self.attrs();
+        let (attrs, phys) = self.attrs();
         // RFC-013: a `layout { … }` block is a statement that takes no
         // attributes. Detect it before attribute handling so `#[intent]` isn't
         // silently swallowed onto a target that can't carry it.
@@ -2202,6 +2492,7 @@ impl<'a> Parser<'a> {
             && self.peek_ahead(1) == &TokenKind::LBrace
         {
             self.reject_attrs(&attrs);
+            self.reject_phys(&phys, "a `layout {}` block");
             return self.layout_block();
         }
         // RFC-012: split off `#[intent("...")]` (valid on any statement); the
@@ -2211,6 +2502,9 @@ impl<'a> Parser<'a> {
             TokenKind::Inst => {
                 // RFC-013: `#[placement_hint(...)]` is inst-only opaque metadata.
                 let (placement_hint, attrs) = self.take_string_attr("placement_hint", attrs);
+                // RFC-027: inst-target physics attributes; net-target ones are
+                // rejected here, and at most one of each kind is allowed.
+                let phys = self.split_phys(phys, false);
                 // Attr validation happens HERE, at parse — an inst inside a
                 // never-expanded fn must not silently accept garbage
                 // (adversarial finding; expansion-time validation only runs
@@ -2264,6 +2558,7 @@ impl<'a> Parser<'a> {
                     attrs,
                     intent,
                     placement_hint,
+                    phys,
                     name,
                     array_len,
                     span: start.to(self.prev_span()),
@@ -2272,6 +2567,8 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Net => {
                 self.reject_attrs(&attrs);
+                // RFC-027: net-target physics attributes.
+                let phys = self.split_phys(phys, true);
                 let start = self.span();
                 self.bump();
                 let name_ident = self.ident("as the net name (or `_` for anonymous)")?;
@@ -2332,6 +2629,7 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::Colon, "after the net name");
                 let members = self.pin_ref_list();
                 Some(Stmt::Net(NetStmt {
+                    phys,
                     name,
                     annotation,
                     members,
@@ -2340,6 +2638,7 @@ impl<'a> Parser<'a> {
                 }))
             }
             TokenKind::Nc => {
+                self.reject_phys(&phys, "an `nc` statement");
                 self.reject_attrs(&attrs);
                 let start = self.span();
                 self.bump();
@@ -2404,6 +2703,7 @@ impl<'a> Parser<'a> {
                 None
             }
             TokenKind::Ident(_) => {
+                self.reject_phys(&phys, "a `fn` call");
                 self.reject_attrs(&attrs);
                 // The callee may be a qualified path; `::<` stays turbofish
                 // (path_ident's two-token lookahead never eats `::` + `<`).
@@ -2449,6 +2749,7 @@ impl<'a> Parser<'a> {
                     "expected a statement (`inst`, `net`, `nc`, or a fn call), found {}",
                     other.describe()
                 );
+                self.reject_phys(&phys, "this statement");
                 self.error_here(msg);
                 None
             }
@@ -2657,8 +2958,78 @@ impl<'a> Parser<'a> {
             TokenKind::Ident(n) if n == "diff_pair" => {
                 self.bump();
                 let nets = self.layout_net_args()?;
+                // RFC-027: optional `[differential_impedance: R,
+                // single_ended_impedance: R, frequency: F]` bracket — named
+                // fields, any order, each at most once; omitted bracket is
+                // RFC-013's original form exactly.
+                let mut differential_impedance = None;
+                let mut single_ended_impedance = None;
+                let mut frequency = None;
+                if self.eat(&TokenKind::LBracket) {
+                    use crate::units::UnitType;
+                    loop {
+                        let k = self.ident(
+                            "as a diff_pair field (`differential_impedance`, `single_ended_impedance`, `frequency`)",
+                        )?;
+                        self.expect(&TokenKind::Colon, "after the field name");
+                        let (slot, expected): (&mut Option<UnitValue>, UnitType) = match k
+                            .name
+                            .as_str()
+                        {
+                            "differential_impedance" => {
+                                (&mut differential_impedance, UnitType::Resistance)
+                            }
+                            "single_ended_impedance" => {
+                                (&mut single_ended_impedance, UnitType::Resistance)
+                            }
+                            "frequency" => (&mut frequency, UnitType::Frequency),
+                            other => {
+                                self.diags.push(Diagnostic::error(
+                                        "E1009",
+                                        k.span,
+                                        format!(
+                                            "`{}` is not a diff_pair field — fields are: differential_impedance, single_ended_impedance, frequency",
+                                            other
+                                        ),
+                                    ));
+                                return None;
+                            }
+                        };
+                        if slot.is_some() {
+                            self.diags.push(Diagnostic::error(
+                                "E1009",
+                                k.span,
+                                format!("duplicate diff_pair field `{}`", k.name),
+                            ));
+                            return None;
+                        }
+                        let v = self.unit_literal("as the field value")?;
+                        if v.unit != expected {
+                            self.diags.push(Diagnostic::error(
+                                "E110",
+                                k.span,
+                                format!(
+                                    "diff_pair `{}` is a `{}` value — `{}` is a `{}`",
+                                    k.name,
+                                    expected.type_name(),
+                                    v.text,
+                                    v.unit.type_name()
+                                ),
+                            ));
+                            return None;
+                        }
+                        *slot = Some(v);
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
+                    }
+                    self.expect(&TokenKind::RBracket, "to close the diff_pair fields");
+                }
                 Some(LayoutConstraint::DiffPair {
                     nets,
+                    differential_impedance,
+                    single_ended_impedance,
+                    frequency,
                     span: start.to(self.prev_span()),
                 })
             }

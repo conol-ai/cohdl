@@ -31,19 +31,27 @@ design OpenMicro {
     inst rcc1: R_5K1
     inst rcc2: R_5K1
     inst rboot: R_10K
+    #[crystal_oscillator(mcu, PF0, PF1)]
     inst xtal: XTAL_8M
+    #[bypass(mcu.PF0, 15pF)]
     inst c_x1: C_15p
+    #[bypass(mcu.PF1, 15pF)]
     inst c_x2: C_15p
+    #[bypass(ldo.VIN, 4.7uF)]
     inst c_bulk: C_4u7
+    #[bypass(mcu.VDDA, 1uF)]
     inst c_vdda: C_1u
 
     // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3; all 29 RGB LEDs run
     // off the 5V VBUS rail ----
+    #[high_current(500mA)]
     net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo.VIN, ldo.EN, c_bulk.A, key_leds[0..=12].VDD,
                    ambient_leds[0..=15].VDD
     #[intent("AP2112K enable tied to VIN — always on when USB is present")]
+    #[high_current(500mA)]
     net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
                      joy.Y_END_B, c_vdda.A
+    #[ground(primary)]
     net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, xtal.GND, c_x1.B,
                    c_x2.B, c_bulk.B, c_vdda.B, rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2,
                    enc.MNT, joy.X_END_A, joy.Y_END_A, joy.SW_B, rst.B, mh[0..=3].PAD,
@@ -183,6 +191,10 @@ design OpenMicro {
     // back-offset by their footprint courtyard centers so the stick/knob land on
     // the corner cells.
     layout {
+        diff_pair(USBC_DP,
+                  USBC_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
+        diff_pair(USB_DP,
+                  USB_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         board_outline: "mechanical/openmicro-outline.dxf"
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)

@@ -1,0 +1,5 @@
+capacitor,bypassed_component,bypassed_pin,capacitance
+C28,U3,5,0.015
+C29,U3,6,0.015
+C26,U2,1,4700
+C27,U3,9,1000

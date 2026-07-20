@@ -426,7 +426,7 @@ design SensorNode {
 Four closed constraint kinds:
 
 - net_class NAME { net, net, ... } — a named group of nets sharing a layout treatment. NAME must be declared before use.
-- diff_pair(net_p, net_n) — exactly two existing nets, declared as a differential pair.
+- diff_pair(net_p, net_n) [differential_impedance: IMPEDANCE, single_ended_impedance: IMPEDANCE, frequency: FREQ] — exactly two existing nets, declared as a differential pair. The trailing bracket is optional (added by RFC-027, see Quilter physics-constraint hints below) — IMPEDANCE values are Resistance-typed (RFC-001), FREQ is Frequency-typed. Omitting the bracket preserves the original, unannotated form's meaning exactly; every diff_pair(...) statement written before RFC-027 is unchanged.
 - length_match(net, net, ...) — two or more existing nets that must be length-matched, with an optional [tolerance: ...] bracket.
 - #[placement_hint("...")] — a single opaque string on an inst, same shape and zero-impact discipline as #[intent(...)] (RFC-012).
 
@@ -437,6 +437,59 @@ Rules:
 - Zero schematic-correctness impact, by construction: layout-constraint data is emitted as a separate artifact (layout.json/netlist addendum) — the type checker, residual DRC, designator allocator, and .net/BOM emitters never read it. Mutating any layout {} content can never change a design's verdict, RFC-001–011 diagnostics, designator assignment, or .net/BOM bytes.
 - CoHDL does not verify that a length_match tolerance is actually met, or that a diff_pair is physically routed as one — it has no geometry to check against. The data is purely passed through to whatever partner tool consumes it.
 - The four constraint kinds are explicitly provisional — per GC-002's disclosed design debt, expected to be revisited once a real partner layout-tool integration is scoped. A future reshaping is anticipated, not a stability violation of this RFC.
+
+# Quilter physics-constraint hints
+
+Accepted (redesigned same day) via RFC-027, see RFC-027: Quilter physics-constraint hints and CSV export + DR-033 revision. Revision note: the original acceptance added seven new bare layout {} statement keywords. Tony corrected this same day ("use attributes style syntax... do not add so many keywords") — this section reflects the revised design: every fact attaches directly to the net/inst declaration it's actually about, as a structured #[name(...)] attribute reusing the existing attribute-bracket syntax (RFC-005's #[designator(...)], RFC-012's #[intent(...)], RFC-013's #[placement_hint(...)]) — zero new keywords added to the lexer. Grounded in eight real CSV files Tony supplied, matching Quilter's own documented "Physics Constraints" mechanism (docs.quilter.ai/physics-constraints/*).
+
+```cohdl
+design SensorNode {
+    #[high_current(500mA)]
+    net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, u2.VIN
+
+    #[ground(primary)]
+    net GND: ldo.GND, mcu.GND, u2.GND
+
+    #[impedance(50ohm, frequency: 1GHz)]
+    net HDMI_CLK: mcu.HDMI_CLK, hdmi.CLK
+
+    #[bypass(mcu.VDD, 100nF)]
+    inst c1: MLCC<100nF, 16V>
+
+    #[crystal_oscillator(mcu, XTAL_IN, XTAL_OUT)]
+    inst y1: Crystal_8MHz
+
+    #[switching_converter(inductor: l1, input_capacitor: c_in, output_capacitor: c_out)]
+    inst u2: BuckConverter
+    inst l1: Inductor_2_2uH
+    inst c_in: MLCC<10uF, 16V>
+    inst c_out: MLCC<22uF, 16V>
+
+    #[bga_fanout]
+    inst mcu: MCU_BGA_256
+}
+```
+
+Seven structured attributes, each mapping 1:1 to a real, externally-documented Quilter constraint field schema:
+
+- #[ground(PRIMARY [, region_pour])] on a net — PRIMARY closed to {primary, secondary}; at most one primary ground net per design (checked). region_pour a bare optional flag, defaults absent (⇒ false).
+- #[high_current(CURRENT [, power_pour])] on a net — CURRENT a Current-typed value (RFC-001). power_pour a bare optional flag. Quilter's documented "Power Nets" constraint.
+- #[impedance(IMPEDANCE, frequency: FREQ)] on a net — IMPEDANCE a Resistance-typed value, FREQ a Frequency-typed value (both RFC-001).
+- #[bypass(INST.PIN, CAPACITANCE)] on the bypass capacitor's own inst declaration — INST.PIN an already-declared instance + pin (RFC-002); CAPACITANCE a Capacitance-typed value. The capacitor's own designator is read off the inst the attribute is attached to.
+- #[crystal_oscillator(PARENT_INST, PIN_1, PIN_2)] on the crystal's own inst declaration — PARENT_INST an already-declared instance; PIN_1/PIN_2 two of PARENT_INST's declared pins.
+- #[switching_converter(inductor: INST [, input_capacitor: INST] [, output_capacitor: INST])] on the converter's own inst declaration — inductor required; the two capacitor arguments each optional (per Quilter's own docs), all already-declared instances.
+- #[bga_fanout] on a BGA's own inst declaration — a bare attribute, no arguments; presence ⇒ generate_fanout: true.
+
+Rules:
+
+- These seven attributes are structurally distinct from the existing generic, opaque-string Attr (#[intent(...)]/#[placement_hint(...)]/#[designator(...)], all exactly-one-string-literal) — each carries its own real, closed argument grammar (unit-typed literals, bare flags, pin/instance references, named optional arguments), parsed and structurally checked, not opaque prose. They share the surface #[name(...)] bracket syntax with the existing attributes (no new bracket/lexer token) but are recognized as their own closed set of attribute names, each with its own fixed argument shape.
+- Every pin/instance reference argument must resolve to an already-declared instance/pin — unresolved is a compile error naming what wasn't found. At most one of each attribute kind per declaration (the same discipline #[intent(...)]/#[placement_hint(...)] already enforce).
+- diff_pair's extension (see Layout constraints above) is the one exception — that fact stays a layout{} statement, since it is inherently about a pair of nets, not attachable to one single declaration.
+- cohdl build emits eight new CSV artifacts (bga_components.csv, bypass_capacitors.csv, crystal_oscillators.csv, differential_pairs.csv, ground_nets.csv, high_current_nets.csv, single_ended_impedance_signals.csv, switching_converters.csv) — headers/column order matching Tony's real supplied files exactly, one row per net/inst carrying the corresponding attribute (an empty file with just the header row when a design declares none). cohdl build --json's build object gains one new key per CSV file (path), present only when emitted.
+- Not automatic constraint inference — Quilter's own docs describe most of these as auto-detected from naming/topology; CoHDL does not replicate this. Every constraint here is an explicit author-written attribute. An author who wants Quilter's own auto-detection to run can simply omit the corresponding attribute — Quilter's detection still operates on the plain netlist CoHDL already emits.
+- CoHDL performs no validation that a stated constraint (impedance, frequency, current) is physically achievable — that is Quilter's own downstream Physics Rule Check validation, consistent with every prior layout-adjacent RFC's discipline.
+- Zero schematic-correctness impact, by construction — none of these attributes are read by the type checker, residual DRC, designator allocator, or .net/BOM emitters.
+- Error codes stay in the existing E10xx family (layout constraints, RFC-013/020's home): unresolved pin/instance reference per attribute, invalid PRIMARY value, duplicate primary ground net, missing required argument (switching_converter's inductor), unit-type mismatch on any numeric argument, duplicate attribute of the same kind on one declaration — no new block.
 
 # Language Server (cohdl lsp)
 
@@ -788,6 +841,33 @@ Rules (both constructs):
 - Error codes stay in the existing E10xx family (E1006 gains real sub-cases: missing/malformed/non-closed outline entity, unparseable DXF; E1007 gains the rotation sub-case) — no new block, per RFC-011's "kind of mistake" organizing principle.
 - No general 2D geometry/CAD authoring syntax exists in .cohdl — this is a scoped reference-and-extraction mechanism, not a geometry-authoring one. No arbitrary-angle rotation, rotation math, or collision/interference checking — all explicitly out of scope, consistent with DR-003's "layout/routing stays a partner concern" boundary.
 
+## Component placement on the board's back side
+
+Accepted via RFC-026, see RFC-026: Component placement on the board's back side + DR-032. Closes a real gap in the placement mechanism above: every place statement was implicitly, unconditionally top-side, with no way to express a real, universal PCB fact — dual-sided boards routinely place components (bulk decoupling caps, secondary connectors, backside shield tabs) on the bottom.
+
+```cohdl
+design DualSidedBoard {
+    inst mcu: MCU_ESP32S3
+    inst bulk_cap: MLCC<10uF, 16V>
+    inst rf_shield_tab: RF_Shield_Contact
+
+    layout {
+        place mcu at (0mm, 0mm)
+        place bulk_cap at (5mm, 5mm) side bottom
+        place rf_shield_tab at (12mm, -3mm) side bottom rotate 180
+    }
+}
+```
+
+- place at (x, y) [rotate ANGLE] [side SIDE] — side is a new, optional clause on the existing place statement. SIDE is closed to {top, bottom}. Omitted side defaults to top — every existing place ... at (x, y) [rotate ANGLE] statement, written before this RFC, is unchanged in meaning.
+- side and rotate are fully independent, composable clauses — either, both, or neither may appear. rotate's closed {0, 90, 180, 270} set is unchanged and applies identically regardless of side — a component rotated 90° on the bottom is rotated within its own (mirrored) bottom-side frame, the same convention every mainstream PCB tool already uses.
+- The referenced instance's footprint (RFC-018) is authored exactly once, for its natural orientation — side bottom never requires, or permits, a second, separately-authored mirrored footprint declaration. Mirroring is a placement-time, emitter-level transform applied to the one real footprint declaration, never a second copy an author maintains by hand.
+- Kept deliberately, fully independent from RFC-018's pad.layer (top_copper/bottom_copper/through_all) — that answers a narrower, different question (which single copper layer one pad occupies within an otherwise-fixed footprint), not "which side of the board is this whole component on." The two mechanisms are never merged or confused.
+- cohdl build's KiCad .kicad_pcb emitter emits (layer B.Cu) (instead of the default F.Cu) on a side: bottom instance's placed footprint, and mirrors every one of the footprint's own pad coordinates (X-axis reflection, the real KiCad-native convention) before emission. The IPC-2581 emitter carries side via its own existing per-component side/layer attribute — no new IPC-2581 concept.
+- side's closed-set membership is checked at declaration, identical in shape to rotate's existing check. No other new semantic check is introduced; side's value has no bearing on any existing check (pin obligations, trait satisfaction, designator allocation, footprint pad-count consistency).
+- Not board-level layer stackup (how many copper layers a board has, their order) — that remains named future work per RFC-015's own disclosed gap. This RFC only concerns which of the two outer sides a component sits on.
+- Error codes stay in the existing E10xx family (layout constraints, RFC-013/020's home for placement-related diagnostics): invalid side value on a placement — no new block.
+
 # Not yet specified
 
 The following constructs are referenced conversationally (in the Conceptual Model, note 2, or in v1-legacy context) but have no Accepted RFC yet, and therefore no entry above. Do not assume any specific syntax for these until an RFC lands:
@@ -803,4 +883,4 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Multi-dimensional array-typed instances (e.g. sw[row][col]) — explicitly deferred per RFC-024's own direct decision; no concrete need has been shown (OpenMicro's own keyboard matrix is expressed via ROW/COL nets, not a 2D instance grid).
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-19, RFC-001 through RFC-025 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds array-typed instances (inst NAME: [Device; N]) with real, indexed instance references (NAME[i]) valid everywhere an ordinary instance reference already is — net members, place, decouple, fn-call arguments — redesigned same day from an initial name-expansion-sugar draft per Tony's direct correction, grounded in the real OpenMicro macropad's 42-instance repetition and its real WS2812 daisy-chain wiring/per-LED placement needs, explicitly not introducing a loop construct or auto-generating daisy-chain/grid-place data; RFC-025 adds an optional rotate clause to pad placements inside footprint, reusing RFC-020's exact closed {0, 90, 180, 270} rotation set and keyword by direct precedent, grounded in a real KiCad QFN footprint's per-side-rotated-pad pattern, deliberately not adopting the KiCad-library convention of silently swapping pad width/height instead).
+As of 2026-07-20, RFC-001 through RFC-027 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds array-typed instances (inst NAME: [Device; N]) with real, indexed instance references (NAME[i]) valid everywhere an ordinary instance reference already is — net members, place, decouple, fn-call arguments — redesigned same day from an initial name-expansion-sugar draft per Tony's direct correction, grounded in the real OpenMicro macropad's 42-instance repetition and its real WS2812 daisy-chain wiring/per-LED placement needs, explicitly not introducing a loop construct or auto-generating daisy-chain/grid-place data; RFC-025 adds an optional rotate clause to pad placements inside footprint, reusing RFC-020's exact closed {0, 90, 180, 270} rotation set and keyword by direct precedent, grounded in a real KiCad QFN footprint's per-side-rotated-pad pattern, deliberately not adopting the KiCad-library convention of silently swapping pad width/height instead; RFC-026 adds an optional side clause to place, closed to {top, bottom}, defaulting to top, fully independent of and composable with rotate, grounded in the real KiCad .kicad_pcb per-component layer/mirroring mechanism, deliberately kept distinct from RFC-018's unrelated pad.layer concept; RFC-027 adds seven structured Quilter physics-constraint attributes (#[ground(...)], #[high_current(...)], #[impedance(...)], #[bypass(...)], #[crystal_oscillator(...)], #[switching_converter(...)], #[bga_fanout]) attached directly to the net/inst declaration each fact describes, reusing the existing #[name(...)] attribute-bracket syntax, redesigned same day from an initial seven-new-bare-keyword draft per Tony's direct correction, plus an additive optional bracket on diff_pair (RFC-013) for Quilter's three extra numeric fields; grounded in eight real CSV files Tony supplied matching Quilter's own documented Physics Constraints schema, explicitly not auto-inferring any constraint).

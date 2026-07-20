@@ -12,6 +12,7 @@
 
 design Tida00021Phase {
     // ---- controller + phase-1 power stage ----
+    #[switching_converter(inductor: l1, input_capacitor: c_in1, output_capacitor: c_out1)]
     inst ctrl: CTRL_TPS59650
     inst q1: FET_NEXFET // high-side
     inst q2: FET_NEXFET // low-side
@@ -48,6 +49,7 @@ design Tida00021Phase {
     net V5: j1.V5, ctrl.V5, c_v5.A
     net V3R3: j1.V3R3, ctrl.V3R3, c_v3r3.A, r_cpgood.A, r_alert.A, r_vrhot.A
     net V5DRV: j1.V5DRV, ctrl.V5DRV, c_v5drv.A
+    #[ground(primary)]
     net GND: j1.GND, ctrl.PGND, ctrl.EP, ctrl.CGFB, q2.S, c_v5.B, c_v3r3.B, c_v5drv.B, c_vref.B,
              c_ccomp.B, c_in1.B, c_in2.B, c_out1.B, c_out2.B, r_cocp.B, r_cfimax.B, r_slew.B
 
@@ -56,6 +58,7 @@ design Tida00021Phase {
     net SW1: ctrl.CSW1, q1.S, q2.D, l1.A, c_bst.B, r_sns.A
     net BST1: ctrl.CBST1, c_bst.A
     net LSG: ctrl.CDL1, q2.G
+    #[high_current(10A)]
     net VCORE: l1.B, j1.VCORE, c_out1.A, c_out2.A, ctrl.CVFB, ctrl.CCSN1, c_sns.B
     // inductor-DCR current sense (CCSP1 across R_sns/C_sns, CCSN1 at Vout)
     net SNS: ctrl.CCSP1, r_sns.B, c_sns.A

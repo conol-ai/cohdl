@@ -838,9 +838,46 @@ Option 1 (footprint-level side) was rejected: a footprint's own declaration desc
 
 If a real need for board-level layer stackup (inner layers, not just the two outer sides) emerges — that remains RFC-015's own separately-named, still-open future work, not something this RFC's two-value {top, bottom} set should be stretched to cover. Also revisit if a genuine need for per-pad side overrides distinct from a whole-component flip emerges from real usage — that would be a scoped extension to pad.layer, not to this RFC's side clause.
 
+# DR-033: Quilter physics-constraint hints — seven new layout kinds + diff_pair extension, mapped 1:1 to real Quilter schema, no auto-inference
+
+## Context
+
+Tony supplied eight real CSV files matching Quilter's own documented "Physics Constraints" mechanism (docs.quilter.ai/physics-constraints/*): power/high-current nets, single-ended impedance, differential pairs, bypass capacitors, crystal oscillators, switching converters, plus ground nets and BGA fanout (the latter two confirmed via real CSV schema, with less/no external documentation). This is the real partner-integration trigger RFC-013's own Decision text explicitly flagged ("provisional... expected to be revisited once a real partner layout-tool integration is scoped"). Confirmed against real source (src/ast.rs): LayoutBlock.constraints: Vec (RFC-013) is exactly the right extension point — four closed kinds today (net_class, diff_pair, length_match, #[placement_hint(...)]). One of the eight CSVs (differential_pairs) is not a new fact — it is RFC-013's existing diff_pair, but Quilter's real form carries three additional numeric fields RFC-013's version lacks.
+
+## Options
+
+1. A single generic "proximity group"/"component relationship" construct covering bypass capacitors, crystal oscillators, and switching converters at once, with optional/variadic fields.
+2. Seven new, small, purpose-built LayoutConstraint kinds (ground_net, high_current_net, single_ended_impedance_signal, bypass_capacitor, crystal_oscillator, switching_converter, bga_component) as bare new layout {} statement keywords, each mapping 1:1 to Quilter's own documented field schema, plus an additive optional bracket extending the existing diff_pair with its three missing numeric fields. This RFC's own first-drafted proposal.
+3. Auto-infer these constraints from the netlist/naming conventions, mirroring Quilter's own auto-detection.
+4. A separate, new differential-pair-with-impedance construct, leaving RFC-013's diff_pair unchanged/duplicated.
+5. One flat CSV with a kind column instead of eight separate per-kind files.
+6. Same seven facts as Option 2, but expressed as structured #[name(...)] attributes attached directly to the net/inst declaration each fact is about — reusing the existing attribute-bracket syntax (RFC-005/012/013's precedent), zero new bare keywords — with diff_pair staying a layout{} statement (since it is inherently about a net pair, not one declaration) and gaining the same additive bracket as Option 2. This RFC's own first-corrected proposal, per Tony's direct correction.
+
+## Decision
+
+Option 6, per Tony's direct correction of this RFC's own first draft (Option 2). Seven new structured attributes (#[ground(...)], #[high_current(...)], #[impedance(...)], #[bypass(...)], #[crystal_oscillator(...)], #[switching_converter(...)], #[bga_fanout]) attach directly to the net/inst declaration each fact describes, each a direct transliteration of Quilter's own documented constraint fields. diff_pair (RFC-013) gains an optional trailing bracket ([differential_impedance, single_ended_impedance, frequency]) — omitting it preserves the original, unannotated form exactly. cohdl build emits one CSV per kind, headers/column order matching the real supplied files exactly. Every constraint is an explicit author-written attribute — no auto-inference.
+
+## Rationale
+
+Option 2 (bare new statement keywords) was this RFC's own first draft, rejected same day per Tony's direct correction: seven new reserved words is real, permanent grammar growth for facts that are each naturally a property of one already-existing declaration (a specific net or instance), not a free-standing relationship needing its own statement — and it forced an awkward redundant cross-reference-by-name from inside layout{} back to the inst/net the fact was really about. Option 1 (generic proximity-group construct) was rejected: bypass capacitors (one target pin + one value), crystal oscillators (two target pins + no value), and switching converters (three related components + no pins/value) have genuinely different real arities — forcing one shape to cover all three would need optional/variadic fields whose validity depends on which "kind" was chosen, exactly the ambiguous, convention-dependent shape this project's discipline (RFC-008, RFC-017) has consistently rejected. Option 3 (auto-inference) was rejected: silent inference is exactly the class of risk this project avoids everywhere (RFC-008, RFC-016) — an author should always see, in source, exactly which facts CoHDL asserts to a downstream tool; an author wanting Quilter's own auto-detection can simply omit the CoHDL attribute, since Quilter's detection runs independently on the plain netlist CoHDL already emits. Option 4 (separate differential-pair-with-impedance construct) was rejected: one net pair is one differential pair — a second, parallel construct for the same relationship is exactly the "two ways to identify the same thing" duplication this project rejects elsewhere (RFC-021's rejected separate ipc_name field). Option 5 (one flat polymorphic CSV) was rejected: each Quilter constraint kind has a genuinely different, fixed column schema — a single file with sparse/optional columns per row would be strictly harder to validate and would diverge from the real file set Tony supplied. Option 6 was chosen: it reuses CoHDL's own existing attribute-bracket precedent (RFC-005's #[designator(...)], RFC-012's #[intent(...)], RFC-013's #[placement_hint(...)]) rather than inventing a new syntactic category, attaches each fact directly to its real subject (removing the redundant cross-reference Option 2 required), and adds zero new keywords to the lexer — the correction Tony directed.
+
+## Consequences
+
+- No new core concept, and — after the correction — no new bare keywords at all: every fact is a structured attribute reusing the existing #[name(...)] bracket, recognized by attribute name rather than by a dedicated statement-introducer token. Coherence Matrix's Grammar row moves from Med (the withdrawn draft's honest self-assessment) to Low, reflecting this real reduction in grammar-surface cost.
+- A genuinely new attribute-argument grammar is introduced: unlike the existing opaque-string-only Attr shape (#[intent("...")], #[placement_hint("...")], #[designator("Xxx")]), these seven attributes carry real, structured, checked arguments (unit-typed literals, pin/instance references, named optional arguments) — a deliberate, disclosed departure from "attributes are always one opaque string," justified because these facts have real checkable structure RFC-001/002's existing type system can and should validate.
+- Real, disclosed trade-off accepted deliberately: CoHDL does not replicate Quilter's own auto-detection convenience — every constraint requires explicit authoring work. Chosen for consistency with this project's "never silently infer a checkable fact" discipline.
+- Real new emitter work: eight new CSV artifacts at cohdl build, each a direct, lossless re-projection of already-validated attribute data.
+- diff_pair's extension is purely additive — every existing unannotated diff_pair(net_p, net_n) statement is unchanged in meaning and in every emitted byte.
+- Zero schematic-correctness impact, by construction, identical to every prior layout-constraint RFC (013/020/025/026).
+- bga_fanout's scope is deliberately minimal (a single bare flag) — the only field confirmed by the real supplied CSV.
+
+## Revisit when
+
+If real usage reveals Quilter's bga_component constraint has real fields beyond the bare fanout flag not yet documented publicly — extend via a scoped follow-up RFC once that schema is confirmed. Also revisit if Quilter's own documented field sets for any of these seven kinds change or grow. Also revisit if real usage reveals the new structured-attribute-argument grammar (distinct from the existing opaque-string Attr shape) creates real parser/tooling friction — that would be a scoped follow-up on the attribute-argument mechanism itself, not a reason to revert to bare statement keywords.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-026 is fully recorded above.)
+(none — the backlog through RFC-027 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

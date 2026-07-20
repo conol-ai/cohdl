@@ -36,6 +36,67 @@ pub struct LayoutIr {
     /// Locked component placements (`place <inst> at (x, y)`), resolved to IR
     /// instance paths. A placement tool treats these as pre-placed.
     pub placements: Vec<LayoutPlacement>,
+    /// RFC-027 Quilter physics-constraint facts, validated at expansion.
+    pub grounds: Vec<QuilterGround>,
+    pub high_currents: Vec<QuilterHighCurrent>,
+    pub impedances: Vec<QuilterImpedance>,
+    pub bypasses: Vec<QuilterBypass>,
+    pub crystals: Vec<QuilterCrystal>,
+    pub converters: Vec<QuilterConverter>,
+    /// Instance paths of `#[bga_fanout]` components.
+    pub bga_fanouts: Vec<String>,
+}
+
+/// RFC-027 `#[ground(...)]` — one net's ground classification.
+#[derive(Debug, Clone)]
+pub struct QuilterGround {
+    pub net: String,
+    pub primary: bool,
+    pub region_pour: bool,
+}
+
+/// RFC-027 `#[high_current(...)]`.
+#[derive(Debug, Clone)]
+pub struct QuilterHighCurrent {
+    pub net: String,
+    pub current: UnitValue,
+    pub power_pour: bool,
+}
+
+/// RFC-027 `#[impedance(...)]`.
+#[derive(Debug, Clone)]
+pub struct QuilterImpedance {
+    pub net: String,
+    pub impedance: UnitValue,
+    pub frequency: UnitValue,
+}
+
+/// RFC-027 `#[bypass(...)]` — the capacitor's path, its target, and the
+/// target pin's PAD numbers (a multi-pad pin flattens to one CSV row per pad).
+#[derive(Debug, Clone)]
+pub struct QuilterBypass {
+    pub cap_path: String,
+    pub target_path: String,
+    pub pads: Vec<String>,
+    pub capacitance: UnitValue,
+}
+
+/// RFC-027 `#[crystal_oscillator(...)]` — pad numbers of the two parent pins.
+#[derive(Debug, Clone)]
+pub struct QuilterCrystal {
+    pub crystal_path: String,
+    pub parent_path: String,
+    pub pad1: String,
+    pub pad2: String,
+}
+
+/// RFC-027 `#[switching_converter(...)]`.
+#[derive(Debug, Clone)]
+pub struct QuilterConverter {
+    pub conv_path: String,
+    pub inductor_path: String,
+    pub input_cap_path: Option<String>,
+    pub output_cap_path: Option<String>,
 }
 
 impl LayoutIr {
@@ -82,6 +143,11 @@ pub struct LayoutDiffPair {
     /// (positive, negative) — pair order is significant, preserved as written.
     pub p: String,
     pub n: String,
+    /// RFC-027: the optional physics bracket's fields (None = unannotated,
+    /// RFC-013's original form).
+    pub differential_impedance: Option<UnitValue>,
+    pub single_ended_impedance: Option<UnitValue>,
+    pub frequency: Option<UnitValue>,
 }
 
 #[derive(Debug)]

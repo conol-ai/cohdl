@@ -10,6 +10,7 @@ pub mod json;
 pub mod kicad;
 pub mod kicad_mod;
 pub mod layout;
+pub mod quilter;
 
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;

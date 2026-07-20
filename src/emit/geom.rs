@@ -93,6 +93,13 @@ pub fn corner_hi_y(center: &UnitValue, size: &UnitValue) -> String {
 }
 
 /// Render `n / 10^scale` as a minimal decimal string.
+/// RFC-027: a femto-unit value rendered at an arbitrary decimal scale — the
+/// Quilter CSVs carry mA (scale 12), nF (6), ohm (15), and GHz (24). Same
+/// canonical trailing-zero-trimmed rendering as every geometry emitter.
+pub fn scaled(femto: i128, scale: u32) -> String {
+    render(femto, scale)
+}
+
 fn render(n: i128, scale: u32) -> String {
     let neg = n < 0;
     let n = n.unsigned_abs();

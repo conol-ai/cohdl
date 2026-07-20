@@ -33,6 +33,9 @@ pub struct BuildArtifacts {
     /// RFC-018 `.kicad_mod` projections, present only when the design uses
     /// pad-bearing footprints (one path per projected footprint).
     pub kicad_mod: Vec<String>,
+    /// RFC-027 Quilter physics-constraint CSV paths, present only when the
+    /// design carries physics facts (the same only-when-emitted pattern).
+    pub quilter: Option<Vec<String>>,
 }
 
 /// A span resolved to the JSON schema's location shape (1-based line/col).
@@ -141,8 +144,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
             entries.push(("ipc2581", path));
         }
         let has_mods = !b.kicad_mod.is_empty();
+        let has_quilter = b.quilter.is_some();
         for (i, (key, path)) in entries.iter().enumerate() {
-            let comma = if i + 1 < entries.len() || has_mods {
+            let comma = if i + 1 < entries.len() || has_mods || has_quilter {
                 ","
             } else {
                 ""
@@ -153,6 +157,19 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
             out.push_str("    \"kicad_mod\": [\n");
             for (i, p) in b.kicad_mod.iter().enumerate() {
                 let comma = if i + 1 < b.kicad_mod.len() { "," } else { "" };
+                let _ = writeln!(out, "      {}{}", json_str(p), comma);
+            }
+            if has_quilter {
+                out.push_str("    ],\n");
+            } else {
+                out.push_str("    ]\n");
+            }
+        }
+        // RFC-027: the Quilter CSV set, only when emitted.
+        if let Some(csvs) = &b.quilter {
+            out.push_str("    \"quilter\": [\n");
+            for (i, p) in csvs.iter().enumerate() {
+                let comma = if i + 1 < csvs.len() { "," } else { "" };
                 let _ = writeln!(out, "      {}{}", json_str(p), comma);
             }
             out.push_str("    ]\n");

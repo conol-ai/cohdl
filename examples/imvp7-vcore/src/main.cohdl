@@ -13,6 +13,7 @@
 
 design Imvp7Vcore {
     // ---- controller + external GPU-phase driver ----
+    #[switching_converter(inductor: l_c1, input_capacitor: c_in1, output_capacitor: c_cpu)]
     inst ctrl: CTRL_TPS59650
     inst drv: DRV_TPS51601A
 
@@ -76,6 +77,7 @@ design Imvp7Vcore {
     net V3R3: j1.V3R3, ctrl.V3R3, c_v3r3.A, rt_cpu.A, rt_gpu.A, r_cpgood.A, r_alert.A, r_vrhot.A,
               r_gpgood.A
     net V5DRV: j1.V5DRV, ctrl.V5DRV, c_v5drv.A
+    #[ground(primary)]
     net GND: j1.GND, ctrl.PGND, ctrl.EP, ctrl.CGFB, ctrl.GGFB, drv.GND, drv.EP, q1l.S, q2l.S, q3l.S,
              c_v5.B, c_v3r3.B, c_v5drv.B, c_drvvdd.B, c_vref.B, c_ccomp.B, c_gcomp.B, c_in1.B,
              c_in2.B, c_cpu.B, c_gpu.B, r_cocp.B, r_cfimax.B, r_gocp.B, r_gfimax.B, r_slew.B,
@@ -94,6 +96,7 @@ design Imvp7Vcore {
     net CBST2: ctrl.CBST2, c_bst2.A
     net CSNS2: ctrl.CCSP2, r_sns2.B, c_sns2.A
     // CPU Vcore output (both phases) + D-CAP+ remote/current sense
+    #[high_current(20A)]
     net VCC_CPU: l_c1.B, l_c2.B, j1.VCC_CPU, c_cpu.A, ctrl.CVFB, ctrl.CCSN1, ctrl.CCSN2, c_sns1.B,
                  c_sns2.B
 

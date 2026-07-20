@@ -8,6 +8,7 @@
   "length_matches": [],
   "board_outline": { "source": "mechanical/openmicro-outline.dxf", "start": [-41.5, -47.5], "segments": [{ "type": "line", "to": [41.5, -47.5] }, { "type": "arc", "to": [47.5, -41.5], "center": [41.5, -41.5], "clockwise": false }, { "type": "line", "to": [47.5, 41.5] }, { "type": "arc", "to": [41.5, 47.5], "center": [41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-41.5, 47.5] }, { "type": "arc", "to": [-47.5, 41.5], "center": [-41.5, 41.5], "clockwise": false }, { "type": "line", "to": [-47.5, -41.5] }, { "type": "arc", "to": [-41.5, -47.5], "center": [-41.5, -41.5], "clockwise": false }] },
   "placements": [
+    { "instance": "OpenMicro::mcu", "at": [40.5, 0], "rotate": 90, "side": "bottom" },
     { "instance": "OpenMicro::enc", "at": [-35.575, -31.075], "rotate": 0 },
     { "instance": "OpenMicro::sw_0", "at": [-9.525, -28.575], "rotate": 0 },
     { "instance": "OpenMicro::sw_1", "at": [9.525, -28.575], "rotate": 0 },

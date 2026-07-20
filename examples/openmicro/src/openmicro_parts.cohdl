@@ -49,47 +49,47 @@ pub device STM32F072CBT6 {
         required VBAT: 1 [power_in]
         required VDDIO2: 36 [power_in] // powers PA8-PA15 (USB + SWD)
         required NRST: 7 [input]
+        // HSE crystal (fixed oscillator pins)
+        required PF0: 5 [bidirectional] // OSC_IN
+        required PF1: 6 [bidirectional] // OSC_OUT
         required BOOT0: 44 [input]
-        // USB FS + SWD (VDDIO2 domain)
+        // USB FS + SWD (VDDIO2 domain) — fixed peripheral pins
         required USB_DM: 32 [bidirectional] // PA11
         required USB_DP: 33 [bidirectional] // PA12
         required SWDIO: 34 [bidirectional] // PA13
         required SWCLK: 37 [input] // PA14
-        // keyboard matrix — 4 rows drive, 4 cols read
-        required ROW0: 18 [bidirectional] // PB0
-        required ROW1: 19 [bidirectional] // PB1
-        required ROW2: 20 [bidirectional] // PB2
-        required ROW3: 21 [bidirectional] // PB10
-        required COL0: 25 [bidirectional] // PB12
-        required COL1: 26 [bidirectional] // PB13
-        required COL2: 27 [bidirectional] // PB14
-        required COL3: 28 [bidirectional] // PB15
+        // keyboard matrix — position-aware GPIO (RFC-024 physical row/col groups)
+        required ROW0: 27 [bidirectional] // PB14
+        required ROW1: 17 [bidirectional] // PA7
+        required ROW2: 13 [bidirectional] // PA3
+        required ROW3: 11 [bidirectional] // PA1
+        required COL0: 14 [bidirectional] // PA4
+        required COL1: 15 [bidirectional] // PA5
+        required COL2: 16 [bidirectional] // PA6
+        required COL3: 10 [bidirectional] // PA0
         // rotary encoder + push
-        required ENC_A: 29 [bidirectional] // PA8
-        required ENC_B: 30 [bidirectional] // PA9
-        required ENC_SW: 31 [bidirectional] // PA10
+        required ENC_A: 22 [bidirectional] // PB11
+        required ENC_B: 21 [bidirectional] // PB10
+        required ENC_SW: 20 [bidirectional] // PB2
         // analog joystick (ADC) + push, and cap-touch
-        required JOY_X: 10 [input] // PA0 / ADC_IN0
-        required JOY_Y: 11 [input] // PA1 / ADC_IN1
-        required JOY_SW: 12 [bidirectional] // PA2
-        required TOUCH: 13 [bidirectional] // PA3 / TSC
-        // addressable-RGB data out — two independent WS2812 chains (per-key
-        // backlight + perimeter underglow), mirroring the Work Louder firmware
-        required LED_DATA_KEY: 41 [output] // PB5 — per-key RGB chain
-        required LED_DATA_UG: 40 [output] // PB4 — perimeter underglow chain
+        required JOY_X: 19 [input] // PB1 / ADC_IN9
+        required JOY_Y: 18 [input] // PB0 / ADC_IN8
+        required JOY_SW: 28 [bidirectional] // PB15
+        required TOUCH: 12 [bidirectional] // PA2 / TSC G1_IO3
+        // addressable-RGB data out — two independent WS2812 chains
+        required LED_DATA_KEY: 25 [output] // PB12 — per-key RGB chain
+        required LED_DATA_UG: 26 [output] // PB13 — perimeter underglow chain
         // unused GPIO (declared to cover all 48 pads; left NC)
         optional PC13: 2 [bidirectional]
         optional PC14: 3 [bidirectional]
         optional PC15: 4 [bidirectional]
-        optional PF0: 5 [bidirectional]
-        optional PF1: 6 [bidirectional]
-        optional PA4: 14 [bidirectional]
-        optional PA5: 15 [bidirectional]
-        optional PA6: 16 [bidirectional]
-        optional PA7: 17 [bidirectional]
-        optional PB11: 22 [bidirectional]
+        optional PA8: 29 [bidirectional]
+        optional PA9: 30 [bidirectional]
+        optional PA10: 31 [bidirectional]
         optional PA15: 38 [bidirectional]
         optional PB3: 39 [bidirectional]
+        optional PB4: 40 [bidirectional]
+        optional PB5: 41 [bidirectional]
         optional PB6: 42 [bidirectional]
         optional PB7: 43 [bidirectional]
         optional PB8: 45 [bidirectional]

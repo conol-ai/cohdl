@@ -2089,3 +2089,35 @@ slot height 1.6 = 5.78 ≈ the 5.79 edge line.)
 Verified on both regenerated boards: outermost copper (shield slots) 0.81mm
 inside the edge, zero different-net same-layer pad overlaps, IPC-2581
 schema-valid, 404 tests with regenerated goldens.
+
+## openmicro MCU on back + position-aware GPIO re-map (2026-07-20)
+
+Per direct review (repeated routing failures traced to feature pin selection):
+
+1. **MCU to the back**, `place mcu at (40.5, 0) rotate 90 side bottom` (RFC-026).
+   The board interior is walled off by the 13 switch through-holes and the
+   literal top-right by the 18x22mm joystick module, so the clear spot nearest
+   the matrix is the right edge — computed by a free-space scan, verified 0
+   different-net same-layer pad overlaps against the diodes it shares the back
+   with.
+
+2. **Matrix regrouped by PHYSICAL row/column.** The old grouping was index-order
+   (ROW0 = sw0..3, which spans two physical rows), forcing long diagonal ROW/COL
+   runs. New: r0={sw0,1}, r1={sw2..5}, r2={sw6..9}, r3={sw10..12};
+   c0={sw2,6}, c1={sw0,3,7,10}, c2={sw1,4,8,11}, c3={sw5,9,12}. Every key keeps a
+   unique (row, col) scan position (13 distinct pairs). ROW nets are now short
+   horizontal runs, COL nets short vertical runs.
+
+3. **Position-aware GPIO pad re-map.** Each flexible STM32F072 signal's pad was
+   reassigned (greedy nearest-pad + 2-opt) so it exits the LQFP toward its
+   feature, subject to the fixed peripheral pins (USB PA11/12, SWD PA13/14,
+   crystal PF0/PF1) and the ADC constraint on JOY_X/JOY_Y (kept on PB1/PB0 =
+   ADC_IN9/8). TOUCH stays TSC-capable (PA2 = G1_IO3). The 48-pad device↔pad
+   bijection is preserved; 14 unused GPIOs remain optional/NC.
+
+Measured effect (MST wire-demand per net, the routing lower bound): signal-net
+demand (excl GND/V3V3/VBUS pours) 4148 -> 2667 mm (-36%); matrix ROW/COL nets
+fell from ~165-193mm to ~79-98mm. The remaining longest nets (CC1/CC2, HSE) are
+staged pull-down/crystal passives Quilter pulls in at placement, not structural.
+
+Verified: 404 tests, fmt canonical, IPC-2581 schema-valid, 0 pad overlaps.

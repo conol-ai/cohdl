@@ -158,7 +158,7 @@ fn invocation_failures_are_exit_2_with_no_json() {
 // The std library and examples stay canonical (fmt --check as a CI gate).
 #[test]
 fn fmt_check_gate_std_and_examples() {
-    for dir in ["std", "examples/sensor-node/src", "examples/rpi-pico2/src"] {
+    for dir in ["std", "examples/openmicro/src", "examples/rpi-pico2/src"] {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(dir);
         let out = cohdl()
             .args(["fmt", path.to_str().unwrap(), "--check"])
@@ -236,7 +236,7 @@ fn nothing_to_build_is_exit_2_with_no_json() {
 #[test]
 fn command_specific_flags_are_validated() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let ex = root.join("examples/sensor-node");
+    let ex = root.join("examples/rpi-pico2");
     let out = cohdl()
         .args(["check", ex.to_str().unwrap(), "--check"])
         .output()

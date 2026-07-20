@@ -265,3 +265,23 @@ pub footprint CHIP_0201 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
     silkscreen_ref { at: (0mm, -0.6mm) }
 }
+
+// SOT-23-6 lead (USBLC6 ESD array) — openmicro's verified geometry.
+pub pad P_SOT23_6_Lead {
+    shape: rect
+    size: (1.325mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// SOT-23-6 (KiCad Package_TO_SOT_SMD:SOT-23-6) — USBLC6-2SC6 ESD array.
+pub footprint FP_SOT_23_6 {
+    pad 1: P_SOT23_6_Lead at (-1.1375mm, -0.95mm)
+    pad 2: P_SOT23_6_Lead at (-1.1375mm, 0mm)
+    pad 3: P_SOT23_6_Lead at (-1.1375mm, 0.95mm)
+    pad 4: P_SOT23_6_Lead at (1.1375mm, 0.95mm)
+    pad 5: P_SOT23_6_Lead at (1.1375mm, 0mm)
+    pad 6: P_SOT23_6_Lead at (1.1375mm, -0.95mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.2mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

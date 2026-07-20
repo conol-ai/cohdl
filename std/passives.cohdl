@@ -82,6 +82,8 @@ pub part RES_1K_0402: ChipResistor<1kohm, 1%> {
 
 // One 100nF decoupling capacitor across a supply pin pair.
 pub fn decoupling_100n(vdd: Pin, gnd: Pin) {
+    // RFC-028: one attribute here annotates every call site's capacitor.
+    #[bypass(vdd, 100nF)]
     inst c: MLCC_100nF_16V_0402
     net _: vdd, c.A
     net _: gnd, c.B

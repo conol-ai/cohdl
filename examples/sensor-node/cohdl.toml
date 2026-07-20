@@ -1,5 +1,0 @@
-[package]
-name = "sensor-node"
-
-[design]
-top = "SensorNode"

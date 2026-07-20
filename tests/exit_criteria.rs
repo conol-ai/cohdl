@@ -46,9 +46,10 @@ fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
 fn grammar_parses_demo_board_and_std() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let proj =
-        cohdl::project::load_project(&root.join("examples/sensor-node"), Some(&root.join("std")))
+        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
             .unwrap();
-    let checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
     assert!(
         !checked.diags.has_errors(),
         "{}",
@@ -67,7 +68,10 @@ fn rpi_pico2_example_builds_cleanly() {
     let proj =
         cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
             .unwrap();
-    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    // The package-aware entry (the CLI's own path): project-local footprints
+    // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
+    let mut checked =
+        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
     assert!(
         !checked.diags.has_errors(),
         "pico2 should check cleanly:\n{}",
@@ -664,11 +668,14 @@ design B {
 fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let proj =
-        cohdl::project::load_project(&root.join("examples/sensor-node"), Some(&root.join("std")))
+        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
             .unwrap();
-    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    // The package-aware entry (the CLI's own path): project-local footprints
+    // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
+    let mut checked =
+        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
     assert!(!checked.diags.has_errors());
-    let lock_text = std::fs::read_to_string(root.join("examples/sensor-node/design.lock")).unwrap();
+    let lock_text = std::fs::read_to_string(root.join("examples/rpi-pico2/design.lock")).unwrap();
     let prior = LockState::parse(&lock_text).unwrap();
     let artifacts = build_artifacts(&mut checked, &prior).expect("build succeeds");
     assert!(
@@ -678,9 +685,9 @@ fn example_build_matches_committed_golden_output() {
     );
 
     let golden_net =
-        std::fs::read_to_string(root.join("examples/sensor-node/out/sensor-node.net")).unwrap();
+        std::fs::read_to_string(root.join("examples/rpi-pico2/out/rpi-pico2.net")).unwrap();
     let golden_bom =
-        std::fs::read_to_string(root.join("examples/sensor-node/out/sensor-node-bom.csv")).unwrap();
+        std::fs::read_to_string(root.join("examples/rpi-pico2/out/rpi-pico2-bom.csv")).unwrap();
     assert_eq!(
         artifacts.netlist, golden_net,
         "netlist bytes must be stable"

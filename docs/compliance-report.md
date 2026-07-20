@@ -2043,3 +2043,29 @@ old designator run.
 Verified: 404 tests (4 new: per-call-site rows with multi-pad flattening,
 Instance-parameter converter resolution, unresolvable-bare-target diagnostic,
 fmt round-trip of the bare form), all six examples check+build, fmt canonical.
+
+## Example set reduced to two boards; rpi-pico2 moves to USB-C (2026-07-20)
+
+Per direct review: the example set is now `openmicro` and `rpi-pico2` only —
+`sensor-node`, `tida-00021`, `imvp7-vcore`, and `ccg6df-dualport` removed.
+`sensor-node` was the original MVP demo board anchoring the exit-criteria
+golden tests; those tests now anchor to `rpi-pico2` (project loaded through
+the package-aware `check_files_in(&proj.name, …)` — the compat `check_files`
+builds under package `main`, which sensor-node's all-std part set never
+exposed but rpi-pico2's project-local footprints do).
+
+rpi-pico2's USB front-end is now the openmicro board's: the std HRO
+TYPE-C-31-M-12 receptacle (mouth off the left board edge, land's PCB-edge
+line 4.5mm from origin → placed at (-21, 0) rotate 270), USBLC6-2SC6 ESD
+array pre-placed beside it at (-13, 0) on the USB2 path, 5.1k CC pulldowns
+(std RES_5K1_0402) advertising a UFP sink, SBU1/SBU2 nc. Data path:
+receptacle → ESD → the Pico's own 27R series terminations → RP2350. Both USB
+segments carry annotated diff_pairs (100/50/1GHz, the openmicro values); the
+HighSpeed net class covers all six USB nets. The std `decoupling_100n` fn
+gained RFC-028's `#[bypass(vdd, 100nF)]`, so every pico2 decoupling call site
+now emits its real bypass row (RP2350 IOVDD flattening across pads
+1/11/20/30/38…).
+
+Verified: 404 tests (exit-criteria goldens re-anchored + regenerated), both
+examples check+build, board regenerated — J3/U4 placed as stated, 0
+different-net same-layer pad overlaps, IPC-2581 schema-valid.

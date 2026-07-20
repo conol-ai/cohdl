@@ -1,9 +1,0 @@
-(footprint "imvp7_vcore::FP_Ind_Pwr_5040"
-  (version 20240108)
-  (generator "cohdl")
-  (layer "F.Cu")
-  (attr smd)
-  (fp_rect (start -2.8 -2.7) (end 2.8 2.7) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
-  (pad "1" smd rect (at -2 0) (size 1.6 4.6) (layers "F.Cu" "F.Paste" "F.Mask"))
-  (pad "2" smd rect (at 2 0) (size 1.6 4.6) (layers "F.Cu" "F.Paste" "F.Mask"))
-)

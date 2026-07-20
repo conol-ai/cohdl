@@ -1,5 +1,0 @@
-[package]
-name = "ccg6df_dualport"
-
-[design]
-top = "Ccg6dfDualport"

@@ -1,7 +1,8 @@
 // Raspberry Pi Pico 2 — a CoHDL implementation of the RP2350A board.
 //
 // Transcribed from the Raspberry Pi Pico 2 datasheet (Appendix B, Figure 11):
-// USB micro-B power/data, RT6150 buck-boost 3V3 rail, RP2350A with its on-chip
+// USB-C power/data (HRO TYPE-C-31-M-12, UFP with 5.1k CC pulldowns,
+// USBLC6 ESD — the same front-end as the openmicro board), RT6150 buck-boost 3V3 rail, RP2350A with its on-chip
 // core regulator, 4 MiB QSPI flash, 12 MHz crystal, BOOTSEL button, user LED,
 // SWD header, and the 40-pin castellated GPIO edge. Device pinouts and part
 // bindings live in pico_parts.cohdl.
@@ -13,8 +14,9 @@ design Pico2 {
     inst flash: FLASH_W25Q32
     #[placement_hint("close to XIN/XOUT with short, guarded traces")]
     inst xtal: XTAL_12MHZ
-    #[placement_hint("board edge, USB micro-B cutout")]
-    inst usb: USB_MICRO_B
+    #[placement_hint("board edge, USB-C cutout")]
+    inst usb: USB_C_HRO_TYPE_C_31_M_12
+    inst esd: ESD_USBLC6
     inst hdr: HEADER_40W
     inst swd: HEADER_SWD_3W
     inst boot: BOOTSEL_SW
@@ -27,6 +29,8 @@ design Pico2 {
     // ---- discrete R/C ----
     inst r_led: R_470
     inst r_dp: R_27
+    inst rcc1: RES_5K1_0402
+    inst rcc2: RES_5K1_0402
     inst r_dm: R_27
     inst r_xosc: RES_1K_0402
     inst r_boot: RES_1K_0402
@@ -49,9 +53,9 @@ design Pico2 {
     inst c_vreg_avdd: C_4u7
 
     // ---- power in: USB VBUS -> Schottky -> VSYS -> RT6150 buck-boost -> 3V3 ----
-    #[intent("micro-B VBUS is 5V; the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
+    #[intent("USB-C VBUS is 5V (5.1k Rd pulldowns advertise a UFP sink); the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
     #[high_current(500mA)]
-    net VBUS [5V]: usb.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
+    net VBUS [5V]: usb.VBUS, esd.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
     net VBUS_SENSE: r_vbus_top.B, r_vbus_bot.A, mcu.GPIO24
     net VSYS [5V]: d_vbus.Cathode, reg.VIN, r_en.A, r_vsys_top.A, hdr.VSYS
 
@@ -67,11 +71,17 @@ design Pico2 {
     net CORE_LX: mcu.VREG_LX, l_core.A
     net V1V1 [1.1V]: l_core.B, mcu.DVDD, mcu.VREG_FB
 
-    // ---- USB 1.1 data with 27R series terminations ----
-    net USB_DP: usb.DP, r_dp.A
+    // ---- USB 1.1 data: receptacle -> ESD array -> 27R series -> RP2350 ----
+    net USBC_DP: usb.DP, esd.IO1_A
+    net USB_DP: esd.IO1_B, r_dp.A
     net USB_DPX: r_dp.B, mcu.USB_DP
-    net USB_DM: usb.DN, r_dm.A
+    net USBC_DM: usb.DN, esd.IO2_A
+    net USB_DM: esd.IO2_B, r_dm.A
     net USB_DMX: r_dm.B, mcu.USB_DM
+    // USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)
+    net CC1: usb.CC1, rcc1.A
+    net CC2: usb.CC2, rcc2.A
+    nc: usb.SBU1, usb.SBU2
 
     // ---- 12 MHz crystal with 15pF loads and a 1k XOUT series resistor ----
     net XIN: mcu.XIN, xtal.XIN, c_xin.A
@@ -111,8 +121,9 @@ design Pico2 {
     // ---- ground (analog ground ties to the digital plane at the header) ----
     #[ground(primary)]
     net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
-                   swd.GND, boot.B, led.Cathode, hdr.GND, hdr.AGND, r_vbus_bot.B, r_ps.B,
-                   r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B, c_adc.B, c_vreg_avdd.B
+                   esd.GND, rcc1.B, rcc2.B, swd.GND, boot.B, led.Cathode, hdr.GND, hdr.AGND,
+                   r_vbus_bot.B, r_ps.B, r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B,
+                   c_adc.B, c_vreg_avdd.B
 
     // ---- GPIO breakout to the 40-pin castellated header ----
     net GP0: mcu.GPIO0, hdr.GP0
@@ -160,8 +171,11 @@ design Pico2 {
 
     // ---- layout constraints for the partner layout tool (RFC-013) ----
     layout {
-        net_class HighSpeed { USB_DPX, USB_DMX }
-        diff_pair(USB_DPX, USB_DMX)
+        net_class HighSpeed { USBC_DP, USBC_DM, USB_DP, USB_DM, USB_DPX, USB_DMX }
+        diff_pair(USBC_DP,
+                  USBC_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
+        diff_pair(USB_DPX,
+                  USB_DMX) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         length_match(USB_DPX, USB_DMX) [tolerance: 0.15mm]
         net_class Clock { XIN, XR }
         // Raspberry Pi Pico 2 board outline (51 x 21 mm rounded rectangle),
@@ -172,11 +186,14 @@ design Pico2 {
         // locations, oriented; the layout partner places the rest around them.
         // The 40-pin castellated header IS the board edge — centered.
         place hdr at (0mm, 0mm)
-        // Micro-USB at the left short edge, mouth facing OUTWARD (-x, off the
+        // USB-C at the left short edge, mouth facing OUTWARD (-x, off the
         // board edge at x=-25.5 so a cable plugs in). rotate 270 turns the
-        // footprint's +y "PCB Edge" side to -x; placing the origin at
-        // -25.5 + 2.6875 = -22.8125 lands that PCB-edge marker on the board edge.
-        place usb at (-22.8125mm, 0mm) rotate 270
+        // footprint's +y "PCB Edge" side to -x; the HRO land's PCB-edge line
+        // sits 4.5mm from its origin (same offset the openmicro board uses at
+        // its top edge), so the origin lands at -25.5 + 4.5 = -21.
+        place usb at (-21mm, 0mm) rotate 270
+        // ESD array tight to the receptacle, on the USB2 path to the MCU.
+        place esd at (-13mm, 0mm)
         // 3-pin SWD debug header at the right short edge.
         place swd at (22mm, 0mm) rotate 90
 

@@ -1,5 +1,4 @@
 RefDes,Value,MPN,Manufacturer,Qty
-"J3","MicroUSB_B","105017-0001","Molex",1
 "D2","ChipLED","150060GS75000","Wurth",1
 "Y1","Crystal_4pad","ABM8-272-T3","Abracon",1
 "C2,C3,C4,C5,C9,C10,C11,C12,C13,C14","100nF","CL05B104KO5NNNC","Samsung",10
@@ -23,7 +22,10 @@ RefDes,Value,MPN,Manufacturer,Qty
 "R2,R17","1kohm","RC0402FR-071KL","Yageo",2
 "R13","200ohm","RC0402FR-07200RL","Yageo",1
 "R14","33ohm","RC0402FR-0733RL","Yageo",1
+"R18,R19","5.1kohm","RC0402FR-075K1L","Yageo",2
 "U2","RP2350A","RP2350A","Raspberry Pi",1
 "U3","RT6150B","RT6150B-33GQW","Richtek",1
 "SW1","Bootsel_Switch","TP-1221U-K9K5325","XKB",1
+"J3","USB_C_Receptacle_2_0","TYPE-C-31-M-12","HRO",1
+"U4","USBLC6","USBLC6-2SC6","STMicroelectronics",1
 "U1","W25Q32","W25Q32RVXHJQ","Winbond",1

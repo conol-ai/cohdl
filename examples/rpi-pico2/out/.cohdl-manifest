@@ -9,8 +9,8 @@ out/footprints/rpi_pico2-FP_D_SOD_123W.kicad_mod
 out/footprints/rpi_pico2-FP_L_0806_2016Metric.kicad_mod
 out/footprints/rpi_pico2-FP_Pico_Castellated_3.kicad_mod
 out/footprints/rpi_pico2-FP_Pico_Castellated_40.kicad_mod
+out/footprints/rpi_pico2-FP_SOT_23_6.kicad_mod
 out/footprints/rpi_pico2-FP_SW_SPST_TP1221U.kicad_mod
-out/footprints/rpi_pico2-FP_USB_Micro_B_SMD.kicad_mod
 out/footprints/rpi_pico2-QFN10N50P250X250_1EP120X200.kicad_mod
 out/footprints/rpi_pico2-QFN60N40P700X700_1EP350X350.kicad_mod
 out/footprints/rpi_pico2-QFN8N50P200X300_1EP61X220.kicad_mod
@@ -18,10 +18,12 @@ out/footprints/rpi_pico2-SOT3P100X160X80N.kicad_mod
 out/footprints/std-CHIP_0402.kicad_mod
 out/footprints/std-CHIP_0603.kicad_mod
 out/footprints/std-FP_LED_0603_1608Metric.kicad_mod
+out/footprints/std-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
 out/ground_nets.csv
 out/high_current_nets.csv
 out/rpi-pico2-bom.csv
 out/rpi-pico2-layout.json
 out/rpi-pico2.net
+out/rpi-pico2.xml
 out/single_ended_impedance_signals.csv
 out/switching_converters.csv

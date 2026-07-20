@@ -386,3 +386,20 @@ pub fn bulk_47u(vdd: Pin, gnd: Pin) {
     net _: vdd, c.A
     net _: gnd, c.B
 }
+
+// ---- USBLC6-2SC6: USB ESD protection (SOT-23-6), same front-end as the
+// openmicro board. I/O1 = pins 1,6; I/O2 = 3,4; GND = 2; VBUS = 5. ----
+pub device USBLC6 {
+    pins {
+        required IO1_A: 1 [bidirectional]
+        required GND: 2 [power_in]
+        required IO2_A: 3 [bidirectional]
+        required IO2_B: 4 [bidirectional]
+        required VBUS: 5 [power_in]
+        required IO1_B: 6 [bidirectional]
+    }
+}
+impl IC for USBLC6 {}
+pub part ESD_USBLC6: USBLC6 {
+    primary { mfr: "STMicroelectronics", mpn: "USBLC6-2SC6", footprint: FP_SOT_23_6 }
+}

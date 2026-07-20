@@ -1,10 +1,11 @@
 {
   "schema_version": 1,
   "net_classes": [
-    { "name": "HighSpeed", "nets": ["USB_DPX", "USB_DMX"] },
+    { "name": "HighSpeed", "nets": ["USBC_DP", "USBC_DM", "USB_DP", "USB_DM", "USB_DPX", "USB_DMX"] },
     { "name": "Clock", "nets": ["XIN", "XR"] }
   ],
   "diff_pairs": [
+    { "p": "USBC_DP", "n": "USBC_DM" },
     { "p": "USB_DPX", "n": "USB_DMX" }
   ],
   "length_matches": [
@@ -13,7 +14,8 @@
   "board_outline": { "source": "mechanical/pico2-outline.dxf", "start": [-24.5, -10.5], "segments": [{ "type": "line", "to": [24.5, -10.5] }, { "type": "arc", "to": [25.5, -9.5], "center": [24.5, -9.5], "clockwise": false }, { "type": "line", "to": [25.5, 9.5] }, { "type": "arc", "to": [24.5, 10.5], "center": [24.5, 9.5], "clockwise": false }, { "type": "line", "to": [-24.5, 10.5] }, { "type": "arc", "to": [-25.5, 9.5], "center": [-24.5, 9.5], "clockwise": false }, { "type": "line", "to": [-25.5, -9.5] }, { "type": "arc", "to": [-24.5, -10.5], "center": [-24.5, -9.5], "clockwise": false }] },
   "placements": [
     { "instance": "Pico2::hdr", "at": [0, 0], "rotate": 0 },
-    { "instance": "Pico2::usb", "at": [-22.8125, 0], "rotate": 270 },
+    { "instance": "Pico2::usb", "at": [-21, 0], "rotate": 270 },
+    { "instance": "Pico2::esd", "at": [-13, 0], "rotate": 0 },
     { "instance": "Pico2::swd", "at": [22, 0], "rotate": 90 },
     { "instance": "Pico2::mcu", "at": [0, -2], "rotate": 0 },
     { "instance": "Pico2::xtal", "at": [0, 5], "rotate": 0 },
@@ -21,7 +23,7 @@
     { "instance": "Pico2::c_xout", "at": [4, 5], "rotate": 270 }
   ],
   "placement_hints": [
-    { "designator": "J3", "instance": "Pico2::usb", "hint": "board edge, USB micro-B cutout" },
+    { "designator": "J3", "instance": "Pico2::usb", "hint": "board edge, USB-C cutout" },
     { "designator": "Y1", "instance": "Pico2::xtal", "hint": "close to XIN/XOUT with short, guarded traces" }
   ]
 }

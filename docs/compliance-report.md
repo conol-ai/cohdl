@@ -2069,3 +2069,23 @@ now emits its real bypass row (RP2350 IOVDD flattening across pads
 Verified: 404 tests (exit-criteria goldens re-anchored + regenerated), both
 examples check+build, board regenerated — J3/U4 placed as stated, 0
 different-net same-layer pad overlaps, IPC-2581 schema-valid.
+
+## USB-C receptacle edge position corrected on both boards (2026-07-20)
+
+Per direct review: the HRO TYPE-C-31-M-12 sat 2.64mm too far inboard on BOTH
+boards, its mouth recessed 0.85mm behind the board edge — a plug's shell would
+jam on the board corner. Root cause: the offset was inferred from openmicro's
+own earlier placement instead of the manufacturer's layout. The KiCad official
+footprint carries NO "PCB Edge" reference line for this part, so the HRO
+datasheet's "RECOMMEND P.C.B LAYOUT" was fetched and read: the PCB EDGE line
+is 5.79mm below the pad-row reference — footprint-frame y = +1.86, i.e.
+positioning holes 4.46mm from the edge, shell front overhanging ~1.8mm so the
+plug seats fully. (Chain self-consistency check: ref→lower-slot-top 4.18 +
+slot height 1.6 = 5.78 ≈ the 5.79 edge line.)
+
+- openmicro: `place usbc at (0, -45.64) rotate 180` (was -43)
+- rpi-pico2: `place usb at (-23.64, 0) rotate 270` (was -21)
+
+Verified on both regenerated boards: outermost copper (shield slots) 0.81mm
+inside the edge, zero different-net same-layer pad overlaps, IPC-2581
+schema-valid, 404 tests with regenerated goldens.

@@ -14,7 +14,7 @@
   "board_outline": { "source": "mechanical/pico2-outline.dxf", "start": [-24.5, -10.5], "segments": [{ "type": "line", "to": [24.5, -10.5] }, { "type": "arc", "to": [25.5, -9.5], "center": [24.5, -9.5], "clockwise": false }, { "type": "line", "to": [25.5, 9.5] }, { "type": "arc", "to": [24.5, 10.5], "center": [24.5, 9.5], "clockwise": false }, { "type": "line", "to": [-24.5, 10.5] }, { "type": "arc", "to": [-25.5, 9.5], "center": [-24.5, 9.5], "clockwise": false }, { "type": "line", "to": [-25.5, -9.5] }, { "type": "arc", "to": [-24.5, -10.5], "center": [-24.5, -9.5], "clockwise": false }] },
   "placements": [
     { "instance": "Pico2::hdr", "at": [0, 0], "rotate": 0 },
-    { "instance": "Pico2::usb", "at": [-21, 0], "rotate": 270 },
+    { "instance": "Pico2::usb", "at": [-23.64, 0], "rotate": 270 },
     { "instance": "Pico2::esd", "at": [-13, 0], "rotate": 0 },
     { "instance": "Pico2::swd", "at": [22, 0], "rotate": 90 },
     { "instance": "Pico2::mcu", "at": [0, -2], "rotate": 0 },

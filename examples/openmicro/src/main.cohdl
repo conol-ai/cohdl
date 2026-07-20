@@ -232,7 +232,10 @@ design OpenMicro {
         place d[11] at (14.525mm, 37.325mm) rotate 90 side bottom
         place d[12] at (33.575mm, 37.325mm) rotate 90 side bottom
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
-        place usbc at (0mm, -43mm) rotate 180
+        // HRO datasheet: PCB EDGE is 1.86mm from the footprint origin on the
+        // mouth side (shell front overhangs ~1.8mm). Top edge at y=-47.5 ->
+        // origin at -47.5 + 1.86 = -45.64.
+        place usbc at (0mm, -45.64mm) rotate 180
         // ESD array tight to the receptacle, on the USB2 path to the MCU
         place esd at (7mm, -38.5mm)
         // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and

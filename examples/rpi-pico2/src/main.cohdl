@@ -186,12 +186,13 @@ design Pico2 {
         // locations, oriented; the layout partner places the rest around them.
         // The 40-pin castellated header IS the board edge — centered.
         place hdr at (0mm, 0mm)
-        // USB-C at the left short edge, mouth facing OUTWARD (-x, off the
-        // board edge at x=-25.5 so a cable plugs in). rotate 270 turns the
-        // footprint's +y "PCB Edge" side to -x; the HRO land's PCB-edge line
-        // sits 4.5mm from its origin (same offset the openmicro board uses at
-        // its top edge), so the origin lands at -25.5 + 4.5 = -21.
-        place usb at (-21mm, 0mm) rotate 270
+        // USB-C at the left short edge, mouth facing OUTWARD (-x). Per the
+        // HRO datasheet's recommended layout, the PCB EDGE line sits 1.86mm
+        // from the footprint origin on the mouth side (positioning holes
+        // 4.46mm from the edge; the shell front overhangs the edge by ~1.8mm
+        // so a plug seats fully). rotate 270 turns that +y edge side to -x:
+        // origin at -25.5 + 1.86 = -23.64.
+        place usb at (-23.64mm, 0mm) rotate 270
         // ESD array tight to the receptacle, on the USB2 path to the MCU.
         place esd at (-13mm, 0mm)
         // 3-pin SWD debug header at the right short edge.

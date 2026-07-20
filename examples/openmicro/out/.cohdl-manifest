@@ -24,5 +24,6 @@ out/high_current_nets.csv
 out/openmicro-bom.csv
 out/openmicro-layout.json
 out/openmicro.net
+out/openmicro.xml
 out/single_ended_impedance_signals.csv
 out/switching_converters.csv

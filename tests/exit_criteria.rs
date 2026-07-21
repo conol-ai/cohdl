@@ -667,40 +667,54 @@ design B {
 #[test]
 fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj =
-        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
-            .unwrap();
-    // The package-aware entry (the CLI's own path): project-local footprints
-    // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
-    let mut checked =
-        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
-    assert!(!checked.diags.has_errors());
-    let lock_text = std::fs::read_to_string(root.join("examples/rpi-pico2/design.lock")).unwrap();
-    let prior = LockState::parse(&lock_text).unwrap();
-    let artifacts = build_artifacts(&mut checked, &prior).expect("build succeeds");
-    assert!(
-        !checked.diags.has_errors(),
-        "{}",
-        checked.diags.render(&checked.sm)
-    );
+    for name in ["rpi-pico2", "openmicro"] {
+        let dir = root.join("examples").join(name);
+        let proj = cohdl::project::load_project(&dir, Some(&root.join("std"))).unwrap();
+        // The package-aware entry (the CLI's own path): project-local
+        // footprints carry the real package name (`rpi_pico2::…`), not the
+        // compat `main::…`.
+        let mut checked =
+            cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
+        assert!(!checked.diags.has_errors());
+        let lock_text = std::fs::read_to_string(dir.join("design.lock")).unwrap();
+        let prior = LockState::parse(&lock_text).unwrap();
+        let artifacts = build_artifacts(&mut checked, &prior).expect("build succeeds");
+        assert!(
+            !checked.diags.has_errors(),
+            "{}",
+            checked.diags.render(&checked.sm)
+        );
 
-    let golden_net =
-        std::fs::read_to_string(root.join("examples/rpi-pico2/out/rpi-pico2.net")).unwrap();
-    let golden_bom =
-        std::fs::read_to_string(root.join("examples/rpi-pico2/out/rpi-pico2-bom.csv")).unwrap();
-    assert_eq!(
-        artifacts.netlist, golden_net,
-        "netlist bytes must be stable"
-    );
-    assert_eq!(artifacts.bom, golden_bom, "BOM bytes must be stable");
-    assert_eq!(artifacts.lock.render(), lock_text, "lock must be stable");
+        let golden_net =
+            std::fs::read_to_string(dir.join("out").join(format!("{}.net", name))).unwrap();
+        let golden_bom =
+            std::fs::read_to_string(dir.join("out").join(format!("{}-bom.csv", name))).unwrap();
+        assert_eq!(
+            artifacts.netlist, golden_net,
+            "[{}] netlist bytes must be stable",
+            name
+        );
+        assert_eq!(
+            artifacts.bom, golden_bom,
+            "[{}] BOM bytes must be stable",
+            name
+        );
+        assert_eq!(
+            artifacts.lock.render(),
+            lock_text,
+            "[{}] lock must be stable",
+            name
+        );
 
-    // Every instance carries a real MPN in the BOM (no <UNSPECIFIED>, ever).
-    assert!(
-        !artifacts.bom.contains("\"\""),
-        "no empty MPN cells:\n{}",
-        artifacts.bom
-    );
+        // Every instance carries a real MPN in the BOM (no <UNSPECIFIED>,
+        // ever) and every cell is filled.
+        assert!(
+            !artifacts.bom.contains("\"\""),
+            "[{}] no empty cells:\n{}",
+            name,
+            artifacts.bom
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------

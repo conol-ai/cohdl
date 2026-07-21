@@ -79,13 +79,16 @@ def main():
             n = p.GetPadName()
             return (0, int(n)) if n.isdigit() else (1, n)
         p1 = sorted((p for p in pads if p.GetPadName()), key=key)[0]
-        fpid = fp.GetFPIDAsString().split(":")[-1]
-        fpid = fpid.split("-", 1)[-1] if "-" in fpid.split("::")[0] else fpid
+        # FPID = the projected .kicad_mod name: the CoHDL footprint's fq path
+        # with `::` collapsed to `-` (e.g. `rpi_pico2-CHIP_0201`). CoHDL
+        # identifiers can't contain `-`, so everything after the last `-` is
+        # the short name — the exact form the BOM CSV's Footprint column uses.
+        fpid = fp.GetFPIDAsString().split(":")[-1].split("-")[-1]
         rot = fp.GetOrientationDegrees() % 360
         rows.append(
             (
                 ref,
-                fp.GetFPIDAsString().replace("openmicro-", "").replace("std-", ""),
+                fpid,
                 X(cx),
                 Y(cy),
                 X(anchor.x),

@@ -185,6 +185,21 @@ design B {
 }
 "#;
 
+/// A part with no `mfr` (legal — AVL fields are optional metadata): the
+/// BOM's Manufacturer cell is empty, exercising the CSV's empty-cell shape
+/// through the row parser, the MFR textual, and the Enterprise table.
+const NO_MFR: &str = r#"
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+pub footprint TFP {}
+pub part P1: D { primary { mpn: "MPN-1", footprint: TFP } }
+design B {
+    inst d1: P1
+    inst d2: P1
+    net N: d1.A, d2.A
+    net M: d1.B, d2.B
+}
+"#;
+
 // ---------------------------------------------------------------------------
 // Tiny test-local XML scanners (no XML dependency, same spirit as the local
 // JSON parser in tests/json_output.rs).
@@ -244,6 +259,7 @@ fn schema_validity_over_corpus() {
         ("basic", BASIC),
         ("with-layout", WITH_LAYOUT),
         ("nasty", NASTY),
+        ("no-mfr", NO_MFR),
     ] {
         ran |= xsd_validate(name, &build(name, src).xml);
     }
@@ -307,37 +323,53 @@ fn assert_net_fidelity(name: &str, b: &Built) {
     }
 }
 
-/// BOM fidelity: one BomItem per CSV row, same refdes list/quantity/values.
+/// The emitters' principal-value rule (`bom.rs` historically, `ipc2581.rs`
+/// today), replicated so the XML's VALUE textual stays pinned to the IR now
+/// that the CSV's assembly-style columns no longer carry a value cell.
+fn principal_value(inst: &cohdl::ir::IrInstance) -> String {
+    for field in ["capacitance", "resistance", "inductance", "frequency"] {
+        if let Some(v) = inst.specs.get(field) {
+            return v.text.clone();
+        }
+    }
+    cohdl::resolve::short(&inst.device).to_string()
+}
+
+/// BOM fidelity: one BomItem per CSV row — same refdes list, quantity =
+/// designator count, MPN/MFR textuals = the Comment/Manufacturer cells, the
+/// Footprint cell = the group's part footprint (short name), and the
+/// XML-only VALUE textual = the IR's principal value (first-member rule).
 fn assert_bom_fidelity(name: &str, b: &Built) {
-    // CSV rows: "RefDes","Value","MPN","Manufacturer",Qty — the first four
-    // quoted (with "" escaping), the count bare.
+    // CSV rows: "Manufacturer","Comment","Designator","Footprint" — all four
+    // quoted (with "" escaping); Comment carries the model (MPN).
     let rows: Vec<Vec<String>> = b
         .bom
         .lines()
         .skip(1)
         .map(|l| {
-            let (quoted, qty) = l.rsplit_once(',').unwrap();
-            let mut cells: Vec<String> = quoted
-                .trim_matches('"')
+            // Strip exactly ONE quote per end: trim_matches would eat both
+            // quotes of an empty first/last cell (e.g. a part with no mfr)
+            // and shift every cell.
+            l.strip_prefix('"')
+                .and_then(|l| l.strip_suffix('"'))
+                .unwrap_or_else(|| panic!("[{}] unquoted BOM row `{}`", name, l))
                 .split("\",\"")
                 .map(|c| c.replace("\"\"", "\""))
-                .collect();
-            cells.push(qty.to_string());
-            cells
+                .collect()
         })
         .collect();
     let items = blocks(&b.xml, "BomItem");
     assert_eq!(items.len(), rows.len(), "[{}] BOM group count", name);
+    let ir = b.checked.ir.as_ref().unwrap();
     for ((head, body), row) in items.iter().zip(&rows) {
         let refdes: Vec<String> = elements(body, "RefDes")
             .iter()
             .map(|r| attr(r, "name").unwrap())
             .collect();
-        assert_eq!(refdes.join(","), row[0], "[{}] refdes list", name);
-        let qty: usize = row[4].parse().unwrap();
+        assert_eq!(refdes.join(","), row[2], "[{}] designator list", name);
         assert_eq!(
             attr(head, "quantity").unwrap(),
-            qty.to_string(),
+            row[2].split(',').count().to_string(),
             "[{}] quantity",
             name
         );
@@ -348,9 +380,25 @@ fn assert_bom_fidelity(name: &str, b: &Built) {
                 .and_then(|t| attr(t, "textualCharacteristicValue"))
                 .unwrap()
         };
-        assert_eq!(textual("VALUE"), row[1], "[{}] value", name);
-        assert_eq!(textual("MPN"), row[2], "[{}] mpn", name);
-        assert_eq!(textual("MFR"), row[3], "[{}] mfr", name);
+        assert_eq!(textual("MPN"), row[1], "[{}] comment/mpn", name);
+        assert_eq!(textual("MFR"), row[0], "[{}] manufacturer", name);
+        // The group's first member in instance-path order — the rule both
+        // emitters use to pick the group's VALUE and footprint.
+        let members: std::collections::BTreeSet<&str> = row[2].split(',').collect();
+        let first = ir
+            .instances
+            .values()
+            .find(|i| members.contains(i.designator.as_deref().unwrap_or("?")))
+            .unwrap_or_else(|| panic!("[{}] no instance for row `{}`", name, row[2]));
+        assert_eq!(textual("VALUE"), principal_value(first), "[{}] value", name);
+        let footprint = first
+            .part
+            .as_ref()
+            .and_then(|p| b.checked.world.parts.get(p))
+            .and_then(|p| p.primary.footprint.as_ref())
+            .map(|f| cohdl::resolve::short(&f.name).to_string())
+            .unwrap_or_default();
+        assert_eq!(footprint, row[3], "[{}] footprint", name);
     }
 }
 
@@ -471,6 +519,7 @@ fn fidelity_over_corpus_and_examples() {
         ("basic", BASIC),
         ("with-layout", WITH_LAYOUT),
         ("nasty", NASTY),
+        ("no-mfr", NO_MFR),
     ]
     .into_iter()
     .map(|(n, s)| (n.to_string(), build(n, s)))
@@ -958,10 +1007,13 @@ design B { inst a: PA  inst b: PB  net N: a.A, b.A }
     // Both manufacturers survive in the CSV.
     assert!(b.bom.contains("Alpha"), "Alpha row:\n{}", b.bom);
     assert!(b.bom.contains("Beta"), "Beta row (was dropped):\n{}", b.bom);
+    // Values live only in the XML VALUE textuals (the CSV's assembly-style
+    // columns carry the MPN, not the value) — both must still survive there.
     assert!(
-        b.bom.contains("1kohm") && b.bom.contains("2kohm"),
+        b.xml.contains("textualCharacteristicValue=\"1kohm\"")
+            && b.xml.contains("textualCharacteristicValue=\"2kohm\""),
         "both values:\n{}",
-        b.bom
+        b.xml
     );
     // Two distinct AVL items, two enterprises.
     assert_eq!(

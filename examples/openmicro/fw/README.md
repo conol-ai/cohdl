@@ -3,7 +3,7 @@
 Rust/[embassy](https://embassy.dev) firmware for the OpenMicro macropad
 (STM32F072CBT6). Async, no RTOS, no unsafe outside the vendored HAL.
 
-Build stats (release, LTO, `opt-level = "s"`): ~20 KiB flash of 128 KiB,
+Build stats (release, LTO, `opt-level = "s"`): ~22 KiB flash of 128 KiB,
 ~5 KiB static RAM of 16 KiB.
 
 ## Pin map — where it comes from
@@ -53,21 +53,54 @@ cargo build --release
 The workspace/CI at the repo root does not build this crate (it needs the
 thumb target); it lives here as part of the example board's deliverables.
 
-## Flashing
+## Flashing and field updates
 
-**SWD (J2 header), recommended** — with a probe (ST-Link, CMSIS-DAP, …)
-attached to J2:
+Two deliberate paths — the board has **no BOOT0 button** (BOOT0 is strapped
+low through `rboot`), so bootloader entry in the field is software-only:
+
+**Development / recovery: SWD (J2 header)** — with a probe (ST-Link,
+CMSIS-DAP, …) attached to J2:
 
 ```sh
 cargo install probe-rs-tools
 cargo run --release        # runner = probe-rs run --chip STM32F072CBTx
 ```
 
-**USB DFU, no probe needed** — the F072's ROM bootloader enumerates on the
-same USB port. Hold BOOT0 high while plugging in, then:
+**Field updates: app-triggered DFU, no probe, no buttons.** The firmware
+exposes a vendor HID interface (usage page `0xFF60`, 32-byte reports, no
+report IDs) that the host updater app drives:
+
+| OUT report | Effect |
+|---|---|
+| `[0x01, …]` | Replies `[0x01, len, "0.1.0"…]` — running firmware version |
+| `[0x02, 'D','F','U','!']` | Acks `[0x02, 0x01]`, then reboots into the ROM DFU bootloader |
+
+On the DFU command the firmware stamps a magic word in noinit RAM and
+resets; early boot (before any peripheral init) sees it and jumps into
+system memory (`0x1FFF_C800`, AN2606). The chip re-enumerates on the same
+USB-C port as ST DFU (`0483:df11`) and any standard DFU tool finishes the
+job:
 
 ```sh
 cargo install cargo-binutils && rustup component add llvm-tools
 cargo objcopy --release -- -O binary openmicro.bin
-dfu-util -a 0 -s 0x08000000:leave -D openmicro.bin
+dfu-util -a 0 -s 0x08000000:leave -D openmicro.bin   # :leave boots the new app
 ```
+
+The updater app can decide *whether* to update without opening the device:
+`bcdDevice` in the USB descriptor carries the semver from `Cargo.toml`
+(`0.1.0` → `0x0110`-style encoding, see `version_bcd`). Minimal host flow
+(Python + `hidapi` + `dfu-util`):
+
+```python
+import hid
+dev = next(d for d in hid.enumerate(0x1209, 0x0001) if d["usage_page"] == 0xFF60)
+h = hid.device(); h.open_path(dev["path"])
+h.write(bytes([0x00, 0x02, ord('D'), ord('F'), ord('U'), ord('!')]))  # leading 0x00 = report ID
+# device drops off, re-enumerates as 0483:df11 -> run dfu-util as above
+```
+
+Failure model, by design: if power is lost mid-download the app is gone and
+the device does not auto-enter DFU (BOOT0 is low) — recovery is the SWD
+port. The update window is a few seconds; the trade keeps the boot path
+trivial (no resident bootloader to maintain).

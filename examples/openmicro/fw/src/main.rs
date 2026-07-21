@@ -18,14 +18,19 @@
 //! HID map: 13 keys -> F13..F24 (the 2U cap's two switches, sw10+sw11, share
 //! F23); encoder -> volume +/- ; encoder push -> mute; touch -> play/pause;
 //! joystick -> arrow keys, push -> enter.
+//!
+//! A third, vendor-defined HID interface (usage page 0xFF60) carries the
+//! updater protocol: the host app can query the firmware version and command
+//! a reboot into the ROM DFU bootloader (see dfu.rs and README.md).
 
 #![no_std]
 #![no_main]
 
+mod dfu;
 mod ws2812;
 
 use embassy_executor::Spawner;
-use embassy_futures::join::join;
+use embassy_futures::join::join3;
 use embassy_stm32::adc::Adc;
 use embassy_stm32::gpio::{Flex, Input, Level, Output, Pull, Speed};
 use embassy_stm32::rcc::{Hsi48Config, Sysclk};
@@ -67,6 +72,55 @@ const USAGE_VOL_UP: u16 = 0xE9;
 const USAGE_VOL_DOWN: u16 = 0xEA;
 const USAGE_PLAY_PAUSE: u16 = 0xCD;
 
+const FW_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// "a.b.c" -> USB bcdDevice (a in the high byte, b/c a nibble each), so the
+/// updater can read the running version straight from the device descriptor.
+const fn version_bcd(s: &str) -> u16 {
+    let b = s.as_bytes();
+    let mut parts = [0u16; 3];
+    let mut pi = 0;
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'.' {
+            pi += 1;
+        } else if b[i].is_ascii_digit() && pi < 3 {
+            parts[pi] = parts[pi] * 10 + (b[i] - b'0') as u16;
+        }
+        i += 1;
+    }
+    ((parts[0] & 0xFF) << 8) | ((parts[1] & 0xF) << 4) | (parts[2] & 0xF)
+}
+
+/// Vendor "raw HID" interface (QMK-style): usage page 0xFF60, 32-byte IN and
+/// OUT reports, no report IDs. This is the updater channel.
+#[rustfmt::skip]
+const RAW_HID_DESC: &[u8] = &[
+    0x06, 0x60, 0xFF, // Usage Page (Vendor 0xFF60)
+    0x09, 0x61,       // Usage (0x61)
+    0xA1, 0x01,       // Collection (Application)
+    0x09, 0x62,       //   Usage (0x62)
+    0x15, 0x00,       //   Logical Minimum (0)
+    0x26, 0xFF, 0x00, //   Logical Maximum (255)
+    0x75, 0x08,       //   Report Size (8)
+    0x95, 0x20,       //   Report Count (32)
+    0x81, 0x02,       //   Input (Data, Var, Abs)
+    0x09, 0x63,       //   Usage (0x63)
+    0x15, 0x00,       //   Logical Minimum (0)
+    0x26, 0xFF, 0x00, //   Logical Maximum (255)
+    0x75, 0x08,       //   Report Size (8)
+    0x95, 0x20,       //   Report Count (32)
+    0x91, 0x02,       //   Output (Data, Var, Abs)
+    0xC0,             // End Collection
+];
+
+// Updater protocol, one command per 32-byte OUT report:
+//   [0x01, ...]                -> reply [0x01, len, version ascii...]
+//   [0x02, 'D', 'F', 'U', '!'] -> ack [0x02, 0x01], reboot into ROM DFU
+const CMD_VERSION: u8 = 0x01;
+const CMD_ENTER_DFU: u8 = 0x02;
+const ENTER_DFU_KEY: &[u8; 4] = b"DFU!";
+
 static KBD_CH: Channel<ThreadModeRawMutex, KeyboardReport, 4> = Channel::new();
 static CONSUMER_CH: Channel<ThreadModeRawMutex, MediaKeyboardReport, 4> = Channel::new();
 /// Bit i = logical key i pressed — drives the per-key LED effect.
@@ -74,6 +128,10 @@ static KEYSTATE: core::sync::atomic::AtomicU16 = core::sync::atomic::AtomicU16::
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    // First thing, before any clock/peripheral init: divert into the ROM DFU
+    // bootloader if the previous run armed it (dfu.rs).
+    dfu::check_and_enter();
+
     let mut config = Config::default();
     // USB clocking: HSI48 trimmed by CRS from USB SOF. The 8 MHz HSE crystal
     // is fitted (belt-and-braces) but not required for USB.
@@ -91,12 +149,14 @@ async fn main(spawner: Spawner) {
     usb_config.manufacturer = Some("conol");
     usb_config.product = Some("OpenMicro");
     usb_config.serial_number = Some("0001");
+    usb_config.device_release = version_bcd(FW_VERSION);
 
     static CONFIG_DESC: StaticCell<[u8; 256]> = StaticCell::new();
     static BOS_DESC: StaticCell<[u8; 256]> = StaticCell::new();
     static CONTROL_BUF: StaticCell<[u8; 64]> = StaticCell::new();
     static KBD_STATE: StaticCell<State> = StaticCell::new();
     static CONSUMER_STATE: StaticCell<State> = StaticCell::new();
+    static RAW_STATE: StaticCell<State> = StaticCell::new();
 
     let mut builder = embassy_usb::Builder::new(
         driver,
@@ -128,9 +188,21 @@ async fn main(spawner: Spawner) {
         },
     );
 
+    let raw_hid = HidReaderWriter::<_, 32, 32>::new(
+        &mut builder,
+        RAW_STATE.init(State::new()),
+        embassy_usb::class::hid::Config {
+            report_descriptor: RAW_HID_DESC,
+            request_handler: None,
+            poll_ms: 10,
+            max_packet_size: 32,
+        },
+    );
+
     let mut usb_dev = builder.build();
     let (_kbd_reader, mut kbd_writer) = kbd_hid.split();
     let (_consumer_reader, mut consumer_writer) = consumer_hid.split();
+    let (mut raw_reader, mut raw_writer) = raw_hid.split();
 
     // ---- matrix pins ----
     let rows = [
@@ -169,7 +241,7 @@ async fn main(spawner: Spawner) {
     spawner.must_spawn(touch_task(touch));
     spawner.must_spawn(led_task(led_key, led_ug));
 
-    // USB device + report pumps run forever on the main task.
+    // USB device + report pumps + updater channel run forever on this task.
     let usb_fut = usb_dev.run();
     let pump = async {
         loop {
@@ -183,7 +255,34 @@ async fn main(spawner: Spawner) {
             }
         }
     };
-    join(usb_fut, pump).await;
+    let updater = async {
+        let mut buf = [0u8; 32];
+        loop {
+            let Ok(_) = raw_reader.read(&mut buf).await else {
+                continue;
+            };
+            match buf[0] {
+                CMD_VERSION => {
+                    let mut reply = [0u8; 32];
+                    reply[0] = CMD_VERSION;
+                    reply[1] = FW_VERSION.len() as u8;
+                    reply[2..2 + FW_VERSION.len()].copy_from_slice(FW_VERSION.as_bytes());
+                    let _ = raw_writer.write(&reply).await;
+                }
+                CMD_ENTER_DFU if &buf[1..5] == ENTER_DFU_KEY => {
+                    let mut reply = [0u8; 32];
+                    reply[0] = CMD_ENTER_DFU;
+                    reply[1] = 0x01;
+                    let _ = raw_writer.write(&reply).await;
+                    // Let the ack reach the host before dropping off the bus.
+                    Timer::after_millis(50).await;
+                    dfu::reboot_into_bootloader();
+                }
+                _ => {}
+            }
+        }
+    };
+    join3(usb_fut, pump, updater).await;
 }
 
 /// 1 kHz matrix scan with 5 ms debounce + encoder quadrature + buttons.

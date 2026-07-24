@@ -12,10 +12,11 @@ const USAGE: &str = "\
 cohdl — the CoHDL v2 compiler
 
 USAGE:
-    cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]
-    cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                [--emit ipc2581] [--json]
-    cohdl fmt   [PATH] [--check]
+    cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
+    cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
+                 [--emit ipc2581] [--json]
+    cohdl update [PATH] [--dep NAME]
+    cohdl fmt    [PATH] [--check]
     cohdl lsp
 
 PATH is a project directory (with cohdl.toml + src/) or a single .cohdl file;
@@ -23,7 +24,11 @@ defaults to the current directory.
 
     check    parse, resolve, type-check, and run residual DRC
     build    check + assign designators + bind parts + emit KiCad .net + BOM CSV
-    fmt      rewrite every .cohdl file into canonical form (RFC-009)
+    update   re-resolve pinned dependencies and rewrite cohdl.lock (RFC-029);
+             on a pre-RFC-029 manifest, adds the [dependencies] section pinning
+             the newest available std
+    fmt      rewrite every .cohdl file into canonical form (RFC-009); in a
+             project directory, also canonicalizes cohdl.toml's [dependencies]
     lsp      start the Language Server Protocol server on stdio (RFC-014)
 
     --json   emit one JSON document to stdout instead of human-readable text
@@ -33,6 +38,9 @@ defaults to the current directory.
              (<name>.xml, logical-complete/physical-minimal; RFC-015)
     --check  fmt: report drift without rewriting; exit non-zero if any file is
              not already in canonical form
+    --dep    update: re-resolve only the named dependency
+    --std    development override: use DIR verbatim as the std package —
+             emits the mandatory E1105 warning; the result is not reproducible
 ";
 
 struct Args {
@@ -52,6 +60,8 @@ struct Args {
     /// --emit bogus` must say "--emit is not valid with fmt", not suggest a
     /// format that would then be rejected anyway.
     emit: Option<String>,
+    /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
+    dep: Option<String>,
 }
 
 impl Args {
@@ -71,10 +81,39 @@ impl Args {
                 USAGE
             ));
         }
+        if self.dep.is_some() && self.command != "update" {
+            return bad("--dep");
+        }
         match self.command.as_str() {
             "check" => {
                 if self.fmt_check {
                     return bad("--check");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+                if self.emit.is_some() {
+                    return bad("--emit");
+                }
+            }
+            "update" => {
+                if self.json {
+                    return bad("--json");
+                }
+                if self.fmt_check {
+                    return bad("--check");
+                }
+                if self.design.is_some() {
+                    return bad("--design");
+                }
+                // `update` writes lock rows from resolved registry content —
+                // combining it with an override or std-less mode would record
+                // hashes of content no locked build will ever see.
+                if self.std_flag.is_some() {
+                    return bad("--std");
+                }
+                if self.no_std {
+                    return bad("--no-std");
                 }
                 if self.out_dir_given {
                     return bad("--out-dir");
@@ -157,6 +196,7 @@ fn parse_args() -> Result<Args, String> {
         json: false,
         fmt_check: false,
         emit: None,
+        dep: None,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -179,6 +219,9 @@ fn parse_args() -> Result<Args, String> {
                     return Err(format!("`--emit` given more than once\n\n{}", USAGE));
                 }
                 args.emit = Some(argv.next().ok_or("--emit needs a value")?);
+            }
+            "--dep" => {
+                args.dep = Some(argv.next().ok_or("--dep needs a value")?);
             }
             "-h" | "--help" => return Err(USAGE.to_string()),
             other if other.starts_with('-') => {
@@ -338,6 +381,7 @@ fn run(args: &Args) -> Result<bool, String> {
     args.validate()?;
     match args.command.as_str() {
         "check" | "build" => {}
+        "update" => return update_command(args),
         "fmt" => return fmt_command(args),
         "lsp" => {
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
@@ -353,22 +397,55 @@ fn run(args: &Args) -> Result<bool, String> {
         other => return Err(format!("unknown command `{}`\n\n{}", other, USAGE)),
     }
 
-    let std_dir = if args.no_std {
-        None
+    // RFC-029: dependency resolution precedes everything — no `.cohdl` file
+    // is opened against an unverified dependency set. Manifest projects go
+    // through `[dependencies]` + cohdl.lock; single-file targets resolve the
+    // newest available std (nothing to pin against).
+    let (proj, dep_names) = if args.path.is_dir() && args.path.join("cohdl.toml").is_file() {
+        let deps_list = match resolve_manifest_deps(args) {
+            Ok(deps) => deps,
+            Err(DepFailure::Prose(e)) => return Err(e),
+            Err(DepFailure::Diags(diags)) => {
+                if args.json {
+                    print!("{}", emit::json::render_package_failure(&diags));
+                } else {
+                    eprint!("{}", cohdl::deps::render_human(&diags));
+                }
+                return Ok(false);
+            }
+        };
+        let names: Vec<String> = deps_list.iter().map(|(n, _)| n.clone()).collect();
+        (
+            project::load_project_with_deps(&args.path, &deps_list)?,
+            names,
+        )
     } else {
-        let found = project::find_std_dir(args.std_flag.clone());
-        if found.is_none() {
-            return Err(
-                "cannot locate the std library — pass --std <dir>, set COHDL_STD, or use --no-std"
-                    .to_string(),
-            );
-        }
-        found
+        let std_dir = if args.no_std {
+            None
+        } else {
+            warn_if_std_override(args);
+            let found = project::find_std_dir(args.std_flag.clone());
+            if found.is_none() {
+                return Err(
+                    "cannot locate the std library — pass --std <dir>, set COHDL_STD, or use --no-std"
+                        .to_string(),
+                );
+            }
+            found
+        };
+        let names = if std_dir.is_some() {
+            vec!["std".to_string()]
+        } else {
+            Vec::new()
+        };
+        (
+            project::load_project(&args.path, std_dir.as_deref())?,
+            names,
+        )
     };
-
-    let proj = project::load_project(&args.path, std_dir.as_deref())?;
-    let mut checked = pipeline::check_files_in(
+    let mut checked = pipeline::check_files_in_with_deps(
         &proj.name,
+        &dep_names,
         &proj.files,
         args.design.as_deref().or(proj.top.as_deref()),
     )?;
@@ -657,6 +734,249 @@ fn run(args: &Args) -> Result<bool, String> {
     Ok(true)
 }
 
+/// How RFC-029 dependency resolution fails: structured E11xx diagnostics
+/// (rendered human or `--json`, exit 1) or an invocation-level prose error
+/// (exit 2).
+enum DepFailure {
+    Diags(Vec<cohdl::deps::PackageDiag>),
+    Prose(String),
+}
+
+/// The mandatory, unsuppressable E1105 warning when a `--std`/`COHDL_STD`
+/// override is active: the build is not using a locked std and must not be
+/// treated as reproducible. stderr in every mode, by design.
+fn warn_if_std_override(args: &Args) {
+    if let Some(dir) = project::std_override(args.std_flag.clone()) {
+        let warn = cohdl::deps::PackageDiag::warning(
+            "E1105",
+            &dir.display().to_string(),
+            0,
+            "std override active — this build does not use a locked std and is not reproducible"
+                .to_string(),
+        );
+        eprint!("{}", cohdl::deps::render_human(&[warn]));
+    }
+}
+
+/// RFC-029: resolve the manifest's `[dependencies]` against the on-disk
+/// registry and cohdl.lock. Returns the (name, dir) set for
+/// `load_project_with_deps` — std first, then the rest in name order — and
+/// writes first-resolution lock rows.
+fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailure> {
+    use cohdl::deps;
+
+    let (manifest_path, manifest) =
+        project::peek_manifest(&args.path).map_err(DepFailure::Prose)?;
+    let manifest_display = manifest_path.display().to_string();
+    let override_std = project::std_override(args.std_flag.clone());
+
+    // Pre-RFC-029 manifest: no `[dependencies]` at all (tolerated only for
+    // --no-std builds, which have opted out of std entirely).
+    let Some(deps_raw) = &manifest.deps_raw else {
+        if args.no_std {
+            return Ok(Vec::new());
+        }
+        if let Some(dir) = override_std {
+            // A dev override needs no pin — it bypasses the registry.
+            warn_if_std_override(args);
+            return Ok(vec![("std".to_string(), dir)]);
+        }
+        let newest = project::find_std_root()
+            .and_then(|root| deps::newest_version_in(&root))
+            .map(|(v, _)| v.to_string())
+            .unwrap_or_else(|| "X.Y.Z".to_string());
+        return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
+            "E1104",
+            &manifest_display,
+            0,
+            "this project declares no `[dependencies]` — RFC-029 requires an exact std pin"
+                .to_string(),
+        )
+        .with_help(format!(
+            "add:\n           [dependencies]\n           std = \"{newest}\""
+        ))
+        .with_help(
+            "or run `cohdl update` to write it automatically".to_string(),
+        )]));
+    };
+
+    let mut entries =
+        deps::validate_deps(&manifest_display, deps_raw).map_err(DepFailure::Diags)?;
+    // Implicit-std rule: a manifest project that has not opted out (--no-std)
+    // must pin std like any other dependency.
+    if args.no_std {
+        entries.retain(|e| e.name != "std");
+    } else if !entries.iter().any(|e| e.name == "std") && override_std.is_none() {
+        let newest = project::find_std_root()
+            .and_then(|root| deps::newest_version_in(&root))
+            .map(|(v, _)| v.to_string())
+            .unwrap_or_else(|| "X.Y.Z".to_string());
+        return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
+            "E1104",
+            &manifest_display,
+            0,
+            "`[dependencies]` has no `std` entry — every project implicitly depends on std and must pin its exact version"
+                .to_string(),
+        )
+        .with_help(format!(
+            "add `std = \"{newest}\"` under [dependencies], or build with --no-std"
+        ))]));
+    }
+
+    // Dev override: std comes verbatim from the override dir; it is neither
+    // verified against nor recorded in cohdl.lock.
+    let mut resolved_deps: Vec<(String, PathBuf)> = Vec::new();
+    if let Some(dir) = &override_std {
+        warn_if_std_override(args);
+        entries.retain(|e| e.name != "std");
+        resolved_deps.push(("std".to_string(), dir.clone()));
+    }
+
+    let registry = deps::Registry {
+        std_root: project::find_std_root(),
+        project_deps: args.path.join("deps"),
+    };
+    let lock_path = args.path.join("cohdl.lock");
+    let lock_display = lock_path.display().to_string();
+    let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
+
+    let resolution = deps::resolve(
+        &manifest_display,
+        &lock_display,
+        &entries,
+        &registry,
+        prior_lock_text.as_deref(),
+        deps::Update::No,
+    )
+    .map_err(DepFailure::Diags)?;
+
+    // First-resolution rows (and manifest-version changes) are recorded now;
+    // an unchanged lock is left byte-identical. Never through a symlink.
+    if resolution.lock_changed {
+        write_lock_file(&lock_path, &resolution.lock.render()).map_err(DepFailure::Prose)?;
+    }
+
+    // std first (the pipeline's established file order), then name order.
+    let mut rest = resolution.deps;
+    rest.sort_by(|a, b| a.0.cmp(&b.0));
+    resolved_deps.extend(rest);
+    if let Some(pos) = resolved_deps.iter().position(|(n, _)| n == "std") {
+        let std_entry = resolved_deps.remove(pos);
+        resolved_deps.insert(0, std_entry);
+    }
+    Ok(resolved_deps)
+}
+
+/// cohdl.lock writes: symlink-refusing plain overwrite (the lock is CoHDL's
+/// own metadata, same rule as the build manifest).
+fn write_lock_file(path: &std::path::Path, content: &str) -> Result<(), String> {
+    if std::fs::symlink_metadata(path)
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false)
+    {
+        return Err(format!(
+            "refusing to write `{}`: it is a symlink",
+            path.display()
+        ));
+    }
+    std::fs::write(path, content).map_err(|e| format!("cannot write `{}`: {}", path.display(), e))
+}
+
+/// `cohdl update [PATH] [--dep NAME]` (RFC-029): the only sanctioned way a
+/// locked hash changes. Re-resolves every pinned dependency (or one, with
+/// --dep) and rewrites cohdl.lock. On a pre-RFC-029 manifest, performs the
+/// migration: appends `[dependencies]` pinning the newest available std.
+fn update_command(args: &Args) -> Result<bool, String> {
+    use cohdl::deps;
+
+    if !args.path.is_dir() || !args.path.join("cohdl.toml").is_file() {
+        return Err(format!(
+            "`{}` is not a project directory (update needs a cohdl.toml manifest)",
+            args.path.display()
+        ));
+    }
+    let (manifest_path, mut manifest) = project::peek_manifest(&args.path)?;
+    let manifest_display = manifest_path.display().to_string();
+
+    // Migration: no [dependencies] section → write one pinning newest std.
+    if manifest.deps_raw.is_none() {
+        let Some((newest, _)) = project::find_std_root().and_then(|r| deps::newest_version_in(&r))
+        else {
+            return Err(
+                "cannot locate a versioned std library to pin (no std root found)".to_string(),
+            );
+        };
+        let text = std::fs::read_to_string(&manifest_path)
+            .map_err(|e| format!("cannot read `{}`: {}", manifest_display, e))?;
+        let mut new_text = text.clone();
+        if !new_text.ends_with('\n') {
+            new_text.push('\n');
+        }
+        new_text.push_str(&format!("\n[dependencies]\nstd = \"{}\"\n", newest));
+        std::fs::write(&manifest_path, &new_text)
+            .map_err(|e| format!("cannot write `{}`: {}", manifest_display, e))?;
+        eprintln!(
+            "  migrated {}: added [dependencies] std = \"{}\"",
+            manifest_display, newest
+        );
+        let (_, m) = project::peek_manifest(&args.path)?;
+        manifest = m;
+    }
+
+    let deps_raw = manifest.deps_raw.as_ref().expect("migrated above");
+    let entries = match deps::validate_deps(&manifest_display, deps_raw) {
+        Ok(e) => e,
+        Err(diags) => {
+            eprint!("{}", deps::render_human(&diags));
+            return Ok(false);
+        }
+    };
+    if let Some(name) = &args.dep {
+        if !entries.iter().any(|e| &e.name == name) {
+            return Err(format!(
+                "`{}` is not a dependency of this project (see [dependencies] in {})",
+                name, manifest_display
+            ));
+        }
+    }
+
+    let registry = deps::Registry {
+        std_root: project::find_std_root(),
+        project_deps: args.path.join("deps"),
+    };
+    let lock_path = args.path.join("cohdl.lock");
+    let lock_display = lock_path.display().to_string();
+    let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
+    let update = match &args.dep {
+        Some(name) => deps::Update::One(name.clone()),
+        None => deps::Update::All,
+    };
+
+    match deps::resolve(
+        &manifest_display,
+        &lock_display,
+        &entries,
+        &registry,
+        prior_lock_text.as_deref(),
+        update,
+    ) {
+        Ok(resolution) => {
+            if resolution.lock_changed || prior_lock_text.is_none() {
+                write_lock_file(&lock_path, &resolution.lock.render())?;
+            }
+            for (name, entry) in &resolution.lock.entries {
+                eprintln!("  locked {} {} ({})", name, entry.version, entry.hash);
+            }
+            eprintln!("  wrote {}", lock_display);
+            Ok(true)
+        }
+        Err(diags) => {
+            eprint!("{}", deps::render_human(&diags));
+            Ok(false)
+        }
+    }
+}
+
 /// `cohdl fmt` (RFC-009): rewrite every `.cohdl` file at PATH into canonical
 /// form, or with `--check` report drift without touching anything.
 fn fmt_command(args: &Args) -> Result<bool, String> {
@@ -668,6 +988,26 @@ fn fmt_command(args: &Args) -> Result<bool, String> {
         ));
     }
     let mut ok = true;
+
+    // RFC-029: canonicalize the manifest's [dependencies] section (entries
+    // sorted by name, comments kept ahead of them) when formatting a project
+    // directory. cohdl.lock is machine-generated and never touched.
+    let manifest_path = args.path.join("cohdl.toml");
+    if args.path.is_dir() && manifest_path.is_file() {
+        let name = manifest_path.display().to_string();
+        let original = std::fs::read_to_string(&manifest_path)
+            .map_err(|e| format!("cannot read `{}`: {}", name, e))?;
+        if let Some(formatted) = fmt_manifest_deps(&original) {
+            if args.fmt_check {
+                eprintln!("would reformat {}", name);
+                ok = false;
+            } else {
+                std::fs::write(&manifest_path, formatted)
+                    .map_err(|e| format!("cannot write `{}`: {}", name, e))?;
+                eprintln!("formatted {}", name);
+            }
+        }
+    }
     for path in files {
         let name = path.display().to_string();
         let original =
@@ -699,6 +1039,67 @@ fn fmt_command(args: &Args) -> Result<bool, String> {
         eprintln!("  All files are in canonical form.");
     }
     Ok(ok)
+}
+
+/// RFC-029 canonical form for the manifest's `[dependencies]` section:
+/// comment/blank lines first (original order), then entries sorted by name.
+/// Returns `Some(new_text)` only when the canonical form differs.
+fn fmt_manifest_deps(text: &str) -> Option<String> {
+    let lines: Vec<&str> = text.lines().collect();
+    let start = lines
+        .iter()
+        .position(|l| l.trim() == "[dependencies]")?
+        .checked_add(1)?;
+    let end = lines[start..]
+        .iter()
+        .position(|l| l.trim().starts_with('['))
+        .map(|off| start + off)
+        .unwrap_or(lines.len());
+
+    let body = &lines[start..end];
+    let mut head: Vec<&str> = Vec::new(); // comments, in original order
+    let mut entries: Vec<(String, String)> = Vec::new();
+    let mut trailing_blanks = 0usize;
+    for l in body {
+        let t = l.trim();
+        if t.is_empty() {
+            trailing_blanks += 1;
+            continue;
+        }
+        trailing_blanks = 0;
+        if t.starts_with('#') {
+            head.push(l);
+        } else if let Some((k, v)) = t.split_once('=') {
+            entries.push((k.trim().to_string(), v.trim().to_string()));
+        } else {
+            return None; // not a shape fmt understands — leave the file alone
+        }
+    }
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let mut canonical: Vec<String> = Vec::new();
+    for c in &head {
+        canonical.push(c.to_string());
+    }
+    for (k, v) in &entries {
+        canonical.push(format!("{} = {}", k, v));
+    }
+    for _ in 0..trailing_blanks {
+        canonical.push(String::new());
+    }
+
+    let current: Vec<String> = body.iter().map(|l| l.to_string()).collect();
+    if canonical == current {
+        return None;
+    }
+    let mut out: Vec<String> = lines[..start].iter().map(|l| l.to_string()).collect();
+    out.extend(canonical);
+    out.extend(lines[end..].iter().map(|l| l.to_string()));
+    let mut joined = out.join("\n");
+    if text.ends_with('\n') {
+        joined.push('\n');
+    }
+    Some(joined)
 }
 
 /// Every `.cohdl` file at `path`: the file itself if it is one, else every

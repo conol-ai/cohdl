@@ -2141,3 +2141,44 @@ same fixed-pin/ADC constraints). Effect vs the original arbitrary layout:
 signal-net wire demand 4148 -> 2916 mm (-30%); the right-edge spot was lower
 total (2667) but its 51mm USB pair was the wrong trade for the one net where
 length matters. 0 different-net same-layer pad overlaps; bijection preserved.
+
+## RFC-029 implementation judgments (2026-07-24)
+
+RFC-029 (package dependency versioning) implemented as accepted: exact-only
+`[dependencies]`, `cohdl.lock` with sha256 content hashes verified on every
+run, std restructured into an ordinary versioned package. Layout on disk:
+`std/<X.Y.Z>/` where each version dir is a full package — `cohdl.toml`
+(`[package] name`/`version`, verified against the resolution, E1106) plus
+`src/*.cohdl` — exactly the shape every other package and project uses (per
+Tony's direction: std is not special). Scoped judgments, each within the
+RFC's stated scope or a disclosed deviation:
+
+1. **Registry roots** (RFC assumes "packages available on disk", hosting out
+   of scope): resolution searches `<project>/deps/<name>/<ver>/` first, then
+   `<registry>/<name>/<ver>/` where the registry root is the directory
+   containing the discovered `std/`. std itself resolves to
+   `<std_root>/<ver>/`.
+2. **`cohdl update [PATH] [--dep NAME]`** vs the RFC's `cohdl update <name>`
+   surface: the positional slot keeps the CLI-wide PATH convention (a bare
+   name would be ambiguous against a path); `--dep` carries the package name.
+3. **Migration** is the `update` command, not an interactive build-time
+   offer (the CLI is non-interactive by design): `build`/`check` on a
+   pre-RFC-029 manifest is a hard E1104 whose help names `cohdl update`,
+   and `update` performs the append + first lock write automatically.
+4. **First-resolution lock rows are written by `check` as well as `build`**
+   — the RFC's gradeability section puts the mechanism at project load,
+   before any parsing, which both commands share; a check that verified
+   nothing on a fresh checkout would be a weaker ladder rung.
+5. **E1105 is stderr prose in every mode**, never inside a `--json`
+   diagnostics array (deviation from the Tooling section's blanket "codes
+   ride the JsonDiag shape"; mirrors E000's documented classification —
+   suppressing it from machine output would invite treating an overridden
+   build as reproducible). The E11xx *errors* do ride the array.
+6. **Unpinned targets** (single `.cohdl` files, the LSP's overlay analysis)
+   resolve the newest version under the std root — they have no manifest to
+   pin with and are outside the RFC's package scope; documented, not locked.
+7. **Hash recipe**: sha256 over every regular file in the package dir
+   (dotfiles excluded), sorted by `/`-normalized relative path, each file
+   contributing `path NUL len NUL bytes` — a superset of the RFC's ".cohdl
+   files, doc documents, footprint symbols" enumeration (the whole package
+   is the identity, manifest included).

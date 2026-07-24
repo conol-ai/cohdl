@@ -87,7 +87,7 @@ def run_build(compiler: pathlib.Path, project_dir: pathlib.Path) -> dict:
     back; `build` (on pass) names the emitted artifacts.
     """
     proc = subprocess.run(
-        [str(compiler), "build", str(project_dir), "--std", str(REPO_ROOT / "std"), "--json"],
+        [str(compiler), "build", str(project_dir),  "--json"],
         capture_output=True,
         text=True,
     )

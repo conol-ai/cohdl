@@ -28,6 +28,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E8xx | Designators & parts (RFC-005) |
 | E9xx | Structural variants (RFC-008) |
 | E10xx | Layout constraints (RFC-013) |
+| E11xx | Package resolution (RFC-029) — manifest `[dependencies]` + cohdl.lock, pre-pipeline |
 | D00x | Residual DRC (RFC-004) — exactly four, never more |
 
 **Enforcement**: `tests/error_registry.rs` runs the RFC-011 completeness check
@@ -189,6 +190,27 @@ vocabulary — never a connectivity/DRC check, never affecting the netlist bytes
 | E1007 | invalid `place <inst> at (x, y) [rotate ANGLE]` (RFC-020): the named instance does not exist among the design's own top-level instances, a coordinate is not a `Length`/`mm` value or is out of geometry range, `rotate` is not one of the closed set {0, 90, 180, 270}, the instance is placed more than once, or the `place` appears inside a called `fn`. (Placing an instance declared inside a called `fn` is a disclosed, deferred gap — RFC-020 Non-goals.) E10xx family |
 | E1008 | invalid placement side (RFC-026) — `place … side SIDE` with `SIDE` outside the closed set `{top, bottom}`. `side` defaults to `top` when omitted; it is a whole-component placement fact, independent of (and never implemented via) RFC-018's per-pad `layer`. E10xx family |
 | E1009 | invalid physics-constraint attribute (RFC-027) — a `#[ground]`/`#[high_current]`/`#[impedance]`/`#[bypass]`/`#[crystal_oscillator]`/`#[switching_converter]`/`#[bga_fanout]` attribute is malformed or misplaced: attached to the wrong declaration kind (the first three are net-only, the rest inst-only, none valid elsewhere), duplicated on one declaration or one merged net, an unknown/duplicate argument name, a missing required argument (`switching_converter`'s `inductor:`), a ground kind outside `{primary, secondary}`, more than one `#[ground(primary)]` net per design, a reference to a non-existent instance or pin, a crystal signal pin mapping to more than one pad, an array-typed instance target, or a malformed `diff_pair` physics bracket (unknown/duplicate field). Unit-type mismatches on numeric arguments are E110 (unit system, per RFC-011's organizing principle), a documented deviation from RFC-027's literal E10xx reservation — see docs/compliance-report.md. E10xx family |
+
+## E11xx — package resolution (RFC-029)
+
+Enforced at project load, before any `.cohdl` file is opened: an invalid
+dependency declaration, an unresolvable version, or a locked-hash mismatch
+gates the whole pipeline. These diagnostics anchor to `cohdl.toml`/`cohdl.lock`
+lines rather than source spans (nothing has been parsed yet); in `--json` mode
+they ride the ordinary diagnostics array with a whole-line location (col 1).
+E1105 is CLI prose on stderr in every mode — deliberately unsuppressable,
+never part of a `--json` diagnostics array (documented deviation, mirroring
+E000's classification).
+
+| Code | Meaning |
+|---|---|
+| E1101 | invalid `[dependencies]` entry — a version range (`^`, `~`, `>=`, `<`, `*`, `,`), a malformed or non-canonical version (leading zeros), an invalid dependency name, or a duplicate entry. CoHDL requires exact `X.Y.Z` versions permanently (RFC-029: hardware has no "safe patch" assumption); the help suggests the nearest exact version when one is discoverable |
+| E1102 | unresolvable dependency — the named exact version does not exist on disk (the help lists every searched location: `<project>/deps/<name>/<ver>`, then the registry root) |
+| E1103 | locked-hash mismatch — the resolved package content re-hashes differently from its `cohdl.lock` row. The load-bearing RFC-029 guarantee: a version number is a human label; the hash is the identity. Hard error, never a warning; names both hashes |
+| E1104 | pre-RFC-029 manifest — no `[dependencies]` section (or no `std` pin without `--no-std`). The help carries the exact section to add and names `cohdl update` as the automatic migration |
+| E1105 | (warning, CLI prose) std override active — `--std`/`COHDL_STD` bypasses the locked std; the build is not reproducible. Mandatory and unsuppressable on every affected run |
+| E1106 | dependency identity mismatch — the package's own `cohdl.toml` declares a different name/version than it was resolved as |
+| E1107 | unparseable `cohdl.lock` — machine-generated file corrupted or hand-edited; the help says to restore it from version control or delete and re-resolve |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

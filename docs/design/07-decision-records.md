@@ -908,9 +908,45 @@ Option 1 was rejected: real, disproportionate cost — discarding a reusable sub
 
 If a genuine need emerges for #[ground]/#[high_current]/#[impedance] to reference something other than an already-resolvable net name — revisit then, as a separately-scoped question; no such gap is known today. Also revisit if a future RFC-027-style attribute is proposed whose target argument shape isn't a bare pin/instance reference — that attribute's fn-body-resolution story (if any) would need its own design, not an assumed extension of this RFC.
 
+# DR-035: Package dependency versioning — exact versions + content-hash lockfile, no semver ranges, std becomes an ordinary versioned package
+
+## Context
+
+Tony directed: per the essence of hardware, version control must be very strict, so std should be a versioned library in the registry. Confirmed against real source (src/project.rs's parse_manifest): a cohdl.toml manifest has no [dependencies] section at all, and its version key is parsed and immediately discarded ("tolerated: version, future fields"). No dependency-resolution code path exists anywhere (grep for dependenc/[deps]/package-resolution in src/project.rs/src/resolve.rs returns nothing). std itself is not a named, versioned dependency — it is located by find_std_dir, a hardcoded search (--std flag / COHDL_STD env / path next to the compiler binary / cwd), meaning the same source file can silently resolve against a different std on a different machine or a different day, with zero record of which. This is a real, three-times-already-disclosed gap: RFC-016's Non-goals ("Not designing the library registry's distribution/versioning/publishing mechanics — that's RFC-017"), RFC-017's Non-goals ("Not... versioning/yanking policy... future work, likely their own RFC once real libraries exist to distribute"), and DR-024's Consequences ("No versioning/pinning mechanism for copad references — a cofp always resolves to whatever the referenced copad currently is... mirroring the same absence of version pinning at every other use-based resolution point in the language today").
+
+## Options
+
+1. Adopt semantic-version ranges (^1.2, ~1.2.3), the mainstream software-registry default (npm/cargo), letting a build auto-resolve within a stated range.
+2. Exact-version-only [dependencies] entries (name = "X.Y.Z", no range operators valid grammar) plus a cohdl.lock recording each resolved dependency's exact version AND a content hash, checked against re-hashed content on every build — mirroring RFC-005's design.lock discipline exactly; std retired as a find_std_dir singleton and made an ordinary (implicitly-depended-upon-by-default) versioned package under this same mechanism (RFC-029's proposal).
+3. Version numbers only, no content hash — trust the semver string alone as sufficient identity.
+4. A build-time vendoring/caching mechanism (copy dependency source into the consuming project) instead of a lockfile+hash.
+5. Trust git commit SHAs alone as the version identity, dropping semver entirely.
+6. Version only third-party registry packages; leave std resolved by find_std_dir as a permanent special case.
+
+## Decision
+
+Option 2. [dependencies] is a new manifest section; every entry must be an exact semver triple — no range operators (^, ~, >=, <, *, ,) are valid grammar, ever, as a permanent language rule. cohdl.lock (TOML, one [[package]] table per dependency, parallel in shape to design.lock) records each dependency's resolved exact version and a content hash (over its full package content: .cohdl source, #[doc(...)]-referenced documents, footprint symbols). Every build re-hashes the resolved content and compares against the locked hash — a mismatch is a hard compile error naming the package and both hashes, never a silent proceed. Updating a pin is a deliberate act (cohdl update ) — never automatic, never triggered by an ordinary build. std becomes an ordinary versioned package under this exact mechanism: every project implicitly depends on some pinned std version (no discovery step needed, mirroring Rust's std/no_std precedent), closing find_std_dir's ambiguity directly. --std/COHDL_STD survive only as visibly, unsuppressably warned local development overrides, never a silent substitute for the locked resolution.
+
+## Rationale
+
+Option 1 (semver ranges) was rejected outright, not merely deferred: software's implicit "a minor/patch bump is safe to auto-adopt" assumption is actively false for hardware — a "patch" fix to a footprint's pad geometry moves real copper, and a design once sent to fab cannot be hotfixed the way a running software service can. Auto-resolving within a range is precisely the silent-drift mechanism Tony's directive identifies as categorically unacceptable, and is the same failure class DR-024 already disclosed. Option 3 (version number alone) was rejected: a semver string is a human-chosen label, not a cryptographic guarantee — nothing stops a publisher from serving different content under an already-used version string, accidentally or maliciously; the hash is what makes "locked to 2.4.1" mean one immutable byte sequence. Option 4 (vendoring) was rejected: it duplicates content across every consuming project and still needs a hash-equivalent integrity check to be trustworthy, so it doesn't remove the mechanism this RFC proposes, it just adds a copy step on top. Option 5 (SHA-only) was rejected as sole identity: a bare commit SHA discards the human-readable "this is a minor bump" signal a semver number gives a reviewer skimming a diff — this RFC uses both, semver for legibility and hash for the actual guarantee, mirroring RFC-005's own "readable label (C3) + checked-unique allocation" pattern. Option 6 (std as a permanent exception) was rejected: std is the single highest-consequence dependency in every project (every design touches it) and is exactly the case Tony's directive named directly — carving it out would leave the worst instance of the problem unsolved while fixing only the easier, less-used case.
+
+## Consequences
+
+- No new core language concept — extends Package (RFC-016's already-Accepted concept) with a version identity and lock record, the same kind of extension RFC-002 made to Pin (adding an obligation kind) rather than inventing something orthogonal.
+- Real, disclosed, mechanical breaking change: every existing project needs a real [dependencies] section (naming the std version currently effectively in use) and a generated cohdl.lock — cohdl build should detect the pre-RFC-029 state and offer to perform this migration automatically.
+- New pipeline stage, gating everything else: manifest/lock verification happens before any .cohdl file is even opened — a hash mismatch or invalid-range-syntax error blocks compilation entirely, never degrading to a warning.
+- find_std_dir's --std/COHDL_STD paths survive only as visibly-warned development overrides — real, honest disclosure that this override exists and is not silently equivalent to the locked path.
+- New CLI surface (cohdl update) is the only sanctioned way a locked hash changes; this is a real, deliberate friction point, not an oversight — the whole point is that dependency upgrades are visible, reviewable acts.
+- Two projects pinning different std versions and later being compared will show a real, visible cohdl.lock diff — intended behavior (the difference made visible), not a bug to smooth over.
+
+## Revisit when
+
+If real registry hosting (a package index, cohdl publish, yanking policy) is scoped — that remains separate, not-yet-proposed future work this RFC does not touch, per RFC-016/017's own precedent of deferring hosting mechanics. Also revisit if real multi-library usage reveals the exact-version-only rule creates unworkable dependency-conflict pain (e.g. two dependencies requiring genuinely incompatible exact versions of a shared transitive dependency) — that would need its own scoped design (possibly limited, explicitly-opt-in range support for a narrow, clearly-justified case), not a silent reintroduction of general semver ranges.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-028 is fully recorded above.)
+(none — the backlog through RFC-029 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

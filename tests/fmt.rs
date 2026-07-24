@@ -33,7 +33,7 @@ fn repo_cohdl_files() -> Vec<(String, String)> {
             }
         }
     }
-    walk(&manifest().join("std"), &mut out);
+    walk(&manifest().join("std/0.1.0"), &mut out);
     walk(&manifest().join("examples"), &mut out);
     out
 }
@@ -107,7 +107,7 @@ fn example_dirs() -> Vec<PathBuf> {
 
 #[test]
 fn formatting_is_semantically_inert() {
-    let std_dir = manifest().join("std");
+    let std_dir = manifest().join("std/0.1.0");
     for ex in example_dirs() {
         // std + this example's own sources — one design per project.
         let proj = cohdl::project::load_project(&ex, Some(&std_dir)).unwrap();

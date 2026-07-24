@@ -1,5 +1,9 @@
 [package]
 name = "openmicro"
+version = "0.1.0"
 
 [design]
 top = "OpenMicro"
+
+[dependencies]
+std = "0.1.0"

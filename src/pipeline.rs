@@ -59,13 +59,17 @@ pub fn package_root(name: &str) -> String {
 /// if every segment that becomes a module-path component is spellable. Only
 /// files nested in a subdirectory contribute segments (a file directly under
 /// `src/` lives at the package root, so its own name is never a segment).
-fn unspellable_module_segment(display: &str) -> Option<(String, &'static str)> {
+fn unspellable_module_segment(display: &str, deps: &[String]) -> Option<(String, &'static str)> {
     let d = display.replace('\\', "/");
-    // Both a project (`src/…`) and a supplied std tree (`std/…`) contribute
-    // module segments; a keyword/non-identifier segment in either is
-    // unspellable (review R6-4 extends this to std). Loose files (neither
+    // A project (`src/…`) and every dependency package tree (`<name>/…`,
+    // std included — RFC-029 makes std an ordinary package) contribute
+    // module segments; a keyword/non-identifier segment in any of them is
+    // unspellable (review R6-4 extends this to std). Loose files (no known
     // prefix) live at the package root with no segments.
-    let rel = d.strip_prefix("src/").or_else(|| d.strip_prefix("std/"))?;
+    let rel = d.strip_prefix("src/").or_else(|| {
+        deps.iter()
+            .find_map(|dep| d.strip_prefix(&format!("{dep}/")))
+    })?;
     let parts: Vec<&str> = rel.split('/').filter(|s| !s.is_empty()).collect();
     if parts.len() <= 1 {
         return None; // directly under src/: no module segment
@@ -90,13 +94,17 @@ fn unspellable_module_segment(display: &str) -> Option<(String, &'static str)> {
 /// the project package (directories + file stem become segments — files
 /// directly under `src/` live at the package root); anything else (loose
 /// files, test fixtures) is the package root.
-fn infer_module(package: &str, display: &str) -> crate::resolve::ModuleInfo {
+fn infer_module(package: &str, deps: &[String], display: &str) -> crate::resolve::ModuleInfo {
     let d = display.replace('\\', "/");
-    let (root, rel) = if d == "std" || d.starts_with("std/") {
-        (
-            "std".to_string(),
-            d.strip_prefix("std/").unwrap_or("").to_string(),
-        )
+    let dep_hit = deps.iter().find_map(|dep| {
+        if d == *dep {
+            Some((dep, ""))
+        } else {
+            d.strip_prefix(&format!("{dep}/")).map(|rel| (dep, rel))
+        }
+    });
+    let (root, rel) = if let Some((dep, rel)) = dep_hit {
+        (package_root(dep), rel.to_string())
     } else if let Some(rel) = d.strip_prefix("src/") {
         (package.to_string(), rel.to_string())
     } else {
@@ -129,6 +137,18 @@ pub fn check_files_in(
     files: &[(String, String)],
     design: Option<&str>,
 ) -> Result<Checked, String> {
+    check_files_in_with_deps(package, &["std".to_string()], files, design)
+}
+
+/// RFC-029: the general form — the compile's package set is explicit:
+/// `package` plus every resolved dependency name in `deps`. Files displayed
+/// under `<dep>/…` form that dependency's package (std is just one of them).
+pub fn check_files_in_with_deps(
+    package: &str,
+    deps: &[String],
+    files: &[(String, String)],
+    design: Option<&str>,
+) -> Result<Checked, String> {
     let root = package_root(package);
     // The projected package root is itself a qualified-path segment (RFC-016
     // permits fully-qualified intra-package references), so it must be a
@@ -154,8 +174,10 @@ pub fn check_files_in(
         // owned std file that happens to load first (review R7-4). Anchor it
         // to the first non-`std/` source so the CLI/LSP surface it on the file
         // the author can actually fix.
-        let is_std = name == "std" || name.starts_with("std/");
-        if !root_error_emitted && !is_std {
+        let is_dep = deps
+            .iter()
+            .any(|dep| name == dep || name.starts_with(&format!("{dep}/")));
+        if !root_error_emitted && !is_dep {
             root_error_emitted = true;
             if let Some(why) = root_unspellable {
                 diags.push(crate::diag::Diagnostic::error(
@@ -173,7 +195,7 @@ pub fn check_files_in(
         // identifier — otherwise the declarations under it are indexed at an
         // identity no source can reference (`src/device/x.cohdl`,
         // `src/power-supply/x.cohdl`). Diagnose it against the file's start.
-        if let Some((seg, why)) = unspellable_module_segment(name) {
+        if let Some((seg, why)) = unspellable_module_segment(name, deps) {
             diags.push(crate::diag::Diagnostic::error(
                 "E210",
                 crate::span::Span::new(file_id, 0, if content.is_empty() { 0 } else { 1 }),
@@ -185,7 +207,7 @@ pub fn check_files_in(
         }
         let tokens = crate::lex::lex(file_id, sm.text(file_id), &mut diags);
         parsed.push(crate::parse::parse(tokens, &mut diags));
-        modules.push(infer_module(&root, name));
+        modules.push(infer_module(&root, deps, name));
     }
     let world = crate::check::check_declarations_in(parsed, &modules, &mut diags);
 

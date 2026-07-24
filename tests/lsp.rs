@@ -29,7 +29,7 @@ struct Lsp {
 }
 
 fn repo_std() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("std")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("std/0.1.0")
 }
 
 impl Lsp {

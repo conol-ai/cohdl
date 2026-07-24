@@ -22,14 +22,33 @@ pub struct Project {
 /// Load a project from a directory (with `cohdl.toml`) or a single `.cohdl`
 /// file. `std_dir` of `None` means "compile without the std library".
 pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, String> {
+    let deps: Vec<(String, PathBuf)> = std_dir
+        .map(|d| vec![("std".to_string(), d.to_path_buf())])
+        .unwrap_or_default();
+    load_project_with_deps(path, &deps)
+}
+
+/// RFC-029: load a project against an explicit, already-resolved dependency
+/// set — (package name, on-disk dir) pairs, std included (or absent for a
+/// std-less build). Each dependency is an ordinary package (`cohdl.toml` +
+/// `src/`, the same shape as a project; std included) whose files join the
+/// compile under its package name as the module root (RFC-016). A bare
+/// directory of `.cohdl` files is accepted too — the `--std` dev-override
+/// escape hatch.
+pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result<Project, String> {
     let mut files = Vec::new();
     let mut abs_paths = Vec::new();
-    if let Some(std_dir) = std_dir {
-        collect_cohdl_files(std_dir, std_dir, "std", &mut files, &mut abs_paths)?;
-        if files.is_empty() {
+    for (name, dir) in deps {
+        ensure_package_dir(dir, name)?;
+        let src = dir.join("src");
+        let content_dir = if src.is_dir() { src } else { dir.clone() };
+        let before = files.len();
+        collect_cohdl_files(&content_dir, &content_dir, name, &mut files, &mut abs_paths)?;
+        if files.len() == before {
             return Err(format!(
-                "std library directory `{}` contains no .cohdl files",
-                std_dir.display()
+                "dependency `{}` package `{}` contains no .cohdl files",
+                name,
+                dir.display()
             ));
         }
     }
@@ -73,6 +92,13 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
     reject_std_package(&manifest.name)?;
     valid_package_name(&manifest.name)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    if let Some((dep, _)) = deps.iter().find(|(n, _)| *n == manifest.name) {
+        return Err(format!(
+            "{}: package name `{}` collides with a dependency of the same name",
+            manifest_path.display(),
+            dep
+        ));
+    }
 
     let src_dir = path.join("src");
     if !src_dir.is_dir() {
@@ -185,9 +211,32 @@ pub fn valid_package_name(name: &str) -> Result<(), String> {
     }
 }
 
-struct Manifest {
-    name: String,
-    top: Option<String>,
+/// The parsed `cohdl.toml`. RFC-029: `[package] version` and the
+/// `[dependencies]` section are now real; `deps_raw` is `None` when the
+/// manifest carries no `[dependencies]` section at all (the pre-RFC-029
+/// state the CLI's migration path detects), `Some(entries)` otherwise —
+/// `(name, raw version string, 1-based line)`, validated by
+/// `deps::validate_deps`.
+pub struct Manifest {
+    pub name: String,
+    pub top: Option<String>,
+    pub version: Option<String>,
+    pub deps_raw: Option<Vec<(String, String, u32)>>,
+}
+
+/// RFC-029: the manifest alone (no source collection) — the CLI resolves
+/// dependencies from this before any `.cohdl` file is opened.
+pub fn peek_manifest(project_dir: &Path) -> Result<(PathBuf, Manifest), String> {
+    let manifest_path = project_dir.join("cohdl.toml");
+    let text = fs::read_to_string(&manifest_path).map_err(|_| {
+        format!(
+            "no `cohdl.toml` found in `{}` (a project directory needs a manifest; or pass a single .cohdl file)",
+            project_dir.display()
+        )
+    })?;
+    let manifest =
+        parse_manifest(&text).map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    Ok((manifest_path, manifest))
 }
 
 /// Minimal TOML subset: `[section]` headers and `key = "value"` pairs.
@@ -195,6 +244,8 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
     let mut section = String::new();
     let mut name = None;
     let mut top = None;
+    let mut version = None;
+    let mut deps_raw: Option<Vec<(String, String, u32)>> = None;
     for (lineno, raw) in text.lines().enumerate() {
         let line = raw.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -202,6 +253,9 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
         }
         if let Some(s) = line.strip_prefix('[').and_then(|l| l.strip_suffix(']')) {
             section = s.trim().to_string();
+            if section == "dependencies" && deps_raw.is_none() {
+                deps_raw = Some(Vec::new());
+            }
             continue;
         }
         let Some((key, value)) = line.split_once('=') else {
@@ -216,39 +270,90 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
             .to_string();
         match (section.as_str(), key) {
             ("package", "name") => name = Some(value),
+            ("package", "version") => version = Some(value),
             ("design", "top") => top = Some(value),
-            _ => {} // tolerated: version, future fields
+            ("dependencies", dep) => deps_raw
+                .as_mut()
+                .expect("[dependencies] header seen")
+                .push((dep.to_string(), value, lineno as u32 + 1)),
+            _ => {} // tolerated: future fields
         }
     }
     Ok(Manifest {
         name: name.ok_or("missing `[package] name`")?,
         top,
+        version,
+        deps_raw,
     })
 }
 
-/// Locate the std library: `--std` flag > `COHDL_STD` env > `std/` next to
-/// the executable's repo root (dev builds) > `std/` in the current directory.
-pub fn find_std_dir(flag: Option<PathBuf>) -> Option<PathBuf> {
+/// RFC-029: refuse a dependency dir that is actually a *versioned root*
+/// (version subdirectories, neither a `src/` nor `.cohdl` files of its own)
+/// — recursing into one would silently merge every version of the package
+/// into the compile.
+fn ensure_package_dir(dir: &Path, name: &str) -> Result<(), String> {
+    if dir.join("src").is_dir() {
+        return Ok(()); // ordinary package shape (cohdl.toml + src/)
+    }
+    let has_top_level_cohdl = fs::read_dir(dir)
+        .map(|entries| {
+            entries
+                .filter_map(|e| e.ok())
+                .any(|e| e.path().extension().is_some_and(|x| x == "cohdl"))
+        })
+        .unwrap_or(false);
+    if !has_top_level_cohdl {
+        if let Some((newest, _)) = crate::deps::newest_version_in(dir) {
+            return Err(format!(
+                "`{}` is a versioned package root, not a package — pass a specific version directory (e.g. `{}`)",
+                dir.display(),
+                dir.join(newest.to_string()).display()
+            ));
+        }
+    }
+    let _ = name;
+    Ok(())
+}
+
+/// RFC-029: the `--std`/`COHDL_STD` *development override* — when present,
+/// the returned dir is used verbatim as the std package (bypassing the
+/// versioned registry), and the CLI emits the mandatory, unsuppressable
+/// E1105 warning: the result is not reproducible.
+pub fn std_override(flag: Option<PathBuf>) -> Option<PathBuf> {
     if let Some(p) = flag {
         return Some(p);
     }
-    if let Ok(p) = std::env::var("COHDL_STD") {
-        return Some(PathBuf::from(p));
-    }
+    std::env::var("COHDL_STD").ok().map(PathBuf::from)
+}
+
+/// RFC-029: locate the *versioned* std root — a `std/` directory containing
+/// `X.Y.Z/` version subdirectories. Searched next to the executable's repo
+/// root (dev builds), then in the current directory. Version *selection*
+/// comes from the manifest's `[dependencies]` pin (or newest-available for
+/// unpinned targets), never from this function.
+pub fn find_std_root() -> Option<PathBuf> {
     if let Ok(exe) = std::env::current_exe() {
         // target/{debug,release}/cohdl → repo root's std/.
         for ancestor in exe.ancestors().skip(1) {
             let candidate = ancestor.join("std");
-            if candidate.join("prelude.cohdl").is_file()
-                || (candidate.is_dir() && ancestor.join("Cargo.toml").is_file())
-            {
+            if crate::deps::newest_version_in(&candidate).is_some() {
                 return Some(candidate);
             }
         }
     }
     let cwd_std = PathBuf::from("std");
-    if cwd_std.is_dir() {
+    if crate::deps::newest_version_in(&cwd_std).is_some() {
         return Some(cwd_std);
     }
     None
+}
+
+/// The unpinned std resolution: override verbatim, else the newest version
+/// under the discovered root. This is the rule for targets with no manifest
+/// to pin against — single-file checks and the LSP's overlay analysis.
+pub fn find_std_dir(flag: Option<PathBuf>) -> Option<PathBuf> {
+    if let Some(p) = std_override(flag) {
+        return Some(p);
+    }
+    find_std_root().and_then(|root| crate::deps::newest_version_in(&root).map(|(_, dir)| dir))
 }

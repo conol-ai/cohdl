@@ -245,7 +245,7 @@ fn command_specific_flags_are_validated() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("fmt"));
 
     let out = cohdl()
-        .args(["fmt", root.join("std").to_str().unwrap(), "--json"])
+        .args(["fmt", root.join("std/0.1.0").to_str().unwrap(), "--json"])
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2), "--json rejected on fmt");

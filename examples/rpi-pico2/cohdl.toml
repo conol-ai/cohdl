@@ -1,5 +1,9 @@
 [package]
 name = "rpi-pico2"
+version = "0.1.0"
 
 [design]
 top = "Pico2"
+
+[dependencies]
+std = "0.1.0"

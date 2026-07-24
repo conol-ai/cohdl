@@ -180,6 +180,51 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
     out
 }
 
+/// RFC-029: render a `--json` document for a package-resolution failure —
+/// the same schema shape (schema_version / verdict / diagnostics), built
+/// from pre-source `PackageDiag`s (manifest/lock file + line, no span; the
+/// location degrades to a whole-line anchor at column 1).
+pub fn render_package_failure(diags: &[crate::deps::PackageDiag]) -> String {
+    let model: Vec<JsonDiag> = diags
+        .iter()
+        .map(|d| JsonDiag {
+            code: d.code,
+            severity: if d.severity == "warning" {
+                "warning"
+            } else {
+                "error"
+            },
+            message: d.message.clone(),
+            primary: JsonLoc {
+                file: d.file.clone(),
+                start_line: d.line.max(1),
+                start_col: 1,
+                end_line: d.line.max(1),
+                end_col: 1,
+                message: String::new(),
+            },
+            secondary: Vec::new(),
+            help: d.help.clone(),
+        })
+        .collect();
+    let mut out = String::new();
+    out.push_str("{\n");
+    let _ = writeln!(out, "  \"schema_version\": {},", SCHEMA_VERSION);
+    out.push_str("  \"verdict\": \"fail\",\n");
+    if model.is_empty() {
+        out.push_str("  \"diagnostics\": []");
+    } else {
+        out.push_str("  \"diagnostics\": [\n");
+        for (i, d) in model.iter().enumerate() {
+            write_diag(&mut out, d);
+            out.push_str(if i + 1 < model.len() { ",\n" } else { "\n" });
+        }
+        out.push_str("  ]");
+    }
+    out.push_str("\n}\n");
+    out
+}
+
 fn write_diag(out: &mut String, d: &JsonDiag) {
     out.push_str("    {\n");
     let _ = writeln!(out, "      \"code\": {},", json_str(d.code));

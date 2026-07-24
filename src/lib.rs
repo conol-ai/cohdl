@@ -5,11 +5,13 @@
 
 pub mod ast;
 pub mod check;
+pub mod deps;
 pub mod diag;
 pub mod drc;
 pub mod dxf;
 pub mod emit;
 pub mod fmt;
+pub mod hash;
 pub mod ir;
 pub mod lex;
 pub mod lock;

@@ -212,7 +212,14 @@ fn strip_comments(text: &str) -> String {
 fn call_sites_in(text: &str) -> BTreeSet<String> {
     let text = strip_comments(text);
     let mut codes = BTreeSet::new();
-    for kw in ["Diagnostic::error(", "Diagnostic::warning("] {
+    for kw in [
+        "Diagnostic::error(",
+        "Diagnostic::warning(",
+        // RFC-029 package-resolution diagnostics: real constructor call
+        // sites, pre-pipeline (no SourceMap span, so a distinct type).
+        "PackageDiag::error(",
+        "PackageDiag::warning(",
+    ] {
         let mut from = 0;
         while let Some(pos) = text[from..].find(kw) {
             let after = from + pos + kw.len();

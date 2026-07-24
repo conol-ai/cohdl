@@ -4,6 +4,10 @@
   "name": "cohdl-registry",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-07-01",
+  // Dashboard-assigned variables (RECAPTCHA_SITE_KEY) must survive CLI/CI
+  // deploys — without this, wrangler deploy deletes plaintext vars it
+  // doesn't know about (secrets always survive).
+  "keep_vars": true,
   "assets": {
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/packages/*", "/api/*", "/login"]

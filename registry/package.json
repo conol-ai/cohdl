@@ -11,7 +11,8 @@
     "lint": "oxlint src test",
     "typecheck": "tsc --noEmit",
     "deploy": "npm run build && wrangler deploy",
-    "db:init": "wrangler d1 execute cohdl-registry --file=./schema.sql"
+    "db:init": "wrangler d1 execute cohdl-registry --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute cohdl-registry --local --file=./schema.sql"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",

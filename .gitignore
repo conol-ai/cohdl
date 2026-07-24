@@ -23,3 +23,10 @@ examples/*/out/.history/
 /examples/openmicro/app/target
 /registry/node_modules
 /registry/dist
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

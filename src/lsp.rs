@@ -177,6 +177,7 @@ fn is_request_method(method: &str) -> bool {
             | "textDocument/hover"
             | "textDocument/definition"
             | "textDocument/references"
+            | "textDocument/completion"
     )
 }
 
@@ -358,6 +359,7 @@ impl Server {
                             "hoverProvider": true,
                             "definitionProvider": true,
                             "referencesProvider": true,
+                            "completionProvider": { "triggerCharacters": [".", "::", "#", "[", "(", " "] },
                         },
                         "serverInfo": { "name": "cohdl-lsp", "version": env!("CARGO_PKG_VERSION") },
                     }),
@@ -438,6 +440,10 @@ impl Server {
                     id?,
                     serde_json::to_value(locs).unwrap_or(Value::Null),
                 ))
+            }
+            "textDocument/completion" => {
+                let result = self.completion(&params);
+                Some(respond(id?, result))
             }
             _ => {
                 // Unknown REQUESTS get MethodNotFound; notifications ignored.
@@ -873,6 +879,60 @@ impl Server {
             }
         }
         locs
+    }
+
+    fn completion(&self, params: &Value) -> Value {
+        let Some((uri, _, _)) = position_params(params) else {
+            return json!({ "isIncomplete": false, "items": [] });
+        };
+        let Some(path) = uri_to_path(uri) else {
+            return json!({ "isIncomplete": false, "items": [] });
+        };
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            return json!({ "isIncomplete": false, "items": [] });
+        };
+        let line = params["position"]["line"].as_u64().unwrap_or(0) as usize;
+        let character = params["position"]["character"].as_u64().unwrap_or(0) as usize;
+        let prefix = text
+            .lines()
+            .nth(line)
+            .unwrap_or_default()
+            .get(..character)
+            .unwrap_or_default()
+            .split_whitespace()
+            .last()
+            .unwrap_or_default()
+            .trim_end_matches(|c: char| !c.is_alphanumeric() && c != '_')
+            .to_string();
+
+        let mut items = Vec::new();
+        for keyword in [
+            "pub", "trait", "device", "impl", "for", "fn", "design", "inst", "net", "nc",
+            "part", "pins", "spec", "required", "optional",
+        ] {
+            if keyword.starts_with(&prefix) || prefix.is_empty() {
+                items.push(json!({
+                    "label": keyword,
+                    "kind": 14,
+                    "detail": "keyword",
+                }));
+            }
+        }
+        if prefix.is_empty() || "device".starts_with(&prefix) {
+            items.push(json!({
+                "label": "device",
+                "kind": 7,
+                "detail": "declaration",
+            }));
+        }
+        if prefix.is_empty() || "trait".starts_with(&prefix) {
+            items.push(json!({
+                "label": "trait",
+                "kind": 7,
+                "detail": "declaration",
+            }));
+        }
+        json!({ "isIncomplete": false, "items": items })
     }
 
     /// The URI to publish under for `fid`: the CLIENT's own spelling when

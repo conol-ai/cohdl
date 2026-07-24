@@ -46,7 +46,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "test": "node ./test/grammar.test.mjs",
-    "package": "vsce package --no-dependencies -o cohdl.vsix",
+    "package": "vsce package -o cohdl.vsix",
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {

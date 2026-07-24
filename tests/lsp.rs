@@ -192,6 +192,42 @@ fn did_open(lsp: &mut Lsp, uri: &str, text: &str) {
     );
 }
 
+#[test]
+fn initialize_advertises_completion_and_returns_keywords() {
+    let mut lsp = Lsp::spawn();
+    let init = lsp.request("initialize", json!({ "capabilities": {} }));
+    assert!(
+        init["capabilities"]["completionProvider"].is_object(),
+        "server must advertise completion support: {}",
+        init
+    );
+
+    lsp.notify("initialized", json!({}));
+
+    let (_path, uri, text) = fixture("completion.cohdl", "de");
+    did_open(&mut lsp, &uri, &text);
+
+    let resp = lsp.request(
+        "textDocument/completion",
+        json!({
+            "textDocument": { "uri": uri },
+            "position": { "line": 0, "character": 2 }
+        }),
+    );
+
+    let items = resp["items"].as_array().unwrap();
+    assert!(
+        !items.is_empty(),
+        "completion should return at least one item: {}",
+        resp
+    );
+    assert!(
+        items.iter().any(|item| item["label"].as_str() == Some("device")),
+        "completion should include keyword suggestions: {}",
+        resp
+    );
+}
+
 fn is_empty_publish_for(msg: &Value, uri: &str) -> bool {
     msg.get("method").and_then(Value::as_str) == Some("textDocument/publishDiagnostics")
         && msg["params"]["uri"].as_str() == Some(uri)

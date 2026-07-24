@@ -19,9 +19,10 @@ import {
 let client: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
-  const cohdlPath =
+  const configuredPath =
     vscode.workspace.getConfiguration("cohdl").get<string>("path")?.trim() ||
     "cohdl";
+  const cohdlPath = configuredPath.replace(/\$\{workspaceFolder\}/g, vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || "");
 
   const serverOptions: ServerOptions = {
     command: cohdlPath,

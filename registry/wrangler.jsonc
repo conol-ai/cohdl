@@ -12,14 +12,15 @@
     {
       "binding": "DB",
       "database_name": "cohdl-registry",
-      "database_id": "REPLACE_AFTER_wrangler_d1_create"
+      "database_id": "fd0f8fda-ba4d-4f39-8fdd-a9e940ff9436"
     }
   ],
   "r2_buckets": [
     { "binding": "PKG", "bucket_name": "cohdl-registry-packages" }
   ],
   "kv_namespaces": [
-    { "binding": "SESSIONS", "id": "REPLACE_AFTER_wrangler_kv_create" }
+    { "binding": "SESSIONS", "id": "02a74c82d32241e99f45eee18a1fa1fc" }
   ],
+  "workers_dev": true,
   "routes": [{ "pattern": "registry.cohdl.org", "custom_domain": true }]
 }

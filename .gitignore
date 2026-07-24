@@ -24,7 +24,7 @@ examples/*/out/.history/
 /registry/node_modules
 /registry/dist
 
-# wrangler files
+# wrangler files (bot-added; covers registry/.wrangler too)
 .wrangler
 .dev.vars*
 !.dev.vars.example

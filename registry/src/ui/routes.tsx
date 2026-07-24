@@ -186,7 +186,13 @@ function Account() {
         email,
         password,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
+    onSuccess: (data) => {
+      // Flip to the signed-in view immediately from the mutation's own
+      // result; the invalidate refreshes grants in the background. (The
+      // original invalidate-only flow could leave the form up silently.)
+      qc.setQueryData(["me"], { account: data.account, official: false, brands: [] });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
   const mintToken = useMutation({
     mutationFn: () => post<{ token: string }>("/api/tokens", {}),
@@ -234,7 +240,14 @@ function Account() {
         <button type="submit" disabled={auth.isPending}>
           {mode === "signup" ? "Sign up" : "Sign in"}
         </button>
-        {auth.isError && <p className="error">{(auth.error as Error).message}</p>}
+        {auth.isError && (
+          <p className="error">
+            {(auth.error as Error).message}
+            {mode === "signup" && (auth.error as Error).message.includes("already exists") && (
+              <> — <button type="button" className="linkish" onClick={() => setMode("signin")}>sign in instead</button></>
+            )}
+          </p>
+        )}
       </form>
       <button className="linkish" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
         {mode === "signup" ? "Have an account? Sign in" : "New here? Create an account"}

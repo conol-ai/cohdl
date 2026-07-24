@@ -77,6 +77,17 @@ pub struct World {
     /// RFC-017 `#[doc("path")]` reference documents, fq path → paths in
     /// source order. Opaque to compilation; surfaced by the LSP.
     pub docs: BTreeMap<String, Vec<String>>,
+    /// RFC-016 `use` imports, retained for the LSP (closes review R5-10:
+    /// definition/hover on the imported path). Source order; `fq` is the
+    /// imported path as written (`::`-joined), resolved or not.
+    pub uses: Vec<UseRef>,
+}
+
+/// One `use a::b::Name;` statement: the path and the whole statement's span.
+#[derive(Debug, Clone)]
+pub struct UseRef {
+    pub fq: String,
+    pub span: crate::span::Span,
 }
 
 /// The outcome of checking one `impl Trait for Device`: every trait-required
@@ -259,6 +270,7 @@ pub fn build_world_in(
     // ---- pass 2: per-file `use` imports (validated at the use site) --------
     // FileId → local name → (fq path, use span).
     let mut imports: BTreeMap<u32, BTreeMap<String, (String, crate::span::Span)>> = BTreeMap::new();
+    let mut use_refs: Vec<UseRef> = Vec::new();
     for (i, file) in files.iter().enumerate() {
         let package = &modules[i].package;
         for item in &file.items {
@@ -268,6 +280,10 @@ pub fn build_world_in(
             let fq = u.path_text();
             let local = u.local().name.clone();
             let fid = u.span.file.0;
+            use_refs.push(UseRef {
+                fq: fq.clone(),
+                span: u.span,
+            });
             match symbols.get(&fq) {
                 None => {
                     // A design at that path is a real declaration — say so
@@ -371,6 +387,7 @@ pub fn build_world_in(
     // ---- pass 5: move declarations into the fq-keyed maps ------------------
     let mut world = World {
         symbols,
+        uses: use_refs,
         ..World::default()
     };
     for (i, file) in files.into_iter().enumerate() {

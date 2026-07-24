@@ -222,7 +222,9 @@ fn initialize_advertises_completion_and_returns_keywords() {
         resp
     );
     assert!(
-        items.iter().any(|item| item["label"].as_str() == Some("device")),
+        items
+            .iter()
+            .any(|item| item["label"].as_str() == Some("device")),
         "completion should include keyword suggestions: {}",
         resp
     );
@@ -1681,4 +1683,396 @@ fn exit_with_id_does_not_terminate() {
         r2
     );
     lsp.child.kill().ok();
+}
+
+// ---------------------------------------------------------------------------
+// Post-RFC-014 language-feature coverage (2026-07-27 audit): constructs
+// RFC-016..028 added that the server originally missed.
+
+// RFC-016 (closes review R5-10): definition + hover on a `use` import path.
+#[test]
+fn use_import_definition_and_hover() {
+    let src = "\
+use std::MLCC_100nF_16V_0402;
+design ZzUseB {
+    inst c1: MLCC_100nF_16V_0402
+    inst c2: MLCC_100nF_16V_0402
+    net N: c1.A, c2.A
+    net GND [gnd]: c1.B, c2.B
+}
+";
+    let (_path, uri, text) = fixture("usedef.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    let col = src.lines().next().unwrap().find("MLCC").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": col + 1 } }),
+    );
+    let target = def["uri"].as_str().unwrap_or_default();
+    assert!(
+        target.ends_with("passives.cohdl"),
+        "use-path definition lands in std's declaring file: {}",
+        def
+    );
+
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": col + 1 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**use** `std::MLCC_100nF_16V_0402` — part"),
+        "{}",
+        hover
+    );
+    lsp.shutdown();
+}
+
+const REF_FIX: &str = "\
+pub device ZzDev { pins { A: 1 [passive], B: 2 [passive] } }
+pub footprint ZzFp {}
+pub part ZzP: ZzDev { primary { mfr: \"m\", mpn: \"n\", footprint: ZzFp } }
+design ZzRefB {
+    inst d1: ZzP
+    inst d2: ZzP
+    inst arr: [ZzP; 3]
+    net X: d1.A, d2.A, arr[0].A
+    net Y [3.3V]: d1.B, d2.B
+    nc arr[0].B, arr[1].A, arr[1].B, arr[2].A, arr[2].B
+    layout {
+        diff_pair(X, Y)
+        place d1 at (1mm, 2mm) rotate 90 side bottom
+    }
+}
+";
+
+// Instance references (plain and array-indexed) resolve to their `inst`.
+#[test]
+fn instance_reference_definition() {
+    let (_path, uri, text) = fixture("refdef.cohdl", REF_FIX);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // `d2` in the net-member list → its inst statement.
+    let line = REF_FIX.lines().position(|l| l.contains("net X:")).unwrap() as u64;
+    let col = REF_FIX
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("d2.A")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let inst_line = REF_FIX.lines().position(|l| l.contains("inst d2")).unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(inst_line),
+        "{}",
+        def
+    );
+
+    // `arr[0].A` — the ARRAY base (RFC-024) resolves to the array inst.
+    let col = REF_FIX
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("arr[0]")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let arr_line = REF_FIX
+        .lines()
+        .position(|l| l.contains("inst arr"))
+        .unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(arr_line),
+        "{}",
+        def
+    );
+    lsp.shutdown();
+}
+
+// Pin references resolve to the device pin DECLARATION; hover works through
+// an array element reference too.
+#[test]
+fn pin_reference_definition_and_array_pin_hover() {
+    let (_path, uri, text) = fixture("pindef.cohdl", REF_FIX);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    let line = REF_FIX.lines().position(|l| l.contains("net X:")).unwrap() as u64;
+    let text_line = REF_FIX.lines().nth(line as usize).unwrap();
+    // `.A` of `d1.A` → the pin decl on line 0.
+    let col = (text_line.find("d1.A").unwrap() + 3) as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    let decl_col = REF_FIX.lines().next().unwrap().find("A: 1").unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["character"].as_u64(),
+        Some(decl_col),
+        "{}",
+        def
+    );
+
+    // Hover on the pin of an ARRAY element reference.
+    let col = (text_line.find("arr[0].A").unwrap() + 7) as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let value = hover["contents"]["value"].as_str().unwrap_or_default();
+    assert!(
+        value.contains("**required pin** `A` on device `ZzDev`"),
+        "array pin hover resolves through the element: {}",
+        hover
+    );
+    lsp.shutdown();
+}
+
+// RFC-020/026 `place`: definition on the target + whole-statement hover;
+// RFC-013 layout constraints: net names resolve to their net statement.
+#[test]
+fn place_and_layout_net_definitions() {
+    let (_path, uri, text) = fixture("placedef.cohdl", REF_FIX);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    let line = REF_FIX
+        .lines()
+        .position(|l| l.contains("place d1"))
+        .unwrap() as u64;
+    let col = REF_FIX
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("d1")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let inst_line = REF_FIX.lines().position(|l| l.contains("inst d1")).unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(inst_line),
+        "{}",
+        def
+    );
+
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col + 10 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**place** `d1` at (1mm, 2mm) rotate 90 side bottom"),
+        "{}",
+        hover
+    );
+
+    // diff_pair(X, Y): `Y` → the net statement declaring it.
+    let line = REF_FIX
+        .lines()
+        .position(|l| l.contains("diff_pair"))
+        .unwrap() as u64;
+    let col = REF_FIX
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .rfind("Y")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let net_line = REF_FIX.lines().position(|l| l.contains("net Y")).unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(net_line),
+        "{}",
+        def
+    );
+    lsp.shutdown();
+}
+
+// RFC-027/028 physics attributes: instance/pin arguments resolve; the whole
+// attribute hovers to its parsed facts.
+#[test]
+fn phys_attr_definitions_and_hover() {
+    let src = "\
+pub device ZzC { pins { P: 1 [passive], N: 2 [passive] } }
+pub device ZzU { pins { VDD: 1 [power_in], GND: 2 [power_in] } }
+pub footprint ZzFpC {}
+pub part ZzPC: ZzC { primary { mfr: \"m\", mpn: \"c\", footprint: ZzFpC } }
+pub part ZzPU: ZzU { primary { mfr: \"m\", mpn: \"u\", footprint: ZzFpC } }
+design ZzPhysB {
+    inst u1: ZzPU
+    #[bypass(u1.VDD, 100nF)]
+    inst c1: ZzPC
+    net V [3.3V]: u1.VDD, c1.P
+    net G [gnd]: u1.GND, c1.N
+}
+";
+    let (_path, uri, text) = fixture("physdef.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    let line = src.lines().position(|l| l.contains("#[bypass")).unwrap() as u64;
+    let attr_line = src.lines().nth(line as usize).unwrap();
+
+    // `u1` inside the attribute → its inst statement.
+    let col = attr_line.find("u1").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let inst_line = src.lines().position(|l| l.contains("inst u1")).unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(inst_line),
+        "{}",
+        def
+    );
+
+    // `VDD` inside the attribute → the device pin declaration.
+    let col = attr_line.find("VDD").unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    let dev_line = src.lines().position(|l| l.contains("device ZzU")).unwrap() as u64;
+    assert_eq!(
+        def["range"]["start"]["line"].as_u64(),
+        Some(dev_line),
+        "{}",
+        def
+    );
+
+    // The capacitance value sits inside the attr span → summary hover.
+    let col = attr_line.find("100nF").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**#[bypass]** physics constraint (RFC-027)\n\n\
+             - target: `u1.VDD`\n- capacitance: `100nF`"
+        ),
+        "{}",
+        hover
+    );
+    lsp.shutdown();
+}
+
+// RFC-018 pad declarations + RFC-022/023 mount holes hover.
+#[test]
+fn pad_decl_and_mount_hole_hover() {
+    let src = "\
+pub pad ZzPadC { shape: circle, size: (1mm), layer: top_copper, plating: smd }
+pub footprint ZzFpM {
+    pad 1: ZzPadC at (0mm, 0mm)
+    mount_hole 1: non_plated at (2mm, 3mm) diameter 2.2mm
+}
+";
+    let (_path, uri, text) = fixture("mounthover.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Pad DECLARATION name hover.
+    let col = src.lines().next().unwrap().find("ZzPadC").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": col + 1 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**pad** `ZzPadC`\n\n- shape: `circle`\n- size: `(1mm)`\n\
+             - layer: `top_copper`\n- plating: `smd`"
+        ),
+        "{}",
+        hover
+    );
+
+    // Mount-hole hover.
+    let line = src.lines().position(|l| l.contains("mount_hole")).unwrap() as u64;
+    let col = src
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("non_plated")
+        .unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": col } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some(
+            "**mount_hole** `1` — `non_plated`, shape `circle` at (2mm, 3mm)\n\n\
+             - diameter: `2.2mm`"
+        ),
+        "{}",
+        hover
+    );
+    lsp.shutdown();
+}
+
+// Completion offers the contextual grammar words RFC-016..029 added, plus
+// attribute names.
+#[test]
+fn completion_covers_post_rfc014_keywords() {
+    let (_path, uri, text) = fixture("compl2.cohdl", "design ZzComplB {\n}\n");
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let result = lsp.request(
+        "textDocument/completion",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 1, "character": 0 } }),
+    );
+    let labels: Vec<&str> = result["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|i| i["label"].as_str())
+        .collect();
+    for expected in [
+        "use",
+        "footprint",
+        "pad",
+        "mount_hole",
+        "layout",
+        "place",
+        "rotate",
+        "side",
+        "bypass",
+        "crystal_oscillator",
+        "placement_hint",
+    ] {
+        assert!(
+            labels.contains(&expected),
+            "completion misses `{}`: {:?}",
+            expected,
+            labels
+        );
+    }
+    lsp.shutdown();
 }

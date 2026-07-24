@@ -762,6 +762,70 @@ impl Server {
                 span_to_range(&analysis, part.name.span),
             ));
         }
+        // Pad DECLARATION hover (RFC-018): same facts as the placement hover,
+        // minus the position.
+        for pad in world.pads.values() {
+            if !contains(pad.name.span, fid, offset) {
+                continue;
+            }
+            let mut text = format!("**pad** `{}`", pad.name.name);
+            if let Some((shape, _)) = &pad.shape {
+                text.push_str(&format!("\n\n- shape: `{}`", shape.name()));
+            }
+            if !pad.size.is_empty() {
+                let dims: Vec<&str> = pad.size.iter().map(|v| v.text.as_str()).collect();
+                text.push_str(&format!("\n- size: `({})`", dims.join(", ")));
+            }
+            if let Some((layer, _)) = &pad.layer {
+                text.push_str(&format!("\n- layer: `{}`", layer.name()));
+            }
+            if let Some((plating, _)) = &pad.plating {
+                text.push_str(&format!("\n- plating: `{}`", plating.name()));
+            }
+            if let Some((drill, _)) = &pad.drill {
+                text.push_str(&format!("\n- drill: `{}`", drill.text));
+            }
+            return Some(hover_markdown(
+                text,
+                span_to_range(&analysis, pad.name.span),
+            ));
+        }
+        // Mount-hole hover (RFC-022/023): plating, shape, position, geometry.
+        for fp in world.footprints.values() {
+            for mh in &fp.mount_holes {
+                if !contains(mh.span, fid, offset) {
+                    continue;
+                }
+                let mut text = format!(
+                    "**mount_hole** `{}` — `{}`, shape `{}` at ({}, {})",
+                    mh.number.text,
+                    mh.plating.name(),
+                    mh.shape_or_default().name(),
+                    mh.x.text,
+                    mh.y.text
+                );
+                match &mh.geom {
+                    MountHoleGeom::Diameter(d) => {
+                        text.push_str(&format!("\n\n- diameter: `{}`", d.text));
+                    }
+                    MountHoleGeom::Size(dims, _) => {
+                        let d: Vec<&str> = dims.iter().map(|v| v.text.as_str()).collect();
+                        text.push_str(&format!("\n\n- size: `({})`", d.join(", ")));
+                    }
+                }
+                return Some(hover_markdown(text, span_to_range(&analysis, mh.span)));
+            }
+        }
+        // `use` import hover (RFC-016): the resolved target's kind.
+        for u in &world.uses {
+            if contains(u.span, fid, offset) {
+                let text = match world.symbols.get(&u.fq) {
+                    Some(sym) => format!("**use** `{}` — {}", u.fq, sym.kind),
+                    None => format!("**use** `{}` — unresolved (see diagnostics)", u.fq),
+                };
+                return Some(hover_markdown(text, span_to_range(&analysis, u.span)));
+            }
+        }
         // Pin USE-SITE hover (RFC-002: any pin reference reveals its
         // obligation/role, not only the declaration): `d.A` in net/nc/call
         // statements resolves through the inst's type (part → device) or a
@@ -772,6 +836,41 @@ impl Server {
         // Unit-literal hover: RFC-001's (unit × allowed-prefix) table row.
         if let Some(h) = unit_literal_hover(&analysis, fid, offset) {
             return Some(h);
+        }
+        // `place` + physics-attribute hover: whole-construct summaries
+        // (RFC-020/024/026 placements; RFC-027/028 attributes).
+        let bodies: Vec<&[Stmt]> = world
+            .designs
+            .values()
+            .map(|d| d.body.as_slice())
+            .chain(world.fns.values().map(|f| f.body.as_slice()))
+            .collect();
+        for body in bodies {
+            for stmt in body {
+                let phys: &[PhysAttr] = match stmt {
+                    Stmt::Inst(i) => &i.phys,
+                    Stmt::Net(n) => &n.phys,
+                    _ => &[],
+                };
+                for pa in phys {
+                    if contains(pa.span(), fid, offset) {
+                        return Some(hover_markdown(
+                            phys_attr_text(pa),
+                            span_to_range(&analysis, pa.span()),
+                        ));
+                    }
+                }
+                if let Stmt::Layout(lb) = stmt {
+                    for pl in &lb.placements {
+                        if contains(pl.span, fid, offset) {
+                            return Some(hover_markdown(
+                                placement_text(pl),
+                                span_to_range(&analysis, pl.span),
+                            ));
+                        }
+                    }
+                }
+            }
         }
         // Empty-impl hover: the resolved by-name mapping DR-013 asked for.
         for imp in &world.impls {
@@ -813,8 +912,28 @@ impl Server {
 
     fn definition(&mut self, params: &Value) -> Option<lt::Location> {
         let (analysis, fid, offset) = self.locate(params)?;
-        let name = use_site_name(&analysis.checked.world, fid, offset)?;
         let world = &analysis.checked.world;
+        // RFC-016 `use` imports (closes review R5-10): the imported path
+        // resolves to its declaration via the symbol table.
+        for u in &world.uses {
+            if contains(u.span, fid, offset) {
+                let sym = world.symbols.get(&u.fq)?;
+                return Some(lt::Location {
+                    uri: analysis.uri_for(sym.span.file)?,
+                    range: span_to_range(&analysis, sym.span),
+                });
+            }
+        }
+        // Reference-level targets: instance refs (net/nc members, call args,
+        // `place`, physics attributes), pin refs, fn parameters, and
+        // layout-constraint net names.
+        if let Some(target) = ref_definition(world, fid, offset) {
+            return Some(lt::Location {
+                uri: analysis.uri_for(target.file)?,
+                range: span_to_range(&analysis, target),
+            });
+        }
+        let name = use_site_name(world, fid, offset)?;
         let target = world
             .devices
             .get(&name)
@@ -906,15 +1025,85 @@ impl Server {
             .to_string();
 
         let mut items = Vec::new();
+        // The lexer's hard keywords plus the contextual (positional) grammar
+        // words RFC-016..029 added — kept in sync with the parser, not just
+        // `lex::is_keyword` (most newer constructs use contextual words).
         for keyword in [
-            "pub", "trait", "device", "impl", "for", "fn", "design", "inst", "net", "nc",
-            "part", "pins", "spec", "required", "optional",
+            // hard keywords (lex::is_keyword)
+            "pub",
+            "trait",
+            "device",
+            "impl",
+            "for",
+            "fn",
+            "design",
+            "inst",
+            "net",
+            "nc",
+            "part",
+            "pins",
+            "spec",
+            "required",
+            "optional",
+            // modules + library registry (RFC-016/017)
+            "use",
+            "footprint",
+            // parts
+            "primary",
+            "alt",
+            "mpn",
+            "mfr",
+            // pads + footprint bodies (RFC-018/021/022/023/025)
+            "pad",
+            "mount_hole",
+            "courtyard",
+            "silkscreen_ref",
+            "shape",
+            "size",
+            "layer",
+            "plating",
+            "drill",
+            "diameter",
+            "at",
+            "rotate",
+            // layout + placement (RFC-013/020/026)
+            "layout",
+            "place",
+            "side",
+            "top",
+            "bottom",
+            "net_class",
+            "diff_pair",
+            "length_match",
+            "board_outline",
         ] {
             if keyword.starts_with(&prefix) || prefix.is_empty() {
                 items.push(json!({
                     "label": keyword,
                     "kind": 14,
                     "detail": "keyword",
+                }));
+            }
+        }
+        // Attribute names complete after `#[` (the trigger set includes both).
+        for attr in [
+            "designator",
+            "intent",
+            "placement_hint",
+            "doc",
+            "ground",
+            "high_current",
+            "impedance",
+            "bypass",
+            "crystal_oscillator",
+            "switching_converter",
+            "bga_fanout",
+        ] {
+            if attr.starts_with(&prefix) || prefix.is_empty() {
+                items.push(json!({
+                    "label": attr,
+                    "kind": 14,
+                    "detail": "attribute",
                 }));
             }
         }
@@ -1101,38 +1290,16 @@ fn pin_ref_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Ho
             if !contains(pin_id.span, fid, offset) {
                 continue;
             }
-            // An instance in this body: its type, through parts, to a device.
-            let inst_ty = body.iter().find_map(|s| match s {
-                Stmt::Inst(i) if i.name.name == pr.base.name => {
-                    Some((i.ty.name.name.clone(), i.ty.variant.clone()))
-                }
-                _ => None,
-            });
-            if let Some((ty, inst_variant)) = inst_ty {
-                // Resolve BOTH the device and the SELECTED structural variant
-                // (review F9): a part pins its own variant; a direct device
-                // instantiation carries a `[VARIANT]` selector. Scanning the
-                // first matching pin block regardless of variant reported the
-                // wrong physical pad/role for any multi-variant device.
-                let part = world.parts.get(&ty);
-                let dev_name = part.map(|p| p.device.name.name.clone()).unwrap_or(ty);
-                let variant: Option<String> = match part {
-                    Some(p) => p.device.variant.as_ref().map(|v| v.name.clone()),
-                    None => inst_variant.as_ref().map(|v| v.name.clone()),
-                };
-                if let Some(dev) = world.devices.get(&dev_name) {
-                    if let Some(pb) = dev
-                        .pin_blocks
-                        .iter()
-                        .find(|b| b.variant.as_ref().map(|v| v.name.as_str()) == variant.as_deref())
-                    {
-                        for pin in &pb.pins {
-                            if pin.name.name == pin_id.name {
-                                return Some(hover_markdown(
-                                    device_pin_text(dev, pb, pin),
-                                    span_to_range(analysis, pin_id.span),
-                                ));
-                            }
+            // An instance in this body: its type, through parts, to a device
+            // — shared resolution with goto-definition (`inst_pin_block`).
+            if body_inst(body, &pr.base.name).is_some() {
+                if let Some((dev, pb)) = inst_pin_block(world, body, &pr.base.name) {
+                    for pin in &pb.pins {
+                        if pin.name.name == pin_id.name {
+                            return Some(hover_markdown(
+                                device_pin_text(dev, pb, pin),
+                                span_to_range(analysis, pin_id.span),
+                            ));
                         }
                     }
                 }
@@ -1140,29 +1307,7 @@ fn pin_ref_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Ho
             }
             // A trait-typed fn parameter: the pin is a trait role.
             let f = func?;
-            let trait_names: Vec<String> = f
-                .params
-                .iter()
-                .filter(|p| p.name.name == pr.base.name)
-                .filter_map(|p| match &p.ty {
-                    FnParamTy::Generic(g) => f
-                        .generics
-                        .iter()
-                        .find(|gp| gp.name.name == g.name)
-                        .and_then(|gp| match &gp.bound {
-                            GenericBound::Traits(ts) => {
-                                Some(ts.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
-                            }
-                            GenericBound::Unit(_) => None,
-                        }),
-                    FnParamTy::ImplTrait(ts, _) => {
-                        Some(ts.iter().map(|t| t.name.clone()).collect())
-                    }
-                    FnParamTy::Pin(_) => None,
-                })
-                .flatten()
-                .collect();
-            for tn in trait_names {
+            for tn in param_trait_names(f, &pr.base.name) {
                 if let Some(tr) = world.traits.get(&tn) {
                     for pin in &tr.pins {
                         if pin.name.name == pin_id.name {
@@ -1371,6 +1516,324 @@ fn percent_decode(s: &str) -> String {
 // Use-site identification for goto-definition.
 
 /// The device/trait/fn/part name whose USE SITE contains the offset.
+/// The `inst` statement declaring `name` in `body`, if any.
+fn body_inst<'a>(body: &'a [Stmt], name: &str) -> Option<&'a InstStmt> {
+    body.iter().find_map(|s| match s {
+        Stmt::Inst(i) if i.name.name == name => Some(i),
+        _ => None,
+    })
+}
+
+/// The first named `net` statement in `body` declaring `name`.
+fn body_net_span(body: &[Stmt], name: &str) -> Option<Span> {
+    body.iter().find_map(|s| match s {
+        Stmt::Net(n) => n
+            .name
+            .as_ref()
+            .filter(|id| id.name == name)
+            .map(|id| id.span),
+        _ => None,
+    })
+}
+
+/// Resolve an instance reference through its type (part → device) to the
+/// SELECTED structural variant's pin block (review F9 discipline) — shared
+/// by pin hover and reference-level goto-definition.
+fn inst_pin_block<'w>(
+    world: &'w crate::resolve::World,
+    body: &[Stmt],
+    base: &str,
+) -> Option<(&'w DeviceDef, &'w PinBlock)> {
+    let i = body_inst(body, base)?;
+    let ty = i.ty.name.name.clone();
+    let part = world.parts.get(&ty);
+    let dev_name = part.map(|p| p.device.name.name.clone()).unwrap_or(ty);
+    let variant: Option<String> = match part {
+        Some(p) => p.device.variant.as_ref().map(|v| v.name.clone()),
+        None => i.ty.variant.as_ref().map(|v| v.name.clone()),
+    };
+    let dev = world.devices.get(&dev_name)?;
+    let pb = dev
+        .pin_blocks
+        .iter()
+        .find(|b| b.variant.as_ref().map(|v| v.name.as_str()) == variant.as_deref())?;
+    Some((dev, pb))
+}
+
+/// The trait bounds reachable from fn parameter `base` (generic bound or
+/// `impl Trait` sugar).
+fn param_trait_names(f: &FnDef, base: &str) -> Vec<String> {
+    f.params
+        .iter()
+        .filter(|p| p.name.name == base)
+        .filter_map(|p| match &p.ty {
+            FnParamTy::Generic(g) => f
+                .generics
+                .iter()
+                .find(|gp| gp.name.name == g.name)
+                .and_then(|gp| match &gp.bound {
+                    GenericBound::Traits(ts) => {
+                        Some(ts.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
+                    }
+                    GenericBound::Unit(_) => None,
+                }),
+            FnParamTy::ImplTrait(ts, _) => Some(ts.iter().map(|t| t.name.clone()).collect()),
+            FnParamTy::Pin(_) => None,
+        })
+        .flatten()
+        .collect()
+}
+
+/// Reference-level goto-definition (the constructs RFC-016..028 added after
+/// RFC-014's original name-reference set): instance references in net/nc
+/// members and call args (arrays included — the base name is the target),
+/// `place` targets, physics-attribute instance/pin arguments, pin references
+/// (to the device/trait pin declaration), fn parameters, and
+/// layout-constraint net names (to the net statement).
+fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Option<Span> {
+    let hit = |id: &Ident| contains(id.span, fid, offset);
+    let bodies: Vec<(&[Stmt], Option<&FnDef>)> = world
+        .designs
+        .values()
+        .map(|d| (d.body.as_slice(), None))
+        .chain(world.fns.values().map(|f| (f.body.as_slice(), Some(f))))
+        .collect();
+    for (body, func) in bodies {
+        // The instance a reference resolves to: an `inst` in this body, or a
+        // fn parameter (RFC-028 lets physics attrs target Pin/Instance
+        // params).
+        let inst_target = |id: &Ident| -> Option<Span> {
+            if let Some(i) = body_inst(body, &id.name) {
+                return Some(i.name.span);
+            }
+            func.and_then(|f| {
+                f.params
+                    .iter()
+                    .find(|p| p.name.name == id.name)
+                    .map(|p| p.name.span)
+            })
+        };
+        let pin_target = |base: &Ident, pin: &Ident| -> Option<Span> {
+            if let Some((_, pb)) = inst_pin_block(world, body, &base.name) {
+                return pb
+                    .pins
+                    .iter()
+                    .find(|p| p.name.name == pin.name)
+                    .map(|p| p.name.span);
+            }
+            let f = func?;
+            for tn in param_trait_names(f, &base.name) {
+                if let Some(tr) = world.traits.get(&tn) {
+                    if let Some(tp) = tr.pins.iter().find(|p| p.name.name == pin.name) {
+                        return Some(tp.name.span);
+                    }
+                }
+            }
+            None
+        };
+
+        for pr in body_pin_refs(body) {
+            if hit(&pr.base) {
+                if let Some(span) = inst_target(&pr.base) {
+                    return Some(span);
+                }
+            }
+            if let Some(pin) = &pr.pin {
+                if hit(pin) {
+                    if let Some(span) = pin_target(&pr.base, pin) {
+                        return Some(span);
+                    }
+                }
+            }
+        }
+
+        for stmt in body {
+            let phys: &[PhysAttr] = match stmt {
+                Stmt::Inst(i) => &i.phys,
+                Stmt::Net(n) => &n.phys,
+                _ => &[],
+            };
+            for pa in phys {
+                match pa {
+                    PhysAttr::Bypass { inst, pin, .. } => {
+                        if hit(inst) {
+                            if let Some(span) = inst_target(inst) {
+                                return Some(span);
+                            }
+                        }
+                        if let Some(pin) = pin {
+                            if hit(pin) {
+                                if let Some(span) = pin_target(inst, pin) {
+                                    return Some(span);
+                                }
+                            }
+                        }
+                    }
+                    PhysAttr::CrystalOscillator {
+                        parent, pin1, pin2, ..
+                    } => {
+                        if hit(parent) {
+                            if let Some(span) = inst_target(parent) {
+                                return Some(span);
+                            }
+                        }
+                        for pin in [pin1, pin2] {
+                            if hit(pin) {
+                                if let Some(span) = pin_target(parent, pin) {
+                                    return Some(span);
+                                }
+                            }
+                        }
+                    }
+                    PhysAttr::SwitchingConverter {
+                        inductor,
+                        input_capacitor,
+                        output_capacitor,
+                        ..
+                    } => {
+                        for id in [
+                            Some(inductor),
+                            input_capacitor.as_ref(),
+                            output_capacitor.as_ref(),
+                        ]
+                        .into_iter()
+                        .flatten()
+                        {
+                            if hit(id) {
+                                if let Some(span) = inst_target(id) {
+                                    return Some(span);
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if let Stmt::Layout(lb) = stmt {
+                for pl in &lb.placements {
+                    if hit(&pl.inst) {
+                        if let Some(i) = body_inst(body, &pl.inst.name) {
+                            return Some(i.name.span);
+                        }
+                    }
+                }
+                for c in &lb.constraints {
+                    let nets: &[Ident] = match c {
+                        LayoutConstraint::NetClass { nets, .. } => nets,
+                        LayoutConstraint::DiffPair { nets, .. } => nets,
+                        LayoutConstraint::LengthMatch { nets, .. } => nets,
+                    };
+                    for n in nets {
+                        if hit(n) {
+                            if let Some(span) = body_net_span(body, &n.name) {
+                                return Some(span);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+/// `place` hover body (RFC-020/024/026).
+fn placement_text(pl: &Placement) -> String {
+    let idx = pl
+        .index
+        .as_ref()
+        .map(|(i, _)| format!("[{}]", i))
+        .unwrap_or_default();
+    format!(
+        "**place** `{}{}` at ({}, {}) rotate {} side {}",
+        pl.inst.name,
+        idx,
+        pl.at.0.text,
+        pl.at.1.text,
+        pl.rotate,
+        pl.side.name()
+    )
+}
+
+/// Physics-attribute hover body (RFC-027/028) — the parsed facts.
+fn phys_attr_text(pa: &PhysAttr) -> String {
+    let mut text = format!("**#[{}]** physics constraint (RFC-027)", pa.name());
+    match pa {
+        PhysAttr::Ground {
+            primary,
+            region_pour,
+            ..
+        } => {
+            text.push_str(&format!(
+                "\n\n- kind: `{}`",
+                if *primary { "primary" } else { "secondary" }
+            ));
+            if *region_pour {
+                text.push_str("\n- region_pour");
+            }
+        }
+        PhysAttr::HighCurrent {
+            current,
+            power_pour,
+            ..
+        } => {
+            text.push_str(&format!("\n\n- current: `{}`", current.text));
+            if *power_pour {
+                text.push_str("\n- power_pour");
+            }
+        }
+        PhysAttr::Impedance {
+            impedance,
+            frequency,
+            ..
+        } => {
+            text.push_str(&format!(
+                "\n\n- impedance: `{}`\n- frequency: `{}`",
+                impedance.text, frequency.text
+            ));
+        }
+        PhysAttr::Bypass {
+            inst,
+            pin,
+            capacitance,
+            ..
+        } => {
+            let target = match pin {
+                Some(p) => format!("{}.{}", inst.name, p.name),
+                None => inst.name.clone(),
+            };
+            text.push_str(&format!(
+                "\n\n- target: `{}`\n- capacitance: `{}`",
+                target, capacitance.text
+            ));
+        }
+        PhysAttr::CrystalOscillator {
+            parent, pin1, pin2, ..
+        } => {
+            text.push_str(&format!(
+                "\n\n- parent: `{}`\n- pins: `{}`, `{}`",
+                parent.name, pin1.name, pin2.name
+            ));
+        }
+        PhysAttr::SwitchingConverter {
+            inductor,
+            input_capacitor,
+            output_capacitor,
+            ..
+        } => {
+            text.push_str(&format!("\n\n- inductor: `{}`", inductor.name));
+            if let Some(c) = input_capacitor {
+                text.push_str(&format!("\n- input_capacitor: `{}`", c.name));
+            }
+            if let Some(c) = output_capacitor {
+                text.push_str(&format!("\n- output_capacitor: `{}`", c.name));
+            }
+        }
+        PhysAttr::BgaFanout { .. } => {}
+    }
+    text
+}
+
 fn use_site_name(world: &crate::resolve::World, fid: FileId, offset: u32) -> Option<String> {
     let hit = |id: &Ident| contains(id.span, fid, offset);
 

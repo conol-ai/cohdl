@@ -944,9 +944,58 @@ Option 1 (semver ranges) was rejected outright, not merely deferred: software's 
 
 If real registry hosting (a package index, cohdl publish, yanking policy) is scoped — that remains separate, not-yet-proposed future work this RFC does not touch, per RFC-016/017's own precedent of deferring hosting mechanics. Also revisit if real multi-library usage reveals the exact-version-only rule creates unworkable dependency-conflict pain (e.g. two dependencies requiring genuinely incompatible exact versions of a shared transitive dependency) — that would need its own scoped design (possibly limited, explicitly-opt-in range support for a narrow, clearly-justified case), not a silent reintroduction of general semver ranges.
 
+# DR-036: registry.cohdl.org — three-tier reserved namespace, four-verb dependency-management CLI, server tech stack out of scope
+
+## Context
+
+RFC-029 (DR-035) gave every package an exact-version/content-hash identity but explicitly left "where the bytes come from" as deferred future work — its own Non-goals named "registry hosting/publishing infrastructure... real hosting remains separate, not-yet-proposed future work," mirroring the identical scope boundary RFC-016/RFC-017 drew earlier. Tony directed designing that deferred piece directly: a real registry service, registry.cohdl.org, modeled on npm/crates.io, with three explicit publisher tiers — first-level (bare) names reserved for CoHDL official, @brand/package reserved for verified component-manufacturer accounts, @contrib/package open to any uploader — plus real cohdl CLI login/publish/fetch support, with the server's own technology stack explicitly left unspecified.
+
+## Options
+
+For the namespace scheme:
+
+1. A single, flat, first-come-first-served namespace for every package (npm's original model).
+2. Scoped packages for everyone, no reserved bare-name tier (npm's current @user/package model, no special "official" tier).
+3. A single @verified/name tier merging manufacturer-official and community-contributed, distinguished only by an internal verified-badge flag.
+4. A closed, three-tier namespace scheme, each tier legible in the name itself: bare name (CoHDL official, reserved, never first-come-first-served), @brand/name (verified-manufacturer-only, human-gated verification), @contrib/name (open, first-come-first-served within this one shared prefix) — Tony's directed design, this RFC's proposal.
+
+For the CLI surface:
+
+1. A single cohdl fetch <name> command alongside cohdl install, this RFC's own first draft.
+2. Four small, single-purpose verbs — cohdl add, cohdl remove, cohdl install, cohdl update — matching npm's/cargo's own dependency-management shape exactly, plus cohdl login/cohdl publish for authoring. Tony's direct correction, replacing the first draft's single fetch command.
+
+For the server implementation:
+
+1. Specify a concrete technology stack (database, language, hosting) as part of this RFC.
+2. Leave the server-side technology stack completely unspecified — this RFC defines only the external contract (namespace rules, API shape, CLI commands) — per Tony's direct instruction.
+
+## Decision
+
+Namespace: Option 4 — three closed tiers, each determined structurally by the name's own shape (bare = tier 1, @brand/name = tier 2, @contrib/name = tier 3), enforced both client-side (fast-fail) and server-side (authoritative, the final arbiter). CLI: Option 2 — cohdl login/cohdl publish (authoring) plus cohdl add <package>/cohdl remove <package>/cohdl install/cohdl update [<package>] (dependency management), composing directly with RFC-029's already-Accepted exact-version/cohdl.lock/hash-verification mechanism without modifying it. Server implementation: Option 2 — technology stack explicitly out of scope, per direct instruction.
+
+## Rationale
+
+Namespace Option 1 (flat, first-come-first-served) was rejected: npm's own history is the cautionary tale — a flat namespace lets a manufacturer's real brand name be squatted before the manufacturer ever shows up, with no structural way to tell an official name from an impersonation without an out-of-band check, directly contradicting this project's recurring "make trust legible in the artifact itself" discipline (RFC-021's IPC-7351 naming, RFC-008's pin roles). Option 2 (scoped-for-everyone, no official tier) was rejected: it would make std just another indistinguishable scope, when it is categorically different — every project implicitly depends on it (RFC-029) — and deserves a namespace tier that makes that difference visible without reading metadata. Option 3 (a single verified-badge tier) was rejected: it reproduces exactly the "trust requires a side-channel check" problem the three-tier scheme exists to avoid.
+
+CLI Option 1 (fetch alone) was this RFC's own first draft, corrected same day per Tony's direct instruction: a bare fetch conflates "declare a new dependency" (a [dependencies]-mutating act) with "just download content" (a read-only act), and left no dedicated, symmetric way to remove a dependency or re-resolve an existing pin to a newer version. The four-verb add/remove/install/update surface matches npm's/cargo's own shape exactly, closes both real gaps, and gives every one of "adding," "removing," "installing-from-scratch," and "updating" — four real, distinct, everyday actions — its own dedicated, learnable verb.
+
+Server-stack Option 1 (specify a stack) was rejected per Tony's direct instruction: the external contract (namespace rules, API shape, CLI commands) is stable, reviewable design that should not be coupled to an implementation choice that can and should be made separately by whoever builds it, without re-litigating this RFC.
+
+## Consequences
+
+- No new .cohdl language concept — Package (RFC-016) and its version identity (RFC-029) are unchanged; this RFC adds an external service and CLI verbs, not new source-language grammar.
+- [dependencies] keys gain a small, closed grammar extension: @brand/name/@contrib/name shapes alongside the existing bare-name form — no new syntax category.
+- Real new CLI surface: cohdl login, cohdl publish, cohdl add, cohdl remove, cohdl install (already named by RFC-029), cohdl update (already named by RFC-029, now given a real command implementation) — add/remove/login/publish are the four genuinely new verbs this RFC introduces.
+- Real, disclosed, deliberately-scoped-out future work: yanking policy, package deletion, vulnerability advisories, organization/team accounts, search ranking algorithms, private/scoped registries — none silently assumed solved.
+- The registry's own server-computed content hash (not the client's local computation) is what cohdl.lock ultimately verifies against on every future install — this is the load-bearing trust guarantee the whole RFC exists to deliver, distinct from and complementary to RFC-029's own hash-verification mechanism (which this RFC does not modify).
+
+## Revisit when
+
+If real registry usage volume surfaces a genuine need for yanking policy, organization/team accounts, or private registries — each is real, likely future work, deliberately not designed speculatively ahead of real need, per this project's recurring discipline. Also revisit if the three-tier namespace scheme proves too rigid in practice (e.g. a legitimate use case that doesn't fit any of the three tiers cleanly) — that would be a scoped extension of the tier scheme, not a silent reversion to a flat namespace.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-029 is fully recorded above.)
+(none — the backlog through RFC-030 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

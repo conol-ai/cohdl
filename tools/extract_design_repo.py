@@ -41,6 +41,7 @@ PAGES = [
     ("r57i101hxidan0eqhb6cp5q5", "rfc-027-quilter-physics-constraints"),
     ("elng3gz57cktk2jxei0a48bw", "rfc-028-phys-attrs-on-fn-pin-params"),
     ("aa6vrcv1vjfryojsi1czdqdx", "rfc-029-package-dependency-versioning"),
+    ("bmxizx2mggn0pdfccutph36s", "rfc-030-registry-service"),
     ("a7zrlrt7a910k2x10ja6fdhd", "gc-002-amended-layout-door"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),

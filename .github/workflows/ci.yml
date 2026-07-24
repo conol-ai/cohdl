@@ -54,3 +54,28 @@ jobs:
         run: npm test
       - name: Package .vsix
         run: npm run package
+
+  # registry.cohdl.org (RFC-030) — its own tooling CI: vitest (incl. the
+  # cross-language RFC-029 hash vector against src/hash.rs), typecheck,
+  # oxlint, and a full vite build (worker + SPA). No Cloudflare credentials
+  # needed; deploys stay manual (wrangler deploy).
+  registry:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: registry
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install
+        run: npm ci || npm install
+      - name: Test
+        run: npx vitest run
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npx oxlint src test
+      - name: Build
+        run: npm run build

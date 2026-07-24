@@ -1,0 +1,25 @@
+{
+  // registry.cohdl.org — RFC-030. One Worker serves both the registry API
+  // (run_worker_first routes) and the web UI (Workers Assets SPA).
+  "name": "cohdl-registry",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/packages/*", "/api/*", "/login"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cohdl-registry",
+      "database_id": "REPLACE_AFTER_wrangler_d1_create"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "PKG", "bucket_name": "cohdl-registry-packages" }
+  ],
+  "kv_namespaces": [
+    { "binding": "SESSIONS", "id": "REPLACE_AFTER_wrangler_kv_create" }
+  ],
+  "routes": [{ "pattern": "registry.cohdl.org", "custom_domain": true }]
+}

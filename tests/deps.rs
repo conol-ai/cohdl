@@ -177,19 +177,75 @@ fn unresolvable_version_lists_searched_locations() {
 }
 
 #[test]
-fn package_identity_mismatch_is_rejected() {
+fn manifest_version_is_the_authority_not_the_dirname() {
+    // The version a package OFFERS comes from its manifest; the directory
+    // name (even one that spells a different version) is pure convention.
     let tmp = tmp_dir("identity");
     make_project_with_dep(&tmp);
-    // The package's own manifest claims a different version.
     std::fs::write(
         tmp.join("deps/mypkg/1.0.0/cohdl.toml"),
         "[package]\nname = \"mypkg\"\nversion = \"2.0.0\"\n",
     )
     .unwrap();
+    // The pin (1.0.0) no longer exists anywhere on disk: E1102, with the
+    // manifest-declared 2.0.0 listed as available.
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(!ok);
+    assert!(err.contains("E1102"), "{err}");
+    assert!(err.contains("available: 2.0.0"), "{err}");
+
+    // Re-pin to the declared version: resolves fine out of the same
+    // "1.0.0"-named directory — the dirname is never consulted.
+    std::fs::write(
+        tmp.join("cohdl.toml"),
+        "[package]\nname = \"t\"\n\n[design]\ntop = \"B\"\n\n[dependencies]\nmypkg = \"2.0.0\"\n",
+    )
+    .unwrap();
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+}
+
+#[test]
+fn arbitrary_version_dir_names_resolve_by_manifest() {
+    let tmp = tmp_dir("dirname");
+    make_project_with_dep(&tmp);
+    std::fs::rename(tmp.join("deps/mypkg/1.0.0"), tmp.join("deps/mypkg/current")).unwrap();
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+}
+
+#[test]
+fn misplaced_package_name_is_rejected() {
+    let tmp = tmp_dir("misname");
+    make_project_with_dep(&tmp);
+    std::fs::write(
+        tmp.join("deps/mypkg/1.0.0/cohdl.toml"),
+        "[package]\nname = \"otherpkg\"\nversion = \"1.0.0\"\n",
+    )
+    .unwrap();
     let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
     assert!(!ok);
     assert!(err.contains("E1106"), "{err}");
-    assert!(err.contains("declares itself"), "{err}");
+    assert!(err.contains("otherpkg"), "{err}");
+}
+
+#[test]
+fn duplicate_package_identity_is_rejected() {
+    let tmp = tmp_dir("dup");
+    make_project_with_dep(&tmp);
+    // A second directory declaring the same (name, version).
+    let dup = tmp.join("deps/mypkg/copy");
+    std::fs::create_dir_all(dup.join("src")).unwrap();
+    std::fs::write(
+        dup.join("cohdl.toml"),
+        "[package]\nname = \"mypkg\"\nversion = \"1.0.0\"\n",
+    )
+    .unwrap();
+    std::fs::write(dup.join("src/lib.cohdl"), DEP_LIB).unwrap();
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(!ok);
+    assert!(err.contains("E1106"), "{err}");
+    assert!(err.contains("one immutable identity"), "{err}");
 }
 
 // ---------------------------------------------------------------------------
@@ -246,7 +302,7 @@ fn std_override_always_warns() {
         "design B {\n    inst c1: MLCC_100nF_16V_0402\n    inst c2: MLCC_100nF_16V_0402\n    net N: c1.A, c2.A\n    net GND [gnd]: c1.B, c2.B\n}\n",
     )
     .unwrap();
-    let repo_std = Path::new(env!("CARGO_MANIFEST_DIR")).join("std/0.1.0");
+    let repo_std = Path::new(env!("CARGO_MANIFEST_DIR")).join("std");
     let (ok, _, err) = run(&[
         "check",
         tmp.to_str().unwrap(),

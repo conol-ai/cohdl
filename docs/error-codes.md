@@ -205,11 +205,11 @@ E000's classification).
 | Code | Meaning |
 |---|---|
 | E1101 | invalid `[dependencies]` entry — a version range (`^`, `~`, `>=`, `<`, `*`, `,`), a malformed or non-canonical version (leading zeros), an invalid dependency name, or a duplicate entry. CoHDL requires exact `X.Y.Z` versions permanently (RFC-029: hardware has no "safe patch" assumption); the help suggests the nearest exact version when one is discoverable |
-| E1102 | unresolvable dependency — the named exact version does not exist on disk (the help lists every searched location: `<project>/deps/<name>/<ver>`, then the registry root) |
+| E1102 | unresolvable dependency — no package on disk *declares* the pinned version (versions come from package manifests, never directory names). The help lists the searched family dirs (`<project>/deps/<name>`, then the registry root's `<name>/`) and every version actually available |
 | E1103 | locked-hash mismatch — the resolved package content re-hashes differently from its `cohdl.lock` row. The load-bearing RFC-029 guarantee: a version number is a human label; the hash is the identity. Hard error, never a warning; names both hashes |
 | E1104 | pre-RFC-029 manifest — no `[dependencies]` section (or no `std` pin without `--no-std`). The help carries the exact section to add and names `cohdl update` as the automatic migration |
 | E1105 | (warning, CLI prose) std override active — `--std`/`COHDL_STD` bypasses the locked std; the build is not reproducible. Mandatory and unsuppressable on every affected run |
-| E1106 | dependency identity mismatch — the package's own `cohdl.toml` declares a different name/version than it was resolved as |
+| E1106 | package identity error — a package under a family dir declares a different name, carries no/an unparseable `[package]` identity, or two packages declare the same (name, version): a version is one immutable identity |
 | E1107 | unparseable `cohdl.lock` — machine-generated file corrupted or hand-edited; the help says to restore it from version control or delete and re-resolve |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)

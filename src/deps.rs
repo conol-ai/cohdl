@@ -315,33 +315,104 @@ impl LockFile {
 
 /// Where packages live on disk (RFC-029 defines the mechanism assuming
 /// on-disk availability; hosting is future work). Search order per
-/// dependency `name@X.Y.Z`:
-///   1. `<project>/deps/<name>/<X.Y.Z>/`   (project-local packages)
-///   2. `<global>/<name>/<X.Y.Z>/`          (the registry root — the
-///      directory that contains the discovered `std/`; std itself resolves
-///      to `<std_root>/<X.Y.Z>/`)
+/// dependency name: the project-local `deps/<name>/` family dir, then the
+/// global one (`<registry>/<name>/`, where the registry root is the
+/// directory containing the discovered `std/`; std's family dir is the
+/// discovered `std/` itself).
 ///
-/// Every resolved dir is an ordinary package: `cohdl.toml` + `src/`.
+/// A family dir offers versions by MANIFEST, never by directory name: it is
+/// either itself a package (`cohdl.toml` + `src/`) or a container of
+/// arbitrarily-named subdirectories that each are one. The `[package]
+/// version` a manifest declares is the sole version authority — a path
+/// component that happens to spell a version is convention, not mechanism.
 pub struct Registry {
-    /// The versioned std root (contains `X.Y.Z/` subdirectories).
+    /// The discovered `std/` family dir.
     pub std_root: Option<PathBuf>,
     /// `<project>/deps`.
     pub project_deps: PathBuf,
 }
 
 impl Registry {
-    fn candidates(&self, name: &str, version: Version) -> Vec<PathBuf> {
-        let v = version.to_string();
-        let mut c = vec![self.project_deps.join(name).join(&v)];
+    /// The family dirs to search for `name`, in precedence order.
+    fn families(&self, name: &str) -> Vec<PathBuf> {
+        let mut f = vec![self.project_deps.join(name)];
         if let Some(std_root) = &self.std_root {
             if name == "std" {
-                c.push(std_root.join(&v));
+                f.push(std_root.clone());
             } else if let Some(parent) = std_root.parent() {
-                c.push(parent.join(name).join(&v));
+                f.push(parent.join(name));
             }
         }
-        c
+        f
     }
+}
+
+/// Every version of `name` a family dir offers, discovered by reading
+/// manifests: the dir itself if it carries a `cohdl.toml`, else each
+/// immediate subdirectory that does. Hard errors (for resolution contexts):
+/// an unparseable manifest, a package declaring a different name than the
+/// family it lives under, a declared version that is not an exact `X.Y.Z`,
+/// or two packages declaring the same identity.
+pub fn available_versions(family: &Path, name: &str) -> Result<Vec<(Version, PathBuf)>, String> {
+    let mut candidates: Vec<PathBuf> = Vec::new();
+    if family.join("cohdl.toml").is_file() {
+        candidates.push(family.to_path_buf());
+    } else if family.is_dir() {
+        let mut subs: Vec<PathBuf> = std::fs::read_dir(family)
+            .map_err(|e| format!("cannot read `{}`: {}", family.display(), e))?
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.is_dir() && p.join("cohdl.toml").is_file())
+            .collect();
+        subs.sort();
+        candidates.extend(subs);
+    }
+
+    let mut out: Vec<(Version, PathBuf)> = Vec::new();
+    for dir in candidates {
+        let Some((pkg_name, pkg_version)) = read_package_identity(&dir) else {
+            return Err(format!(
+                "package at `{}` has a cohdl.toml with no `[package] name`",
+                dir.display()
+            ));
+        };
+        if pkg_name != name {
+            return Err(format!(
+                "package at `{}` declares name `{}` but lives under the `{}` family",
+                dir.display(),
+                pkg_name,
+                name
+            ));
+        }
+        let Some(raw) = pkg_version else {
+            return Err(format!(
+                "package at `{}` declares no `[package] version`",
+                dir.display()
+            ));
+        };
+        let version = parse_exact_version(&raw)
+            .map_err(|e| format!("package at `{}`: {}", dir.display(), e))?;
+        if let Some((_, other)) = out.iter().find(|(v, _)| *v == version) {
+            return Err(format!(
+                "two packages declare `{} {}`: `{}` and `{}` — a version is one immutable identity",
+                name,
+                version,
+                other.display(),
+                dir.display()
+            ));
+        }
+        out.push((version, dir));
+    }
+    Ok(out)
+}
+
+/// The newest version a family dir offers (soft: discovery contexts —
+/// unpinned single-file/LSP resolution, root discovery, migration hints —
+/// where an unreadable family simply offers nothing).
+pub fn newest_available(family: &Path, name: &str) -> Option<(Version, PathBuf)> {
+    available_versions(family, name)
+        .ok()?
+        .into_iter()
+        .max_by_key(|(v, _)| *v)
 }
 
 /// How the lock should treat already-locked entries.
@@ -401,69 +472,66 @@ pub fn resolve(
     let mut diags = Vec::new();
 
     for dep in deps {
-        // -- locate the package content --
-        let candidates = registry.candidates(&dep.name, dep.version);
-        let Some(dir) = candidates.iter().find(|c| c.is_dir()).cloned() else {
-            diags.push(
-                PackageDiag::error(
-                    "E1102",
-                    manifest_display,
-                    dep.line,
-                    format!(
-                        "cannot resolve `{} = \"{}\"` — no such package version on disk",
-                        dep.name, dep.version
-                    ),
-                )
-                .with_help(format!(
-                    "looked in: {}",
-                    candidates
-                        .iter()
-                        .map(|c| format!("`{}`", c.display()))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )),
-            );
-            continue;
-        };
-
-        // -- a package is a package: its own cohdl.toml must exist and agree
-        //    (std is not special — RFC-029 makes it an ordinary package) --
-        match read_package_identity(&dir) {
-            None => {
-                diags.push(
-                    PackageDiag::error(
-                        "E1106",
-                        manifest_display,
-                        dep.line,
-                        format!(
-                            "package at `{}` carries no cohdl.toml — every package declares `[package] name`/`version`",
-                            dir.display()
-                        ),
-                    ),
-                );
-                continue;
-            }
-            Some((pkg_name, pkg_version)) => {
-                if pkg_name != dep.name
-                    || pkg_version.as_deref().map(parse_exact_version) != Some(Ok(dep.version))
-                {
-                    diags.push(PackageDiag::error(
-                        "E1106",
-                        manifest_display,
-                        dep.line,
-                        format!(
-                            "package at `{}` declares itself `{} {}` but was resolved as `{} {}`",
-                            dir.display(),
-                            pkg_name,
-                            pkg_version.as_deref().unwrap_or("(no version)"),
-                            dep.name,
-                            dep.version
-                        ),
-                    ));
-                    continue;
+        // -- locate the package: versions are discovered from manifests
+        //    (the directory name is never consulted), searching the
+        //    project-local family then the global one --
+        let families = registry.families(&dep.name);
+        let mut found: Option<PathBuf> = None;
+        let mut available: Vec<Version> = Vec::new();
+        let mut family_err: Option<String> = None;
+        for family in &families {
+            match available_versions(family, &dep.name) {
+                Ok(versions) => {
+                    if found.is_none() {
+                        if let Some((_, dir)) = versions.iter().find(|(v, _)| *v == dep.version) {
+                            found = Some(dir.clone());
+                        }
+                    }
+                    available.extend(versions.iter().map(|(v, _)| *v));
+                }
+                Err(e) => {
+                    family_err = Some(e);
+                    break;
                 }
             }
         }
+        if let Some(e) = family_err {
+            diags.push(PackageDiag::error("E1106", manifest_display, dep.line, e));
+            continue;
+        }
+        let Some(dir) = found else {
+            available.sort();
+            available.dedup();
+            let mut d = PackageDiag::error(
+                "E1102",
+                manifest_display,
+                dep.line,
+                format!(
+                    "cannot resolve `{} = \"{}\"` — no package on disk declares that version",
+                    dep.name, dep.version
+                ),
+            )
+            .with_help(format!(
+                "searched: {}",
+                families
+                    .iter()
+                    .map(|c| format!("`{}`", c.display()))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ));
+            if !available.is_empty() {
+                d = d.with_help(format!(
+                    "available: {}",
+                    available
+                        .iter()
+                        .map(|v| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ));
+            }
+            diags.push(d);
+            continue;
+        };
 
         // -- content hash --
         let actual = match hash::package_content_hash(&dir) {
@@ -562,26 +630,4 @@ fn read_package_identity(dir: &Path) -> Option<(String, Option<String>)> {
         }
     }
     name.map(|n| (n, version))
-}
-
-/// The newest version directory under a versioned package root — the
-/// resolution rule for unpinned targets (single-file checks, the LSP's
-/// overlay analysis) where no manifest exists to pin against.
-pub fn newest_version_in(root: &Path) -> Option<(Version, PathBuf)> {
-    let mut best: Option<(Version, PathBuf)> = None;
-    for entry in std::fs::read_dir(root).ok()?.filter_map(|e| e.ok()) {
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
-            continue;
-        };
-        if let Ok(v) = parse_exact_version(name) {
-            if best.as_ref().is_none_or(|(b, _)| v > *b) {
-                best = Some((v, path));
-            }
-        }
-    }
-    best
 }

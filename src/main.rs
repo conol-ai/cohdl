@@ -782,7 +782,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
             return Ok(vec![("std".to_string(), dir)]);
         }
         let newest = project::find_std_root()
-            .and_then(|root| deps::newest_version_in(&root))
+            .and_then(|root| deps::newest_available(&root, "std"))
             .map(|(v, _)| v.to_string())
             .unwrap_or_else(|| "X.Y.Z".to_string());
         return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
@@ -808,7 +808,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
         entries.retain(|e| e.name != "std");
     } else if !entries.iter().any(|e| e.name == "std") && override_std.is_none() {
         let newest = project::find_std_root()
-            .and_then(|root| deps::newest_version_in(&root))
+            .and_then(|root| deps::newest_available(&root, "std"))
             .map(|(v, _)| v.to_string())
             .unwrap_or_else(|| "X.Y.Z".to_string());
         return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
@@ -900,7 +900,8 @@ fn update_command(args: &Args) -> Result<bool, String> {
 
     // Migration: no [dependencies] section → write one pinning newest std.
     if manifest.deps_raw.is_none() {
-        let Some((newest, _)) = project::find_std_root().and_then(|r| deps::newest_version_in(&r))
+        let Some((newest, _)) =
+            project::find_std_root().and_then(|r| deps::newest_available(&r, "std"))
         else {
             return Err(
                 "cannot locate a versioned std library to pin (no std root found)".to_string(),

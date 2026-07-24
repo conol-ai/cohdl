@@ -2182,3 +2182,16 @@ RFC's stated scope or a disclosed deviation:
    contributing `path NUL len NUL bytes` — a superset of the RFC's ".cohdl
    files, doc documents, footprint symbols" enumeration (the whole package
    is the identity, manifest included).
+
+**Amendment (same day, per direct review)**: the first cut encoded the
+version in the registry path (`std/<X.Y.Z>/`) — redundant with the
+package's own `[package] version`, i.e. two sources of truth. Corrected:
+the manifest is the SOLE version authority; a family dir offers versions
+by reading its packages' manifests (the dir itself if it carries a
+cohdl.toml, else each subdirectory that does), and directory names are
+convention only — `deps/mypkg/current/` declaring 1.0.0 resolves a
+`mypkg = "1.0.0"` pin. Duplicate declared identity across two dirs is a
+hard E1106. The repo's std accordingly flattened to `std/` being the
+package itself (`std/cohdl.toml` + `std/src/`); the content hash was
+unaffected (package-relative paths unchanged), so committed locks stayed
+valid across the restructure.

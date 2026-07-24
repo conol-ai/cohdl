@@ -303,15 +303,16 @@ fn ensure_package_dir(dir: &Path, name: &str) -> Result<(), String> {
         })
         .unwrap_or(false);
     if !has_top_level_cohdl {
-        if let Some((newest, _)) = crate::deps::newest_version_in(dir) {
+        if let Some((newest, newest_dir)) = crate::deps::newest_available(dir, name) {
             return Err(format!(
-                "`{}` is a versioned package root, not a package — pass a specific version directory (e.g. `{}`)",
+                "`{}` is a package family dir (versions live in its subdirectories), not a package — pass a specific package directory (e.g. `{}`, which declares {} {})",
                 dir.display(),
-                dir.join(newest.to_string()).display()
+                newest_dir.display(),
+                name,
+                newest
             ));
         }
     }
-    let _ = name;
     Ok(())
 }
 
@@ -336,13 +337,13 @@ pub fn find_std_root() -> Option<PathBuf> {
         // target/{debug,release}/cohdl → repo root's std/.
         for ancestor in exe.ancestors().skip(1) {
             let candidate = ancestor.join("std");
-            if crate::deps::newest_version_in(&candidate).is_some() {
+            if crate::deps::newest_available(&candidate, "std").is_some() {
                 return Some(candidate);
             }
         }
     }
     let cwd_std = PathBuf::from("std");
-    if crate::deps::newest_version_in(&cwd_std).is_some() {
+    if crate::deps::newest_available(&cwd_std, "std").is_some() {
         return Some(cwd_std);
     }
     None
@@ -355,5 +356,5 @@ pub fn find_std_dir(flag: Option<PathBuf>) -> Option<PathBuf> {
     if let Some(p) = std_override(flag) {
         return Some(p);
     }
-    find_std_root().and_then(|root| crate::deps::newest_version_in(&root).map(|(_, dir)| dir))
+    find_std_root().and_then(|root| crate::deps::newest_available(&root, "std").map(|(_, dir)| dir))
 }

@@ -64,6 +64,14 @@ export function usePackage(name: string) {
   });
 }
 
+export function useConfig() {
+  return useQuery({
+    queryKey: ["config"],
+    staleTime: Infinity,
+    queryFn: () => get<{ recaptcha_site_key: string | null }>("/api/config"),
+  });
+}
+
 export function useMe() {
   return useQuery({
     queryKey: ["me"],

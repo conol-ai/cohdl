@@ -5,6 +5,12 @@ export interface Env {
   DB: D1Database;
   PKG: R2Bucket;
   SESSIONS: KVNamespace;
+  /// reCAPTCHA v3 keys, assigned in the Cloudflare dashboard (the site key
+  /// as a plaintext variable — it is public and the UI fetches it via
+  /// /api/config; the secret as a Worker secret). Both unset = reCAPTCHA
+  /// disabled (local dev / pre-configuration).
+  RECAPTCHA_SITE_KEY?: string;
+  RECAPTCHA_SECRET_KEY?: string;
 }
 
 const PBKDF2_ITERS = 100_000;

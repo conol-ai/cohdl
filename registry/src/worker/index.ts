@@ -198,11 +198,48 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
 // Web UI API
 // ---------------------------------------------------------------------------
 
+/// reCAPTCHA v3 verification (signup/sign-in only — never the CLI token
+/// flow). Unconfigured secret = pass-through, so the service works before
+/// the dashboard variables exist.
+async function recaptchaOk(
+  env: Env,
+  request: Request,
+  token: string | undefined,
+  action: string,
+): Promise<boolean> {
+  if (!env.RECAPTCHA_SECRET_KEY) return true;
+  if (!token) return false;
+  const form = new URLSearchParams({
+    secret: env.RECAPTCHA_SECRET_KEY,
+    response: token,
+    remoteip: request.headers.get("CF-Connecting-IP") ?? "",
+  });
+  const resp = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  });
+  if (!resp.ok) return false;
+  const data = (await resp.json()) as { success?: boolean; score?: number; action?: string };
+  return data.success === true && data.action === action && (data.score ?? 0) >= 0.5;
+}
+
 async function api(env: Env, request: Request, url: URL): Promise<Response> {
   const path = url.pathname;
 
+  if (path === "/api/config" && request.method === "GET") {
+    return json(200, { recaptcha_site_key: env.RECAPTCHA_SITE_KEY ?? null });
+  }
+
   if (path === "/api/signup" && request.method === "POST") {
-    const { email, password } = await request.json<{ email?: string; password?: string }>();
+    const { email, password, recaptcha } = await request.json<{
+      email?: string;
+      password?: string;
+      recaptcha?: string;
+    }>();
+    if (!(await recaptchaOk(env, request, recaptcha, "signup"))) {
+      return json(403, { error: "reCAPTCHA verification failed — reload the page and try again" });
+    }
     if (!email || !password || password.length < 8) {
       return json(400, { error: "email and a password of at least 8 characters are required" });
     }
@@ -220,7 +257,14 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
   }
 
   if (path === "/api/session" && request.method === "POST") {
-    const { email, password } = await request.json<{ email?: string; password?: string }>();
+    const { email, password, recaptcha } = await request.json<{
+      email?: string;
+      password?: string;
+      recaptcha?: string;
+    }>();
+    if (!(await recaptchaOk(env, request, recaptcha, "login"))) {
+      return json(403, { error: "reCAPTCHA verification failed — reload the page and try again" });
+    }
     const row = await env.DB.prepare("SELECT id, password_hash FROM accounts WHERE email = ?")
       .bind(email ?? "")
       .first<{ id: number; password_hash: string }>();

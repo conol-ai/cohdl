@@ -10,7 +10,36 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { post, usePackage, useMe, useRecent, useSearch } from "./api";
+import { post, useConfig, usePackage, useMe, useRecent, useSearch } from "./api";
+
+// reCAPTCHA v3 (loaded on demand when the registry has a site key
+// configured; see /api/config). Keys live in the Cloudflare dashboard.
+declare global {
+  interface Window {
+    grecaptcha?: {
+      ready(cb: () => void): void;
+      execute(siteKey: string, opts: { action: string }): Promise<string>;
+    };
+  }
+}
+
+let recaptchaLoaded: Promise<void> | null = null;
+function loadRecaptcha(siteKey: string): Promise<void> {
+  recaptchaLoaded ??= new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+    s.onload = () => window.grecaptcha!.ready(resolve);
+    s.onerror = () => reject(new Error("could not load reCAPTCHA"));
+    document.head.appendChild(s);
+  });
+  return recaptchaLoaded;
+}
+
+async function recaptchaToken(siteKey: string | null | undefined, action: string) {
+  if (!siteKey) return undefined;
+  await loadRecaptcha(siteKey);
+  return window.grecaptcha!.execute(siteKey, { action });
+}
 
 // ---------------------------------------------------------------------------
 
@@ -174,6 +203,7 @@ const packageRoute = createRoute({
 
 function Account() {
   const me = useMe();
+  const config = useConfig();
   const qc = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -181,11 +211,15 @@ function Account() {
   const [token, setToken] = useState<string | null>(null);
 
   const auth = useMutation({
-    mutationFn: () =>
-      post<{ account: string }>(mode === "signup" ? "/api/signup" : "/api/session", {
+    mutationFn: async () => {
+      const action = mode === "signup" ? "signup" : "login";
+      const recaptcha = await recaptchaToken(config.data?.recaptcha_site_key, action);
+      return post<{ account: string }>(mode === "signup" ? "/api/signup" : "/api/session", {
         email,
         password,
-      }),
+        recaptcha,
+      });
+    },
     onSuccess: (data) => {
       // Flip to the signed-in view immediately from the mutation's own
       // result; the invalidate refreshes grants in the background. (The

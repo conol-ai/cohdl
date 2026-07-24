@@ -10,7 +10,11 @@
   "keep_vars": true,
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/packages/*", "/api/*", "/login"]
+    // The worker fronts EVERY request (not just API routes) so http->https
+    // and HSTS are enforced in code, independent of zone-level settings;
+    // non-API routes fall through to the ASSETS binding.
+    "run_worker_first": true,
+    "binding": "ASSETS"
   },
   "d1_databases": [
     {

@@ -5,6 +5,9 @@ export interface Env {
   DB: D1Database;
   PKG: R2Bucket;
   SESSIONS: KVNamespace;
+  /// Workers Assets (the SPA) — the worker fronts all routes for the
+  /// https/HSTS enforcement and forwards non-API requests here.
+  ASSETS: Fetcher;
   /// reCAPTCHA v3 keys, assigned in the Cloudflare dashboard (the site key
   /// as a plaintext variable — it is public and the UI fetches it via
   /// /api/config; the secret as a Worker secret). Both unset = reCAPTCHA

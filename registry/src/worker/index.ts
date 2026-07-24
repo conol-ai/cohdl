@@ -52,26 +52,37 @@ function parsePackagePath(pathname: string): { name: string; version?: string; t
 
 const EXACT_VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
+/// One year of HSTS on every response — the site is https-only.
+function withHsts(resp: Response): Response {
+  const out = new Response(resp.body, resp);
+  out.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  return out;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    // https-only: permanent-redirect any plain-http request.
+    if (url.protocol === "http:") {
+      url.protocol = "https:";
+      return Response.redirect(url.toString(), 301);
+    }
     const { pathname } = url;
     try {
       if (pathname === "/login" && request.method === "POST") {
-        return await cliLogin(env, request);
+        return withHsts(await cliLogin(env, request));
       }
       if (pathname.startsWith("/packages/")) {
-        return await packages(env, request, pathname);
+        return withHsts(await packages(env, request, pathname));
       }
       if (pathname.startsWith("/api/")) {
-        return await api(env, request, url);
+        return withHsts(await api(env, request, url));
       }
     } catch (e) {
       return json(500, { error: `internal error: ${e instanceof Error ? e.message : e}` });
     }
-    // Everything else: the SPA (Workers Assets serves it; run_worker_first
-    // keeps this fetch handler out of the way for asset routes).
-    return new Response("not found", { status: 404 });
+    // Everything else: the SPA via the assets binding.
+    return withHsts(await env.ASSETS.fetch(request));
   },
 } satisfies ExportedHandler<Env>;
 

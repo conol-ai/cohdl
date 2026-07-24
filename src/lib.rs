@@ -19,6 +19,7 @@ pub mod lsp;
 pub mod parse;
 pub mod pipeline;
 pub mod project;
+pub mod registry;
 pub mod resolve;
 pub mod span;
 pub mod units;

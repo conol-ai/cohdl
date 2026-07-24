@@ -29,6 +29,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E9xx | Structural variants (RFC-008) |
 | E10xx | Layout constraints (RFC-013) |
 | E11xx | Package resolution (RFC-029) — manifest `[dependencies]` + cohdl.lock, pre-pipeline |
+| E12xx | Registry interaction (RFC-030) — login/publish/add/remove/install against registry.cohdl.org; a different kind of mistake from E11xx's local resolution/hash failures |
 | D00x | Residual DRC (RFC-004) — exactly four, never more |
 
 **Enforcement**: `tests/error_registry.rs` runs the RFC-011 completeness check
@@ -211,6 +212,24 @@ E000's classification).
 | E1105 | (warning, CLI prose) std override active — `--std`/`COHDL_STD` bypasses the locked std; the build is not reproducible. Mandatory and unsuppressable on every affected run |
 | E1106 | package identity error — a package under a family dir declares a different name, carries no/an unparseable `[package]` identity, or two packages declare the same (name, version): a version is one immutable identity |
 | E1107 | unparseable `cohdl.lock` — machine-generated file corrupted or hand-edited; the help says to restore it from version control or delete and re-resolve |
+
+## E12xx — registry interaction (RFC-030)
+
+CLI-level failures talking to registry.cohdl.org — deliberately a separate
+block from E11xx (RFC-011's organizing principle: registry-interaction
+failures are a different kind of mistake from local resolution/hash
+failures, and E1204 in particular must never be conflated with E1103).
+Like E11xx these are pre-source `PackageDiag`s; they surface as CLI prose
+(none of these commands has a `--json` mode).
+
+| Code | Meaning |
+|---|---|
+| E1201 | authentication missing or rejected — `cohdl publish` without a stored token, or the registry refused it; the help names `cohdl login` |
+| E1202 | namespace rejection — a name outside the closed three-tier grammar (bare / `@brand/name` / `@contrib/name`), or the server refused a publish (bare name not owned by the official account, unverified brand, version already published). Checked locally pre-flight AND server-side (authoritative) |
+| E1203 | package or version not published on the registry |
+| E1204 | registry unreachable (or protocol failure) with no cached copy — explicitly distinct from a hash mismatch (E1103): different kinds of mistakes, per RFC-030's failure modes |
+| E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |
+| E1206 | client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what cohdl.lock will verify); a hard error on download (corrupted content is never cached) |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

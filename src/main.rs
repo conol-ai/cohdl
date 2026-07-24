@@ -5,7 +5,7 @@ use cohdl::emit;
 use cohdl::lock::LockState;
 use cohdl::pipeline;
 use cohdl::project;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 const USAGE: &str = "\
@@ -15,7 +15,12 @@ USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
                  [--emit ipc2581] [--json]
-    cohdl update [PATH] [--dep NAME]
+    cohdl update [NAME] [PATH] [--dep NAME]
+    cohdl add    NAME[@X.Y.Z] [PATH]
+    cohdl remove NAME [PATH]
+    cohdl install [PATH]
+    cohdl login
+    cohdl publish [PATH]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
 
@@ -24,9 +29,18 @@ defaults to the current directory.
 
     check    parse, resolve, type-check, and run residual DRC
     build    check + assign designators + bind parts + emit KiCad .net + BOM CSV
-    update   re-resolve pinned dependencies and rewrite cohdl.lock (RFC-029);
-             on a pre-RFC-029 manifest, adds the [dependencies] section pinning
-             the newest available std
+    update   re-resolve dependencies to the latest published exact version
+             (registry first, local fallback) and rewrite [dependencies] +
+             cohdl.lock (RFC-029/030); migrates a pre-RFC-029 manifest
+    add      add a dependency: resolve latest (or the given @X.Y.Z), fetch
+             into the cache, write [dependencies] + cohdl.lock (RFC-030)
+    remove   remove a dependency from [dependencies] and cohdl.lock (RFC-030)
+    install  resolve every dependency per cohdl.lock, fetching anything
+             missing from registry.cohdl.org into ~/.cohdl/registry (RFC-030)
+    login    store a registry token (opens the account page for you to copy
+             one; paste it at the prompt)
+    publish  package the current project and publish it to the registry
+             (three-tier namespace pre-flight, then POST; RFC-030)
     fmt      rewrite every .cohdl file into canonical form (RFC-009); in a
              project directory, also canonicalizes cohdl.toml's [dependencies]
     lsp      start the Language Server Protocol server on stdio (RFC-014)
@@ -62,6 +76,9 @@ struct Args {
     emit: Option<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
+    /// RFC-030: the NAME positional of add/remove/update (`name` or
+    /// `name@X.Y.Z` for add).
+    name: Option<String>,
 }
 
 impl Args {
@@ -96,7 +113,7 @@ impl Args {
                     return bad("--emit");
                 }
             }
-            "update" => {
+            "add" | "remove" | "install" | "login" | "publish" | "update" => {
                 if self.json {
                     return bad("--json");
                 }
@@ -197,6 +214,7 @@ fn parse_args() -> Result<Args, String> {
         fmt_check: false,
         emit: None,
         dep: None,
+        name: None,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -230,12 +248,36 @@ fn parse_args() -> Result<Args, String> {
             other => positional.push(other.to_string()),
         }
     }
-    if positional.len() > 1 {
+    // RFC-030: add/remove take NAME [PATH]; update takes [NAME] [PATH]
+    // (a NAME is recognized by the registry-name grammar; when a name
+    // collides with a directory name, use --dep / a ./path spelling).
+    let takes_name = matches!(args.command.as_str(), "add" | "remove" | "update");
+    let max = if takes_name { 2 } else { 1 };
+    if positional.len() > max {
         return Err(format!("too many arguments\n\n{}", USAGE));
     }
-    if let Some(p) = positional.pop() {
-        args.path = PathBuf::from(p);
-        args.path_given = true;
+    for p in positional {
+        let base = p.split('@').next().unwrap_or(&p);
+        let path_like = p.contains(std::path::MAIN_SEPARATOR)
+            || p.starts_with('.')
+            || cohdl::registry::name_tier(base).is_err()
+            || (args.command == "update" && Path::new(&p).is_dir());
+        let plain_name = !path_like;
+        let is_name = takes_name && args.name.is_none() && (p.starts_with('@') || plain_name);
+        if is_name {
+            args.name = Some(p);
+        } else if !args.path_given {
+            args.path = PathBuf::from(p);
+            args.path_given = true;
+        } else {
+            return Err(format!("too many arguments\n\n{}", USAGE));
+        }
+    }
+    if matches!(args.command.as_str(), "add" | "remove") && args.name.is_none() {
+        return Err(format!(
+            "`{}` needs a package name\n\n{}",
+            args.command, USAGE
+        ));
     }
     Ok(args)
 }
@@ -382,6 +424,11 @@ fn run(args: &Args) -> Result<bool, String> {
     match args.command.as_str() {
         "check" | "build" => {}
         "update" => return update_command(args),
+        "add" => return add_command(args),
+        "remove" => return remove_command(args),
+        "install" => return install_command(args),
+        "login" => return login_command(),
+        "publish" => return publish_command(args),
         "fmt" => return fmt_command(args),
         "lsp" => {
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
@@ -835,6 +882,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
     let registry = deps::Registry {
         std_root: project::find_std_root(),
         project_deps: args.path.join("deps"),
+        cache_root: cohdl::registry::cache_root(),
     };
     let lock_path = args.path.join("cohdl.lock");
     let lock_display = lock_path.display().to_string();
@@ -925,14 +973,20 @@ fn update_command(args: &Args) -> Result<bool, String> {
     }
 
     let deps_raw = manifest.deps_raw.as_ref().expect("migrated above");
-    let entries = match deps::validate_deps(&manifest_display, deps_raw) {
+    let mut entries = match deps::validate_deps(&manifest_display, deps_raw) {
         Ok(e) => e,
         Err(diags) => {
             eprint!("{}", deps::render_human(&diags));
             return Ok(false);
         }
     };
-    if let Some(name) = &args.dep {
+    // RFC-030: `cohdl update NAME` — positional or --dep.
+    let target = args.dep.clone().or_else(|| {
+        args.name
+            .as_ref()
+            .map(|n| cohdl::registry::split_name_version(n).0)
+    });
+    if let Some(name) = &target {
         if !entries.iter().any(|e| &e.name == name) {
             return Err(format!(
                 "`{}` is not a dependency of this project (see [dependencies] in {})",
@@ -944,11 +998,56 @@ fn update_command(args: &Args) -> Result<bool, String> {
     let registry = deps::Registry {
         std_root: project::find_std_root(),
         project_deps: args.path.join("deps"),
+        cache_root: cohdl::registry::cache_root(),
     };
+
+    // RFC-030: update means "re-resolve to the latest published exact
+    // version" — the registry first, local families as the fallback (std
+    // and vendored packages live only on disk). The manifest is rewritten
+    // only on a real bump; content missing locally is fetched.
+    for e in entries.iter_mut() {
+        if let Some(name) = &target {
+            if &e.name != name {
+                continue;
+            }
+        }
+        let registry_latest = cohdl::registry::published_versions(&e.name)
+            .ok()
+            .and_then(|v| v.first().copied());
+        let local_latest = registry
+            .families(&e.name)
+            .iter()
+            .filter_map(|f| deps::newest_available(f, &e.name))
+            .map(|(v, _)| v)
+            .max();
+        let latest = registry_latest.into_iter().chain(local_latest).max();
+        if let Some(latest) = latest {
+            if latest > e.version {
+                manifest_set_dep(&manifest_path, &e.name, &latest.to_string())?;
+                eprintln!("  {}: {} -> {}", e.name, e.version, latest);
+                e.version = latest;
+            }
+        }
+        let on_disk = registry.families(&e.name).iter().any(|f| {
+            deps::available_versions(f, &e.name)
+                .map(|v| v.iter().any(|(ver, _)| *ver == e.version))
+                .unwrap_or(false)
+        });
+        if !on_disk {
+            match cohdl::registry::download_into_cache(&e.name, e.version) {
+                Ok(_) => {}
+                Err(d) => {
+                    eprint!("{}", render_diag(&d));
+                    return Ok(false);
+                }
+            }
+        }
+    }
+
     let lock_path = args.path.join("cohdl.lock");
     let lock_display = lock_path.display().to_string();
     let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
-    let update = match &args.dep {
+    let update = match &target {
         Some(name) => deps::Update::One(name.clone()),
         None => deps::Update::All,
     };
@@ -975,6 +1074,417 @@ fn update_command(args: &Args) -> Result<bool, String> {
             eprint!("{}", deps::render_human(&diags));
             Ok(false)
         }
+    }
+}
+
+/// Surgical `[dependencies]` edit: insert or replace `name = "version"`
+/// (quoted key for scoped names), creating the section if missing.
+fn manifest_set_dep(manifest_path: &Path, name: &str, version: &str) -> Result<(), String> {
+    let text = std::fs::read_to_string(manifest_path).map_err(|e| e.to_string())?;
+    let key = if name.starts_with('@') {
+        format!("\"{name}\"")
+    } else {
+        name.to_string()
+    };
+    let entry = format!("{key} = \"{version}\"");
+    let mut lines: Vec<String> = text.lines().map(str::to_string).collect();
+    let mut replaced = false;
+    if let Some(start) = lines.iter().position(|l| l.trim() == "[dependencies]") {
+        let end = lines[start + 1..]
+            .iter()
+            .position(|l| l.trim().starts_with('['))
+            .map(|off| start + 1 + off)
+            .unwrap_or(lines.len());
+        for l in lines[start + 1..end].iter_mut() {
+            let k = l
+                .trim()
+                .split('=')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .trim_matches('"');
+            if k == name {
+                *l = entry.clone();
+                replaced = true;
+                break;
+            }
+        }
+        if !replaced {
+            lines.insert(end, entry);
+        }
+    } else {
+        if !lines.last().map(|l| l.is_empty()).unwrap_or(true) {
+            lines.push(String::new());
+        }
+        lines.push("[dependencies]".to_string());
+        lines.push(entry);
+    }
+    let mut out = lines.join("\n");
+    out.push('\n');
+    std::fs::write(manifest_path, out).map_err(|e| e.to_string())
+}
+
+/// Remove `name` from `[dependencies]`; Ok(false) when it was not present.
+fn manifest_remove_dep(manifest_path: &Path, name: &str) -> Result<bool, String> {
+    let text = std::fs::read_to_string(manifest_path).map_err(|e| e.to_string())?;
+    let mut removed = false;
+    let mut in_deps = false;
+    let lines: Vec<&str> = text
+        .lines()
+        .filter(|l| {
+            let t = l.trim();
+            if t.starts_with('[') {
+                in_deps = t == "[dependencies]";
+                return true;
+            }
+            if in_deps {
+                let k = t.split('=').next().unwrap_or("").trim().trim_matches('"');
+                if k == name {
+                    removed = true;
+                    return false;
+                }
+            }
+            true
+        })
+        .collect();
+    if removed {
+        let mut out = lines.join("\n");
+        out.push('\n');
+        std::fs::write(manifest_path, out).map_err(|e| e.to_string())?;
+    }
+    Ok(removed)
+}
+
+/// Upsert one cohdl.lock row (the registry's server-computed hash is what a
+/// fresh install verifies against — RFC-030).
+fn lock_upsert(
+    project: &Path,
+    name: &str,
+    version: cohdl::deps::Version,
+    hash: String,
+) -> Result<(), String> {
+    let lock_path = project.join("cohdl.lock");
+    let mut lock = match std::fs::read_to_string(&lock_path) {
+        Ok(text) => cohdl::deps::LockFile::parse(&text)?,
+        Err(_) => cohdl::deps::LockFile::default(),
+    };
+    lock.entries
+        .insert(name.to_string(), cohdl::deps::LockEntry { version, hash });
+    write_lock_file(&lock_path, &lock.render())
+}
+
+fn render_diag(d: &cohdl::deps::PackageDiag) -> String {
+    cohdl::deps::render_human(std::slice::from_ref(d))
+}
+
+/// `cohdl add NAME[@X.Y.Z]` (RFC-030): resolve, fetch into the cache, write
+/// `[dependencies]` + the cohdl.lock row in one step.
+fn add_command(args: &Args) -> Result<bool, String> {
+    use cohdl::registry;
+    let arg = args.name.as_deref().expect("validated");
+    let (name, ver) = registry::split_name_version(arg);
+    let tier = match registry::name_tier(&name) {
+        Ok(t) => t,
+        Err(e) => {
+            eprint!(
+                "{}",
+                render_diag(&cohdl::deps::PackageDiag::error("E1202", "cohdl add", 0, e))
+            );
+            return Ok(false);
+        }
+    };
+    if !args.path.join("cohdl.toml").is_file() {
+        return Err(format!(
+            "`{}` is not a project directory (add needs a cohdl.toml manifest)",
+            args.path.display()
+        ));
+    }
+    let version = match &ver {
+        Some(v) => cohdl::deps::parse_exact_version(v).map_err(|e| e.to_string())?,
+        None => match registry::published_versions(&name) {
+            Ok(versions) => *versions
+                .first()
+                .ok_or_else(|| format!("`{name}` has no published versions on the registry"))?,
+            Err(d) => {
+                eprint!("{}", render_diag(&d));
+                return Ok(false);
+            }
+        },
+    };
+    let (_, server_hash) = match registry::download_into_cache(&name, version) {
+        Ok(r) => r,
+        Err(d) => {
+            eprint!("{}", render_diag(&d));
+            return Ok(false);
+        }
+    };
+    manifest_set_dep(&args.path.join("cohdl.toml"), &name, &version.to_string())?;
+    lock_upsert(&args.path, &name, version, server_hash)?;
+    eprintln!("  added {} {} — {}", name, version, tier.describe());
+    Ok(true)
+}
+
+/// `cohdl remove NAME` (RFC-030): the symmetric inverse of add.
+fn remove_command(args: &Args) -> Result<bool, String> {
+    let name = args.name.as_deref().expect("validated");
+    let (manifest_path, manifest) = project::peek_manifest(&args.path)?;
+    let current: Vec<String> = manifest
+        .deps_raw
+        .as_deref()
+        .unwrap_or(&[])
+        .iter()
+        .map(|(n, _, _)| n.clone())
+        .collect();
+    if !current.iter().any(|n| n == name) {
+        eprint!(
+            "{}",
+            render_diag(
+                &cohdl::deps::PackageDiag::error(
+                    "E1205",
+                    &manifest_path.display().to_string(),
+                    0,
+                    format!("`{name}` is not a dependency of this project"),
+                )
+                .with_help(if current.is_empty() {
+                    "the project has no [dependencies]".to_string()
+                } else {
+                    format!("current dependencies: {}", current.join(", "))
+                })
+            )
+        );
+        return Ok(false);
+    }
+    manifest_remove_dep(&manifest_path, name)?;
+    let lock_path = args.path.join("cohdl.lock");
+    if let Ok(text) = std::fs::read_to_string(&lock_path) {
+        if let Ok(mut lock) = cohdl::deps::LockFile::parse(&text) {
+            if lock.entries.remove(name).is_some() {
+                write_lock_file(&lock_path, &lock.render())?;
+            }
+        }
+    }
+    eprintln!("  removed {}", name);
+    Ok(true)
+}
+
+/// `cohdl install` (RFC-030): RFC-029's resolution with the registry as the
+/// content source — anything not on disk is fetched into the cache first.
+fn install_command(args: &Args) -> Result<bool, String> {
+    use cohdl::{deps, registry};
+    let (manifest_path, manifest) = project::peek_manifest(&args.path)?;
+    let manifest_display = manifest_path.display().to_string();
+    let Some(deps_raw) = &manifest.deps_raw else {
+        return Err(
+            "this project declares no `[dependencies]` — run `cohdl update` to migrate".into(),
+        );
+    };
+    let entries = match deps::validate_deps(&manifest_display, deps_raw) {
+        Ok(e) => e,
+        Err(diags) => {
+            eprint!("{}", deps::render_human(&diags));
+            return Ok(false);
+        }
+    };
+    let reg = deps::Registry {
+        std_root: project::find_std_root(),
+        project_deps: args.path.join("deps"),
+        cache_root: registry::cache_root(),
+    };
+    let mut fetched = 0usize;
+    for dep in &entries {
+        let on_disk = reg.families(&dep.name).iter().any(|f| {
+            deps::available_versions(f, &dep.name)
+                .map(|v| v.iter().any(|(ver, _)| *ver == dep.version))
+                .unwrap_or(false)
+        });
+        if on_disk {
+            continue;
+        }
+        match registry::download_into_cache(&dep.name, dep.version) {
+            Ok((dir, _)) => {
+                fetched += 1;
+                eprintln!(
+                    "  fetched {} {} -> {}",
+                    dep.name,
+                    dep.version,
+                    dir.display()
+                );
+            }
+            Err(d) => {
+                eprint!("{}", render_diag(&d));
+                return Ok(false);
+            }
+        }
+    }
+    let lock_path = args.path.join("cohdl.lock");
+    let prior = std::fs::read_to_string(&lock_path).ok();
+    match deps::resolve(
+        &manifest_display,
+        &lock_path.display().to_string(),
+        &entries,
+        &reg,
+        prior.as_deref(),
+        deps::Update::No,
+    ) {
+        Ok(res) => {
+            if res.lock_changed || prior.is_none() {
+                write_lock_file(&lock_path, &res.lock.render())?;
+            }
+            eprintln!(
+                "  installed {} dependencies ({} fetched from the registry)",
+                res.deps.len(),
+                fetched
+            );
+            Ok(true)
+        }
+        Err(diags) => {
+            eprint!("{}", deps::render_human(&diags));
+            Ok(false)
+        }
+    }
+}
+
+/// `cohdl login` (RFC-030): browser-page + paste-a-token flow (the cargo
+/// shape); the token is verified against POST /login and stored with the
+/// account's publish grants in ~/.cohdl/credentials.toml.
+fn login_command() -> Result<bool, String> {
+    use cohdl::registry;
+    let reg = registry::registry_url();
+    eprintln!("Open {}/me and create a token, then paste it below.", reg);
+    eprint!("token: ");
+    let mut token = String::new();
+    std::io::stdin()
+        .read_line(&mut token)
+        .map_err(|e| e.to_string())?;
+    let token = token.trim().to_string();
+    if token.is_empty() {
+        return Err("no token given".to_string());
+    }
+    let tmp = std::env::temp_dir().join(format!("cohdl-login-{}", std::process::id()));
+    std::fs::write(&tmp, format!("{{\"token\":\"{}\"}}", token)).map_err(|e| e.to_string())?;
+    let resp = registry::http_post(
+        &format!("{reg}/login"),
+        Some(&tmp),
+        Some(&token),
+        "application/json",
+    );
+    let _ = std::fs::remove_file(&tmp);
+    let resp = resp.map_err(|e| format!("cannot reach the registry: {e}"))?;
+    if resp.status != 200 {
+        return Err(format!(
+            "the registry rejected the token (HTTP {})",
+            resp.status
+        ));
+    }
+    let account =
+        registry::json_str_field(&resp.body, "account").unwrap_or_else(|| "?".to_string());
+    let path = registry::write_token(&token)?;
+    eprintln!(
+        "  logged in as {} (token stored in {})",
+        account,
+        path.display()
+    );
+    Ok(true)
+}
+
+/// `cohdl publish` (RFC-030): three-tier pre-flight, deterministic tar of
+/// the RFC-029 hash file set, POST; the server's own recomputed hash is
+/// authoritative (a local/server disagreement is surfaced, E1206).
+fn publish_command(args: &Args) -> Result<bool, String> {
+    use cohdl::registry;
+    let (manifest_path, manifest) = project::peek_manifest(&args.path)?;
+    let Some(version) = &manifest.version else {
+        return Err(format!(
+            "{}: publishing needs `[package] version`",
+            manifest_path.display()
+        ));
+    };
+    cohdl::deps::parse_exact_version(version)
+        .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    let tier = registry::name_tier(&manifest.name)
+        .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    let Some(token) = registry::read_token() else {
+        eprint!(
+            "{}",
+            render_diag(
+                &cohdl::deps::PackageDiag::error(
+                    "E1201",
+                    "cohdl publish",
+                    0,
+                    "publishing needs authentication".to_string(),
+                )
+                .with_help("run `cohdl login` first".to_string())
+            )
+        );
+        return Ok(false);
+    };
+    eprintln!(
+        "  publishing {} {} — {}",
+        manifest.name,
+        version,
+        tier.describe()
+    );
+
+    let tar = registry::pack_tar(&args.path)?;
+    let local_hash = cohdl::hash::package_content_hash(&args.path)?;
+    let tmp = std::env::temp_dir().join(format!("cohdl-publish-{}.tar", std::process::id()));
+    std::fs::write(&tmp, &tar).map_err(|e| e.to_string())?;
+    let url = format!(
+        "{}/packages/{}/{}",
+        registry::registry_url(),
+        manifest.name,
+        version
+    );
+    let resp = registry::http_post(&url, Some(&tmp), Some(&token), "application/x-tar");
+    let _ = std::fs::remove_file(&tmp);
+    let resp = resp.map_err(|e| format!("cannot reach the registry: {e}"))?;
+    match resp.status {
+        200 | 201 => {
+            let server_hash = registry::json_str_field(&resp.body, "hash").unwrap_or_default();
+            if server_hash != local_hash {
+                eprint!(
+                    "{}",
+                    render_diag(&cohdl::deps::PackageDiag::warning(
+                        "E1206",
+                        &url,
+                        0,
+                        format!(
+                            "the registry computed {server_hash} but this client computed {local_hash} — the server's hash is authoritative for cohdl.lock"
+                        ),
+                    ))
+                );
+            }
+            eprintln!(
+                "  published {} {} ({})",
+                manifest.name, version, server_hash
+            );
+            Ok(true)
+        }
+        401 => {
+            eprint!(
+                "{}",
+                render_diag(
+                    &cohdl::deps::PackageDiag::error(
+                        "E1201",
+                        "cohdl publish",
+                        0,
+                        "the registry rejected the stored token".to_string(),
+                    )
+                    .with_help("run `cohdl login` again".to_string())
+                )
+            );
+            Ok(false)
+        }
+        403 | 409 => {
+            let msg = registry::json_str_field(&resp.body, "error")
+                .unwrap_or_else(|| format!("publish rejected (HTTP {})", resp.status));
+            eprint!(
+                "{}",
+                render_diag(&cohdl::deps::PackageDiag::error("E1202", &url, 0, msg))
+            );
+            Ok(false)
+        }
+        other => Err(format!("publish failed: HTTP {other}")),
     }
 }
 

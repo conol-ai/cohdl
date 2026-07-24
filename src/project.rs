@@ -90,7 +90,7 @@ pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result
     let manifest = parse_manifest(&manifest_text)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     reject_std_package(&manifest.name)?;
-    valid_package_name(&manifest.name)
+    crate::registry::name_tier(&manifest.name)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     if let Some((dep, _)) = deps.iter().find(|(n, _)| *n == manifest.name) {
         return Err(format!(
@@ -261,7 +261,9 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
         let Some((key, value)) = line.split_once('=') else {
             return Err(format!("line {}: expected `key = \"value\"`", lineno + 1));
         };
-        let key = key.trim();
+        // RFC-030: scoped dependency names are quoted TOML keys
+        // (`"@sparkfun/power" = "1.0.0"`).
+        let key = key.trim().trim_matches('"');
         let value = value
             .trim()
             .strip_prefix('"')

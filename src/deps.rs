@@ -173,12 +173,12 @@ pub fn validate_deps(
     let mut entries: Vec<DepEntry> = Vec::new();
     let mut diags = Vec::new();
     for (name, value, line) in raw {
-        if crate::project::valid_package_name(name).is_err() {
+        if let Err(reason) = crate::registry::name_tier(name) {
             diags.push(PackageDiag::error(
                 "E1101",
                 manifest_display,
                 *line,
-                format!("`{name}` is not a valid dependency name"),
+                format!("dependency `{name}`: {reason}"),
             ));
             continue;
         }
@@ -330,11 +330,14 @@ pub struct Registry {
     pub std_root: Option<PathBuf>,
     /// `<project>/deps`.
     pub project_deps: PathBuf,
+    /// RFC-030: the registry content cache (`~/.cohdl/registry`), populated
+    /// by `cohdl install`/`add`/`update`; scoped names nest naturally.
+    pub cache_root: Option<PathBuf>,
 }
 
 impl Registry {
     /// The family dirs to search for `name`, in precedence order.
-    fn families(&self, name: &str) -> Vec<PathBuf> {
+    pub fn families(&self, name: &str) -> Vec<PathBuf> {
         let mut f = vec![self.project_deps.join(name)];
         if let Some(std_root) = &self.std_root {
             if name == "std" {
@@ -342,6 +345,9 @@ impl Registry {
             } else if let Some(parent) = std_root.parent() {
                 f.push(parent.join(name));
             }
+        }
+        if let Some(cache) = &self.cache_root {
+            f.push(cache.join(name));
         }
         f
     }
@@ -529,6 +535,9 @@ pub fn resolve(
                         .join(", ")
                 ));
             }
+            d = d.with_help(
+                "run `cohdl install` to fetch published packages from the registry".to_string(),
+            );
             diags.push(d);
             continue;
         };

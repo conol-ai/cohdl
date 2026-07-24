@@ -38,6 +38,10 @@ pub fn check_files(files: &[(String, String)], design: Option<&str>) -> Result<C
 /// segments must lex as identifiers, so `-` (common in package names, e.g.
 /// `rpi-pico2`) becomes `_`, as do any other non-identifier characters.
 pub fn package_root(name: &str) -> String {
+    // RFC-030: scoped registry names (`@sparkfun/power`) root their modules
+    // at the sanitized `scope_name` spelling — the `@` carries no identifier
+    // value and a leading `_` would read like a private convention.
+    let name = name.strip_prefix('@').unwrap_or(name);
     let mut out: String = name
         .chars()
         .map(|c| {

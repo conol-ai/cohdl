@@ -2195,3 +2195,43 @@ hard E1106. The repo's std accordingly flattened to `std/` being the
 package itself (`std/cohdl.toml` + `std/src/`); the content hash was
 unaffected (package-relative paths unchanged), so committed locks stayed
 valid across the restructure.
+
+
+## RFC-030 implementation judgments (2026-07-27)
+
+RFC-030 (registry.cohdl.org) implemented: the CLI surface + a full server
+implementation under `registry/` (the RFC scopes the external contract
+only; the server stack was directed separately — Cloudflare Workers/D1/
+R2/KV/Assets with a Vite+TanStack+React UI). Scoped judgments:
+
+1. **Transport = the system `curl`** — the constitution grants no HTTP
+   dependency and RFC-030 names none; shelling out to the platform's own
+   client keeps the crate at zero crate-dependencies. `COHDL_REGISTRY`
+   overrides the default host (tests run a loopback mock).
+2. **Archive = deterministic uncompressed POSIX tar** — the RFC says
+   ".tar.gz (or equivalent)"; DEFLATE is not worth hand-rolling for
+   kilobytes of source. Epoch mtimes + sorted entries: packing is
+   byte-reproducible; transport-level compression is curl/HTTP's job.
+3. **Login = the cargo shape** — "browser-based auth flow" implemented as
+   open-the-account-page + paste the token (verified via POST /login and
+   stored with the account's publish grants in ~/.cohdl/credentials.toml,
+   gitignored by location).
+4. **Cache = `~/.cohdl/registry` (`COHDL_HOME` overridable)** as a third
+   RFC-029 registry family — a fresh `cohdl install` populates it and
+   ordinary offline `check`/`build` then resolve from it; `build` itself
+   never fetches (deterministic, network-free builds; E1102's help points
+   at `cohdl install`).
+5. **`update` = RFC-030 semantics** — re-resolve to the latest published
+   exact version (registry first, local families as fallback, so std and
+   vendored packages keep working); the manifest is rewritten only on a
+   real bump; the RFC-029 lock rewrite is unchanged underneath. The NAME
+   positional works when unambiguous; `--dep` disambiguates a name that
+   collides with a directory.
+6. **Scoped names in the compiler**: `[dependencies]` uses quoted TOML
+   keys (`"@sparkfun/power" = "1.0.0"`); the module root sanitizes to
+   `sparkfun_power` (the `@` carries no identifier value); cache/deps
+   family dirs nest naturally (`@sparkfun/power/1.0.0`).
+7. **Download integrity**: the unpacked cache content is re-hashed and
+   must equal the server's declared hash before anything is recorded —
+   a mismatch (E1206 hard form) deletes the cache entry rather than
+   poisoning later E1103 checks.

@@ -22,13 +22,43 @@ constituent `vitest`/`oxlint`) as devDependencies.
 ## The contract (what `cohdl` speaks)
 
 - `GET /packages/{name}` → `{ name, versions: [...] }`
-- `GET /packages/{name}/{ver}` → `{ name, version, hash, size, published_at }`
+- `GET /packages/{name}/{ver}` → `{ name, version, hash, size,
+  published_at, description, license, repository, docs }`
 - `GET /packages/{name}/{ver}.tar` → the content (R2)
 - `POST /packages/{name}/{ver}` → publish (Bearer token). The server
   **re-computes the RFC-029 content hash itself** — its hash is the
   authoritative identity every consumer's `cohdl.lock` verifies
   (`test/hash.test.ts` pins a cross-language vector against the Rust
-  implementation).
+  implementation). It also re-reads `cohdl.toml` **from inside the
+  archive**: a declared name or version that disagrees with the URL is
+  refused, because the manifest is the sole identity authority.
+
+## What a package can say about itself
+
+Beyond `name` and `version`, `[package]` takes `license`, `description`,
+and `repository` — recorded per published version (a version is one
+immutable identity, so its metadata is too; anything package-level derives
+from the newest version). `cohdl publish` echoes them, naming any optional
+key the manifest omits.
+
+**`license` is required to publish.** A package a design can pin is a
+package whose terms that design's owner must be able to read, so a version
+declaring none is refused — by the server (400) and by the CLI's pre-flight,
+so a license-less package is never packed or uploaded at all. The value is
+not checked against a license list: proprietary and custom terms are
+legitimate, and `""` counts as silence. `description` and `repository`
+stay optional.
+
+Documents come from the source itself: every RFC-017 `#[doc("path")]`
+reference is indexed at publish (`docs.ts`, mirroring `parse.rs`'s
+package-relative path grammar) and rendered on the package page —
+Markdown and text inline, anything else served for download.
+`GET /api/doc?pkg&version&path` serves one file out of the immutable tar
+with `Content-Security-Policy: sandbox` and `nosniff`; figures referenced
+from inside a document resolve the same way. Rendering goes through a
+Markdown subset that emits React elements only (`markdown.tsx`) — no raw
+HTML, no `dangerouslySetInnerHTML`, URLs limited to http/https/mailto and
+same-version relative paths.
 - `POST /login` → token check → `{ account, official, brands }` (the CLI
   stores the grants for local publish pre-flight).
 
@@ -48,9 +78,16 @@ npm run dev           # vite dev (workerd-backed via @cloudflare/vite-plugin)
 
 wrangler d1 create cohdl-registry           # then paste the id into wrangler.jsonc
 wrangler kv namespace create SESSIONS      # likewise
-npm run db:init
+npm run db:init                             # fresh DB: the whole schema
+npm run db:migrate                         # existing DB: additive column adds
 npm run deploy
 ```
+
+`db:init` is idempotent (`CREATE TABLE IF NOT EXISTS`) and therefore does
+**not** add columns to a table that already exists — an already-deployed
+DB takes the one-shot `migrations/` file instead. Local dev is reached
+over plain http on loopback, which is the one place the worker skips its
+https redirect and HSTS header.
 
 The official account: sign up via the UI, then set `is_official = 1` on
 its D1 row (there is exactly one; never self-service).

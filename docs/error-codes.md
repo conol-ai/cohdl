@@ -225,7 +225,7 @@ Like E11xx these are pre-source `PackageDiag`s; they surface as CLI prose
 | Code | Meaning |
 |---|---|
 | E1201 | authentication missing or rejected — `cohdl publish` without a stored token, or the registry refused it; the help names `cohdl login` |
-| E1202 | namespace rejection — a name outside the closed three-tier grammar (bare / `@brand/name` / `@contrib/name`), or the server refused a publish (bare name not owned by the official account, unverified brand, version already published). Checked locally pre-flight AND server-side (authoritative) |
+| E1202 | namespace rejection — a name outside the closed three-tier grammar (bare / `@brand/name` / `@contrib/name`), or the server refused a publish (bare name not owned by the official account, unverified brand, version already published, an archive whose own manifest disagrees with the publish, or a version declaring no `[package] license`). Checked locally pre-flight AND server-side (authoritative) |
 | E1203 | package or version not published on the registry |
 | E1204 | registry unreachable (or protocol failure) with no cached copy — explicitly distinct from a hash mismatch (E1103): different kinds of mistakes, per RFC-030's failure modes |
 | E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |

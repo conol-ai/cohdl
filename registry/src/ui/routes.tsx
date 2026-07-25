@@ -10,7 +10,18 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { post, useConfig, usePackage, useMe, useRecent, useSearch } from "./api";
+import {
+  docUrl,
+  post,
+  useConfig,
+  useDocText,
+  useMe,
+  usePackage,
+  useRecent,
+  useSearch,
+  type VersionRow,
+} from "./api";
+import { Markdown } from "./markdown";
 
 // reCAPTCHA v3 (loaded on demand when the registry has a site key
 // configured; see /api/config). Keys live in the Cloudflare dashboard.
@@ -64,6 +75,8 @@ function Layout() {
           }}
         >
           <input
+            name="q"
+            aria-label="search packages"
             placeholder="search packages…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -113,6 +126,7 @@ function Home() {
                   {r.name}
                 </Link>{" "}
                 <TierBadge tier={r.tier} /> <span className="ver">{r.latest}</span>
+                {r.description && <div className="pkg-blurb">{r.description}</div>}
               </li>
             ))}
             {search.data?.results.length === 0 && <li className="muted">nothing published under that name</li>}
@@ -128,6 +142,7 @@ function Home() {
                   {r.name}
                 </Link>{" "}
                 <TierBadge tier={r.tier} /> <span className="ver">{r.version}</span>
+                {r.description && <div className="pkg-blurb">{r.description}</div>}
               </li>
             ))}
             {recent.data?.results.length === 0 && (
@@ -150,6 +165,91 @@ const homeRoute = createRoute({
 
 // ---------------------------------------------------------------------------
 
+/// Renderable in place (text) vs. linked (a datasheet PDF, a figure).
+function isTextDoc(path: string) {
+  return /\.(md|markdown|txt)$/i.test(path);
+}
+
+/// A README-ish document sorts first — it is what a visitor came to read.
+function pickFirstDoc(docs: string[]): string | null {
+  if (docs.length === 0) return null;
+  const readme = docs.find((d) => /(^|\/)readme\.(md|markdown|txt)$/i.test(d));
+  return readme ?? docs.find(isTextDoc) ?? docs[0];
+}
+
+/// The RFC-017 documents a version ships, rendered from the package's own
+/// archive. Relative links and figures resolve within the same version.
+function Documents({ name, version }: { name: string; version: VersionRow }) {
+  const docs = version.docs;
+  const [selected, setSelected] = useState<string | null>(null);
+  const active = selected ?? pickFirstDoc(docs);
+  const text = useDocText(name, version.version, active && isTextDoc(active) ? active : null);
+  if (docs.length === 0) return null;
+
+  // A document's own relative references are relative to ITS directory.
+  const dir = active && active.includes("/") ? active.slice(0, active.lastIndexOf("/") + 1) : "";
+  const resolve = (path: string) => {
+    const joined = `${dir}${path}`.split("/").reduce<string[]>((acc, seg) => {
+      if (seg === "." || seg === "") return acc;
+      if (seg === "..") {
+        acc.pop();
+        return acc;
+      }
+      acc.push(seg);
+      return acc;
+    }, []);
+    return joined.length > 0 ? docUrl(name, version.version, joined.join("/")) : null;
+  };
+
+  // A document that links to a sibling document switches documents here
+  // rather than sending the reader to raw Markdown.
+  const onLinkClick = (e: React.MouseEvent) => {
+    const anchor = (e.target as HTMLElement).closest("a");
+    const href = anchor?.getAttribute("href");
+    if (!href?.startsWith("/api/doc?")) return;
+    const target = new URLSearchParams(href.slice(href.indexOf("?") + 1)).get("path");
+    if (target && docs.includes(target) && isTextDoc(target)) {
+      e.preventDefault();
+      setSelected(target);
+    }
+  };
+
+  return (
+    <section onClick={onLinkClick}>
+      <h2>
+        Documents <span className="muted doc-ver">of {version.version}</span>
+      </h2>
+      {docs.length > 1 && (
+        <nav className="doc-tabs">
+          {docs.map((d) => (
+            <button
+              key={d}
+              className={d === active ? "doc-tab doc-tab-on" : "doc-tab"}
+              onClick={() => setSelected(d)}
+            >
+              {d}
+            </button>
+          ))}
+        </nav>
+      )}
+      {active && !isTextDoc(active) ? (
+        <p>
+          <a href={docUrl(name, version.version, active)} rel="noopener noreferrer" target="_blank">
+            open {active}
+          </a>{" "}
+          <span className="muted">— not a text document, so it is served, not rendered</span>
+        </p>
+      ) : text.isLoading ? (
+        <p className="muted">loading {active}…</p>
+      ) : text.isError ? (
+        <p className="error">{(text.error as Error).message}</p>
+      ) : (
+        <Markdown source={text.data ?? ""} resolve={resolve} />
+      )}
+    </section>
+  );
+}
+
 function PackagePage() {
   const { _splat } = packageRoute.useParams();
   const name = _splat ?? "";
@@ -157,15 +257,35 @@ function PackagePage() {
   if (pkg.isLoading) return <p className="muted">loading…</p>;
   if (pkg.isError || !pkg.data) return <p className="muted">`{name}` is not published here.</p>;
   const latest = pkg.data.versions[0];
+  const repo = latest?.repository;
+  // Only http(s) repository links are turned into anchors; anything else is
+  // shown as the literal text the publisher wrote.
+  const repoHref = repo && /^https?:\/\//i.test(repo) ? repo : null;
   return (
     <>
       <h1>
         {name} <TierBadge tier={pkg.data.tier} />
       </h1>
+      {latest?.description && <p className="pkg-desc">{latest.description}</p>}
+      {(latest?.license || repo) && (
+        <p className="muted pkg-meta">
+          {latest?.license && <>license {latest.license}</>}
+          {latest?.license && repo && " · "}
+          {repo &&
+            (repoHref ? (
+              <a href={repoHref} rel="noopener noreferrer nofollow" target="_blank">
+                {repo}
+              </a>
+            ) : (
+              <>{repo}</>
+            ))}
+        </p>
+      )}
       <pre className="snippet">
         cohdl add {name}
         {latest ? `@${latest.version}` : ""}
       </pre>
+      {latest && <Documents name={name} version={latest} />}
       <h2>Versions</h2>
       <table>
         <thead>
@@ -298,6 +418,13 @@ const accountRoute = createRoute({
 
 // ---------------------------------------------------------------------------
 
+const MANIFEST_EXAMPLE = `[package]
+name = "@contrib/your-name"
+version = "1.0.0"
+license = "MIT"                 # required
+description = "One line: what the package gives a design."
+repository = "https://github.com/you/your-name"`;
+
 function Docs() {
   return (
     <>
@@ -327,9 +454,33 @@ function Docs() {
           </ul>
         </li>
         <li>
+          Describe the package in its own <code>cohdl.toml</code>. Alongside{" "}
+          <code>name</code> and <code>version</code>, the <code>[package]</code> section
+          takes three metadata keys — none of them affect a verdict or an emitted byte:
+          <pre className="snippet">{MANIFEST_EXAMPLE}</pre>
+          <strong>
+            <code>license</code> is required
+          </strong>{" "}
+          — a package you can pin into a board you manufacture is a package whose terms
+          you must be able to read, so a version that declares none is refused (any
+          value is accepted, including proprietary terms; what the registry refuses is
+          silence). <code>description</code> and <code>repository</code> are optional.
+          All three are recorded per published version (a version is one immutable
+          identity, so its metadata is too) and shown here.
+        </li>
+        <li>
+          Ship documents with the package. Every RFC-017{" "}
+          <code>#[doc("path")]</code> reference in your source — a README, a datasheet, an
+          errata note — is indexed at publish and rendered on the package page; Markdown
+          and text render inline, anything else is served for download. Paths are
+          package-relative, so a document's own figures resolve too.
+        </li>
+        <li>
           <code>cohdl publish</code> from the package directory. The registry re-computes
           the RFC-029 content hash server-side — its hash is the authoritative identity
-          every consumer's <code>cohdl.lock</code> will verify.
+          every consumer's <code>cohdl.lock</code> will verify. It also re-reads your
+          manifest from inside the archive: what a package declares about itself is what
+          gets published, so a name or version that disagrees with the publish is refused.
         </li>
         <li>
           Consumers: <code>cohdl add {"<name>"}</code>, <code>cohdl install</code> on a

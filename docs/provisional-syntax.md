@@ -25,7 +25,7 @@ v1 (branch `legacy`) had a convention-hack, v2 makes the fact explicit syntax.
   ```
 
 - Source files are all `*.cohdl` under the project's `src/`, plus the std
-  library (all `*.cohdl` under the compiler's `std/`; `--std <dir>` overrides,
+  library (all `*.cohdl` under the compiler's `lib/std/`; `--std <dir>` overrides,
   `--no-std` omits).
 - **Scope — graduated to RFC-016 (2026-07-14).** The original provisional
   choice here ("one flat global scope, no `module`/`use`, `pub` recorded but

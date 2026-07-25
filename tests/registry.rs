@@ -400,7 +400,7 @@ fn publish_needs_login_and_reports_server_hash() {
     std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
     std::fs::write(
         pkg_dir.join("cohdl.toml"),
-        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\n",
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\nlicense = \"MIT\"\n",
     )
     .unwrap();
     std::fs::write(
@@ -427,6 +427,146 @@ fn publish_needs_login_and_reports_server_hash() {
 }
 
 #[test]
+fn publish_echoes_the_metadata_and_documents_it_sends() {
+    let tmp = tmp_dir("publish_meta");
+    let home = tmp.join("home");
+    // The server answers with the document index it built from the archive.
+    let url = spawn_mock(
+        Vec::new(),
+        Some((
+            200,
+            r#"{"hash":"sha256:feedface","docs":["README.md","docs/ds.pdf"]}"#.to_string(),
+        )),
+    );
+    let pkg_dir = tmp.join("mylib");
+    std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\ndescription = \"A tiny library.\"\nlicense = \"MIT\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        pkg_dir.join("src/lib.cohdl"),
+        "#[doc(\"README.md\")]\npub device M { pins { A: 1 [passive] } }\n",
+    )
+    .unwrap();
+    std::fs::write(pkg_dir.join("README.md"), "# mylib\n").unwrap();
+    std::fs::create_dir_all(&home).unwrap();
+    std::fs::write(home.join("credentials.toml"), "token = \"tok123\"\n").unwrap();
+
+    let (ok, err) = run(&url, &home, &["publish", pkg_dir.to_str().unwrap()]);
+    assert!(ok, "{err}");
+    // Declared metadata is echoed verbatim; an undeclared key says so rather
+    // than going out silently empty.
+    assert!(err.contains("description: A tiny library."), "{err}");
+    assert!(err.contains("license: MIT"), "{err}");
+    assert!(
+        err.contains("repository: — (no `[package] repository` in the manifest)"),
+        "{err}"
+    );
+    assert!(
+        err.contains("documents: README.md, docs/ds.pdf"),
+        "server's document index echoed: {err}"
+    );
+}
+
+#[test]
+fn publish_without_a_license_never_reaches_the_network() {
+    let tmp = tmp_dir("publish_nolicense");
+    let home = tmp.join("home");
+    // A port nothing listens on: if the CLI attempted an upload at all, the
+    // failure would be the unreachable-registry diagnostic (E1204) instead of
+    // the license refusal. That is what proves the check is pre-flight.
+    let url = "http://127.0.0.1:1".to_string();
+    let pkg_dir = tmp.join("mylib");
+    std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\ndescription = \"No license here.\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        pkg_dir.join("src/lib.cohdl"),
+        "pub device M { pins { A: 1 [passive] } }\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(&home).unwrap();
+    std::fs::write(home.join("credentials.toml"), "token = \"tok123\"\n").unwrap();
+
+    let (ok, err) = run(&url, &home, &["publish", pkg_dir.to_str().unwrap()]);
+    assert!(!ok);
+    assert!(err.contains("`[package] license`"), "{err}");
+    assert!(err.contains("cohdl.toml"), "names the file to fix: {err}");
+    assert!(
+        !err.contains("E1204"),
+        "refused before any upload attempt: {err}"
+    );
+    assert!(!err.contains("published"), "{err}");
+
+    // A declared license is all the gate wants — no license list to satisfy.
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\nlicense = \"LicenseRef-Acme-Proprietary\"\n",
+    )
+    .unwrap();
+    let (ok, err) = run(&url, &home, &["publish", pkg_dir.to_str().unwrap()]);
+    assert!(!ok, "still fails — but now only because the host is dead");
+    assert!(
+        err.contains("E1204"),
+        "the license gate is passed and the upload was attempted: {err}"
+    );
+    assert!(
+        !err.contains("HTTP 0"),
+        "an unreached registry is E1204, not a bare status line: {err}"
+    );
+
+    // An empty license is silence with extra steps.
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\nlicense = \"   \"\n",
+    )
+    .unwrap();
+    let (ok, err) = run(&url, &home, &["publish", pkg_dir.to_str().unwrap()]);
+    assert!(!ok);
+    assert!(err.contains("`[package] license`"), "{err}");
+}
+
+#[test]
+fn publish_surfaces_a_server_side_manifest_rejection() {
+    let tmp = tmp_dir("publish_400");
+    let home = tmp.join("home");
+    let url = spawn_mock(
+        Vec::new(),
+        Some((
+            400,
+            r#"{"error":"the manifest declares `[package] name = \"other\"` but this publishes `@contrib/mylib`"}"#
+                .to_string(),
+        )),
+    );
+    let pkg_dir = tmp.join("mylib");
+    std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/mylib\"\nversion = \"0.1.0\"\nlicense = \"MIT\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        pkg_dir.join("src/lib.cohdl"),
+        "pub device M { pins { A: 1 [passive] } }\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(&home).unwrap();
+    std::fs::write(home.join("credentials.toml"), "token = \"tok123\"\n").unwrap();
+
+    let (ok, err) = run(&url, &home, &["publish", pkg_dir.to_str().unwrap()]);
+    assert!(!ok);
+    // The server's own message reaches the user — never a bare `HTTP 400`.
+    assert!(err.contains("E1202"), "{err}");
+    assert!(err.contains("the manifest declares"), "{err}");
+    assert!(!err.contains("publish failed: HTTP 400"), "{err}");
+}
+
+#[test]
 fn publish_namespace_rejection_is_surfaced() {
     let tmp = tmp_dir("ns");
     let home = tmp.join("home");
@@ -441,7 +581,7 @@ fn publish_namespace_rejection_is_surfaced() {
     std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
     std::fs::write(
         pkg_dir.join("cohdl.toml"),
-        "[package]\nname = \"stdlike\"\nversion = \"0.1.0\"\n",
+        "[package]\nname = \"stdlike\"\nversion = \"0.1.0\"\nlicense = \"MIT\"\n",
     )
     .unwrap();
     std::fs::write(

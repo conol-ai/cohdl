@@ -43,7 +43,7 @@ cargo run -- check examples/sensor-node          # parse → resolve → type-ch
 cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .net + BOM CSV
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
-cargo run -- fmt std --check                     # canonical-form gate (RFC-009)
+cargo run -- fmt lib/std --check                 # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
@@ -57,3 +57,14 @@ Two reference designs live in `examples/`: the ESP32-S3 **sensor-node** (the MVP
 ### Exit codes
 
 `0` = clean (warnings allowed), `1` = source diagnostics reported (errors; text on stderr, or one JSON document on stdout with `--json`), `2` = invocation-level failure (bad flags, invalid flag for the command, missing project, design selection, nothing to build) — prose on stderr, never a JSON document (the `E000` class in [`docs/error-codes.md`](docs/error-codes.md)); source diagnostics collected before the failure still render to stderr first. Note: RFC-010's text reserves stderr prose for pre-collection failures, so classifying post-collection selection failures this way is a documented deviation pending a note-side amendment (or a v2 schema envelope).
+
+## License
+
+MIT — see [`LICENSE`](LICENSE). This covers the compiler crate, the standard
+library in `lib/std/`, the reference designs in `examples/` (including the
+OpenMicro firmware and companion app), the registry server in `registry/`,
+the VS Code extension in `editors/vscode/`, and the tooling in `tools/` and
+`harness/`.
+
+Every package published to registry.cohdl.org must declare its own
+`[package] license` — `lib/std` declares `MIT` accordingly.

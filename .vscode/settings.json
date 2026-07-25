@@ -1,0 +1,3 @@
+{
+  "cohdl.path": "${workspaceFolder}/target/debug/cohdl"
+}

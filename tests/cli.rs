@@ -158,7 +158,11 @@ fn invocation_failures_are_exit_2_with_no_json() {
 // The std library and examples stay canonical (fmt --check as a CI gate).
 #[test]
 fn fmt_check_gate_std_and_examples() {
-    for dir in ["std", "examples/openmicro/src", "examples/rpi-pico2/src"] {
+    for dir in [
+        "lib/std",
+        "examples/openmicro/src",
+        "examples/rpi-pico2/src",
+    ] {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(dir);
         let out = cohdl()
             .args(["fmt", path.to_str().unwrap(), "--check"])
@@ -245,7 +249,7 @@ fn command_specific_flags_are_validated() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("fmt"));
 
     let out = cohdl()
-        .args(["fmt", root.join("std").to_str().unwrap(), "--json"])
+        .args(["fmt", root.join("lib/std").to_str().unwrap(), "--json"])
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2), "--json rejected on fmt");
@@ -255,14 +259,20 @@ fn command_specific_flags_are_validated() {
     let cases: &[(&[&str], &str)] = &[
         (&["check", "--out-dir", "x"], "--out-dir"),
         (&["fmt", "--design", "B"], "--design"),
-        (&["fmt", "--std", "std"], "--std"),
+        (&["fmt", "--std", "lib/std"], "--std"),
         (&["fmt", "--no-std"], "--no-std"),
         (&["fmt", "--out-dir", "x"], "--out-dir"),
         (&["lsp", "--json"], "lsp"),
         (&["lsp", "--design", "B"], "lsp"),
         (&["lsp", "some-path"], "lsp"),
-        (&["check", "--std", "std", "--no-std"], "mutually exclusive"),
-        (&["build", "--std", "std", "--no-std"], "mutually exclusive"),
+        (
+            &["check", "--std", "lib/std", "--no-std"],
+            "mutually exclusive",
+        ),
+        (
+            &["build", "--std", "lib/std", "--no-std"],
+            "mutually exclusive",
+        ),
     ];
     for (args, needle) in cases {
         let out = cohdl().args(*args).output().unwrap();

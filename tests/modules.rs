@@ -124,7 +124,7 @@ fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
     // qualified `std::…` path.
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut files: Vec<(String, String)> = Vec::new();
-    for entry in std::fs::read_dir(root.join("std/src")).unwrap() {
+    for entry in std::fs::read_dir(root.join("lib/std/src")).unwrap() {
         let p = entry.unwrap().path();
         if p.extension().is_some_and(|e| e == "cohdl") {
             files.push((
@@ -158,7 +158,7 @@ fn project_name_shadows_std_prelude() {
     // packages, different module paths).
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut files: Vec<(String, String)> = Vec::new();
-    for entry in std::fs::read_dir(root.join("std/src")).unwrap() {
+    for entry in std::fs::read_dir(root.join("lib/std/src")).unwrap() {
         let p = entry.unwrap().path();
         if p.extension().is_some_and(|e| e == "cohdl") {
             files.push((

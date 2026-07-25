@@ -315,10 +315,9 @@ impl LockFile {
 
 /// Where packages live on disk (RFC-029 defines the mechanism assuming
 /// on-disk availability; hosting is future work). Search order per
-/// dependency name: the project-local `deps/<name>/` family dir, then the
-/// global one (`<registry>/<name>/`, where the registry root is the
-/// directory containing the discovered `std/`; std's family dir is the
-/// discovered `std/` itself).
+/// dependency name, uniform for every package including std: the
+/// project-local `deps/<name>/` family dir, then the compiler's library
+/// root (`lib/<name>/`), then the RFC-030 content cache.
 ///
 /// A family dir offers versions by MANIFEST, never by directory name: it is
 /// either itself a package (`cohdl.toml` + `src/`) or a container of
@@ -326,8 +325,10 @@ impl LockFile {
 /// version` a manifest declares is the sole version authority — a path
 /// component that happens to spell a version is convention, not mechanism.
 pub struct Registry {
-    /// The discovered `std/` family dir.
-    pub std_root: Option<PathBuf>,
+    /// The discovered library root (`lib/`) — the packages that ship with
+    /// the compiler, each an ordinary family dir under it. std is one of
+    /// them (`lib/std/`), reached by the same rule as every other name.
+    pub lib_root: Option<PathBuf>,
     /// `<project>/deps`.
     pub project_deps: PathBuf,
     /// RFC-030: the registry content cache (`~/.cohdl/registry`), populated
@@ -339,18 +340,32 @@ impl Registry {
     /// The family dirs to search for `name`, in precedence order.
     pub fn families(&self, name: &str) -> Vec<PathBuf> {
         let mut f = vec![self.project_deps.join(name)];
-        if let Some(std_root) = &self.std_root {
-            if name == "std" {
-                f.push(std_root.clone());
-            } else if let Some(parent) = std_root.parent() {
-                f.push(parent.join(name));
-            }
+        if let Some(lib) = &self.lib_root {
+            f.push(lib.join(name));
         }
         if let Some(cache) = &self.cache_root {
             f.push(cache.join(name));
         }
         f
     }
+}
+
+/// Whether `dir` is a library root: a directory at least one of whose
+/// immediate subdirectories is a readable package family (`lib/std/`,
+/// `lib/passives/`, …). Used for root DISCOVERY, so it is soft — a family
+/// that cannot be read simply does not count — and it asks about packages,
+/// never about one privileged name: an installed binary's ancestors include
+/// `/usr/lib`, and content is what tells the two apart.
+pub fn is_library_root(dir: &Path) -> bool {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return false;
+    };
+    entries.filter_map(|e| e.ok()).any(|e| {
+        let path = e.path();
+        path.file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|name| newest_available(&path, name).is_some())
+    })
 }
 
 /// Every version of `name` a family dir offers, discovered by reading

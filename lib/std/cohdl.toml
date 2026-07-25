@@ -1,0 +1,6 @@
+[package]
+name = "std"
+version = "0.1.0"
+license = "MIT"
+description = "The CoHDL standard library: base traits, passives, pads, and footprints."
+repository = "https://github.com/conol-ai/cohdl"

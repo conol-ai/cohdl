@@ -2,13 +2,14 @@
 //
 // External contract endpoints (the shapes the cohdl CLI speaks):
 //   GET  /packages/{name}                → { name, versions: ["X.Y.Z", …] }
-//   GET  /packages/{name}/{ver}          → { name, version, hash, size, published_at }
+//   GET  /packages/{name}/{ver}          → { name, version, hash, size, published_at,
+//                                            description, license, repository, docs }
 //   GET  /packages/{name}/{ver}.tar      → the package content (from R2)
 //   POST /packages/{name}/{ver}          → publish (Bearer token; server recomputes
 //                                          the RFC-029 hash — authoritative)
 //   POST /login                          → token verify → { account, official, brands }
 //
-// Web-UI endpoints (/api/*): signup/session/tokens/search/recent/package.
+// Web-UI endpoints (/api/*): signup/session/tokens/search/recent/package/doc.
 // Everything else falls through to Workers Assets (the SPA).
 
 import {
@@ -21,7 +22,9 @@ import {
   verifiedBrands,
   verifyPassword,
 } from "./auth";
+import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
+import { metadataRejection, parsePackageManifest } from "./manifest";
 import { nameTier, publishRejection } from "./namespace";
 import { readTar } from "./tar";
 
@@ -29,6 +32,41 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...headers } });
+}
+
+/// A `versions` row as the metadata-bearing queries select it.
+interface VersionRow {
+  version?: string;
+  hash?: string;
+  size?: number;
+  r2_key?: string;
+  published_at?: string;
+  description: string | null;
+  license: string | null;
+  repository: string | null;
+  docs: string | null;
+}
+
+/// The `[package]` metadata a version carries, in the shape every API
+/// returns it: absent keys stay null, `docs` is always an array. Rows
+/// published before the metadata columns existed read as null — the same
+/// shape as a manifest that simply declares nothing.
+function manifestMeta(row: VersionRow) {
+  let docs: string[] = [];
+  if (row.docs) {
+    try {
+      const parsed: unknown = JSON.parse(row.docs);
+      if (Array.isArray(parsed)) docs = parsed.filter((d): d is string => typeof d === "string");
+    } catch {
+      docs = [];
+    }
+  }
+  return {
+    description: row.description ?? null,
+    license: row.license ?? null,
+    repository: row.repository ?? null,
+    docs,
+  };
 }
 
 /// `/packages/<name…>[/<version>[.tar]]` — the name may contain one `/`
@@ -59,32 +97,54 @@ function withHsts(resp: Response): Response {
   return out;
 }
 
+/// A local dev server (`npm run dev`, `wrangler dev`) is reached over plain
+/// http on a loopback host. Neither the https redirect nor HSTS may apply
+/// there: the redirect makes dev unusable, and an HSTS header on `localhost`
+/// pins EVERY local project's port to https in the developer's browser.
+/// Deployed traffic always carries the zone's own hostname, so this exempts
+/// nothing in production.
+function isLoopbackHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]" ||
+    hostname === "::1"
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const local = isLoopbackHost(url.hostname);
     // https-only: permanent-redirect any plain-http request.
-    if (url.protocol === "http:") {
+    if (url.protocol === "http:" && !local) {
       url.protocol = "https:";
       return Response.redirect(url.toString(), 301);
     }
-    const { pathname } = url;
-    try {
-      if (pathname === "/login" && request.method === "POST") {
-        return withHsts(await cliLogin(env, request));
-      }
-      if (pathname.startsWith("/packages/")) {
-        return withHsts(await packages(env, request, pathname));
-      }
-      if (pathname.startsWith("/api/")) {
-        return withHsts(await api(env, request, url));
-      }
-    } catch (e) {
-      return json(500, { error: `internal error: ${e instanceof Error ? e.message : e}` });
-    }
-    // Everything else: the SPA via the assets binding.
-    return withHsts(await env.ASSETS.fetch(request));
+    const resp = await route(env, request, url);
+    return local ? resp : withHsts(resp);
   },
 } satisfies ExportedHandler<Env>;
+
+async function route(env: Env, request: Request, url: URL): Promise<Response> {
+  const { pathname } = url;
+  try {
+    if (pathname === "/login" && request.method === "POST") {
+      return await cliLogin(env, request);
+    }
+    if (pathname.startsWith("/packages/")) {
+      return await packages(env, request, pathname);
+    }
+    if (pathname.startsWith("/api/")) {
+      return await api(env, request, url);
+    }
+  } catch (e) {
+    return json(500, { error: `internal error: ${e instanceof Error ? e.message : e}` });
+  }
+  // Everything else: the SPA via the assets binding.
+  return env.ASSETS.fetch(request);
+}
 
 // ---------------------------------------------------------------------------
 // CLI contract
@@ -116,13 +176,14 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
       return json(200, { name, versions: rows.results.map((r) => r.version) });
     }
     const row = await env.DB.prepare(
-      "SELECT hash, size, r2_key, published_at FROM versions WHERE name = ? AND version = ?",
+      `SELECT hash, size, r2_key, published_at, description, license, repository, docs
+         FROM versions WHERE name = ? AND version = ?`,
     )
       .bind(name, version)
-      .first<{ hash: string; size: number; r2_key: string; published_at: string }>();
+      .first<VersionRow>();
     if (!row) return json(404, { error: "not found" });
     if (tar) {
-      const obj = await env.PKG.get(row.r2_key);
+      const obj = await env.PKG.get(row.r2_key!);
       if (!obj) return json(404, { error: "content missing" });
       return new Response(obj.body, {
         headers: { "Content-Type": "application/x-tar", "Content-Length": String(row.size) },
@@ -134,6 +195,7 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
       hash: row.hash,
       size: row.size,
       published_at: row.published_at,
+      ...manifestMeta(row),
     });
   }
 
@@ -178,9 +240,33 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
     if (![...files.keys()].some((f) => f.endsWith(".cohdl"))) {
       return json(400, { error: "the package contains no .cohdl files" });
     }
+
+    // The manifest inside the archive is the sole identity authority
+    // (RFC-029) — the URL must agree with what the package declares about
+    // itself, and its `[package]` metadata is what the web UI displays.
+    const manifestFile = files.get("cohdl.toml");
+    if (!manifestFile) {
+      return json(400, { error: "the package has no cohdl.toml manifest" });
+    }
+    const manifest = parsePackageManifest(new TextDecoder().decode(manifestFile));
+    if (manifest.name !== name) {
+      return json(400, {
+        error: `the manifest declares \`[package] name = "${manifest.name ?? ""}"\` but this publishes \`${name}\` — the manifest is the sole identity authority`,
+      });
+    }
+    if (manifest.version !== version) {
+      return json(400, {
+        error: `the manifest declares \`[package] version = "${manifest.version ?? ""}"\` but this publishes \`${version}\` — the manifest is the sole version authority`,
+      });
+    }
+    const metaRejection = metadataRejection(manifest);
+    if (metaRejection) return json(400, { error: metaRejection });
     // The server's own hash is the authoritative identity (RFC-030): the
     // publisher's local computation is never trusted.
     const hash = await packageContentHash(files);
+    // RFC-017 documents the package ships, as an index over the tar (the
+    // tar in R2 stays the only copy of the bytes).
+    const docs = docPaths(files);
 
     const r2Key = `pkg/${name}/${version}.tar`;
     await env.PKG.put(r2Key, body);
@@ -195,11 +281,24 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
         .run();
     }
     await env.DB.prepare(
-      "INSERT INTO versions (name, version, hash, size, r2_key, published_at) VALUES (?, ?, ?, ?, ?, ?)",
+      `INSERT INTO versions
+         (name, version, hash, size, r2_key, published_at, description, license, repository, docs)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-      .bind(name, version, hash, body.length, r2Key, now)
+      .bind(
+        name,
+        version,
+        hash,
+        body.length,
+        r2Key,
+        now,
+        manifest.description,
+        manifest.license,
+        manifest.repository,
+        JSON.stringify(docs),
+      )
       .run();
-    return json(200, { name, version, hash });
+    return json(200, { name, version, hash, docs });
   }
 
   return json(405, { error: "method not allowed" });
@@ -313,20 +412,27 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
 
   if (path === "/api/search" && request.method === "GET") {
     const q = (url.searchParams.get("q") ?? "").trim();
+    const like = `%${q}%`;
+    // Descriptions live only on `versions` (one immutable fact per version);
+    // anything package-level derives from the newest version by subquery —
+    // both what a hit displays and what a hit matches on.
     const rows = await env.DB.prepare(
       `SELECT p.name, p.tier, MAX(v.published_at) AS updated,
-              (SELECT version FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) AS latest
+              (SELECT version FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) AS latest,
+              (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) AS description
        FROM packages p JOIN versions v ON v.name = p.name
-       WHERE p.name LIKE ? GROUP BY p.name ORDER BY updated DESC LIMIT 50`,
+       WHERE p.name LIKE ?
+          OR (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) LIKE ?
+       GROUP BY p.name ORDER BY updated DESC LIMIT 50`,
     )
-      .bind(`%${q}%`)
+      .bind(like, like)
       .all();
     return json(200, { results: rows.results });
   }
 
   if (path === "/api/recent" && request.method === "GET") {
     const rows = await env.DB.prepare(
-      `SELECT v.name, v.version, v.published_at, p.tier
+      `SELECT v.name, v.version, v.published_at, v.description, p.tier
        FROM versions v JOIN packages p ON p.name = v.name
        ORDER BY v.published_at DESC LIMIT 10`,
     ).all();
@@ -340,11 +446,69 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
       .first();
     if (!pkg) return json(404, { error: "not found" });
     const versions = await env.DB.prepare(
-      "SELECT version, hash, size, published_at FROM versions WHERE name = ? ORDER BY published_at DESC",
+      `SELECT version, hash, size, published_at, description, license, repository, docs
+         FROM versions WHERE name = ? ORDER BY published_at DESC`,
     )
       .bind(name)
-      .all();
-    return json(200, { ...pkg, versions: versions.results });
+      .all<VersionRow>();
+    return json(200, {
+      ...pkg,
+      versions: versions.results.map((v) => ({
+        version: v.version,
+        hash: v.hash,
+        size: v.size,
+        published_at: v.published_at,
+        ...manifestMeta(v),
+      })),
+    });
+  }
+
+  // One file out of a published version's immutable tar, for the web UI's
+  // document rendering: `?pkg=<name>&version=<X.Y.Z>&path=<p>`.
+  //
+  // Any file the archive contains is servable, not just the `#[doc]`-declared
+  // ones — a rendered document's own figures are relative paths that were
+  // never declared themselves, and the whole tar is public at
+  // `/packages/{name}/{ver}.tar` regardless. The `docs` list decides what the
+  // UI *presents* as a document; this endpoint just serves package bytes,
+  // sandboxed and never content-sniffed.
+  if (path === "/api/doc" && request.method === "GET") {
+    const pkg = url.searchParams.get("pkg") ?? "";
+    const version = url.searchParams.get("version") ?? "";
+    const docPath = url.searchParams.get("path") ?? "";
+    if (!pkg || !EXACT_VERSION.test(version) || !docPath || !validDocPath(docPath)) {
+      return json(400, { error: "need ?pkg=<name>&version=<X.Y.Z>&path=<package-relative path>" });
+    }
+    const row = await env.DB.prepare("SELECT r2_key FROM versions WHERE name = ? AND version = ?")
+      .bind(pkg, version)
+      .first<{ r2_key: string }>();
+    if (!row) return json(404, { error: "not found" });
+    const obj = await env.PKG.get(row.r2_key);
+    if (!obj) return json(404, { error: "content missing" });
+    let content: Uint8Array | undefined;
+    try {
+      content = readTar(new Uint8Array(await obj.arrayBuffer())).get(docPath);
+    } catch (e) {
+      return json(500, { error: `bad package archive: ${e instanceof Error ? e.message : e}` });
+    }
+    if (!content) {
+      return json(404, { error: `\`${pkg} ${version}\` contains no file \`${docPath}\`` });
+    }
+    // The tar reader hands back a view into the archive; the response body is
+    // that view's own bytes.
+    const body = content.buffer.slice(
+      content.byteOffset,
+      content.byteOffset + content.byteLength,
+    ) as ArrayBuffer;
+    return new Response(body, {
+      headers: {
+        "Content-Type": docContentType(docPath),
+        "Content-Security-Policy": "sandbox",
+        "X-Content-Type-Options": "nosniff",
+        // A published version is immutable, so its documents are too.
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
   }
 
   return json(404, { error: "not found" });

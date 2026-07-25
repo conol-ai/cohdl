@@ -352,6 +352,14 @@ pub fn unpack_tar(data: &[u8], dir: &Path) -> Result<(), String> {
 // High-level registry operations
 // ---------------------------------------------------------------------------
 
+/// E1204 for callers outside this module (the CLI's `publish`/`login`
+/// paths). A registry that was never reached — curl reports status 0 — is a
+/// different mistake from a rejected publish (E1202) or a rejected token
+/// (E1201), and must never be reported as one of those.
+pub fn unreachable(detail: String) -> PackageDiag {
+    e1204(detail)
+}
+
 fn e1204(detail: String) -> PackageDiag {
     PackageDiag::error("E1204", &registry_url(), 0, detail).with_help(
         "registry unreachable is a different failure from a hash mismatch (E1103) — check the network, COHDL_REGISTRY, or vendor the package under deps/".to_string(),

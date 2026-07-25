@@ -18,7 +18,7 @@ fn check(src: &str) -> (cohdl::pipeline::Checked, String) {
 /// Load the real std library + a board source, as the CLI would.
 fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
     let mut files = Vec::new();
-    let std_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("std/src");
+    let std_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std/src");
     let mut entries: Vec<_> = std::fs::read_dir(&std_dir)
         .unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -45,9 +45,11 @@ fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
 #[test]
 fn grammar_parses_demo_board_and_std() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj =
-        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
-            .unwrap();
+    let proj = cohdl::project::load_project(
+        &root.join("examples/rpi-pico2"),
+        Some(&root.join("lib/std")),
+    )
+    .unwrap();
     let checked =
         cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
     assert!(
@@ -65,9 +67,11 @@ fn grammar_parses_demo_board_and_std() {
 #[test]
 fn rpi_pico2_example_builds_cleanly() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj =
-        cohdl::project::load_project(&root.join("examples/rpi-pico2"), Some(&root.join("std")))
-            .unwrap();
+    let proj = cohdl::project::load_project(
+        &root.join("examples/rpi-pico2"),
+        Some(&root.join("lib/std")),
+    )
+    .unwrap();
     // The package-aware entry (the CLI's own path): project-local footprints
     // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
     let mut checked =
@@ -669,7 +673,7 @@ fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     for name in ["rpi-pico2", "openmicro"] {
         let dir = root.join("examples").join(name);
-        let proj = cohdl::project::load_project(&dir, Some(&root.join("std"))).unwrap();
+        let proj = cohdl::project::load_project(&dir, Some(&root.join("lib/std"))).unwrap();
         // The package-aware entry (the CLI's own path): project-local
         // footprints carry the real package name (`rpi_pico2::…`), not the
         // compat `main::…`.

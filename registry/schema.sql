@@ -29,6 +29,13 @@ CREATE TABLE IF NOT EXISTS versions (
   size INTEGER NOT NULL,
   r2_key TEXT NOT NULL,
   published_at TEXT NOT NULL,
+  -- `[package]` metadata, read from the manifest inside this version's own
+  -- archive at publish. Per-version because a manifest is a per-version
+  -- fact; anything "package-level" derives from the newest version.
+  description TEXT,
+  license TEXT,
+  repository TEXT,
+  docs TEXT,            -- JSON array of the version's RFC-017 `#[doc]` paths
   PRIMARY KEY (name, version)
 );
 CREATE INDEX IF NOT EXISTS versions_recent ON versions (published_at DESC);

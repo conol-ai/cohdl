@@ -81,7 +81,7 @@ fn build_with_dxf(name: &str, src: &str, dxf: &str) -> Built {
 /// Build a repo example project (with the real std) and emit the document.
 fn build_example(dir: &str) -> Built {
     let root = manifest();
-    let proj = cohdl::project::load_project(&root.join(dir), Some(&root.join("std"))).unwrap();
+    let proj = cohdl::project::load_project(&root.join(dir), Some(&root.join("lib/std"))).unwrap();
     let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
     assert!(!checked.diags.has_errors());
     // RFC-020: resolve the example's real DXF outline from disk.
@@ -785,7 +785,7 @@ design B {
 
 fn cohdl() -> Command {
     let mut c = Command::new(env!("CARGO_BIN_EXE_cohdl"));
-    c.env("COHDL_STD", manifest().join("std"));
+    c.env("COHDL_STD", manifest().join("lib/std"));
     c
 }
 

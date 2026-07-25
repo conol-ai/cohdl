@@ -302,7 +302,7 @@ fn std_override_always_warns() {
         "design B {\n    inst c1: MLCC_100nF_16V_0402\n    inst c2: MLCC_100nF_16V_0402\n    net N: c1.A, c2.A\n    net GND [gnd]: c1.B, c2.B\n}\n",
     )
     .unwrap();
-    let repo_std = Path::new(env!("CARGO_MANIFEST_DIR")).join("std");
+    let repo_std = Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std");
     let (ok, _, err) = run(&[
         "check",
         tmp.to_str().unwrap(),
@@ -362,6 +362,73 @@ fn fmt_sorts_dependencies_by_name() {
 }
 
 // ---------------------------------------------------------------------------
+// `[package]` display metadata: read by the compiler, published to the
+// registry, and never rewritten by fmt
+// ---------------------------------------------------------------------------
+
+const METADATA_MANIFEST: &str = "\
+[package]
+name = \"t\"
+version = \"0.2.0\"
+description = \"A demo package = with an equals sign.\"
+license = \"MIT\"
+repository = \"https://example.com/t\"
+
+[design]
+top = \"B\"
+
+[dependencies]
+zeta = \"1.0.0\"
+mypkg = \"1.0.0\"
+";
+
+#[test]
+fn manifest_metadata_is_read_verbatim() {
+    let tmp = tmp_dir("meta_read");
+    make_project_with_dep(&tmp);
+    std::fs::write(tmp.join("cohdl.toml"), METADATA_MANIFEST).unwrap();
+
+    let (_, manifest) = cohdl::project::peek_manifest(&tmp).unwrap();
+    assert_eq!(
+        manifest.description.as_deref(),
+        Some("A demo package = with an equals sign.")
+    );
+    assert_eq!(manifest.license.as_deref(), Some("MIT"));
+    assert_eq!(
+        manifest.repository.as_deref(),
+        Some("https://example.com/t")
+    );
+
+    // Absent keys are absent — never an empty string standing in for one.
+    let (_, bare) = cohdl::project::peek_manifest(&tmp.join("deps/mypkg/1.0.0")).unwrap();
+    assert_eq!(bare.description, None);
+    assert_eq!(bare.license, None);
+    assert_eq!(bare.repository, None);
+}
+
+#[test]
+fn fmt_leaves_package_metadata_untouched() {
+    let tmp = tmp_dir("meta_fmt");
+    make_project_with_dep(&tmp);
+    std::fs::write(tmp.join("cohdl.toml"), METADATA_MANIFEST).unwrap();
+
+    // fmt canonicalizes [dependencies] only (RFC-009); every other section
+    // survives byte-for-byte, so display metadata is never dropped or
+    // reordered by a format pass.
+    let (ok, _, err) = run(&["fmt", tmp.to_str().unwrap()]);
+    assert!(ok, "{err}");
+    let after = std::fs::read_to_string(tmp.join("cohdl.toml")).unwrap();
+    let expected = METADATA_MANIFEST.replace(
+        "zeta = \"1.0.0\"\nmypkg = \"1.0.0\"",
+        "mypkg = \"1.0.0\"\nzeta = \"1.0.0\"",
+    );
+    assert_eq!(after, expected, "only [dependencies] may move:\n{after}");
+
+    let (ok, _, err) = run(&["fmt", tmp.to_str().unwrap(), "--check"]);
+    assert!(ok, "{err}");
+}
+
+// ---------------------------------------------------------------------------
 // Library-level: version parsing + lock round-trip
 // ---------------------------------------------------------------------------
 
@@ -410,4 +477,84 @@ fn lock_render_parse_round_trip_is_stable() {
     assert_eq!(reparsed.render(), rendered, "round trip is byte-identical");
     // Sorted by name: alpha before std.
     assert!(rendered.find("alpha").unwrap() < rendered.find("std").unwrap());
+}
+
+// ---------------------------------------------------------------------------
+// The library root (`lib/`): std is resolved by the same rule as every other
+// package that ships beside it
+// ---------------------------------------------------------------------------
+
+#[test]
+fn every_library_resolves_through_the_same_family_rule() {
+    use cohdl::deps::Registry;
+    let reg = Registry {
+        lib_root: Some(PathBuf::from("/repo/lib")),
+        project_deps: PathBuf::from("/proj/deps"),
+        cache_root: Some(PathBuf::from("/home/.cohdl/registry")),
+    };
+    // std gets no privileged path: `lib/std` is where `lib/passives` is.
+    for name in ["std", "passives", "@brand/whatever"] {
+        assert_eq!(
+            reg.families(name),
+            vec![
+                PathBuf::from("/proj/deps").join(name),
+                PathBuf::from("/repo/lib").join(name),
+                PathBuf::from("/home/.cohdl/registry").join(name),
+            ],
+            "`{name}` must search project deps, then lib/, then the cache"
+        );
+    }
+}
+
+#[test]
+fn a_library_root_is_recognized_by_the_packages_it_offers() {
+    use cohdl::deps::is_library_root;
+    let tmp = tmp_dir("libroot");
+    let lib = tmp.join("lib");
+    std::fs::create_dir_all(&lib).unwrap();
+    assert!(!is_library_root(&lib), "an empty dir offers no package");
+
+    // A subdirectory that is not a package does not make a library root —
+    // this is what keeps a binary's `/usr/lib` from being mistaken for one.
+    std::fs::create_dir_all(lib.join("notapkg/src")).unwrap();
+    assert!(!is_library_root(&lib));
+
+    // A family dir whose package declares a different name is unreadable as
+    // that family, so it still does not count.
+    let mislabeled = lib.join("passives");
+    std::fs::create_dir_all(mislabeled.join("src")).unwrap();
+    std::fs::write(
+        mislabeled.join("cohdl.toml"),
+        "[package]\nname = \"resistors\"\nversion = \"1.0.0\"\n",
+    )
+    .unwrap();
+    assert!(!is_library_root(&lib));
+
+    std::fs::write(
+        mislabeled.join("cohdl.toml"),
+        "[package]\nname = \"passives\"\nversion = \"1.0.0\"\n",
+    )
+    .unwrap();
+    assert!(
+        is_library_root(&lib),
+        "one readable family is enough — no name is privileged"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn the_repos_std_is_an_ordinary_library_under_lib() {
+    let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("lib");
+    assert!(
+        cohdl::deps::is_library_root(&lib),
+        "the repo's lib/ must be discoverable as a library root"
+    );
+    let (version, dir) = cohdl::deps::newest_available(&lib.join("std"), "std")
+        .expect("lib/std offers the std package");
+    assert_eq!(dir, lib.join("std"), "the family dir is itself the package");
+    assert_eq!(
+        version.to_string(),
+        "0.1.0",
+        "std's version comes from lib/std/cohdl.toml, never from its path"
+    );
 }

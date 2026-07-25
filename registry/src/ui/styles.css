@@ -113,6 +113,58 @@ code {
   font-size: 13px;
 }
 
+/* Package metadata: the manifest's own description/license/repository. */
+.pkg-desc { font-size: 16px; max-width: 68ch; margin: 6px 0 4px; }
+.pkg-meta { font-size: 13px; margin: 0 0 18px; }
+.pkg-meta a { color: var(--muted); }
+.pkg-meta a:hover { color: var(--accent); }
+.pkg-blurb { color: var(--muted); font-size: 13.5px; margin-top: 3px; max-width: 68ch; }
+
+/* Documents (RFC-017 #[doc] content). */
+.doc-ver { font-size: 13px; font-weight: 400; }
+.doc-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.doc-tab {
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font: inherit;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12.5px;
+  font-weight: 400;
+}
+.doc-tab-on { color: var(--text); border-color: var(--accent); }
+
+/* Rendered document body. Publisher-authored, so it stays inside the page's
+   own type scale rather than setting its own. */
+.md { max-width: 72ch; }
+.md h3, .md h4, .md h5, .md h6 { margin: 22px 0 8px; }
+.md h3 { font-size: 19px; }
+.md h4 { font-size: 16px; }
+.md h5, .md h6 { font-size: 14px; }
+.md p, .md li { font-size: 14.5px; }
+.md a { color: var(--accent); }
+.md img { max-width: 100%; height: auto; border-radius: 4px; }
+.md blockquote {
+  margin: 14px 0;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+}
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0; }
+.md-code {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  font-size: 13px;
+}
+.md-code code { background: none; padding: 0; }
+.md-table { overflow-x: auto; }
+.md-table th, .md-table td { font-size: 13.5px; padding-right: 16px; }
+
 footer {
   border-top: 1px solid var(--line);
   color: var(--muted);

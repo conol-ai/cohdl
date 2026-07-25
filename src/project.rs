@@ -222,6 +222,12 @@ pub struct Manifest {
     pub top: Option<String>,
     pub version: Option<String>,
     pub deps_raw: Option<Vec<(String, String, u32)>>,
+    /// Display-only `[package]` metadata: never affects a verdict, a
+    /// designator, or an emitted byte — the registry records it per published
+    /// version and the web UI shows it (`cohdl publish` echoes it).
+    pub description: Option<String>,
+    pub license: Option<String>,
+    pub repository: Option<String>,
 }
 
 /// RFC-029: the manifest alone (no source collection) — the CLI resolves
@@ -245,6 +251,9 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
     let mut name = None;
     let mut top = None;
     let mut version = None;
+    let mut description = None;
+    let mut license = None;
+    let mut repository = None;
     let mut deps_raw: Option<Vec<(String, String, u32)>> = None;
     for (lineno, raw) in text.lines().enumerate() {
         let line = raw.trim();
@@ -273,6 +282,9 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
         match (section.as_str(), key) {
             ("package", "name") => name = Some(value),
             ("package", "version") => version = Some(value),
+            ("package", "description") => description = Some(value),
+            ("package", "license") => license = Some(value),
+            ("package", "repository") => repository = Some(value),
             ("design", "top") => top = Some(value),
             ("dependencies", dep) => deps_raw
                 .as_mut()
@@ -286,6 +298,9 @@ fn parse_manifest(text: &str) -> Result<Manifest, String> {
         top,
         version,
         deps_raw,
+        description,
+        license,
+        repository,
     })
 }
 
@@ -329,34 +344,45 @@ pub fn std_override(flag: Option<PathBuf>) -> Option<PathBuf> {
     std::env::var("COHDL_STD").ok().map(PathBuf::from)
 }
 
-/// RFC-029: locate the *versioned* std root — a `std/` directory containing
-/// `X.Y.Z/` version subdirectories. Searched next to the executable's repo
-/// root (dev builds), then in the current directory. Version *selection*
-/// comes from the manifest's `[dependencies]` pin (or newest-available for
-/// unpinned targets), never from this function.
-pub fn find_std_root() -> Option<PathBuf> {
+/// RFC-029/030: locate the library root — the `lib/` directory whose
+/// immediate subdirectories are the package family dirs shipped with the
+/// compiler (`lib/std/`, and every other official library beside it).
+/// Searched next to the executable's repo root (dev builds), then in the
+/// current directory; a candidate counts only if it actually offers a
+/// package, so an installed binary's `/usr/lib` is never mistaken for one.
+/// This locates the root only — version *selection* comes from the
+/// manifest's `[dependencies]` pin (or newest-available for unpinned
+/// targets), never from here.
+pub fn find_lib_root() -> Option<PathBuf> {
     if let Ok(exe) = std::env::current_exe() {
-        // target/{debug,release}/cohdl → repo root's std/.
+        // target/{debug,release}/cohdl → repo root's lib/.
         for ancestor in exe.ancestors().skip(1) {
-            let candidate = ancestor.join("std");
-            if crate::deps::newest_available(&candidate, "std").is_some() {
+            let candidate = ancestor.join("lib");
+            if crate::deps::is_library_root(&candidate) {
                 return Some(candidate);
             }
         }
     }
-    let cwd_std = PathBuf::from("std");
-    if crate::deps::newest_available(&cwd_std, "std").is_some() {
-        return Some(cwd_std);
+    let cwd_lib = PathBuf::from("lib");
+    if crate::deps::is_library_root(&cwd_lib) {
+        return Some(cwd_lib);
     }
     None
 }
 
+/// The newest std the library root offers — `(version, package dir)`. std is
+/// resolved here exactly as any other library would be: its family dir is
+/// `lib/std/`, and its manifest declares its version.
+pub fn newest_std() -> Option<(crate::deps::Version, PathBuf)> {
+    find_lib_root().and_then(|root| crate::deps::newest_available(&root.join("std"), "std"))
+}
+
 /// The unpinned std resolution: override verbatim, else the newest version
-/// under the discovered root. This is the rule for targets with no manifest
+/// the library root offers. This is the rule for targets with no manifest
 /// to pin against — single-file checks and the LSP's overlay analysis.
 pub fn find_std_dir(flag: Option<PathBuf>) -> Option<PathBuf> {
     if let Some(p) = std_override(flag) {
         return Some(p);
     }
-    find_std_root().and_then(|root| crate::deps::newest_available(&root, "std").map(|(_, dir)| dir))
+    newest_std().map(|(_, dir)| dir)
 }

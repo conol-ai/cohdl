@@ -1,6 +1,7 @@
 [package]
 name = "rpi-pico2"
 version = "0.1.0"
+license = "MIT"
 
 [design]
 top = "Pico2"

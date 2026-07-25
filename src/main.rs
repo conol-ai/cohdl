@@ -828,8 +828,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
             warn_if_std_override(args);
             return Ok(vec![("std".to_string(), dir)]);
         }
-        let newest = project::find_std_root()
-            .and_then(|root| deps::newest_available(&root, "std"))
+        let newest = project::newest_std()
             .map(|(v, _)| v.to_string())
             .unwrap_or_else(|| "X.Y.Z".to_string());
         return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
@@ -854,8 +853,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
     if args.no_std {
         entries.retain(|e| e.name != "std");
     } else if !entries.iter().any(|e| e.name == "std") && override_std.is_none() {
-        let newest = project::find_std_root()
-            .and_then(|root| deps::newest_available(&root, "std"))
+        let newest = project::newest_std()
             .map(|(v, _)| v.to_string())
             .unwrap_or_else(|| "X.Y.Z".to_string());
         return Err(DepFailure::Diags(vec![cohdl::deps::PackageDiag::error(
@@ -880,7 +878,7 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
     }
 
     let registry = deps::Registry {
-        std_root: project::find_std_root(),
+        lib_root: project::find_lib_root(),
         project_deps: args.path.join("deps"),
         cache_root: cohdl::registry::cache_root(),
     };
@@ -948,11 +946,10 @@ fn update_command(args: &Args) -> Result<bool, String> {
 
     // Migration: no [dependencies] section → write one pinning newest std.
     if manifest.deps_raw.is_none() {
-        let Some((newest, _)) =
-            project::find_std_root().and_then(|r| deps::newest_available(&r, "std"))
-        else {
+        let Some((newest, _)) = project::newest_std() else {
             return Err(
-                "cannot locate a versioned std library to pin (no std root found)".to_string(),
+                "cannot locate a versioned std library to pin (no `lib/std` under any library root)"
+                    .to_string(),
             );
         };
         let text = std::fs::read_to_string(&manifest_path)
@@ -996,7 +993,7 @@ fn update_command(args: &Args) -> Result<bool, String> {
     }
 
     let registry = deps::Registry {
-        std_root: project::find_std_root(),
+        lib_root: project::find_lib_root(),
         project_deps: args.path.join("deps"),
         cache_root: cohdl::registry::cache_root(),
     };
@@ -1286,7 +1283,7 @@ fn install_command(args: &Args) -> Result<bool, String> {
         }
     };
     let reg = deps::Registry {
-        std_root: project::find_std_root(),
+        lib_root: project::find_lib_root(),
         project_deps: args.path.join("deps"),
         cache_root: registry::cache_root(),
     };
@@ -1370,6 +1367,16 @@ fn login_command() -> Result<bool, String> {
     );
     let _ = std::fs::remove_file(&tmp);
     let resp = resp.map_err(|e| format!("cannot reach the registry: {e}"))?;
+    if resp.status == 0 {
+        // Never reached, so the token was never judged (E1204, not E1201).
+        eprint!(
+            "{}",
+            render_diag(&registry::unreachable(format!(
+                "POST {reg}/login did not complete"
+            )))
+        );
+        return Ok(false);
+    }
     if resp.status != 200 {
         return Err(format!(
             "the registry rejected the token (HTTP {})",
@@ -1403,6 +1410,21 @@ fn publish_command(args: &Args) -> Result<bool, String> {
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     let tier = registry::name_tier(&manifest.name)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
+    // Registry policy (server-authoritative, checked here so a license-less
+    // package is never packed or uploaded at all): every published version
+    // declares its license. The value is not checked against a license list —
+    // proprietary terms are legitimate; silence is what is refused.
+    let Some(license) = manifest
+        .license
+        .as_deref()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+    else {
+        return Err(format!(
+            "{}: publishing needs `[package] license` — the registry refuses any version that does not declare one",
+            manifest_path.display()
+        ));
+    };
     let Some(token) = registry::read_token() else {
         eprint!(
             "{}",
@@ -1424,6 +1446,20 @@ fn publish_command(args: &Args) -> Result<bool, String> {
         version,
         tier.describe()
     );
+    // The `[package]` metadata the registry will record for this version,
+    // echoed so a publish never surprises: what is missing here is what the
+    // package page will not show. `license` is always present — publishing
+    // without one never gets this far.
+    eprintln!("    license: {license}");
+    for (key, value) in [
+        ("description", &manifest.description),
+        ("repository", &manifest.repository),
+    ] {
+        match value {
+            Some(v) => eprintln!("    {key}: {v}"),
+            None => eprintln!("    {key}: — (no `[package] {key}` in the manifest)"),
+        }
+    }
 
     let tar = registry::pack_tar(&args.path)?;
     let local_hash = cohdl::hash::package_content_hash(&args.path)?;
@@ -1458,6 +1494,14 @@ fn publish_command(args: &Args) -> Result<bool, String> {
                 "  published {} {} ({})",
                 manifest.name, version, server_hash
             );
+            // RFC-017 documents the registry indexed for this version — the
+            // package page renders them.
+            let docs = registry::json_str_array(&resp.body, "docs");
+            if docs.is_empty() {
+                eprintln!("    documents: — (no `#[doc(\"…\")]` references in this package)");
+            } else {
+                eprintln!("    documents: {}", docs.join(", "));
+            }
             Ok(true)
         }
         401 => {
@@ -1475,12 +1519,26 @@ fn publish_command(args: &Args) -> Result<bool, String> {
             );
             Ok(false)
         }
-        403 | 409 => {
+        // 400 is the server refusing the archive itself (no manifest, or a
+        // manifest whose declared identity disagrees with this publish) — its
+        // message is the diagnostic, never a bare status line.
+        400 | 403 | 409 => {
             let msg = registry::json_str_field(&resp.body, "error")
                 .unwrap_or_else(|| format!("publish rejected (HTTP {})", resp.status));
             eprint!(
                 "{}",
                 render_diag(&cohdl::deps::PackageDiag::error("E1202", &url, 0, msg))
+            );
+            Ok(false)
+        }
+        // curl reports 0 when the exchange never completed: the registry was
+        // not reached at all, which is E1204 — never "publish rejected".
+        0 => {
+            eprint!(
+                "{}",
+                render_diag(&registry::unreachable(format!(
+                    "POST {url} did not complete"
+                )))
             );
             Ok(false)
         }

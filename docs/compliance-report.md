@@ -2154,10 +2154,12 @@ Tony's direction: std is not special). Scoped judgments, each within the
 RFC's stated scope or a disclosed deviation:
 
 1. **Registry roots** (RFC assumes "packages available on disk", hosting out
-   of scope): resolution searches `<project>/deps/<name>/<ver>/` first, then
-   `<registry>/<name>/<ver>/` where the registry root is the directory
-   containing the discovered `std/`. std itself resolves to
-   `<std_root>/<ver>/`.
+   of scope): resolution searches `<project>/deps/<name>/` first, then
+   `<lib_root>/<name>/`, then the RFC-030 cache. (Superseded in detail by
+   the 2026-07-25 library-root entry below: the local root is the
+   discovered `lib/`, and std is one family dir under it — originally it
+   was the *parent* of a discovered `std/`, which made std's own location
+   the definition of the registry root.)
 2. **`cohdl update [PATH] [--dep NAME]`** vs the RFC's `cohdl update <name>`
    surface: the positional slot keeps the CLI-wide PATH convention (a bare
    name would be ambiguous against a path); `--dep` carries the package name.
@@ -2235,3 +2237,149 @@ R2/KV/Assets with a Vite+TanStack+React UI). Scoped judgments:
    must equal the server's declared hash before anything is recorded —
    a mismatch (E1206 hard form) deletes the cache entry rather than
    poisoning later E1103 checks.
+
+## Package metadata + document rendering in the registry (2026-07-25)
+
+RFC-030's Tooling section names "README rendering from a package's own
+`#[doc(...)]`-referenced content" as web-UI parity scope, and a registry
+that shows only names, hashes, and sizes cannot answer "what is this
+package?". Two additive judgments, neither touching a verdict, a
+designator, or an emitted byte:
+
+1. **Three display-only `[package]` keys** — `description`, `license`,
+   `repository`. RFC-029 specifies `name` and `version` as the manifest's
+   identity fields; these three are display metadata, so they are parsed
+   into `project::Manifest`, echoed by `cohdl publish` (including
+   "— (no `[package] <key>` in the manifest)" for an absent one, so a
+   publish never silently ships blank metadata), and stored **per version**
+   in D1. Per-version because a manifest is a per-version fact: a published
+   version is one immutable identity, so its metadata is too. Anything
+   "package-level" — the description a search hit shows, the license the
+   package page shows — derives from the newest version by subquery, so
+   `versions` stays the single source of truth. `fmt` is unaffected by
+   construction: it canonicalizes `[dependencies]` only and passes every
+   other manifest section through byte-for-byte (asserted by
+   `fmt_leaves_package_metadata_untouched`, since a silently-dropped
+   construct is fmt's classic failure mode).
+
+2. **Documents = the `#[doc]` set already in the archive** — no new
+   language surface. At publish the server scans the tar's `.cohdl` files
+   for `#[doc("path")]` references (same lexical package-relative grammar
+   `parse.rs` enforces, `//` comments stripped), keeps the ones the archive
+   actually contains, and stores that sorted list as the version's document
+   index. `GET /api/doc?pkg&version&path` serves one file out of the
+   immutable tar in R2. The endpoint serves **any** file the archive
+   contains, not only declared documents: a rendered README's own figures
+   are relative paths that were never declared themselves, and the whole
+   tar is already public at `/packages/{name}/{ver}.tar`, so restricting it
+   would break figures while protecting nothing. The `docs` list decides
+   what the UI *presents*; the endpoint just serves bytes — with
+   `Content-Security-Policy: sandbox`, `X-Content-Type-Options: nosniff`,
+   a content type from a closed extension map that has no `text/html`
+   entry, and immutable caching.
+
+Two further consequences worth recording:
+
+3. **The manifest inside the archive is now verified at publish.** The
+   server re-reads `cohdl.toml` from the tar and refuses (400) a publish
+   whose declared name or version disagrees with the URL — the same rule
+   the compiler already lives by (the manifest is the sole identity
+   authority), now enforced at the boundary where a client could otherwise
+   assert anything. `publish` surfaces the server's message under E1202
+   instead of a bare `HTTP 400`; no new error code (E1202 already covers
+   "the server refused a publish").
+
+4. **Markdown is rendered to React elements, never HTML.** Published
+   documents are untrusted publisher content: the renderer
+   (`registry/src/ui/markdown.tsx`) is a deliberately incomplete
+   Markdown subset with no raw-HTML passthrough and no
+   `dangerouslySetInnerHTML`, so an unsupported construct — including an
+   inline `<script>` — degrades to literal text. Link and image URLs are
+   restricted to http/https/mailto plus same-version relative paths, so no
+   `javascript:` URL can reach an anchor.
+
+Also fixed here: the https-only redirect shipped in 3cec262 applied to
+loopback hosts too, which made `npm run dev` unusable (every request
+301'd to https) and would have sent an HSTS header for `localhost` —
+pinning every local project's port to https in the developer's browser.
+Both are now skipped for loopback hostnames only; deployed traffic always
+carries the zone hostname, so production enforcement is unchanged.
+
+
+## The library root: `lib/` (2026-07-25)
+
+std moved from `std/` to `lib/std/`, ahead of publishing the official
+packages as many small libraries rather than one growing std. No RFC text
+changes: RFC-029/030 never specify a repository layout — they specify that
+a package's identity comes from its manifest and that dependencies resolve
+through family dirs. This entry records the mechanism change that came
+with the move.
+
+1. **The registry root is now a thing in its own right.** RFC-029's first
+   implementation defined the local root as *the parent of the discovered
+   `std/`*, and gave std a branch of its own in `Registry::families`
+   (`if name == "std" { the std root itself } else { its sibling }`). That
+   made std's location the definition of everywhere else's, and made the
+   repository root double as a package namespace — any top-level directory
+   was a candidate family dir. `families()` is now uniform for every name,
+   std included: `<project>/deps/<name>`, `<lib_root>/<name>`,
+   `<cache>/<name>`.
+
+2. **Root discovery asks about packages, not about std.**
+   `deps::is_library_root` accepts a directory if at least one immediate
+   subdirectory is a readable package family;
+   `project::find_lib_root` walks the executable's ancestors for such a
+   `lib/`, then tries the current directory. Discovery must be content-
+   based rather than name-based because an installed binary's ancestors
+   include `/usr/lib`. std is then resolved like any other library
+   (`project::newest_std` = newest under `<lib_root>/std`), so
+   `find_std_root` is gone; nothing in the resolver mentions std by name
+   any more except the implicit-dependency rule, which is a language rule,
+   not a path rule.
+
+3. **Adding a library is a filesystem act, not a code change.** Verified
+   end to end: a second package dropped beside std (`lib/passives/`,
+   declaring `0.2.0`) resolves, locks with its own content hash, and emits
+   from a pinned `[dependencies]` entry with no compiler change.
+
+4. **Content hashes were unaffected** (the recipe is over package-relative
+   paths, and `lib/std/` is the same package it was as `std/`), so
+   committed `cohdl.lock` rows stayed valid across the move — the same
+   property the RFC-029 flattening amendment relied on.
+
+### Registry policy: no publish without a license (2026-07-25)
+
+Operator decision, layered onto the metadata work above: **every published
+version must declare `[package] license`.** A package a design can pin is a
+package whose terms the design's owner must be able to read, so an
+undeclared license is a refusal rather than a blank field on the page.
+
+- **Enforced in both places, server authoritative.** The worker refuses the
+  publish (400, surfaced by the CLI under E1202) after reading the manifest
+  out of the archive; `cohdl publish` refuses earlier still — before packing
+  or contacting the registry — so a license-less package never leaves the
+  machine. `publish_without_a_license_never_reaches_the_network` proves the
+  pre-flight ordering by pointing the CLI at a dead port: a license-less
+  publish fails with the license message, and only a *licensed* one gets far
+  enough to fail with E1204.
+- **The value is not validated against a license list.** Proprietary and
+  custom terms are legitimate (`LicenseRef-…`, "see LICENSE.txt"); what the
+  registry refuses is silence, so `license = ""` and whitespace are refused
+  exactly like an absent key. An SPDX allowlist would reject valid terms and
+  is not the registry's judgment to make.
+- **`description` and `repository` stay optional** — they are display sugar;
+  a license is a condition of distribution.
+
+Settled the same day: the repository is **MIT** throughout (root `LICENSE`,
+`Copyright (c) 2026 Conol AI`), and every manifest in it declares that —
+`lib/std/cohdl.toml`, both example designs, the three Cargo manifests
+(narrowed from `MIT OR Apache-2.0`), `registry/package.json`, and
+`editors/vscode/package.json` (which had pointed at a root `LICENSE` that
+did not yet exist). `cohdl publish lib/std` therefore clears the gate.
+
+Also corrected while testing the gate: `publish` and `login` reported an
+unreachable registry as `publish failed: HTTP 0` / "the registry rejected
+the token (HTTP 0)" — curl reports status 0 when the exchange never
+completed. Both now render E1204, the code that exists for exactly this and
+that RFC-030 requires be distinguishable from E1201 (rejected token), E1202
+(rejected publish), and E1103 (hash mismatch).

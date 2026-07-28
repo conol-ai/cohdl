@@ -1174,6 +1174,19 @@ struct Physical {
     prims: Vec<Prim>,
     padstacks: Vec<PadStack>,
     pads: Vec<PlacedPad>,
+    /// RFC-031 silkscreen, already transformed to board coordinates. Every
+    /// primitive is reduced to a filled polygon (a stroke IS a rectangle of the
+    /// stroke's width) because IPC's `Features` accepts a `StandardShape` —
+    /// `Line`/`Arc` are `Simple` and cannot appear there, while `Contour`
+    /// carries any of them faithfully.
+    silk: Vec<PlacedSilk>,
+}
+
+/// One silkscreen polygon on the board: a closed ring, plus which side's
+/// silkscreen layer it belongs to.
+struct PlacedSilk {
+    points: Vec<(i128, i128)>,
+    bottom: bool,
 }
 
 /// Rotate a pad offset by a cardinal angle (0/90/180/270, CCW) — exact
@@ -1211,6 +1224,7 @@ fn build_physical(
     let mut prims: Vec<Prim> = Vec::new();
     let mut padstacks: Vec<PadStack> = Vec::new();
     let mut pads: Vec<PlacedPad> = Vec::new();
+    let mut silk: Vec<PlacedSilk> = Vec::new();
     for inst in insts {
         let raw = inst.designator.as_deref().unwrap_or("?");
         let refdes = refdes_map[raw].clone();
@@ -1227,6 +1241,22 @@ fn build_physical(
         let Some(fp) = world.footprints.get(&fp_name) else {
             continue;
         };
+        // RFC-031: the footprint's silkscreen, markers already expanded, moved
+        // onto the board with the SAME mirror-then-rotate order pads use.
+        for ring in crate::emit::silk::polygons(world, fp) {
+            let pts = ring
+                .iter()
+                .map(|(x, y)| {
+                    let lx = if bottom { -*x } else { *x };
+                    let (ox, oy) = rotate(lx, -*y, rot);
+                    (cx + ox, -cy + oy)
+                })
+                .collect();
+            silk.push(PlacedSilk {
+                points: pts,
+                bottom,
+            });
+        }
         for place in &fp.pads {
             let Some(pad) = world.pads.get(&place.pad.name) else {
                 continue;
@@ -1241,7 +1271,13 @@ fn build_physical(
             };
             let tht = matches!(plating, crate::ast::PadPlating::PlatedThroughHole);
             let drill = if tht {
-                pad.drill.as_ref().map(|(v, _)| v.femto).unwrap_or(0)
+                // A slot reports its MINOR axis, exactly as an oval mount hole
+                // does: IPC's `<Hole>` carries one scalar and the full extent
+                // is already described by the padstack primitive.
+                pad.drill
+                    .as_ref()
+                    .map(|(d, _)| d.minor().femto)
+                    .unwrap_or(0)
             } else {
                 0
             };
@@ -1352,6 +1388,7 @@ fn build_physical(
         prims,
         padstacks,
         pads,
+        silk,
     }
 }
 
@@ -1572,6 +1609,55 @@ fn emit_layer_features(
                 );
             }
             out.push_str("            </Pad>\n");
+            out.push_str("          </Set>\n");
+        }
+        out.push_str("        </LayerFeature>\n");
+    }
+    // RFC-031: silkscreen. IPC-2581 had no silkscreen output at all before
+    // this; each polygon becomes a filled `Contour` under `Features`, which is
+    // the format's own native way to carry arbitrary silk art (`Line`/`Arc`
+    // are `Simple` and are not valid `Feature`s).
+    for (layer, want_bottom) in [("F.Silkscreen", false), ("B.Silkscreen", true)] {
+        let rings: Vec<&PlacedSilk> = phys
+            .silk
+            .iter()
+            .filter(|r| r.bottom == want_bottom && r.points.len() >= 3)
+            .collect();
+        if rings.is_empty() {
+            continue;
+        }
+        let _ = writeln!(out, "        <LayerFeature layerRef=\"{}\">", layer);
+        for r in rings {
+            out.push_str("          <Set>\n");
+            out.push_str("            <Features>\n");
+            out.push_str("              <Location x=\"0\" y=\"0\"/>\n");
+            out.push_str("              <Contour>\n");
+            let (x0, y0) = r.points[0];
+            let _ = writeln!(
+                out,
+                "                <Polygon>\n                  <PolyBegin x=\"{}\" y=\"{}\"/>",
+                geom::mm_femto(x0),
+                geom::mm_femto(y0)
+            );
+            for (x, y) in r.points.iter().skip(1) {
+                let _ = writeln!(
+                    out,
+                    "                  <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                    geom::mm_femto(*x),
+                    geom::mm_femto(*y)
+                );
+            }
+            // Close the ring explicitly — a Contour polygon is a closed region.
+            let _ = writeln!(
+                out,
+                "                  <PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                geom::mm_femto(x0),
+                geom::mm_femto(y0)
+            );
+            out.push_str("                  <FillDesc fillProperty=\"FILL\"/>\n");
+            out.push_str("                </Polygon>\n");
+            out.push_str("              </Contour>\n");
+            out.push_str("            </Features>\n");
             out.push_str("          </Set>\n");
         }
         out.push_str("        </LayerFeature>\n");

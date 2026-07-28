@@ -76,10 +76,14 @@ pub device STM32F072CBT6 {
         required TOUCH: 46 [bidirectional] // PB9
         required LED_DATA_KEY: 40 [output] // PB4 — per-key RGB chain
         required LED_DATA_UG: 10 [output] // PA0 — perimeter underglow chain
+        // serial console on the debug connector. USART1's pins are all taken by
+        // the key matrix (PA9/PA10 = ROW0/COL3, PB6/PB7 = ROW2/COL1), so this is
+        // USART2 on PA2/PA3 (AF1 per the datasheet's alternate-function table) —
+        // the only free USART pin pair on the part.
+        required UART_TX: 12 [output] // PA2 / USART2_TX
+        required UART_RX: 13 [input] // PA3 / USART2_RX
         // unused GPIO (declared to cover all 48 pads; left NC)
         optional PA1: 11 [bidirectional]
-        optional PA2: 12 [bidirectional]
-        optional PA3: 13 [bidirectional]
         optional PA4: 14 [bidirectional]
         optional PA5: 15 [bidirectional]
         optional PA6: 16 [bidirectional]
@@ -131,12 +135,19 @@ pub part RGB_SK6812: SK6812 {
 }
 
 // ---- Kailh Choc V2 low-profile keyswitch (MX cross stem): 2 non-polar
-// electrical contacts. The central box-stem hole and MX mounting peg are
-// RFC-022 mount_holes in the footprint (mechanical, no device pin). ----
+// electrical contacts plus the fixing leg. The central box-stem hole stays an
+// RFC-022 mount_hole (a plastic boss passes through it, nothing to solder), but
+// the LEG is metal and its hole is plated, so it is a real pad — and therefore
+// a real pin, since a footprint's pad set must match its device's (E807).
+//
+// `optional`, because the leg carries no signal: it is a mechanical anchor, and
+// declaring it required would oblige all 13 switches to wire a pin that has
+// nothing to connect to. ----
 pub device KeySwitch {
     pins {
         required A: 1 [passive]
         required B: 2 [passive]
+        optional MNT: 3 [passive]
     }
 }
 impl Switch for KeySwitch {}
@@ -179,17 +190,26 @@ pub part ENC_EC11: RotaryEC11 {
     primary { mfr: "Alps Alpine", mpn: "EC11E15244A5", footprint: FP_Encoder_EC11 }
 }
 
-// ---- Alps RKJXV122400R ThumbPointer (2 pots + push). X/Y wipers to ADC. ----
+// ---- Alps RKJXV122400R ThumbPointer: two 10k B-taper potentiometers plus a
+// centre-push switch, ten terminals in three groups (see FP_Joystick_RKJXV).
+// Terminal 2 of each potentiometer is the wiper — the datasheet measures total
+// resistance "between the resistor terminals 1 and 3". X is carried by VR1 and
+// Y by VR2; which physical axis each senses is a firmware convention, not a
+// datasheet fact, so the naming here is ours.
+//
+// The switch's four terminals leave the switch body on its two sides, so they
+// pair by side: a+b are one pole, c+d the other — one pin claiming two pads,
+// the same shape the key switches use. ----
 pub device ThumbPointer {
     pins {
-        required X_END_A: 1 [passive]
-        required X_WIPER: 2 [output]
-        required X_END_B: 3 [passive]
-        required Y_END_A: 4 [passive]
-        required Y_WIPER: 5 [output]
-        required Y_END_B: 6 [passive]
-        required SW_A: 7 [passive]
-        required SW_B: 8 [passive]
+        required X_END_A: A1 [passive]
+        required X_WIPER: A2 [output]
+        required X_END_B: A3 [passive]
+        required Y_END_A: B1 [passive]
+        required Y_WIPER: B2 [output]
+        required Y_END_B: B3 [passive]
+        required SW_A: SA, SB [passive]
+        required SW_B: SC, SD [passive]
     }
 }
 impl Connector for ThumbPointer {}
@@ -197,30 +217,28 @@ pub part JOY_RKJXV: ThumbPointer {
     primary { mfr: "Alps Alpine", mpn: "RKJXV122400R", footprint: FP_Joystick_RKJXV }
 }
 
-// ---- reset tactile switch (2 terminals). ----
-pub device ResetSwitch {
+// ---- 2x3 2.54mm SMT female socket — debug + serial console. Six contacts,
+// no 3V3 and no reset: the target is powered from USB whenever it is being
+// debugged, and BOOT0/NRST already have their own on-board provisions, so the
+// socket carries only what a debugger and a console actually need.
+//
+//     GND | SWCLK | SWDIO
+//     GND | TXD   | RXD
+//
+// Two grounds, one per row, so each signal row has a return beside it — the
+// pair that matters is SWDIO/SWCLK, and its ground sits in the same column. ----
+pub device Debug_2x3 {
     pins {
-        required A: 1, 2 [passive]
-        required B: 3, 4 [passive]
+        required GND: 1, 2 [passive]
+        required SWCLK: 3 [passive]
+        required TXD: 4 [passive]
+        required SWDIO: 5 [passive]
+        required RXD: 6 [passive]
     }
 }
-impl Switch for ResetSwitch {}
-pub part SW_RESET: ResetSwitch {
-    primary { mfr: "Panasonic", mpn: "EVQ-P7A01P", footprint: FP_SW_Reset }
-}
-
-// ---- SWD 1x4 debug header (SWDIO/SWCLK/GND/3V3). ----
-pub device SWD_Header {
-    pins {
-        required SWDIO: 1 [passive]
-        required SWCLK: 2 [passive]
-        required GND: 3 [passive]
-        required V3V3: 4 [passive]
-    }
-}
-impl Connector for SWD_Header {}
-pub part J_SWD: SWD_Header {
-    primary { mfr: "Generic", mpn: "HDR-1x4-2.54", footprint: FP_Header_1x4 }
+impl Connector for Debug_2x3 {}
+pub part J_SWD: Debug_2x3 {
+    primary { mfr: "Generic", mpn: "SOCKET-2x3-2.54-SMD", footprint: FP_Socket_2x3_254_SMD }
 }
 
 // ---- capacitive-touch sense pad (bare copper, sensed by the STM32). ----
@@ -249,36 +267,13 @@ pub part MH_M2: MountingHole {
     primary { mfr: "n/a", mpn: "MOUNT-M2-PLATED-2.2MM", footprint: FP_MountingHole_M2 }
 }
 
-// ---- passive part bindings (std ChipResistor / MLCC) ----
-pub part R_5K1: ChipResistor<5.1kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-075K1L", footprint: CHIP_0402 }
-}
-pub part R_10K: ChipResistor<10kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-0710KL", footprint: CHIP_0402 }
-}
-pub part R_1K: ChipResistor<1kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-071KL", footprint: CHIP_0402 }
-}
-pub part C_100n: MLCC<100nF, 16V, 10%>[C0402] {
-    primary { mfr: "Samsung", mpn: "CL05B104KO5NNNC", footprint: CHIP_0402 }
-}
-pub part C_1u: MLCC<1uF, 10V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R61A105KE15D", footprint: CHIP_0402 }
-}
-pub part C_4u7: MLCC<4.7uF, 10V, 20%>[C0603] {
-    primary { mfr: "Samsung", mpn: "CL10A475KP8NNNC", footprint: CHIP_0603 }
-}
-pub part C_15p: MLCC<15pF, 50V, 5%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM1555C1H150JA01D", footprint: CHIP_0402 }
-}
-
 // reusable decoupling sub-circuit
 pub fn decouple(vdd: Pin, gnd: Pin) {
     // RFC-028: ONE attribute here annotates every call site's capacitor —
     // each expansion resolves `vdd` to that call's real (instance, pin), one
     // bypass_capacitors.csv row per pad of the bypassed pin.
     #[bypass(vdd, 100nF)]
-    inst c: C_100n
+    inst c: passive::C_100n_16V_X7R_0402
     net _: vdd, c.A
     net _: gnd, c.B
 }

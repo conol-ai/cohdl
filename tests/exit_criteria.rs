@@ -15,6 +15,21 @@ fn check(src: &str) -> (cohdl::pipeline::Checked, String) {
     (checked, rendered)
 }
 
+/// The libraries every example board pins.
+const LIB_PACKAGES: [&str; 2] = ["std", "passive"];
+
+/// Load an example board the way the CLI does: every library it pins.
+/// std carries the traits and board devices; `passive` carries the chip
+/// resistors and capacitors every board uses.
+fn load_example(dir: &std::path::Path) -> cohdl::project::Project {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("passive".to_string(), root.join("lib/passive")),
+    ];
+    cohdl::project::load_project_with_deps(dir, &deps).unwrap()
+}
+
 /// Load the real std library + a board source, as the CLI would.
 fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
     let mut files = Vec::new();
@@ -45,13 +60,14 @@ fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
 #[test]
 fn grammar_parses_demo_board_and_std() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj = cohdl::project::load_project(
-        &root.join("examples/rpi-pico2"),
-        Some(&root.join("lib/std")),
+    let proj = load_example(&root.join("examples/rpi-pico2"));
+    let checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &LIB_PACKAGES.map(str::to_string),
+        &proj.files,
+        proj.top.as_deref(),
     )
     .unwrap();
-    let checked =
-        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
     assert!(
         !checked.diags.has_errors(),
         "{}",
@@ -67,15 +83,16 @@ fn grammar_parses_demo_board_and_std() {
 #[test]
 fn rpi_pico2_example_builds_cleanly() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj = cohdl::project::load_project(
-        &root.join("examples/rpi-pico2"),
-        Some(&root.join("lib/std")),
-    )
-    .unwrap();
+    let proj = load_example(&root.join("examples/rpi-pico2"));
     // The package-aware entry (the CLI's own path): project-local footprints
     // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
-    let mut checked =
-        cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
+    let mut checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &LIB_PACKAGES.map(str::to_string),
+        &proj.files,
+        proj.top.as_deref(),
+    )
+    .unwrap();
     assert!(
         !checked.diags.has_errors(),
         "pico2 should check cleanly:\n{}",
@@ -673,12 +690,17 @@ fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     for name in ["rpi-pico2", "openmicro"] {
         let dir = root.join("examples").join(name);
-        let proj = cohdl::project::load_project(&dir, Some(&root.join("lib/std"))).unwrap();
+        let proj = load_example(&dir);
         // The package-aware entry (the CLI's own path): project-local
         // footprints carry the real package name (`rpi_pico2::…`), not the
         // compat `main::…`.
-        let mut checked =
-            cohdl::pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref()).unwrap();
+        let mut checked = cohdl::pipeline::check_files_in_with_deps(
+            &proj.name,
+            &LIB_PACKAGES.map(str::to_string),
+            &proj.files,
+            proj.top.as_deref(),
+        )
+        .unwrap();
         assert!(!checked.diags.has_errors());
         let lock_text = std::fs::read_to_string(dir.join("design.lock")).unwrap();
         let prior = LockState::parse(&lock_text).unwrap();
@@ -729,9 +751,14 @@ fn example_build_matches_committed_golden_output() {
 fn unbound_instance_is_a_build_error() {
     let (mut checked, rendered) = check_with_std(
         r#"
+pub device Chip<C: Capacitance> {
+    pins { A: 1 [passive], B: 2 [passive] }
+    spec { capacitance: C }
+}
+
 design B {
-    inst c1: MLCC<47nF, 16V, 10%>[C0402]
-    inst r1: RES_1K_0402
+    inst c1: Chip<47nF>
+    inst r1: Chip<47nF>
     net X: c1.A, r1.A
     net Y: c1.B, r1.B
 }
@@ -1186,8 +1213,20 @@ pub part P1: V<100nF> {
 fn rfc008_selector_on_part_instantiation_is_rejected() {
     let (_, rendered) = check_with_std(
         r#"
+pub device Chip {
+    variants { C0402, C0603 }
+    pins[C0402] { A: 1 [passive], B: 2 [passive] }
+    pins[C0603] { A: 1 [passive], B: 2 [passive] }
+}
+
+pub footprint CHIP_0402 {}
+
+pub part ChipPart: Chip[C0402] {
+    primary { mfr: "m", mpn: "n", footprint: CHIP_0402 }
+}
+
 design B {
-    inst c: MLCC_100nF_16V_0402[C0603]
+    inst c: ChipPart[C0603]
     net N: c.A, c.B
 }
 "#,

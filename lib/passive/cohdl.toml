@@ -1,0 +1,9 @@
+[package]
+name = "passive"
+version = "0.1.1"
+license = "MIT"
+description = "Chip resistors and MLCC capacitors: the full standard value grid, Yageo primary with Samsung/Murata alternates."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.2.1"

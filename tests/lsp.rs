@@ -1693,12 +1693,12 @@ fn exit_with_id_does_not_terminate() {
 #[test]
 fn use_import_definition_and_hover() {
     let src = "\
-use std::MLCC_100nF_16V_0402;
+use std::LED_RED_0603;
 design ZzUseB {
-    inst c1: MLCC_100nF_16V_0402
-    inst c2: MLCC_100nF_16V_0402
-    net N: c1.A, c2.A
-    net GND [gnd]: c1.B, c2.B
+    inst d1: LED_RED_0603
+    inst d2: LED_RED_0603
+    net N: d1.Anode, d2.Anode
+    net GND [gnd]: d1.Cathode, d2.Cathode
 }
 ";
     let (_path, uri, text) = fixture("usedef.cohdl", src);
@@ -1706,14 +1706,14 @@ design ZzUseB {
     did_open(&mut lsp, &uri, &text);
     let _ = lsp.await_diagnostics(&uri);
 
-    let col = src.lines().next().unwrap().find("MLCC").unwrap() as u64;
+    let col = src.lines().next().unwrap().find("LED_RED").unwrap() as u64;
     let def = lsp.request(
         "textDocument/definition",
         json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": col + 1 } }),
     );
     let target = def["uri"].as_str().unwrap_or_default();
     assert!(
-        target.ends_with("passives.cohdl"),
+        target.ends_with("led.cohdl"),
         "use-path definition lands in std's declaring file: {}",
         def
     );
@@ -1724,7 +1724,7 @@ design ZzUseB {
     );
     assert_eq!(
         hover["contents"]["value"].as_str(),
-        Some("**use** `std::MLCC_100nF_16V_0402` — part"),
+        Some("**use** `std::LED_RED_0603` — part"),
         "{}",
         hover
     );

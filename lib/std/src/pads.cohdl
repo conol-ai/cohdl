@@ -10,38 +10,6 @@
 // propagates to every footprint that references the pad. Treat edits to
 // this file as library-review work, not local tweaks.
 
-// KiCad Resistor_SMD:R_0402_1005Metric pad (0.54 x 0.64 at ±0.51).
-pub pad P_Chip_R0402 {
-    shape: rect
-    size: (0.54mm, 0.64mm)
-    layer: top_copper
-    plating: smd
-}
-
-// KiCad Capacitor_SMD:C_0402_1005Metric pad (0.56 x 0.62 at ±0.48).
-pub pad P_Chip_C0402 {
-    shape: rect
-    size: (0.56mm, 0.62mm)
-    layer: top_copper
-    plating: smd
-}
-
-// KiCad C_0201/R_0201_0603Metric numbered pad.
-pub pad P_Chip_0201 {
-    shape: rect
-    size: (0.46mm, 0.4mm)
-    layer: top_copper
-    plating: smd
-}
-
-// KiCad C_0603_1608Metric pad.
-pub pad P_Chip_0603 {
-    shape: rect
-    size: (0.9mm, 0.95mm)
-    layer: top_copper
-    plating: smd
-}
-
 // KiCad LED_0603_1608Metric pad.
 pub pad P_Chip_LED0603 {
     shape: rect
@@ -224,24 +192,31 @@ pub pad P_USBC_Sig_S {
     plating: smd
 }
 
-// USB Type-C shield mounting tab — upper pair. The real part is a 0.6x1.7mm
-// plated slot; CoHDL drills are round, so approximated as a 0.6mm plated hole
-// under the 1x2.1mm oval tab (demo-grade mechanical).
+// USB Type-C shield mounting tab — upper pair. The receptacle's shield legs
+// are flat stampings, so the hole is a plated SLOT, not a round drill: a round
+// hole large enough to clear the leg's long axis would eat the annular ring,
+// and one sized to its width will not accept the leg at all.
+//
+// HRO TYPE-C-31-M-12 "RECOMMEND P.C.B LAYOUT (COMPONENT SIDE)", sheet 1 of 1:
+// hole 0.60 wide (`4-0.60`) x 1.70 long, in a 0.90 x 2.00 copper oval — the
+// 0.60/0.90 pair dimensioned at the lower left is hole width vs copper width,
+// leaving a 0.15mm annular ring all round. Layout tolerance ±0.05.
 pub pad P_USBC_Shield_T {
     shape: oval
-    size: (1mm, 2.1mm)
+    size: (0.9mm, 2mm)
     layer: through_all
     plating: plated_through_hole
-    drill: 0.6mm
+    drill: (0.6mm, 1.7mm)
 }
 
-// USB Type-C shield mounting tab — lower pair (0.6x1.2mm slot -> 0.6mm hole).
+// USB Type-C shield mounting tab — lower pair. Same 0.60 slot width and the
+// same 0.15mm ring; only the length differs (1.40 hole in a 1.70 copper oval).
 pub pad P_USBC_Shield_B {
     shape: oval
-    size: (1mm, 1.6mm)
+    size: (0.9mm, 1.7mm)
     layer: through_all
     plating: plated_through_hole
-    drill: 0.6mm
+    drill: (0.6mm, 1.4mm)
 }
 
 // Pico 2.54mm castellation — a plated HALF-through-hole at the board edge

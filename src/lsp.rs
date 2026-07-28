@@ -724,7 +724,10 @@ impl Server {
                     text.push_str(&format!("\n- plating: `{}`", plating.name()));
                 }
                 if let Some((drill, _)) = &pad.drill {
-                    text.push_str(&format!("\n- drill: `{}`", drill.text));
+                    text.push_str(&format!(
+                        "\n- drill: `{}`",
+                        crate::fmt::pad_drill_text(drill)
+                    ));
                 }
                 return Some(hover_markdown(
                     text,
@@ -783,7 +786,10 @@ impl Server {
                 text.push_str(&format!("\n- plating: `{}`", plating.name()));
             }
             if let Some((drill, _)) = &pad.drill {
-                text.push_str(&format!("\n- drill: `{}`", drill.text));
+                text.push_str(&format!(
+                    "\n- drill: `{}`",
+                    crate::fmt::pad_drill_text(drill)
+                ));
             }
             return Some(hover_markdown(
                 text,

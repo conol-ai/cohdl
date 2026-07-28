@@ -186,7 +186,95 @@ the type-system-first test (RFC-004 Tooling & operations).
   `name(args)` when the fn has no generic parameters. Generic args are
   positional, as everywhere in v2.
 
-## 9. What the MVP deliberately leaves out (beyond the MVP cut list)
+## 9. Slot drills on pads (`drill: (w, l)`)
+
+RFC-018 gave `pad` a scalar `drill:`, so every hole CoHDL could describe was
+round. Real connectors disagree: a USB Type-C receptacle's shield legs seat in
+**plated slots**, and the openmicro board had been carrying a written-down
+compromise — a 0.6mm round hole standing in for a 0.6 x 1.7mm slot, with the
+approximation confessed in a comment in `lib/std/src/pads.cohdl`. A footprint
+that lies about its own holes is not a footprint.
+
+Provisional, pending an RFC on conol.ai:
+
+```cohdl
+pub pad P_USBC_Shield_T {
+    shape: oval
+    size: (1mm, 2.1mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: (0.6mm, 1.7mm)   // slot: width, length
+}
+```
+
+`drill: D` (a scalar) stays exactly what it was — a round hole. `drill: (w, l)`
+is an obround slot. This is deliberately the SAME scalar-or-tuple split
+RFC-023 gave `mount_hole` (`diameter D` for a circle, `size: (w, h)` for a
+rect/oval), so the language has one convention for "this hole is elongated"
+rather than two spellings of it.
+
+Checked at declaration, all E805 (the existing pad-validity code — a slot is
+not a new kind of mistake, so it does not get a new code):
+
+- each dimension is a positive, projectable `Length`, exactly as the scalar
+  form is checked;
+- a slot is exactly `(width, length)` — other arities are rejected;
+- a `circle` pad may not carry a slot (the hole would break out of its own
+  annular ring); the help names `shape: oval` as the fix;
+- the slot must fit inside the pad's own size per axis, and the diagnostic
+  names the offending axis rather than reporting a bare "too big".
+
+Projection: KiCad gets its own `(drill oval w l)` form — the one RFC-023's
+non-circular mount holes already emit. IPC-2581's `<Hole>` carries a single
+scalar, so a slot reports its **minor axis** (the width it is routed with),
+with the full extent already described by the padstack primitive; again, the
+convention oval mount holes established rather than a second answer to the
+same question.
+
+## 10. Board cutouts on footprints (`window { … }`)
+
+A reverse-mount LED faces the BOARD: its light leaves through an aperture in
+the PCB. RFC-018 gave footprints pads, a courtyard and a silkscreen anchor, and
+RFC-022/023 gave them drilled holes — none of which can say "route a hole
+through the board here". The openmicro per-key LEDs were therefore describing a
+part shining into copper and laminate.
+
+Provisional, pending an RFC on conol.ai:
+
+```cohdl
+pub footprint FP_LED_SK6812MINI_E {
+    pad 1: P_SK6812_Pad at (-2.725mm, 0.75mm)
+    // … the four lands sit outside the aperture …
+    window { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.2mm) }
+}
+```
+
+The block is deliberately the same `shape`/`at`/`size` triple as `courtyard`,
+with the same closed shape vocabulary — one spelling for "a shape on a layer",
+not two. At most one `window` per footprint, same as `courtyard`, and its
+dimensions are checked identically (Length, positive, arity matching the shape);
+all E806, since a malformed window is an invalid footprint body and not a new
+kind of mistake.
+
+**Why not `mount_hole`.** RFC-022's holes are DRILLED; a window is ROUTED board
+edge. Reusing `mount_hole` would have emitted a 3.4mm "drill" where a fabricator
+needs a milled aperture, and would have changed the meaning of the Choc switch's
+existing oblong leg hole, which really is a drilled slot. Two different
+manufacturing operations, two constructs.
+
+Projection: KiCad gets a closed outline on **Edge.Cuts** — the same layer and
+shape its own reverse-mount LED footprints use for their light aperture. Corners
+stay square: the router bit's radius is the fabricator's to choose, not ours to
+invent. A window is not a hole, so nothing gains a drill because of it (asserted
+in `tests/footprint.rs`).
+
+**Known gap:** the window is NOT yet represented in the IPC-2581 document. A
+per-component cutout would have to be transformed into board coordinates and
+subtracted from the `Profile`, which is a larger change than the KiCad
+projection and wants the RFC first. The layout artifact is unaffected.
+
+## 11. What the MVP deliberately leaves out (beyond the MVP cut list)
 
 No `module`/`use`, no `type` aliases, no inline AVL on `inst`, no
 `footprint_alias`/`footprint_override`/`no_footprint`, no `rule` blocks in

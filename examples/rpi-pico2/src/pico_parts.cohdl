@@ -324,46 +324,13 @@ pub part IND_3U3: ChipInductor<3.3uH> {
     primary { mfr: "Murata", mpn: "DFE201612E-3R3M", footprint: FP_L_0806_2016Metric }
 }
 
-// ---- Pico-specific passive part bindings on the std devices ----
+// ---- Pico-specific part bindings ----
 
-// Resistors (std ChipResistor; std already provides RES_1K / RES_10K).
-pub part R_470: ChipResistor<470ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07470RL", footprint: CHIP_0201 }
-}
-pub part R_27: ChipResistor<27ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-0727RL", footprint: CHIP_0201 }
-}
-pub part R_33: ChipResistor<33ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-0733RL", footprint: CHIP_0402 }
-}
-pub part R_200: ChipResistor<200ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0402FR-07200RL", footprint: CHIP_0402 }
-}
-pub part R_100: ChipResistor<100ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100RL", footprint: CHIP_0201 }
-}
-pub part R_1R: ChipResistor<1ohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-071RL", footprint: CHIP_0201 }
-}
-pub part R_5K6: ChipResistor<5.6kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-075K6L", footprint: CHIP_0201 }
-}
-pub part R_100K: ChipResistor<100kohm, 1%> {
-    primary { mfr: "Yageo", mpn: "RC0201FR-07100KL", footprint: CHIP_0201 }
-}
-
-// Capacitors (std MLCC; std already provides the 100nF/1uF/10uF parts).
-pub part C_15pF: MLCC<15pF, 25V, 5%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E150JA01", footprint: CHIP_0201 }
-}
-pub part C_1nF: MLCC<1nF, 25V, 10%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM0335C1E102JA01", footprint: CHIP_0201 }
-}
-pub part C_4u7: MLCC<4.7uF, 6.3V, 20%>[C0402] {
-    primary { mfr: "Murata", mpn: "GRM155R60J475ME47", footprint: CHIP_0402 }
-}
-pub part C_47uF: MLCC<47uF, 6.3V, 20%>[C0603] {
-    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: CHIP_0603 }
+// 47uF 6.3V X5R 0603. Not in `passive`: Yageo's CC series stops short of
+// 47uF in an 0603 X5R, so this one part is board-local, built on the
+// library's own device and land rather than a private copy of either.
+pub part C_47uF: passive::MLCC<47uF, 6.3V, 20%>[C0603] {
+    primary { mfr: "Murata", mpn: "GRM188R60J476ME15", footprint: passive::CHIP_0603 }
 }
 
 // Green user LED (reuses std ChipLED).
@@ -375,7 +342,7 @@ pub part LED_GREEN: ChipLED {
 
 // 4.7uF bulk/rail capacitor across a supply pin pair.
 pub fn bulk_4u7(vdd: Pin, gnd: Pin) {
-    inst c: C_4u7
+    inst c: passive::C_4u7_6V3_X5R_0402
     net _: vdd, c.A
     net _: gnd, c.B
 }

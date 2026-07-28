@@ -10,6 +10,9 @@ A dependency name resolves through `<project>/deps/<name>`, then
 finds this directory by walking up from its own executable (then the current
 directory) for a `lib/` that offers at least one readable package.
 
+The libraries here today: `std` (traits + demo-board devices) and `passive`
+(chip resistors and MLCCs — generated, see `tools/gen_passive.py`).
+
 To add an official library: create `lib/<name>/` with a `cohdl.toml` whose
 `[package] name` is `<name>` and whose `[package] version` is an exact
 `X.Y.Z`, put its sources under `src/`, and publish it with

@@ -136,7 +136,7 @@ fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
     files.sort();
     files.push((
         "src/main.cohdl".to_string(),
-        "design B {\n    inst c1: MLCC_100nF_16V_0402\n    inst c2: std::MLCC_100nF_16V_0402\n    net N: c1.A, c2.A\n    net GND [gnd]: c1.B, c2.B\n}\n"
+        "design B {\n    inst d1: LED_RED_0603\n    inst d2: std::LED_RED_0603\n    net N: d1.Anode, d2.Anode\n    net GND [gnd]: d1.Cathode, d2.Cathode\n}\n"
             .to_string(),
     ));
     let mut checked = check_files_in("board", &files, None).expect("selection");
@@ -146,7 +146,7 @@ fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
     let ir = checked.ir.unwrap();
     assert_eq!(ir.instances.len(), 2);
     for inst in ir.instances.values() {
-        assert_eq!(inst.part.as_deref(), Some("std::MLCC_100nF_16V_0402"));
+        assert_eq!(inst.part.as_deref(), Some("std::LED_RED_0603"));
     }
 }
 

@@ -165,8 +165,49 @@ pub struct PadDef {
     pub layer: Option<(PadLayer, Span)>,
     pub plating: Option<(PadPlating, Span)>,
     /// Required iff `plating: plated_through_hole`.
-    pub drill: Option<(UnitValue, Span)>,
+    pub drill: Option<(PadDrill, Span)>,
     pub span: Span,
+}
+
+/// A plated pad's hole. `drill: D` is a round hole (the original RFC-018
+/// form); `drill: (w, l)` is a SLOT of that width and length — what a
+/// connector's shield leg or any rectangular tab actually needs.
+///
+/// The two forms mirror RFC-023's `mount_hole` convention exactly: a scalar
+/// for the circular case, a `(w, h)` tuple for the elongated one. Slots have
+/// no Accepted RFC yet — see docs/provisional-syntax.md.
+#[derive(Debug, Clone)]
+pub enum PadDrill {
+    /// `drill: D` — a round hole of diameter D.
+    Round(UnitValue),
+    /// `drill: (width, length)` — an obround slot.
+    Slot(UnitValue, UnitValue),
+}
+
+impl PadDrill {
+    /// Every dimension the form carries, for uniform per-value validation.
+    pub fn values(&self) -> Vec<&UnitValue> {
+        match self {
+            PadDrill::Round(d) => vec![d],
+            PadDrill::Slot(w, l) => vec![w, l],
+        }
+    }
+
+    /// The hole's minor axis — a round hole's diameter, a slot's width. This
+    /// is the drill a fabricator routes the slot with, and what IPC-2581's
+    /// single-scalar `<Hole>` carries (the full extent rides the primitive).
+    pub fn minor(&self) -> &UnitValue {
+        match self {
+            PadDrill::Round(d) => d,
+            PadDrill::Slot(w, l) => {
+                if w.femto <= l.femto {
+                    w
+                } else {
+                    l
+                }
+            }
+        }
+    }
 }
 
 /// One `pad N: PadSymbol at (x, y) [rotate ANGLE]` placement inside a
@@ -267,7 +308,118 @@ impl MountHole {
     }
 }
 
-/// `courtyard { shape: rect, at: (x, y), size: (…) }`.
+/// RFC-031 silkscreen fill vocabulary — a closed two-value set.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SilkFill {
+    None,
+    Solid,
+}
+
+impl SilkFill {
+    pub fn name(self) -> &'static str {
+        match self {
+            SilkFill::None => "none",
+            SilkFill::Solid => "solid",
+        }
+    }
+    pub fn from_name(s: &str) -> Option<SilkFill> {
+        Some(match s {
+            "none" => SilkFill::None,
+            "solid" => SilkFill::Solid,
+            _ => return None,
+        })
+    }
+}
+
+/// RFC-031: one drawable silkscreen primitive. The set is closed to the four
+/// shapes real silkscreen art needs, deliberately NOT reusing `PadShape` —
+/// a pad models copper/mask/drill area, a silk graphic models a stroke.
+#[derive(Debug, Clone)]
+pub enum SilkGraphic {
+    /// `line from (x1, y1) to (x2, y2) width W`
+    Line {
+        from: (UnitValue, UnitValue),
+        to: (UnitValue, UnitValue),
+        width: UnitValue,
+    },
+    /// `circle at (x, y) radius R width W [fill F]` — defaults `none`.
+    Circle {
+        at: (UnitValue, UnitValue),
+        radius: UnitValue,
+        width: UnitValue,
+        fill: SilkFill,
+    },
+    /// `arc at (x, y) radius R start_angle A1 end_angle A2 width W` — angles in
+    /// whole degrees, 0..=360 (a genuinely continuous need, unlike the cardinal
+    /// set `rotate` uses for whole-component orientation).
+    Arc {
+        at: (UnitValue, UnitValue),
+        radius: UnitValue,
+        start_angle: i32,
+        end_angle: i32,
+        width: UnitValue,
+    },
+    /// `polygon [(x1, y1), …] [fill F]` — three or more vertices; defaults
+    /// `solid` (the common case is a filled pin-1 triangle).
+    Polygon {
+        points: Vec<(UnitValue, UnitValue)>,
+        fill: SilkFill,
+    },
+}
+
+/// RFC-031 `pin_1_marker … shape SHAPE`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Pin1Shape {
+    Dot,
+    Triangle,
+}
+
+/// RFC-031 `polarity_marker … shape SHAPE`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PolarityShape {
+    Band,
+    Arrow,
+}
+
+/// One statement inside a `silkscreen { … }` block: either a raw primitive or
+/// one of the two semantic markers, which are sugar that EXPANDS to primitives
+/// (`emit::silk`) rather than a second drawing mechanism.
+#[derive(Debug, Clone)]
+pub enum SilkItem {
+    Graphic(SilkGraphic, Span),
+    /// `pin_1_marker near pad N shape SHAPE`
+    Pin1Marker {
+        pad: PinNumber,
+        shape: Pin1Shape,
+        span: Span,
+    },
+    /// `polarity_marker cathode_pin N shape SHAPE`
+    PolarityMarker {
+        cathode_pad: PinNumber,
+        shape: PolarityShape,
+        span: Span,
+    },
+}
+
+impl SilkItem {
+    pub fn span(&self) -> Span {
+        match self {
+            SilkItem::Graphic(_, s) | SilkItem::Pin1Marker { span: s, .. } => *s,
+            SilkItem::PolarityMarker { span: s, .. } => *s,
+        }
+    }
+}
+
+/// RFC-031 `silkscreen { … }` — a footprint-body block of drawable graphics.
+#[derive(Debug, Clone)]
+pub struct SilkscreenBlock {
+    pub items: Vec<SilkItem>,
+    pub span: Span,
+}
+
+/// A `shape: … , at: (x, y), size: (…)` block. Two footprint constructs share
+/// this record: `courtyard` (the placement keep-out) and `window` (a board
+/// CUTOUT the part needs — see `FootprintDef::window`).
 #[derive(Debug, Clone)]
 pub struct Courtyard {
     pub shape: (PadShape, Span),
@@ -293,6 +445,20 @@ pub struct FootprintDef {
     /// RFC-022 mechanical locating holes — numbered disjoint from `pads`.
     pub mount_holes: Vec<MountHole>,
     pub courtyard: Option<Courtyard>,
+    /// A board cutout this part needs: the light window a reverse-mount LED
+    /// fires through. Deliberately NOT a `mount_hole` — that is a drilled
+    /// hole, this is routed board edge (KiCad's `Edge.Cuts`), and conflating
+    /// them would emit a 3.4mm "drill" where a fabricator needs a milled
+    /// aperture. Provisional; see docs/provisional-syntax.md.
+    ///
+    /// Boxed because a window is rare — only reverse-mount parts carry one —
+    /// and inlining a second shape record here makes `ItemKind::Footprint` the
+    /// outsized enum variant for every footprint that has no window.
+    pub window: Option<Box<Courtyard>>,
+    /// RFC-031 silkscreen graphics. Boxed for the same reason `window` is: most
+    /// footprints have none, and inlining the block would make
+    /// `ItemKind::Footprint` the outsized enum variant for all of them.
+    pub silkscreen: Option<Box<SilkscreenBlock>>,
     pub silkscreen_ref: Option<(UnitValue, UnitValue, Span)>,
     pub span: Span,
 }

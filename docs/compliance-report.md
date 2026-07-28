@@ -2383,3 +2383,695 @@ the token (HTTP 0)" — curl reports status 0 when the exchange never
 completed. Both now render E1204, the code that exists for exactly this and
 that RFC-030 requires be distinguishable from E1201 (rejected token), E1202
 (rejected publish), and E1103 (hash mismatch).
+
+
+## The `passive` library, and std's scope (2026-07-25)
+
+Chip resistors and MLCCs left std for their own package. std keeps what
+every library needs (the traits that form the prelude) and what the demo
+boards need; `passive` carries the parts. Consequences worth recording:
+
+1. **std 0.1.0 -> 0.2.0.** Removing public declarations is a breaking
+   change, so the version moved rather than the content changing under a
+   pin — the discipline RFC-029 exists to enforce. Both examples repin
+   `std = "0.2.0"` and add `passive = "0.1.0"`; `std::status_led` went
+   with the passives (it instantiated a 1k resistor, and a sub-circuit
+   that needs a part from another library cannot live in std). The chip
+   lands (`CHIP_0402`/`CHIP_0603` and their pads) moved too: a land now
+   exists once, in the package whose parts use it.
+
+2. **The catalog is generated, and the generator is the source of truth**
+   (`tools/gen_passive.py`, ~9.7k parts). Two rules that shape it:
+
+   - A part number is emitted only from a scheme read out of the
+     manufacturer's own datasheet. Yageo RC_L resistors and Yageo CC
+     capacitors both qualify. Samsung CL and Murata GRM do not — their
+     numbers carry a thickness/electrode field that (size, dielectric,
+     voltage, capacitance) does not determine — so Samsung alternates come
+     from a table dumped from Samsung's product database
+     (`tools/passive_data/samsung_cl.json`, 1636 parts) and Murata's
+     appear only where individually verified. CoHDL requires a real `mpn`
+     on every `alt` (E802), which is the right constraint: there is no way
+     to name a second source without naming the part.
+   - Which parts exist is data, never inference. Capacitor availability
+     comes from the datasheets' own capacitance/voltage tables
+     (`yageo_mlcc.json`), and every emitted Yageo part number is checked
+     against Yageo's specsheet endpoint (`tools/verify_passive_mpns.py`).
+     A number that does not resolve is dropped, so the catalog errs by
+     omission and never by assertion.
+
+3. **Two errors this caught, both real.** The packaging letter in a Yageo
+   part number is coupled to the case size — `RC2512FR-...` does not
+   exist, `RC2512FK-...` does — which the first generated cut got wrong
+   for every 2010 and 2512 part. And parsing the C0G capacitance tables
+   over-reached into voltage columns the CC series does not offer, which
+   the endpoint check caught. Neither would have been visible from the
+   compiler's side: both produce perfectly well-typed designs with
+   unorderable BOMs.
+
+4. **Scale is not a problem for the pipeline.** 9.7k parts add ~0.1 s to a
+   debug `check` and ~0.02 s to a release one, linear in part count. The
+   only scaling defect found was a parser hang (see below), not a cost.
+
+## Parser: recovery that could not advance (2026-07-25)
+
+`sync_in_block` stops *at* the `,`/`}` it finds so the caller can see the
+delimiter. Three loops re-entered recovery on that same token and never
+terminated — a hang, not a slow parse, appending a diagnostic per pass
+until memory ran out. Reachable from ordinary malformed input: a bad
+generic argument in a `part` type (`D<1e+06ohm, 1%>`), a stray comma in a
+part body, a non-string AVL value (`mfr: 7`). Fixed by
+`sync_in_block_advancing`, which consumes the token recovery stalled on
+when the cursor did not move; the three sites that `continue` now use it.
+Regression test asserts a bounded diagnostic count per shape — unbounded
+IS the bug. This one matters beyond tidiness: the harness feeds
+model-generated source into `check` in a loop, and that loop had a
+reachable non-termination.
+
+## Board-outline DXF made importable by real CAD (2026-07-26)
+
+`examples/openmicro/mechanical/openmicro-outline.dxf` would not import into
+Autodesk Fusion. The cause was not the geometry — it was that the file had
+been hand-written to satisfy CoHDL's reader and nothing else.
+
+RFC-020's reader (`src/dxf.rs`) is deliberately narrow: it scans for one
+closed `LWPOLYLINE`/`POLYLINE` on `Edge.Cuts` and ignores everything else in
+the file. A 56-line file containing only that entity therefore parsed
+perfectly here while being invalid DXF: `ezdxf.readfile` rejects it, and so
+does `ezdxf.recover` (the maximally permissive path), with
+`DXFStructureError: missing 'AcDbPolyline' subclass in LWPOLYLINE`. What was
+missing, beyond that subclass marker: the `HEADER` section (so no `$ACADVER`
+— an importer must then assume a version predating LWPOLYLINE — and no
+`$INSUNITS`, so millimetres were a guess), the `TABLES` section (the entity
+claimed a layer no `LAYER` table defined), `BLOCKS`/`OBJECTS`, and entity
+handles with their owner pointers.
+
+The file is now a conforming AC1015 (R2000) document — same eight vertices,
+same `tan(22.5°)` corner bulges, verified by a strict `ezdxf.readfile` plus
+`Auditor` run with zero errors — and CoHDL's extraction is byte-identical
+(`openmicro-layout.json` and the IPC-2581 `Profile` checksums are unchanged),
+which is the property that made the swap safe to make.
+
+Generated by `tools/make_board_outline_dxf.py` (a dev utility needing `ezdxf`,
+in the same category as `tools/kicad_board.py` needing KiCad's own Python)
+rather than hand-written, because hand-writing is what produced the invalid
+file. Its output is byte-reproducible: the writer's `$TDCREATE`/`$TDUPDATE`
+stamps, its `$FINGERPRINTGUID`/`$VERSIONGUID`, and the `<version> @ <ISO
+timestamp>` string it records in the object dictionary are all pinned
+afterwards by editing those records' values — never by deleting records,
+which would orphan the handles pointing at them.
+
+The general lesson, worth remembering the next time a narrow reader tempts a
+stub input: **a file CoHDL accepts is not evidence the file is valid.** The
+reader's narrowness is a deliberate contract, not a validation service.
+
+## Pad slot drills — `drill: (w, l)` (2026-07-26)
+
+A USB Type-C receptacle's shield legs seat in plated **slots**. RFC-018 gave
+`pad` a scalar `drill:`, so the openmicro footprint had been carrying the
+compromise in a comment: "the real part is a 0.6x1.7mm plated slot; CoHDL
+drills are round, so approximated as a 0.6mm plated hole". A round 0.6mm hole
+does not accept a flat stamped leg, so the board's own footprint was
+describing a part that could not be assembled — the kind of defect a footprint
+exists to prevent.
+
+No Accepted RFC covers this (the share root was re-derived first: 41 notes,
+all already extracted, RFC-030 still the highest), so it lands in
+`docs/provisional-syntax.md` §9 pending ratification. Judgments:
+
+1. **Reuse RFC-023's convention rather than invent one.** `drill: D` stays a
+   round hole; `drill: (w, l)` is a slot — the same scalar-or-tuple split
+   `mount_hole` already uses for `diameter D` vs `size: (w, h)`. One language
+   convention for "this hole is elongated", not two.
+2. **No new error code.** A malformed slot is an invalid pad declaration,
+   which is what E805 already means. New codes are for new *kinds* of
+   mistake, and this is not one.
+3. **Two structural rules beyond per-value validation**, both of which
+   describe holes that cannot be manufactured: a `circle` pad may not carry a
+   slot (its hole would break out of the annular ring on the long axis — the
+   help names `shape: oval`), and a slot may not exceed the pad's own size on
+   either axis, with the diagnostic naming the offending axis rather than
+   reporting a bare "too large".
+4. **Projection reuses the paths oval mount holes already established.**
+   KiCad gets `(drill oval w l)`; IPC-2581's single-scalar `<Hole>` gets the
+   slot's **minor axis** — the width it is actually routed with — because the
+   full extent is already carried by the padstack primitive. A test asserts
+   the slot's LENGTH never appears as a hole diameter, since that is the
+   silent failure mode.
+
+`fmt` renders the tuple form and round-trips it (asserted, because a new
+grammar form silently vanishing through `fmt` is this project's recurring
+bug), and the LSP hover shares `fmt`'s renderer so the two cannot drift.
+`lib/std/src/pads.cohdl` now declares the real slots — 0.6 x 1.7mm upper,
+0.6 x 1.2mm lower — and `openmicro`'s four shield pins project as
+`(drill oval …)` accordingly.
+
+## openmicro footprint audit — USB-C shield, joystick, debug connector (2026-07-26)
+
+Three footprints re-checked against manufacturer documents downloaded into
+`examples/openmicro/docs/` (indexed in that directory's README).
+
+**1. USB Type-C shield legs are slots, not round holes.** Confirmed and fixed —
+see the pad-slot-drill entry above for the language work this required. Reading
+the HRO TYPE-C-31-M-12 drawing's "RECOMMEND P.C.B LAYOUT" panel also corrected
+two things the previous footprint had wrong:
+
+- the shield lands were 1.0 x 2.1 / 1.0 x 1.6 with a 0.6 round hole; the drawing
+  specifies 0.90 x 2.00 copper over a 0.60 x 1.70 slot (upper pair) and
+  0.90 x 1.70 over 0.60 x 1.40 (lower). The 0.60/0.90 pair dimensioned at the
+  panel's lower left is hole width vs copper width — a 0.15mm ring all round.
+- the four merged corner pads sat at ±2.45 / ±3.25; the drawing's 4.80 and 6.40
+  put them at ±2.40 / ±3.20. The eight narrow pads already matched its
+  0.50/1.50/2.50/3.50 exactly, which is what made the outer pair's 0.05 error
+  visible. Layout tolerance is ±0.05, so this was at the limit.
+
+Leg positions (±4.32, and 4.18 between the rows) were already right.
+
+**2. The joystick footprint was not a land pattern at all.** `FP_Joystick_RKJXV`
+had eight generic 2.54mm header pads at invented positions — the real
+RKJXV122400R has **ten** terminals in three groups plus ten mechanical holes.
+Rebuilt from Alps' own geometry:
+
+- VR1 three ø1 terminals on a column 8.73 right of the lever axis, 2.5 pitch;
+  VR2 three ø1 terminals on a row 8.73 above it; switch four ø1.2 terminals at
+  x = ±3.25 with rows 4.5 apart.
+- mechanical: four ø1.5 frame-leg holes at (±6, ±6), two ø1.6 ±0.05 locating
+  holes at (±4.3, 0), and ø2.6 clearance for the four 0.75mm bosses at
+  (±3.5, ±3.5) — all RFC-022 `mount_hole`s, carrying no net.
+- the `ThumbPointer` device gained the switch's real terminal count: four pads,
+  paired by side (a+b / c+d) the way the board's other 4-terminal switch is
+  modelled, because the terminals leave the switch body on its two sides.
+
+Source discipline worth recording: Alps publishes the mounting-hole drawing only
+as a 427×446 bitmap, and its stacked dimensions are easy to misattribute — an
+early reading of it put the frame holes at ±6.325/±5.0, which the STEP model
+disproved (±6.0/±6.0). The committed pattern is from the **STEP model's**
+cylinder centres, cross-checked against the drawing's labelled dimensions, which
+agree everywhere they are unambiguous. Guessing the two coordinates the bitmap
+could not resolve would have reproduced exactly the defect being fixed.
+
+Also: the footprint's origin is now the **lever axis** (the drawing's ø4
+keep-out centre), not an arbitrary pad corner, so `place joy` no longer needs
+the courtyard-centre back-offset the placeholder required — the placement moved
+from (27.325, -28.575) to the corner cell centre (28.575, -28.575).
+
+**3. The 4-pin 2.54mm SWD header became a 10-pin SMT debug connector.**
+Amphenol ICC Minitek127 `20021121-00010T4LF` — 2x5, 1.27mm, vertical SMT, the
+standard ARM Cortex-M debug form factor. Land pattern from drawing 20021121
+sheet 2: pads 0.76 x 1.95, rows 4.35 apart centre-to-centre, derived from the
+drawing's own 6.30 overall extent and 2.40 inter-row gap. Judgments:
+
+- **Signals keep their standard Cortex-M positions** (1 VTref, 2 SWDIO, 3 GND,
+  4 SWCLK, 5 GND, 9 GNDDetect, 10 nRESET) so an off-the-shelf SWD cable works.
+  The UART takes pin 6 (SWO) and pin 8 (TDI) — a Cortex-M0 implements neither,
+  so nothing is sacrificed. Pin 7 is the connector's KEY position and is the
+  device's only `optional` pin.
+- **USART2 on PA2/PA3**, confirmed against the ST datasheet's alternate-function
+  table (AF1). USART1 was unavailable: all four of its candidate pins
+  (PA9/PA10, PB6/PB7) are consumed by the key matrix. PA2/PA3 were previously
+  in the design's `nc:` list, so no pin was taken from another function.
+- the MPN's post-option digit is `0` ("WITHOUT POST"), so the drawing's two
+  ø1.00 NPTH holes — explicitly "FOR THE PRODUCT WITH POST ONLY" — are
+  correctly absent.
+
+Consequences for the board: `J2` changes footprint AND net count (NRST, UART_TX
+and UART_RX now reach it), and the joystick's land pattern and origin both move,
+so the hand-routed `openmicro.kicad_pcb` needs both parts re-placed and
+re-routed. That file was not touched. One benign note: the real joystick body is
+larger than the placeholder, so its pad-inclusive courtyard now overlaps
+`sw[5]`'s by 0.4mm — the part BODIES still clear each other by 0.45mm.
+
+### openmicro side assignment: USB-C and per-key LEDs move to the back (2026-07-26)
+
+Direct instruction, layered on the footprint audit above. `place … side bottom`
+(RFC-026) now covers three groups, and the reasoning differs per group:
+
+- **`usbc`** — the bottom is this board's component side (the MCU is already
+  there), so the receptacle's SMD contacts land on `B.Cu` beside the MCU they
+  serve. Its four shield legs are through-holes and span the board either way;
+  verified on the regenerated board: contacts on `B.Cu`, legs on `F.Cu+B.Cu`
+  with the 0.6x1.7 / 0.6x1.4 slots intact, and pad x mirrored (A6/A7 swap sides).
+
+  **The `rotate 180` had to be REMOVED when the part moved to the back**, and
+  this is the trap worth remembering: the footprint is drawn mouth-toward +y
+  (the datasheet's PCB EDGE line sits 1.86mm on the +y side of the origin), so a
+  FRONT-side placement needs `rotate 180` to aim the mouth at the board's -y
+  edge. A flip already inverts y, so keeping the rotation as well cancelled it —
+  the connector faced inboard and all 16 signal pads plus two shield legs landed
+  OUTSIDE the y = -47.55 board edge. `check`/`build` cannot catch this: every
+  pad, net and courtyard is still perfectly valid, the part is merely pointing
+  the wrong way. It took reading pad y-coordinates off the generated board
+  against the outline. With the flip alone, copper sits at y = -41.595 (signals),
+  -42.510 and -46.690 (legs) — identical to the original front-side geometry,
+  0.86mm clear of the edge, mouth overhanging as intended.
+- **the 13 per-key LEDs** — a reverse-mount emitter fires through the board, so
+  lighting a top-side switch means sitting under it.
+- **the 16 perimeter LEDs stay on the front**, where their light escapes around
+  the board edge rather than through it.
+
+Side effect worth noting: with the per-key LEDs on the back, the 13 deliberate
+LED-inside-switch courtyard overlaps disappear (the parts are no longer on the
+same side), and flipping the receptacle cleared its overlap with the ESD array.
+A layer-aware scan of the regenerated board — pads that overlap AND share a
+copper layer — reports **0 shorts** across 65 placed parts, with exactly one
+courtyard overlap left: the joystick against `SW11` by 0.49mm, the consequence
+of the real RKJXV body being larger than the placeholder it replaced.
+
+`J2` (the new debug connector) has no `place` statement, so it stages outside
+the outline exactly as the 4-pin header it replaced did — it still needs a
+position chosen.
+
+## Footprint board cutouts — `window { … }` (2026-07-26)
+
+The openmicro LED footprint was incomplete in a way that no amount of pad
+checking would catch: the SK6812MINI-E is **reverse-mount**, so its die faces
+the board and its light leaves through an aperture in the PCB — and CoHDL had no
+way to say "route a hole here". RFC-018 gives footprints pads, a courtyard and a
+silkscreen anchor; RFC-022/023 give them drilled holes. A cutout is neither.
+
+Added `window { shape, at, size }` (provisional — docs/provisional-syntax.md
+§10; the share root was re-derived when the pad-slot work landed and RFC-030 is
+still the highest). Judgments:
+
+1. **Same block shape as `courtyard`**, down to the closed shape vocabulary and
+   the at-most-one rule, so the language has one spelling for "a shape on a
+   layer". Validation is literally the same code path, keyword-parameterised, so
+   the two cannot drift; all E806.
+2. **Not `mount_hole`.** That construct means a DRILLED hole and would have
+   emitted a 3.4mm "drill" where a fabricator needs a milled aperture — and
+   folding cutouts into it would have redefined the Choc switch's oblong leg
+   hole, which genuinely is a drilled slot. Two manufacturing operations, two
+   constructs.
+3. **Projected onto Edge.Cuts**, matching KiCad's own reverse-mount LED
+   footprints (whose aperture geometry supplied the 3.4 x 3.0mm size — the
+   SK6812MINI-E datasheet Rev. 02 states no cutout dimension anywhere, so this
+   is convention and is labelled as such in the footprint). Corners stay square;
+   the router radius is the fab's choice. A test asserts a window adds no drill.
+4. **The field is boxed** (`Option<Box<Courtyard>>`): a window is rare, and
+   inlining a second shape record made `ItemKind::Footprint` the outsized enum
+   variant for every footprint without one (clippy caught it).
+
+Verified end to end: the emitted `.kicad_mod` carries
+`(fp_rect … (layer "Edge.Cuts"))`, KiCad's own parser reads it back as board
+edge, and the regenerated board has 29 light windows — 13 with the per-key LEDs
+on the back, 16 with the perimeter ring on the front, each oriented with its
+placement.
+
+**Known gap, deliberately left:** the window is not in the IPC-2581 document. A
+per-component cutout must be transformed to board coordinates and subtracted
+from the `Profile`; that is a bigger change than the KiCad projection and should
+follow the RFC rather than precede it.
+
+### ESD array follows the USB pair to the back (2026-07-26)
+
+`esd` moved from (7, -38.5) on the front to (-7.8, -41) `rotate 180 side bottom`
+— into the gap between the MCU's right courtyard edge (x = -13.26) and the
+receptacle's left (x = -5.37), biased to the receptacle side so the UNPROTECTED
+`USBC_*` stretch is the short one (6.4mm from connector pad to clamp): copper
+before the clamp is copper the outside world can reach.
+
+`rotate 180` is load-bearing. The USBLC6 passes each data line THROUGH the
+package (I/O1 on pads 1 and 6, I/O2 on 3 and 4), so the part has an input side
+and an output side. Unrotated on the back, pads 1/3 face -x (the MCU) and 6/4
+face +x (the connector) — backwards, forcing the pair to cross itself twice.
+With the rotation the path marches monotonically leftward, verified on the
+generated board: connector A6 at x = -0.25, ESD in (pad 1) at -6.66, ESD out
+(pad 6) at -8.94, MCU PA12 at -13.84. Still 0 shorts; clearances 0.63mm to the
+receptacle courtyard and 3.66mm to the MCU's.
+
+### Choc V2 fixing leg becomes a soldered pad (2026-07-26)
+
+Direct instruction: the switch's third leg was an RFC-022 `mount_hole` (a bare
+cleared hole); it is now a plated through-hole pad so it can be soldered and
+take keypress force. The leg genuinely is metal — the CPG1353 parts list has it
+as phosphor bronze C5191, qty 1 — so soldering it is sound, and leaving two
+0.5mm contacts to carry the force was the weaker choice.
+
+- **It had to become a real device pin.** A footprint's pad set must match its
+  bound device's pins (E807), so `KeySwitch` gained a third pin. It is
+  `optional`: the leg carries no signal, and `required` would oblige all 13
+  switches to wire a pin with nothing to connect to. The netlist confirms the
+  anchor is electrically dead — key-switch pins 1 and 2 appear in nets 13 times
+  each, pin 3 zero times.
+- **The hole is a SLOT** (2.0 x 1.5mm per the datasheet), so this is the first
+  in-tree use of the `drill: (w, l)` form outside the USB-C shield legs.
+- **Annular ring is 0.3mm, not the 0.5mm the contacts use.** The reverse-mount
+  LED's land sits 0.85mm from the leg hole; a 0.5mm ring would have closed that
+  to 0.35mm. Measured on the generated board, the tightest leg-to-foreign-copper
+  gap is 0.545mm — and it is to the LED lands on the OPPOSITE side, which counts
+  because a through-hole exists on both layers.
+- The central ø5 boss hole stays a `mount_hole`: a plastic boss passes through
+  it, so there is nothing to solder.
+
+Still 0 pad overlaps across the board.
+
+### LED apertures vs back-side copper (2026-07-26)
+
+Adding the light windows created a class of conflict that could not exist
+before: an aperture is a hole through the WHOLE board, so a front-side LED can
+destroy a back-side pad. Reported by direct inspection, then found
+systematically by scanning all 29 apertures against all 300 pads.
+
+**Resolved by moving the back side, not the ring.** Direct instruction, and the
+right call: the underglow ring's even spacing is the product feature a user
+actually sees, so it is fixed geometry and the back side gets arranged around
+its apertures. `ambient_leds[0]`/`[1]` are back at -33/-11. `esd` stepped 3mm
+inboard to y = -38 — clear of the aperture's y -43.5..-40.5 while keeping the x
+position between MCU and receptacle — and `mcu` moved from x = -18 to -18.6,
+because 0.4mm of board between a ROUTED aperture edge and a pad is thinner than
+a router holds comfortably; it now has 1.0mm, at a cost of 0.6mm on a USB pair
+with ~21mm of margin. The USB path stays monotonic (connector -0.25 -> ESD in
+-6.66 -> ESD out -8.94 -> MCU -14.44).
+
+The earlier ring-moving attempt is left recorded below because its lesson stands
+— the usable span is bounded on both sides — but the ring is no longer the thing
+that moves.
+
+`LED2`'s aperture cut `U1.5` (VBUS) and `U1.6` (USB_DP) by 0.325mm — a
+consequence of two earlier changes meeting: the ESD array moved to the back
+between the MCU and the receptacle, and the LED gained an aperture. Along the
+top edge the back side now owns x -22.90..-13.10 (U3's pads), -9.60..-6.00
+(U1's) and -4.77..4.77 (J3's), leaving a 3.5mm gap for a 3.4mm aperture. The
+`-11` slot is simply not available any more, so the two left-hand top-edge ring
+LEDs moved to -35 and -27, in the free span between the M2 mounting pad and the
+MCU. The ring is deliberately unevenly spaced there — even spacing would cut
+copper.
+
+An intermediate attempt at -38/-29 was wrong and is worth recording: -38 put
+`LED1`'s land on top of `H1`, the plated M2 mounting hole at (-42.5, -42.5). A
+mount pad is a through-hole, so it occupies every layer and a front-side land
+cannot share its footprint. The usable span for a top-edge ring LED is therefore
+bounded on BOTH sides — by H1's pad on the left and the MCU's pads on the right.
+
+Board now scans clean: 0 apertures cutting a pad, 0 shorts, 0 pads outside the
+outline; the only courtyard overlap remains J1/SW11 at 0.49mm.
+
+Note the layer subtlety this exercised: a front-side LED land MAY sit over a
+back-side pad (different copper layers, no short) — only the aperture must clear
+everything. Conflating the two would have forced the ring off the edge entirely.
+
+### Joystick vs the key below it — rotation + ring inset (2026-07-26)
+
+The real RKJXV body is 22.70mm deep in a 19.05mm key cell, so it was always
+going to overrun its neighbour once the placeholder footprint was replaced.
+Resolved by the user's two suggestions, both of which measure well.
+
+**A correction worth recording.** The first assessment of this clash used the
+body's WIDEST cross-section, which is at the board surface, and concluded a Choc
+keycap fouled by 0.64mm. That was wrong: a keycap sits 3.5-7mm above the board,
+and the RKJXV tapers. Measured per z-band off the STEP model, the face toward
+the key is at -17.67 in the 3.5-5.0mm band, not -17.14. Clearance questions about
+a tapering part have to be asked at the height of the thing you are clearing.
+
+**`rotate 180`.** The body is not symmetric about the lever axis — in the
+keycap band it reaches 10.90mm on the centre-push side and 10.54mm on the
+potentiometer side. Turning the narrower side toward the key is free (the
+footprint origin IS the lever axis, so the stick does not move) and also swings
+the VR1 terminal column inboard toward the MCU its wipers feed. On its own it
+converted a 0.10mm graze against a 16.5mm cap into 0.27mm of clearance.
+
+**Ring pushed 1.5mm outboard** (inset 5.5 -> 4.0mm, all 16 LEDs), which frees
+depth for the joystick to shift 1mm toward the board edge. The ring's even
+spacing is preserved — it is the product feature — and its apertures still sit
+2.5mm clear of the board edge.
+
+Final clearances from the joystick body to the key, by height:
+
+| against | clearance |
+|---|---|
+| switch base 13.95mm | +2.54mm |
+| switch top plate 15.00mm | +2.01mm |
+| Choc 1U cap 16.5mm deep | +1.26mm |
+| Choc 1U cap 17.5mm deep | +0.76mm |
+
+with 1.09mm still spare between the joystick body and the ring aperture on the
+other side. The board now scans completely clean: 0 apertures cutting a pad,
+0 shorts, **0 courtyard overlaps** (the J1/SW11 0.49mm overlap is gone — the
+rotation moved the pad-inclusive courtyard off it), 0 pads outside the outline.
+
+Cost of the fix: the stick sits 1mm off its cell centre. Cheap for a part that
+is 3.65mm too deep for the cell it lives in.
+
+## RFC-031 (silkscreen graphics) implementation notes (2026-07-27)
+
+Accepted the same day and implemented in full: `footprint` gains an optional
+`silkscreen { … }` block with four closed primitives (`line`, `circle`, `arc`,
+`polygon`) plus the two semantic markers. Judgments and one deliberate
+deviation:
+
+1. **Marker standoff is measured from the pad's EDGE, not its centre.** The RFC
+   says markers expand "at a small, fixed standoff (0.3mm …) from pad `N`'s own
+   declared position". Taken literally that places a 0.2mm dot 0.3mm from the
+   pad CENTRE — i.e. on top of a pad that is typically 0.9-1.5mm across, so the
+   mark would be printed on solderable copper and defeat its own purpose. The
+   implementation stands the mark 0.3mm off the pad's edge along the outward
+   axis. Verified on the real board: 0 silk-over-pad overlaps across 15 placed
+   silkscreen shapes.
+2. **Outward direction is the dominant axis away from the pad centroid.** The
+   RFC says "on the side of the pad closest to the footprint's outline" without
+   fixing a rule. Snapping to whichever of ±x/±y dominates keeps the mark square
+   to the package the way a hand-drawn one is, and keeps the result exact — no
+   floating-point angle anywhere in the geometry path.
+3. **Sizes the RFC does not fix** are conventional and recorded here: triangle
+   0.8mm equilateral, cathode band a 0.3mm stroke spanning the pad's own
+   cross-extent, arrow 0.9mm long, dot stroke 0.1mm. The RFC's own numbers (dot
+   radius 0.2mm, standoff 0.3mm) are used as given.
+4. **One expansion, two emitters.** `emit::silk::graphics` expands markers once;
+   both the KiCad and IPC-2581 emitters consume it, so they cannot disagree
+   about where a mark is — the same single-source discipline the slot-drill work
+   used for hole geometry.
+5. **IPC-2581's first silkscreen output** reduces every primitive to a filled
+   `Contour` polygon rather than mapping shape-for-shape. This is forced by the
+   schema, not laziness: `Features` accepts a `StandardShape`, and IPC's `Line`
+   and `Arc` belong to the `Simple` substitution group, which cannot appear
+   there — `Contour`'s `Polygon` can carry any of them. Reducing a stroke to its
+   own outline is faithful (a plotted stroke IS a rectangle of the stroke width);
+   only the round caps are dropped, and circles keep the native `Circle`
+   element. The document still validates against IPC-2581B1.xsd with the new
+   output present.
+6. **E812** is a new sub-case in RFC-018's existing E8xx block, per the RFC's
+   "reserves new E8xx sub-cases … no new block needed".
+
+Applied where the user asked — every IC and every diode on openmicro: a pin-1
+dot on the STM32 LQFP-48, the USBLC6 SOT-23-6, and std's SOT-23-5 LDO; a cathode
+band on the SOD-123 matrix diodes (13 instances). Two bugs worth recording from
+the build-out: the femto-mm constants were initially written 1000x too small
+(1mm is 10^15 femto, not 10^12), which emitted a 0.0003mm-wide cathode band —
+caught by reading the emitted geometry rather than trusting the source; and the
+first test asserted a dot centre where the standoff point is, which the emitted
+file corrected.
+
+### MCU relocated beneath the cap-touch pad (2026-07-27)
+
+Direct instruction: `mcu` moved from (-18.6, -41) — the top-left spot chosen to
+sit near the USB endpoint — to (-28.575, 28.575) `side bottom`, directly behind
+the 9mm capacitive sense pad in the bottom-left cell. Geometrically clean: 0
+shorts, 0 apertures cutting a pad, 0 same-side courtyard overlaps (the sense pad
+is on the front, the MCU on the back, so they share no layer).
+
+Two consequences are recorded because neither is visible in a verdict:
+
+1. **Capacitive sensing is degraded.** All 48 MCU lands now fall inside the
+   sense electrode's own outline on the opposite face. A touch electrode works
+   by measuring small capacitance changes, so copper and active silicon behind
+   it both add fixed parasitic capacitance (lowering the signal-to-baseline
+   ratio) and couple switching noise into the measurement. Conventional practice
+   is a clear zone behind the electrode, or at most a hatched ground shield —
+   not an IC. If the touch input proves insensitive or noisy, the options are:
+   move the MCU off the pad, shrink the pad, add a hatched ground shield between
+   them, or drive a guard ring. No compiler check covers this: CoHDL models
+   connectivity and geometry, not field coupling.
+2. **The USB FS pair grew from ~14mm to ~75mm.** Still well within spec for
+   12Mbps signalling, but the placement no longer minimises the board's only
+   high-speed pair, and the position-aware GPIO map in `openmicro_parts.cohdl`
+   was assigned for the old location. The ESD array deliberately did NOT follow
+   the MCU: a TVS clamp belongs at the connector, so what matters is the
+   unprotected `USBC_*` stretch staying short (6.4mm), which it does.
+
+## Debug port: 2×3 2.54mm SMD socket, bottom edge / bottom layer (2026-07-27)
+
+The 10-pin 1.27mm Minitek127 debug connector is replaced with a generic 2×3
+2.54mm SMD **female** socket. Ordinary example maintenance, no compiler change,
+but three things are worth recording.
+
+**The pinout shed two signals.** The requested table
+
+    | GND | SWCLK | SWDIO |
+    | GND | TXD   | RXD   |
+
+has no 3V3 and no RESET, so `Debug_2x3` declares five required pin roles across
+six pads — `GND: 1, 2` (both rows of column 1), `SWCLK: 3`, `TXD: 4`,
+`SWDIO: 5`, `RXD: 6` — and `swd.V3V3` / `swd.NRST` were removed from the `V3V3`
+and `NRST` nets. A debug probe that expects to sense target voltage or drive
+reset can no longer do so through this connector; SWD alone still works, and
+`NRST` remains reachable at the reset switch. The pad numbering follows the
+socket's own odd/even convention (odd row at y = -2.52mm, even at +2.52mm), so
+the user's table read column-by-column maps to pads 1/3/5 then 2/4/6.
+
+**The land pattern is generic, not from a drawing.** `FP_Socket_2x3_254_SMD`
+uses the standard 2.54mm vertical SMD pin-socket geometry — 2.54mm column
+pitch, rows splayed outward to ±2.52mm, 1×3mm lands — rather than one vendor's
+customer drawing. `examples/openmicro/docs/README.md` marks the Amphenol sheet
+superseded rather than deleting it. `P_Debug127_Pad` and `FP_Debug_2x5_127_SMD`
+are gone; nothing references them.
+
+**One pre-existing placement had to yield.** The socket's courtyard is 8.3mm
+tall, and at the bottom edge (`place swd at (0mm, 43mm) side bottom`) it clears
+the board outline by 0.35mm — there is no room to move it inward. The bottom
+matrix-diode row therefore moved 1.5mm north, from the 8.75mm-south-of-key
+pitch to 7.25mm, keeping the row straight rather than kinking `d[10]` alone out
+of alignment. The diodes are bottom-side parts tucked under top-side key
+switches, so the shift costs nothing. Gap after the move: 0.83mm.
+
+Scans after the change: 66 footprints, 0 shorts, 0 apertures cutting a pad, 0
+silkscreen over a pad, 0 same-side courtyard overlaps, 0 pads outside the
+outline; `openmicro.xml` validates against IPC-2581B1.
+
+## ESD array to the centreline, quarter-turned, DP/DM channels swapped (2026-07-27)
+
+`U1` (USBLC6-2SC6) moves from `(-7.8mm, -38mm) rotate 180` to
+`(0mm, -37.2mm) rotate 270`, still `side bottom`, and the two protected lines
+trade ESD channels. Example maintenance again — no compiler change — but the
+rotation choice needs recording because it is not the arithmetically obvious
+one, and the net edit looks like a mistake if read without the geometry.
+
+**Why 270 and not 90.** The request was "90 degrees counterclockwise". Both
+quarter turns put the part's two lead rows across the board instead of along
+it, but only one is usable. At `rotate 90` the `*_A` terminals (pads 1/3 — the
+connector side of each protected line) land on the row FARTHER from the
+receptacle, so the unprotected `USBC_*` copper would have to run past the
+protected `USB_*` copper to reach them. `rotate 270` puts pads 1/2/3 on the
+row facing the receptacle (y = -38.34) and pads 4/5/6 on the row facing the
+rest of the board (y = -36.06), which is the only arrangement where the clamp
+sits in series rather than beside the line. The disagreement is a frame
+question, not a spec question: CoHDL applies the RFC-025 angle in the board's
+own frame after RFC-026's bottom-side mirror, so a back-side part's quarter
+turns read reversed from the front. The geometry, not the label, decided it.
+
+**Why the channels are swapped.** The USB-C receptacle's `DP` lands sit at
+x = -0.25 and +0.75 (centroid +x) and its `DM` lands at +0.25 and -0.75
+(centroid -x). After the turn, pad 1 is at x = -0.95 and pad 3 at +0.95. The
+straightforward mapping (`USBC_DP` -> `IO1_A` = pad 1) would therefore put DP
+on the DM side and force the pair to cross itself. Routing `USBC_DP` through
+the `IO2` channel and `USBC_DM` through `IO1` keeps each line on its own side.
+The USBLC6's two channels are identical rail-to-rail diode pairs off the same
+VBUS/GND clamp, so nothing electrical changes — only the pad each line lands
+on. The `USB_*` side follows the same swap so each line still enters and
+leaves through one channel.
+
+**What it bought.** The unprotected connector-to-clamp stretch drops from
+6.4mm to 3.26mm per line, symmetric between DP and DM, straight down the
+centreline. Board after the change: 66 footprints, 0 shorts, 0 apertures
+cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard overlaps, 0 pads
+outside the outline; `openmicro.xml` validates against IPC-2581B1. U1's
+courtyard clears the receptacle's by 0.29mm and sits in the 3.46mm gap between
+SW3 and SW4 (front-side parts, so no shared layer regardless).
+
+**A regeneration note, not a compliance one.** `tools/kicad_board.py` takes
+placements from the emitted IPC-2581 document, not from `layout.json`. A
+`build` without `--emit ipc2581` leaves that document stale and the script
+silently falls back to its staging grid — which is how the first attempt at
+this change produced a board with U1 unrotated at the grid origin. Always
+regenerate with `--emit ipc2581` before running the board script.
+
+## USB-C locating holes, and the version cascade they forced (2026-07-27)
+
+`FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12` gains the two non-plated locating
+holes it was always missing:
+
+    mount_hole 1: non_plated at (-2.89mm, -2.6mm) diameter 0.6mm
+    mount_hole 2: non_plated at (2.89mm, -2.6mm) diameter 0.6mm
+
+The footprint's own comment had said these were "omitted (RFC-018 has no
+non-plated plating)" — true when it was written, stale since RFC-022 added
+`mount_hole` with exactly that vocabulary. The comment is corrected rather than
+left as a standing excuse.
+
+**Source.** HRO's customer drawing (`examples/openmicro/docs/type-c-31-m-12.pdf`,
+rev 2020-12-08) shows two Ø0.60 circles in RECOMMEND P.C.B LAYOUT, dimensioned
+5.78 apart, on the same y as the `4.18`/`5.79` chain that also fixes the SH
+tabs. KiCad's `USB_C_Receptacle_HRO_TYPE-C-31-M-12` puts them at (±2.89, -2.6)
+and agrees with our footprint on every other coordinate, which is the
+cross-check that the datum is shared. Diameter follows the drawing (0.60) not
+KiCad (0.65): the bosses are Ø0.50 and 0.60 is the vendor's stated fit, with
+the trade-off noted in the footprint comment for fabs that cannot hold ±0.05.
+
+**The cascade is the part worth recording.** `lib/std` is an ordinary RFC-029
+package, so changing one footprint changed std's content hash and both examples
+refused to build with E1103 — correct behaviour, since a locked version's bytes
+are immutable. That forced a real chain, all of it through `cohdl update`, never
+by hand-editing a lock:
+
+1. `std` 0.2.0 -> **0.2.1** (footprint content changed; API unchanged, so patch).
+2. Both examples repinned to std 0.2.1.
+3. **`lib/passive` broke, and no example's `check` caught it.** passive pins
+   `std = "0.2.0"`, which no longer existed on disk; `cohdl check lib/passive`
+   reported E1102 while `cohdl check examples/openmicro` reported no errors. A
+   project resolves each of its dependencies against the library root directly,
+   so a dependency's own manifest is not re-resolved as part of the dependent's
+   verdict. Worth knowing: green examples do not prove the libraries they
+   depend on still resolve standalone.
+4. passive repinned to std 0.2.1, which changed passive's hash, so passive
+   0.1.0 -> **0.1.1**, and both examples repinned again. `cohdl update` also
+   wrote passive its first `cohdl.lock`.
+
+**Pre-existing, untouched.** `cohdl check lib/std` fails E1104 ("declares no
+`[dependencies]` — RFC-029 requires an exact std pin") because std cannot pin
+itself. This reproduces on the committed tree and is not a consequence of the
+bump; it is left alone as out of scope here.
+
+Both boards regenerated and clean: openmicro 66 footprints, rpi-pico2 8, each
+with 0 shorts, 0 apertures cutting a pad, 0 silkscreen over a pad, 0 same-side
+courtyard overlaps, 0 pads outside the outline. The new NPTH clear all copper
+on both. Both IPC-2581 documents validate; 21 test binaries pass.
+
+## Reset switch removed; HSE tank placed on the back (2026-07-28)
+
+Two independent example edits, no compiler change.
+
+**Reset switch gone.** `inst rst: SW_RESET` and its two connections (`rst.A` on
+NRST, `rst.B` on GND) are removed, and with them the now-dead `ResetSwitch`
+device, the `SW_RESET` part, `FP_SW_Reset`, and the `P_ResetSw` pad — nothing
+else referenced any of them. `mcu.NRST` moves to the `nc:` list rather than
+being silently dropped: RFC-002 exhaustiveness would have caught a dropped
+required pin, but `nc:` is also the honest statement, since the pin is now
+deliberately unconnected rather than merely unrouted.
+
+**Electrical consequence, recorded because it is not a verdict.** The board now
+has NO reset path at all. The 2×3 debug socket carries no RESET line (that was
+the requested pinout), so NRST sits on the STM32F072's internal pull-up alone
+and the only way to reset the part is a power cycle. ST additionally recommends
+a 100nF from NRST to ground for noise immunity, which this board no longer has.
+If in-system reset or that filter is wanted back, the cheapest restoration is a
+100nF to GND on NRST plus either a button or a RESET pin on the debug socket;
+no CoHDL check covers either, because both are conventions rather than
+connectivity errors.
+
+**HSE tank to the back.** `xtal`, `c_x1`, and `c_x2` were unplaced (staged
+off-board by the board script). They now sit on the bottom side west of the
+MCU:
+
+    place xtal at (-36.5mm, 29.07mm) rotate 180 side bottom
+    place c_x1 at (-36.5mm, 32mm) rotate 180 side bottom
+    place c_x2 at (-36.5mm, 26.2mm) side bottom
+
+West is the only free direction that is neither under the capacitive touch
+electrode (which stops at x -33.32) nor under an LED light window; the crystal
+sits 1.28mm off the package edge, centred on the y midpoint of PF0/PF1.
+
+`rotate 180` is a real choice, not a default. The 3225 land puts XIN (pad 1)
+and XOUT (pad 3) on OPPOSITE corners, so no quarter turn faces both terminals
+at the MCU — the only question is which diagonal points east. At 180 each
+terminal ends up 0.55mm in y from the pad it feeds (XIN at -35.40, 29.87 vs
+PF0 at -32.74, 29.32); unrotated, both are 1.05mm off. The load caps flank the
+crystal north and south, each beside the terminal it loads, ground ends turned
+outward (C28's return leaves west, C29's east) so the two returns do not meet
+under the tank.
+
+Board after both changes: 69 footprints — up 3, since the reset switch had
+never been placed and was only ever staged off-board — with 0 shorts, 0
+apertures cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard
+overlaps, 0 pads outside the outline. `openmicro.xml` validates against
+IPC-2581B1; 21 test binaries, `cohdl fmt --check`, and `cargo fmt --check` all
+clean. Still staged off-board and untouched here: 27 decoupling/bulk caps, 3
+resistors, and the LDO.

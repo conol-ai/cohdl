@@ -819,35 +819,84 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
             }
             _ => {}
         }
-        if let Some((v, span)) = &pad.drill {
-            if v.unit != UnitType::Length {
-                diags.push(Diagnostic::error(
-                    "E805",
-                    *span,
-                    format!(
-                        "the drill diameter is a `Length` (`mm`) literal — `{}` is a `{}`",
-                        v.text,
-                        v.unit.type_name()
-                    ),
-                ));
-            } else if v.femto <= 0 {
-                diags.push(Diagnostic::error(
-                    "E805",
-                    *span,
-                    format!(
-                        "pad `{}` has a non-positive drill diameter `{}` — a drill must be > 0mm",
-                        pad.name.name, v.text
-                    ),
-                ));
-            } else if !v.length_in_geom_range() {
-                diags.push(Diagnostic::error(
-                    "E805",
-                    *span,
-                    format!(
-                        "pad `{}` drill `{}` is too large to project (review R5-5)",
-                        pad.name.name, v.text
-                    ),
-                ));
+        if let Some((drill, span)) = &pad.drill {
+            let noun = match drill {
+                crate::ast::PadDrill::Round(_) => "drill diameter",
+                crate::ast::PadDrill::Slot(..) => "slot dimension",
+            };
+            for v in drill.values() {
+                if v.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "the {} is a `Length` (`mm`) literal — `{}` is a `{}`",
+                            noun,
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                } else if v.femto <= 0 {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` has a non-positive {} `{}` — a drill must be > 0mm",
+                            pad.name.name, noun, v.text
+                        ),
+                    ));
+                } else if !v.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` drill `{}` is too large to project (review R5-5)",
+                            pad.name.name, v.text
+                        ),
+                    ));
+                }
+            }
+            // A slot inside a round pad is not a manufacturable padstack: the
+            // hole would break out of its own annular ring on the long axis.
+            // Same shape/geometry pairing rule RFC-023 applies to mount_hole.
+            if let crate::ast::PadDrill::Slot(w, l) = drill {
+                // A pad's shape is explicit (a missing one is its own error),
+                // so match it directly rather than assuming a default.
+                if matches!(pad.shape, Some((crate::ast::PadShape::Circle, _))) {
+                    diags.push(
+                        Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "pad `{}` is a `circle` but declares a slot drill `({}, {})` — a slot needs an elongated pad",
+                                pad.name.name, w.text, l.text
+                            ),
+                        )
+                        .with_help(
+                            "use `shape: oval` (or `rect`), or a round `drill: <diameter>`"
+                                .to_string(),
+                        ),
+                    );
+                }
+                // The hole must stay inside the copper it is drilled through,
+                // per axis — otherwise the pad has no annular ring at all.
+                if let [pw, ph] = pad.size.as_slice() {
+                    for (hole, pad_dim, axis) in [(w, pw, "width"), (l, ph, "length")] {
+                        if hole.unit == UnitType::Length
+                            && pad_dim.unit == UnitType::Length
+                            && hole.femto > pad_dim.femto
+                        {
+                            diags.push(Diagnostic::error(
+                                "E805",
+                                *span,
+                                format!(
+                                    "pad `{}` slot {} `{}` exceeds the pad's own {} `{}` — the hole would leave no annular ring",
+                                    pad.name.name, axis, hole.text, axis, pad_dim.text
+                                ),
+                            ));
+                        }
+                    }
+                }
             }
         }
     }
@@ -924,14 +973,19 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
-        if let Some(c) = &fp.courtyard {
+        for (kw, c) in [
+            ("courtyard", fp.courtyard.as_ref()),
+            ("window", fp.window.as_deref()),
+        ] {
+            let Some(c) = c else { continue };
             if c.size.len() != c.shape.0.size_arity() {
                 diags.push(Diagnostic::error(
                     "E806",
                     c.size_span,
                     format!(
-                        "`{}` courtyards take {} dimension{}",
+                        "a `{}` {} takes {} dimension{}",
                         c.shape.0.name(),
+                        kw,
                         c.shape.0.size_arity(),
                         if c.shape.0.size_arity() == 1 { "" } else { "s" }
                     ),
@@ -943,7 +997,8 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                         "E806",
                         c.span,
                         format!(
-                            "courtyard dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                            "{} dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                            kw,
                             v.text,
                             v.unit.type_name()
                         ),
@@ -953,8 +1008,8 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                         "E806",
                         c.span,
                         format!(
-                            "courtyard dimension `{}` is too large to project (review R5-5)",
-                            v.text
+                            "{} dimension `{}` is too large to project (review R5-5)",
+                            kw, v.text
                         ),
                     ));
                 }
@@ -965,8 +1020,126 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                         "E806",
                         c.size_span,
                         format!(
-                            "courtyard of footprint `{}` has a non-positive dimension `{}` — a size is an extent and must be > 0mm",
-                            fp.name.name, v.text
+                            "{} of footprint `{}` has a non-positive dimension `{}` — a size is an extent and must be > 0mm",
+                            kw, fp.name.name, v.text
+                        ),
+                    ));
+                }
+            }
+        }
+        // RFC-031: silkscreen primitives are Length-typed and well-formed, and
+        // every marker names a pad THIS footprint actually declares.
+        if let Some(block) = &fp.silkscreen {
+            use crate::ast::{SilkGraphic, SilkItem};
+            let declared: Vec<&str> = fp.pads.iter().map(|p| p.number.text.as_str()).collect();
+            for item in &block.items {
+                let span = item.span();
+                let lengths: Vec<&UnitValue> = match item {
+                    SilkItem::Graphic(SilkGraphic::Line { from, to, width }, _) => {
+                        vec![&from.0, &from.1, &to.0, &to.1, width]
+                    }
+                    SilkItem::Graphic(
+                        SilkGraphic::Circle {
+                            at, radius, width, ..
+                        },
+                        _,
+                    ) => {
+                        vec![&at.0, &at.1, radius, width]
+                    }
+                    SilkItem::Graphic(
+                        SilkGraphic::Arc {
+                            at, radius, width, ..
+                        },
+                        _,
+                    ) => {
+                        vec![&at.0, &at.1, radius, width]
+                    }
+                    SilkItem::Graphic(SilkGraphic::Polygon { points, .. }, _) => {
+                        points.iter().flat_map(|(x, y)| [x, y]).collect()
+                    }
+                    _ => Vec::new(),
+                };
+                for v in lengths {
+                    if v.unit != UnitType::Length {
+                        diags.push(Diagnostic::error(
+                            "E812",
+                            span,
+                            format!(
+                                "silkscreen dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                                v.text,
+                                v.unit.type_name()
+                            ),
+                        ));
+                    } else if !v.length_in_geom_range() {
+                        diags.push(Diagnostic::error(
+                            "E812",
+                            span,
+                            format!(
+                                "silkscreen dimension `{}` is too large to project (review R5-5)",
+                                v.text
+                            ),
+                        ));
+                    }
+                }
+                // A stroke or radius of zero draws nothing; say so rather than
+                // emitting an invisible artefact.
+                let positive: Vec<(&str, &UnitValue)> = match item {
+                    SilkItem::Graphic(SilkGraphic::Line { width, .. }, _) => vec![("width", width)],
+                    SilkItem::Graphic(SilkGraphic::Circle { radius, width, .. }, _)
+                    | SilkItem::Graphic(SilkGraphic::Arc { radius, width, .. }, _) => {
+                        vec![("radius", radius), ("width", width)]
+                    }
+                    _ => Vec::new(),
+                };
+                for (what, v) in positive {
+                    if v.unit == UnitType::Length && v.femto <= 0 {
+                        diags.push(Diagnostic::error(
+                            "E812",
+                            span,
+                            format!(
+                                "silkscreen {} `{}` must be > 0mm — a zero-width stroke draws nothing",
+                                what, v.text
+                            ),
+                        ));
+                    }
+                }
+                // Marker targets: a local, single-declaration lookup, per the
+                // RFC's type-system-first test.
+                let target = match item {
+                    SilkItem::Pin1Marker { pad, .. } => Some(("pin_1_marker", pad)),
+                    SilkItem::PolarityMarker { cathode_pad, .. } => {
+                        Some(("polarity_marker", cathode_pad))
+                    }
+                    SilkItem::Graphic(..) => None,
+                };
+                if let Some((kind, pad)) = target {
+                    if !declared.contains(&pad.text.as_str()) {
+                        diags.push(
+                            Diagnostic::error(
+                                "E812",
+                                pad.span,
+                                format!(
+                                    "`{}` names pad `{}`, which footprint `{}` does not declare",
+                                    kind, pad.text, fp.name.name
+                                ),
+                            )
+                            .with_help(if declared.is_empty() {
+                                "this footprint declares no pads at all".to_string()
+                            } else {
+                                format!("its pads are: {}", declared.join(", "))
+                            }),
+                        );
+                    }
+                }
+                // A polarity marker needs a second terminal to orient against.
+                if matches!(item, SilkItem::PolarityMarker { .. }) && fp.pads.len() < 2 {
+                    diags.push(Diagnostic::error(
+                        "E812",
+                        span,
+                        format!(
+                            "`polarity_marker` needs at least two pads to orient against — footprint `{}` declares {}",
+                            fp.name.name,
+                            fp.pads.len()
                         ),
                     ));
                 }

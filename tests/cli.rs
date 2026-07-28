@@ -160,6 +160,7 @@ fn invocation_failures_are_exit_2_with_no_json() {
 fn fmt_check_gate_std_and_examples() {
     for dir in [
         "lib/std",
+        "lib/passive",
         "examples/openmicro/src",
         "examples/rpi-pico2/src",
     ] {

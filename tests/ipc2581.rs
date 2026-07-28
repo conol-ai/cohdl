@@ -81,8 +81,18 @@ fn build_with_dxf(name: &str, src: &str, dxf: &str) -> Built {
 /// Build a repo example project (with the real std) and emit the document.
 fn build_example(dir: &str) -> Built {
     let root = manifest();
-    let proj = cohdl::project::load_project(&root.join(dir), Some(&root.join("lib/std"))).unwrap();
-    let mut checked = check_files(&proj.files, proj.top.as_deref()).unwrap();
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("passive".to_string(), root.join("lib/passive")),
+    ];
+    let proj = cohdl::project::load_project_with_deps(&root.join(dir), &deps).unwrap();
+    let mut checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &["std".to_string(), "passive".to_string()],
+        &proj.files,
+        proj.top.as_deref(),
+    )
+    .unwrap();
     assert!(!checked.diags.has_errors());
     // RFC-020: resolve the example's real DXF outline from disk.
     let proj_dir = proj.dir.clone();

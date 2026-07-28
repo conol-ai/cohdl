@@ -1361,3 +1361,393 @@ fn mount_hole_accepts_both_field_orderings() {
         other => panic!("both must be size: geometry, found {:?}", other),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Slot drills (provisional — no Accepted RFC yet; docs/provisional-syntax.md).
+// `drill: (w, l)` is the pad counterpart of RFC-023's non-circular mount_hole:
+// a connector shield leg needs a real slot, not a round hole under an oval pad.
+
+/// The same pad library as REAL, with a slotted through-hole tab.
+const SLOT: &str = r#"
+pub pad P_Rect { shape: rect, size: (0.6mm, 0.7mm), layer: top_copper, plating: smd }
+pub pad P_Tab { shape: oval, size: (1mm, 2.1mm), layer: through_all, plating: plated_through_hole, drill: (0.6mm, 1.7mm) }
+pub footprint FP_R0402 {
+    pad 1: P_Tab at (-0.5mm, 0mm)
+    pad 2: P_Rect at (0.5mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.9mm, 1.0mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: FP_R0402 } }
+design B {
+    inst r1: R1
+    inst r2: R1
+    net N: r1.A, r2.A
+    net M: r1.B, r2.B
+}
+"#;
+
+#[test]
+fn slot_drill_projects_kicad_oval_drill() {
+    let (checked, _artifacts) = build_real(SLOT);
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    // KiCad's own oval-drill form — the pad size is NOT the drill, and the
+    // two dimensions keep their declared order (width, then length).
+    assert!(
+        mods[0].2.contains(
+            "(pad \"1\" thru_hole oval (at -0.5 0) (size 1 2.1) (drill oval 0.6 1.7) (layers \"*.Cu\" \"*.Mask\"))"
+        ),
+        "{}",
+        mods[0].2
+    );
+    // Determinism, same as every other geometry projection.
+    let again = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    assert_eq!(mods, again);
+}
+
+#[test]
+fn slot_drill_reports_its_minor_axis_to_ipc2581() {
+    let (checked, _) = build_real(SLOT);
+    let ir = checked.ir.as_ref().unwrap();
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    // IPC's <Hole> carries one scalar, so a slot reports the width it is
+    // routed with (0.6), never its length — the same convention RFC-023's
+    // oval mount holes already use. The full extent rides the primitive.
+    assert!(xml.contains("diameter=\"0.6\""), "slot width as the hole");
+    assert!(
+        !xml.contains("diameter=\"1.7\""),
+        "the slot LENGTH must never be reported as a drill diameter:\n{}",
+        xml
+    );
+}
+
+#[test]
+fn a_slot_needs_an_elongated_pad() {
+    // A slot inside a round pad would break out of its own annular ring.
+    let (_, r) = check(&[(
+        "p.cohdl",
+        "pub pad P { shape: circle, size: (2mm), layer: through_all, plating: plated_through_hole, drill: (0.6mm, 1.7mm) }\n",
+    )]);
+    assert!(r.contains("E805"), "{}", r);
+    assert!(r.contains("circle") && r.contains("slot"), "{}", r);
+    // The help names the way out, not just the rule.
+    assert!(r.contains("shape: oval"), "{}", r);
+}
+
+#[test]
+fn a_slot_must_fit_inside_its_own_pad() {
+    let (_, r) = check(&[(
+        "p.cohdl",
+        "pub pad P { shape: oval, size: (1mm, 2.1mm), layer: through_all, plating: plated_through_hole, drill: (0.6mm, 3mm) }\n",
+    )]);
+    assert!(r.contains("E805") && r.contains("annular ring"), "{}", r);
+    // Names the offending axis, never a bare "too big".
+    assert!(r.contains("length"), "{}", r);
+}
+
+#[test]
+fn slot_dimensions_are_checked_like_any_other_length() {
+    // Non-positive.
+    let (_, r) = check(&[(
+        "p.cohdl",
+        "pub pad P { shape: oval, size: (1mm, 2mm), layer: through_all, plating: plated_through_hole, drill: (0mm, 1.7mm) }\n",
+    )]);
+    assert!(r.contains("E805") && r.contains("non-positive"), "{}", r);
+    // Wrong unit — the diagnostic names expected vs actual, per the constitution.
+    let (_, r) = check(&[(
+        "p.cohdl",
+        "pub pad P { shape: oval, size: (1mm, 2mm), layer: through_all, plating: plated_through_hole, drill: (0.6mm, 3ohm) }\n",
+    )]);
+    assert!(r.contains("E805") && r.contains("Length"), "{}", r);
+    // Wrong arity: a slot is exactly (width, length).
+    let (_, r) = check(&[(
+        "p.cohdl",
+        "pub pad P { shape: oval, size: (1mm, 2mm), layer: through_all, plating: plated_through_hole, drill: (0.6mm, 1mm, 2mm) }\n",
+    )]);
+    assert!(r.contains("E805") && r.contains("width, length"), "{}", r);
+}
+
+#[test]
+fn fmt_round_trips_a_slot_drill() {
+    use cohdl::fmt::format_source;
+    // fmt silently dropping a construct it does not know is the classic
+    // failure mode for a new grammar form, so assert the slot survives.
+    let messy = "pub pad P{shape:oval,size:(1mm,2.1mm),layer:through_all,plating:plated_through_hole,drill:(0.6mm,1.7mm)}";
+    let once = format_source("s.cohdl", messy).unwrap();
+    assert!(once.contains("    drill: (0.6mm, 1.7mm)\n"), "{}", once);
+    let twice = format_source("s.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "not idempotent:\n{}", once);
+}
+
+// ---------------------------------------------------------------------------
+// `window` — a board CUTOUT the part needs (provisional; no Accepted RFC).
+// A reverse-mount LED's light leaves through a hole in the PCB, so a footprint
+// that omits it describes a part shining into laminate.
+
+const WINDOW_FP: &str = r#"
+pub pad P_Rect { shape: rect, size: (0.6mm, 0.7mm), layer: top_copper, plating: smd }
+pub footprint FP_R0402 {
+    pad 1: P_Rect at (-2.725mm, 0mm)
+    pad 2: P_Rect at (2.725mm, 0mm)
+    window { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.2mm) }
+}
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: FP_R0402 } }
+design B {
+    inst r1: R1
+    inst r2: R1
+    net N: r1.A, r2.A
+    net M: r1.B, r2.B
+}
+"#;
+
+#[test]
+fn window_projects_onto_kicad_edge_cuts() {
+    let (checked, _) = build_real(WINDOW_FP);
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    // A cutout is board edge, NOT a courtyard and NOT a drilled hole.
+    assert!(
+        mods[0]
+            .2
+            .contains("(fp_rect (start -1.7 -1.5) (end 1.7 1.5) (layer \"Edge.Cuts\")"),
+        "{}",
+        mods[0].2
+    );
+    // The courtyard is still its own shape on its own layer.
+    assert!(mods[0].2.contains("(layer \"F.CrtYd\")"), "{}", mods[0].2);
+    // A window is not a hole: nothing gains a drill because of it.
+    assert!(!mods[0].2.contains("drill"), "{}", mods[0].2);
+}
+
+#[test]
+fn window_dimensions_are_checked_like_a_courtyard() {
+    // Wrong arity for the shape.
+    let (_, r) = check(&[(
+        "w.cohdl",
+        "pub footprint F { window { shape: rect, at: (0mm, 0mm), size: (3mm) } }\n",
+    )]);
+    assert!(r.contains("E806") && r.contains("window"), "{}", r);
+
+    // Non-positive extent.
+    let (_, r) = check(&[(
+        "w.cohdl",
+        "pub footprint F { window { shape: rect, at: (0mm, 0mm), size: (0mm, 3mm) } }\n",
+    )]);
+    assert!(r.contains("E806") && r.contains("non-positive"), "{}", r);
+
+    // Wrong unit — named expected vs actual, per the constitution.
+    let (_, r) = check(&[(
+        "w.cohdl",
+        "pub footprint F { window { shape: rect, at: (0mm, 0mm), size: (3mm, 2ohm) } }\n",
+    )]);
+    assert!(r.contains("E806") && r.contains("Length"), "{}", r);
+
+    // At most one per footprint.
+    let (_, r) = check(&[(
+        "w.cohdl",
+        "pub footprint F {\n  window { shape: rect, at: (0mm, 0mm), size: (3mm, 3mm) }\n  \
+         window { shape: rect, at: (1mm, 0mm), size: (3mm, 3mm) }\n}\n",
+    )]);
+    assert!(r.contains("at most one `window`"), "{}", r);
+}
+
+#[test]
+fn fmt_round_trips_a_window() {
+    use cohdl::fmt::format_source;
+    // A window-only footprint must not format as an empty one, and the
+    // construct must survive — fmt silently dropping it is the failure mode.
+    let messy = "pub footprint F{window{shape:rect,at:(0mm,0mm),size:(3.4mm,3mm)}}";
+    let once = format_source("w.cohdl", messy).unwrap();
+    assert!(
+        once.contains("    window { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3mm) }\n"),
+        "{}",
+        once
+    );
+    let twice = format_source("w.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "not idempotent:\n{}", once);
+}
+
+// ---------------------------------------------------------------------------
+// RFC-031: silkscreen graphics — four primitives plus two semantic markers.
+
+const SILK: &str = r#"
+pub pad P_T { shape: rect, size: (0.9mm, 1.2mm), layer: top_copper, plating: smd }
+pub footprint FP_R0402 {
+    pad 1: P_T at (-1.65mm, 0mm)
+    pad 2: P_T at (1.65mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-2.36mm, -1mm) to (1.65mm, -1mm) width 0.12mm
+        circle at (0mm, 0mm) radius 0.3mm width 0.1mm
+        arc at (0mm, 0mm) radius 1mm start_angle 0 end_angle 180 width 0.12mm
+        polygon [(2mm, 0mm), (2.5mm, 0.3mm), (2.5mm, -0.3mm)]
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 2mm) }
+}
+pub device Dv { pins { A: 1 [passive], B: 2 [passive] } }
+pub part R1: Dv { primary { mfr: "m", mpn: "n", footprint: FP_R0402 } }
+design B {
+    inst r1: R1
+    inst r2: R1
+    net N: r1.A, r2.A
+    net M: r1.B, r2.B
+}
+"#;
+
+#[test]
+fn silkscreen_primitives_project_onto_kicad_silk_layer() {
+    let (checked, _) = build_real(SILK);
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let ir = checked.ir.as_ref().unwrap();
+    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    // Each primitive maps to KiCad's own native graphic item, on F.SilkS.
+    assert!(
+        m.contains("(fp_line (start -2.36 -1) (end 1.65 -1) (layer \"F.SilkS\")"),
+        "{}",
+        m
+    );
+    assert!(
+        m.contains("(fp_circle (center 0 0) (end 0.3 0) (layer \"F.SilkS\")"),
+        "{}",
+        m
+    );
+    assert!(
+        m.contains("(fp_arc (start 1 0) (mid 0 1) (end -1 0) (layer \"F.SilkS\")"),
+        "{}",
+        m
+    );
+    assert!(
+        m.contains("(fp_poly (pts (xy 2 0) (xy 2.5 0.3) (xy 2.5 -0.3))"),
+        "{}",
+        m
+    );
+    // Determinism, like every other geometry projection.
+    assert_eq!(
+        m,
+        &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2
+    );
+}
+
+#[test]
+fn markers_expand_to_real_geometry_clear_of_their_pad() {
+    let (checked, _) = build_real(SILK);
+    let ir = checked.ir.as_ref().unwrap();
+    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    // The cathode band: a 0.3mm stroke standing off the cathode land's EDGE
+    // (pad 1 spans x -2.1..-1.2), perpendicular to the terminal axis, spanning
+    // the pad's own height. A band ON the pad would defeat its purpose.
+    assert!(
+        m.contains(
+            "(fp_line (start -2.4 -0.6) (end -2.4 0.6) (layer \"F.SilkS\") (stroke (width 0.3)"
+        ),
+        "{}",
+        m
+    );
+}
+
+#[test]
+fn pin_1_marker_shapes_both_expand() {
+    // Pad 1 spans x -2.1..-1.2, so the 0.3mm standoff point is -2.4: a dot's
+    // CENTRE then sits a further radius out at -2.6, while a triangle's APEX
+    // sits on the standoff point itself, pointing back at the pad.
+    for (shape, needle) in [
+        ("dot", "(fp_circle (center -2.6 0) (end -2.4 0)"),
+        ("triangle", "(fp_poly (pts (xy -2.4 0)"),
+    ] {
+        let src = SILK.replace(
+            "polarity_marker cathode_pin 1 shape band",
+            &format!("pin_1_marker near pad 1 shape {}", shape),
+        );
+        let (checked, _) = build_real(&src);
+        let ir = checked.ir.as_ref().unwrap();
+        let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+        assert!(m.contains(needle), "{} marker:\n{}", shape, m);
+    }
+}
+
+#[test]
+fn a_marker_must_name_a_pad_the_footprint_declares() {
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub footprint F {\n  pad 1: P at (0mm, 0mm)\n  pad 2: P at (2mm, 0mm)\n  \
+         silkscreen { pin_1_marker near pad 7 shape dot }\n}\n",
+    )]);
+    assert!(r.contains("E812"), "{}", r);
+    assert!(r.contains("does not declare"), "{}", r);
+    // The help lists the real pads — never a bare "invalid pad".
+    assert!(r.contains("its pads are: 1, 2"), "{}", r);
+}
+
+#[test]
+fn silkscreen_closed_sets_and_shapes_are_checked() {
+    // Unknown statement kind.
+    let (_, r) = check(&[("s.cohdl", "pub footprint F { silkscreen { squiggle } }\n")]);
+    assert!(
+        r.contains("E812") && r.contains("unknown silkscreen statement"),
+        "{}",
+        r
+    );
+    // Unknown marker shape.
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub footprint F { pad 1: P at (0mm, 0mm)\n  silkscreen { pin_1_marker near pad 1 shape star } }\n",
+    )]);
+    assert!(r.contains("E812") && r.contains("dot, triangle"), "{}", r);
+    // A polygon needs three vertices.
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub footprint F { silkscreen { polygon [(0mm, 0mm), (1mm, 1mm)] } }\n",
+    )]);
+    assert!(
+        r.contains("E812") && r.contains("at least 3 vertices"),
+        "{}",
+        r
+    );
+    // A zero-width stroke draws nothing.
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub footprint F { silkscreen { line from (0mm, 0mm) to (1mm, 0mm) width 0mm } }\n",
+    )]);
+    assert!(r.contains("E812") && r.contains("draws nothing"), "{}", r);
+    // Wrong unit, named expected vs actual.
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub footprint F { silkscreen { circle at (0mm, 0mm) radius 2ohm width 0.1mm } }\n",
+    )]);
+    assert!(r.contains("E812") && r.contains("Length"), "{}", r);
+    // At most one block.
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub footprint F { silkscreen { } silkscreen { } }\n",
+    )]);
+    assert!(r.contains("at most one `silkscreen`"), "{}", r);
+}
+
+#[test]
+fn fmt_round_trips_silkscreen_with_markers_first() {
+    use cohdl::fmt::format_source;
+    let messy = "pub footprint F{pad 1: P at (0mm,0mm)\nsilkscreen{line from (0mm,0mm) to (1mm,0mm) width 0.12mm\n\
+                 pin_1_marker near pad 1 shape dot}}";
+    let once = format_source("s.cohdl", messy).unwrap();
+    // RFC-031's canonical order: semantic markers before raw primitives.
+    let marker = once.find("pin_1_marker").expect("marker kept");
+    let line = once.find("line from").expect("primitive kept");
+    assert!(marker < line, "markers come first:\n{}", once);
+    assert!(
+        once.contains("        pin_1_marker near pad 1 shape dot\n"),
+        "{}",
+        once
+    );
+    let twice = format_source("s.cohdl", &once).unwrap();
+    assert_eq!(once, twice, "not idempotent:\n{}", once);
+}

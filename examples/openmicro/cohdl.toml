@@ -7,4 +7,5 @@ license = "MIT"
 top = "OpenMicro"
 
 [dependencies]
-std = "0.1.0"
+passive = "0.1.1"
+std = "0.2.1"

@@ -27,30 +27,30 @@ design Pico2 {
     inst l_core: IND_3U3
 
     // ---- discrete R/C ----
-    inst r_led: R_470
-    inst r_dp: R_27
-    inst rcc1: RES_5K1_0402
-    inst rcc2: RES_5K1_0402
-    inst r_dm: R_27
-    inst r_xosc: RES_1K_0402
-    inst r_boot: RES_1K_0402
-    inst r_swclk: R_100
-    inst r_swdio: R_100
-    inst r_en: R_100K
-    inst r_ps: R_100K
-    inst r_vbus_top: R_5K6
-    inst r_vbus_bot: RES_10K_0402
-    inst r_vsys_top: R_100K
-    inst r_vsys_mid: R_100K
-    inst r_gpio29: R_100K
-    inst r_vreg_avdd: R_33
-    inst r_vref: R_200
-    inst r_avdd: R_1R
-    inst c_xin: C_15pF
-    inst c_xout: C_15pF
-    inst c_vsysdiv: C_1nF
-    inst c_adc: C_4u7
-    inst c_vreg_avdd: C_4u7
+    inst r_led: passive::R_470R_F_0201
+    inst r_dp: passive::R_27R_F_0201
+    inst rcc1: passive::R_5K1_F_0402
+    inst rcc2: passive::R_5K1_F_0402
+    inst r_dm: passive::R_27R_F_0201
+    inst r_xosc: passive::R_1K_F_0402
+    inst r_boot: passive::R_1K_F_0402
+    inst r_swclk: passive::R_100R_F_0201
+    inst r_swdio: passive::R_100R_F_0201
+    inst r_en: passive::R_100K_F_0201
+    inst r_ps: passive::R_100K_F_0201
+    inst r_vbus_top: passive::R_5K6_F_0201
+    inst r_vbus_bot: passive::R_10K_F_0402
+    inst r_vsys_top: passive::R_100K_F_0201
+    inst r_vsys_mid: passive::R_100K_F_0201
+    inst r_gpio29: passive::R_100K_F_0201
+    inst r_vreg_avdd: passive::R_33R_F_0402
+    inst r_vref: passive::R_200R_F_0402
+    inst r_avdd: passive::R_1R_F_0201
+    inst c_xin: passive::C_15p_25V_C0G_0201
+    inst c_xout: passive::C_15p_25V_C0G_0201
+    inst c_vsysdiv: passive::C_1n_25V_X7R_0201
+    inst c_adc: passive::C_4u7_6V3_X5R_0402
+    inst c_vreg_avdd: passive::C_4u7_6V3_X5R_0402
 
     // ---- power in: USB VBUS -> Schottky -> VSYS -> RT6150 buck-boost -> 3V3 ----
     #[intent("USB-C VBUS is 5V (5.1k Rd pulldowns advertise a UFP sink); the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
@@ -158,16 +158,16 @@ design Pico2 {
     bulk_47u(reg.VOUT, reg.GND)
     bulk_4u7(mcu.DVDD, mcu.GND)
     bulk_4u7(flash.VCC, flash.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.IOVDD, mcu.GND)
-    decoupling_100n(mcu.QSPI_IOVDD, mcu.GND)
-    decoupling_100n(mcu.DVDD, mcu.GND)
-    decoupling_100n(mcu.DVDD, mcu.GND)
-    decoupling_100n(flash.VCC, flash.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.QSPI_IOVDD, mcu.GND)
+    passive::decoupling_100n(mcu.DVDD, mcu.GND)
+    passive::decoupling_100n(mcu.DVDD, mcu.GND)
+    passive::decoupling_100n(flash.VCC, flash.GND)
 
     // ---- layout constraints for the partner layout tool (RFC-013) ----
     layout {

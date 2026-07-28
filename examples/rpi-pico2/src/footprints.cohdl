@@ -255,17 +255,6 @@ pub footprint FP_L_0806_2016Metric {
     silkscreen_ref { at: (0mm, -1.75mm) }
 }
 
-// was: "Resistor_SMD:R_0201_0603Metric" / "Capacitor_SMD:C_0201_0603Metric"
-// IPC-7351 name (RFC-021): the two-terminal 0201 chip land. Resistors and
-// capacitors share the one nominal CHIP-0201 land pattern, so the R_0201 and
-// C_0201 footprints (identical geometry) collapse into this single named land.
-pub footprint CHIP_0201 {
-    pad 1: P_Chip_0201 at (-0.32mm, 0mm)
-    pad 2: P_Chip_0201 at (0.32mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (0.87mm, 0.4mm) }
-    silkscreen_ref { at: (0mm, -0.6mm) }
-}
-
 // SOT-23-6 lead (USBLC6 ESD array) — openmicro's verified geometry.
 pub pad P_SOT23_6_Lead {
     shape: rect

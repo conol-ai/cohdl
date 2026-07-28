@@ -961,7 +961,7 @@ For the namespace scheme:
 
 For the CLI surface:
 
-1. A single cohdl fetch <name> command alongside cohdl install, this RFC's own first draft.
+1. A single cohdl fetch command alongside cohdl install, this RFC's own first draft.
 2. Four small, single-purpose verbs — cohdl add, cohdl remove, cohdl install, cohdl update — matching npm's/cargo's own dependency-management shape exactly, plus cohdl login/cohdl publish for authoring. Tony's direct correction, replacing the first draft's single fetch command.
 
 For the server implementation:
@@ -971,7 +971,7 @@ For the server implementation:
 
 ## Decision
 
-Namespace: Option 4 — three closed tiers, each determined structurally by the name's own shape (bare = tier 1, @brand/name = tier 2, @contrib/name = tier 3), enforced both client-side (fast-fail) and server-side (authoritative, the final arbiter). CLI: Option 2 — cohdl login/cohdl publish (authoring) plus cohdl add <package>/cohdl remove <package>/cohdl install/cohdl update [<package>] (dependency management), composing directly with RFC-029's already-Accepted exact-version/cohdl.lock/hash-verification mechanism without modifying it. Server implementation: Option 2 — technology stack explicitly out of scope, per direct instruction.
+Namespace: Option 4 — three closed tiers, each determined structurally by the name's own shape (bare = tier 1, @brand/name = tier 2, @contrib/name = tier 3), enforced both client-side (fast-fail) and server-side (authoritative, the final arbiter). CLI: Option 2 — cohdl login/cohdl publish (authoring) plus cohdl add /cohdl remove /cohdl install/cohdl update [] (dependency management), composing directly with RFC-029's already-Accepted exact-version/cohdl.lock/hash-verification mechanism without modifying it. Server implementation: Option 2 — technology stack explicitly out of scope, per direct instruction.
 
 ## Rationale
 
@@ -993,9 +993,45 @@ Server-stack Option 1 (specify a stack) was rejected per Tony's direct instructi
 
 If real registry usage volume surfaces a genuine need for yanking policy, organization/team accounts, or private registries — each is real, likely future work, deliberately not designed speculatively ahead of real need, per this project's recurring discipline. Also revisit if the three-tier namespace scheme proves too rigid in practice (e.g. a legitimate use case that doesn't fit any of the three tiers cleanly) — that would be a scoped extension of the tier scheme, not a silent reversion to a flat namespace.
 
+# DR-037: Silkscreen graphics for footprints — closed four-primitive vocabulary + pin-1/polarity marker sugar, pad-existence checked
+
+## Context
+
+Tony directed a new RFC: silkscreen graphics are needed to show pin 1 of an MCU or the direction of a diode — a real, universal PCB assembly need with zero coverage today. Confirmed against real source (src/ast.rs): FootprintDecl has pads, mount_holes, courtyard: Option<Courtyard>, silkscreen_ref: Option<SilkscreenRef> and nothing else — SilkscreenRef is a fixed-purpose reference-designator text placement (positions KiCad's own fp_text reference "REF**"), not a drawable shape; Courtyard draws exactly one fixed keep-out rectangle. Grepping the whole codebase for silk/graphic/polarity_mark/pin_1/pin1 returns nothing beyond these two fixed-purpose fields — there is no generic drawable-shape concept anywhere in the language, and IPC-2581's emitter reads neither courtyard nor silkscreen_ref at all (confirmed: zero matches in src/emit/ipc2581.rs).
+
+## Options
+
+1. Extend SilkscreenRef itself to also carry arbitrary drawable content, rather than adding a new construct.
+2. A new, optional silkscreen { ... } body-level block on footprint (sibling of pad/mount_hole/courtyard/silkscreen_ref) carrying a closed, four-kind drawable-primitive vocabulary (line, circle, arc, polygon) via a new SilkGraphic/SilkShape/SilkFill type family, plus two semantic marker shorthands (pin_1_marker, polarity_marker) that expand to real, checked primitives referencing an already-declared pad number by name — no auto-inference (RFC-031's proposal).
+3. Reuse RFC-018's existing PadShape enum directly for silkscreen shapes instead of introducing a new one.
+4. Raw primitives only, no semantic marker sugar.
+5. Auto-infer pin-1/polarity marks from RFC-008's existing pin-role data (input/output/etc.).
+6. A single unified mark { ... } construct covering both pin-1 and polarity markers with one shared shape vocabulary.
+
+## Decision
+
+Option 2. silkscreen { ... } is a new, optional footprint-body block. Four closed primitive kinds — line from (x1,y1) to (x2,y2) width W, circle at (x,y) radius R width W [fill FILL], arc at (x,y) radius R start_angle A1 end_angle A2 width W, polygon [(x,y), ...] [fill FILL] — all Length-typed (RFC-001), FILL closed to {none, solid}. Two marker shorthands — pin_1_marker near pad N shape {dot, triangle} and polarity_marker cathode_pin N shape {band, arrow} — expand to real primitives at a fixed conventional standoff/shape, with N checked against the footprint's own already-declared pads list (a local, single-declaration lookup — a marker naming a nonexistent pad is a compile error). Zero DRC/schematic-correctness impact, identical to every existing footprint-body construct.
+
+## Rationale
+
+Option 1 (extend SilkscreenRef) was rejected: SilkscreenRef is a fixed-purpose reference-designator text object (KiCad's own fp_text reference) — conflating it with general graphics repeats the exact "two unrelated concepts merged because they share a layer" category error this project's discipline (RFC-022's rejection of merging mount_hole into pad) consistently avoids. Option 3 (reuse PadShape) was rejected: PadShape's variants and Pad's own fields (width, height, drill, roundrect_ratio) are tied to copper/soldermask/drill geometry that has no meaning for a silkscreen stroke (a line has a stroke width, not a filled drilled area) — a small, new, purpose-built SilkShape kept as narrow as PadShape is more honest than overloading an unrelated type. Option 4 (raw primitives only) was rejected: the actual stated need ("show pin 1... direction of diodes") is precisely the case sugar helps — without it an author must hand-compute a dot/triangle/arrow's exact offset/orientation relative to a pad every time, a repetitive, error-prone task with an extremely common, well-known answer shape, the same reasoning that justified RFC-024's array/range sugar over its own underlying mechanism. Option 5 (auto-infer from pin roles) was rejected: RFC-008's pin roles describe electrical function, not physical position relative to a package outline — there is no reliable general mapping from "this pin is power_in" to "draw a dot here," and auto-inference of a checkable/visual fact violates this project's recurring discipline (RFC-027's identical non-goal). Option 6 (single unified mark {}) was rejected: pin-1 and polarity markers have genuinely different real shapes and target semantics (nearest a numbered pin vs. specifically a two-terminal part's cathode) — a single construct would either accept nonsensical shape/kind combinations or need internal branching that two distinctly-named forms avoid entirely.
+
+## Consequences
+
+- One new footprint-body construct (silkscreen { ... }) joins pad/mount_hole/courtyard/silkscreen_ref — no new top-level declaration kind, no new resolution mechanism (RFC-016's module system is untouched).
+- One genuinely new small type family (SilkGraphic, SilkShape four-kind enum, SilkFill two-value enum) — comparable in conceptual size to RFC-018's PadShape or RFC-027's seven physics-constraint attributes, not a general authoring language.
+- Real, disclosed new emitter work in both consumers: the KiCad .kicad_mod emitter gains real fp_line/fp_circle/fp_arc/fp_poly output on F.SilkS/B.SilkS (mirroring onto B.SilkS when RFC-026's side bottom applies, the same way pad geometry already mirrors); the IPC-2581 emitter gains its first-ever silkscreen output of any kind — previously zero, confirmed by source inspection.
+- Purely additive — every existing footprint declaration without a silkscreen { ... } block is completely unaffected, unchanged in every emitted byte.
+- Real, disclosed trust boundary: CoHDL checks only that a marker's referenced pad number exists on the footprint — it does not (and cannot) verify that the referenced pad number is truly the electrically-correct pin-1/cathode in the real world; this mirrors the identical boundary RFC-018 already draws for ordinary pad-count/numbering consistency.
+- Freeform silkscreen text (component values, library logos) beyond the existing silkscreen_ref is explicitly deferred — a real, plausible future need, not solved here.
+
+## Revisit when
+
+If a real footprint needs a fifth primitive kind (e.g. a filled rectangle distinct from a closed 4-vertex polygon, for authoring convenience) — extend the closed set via a scoped follow-up RFC, the same discipline PadShape/units/rotation sets already established. Also revisit if freeform silkscreen text becomes a real, concrete need. Also revisit if real library authoring reveals the fixed conventional standoff/shape choices baked into pin_1_marker/polarity_marker's expansion are too rigid for some real package family — that would be a scoped extension to the marker sugar, not a change to the underlying primitive vocabulary.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-030 is fully recorded above.)
+(none — the backlog through RFC-031 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

@@ -11,7 +11,6 @@ design OpenMicro {
     inst enc: ENC_EC11
     inst joy: JOY_RKJXV
     inst touch: TOUCH_PAD
-    inst rst: SW_RESET
     inst swd: J_SWD
 
     // ---- 13 key switches + matrix diodes ----
@@ -28,20 +27,20 @@ design OpenMicro {
     inst mh: [MH_M2; 4]
 
     // ---- passives ----
-    inst rcc1: R_5K1
-    inst rcc2: R_5K1
-    inst rboot: R_10K
+    inst rcc1: passive::R_5K1_F_0402
+    inst rcc2: passive::R_5K1_F_0402
+    inst rboot: passive::R_10K_F_0402
     #[crystal_oscillator(mcu, PF0, PF1)]
     inst xtal: XTAL_8M
     // c_x1/c_x2 are the crystal's LOAD capacitors (oscillator tank, set CL) —
     // deliberately NOT #[bypass]: that attribute means supply decoupling, and
     // the oscillator region is already declared by #[crystal_oscillator] above.
-    inst c_x1: C_15p
-    inst c_x2: C_15p
+    inst c_x1: passive::C_15p_50V_C0G_0402
+    inst c_x2: passive::C_15p_50V_C0G_0402
     #[bypass(ldo.VIN, 4.7uF)]
-    inst c_bulk: C_4u7
+    inst c_bulk: passive::C_4u7_10V_X5R_0603
     #[bypass(mcu.VDDA, 1uF)]
-    inst c_vdda: C_1u
+    inst c_vdda: passive::C_1u_10V_X5R_0402
 
     // ---- power in: USB-C VBUS (5V) -> ESD -> LDO -> 3V3; all 29 RGB LEDs run
     // off the 5V VBUS rail ----
@@ -50,34 +49,42 @@ design OpenMicro {
                    ambient_leds[0..=15].VDD
     #[intent("AP2112K enable tied to VIN — always on when USB is present")]
     #[high_current(500mA)]
-    net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, swd.V3V3, joy.X_END_B,
-                     joy.Y_END_B, c_vdda.A
+    net V3V3 [3.3V]: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2, joy.X_END_B, joy.Y_END_B,
+                     c_vdda.A
     #[ground(primary)]
     net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo.GND, mcu.VSS, mcu.VSSA, xtal.GND, c_x1.B,
                    c_x2.B, c_bulk.B, c_vdda.B, rcc1.B, rcc2.B, rboot.B, swd.GND, enc.C, enc.SW2,
-                   enc.MNT, joy.X_END_A, joy.Y_END_A, joy.SW_B, rst.B, mh[0..=3].PAD,
-                   key_leds[0..=12].GND, ambient_leds[0..=15].GND
+                   enc.MNT, joy.X_END_A, joy.Y_END_A, joy.SW_B, mh[0..=3].PAD, key_leds[0..=12].GND,
+                   ambient_leds[0..=15].GND
 
     // ---- USB 2.0 through the ESD array (I/O1 = D+, I/O2 = D-) ----
-    net USBC_DP: usbc.DP, esd.IO1_A
-    net USB_DP: esd.IO1_B, mcu.USB_DP
-    net USBC_DM: usbc.DN, esd.IO2_A
-    net USB_DM: esd.IO2_B, mcu.USB_DM
+    // DP takes the ESD's I/O2 channel and DM its I/O1 — swapped relative to the
+    // obvious pin-order mapping. The USBLC6's two channels are identical, so
+    // this is purely a routing choice: with U1 turned 90deg under the
+    // receptacle, it puts each protected line on the side its receptacle land
+    // already sits on, so the pair runs straight instead of crossing itself.
+    net USBC_DP: usbc.DP, esd.IO2_A
+    net USB_DP: esd.IO2_B, mcu.USB_DP
+    net USBC_DM: usbc.DN, esd.IO1_A
+    net USB_DM: esd.IO1_B, mcu.USB_DM
     // USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)
     net CC1: usbc.CC1, rcc1.A
     net CC2: usbc.CC2, rcc2.A
 
-    // ---- reset + boot ----
-    net NRST: mcu.NRST, rst.A
+    // ---- boot ----
+    // No NRST net: the reset button is gone and the debug socket carries no
+    // reset line, so NRST is left on the MCU's internal pull-up (see `nc:`).
     net BOOT0: mcu.BOOT0, rboot.A
 
     // ---- 8MHz HSE crystal (PF0/PF1), 15pF load caps (AN2867, CL=10pF) ----
     net HSE_IN: mcu.PF0, xtal.XIN, c_x1.A
     net HSE_OUT: mcu.PF1, xtal.XOUT, c_x2.A
 
-    // ---- SWD debug ----
+    // ---- SWD debug + serial console (one 2x3 2.54mm socket) ----
     net SWDIO: mcu.SWDIO, swd.SWDIO
     net SWCLK: mcu.SWCLK, swd.SWCLK
+    net UART_TX: mcu.UART_TX, swd.TXD
+    net UART_RX: mcu.UART_RX, swd.RXD
 
     // ---- keyboard matrix (COL2ROW: ROW -> switch -> diode -> COL) ----
     net KEY1: sw[0].B, d[0].Anode
@@ -184,9 +191,9 @@ design OpenMicro {
     decouple(ambient_leds[12].VDD, ambient_leds[12].GND)
     decouple(ambient_leds[14].VDD, ambient_leds[14].GND)
     // chain ends float (last DOUT of each chain); SBU unused
-    nc: usbc.SBU1, usbc.SBU2, key_leds[12].DOUT, ambient_leds[15].DOUT
-    nc: mcu.PA1, mcu.PA2, mcu.PA3, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7, mcu.PB2, mcu.PB10, mcu.PB11,
-        mcu.PB12, mcu.PB13, mcu.PB14, mcu.PB15
+    nc: mcu.NRST, usbc.SBU1, usbc.SBU2, key_leds[12].DOUT, ambient_leds[15].DOUT
+    nc: mcu.PA1, mcu.PA4, mcu.PA5, mcu.PA6, mcu.PA7, mcu.PB2, mcu.PB10, mcu.PB11, mcu.PB12,
+        mcu.PB13, mcu.PB14, mcu.PB15
 
     // ---- layout: fixed user-facing parts placed; MCU + passives staged ----
     // Physical arrangement transcribed from the Work Louder Creator Micro 2 /
@@ -196,29 +203,70 @@ design OpenMicro {
     // bottom-left cell holds the cap-TOUCH sensor. The 13 mechanical switches are
     // k1..k13: k1/k2 fill the top-row middle, k3..k10 the two middle rows, and
     // the bottom row is k11+k12 (two switches under a single 2U keycap, spanning
-    // the middle two columns) plus k13 at the right. joy/enc origins are
-    // back-offset by their footprint courtyard centers so the stick/knob land on
-    // the corner cells.
+    // the middle two columns) plus k13 at the right. `enc`'s origin is
+    // back-offset by its footprint courtyard centre so the knob lands on its
+    // corner cell; `joy`'s footprint is referenced to the lever axis itself, so
+    // it needs no offset.
     layout {
         diff_pair(USBC_DP,
                   USBC_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         diff_pair(USB_DP,
                   USB_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         board_outline: "mechanical/openmicro-outline.dxf"
-        // MCU on the BACK (RFC-026 side bottom), top-left — the clear spot
-        // nearest the USB-C/ESD (the board's only high-speed pair): the
-        // interior is walled off by the switch through-holes and the top edge
-        // is congested by the connector, ESD and top LEDs, so this is as close
-        // to the USB endpoint as a 9.4mm part fits (USB FS pair ~21mm, well
-        // within spec). Unrotated (side bottom) already faces the fixed
-        // USB pins (PA11/12) toward the ESD; every other signal's GPIO is
-        // mapped position-aware in openmicro_parts.cohdl.
-        place mcu at (-18mm, -41mm) side bottom
+        // MCU on the BACK (RFC-026 side bottom), directly beneath the cap-touch
+        // pad in the bottom-left cell. This supersedes the earlier top-left
+        // spot, which was chosen to sit near the USB endpoint; the USB FS pair
+        // is now ~75mm rather than ~14mm. That is still well inside spec for
+        // 12Mbps (the bus tolerates metres of cable), but it is no longer the
+        // shortest high-speed run on the board, and the GPIO map in
+        // openmicro_parts.cohdl was assigned position-aware for the OLD
+        // location — worth re-checking if signal lengths start to matter.
+        //
+        // NOTE (electrical): a capacitive sense electrode wants nothing behind
+        // it. All 48 of this part's lands now sit inside the 9mm sense pad's
+        // own footprint on the opposite face, which adds parasitic capacitance
+        // to the electrode and couples switching noise into it — both cost
+        // touch sensitivity. Placed as directed; see docs/compliance-report.md
+        // for the alternatives if the touch input misbehaves.
+        place mcu at (-28.575mm, 28.575mm) side bottom
+        // HSE tank on the BACK beside the MCU, west of it — the one direction
+        // that is neither under the touch electrode (which stops at x -33.32)
+        // nor under a light window. An oscillator wants the shortest possible
+        // loop, so the crystal sits 1.28mm off the package edge, centred on the
+        // y midpoint of PF0/PF1 (29.32 and 28.82).
+        //
+        // `rotate 180` because the 3225 land puts XIN and XOUT on OPPOSITE
+        // corners: no quarter turn faces both at the MCU, so the choice is
+        // which diagonal points east. At 180 each terminal sits 0.55mm in y
+        // from the pad it feeds; unrotated both are 1.05mm off.
+        //
+        // Load caps flank the crystal north and south, each beside the terminal
+        // it loads, with its ground end turned outward so the two returns leave
+        // the tank in opposite directions instead of meeting under it.
+        place xtal at (-36.5mm, 29.07mm) rotate 180 side bottom
+        place c_x1 at (-36.5mm, 32mm) rotate 180 side bottom
+        place c_x2 at (-36.5mm, 26.2mm) side bottom
         // top row: encoder (TL corner), k1, k2, joystick (TR corner)
         place enc at (-35.575mm, -31.075mm)
         place sw[0] at (-9.525mm, -28.575mm)
         place sw[1] at (9.525mm, -28.575mm)
-        place joy at (27.325mm, -28.575mm)
+        // FP_Joystick_RKJXV's origin is the LEVER AXIS (the datasheet's ø4
+        // keep-out centre), so the stick sits exactly on the corner cell —
+        // no courtyard-centre back-offset, unlike the placeholder footprint
+        // this replaced. Rotation therefore does not move the stick.
+        //
+        // `rotate 180` because the body is NOT symmetric about that axis: at the
+        // height a keycap occupies (3.5-5mm above the board) it reaches 10.90mm
+        // on the centre-push side and 10.54mm on the potentiometer side. Turning
+        // the narrower side toward the key below buys clearance for free, and
+        // incidentally swings the VR1 terminal column inboard, toward the MCU
+        // its wipers run to.
+        //
+        // Shifted 1mm toward the board edge into the depth the ring push freed:
+        // the body is 22.7mm deep in a 19.05mm cell, so the corner cell alone
+        // cannot hold it. 1mm is what turns a keycap graze into real clearance;
+        // the stick moves 1mm off the cell centre, which is the trade.
+        place joy at (28.575mm, -29.575mm) rotate 180
         // middle two rows: k3..k6, k7..k10
         place sw[2] at (-28.575mm, -9.525mm)
         place sw[3] at (-9.525mm, -9.525mm)
@@ -228,6 +276,14 @@ design OpenMicro {
         place sw[7] at (-9.525mm, 9.525mm)
         place sw[8] at (9.525mm, 9.525mm)
         place sw[9] at (28.575mm, 9.525mm)
+        // Debug/serial socket on the BACK, centred on the bottom edge in the gap
+        // between the two middle underglow LEDs (whose lands stop at x = ±7.6):
+        // this is the only edge not already owned by the USB-C, the joystick or
+        // the encoder, and the back is where a debug socket belongs on a
+        // keyboard — reachable with the board out of its case, invisible in it.
+        // y = 43, not 43.5: the 8.3mm courtyard would otherwise cross the board
+        // edge at 47.55.
+        place swd at (0mm, 43mm) side bottom
         // bottom row: touch (BL corner), k11+k12 under the 2U cap, k13
         place touch at (-28.575mm, 28.575mm)
         place sw[10] at (-9.525mm, 28.575mm)
@@ -245,49 +301,93 @@ design OpenMicro {
         place d[7] at (-4.525mm, 18.275mm) rotate 90 side bottom
         place d[8] at (14.525mm, 18.275mm) rotate 90 side bottom
         place d[9] at (33.575mm, 18.275mm) rotate 90 side bottom
-        place d[10] at (-4.525mm, 37.325mm) rotate 90 side bottom
-        place d[11] at (14.525mm, 37.325mm) rotate 90 side bottom
-        place d[12] at (33.575mm, 37.325mm) rotate 90 side bottom
+        // last row sits 1.5mm higher than the 8.75mm pitch: the debug socket
+        // owns the bottom-edge centre, and d[10] would clip its courtyard
+        place d[10] at (-4.525mm, 35.825mm) rotate 90 side bottom
+        place d[11] at (14.525mm, 35.825mm) rotate 90 side bottom
+        place d[12] at (33.575mm, 35.825mm) rotate 90 side bottom
         // USB-C centered on the top edge (mouth rotated to face off the -y edge)
         // HRO datasheet: PCB EDGE is 1.86mm from the footprint origin on the
         // mouth side (shell front overhangs ~1.8mm). Top edge at y=-47.5 ->
         // origin at -47.5 + 1.86 = -45.64.
-        place usbc at (0mm, -45.64mm) rotate 180
-        // ESD array tight to the receptacle, on the USB2 path to the MCU
-        place esd at (7mm, -38.5mm)
-        // per-key RGB LEDs: reverse-mount in the SOUTH LED window, +4.7mm y and
-        // +1.5mm x from each switch stem so the LED clears the contacts, the
-        // central box hole, and the mounting peg.
-        place key_leds[0] at (-9.53mm, -23.64mm)
-        place key_leds[1] at (9.53mm, -23.64mm)
-        place key_leds[2] at (-28.57mm, -4.6mm)
-        place key_leds[3] at (-9.53mm, -4.6mm)
-        place key_leds[4] at (9.53mm, -4.6mm)
-        place key_leds[5] at (28.57mm, -4.6mm)
-        place key_leds[6] at (-28.57mm, 14.46mm)
-        place key_leds[7] at (-9.53mm, 14.46mm)
-        place key_leds[8] at (9.53mm, 14.46mm)
-        place key_leds[9] at (28.57mm, 14.46mm)
-        place key_leds[10] at (-9.53mm, 33.5mm)
-        place key_leds[11] at (9.53mm, 33.5mm)
-        place key_leds[12] at (28.57mm, 33.5mm)
-        // perimeter underglow ring (16 LEDs, 4 per side, ~5.5mm inset)
-        place ambient_leds[0] at (-33mm, -42mm)
-        place ambient_leds[1] at (-11mm, -42mm)
-        place ambient_leds[2] at (11mm, -42mm)
-        place ambient_leds[3] at (33mm, -42mm)
-        place ambient_leds[4] at (42mm, -33mm) rotate 90
-        place ambient_leds[5] at (42mm, -11mm) rotate 90
-        place ambient_leds[6] at (42mm, 11mm) rotate 90
-        place ambient_leds[7] at (42mm, 33mm) rotate 90
-        place ambient_leds[8] at (33mm, 42mm)
-        place ambient_leds[9] at (11mm, 42mm)
-        place ambient_leds[10] at (-11mm, 42mm)
-        place ambient_leds[11] at (-33mm, 42mm)
-        place ambient_leds[12] at (-42mm, 33mm) rotate 90
-        place ambient_leds[13] at (-42mm, 11mm) rotate 90
-        place ambient_leds[14] at (-42mm, -11mm) rotate 90
-        place ambient_leds[15] at (-42mm, -33mm) rotate 90
+        //
+        // On the BACK, with the MCU: the bottom is this board's component side,
+        // so the receptacle's SMD contacts land on B.Cu beside the MCU they
+        // serve. Its four shield legs are through-holes and span the board
+        // either way.
+        //
+        // NO `rotate` here, unlike the front-side placement this replaced. The
+        // footprint is drawn mouth-toward +y (the datasheet's PCB EDGE line sits
+        // 1.86mm on the +y side of the origin), so on the FRONT it needed
+        // `rotate 180` to face the board's -y edge. Flipping to the back already
+        // inverts y, so keeping the 180 as well cancelled it out and threw every
+        // signal pad off the board edge. Flip alone points the mouth at -y and
+        // lands the PCB EDGE exactly on y = -47.5.
+        place usbc at (0mm, -45.64mm) side bottom
+        // ESD array on the BACK too, on the board centreline directly inboard
+        // of the receptacle. A TVS clamp belongs at the connector, not at the
+        // far end of the line it protects, so what matters is the UNPROTECTED
+        // USBC_* stretch staying short — straight down the centreline it is now
+        // 3.26mm per line, down from 6.4mm at the old off-centre spot.
+        //
+        // Turned a quarter turn from the old orientation so the two lead rows
+        // run ACROSS the board rather than along it: the connector-side
+        // terminals (pads 1/3) face -y toward the receptacle and the MCU-side
+        // terminals (pads 4/6) face +y toward the rest of the board. Paired
+        // with the DP/DM channel swap above, each line stays on its own side.
+        //
+        // y = -37.2 is the first position clear of the receptacle courtyard
+        // (which ends at -39.34); it also sits in the 3.46mm gap between SW3
+        // and SW4, though those are front-side parts and share no layer.
+        place esd at (0mm, -37.2mm) rotate 270 side bottom
+        // per-key RGB LEDs: reverse-mount in the SOUTH LED window, offset in y
+        // from each switch stem so the LED clears the contacts, the central box
+        // hole, and the mounting peg. On the BACK (RFC-026): a reverse-mount
+        // emitter fires through the board, so lighting a top-side switch means
+        // sitting under it. The perimeter ring below stays on the FRONT, where
+        // its light escapes around the board edge instead.
+        place key_leds[0] at (-9.53mm, -23.64mm) side bottom
+        place key_leds[1] at (9.53mm, -23.64mm) side bottom
+        place key_leds[2] at (-28.57mm, -4.6mm) side bottom
+        place key_leds[3] at (-9.53mm, -4.6mm) side bottom
+        place key_leds[4] at (9.53mm, -4.6mm) side bottom
+        place key_leds[5] at (28.57mm, -4.6mm) side bottom
+        place key_leds[6] at (-28.57mm, 14.46mm) side bottom
+        place key_leds[7] at (-9.53mm, 14.46mm) side bottom
+        place key_leds[8] at (9.53mm, 14.46mm) side bottom
+        place key_leds[9] at (28.57mm, 14.46mm) side bottom
+        place key_leds[10] at (-9.53mm, 33.5mm) side bottom
+        place key_leds[11] at (9.53mm, 33.5mm) side bottom
+        place key_leds[12] at (28.57mm, 33.5mm) side bottom
+        // The top (USB-side) and left LEDs carry an extra 180 degrees relative
+        // to the bottom and right ones. The SK6812's DOUT and DIN sit at
+        // opposite ends of the package, so on those two edges the unrotated part
+        // points DOUT away from the next LED in the chain: each hop then spans
+        // the whole neighbour, 27.5mm instead of 16.6mm. Turning them round
+        // makes the daisy-chain flow with the index order.
+        //
+        // perimeter underglow ring (16 LEDs, 4 per side, 4.0mm inset — pushed
+        // 1.5mm outboard from the original 5.5mm to free depth for the joystick,
+        // which does not fit a 19.05mm cell). The even spacing IS the feature —
+        // this ring is what the user sees, so the back side gets arranged around
+        // its apertures, never the other way round. At 4.0mm the apertures still
+        // sit 2.5mm clear of the board edge.
+        place ambient_leds[0] at (-33mm, -43.5mm) rotate 180
+        place ambient_leds[1] at (-11mm, -43.5mm) rotate 180
+        place ambient_leds[2] at (11mm, -43.5mm) rotate 180
+        place ambient_leds[3] at (33mm, -43.5mm) rotate 180
+        place ambient_leds[4] at (43.5mm, -33mm) rotate 90
+        place ambient_leds[5] at (43.5mm, -11mm) rotate 90
+        place ambient_leds[6] at (43.5mm, 11mm) rotate 90
+        place ambient_leds[7] at (43.5mm, 33mm) rotate 90
+        place ambient_leds[8] at (33mm, 43.5mm)
+        place ambient_leds[9] at (11mm, 43.5mm)
+        place ambient_leds[10] at (-11mm, 43.5mm)
+        place ambient_leds[11] at (-33mm, 43.5mm)
+        place ambient_leds[12] at (-43.5mm, 33mm) rotate 270
+        place ambient_leds[13] at (-43.5mm, 11mm) rotate 270
+        place ambient_leds[14] at (-43.5mm, -11mm) rotate 270
+        place ambient_leds[15] at (-43.5mm, -33mm) rotate 270
         // M2 mounting holes at the four corners (5mm edge inset)
         place mh[0] at (-42.5mm, -42.5mm)
         place mh[1] at (42.5mm, -42.5mm)

@@ -35,6 +35,66 @@ use std::collections::{BTreeMap, BTreeSet};
 const INDENT: &str = "    ";
 const WIDTH: usize = 100;
 
+/// Canonical source text for a pad's drill: a bare diameter, or `(w, l)` for
+/// a slot. One renderer shared by `fmt` and the LSP hover, so the two can
+/// never drift apart.
+pub fn pad_drill_text(d: &crate::ast::PadDrill) -> String {
+    match d {
+        crate::ast::PadDrill::Round(v) => v.text.clone(),
+        crate::ast::PadDrill::Slot(w, l) => format!("({}, {})", w.text, l.text),
+    }
+}
+
+/// Canonical text for one RFC-031 silkscreen primitive.
+fn silk_graphic_text(g: &crate::ast::SilkGraphic) -> String {
+    use crate::ast::{SilkFill, SilkGraphic};
+    let fill = |f: &SilkFill, default: SilkFill| {
+        if *f == default {
+            String::new()
+        } else {
+            format!(" fill {}", f.name())
+        }
+    };
+    match g {
+        SilkGraphic::Line { from, to, width } => format!(
+            "line from ({}, {}) to ({}, {}) width {}",
+            from.0.text, from.1.text, to.0.text, to.1.text, width.text
+        ),
+        SilkGraphic::Circle {
+            at,
+            radius,
+            width,
+            fill: f,
+        } => format!(
+            "circle at ({}, {}) radius {} width {}{}",
+            at.0.text,
+            at.1.text,
+            radius.text,
+            width.text,
+            fill(f, SilkFill::None)
+        ),
+        SilkGraphic::Arc {
+            at,
+            radius,
+            start_angle,
+            end_angle,
+            width,
+        } => format!(
+            "arc at ({}, {}) radius {} start_angle {} end_angle {} width {}",
+            at.0.text, at.1.text, radius.text, start_angle, end_angle, width.text
+        ),
+        SilkGraphic::Polygon { points, fill: f } => format!(
+            "polygon [{}]{}",
+            points
+                .iter()
+                .map(|(x, y)| format!("({}, {})", x.text, y.text))
+                .collect::<Vec<_>>()
+                .join(", "),
+            fill(f, SilkFill::Solid)
+        ),
+    }
+}
+
 /// Format one source file into canonical form. Returns `Err` (the rendered
 /// parse diagnostics) when the input does not parse — `fmt` never operates on
 /// broken source.
@@ -1104,8 +1164,8 @@ impl Formatter<'_> {
         if let Some((plating, sp)) = &p.plating {
             fields.push((sp.start, format!("plating: {}", plating.name())));
         }
-        if let Some((v, sp)) = &p.drill {
-            fields.push((sp.start, format!("drill: {}", v.text)));
+        if let Some((d, sp)) = &p.drill {
+            fields.push((sp.start, format!("drill: {}", pad_drill_text(d))));
         }
         fields.sort_by_key(|(s, _)| *s);
         for (offset, line) in fields {
@@ -1128,6 +1188,8 @@ impl Formatter<'_> {
         let has_body = !f.pads.is_empty()
             || !f.mount_holes.is_empty()
             || f.courtyard.is_some()
+            || f.window.is_some()
+            || f.silkscreen.is_some()
             || f.silkscreen_ref.is_some();
         if !has_body {
             let opener_comment = start != end && self.c.trailing.contains_key(&start);
@@ -1148,6 +1210,8 @@ impl Formatter<'_> {
             Pad(&'a PadPlace),
             MountHole(&'a MountHole),
             Courtyard(&'a Courtyard),
+            Window(&'a Courtyard),
+            Silkscreen(&'a SilkscreenBlock),
             Silk(&'a (UnitValue, UnitValue, Span)),
         }
         let mut members: Vec<(u32, M)> = f.pads.iter().map(|p| (p.span.start, M::Pad(p))).collect();
@@ -1156,6 +1220,12 @@ impl Formatter<'_> {
         }
         if let Some(c) = &f.courtyard {
             members.push((c.span.start, M::Courtyard(c)));
+        }
+        if let Some(w) = &f.window {
+            members.push((w.span.start, M::Window(w)));
+        }
+        if let Some(b) = &f.silkscreen {
+            members.push((b.span.start, M::Silkscreen(b)));
         }
         if let Some(s) = &f.silkscreen_ref {
             members.push((s.2.start, M::Silk(s)));
@@ -1221,6 +1291,52 @@ impl Formatter<'_> {
                             unit_list(&c.size)
                         ),
                     );
+                }
+                M::Window(w) => {
+                    self.push(
+                        1,
+                        format!(
+                            "window {{ shape: {}, at: ({}, {}), size: ({}) }}",
+                            w.shape.0.name(),
+                            w.at.0.text,
+                            w.at.1.text,
+                            unit_list(&w.size)
+                        ),
+                    );
+                }
+                M::Silkscreen(b) => {
+                    self.push(1, "silkscreen {");
+                    // RFC-031 canonical order: semantic markers first, then
+                    // raw primitives — each on its own line.
+                    let (mut markers, mut prims) = (Vec::new(), Vec::new());
+                    for it in &b.items {
+                        match it {
+                            SilkItem::Graphic(g, _) => prims.push(silk_graphic_text(g)),
+                            SilkItem::Pin1Marker { pad, shape, .. } => markers.push(format!(
+                                "pin_1_marker near pad {} shape {}",
+                                pad.text,
+                                match shape {
+                                    Pin1Shape::Dot => "dot",
+                                    Pin1Shape::Triangle => "triangle",
+                                }
+                            )),
+                            SilkItem::PolarityMarker {
+                                cathode_pad, shape, ..
+                            } => markers.push(format!(
+                                "polarity_marker cathode_pin {} shape {}",
+                                cathode_pad.text,
+                                match shape {
+                                    PolarityShape::Band => "band",
+                                    PolarityShape::Arrow => "arrow",
+                                }
+                            )),
+                        }
+                    }
+                    markers.append(&mut prims);
+                    for line in markers {
+                        self.push(2, line);
+                    }
+                    self.push(1, "}");
                 }
                 M::Silk(s) => {
                     self.push(

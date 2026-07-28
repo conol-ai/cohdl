@@ -52,6 +52,20 @@ fn make_project_with_dep(root: &Path) {
     std::fs::write(pkg.join("src/lib.cohdl"), DEP_LIB).unwrap();
 }
 
+/// A design that needs nothing from any library: std carries traits and the
+/// devices the demo boards need, and passives live in their own package, so a
+/// fixture that wants two terminals declares them itself.
+const LOCAL_DESIGN: &str = "\
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+
+design B {
+    inst c1: D
+    inst c2: D
+    net N: c1.A, c2.A
+    net GND [gnd]: c1.B, c2.B
+}
+";
+
 fn run(args: &[&str]) -> (bool, String, String) {
     let out = cohdl().args(args).output().unwrap();
     (
@@ -262,11 +276,7 @@ fn pre_rfc029_manifest_is_flagged_and_update_migrates_it() {
     )
     .unwrap();
     // Uses the real std (the compiler discovers the repo's versioned root).
-    std::fs::write(
-        tmp.join("src/main.cohdl"),
-        "design B {\n    inst c1: MLCC_100nF_16V_0402\n    inst c2: MLCC_100nF_16V_0402\n    net N: c1.A, c2.A\n    net GND [gnd]: c1.B, c2.B\n}\n",
-    )
-    .unwrap();
+    std::fs::write(tmp.join("src/main.cohdl"), LOCAL_DESIGN).unwrap();
 
     let (ok, _, err) = run(&["check", tmp.to_str().unwrap()]);
     assert!(!ok);
@@ -294,14 +304,10 @@ fn std_override_always_warns() {
     std::fs::create_dir_all(tmp.join("src")).unwrap();
     std::fs::write(
         tmp.join("cohdl.toml"),
-        "[package]\nname = \"t\"\n\n[design]\ntop = \"B\"\n\n[dependencies]\nstd = \"0.1.0\"\n",
+        "[package]\nname = \"t\"\n\n[design]\ntop = \"B\"\n\n[dependencies]\nstd = \"0.2.0\"\n",
     )
     .unwrap();
-    std::fs::write(
-        tmp.join("src/main.cohdl"),
-        "design B {\n    inst c1: MLCC_100nF_16V_0402\n    inst c2: MLCC_100nF_16V_0402\n    net N: c1.A, c2.A\n    net GND [gnd]: c1.B, c2.B\n}\n",
-    )
-    .unwrap();
+    std::fs::write(tmp.join("src/main.cohdl"), LOCAL_DESIGN).unwrap();
     let repo_std = Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std");
     let (ok, _, err) = run(&[
         "check",
@@ -552,9 +558,17 @@ fn the_repos_std_is_an_ordinary_library_under_lib() {
     let (version, dir) = cohdl::deps::newest_available(&lib.join("std"), "std")
         .expect("lib/std offers the std package");
     assert_eq!(dir, lib.join("std"), "the family dir is itself the package");
+    let declared = std::fs::read_to_string(lib.join("std/cohdl.toml"))
+        .unwrap()
+        .lines()
+        .find_map(|l| {
+            l.strip_prefix("version = ")
+                .map(|v| v.trim_matches('"').to_string())
+        })
+        .expect("lib/std/cohdl.toml declares a version");
     assert_eq!(
         version.to_string(),
-        "0.1.0",
+        declared,
         "std's version comes from lib/std/cohdl.toml, never from its path"
     );
 }

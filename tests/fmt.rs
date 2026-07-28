@@ -4,7 +4,7 @@
 
 use cohdl::fmt::format_source;
 use cohdl::lock::LockState;
-use cohdl::pipeline::{build_artifacts, check_files};
+use cohdl::pipeline::build_artifacts;
 use std::path::{Path, PathBuf};
 
 fn manifest() -> PathBuf {
@@ -88,7 +88,13 @@ fn idempotent_on_messy_input() {
 // Property 2: semantic inertness — formatting never changes the emitted bytes.
 
 fn build_netlist_bom(files: &[(String, String)], design: Option<&str>) -> (String, String) {
-    let mut checked = check_files(files, design).expect("design selection");
+    let mut checked = cohdl::pipeline::check_files_in_with_deps(
+        "main",
+        &["std".to_string(), "passive".to_string()],
+        files,
+        design,
+    )
+    .expect("design selection");
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build succeeds");
     assert!(!checked.diags.has_errors(), "clean build expected");
     (artifacts.netlist, artifacts.bom)
@@ -110,7 +116,11 @@ fn formatting_is_semantically_inert() {
     let std_dir = manifest().join("lib/std");
     for ex in example_dirs() {
         // std + this example's own sources — one design per project.
-        let proj = cohdl::project::load_project(&ex, Some(&std_dir)).unwrap();
+        let deps = vec![
+            ("std".to_string(), std_dir.clone()),
+            ("passive".to_string(), manifest().join("lib/passive")),
+        ];
+        let proj = cohdl::project::load_project_with_deps(&ex, &deps).unwrap();
         let original = proj.files.clone();
         let formatted: Vec<(String, String)> = original
             .iter()

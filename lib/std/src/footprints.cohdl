@@ -7,35 +7,13 @@
 // placeholders (empty body = resolvable name only, exempt from E807)
 // pending real datasheet-derived authoring.
 //
-// Filled (stage two): the chip passives (CHIP_0402/CHIP_0603 — under RFC-021
-// the footprint's own identifier IS its IPC-7351 name, so the former
-// R_0402/C_0402 lands collapse into the one CHIP_0402), LED 0603, SOT-23-5
-// (SOT5P95X290X160N).
+// Filled (stage two): LED 0603, SOT-23-5 (SOT5P95X290X160N). The chip
+// passive lands moved to the `passive` library with the parts that use
+// them — one CHIP_<EIA> land exists once, where its parts live.
 // Still stage-one placeholders: the large multi-pad modules/connectors
 // (ESP32-S3-WROOM-1, InvenSense ICS-43434, USB-C receptacle) — not used by
 // any current example board, so their real land patterns are deferred until
 // a board needs them.
-
-// was: "Resistor_SMD:R_0402_1005Metric" / "Capacitor_SMD:C_0402_1005Metric"
-// IPC-7351 name (RFC-021): the two-terminal 0402 chip land. Resistors and
-// capacitors share the one nominal CHIP-0402 land, so the former R_0402 and
-// C_0402 footprints collapse into this single named land (resistor geometry,
-// the more generous of the two).
-pub footprint CHIP_0402 {
-    pad 1: P_Chip_R0402 at (-0.51mm, 0mm)
-    pad 2: P_Chip_R0402 at (0.51mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.06mm, 1.14mm) }
-    silkscreen_ref { at: (0mm, -1.17mm) }
-}
-
-// was: "Capacitor_SMD:C_0603_1608Metric"
-// IPC-7351 name (RFC-021): the two-terminal 0603 chip land.
-pub footprint CHIP_0603 {
-    pad 1: P_Chip_0603 at (-0.775mm, 0mm)
-    pad 2: P_Chip_0603 at (0.775mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 0.95mm) }
-    silkscreen_ref { at: (0mm, -1.2mm) }
-}
 
 // was: "RF_Module:ESP32-S3-WROOM-1"
 pub footprint FP_ESP32_S3_WROOM_1 {}
@@ -59,6 +37,10 @@ pub footprint SOT5P95X290X160N {
     pad 3: P_SOT23_Lead at (-1.1375mm, 0.95mm)
     pad 4: P_SOT23_Lead at (1.1375mm, 0.95mm)
     pad 5: P_SOT23_Lead at (1.1375mm, -0.95mm)
+    // RFC-031: SOT-23-5 has no keying feature, so pin 1 gets a dot.
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.1mm) }
     silkscreen_ref { at: (0mm, -2mm) }
 }
@@ -66,32 +48,39 @@ pub footprint SOT5P95X290X160N {
 // USB Type-C receptacle, USB-2.0-only (HRO TYPE-C-31-M-12). Land pattern from
 // KiCad Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12: 16 SMD contacts in
 // one row at y=-4.045 (top-row A* and bottom-row B* contacts merged at the same
-// X where their nets are common), plus four plated shield/mounting tabs. The two
-// non-plated locating holes at (+/-2.89, -2.6) are mechanical only and omitted
-// (RFC-018 has no non-plated plating). KiCad names all four shield tabs `SH`;
-// CoHDL requires unique pad numbers (E806), so they are SH1..SH4 here. Pad
-// names are the device pin numbers.
+// X where their nets are common), plus four plated shield/mounting tabs and the
+// two non-plated locating holes the receptacle's plastic bosses drop into.
+// KiCad names all four shield tabs `SH`; CoHDL requires unique pad numbers
+// (E806), so they are SH1..SH4 here. Pad names are the device pin numbers.
+//
+// The locating holes take the diameter from HRO's own RECOMMEND P.C.B LAYOUT
+// (5.78 apart, Ø0.60) rather than KiCad's Ø0.65 for the same feature: the
+// bosses are Ø0.50, so 0.60 is the vendor's stated fit. A fab that cannot hold
+// NPTH to ±0.05 should open these to 0.65 — they only locate the part, and the
+// four SH tabs carry the retention.
 pub footprint FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 {
-    pad A1: P_USBC_Sig_L at (-3.25mm, -4.045mm)
-    pad A4: P_USBC_Sig_L at (-2.45mm, -4.045mm)
+    pad A1: P_USBC_Sig_L at (-3.2mm, -4.045mm)
+    pad A4: P_USBC_Sig_L at (-2.4mm, -4.045mm)
     pad A5: P_USBC_Sig_S at (-1.25mm, -4.045mm)
     pad A6: P_USBC_Sig_S at (-0.25mm, -4.045mm)
     pad A7: P_USBC_Sig_S at (0.25mm, -4.045mm)
     pad A8: P_USBC_Sig_S at (1.25mm, -4.045mm)
-    pad A9: P_USBC_Sig_L at (2.45mm, -4.045mm)
-    pad A12: P_USBC_Sig_L at (3.25mm, -4.045mm)
-    pad B1: P_USBC_Sig_L at (3.25mm, -4.045mm)
-    pad B4: P_USBC_Sig_L at (2.45mm, -4.045mm)
+    pad A9: P_USBC_Sig_L at (2.4mm, -4.045mm)
+    pad A12: P_USBC_Sig_L at (3.2mm, -4.045mm)
+    pad B1: P_USBC_Sig_L at (3.2mm, -4.045mm)
+    pad B4: P_USBC_Sig_L at (2.4mm, -4.045mm)
     pad B5: P_USBC_Sig_S at (1.75mm, -4.045mm)
     pad B6: P_USBC_Sig_S at (0.75mm, -4.045mm)
     pad B7: P_USBC_Sig_S at (-0.75mm, -4.045mm)
     pad B8: P_USBC_Sig_S at (-1.75mm, -4.045mm)
-    pad B9: P_USBC_Sig_L at (-2.45mm, -4.045mm)
-    pad B12: P_USBC_Sig_L at (-3.25mm, -4.045mm)
+    pad B9: P_USBC_Sig_L at (-2.4mm, -4.045mm)
+    pad B12: P_USBC_Sig_L at (-3.2mm, -4.045mm)
     pad SH1: P_USBC_Shield_T at (-4.32mm, -3.13mm)
     pad SH2: P_USBC_Shield_T at (4.32mm, -3.13mm)
     pad SH3: P_USBC_Shield_B at (-4.32mm, 1.05mm)
     pad SH4: P_USBC_Shield_B at (4.32mm, 1.05mm)
+    mount_hole 1: non_plated at (-2.89mm, -2.6mm) diameter 0.6mm
+    mount_hole 2: non_plated at (2.89mm, -2.6mm) diameter 0.6mm
     courtyard { shape: rect, at: (0mm, -1.55mm), size: (10.64mm, 9.42mm) }
     silkscreen_ref { at: (0mm, 2.5mm) }
 }

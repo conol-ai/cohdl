@@ -384,6 +384,8 @@ impl<'a> Parser<'a> {
         let mut pads = Vec::new();
         let mut mount_holes = Vec::new();
         let mut courtyard: Option<Courtyard> = None;
+        let mut window: Option<Box<Courtyard>> = None;
+        let mut silkscreen: Option<Box<SilkscreenBlock>> = None;
         let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
         let mut unclosed = false;
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -416,7 +418,7 @@ impl<'a> Parser<'a> {
                     self.sync_footprint_body();
                 }
             } else if self.at_ident("courtyard") {
-                let c = self.courtyard();
+                let c = self.shape_block("courtyard");
                 match (&courtyard, c) {
                     (Some(prev), Some(next)) => {
                         self.diags.push(
@@ -431,6 +433,38 @@ impl<'a> Parser<'a> {
                     (None, Some(next)) => courtyard = Some(next),
                     // courtyard() recovers internally (its body is consumed
                     // or it stopped at a safe boundary) — do not sync again.
+                    (_, None) => {}
+                }
+            } else if self.at_ident("silkscreen") {
+                let blk = self.silkscreen_block();
+                match (&silkscreen, blk) {
+                    (Some(prev), Some(next)) => {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E812",
+                                next.span,
+                                "a footprint has at most one `silkscreen` block".to_string(),
+                            )
+                            .with_secondary(prev.span, "the first one is here".to_string()),
+                        );
+                    }
+                    (None, Some(next)) => silkscreen = Some(Box::new(next)),
+                    (_, None) => {}
+                }
+            } else if self.at_ident("window") {
+                let w = self.shape_block("window");
+                match (&window, w) {
+                    (Some(prev), Some(next)) => {
+                        self.diags.push(
+                            Diagnostic::error(
+                                "E806",
+                                next.span,
+                                "a footprint has at most one `window`".to_string(),
+                            )
+                            .with_secondary(prev.span, "the first window is here".to_string()),
+                        );
+                    }
+                    (None, Some(next)) => window = Some(Box::new(next)),
                     (_, None) => {}
                 }
             } else if self.at_ident("silkscreen_ref") {
@@ -492,6 +526,8 @@ impl<'a> Parser<'a> {
             pads,
             mount_holes,
             courtyard,
+            window,
+            silkscreen,
             silkscreen_ref,
             span: start.to(self.prev_span()),
         })
@@ -685,11 +721,302 @@ impl<'a> Parser<'a> {
     /// spills phantom errors past the courtyard; a runaway into a member
     /// keyword or top-level declaration stops WITHOUT consuming, so an
     /// unclosed courtyard cannot steal the footprint's closing brace.
-    fn courtyard(&mut self) -> Option<Courtyard> {
+    /// Consume an expected keyword, or report and fail. RFC-031's statement
+    /// grammars are keyword-heavy (`line from … to … width …`), so each one
+    /// names the keyword it wanted and where it wanted it.
+    fn expect_ident(&mut self, word: &str, ctx: &str) -> Option<()> {
+        if self.eat_ident(word) {
+            return Some(());
+        }
+        self.error_here(format!(
+            "expected `{}` {}, found {}",
+            word,
+            ctx,
+            self.peek().describe()
+        ));
+        None
+    }
+
+    /// A pad number in a reference position (RFC-031 markers) — the same
+    /// `1` / `A3` grammar `pad N:` placements accept.
+    fn pad_number_ref(&mut self, ctx: &str) -> Option<PinNumber> {
+        match self.peek() {
+            TokenKind::Number(_) | TokenKind::Ident(_) => {
+                let t = self.bump();
+                let text = match t.kind {
+                    TokenKind::Number(x) | TokenKind::Ident(x) => x,
+                    _ => unreachable!(),
+                };
+                Some(PinNumber { text, span: t.span })
+            }
+            other => {
+                self.error_here(format!(
+                    "expected a pad number {} (e.g. `1` or `A3`), found {}",
+                    ctx,
+                    other.describe()
+                ));
+                None
+            }
+        }
+    }
+
+    /// `fill FILL` — optional trailing clause on `circle`/`polygon`.
+    fn silk_fill(&mut self, default: SilkFill) -> SilkFill {
+        if !self.eat_ident("fill") {
+            return default;
+        }
+        match self.ident("as the fill") {
+            Some(v) => match SilkFill::from_name(&v.name) {
+                Some(f) => f,
+                None => {
+                    self.diags.push(Diagnostic::error(
+                        "E812",
+                        v.span,
+                        format!("`{}` is not a fill — fills are: none, solid", v.name),
+                    ));
+                    default
+                }
+            },
+            None => default,
+        }
+    }
+
+    /// A whole-degree angle for `arc` (RFC-031 allows any 0..=360, unlike the
+    /// cardinal set `rotate` is restricted to).
+    fn silk_angle(&mut self, what: &str) -> Option<i32> {
+        let t = self.bump();
+        let TokenKind::Number(text) = &t.kind else {
+            self.diags.push(Diagnostic::error(
+                "E812",
+                t.span,
+                format!(
+                    "expected {} in whole degrees, found {}",
+                    what,
+                    t.kind.describe()
+                ),
+            ));
+            return None;
+        };
+        match text.parse::<i32>() {
+            Ok(n) if (0..=360).contains(&n) => Some(n),
+            _ => {
+                self.diags.push(Diagnostic::error(
+                    "E812",
+                    t.span,
+                    format!(
+                        "`{}` is not a whole-degree angle in 0..=360 for {}",
+                        text, what
+                    ),
+                ));
+                None
+            }
+        }
+    }
+
+    /// RFC-031 `silkscreen { … }` — the drawable-graphics block.
+    fn silkscreen_block(&mut self) -> Option<SilkscreenBlock> {
         let start = self.span();
-        self.bump(); // `courtyard`
+        self.bump(); // `silkscreen`
+        if !self.expect(&TokenKind::LBrace, "to open `silkscreen`") {
+            self.sync_footprint_body();
+            return None;
+        }
+        let mut items: Vec<SilkItem> = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            let kw_span = self.span();
+            let Some(kw) = self.ident(
+                "as a silkscreen statement (`line`, `circle`, `arc`, `polygon`, \
+                 `pin_1_marker`, `polarity_marker`)",
+            ) else {
+                self.sync_in_block();
+                self.eat(&TokenKind::Comma);
+                if self.pos == before {
+                    self.bump();
+                }
+                continue;
+            };
+            let item = match kw.name.as_str() {
+                "line" => (|| {
+                    self.expect_ident("from", "after `line`")?;
+                    let from = self.length_pair()?;
+                    self.expect_ident("to", "after the start point")?;
+                    let to = self.length_pair()?;
+                    self.expect_ident("width", "after the end point")?;
+                    let width = self.unit_literal("as the stroke width")?;
+                    Some(SilkGraphic::Line { from, to, width })
+                })(),
+                "circle" => (|| {
+                    self.expect_ident("at", "after `circle`")?;
+                    let at = self.length_pair()?;
+                    self.expect_ident("radius", "after the centre")?;
+                    let radius = self.unit_literal("as the radius")?;
+                    self.expect_ident("width", "after the radius")?;
+                    let width = self.unit_literal("as the stroke width")?;
+                    let fill = self.silk_fill(SilkFill::None);
+                    Some(SilkGraphic::Circle {
+                        at,
+                        radius,
+                        width,
+                        fill,
+                    })
+                })(),
+                "arc" => (|| {
+                    self.expect_ident("at", "after `arc`")?;
+                    let at = self.length_pair()?;
+                    self.expect_ident("radius", "after the centre")?;
+                    let radius = self.unit_literal("as the radius")?;
+                    self.expect_ident("start_angle", "after the radius")?;
+                    let start_angle = self.silk_angle("the start angle")?;
+                    self.expect_ident("end_angle", "after the start angle")?;
+                    let end_angle = self.silk_angle("the end angle")?;
+                    self.expect_ident("width", "after the end angle")?;
+                    let width = self.unit_literal("as the stroke width")?;
+                    Some(SilkGraphic::Arc {
+                        at,
+                        radius,
+                        start_angle,
+                        end_angle,
+                        width,
+                    })
+                })(),
+                "polygon" => (|| {
+                    self.expect(&TokenKind::LBracket, "to open the vertex list");
+                    let mut points = Vec::new();
+                    while !self.at(&TokenKind::RBracket) && !self.at(&TokenKind::Eof) {
+                        let p = self.length_pair()?;
+                        points.push(p);
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
+                    }
+                    self.expect(&TokenKind::RBracket, "to close the vertex list");
+                    let fill = self.silk_fill(SilkFill::Solid);
+                    if points.len() < 3 {
+                        self.diags.push(Diagnostic::error(
+                            "E812",
+                            kw_span.to(self.prev_span()),
+                            format!(
+                                "a `polygon` needs at least 3 vertices — {} given",
+                                points.len()
+                            ),
+                        ));
+                        return None;
+                    }
+                    Some(SilkGraphic::Polygon { points, fill })
+                })(),
+                "pin_1_marker" => {
+                    let parsed = (|| {
+                        self.expect_ident("near", "after `pin_1_marker`")?;
+                        self.expect_ident("pad", "after `near`")?;
+                        let pad = self.pad_number_ref("the marker refers to")?;
+                        self.expect_ident("shape", "after the pad number")?;
+                        let v = self.ident("as the marker shape")?;
+                        let shape = match v.name.as_str() {
+                            "dot" => Pin1Shape::Dot,
+                            "triangle" => Pin1Shape::Triangle,
+                            other => {
+                                self.diags.push(Diagnostic::error(
+                                    "E812",
+                                    v.span,
+                                    format!(
+                                        "`{}` is not a pin-1 marker shape — shapes are: dot, triangle",
+                                        other
+                                    ),
+                                ));
+                                return None;
+                            }
+                        };
+                        Some((pad, shape))
+                    })();
+                    if let Some((pad, shape)) = parsed {
+                        items.push(SilkItem::Pin1Marker {
+                            pad,
+                            shape,
+                            span: kw_span.to(self.prev_span()),
+                        });
+                    } else {
+                        self.sync_in_block();
+                    }
+                    if self.pos == before {
+                        self.bump();
+                    }
+                    continue;
+                }
+                "polarity_marker" => {
+                    let parsed = (|| {
+                        self.expect_ident("cathode_pin", "after `polarity_marker`")?;
+                        let pad = self.pad_number_ref("the cathode terminal")?;
+                        self.expect_ident("shape", "after the pad number")?;
+                        let v = self.ident("as the marker shape")?;
+                        let shape = match v.name.as_str() {
+                            "band" => PolarityShape::Band,
+                            "arrow" => PolarityShape::Arrow,
+                            other => {
+                                self.diags.push(Diagnostic::error(
+                                    "E812",
+                                    v.span,
+                                    format!(
+                                        "`{}` is not a polarity marker shape — shapes are: band, arrow",
+                                        other
+                                    ),
+                                ));
+                                return None;
+                            }
+                        };
+                        Some((pad, shape))
+                    })();
+                    if let Some((cathode_pad, shape)) = parsed {
+                        items.push(SilkItem::PolarityMarker {
+                            cathode_pad,
+                            shape,
+                            span: kw_span.to(self.prev_span()),
+                        });
+                    } else {
+                        self.sync_in_block();
+                    }
+                    if self.pos == before {
+                        self.bump();
+                    }
+                    continue;
+                }
+                other => {
+                    self.diags.push(Diagnostic::error(
+                        "E812",
+                        kw.span,
+                        format!(
+                            "unknown silkscreen statement `{}` (expected `line`, `circle`, \
+                             `arc`, `polygon`, `pin_1_marker`, or `polarity_marker`)",
+                            other
+                        ),
+                    ));
+                    self.sync_in_block();
+                    None
+                }
+            };
+            match item {
+                Some(g) => items.push(SilkItem::Graphic(g, kw_span.to(self.prev_span()))),
+                None => self.sync_in_block(),
+            }
+            self.eat(&TokenKind::Comma);
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close `silkscreen`");
+        Some(SilkscreenBlock {
+            items,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// The shared `{ shape, at, size }` block body — `courtyard` and `window`
+    /// differ only in the keyword they report in diagnostics.
+    fn shape_block(&mut self, kw: &str) -> Option<Courtyard> {
+        let start = self.span();
+        self.bump(); // the keyword
         let open_span = self.span();
-        if !self.expect(&TokenKind::LBrace, "to open `courtyard`") {
+        if !self.expect(&TokenKind::LBrace, "to open the block") {
             self.sync_footprint_body();
             return None;
         }
@@ -701,6 +1028,8 @@ impl<'a> Parser<'a> {
             let before = self.pos;
             if self.at_ident("pad")
                 || self.at_ident("courtyard")
+                || self.at_ident("window")
+                || self.at_ident("silkscreen")
                 || self.at_ident("silkscreen_ref")
                 || self.at_decl_keyword()
             {
@@ -708,19 +1037,20 @@ impl<'a> Parser<'a> {
                     "E010",
                     open_span,
                     format!(
-                        "unclosed `courtyard` — missing `}}` before {}",
+                        "unclosed `{}` — missing `}}` before {}",
+                        kw,
                         self.peek().describe()
                     ),
                 ));
                 unclosed = true;
                 break;
             }
-            let Some(field) = self.ident("as a courtyard field (`shape`, `at`, `size`)") else {
+            let Some(field) = self.ident("as a `shape`/`at`/`size` field") else {
                 self.sync_in_block();
                 self.eat(&TokenKind::Comma);
                 continue;
             };
-            self.expect(&TokenKind::Colon, "after the courtyard field name");
+            self.expect(&TokenKind::Colon, "after the field name");
             match field.name.as_str() {
                 "shape" => match self.ident("as the shape") {
                     Some(v) => match PadShape::from_name(&v.name) {
@@ -755,8 +1085,8 @@ impl<'a> Parser<'a> {
                         "E806",
                         field.span,
                         format!(
-                            "unknown courtyard field `{}` (expected `shape`, `at`, or `size`)",
-                            other
+                            "unknown {} field `{}` (expected `shape`, `at`, or `size`)",
+                            kw, other
                         ),
                     ));
                     self.sync_in_block();
@@ -768,14 +1098,14 @@ impl<'a> Parser<'a> {
             }
         }
         if !unclosed {
-            self.expect(&TokenKind::RBrace, "to close `courtyard`");
+            self.expect(&TokenKind::RBrace, "to close the block");
         }
         let span = start.to(self.prev_span());
         let (Some(shape), Some(at), Some((size, size_span))) = (shape, at, size) else {
             self.diags.push(Diagnostic::error(
                 "E806",
                 span,
-                "`courtyard` needs `shape`, `at`, and `size`".to_string(),
+                format!("`{}` needs `shape`, `at`, and `size`", kw),
             ));
             return None;
         };
@@ -954,12 +1284,37 @@ impl<'a> Parser<'a> {
                     }
                 }
                 "drill" => {
-                    let Some(v) = self.unit_literal("as the drill diameter") else {
-                        self.sync_in_block();
-                        self.eat(&TokenKind::Comma);
-                        continue;
+                    // `drill: D` (round) or `drill: (w, l)` (slot) — the same
+                    // scalar-or-tuple split RFC-023 gave `mount_hole`.
+                    let drill = if matches!(self.peek(), TokenKind::LParen) {
+                        let Some((vals, span)) = self.length_tuple() else {
+                            self.sync_in_block();
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        let [w, l] = vals.as_slice() else {
+                            self.diags.push(Diagnostic::error(
+                                "E805",
+                                span,
+                                format!(
+                                    "a slot drill is `(width, length)` — {} value{} given",
+                                    vals.len(),
+                                    if vals.len() == 1 { "" } else { "s" }
+                                ),
+                            ));
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        crate::ast::PadDrill::Slot(w.clone(), l.clone())
+                    } else {
+                        let Some(v) = self.unit_literal("as the drill diameter") else {
+                            self.sync_in_block();
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        crate::ast::PadDrill::Round(v)
                     };
-                    def.drill = Some((v, field.span));
+                    def.drill = Some((drill, field.span));
                 }
                 other => {
                     self.diags.push(Diagnostic::error(
@@ -1688,7 +2043,7 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::LBrace, "to open the variants block");
                 while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
                     let Some(v) = self.ident("as a variant name") else {
-                        self.sync_in_block();
+                        self.sync_in_block_advancing();
                         continue;
                     };
                     // RFC-008 rejects wildcard/default arms outright.
@@ -2096,7 +2451,7 @@ impl<'a> Parser<'a> {
                     "an impl body only contains explicit `pins`/`spec` mappings (empty when names match), found {}",
                     self.peek().describe()
                 ));
-                self.sync_in_block();
+                self.sync_in_block_advancing();
                 continue;
             };
             self.expect(&TokenKind::LBrace, "to open the mapping block");
@@ -2221,7 +2576,7 @@ impl<'a> Parser<'a> {
                     "expected `primary` or `alt` in the part body, found {}",
                     self.peek().describe()
                 ));
-                self.sync_in_block();
+                self.sync_in_block_advancing();
                 continue;
             };
             let entry_start = self.span();
@@ -2391,6 +2746,25 @@ impl<'a> Parser<'a> {
                     self.bump();
                 }
             }
+        }
+    }
+
+    /// Block-level recovery that is guaranteed to advance.
+    ///
+    /// `sync_in_block` deliberately stops *at* the `,`/`}` it finds so the
+    /// caller can decide what to do with the delimiter. A caller that loops
+    /// and re-enters recovery on that same token therefore never terminates
+    /// — a hang, not a slow parse, and one that appends a diagnostic per
+    /// iteration until memory runs out. Three ordinary malformed shapes
+    /// reached it: a bad generic argument in a `part` type (`D<1e+06ohm,
+    /// 1%>`), a stray comma in a part body, and a non-string AVL value
+    /// (`mfr: 7`). When recovery could not move, consume the token it
+    /// stalled on; the loop condition then sees a genuinely new position.
+    fn sync_in_block_advancing(&mut self) {
+        let before = self.pos;
+        self.sync_in_block();
+        if self.pos == before {
+            self.bump();
         }
     }
 
@@ -3565,5 +3939,35 @@ design B {
         };
         let Stmt::Net(n) = &d.body[0] else { panic!() };
         assert_eq!(n.members.len(), 4);
+    }
+
+    // Error recovery must always advance. `sync_in_block` stops *at* the `,`
+    // it finds so the caller can see the delimiter; a loop that re-entered
+    // recovery on that same token never terminated — a hang, and one that
+    // appended a diagnostic per pass until memory ran out. Each shape below
+    // reached it through a different loop (part body, impl body, variants).
+    // A bounded diagnostic count is the regression signal: unbounded IS the
+    // bug.
+    #[test]
+    fn malformed_input_never_spins_in_recovery() {
+        for src in [
+            // a malformed generic argument followed by a comma, in a part type
+            "pub part P: D<1e+06ohm, 1%> {\n    primary { mfr: \"Y\", mpn: \"M\", footprint: F }\n}\n",
+            // a stray comma in a part body
+            "pub part P: D<1Mohm, 1%> {\n    ,\n    primary { mfr: \"Y\", mpn: \"M\", footprint: F }\n}\n",
+            // a non-string AVL value
+            "pub part P: D<1Mohm, 1%> {\n    primary { mfr: 7, mpn: \"M\", footprint: F }\n}\n",
+            // a stray comma in an impl body
+            "impl TwoTerminal for D {\n    ,\n}\n",
+            // a stray comma in a variants block
+            "pub device V {\n    variants { , A }\n    pins[A] { required A: 1 [passive] }\n}\n",
+        ] {
+            let rendered = parse_err(src);
+            let n = rendered.matches("error[").count();
+            assert!(
+                n < 20,
+                "recovery emitted {n} diagnostics (it used to spin) for:\n{src}\n{rendered}"
+            );
+        }
     }
 }

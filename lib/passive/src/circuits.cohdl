@@ -1,0 +1,21 @@
+// Reusable passive sub-circuits.
+//
+// These live here, not in std, for the same reason the parts do: they are
+// nothing but a passive instantiated across a pin pair, and a library that
+// owns the part should own the idiom that uses it.
+
+// One 100nF decoupling capacitor across a supply pin pair.
+pub fn decoupling_100n(vdd: Pin, gnd: Pin) {
+    // RFC-028: one attribute here annotates every call site's capacitor.
+    #[bypass(vdd, 100nF)]
+    inst c: C_100n_16V_X7R_0402
+    net _: vdd, c.A
+    net _: gnd, c.B
+}
+
+// Bulk 10uF across a rail.
+pub fn bulk_10u(vdd: Pin, gnd: Pin) {
+    inst c: C_10u_10V_X5R_0603
+    net _: vdd, c.A
+    net _: gnd, c.B
+}

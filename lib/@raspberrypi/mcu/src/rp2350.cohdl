@@ -1,0 +1,84 @@
+// RP2350A: Raspberry Pi microcontroller in QFN-60, with pin 61 as the center
+// GND pad. Pinout checked against the RP2350 datasheet build 2025-07-29,
+// Figure 148 and Tables 1427-1432.
+#[doc("docs/rp2350-datasheet.pdf")]
+pub device RP2350A {
+    pins {
+        // Digital / IO supplies (3V3) and core supply (1V1), as pin buses.
+        required IOVDD: 1, 11, 20, 30, 38, 45 [power_in]
+        required DVDD: 6, 23, 39 [power_in]
+        required QSPI_IOVDD: 54 [power_in]
+        required USB_OTP_VDD: 53 [power_in]
+        required ADC_AVDD: 44 [power_in]
+        required GND: 61 [power_in]
+
+        // On-chip core switching regulator (3V3 -> 1V1 via external inductor).
+        required VREG_VIN: 49 [power_in]
+        required VREG_LX: 48 [passive]
+        required VREG_FB: 50 [passive]
+        required VREG_PGND: 47 [power_in]
+        required VREG_AVDD: 46 [power_in]
+
+        // USB 1.1 PHY; may be left unconnected when USB is unused.
+        optional USB_DP: 52 [bidirectional]
+        optional USB_DM: 51 [bidirectional]
+
+        // Optional 12 MHz crystal oscillator.
+        optional XIN: 21 [input]
+        optional XOUT: 22 [output]
+
+        // QSPI to the XIP program flash.
+        required QSPI_SS: 60 [output]
+        required QSPI_SCLK: 56 [output]
+        required QSPI_SD0: 57 [bidirectional]
+        required QSPI_SD1: 59 [bidirectional]
+        required QSPI_SD2: 58 [bidirectional]
+        required QSPI_SD3: 55 [bidirectional]
+
+        // ARM SWD debug + RUN (reset, active low); all have defined on-chip
+        // reset behaviour and need not be routed in every design.
+        optional SWCLK: 24 [input]
+        optional SWDIO: 25 [bidirectional]
+        optional RUN: 26 [input]
+
+        // General-purpose I/O. Their direction and board function are selected
+        // by the consuming design rather than encoded in the MCU definition.
+        optional GPIO0: 2 [bidirectional]
+        optional GPIO1: 3 [bidirectional]
+        optional GPIO2: 4 [bidirectional]
+        optional GPIO3: 5 [bidirectional]
+        optional GPIO4: 7 [bidirectional]
+        optional GPIO5: 8 [bidirectional]
+        optional GPIO6: 9 [bidirectional]
+        optional GPIO7: 10 [bidirectional]
+        optional GPIO8: 12 [bidirectional]
+        optional GPIO9: 13 [bidirectional]
+        optional GPIO10: 14 [bidirectional]
+        optional GPIO11: 15 [bidirectional]
+        optional GPIO12: 16 [bidirectional]
+        optional GPIO13: 17 [bidirectional]
+        optional GPIO14: 18 [bidirectional]
+        optional GPIO15: 19 [bidirectional]
+        optional GPIO16: 27 [bidirectional]
+        optional GPIO17: 28 [bidirectional]
+        optional GPIO18: 29 [bidirectional]
+        optional GPIO19: 31 [bidirectional]
+        optional GPIO20: 32 [bidirectional]
+        optional GPIO21: 33 [bidirectional]
+        optional GPIO22: 34 [bidirectional]
+        optional GPIO23: 35 [bidirectional]
+        optional GPIO24: 36 [bidirectional]
+        optional GPIO25: 37 [bidirectional]
+        optional GPIO26: 40 [bidirectional] // ADC0
+        optional GPIO27: 41 [bidirectional] // ADC1
+        optional GPIO28: 42 [bidirectional] // ADC2
+        optional GPIO29: 43 [bidirectional] // ADC3
+    }
+}
+
+impl IC for RP2350A {}
+
+#[doc("docs/rp2350-datasheet.pdf")]
+pub part RP2350A_QFN60: RP2350A {
+    primary { mfr: "Raspberry Pi", mpn: "RP2350A", footprint: qfn::QFN60N40P700X700_1EP340X340 }
+}

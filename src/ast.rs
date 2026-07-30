@@ -1040,6 +1040,9 @@ pub enum PhysAttr {
     /// already has everywhere else in the language.
     Bypass {
         inst: Ident,
+        /// RFC-024: `#[bypass(NAME[i].PIN, …)]` — an array element is a valid
+        /// instance reference here as anywhere else.
+        index: Option<(i64, Span)>,
         pin: Option<Ident>,
         capacitance: UnitValue,
         span: Span,

@@ -337,3 +337,84 @@ fn bare_bypass_form_round_trips_through_fmt() {
     let twice = format_source("f.cohdl", &once).unwrap();
     assert_eq!(once, twice);
 }
+
+/// RFC-024 says an array element is a valid instance reference EVERYWHERE an
+/// ordinary one is, and `#[bypass]`'s target is an instance reference — so
+/// `#[bypass(NAME[i].PIN, …)]` must resolve to that one element. Before this
+/// was wired the attribute's parser stopped at the bare identifier and the
+/// `[` was a parse error, which forced a design with array-typed devices to
+/// choose between placing its bypass caps and declaring them.
+#[test]
+fn bypass_targets_an_array_element() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst mcu: [MCU; 3]
+    #[bypass(mcu[0].VDD, 100nF)]
+    inst c0: C100N
+    #[bypass(mcu[2].DP, 100nF)]
+    inst c2: C100N
+
+    net GND: mcu[0..=2].GND, c0.B, c2.B
+    net V: mcu[0..=2].VDD, c0.A
+    net D: mcu[2].DP, c2.A
+    nc: mcu[0].XIN, mcu[1].XIN, mcu[2].XIN
+    nc: mcu[0].XOUT, mcu[1].XOUT, mcu[2].XOUT
+    nc: mcu[0].DM, mcu[1].DM, mcu[2].DM
+    nc: mcu[0].DP, mcu[1].DP
+}}"
+    );
+    let csvs = build_csvs(&src).expect("csvs");
+    // mcu[0].VDD is pads 2 and 6 -> two rows, both against element 0's refdes;
+    // mcu[2].DP is pad 1 on a DIFFERENT refdes. If the index were ignored both
+    // caps would name the same component.
+    assert_eq!(
+        csvs["bypass_capacitors.csv"],
+        "capacitor,bypassed_component,bypassed_pin,capacitance\n\
+         C1,U1,2,100\nC1,U1,6,100\nC2,U3,1,100\n"
+    );
+}
+
+/// The index must survive a format round-trip — `fmt` dropping it would
+/// silently retarget the constraint at the array's element 0.
+#[test]
+fn indexed_bypass_round_trips_through_fmt() {
+    use cohdl::fmt::format_source;
+    let src = "design B {\n    inst mcu: [MCU; 3]\n    #[bypass(mcu[2].VDD, 100nF)]\n    inst c: C100N\n}\n";
+    let once = format_source("f.cohdl", src).unwrap();
+    assert!(once.contains("#[bypass(mcu[2].VDD, 100nF)]"), "{once}");
+    assert_eq!(once, format_source("f.cohdl", &once).unwrap());
+}
+
+/// A range names more than one target, and one capacitor cannot bypass three
+/// pins — E211, the same code `place NAME[a..=b]` already reports.
+#[test]
+fn ranged_bypass_target_is_e211() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst mcu: [MCU; 3]
+    #[bypass(mcu[0..=2].VDD, 100nF)]
+    inst c: C100N
+}}"
+    );
+    let (_, rendered) = check(&src);
+    assert!(rendered.contains("E211"), "{rendered}");
+    assert!(rendered.contains("single element"), "{rendered}");
+}
+
+/// An out-of-bounds index is E202 wherever it appears, not a silent clamp.
+#[test]
+fn out_of_bounds_bypass_index_is_e202() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst mcu: [MCU; 2]
+    #[bypass(mcu[5].VDD, 100nF)]
+    inst c: C100N
+}}"
+    );
+    let (_, rendered) = check(&src);
+    assert!(rendered.contains("E202"), "{rendered}");
+    assert!(rendered.contains("valid indices are 0..=1"), "{rendered}");
+}

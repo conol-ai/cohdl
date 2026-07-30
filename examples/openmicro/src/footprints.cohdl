@@ -3,67 +3,6 @@
 // numbers match each device's declared pins (RFC-002/E807). Datasheet-
 // verified packages (see docs/compliance-report.md).
 
-// STM32F072CBT6 MCU — LQFP-48 7x7mm 0.5mm pitch (KiCad
-// Package_QFP:LQFP-48_7x7mm_P0.5mm). RFC-021: 48 leads, 0.50mm pitch,
-// 9.00x9.00mm lead span, 1.60mm height, density N.
-pub footprint QFP50P900X900X160_48N {
-    pad 1: P_LQFP48_Lead_H at (-4.1625mm, -2.75mm)
-    pad 2: P_LQFP48_Lead_H at (-4.1625mm, -2.25mm)
-    pad 3: P_LQFP48_Lead_H at (-4.1625mm, -1.75mm)
-    pad 4: P_LQFP48_Lead_H at (-4.1625mm, -1.25mm)
-    pad 5: P_LQFP48_Lead_H at (-4.1625mm, -0.75mm)
-    pad 6: P_LQFP48_Lead_H at (-4.1625mm, -0.25mm)
-    pad 7: P_LQFP48_Lead_H at (-4.1625mm, 0.25mm)
-    pad 8: P_LQFP48_Lead_H at (-4.1625mm, 0.75mm)
-    pad 9: P_LQFP48_Lead_H at (-4.1625mm, 1.25mm)
-    pad 10: P_LQFP48_Lead_H at (-4.1625mm, 1.75mm)
-    pad 11: P_LQFP48_Lead_H at (-4.1625mm, 2.25mm)
-    pad 12: P_LQFP48_Lead_H at (-4.1625mm, 2.75mm)
-    pad 13: P_LQFP48_Lead_V at (-2.75mm, 4.1625mm)
-    pad 14: P_LQFP48_Lead_V at (-2.25mm, 4.1625mm)
-    pad 15: P_LQFP48_Lead_V at (-1.75mm, 4.1625mm)
-    pad 16: P_LQFP48_Lead_V at (-1.25mm, 4.1625mm)
-    pad 17: P_LQFP48_Lead_V at (-0.75mm, 4.1625mm)
-    pad 18: P_LQFP48_Lead_V at (-0.25mm, 4.1625mm)
-    pad 19: P_LQFP48_Lead_V at (0.25mm, 4.1625mm)
-    pad 20: P_LQFP48_Lead_V at (0.75mm, 4.1625mm)
-    pad 21: P_LQFP48_Lead_V at (1.25mm, 4.1625mm)
-    pad 22: P_LQFP48_Lead_V at (1.75mm, 4.1625mm)
-    pad 23: P_LQFP48_Lead_V at (2.25mm, 4.1625mm)
-    pad 24: P_LQFP48_Lead_V at (2.75mm, 4.1625mm)
-    pad 25: P_LQFP48_Lead_H at (4.1625mm, 2.75mm)
-    pad 26: P_LQFP48_Lead_H at (4.1625mm, 2.25mm)
-    pad 27: P_LQFP48_Lead_H at (4.1625mm, 1.75mm)
-    pad 28: P_LQFP48_Lead_H at (4.1625mm, 1.25mm)
-    pad 29: P_LQFP48_Lead_H at (4.1625mm, 0.75mm)
-    pad 30: P_LQFP48_Lead_H at (4.1625mm, 0.25mm)
-    pad 31: P_LQFP48_Lead_H at (4.1625mm, -0.25mm)
-    pad 32: P_LQFP48_Lead_H at (4.1625mm, -0.75mm)
-    pad 33: P_LQFP48_Lead_H at (4.1625mm, -1.25mm)
-    pad 34: P_LQFP48_Lead_H at (4.1625mm, -1.75mm)
-    pad 35: P_LQFP48_Lead_H at (4.1625mm, -2.25mm)
-    pad 36: P_LQFP48_Lead_H at (4.1625mm, -2.75mm)
-    pad 37: P_LQFP48_Lead_V at (2.75mm, -4.1625mm)
-    pad 38: P_LQFP48_Lead_V at (2.25mm, -4.1625mm)
-    pad 39: P_LQFP48_Lead_V at (1.75mm, -4.1625mm)
-    pad 40: P_LQFP48_Lead_V at (1.25mm, -4.1625mm)
-    pad 41: P_LQFP48_Lead_V at (0.75mm, -4.1625mm)
-    pad 42: P_LQFP48_Lead_V at (0.25mm, -4.1625mm)
-    pad 43: P_LQFP48_Lead_V at (-0.25mm, -4.1625mm)
-    pad 44: P_LQFP48_Lead_V at (-0.75mm, -4.1625mm)
-    pad 45: P_LQFP48_Lead_V at (-1.25mm, -4.1625mm)
-    pad 46: P_LQFP48_Lead_V at (-1.75mm, -4.1625mm)
-    pad 47: P_LQFP48_Lead_V at (-2.25mm, -4.1625mm)
-    pad 48: P_LQFP48_Lead_V at (-2.75mm, -4.1625mm)
-    // RFC-031: pin 1 is the top of the LEFT lead column, so the dot lands
-    // outboard of it — an assembler cannot orient a 48-lead QFP without it.
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (9.4mm, 9.4mm) }
-    silkscreen_ref { at: (0mm, -5.2mm) }
-}
-
 // Kailh Choc V2 low-profile keyswitch land (Work Louder WL-LP-SW-55G;
 // MX-compatible cross stem), stem-centered, in the part's CANONICAL in-keyboard
 // orientation (keycap north up): contacts NORTH + NORTHEAST, locating leg
@@ -102,86 +41,6 @@ pub footprint FP_SW_Choc_V2 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (15.5mm, 15.5mm) }
 }
 
-// 1N4148W small-signal diode, SOD-123 (KiCad Diode_SMD:D_SOD-123).
-// Pad 1 = cathode (band), pad 2 = anode.
-pub footprint FP_D_SOD_123 {
-    pad 1: P_SOD123_Term at (-1.65mm, 0mm)
-    pad 2: P_SOD123_Term at (1.65mm, 0mm)
-    // RFC-031: pad 1 is the cathode (the band on the real part), so the silk
-    // band goes there — a diode fitted backwards is the classic reversal this
-    // mark exists to prevent.
-    silkscreen {
-        polarity_marker cathode_pin 1 shape band
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 1.6mm) }
-    silkscreen_ref { at: (0mm, -1.3mm) }
-}
-
-// SOT-23-6 (KiCad Package_TO_SOT_SMD:SOT-23-6) — USBLC6-2SC6 ESD array.
-pub footprint FP_SOT_23_6 {
-    pad 1: P_SOT23_6_Lead at (-1.1375mm, -0.95mm)
-    pad 2: P_SOT23_6_Lead at (-1.1375mm, 0mm)
-    pad 3: P_SOT23_6_Lead at (-1.1375mm, 0.95mm)
-    pad 4: P_SOT23_6_Lead at (1.1375mm, 0.95mm)
-    pad 5: P_SOT23_6_Lead at (1.1375mm, 0mm)
-    pad 6: P_SOT23_6_Lead at (1.1375mm, -0.95mm)
-    // RFC-031: SOT-23-6 is rotationally ambiguous by eye — pin 1 is the
-    // left column's first lead.
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.2mm) }
-    silkscreen_ref { at: (0mm, -2mm) }
-}
-
-// SK6812MINI-E REVERSE-MOUNT RGB LED (KiCad
-// LED_SMD:LED_SK6812MINI-E_3.2x2.8mm_P1.5mm_ReverseMount). Pads:
-// 1=VDD 2=DOUT 3=GND 4=DIN.
-//
-// Reverse-mount means the die faces the BOARD, not the sky: the part is
-// soldered to one side and its light leaves through a cutout in the PCB. So the
-// land pattern is only half the footprint — without the `window` the LED shines
-// into copper and laminate. The 3.4 x 3.0mm aperture is KiCad's own for this
-// part (its Edge.Cuts outline); the SK6812MINI-E datasheet Rev. 02 states no
-// cutout dimension anywhere, so this is convention, not a datasheet number.
-//
-// The four lands sit OUTSIDE the aperture (x = ±2.725, aperture half-width
-// 1.7), which is what makes the part solderable over a hole at all.
-pub footprint FP_LED_SK6812MINI_E {
-    pad 1: P_SK6812_Pad at (-2.725mm, 0.75mm)
-    pad 2: P_SK6812_Pad at (-2.725mm, -0.75mm)
-    pad 3: P_SK6812_Pad at (2.725mm, -0.75mm)
-    pad 4: P_SK6812_Pad at (2.725mm, 0.75mm)
-    window { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3mm) }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (3.6mm, 3.2mm) }
-    silkscreen_ref { at: (0mm, -2mm) }
-}
-
-// 2x3 2.54mm SMT female socket — the debug/serial port. Land pattern from
-// KiCad's PinSocket_2x03_P2.54mm_Vertical_SMD (3mm x 1mm lands, rows 2.52mm
-// either side of centre, 2.54mm pitch), TRANSPOSED from KiCad's own frame so
-// the three positions run along x and the two rows along y — i.e. the part
-// sits on the board the way the pinout is written down:
-//
-//     pad 1 GND  | pad 3 SWCLK | pad 5 SWDIO      (odd row,  y = -2.52)
-//     pad 2 GND  | pad 4 TXD   | pad 6 RXD        (even row, y = +2.52)
-//
-// Numbering is the standard 2xN convention — odd row / even row, pins 1 and 2
-// sharing the first column — so a ribbon cable lands where a reader expects.
-pub footprint FP_Socket_2x3_254_SMD {
-    pad 1: P_Socket254_Pad at (-2.54mm, -2.52mm)
-    pad 3: P_Socket254_Pad at (0mm, -2.52mm)
-    pad 5: P_Socket254_Pad at (2.54mm, -2.52mm)
-    pad 2: P_Socket254_Pad at (-2.54mm, 2.52mm)
-    pad 4: P_Socket254_Pad at (0mm, 2.52mm)
-    pad 6: P_Socket254_Pad at (2.54mm, 2.52mm)
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (8.1mm, 8.3mm) }
-    silkscreen_ref { at: (0mm, -5mm) }
-}
-
 // Capacitive-touch sense pad — a bare copper area sensed by the STM32.
 pub footprint FP_TouchPad {
     pad 1: P_TouchPad at (0mm, 0mm)
@@ -210,19 +69,17 @@ pub footprint FP_Encoder_EC11 {
     silkscreen_ref { at: (7mm, -5mm) }
 }
 
-// Alps RKJXV122400R analog ThumbPointer (dual 10k pot + center-push switch),
-// through-hole. Demo-grade land approximated from the datasheet: the two pots'
-// terminals are PERPENDICULAR — the X pot a horizontal row, the Y pot a
-// vertical column, each at 2.5mm pitch, clustered around the central boss (not
-// one collinear row). The central boss holes (4.0mm, 3.5mm) and four mounting
-// legs (1.5mm) are non-electrical mechanical holes added at fab (CoHDL has no
-// non-plated plating). Wiper = the center terminal of each pot. Pins:
-// 1=X_END_A 2=X_WIPER 3=X_END_B 4=Y_END_A 5=Y_WIPER 6=Y_END_B 7=SW_A 8=SW_B.
 // Alps RKJXV122400R ThumbPointer — two potentiometers plus a centre-push
-// switch. Geometry from the Alps "Mounting Hole Dimensions" drawing (Drawing
-// No.1, viewed from the mounting side, tolerance ±0.1) cross-checked against
-// the manufacturer's own STEP model, whose pin/boss cylinder centres are
-// ground truth; docs/rkjxv122400r-*.
+// switch, through-hole. Geometry from the Alps "Mounting Hole Dimensions"
+// drawing (Drawing No.1, viewed from the mounting side, tolerance ±0.1).
+// The drawing is the authority here: an earlier revision overrode two of its
+// coordinates with values read off the manufacturer's STEP model, and the
+// STEP transcription proved wrong (see docs/compliance-report.md, 2026-07-29).
+// The drawing separates its features by labelling: everything drilled says
+// "hole" with a tolerance; the hatched ø4 / ø3.5 / 4-ø2.6 carry NO "hole"
+// label and are the legend's "Prohibited wiring area" — surface keep-outs
+// where the part's bosses rest ON the board — so they get no drill (CoHDL has
+// no copper-keep-out construct; the router must honour them by hand).
 //
 // Origin = the lever axis (the drawing's ø4 keep-out centre). The drawing is a
 // top view, so its "up" is -y here. Ten terminals in three groups:
@@ -230,13 +87,18 @@ pub footprint FP_Encoder_EC11 {
 //        drawing's plain 1/2/3, named A1/A2/A3 here
 //   VR2  three ø1 holes on a row 8.73 above the axis, 2.5 pitch — the
 //        drawing's CIRCLED ①/②/③, named B1/B2/B3 here
-//   SW1  four ø1.2 holes at x = ±3.25, rows 4.5 apart — the drawing's
-//        a/b/c/d, named SA/SB/SC/SD here
+//   SW1  four ø1.2 holes at x = ±3.25 (the "6.5" span), rows 4.5 apart and
+//        symmetric about the switch dome's ø3.5 keep-out at y = +8 (the
+//        drawing's "8"), so rows at 5.75 / 10.25 — the drawing's a/b/c/d,
+//        named SA/SB/SC/SD here
 // (pad numbers are `[A-Z][A-Z0-9]*`, so the drawing's circled numerals and
 // lowercase switch letters get this transliteration.)
-// Plus mechanical holes carrying no net: the frame's four ø1.5 legs at
-// (±6, ±6), two ø1.6 ±0.05 locating bosses on the axis at (±4.3, 0), and ø2.6
-// clearance for the four 0.75mm-tall bosses at (±3.5, ±3.5).
+// Plus the metal frame's four ø1.5 legs at (±6.325, ±5) — the drawing's
+// "12.65" and "10" chains, half each — as PLATED, SOLDERED pads L1-L4 (the
+// datasheet: "Solder all metal inserted fixing including terminals & metal
+// lugs"), on the device's electrically dead MNT pin; and two ø1.6 ±0.05
+// locating-boss holes on the axis at (±4.3, 0) (the "8.6" chain), which stay
+// true mount_holes — a plastic peg enters each, nothing to solder.
 pub footprint FP_Joystick_RKJXV {
     pad B3: P_Joy_VrPin at (-2.5mm, -8.73mm)
     pad B2: P_Joy_VrPin at (0mm, -8.73mm)
@@ -244,32 +106,16 @@ pub footprint FP_Joystick_RKJXV {
     pad A3: P_Joy_VrPin at (8.73mm, -2.5mm)
     pad A2: P_Joy_VrPin at (8.73mm, 0mm)
     pad A1: P_Joy_VrPin at (8.73mm, 2.5mm)
-    pad SA: P_Joy_SwPin at (-3.25mm, 5.8mm)
-    pad SC: P_Joy_SwPin at (3.25mm, 5.8mm)
-    pad SB: P_Joy_SwPin at (-3.25mm, 10.3mm)
-    pad SD: P_Joy_SwPin at (3.25mm, 10.3mm)
-    mount_hole 1: non_plated at (-6mm, -6mm) diameter 1.5mm
-    mount_hole 2: non_plated at (6mm, -6mm) diameter 1.5mm
-    mount_hole 3: non_plated at (-6mm, 6mm) diameter 1.5mm
-    mount_hole 4: non_plated at (6mm, 6mm) diameter 1.5mm
-    mount_hole 5: non_plated at (-4.3mm, 0mm) diameter 1.6mm
-    mount_hole 6: non_plated at (4.3mm, 0mm) diameter 1.6mm
-    mount_hole 7: non_plated at (-3.5mm, -3.5mm) diameter 2.6mm
-    mount_hole 8: non_plated at (3.5mm, -3.5mm) diameter 2.6mm
-    mount_hole 9: non_plated at (-3.5mm, 3.5mm) diameter 2.6mm
-    mount_hole 10: non_plated at (3.5mm, 3.5mm) diameter 2.6mm
+    pad SA: P_Joy_SwPin at (-3.25mm, 5.75mm)
+    pad SC: P_Joy_SwPin at (3.25mm, 5.75mm)
+    pad SB: P_Joy_SwPin at (-3.25mm, 10.25mm)
+    pad SD: P_Joy_SwPin at (3.25mm, 10.25mm)
+    pad L1: P_Joy_Leg at (-6.325mm, -5mm)
+    pad L2: P_Joy_Leg at (6.325mm, -5mm)
+    pad L3: P_Joy_Leg at (-6.325mm, 5mm)
+    pad L4: P_Joy_Leg at (6.325mm, 5mm)
+    mount_hole 1: non_plated at (-4.3mm, 0mm) diameter 1.6mm
+    mount_hole 2: non_plated at (4.3mm, 0mm) diameter 1.6mm
     courtyard { shape: rect, at: (1.25mm, 0.5mm), size: (18.2mm, 22.4mm) }
     silkscreen_ref { at: (1.25mm, -11.5mm) }
-}
-
-// 8MHz crystal, 3.2x2.5mm 4-pad (KiCad Crystal_SMD_3225-4Pin_3.2x2.5mm).
-// Pin 1 = XIN (bottom-left), 2 = GND, 3 = XOUT (top-right), 4 = GND —
-// electrodes on the 1/3 diagonal, grounds on 2/4, per the ABM8 datasheet.
-pub footprint FP_Crystal_3225 {
-    pad 1: P_XTAL_3225 at (-1.1mm, 0.8mm)
-    pad 2: P_XTAL_3225 at (1.1mm, 0.8mm)
-    pad 3: P_XTAL_3225 at (1.1mm, -0.8mm)
-    pad 4: P_XTAL_3225 at (-1.1mm, -0.8mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3.1mm) }
-    silkscreen_ref { at: (0mm, -2.2mm) }
 }

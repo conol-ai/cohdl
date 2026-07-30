@@ -1,8 +1,8 @@
 # The CoHDL language server (`cohdl lsp`)
 
 RFC-014's LSP server: a thin JSON-RPC/stdio frontend over the exact same
-`pipeline::check` the CLI runs — the same diagnostics source, projected into
-LSP shape. Implementation: `src/lsp.rs`; conformance tests (the diagnostics
+dependency-aware pipeline the CLI runs — the same diagnostics source,
+projected into LSP shape. Implementation: `src/lsp.rs`; conformance tests (the diagnostics
 equivalence suite against `cohdl check --json` runs the full four-field
 projection over a fixture corpus): `tests/lsp.rs`. RFC-019 (DR-025) packages this server as an
 installable VS Code extension (`editors/vscode/`); a pass in a live VS Code
@@ -13,13 +13,16 @@ packaged to a `.vsix`, and grammar-coverage tested (docs/compliance-report.md).
 
 | Capability | Behavior |
 |---|---|
-| `textDocument/publishDiagnostics` | On didOpen/didChange/didSave: re-checks the file's containing project (walks up to `cohdl.toml`, else single-file + std) and publishes the RFC-010 diagnostics — code, severity, message, and range are equivalence-tested against `cohdl check --json` over the corpus in tests/lsp.rs; secondary labels and `help:` lines ride `relatedInformation` when the client advertises support for it. A project that fails to LOAD (bad manifest, broken std) surfaces as `window/showMessage` — never a false-clean empty publish |
+| `textDocument/publishDiagnostics` | On didOpen/didChange/didSave: re-checks the file's containing project (walks up to `cohdl.toml`, resolves and lock-verifies every direct dependency; otherwise treats it as a single file + std) and publishes the RFC-010 diagnostics — code, severity, message, and range are equivalence-tested against `cohdl check --json` over the corpus in tests/lsp.rs; secondary labels and `help:` lines ride `relatedInformation` when the client advertises support for it. A project that fails to load dependencies or source (bad manifest/lock, changed package, broken std) surfaces as `window/showMessage` — never a false-clean empty publish |
 | `textDocument/hover` | On an `impl Trait for Device {}` block: the resolved by-name pin/spec mappings (DR-013's ask). On a device/trait pin declaration OR any pin use site (`d.A` — obligation and role, resolved through the instance's SELECTED structural variant, RFC-008; array element references `arr[i].A` resolve through the element, RFC-024). On a unit literal (incl. a function's own generic-parameter default `<V: Voltage = 3.3V>`): its unit type and RFC-001's allowed-prefix table row. On a `part` name (RFC-017): its MPN/MFR, resolved footprint symbol, and `#[doc]` reference paths. On a `pad` DECLARATION name or a `pad N: Sym` placement (RFC-018): the pad's shape/size/layer/plating/drill. On a `mount_hole` (RFC-022/023): plating, shape, position, and diameter/size. On a `use` import (RFC-016): the resolved target's kind. On a `place` statement (RFC-020/024/026): target, position, rotation, side. On a physics attribute (RFC-027/028): the parsed constraint facts |
 | `textDocument/definition` | A device/trait/fn/part/footprint/pad name at a REFERENCE use site (inst type, impl names, generic bounds, super-traits, calls, part device refs, footprint symbol refs, pad-placement symbols — RFC-016/017/018) resolves to its declaration. The qualified path inside a `use` import resolves to the imported declaration (closes review R5-10 — `World` now retains `uses`). Instance references (net/nc members, call args, `place` targets, physics-attribute arguments — arrays' base names included) resolve to their `inst` statement or fn parameter; pin references (`d.A`, attr pin args) to the device/trait pin declaration; layout-constraint net names to the declaring `net` statement |
-| `textDocument/references` | On a trait or device name (in an `impl` or at its declaration): every `impl` statement involving it, across the project and std |
+| `textDocument/references` | On a trait or device name (in an `impl` or at its declaration): every `impl` statement involving it, across the project and its loaded dependencies |
 
 Unsaved buffers: `didChange` (full-sync) contents override the on-disk file,
 so diagnostics track what the editor shows, not what was last saved.
+Definitions can land in direct dependency source files; this is covered by a
+real manifest/lock regression in `tests/lsp.rs`. Dependency traversal is
+currently direct rather than recursive, matching the CLI's present resolver.
 
 Not included, per the RFC's non-goals: code actions, rename, semantic tokens,
 workspace symbols, incremental compilation (every event re-runs the full

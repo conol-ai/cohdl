@@ -1,6 +1,6 @@
 [package]
 name = "std"
-version = "0.2.1"
+version = "0.3.0"
 license = "MIT"
-description = "The CoHDL standard library: the core traits every component library builds on, plus the devices the demo boards need."
+description = "The CoHDL standard library: the core traits every component library builds on."
 repository = "https://github.com/conol-ai/cohdl"

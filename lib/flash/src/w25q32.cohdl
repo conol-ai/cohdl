@@ -1,0 +1,25 @@
+// ---- W25Q32 4 MiB QSPI NOR flash (XSON-8 + optional NC center metal) ----
+
+#[doc("docs/w25q32rv-datasheet.pdf")]
+pub device W25Q32 {
+    pins {
+        required CS: 1 [input] // chip select, active low
+        required IO1: 2 [bidirectional] // DO / IO1
+        required IO2: 3 [bidirectional] // /WP / IO2
+        required GND: 4 [power_in]
+        required IO0: 5 [bidirectional] // DI / IO0
+        required CLK: 6 [input]
+        required IO3: 7 [bidirectional] // /HOLD / IO3
+        required VCC: 8 [power_in]
+        // The XH package center metal is not internally connected. Winbond
+        // permits leaving it floating or connecting it to pin 4 GND.
+        optional EP: 9 [passive]
+    }
+}
+
+impl IC for W25Q32 {}
+
+#[doc("docs/w25q32rv-datasheet.pdf")]
+pub part FLASH_W25Q32: W25Q32 {
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: qfn::QFN8N50P200X300_1EP61X220 }
+}

@@ -49,9 +49,9 @@ Rules:
 - Output exactly one fenced code block marked ```cohdl containing the full
   source file, and nothing else of substance.
 - The file must contain exactly one `design` declaration.
-- Use ONLY the constructs and standard-library items in the reference below.
-- Every instance must be a std part (instantiated by name) so the BOM
-  resolves.
+- Use ONLY the constructs and pinned library items in the reference below.
+- Every instance must be a concrete part (instantiated by its qualified name)
+  so the BOM resolves.
 - If you receive compiler diagnostics, fix exactly what they report and
   return the corrected complete file.
 
@@ -316,7 +316,19 @@ def main() -> int:
         main_file = attempt_dir / "src" / "main.cohdl"
         main_file.write_text(source)
         (attempt_dir / "cohdl.toml").write_text(
-            '[package]\nname = "sensor-node"\n'
+            '[package]\n'
+            'name = "sensor-node"\n'
+            'version = "0.1.0"\n'
+            '\n'
+            '[dependencies]\n'
+            '"@espressif/esp32" = "0.1.0"\n'
+            'esd = "0.1.0"\n'
+            'ldo = "0.1.0"\n'
+            'led = "0.1.0"\n'
+            'mic = "0.1.0"\n'
+            'passive = "0.2.0"\n'
+            'std = "0.3.0"\n'
+            'usb = "0.1.0"\n'
         )
 
         # RFC-009: normalize generated source through `cohdl fmt` before we

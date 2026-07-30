@@ -48,7 +48,7 @@ pub struct Symbol {
 
 /// The last `::` segment of a (possibly fully-qualified) name — the display
 /// spelling for humans; emitters and message text use this so a resolved
-/// `std::MLCC` still reads `MLCC`.
+/// `passive::MLCC` still reads `MLCC`.
 pub fn short(name: &str) -> &str {
     name.rsplit("::").next().unwrap_or(name)
 }
@@ -1169,10 +1169,11 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                 }
             }
         }
-        // RFC-025: a pad placement's rotation is RFC-020's closed set,
-        // checked at declaration (E811) exactly like `place`'s own E1007.
+        // RFC-025: a pad placement's rotation tracks `place`'s own set, checked
+        // at declaration (E811) exactly like `place`'s E1007 — now any whole
+        // degree in 0..=359 (see that deviation note).
         for pp in &fp.pads {
-            if !matches!(pp.rotate, 0 | 90 | 180 | 270) {
+            if pp.rotate > 359 {
                 let shown = if pp.rotate == u16::MAX {
                     "that value".to_string()
                 } else {
@@ -1182,7 +1183,7 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                     "E811",
                     pp.span,
                     format!(
-                        "pad `{}` in footprint `{}`: `rotate {}` is not one of the allowed rotations {{0, 90, 180, 270}}",
+                        "pad `{}` in footprint `{}`: `rotate {}` is not a rotation — give a whole number of degrees in 0..=359 (counter-clockwise)",
                         pp.number.text, fp.name.name, shown
                     ),
                 ));

@@ -1,0 +1,20 @@
+// Padstacks used by the Raspberry Pi Pico 2 board-local footprints.
+
+// SMD tactile-switch terminal (Panasonic EVQPU-class land, 1.55x1.0mm).
+pub pad P_Switch_SMD_Tact {
+    shape: rect
+    size: (1.55mm, 1.0mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Pico 2.54mm castellation — a plated HALF-through-hole at the board edge
+// (drilled, plated, then castellated on depanel). Modeled as a plated
+// through-hole, matching KiCad's RaspberryPi_Pico_Common_THT (drill 1.0mm).
+pub pad P_Castellated {
+    shape: circle
+    size: (1.7mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1mm
+}

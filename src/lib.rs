@@ -22,4 +22,5 @@ pub mod project;
 pub mod registry;
 pub mod resolve;
 pub mod span;
+pub mod trig;
 pub mod units;

@@ -1189,15 +1189,13 @@ struct PlacedSilk {
     bottom: bool,
 }
 
-/// Rotate a pad offset by a cardinal angle (0/90/180/270, CCW) — exact
-/// integer, no trig (placements only ever use the closed rotation set, RFC-020).
+/// Rotate a pad offset by any whole-degree angle (CCW).
+///
+/// Delegates to [`crate::trig`], whose fixed-point table is exact at
+/// 0/90/180/270 — so this stays bit-identical to the exact-swap implementation
+/// it replaces for every placement authored under RFC-020's closed set.
 fn rotate(px: i128, py: i128, rot: u16) -> (i128, i128) {
-    match rot {
-        90 => (-py, px),
-        180 => (-px, -py),
-        270 => (py, -px),
-        _ => (px, py),
-    }
+    crate::trig::rotate(px, py, rot)
 }
 
 fn dedup<T: PartialEq>(v: &mut Vec<T>, x: T) -> usize {

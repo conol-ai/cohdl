@@ -1,0 +1,23 @@
+// Richtek RT6150B-33GQW: fixed 3.3 V buck-boost converter.
+#[doc("docs/rt6150a-rt6150b-datasheet.pdf")]
+pub device RT6150B {
+    pins {
+        required VOUT: 1 [power_out]
+        required LX2: 2 [passive]
+        required GND: 3, 9, 11 [power_in]
+        required LX1: 4 [passive]
+        // Pin 8 is named VINA in the datasheet and must be tied to pin 5 VIN,
+        // so both physical pins intentionally share one logical supply.
+        required VIN: 5, 8 [power_in]
+        required EN: 6 [input] // 3V3 enable
+        required PS: 7 [input] // power-save mode select
+        required FB: 10 [input] // output feedback
+    }
+}
+
+impl IC for RT6150B {}
+
+#[doc("docs/rt6150a-rt6150b-datasheet.pdf")]
+pub part BUCKBOOST_RT6150B: RT6150B {
+    primary { mfr: "Richtek", mpn: "RT6150B-33GQW", footprint: qfn::QFN10N50P250X250_1EP120X200 }
+}

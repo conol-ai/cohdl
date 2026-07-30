@@ -1,0 +1,62 @@
+pub trait Inductor {
+    designator_prefix: "L"
+}
+
+#[doc("docs/murata_dfe201612e_detailed_specification.pdf")]
+#[doc("docs/murata_lqh2mcn_detailed_specification.pdf")]
+pub device ChipInductor<L: Inductance> {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        inductance: L
+    }
+}
+
+impl Inductor for ChipInductor {}
+
+#[doc("docs/murata_dfe201612e_detailed_specification.pdf")]
+pub part IND_2U2: ChipInductor<2.2uH> {
+    primary { mfr: "Murata", mpn: "DFE201612E-2R2M=P2", footprint: FP_L_0806_2016Metric }
+}
+
+#[doc("docs/murata_lqh2mcn_detailed_specification.pdf")]
+pub part IND_3U3: ChipInductor<3.3uH> {
+    primary { mfr: "Murata", mpn: "LQH2MCN3R3M52L", footprint: FP_L_LQH2MCN_2016Metric }
+}
+
+// DFE201612E body: 2.0 +/-0.2 x 1.6 +/-0.2mm, terminal length
+// 0.5 +0.3/-0mm. IPC-7351 nominal land, checked against the official package
+// drawing in J(E)TE243A-0006D-01.
+pub pad P_Ind_0806 {
+    shape: rect
+    size: (1mm, 1.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_L_0806_2016Metric {
+    pad 1: P_Ind_0806 at (-0.95mm, 0mm)
+    pad 2: P_Ind_0806 at (0.95mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.9mm, 1.75mm) }
+    silkscreen_ref { at: (0mm, -1.75mm) }
+}
+
+// LQH2MCN_52 official reflow land (JELF243A-0060P section 11.1):
+// 2.6mm copper span, 0.8mm inner gap, and 1.0mm land width. Therefore each
+// land is 0.9 x 1.0mm and its centre is 0.85mm from the package origin.
+pub pad P_LQH2MCN_0806 {
+    shape: rect
+    size: (0.9mm, 1mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_L_LQH2MCN_2016Metric {
+    pad 1: P_LQH2MCN_0806 at (-0.85mm, 0mm)
+    pad 2: P_LQH2MCN_0806 at (0.85mm, 0mm)
+    // Body maximum 2.2 x 1.8mm plus a 0.25mm component courtyard excess.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.3mm) }
+    silkscreen_ref { at: (0mm, -1.85mm) }
+}

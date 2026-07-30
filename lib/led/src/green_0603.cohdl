@@ -1,0 +1,18 @@
+// Green 0603 user/status LED.
+#[doc("docs/wurth-150060gs75000.pdf")]
+pub part LED_GREEN: ChipLED {
+    primary { mfr: "Wurth Elektronik", mpn: "150060GS75000",
+              footprint: FP_LED_0603_1608Metric_WURTH }
+}
+
+// Wurth recommended land: two 0.8mm square pads with 2.4mm overall span
+// (datasheet page 1).
+pub footprint FP_LED_0603_1608Metric_WURTH {
+    pad 1: P_Chip_LED0603 at (-0.8mm, 0mm)
+    pad 2: P_Chip_LED0603 at (0.8mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.9mm, 1.4mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}

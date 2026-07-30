@@ -1,0 +1,47 @@
+// 3.3V LDO regulator: Diodes Inc. AP2112K-3.3 (SOT-23-5).
+// 600mA, fixed 3.3V output; needs 1uF ceramics on input and output.
+
+#[doc("docs/diodes-ap2112.pdf")]
+pub device AP2112K_3V3 {
+    pins {
+        required VIN: 1 [power_in]
+        required GND: 2 [power_in]
+        required EN: 3 [input]
+        optional NC: 4 [passive]
+        required VOUT: 5 [power_out]
+    }
+    spec {
+        voltage_rating: 6V // recommended operating maximum input voltage
+    }
+}
+
+impl IC for AP2112K_3V3 {}
+
+#[doc("docs/diodes-ap2112.pdf")]
+pub part LDO_AP2112K_3V3: AP2112K_3V3 {
+    primary { mfr: "Diodes Incorporated", mpn: "AP2112K-3.3TRG1", footprint: SOT5P95X290X160N }
+}
+
+// AP2112 SOT25 suggested land: X=0.55mm, Y=0.80mm (datasheet page 14).
+// The package is rotated 90 degrees in this footprint.
+pub pad P_SOT23_Lead {
+    shape: rect
+    size: (0.8mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+// IPC-7351 name (RFC-021): 5 leads, 0.95mm pitch, 2.90x1.60mm body, density N.
+pub footprint SOT5P95X290X160N {
+    pad 1: P_SOT23_Lead at (-1.2mm, -0.95mm)
+    pad 2: P_SOT23_Lead at (-1.2mm, 0mm)
+    pad 3: P_SOT23_Lead at (-1.2mm, 0.95mm)
+    pad 4: P_SOT23_Lead at (1.2mm, 0.95mm)
+    pad 5: P_SOT23_Lead at (1.2mm, -0.95mm)
+    // RFC-031: SOT-23-5 has no keying feature, so pin 1 gets a dot.
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.7mm, 3.5mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

@@ -2570,6 +2570,10 @@ cylinder centres, cross-checked against the drawing's labelled dimensions, which
 agree everywhere they are unambiguous. Guessing the two coordinates the bitmap
 could not resolve would have reproduced exactly the defect being fixed.
 
+> **SUPERSEDED (2026-07-29):** the paragraph above records the wrong verdict.
+> The drawing's ±6.325/±5.0 was correct all along and the STEP transcription
+> was the error — see "Joystick footprint corrections" below.
+
 Also: the footprint's origin is now the **lever axis** (the drawing's ø4
 keep-out centre), not an arbitrary pad corner, so `place joy` no longer needs
 the courtyard-centre back-offset the placeholder required — the placement moved
@@ -3075,3 +3079,685 @@ overlaps, 0 pads outside the outline. `openmicro.xml` validates against
 IPC-2581B1; 21 test binaries, `cohdl fmt --check`, and `cargo fmt --check` all
 clean. Still staged off-board and untouched here: 27 decoupling/bulk caps, 3
 resistors, and the LDO.
+
+## Bypass capacitors placed, and the RFC-024 gap that surfaced (2026-07-28)
+
+26 of the 27 bypass capacitors now sit on the same face as the part each one
+bypasses: 18 on the back (MCU ×3 100nF, the VDDA 1µF, USB-C, 13 key LEDs) and
+8 on the front with the underglow ring. Each is 1.5–3.5mm from its own pin.
+The 27th is `c_bulk`, held back for the reason given below. This
+is the electrically meaningful arrangement — a bypass cap on the far face
+reaches its pin through two vias, and that inductance is most of what the cap
+was there to avoid.
+
+**Why the example lost `decouple()`.** The caps were created inside
+`fn decouple(vdd: Pin, gnd: Pin)`, and a fn-created instance has no
+user-visible name: its path is `OpenMicro::__fn0_decouple::c`, a compiler
+internal whose numbering depends on expansion order. `place` takes an instance
+name. So placing them required hoisting all 27 into named design-level
+instances, and with no call sites left `fn decouple` became dead and was
+removed. The cost is real and worth naming: this example no longer demonstrates
+RFC-006 fn expansion or RFC-028's "one attribute annotates every call site".
+Both remain covered by `tests/quilter.rs`. The wiring is unchanged — the
+`net _: vdd, c.A` pairs always merged into the same VBUS/V3V3/GND rails, so
+the hoisted caps simply join those nets directly, and the emitted netlist has
+the same membership it had before.
+
+**A real RFC-024 gap, closed.** `#[bypass(key_leds[0].VDD, 100nF)]` did not
+parse: the attribute's argument grammar stopped at a bare identifier, so the
+`[` was a syntax error. RFC-024's accepted text is explicit that an array
+element is a valid instance reference "EVERYWHERE an ordinary instance
+reference is valid", and `#[bypass]`'s first argument is one — so this was a
+deviation, not a design limit. Without it the choice was to place the LED caps
+or declare them, not both, and 21 Quilter `bypass_capacitors.csv` rows would
+have been lost.
+
+The fix deliberately does NOT add a second index resolver. `handle_placement`
+already contained the RFC-024 logic inline; it is now extracted as
+`Expander::indexed_local` and both `place` and `#[bypass]` call it, so the two
+cannot disagree about which element an index names. Only the "you named a bare
+array" help text differs per caller, since the advice reads differently in a
+`place` than in an attribute. E211 covers a range/index-list target (one
+capacitor cannot bypass three pins) and E202 an out-of-bounds index — the same
+codes, from the same code, as everywhere else. Four tests in
+`tests/quilter.rs`; the error-code registry's E211 row now names `#[bypass]`.
+
+Verification that the hoist changed no facts: the emitted
+`bypass_capacitors.csv` target set is byte-identical to the committed one —
+same 32 (component, pin, capacitance) rows, only the capacitor designators
+renumbered.
+
+**One capacitor is deliberately still staged.** `c_bulk`
+(`#[bypass(ldo.VIN, 4.7uF)]`) has no placement, because the LDO it belongs to
+has none either. An input bulk capacitor positioned away from its regulator is
+not a bypass capacitor in any useful sense, so there is no correct answer here
+until the LDO is placed; guessing a spot would have looked complete while being
+wrong. Also still staged, and out of scope here: the LDO, and R1–R3 (the CC
+pulldowns and the BOOT0 resistor).
+
+**Crystal nudged 0.7mm.** `xtal`/`c_x1`/`c_x2` moved from x -36.5 to -37.2.
+VDDA and VSSA leave the MCU's west face and their two bypass caps have to stand
+in that gap; at -36.5 it was 1.23mm and a 0402 does not fit, which pushed the
+VDDA decoupling 4.5mm out. The oscillator pays 2.66mm -> 3.36mm on its XIN run,
+which is the cheaper of the two.
+
+Board: 95 footprints placed (up from 69), 5 staged. 0 shorts, 0 apertures
+cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard overlaps, 0 pads
+outside the outline. IPC-2581 validates; 21 test binaries, `cargo fmt`,
+clippy, and `cohdl fmt --check` across all four packages clean.
+
+## Key LEDs turned 180° for the data chain (2026-07-28)
+
+Every `key_leds[i]` placement gains `rotate 180`. The SK6812MINI-E land puts
+DOUT (pad 2) and DIN (pad 4) on opposite columns — DOUT west, DIN east as
+drawn — and the per-key chain runs left-to-right along each row. Unrotated,
+every in-row hop left the west side of one LED and had to reach the east side
+of the next, doubling back past both bodies: 24.5mm of net to cross a 19.05mm
+pitch. Turned around, DOUT faces the next LED's DIN directly and the hop is
+13.7mm of straight run.
+
+The trade is real and worth stating rather than only quoting the total. Nine
+in-row hops each save 10.9mm; the three end-of-row wraps each cost 11.2mm
+more, because the chain now finishes a row at the far side and still has to
+restart at the near side of the next. Net 349.6mm -> 285.3mm, and — the part
+that actually matters for routing — nine traces stop crossing the footprints
+they came from.
+
+Those three wraps (48.2, 65.9, 48.2mm) are inherent to a chain that always
+restarts at the left. Wiring the chain as a serpentine — row 0 left-to-right,
+row 1 right-to-left, and so on — would cut each to roughly one pitch, but it
+renumbers which physical LED is Nth in the data stream, which is a firmware
+mapping change rather than a layout one. Not done here; it is a net-list edit
+(`LED_D*`), not a placement edit, if it is ever wanted.
+
+Nothing else moved: the light window and courtyard are both centred and
+symmetric, so a half turn leaves the apertures and the bypass caps beside them
+exactly where they were. Board still 95 footprints placed, 0 shorts, 0
+apertures cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard
+overlaps, 0 pads outside the outline; IPC-2581 validates; 21 test binaries pass.
+
+## MCU moved out from under the touch electrode (2026-07-28)
+
+`place mcu` goes from `(-28.575mm, 28.575mm)` to `(-22mm, 38.5mm)`, still
+`side bottom` — right 6.6mm and down 9.9mm.
+
+**Why the old position was wrong, in a way no check catches.** The 2026-07-27
+entry recorded that putting the MCU under the 9mm capacitive electrode cost
+touch sensitivity, and listed the escape routes. The decisive problem turned
+out to be a different one: a QFP-48 on 0.5mm pitch is routed almost entirely
+through vias inside its own outline, and the package (9.49mm) is very slightly
+larger than the electrode (9mm). Every fanout via would have had to punch
+through the electrode. That is not a sensitivity trade-off, it is a layout
+impossibility — and CoHDL models connectivity and geometry, not "this copper
+is a sensor", so nothing in the pipeline could have said so.
+
+**Why right AND down.** Clearing the electrode in x alone would need the
+package east of x -23.83, which drives it into `sw[10]`'s plated leg at
+x -15.57..-13.47 — the bottom-left key's through-hole leg blocks both faces.
+Clearing in y works: the corridor between the bottom-edge underglow LEDs at
+x -33 and x -11 is free from y 33.32 down to the board edge. The package now
+sits at x -26.75..-17.25, y 33.76..43.24, clear of the electrode by 0.44mm,
+with its whole footprint free for fanout.
+
+**Seven parts followed it.** The crystal, its two load caps, and the four MCU
+bypass caps are all anchored to specific MCU pads, so they were re-solved
+against the moved package rather than left behind. The crystal again stops
+short of the package (4.4mm out, not hard against it) to keep a 0402-wide
+column open for the VDDA/VSSA pair, which leaves the same west face two pins
+along. That reservation is free: XIN still lands 3.32mm from PF0 and XOUT
+5.50mm from PF1 — within 0.05mm of the pre-move distances.
+
+**Two lengths grew, both accepted.** The TOUCH sense line is now 14.9mm of
+routed length, where it was sub-millimetre with the part sitting on the
+electrode; 15mm is ordinary for a sense trace, and it is a straight run down
+the same corner. The USB FS pair grows to ~78mm, still well inside spec for
+12Mbps signalling.
+
+Board: 95 placed, 5 staged (`C26`, `R1`–`R3`, `U2`). 0 shorts, 0 apertures
+cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard overlaps, 0 pads
+outside the outline. IPC-2581 validates; 21 test binaries pass.
+
+## Bypass capacitors handed to the auto-placer (2026-07-28)
+
+All 26 `place` statements for the bypass capacitors are removed; the caps now
+carry no coordinates and the board script stages all 27 outside the outline
+(fully outside — none straddles the edge). This reverses the placement work
+recorded earlier the same day, deliberately and at the board author's
+direction, and the reasoning is worth keeping because it is the point of
+RFC-027 rather than a change of mind about geometry.
+
+Every one of these caps carries `#[bypass(target, value)]`, and that attribute
+is precisely what an auto-placer consumes: `bypass_capacitors.csv` tells it
+which pin each capacitor serves, so it can place each one against the fanout
+that actually exists after routing. A hand-locked `place` is a guess made
+before any routing exists, and it overrides the tool that has better
+information. Removing the coordinates is not losing work — the constraint is
+the work, and the constraint is unchanged: the emitted
+`bypass_capacitors.csv` is byte-identical in its (component, pin, capacitance)
+set to the committed baseline, 32 rows over 27 capacitors.
+
+What deliberately stayed placed: `c_x1` and `c_x2`. They are the crystal's
+LOAD capacitors, not bypass capacitors — they carry no `#[bypass]`, they are
+part of the `#[crystal_oscillator]` group, and an oscillator tank is the one
+thing on this board whose geometry should not be delegated.
+
+The named-instance refactor from earlier today is kept rather than reverted to
+`decouple()`. It is no longer strictly required — nothing needs a `place` name
+right now — but naming is what makes a per-cap `place` possible at all, so it
+stays for the day one capacitor has to be pinned by hand. The RFC-024
+`#[bypass(NAME[i].PIN, …)]` fix stands on its own regardless: it closed a real
+deviation from accepted text.
+
+Board: 69 placed, 31 staged (27 bypass caps, `R1`–`R3`, `U2`). 0 shorts, 0
+apertures cutting a pad, 0 same-side courtyard overlaps among the placed set.
+`layout.json` carries 69 locked placements, and the only capacitors among them
+are the two crystal load caps. IPC-2581 validates; 21 test binaries pass.
+
+## 2026-07-28 — underglow ring halved to 8 LEDs, 2 per side at the edge thirds
+
+`ambient_leds` goes from `[RGB_SK6812; 16]` to `[RGB_SK6812; 8]` at the board
+author's direction: two per side instead of four. The positions are the THIRDS
+of each 95mm edge, x = ±15.833 (`-47.5 + 95/3` and `-47.5 + 2*95/3`), also at
+the author's direction, and they are the right choice for a reason worth
+recording.
+
+Halving the count is not the same as deleting two LEDs from each side, and the
+ring had to be respaced rather than thinned. Keeping the old inner pair (±11)
+would leave 36.5mm of dark at every corner; keeping the old outer pair (±33)
+would leave a 66mm dark gap through the middle of every edge. Respacing was
+therefore required, and among even spacings the thirds are what keep the ring
+regular AROUND THE CORNERS as well as along an edge: 31.67mm between
+neighbours on an edge and 39.13mm diagonally across each corner, a 1.236x
+spread, verified against the generated board. Quarter-points (±23.75) would
+have spaced an edge 47.5mm and a corner 27.9mm — a 1.70x spread, with the
+corners reading as bright pinch points against dim edge centres.
+
+This is a deliberate exception to the standing "do not move the ambient ring"
+constraint, and does not weaken it. That constraint exists because the ring is
+the product feature a user actually sees, so the back side gets arranged
+around its apertures rather than the other way round. It forbids moving the
+ring to make room for something else; it does not forbid the author changing
+what the ring itself is. Nothing else on the board moved to accommodate this.
+
+Everything downstream of the count followed:
+
+- The chain shortened to `UG_D0`–`UG_D7`; `nc:` now floats
+  `ambient_leds[7].DOUT`. Chain order and per-side rotations are unchanged —
+  still clockwise from the top-left, still an extra 180 degrees on the top and
+  left edges so DOUT faces the next LED's DIN.
+- `VBUS`/`GND` fan-out narrowed to `ambient_leds[0..=7]`, and the rail comment
+  from 29 RGB LEDs to 21.
+- The ring's rail capacitors went from 8 to 4 (`c_uled8`/`10`/`12`/`14`
+  dropped). The documented ratio — one 100nF per LED PAIR — is unchanged; at
+  two LEDs per side a pair is now exactly one board edge, so this reads as one
+  rail cap per side. `bypass_capacitors.csv` confirms it: `C43`/`C47`/`C48`/
+  `C49` bypass `LED1`/`LED9`/`LED11`/`LED13`, the top/right/bottom/left pairs'
+  leaders. 28 rows over 23 capacitors, down from 32 over 27.
+- `#[high_current(500mA)]` on VBUS is unchanged and deliberately so: 500mA is
+  the USB-C sink budget without PD negotiation — a supply-side limit, not a
+  sum over the LEDs — so fewer LEDs does not change it.
+
+The firmware is part of the same change, not a follow-up. `led_task` drove a
+`[Grb; 16]` ring, and an 8-LED chain would have ignored the extra eight frames
+silently while the hue rotation covered only half the wheel around the board.
+The array is now `[Grb; 8]` with the hue step raised 16 -> 32: the product of
+count and step is what has to stay at 256, not either number alone. Pin-map
+and brightness-cap comments in `main.rs`, `ws2812.rs`, `fw/README.md` and the
+companion app's blurb follow the 29 -> 21 LED total.
+
+Designators: the eight removed LEDs and four removed capacitors went to
+`design.lock`'s `[tombstones]`, so `LED3`–`LED8`, `LED15`, `LED16`, `C44`–
+`C46` and `C50` are retired rather than reused. The gaps in the BOM are
+RFC-005 stability working as specified, not an allocator fault.
+
+Board: 61 placed, 27 staged (23 bypass caps, `R1`–`R3`, `U2`). 0 shorts, 0
+apertures cutting a pad, 0 silkscreen over a pad, 0 same-side courtyard
+overlaps, 0 pads outside the outline. Ring geometry read back off the
+generated `.kicad_pcb` matches the source exactly, all eight on the front.
+`cohdl check` clean, `fmt --check` canonical, IPC-2581 validates against
+`IPC-2581B1.xsd`, output byte-stable across a repeat build, 21 test binaries
+pass, `cargo fmt --check` clean on both the compiler and the firmware crates.
+
+## 2026-07-28 — MCU + HSE tank 3mm west
+
+At the board author's direction, `mcu` moves from x -22 to -25 and the whole
+oscillator tank follows by the same 3mm (`xtal` -30.535 -> -33.535, `c_x1`
+-29.435 -> -32.435, `c_x2` -31.635 -> -34.635). y is untouched on all four.
+Moving the tank rigidly with the MCU is not optional — the load capacitors set
+CL and the loop geometry is the point of the group — and the emitted board
+confirms it held: PF0 -> XIN is still 3.318mm and each load cap still sits
+1.679mm from the terminal it loads, unchanged to the micron.
+
+Two things make west the available direction and a useful one.
+
+Available: the 0.44mm that separates the MCU from the cap-touch electrode is a
+separation in **y**, so no pure-x move can consume it. The measured figure
+after the move is identical to before, 0.435mm. The earlier note that "moving
+right-and-down is the only direction that clears it" was about escaping an
+overlap, and remains true as history; it does not constrain travel along x
+once the part is clear.
+
+Useful: the package corner was overlapping `ambient_leds[5]`'s light window by
+0.303mm. That window is an Edge.Cuts aperture — a real hole through the board,
+not a keep-out — so although no PAD was cut (the aperture-vs-pad scan was
+clean before the move and after it), the corner of a QFP-48 sat over open air,
+and a QFP-48 on 0.5mm pitch is routed almost entirely by vias inside its own
+outline. It now clears that window by 2.697mm. The next aperture east,
+`key_leds[10]`'s window, goes from 6.0mm to 9.0mm of clearance on the face
+most of the GPIO leaves by.
+
+A first draft of the source comment claimed the east-face gain as "6.0mm to
+9.0mm" against `key_leds[10]` alone, which read as if that were the nearest
+obstacle east. It was not: `ambient_leds[5]`'s window is nearer, at 2.697mm,
+and only failed to register as "east" before the move because the courtyard
+was overlapping it. The comment in `main.cohdl` names both apertures and both
+distances. Recorded because the corrected number is the one that bounds east
+fanout.
+
+Westward travel is capped at roughly 7.3mm by the crystal reaching mount hole
+`H4` — a plated M2 barrel, so it obstructs the back side too despite the
+footprint being front-side. The 3mm taken leaves 4.645mm of that headroom.
+
+Board: 61 placed, 27 staged; 0 shorts, 0 apertures cutting a pad, 0 silkscreen
+over a pad, 0 same-side courtyard overlaps, 0 pads outside the outline.
+`cohdl check` clean, `fmt --check` canonical, IPC-2581 validates, output
+byte-stable across a repeat build, 21 test binaries pass, `cargo fmt --check`
+clean.
+
+## 2026-07-28 — DEVIATION: `rotate` accepts any whole degree (RFC-020 superseded)
+
+**This is a deliberate deviation from Accepted RFC text, directed by the board
+author after the restriction was raised and explained.** RFC-020 §Design states
+`ANGLE is one of {0, 90, 180, 270}`, "a closed four-value set — not an
+open-ended angle type", and its Non-goals name both "arbitrary-angle rotation"
+and "rotation math/collision reasoning". RFC-025 reuses that set for pad
+placements. Both are now widened to any whole degree in `0..=359`, for `place`
+(E1007) and `pad … rotate` (E811) alike. The RFC text is superseded pending an
+RFC on conol.ai; nothing here should be read as the RFC having said this.
+
+`360` and above stays an error rather than reducing mod 360. A full turn is `0`,
+so nothing is lost, and `rotate 450` is far likelier a slip than a deliberate
+90. Fractional degrees are still rejected — "any rotation degree" is read as any
+whole degree, and a decimal angle would need a different literal type.
+
+### Why this needed real work rather than deleting a `matches!`
+
+Deleting the closed-set check is four lines. The reason RFC-020 closed the set
+is the arithmetic behind it, and that is what had to be built.
+
+**Determinism.** The Constitution's hard constraint is same source → same
+netlist **bytes**. `f64::sin` resolves to the platform libm, whose final bit is
+not guaranteed identical across macOS, glibc and musl, and a rotated pad
+coordinate is emitted geometry. So `src/trig.rs` is a checked-in fixed-point
+sine table (`tools/gen_trig.py`) and integer arithmetic over it — deterministic
+by construction, not by luck. Scale is `2^64`, and only 0..=90 is tabulated with
+the other quadrants derived by symmetry, which is what keeps `sin(90°)` exactly
+`2^64` and `cos(90°)` exactly `0`.
+
+Note `emit::silk` and `emit::kicad_mod` already use `f64` trig to tessellate
+arcs and circles. That precedent was deliberately NOT followed: those call sites
+round a radius-scaled result onto a femtometre grid orders coarser than the
+error, whereas a rotation scales a coordinate already at full magnitude.
+
+**Byte-compatibility, verified not assumed.** Because the table is exact at the
+cardinals, every placement authored under the closed set emits identical bytes.
+Regression-tested by rebuilding both examples: `rpi-pico2` produced a zero-byte
+git diff across all artifacts, and `openmicro`'s four artifacts hashed
+identically before and after the compiler change.
+
+**Overflow.** `emit::geom::MAX_GEOM_FEMTO` is `10^30`; multiplied by a `2^64`
+trig value the product needs 164 bits, so an `i128` multiply would wrap. Rather
+than shrink the documented coordinate bound or the trig precision, the multiply
+goes through a 128×128→256-bit intermediate and reduces by a shift (which is why
+the scale is a power of two). Both the bound and the precision keep full
+strength.
+
+**Collision reasoning.** RFC-020's other non-goal is the load-bearing one. Every
+placement check here — and every scan run against the generated board — compared
+axis-aligned bounding boxes, which are exact at 90° multiples and wrong at 45°,
+where a square's bbox is 41% oversized. `emit::silk`'s pad-extent calculation is
+now `trig::bound_half_extents`, the bounding box of the turned pad: it reduces
+to the old w/h swap at 90/270 and to the identity at 0/180, and is conservative
+between, which is the only safe direction for a standoff. **The compiler still
+does no placement collision checking**, exactly as before — that gap is
+unchanged, but it is more consequential now, because a designer can author an
+angle whose clearances no bbox can judge.
+
+### The MCU at 45 degrees — what it actually cost
+
+`place mcu … rotate 45 side bottom` is the first non-cardinal placement on
+either board. Applying it exposed how much the closed set had been hiding.
+
+At the MCU's existing `(-25, 38.5)` the turn was **not** legal, and the
+bbox-based scan said it was. Exact polygon geometry found two real violations:
+the diamond's south vertex reached 1.41mm INTO the cap-touch electrode — the
+precise defect the earlier right-and-down move existed to remove — and its west
+vertex touched the crystal's courtyard to 0.0003mm. The first scan missed the
+second because it tested intersection AREA, and two courtyards touching exactly
+have none; the scan now enforces a minimum clearance instead.
+
+A 9.39mm courtyard turned 45° is a 13.28mm diamond, and the pocket between the
+electrode (y 33.27) and the board edge (47.55) is 14.28mm — **1.00mm of slack in
+total**. The only band that fits is cy 40.35..40.60; `40.5` is its middle,
+giving 0.59mm to the electrode and 0.41mm to the board edge.
+
+The tank followed. PF0/PF1 left a flat west face and now leave a diagonal one
+pointing down-left, and the obvious move — tank on the pin normal — is
+impossible: that normal runs at the board corner and would put the crystal at
+y 47.9, off the edge. It stays west, beside the diamond. The oscillator pays
+1.29mm: PF0→XIN + PF1→XOUT is 10.10mm where it was 8.82mm. Accepted for an 8MHz
+HSE with 15pF loads, and recorded as the largest single cost of the rotation.
+
+Other measured effects: TOUCH sense 14.9 → 16.9mm; USB FS pair ~78 → ~77.7mm
+(unchanged in substance). Crystal-to-MCU 0.368mm is now the tightest same-side
+courtyard pair on the board.
+
+### Verification
+
+Exact-geometry scan (true polygon distance, 0.15mm minimum clearance): 0
+courtyard violations, 0 plan-view overlap with the touch electrode, 0 shorts, 0
+apertures cutting a pad, 0 silkscreen over a pad, 0 pads outside the outline.
+The scan's detector was itself positive-controlled by deliberately stacking
+`c_x1` on the MCU, which it reported as a 1.7205mm² overlap.
+
+`trig.rs` carries 9 unit tests (cardinal exactness, table-path/fast-path bit
+equality, Pythagorean identity across all 360 degrees, inverse-rotation
+cancellation, no overflow at `MAX_GEOM_FEMTO`). `tests/layout.rs` and
+`tests/side_rotate.rs` gained arbitrary-angle acceptance, out-of-range
+rejection, and an end-to-end IPC-2581 check that a 30° component places its pads
+at `x="-3.133974596215561"` — the fixed-point table's own value, byte-identical
+on repeat. 21 test binaries pass, `cargo fmt --check` and `clippy --all-targets`
+clean, `cohdl check`/`fmt --check` clean on both examples, openmicro output
+byte-stable across a repeat build, IPC-2581 validates against `IPC-2581B1.xsd`.
+
+## 2026-07-28 — MCU placement re-derived after a Quilter routing failure
+
+Quilter failed to route the board. This is the investigation and the fix.
+
+### What the evidence said, including where it contradicted me
+
+`out/` still holds the artifacts of a run that DID route (`openmicro.pre-quilter
+.kicad_pcb` -> `openmicro.quilter-routed.kicad_pcb`, 1978 segments, 222 vias, 2
+copper layers), so there was a working baseline to diff against rather than a
+guess to make.
+
+**First hypothesis, wrong:** that the 27 bypass capacitors staged outside the
+outline could not be routed to. The baseline refutes it — its pre-quilter input
+had **48** footprints staged off-board and Quilter moved every one onto the
+board. Staging is the supported workflow and the earlier instruction to stage
+the bypass caps was correct. Recorded because it was checked and disproved, not
+assumed.
+
+**Second finding, also a correction:** the baseline had the MCU itself staged,
+and Quilter placed it at (-20.8, -41.5) rot 0 on the TOP side. That looks like
+an argument for unlocking the MCU — but Quilter placed all 13 diodes on the top
+side too, and it does not flip parts: they were top-side because they were
+STAGED top-side. On a macropad the top is the keycap side. So wholesale
+unlocking would move the MCU and the diodes to the wrong face, and "hand it all
+back to the placer" is not available for this design. The fix had to be the
+MCU's own placement.
+
+The real regression is scope: the baseline locked 50 parts (mounting holes,
+connectors, LEDs, switches, touch pad — user-facing only) and left 48 free. The
+current board locks 61, having added the MCU, the ESD array, the crystal, both
+load caps, all 13 matrix diodes and the debug socket. The diodes and the ESD
+have defensible reasons; the MCU's hand-placement did not survive measurement.
+
+### Measurement, and a metric that had to be thrown away
+
+A first scoring pass hand-derived the mirror-then-rotate transform to predict pad
+positions. It could not reproduce the loaded board to better than 7mm, so every
+number it produced was discarded. The replacement mutates the real footprint
+through pcbnew (`SetPosition`/`SetOrientationDegrees`/`Flip`) and reads the pad
+centres back, with a self-test that asserts a 0.000000000mm round-trip before any
+candidate is scored. The bug it caught was mine — `ORIG` stored a boolean where
+the function expected `"B"`/`"F"`, so the self-test silently flipped the part.
+
+Scoring is total net length plus, weighted higher, the fraction of the 48 pads
+that can escape the package outline 2mm without hitting an obstacle. On a
+**2-layer** board a 0.5mm-pitch QFP-48 is routed almost entirely by vias inside
+its own outline, so the free collar is the routing resource, not a nicety.
+
+| placement | net length | pads escaping | collar free | TOUCH | USB DP | edge |
+|---|---|---|---|---|---|---|
+| pocket, 45 deg (failing) | 1691.7mm | — | 56% | 16.9mm | 77.7mm | 0.36mm |
+| pocket, square (earlier) | 1658.8mm | — | 84% | 14.2mm | 78.9mm | 4.30mm |
+| **left margin, rot 90** | **1626.2mm** | **100%** | — | **7.8mm** | **68.6mm** | **2.81mm** |
+
+The 45-degree turn was the worst option on every axis, and measurably so: a
+9.39mm courtyard becomes a 13.28mm diamond, the pocket it sat in is 14.28mm, and
+the diamond ate its own fanout collar (56% free against 84% for the same part
+square). The diagonal escape was the point of the turn; on two layers the collar
+it consumed was worth more.
+
+### The fix
+
+`place mcu at (-40mm, 24mm) rotate 90 side bottom` — the left margin at mid
+height, the only candidate where all 48 pads escape. The tank follows onto the
+MCU's +y face, where PF0/PF1 now emerge into open margin instead of pointing at
+a board corner: `xtal (-39.5, 31.5) rotate 180`, caps at (-36.2, 33.8) and
+(-42.8, 31.5).
+
+Every net that matters got SHORTER, which is unusual for a placement move and is
+why this is recorded as a fix rather than a trade: TOUCH sense 16.9 -> 7.8mm, USB
+FS pair 77.7 -> 68.6mm, HSE loop 10.10 -> 6.90mm — shorter than the 8.82mm it was
+before the 45-degree experiment — total net length 1691.7 -> 1626.2mm. The
+via-through-electrode constraint is now satisfied by 1.94mm of X separation
+rather than a 0.44mm Y margin, so it holds by construction.
+
+### Two things this does NOT fix, both flagged rather than decided
+
+1. **The board is 2 copper layers.** `tools/kicad_board.py` never calls
+   `SetCopperLayerCount`, so every generated board is 2-layer by default. For a
+   0.5mm-pitch QFP-48 plus 88 components, 66 nets, two WS2812 chains and parts
+   on both faces, that is the most likely remaining cause of a routing failure,
+   and no placement can compensate for it. A 4-layer variant already exists in
+   `out/openmicro-manual-placement.kicad_pcb`. Raising the layer count is a
+   product decision, not a placement one, so it is left to the board author.
+2. **The GPIO map is stale.** `openmicro_parts.cohdl`'s position-aware ROW/COL/
+   feature-pin assignment was derived for a long-superseded TOP-left MCU. It has
+   now been wrong for three placements running, and re-deriving it is the obvious
+   next lever.
+
+### Verification
+
+Exact-geometry scan (true polygon distance, 0.15mm minimum clearance): 0
+courtyard violations, 0 plan-view overlap with the touch electrode, 0 shorts, 0
+apertures cutting a pad, 0 silkscreen over a pad, 0 pads outside the outline.
+61 placed / 27 staged. `cohdl check` and `fmt --check` clean, output byte-stable
+across a repeat build, IPC-2581 validates against `IPC-2581B1.xsd`, 21 test
+binaries pass, `cargo fmt --check` clean, `rpi-pico2` untouched.
+
+## 2026-07-28 — perimeter underglow ring removed entirely
+
+At the board author's direction, after Quilter still failed to route: the
+underglow ring is deleted rather than reduced again. `ambient_leds` and its four
+rail capacitors are gone, along with the `UG_D0`–`UG_D7` chain and every ring
+`place`.
+
+### Why this is a routing change and not just a feature cut
+
+Each SK6812MINI-E is REVERSE-MOUNT: it fires through the board, so its footprint
+carries a 3.4 x 3.0mm `window` — an Edge.Cuts aperture, a real hole. A hole
+blocks BOTH copper layers. Eight of them sat around the perimeter at the edge
+thirds, which is precisely the outer routing channel a 2-layer board needs for
+the rail and matrix nets that have to get past the key field.
+
+Measured with one script across both boards, so the two numbers are comparable:
+the outer 8mm perimeter collar goes from **83.9% to 88.5% free**, and interior
+Edge.Cuts items from **29 to 13**. Footprints 88 -> 76, nets 66 -> 58. No
+rearrangement of the ring could have returned that channel — only removing it.
+
+An earlier note in this file recorded that the ring's even spacing "IS the
+feature" and that the back side gets arranged around its apertures rather than
+the other way round. That reasoning stands as written and is now moot: the
+feature was cut, so nothing is being arranged around it any more.
+
+### Consequences carried through
+
+- `mcu.LED_DATA_UG` (PA0) now drives nothing and moves to `nc:` — RFC-002
+  requires every `required` pin be resolved, so this is not optional. PA0 is
+  left free rather than repurposed, so restoring a ring is a net edit plus a
+  `place` block, nothing structural.
+- `bypass_capacitors.csv` drops the four ring rail caps: 25 rows, from 28.
+- Designators: `LED1`, `LED2`, `LED9`–`LED14` and `C43`, `C47`–`C49` go to
+  `design.lock`'s `[tombstones]`. The surviving 13 key LEDs keep `LED17`–`LED29`
+  unchanged — RFC-005 stability, which is why the BOM reads from LED17.
+- Firmware: `led_task` loses its second chain and its `led_ug` argument, the
+  `[Grb; 8]` ring array and hue rotation are gone, and `ws2812.rs` is documented
+  as a single-chain driver. Builds clean for `thumbv6m-none-eabi` with no
+  warnings. LED totals 21 -> 13 across `fw/README.md` and the companion app.
+
+### Still outstanding, unchanged by this
+
+The board remains **2 copper layers** (`tools/kicad_board.py` never calls
+`SetCopperLayerCount`), and `openmicro_parts.cohdl`'s position-aware GPIO map is
+still derived for a long-superseded top-left MCU. Both were flagged in the
+previous entry and neither is a placement question.
+
+### Verification
+
+Exact-geometry scan: 0 courtyard violations at 0.15mm minimum clearance, 0
+plan-view overlap with the touch electrode, 0 shorts, 0 apertures cutting a pad,
+0 silkscreen over a pad, 0 pads outside the outline. `cohdl check` and
+`fmt --check` clean, output byte-stable across a repeat build, IPC-2581 validates
+against `IPC-2581B1.xsd`, 21 test binaries pass, `cargo fmt --check` clean on the
+compiler and the firmware, `rpi-pico2` untouched.
+
+## 2026-07-28 — underglow ring restored; GPIO map re-derived for the current MCU
+
+Two changes at the board author's direction: the 8-LED perimeter ring comes
+back at the edge thirds, and the position-aware GPIO assignment — flagged stale
+in the two previous entries — is finally re-derived.
+
+### The ring costs what it cost before, and that is now recorded in the source
+
+Restored exactly as specified: 2 per side at the thirds of each 95mm edge
+(x = ±15.833), 4.0mm inset, top and left carrying the extra 180 degrees so each
+DOUT faces the next DIN. `mcu.LED_DATA_UG` leaves `nc:` and drives the chain
+again; the four per-side rail capacitors return (`bypass_capacitors.csv` back to
+29 rows).
+
+Its price is unchanged and is not the parts: each SK6812MINI-E is reverse-mount,
+so it carries a 3.4 x 3.0mm `window`, and a window is an Edge.Cuts aperture that
+blocks BOTH copper layers. Eight of them narrow the outer routing collar from
+88.5% to 83.9% free. That measurement is now written into `main.cohdl` beside
+the ring's own `place` block rather than living only in this ledger.
+
+### GPIO: the honest result is that length was never the lever
+
+The map was assigned position-aware for a TOP-left MCU and had survived three
+placements without being revisited. Re-derived as a minimum-cost assignment of
+functions onto free LQFP-48 pads.
+
+Total pin-to-target length barely moves: **1061.3 -> 1016.8mm, 4.2%**. That is
+the real finding, and it contradicts how the staleness was described in the two
+previous entries — all 48 pads live inside a 9.4mm square while the targets are
+spread over a 95mm board, so which pad a function gets cannot change the long
+run. Re-deriving the map for LENGTH would have been close to pointless.
+
+What it does change is escape DIRECTION. A pad whose bearing to its own target
+exceeds 90 degrees has to wrap its trace back around the package, and on a
+2-layer 0.5mm-pitch QFP-48 fanout that is what congests. Wrapping nets go from
+**8 of 19 to 2 of 19** (mean mismatch 79.0 -> 42.7 degrees). The eight were
+`ENC_A`, `ENC_B`, `ENC_SW`, `JOY_X`, `JOY_Y`, `UART_RX`, `UART_TX`, `UG_D0`.
+
+The surviving two are `JOY_X`/`JOY_Y` and they are not fixable: ADC_IN8/IN9 are
+bonded to PB0/PB1 (and the rest of ADC_IN0..9 to PA0..PA7) on this package, so
+the analog pair cannot leave that face whatever the assignment.
+
+Constraints the optimiser was given, none of them discovered by it:
+  * PC13/PC14/PC15 sit behind the VBAT power switch — a few mA of drive, low
+    speed cap — so they may only carry pins that are READ. They hold COL2/COL3
+    (inputs with pull-down under COL2ROW); the encoder they used to hold moved
+    to PB12/PB13/PB15. Without this the solver cheerfully put TOUCH, which has
+    to drive a charge cycle, on PC13.
+  * `JOY_X`/`JOY_Y` must be ADC inputs; `UART_TX`/`UART_RX` must be a real USART
+    pair on this package.
+
+USART1 over AF0 (PB6/PB7) is now reachable and was chosen. The old map had
+PA9/PA10 *and* PB6/PB7 all consumed by the matrix, which is why the console was
+pushed onto USART2; moving ROW1 to PA10 and COL1 to PB5 frees the AF0 pair, and
+it lands 4.9mm and 7.0mm closer to the debug socket.
+
+### A wrong answer that a second measurement caught
+
+The first solve inferred each net's target from a designator: array element
+`d[i]` was assumed to carry designator `D(i+1)`. RFC-005 tombstones make that
+false — `COL0` actually lands on D6/D10, not D3/D7 — so the solver optimised
+against partly-fictional geometry and produced a map that left `COL0` wrapping
+at 106.8 degrees while reporting 2 wraps. It was caught by a separate checker
+that reads U3's pad->net assignment straight out of the generated `.kicad_pcb`
+and is told nothing about what the answer should be. The solver now derives
+every target from the net itself; no designator is inferred anywhere.
+
+A second mechanical check compares all 17 firmware pin bindings against the
+`.cohdl` device declaration, since a silent divergence there is a functional bug
+no board scan would find. It passes.
+
+### Firmware
+
+Follows the new map: rows PA9/PA10/PB3/PB8, columns PB4/PB5/PC14/PC13, encoder
+PB12/PB13/PB15, joystick push PA15, `JOY_Y` on PA0/ADC_IN0, key chain PA8, ring
+chain PB14. The ring renderer returns as `[Grb; 8]` with a 256/8 hue step. A
+comment records that COL2/COL3 are on limited-drive pins and must never be
+turned into outputs. Builds clean for `thumbv6m-none-eabi`, no warnings.
+
+### Still outstanding
+
+The board remains **2 copper layers** (`tools/kicad_board.py` never calls
+`SetCopperLayerCount`). With the ring's eight through-board apertures back, this
+is now the only large lever left untried, and it is a product decision.
+
+### Verification
+
+Exact-geometry scan: 0 courtyard violations at 0.15mm minimum clearance, 0
+plan-view overlap with the touch electrode, 0 shorts, 0 apertures cutting a pad,
+0 silkscreen over a pad, 0 pads outside the outline. GPIO result re-measured off
+the built board, independent of the solver: 3 of 26 MCU signal pads face away,
+and all three are unfixable (`JOY_X`, `JOY_Y`, and `SWDIO` on its fixed PA13).
+`cohdl check` and `fmt --check` clean, output byte-stable across a repeat build,
+IPC-2581 validates, 21 test binaries pass, `cargo fmt --check` clean on both the
+compiler and the firmware, `rpi-pico2` untouched.
+
+## Joystick footprint corrections — the drawing was right, the STEP read was not (2026-07-29)
+
+A physical check found the joystick's ø1.5 frame-leg holes in the wrong place.
+Re-derived `FP_Joystick_RKJXV` from the Alps mounting-hole drawing (Drawing
+No.1, ±0.1), this time decoding the bitmap deliberately: the drawing was
+upscaled, gridded, calibrated on the 2.5mm terminal pitch, and every dimension
+chain attached to a measured feature — not guessed. Three defects, one
+principle:
+
+**1. Frame legs moved (±6.0, ±6.0) -> (±6.325, ±5.0).** The "12.65" chain
+spans the two leg columns and "10" the two leg rows; halved, that is
+±6.325/±5.0 exactly, and pixel measurement agrees (x = ±6.4 ± 0.1,
+y = ±5.0 ± 0.15). This is the value the 2026-07-26 audit *rejected*: the STEP
+transcription that overruled it was itself the misread. Everything sourced
+from the STEP alone was therefore re-checked against the drawing.
+
+**2. The four ø2.6 "holes" are not holes.** The drawing labels every drilled
+feature "hole" with its own tolerance (6-ø1, 4-ø1.5, 2-ø1.6 ±0.05, 4-ø1.2);
+the hatched ø4 / ø3.5 / 4-ø2.6 carry no such label and hatch = the legend's
+"Prohibited wiring area". They are surface keep-outs — the four ø2.6 circles
+are where the part's 0.75mm-tall bosses REST on the board — so drilling them
+removed the very surface the part seats on. The four NPTH `mount_hole`s are
+deleted; only the 2-ø1.6 ±0.05 locating holes remain drilled (a peg enters
+each). CoHDL has no copper-keep-out construct, so the prohibited areas
+survive only as a footprint comment for the router.
+
+**3. Legs are soldered, and the switch group re-anchored.** The datasheet's
+soldering caution — "Solder all metal inserted fixing including terminals &
+metal lugs into a substrate" — names the frame lugs, so the legs became
+plated 2.2mm pads (`P_Joy_Leg`, 0.35mm ring like the family's other pads) on
+a new electrically dead `optional MNT: L1-L4` pin, tied to GND in the design
+exactly like the EC11's mounting posts. And the switch rows moved
+5.8/10.3 -> 5.75/10.25: the drawing anchors the dome's ø3.5 keep-out at
+y = +8 (the left-side "8") with the "4.5" row span symmetric about it; the
+0.05 offset was STEP-only data, within tolerance but not the drawing's word.
+
+Consequences: `openmicro.net` changes (joy MNT joins GND), the emitted
+footprint/IPC geometry changes, and the hand-layouted `openmicro.kicad_pcb`
+(plus the gerbers and position files cut from it) carries the stale joystick
+until J1 is re-imported and its region re-routed. BOM, designators and
+`layout.json` are unchanged.

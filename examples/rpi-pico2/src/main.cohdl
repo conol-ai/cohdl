@@ -2,29 +2,29 @@
 //
 // Transcribed from the Raspberry Pi Pico 2 datasheet (Appendix B, Figure 11):
 // USB-C power/data (HRO TYPE-C-31-M-12, UFP with 5.1k CC pulldowns,
-// USBLC6 ESD — the same front-end as the openmicro board), RT6150 buck-boost 3V3 rail, RP2350A with its on-chip
-// core regulator, 4 MiB QSPI flash, 12 MHz crystal, BOOTSEL button, user LED,
-// SWD header, and the 40-pin castellated GPIO edge. Device pinouts and part
-// bindings live in pico_parts.cohdl.
+// USBLC6 ESD), RT6150 buck-boost 3V3 rail, RP2350A with its on-chip core
+// regulator, 4 MiB QSPI flash, 12 MHz crystal, BOOTSEL button, user LED, SWD
+// header, and the 40-pin castellated GPIO edge. Reusable components come from
+// catalog packages; only Pico-specific board interfaces remain local.
 
 design Pico2 {
     // ---- major devices ----
-    inst mcu: RP2350A_QFN60
-    inst reg: BUCKBOOST_RT6150B
-    inst flash: FLASH_W25Q32
+    inst mcu: raspberrypi_mcu::RP2350A_QFN60
+    inst reg: richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B
+    inst flash: flash::FLASH_W25Q32
     #[placement_hint("close to XIN/XOUT with short, guarded traces")]
-    inst xtal: XTAL_12MHZ
+    inst xtal: osc::XTAL_12MHZ
     #[placement_hint("board edge, USB-C cutout")]
-    inst usb: USB_C_HRO_TYPE_C_31_M_12
-    inst esd: ESD_USBLC6
+    inst usb: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
+    inst esd: esd::ESD_USBLC6
     inst hdr: HEADER_40W
-    inst swd: HEADER_SWD_3W
+    inst swd: connectors::headers::castellated_254::HEADER_SWD_3W
     inst boot: BOOTSEL_SW
-    inst led: LED_GREEN
-    inst d_vbus: SCHOTTKY_PMEG6010
-    inst q_vsys: FET_DMG1012T
-    inst l_reg: IND_2U2
-    inst l_core: IND_3U3
+    inst led: led::LED_GREEN
+    inst d_vbus: diode::SCHOTTKY_PMEG6010
+    inst q_vsys: mosfet::FET_DMG1012T
+    inst l_reg: passive::IND_2U2
+    inst l_core: passive::IND_3U3
 
     // ---- discrete R/C ----
     inst r_led: passive::R_470R_F_0201
@@ -90,19 +90,19 @@ design Pico2 {
 
     // ---- QSPI to the XIP flash; QSPI_SS is also the BOOTSEL strap ----
     net QSPI_SS: mcu.QSPI_SS, flash.CS, r_boot.A
-    net QSPI_SCLK: mcu.QSPI_SCLK, flash.SCLK
-    net QSPI_SD0: mcu.QSPI_SD0, flash.SD0
-    net QSPI_SD1: mcu.QSPI_SD1, flash.SD1
-    net QSPI_SD2: mcu.QSPI_SD2, flash.SD2
-    net QSPI_SD3: mcu.QSPI_SD3, flash.SD3
+    net QSPI_SCLK: mcu.QSPI_SCLK, flash.CLK
+    net QSPI_SD0: mcu.QSPI_SD0, flash.IO0
+    net QSPI_SD1: mcu.QSPI_SD1, flash.IO1
+    net QSPI_SD2: mcu.QSPI_SD2, flash.IO2
+    net QSPI_SD3: mcu.QSPI_SD3, flash.IO3
     #[intent("holding BOOTSEL at power-up pulls QSPI_SS low, so the RP2350 enters USB mass-storage bootloader instead of running flash")]
     net BOOTSEL: r_boot.B, boot.A
 
     // ---- SWD debug (100R series) + RUN reset on the header ----
     net SWCLK: mcu.SWCLK, r_swclk.A
-    net SWCLK_H: r_swclk.B, swd.SWCLK
+    net SWCLK_H: r_swclk.B, swd.P1
     net SWDIO: mcu.SWDIO, r_swdio.A
-    net SWDIO_H: r_swdio.B, swd.SWDIO
+    net SWDIO_H: r_swdio.B, swd.P3
     net RUN: mcu.RUN, hdr.RUN
 
     // ---- user LED on GPIO25 ----
@@ -121,7 +121,7 @@ design Pico2 {
     // ---- ground (analog ground ties to the digital plane at the header) ----
     #[ground(primary)]
     net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
-                   esd.GND, rcc1.B, rcc2.B, swd.GND, boot.B, led.Cathode, hdr.GND, hdr.AGND,
+                   esd.GND, rcc1.B, rcc2.B, swd.P2, boot.B, led.Cathode, hdr.GND, hdr.AGND,
                    r_vbus_bot.B, r_ps.B, r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B,
                    c_adc.B, c_vreg_avdd.B
 

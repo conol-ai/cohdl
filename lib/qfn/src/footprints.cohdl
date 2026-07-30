@@ -1,0 +1,379 @@
+// QFN, DFN, and SON land patterns.
+//
+// This 7x7mm, 0.40mm-pitch geometry comes from Espressif's official
+// ESP32-S3 PADS source:
+// https://www.espressif.com/sites/default/files/chips-dxf/ESP32-S3_Footprint.asc
+// Retrieved 2026-07-30; SHA-256
+// 2f0e059f9ecef4350413068280a14e6f1f3e3792f512116b27138d4a6810fb5c.
+//
+// The CAD coordinates were checked against the package and recommended-land-
+// pattern drawings in the ESP32-S3 Series Datasheet v2.2.
+
+// QFN56 perimeter lead land: 0.22mm tangential x 0.65mm radial, 0.40mm
+// pitch. Left/right placements use this orientation directly; top/bottom
+// placements rotate it by 90 degrees.
+pub pad P_QFN56N40P700X700_LEAD {
+    shape: rect
+    size: (0.65mm, 0.22mm)
+    layer: top_copper
+    plating: smd
+}
+
+// The source uses its same-size oval-finger pad stack at the two leads
+// flanking the pin-1 package corner (pins 1 and 56).
+pub pad P_QFN56N40P700X700_LEAD_CORNER {
+    shape: oval
+    size: (0.65mm, 0.22mm)
+    layer: top_copper
+    plating: smd
+}
+
+// The PADS source composes EP pin 57 from a 3x3 grid of 1.0x1.0mm copper
+// regions on 1.5mm centres (4.0x4.0mm overall), with thermal vias and segmented
+// paste. CoHDL cannot repeat pad number 57 or express independent paste/mask
+// apertures, so this pad preserves the official full copper envelope. Segment
+// the paste into the official 3x3 grid and add the thermal vias during layout.
+pub pad P_QFN56N40P700X700_EP400X400 {
+    shape: rect
+    size: (4mm, 4mm)
+    layer: top_copper
+    plating: smd
+}
+
+// QFN56, 7x7mm body, 0.40mm pitch, 4x4mm exposed pad. Origin is package
+// centre; numbering follows the top view counter-clockwise from pin 1 at the
+// upper left. Espressif's ASC is Cartesian +Y-up, so Y is negated for
+// CoHDL/KiCad.
+pub footprint QFN56N40P700X700_1EP400X400 {
+    pad 1: P_QFN56N40P700X700_LEAD_CORNER at (-3.425mm, -2.6mm)
+    pad 2: P_QFN56N40P700X700_LEAD at (-3.425mm, -2.2mm)
+    pad 3: P_QFN56N40P700X700_LEAD at (-3.425mm, -1.8mm)
+    pad 4: P_QFN56N40P700X700_LEAD at (-3.425mm, -1.4mm)
+    pad 5: P_QFN56N40P700X700_LEAD at (-3.425mm, -1mm)
+    pad 6: P_QFN56N40P700X700_LEAD at (-3.425mm, -0.6mm)
+    pad 7: P_QFN56N40P700X700_LEAD at (-3.425mm, -0.2mm)
+    pad 8: P_QFN56N40P700X700_LEAD at (-3.425mm, 0.2mm)
+    pad 9: P_QFN56N40P700X700_LEAD at (-3.425mm, 0.6mm)
+    pad 10: P_QFN56N40P700X700_LEAD at (-3.425mm, 1mm)
+    pad 11: P_QFN56N40P700X700_LEAD at (-3.425mm, 1.4mm)
+    pad 12: P_QFN56N40P700X700_LEAD at (-3.425mm, 1.8mm)
+    pad 13: P_QFN56N40P700X700_LEAD at (-3.425mm, 2.2mm)
+    pad 14: P_QFN56N40P700X700_LEAD at (-3.425mm, 2.6mm)
+    pad 15: P_QFN56N40P700X700_LEAD at (-2.6mm, 3.425mm) rotate 90
+    pad 16: P_QFN56N40P700X700_LEAD at (-2.2mm, 3.425mm) rotate 90
+    pad 17: P_QFN56N40P700X700_LEAD at (-1.8mm, 3.425mm) rotate 90
+    pad 18: P_QFN56N40P700X700_LEAD at (-1.4mm, 3.425mm) rotate 90
+    pad 19: P_QFN56N40P700X700_LEAD at (-1mm, 3.425mm) rotate 90
+    pad 20: P_QFN56N40P700X700_LEAD at (-0.6mm, 3.425mm) rotate 90
+    pad 21: P_QFN56N40P700X700_LEAD at (-0.2mm, 3.425mm) rotate 90
+    pad 22: P_QFN56N40P700X700_LEAD at (0.2mm, 3.425mm) rotate 90
+    pad 23: P_QFN56N40P700X700_LEAD at (0.6mm, 3.425mm) rotate 90
+    pad 24: P_QFN56N40P700X700_LEAD at (1mm, 3.425mm) rotate 90
+    pad 25: P_QFN56N40P700X700_LEAD at (1.4mm, 3.425mm) rotate 90
+    pad 26: P_QFN56N40P700X700_LEAD at (1.8mm, 3.425mm) rotate 90
+    pad 27: P_QFN56N40P700X700_LEAD at (2.2mm, 3.425mm) rotate 90
+    pad 28: P_QFN56N40P700X700_LEAD at (2.6mm, 3.425mm) rotate 90
+    pad 29: P_QFN56N40P700X700_LEAD at (3.425mm, 2.6mm)
+    pad 30: P_QFN56N40P700X700_LEAD at (3.425mm, 2.2mm)
+    pad 31: P_QFN56N40P700X700_LEAD at (3.425mm, 1.8mm)
+    pad 32: P_QFN56N40P700X700_LEAD at (3.425mm, 1.4mm)
+    pad 33: P_QFN56N40P700X700_LEAD at (3.425mm, 1mm)
+    pad 34: P_QFN56N40P700X700_LEAD at (3.425mm, 0.6mm)
+    pad 35: P_QFN56N40P700X700_LEAD at (3.425mm, 0.2mm)
+    pad 36: P_QFN56N40P700X700_LEAD at (3.425mm, -0.2mm)
+    pad 37: P_QFN56N40P700X700_LEAD at (3.425mm, -0.6mm)
+    pad 38: P_QFN56N40P700X700_LEAD at (3.425mm, -1mm)
+    pad 39: P_QFN56N40P700X700_LEAD at (3.425mm, -1.4mm)
+    pad 40: P_QFN56N40P700X700_LEAD at (3.425mm, -1.8mm)
+    pad 41: P_QFN56N40P700X700_LEAD at (3.425mm, -2.2mm)
+    pad 42: P_QFN56N40P700X700_LEAD at (3.425mm, -2.6mm)
+    pad 43: P_QFN56N40P700X700_LEAD at (2.6mm, -3.425mm) rotate 90
+    pad 44: P_QFN56N40P700X700_LEAD at (2.2mm, -3.425mm) rotate 90
+    pad 45: P_QFN56N40P700X700_LEAD at (1.8mm, -3.425mm) rotate 90
+    pad 46: P_QFN56N40P700X700_LEAD at (1.4mm, -3.425mm) rotate 90
+    pad 47: P_QFN56N40P700X700_LEAD at (1mm, -3.425mm) rotate 90
+    pad 48: P_QFN56N40P700X700_LEAD at (0.6mm, -3.425mm) rotate 90
+    pad 49: P_QFN56N40P700X700_LEAD at (0.2mm, -3.425mm) rotate 90
+    pad 50: P_QFN56N40P700X700_LEAD at (-0.2mm, -3.425mm) rotate 90
+    pad 51: P_QFN56N40P700X700_LEAD at (-0.6mm, -3.425mm) rotate 90
+    pad 52: P_QFN56N40P700X700_LEAD at (-1mm, -3.425mm) rotate 90
+    pad 53: P_QFN56N40P700X700_LEAD at (-1.4mm, -3.425mm) rotate 90
+    pad 54: P_QFN56N40P700X700_LEAD at (-1.8mm, -3.425mm) rotate 90
+    pad 55: P_QFN56N40P700X700_LEAD at (-2.2mm, -3.425mm) rotate 90
+    pad 56: P_QFN56N40P700X700_LEAD_CORNER at (-2.6mm, -3.425mm) rotate 90
+    pad 57: P_QFN56N40P700X700_EP400X400 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.7mm, 7.7mm) }
+    silkscreen_ref { at: (0mm, -4.4mm) }
+}
+
+// Raspberry Pi RP2350 datasheet build 2025-07-29, Figure 144:
+// https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf
+//
+// The official land pattern has 60 perimeter lands at 0.40mm pitch,
+// 0.875x0.20mm lands, 7.75mm overall land span, and a 3.40x3.40mm
+// exposed pad. Datasheet +Y is negated for CoHDL/KiCad. CoHDL represents
+// the exposed copper as one pad; paste segmentation and thermal vias remain
+// board-manufacturing decisions.
+pub pad P_QFN60N40P700X700_LEAD_H {
+    shape: rect
+    size: (0.875mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN60N40P700X700_LEAD_V {
+    shape: rect
+    size: (0.2mm, 0.875mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN60N40P700X700_EP340X340 {
+    shape: rect
+    size: (3.4mm, 3.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN60N40P700X700_1EP340X340 {
+    pad 1: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -2.8mm)
+    pad 2: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -2.4mm)
+    pad 3: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -2mm)
+    pad 4: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -1.6mm)
+    pad 5: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -1.2mm)
+    pad 6: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -0.8mm)
+    pad 7: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, -0.4mm)
+    pad 8: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 0mm)
+    pad 9: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 0.4mm)
+    pad 10: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 0.8mm)
+    pad 11: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 1.2mm)
+    pad 12: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 1.6mm)
+    pad 13: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 2mm)
+    pad 14: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 2.4mm)
+    pad 15: P_QFN60N40P700X700_LEAD_H at (-3.4375mm, 2.8mm)
+    pad 16: P_QFN60N40P700X700_LEAD_V at (-2.8mm, 3.4375mm)
+    pad 17: P_QFN60N40P700X700_LEAD_V at (-2.4mm, 3.4375mm)
+    pad 18: P_QFN60N40P700X700_LEAD_V at (-2mm, 3.4375mm)
+    pad 19: P_QFN60N40P700X700_LEAD_V at (-1.6mm, 3.4375mm)
+    pad 20: P_QFN60N40P700X700_LEAD_V at (-1.2mm, 3.4375mm)
+    pad 21: P_QFN60N40P700X700_LEAD_V at (-0.8mm, 3.4375mm)
+    pad 22: P_QFN60N40P700X700_LEAD_V at (-0.4mm, 3.4375mm)
+    pad 23: P_QFN60N40P700X700_LEAD_V at (0mm, 3.4375mm)
+    pad 24: P_QFN60N40P700X700_LEAD_V at (0.4mm, 3.4375mm)
+    pad 25: P_QFN60N40P700X700_LEAD_V at (0.8mm, 3.4375mm)
+    pad 26: P_QFN60N40P700X700_LEAD_V at (1.2mm, 3.4375mm)
+    pad 27: P_QFN60N40P700X700_LEAD_V at (1.6mm, 3.4375mm)
+    pad 28: P_QFN60N40P700X700_LEAD_V at (2mm, 3.4375mm)
+    pad 29: P_QFN60N40P700X700_LEAD_V at (2.4mm, 3.4375mm)
+    pad 30: P_QFN60N40P700X700_LEAD_V at (2.8mm, 3.4375mm)
+    pad 31: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 2.8mm)
+    pad 32: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 2.4mm)
+    pad 33: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 2mm)
+    pad 34: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 1.6mm)
+    pad 35: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 1.2mm)
+    pad 36: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 0.8mm)
+    pad 37: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 0.4mm)
+    pad 38: P_QFN60N40P700X700_LEAD_H at (3.4375mm, 0mm)
+    pad 39: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -0.4mm)
+    pad 40: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -0.8mm)
+    pad 41: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -1.2mm)
+    pad 42: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -1.6mm)
+    pad 43: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -2mm)
+    pad 44: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -2.4mm)
+    pad 45: P_QFN60N40P700X700_LEAD_H at (3.4375mm, -2.8mm)
+    pad 46: P_QFN60N40P700X700_LEAD_V at (2.8mm, -3.4375mm)
+    pad 47: P_QFN60N40P700X700_LEAD_V at (2.4mm, -3.4375mm)
+    pad 48: P_QFN60N40P700X700_LEAD_V at (2mm, -3.4375mm)
+    pad 49: P_QFN60N40P700X700_LEAD_V at (1.6mm, -3.4375mm)
+    pad 50: P_QFN60N40P700X700_LEAD_V at (1.2mm, -3.4375mm)
+    pad 51: P_QFN60N40P700X700_LEAD_V at (0.8mm, -3.4375mm)
+    pad 52: P_QFN60N40P700X700_LEAD_V at (0.4mm, -3.4375mm)
+    pad 53: P_QFN60N40P700X700_LEAD_V at (0mm, -3.4375mm)
+    pad 54: P_QFN60N40P700X700_LEAD_V at (-0.4mm, -3.4375mm)
+    pad 55: P_QFN60N40P700X700_LEAD_V at (-0.8mm, -3.4375mm)
+    pad 56: P_QFN60N40P700X700_LEAD_V at (-1.2mm, -3.4375mm)
+    pad 57: P_QFN60N40P700X700_LEAD_V at (-1.6mm, -3.4375mm)
+    pad 58: P_QFN60N40P700X700_LEAD_V at (-2mm, -3.4375mm)
+    pad 59: P_QFN60N40P700X700_LEAD_V at (-2.4mm, -3.4375mm)
+    pad 60: P_QFN60N40P700X700_LEAD_V at (-2.8mm, -3.4375mm)
+    pad 61: P_QFN60N40P700X700_EP340X340 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.25mm, 8.25mm) }
+    silkscreen_ref { at: (0mm, -4.2mm) }
+}
+
+// Texas Instruments TPS59650 datasheet SLUSAV7 and RSL package drawings
+// 4209046/4207841:
+// https://www.ti.com/lit/ds/symlink/tps59650.pdf
+//
+// The official land pattern has 48 perimeter lands at 0.40mm pitch,
+// 0.85x0.20mm lands, 6.80mm overall span, and a 4.05x3.60mm PowerPAD.
+// Drawing +Y is negated for CoHDL/KiCad. CoHDL emits one exposed copper pad;
+// the official 16-via array and segmented paste stencil remain layout actions.
+pub pad P_QFN48N40P600X600_LEAD_H {
+    shape: rect
+    size: (0.85mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN48N40P600X600_LEAD_V {
+    shape: rect
+    size: (0.2mm, 0.85mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN48N40P600X600_EP405X360 {
+    shape: rect
+    size: (4.05mm, 3.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN48N40P600X600_1EP405X360 {
+    pad 1: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -2.2mm)
+    pad 2: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -1.8mm)
+    pad 3: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -1.4mm)
+    pad 4: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -1mm)
+    pad 5: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -0.6mm)
+    pad 6: P_QFN48N40P600X600_LEAD_H at (-2.975mm, -0.2mm)
+    pad 7: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 0.2mm)
+    pad 8: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 0.6mm)
+    pad 9: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 1mm)
+    pad 10: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 1.4mm)
+    pad 11: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 1.8mm)
+    pad 12: P_QFN48N40P600X600_LEAD_H at (-2.975mm, 2.2mm)
+    pad 13: P_QFN48N40P600X600_LEAD_V at (-2.2mm, 2.975mm)
+    pad 14: P_QFN48N40P600X600_LEAD_V at (-1.8mm, 2.975mm)
+    pad 15: P_QFN48N40P600X600_LEAD_V at (-1.4mm, 2.975mm)
+    pad 16: P_QFN48N40P600X600_LEAD_V at (-1mm, 2.975mm)
+    pad 17: P_QFN48N40P600X600_LEAD_V at (-0.6mm, 2.975mm)
+    pad 18: P_QFN48N40P600X600_LEAD_V at (-0.2mm, 2.975mm)
+    pad 19: P_QFN48N40P600X600_LEAD_V at (0.2mm, 2.975mm)
+    pad 20: P_QFN48N40P600X600_LEAD_V at (0.6mm, 2.975mm)
+    pad 21: P_QFN48N40P600X600_LEAD_V at (1mm, 2.975mm)
+    pad 22: P_QFN48N40P600X600_LEAD_V at (1.4mm, 2.975mm)
+    pad 23: P_QFN48N40P600X600_LEAD_V at (1.8mm, 2.975mm)
+    pad 24: P_QFN48N40P600X600_LEAD_V at (2.2mm, 2.975mm)
+    pad 25: P_QFN48N40P600X600_LEAD_H at (2.975mm, 2.2mm)
+    pad 26: P_QFN48N40P600X600_LEAD_H at (2.975mm, 1.8mm)
+    pad 27: P_QFN48N40P600X600_LEAD_H at (2.975mm, 1.4mm)
+    pad 28: P_QFN48N40P600X600_LEAD_H at (2.975mm, 1mm)
+    pad 29: P_QFN48N40P600X600_LEAD_H at (2.975mm, 0.6mm)
+    pad 30: P_QFN48N40P600X600_LEAD_H at (2.975mm, 0.2mm)
+    pad 31: P_QFN48N40P600X600_LEAD_H at (2.975mm, -0.2mm)
+    pad 32: P_QFN48N40P600X600_LEAD_H at (2.975mm, -0.6mm)
+    pad 33: P_QFN48N40P600X600_LEAD_H at (2.975mm, -1mm)
+    pad 34: P_QFN48N40P600X600_LEAD_H at (2.975mm, -1.4mm)
+    pad 35: P_QFN48N40P600X600_LEAD_H at (2.975mm, -1.8mm)
+    pad 36: P_QFN48N40P600X600_LEAD_H at (2.975mm, -2.2mm)
+    pad 37: P_QFN48N40P600X600_LEAD_V at (2.2mm, -2.975mm)
+    pad 38: P_QFN48N40P600X600_LEAD_V at (1.8mm, -2.975mm)
+    pad 39: P_QFN48N40P600X600_LEAD_V at (1.4mm, -2.975mm)
+    pad 40: P_QFN48N40P600X600_LEAD_V at (1mm, -2.975mm)
+    pad 41: P_QFN48N40P600X600_LEAD_V at (0.6mm, -2.975mm)
+    pad 42: P_QFN48N40P600X600_LEAD_V at (0.2mm, -2.975mm)
+    pad 43: P_QFN48N40P600X600_LEAD_V at (-0.2mm, -2.975mm)
+    pad 44: P_QFN48N40P600X600_LEAD_V at (-0.6mm, -2.975mm)
+    pad 45: P_QFN48N40P600X600_LEAD_V at (-1mm, -2.975mm)
+    pad 46: P_QFN48N40P600X600_LEAD_V at (-1.4mm, -2.975mm)
+    pad 47: P_QFN48N40P600X600_LEAD_V at (-1.8mm, -2.975mm)
+    pad 48: P_QFN48N40P600X600_LEAD_V at (-2.2mm, -2.975mm)
+    pad 49: P_QFN48N40P600X600_EP405X360 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.3mm, 7.3mm) }
+    silkscreen_ref { at: (0mm, -4mm) }
+}
+
+// Richtek RT6150A/B datasheet and official V/W/U/XDFN2.5x2.5-10
+// footprint drawing:
+// https://www.richtek.com/assets/product_file/RT6150A=RT6150B/DS6150AB-04.pdf
+//
+// The official pattern uses 0.50mm pitch, 0.85x0.30mm perimeter lands,
+// 3.30mm overall land span, and a 2.00x1.20mm exposed pad. The vendor
+// pattern is rotated 90 degrees to match the datasheet pin view; vendor +Y
+// is negated for CoHDL/KiCad.
+pub pad P_QFN10N50P250X250_LEAD {
+    shape: rect
+    size: (0.85mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN10N50P250X250_EP120X200 {
+    shape: rect
+    size: (1.2mm, 2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN10N50P250X250_1EP120X200 {
+    pad 1: P_QFN10N50P250X250_LEAD at (-1.225mm, -1mm)
+    pad 2: P_QFN10N50P250X250_LEAD at (-1.225mm, -0.5mm)
+    pad 3: P_QFN10N50P250X250_LEAD at (-1.225mm, 0mm)
+    pad 4: P_QFN10N50P250X250_LEAD at (-1.225mm, 0.5mm)
+    pad 5: P_QFN10N50P250X250_LEAD at (-1.225mm, 1mm)
+    pad 6: P_QFN10N50P250X250_LEAD at (1.225mm, 1mm)
+    pad 7: P_QFN10N50P250X250_LEAD at (1.225mm, 0.5mm)
+    pad 8: P_QFN10N50P250X250_LEAD at (1.225mm, 0mm)
+    pad 9: P_QFN10N50P250X250_LEAD at (1.225mm, -0.5mm)
+    pad 10: P_QFN10N50P250X250_LEAD at (1.225mm, -1mm)
+    pad 11: P_QFN10N50P250X250_EP120X200 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
+}
+
+// Winbond W25Q32RV Rev E section 10.3:
+// https://www.winbond.com/resource-files/w25q32rv%20rev.e%2005152024%20plus.pdf
+//
+// The official XH XSON package drawing confirms 0.50mm-pitch terminals,
+// nominal 0.25x0.45mm, and a nominal 0.20x1.60mm non-connected center metal,
+// but Winbond publishes no recommended PCB land pattern. This deliberately
+// retains KiCad's generic DFN-8 2x3mm P0.5 EP0.61x2.2mm land pattern
+// (KiCad 10.0.4, format 20260206, inspected source SHA-256
+// f09e0b5e84a7a0b54e90f4c3c5fec7d10f53e44f65d62e56c5a2fcddbdf46fd9):
+// https://gitlab.com/kicad/libraries/kicad-footprints/-/blob/master/Package_DFN_QFN.pretty/DFN-8-1EP_2x3mm_P0.5mm.kicad_mod
+//
+// This is a generic, non-Winbond recommendation and requires assembly
+// validation. The center land is not an electrical/thermal die pad.
+pub pad P_QFN8N50P200X300_LEAD {
+    shape: rect
+    size: (0.87mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN8N50P200X300_CENTER61X220 {
+    shape: rect
+    size: (0.61mm, 2.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN8N50P200X300_1EP61X220 {
+    pad 1: P_QFN8N50P200X300_LEAD at (-0.94mm, -0.75mm)
+    pad 2: P_QFN8N50P200X300_LEAD at (-0.94mm, -0.25mm)
+    pad 3: P_QFN8N50P200X300_LEAD at (-0.94mm, 0.25mm)
+    pad 4: P_QFN8N50P200X300_LEAD at (-0.94mm, 0.75mm)
+    pad 5: P_QFN8N50P200X300_LEAD at (0.94mm, 0.75mm)
+    pad 6: P_QFN8N50P200X300_LEAD at (0.94mm, 0.25mm)
+    pad 7: P_QFN8N50P200X300_LEAD at (0.94mm, -0.25mm)
+    pad 8: P_QFN8N50P200X300_LEAD at (0.94mm, -0.75mm)
+    pad 9: P_QFN8N50P200X300_CENTER61X220 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 3.5mm) }
+    silkscreen_ref { at: (0mm, -1.9mm) }
+}

@@ -1282,6 +1282,103 @@ design B {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+// RFC-029: a manifest project's direct, non-std dependencies join the LSP
+// analysis with the same package identities and lockfile semantics as CLI
+// checking. This is deliberately direct-only; transitive traversal is a
+// separate resolver feature.
+#[test]
+fn manifest_dependency_has_clean_diagnostics_and_definition() {
+    let root = std::env::temp_dir().join(format!("cohdl-lsp-dependency-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+
+    let dep_root = root.join("deps/lsp_fixture/1.0.0");
+    std::fs::create_dir_all(dep_root.join("src")).unwrap();
+    std::fs::write(
+        dep_root.join("cohdl.toml"),
+        "[package]\nname = \"lsp_fixture\"\nversion = \"1.0.0\"\n",
+    )
+    .unwrap();
+    let dep_src = "pub device ExternalDevice { pins { required A: 1 [passive] } }\n";
+    let dep_file = dep_root.join("src/component.cohdl");
+    std::fs::write(&dep_file, dep_src).unwrap();
+
+    std::fs::write(
+        root.join("cohdl.toml"),
+        "[package]\nname = \"lsp_app\"\n\n[design]\ntop = \"Board\"\n\n[dependencies]\nlsp_fixture = \"1.0.0\"\n",
+    )
+    .unwrap();
+    let main_src = "\
+design Board {
+    inst external: lsp_fixture::ExternalDevice
+    nc: external.A
+}
+";
+    let main_file = root.join("src/main.cohdl");
+    std::fs::write(&main_file, main_src).unwrap();
+
+    let main_path = main_file.canonicalize().unwrap();
+    let main_uri = format!("file://{}", main_path.display());
+    let dep_uri = format!("file://{}", dep_file.canonicalize().unwrap().display());
+
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &main_uri, main_src);
+    let diags = lsp.await_diagnostics(&main_uri);
+    assert!(
+        diags.is_empty(),
+        "the direct dependency must resolve without source diagnostics:\n{:?}",
+        diags
+    );
+
+    // First resolution follows the CLI and records the non-std package. The
+    // subsequent definition request re-analyzes against and verifies it.
+    let lock = std::fs::read_to_string(root.join("cohdl.lock")).unwrap();
+    assert!(lock.contains("name = \"lsp_fixture\""), "{lock}");
+    assert!(lock.contains("version = \"1.0.0\""), "{lock}");
+    assert!(lock.contains("hash = \"sha256:"), "{lock}");
+
+    let line = main_src
+        .lines()
+        .position(|line| line.contains("ExternalDevice"))
+        .unwrap() as u64;
+    let col = main_src
+        .lines()
+        .nth(line as usize)
+        .unwrap()
+        .find("ExternalDevice")
+        .unwrap() as u64;
+    let def = lsp.request(
+        "textDocument/definition",
+        json!({
+            "textDocument": { "uri": main_uri },
+            "position": { "line": line, "character": col + 2 }
+        }),
+    );
+    assert_eq!(
+        def["uri"].as_str(),
+        Some(dep_uri.as_str()),
+        "definition must land in the dependency source: {}",
+        def
+    );
+    let decl_col = dep_src.find("ExternalDevice").unwrap() as u64;
+    assert_eq!(def["range"]["start"]["line"].as_u64(), Some(0), "{}", def);
+    assert_eq!(
+        def["range"]["start"]["character"].as_u64(),
+        Some(decl_col),
+        "{}",
+        def
+    );
+    assert_eq!(
+        def["range"]["end"]["character"].as_u64(),
+        Some(decl_col + "ExternalDevice".len() as u64),
+        "{}",
+        def
+    );
+
+    lsp.shutdown();
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 // RFC-016 adversarial round 2 (medium): a nested not-yet-saved buffer under
 // src/ got an ABSOLUTE display name, landing it at the package root — its
 // module path diverged from the CLI's, producing phantom E202 on imports
@@ -1693,12 +1790,16 @@ fn exit_with_id_does_not_terminate() {
 #[test]
 fn use_import_definition_and_hover() {
     let src = "\
-use std::LED_RED_0603;
+use std::IC;
+pub device ZzUseD { pins { required A: 1 [passive] } }
+impl IC for ZzUseD {}
+pub footprint ZzUseFp {}
+pub part ZzUseP: ZzUseD {
+    primary { mfr: \"test\", mpn: \"ZZ-USE\", footprint: ZzUseFp }
+}
 design ZzUseB {
-    inst d1: LED_RED_0603
-    inst d2: LED_RED_0603
-    net N: d1.Anode, d2.Anode
-    net GND [gnd]: d1.Cathode, d2.Cathode
+    inst d: ZzUseP
+    nc: d.A
 }
 ";
     let (_path, uri, text) = fixture("usedef.cohdl", src);
@@ -1706,14 +1807,14 @@ design ZzUseB {
     did_open(&mut lsp, &uri, &text);
     let _ = lsp.await_diagnostics(&uri);
 
-    let col = src.lines().next().unwrap().find("LED_RED").unwrap() as u64;
+    let col = src.lines().next().unwrap().find("IC").unwrap() as u64;
     let def = lsp.request(
         "textDocument/definition",
         json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": col + 1 } }),
     );
     let target = def["uri"].as_str().unwrap_or_default();
     assert!(
-        target.ends_with("led.cohdl"),
+        target.ends_with("prelude.cohdl"),
         "use-path definition lands in std's declaring file: {}",
         def
     );
@@ -1724,7 +1825,7 @@ design ZzUseB {
     );
     assert_eq!(
         hover["contents"]["value"].as_str(),
-        Some("**use** `std::LED_RED_0603` — part"),
+        Some("**use** `std::IC` — trait"),
         "{}",
         hover
     );

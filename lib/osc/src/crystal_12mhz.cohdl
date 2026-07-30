@@ -1,0 +1,42 @@
+// 12MHz crystal used by RP2350-class microcontrollers. Pads 2 and 4 are
+// grounded case terminals.
+#[doc("docs/abracon-abm8-272-t3.pdf")]
+#[doc("docs/abracon-abm8.pdf")]
+pub device Crystal_4pad {
+    pins {
+        required XIN: 1 [passive]
+        required GND: 2, 4 [passive]
+        required XOUT: 3 [passive]
+    }
+}
+
+impl Crystal for Crystal_4pad {}
+
+#[doc("docs/abracon-abm8-272-t3.pdf")]
+#[doc("docs/abracon-abm8.pdf")]
+pub part XTAL_12MHZ: Crystal_4pad {
+    primary { mfr: "Abracon", mpn: "ABM8-272-T3", footprint: FP_Crystal_SMD_3225_4Pin_3_2x2_5mm }
+}
+
+// Same official ABM8 family land geometry as the 8MHz configuration.
+pub pad P_Crystal3225 {
+    shape: rect
+    size: (1.3mm, 1.05mm)
+    layer: top_copper
+    plating: smd
+}
+
+// ABM8-272-T3 3.2x2.5mm four-pad package. The exact source-control drawing
+// supplies the package and terminal map; the ABM8 family sheet supplies the
+// recommended land dimensions.
+pub footprint FP_Crystal_SMD_3225_4Pin_3_2x2_5mm {
+    pad 1: P_Crystal3225 at (-1.15mm, 0.875mm)
+    pad 2: P_Crystal3225 at (1.15mm, 0.875mm)
+    pad 3: P_Crystal3225 at (1.15mm, -0.875mm)
+    pad 4: P_Crystal3225 at (-1.15mm, -0.875mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.3mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

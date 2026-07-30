@@ -1,0 +1,45 @@
+// Single-row, 3-contact, 2.54mm-pitch castellated header. Pin names describe
+// the connector contacts rather than any board-specific signal assignment.
+#[doc("docs/raspberry-pi-pico-datasheet.pdf")]
+pub device Header_1x3 {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+    }
+}
+
+impl Connector for Header_1x3 {}
+
+// This is the three-pad SWD board feature on Raspberry Pi Pico, not a
+// separately orderable connector. CON_PICO_3W is the reference design's CAD
+// identifier and is retained so the generated BOM identifies that provenance.
+#[doc("docs/raspberry-pi-pico-datasheet.pdf")]
+pub part HEADER_SWD_3W: Header_1x3 {
+    primary { mfr: "Raspberry Pi", mpn: "CON_PICO_3W", footprint: FP_Pico_Castellated_3 }
+}
+
+// Pico 2.54mm castellation — a plated HALF-through-hole at the board edge
+// (drilled, plated, then castellated on depanel). Modeled as a plated
+// through-hole. Raspberry Pi's official Rev3 CAD names the padstack
+// PINHDR_3W_2P54MM and the datasheet mechanical drawing specifies Ø1mm holes.
+pub pad P_Castellated {
+    shape: circle
+    size: (1.7mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1mm
+}
+
+// The official top view numbers the contacts D1..D3 from left to right. This
+// footprint uses the same chirality and calls them 1..3.
+pub footprint FP_Pico_Castellated_3 {
+    pad 1: P_Castellated at (-2.54mm, 0mm)
+    pad 2: P_Castellated at (0mm, 0mm)
+    pad 3: P_Castellated at (2.54mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.3mm, 2.5mm) }
+    silkscreen_ref { at: (0mm, -1.8mm) }
+}

@@ -9,10 +9,10 @@
 //! are raw `serde_json` values (an honest narrowing of DR-020's original
 //! framing — see docs/compliance-report.md, review R10).
 //!
-//! Diagnostics come from the exact same `pipeline::check_files` the CLI
-//! uses — the same `Checked.diags` source, independently projected into LSP
-//! shape here (`lsp_diagnostic`; the RFC's equivalence discipline is that
-//! the four fields code/severity/message/range must match `cohdl check
+//! Diagnostics come from the exact same `pipeline::check_files_in_with_deps`
+//! the CLI uses — the same `Checked.diags` source, independently projected
+//! into LSP shape here (`lsp_diagnostic`; the RFC's equivalence discipline is
+//! that the four fields code/severity/message/range must match `cohdl check
 //! --json`, enforced in tests/lsp.rs).
 //!
 //! Scope: POSIX hosts only — `file://` URIs with empty/`localhost`
@@ -310,6 +310,120 @@ enum AnalyzeError {
     Project(String),
 }
 
+/// Resolve one manifest project's direct dependency set with the CLI's
+/// RFC-029 rules. The LSP has no `--no-std`: std must therefore be pinned
+/// unless `COHDL_STD` supplies the std-only development override. Every other
+/// dependency still resolves through project-local `deps/`, the shipped
+/// library root, then the content cache, with cohdl.lock hashes verified.
+///
+/// Direct dependencies only: transitive manifest traversal is intentionally
+/// outside this prerequisite.
+fn resolve_manifest_deps(project_root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
+    use crate::deps;
+
+    let (manifest_path, manifest) = crate::project::peek_manifest(project_root)?;
+    let manifest_display = manifest_path.display().to_string();
+    let override_std = crate::project::std_override(None);
+
+    // Preserve the pre-RFC-029 development workflow used by editor tests and
+    // local checkouts: an explicit std override needs no manifest pin.
+    let Some(deps_raw) = &manifest.deps_raw else {
+        if let Some(dir) = override_std {
+            return Ok(vec![("std".to_string(), dir)]);
+        }
+        let newest = crate::project::newest_std()
+            .map(|(v, _)| v.to_string())
+            .unwrap_or_else(|| "X.Y.Z".to_string());
+        let diag = deps::PackageDiag::error(
+            "E1104",
+            &manifest_display,
+            0,
+            "this project declares no `[dependencies]` — RFC-029 requires an exact std pin"
+                .to_string(),
+        )
+        .with_help(format!(
+            "add:\n           [dependencies]\n           std = \"{newest}\""
+        ))
+        .with_help("or run `cohdl update` to write it automatically".to_string());
+        return Err(deps::render_human(&[diag]));
+    };
+
+    let mut entries =
+        deps::validate_deps(&manifest_display, deps_raw).map_err(|d| deps::render_human(&d))?;
+    if !entries.iter().any(|e| e.name == "std") && override_std.is_none() {
+        let newest = crate::project::newest_std()
+            .map(|(v, _)| v.to_string())
+            .unwrap_or_else(|| "X.Y.Z".to_string());
+        let diag = deps::PackageDiag::error(
+            "E1104",
+            &manifest_display,
+            0,
+            "`[dependencies]` has no `std` entry — every project implicitly depends on std and must pin its exact version"
+                .to_string(),
+        )
+        .with_help(format!(
+            "add `std = \"{newest}\"` under [dependencies]"
+        ));
+        return Err(deps::render_human(&[diag]));
+    }
+
+    // The override replaces std only. Non-std entries retain ordinary lock
+    // verification and registry resolution.
+    let mut resolved_deps = Vec::new();
+    if let Some(dir) = &override_std {
+        entries.retain(|e| e.name != "std");
+        resolved_deps.push(("std".to_string(), dir.clone()));
+    }
+
+    let registry = deps::Registry {
+        lib_root: crate::project::find_lib_root(),
+        project_deps: project_root.join("deps"),
+        cache_root: crate::registry::cache_root(),
+    };
+    let lock_path = project_root.join("cohdl.lock");
+    let lock_display = lock_path.display().to_string();
+    let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
+    let resolution = deps::resolve(
+        &manifest_display,
+        &lock_display,
+        &entries,
+        &registry,
+        prior_lock_text.as_deref(),
+        deps::Update::No,
+    )
+    .map_err(|d| deps::render_human(&d))?;
+
+    // Match the CLI's first-resolution/version-change behavior, including its
+    // refusal to replace a symlinked lockfile.
+    if resolution.lock_changed {
+        write_lock_file(&lock_path, &resolution.lock.render())?;
+    }
+
+    // Keep std first for the pipeline's established file order, followed by
+    // every other direct dependency in stable name order.
+    let mut rest = resolution.deps;
+    rest.sort_by(|a, b| a.0.cmp(&b.0));
+    resolved_deps.extend(rest);
+    if let Some(pos) = resolved_deps.iter().position(|(name, _)| name == "std") {
+        let std_entry = resolved_deps.remove(pos);
+        resolved_deps.insert(0, std_entry);
+    }
+    Ok(resolved_deps)
+}
+
+fn write_lock_file(path: &Path, content: &str) -> Result<(), String> {
+    if std::fs::symlink_metadata(path)
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false)
+    {
+        return Err(format!(
+            "refusing to write `{}`: it is a symlink",
+            path.display()
+        ));
+    }
+    std::fs::write(path, content).map_err(|e| format!("cannot write `{}`: {}", path.display(), e))
+}
+
 impl Server {
     /// Handle one message; `Some(response)` for requests, `None` for
     /// notifications. Publishing is deferred to `take_pending_publishes`.
@@ -566,24 +680,33 @@ impl Server {
 
     /// Locate the project containing `path` (walk up for `cohdl.toml`, else
     /// single-file), load it with overlays applied, and run the exact same
-    /// `pipeline::check_files` the CLI uses.
+    /// dependency-aware pipeline entry point the CLI uses.
     fn analyze(&self, path: &Path) -> Result<Analysis, AnalyzeError> {
         let project_root = path
             .ancestors()
             .skip(1)
             .find(|a| a.join("cohdl.toml").is_file())
             .map(Path::to_path_buf);
-        // The CLI refuses to run without a std library unless --no-std is
-        // explicit; the LSP has no --no-std, so a missing std is a real
-        // failure to surface, not a silent degradation (review R6).
-        let std_dir = crate::project::find_std_dir(None);
-        if std_dir.is_none() {
-            return Err(AnalyzeError::Project(
-                "cannot locate the std library — set COHDL_STD".to_string(),
-            ));
-        }
-        let target: &Path = project_root.as_deref().unwrap_or(path);
-        let mut proj = match crate::project::load_project(target, std_dir.as_deref()) {
+
+        let (loaded, dep_names) = if let Some(root) = project_root.as_deref() {
+            let deps = resolve_manifest_deps(root).map_err(AnalyzeError::Project)?;
+            let names = deps.iter().map(|(name, _)| name.clone()).collect();
+            (crate::project::load_project_with_deps(root, &deps), names)
+        } else {
+            // Loose files retain their unpinned-newest-std behavior. The LSP
+            // has no --no-std, so a missing std remains a surfaced failure.
+            let std_dir = crate::project::find_std_dir(None);
+            let Some(std_dir) = std_dir else {
+                return Err(AnalyzeError::Project(
+                    "cannot locate the std library — set COHDL_STD".to_string(),
+                ));
+            };
+            (
+                crate::project::load_project(path, Some(&std_dir)),
+                vec!["std".to_string()],
+            )
+        };
+        let mut proj = match loaded {
             Ok(p) => p,
             Err(e) => {
                 // Fall back to a synthetic std+overlay project ONLY for a
@@ -596,6 +719,7 @@ impl Server {
                 let Some(text) = self.overlays.get(path) else {
                     return Err(AnalyzeError::Gone);
                 };
+                let std_dir = crate::project::find_std_dir(None);
                 let (mut files, mut abs) = crate::project::load_std_files(std_dir.as_deref())
                     .ok_or_else(|| {
                         AnalyzeError::Project("cannot load the std library".to_string())
@@ -651,8 +775,13 @@ impl Server {
             .unwrap_or(path)
             .display()
             .to_string();
-        let checked = pipeline::check_files_in(&proj.name, &proj.files, proj.top.as_deref())
-            .map_err(AnalyzeError::Project)?;
+        let checked = pipeline::check_files_in_with_deps(
+            &proj.name,
+            &dep_names,
+            &proj.files,
+            proj.top.as_deref(),
+        )
+        .map_err(AnalyzeError::Project)?;
         Ok(Analysis {
             checked,
             abs_paths: proj.abs_paths,
@@ -1800,13 +1929,18 @@ fn phys_attr_text(pa: &PhysAttr) -> String {
         }
         PhysAttr::Bypass {
             inst,
+            index,
             pin,
             capacitance,
             ..
         } => {
-            let target = match pin {
-                Some(p) => format!("{}.{}", inst.name, p.name),
+            let base = match index {
+                Some((i, _)) => format!("{}[{}]", inst.name, i),
                 None => inst.name.clone(),
+            };
+            let target = match pin {
+                Some(p) => format!("{}.{}", base, p.name),
+                None => base,
             };
             text.push_str(&format!(
                 "\n\n- target: `{}`\n- capacitance: `{}`",

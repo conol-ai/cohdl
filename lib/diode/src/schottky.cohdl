@@ -1,0 +1,42 @@
+// PMEG6010ELR Schottky power diode in Nexperia's CFP3 / SOD-123W package.
+#[doc("docs/nexperia-pmeg6010elr-datasheet.pdf")]
+pub device Schottky_SOD123 {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+}
+
+impl Polarized for Schottky_SOD123 {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for Schottky_SOD123 {}
+
+#[doc("docs/nexperia-pmeg6010elr-datasheet.pdf")]
+pub part SCHOTTKY_PMEG6010: Schottky_SOD123 {
+    primary { mfr: "Nexperia", mpn: "PMEG6010ELR", footprint: FP_D_SOD_123W }
+}
+
+// Nexperia CFP3 / SOD-123W flat-lead terminal.
+pub pad P_SOD123W_Term {
+    shape: rect
+    size: (1.2mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_D_SOD_123W {
+    pad 1: P_SOD123W_Term at (-1.4mm, 0mm)
+    pad 2: P_SOD123W_Term at (1.4mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+    }
+    // Figure 17 declares a 4.4 x 2.1mm occupied area. Add 0.25mm clearance
+    // around that envelope for the rectangular courtyard.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.9mm, 2.6mm) }
+    silkscreen_ref { at: (0mm, -1.4mm) }
+}

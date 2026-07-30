@@ -1,0 +1,9 @@
+[package]
+name = "usb"
+version = "0.1.0"
+license = "MIT"
+description = "USB connectors and controllers with authored land patterns."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

@@ -1,0 +1,49 @@
+// USBLC6-2SC6: USB ESD protection (SOT-23-6). I/O1 = pins 1,6;
+// I/O2 = pins 3,4; each data line passes through a pin pair.
+#[doc("docs/st-usblc6-2-datasheet.pdf")]
+pub device USBLC6 {
+    pins {
+        required IO1_A: 1 [bidirectional]
+        required GND: 2 [power_in]
+        required IO2_A: 3 [bidirectional]
+        required IO2_B: 4 [bidirectional]
+        required VBUS: 5 [power_in]
+        required IO1_B: 6 [bidirectional]
+    }
+}
+
+impl IC for USBLC6 {}
+
+#[doc("docs/st-usblc6-2-datasheet.pdf")]
+pub part ESD_USBLC6: USBLC6 {
+    primary { mfr: "STMicroelectronics", mpn: "USBLC6-2SC6", footprint: FP_SOT_23_6 }
+}
+
+// ST Figure 19 recommends 0.60 x 1.20mm lands. This footprint rotates the
+// manufacturer's three-column drawing 90 degrees, so each land is 1.20 x
+// 0.60mm here.
+pub pad P_SOT23_6_Lead {
+    shape: rect
+    size: (1.2mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// ST's recommended pattern has 0.95mm lead pitch and 2.30mm between the two
+// row centerlines. Rotating it 90 degrees gives x=±1.15mm below. The top-view
+// numbering remains pin 1 at upper-left, then counter-clockwise.
+pub footprint FP_SOT_23_6 {
+    pad 1: P_SOT23_6_Lead at (-1.15mm, -0.95mm)
+    pad 2: P_SOT23_6_Lead at (-1.15mm, 0mm)
+    pad 3: P_SOT23_6_Lead at (-1.15mm, 0.95mm)
+    pad 4: P_SOT23_6_Lead at (1.15mm, 0.95mm)
+    pad 5: P_SOT23_6_Lead at (1.15mm, 0mm)
+    pad 6: P_SOT23_6_Lead at (1.15mm, -0.95mm)
+    // RFC-031: SOT-23-6 is rotationally ambiguous by eye — pin 1 is the
+    // left column's first lead.
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

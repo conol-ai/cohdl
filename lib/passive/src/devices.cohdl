@@ -8,6 +8,9 @@
 // 1/4 W from the same declaration. Traits come from std — this library
 // adds devices and parts, not a second set of trait definitions.
 
+#[doc("docs/yageo_rc_series_datasheet_en.pdf")]
+#[doc("docs/vishay_crcw0201_e3_datasheet.pdf")]
+#[doc("docs/vishay_d_crcw_e3_datasheet.pdf")]
 pub device ChipResistor<R: Resistance, T: Tolerance = 1%> {
     variants { R0201, R0402, R0603, R0805, R1206, R1210, R2010, R2512 }
 
@@ -85,6 +88,9 @@ impl TwoTerminal for ChipResistor {}
 
 impl Resistor for ChipResistor {}
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
+#[doc("docs/yageo_x5r_4v_to_50v_datasheet_en.pdf")]
+#[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub device MLCC<C: Capacitance, V: Voltage = 16V, T: Tolerance = 10%> {
     variants { C0201, C0402, C0603, C0805, C1206, C1210 }
 

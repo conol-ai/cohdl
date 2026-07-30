@@ -20,9 +20,14 @@ receptacle count — machine-placed), EXCEPT bare-copper features with no
 physical part (the cap-touch pad). Pure through-hole parts (keyswitches,
 encoder, headers) and mechanical-only footprints (mount holes) are excluded.
 
+With --all, nothing is excluded: every footprint on the board is emitted
+(through-hole, mount holes, bare copper) in the same format/origin — for
+plate/case CAD cross-checks, not for the pick-and-place machine. Default
+output name becomes <stem>-pos-all.csv.
+
 Run with KiCad's own python:
   /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/\
-Versions/3.9/bin/python3 tools/smt_pos.py <board.kicad_pcb> [out.csv]
+Versions/3.9/bin/python3 tools/smt_pos.py [--all] <board.kicad_pcb> [out.csv]
 """
 
 import sys
@@ -39,11 +44,14 @@ def mm(v):
 
 
 def main():
-    board_path = Path(sys.argv[1])
+    argv = [a for a in sys.argv[1:] if a != "--all"]
+    everything = "--all" in sys.argv[1:]
+    board_path = Path(argv[0])
+    suffix = "-pos-all.csv" if everything else "-smt.csv"
     out_path = (
-        Path(sys.argv[2])
-        if len(sys.argv) > 2
-        else board_path.with_name(board_path.stem + "-smt.csv")
+        Path(argv[1])
+        if len(argv) > 1
+        else board_path.with_name(board_path.stem + suffix)
     )
     board = pcbnew.LoadBoard(str(board_path))
 
@@ -63,22 +71,28 @@ def main():
         ref = fp.GetReference()
         pads = list(fp.Pads())
         smd = [p for p in pads if p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
-        if not smd:
-            skipped.append((ref, "no SMD pads (through-hole/mechanical)"))
-            continue
-        if fp.GetValue() in BARE_COPPER_VALUES or ref.startswith("TP"):
-            skipped.append((ref, "bare copper feature, no physical part"))
-            continue
-        # Mid = centroid of copper pads (SMD + PTH; ignore holes-only).
-        cop = [p for p in pads if p.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH]
-        cx = sum(p.GetPosition().x for p in cop) / len(cop)
-        cy = sum(p.GetPosition().y for p in cop) / len(cop)
+        if not everything:
+            if not smd:
+                skipped.append((ref, "no SMD pads (through-hole/mechanical)"))
+                continue
+            if fp.GetValue() in BARE_COPPER_VALUES or ref.startswith("TP"):
+                skipped.append((ref, "bare copper feature, no physical part"))
+                continue
         anchor = fp.GetPosition()
-        # Pad 1 (numeric-aware; falls back to the first pad).
+        # Mid = centroid of copper pads (SMD + PTH; ignore holes-only).
+        # Anchor fallback covers NPTH-only footprints (--all can hit them).
+        cop = [p for p in pads if p.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH]
+        if cop:
+            cx = sum(p.GetPosition().x for p in cop) / len(cop)
+            cy = sum(p.GetPosition().y for p in cop) / len(cop)
+        else:
+            cx, cy = anchor.x, anchor.y
+        # Pad 1 (numeric-aware; falls back to the first pad, then the anchor).
         def key(p):
             n = p.GetPadName()
             return (0, int(n)) if n.isdigit() else (1, n)
-        p1 = sorted((p for p in pads if p.GetPadName()), key=key)[0]
+        named = sorted((p for p in pads if p.GetPadName()), key=key)
+        p1pos = named[0].GetPosition() if named else anchor
         # FPID = the projected .kicad_mod name: the CoHDL footprint's fq path
         # with `::` collapsed to `-` (e.g. `rpi_pico2-CHIP_0201`). CoHDL
         # identifiers can't contain `-`, so everything after the last `-` is
@@ -93,8 +107,8 @@ def main():
                 Y(cy),
                 X(anchor.x),
                 Y(anchor.y),
-                X(p1.GetPosition().x),
-                Y(p1.GetPosition().y),
+                X(p1pos.x),
+                Y(p1pos.y),
                 "B" if fp.IsFlipped() else "T",
                 rot,
                 fp.GetValue(),
@@ -118,7 +132,8 @@ def main():
             f"{f(r[6])},{f(r[7])},{r[8]},{r[9]:g},{r[10]}"
         )
     out_path.write_text("\n".join(lines) + "\n")
-    print(f"wrote {out_path}  ({len(rows)} SMT components)")
+    what = "components (all)" if everything else "SMT components"
+    print(f"wrote {out_path}  ({len(rows)} {what})")
     for ref, why in sorted(skipped, key=lambda s: s[0]):
         print(f"  skipped {ref:6s} — {why}")
 

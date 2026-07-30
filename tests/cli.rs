@@ -155,16 +155,30 @@ fn invocation_failures_are_exit_2_with_no_json() {
     let _ = std::fs::remove_dir_all(&tmp);
 }
 
-// The std library and examples stay canonical (fmt --check as a CI gate).
+// Every shipped library package and example stays canonical.
 #[test]
 fn fmt_check_gate_std_and_examples() {
-    for dir in [
-        "lib/std",
-        "lib/passive",
-        "examples/openmicro/src",
-        "examples/rpi-pico2/src",
-    ] {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(dir);
+    fn packages_under(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+        if dir.join("cohdl.toml").is_file() {
+            out.push(dir.to_path_buf());
+            return;
+        }
+        let mut children: Vec<_> = std::fs::read_dir(dir)
+            .unwrap()
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| path.is_dir())
+            .collect();
+        children.sort();
+        for child in children {
+            packages_under(&child, out);
+        }
+    }
+
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut packages = Vec::new();
+    packages_under(&root.join("lib"), &mut packages);
+    packages_under(&root.join("examples"), &mut packages);
+    for path in packages {
         let out = cohdl()
             .args(["fmt", path.to_str().unwrap(), "--check"])
             .output()
@@ -172,7 +186,49 @@ fn fmt_check_gate_std_and_examples() {
         assert!(
             out.status.success(),
             "`{}` is not canonical:\n{}",
-            dir,
+            path.display(),
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+}
+
+#[test]
+fn shipped_libraries_check_standalone() {
+    fn packages_under(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+        if dir.join("cohdl.toml").is_file() {
+            out.push(dir.to_path_buf());
+            return;
+        }
+        let mut children: Vec<_> = std::fs::read_dir(dir)
+            .unwrap()
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| path.is_dir())
+            .collect();
+        children.sort();
+        for child in children {
+            packages_under(&child, out);
+        }
+    }
+
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut packages = Vec::new();
+    packages_under(&root.join("lib"), &mut packages);
+    for path in packages {
+        // `std` cannot be loaded as a user project because its package name is
+        // reserved. Every other package below checks against it, exercising
+        // the core prelude as part of this gate.
+        if path == root.join("lib/std") {
+            continue;
+        }
+        let out = cohdl()
+            .args(["check", path.to_str().unwrap()])
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "`{}` does not check standalone:\n{}{}",
+            path.display(),
+            String::from_utf8_lossy(&out.stdout),
             String::from_utf8_lossy(&out.stderr)
         );
     }

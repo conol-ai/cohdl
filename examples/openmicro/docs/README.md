@@ -28,11 +28,12 @@ genuine manufacturer document.
 | EC11E15244A5 | `ec11e15244a5.pdf` | rotary encoder | Alps EC11E series catalogue | `alpsalpine.com/cms.media/` |
 | 20021121-00010T4LF | `20021121-00010t4lf.pdf` | *superseded* — 1.27mm 10-pin debug connector | Amphenol ICC Minitek127, dwg 20021121 rev R | Amphenol |
 
-The Minitek127 sheet is kept for reference only: the debug port is now a
-generic 2×3 2.54mm SMD female socket (`FP_Socket_2x3_254_SMD`), whose land
-pattern is the standard 2.54mm vertical SMD pin-socket geometry rather than a
-single manufacturer's drawing — 2.54mm columns, rows splayed to ±2.52mm, 1×3mm
-lands. No part in the current BOM cites the Amphenol document.
+The Minitek127 sheet is kept for reference only: the debug port is now
+`connectors::headers::smd_254::SOCKET_2X3_254_SMD`, a generic 2×3 2.54mm SMD
+female socket whose land pattern is the standard vertical SMD pin-socket
+geometry rather than a single manufacturer's drawing — 2.54mm columns, rows
+splayed to ±2.52mm, 1×3mm lands. No part in the current BOM cites the Amphenol
+document.
 
 The Panasonic EVQ-P7A sheet is likewise reference-only: the reset switch was
 removed from the design, and nothing in the BOM cites it. Both sheets are kept
@@ -47,15 +48,23 @@ drawing is titled for).
 ## Where the joystick land pattern came from
 
 Alps publishes the RKJXV mounting-hole drawing only as a 427×446 bitmap — too
-coarse to read hole positions off reliably, and the labelled dimensions are
+coarse to read hole positions off casually, and the labelled dimensions are
 stacked in a way that makes it easy to attach a number to the wrong feature.
-The land pattern in `FP_Joystick_RKJXV` therefore comes from the **STEP model**
-in Alps' own 3D CAD download for this part, whose pin and boss cylinder centres
-are exact, cross-checked against the drawing's labelled dimensions (which agree:
-2.5 terminal pitch, 8.73 group offsets, ±3.25 switch columns, 4.5 switch row
-spacing). Where the two differ by less than the drawing's own ±0.1 tolerance,
-the drawing's rounder number is used. The STEP file is not committed here — it
-is 6 MB and re-downloadable from the part's product page.
+An earlier revision therefore preferred the **STEP model** from Alps' own 3D
+CAD download, and that was the mistake: the STEP transcription put the frame
+legs at (±6, ±6), which a later re-read of the drawing disproved — the "12.65"
+and "10" chains span the four legs, so they sit at **(±6.325, ±5)** (the
+2026-07-29 entry in `docs/compliance-report.md` has the full derivation). The
+committed pattern now comes from the **drawing itself**, decoded feature by
+feature: every drilled feature is labelled "hole" with its own tolerance
+(6-ø1 terminals, 4-ø1.5 legs, 2-ø1.6 locating bosses, 4-ø1.2 switch), while
+the hatched ø4 / ø3.5 / 4-ø2.6 carry no "hole" label and are the legend's
+"Prohibited wiring area" — surface keep-outs, not drills. The switch group is
+symmetric about the dome's ø3.5 keep-out at +8 ("8" plus the "4.5" row span:
+rows at 5.75/10.25). The drawing agrees with the STEP everywhere else
+(2.5 terminal pitch, 8.73 group offsets, ±3.25 switch columns). The STEP file
+is not committed here — it is 6 MB and re-downloadable from the part's
+product page.
 
 ## Fetching notes
 

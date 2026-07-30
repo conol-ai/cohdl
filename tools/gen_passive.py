@@ -17,7 +17,9 @@ would make regeneration produce a diff against the committed bytes).
 
 Land patterns come from KiCad's own footprint library (the same provenance
 std's chip lands had), resistor land per RFC-021: resistors and capacitors
-share one nominal CHIP-<EIA> land, and the resistor's is the more generous.
+share one nominal CHIP-<EIA> land. The geometry is independently checked
+against Vishay's official CRCW reflow lands and Samsung's official MLCC reflow
+table; see lib/passive/docs/README.md for the comparison and source checksums.
 """
 
 import pathlib
@@ -31,7 +33,6 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / "lib" / "passive" / "src"
 # --------------------------------------------------------------------------
 
 LANDS = {
-    "01005": {"metric": "0402", "pad": (0.4, 0.3), "x": 0.25, "cy": (1.2, 0.6)},
     "0201": {"metric": "0603", "pad": (0.46, 0.4), "x": 0.32, "cy": (1.4, 0.7)},
     "0402": {"metric": "1005", "pad": (0.54, 0.64), "x": 0.51, "cy": (1.86, 0.94)},
     "0603": {"metric": "1608", "pad": (0.8, 0.95), "x": 0.825, "cy": (2.96, 1.46)},
@@ -64,6 +65,15 @@ GENERATED = (
     "Regenerate after changing the value grid or a vendor's part-number rule."
 )
 
+R_DOC_YAGEO = "docs/yageo_rc_series_datasheet_en.pdf"
+R_DOC_VISHAY_0201 = "docs/vishay_crcw0201_e3_datasheet.pdf"
+R_DOC_VISHAY_OTHER = "docs/vishay_d_crcw_e3_datasheet.pdf"
+C_DOC = {
+    "C0G": "docs/yageo_cc_series_datasheet_en.pdf",
+    "X5R": "docs/yageo_x5r_4v_to_50v_datasheet_en.pdf",
+    "X7R": "docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf",
+}
+
 
 def emit_pads():
     body = [
@@ -73,7 +83,8 @@ def emit_pads():
             + "\n\n"
             + "Geometry: KiCad Resistor_SMD.pretty/R_<EIA>_<metric>Metric.kicad_mod.\n"
             + "Per RFC-021 one CHIP land serves resistors and capacitors alike, and\n"
-            + "the resistor land is the more generous of the two.",
+            + "the resistor land is the more generous of the two. Cross-checked against\n"
+            + "Vishay CRCW and Samsung MLCC manufacturer reflow recommendations in docs/.",
         )
     ]
     for eia, land in LANDS.items():
@@ -155,12 +166,10 @@ VERIFIED_ALTERNATES = {
         ("Murata", "GRM155R71C104KA88D"),
     ],
     "C_1u_10V_X5R_0402": [
-        ("Murata", "GRM155R61A105KE15D"),
         ("Samsung", "CL05A105KP5NNNC"),
     ],
     "C_10u_10V_X5R_0603": [
         ("Samsung", "CL10A106KP8NNNC"),
-        ("Murata", "GRM188R61A106KE69D"),
     ],
     "C_4u7_10V_X5R_0603": [("Samsung", "CL10A475KP8NNNC")],
     "C_15p_50V_C0G_0402": [("Murata", "GRM1555C1H150JA01D")],
@@ -193,6 +202,9 @@ def emit_devices(cap_sizes):
             + "1/4 W from the same declaration. Traits come from std — this library\n"
             + "adds devices and parts, not a second set of trait definitions.",
         ),
+        f'#[doc("{R_DOC_YAGEO}")]\n'
+        f'#[doc("{R_DOC_VISHAY_0201}")]\n'
+        f'#[doc("{R_DOC_VISHAY_OTHER}")]\n'
         f"pub device ChipResistor<R: Resistance, T: Tolerance = 1%> {{\n"
         f"    variants {{ {', '.join(r_variants)} }}\n\n"
         + "\n".join(pin_block(v) for v in r_variants)
@@ -203,6 +215,9 @@ def emit_devices(cap_sizes):
         )
         + "}\n",
         "impl TwoTerminal for ChipResistor {}\n\nimpl Resistor for ChipResistor {}\n",
+        f'#[doc("{C_DOC["C0G"]}")]\n'
+        f'#[doc("{C_DOC["X5R"]}")]\n'
+        f'#[doc("{C_DOC["X7R"]}")]\n'
         f"pub device MLCC<C: Capacitance, V: Voltage = 16V, T: Tolerance = 10%> {{\n"
         f"    variants {{ {', '.join(c_variants)} }}\n\n"
         + "\n".join(pin_block(v) for v in c_variants)
@@ -352,6 +367,7 @@ def emit_resistors(size, verified):
                 continue
             literal = ohm_literal(mantissa, decade)
             body.append(
+                f'#[doc("{R_DOC_YAGEO}")]\n'
                 f"pub part R_{token}_{tol}_{size}: ChipResistor<{literal}, {tol_pct}>[{variant}] {{\n"
                 f'    primary {{ mfr: "Yageo", mpn: "{mpn}", footprint: CHIP_{size} }}\n'
                 f'    alt {{ mfr: "Vishay", mpn: "CRCW{size}{vishay_code(mantissa, decade)}'
@@ -466,6 +482,7 @@ def emit_capacitors(size, available, alternates, samsung, verified):
                 entries.append(("Samsung", samsung_mpn))
             alts = "".join(f'    alt {{ mfr: "{mfr}", mpn: "{mpn}" }}\n' for mfr, mpn in entries)
             rows.append(
+                f'#[doc("{C_DOC[diel]}")]\n'
                 f"pub part {part}: MLCC<{farad_literal(farads)}, {volt_literal(volts)}, {tol_spec}>[{variant}] {{\n"
                 f'    primary {{ mfr: "Yageo", mpn: "{mpn}", footprint: CHIP_{size} }}\n'
                 f"{alts}"

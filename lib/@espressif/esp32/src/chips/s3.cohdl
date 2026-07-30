@@ -1,0 +1,73 @@
+// Bare ESP32-S3 SoC (Espressif), base variant without in-package flash or
+// PSRAM. Pin names and connection obligations follow the official ESP32-S3
+// Series Datasheet v2.2. Memory-integrated variants are deliberately not
+// alternates: they reserve different SPI/GPIO pins, and ESP32-S3FH4R2 also
+// requires a larger exposed-pad land pattern.
+
+#[doc("docs/esp32-s3_datasheet_en.pdf")]
+pub device ESP32_S3_SOC {
+    pins {
+        required LNA_IN: 1 [bidirectional] // RF LNA input/output
+        required VDD3P3: 2, 3 [power_in]
+        required CHIP_PU: 4 [input]
+        optional GPIO0: 5 [bidirectional]
+        optional GPIO1: 6 [bidirectional]
+        optional GPIO2: 7 [bidirectional]
+        optional GPIO3: 8 [bidirectional]
+        optional GPIO4: 9 [bidirectional]
+        optional GPIO5: 10 [bidirectional]
+        optional GPIO6: 11 [bidirectional]
+        optional GPIO7: 12 [bidirectional]
+        optional GPIO8: 13 [bidirectional]
+        optional GPIO9: 14 [bidirectional]
+        optional GPIO10: 15 [bidirectional]
+        optional GPIO11: 16 [bidirectional]
+        optional GPIO12: 17 [bidirectional]
+        optional GPIO13: 18 [bidirectional]
+        optional GPIO14: 19 [bidirectional]
+        required VDD3P3_RTC: 20 [power_in]
+        optional XTAL_32K_P: 21 [bidirectional] // GPIO15
+        optional XTAL_32K_N: 22 [bidirectional] // GPIO16
+        optional GPIO17: 23 [bidirectional]
+        optional GPIO18: 24 [bidirectional]
+        optional GPIO19: 25 [bidirectional] // USB D-
+        optional GPIO20: 26 [bidirectional] // USB D+
+        optional GPIO21: 27 [bidirectional]
+        optional SPICS1: 28 [bidirectional] // GPIO26, external PSRAM CS
+        required VDD_SPI: 29 [power_out] // configurable input/output; default is 3.3 V output
+        required SPIHD: 30 [bidirectional] // GPIO27, external flash HOLD#/IO3
+        required SPIWP: 31 [bidirectional] // GPIO28, external flash WP#/IO2
+        required SPICS0: 32 [bidirectional] // GPIO29, external flash CS#
+        required SPICLK: 33 [bidirectional] // GPIO30, external flash clock
+        required SPIQ: 34 [bidirectional] // GPIO31, external flash IO1
+        required SPID: 35 [bidirectional] // GPIO32, external flash IO0
+        optional SPICLK_N: 36 [bidirectional] // GPIO48
+        optional SPICLK_P: 37 [bidirectional] // GPIO47
+        optional GPIO33: 38 [bidirectional]
+        optional GPIO34: 39 [bidirectional]
+        optional GPIO35: 40 [bidirectional]
+        optional GPIO36: 41 [bidirectional]
+        optional GPIO37: 42 [bidirectional]
+        optional GPIO38: 43 [bidirectional]
+        optional MTCK: 44 [bidirectional] // GPIO39
+        optional MTDO: 45 [bidirectional] // GPIO40
+        required VDD3P3_CPU: 46 [power_in]
+        optional MTDI: 47 [bidirectional] // GPIO41
+        optional MTMS: 48 [bidirectional] // GPIO42
+        optional U0TXD: 49 [bidirectional] // GPIO43
+        optional U0RXD: 50 [bidirectional] // GPIO44
+        optional GPIO45: 51 [bidirectional]
+        optional GPIO46: 52 [bidirectional]
+        required XTAL_N: 53 [bidirectional]
+        required XTAL_P: 54 [bidirectional]
+        required VDDA: 55, 56 [power_in]
+        required GND: 57 [power_in] // exposed thermal pad
+    }
+}
+
+impl IC for ESP32_S3_SOC {}
+
+#[doc("docs/esp32-s3_datasheet_en.pdf")]
+pub part ESP32_S3: ESP32_S3_SOC {
+    primary { mfr: "Espressif", mpn: "ESP32-S3", footprint: qfn::QFN56N40P700X700_1EP400X400 }
+}

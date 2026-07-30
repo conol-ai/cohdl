@@ -648,10 +648,39 @@ fn place_non_length_is_e1007() {
     assert!(r.contains("E1007") && r.contains("Length"), "{}", r);
 }
 
+/// `place` takes any whole degree now, not just RFC-020's four (deviation at
+/// the board author's direction, ledgered in docs/compliance-report.md).
 #[test]
-fn place_bad_rotation_is_e1007() {
-    let r = check_err(&with_outline("place r1 at (0mm, 0mm) rotate 45"));
-    assert!(r.contains("E1007") && r.contains("45"), "{}", r);
+fn place_accepts_an_arbitrary_rotation() {
+    for deg in ["1", "45", "137", "359"] {
+        let b = build(&with_outline(&format!(
+            "place r1 at (0mm, 0mm) rotate {deg}"
+        )));
+        assert!(
+            !b.diags.contains("E1007"),
+            "`rotate {deg}` must be accepted:\n{}",
+            b.diags
+        );
+        // and it reaches layout.json verbatim, not snapped to a cardinal
+        let layout = b.layout.expect("layout.json emitted");
+        assert!(
+            layout.contains(&format!("\"rotate\": {deg}")),
+            "`rotate {deg}` must survive into layout.json:\n{layout}"
+        );
+    }
+}
+
+/// A full turn is 0, so 360 and up is a mistake rather than a silent reduction
+/// — `rotate 450` is far likelier a slip than a deliberate 90.
+#[test]
+fn place_out_of_range_rotation_is_e1007() {
+    for bad in ["360", "450", "99999"] {
+        let r = check_err(&with_outline(&format!(
+            "place r1 at (0mm, 0mm) rotate {bad}"
+        )));
+        assert!(r.contains("E1007"), "`rotate {bad}` must be E1007:\n{r}");
+        assert!(r.contains("0..=359"), "must name the range:\n{r}");
+    }
 }
 
 #[test]

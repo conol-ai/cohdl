@@ -11,7 +11,7 @@ fn manifest() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
-/// Every `.cohdl` file shipped in the repo: std + the example design.
+/// Every `.cohdl` file shipped in the repo: all libraries + example designs.
 fn repo_cohdl_files() -> Vec<(String, String)> {
     let mut out = Vec::new();
     fn walk(dir: &Path, out: &mut Vec<(String, String)>) {
@@ -33,7 +33,7 @@ fn repo_cohdl_files() -> Vec<(String, String)> {
             }
         }
     }
-    walk(&manifest().join("lib/std"), &mut out);
+    walk(&manifest().join("lib"), &mut out);
     walk(&manifest().join("examples"), &mut out);
     out
 }
@@ -87,14 +87,13 @@ fn idempotent_on_messy_input() {
 // ---------------------------------------------------------------------------
 // Property 2: semantic inertness — formatting never changes the emitted bytes.
 
-fn build_netlist_bom(files: &[(String, String)], design: Option<&str>) -> (String, String) {
-    let mut checked = cohdl::pipeline::check_files_in_with_deps(
-        "main",
-        &["std".to_string(), "passive".to_string()],
-        files,
-        design,
-    )
-    .expect("design selection");
+fn build_netlist_bom(
+    files: &[(String, String)],
+    dep_names: &[String],
+    design: Option<&str>,
+) -> (String, String) {
+    let mut checked = cohdl::pipeline::check_files_in_with_deps("main", dep_names, files, design)
+        .expect("design selection");
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build succeeds");
     assert!(!checked.diags.has_errors(), "clean build expected");
     (artifacts.netlist, artifacts.bom)
@@ -113,13 +112,23 @@ fn example_dirs() -> Vec<PathBuf> {
 
 #[test]
 fn formatting_is_semantically_inert() {
-    let std_dir = manifest().join("lib/std");
     for ex in example_dirs() {
-        // std + this example's own sources — one design per project.
-        let deps = vec![
-            ("std".to_string(), std_dir.clone()),
-            ("passive".to_string(), manifest().join("lib/passive")),
-        ];
+        let (_, project_manifest) = cohdl::project::peek_manifest(&ex).unwrap();
+        let mut dep_names: Vec<String> = project_manifest
+            .deps_raw
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(name, _, _)| name)
+            .collect();
+        dep_names.sort();
+        if let Some(pos) = dep_names.iter().position(|name| name == "std") {
+            let std = dep_names.remove(pos);
+            dep_names.insert(0, std);
+        }
+        let deps: Vec<(String, PathBuf)> = dep_names
+            .iter()
+            .map(|name| (name.clone(), manifest().join("lib").join(name)))
+            .collect();
         let proj = cohdl::project::load_project_with_deps(&ex, &deps).unwrap();
         let original = proj.files.clone();
         let formatted: Vec<(String, String)> = original
@@ -127,8 +136,8 @@ fn formatting_is_semantically_inert() {
             .map(|(name, text)| (name.clone(), format_source(name, text).unwrap()))
             .collect();
 
-        let (net_a, bom_a) = build_netlist_bom(&original, proj.top.as_deref());
-        let (net_b, bom_b) = build_netlist_bom(&formatted, proj.top.as_deref());
+        let (net_a, bom_a) = build_netlist_bom(&original, &dep_names, proj.top.as_deref());
+        let (net_b, bom_b) = build_netlist_bom(&formatted, &dep_names, proj.top.as_deref());
         assert_eq!(
             net_a,
             net_b,

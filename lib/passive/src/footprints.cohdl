@@ -7,13 +7,6 @@
 // exactly once in this library: as `CHIP_<EIA>` here, and as the matching
 // `R<EIA>`/`C<EIA>` device variant.
 
-pub footprint CHIP_01005 {
-    pad 1: P_Chip_01005 at (-0.25mm, 0mm)
-    pad 2: P_Chip_01005 at (0.25mm, 0mm)
-    courtyard { shape: rect, at: (0mm, 0mm), size: (1.2mm, 0.6mm) }
-    silkscreen_ref { at: (0mm, -1mm) }
-}
-
 pub footprint CHIP_0201 {
     pad 1: P_Chip_0201 at (-0.32mm, 0mm)
     pad 2: P_Chip_0201 at (0.32mm, 0mm)

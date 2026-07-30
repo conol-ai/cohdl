@@ -1,0 +1,10 @@
+(footprint "diode::FP_D_SOD_123W"
+  (version 20240108)
+  (generator "cohdl")
+  (layer "F.Cu")
+  (attr smd)
+  (fp_text reference "REF**" (at 0 -1.4) (layer "F.SilkS"))
+  (fp_rect (start -2 -0.8) (end 2 0.8) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (pad "1" smd rect (at -1.4 0) (size 1.2 1.2) (layers "F.Cu" "F.Paste" "F.Mask"))
+  (pad "2" smd rect (at 1.4 0) (size 1.2 1.2) (layers "F.Cu" "F.Paste" "F.Mask"))
+)

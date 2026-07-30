@@ -685,9 +685,9 @@ impl<'a> Parser<'a> {
             return None;
         }
         let (x, y) = self.length_pair()?;
-        // RFC-025: optional `rotate ANGLE` — RFC-020's closed set, validated
-        // at declaration check (E811); unparseable values map to the same
-        // fail-the-closed-set sentinel `place` uses.
+        // RFC-025: optional `rotate ANGLE` — any whole degree, validated at
+        // declaration check (E811); unparseable values map to the same
+        // out-of-range sentinel `place` uses.
         let mut rotate = 0u16;
         if self.at_ident("rotate") {
             self.bump();
@@ -1757,6 +1757,24 @@ impl<'a> Parser<'a> {
             "bypass" => {
                 self.expect(&TokenKind::LParen, "to open the attribute arguments");
                 let inst = self.ident("as the bypassed target")?;
+                // RFC-024: an array element is an instance reference like any
+                // other, so `NAME[i].PIN` is legal here too. Only a single
+                // index — a range would name several targets for one cap.
+                let index = if self.at(&TokenKind::LBracket) {
+                    match self.index_sel()? {
+                        IndexSel::Single(i, sp) => Some((i, sp)),
+                        other => {
+                            self.diags.push(Diagnostic::error(
+                                "E211",
+                                other.span(),
+                                "`#[bypass]` takes a single element `NAME[i]` — a range or index list names more than one target".to_string(),
+                            ));
+                            return None;
+                        }
+                    }
+                } else {
+                    None
+                };
                 // RFC-028: `.PIN` is optional — a bare identifier is a
                 // `Pin`-typed fn parameter, the same bare-PinRef form already
                 // legal in net member lists.
@@ -1770,6 +1788,7 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::RParen, "to close the attribute arguments");
                 Some(PhysAttr::Bypass {
                     inst,
+                    index,
                     pin,
                     capacitance,
                     span: start.to(self.prev_span()),
@@ -3229,7 +3248,7 @@ impl<'a> Parser<'a> {
 
     /// `place <inst> at (x, y) [rotate ANGLE]` (RFC-020) — a locked, optionally
     /// rotated component placement. Instance existence, coordinate unit-type,
-    /// and the closed-set rotation are validated at assembly (E1007).
+    /// and the rotation's 0..=359 range are validated at assembly (E1007).
     fn placement(&mut self) -> Option<Placement> {
         let start = self.span();
         self.bump(); // `place`
@@ -3273,15 +3292,15 @@ impl<'a> Parser<'a> {
                     TokenKind::Number(_) => {
                         let t = self.bump();
                         if let TokenKind::Number(n) = t.kind {
-                            // Out-of-set / non-integer values are reported at
-                            // assembly (E1007); an unparseable value maps to a
-                            // sentinel that fails that closed-set check.
+                            // Out-of-range / non-integer values are reported
+                            // at assembly (E1007); an unparseable value maps to
+                            // a sentinel that fails that range check.
                             rotate = n.parse::<u16>().unwrap_or(u16::MAX);
                         }
                     }
                     _ => {
                         self.error_here(format!(
-                            "expected a rotation angle (0, 90, 180, or 270) after `rotate`, found {}",
+                            "expected a rotation angle in degrees (0..=359) after `rotate`, found {}",
                             self.peek().describe()
                         ));
                     }

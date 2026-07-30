@@ -51,6 +51,171 @@ design B {
 }
 "#;
 
+#[test]
+fn std_exports_only_the_core_trait_allowlist() {
+    let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std/src");
+    let mut declarations = Vec::new();
+    for entry in std::fs::read_dir(src_dir).unwrap() {
+        let path = entry.unwrap().path();
+        if !path.extension().is_some_and(|ext| ext == "cohdl") {
+            continue;
+        }
+        let text = std::fs::read_to_string(path).unwrap();
+        for line in text.lines().map(str::trim) {
+            let Some(rest) = line.strip_prefix("pub ") else {
+                continue;
+            };
+            let mut words = rest.split_whitespace();
+            let kind = words.next().unwrap_or_default();
+            let name = words
+                .next()
+                .unwrap_or_default()
+                .trim_end_matches(':')
+                .to_string();
+            declarations.push(format!("{kind} {name}"));
+        }
+    }
+    declarations.sort();
+    assert_eq!(
+        declarations,
+        [
+            "trait Capacitor",
+            "trait Connector",
+            "trait Diode",
+            "trait IC",
+            "trait Polarized",
+            "trait Resistor",
+            "trait TwoTerminal",
+        ]
+    );
+}
+
+#[test]
+fn every_shipped_component_library_has_consistent_part_footprints() {
+    fn packages_under(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        if dir.join("cohdl.toml").is_file() {
+            out.push(dir.to_path_buf());
+            return;
+        }
+        let mut children: Vec<_> = std::fs::read_dir(dir)
+            .unwrap()
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| path.is_dir())
+            .collect();
+        children.sort();
+        for child in children {
+            packages_under(&child, out);
+        }
+    }
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let std_dir = root.join("lib/std");
+    let mut packages = Vec::new();
+    packages_under(&root.join("lib"), &mut packages);
+    for package in packages {
+        if package == std_dir {
+            continue;
+        }
+        let (_, manifest) = cohdl::project::peek_manifest(&package).unwrap();
+        let declared = manifest
+            .deps_raw
+            .expect("every shipped component library must declare dependencies");
+        let mut deps = Vec::new();
+        for (name, raw_version, _) in declared {
+            let wanted = cohdl::deps::parse_exact_version(&raw_version).unwrap();
+            let family = root.join("lib").join(&name);
+            let (_, dir) = cohdl::deps::available_versions(&family, &name)
+                .unwrap()
+                .into_iter()
+                .find(|(version, _)| *version == wanted)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "`{}` declares unavailable shipped dependency `{} = \"{}\"`",
+                        package.display(),
+                        name,
+                        raw_version
+                    )
+                });
+            deps.push((name, dir));
+        }
+        deps.sort_by_key(|(name, _)| if name == "std" { 0 } else { 1 });
+        let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+        let project = cohdl::project::load_project_with_deps(&package, &deps).unwrap();
+        let mut checked = cohdl::pipeline::check_files_in_with_deps(
+            &project.name,
+            &dep_names,
+            &project.files,
+            None,
+        )
+        .unwrap();
+        checked.diags.sort(&checked.sm);
+        assert!(
+            !checked.diags.has_errors(),
+            "`{}` declaration check failed:\n{}",
+            package.display(),
+            checked.diags.render(&checked.sm)
+        );
+
+        let own_prefix = format!("{}::", cohdl::pipeline::package_root(&project.name));
+        let own_components: Vec<&String> = checked
+            .world
+            .devices
+            .keys()
+            .chain(checked.world.parts.keys())
+            .filter(|name| {
+                name.starts_with(&own_prefix)
+                    && checked
+                        .world
+                        .symbols
+                        .get(*name)
+                        .is_some_and(|symbol| symbol.is_pub)
+            })
+            .collect();
+        if !own_components.is_empty() {
+            assert!(
+                package.join("docs/README.md").is_file(),
+                "`{}` ships public devices or parts without docs/README.md",
+                package.display()
+            );
+        }
+        for component in own_components {
+            let docs = checked.world.docs.get(component).unwrap_or_else(|| {
+                panic!(
+                    "`{}` public component `{component}` has no #[doc(...)] reference",
+                    package.display()
+                )
+            });
+            assert!(
+                !docs.is_empty(),
+                "`{}` public component `{component}` has an empty document list",
+                package.display()
+            );
+            for relative in docs {
+                assert!(
+                    std::path::Path::new(relative).starts_with("docs"),
+                    "`{}` component `{component}` references `{relative}` outside docs/",
+                    package.display()
+                );
+                assert!(
+                    package.join(relative).is_file(),
+                    "`{}` component `{component}` references missing `{relative}`",
+                    package.display()
+                );
+            }
+        }
+
+        let mut footprint_diags = Diagnostics::new();
+        cohdl::check::footprints::check_pad_consistency(&checked.world, &mut footprint_diags);
+        footprint_diags.sort(&checked.sm);
+        assert!(
+            !footprint_diags.has_errors(),
+            "`{}` has a part/footprint mismatch:\n{}",
+            package.display(),
+            footprint_diags.render(&checked.sm)
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // footprint: a resolvable declaration kind.
 

@@ -1,8 +1,8 @@
 // CoHDL std library — core traits.
 //
-// MVP discipline (docs/design/09-mvp-definition.md): every trait and device
-// in std exists because the ESP32-S3 sensor-node demo board needs it. Nothing
-// speculative.
+// Keep this package deliberately small: std is injected as the implicit
+// prelude of every CoHDL package, so component catalogs belong in focused
+// libraries instead.
 
 // A two-terminal passive element. No designator prefix of its own — the
 // concrete component traits below carry the prefix mapping (RFC-005).
@@ -50,8 +50,4 @@ pub trait IC {
 
 pub trait Connector {
     designator_prefix: "J"
-}
-
-pub trait Microphone {
-    designator_prefix: "MK"
 }

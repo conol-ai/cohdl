@@ -86,12 +86,34 @@ fn pad_rotate_parses_and_emits_kicad_angle() {
     );
 }
 
+/// Any whole degree is a pad rotation now, not just the cardinals (deviation
+/// from RFC-020's closed set, at the board author's direction).
 #[test]
-fn pad_rotate_invalid_is_e811() {
+fn pad_rotate_accepts_an_arbitrary_angle() {
     let src = full().replace("rotate 90\n", "rotate 45\n");
     let (_c, r) = check(&src);
-    assert!(r.contains("E811"), "{r}");
-    assert!(r.contains("{0, 90, 180, 270}"), "must name the set:\n{r}");
+    assert!(!r.contains("E811"), "45 must be accepted:\n{r}");
+    let (checked, _a) = build(&src);
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let content = &mods[0].2;
+    // KiCad's 3-argument pad form carries the angle through verbatim; size is
+    // never swapped, exactly as at the cardinals.
+    assert!(
+        content.contains("(pad \"2\" smd rect (at -1 -2 45) (size 0.8 0.3)"),
+        "{content}"
+    );
+}
+
+/// A full turn is 0, so 360 and up is a mistake, not a silent reduction.
+#[test]
+fn pad_rotate_out_of_range_is_e811() {
+    for bad in ["360", "450", "99999"] {
+        let src = full().replace("rotate 90\n", &format!("rotate {bad}\n"));
+        let (_c, r) = check(&src);
+        assert!(r.contains("E811"), "`rotate {bad}` must be E811:\n{r}");
+        assert!(r.contains("0..=359"), "must name the range:\n{r}");
+    }
 }
 
 #[test]
@@ -176,6 +198,44 @@ fn ipc_carries_side_and_mirrored_pads() {
         xml.contains("<Location x=\"7\" y=\"-1\"/>"),
         "mirror-then-rotate pad math:\n{xml}"
     );
+}
+
+/// A non-cardinal component rotation must move pads by real trigonometry, and
+/// the result must be reproducible to the byte — `crate::trig`'s fixed-point
+/// table is what guarantees that, where `f64::sin` would not.
+#[test]
+fn ipc_rotates_pads_at_a_non_cardinal_angle() {
+    // u1 top side at (-5, 0) turned 30 deg CCW; pad 1 local (1, 2) -> IPC y-up
+    // local (1, -2). Rotating (1, -2) by 30 deg:
+    //   x' = 1*cos30 - (-2)*sin30 = 0.8660254 + 1        = 1.8660254
+    //   y' = 1*sin30 + (-2)*cos30 = 0.5     - 1.7320508  = -1.2320508
+    // absolute: (-5 + 1.8660254, 0 - 1.2320508)
+    let src = full().replace(
+        "place u1 at (-5mm, 0mm)",
+        "place u1 at (-5mm, 0mm) rotate 30",
+    );
+    let (checked, _a) = build(&src);
+    let ir = checked.ir.as_ref().unwrap();
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    assert!(
+        xml.contains("rotation=\"30\""),
+        "component Xform must carry the angle:\n{xml}"
+    );
+    assert!(
+        xml.contains("<Location x=\"-3.133974596215561\" y=\"-1.232050807568877\"/>"),
+        "30-degree pad math:\n{xml}"
+    );
+    // pad 2 local (-1, 2) IPC y-up, same 30 deg: (-1.8660254, 1.2320508)
+    // absolute (-6.8660254, 1.2320508). Its OWN `rotate 90` turns the pad
+    // shape, never its offset.
+    assert!(
+        xml.contains("<Location x=\"-6.866025403784439\" y=\"1.232050807568877\"/>"),
+        "pad-2 offset must be rotated by the component angle only:\n{xml}"
+    );
+    // Byte-reproducible: same source, same bytes. This is the invariant the
+    // integer table exists to protect.
+    let again = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    assert_eq!(xml, again);
 }
 
 #[test]

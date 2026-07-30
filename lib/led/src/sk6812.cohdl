@@ -1,0 +1,52 @@
+// SK6812MINI-E-012: addressable RGB (5V). The current OPSCO B/2
+// specification maps 1=GND, 2=DIN, 3=VDD, and 4=DOUT; DOUT -> next DIN.
+#[doc("docs/opsco-sk6812mini-e.pdf")]
+pub device SK6812 {
+    pins {
+        required GND: 1 [power_in]
+        required DIN: 2 [input]
+        required VDD: 3 [power_in]
+        required DOUT: 4 [output]
+    }
+}
+
+impl Led_Addressable for SK6812 {}
+
+#[doc("docs/opsco-sk6812mini-e.pdf")]
+pub part RGB_SK6812: SK6812 {
+    primary { mfr: "Dongguan OPSCO Optoelectronics", mpn: "SK6812MINI-E-012",
+              footprint: FP_LED_SK6812MINI_E }
+}
+
+// SK6812MINI-E-012 recommended land, datasheet page 5.
+pub pad P_SK6812_Pad {
+    shape: rect
+    size: (1.8mm, 0.82mm)
+    layer: top_copper
+    plating: smd
+}
+
+// SK6812MINI-E-012 reverse-mount RGB LED. Pads: 1=GND, 2=DIN, 3=VDD,
+// 4=DOUT. The official recommended copper lands are 1.80x0.82mm, with
+// 0.68mm between rows and a 6.80mm total outside span.
+// OPSCO's drawing has +Y upward on the page; CoHDL/KiCad has +Y downward, so
+// the drawing's upper row uses negative Y here.
+//
+// Reverse-mount means the die faces the BOARD, not the sky: the part is
+// soldered to one side and its light leaves through a cutout in the PCB. So the
+// land pattern is only half the footprint — without the `window` the LED shines
+// into copper and laminate. The 3.4 x 3.0mm aperture is KiCad's own for this
+// part (its Edge.Cuts outline); the OPSCO B/2 specification does not dimension
+// a routed PCB aperture, so this is convention, not a manufacturer number.
+pub footprint FP_LED_SK6812MINI_E {
+    pad 3: P_SK6812_Pad at (-2.5mm, -0.75mm)
+    pad 4: P_SK6812_Pad at (-2.5mm, 0.75mm)
+    pad 1: P_SK6812_Pad at (2.5mm, 0.75mm)
+    pad 2: P_SK6812_Pad at (2.5mm, -0.75mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    window { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.3mm, 3.5mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

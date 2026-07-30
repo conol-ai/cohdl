@@ -27,7 +27,7 @@ The smallest slice of the spec that proves the thesis end-to-end:
 3. **Residual DRC** — exactly four rules: voltage-exceed, polarity-mismatch, single-driver, multi-driver
 4. **Designators** — collision-free allocator, `design.lock` with tombstones, `#[designator("…")]` overrides
 5. **Codegen** — KiCad `.net` netlist + BOM CSV
-6. **Minimal std library** — only what the ESP32-S3 sensor-node demo board needs
+6. **Minimal std library** — only the universal traits every component package needs
 7. **Repair harness** — generate → check → repair loop driving an LLM against the compiler's diagnostics
 
 The proof: an AI writes a board from a plain-language spec, the type checker catches its structural mistakes as precise compile errors, the AI repairs them from those diagnostics, and the result is a real, importable KiCad netlist with an honest BOM.
@@ -39,16 +39,26 @@ All MVP exit criteria are met, and all nineteen Accepted RFC areas (RFC-001…01
 ## Using it
 
 ```sh
-cargo run -- check examples/sensor-node          # parse → resolve → type-check → residual DRC
+cargo run -- check examples/openmicro            # parse → resolve → type-check → residual DRC
 cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .net + BOM CSV
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
-cargo run -- fmt lib/std --check                 # canonical-form gate (RFC-009)
+cargo run -- fmt lib --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
 
-Two reference designs live in `examples/`: the ESP32-S3 **sensor-node** (the MVP demo board) and the Raspberry Pi **Pico 2** (RP2350A — a full transcription of the official schematic, exercising variants, `#[intent]`, and layout constraints).
+`std` is a core-traits-only prelude; it carries no devices, parts, pads, or
+footprints. Shipped component packages include `passive`, `connectors`, `usb`,
+`esd`, `diode`, `flash`, `ldo`, `led`, `mic`, `mosfet`, `osc`, and
+manufacturer packages for Espressif, Raspberry Pi, Richtek, ST, and TI.
+Projects pin every package they use to an exact version under
+`[dependencies]`; see [`lib/README.md`](lib/README.md) for the complete
+namespace map.
+
+Two reference designs live in `examples/`: **OpenMicro** and the Raspberry Pi
+**Pico 2** (RP2350A — a full transcription of the official schematic,
+exercising variants, `#[intent]`, and layout constraints).
 
 ### Build artifacts
 
@@ -60,11 +70,10 @@ Two reference designs live in `examples/`: the ESP32-S3 **sensor-node** (the MVP
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). This covers the compiler crate, the standard
-library in `lib/std/`, the reference designs in `examples/` (including the
-OpenMicro firmware and companion app), the registry server in `registry/`,
-the VS Code extension in `editors/vscode/`, and the tooling in `tools/` and
-`harness/`.
+MIT — see [`LICENSE`](LICENSE). This covers the compiler crate, the libraries
+under `lib/`, the reference designs in `examples/`, the registry
+server in `registry/`, the VS Code extension in `editors/vscode/`, and the
+tooling in `tools/` and `harness/`.
 
 Every package published to registry.cohdl.org must declare its own
-`[package] license` — `lib/std` declares `MIT` accordingly.
+`[package] license`; every package shipped under `lib/` declares `MIT`.

@@ -5,15 +5,8 @@
 //
 // Geometry: KiCad Resistor_SMD.pretty/R_<EIA>_<metric>Metric.kicad_mod.
 // Per RFC-021 one CHIP land serves resistors and capacitors alike, and
-// the resistor land is the more generous of the two.
-
-// KiCad R_01005_0402Metric pad (0.4mm x 0.3mm).
-pub pad P_Chip_01005 {
-    shape: rect
-    size: (0.4mm, 0.3mm)
-    layer: top_copper
-    plating: smd
-}
+// the resistor land is the more generous of the two. Cross-checked against
+// Vishay CRCW and Samsung MLCC manufacturer reflow recommendations in docs/.
 
 // KiCad R_0201_0603Metric pad (0.46mm x 0.4mm).
 pub pad P_Chip_0201 {

@@ -465,14 +465,21 @@ impl Formatter<'_> {
             ),
             PhysAttr::Bypass {
                 inst,
+                index,
                 pin,
                 capacitance,
                 ..
-            } => match pin {
-                Some(p) => format!("#[bypass({}.{}, {})]", inst.name, p.name, capacitance.text),
-                // RFC-028: the bare Pin-parameter form.
-                None => format!("#[bypass({}, {})]", inst.name, capacitance.text),
-            },
+            } => {
+                let target = match index {
+                    Some((i, _)) => format!("{}[{}]", inst.name, i),
+                    None => inst.name.clone(),
+                };
+                match pin {
+                    Some(p) => format!("#[bypass({}.{}, {})]", target, p.name, capacitance.text),
+                    // RFC-028: the bare Pin-parameter form.
+                    None => format!("#[bypass({}, {})]", target, capacitance.text),
+                }
+            }
             PhysAttr::CrystalOscillator {
                 parent, pin1, pin2, ..
             } => format!(

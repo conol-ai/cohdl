@@ -6,873 +6,1072 @@
 // 199 parts: every (dielectric, rated voltage, capacitance) Yageo's
 // own datasheet tables list for this size, and no combination they do not.
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_100V_C0G_1206: MLCC<10pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN100", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12p_100V_C0G_1206: MLCC<12pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN120", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_100V_C0G_1206: MLCC<15pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN150", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18p_100V_C0G_1206: MLCC<18pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN180", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22p_100V_C0G_1206: MLCC<22pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN220", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C220JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_100V_C0G_1206: MLCC<27pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN270", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C270JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_100V_C0G_1206: MLCC<33pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN330", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_39p_100V_C0G_1206: MLCC<39pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN390", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47p_100V_C0G_1206: MLCC<47pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN470", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C470JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56p_100V_C0G_1206: MLCC<56pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN560", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68p_100V_C0G_1206: MLCC<68pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN680", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82p_100V_C0G_1206: MLCC<82pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN820", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100p_100V_C0G_1206: MLCC<100pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN101", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C101JCCNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_120p_100V_C0G_1206: MLCC<120pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN121", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_150p_100V_C0G_1206: MLCC<150pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN151", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C151JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_180p_100V_C0G_1206: MLCC<180pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN181", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_220p_100V_C0G_1206: MLCC<220pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN221", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C221JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_270p_100V_C0G_1206: MLCC<270pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN271", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C271JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_330p_100V_C0G_1206: MLCC<330pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN331", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C331JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_390p_100V_C0G_1206: MLCC<390pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN391", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_470p_100V_C0G_1206: MLCC<470pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN471", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C471JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_560p_100V_C0G_1206: MLCC<560pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN561", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C561JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_100V_C0G_1206: MLCC<680pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN681", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C681JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_820p_100V_C0G_1206: MLCC<820pF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN821", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n_100V_C0G_1206: MLCC<1nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN102", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C102JCCNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n2_100V_C0G_1206: MLCC<1.2nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN122", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n5_100V_C0G_1206: MLCC<1.5nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN152", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C152JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n8_100V_C0G_1206: MLCC<1.8nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN182", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n2_100V_C0G_1206: MLCC<2.2nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN222", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C222JCCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n7_100V_C0G_1206: MLCC<2.7nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN272", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n3_100V_C0G_1206: MLCC<3.3nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN332", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n9_100V_C0G_1206: MLCC<3.9nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN392", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C392JCHNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_4n7_100V_C0G_1206: MLCC<4.7nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN472", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C472JCH1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_5n6_100V_C0G_1206: MLCC<5.6nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN562", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_6n8_100V_C0G_1206: MLCC<6.8nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN682", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_8n2_100V_C0G_1206: MLCC<8.2nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN822", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10n_100V_C0G_1206: MLCC<10nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN103", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C103JCHNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12n_100V_C0G_1206: MLCC<12nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN123", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15n_100V_C0G_1206: MLCC<15nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN153", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18n_100V_C0G_1206: MLCC<18nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN183", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22n_100V_C0G_1206: MLCC<22nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN223", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C223JCDNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33n_100V_C0G_1206: MLCC<33nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN333", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C333JCH1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47n_100V_C0G_1206: MLCC<47nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN473", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56n_100V_C0G_1206: MLCC<56nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN563", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68n_100V_C0G_1206: MLCC<68nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN683", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82n_100V_C0G_1206: MLCC<82nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN823", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100n_100V_C0G_1206: MLCC<100nF, 100V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO0BN104", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_100n_100V_X7R_1206: MLCC<100nF, 100V, 10%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206KRX7R0BB104", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31B104KCFNFN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_200V_C0G_1206: MLCC<10pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN100", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12p_200V_C0G_1206: MLCC<12pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN120", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_200V_C0G_1206: MLCC<15pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN150", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18p_200V_C0G_1206: MLCC<18pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN180", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22p_200V_C0G_1206: MLCC<22pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN220", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_200V_C0G_1206: MLCC<27pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN270", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_200V_C0G_1206: MLCC<33pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN330", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_39p_200V_C0G_1206: MLCC<39pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN390", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47p_200V_C0G_1206: MLCC<47pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN470", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56p_200V_C0G_1206: MLCC<56pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN560", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68p_200V_C0G_1206: MLCC<68pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN680", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82p_200V_C0G_1206: MLCC<82pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN820", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100p_200V_C0G_1206: MLCC<100pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN101", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_120p_200V_C0G_1206: MLCC<120pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN121", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_150p_200V_C0G_1206: MLCC<150pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN151", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_180p_200V_C0G_1206: MLCC<180pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN181", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_220p_200V_C0G_1206: MLCC<220pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN221", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C221JDCNFN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_270p_200V_C0G_1206: MLCC<270pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN271", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_330p_200V_C0G_1206: MLCC<330pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN331", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_390p_200V_C0G_1206: MLCC<390pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN391", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_470p_200V_C0G_1206: MLCC<470pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN471", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_560p_200V_C0G_1206: MLCC<560pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN561", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_200V_C0G_1206: MLCC<680pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN681", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C681JDF1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_820p_200V_C0G_1206: MLCC<820pF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN821", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n_200V_C0G_1206: MLCC<1nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN102", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C102JDFNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n2_200V_C0G_1206: MLCC<1.2nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN122", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n5_200V_C0G_1206: MLCC<1.5nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN152", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n8_200V_C0G_1206: MLCC<1.8nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN182", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n2_200V_C0G_1206: MLCC<2.2nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN222", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n7_200V_C0G_1206: MLCC<2.7nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN272", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n3_200V_C0G_1206: MLCC<3.3nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN332", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n9_200V_C0G_1206: MLCC<3.9nF, 200V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOABN392", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_250V_C0G_1206: MLCC<10pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN100", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C100JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12p_250V_C0G_1206: MLCC<12pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN120", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_250V_C0G_1206: MLCC<15pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN150", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C150JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18p_250V_C0G_1206: MLCC<18pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN180", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22p_250V_C0G_1206: MLCC<22pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN220", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C220JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_250V_C0G_1206: MLCC<27pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN270", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_250V_C0G_1206: MLCC<33pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN330", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C330JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_39p_250V_C0G_1206: MLCC<39pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN390", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47p_250V_C0G_1206: MLCC<47pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN470", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C470JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56p_250V_C0G_1206: MLCC<56pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN560", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68p_250V_C0G_1206: MLCC<68pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN680", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C680JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82p_250V_C0G_1206: MLCC<82pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN820", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100p_250V_C0G_1206: MLCC<100pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN101", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C101JEF3PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_120p_250V_C0G_1206: MLCC<120pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN121", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_150p_250V_C0G_1206: MLCC<150pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN151", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_180p_250V_C0G_1206: MLCC<180pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN181", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_220p_250V_C0G_1206: MLCC<220pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN221", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C221JEF1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_270p_250V_C0G_1206: MLCC<270pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN271", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_330p_250V_C0G_1206: MLCC<330pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN331", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C331JEF1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_390p_250V_C0G_1206: MLCC<390pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN391", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_470p_250V_C0G_1206: MLCC<470pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN471", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C471JEF1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_560p_250V_C0G_1206: MLCC<560pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN561", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_250V_C0G_1206: MLCC<680pF, 250V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPOYBN681", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C681JEF1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_25V_C0G_1206: MLCC<10pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN100", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12p_25V_C0G_1206: MLCC<12pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN120", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_25V_C0G_1206: MLCC<15pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN150", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18p_25V_C0G_1206: MLCC<18pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN180", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22p_25V_C0G_1206: MLCC<22pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN220", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_25V_C0G_1206: MLCC<27pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN270", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_25V_C0G_1206: MLCC<33pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN330", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_39p_25V_C0G_1206: MLCC<39pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN390", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47p_25V_C0G_1206: MLCC<47pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN470", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56p_25V_C0G_1206: MLCC<56pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN560", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68p_25V_C0G_1206: MLCC<68pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN680", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82p_25V_C0G_1206: MLCC<82pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN820", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100p_25V_C0G_1206: MLCC<100pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN101", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_120p_25V_C0G_1206: MLCC<120pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN121", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_150p_25V_C0G_1206: MLCC<150pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN151", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_180p_25V_C0G_1206: MLCC<180pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN181", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_220p_25V_C0G_1206: MLCC<220pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN221", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_270p_25V_C0G_1206: MLCC<270pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN271", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_330p_25V_C0G_1206: MLCC<330pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN331", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_390p_25V_C0G_1206: MLCC<390pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN391", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_470p_25V_C0G_1206: MLCC<470pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN471", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_560p_25V_C0G_1206: MLCC<560pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN561", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_25V_C0G_1206: MLCC<680pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN681", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_820p_25V_C0G_1206: MLCC<820pF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN821", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n_25V_C0G_1206: MLCC<1nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN102", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n2_25V_C0G_1206: MLCC<1.2nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN122", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n5_25V_C0G_1206: MLCC<1.5nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN152", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n8_25V_C0G_1206: MLCC<1.8nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN182", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n2_25V_C0G_1206: MLCC<2.2nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN222", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n7_25V_C0G_1206: MLCC<2.7nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN272", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n3_25V_C0G_1206: MLCC<3.3nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN332", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n9_25V_C0G_1206: MLCC<3.9nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN392", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_4n7_25V_C0G_1206: MLCC<4.7nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN472", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_5n6_25V_C0G_1206: MLCC<5.6nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN562", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_6n8_25V_C0G_1206: MLCC<6.8nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN682", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10n_25V_C0G_1206: MLCC<10nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN103", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C103JAFNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12n_25V_C0G_1206: MLCC<12nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN123", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15n_25V_C0G_1206: MLCC<15nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN153", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18n_25V_C0G_1206: MLCC<18nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN183", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22n_25V_C0G_1206: MLCC<22nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN223", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33n_25V_C0G_1206: MLCC<33nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN333", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47n_25V_C0G_1206: MLCC<47nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN473", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C473JAHNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56n_25V_C0G_1206: MLCC<56nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN563", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68n_25V_C0G_1206: MLCC<68nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN683", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82n_25V_C0G_1206: MLCC<82nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN823", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100n_25V_C0G_1206: MLCC<100nF, 25V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO8BN104", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C104JAHNNN" }
 }
 
+#[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_680n_25V_X7R_1206: MLCC<680nF, 25V, 10%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206KRX7R8BB684", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31B684KAHNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10p_50V_C0G_1206: MLCC<10pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN100", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C100JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12p_50V_C0G_1206: MLCC<12pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN120", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C120JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_50V_C0G_1206: MLCC<15pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN150", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C150JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18p_50V_C0G_1206: MLCC<18pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN180", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C180JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22p_50V_C0G_1206: MLCC<22pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN220", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C220JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_50V_C0G_1206: MLCC<27pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN270", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C270JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33p_50V_C0G_1206: MLCC<33pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN330", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_39p_50V_C0G_1206: MLCC<39pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN390", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C390JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47p_50V_C0G_1206: MLCC<47pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN470", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56p_50V_C0G_1206: MLCC<56pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN560", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C560JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68p_50V_C0G_1206: MLCC<68pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN680", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82p_50V_C0G_1206: MLCC<82pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN820", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C820JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100p_50V_C0G_1206: MLCC<100pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN101", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C101JBCNFN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_120p_50V_C0G_1206: MLCC<120pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN121", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C121JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_150p_50V_C0G_1206: MLCC<150pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN151", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_180p_50V_C0G_1206: MLCC<180pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN181", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C181JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_220p_50V_C0G_1206: MLCC<220pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN221", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C221JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_270p_50V_C0G_1206: MLCC<270pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN271", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C271JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_330p_50V_C0G_1206: MLCC<330pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN331", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C331JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_390p_50V_C0G_1206: MLCC<390pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN391", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C391JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_470p_50V_C0G_1206: MLCC<470pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN471", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_560p_50V_C0G_1206: MLCC<560pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN561", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C561JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_680p_50V_C0G_1206: MLCC<680pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN681", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C681JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_820p_50V_C0G_1206: MLCC<820pF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN821", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C821JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n_50V_C0G_1206: MLCC<1nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN102", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C102JBCNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n2_50V_C0G_1206: MLCC<1.2nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN122", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C122JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n5_50V_C0G_1206: MLCC<1.5nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN152", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C152JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_1n8_50V_C0G_1206: MLCC<1.8nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN182", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C182JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n2_50V_C0G_1206: MLCC<2.2nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN222", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C222JBCNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_2n7_50V_C0G_1206: MLCC<2.7nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN272", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C272JBHNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n3_50V_C0G_1206: MLCC<3.3nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN332", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C332JBFNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_3n9_50V_C0G_1206: MLCC<3.9nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN392", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C392JBFNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_4n7_50V_C0G_1206: MLCC<4.7nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN472", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C472JBFNFN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_5n6_50V_C0G_1206: MLCC<5.6nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN562", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C562JBHNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_6n8_50V_C0G_1206: MLCC<6.8nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN682", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C682JBHNNN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_8n2_50V_C0G_1206: MLCC<8.2nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN822", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_10n_50V_C0G_1206: MLCC<10nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN103", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_12n_50V_C0G_1206: MLCC<12nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN123", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C123JBHNNW" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15n_50V_C0G_1206: MLCC<15nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN153", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_18n_50V_C0G_1206: MLCC<18nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN183", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_22n_50V_C0G_1206: MLCC<22nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN223", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C223JBH1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_33n_50V_C0G_1206: MLCC<33nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN333", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C333JBH1PN" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_47n_50V_C0G_1206: MLCC<47nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN473", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C473JBHN4N" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_56n_50V_C0G_1206: MLCC<56nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN563", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_68n_50V_C0G_1206: MLCC<68nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN683", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C683JBHN4N" }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_82n_50V_C0G_1206: MLCC<82nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN823", footprint: CHIP_1206 }
 }
 
+#[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_100n_50V_C0G_1206: MLCC<100nF, 50V, 5%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206JRNPO9BN104", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31C104JBH1PN" }
 }
 
+#[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_150n_50V_X7R_1206: MLCC<150nF, 50V, 10%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206KRX7R9BB154", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31B154KBCNNN" }
 }
 
+#[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_220n_50V_X7R_1206: MLCC<220nF, 50V, 10%>[C1206] {
     primary { mfr: "Yageo", mpn: "CC1206KRX7R9BB224", footprint: CHIP_1206 }
     alt { mfr: "Samsung", mpn: "CL31B224KBFNFN" }

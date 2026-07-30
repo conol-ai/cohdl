@@ -1,0 +1,93 @@
+// Micro-USB type-B connector.
+#[doc("docs/molex-1050170001-sales-drawing.pdf")]
+pub device MicroUSB_B {
+    pins {
+        required VBUS: 1 [power_out] // 5V from host
+        required DN: 2 [bidirectional]
+        required DP: 3 [bidirectional]
+        optional ID: 4 [passive]
+        required GND: 5 [power_in]
+        // Molex 105017-0001 land: 4 SMD shell tabs (6-9) + 2 slotted anchors
+        // (10-11) + 2 through-hole mounting pegs (12-13), all shield/GND.
+        required SHIELD: 6, 7, 8, 9, 10, 11, 12, 13 [passive]
+    }
+}
+
+impl Connector for MicroUSB_B {}
+
+#[doc("docs/molex-1050170001-sales-drawing.pdf")]
+pub part USB_MICRO_B: MicroUSB_B {
+    primary { mfr: "Molex", mpn: "105017-0001", footprint: FP_USB_Micro_B_SMD }
+}
+
+// Micro-USB Type-B SMD land (Molex 105017-0001, KiCad
+// Connector_USB:USB_Micro-B_Molex-105017-0001). The five signal pads are
+// NARROW and TALL (0.4 wide x 1.35 long, 0.65mm pitch) — reaching toward the
+// connector mouth, not sideways.
+pub pad P_USB_uB_Sig {
+    shape: rect
+    size: (0.4mm, 1.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB shell tab — large SMD ground pad (the two inner shell tabs).
+pub pad P_USB_uB_TabL {
+    shape: rect
+    size: (1.5mm, 1.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB shell tab — smaller SMD ground pad (the two outer shell tabs).
+pub pad P_USB_uB_TabS {
+    shape: rect
+    size: (1.2mm, 1.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Micro-USB corner shell anchor — Molex specifies a 0.6 x 1.3mm plated slot
+// inside a 1.2 x 1.9mm copper land.
+pub pad P_USB_uB_Slot {
+    shape: oval
+    size: (1.2mm, 1.9mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: (0.6mm, 1.3mm)
+}
+
+// Micro-USB through-hole mounting peg (0.85mm plated hole, 1.45mm round pad).
+pub pad P_USB_uB_Peg {
+    shape: circle
+    size: (1.45mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.85mm
+}
+
+// Micro-USB Type-B SMD receptacle — real land pattern (Molex 105017-0001,
+// KiCad Connector_USB:USB_Micro-B_Molex-105017-0001): 5 signal SMD pads on
+// 0.65mm pitch reaching toward the mouth, 4 SMD shell tabs, 2 slotted plated
+// anchors and 2 plated mounting pegs (all shield/GND). Pins: 1=VBUS 2=D- 3=D+
+// 4=ID 5=GND; 6-13 = shell/mounting.
+pub footprint FP_USB_Micro_B_SMD {
+    pad 1: P_USB_uB_Sig at (-1.3mm, -1.4625mm)
+    pad 2: P_USB_uB_Sig at (-0.65mm, -1.4625mm)
+    pad 3: P_USB_uB_Sig at (0mm, -1.4625mm)
+    pad 4: P_USB_uB_Sig at (0.65mm, -1.4625mm)
+    pad 5: P_USB_uB_Sig at (1.3mm, -1.4625mm)
+    pad 6: P_USB_uB_TabL at (-1mm, 1.2375mm)
+    pad 7: P_USB_uB_TabL at (1mm, 1.2375mm)
+    pad 8: P_USB_uB_TabS at (-2.9mm, 1.2375mm)
+    pad 9: P_USB_uB_TabS at (2.9mm, 1.2375mm)
+    pad 10: P_USB_uB_Slot at (-3.5mm, 1.2375mm)
+    pad 11: P_USB_uB_Slot at (3.5mm, 1.2375mm)
+    pad 12: P_USB_uB_Peg at (-2.5mm, -1.4625mm)
+    pad 13: P_USB_uB_Peg at (2.5mm, -1.4625mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0.59mm), size: (8.8mm, 6.1mm) }
+    silkscreen_ref { at: (0mm, -2.8mm) }
+}

@@ -1,0 +1,45 @@
+// 2x3 2.54mm SMT female socket. Pins use standard 2xN numbering: odd and
+// even rows share each column.
+#[doc("docs/samtec-ssw-1xx-22-surface-mount-drawing.pdf")]
+pub device Socket_2x3 {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+        required P4: 4 [passive]
+        required P5: 5 [passive]
+        required P6: 6 [passive]
+    }
+}
+impl Connector for Socket_2x3 {}
+
+#[doc("docs/samtec-ssw-1xx-22-surface-mount-drawing.pdf")]
+pub part SOCKET_2X3_254_SMD: Socket_2x3 {
+    primary { mfr: "Samtec", mpn: "SSW-103-22-SM-D-VS", footprint: FP_Socket_2x3_254_SMD }
+}
+
+// Samtec SSW-DVS recommended PCB layout, Rev A: 1.27 x 2.54mm lands.
+pub pad P_Socket254_Pad {
+    shape: rect
+    size: (1.27mm, 2.54mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Samtec's top view has pin 1 at the lower-right corner and pin 2 above it.
+// Rotating that view 180 degrees (without reflection) places pin 1 at
+// (-2.54,-3.05) below. The official SSW-DVS land pattern gives 2.54mm column
+// pitch and 6.10mm row-center spacing: 8.64mm overall minus one 2.54mm land.
+pub footprint FP_Socket_2x3_254_SMD {
+    pad 1: P_Socket254_Pad at (-2.54mm, -3.05mm)
+    pad 3: P_Socket254_Pad at (0mm, -3.05mm)
+    pad 5: P_Socket254_Pad at (2.54mm, -3.05mm)
+    pad 2: P_Socket254_Pad at (-2.54mm, 3.05mm)
+    pad 4: P_Socket254_Pad at (0mm, 3.05mm)
+    pad 6: P_Socket254_Pad at (2.54mm, 3.05mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.7mm, 9.2mm) }
+    silkscreen_ref { at: (0mm, -5mm) }
+}

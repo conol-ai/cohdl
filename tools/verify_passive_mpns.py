@@ -2,7 +2,7 @@
 """Check every generated Yageo part number against Yageo's own specsheet
 endpoint, and record the verdict in tools/passive_data/yageo_verified.json.
 
-    GET https://yageogroup.com/download/specsheet/<MPN>
+    GET https://yageogroup.com/component-documentation/download/specsheet/<MPN>?lang=en
       200 -> Yageo publishes a specsheet for that exact part number
       404 -> no such part
 
@@ -27,7 +27,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "lib" / "passive" / "src"
 OUT = ROOT / "tools" / "passive_data" / "yageo_verified.json"
-URL = "https://yageogroup.com/download/specsheet/"
+URL = "https://yageogroup.com/component-documentation/download/specsheet/"
 WORKERS = 12
 SAMPLE = 120  # resistors sampled when not running --all
 
@@ -44,7 +44,18 @@ def probe(mpn):
     out = subprocess.run(
         # HEAD: the status code is the whole answer, and a specsheet is a
         # ~1 MB PDF nobody needs downloaded ten thousand times.
-        ["curl", "-s", "-I", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "30", URL + mpn],
+        [
+            "curl",
+            "-s",
+            "-I",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            "--max-time",
+            "30",
+            URL + mpn + "?lang=en",
+        ],
         capture_output=True,
         text=True,
     ).stdout.strip()
@@ -76,7 +87,7 @@ def main():
         json.dumps(
             {
                 "_provenance": {
-                    "source": "GET https://yageogroup.com/download/specsheet/<MPN>",
+                    "source": "GET https://yageogroup.com/component-documentation/download/specsheet/<MPN>?lang=en",
                     "meaning": "true = Yageo publishes a specsheet for this exact part number. The generator emits a capacitor only when its part number is true here; false means omitted, never asserted.",
                     "checked": len(verdicts),
                     "rejected": len(bad),

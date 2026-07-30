@@ -1,6 +1,7 @@
 {
  "_provenance": {
-  "source": "GET https://yageogroup.com/download/specsheet/<MPN>",
+  "source": "GET https://yageogroup.com/component-documentation/download/specsheet/<MPN>?lang=en",
+  "retrieved": "2026-07-25",
   "meaning": "true = Yageo publishes a specsheet for this exact part number. The generator emits a capacitor only when its part number is true here; false means omitted, never asserted.",
   "checked": 9723,
   "rejected": 762

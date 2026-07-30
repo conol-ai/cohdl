@@ -24,9 +24,10 @@ v1 (branch `legacy`) had a convention-hack, v2 makes the fact explicit syntax.
   top = "Board"                # the `design` to compile
   ```
 
-- Source files are all `*.cohdl` under the project's `src/`, plus the std
-  library (all `*.cohdl` under the compiler's `lib/std/`; `--std <dir>` overrides,
-  `--no-std` omits).
+- Source files are all `*.cohdl` under the project's `src/`, plus every exact
+  package pinned in `[dependencies]` and `cohdl.lock`. `std` is an ordinary
+  pinned package whose public traits form the implicit prelude; `--std <dir>`
+  overrides that one package for development, and `--no-std` omits it.
 - **Scope — graduated to RFC-016 (2026-07-14).** The original provisional
   choice here ("one flat global scope, no `module`/`use`, `pub` recorded but
   not enforced") is superseded by the Accepted module system: a package's
@@ -191,9 +192,10 @@ the type-system-first test (RFC-004 Tooling & operations).
 RFC-018 gave `pad` a scalar `drill:`, so every hole CoHDL could describe was
 round. Real connectors disagree: a USB Type-C receptacle's shield legs seat in
 **plated slots**, and the openmicro board had been carrying a written-down
-compromise — a 0.6mm round hole standing in for a 0.6 x 1.7mm slot, with the
-approximation confessed in a comment in `lib/std/src/pads.cohdl`. A footprint
-that lies about its own holes is not a footprint.
+compromise — a 0.6mm round hole standing in for a 0.6 x 1.7mm slot. The
+connector and its corrected padstacks now live together in
+`lib/usb/src/connectors/type_c.cohdl`. A footprint that lies about its own
+holes is not a footprint.
 
 Provisional, pending an RFC on conol.ai:
 

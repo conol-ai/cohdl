@@ -1,0 +1,45 @@
+pub trait Crystal {
+    designator_prefix: "Y"
+}
+
+// 8MHz HSE crystal, 3225 4-pad. The F072 can run USB crystal-less (HSI48+CRS,
+// incl. the DFU bootloader) — the crystal is fitted belt-and-braces per direct
+// review: HSE/PLL clocking with HSI48+CRS still available as fallback.
+#[doc("docs/abracon-abm8.pdf")]
+pub device Crystal8MHz {
+    pins {
+        required XIN: 1 [passive]
+        required XOUT: 3 [passive]
+        required GND: 2, 4 [passive]
+    }
+}
+impl Crystal for Crystal8MHz {}
+// 10pF-load crystal; AN2867: C_load = 2*(CL - Cstray) = 2*(10 - 2.5) = 15pF.
+#[doc("docs/abracon-abm8.pdf")]
+pub part XTAL_8M: Crystal8MHz {
+    primary { mfr: "Abracon", mpn: "ABM8-8.000MHZ-10-1-U-T", footprint: FP_Crystal_3225 }
+}
+
+// Abracon ABM8 recommended land: 1.30x1.05mm pads, 1.00mm horizontal
+// inner gap, and 0.70mm vertical inner gap (family datasheet page 2).
+pub pad P_XTAL_3225 {
+    shape: rect
+    size: (1.3mm, 1.05mm)
+    layer: top_copper
+    plating: smd
+}
+
+// 8MHz crystal, 3.2x2.5mm 4-pad.
+// Pin 1 = XIN (bottom-left), 2 = GND, 3 = XOUT (top-right), 4 = GND —
+// electrodes on the 1/3 diagonal, grounds on 2/4, per the ABM8 datasheet.
+pub footprint FP_Crystal_3225 {
+    pad 1: P_XTAL_3225 at (-1.15mm, 0.875mm)
+    pad 2: P_XTAL_3225 at (1.15mm, 0.875mm)
+    pad 3: P_XTAL_3225 at (1.15mm, -0.875mm)
+    pad 4: P_XTAL_3225 at (-1.15mm, -0.875mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.3mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

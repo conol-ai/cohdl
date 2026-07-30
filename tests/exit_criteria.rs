@@ -15,19 +15,29 @@ fn check(src: &str) -> (cohdl::pipeline::Checked, String) {
     (checked, rendered)
 }
 
-/// The libraries every example board pins.
-const LIB_PACKAGES: [&str; 2] = ["std", "passive"];
-
 /// Load an example board the way the CLI does: every library it pins.
-/// std carries the traits and board devices; `passive` carries the chip
-/// resistors and capacitors every board uses.
-fn load_example(dir: &std::path::Path) -> cohdl::project::Project {
+fn load_example(dir: &std::path::Path) -> (cohdl::project::Project, Vec<String>) {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let deps = vec![
-        ("std".to_string(), root.join("lib/std")),
-        ("passive".to_string(), root.join("lib/passive")),
-    ];
-    cohdl::project::load_project_with_deps(dir, &deps).unwrap()
+    let (_, manifest) = cohdl::project::peek_manifest(dir).unwrap();
+    let mut names: Vec<String> = manifest
+        .deps_raw
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(name, _, _)| name)
+        .collect();
+    names.sort();
+    if let Some(pos) = names.iter().position(|name| name == "std") {
+        let std = names.remove(pos);
+        names.insert(0, std);
+    }
+    let deps: Vec<(String, std::path::PathBuf)> = names
+        .iter()
+        .map(|name| (name.clone(), root.join("lib").join(name)))
+        .collect();
+    (
+        cohdl::project::load_project_with_deps(dir, &deps).unwrap(),
+        names,
+    )
 }
 
 /// Load the real std library + a board source, as the CLI would.
@@ -60,10 +70,10 @@ fn check_with_std(board_src: &str) -> (cohdl::pipeline::Checked, String) {
 #[test]
 fn grammar_parses_demo_board_and_std() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj = load_example(&root.join("examples/rpi-pico2"));
+    let (proj, dep_names) = load_example(&root.join("examples/rpi-pico2"));
     let checked = cohdl::pipeline::check_files_in_with_deps(
         &proj.name,
-        &LIB_PACKAGES.map(str::to_string),
+        &dep_names,
         &proj.files,
         proj.top.as_deref(),
     )
@@ -76,6 +86,169 @@ fn grammar_parses_demo_board_and_std() {
     assert!(checked.ir.is_some());
 }
 
+#[test]
+fn openmicro_uses_reusable_catalog_packages_and_canonical_stm32_pins() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let (proj, dep_names) = load_example(&root.join("examples/openmicro"));
+    let checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &dep_names,
+        &proj.files,
+        proj.top.as_deref(),
+    )
+    .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    for part in [
+        "connectors::headers::smd_254::SOCKET_2X3_254_SMD",
+        "diode::D_1N4148W",
+        "osc::XTAL_8M",
+        "st_stm32::f0::stm32f072cb::MCU_STM32F072",
+    ] {
+        assert!(
+            checked.world.parts.contains_key(part),
+            "missing extracted part `{part}`"
+        );
+    }
+    for stale in [
+        "openmicro::J_SWD",
+        "openmicro::D_1N4148W",
+        "openmicro::XTAL_8M",
+        "openmicro::MCU_STM32F072",
+    ] {
+        assert!(
+            !checked.world.parts.contains_key(stale),
+            "`{stale}` must not be reintroduced locally"
+        );
+    }
+
+    let mcu = checked
+        .world
+        .devices
+        .get("st_stm32::f0::stm32f072cb::STM32F072CBT6")
+        .unwrap();
+    let pins = mcu.pins_for(None);
+    for (name, number) in [
+        ("PA9", "30"),
+        ("PA11", "32"),
+        ("PA12", "33"),
+        ("PA13", "34"),
+        ("PA14", "37"),
+        ("PB14", "27"),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong physical mapping for {name}"
+        );
+    }
+    for board_alias in ["ROW0", "USB_DM", "SWDIO", "LED_DATA_UG"] {
+        assert!(
+            pins.iter().all(|pin| pin.name.name != board_alias),
+            "board alias `{board_alias}` leaked into the manufacturer library"
+        );
+    }
+}
+
+#[test]
+fn rpi_pico2_uses_reusable_catalog_packages_and_canonical_chip_pins() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let (proj, dep_names) = load_example(&root.join("examples/rpi-pico2"));
+    let checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &dep_names,
+        &proj.files,
+        proj.top.as_deref(),
+    )
+    .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    for part in [
+        "raspberrypi_mcu::RP2350A_QFN60",
+        "richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B",
+        "flash::FLASH_W25Q32",
+        "osc::XTAL_12MHZ",
+        "usb::connectors::micro_b::USB_MICRO_B",
+        "connectors::headers::castellated_254::HEADER_SWD_3W",
+        "diode::SCHOTTKY_PMEG6010",
+        "mosfet::FET_DMG1012T",
+        "passive::IND_2U2",
+        "passive::IND_3U3",
+        "led::LED_GREEN",
+    ] {
+        assert!(
+            checked.world.parts.contains_key(part),
+            "missing extracted part `{part}`"
+        );
+    }
+    for stale in [
+        "rpi_pico2::RP2350A_QFN60",
+        "rpi_pico2::BUCKBOOST_RT6150B",
+        "rpi_pico2::FLASH_W25Q32",
+        "rpi_pico2::XTAL_12MHZ",
+        "rpi_pico2::USB_MICRO_B",
+        "rpi_pico2::HEADER_SWD_3W",
+        "rpi_pico2::SCHOTTKY_PMEG6010",
+        "rpi_pico2::FET_DMG1012T",
+        "rpi_pico2::IND_2U2",
+        "rpi_pico2::IND_3U3",
+        "rpi_pico2::LED_GREEN",
+    ] {
+        assert!(
+            !checked.world.parts.contains_key(stale),
+            "`{stale}` must not be reintroduced locally"
+        );
+    }
+
+    let mcu = checked
+        .world
+        .devices
+        .get("raspberrypi_mcu::RP2350A")
+        .unwrap();
+    let pins = mcu.pins_for(None);
+    for (name, number) in [
+        ("GPIO0", "2"),
+        ("GPIO23", "35"),
+        ("GPIO24", "36"),
+        ("GPIO25", "37"),
+        ("GPIO29", "43"),
+        ("USB_DM", "51"),
+        ("USB_DP", "52"),
+        ("QSPI_SS", "60"),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong physical mapping for {name}"
+        );
+    }
+
+    let flash = checked.world.devices.get("flash::W25Q32").unwrap();
+    let flash_pins = flash.pins_for(None);
+    for board_alias in ["SD0", "SD1", "SD2", "SD3", "SCLK"] {
+        assert!(
+            flash_pins.iter().all(|pin| pin.name.name != board_alias),
+            "board alias `{board_alias}` leaked into the flash library"
+        );
+    }
+}
+
 // A larger, real board: the Raspberry Pi Pico 2 (RP2350A). Exercises the
 // compiler at scale (≈50 instances, ≈60 nets) and the post-MVP RFC features it
 // uses — package variants (RFC-008), `#[intent]` (RFC-012), and a `layout {}`
@@ -83,12 +256,12 @@ fn grammar_parses_demo_board_and_std() {
 #[test]
 fn rpi_pico2_example_builds_cleanly() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let proj = load_example(&root.join("examples/rpi-pico2"));
+    let (proj, dep_names) = load_example(&root.join("examples/rpi-pico2"));
     // The package-aware entry (the CLI's own path): project-local footprints
     // carry the real package name (`rpi_pico2::…`), not the compat `main::…`.
     let mut checked = cohdl::pipeline::check_files_in_with_deps(
         &proj.name,
-        &LIB_PACKAGES.map(str::to_string),
+        &dep_names,
         &proj.files,
         proj.top.as_deref(),
     )
@@ -690,13 +863,13 @@ fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     for name in ["rpi-pico2", "openmicro"] {
         let dir = root.join("examples").join(name);
-        let proj = load_example(&dir);
+        let (proj, dep_names) = load_example(&dir);
         // The package-aware entry (the CLI's own path): project-local
         // footprints carry the real package name (`rpi_pico2::…`), not the
         // compat `main::…`.
         let mut checked = cohdl::pipeline::check_files_in_with_deps(
             &proj.name,
-            &LIB_PACKAGES.map(str::to_string),
+            &dep_names,
             &proj.files,
             proj.top.as_deref(),
         )

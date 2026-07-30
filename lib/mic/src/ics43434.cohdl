@@ -1,0 +1,60 @@
+// MEMS microphone: TDK/InvenSense ICS-43434, digital I2S output.
+
+#[doc("docs/tdk-invensense-ics-43434.pdf")]
+pub device ICS43434 {
+    pins {
+        required WS: 1 [input] // I2S word select
+        required LR: 2 [input] // channel select — tie to GND or VDD
+        required GND: 3 [power_in]
+        required SCK: 4 [input] // I2S clock
+        required VDD: 5 [power_in]
+        required SD: 6 [output] // I2S data out
+    }
+}
+
+impl Microphone for ICS43434 {}
+
+#[doc("docs/tdk-invensense-ics-43434.pdf")]
+pub part MIC_ICS43434: ICS43434 {
+    primary { mfr: "TDK InvenSense", mpn: "ICS-43434",
+              footprint: FP_InvenSense_ICS_43434_6_3_5x2_65mm }
+}
+
+// Five rectangular terminals in the manufacturer's 1:1 PCB land pattern.
+// The upright orientation here matches the terminal-side-down top view on
+// datasheet page 10.
+pub pad P_ICS43434_Signal {
+    shape: rect
+    size: (0.6mm, 0.522mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Ground/acoustic-port annulus, outer diameter 1.625mm. CoHDL's current pad
+// model has no annular SMD primitive, so the coincident 1.025mm NPTH below
+// removes the centre and also provides a sound aperture larger than the
+// datasheet's 0.5mm minimum. CoHDL also cannot encode the segmented paste
+// stencil in Figure 14; fabrication output therefore needs a stencil review.
+pub pad P_ICS43434_Ground_Ring {
+    shape: circle
+    size: (1.625mm)
+    layer: top_copper
+    plating: smd
+}
+
+// TDK Figure 13 land pattern rotated 90 degrees: 0.900mm column pitch,
+// 0.822mm row pitch, and 1.252mm from the inner row to the acoustic port.
+pub footprint FP_InvenSense_ICS_43434_6_3_5x2_65mm {
+    pad 1: P_ICS43434_Signal at (0.9mm, 1.364mm)
+    pad 2: P_ICS43434_Signal at (0.9mm, 0.542mm)
+    pad 3: P_ICS43434_Ground_Ring at (0mm, -0.71mm)
+    pad 4: P_ICS43434_Signal at (-0.9mm, 0.542mm)
+    pad 5: P_ICS43434_Signal at (-0.9mm, 1.364mm)
+    pad 6: P_ICS43434_Signal at (0mm, 1.364mm)
+    mount_hole 1: non_plated at (0mm, -0.71mm) diameter 1.025mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.15mm, 4mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}

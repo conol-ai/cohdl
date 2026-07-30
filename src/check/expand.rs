@@ -273,6 +273,63 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
     }
 
+    /// RFC-024: resolve a possibly-indexed instance reference to its LOCAL
+    /// element name — `NAME` for an ordinary instance, `NAME_i` for `NAME[i]`.
+    ///
+    /// One resolver, because the accepted text is that an array element is a
+    /// valid instance reference EVERYWHERE an ordinary one is: `place` and
+    /// `#[bypass]` must agree on what `NAME[i]` means, and they can only be
+    /// guaranteed to agree by sharing the code. `unindexed_help` is the one
+    /// thing that legitimately differs — the advice for naming a bare array
+    /// reads differently in a `place` than in an attribute.
+    fn indexed_local(
+        &mut self,
+        id: &Ident,
+        index: Option<(i64, Span)>,
+        scope: &Scope,
+        unindexed_help: &str,
+    ) -> Option<String> {
+        match (index, scope.arrays.get(&id.name).copied()) {
+            (None, None) => Some(id.name.clone()),
+            (None, Some(_)) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    id.span,
+                    unindexed_help.to_string(),
+                ));
+                None
+            }
+            (Some((_, sp)), None) => {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    sp,
+                    format!(
+                        "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
+                        id.name
+                    ),
+                ));
+                None
+            }
+            (Some((i, sp)), Some((n, _))) => {
+                if i < 0 || i >= n {
+                    self.diags.push(Diagnostic::error(
+                        "E202",
+                        sp,
+                        format!(
+                            "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
+                            i,
+                            id.name,
+                            n - 1,
+                            n
+                        ),
+                    ));
+                    return None;
+                }
+                Some(element_name(&id.name, i))
+            }
+        }
+    }
+
     /// Validate and record a locked component placement (E1007): design-level
     /// only, the instance must exist, and the coordinates must be `Length`
     /// values in geometry range.
@@ -288,50 +345,16 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
         // RFC-024: `place NAME[i]` targets one real array element — the same
         // reference form valid in every other instance position.
-        let local = match (
+        let Some(local) = self.indexed_local(
+            &placement.inst,
             placement.index,
-            scope.arrays.get(&placement.inst.name).copied(),
-        ) {
-            (None, None) => placement.inst.name.clone(),
-            (None, Some(_)) => {
-                self.diags.push(Diagnostic::error(
-                    "E211",
-                    placement.inst.span,
-                    format!(
-                        "`{}` is array-typed — place one element, e.g. `place {}[0] at (…)`",
-                        placement.inst.name, placement.inst.name
-                    ),
-                ));
-                return;
-            }
-            (Some((_, sp)), None) => {
-                self.diags.push(Diagnostic::error(
-                    "E211",
-                    sp,
-                    format!(
-                        "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
-                        placement.inst.name
-                    ),
-                ));
-                return;
-            }
-            (Some((i, sp)), Some((n, _))) => {
-                if i < 0 || i >= n {
-                    self.diags.push(Diagnostic::error(
-                        "E202",
-                        sp,
-                        format!(
-                            "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
-                            i,
-                            placement.inst.name,
-                            n - 1,
-                            n
-                        ),
-                    ));
-                    return;
-                }
-                element_name(&placement.inst.name, i)
-            }
+            scope,
+            &format!(
+                "`{}` is array-typed — place one element, e.g. `place {}[0] at (…)`",
+                placement.inst.name, placement.inst.name
+            ),
+        ) else {
+            return;
         };
         let Some(path) = scope.local_insts.get(&local).cloned() else {
             self.diags.push(Diagnostic::error(
@@ -370,8 +393,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                 return;
             }
         }
-        // RFC-020: rotation is a closed set {0, 90, 180, 270}.
-        if !matches!(placement.rotate, 0 | 90 | 180 | 270) {
+        // Rotation is any whole degree in 0..=359 (deviation from RFC-020's
+        // closed {0, 90, 180, 270}, at the board author's direction — ledgered
+        // in docs/compliance-report.md). A full turn is 0, so 360 and beyond is
+        // rejected rather than silently reduced: `rotate 450` is far more likely
+        // a mistake than a deliberate 90.
+        if placement.rotate > 359 {
             let shown = if placement.rotate == u16::MAX {
                 "that value".to_string()
             } else {
@@ -381,7 +408,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 "E1007",
                 placement.span,
                 format!(
-                    "`rotate {}` is not one of the allowed rotations {{0, 90, 180, 270}}",
+                    "`rotate {}` is not a rotation — give a whole number of degrees in 0..=359 (counter-clockwise)",
                     shown
                 ),
             ));
@@ -476,20 +503,38 @@ impl<'w, 'd> Expander<'w, 'd> {
         // RFC-028: an instance argument may be a local inst OR a fn's
         // Instance-typed parameter — the same two forms every other instance
         // reference already resolves through.
-        let resolve_inst = |ex: &mut Self, id: &Ident| -> Option<String> {
-            if let Some(p) = scope.local_insts.get(&id.name) {
-                return Some(p.clone());
-            }
-            if let Some(Binding::Instance { path, .. }) = scope.bindings.get(&id.name) {
-                return Some(path.clone());
-            }
-            ex.diags.push(Diagnostic::error(
-                "E1009",
-                id.span,
-                format!("`{}` is not an instance in this scope", id.name),
-            ));
-            None
-        };
+        let resolve_inst =
+            |ex: &mut Self, id: &Ident, index: Option<(i64, Span)>| -> Option<String> {
+                // RFC-024: `NAME[i]` resolves through the SAME element resolver
+                // `place` uses, so the two can never disagree about which element
+                // an index names. An unindexed name keeps its old meaning.
+                if index.is_some() || scope.arrays.contains_key(&id.name) {
+                    let local = ex.indexed_local(
+                        id,
+                        index,
+                        scope,
+                        &format!(
+                            "`{}` is array-typed — name one element, e.g. `{}[0]`",
+                            id.name, id.name
+                        ),
+                    )?;
+                    if let Some(p) = scope.local_insts.get(&local) {
+                        return Some(p.clone());
+                    }
+                }
+                if let Some(p) = scope.local_insts.get(&id.name) {
+                    return Some(p.clone());
+                }
+                if let Some(Binding::Instance { path, .. }) = scope.bindings.get(&id.name) {
+                    return Some(path.clone());
+                }
+                ex.diags.push(Diagnostic::error(
+                    "E1009",
+                    id.span,
+                    format!("`{}` is not an instance in this scope", id.name),
+                ));
+                None
+            };
         // The referenced instance's device pin, by NAME -> its pad numbers.
         let pin_pads = |ex: &mut Self, path: &str, pin: &Ident| -> Option<Vec<String>> {
             let target = &ex.instances[path];
@@ -520,6 +565,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             match pa {
                 PhysAttr::Bypass {
                     inst: target,
+                    index,
                     pin,
                     capacitance,
                     ..
@@ -529,7 +575,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                     // the same Binding::Pin every net member already uses.
                     let (target_path, pads) = match pin {
                         Some(pin) => {
-                            let Some(target_path) = resolve_inst(self, target) else {
+                            let Some(target_path) = resolve_inst(self, target, *index) else {
                                 continue;
                             };
                             let Some(pads) = pin_pads(self, &target_path, pin) else {
@@ -572,7 +618,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 PhysAttr::CrystalOscillator {
                     parent, pin1, pin2, ..
                 } => {
-                    let Some(parent_path) = resolve_inst(self, parent) else {
+                    let Some(parent_path) = resolve_inst(self, parent, None) else {
                         continue;
                     };
                     let mut pads = Vec::new();
@@ -610,18 +656,18 @@ impl<'w, 'd> Expander<'w, 'd> {
                     output_capacitor,
                     ..
                 } => {
-                    let Some(inductor_path) = resolve_inst(self, inductor) else {
+                    let Some(inductor_path) = resolve_inst(self, inductor, None) else {
                         continue;
                     };
                     let input_cap_path = match input_capacitor {
-                        Some(c) => match resolve_inst(self, c) {
+                        Some(c) => match resolve_inst(self, c, None) {
                             Some(p) => Some(p),
                             None => continue,
                         },
                         None => None,
                     };
                     let output_cap_path = match output_capacitor {
-                        Some(c) => match resolve_inst(self, c) {
+                        Some(c) => match resolve_inst(self, c, None) {
                             Some(p) => Some(p),
                             None => continue,
                         },

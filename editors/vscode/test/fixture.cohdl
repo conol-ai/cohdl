@@ -1,5 +1,5 @@
 // A representative CoHDL fixture for the grammar-coverage test (RFC-019).
-use std::passives::MLCC;
+use passive::MLCC;
 
 pub trait TwoTerminal {
     pins {

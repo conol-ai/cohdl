@@ -1,0 +1,43 @@
+// ---- 1N4148W matrix diode, SOD-123. Pad 1 = cathode. ----
+#[doc("docs/diodes-inc-bav16w-1n4148w-datasheet.pdf")]
+pub device Diode_1N4148 {
+    pins {
+        required Cathode: 1 [passive]
+        required Anode: 2 [passive]
+    }
+}
+impl Polarized for Diode_1N4148 {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+impl Diode for Diode_1N4148 {}
+#[doc("docs/diodes-inc-bav16w-1n4148w-datasheet.pdf")]
+pub part D_1N4148W: Diode_1N4148 {
+    primary { mfr: "Diodes Inc", mpn: "1N4148W-7-F", footprint: FP_D_SOD_123 }
+}
+
+// Diodes Incorporated's suggested SOD123 layout: X=0.90mm, Y=0.95mm.
+pub pad P_SOD123_Term {
+    shape: rect
+    size: (0.9mm, 0.95mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Diodes Incorporated specifies X1=4.05mm across the outer land edges. With
+// 0.90mm lands, the center spacing is 3.15mm, hence x=±1.575mm. Pad 1 is the
+// cathode (band), pad 2 the anode.
+pub footprint FP_D_SOD_123 {
+    pad 1: P_SOD123_Term at (-1.575mm, 0mm)
+    pad 2: P_SOD123_Term at (1.575mm, 0mm)
+    // RFC-031: pad 1 is the cathode (the band on the real part), so the silk
+    // band goes there — a diode fitted backwards is the classic reversal this
+    // mark exists to prevent.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.6mm, 2.2mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}

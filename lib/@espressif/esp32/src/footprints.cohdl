@@ -1,0 +1,102 @@
+// Espressif ESP32-S3 module land patterns.
+//
+// Geometry sources (official Espressif CAD, dimensions in millimetres):
+// - ESP32-S3-WROOM-1 PCB Footprint.dxf
+//   https://www.espressif.com/sites/default/files/modules-dxf/ESP32-S3-WROOM-1%20PCB%20Footprint.dxf
+//   Retrieved 2026-07-30; SHA-256
+//   565cb080dc99eb49e6e5ccfa97da0295ae1f1dc8113ff83ae10575a1e64f77e4.
+//
+// The CAD coordinates were checked against the corresponding recommended
+// land-pattern drawing in the ESP32-S3-WROOM-1/1U v1.8 datasheet. The bare
+// SoC's QFN56 land pattern lives in the dedicated qfn package.
+
+// ESP32-S3-WROOM-1 castellated lands on the left and right module edges.
+pub pad P_ESP32_S3_WROOM_SIDE {
+    shape: rect
+    size: (1.5mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// ESP32-S3-WROOM-1 castellated lands on the bottom module edge.
+pub pad P_ESP32_S3_WROOM_BOTTOM {
+    shape: rect
+    size: (0.9mm, 1.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+// CoHDL currently requires unique pad numbers and emits one copper/paste shape
+// for each pad. Espressif's pad 41 is a 3x3 grid of 0.9x0.9mm copper islands,
+// on 1.4mm centres (3.7x3.7mm overall), with twelve 0.25mm thermal vias. A
+// single 3.7x3.7mm land preserves its full copper envelope and electrical
+// connection, but board-tool users MUST segment its paste aperture into the
+// official 3x3 pattern and add the thermal vias during layout.
+pub pad P_ESP32_S3_WROOM_EP {
+    shape: rect
+    size: (3.7mm, 3.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// ESP32-S3-WROOM-1, mechanical origin at the centre of the 18.0x25.5mm module.
+// Perimeter numbering follows the top view in the datasheet: 1..14 down the
+// left edge, 15..26 left-to-right along the bottom, then 27..40 up the right.
+// Espressif's DXF uses Cartesian +Y-up coordinates; Y is negated here for
+// CoHDL/KiCad's +Y-down board coordinates. The centre of the official 3x3
+// pad-41 array is therefore (-1.50, +2.46).
+// CoHDL has no footprint-level copper/component keepout primitive, so the
+// antenna rectangle below is a silkscreen guide; enforce Espressif's antenna
+// keepout in the board layout.
+pub footprint FP_ESP32_S3_WROOM_1 {
+    pad 1: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -5.26mm)
+    pad 2: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -3.99mm)
+    pad 3: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -2.72mm)
+    pad 4: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -1.45mm)
+    pad 5: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -0.18mm)
+    pad 6: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 1.09mm)
+    pad 7: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 2.36mm)
+    pad 8: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 3.63mm)
+    pad 9: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 4.9mm)
+    pad 10: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 6.17mm)
+    pad 11: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 7.44mm)
+    pad 12: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 8.71mm)
+    pad 13: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 9.98mm)
+    pad 14: P_ESP32_S3_WROOM_SIDE at (-8.75mm, 11.25mm)
+    pad 15: P_ESP32_S3_WROOM_BOTTOM at (-6.985mm, 12.5mm)
+    pad 16: P_ESP32_S3_WROOM_BOTTOM at (-5.715mm, 12.5mm)
+    pad 17: P_ESP32_S3_WROOM_BOTTOM at (-4.445mm, 12.5mm)
+    pad 18: P_ESP32_S3_WROOM_BOTTOM at (-3.175mm, 12.5mm)
+    pad 19: P_ESP32_S3_WROOM_BOTTOM at (-1.905mm, 12.5mm)
+    pad 20: P_ESP32_S3_WROOM_BOTTOM at (-0.635mm, 12.5mm)
+    pad 21: P_ESP32_S3_WROOM_BOTTOM at (0.635mm, 12.5mm)
+    pad 22: P_ESP32_S3_WROOM_BOTTOM at (1.905mm, 12.5mm)
+    pad 23: P_ESP32_S3_WROOM_BOTTOM at (3.175mm, 12.5mm)
+    pad 24: P_ESP32_S3_WROOM_BOTTOM at (4.445mm, 12.5mm)
+    pad 25: P_ESP32_S3_WROOM_BOTTOM at (5.715mm, 12.5mm)
+    pad 26: P_ESP32_S3_WROOM_BOTTOM at (6.985mm, 12.5mm)
+    pad 27: P_ESP32_S3_WROOM_SIDE at (8.75mm, 11.25mm)
+    pad 28: P_ESP32_S3_WROOM_SIDE at (8.75mm, 9.98mm)
+    pad 29: P_ESP32_S3_WROOM_SIDE at (8.75mm, 8.71mm)
+    pad 30: P_ESP32_S3_WROOM_SIDE at (8.75mm, 7.44mm)
+    pad 31: P_ESP32_S3_WROOM_SIDE at (8.75mm, 6.17mm)
+    pad 32: P_ESP32_S3_WROOM_SIDE at (8.75mm, 4.9mm)
+    pad 33: P_ESP32_S3_WROOM_SIDE at (8.75mm, 3.63mm)
+    pad 34: P_ESP32_S3_WROOM_SIDE at (8.75mm, 2.36mm)
+    pad 35: P_ESP32_S3_WROOM_SIDE at (8.75mm, 1.09mm)
+    pad 36: P_ESP32_S3_WROOM_SIDE at (8.75mm, -0.18mm)
+    pad 37: P_ESP32_S3_WROOM_SIDE at (8.75mm, -1.45mm)
+    pad 38: P_ESP32_S3_WROOM_SIDE at (8.75mm, -2.72mm)
+    pad 39: P_ESP32_S3_WROOM_SIDE at (8.75mm, -3.99mm)
+    pad 40: P_ESP32_S3_WROOM_SIDE at (8.75mm, -5.26mm)
+    pad 41: P_ESP32_S3_WROOM_EP at (-1.5mm, 2.46mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+        line from (-9mm, -12.75mm) to (9mm, -12.75mm) width 0.15mm
+        line from (-9mm, -12.75mm) to (-9mm, -6.75mm) width 0.15mm
+        line from (9mm, -12.75mm) to (9mm, -6.75mm) width 0.15mm
+        line from (-9mm, -6.75mm) to (9mm, -6.75mm) width 0.15mm
+    }
+    courtyard { shape: rect, at: (0mm, 0.25mm), size: (19.5mm, 26.5mm) }
+    silkscreen_ref { at: (0mm, 14.25mm) }
+}

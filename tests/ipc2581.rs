@@ -78,17 +78,30 @@ fn build_with_dxf(name: &str, src: &str, dxf: &str) -> Built {
     }
 }
 
-/// Build a repo example project (with the real std) and emit the document.
+/// Build a repo example project with the exact libraries in its manifest.
 fn build_example(dir: &str) -> Built {
     let root = manifest();
-    let deps = vec![
-        ("std".to_string(), root.join("lib/std")),
-        ("passive".to_string(), root.join("lib/passive")),
-    ];
-    let proj = cohdl::project::load_project_with_deps(&root.join(dir), &deps).unwrap();
+    let project_dir = root.join(dir);
+    let (_, project_manifest) = cohdl::project::peek_manifest(&project_dir).unwrap();
+    let mut dep_names: Vec<String> = project_manifest
+        .deps_raw
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(name, _, _)| name)
+        .collect();
+    dep_names.sort();
+    if let Some(pos) = dep_names.iter().position(|name| name == "std") {
+        let std = dep_names.remove(pos);
+        dep_names.insert(0, std);
+    }
+    let deps: Vec<(String, PathBuf)> = dep_names
+        .iter()
+        .map(|name| (name.clone(), root.join("lib").join(name)))
+        .collect();
+    let proj = cohdl::project::load_project_with_deps(&project_dir, &deps).unwrap();
     let mut checked = cohdl::pipeline::check_files_in_with_deps(
         &proj.name,
-        &["std".to_string(), "passive".to_string()],
+        &dep_names,
         &proj.files,
         proj.top.as_deref(),
     )

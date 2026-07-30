@@ -120,8 +120,8 @@ fn single_package_projects_are_unchanged() {
 
 #[test]
 fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
-    // A project uses a std name unqualified (the prelude) AND via its
-    // qualified `std::…` path.
+    // A project implements a core std trait through both its implicit-prelude
+    // spelling and its qualified `std::…` path.
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut files: Vec<(String, String)> = Vec::new();
     for entry in std::fs::read_dir(root.join("lib/std/src")).unwrap() {
@@ -136,7 +136,14 @@ fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
     files.sort();
     files.push((
         "src/main.cohdl".to_string(),
-        "design B {\n    inst d1: LED_RED_0603\n    inst d2: std::LED_RED_0603\n    net N: d1.Anode, d2.Anode\n    net GND [gnd]: d1.Cathode, d2.Cathode\n}\n"
+        "pub device BareProbe { pins { required A: 1 [passive] } }\n\
+         impl IC for BareProbe {}\n\
+         pub device QualifiedProbe { pins { required A: 1 [passive] } }\n\
+         impl std::IC for QualifiedProbe {}\n\
+         pub footprint ProbeFP {}\n\
+         pub part BarePart: BareProbe { primary { mfr: \"test\", mpn: \"BARE\", footprint: ProbeFP } }\n\
+         pub part QualifiedPart: QualifiedProbe { primary { mfr: \"test\", mpn: \"QUALIFIED\", footprint: ProbeFP } }\n\
+         design B {\n    inst d1: BarePart\n    inst d2: QualifiedPart\n    net N: d1.A, d2.A\n}\n"
             .to_string(),
     ));
     let mut checked = check_files_in("board", &files, None).expect("selection");
@@ -145,17 +152,12 @@ fn std_prelude_stays_implicitly_visible_and_qualified_paths_reach_it() {
     assert!(!rendered.contains("error"), "{}", rendered);
     let ir = checked.ir.unwrap();
     assert_eq!(ir.instances.len(), 2);
-    for inst in ir.instances.values() {
-        assert_eq!(inst.part.as_deref(), Some("std::LED_RED_0603"));
-    }
 }
 
 #[test]
 fn project_name_shadows_std_prelude() {
-    // A project declaring its own `MLCC` coexists with std's: the bare name
-    // resolves to the project's (own package before prelude); `std::MLCC`
-    // still reaches std's. No duplicate-declaration error (different
-    // packages, different module paths).
+    // A project can still declare a catalog-like name that no longer belongs
+    // to core std. The project declaration resolves normally.
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mut files: Vec<(String, String)> = Vec::new();
     for entry in std::fs::read_dir(root.join("lib/std/src")).unwrap() {

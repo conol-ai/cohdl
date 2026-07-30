@@ -1,0 +1,44 @@
+pub trait Transistor {
+    designator_prefix: "Q"
+}
+
+// ---- N-channel MOSFET ----
+
+#[doc("docs/diodes-dmg1012t.pdf")]
+pub device NMOS_SOT523 {
+    pins {
+        required Gate: 1 [input]
+        required Source: 2 [passive]
+        required Drain: 3 [passive]
+    }
+}
+
+impl Transistor for NMOS_SOT523 {}
+
+#[doc("docs/diodes-dmg1012t.pdf")]
+pub part FET_DMG1012T: NMOS_SOT523 {
+    primary { mfr: "Diodes Incorporated", mpn: "DMG1012T-7", footprint: SOT3P100X160X80N }
+    alt { mfr: "Diodes Incorporated", mpn: "DMG1012T-13" }
+}
+
+// Diodes SOT523 suggested land, rotated 90 degrees: X=0.40mm, Y=0.51mm,
+// C=1.29mm, X1=0.70mm, Y1=1.80mm (datasheet page 6).
+pub pad P_SOT523_Lead {
+    shape: rect
+    size: (0.51mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+// IPC-7351 name (RFC-021): 3 leads, 1.00mm pitch, 1.60x0.80mm body,
+// density N.
+pub footprint SOT3P100X160X80N {
+    pad 1: P_SOT523_Lead at (-0.645mm, -0.5mm)
+    pad 2: P_SOT523_Lead at (-0.645mm, 0.5mm)
+    pad 3: P_SOT523_Lead at (0.645mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.3mm, 2.2mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}

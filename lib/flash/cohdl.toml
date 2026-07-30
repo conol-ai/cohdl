@@ -1,0 +1,10 @@
+[package]
+name = "flash"
+version = "0.1.0"
+license = "MIT"
+description = "Flash memory devices with verified land patterns."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+qfn = "0.1.0"
+std = "0.3.0"

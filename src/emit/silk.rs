@@ -62,10 +62,14 @@ fn pad_box(world: &World, fp: &FootprintDef, number: &str) -> Option<PadBox> {
             }
             _ => {}
         }
-        // RFC-025: a rotated placement swaps which axis the pad is long on.
-        if place.rotate == 90 || place.rotate == 270 {
-            std::mem::swap(&mut hw, &mut hh);
-        }
+        // RFC-025: a rotated placement changes which axis the pad is long on.
+        // At 90/270 that is a straight swap; at any other angle it is the
+        // BOUNDING box of the turned pad, which is conservative — a silkscreen
+        // standoff measured from a box that contains the pad can only ever put
+        // the mark further off the copper, never onto it.
+        let (bw, bh) = crate::trig::bound_half_extents(hw, hh, place.rotate);
+        hw = bw;
+        hh = bh;
     }
     Some(PadBox {
         x: place.x.femto,

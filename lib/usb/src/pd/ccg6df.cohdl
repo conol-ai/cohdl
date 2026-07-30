@@ -1,0 +1,230 @@
+// Infineon EZ-PD CCG6DF — DUAL-port USB Type-C / USB-PD 3.0 port controller
+// (Arm Cortex-M0; two full Type-C ports, each with CC Rp/Rd, VCONN FETs, VBUS
+// provider load switch + protections, SBU/HS mux). 96-ball BGA. Pinout from
+// datasheet 002-27161 Table 2 (90 documented balls; the four VBUS_C/VBUS_P
+// power groups and VSSD are multi-ball pins).
+#[doc("docs/infineon-ez-pd-ccg6df-ccg6sf-datasheet.pdf")]
+pub device CCG6DF {
+    pins {
+        required CC1_P0: B3 [bidirectional]
+        required CC2_P0: B5 [bidirectional]
+        required DP_SYS_P0: K11 [bidirectional]
+        required DM_SYS_P0: J11 [bidirectional]
+        required UART_TX_P0: H10 [bidirectional]
+        required UART_RX_P0: G10 [bidirectional]
+        required DP_BOT_P0: K10 [bidirectional]
+        required DM_BOT_P0: J10 [bidirectional]
+        required DM_TOP_P0: H11 [bidirectional]
+        required DP_TOP_P0: G11 [bidirectional]
+        required SBU2_P0: A4 [bidirectional]
+        required SBU1_P0: A5 [bidirectional]
+        required SBU1_SYS_P0: B6 [bidirectional]
+        required SBU2_SYS_P0: A6 [bidirectional]
+        required VBUS_C_CTRL_P0: A3 [output]
+        required CSP_P0: A11 [input]
+        required CSN_P0: A10 [input]
+        required V5V_P0: B4 [power_in]
+        required HPD_P0: F8 [bidirectional]
+        required INT_TBT_P0: L9 [bidirectional]
+        required CC1_P1: K5 [bidirectional]
+        required CC2_P1: K3 [bidirectional]
+        required DP_SYS_P1: L6 [bidirectional]
+        required DM_SYS_P1: L5 [bidirectional]
+        required UART_TX_P1: L4 [bidirectional]
+        required UART_RX_P1: K6 [bidirectional]
+        required DP_BOT_P1: K8 [bidirectional]
+        required DM_BOT_P1: K7 [bidirectional]
+        required DM_TOP_P1: L7 [bidirectional]
+        required DP_TOP_P1: L8 [bidirectional]
+        required SBU2_P1: A9 [bidirectional]
+        required SBU1_P1: A8 [bidirectional]
+        required SBU1_SYS_P1: B7 [bidirectional]
+        required SBU2_SYS_P1: A7 [bidirectional]
+        required VBUS_C_CTRL_P1: L3 [output]
+        required CSP_P1: L11 [input]
+        required CSN_P1: L10 [input]
+        required V5V_P1: K4 [power_in]
+        required HPD_P1: B8 [bidirectional]
+        required INT_TBT_P1: H8 [bidirectional]
+        required SDA_SCB1: K9 [bidirectional]
+        required SCL_SCB1: H7 [bidirectional]
+        required INT_EC: F11 [bidirectional]
+        required P2_4: D10 [bidirectional]
+        required SWDIO: G8 [bidirectional]
+        required SWDCLK: F10 [bidirectional]
+        required SDA_SCB2: E11 [bidirectional]
+        required SCL_SCB2: E10 [bidirectional]
+        required P2_3: E8 [bidirectional]
+        required P2_5: D8 [bidirectional]
+        required SCL_SCB0: D11 [bidirectional]
+        required SDA_SCB0: C11 [bidirectional]
+        required P3_0: B10 [bidirectional]
+        required SDA_SCB3: B11 [bidirectional]
+        required SCL_SCB3: B9 [bidirectional]
+        required XRES: C10 [input]
+        required VSYS: F4 [power_in]
+        required VDDD: G7 [power_out]
+        required VDDIO: F7 [power_in]
+        required VCCD: E7 [power_out]
+        required VBUS_C_P0: A1, A2, B1, B2, C1 [power_in]
+        required VBUS_C_P1: J1, K1, K2, L1, L2 [power_in]
+        required VBUS_P_P0: C2, D1, D2, E1, E2 [power_in]
+        required VBUS_P_P1: G1, G2, H1, H2, J2 [power_in]
+        required VSSD: D7, E5, E6, F1, F2, F5, F6, G4, G5, G6 [passive]
+        // DNU balls (Fig 4): present pads, internally unconnected (leave nc).
+        optional DNU_D5: D5 [passive]
+        optional DNU_D6: D6 [passive]
+        optional DNU_E4: E4 [passive]
+        optional DNU_H4: H4 [passive]
+        optional DNU_H5: H5 [passive]
+        optional DNU_H6: H6 [passive]
+    }
+}
+
+impl IC for CCG6DF {}
+
+#[doc("docs/infineon-ez-pd-ccg6df-ccg6sf-datasheet.pdf")]
+pub part TYPEC_CCG6DF: CCG6DF {
+    primary { mfr: "Infineon", mpn: "CYPD6227-96BZXI", footprint: BGA96C50P11X11_600X600X100N }
+}
+
+// Infineon Figure 9 recommends 10mil (0.254mm) outer-row pads and 14mil
+// (0.356mm) inner pads. Figure 8 elongates non-corner perimeter pads toward
+// the package edge so perimeter balls can escape without HDI microvias.
+pub pad P_BGA_Outer_Corner {
+    shape: circle
+    size: (0.254mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_BGA_Outer_H {
+    shape: oval
+    size: (0.356mm, 0.254mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_BGA_Outer_V {
+    shape: oval
+    size: (0.254mm, 0.356mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_BGA_Inner {
+    shape: circle
+    size: (0.356mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Infineon CCG6DF USB Type-C dual-port controller — 96-ball BGA, 6x6mm, 0.5mm
+// pitch, 11x11 grid (datasheet 002-27161). RFC-021 IPC-7351 name. Ball
+// designators A1..L11 (row I skipped). 90 signal/power/ground balls (Table 2)
+// plus the 6 DNU balls D5/D6/E4/H4/H5/H6 (Fig 4) — physically present pads that
+// carry no net (their device pins are optional, left unconnected). The 25
+// unpopulated 11x11 positions have no ball and no pad.
+pub footprint BGA96C50P11X11_600X600X100N {
+    pad A1: P_BGA_Outer_Corner at (-2.5mm, -2.5mm)
+    pad A2: P_BGA_Outer_V at (-2mm, -2.5mm)
+    pad A3: P_BGA_Outer_V at (-1.5mm, -2.5mm)
+    pad A4: P_BGA_Outer_V at (-1mm, -2.5mm)
+    pad A5: P_BGA_Outer_V at (-0.5mm, -2.5mm)
+    pad A6: P_BGA_Outer_V at (0mm, -2.5mm)
+    pad A7: P_BGA_Outer_V at (0.5mm, -2.5mm)
+    pad A8: P_BGA_Outer_V at (1mm, -2.5mm)
+    pad A9: P_BGA_Outer_V at (1.5mm, -2.5mm)
+    pad A10: P_BGA_Outer_V at (2mm, -2.5mm)
+    pad A11: P_BGA_Outer_Corner at (2.5mm, -2.5mm)
+    pad B1: P_BGA_Outer_H at (-2.5mm, -2mm)
+    pad B2: P_BGA_Inner at (-2mm, -2mm)
+    pad B3: P_BGA_Inner at (-1.5mm, -2mm)
+    pad B4: P_BGA_Inner at (-1mm, -2mm)
+    pad B5: P_BGA_Inner at (-0.5mm, -2mm)
+    pad B6: P_BGA_Inner at (0mm, -2mm)
+    pad B7: P_BGA_Inner at (0.5mm, -2mm)
+    pad B8: P_BGA_Inner at (1mm, -2mm)
+    pad B9: P_BGA_Inner at (1.5mm, -2mm)
+    pad B10: P_BGA_Inner at (2mm, -2mm)
+    pad B11: P_BGA_Outer_H at (2.5mm, -2mm)
+    pad C1: P_BGA_Outer_H at (-2.5mm, -1.5mm)
+    pad C2: P_BGA_Inner at (-2mm, -1.5mm)
+    pad C10: P_BGA_Inner at (2mm, -1.5mm)
+    pad C11: P_BGA_Outer_H at (2.5mm, -1.5mm)
+    pad D1: P_BGA_Outer_H at (-2.5mm, -1mm)
+    pad D2: P_BGA_Inner at (-2mm, -1mm)
+    pad D5: P_BGA_Inner at (-0.5mm, -1mm)
+    pad D6: P_BGA_Inner at (0mm, -1mm)
+    pad D7: P_BGA_Inner at (0.5mm, -1mm)
+    pad D8: P_BGA_Inner at (1mm, -1mm)
+    pad D10: P_BGA_Inner at (2mm, -1mm)
+    pad D11: P_BGA_Outer_H at (2.5mm, -1mm)
+    pad E1: P_BGA_Outer_H at (-2.5mm, -0.5mm)
+    pad E2: P_BGA_Inner at (-2mm, -0.5mm)
+    pad E4: P_BGA_Inner at (-1mm, -0.5mm)
+    pad E5: P_BGA_Inner at (-0.5mm, -0.5mm)
+    pad E6: P_BGA_Inner at (0mm, -0.5mm)
+    pad E7: P_BGA_Inner at (0.5mm, -0.5mm)
+    pad E8: P_BGA_Inner at (1mm, -0.5mm)
+    pad E10: P_BGA_Inner at (2mm, -0.5mm)
+    pad E11: P_BGA_Outer_H at (2.5mm, -0.5mm)
+    pad F1: P_BGA_Outer_H at (-2.5mm, 0mm)
+    pad F2: P_BGA_Inner at (-2mm, 0mm)
+    pad F4: P_BGA_Inner at (-1mm, 0mm)
+    pad F5: P_BGA_Inner at (-0.5mm, 0mm)
+    pad F6: P_BGA_Inner at (0mm, 0mm)
+    pad F7: P_BGA_Inner at (0.5mm, 0mm)
+    pad F8: P_BGA_Inner at (1mm, 0mm)
+    pad F10: P_BGA_Inner at (2mm, 0mm)
+    pad F11: P_BGA_Outer_H at (2.5mm, 0mm)
+    pad G1: P_BGA_Outer_H at (-2.5mm, 0.5mm)
+    pad G2: P_BGA_Inner at (-2mm, 0.5mm)
+    pad G4: P_BGA_Inner at (-1mm, 0.5mm)
+    pad G5: P_BGA_Inner at (-0.5mm, 0.5mm)
+    pad G6: P_BGA_Inner at (0mm, 0.5mm)
+    pad G7: P_BGA_Inner at (0.5mm, 0.5mm)
+    pad G8: P_BGA_Inner at (1mm, 0.5mm)
+    pad G10: P_BGA_Inner at (2mm, 0.5mm)
+    pad G11: P_BGA_Outer_H at (2.5mm, 0.5mm)
+    pad H1: P_BGA_Outer_H at (-2.5mm, 1mm)
+    pad H2: P_BGA_Inner at (-2mm, 1mm)
+    pad H4: P_BGA_Inner at (-1mm, 1mm)
+    pad H5: P_BGA_Inner at (-0.5mm, 1mm)
+    pad H6: P_BGA_Inner at (0mm, 1mm)
+    pad H7: P_BGA_Inner at (0.5mm, 1mm)
+    pad H8: P_BGA_Inner at (1mm, 1mm)
+    pad H10: P_BGA_Inner at (2mm, 1mm)
+    pad H11: P_BGA_Outer_H at (2.5mm, 1mm)
+    pad J1: P_BGA_Outer_H at (-2.5mm, 1.5mm)
+    pad J2: P_BGA_Inner at (-2mm, 1.5mm)
+    pad J10: P_BGA_Inner at (2mm, 1.5mm)
+    pad J11: P_BGA_Outer_H at (2.5mm, 1.5mm)
+    pad K1: P_BGA_Outer_H at (-2.5mm, 2mm)
+    pad K2: P_BGA_Inner at (-2mm, 2mm)
+    pad K3: P_BGA_Inner at (-1.5mm, 2mm)
+    pad K4: P_BGA_Inner at (-1mm, 2mm)
+    pad K5: P_BGA_Inner at (-0.5mm, 2mm)
+    pad K6: P_BGA_Inner at (0mm, 2mm)
+    pad K7: P_BGA_Inner at (0.5mm, 2mm)
+    pad K8: P_BGA_Inner at (1mm, 2mm)
+    pad K9: P_BGA_Inner at (1.5mm, 2mm)
+    pad K10: P_BGA_Inner at (2mm, 2mm)
+    pad K11: P_BGA_Outer_H at (2.5mm, 2mm)
+    pad L1: P_BGA_Outer_Corner at (-2.5mm, 2.5mm)
+    pad L2: P_BGA_Outer_V at (-2mm, 2.5mm)
+    pad L3: P_BGA_Outer_V at (-1.5mm, 2.5mm)
+    pad L4: P_BGA_Outer_V at (-1mm, 2.5mm)
+    pad L5: P_BGA_Outer_V at (-0.5mm, 2.5mm)
+    pad L6: P_BGA_Outer_V at (0mm, 2.5mm)
+    pad L7: P_BGA_Outer_V at (0.5mm, 2.5mm)
+    pad L8: P_BGA_Outer_V at (1mm, 2.5mm)
+    pad L9: P_BGA_Outer_V at (1.5mm, 2.5mm)
+    pad L10: P_BGA_Outer_V at (2mm, 2.5mm)
+    pad L11: P_BGA_Outer_Corner at (2.5mm, 2.5mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.5mm, 6.5mm) }
+    silkscreen_ref { at: (0mm, -3.5mm) }
+}

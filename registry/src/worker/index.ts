@@ -22,6 +22,7 @@ import {
   verifiedBrands,
   verifyPassword,
 } from "./auth";
+import { adminApi } from "./admin";
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
@@ -90,10 +91,18 @@ function parsePackagePath(pathname: string): { name: string; version?: string; t
 
 const EXACT_VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
-/// One year of HSTS on every response — the site is https-only.
-function withHsts(resp: Response): Response {
+/// Production responses are HTTPS-only and cannot be embedded by another
+/// origin. The frame guard matters especially for the cookie-authenticated
+/// admin UI: a same-site sibling must not be able to clickjack real controls.
+export function withProductionSecurity(resp: Response): Response {
   const out = new Response(resp.body, resp);
   out.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  out.headers.set("X-Frame-Options", "DENY");
+  const csp = out.headers.get("Content-Security-Policy");
+  out.headers.set(
+    "Content-Security-Policy",
+    csp ? `${csp}; frame-ancestors 'none'` : "frame-ancestors 'none'",
+  );
   return out;
 }
 
@@ -123,7 +132,7 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     const resp = await route(env, request, url);
-    return local ? resp : withHsts(resp);
+    return local ? resp : withProductionSecurity(resp);
   },
 } satisfies ExportedHandler<Env>;
 
@@ -135,6 +144,9 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     }
     if (pathname.startsWith("/packages/")) {
       return await packages(env, request, pathname);
+    }
+    if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
+      return await adminApi(env, request, url);
     }
     if (pathname.startsWith("/api/")) {
       return await api(env, request, url);

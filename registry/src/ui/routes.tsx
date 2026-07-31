@@ -11,14 +11,18 @@ import {
 } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  del,
   docUrl,
   post,
+  put,
+  useAdminAccounts,
   useConfig,
   useDocText,
   useMe,
   usePackage,
   useRecent,
   useSearch,
+  type AdminAccount,
   type VersionRow,
 } from "./api";
 import { Markdown } from "./markdown";
@@ -62,6 +66,7 @@ function TierBadge({ tier }: { tier: string }) {
 function Layout() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const me = useMe();
   return (
     <div className="shell">
       <header>
@@ -84,6 +89,7 @@ function Layout() {
         </form>
         <nav>
           <Link to="/docs">Docs</Link>
+          {me.data?.official && <Link to="/admin">Admin</Link>}
           <Link to="/account">Account</Link>
         </nav>
       </header>
@@ -418,6 +424,310 @@ const accountRoute = createRoute({
 
 // ---------------------------------------------------------------------------
 
+function AdminDashboard({ accountEmail }: { accountEmail: string }) {
+  const qc = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [brand, setBrand] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const accountsQuery = useAdminAccounts(search);
+  const accounts = accountsQuery.data?.accounts ?? [];
+  const selected =
+    accounts.find((account) => account.id === selectedId) ??
+    accounts.find((account) => account.email === accountEmail) ??
+    accounts[0];
+
+  const refreshGrants = () =>
+    Promise.all([
+      qc.invalidateQueries({ queryKey: ["admin", "accounts"] }),
+      qc.invalidateQueries({ queryKey: ["me"] }),
+    ]);
+
+  const grant = useMutation({
+    mutationFn: ({ account, scope }: { account: AdminAccount; scope: string }) =>
+      put<unknown>(`/api/admin/accounts/${account.id}/brands`, { brand: scope }),
+    onSuccess: async (_data, { account, scope }) => {
+      setBrand("");
+      setStatus(
+        `Verified @${scope} for ${account.email}. The account may now publish every package under @${scope}/*.`,
+      );
+      await refreshGrants();
+    },
+  });
+
+  const revoke = useMutation({
+    mutationFn: ({ account, scope }: { account: AdminAccount; scope: string }) =>
+      del<unknown>(`/api/admin/accounts/${account.id}/brands`, { brand: scope }),
+    onSuccess: async (_data, { account, scope }) => {
+      setStatus(
+        `Revoked @${scope} verification from ${account.email}. The unverified claim is preserved.`,
+      );
+      await refreshGrants();
+    },
+  });
+
+  const busy = grant.isPending || revoke.isPending;
+  const verified = selected?.brands.filter((claim) => claim.verified) ?? [];
+  const unverified = selected?.brands.filter((claim) => !claim.verified) ?? [];
+
+  const clearFeedback = () => {
+    setStatus(null);
+    grant.reset();
+    revoke.reset();
+  };
+
+  return (
+    <>
+      <h1>Registry administration</h1>
+      <p className="muted">
+        Manufacturer namespace verification is human-gated. Select an account, then grant or revoke
+        its exact brand scope.
+      </p>
+
+      <section className="admin-card" aria-labelledby="account-heading">
+        <h2 id="account-heading">Account</h2>
+        <form
+          className="admin-search"
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            clearFeedback();
+            setSelectedId(null);
+            setSearch(searchInput.trim());
+          }}
+        >
+          <label htmlFor="admin-account-search">Find an account</label>
+          <div className="admin-inline">
+            <input
+              id="admin-account-search"
+              type="search"
+              placeholder="email address"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              disabled={busy}
+            />
+            <button type="submit" disabled={busy || accountsQuery.isFetching}>
+              {accountsQuery.isFetching ? "Searching…" : "Search"}
+            </button>
+            {search && (
+              <button
+                type="button"
+                className="button-secondary"
+                disabled={busy}
+                onClick={() => {
+                  clearFeedback();
+                  setSearchInput("");
+                  setSearch("");
+                  setSelectedId(null);
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </form>
+
+        {accountsQuery.isPending ? (
+          <p className="muted">loading accounts…</p>
+        ) : accountsQuery.isError ? (
+          <p className="error" role="alert">
+            {(accountsQuery.error as Error).message}
+          </p>
+        ) : accounts.length === 0 ? (
+          <p className="muted">No accounts match this search.</p>
+        ) : (
+          <>
+            {accountsQuery.data?.truncated && (
+              <p className="field-help">
+                Showing the first 100 accounts. Refine the email search to find another account.
+              </p>
+            )}
+            <div className="admin-field">
+              <label htmlFor="admin-account">Manage account</label>
+              <select
+                id="admin-account"
+                value={selected?.id ?? ""}
+                disabled={busy}
+                onChange={(e) => {
+                  clearFeedback();
+                  setSelectedId(Number(e.target.value));
+                }}
+              >
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.email}
+                    {account.official ? " — official" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+      </section>
+
+      {selected && (
+        <section className="admin-card" aria-labelledby="brands-heading" aria-busy={busy}>
+          <div className="admin-card-heading">
+            <div>
+              <h2 id="brands-heading">Brand claims</h2>
+              <p className="admin-account-email">
+                {selected.email}{" "}
+                {selected.official && <span className="tier tier-official">official</span>}
+              </p>
+            </div>
+          </div>
+
+          <form
+            className="brand-grant"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const scope = brand.trim();
+              if (!scope || !selected) return;
+              clearFeedback();
+              grant.mutate({ account: selected, scope });
+            }}
+          >
+            <label htmlFor="admin-brand">Brand scope (without @)</label>
+            <div className="scope-input">
+              <span aria-hidden="true">@</span>
+              <input
+                id="admin-brand"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                pattern="[A-Za-z0-9_][A-Za-z0-9_-]*"
+                title="Use letters, digits, underscores, and hyphens; the first character cannot be a hyphen."
+                autoCapitalize="none"
+                autoComplete="off"
+                spellCheck={false}
+                required
+                disabled={busy}
+                aria-describedby="brand-scope-help brand-scope-warning"
+              />
+              <button type="submit" disabled={busy || !brand.trim()}>
+                {grant.isPending ? "Granting…" : "Grant verification"}
+              </button>
+            </div>
+            <p id="brand-scope-help" className="field-help">
+              Enter the exact, case-sensitive scope, for example <code>espressif</code>.
+            </p>
+            <p id="brand-scope-warning" className="admin-warning">
+              <strong>Namespace-wide access:</strong> a grant authorizes this account to publish
+              every package under <code>@{brand.trim() || "brand"}/*</code>, not just one package.
+            </p>
+          </form>
+
+          <div className="claim-group">
+            <h3>Verified</h3>
+            {verified.length === 0 ? (
+              <p className="muted">No verified brands.</p>
+            ) : (
+              <ul className="brand-claims">
+                {verified.map((claim) => (
+                  <li key={claim.brand}>
+                    <code>@{claim.brand}/*</code>
+                    <button
+                      type="button"
+                      className="button-danger"
+                      disabled={busy}
+                      aria-label={`Revoke @${claim.brand} verification from ${selected.email}`}
+                      onClick={() => {
+                        const confirmed = window.confirm(
+                          `Revoke @${claim.brand} verification from ${selected.email}? This immediately removes publish access, but preserves the unverified claim.`,
+                        );
+                        if (!confirmed) return;
+                        clearFeedback();
+                        revoke.mutate({ account: selected, scope: claim.brand });
+                      }}
+                    >
+                      {revoke.isPending && revoke.variables?.scope === claim.brand
+                        ? "Revoking…"
+                        : "Revoke"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="claim-group">
+            <h3>Unverified claims</h3>
+            {unverified.length === 0 ? (
+              <p className="muted">No unverified claims.</p>
+            ) : (
+              <ul className="brand-claims brand-claims-inactive">
+                {unverified.map((claim) => (
+                  <li key={claim.brand}>
+                    <code>@{claim.brand}/*</code>
+                    <span className="muted">publishing disabled; claim preserved</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {status && (
+            <p role="status" className="success">
+              {status}
+            </p>
+          )}
+          {grant.isError && (
+            <p role="alert" className="error">
+              Could not grant verification: {(grant.error as Error).message}
+            </p>
+          )}
+          {revoke.isError && (
+            <p role="alert" className="error">
+              Could not revoke verification: {(revoke.error as Error).message}
+            </p>
+          )}
+        </section>
+      )}
+    </>
+  );
+}
+
+function Admin() {
+  const me = useMe();
+  if (me.isPending) {
+    return (
+      <>
+        <h1>Registry administration</h1>
+        <p className="muted">checking account access…</p>
+      </>
+    );
+  }
+  if (!me.data) {
+    return (
+      <>
+        <h1>Registry administration</h1>
+        <p>
+          <Link to="/account">Sign in</Link> with the CoHDL official account to continue.
+        </p>
+      </>
+    );
+  }
+  if (!me.data.official) {
+    return (
+      <>
+        <h1>Registry administration</h1>
+        <p className="error" role="alert">
+          Official account access is required. You are signed in as {me.data.account}.
+        </p>
+      </>
+    );
+  }
+  return <AdminDashboard accountEmail={me.data.account} />;
+}
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: Admin,
+});
+
+// ---------------------------------------------------------------------------
+
 const MANIFEST_EXAMPLE = `[package]
 name = "@contrib/your-name"
 version = "1.0.0"
@@ -497,4 +807,4 @@ const docsRoute = createRoute({
   component: Docs,
 });
 
-export const routeTree = rootRoute.addChildren([homeRoute, packageRoute, accountRoute, docsRoute]);
+export const routeTree = rootRoute.addChildren([homeRoute, packageRoute, accountRoute, adminRoute, docsRoute]);

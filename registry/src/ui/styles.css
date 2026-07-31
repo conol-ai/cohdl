@@ -10,6 +10,7 @@
   --official: #7ee2a8;
   --brand: #f0b429;
   --contrib: #9aa7ff;
+  --danger: #ff7b72;
 }
 
 * { box-sizing: border-box; }
@@ -44,6 +45,11 @@ header input {
 header nav { display: flex; gap: 14px; }
 header nav a { color: var(--muted); text-decoration: none; }
 header nav a:hover { color: var(--text); }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 main { padding: 28px 0 60px; }
 
@@ -101,8 +107,91 @@ button {
 }
 button:disabled { opacity: 0.5; }
 .linkish { background: none; color: var(--muted); font-weight: 400; padding: 8px 0; }
-.error { color: #ff7b72; }
+.button-secondary { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+.button-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 55%, var(--line));
+  padding: 6px 10px;
+}
+.error { color: var(--danger); }
+.success { color: var(--official); }
 .muted { color: var(--muted); }
+
+/* Official-account brand verification. */
+.admin-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  margin: 18px 0;
+}
+.admin-card h2 { margin: 0 0 12px; }
+.admin-card h3 { font-size: 14px; margin: 20px 0 8px; color: var(--muted); }
+.admin-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.admin-account-email { margin: -8px 0 12px; }
+.admin-field, .admin-search, .brand-grant {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.admin-field { margin-top: 16px; }
+.admin-field label, .admin-search label, .brand-grant label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.admin-field select, .admin-search input, .scope-input input {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  min-height: 40px;
+  padding: 8px 11px;
+}
+.admin-field select { width: min(100%, 520px); }
+.admin-inline, .scope-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-inline input { flex: 1; min-width: 180px; }
+.scope-input > span {
+  color: var(--muted);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 18px;
+}
+.scope-input input { flex: 1; min-width: 120px; }
+.brand-grant {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+}
+.field-help, .admin-warning { font-size: 13px; margin: 0; }
+.field-help { color: var(--muted); }
+.admin-warning {
+  background: color-mix(in srgb, var(--brand) 8%, transparent);
+  border-left: 2px solid var(--brand);
+  padding: 8px 10px;
+}
+.claim-group + .claim-group { border-top: 1px solid var(--line); margin-top: 18px; }
+.brand-claims { list-style: none; margin: 0; padding: 0; }
+.brand-claims li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--line);
+  padding: 7px 0;
+}
+.brand-claims li:last-child { border-bottom: 0; }
+.brand-claims-inactive code { color: var(--muted); }
 
 .docs li { margin: 10px 0; }
 code {
@@ -170,4 +259,17 @@ footer {
   color: var(--muted);
   font-size: 12.5px;
   padding: 16px 0 30px;
+}
+
+@media (max-width: 640px) {
+  .shell { padding: 0 16px; }
+  header { flex-wrap: wrap; gap: 12px; }
+  header form { order: 3; flex-basis: 100%; }
+  header nav { margin-left: auto; }
+  .admin-card { padding: 15px; }
+  .admin-inline, .scope-input { align-items: stretch; flex-wrap: wrap; }
+  .admin-inline input, .scope-input input { flex-basis: calc(100% - 30px); }
+  .admin-inline button, .scope-input button { flex: 1; width: auto; }
+  .brand-claims li { align-items: flex-start; flex-direction: column; }
+  .brand-claims .button-danger { width: 100%; }
 }

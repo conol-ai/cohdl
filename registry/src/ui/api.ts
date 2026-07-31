@@ -11,15 +11,27 @@ async function get<T>(url: string): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-export async function post<T>(url: string, body: unknown): Promise<T> {
+async function write<T>(method: "POST" | "PUT" | "DELETE", url: string, body: unknown): Promise<T> {
   const r = await fetch(url, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const data = (await r.json().catch(() => null)) as (T & { error?: string }) | null;
   if (!r.ok) throw new Error(data?.error ?? `HTTP ${r.status}`);
   return data as T;
+}
+
+export function post<T>(url: string, body: unknown): Promise<T> {
+  return write<T>("POST", url, body);
+}
+
+export function put<T>(url: string, body: unknown): Promise<T> {
+  return write<T>("PUT", url, body);
+}
+
+export function del<T>(url: string, body: unknown): Promise<T> {
+  return write<T>("DELETE", url, body);
 }
 
 export interface SearchRow {
@@ -56,6 +68,19 @@ export interface PackageDetail {
   tier: string;
   created_at: string;
   versions: VersionRow[];
+}
+
+export interface AdminBrandClaim {
+  brand: string;
+  verified: boolean;
+}
+
+export interface AdminAccount {
+  id: number;
+  email: string;
+  official: boolean;
+  created_at: string;
+  brands: AdminBrandClaim[];
 }
 
 /// URL of a published document's bytes — served sandboxed from the immutable
@@ -114,5 +139,15 @@ export function useMe() {
     queryKey: ["me"],
     retry: false,
     queryFn: () => get<{ account: string; official: boolean; brands: string[] }>("/api/me"),
+  });
+}
+
+export function useAdminAccounts(q: string) {
+  return useQuery({
+    queryKey: ["admin", "accounts", q],
+    queryFn: () =>
+      get<{ accounts: AdminAccount[]; truncated: boolean }>(
+        `/api/admin/accounts?q=${encodeURIComponent(q)}`,
+      ),
   });
 }

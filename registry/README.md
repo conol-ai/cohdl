@@ -64,9 +64,32 @@ same-version relative paths.
 
 Namespace enforcement is server-side and structural (`namespace.ts`):
 bare = official account only, `@brand/…` = verified brand rows in D1
-(human-gated — set `brands.verified` manually), `@contrib/…` = any
-authenticated account. Published versions are immutable (409 on
-re-publish).
+(human-gated — managed by the official account), `@contrib/…` = any
+authenticated account. Published versions are immutable (409 on re-publish).
+
+## Official administration
+
+An account whose D1 `accounts.is_official` value is `1` gets an **Admin**
+link and the `/admin` dashboard. The dashboard can search accounts, create
+or re-enable a verified manufacturer-brand claim, and revoke verification.
+Every dashboard API independently re-resolves the web session and checks
+`is_official`; hiding the link is only a UI convenience.
+
+Brand management is deliberately conservative:
+
+- a grant authorizes the target account to publish the entire
+  `@brand/…` namespace, not just one package;
+- granting a brand already claimed by another account returns a conflict
+  and never transfers ownership;
+- revocation sets `verified = 0` but preserves the claim, so another
+  account cannot silently take the namespace;
+- the dashboard cannot create another official account or move a brand
+  between accounts. Those exceptional trust changes remain direct
+  operator actions in D1.
+
+Cookie-authenticated admin writes require same-origin JSON requests in
+addition to the session cookie's `HttpOnly`, `Secure`, and `SameSite=Lax`
+attributes. Admin responses are never cached.
 
 ## Develop / test / deploy
 

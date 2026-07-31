@@ -57,7 +57,7 @@ fn std_exports_only_the_core_trait_allowlist() {
     let mut declarations = Vec::new();
     for entry in std::fs::read_dir(src_dir).unwrap() {
         let path = entry.unwrap().path();
-        if !path.extension().is_some_and(|ext| ext == "cohdl") {
+        if path.extension().is_none_or(|ext| ext != "cohdl") {
             continue;
         }
         let text = std::fs::read_to_string(path).unwrap();

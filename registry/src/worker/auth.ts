@@ -61,6 +61,11 @@ export interface Account {
   is_official: number;
 }
 
+export function sessionIdForRequest(request: Request): string | null {
+  const cookie = request.headers.get("Cookie") ?? "";
+  return cookie.match(/(?:^|;\s*)__Host-session=([a-f0-9]{64})(?:;|$)/)?.[1] ?? null;
+}
+
 /// Resolve a `Bearer <token>` header to its account, or null.
 export async function accountForToken(env: Env, request: Request): Promise<Account | null> {
   const auth = request.headers.get("Authorization") ?? "";
@@ -76,10 +81,9 @@ export async function accountForToken(env: Env, request: Request): Promise<Accou
 
 /// Resolve the web session cookie to its account, or null.
 export async function accountForSession(env: Env, request: Request): Promise<Account | null> {
-  const cookie = request.headers.get("Cookie") ?? "";
-  const m = cookie.match(/(?:^|;\s*)session=([a-f0-9]{64})/);
-  if (!m) return null;
-  const accountId = await env.SESSIONS.get(`session:${m[1]}`);
+  const sessionId = sessionIdForRequest(request);
+  if (!sessionId) return null;
+  const accountId = await env.SESSIONS.get(`session:${sessionId}`);
   if (!accountId) return null;
   return env.DB.prepare("SELECT id, email, is_official FROM accounts WHERE id = ?")
     .bind(Number(accountId))

@@ -143,7 +143,7 @@ describe("admin authorization and listing", () => {
     const { response } = await invoke(
       request("GET", "/api/admin/accounts", {
         authorization: "Bearer cohdl_cli_token",
-        cookie: "session=not-resolved-by-the-session-store",
+        cookie: "__Host-session=not-resolved-by-the-session-store",
       }),
       h,
     );
@@ -339,7 +339,7 @@ describe("admin brand mutations", () => {
     await invoke(
       request("PUT", "/api/admin/accounts/2/brands", {
         authorization: "Bearer secret-cli-token",
-        cookie: `session=${"a".repeat(64)}`,
+        cookie: `__Host-session=${"a".repeat(64)}`,
       }),
       h,
     );

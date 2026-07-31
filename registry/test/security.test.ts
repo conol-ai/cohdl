@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withProductionSecurity } from "../src/worker/index";
+import { webJsonWriteRejection, withProductionSecurity } from "../src/worker/index";
 
 describe("production response security", () => {
   it("prevents framing and enables HSTS", () => {
@@ -13,7 +13,12 @@ describe("production response security", () => {
       "max-age=31536000; includeSubDomains",
     );
     expect(response.headers.get("X-Frame-Options")).toBe("DENY");
-    expect(response.headers.get("Content-Security-Policy")).toBe("frame-ancestors 'none'");
+    const policy = response.headers.get("Content-Security-Policy") ?? "";
+    expect(policy).toContain("default-src 'self'");
+    expect(policy).toContain("object-src 'none'");
+    expect(policy).toContain("base-uri 'none'");
+    expect(policy).toContain("form-action 'self'");
+    expect(policy).toContain("frame-ancestors 'none'");
   });
 
   it("preserves an existing document sandbox", () => {
@@ -24,7 +29,41 @@ describe("production response security", () => {
     );
 
     expect(response.headers.get("Content-Security-Policy")).toBe(
-      "sandbox; frame-ancestors 'none'",
+      "sandbox; frame-ancestors 'none'; object-src 'none'; base-uri 'none'",
     );
+  });
+});
+
+describe("cookie-authenticated web writes", () => {
+  const url = new URL("https://registry.cohdl.org/api/session");
+
+  it("requires the exact origin", () => {
+    for (const origin of [null, "https://evil.example", "https://docs.cohdl.org"]) {
+      const headers = new Headers({ "Content-Type": "application/json" });
+      if (origin) headers.set("Origin", origin);
+      const request = new Request(url, { method: "POST", headers, body: "{}" });
+      expect(webJsonWriteRejection(request, url)?.status).toBe(403);
+    }
+  });
+
+  it("requires application/json, including for no-cors-compatible bodies", () => {
+    for (const contentType of ["text/plain", "application/x-www-form-urlencoded", ""]) {
+      const headers = new Headers({ Origin: url.origin });
+      if (contentType) headers.set("Content-Type", contentType);
+      const request = new Request(url, { method: "POST", headers, body: "{}" });
+      expect(webJsonWriteRejection(request, url)?.status).toBe(415);
+    }
+  });
+
+  it("accepts same-origin JSON with parameters", () => {
+    const request = new Request(url, {
+      method: "POST",
+      headers: {
+        Origin: url.origin,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: "{}",
+    });
+    expect(webJsonWriteRejection(request, url)).toBeNull();
   });
 });

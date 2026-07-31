@@ -18,11 +18,12 @@ import {
   accountForToken,
   createSession,
   hashPassword,
+  sessionIdForRequest,
   sha256Hex,
   verifiedBrands,
   verifyPassword,
 } from "./auth";
-import { adminApi } from "./admin";
+import { adminApi, hasJsonContentType, validWriteOrigin } from "./admin";
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
@@ -30,6 +31,19 @@ import { nameTier, publishRejection } from "./namespace";
 import { readTar } from "./tar";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
+const SPA_CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://www.google.com/recaptcha/",
+  "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
+].join("; ");
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...headers } });
@@ -101,7 +115,9 @@ export function withProductionSecurity(resp: Response): Response {
   const csp = out.headers.get("Content-Security-Policy");
   out.headers.set(
     "Content-Security-Policy",
-    csp ? `${csp}; frame-ancestors 'none'` : "frame-ancestors 'none'",
+    csp
+      ? `${csp}; frame-ancestors 'none'; object-src 'none'; base-uri 'none'`
+      : SPA_CONTENT_SECURITY_POLICY,
   );
   return out;
 }
@@ -142,7 +158,9 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     if (pathname === "/login" && request.method === "POST") {
       return await cliLogin(env, request);
     }
-    if (pathname.startsWith("/packages/")) {
+    // `/packages` (and its harmless trailing-slash form) is the web
+    // catalogue. Only a non-empty suffix belongs to the CLI/package API.
+    if (pathname.startsWith("/packages/") && pathname !== "/packages/") {
       return await packages(env, request, pathname);
     }
     if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
@@ -346,6 +364,19 @@ async function recaptchaOk(
   return data.success === true && data.action === action && (data.score ?? 0) >= 0.5;
 }
 
+/// Cookie-authenticated browser mutations must be non-simple, exact-origin
+/// JSON requests. This blocks cross-origin form/no-cors writes and same-site
+/// sibling origins from driving a user's registry session.
+export function webJsonWriteRejection(request: Request, url: URL): Response | null {
+  if (!validWriteOrigin(request, url)) {
+    return json(403, { error: "same-origin request required" });
+  }
+  if (!hasJsonContentType(request)) {
+    return json(415, { error: "Content-Type application/json required" });
+  }
+  return null;
+}
+
 async function api(env: Env, request: Request, url: URL): Promise<Response> {
   const path = url.pathname;
 
@@ -354,11 +385,19 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
   }
 
   if (path === "/api/signup" && request.method === "POST") {
-    const { email, password, recaptcha } = await request.json<{
+    const rejection = webJsonWriteRejection(request, url);
+    if (rejection) return rejection;
+    let body: {
       email?: string;
       password?: string;
       recaptcha?: string;
-    }>();
+    };
+    try {
+      body = await request.json();
+    } catch {
+      return json(400, { error: "request body must be valid JSON" });
+    }
+    const { email, password, recaptcha } = body;
     if (!(await recaptchaOk(env, request, recaptcha, "signup"))) {
       return json(403, { error: "reCAPTCHA verification failed — reload the page and try again" });
     }
@@ -379,11 +418,19 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
   }
 
   if (path === "/api/session" && request.method === "POST") {
-    const { email, password, recaptcha } = await request.json<{
+    const rejection = webJsonWriteRejection(request, url);
+    if (rejection) return rejection;
+    let body: {
       email?: string;
       password?: string;
       recaptcha?: string;
-    }>();
+    };
+    try {
+      body = await request.json();
+    } catch {
+      return json(400, { error: "request body must be valid JSON" });
+    }
+    const { email, password, recaptcha } = body;
     if (!(await recaptchaOk(env, request, recaptcha, "login"))) {
       return json(403, { error: "reCAPTCHA verification failed — reload the page and try again" });
     }
@@ -396,17 +443,41 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
     return sessionResponse(env, email!);
   }
 
+  if (path === "/api/session" && request.method === "DELETE") {
+    const rejection = webJsonWriteRejection(request, url);
+    if (rejection) return rejection;
+    const sessionId = sessionIdForRequest(request);
+    if (sessionId) await env.SESSIONS.delete(`session:${sessionId}`);
+    return json(
+      200,
+      { signed_out: true },
+      {
+        "Cache-Control": "no-store",
+        "Set-Cookie":
+          "__Host-session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0",
+      },
+    );
+  }
+
   if (path === "/api/me" && request.method === "GET") {
     const account = await accountForSession(env, request);
-    if (!account) return json(401, { error: "not signed in" });
-    return json(200, {
-      account: account.email,
-      official: account.is_official === 1,
-      brands: await verifiedBrands(env, account.id),
-    });
+    if (!account) {
+      return json(401, { error: "not signed in" }, { "Cache-Control": "no-store" });
+    }
+    return json(
+      200,
+      {
+        account: account.email,
+        official: account.is_official === 1,
+        brands: await verifiedBrands(env, account.id),
+      },
+      { "Cache-Control": "no-store" },
+    );
   }
 
   if (path === "/api/tokens" && request.method === "POST") {
+    const rejection = webJsonWriteRejection(request, url);
+    if (rejection) return rejection;
     const account = await accountForSession(env, request);
     if (!account) return json(401, { error: "not signed in" });
     const raw = [...crypto.getRandomValues(new Uint8Array(24))]
@@ -419,33 +490,61 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
       .bind(await sha256Hex(token), account.id, new Date().toISOString())
       .run();
     // Shown exactly once; only the hash is stored.
-    return json(200, { token });
+    return json(200, { token }, { "Cache-Control": "no-store" });
   }
 
   if (path === "/api/search" && request.method === "GET") {
     const q = (url.searchParams.get("q") ?? "").trim();
     const like = `%${q}%`;
+    const requestedTier = url.searchParams.get("tier");
+    const tier =
+      requestedTier === "official" || requestedTier === "brand" || requestedTier === "contrib"
+        ? requestedTier
+        : "";
+    const orderBy = url.searchParams.get("sort") === "name" ? "p.name ASC" : "updated DESC";
     // Descriptions live only on `versions` (one immutable fact per version);
     // anything package-level derives from the newest version by subquery —
     // both what a hit displays and what a hit matches on.
+    const totalRow = await env.DB.prepare(
+      `SELECT COUNT(*) AS total
+         FROM packages p
+        WHERE (p.name LIKE ?
+           OR (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) LIKE ?)
+          AND (? = '' OR p.tier = ?)`,
+    )
+      .bind(like, like, tier, tier)
+      .first<{ total: number }>();
     const rows = await env.DB.prepare(
       `SELECT p.name, p.tier, MAX(v.published_at) AS updated,
               (SELECT version FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) AS latest,
               (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) AS description
        FROM packages p JOIN versions v ON v.name = p.name
-       WHERE p.name LIKE ?
-          OR (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) LIKE ?
-       GROUP BY p.name ORDER BY updated DESC LIMIT 50`,
+       WHERE (p.name LIKE ?
+          OR (SELECT description FROM versions WHERE name = p.name ORDER BY published_at DESC LIMIT 1) LIKE ?)
+         AND (? = '' OR p.tier = ?)
+       GROUP BY p.name ORDER BY ${orderBy} LIMIT 50`,
     )
-      .bind(like, like)
+      .bind(like, like, tier, tier)
       .all();
-    return json(200, { results: rows.results });
+    const total = Number(totalRow?.total ?? 0);
+    return json(200, {
+      results: rows.results,
+      total,
+      truncated: total > rows.results.length,
+    });
   }
 
   if (path === "/api/recent" && request.method === "GET") {
     const rows = await env.DB.prepare(
       `SELECT v.name, v.version, v.published_at, v.description, p.tier
        FROM versions v JOIN packages p ON p.name = v.name
+       WHERE v.version = (
+         SELECT newest.version
+           FROM versions newest
+          WHERE newest.name = v.name
+          ORDER BY newest.published_at DESC, newest.version DESC
+          LIMIT 1
+       )
        ORDER BY v.published_at DESC LIMIT 10`,
     ).all();
     return json(200, { results: rows.results });
@@ -527,15 +626,20 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
 }
 
 async function sessionResponse(env: Env, email: string): Promise<Response> {
-  const row = await env.DB.prepare("SELECT id FROM accounts WHERE email = ?")
+  const row = await env.DB.prepare("SELECT id, is_official FROM accounts WHERE email = ?")
     .bind(email)
-    .first<{ id: number }>();
+    .first<{ id: number; is_official: number }>();
   const session = await createSession(env, row!.id);
   return json(
     200,
-    { account: email },
     {
-      "Set-Cookie": `session=${session}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${7 * 24 * 3600}`,
+      account: email,
+      official: row!.is_official === 1,
+      brands: await verifiedBrands(env, row!.id),
+    },
+    {
+      "Cache-Control": "no-store",
+      "Set-Cookie": `__Host-session=${session}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${7 * 24 * 3600}`,
     },
   );
 }

@@ -2,11 +2,21 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 async function get<T>(url: string): Promise<T> {
   const r = await fetch(url);
   if (!r.ok) {
     const data = (await r.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error ?? `HTTP ${r.status}`);
+    throw new ApiError(data?.error ?? `HTTP ${r.status}`, r.status);
   }
   return r.json() as Promise<T>;
 }
@@ -18,8 +28,12 @@ async function write<T>(method: "POST" | "PUT" | "DELETE", url: string, body: un
     body: JSON.stringify(body),
   });
   const data = (await r.json().catch(() => null)) as (T & { error?: string }) | null;
-  if (!r.ok) throw new Error(data?.error ?? `HTTP ${r.status}`);
+  if (!r.ok) throw new ApiError(data?.error ?? `HTTP ${r.status}`, r.status);
   return data as T;
+}
+
+export function isUnauthorized(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401;
 }
 
 export function post<T>(url: string, body: unknown): Promise<T> {
@@ -40,6 +54,12 @@ export interface SearchRow {
   latest: string;
   updated: string;
   description: string | null;
+}
+
+export interface SearchResponse {
+  results: SearchRow[];
+  total: number;
+  truncated: boolean;
 }
 
 export interface RecentRow {
@@ -83,6 +103,12 @@ export interface AdminAccount {
   brands: AdminBrandClaim[];
 }
 
+export interface Me {
+  account: string;
+  official: boolean;
+  brands: string[];
+}
+
 /// URL of a published document's bytes — served sandboxed from the immutable
 /// tar in R2.
 export function docUrl(pkg: string, version: string, path: string): string {
@@ -90,10 +116,17 @@ export function docUrl(pkg: string, version: string, path: string): string {
   return `/api/doc?${q.toString()}`;
 }
 
-export function useSearch(q: string) {
+export function useSearch(
+  q: string,
+  tier?: SearchRow["tier"],
+  sort: "updated" | "name" = "updated",
+) {
+  const params = new URLSearchParams({ q });
+  if (tier) params.set("tier", tier);
+  if (sort !== "updated") params.set("sort", sort);
   return useQuery({
-    queryKey: ["search", q],
-    queryFn: () => get<{ results: SearchRow[] }>(`/api/search?q=${encodeURIComponent(q)}`),
+    queryKey: ["search", q, tier ?? "all", sort],
+    queryFn: () => get<SearchResponse>(`/api/search?${params.toString()}`),
   });
 }
 
@@ -108,6 +141,8 @@ export function usePackage(name: string) {
   return useQuery({
     queryKey: ["package", name],
     queryFn: () => get<PackageDetail>(`/api/packages/${encodeURIComponent(name)}`),
+    retry: (failureCount, error) =>
+      !(error instanceof ApiError && error.status === 404) && failureCount < 2,
   });
 }
 
@@ -138,7 +173,7 @@ export function useMe() {
   return useQuery({
     queryKey: ["me"],
     retry: false,
-    queryFn: () => get<{ account: string; official: boolean; brands: string[] }>("/api/me"),
+    queryFn: () => get<Me>("/api/me"),
   });
 }
 

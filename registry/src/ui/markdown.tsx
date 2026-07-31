@@ -52,7 +52,20 @@ function renderInline(text: string, opts: InlineOpts, keyBase: string): React.Re
       const src = safeUrl(m[4], opts.resolve);
       // A refused image src degrades to its alt text — never a broken
       // request to somewhere unexpected.
-      out.push(src ? <img key={key} src={src} alt={m[3]} /> : <em key={key}>{m[3] || m[4]}</em>);
+      out.push(
+        src ? (
+          <img
+            key={key}
+            src={src}
+            alt={m[3]}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <em key={key}>{m[3] || m[4]}</em>
+        ),
+      );
     } else if (m[5]) {
       const href = safeUrl(m[7], opts.resolve);
       out.push(

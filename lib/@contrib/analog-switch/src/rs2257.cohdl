@@ -1,0 +1,78 @@
+// Run-IC RS2257: ultra-low ON-resistance (0.6Ω typ), low-voltage SPDT
+// analog switch, 1.8-5.5V, break-before-make, 30MHz bandwidth (datasheet
+// RevC.1). Pin definition p1 (vision-verified); package outlines p10-11.
+// SOT363(SC70-6) and SOT23-6 share the same pin numbering.
+
+#[doc("docs/rs2257.pdf")]
+pub device RS2257 {
+    pins {
+        required NO: 1 [passive] // normally-open terminal (p1 pin table)
+        required GND: 2 [power_in]
+        required NC: 3 [passive] // normally-closed terminal (p1)
+        required COM: 4 [passive] // common terminal (p1)
+        required VPLUS: 5 [power_in] // positive supply, 1.8-5.5V (p1)
+        required IN: 6 [input] // digital control: 0=NC ON, 1=NO ON (p1 function table)
+    }
+}
+
+impl IC for RS2257 {}
+
+#[doc("docs/rs2257.pdf")]
+pub part SW_RS2257XH: RS2257 {
+    primary { mfr: "Run-IC", mpn: "RS2257XH", footprint: SOT6P95X160X290N }
+}
+
+#[doc("docs/rs2257.pdf")]
+pub part SW_RS2257XC6: RS2257 {
+    primary { mfr: "Run-IC", mpn: "RS2257XC6", footprint: SOT6P65X125X210N }
+}
+
+// SOT23-6 land (datasheet p11): pitch e 0.95 BSC, body D 2.82-3.02, E 1.50-1.70,
+// e1 1.80-2.00, lead b 0.30-0.50, L 0.30-0.60. Pin 1 upper-left, CCW.
+// Land derivation: width 0.55 (b max 0.50 + 0.05), length 1.0 (L + toe 0.35
+// + heel 0.20), centres at +/-0.95 (e1/2 nominal).
+pub pad P_RS2257_SOT236_LEAD {
+    shape: rect
+    size: (1mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOT6P95X160X290N {
+    pad 1: P_RS2257_SOT236_LEAD at (-0.95mm, -0.95mm)
+    pad 2: P_RS2257_SOT236_LEAD at (-0.95mm, 0mm)
+    pad 3: P_RS2257_SOT236_LEAD at (-0.95mm, 0.95mm)
+    pad 4: P_RS2257_SOT236_LEAD at (0.95mm, 0.95mm)
+    pad 5: P_RS2257_SOT236_LEAD at (0.95mm, 0mm)
+    pad 6: P_RS2257_SOT236_LEAD at (0.95mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.8mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// SOT363 (SC70-6) land (datasheet p10): pitch e 0.65 BSC, body D 2.0-2.2,
+// E 1.15-1.35, e1 1.30 BSC, lead b 0.15-0.35, L 0.26-0.46.
+// Land derivation: width 0.40 (b max 0.35 + 0.05), length 0.75, centres
+// at +/-0.65 (e1/2).
+pub pad P_RS2257_SC706_LEAD {
+    shape: rect
+    size: (0.75mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOT6P65X125X210N {
+    pad 1: P_RS2257_SC706_LEAD at (-0.65mm, -0.65mm)
+    pad 2: P_RS2257_SC706_LEAD at (-0.65mm, 0mm)
+    pad 3: P_RS2257_SC706_LEAD at (-0.65mm, 0.65mm)
+    pad 4: P_RS2257_SC706_LEAD at (0.65mm, 0.65mm)
+    pad 5: P_RS2257_SC706_LEAD at (0.65mm, 0mm)
+    pad 6: P_RS2257_SC706_LEAD at (0.65mm, -0.65mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.2mm, 3.2mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
+}

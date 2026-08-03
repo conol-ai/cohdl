@@ -34,6 +34,7 @@ footprints live in focused packages:
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3` | Espressif SoCs and modules |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and parts |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
+| `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
 

@@ -1,0 +1,9 @@
+[package]
+name = "@contrib/env"
+version = "0.1.0"
+license = "MIT"
+description = "Community-contributed environmental sensor (temperature/humidity/pressure) devices and purchasable parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

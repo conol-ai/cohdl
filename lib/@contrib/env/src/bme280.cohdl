@@ -1,0 +1,67 @@
+// Bosch Sensortec BME280: humidity / pressure / temperature sensor,
+// I2C + SPI, metal-lid LGA-8 2.5 x 2.5 x 0.93 mm (datasheet p2 features).
+// Pin-out p38 (Figure 16 + Table 35); land pattern p43 (Figure 21).
+// Datasheet BST-BME280-DS001-23 rev 1.23, January 2022.
+
+#[doc("docs/bst-bme280-ds001.pdf")]
+pub device BME280 {
+    pins {
+        required GND: 1, 7 [power_in] // p38 Table 35: ground (pins 1 and 7)
+        // Chip select (SPI). In I2C mode a direct connection CSB->VDDIO is
+        // REQUIRED (p39 Figure 17 note).
+        required CSB: 2 [input]
+        // Serial data: I2C SDA / SPI SDI (3-wire: SDI/SDO) (p38 Table 35).
+        required SDI: 3 [bidirectional]
+        // Serial clock: I2C SCL / SPI SCK (p38 Table 35).
+        required SCK: 4 [input]
+        // SPI 4-wire data out; in I2C mode the address-select strap
+        // (GND='0', VDDIO='1', p39 Figure 17 note); in SPI 3-wire DNC.
+        required SDO: 5 [bidirectional]
+        required VDDIO: 6 [power_in] // digital / interface supply (p38)
+        required VDD: 8 [power_in] // analog supply (p38)
+    }
+}
+
+impl IC for BME280 {}
+
+#[doc("docs/bst-bme280-ds001.pdf")]
+pub part ENV_BME280: BME280 {
+    primary { mfr: "Bosch Sensortec", mpn: "BME280", footprint: FP_Bosch_BME280_LGA8_2_5x2_5mm }
+}
+
+// Land pad: Figure 21 (p43) recommended landing pattern — pads 0.5 x 0.35 mm
+// ("0.5" width label over pad 1; "0.35" height at pad 1). The figure's
+// "0.325" annotates the SMD-process solder-mask opening height (p43 notes:
+// mask openings smaller than metal for SMD); it is not the copper size.
+pub pad P_BME280_LAND {
+    shape: rect
+    size: (0.5mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+// BME280 LGA-8 land, 2.5 x 2.5 mm body (p2). Origin is the package centre;
+// TOP VIEW. Numbering is CLOCKWISE in top view (explicit datasheet note,
+// p38) — pin 1 at the upper RIGHT. Column centre spacing 2.05 mm (Figure 21:
+// "0.775" from pad 5 right edge to centreline = 2.05/2 - 0.5/2), pad pitch
+// 0.65 mm ("0.65" between adjacent pads), pads 0.5 x 0.35 mm.
+// Pixel cross-check of the native Figure 21 raster: 378 px/mm calibration
+// from the 0.65 mm pitch reproduces pad width 0.507, height 0.358, column
+// spacing 2.049 — all within stroke-width noise of the printed values.
+pub footprint FP_Bosch_BME280_LGA8_2_5x2_5mm {
+    pad 1: P_BME280_LAND at (1.025mm, -0.975mm)
+    pad 2: P_BME280_LAND at (1.025mm, -0.325mm)
+    pad 3: P_BME280_LAND at (1.025mm, 0.325mm)
+    pad 4: P_BME280_LAND at (1.025mm, 0.975mm)
+    pad 5: P_BME280_LAND at (-1.025mm, 0.975mm)
+    pad 6: P_BME280_LAND at (-1.025mm, 0.325mm)
+    pad 7: P_BME280_LAND at (-1.025mm, -0.325mm)
+    pad 8: P_BME280_LAND at (-1.025mm, -0.975mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Body 2.5 x 2.5 mm (p2) plus 0.25 mm excess per side; the datasheet
+    // prints no courtyard.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3mm, 3mm) }
+    silkscreen_ref { at: (0mm, -1.8mm) }
+}

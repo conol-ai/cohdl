@@ -64,3 +64,4 @@ under the same version is a hard `E1103` against every `cohdl.lock` that
 pinned it.
 | `@contrib/haptic` | `contrib_haptic::HAPTIC_AW86224` | community-contributed haptic / vibration driver devices and parts |
 | `@contrib/analog-switch` | `contrib_analog_switch::SW_RS2257XH` | community-contributed analog switch / multiplexer devices and parts |
+| `@contrib/led-driver` | `contrib_led_driver::LEDDRV_AW21009` | community-contributed LED driver devices and parts |

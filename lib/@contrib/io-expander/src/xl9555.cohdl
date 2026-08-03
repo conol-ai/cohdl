@@ -1,0 +1,175 @@
+// Xinluda XL9555: 16-bit I2C-bus/SMBus I/O port expander with interrupt
+// output, 2.3-5.5V (datasheet Rev 2.4, p1). Pin functions Table 2 (p3) —
+// NOTE: pin numbers differ between SOP/SSOP/TSSOP and QFN packages, so this
+// device uses package variants. XL9555 vs XL9535: identical pinout; XL9555
+// adds a weak internal pull-up to VCC on each I/O (Table 2 note 1) — only
+// XL9555 parts are modeled here.
+
+#[doc("docs/xl9535-xl9555.pdf")]
+pub device XL9555 {
+    variants { SOP24, SSOP24, TSSOP24, QFN24 }
+    pins[SOP24] {
+        optional INT: 1 [output] // interrupt out, open-drain, needs pull-up (p3)
+        required A1: 2 [input] // address strap — tie directly to VCC or GND (p3)
+        required A2: 3 [input]
+        optional P00: 4 [bidirectional]
+        optional P01: 5 [bidirectional]
+        optional P02: 6 [bidirectional]
+        optional P03: 7 [bidirectional]
+        optional P04: 8 [bidirectional]
+        optional P05: 9 [bidirectional]
+        optional P06: 10 [bidirectional]
+        optional P07: 11 [bidirectional]
+        required GND: 12 [power_in]
+        optional P10: 13 [bidirectional]
+        optional P11: 14 [bidirectional]
+        optional P12: 15 [bidirectional]
+        optional P13: 16 [bidirectional]
+        optional P14: 17 [bidirectional]
+        optional P15: 18 [bidirectional]
+        optional P16: 19 [bidirectional]
+        optional P17: 20 [bidirectional]
+        required A0: 21 [input]
+        required SCL: 22 [input] // I2C clock, pull-up to VCC (p3)
+        required SDA: 23 [bidirectional] // I2C data, pull-up to VCC (p3)
+        required VCC: 24 [power_in]
+    }
+    pins[SSOP24] {
+        optional INT: 1 [output]
+        required A1: 2 [input]
+        required A2: 3 [input]
+        optional P00: 4 [bidirectional]
+        optional P01: 5 [bidirectional]
+        optional P02: 6 [bidirectional]
+        optional P03: 7 [bidirectional]
+        optional P04: 8 [bidirectional]
+        optional P05: 9 [bidirectional]
+        optional P06: 10 [bidirectional]
+        optional P07: 11 [bidirectional]
+        required GND: 12 [power_in]
+        optional P10: 13 [bidirectional]
+        optional P11: 14 [bidirectional]
+        optional P12: 15 [bidirectional]
+        optional P13: 16 [bidirectional]
+        optional P14: 17 [bidirectional]
+        optional P15: 18 [bidirectional]
+        optional P16: 19 [bidirectional]
+        optional P17: 20 [bidirectional]
+        required A0: 21 [input]
+        required SCL: 22 [input]
+        required SDA: 23 [bidirectional]
+        required VCC: 24 [power_in]
+    }
+    pins[TSSOP24] {
+        optional INT: 1 [output]
+        required A1: 2 [input]
+        required A2: 3 [input]
+        optional P00: 4 [bidirectional]
+        optional P01: 5 [bidirectional]
+        optional P02: 6 [bidirectional]
+        optional P03: 7 [bidirectional]
+        optional P04: 8 [bidirectional]
+        optional P05: 9 [bidirectional]
+        optional P06: 10 [bidirectional]
+        optional P07: 11 [bidirectional]
+        required GND: 12 [power_in]
+        optional P10: 13 [bidirectional]
+        optional P11: 14 [bidirectional]
+        optional P12: 15 [bidirectional]
+        optional P13: 16 [bidirectional]
+        optional P14: 17 [bidirectional]
+        optional P15: 18 [bidirectional]
+        optional P16: 19 [bidirectional]
+        optional P17: 20 [bidirectional]
+        required A0: 21 [input]
+        required SCL: 22 [input]
+        required SDA: 23 [bidirectional]
+        required VCC: 24 [power_in]
+    }
+    pins[QFN24] {
+        // QFN24 numbering (Table 2 QFN column) + exposed thermal pad.
+        optional P00: 1 [bidirectional]
+        optional P01: 2 [bidirectional]
+        optional P02: 3 [bidirectional]
+        optional P03: 4 [bidirectional]
+        optional P04: 5 [bidirectional]
+        optional P05: 6 [bidirectional]
+        optional P06: 7 [bidirectional]
+        optional P07: 8 [bidirectional]
+        required GND: 9 [power_in] // must connect (Table 2 note 2)
+        optional P10: 10 [bidirectional]
+        optional P11: 11 [bidirectional]
+        optional P12: 12 [bidirectional]
+        optional P13: 13 [bidirectional]
+        optional P14: 14 [bidirectional]
+        optional P15: 15 [bidirectional]
+        optional P16: 16 [bidirectional]
+        optional P17: 17 [bidirectional]
+        required A0: 18 [input]
+        required SCL: 19 [input]
+        required SDA: 20 [bidirectional]
+        required VCC: 21 [power_in]
+        optional INT: 22 [output]
+        required A1: 23 [input]
+        required A2: 24 [input]
+        // Exposed thermal pad — must be soldered to board ground (note 2).
+        required EPAD: 25 [power_in]
+    }
+}
+
+impl IC for XL9555 {}
+
+#[doc("docs/xl9535-xl9555.pdf")]
+pub part IOX_XL9555_QFN24: XL9555[QFN24] {
+    primary { mfr: "Xinluda", mpn: "XL9555QF24", footprint: qfn::QFN24N50P400X400_1EP27X27 }
+}
+
+#[doc("docs/xl9535-xl9555.pdf")]
+pub part IOX_XL9555_TSSOP24: XL9555[TSSOP24] {
+    primary { mfr: "Xinluda", mpn: "XL9555", footprint: SOP24P65X640X120N }
+}
+
+// TSSOP24 land (datasheet section 13.3, p24): body D 7.8, body width E 4.4,
+// lead span E1 6.4, pitch e 0.65 BSC, lead b 0.19-0.3, foot L 0.5.
+// 12 gull-wing leads per side, pin 1 upper-left top view.
+// Land derivation (documented, not printed): width 0.35 (lead b max 0.3 +
+// 0.05), length 1.1 centred at +/-3.05 — covers the 2.7-3.2 foot zone with
+// 0.2 heel / 0.4 toe extension.
+pub pad P_XL9555_TSSOP24_LEAD {
+    shape: rect
+    size: (1.1mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOP24P65X640X120N {
+    pad 1: P_XL9555_TSSOP24_LEAD at (-3.05mm, -3.575mm)
+    pad 2: P_XL9555_TSSOP24_LEAD at (-3.05mm, -2.925mm)
+    pad 3: P_XL9555_TSSOP24_LEAD at (-3.05mm, -2.275mm)
+    pad 4: P_XL9555_TSSOP24_LEAD at (-3.05mm, -1.625mm)
+    pad 5: P_XL9555_TSSOP24_LEAD at (-3.05mm, -0.975mm)
+    pad 6: P_XL9555_TSSOP24_LEAD at (-3.05mm, -0.325mm)
+    pad 7: P_XL9555_TSSOP24_LEAD at (-3.05mm, 0.325mm)
+    pad 8: P_XL9555_TSSOP24_LEAD at (-3.05mm, 0.975mm)
+    pad 9: P_XL9555_TSSOP24_LEAD at (-3.05mm, 1.625mm)
+    pad 10: P_XL9555_TSSOP24_LEAD at (-3.05mm, 2.275mm)
+    pad 11: P_XL9555_TSSOP24_LEAD at (-3.05mm, 2.925mm)
+    pad 12: P_XL9555_TSSOP24_LEAD at (-3.05mm, 3.575mm)
+    pad 13: P_XL9555_TSSOP24_LEAD at (3.05mm, 3.575mm)
+    pad 14: P_XL9555_TSSOP24_LEAD at (3.05mm, 2.925mm)
+    pad 15: P_XL9555_TSSOP24_LEAD at (3.05mm, 2.275mm)
+    pad 16: P_XL9555_TSSOP24_LEAD at (3.05mm, 1.625mm)
+    pad 17: P_XL9555_TSSOP24_LEAD at (3.05mm, 0.975mm)
+    pad 18: P_XL9555_TSSOP24_LEAD at (3.05mm, 0.325mm)
+    pad 19: P_XL9555_TSSOP24_LEAD at (3.05mm, -0.325mm)
+    pad 20: P_XL9555_TSSOP24_LEAD at (3.05mm, -0.975mm)
+    pad 21: P_XL9555_TSSOP24_LEAD at (3.05mm, -1.625mm)
+    pad 22: P_XL9555_TSSOP24_LEAD at (3.05mm, -2.275mm)
+    pad 23: P_XL9555_TSSOP24_LEAD at (3.05mm, -2.925mm)
+    pad 24: P_XL9555_TSSOP24_LEAD at (3.05mm, -3.575mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 8.8mm) }
+    silkscreen_ref { at: (0mm, -4.6mm) }
+}

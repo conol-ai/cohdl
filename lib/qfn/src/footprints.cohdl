@@ -487,3 +487,65 @@ pub footprint QFN68N35P700X700_1EP549X549 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (8.25mm, 8.25mm) }
     silkscreen_ref { at: (0mm, -4.2mm) }
 }
+
+// Xinluda XL9555QF24 datasheet Rev 2.4, section 13.4 (QFN24-4x4
+// package outline): body D/E 4.0, EP D1/E1 2.7 NOM, pitch e 0.5 BSC,
+// lead b 0.2-0.3, lead L 0.324-0.476. 6 leads per side; pin 1
+// upper-left top view, counter-clockwise. Land pads follow this
+// package's established pattern: width 0.3 (covers lead b max),
+// length 0.875 centered at +/-1.9375 (0.5 inside / 0.375 fillet
+// extension outside the body edge). EP land = EP size 2.7; thermal
+// vias remain a layout action (datasheet table-2 note 2).
+pub pad P_QFN24N50P400X400_LEAD_H {
+    shape: rect
+    size: (0.875mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN24N50P400X400_LEAD_V {
+    shape: rect
+    size: (0.3mm, 0.875mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN24N50P400X400_EP27X27 {
+    shape: rect
+    size: (2.7mm, 2.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN24N50P400X400_1EP27X27 {
+    pad 1: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -1.25mm)
+    pad 2: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -0.75mm)
+    pad 3: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -0.25mm)
+    pad 4: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 0.25mm)
+    pad 5: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 0.75mm)
+    pad 6: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 1.25mm)
+    pad 7: P_QFN24N50P400X400_LEAD_V at (-1.25mm, 1.9375mm)
+    pad 8: P_QFN24N50P400X400_LEAD_V at (-0.75mm, 1.9375mm)
+    pad 9: P_QFN24N50P400X400_LEAD_V at (-0.25mm, 1.9375mm)
+    pad 10: P_QFN24N50P400X400_LEAD_V at (0.25mm, 1.9375mm)
+    pad 11: P_QFN24N50P400X400_LEAD_V at (0.75mm, 1.9375mm)
+    pad 12: P_QFN24N50P400X400_LEAD_V at (1.25mm, 1.9375mm)
+    pad 13: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 1.25mm)
+    pad 14: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 0.75mm)
+    pad 15: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 0.25mm)
+    pad 16: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -0.25mm)
+    pad 17: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -0.75mm)
+    pad 18: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -1.25mm)
+    pad 19: P_QFN24N50P400X400_LEAD_V at (1.25mm, -1.9375mm)
+    pad 20: P_QFN24N50P400X400_LEAD_V at (0.75mm, -1.9375mm)
+    pad 21: P_QFN24N50P400X400_LEAD_V at (0.25mm, -1.9375mm)
+    pad 22: P_QFN24N50P400X400_LEAD_V at (-0.25mm, -1.9375mm)
+    pad 23: P_QFN24N50P400X400_LEAD_V at (-0.75mm, -1.9375mm)
+    pad 24: P_QFN24N50P400X400_LEAD_V at (-1.25mm, -1.9375mm)
+    pad 25: P_QFN24N50P400X400_EP27X27 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5mm, 5mm) }
+    silkscreen_ref { at: (0mm, -2.8mm) }
+}

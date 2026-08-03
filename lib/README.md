@@ -36,6 +36,7 @@ footprints live in focused packages:
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
 | `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |
 | `@contrib/sf32` | `contrib_sf32::MCU_SF32LB52EUB6` | community-contributed SiFli SF32LB52X MCU devices and parts |
+| `@contrib/io-expander` | `contrib_io_expander::IOX_XL9555_QFN24` | community-contributed I2C/SMBus I/O expander devices and parts |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
 

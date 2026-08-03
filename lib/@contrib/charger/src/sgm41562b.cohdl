@@ -1,0 +1,78 @@
+// SG Micro SGM41562B: 500mA single-cell Li-Ion charger with power-path
+// management, I2C programmable (datasheet p1). WLCSP-1.52x1.52-9B, 9 balls
+// in a 3x3 grid (p3, p32). Datasheet covers A and B variants; only B is
+// modeled here (the T-Display-SF32 on-board part, ordering SGM41562BXG/TR,
+// p2). REV. A.1, January 2022.
+
+#[doc("docs/sgm41562a-sgm41562b.pdf")]
+pub device SGM41562B {
+    pins {
+        // Power path (p3 Pin Description). All three are type P in the
+        // datasheet but with distinct directions.
+        required IN: A1 [power_in] // input power; >=2.2uF ceramic to GND, close (p3)
+        required SYS: A2 [power_out] // system supply output; ceramic cap to GND (p3)
+        // Battery terminal: sources current to the system when discharging,
+        // sinks charge current when charging — power flows both ways.
+        required BAT: A3 [bidirectional]
+        required GND: C3 [power_in] // device ground (p3)
+        // Internal supply output; the 0.1uF decoupling cap is mandatory
+        // ("Connect a minimum 0.1uF", p3), external load <= 1mA.
+        required VDD: B3 [power_out]
+
+        // Battery temperature sense (datasheet type AIO; functionally a
+        // sense input). Optional: the NTC function can be disabled (p3).
+        optional NTC: B1 [input]
+        // Datasheet nINT: interrupt output to host AND battery-disconnect /
+        // reset control input (pull low > tRST_DGL, p3) — genuinely
+        // bidirectional.
+        optional NINT: B2 [bidirectional]
+        // I2C control interface. Optional: the charger runs on standalone
+        // defaults without a host (p1 feature set); 10kohm pull-ups required
+        // when used (p3).
+        optional SDA: C1 [bidirectional]
+        optional SCL: C2 [input]
+    }
+}
+
+impl IC for SGM41562B {}
+
+#[doc("docs/sgm41562a-sgm41562b.pdf")]
+pub part CHARGER_SGM41562B: SGM41562B {
+    primary { mfr: "SG Micro", mpn: "SGM41562BXG/TR", footprint: BGA9C50P3X3_152X152X60N }
+}
+
+// Land pad: datasheet RECOMMENDED LAND PATTERN (p32) prints "9 x Φ" with
+// stacked diameters 0.275 over 0.250 — a recommended range, not two items
+// (vector-measured drawn pads: 0.267mm, inside the range). Nominal midpoint
+// 0.26mm used; layout may tune within 0.25-0.275mm per fab.
+pub pad P_SGM41562B_BALL {
+    shape: circle
+    size: (0.26mm)
+    layer: top_copper
+    plating: smd
+}
+
+// WLCSP-1.52x1.52-9B: 3x3 grid, 0.5mm pitch (p32: e = 0.500 BSC), body
+// 1.525mm MOD square, height 0.600mm MOD (p32 table).
+// Chirality: p3 PIN CONFIGURATION is labelled TOP VIEW with A1 (IN) at the
+// upper left; the p32 BOTTOM VIEW label coordinates place column 1 on the
+// RIGHT (text positions x: 3<2<1), i.e. bottom view A1 upper-right — one
+// left-right mirror to the land top view, consistent with the p3 top view.
+pub footprint BGA9C50P3X3_152X152X60N {
+    pad A1: P_SGM41562B_BALL at (-0.5mm, -0.5mm)
+    pad A2: P_SGM41562B_BALL at (0mm, -0.5mm)
+    pad A3: P_SGM41562B_BALL at (0.5mm, -0.5mm)
+    pad B1: P_SGM41562B_BALL at (-0.5mm, 0mm)
+    pad B2: P_SGM41562B_BALL at (0mm, 0mm)
+    pad B3: P_SGM41562B_BALL at (0.5mm, 0mm)
+    pad C1: P_SGM41562B_BALL at (-0.5mm, 0.5mm)
+    pad C2: P_SGM41562B_BALL at (0mm, 0.5mm)
+    pad C3: P_SGM41562B_BALL at (0.5mm, 0.5mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    // Body 1.525mm square plus ~0.24mm excess per side; the datasheet prints
+    // no courtyard.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2mm, 2mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}

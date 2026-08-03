@@ -32,6 +32,7 @@ footprints live in focused packages:
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3` | Espressif SoCs and modules |
+| `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and parts |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
 

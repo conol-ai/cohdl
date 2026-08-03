@@ -377,3 +377,113 @@ pub footprint QFN8N50P200X300_1EP61X220 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 3.5mm) }
     silkscreen_ref { at: (0mm, -1.9mm) }
 }
+
+// SiFli SF32LB52X datasheet DS0052-SF32LB52X-CN V0.1 (2024),
+// section 5.3 figure 5-2 (QFN68L package dimensions):
+// body D/E 7 BSC, EP D2/E2 5.49 NOM, pitch e 0.35 BSC, lead b 0.15
+// NOM (0.1-0.2), lead L 0.4 NOM, K (lead tip to EP edge) 0.355 REF —
+// chain check: (7-5.49)/2 = 0.755 = L + K exactly.
+// 17 leads per side; pin 1 upper-left in top view, numbering
+// counter-clockwise (the datasheet pin tables 5-2/5-3 enumerate the
+// full CCW sequence). Land pads follow this package's established
+// 7mm-body pattern: width 0.2 (covers lead b max 0.2), length 0.875
+// centered at +/-3.4375 (0.5 inside / 0.375 fillet extension outside
+// the body edge). EP land = EP size 5.49; via array and paste
+// segmentation remain layout actions (same as QFN60 precedent).
+pub pad P_QFN68N35P700X700_LEAD_H {
+    shape: rect
+    size: (0.875mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN68N35P700X700_LEAD_V {
+    shape: rect
+    size: (0.2mm, 0.875mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_QFN68N35P700X700_EP549X549 {
+    shape: rect
+    size: (5.49mm, 5.49mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN68N35P700X700_1EP549X549 {
+    pad 1: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -2.8mm)
+    pad 2: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -2.45mm)
+    pad 3: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -2.1mm)
+    pad 4: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -1.75mm)
+    pad 5: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -1.4mm)
+    pad 6: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -1.05mm)
+    pad 7: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -0.7mm)
+    pad 8: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, -0.35mm)
+    pad 9: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 0mm)
+    pad 10: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 0.35mm)
+    pad 11: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 0.7mm)
+    pad 12: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 1.05mm)
+    pad 13: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 1.4mm)
+    pad 14: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 1.75mm)
+    pad 15: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 2.1mm)
+    pad 16: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 2.45mm)
+    pad 17: P_QFN68N35P700X700_LEAD_H at (-3.4375mm, 2.8mm)
+    pad 18: P_QFN68N35P700X700_LEAD_V at (-2.8mm, 3.4375mm)
+    pad 19: P_QFN68N35P700X700_LEAD_V at (-2.45mm, 3.4375mm)
+    pad 20: P_QFN68N35P700X700_LEAD_V at (-2.1mm, 3.4375mm)
+    pad 21: P_QFN68N35P700X700_LEAD_V at (-1.75mm, 3.4375mm)
+    pad 22: P_QFN68N35P700X700_LEAD_V at (-1.4mm, 3.4375mm)
+    pad 23: P_QFN68N35P700X700_LEAD_V at (-1.05mm, 3.4375mm)
+    pad 24: P_QFN68N35P700X700_LEAD_V at (-0.7mm, 3.4375mm)
+    pad 25: P_QFN68N35P700X700_LEAD_V at (-0.35mm, 3.4375mm)
+    pad 26: P_QFN68N35P700X700_LEAD_V at (0mm, 3.4375mm)
+    pad 27: P_QFN68N35P700X700_LEAD_V at (0.35mm, 3.4375mm)
+    pad 28: P_QFN68N35P700X700_LEAD_V at (0.7mm, 3.4375mm)
+    pad 29: P_QFN68N35P700X700_LEAD_V at (1.05mm, 3.4375mm)
+    pad 30: P_QFN68N35P700X700_LEAD_V at (1.4mm, 3.4375mm)
+    pad 31: P_QFN68N35P700X700_LEAD_V at (1.75mm, 3.4375mm)
+    pad 32: P_QFN68N35P700X700_LEAD_V at (2.1mm, 3.4375mm)
+    pad 33: P_QFN68N35P700X700_LEAD_V at (2.45mm, 3.4375mm)
+    pad 34: P_QFN68N35P700X700_LEAD_V at (2.8mm, 3.4375mm)
+    pad 35: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 2.8mm)
+    pad 36: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 2.45mm)
+    pad 37: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 2.1mm)
+    pad 38: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 1.75mm)
+    pad 39: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 1.4mm)
+    pad 40: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 1.05mm)
+    pad 41: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 0.7mm)
+    pad 42: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 0.35mm)
+    pad 43: P_QFN68N35P700X700_LEAD_H at (3.4375mm, 0mm)
+    pad 44: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -0.35mm)
+    pad 45: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -0.7mm)
+    pad 46: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -1.05mm)
+    pad 47: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -1.4mm)
+    pad 48: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -1.75mm)
+    pad 49: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -2.1mm)
+    pad 50: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -2.45mm)
+    pad 51: P_QFN68N35P700X700_LEAD_H at (3.4375mm, -2.8mm)
+    pad 52: P_QFN68N35P700X700_LEAD_V at (2.8mm, -3.4375mm)
+    pad 53: P_QFN68N35P700X700_LEAD_V at (2.45mm, -3.4375mm)
+    pad 54: P_QFN68N35P700X700_LEAD_V at (2.1mm, -3.4375mm)
+    pad 55: P_QFN68N35P700X700_LEAD_V at (1.75mm, -3.4375mm)
+    pad 56: P_QFN68N35P700X700_LEAD_V at (1.4mm, -3.4375mm)
+    pad 57: P_QFN68N35P700X700_LEAD_V at (1.05mm, -3.4375mm)
+    pad 58: P_QFN68N35P700X700_LEAD_V at (0.7mm, -3.4375mm)
+    pad 59: P_QFN68N35P700X700_LEAD_V at (0.35mm, -3.4375mm)
+    pad 60: P_QFN68N35P700X700_LEAD_V at (0mm, -3.4375mm)
+    pad 61: P_QFN68N35P700X700_LEAD_V at (-0.35mm, -3.4375mm)
+    pad 62: P_QFN68N35P700X700_LEAD_V at (-0.7mm, -3.4375mm)
+    pad 63: P_QFN68N35P700X700_LEAD_V at (-1.05mm, -3.4375mm)
+    pad 64: P_QFN68N35P700X700_LEAD_V at (-1.4mm, -3.4375mm)
+    pad 65: P_QFN68N35P700X700_LEAD_V at (-1.75mm, -3.4375mm)
+    pad 66: P_QFN68N35P700X700_LEAD_V at (-2.1mm, -3.4375mm)
+    pad 67: P_QFN68N35P700X700_LEAD_V at (-2.45mm, -3.4375mm)
+    pad 68: P_QFN68N35P700X700_LEAD_V at (-2.8mm, -3.4375mm)
+    pad 69: P_QFN68N35P700X700_EP549X549 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.25mm, 8.25mm) }
+    silkscreen_ref { at: (0mm, -4.2mm) }
+}

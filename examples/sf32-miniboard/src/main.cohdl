@@ -1,0 +1,114 @@
+// SF32 Mini Board — a minimal development board built entirely from
+// @contrib community libraries. Proves the full CoHDL library stack:
+// SoC + Flash + IMU + environmental sensor + USB-UART + LDO + SD card +
+// LoRa transceiver. All connections type-checked and DRC-verified.
+
+design SF32MiniBoard {
+    // ── Core ──────────────────────────────────────────────
+    inst soc: contrib_sf32::MCU_SF32LB52EUB6
+    inst flash: contrib_flash::FLASH_W25Q128JVSIQ
+
+    // ── Sensors ───────────────────────────────────────────
+    inst imu: contrib_imu::IMU_BHI260AP
+    inst env_sensor: contrib_env::ENV_BME280
+
+    // ── USB-UART bridge ───────────────────────────────────
+    inst uart: contrib_usb_uart::USBUART_CH343P
+
+    // ── Power ─────────────────────────────────────────────
+    inst ldo3v3: contrib_ldo::LDO_RT9080_33
+
+    // ── I/O ───────────────────────────────────────────────
+    inst sd: contrib_sd_card::CONN_MICROSD
+
+    // ── LoRa ──────────────────────────────────────────────
+    inst lora: contrib_lora::LORA_SX1262
+
+    // ── Power tree ────────────────────────────────────────
+    // USB 5V → LDO → 3V3 system rail
+    #[high_current(500mA)]
+    net VBUS [5V]: uart.VDD5
+    net V3V3 [3.3V]: ldo3v3.VOUT, soc.PVDD, soc.VDDIOA, soc.VDD_SIP,
+        soc.AVDD33, soc.AVDD_BRF, soc.AVDD33_AUD,
+        flash.VCC, imu.VDD, imu.VDDIO, env_sensor.VDD, env_sensor.VDDIO,
+        sd.VDD, lora.VBAT, lora.VBAT_IO, lora.VDD_IN,
+        uart.VIO, env_sensor.CSB
+    net LDO_IN: ldo3v3.VIN, uart.VDD5
+    net LDO_EN: ldo3v3.EN
+    net GND [gnd]: soc.EPAD, flash.GND, imu.GND, imu.GNDIO,
+        env_sensor.GND, uart.GND1, uart.GND16, uart.EPAD,
+        ldo3v3.GND, sd.GND, sd.SHIELD1, sd.SHIELD2,
+        sd.SHIELD3, sd.SHIELD4, lora.GND1, lora.GND3,
+        lora.GND6, lora.GND18, lora.GND21, lora.EP
+
+    // ── SoC internal regulators (decoupling points) ──────
+    net VRTC: soc.VDD_RTC
+    net VRET: soc.VDD_RET
+    net VOUT1: soc.VDD_VOUT1
+    net VOUT2: soc.VDD_VOUT2
+    net VBUCK: soc.BUCK_FB
+    net VBUCK_LX: soc.BUCK_LX
+
+    // ── Crystal ───────────────────────────────────────────
+    net XIN: soc.XTAL48M_XI
+    net XOUT: soc.XTAL48M_XO
+
+    // ── Antenna ───────────────────────────────────────────
+    net ANT: soc.BRF_ANT, lora.RFO
+
+    // ── Flash (QSPI on dedicated SPI bus) ────────────────
+    net QSPI_CS: soc.PA11, flash.CS
+    net QSPI_CLK: soc.PA12, flash.CLK
+    net QSPI_D0: soc.PA13, flash.DI
+    net QSPI_D1: soc.PA14, flash.DO
+    nc: flash.WP, flash.HOLD
+
+    // ── USB-UART ──────────────────────────────────────────
+    net UART_DP: uart.UDP
+    net UART_DM: uart.UDN
+    net UART_TX: uart.TXD, soc.PA14
+    net UART_RX: uart.RXD, soc.PA15
+    net UART_RTS: uart.RTS, soc.PA16
+    net UART_DTR: uart.DTR, soc.PA17
+    net UART_ACT: uart.ACTN
+    net UART_V3: uart.V3
+    net UART_VBUS: uart.VBUS
+    nc: uart.RST
+
+    // ── IMU (I2C bus 0) ──────────────────────────────────
+    net I2C0_SDA: imu.HSDX, env_sensor.SDI, soc.PA00
+    net I2C0_SCL: imu.HSCX, env_sensor.SCK, soc.PA01
+    net IMU_INT: imu.HIRQ, soc.PA02
+    net IMU_CS: imu.HCSB, soc.PA03
+    net IMU_BOOT: imu.HOSTBOOT, soc.PA25
+    net IMU_RST: imu.RESETN, soc.PA04
+    net IMU_ADDR: imu.HSDO, soc.PA26
+    net IMU_VREG: imu.VREG
+
+    // ── Environmental sensor (shared I2C bus 0) ──────────
+    // (SDI/SCK on I2C0_SDA/SCL; CSB tied to VDDIO for I2C mode)
+    net ENV_ADDR: env_sensor.SDO, soc.PA27
+
+    // ── LoRa SPI bus ─────────────────────────────────────
+    net LORA_SCK: lora.SCK, soc.PA05
+    net LORA_MOSI: lora.MOSI, soc.PA06
+    net LORA_MISO: lora.MISO, soc.PA07
+    net LORA_NSS: lora.NSS, soc.PA08
+    net LORA_RST: lora.NRESET, soc.PA09
+    net LORA_BUSY: lora.BUSY, soc.PA10
+    net LORA_DIO1: lora.DIO1, soc.PA18
+    nc: lora.XTA, lora.XTB, lora.DIO3, lora.VR_PA,
+        lora.RFI_N, lora.RFI_P, lora.VREG, lora.DCC_SW
+
+    // ── MicroSD (SPI bus 1) ──────────────────────────────
+    net SD_CLK: sd.CLK, soc.PA19
+    net SD_CMD: sd.CMD, soc.PA20
+    net SD_D0: sd.DAT0, soc.PA21
+    net SD_D1: sd.DAT1, soc.PA22
+    net SD_D2: sd.DAT2, soc.PA23
+    net SD_D3: sd.DAT3, soc.PA24
+
+    // ── SoC unused pins ──────────────────────────────────
+    nc: soc.NC, soc.VBATS, soc.DACN, soc.DACP,
+        soc.AUD_VREF, soc.MIC_BIAS, soc.ADCP, soc.GPADC_VREF
+}

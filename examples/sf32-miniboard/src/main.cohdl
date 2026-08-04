@@ -28,18 +28,15 @@ design SF32MiniBoard {
     // USB 5V → LDO → 3V3 system rail
     #[high_current(500mA)]
     net VBUS [5V]: uart.VDD5
-    net V3V3 [3.3V]: ldo3v3.VOUT, soc.PVDD, soc.VDDIOA, soc.VDD_SIP,
-        soc.AVDD33, soc.AVDD_BRF, soc.AVDD33_AUD,
-        flash.VCC, imu.VDD, imu.VDDIO, env_sensor.VDD, env_sensor.VDDIO,
-        sd.VDD, lora.VBAT, lora.VBAT_IO, lora.VDD_IN,
-        uart.VIO, env_sensor.CSB
+    net V3V3 [3.3V]: ldo3v3.VOUT, soc.PVDD, soc.VDDIOA, soc.VDD_SIP, soc.AVDD33, soc.AVDD_BRF,
+                     soc.AVDD33_AUD, flash.VCC, imu.VDD, imu.VDDIO, env_sensor.VDD,
+                     env_sensor.VDDIO, sd.VDD, lora.VBAT, lora.VBAT_IO, lora.VDD_IN, uart.VIO,
+                     env_sensor.CSB
     net LDO_IN: ldo3v3.VIN, uart.VDD5
     net LDO_EN: ldo3v3.EN
-    net GND [gnd]: soc.EPAD, flash.GND, imu.GND, imu.GNDIO,
-        env_sensor.GND, uart.GND1, uart.GND16, uart.EPAD,
-        ldo3v3.GND, sd.GND, sd.SHIELD1, sd.SHIELD2,
-        sd.SHIELD3, sd.SHIELD4, lora.GND1, lora.GND3,
-        lora.GND6, lora.GND18, lora.GND21, lora.EP
+    net GND [gnd]: soc.EPAD, flash.GND, imu.GND, imu.GNDIO, env_sensor.GND, uart.GND1, uart.GND16,
+                   uart.EPAD, ldo3v3.GND, sd.GND, sd.SHIELD1, sd.SHIELD2, sd.SHIELD3, sd.SHIELD4,
+                   lora.GND1, lora.GND3, lora.GND6, lora.GND18, lora.GND21, lora.EP
 
     // ── SoC internal regulators (decoupling points) ──────
     net VRTC: soc.VDD_RTC
@@ -97,8 +94,7 @@ design SF32MiniBoard {
     net LORA_RST: lora.NRESET, soc.PA09
     net LORA_BUSY: lora.BUSY, soc.PA10
     net LORA_DIO1: lora.DIO1, soc.PA18
-    nc: lora.XTA, lora.XTB, lora.DIO3, lora.VR_PA,
-        lora.RFI_N, lora.RFI_P, lora.VREG, lora.DCC_SW
+    nc: lora.XTA, lora.XTB, lora.DIO3, lora.VR_PA, lora.RFI_N, lora.RFI_P, lora.VREG, lora.DCC_SW
 
     // ── MicroSD (SPI bus 1) ──────────────────────────────
     net SD_CLK: sd.CLK, soc.PA19
@@ -109,6 +105,5 @@ design SF32MiniBoard {
     net SD_D3: sd.DAT3, soc.PA24
 
     // ── SoC unused pins ──────────────────────────────────
-    nc: soc.NC, soc.VBATS, soc.DACN, soc.DACP,
-        soc.AUD_VREF, soc.MIC_BIAS, soc.ADCP, soc.GPADC_VREF
+    nc: soc.NC, soc.VBATS, soc.DACN, soc.DACP, soc.AUD_VREF, soc.MIC_BIAS, soc.ADCP, soc.GPADC_VREF
 }

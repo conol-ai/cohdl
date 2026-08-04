@@ -67,3 +67,4 @@ pinned it.
 | `@contrib/led-driver` | `contrib_led_driver::LEDDRV_AW21009` | community-contributed LED driver devices and parts |
 | `@contrib/keyscan` | `contrib_keyscan::KEYSCAN_TCA8418` | community-contributed keypad / keyboard scanner devices and parts |
 | `@contrib/rtc` | `contrib_rtc::RTC_PCF85063AT` | community-contributed real-time clock devices and parts |
+| `@contrib/gnss` | `contrib_gnss::GNSS_L76KB_A58` | community-contributed GNSS / GPS module devices and parts |

@@ -1,0 +1,9 @@
+[package]
+name = "@contrib/gnss"
+version = "0.1.0"
+license = "MIT"
+description = "Community-contributed GNSS / GPS module devices and purchasable parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

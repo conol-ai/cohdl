@@ -1,0 +1,76 @@
+// Richtek RT9080: 2uA IQ, 600mA LDO with enable, 1.2-5.5V in (datasheet
+// DS9080-09, December 2024). Two packages: TSOT-23-5 and ZQFN-4L 1x1.
+// RT9080 = without SNS pin, RT9080N = with SNS. Pin config p4.
+
+#[doc("docs/rt9080.pdf")]
+pub device RT9080 {
+    variants { TSOT235, ZQFN4L }
+    pins[TSOT235] {
+        required VIN: 1 [power_in] // supply input, 1uF cap close (p4)
+        required GND: 2 [power_in] // ground, EP must solder to PCB (p4)
+        required EN: 3 [input] // enable, high=on / <0.4V=off (p4)
+        optional SNS: 4 [input] // RT9080N only: sense pin, 0.8V ref via divider (p4)
+        required VOUT: 5 [power_out] // regulator output (p4)
+    }
+    pins[ZQFN4L] {
+        required VOUT: 1 [power_out]
+        required GND: 2 [power_in]
+        required EN: 3 [input]
+        optional SGND: 5 [power_in] // signal ground (ZQFN-4L)
+        required VIN: 4 [power_in]
+    }
+}
+
+impl IC for RT9080 {}
+
+#[doc("docs/rt9080.pdf")]
+pub part LDO_RT9080_33: RT9080[TSOT235] {
+    primary { mfr: "Richtek", mpn: "RT9080-33GB", footprint: SOT5P95X290X145N }
+}
+
+#[doc("docs/rt9080.pdf")]
+pub part LDO_RT9080_33QZ: RT9080[ZQFN4L] {
+    primary { mfr: "Richtek", mpn: "RT9080-33QZ", footprint: DFN4P50P100X100X40N }
+}
+
+// TSOT-23-5 land: body 2.9 x 2.8, pitch 0.95, e1 2.6. 5 gull-wing leads.
+pub pad P_TSOT235_LEAD {
+    shape: rect
+    size: (1.0mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOT5P95X290X145N {
+    pad 1: P_TSOT235_LEAD at (-1.3mm, -0.95mm)
+    pad 2: P_TSOT235_LEAD at (-1.3mm, 0mm)
+    pad 3: P_TSOT235_LEAD at (-1.3mm, 0.95mm)
+    pad 4: P_TSOT235_LEAD at (1.3mm, 0.95mm)
+    pad 5: P_TSOT235_LEAD at (1.3mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.2mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// ZQFN-4L 1x1 land: body 1.0 x 1.0, pitch 0.5. 4 corner pads.
+pub pad P_ZQFN4L_PAD {
+    shape: rect
+    size: (0.32mm, 0.32mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint DFN4P50P100X100X40N {
+    pad 1: P_ZQFN4L_PAD at (-0.25mm, -0.25mm)
+    pad 2: P_ZQFN4L_PAD at (-0.25mm, 0.25mm)
+    pad 3: P_ZQFN4L_PAD at (0.25mm, 0.25mm)
+    pad 4: P_ZQFN4L_PAD at (0.25mm, -0.25mm)
+    pad 5: P_ZQFN4L_PAD at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.6mm, 1.6mm) }
+    silkscreen_ref { at: (0mm, -1.0mm) }
+}

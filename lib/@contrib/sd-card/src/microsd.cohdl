@@ -13,6 +13,11 @@ pub device MICROSD_SOCKET {
         required GND: 6 [power_in] // ground (p1)
         optional DAT0: 7 [bidirectional] // data 0 (p1)
         optional DAT1: 8 [bidirectional] // data 1 (p1)
+        // Shell / mechanical solder tabs (GND, not signal)
+        required SHIELD1: G1 [power_in]
+        required SHIELD2: G2 [power_in]
+        required SHIELD3: G3 [power_in]
+        required SHIELD4: G4 [power_in]
     }
 }
 

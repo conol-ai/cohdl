@@ -1,0 +1,59 @@
+// Torex XC6206: positive voltage regulator, 250mA, 1.5V dropout, 6.0V max
+// (datasheet ETR0305_004b). 3-pin LDO; pin numbers differ per package
+// (SOT-23 / SOT-89 / USP-6B / TO-92). XC6206P182MR = SOT-23, 1.8V output.
+
+#[doc("docs/xc6206.pdf")]
+pub device XC6206 {
+    variants { SOT23, SOT89, USP6B, TO92 }
+    pins[SOT23] {
+        required VSS: 1 [power_in] // ground (p2)
+        required VIN: 3 [power_in] // power input (p2)
+        required VOUT: 2 [power_out] // regulator output (p2)
+    }
+    pins[SOT89] {
+        required VSS: 1 [power_in]
+        required VIN: 2 [power_in]
+        required VOUT: 3 [power_out]
+    }
+    pins[USP6B] {
+        required VSS: 2 [power_in]
+        required VIN: 4 [power_in]
+        required VOUT: 6 [power_out]
+        // pins 1, 3, 5 are NC for this package (p2 table)
+        optional NC1: 1 [passive]
+        optional NC3: 3 [passive]
+        optional NC5: 5 [passive]
+    }
+    pins[TO92] {
+        required VSS: 1 [power_in]
+        required VIN: 2 [power_in]
+        required VOUT: 3 [power_out]
+    }
+}
+
+impl IC for XC6206 {}
+
+#[doc("docs/xc6206.pdf")]
+pub part LDO_XC6206P182MR: XC6206[SOT23] {
+    primary { mfr: "Torex", mpn: "XC6206P182MR", footprint: FP_SOT23_2P9X2P8mm }
+}
+
+// SOT-23-3 land: body 2.9 x 2.8, pitch e 0.95 (e1 1.9 BSC). Standard
+// gull-wing land: pads 0.55 wide x 1.0 long, centres at +/-0.95.
+pub pad P_SOT23_LEAD {
+    shape: rect
+    size: (1.0mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_SOT23_2P9X2P8mm {
+    pad 1: P_SOT23_LEAD at (-0.95mm, -0.95mm)
+    pad 2: P_SOT23_LEAD at (0.95mm, 0mm)
+    pad 3: P_SOT23_LEAD at (-0.95mm, 0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.8mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

@@ -68,3 +68,4 @@ pinned it.
 | `@contrib/keyscan` | `contrib_keyscan::KEYSCAN_TCA8418` | community-contributed keypad / keyboard scanner devices and parts |
 | `@contrib/rtc` | `contrib_rtc::RTC_PCF85063AT` | community-contributed real-time clock devices and parts |
 | `@contrib/gnss` | `contrib_gnss::GNSS_L76KB_A58` | community-contributed GNSS / GPS module devices and parts |
+| `@contrib/ldo` | `contrib_ldo::LDO_XC6206P182MR` | community-contributed low-dropout regulator devices and parts |

@@ -1,0 +1,27 @@
+HPB16B3 LoRa Module
+====================
+
+Pin definition sourced from the T-Display-SF32 schematic (p2, U3).
+No standalone datasheet published by the manufacturer; this file
+documents the provenance per RFC-017 #[doc] requirements.
+
+The module is based on the Semtech SX1262 (sub-GHz LoRa transceiver).
+Bare-die library: @contrib/lora::SX1262.
+
+Pin assignment (12-pin SMT module):
+ 1  VCC      supply (1.8-3.7V per SX1262)
+ 2  GND      ground
+ 3  NRESET   module reset (active-low)
+ 4  BUSY     busy status output
+ 5  DIO1     digital I/O / interrupt
+ 6  DIO3     digital I/O
+ 7  MISO     SPI data out
+ 8  MOSI     SPI data in
+ 9  SCK      SPI clock
+10  NSS      SPI chip select (active-low)
+11  GND      ground
+12  ANT      RF antenna
+
+Mechanical outline (pad layout, body dimensions) is NOT published.
+When the module dimension drawing becomes available, add a part with
+the corresponding footprint.

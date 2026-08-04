@@ -7,7 +7,7 @@
 // published. Device pinout is definitive (schematic-derived); the part
 // and footprint await published mechanical drawings.
 
-#[doc("docs/hpb16b3-schematic.png")]
+#[doc("docs/hpb16b3-provenance.txt")]
 pub device HPB16B3 {
     pins {
         required VCC: 1 [power_in] // supply (1.8-3.7V, per SX1262)

@@ -1,0 +1,57 @@
+// Chipone CO5300: AMOLED display driver IC (DDIC), QSPI / MIPI-DSI,
+// COF package (chip 7.64 x 1.67 mm, datasheet V0.00 2023). Pin
+// description p11-18.
+//
+// This models the FPC-exposed pins only (power, host interface, control).
+// The 240 OLED source outputs (S1..S240), gate/GOA routing pins
+// (SDMY/VSR/SW), and charge-pump capacitor pins (C*P/C*N) are panel-bond
+// pads on the COF tape — they connect to the OLED glass, never to the
+// PCB, so they are out of scope for a board-level library. Pin numbers
+// are FPC-exposed ordinal positions (the COF bond pad numbers are not
+// documented as a sequential map in the datasheet).
+
+#[doc("docs/co5300.pdf")]
+pub device CO5300 {
+    pins {
+        // Power (p11)
+        required VCIC: 1 [power_in] // DCDC supply 2.7-3.6V (p11)
+        required VCIA: 2 [power_in] // analog DDIC supply 2.7-3.6V (p11)
+        required VCIR: 3 [power_in] // LDO DDIC supply 2.7-3.6V (p11)
+        required VDDI: 4 [power_in] // I/O supply 1.65-3.3V (p11)
+        required VCC: 5 [power_in] // DVDD regulator supply (p11)
+        required VSSC: 6 [power_in] // DC/DC ground (p11)
+        required VSSA: 7 [power_in] // analog ground (p11)
+        required HVSSAM: 8 [power_in] // MIPI ground (p11)
+        required VSSI: 9 [power_in] // I/O ground (p11)
+        required VSSD: 10 [power_in] // digital ground (p11)
+        optional MTP_PWR: 11 [passive] // MTP prog 8.25V, open normal (p11)
+        // QSPI interface (p12)
+        optional CSX: 12 [input] // chip select, active-low (p12)
+        optional WRX_SCL: 13 [input] // QSPI clock (p12)
+        optional DCX: 14 [input] // data/command select (p12)
+        optional SDI_RDX: 15 [bidirectional] // serial data in / data out (p12)
+        optional SDO: 16 [output] // serial data out (p12)
+        // MIPI-DSI interface (p13)
+        optional HSSI_CLK_P: 17 [input] // MIPI clock+ (p13)
+        optional HSSI_CLK_N: 18 [input] // MIPI clock- (p13)
+        optional HSSI_D0_P: 19 [bidirectional] // MIPI D0+ (p13)
+        optional HSSI_D0_N: 20 [bidirectional] // MIPI D0- (p13)
+        optional HSSI_D1_P: 21 [bidirectional] // MIPI D1+ (p13)
+        optional HSSI_D1_N: 22 [bidirectional] // MIPI D1- (p13)
+        // Control (p14)
+        optional RESX: 23 [input] // reset, active-low, no internal pull (p14)
+        optional IM0: 24 [input] // interface select bit 0 (p14)
+        optional IM1: 25 [input] // interface select bit 1 (p14)
+        optional BSTM: 26 [input] // boost mode select (p14)
+        optional TE: 27 [output] // tearing effect sync (p14)
+        optional TE1: 28 [output] // tearing effect 2 (p14)
+        optional SWIRE: 29 [output] // Swire protocol to power IC (p14)
+    }
+}
+
+impl IC for CO5300 {}
+
+// No part/footprint: CO5300 is a COF-bonded driver IC (chip-on-film),
+// never mounted directly on a PCB. It lives inside AMOLED modules
+// (e.g. H0216F002AM); board designers instantiate the module, not the
+// bare DDIC.

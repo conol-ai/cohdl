@@ -1,0 +1,75 @@
+// LilyGo T-SX1262 (HPD16A): LoRa sub-GHz transceiver module based on
+// Semtech SX1262, 16 x 16 x 2.3 mm, 16-pad LCC, TCXO 32MHz, +22dBm
+// (product spec sheet, lilygo.cn). Pin definition p3 Table 2; mechanical
+// p4 Fig 2 (16 pads, 8 per side, 2mm pitch).
+//
+// NOTE: On the T-Display-SF32 schematic this module is designated
+// "HPB16B3" (U3, 12 signals wired + 4 NC). The HPD16A datasheet is the
+// closest public match — identical SX1262 basis, same pad count. Confirm
+// against a physical module photo before treating HPD16A == HPB16B3.
+
+#[doc("docs/hpd16a-tsx1262.pdf")]
+pub device HPD16A {
+    pins {
+        optional ANT: 1 [bidirectional] // RF signal I/O, 50 ohm antenna (p3)
+        required GND2: 2 [power_in]
+        optional DIO3: 3 [bidirectional] // SX1262 DIO3; controls internal TCXO (p3)
+        optional NC4: 4 [passive] // no connection (p3)
+        required VCC: 5 [power_in] // supply 1.8-3.7V (p3)
+        optional NC6: 6 [passive]
+        optional DIO1: 7 [bidirectional] // SX1262 DIO1, software-configured (p3)
+        optional BUSY: 8 [output] // module BUSY status (p3)
+        required GND9: 9 [power_in]
+        optional MISO: 10 [output] // SPI MISO (p3)
+        optional MOSI: 11 [input] // SPI MOSI (p3)
+        optional SCK: 12 [input] // SPI SCLK (p3)
+        optional NSS: 13 [input] // SPI NSS (p3)
+        optional NRESET: 14 [bidirectional] // reset, active-low (p3)
+        optional NC15: 15 [passive]
+        required GND16: 16 [power_in]
+    }
+}
+
+impl IC for HPD16A {}
+
+#[doc("docs/hpd16a-tsx1262.pdf")]
+pub part LORA_HPD16A: HPD16A {
+    primary { mfr: "LilyGo", mpn: "T-SX1262 (HPD16A)", footprint: FP_LilyGo_HPD16A_16x16mm }
+}
+
+// HPD16A module land (datasheet p4 Fig 2): body 16 x 16 mm, 16 pads
+// (8 per long side), pitch 2.0 mm, pad 1.2 x 0.8 mm, pin 1 upper-left.
+// Pad centres at +/-7.0 mm (Y), X = +/-7.35 mm from centre (0.9 mm in
+// from body edge per drawing).
+pub pad P_HPD16A_LCC_PAD {
+    shape: rect
+    size: (1.2mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_LilyGo_HPD16A_16x16mm {
+    // Left column pins 1-8 (top to bottom), X = -7.35mm, pitch 2.0mm
+    pad 1: P_HPD16A_LCC_PAD at (-7.35mm, -7mm)
+    pad 2: P_HPD16A_LCC_PAD at (-7.35mm, -5mm)
+    pad 3: P_HPD16A_LCC_PAD at (-7.35mm, -3mm)
+    pad 4: P_HPD16A_LCC_PAD at (-7.35mm, -1mm)
+    pad 5: P_HPD16A_LCC_PAD at (-7.35mm, 1mm)
+    pad 6: P_HPD16A_LCC_PAD at (-7.35mm, 3mm)
+    pad 7: P_HPD16A_LCC_PAD at (-7.35mm, 5mm)
+    pad 8: P_HPD16A_LCC_PAD at (-7.35mm, 7mm)
+    // Right column pins 9-16 (bottom to top), X = +7.35mm
+    pad 9: P_HPD16A_LCC_PAD at (7.35mm, 7mm)
+    pad 10: P_HPD16A_LCC_PAD at (7.35mm, 5mm)
+    pad 11: P_HPD16A_LCC_PAD at (7.35mm, 3mm)
+    pad 12: P_HPD16A_LCC_PAD at (7.35mm, 1mm)
+    pad 13: P_HPD16A_LCC_PAD at (7.35mm, -1mm)
+    pad 14: P_HPD16A_LCC_PAD at (7.35mm, -3mm)
+    pad 15: P_HPD16A_LCC_PAD at (7.35mm, -5mm)
+    pad 16: P_HPD16A_LCC_PAD at (7.35mm, -7mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (17.5mm, 17.5mm) }
+    silkscreen_ref { at: (0mm, -9.2mm) }
+}

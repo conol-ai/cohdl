@@ -1,0 +1,54 @@
+// Texas Instruments DRV2605: haptic driver for ERM and LRA actuators, I2C,
+// 2.5-5.5V (datasheet SLOS825E, Dec 2012 rev Apr 2018). 9-pin DSBGA
+// (0.5-mm pitch). Pin functions p4.
+
+#[doc("docs/drv2605.pdf")]
+pub device DRV2605 {
+    pins {
+        required EN: A1 [input] // device enable (p4)
+        // 1.8V regulator output — 1uF cap required (p4).
+        required REG: A2 [power_out]
+        required OUTP: A3 [output] // positive haptic driver output (p4)
+        // Multi-mode input: PWM / analog / trigger; tie GND if unused (p4).
+        optional IN_TRIG: B1 [input]
+        optional SDA: B2 [bidirectional] // I2C data (p4)
+        required GND: B3 [power_in]
+        optional SCL: C1 [input] // I2C clock (p4)
+        required VDD: C2 [power_in] // supply 2.5-5.5V, 0.1uF cap required (p4)
+        required OUTN: C3 [output] // negative haptic driver output (p4)
+    }
+}
+
+impl IC for DRV2605 {}
+
+#[doc("docs/drv2605.pdf")]
+pub part HAPTIC_DRV2605: DRV2605 {
+    primary { mfr: "Texas Instruments", mpn: "DRV2605YFCT", footprint: BGA9C50P3X3_145X145X50N }
+}
+
+// 9-pin DSBGA (0.5-mm pitch) land. TI YZF package: 1.45 x 1.45 mm body,
+// 0.5 mm pitch, 0.28 mm ball. Land pads: 0.28 mm diameter (ball), centres
+// at +/-0.5 mm; A1 corner upper-left.
+pub pad P_DRV2605_BALL {
+    shape: circle
+    size: (0.28mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint BGA9C50P3X3_145X145X50N {
+    pad A1: P_DRV2605_BALL at (-0.5mm, -0.5mm)
+    pad B1: P_DRV2605_BALL at (0mm, -0.5mm)
+    pad C1: P_DRV2605_BALL at (0.5mm, -0.5mm)
+    pad A2: P_DRV2605_BALL at (-0.5mm, 0mm)
+    pad B2: P_DRV2605_BALL at (0mm, 0mm)
+    pad C2: P_DRV2605_BALL at (0.5mm, 0mm)
+    pad A3: P_DRV2605_BALL at (-0.5mm, 0.5mm)
+    pad B3: P_DRV2605_BALL at (0mm, 0.5mm)
+    pad C3: P_DRV2605_BALL at (0.5mm, 0.5mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.9mm, 1.9mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}

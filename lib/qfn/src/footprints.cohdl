@@ -759,3 +759,64 @@ pub footprint QFN40N40P600X600_1EP44X44 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (6.8mm, 6.8mm) }
     silkscreen_ref { at: (0mm, -3.8mm) }
 }
+
+// ST ST25R3916 datasheet DS12484 Rev 8, QFN32 (VFQFPN32) 5x5 0.5 pitch + EP.
+// 8 leads per side + EP (pin 33=thermal pad).
+pub pad P_QFN32N50P500X500_LEAD_H {
+    shape: rect
+    size: (0.85mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN32N50P500X500_LEAD_V {
+    shape: rect
+    size: (0.3mm, 0.85mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN32N50P500X500_EP {
+    shape: rect
+    size: (3.4mm, 3.4mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint QFN32N50P500X500_1EP34X34 {
+    pad 1: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, -1.75mm)
+    pad 2: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, -1.25mm)
+    pad 3: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, -0.75mm)
+    pad 4: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, -0.25mm)
+    pad 5: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, 0.25mm)
+    pad 6: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, 0.75mm)
+    pad 7: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, 1.25mm)
+    pad 8: P_QFN32N50P500X500_LEAD_H at (-2.4375mm, 1.75mm)
+    pad 9: P_QFN32N50P500X500_LEAD_V at (-1.75mm, 2.4375mm)
+    pad 10: P_QFN32N50P500X500_LEAD_V at (-1.25mm, 2.4375mm)
+    pad 11: P_QFN32N50P500X500_LEAD_V at (-0.75mm, 2.4375mm)
+    pad 12: P_QFN32N50P500X500_LEAD_V at (-0.25mm, 2.4375mm)
+    pad 13: P_QFN32N50P500X500_LEAD_V at (0.25mm, 2.4375mm)
+    pad 14: P_QFN32N50P500X500_LEAD_V at (0.75mm, 2.4375mm)
+    pad 15: P_QFN32N50P500X500_LEAD_V at (1.25mm, 2.4375mm)
+    pad 16: P_QFN32N50P500X500_LEAD_V at (1.75mm, 2.4375mm)
+    pad 17: P_QFN32N50P500X500_LEAD_H at (2.4375mm, 1.75mm)
+    pad 18: P_QFN32N50P500X500_LEAD_H at (2.4375mm, 1.25mm)
+    pad 19: P_QFN32N50P500X500_LEAD_H at (2.4375mm, 0.75mm)
+    pad 20: P_QFN32N50P500X500_LEAD_H at (2.4375mm, 0.25mm)
+    pad 21: P_QFN32N50P500X500_LEAD_H at (2.4375mm, -0.25mm)
+    pad 22: P_QFN32N50P500X500_LEAD_H at (2.4375mm, -0.75mm)
+    pad 23: P_QFN32N50P500X500_LEAD_H at (2.4375mm, -1.25mm)
+    pad 24: P_QFN32N50P500X500_LEAD_H at (2.4375mm, -1.75mm)
+    pad 25: P_QFN32N50P500X500_LEAD_V at (1.75mm, -2.4375mm)
+    pad 26: P_QFN32N50P500X500_LEAD_V at (1.25mm, -2.4375mm)
+    pad 27: P_QFN32N50P500X500_LEAD_V at (0.75mm, -2.4375mm)
+    pad 28: P_QFN32N50P500X500_LEAD_V at (0.25mm, -2.4375mm)
+    pad 29: P_QFN32N50P500X500_LEAD_V at (-0.25mm, -2.4375mm)
+    pad 30: P_QFN32N50P500X500_LEAD_V at (-0.75mm, -2.4375mm)
+    pad 31: P_QFN32N50P500X500_LEAD_V at (-1.25mm, -2.4375mm)
+    pad 32: P_QFN32N50P500X500_LEAD_V at (-1.75mm, -2.4375mm)
+    pad 33: P_QFN32N50P500X500_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.8mm, 5.8mm) }
+    silkscreen_ref { at: (0mm, -3.3mm) }
+}

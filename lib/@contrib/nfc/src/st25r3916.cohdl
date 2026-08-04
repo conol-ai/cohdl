@@ -1,0 +1,50 @@
+// ST ST25R3916: high-performance NFC forum reader, SPI, 2.4-5.5V (datasheet
+// DS12484 Rev 8, May 2023). QFN32 (VFQFPN32) 5x5 0.5 pitch + thermal pad.
+// Pin assignment Table 2 (p20-21).
+
+#[doc("docs/st25r3916.pdf")]
+pub device ST25R3916 {
+    pins {
+        required VDD_IO: 1 [power_in] // peripheral comm supply (p20)
+        optional CSO: 2 [output] // capacitor sensor output / test out 2 (p20)
+        optional VDD_D: 3 [power_out] // digital supply regulator output (p20)
+        optional XTO: 4 [output] // crystal oscillator output (p20)
+        optional XTI: 5 [input] // crystal oscillator input (p20)
+        required GND_D: 6 [power_in] // digital ground (p20)
+        optional VDD_A: 7 [power_out] // analog supply regulator output (p20)
+        required VDD: 8 [power_in] // external positive supply (p20)
+        optional VDD_RF: 9 [power_out] // regulated driver supply (p20)
+        optional VDD_TX: 10 [power_in] // external supply for TX (p20)
+        optional VDD_AM: 11 [power_out] // regulated supply for AM mod (p20)
+        required GND_DR1: 12 [power_in] // antenna driver ground (p20)
+        optional RFO1: 13 [output] // antenna driver output (p20)
+        optional VDD_DR: 14 [power_in] // antenna driver supply (p21)
+        optional RFO2: 15 [output] // antenna driver output (p21)
+        required GND_DR2: 16 [power_in] // antenna driver ground (p21)
+        optional EXT_LM: 17 [output] // external load mod MOS gate driver (p21)
+        optional AAT_A: 18 [output] // AAT tune voltage A (p21)
+        optional AAT_B: 19 [output] // AAT tune voltage B (p21)
+        optional I2C_EN: 20 [input] // I2C enable (p21)
+        required VSS: 21 [power_in] // ground, die substrate (p21)
+        optional RFI1: 22 [input] // receiver input (p21)
+        optional RFI2: 23 [input] // receiver input (p21)
+        optional AGDC: 24 [bidirectional] // analog reference voltage (p21)
+        optional CSI: 25 [bidirectional] // capacitor sensor input (p21)
+        required GND_A: 26 [power_in] // analog ground (p21)
+        optional IRQ: 27 [output] // interrupt request (p21)
+        optional MCU_CLK: 28 [output] // clock output for MCU (p21)
+        optional BSS: 29 [input] // SPI enable, active-low (p21)
+        optional SCLK: 30 [input] // SPI clock / I2C clock (p21)
+        optional MOSI: 31 [input] // SPI data input (p21)
+        optional MISO: 32 [bidirectional] // SPI out / I2C data (p21)
+        required EP: 33 [power_in] // thermal pad ground
+    }
+}
+
+impl IC for ST25R3916 {}
+
+#[doc("docs/st25r3916.pdf")]
+pub part NFC_ST25R3916: ST25R3916 {
+    primary { mfr: "STMicroelectronics", mpn: "ST25R3916-AQT",
+              footprint: qfn::QFN32N50P500X500_1EP34X34 }
+}

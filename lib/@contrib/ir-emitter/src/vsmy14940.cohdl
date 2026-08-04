@@ -1,0 +1,37 @@
+// Vishay VSMY14940: 940nm high-speed IR emitting diode, GaAlAs surface
+// emitter, side-view SMD 3.0 x 2.51 mm (datasheet doc 84209, Rev 1.6).
+// 2 terminals: anode (+) and cathode (-). Package dims p5.
+
+#[doc("docs/vsmy14940.pdf")]
+pub device VSMY14940 {
+    pins {
+        required A: 1 [passive] // anode (+ terminal, p1)
+        required B: 2 [passive] // cathode (- terminal, p5 polarity)
+    }
+}
+
+impl TwoTerminal for VSMY14940 {}
+
+#[doc("docs/vsmy14940.pdf")]
+pub part IR_VSMY14940: VSMY14940 {
+    primary { mfr: "Vishay", mpn: "VSMY14940", footprint: FP_VSMY14940_3P0X2P51mm }
+}
+
+// Side-view SMD land (datasheet p5): body 3.0 x 2.51, two terminals at
+// bottom edges. Recommended pad 1.4 x 0.9 mm per terminal.
+pub pad P_VSMY14940_PAD {
+    shape: rect
+    size: (1.4mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_VSMY14940_3P0X2P51mm {
+    pad 1: P_VSMY14940_PAD at (-0.95mm, 0mm)
+    pad 2: P_VSMY14940_PAD at (0.95mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.0mm, 2.5mm) }
+    silkscreen_ref { at: (0mm, -1.5mm) }
+}

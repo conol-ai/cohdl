@@ -78,3 +78,8 @@ pinned it.
 | `@contrib/display` | `contrib_display::DISP_H0216F002AM` | community-contributed display module devices and parts |
 | `@contrib/display` (CO5300) | `contrib_display::CO5300` | AMOLED driver IC (COF, device-only) |
 | `@contrib/display` (CST9220) | `contrib_display::CST9220` | capacitive touch IC (device-only) |
+| `@contrib/esd` | `contrib_esd::ESD_GBLC05C` | community-contributed ESD protection / TVS devices and parts |
+| `@contrib/level-shifter` | `contrib_level_shifter::LS_RS0104` | community-contributed voltage level translator devices and parts |
+| `@contrib/ir-emitter` | `contrib_ir_emitter::IR_VSMY14940` | community-contributed infrared emitting diode devices and parts |
+| `@contrib/mic` | `contrib_mic::MIC_T3902` | community-contributed MEMS microphone devices and parts |
+| `@contrib/sd-card` | `contrib_sd_card::CONN_MICROSD` | community-contributed SD/MicroSD card connector devices and parts |

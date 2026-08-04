@@ -1,0 +1,62 @@
+// Wurth Elektronik 693070010811: MicroSD (TransFlash) push-push card
+// connector, 8-pin, surface-mount (datasheet rev 001, 2025). Pinout per
+// MicroSD spec; land pattern from datasheet p1.
+
+#[doc("docs/microsd-wurth.pdf")]
+pub device MICROSD_SOCKET {
+    pins {
+        optional DAT2: 1 [bidirectional] // data 2 (p1)
+        optional DAT3: 2 [bidirectional] // data 3 / CS (p1)
+        optional CMD: 3 [bidirectional] // command / response (p1)
+        required VDD: 4 [power_in] // supply (p1)
+        optional CLK: 5 [input] // clock (p1)
+        required GND: 6 [power_in] // ground (p1)
+        optional DAT0: 7 [bidirectional] // data 0 (p1)
+        optional DAT1: 8 [bidirectional] // data 1 (p1)
+    }
+}
+
+impl Connector for MICROSD_SOCKET {}
+
+#[doc("docs/microsd-wurth.pdf")]
+pub part CONN_MICROSD: MICROSD_SOCKET {
+    primary { mfr: "Wurth Elektronik", mpn: "693070010811",
+              footprint: FP_MicroSD_Wurth_693070010811 }
+}
+
+// Land pattern (datasheet p1): 8 signal pads 0.8 x 1.1 mm, plus shell
+// mechanical solder tabs. Signal pitch 1.5 mm.
+pub pad P_MICROSD_SIGNAL {
+    shape: rect
+    size: (0.8mm, 1.1mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_MICROSD_SHELL {
+    shape: rect
+    size: (1.5mm, 1.1mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_MicroSD_Wurth_693070010811 {
+    pad 1: P_MICROSD_SIGNAL at (-5.25mm, 0mm)
+    pad 2: P_MICROSD_SIGNAL at (-3.75mm, 0mm)
+    pad 3: P_MICROSD_SIGNAL at (-2.25mm, 0mm)
+    pad 4: P_MICROSD_SIGNAL at (-0.75mm, 0mm)
+    pad 5: P_MICROSD_SIGNAL at (0.75mm, 0mm)
+    pad 6: P_MICROSD_SIGNAL at (2.25mm, 0mm)
+    pad 7: P_MICROSD_SIGNAL at (3.75mm, 0mm)
+    pad 8: P_MICROSD_SIGNAL at (5.25mm, 0mm)
+    // Shell / mechanical solder tabs (GND)
+    pad G1: P_MICROSD_SHELL at (-7.7mm, 3.1mm)
+    pad G2: P_MICROSD_SHELL at (7.7mm, 3.1mm)
+    pad G3: P_MICROSD_SHELL at (-7.7mm, -3.1mm)
+    pad G4: P_MICROSD_SHELL at (7.7mm, -3.1mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (15.0mm, 13.0mm) }
+    silkscreen_ref { at: (0mm, -6.0mm) }
+}

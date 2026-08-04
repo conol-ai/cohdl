@@ -1,0 +1,9 @@
+[package]
+name = "@contrib/sd-card"
+version = "0.1.0"
+license = "MIT"
+description = "Community-contributed SD/MicroSD card connector devices and purchasable parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

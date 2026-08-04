@@ -1,0 +1,36 @@
+// ProTek GBLC05C: ultra-low capacitance (3pF) TVS array for ESD protection,
+// SOD-323, 5V stand-off, bidirectional (datasheet 05126.R22). Protects one
+// I/O line. Pin config p1.
+
+#[doc("docs/gblc05c.pdf")]
+pub device GBLC05C {
+    pins {
+        required A: 1 [passive] // I/O line (bidirectional protection)
+        required B: 2 [passive] // I/O line / ground reference
+    }
+}
+
+impl TwoTerminal for GBLC05C {}
+
+#[doc("docs/gblc05c.pdf")]
+pub part ESD_GBLC05C: GBLC05C {
+    primary { mfr: "ProTek", mpn: "GBLC05C", footprint: FP_SOD323_2P5X1P25mm }
+}
+
+// SOD-323 land: body 2.5 x 1.25, pitch 1.8 gull-wing.
+pub pad P_SOD323_LEAD {
+    shape: rect
+    size: (0.9mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_SOD323_2P5X1P25mm {
+    pad 1: P_SOD323_LEAD at (-0.9mm, 0mm)
+    pad 2: P_SOD323_LEAD at (0.9mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.0mm, 2.0mm) }
+    silkscreen_ref { at: (0mm, -1.2mm) }
+}

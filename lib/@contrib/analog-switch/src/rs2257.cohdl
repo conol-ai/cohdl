@@ -1,4 +1,4 @@
-// Run-IC RS2257: ultra-low ON-resistance (0.6Ω typ), low-voltage SPDT
+// Run-IC RS2257: ultra-low ON-resistance (0.6ohm typ), low-voltage SPDT
 // analog switch, 1.8-5.5V, break-before-make, 30MHz bandwidth (datasheet
 // RevC.1). Pin definition p1 (vision-verified); package outlines p10-11.
 // SOT363(SC70-6) and SOT23-6 share the same pin numbering.

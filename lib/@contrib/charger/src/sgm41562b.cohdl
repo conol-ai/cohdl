@@ -1,7 +1,7 @@
 // SG Micro SGM41562B: 500mA single-cell Li-Ion charger with power-path
 // management, I2C programmable (datasheet p1). WLCSP-1.52x1.52-9B, 9 balls
 // in a 3x3 grid (p3, p32). Datasheet covers A and B variants; only B is
-// modeled here (the T-Display-SF32 on-board part, ordering SGM41562BXG/TR,
+// modeled here (ordering SGM41562BXG/TR,
 // p2). REV. A.1, January 2022.
 
 #[doc("docs/sgm41562a-sgm41562b.pdf")]

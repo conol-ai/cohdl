@@ -1,7 +1,15 @@
-# AXP2101 source
+# PMU source manifest
 
-| Local file | Coverage | Document | Source | SHA-256 |
+Retrieved and audited on 2026-08-04. The PDFs are stored byte-for-byte as
+downloaded; none was regenerated or optimized.
+
+| Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
 | --- | --- | --- | --- | --- |
-| `axp2101.pdf` | `AXP2101A` | X-Powers 2022 | <https://www.x-powers.com> | `9e51d16d84d905c32a001a123be8e6c58213ee21e42d5bdb1458b731dba10f6d` |
+| `axp2101.pdf` | `AXP2101A` | X-Powers, 2022 | <https://www.x-powers.com> | `9e51d16d84d905c32a001a123be8e6c58213ee21e42d5bdb1458b731dba10f6d` |
 
-Pin description p7-9; QFN40-6x6+EP package (standard PMU footprint).
+SHA-256 checksums:
+
+```text
+9e51d16d84d905c32a001a123be8e6c58213ee21e42d5bdb1458b731dba10f6d  axp2101.pdf
+```
+

@@ -1,0 +1,73 @@
+// Quectel L76K: GNSS module (GPS/BeiDou/GLONASS/QZSS, AGNSS), 2.7-3.4V,
+// 18-LCC SMT module 10.1 x 9.7 x 2.0 mm (hardware design manual v1.1,
+// 2021-08-23). Pin assignment p13 Fig 2; pin description p14-15 Table 4.
+
+#[doc("docs/l76k.pdf")]
+pub device L76K {
+    pins {
+        required GND1: 1 [power_in] // ground (p15)
+        optional TXD: 2 [output] // UART transmit / NMEA out (p14)
+        optional RXD: 3 [input] // UART receive / command in (p15)
+        optional PPS: 4 [output] // 1PPS pulse, leave floating if unused (p15)
+        optional WAKEUP: 5 [input] // standby mode entry/exit, active-low (p15)
+        optional VBCKP: 6 [power_in] // RTC backup supply 1.4-3.6V (p14)
+        optional RESERVED7: 7 [passive] // reserved, keep floating (p15)
+        required VCC: 8 [power_in] // main supply 2.7-3.4V, >=100mA (p14)
+        optional RESETN: 9 [input] // module reset, active-low, internal pull-up (p14)
+        required GND10: 10 [power_in] // ground (p15)
+        optional RFIN: 11 [input] // RF signal input, 50 ohm (p15)
+        required GND12: 12 [power_in] // ground (p15)
+        optional ANTON: 13 [output] // active-antenna external supply control (p15)
+        optional VDDRF: 14 [power_out] // active-antenna supply + detect = VCC (p15)
+        optional RESERVED15: 15 [passive] // reserved, floating (p15)
+        optional RESERVED16: 16 [passive] // reserved, floating
+        optional RESERVED17: 17 [passive] // reserved, floating
+        optional SET: 18 [input] // constellation select strap (p15)
+    }
+}
+
+impl IC for L76K {}
+
+#[doc("docs/l76k.pdf")]
+pub part GNSS_L76KB_A58: L76K {
+    primary { mfr: "Quectel", mpn: "L76KB-A58", footprint: FP_Quectel_L76K_18LCC_101x97mm }
+}
+
+// L76K module 18-LCC land pattern (hardware manual p8 mechanical, p13 pin
+// map). Module body 10.1 x 9.7 mm; 18 LCC pads along the two long edges
+// (9 per side). Pad pitch 1.8 mm along the edge; pad centres at +/-4.85 mm
+// from module centre (9.7/2). Pin 1 corner upper-left.
+pub pad P_L76K_LCC_PAD {
+    shape: rect
+    size: (1.1mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Quectel_L76K_18LCC_101x97mm {
+    // Left column pins 1-9 (top to bottom), x = -4.85mm, pitch 1.8mm
+    pad 1: P_L76K_LCC_PAD at (-4.85mm, -7.2mm)
+    pad 2: P_L76K_LCC_PAD at (-4.85mm, -5.4mm)
+    pad 3: P_L76K_LCC_PAD at (-4.85mm, -3.6mm)
+    pad 4: P_L76K_LCC_PAD at (-4.85mm, -1.8mm)
+    pad 5: P_L76K_LCC_PAD at (-4.85mm, 0mm)
+    pad 6: P_L76K_LCC_PAD at (-4.85mm, 1.8mm)
+    pad 7: P_L76K_LCC_PAD at (-4.85mm, 3.6mm)
+    pad 8: P_L76K_LCC_PAD at (-4.85mm, 5.4mm)
+    pad 9: P_L76K_LCC_PAD at (-4.85mm, 7.2mm)
+    // Right column pins 10-18 (bottom to top, per pin map Fig 2)
+    pad 10: P_L76K_LCC_PAD at (4.85mm, 7.2mm)
+    pad 11: P_L76K_LCC_PAD at (4.85mm, 5.4mm)
+    pad 12: P_L76K_LCC_PAD at (4.85mm, 3.6mm)
+    pad 13: P_L76K_LCC_PAD at (4.85mm, 1.8mm)
+    pad 14: P_L76K_LCC_PAD at (4.85mm, 0mm)
+    pad 15: P_L76K_LCC_PAD at (4.85mm, -1.8mm)
+    pad 16: P_L76K_LCC_PAD at (4.85mm, -3.6mm)
+    pad 17: P_L76K_LCC_PAD at (4.85mm, -5.4mm)
+    pad 18: P_L76K_LCC_PAD at (4.85mm, -7.2mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (11.5mm, 11.0mm) }
+    silkscreen_ref { at: (0mm, -5.8mm) }
+}

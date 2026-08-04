@@ -1,0 +1,43 @@
+// Texas Instruments TCA8418: 80-key keypad scanner, I2C, 1.65-3.6V
+// (datasheet SCPS215G, Sep 2009 rev Jun 2018). RTW 24-pin WQFN 4x4mm
+// 0.5 pitch + thermal pad (p50-52). Pin functions p3.
+
+#[doc("docs/tca8418.pdf")]
+pub device TCA8418 {
+    pins {
+        optional ROW7: 1 [bidirectional] // GPIO or keypad row 7 (p3)
+        optional ROW6: 2 [bidirectional]
+        optional ROW5: 3 [bidirectional]
+        optional ROW4: 4 [bidirectional]
+        optional ROW3: 5 [bidirectional]
+        optional ROW2: 6 [bidirectional]
+        optional ROW1: 7 [bidirectional]
+        optional ROW0: 8 [bidirectional]
+        optional COL0: 9 [bidirectional] // GPIO or keypad col 0 (p3)
+        optional COL1: 10 [bidirectional]
+        optional COL2: 11 [bidirectional]
+        optional COL3: 12 [bidirectional]
+        optional COL4: 13 [bidirectional]
+        optional COL5: 14 [bidirectional]
+        optional COL6: 15 [bidirectional]
+        optional COL7: 16 [bidirectional]
+        optional COL8: 17 [bidirectional]
+        optional COL9: 18 [bidirectional]
+        required GND: 19 [power_in]
+        required RESET: 20 [input] // active-low reset, pull-up to VCC (p3)
+        required VCC: 21 [power_in] // 1.65-3.6V (p3)
+        optional SDA: 22 [bidirectional] // I2C data, pull-up (p3)
+        optional SCL: 23 [input] // I2C clock, pull-up (p3)
+        optional INT: 24 [output] // active-low interrupt, open-drain, pull-up (p3)
+        // Exposed thermal pad — must be soldered to GND.
+        required EPAD: 25 [power_in]
+    }
+}
+
+impl IC for TCA8418 {}
+
+#[doc("docs/tca8418.pdf")]
+pub part KEYSCAN_TCA8418: TCA8418 {
+    primary { mfr: "Texas Instruments", mpn: "TCA8418RTWR",
+              footprint: qfn::QFN24N50P400X400_1EP245X245 }
+}

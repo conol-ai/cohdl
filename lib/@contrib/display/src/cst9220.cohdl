@@ -1,0 +1,23 @@
+// Goodix CST9220: capacitive touch controller IC, I2C (as used in the
+// H0216F002AM AMOLED module). The full datasheet is NDA-only; the pin
+// model here is derived from the module's FPC touch pins (TP_INT /
+// TP_RST / TP_SDA / TP_SCL / TP_VCC / GND), which are the only pads
+// exposed to the board. Pin numbers are FPC-ordinal.
+
+#[doc("docs/h0216f002am.pdf")]
+pub device CST9220 {
+    pins {
+        required VCC: 1 [power_in] // touch 3.3V supply (module FPC pin 6)
+        required GND: 2 [power_in] // ground
+        optional SDA: 3 [bidirectional] // I2C data (module FPC pin 4)
+        optional SCL: 4 [input] // I2C clock (module FPC pin 5)
+        optional INT: 5 [output] // interrupt (module FPC pin 2)
+        optional RST: 6 [input] // reset (module FPC pin 3)
+    }
+}
+
+impl IC for CST9220 {}
+
+// No part/footprint: CST9220 full datasheet is NDA-only (Goodix). The
+// pin model covers the FPC-exposed subset; the bare-IC package pins
+// (sensor-trace bonds) are undocumented publicly.

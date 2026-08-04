@@ -1,0 +1,33 @@
+// Analog Devices MAX98357A: PCM I2S Class D amplifier, 3.2W, 2.5-5.5V
+// (datasheet rev 13). TQFN-16 + EP (pin EP, not internally connected but
+// recommended for thermal). Pin description p15.
+
+#[doc("docs/max98357a.pdf")]
+pub device MAX98357A {
+    pins {
+        optional DIN: 1 [input] // digital data input (p15)
+        optional GAIN_SLOT: 2 [input] // gain + channel select (p15)
+        optional GND3: 3 [power_in] // ground (p15)
+        optional SD_MODE: 4 [input] // shutdown + channel select (p15)
+        optional NC5: 5 [passive] // no connection (p15)
+        optional NC6: 6 [passive]
+        required VDD: 7, 8 [power_in] // supply 2.5-5.5V (p15)
+        optional OUTP: 9 [output] // positive speaker output (p15)
+        optional NC12: 12 [passive]
+        optional NC13: 13 [passive]
+        optional LRCLK: 14 [input] // I2S frame clock (p15)
+        optional GND15: 15 [power_in]
+        optional BCLK: 16 [input] // bit clock (p15)
+        optional GND11: 11 [power_in]
+        optional OUTN: 10 [output] // negative speaker output (p15)
+        optional EP: 17 [power_in] // exposed pad, thermal — connect to GND (p15)
+    }
+}
+
+impl IC for MAX98357A {}
+
+#[doc("docs/max98357a.pdf")]
+pub part AMP_MAX98357A: MAX98357A {
+    primary { mfr: "Analog Devices", mpn: "MAX98357AETE+",
+              footprint: qfn::QFN16N50P300X300_1EP170X170 }
+}

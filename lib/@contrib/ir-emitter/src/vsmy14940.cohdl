@@ -5,12 +5,19 @@
 #[doc("docs/vsmy14940.pdf")]
 pub device VSMY14940 {
     pins {
-        required A: 1 [passive] // anode (+ terminal, p1)
-        required B: 2 [passive] // cathode (- terminal, p5 polarity)
+        required Cathode: 1 [passive] // repository diode convention; cathode mark, p5
+        required Anode: 2 [passive] // opposite terminal, p5 polarity drawing
     }
 }
 
-impl TwoTerminal for VSMY14940 {}
+impl Polarized for VSMY14940 {
+    pins {
+        Anode: Anode
+        Cathode: Cathode
+    }
+}
+
+impl Diode for VSMY14940 {}
 
 #[doc("docs/vsmy14940.pdf")]
 pub part IR_VSMY14940: VSMY14940 {
@@ -18,20 +25,23 @@ pub part IR_VSMY14940: VSMY14940 {
 }
 
 // Side-view SMD land (datasheet p5): body 3.0 x 2.51, two terminals at
-// bottom edges. Recommended pad 1.4 x 0.9 mm per terminal.
+// bottom edges. Recommended copper is 0.90 mm tangential x 1.40 mm wide,
+// with a 1.80 mm inner gap, hence pad centres at +/-1.35 mm.
 pub pad P_VSMY14940_PAD {
     shape: rect
-    size: (1.4mm, 0.9mm)
+    size: (0.9mm, 1.4mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint FP_VSMY14940_3P0X2P51mm {
-    pad 1: P_VSMY14940_PAD at (-0.95mm, 0mm)
-    pad 2: P_VSMY14940_PAD at (0.95mm, 0mm)
+    pad 1: P_VSMY14940_PAD at (-1.35mm, 0mm)
+    pad 2: P_VSMY14940_PAD at (1.35mm, 0mm)
     silkscreen {
-        pin_1_marker near pad 1 shape dot
+        polarity_marker cathode_pin 1 shape band
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.0mm, 2.5mm) }
-    silkscreen_ref { at: (0mm, -1.5mm) }
+    // Contains both the 3.60 x 1.40 mm copper and 3.00 x 2.51 mm body,
+    // with at least 0.25 mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.1mm) }
+    silkscreen_ref { at: (0mm, -1.8mm) }
 }

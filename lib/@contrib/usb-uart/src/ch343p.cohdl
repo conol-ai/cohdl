@@ -5,8 +5,8 @@
 pub device CH343P {
     pins {
         required VIO: 1 [power_in] // I/O port power, decouple (p2)
-        optional GND1: 2 [power_in] // ground (p2)
-        optional RST: 3 [input] // external reset, active-low, internal pull-up (p2)
+        required GND: 2 [power_in] // required ground (p2)
+        required VDD5: 3 [power_in] // regulator input, decouple (p2)
         optional TXD: 4 [output] // UART transmit, idle high (p2)
         optional RXD: 5 [input] // UART receive, internal pull-up (p2)
         optional V3: 6 [power_out] // internal regulator out; tie VDD5 if <3.6V (p2)
@@ -14,19 +14,19 @@ pub device CH343P {
         optional UDN: 8 [bidirectional] // USB D-, direct connect (p2)
         optional VBUS: 9 [input] // USB VBUS detect, internal pull-down (p2)
         optional ACTN: 10 [output] // USB config-done indicator, active-low (p2)
-        optional DTR: 11 [output] // modem DTR / TNOW status (p2)
-        optional RTS: 12 [output] // modem RTS, active-low (p2)
-        optional NC13: 13 [passive]
-        optional NC14: 14 [passive]
-        required VDD5: 15 [power_in] // regulator input, decouple (p2)
-        required GND16: 16 [power_in] // ground (p2)
-        optional EPAD: 17 [power_in] // exposed pad GND (pin 0), recommended (p2)
+        optional DCD: 11 [input] // modem data-carrier-detect, active-low
+        optional DTR_TNOW: 12 [output] // DTR, or transmit-in-progress output
+        optional RTS: 13 [output] // modem request-to-send, active-low
+        optional DSR: 14 [input] // modem data-set-ready, active-low
+        optional CTS: 15 [input] // modem clear-to-send input, active-low
+        optional RI: 16 [input] // modem ring-indicator, active-low
+        optional EPAD: 0 [power_in] // optional, recommended exposed-pad ground
     }
 }
 
 impl IC for CH343P {}
 
-#[doc("docs/ch343.pdf")]
-pub part USBUART_CH343P: CH343P {
-    primary { mfr: "WCH", mpn: "CH343P", footprint: qfn::QFN16N50P300X300_1EP170X170 }
-}
+// No part declaration: WCH specifies the CH343P QFN16 body and 0.5 mm pitch,
+// but this datasheet does not publish a recommended PCB land/paste pattern.
+// Keep the source-backed device pinout available without presenting an
+// inferred QFN footprint as fabrication-ready.

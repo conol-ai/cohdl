@@ -2,7 +2,7 @@
 name = "soic"
 version = "0.1.0"
 license = "MIT"
-description = "Verified SOIC package land patterns."
+description = "Audited SOIC and TSSOP package land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

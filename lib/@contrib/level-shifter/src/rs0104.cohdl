@@ -1,31 +1,81 @@
 // Run-IC RS0104: 4-bit bidirectional voltage-level translator, auto-
 // direction-sensing, open-drain + push-pull, VCCA 1.65-5.5V / VCCB
-// 2.3-5.5V (datasheet REV A.5). QFN3.5x3.5-14L + EP. Pin description p4.
+// 2.3-5.5V (datasheet REV A.5). Package pin maps p4-7.
 
 #[doc("docs/rs0104.pdf")]
 pub device RS0104 {
-    pins {
-        required VCCA: 1 [power_in] // A port supply 1.65-5.5V, VCCA<=VCCB (p4)
-        optional A1: 2 [bidirectional] // A port I/O1 (p4)
+    variants { QFN14, QFN12_2X2, QFN12_2X1P7, TSSOP14 }
+    pins[QFN14] {
+        required VCCA: 1 [power_in]
+        optional A1: 2 [bidirectional]
         optional A2: 3 [bidirectional]
         optional A3: 4 [bidirectional]
         optional A4: 5 [bidirectional]
-        optional NC6: 6 [passive] // no connection (p4)
+        optional NC6: 6 [passive]
         required GND: 7 [power_in]
-        required OE: 8 [input] // output enable, active-high; low = Hi-Z (p4)
+        required OE: 8 [input]
         optional NC9: 9 [passive]
-        optional B4: 10 [bidirectional] // B port I/O4 (p4)
+        optional B4: 10 [bidirectional]
         optional B3: 11 [bidirectional]
         optional B2: 12 [bidirectional]
         optional B1: 13 [bidirectional]
-        required VCCB: 14 [power_in] // B port supply 2.3-5.5V (p4)
-        optional EP: 15 [power_in] // exposed pad, solder to GND or float (p4)
+        required VCCB: 14 [power_in]
+        optional EPAD: EP [power_in] // solder to GND or leave floating, p4
+    }
+    pins[QFN12_2X2] {
+        optional A1: 1 [bidirectional]
+        optional A2: 2 [bidirectional]
+        optional A3: 3 [bidirectional]
+        optional A4: 4 [bidirectional]
+        required GND: 5 [power_in]
+        required OE: 6 [input]
+        optional B4: 7 [bidirectional]
+        optional B3: 8 [bidirectional]
+        optional B2: 9 [bidirectional]
+        optional B1: 10 [bidirectional]
+        required VCCB: 11 [power_in]
+        required VCCA: 12 [power_in]
+        optional EPAD: EP [power_in] // solder to GND or leave floating, p5
+    }
+    pins[QFN12_2X1P7] {
+        required VCCA: 1 [power_in]
+        optional A1: 2 [bidirectional]
+        optional A2: 3 [bidirectional]
+        optional A3: 4 [bidirectional]
+        optional A4: 5 [bidirectional]
+        required GND: 6 [power_in]
+        optional B4: 7 [bidirectional]
+        optional B3: 8 [bidirectional]
+        optional B2: 9 [bidirectional]
+        optional B1: 10 [bidirectional]
+        required VCCB: 11 [power_in]
+        required OE: 12 [input]
+    }
+    pins[TSSOP14] {
+        required VCCA: 1 [power_in]
+        optional A1: 2 [bidirectional]
+        optional A2: 3 [bidirectional]
+        optional A3: 4 [bidirectional]
+        optional A4: 5 [bidirectional]
+        optional NC6: 6 [passive]
+        required GND: 7 [power_in]
+        required OE: 8 [input]
+        optional NC9: 9 [passive]
+        optional B4: 10 [bidirectional]
+        optional B3: 11 [bidirectional]
+        optional B2: 12 [bidirectional]
+        optional B1: 13 [bidirectional]
+        required VCCB: 14 [power_in]
     }
 }
 
 impl IC for RS0104 {}
 
 #[doc("docs/rs0104.pdf")]
-pub part LS_RS0104: RS0104 {
-    primary { mfr: "Run-IC", mpn: "RS0104YTQE12", footprint: qfn::QFN14N50P350X350_1EP20X20 }
+pub part LS_RS0104: RS0104[TSSOP14] {
+    primary { mfr: "Run-IC", mpn: "RS0104YQ", footprint: soic::SOP14P65X640X120N }
 }
+
+// QFN order codes RS0104YTQF14, RS0104YTQE12 and RS0104YUTQH12 remain
+// device-only. Their distinct pin maps are preserved above, but they must not
+// share a nominal-size generic QFN land pattern.

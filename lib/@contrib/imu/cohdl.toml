@@ -2,7 +2,7 @@
 name = "@contrib/imu"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed IMU (inertial measurement unit) devices and purchasable parts."
+description = "Community-contributed IMU (inertial measurement unit) device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

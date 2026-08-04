@@ -16,29 +16,8 @@ pub device T3902 {
 
 impl IC for T3902 {}
 
-#[doc("docs/t3902.pdf")]
-pub part MIC_T3902: T3902 {
-    primary { mfr: "InvenSense", mpn: "T3902-310", footprint: FP_T3902_3P5X2P65mm }
-}
-
-// Land pattern (datasheet p18 Fig 14): pad 0.522 x 0.725 mm (4X), offset
-// per drawing. Sound port hole 0.5-1.0 mm dia (not a pad).
-pub pad P_T3902_PAD {
-    shape: rect
-    size: (0.522mm, 0.725mm)
-    layer: top_copper
-    plating: smd
-}
-
-pub footprint FP_T3902_3P5X2P65mm {
-    pad 1: P_T3902_PAD at (-0.838mm, -0.626mm)
-    pad 2: P_T3902_PAD at (0.838mm, -0.626mm)
-    pad 3: P_T3902_PAD at (0.838mm, 0.626mm)
-    pad 4: P_T3902_PAD at (-0.838mm, 0.626mm)
-    pad 5: P_T3902_PAD at (0mm, 0mm)
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 3.4mm) }
-    silkscreen_ref { at: (0mm, -2.0mm) }
-}
+// No part declaration. The exact orderable code is MMICT3902-00-012, but its
+// recommended footprint requires pin 3 to be a 1.625/1.025 mm annular GND land
+// around a 0.5-1.0 mm acoustic hole, with no paste over that hole (Figures
+// 14-16). CoHDL cannot yet express an SMD annulus or a per-pad paste exclusion;
+// approximating it as a solid circular SMD pad would emit unsafe paste.

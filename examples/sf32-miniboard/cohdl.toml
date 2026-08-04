@@ -4,17 +4,7 @@ version = "0.1.0"
 license = "MIT"
 
 [design]
-top = "SF32MiniBoard"
+top = "SF32MiniBoardReference"
 
 [dependencies]
-"@contrib/env" = "0.1.0"
-"@contrib/imu" = "0.1.0"
-"@contrib/ldo" = "0.1.0"
-"@contrib/lora" = "0.1.0"
-"@contrib/sd-card" = "0.1.0"
-"@contrib/sf32" = "0.1.0"
-"@contrib/usb-uart" = "0.1.0"
-flash = "0.1.0"
-qfn = "0.1.0"
-soic = "0.1.0"
 std = "0.3.0"

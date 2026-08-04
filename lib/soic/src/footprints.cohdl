@@ -38,3 +38,37 @@ pub footprint SOIC8P127X790X216N {
     courtyard { shape: rect, at: (0mm, 0mm), size: (9.3mm, 5.8mm) }
     silkscreen_ref { at: (0mm, -3.6mm) }
 }
+
+// Run-IC RS0104 Rev A.5 p26 recommended TSSOP-14 land pattern:
+// 1.78 x 0.42 mm copper, 0.65 mm pitch, and 5.60 mm opposing row-centre
+// spacing. Package maximums are D=5.10, E=4.50, E1=6.55, A=1.20 mm.
+pub pad P_SOP14P65X640X120N_LEAD {
+    shape: rect
+    size: (1.78mm, 0.42mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOP14P65X640X120N {
+    pad 1: P_SOP14P65X640X120N_LEAD at (-2.8mm, -1.95mm)
+    pad 2: P_SOP14P65X640X120N_LEAD at (-2.8mm, -1.3mm)
+    pad 3: P_SOP14P65X640X120N_LEAD at (-2.8mm, -0.65mm)
+    pad 4: P_SOP14P65X640X120N_LEAD at (-2.8mm, 0mm)
+    pad 5: P_SOP14P65X640X120N_LEAD at (-2.8mm, 0.65mm)
+    pad 6: P_SOP14P65X640X120N_LEAD at (-2.8mm, 1.3mm)
+    pad 7: P_SOP14P65X640X120N_LEAD at (-2.8mm, 1.95mm)
+    pad 8: P_SOP14P65X640X120N_LEAD at (2.8mm, 1.95mm)
+    pad 9: P_SOP14P65X640X120N_LEAD at (2.8mm, 1.3mm)
+    pad 10: P_SOP14P65X640X120N_LEAD at (2.8mm, 0.65mm)
+    pad 11: P_SOP14P65X640X120N_LEAD at (2.8mm, 0mm)
+    pad 12: P_SOP14P65X640X120N_LEAD at (2.8mm, -0.65mm)
+    pad 13: P_SOP14P65X640X120N_LEAD at (2.8mm, -1.3mm)
+    pad 14: P_SOP14P65X640X120N_LEAD at (2.8mm, -1.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the 7.38 x 4.32 mm copper and 4.50 x 5.10 mm body with
+    // at least 0.25 mm excess on all sides.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.9mm, 5.6mm) }
+    silkscreen_ref { at: (0mm, -3.1mm) }
+}

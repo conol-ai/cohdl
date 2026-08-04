@@ -2,17 +2,18 @@
 // H0216F002AM AMOLED module). The full datasheet is NDA-only; the pin
 // model here is derived from the module's FPC touch pins (TP_INT /
 // TP_RST / TP_SDA / TP_SCL / TP_VCC / GND), which are the only pads
-// exposed to the board. Pin numbers are FPC-ordinal.
+// exposed to the board. IDs below are the actual module FPC positions;
+// this is not a declaration of the undocumented bare-IC package.
 
 #[doc("docs/h0216f002am.pdf")]
 pub device CST9220 {
     pins {
-        required VCC: 1 [power_in] // touch 3.3V supply (module FPC pin 6)
-        required GND: 2 [power_in] // ground
-        optional SDA: 3 [bidirectional] // I2C data (module FPC pin 4)
-        optional SCL: 4 [input] // I2C clock (module FPC pin 5)
-        optional INT: 5 [output] // interrupt (module FPC pin 2)
-        optional RST: 6 [input] // reset (module FPC pin 3)
+        required GND: 1 [power_in] // module power ground (FPC pin 1)
+        optional INT: 2 [output] // touch interrupt (FPC pin 2)
+        optional RST: 3 [input] // touch reset (FPC pin 3)
+        optional SDA: 4 [bidirectional] // I2C data (FPC pin 4)
+        optional SCL: 5 [input] // I2C clock (FPC pin 5)
+        required VCC: 6 [power_out] // module touch 3.3V output (FPC pin 6)
     }
 }
 

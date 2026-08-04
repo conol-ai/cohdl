@@ -2,9 +2,8 @@
 name = "@contrib/pmu"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed power management unit (PMU) devices and purchasable parts."
+description = "Community-contributed power management unit (PMU) device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfn = "0.1.0"
 std = "0.3.0"

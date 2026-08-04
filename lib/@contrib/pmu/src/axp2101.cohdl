@@ -1,5 +1,5 @@
 // X-Powers AXP2101: highly-integrated PMU with 5 DCDCs + multiple LDOs +
-// charger + fuel gauge, I2C (datasheet 2022). QFN40-6x6 + EP. Pin desc p7-9.
+// charger + fuel gauge, I2C (datasheet 2022). QFN40 5x5 + EP. Pin desc p7-9.
 
 #[doc("docs/axp2101.pdf")]
 pub device AXP2101 {
@@ -44,13 +44,13 @@ pub device AXP2101 {
         optional IRQ: 38 [output] // open-drain interrupt, 4.7k pull-up (p8)
         optional SDA: 39 [bidirectional] // I2C data, 2.2k pull-up (p9)
         optional SCK: 40 [input] // I2C clock, 2.2k pull-up (p9)
-        required EP: 41 [power_in] // exposed pad — system ground (p9)
+        required EPAD: EP [power_in] // exposed pad — system ground (p9)
     }
 }
 
 impl IC for AXP2101 {}
 
-#[doc("docs/axp2101.pdf")]
-pub part PMU_AXP2101: AXP2101 {
-    primary { mfr: "X-Powers", mpn: "AXP2101A", footprint: qfn::QFN40N40P600X600_1EP44X44 }
-}
+// No part declaration: the exact device identity is AXP2101, but Figure 8-1
+// provides only the QFN5x5 component outline. It does not provide a
+// manufacturer PCB land/paste pattern, so a purchasable binding would require
+// an unsupported footprint derivation.

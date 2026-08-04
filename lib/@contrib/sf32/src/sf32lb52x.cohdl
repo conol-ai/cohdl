@@ -81,26 +81,9 @@ pub device SF32LB52X {
 
 impl IC for SF32LB52X {}
 
-// 3.3V supply, SiP 8Mb NOR Flash (Table 5-6).
-#[doc("docs/ds0052-sf32lb52x-cn.pdf")]
-pub part MCU_SF32LB52BU36: SF32LB52X {
-    primary { mfr: "SiFli", mpn: "SF32LB52BU36", footprint: qfn::QFN68N35P700X700_1EP549X549 }
-}
-
-// 3.3V supply, SiP 32Mb NOR Flash (Table 5-6).
-#[doc("docs/ds0052-sf32lb52x-cn.pdf")]
-pub part MCU_SF32LB52BU56: SF32LB52X {
-    primary { mfr: "SiFli", mpn: "SF32LB52BU56", footprint: qfn::QFN68N35P700X700_1EP549X549 }
-}
-
-// 1.8V supply, SiP 32Mb pSRAM (Table 5-6).
-#[doc("docs/ds0052-sf32lb52x-cn.pdf")]
-pub part MCU_SF32LB52DUB6: SF32LB52X {
-    primary { mfr: "SiFli", mpn: "SF32LB52DUB6", footprint: qfn::QFN68N35P700X700_1EP549X549 }
-}
-
-// 3.3V supply, SiP 32Mb pSRAM (Table 5-6).
-#[doc("docs/ds0052-sf32lb52x-cn.pdf")]
-pub part MCU_SF32LB52EUB6: SF32LB52X {
-    primary { mfr: "SiFli", mpn: "SF32LB52EUB6", footprint: qfn::QFN68N35P700X700_1EP549X549 }
-}
+// No part declarations yet. Table 5-6 establishes the exact orderable codes
+// SF32LB52BU36, SF32LB52BU56, SF32LB52DUB6, and SF32LB52EUB6, while the
+// package section establishes the 7 x 7 mm body, 0.35 mm pitch, and EPAD
+// outline. It does not provide a manufacturer PCB land, paste, or thermal-via
+// pattern. Binding those purchasable parts would therefore assert an inferred
+// footprint as fabrication-ready.

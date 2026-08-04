@@ -2,7 +2,7 @@
 name = "@contrib/mic"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed microphone (MEMS) devices and purchasable parts."
+description = "Community-contributed MEMS microphone device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

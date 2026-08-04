@@ -14,10 +14,8 @@ pub device MICROSD_SOCKET {
         optional DAT0: 7 [bidirectional] // data 0 (p1)
         optional DAT1: 8 [bidirectional] // data 1 (p1)
         // Shell / mechanical solder tabs (GND, not signal)
-        required SHIELD1: G1 [power_in]
-        required SHIELD2: G2 [power_in]
-        required SHIELD3: G3 [power_in]
-        required SHIELD4: G4 [power_in]
+        required SHIELD1: G1 [passive]
+        required SHIELD2: G2 [passive]
     }
 }
 
@@ -29,39 +27,39 @@ pub part CONN_MICROSD: MICROSD_SOCKET {
               footprint: FP_MicroSD_Wurth_693070010811 }
 }
 
-// Land pattern (datasheet p1): 8 signal pads 0.8 x 1.1 mm, plus shell
-// mechanical solder tabs. Signal pitch 1.5 mm.
+// Würth page-1 recommended land pattern: eight 0.8 x 1.5 mm signal
+// lands on 1.1 mm pitch, numbered 8 through 1 from left to right. The two
+// shell lands are 3.1 x 1.5 mm, 6.06 mm apart, and 9.25 mm from the signal
+// row. This connector has two shell lands, not four.
 pub pad P_MICROSD_SIGNAL {
     shape: rect
-    size: (0.8mm, 1.1mm)
+    size: (0.8mm, 1.5mm)
     layer: top_copper
     plating: smd
 }
 
 pub pad P_MICROSD_SHELL {
     shape: rect
-    size: (1.5mm, 1.1mm)
+    size: (3.1mm, 1.5mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint FP_MicroSD_Wurth_693070010811 {
-    pad 1: P_MICROSD_SIGNAL at (-5.25mm, 0mm)
-    pad 2: P_MICROSD_SIGNAL at (-3.75mm, 0mm)
-    pad 3: P_MICROSD_SIGNAL at (-2.25mm, 0mm)
-    pad 4: P_MICROSD_SIGNAL at (-0.75mm, 0mm)
-    pad 5: P_MICROSD_SIGNAL at (0.75mm, 0mm)
-    pad 6: P_MICROSD_SIGNAL at (2.25mm, 0mm)
-    pad 7: P_MICROSD_SIGNAL at (3.75mm, 0mm)
-    pad 8: P_MICROSD_SIGNAL at (5.25mm, 0mm)
+    pad 8: P_MICROSD_SIGNAL at (-3.85mm, 0mm)
+    pad 7: P_MICROSD_SIGNAL at (-2.75mm, 0mm)
+    pad 6: P_MICROSD_SIGNAL at (-1.65mm, 0mm)
+    pad 5: P_MICROSD_SIGNAL at (-0.55mm, 0mm)
+    pad 4: P_MICROSD_SIGNAL at (0.55mm, 0mm)
+    pad 3: P_MICROSD_SIGNAL at (1.65mm, 0mm)
+    pad 2: P_MICROSD_SIGNAL at (2.75mm, 0mm)
+    pad 1: P_MICROSD_SIGNAL at (3.85mm, 0mm)
     // Shell / mechanical solder tabs (GND)
-    pad G1: P_MICROSD_SHELL at (-7.7mm, 3.1mm)
-    pad G2: P_MICROSD_SHELL at (7.7mm, 3.1mm)
-    pad G3: P_MICROSD_SHELL at (-7.7mm, -3.1mm)
-    pad G4: P_MICROSD_SHELL at (7.7mm, -3.1mm)
+    pad G1: P_MICROSD_SHELL at (-3.03mm, -9.25mm)
+    pad G2: P_MICROSD_SHELL at (3.03mm, -9.25mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (15.0mm, 13.0mm) }
-    silkscreen_ref { at: (0mm, -6.0mm) }
+    courtyard { shape: rect, at: (0mm, -4.625mm), size: (12.7mm, 12.5mm) }
+    silkscreen_ref { at: (0mm, -11.5mm) }
 }

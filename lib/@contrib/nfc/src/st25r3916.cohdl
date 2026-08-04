@@ -1,5 +1,5 @@
 // ST ST25R3916: high-performance NFC forum reader, SPI, 2.4-5.5V (datasheet
-// DS12484 Rev 8, May 2023). QFN32 (VFQFPN32) 5x5 0.5 pitch + thermal pad.
+// DS12484 Rev 8, May 2023). UFQFPN32 5x5 0.5 pitch + thermal pad.
 // Pin assignment Table 2 (p20-21).
 
 #[doc("docs/st25r3916.pdf")]
@@ -45,6 +45,71 @@ impl IC for ST25R3916 {}
 
 #[doc("docs/st25r3916.pdf")]
 pub part NFC_ST25R3916: ST25R3916 {
-    primary { mfr: "STMicroelectronics", mpn: "ST25R3916-AQT",
-              footprint: qfn::QFN32N50P500X500_1EP34X34 }
+    primary { mfr: "STMicroelectronics", mpn: "ST25R3916-AQET",
+              footprint: QFN32N50P500X500_1EP345X345 }
+}
+
+// DS12484 Figure 39 UFQFPN32 footprint example: 5.30 mm outside span,
+// 3.80 mm inside span, 0.50 mm pitch, 0.75 x 0.30 mm lands, and a
+// 3.45 mm square exposed land.
+pub pad P_ST25R3916_UFQFPN_LEAD_H {
+    shape: rect
+    size: (0.75mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ST25R3916_UFQFPN_LEAD_V {
+    shape: rect
+    size: (0.3mm, 0.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ST25R3916_UFQFPN_EP345 {
+    shape: rect
+    size: (3.45mm, 3.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN32N50P500X500_1EP345X345 {
+    pad 1: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -1.75mm)
+    pad 2: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -1.25mm)
+    pad 3: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -0.75mm)
+    pad 4: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -0.25mm)
+    pad 5: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 0.25mm)
+    pad 6: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 0.75mm)
+    pad 7: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 1.25mm)
+    pad 8: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 1.75mm)
+    pad 9: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, 2.275mm)
+    pad 10: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, 2.275mm)
+    pad 11: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, 2.275mm)
+    pad 12: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, 2.275mm)
+    pad 13: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, 2.275mm)
+    pad 14: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, 2.275mm)
+    pad 15: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, 2.275mm)
+    pad 16: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, 2.275mm)
+    pad 17: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 1.75mm)
+    pad 18: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 1.25mm)
+    pad 19: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 0.75mm)
+    pad 20: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 0.25mm)
+    pad 21: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -0.25mm)
+    pad 22: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -0.75mm)
+    pad 23: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -1.25mm)
+    pad 24: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -1.75mm)
+    pad 25: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, -2.275mm)
+    pad 26: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, -2.275mm)
+    pad 27: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, -2.275mm)
+    pad 28: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, -2.275mm)
+    pad 29: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, -2.275mm)
+    pad 30: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, -2.275mm)
+    pad 31: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, -2.275mm)
+    pad 32: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, -2.275mm)
+    pad 33: P_ST25R3916_UFQFPN_EP345 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.8mm, 5.8mm) }
+    silkscreen_ref { at: (0mm, -3.3mm) }
 }

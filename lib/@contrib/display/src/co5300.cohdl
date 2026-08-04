@@ -6,46 +6,46 @@
 // The 240 OLED source outputs (S1..S240), gate/GOA routing pins
 // (SDMY/VSR/SW), and charge-pump capacitor pins (C*P/C*N) are panel-bond
 // pads on the COF tape — they connect to the OLED glass, never to the
-// PCB, so they are out of scope for a board-level library. Pin numbers
-// are FPC-exposed ordinal positions (the COF bond pad numbers are not
-// documented as a sequential map in the datasheet).
+// PCB, so they are out of scope for a board-level library. The datasheet
+// identifies these die pads by signal name, not by sequential package pin;
+// those source names are therefore used as the nonphysical interface IDs.
 
 #[doc("docs/co5300.pdf")]
 pub device CO5300 {
     pins {
         // Power (p11)
-        required VCIC: 1 [power_in] // DCDC supply 2.7-3.6V (p11)
-        required VCIA: 2 [power_in] // analog DDIC supply 2.7-3.6V (p11)
-        required VCIR: 3 [power_in] // LDO DDIC supply 2.7-3.6V (p11)
-        required VDDI: 4 [power_in] // I/O supply 1.65-3.3V (p11)
-        required VCC: 5 [power_in] // DVDD regulator supply (p11)
-        required VSSC: 6 [power_in] // DC/DC ground (p11)
-        required VSSA: 7 [power_in] // analog ground (p11)
-        required HVSSAM: 8 [power_in] // MIPI ground (p11)
-        required VSSI: 9 [power_in] // I/O ground (p11)
-        required VSSD: 10 [power_in] // digital ground (p11)
-        optional MTP_PWR: 11 [passive] // MTP prog 8.25V, open normal (p11)
+        required VCIC: VCIC [power_in] // DCDC supply 2.7-3.6V (p11)
+        required VCIA: VCIA [power_in] // analog DDIC supply 2.7-3.6V (p11)
+        required VCIR: VCIR [power_in] // LDO DDIC supply 2.7-3.6V (p11)
+        required VDDI: VDDI [power_in] // I/O supply 1.65-3.3V (p11)
+        required VCC: VCC [power_in] // DVDD regulator supply (p11)
+        required VSSC: VSSC [power_in] // DC/DC ground (p11)
+        required VSSA: VSSA [power_in] // analog ground (p11)
+        required HVSSAM: HVSSAM [power_in] // MIPI ground (p11)
+        required VSSI: VSSI [power_in] // I/O ground (p11)
+        required VSSD: VSSD [power_in] // digital ground (p11)
+        optional MTP_PWR: MTPPWR [passive] // MTP prog 8.25V, open normal (p11)
         // QSPI interface (p12)
-        optional CSX: 12 [input] // chip select, active-low (p12)
-        optional WRX_SCL: 13 [input] // QSPI clock (p12)
-        optional DCX: 14 [input] // data/command select (p12)
-        optional SDI_RDX: 15 [bidirectional] // serial data in / data out (p12)
-        optional SDO: 16 [output] // serial data out (p12)
+        optional CSX: CSX [input] // chip select, active-low (p12)
+        optional WRX_SCL: WRXSCL [input] // QSPI clock (p12)
+        optional DCX: DCX [input] // data/command select (p12)
+        optional SDI_RDX: SDIRDX [bidirectional] // serial data in / data out (p12)
+        optional SDO: SDO [output] // serial data out (p12)
         // MIPI-DSI interface (p13)
-        optional HSSI_CLK_P: 17 [input] // MIPI clock+ (p13)
-        optional HSSI_CLK_N: 18 [input] // MIPI clock- (p13)
-        optional HSSI_D0_P: 19 [bidirectional] // MIPI D0+ (p13)
-        optional HSSI_D0_N: 20 [bidirectional] // MIPI D0- (p13)
-        optional HSSI_D1_P: 21 [bidirectional] // MIPI D1+ (p13)
-        optional HSSI_D1_N: 22 [bidirectional] // MIPI D1- (p13)
+        optional HSSI_CLK_P: HSSICLKP [input] // MIPI clock+ (p13)
+        optional HSSI_CLK_N: HSSICLKN [input] // MIPI clock- (p13)
+        optional HSSI_D0_P: HSSID0P [bidirectional] // MIPI D0+ (p13)
+        optional HSSI_D0_N: HSSID0N [bidirectional] // MIPI D0- (p13)
+        optional HSSI_D1_P: HSSID1P [bidirectional] // MIPI D1+ (p13)
+        optional HSSI_D1_N: HSSID1N [bidirectional] // MIPI D1- (p13)
         // Control (p14)
-        optional RESX: 23 [input] // reset, active-low, no internal pull (p14)
-        optional IM0: 24 [input] // interface select bit 0 (p14)
-        optional IM1: 25 [input] // interface select bit 1 (p14)
-        optional BSTM: 26 [input] // boost mode select (p14)
-        optional TE: 27 [output] // tearing effect sync (p14)
-        optional TE1: 28 [output] // tearing effect 2 (p14)
-        optional SWIRE: 29 [output] // Swire protocol to power IC (p14)
+        optional RESX: RESX [input] // reset, active-low, no internal pull (p14)
+        optional IM0: IM0 [input] // interface select bit 0 (p14)
+        optional IM1: IM1 [input] // interface select bit 1 (p14)
+        optional BSTM: BSTM [input] // boost mode select (p14)
+        optional TE: TE [output] // tearing effect sync (p14)
+        optional TE1: TE1 [output] // tearing effect 2 (p14)
+        optional SWIRE: SWIRE [output] // Swire protocol to power IC (p14)
     }
 }
 

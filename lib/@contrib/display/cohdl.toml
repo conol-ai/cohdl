@@ -2,7 +2,7 @@
 name = "@contrib/display"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed display module (AMOLED/LCD + touch) devices and purchasable parts."
+description = "Community-contributed display module (AMOLED/LCD + touch) device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

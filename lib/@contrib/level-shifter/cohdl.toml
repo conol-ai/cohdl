@@ -6,5 +6,5 @@ description = "Community-contributed voltage level translator devices and purcha
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfn = "0.1.0"
+soic = "0.1.0"
 std = "0.3.0"

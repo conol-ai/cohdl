@@ -1,6 +1,6 @@
 // u-blox MIA-M10Q: standard precision GNSS module (GPS/GLONASS/Galileo/
-// BeiDou), 1.65-3.6V (datasheet UBX-22015849 R08). LGA-42 (9x9 pad grid,
-// A1-J9 naming). Pin assignment Table 10 (p9-11).
+// BeiDou), 1.65-3.6V (datasheet UBX-22015849 R08). M-LGA53, 4.5 x
+// 4.5 mm, 0.5 mm pitch (9x9 grid, A1-J9 naming). Pin assignment p9-11.
 
 #[doc("docs/mia-m10q.pdf")]
 pub device MIA_M10Q {
@@ -63,78 +63,7 @@ pub device MIA_M10Q {
 
 impl IC for MIA_M10Q {}
 
-#[doc("docs/mia-m10q.pdf")]
-pub part GNSS_MIA_M10Q: MIA_M10Q {
-    primary { mfr: "u-blox", mpn: "MIA-M10Q-00B", footprint: FP_Ublox_MIA_M10Q_LGA42_77X91mm }
-}
-
-// MIA-M10Q LGA-42 land pattern: 9x9 pad grid at 0.94mm pitch (module body
-// 7.7 x 9.1 mm per u-blox mechanical). Functional pads listed; GND pads
-// form a grid. Pad diameter 0.35mm. Pin A1 corner upper-left top view.
-pub pad P_MIA_M10Q_PAD {
-    shape: circle
-    size: (0.35mm)
-    layer: top_copper
-    plating: smd
-}
-
-pub footprint FP_Ublox_MIA_M10Q_LGA42_77X91mm {
-    pad A1: P_MIA_M10Q_PAD at (-3.76mm, -3.29mm)
-    pad A2: P_MIA_M10Q_PAD at (-2.82mm, -3.29mm)
-    pad A3: P_MIA_M10Q_PAD at (-1.88mm, -3.29mm)
-    pad A4: P_MIA_M10Q_PAD at (-0.94mm, -3.29mm)
-    pad A5: P_MIA_M10Q_PAD at (0mm, -3.29mm)
-    pad A6: P_MIA_M10Q_PAD at (0.94mm, -3.29mm)
-    pad A7: P_MIA_M10Q_PAD at (1.88mm, -3.29mm)
-    pad A8: P_MIA_M10Q_PAD at (2.82mm, -3.29mm)
-    pad A9: P_MIA_M10Q_PAD at (3.76mm, -3.29mm)
-    pad B1: P_MIA_M10Q_PAD at (-3.76mm, -2.35mm)
-    pad B2: P_MIA_M10Q_PAD at (-2.82mm, -2.35mm)
-    pad B8: P_MIA_M10Q_PAD at (2.82mm, -2.35mm)
-    pad B9: P_MIA_M10Q_PAD at (3.76mm, -2.35mm)
-    pad C1: P_MIA_M10Q_PAD at (-3.76mm, -1.41mm)
-    pad C3: P_MIA_M10Q_PAD at (-1.88mm, -1.41mm)
-    pad C4: P_MIA_M10Q_PAD at (-0.94mm, -1.41mm)
-    pad C5: P_MIA_M10Q_PAD at (0mm, -1.41mm)
-    pad C6: P_MIA_M10Q_PAD at (0.94mm, -1.41mm)
-    pad C7: P_MIA_M10Q_PAD at (1.88mm, -1.41mm)
-    pad C9: P_MIA_M10Q_PAD at (3.76mm, -1.41mm)
-    pad D1: P_MIA_M10Q_PAD at (-3.76mm, -0.47mm)
-    pad D2: P_MIA_M10Q_PAD at (-2.82mm, -0.47mm)
-    pad D9: P_MIA_M10Q_PAD at (3.76mm, -0.47mm)
-    pad E1: P_MIA_M10Q_PAD at (-3.76mm, 0.47mm)
-    pad E2: P_MIA_M10Q_PAD at (-2.82mm, 0.47mm)
-    pad E3: P_MIA_M10Q_PAD at (-1.88mm, 0.47mm)
-    pad E4: P_MIA_M10Q_PAD at (-0.94mm, 0.47mm)
-    pad E7: P_MIA_M10Q_PAD at (1.88mm, 0.47mm)
-    pad E9: P_MIA_M10Q_PAD at (3.76mm, 0.47mm)
-    pad F1: P_MIA_M10Q_PAD at (-3.76mm, 1.41mm)
-    pad F3: P_MIA_M10Q_PAD at (-1.88mm, 1.41mm)
-    pad F4: P_MIA_M10Q_PAD at (-0.94mm, 1.41mm)
-    pad F7: P_MIA_M10Q_PAD at (1.88mm, 1.41mm)
-    pad F9: P_MIA_M10Q_PAD at (3.76mm, 1.41mm)
-    pad G1: P_MIA_M10Q_PAD at (-3.76mm, 2.35mm)
-    pad G3: P_MIA_M10Q_PAD at (-1.88mm, 2.35mm)
-    pad G4: P_MIA_M10Q_PAD at (-0.94mm, 2.35mm)
-    pad G5: P_MIA_M10Q_PAD at (0mm, 2.35mm)
-    pad G6: P_MIA_M10Q_PAD at (0.94mm, 2.35mm)
-    pad G7: P_MIA_M10Q_PAD at (1.88mm, 2.35mm)
-    pad G9: P_MIA_M10Q_PAD at (3.76mm, 2.35mm)
-    pad H1: P_MIA_M10Q_PAD at (-3.76mm, 3.29mm)
-    pad H8: P_MIA_M10Q_PAD at (2.82mm, 3.29mm)
-    pad H9: P_MIA_M10Q_PAD at (3.76mm, 3.29mm)
-    pad J1: P_MIA_M10Q_PAD at (-3.76mm, 4.23mm)
-    pad J2: P_MIA_M10Q_PAD at (-2.82mm, 4.23mm)
-    pad J3: P_MIA_M10Q_PAD at (-1.88mm, 4.23mm)
-    pad J4: P_MIA_M10Q_PAD at (-0.94mm, 4.23mm)
-    pad J5: P_MIA_M10Q_PAD at (0mm, 4.23mm)
-    pad J6: P_MIA_M10Q_PAD at (0.94mm, 4.23mm)
-    pad J7: P_MIA_M10Q_PAD at (1.88mm, 4.23mm)
-    pad J8: P_MIA_M10Q_PAD at (2.82mm, 4.23mm)
-    pad J9: P_MIA_M10Q_PAD at (3.76mm, 4.23mm)
-    silkscreen {
-        pin_1_marker near pad A1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (9.0mm, 10.4mm) }
-    silkscreen_ref { at: (0mm, -5.4mm) }
-}
+// No public part binding: p19 is the component mechanical drawing and gives
+// package-contact dimensions, not a manufacturer-recommended PCB land
+// pattern. Publish MIA-M10Q-00B only after a source-backed PCB footprint is
+// available.

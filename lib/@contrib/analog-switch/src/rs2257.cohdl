@@ -19,43 +19,41 @@ impl IC for RS2257 {}
 
 #[doc("docs/rs2257.pdf")]
 pub part SW_RS2257XH: RS2257 {
-    primary { mfr: "Run-IC", mpn: "RS2257XH", footprint: SOT6P95X160X290N }
+    primary { mfr: "Run-IC", mpn: "RS2257XH", footprint: SOT6P95X290X160N }
 }
 
 #[doc("docs/rs2257.pdf")]
 pub part SW_RS2257XC6: RS2257 {
-    primary { mfr: "Run-IC", mpn: "RS2257XC6", footprint: SOT6P65X125X210N }
+    primary { mfr: "Run-IC", mpn: "RS2257XC6", footprint: SOT6P65X210X125N }
 }
 
-// SOT23-6 land (datasheet p11): pitch e 0.95 BSC, body D 2.82-3.02, E 1.50-1.70,
-// e1 1.80-2.00, lead b 0.30-0.50, L 0.30-0.60. Pin 1 upper-left, CCW.
-// Land derivation: width 0.55 (b max 0.50 + 0.05), length 1.0 (L + toe 0.35
-// + heel 0.20), centres at +/-0.95 (e1/2 nominal).
+// SOT23-6 manufacturer-recommended land pattern (datasheet p11), rotated
+// 90 degrees here: 0.99 x 0.69 mm lands, 0.95 mm pitch, and 2.59 mm
+// between opposing row centres. Pin 1 is upper-left in top view, CCW.
 pub pad P_RS2257_SOT236_LEAD {
     shape: rect
-    size: (1mm, 0.55mm)
+    size: (0.99mm, 0.69mm)
     layer: top_copper
     plating: smd
 }
 
-pub footprint SOT6P95X160X290N {
-    pad 1: P_RS2257_SOT236_LEAD at (-0.95mm, -0.95mm)
-    pad 2: P_RS2257_SOT236_LEAD at (-0.95mm, 0mm)
-    pad 3: P_RS2257_SOT236_LEAD at (-0.95mm, 0.95mm)
-    pad 4: P_RS2257_SOT236_LEAD at (0.95mm, 0.95mm)
-    pad 5: P_RS2257_SOT236_LEAD at (0.95mm, 0mm)
-    pad 6: P_RS2257_SOT236_LEAD at (0.95mm, -0.95mm)
+pub footprint SOT6P95X290X160N {
+    pad 1: P_RS2257_SOT236_LEAD at (-1.295mm, -0.95mm)
+    pad 2: P_RS2257_SOT236_LEAD at (-1.295mm, 0mm)
+    pad 3: P_RS2257_SOT236_LEAD at (-1.295mm, 0.95mm)
+    pad 4: P_RS2257_SOT236_LEAD at (1.295mm, 0.95mm)
+    pad 5: P_RS2257_SOT236_LEAD at (1.295mm, 0mm)
+    pad 6: P_RS2257_SOT236_LEAD at (1.295mm, -0.95mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.8mm, 4.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.6mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
 
-// SOT363 (SC70-6) land (datasheet p10): pitch e 0.65 BSC, body D 2.0-2.2,
-// E 1.15-1.35, e1 1.30 BSC, lead b 0.15-0.35, L 0.26-0.46.
-// Land derivation: width 0.40 (b max 0.35 + 0.05), length 0.75, centres
-// at +/-0.65 (e1/2).
+// SOT363 (SC70-6) manufacturer-recommended land pattern (datasheet p10),
+// rotated 90 degrees here: 0.75 x 0.40 mm lands, 0.65 mm pitch, and
+// 1.90 mm between opposing row centres.
 pub pad P_RS2257_SC706_LEAD {
     shape: rect
     size: (0.75mm, 0.4mm)
@@ -63,16 +61,16 @@ pub pad P_RS2257_SC706_LEAD {
     plating: smd
 }
 
-pub footprint SOT6P65X125X210N {
-    pad 1: P_RS2257_SC706_LEAD at (-0.65mm, -0.65mm)
-    pad 2: P_RS2257_SC706_LEAD at (-0.65mm, 0mm)
-    pad 3: P_RS2257_SC706_LEAD at (-0.65mm, 0.65mm)
-    pad 4: P_RS2257_SC706_LEAD at (0.65mm, 0.65mm)
-    pad 5: P_RS2257_SC706_LEAD at (0.65mm, 0mm)
-    pad 6: P_RS2257_SC706_LEAD at (0.65mm, -0.65mm)
+pub footprint SOT6P65X210X125N {
+    pad 1: P_RS2257_SC706_LEAD at (-0.95mm, -0.65mm)
+    pad 2: P_RS2257_SC706_LEAD at (-0.95mm, 0mm)
+    pad 3: P_RS2257_SC706_LEAD at (-0.95mm, 0.65mm)
+    pad 4: P_RS2257_SC706_LEAD at (0.95mm, 0.65mm)
+    pad 5: P_RS2257_SC706_LEAD at (0.95mm, 0mm)
+    pad 6: P_RS2257_SC706_LEAD at (0.95mm, -0.65mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (2.2mm, 3.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.2mm, 2.7mm) }
     silkscreen_ref { at: (0mm, -1.7mm) }
 }

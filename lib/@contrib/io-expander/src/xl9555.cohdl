@@ -113,63 +113,13 @@ pub device XL9555 {
         required A1: 23 [input]
         required A2: 24 [input]
         // Exposed thermal pad — must be soldered to board ground (note 2).
-        required EPAD: 25 [power_in]
+        required EPAD: Y [power_in]
     }
 }
 
 impl IC for XL9555 {}
 
-#[doc("docs/xl9535-xl9555.pdf")]
-pub part IOX_XL9555_QFN24: XL9555[QFN24] {
-    primary { mfr: "Xinluda", mpn: "XL9555QF24", footprint: qfn::QFN24N50P400X400_1EP27X27 }
-}
-
-#[doc("docs/xl9535-xl9555.pdf")]
-pub part IOX_XL9555_TSSOP24: XL9555[TSSOP24] {
-    primary { mfr: "Xinluda", mpn: "XL9555", footprint: SOP24P65X640X120N }
-}
-
-// TSSOP24 land (datasheet section 13.3, p24): body D 7.8, body width E 4.4,
-// lead span E1 6.4, pitch e 0.65 BSC, lead b 0.19-0.3, foot L 0.5.
-// 12 gull-wing leads per side, pin 1 upper-left top view.
-// Land derivation (documented, not printed): width 0.35 (lead b max 0.3 +
-// 0.05), length 1.1 centred at +/-3.05 — covers the 2.7-3.2 foot zone with
-// 0.2 heel / 0.4 toe extension.
-pub pad P_XL9555_TSSOP24_LEAD {
-    shape: rect
-    size: (1.1mm, 0.35mm)
-    layer: top_copper
-    plating: smd
-}
-
-pub footprint SOP24P65X640X120N {
-    pad 1: P_XL9555_TSSOP24_LEAD at (-3.05mm, -3.575mm)
-    pad 2: P_XL9555_TSSOP24_LEAD at (-3.05mm, -2.925mm)
-    pad 3: P_XL9555_TSSOP24_LEAD at (-3.05mm, -2.275mm)
-    pad 4: P_XL9555_TSSOP24_LEAD at (-3.05mm, -1.625mm)
-    pad 5: P_XL9555_TSSOP24_LEAD at (-3.05mm, -0.975mm)
-    pad 6: P_XL9555_TSSOP24_LEAD at (-3.05mm, -0.325mm)
-    pad 7: P_XL9555_TSSOP24_LEAD at (-3.05mm, 0.325mm)
-    pad 8: P_XL9555_TSSOP24_LEAD at (-3.05mm, 0.975mm)
-    pad 9: P_XL9555_TSSOP24_LEAD at (-3.05mm, 1.625mm)
-    pad 10: P_XL9555_TSSOP24_LEAD at (-3.05mm, 2.275mm)
-    pad 11: P_XL9555_TSSOP24_LEAD at (-3.05mm, 2.925mm)
-    pad 12: P_XL9555_TSSOP24_LEAD at (-3.05mm, 3.575mm)
-    pad 13: P_XL9555_TSSOP24_LEAD at (3.05mm, 3.575mm)
-    pad 14: P_XL9555_TSSOP24_LEAD at (3.05mm, 2.925mm)
-    pad 15: P_XL9555_TSSOP24_LEAD at (3.05mm, 2.275mm)
-    pad 16: P_XL9555_TSSOP24_LEAD at (3.05mm, 1.625mm)
-    pad 17: P_XL9555_TSSOP24_LEAD at (3.05mm, 0.975mm)
-    pad 18: P_XL9555_TSSOP24_LEAD at (3.05mm, 0.325mm)
-    pad 19: P_XL9555_TSSOP24_LEAD at (3.05mm, -0.325mm)
-    pad 20: P_XL9555_TSSOP24_LEAD at (3.05mm, -0.975mm)
-    pad 21: P_XL9555_TSSOP24_LEAD at (3.05mm, -1.625mm)
-    pad 22: P_XL9555_TSSOP24_LEAD at (3.05mm, -2.275mm)
-    pad 23: P_XL9555_TSSOP24_LEAD at (3.05mm, -2.925mm)
-    pad 24: P_XL9555_TSSOP24_LEAD at (3.05mm, -3.575mm)
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 8.8mm) }
-    silkscreen_ref { at: (0mm, -4.6mm) }
-}
+// Device-only: the datasheet gives package outlines but no recommended PCB
+// lands for any package. The former TSSOP and QFN parts were inferred from
+// those outlines; do not publish purchasable bindings until Xinluda supplies
+// authoritative land/paste/via data or a separately reviewed IPC derivation.

@@ -2,9 +2,8 @@
 name = "@contrib/sf32"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed SiFli SF32LB52X AIoT MCU devices and purchasable parts."
+description = "Community-contributed SiFli SF32LB52X AIoT MCU device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfn = "0.1.0"
 std = "0.3.0"

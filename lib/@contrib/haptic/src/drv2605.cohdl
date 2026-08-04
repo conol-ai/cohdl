@@ -23,28 +23,27 @@ impl IC for DRV2605 {}
 
 #[doc("docs/drv2605.pdf")]
 pub part HAPTIC_DRV2605: DRV2605 {
-    primary { mfr: "Texas Instruments", mpn: "DRV2605YFCT", footprint: BGA9C50P3X3_145X145X50N }
+    primary { mfr: "Texas Instruments", mpn: "DRV2605YZFR", footprint: BGA9C50P3X3_145X145X50N }
 }
 
-// 9-pin DSBGA (0.5-mm pitch) land. TI YZF package: 1.45 x 1.45 mm body,
-// 0.5 mm pitch, 0.28 mm ball. Land pads: 0.28 mm diameter (ball), centres
-// at +/-0.5 mm; A1 corner upper-left.
+// TI YZF0009 example board layout: 9-pin DSBGA, 0.5 mm pitch,
+// 0.245 mm-diameter lands, and 1.41-1.47 mm body. A1 is upper-left.
 pub pad P_DRV2605_BALL {
     shape: circle
-    size: (0.28mm)
+    size: (0.245mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint BGA9C50P3X3_145X145X50N {
     pad A1: P_DRV2605_BALL at (-0.5mm, -0.5mm)
-    pad B1: P_DRV2605_BALL at (0mm, -0.5mm)
-    pad C1: P_DRV2605_BALL at (0.5mm, -0.5mm)
-    pad A2: P_DRV2605_BALL at (-0.5mm, 0mm)
+    pad A2: P_DRV2605_BALL at (0mm, -0.5mm)
+    pad A3: P_DRV2605_BALL at (0.5mm, -0.5mm)
+    pad B1: P_DRV2605_BALL at (-0.5mm, 0mm)
     pad B2: P_DRV2605_BALL at (0mm, 0mm)
-    pad C2: P_DRV2605_BALL at (0.5mm, 0mm)
-    pad A3: P_DRV2605_BALL at (-0.5mm, 0.5mm)
-    pad B3: P_DRV2605_BALL at (0mm, 0.5mm)
+    pad B3: P_DRV2605_BALL at (0.5mm, 0mm)
+    pad C1: P_DRV2605_BALL at (-0.5mm, 0.5mm)
+    pad C2: P_DRV2605_BALL at (0mm, 0.5mm)
     pad C3: P_DRV2605_BALL at (0.5mm, 0.5mm)
     silkscreen {
         pin_1_marker near pad A1 shape dot

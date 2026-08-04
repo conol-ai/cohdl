@@ -45,59 +45,63 @@ impl IC for PCF85063A {}
 
 #[doc("docs/pcf85063a.pdf")]
 pub part RTC_PCF85063AT: PCF85063A[SO8] {
-    primary { mfr: "NXP", mpn: "PCF85063AT/AY", footprint: SOIC8P127X390X175N }
+    primary { mfr: "NXP", mpn: "PCF85063AT/AY", footprint: SOIC8P127X600X175N }
 }
 
 #[doc("docs/pcf85063a.pdf")]
 pub part RTC_PCF85063ATT: PCF85063A[TSSOP8] {
-    primary { mfr: "NXP", mpn: "PCF85063ATT/AJ", footprint: TSSOP8P65X300X110N }
+    primary { mfr: "NXP", mpn: "PCF85063ATT/AJ", footprint: SOP8P65X490X110N }
 }
 
-// SO8 land (3.9mm body, 1.27 pitch). Gull-wing derivation: width 0.55,
-// length 1.2, centres at +/-2.7 (e1 5.4/2, 1.27 pitch 4 leads/side).
+// DFN10 remains device-only. Its exposed die paddle is not an electrical VSS
+// terminal and must stay isolated; no purchasable binding is asserted here.
+
+// NXP Figure 36 SO8 reflow footprint: 1.30 x 0.60 mm lands, 1.27 mm
+// pitch, 6.60 mm copper span, and a 7.00 x 5.50 mm occupied area.
 pub pad P_PCF85063A_SO8_LEAD {
     shape: rect
-    size: (1.2mm, 0.55mm)
+    size: (1.3mm, 0.6mm)
     layer: top_copper
     plating: smd
 }
 
-pub footprint SOIC8P127X390X175N {
-    pad 1: P_PCF85063A_SO8_LEAD at (-2.7mm, -1.905mm)
-    pad 2: P_PCF85063A_SO8_LEAD at (-2.7mm, -0.635mm)
-    pad 3: P_PCF85063A_SO8_LEAD at (-2.7mm, 0.635mm)
-    pad 4: P_PCF85063A_SO8_LEAD at (-2.7mm, 1.905mm)
-    pad 5: P_PCF85063A_SO8_LEAD at (2.7mm, 1.905mm)
-    pad 6: P_PCF85063A_SO8_LEAD at (2.7mm, 0.635mm)
-    pad 7: P_PCF85063A_SO8_LEAD at (2.7mm, -0.635mm)
-    pad 8: P_PCF85063A_SO8_LEAD at (2.7mm, -1.905mm)
+pub footprint SOIC8P127X600X175N {
+    pad 1: P_PCF85063A_SO8_LEAD at (-2.65mm, -1.905mm)
+    pad 2: P_PCF85063A_SO8_LEAD at (-2.65mm, -0.635mm)
+    pad 3: P_PCF85063A_SO8_LEAD at (-2.65mm, 0.635mm)
+    pad 4: P_PCF85063A_SO8_LEAD at (-2.65mm, 1.905mm)
+    pad 5: P_PCF85063A_SO8_LEAD at (2.65mm, 1.905mm)
+    pad 6: P_PCF85063A_SO8_LEAD at (2.65mm, 0.635mm)
+    pad 7: P_PCF85063A_SO8_LEAD at (2.65mm, -0.635mm)
+    pad 8: P_PCF85063A_SO8_LEAD at (2.65mm, -1.905mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (6.2mm, 4.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.5mm, 6mm) }
     silkscreen_ref { at: (0mm, -2.4mm) }
 }
 
-// TSSOP8 land (3mm body, 0.65 pitch). Gull-wing: width 0.42, length 1.1.
+// NXP Figure 38 TSSOP8 reflow footprint: 1.15 x 0.45 mm lands,
+// 0.65 mm pitch, 5.50 mm copper span, and a 5.75 x 3.60 mm occupied area.
 pub pad P_PCF85063A_TSSOP8_LEAD {
     shape: rect
-    size: (1.1mm, 0.42mm)
+    size: (1.15mm, 0.45mm)
     layer: top_copper
     plating: smd
 }
 
-pub footprint TSSOP8P65X300X110N {
-    pad 1: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, -0.975mm)
-    pad 2: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, -0.325mm)
-    pad 3: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, 0.325mm)
-    pad 4: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, 0.975mm)
-    pad 5: P_PCF85063A_TSSOP8_LEAD at (2.1mm, 0.975mm)
-    pad 6: P_PCF85063A_TSSOP8_LEAD at (2.1mm, 0.325mm)
-    pad 7: P_PCF85063A_TSSOP8_LEAD at (2.1mm, -0.325mm)
-    pad 8: P_PCF85063A_TSSOP8_LEAD at (2.1mm, -0.975mm)
+pub footprint SOP8P65X490X110N {
+    pad 1: P_PCF85063A_TSSOP8_LEAD at (-2.175mm, -0.975mm)
+    pad 2: P_PCF85063A_TSSOP8_LEAD at (-2.175mm, -0.325mm)
+    pad 3: P_PCF85063A_TSSOP8_LEAD at (-2.175mm, 0.325mm)
+    pad 4: P_PCF85063A_TSSOP8_LEAD at (-2.175mm, 0.975mm)
+    pad 5: P_PCF85063A_TSSOP8_LEAD at (2.175mm, 0.975mm)
+    pad 6: P_PCF85063A_TSSOP8_LEAD at (2.175mm, 0.325mm)
+    pad 7: P_PCF85063A_TSSOP8_LEAD at (2.175mm, -0.325mm)
+    pad 8: P_PCF85063A_TSSOP8_LEAD at (2.175mm, -0.975mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (5.0mm, 4.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.25mm, 4.1mm) }
     silkscreen_ref { at: (0mm, -2.4mm) }
 }

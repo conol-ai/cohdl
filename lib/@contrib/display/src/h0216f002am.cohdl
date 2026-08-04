@@ -10,7 +10,7 @@ pub device H0216F002AM {
         optional TP_RST: 3 [input] // touch reset (p6)
         optional TP_SDA: 4 [bidirectional] // touch I2C data (p6)
         optional TP_SCL: 5 [input] // touch I2C clock (p6)
-        optional TP_VCC: 6 [power_in] // touch 3.3V supply (p6)
+        optional TP_VCC: 6 [power_out] // touch-panel 3.3V output (p6)
         required GND7: 7 [power_in]
         required IOVCC: 8 [power_in] // logic supply 1.8-3.3V (p6)
         optional VCI: 9 [power_in] // DDIC DCDC supply (p6)
@@ -41,55 +41,8 @@ pub device H0216F002AM {
 
 impl IC for H0216F002AM {}
 
-#[doc("docs/h0216f002am.pdf")]
-pub part DISP_H0216F002AM: H0216F002AM {
-    primary { mfr: "Huaxia RGB", mpn: "H0216F002AM", footprint: FP_H0216F002AM_FPC31 }
-}
-
-// 31-pin FPC footprint (0.5mm pitch, bottom-contact). Pad 0.3 x 1.5mm.
-// Pin 1 at left; FPC occupies one edge of the 40.29 x 41.09mm module.
-pub pad P_H0216_FPC_PAD {
-    shape: rect
-    size: (0.3mm, 1.5mm)
-    layer: top_copper
-    plating: smd
-}
-
-pub footprint FP_H0216F002AM_FPC31 {
-    pad 1: P_H0216_FPC_PAD at (-7.5mm, 0mm)
-    pad 2: P_H0216_FPC_PAD at (-7mm, 0mm)
-    pad 3: P_H0216_FPC_PAD at (-6.5mm, 0mm)
-    pad 4: P_H0216_FPC_PAD at (-6mm, 0mm)
-    pad 5: P_H0216_FPC_PAD at (-5.5mm, 0mm)
-    pad 6: P_H0216_FPC_PAD at (-5mm, 0mm)
-    pad 7: P_H0216_FPC_PAD at (-4.5mm, 0mm)
-    pad 8: P_H0216_FPC_PAD at (-4mm, 0mm)
-    pad 9: P_H0216_FPC_PAD at (-3.5mm, 0mm)
-    pad 10: P_H0216_FPC_PAD at (-3mm, 0mm)
-    pad 11: P_H0216_FPC_PAD at (-2.5mm, 0mm)
-    pad 12: P_H0216_FPC_PAD at (-2mm, 0mm)
-    pad 13: P_H0216_FPC_PAD at (-1.5mm, 0mm)
-    pad 14: P_H0216_FPC_PAD at (-1mm, 0mm)
-    pad 15: P_H0216_FPC_PAD at (-0.5mm, 0mm)
-    pad 16: P_H0216_FPC_PAD at (0mm, 0mm)
-    pad 17: P_H0216_FPC_PAD at (0.5mm, 0mm)
-    pad 18: P_H0216_FPC_PAD at (1mm, 0mm)
-    pad 19: P_H0216_FPC_PAD at (1.5mm, 0mm)
-    pad 20: P_H0216_FPC_PAD at (2mm, 0mm)
-    pad 21: P_H0216_FPC_PAD at (2.5mm, 0mm)
-    pad 22: P_H0216_FPC_PAD at (3mm, 0mm)
-    pad 23: P_H0216_FPC_PAD at (3.5mm, 0mm)
-    pad 24: P_H0216_FPC_PAD at (4mm, 0mm)
-    pad 25: P_H0216_FPC_PAD at (4.5mm, 0mm)
-    pad 26: P_H0216_FPC_PAD at (5mm, 0mm)
-    pad 27: P_H0216_FPC_PAD at (5.5mm, 0mm)
-    pad 28: P_H0216_FPC_PAD at (6mm, 0mm)
-    pad 29: P_H0216_FPC_PAD at (6.5mm, 0mm)
-    pad 30: P_H0216_FPC_PAD at (7mm, 0mm)
-    pad 31: P_H0216_FPC_PAD at (7.5mm, 0mm)
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (42mm, 43mm) }
-    silkscreen_ref { at: (0mm, -2mm) }
-}
+// No public part binding: the module drawing identifies an installed
+// OK-F302-31115, 31-contact, 0.3 mm double-row connector but does not provide
+// its authoritative PCB land and mechanical-anchor dimensions. A fabricated
+// single-row 0.5 mm FPC footprint would mate with neither the module nor its
+// specified connector.

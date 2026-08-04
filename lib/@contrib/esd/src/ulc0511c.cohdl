@@ -11,25 +11,7 @@ pub device ULC0511C {
 }
 
 impl TwoTerminal for ULC0511C {}
-#[doc("docs/ulc0511c.pdf")]
-pub part ESD_ULC0511C: ULC0511C {
-    primary { mfr: "Tergy", mpn: "ULC0511C", footprint: FP_DFN1006_0402 }
-}
 
-// DFN1006DN = 0402 land (1.0 x 0.6 mm body, pads 0.5 x 0.6 mm).
-pub pad P_DFN1006_PAD {
-    shape: rect
-    size: (0.5mm, 0.6mm)
-    layer: top_copper
-    plating: smd
-}
-
-pub footprint FP_DFN1006_0402 {
-    pad 1: P_DFN1006_PAD at (-0.45mm, 0mm)
-    pad 2: P_DFN1006_PAD at (0.45mm, 0mm)
-    silkscreen {
-        pin_1_marker near pad 1 shape dot
-    }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (1.6mm, 1.2mm) }
-    silkscreen_ref { at: (0mm, -0.9mm) }
-}
+// No public part binding: the source gives only the DFN1006DN component
+// outline, not a recommended PCB land pattern. The former 0402-style lands
+// were inferred and are not exposed as fabrication-ready geometry.

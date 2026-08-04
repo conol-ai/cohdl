@@ -1,5 +1,5 @@
 // Awinic AW86224A/B: low-power F0-detect-and-tracking LRA haptic driver,
-// I2C, integrated 3K memory (datasheet V1.7, November 2021). WLCSP-9
+// I2C, integrated 3K memory (datasheet V1.7, November 2021). FCQFN-9
 // 1.37 x 1.37 mm, 0.4 mm ball pitch (package p39, land pattern p40).
 // Pin definition p2 Table; A/B variants share pinout.
 
@@ -25,10 +25,10 @@ impl IC for AW86224 {}
 
 #[doc("docs/aw86224.pdf")]
 pub part HAPTIC_AW86224: AW86224 {
-    primary { mfr: "Awinic", mpn: "AW86224FCR", footprint: BGA9C40P3X3_137X137X40N }
+    primary { mfr: "Awinic", mpn: "AW86224AFCR", footprint: QFN9N40P137X137 }
 }
 
-// WLCSP-9 land pattern (datasheet p40): pitch 0.40 TYP, pad diameter 0.22
+// FCQFN-9 land pattern (datasheet p40): pitch 0.40 TYP, pad diameter 0.22
 // (ball diameter, p39), outer pad edge-to-edge span 1.02 REF (= 0.8 pitch
 // span + 0.22 pad). Ball centres at +/-0.4 mm; A1 corner upper-left.
 pub pad P_AW86224_BALL {
@@ -38,15 +38,15 @@ pub pad P_AW86224_BALL {
     plating: smd
 }
 
-pub footprint BGA9C40P3X3_137X137X40N {
+pub footprint QFN9N40P137X137 {
     pad A1: P_AW86224_BALL at (-0.4mm, -0.4mm)
-    pad B1: P_AW86224_BALL at (0mm, -0.4mm)
-    pad C1: P_AW86224_BALL at (0.4mm, -0.4mm)
-    pad A2: P_AW86224_BALL at (-0.4mm, 0mm)
+    pad A2: P_AW86224_BALL at (0mm, -0.4mm)
+    pad A3: P_AW86224_BALL at (0.4mm, -0.4mm)
+    pad B1: P_AW86224_BALL at (-0.4mm, 0mm)
     pad B2: P_AW86224_BALL at (0mm, 0mm)
-    pad C2: P_AW86224_BALL at (0.4mm, 0mm)
-    pad A3: P_AW86224_BALL at (-0.4mm, 0.4mm)
-    pad B3: P_AW86224_BALL at (0mm, 0.4mm)
+    pad B3: P_AW86224_BALL at (0.4mm, 0mm)
+    pad C1: P_AW86224_BALL at (-0.4mm, 0.4mm)
+    pad C2: P_AW86224_BALL at (0mm, 0.4mm)
     pad C3: P_AW86224_BALL at (0.4mm, 0.4mm)
     silkscreen {
         pin_1_marker near pad A1 shape dot

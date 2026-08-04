@@ -92,6 +92,35 @@ fn std_exports_only_the_core_trait_allowlist() {
 
 #[test]
 fn every_shipped_component_library_has_consistent_part_footprints() {
+    fn assert_pin(
+        world: &cohdl::resolve::World,
+        device_name: &str,
+        variant: Option<&str>,
+        pin_name: &str,
+        number: &str,
+        role: cohdl::ast::PinRole,
+    ) {
+        let device = &world.devices[device_name];
+        let pin = device
+            .pins_for(variant)
+            .iter()
+            .find(|pin| pin.name.name == pin_name)
+            .unwrap_or_else(|| panic!("missing source-locked pin `{pin_name}` on `{device_name}`"));
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong physical assignment for `{device_name}.{pin_name}`"
+        );
+        assert_eq!(
+            pin.role_or_default(),
+            role,
+            "wrong electrical role for `{device_name}.{pin_name}`"
+        );
+    }
+
     fn packages_under(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
         if dir.join("cohdl.toml").is_file() {
             out.push(dir.to_path_buf());
@@ -111,6 +140,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let std_dir = root.join("lib/std");
     let mut packages = Vec::new();
+    let mut qualified_contrib_parts = std::collections::BTreeSet::new();
     packages_under(&root.join("lib"), &mut packages);
     for package in packages {
         if package == std_dir {
@@ -155,6 +185,182 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
             package.display(),
             checked.diags.render(&checked.sm)
         );
+
+        match project.name.as_str() {
+            "@contrib/usb-uart" => {
+                for (name, number, role) in [
+                    ("VIO", "1", cohdl::ast::PinRole::PowerIn),
+                    ("GND", "2", cohdl::ast::PinRole::PowerIn),
+                    ("VDD5", "3", cohdl::ast::PinRole::PowerIn),
+                    ("TXD", "4", cohdl::ast::PinRole::Output),
+                    ("RXD", "5", cohdl::ast::PinRole::Input),
+                    ("V3", "6", cohdl::ast::PinRole::PowerOut),
+                    ("UDP", "7", cohdl::ast::PinRole::Bidirectional),
+                    ("UDN", "8", cohdl::ast::PinRole::Bidirectional),
+                    ("VBUS", "9", cohdl::ast::PinRole::Input),
+                    ("ACTN", "10", cohdl::ast::PinRole::Output),
+                    ("DCD", "11", cohdl::ast::PinRole::Input),
+                    ("DTR_TNOW", "12", cohdl::ast::PinRole::Output),
+                    ("RTS", "13", cohdl::ast::PinRole::Output),
+                    ("DSR", "14", cohdl::ast::PinRole::Input),
+                    ("CTS", "15", cohdl::ast::PinRole::Input),
+                    ("RI", "16", cohdl::ast::PinRole::Input),
+                    ("EPAD", "0", cohdl::ast::PinRole::PowerIn),
+                ] {
+                    assert_pin(
+                        &checked.world,
+                        "contrib_usb_uart::CH343P",
+                        None,
+                        name,
+                        number,
+                        role,
+                    );
+                }
+            }
+            "@contrib/lora" => {
+                for (name, number, role) in [
+                    ("VDD_IN", "1", cohdl::ast::PinRole::PowerIn),
+                    ("GND2", "2", cohdl::ast::PinRole::PowerIn),
+                    ("XTA", "3", cohdl::ast::PinRole::Passive),
+                    ("XTB", "4", cohdl::ast::PinRole::Passive),
+                    ("GND5", "5", cohdl::ast::PinRole::PowerIn),
+                    ("DIO3", "6", cohdl::ast::PinRole::Bidirectional),
+                    ("VREG", "7", cohdl::ast::PinRole::PowerOut),
+                    ("GND8", "8", cohdl::ast::PinRole::PowerIn),
+                    ("DCC_SW", "9", cohdl::ast::PinRole::Output),
+                    ("VBAT", "10", cohdl::ast::PinRole::PowerIn),
+                    ("VBAT_IO", "11", cohdl::ast::PinRole::PowerIn),
+                    ("DIO2", "12", cohdl::ast::PinRole::Bidirectional),
+                    ("DIO1", "13", cohdl::ast::PinRole::Bidirectional),
+                    ("BUSY", "14", cohdl::ast::PinRole::Output),
+                    ("NRESET", "15", cohdl::ast::PinRole::Input),
+                    ("MISO", "16", cohdl::ast::PinRole::Output),
+                    ("MOSI", "17", cohdl::ast::PinRole::Input),
+                    ("SCK", "18", cohdl::ast::PinRole::Input),
+                    ("NSS", "19", cohdl::ast::PinRole::Input),
+                    ("GND20", "20", cohdl::ast::PinRole::PowerIn),
+                    ("RFI_P", "21", cohdl::ast::PinRole::Input),
+                    ("RFI_N", "22", cohdl::ast::PinRole::Input),
+                    ("RFO", "23", cohdl::ast::PinRole::Output),
+                    ("VR_PA", "24", cohdl::ast::PinRole::PowerOut),
+                    ("EP", "0", cohdl::ast::PinRole::PowerIn),
+                ] {
+                    assert_pin(
+                        &checked.world,
+                        "contrib_lora::SX1262",
+                        None,
+                        name,
+                        number,
+                        role,
+                    );
+                }
+                for (name, number, role) in [
+                    ("VR_PA", "1", cohdl::ast::PinRole::PowerOut),
+                    ("VDD_IN", "2", cohdl::ast::PinRole::PowerIn),
+                    ("NRESET", "3", cohdl::ast::PinRole::Input),
+                    ("XTA", "4", cohdl::ast::PinRole::Passive),
+                    ("GND5", "5", cohdl::ast::PinRole::PowerIn),
+                    ("XTB", "6", cohdl::ast::PinRole::Passive),
+                    ("BUSY", "7", cohdl::ast::PinRole::Output),
+                    ("DIO1", "8", cohdl::ast::PinRole::Bidirectional),
+                    ("DIO2", "9", cohdl::ast::PinRole::Bidirectional),
+                    ("DIO3", "10", cohdl::ast::PinRole::Bidirectional),
+                    ("VBAT_IO", "11", cohdl::ast::PinRole::PowerIn),
+                    ("DCC_FB", "12", cohdl::ast::PinRole::PowerOut),
+                    ("GND13", "13", cohdl::ast::PinRole::PowerIn),
+                    ("DCC_SW", "14", cohdl::ast::PinRole::Output),
+                    ("VBAT", "15", cohdl::ast::PinRole::PowerIn),
+                    ("MISO_TX", "16", cohdl::ast::PinRole::Output),
+                    ("MOSI_RX", "17", cohdl::ast::PinRole::Input),
+                    ("SCK_RTSN", "18", cohdl::ast::PinRole::Bidirectional),
+                    ("NSS_CTSN", "19", cohdl::ast::PinRole::Input),
+                    ("GND20", "20", cohdl::ast::PinRole::PowerIn),
+                    ("GND21", "21", cohdl::ast::PinRole::PowerIn),
+                    ("RFIO", "22", cohdl::ast::PinRole::Bidirectional),
+                    ("GND23", "23", cohdl::ast::PinRole::PowerIn),
+                    ("GND24", "24", cohdl::ast::PinRole::PowerIn),
+                    ("EP", "0", cohdl::ast::PinRole::PowerIn),
+                ] {
+                    assert_pin(
+                        &checked.world,
+                        "contrib_lora::SX1280",
+                        None,
+                        name,
+                        number,
+                        role,
+                    );
+                }
+            }
+            "@contrib/display" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_display::H0216F002AM",
+                    None,
+                    "TP_VCC",
+                    "6",
+                    cohdl::ast::PinRole::PowerOut,
+                );
+            }
+            "@contrib/ldo" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_ldo::RT9080",
+                    Some("TSOT235"),
+                    "NC4",
+                    "4",
+                    cohdl::ast::PinRole::Passive,
+                );
+            }
+            "@contrib/ir-emitter" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_ir_emitter::VSMY14940",
+                    None,
+                    "Cathode",
+                    "1",
+                    cohdl::ast::PinRole::Passive,
+                );
+                assert_pin(
+                    &checked.world,
+                    "contrib_ir_emitter::VSMY14940",
+                    None,
+                    "Anode",
+                    "2",
+                    cohdl::ast::PinRole::Passive,
+                );
+            }
+            "@contrib/io-expander" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_io_expander::XL9555",
+                    Some("QFN24"),
+                    "EPAD",
+                    "Y",
+                    cohdl::ast::PinRole::PowerIn,
+                );
+            }
+            "@contrib/audio-amp" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_audio_amp::MAX98357A",
+                    None,
+                    "EP",
+                    "EP",
+                    cohdl::ast::PinRole::Passive,
+                );
+            }
+            "@contrib/pmu" => {
+                assert_pin(
+                    &checked.world,
+                    "contrib_pmu::AXP2101",
+                    None,
+                    "EPAD",
+                    "EP",
+                    cohdl::ast::PinRole::PowerIn,
+                );
+            }
+            _ => {}
+        }
 
         let own_prefix = format!("{}::", cohdl::pipeline::package_root(&project.name));
         let own_components: Vec<&String> = checked
@@ -213,7 +419,232 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
             package.display(),
             footprint_diags.render(&checked.sm)
         );
+
+        // Contrib parts are fabrication-facing data, so internal pin/pad-set
+        // equality is not enough: their emitted copper must fit inside the
+        // authored courtyard and distinct electrical pads must not overlap.
+        // Keep this source-independent backstop beside the declaration-wide
+        // E807 check so every newly exported contrib part is covered.
+        if project.name.starts_with("@contrib/") {
+            const QUARANTINED_SHARED_QFN_LANDS: [&str; 8] = [
+                "qfn::QFN68N35P700X700_1EP549X549",
+                "qfn::QFN24N50P400X400_1EP27X27",
+                "qfn::QFN20N40P300X300_1EP170X170",
+                "qfn::QFN24N50P400X400_1EP245X245",
+                "qfn::QFN16N50P300X300_1EP170X170",
+                "qfn::QFN40N40P600X600_1EP44X44",
+                "qfn::QFN32N50P500X500_1EP34X34",
+                "qfn::QFN14N50P350X350_1EP20X20",
+            ];
+            for (part_name, part) in checked.world.parts.iter().filter(|(name, _)| {
+                name.starts_with(&own_prefix)
+                    && checked
+                        .world
+                        .symbols
+                        .get(*name)
+                        .is_some_and(|symbol| symbol.is_pub)
+            }) {
+                let device_name = &part.device.name.name;
+                let variant = part
+                    .device
+                    .variant
+                    .as_ref()
+                    .map(|variant| variant.name.as_str());
+                let mut pin_rows = checked.world.devices[device_name]
+                    .pins_for(variant)
+                    .iter()
+                    .map(|pin| {
+                        let mut numbers = pin
+                            .numbers
+                            .iter()
+                            .map(|number| number.text.as_str())
+                            .collect::<Vec<_>>();
+                        numbers.sort_unstable();
+                        format!(
+                            "{}={}:{}:{}",
+                            pin.name.name,
+                            numbers.join(","),
+                            pin.role_or_default().name(),
+                            pin.obligation.keyword()
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                pin_rows.sort_unstable();
+                let pin_hash = cohdl::hash::sha256_hex(pin_rows.join("|").as_bytes());
+                let device_binding = format!("{}[{}]", device_name, variant.unwrap_or("-"));
+                for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+                    let fp_ref = entry
+                        .footprint
+                        .as_ref()
+                        .or(part.primary.footprint.as_ref())
+                        .unwrap_or_else(|| {
+                            panic!("public contrib part `{part_name}` has no fabrication footprint")
+                        });
+                    let mpn = entry
+                        .field("mpn")
+                        .expect("a public contrib part must have an exact MPN");
+                    let mfr = entry
+                        .field("mfr")
+                        .filter(|field| !field.value.trim().is_empty())
+                        .expect("a public contrib part must have an exact manufacturer");
+                    qualified_contrib_parts.insert(format!(
+                        "{}::{}|{}|{}|{}|{}|{}",
+                        project.name,
+                        cohdl::resolve::short(part_name),
+                        mfr.value,
+                        mpn.value,
+                        fp_ref.name,
+                        device_binding,
+                        pin_hash
+                    ));
+                    assert!(
+                        !QUARANTINED_SHARED_QFN_LANDS.contains(&fp_ref.name.as_str()),
+                        "public contrib part `{part_name}` uses quarantined generic land `{}`; bind a manufacturer-qualified part-specific footprint",
+                        fp_ref.name
+                    );
+                    let fp = &checked.world.footprints[&fp_ref.name];
+                    if cohdl::check::footprints::is_placeholder(fp) {
+                        panic!(
+                            "public contrib part `{part_name}` uses placeholder footprint `{}`",
+                            fp_ref.name
+                        );
+                    }
+                    let courtyard = fp.courtyard.as_ref().unwrap_or_else(|| {
+                        panic!(
+                            "public contrib part `{part_name}` footprint `{}` has no courtyard",
+                            fp_ref.name
+                        )
+                    });
+                    assert_eq!(
+                        courtyard.shape.0,
+                        cohdl::ast::PadShape::Rect,
+                        "public contrib part `{part_name}` footprint `{}` needs a rectangular courtyard for deterministic containment checking",
+                        fp_ref.name
+                    );
+                    let [court_w, court_h] = courtyard.size.as_slice() else {
+                        panic!(
+                            "public contrib part `{part_name}` footprint `{}` has malformed courtyard dimensions",
+                            fp_ref.name
+                        );
+                    };
+                    let court_left = 2 * courtyard.at.0.femto - court_w.femto;
+                    let court_right = 2 * courtyard.at.0.femto + court_w.femto;
+                    let court_top = 2 * courtyard.at.1.femto - court_h.femto;
+                    let court_bottom = 2 * courtyard.at.1.femto + court_h.femto;
+
+                    let mut copper = Vec::new();
+                    for place in &fp.pads {
+                        let pad = &checked.world.pads[&place.pad.name];
+                        let (mut width, mut height) = match pad.size.as_slice() {
+                            [diameter] => (diameter.femto, diameter.femto),
+                            [width, height] => (width.femto, height.femto),
+                            _ => panic!("validated pad geometry has invalid arity"),
+                        };
+                        if matches!(place.rotate, 90 | 270) {
+                            std::mem::swap(&mut width, &mut height);
+                        }
+                        let bounds = (
+                            2 * place.x.femto - width,
+                            2 * place.x.femto + width,
+                            2 * place.y.femto - height,
+                            2 * place.y.femto + height,
+                        );
+                        assert!(
+                            bounds.0 >= court_left
+                                && bounds.1 <= court_right
+                                && bounds.2 >= court_top
+                                && bounds.3 <= court_bottom,
+                            "public contrib part `{part_name}` footprint `{}` pad `{}` escapes its courtyard",
+                            fp_ref.name,
+                            place.number.text
+                        );
+                        let layer = pad
+                            .layer
+                            .map(|(layer, _)| layer)
+                            .expect("validated pad geometry has no copper layer");
+                        copper.push((place.number.text.as_str(), layer, bounds));
+                    }
+                    for hole in &fp.mount_holes {
+                        let (width, height) = match &hole.geom {
+                            cohdl::ast::MountHoleGeom::Diameter(diameter) => {
+                                (diameter.femto, diameter.femto)
+                            }
+                            cohdl::ast::MountHoleGeom::Size(size, _) => {
+                                let [width, height] = size.as_slice() else {
+                                    panic!("validated mount-hole geometry has invalid arity");
+                                };
+                                (width.femto, height.femto)
+                            }
+                        };
+                        let bounds = (
+                            2 * hole.x.femto - width,
+                            2 * hole.x.femto + width,
+                            2 * hole.y.femto - height,
+                            2 * hole.y.femto + height,
+                        );
+                        assert!(
+                            bounds.0 >= court_left
+                                && bounds.1 <= court_right
+                                && bounds.2 >= court_top
+                                && bounds.3 <= court_bottom,
+                            "public contrib part `{part_name}` footprint `{}` mount hole `{}` escapes its courtyard",
+                            fp_ref.name,
+                            hole.number.text
+                        );
+                    }
+                    for left in 0..copper.len() {
+                        for right in (left + 1)..copper.len() {
+                            let (left_number, left_layer, a) = copper[left];
+                            let (right_number, right_layer, b) = copper[right];
+                            let shares_layer = left_layer == right_layer
+                                || left_layer == cohdl::ast::PadLayer::ThroughAll
+                                || right_layer == cohdl::ast::PadLayer::ThroughAll;
+                            let bounding_boxes_overlap =
+                                a.0 < b.1 && b.0 < a.1 && a.2 < b.3 && b.2 < a.3;
+                            assert!(
+                                !shares_layer || !bounding_boxes_overlap,
+                                "public contrib part `{part_name}` footprint `{}` pads `{left_number}` and `{right_number}` have overlapping copper bounds on a shared layer",
+                                fp_ref.name
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    // This is intentionally an allowlist, not a count assertion: adding a
+    // purchasable contrib part requires a reviewer to record its exact
+    // manufacturer, MPN, fully-qualified footprint and a digest of its exact
+    // device/variant pin names, numbers, roles, and obligations here.
+    // Device-only declarations do not appear.
+    let expected: std::collections::BTreeSet<String> = [
+        "@contrib/analog-switch::SW_RS2257XC6|Run-IC|RS2257XC6|contrib_analog_switch::SOT6P65X210X125N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
+        "@contrib/analog-switch::SW_RS2257XH|Run-IC|RS2257XH|contrib_analog_switch::SOT6P95X290X160N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
+        "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|2fc6771cc0150a98f6ca02490534f5cfc8f529cef28651d676ddd39ac8e69d79",
+        "@contrib/env::ENV_BME280|Bosch Sensortec|BME280|contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm|contrib_env::BME280[-]|3383b88fba1dfc37e0ab29f9c06b5ea75ef23e02ffb0c151c33c7e0fd4a532cc",
+        "@contrib/esd::ESD_GBLC05C|ProTek|GBLC05C-LF-T7|contrib_esd::FP_SOD323_2P5X1P25mm|contrib_esd::GBLC05C[-]|8728da7595e160597f639c23bd3e6d2de2099a14d567437c396215734b86cd55",
+        "@contrib/haptic::HAPTIC_AW86224|Awinic|AW86224AFCR|contrib_haptic::QFN9N40P137X137|contrib_haptic::AW86224[-]|a243e2e20b41f64545620918dcbc20ab5293f487c3db74df83d7ced63e6bcbbc",
+        "@contrib/haptic::HAPTIC_DRV2605|Texas Instruments|DRV2605YZFR|contrib_haptic::BGA9C50P3X3_145X145X50N|contrib_haptic::DRV2605[-]|3f27e5ab72d051a631cca7886c663c47443161dde6e7d695fa3fe279a9278c99",
+        "@contrib/ir-emitter::IR_VSMY14940|Vishay|VSMY14940|contrib_ir_emitter::FP_VSMY14940_3P0X2P51mm|contrib_ir_emitter::VSMY14940[-]|47809dba08bd124beed8a95e1a84adc2edb8a56869dfd3541499756a90857b46",
+        "@contrib/keyscan::KEYSCAN_TCA8418|Texas Instruments|TCA8418RTWR|contrib_keyscan::QFN24N50P400X400_1EP245X245|contrib_keyscan::TCA8418[-]|e6a3ac51dc59733ef5b19704192c0a1532dd283277c3729ac36c7297f3dcdcef",
+        "@contrib/ldo::LDO_RT9080_33|Richtek|RT9080-33GJ5|contrib_ldo::SOT5P95X290X160N|contrib_ldo::RT9080[TSOT235]|6dbd8af8e6a20e00cb2e3ffa13af396f04f9aa9c5104208ea2d9b5f9f223f543",
+        "@contrib/led-driver::LEDDRV_AW21009|Awinic|AW21009QNR|contrib_led_driver::QFN20N40P300X300_1EP170X170|contrib_led_driver::AW21009[-]|14b2dff0bbf6db9eaa321f200c693958ddf42654d78aab634dd7deb286c7f11a",
+        "@contrib/level-shifter::LS_RS0104|Run-IC|RS0104YQ|soic::SOP14P65X640X120N|contrib_level_shifter::RS0104[TSSOP14]|bfbb765be1b02fb0c0bf15d35ffada722b9082bb2558410aa599a7ad7a3d6503",
+        "@contrib/lora::LORA_SX1262|Semtech|SX1262IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1262[-]|0283921c57536ef05472323278e94728e22d738f6ff31b8937a11f8df12a734c",
+        "@contrib/lora::LORA_SX1280|Semtech|SX1280IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1280[-]|57f667bbeac1ea0682f2b5ef0b09d53da8e0b4d9d7d644a9348b5721dc9da567",
+        "@contrib/nfc::NFC_ST25R3916|STMicroelectronics|ST25R3916-AQET|contrib_nfc::QFN32N50P500X500_1EP345X345|contrib_nfc::ST25R3916[-]|aa52ed734bb60338e6a1457e28efbfae87a0f33826c43894528c3aa4c6f3cb22",
+        "@contrib/rtc::RTC_PCF85063AT|NXP|PCF85063AT/AY|contrib_rtc::SOIC8P127X600X175N|contrib_rtc::PCF85063A[SO8]|fb7f2ef67e621b0c07acd144d8763a39525348b75f78bed4a4249b89f322297d",
+        "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|fb7f2ef67e621b0c07acd144d8763a39525348b75f78bed4a4249b89f322297d",
+        "@contrib/sd-card::CONN_MICROSD|Wurth Elektronik|693070010811|contrib_sd_card::FP_MicroSD_Wurth_693070010811|contrib_sd_card::MICROSD_SOCKET[-]|a927f96998d32e2e6ae630deb905da79cb9bdf0b7d504ee70441b294296dcec4",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        qualified_contrib_parts, expected,
+        "the public contrib part set changed; verify exact MPN, pin map, and manufacturer land before updating this allowlist"
+    );
 }
 
 #[test]

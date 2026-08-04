@@ -18,8 +18,8 @@ footprints live in focused packages:
 |---|---|---|
 | `std` | unqualified prelude traits such as `IC` and `Connector` | universal component contracts only |
 | `passive` | `passive::MLCC` | generated chip resistors, MLCCs, chip inductors, lands, and passive helper circuits |
-| `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | verified QFN, DFN, and SON package land patterns |
-| `soic` | `soic::SOIC8P127X790X216N` | verified SOIC package land patterns |
+| `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | QFN, DFN, and SON lands; each part binding still requires package-specific qualification |
+| `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
 | `connectors` | `connectors::headers::smd_254::SOCKET_2X3_254_SMD` | general-purpose board connectors and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6` | ESD protection devices |
@@ -33,11 +33,11 @@ footprints live in focused packages:
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3` | Espressif SoCs and modules |
-| `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and parts |
+| `@contrib/imu` | `contrib_imu::BHI260AP` | community-contributed IMU device models; BHI260AP part binding quarantined |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
 | `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |
-| `@contrib/sf32` | `contrib_sf32::MCU_SF32LB52EUB6` | community-contributed SiFli SF32LB52X MCU devices and parts |
-| `@contrib/io-expander` | `contrib_io_expander::IOX_XL9555_QFN24` | community-contributed I2C/SMBus I/O expander devices and parts |
+| `@contrib/sf32` | `contrib_sf32::SF32LB52X` | community-contributed SiFli SF32LB52X device model; part bindings quarantined |
+| `@contrib/io-expander` | `contrib_io_expander::XL9555` | community-contributed I2C/SMBus I/O expander device variants; part bindings quarantined |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
 
@@ -63,23 +63,28 @@ only from its manifest (a directory name that spells a version is
 convention), and a released version's content is immutable — changing it
 under the same version is a hard `E1103` against every `cohdl.lock` that
 pinned it.
+
+Additional community-contributed packages:
+
+| Package | Representative source path | Owns |
+|---|---|---|
 | `@contrib/haptic` | `contrib_haptic::HAPTIC_AW86224` | community-contributed haptic / vibration driver devices and parts |
 | `@contrib/analog-switch` | `contrib_analog_switch::SW_RS2257XH` | community-contributed analog switch / multiplexer devices and parts |
 | `@contrib/led-driver` | `contrib_led_driver::LEDDRV_AW21009` | community-contributed LED driver devices and parts |
 | `@contrib/keyscan` | `contrib_keyscan::KEYSCAN_TCA8418` | community-contributed keypad / keyboard scanner devices and parts |
 | `@contrib/rtc` | `contrib_rtc::RTC_PCF85063AT` | community-contributed real-time clock devices and parts |
-| `@contrib/gnss` | `contrib_gnss::GNSS_L76KB_A58` | community-contributed GNSS / GPS module devices and parts |
-| `@contrib/ldo` | `contrib_ldo::LDO_XC6206P182MR` | community-contributed low-dropout regulator devices and parts |
-| `@contrib/usb-uart` | `contrib_usb_uart::USBUART_CH343P` | community-contributed USB-to-UART bridge devices and parts |
-| `@contrib/audio-amp` | `contrib_audio_amp::AMP_MAX98357A` | community-contributed audio amplifier devices and parts |
-| `@contrib/pmu` | `contrib_pmu::PMU_AXP2101` | community-contributed power management unit (PMU) devices and parts |
+| `@contrib/gnss` | `contrib_gnss::MIA_M10Q` | community-contributed GNSS / GPS module device models; part bindings quarantined |
+| `@contrib/ldo` | `contrib_ldo::LDO_RT9080_33` | community-contributed low-dropout regulator devices and qualified parts |
+| `@contrib/usb-uart` | `contrib_usb_uart::CH343P` | community-contributed USB-to-UART device model; CH343P part binding quarantined |
+| `@contrib/audio-amp` | `contrib_audio_amp::MAX98357A` | community-contributed audio amplifier device models; part bindings quarantined |
+| `@contrib/pmu` | `contrib_pmu::AXP2101` | community-contributed PMU device model; AXP2101 part binding quarantined |
 | `@contrib/lora` | `contrib_lora::LORA_SX1262` | community-contributed LoRa transceiver devices and parts |
 | `@contrib/nfc` | `contrib_nfc::NFC_ST25R3916` | community-contributed NFC reader/IC devices and parts |
-| `@contrib/display` | `contrib_display::DISP_H0216F002AM` | community-contributed display module devices and parts |
+| `@contrib/display` | `contrib_display::H0216F002AM` | community-contributed display module interface; part binding quarantined |
 | `@contrib/display` (CO5300) | `contrib_display::CO5300` | AMOLED driver IC (COF, device-only) |
 | `@contrib/display` (CST9220) | `contrib_display::CST9220` | capacitive touch IC (device-only) |
 | `@contrib/esd` | `contrib_esd::ESD_GBLC05C` | community-contributed ESD protection / TVS devices and parts |
 | `@contrib/level-shifter` | `contrib_level_shifter::LS_RS0104` | community-contributed voltage level translator devices and parts |
 | `@contrib/ir-emitter` | `contrib_ir_emitter::IR_VSMY14940` | community-contributed infrared emitting diode devices and parts |
-| `@contrib/mic` | `contrib_mic::MIC_T3902` | community-contributed MEMS microphone devices and parts |
+| `@contrib/mic` | `contrib_mic::T3902` | community-contributed MEMS microphone device model; part binding quarantined |
 | `@contrib/sd-card` | `contrib_sd_card::CONN_MICROSD` | community-contributed SD/MicroSD card connector devices and parts |

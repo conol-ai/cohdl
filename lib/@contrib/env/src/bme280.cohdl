@@ -31,8 +31,8 @@ pub part ENV_BME280: BME280 {
 
 // Land pad: Figure 21 (p43) recommended landing pattern — pads 0.5 x 0.35 mm
 // ("0.5" width label over pad 1; "0.35" height at pad 1). The figure's
-// "0.325" annotates the SMD-process solder-mask opening height (p43 notes:
-// mask openings smaller than metal for SMD); it is not the copper size.
+// "0.325" is the inner row's centre offset from the package centre; it is
+// used in the placements below and is not a copper dimension.
 pub pad P_BME280_LAND {
     shape: rect
     size: (0.5mm, 0.35mm)

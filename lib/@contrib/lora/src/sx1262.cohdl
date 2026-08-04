@@ -4,31 +4,31 @@
 #[doc("docs/sx1262.pdf")]
 pub device SX1262 {
     pins {
-        required GND1: 1 [power_in]
-        required VDD_IN: 2 [power_in] // regulator input
-        required GND3: 3 [power_in]
-        optional XTA: 4 [passive] // TCXO/XTAL crystal (p13)
-        optional XTB: 5 [passive] // crystal (p13)
-        required GND6: 6 [power_in]
-        optional DIO3: 7 [bidirectional] // digital I/O or TCXO control (p13)
-        optional SCK: 8 [input] // SPI clock (p13)
-        optional MOSI: 9 [input] // SPI data in (p13)
-        optional MISO: 10 [output] // SPI data out (p13)
-        optional NRESET: 11 [input] // reset, active-low (p13)
-        optional BUSY: 12 [output] // busy status (p13)
-        optional DIO1: 13 [bidirectional] // digital I/O / interrupt (p13)
-        optional VR_PA: 14 [power_out] // PA regulator output (p13)
-        optional RFO: 15 [output] // RF output (p13)
-        optional RFI_N: 16 [input] // RF input negative (p13)
-        optional RFI_P: 17 [input] // RF input positive (p13)
-        required GND18: 18 [power_in]
-        optional NSS: 19 [input] // SPI chip select, active-low (p13)
-        optional VREG: 20 [power_out] // regulator output (p13)
-        required GND21: 21 [power_in]
-        optional DCC_SW: 22 [passive] // DC-DC switch pin (p13)
-        required VBAT: 23 [power_in] // main supply (p13)
-        required VBAT_IO: 24 [power_in] // I/O supply (p13)
-        required EP: 25 [power_in] // exposed pad ground
+        required VDD_IN: 1 [power_in] // regulator input (Figure 2-1)
+        required GND2: 2 [power_in]
+        optional XTA: 3 [passive] // crystal / TCXO input
+        optional XTB: 4 [passive] // crystal output
+        required GND5: 5 [power_in]
+        optional DIO3: 6 [bidirectional] // digital I/O or TCXO control
+        optional VREG: 7 [power_out] // regulator output
+        required GND8: 8 [power_in]
+        optional DCC_SW: 9 [output] // DC-DC switcher output (Table 3-1)
+        required VBAT: 10 [power_in] // main supply
+        required VBAT_IO: 11 [power_in] // I/O supply
+        optional DIO2: 12 [bidirectional]
+        optional DIO1: 13 [bidirectional] // digital I/O / interrupt
+        optional BUSY: 14 [output] // busy status
+        optional NRESET: 15 [input] // reset, active-low
+        optional MISO: 16 [output] // SPI data out
+        optional MOSI: 17 [input] // SPI data in
+        optional SCK: 18 [input] // SPI clock
+        optional NSS: 19 [input] // SPI chip select, active-low
+        required GND20: 20 [power_in]
+        optional RFI_P: 21 [input] // differential RF input positive
+        optional RFI_N: 22 [input] // differential RF input negative
+        optional RFO: 23 [output] // RF output
+        optional VR_PA: 24 [power_out] // PA regulator output
+        required EP: 0 [power_in] // exposed pad ground
     }
 }
 
@@ -36,5 +36,64 @@ impl IC for SX1262 {}
 
 #[doc("docs/sx1262.pdf")]
 pub part LORA_SX1262: SX1262 {
-    primary { mfr: "Semtech", mpn: "SX1262IMLTRT", footprint: qfn::QFN24N50P400X400_1EP245X245 }
+    primary { mfr: "Semtech", mpn: "SX1262IMLTRT", footprint: QFN24N50P400X400_1EP270X270 }
+}
+
+// Semtech Figure 16-3 recommended land pattern: 4.80 mm outside span,
+// 3.20 mm inside span, 0.50 mm pitch, 0.80 x 0.30 mm perimeter lands,
+// and a 2.70 mm square exposed land. The datasheet requires system-ground
+// thermal vias but does not prescribe their count or drill, so those remain a
+// board-layout action instead of being guessed here.
+pub pad P_SEMTECH_MLPQ24_LEAD_H {
+    shape: rect
+    size: (0.8mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SEMTECH_MLPQ24_LEAD_V {
+    shape: rect
+    size: (0.3mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SEMTECH_MLPQ24_EP27 {
+    shape: rect
+    size: (2.7mm, 2.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN24N50P400X400_1EP270X270 {
+    pad 1: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, -1.25mm)
+    pad 2: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, -0.75mm)
+    pad 3: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, -0.25mm)
+    pad 4: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, 0.25mm)
+    pad 5: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, 0.75mm)
+    pad 6: P_SEMTECH_MLPQ24_LEAD_H at (-2mm, 1.25mm)
+    pad 7: P_SEMTECH_MLPQ24_LEAD_V at (-1.25mm, 2mm)
+    pad 8: P_SEMTECH_MLPQ24_LEAD_V at (-0.75mm, 2mm)
+    pad 9: P_SEMTECH_MLPQ24_LEAD_V at (-0.25mm, 2mm)
+    pad 10: P_SEMTECH_MLPQ24_LEAD_V at (0.25mm, 2mm)
+    pad 11: P_SEMTECH_MLPQ24_LEAD_V at (0.75mm, 2mm)
+    pad 12: P_SEMTECH_MLPQ24_LEAD_V at (1.25mm, 2mm)
+    pad 13: P_SEMTECH_MLPQ24_LEAD_H at (2mm, 1.25mm)
+    pad 14: P_SEMTECH_MLPQ24_LEAD_H at (2mm, 0.75mm)
+    pad 15: P_SEMTECH_MLPQ24_LEAD_H at (2mm, 0.25mm)
+    pad 16: P_SEMTECH_MLPQ24_LEAD_H at (2mm, -0.25mm)
+    pad 17: P_SEMTECH_MLPQ24_LEAD_H at (2mm, -0.75mm)
+    pad 18: P_SEMTECH_MLPQ24_LEAD_H at (2mm, -1.25mm)
+    pad 19: P_SEMTECH_MLPQ24_LEAD_V at (1.25mm, -2mm)
+    pad 20: P_SEMTECH_MLPQ24_LEAD_V at (0.75mm, -2mm)
+    pad 21: P_SEMTECH_MLPQ24_LEAD_V at (0.25mm, -2mm)
+    pad 22: P_SEMTECH_MLPQ24_LEAD_V at (-0.25mm, -2mm)
+    pad 23: P_SEMTECH_MLPQ24_LEAD_V at (-0.75mm, -2mm)
+    pad 24: P_SEMTECH_MLPQ24_LEAD_V at (-1.25mm, -2mm)
+    pad 0: P_SEMTECH_MLPQ24_EP27 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.3mm, 5.3mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
 }

@@ -20,14 +20,12 @@ pub device MAX98357A {
         optional BCLK: 16 [input] // bit clock (p15)
         optional GND11: 11 [power_in]
         optional OUTN: 10 [output] // negative speaker output (p15)
-        optional EP: 17 [power_in] // exposed pad, thermal — connect to GND (p15)
+        optional EP: EP [passive] // unnumbered, internally NC; ground for thermal relief (p15)
     }
 }
 
 impl IC for MAX98357A {}
 
-#[doc("docs/max98357a.pdf")]
-pub part AMP_MAX98357A: MAX98357A {
-    primary { mfr: "Analog Devices", mpn: "MAX98357AETE+",
-              footprint: qfn::QFN16N50P300X300_1EP170X170 }
-}
+// No public part binding: MAX98357AETE+ uses Analog Devices land pattern
+// 90-0031. The datasheet references that separate drawing but does not embed
+// its dimensions, so the unrelated generic QFN land must not be substituted.

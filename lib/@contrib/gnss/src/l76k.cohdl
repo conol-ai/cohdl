@@ -28,46 +28,44 @@ pub device L76K {
 
 impl IC for L76K {}
 
-#[doc("docs/l76k.pdf")]
-pub part GNSS_L76KB_A58: L76K {
-    primary { mfr: "Quectel", mpn: "L76KB-A58", footprint: FP_Quectel_L76K_18LCC_101x97mm }
-}
+// No public part binding: the hardware manual documents the L76K module but
+// does not identify the orderable L76KB-A58 suffix formerly exposed here.
 
-// L76K module 18-LCC land pattern (hardware manual p8 mechanical, p13 pin
-// map). Module body 10.1 x 9.7 mm; 18 LCC pads along the two long edges
-// (9 per side). Pad pitch 1.8 mm along the edge; pad centres at +/-4.85 mm
-// from module centre (9.7/2). Pin 1 corner upper-left.
+// L76K manufacturer-recommended land pattern (hardware manual section 6.2):
+// 1.80 x 0.80 mm lands, 1.10 mm pitch, 9.70 mm between opposing row
+// centres, and 11.50 mm overall copper span. Pin 1 is upper-left in top view.
 pub pad P_L76K_LCC_PAD {
     shape: rect
-    size: (1.1mm, 0.8mm)
+    size: (1.8mm, 0.8mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint FP_Quectel_L76K_18LCC_101x97mm {
-    // Left column pins 1-9 (top to bottom), x = -4.85mm, pitch 1.8mm
-    pad 1: P_L76K_LCC_PAD at (-4.85mm, -7.2mm)
-    pad 2: P_L76K_LCC_PAD at (-4.85mm, -5.4mm)
-    pad 3: P_L76K_LCC_PAD at (-4.85mm, -3.6mm)
-    pad 4: P_L76K_LCC_PAD at (-4.85mm, -1.8mm)
+    // Left column pins 1-9, top to bottom.
+    pad 1: P_L76K_LCC_PAD at (-4.85mm, -4.4mm)
+    pad 2: P_L76K_LCC_PAD at (-4.85mm, -3.3mm)
+    pad 3: P_L76K_LCC_PAD at (-4.85mm, -2.2mm)
+    pad 4: P_L76K_LCC_PAD at (-4.85mm, -1.1mm)
     pad 5: P_L76K_LCC_PAD at (-4.85mm, 0mm)
-    pad 6: P_L76K_LCC_PAD at (-4.85mm, 1.8mm)
-    pad 7: P_L76K_LCC_PAD at (-4.85mm, 3.6mm)
-    pad 8: P_L76K_LCC_PAD at (-4.85mm, 5.4mm)
-    pad 9: P_L76K_LCC_PAD at (-4.85mm, 7.2mm)
+    pad 6: P_L76K_LCC_PAD at (-4.85mm, 1.1mm)
+    pad 7: P_L76K_LCC_PAD at (-4.85mm, 2.2mm)
+    pad 8: P_L76K_LCC_PAD at (-4.85mm, 3.3mm)
+    pad 9: P_L76K_LCC_PAD at (-4.85mm, 4.4mm)
     // Right column pins 10-18 (bottom to top, per pin map Fig 2)
-    pad 10: P_L76K_LCC_PAD at (4.85mm, 7.2mm)
-    pad 11: P_L76K_LCC_PAD at (4.85mm, 5.4mm)
-    pad 12: P_L76K_LCC_PAD at (4.85mm, 3.6mm)
-    pad 13: P_L76K_LCC_PAD at (4.85mm, 1.8mm)
+    pad 10: P_L76K_LCC_PAD at (4.85mm, 4.4mm)
+    pad 11: P_L76K_LCC_PAD at (4.85mm, 3.3mm)
+    pad 12: P_L76K_LCC_PAD at (4.85mm, 2.2mm)
+    pad 13: P_L76K_LCC_PAD at (4.85mm, 1.1mm)
     pad 14: P_L76K_LCC_PAD at (4.85mm, 0mm)
-    pad 15: P_L76K_LCC_PAD at (4.85mm, -1.8mm)
-    pad 16: P_L76K_LCC_PAD at (4.85mm, -3.6mm)
-    pad 17: P_L76K_LCC_PAD at (4.85mm, -5.4mm)
-    pad 18: P_L76K_LCC_PAD at (4.85mm, -7.2mm)
+    pad 15: P_L76K_LCC_PAD at (4.85mm, -1.1mm)
+    pad 16: P_L76K_LCC_PAD at (4.85mm, -2.2mm)
+    pad 17: P_L76K_LCC_PAD at (4.85mm, -3.3mm)
+    pad 18: P_L76K_LCC_PAD at (4.85mm, -4.4mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (11.5mm, 11.0mm) }
+    // The manual requires at least 3 mm between the module and other parts.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (15.7mm, 16.1mm) }
     silkscreen_ref { at: (0mm, -5.8mm) }
 }

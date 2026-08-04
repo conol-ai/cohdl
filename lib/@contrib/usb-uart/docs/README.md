@@ -1,7 +1,15 @@
-# CH343 source
+# USB-to-UART source manifest
 
-| Local file | Coverage | Document | Source | SHA-256 |
+Retrieved and audited on 2026-08-04. The PDFs are stored byte-for-byte as
+downloaded; none was regenerated or optimized.
+
+| Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
 | --- | --- | --- | --- | --- |
 | `ch343.pdf` | `CH343P` | WCH V1.6 | <https://www.wch-ic.com> | `9ba293770db3da78124238f3d5bc1cd9cb41d563f543c8d2cad8ae96d32a118d` |
 
-Pinout p2 (QFN16 column); QFN16_3X3 package.
+SHA-256 checksums:
+
+```text
+9ba293770db3da78124238f3d5bc1cd9cb41d563f543c8d2cad8ae96d32a118d  ch343.pdf
+```
+

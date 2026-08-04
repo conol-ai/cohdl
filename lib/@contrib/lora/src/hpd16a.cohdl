@@ -1,9 +1,9 @@
-// LilyGo T-SX1262 (HPD16A): LoRa sub-GHz transceiver module based on
+// T-SX1262 (HPD16A): LoRa sub-GHz transceiver module based on
 // Semtech SX1262, 16 x 16 x 2.3 mm, 16-pad LCC, TCXO 32MHz, +22dBm
-// (product spec sheet, lilygo.cn). Pin definition p3 Table 2; mechanical
+// (product spec sheet, the manufacturer). Pin definition p3 Table 2; mechanical
 // p4 Fig 2 (16 pads, 8 per side, 2mm pitch).
 //
-// NOTE: On the T-Display-SF32 schematic this module is designated
+// NOTE: On the the schematic this module is designated
 // "HPB16B3" (U3, 12 signals wired + 4 NC). The HPD16A datasheet is the
 // closest public match — identical SX1262 basis, same pad count. Confirm
 // against a physical module photo before treating HPD16A == HPB16B3.
@@ -34,7 +34,7 @@ impl IC for HPD16A {}
 
 #[doc("docs/hpd16a-tsx1262.pdf")]
 pub part LORA_HPD16A: HPD16A {
-    primary { mfr: "LilyGo", mpn: "T-SX1262 (HPD16A)", footprint: FP_LilyGo_HPD16A_16x16mm }
+    primary { mfr: "LilyGO", mpn: "T-SX1262 (HPD16A)", footprint: FP_HPD16A_16x16mm }
 }
 
 // HPD16A module land (datasheet p4 Fig 2): body 16 x 16 mm, 16 pads
@@ -48,7 +48,7 @@ pub pad P_HPD16A_LCC_PAD {
     plating: smd
 }
 
-pub footprint FP_LilyGo_HPD16A_16x16mm {
+pub footprint FP_HPD16A_16x16mm {
     // Left column pins 1-8 (top to bottom), X = -7.35mm, pitch 2.0mm
     pad 1: P_HPD16A_LCC_PAD at (-7.35mm, -7mm)
     pad 2: P_HPD16A_LCC_PAD at (-7.35mm, -5mm)

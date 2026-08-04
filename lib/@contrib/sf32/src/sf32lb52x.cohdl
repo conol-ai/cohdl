@@ -1,105 +1,105 @@
 // SiFli SF32LB52X: ultra-low-power dual-core Arm Cortex-M33 AIoT MCU
 // (HCPU 192MHz + LCPU 24MHz, 576KB SRAM, BT/BLE 5.3, ePicasso 2.5D),
 // QFN68L 7x7x0.85mm 0.35 pitch + EPAD (DS0052-SF32LB52X-CN V0.1,
-// 2024: pin layout 图5-1, pin tables 表5-2/5-3, package 图5-2,
-// ordering 表5-6). Pin 1 upper-left top view, CCW numbering.
+// 2024: pin layout Fig. 5-1, pin tables Table 5-2/5-3, package Fig. 5-2,
+// ordering Table 5-6). Pin 1 upper-left top view, CCW numbering.
 
 #[doc("docs/ds0052-sf32lb52x-cn.pdf")]
 pub device SF32LB52X {
     pins {
-        optional PA32: 1 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA31: 2 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA30: 3 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA29: 4 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA28: 5 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA27: 6 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA26: 7 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA25: 8 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA24: 9 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA23: 10 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA22: 11 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        required VDD_RTC: 12 [power_out] // RTC LDO output (表5-3) — decoupling required
-        required VDD_RET: 13 [power_out] // RET LDO output (表5-3) — decoupling required
-        required AVDD33: 14 [power_in] // analog supply input (表5-3)
-        required VDD_VOUT2: 15 [power_out] // LPSYS main supply, internal LDO output (图5-1 pin name; UM5201: 由芯片内部LDO产生，是LPSYS的主要供电)
-        required VDD_VOUT1: 16 [power_out] // HPSYS main supply, internal LDO output (图5-1; UM5201 同注)
-        required BUCK_FB: 17 [power_out] // BUCK output (表5-3)
-        required BUCK_LX: 18 [bidirectional] // BUCK inductor switch node, A I/O (表5-3)
-        required PVDD: 19 [power_in] // system power input (表5-3)
-        optional VBATS: 20 [input] // VBAT voltage sense input, A I (表5-3)
-        required VDDIOA: 21 [power_in] // GPIO supply input (表5-3)
-        optional NC: 22 [passive] // no function (表5-3: 无功能) — leave unconnected (nc)
-        required VDD_SIP: 23 [power_in] // SiP supply input (表5-3)
-        optional PA21: 24 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA20: 25 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA19: 26 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA18: 27 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA17: 28 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA16: 29 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA15: 30 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA14: 31 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA13: 32 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA12: 33 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA11: 34 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA10: 35 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional DACN: 36 [output] // audio DAC output, A O (表5-3)
-        optional DACP: 37 [output] // audio DAC output, A O (表5-3)
-        required AVDD33_AUD: 38 [power_in] // audio supply input (表5-3)
-        optional AUD_VREF: 39 [input] // audio reference voltage input, A I (表5-3)
-        optional MIC_BIAS: 40 [power_out] // microphone bias supply output (表5-3)
-        optional ADCP: 41 [input] // audio ADC input, A I (表5-3)
-        optional PA09: 42 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA08: 43 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA07: 44 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA06: 45 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA05: 46 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA04: 47 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA03: 48 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA02: 49 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA01: 50 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA00: 51 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        required AVDD_BRF: 52 [power_in] // RF supply input (表5-3)
-        optional BRF_ANT: 53 [bidirectional] // antenna interface, A I/O (表5-3)
-        required XTAL48M_XO: 54 [output] // 48MHz crystal interface, A O (表5-3)
-        required XTAL48M_XI: 55 [input] // 48MHz crystal interface, A I (表5-3)
-        optional PA44: 56 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA43: 57 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA42: 58 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA41: 59 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA40: 60 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA39: 61 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA38: 62 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA37: 63 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA36: 64 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA35: 65 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA34: 66 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional PA33: 67 [bidirectional] // 表5-2: big-core-domain GPIO (I/O)
-        optional GPADC_VREF: 68 [input] // GPADC VREF input, A I (表5-3)
-        required EPAD: 69 [power_in] // exposed pad ground (表5-3: GND) — must connect
+        optional PA32: 1 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA31: 2 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA30: 3 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA29: 4 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA28: 5 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA27: 6 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA26: 7 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA25: 8 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA24: 9 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA23: 10 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA22: 11 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        required VDD_RTC: 12 [power_out] // RTC LDO output (Table 5-3) — decoupling required
+        required VDD_RET: 13 [power_out] // RET LDO output (Table 5-3) — decoupling required
+        required AVDD33: 14 [power_in] // analog supply input (Table 5-3)
+        required VDD_VOUT2: 15 [power_out] // LPSYS main supply, internal LDO output (Fig. 5-1 pin name; UM5201: generated by an internal LDO; main supply for LPSYS)
+        required VDD_VOUT1: 16 [power_out] // HPSYS main supply, internal LDO output (Fig. 5-1; UM5201 同注)
+        required BUCK_FB: 17 [power_out] // BUCK output (Table 5-3)
+        required BUCK_LX: 18 [bidirectional] // BUCK inductor switch node, A I/O (Table 5-3)
+        required PVDD: 19 [power_in] // system power input (Table 5-3)
+        optional VBATS: 20 [input] // VBAT voltage sense input, A I (Table 5-3)
+        required VDDIOA: 21 [power_in] // GPIO supply input (Table 5-3)
+        optional NC: 22 [passive] // no function (Table 5-3: 无功能) — leave unconnected (nc)
+        required VDD_SIP: 23 [power_in] // SiP supply input (Table 5-3)
+        optional PA21: 24 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA20: 25 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA19: 26 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA18: 27 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA17: 28 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA16: 29 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA15: 30 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA14: 31 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA13: 32 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA12: 33 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA11: 34 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA10: 35 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional DACN: 36 [output] // audio DAC output, A O (Table 5-3)
+        optional DACP: 37 [output] // audio DAC output, A O (Table 5-3)
+        required AVDD33_AUD: 38 [power_in] // audio supply input (Table 5-3)
+        optional AUD_VREF: 39 [input] // audio reference voltage input, A I (Table 5-3)
+        optional MIC_BIAS: 40 [power_out] // microphone bias supply output (Table 5-3)
+        optional ADCP: 41 [input] // audio ADC input, A I (Table 5-3)
+        optional PA09: 42 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA08: 43 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA07: 44 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA06: 45 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA05: 46 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA04: 47 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA03: 48 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA02: 49 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA01: 50 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA00: 51 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        required AVDD_BRF: 52 [power_in] // RF supply input (Table 5-3)
+        optional BRF_ANT: 53 [bidirectional] // antenna interface, A I/O (Table 5-3)
+        required XTAL48M_XO: 54 [output] // 48MHz crystal interface, A O (Table 5-3)
+        required XTAL48M_XI: 55 [input] // 48MHz crystal interface, A I (Table 5-3)
+        optional PA44: 56 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA43: 57 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA42: 58 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA41: 59 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA40: 60 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA39: 61 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA38: 62 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA37: 63 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA36: 64 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA35: 65 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA34: 66 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional PA33: 67 [bidirectional] // Table 5-2: big-core-domain GPIO (I/O)
+        optional GPADC_VREF: 68 [input] // GPADC VREF input, A I (Table 5-3)
+        required EPAD: 69 [power_in] // exposed pad ground (Table 5-3: GND) — must connect
     }
 }
 
 impl IC for SF32LB52X {}
 
-// 3.3V supply, SiP 8Mb NOR Flash (表5-6).
+// 3.3V supply, SiP 8Mb NOR Flash (Table 5-6).
 #[doc("docs/ds0052-sf32lb52x-cn.pdf")]
 pub part MCU_SF32LB52BU36: SF32LB52X {
     primary { mfr: "SiFli", mpn: "SF32LB52BU36", footprint: qfn::QFN68N35P700X700_1EP549X549 }
 }
 
-// 3.3V supply, SiP 32Mb NOR Flash (表5-6).
+// 3.3V supply, SiP 32Mb NOR Flash (Table 5-6).
 #[doc("docs/ds0052-sf32lb52x-cn.pdf")]
 pub part MCU_SF32LB52BU56: SF32LB52X {
     primary { mfr: "SiFli", mpn: "SF32LB52BU56", footprint: qfn::QFN68N35P700X700_1EP549X549 }
 }
 
-// 1.8V supply, SiP 32Mb pSRAM (表5-6).
+// 1.8V supply, SiP 32Mb pSRAM (Table 5-6).
 #[doc("docs/ds0052-sf32lb52x-cn.pdf")]
 pub part MCU_SF32LB52DUB6: SF32LB52X {
     primary { mfr: "SiFli", mpn: "SF32LB52DUB6", footprint: qfn::QFN68N35P700X700_1EP549X549 }
 }
 
-// 3.3V supply, SiP 32Mb pSRAM (表5-6).
+// 3.3V supply, SiP 32Mb pSRAM (Table 5-6).
 #[doc("docs/ds0052-sf32lb52x-cn.pdf")]
 pub part MCU_SF32LB52EUB6: SF32LB52X {
     primary { mfr: "SiFli", mpn: "SF32LB52EUB6", footprint: qfn::QFN68N35P700X700_1EP549X549 }

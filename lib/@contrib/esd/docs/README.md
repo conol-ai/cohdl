@@ -1,13 +1,17 @@
-# GBLC05C source
+# ESD protection source manifest
 
-| Local file | Coverage | SHA-256 |
-| --- | --- | --- |
-| `GBLC05C.pdf` | `GBLC05C` | `dbeb3a585f49a0b376d9ebf243c0caa6123dfe8c46f380995146252986c7ff97` |
+Retrieved and audited on 2026-08-04. The PDFs are stored byte-for-byte as
+downloaded; none was regenerated or optimized.
 
-## ULC0511C source
+| Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
+| --- | --- | --- | --- | --- |
+| `gblc05c.pdf` | `GBLC05C` | ProTek 05126.R22 | <manufacturer> | `dbeb3a585f49a0b376d9ebf243c0caa6123dfe8c46f380995146252986c7ff97` |
+| `ulc0511c.pdf` | `ULC0511C` | Tergy rev 01.06.2014 | <manufacturer> | `3eb2f4902e3aa429a39116e4d3257f8e13e645ddf93eea7790572afa507b7e4d` |
 
-| Local file | Coverage | SHA-256 |
-| --- | --- | --- |
-| `ulc0511c.pdf` | `ULC0511C` | `3eb2f4902e3aa429a39116e4d3257f8e13e645ddf93eea7790572afa507b7e4d` |
+SHA-256 checksums:
 
-Tergy, DFN1006DN (0402), 5V bidirectional TVS.
+```text
+dbeb3a585f49a0b376d9ebf243c0caa6123dfe8c46f380995146252986c7ff97  gblc05c.pdf
+3eb2f4902e3aa429a39116e4d3257f8e13e645ddf93eea7790572afa507b7e4d  ulc0511c.pdf
+```
+

@@ -1,7 +1,7 @@
 HPB16B3 LoRa Module
 ====================
 
-Pin definition sourced from the T-Display-SF32 schematic (p2, U3).
+Pin definition sourced from the host board schematic (p2, U3).
 No standalone datasheet published by the manufacturer; this file
 documents the provenance per RFC-017 #[doc] requirements.
 

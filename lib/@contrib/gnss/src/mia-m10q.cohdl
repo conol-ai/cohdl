@@ -1,0 +1,140 @@
+// u-blox MIA-M10Q: standard precision GNSS module (GPS/GLONASS/Galileo/
+// BeiDou), 1.65-3.6V (datasheet UBX-22015849 R08). LGA-42 (9x9 pad grid,
+// A1-J9 naming). Pin assignment Table 10 (p9-11).
+
+#[doc("docs/mia-m10q.pdf")]
+pub device MIA_M10Q {
+    pins {
+        required GND_A1: A1 [power_in]
+        required GND_A2: A2 [power_in]
+        required GND_A3: A3 [power_in]
+        optional RTC_I: A4 [input] // RTC input, leave open if unused (p9)
+        optional RTC_O: A5 [output] // RTC output, tie GND if unused (p9)
+        optional EXTINT: A6 [input] // external interrupt (p9)
+        optional TIMEPULSE: A7 [output] // time pulse (p9)
+        required GND_A8: A8 [power_in]
+        required GND_A9: A9 [power_in]
+        required VCC: B1 [power_in] // main supply 1.65-3.6V (p9)
+        required GND_B2: B2 [power_in]
+        required GND_B8: B8 [power_in]
+        optional RFIN: B9 [input] // RF signal input (p10)
+        optional NC_C1: C1 [passive] // reserved, leave open (p10)
+        required GND_C3: C3 [power_in]
+        optional RESETN: C4 [input] // system reset, active-low (p10)
+        optional NC_C5: C5 [passive] // reserved
+        optional VCCRF: C6 [power_out] // filtered RF supply for active antenna/LNA (p10)
+        optional SAFEBOOTN: C7 [input] // safeboot, active-low (p10)
+        required GND_C9: C9 [power_in]
+        optional SDA: D1 [bidirectional] // I2C data (p10)
+        optional NC_D2: D2 [passive] // reserved, connect to E2 (p10)
+        optional NC_D9: D9 [passive] // reserved
+        optional SCL: E1 [input] // I2C clock (p10)
+        optional NC_E2: E2 [passive] // reserved, connect to D2
+        required GND_E3: E3 [power_in]
+        required GND_E4: E4 [power_in]
+        optional NC_E7: E7 [passive] // reserved
+        required GND_E9: E9 [power_in]
+        required GND_F1: F1 [power_in]
+        required GND_F3: F3 [power_in]
+        required GND_F4: F4 [power_in]
+        optional PIO6: F7 [bidirectional] // digital I/O (p10)
+        optional GND_F9: F9 [power_in] // reserved, connect to GND (p10)
+        optional TX: G1 [output] // UART TX (p10)
+        required GND_G3: G3 [power_in]
+        required GND_G4: G4 [power_in]
+        required GND_G5: G5 [power_in]
+        required GND_G6: G6 [power_in]
+        optional GND_G7: G7 [power_in] // reserved, connect to GND
+        optional NC_G9: G9 [passive] // reserved
+        optional RX: H1 [input] // UART RX (p10)
+        required GND_H8: H8 [power_in]
+        optional LNAEN: H9 [output] // external LNA / active antenna on/off (p10)
+        optional NC_J1: J1 [passive] // reserved
+        optional NC_J2: J2 [passive]
+        optional NC_J3: J3 [passive]
+        optional VIO: J4 [power_in] // IO voltage supply (p10)
+        optional VBCKP: J5 [power_in] // backup supply, leave open if unused (p10)
+        optional VIOSEL: J6 [input] // V_IO voltage selector (GND=1.8V, open=3.3V) (p10)
+        optional NC_J7: J7 [passive] // reserved
+        required GND_J8: J8 [power_in]
+        required GND_J9: J9 [power_in]
+    }
+}
+
+impl IC for MIA_M10Q {}
+
+#[doc("docs/mia-m10q.pdf")]
+pub part GNSS_MIA_M10Q: MIA_M10Q {
+    primary { mfr: "u-blox", mpn: "MIA-M10Q-00B", footprint: FP_Ublox_MIA_M10Q_LGA42_77X91mm }
+}
+
+// MIA-M10Q LGA-42 land pattern: 9x9 pad grid at 0.94mm pitch (module body
+// 7.7 x 9.1 mm per u-blox mechanical). Functional pads listed; GND pads
+// form a grid. Pad diameter 0.35mm. Pin A1 corner upper-left top view.
+pub pad P_MIA_M10Q_PAD {
+    shape: circle
+    size: (0.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Ublox_MIA_M10Q_LGA42_77X91mm {
+    pad A1: P_MIA_M10Q_PAD at (-3.76mm, -3.29mm)
+    pad A2: P_MIA_M10Q_PAD at (-2.82mm, -3.29mm)
+    pad A3: P_MIA_M10Q_PAD at (-1.88mm, -3.29mm)
+    pad A4: P_MIA_M10Q_PAD at (-0.94mm, -3.29mm)
+    pad A5: P_MIA_M10Q_PAD at (0mm, -3.29mm)
+    pad A6: P_MIA_M10Q_PAD at (0.94mm, -3.29mm)
+    pad A7: P_MIA_M10Q_PAD at (1.88mm, -3.29mm)
+    pad A8: P_MIA_M10Q_PAD at (2.82mm, -3.29mm)
+    pad A9: P_MIA_M10Q_PAD at (3.76mm, -3.29mm)
+    pad B1: P_MIA_M10Q_PAD at (-3.76mm, -2.35mm)
+    pad B2: P_MIA_M10Q_PAD at (-2.82mm, -2.35mm)
+    pad B8: P_MIA_M10Q_PAD at (2.82mm, -2.35mm)
+    pad B9: P_MIA_M10Q_PAD at (3.76mm, -2.35mm)
+    pad C1: P_MIA_M10Q_PAD at (-3.76mm, -1.41mm)
+    pad C3: P_MIA_M10Q_PAD at (-1.88mm, -1.41mm)
+    pad C4: P_MIA_M10Q_PAD at (-0.94mm, -1.41mm)
+    pad C5: P_MIA_M10Q_PAD at (0mm, -1.41mm)
+    pad C6: P_MIA_M10Q_PAD at (0.94mm, -1.41mm)
+    pad C7: P_MIA_M10Q_PAD at (1.88mm, -1.41mm)
+    pad C9: P_MIA_M10Q_PAD at (3.76mm, -1.41mm)
+    pad D1: P_MIA_M10Q_PAD at (-3.76mm, -0.47mm)
+    pad D2: P_MIA_M10Q_PAD at (-2.82mm, -0.47mm)
+    pad D9: P_MIA_M10Q_PAD at (3.76mm, -0.47mm)
+    pad E1: P_MIA_M10Q_PAD at (-3.76mm, 0.47mm)
+    pad E2: P_MIA_M10Q_PAD at (-2.82mm, 0.47mm)
+    pad E3: P_MIA_M10Q_PAD at (-1.88mm, 0.47mm)
+    pad E4: P_MIA_M10Q_PAD at (-0.94mm, 0.47mm)
+    pad E7: P_MIA_M10Q_PAD at (1.88mm, 0.47mm)
+    pad E9: P_MIA_M10Q_PAD at (3.76mm, 0.47mm)
+    pad F1: P_MIA_M10Q_PAD at (-3.76mm, 1.41mm)
+    pad F3: P_MIA_M10Q_PAD at (-1.88mm, 1.41mm)
+    pad F4: P_MIA_M10Q_PAD at (-0.94mm, 1.41mm)
+    pad F7: P_MIA_M10Q_PAD at (1.88mm, 1.41mm)
+    pad F9: P_MIA_M10Q_PAD at (3.76mm, 1.41mm)
+    pad G1: P_MIA_M10Q_PAD at (-3.76mm, 2.35mm)
+    pad G3: P_MIA_M10Q_PAD at (-1.88mm, 2.35mm)
+    pad G4: P_MIA_M10Q_PAD at (-0.94mm, 2.35mm)
+    pad G5: P_MIA_M10Q_PAD at (0mm, 2.35mm)
+    pad G6: P_MIA_M10Q_PAD at (0.94mm, 2.35mm)
+    pad G7: P_MIA_M10Q_PAD at (1.88mm, 2.35mm)
+    pad G9: P_MIA_M10Q_PAD at (3.76mm, 2.35mm)
+    pad H1: P_MIA_M10Q_PAD at (-3.76mm, 3.29mm)
+    pad H8: P_MIA_M10Q_PAD at (2.82mm, 3.29mm)
+    pad H9: P_MIA_M10Q_PAD at (3.76mm, 3.29mm)
+    pad J1: P_MIA_M10Q_PAD at (-3.76mm, 4.23mm)
+    pad J2: P_MIA_M10Q_PAD at (-2.82mm, 4.23mm)
+    pad J3: P_MIA_M10Q_PAD at (-1.88mm, 4.23mm)
+    pad J4: P_MIA_M10Q_PAD at (-0.94mm, 4.23mm)
+    pad J5: P_MIA_M10Q_PAD at (0mm, 4.23mm)
+    pad J6: P_MIA_M10Q_PAD at (0.94mm, 4.23mm)
+    pad J7: P_MIA_M10Q_PAD at (1.88mm, 4.23mm)
+    pad J8: P_MIA_M10Q_PAD at (2.82mm, 4.23mm)
+    pad J9: P_MIA_M10Q_PAD at (3.76mm, 4.23mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.0mm, 10.4mm) }
+    silkscreen_ref { at: (0mm, -5.4mm) }
+}

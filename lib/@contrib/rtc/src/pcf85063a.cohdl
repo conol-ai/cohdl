@@ -1,0 +1,103 @@
+// NXP PCF85063A: tiny RTC/calendar with alarm, I2C (datasheet Rev. 7.3,
+// 14 July 2026). Three packages: SO8 / TSSOP8 share pin numbers 1-8;
+// DFN2626-10 has different numbering + CLKOE/n.c. pins. Pin description
+// p4 Table 3.
+
+#[doc("docs/pcf85063a.pdf")]
+pub device PCF85063A {
+    variants { SO8, TSSOP8, DFN10 }
+    pins[SO8] {
+        optional OSCI: 1 [input] // 32.768kHz crystal input (p4)
+        optional OSCO: 2 [output] // crystal output (p4)
+        optional INT: 3 [output] // interrupt, open-drain (p4)
+        required VSS: 4 [power_in]
+        optional SDA: 5 [bidirectional] // I2C data (p4)
+        optional SCL: 6 [input] // I2C clock (p4)
+        optional CLKOUT: 7 [output] // clock output, push-pull (p4)
+        required VDD: 8 [power_in]
+    }
+    pins[TSSOP8] {
+        optional OSCI: 1 [input]
+        optional OSCO: 2 [output]
+        optional INT: 3 [output]
+        required VSS: 4 [power_in]
+        optional SDA: 5 [bidirectional]
+        optional SCL: 6 [input]
+        optional CLKOUT: 7 [output]
+        required VDD: 8 [power_in]
+    }
+    pins[DFN10] {
+        // DFN2626-10 numbering differs; adds CLKOE and n.c. (p4 Fig 3).
+        optional OSCI: 1 [input]
+        optional OSCO: 2 [output]
+        optional CLKOE: 3 [input] // CLKOUT enable, active HIGH (p4)
+        optional INT: 4 [output]
+        required VSS: 5 [power_in]
+        optional SDA: 6 [bidirectional]
+        optional SCL: 7 [input]
+        optional NC: 8 [passive] // not connected (p4)
+        optional CLKOUT: 9 [output]
+        required VDD: 10 [power_in]
+    }
+}
+
+impl IC for PCF85063A {}
+
+#[doc("docs/pcf85063a.pdf")]
+pub part RTC_PCF85063AT: PCF85063A[SO8] {
+    primary { mfr: "NXP", mpn: "PCF85063AT/AY", footprint: SOIC8P127X390X175N }
+}
+
+#[doc("docs/pcf85063a.pdf")]
+pub part RTC_PCF85063ATT: PCF85063A[TSSOP8] {
+    primary { mfr: "NXP", mpn: "PCF85063ATT/AJ", footprint: TSSOP8P65X300X110N }
+}
+
+// SO8 land (3.9mm body, 1.27 pitch). Gull-wing derivation: width 0.55,
+// length 1.2, centres at +/-2.7 (e1 5.4/2, 1.27 pitch 4 leads/side).
+pub pad P_PCF85063A_SO8_LEAD {
+    shape: rect
+    size: (1.2mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOIC8P127X390X175N {
+    pad 1: P_PCF85063A_SO8_LEAD at (-2.7mm, -1.905mm)
+    pad 2: P_PCF85063A_SO8_LEAD at (-2.7mm, -0.635mm)
+    pad 3: P_PCF85063A_SO8_LEAD at (-2.7mm, 0.635mm)
+    pad 4: P_PCF85063A_SO8_LEAD at (-2.7mm, 1.905mm)
+    pad 5: P_PCF85063A_SO8_LEAD at (2.7mm, 1.905mm)
+    pad 6: P_PCF85063A_SO8_LEAD at (2.7mm, 0.635mm)
+    pad 7: P_PCF85063A_SO8_LEAD at (2.7mm, -0.635mm)
+    pad 8: P_PCF85063A_SO8_LEAD at (2.7mm, -1.905mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.2mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}
+
+// TSSOP8 land (3mm body, 0.65 pitch). Gull-wing: width 0.42, length 1.1.
+pub pad P_PCF85063A_TSSOP8_LEAD {
+    shape: rect
+    size: (1.1mm, 0.42mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint TSSOP8P65X300X110N {
+    pad 1: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, -0.975mm)
+    pad 2: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, -0.325mm)
+    pad 3: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, 0.325mm)
+    pad 4: P_PCF85063A_TSSOP8_LEAD at (-2.1mm, 0.975mm)
+    pad 5: P_PCF85063A_TSSOP8_LEAD at (2.1mm, 0.975mm)
+    pad 6: P_PCF85063A_TSSOP8_LEAD at (2.1mm, 0.325mm)
+    pad 7: P_PCF85063A_TSSOP8_LEAD at (2.1mm, -0.325mm)
+    pad 8: P_PCF85063A_TSSOP8_LEAD at (2.1mm, -0.975mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.0mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}

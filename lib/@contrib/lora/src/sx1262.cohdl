@@ -1,0 +1,40 @@
+// Semtech SX1262: sub-GHz LoRa transceiver (433/868/915 MHz), SPI
+// (datasheet Rev. 1.2, June 2019). QFN 4x4 24L + EP. Pin location p13.
+
+#[doc("docs/sx1262.pdf")]
+pub device SX1262 {
+    pins {
+        required GND1: 1 [power_in]
+        required VDD_IN: 2 [power_in] // regulator input
+        required GND3: 3 [power_in]
+        optional XTA: 4 [passive] // TCXO/XTAL crystal (p13)
+        optional XTB: 5 [passive] // crystal (p13)
+        required GND6: 6 [power_in]
+        optional DIO3: 7 [bidirectional] // digital I/O or TCXO control (p13)
+        optional SCK: 8 [input] // SPI clock (p13)
+        optional MOSI: 9 [input] // SPI data in (p13)
+        optional MISO: 10 [output] // SPI data out (p13)
+        optional NRESET: 11 [input] // reset, active-low (p13)
+        optional BUSY: 12 [output] // busy status (p13)
+        optional DIO1: 13 [bidirectional] // digital I/O / interrupt (p13)
+        optional VR_PA: 14 [power_out] // PA regulator output (p13)
+        optional RFO: 15 [output] // RF output (p13)
+        optional RFI_N: 16 [input] // RF input negative (p13)
+        optional RFI_P: 17 [input] // RF input positive (p13)
+        required GND18: 18 [power_in]
+        optional NSS: 19 [input] // SPI chip select, active-low (p13)
+        optional VREG: 20 [power_out] // regulator output (p13)
+        required GND21: 21 [power_in]
+        optional DCC_SW: 22 [passive] // DC-DC switch pin (p13)
+        required VBAT: 23 [power_in] // main supply (p13)
+        required VBAT_IO: 24 [power_in] // I/O supply (p13)
+        required EP: 25 [power_in] // exposed pad ground
+    }
+}
+
+impl IC for SX1262 {}
+
+#[doc("docs/sx1262.pdf")]
+pub part LORA_SX1262: SX1262 {
+    primary { mfr: "Semtech", mpn: "SX1262IMLTRT", footprint: qfn::QFN24N50P400X400_1EP245X245 }
+}

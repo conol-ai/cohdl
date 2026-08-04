@@ -70,3 +70,4 @@ pinned it.
 | `@contrib/gnss` | `contrib_gnss::GNSS_L76KB_A58` | community-contributed GNSS / GPS module devices and parts |
 | `@contrib/ldo` | `contrib_ldo::LDO_XC6206P182MR` | community-contributed low-dropout regulator devices and parts |
 | `@contrib/flash` | `contrib_flash::FLASH_W25Q128JVSIQ` | community-contributed NOR/NAND flash memory devices and parts |
+| `@contrib/usb-uart` | `contrib_usb_uart::USBUART_CH343P` | community-contributed USB-to-UART bridge devices and parts |

@@ -1,0 +1,40 @@
+// Small-outline integrated-circuit land patterns.
+
+// Winbond W25Q128JV Rev G section 10.1 (PDF page 68):
+// https://www.winbond.com
+//
+// The package drawing specifies 8 leads at 1.27mm pitch, nominal 7.90mm
+// overall lead span, 5.28mm nominal body width/length, and 2.16mm maximum
+// height. Winbond does not publish a recommended PCB land pattern for the
+// 208-mil SOIC package.
+//
+// The land geometry follows KiCad's generic SOIC-8 5.3x5.3mm P1.27mm
+// footprint (KiCad 10.0.4, format 20260206, inspected source SHA-256
+// cc86a7083c9df1c1bf808dfa469e913d446455fd7ab7a7941e18681b80e8b9b5):
+// https://gitlab.com/kicad/libraries/kicad-footprints/-/blob/master/Package_SO.pretty/SOIC-8_5.3x5.3mm_P1.27mm.kicad_mod
+//
+// CoHDL uses rectangular pads in place of KiCad's rounded rectangles and the
+// 9.3x5.8mm bounding rectangle of KiCad's stepped courtyard. This is a
+// generic, non-Winbond recommendation and requires assembly validation.
+pub pad P_SOIC8P127X790X216N_LEAD {
+    shape: rect
+    size: (1.625mm, 0.65mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOIC8P127X790X216N {
+    pad 1: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, -1.905mm)
+    pad 2: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, -0.635mm)
+    pad 3: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, 0.635mm)
+    pad 4: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, 1.905mm)
+    pad 5: P_SOIC8P127X790X216N_LEAD at (3.5875mm, 1.905mm)
+    pad 6: P_SOIC8P127X790X216N_LEAD at (3.5875mm, 0.635mm)
+    pad 7: P_SOIC8P127X790X216N_LEAD at (3.5875mm, -0.635mm)
+    pad 8: P_SOIC8P127X790X216N_LEAD at (3.5875mm, -1.905mm)
+    silkscreen {
+        circle at (-3.5875mm, -2.65mm) radius 0.2mm width 0.1mm fill solid
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.3mm, 5.8mm) }
+    silkscreen_ref { at: (0mm, -3.6mm) }
+}

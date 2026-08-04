@@ -6,11 +6,6 @@ version = "0.1.0"
 hash = "sha256:4279b11928895cd93332fa7f31e74b5c72122178bce368cee8b0eb485425f0c4"
 
 [[package]]
-name = "@contrib/flash"
-version = "0.1.0"
-hash = "sha256:2cd3a5fce7c8353c1b5168b54aacf2846dab764e7870867953e3a1f30f396c18"
-
-[[package]]
 name = "@contrib/imu"
 version = "0.1.0"
 hash = "sha256:f26fb97bf42a4e86fa640c7158c262f2db20d522677706fa398457e72e1bbc10"
@@ -41,9 +36,19 @@ version = "0.1.0"
 hash = "sha256:5ec033489ee32476b0b312b0c6ac37ba3ea2b169df0227267a87093617e41186"
 
 [[package]]
+name = "flash"
+version = "0.1.0"
+hash = "sha256:c7128a83659d409c5dedcc697aa887060e32dfa211a8e70738fdcad087021112"
+
+[[package]]
 name = "qfn"
 version = "0.1.0"
 hash = "sha256:ffdf8c866ed37c05fbf2c69862029506c3bd5ee7c3cde790417abf7b0f77e5d1"
+
+[[package]]
+name = "soic"
+version = "0.1.0"
+hash = "sha256:8d2a33ae61b2799c53b0aff812ce040b39567b448d8cf15bab7fa8a6f5b71860"
 
 [[package]]
 name = "std"

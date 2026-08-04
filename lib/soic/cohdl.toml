@@ -1,8 +1,8 @@
 [package]
-name = "@contrib/flash"
+name = "soic"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed NOR/NAND flash memory devices and purchasable parts."
+description = "Verified SOIC package land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

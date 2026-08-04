@@ -19,11 +19,12 @@ footprints live in focused packages:
 | `std` | unqualified prelude traits such as `IC` and `Connector` | universal component contracts only |
 | `passive` | `passive::MLCC` | generated chip resistors, MLCCs, chip inductors, lands, and passive helper circuits |
 | `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | verified QFN, DFN, and SON package land patterns |
+| `soic` | `soic::SOIC8P127X790X216N` | verified SOIC package land patterns |
 | `connectors` | `connectors::headers::smd_254::SOCKET_2X3_254_SMD` | general-purpose board connectors and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6` | ESD protection devices |
 | `diode` | `diode::D_1N4148W` | discrete diodes |
-| `flash` | `flash::FLASH_W25Q32` | nonvolatile flash memories |
+| `flash` | `flash::FLASH_W25Q32`, `flash::FLASH_W25Q128JVSIQ` | nonvolatile NOR flash memories |
 | `ldo` | `ldo::LDO_AP2112K_3V3` | low-dropout regulators |
 | `led` | `led::LED_RED_0603` | discrete/addressable LEDs and their traits |
 | `mosfet` | `mosfet::FET_DMG1012T` | discrete MOSFETs |
@@ -69,7 +70,6 @@ pinned it.
 | `@contrib/rtc` | `contrib_rtc::RTC_PCF85063AT` | community-contributed real-time clock devices and parts |
 | `@contrib/gnss` | `contrib_gnss::GNSS_L76KB_A58` | community-contributed GNSS / GPS module devices and parts |
 | `@contrib/ldo` | `contrib_ldo::LDO_XC6206P182MR` | community-contributed low-dropout regulator devices and parts |
-| `@contrib/flash` | `contrib_flash::FLASH_W25Q128JVSIQ` | community-contributed NOR/NAND flash memory devices and parts |
 | `@contrib/usb-uart` | `contrib_usb_uart::USBUART_CH343P` | community-contributed USB-to-UART bridge devices and parts |
 | `@contrib/audio-amp` | `contrib_audio_amp::AMP_MAX98357A` | community-contributed audio amplifier devices and parts |
 | `@contrib/pmu` | `contrib_pmu::PMU_AXP2101` | community-contributed power management unit (PMU) devices and parts |

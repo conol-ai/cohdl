@@ -216,6 +216,57 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
     }
 }
 
+#[test]
+fn promoted_w25q128_uses_the_datasheet_pinout_and_shared_soic_land() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("qfn".to_string(), root.join("lib/qfn")),
+        ("soic".to_string(), root.join("lib/soic")),
+    ];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project = cohdl::project::load_project_with_deps(&root.join("lib/flash"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let flash = checked.world.devices.get("flash::W25Q128JV").unwrap();
+    let pins = flash.pins_for(None);
+    for (name, number) in [
+        ("CS", "1"),
+        ("DO", "2"),
+        ("WP", "3"),
+        ("GND", "4"),
+        ("DI", "5"),
+        ("CLK", "6"),
+        ("HOLD", "7"),
+        ("VCC", "8"),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong W25Q128JV physical mapping for {name}"
+        );
+    }
+    assert!(checked
+        .world
+        .parts
+        .contains_key("flash::FLASH_W25Q128JVSIQ"));
+    assert!(checked
+        .world
+        .footprints
+        .contains_key("soic::SOIC8P127X790X216N"));
+}
+
 // ---------------------------------------------------------------------------
 // footprint: a resolvable declaration kind.
 

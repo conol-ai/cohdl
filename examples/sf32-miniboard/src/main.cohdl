@@ -1,12 +1,12 @@
-// SF32 Mini Board — a minimal development board built entirely from
-// @contrib community libraries. Proves the full CoHDL library stack:
+// SF32 Mini Board — a minimal development board built from reusable official
+// and @contrib libraries. Proves the full CoHDL library stack:
 // SoC + Flash + IMU + environmental sensor + USB-UART + LDO + SD card +
 // LoRa transceiver. All connections type-checked and DRC-verified.
 
 design SF32MiniBoard {
     // ── Core ──────────────────────────────────────────────
     inst soc: contrib_sf32::MCU_SF32LB52EUB6
-    inst flash: contrib_flash::FLASH_W25Q128JVSIQ
+    inst flash: flash::FLASH_W25Q128JVSIQ
 
     // ── Sensors ───────────────────────────────────────────
     inst imu: contrib_imu::IMU_BHI260AP

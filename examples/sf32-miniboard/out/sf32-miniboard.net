@@ -21,7 +21,7 @@
       (tstamp "00000001")
     )
     (comp (ref "U2") (value "W25Q128JV")
-      (footprint "contrib_flash::SOIC8P127X528X195N")
+      (footprint "soic::SOIC8P127X790X216N")
       (libsource (lib "cohdl") (part "W25Q128JV") (description ""))
       (fields
         (field (name "MPN") "W25Q128JVSIQ")
@@ -185,7 +185,7 @@
       (node (ref "U6") (pin "46"))
     )
     (net (code 21) (name "QSPI_CLK")
-      (node (ref "U2") (pin "7"))
+      (node (ref "U2") (pin "6"))
       (node (ref "U6") (pin "33"))
     )
     (net (code 22) (name "QSPI_CS")

@@ -1,0 +1,23 @@
+// Winbond W25Q128JV: 128Mbit serial flash, SPI/QSPI, 2.7-3.6V (datasheet
+// rev G, April 2019). SOIC-8 208-mil (package code S, PDF p68). Pin map p6.
+
+#[doc("docs/w25q128jv.pdf")]
+pub device W25Q128JV {
+    pins {
+        optional CS: 1 [input] // chip select, active-low (p6)
+        optional DO: 2 [bidirectional] // data out / IO1 (p6)
+        optional WP: 3 [bidirectional] // write-protect / IO2, active-low (p6)
+        required GND: 4 [power_in]
+        optional DI: 5 [bidirectional] // data in / IO0 (p6)
+        optional CLK: 6 [input] // serial clock (p6)
+        optional HOLD: 7 [bidirectional] // hold-or-reset / IO3, active-low (p6)
+        required VCC: 8 [power_in] // 2.7-3.6V (p6)
+    }
+}
+
+impl IC for W25Q128JV {}
+
+#[doc("docs/w25q128jv.pdf")]
+pub part FLASH_W25Q128JVSIQ: W25Q128JV {
+    primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N }
+}

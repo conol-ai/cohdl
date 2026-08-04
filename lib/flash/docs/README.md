@@ -1,6 +1,7 @@
 # Official documentation
 
-Retrieved 2026-07-30 from Winbond.
+Retrieved from Winbond on the dates recorded below. The PDFs are stored
+byte-for-byte as downloaded; none was regenerated or optimized.
 
 ## `w25q32rv-datasheet.pdf`
 
@@ -20,6 +21,20 @@ package drawing on PDF page 78. The local enlarged PCB lands retain the
 documented KiCad generic DFN geometry; this limitation is recorded beside
 the footprint source.
 
+## `w25q128jv.pdf`
+
+- Retrieved and audited: 2026-08-04.
+- Covers: `W25Q128JVSIQ`, package code S (8-pin SOIC 208-mil).
+- Document identity: Revision G, 2019-04-08.
+- Official source: <https://www.winbond.com>.
+- SHA-256:
+  `5e2f6a77e0225a5c61b8f4b5b9680b57e0e1fe68cfc011465e30f665fe282057`
+
+The SOIC pin configuration and description were visually inspected on PDF
+page 6; they identify CLK as pin 6 and HOLD/RESET (IO3) as pin 7. The package
+drawing was inspected on PDF page 68. Winbond specifies the package dimensions
+but does not publish a recommended PCB land pattern.
+
 ## Secondary land-pattern reference
 
 Winbond does not provide a PCB land pattern for XH, so the local footprint
@@ -34,3 +49,8 @@ the assembly-validation requirement.
   <https://gitlab.com/kicad/libraries/kicad-footprints/-/blob/master/Package_DFN_QFN.pretty/DFN-8-1EP_2x3mm_P0.5mm_EP0.61x2.2mm.kicad_mod>
 - SHA-256 of the inspected KiCad 10.0.4 source:
   `f09e0b5e84a7a0b54e90f4c3c5fec7d10f53e44f65d62e56c5a2fcddbdf46fd9`
+
+The W25Q128JV part uses the reusable
+`soic::SOIC8P127X790X216N` land pattern. Its dimensional derivation, secondary
+KiCad reference, and assembly-validation limitation are recorded beside the
+footprint in `lib/soic`.

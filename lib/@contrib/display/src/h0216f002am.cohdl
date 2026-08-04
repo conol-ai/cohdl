@@ -1,0 +1,95 @@
+// Huaxia RGB H0216F002AM: 2.16" 480x480 AMOLED module with CO5300 driver
+// IC + CST9220 capacitive touch, QSPI/MIPI-DSI interface (module spec V0).
+// 31-pin FPC connector. Module outline 40.29 x 41.09 mm. Interface p6.
+
+#[doc("docs/h0216f002am.pdf")]
+pub device H0216F002AM {
+    pins {
+        required GND1: 1 [power_in]
+        optional TP_INT: 2 [output] // touch interrupt (p6)
+        optional TP_RST: 3 [input] // touch reset (p6)
+        optional TP_SDA: 4 [bidirectional] // touch I2C data (p6)
+        optional TP_SCL: 5 [input] // touch I2C clock (p6)
+        optional TP_VCC: 6 [power_in] // touch 3.3V supply (p6)
+        required GND7: 7 [power_in]
+        required IOVCC: 8 [power_in] // logic supply 1.8-3.3V (p6)
+        optional VCI: 9 [power_in] // DDIC DCDC supply (p6)
+        optional VBAT: 10 [power_in] // SIBO supply 3.7-4.5V (p6)
+        optional VCI_EN: 11 [power_in] // DDIC DCDC supply (p6)
+        required GND12: 12 [power_in]
+        optional MTP_PWR: 13 [passive] // MTP programming 8V, leave open normal (p6)
+        optional RESET: 14 [input] // module reset, active-low (p6)
+        optional CSX: 15 [input] // chip select (p6)
+        optional SDI_RDX: 16 [bidirectional] // serial data in 0 / data out (p6)
+        optional DCX: 17 [input] // serial data in 1 (p6)
+        optional WRX_SCL: 18 [input] // SPI clock (p6)
+        optional D1: 19 [input] // serial data in 3 (p6)
+        optional D0: 20 [input] // serial data in 2 (p6)
+        optional TE: 21 [output] // tearing effect sync output (p6)
+        required GND22: 22 [power_in]
+        optional D1P: 23 [input] // MIPI-DSI data+ (p6)
+        optional D1N: 24 [input] // MIPI-DSI data- (p6)
+        required GND25: 25 [power_in]
+        optional CLKP: 26 [input] // MIPI clock+ (p6)
+        optional CLKN: 27 [input] // MIPI clock- (p6)
+        required GND28: 28 [power_in]
+        optional D0P: 29 [input] // MIPI-DSI data+ (p6)
+        optional D0N: 30 [input] // MIPI-DSI data- (p6)
+        required GND31: 31 [power_in]
+    }
+}
+
+impl IC for H0216F002AM {}
+
+#[doc("docs/h0216f002am.pdf")]
+pub part DISP_H0216F002AM: H0216F002AM {
+    primary { mfr: "Huaxia RGB", mpn: "H0216F002AM", footprint: FP_H0216F002AM_FPC31 }
+}
+
+// 31-pin FPC footprint (0.5mm pitch, bottom-contact). Pad 0.3 x 1.5mm.
+// Pin 1 at left; FPC occupies one edge of the 40.29 x 41.09mm module.
+pub pad P_H0216_FPC_PAD {
+    shape: rect
+    size: (0.3mm, 1.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_H0216F002AM_FPC31 {
+    pad 1: P_H0216_FPC_PAD at (-7.5mm, 0mm)
+    pad 2: P_H0216_FPC_PAD at (-7mm, 0mm)
+    pad 3: P_H0216_FPC_PAD at (-6.5mm, 0mm)
+    pad 4: P_H0216_FPC_PAD at (-6mm, 0mm)
+    pad 5: P_H0216_FPC_PAD at (-5.5mm, 0mm)
+    pad 6: P_H0216_FPC_PAD at (-5mm, 0mm)
+    pad 7: P_H0216_FPC_PAD at (-4.5mm, 0mm)
+    pad 8: P_H0216_FPC_PAD at (-4mm, 0mm)
+    pad 9: P_H0216_FPC_PAD at (-3.5mm, 0mm)
+    pad 10: P_H0216_FPC_PAD at (-3mm, 0mm)
+    pad 11: P_H0216_FPC_PAD at (-2.5mm, 0mm)
+    pad 12: P_H0216_FPC_PAD at (-2mm, 0mm)
+    pad 13: P_H0216_FPC_PAD at (-1.5mm, 0mm)
+    pad 14: P_H0216_FPC_PAD at (-1mm, 0mm)
+    pad 15: P_H0216_FPC_PAD at (-0.5mm, 0mm)
+    pad 16: P_H0216_FPC_PAD at (0mm, 0mm)
+    pad 17: P_H0216_FPC_PAD at (0.5mm, 0mm)
+    pad 18: P_H0216_FPC_PAD at (1mm, 0mm)
+    pad 19: P_H0216_FPC_PAD at (1.5mm, 0mm)
+    pad 20: P_H0216_FPC_PAD at (2mm, 0mm)
+    pad 21: P_H0216_FPC_PAD at (2.5mm, 0mm)
+    pad 22: P_H0216_FPC_PAD at (3mm, 0mm)
+    pad 23: P_H0216_FPC_PAD at (3.5mm, 0mm)
+    pad 24: P_H0216_FPC_PAD at (4mm, 0mm)
+    pad 25: P_H0216_FPC_PAD at (4.5mm, 0mm)
+    pad 26: P_H0216_FPC_PAD at (5mm, 0mm)
+    pad 27: P_H0216_FPC_PAD at (5.5mm, 0mm)
+    pad 28: P_H0216_FPC_PAD at (6mm, 0mm)
+    pad 29: P_H0216_FPC_PAD at (6.5mm, 0mm)
+    pad 30: P_H0216_FPC_PAD at (7mm, 0mm)
+    pad 31: P_H0216_FPC_PAD at (7.5mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (42mm, 43mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

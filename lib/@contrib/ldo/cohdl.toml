@@ -1,0 +1,9 @@
+[package]
+name = "@contrib/ldo"
+version = "0.1.0"
+license = "MIT"
+description = "Community-contributed low-dropout regulator devices and purchasable parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

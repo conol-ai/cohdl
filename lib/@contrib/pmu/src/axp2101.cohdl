@@ -1,0 +1,56 @@
+// X-Powers AXP2101: highly-integrated PMU with 5 DCDCs + multiple LDOs +
+// charger + fuel gauge, I2C (datasheet 2022). QFN40-6x6 + EP. Pin desc p7-9.
+
+#[doc("docs/axp2101.pdf")]
+pub device AXP2101 {
+    pins {
+        optional CHGLED: 1 [output] // charge status indicator (p7)
+        optional VREF: 2 [power_out] // internal reference voltage (p7)
+        required GND: 3 [power_in] // analog ground (p7)
+        optional FB3: 4 [passive] // DCDC3 feedback (p7)
+        optional LX3: 5 [passive] // DCDC3 inductor (p7)
+        optional VIN3: 6 [power_in] // DCDC3 input (p7)
+        optional VIN4: 7 [power_in] // DCDC4 input (p7)
+        optional LX4: 8 [passive] // DCDC4 inductor (p7)
+        optional FB4: 9 [passive] // DCDC4 feedback (p7)
+        optional CPULDOS: 10 [power_out] // CPULDOS output (p7)
+        optional DLDO2_DC4SW: 11 [power_out] // DLDO2 / DC4SW output (p7)
+        optional BLDO1: 12 [power_out] // BLDO1 output (p7)
+        optional BLDOIN: 13 [power_in] // BLDO input (p7)
+        optional BLDO2: 14 [power_out] // BLDO2 output (p7)
+        optional ALDO4: 15 [power_out] // ALDO4 output (p8)
+        optional ALDO3: 16 [power_out] // ALDO3 output (p8)
+        optional ALDOIN: 17 [power_in] // ALDO input (p8)
+        optional ALDO1: 18 [power_out] // ALDO1 output (p8)
+        optional ALDO2: 19 [power_out] // ALDO2 output (p8)
+        optional DLDO1_DC1SW: 20 [power_out] // DLDO1 / DC1SW output (p8)
+        optional FB1: 21 [passive] // DCDC1 feedback (p8)
+        optional LX1: 22 [passive] // DCDC1 inductor (p8)
+        optional VIN1: 23 [power_in] // DCDC1 input (p8)
+        optional VIN2: 24 [power_in] // DCDC2 input (p8)
+        optional LX2: 25 [passive] // DCDC2 inductor (p8)
+        optional FB2: 26 [passive] // DCDC2 feedback (p8)
+        optional VBACKUP: 27 [power_in] // backup battery input (p8)
+        optional VRTC: 28 [power_out] // RTC power output (p8)
+        optional PWROK: 29 [output] // power-good indicator (p8)
+        optional PWRON: 30 [bidirectional] // power on/off key, internal 100k pull-up (p8)
+        optional TS: 31 [input] // temperature sense via NTC (p8)
+        optional GPIO1: 32 [bidirectional] // GPIO1 / FB5 / RTCLDO2 (p8)
+        required BAT: 33 [power_in] // battery connection, 1uF close (p8)
+        required VSYS: 34 [power_in] // system connection, 2x 22uF close (p8)
+        optional SW: 35 [passive] // DCDC5 inductor (p8)
+        optional VMID: 36 [power_out] // VMID output (p8)
+        optional VBUS: 37 [power_in] // VBUS input (p8)
+        optional IRQ: 38 [output] // open-drain interrupt, 4.7k pull-up (p8)
+        optional SDA: 39 [bidirectional] // I2C data, 2.2k pull-up (p9)
+        optional SCK: 40 [input] // I2C clock, 2.2k pull-up (p9)
+        required EP: 41 [power_in] // exposed pad — system ground (p9)
+    }
+}
+
+impl IC for AXP2101 {}
+
+#[doc("docs/axp2101.pdf")]
+pub part PMU_AXP2101: AXP2101 {
+    primary { mfr: "X-Powers", mpn: "AXP2101A", footprint: qfn::QFN40N40P600X600_1EP44X44 }
+}

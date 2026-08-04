@@ -603,3 +603,45 @@ pub footprint QFN20N40P300X300_1EP170X170 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3.8mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
+
+// TI TCA8418 datasheet SCPS215G, RTW0024B package (p50-52):
+// body 4.0 square, pitch 0.5, lead 0.3x0.6, EP 2.45 square.
+// 6 leads per side + EP (pin 25). Reuses the QFN24-4x4 lead pads above.
+pub pad P_QFN24N50P400X400_EP245X245 {
+    shape: rect
+    size: (2.45mm, 2.45mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint QFN24N50P400X400_1EP245X245 {
+    pad 1: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -1.25mm)
+    pad 2: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -0.75mm)
+    pad 3: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, -0.25mm)
+    pad 4: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 0.25mm)
+    pad 5: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 0.75mm)
+    pad 6: P_QFN24N50P400X400_LEAD_H at (-1.9375mm, 1.25mm)
+    pad 7: P_QFN24N50P400X400_LEAD_V at (-1.25mm, 1.9375mm)
+    pad 8: P_QFN24N50P400X400_LEAD_V at (-0.75mm, 1.9375mm)
+    pad 9: P_QFN24N50P400X400_LEAD_V at (-0.25mm, 1.9375mm)
+    pad 10: P_QFN24N50P400X400_LEAD_V at (0.25mm, 1.9375mm)
+    pad 11: P_QFN24N50P400X400_LEAD_V at (0.75mm, 1.9375mm)
+    pad 12: P_QFN24N50P400X400_LEAD_V at (1.25mm, 1.9375mm)
+    pad 13: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 1.25mm)
+    pad 14: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 0.75mm)
+    pad 15: P_QFN24N50P400X400_LEAD_H at (1.9375mm, 0.25mm)
+    pad 16: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -0.25mm)
+    pad 17: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -0.75mm)
+    pad 18: P_QFN24N50P400X400_LEAD_H at (1.9375mm, -1.25mm)
+    pad 19: P_QFN24N50P400X400_LEAD_V at (1.25mm, -1.9375mm)
+    pad 20: P_QFN24N50P400X400_LEAD_V at (0.75mm, -1.9375mm)
+    pad 21: P_QFN24N50P400X400_LEAD_V at (0.25mm, -1.9375mm)
+    pad 22: P_QFN24N50P400X400_LEAD_V at (-0.25mm, -1.9375mm)
+    pad 23: P_QFN24N50P400X400_LEAD_V at (-0.75mm, -1.9375mm)
+    pad 24: P_QFN24N50P400X400_LEAD_V at (-1.25mm, -1.9375mm)
+    pad 25: P_QFN24N50P400X400_EP245X245 at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.8mm, 4.8mm) }
+    silkscreen_ref { at: (0mm, -2.6mm) }
+}

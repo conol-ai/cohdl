@@ -3,7 +3,7 @@
 [[package]]
 name = "qfn"
 version = "0.1.0"
-hash = "sha256:3cbb36df41e51b87f849b86c63f46799865ee94f09658739347df9ddb7d29e7c"
+hash = "sha256:ffdf8c866ed37c05fbf2c69862029506c3bd5ee7c3cde790417abf7b0f77e5d1"
 
 [[package]]
 name = "std"

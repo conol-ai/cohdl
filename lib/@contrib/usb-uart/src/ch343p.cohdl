@@ -1,0 +1,32 @@
+// WCH CH343: USB-to-UART bridge chip, USB 2.0 full-speed, up to 6Mbps
+// (datasheet V1.6). QFN16_3X3 (CH343P). Pinout p2 (QFN column).
+
+#[doc("docs/ch343.pdf")]
+pub device CH343P {
+    pins {
+        required VIO: 1 [power_in] // I/O port power, decouple (p2)
+        optional GND1: 2 [power_in] // ground (p2)
+        optional RST: 3 [input] // external reset, active-low, internal pull-up (p2)
+        optional TXD: 4 [output] // UART transmit, idle high (p2)
+        optional RXD: 5 [input] // UART receive, internal pull-up (p2)
+        optional V3: 6 [power_out] // internal regulator out; tie VDD5 if <3.6V (p2)
+        optional UDP: 7 [bidirectional] // USB D+, direct connect (p2)
+        optional UDN: 8 [bidirectional] // USB D-, direct connect (p2)
+        optional VBUS: 9 [input] // USB VBUS detect, internal pull-down (p2)
+        optional ACTN: 10 [output] // USB config-done indicator, active-low (p2)
+        optional DTR: 11 [output] // modem DTR / TNOW status (p2)
+        optional RTS: 12 [output] // modem RTS, active-low (p2)
+        optional NC13: 13 [passive]
+        optional NC14: 14 [passive]
+        required VDD5: 15 [power_in] // regulator input, decouple (p2)
+        required GND16: 16 [power_in] // ground (p2)
+        optional EPAD: 17 [power_in] // exposed pad GND (pin 0), recommended (p2)
+    }
+}
+
+impl IC for CH343P {}
+
+#[doc("docs/ch343.pdf")]
+pub part USBUART_CH343P: CH343P {
+    primary { mfr: "WCH", mpn: "CH343P", footprint: qfn::QFN16N50P300X300_1EP170X170 }
+}

@@ -645,3 +645,48 @@ pub footprint QFN24N50P400X400_1EP245X245 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (4.8mm, 4.8mm) }
     silkscreen_ref { at: (0mm, -2.6mm) }
 }
+
+// WCH CH343 datasheet V1.6, QFN16_3X3 package: body 3x3, pitch 0.5.
+// 4 leads per side + EP (pin 0=EPAD GND, optional but recommended).
+pub pad P_QFN16N50P300X300_LEAD_H {
+    shape: rect
+    size: (0.5mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN16N50P300X300_LEAD_V {
+    shape: rect
+    size: (0.25mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN16N50P300X300_EP {
+    shape: rect
+    size: (1.7mm, 1.7mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint QFN16N50P300X300_1EP170X170 {
+    pad 1: P_QFN16N50P300X300_LEAD_H at (-1.4375mm, -0.75mm)
+    pad 2: P_QFN16N50P300X300_LEAD_H at (-1.4375mm, -0.25mm)
+    pad 3: P_QFN16N50P300X300_LEAD_H at (-1.4375mm, 0.25mm)
+    pad 4: P_QFN16N50P300X300_LEAD_H at (-1.4375mm, 0.75mm)
+    pad 5: P_QFN16N50P300X300_LEAD_V at (-0.75mm, 1.4375mm)
+    pad 6: P_QFN16N50P300X300_LEAD_V at (-0.25mm, 1.4375mm)
+    pad 7: P_QFN16N50P300X300_LEAD_V at (0.25mm, 1.4375mm)
+    pad 8: P_QFN16N50P300X300_LEAD_V at (0.75mm, 1.4375mm)
+    pad 9: P_QFN16N50P300X300_LEAD_H at (1.4375mm, 0.75mm)
+    pad 10: P_QFN16N50P300X300_LEAD_H at (1.4375mm, 0.25mm)
+    pad 11: P_QFN16N50P300X300_LEAD_H at (1.4375mm, -0.25mm)
+    pad 12: P_QFN16N50P300X300_LEAD_H at (1.4375mm, -0.75mm)
+    pad 13: P_QFN16N50P300X300_LEAD_V at (0.75mm, -1.4375mm)
+    pad 14: P_QFN16N50P300X300_LEAD_V at (0.25mm, -1.4375mm)
+    pad 15: P_QFN16N50P300X300_LEAD_V at (-0.25mm, -1.4375mm)
+    pad 16: P_QFN16N50P300X300_LEAD_V at (-0.75mm, -1.4375mm)
+    pad 17: P_QFN16N50P300X300_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3.8mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

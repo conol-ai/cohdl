@@ -1,0 +1,10 @@
+[package]
+name = "@contrib/usb-uart"
+version = "0.1.0"
+license = "MIT"
+description = "Community-contributed USB-to-UART bridge devices and purchasable parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+qfn = "0.1.0"
+std = "0.3.0"

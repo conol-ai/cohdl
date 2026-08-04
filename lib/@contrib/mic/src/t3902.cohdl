@@ -1,0 +1,44 @@
+// InvenSense T3902: bottom-port PDM digital MEMS microphone, multi-mode
+// (low-power / standard / high-performance), 1.62-3.63V (datasheet
+// DS-000357 rev 1.0). 3.5 x 2.65 x 0.98 mm surface-mount, 5 terminals +
+// sound port. Pin config p10; land pattern p18.
+
+#[doc("docs/t3902.pdf")]
+pub device T3902 {
+    pins {
+        optional DATA: 1 [output] // PDM digital output (p10)
+        optional SELECT: 2 [input] // L/R channel select: GND=right, VDD=left (p10)
+        required GND: 3 [power_in]
+        optional CLK: 4 [input] // PDM clock input (p10)
+        required VDD: 5 [power_in] // 1.62-3.63V, 0.1uF close (p10)
+    }
+}
+
+impl IC for T3902 {}
+
+#[doc("docs/t3902.pdf")]
+pub part MIC_T3902: T3902 {
+    primary { mfr: "InvenSense", mpn: "T3902-310", footprint: FP_T3902_3P5X2P65mm }
+}
+
+// Land pattern (datasheet p18 Fig 14): pad 0.522 x 0.725 mm (4X), offset
+// per drawing. Sound port hole 0.5-1.0 mm dia (not a pad).
+pub pad P_T3902_PAD {
+    shape: rect
+    size: (0.522mm, 0.725mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_T3902_3P5X2P65mm {
+    pad 1: P_T3902_PAD at (-0.838mm, -0.626mm)
+    pad 2: P_T3902_PAD at (0.838mm, -0.626mm)
+    pad 3: P_T3902_PAD at (0.838mm, 0.626mm)
+    pad 4: P_T3902_PAD at (-0.838mm, 0.626mm)
+    pad 5: P_T3902_PAD at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.0mm) }
+}

@@ -1,0 +1,31 @@
+// Run-IC RS0104: 4-bit bidirectional voltage-level translator, auto-
+// direction-sensing, open-drain + push-pull, VCCA 1.65-5.5V / VCCB
+// 2.3-5.5V (datasheet REV A.5). QFN3.5x3.5-14L + EP. Pin description p4.
+
+#[doc("docs/rs0104.pdf")]
+pub device RS0104 {
+    pins {
+        required VCCA: 1 [power_in] // A port supply 1.65-5.5V, VCCA<=VCCB (p4)
+        optional A1: 2 [bidirectional] // A port I/O1 (p4)
+        optional A2: 3 [bidirectional]
+        optional A3: 4 [bidirectional]
+        optional A4: 5 [bidirectional]
+        optional NC6: 6 [passive] // no connection (p4)
+        required GND: 7 [power_in]
+        required OE: 8 [input] // output enable, active-high; low = Hi-Z (p4)
+        optional NC9: 9 [passive]
+        optional B4: 10 [bidirectional] // B port I/O4 (p4)
+        optional B3: 11 [bidirectional]
+        optional B2: 12 [bidirectional]
+        optional B1: 13 [bidirectional]
+        required VCCB: 14 [power_in] // B port supply 2.3-5.5V (p4)
+        optional EP: 15 [power_in] // exposed pad, solder to GND or float (p4)
+    }
+}
+
+impl IC for RS0104 {}
+
+#[doc("docs/rs0104.pdf")]
+pub part LS_RS0104: RS0104 {
+    primary { mfr: "Run-IC", mpn: "RS0104YTQE12", footprint: qfn::QFN14N50P350X350_1EP20X20 }
+}

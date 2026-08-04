@@ -1,0 +1,41 @@
+// Semtech SX1280: 2.4GHz LoRa/FLRC transceiver, SPI (datasheet Rev 3.2,
+// March 2020). QFN 4x4 24L + EP. Pin location p18. Shares the QFN24-EP2.45
+// land pattern with SX1262 (same package family).
+
+#[doc("docs/sx1280.pdf")]
+pub device SX1280 {
+    pins {
+        required GND1: 1 [power_in]
+        optional VR_PA: 2 [power_out] // PA regulator output (p18)
+        required VDD_IN: 3 [power_in] // regulator input (p18)
+        optional NRESET: 4 [input] // reset, active-low (p18)
+        optional XTA: 5 [passive] // crystal (p18)
+        required GND6: 6 [power_in]
+        optional XTB: 7 [passive] // crystal (p18)
+        optional SCK_RTSN: 8 [input] // SPI clock / UART RTS (p18)
+        optional MOSI_RX: 9 [input] // SPI MOSI / UART RX (p18)
+        optional MISO_TX: 10 [output] // SPI MISO / UART TX (p18)
+        required VBAT: 11 [power_in] // main supply (p18)
+        optional DCC_SW: 12 [passive] // DC-DC switch (p18)
+        required GND13: 13 [power_in]
+        required GND14: 14 [power_in]
+        required GND15: 15 [power_in]
+        optional RFIO: 16 [bidirectional] // RF input/output (p18)
+        required GND17: 17 [power_in]
+        required GND18: 18 [power_in]
+        optional NSS_CTSN: 19 [input] // SPI NSS / UART CTS (p18)
+        optional BUSY: 20 [output] // busy status (p18)
+        optional DIO1: 21 [bidirectional] // digital I/O / interrupt (p18)
+        optional DIO2: 22 [bidirectional] // digital I/O (p18)
+        optional DIO3: 23 [bidirectional] // digital I/O (p18)
+        required VBAT_IO: 24 [power_in] // I/O supply (p18)
+        required EP: 25 [power_in] // exposed pad ground
+    }
+}
+
+impl IC for SX1280 {}
+
+#[doc("docs/sx1280.pdf")]
+pub part LORA_SX1280: SX1280 {
+    primary { mfr: "Semtech", mpn: "SX1280IMLTRT", footprint: qfn::QFN24N50P400X400_1EP245X245 }
+}

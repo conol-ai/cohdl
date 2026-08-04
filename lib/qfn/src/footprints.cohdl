@@ -820,3 +820,46 @@ pub footprint QFN32N50P500X500_1EP34X34 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (5.8mm, 5.8mm) }
     silkscreen_ref { at: (0mm, -3.3mm) }
 }
+
+// Run-IC RS0104 datasheet REV A.5, QFN3.5x3.5-14L: body 3.5 sq, pitch 0.5.
+// Pin layout: left=1-5, bottom=6-9, right=10-13(?), top=14. 14 leads + EP.
+pub pad P_QFN14N50P350X350_LEAD_H {
+    shape: rect
+    size: (0.6mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN14N50P350X350_LEAD_V {
+    shape: rect
+    size: (0.25mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN14N50P350X350_EP {
+    shape: rect
+    size: (2.0mm, 2.0mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint QFN14N50P350X350_1EP20X20 {
+    pad 1: P_QFN14N50P350X350_LEAD_H at (-1.6875mm, -0.75mm)
+    pad 2: P_QFN14N50P350X350_LEAD_H at (-1.6875mm, -0.25mm)
+    pad 3: P_QFN14N50P350X350_LEAD_H at (-1.6875mm, 0.25mm)
+    pad 4: P_QFN14N50P350X350_LEAD_H at (-1.6875mm, 0.75mm)
+    pad 5: P_QFN14N50P350X350_LEAD_V at (-0.5mm, 1.6875mm)
+    pad 6: P_QFN14N50P350X350_LEAD_V at (0mm, 1.6875mm)
+    pad 7: P_QFN14N50P350X350_LEAD_V at (0.5mm, 1.6875mm)
+    pad 8: P_QFN14N50P350X350_LEAD_H at (1.6875mm, 0.75mm)
+    pad 9: P_QFN14N50P350X350_LEAD_H at (1.6875mm, 0.25mm)
+    pad 10: P_QFN14N50P350X350_LEAD_H at (1.6875mm, -0.25mm)
+    pad 11: P_QFN14N50P350X350_LEAD_H at (1.6875mm, -0.75mm)
+    pad 12: P_QFN14N50P350X350_LEAD_V at (0.5mm, -1.6875mm)
+    pad 13: P_QFN14N50P350X350_LEAD_V at (0mm, -1.6875mm)
+    pad 14: P_QFN14N50P350X350_LEAD_V at (-0.5mm, -1.6875mm)
+    pad 15: P_QFN14N50P350X350_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}

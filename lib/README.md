@@ -76,3 +76,5 @@ pinned it.
 | `@contrib/lora` | `contrib_lora::LORA_SX1262` | community-contributed LoRa transceiver devices and parts |
 | `@contrib/nfc` | `contrib_nfc::NFC_ST25R3916` | community-contributed NFC reader/IC devices and parts |
 | `@contrib/display` | `contrib_display::DISP_H0216F002AM` | community-contributed display module devices and parts |
+| `@contrib/display` (CO5300) | `contrib_display::CO5300` | AMOLED driver IC (COF, device-only) |
+| `@contrib/display` (CST9220) | `contrib_display::CST9220` | capacitive touch IC (device-only) |

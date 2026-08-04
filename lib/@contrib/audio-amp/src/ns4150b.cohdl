@@ -1,0 +1,47 @@
+// Nsiway NS4150B: 3W mono Class D audio amplifier, filterless, 3.0-5.25V
+// (datasheet). MSOP8 / SOP8 packages share pinout. Pin description p7.
+
+#[doc("docs/ns4150b.pdf")]
+pub device NS4150B {
+    pins {
+        optional CTRL: 1 [input] // work-mode control (p7)
+        optional BYPASS: 2 [passive] // internal common-mode voltage bypass cap (p7)
+        optional INP: 3 [input] // non-inverting audio input (p7)
+        optional INN: 4 [input] // inverting audio input (p7)
+        optional VON: 5 [output] // inverting audio output (p7)
+        required VCC: 6 [power_in] // supply 3.0-5.25V (p7)
+        required GND: 7 [power_in]
+        optional VOP: 8 [output] // non-inverting audio output (p7)
+    }
+}
+
+impl IC for NS4150B {}
+
+#[doc("docs/ns4150b.pdf")]
+pub part AMP_NS4150B: NS4150B {
+    primary { mfr: "Nsiway", mpn: "NS4150B", footprint: FP_NS4150_SOP8 }
+}
+
+// SOP8 land (3.9mm body, 1.27 pitch). Same family as SOIC-8.
+pub pad P_NS4150_SOP8_LEAD {
+    shape: rect
+    size: (1.5mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_NS4150_SOP8 {
+    pad 1: P_NS4150_SOP8_LEAD at (-3.81mm, -1.905mm)
+    pad 2: P_NS4150_SOP8_LEAD at (-3.81mm, -0.635mm)
+    pad 3: P_NS4150_SOP8_LEAD at (-3.81mm, 0.635mm)
+    pad 4: P_NS4150_SOP8_LEAD at (-3.81mm, 1.905mm)
+    pad 5: P_NS4150_SOP8_LEAD at (3.81mm, 1.905mm)
+    pad 6: P_NS4150_SOP8_LEAD at (3.81mm, 0.635mm)
+    pad 7: P_NS4150_SOP8_LEAD at (3.81mm, -0.635mm)
+    pad 8: P_NS4150_SOP8_LEAD at (3.81mm, -1.905mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 6.0mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
+}

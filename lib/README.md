@@ -72,3 +72,4 @@ pinned it.
 | `@contrib/flash` | `contrib_flash::FLASH_W25Q128JVSIQ` | community-contributed NOR/NAND flash memory devices and parts |
 | `@contrib/usb-uart` | `contrib_usb_uart::USBUART_CH343P` | community-contributed USB-to-UART bridge devices and parts |
 | `@contrib/audio-amp` | `contrib_audio_amp::AMP_MAX98357A` | community-contributed audio amplifier devices and parts |
+| `@contrib/pmu` | `contrib_pmu::PMU_AXP2101` | community-contributed power management unit (PMU) devices and parts |

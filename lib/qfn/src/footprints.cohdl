@@ -690,3 +690,72 @@ pub footprint QFN16N50P300X300_1EP170X170 {
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 3.8mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
+
+// X-Powers AXP2101: QFN40-6x6-0.4 package (standard PMU footprint).
+// 10 leads per side + EP. Body 6.0 sq, pitch 0.4.
+pub pad P_QFN40N40P600X600_LEAD_H {
+    shape: rect
+    size: (0.7mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN40N40P600X600_LEAD_V {
+    shape: rect
+    size: (0.2mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_QFN40N40P600X600_EP {
+    shape: rect
+    size: (4.4mm, 4.4mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint QFN40N40P600X600_1EP44X44 {
+    pad 1: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, -1.8mm)
+    pad 2: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, -1.4mm)
+    pad 3: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, -1mm)
+    pad 4: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, -0.6mm)
+    pad 5: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, -0.2mm)
+    pad 6: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, 0.2mm)
+    pad 7: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, 0.6mm)
+    pad 8: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, 1mm)
+    pad 9: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, 1.4mm)
+    pad 10: P_QFN40N40P600X600_LEAD_H at (-2.9375mm, 1.8mm)
+    pad 11: P_QFN40N40P600X600_LEAD_V at (-1.8mm, 2.9375mm)
+    pad 12: P_QFN40N40P600X600_LEAD_V at (-1.4mm, 2.9375mm)
+    pad 13: P_QFN40N40P600X600_LEAD_V at (-1mm, 2.9375mm)
+    pad 14: P_QFN40N40P600X600_LEAD_V at (-0.6mm, 2.9375mm)
+    pad 15: P_QFN40N40P600X600_LEAD_V at (-0.2mm, 2.9375mm)
+    pad 16: P_QFN40N40P600X600_LEAD_V at (0.2mm, 2.9375mm)
+    pad 17: P_QFN40N40P600X600_LEAD_V at (0.6mm, 2.9375mm)
+    pad 18: P_QFN40N40P600X600_LEAD_V at (1mm, 2.9375mm)
+    pad 19: P_QFN40N40P600X600_LEAD_V at (1.4mm, 2.9375mm)
+    pad 20: P_QFN40N40P600X600_LEAD_V at (1.8mm, 2.9375mm)
+    pad 21: P_QFN40N40P600X600_LEAD_H at (2.9375mm, 1.8mm)
+    pad 22: P_QFN40N40P600X600_LEAD_H at (2.9375mm, 1.4mm)
+    pad 23: P_QFN40N40P600X600_LEAD_H at (2.9375mm, 1mm)
+    pad 24: P_QFN40N40P600X600_LEAD_H at (2.9375mm, 0.6mm)
+    pad 25: P_QFN40N40P600X600_LEAD_H at (2.9375mm, 0.2mm)
+    pad 26: P_QFN40N40P600X600_LEAD_H at (2.9375mm, -0.2mm)
+    pad 27: P_QFN40N40P600X600_LEAD_H at (2.9375mm, -0.6mm)
+    pad 28: P_QFN40N40P600X600_LEAD_H at (2.9375mm, -1mm)
+    pad 29: P_QFN40N40P600X600_LEAD_H at (2.9375mm, -1.4mm)
+    pad 30: P_QFN40N40P600X600_LEAD_H at (2.9375mm, -1.8mm)
+    pad 31: P_QFN40N40P600X600_LEAD_V at (1.8mm, -2.9375mm)
+    pad 32: P_QFN40N40P600X600_LEAD_V at (1.4mm, -2.9375mm)
+    pad 33: P_QFN40N40P600X600_LEAD_V at (1mm, -2.9375mm)
+    pad 34: P_QFN40N40P600X600_LEAD_V at (0.6mm, -2.9375mm)
+    pad 35: P_QFN40N40P600X600_LEAD_V at (0.2mm, -2.9375mm)
+    pad 36: P_QFN40N40P600X600_LEAD_V at (-0.2mm, -2.9375mm)
+    pad 37: P_QFN40N40P600X600_LEAD_V at (-0.6mm, -2.9375mm)
+    pad 38: P_QFN40N40P600X600_LEAD_V at (-1mm, -2.9375mm)
+    pad 39: P_QFN40N40P600X600_LEAD_V at (-1.4mm, -2.9375mm)
+    pad 40: P_QFN40N40P600X600_LEAD_V at (-1.8mm, -2.9375mm)
+    pad 41: P_QFN40N40P600X600_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.8mm, 6.8mm) }
+    silkscreen_ref { at: (0mm, -3.8mm) }
+}

@@ -15,7 +15,7 @@ thousands of hand-edited declarations.
 | Yageo CC MLCC primaries | 1,225 | The NP0/C0G, X5R, and X7R family documents below; every emitted MPN was accepted by Yageo's official specsheet endpoint. |
 | Samsung CL MLCC alternates | 716 | `samsung_mlcc_catalog_2025-12.pdf` plus the exact-MPN product-database snapshot in `tools/passive_data/samsung_cl.json`. |
 | Murata GRM MLCC alternates | 2 | One part-specific reference sheet for each exact base MPN; the packaged `D` ordering suffix is listed in each sheet. |
-| Murata chip inductors | 2 | One official detailed specification per series. |
+| Power inductors | 3 | One official detailed specification per series (Murata and Sunlord). |
 
 The exact-MPN validation snapshots are dated 2026-07-25. The Samsung snapshot
 contains only CL-series, mass-production entries with the size, voltage,
@@ -45,6 +45,7 @@ nonexistent `DFE201612E-3R3M` with the in-production
 | `murata_grm155r71c104ka88_datasheet.pdf` | `GRM155R71C104KA88D`, 100 nF, 16 V, X7R, 0402; reference sheet `GRM155R71C104KA88-01A`, specifications dated 2025-07-23. | [Murata detailed specification](https://pim.murata.com/asset/pim4/ceramicCapacitorSMD/GRM155R71C104KA88-01A-EN_PDF_CERAMICCAPACITORSMD?lastModifiedDatetime=20250813144737) | `92344eadf5b053ce450f42708439606724b71884c6dedfbfe92c591c0c698015` |
 | `murata_dfe201612e_detailed_specification.pdf` | `DFE201612E-2R2M=P2`; reference specification `J(E)TE243A-0006D-01`, created 2024-11-20. | [Murata DFE201612E specification](https://pim.murata.com/asset/pim4/inductor/J%28E%29TE243A-0006_PDF_INDUCTOR?lastModifiedDatetime=20250708072023) | `6fbbdccedc9f58904a3e60d7e9c0e33917a03b7dd0d96716821988e89e4fb8ad` |
 | `murata_lqh2mcn_detailed_specification.pdf` | `LQH2MCN3R3M52L`; reference specification `JELF243A-0060P`, created 2025-03-25. | [Murata LQH2MCN specification](https://pim.murata.com/asset/pim4/inductor/JELF243A-0060_PDF_INDUCTOR?lastModifiedDatetime=20250708072043) | `44845e110a0fb7a56ab90e9f72ac93a7dc022022aa05d4554ac6979b32978bae` |
+| `sunlord_wpn_series.pdf` | `WPN201610U4R7MT`, 4.7 uH, 1.30 A minimum saturation current, 0.288 ohm maximum DCR; WPN series catalog revised 2022-05-15. | [Sunlord WPN series](https://www.sunlordinc.com/uploads/files/20221122/WPN%C2%A0series%C2%A0of%C2%A0SMD%C2%A0Power%C2%A0Inductor.pdf) | `8885516070f2b85f5e57fa7a3fe390441f488912065e7b4f2f317e6d27d3f72d` |
 
 ## Footprint audit
 
@@ -71,5 +72,9 @@ directly: 2.6 mm outer copper span, 0.8 mm inner gap, and 1.0 mm pad width,
 giving 0.9 x 1.0 mm pads at x = ±0.85 mm. Both have exactly two numbered pads
 and are exercised by their corresponding parts.
 
+`FP_L_WPN201610U_2016Metric` directly transcribes Sunlord's page-164
+recommended land: 0.7 mm inner gap, two 0.7 x 1.7 mm pads, and pad centres at
+x = ±0.7 mm. Page 166 supplies the exact 4.7 uH ordering code and ratings.
+
 Relevant source pages and package drawings were rendered and visually checked
-on 2026-07-30. Temporary render artifacts are not shipped.
+on 2026-07-30 and 2026-08-05. Temporary render artifacts are not shipped.

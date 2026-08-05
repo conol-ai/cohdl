@@ -1,0 +1,37 @@
+// 32.768kHz RTC crystal selected for SF32LB52X. The active Abracon 9pF,
+// +/-20ppm, 70kohm configuration satisfies SiFli's CL <= 12.5pF,
+// tolerance <= +/-20ppm, and ESR <= 80kohm requirements.
+#[doc("docs/abracon-abs07.pdf")]
+pub device Crystal_2pad {
+    pins {
+        required XIN: 1 [passive]
+        required XOUT: 2 [passive]
+    }
+}
+
+impl Crystal for Crystal_2pad {}
+
+#[doc("docs/abracon-abs07.pdf")]
+pub part XTAL_32K768: Crystal_2pad {
+    primary { mfr: "Abracon", mpn: "ABS07-32.768KHZ-9-T",
+              footprint: FP_Crystal_SMD_3215_2Pin_ABS07 }
+}
+
+// Abracon ABS07 recommended land (datasheet page 4): two 1.10 x 1.90mm
+// lands separated by a 1.40mm inner gap, hence centres at x = +/-1.25mm.
+pub pad P_Crystal3215_ABS07 {
+    shape: rect
+    size: (1.1mm, 1.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Crystal_SMD_3215_2Pin_ABS07 {
+    pad 1: P_Crystal3215_ABS07 at (-1.25mm, 0mm)
+    pad 2: P_Crystal3215_ABS07 at (1.25mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 2.4mm) }
+    silkscreen_ref { at: (0mm, -1.55mm) }
+}

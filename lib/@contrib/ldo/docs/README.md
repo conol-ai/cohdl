@@ -5,8 +5,8 @@ downloaded; none was regenerated or optimized.
 
 | Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
 | --- | --- | --- | --- | --- |
-| `xc6206.pdf` | `XC6206P182MR-G` (device-only) | Torex ETR0305_004b | <https://www.torexsemi.com> | `8fda1e40ea3e7c17178353aceba9c9a9794e56a1960d02b105c576429ce418ed` |
-| `rt9080.pdf` | `RT9080-33GJ5`; `RT9080-33GQZ` (device-only) | Richtek DS9080-09, December 2024 | <https://www.richtek.com> | `52d09967ef32672003df93d1382bc249715365406f59d110d9ebad6d618017d4` |
+| `xc6206.pdf` | `XC6206P182MR-G` public SOT-23 part with documented independent land derivation | Torex ETR0305_004b | <https://www.torexsemi.com> | `8fda1e40ea3e7c17178353aceba9c9a9794e56a1960d02b105c576429ce418ed` |
+| `rt9080.pdf` | `RT9080-33GJ5`; `RT9080-33GQZ` | Richtek DS9080-09, December 2024 | <https://www.richtek.com> | `52d09967ef32672003df93d1382bc249715365406f59d110d9ebad6d618017d4` |
 
 SHA-256 checksums:
 

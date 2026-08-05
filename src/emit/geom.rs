@@ -32,6 +32,13 @@ pub fn mm_femto(femto: i128) -> String {
     render(femto, 15)
 }
 
+/// Half of a raw femto-mm integer, rendered without rounding.  Pad polygon
+/// vertices routinely sit at `size / 2`; multiplying the numerator by five
+/// and rendering at 10^-16 mm preserves an odd final femto exactly.
+pub fn half_mm_femto(femto: i128) -> String {
+    render(femto.saturating_mul(5), 16)
+}
+
 /// A `Length` literal's y-coordinate NEGATED — for emitters whose target frame
 /// has the opposite y-orientation from CoHDL's (IPC-2581 is +y-up; CoHDL/KiCad
 /// author +y-down). Same canonical rendering as [`mm`].
@@ -100,6 +107,36 @@ pub fn scaled(femto: i128, scale: u32) -> String {
     render(femto, scale)
 }
 
+/// Render a nonnegative rational geometry ratio without floating point.
+/// KiCad stores chamfer size as `cut / min(width, height)`; both operands are
+/// exact femto-mm integers, so long division keeps output deterministic and
+/// avoids an architecture-dependent `f64` round trip.  Fifteen fractional
+/// digits match CoHDL's geometry resolution.
+pub fn ratio(numerator: i128, denominator: i128) -> String {
+    debug_assert!(numerator >= 0 && denominator > 0);
+    let n = numerator.max(0) as u128;
+    let d = denominator.max(1) as u128;
+    let int = n / d;
+    let mut rem = n % d;
+    let mut s = int.to_string();
+    if rem == 0 {
+        return s;
+    }
+    s.push('.');
+    for _ in 0..15 {
+        rem *= 10;
+        s.push(char::from(b'0' + (rem / d) as u8));
+        rem %= d;
+        if rem == 0 {
+            break;
+        }
+    }
+    while s.ends_with('0') {
+        s.pop();
+    }
+    s
+}
+
 fn render(n: i128, scale: u32) -> String {
     let neg = n < 0;
     let n = n.unsigned_abs();
@@ -124,7 +161,7 @@ fn render(n: i128, scale: u32) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::render;
+    use super::{ratio, render};
 
     #[test]
     fn canonical_rendering() {
@@ -135,5 +172,13 @@ mod tests {
         assert_eq!(render(1_900, 15), "0.0000000000019");
         // Odd femto halved at 10^-16 keeps the last digit.
         assert_eq!(render(15, 16), "0.0000000000000015");
+    }
+
+    #[test]
+    fn ratio_rendering_is_exact_and_bounded() {
+        assert_eq!(ratio(1, 2), "0.5");
+        assert_eq!(ratio(1, 3), "0.333333333333333");
+        assert_eq!(ratio(201, 275), "0.73090909090909");
+        assert_eq!(ratio(1, 1), "1");
     }
 }

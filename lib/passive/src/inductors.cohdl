@@ -26,6 +26,15 @@ pub part IND_3U3: ChipInductor<3.3uH> {
     primary { mfr: "Murata", mpn: "LQH2MCN3R3M52L", footprint: FP_L_LQH2MCN_2016Metric }
 }
 
+// SiFli's SF32LB52 reference design selects this 4.7uH inductor for the
+// controller's internal buck converter. Its 1.30A minimum saturation current
+// and 0.288ohm maximum DCR exceed the SF32 hardware guide's 0.45A / 0.4ohm
+// requirements.
+#[doc("docs/sunlord_wpn_series.pdf")]
+pub part IND_4U7_WPN201610U: ChipInductor<4.7uH> {
+    primary { mfr: "Sunlord", mpn: "WPN201610U4R7MT", footprint: FP_L_WPN201610U_2016Metric }
+}
+
 // DFE201612E body: 2.0 +/-0.2 x 1.6 +/-0.2mm, terminal length
 // 0.5 +0.3/-0mm. IPC-7351 nominal land, checked against the official package
 // drawing in J(E)TE243A-0006D-01.
@@ -57,6 +66,24 @@ pub footprint FP_L_LQH2MCN_2016Metric {
     pad 1: P_LQH2MCN_0806 at (-0.85mm, 0mm)
     pad 2: P_LQH2MCN_0806 at (0.85mm, 0mm)
     // Body maximum 2.2 x 1.8mm plus a 0.25mm component courtyard excess.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.3mm) }
+    silkscreen_ref { at: (0mm, -1.85mm) }
+}
+
+// Sunlord WPN series page 164 gives the WPN201610U recommended land as a
+// 0.7mm inner gap (a), 0.7mm land length (b), and 1.7mm land width (c).
+// That is two 0.7 x 1.7mm lands with centres at x = +/-0.7mm.
+pub pad P_WPN201610U_2016Metric {
+    shape: rect
+    size: (0.7mm, 1.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_L_WPN201610U_2016Metric {
+    pad 1: P_WPN201610U_2016Metric at (-0.7mm, 0mm)
+    pad 2: P_WPN201610U_2016Metric at (0.7mm, 0mm)
+    // Body maximum 2.2 x 1.8mm plus 0.25mm courtyard excess per side.
     courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.3mm) }
     silkscreen_ref { at: (0mm, -1.85mm) }
 }

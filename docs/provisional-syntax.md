@@ -233,7 +233,60 @@ with the full extent already described by the padstack primitive; again, the
 convention oval mount holes established rather than a second answer to the
 same question.
 
-## 10. Board cutouts on footprints (`window { … }`)
+## 10. Bounded fabrication controls on SMD pads
+
+Manufacturer land patterns sometimes require details that cannot be left to a
+board-wide default: one 45-degree orientation chamfer, a four-corner radius, a
+stated solder-mask frame, or a reduced/omitted stencil aperture. The bounded
+forms below are provisional, pending an RFC on conol.ai:
+
+```cohdl
+pub pad P_ManufacturerLand {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_right, 0.201mm)
+    mask_expansion: 0.05mm
+    paste: (0.4mm, 0.15mm)
+}
+
+pub pad P_RoundedLand {
+    shape: rect
+    size: (0.8mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.2mm
+}
+```
+
+- `chamfer: (corner, cut)` accepts exactly one of `top_left`, `top_right`,
+  `bottom_left`, or `bottom_right` and a positive `Length` smaller than both
+  rectangular pad dimensions. It is valid only for rectangular SMD pads.
+- `corner_radius: radius` rounds all four corners of a rectangular SMD pad. It
+  is a positive `Length` no greater than half the smaller pad dimension and is
+  mutually exclusive with `chamfer`.
+- `mask_expansion: margin` is a nonnegative `Length` applied around the exact
+  copper outline (including its chamfer).
+- `paste: none` suppresses the pad's paste aperture. `paste: (width, height)`
+  replaces the historical copper-sized aperture with one centered rectangular
+  aperture no larger than the copper envelope. Omitting `paste` preserves the
+  historical behaviour: paste follows copper.
+
+These are intentionally not arbitrary polygons or a general stencil language.
+They cover checked manufacturer requirements losslessly in both KiCad and
+IPC-2581 (`roundrect` / `RectRound`) while keeping declaration-time validation
+finite and testable.
+
+One electrical pad number may be placed more than once in a footprint. This is
+the standard exposed-pad construction: a top copper land, smaller overlapping
+lands used to segment its paste, repeated plated thermal vias, and a back
+copper land can all be `pad 69: ...`. E807 compares the *set of distinct pad
+numbers* with the device's physical pin-number set. Exporters retain every
+physical placement; IPC-2581's logical `Package/Pin` list contains one `Pin`
+per distinct number.
+
+## 11. Board cutouts on footprints (`window { … }`)
 
 A reverse-mount LED faces the BOARD: its light leaves through an aperture in
 the PCB. RFC-018 gave footprints pads, a courtyard and a silkscreen anchor, and
@@ -276,7 +329,7 @@ per-component cutout would have to be transformed into board coordinates and
 subtracted from the `Profile`, which is a larger change than the KiCad
 projection and wants the RFC first. The layout artifact is unaffected.
 
-## 11. What the MVP deliberately leaves out (beyond the MVP cut list)
+## 12. What the MVP deliberately leaves out (beyond the MVP cut list)
 
 No `module`/`use`, no `type` aliases, no inline AVL on `inst`, no
 `footprint_alias`/`footprint_override`/`no_footprint`, no `rule` blocks in

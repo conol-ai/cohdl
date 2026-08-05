@@ -1,15 +1,16 @@
-// Nsiway NS4150B: 3W mono Class D audio amplifier, filterless, 3.0-5.25V
-// (datasheet). MSOP8 / SOP8 packages share pinout. Pin description p7.
+// Nsiway NS4150B: 3W mono Class D audio amplifier, filterless, 3.0-5.0V,
+// MSOP-8. The checked-in legacy NS4150 manual and Nsiway's current NS4150B
+// V1.4 pages agree on all eight pin assignments.
 
 #[doc("docs/ns4150b.pdf")]
 pub device NS4150B {
     pins {
-        optional CTRL: 1 [input] // work-mode control (p7)
+        required CTRL: 1 [input] // no internal default; drive high to operate or low to shut down (p7)
         optional BYPASS: 2 [passive] // internal common-mode voltage bypass cap (p7)
         optional INP: 3 [input] // non-inverting audio input (p7)
         optional INN: 4 [input] // inverting audio input (p7)
         optional VON: 5 [output] // inverting audio output (p7)
-        required VCC: 6 [power_in] // supply 3.0-5.25V (p7)
+        required VCC: 6 [power_in] // recommended supply 3.0-5.0V
         required GND: 7 [power_in]
         optional VOP: 8 [output] // non-inverting audio output (p7)
     }
@@ -17,6 +18,36 @@ pub device NS4150B {
 
 impl IC for NS4150B {}
 
-// No public part binding: the available source identifies the pinout and
-// package outlines, but supplies no recommended PCB land pattern. The former
-// oversized, hand-derived SOP8 footprint was not manufacturer-qualified.
+#[doc("docs/ns4150b.pdf")]
+pub part AMP_NS4150B: NS4150B {
+    primary { mfr: "Nsiway", mpn: "NS4150B", footprint: SOP8P65X490X110N }
+}
+
+// IPC-7351 nominal-density MSOP-8 land derived from the complete Nsiway
+// package dimensions. See docs/footprint-derivations.md for the explicit
+// source dimensions, land goals, and arithmetic. Nsiway's current product
+// page identifies NS4150B as the MSOP-8 product and hosts the V1.4 pin/package
+// pages used for the cross-check:
+// https://nsiway.com.cn/list_38/82.html
+pub pad P_NS4150B_MSOP8_LEAD {
+    shape: rect
+    size: (1.25mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOP8P65X490X110N {
+    pad 1: P_NS4150B_MSOP8_LEAD at (-2.175mm, -0.975mm)
+    pad 2: P_NS4150B_MSOP8_LEAD at (-2.175mm, -0.325mm)
+    pad 3: P_NS4150B_MSOP8_LEAD at (-2.175mm, 0.325mm)
+    pad 4: P_NS4150B_MSOP8_LEAD at (-2.175mm, 0.975mm)
+    pad 5: P_NS4150B_MSOP8_LEAD at (2.175mm, 0.975mm)
+    pad 6: P_NS4150B_MSOP8_LEAD at (2.175mm, 0.325mm)
+    pad 7: P_NS4150B_MSOP8_LEAD at (2.175mm, -0.325mm)
+    pad 8: P_NS4150B_MSOP8_LEAD at (2.175mm, -0.975mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.1mm, 3.7mm) }
+    silkscreen_ref { at: (0mm, -2.25mm) }
+}

@@ -56,7 +56,7 @@ pub footprint QFN10N40P300X300_1EP180X180 {
     pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
     pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
     pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
-    // ... one entry per pad
+    // ... at least one entry per electrical pad number
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.5mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
@@ -91,7 +91,7 @@ These two are exactly the pair used to validate this RFC's naming derivation aga
 Both checks this RFC introduces are structural and local to one `footprint` declaration's own already-written content — never DRC candidates:
 
 1. Name grammar well-formedness — checkable the moment the declaration's identifier is parsed, against a fixed, closed grammar table (one of six family templates). Exactly the same shape as RFC-001's unit-literal grammar check.
-2. Name-vs-pad-geometry consistency — checkable entirely from one footprint declaration's own pad N: ... at (x, y) list (pin count = number of pad entries; pitch = the regular spacing between them, when the layout is a uniform rectangular perimeter). No cross-declaration or cross-design lookup needed, so this is a compile-time (type-system) check, not DRC — consistent with RFC-018's own precedent for the pad-count-vs-device-pins check.
+2. Name-vs-pad-geometry consistency — checkable entirely from one footprint declaration's own `pad N: ... at (x, y)` list (pin count = number of **distinct electrical pad numbers**, not number of physical placement entries; pitch = the regular spacing between distinct perimeter numbers, when the layout is a uniform rectangular perimeter). One electrical number may have several physical placements for exposed-pad copper, stencil apertures, thermal vias, or back copper. No cross-declaration or cross-design lookup is needed, so this is a compile-time (type-system) check, not DRC — consistent with RFC-018's own precedent for the pad-count-vs-device-pins check.
 
 # Conceptual impact
 
@@ -119,7 +119,7 @@ Compat (Med): this RFC constrains an existing declaration's own identifier — a
 
 - Name grammar well-formedness is checked the moment the footprint declaration's identifier is parsed and type-checked — declaration time, the earliest possible stage, identical timing to RFC-018's pad internal-consistency check (drill:/plating: agreement).
 - The geometry cross-check runs once the same footprint declaration's full pad list is visible — also at declaration time (not deferred to cohdl build, since it needs no external reference the way RFC-018's pad-count-vs-device check does — the device isn't involved here, only the footprint's own internal pad list vs. its own name). This is strictly earlier than RFC-018's device-cross-check, and thus strictly stronger gradeability for the part it covers.
-- Diagnostics name the specific mismatched field (e.g. "footprint name QFN10N40P300X300 declares 10 pins, footprint declares 12 pad entries" or "footprint name declares 40 (0.40mm) pitch, footprint's pad spacing is 50 (0.50mm)"), following the same specific-mismatch-naming discipline RFC-018 established for pad-count/numbering diagnostics.
+- Diagnostics name the specific mismatched field (e.g. "footprint name QFN10N40P300X300 declares 10 pins, footprint geometry has 12 distinct electrical pad numbers" or "footprint name declares 40 (0.40mm) pitch, footprint's distinct perimeter-pad spacing is 50 (0.50mm)"), following the same specific-mismatch-naming discipline RFC-018 established for pad-count/numbering diagnostics.
 - A renamed footprint (e.g. density level corrected from N to L after re-deriving pad sizes) immediately breaks every stale use site referencing the old name at the earliest possible point (RFC-016's existing unresolved-name diagnostic) — the same "fail fast, fail specifically" property this RFC's other checks have, applied to the rename-churn trade-off this RFC accepts (see Alternatives).
 
 # AI-generatability

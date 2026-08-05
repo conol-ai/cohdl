@@ -622,12 +622,15 @@ Decisions under latitude, and honest boundaries:
   a bound part's primary or alt entries; `build --json` lists them under
   `"kicad_mod"` (present only when non-empty — the same only-when-emitted
   pattern as `layout`/`ipc2581`). The IPC-2581 `Package` gains a real
-  courtyard `Outline` and one `Pin` element per placement (the schema's
-  `Outline` requires a Polygon, so a CIRCLE courtyard projects there as
-  its bounding square — disclosed; `.kicad_mod` keeps the true circle).
-  Roundrect is not in the closed shape vocabulary, so KiCad-derived
-  roundrect pads project as `rect` — a disclosed approximation, not a
-  claim of identity. Both emitters share `emit::geom`: all arithmetic on
+  courtyard `Outline` and one logical `Pin` element per distinct electrical
+  pad number (repeated physical placements are retained in its layer features;
+  the schema's `Outline` requires a Polygon, so a CIRCLE courtyard projects
+  there as its bounding square — disclosed; `.kicad_mod` keeps the true circle).
+  The base shape vocabulary remains rect/circle/oval; bounded fabrication
+  controls add an exact four-corner radius and one-corner chamfer. Authored
+  controls project as KiCad roundrect/custom polygons and IPC `RectRound`/
+  `Contour`; an external roundrect whose radius was never authored still
+  projects as `rect`. Both emitters share `emit::geom`: all arithmetic on
   the lexer's exact femto-mm integers (corner halving at 10^-16 mm), no
   floats, no re-parsing of source text, canonical minimal rendering — the
   emitters cannot disagree, `1.0mm`/`1mm` project identically, and
@@ -1441,9 +1444,9 @@ through-hole:
 
 RFC-018 pads: `plating: plated_through_hole` + `drill:` + `layer: through_all`.
 The `.kicad_mod` projection now carries `thru_hole … (drill …)`; the IPC-2581
-`Pin` carries `type="THRU"` + `mountType="THROUGH_HOLE_HOLE"` (the drill still
-has no IPC `Pin` home — review R5-8, unchanged). E807 still holds (pad numbers
-unchanged), and the document stays schema-valid.
+logical `Pin` carries `type="THRU"` + `mountType="THROUGH_HOLE_PIN"`, while
+the exact drill lives in `PadstackHoleDef` and a located drill-layer `Hole`.
+E807 still holds (pad numbers unchanged), and the document stays schema-valid.
 
 ## RFC-021 (IPC-7351 canonical footprint naming) implementation notes (2026-07-16, twice-revised)
 
@@ -1467,8 +1470,9 @@ name is that declaration's own identifier and nothing else).
 - **Two declaration-time checks** (E808/E809, in `resolve::validate_footprint_name`,
   operating on the footprint's own identifier, never DRC): E808 = a name in a
   closed family that is malformed (names the specific parse failure); E809 =
-  name-vs-geometry mismatch — pin count (pad count minus the `_1EP` exposed pad)
-  and pitch (the closest pad-center spacing, exact over the femto integers — the
+  name-vs-geometry mismatch — pin count (distinct pad-number count minus the
+  `_1EP` exposed pad) and pitch (the closest spacing between distinct pad
+  numbers, exact over the femto integers — the
   nearest pair in a regular perimeter is axis-aligned, so its squared distance
   is exactly pitch²). CHIP/MELF check the 2-pad shape only. A name whose prefix
   is OUTSIDE the closed set parses to `UnknownFamily` and is left as an ordinary
@@ -1528,22 +1532,29 @@ Fixed by emitting the full physical model in `src/emit/ipc2581.rs` (validated
 against `tests/schema/IPC-2581B1.xsd`, and structurally against KiCad's own
 `kicad-cli pcb export ipc2581 --version B` output as the reference):
 
-- **`DictionaryStandard`** (Content) — one `EntryStandard` primitive
-  (`RectCenter`/`Circle`/`Oval`) per unique pad shape.
-- **Real layers + stackup** (CadData) — F.Cu/B.Cu/F.Mask/F.Paste/B.Mask +
-  Edge.Cuts, and a 2-layer stackup, replacing the single synthetic `TOP` layer.
-- **`PadStackDef`** (Step) per unique (shape, plating, drill): `PadstackPadDef`
-  on F.Cu/F.Mask/F.Paste (+ B.Cu/B.Mask for through-hole) and a plated
-  `PadstackHoleDef` carrying the real drill diameter.
-- **`LayerFeature`** (Step) on F.Cu (all pads) + B.Cu (through-hole): each
-  placed `Pad` at its absolute board position (component location + the pad
-  offset rotated by the component's cardinal rotation — exact integer, no
-  trig), referencing its padstack, and tied to its component pin (`PinRef`) and
-  net (`Set/@net`).
-- **Accurate mount types** — `Component/@mountType` SMT vs THMT (THMT if the
-  component has any through-hole pad), on the physical F.Cu layer (was the
-  synthetic `TOP`/`OTHER`); `Pin/@mountType` `THROUGH_HOLE_PIN` (an electrical
-  pin, not a non-electrical `_HOLE`).
+- **`DictionaryStandard`** (Content) — one exact primitive per unique geometry:
+  `RectCenter`/`Circle`/`Oval`, `RectRound` for a four-corner radius, or
+  `Contour` for a one-corner chamfer. Copper, expanded mask, and reduced paste
+  may therefore reference different primitives.
+- **Real layers + stackup** (CadData) — the full nine-row top-to-bottom
+  silk/paste/mask/copper/dielectric/copper/mask/paste/silk sequence, plus
+  `Edge.Cuts` and the spanning drill layer, replacing the synthetic `TOP`.
+- **`PadStackDef`** (Step) per unique copper/mask/paste geometry, plating,
+  drill, and physical side. SMD stacks use only their resolved front or back
+  copper/mask and enabled paste; THT stacks use both copper/mask faces plus a
+  plated `PadstackHoleDef` carrying the real drill diameter.
+- **`LayerFeature`** (Step) is side-aware and retains every physical placement,
+  including repeated copper/paste/via/back-land placements for one electrical
+  number. Each is positioned at its absolute board location, references its
+  padstack, and is tied to the shared logical `PinRef` and net. Bottom-side
+  placement mirrors local x and asymmetric pad geometry, and reverses the
+  pad-local rotation before composing it with the component rotation.
+- **Logical pins and accurate mount types** — `Package` has one `Pin` per
+  distinct electrical pad number. A component is THMT only if at least one
+  such terminal is implemented exclusively by PTH placements; thermal vias
+  repeated under an SMD exposed-pad number do not turn the component THMT.
+  `Component/@layerRef` independently selects F.Cu/B.Cu, and
+  `Pin/@mountType` distinguishes `SURFACE_MOUNT_PAD`/`THROUGH_HOLE_PIN`.
 - **Non-degenerate package outline** — a footprint that omits its courtyard
   (e.g. the castellated header, so its interior stays free) now gets an
   `Outline` from its pad extents instead of the degenerate `(0,0)-(0,0)`
@@ -1580,7 +1591,8 @@ gaps were in what a real consumer composites and resolves, not in validity:
   *copper revealed through a mask opening*; with only copper `LayerFeature`s
   (F.Cu/B.Cu) and no F.Mask/B.Mask/F.Paste features, there is no aperture to
   reveal the copper through → nothing drawn. Now every pad is instanced on its
-  mask (and SMD paste) layers too, matching the reference exporter.
+  physical side's mask layer and every non-suppressed SMD aperture on that
+  side's paste layer too, matching the reference exporter.
 - **The stackup listed only copper.** The `StackupGroup` was F.Cu/dielectric/
   B.Cu (3 layers); a consumer that builds its renderable-layer model from the
   `StackupLayer` sequence never saw the mask layers. Now the full top→bottom
@@ -1932,12 +1944,12 @@ reused verbatim on `PadPlace`. Checked at declaration as E811 (new row), the
 same shape as `place`'s E1007. `fmt` renders the clause trailing and never
 spells out the default 0, so pre-RFC-025 footprints stay byte-identical.
 KiCad emitter: the accepted text's lossless option — KiCad's own 3-argument
-`(at x y angle)` with `size` UNCHANGED, never a silent w/h swap. IPC-2581: the
-pad's own rotation COMPOSES with the component's (`(comp + pad) % 360`) into
-the per-pad `<Xform rotation>` the emitter already carried; position is
-unaffected (rotation is about the pad's own centre). `rotate 180` on a rect is
-accepted as the documented no-op. Circle pads accept any value (no-op), per
-the RFC.
+`(at x y angle)` with `size` UNCHANGED, never a silent w/h swap. IPC-2581: on
+the top side the pad's own rotation composes as `(component + pad) % 360`; a
+bottom-side mirror reverses the local angle, so it composes as
+`(component - pad) % 360`. Position is unaffected (rotation is about the pad's
+own centre). `rotate 180` on a rect is accepted as the documented no-op.
+Circle pads accept any value (no-op), per the RFC.
 
 ## RFC-026 (back-side placement) implementation notes (2026-07-20)
 
@@ -1951,11 +1963,12 @@ default top; E1008 (new row). `rotate` and `side` parse in either order;
   the Component `Xform` (both existing schema machinery; xmllint-gated).
   Physical model: pad local x mirrors BEFORE rotation — the same
   flip-then-orient order pcbnew's own native convention applies — verified by
-  an exact-Location test on an asymmetric footprint. Bottom SMD copper/mask/
-  paste land on B.Cu/B.Mask/B.Paste `LayerFeature`s (B.Paste was already in
-  the stackup); SMD padstack DEFS split by side so a bottom padstack's
-  `PadstackPadDef`s name the B-layers. Through-hole pads span both faces
-  regardless of component side; mount_hole positions mirror with the body.
+  an exact-Location test on an asymmetric footprint. The reflection also swaps
+  left/right chamfer corners and reverses pad-local rotation. An SMD pad's
+  footprint-local layer is then combined with the component flip to choose
+  F.Cu/F.Mask/F.Paste or B.Cu/B.Mask/B.Paste; padstack definitions split by
+  that resolved physical side. Through-hole pads span both faces regardless of
+  component side; mount_hole positions mirror with the body.
 - **tools/kicad_board.py**: reads Component `layerRef`; a B.Cu component is
   `Flip(anchor, True)`-ped then rotated — found and fixed a headless-pcbnew
   segfault: `FOOTPRINT::Flip` consults the owning board's layer table, so it
@@ -2854,7 +2867,9 @@ deviation:
    element. The document still validates against IPC-2581B1.xsd with the new
    output present.
 6. **E812** is a new sub-case in RFC-018's existing E8xx block, per the RFC's
-   "reserves new E8xx sub-cases … no new block needed".
+   "reserves new E8xx sub-cases … no new block needed". A polarity marker
+   requires at least two distinct electrical pad numbers; repeated physical
+   placements of one number do not invent a second terminal to orient toward.
 
 Applied where the user asked — every IC and every diode on openmicro: a pin-1
 dot on the STM32 LQFP-48, the USBLC6 SOT-23-6, and std's SOT-23-5 LDO; a cathode

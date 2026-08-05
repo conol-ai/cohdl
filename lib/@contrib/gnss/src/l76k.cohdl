@@ -28,14 +28,19 @@ pub device L76K {
 
 impl IC for L76K {}
 
-// No public part binding: the hardware manual documents the L76K module but
-// does not identify the orderable L76KB-A58 suffix formerly exposed here.
+// The manufacturer hardware manual consistently identifies the module and its
+// reel-packaging table as L76K. Publish that documented product identity; the
+// unsupported L76KB-A58 suffix formerly exposed here is deliberately absent.
+#[doc("docs/l76k.pdf")]
+pub part GNSS_L76K: L76K {
+    primary { mfr: "Quectel", mpn: "L76K", footprint: FP_Quectel_L76K_18LCC_101x97mm }
+}
 
 // L76K manufacturer-recommended land pattern (hardware manual section 6.2):
 // 1.80 x 0.80 mm lands, 1.10 mm pitch, 9.70 mm between opposing row
 // centres, and 11.50 mm overall copper span. Pin 1 is upper-left in top view.
 pub pad P_L76K_LCC_PAD {
-    shape: rect
+    shape: oval
     size: (1.8mm, 0.8mm)
     layer: top_copper
     plating: smd

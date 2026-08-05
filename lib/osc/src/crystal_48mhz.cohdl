@@ -1,0 +1,31 @@
+// 48MHz crystal selected from SiFli's SF32LB52X certified-material list.
+// E1SB48E001G00E guarantees 8.8pF load, -6/+8ppm frequency tolerance, and
+// 22ohm maximum ESR, satisfying the MCU's <= +/-10ppm and <=30ohm limits.
+// Pins 1 and 3 are the electrodes; pins 2 and 4 ground the metal lid.
+#[doc("docs/hosonic-e1sb.pdf")]
+pub part XTAL_48MHZ: Crystal_4pad {
+    primary { mfr: "Hosonic", mpn: "E1SB48E001G00E", footprint: FP_Crystal_SMD_2016_4Pin_E1SB }
+}
+
+// Hosonic E1SB recommended land: 0.85 x 0.75mm pads separated by 0.50mm
+// horizontally and 0.30mm vertically, hence centers at +/-0.675 x
+// +/-0.525mm. The terminal positions follow the manufacturer's top view.
+pub pad P_Crystal2016_E1SB {
+    shape: rect
+    size: (0.85mm, 0.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Crystal_SMD_2016_4Pin_E1SB {
+    pad 4: P_Crystal2016_E1SB at (-0.675mm, -0.525mm)
+    pad 3: P_Crystal2016_E1SB at (0.675mm, -0.525mm)
+    pad 1: P_Crystal2016_E1SB at (-0.675mm, 0.525mm)
+    pad 2: P_Crystal2016_E1SB at (0.675mm, 0.525mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Body maximum 2.10 x 1.70mm plus 0.25mm courtyard excess per side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.6mm, 2.2mm) }
+    silkscreen_ref { at: (0mm, -1.6mm) }
+}

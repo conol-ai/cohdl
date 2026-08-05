@@ -1,5 +1,5 @@
 // u-blox MIA-M10Q: standard precision GNSS module (GPS/GLONASS/Galileo/
-// BeiDou), 1.65-3.6V (datasheet UBX-22015849 R08). M-LGA53, 4.5 x
+// BeiDou), VCC 1.76-3.6V (datasheet UBX-22015849 R08). M-LGA53, 4.5 x
 // 4.5 mm, 0.5 mm pitch (9x9 grid, A1-J9 naming). Pin assignment p9-11.
 
 #[doc("docs/mia-m10q.pdf")]
@@ -9,12 +9,12 @@ pub device MIA_M10Q {
         required GND_A2: A2 [power_in]
         required GND_A3: A3 [power_in]
         optional RTC_I: A4 [input] // RTC input, leave open if unused (p9)
-        optional RTC_O: A5 [output] // RTC output, tie GND if unused (p9)
+        required RTC_O: A5 [output] // RTC output, connect to GND if unused (Table 10)
         optional EXTINT: A6 [input] // external interrupt (p9)
         optional TIMEPULSE: A7 [output] // time pulse (p9)
         required GND_A8: A8 [power_in]
         required GND_A9: A9 [power_in]
-        required VCC: B1 [power_in] // main supply 1.65-3.6V (p9)
+        required VCC: B1 [power_in] // main supply 1.76-3.6V (Table 13)
         required GND_B2: B2 [power_in]
         required GND_B8: B8 [power_in]
         optional RFIN: B9 [input] // RF signal input (p10)
@@ -26,10 +26,9 @@ pub device MIA_M10Q {
         optional SAFEBOOTN: C7 [input] // safeboot, active-low (p10)
         required GND_C9: C9 [power_in]
         optional SDA: D1 [bidirectional] // I2C data (p10)
-        optional NC_D2: D2 [passive] // reserved, connect to E2 (p10)
+        required RESERVED_D2_E2: D2, E2 [passive] // reserved pair; connect together (Table 10)
         optional NC_D9: D9 [passive] // reserved
         optional SCL: E1 [input] // I2C clock (p10)
-        optional NC_E2: E2 [passive] // reserved, connect to D2
         required GND_E3: E3 [power_in]
         required GND_E4: E4 [power_in]
         optional NC_E7: E7 [passive] // reserved
@@ -38,13 +37,13 @@ pub device MIA_M10Q {
         required GND_F3: F3 [power_in]
         required GND_F4: F4 [power_in]
         optional PIO6: F7 [bidirectional] // digital I/O (p10)
-        optional GND_F9: F9 [power_in] // reserved, connect to GND (p10)
+        required RESERVED_F9: F9 [passive] // provision 0ohm to GND; note 17
         optional TX: G1 [output] // UART TX (p10)
         required GND_G3: G3 [power_in]
         required GND_G4: G4 [power_in]
         required GND_G5: G5 [power_in]
         required GND_G6: G6 [power_in]
-        optional GND_G7: G7 [power_in] // reserved, connect to GND
+        required RESERVED_G7: G7 [passive] // provision 0ohm to GND; note 18
         optional NC_G9: G9 [passive] // reserved
         optional RX: H1 [input] // UART RX (p10)
         required GND_H8: H8 [power_in]
@@ -52,7 +51,7 @@ pub device MIA_M10Q {
         optional NC_J1: J1 [passive] // reserved
         optional NC_J2: J2 [passive]
         optional NC_J3: J3 [passive]
-        optional VIO: J4 [power_in] // IO voltage supply (p10)
+        required VIO: J4 [power_in] // IO voltage supply (Tables 10 and 13)
         optional VBCKP: J5 [power_in] // backup supply, leave open if unused (p10)
         optional VIOSEL: J6 [input] // V_IO voltage selector (GND=1.8V, open=3.3V) (p10)
         optional NC_J7: J7 [passive] // reserved
@@ -63,7 +62,87 @@ pub device MIA_M10Q {
 
 impl IC for MIA_M10Q {}
 
-// No public part binding: p19 is the component mechanical drawing and gives
-// package-contact dimensions, not a manufacturer-recommended PCB land
-// pattern. Publish MIA-M10Q-00B only after a source-backed PCB footprint is
-// available.
+#[doc("docs/mia-m10q.pdf")]
+pub part GNSS_MIA_M10Q: MIA_M10Q {
+    primary { mfr: "u-blox", mpn: "MIA-M10Q-00B", footprint: FP_Ublox_MIA_M10Q_MLGA53_45x45mm }
+}
+
+// u-blox MIA-M10Q Integration Manual UBX-21028173 R05 section 4.5.1 and
+// Figure 35 specify 0.27 mm circular copper lands on the 0.50 mm package grid.
+// The source also specifies non-solder-mask-defined 0.37 mm mask openings,
+// paste apertures equal to copper, and a 100 um stencil. The 0.05 mm local
+// mask expansion below produces that 0.37 mm opening, while CoHDL's default
+// SMD paste aperture follows the 0.27 mm circular copper land.
+// Official source (retrieved 2026-08-05; SHA-256
+// 679a1d0ce1859922dfbee5f75b5565be82149e7294e862aafb0a63ddff5597f0):
+// https://content.u-blox.com/sites/default/files/documents/MIA-M10Q_IntegrationManual_UBX-21028173.pdf
+pub pad P_MIA_M10Q_LAND {
+    shape: circle
+    size: (0.27mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.05mm
+}
+
+// Figure 35 is explicitly a top view: A1 is upper-left, rows advance down,
+// and columns advance right. Only the 53 populated grid locations are lands.
+pub footprint FP_Ublox_MIA_M10Q_MLGA53_45x45mm {
+    pad A1: P_MIA_M10Q_LAND at (-2mm, -2mm)
+    pad A2: P_MIA_M10Q_LAND at (-1.5mm, -2mm)
+    pad A3: P_MIA_M10Q_LAND at (-1mm, -2mm)
+    pad A4: P_MIA_M10Q_LAND at (-0.5mm, -2mm)
+    pad A5: P_MIA_M10Q_LAND at (0mm, -2mm)
+    pad A6: P_MIA_M10Q_LAND at (0.5mm, -2mm)
+    pad A7: P_MIA_M10Q_LAND at (1mm, -2mm)
+    pad A8: P_MIA_M10Q_LAND at (1.5mm, -2mm)
+    pad A9: P_MIA_M10Q_LAND at (2mm, -2mm)
+    pad B1: P_MIA_M10Q_LAND at (-2mm, -1.5mm)
+    pad B2: P_MIA_M10Q_LAND at (-1.5mm, -1.5mm)
+    pad B8: P_MIA_M10Q_LAND at (1.5mm, -1.5mm)
+    pad B9: P_MIA_M10Q_LAND at (2mm, -1.5mm)
+    pad C1: P_MIA_M10Q_LAND at (-2mm, -1mm)
+    pad C3: P_MIA_M10Q_LAND at (-1mm, -1mm)
+    pad C4: P_MIA_M10Q_LAND at (-0.5mm, -1mm)
+    pad C5: P_MIA_M10Q_LAND at (0mm, -1mm)
+    pad C6: P_MIA_M10Q_LAND at (0.5mm, -1mm)
+    pad C7: P_MIA_M10Q_LAND at (1mm, -1mm)
+    pad C9: P_MIA_M10Q_LAND at (2mm, -1mm)
+    pad D1: P_MIA_M10Q_LAND at (-2mm, -0.5mm)
+    pad D2: P_MIA_M10Q_LAND at (-1.5mm, -0.5mm)
+    pad D9: P_MIA_M10Q_LAND at (2mm, -0.5mm)
+    pad E1: P_MIA_M10Q_LAND at (-2mm, 0mm)
+    pad E2: P_MIA_M10Q_LAND at (-1.5mm, 0mm)
+    pad E3: P_MIA_M10Q_LAND at (-1mm, 0mm)
+    pad E4: P_MIA_M10Q_LAND at (-0.5mm, 0mm)
+    pad E7: P_MIA_M10Q_LAND at (1mm, 0mm)
+    pad E9: P_MIA_M10Q_LAND at (2mm, 0mm)
+    pad F1: P_MIA_M10Q_LAND at (-2mm, 0.5mm)
+    pad F3: P_MIA_M10Q_LAND at (-1mm, 0.5mm)
+    pad F4: P_MIA_M10Q_LAND at (-0.5mm, 0.5mm)
+    pad F7: P_MIA_M10Q_LAND at (1mm, 0.5mm)
+    pad F9: P_MIA_M10Q_LAND at (2mm, 0.5mm)
+    pad G1: P_MIA_M10Q_LAND at (-2mm, 1mm)
+    pad G3: P_MIA_M10Q_LAND at (-1mm, 1mm)
+    pad G4: P_MIA_M10Q_LAND at (-0.5mm, 1mm)
+    pad G5: P_MIA_M10Q_LAND at (0mm, 1mm)
+    pad G6: P_MIA_M10Q_LAND at (0.5mm, 1mm)
+    pad G7: P_MIA_M10Q_LAND at (1mm, 1mm)
+    pad G9: P_MIA_M10Q_LAND at (2mm, 1mm)
+    pad H1: P_MIA_M10Q_LAND at (-2mm, 1.5mm)
+    pad H8: P_MIA_M10Q_LAND at (1.5mm, 1.5mm)
+    pad H9: P_MIA_M10Q_LAND at (2mm, 1.5mm)
+    pad J1: P_MIA_M10Q_LAND at (-2mm, 2mm)
+    pad J2: P_MIA_M10Q_LAND at (-1.5mm, 2mm)
+    pad J3: P_MIA_M10Q_LAND at (-1mm, 2mm)
+    pad J4: P_MIA_M10Q_LAND at (-0.5mm, 2mm)
+    pad J5: P_MIA_M10Q_LAND at (0mm, 2mm)
+    pad J6: P_MIA_M10Q_LAND at (0.5mm, 2mm)
+    pad J7: P_MIA_M10Q_LAND at (1mm, 2mm)
+    pad J8: P_MIA_M10Q_LAND at (1.5mm, 2mm)
+    pad J9: P_MIA_M10Q_LAND at (2mm, 2mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.1mm, 5.1mm) }
+    silkscreen_ref { at: (0mm, -2.9mm) }
+}

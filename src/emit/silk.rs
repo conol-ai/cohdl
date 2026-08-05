@@ -46,8 +46,59 @@ struct PadBox {
     hh: i128,
 }
 
+/// Canonical physical representative for one electrical number. Semantic
+/// markers describe terminals, not arbitrary paste/via placements, so prefer
+/// a front SMD land, then a back SMD land, then PTH; within one kind prefer
+/// the largest land and use geometry/name tie-breakers. This is deliberately
+/// the same policy IPC-2581 uses for its logical Package/Pin entry.
+fn representative_place<'a>(
+    world: &World,
+    fp: &'a FootprintDef,
+    number: &str,
+) -> Option<&'a crate::ast::PadPlace> {
+    fn layer_rank(pad: Option<&crate::ast::PadDef>) -> u8 {
+        match pad.and_then(|p| p.plating.as_ref().map(|(plating, _)| (p, plating))) {
+            Some((pad, crate::ast::PadPlating::Smd)) => {
+                if matches!(pad.layer, Some((crate::ast::PadLayer::BottomCopper, _))) {
+                    1
+                } else {
+                    0
+                }
+            }
+            Some((_, crate::ast::PadPlating::PlatedThroughHole)) => 2,
+            None => 3,
+        }
+    }
+    fn spans(pad: Option<&crate::ast::PadDef>) -> (i128, i128) {
+        let (w, h) = match pad.map(|p| p.size.as_slice()) {
+            Some([d]) => (d.femto, d.femto),
+            Some([w, h, ..]) => (w.femto, h.femto),
+            _ => (0, 0),
+        };
+        (w.max(h), w.min(h))
+    }
+
+    fp.pads
+        .iter()
+        .filter(|p| p.number.text == number)
+        .min_by(|a, b| {
+            let ad = world.pads.get(&a.pad.name);
+            let bd = world.pads.get(&b.pad.name);
+            let (amax, amin) = spans(ad);
+            let (bmax, bmin) = spans(bd);
+            layer_rank(ad)
+                .cmp(&layer_rank(bd))
+                .then_with(|| bmax.cmp(&amax))
+                .then_with(|| bmin.cmp(&amin))
+                .then_with(|| a.x.femto.cmp(&b.x.femto))
+                .then_with(|| a.y.femto.cmp(&b.y.femto))
+                .then_with(|| a.pad.name.cmp(&b.pad.name))
+                .then_with(|| a.rotate.cmp(&b.rotate))
+        })
+}
+
 fn pad_box(world: &World, fp: &FootprintDef, number: &str) -> Option<PadBox> {
-    let place = fp.pads.iter().find(|p| p.number.text == number)?;
+    let place = representative_place(world, fp, number)?;
     let def = world.pads.get(&place.pad.name);
     let (mut hw, mut hh) = (0i128, 0i128);
     if let Some(def) = def {
@@ -84,13 +135,18 @@ fn pad_box(world: &World, fp: &FootprintDef, number: &str) -> Option<PadBox> {
 /// the package the way a hand-drawn one would be, and makes the result
 /// deterministic — no floating-point angle anywhere.
 fn outward(fp: &FootprintDef, world: &World, pad: &PadBox) -> (i128, i128) {
-    let n = fp.pads.len().max(1) as i128;
     let (mut cx, mut cy) = (0i128, 0i128);
-    for p in &fp.pads {
-        cx += p.x.femto;
-        cy += p.y.femto;
+    let mut n = 0i128;
+    let numbers: std::collections::BTreeSet<&str> =
+        fp.pads.iter().map(|p| p.number.text.as_str()).collect();
+    for number in numbers {
+        if let Some(p) = representative_place(world, fp, number) {
+            cx = cx.saturating_add(p.x.femto);
+            cy = cy.saturating_add(p.y.femto);
+            n += 1;
+        }
     }
-    let _ = world;
+    let n = n.max(1);
     let (dx, dy) = (pad.x - cx / n, pad.y - cy / n);
     if dx.abs() >= dy.abs() {
         (if dx < 0 { -1 } else { 1 }, 0)

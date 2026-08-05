@@ -11,7 +11,7 @@ Who this is for: **library authors** completing real footprints (RFC-018's own a
 ## Goals
 
 - A new footprint-body construct, `mount_hole`, for a single mechanical locating hole: position + diameter, with an explicit plated/non-plated flag (real footprints do occasionally need a plated locating hole — e.g. one doubling as a chassis-ground stud — even though the common case is non-plated).
-- Explicitly **not numbered against any device pin** — this is the core structural distinction from `pad`. `mount_hole` entries are counted and validated only against each other (no duplicate positions), never against RFC-002's pin list.
+- Explicitly **not numbered against any device pin** — this is the core structural distinction from `pad`. `mount_hole` entries have their own numbered namespace (no duplicate hole number), never checked against RFC-002's pin list or the footprint's electrical pad numbers.
 - Close the gap honestly: today, a library author with a real locating-hole footprint has no correct way to express it in CoHDL at all (misusing `pad` would incorrectly imply an electrical pin binding that doesn't exist). This RFC exists so that case has a correct, checkable answer.
 
 ## Non-goals
@@ -47,8 +47,8 @@ pub footprint USBC_16P_Shielded {
 
 Both checks this RFC introduces are structural and local to one footprint declaration, never DRC candidates:
 
-1. **No duplicate **`mount_hole`** numbers within one footprint** — checked the moment the footprint is parsed, exactly like `pad` numbers must be unique among themselves today.
-2. `mount_hole`** numbers never collide with, or get checked against, **`pad`** numbers or the bound device's pin list** — this is a non-check as much as a check: the RFC's core structural guarantee is that these are disjoint namespaces, verified by construction (the grammar and resolver simply never compare the two), not by an emergent cross-graph rule.
+1. **No duplicate `mount_hole` numbers within one footprint** — checked the moment the footprint is parsed. This uniqueness belongs only to the mechanical-hole namespace; electrical `pad` numbers may repeat when one terminal has multiple physical placements.
+2. **`mount_hole` numbers never collide with, or get checked against, `pad` numbers or the bound device's pin list** — this is a non-check as much as a check: the RFC's core structural guarantee is that these are disjoint namespaces, verified by construction (the grammar and resolver simply never compare the two), not by an emergent cross-graph rule.
 
 Neither is DRC: both are checkable from the one footprint declaration in isolation, the same shape RFC-018 already established for pad-count/numbering consistency.
 

@@ -1,15 +1,18 @@
 HPB16B3 LoRa Module
-====================
+===================
 
-Pin definition sourced from the host board schematic (p2, U3).
-No standalone datasheet published by the manufacturer; this file
-documents the provenance per RFC-017 #[doc] requirements.
+Pin definition source:
+  Xinyuan-LilyGO/T-Display-SF32, T-Display SF32 V1.0 schematic,
+  page 2, U3, at commit 08961099a702b2044b9f3541fddb16d10281d8d2.
+  https://github.com/Xinyuan-LilyGO/T-Display-SF32/blob/08961099a702b2044b9f3541fddb16d10281d8d2/hardware/T-Display%20SF32%20V1.0.PDF
 
-The module is based on the Semtech SX1262 (sub-GHz LoRa transceiver).
-Bare-die library: @contrib/lora::SX1262.
+The official schematic establishes the exact HPB16B3 symbol name and the
+12-pin assignment below. It does not identify the module's internal radio,
+supply limits, package dimensions, or PCB land pattern. HPB16B3 therefore
+must not be substituted with the separately documented 16-pin HPD16A.
 
 Pin assignment (12-pin SMT module):
- 1  VCC      supply (1.8-3.7V per SX1262)
+ 1  VCC      module supply (voltage not specified by the schematic)
  2  GND      ground
  3  NRESET   module reset (active-low)
  4  BUSY     busy status output
@@ -22,6 +25,6 @@ Pin assignment (12-pin SMT module):
 11  GND      ground
 12  ANT      RF antenna
 
-Mechanical outline (pad layout, body dimensions) is NOT published.
-When the module dimension drawing becomes available, add a part with
-the corresponding footprint.
+The official board repository publishes no module mechanical outline or PCB
+source. When an authoritative HPB16B3 dimension/land drawing becomes
+available, add a part with the corresponding footprint.

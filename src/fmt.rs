@@ -1174,6 +1174,25 @@ impl Formatter<'_> {
         if let Some((d, sp)) = &p.drill {
             fields.push((sp.start, format!("drill: {}", pad_drill_text(d))));
         }
+        if let Some((corner, cut, sp)) = &p.chamfer {
+            fields.push((
+                sp.start,
+                format!("chamfer: ({}, {})", corner.name(), cut.text),
+            ));
+        }
+        if let Some((radius, sp)) = &p.corner_radius {
+            fields.push((sp.start, format!("corner_radius: {}", radius.text)));
+        }
+        if let Some((margin, sp)) = &p.mask_expansion {
+            fields.push((sp.start, format!("mask_expansion: {}", margin.text)));
+        }
+        if let Some((paste, sp)) = &p.paste {
+            let value = match paste {
+                crate::ast::PadPaste::None => "none".to_string(),
+                crate::ast::PadPaste::Rect(w, h) => format!("({}, {})", w.text, h.text),
+            };
+            fields.push((sp.start, format!("paste: {}", value)));
+        }
         fields.sort_by_key(|(s, _)| *s);
         for (offset, line) in fields {
             let l = self.sm.line_col(self.file, offset).line;

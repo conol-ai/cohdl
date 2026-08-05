@@ -26,7 +26,8 @@ pub device CH343P {
 
 impl IC for CH343P {}
 
-// No part declaration: WCH specifies the CH343P QFN16 body and 0.5 mm pitch,
-// but this datasheet does not publish a recommended PCB land/paste pattern.
-// Keep the source-backed device pinout available without presenting an
-// inferred QFN footprint as fabrication-ready.
+// No part declaration: WCH's official QFN16 package drawing specifies a 3 mm
+// body, 0.5 mm pitch, 0.25 x 0.4 mm terminals, and a 1.8 mm exposed pad, but
+// neither it nor the device datasheet publishes a recommended PCB land/paste
+// pattern with enough tolerance data for an IPC derivation. Keep the verified
+// pinout without presenting the old inferred 1.7 mm-EP footprint as safe.

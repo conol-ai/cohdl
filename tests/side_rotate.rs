@@ -260,3 +260,50 @@ fn ipc_with_side_and_pad_rotate_is_schema_valid() {
         );
     }
 }
+
+#[test]
+fn ipc_bottom_side_reflects_pad_local_chamfer_and_rotation() {
+    let src = r#"
+pub trait Ic { designator_prefix: "U" }
+pub pad P_C {
+    shape: rect
+    size: (0.8mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.1mm)
+}
+pub footprint FP_C { pad 1: P_C at (1mm, 2mm) rotate 25 }
+pub device D { pins { A: 1 [passive] } }
+impl Ic for D {}
+pub part P: D { primary { mfr: "m", mpn: "c", footprint: FP_C } }
+design B {
+    inst u: P
+    nc: u.A
+    layout { place u at (5mm, 0mm) rotate 30 side bottom }
+}
+"#;
+    let (checked, _a) = build(src);
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        "bottom-pad-local",
+    );
+    // MirrorX changes top_left to top_right, whose IPC +Y-up contour begins
+    // along the full left edge then cuts the upper-right corner.
+    assert!(
+        xml.contains("<PolyBegin x=\"-0.4\" y=\"0.15\"/><PolyStepSegment x=\"0.3\" y=\"0.15\"/><PolyStepSegment x=\"0.4\" y=\"0.05\"/>"),
+        "bottom-side pad chamfer must be reflected:\n{xml}"
+    );
+    // R(30) * MirrorX * R(25) = R(5) * MirrorX.
+    let bcu = xml
+        .split("<LayerFeature layerRef=\"B.Cu\">")
+        .nth(1)
+        .expect("bottom copper")
+        .split("</LayerFeature>")
+        .next()
+        .unwrap();
+    assert!(
+        bcu.contains("<Xform rotation=\"5\"/>"),
+        "bottom reflection must reverse pad-local rotation:\n{bcu}"
+    );
+}

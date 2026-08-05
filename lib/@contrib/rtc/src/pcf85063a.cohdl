@@ -7,37 +7,41 @@
 pub device PCF85063A {
     variants { SO8, TSSOP8, DFN10 }
     pins[SO8] {
-        optional OSCI: 1 [input] // 32.768kHz crystal input (p4)
+        required OSCI: 1 [input] // input must remain at a defined level (Table 3)
         optional OSCO: 2 [output] // crystal output (p4)
         optional INT: 3 [output] // interrupt, open-drain (p4)
         required VSS: 4 [power_in]
-        optional SDA: 5 [bidirectional] // I2C data (p4)
-        optional SCL: 6 [input] // I2C clock (p4)
+        required SDA: 5 [bidirectional] // I2C data; define with a pull-up (Table 3)
+        required SCL: 6 [input] // I2C clock; define with a pull-up (Table 3)
         optional CLKOUT: 7 [output] // clock output, push-pull (p4)
         required VDD: 8 [power_in]
     }
     pins[TSSOP8] {
-        optional OSCI: 1 [input]
+        required OSCI: 1 [input]
         optional OSCO: 2 [output]
         optional INT: 3 [output]
         required VSS: 4 [power_in]
-        optional SDA: 5 [bidirectional]
-        optional SCL: 6 [input]
+        required SDA: 5 [bidirectional]
+        required SCL: 6 [input]
         optional CLKOUT: 7 [output]
         required VDD: 8 [power_in]
     }
     pins[DFN10] {
         // DFN2626-10 numbering differs; adds CLKOE and n.c. (p4 Fig 3).
-        optional OSCI: 1 [input]
+        required OSCI: 1 [input]
         optional OSCO: 2 [output]
-        optional CLKOE: 3 [input] // CLKOUT enable, active HIGH (p4)
+        required CLKOE: 3 [input] // CLKOUT enable; strap to a defined level (Table 3)
         optional INT: 4 [output]
         required VSS: 5 [power_in]
-        optional SDA: 6 [bidirectional]
-        optional SCL: 7 [input]
+        required SDA: 6 [bidirectional]
+        required SCL: 7 [input]
         optional NC: 8 [passive] // not connected (p4)
         optional CLKOUT: 9 [output]
         required VDD: 10 [power_in]
+        // Table 3 note 2: the die paddle is high-ohmic to VSS and must remain
+        // electrically isolated. Soldering it to an isolated land is useful
+        // for heat transfer but not functionally required.
+        optional EPAD: EP [passive]
     }
 }
 
@@ -53,8 +57,10 @@ pub part RTC_PCF85063ATT: PCF85063A[TSSOP8] {
     primary { mfr: "NXP", mpn: "PCF85063ATT/AJ", footprint: SOP8P65X490X110N }
 }
 
-// DFN10 remains device-only. Its exposed die paddle is not an electrical VSS
-// terminal and must stay isolated; no purchasable binding is asserted here.
+#[doc("docs/pcf85063a.pdf")]
+pub part RTC_PCF85063ATL: PCF85063A[DFN10] {
+    primary { mfr: "NXP", mpn: "PCF85063ATL/1,118", footprint: FP_NXP_DFN2626_10_SOT1197_1 }
+}
 
 // NXP Figure 36 SO8 reflow footprint: 1.30 x 0.60 mm lands, 1.27 mm
 // pitch, 6.60 mm copper span, and a 7.00 x 5.50 mm occupied area.
@@ -104,4 +110,47 @@ pub footprint SOP8P65X490X110N {
     }
     courtyard { shape: rect, at: (0mm, 0mm), size: (6.25mm, 4.1mm) }
     silkscreen_ref { at: (0mm, -2.4mm) }
+}
+
+// NXP Figure 37 is a complete manufacturer reflow footprint. It is rotated
+// 90 degrees here to put pins 1..5 down the left side in transparent top view.
+// Ay=3.05 and By=1.90 give 0.575mm lead length; D=0.25mm is lead width.
+// The drawing calls out 0.025mm solder-resist clearance on both axes.
+pub pad P_PCF85063A_DFN10_LEAD {
+    shape: rect
+    size: (0.575mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.025mm
+}
+
+// The isolated die-paddle land is SLx x SLy = 2.20 x 1.30mm in Figure 37.
+// With the same rotation it becomes 1.30 x 2.20mm. The one manufacturer
+// paste deposit SPx x SPy = 0.80 x 0.40mm becomes 0.40 x 0.80mm.
+pub pad P_PCF85063A_DFN10_EP {
+    shape: rect
+    size: (1.3mm, 2.2mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.025mm
+    paste: (0.4mm, 0.8mm)
+}
+
+pub footprint FP_NXP_DFN2626_10_SOT1197_1 {
+    pad 1: P_PCF85063A_DFN10_LEAD at (-1.2375mm, -1mm)
+    pad 2: P_PCF85063A_DFN10_LEAD at (-1.2375mm, -0.5mm)
+    pad 3: P_PCF85063A_DFN10_LEAD at (-1.2375mm, 0mm)
+    pad 4: P_PCF85063A_DFN10_LEAD at (-1.2375mm, 0.5mm)
+    pad 5: P_PCF85063A_DFN10_LEAD at (-1.2375mm, 1mm)
+    pad 6: P_PCF85063A_DFN10_LEAD at (1.2375mm, 1mm)
+    pad 7: P_PCF85063A_DFN10_LEAD at (1.2375mm, 0.5mm)
+    pad 8: P_PCF85063A_DFN10_LEAD at (1.2375mm, 0mm)
+    pad 9: P_PCF85063A_DFN10_LEAD at (1.2375mm, -0.5mm)
+    pad 10: P_PCF85063A_DFN10_LEAD at (1.2375mm, -1mm)
+    pad EP: P_PCF85063A_DFN10_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 2.85mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
 }

@@ -33,6 +33,34 @@ pub device XC6206 {
 
 impl IC for XC6206 {}
 
-// Device-only: XC6206P182MR-G is the complete 1.8 V SOT-23 order code, but
-// the Torex datasheet publishes package outlines rather than recommended PCB
-// lands. The former footprint was an undocumented generic derivation.
+#[doc("docs/xc6206.pdf")]
+pub part LDO_XC6206P182MR: XC6206[SOT23] {
+    primary { mfr: "Torex Semiconductor", mpn: "XC6206P182MR-G", footprint: SOT3P190X290X160N }
+}
+
+// Torex p13 publishes the complete SOT-23 component envelope, not a
+// recommended PCB land. This conservative nominal-density derivation records
+// its tolerance goals explicitly: a 0.90mm radial land spans from 0.70mm
+// (half the 1.50mm minimum body width minus a 0.05mm heel) to 1.60mm (half
+// the 3.10mm maximum lead-tip span plus a 0.05mm toe). The two same-side lead
+// centres may be 1.70..2.10mm apart. A 0.75mm tangential land retains at
+// least 0.025mm beyond each 0.50mm-wide lead even at that pitch extreme.
+pub pad P_XC6206_SOT23_LEAD {
+    shape: rect
+    size: (0.9mm, 0.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Manufacturer top view rotated 90 degrees: pins 1/2 form the left row and
+// pin 3 is opposite. Pin 1 remains the upper-left terminal in CoHDL top view.
+pub footprint SOT3P190X290X160N {
+    pad 1: P_XC6206_SOT23_LEAD at (-1.15mm, -0.95mm)
+    pad 2: P_XC6206_SOT23_LEAD at (-1.15mm, 0.95mm)
+    pad 3: P_XC6206_SOT23_LEAD at (1.15mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.7mm, 3.6mm) }
+    silkscreen_ref { at: (0mm, -2.1mm) }
+}

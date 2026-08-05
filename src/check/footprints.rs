@@ -116,7 +116,7 @@ pub fn check_pad_consistency(world: &World, diags: &mut Diagnostics) {
                     "the footprint's pads are declared here".to_string(),
                 )
                 .with_help(
-                    "every device pin number needs exactly one `pad N: …` placement (RFC-018)",
+                    "the footprint's distinct electrical pad-number set must exactly match the device pin-number set; one number may have multiple physical placements",
                 ),
             );
         }

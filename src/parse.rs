@@ -1195,6 +1195,10 @@ impl<'a> Parser<'a> {
             layer: None,
             plating: None,
             drill: None,
+            chamfer: None,
+            corner_radius: None,
+            mask_expansion: None,
+            paste: None,
             span: start,
         };
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -1211,8 +1215,9 @@ impl<'a> Parser<'a> {
                 unclosed = true;
                 break;
             }
-            let Some(field) =
-                self.ident("as a pad field (`shape`, `size`, `layer`, `plating`, `drill`)")
+            let Some(field) = self.ident(
+                "as a pad field (`shape`, `size`, `layer`, `plating`, `drill`, `chamfer`, `corner_radius`, `mask_expansion`, `paste`)",
+            )
             else {
                 self.sync_in_block();
                 self.eat(&TokenKind::Comma);
@@ -1316,12 +1321,88 @@ impl<'a> Parser<'a> {
                     };
                     def.drill = Some((drill, field.span));
                 }
+                "chamfer" => {
+                    if !self.expect(&TokenKind::LParen, "to open the chamfer tuple") {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    }
+                    let Some(corner) = self.ident("as the chamfer corner") else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    };
+                    let parsed_corner = PadCorner::from_name(&corner.name);
+                    if parsed_corner.is_none() {
+                        self.diags.push(Diagnostic::error(
+                            "E805",
+                            corner.span,
+                            format!(
+                                "`{}` is not a pad corner — corners are: top_left, top_right, bottom_left, bottom_right",
+                                corner.name
+                            ),
+                        ));
+                    }
+                    self.expect(
+                        &TokenKind::Comma,
+                        "between the chamfer corner and cut length",
+                    );
+                    let cut = self.unit_literal("as the chamfer cut length");
+                    self.expect(&TokenKind::RParen, "to close the chamfer tuple");
+                    if let (Some(corner), Some(cut)) = (parsed_corner, cut) {
+                        def.chamfer = Some((corner, cut, field.span.to(self.prev_span())));
+                    }
+                }
+                "corner_radius" => {
+                    if let Some(v) = self.unit_literal("as the rectangular pad corner radius") {
+                        def.corner_radius = Some((v, field.span.to(self.prev_span())));
+                    } else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    }
+                }
+                "mask_expansion" => {
+                    if let Some(v) = self.unit_literal("as the solder-mask expansion") {
+                        def.mask_expansion = Some((v, field.span.to(self.prev_span())));
+                    } else {
+                        self.sync_in_block();
+                        self.eat(&TokenKind::Comma);
+                        continue;
+                    }
+                }
+                "paste" => {
+                    if self.eat_ident("none") {
+                        def.paste = Some((PadPaste::None, field.span.to(self.prev_span())));
+                    } else {
+                        let Some((vals, span)) = self.length_tuple() else {
+                            self.sync_in_block();
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        let [w, h] = vals.as_slice() else {
+                            self.diags.push(Diagnostic::error(
+                                "E805",
+                                span,
+                                format!(
+                                    "a centered paste aperture is `paste: (width, height)` — {} value{} given",
+                                    vals.len(),
+                                    if vals.len() == 1 { "" } else { "s" }
+                                ),
+                            ));
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        def.paste =
+                            Some((PadPaste::Rect(w.clone(), h.clone()), field.span.to(span)));
+                    }
+                }
                 other => {
                     self.diags.push(Diagnostic::error(
                         "E805",
                         field.span,
                         format!(
-                            "unknown pad field `{}` (expected `shape`, `size`, `layer`, `plating`, or `drill`)",
+                            "unknown pad field `{}` (expected `shape`, `size`, `layer`, `plating`, `drill`, `chamfer`, `corner_radius`, `mask_expansion`, or `paste`)",
                             other
                         ),
                     ));

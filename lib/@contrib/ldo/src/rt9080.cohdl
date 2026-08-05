@@ -28,6 +28,11 @@ pub part LDO_RT9080_33: RT9080[TSOT235] {
     primary { mfr: "Richtek", mpn: "RT9080-33GJ5", footprint: SOT5P95X290X160N }
 }
 
+#[doc("docs/rt9080.pdf")]
+pub part LDO_RT9080_33_ZQFN: RT9080[ZQFN4L] {
+    primary { mfr: "Richtek", mpn: "RT9080-33GQZ", footprint: FP_Richtek_ZQFN4L_1X1 }
+}
+
 // Richtek footprint table 20.1 (p19): 1.00 x 0.70 mm copper, 0.95 mm
 // same-row pitch, 1.90 mm outer pin spacing and 3.60 mm row-to-row copper
 // span. Rotated 90 degrees here so pin 1 is upper-left in CoHDL top view.
@@ -51,7 +56,59 @@ pub footprint SOT5P95X290X160N {
     silkscreen_ref { at: (0mm, -2.0mm) }
 }
 
-// The valid 3.3 V ZQFN order code is RT9080-33GQZ. It remains device-only:
-// Richtek's p20 land uses four asymmetric trapezoids plus a diamond SGND,
-// which CoHDL's current pad primitives cannot reproduce without inventing a
-// lossy rectangular approximation.
+// Richtek section 20.2 gives the complete ZQFN-4L 1x1 recommended land.
+// Ax/Ay are 1.800/0.900mm, the inner clearances Bx/By are 0.450/0.350mm,
+// and each 0.675 x 0.275mm lead has a 45-degree 0.201mm inner-corner cut
+// (C-C1 = 0.675-0.474 = 0.201mm). The centre SGND diamond has 0.400mm
+// horizontal and vertical diagonals, hence a 0.282843mm square rotated 45deg.
+pub pad P_RT9080_ZQFN_TL {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_right, 0.201mm)
+}
+
+pub pad P_RT9080_ZQFN_BL {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_right, 0.201mm)
+}
+
+pub pad P_RT9080_ZQFN_BR {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.201mm)
+}
+
+pub pad P_RT9080_ZQFN_TR {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_left, 0.201mm)
+}
+
+pub pad P_RT9080_ZQFN_SGND {
+    shape: rect
+    size: (0.282842712474619mm, 0.282842712474619mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Richtek_ZQFN4L_1X1 {
+    pad 1: P_RT9080_ZQFN_TL at (-0.5625mm, -0.3125mm)
+    pad 2: P_RT9080_ZQFN_BL at (-0.5625mm, 0.3125mm)
+    pad 3: P_RT9080_ZQFN_BR at (0.5625mm, 0.3125mm)
+    pad 4: P_RT9080_ZQFN_TR at (0.5625mm, -0.3125mm)
+    pad 5: P_RT9080_ZQFN_SGND at (0mm, 0mm) rotate 45
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.3mm, 1.4mm) }
+    silkscreen_ref { at: (0mm, -1mm) }
+}

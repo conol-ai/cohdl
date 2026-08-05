@@ -1,20 +1,182 @@
-// SF32 miniboard reference - intentionally disabled for fabrication.
+// SF32LB52EUB6 sensor mini-board.
 //
-// The original design instantiated several contrib parts before their pin and
-// footprint evidence had been audited. The audit found that:
-//
-// - SF32LB52X and BHI260AP lack complete manufacturer PCB-land evidence;
-// - CH343P lacks a manufacturer-recommended QFN land pattern;
-// - the formerly selected RT9080 part/variant was incompatible with its
-//   device model (the library has since been corrected, but this board has not
-//   been re-reviewed);
-// - the former MicroSD and SX1262 data were unsafe (their library definitions
-//   are corrected now, but the complete board has not been re-reviewed).
-//
-// Consequently the old BOM, netlist, footprints, design lock, and KiCad
-// schematic were removed. This empty top keeps the package checkable while
-// making its reference-only status explicit. Re-enable a real design only
-// after every instantiated part has an audited purchasable binding.
+// This design intentionally uses only audited, purchasable bindings. Native
+// USB replaces the former CH343P USB/UART bridge, and the unsafe bare-SX1262
+// RF connection is omitted. The SF32's Bluetooth RF pin is also left open:
+// enabling Bluetooth requires a board-specific 50-ohm antenna path and, when
+// the antenna is not already 50 ohms, a qualified matching network.
 
-design SF32MiniBoardReference {
+design SF32MiniBoard {
+    // ---- major devices ----
+    inst mcu: contrib_sf32::MCU_SF32LB52EUB6
+    inst ldo_3v3: contrib_ldo::LDO_RT9080_33_ZQFN
+    inst ldo_1v8: contrib_ldo::LDO_XC6206P182MR
+    inst level: contrib_level_shifter::LS_RS0104_QFN12_2X1P7
+    inst flash: flash::FLASH_W25Q128JVSIQ
+    inst imu: contrib_imu::IMU_BHI260AP
+    inst env: contrib_env::ENV_BME280
+    inst usbc: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
+    inst esd: esd::ESD_USBLC6
+    inst debug: connectors::headers::smd_254::SOCKET_2X3_254_SMD
+
+    // ---- SF32 clocks and internal buck ----
+    #[crystal_oscillator(mcu, XTAL48M_XI, XTAL48M_XO)]
+    inst xtal_48m: osc::XTAL_48MHZ
+    #[crystal_oscillator(mcu, PA22, PA23)]
+    inst xtal_32k: osc::XTAL_32K768
+    inst l_buck: passive::IND_4U7_WPN201610U
+
+    // ---- USB-C and control resistors ----
+    inst r_cc1: passive::R_5K1_F_0402
+    inst r_cc2: passive::R_5K1_F_0402
+    inst r_i2c_sda_hi: passive::R_4K7_F_0402
+    inst r_i2c_scl_hi: passive::R_4K7_F_0402
+    inst r_i2c_sda_lo: passive::R_4K7_F_0402
+    inst r_i2c_scl_lo: passive::R_4K7_F_0402
+    inst r_imu_reset_hi: passive::R_10K_F_0402
+    inst r_imu_reset_lo: passive::R_10K_F_0402
+    inst r_level_oe: passive::R_10K_F_0402
+
+    // ---- regulator and SF32 rail capacitors ----
+    inst c_vbus: passive::C_10u_25V_X5R_0805
+    inst c_ldo_out: passive::C_2u2_10V_X5R_0603
+    inst c_ldo_1v8_in: passive::C_1u_10V_X5R_0603
+    inst c_ldo_1v8_out: passive::C_1u_10V_X5R_0603
+    inst c_pvdd: passive::C_10u_25V_X5R_0805
+    inst c_buck_fb: passive::C_4u7_10V_X5R_0603
+    inst c_vout1: passive::C_4u7_10V_X5R_0603
+    inst c_vout2: passive::C_4u7_10V_X5R_0603
+    inst c_vdd_ret: passive::C_470n_10V_X5R_0402
+    inst c_vdd_rtc: passive::C_1u_10V_X5R_0603
+    inst c_vddioa: passive::C_1u_10V_X5R_0603
+    inst c_vdd_sip: passive::C_2u2_10V_X5R_0603
+    inst c_avdd33: passive::C_4u7_10V_X5R_0603
+    inst c_avdd_brf: passive::C_4u7_10V_X5R_0603
+    inst c_avdd_aud: passive::C_2u2_10V_X5R_0603
+    inst c_aud_vref: passive::C_1u_10V_X5R_0603
+    inst c_mic_bias: passive::C_1u_10V_X5R_0603
+    inst c_gpadc_vref: passive::C_4u7_10V_X5R_0603
+
+    // ---- peripheral decoupling ----
+    inst c_flash: passive::C_100n_10V_X5R_0402
+    inst c_imu_vdd: passive::C_100n_10V_X5R_0402
+    inst c_imu_vddio_hf: passive::C_100n_10V_X5R_0402
+    inst c_imu_vddio_bulk: passive::C_1u_10V_X5R_0603
+    inst c_imu_vreg: passive::C_220n_10V_X5R_0402
+    inst c_level_vcca: passive::C_100n_10V_X5R_0402
+    inst c_level_vccb: passive::C_100n_10V_X5R_0402
+    inst c_env_vdd: passive::C_100n_10V_X5R_0402
+    inst c_env_vddio: passive::C_100n_10V_X5R_0402
+
+    // ---- USB power: VBUS -> always-enabled 3.3V regulator ----
+    #[high_current(500mA)]
+    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo_3v3.VIN, ldo_3v3.EN, c_vbus.A
+    #[intent("RT9080 fixed 3.3V output powers the MCU, flash, and sensors")]
+    #[high_current(500mA)]
+    net V3V3 [3.3V]: ldo_3v3.VOUT, ldo_1v8.VIN, level.VCCB, mcu.PVDD, mcu.VDDIOA, mcu.AVDD33,
+                     mcu.AVDD33_AUD, mcu.AVDD_BRF, flash.VCC, env.VDD, env.VDDIO, debug.P1,
+                     debug.P6, env.CSB, r_i2c_sda_hi.A, r_i2c_scl_hi.A, r_imu_reset_hi.A,
+                     c_ldo_out.A, c_ldo_1v8_in.A, c_level_vccb.A, c_pvdd.A, c_vddioa.A, c_avdd33.A,
+                     c_avdd_brf.A, c_avdd_aud.A, c_flash.A, c_env_vdd.A, c_env_vddio.A
+
+    // BHI260AP VDDIO/Fuser2 is limited to 1.89V maximum. Both IMU supply
+    // domains use the dedicated 1.8V regulator; every signal crossing to the
+    // SF32/BME280 3.3V domain passes through the four-channel translator.
+    net V1V8 [1.8V]: ldo_1v8.VOUT, level.VCCA, imu.VDD, imu.VDDIO, imu.HOSTBOOT, imu.HCSB,
+                     r_i2c_sda_lo.A, r_i2c_scl_lo.A, r_imu_reset_lo.A, c_ldo_1v8_out.A,
+                     c_level_vcca.A, c_imu_vdd.A, c_imu_vddio_hf.A, c_imu_vddio_bulk.A
+
+    // SF32LB52EUB6 internal power outputs and decoupling nodes. VDD_SIP is
+    // deliberately not tied to 3V3 on this E-series part.
+    net BUCK_LX: mcu.BUCK_LX, l_buck.A
+    net BUCK_FB: l_buck.B, mcu.BUCK_FB, c_buck_fb.A
+    net VDD_VOUT1: mcu.VDD_VOUT1, c_vout1.A
+    net VDD_VOUT2: mcu.VDD_VOUT2, c_vout2.A
+    net VDD_RET: mcu.VDD_RET, c_vdd_ret.A
+    net VDD_RTC: mcu.VDD_RTC, c_vdd_rtc.A
+    net VDD_SIP_DECOUPLE: mcu.VDD_SIP, c_vdd_sip.A
+    net AUD_VREF_DECOUPLE: mcu.AUD_VREF, c_aud_vref.A
+    net MIC_BIAS_DECOUPLE: mcu.MIC_BIAS, c_mic_bias.A
+    net GPADC_VREF_DECOUPLE: mcu.GPADC_VREF, c_gpadc_vref.A
+
+    // ---- 48MHz main crystal and 32.768kHz RTC crystal ----
+    // SiFli specifies no fitted matching capacitors for crystals below 12pF
+    // CL. The PCB layout should reserve unpopulated matching-cap lands.
+    net XTAL48_XI: mcu.XTAL48M_XI, xtal_48m.XIN
+    net XTAL48_XO: mcu.XTAL48M_XO, xtal_48m.XOUT
+    net XTAL32_XI: mcu.PA22, xtal_32k.XIN
+    net XTAL32_XO: mcu.PA23, xtal_32k.XOUT
+
+    // ---- external 128Mbit QSPI NOR flash (MPI2 mapping) ----
+    net FLASH_CS: mcu.PA12, flash.CS
+    net FLASH_IO1: mcu.PA13, flash.DO
+    net FLASH_IO2: mcu.PA14, flash.WP
+    net FLASH_IO0: mcu.PA15, flash.DI
+    net FLASH_CLK: mcu.PA16, flash.CLK
+    net FLASH_IO3: mcu.PA17, flash.HOLD
+
+    // ---- shared I2C1 sensor bus, translated between 3.3V and 1.8V ----
+    // SiFli's hardware guide assigns I2C1 SDA/SCL to PA41/PA42. The BHI260AP
+    // boots from the host, stays in I2C mode, and uses address 0x28; BME280
+    // uses address 0x76.
+    net I2C_SDA_3V3: mcu.PA41, env.SDI, level.B1, r_i2c_sda_hi.B
+    net I2C_SCL_3V3: mcu.PA42, env.SCK, level.B2, r_i2c_scl_hi.B
+    net I2C_SDA_1V8: level.A1, imu.HSDX, r_i2c_sda_lo.B
+    net I2C_SCL_1V8: level.A2, imu.HSCX, r_i2c_scl_lo.B
+    net IMU_IRQ_1V8: imu.HIRQ, level.A3
+    net IMU_IRQ_3V3: level.B3, mcu.PA24
+    net IMU_RESETN_3V3: mcu.PA03, level.B4, r_imu_reset_hi.B
+    net IMU_RESETN_1V8: level.A4, imu.RESETN, r_imu_reset_lo.B
+    net IMU_VREG: imu.VREG, c_imu_vreg.A
+    // RS0104 starts disabled through this pull-down. Firmware drives PA00
+    // high after both rails are stable; 3.3V is inside OE's input range.
+    net LEVEL_OE: mcu.PA00, level.OE, r_level_oe.A
+
+    // ---- native USB 2.0 through the ESD array ----
+    net USBC_DP: usbc.DP, esd.IO1_A
+    net USB_DP: esd.IO1_B, mcu.PA35
+    net USBC_DM: usbc.DN, esd.IO2_A
+    net USB_DM: esd.IO2_B, mcu.PA36
+    net CC1: usbc.CC1, r_cc1.A
+    net CC2: usbc.CC2, r_cc2.A
+
+    // ---- debug UART/SWD and calibration point ----
+    // P1/P6 3V3, P2 GND, P3 TX/SWCLK, P4 RX/SWDIO, P5 PA01 calibration.
+    net DEBUG_TX_SWCLK: mcu.PA19, debug.P3
+    net DEBUG_RX_SWDIO: mcu.PA18, debug.P4
+    net DEBUG_CAL: mcu.PA01, debug.P5
+
+    #[ground(primary)]
+    net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo_3v3.GND, ldo_3v3.SGND, ldo_1v8.VSS,
+                   level.GND, mcu.EPAD, flash.GND, imu.GND, imu.GNDIO, env.GND, xtal_48m.GND,
+                   debug.P2, r_cc1.B, r_cc2.B, imu.HSDO, env.SDO, c_vbus.B, c_ldo_out.B,
+                   c_ldo_1v8_in.B, c_ldo_1v8_out.B, c_level_vcca.B, c_level_vccb.B, c_pvdd.B,
+                   c_buck_fb.B, c_vout1.B, c_vout2.B, c_vdd_ret.B, c_vdd_rtc.B, c_vddioa.B,
+                   c_vdd_sip.B, c_avdd33.B, c_avdd_brf.B, c_avdd_aud.B, c_aud_vref.B, c_mic_bias.B,
+                   c_gpadc_vref.B, c_flash.B, c_imu_vdd.B, c_imu_vddio_hf.B, c_imu_vddio_bulk.B,
+                   c_imu_vreg.B, c_env_vdd.B, c_env_vddio.B, r_level_oe.B
+
+    // Connector contacts and deliberately unused SF32 functions.
+    nc: usbc.SBU1, usbc.SBU2, mcu.NC, mcu.VBATS, mcu.BRF_ANT
+    nc: mcu.PA32, mcu.PA31, mcu.PA30, mcu.PA29, mcu.PA28, mcu.PA27, mcu.PA26, mcu.PA25, mcu.PA21,
+        mcu.PA20, mcu.PA11, mcu.PA10, mcu.DACN, mcu.DACP, mcu.ADCP, mcu.PA09, mcu.PA08, mcu.PA07,
+        mcu.PA06, mcu.PA05, mcu.PA04, mcu.PA02, mcu.PA44, mcu.PA43, mcu.PA40, mcu.PA39, mcu.PA38,
+        mcu.PA37, mcu.PA34, mcu.PA33
+
+    // BHI260AP reserved pins must remain open; unused alternate buses and
+    // debug interfaces are explicitly accounted for as well.
+    nc: imu.M1SCX, imu.M1SDX, imu.M1SDI, imu.M2SCX, imu.M2SDX, imu.M2SDI, imu.M3SCL, imu.M3SDA,
+        imu.QSPI_CLK, imu.QSPI_CSN, imu.QSPI_D0, imu.QSPI_D1, imu.QSPI_D2, imu.QSPI_D3, imu.MCSB1,
+        imu.MCSB2, imu.MCSB3, imu.MCSB4, imu.ASCX, imu.ASDX, imu.OCSB, imu.OSDO, imu.JTAG_CLK,
+        imu.JTAG_DIO, imu.RESV1, imu.RESV2, imu.RESV3
+
+    layout {
+        net_class USB { USBC_DP, USBC_DM, USB_DP, USB_DM }
+        diff_pair(USBC_DP,
+                  USBC_DM) [differential_impedance: 90ohm, single_ended_impedance: 45ohm, frequency: 480MHz]
+        diff_pair(USB_DP,
+                  USB_DM) [differential_impedance: 90ohm, single_ended_impedance: 45ohm, frequency: 480MHz]
+        length_match(USB_DP, USB_DM) [tolerance: 0.15mm]
+        net_class Clock { XTAL48_XI, XTAL48_XO, XTAL32_XI, XTAL32_XO, FLASH_CLK }
+    }
 }

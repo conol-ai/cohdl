@@ -6,10 +6,11 @@
 //! outline (`Step/Profile`, from RFC-020's DXF); a `DictionaryStandard` of
 //! primitive shapes, `PadStackDef`s (copper + mask + paste + a plated
 //! `PadstackHoleDef` for through-hole), and real physical layers
-//! (F.Cu/B.Cu/masks/paste) + a stackup; `LayerFeature`s of PLACED copper pads
-//! on F.Cu/B.Cu — each at its absolute board position (component transform +
-//! rotated pad offset), tied to its component pin (`PinRef`) and net
-//! (`Set/@net`); and accurate `Component/@mountType` (SMT vs THMT) and
+//! (F.Cu/B.Cu/masks/paste) + a stackup; side-aware `LayerFeature`s of every
+//! PLACED copper/mask/paste feature — including repeated placements of one
+//! electrical number — at absolute board positions, tied to their component
+//! pin (`PinRef`) and net (`Set/@net`); and accurate `Component/@mountType`
+//! (SMT vs THMT) and
 //! `Pin/@mountType` (`SURFACE_MOUNT_PAD` / `THROUGH_HOLE_PIN`).
 //! (This physical layer was added to fix .co/invalid-ipc2581.xml — an
 //! XSD-valid document that carried only abstract `Package/Pin` land patterns
@@ -129,24 +130,27 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 [w, h, ..] => (w.femto, h.femto),
                 [] => continue,
             };
-            dedup(
-                &mut phys.prims,
-                Prim {
-                    shape: *shape,
-                    w,
-                    h,
-                },
-            );
+            dedup(&mut phys.prims, copper_prim(pad, *shape, w, h));
         }
     }
     let phys = phys; // frozen — the dictionary is closed from here on
     let net_of = net_membership(world, ir, &refdes_map);
-    // A component is through-hole-mounted (THMT) if any of its electrical pads
-    // is; an RFC-022 mount_hole is mechanical and does not change mount type.
+    // A component is through-hole-mounted (THMT) if it has an electrical
+    // number implemented only by PTH lands. Thermal vias repeated under an SMD
+    // exposed-pad number remain physical holes but do not change mount type.
+    // An RFC-022 mount_hole is mechanical and likewise does not change it.
+    let smd_terminals: BTreeSet<(&str, &str)> = phys
+        .pads
+        .iter()
+        .filter(|p| !p.tht && !p.hole)
+        .map(|p| (p.refdes.as_str(), p.pin.as_str()))
+        .collect();
     let tht_refdes: BTreeSet<&str> = phys
         .pads
         .iter()
-        .filter(|p| p.tht && !p.hole)
+        .filter(|p| {
+            p.tht && !p.hole && !smd_terminals.contains(&(p.refdes.as_str(), p.pin.as_str()))
+        })
         .map(|p| p.refdes.as_str())
         .collect();
     let name = sanitize(package_name, false);
@@ -330,7 +334,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
 
     // Packages: one per distinct footprint symbol. RFC-018: a pad-bearing
     // footprint projects REAL geometry (courtyard outline + one Pin per
-    // pad); an RFC-017 stage-one placeholder keeps the zero-size idiom
+    // distinct electrical pad number); an RFC-017 stage-one placeholder keeps the zero-size idiom
     // (the completeness marker declares that).
     for (footprint, pkg) in &packages {
         let comment = if pkg != footprint {
@@ -425,8 +429,39 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
             }
         }
         if let Some(f) = fp {
+            // A single electrical terminal may be implemented by several
+            // physical lands (EP copper/paste/vias/back land). Package/Pin is
+            // logical, so choose one deterministic representative per number:
+            // footprint-local top SMD before bottom SMD before PTH, then the
+            // largest land.
+            // A thermal via authored first must never misclassify the logical
+            // terminal as through-hole. build_physical below still emits every
+            // authored placement as a physical feature.
+            let mut logical_pins: BTreeMap<&str, (&crate::ast::PadPlace, &crate::ast::PadDef)> =
+                BTreeMap::new();
+            let mut logical_order: Vec<&str> = Vec::new();
+            let mut seen_numbers: BTreeSet<&str> = BTreeSet::new();
             for place in &f.pads {
                 let Some(pad) = world.pads.get(&place.pad.name) else {
+                    continue;
+                };
+                let (Some(_), Some(_)) = (&pad.shape, &pad.plating) else {
+                    continue;
+                };
+                if seen_numbers.insert(place.number.text.as_str()) {
+                    logical_order.push(place.number.text.as_str());
+                }
+                logical_pins
+                    .entry(place.number.text.as_str())
+                    .and_modify(|current| {
+                        if logical_pin_cmp((place, pad), *current).is_lt() {
+                            *current = (place, pad);
+                        }
+                    })
+                    .or_insert((place, pad));
+            }
+            for number in logical_order {
+                let Some(&(place, pad)) = logical_pins.get(number) else {
                     continue;
                 };
                 let (Some((shape, _)), Some((plating, _))) = (&pad.shape, &pad.plating) else {
@@ -443,10 +478,18 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                 let _ = writeln!(
                     out,
                     "          <Pin number=\"{}\" type=\"{}\" electricalType=\"ELECTRICAL\" mountType=\"{}\">",
-                    esc(&sanitize(&place.number.text, true)),
+                    esc(&sanitize(number, true)),
                     pin_type,
                     mount_type
                 );
+                // Package/Pin describes the footprint-local land pattern, so
+                // its representative placement must carry the pad-local turn
+                // as well as its centre and primitive.  The board-level
+                // LayerFeature below composes this with the component turn;
+                // here there is no component transform yet.
+                if place.rotate != 0 {
+                    let _ = writeln!(out, "            <Xform rotation=\"{}\"/>", place.rotate);
+                }
                 let _ = writeln!(
                     out,
                     "            <Location x=\"{}\" y=\"{}\"/>",
@@ -471,11 +514,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
                             [w, h, ..] => (w.femto, h.femto),
                             [] => unreachable!(),
                         };
-                        let want = Prim {
-                            shape: *shape,
-                            w,
-                            h,
-                        };
+                        let want = copper_prim(pad, *shape, w, h);
                         let idx = phys
                             .prims
                             .iter()
@@ -500,8 +539,10 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     for inst in &insts {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let (mpn, _mfr, footprint) = part_fields(world, inst);
-        // Real mount type: THMT if the component has any through-hole pad, else
-        // SMT — on the physical F.Cu layer (not the old synthetic TOP/OTHER).
+        // Real mount type: THMT when at least one distinct electrical terminal
+        // is implemented exclusively by PTH placements. Repeated thermal vias
+        // under an SMD terminal do not change the component from SMT. The
+        // component's physical side is carried independently by layerRef.
         let mount = if tht_refdes.contains(refdes_map[refdes].as_str()) {
             "THMT"
         } else {
@@ -598,8 +639,8 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
         }
         out.push_str("        </LogicalNet>\n");
     }
-    // Placed copper pads (F.Cu / B.Cu), each tied to its component pin + net —
-    // the physical geometry a layout tool routes.
+    // Every placed copper/mask/enabled-paste feature on its resolved physical
+    // side, tied to its component pin + net — the geometry a layout tool routes.
     emit_layer_features(&mut out, &phys, &net_of);
     out.push_str("      </Step>\n");
     out.push_str("    </CadData>\n");
@@ -1124,8 +1165,9 @@ fn sanitize(s: &str, allow_colon: bool) -> String {
 //
 // Beyond the abstract `Package/Pin` land pattern, an importable IPC-2581 must
 // carry: a `DictionaryStandard` of primitive shapes, `PadStackDef`s (copper +
-// mask + paste + plated-hole), and `LayerFeature`s of PLACED copper pads at
-// absolute board positions, each tied to its component pin (and thus its net).
+// mask + paste + plated-hole), and side-aware `LayerFeature`s of every PLACED
+// physical feature at absolute board positions, each tied to its component pin
+// (and thus its net).
 // Without these a consumer (Quilter) can parse the document but sees only
 // package courtyards — no pads, holes, or ratsnest. (Finding: .co/invalid-
 // ipc2581.xml.)
@@ -1136,6 +1178,10 @@ struct Prim {
     shape: crate::ast::PadShape,
     w: i128,
     h: i128,
+    /// One 45-degree corner cut, measured along both adjacent edges.
+    chamfer: Option<(crate::ast::PadCorner, i128)>,
+    /// Radius applied to all four corners of a rectangular primitive.
+    corner_radius: Option<i128>,
 }
 
 /// A reusable padstack: a primitive plus an optional through-hole. `plated` is
@@ -1143,12 +1189,18 @@ struct Prim {
 /// copper); every electrical pad and every plated mount_hole is `plated`.
 #[derive(PartialEq, Eq, Clone)]
 struct PadStack {
+    /// Copper primitive (and package-pin geometry).
     prim: usize,
+    /// Solder-mask opening; differs from copper when `mask_expansion` is set.
+    mask_prim: usize,
+    /// Solder-paste aperture; `None` suppresses paste for this SMD pad.
+    paste_prim: Option<usize>,
     tht: bool,
     drill: i128,
     plated: bool,
-    /// RFC-026: an SMD padstack used by a bottom-side component gets B-layer
-    /// pad defs. Always `false` for THT (one def spans both sides).
+    /// Physical face of an SMD padstack after combining the footprint pad's
+    /// local copper layer with the component-side flip. `true` gets B-layer
+    /// pad defs. Always `false` for THT (one definition spans both faces).
     bottom: bool,
 }
 
@@ -1165,8 +1217,9 @@ struct PlacedPad {
     rot: u16,
     tht: bool,
     hole: bool,
-    /// RFC-026: pad belongs to a bottom-side component (SMD copper lands on
-    /// the B-layers; a through-hole pad spans both sides regardless).
+    /// Physical face after combining pad-local layer and component side. An
+    /// SMD placement lands on only that face's copper/mask/paste layers; a
+    /// through-hole placement spans both faces regardless.
     bottom: bool,
 }
 
@@ -1208,9 +1261,115 @@ fn dedup<T: PartialEq>(v: &mut Vec<T>, x: T) -> usize {
     }
 }
 
-/// Walk every instance's footprint pads, deduplicating shapes → primitives and
-/// (primitive, plating, drill) → padstacks, and placing each pad at
-/// `component_position + rotate(pad_offset)`.
+fn copper_prim(pad: &crate::ast::PadDef, shape: crate::ast::PadShape, w: i128, h: i128) -> Prim {
+    Prim {
+        shape,
+        w,
+        h,
+        chamfer: pad
+            .chamfer
+            .as_ref()
+            .map(|(corner, cut, _)| (*corner, cut.femto)),
+        corner_radius: pad.corner_radius.as_ref().map(|(radius, _)| radius.femto),
+    }
+}
+
+/// Stable preference for the one Package/Pin representative of a repeated
+/// electrical number. Physical layer features retain all placements.
+fn logical_pin_cmp(
+    a: (&crate::ast::PadPlace, &crate::ast::PadDef),
+    b: (&crate::ast::PadPlace, &crate::ast::PadDef),
+) -> std::cmp::Ordering {
+    fn layer_rank(pad: &crate::ast::PadDef) -> u8 {
+        match pad.plating.as_ref().map(|(p, _)| p) {
+            Some(crate::ast::PadPlating::Smd) => {
+                if matches!(pad.layer, Some((crate::ast::PadLayer::BottomCopper, _))) {
+                    1
+                } else {
+                    0
+                }
+            }
+            Some(crate::ast::PadPlating::PlatedThroughHole) => 2,
+            None => 3,
+        }
+    }
+    fn spans(pad: &crate::ast::PadDef) -> (i128, i128) {
+        let (w, h) = match pad.size.as_slice() {
+            [d] => (d.femto, d.femto),
+            [w, h, ..] => (w.femto, h.femto),
+            [] => (0, 0),
+        };
+        (w.max(h), w.min(h))
+    }
+    let (ap, ad) = a;
+    let (bp, bd) = b;
+    let (amax, amin) = spans(ad);
+    let (bmax, bmin) = spans(bd);
+    layer_rank(ad)
+        .cmp(&layer_rank(bd))
+        // Within one physical kind, prefer the most descriptive primary land.
+        .then_with(|| bmax.cmp(&amax))
+        .then_with(|| bmin.cmp(&amin))
+        // Source-order-independent tie breakers.
+        .then_with(|| ap.x.femto.cmp(&bp.x.femto))
+        .then_with(|| ap.y.femto.cmp(&bp.y.femto))
+        .then_with(|| ap.pad.name.cmp(&bp.pad.name))
+        .then_with(|| ap.rotate.cmp(&bp.rotate))
+}
+
+fn mirror_prim_x(mut prim: Prim) -> Prim {
+    prim.chamfer = prim.chamfer.map(|(corner, cut)| {
+        let mirrored = match corner {
+            crate::ast::PadCorner::TopLeft => crate::ast::PadCorner::TopRight,
+            crate::ast::PadCorner::TopRight => crate::ast::PadCorner::TopLeft,
+            crate::ast::PadCorner::BottomRight => crate::ast::PadCorner::BottomLeft,
+            crate::ast::PadCorner::BottomLeft => crate::ast::PadCorner::BottomRight,
+        };
+        (mirrored, cut)
+    });
+    prim
+}
+
+/// Expanding a 45-degree chamfered polygon by `m` grows its edge cut by
+/// `(2 - sqrt(2)) * m`.  The fixed-point coefficient is rounded at CoHDL's
+/// 10^-15 geometry resolution; the decomposition avoids overflow for every
+/// value admitted by `MAX_GEOM_FEMTO`.
+fn chamfer_expansion(m: i128) -> i128 {
+    const SCALE: i128 = 1_000_000_000_000_000;
+    const TWO_MINUS_SQRT_TWO: i128 = 585_786_437_626_905;
+    (m / SCALE) * TWO_MINUS_SQRT_TWO + ((m % SCALE) * TWO_MINUS_SQRT_TWO) / SCALE
+}
+
+fn mask_prim(pad: &crate::ast::PadDef, copper: &Prim) -> Prim {
+    let margin = pad.mask_expansion.as_ref().map_or(0, |(m, _)| m.femto);
+    Prim {
+        shape: copper.shape,
+        w: copper.w + 2 * margin,
+        h: copper.h + 2 * margin,
+        chamfer: copper
+            .chamfer
+            .map(|(corner, cut)| (corner, cut + chamfer_expansion(margin))),
+        corner_radius: copper.corner_radius.map(|radius| radius + margin),
+    }
+}
+
+fn paste_prim(pad: &crate::ast::PadDef, copper: &Prim) -> Option<Prim> {
+    match &pad.paste {
+        None => Some(copper.clone()),
+        Some((crate::ast::PadPaste::None, _)) => None,
+        Some((crate::ast::PadPaste::Rect(w, h), _)) => Some(Prim {
+            shape: crate::ast::PadShape::Rect,
+            w: w.femto,
+            h: h.femto,
+            chamfer: None,
+            corner_radius: None,
+        }),
+    }
+}
+
+/// Walk every instance's footprint pads, deduplicating exact copper/mask/paste
+/// geometries into primitives and their plating/drill/physical-side combination
+/// into padstacks, then place every authored physical occurrence on the board.
 fn build_physical(
     world: &World,
     insts: &[&crate::ir::IrInstance],
@@ -1268,6 +1427,12 @@ fn build_physical(
                 [] => continue,
             };
             let tht = matches!(plating, crate::ast::PadPlating::PlatedThroughHole);
+            // PadDef.layer is local to the footprint. Flipping a component
+            // swaps front/back, so a locally-bottom SMD land on a top-side
+            // component (or locally-top on a bottom-side component) lands on
+            // the physical back. THT pads span both faces regardless.
+            let pad_bottom = !tht
+                && (bottom ^ matches!(pad.layer, Some((crate::ast::PadLayer::BottomCopper, _))));
             let drill = if tht {
                 // A slot reports its MINOR axis, exactly as an oval mount hole
                 // does: IPC's `<Hole>` carries one scalar and the full extent
@@ -1279,22 +1444,29 @@ fn build_physical(
             } else {
                 0
             };
-            let prim = dedup(
-                &mut prims,
-                Prim {
-                    shape: *shape,
-                    w,
-                    h,
-                },
-            );
+            // Flipping a component reflects its pad-local geometry as well as
+            // its center offset. This matters for asymmetric chamfers; a
+            // roundrect/oval remains byte-identical under the reflection.
+            let copper = if bottom {
+                mirror_prim_x(copper_prim(pad, *shape, w, h))
+            } else {
+                copper_prim(pad, *shape, w, h)
+            };
+            let mask = mask_prim(pad, &copper);
+            let paste = if tht { None } else { paste_prim(pad, &copper) };
+            let prim = dedup(&mut prims, copper);
+            let mask_prim = dedup(&mut prims, mask);
+            let paste_prim = paste.map(|p| dedup(&mut prims, p));
             let padstack = dedup(
                 &mut padstacks,
                 PadStack {
                     prim,
+                    mask_prim,
+                    paste_prim,
                     tht,
                     drill,
                     plated: true,
-                    bottom: bottom && !tht,
+                    bottom: pad_bottom,
                 },
             );
             // IPC-2581 is +y-up; CoHDL/KiCad author +y-down. Project by negating
@@ -1316,13 +1488,17 @@ fn build_physical(
                 prim,
                 x: cx + ox,
                 y: -cy + oy,
-                // RFC-025: the pad's own declared rotation composes with the
-                // component's — position is unaffected (rotation is about the
-                // pad's own centre); the Xform carries the sum.
-                rot: (rot + place.rotate) % 360,
+                // Reflection reverses a pad-local rotation: R(component) ×
+                // MirrorX × R(pad) = R(component - pad) × MirrorX.
+                // Position is unaffected (rotation is about the pad centre).
+                rot: if bottom {
+                    (rot + 360 - (place.rotate % 360)) % 360
+                } else {
+                    (rot + place.rotate) % 360
+                },
                 tht,
                 hole: false,
-                bottom,
+                bottom: pad_bottom,
             });
         }
         // RFC-022 mechanical locating holes — placed as through-holes with no
@@ -1348,12 +1524,16 @@ fn build_physical(
                     shape: mh.shape_or_default(),
                     w,
                     h,
+                    chamfer: None,
+                    corner_radius: None,
                 },
             );
             let padstack = dedup(
                 &mut padstacks,
                 PadStack {
                     prim,
+                    mask_prim: prim,
+                    paste_prim: None,
                     tht: true,
                     // IPC's `<Hole>` carries a single scalar diameter, so a
                     // non-circular hole reports its MINOR axis — the slot
@@ -1390,9 +1570,76 @@ fn build_physical(
     }
 }
 
-/// The primitive-shape element (`RectCenter`/`Circle`/`Oval`), shared by the
-/// `DictionaryStandard` entry, the padstack pad defs, and the placed pads.
+/// The primitive-shape element (`RectCenter`/`Circle`/`Oval`, `RectRound` for
+/// rounded rectangles, or `Contour` for a one-corner chamfer), shared by the
+/// `DictionaryStandard` entry, padstack pad defs, and placed features.
 fn prim_body(p: &Prim) -> String {
+    if let Some((corner, cut)) = p.chamfer {
+        // Coordinates are carried in tenths of a femto-mm so odd dimensions
+        // retain their exact half.  Author coordinates are +Y-down; negate Y
+        // when projecting the contour into IPC-2581's +Y-up frame.
+        let left = -p.w * 5;
+        let right = p.w * 5;
+        let top = -p.h * 5;
+        let bottom = p.h * 5;
+        let cut = cut * 10;
+        let points: Vec<(i128, i128)> = match corner {
+            crate::ast::PadCorner::TopLeft => vec![
+                (left + cut, top),
+                (right, top),
+                (right, bottom),
+                (left, bottom),
+                (left, top + cut),
+            ],
+            crate::ast::PadCorner::TopRight => vec![
+                (left, top),
+                (right - cut, top),
+                (right, top + cut),
+                (right, bottom),
+                (left, bottom),
+            ],
+            crate::ast::PadCorner::BottomRight => vec![
+                (left, top),
+                (right, top),
+                (right, bottom - cut),
+                (right - cut, bottom),
+                (left, bottom),
+            ],
+            crate::ast::PadCorner::BottomLeft => vec![
+                (left, top),
+                (right, top),
+                (right, bottom),
+                (left + cut, bottom),
+                (left, bottom - cut),
+            ],
+        };
+        let mut s = String::from("<Contour><Polygon>");
+        let (x0, y0) = points[0];
+        let _ = write!(
+            s,
+            "<PolyBegin x=\"{}\" y=\"{}\"/>",
+            geom::scaled(x0, 16),
+            geom::scaled(-y0, 16)
+        );
+        for (x, y) in points.iter().skip(1).chain(points.first()) {
+            let _ = write!(
+                s,
+                "<PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                geom::scaled(*x, 16),
+                geom::scaled(-*y, 16)
+            );
+        }
+        s.push_str("<FillDesc fillProperty=\"FILL\"/></Polygon></Contour>");
+        return s;
+    }
+    if let Some(radius) = p.corner_radius {
+        return format!(
+            "<RectRound width=\"{}\" height=\"{}\" radius=\"{}\" upperRight=\"true\" upperLeft=\"true\" lowerLeft=\"true\" lowerRight=\"true\"/>",
+            geom::mm_femto(p.w),
+            geom::mm_femto(p.h),
+            geom::mm_femto(radius)
+        );
+    }
     match p.shape {
         crate::ast::PadShape::Circle => format!("<Circle diameter=\"{}\"/>", geom::mm_femto(p.w)),
         crate::ast::PadShape::Rect => format!(
@@ -1492,8 +1739,9 @@ fn emit_stackup(out: &mut String) {
     out.push_str("      </Stackup>\n");
 }
 
-/// The `PadStackDef`s (Step, before `Datum`): copper on F.Cu/F.Mask/F.Paste
-/// (+ B.Cu/B.Mask and a plated `PadstackHoleDef` for through-hole).
+/// The `PadStackDef`s (Step, before `Datum`): an SMD stack has copper/mask and
+/// optional paste on exactly its physical face; a THT stack has copper/mask on
+/// both faces plus a plated `PadstackHoleDef`.
 fn emit_padstacks(out: &mut String, phys: &Physical) {
     for (i, ps) in phys.padstacks.iter().enumerate() {
         let _ = writeln!(out, "        <PadStackDef name=\"PADSTACK_{}\">", i);
@@ -1508,38 +1756,48 @@ fn emit_padstacks(out: &mut String, phys: &Physical) {
         }
         // The copper/mask/paste layers this padstack lands on. An RFC-022
         // non_plated mount_hole is a bare drilled hole — no copper at all.
-        let layers: &[&str] = if !ps.plated {
-            &[]
-        } else if ps.tht {
-            &["F.Cu", "F.Mask", "B.Cu", "B.Mask"]
-        } else if ps.bottom {
-            // RFC-026: a bottom-side SMD padstack lands on the B-layers.
-            &["B.Cu", "B.Mask", "B.Paste"]
-        } else {
-            &["F.Cu", "F.Mask", "F.Paste"]
-        };
-        for layer in layers {
+        let mut layers: Vec<(&str, usize)> = Vec::new();
+        if ps.plated && ps.tht {
+            layers.extend([
+                ("F.Cu", ps.prim),
+                ("F.Mask", ps.mask_prim),
+                ("B.Cu", ps.prim),
+                ("B.Mask", ps.mask_prim),
+            ]);
+        } else if ps.plated && ps.bottom {
+            // An SMD padstack resolved to the physical back lands on B-layers.
+            layers.extend([("B.Cu", ps.prim), ("B.Mask", ps.mask_prim)]);
+            if let Some(paste) = ps.paste_prim {
+                layers.push(("B.Paste", paste));
+            }
+        } else if ps.plated {
+            layers.extend([("F.Cu", ps.prim), ("F.Mask", ps.mask_prim)]);
+            if let Some(paste) = ps.paste_prim {
+                layers.push(("F.Paste", paste));
+            }
+        }
+        for (layer, prim) in layers {
             let _ = writeln!(
                 out,
                 "          <PadstackPadDef layerRef=\"{}\" padUse=\"REGULAR\"><Location x=\"0\" y=\"0\"/><StandardPrimitiveRef id=\"PRIM_{}\"/></PadstackPadDef>",
-                layer, ps.prim
+                layer, prim
             );
         }
         out.push_str("        </PadStackDef>\n");
     }
 }
 
-/// The `LayerFeature`s (Step, after `LogicalNet`): every placed pad instanced
-/// on each layer its padstack lands on — copper (F.Cu all pads, B.Cu
-/// through-hole), soldermask openings (F.Mask all pads, B.Mask through-hole),
-/// and paste apertures (F.Paste, SMD only) — each tied to its component pin
-/// (`PinRef`) and its net (`Set/@net`), positioned + rotated on the board.
+/// The `LayerFeature`s (Step, after `LogicalNet`): every physical placement is
+/// instanced on each layer its padstack lands on. THT placements span both
+/// copper/mask faces; SMD placements use only their resolved physical face's
+/// copper/mask and optional paste. Each feature is tied to its component pin
+/// (`PinRef`) and net (`Set/@net`), positioned + rotated on the board.
 /// The mask/paste features matter for visibility: a consumer compositing
 /// "visible pad = copper through a mask aperture" sees no pads at all when
 /// only the copper is instanced. A final drill `LayerFeature` (`F.Cu_B.Cu`)
 /// carries one located, plated `<Hole>` per through-hole pad.
-/// The per-layer pad filter mirrors `emit_padstacks`' layer lists exactly:
-/// SMD lands on F.Cu/F.Mask/F.Paste, THT on F.Cu/F.Mask/B.Cu/B.Mask.
+/// The per-layer pad filter mirrors `emit_padstacks`' side-aware layer lists
+/// exactly; suppressed paste apertures never create paste features.
 fn emit_layer_features(
     out: &mut String,
     phys: &Physical,
@@ -1565,6 +1823,9 @@ fn emit_layer_features(
             // appears only on the drill layer below, never here.
             .filter(|p| phys.padstacks[p.padstack].plated)
             .filter(|p| keep(p))
+            .filter(|p| {
+                !layer.ends_with(".Paste") || phys.padstacks[p.padstack].paste_prim.is_some()
+            })
             .collect();
         if pads.is_empty() {
             continue;
@@ -1592,10 +1853,19 @@ fn emit_layer_features(
                 geom::mm_femto(p.x),
                 geom::mm_femto(p.y)
             );
+            let layer_prim = if layer.ends_with(".Mask") {
+                phys.padstacks[p.padstack].mask_prim
+            } else if layer.ends_with(".Paste") {
+                phys.padstacks[p.padstack]
+                    .paste_prim
+                    .expect("paste layer filtered to padstacks with paste")
+            } else {
+                p.prim
+            };
             let _ = writeln!(
                 out,
                 "              <StandardPrimitiveRef id=\"PRIM_{}\"/>",
-                p.prim
+                layer_prim
             );
             // A mount_hole is mechanical — no device pin to reference.
             if !p.hole {

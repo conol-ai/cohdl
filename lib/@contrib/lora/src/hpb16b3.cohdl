@@ -1,16 +1,16 @@
-// HPB16B3: LoRa module based on Semtech SX1262 (sub-GHz),
-// 12-pin SMT module. Pin definition from the schematic
-// (p2, U3). SX1262 bare-die library is in @contrib/lora; this module
-// wraps it with RF front-end + shielding + castellated pads.
+// HPB16B3: 12-pin LoRa module used by LilyGO's T-Display-SF32 V1.0.
+// The official host-board schematic (p2, U3) establishes this exact symbol
+// identity and pin order. SX1262 bare-die support is in @contrib/lora, but the
+// schematic alone does not establish the module's internal implementation.
 //
-// NOTE: module mechanical outline (pad layout, body dimensions) is NOT
-// published. Device pinout is definitive (schematic-derived); the part
-// and footprint await published mechanical drawings.
+// HPB16B3 is not the 16-pin HPD16A. No HPB16B3 module drawing, recommended
+// land pattern, or standalone electrical specification is published in the
+// official board repository, so the part remains quarantined.
 
 #[doc("docs/hpb16b3-provenance.txt")]
 pub device HPB16B3 {
     pins {
-        required VCC: 1 [power_in] // supply (1.8-3.7V, per SX1262)
+        required VCC: 1 [power_in] // module supply; voltage is not specified by the schematic
         required GND2: 2 [power_in]
         optional NRESET: 3 [input] // module reset, active-low
         optional BUSY: 4 [output] // busy status
@@ -28,7 +28,7 @@ pub device HPB16B3 {
 impl IC for HPB16B3 {}
 
 // No part declaration: module mechanical outline is unpublished, so the
-// footprint cannot be authored without fabrication (omit-never-assert).
+// footprint cannot be authored for fabrication (omit-never-assert).
 // When the manufacturer publishes the HPB16B3 dimension drawing, add:
 //   pub part LORA_HPB16B3: HPB16B3 {
 //       primary { mfr: "LilyGO", mpn: "HPB16B3", footprint: <FP_HPB16B3> }

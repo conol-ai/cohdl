@@ -793,6 +793,242 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                 ));
             }
         }
+
+        if let Some((corner, cut, span)) = &pad.chamfer {
+            if !matches!(pad.shape, Some((crate::ast::PadShape::Rect, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a `{}` chamfer, but chamfers require `shape: rect`",
+                        pad.name.name,
+                        corner.name()
+                    ),
+                ));
+            }
+            if !matches!(pad.plating, Some((crate::ast::PadPlating::Smd, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a chamfer, but chamfers are only supported on `plating: smd` pads",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if cut.unit != UnitType::Length {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "a pad chamfer is a `Length` (`mm`) literal — `{}` is a `{}`",
+                        cut.text,
+                        cut.unit.type_name()
+                    ),
+                ));
+            } else if cut.femto <= 0 {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a non-positive chamfer `{}` — the cut length must be > 0mm",
+                        pad.name.name, cut.text
+                    ),
+                ));
+            } else if !cut.length_in_geom_range() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` chamfer `{}` is too large to project (review R5-5)",
+                        pad.name.name, cut.text
+                    ),
+                ));
+            } else if let [w, h] = pad.size.as_slice() {
+                if cut.femto >= w.femto.min(h.femto) {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` chamfer `{}` must be smaller than both pad dimensions",
+                            pad.name.name, cut.text
+                        ),
+                    ));
+                }
+            }
+        }
+
+        if let Some((radius, span)) = &pad.corner_radius {
+            if !matches!(pad.shape, Some((crate::ast::PadShape::Rect, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a `corner_radius`, but rounded corners require `shape: rect`",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if !matches!(pad.plating, Some((crate::ast::PadPlating::Smd, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a `corner_radius`, but rounded corners are only supported on `plating: smd` pads",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if pad.chamfer.is_some() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` cannot combine `corner_radius` with `chamfer`",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if radius.unit != UnitType::Length {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "a pad `corner_radius` is a `Length` (`mm`) literal — `{}` is a `{}`",
+                        radius.text,
+                        radius.unit.type_name()
+                    ),
+                ));
+            } else if radius.femto <= 0 {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a non-positive `corner_radius` `{}` — the radius must be > 0mm",
+                        pad.name.name, radius.text
+                    ),
+                ));
+            } else if !radius.length_in_geom_range() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` corner radius `{}` is too large to project (review R5-5)",
+                        pad.name.name, radius.text
+                    ),
+                ));
+            } else if let [w, h] = pad.size.as_slice() {
+                if radius.femto > w.femto.min(h.femto) / 2 {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` corner radius `{}` exceeds half its smaller dimension",
+                            pad.name.name, radius.text
+                        ),
+                    ));
+                }
+            }
+        }
+
+        if let Some((margin, span)) = &pad.mask_expansion {
+            if margin.unit != UnitType::Length {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "a solder-mask expansion is a `Length` (`mm`) literal — `{}` is a `{}`",
+                        margin.text,
+                        margin.unit.type_name()
+                    ),
+                ));
+            } else if margin.femto < 0 {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a negative `mask_expansion` `{}` — use a nonnegative expansion",
+                        pad.name.name, margin.text
+                    ),
+                ));
+            } else if !margin.length_in_geom_range() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` mask expansion `{}` is too large to project (review R5-5)",
+                        pad.name.name, margin.text
+                    ),
+                ));
+            }
+        }
+
+        if let Some((paste, span)) = &pad.paste {
+            if !matches!(pad.plating, Some((crate::ast::PadPlating::Smd, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    *span,
+                    format!(
+                        "pad `{}` has a paste override, but paste is only valid on `plating: smd` pads",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if let crate::ast::PadPaste::Rect(w, h) = paste {
+                for v in [w, h] {
+                    if v.unit != UnitType::Length {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "paste aperture dimensions are `Length` (`mm`) literals — `{}` is a `{}`",
+                                v.text,
+                                v.unit.type_name()
+                            ),
+                        ));
+                    } else if v.femto <= 0 {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "pad `{}` has a non-positive paste aperture dimension `{}`",
+                                pad.name.name, v.text
+                            ),
+                        ));
+                    } else if !v.length_in_geom_range() {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "pad `{}` paste aperture dimension `{}` is too large to project (review R5-5)",
+                                pad.name.name, v.text
+                            ),
+                        ));
+                    }
+                }
+                let (copper_w, copper_h) = match pad.size.as_slice() {
+                    [d] => (Some(d), Some(d)),
+                    [cw, ch] => (Some(cw), Some(ch)),
+                    _ => (None, None),
+                };
+                if let (Some(cw), Some(ch)) = (copper_w, copper_h) {
+                    if w.unit == UnitType::Length
+                        && h.unit == UnitType::Length
+                        && (w.femto > cw.femto || h.femto > ch.femto)
+                    {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "pad `{}` paste aperture ({}, {}) exceeds its copper envelope ({}, {})",
+                                pad.name.name, w.text, h.text, cw.text, ch.text
+                            ),
+                        ));
+                    }
+                }
+            }
+        }
+
         match (&pad.plating, &pad.drill) {
             (Some((crate::ast::PadPlating::PlatedThroughHole, span)), None) => {
                 diags.push(
@@ -902,26 +1138,13 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
     }
 }
 
-/// RFC-018 footprint body checks: pad references resolve to PAD symbols,
-/// pad numbers are unique, and coordinates/courtyard dimensions are Length.
+/// RFC-018 footprint body checks: pad references resolve to PAD symbols and
+/// coordinates/courtyard dimensions are Length. An electrical pad number may
+/// have multiple physical placements (exposed-pad copper, paste lands, vias).
 fn validate_footprints(world: &World, diags: &mut Diagnostics) {
     use crate::units::UnitType;
     for fp in world.footprints.values() {
-        let mut seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
         for place in &fp.pads {
-            if let Some(prev) = seen.insert(place.number.text.as_str(), place.number.span) {
-                diags.push(
-                    Diagnostic::error(
-                        "E806",
-                        place.number.span,
-                        format!(
-                            "duplicate pad number `{}` in footprint `{}`",
-                            place.number.text, fp.name.name
-                        ),
-                    )
-                    .with_secondary(prev, "first placed here".to_string()),
-                );
-            }
             if !world.pads.contains_key(&place.pad.name) {
                 let d = if world.symbols.contains_key(&place.pad.name) {
                     let kind = world
@@ -1131,15 +1354,23 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
                         );
                     }
                 }
-                // A polarity marker needs a second terminal to orient against.
-                if matches!(item, SilkItem::PolarityMarker { .. }) && fp.pads.len() < 2 {
+                // A polarity marker needs a second ELECTRICAL terminal to
+                // orient against. Repeated physical placements of one number
+                // (EP copper/paste/vias) are still one terminal.
+                let electrical_pad_count = fp
+                    .pads
+                    .iter()
+                    .map(|p| p.number.text.as_str())
+                    .collect::<BTreeSet<_>>()
+                    .len();
+                if matches!(item, SilkItem::PolarityMarker { .. }) && electrical_pad_count < 2 {
                     diags.push(Diagnostic::error(
                         "E812",
                         span,
                         format!(
-                            "`polarity_marker` needs at least two pads to orient against — footprint `{}` declares {}",
+                            "`polarity_marker` needs at least two electrical pad numbers to orient against — footprint `{}` declares {}",
                             fp.name.name,
-                            fp.pads.len()
+                            electrical_pad_count
                         ),
                     ));
                 }
@@ -1333,9 +1564,17 @@ fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostic
     if fp.pads.is_empty() {
         return;
     }
-    let pad_count = fp.pads.len() as u32;
-    // Pins the geometry implies: the placed pads minus the one exposed pad a
-    // `-1EP` name declares (QFN family).
+    // One electrical pin may have several physical placements (a large top
+    // exposed pad, paste-segmentation lands, thermal vias, and a back land).
+    // IPC-7351's pin count names electrical pad numbers, not those placements.
+    let pad_count = fp
+        .pads
+        .iter()
+        .map(|p| p.number.text.as_str())
+        .collect::<BTreeSet<_>>()
+        .len() as u32;
+    // Pins the geometry implies: distinct pad numbers minus the one exposed
+    // pad a `-1EP` name declares (QFN family).
     let geom_pins = pad_count.saturating_sub(u32::from(parsed.has_ep));
     if let Some(name_pins) = parsed.pins {
         if geom_pins != name_pins {
@@ -1343,7 +1582,7 @@ fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostic
                 "E809",
                 span,
                 format!(
-                    "footprint `{}` names {} pin{}, but places {} pad{}{}",
+                    "footprint `{}` names {} pin{}, but declares {} electrical pad number{}{}",
                     fp.name.name,
                     name_pins,
                     plural(name_pins),
@@ -1359,15 +1598,17 @@ fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostic
             return; // a wrong pin count makes the pitch report noise
         }
     }
-    // Pitch check (families whose template encodes a pitch): the closest pad-
-    // center spacing must equal the declared pitch. Exact over the femto
-    // integers — the nearest pair in a regular perimeter is axis-aligned, so
-    // its squared distance is exactly (pitch_femto)^2.
+    // Pitch check (families whose template encodes a pitch): the closest
+    // regular-terminal center spacing must equal the declared pitch. The
+    // `_1EP` terminal is excluded: its copper, paste windows, and thermal vias
+    // are not perimeter leads and may legally lie closer to one. Squared
+    // distances use a tiny fixed-width 256-bit helper because every individual
+    // geometry coordinate fits i128 but its square need not.
     if let Some(name_pitch) = parsed.pitch_hundredths {
-        if let Some(min_sq) = min_pair_sq_femto(fp) {
-            let pitch_femto = i128::from(name_pitch) * 10_000_000_000_000; // 0.01mm in femto
-            if min_sq != pitch_femto * pitch_femto {
-                let actual_h = (isqrt_i128(min_sq) / 10_000_000_000_000) as u32;
+        if let Some(min) = min_pair_sq_femto(fp, parsed.pins, parsed.has_ep) {
+            let pitch_femto = u128::from(name_pitch) * 10_000_000_000_000; // 0.01mm in femto
+            if min.square != square_u128(pitch_femto) {
+                let actual_h = isqrt_wide(min.square, min.dx, min.dy) / 10_000_000_000_000;
                 diags.push(Diagnostic::error(
                     "E809",
                     span,
@@ -1375,7 +1616,7 @@ fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostic
                         "footprint `{}` names {} ({}mm) pitch, but its closest pad spacing is {} ({}mm)",
                         fp.name.name,
                         name_pitch,
-                        hundredths_mm(name_pitch),
+                        hundredths_mm(u128::from(name_pitch)),
                         actual_h,
                         hundredths_mm(actual_h)
                     ),
@@ -1385,35 +1626,163 @@ fn validate_footprint_name(fp: &crate::ast::FootprintDef, diags: &mut Diagnostic
     }
 }
 
-/// Smallest squared center-to-center distance (femto^2) between any two pad
-/// placements — the layout's pitch for a regular perimeter array.
-fn min_pair_sq_femto(fp: &crate::ast::FootprintDef) -> Option<i128> {
-    let pts: Vec<(i128, i128)> = fp.pads.iter().map(|p| (p.x.femto, p.y.femto)).collect();
-    let mut min: Option<i128> = None;
-    for i in 0..pts.len() {
-        for j in (i + 1)..pts.len() {
-            let dx = pts[i].0 - pts[j].0;
-            let dy = pts[i].1 - pts[j].1;
-            let d = dx * dx + dy * dy;
-            min = Some(min.map_or(d, |m| m.min(d)));
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct WideDistance {
+    /// Little-endian base-2^32 limbs of dx^2 + dy^2.
+    square: [u32; 8],
+    dx: u128,
+    dy: u128,
+}
+
+/// Smallest squared center-to-center distance between placements of distinct
+/// regular electrical pad numbers. For `_1EP` QFNs the exposed-pad number is
+/// excluded, including every repeated placement carrying that number.
+fn min_pair_sq_femto(
+    fp: &crate::ast::FootprintDef,
+    name_pins: Option<u32>,
+    has_ep: bool,
+) -> Option<WideDistance> {
+    let excluded_ep = if has_ep {
+        name_pins.and_then(|pins| exposed_pad_number(fp, pins))
+    } else {
+        None
+    };
+    let mut min: Option<WideDistance> = None;
+    for i in 0..fp.pads.len() {
+        for j in (i + 1)..fp.pads.len() {
+            if fp.pads[i].number.text == fp.pads[j].number.text {
+                continue;
+            }
+            if excluded_ep
+                .is_some_and(|ep| fp.pads[i].number.text == ep || fp.pads[j].number.text == ep)
+            {
+                continue;
+            }
+            // Saturation is defense-in-depth for already-invalid, out-of-range
+            // literals. Every accepted geometry value is far inside this bound.
+            let dx = fp.pads[i]
+                .x
+                .femto
+                .saturating_sub(fp.pads[j].x.femto)
+                .unsigned_abs();
+            let dy = fp.pads[i]
+                .y
+                .femto
+                .saturating_sub(fp.pads[j].y.femto)
+                .unsigned_abs();
+            let d = WideDistance {
+                square: add_wide_saturating(square_u128(dx), square_u128(dy)),
+                dx,
+                dy,
+            };
+            if min.is_none_or(|m| cmp_wide(&d.square, &m.square).is_lt()) {
+                min = Some(d);
+            }
         }
     }
     min
 }
 
-/// Integer square root of a non-negative i128 (for the diagnostic's rendered
-/// actual pitch — never in a comparison, which stays squared/exact).
-fn isqrt_i128(n: i128) -> i128 {
-    if n < 2 {
-        return n.max(0);
+/// Identify the one exposed-pad electrical number in a name-validated
+/// `_1EP` footprint. Prefer the conventional regular lead sequence 1..=N;
+/// if a device uses symbolic lead numbers, the central-most electrical number
+/// is the exposed pad (the defining geometry of the closed QFN family).
+fn exposed_pad_number(fp: &crate::ast::FootprintDef, name_pins: u32) -> Option<&str> {
+    let numbers: BTreeSet<&str> = fp.pads.iter().map(|p| p.number.text.as_str()).collect();
+    let conventional: BTreeSet<String> = (1..=name_pins).map(|n| n.to_string()).collect();
+    if conventional.iter().all(|n| numbers.contains(n.as_str())) {
+        return numbers.iter().copied().find(|n| !conventional.contains(*n));
     }
-    let mut x = n;
-    let mut y = (x + 1) / 2;
-    while y < x {
-        x = y;
-        y = (x + n / x) / 2;
+
+    let mut candidates: BTreeMap<&str, (u128, usize)> = BTreeMap::new();
+    for p in &fp.pads {
+        let radial =
+            p.x.femto
+                .unsigned_abs()
+                .saturating_add(p.y.femto.unsigned_abs());
+        let entry = candidates
+            .entry(p.number.text.as_str())
+            .or_insert((radial, 0));
+        entry.0 = entry.0.min(radial);
+        entry.1 += 1;
     }
-    x
+    candidates
+        .into_iter()
+        .min_by(|(an, (ar, ac)), (bn, (br, bc))| {
+            ar.cmp(br).then_with(|| bc.cmp(ac)).then_with(|| an.cmp(bn))
+        })
+        .map(|(number, _)| number)
+}
+
+/// Exact u128 multiplication into 256 bits, using base-2^32 limbs so every
+/// intermediate product plus carry fits u64.
+fn square_u128(n: u128) -> [u32; 8] {
+    let limbs = [
+        n as u32,
+        (n >> 32) as u32,
+        (n >> 64) as u32,
+        (n >> 96) as u32,
+    ];
+    let mut out = [0u32; 8];
+    for i in 0..4 {
+        let mut carry = 0u64;
+        for j in 0..4 {
+            let k = i + j;
+            let total = u64::from(out[k]) + u64::from(limbs[i]) * u64::from(limbs[j]) + carry;
+            out[k] = total as u32;
+            carry = total >> 32;
+        }
+        let mut k = i + 4;
+        while carry != 0 && k < out.len() {
+            let total = u64::from(out[k]) + carry;
+            out[k] = total as u32;
+            carry = total >> 32;
+            k += 1;
+        }
+    }
+    out
+}
+
+fn add_wide_saturating(a: [u32; 8], b: [u32; 8]) -> [u32; 8] {
+    let mut out = [0u32; 8];
+    let mut carry = 0u64;
+    for i in 0..8 {
+        let total = u64::from(a[i]) + u64::from(b[i]) + carry;
+        out[i] = total as u32;
+        carry = total >> 32;
+    }
+    if carry == 0 {
+        out
+    } else {
+        [u32::MAX; 8]
+    }
+}
+
+fn cmp_wide(a: &[u32; 8], b: &[u32; 8]) -> std::cmp::Ordering {
+    for i in (0..8).rev() {
+        match a[i].cmp(&b[i]) {
+            std::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
+    }
+    std::cmp::Ordering::Equal
+}
+
+/// Integer square root for the mismatch diagnostic. Equality above compares
+/// the full 256-bit squares directly; this conversion never affects validity.
+fn isqrt_wide(square: [u32; 8], dx: u128, dy: u128) -> u128 {
+    let mut lo = 0u128;
+    let mut hi = dx.saturating_add(dy);
+    while lo < hi {
+        let delta = hi - lo;
+        let mid = lo + delta / 2 + delta % 2;
+        if !cmp_wide(&square_u128(mid), &square).is_gt() {
+            lo = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    lo
 }
 
 fn plural(n: u32) -> &'static str {
@@ -1425,7 +1794,7 @@ fn plural(n: u32) -> &'static str {
 }
 
 /// Render hundredths-of-a-mm as a minimal decimal mm string (`40` → `0.4`).
-fn hundredths_mm(h: u32) -> String {
+fn hundredths_mm(h: u128) -> String {
     let (whole, rem) = (h / 100, h % 100);
     if rem == 0 {
         whole.to_string()

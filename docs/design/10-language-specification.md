@@ -716,6 +716,13 @@ pub pad Round_0_5mm_THT {
 - layer: one of top_copper, bottom_copper, through_all (closed set).
 - plating: smd or plated_through_hole.
 - drill: required when plating: plated_through_hole; a compile error if present when plating: smd.
+- provisional bounded fabrication controls (see `docs/provisional-syntax.md`):
+  `chamfer: (corner, cut)` for one 45-degree corner on a rectangular SMD pad,
+  positive `corner_radius: radius` for all four corners of a rectangular SMD
+  pad (at most half its smaller dimension and mutually exclusive with chamfer),
+  nonnegative `mask_expansion: margin`, and `paste: none | (width, height)`
+  for an omitted or centered reduced stencil aperture. Omitting these fields
+  preserves the RFC-018 geometry.
 
 footprint — composed of pad references:
 
@@ -728,11 +735,18 @@ pub footprint QFN10_3x3 {
     pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
     pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
     pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
-    // ... one entry per pad, matching the bound device's pin count and numbering
+    // ... at least one entry per electrical pad number; repeated numbers are physical features of one terminal
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.5mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
 ```
+
+The same electrical pad number may occur in multiple placement statements.
+This models one terminal implemented by several physical features—for example,
+an exposed pad's top land, overlapping paste-segmentation lands, plated thermal
+vias, and back land. The footprint/device check compares distinct pad-number
+sets. KiCad and IPC-2581 physical layers retain every placement; IPC-2581 emits
+one logical package pin per distinct number.
 
 ```cohdl
 use sparkfun::footprints::qfn::QFN10_3x3;
@@ -803,12 +817,12 @@ Two semantic marker shorthands — sugar that expands to real, checked primitive
 - pin_1_marker near pad N shape SHAPE — SHAPE closed to {dot, triangle}. Expands to a filled circle (radius 0.2mm, dot) or a small filled polygon triangle (triangle) at a fixed 0.3mm standoff from pad N, on the side nearest the footprint outline.
 - polarity_marker cathode_pin N shape SHAPE — SHAPE closed to {band, arrow}. Expands to a line (a short, wide stroke perpendicular to the terminal axis, band — the conventional diode cathode band) or a filled polygon triangle pointing from the cathode toward the anode (arrow).
 
-Both markers require N to name an already-declared pad number on the same footprint — checked immediately, the same local, single-declaration lookup discipline mount_hole/pad numbering already uses. A marker naming a nonexistent pad is a compile error listing the footprint's valid pad range.
+Both markers require N to name an already-declared pad number on the same footprint — checked immediately, the same local, single-declaration lookup discipline mount_hole/pad numbering already uses. A marker naming a nonexistent pad is a compile error listing the footprint's valid pad range. A `polarity_marker` additionally requires at least two **distinct electrical pad numbers** so it has another terminal to orient toward; repeated physical placements of its one number are still one terminal.
 
 Rules:
 
 - No auto-inference — CoHDL never infers a pin-1/polarity location from Pin/Pad role data (RFC-008); every mark is an explicit, author-written statement, the same discipline RFC-027 established for physics-constraint attributes.
-- CoHDL checks only that a marker's referenced pad number exists — not that it's truly the electrically-correct pin-1/cathode in the real world; this mirrors the trust boundary RFC-018 already draws for ordinary pad-count/numbering consistency.
+- CoHDL checks that a marker's referenced pad number exists and that a polarity marker has a second distinct electrical number to orient toward — not that the target is truly the electrically-correct pin-1/cathode in the real world; this mirrors the trust boundary RFC-018 already draws for ordinary pad-count/numbering consistency.
 - cohdl build's KiCad .kicad_mod emitter projects each primitive directly onto KiCad's own native silkscreen graphic-item forms — line → fp_line, circle → fp_circle, arc → fp_arc, polygon → fp_poly — on layer F.SilkS (or B.SilkS, mirroring per RFC-026's side bottom, the same way pad geometry already mirrors).
 - cohdl build's IPC-2581 emitter gains its first-ever silkscreen output of any kind (previously none) — each primitive projects into IPC-2581's own silkscreen-layer line-segment/polygon constructs.
 - Freeform silkscreen text (component values, library logos) beyond the existing silkscreen_ref is explicitly deferred — a real, plausible future need, not solved here.

@@ -46,6 +46,55 @@ design B {
 }
 "#;
 
+/// One chamfered SMD land with an explicit mask frame and reduced centered
+/// paste aperture.  This is the complete bounded pad-control vocabulary.
+const CONTROLLED_PAD: &str = r#"
+pub pad P_Controlled {
+    shape: rect
+    size: (0.675mm, 0.275mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_right, 0.201mm)
+    mask_expansion: 0.05mm
+    paste: (0.4mm, 0.15mm)
+}
+pub footprint FP_CONTROLLED {
+    pad 1: P_Controlled at (1mm, -2mm) rotate 90
+}
+pub device D { pins { A: 1 [passive] } }
+pub part P: D { primary { mfr: "m", mpn: "controlled", footprint: FP_CONTROLLED } }
+design B { inst p: P nc: p.A }
+"#;
+
+/// One electrical exposed-pad number implemented by front copper, a smaller
+/// rounded paste-segmentation land, two thermal vias, and back copper.
+const REPEATED_EP: &str = r#"
+pub pad P_Edge { shape: rect, size: (0.3mm, 0.6mm), layer: top_copper, plating: smd }
+pub pad P_EP_Top { shape: rect, size: (2mm, 2mm), layer: top_copper, plating: smd, paste: none }
+pub pad P_EP_Aux {
+    shape: rect
+    size: (0.8mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.2mm
+    mask_expansion: 0.05mm
+}
+pub pad P_EP_Via { shape: circle, size: (0.5mm), layer: through_all, plating: plated_through_hole, drill: 0.2mm }
+pub pad P_EP_Back { shape: rect, size: (2mm, 2mm), layer: bottom_copper, plating: smd, paste: none }
+pub footprint FP_REPEATED_EP {
+    pad 1: P_Edge at (-1.5mm, 0mm)
+    pad 69: P_EP_Top at (0mm, 0mm)
+    pad 69: P_EP_Aux at (0mm, 0mm)
+    pad 69: P_EP_Via at (-0.5mm, 0mm)
+    pad 69: P_EP_Via at (0.5mm, 0mm)
+    pad 69: P_EP_Back at (0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4mm, 3mm) }
+}
+pub device D { pins { A: 1 [passive], EP: 69 [passive] } }
+pub part P: D { primary { mfr: "m", mpn: "repeated-ep", footprint: FP_REPEATED_EP } }
+design B { inst p: P nc: p.A, p.EP }
+"#;
+
 fn build_real(
     src: &str,
 ) -> (
@@ -142,15 +191,20 @@ fn drill_plating_biconditional() {
 // Footprint body checks (E806) + resolution.
 
 #[test]
-fn duplicate_pad_numbers_are_e806() {
-    let (_c, r) = check(&[(
-        "src/main.cohdl",
-        "pub pad P { shape: circle, size: (1mm), layer: top_copper, plating: smd }\npub footprint F {\n    pad 1: P at (0mm, 0mm)\n    pad 1: P at (1mm, 0mm)\n}\n",
-    )]);
+fn repeated_electrical_pad_numbers_are_allowed() {
+    let (checked, artifacts) = build_real(REPEATED_EP);
     assert!(
-        r.contains("E806") && r.contains("duplicate pad number"),
+        artifacts.is_some() && !checked.diags.has_errors(),
         "{}",
-        r
+        checked.diags.render(&checked.sm)
+    );
+    assert_eq!(
+        checked.world.footprints["board::FP_REPEATED_EP"]
+            .pads
+            .iter()
+            .filter(|p| p.number.text == "69")
+            .count(),
+        5
     );
 }
 
@@ -273,6 +327,405 @@ fn kicad_mod_projection() {
 }
 
 #[test]
+fn bounded_pad_controls_parse_and_validate() {
+    let (checked, rendered) = check(&[("src/main.cohdl", CONTROLLED_PAD)]);
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let pad = &checked.world.pads["board::P_Controlled"];
+    let (corner, cut, _) = pad.chamfer.as_ref().expect("chamfer parsed");
+    assert_eq!(*corner, cohdl::ast::PadCorner::BottomRight);
+    assert_eq!(cut.text, "0.201mm");
+    assert_eq!(
+        pad.mask_expansion.as_ref().expect("mask parsed").0.text,
+        "0.05mm"
+    );
+    match &pad.paste.as_ref().expect("paste parsed").0 {
+        cohdl::ast::PadPaste::Rect(w, h) => {
+            assert_eq!(w.text, "0.4mm");
+            assert_eq!(h.text, "0.15mm");
+        }
+        cohdl::ast::PadPaste::None => panic!("expected a reduced paste aperture"),
+    }
+}
+
+#[test]
+fn bounded_pad_controls_reject_unsafe_forms() {
+    let cases = [
+        (
+            "chamfer",
+            "pub pad P { shape: circle, size: (1mm), layer: top_copper, plating: smd, chamfer: (top_left, 0.1mm) }",
+        ),
+        (
+            "mask_expansion",
+            "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd, mask_expansion: -0.1mm }",
+        ),
+        (
+            "paste aperture",
+            "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd, paste: (1.1mm, 0.5mm) }",
+        ),
+    ];
+    for (needle, src) in cases {
+        let (_, rendered) = check(&[("src/main.cohdl", src)]);
+        assert!(
+            rendered.contains("E805") && rendered.contains(needle),
+            "{} must be rejected cleanly:\n{}",
+            needle,
+            rendered
+        );
+    }
+}
+
+#[test]
+fn corner_radius_is_bounded_and_mutually_exclusive_with_chamfer() {
+    let cases = [
+        (
+            "shape: rect",
+            "pub pad P { shape: circle, size: (1mm), layer: top_copper, plating: smd, corner_radius: 0.1mm }",
+        ),
+        (
+            "plating: smd",
+            "pub pad P { shape: rect, size: (1mm, 1mm), layer: through_all, plating: plated_through_hole, drill: 0.3mm, corner_radius: 0.1mm }",
+        ),
+        (
+            "non-positive",
+            "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd, corner_radius: 0mm }",
+        ),
+        (
+            "half its smaller dimension",
+            "pub pad P { shape: rect, size: (1mm, 0.6mm), layer: top_copper, plating: smd, corner_radius: 0.301mm }",
+        ),
+        (
+            "cannot combine",
+            "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd, chamfer: (top_left, 0.1mm), corner_radius: 0.1mm }",
+        ),
+    ];
+    for (needle, src) in cases {
+        let (_, rendered) = check(&[("src/main.cohdl", src)]);
+        assert!(
+            rendered.contains("E805") && rendered.contains(needle),
+            "{needle} must be rejected cleanly:\n{rendered}"
+        );
+    }
+
+    let (_, rendered) = check(&[(
+        "src/main.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 0.6mm), layer: top_copper, plating: smd, corner_radius: 0.3mm }",
+    )]);
+    assert!(
+        !rendered.contains("error"),
+        "half the smaller dimension is valid:\n{rendered}"
+    );
+}
+
+#[test]
+fn repeated_ep_and_roundrect_project_losslessly() {
+    let (checked, artifacts) = build_real(REPEATED_EP);
+    assert!(artifacts.is_some() && !checked.diags.has_errors());
+    let mods =
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+    let content = &mods[0].2;
+    assert!(
+        content.contains("(attr smd)"),
+        "thermal vias are not component leads:\n{content}"
+    );
+    assert_eq!(content.matches("(pad \"69\"").count(), 5, "{content}");
+    assert!(
+        content.contains("(pad \"69\" smd roundrect (at 0 0) (size 0.8 0.8) (layers \"F.Cu\" \"F.Paste\" \"F.Mask\") (roundrect_rratio 0.25) (solder_mask_margin 0.05))"),
+        "{content}"
+    );
+    assert_eq!(content.matches("thru_hole circle").count(), 2, "{content}");
+    assert!(
+        content.contains("(layers \"B.Cu\" \"B.Mask\")"),
+        "{content}"
+    );
+
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        "repeated-ep",
+    );
+    let package = xml
+        .split("<Package name=\"")
+        .nth(1)
+        .expect("package")
+        .split("</Package>")
+        .next()
+        .unwrap();
+    assert_eq!(
+        package.matches("<Pin number=\"69\"").count(),
+        1,
+        "{package}"
+    );
+    assert_eq!(package.matches("<Pin number=").count(), 2, "{package}");
+    assert!(
+        xml.contains("packageRef=\"board-FP_REPEATED_EP\" part=\"repeated-ep\" layerRef=\"F.Cu\" mountType=\"SMT\""),
+        "thermal vias must not classify the component as THMT:\n{xml}"
+    );
+    let bcu = xml
+        .split("<LayerFeature layerRef=\"B.Cu\">")
+        .nth(1)
+        .expect("bottom copper features")
+        .split("</LayerFeature>")
+        .next()
+        .unwrap();
+    assert_eq!(
+        bcu.matches("pin=\"69\"").count(),
+        3,
+        "two thermal vias and the authored back EP must remain on B.Cu:\n{bcu}"
+    );
+    assert!(
+        xml.contains("<RectRound width=\"0.8\" height=\"0.8\" radius=\"0.2\""),
+        "{xml}"
+    );
+    assert!(
+        xml.contains("<RectRound width=\"0.9\" height=\"0.9\" radius=\"0.25\""),
+        "rounded mask expansion must preserve the physical radius:\n{xml}"
+    );
+    assert!(
+        xml.matches("pin=\"69\"").count() >= 5,
+        "all physical placements must retain PinRef 69:\n{xml}"
+    );
+
+    let dir = std::env::temp_dir().join(format!("cohdl-repeated-ep-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("repeated-ep.xml");
+    std::fs::write(&path, &xml).unwrap();
+    match std::process::Command::new("xmllint")
+        .args(["--noout", "--schema"])
+        .arg(manifest().join("tests/schema/IPC-2581B1.xsd"))
+        .arg(&path)
+        .output()
+    {
+        Ok(out) => assert!(
+            out.status.success(),
+            "repeated EP IPC-2581 must validate:\n{}",
+            String::from_utf8_lossy(&out.stderr)
+        ),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!("WARNING: xmllint not found — schema validity NOT checked locally");
+        }
+        Err(e) => panic!("xmllint failed to run: {e}"),
+    }
+}
+
+#[test]
+fn repeated_pin_ipc_representative_is_stable_when_a_via_is_authored_first() {
+    let reordered = REPEATED_EP.replace(
+        "    pad 69: P_EP_Top at (0mm, 0mm)\n    pad 69: P_EP_Aux at (0mm, 0mm)\n    pad 69: P_EP_Via at (-0.5mm, 0mm)",
+        "    pad 69: P_EP_Via at (-0.5mm, 0mm)\n    pad 69: P_EP_Aux at (0mm, 0mm)\n    pad 69: P_EP_Top at (0mm, 0mm)",
+    );
+    assert_ne!(reordered, REPEATED_EP, "fixture reorder must take effect");
+    let (checked, artifacts) = build_real(&reordered);
+    assert!(artifacts.is_some() && !checked.diags.has_errors());
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        "repeated-ep-via-first",
+    );
+    let pin = xml
+        .split("<Pin number=\"69\"")
+        .nth(1)
+        .expect("logical pin 69")
+        .split("</Pin>")
+        .next()
+        .unwrap();
+    assert!(
+        pin.starts_with(
+            " type=\"SURFACE\" electricalType=\"ELECTRICAL\" mountType=\"SURFACE_MOUNT_PAD\">"
+        ),
+        "thermal-via source order must not classify the terminal as PTH:\n{pin}"
+    );
+    assert!(
+        pin.contains("<Location x=\"0\" y=\"0\"/>"),
+        "the primary top EP, not the off-center via, is representative:\n{pin}"
+    );
+    let prim_id = pin
+        .split("<StandardPrimitiveRef id=\"")
+        .nth(1)
+        .and_then(|s| s.split('"').next())
+        .expect("logical pin primitive id");
+    let entry = xml
+        .split(&format!("<EntryStandard id=\"{}\">", prim_id))
+        .nth(1)
+        .expect("logical pin primitive entry")
+        .split("</EntryStandard>")
+        .next()
+        .unwrap();
+    assert!(
+        entry.contains("<RectCenter width=\"2\" height=\"2\"/>"),
+        "largest front SMD copper must describe the logical EP:\n{entry}"
+    );
+}
+
+#[test]
+fn repeated_pin_ipc_keeps_source_order_and_canonical_representative_rotation() {
+    let src = r#"
+pub pad P_Land {
+    shape: rect
+    size: (0.8mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.1mm)
+}
+pub pad P_Via {
+    shape: circle
+    size: (0.4mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.2mm
+}
+pub footprint FP {
+    pad 2: P_Land at (-1mm, 0mm)
+    pad 1: P_Via at (0.5mm, 0mm)
+    pad 1: P_Land at (1mm, 0mm) rotate 90
+}
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+pub part P: D { primary { mfr: "m", mpn: "rotated-repeat", footprint: FP } }
+design B { inst p: P nc: p.A, p.B }
+"#;
+    let (checked, artifacts) = build_real(src);
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        "rotated-repeat",
+    );
+    let package = xml
+        .split("<Package ")
+        .nth(1)
+        .expect("package")
+        .split("</Package>")
+        .next()
+        .unwrap();
+    let pin_2 = package.find("<Pin number=\"2\"").expect("logical pin 2");
+    let pin_1 = package.find("<Pin number=\"1\"").expect("logical pin 1");
+    assert!(
+        pin_2 < pin_1,
+        "logical pins must retain first-seen source order:\n{package}"
+    );
+    assert_eq!(
+        package.matches("<Pin number=\"1\"").count(),
+        1,
+        "one logical Pin must represent both physical placements:\n{package}"
+    );
+    let pin = package[pin_1..]
+        .split("</Pin>")
+        .next()
+        .expect("logical pin 1 body");
+    assert!(
+        pin.starts_with(
+            "<Pin number=\"1\" type=\"SURFACE\" electricalType=\"ELECTRICAL\" mountType=\"SURFACE_MOUNT_PAD\">"
+        ),
+        "the later SMD land must represent the via-first terminal:\n{pin}"
+    );
+    assert!(
+        pin.contains("<Xform rotation=\"90\"/>\n            <Location x=\"1\" y=\"0\"/>"),
+        "the canonical representative's local rotation must precede Location:\n{pin}"
+    );
+}
+
+#[test]
+fn bounded_pad_controls_project_to_kicad_without_implicit_paste() {
+    let (checked, artifacts) = build_real(CONTROLLED_PAD);
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let content = &mods[0].2;
+    assert!(
+        content.contains("(pad \"1\" smd custom (at 1 -2 90) (size 0.074 0.074) (layers \"F.Cu\" \"F.Mask\") (solder_mask_margin 0.05)"),
+        "{}",
+        content
+    );
+    assert!(
+        content.contains("(gr_poly (pts (xy -0.3375 -0.1375) (xy 0.3375 -0.1375) (xy 0.3375 -0.0635) (xy 0.1365 0.1375) (xy -0.3375 0.1375)) (width 0) (fill yes))"),
+        "large chamfer must retain the exact authored polygon:\n{}",
+        content
+    );
+    assert!(
+        !content.contains("chamfer_ratio 0.73090909090909"),
+        "KiCad clamps native chamfer ratios above 0.5:\n{}",
+        content
+    );
+    assert!(
+        content.contains("(pad \"\" smd rect (at 1 -2 90) (size 0.4 0.15) (layers \"F.Paste\"))"),
+        "{}",
+        content
+    );
+    assert_eq!(content.matches("F.Paste").count(), 1, "{}", content);
+
+    let no_paste = CONTROLLED_PAD.replace("paste: (0.4mm, 0.15mm)", "paste: none");
+    let (checked, artifacts) = build_real(&no_paste);
+    assert!(artifacts.is_some() && !checked.diags.has_errors());
+    let mods =
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+    assert!(!mods[0].2.contains("F.Paste"), "{}", mods[0].2);
+}
+
+#[test]
+fn bounded_pad_controls_project_distinct_ipc_mask_and_paste() {
+    let (checked, artifacts) = build_real(CONTROLLED_PAD);
+    assert!(artifacts.is_some() && !checked.diags.has_errors());
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        "controlled",
+    );
+    assert!(xml.contains("<Contour><Polygon>"), "{}", xml);
+    assert!(
+        xml.contains("<RectCenter width=\"0.4\" height=\"0.15\"/>"),
+        "{}",
+        xml
+    );
+    let padstack = xml
+        .split("<PadStackDef name=\"")
+        .nth(1)
+        .expect("padstack")
+        .split("</PadStackDef>")
+        .next()
+        .unwrap();
+    assert!(padstack.contains("layerRef=\"F.Cu\""), "{}", padstack);
+    assert!(padstack.contains("layerRef=\"F.Mask\""), "{}", padstack);
+    assert!(padstack.contains("layerRef=\"F.Paste\""), "{}", padstack);
+    let refs: Vec<&str> = padstack
+        .split("StandardPrimitiveRef id=\"")
+        .skip(1)
+        .filter_map(|s| s.split('"').next())
+        .collect();
+    assert_eq!(refs.len(), 3, "{}", padstack);
+    assert_ne!(refs[0], refs[1], "mask must differ from copper");
+    assert_ne!(refs[0], refs[2], "paste must differ from copper");
+    assert_ne!(refs[1], refs[2], "paste must differ from mask");
+
+    let dir = std::env::temp_dir().join(format!("cohdl-controlled-pad-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("controlled.xml");
+    std::fs::write(&path, &xml).unwrap();
+    match std::process::Command::new("xmllint")
+        .args(["--noout", "--schema"])
+        .arg(manifest().join("tests/schema/IPC-2581B1.xsd"))
+        .arg(&path)
+        .output()
+    {
+        Ok(out) => assert!(
+            out.status.success(),
+            "controlled pad IPC-2581 must validate:\n{}",
+            String::from_utf8_lossy(&out.stderr)
+        ),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!("WARNING: xmllint not found — schema validity NOT checked locally");
+        }
+        Err(e) => panic!("xmllint failed to run: {}", e),
+    }
+}
+
+#[test]
 fn ipc2581_projects_real_pins_and_stays_schema_valid() {
     let (checked, _artifacts) = build_real(REAL);
     let ir = checked.ir.as_ref().unwrap();
@@ -377,6 +830,36 @@ fn fmt_round_trips_pads_and_footprint_bodies() {
     assert!(once.contains("    drill: 0.3mm\n"), "{}", once);
     let twice = format_source("pm.cohdl", &once).unwrap();
     assert_eq!(once, twice);
+}
+
+#[test]
+fn fmt_round_trips_bounded_pad_controls() {
+    use cohdl::fmt::format_source;
+    let messy = "pub pad P{shape:rect,size:(0.675mm,0.275mm),layer:top_copper,plating:smd,chamfer:(bottom_right,0.201mm),mask_expansion:0.05mm,paste:(0.4mm,0.15mm)}";
+    let once = format_source("controlled.cohdl", messy).unwrap();
+    assert!(
+        once.contains("    chamfer: (bottom_right, 0.201mm)\n"),
+        "{}",
+        once
+    );
+    assert!(once.contains("    mask_expansion: 0.05mm\n"), "{}", once);
+    assert!(once.contains("    paste: (0.4mm, 0.15mm)\n"), "{}", once);
+    assert_eq!(once, format_source("controlled.cohdl", &once).unwrap());
+
+    let none = format_source(
+        "controlled.cohdl",
+        &messy.replace("paste:(0.4mm,0.15mm)", "paste:none"),
+    )
+    .unwrap();
+    assert!(none.contains("    paste: none\n"), "{}", none);
+
+    let rounded = format_source(
+        "rounded.cohdl",
+        "pub pad P{shape:rect,size:(0.8mm,0.8mm),layer:top_copper,plating:smd,corner_radius:0.2mm}",
+    )
+    .unwrap();
+    assert!(rounded.contains("    corner_radius: 0.2mm\n"), "{rounded}");
+    assert_eq!(rounded, format_source("rounded.cohdl", &rounded).unwrap());
 }
 
 // ---------------------------------------------------------------------------
@@ -860,14 +1343,52 @@ fn valid_chip_name_passes() {
 
 #[test]
 fn qfn_name_with_ep_passes() {
-    // 4 leads (0.4mm pitch) + 1 EP = 5 pads; the name declares 4 pins + _1EP.
+    // 4 leads (0.4mm pitch) + 1 EP electrical number. The EP has multiple
+    // physical placements; one thermal feature sits closer to a perimeter
+    // lead than the lead pitch. Neither count nor pitch may treat any EP
+    // placement as an additional regular terminal.
     let body = "pad 1: P at (-1mm, -0.4mm) pad 2: P at (-1mm, 0mm) \
-                pad 3: P at (1mm, 0mm) pad 4: P at (1mm, -0.4mm) pad 5: P at (0mm, 0mm)";
+                pad 3: P at (1mm, 0mm) pad 4: P at (1mm, -0.4mm) \
+                pad 5: P at (0mm, 0mm) pad 5: P at (-0.9mm, -0.1mm)";
     let src = fp_named("QFN4N40P200X200_1EP50X50", body);
     let (checked, r) = check(&[("f.cohdl", &src)]);
     assert!(
         !checked.diags.has_errors(),
         "QFN with EP should pass:\n{}",
+        r
+    );
+}
+
+#[test]
+fn name_pitch_check_does_not_overflow_valid_large_geometry() {
+    // The geometry range intentionally extends far beyond real PCBs. A valid
+    // in-range pitch can exceed sqrt(i128::MAX) in femto-mm, so validation
+    // must compare its square without using i128 multiplication.
+    let src = fp_named(
+        "SOT2P4000000000X100X100N",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (40000000mm, 0mm)",
+    );
+    let (checked, r) = check(&[("f.cohdl", &src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "large exact pitch should pass without overflow:\n{}",
+        r
+    );
+}
+
+#[test]
+fn name_pitch_check_adds_large_squared_axes_exactly() {
+    // 3-4-5 at a scale whose squared femto coordinates overflow i128. This
+    // exercises both wide multiplication and wide addition, not only an
+    // axis-aligned distance.
+    let src = fp_named(
+        "SOT2P500000000X100X100N",
+        "pad 1: P at (0mm, 0mm) pad 2: P at (3000000mm, 4000000mm)",
+    );
+    let (checked, r) = check(&[("f.cohdl", &src)]);
+    assert!(
+        !checked.diags.has_errors(),
+        "large diagonal exact pitch should pass:\n{}",
         r
     );
 }
@@ -1674,6 +2195,48 @@ fn pin_1_marker_shapes_both_expand() {
 }
 
 #[test]
+fn marker_geometry_uses_one_canonical_land_per_electrical_number() {
+    let via_first = r#"
+pub trait Ic { designator_prefix: "U" }
+pub pad P_Main { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }
+pub pad P_Via { shape: circle, size: (0.5mm), layer: through_all, plating: plated_through_hole, drill: 0.2mm }
+pub footprint F {
+    pad 1: P_Via at (10mm, 10mm)
+    pad 1: P_Main at (-2mm, 0mm)
+    pad 2: P_Main at (2mm, 0mm)
+    silkscreen { pin_1_marker near pad 1 shape dot }
+}
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+impl Ic for D {}
+pub part P: D { primary { mfr: "m", mpn: "p", footprint: F } }
+design B { inst u: P nc: u.A, u.B }
+"#;
+    let main_first = via_first.replace(
+        "    pad 1: P_Via at (10mm, 10mm)\n    pad 1: P_Main at (-2mm, 0mm)",
+        "    pad 1: P_Main at (-2mm, 0mm)\n    pad 1: P_Via at (10mm, 10mm)",
+    );
+    let marker = |src: &str| {
+        let (checked, artifacts) = build_real(src);
+        assert!(artifacts.is_some() && !checked.diags.has_errors());
+        let mods =
+            cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+        mods[0]
+            .2
+            .lines()
+            .find(|line| line.contains("(fp_circle"))
+            .expect("pin-1 dot")
+            .to_string()
+    };
+    let a = marker(via_first);
+    let b = marker(&main_first);
+    assert_eq!(a, b, "marker must not depend on repeated-land source order");
+    assert!(
+        a.contains("(center -3 0)"),
+        "primary SMD land expected: {a}"
+    );
+}
+
+#[test]
 fn a_marker_must_name_a_pad_the_footprint_declares() {
     let (_, r) = check(&[(
         "s.cohdl",
@@ -1685,6 +2248,21 @@ fn a_marker_must_name_a_pad_the_footprint_declares() {
     assert!(r.contains("does not declare"), "{}", r);
     // The help lists the real pads — never a bare "invalid pad".
     assert!(r.contains("its pads are: 1, 2"), "{}", r);
+}
+
+#[test]
+fn polarity_marker_needs_two_distinct_electrical_pad_numbers() {
+    let (_, r) = check(&[(
+        "s.cohdl",
+        "pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }\n\
+         pub footprint F {\n  pad 1: P at (-0.5mm, 0mm)\n  pad 1: P at (0.5mm, 0mm)\n  \
+         silkscreen { polarity_marker cathode_pin 1 shape band }\n}\n",
+    )]);
+    assert!(
+        r.contains("E812") && r.contains("electrical pad numbers"),
+        "repeated physical lands are one terminal:\n{}",
+        r
+    );
 }
 
 #[test]

@@ -15,7 +15,9 @@
 //! canonically from the lexer's exact femto integers (emit::geom — KiCad's
 //! native unit is mm, no conversion, no floats).
 
-use crate::ast::{MountHoleGeom, MountHolePlating, PadLayer, PadPlating, PadShape};
+use crate::ast::{
+    MountHoleGeom, MountHolePlating, PadCorner, PadLayer, PadPaste, PadPlating, PadShape,
+};
 use crate::check::footprints::is_placeholder;
 use crate::emit::geom;
 use crate::ir::DesignIr;
@@ -57,19 +59,89 @@ fn file_base(fq: &str) -> String {
     fq.replace("::", "-")
 }
 
+/// KiCad clamps its native `chamfer_ratio` to 0.5.  A larger authored cut is
+/// therefore represented as a custom pad whose copper primitive is the exact
+/// five-vertex land polygon.  Coordinates are local to the pad, so placement
+/// rotation and front/back layer selection continue to be handled by the pad
+/// itself.  Each coordinate is stored as twice its actual femto-mm value and
+/// rendered with [`geom::half_mm_femto`] to retain half-femto vertices.
+fn custom_chamfer_points(corner: PadCorner, w: i128, h: i128, cut: i128) -> String {
+    let left = -w;
+    let right = w;
+    let top = -h;
+    let bottom = h;
+    let twice_cut = cut.saturating_mul(2);
+    let points = match corner {
+        PadCorner::TopLeft => [
+            (left + twice_cut, top),
+            (right, top),
+            (right, bottom),
+            (left, bottom),
+            (left, top + twice_cut),
+        ],
+        PadCorner::TopRight => [
+            (left, top),
+            (right - twice_cut, top),
+            (right, top + twice_cut),
+            (right, bottom),
+            (left, bottom),
+        ],
+        PadCorner::BottomRight => [
+            (left, top),
+            (right, top),
+            (right, bottom - twice_cut),
+            (right - twice_cut, bottom),
+            (left, bottom),
+        ],
+        PadCorner::BottomLeft => [
+            (left, top),
+            (right, top),
+            (right, bottom),
+            (left + twice_cut, bottom),
+            (left, bottom - twice_cut),
+        ],
+    };
+    points
+        .iter()
+        .map(|(x, y)| {
+            format!(
+                "(xy {} {})",
+                geom::half_mm_femto(*x),
+                geom::half_mm_femto(*y)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
     let mut s = String::new();
     let _ = writeln!(s, "(footprint \"{}\"", fq);
     s.push_str("  (version 20240108)\n");
     s.push_str("  (generator \"cohdl\")\n");
     s.push_str("  (layer \"F.Cu\")\n");
-    // Attribute: smd when every resolved pad is smd; through_hole if any PTH.
+    // Attribute: thermal vias repeated under an SMD exposed-pad number do not
+    // turn the package into a through-hole component. A PTH placement makes it
+    // through-hole only when that electrical number has no SMD land.
+    let smd_numbers: BTreeSet<&str> = fp
+        .pads
+        .iter()
+        .filter(|p| {
+            world
+                .pads
+                .get(&p.pad.name)
+                .and_then(|d| d.plating.as_ref())
+                .is_some_and(|(pl, _)| *pl == PadPlating::Smd)
+        })
+        .map(|p| p.number.text.as_str())
+        .collect();
     let any_pth = fp.pads.iter().any(|p| {
-        world
-            .pads
-            .get(&p.pad.name)
-            .and_then(|d| d.plating.as_ref())
-            .is_some_and(|(pl, _)| *pl == PadPlating::PlatedThroughHole)
+        !smd_numbers.contains(p.number.text.as_str())
+            && world
+                .pads
+                .get(&p.pad.name)
+                .and_then(|d| d.plating.as_ref())
+                .is_some_and(|(pl, _)| *pl == PadPlating::PlatedThroughHole)
     });
     let _ = writeln!(
         s,
@@ -235,7 +307,13 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             PadPlating::Smd => "smd",
             PadPlating::PlatedThroughHole => "thru_hole",
         };
+        let custom_chamfer = pad.chamfer.as_ref().is_some_and(|(_, cut, _)| {
+            let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1);
+            cut.femto.saturating_mul(2) > min
+        });
         let kshape = match shape {
+            PadShape::Rect if custom_chamfer => "custom",
+            PadShape::Rect if pad.chamfer.is_some() || pad.corner_radius.is_some() => "roundrect",
             PadShape::Rect => "rect",
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
@@ -245,10 +323,14 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             [w, h] => (geom::mm(w), geom::mm(h)),
             _ => continue, // arity errors already reported
         };
-        let layers = match (plating, pad.layer.map(|(l, _)| l)) {
-            (PadPlating::PlatedThroughHole, _) => "\"*.Cu\" \"*.Mask\"",
-            (PadPlating::Smd, Some(PadLayer::BottomCopper)) => "\"B.Cu\" \"B.Paste\" \"B.Mask\"",
-            _ => "\"F.Cu\" \"F.Paste\" \"F.Mask\"",
+        let layers = match (plating, pad.layer.map(|(l, _)| l), pad.paste.is_some()) {
+            (PadPlating::PlatedThroughHole, _, _) => "\"*.Cu\" \"*.Mask\"",
+            (PadPlating::Smd, Some(PadLayer::BottomCopper), false) => {
+                "\"B.Cu\" \"B.Paste\" \"B.Mask\""
+            }
+            (PadPlating::Smd, Some(PadLayer::BottomCopper), true) => "\"B.Cu\" \"B.Mask\"",
+            (PadPlating::Smd, _, false) => "\"F.Cu\" \"F.Paste\" \"F.Mask\"",
+            (PadPlating::Smd, _, true) => "\"F.Cu\" \"F.Mask\"",
         };
         // A slot uses KiCad's own oval-drill form — the same one RFC-023's
         // non-circular mount holes already emit.
@@ -270,20 +352,93 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
         } else {
             String::new()
         };
-        let _ = writeln!(
-            s,
-            "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}))",
-            place.number.text,
-            kind,
-            kshape,
-            geom::mm(&place.x),
-            geom::mm(&place.y),
-            angle,
-            w,
-            h,
-            drill,
-            layers
-        );
+        let chamfer = pad
+            .chamfer
+            .as_ref()
+            .filter(|_| !custom_chamfer)
+            .map(|(corner, cut, _)| {
+                let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1).max(1);
+                format!(
+                    " (roundrect_rratio 0) (chamfer_ratio {}) (chamfer {})",
+                    geom::ratio(cut.femto, min),
+                    corner.name()
+                )
+            })
+            .unwrap_or_default();
+        let corner_radius = pad
+            .corner_radius
+            .as_ref()
+            .map(|(radius, _)| {
+                let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1).max(1);
+                format!(" (roundrect_rratio {})", geom::ratio(radius.femto, min))
+            })
+            .unwrap_or_default();
+        let mask_expansion = pad
+            .mask_expansion
+            .as_ref()
+            .map(|(m, _)| format!(" (solder_mask_margin {})", geom::mm(m)))
+            .unwrap_or_default();
+        if custom_chamfer {
+            // The anchor is a centred square wholly contained by the authored
+            // polygon.  Its union with the filled primitive therefore adds no
+            // copper, while satisfying KiCad's required custom-pad anchor.
+            let (corner, cut, _) = pad.chamfer.as_ref().expect("custom chamfer");
+            let [pw, ph] = pad.size.as_slice() else {
+                continue; // arity errors already reported
+            };
+            let anchor = geom::mm_femto(pw.femto.min(ph.femto) - cut.femto);
+            let points = custom_chamfer_points(*corner, pw.femto, ph.femto, cut.femto);
+            let _ = writeln!(
+                s,
+                "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}) (layers {}){} (options (clearance outline) (anchor rect)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
+                place.number.text,
+                kind,
+                kshape,
+                geom::mm(&place.x),
+                geom::mm(&place.y),
+                angle,
+                anchor,
+                anchor,
+                layers,
+                mask_expansion,
+                points
+            );
+        } else {
+            let _ = writeln!(
+                s,
+                "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}){}{}{})",
+                place.number.text,
+                kind,
+                kshape,
+                geom::mm(&place.x),
+                geom::mm(&place.y),
+                angle,
+                w,
+                h,
+                drill,
+                layers,
+                chamfer,
+                corner_radius,
+                mask_expansion
+            );
+        }
+        if let Some((PadPaste::Rect(pw, ph), _)) = &pad.paste {
+            let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
+                "B.Paste"
+            } else {
+                "F.Paste"
+            };
+            let _ = writeln!(
+                s,
+                "  (pad \"\" smd rect (at {} {}{}) (size {} {}) (layers \"{}\"))",
+                geom::mm(&place.x),
+                geom::mm(&place.y),
+                angle,
+                geom::mm(pw),
+                geom::mm(ph),
+                paste_layer
+            );
+        }
     }
     // RFC-022 mechanical locating holes — projected as KiCad's own hole pad
     // types with an empty pad number (no net): non_plated → np_thru_hole,

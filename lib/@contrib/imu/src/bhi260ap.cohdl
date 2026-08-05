@@ -67,7 +67,163 @@ pub device BHI260AP {
 
 impl IC for BHI260AP {}
 
-// Device-only: Figure 37 leaves the pad 4-5/18-19 centre gap undimensioned,
-// and its mask-frame/chamfer requirements are not representable in CoHDL.
-// Publish a part only when Bosch supplies an authoritative machine-readable
-// land pattern or every required feature can be represented without inference.
+#[doc("docs/bst-bhi260ap-ds000.pdf")]
+pub part IMU_BHI260AP: BHI260AP {
+    primary { mfr: "Bosch Sensortec", mpn: "BHI260AP", footprint: LGA44P40_360X410 }
+}
+
+// Bosch Figure 37 (p162) is a complete top-view land pattern. Perimeter land
+// centres follow the stated 3.17 x 3.67mm centre spans; every other centre is
+// on the stated 0.40mm grid. Horizontal lands are 0.45 x 0.35mm, vertical
+// lands 0.35 x 0.45mm. Each land gets the specified 50um mask frame.
+pub pad P_BHI260AP_H {
+    shape: rect
+    size: (0.45mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_V {
+    shape: rect
+    size: (0.35mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.05mm
+}
+
+// Figure 37 uses eight paired 0.05 x 45-degree cuts at the four bends of the
+// inner land ring. They are copper/mask geometry, not silkscreen approximations.
+pub pad P_BHI260AP_H_BR {
+    shape: rect
+    size: (0.45mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_right, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_H_BL {
+    shape: rect
+    size: (0.45mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_left, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_H_TR {
+    shape: rect
+    size: (0.45mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_right, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_H_TL {
+    shape: rect
+    size: (0.45mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_V_BR {
+    shape: rect
+    size: (0.35mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_right, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_V_BL {
+    shape: rect
+    size: (0.35mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (bottom_left, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_V_TL {
+    shape: rect
+    size: (0.35mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub pad P_BHI260AP_V_TR {
+    shape: rect
+    size: (0.35mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_right, 0.05mm)
+    mask_expansion: 0.05mm
+}
+
+pub footprint LGA44P40_360X410 {
+    // Left perimeter, top to bottom.
+    pad 1: P_BHI260AP_H at (-1.585mm, -1.4mm)
+    pad 2: P_BHI260AP_H at (-1.585mm, -1mm)
+    pad 3: P_BHI260AP_H at (-1.585mm, -0.6mm)
+    pad 4: P_BHI260AP_H at (-1.585mm, -0.2mm)
+    pad 5: P_BHI260AP_H at (-1.585mm, 0.2mm)
+    pad 6: P_BHI260AP_H at (-1.585mm, 0.6mm)
+    pad 7: P_BHI260AP_H at (-1.585mm, 1mm)
+    pad 8: P_BHI260AP_H at (-1.585mm, 1.4mm)
+
+    // Bottom perimeter, left to right.
+    pad 9: P_BHI260AP_V at (-1mm, 1.835mm)
+    pad 10: P_BHI260AP_V at (-0.6mm, 1.835mm)
+    pad 11: P_BHI260AP_V at (-0.2mm, 1.835mm)
+    pad 12: P_BHI260AP_V at (0.2mm, 1.835mm)
+    pad 13: P_BHI260AP_V at (0.6mm, 1.835mm)
+    pad 14: P_BHI260AP_V at (1mm, 1.835mm)
+
+    // Right perimeter, bottom to top.
+    pad 15: P_BHI260AP_H at (1.585mm, 1.4mm)
+    pad 16: P_BHI260AP_H at (1.585mm, 1mm)
+    pad 17: P_BHI260AP_H at (1.585mm, 0.6mm)
+    pad 18: P_BHI260AP_H at (1.585mm, 0.2mm)
+    pad 19: P_BHI260AP_H at (1.585mm, -0.2mm)
+    pad 20: P_BHI260AP_H at (1.585mm, -0.6mm)
+    pad 21: P_BHI260AP_H at (1.585mm, -1mm)
+    pad 22: P_BHI260AP_H at (1.585mm, -1.4mm)
+
+    // Top perimeter, right to left.
+    pad 23: P_BHI260AP_V at (1mm, -1.835mm)
+    pad 24: P_BHI260AP_V at (0.6mm, -1.835mm)
+    pad 25: P_BHI260AP_V at (0.2mm, -1.835mm)
+    pad 26: P_BHI260AP_V at (-0.2mm, -1.835mm)
+    pad 27: P_BHI260AP_V at (-0.6mm, -1.835mm)
+    pad 28: P_BHI260AP_V at (-1mm, -1.835mm)
+
+    // Inner 0.40mm grid, following the same top-view numbering.
+    pad 29: P_BHI260AP_H_TR at (-0.8mm, -0.8mm)
+    pad 30: P_BHI260AP_H at (-0.8mm, -0.4mm)
+    pad 31: P_BHI260AP_H at (-0.8mm, 0mm)
+    pad 32: P_BHI260AP_H at (-0.8mm, 0.4mm)
+    pad 33: P_BHI260AP_H_BR at (-0.8mm, 0.8mm)
+    pad 34: P_BHI260AP_V_TL at (-0.4mm, 1.2mm)
+    pad 35: P_BHI260AP_V at (0mm, 1.2mm)
+    pad 36: P_BHI260AP_V_TR at (0.4mm, 1.2mm)
+    pad 37: P_BHI260AP_H_BL at (0.8mm, 0.8mm)
+    pad 38: P_BHI260AP_H at (0.8mm, 0.4mm)
+    pad 39: P_BHI260AP_H at (0.8mm, 0mm)
+    pad 40: P_BHI260AP_H at (0.8mm, -0.4mm)
+    pad 41: P_BHI260AP_H_TL at (0.8mm, -0.8mm)
+    pad 42: P_BHI260AP_V_BR at (0.4mm, -1.2mm)
+    pad 43: P_BHI260AP_V at (0mm, -1.2mm)
+    pad 44: P_BHI260AP_V_BL at (-0.4mm, -1.2mm)
+
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 4.6mm) }
+    silkscreen_ref { at: (0mm, -2.7mm) }
+}

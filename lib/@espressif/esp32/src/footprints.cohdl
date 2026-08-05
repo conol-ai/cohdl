@@ -26,12 +26,12 @@ pub pad P_ESP32_S3_WROOM_BOTTOM {
     plating: smd
 }
 
-// CoHDL currently requires unique pad numbers and emits one copper/paste shape
-// for each pad. Espressif's pad 41 is a 3x3 grid of 0.9x0.9mm copper islands,
-// on 1.4mm centres (3.7x3.7mm overall), with twelve 0.25mm thermal vias. A
-// single 3.7x3.7mm land preserves its full copper envelope and electrical
-// connection, but board-tool users MUST segment its paste aperture into the
-// official 3x3 pattern and add the thermal vias during layout.
+// Espressif's pad 41 is a 3x3 grid of 0.9x0.9mm copper islands on 1.4mm
+// centres (3.7x3.7mm overall), with twelve 0.25mm thermal vias. CoHDL can model
+// that exactly with repeated `pad 41` placements plus per-pad paste controls.
+// This older declaration has not yet been migrated: it is only the 3.7x3.7mm
+// copper envelope and still inherits a copper-sized paste aperture. Do not use
+// it as fabrication-ready EP/stencil/via geometry until that migration lands.
 pub pad P_ESP32_S3_WROOM_EP {
     shape: rect
     size: (3.7mm, 3.7mm)

@@ -13,12 +13,12 @@ pub device H0216F002AM {
         optional TP_VCC: 6 [power_out] // touch-panel 3.3V output (p6)
         required GND7: 7 [power_in]
         required IOVCC: 8 [power_in] // logic supply 1.8-3.3V (p6)
-        optional VCI: 9 [power_in] // DDIC DCDC supply (p6)
-        optional VBAT: 10 [power_in] // SIBO supply 3.7-4.5V (p6)
+        required VCI: 9 [power_in] // DDIC DCDC supply (p6)
+        required VBAT: 10 [power_in] // SIBO supply 3.7-4.5V (p6)
         optional VCI_EN: 11 [power_in] // DDIC DCDC supply (p6)
         required GND12: 12 [power_in]
-        optional MTP_PWR: 13 [passive] // MTP programming 8V, leave open normal (p6)
-        optional RESET: 14 [input] // module reset, active-low (p6)
+        optional MTP_PWR: 13 [power_in] // MTP programming 8V, leave open normal (p6)
+        required RESET: 14 [input] // required initialization reset, active-low (p6)
         optional CSX: 15 [input] // chip select (p6)
         optional SDI_RDX: 16 [bidirectional] // serial data in 0 / data out (p6)
         optional DCX: 17 [input] // serial data in 1 (p6)
@@ -41,8 +41,14 @@ pub device H0216F002AM {
 
 impl IC for H0216F002AM {}
 
-// No public part binding: the module drawing identifies an installed
-// OK-F302-31115, 31-contact, 0.3 mm double-row connector but does not provide
-// its authoritative PCB land and mechanical-anchor dimensions. A fabricated
-// single-row 0.5 mm FPC footprint would mate with neither the module nor its
-// specified connector.
+// Intentionally logical-only: H0216F002AM is a complete AMOLED/COF/FPC module,
+// not a directly soldered display IC. Drawing p5 labels the installed
+// OCN/Yaqi OK-F302-31115 31-contact connector and separately states
+// "Interface connector: OK-14RM024-04" in note 8, without defining whether
+// the latter is the board-side mate. The module specification supplies no PCB
+// land, mechanical-anchor, pin-1/mating-orientation, or keep-out dimensions
+// for either connector code, and no official OCN package drawing was
+// available. A public part remains blocked until the actual board-side
+// connector is unambiguously identified and its official recommended PCB land
+// is obtained; substituting a generic FPC or board-to-board land would be a
+// fabrication guess.

@@ -12,6 +12,30 @@ pub device ULC0511C {
 
 impl TwoTerminal for ULC0511C {}
 
-// No public part binding: the source gives only the DFN1006DN component
-// outline, not a recommended PCB land pattern. The former 0402-style lands
-// were inferred and are not exposed as fabrication-ready geometry.
+#[doc("docs/ulc0511c.pdf")]
+pub part ESD_ULC0511C: ULC0511C {
+    primary { mfr: "Tergy", mpn: "ULC0511C", footprint: QFN2N65P60X100 }
+}
+
+// IPC-7351 nominal-density land derived from the complete DFN1006DN package
+// dimensions on datasheet page 3. See docs/footprint-derivations.md for the
+// explicit land goals, tolerance checks, and arithmetic.
+pub pad P_ULC0511C_DFN1006DN_TERMINAL {
+    shape: rect
+    size: (0.65mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+// The datasheet bottom view places terminal 1 at the notched lower end. A
+// board-top land view preserves that row assignment; the device is electrically
+// bidirectional, but the physical pin numbering remains exact.
+pub footprint QFN2N65P60X100 {
+    pad 1: P_ULC0511C_DFN1006DN_TERMINAL at (0mm, 0.325mm)
+    pad 2: P_ULC0511C_DFN1006DN_TERMINAL at (0mm, -0.325mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.2mm, 1.7mm) }
+    silkscreen_ref { at: (0mm, -1.15mm) }
+}

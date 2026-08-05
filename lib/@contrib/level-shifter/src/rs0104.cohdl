@@ -76,6 +76,150 @@ pub part LS_RS0104: RS0104[TSSOP14] {
     primary { mfr: "Run-IC", mpn: "RS0104YQ", footprint: soic::SOP14P65X640X120N }
 }
 
-// QFN order codes RS0104YTQF14, RS0104YTQE12 and RS0104YUTQH12 remain
-// device-only. Their distinct pin maps are preserved above, but they must not
-// share a nominal-size generic QFN land pattern.
+#[doc("docs/rs0104.pdf")]
+pub part LS_RS0104_QFN14: RS0104[QFN14] {
+    primary { mfr: "Run-IC", mpn: "RS0104YTQF14", footprint: QFN14N50P350X350_1EP200X150 }
+}
+
+#[doc("docs/rs0104.pdf")]
+pub part LS_RS0104_QFN12_2X2: RS0104[QFN12_2X2] {
+    primary { mfr: "Run-IC", mpn: "RS0104YTQE12", footprint: QFN12N40P200X200_1EP120X120 }
+}
+
+#[doc("docs/rs0104.pdf")]
+pub part LS_RS0104_QFN12_2X1P7: RS0104[QFN12_2X1P7] {
+    primary { mfr: "Run-IC", mpn: "RS0104YUTQH12", footprint: QFN12N40P200X170 }
+}
+
+// The Run-IC QFN pages publish complete component tolerances but no PCB-land
+// recommendation. These three part-specific lands are independently derived
+// at conservative nominal goals; each derivation is stated beside its pads so
+// the different packages cannot silently share a generic QFN approximation.
+
+// QFN3.5x3.5-14L p25: body 3.35..3.65, b 0.18..0.30, L 0.30..0.50,
+// pitch 0.50, EP 2.0 x 1.5mm. The radial land spans 1.125..1.900mm:
+// 0.075mm toe beyond max body and 0.050mm heel inside min lead root.
+pub pad P_RS0104_QFN14_SIDE {
+    shape: rect
+    size: (0.775mm, 0.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_RS0104_QFN14_TOP_BOTTOM {
+    shape: rect
+    size: (0.4mm, 0.775mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_RS0104_QFN14_EP {
+    shape: rect
+    size: (2mm, 1.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN14N50P350X350_1EP200X150 {
+    pad 1: P_RS0104_QFN14_TOP_BOTTOM at (-0.25mm, -1.5125mm)
+    pad 2: P_RS0104_QFN14_SIDE at (-1.5125mm, -1mm)
+    pad 3: P_RS0104_QFN14_SIDE at (-1.5125mm, -0.5mm)
+    pad 4: P_RS0104_QFN14_SIDE at (-1.5125mm, 0mm)
+    pad 5: P_RS0104_QFN14_SIDE at (-1.5125mm, 0.5mm)
+    pad 6: P_RS0104_QFN14_SIDE at (-1.5125mm, 1mm)
+    pad 7: P_RS0104_QFN14_TOP_BOTTOM at (-0.25mm, 1.5125mm)
+    pad 8: P_RS0104_QFN14_TOP_BOTTOM at (0.25mm, 1.5125mm)
+    pad 9: P_RS0104_QFN14_SIDE at (1.5125mm, 1mm)
+    pad 10: P_RS0104_QFN14_SIDE at (1.5125mm, 0.5mm)
+    pad 11: P_RS0104_QFN14_SIDE at (1.5125mm, 0mm)
+    pad 12: P_RS0104_QFN14_SIDE at (1.5125mm, -0.5mm)
+    pad 13: P_RS0104_QFN14_SIDE at (1.5125mm, -1mm)
+    pad 14: P_RS0104_QFN14_TOP_BOTTOM at (0.25mm, -1.5125mm)
+    pad EP: P_RS0104_QFN14_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.3mm, 4.3mm) }
+    silkscreen_ref { at: (0mm, -2.45mm) }
+}
+
+// QFN2x2-12L p27: body 1.9..2.1, b/L 0.15..0.25, pitch 0.4,
+// EP 1.0..1.2mm. The 0.45 x 0.30mm lands span 0.675..1.125mm.
+pub pad P_RS0104_QFN12_2X2_SIDE {
+    shape: rect
+    size: (0.45mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_RS0104_QFN12_2X2_TOP_BOTTOM {
+    shape: rect
+    size: (0.3mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_RS0104_QFN12_2X2_EP {
+    shape: rect
+    size: (1.2mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+    chamfer: (top_left, 0.15mm)
+}
+
+pub footprint QFN12N40P200X200_1EP120X120 {
+    pad 1: P_RS0104_QFN12_2X2_SIDE at (-0.9mm, -0.4mm)
+    pad 2: P_RS0104_QFN12_2X2_SIDE at (-0.9mm, 0mm)
+    pad 3: P_RS0104_QFN12_2X2_SIDE at (-0.9mm, 0.4mm)
+    pad 4: P_RS0104_QFN12_2X2_TOP_BOTTOM at (-0.4mm, 0.9mm)
+    pad 5: P_RS0104_QFN12_2X2_TOP_BOTTOM at (0mm, 0.9mm)
+    pad 6: P_RS0104_QFN12_2X2_TOP_BOTTOM at (0.4mm, 0.9mm)
+    pad 7: P_RS0104_QFN12_2X2_SIDE at (0.9mm, 0.4mm)
+    pad 8: P_RS0104_QFN12_2X2_SIDE at (0.9mm, 0mm)
+    pad 9: P_RS0104_QFN12_2X2_SIDE at (0.9mm, -0.4mm)
+    pad 10: P_RS0104_QFN12_2X2_TOP_BOTTOM at (0.4mm, -0.9mm)
+    pad 11: P_RS0104_QFN12_2X2_TOP_BOTTOM at (0mm, -0.9mm)
+    pad 12: P_RS0104_QFN12_2X2_TOP_BOTTOM at (-0.4mm, -0.9mm)
+    pad EP: P_RS0104_QFN12_2X2_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.75mm, 2.75mm) }
+    silkscreen_ref { at: (0mm, -1.65mm) }
+}
+
+// QFN2x1.7-12L p28, rotated to match the p6 transparent top view. Long-side
+// leads span 0.15..0.975mm and the two short-side leads span 0.70..1.125mm.
+pub pad P_RS0104_QFN12_2X1P7_SIDE {
+    shape: rect
+    size: (0.825mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_RS0104_QFN12_2X1P7_END {
+    shape: rect
+    size: (0.2mm, 0.425mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint QFN12N40P200X170 {
+    pad 1: P_RS0104_QFN12_2X1P7_SIDE at (-0.5625mm, -0.8mm)
+    pad 2: P_RS0104_QFN12_2X1P7_SIDE at (-0.5625mm, -0.4mm)
+    pad 3: P_RS0104_QFN12_2X1P7_SIDE at (-0.5625mm, 0mm)
+    pad 4: P_RS0104_QFN12_2X1P7_SIDE at (-0.5625mm, 0.4mm)
+    pad 5: P_RS0104_QFN12_2X1P7_SIDE at (-0.5625mm, 0.8mm)
+    pad 6: P_RS0104_QFN12_2X1P7_END at (0mm, 0.9125mm)
+    pad 7: P_RS0104_QFN12_2X1P7_SIDE at (0.5625mm, 0.8mm)
+    pad 8: P_RS0104_QFN12_2X1P7_SIDE at (0.5625mm, 0.4mm)
+    pad 9: P_RS0104_QFN12_2X1P7_SIDE at (0.5625mm, 0mm)
+    pad 10: P_RS0104_QFN12_2X1P7_SIDE at (0.5625mm, -0.4mm)
+    pad 11: P_RS0104_QFN12_2X1P7_SIDE at (0.5625mm, -0.8mm)
+    pad 12: P_RS0104_QFN12_2X1P7_END at (0mm, -0.9125mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.45mm, 2.75mm) }
+    silkscreen_ref { at: (0mm, -1.65mm) }
+}

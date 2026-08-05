@@ -66,14 +66,14 @@ pub footprint QFN10_3x3 {
     pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
     pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
     pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
-    // ... one entry per pad, matching the bound device's pin count and numbering
+    // ... at least one entry per electrical pad number
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.5mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
 ```
 
 - Each pad N: PadSymbol at (x, y) line places one instance of a pad symbol at an offset relative to the footprint's own origin. PadSymbol is resolved via RFC-016 exactly like any other cross-library reference (local name, or used, or fully qualified). This body-level pad N: ... placement statement and the top-level pad { ... } declaration share the same keyword but occupy different grammatical positions — the same pattern already used elsewhere in the language (e.g. net/nc as body-level statements distinct from other top-level declaration forms), not a new ambiguity.
-- Pad numbers (`N` in `pad N: ...`) **must exactly match the bound device's declared pin numbers** (RFC-002) — this is the check RFC-017 deferred, now real and enforceable because footprint's pad list is real, structured data (not an unspecified body).
+- Distinct pad numbers (`N` in `pad N: ...`) **must exactly match the bound device's declared pin numbers** (RFC-002) — this is the check RFC-017 deferred, now real and enforceable because footprint's pad list is real, structured data (not an unspecified body). A later fabrication-control extension permits several physical placements with the same electrical number.
 - `courtyard` and `silkscreen_ref` are unchanged in shape from RFC-017's original (superseded) illustrative sketch — they were never the contested part; only the pad-authoring mechanism needed the Cadence-style split.
 - The same pad symbol can be referenced by any number of footprint declarations, in any package that can resolve it — this is the entire point of the split: a pad library maintainer fixes Rect_0_3x0_9mm's size once, and every footprint referencing it is correct without being touched.
 
@@ -123,7 +123,12 @@ Both checks land at the earliest point the relevant declaration is fully visible
 - pad's drill:/plating: consistency — checked the moment the pad declaration is parsed and type-checked, at declaration time.
 - footprint's pad-count/numbering-vs-device consistency — checked at the point a part declaration's footprint: field resolves to a footprint symbol (the same point MPN completeness is checked, RFC-003's precedent), at cohdl build (mirroring RFC-017's check-vs-build split exactly: cohdl check does not require footprint resolution; cohdl build does, since it needs real geometry to emit).
 
-Diagnostics name the specific missing/extra/duplicate pad number, and for `pad`, the specific inconsistency (`drill: present with plating: smd` or `drill: missing with plating: plated_through_hole`).
+Diagnostics name the specific missing/extra pad number, and for `pad`, the
+specific inconsistency (`drill: present with plating: smd` or `drill: missing
+with plating: plated_through_hole`). A later fabrication-control extension
+permits repeated placements of one electrical pad number (for exposed-pad
+copper, stencil segmentation, thermal vias, and back copper); E807 continues
+to compare the exact set of distinct numbers.
 
 ## AI-generatability
 

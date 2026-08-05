@@ -602,7 +602,9 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
                             let bounding_boxes_overlap =
                                 a.0 < b.1 && b.0 < a.1 && a.2 < b.3 && b.2 < a.3;
                             assert!(
-                                !shares_layer || !bounding_boxes_overlap,
+                                left_number == right_number
+                                    || !shares_layer
+                                    || !bounding_boxes_overlap,
                                 "public contrib part `{part_name}` footprint `{}` pads `{left_number}` and `{right_number}` have overlapping copper bounds on a shared layer",
                                 fp_ref.name
                             );
@@ -621,22 +623,36 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
     let expected: std::collections::BTreeSet<String> = [
         "@contrib/analog-switch::SW_RS2257XC6|Run-IC|RS2257XC6|contrib_analog_switch::SOT6P65X210X125N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
         "@contrib/analog-switch::SW_RS2257XH|Run-IC|RS2257XH|contrib_analog_switch::SOT6P95X290X160N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
+        "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|a235edfeb77483f6ce49859d1508a02037c924c3165314e2168b59421b4b7aa0",
+        "@contrib/audio-amp::AMP_NS4150B|Nsiway|NS4150B|contrib_audio_amp::SOP8P65X490X110N|contrib_audio_amp::NS4150B[-]|68c467ea216f68d6c7f2fe1439b14bed81dae3b5cbec8a04b5b45bafc4dc6f19",
         "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|2fc6771cc0150a98f6ca02490534f5cfc8f529cef28651d676ddd39ac8e69d79",
         "@contrib/env::ENV_BME280|Bosch Sensortec|BME280|contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm|contrib_env::BME280[-]|3383b88fba1dfc37e0ab29f9c06b5ea75ef23e02ffb0c151c33c7e0fd4a532cc",
         "@contrib/esd::ESD_GBLC05C|ProTek|GBLC05C-LF-T7|contrib_esd::FP_SOD323_2P5X1P25mm|contrib_esd::GBLC05C[-]|8728da7595e160597f639c23bd3e6d2de2099a14d567437c396215734b86cd55",
+        "@contrib/esd::ESD_ULC0511C|Tergy|ULC0511C|contrib_esd::QFN2N65P60X100|contrib_esd::ULC0511C[-]|8728da7595e160597f639c23bd3e6d2de2099a14d567437c396215734b86cd55",
+        "@contrib/gnss::GNSS_L76K|Quectel|L76K|contrib_gnss::FP_Quectel_L76K_18LCC_101x97mm|contrib_gnss::L76K[-]|58c60801994860f9f08f7e1cc9c21d17128f8c2f10f6c4272d8d550b21985b21",
+        "@contrib/gnss::GNSS_MIA_M10Q|u-blox|MIA-M10Q-00B|contrib_gnss::FP_Ublox_MIA_M10Q_MLGA53_45x45mm|contrib_gnss::MIA_M10Q[-]|10c63eb92f8f9d8d5cb02c643e40817f4f9fcc3a59520c37e30368f3744f8ed9",
         "@contrib/haptic::HAPTIC_AW86224|Awinic|AW86224AFCR|contrib_haptic::QFN9N40P137X137|contrib_haptic::AW86224[-]|a243e2e20b41f64545620918dcbc20ab5293f487c3db74df83d7ced63e6bcbbc",
         "@contrib/haptic::HAPTIC_DRV2605|Texas Instruments|DRV2605YZFR|contrib_haptic::BGA9C50P3X3_145X145X50N|contrib_haptic::DRV2605[-]|3f27e5ab72d051a631cca7886c663c47443161dde6e7d695fa3fe279a9278c99",
+        "@contrib/imu::IMU_BHI260AP|Bosch Sensortec|BHI260AP|contrib_imu::LGA44P40_360X410|contrib_imu::BHI260AP[-]|ee1867a4965abf5cebcdd6645b1730f58f27b9ac87615d687c2c5113aac55cbb",
+        "@contrib/io-expander::IOEXP_XL9555|Xinluda|XL9555|contrib_io_expander::SOP24P65X640X120N|contrib_io_expander::XL9555[TSSOP24]|828026a20b79c80dc8710194390ea3c1f0babb682b9105268ed7e25548088c9e",
         "@contrib/ir-emitter::IR_VSMY14940|Vishay|VSMY14940|contrib_ir_emitter::FP_VSMY14940_3P0X2P51mm|contrib_ir_emitter::VSMY14940[-]|47809dba08bd124beed8a95e1a84adc2edb8a56869dfd3541499756a90857b46",
         "@contrib/keyscan::KEYSCAN_TCA8418|Texas Instruments|TCA8418RTWR|contrib_keyscan::QFN24N50P400X400_1EP245X245|contrib_keyscan::TCA8418[-]|e6a3ac51dc59733ef5b19704192c0a1532dd283277c3729ac36c7297f3dcdcef",
         "@contrib/ldo::LDO_RT9080_33|Richtek|RT9080-33GJ5|contrib_ldo::SOT5P95X290X160N|contrib_ldo::RT9080[TSOT235]|6dbd8af8e6a20e00cb2e3ffa13af396f04f9aa9c5104208ea2d9b5f9f223f543",
+        "@contrib/ldo::LDO_RT9080_33_ZQFN|Richtek|RT9080-33GQZ|contrib_ldo::FP_Richtek_ZQFN4L_1X1|contrib_ldo::RT9080[ZQFN4L]|14066b95d4fc1864b8f120c80b2b0632482e810d7e21c61c97c40f36768e4565",
+        "@contrib/ldo::LDO_XC6206P182MR|Torex Semiconductor|XC6206P182MR-G|contrib_ldo::SOT3P190X290X160N|contrib_ldo::XC6206[SOT23]|0e5219461d83760afc2356ad46efb87eeb2e841033237fefe2cf164633d6fd8e",
         "@contrib/led-driver::LEDDRV_AW21009|Awinic|AW21009QNR|contrib_led_driver::QFN20N40P300X300_1EP170X170|contrib_led_driver::AW21009[-]|14b2dff0bbf6db9eaa321f200c693958ddf42654d78aab634dd7deb286c7f11a",
         "@contrib/level-shifter::LS_RS0104|Run-IC|RS0104YQ|soic::SOP14P65X640X120N|contrib_level_shifter::RS0104[TSSOP14]|bfbb765be1b02fb0c0bf15d35ffada722b9082bb2558410aa599a7ad7a3d6503",
+        "@contrib/level-shifter::LS_RS0104_QFN12_2X1P7|Run-IC|RS0104YUTQH12|contrib_level_shifter::QFN12N40P200X170|contrib_level_shifter::RS0104[QFN12_2X1P7]|dcfe43c301b14263277a06f5a935ccd7d8889dee8864bd231df586bb5acc9a38",
+        "@contrib/level-shifter::LS_RS0104_QFN12_2X2|Run-IC|RS0104YTQE12|contrib_level_shifter::QFN12N40P200X200_1EP120X120|contrib_level_shifter::RS0104[QFN12_2X2]|e3fffe03513c199b7e90cbfecbda27af40e8ff25972c19f6aadf0134e0780ca8",
+        "@contrib/level-shifter::LS_RS0104_QFN14|Run-IC|RS0104YTQF14|contrib_level_shifter::QFN14N50P350X350_1EP200X150|contrib_level_shifter::RS0104[QFN14]|3630fb2e789c29f2450aec1bd2bd6238985bd13cd5216dc4d4b0abe693f24f46",
         "@contrib/lora::LORA_SX1262|Semtech|SX1262IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1262[-]|0283921c57536ef05472323278e94728e22d738f6ff31b8937a11f8df12a734c",
         "@contrib/lora::LORA_SX1280|Semtech|SX1280IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1280[-]|57f667bbeac1ea0682f2b5ef0b09d53da8e0b4d9d7d644a9348b5721dc9da567",
         "@contrib/nfc::NFC_ST25R3916|STMicroelectronics|ST25R3916-AQET|contrib_nfc::QFN32N50P500X500_1EP345X345|contrib_nfc::ST25R3916[-]|aa52ed734bb60338e6a1457e28efbfae87a0f33826c43894528c3aa4c6f3cb22",
-        "@contrib/rtc::RTC_PCF85063AT|NXP|PCF85063AT/AY|contrib_rtc::SOIC8P127X600X175N|contrib_rtc::PCF85063A[SO8]|fb7f2ef67e621b0c07acd144d8763a39525348b75f78bed4a4249b89f322297d",
-        "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|fb7f2ef67e621b0c07acd144d8763a39525348b75f78bed4a4249b89f322297d",
+        "@contrib/rtc::RTC_PCF85063AT|NXP|PCF85063AT/AY|contrib_rtc::SOIC8P127X600X175N|contrib_rtc::PCF85063A[SO8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
+        "@contrib/rtc::RTC_PCF85063ATL|NXP|PCF85063ATL/1,118|contrib_rtc::FP_NXP_DFN2626_10_SOT1197_1|contrib_rtc::PCF85063A[DFN10]|0adb4e66d4b7917d6471953d8775cc5a085ed22aa53452b53826f8f1ad495abc",
+        "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
         "@contrib/sd-card::CONN_MICROSD|Wurth Elektronik|693070010811|contrib_sd_card::FP_MicroSD_Wurth_693070010811|contrib_sd_card::MICROSD_SOCKET[-]|a927f96998d32e2e6ae630deb905da79cb9bdf0b7d504ee70441b294296dcec4",
+        "@contrib/sf32::MCU_SF32LB52EUB6|SiFli Technologies|SF32LB52EUB6|contrib_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7|contrib_sf32::SF32LB52X[-]|11de47e07e71b155bf398a53e99c7011ce044a580436db4bab4df7a8a7c69be5",
     ]
     .into_iter()
     .map(str::to_string)

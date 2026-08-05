@@ -1,5 +1,5 @@
 // Analog Devices MAX98357A: PCM I2S Class D amplifier, 3.2W, 2.5-5.5V
-// (datasheet rev 13). TQFN-16 + EP (pin EP, not internally connected but
+// (datasheet rev 16). TQFN-16 + EP (pin EP, not internally connected but
 // recommended for thermal). Pin description p15.
 
 #[doc("docs/max98357a.pdf")]
@@ -7,7 +7,7 @@ pub device MAX98357A {
     pins {
         optional DIN: 1 [input] // digital data input (p15)
         optional GAIN_SLOT: 2 [input] // gain + channel select (p15)
-        optional GND3: 3 [power_in] // ground (p15)
+        required GND3: 3 [power_in] // ground (p15)
         optional SD_MODE: 4 [input] // shutdown + channel select (p15)
         optional NC5: 5 [passive] // no connection (p15)
         optional NC6: 6 [passive]
@@ -16,16 +16,64 @@ pub device MAX98357A {
         optional NC12: 12 [passive]
         optional NC13: 13 [passive]
         optional LRCLK: 14 [input] // I2S frame clock (p15)
-        optional GND15: 15 [power_in]
+        required GND15: 15 [power_in]
         optional BCLK: 16 [input] // bit clock (p15)
-        optional GND11: 11 [power_in]
+        required GND11: 11 [power_in]
         optional OUTN: 10 [output] // negative speaker output (p15)
-        optional EP: EP [passive] // unnumbered, internally NC; ground for thermal relief (p15)
+        required EP: EP [passive] // internally NC, but must join solid ground for thermal relief (p15)
     }
 }
 
 impl IC for MAX98357A {}
 
-// No public part binding: MAX98357AETE+ uses Analog Devices land pattern
-// 90-0031. The datasheet references that separate drawing but does not embed
-// its dimensions, so the unrelated generic QFN land must not be substituted.
+#[doc("docs/max98357a.pdf")]
+pub part AMP_MAX98357A: MAX98357A {
+    primary { mfr: "Analog Devices", mpn: "MAX98357AETE+", footprint: QFN16N50P300X300_1EP123X123 }
+}
+
+// Analog Devices/Maxim land pattern 90-0031 rev C, for package codes
+// T1633-4/T1633+4, gives 0.80 x 0.30 mm perimeter lands on 0.50 mm pitch,
+// opposing row centres 2.85 mm apart, and a 1.23 mm square exposed land.
+// Official source (retrieved 2026-08-05; SHA-256
+// 5661318725986f79e664adb5fd24d80c2b444c1d48d3aa4c1b0d51ebfa53f4c8):
+// https://mds.analog.com/api/public/content/90-0031.pdf
+pub pad P_MAX98357A_TQFN_LEAD {
+    shape: rect
+    size: (0.8mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_MAX98357A_TQFN_EP {
+    shape: rect
+    size: (1.23mm, 1.23mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Pin numbering follows the datasheet top view: pin 1 is the lower-left
+// terminal and numbers advance counter-clockwise around the package.
+pub footprint QFN16N50P300X300_1EP123X123 {
+    pad 1: P_MAX98357A_TQFN_LEAD at (-0.75mm, 1.425mm) rotate 90
+    pad 2: P_MAX98357A_TQFN_LEAD at (-0.25mm, 1.425mm) rotate 90
+    pad 3: P_MAX98357A_TQFN_LEAD at (0.25mm, 1.425mm) rotate 90
+    pad 4: P_MAX98357A_TQFN_LEAD at (0.75mm, 1.425mm) rotate 90
+    pad 5: P_MAX98357A_TQFN_LEAD at (1.425mm, 0.75mm)
+    pad 6: P_MAX98357A_TQFN_LEAD at (1.425mm, 0.25mm)
+    pad 7: P_MAX98357A_TQFN_LEAD at (1.425mm, -0.25mm)
+    pad 8: P_MAX98357A_TQFN_LEAD at (1.425mm, -0.75mm)
+    pad 9: P_MAX98357A_TQFN_LEAD at (0.75mm, -1.425mm) rotate 90
+    pad 10: P_MAX98357A_TQFN_LEAD at (0.25mm, -1.425mm) rotate 90
+    pad 11: P_MAX98357A_TQFN_LEAD at (-0.25mm, -1.425mm) rotate 90
+    pad 12: P_MAX98357A_TQFN_LEAD at (-0.75mm, -1.425mm) rotate 90
+    pad 13: P_MAX98357A_TQFN_LEAD at (-1.425mm, -0.75mm)
+    pad 14: P_MAX98357A_TQFN_LEAD at (-1.425mm, -0.25mm)
+    pad 15: P_MAX98357A_TQFN_LEAD at (-1.425mm, 0.25mm)
+    pad 16: P_MAX98357A_TQFN_LEAD at (-1.425mm, 0.75mm)
+    pad EP: P_MAX98357A_TQFN_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 4.2mm) }
+    silkscreen_ref { at: (0mm, -2.25mm) }
+}

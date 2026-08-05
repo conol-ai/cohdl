@@ -1,12 +1,11 @@
-// HPD16A: LoRa sub-GHz transceiver module based on Semtech SX1262.
-// The available T-SX1262 module sheet supports this 16-pin interface, but it
-// does not establish an exact HPD16A ordering identity or a recommended PCB
-// land pattern.
+// HPDTek HPD16A Series: 16-pin LoRa sub-GHz transceiver module based on the
+// Semtech SX1262. The T-SX1262 product sheet identifies the module in its
+// mechanical drawing and block diagram and establishes the pin assignment
+// below. It does not give a frequency-specific orderable code or a recommended
+// PCB land pattern.
 //
-// NOTE: On the schematic this module is designated
-// "HPB16B3" (U3, 12 signals wired + 4 NC). The HPD16A datasheet is the
-// closest public match — identical SX1262 basis, same pad count. Confirm
-// against a physical module photo before treating HPD16A == HPB16B3.
+// HPD16A is not HPB16B3. LilyGO's official T-Display-SF32 V1.0 schematic shows
+// HPB16B3 as a physically distinct 12-pin module with a different pin order.
 
 #[doc("docs/hpd16a-tsx1262.pdf")]
 pub device HPD16A {
@@ -32,6 +31,8 @@ pub device HPD16A {
 
 impl IC for HPD16A {}
 
-// No part declaration: the source is suitable for the logical interface only.
-// Restore a purchasable part only after an exact manufacturer identity and
-// recommended land pattern are available.
+// No part declaration: the product sheet gives complete component-side
+// dimensions (16 x 16 mm body, eight castellations per side, 2 mm pitch), but
+// no recommended PCB land pattern, and "HPD16A Series" does not distinguish
+// the frequency/matching variant. Do not restore the former inferred footprint
+// or equate this device with HPB16B3.

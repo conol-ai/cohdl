@@ -2,8 +2,10 @@
 //
 // Pad names verified against the KiCad official footprint
 // Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12
-// (pads A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12; the single KiCad
-// shield pad `SH` becomes SH1..SH4 — CoHDL requires unique pad numbers, E806).
+// (pads A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12). This library
+// models the four shield tabs as the distinct physical pins SH1..SH4 under one
+// SHIELD role; this is a device-model choice, not a footprint-number uniqueness
+// requirement (CoHDL also permits repeated placements of one electrical pin).
 
 #[doc("docs/hro-type-c-31-m-12-family-drawing.pdf")]
 pub device USB_C_Receptacle_2_0 {
@@ -77,8 +79,9 @@ pub pad P_USBC_Shield_B {
 // land pattern has 16 SMD contacts in one row at y=-4.045 (top-row A* and
 // bottom-row B* contacts overlap where their nets are common), four plated
 // shield/mounting slots, and two non-plated locating holes. The four equivalent
-// shield lands use unique SH1..SH4 numbers because CoHDL requires unique pad
-// identifiers (E806). Pad names otherwise preserve HRO's contact designators.
+// shield lands retain this device's distinct SH1..SH4 physical-pin numbers;
+// pad names otherwise preserve HRO's contact designators. Repeated electrical
+// pad numbers are valid, but would describe a different one-pin shield model.
 //
 // The locating holes take the diameter from HRO's own RECOMMEND P.C.B LAYOUT
 // (5.78 apart, Ø0.60) rather than KiCad's Ø0.65 for the same feature: the

@@ -136,6 +136,48 @@ pub enum PadPlating {
     PlatedThroughHole,
 }
 
+/// One 45-degree corner cut on an otherwise rectangular pad.  The vocabulary
+/// is intentionally bounded: it covers manufacturer land patterns that call
+/// out a single orientation/chamfer feature without opening the pad grammar to
+/// arbitrary, backend-dependent polygons.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PadCorner {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
+
+impl PadCorner {
+    pub fn name(self) -> &'static str {
+        match self {
+            PadCorner::TopLeft => "top_left",
+            PadCorner::TopRight => "top_right",
+            PadCorner::BottomLeft => "bottom_left",
+            PadCorner::BottomRight => "bottom_right",
+        }
+    }
+
+    pub fn from_name(s: &str) -> Option<PadCorner> {
+        Some(match s {
+            "top_left" => PadCorner::TopLeft,
+            "top_right" => PadCorner::TopRight,
+            "bottom_left" => PadCorner::BottomLeft,
+            "bottom_right" => PadCorner::BottomRight,
+            _ => return None,
+        })
+    }
+}
+
+/// Paste override for an SMD pad.  Absence on [`PadDef`] preserves the
+/// historical behaviour (paste equals copper); `None` suppresses paste and
+/// `Rect` emits one centered rectangular stencil aperture.
+#[derive(Debug, Clone)]
+pub enum PadPaste {
+    None,
+    Rect(UnitValue, UnitValue),
+}
+
 impl PadPlating {
     pub fn name(self) -> &'static str {
         match self {
@@ -166,6 +208,14 @@ pub struct PadDef {
     pub plating: Option<(PadPlating, Span)>,
     /// Required iff `plating: plated_through_hole`.
     pub drill: Option<(PadDrill, Span)>,
+    /// Optional single 45-degree corner cut: `(corner, cut length, span)`.
+    pub chamfer: Option<(PadCorner, UnitValue, Span)>,
+    /// Optional radius applied to all four corners of a rectangular SMD pad.
+    pub corner_radius: Option<(UnitValue, Span)>,
+    /// Optional local solder-mask expansion around the authored copper shape.
+    pub mask_expansion: Option<(UnitValue, Span)>,
+    /// Optional paste override; absent means paste follows copper.
+    pub paste: Option<(PadPaste, Span)>,
     pub span: Span,
 }
 

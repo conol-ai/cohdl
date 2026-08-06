@@ -454,6 +454,16 @@ export default function App() {
     [selNet, model],
   )
 
+  /** Selected instance's logical pin -> net, for the clickable pin table. */
+  const pinNetOf = useMemo(() => {
+    const m = new Map<string, string>()
+    if (!selInst || !model) return m
+    for (const n of model.nets)
+      for (const mem of n.members)
+        if (mem.instance_path === selInst.path) m.set(mem.logical_pin, n.name)
+    return m
+  }, [selInst, model])
+
   // ---- search: designator / device / MPN / net -> select + fly to it
   const rf = useRef<ReactFlowInstance | null>(null)
   const nodeCenter = useCallback(
@@ -870,33 +880,61 @@ export default function App() {
                   </a>
                 </div>
               )}
-              <table style={{ borderCollapse: 'collapse', marginTop: 8, width: '100%' }}>
+              <div style={{ color: '#6b7280', marginTop: 8, fontSize: 11 }}>
+                click a pin to light its net on the board
+              </div>
+              <table style={{ borderCollapse: 'collapse', marginTop: 2, width: '100%' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', color: '#6b7280' }}>
                     <th>pin</th>
                     <th>#</th>
-                    <th>role</th>
+                    <th>net</th>
                     <th>state</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {selInst.pins.map((p) => (
-                    <tr key={p.logical} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}` }}>
-                      <td>{p.logical}</td>
-                      <td>{p.numbers.join(',')}</td>
-                      <td>{p.role}</td>
-                      <td style={{ color: p.connected ? '#10b981' : p.nc ? '#9ca3af' : '#d97706' }}>
-                        {p.connected ? 'wired' : p.nc ? 'nc' : 'unused'}
-                      </td>
-                    </tr>
-                  ))}
+                  {selInst.pins.map((p) => {
+                    const net = pinNetOf.get(p.logical)
+                    const on = !!net && net === selNet
+                    return (
+                      <tr
+                        key={p.logical}
+                        onClick={() => net && setSelNet(on ? '' : net)}
+                        style={{
+                          borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}`,
+                          cursor: net ? 'pointer' : 'default',
+                          background: on ? '#22d3ee22' : undefined,
+                          color: on ? '#22d3ee' : undefined,
+                          fontWeight: on ? 700 : 400,
+                        }}
+                      >
+                        <td>{p.logical}</td>
+                        <td>{p.numbers.join(',')}</td>
+                        <td style={{ color: on ? '#22d3ee' : net ? netWireColor(net, dark) : '#6b7280' }}>
+                          {net ?? '—'}
+                        </td>
+                        <td style={{ color: on ? '#22d3ee' : p.connected ? '#10b981' : p.nc ? '#9ca3af' : '#d97706' }}>
+                          {p.connected ? 'wired' : p.nc ? 'nc' : 'unused'}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </>
           )}
-          {selNetObj && !selInst && (
+          {selNetObj && (
             <>
-              <h3 style={{ margin: '0 0 4px', color: '#0ea5e9' }}>net {selNetObj.name}</h3>
+              <h3
+                style={{
+                  margin: selInst ? '14px 0 4px' : '0 0 4px',
+                  paddingTop: selInst ? 10 : 0,
+                  borderTop: selInst ? `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}` : undefined,
+                  color: '#22d3ee',
+                }}
+              >
+                net {selNetObj.name}
+              </h3>
               <div style={{ color: '#6b7280' }}>
                 {selNetObj.is_gnd ? 'ground' : selNetObj.voltage ? `rail ${selNetObj.voltage}` : 'signal'} ·{' '}
                 {selNetObj.members.length} pins

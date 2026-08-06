@@ -42,3 +42,9 @@ byte-for-byte as downloaded; none was regenerated or optimized.
 All PDFs passed `pdfinfo`, Poppler text extraction, and full-page rendering.
 The ABM8 package/land page, ABM8-272-T3 identity/electrical/mechanical pages,
 Hosonic E1SB sheet, and ABS07 package/land page were visually inspected.
+
+## 40MHz (ESP32-S3 main crystal, 3225 4-pad)
+
+| Local file | Covered item | MPN | Note |
+|---|---|---|---|
+| `hosonic-e1sb.pdf` | `XTAL_40MHZ` | `E1SB40E001G00E` | Hosonic E1SB family naming; confirm vendor stock before fitting. 10pF load class, C1=C4 10pF + 24nH series per ESP32-S3 HW guidelines. |

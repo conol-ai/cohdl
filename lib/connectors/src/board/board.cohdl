@@ -1,0 +1,344 @@
+// Board-level connectors: a 0.5mm FPC
+// socket for the external camera (J1) and one for display+touch (J2), IPEX
+// MHF4 RF coax sockets for the 4G/WiFi/BT antennas (J4 x3), a 2-pin battery
+// connector (J6), and a 4-pin magnetic pogo charge connector (J8). Parts are
+// bound to real, in-stock MPNs with manufacturer drawings in docs/; the
+// footprints are generic land patterns sized for the stated pitches — verify
+// against the bound drawing before fabrication.
+
+// 24-pin 0.5mm pitch FPC socket. Standard one-sided FPC: pins 1-24 are
+// bidirectional signals assigned by the board author.
+#[doc("docs/README.md")]
+pub device FPC24_0P5 {
+    pins {
+        optional P1: 1 [bidirectional] // fpc pin 1
+        optional P2: 2 [bidirectional] // fpc pin 2
+        optional P3: 3 [bidirectional] // fpc pin 3
+        optional P4: 4 [bidirectional] // fpc pin 4
+        optional P5: 5 [bidirectional] // fpc pin 5
+        optional P6: 6 [bidirectional] // fpc pin 6
+        optional P7: 7 [bidirectional] // fpc pin 7
+        optional P8: 8 [bidirectional] // fpc pin 8
+        optional P9: 9 [bidirectional] // fpc pin 9
+        optional P10: 10 [bidirectional] // fpc pin 10
+        optional P11: 11 [bidirectional] // fpc pin 11
+        optional P12: 12 [bidirectional] // fpc pin 12
+        optional P13: 13 [bidirectional] // fpc pin 13
+        optional P14: 14 [bidirectional] // fpc pin 14
+        optional P15: 15 [bidirectional] // fpc pin 15
+        optional P16: 16 [bidirectional] // fpc pin 16
+        optional P17: 17 [bidirectional] // fpc pin 17
+        optional P18: 18 [bidirectional] // fpc pin 18
+        optional P19: 19 [bidirectional] // fpc pin 19
+        optional P20: 20 [bidirectional] // fpc pin 20
+        optional P21: 21 [bidirectional] // fpc pin 21
+        optional P22: 22 [bidirectional] // fpc pin 22
+        optional P23: 23 [bidirectional] // fpc pin 23
+        optional P24: 24 [bidirectional] // fpc pin 24
+    }
+}
+
+impl Connector for FPC24_0P5 {}
+
+// 1-pin RF coax socket, IPEX MHF4 class (used for 4G/WiFi/BT antenna feeds).
+#[doc("docs/README.md")]
+pub device IPEX_MHF4 {
+    pins {
+        required RF1: 1 [bidirectional] // RF signal, 50 ohm coax (center pin)
+    }
+}
+
+impl Connector for IPEX_MHF4 {}
+
+// 2-pin battery spring clip.
+#[doc("docs/README.md")]
+pub device BAT_CONN_2P {
+    pins {
+        required P1: 1 [power_in] // battery positive
+        required P2: 2 [power_in] // battery negative
+    }
+}
+
+impl Connector for BAT_CONN_2P {}
+
+// 4-pin magnetic pogo charge connector: two power pins plus two passive
+// (data / identification) pins.
+#[doc("docs/README.md")]
+pub device MAG_CONN_4P {
+    pins {
+        required P1: 1 [power_in] // charge positive
+        required P2: 2 [power_in] // charge negative
+        optional P3: 3 [passive] // data / ID
+        optional P4: 4 [passive] // data / ID
+    }
+}
+
+impl Connector for MAG_CONN_4P {}
+
+// 2-pin analog MEMS microphone module terminal: audio output + supply.
+// P1 carries the mic's analog OUT (board-side 1uF DC-block to the codec ADC,
+// note 13.2); P2 is the mic VDD (board-side 100 ohm series + 100nF decouple).
+// Mic module GND is on the module side.
+#[doc("docs/README.md")]
+pub device MIC_CONN_2P {
+    pins {
+        required P1: 1 [bidirectional] // analog audio out
+        required P2: 2 [power_in] // mic VDD
+    }
+}
+
+impl Connector for MIC_CONN_2P {}
+
+// 10-pin debug/test FPC port (note §5 J7: 8-10pin 0.5mm FPC — SWD 4pin +
+// UART 3pin + VCC/GND + BOOT). SWDIO/SWCLK go to the ESP32-S3 JTAG
+// (MTDI/MTMS); UART taps the SF32 DBG_UART (PA18/19); BOOT drives the
+// ESP32-S3 GPIO0 strap through the design's pull-up net; NRST is the
+// ESP32-S3 EN (reset).
+#[doc("docs/README.md")]
+pub device DEBUG_CONN_10P {
+    pins {
+        required SWDIO: 1 [bidirectional] // SWD data / JTAG TMS
+        required SWCLK: 2 [bidirectional] // SWD clock / JTAG TCK
+        required UART_TX: 3 [bidirectional] // SF32 DBG_UART TX (PA18)
+        required UART_RX: 4 [bidirectional] // SF32 DBG_UART RX (PA19)
+        required BOOT: 5 [input] // ESP32-S3 GPIO0 strap
+        required NRST: 6 [bidirectional] // ESP32-S3 EN
+        required VCC: 7 [power_out] // board 3.3V reference for the probe
+        required GND: 8 [power_in] // ground
+        required GND2: 9 [power_in] // ground
+        required GND3: 10 [power_in] // ground
+    }
+}
+
+impl Connector for DEBUG_CONN_10P {}
+
+// 2-pin speaker terminal for the NS4168 Class-D differential outputs
+// (AMP_OUTP/AMP_OUTN → SPK.P1/P2).
+#[doc("docs/README.md")]
+pub device SPK_2P {
+    pins {
+        required P1: 1 [passive] // speaker + (amp VOP)
+        required P2: 2 [passive] // speaker - (amp VON)
+    }
+}
+
+impl Connector for SPK_2P {}
+
+#[doc("docs/README.md")]
+pub part CONN_FPC24_0P5: FPC24_0P5 {
+    primary { mfr: "HRS", mpn: "FH12-24S-0.5SH(55)", footprint: FP_FPC24_0P5 }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_IPEX_MHF4: IPEX_MHF4 {
+    primary { mfr: "Linx", mpn: "CONMHF4-SMD-G-T", footprint: FP_IPEX_MHF4 }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_BAT_2P: BAT_CONN_2P {
+    primary { mfr: "JST", mpn: "S2B-XH-A(LF)(SN)", footprint: FP_BAT_2P_2P5 }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_MAG_4P: MAG_CONN_4P {
+    primary { mfr: "Xinyangze", mpn: "YZP0048-20048-04025-03", footprint: FP_MAG_4P }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_MIC_2P: MIC_CONN_2P {
+    primary { mfr: "Generic", mpn: "MEMS MIC 2P", footprint: FP_MIC_2P }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_DEBUG_10P: DEBUG_CONN_10P {
+    primary { mfr: "HRS", mpn: "FH12-10S-0.5SH(55)", footprint: FP_FPC10_0P5 }
+}
+
+#[doc("docs/README.md")]
+pub part CONN_SPK_2P: SPK_2P {
+    primary { mfr: "Generic", mpn: "SPK 2P 1.25mm", footprint: FP_SPK_2P }
+}
+
+// 10-pin 0.5mm FPC land (HRS FH12-10S-0.5SH) — 0.3 x 0.7 mm pads at
+// 0.5 mm pitch, two rows (contacts 1-10) per FH12 series.
+pub pad P_FPC10_0P5_PAD {
+    shape: rect
+    size: (0.3mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_FPC10_0P5 {
+    pad 1: P_FPC10_0P5_PAD at (-2.25mm, 0mm)
+    pad 2: P_FPC10_0P5_PAD at (-1.75mm, 0mm)
+    pad 3: P_FPC10_0P5_PAD at (-1.25mm, 0mm)
+    pad 4: P_FPC10_0P5_PAD at (-0.75mm, 0mm)
+    pad 5: P_FPC10_0P5_PAD at (-0.25mm, 0mm)
+    pad 6: P_FPC10_0P5_PAD at (0.25mm, 0mm)
+    pad 7: P_FPC10_0P5_PAD at (0.75mm, 0mm)
+    pad 8: P_FPC10_0P5_PAD at (1.25mm, 0mm)
+    pad 9: P_FPC10_0P5_PAD at (1.75mm, 0mm)
+    pad 10: P_FPC10_0P5_PAD at (2.25mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6mm, 2.4mm) }
+    silkscreen_ref { at: (0mm, -1.8mm) }
+}
+
+// 0.5mm-pitch FPC land: narrow SMD pad per contact.
+pub pad P_FPC24_0P5_PAD {
+    shape: rect
+    size: (0.3mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// IPEX MHF4 center contact: single circular SMD pad.
+pub pad P_IPEX_MHF4_RF {
+    shape: circle
+    size: (1.0mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Battery spring clip land: larger current-carrying SMD pad.
+pub pad P_BAT_2P_PAD {
+    shape: rect
+    size: (1.2mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Magnetic pogo land: circular SMD pad.
+pub pad P_MAG_4P_PAD {
+    shape: circle
+    size: (1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// MEMS mic module land: rectangular SMD pad.
+pub pad P_MIC_2P_PAD {
+    shape: rect
+    size: (0.8mm, 1.1mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Debug/test-point land: rectangular SMD pad.
+pub pad P_DEBUG_4P_PAD {
+    shape: rect
+    size: (0.9mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Speaker terminal land: slightly larger than the battery land for solder
+// strain relief on the speaker wire.
+pub pad P_SPK_2P_PAD {
+    shape: rect
+    size: (1.4mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// 24 contacts on one side, 0.5mm pitch, centered on the origin:
+// x = -5.75 + i*0.5 for pins 1-24.
+pub footprint FP_FPC24_0P5 {
+    pad 1: P_FPC24_0P5_PAD at (-5.75mm, 0mm)
+    pad 2: P_FPC24_0P5_PAD at (-5.25mm, 0mm)
+    pad 3: P_FPC24_0P5_PAD at (-4.75mm, 0mm)
+    pad 4: P_FPC24_0P5_PAD at (-4.25mm, 0mm)
+    pad 5: P_FPC24_0P5_PAD at (-3.75mm, 0mm)
+    pad 6: P_FPC24_0P5_PAD at (-3.25mm, 0mm)
+    pad 7: P_FPC24_0P5_PAD at (-2.75mm, 0mm)
+    pad 8: P_FPC24_0P5_PAD at (-2.25mm, 0mm)
+    pad 9: P_FPC24_0P5_PAD at (-1.75mm, 0mm)
+    pad 10: P_FPC24_0P5_PAD at (-1.25mm, 0mm)
+    pad 11: P_FPC24_0P5_PAD at (-0.75mm, 0mm)
+    pad 12: P_FPC24_0P5_PAD at (-0.25mm, 0mm)
+    pad 13: P_FPC24_0P5_PAD at (0.25mm, 0mm)
+    pad 14: P_FPC24_0P5_PAD at (0.75mm, 0mm)
+    pad 15: P_FPC24_0P5_PAD at (1.25mm, 0mm)
+    pad 16: P_FPC24_0P5_PAD at (1.75mm, 0mm)
+    pad 17: P_FPC24_0P5_PAD at (2.25mm, 0mm)
+    pad 18: P_FPC24_0P5_PAD at (2.75mm, 0mm)
+    pad 19: P_FPC24_0P5_PAD at (3.25mm, 0mm)
+    pad 20: P_FPC24_0P5_PAD at (3.75mm, 0mm)
+    pad 21: P_FPC24_0P5_PAD at (4.25mm, 0mm)
+    pad 22: P_FPC24_0P5_PAD at (4.75mm, 0mm)
+    pad 23: P_FPC24_0P5_PAD at (5.25mm, 0mm)
+    pad 24: P_FPC24_0P5_PAD at (5.75mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (12.8mm, 2.8mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Single circular RF land at the connector center.
+pub footprint FP_IPEX_MHF4 {
+    pad 1: P_IPEX_MHF4_RF at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.0mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Two lands at 2.5mm pitch.
+pub footprint FP_BAT_2P_2P5 {
+    pad 1: P_BAT_2P_PAD at (-1.25mm, 0mm)
+    pad 2: P_BAT_2P_PAD at (1.25mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.9mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Four pogo lands in a row at 1.5mm pitch.
+pub footprint FP_MAG_4P {
+    pad 1: P_MAG_4P_PAD at (-2.25mm, 0mm)
+    pad 2: P_MAG_4P_PAD at (-0.75mm, 0mm)
+    pad 3: P_MAG_4P_PAD at (0.75mm, 0mm)
+    pad 4: P_MAG_4P_PAD at (2.25mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.2mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Two lands at 1.5mm pitch.
+pub footprint FP_MIC_2P {
+    pad 1: P_MIC_2P_PAD at (-0.75mm, 0mm)
+    pad 2: P_MIC_2P_PAD at (0.75mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.0mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Four debug lands in a row at 1.27mm pitch.
+pub footprint FP_DEBUG_4P_1P27 {
+    pad 1: P_DEBUG_4P_PAD at (-1.905mm, 0mm)
+    pad 2: P_DEBUG_4P_PAD at (-0.635mm, 0mm)
+    pad 3: P_DEBUG_4P_PAD at (0.635mm, 0mm)
+    pad 4: P_DEBUG_4P_PAD at (1.905mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.4mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+
+// Two lands at 1.25mm pitch.
+pub footprint FP_SPK_2P {
+    pad 1: P_SPK_2P_PAD at (-0.625mm, 0mm)
+    pad 2: P_SPK_2P_PAD at (0.625mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.0mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

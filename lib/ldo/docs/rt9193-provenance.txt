@@ -1,0 +1,15 @@
+RT9193 — Richtek 300mA LDO, SOT-23-5
+========================================
+
+Pinout (SOT-23-5): 1=IN, 2=GND, 3=EN, 4=BP, 5=OUT.
+
+Output voltage variants: RT9193-15 (1.5V), RT9193-28 (2.8V).
+
+Datasheet: DS9193-18 (June 2022), committed locally as rt9193.pdf
+(SHA-256 bbab3a6dcb12085e8b2988d10d25f34a9fad4b3a5e1cdbcdb7b4314efc55f43f).
+Official source:
+https://www.richtek.com/assets/product_file/RT9193/DS9193-18.pdf
+
+Used in the three-controller watch design to supply OV5640 camera rails:
+- RT9193-15 -> DVDD 1.5V
+- RT9193-28 -> AVDD 2.8V

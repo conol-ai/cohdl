@@ -1,0 +1,21 @@
+// 40MHz main crystal for the ESP32-S3 (and other 40MHz MCUs). 3225 4-pad
+// package, 10pF load class per the ESP32-S3 hardware design guidelines
+// (C1=C4 10pF load caps + 24nH series inductor on XTAL_N, trimmed by
+// measurement). MPN follows the Hosonic E1SB naming scheme used by the
+// 48MHz part in this package (E1SB40E001G00E); confirm the exact vendor
+// stock part against the distributor list before fitting.
+
+#[doc("docs/hosonic-e1sb.pdf")]
+pub device Crystal40MHz {
+    pins {
+        required XIN: 1 [passive]
+        required GND: 2, 4 [passive]
+        required XOUT: 3 [passive]
+    }
+}
+impl Crystal for Crystal40MHz {}
+
+#[doc("docs/hosonic-e1sb.pdf")]
+pub part XTAL_40MHZ: Crystal40MHz {
+    primary { mfr: "Hosonic", mpn: "E1SB40E001G00E", footprint: FP_Crystal_3225 }
+}

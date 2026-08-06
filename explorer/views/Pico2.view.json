@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "design": "Pico2",
+  "views": [
+    {
+      "name": "Blocks",
+      "regions": [
+        { "name": "USB Connector", "members": ["J3", "U4", "R18", "R19", "R3", "R4"] },
+        { "name": "VSYS Input", "members": ["D1", "R12", "R11", "agg:GND + VSYS"] },
+        { "name": "VSYS Monitor", "members": ["Q1", "R6", "R15", "R16", "C17"] },
+        { "name": "3V3 Buck", "members": ["U3", "L2", "R8", "R5", "agg:GND + V3V3"] },
+        { "name": "MCU Core", "members": ["U2", "L1", "C16", "agg:host:Pico2::mcu", "agg:GND + V1V1"] },
+        { "name": "ADC Ref", "members": ["R1", "R13", "C15"] },
+        { "name": "Clock", "members": ["Y1", "C18", "R17", "C19"] },
+        { "name": "QSPI Flash", "members": ["U1", "agg:host:Pico2::flash"] },
+        { "name": "Boot & Debug", "members": ["SW1", "J2", "R2", "R9", "R10"] },
+        { "name": "User LED", "members": ["D2", "R7"] },
+        { "name": "GPIO Edge", "members": ["J1"] }
+      ]
+    },
+    {
+      "name": "Power",
+      "regions": [
+        { "name": "VBUS Input", "members": ["J3", "D1", "R12", "R11", "agg:GND + VSYS"] },
+        { "name": "VSYS Monitor", "members": ["Q1", "R6", "R15", "R16", "C17"] },
+        { "name": "3V3 Buck-Boost", "members": ["U3", "L2", "R8", "R5", "agg:GND + V3V3"] },
+        { "name": "1V1 Core", "members": ["U2", "L1", "agg:GND + V1V1"] }
+      ]
+    },
+    {
+      "name": "Host/USB",
+      "regions": [
+        { "name": "Connector", "members": ["J3", "R18", "R19"] },
+        { "name": "ESD Protection", "members": ["U4"] },
+        { "name": "Series Termination", "members": ["R3", "R4"] },
+        { "name": "MCU PHY", "members": ["U2"] }
+      ]
+    },
+    {
+      "name": "Debug",
+      "regions": [
+        { "name": "SWD Header", "members": ["J2", "R9", "R10"] },
+        { "name": "Bootsel", "members": ["SW1", "R2"] },
+        { "name": "MCU", "members": ["U2"] }
+      ]
+    }
+  ]
+}

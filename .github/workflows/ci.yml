@@ -79,3 +79,30 @@ jobs:
         run: npx oxlint src test
       - name: Build
         run: npm run build
+
+  # explorer/ — the read-only schematic viewer. Standalone crate + Vite app,
+  # not part of the compiler crate (it depends on serde), so it gets its own
+  # job exactly like registry/ and editors/vscode/.
+  explorer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Extractor tests
+        working-directory: explorer/extractor
+        run: cargo test
+      - name: Extractor clippy
+        working-directory: explorer/extractor
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Web install
+        working-directory: explorer/web
+        run: npm ci || npm install
+      - name: Web typecheck
+        working-directory: explorer/web
+        run: npx tsc --noEmit
+      - name: Web build
+        working-directory: explorer/web
+        run: npm run build

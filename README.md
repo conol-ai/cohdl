@@ -64,6 +64,30 @@ exercising variants, `#[intent]`, and layout constraints).
 
 `cohdl build` writes to `out/` (or `--out-dir`): the KiCad netlist (`<name>.net`), the BOM (`<name>-bom.csv`), the designator lock (`design.lock` in the project root), a `.kicad_mod` per pad-bearing footprint under `out/footprints/` (RFC-018), and — only when the design declares layout metadata — the layout-constraint artifact `<name>-layout.json` (schema: [`docs/layout-json.md`](docs/layout-json.md)). With `--emit ipc2581` it additionally writes the IPC-2581B1 handoff document `<name>.xml` (RFC-015; [`docs/ipc2581.md`](docs/ipc2581.md)). Stale layout/IPC artifacts are removed when their source data is gone (the IPC document only if CoHDL wrote it — its completeness marker establishes ownership).
 
+### Looking at a design
+
+A checked design can be read back as an interactive schematic-style board —
+every instance, net and pin the compiler resolved, searchable and traceable,
+with datasheets and to-scale footprint previews in a side panel. It is a
+read-only projection: the `.cohdl` source stays the only thing that defines
+the circuit.
+
+```sh
+cd explorer/web && npm install && npm run build   # once
+cd ../extractor
+COHDL_LIB=../../lib cargo run --release -- ../../examples/rpi-pico2 \
+    --serve --dist ../web/dist --port 5199        # http://127.0.0.1:5199/
+```
+
+Editing any source file re-extracts and refreshes the page within ~500 ms; a
+source that fails to compile keeps the last good view and shows the
+diagnostics. Extraction, layout and wire routing are deterministic code — the
+same source always draws the same board. An agent's only input is the
+partition file `explorer/views/<Design>.view.json`, which names the page tabs
+and the region each part belongs to; the contract for writing one is
+[`explorer/skills/view-gen/SKILL.md`](explorer/skills/view-gen/SKILL.md).
+See [`explorer/README.md`](explorer/README.md).
+
 ### Exit codes
 
 `0` = clean (warnings allowed), `1` = source diagnostics reported (errors; text on stderr, or one JSON document on stdout with `--json`), `2` = invocation-level failure (bad flags, invalid flag for the command, missing project, design selection, nothing to build) — prose on stderr, never a JSON document (the `E000` class in [`docs/error-codes.md`](docs/error-codes.md)); source diagnostics collected before the failure still render to stderr first. Note: RFC-010's text reserves stderr prose for pre-collection failures, so classifying post-collection selection failures this way is a documented deviation pending a note-side amendment (or a v2 schema envelope).

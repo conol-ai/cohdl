@@ -1,0 +1,50 @@
+// KEMET T520 polymer tantalum capacitors — for the Air780E VBAT bulk cap.
+//
+// Air780E design note §13.2 requires VBAT 100µF polymer tantalum (10V, ESR
+// ~0.7Ω) instead of MLCC: pure MLCC on the VBAT PDN resonates and can
+// drop the module during RF bursts. KEMET T520/T530 fail short-safe (no
+// burning), per note §13.1. The 100µF/10V part here is the T520 series,
+// D case (7343-31), 0.7mm profile, ESR 70mΩ (lower than the 0.7Ω target —
+// better damping margin; the note's 0.7Ω is the upper bound).
+
+#[doc("docs/README.md")]
+pub device PolyTant<C: Capacitance, V: Voltage, T: Tolerance> {
+    variants { D }
+
+    pins[D] {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+
+    spec {
+        capacitance: C
+        voltage_rating: V
+        tolerance: T
+    }
+}
+
+impl TwoTerminal for PolyTant {}
+
+impl Capacitor for PolyTant {}
+
+// KEMET T520D107M010ATE070 — 100µF ±20%, 10V, D case 7343-31, ESR 70mΩ.
+#[doc("docs/README.md")]
+pub part C_T520_100u_10V_D: PolyTant<100uF, 10V, 20%>[D] {
+    primary { mfr: "KEMET", mpn: "T520D107M010ATE070", footprint: FP_T520_D }
+}
+
+// 7343-31 (D case) two-pad land — 2.8 x 2.4 mm pads on a 4.0 mm span,
+// standard KEMET polymer-tantalum D-case land.
+pub pad P_T520_D {
+    shape: rect
+    size: (2.8mm, 2.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_T520_D {
+    pad 1: P_T520_D at (-2.0mm, 0mm)
+    pad 2: P_T520_D at (2.0mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.2mm, 4.6mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}

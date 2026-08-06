@@ -1,0 +1,55 @@
+// MFF2 eUICC (eSIM): 8-contact molded SMD package, 5 x 6 mm (JEDEC MFF2 /
+// GSMA SGP.22, ETSI TS 102 671). 4-wire USIM interface (VCC, RST, CLK, IO)
+// plus GND and three reserved no-connect contacts; connects to the modem's
+// USIM port, e.g. Air780E USIM_VDD/DAT/CLK/RST. 8 bottom contacts arranged
+// in two rows of four, 1.3 mm pitch, 3.2 mm row spacing.
+
+#[doc("docs/README.md")]
+pub device ESIM_MFF2 {
+    pins {
+        required VCC: 1 [power_in] // supply 1.8/3.0V (USIM_VDD)
+        required RST: 2 [input] // reset, active low (USIM_RST)
+        required CLK: 3 [input] // clock (USIM_CLK)
+        required IO: 4 [bidirectional] // data (USIM_DAT)
+        required GND: 5 [power_in] // ground
+        optional NC6: 6 [passive] // reserved contact, no connect
+        optional NC7: 7 [passive] // reserved contact, no connect
+        optional NC8: 8 [passive] // reserved contact, no connect
+    }
+}
+
+impl IC for ESIM_MFF2 {}
+
+#[doc("docs/README.md")]
+pub part ESIM_MFF2_TRUPHONE: ESIM_MFF2 {
+    // Truphone SIM-S-IO3-MFF2-2 (LCSC C5122390): in-stock MFF2 eUICC.
+    // NOTE: pin numbers are this library's logical map (VCC 1, RST 2, CLK 3,
+    // IO 4, GND 5, NC 6-8); verify contact assignment against the bound
+    // eUICC's datasheet before fabrication.
+    primary { mfr: "Truphone", mpn: "SIM-S-IO3-MFF2-2", footprint: FP_ESIM_MFF2_5x6mm }
+}
+
+// MFF2 land pattern: 8 bottom contacts in two rows of four, 0.8 x 0.8 mm,
+// 1.3 mm pitch, 3.2 mm row spacing. Body 5 x 6 mm.
+pub pad P_ESIM_MFF2_PAD {
+    shape: rect
+    size: (0.8mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_ESIM_MFF2_5x6mm {
+    pad 1: P_ESIM_MFF2_PAD at (-1.95mm, -1.6mm)
+    pad 2: P_ESIM_MFF2_PAD at (-0.65mm, -1.6mm)
+    pad 3: P_ESIM_MFF2_PAD at (0.65mm, -1.6mm)
+    pad 4: P_ESIM_MFF2_PAD at (1.95mm, -1.6mm)
+    pad 5: P_ESIM_MFF2_PAD at (-1.95mm, 1.6mm)
+    pad 6: P_ESIM_MFF2_PAD at (-0.65mm, 1.6mm)
+    pad 7: P_ESIM_MFF2_PAD at (0.65mm, 1.6mm)
+    pad 8: P_ESIM_MFF2_PAD at (1.95mm, 1.6mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.6mm, 5.6mm) }
+    silkscreen_ref { at: (0mm, -3.6mm) }
+}

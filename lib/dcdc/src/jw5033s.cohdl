@@ -1,0 +1,48 @@
+// Joulwatt JW5033S: current-mode 18V/2A synchronous step-down converter,
+// adjustable output via FB resistor divider (datasheet R0.88, 2019-03-19).
+// SOT-23-6 (TSOT-23-6). Supplies the Air780E 4G module VBAT rail on the
+// three-watch project (3.8V BUCK, independent from the SF32 supply).
+
+#[doc("docs/jw5033s.pdf")]
+pub device JW5033S {
+    pins {
+        required FB: 1 [input] // feedback: output divider sense (pin table)
+        required EN: 2 [input] // enable, active high (pin table)
+        required IN: 3 [power_in] // power in, 3.7-18V (pin table)
+        required SW: 4 [power_out] // switch output, to buck inductor (pin table)
+        required GND: 5 [power_in] // ground (pin table)
+        required BS: 6 [passive] // bootstrap: 100nF cap to SW (pin table)
+    }
+}
+
+impl IC for JW5033S {}
+
+#[doc("docs/jw5033s.pdf")]
+pub part DCDC_JW5033S: JW5033S {
+    primary { mfr: "Joulwatt", mpn: "JW5033S", footprint: FP_JW5033S_SOT236 }
+}
+
+// SOT-23-6 land (datasheet package drawing): 3 leads per side, 0.95mm pitch,
+// pin 1 upper-left. Same geometry as
+// lib/@contrib/analog-switch/src/rs2257.cohdl (SOT6P95X160X290N); declared
+// locally because footprints are not visible across packages.
+pub pad P_JW5033S_SOT236_LEAD {
+    shape: rect
+    size: (1mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_JW5033S_SOT236 {
+    pad 1: P_JW5033S_SOT236_LEAD at (-0.95mm, -0.95mm)
+    pad 2: P_JW5033S_SOT236_LEAD at (-0.95mm, 0mm)
+    pad 3: P_JW5033S_SOT236_LEAD at (-0.95mm, 0.95mm)
+    pad 4: P_JW5033S_SOT236_LEAD at (0.95mm, 0.95mm)
+    pad 5: P_JW5033S_SOT236_LEAD at (0.95mm, 0mm)
+    pad 6: P_JW5033S_SOT236_LEAD at (0.95mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

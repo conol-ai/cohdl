@@ -1,0 +1,51 @@
+// Nsiway NS4168: 2.5W I2S digital-input mono Class D audio amplifier,
+// filterless, 3.0-5.5V (datasheet NS4168 V1.2, Apr 2023). ESOP8 package,
+// 1.27mm pitch, 5.0x4.0mm body. I2S slave input (BCLK/LRCLK/SDATA); CTRL
+// multi-level pin selects channel/shutdown (1.5V-VDD right, 0.9-1.15V left,
+// <0.4V shutdown). No exposed pad (package drawing §11.1, pin table §5).
+
+#[doc("docs/ns4168.pdf")]
+pub device NS4168 {
+    pins {
+        required CTRL: 1 [input] // channel select + shutdown (p2)
+        required LRCLK: 2 [input] // I2S frame clock (p2)
+        required BCLK: 3 [input] // I2S bit clock (p2)
+        required SDATA: 4 [input] // I2S serial data input (p2)
+        required VON: 5 [output] // inverting speaker output (p2)
+        required VDD: 6 [power_in] // supply 3.0-5.5V (p1)
+        required GND: 7 [power_in] // ground (p2)
+        required VOP: 8 [output] // non-inverting speaker output (p2)
+    }
+}
+
+impl IC for NS4168 {}
+
+#[doc("docs/ns4168.pdf")]
+pub part AMP_NS4168: NS4168 {
+    primary { mfr: "NSIWAY", mpn: "NS4168", footprint: FP_NS4168_ESOP8 }
+}
+
+// ESOP8 land (SOP-8, 1.27mm pitch, 5.0x4.0mm body, lead-tip span E1 6.0mm,
+// package drawing §11.1 — no exposed pad). Same family as SOIC-8.
+pub pad P_NS4168_ESOP8_LEAD {
+    shape: rect
+    size: (1.5mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_NS4168_ESOP8 {
+    pad 1: P_NS4168_ESOP8_LEAD at (-3.1mm, -1.905mm)
+    pad 2: P_NS4168_ESOP8_LEAD at (-3.1mm, -0.635mm)
+    pad 3: P_NS4168_ESOP8_LEAD at (-3.1mm, 0.635mm)
+    pad 4: P_NS4168_ESOP8_LEAD at (-3.1mm, 1.905mm)
+    pad 5: P_NS4168_ESOP8_LEAD at (3.1mm, 1.905mm)
+    pad 6: P_NS4168_ESOP8_LEAD at (3.1mm, 0.635mm)
+    pad 7: P_NS4168_ESOP8_LEAD at (3.1mm, -0.635mm)
+    pad 8: P_NS4168_ESOP8_LEAD at (3.1mm, -1.905mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 6.0mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
+}

@@ -74,6 +74,53 @@ Ownership follows the geometry:
   manufacturer library;
 - a footprint has one owner and consumers reference it instead of copying it.
 
+### Package tier: category bare-lib first
+
+Where a new part lives is decided in three tiers, in this order:
+
+1. **Category bare library** (`lib/<category>`, e.g. `ldo`, `osc`, `dcdc`,
+   `esim`, `load-switch`, `cellular`): functionally grouped, multiple
+   manufacturers may share one package. A single-part, single-manufacturer
+   item still goes into a category bare lib — `lib/flash` (Winbond W25Q
+   parts only) is the precedent. Later parts of the same category join the
+   same package (an eSIM package can later host G+D / Kigen parts, a dcdc
+   package can later host TPS / RT6150B parts).
+2. **Manufacturer namespace** (`@espressif`, `@ti`, `@richtek`, ...):
+   reserved for a manufacturer's *complete product family* (TI multiphase
+   controllers, Richtek buck-boost series). A single part is not enough to
+   justify a manufacturer namespace — it is a category question.
+3. **`@contrib`**: community-submission tier. Merging there is not the final
+   destination; the main repo hosts system libraries, so @contrib content
+   either moves to a category bare lib or to its own repository.
+
+"merged" does not mean "official" and does not mean "correctly categorized":
+23 @contrib packages currently sit at tier 3. The correct promotion target
+from @contrib is the category bare lib (`@contrib/dcdc` → `lib/dcdc`,
+`@contrib/esim` → `lib/esim`, `@contrib/load-switch` → `lib/load-switch`,
+`@contrib/cellular` → `lib/cellular` are all real promotions).
+
+Before modeling a part, check whether the category bare lib already exists:
+`git ls-tree origin/main lib/`. If `lib/ldo`, `lib/osc`, `lib/connectors`,
+`lib/mic`, `lib/flash` already exist, put the new part there instead of
+@contrib. When the official bare lib already ships a real-MPN part (e.g.
+`lib/osc` has Hosonic 48 MHz and Abracon 32 kHz for SF32), delete any local
+generic model and reference the official part.
+
+#### Promoting from @contrib to a bare lib
+
+Copy the package to `lib/<pkg>` and finish these steps:
+
+- manifest: `name = "<pkg>"` (drop the `@contrib/` prefix), description drops
+  "community-contributed";
+- README header drops "@contrib/..." and "Community-contributed";
+- source and README drop CJK text (manufacturer names in English: the Luat
+  brand is written "Luat (Hezhou)" instead of the CJK name);
+- delete duplicate PDFs (two files with identical SHA-256 keep one; drop the
+  CJK-named copy);
+- `tests/library.rs` contrib allowlist: remove the package's entries — bare-lib
+  parts are not contrib parts and do not use that allowlist;
+- `lib/README.md`: move the row from the @contrib table to the bare-lib table.
+
 ## 2. Preserve official primary sources
 
 Use the manufacturer datasheet and manufacturer CAD as the authority. Prefer
@@ -183,6 +230,21 @@ Cartesian `+Y` upward, while CoHDL/KiCad board coordinates use `+Y` downward.
 Negate the CAD Y coordinates deliberately and then check numbering chirality.
 This review caught vertically mirrored first drafts of both ESP32 footprints.
 
+When transcribing a PADS decal, do not assume the meaning of `SIZE` and
+`FINLENGTH`. In a PADS stack line
+
+```text
+-2 <SIZE> RF <FINORI> <FINLENGTH> ...
+```
+
+`SIZE` is the pad width along the package edge and `FINLENGTH` is the radial
+length away from the edge. Getting the direction wrong puts the long dimension
+along the pitch and overlaps the neighbours: the Air780E 109-pin LGA once
+placed its 1.3 mm radial dimension along a 1.1 mm pitch, overlapping every
+perimeter pad by 0.2 mm. The conformance test
+(`every_shipped_component_library_has_consistent_part_footprints`) reports
+this as `pads N and M have overlapping copper bounds on a shared layer`.
+
 Keep the official CAD URL and the exact source dimensions beside the footprint.
 Use the IPC-style identifier when one is available, such as
 `QFN56N40P700X700_1EP400X400`.
@@ -274,6 +336,31 @@ make a QA build emit artifacts. Ensure each reusable footprint is bound by at
 least one real consumer or test fixture so pad consistency cannot pass
 vacuously.
 
+### Geometry self-check
+
+`check` validates syntax, types, and connectivity, not physical geometry. The
+following defects all occurred in real reviews and must be checked explicitly:
+
+- **Pad overlap**: for any two pads sharing a layer, the pad dimension along
+  the pitch must be smaller than the pitch. The conformance test
+  `every_shipped_component_library_has_consistent_part_footprints` reports
+  `pads N and M have overlapping copper bounds on a shared layer`.
+- **Courtyard escape**: the courtyard half-extent must cover every pad edge
+  plus 0.25 mm. Farthest corner =
+  `max(|pad_x| + pad_w/2, |pad_y| + pad_h/2)`. The same conformance test
+  reports `pad N escapes its courtyard`.
+- **Contrib allowlist**: `tests/library.rs` keeps a hand-maintained contrib
+  part allowlist with hash fingerprints. Any new or changed public part in an
+  `@contrib` package must be added there (copy the new `left`-set entry from
+  the failing test output); bare-lib parts do not use this allowlist.
+- **Datasheet parameter cross-check**: every electrical parameter (VIH,
+  capacitance, voltage, current) in source and comments must match the local
+  PDF. Verify with `pdftotext <pdf> - | grep <parameter>` and record the page.
+  A comment saying 1 nF while the datasheet requires 22 nF (RT9193 BP) is a
+  real failure that `check` cannot see.
+- **Pin-table cross-check both directions**: source-to-model and
+  model-to-source (this caught the swapped WROOM `RXD0`/`TXD0` pins).
+
 Remove temporary QA designs and rendered files afterward. Finish with a scoped
 artifact sweep: no temporary source, `out/`, `tmp/`, `obj/`, rendered PDF
 pages, or QA-only `design.lock` should remain. Keep `design.lock` only when the
@@ -317,3 +404,15 @@ or falsely report cross-library footprint references.
       removed.
 - [ ] Formatter, package checks, emitted-footprint inspection, the
       shipped-library test, and the full test suite pass.
+- [ ] The part is placed in the category bare lib when one exists, not in
+      @contrib; single-part categories still get a bare lib (`lib/flash`
+      precedent).
+- [ ] No CJK text in source comments, `docs/README.md`, or commit messages.
+- [ ] No duplicate PDFs (identical SHA-256 kept once); no local generic model
+      when the bare lib already ships a real MPN.
+- [ ] Pad dimension along the pitch is smaller than the pitch; courtyard
+      covers every pad edge plus 0.25 mm.
+- [ ] New/changed @contrib public parts are reflected in the `tests/library.rs`
+      allowlist; bare-lib parts are not.
+- [ ] Electrical parameters in source and comments match the local PDF,
+      verified with `pdftotext` and page-recorded.

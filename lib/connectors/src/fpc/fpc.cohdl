@@ -1,4 +1,4 @@
-// Board-level connectors: a 0.5mm FPC
+// FPC module connectors: a 0.5mm FPC
 // socket for the external camera (J1) and one for display+touch (J2), IPEX
 // MHF4 RF coax sockets for the 4G/WiFi/BT antennas (J4 x3), a 2-pin battery
 // connector (J6), and a 4-pin magnetic pogo charge connector (J8). Parts are

@@ -43,12 +43,12 @@ hash = "sha256:e80116ea1519f36bd39364e713017fc09e14e378de817a9ac0cd69edd9a474ba"
 [[package]]
 name = "osc"
 version = "0.1.0"
-hash = "sha256:e83a07d7040f50b2cc535cc9d404e2555426f22958925ffaefac070af65ef7a0"
+hash = "sha256:18d7e7b05c3a281b850993004a2790a2283633bd8d38e84fe960e71c44d3898e"
 
 [[package]]
 name = "passive"
 version = "0.2.0"
-hash = "sha256:4e759a490c65ec294570d7674f46d64bb17c971d5fac4ecd0bb6a27801fa4df4"
+hash = "sha256:c4bc8117a2287209f0e89d2cc0f35464db036ab12833dd190fb66b97faf677ad"
 
 [[package]]
 name = "qfn"
@@ -68,4 +68,4 @@ hash = "sha256:5b5fc2d184722d4a4fd32f531656c32f2de2f0920c94d7a8e5f2d2203527fbca"
 [[package]]
 name = "usb"
 version = "0.1.0"
-hash = "sha256:2d92202a3ada58bf695673e5fd2e5d6202eb13e0ba91cd50415c00bb32bb4c82"
+hash = "sha256:accbce029054e4c6c5dc8d771199522367c32975f0e17e7d9807646e5d47648e"

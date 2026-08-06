@@ -1,0 +1,268 @@
+// Luat (Hezhou) Air780E: 4G Cat.1 cellular module, LGA-109, 17.7 x 15.8 x 2.3 mm.
+// FULL 109-pin device model, verified pin-by-pin against the official
+// hardware design manual V1.0 (docs/air780e-hw.pdf), the LuatOS GPIO
+// table (docs/Air780E_GPIO_table.pdf) and the official PADS decal
+// (docs/Air780E_AT_PADS_Decal_V20241030.zip).
+//
+// Manual footnotes reflected in this model:
+//  - pins 28/51 (AUX_RXD / SPI_MISO) and 29/53 (AUX_TXD / SPI_CLK) are the
+//    SAME hardware signal on two module pins: only one of each pair may be
+//    used (manual 5.1, 4.1).
+//  - pins 80/81/55 (GPIO4/5/6) are internally tied to the SIM2 pads and carry
+//    internal pull-ups (GPIO table note 16).
+//  - every IO level follows VDD_EXT: PIN100 IO_Volt_Set float = 1.8 V,
+//    GND = 3.3 V.
+//  - PWRKEY powers on after ~1.5 s low; RESET_N only forces shutdown, the
+//    module must be started again with PWRKEY.
+
+#[doc("docs/air780e-hw.pdf")]
+pub device AIR780E {
+    pins {
+        // ---- power & ground ----
+        required VBAT: 42, 43 [power_in] // module supply, 3.3-4.3 V
+        required GND: 1, 10, 27, 34, 36, 37, 40, 41, 45, 46, 47, 48, 70, 71, 72, 73, 88, 89, 90, 91,
+                      92, 93, 94, 95 [power_in] // 24x system ground
+        required PWRKEY: 7 [input] // power-on key: pull low ~1.5 s (manual 4.1)
+        required RESET_N: 15 [input] // force shutdown, active low; not a reboot
+        optional VDD_EXT: 24 [power_out] // IO-level / ext supply out, <=30 mA, 1.8/3.3 V per PIN100
+        optional RefVolt: 99 [power_out] // always-high reference out, <=3 mA (GPIO23, AGPIO3)
+        optional IO_Volt_Set: 100 [input] // VDD_EXT select: float = 1.8 V, GND = 3.3 V
+        optional VBUS: 61 [power_in] // USB supply detect / WAKEUP1 interrupt input
+
+        // ---- system control ----
+        optional USB_BOOT: 82 [input] // tie to VDD_EXT for USB download mode
+        optional STATUS: 25 [output] // high ~400 ms after power-on (GPIO26, AON)
+        optional NET_STATUS: 16 [output] // network status LED control (GPIO27)
+
+        // ---- UART (MAIN / DBG / AUX) ----
+        optional MAIN_RXD: 17 [input] // UART1 RX / AT port (GPIO18)
+        optional MAIN_TXD: 18 [output] // UART1 TX / AT port (GPIO19)
+        optional MAIN_DTR: 19 [bidirectional] // UART1 DTR (GPIO22, AON / IRQ-capable)
+        optional MAIN_RI: 20 [bidirectional] // UART1 RI (GPIO24, AON)
+        optional MAIN_DCD: 21 [bidirectional] // UART1 DCD (GPIO2)
+        optional MAIN_CTS: 22 [bidirectional] // UART1 CTS (GPIO16)
+        optional MAIN_RTS: 23 [bidirectional] // UART1 RTS (GPIO17)
+        optional DBG_RXD: 38 [input] // debug UART RX (system trace)
+        optional DBG_TXD: 39 [output] // debug UART TX (system trace)
+        optional AUX_RXD: 28 [input] // UART2 RX; shared with pin 51, not simultaneously usable
+        optional AUX_TXD: 29 [output] // UART2 TX; shared with pin 53, not simultaneously usable
+
+        // ---- SIM (dual SIM, single standby) ----
+        optional USIM_VDD: 14 [power_out] // SIM1 supply, auto 1.8/3.3 V
+        optional USIM_DAT: 11 [bidirectional] // SIM1 data
+        optional USIM_CLK: 13 [output] // SIM1 clock
+        optional USIM_RST: 12 [output] // SIM1 reset
+        optional USIM2_VDD: 65 [power_out] // SIM2 supply, level follows PIN100 (not adaptive)
+        optional USIM2_DAT: 64 [bidirectional] // SIM2 data
+        optional USIM2_CLK: 62 [output] // SIM2 clock
+        optional USIM2_RST: 63 [output] // SIM2 reset
+        optional USIM_DET: 79 [input] // SIM card detect / WAKEUP2, edge-triggered IRQ only
+
+        // ---- antenna ----
+        optional LTE_ANT: 35 [bidirectional] // 4G main antenna RF I/O
+
+        // ---- USB ----
+        optional USB_DP: 59 [bidirectional] // USB D+ (download / debug / log)
+        optional USB_DM: 60 [bidirectional] // USB D-
+
+        // ---- ADC ----
+        optional ADC0: 9 [input] // 12-bit ADC, <=1.1 V
+        optional ADC1: 96 [input] // 12-bit ADC, <=1.1 V
+
+        // ---- GPIO / SPI / I2C / PWM / audio ----
+        optional PWM0: 26 [output] // PWM0 (I2S0_MCLK, GPIO19)
+        optional PWM4: 33 [output] // PWM4 (I2S0_DOUT, GPIO18)
+        optional GPIO29: 30 [bidirectional] // GPIO29 (I2S0_BCLK, PWM1)
+        optional GPIO30: 31 [bidirectional] // GPIO30 (I2S0_LRCK, PWM2)
+        optional GPIO31: 32 [bidirectional] // GPIO31 (I2S0_DIN)
+        optional GPIO1: 49 [bidirectional] // GPIO1 (LCD_RST)
+        optional SPI_MOSI: 50 [bidirectional] // SPI MOSI (GPIO9, LCD_DOUT)
+        optional SPI_MISO: 51 [bidirectional] // SPI MISO; shared with pin 28 (GPIO10)
+        optional SPI_CS: 52 [bidirectional] // SPI CS (GPIO8, LCD_CS)
+        optional SPI_CLK: 53 [bidirectional] // SPI CLK; shared with pin 29 (GPIO11)
+        optional GPIO3: 54 [bidirectional] // GPIO3 (CAM_MCLK)
+        optional GPIO6: 55 [bidirectional] // GPIO6 (CAM_SPI_D0); internally tied to SIM2, has pull-up
+        optional GPIO7: 56 [bidirectional] // GPIO7 (CAM_SPI_D1); internally tied to SIM2, has pull-up
+        optional GPIO13: 57 [bidirectional] // GPIO13 (CAM_I2C_SCL)
+        optional GPIO12: 58 [bidirectional] // GPIO12 (CAM_I2C_SDA)
+        optional I2C_SDA: 66 [bidirectional] // I2C data (GPIO15)
+        optional I2C_SCL: 67 [bidirectional] // I2C clock (GPIO14)
+        optional GPIO28: 78 [bidirectional] // GPIO28 (LCD_TE, AON, holds in sleep)
+        optional GPIO4: 80 [bidirectional] // GPIO4 (CAM_SPI_CLK); internally tied to SIM2, has pull-up
+        optional GPIO5: 81 [bidirectional] // GPIO5 (CAM_PWDN); internally tied to SIM2, has pull-up
+        optional WAKEUP0: 101 [input] // wakeup interrupt input only, fixed 1.8 V
+        optional GPIO20: 102 [bidirectional] // GPIO20 (AGPIOWU0, AON / wakeup IRQ)
+        optional GPIO25: 106 [bidirectional] // GPIO25 (AGPIO5, AON, holds in sleep)
+        optional GPIO21: 107 [bidirectional] // GPIO21 (AGPIOWU1, AON / wakeup IRQ)
+
+        // ---- reserved ----
+        optional NC: 2, 3, 4, 5, 6, 8, 44, 68, 69, 74, 75, 76, 77, 83, 84, 85, 86, 87, 97, 98, 103,
+                     104, 105, 108, 109 [passive] // reserved: must float (manual: NC, do not connect)
+    }
+}
+
+impl IC for AIR780E {}
+
+#[doc("docs/air780e-hw.pdf")]
+pub part CELL_AIR780E: AIR780E {
+    primary { mfr: "Luat (Hezhou)", mpn: "Air780E", footprint: FP_Luat_AIR780E_LGA109_177x158mm }
+}
+
+// LGA-109 land pattern, 17.7 x 15.8 mm body. Pad positions and per-pin sizes
+// are taken from the official PADS decal (docs/Air780E_AT_PADS_Decal_V20241030.zip,
+// Air780E_AT.asc terminal records; decal nm values / 1.5 = mm, origin at body
+// centre, x along the 15.8 mm side, y along the 17.7 mm side, pin 1 upper-left
+// next to the chamfered corner). Perimeter pads 1-44: 0.6 x 1.3 mm (radial x
+// tangential); thermal pads 89-94: 1.3 mm round; all remaining inner pads and
+// pins without an explicit decal stack (45-53/59-67/73-88/99-100/103-104):
+// 0.7 x 1.0 mm per the decal default stack.
+// Perimeter pads: long axis (1.3mm) radial to the module edge, 0.6mm along
+// the edge (per official PADS decal
+// TOP stacks, Air780E_AT.asc: size 0.600mm finlength 1.300mm).
+pub pad P_AIR780E_PAD_V {
+    shape: rect
+    size: (1.3mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Perimeter pads on top/bottom rows: same 0.6 x 1.3 mm, rotated 90 deg.
+pub pad P_AIR780E_PAD_H {
+    shape: rect
+    size: (0.6mm, 1.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Inner pads + default (pins without explicit decal stack): 0.7 x 1.0 mm.
+pub pad P_AIR780E_PAD_IN {
+    shape: rect
+    size: (1.0mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Thermal pads 89-94: 1.3 mm round (decal shape=S size=1.300mm).
+pub pad P_AIR780E_PAD_ROUND {
+    shape: circle
+    size: (1.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Luat_AIR780E_LGA109_177x158mm {
+    pad 1: P_AIR780E_PAD_V at (-7.25mm, 6.6mm)
+    pad 2: P_AIR780E_PAD_V at (-7.25mm, 5.5mm)
+    pad 3: P_AIR780E_PAD_V at (-7.25mm, 4.4mm)
+    pad 4: P_AIR780E_PAD_V at (-7.25mm, 3.3mm)
+    pad 5: P_AIR780E_PAD_V at (-7.25mm, 2.2mm)
+    pad 6: P_AIR780E_PAD_V at (-7.25mm, 1.1mm)
+    pad 7: P_AIR780E_PAD_V at (-7.25mm, 0mm)
+    pad 8: P_AIR780E_PAD_V at (-7.25mm, -1.1mm)
+    pad 9: P_AIR780E_PAD_V at (-7.25mm, -2.2mm)
+    pad 10: P_AIR780E_PAD_V at (-7.25mm, -3.3mm)
+    pad 11: P_AIR780E_PAD_V at (-7.25mm, -4.4mm)
+    pad 12: P_AIR780E_PAD_V at (-7.25mm, -5.5mm)
+    pad 13: P_AIR780E_PAD_V at (-7.25mm, -6.6mm)
+    pad 23: P_AIR780E_PAD_V at (7.25mm, -6.6mm)
+    pad 24: P_AIR780E_PAD_V at (7.25mm, -5.5mm)
+    pad 25: P_AIR780E_PAD_V at (7.25mm, -4.4mm)
+    pad 26: P_AIR780E_PAD_V at (7.25mm, -3.3mm)
+    pad 27: P_AIR780E_PAD_V at (7.25mm, -2.2mm)
+    pad 28: P_AIR780E_PAD_V at (7.25mm, -1.1mm)
+    pad 29: P_AIR780E_PAD_V at (7.25mm, 0mm)
+    pad 30: P_AIR780E_PAD_V at (7.25mm, 1.1mm)
+    pad 31: P_AIR780E_PAD_V at (7.25mm, 2.2mm)
+    pad 32: P_AIR780E_PAD_V at (7.25mm, 3.3mm)
+    pad 33: P_AIR780E_PAD_V at (7.25mm, 4.4mm)
+    pad 34: P_AIR780E_PAD_V at (7.25mm, 5.5mm)
+    pad 35: P_AIR780E_PAD_V at (7.25mm, 6.6mm)
+    pad 45: P_AIR780E_PAD_IN at (-5mm, 4.8mm)
+    pad 46: P_AIR780E_PAD_IN at (-5mm, 3.6mm)
+    pad 47: P_AIR780E_PAD_IN at (-5mm, 2.4mm)
+    pad 48: P_AIR780E_PAD_IN at (-5mm, 1.2mm)
+    pad 49: P_AIR780E_PAD_IN at (-5mm, 0mm)
+    pad 50: P_AIR780E_PAD_IN at (-5mm, -1.2mm)
+    pad 51: P_AIR780E_PAD_IN at (-5mm, -2.4mm)
+    pad 52: P_AIR780E_PAD_IN at (-5mm, -3.6mm)
+    pad 53: P_AIR780E_PAD_IN at (-5mm, -4.8mm)
+    pad 59: P_AIR780E_PAD_IN at (5mm, -4.8mm)
+    pad 60: P_AIR780E_PAD_IN at (5mm, -3.6mm)
+    pad 61: P_AIR780E_PAD_IN at (5mm, -2.4mm)
+    pad 62: P_AIR780E_PAD_IN at (5mm, -1.2mm)
+    pad 63: P_AIR780E_PAD_IN at (5mm, 0mm)
+    pad 64: P_AIR780E_PAD_IN at (5mm, 1.2mm)
+    pad 65: P_AIR780E_PAD_IN at (5mm, 2.4mm)
+    pad 66: P_AIR780E_PAD_IN at (5mm, 3.6mm)
+    pad 67: P_AIR780E_PAD_IN at (5mm, 4.8mm)
+    pad 73: P_AIR780E_PAD_IN at (-3.2mm, 4.2mm)
+    pad 74: P_AIR780E_PAD_IN at (-3.2mm, 3mm)
+    pad 75: P_AIR780E_PAD_IN at (-3.2mm, 1.8mm)
+    pad 76: P_AIR780E_PAD_IN at (-3.2mm, 0.6mm)
+    pad 77: P_AIR780E_PAD_IN at (-3.2mm, -0.6mm)
+    pad 78: P_AIR780E_PAD_IN at (-3.2mm, -1.8mm)
+    pad 79: P_AIR780E_PAD_IN at (-3.2mm, -3mm)
+    pad 80: P_AIR780E_PAD_IN at (-3.2mm, -4.2mm)
+    pad 81: P_AIR780E_PAD_IN at (3.2mm, -4.2mm)
+    pad 82: P_AIR780E_PAD_IN at (3.2mm, -3mm)
+    pad 83: P_AIR780E_PAD_IN at (3.2mm, -1.8mm)
+    pad 84: P_AIR780E_PAD_IN at (3.2mm, -0.6mm)
+    pad 85: P_AIR780E_PAD_IN at (3.2mm, 0.6mm)
+    pad 86: P_AIR780E_PAD_IN at (3.2mm, 1.8mm)
+    pad 87: P_AIR780E_PAD_IN at (3.2mm, 3mm)
+    pad 88: P_AIR780E_PAD_IN at (3.2mm, 4.2mm)
+    pad 89: P_AIR780E_PAD_ROUND at (-0.9mm, 1.8mm)
+    pad 90: P_AIR780E_PAD_ROUND at (-0.9mm, 0mm)
+    pad 91: P_AIR780E_PAD_ROUND at (-0.9mm, -1.8mm)
+    pad 92: P_AIR780E_PAD_ROUND at (0.9mm, -1.8mm)
+    pad 93: P_AIR780E_PAD_ROUND at (0.9mm, 0mm)
+    pad 94: P_AIR780E_PAD_ROUND at (0.9mm, 1.8mm)
+    pad 99: P_AIR780E_PAD_IN at (-5mm, 6mm)
+    pad 100: P_AIR780E_PAD_IN at (-5mm, -6mm)
+    pad 103: P_AIR780E_PAD_IN at (5mm, -6mm)
+    pad 104: P_AIR780E_PAD_IN at (5mm, 6mm)
+    pad 14: P_AIR780E_PAD_H at (-4.4mm, -8.2mm)
+    pad 15: P_AIR780E_PAD_H at (-3.3mm, -8.2mm)
+    pad 16: P_AIR780E_PAD_H at (-2.2mm, -8.2mm)
+    pad 17: P_AIR780E_PAD_H at (-1.1mm, -8.2mm)
+    pad 18: P_AIR780E_PAD_H at (0mm, -8.2mm)
+    pad 19: P_AIR780E_PAD_H at (1.1mm, -8.2mm)
+    pad 20: P_AIR780E_PAD_H at (2.2mm, -8.2mm)
+    pad 21: P_AIR780E_PAD_H at (3.3mm, -8.2mm)
+    pad 22: P_AIR780E_PAD_H at (4.4mm, -8.2mm)
+    pad 36: P_AIR780E_PAD_H at (4.4mm, 8.2mm)
+    pad 37: P_AIR780E_PAD_H at (3.3mm, 8.2mm)
+    pad 38: P_AIR780E_PAD_H at (2.2mm, 8.2mm)
+    pad 39: P_AIR780E_PAD_H at (1.1mm, 8.2mm)
+    pad 40: P_AIR780E_PAD_H at (0mm, 8.2mm)
+    pad 41: P_AIR780E_PAD_H at (-1.1mm, 8.2mm)
+    pad 42: P_AIR780E_PAD_H at (-2.2mm, 8.2mm)
+    pad 43: P_AIR780E_PAD_H at (-3.3mm, 8.2mm)
+    pad 44: P_AIR780E_PAD_H at (-4.4mm, 8.2mm)
+    pad 54: P_AIR780E_PAD_IN at (-2.4mm, -5.95mm)
+    pad 55: P_AIR780E_PAD_IN at (-1.2mm, -5.95mm)
+    pad 56: P_AIR780E_PAD_IN at (0mm, -5.95mm)
+    pad 57: P_AIR780E_PAD_IN at (1.2mm, -5.95mm)
+    pad 58: P_AIR780E_PAD_IN at (2.4mm, -5.95mm)
+    pad 68: P_AIR780E_PAD_IN at (2.4mm, 5.95mm)
+    pad 69: P_AIR780E_PAD_IN at (1.2mm, 5.95mm)
+    pad 70: P_AIR780E_PAD_IN at (0mm, 5.95mm)
+    pad 71: P_AIR780E_PAD_IN at (-1.2mm, 5.95mm)
+    pad 72: P_AIR780E_PAD_IN at (-2.4mm, 5.95mm)
+    pad 95: P_AIR780E_PAD_IN at (-5.5mm, -8.2mm)
+    pad 96: P_AIR780E_PAD_IN at (5.5mm, -8.2mm)
+    pad 97: P_AIR780E_PAD_IN at (5.5mm, 8.2mm)
+    pad 98: P_AIR780E_PAD_IN at (-5.5mm, 8.2mm)
+    pad 101: P_AIR780E_PAD_IN at (-3.5mm, -5.95mm)
+    pad 102: P_AIR780E_PAD_IN at (3.5mm, -5.95mm)
+    pad 105: P_AIR780E_PAD_IN at (3.6mm, 5.95mm)
+    pad 106: P_AIR780E_PAD_IN at (-3.6mm, 5.95mm)
+    pad 107: P_AIR780E_PAD_IN at (-1.2mm, -4.15mm)
+    pad 108: P_AIR780E_PAD_IN at (0mm, -4.15mm)
+    pad 109: P_AIR780E_PAD_IN at (1.2mm, -4.15mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (16.4mm, 18.3mm) }
+    silkscreen_ref { at: (0mm, -9.9mm) }
+}

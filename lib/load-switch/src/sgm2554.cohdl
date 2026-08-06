@@ -1,0 +1,44 @@
+// SGMICRO SGM2554: 1.1A load switch with enable, 1.0-5.5V in (SGMICRO
+// SGM2554 datasheet). SOT-23-5. Used to gate the ESP32-S3 VDD3P3 rail
+// (EN driven by SF32 GPIO PA11).
+
+#[doc("docs/sgm2554.md")]
+pub device SGM2554 {
+    pins {
+        required IN: 1 [power_in] // supply input 1.0-5.5V
+        required GND: 2 [power_in] // ground
+        required EN: 3 [input] // enable, active high (SGM2554): EN high = switch on
+        optional NC: 4 [passive] // no connect
+        required OUT: 5 [power_out] // switched output
+    }
+}
+
+impl IC for SGM2554 {}
+
+#[doc("docs/sgm2554.md")]
+pub part LOADSW_SGM2554: SGM2554 {
+    primary { mfr: "SGMICRO", mpn: "SGM2554", footprint: FP_SGM2554_SOT235 }
+}
+
+// SOT-23-5 land: body 2.9 x 2.8, pitch 0.95, e1 2.6. 5 gull-wing leads.
+// Same geometry as SOT5P95X290X145N (lib/@contrib/ldo/src/rt9080.cohdl);
+// declared locally because footprints are not visible across packages.
+pub pad P_SGM2554_SOT235_LEAD {
+    shape: rect
+    size: (1.0mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_SGM2554_SOT235 {
+    pad 1: P_SGM2554_SOT235_LEAD at (-1.3mm, -0.95mm)
+    pad 2: P_SGM2554_SOT235_LEAD at (-1.3mm, 0mm)
+    pad 3: P_SGM2554_SOT235_LEAD at (-1.3mm, 0.95mm)
+    pad 4: P_SGM2554_SOT235_LEAD at (1.3mm, 0.95mm)
+    pad 5: P_SGM2554_SOT235_LEAD at (1.3mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

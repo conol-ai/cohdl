@@ -21,3 +21,12 @@ downloaded; no PDF was regenerated or optimized.
 The PDF passed `pdfinfo`, Poppler text extraction, and full-page rendering.
 Pages 1 and 14 were visually inspected for identity, pin map, package
 orientation, and land dimensions.
+
+## RT9193 (Richtek, TSOT-23-5)
+
+| Local file | Covered item | Document version/date | Official source | SHA-256 |
+|---|---|---|---|---|
+| `rt9193.pdf` | `LDO_RT9193_15PB` / `LDO_RT9193_28PB` | DS9193-18, June 2022 | [Richtek](https://www.richtek.com) | `bbab3a6dcb12085e8b2988d10d25f34a9fad4b3a5e1cdbcdb7b4314efc55f43f` |
+
+BP pin requires 22nF (or larger) noise-bypass cap per DS9193 p2; OUT needs
+1uF per p3 test conditions. Suffix PB = auto discharge + TSOT-23-5.

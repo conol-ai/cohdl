@@ -25,11 +25,16 @@ footprints live in focused packages:
 | `esd` | `esd::ESD_USBLC6` | ESD protection devices |
 | `diode` | `diode::D_1N4148W` | discrete diodes |
 | `flash` | `flash::FLASH_W25Q32`, `flash::FLASH_W25Q128JVSIQ` | nonvolatile NOR flash memories |
-| `ldo` | `ldo::LDO_AP2112K_3V3` | low-dropout regulators |
+| `ldo` | `ldo::LDO_AP2112K_3V3`, `ldo::LDO_RT9193_15PB` | low-dropout regulators |
 | `led` | `led::LED_RED_0603` | discrete/addressable LEDs and their traits |
 | `mosfet` | `mosfet::FET_DMG1012T` | discrete MOSFETs |
-| `osc` | `osc::XTAL_8M` | crystals and oscillators |
+| `osc` | `osc::XTAL_8M`, `osc::XTAL_40MHZ` | crystals and oscillators |
 | `mic` | `mic::MIC_ICS43434` | microphones and the `Microphone` trait |
+| `audio-amp` | `audio_amp::AMP_NS4168` | audio power amplifiers with verified land patterns |
+| `dcdc` | `dcdc::DCDC_JW5033S` | DC/DC step-down converters with verified land patterns |
+| `cellular` | `cellular::CELL_AIR780E` | 4G/LTE cellular module devices with verified land patterns (Air780E, 109-pin LGA, official PADS decal land) |
+| `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
+| `load-switch` | `load_switch::LOADSW_SGM2554` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3` | Espressif SoCs and modules |

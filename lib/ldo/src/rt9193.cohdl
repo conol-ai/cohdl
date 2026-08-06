@@ -1,0 +1,50 @@
+// Richtek RT9193: low-noise 300mA LDO with enable, 2.5-5.5V in (datasheet
+// DS9193, Richtek). TSOT-23-5 package. BP pin needs a 22nF (or larger) noise-bypass cap per DS9193 p2 (1nF in older revs)
+// to GND; OUT needs a 1uF cap. Suffix PB = auto discharge + TSOT-23-5.
+
+#[doc("docs/rt9193-provenance.txt")]
+pub device RT9193 {
+    variants { TSOT235 }
+    pins[TSOT235] {
+        required IN: 1 [power_in] // supply input, 1uF cap close to pin
+        required GND: 2 [power_in] // ground
+        required EN: 3 [input] // enable, high=on / <0.4V=off
+        required BP: 4 [passive] // noise bypass, 22nF (or larger) cap to GND per DS9193 p2
+        required OUT: 5 [power_out] // regulator output, 1uF cap
+    }
+}
+
+impl IC for RT9193 {}
+
+#[doc("docs/rt9193-provenance.txt")]
+pub part LDO_RT9193_15: RT9193[TSOT235] {
+    primary { mfr: "Richtek", mpn: "RT9193-15PB", footprint: SOT5P95X290X145N }
+}
+
+#[doc("docs/rt9193-provenance.txt")]
+pub part LDO_RT9193_28: RT9193[TSOT235] {
+    primary { mfr: "Richtek", mpn: "RT9193-28PB", footprint: SOT5P95X290X145N }
+}
+
+// TSOT-23-5 land (same geometry as the RT9080 binding): 1.0 x 0.7mm leads
+// on a +/-1.3mm span, rows at +/-0.95mm (0.95mm pitch), courtyard per
+// DS9193 p12 SOT-23-5 envelope (body max 3.1 x 1.8mm, lead e 0.84-1.04).
+pub pad P_TSOT235_LEAD_RT9193 {
+    shape: rect
+    size: (1.0mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOT5P95X290X145N {
+    pad 1: P_TSOT235_LEAD_RT9193 at (-1.3mm, -0.95mm)
+    pad 2: P_TSOT235_LEAD_RT9193 at (-1.3mm, 0mm)
+    pad 3: P_TSOT235_LEAD_RT9193 at (-1.3mm, 0.95mm)
+    pad 4: P_TSOT235_LEAD_RT9193 at (1.3mm, 0.95mm)
+    pad 5: P_TSOT235_LEAD_RT9193 at (1.3mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.0mm) }
+}

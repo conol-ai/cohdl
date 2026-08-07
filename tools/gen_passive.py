@@ -291,6 +291,7 @@ def ohm_literal(mantissa, decade):
 #   TCR        "-" = per spec            reel     07 = 7 inch, standard power
 #   value      2-4 digits, R/K/M is the decimal point (the datasheet's own
 #              examples: 97R6 = 97.6 ohm, 9K76 = 9760 ohm, 1M = 1 Mohm)
+#              and 0R is the zero-ohm jumper code
 # so 10 kohm +/-1% in 0402 is RC0402FR-0710KL, and the datasheet's ordering
 # example — RC0402JR-07100KL, 100 kohm +/-5% — falls out of the same rule.
 #
@@ -355,10 +356,17 @@ def emit_resistors(size, verified):
             GENERATED
             + "\n\n"
             + f"{len(resistor_values('F'))} values at +/-1% (E24 + E96) and "
-            + f"{len(resistor_values('J'))} at +/-5% (E24),\n"
-            + f"1 ohm to 10 Mohm. Rated power {R_POWER[size]}.",
+            + f"{len(resistor_values('J'))} at +/-5% (E24), plus zero ohms at +/-5%,\n"
+            + f"zero ohms to 10 Mohm. Rated power {R_POWER[size]}.",
         )
     ]
+    zero_mpn = f"RC{size}J{R_PACKING[size]}-070RL"
+    body.append(
+        f'#[doc("{R_DOC_YAGEO}")]\n'
+        f"pub part R_0R_J_{size}: ChipResistor<0ohm, 5%>[{variant}] {{\n"
+        f'    primary {{ mfr: "Yageo", mpn: "{zero_mpn}", footprint: CHIP_{size} }}\n'
+        f"}}\n"
+    )
     for tol, tol_pct in TOLERANCES.items():
         for mantissa, decade in resistor_values(tol):
             token = ohm_token(mantissa, decade)

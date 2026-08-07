@@ -51,6 +51,130 @@ design B {
 }
 "#;
 
+const ZERO_OHM_ORACLE: [(&str, &str, &str); 8] = [
+    ("0201", "R_0R_J_0201", "RC0201JR-070RL"),
+    ("0402", "R_0R_J_0402", "RC0402JR-070RL"),
+    ("0603", "R_0R_J_0603", "RC0603JR-070RL"),
+    ("0805", "R_0R_J_0805", "RC0805JR-070RL"),
+    ("1206", "R_0R_J_1206", "RC1206JR-070RL"),
+    ("1210", "R_0R_J_1210", "RC1210JR-070RL"),
+    ("2010", "R_0R_J_2010", "RC2010JK-070RL"),
+    ("2512", "R_0R_J_2512", "RC2512JK-070RL"),
+];
+
+struct GeneratedPassives {
+    root: std::path::PathBuf,
+}
+
+impl Drop for GeneratedPassives {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
+}
+
+fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
+    let fixture = GeneratedPassives {
+        root: std::env::temp_dir().join(format!("cohdl-zero-ohm-generator-{}", std::process::id())),
+    };
+    let _ = std::fs::remove_dir_all(&fixture.root);
+    std::fs::create_dir_all(fixture.root.join("tools/passive_data")).unwrap();
+    std::fs::create_dir_all(fixture.root.join("lib/passive/src")).unwrap();
+    std::fs::copy(
+        root.join("tools/gen_passive.py"),
+        fixture.root.join("tools/gen_passive.py"),
+    )
+    .unwrap();
+    for entry in std::fs::read_dir(root.join("tools/passive_data")).unwrap() {
+        let entry = entry.unwrap();
+        if entry.file_type().unwrap().is_file() {
+            std::fs::copy(
+                entry.path(),
+                fixture
+                    .root
+                    .join("tools/passive_data")
+                    .join(entry.file_name()),
+            )
+            .unwrap();
+        }
+    }
+    let output = std::process::Command::new("python3")
+        .arg("tools/gen_passive.py")
+        .current_dir(&fixture.root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "passive generator failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    fixture
+}
+
+fn resistor_sizes(dir: &std::path::Path) -> Vec<String> {
+    let mut sizes = std::fs::read_dir(dir)
+        .unwrap()
+        .filter_map(|entry| {
+            let name = entry.ok()?.file_name().into_string().ok()?;
+            name.strip_prefix("resistors_")
+                .and_then(|name| name.strip_suffix(".cohdl"))
+                .map(str::to_owned)
+        })
+        .collect::<Vec<_>>();
+    sizes.sort();
+    sizes
+}
+
+fn zero_ohm_identity(source: &str, size: &str) -> (String, String, String) {
+    let parts = source
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| line.starts_with("pub part ") && line.contains("ChipResistor<0ohm,"))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        parts.len(),
+        1,
+        "{size} must emit exactly one zero-ohm resistor"
+    );
+    let (line_index, declaration) = parts[0];
+    let name = declaration
+        .strip_prefix("pub part ")
+        .and_then(|line| line.split_once(':'))
+        .map(|(name, _)| name)
+        .unwrap();
+    let primary = source.lines().nth(line_index + 1).unwrap();
+    let mpn = primary
+        .split_once("mpn: \"")
+        .and_then(|(_, suffix)| suffix.split_once('"'))
+        .map(|(mpn, _)| mpn)
+        .unwrap();
+    (declaration.to_string(), name.to_string(), mpn.to_string())
+}
+
+fn assert_zero_ohm_part(
+    root: &std::path::Path,
+    generated: &GeneratedPassives,
+    size: &str,
+    expected_name: &str,
+    expected_mpn: &str,
+) -> (String, String) {
+    let file_name = format!("resistors_{size}.cohdl");
+    let committed = std::fs::read_to_string(root.join(&file_name)).unwrap();
+    let regenerated =
+        std::fs::read_to_string(generated.root.join("lib/passive/src").join(&file_name)).unwrap();
+    assert_eq!(
+        committed, regenerated,
+        "{file_name} must be owned entirely by tools/gen_passive.py"
+    );
+    let (declaration, actual_name, actual_mpn) = zero_ohm_identity(&committed, size);
+    assert_eq!(
+        declaration,
+        format!("pub part {expected_name}: ChipResistor<0ohm, 5%>[R{size}] {{"),
+        "zero ohms must exist only in the J/5% family"
+    );
+    assert_eq!(actual_mpn, expected_mpn);
+    (actual_name, actual_mpn)
+}
+
 #[test]
 fn std_exports_only_the_core_trait_allowlist() {
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std/src");
@@ -87,6 +211,44 @@ fn std_exports_only_the_core_trait_allowlist() {
             "trait Resistor",
             "trait TwoTerminal",
         ]
+    );
+}
+
+#[test]
+fn generated_zero_ohm_resistors_match_the_locked_oracle() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let generated = regenerate_passives(root);
+    let mut actual_names = Vec::new();
+    let mut actual_mpns = Vec::new();
+    let resistor_dir = root.join("lib/passive/src");
+    assert_eq!(
+        resistor_sizes(&resistor_dir),
+        ZERO_OHM_ORACLE
+            .iter()
+            .map(|(size, _, _)| size.to_string())
+            .collect::<Vec<_>>()
+    );
+
+    for (size, expected_name, expected_mpn) in ZERO_OHM_ORACLE {
+        let (actual_name, actual_mpn) =
+            assert_zero_ohm_part(&resistor_dir, &generated, size, expected_name, expected_mpn);
+        actual_names.push(actual_name);
+        actual_mpns.push(actual_mpn);
+    }
+
+    assert_eq!(
+        actual_names,
+        ZERO_OHM_ORACLE
+            .iter()
+            .map(|(_, name, _)| name.to_string())
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        actual_mpns,
+        ZERO_OHM_ORACLE
+            .iter()
+            .map(|(_, _, mpn)| mpn.to_string())
+            .collect::<Vec<_>>()
     );
 }
 

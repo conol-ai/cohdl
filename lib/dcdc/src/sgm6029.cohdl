@@ -1,0 +1,46 @@
+// SGMICRO SGM6029C: 4 MHz, 1 A synchronous buck converter with resistor-
+// selected 1.8 V to 3.3 V output. Pinout and WLCSP land follow the official
+// November 2022 Rev. A.1 datasheet.
+
+#[doc("docs/sgm6029.pdf")]
+pub device SGM6029 {
+    pins {
+        required GND: A1 [power_in]
+        required VOS: A2 [input]
+        required VIN: B1 [power_in]
+        required SW: B2 [power_out]
+        required VSEL_MODE: C1 [input]
+        required EN: C2 [input]
+    }
+}
+
+impl IC for SGM6029 {}
+
+#[doc("docs/sgm6029.pdf")]
+pub part DCDC_SGM6029C: SGM6029 {
+    primary { mfr: "SGMICRO", mpn: "SGM6029CYG/TR", footprint: BGA6C35P2X3_75X110X44N }
+}
+
+// Manufacturer-recommended circular copper lands are 0.17 to 0.19 mm on a
+// 0.35 mm-pitch 2x3 grid. This footprint uses the 0.19 mm upper limit. Body
+// nominal is 0.745 x 1.095 mm; nominal solder-ball diameter is 0.217 mm.
+pub pad P_BGA6C35_LAND_019 {
+    shape: circle
+    size: (0.19mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint BGA6C35P2X3_75X110X44N {
+    pad A1: P_BGA6C35_LAND_019 at (-0.175mm, -0.35mm)
+    pad A2: P_BGA6C35_LAND_019 at (0.175mm, -0.35mm)
+    pad B1: P_BGA6C35_LAND_019 at (-0.175mm, 0mm)
+    pad B2: P_BGA6C35_LAND_019 at (0.175mm, 0mm)
+    pad C1: P_BGA6C35_LAND_019 at (-0.175mm, 0.35mm)
+    pad C2: P_BGA6C35_LAND_019 at (0.175mm, 0.35mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.3mm, 1.7mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
+}

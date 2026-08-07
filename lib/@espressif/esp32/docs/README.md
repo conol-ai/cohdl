@@ -4,7 +4,7 @@ The PDFs in this directory are unmodified downloads from Espressif Systems.
 
 | File | Applies to | Official source | Version |
 |---|---|---|---|
-| `esp32-s3_datasheet_en.pdf` | Bare `ESP32-S3` SoC | <https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf> | v2.2 (2026-03-05) |
+| `esp32-s3_datasheet_en.pdf` | Bare `ESP32-S3` and `ESP32-S3R8` SoCs | <https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf> | v2.2 (2026-03-05) |
 | `esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf` | `ESP32-S3-WROOM-1-N8` and `ESP32-S3-WROOM-1-N8R2` | <https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf> | v1.8 (2026-03-02) |
 
 SHA-256 checksums:
@@ -25,3 +25,10 @@ these datasheets. Both unversioned files were retrieved from Espressif on
 
 The module footprint remains in this package; the bare SoC footprint is
 exported by the dedicated `qfn` package.
+
+`ESP32-S3R8` uses the same QFN56 land as the base `ESP32-S3`, but its 8 MB
+Octal SPI PSRAM is internal to the package. `SPICS1` and `GPIO33` through
+`GPIO37` are therefore modeled as required reserved terminals rather than
+optional board GPIOs. `VDD_SPI` is fixed at 3.3 V for this variant. These
+variant constraints follow the comparison and flash/PSRAM pin-mapping tables
+in the stored v2.2 datasheet.

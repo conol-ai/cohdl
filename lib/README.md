@@ -32,12 +32,14 @@ footprints live in focused packages:
 | `mic` | `mic::MIC_ICS43434` | microphones and the `Microphone` trait |
 | `audio-amp` | `audio_amp::AMP_NS4168` | audio power amplifiers with verified land patterns |
 | `dcdc` | `dcdc::DCDC_JW5033S` | DC/DC step-down converters with verified land patterns |
+| `logic` | `logic::BUFFER_SN74AHCT1G125` | logic gates and buffers with verified land patterns |
+| `antenna` | `antenna::ANT_2450AT18B100E` | RF antennas with verified terminal lands and layout guidance |
 | `cellular` | `cellular::CELL_AIR780E` | 4G/LTE cellular module devices with verified land patterns (Air780E, 109-pin LGA, official PADS decal land) |
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
 | `load-switch` | `load_switch::LOADSW_SGM2554` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
-| `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3` | Espressif SoCs and modules |
+| `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3`, `espressif_esp32::chips::s3::ESP32_S3R8` | Espressif SoCs and modules |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and public, manufacturer-land-pattern part bindings |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
 | `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |

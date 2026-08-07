@@ -1,0 +1,41 @@
+// Texas Instruments SN74AHCT1G125 single bus buffer with active-low output
+// enable. Pinout and DBV land follow the official TI datasheet and package
+// drawing 4214839 revision K (August 2024).
+
+#[doc("docs/sn74ahct1g125.pdf")]
+pub device SN74AHCT1G125 {
+    pins {
+        required OE_N: 1 [input]
+        required A: 2 [input]
+        required GND: 3 [power_in]
+        required Y: 4 [output]
+        required VCC: 5 [power_in]
+    }
+}
+
+impl IC for SN74AHCT1G125 {}
+
+#[doc("docs/sn74ahct1g125.pdf")]
+pub part BUFFER_SN74AHCT1G125: SN74AHCT1G125 {
+    primary { mfr: "Texas Instruments", mpn: "SN74AHCT1G125DBVR", footprint: SOT5P95X300X145N }
+}
+
+pub pad P_SOT5P95X300X145N_LEAD {
+    shape: rect
+    size: (1.1mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint SOT5P95X300X145N {
+    pad 1: P_SOT5P95X300X145N_LEAD at (-1.3mm, -0.95mm)
+    pad 2: P_SOT5P95X300X145N_LEAD at (-1.3mm, 0mm)
+    pad 3: P_SOT5P95X300X145N_LEAD at (-1.3mm, 0.95mm)
+    pad 4: P_SOT5P95X300X145N_LEAD at (1.3mm, 0.95mm)
+    pad 5: P_SOT5P95X300X145N_LEAD at (1.3mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

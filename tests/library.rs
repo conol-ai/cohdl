@@ -52,6 +52,86 @@ design B {
 "#;
 
 #[test]
+fn t3902_public_part_matches_manufacturer_geometry() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mic = std::fs::read_to_string(root.join("lib/@contrib/mic/src/t3902.cohdl")).unwrap();
+    let consumer = r#"
+pub trait IC {}
+design T3902Consumer {
+    inst mic: MMICT3902_00_012
+    nc: mic.DATA, mic.SELECT, mic.GND, mic.CLK, mic.VDD
+}
+"#;
+    let (checked, rendered) = check(
+        "contrib_mic",
+        &[("src/ic.cohdl", consumer), ("src/t3902.cohdl", &mic)],
+    );
+    assert!(!checked.diags.has_errors(), "{rendered}");
+
+    let part = &checked.world.parts["contrib_mic::MMICT3902_00_012"];
+    assert_eq!(
+        part.primary.field("mfr").map(|field| field.value.as_str()),
+        Some("TDK/InvenSense")
+    );
+    assert_eq!(
+        part.primary.field("mpn").map(|field| field.value.as_str()),
+        Some("MMICT3902-00-012")
+    );
+    let fp = &checked.world.footprints["contrib_mic::FP_TDK_T3902"];
+    assert_eq!(fp.pads.len(), 5);
+    assert_eq!(fp.mount_holes.len(), 1);
+    let expected = [
+        ("1", 837_500_000_000_000, 1_364_000_000_000_000),
+        ("2", 837_500_000_000_000, 542_000_000_000_000),
+        ("3", 0, -710_000_000_000_000),
+        ("4", -837_500_000_000_000, 542_000_000_000_000),
+        ("5", -837_500_000_000_000, 1_364_000_000_000_000),
+    ];
+    for (place, (number, x, y)) in fp.pads.iter().zip(expected) {
+        assert_eq!(place.number.text, number);
+        assert_eq!((place.x.femto, place.y.femto), (x, y));
+    }
+    let signal = &checked.world.pads["contrib_mic::P_T3902_SIGNAL"];
+    assert_eq!(
+        signal
+            .size
+            .iter()
+            .map(|v| v.text.as_str())
+            .collect::<Vec<_>>(),
+        ["0.725mm", "0.522mm"]
+    );
+    let cohdl::ast::PadPaste::Rect(paste_w, paste_h) = &signal.paste.as_ref().unwrap().0 else {
+        panic!("T3902 signal paste is not rectangular")
+    };
+    assert_eq!(
+        (paste_w.text.as_str(), paste_h.text.as_str()),
+        ("0.625mm", "0.422mm")
+    );
+    let ground = &checked.world.pads["contrib_mic::P_T3902_GND"];
+    assert_eq!(ground.shape.unwrap().0, cohdl::ast::PadShape::Annulus);
+    assert_eq!(
+        ground
+            .size
+            .iter()
+            .map(|v| v.text.as_str())
+            .collect::<Vec<_>>(),
+        ["1.625mm", "1.025mm"]
+    );
+
+    let mut checked = checked;
+    let artifacts =
+        build_artifacts(&mut checked, &LockState::default()).expect("real T3902 consumer builds");
+    assert!(artifacts.netlist.contains("MMICT3902-00-012"));
+    assert!(artifacts.bom.contains("MMICT3902-00-012"));
+    let ir = checked.ir.as_ref().unwrap();
+    assert_eq!(
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).len(),
+        1
+    );
+    assert!(cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "t3902").contains("<Cutout>"));
+}
+
+#[test]
 fn std_exports_only_the_core_trait_allowlist() {
     let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std/src");
     let mut declarations = Vec::new();
@@ -647,6 +727,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/level-shifter::LS_RS0104_QFN14|Run-IC|RS0104YTQF14|contrib_level_shifter::QFN14N50P350X350_1EP200X150|contrib_level_shifter::RS0104[QFN14]|3630fb2e789c29f2450aec1bd2bd6238985bd13cd5216dc4d4b0abe693f24f46",
         "@contrib/lora::LORA_SX1262|Semtech|SX1262IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1262[-]|0283921c57536ef05472323278e94728e22d738f6ff31b8937a11f8df12a734c",
         "@contrib/lora::LORA_SX1280|Semtech|SX1280IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1280[-]|57f667bbeac1ea0682f2b5ef0b09d53da8e0b4d9d7d644a9348b5721dc9da567",
+        "@contrib/mic::MMICT3902_00_012|TDK/InvenSense|MMICT3902-00-012|contrib_mic::FP_TDK_T3902|contrib_mic::T3902[-]|1060ef92c73635da819e96b7b7262a8f818a578028575cd21022352e09ebe22d",
         "@contrib/nfc::NFC_ST25R3916|STMicroelectronics|ST25R3916-AQET|contrib_nfc::QFN32N50P500X500_1EP345X345|contrib_nfc::ST25R3916[-]|aa52ed734bb60338e6a1457e28efbfae87a0f33826c43894528c3aa4c6f3cb22",
         "@contrib/rtc::RTC_PCF85063AT|NXP|PCF85063AT/AY|contrib_rtc::SOIC8P127X600X175N|contrib_rtc::PCF85063A[SO8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
         "@contrib/rtc::RTC_PCF85063ATL|NXP|PCF85063ATL/1,118|contrib_rtc::FP_NXP_DFN2626_10_SOT1197_1|contrib_rtc::PCF85063A[DFN10]|0adb4e66d4b7917d6471953d8775cc5a085ed22aa53452b53826f8f1ad495abc",

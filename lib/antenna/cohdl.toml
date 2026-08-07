@@ -1,0 +1,9 @@
+[package]
+name = "antenna"
+version = "0.1.0"
+license = "MIT"
+description = "RF antennas with verified terminal lands and layout guidance."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

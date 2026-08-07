@@ -1,0 +1,38 @@
+pub trait Antenna {
+    designator_prefix: "AE"
+}
+
+#[doc("docs/2450at18b100.pdf")]
+pub device CeramicAntenna2450 {
+    pins {
+        required FEED: 1 [passive]
+        optional NC: 2 [passive]
+    }
+}
+
+impl Antenna for CeramicAntenna2450 {}
+
+#[doc("docs/2450at18b100.pdf")]
+pub part ANT_2450AT18B100E: CeramicAntenna2450 {
+    primary { mfr: "Johanson Technology", mpn: "2450AT18B100E", footprint: FP_ANT_2450AT18B100E }
+}
+
+// Terminal copper from the manufacturer's evaluation-board layout. Antenna
+// keepout, board-edge placement, matching, and feed geometry are system-level
+// RF constraints documented in docs/README.md, not footprint copper.
+pub pad P_ANT_2450AT18B100_LAND {
+    shape: rect
+    size: (0.8mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_ANT_2450AT18B100E {
+    pad 1: P_ANT_2450AT18B100_LAND at (-1.7mm, 0mm)
+    pad 2: P_ANT_2450AT18B100_LAND at (1.7mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.7mm, 2.1mm) }
+    silkscreen_ref { at: (0mm, -1.6mm) }
+}

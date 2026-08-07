@@ -1,0 +1,66 @@
+#[doc("docs/README.md")]
+pub device TestPoint {
+    pins {
+        required SIGNAL: 1 [passive]
+    }
+}
+
+#[doc("docs/README.md")]
+pub device MechanicalMountingHole {
+}
+
+#[doc("docs/README.md")]
+pub device PlatedMountingHole {
+    pins {
+        required PAD: 1 [passive]
+    }
+}
+
+pad P_TEST_POINT_ROUND_1MM {
+    shape: circle
+    size: (1mm)
+    layer: top_copper
+    plating: smd
+    paste: none
+}
+
+pad P_MOUNTING_HOLE_M2_PTH_2P2_4P0 {
+    shape: circle
+    size: (4mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 2.2mm
+}
+
+pub footprint FP_TEST_POINT_ROUND_1MM {
+    pad 1: P_TEST_POINT_ROUND_1MM at (0mm, 0mm)
+    courtyard { shape: circle, at: (0mm, 0mm), size: (1.5mm) }
+}
+
+pub footprint FP_MOUNTING_HOLE_M2_NPTH_2P2 {
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 2.2mm
+    courtyard { shape: circle, at: (0mm, 0mm), size: (4.4mm) }
+}
+
+pub footprint FP_MOUNTING_HOLE_M2_PTH_2P2_4P0 {
+    pad 1: P_MOUNTING_HOLE_M2_PTH_2P2_4P0 at (0mm, 0mm)
+    courtyard { shape: circle, at: (0mm, 0mm), size: (4.4mm) }
+}
+
+#[doc("docs/README.md")]
+pub part TEST_POINT_ROUND_1MM: TestPoint {
+    primary { mfr: "PCB Fabrication", mpn: "TESTPOINT-ROUND-1.0MM-SMD",
+              footprint: FP_TEST_POINT_ROUND_1MM }
+}
+
+#[doc("docs/README.md")]
+pub part MOUNTING_HOLE_M2_NPTH: MechanicalMountingHole {
+    primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-M2-NPTH-2.2MM",
+              footprint: FP_MOUNTING_HOLE_M2_NPTH_2P2 }
+}
+
+#[doc("docs/README.md")]
+pub part MOUNTING_HOLE_M2_PTH: PlatedMountingHole {
+    primary { mfr: "PCB Fabrication", mpn: "MOUNTING-HOLE-M2-PTH-2.2MM-4.0MM",
+              footprint: FP_MOUNTING_HOLE_M2_PTH_2P2_4P0 }
+}

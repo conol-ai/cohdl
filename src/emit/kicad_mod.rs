@@ -496,7 +496,8 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
                 geom::mm(ph),
                 paste_layer
             );
-        } else if let Some((PadPaste::SegmentedAnnulus(outer, inner, gap), _)) = &pad.paste {
+        } else if let Some((PadPaste::SegmentedAnnulus(values), _)) = &pad.paste {
+            let [outer, inner, gap] = values.as_ref();
             let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
                 "B.Paste"
             } else {

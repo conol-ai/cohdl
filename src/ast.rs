@@ -179,7 +179,7 @@ impl PadCorner {
 pub enum PadPaste {
     None,
     Rect(UnitValue, UnitValue),
-    SegmentedAnnulus(UnitValue, UnitValue, UnitValue),
+    SegmentedAnnulus(Box<[UnitValue; 3]>),
 }
 
 impl PadPlating {

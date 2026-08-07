@@ -1139,7 +1139,8 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                         ));
                     }
                 }
-            } else if let crate::ast::PadPaste::SegmentedAnnulus(outer, inner, gap) = paste {
+            } else if let crate::ast::PadPaste::SegmentedAnnulus(values) = paste {
+                let [outer, inner, gap] = values.as_ref();
                 if !matches!(pad.shape, Some((crate::ast::PadShape::Annulus, _))) {
                     diags.push(Diagnostic::error(
                         "E805",

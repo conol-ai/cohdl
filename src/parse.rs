@@ -590,6 +590,15 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::Colon, "after `shape`");
                 let v = self.ident("as the mount-hole shape")?;
                 match PadShape::from_name(&v.name) {
+                    Some(PadShape::Annulus) => {
+                        self.diags.push(Diagnostic::error(
+                            "E810",
+                            v.span,
+                            "`annulus` is only valid for electrical pads, not `mount_hole`"
+                                .to_string(),
+                        ));
+                        return None;
+                    }
                     Some(s) => shape = Some((s, v.span)),
                     None => {
                         self.diags.push(Diagnostic::error(
@@ -1054,6 +1063,11 @@ impl<'a> Parser<'a> {
             match field.name.as_str() {
                 "shape" => match self.ident("as the shape") {
                     Some(v) => match PadShape::from_name(&v.name) {
+                        Some(PadShape::Annulus) => self.diags.push(Diagnostic::error(
+                            "E806",
+                            v.span,
+                            format!("`annulus` is only valid for electrical pads, not `{}`", kw),
+                        )),
                         Some(s) => shape = Some((s, v.span)),
                         None => self.diags.push(Diagnostic::error(
                             "E806",
@@ -1237,7 +1251,7 @@ impl<'a> Parser<'a> {
                             "E805",
                             v.span,
                             format!(
-                                "`{}` is not a pad shape — shapes are: rect, circle, oval",
+                                "`{}` is not a pad shape — shapes are: rect, circle, oval, annulus",
                                 v.name
                             ),
                         )),
@@ -1374,6 +1388,29 @@ impl<'a> Parser<'a> {
                 "paste" => {
                     if self.eat_ident("none") {
                         def.paste = Some((PadPaste::None, field.span.to(self.prev_span())));
+                    } else if self.eat_ident("segmented_annulus") {
+                        let Some((vals, span)) = self.length_tuple() else {
+                            self.sync_in_block();
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        let [outer, inner, gap] = vals.as_slice() else {
+                            self.diags.push(Diagnostic::error(
+                                "E805",
+                                span,
+                                format!(
+                                    "`segmented_annulus` is `(outer, inner, gap)` — {} value{} given",
+                                    vals.len(),
+                                    if vals.len() == 1 { "" } else { "s" }
+                                ),
+                            ));
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        def.paste = Some((
+                            PadPaste::SegmentedAnnulus(outer.clone(), inner.clone(), gap.clone()),
+                            field.span.to(span),
+                        ));
                     } else {
                         let Some((vals, span)) = self.length_tuple() else {
                             self.sync_in_block();

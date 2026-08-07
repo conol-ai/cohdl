@@ -3776,3 +3776,14 @@ footprint/IPC geometry changes, and the hand-layouted `openmicro.kicad_pcb`
 (plus the gerbers and position files cut from it) carries the stale joystick
 until J1 is re-imported and its region re-routed. BOM, designators and
 `layout.json` are unchanged.
+
+## Bounded annulus and segmented stencil geometry (2026-08-07)
+
+`shape: annulus` now preserves an SMD ring as one electrical pad in the AST,
+KiCad custom-pad output, and IPC-2581 (`Contour` plus circular `Cutout`).
+`segmented_annulus(outer, inner, gap)` emits exactly four conservative paste
+sector polygons without duplicating the logical pin. The resolver rejects
+non-pad contexts, non-SMD/non-copper use, invalid or collapsing diameters,
+paste outside copper, and geometry beyond the 100 mm / 512-segment /
+520-vertex hard bounds. This closes the TDK/InvenSense T3902 manufacturer-land
+gap without adding a general polygon API.

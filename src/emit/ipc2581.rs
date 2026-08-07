@@ -878,9 +878,10 @@ fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
     if let Some(fp) = world.footprints.get(fp_name) {
         for place in &fp.pads {
             if let Some(pad) = world.pads.get(&place.pad.name) {
-                let (w, h) = match pad.size.as_slice() {
-                    [w, h] => (w.femto, h.femto),
-                    [d] => (d.femto, d.femto),
+                let (w, h) = match (pad.shape.map(|(shape, _)| shape), pad.size.as_slice()) {
+                    (Some(crate::ast::PadShape::Annulus), [outer, _]) => (outer.femto, outer.femto),
+                    (_, [w, h]) => (w.femto, h.femto),
+                    (_, [d]) => (d.femto, d.femto),
                     _ => continue,
                 };
                 union_bbox(&mut b, place.x.femto, place.y.femto, w / 2, h / 2);
@@ -1182,6 +1183,7 @@ struct Prim {
     chamfer: Option<(crate::ast::PadCorner, i128)>,
     /// Radius applied to all four corners of a rectangular primitive.
     corner_radius: Option<i128>,
+    polygon: Option<Vec<(i128, i128)>>,
 }
 
 /// A reusable padstack: a primitive plus an optional through-hole. `plated` is
@@ -1194,7 +1196,7 @@ struct PadStack {
     /// Solder-mask opening; differs from copper when `mask_expansion` is set.
     mask_prim: usize,
     /// Solder-paste aperture; `None` suppresses paste for this SMD pad.
-    paste_prim: Option<usize>,
+    paste_prims: Vec<usize>,
     tht: bool,
     drill: i128,
     plated: bool,
@@ -1271,6 +1273,7 @@ fn copper_prim(pad: &crate::ast::PadDef, shape: crate::ast::PadShape, w: i128, h
             .as_ref()
             .map(|(corner, cut, _)| (*corner, cut.femto)),
         corner_radius: pad.corner_radius.as_ref().map(|(radius, _)| radius.femto),
+        polygon: None,
     }
 }
 
@@ -1345,25 +1348,78 @@ fn mask_prim(pad: &crate::ast::PadDef, copper: &Prim) -> Prim {
     Prim {
         shape: copper.shape,
         w: copper.w + 2 * margin,
-        h: copper.h + 2 * margin,
+        h: if matches!(copper.shape, crate::ast::PadShape::Annulus) {
+            copper.h - 2 * margin
+        } else {
+            copper.h + 2 * margin
+        },
         chamfer: copper
             .chamfer
             .map(|(corner, cut)| (corner, cut + chamfer_expansion(margin))),
         corner_radius: copper.corner_radius.map(|radius| radius + margin),
+        polygon: copper.polygon.clone(),
     }
 }
 
-fn paste_prim(pad: &crate::ast::PadDef, copper: &Prim) -> Option<Prim> {
+fn sector_polygon(outer: i128, inner: i128, gap: i128, quadrant: usize) -> Vec<(i128, i128)> {
+    let outer_r = outer as f64 / 2.0;
+    let inner_r = inner as f64 / 2.0;
+    let half_gap_angle = (gap as f64 / inner as f64).asin();
+    let start = quadrant as f64 * std::f64::consts::FRAC_PI_2 + half_gap_angle;
+    let end = (quadrant + 1) as f64 * std::f64::consts::FRAC_PI_2 - half_gap_angle;
+    let full_segments = (std::f64::consts::PI / (1.0 - 2.0e12 / outer as f64).acos())
+        .ceil()
+        .clamp(3.0, 512.0) as usize;
+    let segments = (((end - start) / std::f64::consts::TAU) * full_segments as f64)
+        .ceil()
+        .max(1.0) as usize;
+    let step = (end - start) / segments as f64;
+    let conservative_inner = inner_r / (step / 2.0).cos();
+    let mut points = Vec::with_capacity((segments + 1) * 2);
+    for i in 0..=segments {
+        let angle = start + step * i as f64;
+        points.push((
+            (outer_r * angle.cos()).round() as i128,
+            (outer_r * angle.sin()).round() as i128,
+        ));
+    }
+    for i in (0..=segments).rev() {
+        let angle = start + step * i as f64;
+        points.push((
+            (conservative_inner * angle.cos()).round() as i128,
+            (conservative_inner * angle.sin()).round() as i128,
+        ));
+    }
+    points
+}
+
+fn paste_prims(pad: &crate::ast::PadDef, copper: &Prim) -> Vec<Prim> {
     match &pad.paste {
-        None => Some(copper.clone()),
-        Some((crate::ast::PadPaste::None, _)) => None,
-        Some((crate::ast::PadPaste::Rect(w, h), _)) => Some(Prim {
+        None => vec![copper.clone()],
+        Some((crate::ast::PadPaste::None, _)) => Vec::new(),
+        Some((crate::ast::PadPaste::Rect(w, h), _)) => vec![Prim {
             shape: crate::ast::PadShape::Rect,
             w: w.femto,
             h: h.femto,
             chamfer: None,
             corner_radius: None,
-        }),
+            polygon: None,
+        }],
+        Some((crate::ast::PadPaste::SegmentedAnnulus(outer, inner, gap), _)) => (0..4)
+            .map(|quadrant| Prim {
+                shape: crate::ast::PadShape::Annulus,
+                w: outer.femto,
+                h: inner.femto,
+                chamfer: None,
+                corner_radius: None,
+                polygon: Some(sector_polygon(
+                    outer.femto,
+                    inner.femto,
+                    gap.femto,
+                    quadrant,
+                )),
+            })
+            .collect(),
     }
 }
 
@@ -1453,16 +1509,20 @@ fn build_physical(
                 copper_prim(pad, *shape, w, h)
             };
             let mask = mask_prim(pad, &copper);
-            let paste = if tht { None } else { paste_prim(pad, &copper) };
+            let paste = if tht {
+                Vec::new()
+            } else {
+                paste_prims(pad, &copper)
+            };
             let prim = dedup(&mut prims, copper);
             let mask_prim = dedup(&mut prims, mask);
-            let paste_prim = paste.map(|p| dedup(&mut prims, p));
+            let paste_prims = paste.into_iter().map(|p| dedup(&mut prims, p)).collect();
             let padstack = dedup(
                 &mut padstacks,
                 PadStack {
                     prim,
                     mask_prim,
-                    paste_prim,
+                    paste_prims,
                     tht,
                     drill,
                     plated: true,
@@ -1526,6 +1586,7 @@ fn build_physical(
                     h,
                     chamfer: None,
                     corner_radius: None,
+                    polygon: None,
                 },
             );
             let padstack = dedup(
@@ -1533,7 +1594,7 @@ fn build_physical(
                 PadStack {
                     prim,
                     mask_prim: prim,
-                    paste_prim: None,
+                    paste_prims: Vec::new(),
                     tht: true,
                     // IPC's `<Hole>` carries a single scalar diameter, so a
                     // non-circular hole reports its MINOR axis — the slot
@@ -1574,6 +1635,26 @@ fn build_physical(
 /// rounded rectangles, or `Contour` for a one-corner chamfer), shared by the
 /// `DictionaryStandard` entry, padstack pad defs, and placed features.
 fn prim_body(p: &Prim) -> String {
+    if let Some(points) = &p.polygon {
+        let mut s = String::from("<Contour><Polygon>");
+        let (x0, y0) = points[0];
+        let _ = write!(
+            s,
+            "<PolyBegin x=\"{}\" y=\"{}\"/>",
+            geom::mm_femto(x0),
+            geom::mm_femto(-y0)
+        );
+        for (x, y) in points.iter().skip(1).chain(points.first()) {
+            let _ = write!(
+                s,
+                "<PolyStepSegment x=\"{}\" y=\"{}\"/>",
+                geom::mm_femto(*x),
+                geom::mm_femto(-*y)
+            );
+        }
+        s.push_str("<FillDesc fillProperty=\"FILL\"/></Polygon></Contour>");
+        return s;
+    }
     if let Some((corner, cut)) = p.chamfer {
         // Coordinates are carried in tenths of a femto-mm so odd dimensions
         // retain their exact half.  Author coordinates are +Y-down; negate Y
@@ -1641,6 +1722,19 @@ fn prim_body(p: &Prim) -> String {
         );
     }
     match p.shape {
+        crate::ast::PadShape::Annulus => {
+            let outer = p.w / 2;
+            let inner = p.h / 2;
+            format!(
+                "<Contour><Polygon><PolyBegin x=\"{}\" y=\"0\"/><PolyStepCurve x=\"{}\" y=\"0\" centerX=\"0\" centerY=\"0\" clockwise=\"false\"/><PolyStepCurve x=\"{}\" y=\"0\" centerX=\"0\" centerY=\"0\" clockwise=\"false\"/><FillDesc fillProperty=\"FILL\"/></Polygon><Cutout><PolyBegin x=\"{}\" y=\"0\"/><PolyStepCurve x=\"{}\" y=\"0\" centerX=\"0\" centerY=\"0\" clockwise=\"true\"/><PolyStepCurve x=\"{}\" y=\"0\" centerX=\"0\" centerY=\"0\" clockwise=\"true\"/><FillDesc fillProperty=\"FILL\"/></Cutout></Contour>",
+                geom::mm_femto(outer),
+                geom::mm_femto(-outer),
+                geom::mm_femto(outer),
+                geom::mm_femto(inner),
+                geom::mm_femto(-inner),
+                geom::mm_femto(inner)
+            )
+        }
         crate::ast::PadShape::Circle => format!("<Circle diameter=\"{}\"/>", geom::mm_femto(p.w)),
         crate::ast::PadShape::Rect => format!(
             "<RectCenter width=\"{}\" height=\"{}\"/>",
@@ -1767,13 +1861,13 @@ fn emit_padstacks(out: &mut String, phys: &Physical) {
         } else if ps.plated && ps.bottom {
             // An SMD padstack resolved to the physical back lands on B-layers.
             layers.extend([("B.Cu", ps.prim), ("B.Mask", ps.mask_prim)]);
-            if let Some(paste) = ps.paste_prim {
-                layers.push(("B.Paste", paste));
+            for paste in &ps.paste_prims {
+                layers.push(("B.Paste", *paste));
             }
         } else if ps.plated {
             layers.extend([("F.Cu", ps.prim), ("F.Mask", ps.mask_prim)]);
-            if let Some(paste) = ps.paste_prim {
-                layers.push(("F.Paste", paste));
+            for paste in &ps.paste_prims {
+                layers.push(("F.Paste", *paste));
             }
         }
         for (layer, prim) in layers {
@@ -1824,7 +1918,7 @@ fn emit_layer_features(
             .filter(|p| phys.padstacks[p.padstack].plated)
             .filter(|p| keep(p))
             .filter(|p| {
-                !layer.ends_with(".Paste") || phys.padstacks[p.padstack].paste_prim.is_some()
+                !layer.ends_with(".Paste") || !phys.padstacks[p.padstack].paste_prims.is_empty()
             })
             .collect();
         if pads.is_empty() {
@@ -1832,52 +1926,52 @@ fn emit_layer_features(
         }
         let _ = writeln!(out, "        <LayerFeature layerRef=\"{}\">", layer);
         for p in pads {
-            let net = net_of.get(&(p.refdes.clone(), p.pin.clone()));
-            match net {
-                Some(n) => {
-                    let _ = writeln!(out, "          <Set net=\"{}\">", esc(n));
-                }
-                None => out.push_str("          <Set>\n"),
-            }
-            let _ = writeln!(
-                out,
-                "            <Pad padstackDefRef=\"PADSTACK_{}\">",
-                p.padstack
-            );
-            if p.rot != 0 {
-                let _ = writeln!(out, "              <Xform rotation=\"{}\"/>", p.rot);
-            }
-            let _ = writeln!(
-                out,
-                "              <Location x=\"{}\" y=\"{}\"/>",
-                geom::mm_femto(p.x),
-                geom::mm_femto(p.y)
-            );
-            let layer_prim = if layer.ends_with(".Mask") {
-                phys.padstacks[p.padstack].mask_prim
+            let layer_prims = if layer.ends_with(".Mask") {
+                vec![phys.padstacks[p.padstack].mask_prim]
             } else if layer.ends_with(".Paste") {
-                phys.padstacks[p.padstack]
-                    .paste_prim
-                    .expect("paste layer filtered to padstacks with paste")
+                phys.padstacks[p.padstack].paste_prims.clone()
             } else {
-                p.prim
+                vec![p.prim]
             };
-            let _ = writeln!(
-                out,
-                "              <StandardPrimitiveRef id=\"PRIM_{}\"/>",
-                layer_prim
-            );
-            // A mount_hole is mechanical — no device pin to reference.
-            if !p.hole {
+            for layer_prim in layer_prims {
+                let net = net_of.get(&(p.refdes.clone(), p.pin.clone()));
+                match net {
+                    Some(n) => {
+                        let _ = writeln!(out, "          <Set net=\"{}\">", esc(n));
+                    }
+                    None => out.push_str("          <Set>\n"),
+                }
                 let _ = writeln!(
                     out,
-                    "              <PinRef componentRef=\"{}\" pin=\"{}\"/>",
-                    esc(&p.refdes),
-                    esc(&p.pin)
+                    "            <Pad padstackDefRef=\"PADSTACK_{}\">",
+                    p.padstack
                 );
+                if p.rot != 0 {
+                    let _ = writeln!(out, "              <Xform rotation=\"{}\"/>", p.rot);
+                }
+                let _ = writeln!(
+                    out,
+                    "              <Location x=\"{}\" y=\"{}\"/>",
+                    geom::mm_femto(p.x),
+                    geom::mm_femto(p.y)
+                );
+                let _ = writeln!(
+                    out,
+                    "              <StandardPrimitiveRef id=\"PRIM_{}\"/>",
+                    layer_prim
+                );
+                // A mount_hole is mechanical — no device pin to reference.
+                if !p.hole {
+                    let _ = writeln!(
+                        out,
+                        "              <PinRef componentRef=\"{}\" pin=\"{}\"/>",
+                        esc(&p.refdes),
+                        esc(&p.pin)
+                    );
+                }
+                out.push_str("            </Pad>\n");
+                out.push_str("          </Set>\n");
             }
-            out.push_str("            </Pad>\n");
-            out.push_str("          </Set>\n");
         }
         out.push_str("        </LayerFeature>\n");
     }

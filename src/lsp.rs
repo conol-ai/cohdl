@@ -795,6 +795,30 @@ impl Server {
         let (analysis, fid, offset) = self.locate(params)?;
         let world = &analysis.checked.world;
 
+        let source = analysis.checked.sm.text(fid).as_bytes();
+        let mut start = (offset as usize).min(source.len());
+        while start > 0 && (source[start - 1].is_ascii_alphanumeric() || source[start - 1] == b'_')
+        {
+            start -= 1;
+        }
+        let mut end = (offset as usize).min(source.len());
+        while end < source.len() && (source[end].is_ascii_alphanumeric() || source[end] == b'_') {
+            end += 1;
+        }
+        let token = std::str::from_utf8(&source[start..end]).unwrap_or_default();
+        let syntax_help = match token {
+            "annulus" => Some("**annulus pad** — `size: (outer_diameter, inner_diameter)`; SMD copper only, with `outer > inner > 0`."),
+            "segmented_annulus" => Some("**segmented annulus paste** — `segmented_annulus(outer_diameter, inner_diameter, gap)` emits four cardinal stencil sectors."),
+            _ => None,
+        };
+        if let Some(help) = syntax_help {
+            let span = Span::new(fid, start as u32, end as u32);
+            return Some(hover_markdown(
+                help.to_string(),
+                span_to_range(&analysis, span),
+            ));
+        }
+
         // Pin declaration hover: obligation + role (+ physical pads).
         for dev in world.devices.values() {
             for pb in &dev.pin_blocks {
@@ -1198,6 +1222,10 @@ impl Server {
             "layer",
             "plating",
             "drill",
+            "paste",
+            "mask_expansion",
+            "annulus",
+            "segmented_annulus",
             "diameter",
             "at",
             "rotate",

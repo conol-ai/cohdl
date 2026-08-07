@@ -114,27 +114,21 @@ fn custom_chamfer_points(corner: PadCorner, w: i128, h: i128, cut: i128) -> Stri
         .join(" ")
 }
 
-fn segmented_annulus_points(outer: i128, inner: i128, gap: i128, quadrant: usize) -> String {
+fn segmented_annulus_points(
+    outer: i128,
+    inner: i128,
+    plan: crate::resolve::SegmentedAnnulusSectorPlan,
+) -> String {
     let outer_r = outer as f64 / 2.0;
     let inner_r = inner as f64 / 2.0;
-    let half_gap_angle = (gap as f64 / inner as f64).asin();
-    let start = quadrant as f64 * std::f64::consts::FRAC_PI_2 + half_gap_angle;
-    let end = (quadrant + 1) as f64 * std::f64::consts::FRAC_PI_2 - half_gap_angle;
-    let full_segments = (std::f64::consts::PI / (1.0 - 2.0e12 / outer as f64).acos())
-        .ceil()
-        .clamp(3.0, 512.0) as usize;
-    let segments = (((end - start) / std::f64::consts::TAU) * full_segments as f64)
-        .ceil()
-        .max(1.0) as usize;
-    let step = (end - start) / segments as f64;
-    let conservative_inner = inner_r / (step / 2.0).cos();
-    let mut points = Vec::with_capacity((segments + 1) * 2);
-    for i in 0..=segments {
-        let angle = start + step * i as f64;
+    let conservative_inner = inner_r / (plan.step_angle / 2.0).cos();
+    let mut points = Vec::with_capacity(plan.vertices);
+    for i in 0..=plan.segments {
+        let angle = plan.start_angle + plan.step_angle * i as f64;
         points.push((outer_r * angle.cos(), outer_r * angle.sin()));
     }
-    for i in (0..=segments).rev() {
-        let angle = start + step * i as f64;
+    for i in (0..=plan.segments).rev() {
+        let angle = plan.start_angle + plan.step_angle * i as f64;
         points.push((
             conservative_inner * angle.cos(),
             conservative_inner * angle.sin(),
@@ -498,14 +492,18 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             );
         } else if let Some((PadPaste::SegmentedAnnulus(values), _)) = &pad.paste {
             let [outer, inner, gap] = values.as_ref();
+            let Some(plan) =
+                crate::resolve::segmented_annulus_plan(outer.femto, inner.femto, gap.femto)
+            else {
+                continue;
+            };
             let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
                 "B.Paste"
             } else {
                 "F.Paste"
             };
-            for quadrant in 0..4 {
-                let points =
-                    segmented_annulus_points(outer.femto, inner.femto, gap.femto, quadrant);
+            for sector in plan.sectors {
+                let points = segmented_annulus_points(outer.femto, inner.femto, sector);
                 let _ = writeln!(
                     s,
                     "  (pad \"\" smd custom (at {} {}{}) (size 0 0) (layers \"{}\") (options (clearance outline) (anchor circle)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",

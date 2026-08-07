@@ -108,6 +108,134 @@ fn build_real(
     (checked, artifacts)
 }
 
+fn build_misc_library() -> (
+    cohdl::pipeline::Checked,
+    Option<cohdl::pipeline::BuildArtifacts>,
+) {
+    let root = manifest();
+    let misc_source = std::fs::read_to_string(root.join("lib/misc/src/misc.cohdl"))
+        .expect("lib/misc/src/misc.cohdl must exist");
+    let consumer = r#"
+design MiscFootprints {
+    inst test_point: TEST_POINT_ROUND_1MM
+    inst mounting_hole_npth: MOUNTING_HOLE_M2_NPTH
+    inst mounting_hole_pth: MOUNTING_HOLE_M2_PTH
+    nc: test_point.SIGNAL, mounting_hole_pth.PAD
+}
+"#;
+    let files = vec![
+        ("src/misc.cohdl".to_string(), misc_source),
+        ("src/consumer.cohdl".to_string(), consumer.to_string()),
+    ];
+    let mut checked = check_files_in("misc", &files, None).expect("selection");
+    let artifacts = build_artifacts(&mut checked, &LockState::default());
+    checked.diags.sort(&checked.sm);
+    (checked, artifacts)
+}
+
+#[test]
+fn misc_library_exports_locked_public_fabrication_contract() {
+    let (checked, artifacts) = build_misc_library();
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "misc consumer must build without E807 or other errors:\n{rendered}"
+    );
+    assert!(
+        !rendered.contains("E807"),
+        "zero-pad NPTH is valid:\n{rendered}"
+    );
+
+    for name in [
+        "misc::TestPoint",
+        "misc::MechanicalMountingHole",
+        "misc::PlatedMountingHole",
+        "misc::FP_TEST_POINT_ROUND_1MM",
+        "misc::FP_MOUNTING_HOLE_M2_NPTH_2P2",
+        "misc::FP_MOUNTING_HOLE_M2_PTH_2P2_4P0",
+        "misc::TEST_POINT_ROUND_1MM",
+        "misc::MOUNTING_HOLE_M2_NPTH",
+        "misc::MOUNTING_HOLE_M2_PTH",
+    ] {
+        assert!(
+            checked
+                .world
+                .symbols
+                .get(name)
+                .is_some_and(|symbol| symbol.is_pub),
+            "missing public symbol `{name}`"
+        );
+    }
+
+    let npth_device = &checked.world.devices["misc::MechanicalMountingHole"];
+    assert!(npth_device.pins_for(None).is_empty());
+    let npth_footprint = &checked.world.footprints["misc::FP_MOUNTING_HOLE_M2_NPTH_2P2"];
+    assert!(npth_footprint.pads.is_empty());
+    assert_eq!(npth_footprint.mount_holes.len(), 1);
+
+    for (part_name, mpn) in [
+        ("misc::TEST_POINT_ROUND_1MM", "TESTPOINT-ROUND-1.0MM-SMD"),
+        ("misc::MOUNTING_HOLE_M2_NPTH", "MOUNTING-HOLE-M2-NPTH-2.2MM"),
+        (
+            "misc::MOUNTING_HOLE_M2_PTH",
+            "MOUNTING-HOLE-M2-PTH-2.2MM-4.0MM",
+        ),
+    ] {
+        let part = &checked.world.parts[part_name];
+        assert_eq!(part.primary.field("mfr").unwrap().value, "PCB Fabrication");
+        assert_eq!(part.primary.field("mpn").unwrap().value, mpn);
+        assert!(checked.world.docs.contains_key(part_name));
+    }
+}
+
+#[test]
+fn misc_library_emits_exact_kicad_pad_semantics() {
+    let (checked, artifacts) = build_misc_library();
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    let modules = cohdl::emit::kicad_mod::emit_kicad_mods(
+        &checked.world,
+        checked.ir.as_ref().expect("misc design IR"),
+    );
+    assert_eq!(modules.len(), 3);
+
+    let module = |name: &str| {
+        &modules
+            .iter()
+            .find(|(fq, _, _)| fq == name)
+            .unwrap_or_else(|| panic!("missing emitted footprint `{name}`"))
+            .2
+    };
+    let test_point = module("misc::FP_TEST_POINT_ROUND_1MM");
+    assert!(
+        test_point
+            .contains("(pad \"1\" smd circle (at 0 0) (size 1 1) (layers \"F.Cu\" \"F.Mask\"))"),
+        "{test_point}"
+    );
+    assert!(!test_point.contains("F.Paste"), "{test_point}");
+    assert!(!test_point.contains("solder_mask_margin"), "{test_point}");
+
+    let npth = module("misc::FP_MOUNTING_HOLE_M2_NPTH_2P2");
+    assert!(
+        npth.contains(
+            "(pad \"\" np_thru_hole circle (at 0 0) (size 2.2 2.2) (drill 2.2) (layers \"*.Cu\" \"*.Mask\"))"
+        ),
+        "{npth}"
+    );
+    assert!(!npth.contains("(pad \"1\""), "{npth}");
+
+    let pth = module("misc::FP_MOUNTING_HOLE_M2_PTH_2P2_4P0");
+    assert!(
+        pth.contains(
+            "(pad \"1\" thru_hole circle (at 0 0) (size 4 4) (drill 2.2) (layers \"*.Cu\" \"*.Mask\"))"
+        ),
+        "{pth}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // The Length unit (the enabling RFC-001 extension).
 

@@ -34,6 +34,7 @@ footprints live in focused packages:
 | `dcdc` | `dcdc::DCDC_JW5033S` | DC/DC step-down converters with verified land patterns |
 | `logic` | `logic::BUFFER_SN74AHCT1G125` | logic gates and buffers with verified land patterns |
 | `antenna` | `antenna::ANT_2450AT18B100E` | RF antennas with verified terminal lands and layout guidance |
+| `misc` | `misc::TEST_POINT_ROUND_1MM`, `misc::MOUNTING_HOLE_M2_NPTH`, `misc::MOUNTING_HOLE_M2_PTH` | reusable PCB fabrication primitives with explicit electrical semantics |
 | `cellular` | `cellular::CELL_AIR780E` | 4G/LTE cellular module devices with verified land patterns (Air780E, 109-pin LGA, official PADS decal land) |
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
 | `load-switch` | `load_switch::LOADSW_SGM2554` | power-distribution load switches with verified land patterns |

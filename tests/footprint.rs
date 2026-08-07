@@ -472,6 +472,9 @@ fn bounded_pad_controls_parse_and_validate() {
             assert_eq!(h.text, "0.15mm");
         }
         cohdl::ast::PadPaste::None => panic!("expected a reduced paste aperture"),
+        cohdl::ast::PadPaste::SegmentedAnnulus(..) => {
+            panic!("expected a rectangular paste aperture")
+        }
     }
 }
 
@@ -2205,6 +2208,123 @@ fn window_dimensions_are_checked_like_a_courtyard() {
          window { shape: rect, at: (1mm, 0mm), size: (3mm, 3mm) }\n}\n",
     )]);
     assert!(r.contains("at most one `window`"), "{}", r);
+}
+
+#[test]
+fn annulus_pad_syntax_is_accepted() {
+    let source = r#"
+pub pad P_GND {
+    shape: annulus
+    size: (1.625mm, 1.025mm)
+    layer: top_copper
+    plating: smd
+    paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm)
+}
+pub footprint FP_MIC {
+    pad 3: P_GND at (0mm, 0mm)
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 0.5mm
+}
+pub device Mic { pins { GND: 3 [power_in] } }
+pub part MIC: Mic { primary { mfr: "m", mpn: "annulus", footprint: FP_MIC } }
+design B { inst mic: MIC nc: mic.GND }
+"#;
+    let (checked, artifacts) = build_real(source);
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+}
+
+#[test]
+fn annulus_invariants_fail_closed() {
+    let cases = [
+        ("size: (1mm, 1mm)", "outer diameter > inner diameter"),
+        ("size: (101mm, 1mm)", "100mm limit"),
+        (
+            "size: (1.625mm, 1.025mm)\n    plating: plated_through_hole\n    drill: 0.5mm",
+            "cannot have a `drill`",
+        ),
+        (
+            "size: (1.625mm, 1.025mm)\n    corner_radius: 0.1mm",
+            "cannot have a chamfer or corner radius",
+        ),
+    ];
+    for (body, expected) in cases {
+        let source =
+            format!("pub pad P {{ shape: annulus, {body}, layer: top_copper, plating: smd }}");
+        let (_, rendered) = check(&[("bad.cohdl", &source)]);
+        assert!(rendered.contains(expected), "{source}\n{rendered}");
+    }
+
+    for source in [
+        "pub footprint F { mount_hole 1: non_plated at (0mm, 0mm) shape annulus size (1mm, 0.5mm) }",
+        "pub footprint F { courtyard { shape: annulus, at: (0mm, 0mm), size: (1mm, 0.5mm) } }",
+        "pub footprint F { window { shape: annulus, at: (0mm, 0mm), size: (1mm, 0.5mm) } }",
+    ] {
+        let (_, rendered) = check(&[("bad.cohdl", source)]);
+        assert!(rendered.contains("only valid for electrical pads"), "{rendered}");
+    }
+}
+
+#[test]
+fn annulus_formatter_and_backends_are_lossless() {
+    use cohdl::fmt::format_source;
+    let source = r#"
+pub pad P_GND { shape: annulus, size: (1.625mm, 1.025mm), layer: top_copper, plating: smd, paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm) }
+pub footprint FP_MIC { pad 3: P_GND at (0mm, 0mm) rotate 90 mount_hole 1: non_plated at (0mm, 0mm) diameter 0.5mm }
+pub device Mic { pins { GND: 3 [power_in] } }
+pub part MIC: Mic { primary { mfr: "m", mpn: "annulus", footprint: FP_MIC } }
+design B { inst mic: MIC nc: mic.GND }
+"#;
+    let once = format_source("annulus.cohdl", source).unwrap();
+    assert!(once.contains("segmented_annulus(1.625mm, 1.125mm, 0.1mm)"));
+    assert_eq!(once, format_source("annulus.cohdl", &once).unwrap());
+
+    let (checked, artifacts) = build_real(source);
+    assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
+    let ir = checked.ir.as_ref().unwrap();
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    assert!(kicad.contains("(gr_circle (center 0 0)"), "{kicad}");
+    assert_eq!(kicad.matches("(layers \"F.Paste\")").count(), 4, "{kicad}");
+    assert!(kicad.contains("(at 0 0 90)"), "{kicad}");
+    assert!(
+        kicad.contains("np_thru_hole") && kicad.contains("(drill 0.5)"),
+        "{kicad}"
+    );
+
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    assert!(xml.contains("<Cutout>"), "{xml}");
+    assert_eq!(
+        xml.matches("<LayerFeature layerRef=\"F.Paste\">").count(),
+        1,
+        "{xml}"
+    );
+    assert!(xml.matches("<Contour>").count() >= 5, "{xml}");
+    assert!(
+        xml.contains("platingStatus=\"NONPLATED\"") && xml.contains("diameter=\"0.5\""),
+        "{xml}"
+    );
+
+    let path = std::env::temp_dir().join(format!("cohdl-annulus-{}.xml", std::process::id()));
+    std::fs::write(&path, &xml).unwrap();
+    match std::process::Command::new("xmllint")
+        .args(["--noout", "--schema"])
+        .arg(manifest().join("tests/schema/IPC-2581B1.xsd"))
+        .arg(&path)
+        .output()
+    {
+        Ok(output) => assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        ),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!("WARNING: xmllint not found — schema validity NOT checked locally")
+        }
+        Err(error) => panic!("xmllint failed: {error}"),
+    }
+    let _ = std::fs::remove_file(path);
 }
 
 #[test]

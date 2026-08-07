@@ -273,6 +273,14 @@ pub pad P_RoundedLand {
   aperture no larger than the copper envelope. Omitting `paste` preserves the
   historical behaviour: paste follows copper.
 
+An annular SMD land uses `shape: annulus` with
+`size: (outer_diameter, inner_diameter)`. Its optional
+`paste: segmented_annulus(outer, inner, gap)` is exactly four cardinal sectors
+separated by orthogonal slots. Annulus is pad-only, copper-face/SMD-only, and
+bounded to 100 mm outer diameter, 512 full-circle segments, and 520 total
+paste vertices; checked mask expansion grows the outer and shrinks the inner
+diameter without collapsing the opening.
+
 These are intentionally not arbitrary polygons or a general stencil language.
 They cover checked manufacturer requirements losslessly in both KiCad and
 IPC-2581 (`roundrect` / `RectRound`) while keeping declaration-time validation

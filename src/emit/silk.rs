@@ -70,9 +70,10 @@ fn representative_place<'a>(
         }
     }
     fn spans(pad: Option<&crate::ast::PadDef>) -> (i128, i128) {
-        let (w, h) = match pad.map(|p| p.size.as_slice()) {
-            Some([d]) => (d.femto, d.femto),
-            Some([w, h, ..]) => (w.femto, h.femto),
+        let (w, h) = match pad.map(|p| (p.shape.map(|(s, _)| s), p.size.as_slice())) {
+            Some((Some(PadShape::Annulus), [outer, _])) => (outer.femto, outer.femto),
+            Some((_, [d])) => (d.femto, d.femto),
+            Some((_, [w, h, ..])) => (w.femto, h.femto),
             _ => (0, 0),
         };
         (w.max(h), w.min(h))
@@ -103,7 +104,7 @@ fn pad_box(world: &World, fp: &FootprintDef, number: &str) -> Option<PadBox> {
     let (mut hw, mut hh) = (0i128, 0i128);
     if let Some(def) = def {
         match (def.shape.map(|(s, _)| s), def.size.as_slice()) {
-            (Some(PadShape::Circle), [d]) => {
+            (Some(PadShape::Circle | PadShape::Annulus), [d, ..]) => {
                 hw = d.femto / 2;
                 hh = d.femto / 2;
             }

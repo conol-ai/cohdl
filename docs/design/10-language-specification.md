@@ -711,8 +711,10 @@ pub pad Round_0_5mm_THT {
 }
 ```
 
-- shape: one of rect, circle, oval (closed set).
-- size: shape-dependent — (w, h) for rect/oval, (d) for circle.
+- shape: one of rect, circle, oval, annulus (closed set). Annulus is accepted
+  only for electrical SMD pads on a copper face.
+- size: shape-dependent — (w, h) for rect/oval, (d) for circle, and
+  (outer_diameter, inner_diameter) for annulus.
 - layer: one of top_copper, bottom_copper, through_all (closed set).
 - plating: smd or plated_through_hole.
 - drill: required when plating: plated_through_hole; a compile error if present when plating: smd.
@@ -720,7 +722,8 @@ pub pad Round_0_5mm_THT {
   `chamfer: (corner, cut)` for one 45-degree corner on a rectangular SMD pad,
   positive `corner_radius: radius` for all four corners of a rectangular SMD
   pad (at most half its smaller dimension and mutually exclusive with chamfer),
-  nonnegative `mask_expansion: margin`, and `paste: none | (width, height)`
+  nonnegative `mask_expansion: margin`, and
+  `paste: none | (width, height) | segmented_annulus(outer, inner, gap)`
   for an omitted or centered reduced stencil aperture. Omitting these fields
   preserves the RFC-018 geometry.
 

@@ -78,6 +78,7 @@ pub enum PadShape {
     Rect,
     Circle,
     Oval,
+    Annulus,
 }
 
 impl PadShape {
@@ -86,6 +87,7 @@ impl PadShape {
             PadShape::Rect => "rect",
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
+            PadShape::Annulus => "annulus",
         }
     }
     pub fn from_name(s: &str) -> Option<PadShape> {
@@ -93,6 +95,7 @@ impl PadShape {
             "rect" => PadShape::Rect,
             "circle" => PadShape::Circle,
             "oval" => PadShape::Oval,
+            "annulus" => PadShape::Annulus,
             _ => return None,
         })
     }
@@ -100,7 +103,7 @@ impl PadShape {
     pub fn size_arity(self) -> usize {
         match self {
             PadShape::Circle => 1,
-            PadShape::Rect | PadShape::Oval => 2,
+            PadShape::Rect | PadShape::Oval | PadShape::Annulus => 2,
         }
     }
 }
@@ -176,6 +179,7 @@ impl PadCorner {
 pub enum PadPaste {
     None,
     Rect(UnitValue, UnitValue),
+    SegmentedAnnulus(UnitValue, UnitValue, UnitValue),
 }
 
 impl PadPlating {

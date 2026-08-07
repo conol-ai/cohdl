@@ -726,6 +726,23 @@ fn validate(world: &mut World, diags: &mut Diagnostics) {
 /// drill ⇔ plated_through_hole biconditional.
 fn validate_pads(world: &World, diags: &mut Diagnostics) {
     use crate::units::UnitType;
+    const MM: i128 = 1_000_000_000_000_000;
+    const MAX_ANNULUS_DIAMETER: i128 = 100 * MM;
+    const MAX_FULL_CIRCLE_SEGMENTS: usize = 512;
+    const MAX_PASTE_VERTICES: usize = 520;
+
+    fn circle_segments(diameter: i128) -> Option<usize> {
+        if diameter <= 0 {
+            return None;
+        }
+        let radius_mm = diameter as f64 / 2.0e15;
+        let half_angle = (1.0 - 0.001 / radius_mm).acos();
+        let segments = (std::f64::consts::PI / half_angle).ceil();
+        if !segments.is_finite() || segments < 3.0 || segments > usize::MAX as f64 {
+            return None;
+        }
+        Some(segments as usize)
+    }
     for pad in world.pads.values() {
         let mut require = |present: bool, what: &str| {
             if !present {
@@ -791,6 +808,102 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                         pad.name.name, v.text
                     ),
                 ));
+            }
+        }
+
+        if matches!(pad.shape, Some((crate::ast::PadShape::Annulus, _))) {
+            if !matches!(pad.plating, Some((crate::ast::PadPlating::Smd, _))) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.name.span,
+                    format!("annulus pad `{}` must use `plating: smd`", pad.name.name),
+                ));
+            }
+            if !matches!(
+                pad.layer,
+                Some((
+                    crate::ast::PadLayer::TopCopper | crate::ast::PadLayer::BottomCopper,
+                    _
+                ))
+            ) {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.name.span,
+                    format!("annulus pad `{}` must be on a copper face", pad.name.name),
+                ));
+            }
+            if pad.drill.is_some() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.name.span,
+                    format!("annulus pad `{}` cannot have a `drill`", pad.name.name),
+                ));
+            }
+            if pad.chamfer.is_some() || pad.corner_radius.is_some() {
+                diags.push(Diagnostic::error(
+                    "E805",
+                    pad.name.span,
+                    format!(
+                        "annulus pad `{}` cannot have a chamfer or corner radius",
+                        pad.name.name
+                    ),
+                ));
+            }
+            if let [outer, inner] = pad.size.as_slice() {
+                if outer.unit == UnitType::Length && inner.unit == UnitType::Length {
+                    if outer.femto <= inner.femto {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            pad.size_span.unwrap_or(pad.name.span),
+                            format!(
+                                "annulus pad `{}` requires outer diameter > inner diameter > 0",
+                                pad.name.name
+                            ),
+                        ));
+                    }
+                    if outer.femto > MAX_ANNULUS_DIAMETER {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            pad.size_span.unwrap_or(pad.name.span),
+                            format!(
+                                "annulus pad `{}` outer diameter exceeds the 100mm limit",
+                                pad.name.name
+                            ),
+                        ));
+                    }
+                    match circle_segments(outer.femto) {
+                        Some(n) if n <= MAX_FULL_CIRCLE_SEGMENTS => {}
+                        _ => diags.push(Diagnostic::error(
+                            "E805",
+                            pad.size_span.unwrap_or(pad.name.span),
+                            format!("annulus pad `{}` needs more than 512 full-circle segments for 1um accuracy", pad.name.name),
+                        )),
+                    }
+                    if let Some((margin, span)) = &pad.mask_expansion {
+                        let twice = margin.femto.checked_mul(2);
+                        let expanded_outer = twice.and_then(|v| outer.femto.checked_add(v));
+                        let expanded_inner = twice.and_then(|v| inner.femto.checked_sub(v));
+                        if expanded_outer.is_none() || expanded_inner.is_none() {
+                            diags.push(Diagnostic::error(
+                                "E805",
+                                *span,
+                                format!(
+                                    "annulus pad `{}` mask expansion overflows geometry",
+                                    pad.name.name
+                                ),
+                            ));
+                        } else if expanded_inner.is_some_and(|v| v <= 0) {
+                            diags.push(Diagnostic::error(
+                                "E805",
+                                *span,
+                                format!(
+                                    "annulus pad `{}` mask expansion collapses its inner opening",
+                                    pad.name.name
+                                ),
+                            ));
+                        }
+                    }
+                }
             }
         }
 
@@ -1025,6 +1138,64 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                             ),
                         ));
                     }
+                }
+            } else if let crate::ast::PadPaste::SegmentedAnnulus(outer, inner, gap) = paste {
+                if !matches!(pad.shape, Some((crate::ast::PadShape::Annulus, _))) {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!("pad `{}` uses `segmented_annulus` paste, but its copper is not annular", pad.name.name),
+                    ));
+                }
+                for value in [outer, inner, gap] {
+                    if value.unit != UnitType::Length {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!("segmented-annulus arguments are `Length` (`mm`) literals — `{}` is a `{}`", value.text, value.unit.type_name()),
+                        ));
+                    } else if value.femto <= 0 {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!(
+                                "pad `{}` has a non-positive segmented-annulus argument `{}`",
+                                pad.name.name, value.text
+                            ),
+                        ));
+                    }
+                }
+                if let [copper_outer, copper_inner] = pad.size.as_slice() {
+                    if outer.femto > copper_outer.femto || inner.femto < copper_inner.femto {
+                        diags.push(Diagnostic::error(
+                            "E805",
+                            *span,
+                            format!("pad `{}` segmented paste must stay within its annular copper envelope", pad.name.name),
+                        ));
+                    }
+                }
+                if outer.femto <= inner.femto || gap.femto >= inner.femto {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` segmented paste requires outer > inner > gap > 0",
+                            pad.name.name
+                        ),
+                    ));
+                }
+                let vertices = circle_segments(outer.femto)
+                    .and_then(|n| n.checked_add(3))
+                    .and_then(|n| n.checked_mul(2));
+                if vertices.is_none_or(|n| n > MAX_PASTE_VERTICES) {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` segmented paste exceeds the 520-vertex limit",
+                            pad.name.name
+                        ),
+                    ));
                 }
             }
         }

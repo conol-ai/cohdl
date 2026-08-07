@@ -2167,6 +2167,8 @@ fn completion_covers_post_rfc014_keywords() {
         "bypass",
         "crystal_oscillator",
         "placement_hint",
+        "annulus",
+        "segmented_annulus",
     ] {
         assert!(
             labels.contains(&expected),
@@ -2175,5 +2177,37 @@ fn completion_covers_post_rfc014_keywords() {
             labels
         );
     }
+    lsp.shutdown();
+}
+
+#[test]
+fn annulus_hover_explains_bounded_geometry() {
+    let text = "pub pad P { shape: annulus, size: (1.6mm, 1mm), layer: top_copper, plating: smd, paste: segmented_annulus(1.6mm, 1.1mm, 0.1mm) }\n";
+    let (_path, uri, text) = fixture("annulus-hover.cohdl", text);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let annulus = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": 20 } }),
+    );
+    assert!(
+        annulus["contents"]["value"].as_str().is_some_and(
+            |value| value.contains("outer_diameter") && value.contains("inner_diameter")
+        ),
+        "{}",
+        annulus
+    );
+    let segmented = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": 100 } }),
+    );
+    assert!(
+        segmented["contents"]["value"]
+            .as_str()
+            .is_some_and(|value| value.contains("four cardinal stencil sectors")),
+        "{}",
+        segmented
+    );
     lsp.shutdown();
 }

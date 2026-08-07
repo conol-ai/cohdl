@@ -1361,30 +1361,24 @@ fn mask_prim(pad: &crate::ast::PadDef, copper: &Prim) -> Prim {
     }
 }
 
-fn sector_polygon(outer: i128, inner: i128, gap: i128, quadrant: usize) -> Vec<(i128, i128)> {
+fn sector_polygon(
+    outer: i128,
+    inner: i128,
+    plan: crate::resolve::SegmentedAnnulusSectorPlan,
+) -> Vec<(i128, i128)> {
     let outer_r = outer as f64 / 2.0;
     let inner_r = inner as f64 / 2.0;
-    let half_gap_angle = (gap as f64 / inner as f64).asin();
-    let start = quadrant as f64 * std::f64::consts::FRAC_PI_2 + half_gap_angle;
-    let end = (quadrant + 1) as f64 * std::f64::consts::FRAC_PI_2 - half_gap_angle;
-    let full_segments = (std::f64::consts::PI / (1.0 - 2.0e12 / outer as f64).acos())
-        .ceil()
-        .clamp(3.0, 512.0) as usize;
-    let segments = (((end - start) / std::f64::consts::TAU) * full_segments as f64)
-        .ceil()
-        .max(1.0) as usize;
-    let step = (end - start) / segments as f64;
-    let conservative_inner = inner_r / (step / 2.0).cos();
-    let mut points = Vec::with_capacity((segments + 1) * 2);
-    for i in 0..=segments {
-        let angle = start + step * i as f64;
+    let conservative_inner = inner_r / (plan.step_angle / 2.0).cos();
+    let mut points = Vec::with_capacity(plan.vertices);
+    for i in 0..=plan.segments {
+        let angle = plan.start_angle + plan.step_angle * i as f64;
         points.push((
             (outer_r * angle.cos()).round() as i128,
             (outer_r * angle.sin()).round() as i128,
         ));
     }
-    for i in (0..=segments).rev() {
-        let angle = start + step * i as f64;
+    for i in (0..=plan.segments).rev() {
+        let angle = plan.start_angle + plan.step_angle * i as f64;
         points.push((
             (conservative_inner * angle.cos()).round() as i128,
             (conservative_inner * angle.sin()).round() as i128,
@@ -1407,19 +1401,20 @@ fn paste_prims(pad: &crate::ast::PadDef, copper: &Prim) -> Vec<Prim> {
         }],
         Some((crate::ast::PadPaste::SegmentedAnnulus(values), _)) => {
             let [outer, inner, gap] = values.as_ref();
-            (0..4)
-                .map(|quadrant| Prim {
+            let Some(plan) =
+                crate::resolve::segmented_annulus_plan(outer.femto, inner.femto, gap.femto)
+            else {
+                return Vec::new();
+            };
+            plan.sectors
+                .into_iter()
+                .map(|sector| Prim {
                     shape: crate::ast::PadShape::Annulus,
                     w: outer.femto,
                     h: inner.femto,
                     chamfer: None,
                     corner_radius: None,
-                    polygon: Some(sector_polygon(
-                        outer.femto,
-                        inner.femto,
-                        gap.femto,
-                        quadrant,
-                    )),
+                    polygon: Some(sector_polygon(outer.femto, inner.femto, sector)),
                 })
                 .collect()
         }

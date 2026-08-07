@@ -2328,6 +2328,63 @@ design B { inst mic: MIC nc: mic.GND }
 }
 
 #[test]
+fn segmented_annulus_vertex_cap_matches_emitted_geometry() {
+    fn source(outer: &str) -> String {
+        format!(
+            r#"
+pub pad P_GND {{
+    shape: annulus
+    size: ({outer}, 10mm)
+    layer: top_copper
+    plating: smd
+    paste: segmented_annulus({outer}, 10mm, 0.000001mm)
+}}
+pub footprint FP {{ pad 1: P_GND at (0mm, 0mm) }}
+pub device D {{ pins {{ GND: 1 [power_in] }} }}
+pub part P: D {{ primary {{ mfr: "m", mpn: "n", footprint: FP }} }}
+design B {{ inst p: P nc: p.GND }}
+"#
+        )
+    }
+
+    let accepted = source("26.561073mm");
+    let (checked, artifacts) = build_real(&accepted);
+    assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
+    let ir = checked.ir.as_ref().unwrap();
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    assert_eq!(
+        kicad.matches("(xy ").count(),
+        520,
+        "the accepted cap must emit exactly 520 paste vertices:\n{kicad}"
+    );
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    assert_eq!(
+        xml.matches("<PolyStepSegment").count(),
+        524,
+        "IPC must consume the same 520 vertices plus one explicit closure per sector:\n{xml}"
+    );
+
+    let rejected = source("26.561074mm");
+    let (checked, artifacts) = build_real(&rejected);
+    if artifacts.is_some() {
+        let ir = checked.ir.as_ref().unwrap();
+        let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+        panic!(
+            "the first over-cap diameter was accepted and emitted {} paste vertices",
+            kicad.matches("(xy ").count()
+        );
+    }
+    assert!(
+        checked
+            .diags
+            .render(&checked.sm)
+            .contains("520-vertex limit"),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+}
+
+#[test]
 fn fmt_round_trips_a_window() {
     use cohdl::fmt::format_source;
     // A window-only footprint must not format as an empty one, and the

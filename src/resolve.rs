@@ -721,28 +721,92 @@ fn validate(world: &mut World, diags: &mut Diagnostics) {
     // Parts are validated in check::generics (they need generic-arg checking).
 }
 
+const MM: i128 = 1_000_000_000_000_000;
+const MAX_ANNULUS_DIAMETER: i128 = 100 * MM;
+const MAX_FULL_CIRCLE_SEGMENTS: usize = 512;
+const MAX_PASTE_VERTICES: usize = 520;
+
+#[derive(Clone, Copy)]
+pub(crate) struct SegmentedAnnulusSectorPlan {
+    pub(crate) start_angle: f64,
+    pub(crate) step_angle: f64,
+    pub(crate) segments: usize,
+    pub(crate) vertices: usize,
+}
+
+pub(crate) struct SegmentedAnnulusPlan {
+    pub(crate) sectors: [SegmentedAnnulusSectorPlan; 4],
+}
+
+fn circle_segments(diameter: i128) -> Option<usize> {
+    if diameter <= 0 {
+        return None;
+    }
+    let radius_mm = diameter as f64 / 2.0e15;
+    let half_angle = (1.0 - 0.001 / radius_mm).acos();
+    let segments = (std::f64::consts::PI / half_angle).ceil();
+    if !segments.is_finite() || segments < 3.0 || segments > usize::MAX as f64 {
+        return None;
+    }
+    Some(segments as usize)
+}
+
+fn segmented_annulus_sector_plan(
+    full_segments: usize,
+    half_gap_angle: f64,
+    quadrant: usize,
+) -> Option<SegmentedAnnulusSectorPlan> {
+    let start_angle = quadrant as f64 * std::f64::consts::FRAC_PI_2 + half_gap_angle;
+    let end_angle = (quadrant + 1) as f64 * std::f64::consts::FRAC_PI_2 - half_gap_angle;
+    let segments = (((end_angle - start_angle) / std::f64::consts::TAU) * full_segments as f64)
+        .ceil()
+        .max(1.0);
+    if !segments.is_finite() || segments > usize::MAX as f64 {
+        return None;
+    }
+    let segments = segments as usize;
+    let vertices = segments.checked_add(1)?.checked_mul(2)?;
+    Some(SegmentedAnnulusSectorPlan {
+        start_angle,
+        step_angle: (end_angle - start_angle) / segments as f64,
+        segments,
+        vertices,
+    })
+}
+
+pub(crate) fn segmented_annulus_plan(
+    outer: i128,
+    inner: i128,
+    gap: i128,
+) -> Option<SegmentedAnnulusPlan> {
+    if outer <= inner || inner <= gap || gap <= 0 {
+        return None;
+    }
+    let full_segments = circle_segments(outer)?;
+    if full_segments > MAX_FULL_CIRCLE_SEGMENTS {
+        return None;
+    }
+
+    let half_gap_angle = (gap as f64 / inner as f64).asin();
+    if !half_gap_angle.is_finite() {
+        return None;
+    }
+    let sector = |quadrant| segmented_annulus_sector_plan(full_segments, half_gap_angle, quadrant);
+    let sectors = [sector(0)?, sector(1)?, sector(2)?, sector(3)?];
+    let total_vertices = sectors
+        .iter()
+        .try_fold(0usize, |total, sector| total.checked_add(sector.vertices))?;
+    if total_vertices > MAX_PASTE_VERTICES {
+        return None;
+    }
+    Some(SegmentedAnnulusPlan { sectors })
+}
+
 /// RFC-018 pad declaration checks — all local, at declaration time:
 /// required fields, Length-typed dimensions, size arity vs shape, and the
 /// drill ⇔ plated_through_hole biconditional.
 fn validate_pads(world: &World, diags: &mut Diagnostics) {
     use crate::units::UnitType;
-    const MM: i128 = 1_000_000_000_000_000;
-    const MAX_ANNULUS_DIAMETER: i128 = 100 * MM;
-    const MAX_FULL_CIRCLE_SEGMENTS: usize = 512;
-    const MAX_PASTE_VERTICES: usize = 520;
-
-    fn circle_segments(diameter: i128) -> Option<usize> {
-        if diameter <= 0 {
-            return None;
-        }
-        let radius_mm = diameter as f64 / 2.0e15;
-        let half_angle = (1.0 - 0.001 / radius_mm).acos();
-        let segments = (std::f64::consts::PI / half_angle).ceil();
-        if !segments.is_finite() || segments < 3.0 || segments > usize::MAX as f64 {
-            return None;
-        }
-        Some(segments as usize)
-    }
     for pad in world.pads.values() {
         let mut require = |present: bool, what: &str| {
             if !present {
@@ -1185,10 +1249,7 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                         ),
                     ));
                 }
-                let vertices = circle_segments(outer.femto)
-                    .and_then(|n| n.checked_add(3))
-                    .and_then(|n| n.checked_mul(2));
-                if vertices.is_none_or(|n| n > MAX_PASTE_VERTICES) {
+                if segmented_annulus_plan(outer.femto, inner.femto, gap.femto).is_none() {
                     diags.push(Diagnostic::error(
                         "E805",
                         *span,

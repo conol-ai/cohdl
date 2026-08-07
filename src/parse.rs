@@ -1408,7 +1408,11 @@ impl<'a> Parser<'a> {
                             continue;
                         };
                         def.paste = Some((
-                            PadPaste::SegmentedAnnulus(outer.clone(), inner.clone(), gap.clone()),
+                            PadPaste::SegmentedAnnulus(Box::new([
+                                outer.clone(),
+                                inner.clone(),
+                                gap.clone(),
+                            ])),
                             field.span.to(span),
                         ));
                     } else {

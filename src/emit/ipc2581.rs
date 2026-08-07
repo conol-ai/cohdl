@@ -1405,21 +1405,24 @@ fn paste_prims(pad: &crate::ast::PadDef, copper: &Prim) -> Vec<Prim> {
             corner_radius: None,
             polygon: None,
         }],
-        Some((crate::ast::PadPaste::SegmentedAnnulus(outer, inner, gap), _)) => (0..4)
-            .map(|quadrant| Prim {
-                shape: crate::ast::PadShape::Annulus,
-                w: outer.femto,
-                h: inner.femto,
-                chamfer: None,
-                corner_radius: None,
-                polygon: Some(sector_polygon(
-                    outer.femto,
-                    inner.femto,
-                    gap.femto,
-                    quadrant,
-                )),
-            })
-            .collect(),
+        Some((crate::ast::PadPaste::SegmentedAnnulus(values), _)) => {
+            let [outer, inner, gap] = values.as_ref();
+            (0..4)
+                .map(|quadrant| Prim {
+                    shape: crate::ast::PadShape::Annulus,
+                    w: outer.femto,
+                    h: inner.femto,
+                    chamfer: None,
+                    corner_radius: None,
+                    polygon: Some(sector_polygon(
+                        outer.femto,
+                        inner.femto,
+                        gap.femto,
+                        quadrant,
+                    )),
+                })
+                .collect()
+        }
     }
 }
 

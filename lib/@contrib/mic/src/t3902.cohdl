@@ -16,8 +16,36 @@ pub device T3902 {
 
 impl IC for T3902 {}
 
-// No part declaration. The exact orderable code is MMICT3902-00-012, but its
-// recommended footprint requires pin 3 to be a 1.625/1.025 mm annular GND land
-// around a 0.5-1.0 mm acoustic hole, with no paste over that hole (Figures
-// 14-16). CoHDL cannot yet express an SMD annulus or a per-pad paste exclusion;
-// approximating it as a solid circular SMD pad would emit unsafe paste.
+#[doc("docs/t3902.pdf")]
+pub part MMICT3902_00_012: T3902 {
+    primary { mfr: "TDK/InvenSense", mpn: "MMICT3902-00-012", footprint: FP_TDK_T3902 }
+}
+
+pub pad P_T3902_SIGNAL {
+    shape: rect
+    size: (0.725mm, 0.522mm)
+    layer: top_copper
+    plating: smd
+    paste: (0.625mm, 0.422mm)
+}
+
+pub pad P_T3902_GND {
+    shape: annulus
+    size: (1.625mm, 1.025mm)
+    layer: top_copper
+    plating: smd
+    paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm)
+}
+
+// Terminal-side-down projection of DS-000357 Figures 14-16. The sound port
+// is a separate mechanical hole; pin 3 remains one electrical annular land.
+pub footprint FP_TDK_T3902 {
+    pad 1: P_T3902_SIGNAL at (0.8375mm, 1.364mm)
+    pad 2: P_T3902_SIGNAL at (0.8375mm, 0.542mm)
+    pad 3: P_T3902_GND at (0mm, -0.710mm)
+    pad 4: P_T3902_SIGNAL at (-0.8375mm, 0.542mm)
+    pad 5: P_T3902_SIGNAL at (-0.8375mm, 1.364mm)
+    mount_hole 1: non_plated at (0mm, -0.710mm) diameter 0.5mm
+    courtyard { shape: rect, at: (0mm, 0.327mm), size: (3.15mm, 4mm) }
+    silkscreen_ref { at: (0mm, -2.1mm) }
+}

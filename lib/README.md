@@ -94,7 +94,7 @@ Additional community-contributed packages:
 | `@contrib/esd` | `contrib_esd::ESD_GBLC05C`, `contrib_esd::ESD_ULC0511C` | community-contributed ESD protection / TVS devices and public parts |
 | `@contrib/level-shifter` | `contrib_level_shifter::LS_RS0104` | community-contributed voltage translators; all four RS0104 order codes have public package-specific bindings |
 | `@contrib/ir-emitter` | `contrib_ir_emitter::IR_VSMY14940` | community-contributed infrared emitting diode devices and parts |
-| `@contrib/mic` | `contrib_mic::T3902` | community-contributed MEMS microphone device model; part binding quarantined |
+| `@contrib/mic` | `contrib_mic::MMICT3902_00_012` | TDK/InvenSense T3902 PDM microphone with manufacturer annular land and segmented stencil |
 | `@contrib/sd-card` | `contrib_sd_card::CONN_MICROSD` | community-contributed SD/MicroSD card connector devices and parts |
 
 ## Audited part-binding status
@@ -140,7 +140,6 @@ These devices remain quarantined:
 
 | Device | Why no public part exists | Evidence needed to release it |
 |---|---|---|
-| `contrib_mic::T3902` | Its bottom acoustic port needs an annular ground-land and paste-exclusion geometry that the current footprint primitives cannot reproduce faithfully. | A lossless annular/segmented-pad representation and emitted KiCad/IPC geometry matching InvenSense Figures 14-16 |
 | `contrib_usb_uart::CH343P` | WCH publishes component dimensions, but not a PCB land/stencil pattern or a complete tolerance set suitable for a defensible derivation; the former inferred exposed pad was the wrong size. | Manufacturer land/paste data or complete package tolerances supporting an auditable derivation |
 | `contrib_pmu::AXP2101` | The public data sheet gives only the QFN5x5 component outline, not the PCB copper and paste pattern. | Manufacturer land/stencil data or another authoritative package source |
 | `contrib_lora::HPD16A` | The series sheet lacks both a frequency-specific orderable identity and a recommended PCB land. | Exact module order code plus its recommended host-board land |

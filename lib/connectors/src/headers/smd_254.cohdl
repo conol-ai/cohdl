@@ -18,25 +18,31 @@ pub part SOCKET_2X3_254_SMD: Socket_2x3 {
     primary { mfr: "Samtec", mpn: "SSW-103-22-SM-D-VS", footprint: FP_Socket_2x3_254_SMD }
 }
 
-// Samtec SSW-DVS recommended PCB layout, Rev A: 1.27 x 2.54mm lands.
+// Samtec SSW-DVS recommended PCB layout, Rev A: lands 1.27mm wide; length
+// follows from the drawing's 8.64mm overall span and 1.78mm inner-edge gap
+// between the rows: (8.64 - 1.78) / 2 = 3.43mm. TRAP: the drawing's 2.54mm
+// dimension is the COLUMN pitch (adjacent pads in a row), NOT the pad
+// length — reading it as the length shifts the rows 0.445mm outboard (the
+// 2026-08 misread; the -VS solder feet, at ~2.67-3.94mm from the row
+// centreline, happened to still be covered, so no build was lost to it).
 pub pad P_Socket254_Pad {
     shape: rect
-    size: (1.27mm, 2.54mm)
+    size: (1.27mm, 3.43mm)
     layer: top_copper
     plating: smd
 }
 
 // Samtec's top view has pin 1 at the lower-right corner and pin 2 above it.
 // Rotating that view 180 degrees (without reflection) places pin 1 at
-// (-2.54,-3.05) below. The official SSW-DVS land pattern gives 2.54mm column
-// pitch and 6.10mm row-center spacing: 8.64mm overall minus one 2.54mm land.
+// (-2.54,-2.605) below. Row centres: 1.78/2 inner gap + 3.43/2 pad length
+// = +/-2.605mm; columns on the 2.54mm pitch.
 pub footprint FP_Socket_2x3_254_SMD {
-    pad 1: P_Socket254_Pad at (-2.54mm, -3.05mm)
-    pad 3: P_Socket254_Pad at (0mm, -3.05mm)
-    pad 5: P_Socket254_Pad at (2.54mm, -3.05mm)
-    pad 2: P_Socket254_Pad at (-2.54mm, 3.05mm)
-    pad 4: P_Socket254_Pad at (0mm, 3.05mm)
-    pad 6: P_Socket254_Pad at (2.54mm, 3.05mm)
+    pad 1: P_Socket254_Pad at (-2.54mm, -2.605mm)
+    pad 3: P_Socket254_Pad at (0mm, -2.605mm)
+    pad 5: P_Socket254_Pad at (2.54mm, -2.605mm)
+    pad 2: P_Socket254_Pad at (-2.54mm, 2.605mm)
+    pad 4: P_Socket254_Pad at (0mm, 2.605mm)
+    pad 6: P_Socket254_Pad at (2.54mm, 2.605mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }

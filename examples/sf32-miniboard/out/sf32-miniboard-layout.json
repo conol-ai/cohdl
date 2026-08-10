@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "USB", "nets": ["USBC_DP", "USBC_DM", "USB_DP", "USB_DM"] },
+    { "name": "Clock", "nets": ["XTAL48_XI", "XTAL48_XO", "XTAL32_XI", "XTAL32_XO", "FLASH_CLK"] }
+  ],
+  "diff_pairs": [
+    { "p": "USBC_DP", "n": "USBC_DM" },
+    { "p": "USB_DP", "n": "USB_DM" }
+  ],
+  "length_matches": [
+    { "nets": ["USB_DP", "USB_DM"], "tolerance": "0.15mm" }
+  ],
+  "board_outline": null,
+  "placements": [],
+  "placement_hints": []
+}

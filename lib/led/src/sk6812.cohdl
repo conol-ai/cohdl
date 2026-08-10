@@ -18,19 +18,20 @@ pub part RGB_SK6812: SK6812 {
               footprint: FP_LED_SK6812MINI_E }
 }
 
-// SK6812MINI-E-012 recommended land, datasheet page 5.
+// SK6812MINI-E-012 land, derived from the datasheet page-5 pattern (1.80 x
+// 0.82mm) with the aperture-side end pulled back to 1.35mm: the drawing
+// assumes an unbroken board, but the reverse-mount window is a routed hole,
+// and a full-length land would overhang its edge by 0.10mm. The outer edges
+// stay on the official 6.80mm span; copper keeps 0.35mm clear of the cutout.
 pub pad P_SK6812_Pad {
     shape: rect
-    size: (1.8mm, 0.82mm)
+    size: (1.35mm, 0.82mm)
     layer: top_copper
     plating: smd
 }
 
 // SK6812MINI-E-012 reverse-mount RGB LED. Pads: 1=GND, 2=DIN, 3=VDD,
-// 4=DOUT. The official recommended copper lands are 1.80x0.82mm, with
-// 0.68mm between rows and a 6.80mm total outside span.
-// OPSCO's drawing has +Y upward on the page; CoHDL/KiCad has +Y downward, so
-// the drawing's upper row uses negative Y here.
+// 4=DOUT (OPSCO B/2 numbering); rows 0.68mm apart, outside span 6.80mm.
 //
 // Reverse-mount means the die faces the BOARD, not the sky: the part is
 // soldered to one side and its light leaves through a cutout in the PCB. So the
@@ -38,11 +39,21 @@ pub pad P_SK6812_Pad {
 // into copper and laminate. The 3.4 x 3.0mm aperture is KiCad's own for this
 // part (its Edge.Cuts outline); the OPSCO B/2 specification does not dimension
 // a routed PCB aperture, so this is convention, not a manufacturer number.
+//
+// ORIENTATION — the datasheet's page-5 land drawing is for NORMAL mount (die
+// up) and must be MIRRORED for reverse mount: soldered through the window,
+// the part presents the page-4 BOTTOM VIEW, and the arrangement below is
+// exactly that view (at 180 deg: GND/DIN east column, VDD/DOUT west). A
+// footprint that "matches the land drawing" reads as correct in review but
+// is a mirrored pinout no placement rotation can fix — it killed every LED
+// on the first openmicro re-route (2026-08). This arrangement is the one
+// validated by built v23 hardware; verify against the BOTTOM VIEW, never
+// against the land drawing.
 pub footprint FP_LED_SK6812MINI_E {
-    pad 3: P_SK6812_Pad at (-2.5mm, -0.75mm)
-    pad 4: P_SK6812_Pad at (-2.5mm, 0.75mm)
-    pad 1: P_SK6812_Pad at (2.5mm, 0.75mm)
-    pad 2: P_SK6812_Pad at (2.5mm, -0.75mm)
+    pad 1: P_SK6812_Pad at (2.725mm, -0.75mm)
+    pad 2: P_SK6812_Pad at (2.725mm, 0.75mm)
+    pad 3: P_SK6812_Pad at (-2.725mm, 0.75mm)
+    pad 4: P_SK6812_Pad at (-2.725mm, -0.75mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }

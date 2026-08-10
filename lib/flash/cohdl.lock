@@ -8,7 +8,7 @@ hash = "sha256:ffdf8c866ed37c05fbf2c69862029506c3bd5ee7c3cde790417abf7b0f77e5d1"
 [[package]]
 name = "soic"
 version = "0.1.0"
-hash = "sha256:4ebeeb190bbed94975025e4da506fe7cb296a57f0058382bfbf3bf2d9ace506e"
+hash = "sha256:43b1dff42fa90974606c3071bf6972eb02e8f8cade0a135334282455921c176a"
 
 [[package]]
 name = "std"

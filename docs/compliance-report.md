@@ -2575,6 +2575,11 @@ Rebuilt from Alps' own geometry:
   paired by side (a+b / c+d) the way the board's other 4-terminal switch is
   modelled, because the terminals leave the switch body on its two sides.
 
+  > **SUPERSEDED (2026-08-06):** by-side pairing was the wrong verdict — the
+  > poles pair BY ROW (a+c / b+d), and by-side pairing bridged both poles onto
+  > each net, holding JOY_SW at GND through the switch body. See "openmicro
+  > joystick: push-switch pole pairing + 1mm east shift" below.
+
 Source discipline worth recording: Alps publishes the mounting-hole drawing only
 as a 427×446 bitmap, and its stacked dimensions are easy to misattribute — an
 early reading of it put the frame holes at ±6.325/±5.0, which the STEP model
@@ -3777,6 +3782,40 @@ footprint/IPC geometry changes, and the hand-layouted `openmicro.kicad_pcb`
 until J1 is re-imported and its region re-routed. BOM, designators and
 `layout.json` are unchanged.
 
+## openmicro joystick: push-switch pole pairing + 1mm east shift (2026-08-06)
+
+Two fixes reported off the built board, both directed by the user.
+
+**1. The centre-push never produced an event — the pole pairing was wrong.**
+`ThumbPointer` grouped the switch's four terminals by SIDE (`SW_A: SA, SB` /
+`SW_B: SC, SD`), the 2026-07-26 audit's "paired by side" verdict (now marked
+superseded above). The land is the standard 6.5 × 4.5 tact-switch pattern, and
+a tact switch's two stamped contact frames each exit as the two same-ROW legs
+6.5mm apart: a+c are one pole, b+d the other, the 4.5mm row spacing separating
+the poles. Grouping by side therefore put one leg of EACH pole on each net —
+JOY_SW (PA15) and GND were joined through the switch's own contact frames, the
+input read low permanently, and no press edge could ever fire. Neither the
+site datasheet nor the series catalog states the internal connection (that
+lives in the formal supply spec); the basis is the 6.5 × 4.5 geometry plus the
+identical row-not-column correction the OpenMicro footprint audit made on the
+since-removed EVQ-P7A reset switch. Now `SW_A: SA, SC` / `SW_B: SB, SD`.
+Netlist: pads SB and SC swap nets (SA+SC on JOY_SW, SB+SD on GND); BOM,
+designators and `layout.json` are unchanged by this half of the fix.
+
+**2. `joy` moved 1mm east: (28.575, -29.575) → (29.575, -29.575).** The same
+problem as the earlier 1mm south shift, in the other axis: the body's west
+face sat 18.225mm from board centre at its widest, essentially touching
+sw[1]'s 17.5mm keycap edge at 18.275. East holds nothing but board edge, so
+the millimetre is free. Verified on a regenerated placement board: J1
+body-to-body gap to the west key 0.900 → 1.900mm, 0 layer-aware pad shorts
+across the 61 placed parts, every footprint + pad resolved.
+
+Consequences: the routed `out/openmicro.kicad_pcb` is stale on both counts —
+J1 moved and two of its pads swapped nets — so its joystick region needs
+re-placing and re-routing (a Quilter re-run). The routed file was left
+untouched; `.net`, `layout.json`, footprints and the IPC-2581 XML were
+regenerated.
+
 ## Bounded annulus and segmented stencil geometry (2026-08-07)
 
 `shape: annulus` now preserves an SMD ring as one electrical pad in the AST,
@@ -3787,3 +3826,55 @@ non-pad contexts, non-SMD/non-copper use, invalid or collapsing diameters,
 paste outside copper, and geometry beyond the 100 mm / 512-segment /
 520-vertex hard bounds. This closes the TDK/InvenSense T3902 manufacturer-land
 gap without adding a general polygon API.
+
+## openmicro-kbd → openmicro2: SF32 wireless redesign (2026-08-07)
+
+Directed by the user: the `openmicro-kbd` example is renamed `openmicro2`
+and rebuilt as an ORIGINAL design (no longer a Codex Micro clone) around the
+SF32LB52EUB6 — BLE, the H0216F002AM 2.16" AMOLED touch module, a control row
+of encoder / display / two encoders / joystick, a 3x5 key field replacing
+the touch pad and first-row keys, and one microphone. 122 instances,
+106 nets, 73 placements, 130 x 108mm outline; `cargo test` green including
+the rewritten exit-criteria test.
+
+**OK-F302-31115 identified; local part carries the display.** The
+`lib/@contrib/display` audit (2026-08-04) left H0216F002AM logical-only
+because the module spec names two connector codes without drawings. The
+official OCN series drawing (retrieved 2026-08-07, hashed in
+`examples/openmicro2/docs/README.md`) resolves `OK-F302-**115` as OCN's
+0.3mm-pitch 1.0mm front-flip bottom-contact FPC family with an explicit
+recommended pattern, and the n=31 table row matches the module's 31-finger
+tail (the OK-14 series is 0.4mm board-to-board and cannot). The example
+binds a LOCAL part `DISPLAY_FPC_OK_F302` on that drawing; the library part
+stays blocked pending OCN confirmation of two residual interpretations,
+both recorded in the footprint comment: which staggered row faces the FPC
+opening, and pin 1's end (the 16-odd/15-even row split itself is forced by
+arithmetic: span C=9.00 holds 16 pads, B=8.40 holds 15).
+
+**Datasheet-driven electrical decisions.**
+- Display VBAT (SIBO) is specified 3.7-4.5V with ABS MAX 4.6V (module
+  p6/p7, tables that also contradict each other with a 4.5-6.5V "VDD" DC
+  row — the interface table + AMR intersection is what's honored), so the
+  display runs from the SGM41562B power-path SYS rail with a 1-cell Li-ion,
+  never from 5V VBUS. This is what motivated battery power.
+- The microphone is ANALOG (module connector into ADCP, supply from
+  MIC_BIAS through the connector doc's own 100R + 100nF + 1uF-block
+  wiring): the pinmux places PDM1 only on PA07/PA08 (display QSPI DIO2/3)
+  or PA22/PA23 (the required 32.768kHz crystal), and I2S1 only across the
+  same display group or the GPADC block — every digital-mic position is
+  spoken for, the dedicated analog path is free.
+- TP_VCC is the module's own touch-supply OUTPUT (p6) — left open; nothing
+  on the board may drive it. MTP_PWR open per p6. VCI_EN joins VCI on 3V3
+  (both carry the same "DDIC DCDC supply" description).
+- Encoder/joystick pushes scan as matrix row 3 through their own 1N4148W
+  diodes — the SF32's 45 GPIOs are exactly consumed; the freed pins fund
+  the charger nINT line, the SGM2554 LED-rail gate, and the PA01
+  calibration line on the debug socket (miniboard convention).
+
+**Placement verification.** kicad_board.py rebuilt the board from the
+IPC-2581 document (122/122 placed, every footprint + pad resolved); the
+layer-aware pad-overlap scan (per the established method: copper-layer
+intersection first, outline filter, no BOX2I.Common) found ONE real
+collision — r_ant on the top-right M2 hole's 4mm GND annulus — fixed by
+moving `mh[1]` to (48, -50), rescan clean: 0 overlaps across 73 placed
+parts, 49 staged.

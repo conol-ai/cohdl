@@ -20,7 +20,7 @@ footprints live in focused packages:
 | `passive` | `passive::MLCC` | generated chip resistors, MLCCs, chip inductors, lands, and passive helper circuits |
 | `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | QFN, DFN, and SON lands; each part binding still requires package-specific qualification |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
-| `connectors` | `connectors::headers::smd_254::SOCKET_2X3_254_SMD` | general-purpose board connectors and headers |
+| `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6` | ESD protection devices |
 | `diode` | `diode::D_1N4148W` | discrete diodes |
@@ -39,6 +39,8 @@ footprints live in focused packages:
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
 | `load-switch` | `load_switch::LOADSW_SGM2554` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
+| `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
+| `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
 | `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3`, `espressif_esp32::chips::s3::ESP32_S3R8` | Espressif SoCs and modules |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and public, manufacturer-land-pattern part bindings |

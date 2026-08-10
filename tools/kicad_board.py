@@ -9,6 +9,9 @@ Edge.Cuts (straight segments + corner arcs), every footprint placed at its
 IPC-2581 `Component/Location` with its `Xform` rotation (the pre-positioned
 interface ports at their board-edge spots, the rest staged just outside), and
 the full netlist (KiCad draws the ratsnest from the pad net assignments).
+When a design has neither an outline nor explicit placements, IPC's `(0,0)`
+locations are placeholders; in that case the footprints are staged on a grid
+so the starter board remains inspectable instead of stacking every part.
 
 The IPC-2581 document is in the standard IPC frame (+y up), matching KiCad's
 own `kicad-cli pcb export ipc2581` convention. KiCad's board frame is +y down,
@@ -24,6 +27,7 @@ Run with KiCad's bundled Python (so `pcbnew` imports):
 
 Output: <name>.kicad_pcb next to the netlist (File > Open in pcbnew).
 """
+import json
 import math
 import sys
 import xml.etree.ElementTree as ET
@@ -170,6 +174,7 @@ def main():
     name = net_path.stem
     fp_dir = out_dir / "footprints"
     xml_path = out_dir / f"{name}.xml"
+    layout_path = out_dir / f"{name}-layout.json"
 
     root = next(parse_sexpr(tokenize(net_path.read_text())))
     assert root[0] == "export", "not a KiCad legacy netlist"
@@ -185,6 +190,17 @@ def main():
         outline, place = parse_ipc(xml_path)
         print(f"IPC-2581: {len(outline)-1 if outline else 0} outline segments, "
               f"{len(place)} placed components")
+        # Without an outline, IPC-2581 deliberately uses (0, 0) as the
+        # placeholder location for every unplaced component.  A design with
+        # no explicit `place` statements therefore needs the same fallback
+        # grid as a build with no IPC document; treating those placeholders as
+        # placement data would stack and electrically short every footprint.
+        if not outline:
+            layout = json.loads(layout_path.read_text()) if layout_path.is_file() else {}
+            if not layout.get("placements"):
+                print("note: IPC component locations are unplaced placeholders — "
+                      "falling back to a grid")
+                place = {}
     else:
         print(f"note: {xml_path.name} not found — run `build --emit ipc2581` first "
               f"for the outline + placements; falling back to a grid")
@@ -226,8 +242,20 @@ def main():
         if bottom:
             # RFC-026: KiCad-native back-side convention — flip left/right
             # about the anchor FIRST, then apply the declared rotation.
-            fp.Flip(fp.GetPosition(), True)
-        if rot:
+            # KiCad 9 replaced Flip's bool aFlipLeftRight with a FLIP_DIRECTION
+            # enum; a bare True silently coerces to TOP_BOTTOM there, leaving
+            # every back-side footprint 180 degrees from the IPC-2581 Xform.
+            # Name the direction explicitly (bool True on pre-enum KiCad).
+            flip_lr = getattr(pcbnew, "FLIP_DIRECTION_LEFT_RIGHT", True)
+            fp.Flip(fp.GetPosition(), flip_lr)
+            # Flipping at angle 0 leaves pcbnew holding SOME representation of
+            # a pure x-mirror (KiCad 10 stores y-negated pads + a 180 angle).
+            # Overwriting that angle with the declared rotation would silently
+            # undo half the flip, so COMPOSE the rotation onto the flip's own
+            # angle: the result is exactly RFC-026's rotate-after-mirror.
+            if rot:
+                fp.SetOrientationDegrees(rot + fp.GetOrientationDegrees())
+        elif rot:
             fp.SetOrientationDegrees(rot)
         placed[ref] = fp
 
@@ -237,11 +265,16 @@ def main():
             fp = placed.get(ref)
             if fp is None:
                 continue
-            pad = next((p for p in fp.Pads() if p.GetNumber() == pin), None)
-            if pad is None:
+            pads = [p for p in fp.Pads() if p.GetNumber() == pin]
+            if not pads:
                 unresolved.append((ref, pin, nm))
             else:
-                pad.SetNet(netinfo[nm])
+                # A logical pin may have multiple physical pads (for example,
+                # an exposed land plus same-number thermal vias).  Every one
+                # must carry the logical net; assigning only the first leaves
+                # the remaining copper apparently shorted to an unnamed net.
+                for pad in pads:
+                    pad.SetNet(netinfo[nm])
 
     pcbnew.SaveBoard(str(out_path), board)
     print(f"board written: {out_path}")

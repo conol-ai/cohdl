@@ -56,5 +56,9 @@ impl IC for ESP32_S3_WROOM_1 {}
 #[doc("docs/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf")]
 pub part ESP32_S3_WROOM_1_N8: ESP32_S3_WROOM_1 {
     primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8", footprint: FP_ESP32_S3_WROOM_1 }
-    alt { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2" }
+}
+
+#[doc("docs/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf")]
+pub part ESP32_S3_WROOM_1_N8R2: ESP32_S3_WROOM_1 {
+    primary { mfr: "Espressif", mpn: "ESP32-S3-WROOM-1-N8R2", footprint: FP_ESP32_S3_WROOM_1 }
 }

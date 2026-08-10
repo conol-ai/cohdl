@@ -1,0 +1,158 @@
+// Texas Instruments TPS25982 15-A eFuse family and RGE0024M VQFN package.
+//
+// Pin assignments and electrical types are from TPS25982 Rev. D (SLVSEI3D),
+// Table 5-1. The land pattern, via locations, and stencil segmentation are
+// from package drawing 4223975/B on datasheet pages 55-57.
+
+// RGE0024M perimeter lands are 0.575mm radial x 0.24mm tangential with
+// R0.05mm corners. TI recommends a non-solder-mask-defined opening with at
+// most 0.07mm expansion all around.
+pub pad P_TI_RGE0024M_LEAD_H {
+    shape: rect
+    size: (0.575mm, 0.24mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+pub pad P_TI_RGE0024M_LEAD_V {
+    shape: rect
+    size: (0.24mm, 0.575mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+    mask_expansion: 0.07mm
+}
+
+// The two exposed copper lands deliberately suppress their default paste.
+// Repeated same-number helper lands below add TI's four exact stencil
+// apertures while leaving the electrical terminal and copper union unchanged.
+pub pad P_TI_RGE0024M_EP25_COPPER {
+    shape: rect
+    size: (2.7mm, 1.45mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.07mm
+    paste: none
+}
+
+pub pad P_TI_RGE0024M_EP26_COPPER {
+    shape: rect
+    size: (2.7mm, 0.85mm)
+    layer: top_copper
+    plating: smd
+    mask_expansion: 0.07mm
+    paste: none
+}
+
+pub pad P_TI_RGE0024M_EP25_PASTE {
+    shape: rect
+    size: (1.188mm, 1.3mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+}
+
+pub pad P_TI_RGE0024M_EP26_PASTE {
+    shape: rect
+    size: (1.188mm, 0.76mm)
+    layer: top_copper
+    plating: smd
+    corner_radius: 0.05mm
+}
+
+// TI fixes each thermal-via drill at 0.2mm and fixes all nine locations.
+// The 0.4mm copper land supplies a conservative 0.1mm annular ring; the
+// package drawing leaves copper-land diameter to the PCB fabrication process.
+pub pad P_TI_RGE0024M_THERMAL_VIA {
+    shape: circle
+    size: (0.4mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.2mm
+}
+
+// RGE0024M: 24 pins at 0.50mm pitch, 4.0x4.0mm body, split IN and GND
+// exposed pads. Coordinates follow the package top view with +Y down.
+pub footprint TI_RGE0024M {
+    pad 1: P_TI_RGE0024M_LEAD_H at (-1.9125mm, -1.25mm)
+    pad 2: P_TI_RGE0024M_LEAD_H at (-1.9125mm, -0.75mm)
+    pad 3: P_TI_RGE0024M_LEAD_H at (-1.9125mm, -0.25mm)
+    pad 4: P_TI_RGE0024M_LEAD_H at (-1.9125mm, 0.25mm)
+    pad 5: P_TI_RGE0024M_LEAD_H at (-1.9125mm, 0.75mm)
+    pad 6: P_TI_RGE0024M_LEAD_H at (-1.9125mm, 1.25mm)
+
+    pad 7: P_TI_RGE0024M_LEAD_V at (-1.25mm, 1.9125mm)
+    pad 8: P_TI_RGE0024M_LEAD_V at (-0.75mm, 1.9125mm)
+    pad 9: P_TI_RGE0024M_LEAD_V at (-0.25mm, 1.9125mm)
+    pad 10: P_TI_RGE0024M_LEAD_V at (0.25mm, 1.9125mm)
+    pad 11: P_TI_RGE0024M_LEAD_V at (0.75mm, 1.9125mm)
+    pad 12: P_TI_RGE0024M_LEAD_V at (1.25mm, 1.9125mm)
+
+    pad 13: P_TI_RGE0024M_LEAD_H at (1.9125mm, 1.25mm)
+    pad 14: P_TI_RGE0024M_LEAD_H at (1.9125mm, 0.75mm)
+    pad 15: P_TI_RGE0024M_LEAD_H at (1.9125mm, 0.25mm)
+    pad 16: P_TI_RGE0024M_LEAD_H at (1.9125mm, -0.25mm)
+    pad 17: P_TI_RGE0024M_LEAD_H at (1.9125mm, -0.75mm)
+    pad 18: P_TI_RGE0024M_LEAD_H at (1.9125mm, -1.25mm)
+
+    pad 19: P_TI_RGE0024M_LEAD_V at (1.25mm, -1.9125mm)
+    pad 20: P_TI_RGE0024M_LEAD_V at (0.75mm, -1.9125mm)
+    pad 21: P_TI_RGE0024M_LEAD_V at (0.25mm, -1.9125mm)
+    pad 22: P_TI_RGE0024M_LEAD_V at (-0.25mm, -1.9125mm)
+    pad 23: P_TI_RGE0024M_LEAD_V at (-0.75mm, -1.9125mm)
+    pad 24: P_TI_RGE0024M_LEAD_V at (-1.25mm, -1.9125mm)
+
+    pad 25: P_TI_RGE0024M_EP25_COPPER at (0mm, -0.625mm)
+    pad 25: P_TI_RGE0024M_EP25_PASTE at (-0.694mm, -0.625mm)
+    pad 25: P_TI_RGE0024M_EP25_PASTE at (0.694mm, -0.625mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (-1.1mm, -1.175mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (0mm, -1.175mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (1.1mm, -1.175mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (-1.1mm, -0.075mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (0mm, -0.075mm)
+    pad 25: P_TI_RGE0024M_THERMAL_VIA at (1.1mm, -0.075mm)
+
+    pad 26: P_TI_RGE0024M_EP26_COPPER at (0mm, 0.925mm)
+    pad 26: P_TI_RGE0024M_EP26_PASTE at (-0.694mm, 0.925mm)
+    pad 26: P_TI_RGE0024M_EP26_PASTE at (0.694mm, 0.925mm)
+    pad 26: P_TI_RGE0024M_THERMAL_VIA at (-1.1mm, 0.925mm)
+    pad 26: P_TI_RGE0024M_THERMAL_VIA at (0mm, 0.925mm)
+    pad 26: P_TI_RGE0024M_THERMAL_VIA at (1.1mm, 0.925mm)
+
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // TI does not specify a courtyard. This is the 4.4mm maximum land span
+    // plus 0.25mm placement clearance on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.9mm, 4.9mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}
+
+// TPS259823O is the circuit-breaker variant with a fixed 7.6V typical OVLO.
+// Thermal pad 1 is electrical pin 25 (IN); thermal pad 2 is pin 26 (GND).
+#[doc("docs/tps25982.pdf")]
+pub device TPS25982 {
+    pins {
+        required IN: 1, 2, 3, 16, 25 [power_in]
+        required GND: 4, 5, 14, 26 [power_in]
+        required EN_UVLO: 6 [input]
+        optional ITIMER: 7 [output]
+        required ILIM: 8 [output]
+        optional IMON: 9 [output]
+        optional RETRY_DLY: 10 [output]
+        optional NRETRY: 11 [output]
+        required LDSTRT: 12 [input]
+        optional PG: 13 [output]
+        optional dVdt: 15 [output]
+        required OUT: 17, 18, 19, 20, 21, 22, 23, 24 [power_out]
+    }
+}
+
+impl IC for TPS25982 {}
+
+#[doc("docs/tps25982.pdf")]
+pub part EFUSE_TPS259823ONRGET: TPS25982 {
+    primary { mfr: "Texas Instruments", mpn: "TPS259823ONRGET", footprint: TI_RGE0024M }
+}

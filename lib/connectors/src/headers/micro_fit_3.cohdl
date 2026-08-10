@@ -1,0 +1,116 @@
+// Molex Micro-Fit 3.0 vertical through-hole headers. The pin names are
+// deliberately contact-only: board designs assign the application signals.
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub device MicroFit3_2Pin {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+    }
+}
+impl Connector for MicroFit3_2Pin {}
+
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub device MicroFit3_2x2 {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+        required P4: 4 [passive]
+    }
+}
+impl Connector for MicroFit3_2x2 {}
+
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub device MicroFit3_2x3 {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+        required P4: 4 [passive]
+        required P5: 5 [passive]
+        required P6: 6 [passive]
+    }
+}
+impl Connector for MicroFit3_2x3 {}
+
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub part MOLEX_43045_0212: MicroFit3_2Pin {
+    primary { mfr: "Molex", mpn: "43045-0212", footprint: FP_Molex_43045_0212 }
+}
+
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub part MOLEX_43045_0412: MicroFit3_2x2 {
+    primary { mfr: "Molex", mpn: "43045-0412", footprint: FP_Molex_43045_0412 }
+}
+
+#[doc("docs/molex-43045-0612-sales-drawing.pdf")]
+pub part MOLEX_43045_0612: MicroFit3_2x3 {
+    primary { mfr: "Molex", mpn: "43045-0612", footprint: FP_Molex_43045_0612 }
+}
+
+// SD-43045-005 specifies a 0.64mm square tail and a recommended PCB hole of
+// diameter 1.02 +/- 0.05mm. The 1.50mm copper diameter follows the official
+// KiCad generator's Molex land pattern and leaves a nominal 0.24mm annulus.
+pub pad P_MicroFit3_PTH {
+    shape: circle
+    size: (1.5mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1.02mm
+}
+
+// SD-43045-005 component-side view, rotated 180 degrees into these footprint
+// coordinates without reflection. Molex numbers the 2-circuit connector down
+// the single column. The two PCB-polarization pegs are separate NPTHs; the
+// drawing permits production assemblies with either one or both pegs.
+pub footprint FP_Molex_43045_0212 {
+    pad 1: P_MicroFit3_PTH at (0mm, 0mm)
+    pad 2: P_MicroFit3_PTH at (0mm, 3mm)
+    mount_hole 1: non_plated at (-3mm, 3.94mm) diameter 1.02mm
+    mount_hole 2: non_plated at (3mm, 3.94mm) diameter 1.02mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Maximum plan envelope 7.15 x 8.77mm plus 0.50mm nominal clearance.
+    courtyard { shape: rect, at: (0mm, 1.92mm), size: (8.16mm, 9.78mm) }
+    silkscreen_ref { at: (0mm, -3.67mm) }
+}
+
+// SD-43045-005 component-side view, rotated 180 degrees into these footprint
+// coordinates without reflection. Pin 1 and both pegs therefore keep the
+// official chirality. Molex uses row-major numbering, unlike generic odd/even
+// 2xN headers.
+pub footprint FP_Molex_43045_0412 {
+    pad 1: P_MicroFit3_PTH at (0mm, 0mm)
+    pad 2: P_MicroFit3_PTH at (3mm, 0mm)
+    pad 3: P_MicroFit3_PTH at (0mm, 3mm)
+    pad 4: P_MicroFit3_PTH at (3mm, 3mm)
+    mount_hole 1: non_plated at (-3mm, 3.94mm) diameter 1.02mm
+    mount_hole 2: non_plated at (6mm, 3.94mm) diameter 1.02mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Maximum plan envelope 10.15 x 8.77mm plus 0.50mm nominal clearance.
+    courtyard { shape: rect, at: (1.5mm, 1.92mm), size: (11.16mm, 9.78mm) }
+    silkscreen_ref { at: (1.5mm, -3.67mm) }
+}
+
+// Same unreflected 180-degree transform of the official component-side view:
+// circuit 1 moves from lower-right to pad 1 at (0,0), and circuit 6 moves from
+// upper-left to pad 6 at (6,3). The pin-1 marker and pegs transform with it.
+pub footprint FP_Molex_43045_0612 {
+    pad 1: P_MicroFit3_PTH at (0mm, 0mm)
+    pad 2: P_MicroFit3_PTH at (3mm, 0mm)
+    pad 3: P_MicroFit3_PTH at (6mm, 0mm)
+    pad 4: P_MicroFit3_PTH at (0mm, 3mm)
+    pad 5: P_MicroFit3_PTH at (3mm, 3mm)
+    pad 6: P_MicroFit3_PTH at (6mm, 3mm)
+    mount_hole 1: non_plated at (-3mm, 3.94mm) diameter 1.02mm
+    mount_hole 2: non_plated at (9mm, 3.94mm) diameter 1.02mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Maximum plan envelope 13.15 x 8.77mm plus 0.50mm nominal clearance.
+    courtyard { shape: rect, at: (3mm, 1.92mm), size: (14.16mm, 9.78mm) }
+    silkscreen_ref { at: (3mm, -3.67mm) }
+}

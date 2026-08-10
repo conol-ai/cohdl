@@ -1,0 +1,41 @@
+// Texas Instruments SN74LVC8T245: eight-bit, dual-supply, non-inverting bus
+// transceiver with direction control and active-low three-state enable.
+// VCCA and VCCB each accept 1.65-5.5V. The Ioff, VCC-isolation, and VCC-
+// disconnect features place both ports in high impedance when either supply is
+// below 100mV or floating (datasheet SCES584D, May 2026, pp1, 14-15).
+// Pin functions are from Table 4-1 on p5.
+
+#[doc("docs/sn74lvc8t245-datasheet.pdf")]
+pub device SN74LVC8T245 {
+    pins {
+        required VCCA: 1 [power_in]
+        required DIR: 2 [input] // HIGH selects A-to-B; referenced to VCCA
+        required A1: 3 [bidirectional]
+        required A2: 4 [bidirectional]
+        required A3: 5 [bidirectional]
+        required A4: 6 [bidirectional]
+        required A5: 7 [bidirectional]
+        required A6: 8 [bidirectional]
+        required A7: 9 [bidirectional]
+        required A8: 10 [bidirectional]
+        required GND: 11, 12, 13 [power_in]
+        required B8: 14 [bidirectional]
+        required B7: 15 [bidirectional]
+        required B6: 16 [bidirectional]
+        required B5: 17 [bidirectional]
+        required B4: 18 [bidirectional]
+        required B3: 19 [bidirectional]
+        required B2: 20 [bidirectional]
+        required B1: 21 [bidirectional]
+        required OE: 22 [input] // active-low; HIGH makes both ports high-Z
+        required VCCB: 23, 24 [power_in]
+    }
+}
+
+impl IC for SN74LVC8T245 {}
+
+#[doc("docs/sn74lvc8t245-datasheet.pdf")]
+pub part LS_SN74LVC8T245PWR: SN74LVC8T245 {
+    primary { mfr: "Texas Instruments", mpn: "SN74LVC8T245PWR",
+              footprint: soic::TSSOP24P65_TI_PW0024A }
+}

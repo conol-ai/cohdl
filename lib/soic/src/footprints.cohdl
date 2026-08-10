@@ -72,3 +72,51 @@ pub footprint SOP14P65X640X120N {
     courtyard { shape: rect, at: (0mm, 0mm), size: (7.9mm, 5.6mm) }
     silkscreen_ref { at: (0mm, -3.1mm) }
 }
+
+// Texas Instruments PW0024A official example board layout 4220208/A in the
+// SN74LVC8T245 datasheet SCES584D (PDF page 31):
+// https://www.ti.com/lit/ds/symlink/sn74lvc8t245.pdf
+//
+// The vendor pattern specifies 24 lands at 0.65mm pitch, each 1.50x0.45mm,
+// with 5.80mm opposing row-centre spacing. This footprint is intentionally
+// distinct from non-TI TSSOP-24 lands with different pad geometry.
+pub pad P_TSSOP24P65_TI_PW0024A_LEAD {
+    shape: rect
+    size: (1.5mm, 0.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint TSSOP24P65_TI_PW0024A {
+    pad 1: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -3.575mm)
+    pad 2: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -2.925mm)
+    pad 3: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -2.275mm)
+    pad 4: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -1.625mm)
+    pad 5: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -0.975mm)
+    pad 6: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -0.325mm)
+    pad 7: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 0.325mm)
+    pad 8: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 0.975mm)
+    pad 9: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 1.625mm)
+    pad 10: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 2.275mm)
+    pad 11: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 2.925mm)
+    pad 12: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 3.575mm)
+    pad 13: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 3.575mm)
+    pad 14: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 2.925mm)
+    pad 15: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 2.275mm)
+    pad 16: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 1.625mm)
+    pad 17: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 0.975mm)
+    pad 18: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 0.325mm)
+    pad 19: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -0.325mm)
+    pad 20: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -0.975mm)
+    pad 21: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -1.625mm)
+    pad 22: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -2.275mm)
+    pad 23: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -2.925mm)
+    pad 24: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -3.575mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the official 7.30x7.60mm copper array and the 4.50x7.90mm
+    // maximum package body with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.8mm, 8.4mm) }
+    silkscreen_ref { at: (0mm, -4.7mm) }
+}

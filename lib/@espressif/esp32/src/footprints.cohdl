@@ -26,17 +26,28 @@ pub pad P_ESP32_S3_WROOM_BOTTOM {
     plating: smd
 }
 
-// Espressif's pad 41 is a 3x3 grid of 0.9x0.9mm copper islands on 1.4mm
-// centres (3.7x3.7mm overall), with twelve 0.25mm thermal vias. CoHDL can model
-// that exactly with repeated `pad 41` placements plus per-pad paste controls.
-// This older declaration has not yet been migrated: it is only the 3.7x3.7mm
-// copper envelope and still inherits a copper-sized paste aperture. Do not use
-// it as fabrication-ready EP/stencil/via geometry until that migration lands.
-pub pad P_ESP32_S3_WROOM_EP {
+// Espressif Figure 11-1 and the official DXF define pad 41 as nine
+// 0.9x0.9mm copper islands on 1.4mm centres. Repeated electrical-pad placements
+// preserve the single GND pin while emitting the exact 3x3 grid. With no paste
+// override CoHDL emits a nominal island-sized aperture; the production stencil
+// still needs assembly-process review.
+pub pad P_ESP32_S3_WROOM_EP_ISLAND {
     shape: rect
-    size: (3.7mm, 3.7mm)
+    size: (0.9mm, 0.9mm)
     layer: top_copper
     plating: smd
+}
+
+// Twelve plated thermal vias join the pad-41 grid to the ground planes. The
+// official CAD fixes the 0.25mm round drills; this implementation pairs them
+// with conservative 0.50mm copper lands that fit the documented 0.50mm island
+// gaps. Every via is another physical placement of electrical pin 41.
+pub pad P_ESP32_S3_WROOM_EP_VIA {
+    shape: circle
+    size: (0.5mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.25mm
 }
 
 // ESP32-S3-WROOM-1, mechanical origin at the centre of the 18.0x25.5mm module.
@@ -89,7 +100,32 @@ pub footprint FP_ESP32_S3_WROOM_1 {
     pad 38: P_ESP32_S3_WROOM_SIDE at (8.75mm, -2.72mm)
     pad 39: P_ESP32_S3_WROOM_SIDE at (8.75mm, -3.99mm)
     pad 40: P_ESP32_S3_WROOM_SIDE at (8.75mm, -5.26mm)
-    pad 41: P_ESP32_S3_WROOM_EP at (-1.5mm, 2.46mm)
+    // Pad 41 copper islands. The array centre is (-1.50, +2.46); local
+    // island centres are the Cartesian product of {-1.4, 0, +1.4}mm.
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-2.9mm, 1.06mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-1.5mm, 1.06mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-0.1mm, 1.06mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-2.9mm, 2.46mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-1.5mm, 2.46mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-0.1mm, 2.46mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-2.9mm, 3.86mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-1.5mm, 3.86mm)
+    pad 41: P_ESP32_S3_WROOM_EP_ISLAND at (-0.1mm, 3.86mm)
+
+    // Twelve thermal vias at local offsets
+    // (+-0.7, -1.4/0/+1.4) and (-1.4/0/+1.4, +-0.7)mm.
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-2.2mm, 1.06mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-0.8mm, 1.06mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-2.2mm, 2.46mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-0.8mm, 2.46mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-2.2mm, 3.86mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-0.8mm, 3.86mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-2.9mm, 1.76mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-2.9mm, 3.16mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-1.5mm, 1.76mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-1.5mm, 3.16mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-0.1mm, 1.76mm)
+    pad 41: P_ESP32_S3_WROOM_EP_VIA at (-0.1mm, 3.16mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (-9mm, -12.75mm) to (9mm, -12.75mm) width 0.15mm

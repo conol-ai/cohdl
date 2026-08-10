@@ -957,6 +957,353 @@ fn promoted_w25q128_uses_the_datasheet_pinout_and_shared_soic_land() {
         .contains_key("soic::SOIC8P127X790X216N"));
 }
 
+#[test]
+fn ti_sn74lvc8t245pwr_uses_exact_pinout_part_and_pw0024a_land() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("soic".to_string(), root.join("lib/soic")),
+    ];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project =
+        cohdl::project::load_project_with_deps(&root.join("lib/@ti/logic"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let device = &checked.world.devices["ti_logic::SN74LVC8T245"];
+    let pins = device.pins_for(None);
+    assert_eq!(
+        pins.len(),
+        21,
+        "24 package pads collapse to 21 logical pins"
+    );
+    for (name, number, role) in [
+        ("VCCA", "1", cohdl::ast::PinRole::PowerIn),
+        ("DIR", "2", cohdl::ast::PinRole::Input),
+        ("A1", "3", cohdl::ast::PinRole::Bidirectional),
+        ("A2", "4", cohdl::ast::PinRole::Bidirectional),
+        ("A3", "5", cohdl::ast::PinRole::Bidirectional),
+        ("A4", "6", cohdl::ast::PinRole::Bidirectional),
+        ("A5", "7", cohdl::ast::PinRole::Bidirectional),
+        ("A6", "8", cohdl::ast::PinRole::Bidirectional),
+        ("A7", "9", cohdl::ast::PinRole::Bidirectional),
+        ("A8", "10", cohdl::ast::PinRole::Bidirectional),
+        ("B8", "14", cohdl::ast::PinRole::Bidirectional),
+        ("B7", "15", cohdl::ast::PinRole::Bidirectional),
+        ("B6", "16", cohdl::ast::PinRole::Bidirectional),
+        ("B5", "17", cohdl::ast::PinRole::Bidirectional),
+        ("B4", "18", cohdl::ast::PinRole::Bidirectional),
+        ("B3", "19", cohdl::ast::PinRole::Bidirectional),
+        ("B2", "20", cohdl::ast::PinRole::Bidirectional),
+        ("B1", "21", cohdl::ast::PinRole::Bidirectional),
+        ("OE", "22", cohdl::ast::PinRole::Input),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong SN74LVC8T245 physical mapping for {name}"
+        );
+        assert_eq!(pin.role_or_default(), role, "wrong role for {name}");
+        assert_eq!(pin.obligation, cohdl::ast::Obligation::Required);
+    }
+    for (name, numbers) in [
+        ("GND", &["11", "12", "13"][..]),
+        ("VCCB", &["23", "24"][..]),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            numbers,
+            "wrong SN74LVC8T245 physical mapping for {name}"
+        );
+        assert_eq!(pin.role_or_default(), cohdl::ast::PinRole::PowerIn);
+        assert_eq!(pin.obligation, cohdl::ast::Obligation::Required);
+    }
+
+    let part = &checked.world.parts["ti_logic::LS_SN74LVC8T245PWR"];
+    assert_eq!(part.device.name.name, "ti_logic::SN74LVC8T245");
+    assert!(part.device.variant.is_none());
+    assert_eq!(
+        part.primary.field("mfr").unwrap().value,
+        "Texas Instruments"
+    );
+    assert_eq!(part.primary.field("mpn").unwrap().value, "SN74LVC8T245PWR");
+    assert_eq!(
+        part.primary.footprint.as_ref().unwrap().name,
+        "soic::TSSOP24P65_TI_PW0024A"
+    );
+    assert!(
+        part.alts.is_empty(),
+        "the orderable MPN is a standalone part"
+    );
+
+    let footprint = &checked.world.footprints["soic::TSSOP24P65_TI_PW0024A"];
+    assert_eq!(footprint.pads.len(), 24);
+    let placements: Vec<_> = footprint
+        .pads
+        .iter()
+        .map(|place| {
+            (
+                place.number.text.as_str(),
+                place.x.text.as_str(),
+                place.y.text.as_str(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        placements,
+        [
+            ("1", "-2.9mm", "-3.575mm"),
+            ("2", "-2.9mm", "-2.925mm"),
+            ("3", "-2.9mm", "-2.275mm"),
+            ("4", "-2.9mm", "-1.625mm"),
+            ("5", "-2.9mm", "-0.975mm"),
+            ("6", "-2.9mm", "-0.325mm"),
+            ("7", "-2.9mm", "0.325mm"),
+            ("8", "-2.9mm", "0.975mm"),
+            ("9", "-2.9mm", "1.625mm"),
+            ("10", "-2.9mm", "2.275mm"),
+            ("11", "-2.9mm", "2.925mm"),
+            ("12", "-2.9mm", "3.575mm"),
+            ("13", "2.9mm", "3.575mm"),
+            ("14", "2.9mm", "2.925mm"),
+            ("15", "2.9mm", "2.275mm"),
+            ("16", "2.9mm", "1.625mm"),
+            ("17", "2.9mm", "0.975mm"),
+            ("18", "2.9mm", "0.325mm"),
+            ("19", "2.9mm", "-0.325mm"),
+            ("20", "2.9mm", "-0.975mm"),
+            ("21", "2.9mm", "-1.625mm"),
+            ("22", "2.9mm", "-2.275mm"),
+            ("23", "2.9mm", "-2.925mm"),
+            ("24", "2.9mm", "-3.575mm"),
+        ]
+    );
+    assert!(footprint.pads.iter().all(|place| {
+        place.pad.name == "soic::P_TSSOP24P65_TI_PW0024A_LEAD" && place.rotate == 0
+    }));
+
+    let lead = &checked.world.pads["soic::P_TSSOP24P65_TI_PW0024A_LEAD"];
+    assert_eq!(
+        lead.shape.map(|(shape, _)| shape),
+        Some(cohdl::ast::PadShape::Rect)
+    );
+    assert_eq!(
+        lead.size
+            .iter()
+            .map(|value| value.text.as_str())
+            .collect::<Vec<_>>(),
+        ["1.5mm", "0.45mm"]
+    );
+    assert_eq!(
+        lead.layer.map(|(layer, _)| layer),
+        Some(cohdl::ast::PadLayer::TopCopper)
+    );
+    assert_eq!(
+        lead.plating.map(|(plating, _)| plating),
+        Some(cohdl::ast::PadPlating::Smd)
+    );
+
+    let courtyard = footprint.courtyard.as_ref().unwrap();
+    assert_eq!(courtyard.at.0.text, "0mm");
+    assert_eq!(courtyard.at.1.text, "0mm");
+    assert_eq!(
+        courtyard
+            .size
+            .iter()
+            .map(|value| value.text.as_str())
+            .collect::<Vec<_>>(),
+        ["7.8mm", "8.4mm"]
+    );
+
+    let mut footprint_diags = Diagnostics::new();
+    cohdl::check::footprints::check_pad_consistency(&checked.world, &mut footprint_diags);
+    assert!(
+        !footprint_diags.has_errors(),
+        "{}",
+        footprint_diags.render(&checked.sm)
+    );
+}
+
+#[test]
+fn esp32_s3_wroom_uses_exact_segmented_ep_and_distinct_memory_parts() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("qfn".to_string(), root.join("lib/qfn")),
+    ];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project =
+        cohdl::project::load_project_with_deps(&root.join("lib/@espressif/esp32"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let footprint = &checked.world.footprints["espressif_esp32::FP_ESP32_S3_WROOM_1"];
+    let pad_41: Vec<_> = footprint
+        .pads
+        .iter()
+        .filter(|place| place.number.text == "41")
+        .collect();
+    assert_eq!(
+        footprint.pads.len(),
+        61,
+        "40 perimeter lands + 21 EP features"
+    );
+    assert_eq!(pad_41.len(), 21, "nine islands + twelve thermal vias");
+
+    let island_name = "espressif_esp32::P_ESP32_S3_WROOM_EP_ISLAND";
+    let via_name = "espressif_esp32::P_ESP32_S3_WROOM_EP_VIA";
+    let islands: Vec<_> = pad_41
+        .iter()
+        .copied()
+        .filter(|place| place.pad.name == island_name)
+        .collect();
+    let vias: Vec<_> = pad_41
+        .iter()
+        .copied()
+        .filter(|place| place.pad.name == via_name)
+        .collect();
+    assert_eq!(islands.len(), 9);
+    assert_eq!(vias.len(), 12);
+
+    let island_pad = &checked.world.pads[island_name];
+    assert_eq!(
+        island_pad.shape.map(|(shape, _)| shape),
+        Some(cohdl::ast::PadShape::Rect)
+    );
+    assert_eq!(
+        island_pad
+            .size
+            .iter()
+            .map(|value| value.text.as_str())
+            .collect::<Vec<_>>(),
+        ["0.9mm", "0.9mm"]
+    );
+    assert_eq!(
+        island_pad.layer.map(|(layer, _)| layer),
+        Some(cohdl::ast::PadLayer::TopCopper)
+    );
+    assert_eq!(
+        island_pad.plating.map(|(plating, _)| plating),
+        Some(cohdl::ast::PadPlating::Smd)
+    );
+    assert!(
+        island_pad.paste.is_none(),
+        "the library keeps the default nominal paste aperture; stencil reduction is process-specific"
+    );
+
+    let island_coords: std::collections::BTreeSet<_> = islands
+        .iter()
+        .map(|place| (place.x.text.as_str(), place.y.text.as_str()))
+        .collect();
+    let expected_islands = [
+        ("-2.9mm", "1.06mm"),
+        ("-1.5mm", "1.06mm"),
+        ("-0.1mm", "1.06mm"),
+        ("-2.9mm", "2.46mm"),
+        ("-1.5mm", "2.46mm"),
+        ("-0.1mm", "2.46mm"),
+        ("-2.9mm", "3.86mm"),
+        ("-1.5mm", "3.86mm"),
+        ("-0.1mm", "3.86mm"),
+    ]
+    .into_iter()
+    .collect();
+    assert_eq!(island_coords, expected_islands);
+
+    let via_pad = &checked.world.pads[via_name];
+    assert_eq!(
+        via_pad.shape.map(|(shape, _)| shape),
+        Some(cohdl::ast::PadShape::Circle)
+    );
+    assert_eq!(
+        via_pad
+            .size
+            .iter()
+            .map(|value| value.text.as_str())
+            .collect::<Vec<_>>(),
+        ["0.5mm"]
+    );
+    assert_eq!(
+        via_pad.layer.map(|(layer, _)| layer),
+        Some(cohdl::ast::PadLayer::ThroughAll)
+    );
+    assert_eq!(
+        via_pad.plating.map(|(plating, _)| plating),
+        Some(cohdl::ast::PadPlating::PlatedThroughHole)
+    );
+    match via_pad.drill.as_ref().map(|(drill, _)| drill) {
+        Some(cohdl::ast::PadDrill::Round(diameter)) => {
+            assert_eq!(diameter.text, "0.25mm")
+        }
+        _ => panic!("ESP32-S3-WROOM thermal vias need a 0.25mm round drill"),
+    }
+
+    let via_coords: std::collections::BTreeSet<_> = vias
+        .iter()
+        .map(|place| (place.x.text.as_str(), place.y.text.as_str()))
+        .collect();
+    let expected_vias = [
+        ("-2.2mm", "1.06mm"),
+        ("-0.8mm", "1.06mm"),
+        ("-2.2mm", "2.46mm"),
+        ("-0.8mm", "2.46mm"),
+        ("-2.2mm", "3.86mm"),
+        ("-0.8mm", "3.86mm"),
+        ("-2.9mm", "1.76mm"),
+        ("-2.9mm", "3.16mm"),
+        ("-1.5mm", "1.76mm"),
+        ("-1.5mm", "3.16mm"),
+        ("-0.1mm", "1.76mm"),
+        ("-0.1mm", "3.16mm"),
+    ]
+    .into_iter()
+    .collect();
+    assert_eq!(via_coords, expected_vias);
+
+    for (name, mpn) in [
+        (
+            "espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1_N8",
+            "ESP32-S3-WROOM-1-N8",
+        ),
+        (
+            "espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1_N8R2",
+            "ESP32-S3-WROOM-1-N8R2",
+        ),
+    ] {
+        let part = &checked.world.parts[name];
+        assert_eq!(part.primary.field("mfr").unwrap().value, "Espressif");
+        assert_eq!(part.primary.field("mpn").unwrap().value, mpn);
+        assert_eq!(
+            part.primary.footprint.as_ref().unwrap().name,
+            "espressif_esp32::FP_ESP32_S3_WROOM_1"
+        );
+        assert!(
+            part.alts.is_empty(),
+            "memory variants are exact standalone parts, not AVL alternates"
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // footprint: a resolvable declaration kind.
 
@@ -1586,6 +1933,55 @@ fn doc_paths_reject_dot_slash_and_empty_components() {
             "doc path `{}` must be rejected:\n{}",
             path,
             r
+        );
+    }
+}
+
+// The canonical STM32F072 pin map is library data, not board data: pin names
+// are the datasheet's PA/PB/PC ports on their LQFP-48 numbers, and board-level
+// aliases must never leak into the manufacturer package. (These assertions
+// lived in the OpenMicro example's exit-criteria test until that project moved
+// to its own repository.)
+#[test]
+fn stm32f072cb_uses_canonical_datasheet_pins() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![("std".to_string(), root.join("lib/std"))];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project =
+        cohdl::project::load_project_with_deps(&root.join("lib/@st/stm32"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let mcu = &checked.world.devices["st_stm32::f0::stm32f072cb::STM32F072CBT6"];
+    let pins = mcu.pins_for(None);
+    for (name, number) in [
+        ("PA9", "30"),
+        ("PA11", "32"),
+        ("PA12", "33"),
+        ("PA13", "34"),
+        ("PA14", "37"),
+        ("PB14", "27"),
+    ] {
+        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            [number],
+            "wrong physical mapping for {name}"
+        );
+    }
+    for board_alias in ["ROW0", "USB_DM", "SWDIO", "LED_DATA_UG"] {
+        assert!(
+            pins.iter().all(|pin| pin.name.name != board_alias),
+            "board alias `{board_alias}` leaked into the manufacturer library"
         );
     }
 }

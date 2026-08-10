@@ -17,7 +17,7 @@ borrows KiCad's own Python):
 
     python3 -m venv /tmp/dxfenv && /tmp/dxfenv/bin/pip install ezdxf
     /tmp/dxfenv/bin/python tools/make_board_outline_dxf.py \
-        examples/openmicro/mechanical/openmicro-outline.dxf \
+        ../openmicrokbd/mechanical/openmicro-outline.dxf \
         --width 95 --height 95 --radius 6
 
 Output bytes are reproducible: the writer's "now" timestamps and freshly

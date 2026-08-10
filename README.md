@@ -39,7 +39,7 @@ All MVP exit criteria are met, and all nineteen Accepted RFC areas (RFC-001…01
 ## Using it
 
 ```sh
-cargo run -- check examples/openmicro            # parse → resolve → type-check → residual DRC
+cargo run -- check examples/sf32-miniboard       # SF32 miniboard: SiFli BLE eval board
 cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .net + BOM CSV
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
@@ -56,9 +56,17 @@ Projects pin every package they use to an exact version under
 `[dependencies]`; see [`lib/README.md`](lib/README.md) for the complete
 namespace map.
 
-Two reference designs live in `examples/`: **OpenMicro** and the Raspberry Pi
-**Pico 2** (RP2350A — a full transcription of the official schematic,
-exercising variants, `#[intent]`, and layout constraints).
+Three reference designs live in `examples/`: Raspberry Pi **Pico 2**, the
+**SF32 miniboard**, and an
+[**AI voice robot-dog mainboard**](examples/robot-dog-mainboard/).
+(The **OpenMicro** macropad — the wired STM32F072 v1 and its wireless
+SF32LB52 successor v2 — graduated to its own repository, `openmicrokbd`,
+which carries the whole product: hardware source, firmware, host app, and
+fab releases under `hw/v1/` and `hw/v2/`.)
+The robot-dog example combines an ESP32-S3-N8R2, stereo I2S microphones,
+isolated speaker playback, a translated 1.8 V IMU domain, USB-C, a protected
+default-off 7 A actuator rail, and eight 5 V servo PWM channels. Keyed 4/6-pin
+Micro-Fit harnesses prevent the BEC input from being interchanged with a leg.
 
 ### Build artifacts
 

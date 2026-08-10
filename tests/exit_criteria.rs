@@ -87,78 +87,6 @@ fn grammar_parses_demo_board_and_std() {
 }
 
 #[test]
-fn openmicro_uses_reusable_catalog_packages_and_canonical_stm32_pins() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let (proj, dep_names) = load_example(&root.join("examples/openmicro"));
-    let checked = cohdl::pipeline::check_files_in_with_deps(
-        &proj.name,
-        &dep_names,
-        &proj.files,
-        proj.top.as_deref(),
-    )
-    .unwrap();
-    assert!(
-        !checked.diags.has_errors(),
-        "{}",
-        checked.diags.render(&checked.sm)
-    );
-
-    for part in [
-        "connectors::headers::smd_254::SOCKET_2X3_254_SMD",
-        "diode::D_1N4148W",
-        "osc::XTAL_8M",
-        "st_stm32::f0::stm32f072cb::MCU_STM32F072",
-    ] {
-        assert!(
-            checked.world.parts.contains_key(part),
-            "missing extracted part `{part}`"
-        );
-    }
-    for stale in [
-        "openmicro::J_SWD",
-        "openmicro::D_1N4148W",
-        "openmicro::XTAL_8M",
-        "openmicro::MCU_STM32F072",
-    ] {
-        assert!(
-            !checked.world.parts.contains_key(stale),
-            "`{stale}` must not be reintroduced locally"
-        );
-    }
-
-    let mcu = checked
-        .world
-        .devices
-        .get("st_stm32::f0::stm32f072cb::STM32F072CBT6")
-        .unwrap();
-    let pins = mcu.pins_for(None);
-    for (name, number) in [
-        ("PA9", "30"),
-        ("PA11", "32"),
-        ("PA12", "33"),
-        ("PA13", "34"),
-        ("PA14", "37"),
-        ("PB14", "27"),
-    ] {
-        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
-        assert_eq!(
-            pin.numbers
-                .iter()
-                .map(|number| number.text.as_str())
-                .collect::<Vec<_>>(),
-            [number],
-            "wrong physical mapping for {name}"
-        );
-    }
-    for board_alias in ["ROW0", "USB_DM", "SWDIO", "LED_DATA_UG"] {
-        assert!(
-            pins.iter().all(|pin| pin.name.name != board_alias),
-            "board alias `{board_alias}` leaked into the manufacturer library"
-        );
-    }
-}
-
-#[test]
 fn rpi_pico2_uses_reusable_catalog_packages_and_canonical_chip_pins() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let (proj, dep_names) = load_example(&root.join("examples/rpi-pico2"));
@@ -288,6 +216,136 @@ fn rpi_pico2_example_builds_cleanly() {
         layout.contains("\"diff_pairs\""),
         "USB diff pair in layout.json"
     );
+}
+
+// A mixed-signal, multi-rail reference board: native USB, stereo microphone
+// capture, I2S playback, a translated 1.8 V IMU domain, and eight servo PWM
+// outputs. Keep its protected power path, safe keyed harnesses, and exact
+// memory variant buildable.
+#[test]
+fn robot_dog_mainboard_builds_cleanly() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let dir = root.join("examples/robot-dog-mainboard");
+    let (proj, dep_names) = load_example(&dir);
+    let mut checked = cohdl::pipeline::check_files_in_with_deps(
+        &proj.name,
+        &dep_names,
+        &proj.files,
+        proj.top.as_deref(),
+    )
+    .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "robot-dog mainboard should check cleanly:\n{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    // Lock the safety-critical connector and control topology, not only the
+    // human-readable net names. Molex 4-circuit BEC cannot mate with a leg;
+    // each 6-circuit leg dedicates one complete row to each servo.
+    {
+        let ir = checked.ir.as_ref().unwrap();
+        let members = |name: &str| {
+            &ir.nets
+                .iter()
+                .find(|net| net.name == name)
+                .unwrap_or_else(|| panic!("missing robot-dog net `{name}`"))
+                .members
+        };
+        for (net, path, pin) in [
+            ("BEC_5V_RAW", "RobotDogMainboard::bec_input", "P1"),
+            ("BEC_5V_RAW", "RobotDogMainboard::bec_input", "P2"),
+            ("BEC_5V_RAW", "RobotDogMainboard::actuator_switch", "IN"),
+            ("GND", "RobotDogMainboard::bec_input", "P3"),
+            ("GND", "RobotDogMainboard::bec_input", "P4"),
+            (
+                "ACTUATOR_AUDIO_5V",
+                "RobotDogMainboard::actuator_switch",
+                "OUT",
+            ),
+            (
+                "ACTUATOR_AUDIO_5V",
+                "RobotDogMainboard::leg_front_left",
+                "P2",
+            ),
+            (
+                "ACTUATOR_AUDIO_5V",
+                "RobotDogMainboard::leg_front_left",
+                "P5",
+            ),
+            ("GND", "RobotDogMainboard::leg_front_left", "P3"),
+            ("GND", "RobotDogMainboard::leg_front_left", "P6"),
+            ("SERVO_FL_HIP", "RobotDogMainboard::leg_front_left", "P1"),
+            ("SERVO_FL_KNEE", "RobotDogMainboard::leg_front_left", "P4"),
+            ("EFUSE_ENABLE_MCU", "RobotDogMainboard::mcu", "IO48"),
+            ("EFUSE_POWER_GOOD", "RobotDogMainboard::mcu", "IO41"),
+            ("EFUSE_CURRENT_MONITOR", "RobotDogMainboard::mcu", "IO1"),
+            ("USB_VBUS_SENSE", "RobotDogMainboard::mcu", "IO2"),
+            ("SERVO_LEVEL_OEN", "RobotDogMainboard::mcu", "IO47"),
+            ("IMU_LEVEL_OE", "RobotDogMainboard::mcu", "IO42"),
+            ("AMP_I2S_BCLK", "RobotDogMainboard::amp_level", "B1"),
+        ] {
+            assert!(
+                members(net).contains(&(path.to_string(), pin.to_string())),
+                "`{net}` must contain `{path}.{pin}`"
+            );
+        }
+    }
+
+    let lock_text = std::fs::read_to_string(dir.join("design.lock")).unwrap();
+    let prior = LockState::parse(&lock_text).unwrap();
+    let artifacts =
+        build_artifacts(&mut checked, &prior).expect("robot-dog mainboard should build");
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    assert_eq!(artifacts.lock.render(), lock_text);
+    assert!(
+        artifacts.bom.contains("ESP32-S3-WROOM-1-N8R2"),
+        "the exact 8 MB flash + 2 MB PSRAM module must stay bound"
+    );
+    for mpn in [
+        "TPS259823ONRGET",
+        "SN74LVC8T245PWR",
+        "43045-0212",
+        "43045-0412",
+        "43045-0612",
+    ] {
+        assert!(
+            artifacts.bom.contains(mpn),
+            "missing robot-dog safety-critical BOM item `{mpn}`"
+        );
+    }
+    for net in [
+        "BEC_5V_RAW",
+        "ACTUATOR_AUDIO_5V",
+        "V5_LOGIC",
+        "USB_VBUS_SENSE",
+        "EFUSE_ENABLE",
+        "EFUSE_POWER_GOOD",
+        "EFUSE_CURRENT_MONITOR",
+        "I2S_MIC_SD",
+        "AMP_I2S_BCLK",
+        "AMP_SD_MODE",
+        "IMU_LEVEL_OE",
+        "SERVO_LEVEL_OEN",
+        "MCU_BOOT",
+        "SERVO_RR_KNEE",
+    ] {
+        assert!(
+            artifacts.netlist.contains(net),
+            "missing robot-dog interface/power net `{net}`"
+        );
+    }
+    let layout = artifacts
+        .layout
+        .expect("robot-dog mainboard declares layout constraints");
+    assert!(layout.contains("USBC_DP") && layout.contains("USBC_DM"));
+    assert!(layout.contains("BEC_5V_RAW"));
+    assert!(layout.contains("ACTUATOR_AUDIO_5V"));
+    assert!(!artifacts.netlist.contains("VSERVO_V5_AUDIO"));
 }
 
 // ---------------------------------------------------------------------------
@@ -861,7 +919,7 @@ design B {
 #[test]
 fn example_build_matches_committed_golden_output() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    for name in ["rpi-pico2", "openmicro"] {
+    for name in ["rpi-pico2"] {
         let dir = root.join("examples").join(name);
         let (proj, dep_names) = load_example(&dir);
         // The package-aware entry (the CLI's own path): project-local

@@ -19,8 +19,6 @@ examples/*/out/*.kicad_pro
 examples/*/out/*.kicad_prl
 examples/*/out/*.lck
 examples/*/out/.history/
-/examples/openmicro/fw/target
-/examples/openmicro/app/target
 /registry/node_modules
 /registry/dist
 

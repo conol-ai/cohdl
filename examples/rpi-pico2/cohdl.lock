@@ -2,18 +2,18 @@
 
 [[package]]
 name = "@raspberrypi/mcu"
-version = "0.1.0"
-hash = "sha256:18cafb23466e25f4bd9c195a65040884980256f7eb0ca7f7b5497547baed9a8a"
+version = "0.1.1"
+hash = "sha256:afe3112afd773be46a8bb66007f936f0c0c01b103c1abb6d5f787e01f9fd874a"
 
 [[package]]
 name = "@richtek/dcdc"
-version = "0.1.0"
-hash = "sha256:df910fde8eaa6284072511fa2285f509b0f8d3f9232d8bb1c0c11c37db1cd5ba"
+version = "0.1.1"
+hash = "sha256:a0ae4a28a5cdeeaf683d261717db8f315b07a0da7402dbd33b6ecc6be73503d9"
 
 [[package]]
 name = "connectors"
-version = "0.1.0"
-hash = "sha256:2a38f95e68073c45662d57af3bb81a6854a58c0b11307ae345b428c49464f918"
+version = "0.1.1"
+hash = "sha256:a7a192b02b1e75c6772dd3e75516bf6fdaf28e9354def86b132f6204f023f3dd"
 
 [[package]]
 name = "diode"
@@ -27,13 +27,13 @@ hash = "sha256:8d5f98ff377276fc3bb2330ebe49dfc4770979c42c07f1ae20f48b99caa2570f"
 
 [[package]]
 name = "flash"
-version = "0.1.0"
-hash = "sha256:1304d09d5d7ce24f45f1fbceef585de4b3c339dff2ff49c5f0660b9f366ec3ed"
+version = "0.1.1"
+hash = "sha256:d32516d8f56fbfcf39bdfd46f598b530c6c152fc20c29cf5e542a9e5453256ff"
 
 [[package]]
 name = "led"
-version = "0.1.0"
-hash = "sha256:e0ab42284e91dd06c8d2d8a7da4437507f8a3e4cbed34a8e423d432c7e49b33f"
+version = "0.1.1"
+hash = "sha256:d057ea2d9b88103a01f3a222c514c01808ab287059af60f8d77b56114b899d07"
 
 [[package]]
 name = "mosfet"
@@ -42,18 +42,18 @@ hash = "sha256:e80116ea1519f36bd39364e713017fc09e14e378de817a9ac0cd69edd9a474ba"
 
 [[package]]
 name = "osc"
-version = "0.1.0"
-hash = "sha256:18d7e7b05c3a281b850993004a2790a2283633bd8d38e84fe960e71c44d3898e"
+version = "0.1.1"
+hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
 
 [[package]]
 name = "passive"
-version = "0.2.0"
-hash = "sha256:c4bc8117a2287209f0e89d2cc0f35464db036ab12833dd190fb66b97faf677ad"
+version = "0.2.1"
+hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
 
 [[package]]
 name = "qfn"
-version = "0.1.0"
-hash = "sha256:ffdf8c866ed37c05fbf2c69862029506c3bd5ee7c3cde790417abf7b0f77e5d1"
+version = "0.1.1"
+hash = "sha256:c8d264ac35829d30c3b4366987f96bc359fc4743433628f2652e4b8f8a8a04aa"
 
 [[package]]
 name = "soic"
@@ -67,5 +67,5 @@ hash = "sha256:5b5fc2d184722d4a4fd32f531656c32f2de2f0920c94d7a8e5f2d2203527fbca"
 
 [[package]]
 name = "usb"
-version = "0.1.0"
-hash = "sha256:accbce029054e4c6c5dc8d771199522367c32975f0e17e7d9807646e5d47648e"
+version = "0.1.1"
+hash = "sha256:46a3a8a7bd04c703067abea60b96063bb8194cec27813651fad765337e27d87c"

@@ -1,6 +1,6 @@
 [package]
 name = "ldo"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Low-dropout voltage regulators with their verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"

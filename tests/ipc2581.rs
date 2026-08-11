@@ -286,7 +286,7 @@ fn schema_validity_over_corpus() {
     ] {
         ran |= xsd_validate(name, &build(name, src).xml);
     }
-    for dir in ["examples/rpi-pico2"] {
+    for dir in ["examples/rpi-pico2", "examples/sf32-miniboard"] {
         let b = build_example(dir);
         ran |= xsd_validate(dir.rsplit('/').next().unwrap(), &b.xml);
     }
@@ -547,7 +547,7 @@ fn fidelity_over_corpus_and_examples() {
     .into_iter()
     .map(|(n, s)| (n.to_string(), build(n, s)))
     .collect();
-    for dir in ["examples/rpi-pico2"] {
+    for dir in ["examples/rpi-pico2", "examples/sf32-miniboard"] {
         builds.push((dir.to_string(), build_example(dir)));
     }
     for (name, b) in &builds {

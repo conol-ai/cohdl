@@ -56,14 +56,15 @@ Projects pin every package they use to an exact version under
 `[dependencies]`; see [`lib/README.md`](lib/README.md) for the complete
 namespace map.
 
-Three reference designs live in `examples/`: Raspberry Pi **Pico 2**, the
-**SF32 miniboard**, and an
-[**AI voice robot-dog mainboard**](examples/robot-dog-mainboard/).
-(The **OpenMicro** macropad — the wired STM32F072 v1 and its wireless
-SF32LB52 successor v2 — graduated to its own repository, `openmicrokbd`,
-which carries the whole product: hardware source, firmware, host app, and
-fab releases under `hw/v1/` and `hw/v2/`.)
-The robot-dog example combines an ESP32-S3-N8R2, stereo I2S microphones,
+Two reference designs live in `examples/`: Raspberry Pi **Pico 2** and the
+**SF32 miniboard**. (The **OpenMicro** macropad — the wired STM32F072 v1 and
+its wireless SF32LB52 successor v2 — graduated to its own repository,
+`openmicrokbd`, which carries the whole product: hardware source, firmware,
+host app, and fab releases under `hw/v1/` and `hw/v2/`.)
+
+An **AI voice robot-dog mainboard** is in progress and not yet in the tree; its
+exit-criteria test is checked in but ignored until the example lands. It
+combines an ESP32-S3-N8R2, stereo I2S microphones,
 isolated speaker playback, a translated 1.8 V IMU domain, USB-C, a protected
 default-off 7 A actuator rail, and eight 5 V servo PWM channels. Keyed 4/6-pin
 Micro-Fit harnesses prevent the BEC input from being interchanged with a leg.

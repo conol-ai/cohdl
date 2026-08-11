@@ -5,6 +5,7 @@
   (attr through_hole)
   (fp_text reference "REF**" (at 0 -1.8) (layer "F.SilkS"))
   (fp_rect (start -4.15 -1.25) (end 4.15 1.25) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (fp_circle (center -3.89 0) (end -3.69 0) (layer "F.SilkS") (stroke (width 0.1) (type solid)) (fill solid))
   (pad "1" thru_hole circle (at -2.54 0) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask"))
   (pad "2" thru_hole circle (at 0 0) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask"))
   (pad "3" thru_hole circle (at 2.54 0) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask"))

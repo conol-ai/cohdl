@@ -1,10 +1,11 @@
-(footprint "flash::QFN8N50P200X300_1EP61X220"
+(footprint "qfn::QFN8N50P200X300_1EP61X220"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")
   (attr smd)
   (fp_text reference "REF**" (at 0 -1.9) (layer "F.SilkS"))
-  (fp_rect (start -1.45 -1.7) (end 1.45 1.7) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (fp_rect (start -1.65 -1.75) (end 1.65 1.75) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (fp_circle (center -1.875 -0.75) (end -1.675 -0.75) (layer "F.SilkS") (stroke (width 0.1) (type solid)) (fill solid))
   (pad "1" smd rect (at -0.94 -0.75) (size 0.87 0.25) (layers "F.Cu" "F.Paste" "F.Mask"))
   (pad "2" smd rect (at -0.94 -0.25) (size 0.87 0.25) (layers "F.Cu" "F.Paste" "F.Mask"))
   (pad "3" smd rect (at -0.94 0.25) (size 0.87 0.25) (layers "F.Cu" "F.Paste" "F.Mask"))

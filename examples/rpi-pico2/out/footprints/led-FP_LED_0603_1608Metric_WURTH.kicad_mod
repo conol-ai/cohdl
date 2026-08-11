@@ -1,0 +1,11 @@
+(footprint "led::FP_LED_0603_1608Metric_WURTH"
+  (version 20240108)
+  (generator "cohdl")
+  (layer "F.Cu")
+  (attr smd)
+  (fp_text reference "REF**" (at 0 -1.2) (layer "F.SilkS"))
+  (fp_rect (start -1.45 -0.7) (end 1.45 0.7) (layer "F.CrtYd") (stroke (width 0.05) (type solid)) (fill none))
+  (fp_line (start -1.5 -0.4) (end -1.5 0.4) (layer "F.SilkS") (stroke (width 0.3) (type solid)))
+  (pad "1" smd rect (at -0.8 0) (size 0.8 0.8) (layers "F.Cu" "F.Paste" "F.Mask"))
+  (pad "2" smd rect (at 0.8 0) (size 0.8 0.8) (layers "F.Cu" "F.Paste" "F.Mask"))
+)

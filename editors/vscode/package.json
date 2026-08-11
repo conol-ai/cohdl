@@ -3,7 +3,7 @@
   "displayName": "CoHDL",
   "description": "Syntax highlighting and language-server support for CoHDL (.cohdl) — packages the built-in `cohdl lsp` (RFC-019).",
   "version": "0.1.0",
-  "publisher": "conol-ai",
+  "publisher": "conol",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -1,0 +1,100 @@
+# RFC-019: release automation for the VS Code extension. Triggered by tags of
+# the form `vscode-vX.Y.Z` (the `vscode-` prefix keeps extension releases
+# distinct from any future compiler/registry tags in this monorepo). The tag
+# version must match editors/vscode/package.json — mismatches fail before
+# anything is built or published.
+#
+# One-time setup (repository secrets):
+#   VSCE_PAT — Azure DevOps personal access token with the
+#              "Marketplace > Manage" scope, for the `conol` publisher
+#              (https://marketplace.visualstudio.com/manage). Required.
+#   OVSX_PAT — open-vsx.org token. Optional: the Open VSX step skips itself
+#              with a notice when the secret is absent. The `conol`
+#              namespace must exist there first (one-time:
+#              `npx ovsx create-namespace conol -p <token>`).
+name: Release VS Code extension
+
+on:
+  push:
+    tags:
+      - "vscode-v*"
+
+# Needed only to create the GitHub release that carries the .vsix.
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check tag matches package.json version
+        run: |
+          tag_version="${GITHUB_REF_NAME#vscode-v}"
+          pkg_version="$(node -p "require('./package.json').version")"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $tag_version, but package.json says $pkg_version"
+            exit 1
+          fi
+
+      # Same gate as ci.yml's vscode-extension job: a .vsix is only published
+      # if it compiles and the grammar-coverage test passes on the tagged tree.
+      - name: Install
+        run: npm ci || npm install
+      - name: Compile
+        run: npm run compile
+      - name: Grammar coverage test
+        run: npm test
+      - name: Package .vsix
+        run: npm run package
+
+      # Publish the exact .vsix that was just built and tested (--packagePath),
+      # never a repackage. vsce reads VSCE_PAT from the environment.
+      # --skip-duplicate makes an already-published version a no-op instead of
+      # a hard failure, so a re-run after a partial failure (e.g. the release
+      # step below flaked) can get back through this step.
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --packagePath cohdl.vsix --skip-duplicate
+
+      # ovsx is not a devDependency, so pin the exact version npx fetches:
+      # this step holds a publish token and must not execute whatever npm's
+      # `latest` happens to be on release day. ovsx reads OVSX_PAT from the
+      # environment (no --pat flag: keeps the secret off the process argv).
+      - name: Publish to Open VSX (skips when OVSX_PAT is not configured)
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "${OVSX_PAT:-}" ]; then
+            echo "OVSX_PAT secret not configured — skipping Open VSX publish."
+            exit 0
+          fi
+          npx --yes ovsx@1.1.1 publish cohdl.vsix --skip-duplicate
+
+      # Attach the same artifact to a GitHub release so the .vsix is
+      # downloadable without the Marketplace. Branch on existence rather than
+      # `create || upload`, so a re-run uploads into the existing release
+      # while an unrelated create failure (403, API 5xx, --verify-tag)
+      # surfaces as itself instead of a misleading "release not found".
+      - name: Attach .vsix to a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#vscode-v}"
+          cp cohdl.vsix "cohdl-$version.vsix"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "cohdl-$version.vsix" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "cohdl-$version.vsix" \
+              --verify-tag \
+              --title "CoHDL VS Code extension $version" \
+              --notes "Install with: \`code --install-extension cohdl-$version.vsix\` — or from the VS Code Marketplace. See editors/vscode/README.md."
+          fi

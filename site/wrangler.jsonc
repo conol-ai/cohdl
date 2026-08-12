@@ -1,0 +1,36 @@
+// cohdl.org — the CoHDL project site. One Worker fronts every request so the
+// security headers and the waitlist API live in code rather than in zone
+// settings; everything that is not /api/* falls through to Workers Assets.
+//
+// Deploy from this directory: npm run deploy
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cohdl-site",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+    // The Worker sees every request first (HTTPS + HSTS + CSP are enforced
+    // here); non-API paths are served from the ASSETS binding.
+    "run_worker_first": true,
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cohdl-site",
+      // Replace with the id printed by `npx wrangler d1 create cohdl-site`.
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+  // Preview URL on workers.dev alongside the custom domain.
+  "workers_dev": true,
+  // Requires the cohdl.org zone on the Cloudflare account; wrangler
+  // provisions DNS and certificates for custom domains automatically.
+  "routes": [
+    { "pattern": "cohdl.org", "custom_domain": true },
+    { "pattern": "www.cohdl.org", "custom_domain": true }
+  ]
+}

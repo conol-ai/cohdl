@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>CoHDL — the schematic is source code</title>
+    <meta
+      name="description"
+      content="CoHDL is a hardware description language for PCB schematics. A board is a program: typed, checked, and compiled to a netlist, BOM, footprints and fabrication data. Open source soon — join the waitlist."
+    />
+    <link rel="canonical" href="https://cohdl.org/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="CoHDL — the schematic is source code" />
+    <meta
+      property="og:description"
+      content="A board is a program: typed, checked, and compiled. Open source soon — join the waitlist."
+    />
+    <meta property="og:url" content="https://cohdl.org/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="CoHDL — the schematic is source code" />
+    <meta
+      name="twitter:description"
+      content="A board is a program: typed, checked, and compiled. Open source soon — join the waitlist."
+    />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="/js/main.js" type="module"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#waitlist">Skip to the waitlist</a>
+
+    <div class="shell">
+      <header class="masthead">
+        <span class="brand">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </span>
+        <span class="status-pill">
+          <span class="status-dot" aria-hidden="true"></span>
+          Open source, soon
+        </span>
+      </header>
+
+      <main>
+        <section class="hero">
+          <h1 class="hero-title">The schematic is<br /><em>source code</em>.</h1>
+          <p class="hero-lede">
+            CoHDL is a hardware description language for PCB schematics. A board is a
+            program — typed, checked, and compiled to a netlist, bill of materials,
+            footprints and fabrication data. No dragging symbols across a canvas, and no
+            silent mistakes to find at the assembly house.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">sensor.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">design</span> <span class="c-ty">SensorNode</span> {
+    <span class="c-kw">inst</span> mcu: contrib_sf32::<span class="c-ty">MCU_SF32LB52EUB6</span>
+    <span class="c-kw">inst</span> ldo: contrib_ldo::<span class="c-ty">LDO_RT9080_33_ZQFN</span>
+    <span class="c-kw">inst</span> c_in: passive::<span class="c-ty">C_1U_0402</span>
+
+    <span class="c-at">#[high_current(500mA)]</span>
+    <span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usbc.VBUS, ldo.VIN, ldo.EN, c_in.A
+    <span class="c-kw">net</span> V3V3 <span class="c-unit">[3.3V]</span>: ldo.VOUT, mcu.PVDD, mcu.VDDIOA
+    <span class="c-kw">net</span> GND: ldo.GND, mcu.VSS, c_in.B
+}</code></pre>
+          </figure>
+        </section>
+
+        <section class="proof" aria-label="What the compiler enforces">
+          <ul class="proof-list">
+            <li class="proof-item">
+              <h2 class="proof-title">It refuses to guess</h2>
+              <p class="proof-body">
+                Units are part of the type system. A resistor where a capacitor belongs, a
+                5&nbsp;V part on a 3.3&nbsp;V net, a pin left unconnected that must not be —
+                each is a compile error naming the exact instance and pin, not a warning in a
+                list nobody reads.
+              </p>
+            </li>
+            <li class="proof-item">
+              <h2 class="proof-title">The same source, the same bytes</h2>
+              <p class="proof-body">
+                Compilation is deterministic end to end. The same design and the same pinned
+                libraries produce the same designators and a byte-identical netlist, so a
+                board you build today is the board you rebuild in a year.
+              </p>
+            </li>
+            <li class="proof-item">
+              <h2 class="proof-title">Parts you can actually buy</h2>
+              <p class="proof-body">
+                Components come from versioned libraries with datasheet-verified pinouts and
+                land patterns, pinned to exact versions and content hashes through
+                <a href="https://registry.cohdl.org">the package registry</a>.
+              </p>
+            </li>
+            <li class="proof-item">
+              <h2 class="proof-title">Built for working with AI</h2>
+              <p class="proof-body">
+                A language a model can write is a language a compiler can check. Every design
+                is text, every error is precise and machine-readable, and the verdict is the
+                same for a human and a machine.
+              </p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="waitlist" id="waitlist">
+          <h2 class="waitlist-title">Be there when it opens</h2>
+          <p class="waitlist-lede">
+            CoHDL is being prepared for its open-source release. Leave an address and we'll
+            email you once — when the source is public. No newsletter, nothing else.
+          </p>
+
+          <form class="signup" id="signup-form" method="post" action="/api/waitlist" novalidate>
+            <div class="signup-row">
+              <label class="visually-hidden" for="email">Email address</label>
+              <input
+                class="signup-input"
+                id="email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                maxlength="254"
+                required
+              />
+              <button class="signup-button" type="submit">Join the waitlist</button>
+            </div>
+
+            <!-- Honeypot: hidden from people, irresistible to bots. -->
+            <div class="hp" aria-hidden="true">
+              <label for="company">Company</label>
+              <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <p class="signup-status" id="signup-status" role="status" aria-live="polite"></p>
+          </form>
+
+          <p class="privacy">
+            One address, stored to send one email. Not shared, not sold, and no tracking on
+            this page.
+          </p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

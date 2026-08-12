@@ -21,6 +21,7 @@ examples/*/out/*.lck
 examples/*/out/.history/
 /registry/node_modules
 /registry/dist
+/site/node_modules
 
 # wrangler files (bot-added; covers registry/.wrangler too)
 .wrangler

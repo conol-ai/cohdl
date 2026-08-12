@@ -37,11 +37,13 @@ const SPA_CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+  // Google Analytics rides alongside reCAPTCHA; its bootstrap is served from
+  // /analytics.js rather than inlined, so no 'unsafe-inline' is needed here.
+  "script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://www.google.com/recaptcha/",
+  "connect-src 'self' https://www.google.com/recaptcha/ https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
   "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
 ].join("; ");
 

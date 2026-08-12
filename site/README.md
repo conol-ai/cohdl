@@ -33,16 +33,17 @@ warn about wrangler's self-signed certificate; that is expected.
 
 ## First deploy
 
-The D1 database has to exist before the first deploy, and its id has to be
-written into `wrangler.jsonc`:
+The `cohdl-site` D1 database already exists and its id is in `wrangler.jsonc`
+(wrangler provisioned it on 2026-08-12), but it is still empty:
 
 ```sh
-npx wrangler d1 create cohdl-site        # copy the printed database_id
-#   -> paste it over REPLACE_WITH_D1_DATABASE_ID in wrangler.jsonc
-npm run db:init                          # create the table remotely
+npm run db:init                          # create the waitlist table remotely
 npx wrangler secret put IP_SALT          # any long random string
 npm run deploy
 ```
+
+Recreating it from scratch elsewhere means `npx wrangler d1 create cohdl-site`
+and pasting the printed id over `database_id`.
 
 `IP_SALT` is optional but recommended: it salts the SHA-256 that stands in for
 the client IP. Without it a constant fallback is used, which still avoids

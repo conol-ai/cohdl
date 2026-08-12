@@ -21,8 +21,9 @@
     {
       "binding": "DB",
       "database_name": "cohdl-site",
-      // Replace with the id printed by `npx wrangler d1 create cohdl-site`.
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      // Provisioned 2026-08-12. The waitlist table still has to be created
+      // once with `npm run db:init` before the first deploy.
+      "database_id": "a409b17b-3b2c-4740-a3cf-897390d20fb8"
     }
   ],
   // Preview URL on workers.dev alongside the custom domain.

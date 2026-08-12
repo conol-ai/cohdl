@@ -38,13 +38,16 @@ const SECURITY_HEADERS: Record<string, string> = {
   "referrer-policy": "strict-origin-when-cross-origin",
   "x-frame-options": "DENY",
   "permissions-policy": "geolocation=(), microphone=(), camera=(), interest-cohort=()",
+  // Google Analytics is the only third party the page talks to. Its bootstrap
+  // is served from /js/analytics.js rather than inlined, so script-src needs
+  // no 'unsafe-inline' and no per-snippet hash — only the tag manager's origin.
   "content-security-policy": [
     "default-src 'none'",
-    "script-src 'self'",
+    "script-src 'self' https://www.googletagmanager.com",
     "style-src 'self'",
-    "img-src 'self' data:",
+    "img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com",
     "font-src 'self'",
-    "connect-src 'self'",
+    "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
     "form-action 'self'",
     "base-uri 'none'",
     "frame-ancestors 'none'",

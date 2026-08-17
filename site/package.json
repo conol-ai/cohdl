@@ -1,0 +1,22 @@
+{
+  "name": "cohdl-site",
+  "private": true,
+  "version": "0.1.0",
+  "description": "cohdl.org — the CoHDL project site and pre-launch waitlist",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local-protocol https",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:init": "wrangler d1 execute cohdl-site --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute cohdl-site --local --file=./schema.sql",
+    "waitlist:export": "wrangler d1 execute cohdl-site --remote --command=\"SELECT email, created_at, source FROM waitlist ORDER BY created_at\" --json",
+    "waitlist:count": "wrangler d1 execute cohdl-site --remote --command=\"SELECT COUNT(*) AS signups FROM waitlist\""
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260722.1",
+    "typescript": "^5.8.0",
+    "wrangler": "^4.114.0"
+  }
+}

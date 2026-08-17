@@ -21,6 +21,22 @@ describe("production response security", () => {
     expect(policy).toContain("frame-ancestors 'none'");
   });
 
+  it("allows the analytics tag without opening up inline script", () => {
+    const policy =
+      withProductionSecurity(
+        new Response("<!doctype html>", { headers: { "Content-Type": "text/html" } }),
+      ).headers.get("Content-Security-Policy") ?? "";
+
+    // The gtag loader and its beacons. The bootstrap is served from
+    // /analytics.js precisely so that neither 'unsafe-inline' nor a snippet
+    // hash is needed — tightening this back would silently kill analytics.
+    expect(policy).toContain("https://www.googletagmanager.com");
+    expect(policy).toContain("https://www.google-analytics.com");
+    expect(policy).not.toContain("'unsafe-inline'; script-src");
+    expect(policy).toMatch(/script-src [^;]*'self'/);
+    expect(policy).not.toMatch(/script-src [^;]*'unsafe-inline'/);
+  });
+
   it("preserves an existing document sandbox", () => {
     const response = withProductionSecurity(
       new Response("document", {

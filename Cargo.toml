@@ -1,6 +1,6 @@
 [package]
 name = "cohdl"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 description = "CoHDL v2 — the AI-native PCB schematic language compiler"
 license = "MIT"
@@ -26,3 +26,11 @@ serde_json = "=1.0.140"
 
 [profile.release]
 debug = true
+
+# Distribution builds (.github/workflows/release-cohdl.yml): release codegen
+# with symbols stripped. [profile.release] keeps debug = true for local
+# profiling, which would bloat every shipped binary several-fold.
+[profile.dist]
+inherits = "release"
+debug = false
+strip = "symbols"

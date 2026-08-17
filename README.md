@@ -36,6 +36,21 @@ The proof: an AI writes a board from a plain-language spec, the type checker cat
 
 All MVP exit criteria are met, and all nineteen Accepted RFC areas (RFC-001…019) have implementation work with conformance suites. That is deliberately not a claim of full accepted-text compliance: requirements that are incomplete (e.g. RFC-014's real-editor acceptance pass and RFC-015's real-partner/Quilter import pass — both open), deliberately deviating (e.g. the E9xx code assignment, D003's role-aware reading, RFC-015's constraint mapping riding vendor extensions rather than native IPC semantics), or unrepresentable pending note-side amendments (e.g. RFC-013's E1005) are each recorded with rationale in the ledger, [`docs/compliance-report.md`](docs/compliance-report.md). Tested (`cargo test` — [`tests/exit_criteria.rs`](tests/exit_criteria.rs) maps 1:1 to the MVP checklist; each post-MVP RFC has its own conformance suite under `tests/`). The demo loop has run end-to-end: see [`docs/demo/`](docs/demo/) for transcripts (including a genuine E701 unresolved-required-pin catch + repair) and the emitted netlist/BOM. RFC/decision-record accuracy was audited claim-by-claim: [`docs/compliance-report.md`](docs/compliance-report.md). The KiCad checkpoint has been executed with real KiCad (pcbnew imported the netlist, resolved all footprints and pads; board + render in `docs/demo/`).
 
+## Install
+
+One line (macOS and Linux; installs to `~/.cohdl/bin`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/conol-ai/cohdl/main/install.sh | sh
+```
+
+Prebuilt binaries (and their `sha256sums.txt`) are attached to every
+[`vX.Y.Z` release](https://github.com/conol-ai/cohdl/releases); Windows users
+download `cohdl-vX.Y.Z-x86_64-pc-windows-msvc.tar.gz` by hand. An installed
+binary updates itself with `cohdl self-update` (`--check` reports without
+installing). Building from source stays `cargo build` (toolchain pinned by
+`rust-toolchain.toml`).
+
 ## Using it
 
 ```sh

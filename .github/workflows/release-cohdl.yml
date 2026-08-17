@@ -1,0 +1,157 @@
+# Release automation for the compiler itself, triggered by `vX.Y.Z` tags.
+# The glob `v[0-9]*` cannot match the VS Code extension's `vscode-v*` tags
+# (their second character is `s`), so the two release tracks never cross.
+# The tag version must equal Cargo.toml's `[package] version` — mismatches
+# fail before anything is built.
+#
+# The artifact contract — shared with install.sh and `cohdl self-update`
+# (src/selfupdate.rs); changing any name is a three-place change:
+#   cohdl-vX.Y.Z-<target>.tar.gz   one per target, containing the single
+#                                  `cohdl` binary (`cohdl.exe` on Windows)
+#   sha256sums.txt                 `<hex>  <asset>` lines, sha256sum format
+#
+# Linux builds are static musl so one artifact runs on every distribution;
+# the aarch64 one cross-compiles on the x86_64 runner (arm runners are not
+# available on private repositories). macOS x86_64 cross-compiles on the
+# arm64 runner (the Intel runner image is retired). Both are pure-Rust
+# links, so only the linker differs.
+name: Release cohdl
+
+on:
+  push:
+    tags:
+      - "v[0-9]*"
+
+# Needed only to create the GitHub release that carries the artifacts.
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # The tagged tree passes the same gate as CI's test job — fmt, clippy,
+  # tests (xmllint: the RFC-015 schema gate is authoritative in CI) — plus
+  # the tag/version guard, before any binary is published.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag is an exact vX.Y.Z matching Cargo.toml
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          # The trigger glob is loose (globs cannot express "exact triple");
+          # this guard is the real filter. A pre-release-shaped tag
+          # (v0.2.0-rc1) must never publish: install.sh and self-update
+          # select by RFC-029 exact triples, so its artifacts would be
+          # invisible to self-update yet mislead anyone browsing releases.
+          if ! echo "$tag_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::tag $GITHUB_REF_NAME is not an exact vX.Y.Z compiler release tag"
+            exit 1
+          fi
+          cargo_version="$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)"
+          if [ "$tag_version" != "$cargo_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $tag_version, but Cargo.toml says $cargo_version"
+            exit 1
+          fi
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libxml2-utils
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test
+        run: cargo test
+
+  build:
+    needs: gate
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            cross_linker: aarch64-linux-gnu-gcc
+          - target: aarch64-apple-darwin
+            os: macos-14
+          - target: x86_64-apple-darwin
+            os: macos-14
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Install musl toolchain
+        if: contains(matrix.target, 'musl')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends musl-tools ${{ matrix.cross_linker && 'gcc-aarch64-linux-gnu' || '' }}
+      - name: Build
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: ${{ matrix.cross_linker }}
+        run: cargo build --profile dist --target ${{ matrix.target }}
+      - name: Package (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir stage
+          cp "target/${{ matrix.target }}/dist/cohdl" stage/
+          tar -C stage -czf "cohdl-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz" cohdl
+      - name: Package (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory stage | Out-Null
+          Copy-Item "target/${{ matrix.target }}/dist/cohdl.exe" stage/
+          tar -C stage -czf "cohdl-$env:GITHUB_REF_NAME-${{ matrix.target }}.tar.gz" cohdl.exe
+      # overwrite: v4 artifacts are immutable per RUN (not per attempt), so
+      # without it a "re-run all jobs" 409s on the second upload and the
+      # release job's re-run tolerance below could never be reached.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cohdl-${{ matrix.target }}
+          path: cohdl-*.tar.gz
+          if-no-files-found: error
+          overwrite: true
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum cohdl-*.tar.gz > sha256sums.txt
+      # Same re-run-tolerant shape as release-vscode.yml: branch on existence
+      # so a re-run uploads into the release, while an unrelated create
+      # failure surfaces as itself. --latest: compiler releases own the
+      # repository's "latest" slot (extension releases pass --latest=false).
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --verify-tag \
+              --latest \
+              --title "cohdl $GITHUB_REF_NAME" \
+              --notes "Install: \`curl -fsSL https://raw.githubusercontent.com/conol-ai/cohdl/main/install.sh | sh\` — or download the archive for your platform below and put \`cohdl\` on PATH. An installed binary updates itself with \`cohdl self-update\`."
+          fi

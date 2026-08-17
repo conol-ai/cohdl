@@ -23,6 +23,8 @@ USAGE:
     cohdl publish [PATH]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
+    cohdl self-update [--check]
+    cohdl --version
 
 PATH is a project directory (with cohdl.toml + src/) or a single .cohdl file;
 defaults to the current directory.
@@ -44,6 +46,9 @@ defaults to the current directory.
     fmt      rewrite every .cohdl file into canonical form (RFC-009); in a
              project directory, also canonicalizes cohdl.toml's [dependencies]
     lsp      start the Language Server Protocol server on stdio (RFC-014)
+    self-update
+             download the newest released cohdl binary from GitHub, verify
+             its sha256, and replace the running executable
 
     --json   emit one JSON document to stdout instead of human-readable text
              (RFC-010; check/build only)
@@ -52,6 +57,7 @@ defaults to the current directory.
              (<name>.xml, logical-complete/physical-minimal; RFC-015)
     --check  fmt: report drift without rewriting; exit non-zero if any file is
              not already in canonical form
+             self-update: report whether a newer release exists, install nothing
     --dep    update: re-resolve only the named dependency
     --std    development override: use DIR verbatim as the std package —
              emits the mandatory E1105 warning; the result is not reproducible
@@ -185,6 +191,21 @@ impl Args {
                     || self.emit.is_some()
                 {
                     return Err(format!("`lsp` takes no flags or arguments\n\n{}", USAGE));
+                }
+            }
+            "self-update" => {
+                if self.json
+                    || self.design.is_some()
+                    || self.std_flag.is_some()
+                    || self.no_std
+                    || self.out_dir_given
+                    || self.path_given
+                    || self.emit.is_some()
+                {
+                    return Err(format!(
+                        "`self-update` takes no arguments (only `--check`)\n\n{}",
+                        USAGE
+                    ));
                 }
             }
             _ => {}
@@ -396,6 +417,20 @@ fn read_manifest(
 }
 
 fn main() -> ExitCode {
+    // `--version` before argument parsing: the flag form every installer
+    // expects (install.sh runs it to verify the installed binary works, and
+    // prints the result). The target triple names which published release
+    // artifact this binary corresponds to (src/selfupdate.rs); a platform
+    // with no published build prints none.
+    if matches!(std::env::args().nth(1).as_deref(), Some("--version" | "-V")) {
+        let target = cohdl::selfupdate::TARGET;
+        if target.is_empty() {
+            println!("cohdl {}", env!("CARGO_PKG_VERSION"));
+        } else {
+            println!("cohdl {} ({})", env!("CARGO_PKG_VERSION"), target);
+        }
+        return ExitCode::SUCCESS;
+    }
     let args = match parse_args() {
         Ok(a) => a,
         Err(msg) => {
@@ -424,6 +459,7 @@ fn run(args: &Args) -> Result<bool, String> {
     match args.command.as_str() {
         "check" | "build" => {}
         "update" => return update_command(args),
+        "self-update" => return cohdl::selfupdate::run(args.fmt_check),
         "add" => return add_command(args),
         "remove" => return remove_command(args),
         "install" => return install_command(args),

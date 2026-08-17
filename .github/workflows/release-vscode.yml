@@ -80,7 +80,9 @@ jobs:
           npx --yes ovsx@1.1.1 publish cohdl.vsix --skip-duplicate
 
       # Attach the same artifact to a GitHub release so the .vsix is
-      # downloadable without the Marketplace. Branch on existence rather than
+      # downloadable without the Marketplace. --latest=false: the repo's
+      # "latest release" slot belongs to compiler (vX.Y.Z) releases — the
+      # extension's channel is the Marketplace. Branch on existence rather than
       # `create || upload`, so a re-run uploads into the existing release
       # while an unrelated create failure (403, API 5xx, --verify-tag)
       # surfaces as itself instead of a misleading "release not found".
@@ -95,6 +97,7 @@ jobs:
           else
             gh release create "$GITHUB_REF_NAME" "cohdl-$version.vsix" \
               --verify-tag \
+              --latest=false \
               --title "CoHDL VS Code extension $version" \
               --notes "Install with: \`code --install-extension cohdl-$version.vsix\` — or from the VS Code Marketplace. See editors/vscode/README.md."
           fi

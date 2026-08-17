@@ -167,6 +167,19 @@ pub fn http_get(url: &str) -> Result<HttpResponse, String> {
     run_curl(&[url.to_string()])
 }
 
+/// GET following redirects, with a longer deadline (a repeated `--max-time`
+/// overrides run_curl's 60s — curl takes the last occurrence). GitHub
+/// release downloads bounce through a CDN, which plain `http_get`
+/// deliberately does not follow (`cohdl self-update` is the only caller).
+pub fn http_get_follow(url: &str) -> Result<HttpResponse, String> {
+    run_curl(&[
+        "-L".to_string(),
+        "--max-time".to_string(),
+        "300".to_string(),
+        url.to_string(),
+    ])
+}
+
 pub fn http_post(
     url: &str,
     body_file: Option<&Path>,

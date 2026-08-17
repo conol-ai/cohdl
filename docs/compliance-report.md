@@ -3878,3 +3878,52 @@ intersection first, outline filter, no BOX2I.Common) found ONE real
 collision — r_ant on the top-right M2 hole's 4mm GND annulus — fixed by
 moving `mh[1]` to (48, -50), rescan clean: 0 overlaps across 73 placed
 parts, 49 staged.
+
+## Distribution tooling: release workflow, install.sh, self-update (2026-08-11)
+
+No RFC governs binary distribution — this is repository tooling, not
+language surface, added at the maintainer's direction (the same footing as
+the arbitrary-rotation deviation). The constitution is honored: zero new
+crate dependencies. `cohdl self-update` (src/selfupdate.rs) uses the
+system `curl` per the RFC-030 precedent (a new `registry::http_get_follow`
+adds redirect-following, which GitHub's CDN requires and plain `http_get`
+deliberately lacks); the `.tar.gz` is unpacked by the system `tar` — an
+extension of the system-tool route, not an RFC-030 precedent: RFC-030's
+own archive is hand-rolled precisely because it is uncompressed, and
+DEFLATE is not worth hand-rolling. Downloads verify against
+`sha256sums.txt` with src/hash.rs's own SHA-256, and release versions are
+RFC-029 exact triples — which structurally excludes the VS Code
+extension's `vscode-v*` tags and any pre-release shape from selection (the
+release workflow's gate also refuses to publish a non-triple tag, so the
+contract cannot be split at the source).
+
+Decisions of note:
+- **One artifact contract, three consumers.** `cohdl-vX.Y.Z-<target>.tar.gz`
+  (single binary inside) + `sha256sums.txt`, produced by
+  `.github/workflows/release-cohdl.yml`, consumed identically by install.sh
+  and self-update. Each file says so; renaming anything is a three-place
+  change.
+- **`[profile.dist]`** (stripped, no debug) exists because
+  `[profile.release]` deliberately keeps `debug = true` for local
+  profiling; shipping that would bloat every artifact several-fold.
+- **Linux is musl-static only.** A self-update on a gnu-linked local build
+  still installs the musl artifact — one binary per arch runs everywhere.
+- **Self-replacement never touches /tmp.** The archive is staged and
+  unpacked in a fresh `create_dir` (fail-if-exists) workdir inside the
+  executable's own directory — which must be user-writable for the final
+  rename anyway — closing the verify-then-install window a predictable
+  path in a world-writable temp dir would open. `current_exe` is
+  canonicalized first so the swap replaces the real binary, never a
+  symlink node (macOS may report the invoked symlink). Stale workdirs from
+  crashed runs are swept on the next update.
+- **Release discovery paginates** (`per_page=100`, pages until empty, cap
+  20) in both self-update and install.sh: a single-page read could be
+  starved once >100 extension releases postdate the newest compiler tag.
+- **`cohdl --version`** (new) prints `cohdl X.Y.Z (<release target>)`; the
+  triple names which published artifact the binary corresponds to, and
+  install.sh runs it to prove the installed binary works before reporting
+  success.
+- Tested end-to-end without network: tests/self_update.rs runs a copy of
+  the real binary against a std-only local HTTP server (fetch across
+  paginated release lists → verify → atomic self-replace with no workdir
+  residue, plus --check, corrupted-download refusal, and up-to-date paths).

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>The schematic is source code — CoHDL blog</title>
+    <meta
+      name="description"
+      content="Software got version control, review, type checkers and CI. Schematics are still drawings, and their mistakes are still found at the assembly house. The launch manifesto for CoHDL: treat the board as a program, and give it a compiler."
+    />
+    <link rel="canonical" href="https://cohdl.org/blog/the-schematic-is-source-code/" />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="CoHDL blog"
+      href="/blog/feed.xml"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="The schematic is source code" />
+    <meta
+      property="og:description"
+      content="A board is a program: typed nets, compile errors that name the pin, byte-identical rebuilds. The launch manifesto for CoHDL."
+    />
+    <meta property="og:url" content="https://cohdl.org/blog/the-schematic-is-source-code/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/">Docs</a>
+          <a class="site-nav-link" href="/blog/" aria-current="page">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/blog/">Blog</a></li>
+            <li aria-current="page">The schematic is source code</li>
+          </ol>
+          <h1 class="page-title">The schematic is <em>source code</em></h1>
+          <p class="page-lede">
+            Software earned version control, code review, type checkers and CI.
+            Schematics are still drawings, and their mistakes are still found at the
+            assembly house. CoHDL is my answer: treat the board as a program, and give
+            it a compiler.
+          </p>
+          <p class="post-meta">
+            Tony Huang <span class="sep">·</span>
+            <time datetime="2026-08-17">August 17, 2026</time>
+          </p>
+        </div>
+
+        <article class="prose">
+          <p>
+            Software spent four decades building its safety net, one tool at a time.
+            Version control gave every change an author, a reason and a history. Code
+            review made a second pair of eyes routine instead of heroic. Type checkers
+            made whole categories of mistake unwritable. Continuous integration made
+            the verdict on a change arrive in minutes, on every commit, whether or not
+            anyone remembered to ask for it.
+          </p>
+          <p>
+            Schematic design got none of it. A schematic today is still a drawing:
+            symbols placed on a canvas, wires drawn by hand, correctness judged by
+            looking. The mistakes that matter are structural — a regulator enable pin
+            that was never wired, a polarized part connected backwards, a 5&nbsp;V rail
+            landing on a pin rated for 3.3 — and a drawing has no way to refuse them.
+            They pass review, because review is a human looking at a picture, and
+            pictures do not fail loudly. So they surface at the assembly house, or on
+            the bench when the first board comes back and does not power up. The
+            feedback loop is measured in respins, and every lap of it costs weeks.
+          </p>
+          <p>
+            I don't think the fix is a better canvas. I think the fix is to stop
+            treating the schematic as a drawing at all.
+          </p>
+
+          <h2>A board is a program</h2>
+          <p>
+            CoHDL starts from a literal claim: a board is a program. Not <em>like</em>
+            a program — a program. The schematic is plain text files. A net is a typed
+            value: the 3.3&nbsp;V rail is declared <code>[3.3V]</code>, and the
+            compiler holds you to it. Components come from versioned packages, pinned
+            in a lock file by exact version and content hash. A mistake is a compile
+            error that names the instance and the pin. A design change is a diff a
+            colleague can review line by line. And the build is reproducible down to
+            the byte: same source, same dependency set — same verdict, same reference
+            designators, same netlist bytes, today and in a year.
+          </p>
+          <p>
+            Here is what that looks like, trimmed from the Raspberry Pi Pico 2
+            reference design that ships with the compiler — the real board, transcribed
+            from its datasheet:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">design</span> <span class="c-ty">Pico2</span> {
+    <span class="c-kw">inst</span> mcu: raspberrypi_mcu::<span class="c-ty">RP2350A_QFN60</span>
+    <span class="c-kw">inst</span> reg: richtek_dcdc::buck_boost::rt6150b::<span class="c-ty">BUCKBOOST_RT6150B</span>
+    <span class="c-kw">inst</span> flash: flash::<span class="c-ty">FLASH_W25Q32</span>
+
+    <span class="c-at">#[high_current(500mA)]</span>
+    <span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usb.VBUS, esd.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
+    <span class="c-kw">net</span> V3V3 <span class="c-unit">[3.3V]</span>: reg.VOUT, reg.FB, mcu.IOVDD, mcu.QSPI_IOVDD, mcu.USB_OTP_VDD, mcu.VREG_VIN,
+                     flash.VCC, hdr.V3V3, q_vsys.Gate, r_vreg_avdd.A, r_vref.A
+
+    <span class="c-kw">nc</span>: usb.SBU1, usb.SBU2
+}</code></pre>
+          </figure>
+
+          <p>
+            Every pin on every device carries a connection obligation. A required pin
+            left unconnected is not a warning; it is an error, because silence is not a
+            valid electrical state. If a pin is deliberately unconnected, you say so
+            with <code>nc</code>, in the source, where a reviewer can see the decision.
+            Delete <code>mcu.ADC_AVDD</code> — the MCU's ADC supply — from its net in
+            that design, and <code>cohdl check</code> answers:
+          </p>
+
+          <pre><code>error[E701]: required pin `Pico2::mcu.ADC_AVDD` is unresolved: add it to a `net` or explicitly mark it `nc`
+ --&gt; src/main.cohdl:12:5
+   |
+12 |     inst mcu: raspberrypi_mcu::RP2350A_QFN60
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  :: @raspberrypi/mcu/rp2350.cohdl:12:9
+   |
+12 |         required ADC_AVDD: 44 [power_in]
+   |         -------------------------------- `ADC_AVDD` is declared `required` on device `RP2350A` here
+
+1 error emitted</code></pre>
+
+          <p>
+            That is a schematic mistake caught the way a type error is caught: at the
+            desk, seconds after it was made, with the exact location and the fix in the
+            message. Not at the assembly house, three weeks and one respin later.
+          </p>
+
+          <h2>Strictness buys expressiveness</h2>
+          <p>
+            The design thesis behind the language is that strictness and
+            expressiveness are not a trade-off — strictness is what buys
+            expressiveness. Rust's real lesson was never the borrow checker; it was
+            that pushing correctness into the type system, making illegal states
+            unrepresentable, is what makes bold, generic, composable code safe to
+            write. Convention does not scale. A compiler watching your back does.
+          </p>
+          <p>
+            Translated to hardware: wherever a mistake is structural, it belongs to the
+            type system. Units never coerce — a bare number where a resistance is
+            expected is a compile error naming the expected and the actual unit type,
+            not a value that happens to parse. Pin obligations are checked exhaustively
+            at final assembly. Devices satisfy traits, and a claimed trait the device
+            cannot satisfy is refused at the <code>impl</code>, not discovered in
+            layout. Even the lexer is opinionated: type a Unicode Ω where the language
+            expects <code>ohm</code> and the diagnostic tells you exactly that, rather
+            than failing with a generic parse error.
+          </p>
+          <p>
+            What remains for the design-rule check — the traditional catch-all — is
+            deliberately small: exactly four rules. A net's voltage exceeding a pin's
+            rating, a polarity mismatch, a net that needs a driver and has none, a net
+            with more than one. Those are genuinely emergent properties of the whole
+            graph, things no single line of source can be blamed for. Everything else
+            has been pushed forward into types, and the rule engine is forbidden from
+            growing a fifth structural rule — if a rule could have been a type error,
+            the rule is a design smell in the language itself. The discipline matters
+            because rule engines rot: a check that fires late is a check that gets
+            ignored.
+          </p>
+          <p>
+            The payoff is the expressive half. Because the compiler refuses to guess,
+            the language can afford to let you say a great deal in very little:
+            thirteen key switches and their matrix diodes are two array declarations, a
+            decoupling network is a function call, a device can be generic over its
+            specs. None of that would be safe in a language that quietly tolerated a
+            floating pin.
+          </p>
+
+          <h2>Why AI is the forcing function</h2>
+          <p>
+            A language a model can write is a language a compiler can check. That
+            symmetry is the entire strategy. LLMs became genuinely productive at
+            software for one reason: code is text, and compilers and tests grade it —
+            mechanically, deterministically, at zero marginal cost. Schematic capture
+            never crossed that line, because its source of truth lives inside GUI
+            databases an AI can neither write fluently nor be graded against honestly.
+          </p>
+          <p>
+            So CoHDL is built around a loop: generate, check, repair. A model emits
+            source; the compiler grades it; every diagnostic carries a stable error
+            code and a precise span, and <code>cohdl check --json</code> hands the same
+            diagnostics to a machine in structured form; the model repairs and tries
+            again. The compiler is the oracle, not a reviewer's mood. When we ran this
+            loop for the MVP acceptance demo, the model's first draft left an ESP32's
+            chip-enable pin unwired; the type checker answered with the E701 naming
+            that pin, the next attempt wired it through a pull-up, and the design
+            landed clean as an importable <a href="https://www.kicad.org">KiCad</a>
+            netlist with an honest BOM. That
+            transcript is what "AI-native" means here. It is not autocomplete over a
+            canvas — it is a correctness signal precise enough that repair becomes a
+            mechanical step, and the verdict is the same whether a human or a machine
+            asks for it.
+          </p>
+
+          <h2>Proof</h2>
+          <p>
+            A manifesto is cheap, so here is the evidence. The language is governed,
+            not improvised: a written constitution fixes the mission, the priority
+            ladder and the hard constraints, and every feature exists because an RFC
+            was accepted for it. <a href="/docs/rfcs/">Thirty-one RFCs are accepted</a>,
+            all thirty-one are implemented in the compiler, and where the implementation
+            deviates from accepted text, the deviation is recorded in a compliance
+            ledger rather than papered over. The
+            <a href="/docs/spec/">language specification</a> — the compiled statement of
+            all of it — is published in full.
+          </p>
+          <p>
+            The language has shipped a product. OpenMicroKbd is a 13-key macropad —
+            rotary encoder, analog joystick, capacitive touch pad, 21 addressable RGB
+            LEDs, an STM32 over USB-C — whose entire schematic is 823 lines of CoHDL.
+            The compiler checked the design and emitted the netlist, BOM, footprints
+            and layout constraints; <a href="https://quilter.ai">Quilter</a> placed and
+            routed 88 components from those constraints; the board came back from the
+            fab and worked. The full story is in
+            <a href="/use-cases/openmicrokbd/">the case study</a>.
+          </p>
+          <p>
+            And the parts are real. The package registry is live at
+            <a href="https://registry.cohdl.org">registry.cohdl.org</a>: versioned
+            packages pinned by exact version and content hash, with pinouts and land
+            patterns transcribed from datasheets. The generated passive part numbers
+            are verified against the manufacturer's own datasheet service — a part that
+            does not resolve is omitted, never asserted.
+          </p>
+
+          <h2>What happens next</h2>
+          <p>
+            Open source, soon. The compiler is real — everything above was produced by
+            it — but it is not yet downloadable, and a language for boards is only
+            worth trusting when anyone can run the whole toolchain and check the work.
+            <a href="/docs/">The documentation</a> is up first, so the design can be
+            judged on its merits before the release. If you want to know the moment the
+            source is public, <a href="/#waitlist">the waitlist</a> gets exactly one
+            email, and that is the email.
+          </p>
+          <p>
+            The schematic is source code. It always should have been.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/blog/">← Blog</a>
+            <a href="/blog/same-bytes-every-time/">Same bytes, every time →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

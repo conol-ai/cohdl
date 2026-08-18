@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>Layout &amp; fabrication — CoHDL docs</title>
+    <meta
+      name="description"
+      content="How CoHDL turns a checked schematic into fabrication data: pad and footprint declarations, silkscreen graphics, mount holes, placement and rotation, layout.json, physics hints for the autorouter, and IPC-2581."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/layout/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="Layout &amp; fabrication — CoHDL docs" />
+    <meta
+      property="og:description"
+      content="Footprints, pads and silkscreen as typed source; placement, rotation and back-side parts; layout.json, physics hints and IPC-2581."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/layout/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">Layout &amp; fabrication</li>
+          </ol>
+          <h1 class="page-title">Layout &amp; fabrication</h1>
+          <p class="page-lede">
+            A schematic that compiles is not yet a board. This page covers the physical
+            half of the language — pads, footprints, silkscreen, mount holes, placement —
+            and the artifacts <code>cohdl build</code> emits for the tools that do the
+            physical work: KiCad footprints, <code>layout.json</code>, IPC-2581 and
+            physics hints for the autorouter.
+          </p>
+        </div>
+
+        <article class="prose">
+          <h2>The boundary</h2>
+          <p>
+            CoHDL emits everything downstream of the schematic, and stops there. It does
+            not route, and it never invents a placement — the compiler carries the
+            physical facts an author declares (land geometry, locked positions, routing
+            constraints) into formats a layout tool consumes, and the layout tool does
+            the placing and routing. In practice that tool has been
+            <a href="https://quilter.ai">Quilter</a> for autorouting and
+            <a href="https://www.kicad.org">KiCad</a> for review and fabrication output.
+          </p>
+          <p>A build writes, under <code>out/</code>:</p>
+          <ul>
+            <li>
+              the KiCad netlist (<code>&lt;package&gt;.net</code>) and BOM
+              (<code>&lt;package&gt;-bom.csv</code>) — the schematic-side outputs,
+              covered on <a href="/docs/cli/">the CLI page</a>;
+            </li>
+            <li>
+              <code>footprints/*.kicad_mod</code> — one KiCad footprint file per land
+              pattern the design uses, projected from the <code>pad</code> and
+              <code>footprint</code> declarations below;
+            </li>
+            <li>
+              <code>&lt;package&gt;-layout.json</code> — the layout-constraint artifact:
+              board outline, locked placements, net classes, differential pairs,
+              placement hints;
+            </li>
+            <li>
+              eight physics-constraint CSV files, emitted when the design declares
+              physics facts;
+            </li>
+            <li>
+              <code>&lt;package&gt;.xml</code> — an IPC-2581 handoff document, with
+              <code>build --emit ipc2581</code>.
+            </li>
+          </ul>
+          <p>
+            All of it is deterministic: same source and same locked dependencies produce
+            the same bytes, so every one of these artifacts can sit in version control
+            and diff meaningfully.
+          </p>
+
+          <h2>Pads</h2>
+          <p>
+            A pad is a standalone, reusable declaration — defined once, referenced by any
+            number of footprints. This is the Cadence-style split: fixing a land
+            dimension in one <code>pad</code> fixes it in every footprint that references
+            it. The vocabulary is closed. <code>shape</code> is one of <code>rect</code>,
+            <code>circle</code>, <code>oval</code> or <code>annulus</code>;
+            <code>size</code> is shape-dependent — <code>(w, h)</code> for rect and oval,
+            <code>(d)</code> for circle, <code>(outer, inner)</code> for annulus.
+            <code>layer</code> is <code>top_copper</code>, <code>bottom_copper</code> or
+            <code>through_all</code>, and <code>plating</code> is <code>smd</code> or
+            <code>plated_through_hole</code>.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/passive/src/pads.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-cm">// KiCad R_0402_1005Metric pad (0.54mm x 0.64mm).</span>
+<span class="c-kw">pub</span> <span class="c-kw">pad</span> <span class="c-ty">P_Chip_0402</span> {
+    shape: rect
+    size: (<span class="c-unit">0.54mm</span>, <span class="c-unit">0.64mm</span>)
+    layer: top_copper
+    plating: smd
+}</code></pre>
+          </figure>
+
+          <p>
+            Every dimension is a <code>Length</code>, written with the <code>mm</code>
+            unit. The language's zero-coercion rule applies to geometry exactly as it
+            does to volts: a bare number where a dimension is expected is a compile
+            error naming the expected unit. A through-hole pad must declare its
+            <code>drill</code> — and declaring one on an SMD pad is an error the other
+            way (code E805 covers the whole family of malformed pads):
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/connectors/src/headers/micro_fit_3.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub</span> <span class="c-kw">pad</span> <span class="c-ty">P_MicroFit3_PTH</span> {
+    shape: circle
+    size: (<span class="c-unit">1.5mm</span>)
+    layer: through_all
+    plating: plated_through_hole
+    drill: <span class="c-unit">1.02mm</span>
+}</code></pre>
+          </figure>
+
+          <p>
+            A small set of bounded fabrication controls — a corner chamfer or corner
+            radius on rectangular SMD pads, solder-mask expansion, reduced or segmented
+            paste apertures — exists as provisional syntax for footprints that need
+            them; omitting them preserves the plain geometry above.
+          </p>
+
+          <h2>Footprints</h2>
+          <p>
+            A footprint composes pad references into a land pattern. Each
+            <code>pad N: Symbol at (x, y)</code> line places one pad instance relative to
+            the footprint's origin; <code>courtyard</code> declares the keep-out
+            rectangle and <code>silkscreen_ref</code> positions the reference
+            designator's silkscreen text:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/led/src/chip.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub</span> <span class="c-kw">footprint</span> <span class="c-ty">FP_LED_0603_1608Metric</span> {
+    <span class="c-kw">pad</span> 1: <span class="c-ty">P_Chip_LED0603</span> <span class="c-kw">at</span> (<span class="c-unit">-0.75mm</span>, <span class="c-unit">0mm</span>)
+    <span class="c-kw">pad</span> 2: <span class="c-ty">P_Chip_LED0603</span> <span class="c-kw">at</span> (<span class="c-unit">0.75mm</span>, <span class="c-unit">0mm</span>)
+    <span class="c-kw">silkscreen</span> {
+        <span class="c-kw">polarity_marker</span> cathode_pin 1 shape band
+    }
+    <span class="c-kw">courtyard</span> { shape: rect, at: (<span class="c-unit">0mm</span>, <span class="c-unit">0mm</span>), size: (<span class="c-unit">2.8mm</span>, <span class="c-unit">1.4mm</span>) }
+    <span class="c-kw">silkscreen_ref</span> { at: (<span class="c-unit">0mm</span>, <span class="c-unit">-1.2mm</span>) }
+}</code></pre>
+          </figure>
+
+          <p>
+            Pad numbers are checked against the bound device's declared pin numbers at
+            <code>cohdl build</code> — a footprint with a missing or extra number is an
+            error naming exactly which numbers disagree (E807). The same number may
+            appear in several placement lines: that models one electrical terminal
+            implemented by several physical features, such as an exposed pad's thermal
+            vias. An <em>empty</em> footprint body is also legal — a stage-one
+            placeholder that lets a part bind a named footprint before anyone has drawn
+            its geometry; the pad-consistency check applies once the body has content.
+          </p>
+          <p>
+            A pad placement may carry <code>rotate ANGLE</code>. Quad packages are the
+            motivating case — the same lead pad is placed on all four sides, rotated
+            rather than redefined:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/qfn/src/footprints.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub</span> <span class="c-kw">footprint</span> <span class="c-ty">QFN56N40P700X700_1EP400X400</span> {
+    <span class="c-kw">pad</span> 1: <span class="c-ty">P_QFN56N40P700X700_LEAD_CORNER</span> <span class="c-kw">at</span> (<span class="c-unit">-3.425mm</span>, <span class="c-unit">-2.6mm</span>)
+    <span class="c-kw">pad</span> 2: <span class="c-ty">P_QFN56N40P700X700_LEAD</span> <span class="c-kw">at</span> (<span class="c-unit">-3.425mm</span>, <span class="c-unit">-2.2mm</span>)
+    <span class="c-cm">// ...</span>
+    <span class="c-kw">pad</span> 15: <span class="c-ty">P_QFN56N40P700X700_LEAD</span> <span class="c-kw">at</span> (<span class="c-unit">-2.6mm</span>, <span class="c-unit">3.425mm</span>) <span class="c-kw">rotate</span> 90
+    <span class="c-kw">pad</span> 16: <span class="c-ty">P_QFN56N40P700X700_LEAD</span> <span class="c-kw">at</span> (<span class="c-unit">-2.2mm</span>, <span class="c-unit">3.425mm</span>) <span class="c-kw">rotate</span> 90
+    <span class="c-cm">// ...</span>
+}</code></pre>
+          </figure>
+
+          <p>
+            The rotation is preserved as a fact: the emitted KiCad pad carries the
+            declared size plus a real rotation angle, rather than the common library
+            trick of silently swapping width and height. Pad rotation accepts any whole
+            degree from 0 to 359 — the same range as component placement below (E811).
+          </p>
+          <p>
+            That QFN's name is not decoration. For the common package families — QFP,
+            QFN, SOIC/SOP, SOT, BGA, and CHIP/MELF passives — a footprint's identifier
+            must be its IPC-7351 land-pattern designator (with <code>-</code> mapped to
+            <code>_</code>), and for geometrically regular layouts the compiler
+            cross-checks it: the pin count and pitch the name encodes must agree with
+            what the pad placements actually draw, and a mismatch is a compile error
+            naming the disagreement. Footprints outside
+            those families — connectors, modules, the LED above — use ordinary
+            identifiers.
+          </p>
+
+          <h2>Silkscreen</h2>
+          <p>
+            The <code>silkscreen { }</code> block draws legend graphics from four closed
+            primitives — <code>line</code>, <code>circle</code>, <code>arc</code> and
+            <code>polygon</code>, all with <code>Length</code>-typed geometry — plus two
+            semantic markers. <code>pin_1_marker near pad N shape dot|triangle</code>
+            and <code>polarity_marker cathode_pin N shape band|arrow</code> say what the
+            mark <em>means</em>; the compiler expands each into ordinary checked
+            primitives, and both emitters consume that one expansion, so the KiCad and
+            IPC-2581 outputs cannot drift apart. The marker's standoff is measured from
+            the pad's edge, not its centre — otherwise the mark would sit on the copper
+            it is supposed to point at.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/@espressif/esp32/src/footprints.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code>    <span class="c-kw">silkscreen</span> {
+        <span class="c-kw">pin_1_marker</span> near pad 1 shape dot
+        <span class="c-kw">line</span> from (<span class="c-unit">-9mm</span>, <span class="c-unit">-12.75mm</span>) to (<span class="c-unit">9mm</span>, <span class="c-unit">-12.75mm</span>) width <span class="c-unit">0.15mm</span>
+        <span class="c-kw">line</span> from (<span class="c-unit">-9mm</span>, <span class="c-unit">-12.75mm</span>) to (<span class="c-unit">-9mm</span>, <span class="c-unit">-6.75mm</span>) width <span class="c-unit">0.15mm</span>
+        <span class="c-kw">line</span> from (<span class="c-unit">9mm</span>, <span class="c-unit">-12.75mm</span>) to (<span class="c-unit">9mm</span>, <span class="c-unit">-6.75mm</span>) width <span class="c-unit">0.15mm</span>
+        <span class="c-kw">line</span> from (<span class="c-unit">-9mm</span>, <span class="c-unit">-6.75mm</span>) to (<span class="c-unit">9mm</span>, <span class="c-unit">-6.75mm</span>) width <span class="c-unit">0.15mm</span>
+    }</code></pre>
+          </figure>
+
+          <p>
+            A marker must name a pad the footprint actually declares, and a polarity
+            marker needs a second distinct terminal to orient toward — both checked at
+            declaration (E812). There is deliberately no auto-inference: the compiler
+            never guesses pin 1 or a cathode from pin roles; every mark is an explicit
+            statement. On the KiCad side each primitive becomes its native counterpart
+            (<code>fp_line</code>, <code>fp_circle</code>, <code>fp_arc</code>,
+            <code>fp_poly</code>) on the silk layer; the IPC-2581 emitter carries the
+            same graphics as contour polygons.
+          </p>
+
+          <h2>Mount holes</h2>
+          <p>
+            Some footprints need holes with no electrical function — a connector shell's
+            alignment pegs, a switch's mounting legs. <code>mount_hole</code> is the
+            construct for exactly that, with its own numbering that is fully disjoint
+            from pad numbering: a footprint can have <code>pad 1..16</code> and
+            <code>mount_hole 1..2</code> without collision, and mount-hole numbers are
+            never checked against the device's pins.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/connectors/src/headers/micro_fit_3.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub</span> <span class="c-kw">footprint</span> <span class="c-ty">FP_Molex_43045_0212</span> {
+    <span class="c-kw">pad</span> 1: <span class="c-ty">P_MicroFit3_PTH</span> <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">0mm</span>)
+    <span class="c-kw">pad</span> 2: <span class="c-ty">P_MicroFit3_PTH</span> <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">3mm</span>)
+    <span class="c-kw">mount_hole</span> 1: non_plated <span class="c-kw">at</span> (<span class="c-unit">-3mm</span>, <span class="c-unit">3.94mm</span>) diameter <span class="c-unit">1.02mm</span>
+    <span class="c-kw">mount_hole</span> 2: non_plated <span class="c-kw">at</span> (<span class="c-unit">3mm</span>, <span class="c-unit">3.94mm</span>) diameter <span class="c-unit">1.02mm</span>
+    <span class="c-cm">// ...</span>
+}</code></pre>
+          </figure>
+
+          <p>
+            Plating is <code>non_plated</code> (the common case) or <code>plated</code> —
+            there is no SMD value, because a mount hole is definitionally a hole, and no
+            layer field, because it always spans the board. The default shape is a
+            circle taking <code>diameter D</code>; rectangular and oval holes — a
+            keyswitch's locating legs, for instance — are written
+            <code>mount_hole 1: non_plated shape: rect size: (2.0mm, 1.5mm) at (-6.75mm, 0mm)</code>.
+            Writing <code>diameter</code> with a rect shape, or <code>size:</code> with a
+            circle, is a compile error naming the mismatch (E810). In the KiCad output a
+            non-plated mount hole becomes KiCad's own <code>np_thru_hole</code> pad
+            type; a plated one becomes an ordinary through-hole pad with no net.
+          </p>
+
+          <h2>Placement</h2>
+          <p>
+            Placement lives in a design's <code>layout { }</code> block, alongside the
+            routing constraints of the next section. <code>place</code> locks one
+            top-level instance at a coordinate:
+            <code>place NAME at (x, y) [rotate ANGLE] [side top|bottom]</code>. Anything
+            you do not place stays the layout tool's problem — that split is the point.
+            Board-edge and mechanically-fixed parts get locked; parts whose best
+            position depends on routing are left to the autorouter. From the compiler's
+            Raspberry Pi Pico 2 recreation example:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">layout</span> {
+    <span class="c-kw">net_class</span> <span class="c-ty">HighSpeed</span> { USBC_DP, USBC_DM, USB_DP, USB_DM, USB_DPX, USB_DMX }
+    <span class="c-kw">diff_pair</span>(USBC_DP,
+              USBC_DM) [differential_impedance: <span class="c-unit">100ohm</span>, single_ended_impedance: <span class="c-unit">50ohm</span>, frequency: <span class="c-unit">1GHz</span>]
+    <span class="c-kw">diff_pair</span>(USB_DPX,
+              USB_DMX) [differential_impedance: <span class="c-unit">100ohm</span>, single_ended_impedance: <span class="c-unit">50ohm</span>, frequency: <span class="c-unit">1GHz</span>]
+    <span class="c-kw">length_match</span>(USB_DPX, USB_DMX) [tolerance: <span class="c-unit">0.15mm</span>]
+    <span class="c-kw">net_class</span> <span class="c-ty">Clock</span> { XIN, XR }
+    <span class="c-kw">board_outline</span>: <span class="c-str">"mechanical/pico2-outline.dxf"</span>
+    <span class="c-cm">// Interface ports are pre-positioned (locked) at their board-edge</span>
+    <span class="c-cm">// locations, oriented; the layout partner places the rest around them.</span>
+    <span class="c-kw">place</span> hdr <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">0mm</span>)
+    <span class="c-kw">place</span> usb <span class="c-kw">at</span> (<span class="c-unit">-23.64mm</span>, <span class="c-unit">0mm</span>) <span class="c-kw">rotate</span> 270
+    <span class="c-kw">place</span> esd <span class="c-kw">at</span> (<span class="c-unit">-13mm</span>, <span class="c-unit">0mm</span>)
+    <span class="c-kw">place</span> swd <span class="c-kw">at</span> (<span class="c-unit">22mm</span>, <span class="c-unit">0mm</span>) <span class="c-kw">rotate</span> 90
+    <span class="c-kw">place</span> mcu <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">-2mm</span>)
+    <span class="c-kw">place</span> xtal <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">5mm</span>)
+    <span class="c-kw">place</span> c_xin <span class="c-kw">at</span> (<span class="c-unit">-4mm</span>, <span class="c-unit">5mm</span>) <span class="c-kw">rotate</span> 90
+    <span class="c-kw">place</span> c_xout <span class="c-kw">at</span> (<span class="c-unit">4mm</span>, <span class="c-unit">5mm</span>) <span class="c-kw">rotate</span> 270
+}</code></pre>
+          </figure>
+
+          <p>
+            <code>board_outline</code> references a mechanical DXF and extracts exactly
+            one closed polyline from its <code>Edge.Cuts</code> layer — straight
+            segments and arcs — at build time. The outline is a mechanical engineering
+            artifact, so CoHDL reads it rather than re-authoring it; a missing or
+            non-closed outline is a compile error naming the problem (E1006). CoHDL is
+            not a DXF viewer: nothing else in the file is read.
+          </p>
+          <p>
+            <code>rotate</code> accepts any whole degree from 0 to 359. A value of 360
+            or above is an error rather than being reduced — a full turn is 0, and
+            <code>rotate 450</code> is more likely a slip than a deliberate 90. Because
+            emitted coordinates are byte-stability-critical, rotated geometry is
+            computed with a checked-in fixed-point sine table rather than the platform's
+            floating-point math library, whose last bit differs across platforms — a
+            rotated pad lands on the same bytes on every machine, and the table is exact
+            at the four cardinal angles.
+          </p>
+          <p>
+            <code>side bottom</code> puts a component on the back of the board — the
+            OpenMicroKbd macropad places its entire MCU that way, as
+            <code>place mcu at (-40mm, 24mm) rotate 270 side bottom</code>. The
+            footprint is authored exactly once, for its natural top-side orientation;
+            the emitters apply the mirroring (following KiCad's own flip-then-orient
+            convention), so the part lands correctly when the board is flipped and no
+            hand-maintained mirrored footprint ever exists. <code>side</code> defaults
+            to <code>top</code> and composes freely with <code>rotate</code> (E1008).
+            One honest limitation: <code>place</code> reaches only a design's own
+            top-level instances — a part instantiated inside a sub-circuit
+            <code>fn</code> cannot currently be locked, a disclosed gap rather than a
+            hidden one.
+          </p>
+
+          <h2><code>layout.json</code></h2>
+          <p>
+            Everything the <code>layout { }</code> block and the placement-adjacent
+            attributes declare is emitted as one JSON artifact,
+            <code>&lt;package&gt;-layout.json</code> — written only when the design
+            actually carries layout metadata, and removed by a rebuild that no longer
+            does. Its notable fields, from the Pico 2 example's real output:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">out/rpi-pico2-layout.json</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code>{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "HighSpeed", "nets": ["USBC_DP", "USBC_DM", "USB_DP", "USB_DM", "USB_DPX", "USB_DMX"] },
+    { "name": "Clock", "nets": ["XIN", "XR"] }
+  ],
+  "diff_pairs": [
+    { "p": "USBC_DP", "n": "USBC_DM" },
+    { "p": "USB_DPX", "n": "USB_DMX" }
+  ],
+  "length_matches": [
+    { "nets": ["USB_DPX", "USB_DMX"], "tolerance": "0.15mm" }
+  ],
+  ...
+}</code></pre>
+          </figure>
+
+          <p>
+            Beyond the constraint arrays it carries <code>board_outline</code> (the DXF
+            source path plus the extracted segment geometry), <code>placements</code>
+            (instance path, coordinates, rotation, and a <code>"side"</code> key present
+            only for back-side parts) and <code>placement_hints</code>. A hint is the
+            soft counterpart to <code>place</code>: the attribute
+            <code>#[placement_hint("board edge, USB-C cutout")]</code> on an instance
+            passes an opaque suggestion through to the layout tool without locking
+            anything. Net names in this artifact are the final netlist names —
+            identical to the <code>.net</code> file, so the two always agree. CoHDL
+            never verifies these constraints are physically met; it has no geometry to
+            check them against, and says so.
+          </p>
+
+          <h2>Physics hints for the autorouter</h2>
+          <p>
+            An autorouter can infer some electrical intent from a netlist, but the
+            design source simply knows more. Seven structured attributes attach physics
+            facts directly to the declaration each fact is about — three on nets:
+          </p>
+          <ul>
+            <li><code>#[ground(primary|secondary)]</code> — ground nets; at most one primary per design;</li>
+            <li><code>#[high_current(500mA)]</code> — power nets and their current;</li>
+            <li><code>#[impedance(50ohm, frequency: 1GHz)]</code> — single-ended controlled impedance;</li>
+          </ul>
+          <p>and four on instances:</p>
+          <ul>
+            <li><code>#[bypass(mcu.VDD, 100nF)]</code> — on the bypass capacitor itself, naming the pin it serves;</li>
+            <li><code>#[crystal_oscillator(mcu, XIN, XOUT)]</code> — on the crystal, naming the oscillator's pins;</li>
+            <li><code>#[switching_converter(inductor: l1, input_capacitor: c_in, output_capacitor: c_out)]</code> — on the converter, naming its power components (only the inductor is required);</li>
+            <li><code>#[bga_fanout]</code> — on a BGA that needs fanout generation.</li>
+          </ul>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[high_current(500mA)]</span>
+<span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usb.VBUS, esd.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
+
+<span class="c-at">#[ground(primary)]</span>
+<span class="c-kw">net</span> GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
+               esd.GND, rcc1.B, rcc2.B, swd.P2, boot.B, led.Cathode, hdr.GND, hdr.AGND,
+               <span class="c-cm">// ...</span></code></pre>
+          </figure>
+
+          <p>
+            The arguments are structurally checked, not opaque prose: pin and instance
+            references must resolve, and the numeric values are unit-typed, so
+            <code>#[high_current(100nF)]</code> is a compile error naming the expected
+            unit (structural mistakes are E1009; unit mismatches are E110). The
+            attributes also work inside reusable sub-circuits — a
+            <code>#[bypass]</code> written once inside a <code>decouple</code> function
+            produces one independently-resolved fact per call site. A differential
+            pair's physics ride the <code>diff_pair(...) [...]</code> bracket shown in
+            the placement excerpt above, since that fact belongs to a pair of nets
+            rather than one declaration.
+          </p>
+          <p>
+            When a design carries any of these facts, <code>cohdl build</code> emits an
+            eight-file CSV set matching <a href="https://quilter.ai">Quilter</a>'s
+            physics-constraint templates exactly:
+            <code>bga_components.csv</code>, <code>bypass_capacitors.csv</code>,
+            <code>crystal_oscillators.csv</code>, <code>differential_pairs.csv</code>,
+            <code>ground_nets.csv</code>, <code>high_current_nets.csv</code>,
+            <code>single_ended_impedance_signals.csv</code> and
+            <code>switching_converters.csv</code> — designators and pad-number pins,
+            values in the templates' own scales:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">out/bypass_capacitors.csv</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code>capacitor,bypassed_component,bypassed_pin,capacitance
+C9,U2,1,100
+C9,U2,11,100</code></pre>
+          </figure>
+
+          <p>
+            Nothing is auto-inferred: every constraint in these files is an attribute an
+            author wrote, and omitting an attribute simply leaves that decision to the
+            autorouter's own detection. The
+            <a href="/use-cases/openmicrokbd/">OpenMicroKbd use case</a> shows the whole
+            loop on a shipped board — attributes in source, CSVs out, Quilter placing
+            and routing from them.
+          </p>
+
+          <h2>IPC-2581</h2>
+          <p>
+            <code>cohdl build --emit ipc2581</code> writes
+            <code>&lt;package&gt;.xml</code> beside the netlist — an IPC-2581 revision
+            B1 document, the vendor-neutral handoff format, validated against the
+            consortium's published schema in the compiler's test suite. It carries the
+            logical netlist, every instance's designator, MPN and unit-typed spec
+            values, the layout constraints, and the real physical geometry a layout tool
+            needs: per-pin pad stacks with copper, mask and paste, the board profile
+            extracted from the DXF, and the silkscreen graphics. It is also honest
+            about what it is not: the document marks itself
+            <code>logical-complete,placement-staged,unrouted</code>. Instances you
+            placed are fixed inside the outline, where a layout tool treats them as
+            locked; everything else is staged in a deterministic grid just outside it —
+            the standard "please place me" signal — and no routing is claimed, because
+            none exists yet. Where the schematic ends, the layout tool begins.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/packages/">← Packages &amp; registry</a>
+            <a href="/docs/errors/">Next: Error codes →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

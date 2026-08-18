@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>Getting started — CoHDL docs</title>
+    <meta
+      name="description"
+      content="Your first CoHDL project: the manifest, a small LED design checked by the real compiler, the diagnostics it refuses to let slide, and the netlist, BOM and footprints a build emits."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/getting-started/" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="Getting started with CoHDL" />
+    <meta
+      property="og:description"
+      content="A project is a directory, a schematic is a program: write a small design, watch the compiler refuse the classic mistakes, and build the files your EDA tool consumes."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/getting-started/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">Getting started</li>
+          </ol>
+          <h1 class="page-title">Getting started</h1>
+          <p class="page-lede">
+            A CoHDL project is a directory with a manifest and some source files. This
+            guide walks the whole loop once: write a small design, let the compiler
+            check it, break it twice on purpose to see what a diagnostic looks like,
+            and build the files a fab flow actually consumes.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Before the source is public</span>
+          The compiler is being prepared for its open-source release and is not
+          downloadable yet. Everything below — every command, every diagnostic, every
+          artifact — is genuine output from the real toolchain, so this page shows you
+          exactly what you will get. <a href="/#waitlist">The waitlist</a> will tell you
+          the moment it ships.
+        </div>
+
+        <article class="prose">
+          <h2>A project is a directory</h2>
+          <p>
+            A project needs exactly two things: a <code>cohdl.toml</code> manifest and
+            CoHDL source under <code>src/</code>. The manifest names the package, picks
+            which design is the top-level board, and pins every dependency to an exact
+            version — CoHDL has no version ranges, deliberately, because a range is a
+            way for two builds of the same source to disagree.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">cohdl.toml</span>
+              <span class="code-hint">complete file</span>
+            </figcaption>
+            <pre class="code"><code>[package]
+name = "blinky"
+version = "0.1.0"
+license = "MIT"
+
+[design]
+top = "Blinky"
+
+[dependencies]
+connectors = "0.1.1"
+led = "0.1.1"
+passive = "0.2.1"
+std = "0.3.0"</code></pre>
+          </figure>
+
+          <p>
+            Dependencies are library packages: <code>passive</code> owns chip resistors
+            and capacitors, <code>led</code> owns LEDs, <code>connectors</code> owns
+            headers and sockets, and <code>std</code> carries only the universal traits
+            every component package builds on. The toolchain ships with a catalog of
+            these packages, and more live on
+            <a href="https://registry.cohdl.org">the registry</a>. On the first check the
+            compiler writes <code>cohdl.lock</code> next to the manifest, recording each
+            dependency's exact version and a content hash; from then on a dependency
+            that changes out from under you is a hard error, not a silent difference.
+            <a href="/docs/packages/">Packages &amp; registry</a> has the full story.
+          </p>
+
+          <h2>A first design</h2>
+          <p>
+            The smallest board worth compiling: an indicator LED and its series
+            resistor, brought out on a six-pin socket. Three instances, three nets, one
+            file.
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">src/main.cohdl</span>
+              <span class="code-hint">complete file</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-cm">// Blinky: a green LED and its series resistor on a 2x3 pin socket.</span>
+
+<span class="c-kw">design</span> <span class="c-ty">Blinky</span> {
+    <span class="c-kw">inst</span> hdr: connectors::headers::smd_254::<span class="c-ty">SOCKET_2X3_254_SMD</span>
+    <span class="c-kw">inst</span> led: led::<span class="c-ty">LED_GREEN</span>
+    <span class="c-kw">inst</span> r_led: passive::<span class="c-ty">R_470R_F_0402</span>
+
+    <span class="c-kw">net</span> V3V3 <span class="c-unit">[3.3V]</span>: hdr.P1, r_led.A
+    <span class="c-kw">net</span> LED_A: r_led.B, led.Anode
+    <span class="c-kw">net</span> GND: led.Cathode, hdr.P2
+
+    <span class="c-kw">nc</span>: hdr.P3, hdr.P4, hdr.P5, hdr.P6
+}</code></pre>
+          </figure>
+
+          <p>
+            Each <code>inst</code> declares an instance of a catalog part — a real,
+            orderable component that carries its manufacturer, part number and
+            footprint. Each <code>net</code> names a connection and lists the pins on
+            it as <code>instance.PIN</code>. The <code>[3.3V]</code> annotation types
+            the supply net: it is not a comment, and a part whose pins cannot take
+            3.3&nbsp;V does not connect to it. Finally, <code>nc</code> declares the
+            socket pins this board deliberately leaves unconnected — in CoHDL an
+            unconnected pin is a decision you write down, never an accident.
+          </p>
+          <p>This design checks clean:</p>
+          <pre><code>$ cohdl check .
+  No errors found.</code></pre>
+
+          <h2>What the compiler refuses</h2>
+          <p>
+            The interesting part of a type system is what it will not accept. Two
+            mistakes, introduced on purpose.
+          </p>
+          <h3>A bare number where a unit belongs</h3>
+          <p>
+            <code>R_470R_F_0402</code> is a catalog part, but the generic device behind
+            it can be instantiated directly — <code>ChipResistor</code> takes its
+            resistance and tolerance as type parameters, and the
+            <code>[R0402]</code> bracket picks the case-size variant. Suppose you do
+            that and write the resistance the way every netlist tool lets you, as a
+            number:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">src/main.cohdl</span>
+              <span class="code-hint">the mistake</span>
+            </figcaption>
+            <pre class="code"><code>    <span class="c-kw">inst</span> r_led: passive::<span class="c-ty">ChipResistor</span>&lt;470, 1%&gt;[R0402]</code></pre>
+          </figure>
+
+          <pre><code>error[E113]: a bare number is never valid for `R: Resistance` — write the unit (e.g. `470ohm`)
+ --> src/main.cohdl:6:39
+  |
+6 |     inst r_led: passive::ChipResistor&lt;470, 1%&gt;[R0402]
+  |                                       ^^^
+  = help: RFC-001: no bare numbers, no default units, no coercion
+
+1 error emitted</code></pre>
+
+          <p>
+            <code>470</code> is not a resistance; <code>470ohm</code> is. Units are
+            types, there are no default units, and nothing coerces — writing the unit
+            makes the line legal. <a href="/docs/language/">The language</a> covers
+            units and generics properly.
+          </p>
+
+          <h3>A required pin left floating</h3>
+          <p>
+            Every pin on every device carries a connection obligation. Delete
+            <code>hdr.P6</code> from the <code>nc</code> line — the kind of edit that
+            survives every visual schematic review — and the design no longer compiles:
+          </p>
+
+          <pre><code>error[E701]: required pin `Blinky::hdr.P6` is unresolved: add it to a `net` or explicitly mark it `nc`
+ --> src/main.cohdl:4:5
+  |
+4 |     inst hdr: connectors::headers::smd_254::SOCKET_2X3_254_SMD
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  :: connectors/headers/smd_254.cohdl:11:9
+   |
+11 |         required P6: 6 [passive]
+   |         ------------------------ `P6` is declared `required` on device `Socket_2x3` here
+
+1 error emitted</code></pre>
+
+          <p>
+            Both diagnostics have the same shape, and the shape is the point: a stable
+            code (<code>E113</code>, <code>E701</code>) from the
+            <a href="/docs/errors/">formal error-code registry</a>, an exact span into
+            your source — plus, for <code>E701</code>, a second span into the library
+            declaration that created the obligation — and the construct named
+            precisely — the instance, the pin, the
+            type parameter. Never a bare "type mismatch". Tools get the same
+            information as one JSON document via <code>--json</code>
+            (<a href="/docs/cli/">CLI reference</a>), and the exit code is honest:
+            <code>0</code> for a clean check, <code>1</code> when diagnostics were
+            reported, <code>2</code> for an invocation-level failure such as a bad flag.
+          </p>
+
+          <h2>Building</h2>
+          <p>
+            <code>cohdl build</code> runs the full check and then emits everything
+            downstream of the schematic:
+          </p>
+
+          <pre><code>$ cohdl build .
+  Built design `Blinky`: 3 instances, 3 nets
+  wrote ./out/blinky.net
+  wrote ./out/blinky-bom.csv
+  wrote ./out/footprints/connectors-headers-smd_254-FP_Socket_2x3_254_SMD.kicad_mod
+  wrote ./out/footprints/led-FP_LED_0603_1608Metric_WURTH.kicad_mod
+  wrote ./out/footprints/passive-CHIP_0402.kicad_mod
+  wrote ./design.lock</code></pre>
+
+          <ul>
+            <li>
+              <code>out/blinky.net</code> — the netlist, in the S-expression format
+              <a href="https://www.kicad.org">KiCad</a>'s board editor imports directly.
+            </li>
+            <li>
+              <code>out/blinky-bom.csv</code> — the bill of materials. Every line is an
+              orderable part, because every catalog part is one.
+            </li>
+            <li>
+              <code>out/footprints/*.kicad_mod</code> — one footprint per pad-bearing
+              land pattern, emitted from the pad geometry declared in the library
+              source, not copied from a footprint zoo.
+            </li>
+            <li>
+              <code>design.lock</code>, in the project root — the designator
+              assignments. <code>R1</code> stays <code>R1</code> across rebuilds and
+              design changes, so revision-to-revision diffs of the outputs stay small
+              and honest.
+            </li>
+          </ul>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">out/blinky-bom.csv</span>
+              <span class="code-hint">complete file</span>
+            </figcaption>
+            <pre class="code"><code>Manufacturer,Comment,Designator,Footprint
+"Wurth Elektronik","150060GS75000","D1","FP_LED_0603_1608Metric_WURTH"
+"Yageo","RC0402FR-07470RL","R1","CHIP_0402"
+"Samtec","SSW-103-22-SM-D-VS","J1","FP_Socket_2x3_254_SMD"</code></pre>
+          </figure>
+
+          <p>
+            When a design declares layout metadata — placements, rotations, physics
+            hints — the build also writes the layout-constraint document
+            <code>blinky-layout.json</code>, and <code>--emit ipc2581</code> adds an
+            IPC-2581 handoff file for tools that speak it.
+            <a href="/docs/layout/">Layout &amp; fabrication</a> covers both.
+          </p>
+          <p>
+            All of it is deterministic by construction: the same source and the same
+            locked dependencies produce the same verdict, the same designators, and
+            byte-identical output files. A build is a fact about the source, not an
+            event that happened on someone's machine.
+          </p>
+
+          <h2>Keeping it canonical</h2>
+          <p>
+            The language has one canonical form, defined by the language rather than by
+            per-project configuration. <code>cohdl fmt .</code> rewrites source into
+            it, and <code>cohdl fmt . --check</code> changes nothing but fails —
+            printing <code>would reformat ./src/main.cohdl</code> and exiting
+            <code>1</code> — when a rewrite would change bytes, which makes it a cheap
+            CI gate. Since generated outputs are byte-stable and source has one
+            spelling, every diff in a CoHDL repository is a real change.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/">← Docs</a>
+            <a href="/docs/language/">Next: The language →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

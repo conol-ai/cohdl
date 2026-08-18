@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>The language — CoHDL docs</title>
+    <meta
+      name="description"
+      content="The full tour of the CoHDL language: units as types, devices and pin obligations, traits, designs and nets, purchasable parts, sub-circuit functions, generics, pattern matching, instance arrays, modules, annotations and the canonical form."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/language/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="The CoHDL language" />
+    <meta
+      property="og:description"
+      content="Units as types, pin obligations, traits, nets, parts, functions, generics and arrays — how a schematic becomes a typed program."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/language/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">The language</li>
+          </ol>
+          <h1 class="page-title">The language</h1>
+          <p class="page-lede">
+            CoHDL treats a schematic as a typed program: values carry units, pins carry
+            obligations, and the compiler refuses the design until every claim checks
+            out. This page tours every construct in the language. The code is real —
+            most samples are copied from the compiler's own component libraries and the
+            Raspberry Pi Pico 2 example, and the error transcripts are genuine compiler
+            output. The normative statement behind this tour is the
+            <a href="/docs/spec/">language specification</a>, with the full rationale
+            in <a href="/docs/rfcs/">the RFCs</a>.
+          </p>
+        </div>
+
+        <article class="prose">
+          <h2>Units are types</h2>
+          <p>
+            CoHDL has a closed set of eleven primitive unit types. Each is a distinct
+            type, and there is zero implicit coercion — not between unit types, and not
+            from a bare number. A bare number where a unit-typed value is expected is a
+            compile error naming the expected and actual types, and arithmetic between
+            different unit types does not parse.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Unit type</th>
+                  <th>Written as</th>
+                  <th>Example literals</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Voltage</td><td><code>V</code></td><td><code>3.3V</code>, <code>5V</code></td></tr>
+                <tr><td>Capacitance</td><td><code>F</code></td><td><code>100nF</code>, <code>10uF</code></td></tr>
+                <tr><td>Resistance</td><td><code>ohm</code> (ASCII only — never <code>Ω</code>)</td><td><code>10kohm</code>, <code>330ohm</code></td></tr>
+                <tr><td>Current</td><td><code>A</code></td><td><code>500mA</code>, <code>2A</code></td></tr>
+                <tr><td>Frequency</td><td><code>Hz</code></td><td><code>16MHz</code>, <code>32kHz</code></td></tr>
+                <tr><td>Time</td><td><code>s</code></td><td><code>10ms</code>, <code>1us</code></td></tr>
+                <tr><td>Inductance</td><td><code>H</code></td><td><code>10uH</code>, <code>100nH</code></td></tr>
+                <tr><td>Power</td><td><code>W</code></td><td><code>250mW</code>, <code>1W</code></td></tr>
+                <tr><td>Temperature</td><td><code>C</code> (ASCII only — never <code>°C</code>)</td><td><code>85C</code>, <code>-40C</code></td></tr>
+                <tr><td>Tolerance</td><td><code>%</code></td><td><code>1%</code>, <code>0.5%</code></td></tr>
+                <tr><td>Length</td><td><code>mm</code></td><td><code>0.3mm</code>, <code>-23.64mm</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            A literal is a number immediately followed by its unit symbol, no space
+            (<code>100nF</code>, never <code>100 nF</code>). The grammar fixes which SI
+            prefixes each unit accepts; <code>Temperature</code> and
+            <code>Tolerance</code> take no prefix at all, and only
+            <code>Temperature</code> and <code>Length</code> literals may carry a
+            leading minus. <code>Length</code> is the geometry unit — pad sizes,
+            placements and silkscreen coordinates are all millimetre-typed values, not
+            bare numbers.
+          </p>
+          <p>
+            Because engineers reach for <code>Ω</code> and <code>°C</code> by habit, the
+            compiler catches them with a targeted diagnostic rather than a generic lex
+            error:
+          </p>
+          <pre><code>error[E101]: use `ohm`, not `Ω` — CoHDL resistance literals are ASCII-only
+ --&gt; src/main.cohdl:226:39
+    |
+226 |     inst r_bad: passive::ChipResistor&lt;10kΩ, 1%&gt;[R0402]
+    |                                       ^^^^
+  = help: write `10kohm`</code></pre>
+
+          <h2>Devices and pins</h2>
+          <p>
+            A <code>device</code> is pins plus specs — self-contained, with no trait
+            clause. Every pin carries two facts fixed at the declaration: a connection
+            obligation (<code>required</code> or <code>optional</code>) and an
+            electrical role from a closed six-value set. A single logical pin may span
+            several physical pin numbers (a pin bus). This is the USB-C receptacle from
+            the <code>usb</code> library:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/usb/src/connectors/type_c.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[doc("docs/hro-type-c-31-m-12-family-drawing.pdf")]</span>
+<span class="c-kw">pub device</span> <span class="c-ty">USB_C_Receptacle_2_0</span> {
+    <span class="c-kw">pins</span> {
+        <span class="c-kw">required</span> GND: A1, A12, B1, B12 [power_in]
+        <span class="c-kw">required</span> VBUS: A4, A9, B4, B9 [power_out] <span class="c-cm">// the upstream source drives VBUS</span>
+        <span class="c-kw">required</span> CC1: A5 [passive]
+        <span class="c-kw">required</span> CC2: B5 [passive]
+        <span class="c-kw">required</span> DP: A6, B6 [bidirectional]
+        <span class="c-kw">required</span> DN: A7, B7 [bidirectional]
+        <span class="c-kw">optional</span> SBU1: A8 [passive]
+        <span class="c-kw">optional</span> SBU2: B8 [passive]
+        <span class="c-kw">required</span> SHIELD: SH1, SH2, SH3, SH4 [passive]
+    }
+}</code></pre>
+          </figure>
+          <p>
+            A <code>required</code> pin must be resolved in exactly one of two ways:
+            it appears in some <code>net</code>, or it appears in an <code>nc</code>
+            declaration — an explicit statement that the pin is deliberately not
+            connected. Appearing in neither is a compile error; appearing in both is a
+            contradiction and also an error. An <code>optional</code> pin may simply go
+            unmentioned. <code>nc</code> is never a second connectivity mechanism — a
+            pin listed under it joins no net — and because it is a declaration, a
+            reason can ride along as a checked-position
+            <code>#[intent("...")]</code> attribute instead of a stray comment.
+          </p>
+          <p>
+            The exhaustiveness check runs once, at final <code>design</code> assembly,
+            after all sub-circuit functions have been expanded — so a reusable fragment
+            may intentionally leave pins for its caller to resolve. Here is what
+            forgetting the shield connection actually looks like:
+          </p>
+          <pre><code>error[E701]: required pin `Pico2::usb.SHIELD` is unresolved: add it to a `net` or explicitly mark it `nc`
+ --&gt; src/main.cohdl:18:5
+   |
+18 |     inst usb: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  :: usb/connectors/type_c.cohdl:21:9
+   |
+21 |         required SHIELD: SH1, SH2, SH3, SH4 [passive]
+   |         --------------------------------------------- `SHIELD` is declared `required` on device `USB_C_Receptacle_2_0` here</code></pre>
+          <p>
+            This replaces the blanket "unconnected pin" warning older tools emit — the
+            kind that fires on every intentionally-unused pin until everyone learns to
+            ignore it. Obligations make the distinction the author already had in mind
+            checkable.
+          </p>
+
+          <h2>Traits and impl</h2>
+          <p>
+            Traits declare data-shape requirements — abstract pin roles and unit-typed
+            spec fields — and nothing else; they have no methods. The standard library
+            is deliberately only seven core traits: <code>TwoTerminal</code>,
+            <code>Capacitor</code>, <code>Resistor</code>, <code>Polarized</code>,
+            <code>Diode</code>, <code>IC</code> and <code>Connector</code>:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/std/src/prelude.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub trait</span> <span class="c-ty">TwoTerminal</span> {
+    <span class="c-kw">pins</span> {
+        <span class="c-kw">required</span> A: pin
+        <span class="c-kw">required</span> B: pin
+    }
+}
+
+<span class="c-kw">pub trait</span> <span class="c-ty">Capacitor</span>: <span class="c-ty">TwoTerminal</span> {
+    designator_prefix: <span class="c-str">"C"</span>
+    <span class="c-kw">spec</span> {
+        capacitance: <span class="c-ty">Capacitance</span>
+        voltage_rating: <span class="c-ty">Voltage</span>
+        tolerance: <span class="c-ty">Tolerance</span>
+    }
+}
+
+<span class="c-cm">// A polarized component: Anode must sit at the higher potential.</span>
+<span class="c-kw">pub trait</span> <span class="c-ty">Polarized</span> {
+    <span class="c-kw">pins</span> {
+        <span class="c-kw">required</span> Anode: pin
+        <span class="c-kw">required</span> Cathode: pin
+    }
+}</code></pre>
+          </figure>
+          <p>
+            A device never lists the traits it satisfies. Instead,
+            <code>impl Trait for Device</code> is its own free-standing statement,
+            checked exhaustively the moment it is written: every pin role and spec
+            field the trait requires (including sub-trait bounds, transitively) must
+            resolve against the device's own declarations. When the names already
+            match, the body is empty; when they differ, the body is exactly the
+            mapping:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">impl — satisfaction is explicit</span>
+              <span class="code-hint">from the language specification</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">impl</span> <span class="c-ty">TwoTerminal</span> <span class="c-kw">for</span> <span class="c-ty">MLCC</span> {}   <span class="c-cm">// MLCC already has pins A/B — names match, body empty</span>
+<span class="c-kw">impl</span> <span class="c-ty">Capacitor</span> <span class="c-kw">for</span> <span class="c-ty">MLCC</span> {}
+
+<span class="c-kw">impl</span> <span class="c-ty">TwoTerminal</span> <span class="c-kw">for</span> <span class="c-ty">TantalumCap</span> {
+    <span class="c-kw">pins</span> { A: Anode, B: Cathode }   <span class="c-cm">// names differ — explicit mapping</span>
+}</code></pre>
+          </figure>
+          <p>
+            CoHDL never uses structural typing: a device whose shape happens to match a
+            trait does not satisfy it until an <code>impl</code> says so. Traits also
+            carry the designator mapping — <code>designator_prefix: "C"</code> above is
+            why every capacitor becomes <code>C1</code>, <code>C2</code>, … in the
+            outputs. The allocator itself guarantees that no two live instances ever
+            share a designator (checked as a postcondition on every compile) and that
+            assignments stay stable across rebuilds via <code>design.lock</code>.
+          </p>
+
+          <h2>Designs, instances and nets</h2>
+          <p>
+            A <code>design</code> block is where instances exist and wiring happens.
+            <code>inst</code> declares an instance of a device or part;
+            <code>net</code> connects pins by naming them. This is the Raspberry Pi
+            Pico 2 example, trimmed:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">design</span> <span class="c-ty">Pico2</span> {
+    <span class="c-kw">inst</span> mcu: raspberrypi_mcu::<span class="c-ty">RP2350A_QFN60</span>
+    <span class="c-kw">inst</span> usb: usb::connectors::type_c::<span class="c-ty">USB_C_HRO_TYPE_C_31_M_12</span>
+    <span class="c-kw">inst</span> rcc1: passive::<span class="c-ty">R_5K1_F_0402</span>
+    <span class="c-kw">inst</span> rcc2: passive::<span class="c-ty">R_5K1_F_0402</span>
+
+    <span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usb.VBUS, d_vbus.Anode, hdr.VBUS
+    <span class="c-cm">// USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)</span>
+    <span class="c-kw">net</span> CC1: usb.CC1, rcc1.A
+    <span class="c-kw">net</span> CC2: usb.CC2, rcc2.A
+    <span class="c-kw">nc</span>: usb.SBU1, usb.SBU2
+
+    <span class="c-kw">net</span> GND [gnd]: mcu.GND, usb.GND, usb.SHIELD, rcc1.B, rcc2.B
+}</code></pre>
+          </figure>
+          <p>
+            A net member is an instance-pin reference, <code>inst.PIN</code>. A net may
+            carry at most one annotation in brackets after its name: a
+            <code>Voltage</code> literal stating the nominal rail voltage, or the
+            marker <code>gnd</code>. The residual design-rule checks — voltage-exceed
+            and polarity-mismatch among them — read only these annotations, never net
+            names, so <code>net GND_MAYBE</code> means nothing to the compiler until
+            you say <code>[gnd]</code>.
+          </p>
+          <p>
+            The same pin appearing in two <code>net</code> declarations merges them
+            into one electrical net; conflicting annotations on a merged net (two
+            different voltages, or a voltage plus <code>gnd</code>) are a compile
+            error. <code>net _:</code> declares an anonymous net — the normal form
+            inside sub-circuit functions, where its name comes from the call chain. A
+            net that resolves to zero instance pins after expansion is a structural
+            error, not a warning. And once the whole design is assembled, the pin
+            exhaustiveness check from the previous section runs over every instance —
+            that is what "final assembly" means here.
+          </p>
+
+          <h2>Parts you can buy</h2>
+          <p>
+            A <code>part</code> binds a fully-concrete device instantiation — every
+            generic argument a literal — to an approved vendor list. Exactly one
+            <code>primary</code>, which must carry <code>mpn</code> and
+            <code>footprint</code>, and zero or more <code>alt</code> entries, each
+            with an <code>mpn</code>. The <code>passive</code> library's parts files
+            are generated from vendor datasheets, and every emitted primary part
+            number is verified against Yageo's own specsheet endpoint — a part that
+            does not resolve is omitted, never asserted:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/passive/src/resistors_0402.cohdl</span>
+              <span class="code-hint">generated</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[doc("docs/yageo_rc_series_datasheet_en.pdf")]</span>
+<span class="c-kw">pub part</span> <span class="c-ty">R_5K1_F_0402</span>: <span class="c-ty">ChipResistor</span>&lt;<span class="c-unit">5.1kohm</span>, <span class="c-unit">1%</span>&gt;[R0402] {
+    <span class="c-kw">primary</span> { mfr: <span class="c-str">"Yageo"</span>, mpn: <span class="c-str">"RC0402FR-075K1L"</span>, footprint: <span class="c-ty">CHIP_0402</span> }
+    <span class="c-kw">alt</span> { mfr: <span class="c-str">"Vishay"</span>, mpn: <span class="c-str">"CRCW04025K10FKED"</span> }
+}</code></pre>
+          </figure>
+          <p>
+            <code>footprint:</code> is a symbol reference to a
+            <code>footprint</code> declaration, resolved through the module system like
+            any other name — never a string naming some other tool's library. That
+            keeps footprints inside the type system: a part cannot point at a footprint
+            that does not exist, and at build time the footprint's pad numbers are
+            checked against the device's declared pins.
+          </p>
+          <p>
+            An instance binds to a part either by name (<code>inst rcc1:
+            passive::R_5K1_F_0402</code>) or by exact spec match — instantiate the
+            device with concrete values, and if a part matches them exactly, the
+            instance binds to it deterministically. <code>cohdl build</code> requires
+            every instance to be part-bound before it will emit a netlist and BOM,
+            which is what makes a BOM that lies about the design structurally
+            impossible; <code>cohdl check</code> does not, so exploration stays cheap.
+          </p>
+
+          <h2>Sub-circuit functions</h2>
+          <p>
+            A <code>fn</code> is a reusable circuit fragment: calling it instantiates
+            its body and wires it to the arguments. The canonical example is the
+            decoupling capacitor, from the <code>passive</code> library:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/passive/src/circuits.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-cm">// One 100nF decoupling capacitor across a supply pin pair.</span>
+<span class="c-kw">pub fn</span> <span class="c-ty">decoupling_100n</span>(vdd: <span class="c-ty">Pin</span>, gnd: <span class="c-ty">Pin</span>) {
+    <span class="c-cm">// RFC-028: one attribute here annotates every call site's capacitor.</span>
+    <span class="c-at">#[bypass(vdd, 100nF)]</span>
+    <span class="c-kw">inst</span> c: <span class="c-ty">C_100n_16V_X7R_0402</span>
+    <span class="c-kw">net</span> _: vdd, c.A
+    <span class="c-kw">net</span> _: gnd, c.B
+}</code></pre>
+          </figure>
+          <p>
+            Each call site produces its own real capacitor with its own designator —
+            the Pico 2 design calls it ten times across the MCU and flash supply pins:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code>passive::<span class="c-ty">decoupling_100n</span>(mcu.IOVDD, mcu.GND)
+passive::<span class="c-ty">decoupling_100n</span>(mcu.QSPI_IOVDD, mcu.GND)
+passive::<span class="c-ty">decoupling_100n</span>(flash.VCC, flash.GND)</code></pre>
+          </figure>
+          <p>
+            Calls nest to arbitrary depth, and a nested call expands exactly as if it
+            had been written at the call site. Every produced instance and net is named
+            from its full call-chain path, so two calls to the same
+            <code>fn</code> can never collide (the compiler reserves the
+            <code>__</code> name prefix to make that guarantee unforgeable). What can
+            never happen is a cycle — expansion that would re-enter an active
+            <code>fn</code> is rejected with the full chain spelled out. Here two fns
+            from the next section were wired into a deliberate cycle:
+          </p>
+          <pre><code>error[E501]: recursive fn call: `supply_entry` is already being expanded in this call chain: supply_entry → bypass_cap → supply_entry
+ --&gt; src/tour.cohdl:10:5
+   |
+10 |     supply_entry::&lt;V&gt;(vdd, gnd)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^</code></pre>
+
+          <h2>Generics over specs</h2>
+          <p>
+            A generic parameter on a device or <code>fn</code> is one of exactly two
+            kinds: a unit-type parameter (<code>V: Voltage</code>, optionally with a
+            visible default) or a trait-bound type parameter (<code>D:
+            Capacitor</code>, bounds joined with <code>+</code>). The
+            <code>passive</code> library's MLCC is a generic device with two defaults:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/passive/src/devices.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub device</span> <span class="c-ty">MLCC</span>&lt;C: <span class="c-ty">Capacitance</span>, V: <span class="c-ty">Voltage</span> = <span class="c-unit">16V</span>, T: <span class="c-ty">Tolerance</span> = <span class="c-unit">10%</span>&gt; {
+    <span class="c-kw">variants</span> { C0201, C0402, C0603, C0805, C1206, C1210 }
+
+    <span class="c-kw">pins</span>[C0402] {
+        <span class="c-kw">required</span> A: 1 [passive]
+        <span class="c-kw">required</span> B: 2 [passive]
+    }
+    <span class="c-cm">// ... one pins[VARIANT] block per declared variant ...</span>
+
+    <span class="c-kw">spec</span> {
+        capacitance: C
+        voltage_rating: V
+        tolerance: T
+    }
+}</code></pre>
+          </figure>
+          <p>
+            Generic <code>fn</code>s take the same two parameter kinds. Calls use
+            turbofish syntax with positional arguments, and substitutions thread
+            outward-in through nested calls — this pair type-checks against the real
+            compiler:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">generic fns</span>
+              <span class="code-hint">compiler-verified</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">use</span> passive::<span class="c-ty">MLCC</span>;
+
+<span class="c-kw">pub fn</span> <span class="c-ty">bypass_cap</span>&lt;V: <span class="c-ty">Voltage</span>&gt;(vdd: <span class="c-ty">Pin</span>, gnd: <span class="c-ty">Pin</span>) {
+    <span class="c-kw">inst</span> c: <span class="c-ty">MLCC</span>&lt;<span class="c-unit">100nF</span>, V&gt;[C0402]
+    <span class="c-kw">net</span> _: vdd, c.A
+    <span class="c-kw">net</span> _: gnd, c.B
+}
+
+<span class="c-kw">pub fn</span> <span class="c-ty">supply_entry</span>&lt;V: <span class="c-ty">Voltage</span>&gt;(vdd: <span class="c-ty">Pin</span>, gnd: <span class="c-ty">Pin</span>) {
+    <span class="c-ty">bypass_cap</span>::&lt;V&gt;(vdd, gnd)   <span class="c-cm">// nested call — V resolves at the outer call site</span>
+}
+
+<span class="c-cm">// Trait-bound parameter: any device with `impl Resistor` in scope.</span>
+<span class="c-kw">pub fn</span> <span class="c-ty">tie</span>&lt;D: <span class="c-ty">Resistor</span>&gt;(target: D, a: <span class="c-ty">Pin</span>, b: <span class="c-ty">Pin</span>) {
+    <span class="c-kw">net</span> _: a, target.A
+    <span class="c-kw">net</span> _: b, target.B
+}</code></pre>
+          </figure>
+          <p>
+            Zero coercion applies to substitution with no exception — pass a
+            capacitance where a voltage parameter is expected and the error names both
+            sides:
+          </p>
+          <pre><code>error[E112]: generic argument for `V` has the wrong unit type: expected `Voltage`, found `Capacitance`
+ --&gt; src/main.cohdl:223:20
+    |
+223 |     supply_entry::&lt;100nF&gt;(mcu.IOVDD, mcu.GND)
+    |                    ^^^^^ `100nF` is a `Capacitance`</code></pre>
+          <p>
+            Trait bounds are checked at the instantiation or call site: the compiler
+            looks for a satisfying free-standing <code>impl</code> in scope for each
+            bound, and a missing one is an error naming the trait and the concrete
+            type. An <code>impl Trait</code>-typed value parameter is sugar for an
+            anonymous trait-bound parameter — one mechanism, not two.
+          </p>
+
+          <h2>Pattern matching</h2>
+          <p>
+            CoHDL's pattern matching is structural: two closed sets, both exhaustively
+            covered, with no implicit defaults. The first is pin roles — every device
+            pin carries one of <code>input</code>, <code>output</code>,
+            <code>bidirectional</code>, <code>passive</code>, <code>power_in</code>,
+            <code>power_out</code>. An unannotated pin is a compile error listing all
+            six; the driver roles (<code>output</code>, <code>power_out</code>) are
+            what the single-driver and multi-driver design-rule checks consume.
+          </p>
+          <p>
+            The second is package variants. A device may declare a closed set of
+            structural shapes, and every declared variant must have its own
+            <code>pins[VARIANT]</code> block — that is the exhaustiveness check, at
+            the declaration itself. Variant-specific spec overrides are how one
+            declaration states that an 0402 resistor is rated 62.5&nbsp;mW while a
+            1206 is rated 250&nbsp;mW:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">lib/passive/src/devices.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">pub device</span> <span class="c-ty">ChipResistor</span>&lt;R: <span class="c-ty">Resistance</span>, T: <span class="c-ty">Tolerance</span> = <span class="c-unit">1%</span>&gt; {
+    <span class="c-kw">variants</span> { R0201, R0402, R0603, R0805, R1206, R1210, R2010, R2512 }
+
+    <span class="c-kw">pins</span>[R0402] {
+        <span class="c-kw">required</span> A: 1 [passive]
+        <span class="c-kw">required</span> B: 2 [passive]
+    }
+    <span class="c-cm">// ... a pins block for each of the eight variants ...</span>
+
+    <span class="c-kw">spec</span> {
+        resistance: R
+        tolerance: T
+    }
+    <span class="c-kw">spec</span>[R0402] {
+        power_rating: <span class="c-unit">62.5mW</span>
+    }
+    <span class="c-kw">spec</span>[R1206] {
+        power_rating: <span class="c-unit">250mW</span>
+    }
+}</code></pre>
+          </figure>
+          <p>
+            Instantiating a device with variants requires selecting one — there is no
+            default footprint, because "which package is this" is not a detail to
+            guess:
+          </p>
+          <pre><code>error[E904]: device `passive::ChipResistor` declares variants — select one with a `[VARIANT]` suffix (no implicit default)
+ --&gt; src/main.cohdl:226:19
+    |
+226 |     inst r_novar: passive::ChipResistor&lt;10kohm, 1%&gt;
+    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = help: valid variants are: R0201, R0402, R0603, R0805, R1206, R1210, R2010, R2512</code></pre>
+
+          <h2>Instance arrays</h2>
+          <p>
+            <code>inst NAME: [Device; N]</code> declares one array-typed instance whose
+            N elements are each fully real — each gets its own designator, its own pin
+            obligations, its own trait satisfaction. Indexing is 0-based and literal
+            only, and a bare unindexed <code>NAME</code> is never a valid reference.
+            This is the construct behind a keyboard's thirteen switches being one line
+            instead of thirteen:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">array-typed instances</span>
+              <span class="code-hint">from the language specification</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">inst</span> key_leds: [<span class="c-ty">RGB_SK6812</span>; 13]
+
+<span class="c-cm">// each element is individually addressable, everywhere a reference is valid</span>
+<span class="c-kw">net</span> LED_D0: mcu.LED_DATA_KEY, key_leds[0].DIN
+<span class="c-kw">net</span> LED_D1: key_leds[0].DOUT, key_leds[1].DIN
+
+<span class="c-cm">// range and list fan-out — sugar, valid inside a net's member list only</span>
+<span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usbc.VBUS, key_leds[0..=12].VDD
+<span class="c-kw">net</span> COL0: mcu.COL0, d[0, 4, 8, 12].Cathode</code></pre>
+          </figure>
+          <p>
+            <code>NAME[i]</code> works everywhere an ordinary instance reference does —
+            as a net member, as the target of a <code>place</code> statement, and in
+            fn-call arguments (<code>decouple(key_leds[0].VDD,
+            key_leds[0].GND)</code>). An out-of-bounds index is a compile error naming
+            the valid range. The fan-out forms <code>NAME[a..=b].PIN</code> and
+            <code>NAME[i, j, k].PIN</code> expand to individual references and are
+            deliberately scoped to net member lists — a whole range has no single
+            sensible meaning as a placement target. There is no loop construct: the
+            daisy-chain wiring above is written one link at a time, addressable but
+            not auto-generated.
+          </p>
+
+          <h2>Modules and visibility</h2>
+          <p>
+            A package's module tree mirrors its file tree under <code>src/</code>,
+            rooted at the manifest's package name — there is no <code>mod</code>
+            declaration. The file
+            <code>lib/usb/src/connectors/type_c.cohdl</code> is the module
+            <code>usb::connectors::type_c</code>, and its public names are reachable
+            fully qualified or imported once:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">module paths</span>
+              <span class="code-hint">compiler-verified</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-cm">// Fully qualified, always valid:</span>
+<span class="c-kw">inst</span> usb: usb::connectors::type_c::<span class="c-ty">USB_C_HRO_TYPE_C_31_M_12</span>
+
+<span class="c-cm">// Or import once, use unqualified thereafter:</span>
+<span class="c-kw">use</span> usb::connectors::type_c::<span class="c-ty">USB_C_HRO_TYPE_C_31_M_12</span>;
+<span class="c-kw">inst</span> usb: <span class="c-ty">USB_C_HRO_TYPE_C_31_M_12</span></code></pre>
+          </figure>
+          <p>
+            <code>use path::Name;</code> imports exactly one name — there are no glob
+            imports. Within a single package, every name in every file stays visible
+            unqualified; across packages, nothing is implicitly visible, and
+            <code>pub</code> is enforced at exactly that boundary — referencing a
+            non-<code>pub</code> item from another package is a compile error naming
+            the item and its actual visibility. Name collisions are scoped per module
+            path, so two libraries can each declare a <code>TPS62840</code> without
+            conflict. A scoped registry package like
+            <code>"@raspberrypi/mcu"</code> in the manifest becomes the
+            <code>raspberrypi_mcu::</code> namespace in source.
+          </p>
+
+          <h2>Annotations</h2>
+          <p>
+            Two attributes carry metadata with a guaranteed zero impact on
+            compilation — mutating <code>#[intent("...")]</code> or
+            <code>#[doc("...")]</code> can never change a verdict, a designator, or an
+            emitted byte. <code>#[intent("...")]</code> attaches one
+            opaque rationale string to a declaration (<code>inst</code>,
+            <code>net</code>, <code>nc</code>, <code>impl</code>, <code>device</code>,
+            <code>trait</code>, <code>fn</code> or <code>part</code>; at most one per
+            declaration). It is the structured home for the sentence a reviewer will
+            otherwise ask for:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/rpi-pico2/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[intent("USB-C VBUS is 5V (5.1k Rd pulldowns advertise a UFP sink); the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]</span>
+<span class="c-at">#[high_current(500mA)]</span>
+<span class="c-kw">net</span> VBUS <span class="c-unit">[5V]</span>: usb.VBUS, esd.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS</code></pre>
+          </figure>
+          <p>
+            <code>#[designator("U7")]</code> shares the attribute syntax but is the
+            deliberate exception to that guarantee: on an <code>inst</code> it
+            overrides the automatically-assigned designator — changing the outputs is
+            its whole purpose, though it never affects connectivity. Overrides are
+            resolved before any fresh assignment, so one can never silently clobber
+            the other.
+            <code>#[doc("relative/path.pdf")]</code> attaches reference documents —
+            datasheets, application notes — to a declaration; unlike
+            <code>#[intent]</code> it may repeat, the path is relative to the package
+            root, and the compiler never opens the file.
+          </p>
+          <p>
+            A separate family of structured attributes carries physics facts for the
+            layout tools — <code>#[ground]</code>, <code>#[high_current]</code>,
+            <code>#[impedance]</code>, <code>#[bypass]</code>,
+            <code>#[crystal_oscillator]</code>, <code>#[switching_converter]</code>,
+            <code>#[bga_fanout]</code> and <code>#[placement_hint]</code>, alongside
+            the <code>layout {}</code> block. Those have real, checked argument
+            grammars rather than opaque strings, and they are covered with the rest of
+            the physical-design surface in
+            <a href="/docs/layout/">Layout &amp; fabrication</a>.
+          </p>
+
+          <h2>Canonical form</h2>
+          <p>
+            <code>cohdl fmt</code> defines exactly one canonical rendering for every
+            construct on this page — no configuration, no style options. It is a pure
+            function of the parsed AST (parse, then re-serialize — never text
+            munging), which makes it idempotent and semantically inert by
+            construction: formatting can never change a parse tree, a verdict, or an
+            emitted netlist byte. Trailing comments and author-placed blank-line
+            groupings are preserved; indentation, spacing and wrapping are not up for
+            debate.
+          </p>
+          <pre><code>$ cohdl fmt . --check
+  All files are in canonical form.</code></pre>
+          <p>
+            The <code>--check</code> variant mutates nothing and fails when a file is
+            not canonical, which makes it the natural review gate: run it in CI and
+            every diff a reviewer — human or model — reads is a semantic diff, never a
+            whitespace one.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/getting-started/">← Getting started</a>
+            <a href="/docs/cli/">Next: CLI reference →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

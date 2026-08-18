@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>CoHDL blog</title>
+  <subtitle>Writing about the language, the compiler, and the boards built with them.</subtitle>
+  <id>https://cohdl.org/blog/feed.xml</id>
+  <link rel="alternate" type="text/html" href="https://cohdl.org/blog/" />
+  <link rel="self" type="application/atom+xml" href="https://cohdl.org/blog/feed.xml" />
+  <updated>2026-08-17T12:00:00Z</updated>
+  <author><name>Tony Huang</name></author>
+  <entry>
+    <title>The schematic is source code</title>
+    <link href="https://cohdl.org/blog/the-schematic-is-source-code/" />
+    <id>https://cohdl.org/blog/the-schematic-is-source-code/</id>
+    <published>2026-08-17T12:00:00Z</published>
+    <updated>2026-08-17T12:00:00Z</updated>
+    <summary>Software earned version control, code review, type checkers and CI. Schematics are still drawings, and their mistakes are still found at the assembly house. CoHDL is my answer: treat the board as a program, and give it a compiler.</summary>
+  </entry>
+  <entry>
+    <title>Same bytes, every time</title>
+    <link href="https://cohdl.org/blog/same-bytes-every-time/" />
+    <id>https://cohdl.org/blog/same-bytes-every-time/</id>
+    <published>2026-08-17T12:00:00Z</published>
+    <updated>2026-08-17T12:00:00Z</updated>
+    <summary>CoHDL promises that compiling the same source with the same dependencies produces the same output — not equivalent output, the same bytes. This post is about what that promise costs, why hardware demands it anyway, and the day sine and cosine nearly broke it.</summary>
+  </entry>
+</feed>

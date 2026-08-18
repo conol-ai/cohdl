@@ -1,21 +1,53 @@
 # cohdl.org
 
-The CoHDL project site: a pre-launch page and the waitlist that collects
-addresses until the compiler's source is public.
+The CoHDL project site: landing page, documentation, blog, use cases, and the
+waitlist that collects addresses until the compiler's source is public.
 
-A static page plus one small Worker — no framework and no build step. The
-Worker fronts every request so HTTPS, HSTS and the CSP are enforced in code
-rather than in zone settings, and anything that is not `/api/*` falls through
-to Workers Assets.
+Hand-authored static pages plus one small Worker — no framework and no build
+step. The Worker fronts every request so HTTPS, HSTS and the CSP are enforced
+in code rather than in zone settings, and anything that is not `/api/*` falls
+through to Workers Assets (`auto-trailing-slash`, so `/docs/` serves
+`docs/index.html`).
 
 ```
-public/          the page — index.html, css/, js/, favicon, robots, sitemap
-src/worker.ts    security headers + POST /api/waitlist
-schema.sql       the D1 waitlist table
+public/
+  index.html         landing: hero, code specimen, pipeline, showcase, waitlist
+  docs/              docs index + getting-started, language, cli, packages,
+                     layout, errors, editors (one directory per page)
+  docs/spec/         the language specification — GENERATED, do not hand-edit
+  docs/rfcs/         RFC index + one page per RFC — GENERATED, do not hand-edit
+  blog/              blog index, one directory per post, Atom feed.xml
+  use-cases/         use-case index + openmicrokbd/ case study
+  img/openmicrokbd/  case-study photos (WebP, from the openmicrokbd repo, MIT)
+  css/style.css      design tokens, chrome, landing sections, code highlighting
+  css/prose.css      long-form styles for docs/blog/use-case pages
+  js/main.js         waitlist progressive enhancement
+  404.html, favicon.svg, robots.txt, sitemap.xml
+src/worker.ts        security headers + POST /api/waitlist
+schema.sql           the D1 waitlist table
 ```
 
 The visual system is the registry's: same dark canvas, accent, grid and brand
-mark, so cohdl.org and registry.cohdl.org read as one product.
+mark, so cohdl.org and registry.cohdl.org read as one product. Every page
+copies the same masthead/footer chrome from `docs/index.html`; there is no
+templating, so a chrome change means editing each page (deliberate — the page
+count is small and the deploy story stays trivial).
+
+Editing notes:
+
+- New pages copy the `<head>` pattern, masthead and footer of an existing
+  page, set their own title/description/canonical, and put `aria-current` on
+  their section's nav link.
+- CoHDL code samples are hand-highlighted with `c-kw`/`c-ty`/`c-at`/`c-unit`/
+  `c-cm`/`c-str` spans; terminal output stays unhighlighted.
+- A new blog post gets its own directory, an entry at the top of
+  `blog/index.html`, and an `<entry>` in `blog/feed.xml`.
+- Add new pages to `sitemap.xml`.
+- `docs/spec/` and `docs/rfcs/` are generated verbatim from `docs/design/` by
+  `site/tools/gen_design_docs.py` (chrome template + curated summaries live in
+  the script). After a design-repo re-extract, re-run it and commit the diff;
+  it fails loudly on any Markdown construct it does not handle. A new RFC
+  means adding its filename and one-line summary to the script's lists.
 
 ## Local development
 

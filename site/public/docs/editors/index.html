@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>Editor support — CoHDL docs</title>
+    <meta
+      name="description"
+      content="The cohdl lsp language server and the VS Code extension: diagnostics as you type, hover, go to definition, find references and keyword completion in any LSP-capable editor."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/editors/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="CoHDL editor support" />
+    <meta
+      property="og:description"
+      content="One language server, driven by the same pipeline as cohdl check, wired into VS Code or any LSP-capable editor."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/editors/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">Editor support</li>
+          </ol>
+          <h1 class="page-title">Editor support</h1>
+          <p class="page-lede">
+            CoHDL ships one language server, <code>cohdl lsp</code>, built into the
+            compiler binary. VS Code gets a packaged extension; every other editor with a
+            Language Server Protocol client gets the same server with a few lines of
+            configuration.
+          </p>
+        </div>
+
+        <div class="callout">
+          <span class="callout-title">Status</span>
+          The language server and the VS Code extension are built and tested today, but
+          like the rest of the toolchain they are not downloadable yet. This page
+          describes them as they exist, so you know what to expect when the source
+          opens.
+        </div>
+
+        <article class="prose">
+          <h2>The language server</h2>
+          <p>
+            <code>cohdl lsp</code> speaks the Language Server Protocol — the JSON-RPC
+            protocol editors use to talk to compilers — over stdio. It is a thin
+            frontend over the exact same pipeline <code>cohdl check</code> runs: the same
+            dependency resolution, the same checks, the same diagnostics. Nothing is
+            re-implemented for the editor, so the editor and the CLI can never disagree
+            about whether a design is correct.
+          </p>
+          <ul>
+            <li>
+              <strong>Diagnostics as you type.</strong> On open, change and save, the
+              server re-checks the file's containing project: it walks up to
+              <code>cohdl.toml</code>, resolves and lock-verifies every direct
+              dependency, and falls back to single-file-plus-std when there is no
+              manifest. The published diagnostics are field-for-field the ones
+              <code>cohdl check --json</code> reports — an equivalence test suite holds
+              the two to that. Unsaved edits count: buffer contents override the on-disk
+              file. A project that fails to load — a bad manifest, a broken lock — is
+              reported as a visible editor message, never as a deceptively clean file.
+            </li>
+            <li>
+              <strong>Hover.</strong> Over an <code>impl</code> block: the resolved
+              pin-to-requirement mappings. Over a pin declaration or use site: its
+              connection obligation and role. Over a unit literal: its unit type and the
+              allowed prefixes. Over a part: its MPN, manufacturer, resolved footprint
+              and reference documents. Over pads, mount holes, <code>use</code> imports,
+              <code>place</code> statements and physics attributes: the resolved facts of
+              each.
+            </li>
+            <li>
+              <strong>Go to definition.</strong> A device, trait, function, part,
+              footprint or pad name at any reference site jumps to its declaration —
+              including declarations that live in a dependency's source. Instance and pin
+              references resolve the same way.
+            </li>
+            <li>
+              <strong>Find references.</strong> On a trait or device name: every
+              <code>impl</code> involving it, across the project and its loaded
+              dependencies.
+            </li>
+          </ul>
+          <p>
+            Beyond those four capabilities the server also offers keyword completion —
+            the contextual grammar words and attribute names. Every request re-runs the
+            full check from scratch; there is no incremental compilation, which is
+            acceptable at the scale of current designs. Code actions, rename, semantic
+            tokens and workspace symbols are deliberately out of scope. The server runs
+            on POSIX hosts.
+          </p>
+
+          <h2>VS Code</h2>
+          <p>
+            The VS Code extension is thin packaging over the server, and that is the
+            point: it adds <strong>no</strong> diagnostics or compiler behavior of its
+            own. It registers the <code>.cohdl</code> file type, ships a hand-authored
+            TextMate grammar for syntax color — the one thing the LSP protocol has no
+            verb for — and spawns <code>cohdl lsp</code> through
+            <code>vscode-languageclient</code> when the first CoHDL file opens. A
+            grammar-coverage test in CI asserts that every keyword and literal class gets
+            a real scope rather than falling through to unstyled text.
+          </p>
+          <p>
+            There is exactly one setting: <code>cohdl.path</code>, the path to the
+            <code>cohdl</code> binary. It defaults to <code>cohdl</code>, resolved via
+            <code>PATH</code>; point it at a workspace build if needed:
+          </p>
+          <pre><code>{
+  "cohdl.path": "${workspaceFolder}/target/debug/cohdl"
+}</code></pre>
+          <p>
+            If the binary cannot be started, the extension shows a visible error
+            notification — never a silently blank Problems panel.
+          </p>
+          <p>
+            The extension is packaged as a standard <code>.vsix</code>, and its release
+            automation publishes tagged versions to the VS Code Marketplace under the
+            <code>conol</code> publisher, to Open VSX, and as a plain downloadable
+            <code>.vsix</code>. Because it is only a client for <code>cohdl lsp</code>,
+            it becomes useful the moment the compiler is in your hands — distribution
+            accompanies the toolchain's public release.
+          </p>
+
+          <h2>Any LSP editor</h2>
+          <p>
+            Editors other than VS Code do not need a package at all — a launch
+            configuration is enough. Point any LSP client at <code>cohdl lsp</code>,
+            associate the <code>cohdl</code> file type with the <code>.cohdl</code>
+            extension, and use <code>cohdl.toml</code> as the project-root marker. For a
+            generic LSP client, the entire configuration is:
+          </p>
+          <pre><code>{
+  "command": ["/path/to/cohdl", "lsp"],
+  "languageId": "cohdl",
+  "filetypes": ["cohdl"],
+  "rootPatterns": ["cohdl.toml"]
+}</code></pre>
+          <p>With Neovim's built-in LSP client:</p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">init.lua</span>
+              <span class="code-hint">Neovim</span>
+            </figcaption>
+            <pre class="code"><code>vim.api.nvim_create_autocmd("FileType", {
+  pattern = "cohdl",
+  callback = function()
+    vim.lsp.start({
+      name = "cohdl",
+      cmd = { "/path/to/cohdl", "lsp" },
+      root_dir = vim.fs.dirname(vim.fs.find({ "cohdl.toml" }, { upward = true })[1]),
+    })
+  end,
+})
+vim.filetype.add({ extension = { cohdl = "cohdl" } })</code></pre>
+          </figure>
+
+          <h2>Formatting</h2>
+          <p>
+            CoHDL has exactly one formatter and exactly one canonical form.
+            <code>cohdl fmt</code> rewrites a file or directory into that form, and
+            <code>cohdl fmt --check</code> verifies without writing — the usual CI gate.
+            Because the canonical form is defined by the toolchain rather than by taste,
+            there are no style options to configure and no formatting debates to have.
+          </p>
+          <p>
+            The language server does not expose formatting over LSP today, so editors
+            run the CLI directly: wire <code>cohdl fmt</code> as your editor's external
+            formatter or as a format-on-save hook.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/errors/">← Error codes</a>
+            <a href="/docs/">Docs home →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

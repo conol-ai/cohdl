@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>CLI reference — CoHDL docs</title>
+    <meta
+      name="description"
+      content="The cohdl command line: check, build, fmt, lsp and the registry verbs — flags, build artifacts, the --json diagnostics document, environment overrides and exit codes."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/cli/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="CoHDL CLI reference" />
+    <meta
+      property="og:description"
+      content="One binary, ten verbs: check, build, fmt, lsp and the registry commands, with structured diagnostics and deterministic outputs."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/cli/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">CLI reference</li>
+          </ol>
+          <h1 class="page-title">CLI reference</h1>
+          <p class="page-lede">
+            The whole toolchain is one binary, <code>cohdl</code>, with ten verbs. Two of
+            them do the compiling — <code>check</code> and <code>build</code> — and the
+            rest keep source canonical, serve editors, and manage dependencies. Every
+            command is deterministic: the same source and the same locked dependency set
+            produce the same verdict and the same output bytes.
+          </p>
+        </div>
+
+        <article class="prose">
+          <h2>One binary, ten verbs</h2>
+          <p>
+            Verbs that operate on a project take an optional <code>PATH</code> — either a
+            project directory (containing <code>cohdl.toml</code> and <code>src/</code>)
+            or a single <code>.cohdl</code> file — and default to the current directory.
+            <code>login</code> and <code>lsp</code> take no path at all.
+          </p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Verb</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>cohdl check</code></td>
+                  <td>Parse, resolve, type-check and run residual DRC. Writes no build artifacts.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl build</code></td>
+                  <td>
+                    Everything <code>check</code> does, then assign designators, bind
+                    parts and emit the netlist, BOM, footprints and layout artifacts.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>cohdl fmt</code></td>
+                  <td>Rewrite <code>.cohdl</code> source into canonical form (<code>--check</code> to gate in CI).</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl lsp</code></td>
+                  <td>Start the Language Server Protocol server on stdio.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl update</code></td>
+                  <td>Re-resolve dependencies to the latest published exact version; rewrite the manifest and lock file.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl add</code></td>
+                  <td>Add a dependency, fetch it, and pin it in <code>cohdl.lock</code> in one step.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl remove</code></td>
+                  <td>Remove a dependency and its lock row — the inverse of <code>add</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl install</code></td>
+                  <td>Resolve every pinned dependency, fetching anything missing from the registry.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl login</code></td>
+                  <td>Store a registry token for publishing.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl publish</code></td>
+                  <td>Package the current project and publish it to registry.cohdl.org.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2><code>cohdl check</code></h2>
+          <pre><code>cohdl check [PATH] [--design NAME] [--std DIR | --no-std] [--json]</code></pre>
+          <p>
+            <code>check</code> runs the whole verdict ladder: the source parses, every
+            name resolves, every unit and trait obligation type-checks, every required
+            pin is connected, and the four residual DRC rules (voltage-exceed,
+            polarity-mismatch, single-driver, multi-driver) pass. Before any
+            <code>.cohdl</code> file is opened, the manifest's
+            <code>[dependencies]</code> pins are verified against
+            <code>cohdl.lock</code> — including each dependency's content hash — so a
+            verdict is never computed against library content the lock file did not
+            record. <code>check</code> writes nothing under <code>out/</code> and never
+            touches <code>design.lock</code>; the one file it may write is
+            <code>cohdl.lock</code>, when the manifest's dependency set has changed —
+            a row the first time a dependency resolves, a rewrite when a pin was
+            edited, a removal when a dependency left the manifest.
+          </p>
+          <ul>
+            <li>
+              <code>--design NAME</code> selects which <code>design</code> declaration to
+              assemble when the project contains more than one; the default comes from
+              <code>[design] top</code> in the manifest.
+            </li>
+            <li>
+              <code>--std DIR</code> is a development override that replaces the pinned
+              <code>std</code> package (the <code>COHDL_STD</code> environment variable
+              does the same). Using either emits the unsuppressable E1105 warning: the
+              build no longer uses a locked <code>std</code> and must not be treated as
+              reproducible. <code>--no-std</code> opts out of <code>std</code> entirely.
+            </li>
+          </ul>
+
+          <h3>Structured diagnostics with <code>--json</code></h3>
+          <p>
+            <code>check --json</code> (and <code>build --json</code>) emits exactly one
+            JSON document to stdout instead of human-readable text. It is the same
+            diagnostic pipeline, restructured — the JSON and plain-text outputs always
+            report the identical diagnostic set, field for field, and that equivalence is
+            a tested property of the compiler. The document carries:
+          </p>
+          <ul>
+            <li>
+              <code>schema_version</code> — an integer, bumped only on a breaking change
+              to the document's own shape. Consumers must check it before parsing
+              further; new diagnostic codes are ordinary content, not schema changes.
+            </li>
+            <li>
+              <code>verdict</code> — <code>"pass"</code> or <code>"fail"</code>, computed
+              exactly as the exit code is: any error-severity diagnostic means
+              <code>"fail"</code>.
+            </li>
+            <li>
+              <code>diagnostics</code> — a flat, ordered list. Each entry has a stable
+              <code>code</code>, a <code>severity</code>, a <code>message</code>, a
+              <code>primary</code> span (project-relative file, 1-based line and column
+              range, and its own label), zero or more <code>secondary</code> spans, and a
+              <code>help</code> list, verbatim from the text renderer.
+            </li>
+            <li>
+              On <code>build --json</code>, a <code>build</code> object naming the
+              emitted artifact paths — present only when the verdict is
+              <code>"pass"</code>.
+            </li>
+          </ul>
+          <p>
+            Here is a real capture. In a copy of the Pico 2 reference design, the 3.3 V
+            rail's net annotation was changed from <code>[3.3V]</code> to
+            <code>[100nF]</code> — a capacitance where a voltage belongs:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">src/main.cohdl</span>
+              <span class="code-hint">the deliberate mistake</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">net</span> V3V3 <span class="c-unit">[100nF]</span>: reg.VOUT, reg.FB, mcu.IOVDD, mcu.QSPI_IOVDD, mcu.USB_OTP_VDD, mcu.VREG_VIN,
+                 flash.VCC, hdr.V3V3, q_vsys.Gate, r_vreg_avdd.A, r_vref.A</code></pre>
+          </figure>
+
+          <p>The compiler's answer, verbatim (exit code 1):</p>
+
+          <pre><code>$ cohdl check . --json
+{
+  "schema_version": 1,
+  "verdict": "fail",
+  "diagnostics": [
+    {
+      "code": "E110",
+      "severity": "error",
+      "message": "net voltage annotation has the wrong unit type: expected `Voltage`, found `Capacitance`",
+      "primary": {
+        "file": "src/main.cohdl",
+        "start_line": 67,
+        "start_col": 15,
+        "end_line": 67,
+        "end_col": 20,
+        "message": "`100nF` is a `Capacitance`"
+      },
+      "secondary": [],
+      "help": [
+        "annotate with a voltage (e.g. `[3.3V]`), or `[gnd]` for ground"
+      ]
+    }
+  ]
+}</code></pre>
+
+          <p>
+            Note what the diagnostic contains: a stable code from the
+            <a href="/docs/errors/">error-code registry</a>, the exact span of the
+            offending literal, and both the expected and the actual unit by name. That
+            precision is a language rule, not a courtesy — it is what lets a tool (or a
+            model) repair a design from diagnostics alone.
+          </p>
+
+          <h2><code>cohdl build</code></h2>
+          <pre><code>cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
+            [--emit ipc2581] [--json]</code></pre>
+          <p>
+            <code>build</code> runs the full <code>check</code>, then assigns designators
+            (recorded in <code>design.lock</code>, so they stay stable across rebuilds),
+            binds part numbers, and emits the fabrication artifacts. Output goes to
+            <code>out/</code> under the project directory, or to <code>--out-dir DIR</code>.
+          </p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Artifact</th>
+                  <th>Path</th>
+                  <th>When</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>KiCad netlist</td>
+                  <td><code>out/&lt;name&gt;.net</code></td>
+                  <td>Always — importable by <a href="https://www.kicad.org">KiCad</a>'s pcbnew.</td>
+                </tr>
+                <tr>
+                  <td>Bill of materials</td>
+                  <td><code>out/&lt;name&gt;-bom.csv</code></td>
+                  <td>Always.</td>
+                </tr>
+                <tr>
+                  <td>Designator lock</td>
+                  <td><code>design.lock</code> (project root)</td>
+                  <td>Always — commit it; it is the record of designator stability.</td>
+                </tr>
+                <tr>
+                  <td>Footprints</td>
+                  <td><code>out/footprints/*.kicad_mod</code></td>
+                  <td>One per pad-bearing footprint the design uses.</td>
+                </tr>
+                <tr>
+                  <td>Layout constraints</td>
+                  <td><code>out/&lt;name&gt;-layout.json</code></td>
+                  <td>Only when the design declares layout metadata.</td>
+                </tr>
+                <tr>
+                  <td>Physics hints</td>
+                  <td>CSV set in <code>out/</code></td>
+                  <td>
+                    Only when the design carries physics attributes — the constraint
+                    files the <a href="https://quilter.ai">Quilter</a> autorouter reads.
+                  </td>
+                </tr>
+                <tr>
+                  <td>IPC-2581 handoff</td>
+                  <td><code>out/&lt;name&gt;.xml</code></td>
+                  <td>Only with <code>--emit ipc2581</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            The output directory is managed, not just written to. Each build records the
+            set of files it wrote; on the next build, a file the compiler wrote before
+            but no longer produces — say, a layout document after the design's layout
+            metadata was removed — is deleted as stale, and a file the compiler did
+            <em>not</em> write is never overwritten. A transcript from the Pico 2
+            reference design, with the footprint list trimmed here (the real build
+            writes seventeen <code>.kicad_mod</code> files):
+          </p>
+
+          <pre><code>$ cohdl build examples/rpi-pico2
+  Built design `Pico2`: 52 instances, 67 nets
+  wrote examples/rpi-pico2/out/rpi-pico2.net
+  wrote examples/rpi-pico2/out/rpi-pico2-bom.csv
+  wrote examples/rpi-pico2/out/rpi-pico2-layout.json
+  wrote examples/rpi-pico2/out/footprints/passive-CHIP_0402.kicad_mod
+  wrote examples/rpi-pico2/out/footprints/qfn-QFN60N40P700X700_1EP340X340.kicad_mod
+  wrote examples/rpi-pico2/out/footprints/usb-connectors-type_c-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
+  wrote examples/rpi-pico2/design.lock</code></pre>
+
+          <p>
+            Every artifact is byte-deterministic: rebuilding the same source against the
+            same locked dependencies produces identical files, so generated output can be
+            committed and diffed like any other source.
+          </p>
+
+          <h2><code>cohdl fmt</code></h2>
+          <pre><code>cohdl fmt [PATH] [--check]</code></pre>
+          <p>
+            <code>fmt</code> rewrites every <code>.cohdl</code> file at
+            <code>PATH</code> into the language's canonical form — one authoritative
+            layout, so diffs show design changes and never formatting churn. In a project
+            directory it also canonicalizes the manifest's <code>[dependencies]</code>
+            section (entries sorted by name); it never touches <code>cohdl.lock</code>,
+            which is machine-generated.
+          </p>
+          <p>
+            <code>fmt</code> only formats valid source. A file that does not parse is
+            reported with the ordinary parse diagnostics and left untouched —
+            <code>fmt</code> is not a repair tool. With <code>--check</code> nothing is
+            rewritten: each drifted file is reported as
+            <code>would reformat &lt;file&gt;</code> and the command exits non-zero,
+            which is the shape a CI gate wants. When everything is already canonical it
+            prints <code>All files are in canonical form.</code> and exits 0.
+          </p>
+
+          <h2><code>cohdl lsp</code></h2>
+          <pre><code>cohdl lsp</code></pre>
+          <p>
+            Starts the Language Server Protocol server on stdio. It takes no flags or
+            arguments — the editor owns the transport. The server exits 0 after an
+            orderly <code>shutdown</code>/<code>exit</code> sequence, 1 on
+            <code>exit</code> without <code>shutdown</code> (as the protocol specifies),
+            and 2 on a transport failure. Editor wiring — including the VS Code
+            extension that packages this server — is covered in
+            <a href="/docs/editors/">Editor support</a>.
+          </p>
+
+          <h2>Registry verbs</h2>
+          <p>
+            Dependencies in CoHDL are pinned to exact <code>X.Y.Z</code> versions —
+            range syntax is rejected at parse time, permanently — and
+            <code>cohdl.lock</code> records each dependency's version and sha256 content
+            hash, re-verified on every <code>check</code> and <code>build</code>. The
+            registry verbs are the sanctioned ways those pins change. This is a summary;
+            <a href="/docs/packages/">Packages &amp; registry</a> covers the model.
+          </p>
+          <ul>
+            <li>
+              <code>cohdl add NAME[@X.Y.Z] [PATH]</code> — resolve the latest published
+              version (or the exact one given), fetch it into the local cache, and write
+              the <code>[dependencies]</code> entry plus its lock row in one step. The
+              three-tier namespace is validated before any network call: a bare name is
+              CoHDL official, <code>@brand/name</code> is a verified manufacturer, and
+              <code>@contrib/name</code> is community.
+            </li>
+            <li>
+              <code>cohdl remove NAME [PATH]</code> — delete the dependency entry and
+              its lock row; the symmetric inverse of <code>add</code>.
+            </li>
+            <li>
+              <code>cohdl install [PATH]</code> — resolve every pinned dependency per
+              <code>cohdl.lock</code>, fetching anything missing from the registry. A
+              content-hash mismatch is a hard error, never a silent re-fetch.
+            </li>
+            <li>
+              <code>cohdl update [NAME] [PATH] [--dep NAME]</code> — the only sanctioned
+              pin change: re-resolve one dependency (named positionally or with
+              <code>--dep</code>) or all of them to the latest published exact version,
+              registry first with local packages as the fallback, rewriting
+              <code>[dependencies]</code> and <code>cohdl.lock</code> together. It also
+              migrates a manifest that predates dependency pinning by writing its first
+              <code>[dependencies]</code> section.
+            </li>
+            <li>
+              <code>cohdl login</code> — opens the registry account page for you to
+              create a token; paste it at the prompt and it is verified and stored.
+            </li>
+            <li>
+              <code>cohdl publish [PATH]</code> — package the project and publish it.
+              The namespace tier, <code>[package] version</code> and
+              <code>[package] license</code> are all checked locally before anything is
+              uploaded. The server independently recomputes the content hash, and that
+              server-side hash is what consumers' lock files verify against.
+            </li>
+          </ul>
+          <p>
+            Two environment variables override registry defaults:
+            <code>COHDL_REGISTRY</code> replaces
+            <a href="https://registry.cohdl.org">registry.cohdl.org</a> as the registry
+            endpoint, and <code>COHDL_HOME</code> replaces <code>~/.cohdl</code> as the
+            location of the package cache and stored credentials.
+          </p>
+
+          <h2>Exit codes</h2>
+          <p>
+            Exit codes separate "the design has problems" from "the invocation has
+            problems", and the two never blur:
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>0</code></td>
+                  <td>Clean. Warnings are allowed on a clean exit.</td>
+                </tr>
+                <tr>
+                  <td><code>1</code></td>
+                  <td>
+                    Source diagnostics reported — errors in the design itself. Text
+                    renders to stderr; with <code>--json</code>, stdout carries exactly
+                    one JSON document instead. <code>fmt --check</code> also exits 1
+                    when any file is not canonical.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>2</code></td>
+                  <td>
+                    Invocation-level failure — the E000 class: bad flags, a flag invalid
+                    for the command, a missing project, a design-selection failure, or
+                    nothing to build. Prose on stderr, never a JSON document. Source
+                    diagnostics collected before the failure still render to stderr
+                    first — they are never discarded.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The stream split is deliberate: stdout belongs to machine-readable output
+            (the <code>--json</code> document) and stderr to human-readable text, so a
+            tool consuming diagnostics never has to parse around progress messages.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/language/">← The language</a>
+            <a href="/docs/packages/">Next: Packages &amp; registry →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>OpenMicroKbd: a macropad written in CoHDL — Use cases — CoHDL</title>
+    <meta
+      name="description"
+      content="How a 13-key macropad with an encoder, joystick, touch pad and 21 RGB LEDs was designed as 823 lines of CoHDL: the compiler checked the schematic, emitted netlist, BOM and footprints, and handed constraints to the autorouter."
+    />
+    <link rel="canonical" href="https://cohdl.org/use-cases/openmicrokbd/" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="OpenMicroKbd: a macropad written in CoHDL" />
+    <meta
+      property="og:description"
+      content="The schematic is 823 lines of source code. The compiler checked it, emitted the fabrication data, and the board came back from the fab and worked."
+    />
+    <meta property="og:url" content="https://cohdl.org/use-cases/openmicrokbd/" />
+    <meta property="og:image" content="https://cohdl.org/img/openmicrokbd/hero.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/" aria-current="page">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/use-cases/">Use cases</a></li>
+            <li aria-current="page">OpenMicroKbd</li>
+          </ol>
+          <h1 class="page-title">A macropad whose schematic is<br /><em>source code</em></h1>
+          <p class="page-lede">
+            OpenMicroKbd is an open-source recreation of the OpenAI Codex Micro's control
+            surface: 13 keys, a rotary encoder, an analog joystick, a capacitive touch
+            pad and 21 addressable RGB LEDs, wired over USB-C. Nobody drew its schematic.
+            It is 823 lines of CoHDL, and a compiler — not a checklist — stood between
+            the design and the fab.
+          </p>
+        </div>
+
+        <article class="prose">
+          <figure>
+            <img
+              src="/img/openmicrokbd/hero.webp"
+              alt="The finished OpenMicroKbd held in one hand: black PCB in a white printed case, icon keycaps, a knob, a joystick and a yellow accent key"
+              width="1280"
+              height="853"
+            />
+            <figcaption>
+              The finished board in its 3D-printed case. About $37 in parts and assembly
+              for a one-off prototype.
+            </figcaption>
+          </figure>
+
+          <div class="fact-panel">
+            <dl>
+              <div>
+                <dt>Device</dt>
+                <dd>13-key macropad, encoder, joystick, touch pad, 21× RGB</dd>
+              </div>
+              <div>
+                <dt>MCU</dt>
+                <dd>STM32F072CBT6 (Cortex-M0)</dd>
+              </div>
+              <div>
+                <dt>Board</dt>
+                <dd>95 × 95 mm, 4-layer</dd>
+              </div>
+              <div>
+                <dt>Schematic</dt>
+                <dd>823 lines of CoHDL in 4 files</dd>
+              </div>
+              <div>
+                <dt>Layout</dt>
+                <dd>Quilter.ai, from compiler constraints</dd>
+              </div>
+              <div>
+                <dt>License</dt>
+                <dd>MIT — <a href="https://github.com/conol-ai/openmicrokbd">github.com/conol-ai/openmicrokbd</a></dd>
+              </div>
+            </dl>
+          </div>
+
+          <h2>Why this board</h2>
+          <p>
+            CoHDL needed to be proven on something real with awkward requirements — not a
+            blinky. A key matrix with per-key diodes, a rotary encoder, an analog
+            joystick, a capacitive touch electrode drawn in PCB copper, two independent
+            WS2812 LED chains sharing a USB power budget, ESD protection, an LDO, and a
+            debug socket. Small enough to finish; complicated enough to be a fair test.
+            The full story of the device — firmware, companion app, enclosure — is told
+            in the project's own
+            <a href="https://openmicrokbd.org/blog/openmicrokbd-launch/">launch post</a>.
+            This page is about the part CoHDL played.
+          </p>
+
+          <h2>The schematic is 823 lines of text</h2>
+          <p>
+            The whole electrical design lives in four files under
+            <a href="https://github.com/conol-ai/openmicrokbd/tree/main/hw/v1/src"><code>hw/v1/src/</code></a>:
+            the top-level design, the datasheet-verified part bindings, and the board's
+            footprints and pads. Thirteen switches and thirteen matrix diodes are two
+            declarations, not twenty-six placed symbols:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">hw/v1/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">inst</span> sw: [<span class="c-ty">SW_KEY</span>; 13]
+<span class="c-kw">inst</span> d: [diode::<span class="c-ty">D_1N4148W</span>; 13]
+
+<span class="c-cm">// key matrix: rows drive, columns read through the diodes</span>
+<span class="c-kw">net</span> ROW1: mcu.PA10, sw[2..=5].A
+<span class="c-kw">net</span> COL1: mcu.PB5, d[0, 3, 7, 10].Cathode</code></pre>
+          </figure>
+
+          <p>
+            Nets carry types, not just names. The 3.3 V rail is annotated
+            <code>[3.3V]</code>, so connecting a part whose supply pin can't take that
+            voltage is a compile error — and design intent rides along as a checked
+            attribute instead of a comment that quietly goes stale:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">hw/v1/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[intent("AP2112K enable tied to VIN — always on when USB is present")]</span>
+<span class="c-at">#[high_current(500mA)]</span>
+<span class="c-kw">net</span> V3V3 <span class="c-unit">[3.3V]</span>: ldo.VOUT, mcu.VDD, mcu.VDDA, mcu.VBAT, mcu.VDDIO2,
+                 joy.X_END_B, joy.Y_END_B, c_vdda.A, c_vdd_a.A, c_vdd_b.A, c_vdda_hf.A</code></pre>
+          </figure>
+
+          <p>
+            The compiler's job is to refuse the silent mistakes. Every pin on every
+            device carries a connection obligation — a required pin left floating is an
+            error naming that pin, and deliberately unconnected pins must be declared
+            with <code>nc</code>, with a reason. Units never coerce. And because the
+            language is text, the diff for "swap the CC pulldowns" is two lines in a code
+            review, not a spot-the-difference between two screenshots.
+          </p>
+
+          <h2>Attributes the layout tools can consume</h2>
+          <p>
+            The design declares physics, not just connectivity. The crystal declares its
+            oscillator region; every bypass capacitor declares which pin it serves and at
+            what value:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">hw/v1/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-at">#[crystal_oscillator(mcu, PF0, PF1)]</span>
+<span class="c-kw">inst</span> xtal: osc::<span class="c-ty">XTAL_8M</span>
+
+<span class="c-at">#[bypass(mcu.VDD, 100nF)]</span>
+<span class="c-kw">inst</span> c_vdd_a: passive::<span class="c-ty">C_100n_16V_X7R_0402</span>
+<span class="c-at">#[bypass(mcu.VDD, 100nF)]</span>
+<span class="c-kw">inst</span> c_vdd_b: passive::<span class="c-ty">C_100n_16V_X7R_0402</span></code></pre>
+          </figure>
+
+          <p>
+            Those attributes aren't decoration — they're the interface to the autorouter.
+            The bypass capacitors deliberately carry <strong>no</strong> hand placement:
+            the <code>#[bypass]</code> attribute is exactly what the auto-placer
+            consumes, so it puts each capacitor where its pin's fanout actually lands
+            rather than where a human guessed before any routing existed. Parts whose
+            positions are mechanical facts — switches on the 19.05 mm key grid, the
+            encoder, the USB connector — are pinned explicitly, down to which side of the
+            board they sit on:
+          </p>
+
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">hw/v1/src/main.cohdl</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">place</span> mcu <span class="c-kw">at</span> (<span class="c-unit">-40mm</span>, <span class="c-unit">24mm</span>) <span class="c-kw">rotate</span> 270 <span class="c-kw">side</span> bottom
+<span class="c-kw">place</span> enc <span class="c-kw">at</span> (<span class="c-unit">-35.575mm</span>, <span class="c-unit">-31.075mm</span>)
+<span class="c-kw">place</span> sw[0] <span class="c-kw">at</span> (<span class="c-unit">-9.525mm</span>, <span class="c-unit">-28.575mm</span>)</code></pre>
+          </figure>
+
+          <h2>From <code>cohdl build</code> to a routed board</h2>
+          <p>
+            One build emits everything downstream of the schematic: the KiCad netlist,
+            the BOM, a <code>.kicad_mod</code> per footprint, the layout-constraint
+            document, an IPC-2581 handoff file, and the physics-hint CSVs the autorouter
+            reads. All of it is checked into the repository under
+            <a href="https://github.com/conol-ai/openmicrokbd/tree/main/hw/v1/out"><code>hw/v1/out/</code></a>,
+            and all of it is deterministic — rebuilding the same source produces the same
+            bytes.
+          </p>
+          <p>
+            Physical layout is <a href="https://quilter.ai">Quilter</a>'s work, not
+            CoHDL's — the routing is not written by hand or by the compiler. Quilter took
+            the netlist, the locked placements and the physics hints, and placed and
+            routed 88 components and 337 pins, returning ten candidate boards in about
+            twelve minutes.
+          </p>
+
+          <figure>
+            <img
+              src="/img/openmicrokbd/quilter.webp"
+              alt="The Quilter.ai layout screen showing the routed 95 by 95 millimetre board, its switch and LED footprints, layer list and a design review panel"
+              width="1280"
+              height="800"
+              loading="lazy"
+            />
+            <figcaption>
+              Quilter's layout of the board: 88 components, 337 pins, routed from the
+              compiler's constraints.
+            </figcaption>
+          </figure>
+
+          <figure>
+            <img
+              src="/img/openmicrokbd/underside.webp"
+              alt="Macro view of the board's underside during hand assembly: a soldering iron at one joint, surrounded by teal reverse-mount LED packages silkscreened LED17 through LED29"
+              width="1280"
+              height="853"
+              loading="lazy"
+            />
+            <figcaption>
+              Reverse-mount LEDs on the underside fire up through board cutouts. Their
+              footprints — like every footprint on the board — were emitted by the
+              compiler from pad declarations in the source.
+            </figcaption>
+          </figure>
+
+          <h2>One source of truth, firmware included</h2>
+          <p>
+            The firmware's pin map is generated from the hardware source, which removes a
+            classic two-file failure: changing a schematic pin and forgetting the
+            firmware constant that mirrors it. Generated files aren't automatically
+            correct — they preserve bad choices as faithfully as good ones — but
+            electrical intent and firmware assumptions can no longer silently drift
+            apart.
+          </p>
+
+          <figure>
+            <img
+              src="/img/openmicrokbd/kit.webp"
+              alt="The assembled board in its white printed case, beside the embossed OpenMicroKbd packaging box and two printed trays of alternate keycaps"
+              width="1280"
+              height="853"
+              loading="lazy"
+            />
+            <figcaption>
+              The whole device is open: schematic source, fabrication package, firmware,
+              companion app, and the printable case, keycaps and packaging.
+            </figcaption>
+          </figure>
+
+          <h2>Version 2 is the same language on a radio</h2>
+          <p>
+            The wireless successor is already written: hardware v2 moves to the SiFli
+            SF32LB52 — BLE, battery-powered — and lives beside v1 in the same repository
+            as CoHDL source with compiler outputs, not yet routed. Same language, same
+            pipeline, different physics. That's the point of the schematic being a
+            program: v2 is a revision you can read as a diff, not a new drawing.
+          </p>
+
+          <h2>Honest boundaries</h2>
+          <ul>
+            <li>
+              CoHDL produced the schematic, its checks, and the generated outputs.
+              Placement and routing are Quilter's work; hand review, soldering and
+              bring-up were human work throughout.
+            </li>
+            <li>
+              The CoHDL compiler is not yet public, and source hardware is most useful
+              when anyone can run the whole toolchain. The complete compiler outputs are
+              checked into the repository in the meantime, so every generated artifact is
+              inspectable today — and <a href="/#waitlist">the waitlist</a> will announce
+              the moment the compiler is.
+            </li>
+          </ul>
+
+          <nav class="pager" aria-label="More">
+            <a href="/use-cases/">← All use cases</a>
+            <a href="https://openmicrokbd.org">openmicrokbd.org →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

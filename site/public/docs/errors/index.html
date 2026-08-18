@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>Error codes — CoHDL docs</title>
+    <meta
+      name="description"
+      content="The formal error-code registry of the CoHDL compiler: every diagnostic code, grouped by the kind of mistake it names, with the stability rules that let tools rely on them."
+    />
+    <link rel="canonical" href="https://cohdl.org/docs/errors/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta property="og:title" content="CoHDL error codes" />
+    <meta
+      property="og:description"
+      content="Every diagnostic the compiler can emit, grouped by kind of mistake. Codes are issued once and never repurposed, so tools can key on them."
+    />
+    <meta property="og:url" content="https://cohdl.org/docs/errors/" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <svg
+            class="brand-mark"
+            width="34"
+            height="34"
+            viewBox="0 0 40 40"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect x="7.5" y="7.5" width="25" height="25" rx="7" />
+            <path
+              d="M14 16.5h4.5l3-4.5M14 23.5h4.5l3 4.5M21.5 12v16M21.5 16.5H27M21.5 23.5H27"
+            />
+            <circle cx="14" cy="16.5" r="1.3" />
+            <circle cx="14" cy="23.5" r="1.3" />
+            <circle cx="27" cy="16.5" r="1.3" />
+            <circle cx="27" cy="23.5" r="1.3" />
+          </svg>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/" aria-current="page">Docs</a>
+          <a class="site-nav-link" href="/blog/">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main>
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/docs/">Docs</a></li>
+            <li aria-current="page">Error codes</li>
+          </ol>
+          <h1 class="page-title">Error codes</h1>
+          <p class="page-lede">
+            Every diagnostic the compiler can emit, grouped by the kind of mistake it
+            names. Codes are issued once and never repurposed, so a tool that keys on a
+            code today can trust it in every future release.
+          </p>
+        </div>
+
+        <article class="prose prose--wide">
+          <p>
+            Every diagnostic carries two things: a <strong>stable code</strong> and an
+            <strong>exact source span</strong> — the range of characters in your source
+            that the message is about. The message always names the exact construct at
+            fault (an instance, a pin, a trait, a unit), never a bare "type mismatch".
+            Here is a real one, produced by annotating a 3.3&nbsp;V rail with a
+            capacitance:
+          </p>
+
+          <pre><code>$ cohdl check .
+error[E110]: net voltage annotation has the wrong unit type: expected `Voltage`, found `Capacitance`
+ --&gt; src/main.cohdl:67:15
+   |
+67 |     net V3V3 [100nF]: reg.VOUT, reg.FB, mcu.IOVDD, mcu.QSPI_IOVDD, mcu.USB_OTP_VDD, mcu.VREG_VIN,
+   |               ^^^^^ `100nF` is a `Capacitance`
+  = help: annotate with a voltage (e.g. `[3.3V]`), or `[gnd]` for ground
+
+1 error emitted</code></pre>
+
+          <p>
+            The registry is governed by a <strong>stability rule</strong>: a code is
+            issued once and never repurposed. If a check's behavior changes enough that
+            the old meaning no longer applies, the code is retired — marked
+            <code>[DEPRECATED]</code>, its row and meaning kept documented — and a new
+            code is issued. A code's meaning is never edited in place. That is what makes
+            codes safe to build on: CI gates, editor quick-fixes and any automation that
+            matches on a code will keep meaning the same thing. The
+            <a href="/docs/cli/"><code>--json</code> output</a> of
+            <code>cohdl check</code> and <code>cohdl build</code> carries the same codes
+            machine-readably.
+          </p>
+
+          <p>
+            The <strong>organizing principle</strong>: a block is chosen by the kind of
+            mistake, not by which compiler pass happens to catch it. A unit mismatch is a
+            unit mismatch even when it is caught at a generic substitution site — so it
+            lives in E1xx, not in the generics block.
+          </p>
+
+          <h2>Block ownership</h2>
+          <p>
+            Each block of the code space is owned by one language mechanism. Severities:
+            all <code>Exxx</code> codes are errors (the registry records two explicit
+            exceptions, covered <a href="#warnings-and-errors">below</a>);
+            <code>Dxxx</code> severity is per rule.
+          </p>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Block</th>
+                  <th>Owner mechanism</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E00x</code></td><td>CLI invocation (pre-pipeline — not a source diagnostic)</td></tr>
+                <tr><td><code>E0xx</code></td><td>Lexing and parsing</td></tr>
+                <tr><td><code>E1xx</code></td><td>Unit system (RFC-001) — all unit-mismatch and unit-literal diagnostics, regardless of call site</td></tr>
+                <tr><td><code>E2xx</code></td><td>Name resolution</td></tr>
+                <tr><td><code>E3xx</code></td><td>Trait satisfaction at <code>impl</code> (RFC-003)</td></tr>
+                <tr><td><code>E4xx</code></td><td>Generics (RFC-007), excluding unit mismatch (that is E1xx)</td></tr>
+                <tr><td><code>E5xx</code></td><td>Sub-circuit <code>fn</code>s (RFC-006)</td></tr>
+                <tr><td><code>E6xx</code></td><td>Design assembly and nets</td></tr>
+                <tr><td><code>E7xx</code></td><td>Pin connection obligations (RFC-002)</td></tr>
+                <tr><td><code>E8xx</code></td><td>Designators and parts (RFC-005)</td></tr>
+                <tr><td><code>E9xx</code></td><td>Structural variants (RFC-008)</td></tr>
+                <tr><td><code>E10xx</code></td><td>Layout constraints (RFC-013)</td></tr>
+                <tr><td><code>E11xx</code></td><td>Package resolution (RFC-029) — manifest <code>[dependencies]</code> plus <code>cohdl.lock</code>, pre-pipeline</td></tr>
+                <tr><td><code>E12xx</code></td><td>Registry interaction (RFC-030) — a different kind of mistake from E11xx's local resolution and hash failures</td></tr>
+                <tr><td><code>D00x</code></td><td>Residual DRC (RFC-004) — exactly four, never more</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            The registry is enforced mechanically: a completeness test runs in both
+            directions on every build. Every diagnostic code literal in the compiler
+            source must appear as a registry row, and every row that is not retired or
+            reserved must have at least one real call site. The tables below therefore
+            describe the compiler as it is, not as intended.
+          </p>
+
+          <h2>E00x — CLI invocation</h2>
+          <p>
+            Failures of the invocation itself, before any source is read. These are not
+            source diagnostics: they exit with code 2, print prose to stderr, and never
+            appear inside a <code>--json</code> diagnostics array.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>E000</code></td>
+                  <td>Invocation-level failure — bad flags, an invalid flag for the command, a missing path or project, a design-selection failure, or nothing to build. Exit code 2, prose on stderr, never inside a <code>--json</code> diagnostics array; source diagnostics collected before the failure still render to stderr first. CLI-only, so it deliberately has no source-diagnostic call site. (Classifying post-collection selection failures here is a documented deviation from RFC-010's pre-collection wording, pending amendment.)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E0xx — lexing and parsing</h2>
+          <p>Mistakes the lexer and the parser catch.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E001</code></td><td>Unexpected character — includes the targeted <code>°C</code> → <code>C</code> guidance; a standalone <code>Ω</code> is E107.</td></tr>
+                <tr><td><code>E002</code></td><td>Unterminated string literal.</td></tr>
+                <tr><td><code>E010</code></td><td>Unexpected token — the message names what was expected and what was found.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E1xx — unit system (RFC-001)</h2>
+          <p>
+            This block owns every unit-mismatch and unit-literal diagnostic, regardless
+            of where in the pipeline the mismatch is caught — including generic
+            substitution sites.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E101</code></td><td>Non-ASCII unit spelling (<code>Ω</code>, <code>°C</code>) directly after a number.</td></tr>
+                <tr><td><code>E102</code></td><td>Negative bare number — only <code>Temperature</code> and <code>Length</code> literals may be negative.</td></tr>
+                <tr><td><code>E103</code></td><td>Unknown unit suffix.</td></tr>
+                <tr><td><code>E104</code></td><td>SI prefix not allowed for this unit, including any prefix on <code>Temperature</code> or <code>Tolerance</code>.</td></tr>
+                <tr><td><code>E105</code></td><td>Leading <code>-</code> on a unit literal whose type is not signed — only <code>Temperature</code> and <code>Length</code> may carry a sign.</td></tr>
+                <tr><td><code>E106</code></td><td>Literal not exactly representable — too precise, or out of range.</td></tr>
+                <tr><td><code>E107</code></td><td>Standalone Unicode <code>Ω</code> with no preceding number — deliberately narrower than E101 so the message can be maximally specific.</td></tr>
+                <tr><td><code>E110</code></td><td>Unit-type mismatch — always names expected versus actual (e.g. "expected <code>Voltage</code>, found <code>Capacitance</code>").</td></tr>
+                <tr><td><code>E111</code></td><td>Bare number where a unit-typed value is required.</td></tr>
+                <tr><td><code>E112</code></td><td>Unit-type generic argument has the wrong unit type (relocated from the retired E402 — unit mismatch belongs in E1xx).</td></tr>
+                <tr><td><code>E113</code></td><td>Bare number as a unit-type generic argument (relocated from the retired E404).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E2xx — name resolution</h2>
+          <p>
+            Resolving names across the project's files, its modules and its declared
+            dependencies.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E201</code></td><td>Duplicate top-level declaration.</td></tr>
+                <tr><td><code>E202</code></td><td>Unknown name.</td></tr>
+                <tr><td><code>E203</code></td><td>Unknown pin on a device or trait.</td></tr>
+                <tr><td><code>E204</code></td><td><code>[RESERVED, not yet implemented]</code> Unknown spec field — no call site yet.</td></tr>
+                <tr><td><code>E205</code></td><td>Name is the wrong kind — e.g. a trait used where a device is required.</td></tr>
+                <tr><td><code>E206</code></td><td>Instance and net names beginning with <code>__</code> are reserved for compiler-generated expansion names.</td></tr>
+                <tr><td><code>E207</code></td><td>Ambiguous unqualified name (RFC-016) — declared at more than one module path; the message names every candidate and suggests qualifying or a <code>use</code> import.</td></tr>
+                <tr><td><code>E208</code></td><td><code>use</code> collision (RFC-016) — one local name imported from two different paths; the message names both.</td></tr>
+                <tr><td><code>E209</code></td><td>Visibility violation (RFC-016) — a non-<code>pub</code> item referenced from another package; names the item and its declaring package.</td></tr>
+                <tr><td><code>E210</code></td><td>Unspellable module-path segment (RFC-016) — the package root, a <code>src/</code> or <code>std/</code> subdirectory, or a nested-file name is a keyword or not an identifier, so its declarations cannot be referenced by any qualified path.</td></tr>
+                <tr><td><code>E211</code></td><td>Malformed or misplaced array-typed instance or indexed reference (RFC-024) — an array length below 1 in <code>inst NAME: [Device; N]</code>; a bare unindexed reference to an array-typed instance (<code>NAME</code> alone is never a valid reference — index it, <code>NAME[0]</code>); an index applied to something that is not array-typed; a non-whole-number index; an empty range or a stride below 1; or a range or index list used outside a net's member list — <code>place</code>, <code>nc</code>, <code>fn</code>-call arguments and <code>#[bypass(NAME[i].PIN, …)]</code> each take a single element <code>NAME[i]</code>, since "a range at once" has no single meaning there (one capacitor cannot bypass three pins). A well-formed index that is simply outside the array's declared length is E202, not E211.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E3xx — trait satisfaction at impl (RFC-003)</h2>
+          <p>Whether an <code>impl</code> actually satisfies the trait it claims.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E301</code></td><td><code>impl Trait for Device</code> unsatisfied — names the trait, the device, and the exact missing or mismatched pin role or spec field.</td></tr>
+                <tr><td><code>E302</code></td><td>Missing sub-trait impl — names the required sibling <code>impl</code> (a chain diagnostic).</td></tr>
+                <tr><td><code>E303</code></td><td>Duplicate <code>impl</code> for the same (trait, device) pair — points at the earlier one.</td></tr>
+                <tr><td><code>E304</code></td><td>An impl mapping names a role or field the trait does not require.</td></tr>
+                <tr><td><code>E305</code></td><td>An impl mapping target is not a pin or spec of the device.</td></tr>
+                <tr><td><code>E306</code></td><td>Cyclic sub-trait bounds.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E4xx — generics (RFC-007)</h2>
+          <p>
+            Generics-specific mistakes only. A unit mismatch at a generic site is E112 or
+            E113, not here — see the organizing principle above.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E401</code></td><td>Wrong number of generic arguments.</td></tr>
+                <tr><td><code>E402</code></td><td><code>[DEPRECATED → E112]</code> Unit-type generic argument has the wrong unit type — retired name, relocated to E1xx by RFC-011.</td></tr>
+                <tr><td><code>E403</code></td><td>Trait bound not satisfied at instantiation — names the missing trait and the concrete type.</td></tr>
+                <tr><td><code>E404</code></td><td><code>[DEPRECATED → E113]</code> Bare number as a unit-type generic argument — retired name, relocated to E1xx by RFC-011.</td></tr>
+                <tr><td><code>E405</code></td><td>Generic argument is not concrete after substitution.</td></tr>
+                <tr><td><code>E406</code></td><td>Invalid generic parameter declaration — e.g. a default on a trait-bound parameter.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E5xx — sub-circuit fns (RFC-006)</h2>
+          <p>Calling and expanding sub-circuit functions.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E501</code></td><td>Cyclic <code>fn</code> call chain — the message shows the full cycle.</td></tr>
+                <tr><td><code>E502</code></td><td>Wrong number of call arguments.</td></tr>
+                <tr><td><code>E503</code></td><td>Call argument kind mismatch (a pin where an instance is expected, or the reverse).</td></tr>
+                <tr><td><code>E504</code></td><td>Unknown <code>fn</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E6xx — design assembly and nets</h2>
+          <p>Assembling the design's nets and <code>nc</code> declarations.</p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E601</code></td><td><code>[RESERVED, not yet implemented]</code> Floating net — a net resolving to zero instance pins (a planned reclassification of RFC-004's W002); no call site yet.</td></tr>
+                <tr><td><code>E602</code></td><td>A net or <code>nc</code> member is not a known pin.</td></tr>
+                <tr><td><code>E603</code></td><td>Contradictory annotations on a merged net — two voltages, or a voltage plus <code>[gnd]</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E7xx — pin connection obligations (RFC-002)</h2>
+          <p>
+            Every required pin must be accounted for at final assembly: connected in a
+            <code>net</code>, or declared deliberately unconnected with <code>nc</code>.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E701</code></td><td>Required pin unresolved — it appears in neither <code>net</code> nor <code>nc</code>.</td></tr>
+                <tr><td><code>E702</code></td><td>Required pin contradictory — it appears in both <code>net</code> and <code>nc</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E8xx — designators and parts (RFC-005)</h2>
+          <p>
+            Everything between the design and the physical part: designator allocation,
+            part binding (provisional syntax), and the pad, footprint, mount-hole and
+            silkscreen checks (RFC-018, RFC-021, RFC-022, RFC-025, RFC-031).
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E801</code></td><td>Instance not part-bound at <code>build</code> — the netlist and BOM would lie.</td></tr>
+                <tr><td><code>E802</code></td><td>Invalid <code>part</code> declaration — a missing <code>mpn</code> or <code>footprint</code> on a <code>primary</code>, a missing <code>mpn</code> on an <code>alt</code>, or a non-concrete device.</td></tr>
+                <tr><td><code>E803</code></td><td><code>#[designator]</code> override collision.</td></tr>
+                <tr><td><code>E804</code></td><td>Invalid designator format — must be a prefix plus a number, e.g. <code>U7</code>.</td></tr>
+                <tr><td><code>E805</code></td><td>Invalid <code>pad</code> declaration (RFC-018) — a missing or unknown field, a non-<code>Length</code> dimension, a non-positive size or drill extent, a size arity that disagrees with the shape, or <code>drill</code> and <code>plated_through_hole</code> appearing without each other (they must appear together or not at all). Also covers the provisional slot form <code>drill: (w, l)</code> — wrong arity, a slot on a <code>circle</code> pad, or a slot larger than the pad on either axis — and bounded SMD controls such as an invalid or mutually exclusive <code>chamfer</code> or <code>corner_radius</code>.</td></tr>
+                <tr><td><code>E806</code></td><td>Invalid <code>footprint</code> body (RFC-018) — a malformed member, a duplicate courtyard or <code>silkscreen_ref</code>, a non-<code>Length</code> coordinate, or a non-positive courtyard extent. Repeating an electrical pad number is valid: one terminal may have multiple copper, paste or via placements.</td></tr>
+                <tr><td><code>E807</code></td><td>Footprint/device pad mismatch at <code>build</code> (RFC-018) — the footprint's pad numbers must exactly match the bound device's physical pin numbers; the message names the missing and extra numbers.</td></tr>
+                <tr><td><code>E808</code></td><td>Malformed IPC-7351 footprint name (RFC-021) — a <code>footprint</code> identifier whose prefix is one of the closed IPC-7351 families (QFP, QFN, SOIC, SOP, SOT, BGA, CHIP, MELF) but does not parse against that family's grammar: a missing or invalid density suffix (<code>N</code>, <code>L</code>, <code>M</code>), a non-numeric or misordered dimension field, or trailing characters. Names the specific parse failure. A name whose prefix is outside the closed set is a free-form identifier and is not checked.</td></tr>
+                <tr><td><code>E809</code></td><td>IPC-7351 name-versus-geometry mismatch (RFC-021) — the footprint identifier's declared pin count or pitch disagrees with the footprint's own pad placements (pins = the count of distinct electrical pad numbers, minus the <code>_1EP</code> exposed pad; pitch = the closest spacing between distinct pad numbers); names the footprint and both values.</td></tr>
+                <tr><td><code>E810</code></td><td>Malformed <code>mount_hole</code> (RFC-022, extended by RFC-023) — a footprint's mechanical locating hole is ill-formed: a duplicate <code>mount_hole</code> number within one footprint, a non-<code>Length</code> or out-of-range offset or dimension, a non-positive <code>diameter</code> or <code>size</code>, a plating value outside the closed set <code>{non_plated, plated}</code>, a <code>shape:</code> outside the closed set <code>{rect, circle, oval}</code>, a <code>size:</code> tuple that is not exactly <code>(w, h)</code>, or a geometry field that disagrees with the explicit or defaulted shape — <code>circle</code> takes <code>diameter D</code>, while <code>rect</code> and <code>oval</code> take <code>size: (w, h)</code>. When no <code>shape:</code> is written the hole defaults to <code>circle</code>, and the mismatch diagnostic says so. <code>mount_hole</code> numbers are their own namespace, never checked against <code>pad</code> numbers or the bound device's pins.</td></tr>
+                <tr><td><code>E811</code></td><td>Invalid pad-placement rotation (RFC-025) — <code>pad N: Sym at (x, y) rotate ANGLE</code> with <code>ANGLE</code> outside <code>0..=359</code>, or not a whole number of degrees. Tracks <code>place</code>'s own range (see E1007), which under the arbitrary-angle deviation is any whole degree rather than RFC-020's closed <code>{0, 90, 180, 270}</code>. A full turn is <code>0</code>, so <code>360</code> and above is rejected rather than reduced. Checked at declaration, like the rest of the footprint-body checks.</td></tr>
+                <tr><td><code>E812</code></td><td>Invalid <code>silkscreen</code> graphic (RFC-031) — an unknown statement kind; a malformed primitive (a <code>polygon</code> with fewer than three vertices, a non-<code>Length</code> or non-positive dimension); an invalid closed-set value (<code>fill</code>, marker <code>shape</code>); a marker naming a pad number the footprint does not declare; a <code>polarity_marker</code> on a footprint with fewer than two distinct electrical pad numbers (repeated physical placements of one number are one terminal); or more than one <code>silkscreen</code> block.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E9xx — structural variants (RFC-008)</h2>
+          <p>
+            Devices that ship in more than one package declare structural variants; these
+            codes police the variant declarations and the <code>[VARIANT]</code>
+            selectors that pick one.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E901</code></td><td>A device pin has no role annotation — every pin needs an explicit role; the message lists the six valid roles.</td></tr>
+                <tr><td><code>E902</code></td><td>A declared variant has no <code>pins[VARIANT]</code> block — exhaustiveness at the device declaration, naming the missing variant.</td></tr>
+                <tr><td><code>E903</code></td><td>A <code>[VARIANT]</code> selector names an undeclared variant — the message lists the valid set.</td></tr>
+                <tr><td><code>E904</code></td><td><code>[VARIANT]</code> selector omitted on a device that declares variants — there is no implicit default; the message lists the valid set.</td></tr>
+                <tr><td><code>E905</code></td><td><code>[VARIANT]</code> selector on a device with no variants, or on a part (parts already select theirs).</td></tr>
+                <tr><td><code>E906</code></td><td>Duplicate variant name in <code>variants { }</code> — checked at parse.</td></tr>
+                <tr><td><code>E907</code></td><td>A <code>pins[X]</code> or <code>spec[X]</code> qualifier names an undeclared variant.</td></tr>
+                <tr><td><code>E908</code></td><td>An unqualified <code>pins { }</code> block on a device that declares variants.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <span class="callout-title">A documented deviation, pending amendment</span>
+            RFC-011's accepted text proposes a five-code E9xx block (E901–E905) with
+            different assignments — its E902 is "missing selector", its E904 is "missing
+            <code>pins[VARIANT]</code>", its E905 is "duplicate variant". The compiler
+            issues the eight codes above instead: they predate the accepted table, they
+            have real call sites and fixture tests, and the registry's own stability rule
+            forbids repurposing an already-issued code — renumbering to match the table
+            would violate that rule on day one. Until the RFC-011 table is amended to the
+            eight-code assignment, this block is a documented deviation, tracked in the
+            compliance ledger.
+          </div>
+
+          <h2>E10xx — layout constraints (RFC-013)</h2>
+          <p>
+            Structural validation of <code>layout {}</code> constraints against their own
+            closed vocabulary — never a connectivity or DRC check, and never affecting
+            the netlist bytes.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E1001</code></td><td>A layout constraint references a net that is not declared in the design.</td></tr>
+                <tr><td><code>E1002</code></td><td>Duplicate <code>net_class</code> name.</td></tr>
+                <tr><td><code>E1003</code></td><td><code>diff_pair</code> does not name exactly two nets.</td></tr>
+                <tr><td><code>E1004</code></td><td><code>length_match</code> names fewer than two nets.</td></tr>
+                <tr><td><code>E1005</code></td><td><code>[RESERVED, not yet implemented]</code> <code>net_class</code> referenced before declaration — activates only once a future constraint kind references a <code>net_class</code> by name (the four current kinds reference nets, not classes).</td></tr>
+                <tr><td><code>E1006</code></td><td>Invalid <code>board_outline: "path.dxf"</code> (RFC-020). Check-time sub-cases: the path is not project-relative (absolute, <code>..</code>-escaping, a URL, or a drive letter), more than one outline, or an outline inside a called <code>fn</code> rather than the design's own <code>layout {}</code> block. Build-time sub-cases, when the DXF is actually read: the file cannot be read, is not valid DXF, has no closed polyline on the <code>Edge.Cuts</code> layer, the outline polyline is not closed, or it has fewer than three vertices.</td></tr>
+                <tr><td><code>E1007</code></td><td>Invalid <code>place &lt;inst&gt; at (x, y) [rotate ANGLE]</code> (RFC-020) — the named instance does not exist among the design's own top-level instances, a coordinate is not a <code>Length</code> (<code>mm</code>) value or is out of geometry range, <code>rotate</code> is not a whole number of degrees in <code>0..=359</code> (a ledgered deviation from RFC-020's closed set <code>{0, 90, 180, 270}</code>; <code>360</code> and above is rejected rather than reduced, since a full turn is <code>0</code> and <code>rotate 450</code> is likelier a slip than a deliberate 90), the instance is placed more than once, or the <code>place</code> appears inside a called <code>fn</code>. Placing an instance declared inside a called <code>fn</code> is a disclosed, deferred gap.</td></tr>
+                <tr><td><code>E1008</code></td><td>Invalid placement side (RFC-026) — <code>place … side SIDE</code> with <code>SIDE</code> outside the closed set <code>{top, bottom}</code>. <code>side</code> defaults to <code>top</code> when omitted; it is a whole-component placement fact, independent of (and never implemented via) the per-pad <code>layer</code> field.</td></tr>
+                <tr><td><code>E1009</code></td><td>Invalid physics-constraint attribute (RFC-027) — a <code>#[ground]</code>, <code>#[high_current]</code>, <code>#[impedance]</code>, <code>#[bypass]</code>, <code>#[crystal_oscillator]</code>, <code>#[switching_converter]</code> or <code>#[bga_fanout]</code> attribute is malformed or misplaced: attached to the wrong declaration kind (the first three are net-only, the rest inst-only, none valid elsewhere), duplicated on one declaration or one merged net, an unknown or duplicate argument name, a missing required argument (<code>switching_converter</code>'s <code>inductor:</code>), a ground kind outside <code>{primary, secondary}</code>, more than one <code>#[ground(primary)]</code> net per design, a reference to a non-existent instance or pin, a crystal signal pin that maps to more than one pad, an array-typed instance target, or a malformed <code>diff_pair(...)</code> physics bracket (an unknown or duplicate field). Unit-type mismatches on numeric arguments are E110, per the organizing principle — a documented deviation from RFC-027's literal E10xx reservation, recorded in the compliance ledger.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E11xx — package resolution (RFC-029)</h2>
+          <p>
+            Enforced at project load, before any <code>.cohdl</code> file is opened: an
+            invalid dependency declaration, an unresolvable version or a locked-hash
+            mismatch gates the whole pipeline. These diagnostics anchor to
+            <code>cohdl.toml</code> and <code>cohdl.lock</code> lines rather than source
+            spans — nothing has been parsed yet — and in <code>--json</code> mode they
+            ride the ordinary diagnostics array with a whole-line location. E1105 is CLI
+            prose on stderr in every mode: deliberately unsuppressable, never part of a
+            <code>--json</code> diagnostics array (a documented deviation, mirroring
+            E000's classification).
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E1101</code></td><td>Invalid <code>[dependencies]</code> entry — a version range (<code>^</code>, <code>~</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>*</code>, <code>,</code>), a malformed or non-canonical version (leading zeros), an invalid dependency name, or a duplicate entry. CoHDL requires exact <code>X.Y.Z</code> versions permanently — hardware has no "safe patch" assumption. The help suggests the nearest exact version when one is discoverable.</td></tr>
+                <tr><td><code>E1102</code></td><td>Unresolvable dependency — no package on disk declares the pinned version (versions come from package manifests, never directory names). The help lists the searched family directories (<code>&lt;project&gt;/deps/&lt;name&gt;</code>, then the registry root's <code>&lt;name&gt;/</code>) and every version actually available.</td></tr>
+                <tr><td><code>E1103</code></td><td>Locked-hash mismatch — the resolved package content re-hashes differently from its <code>cohdl.lock</code> row. The load-bearing guarantee: a version number is a human label; the hash is the identity. A hard error, never a warning; names both hashes.</td></tr>
+                <tr><td><code>E1104</code></td><td>Pre-RFC-029 manifest — no <code>[dependencies]</code> section (or no <code>std</code> pin without <code>--no-std</code>). The help carries the exact section to add and names <code>cohdl update</code> as the automatic migration.</td></tr>
+                <tr><td><code>E1105</code></td><td>(Warning, CLI prose.) std override active — <code>--std</code> or <code>COHDL_STD</code> bypasses the locked std, so the build is not reproducible. Mandatory and unsuppressable on every affected run.</td></tr>
+                <tr><td><code>E1106</code></td><td>Package identity error — a package under a family directory declares a different name, carries no (or an unparseable) <code>[package]</code> identity, or two packages declare the same (name, version): a version is one immutable identity.</td></tr>
+                <tr><td><code>E1107</code></td><td>Unparseable <code>cohdl.lock</code> — the machine-generated file was corrupted or hand-edited; the help says to restore it from version control, or delete it and re-resolve.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>E12xx — registry interaction (RFC-030)</h2>
+          <p>
+            CLI-level failures talking to
+            <a href="https://registry.cohdl.org">registry.cohdl.org</a> — deliberately a
+            separate block from E11xx, because registry-interaction failures are a
+            different kind of mistake from local resolution and hash failures; E1204 in
+            particular must never be conflated with E1103. Like E11xx these are
+            pre-source diagnostics; they surface as CLI prose (none of these commands has
+            a <code>--json</code> mode).
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Meaning</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>E1201</code></td><td>Authentication missing or rejected — <code>cohdl publish</code> without a stored token, or the registry refused it; the help names <code>cohdl login</code>.</td></tr>
+                <tr><td><code>E1202</code></td><td>Namespace rejection — a name outside the closed three-tier grammar (bare, <code>@brand/name</code>, <code>@contrib/name</code>), or the server refused a publish: a bare name not owned by the official account, an unverified brand, a version already published, an archive whose own manifest disagrees with the publish, or a version declaring no <code>[package] license</code>. Checked locally pre-flight and server-side (the server is authoritative).</td></tr>
+                <tr><td><code>E1203</code></td><td>Package or version not published on the registry.</td></tr>
+                <tr><td><code>E1204</code></td><td>Registry unreachable (or a protocol failure) with no cached copy — explicitly distinct from a hash mismatch (E1103): different kinds of mistake.</td></tr>
+                <tr><td><code>E1205</code></td><td><code>cohdl remove</code> of a name not in <code>[dependencies]</code> — the help lists the actual current dependency list; never a silent no-op.</td></tr>
+                <tr><td><code>E1206</code></td><td>Client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what <code>cohdl.lock</code> will verify); a hard error on download (corrupted content is never cached).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>D00x — residual DRC (RFC-004)</h2>
+          <p>
+            The residual design-rule checks: exactly four, never more. Everything a fifth
+            structural rule might catch is the type system's job instead — that is what
+            keeps the DRC list from growing into a checklist.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>Severity</th><th>Rule</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>D001</code></td><td>error</td><td>Voltage-exceed: a part's <code>voltage_rating</code> spec is lower than the annotated net voltage.</td></tr>
+                <tr><td><code>D002</code></td><td>error</td><td>Polarity-mismatch: a <code>Polarized</code> anode pin on a <code>[gnd]</code> net.</td></tr>
+                <tr><td><code>D003</code></td><td>warning</td><td>Single-driver: a net whose only connected pin is a driver (<code>output</code> or <code>power_out</code>) — the driver drives nothing.</td></tr>
+                <tr><td><code>D004</code></td><td>error</td><td>Multi-driver: a net with two or more driver-type pins (<code>output</code> or <code>power_out</code>).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="warnings-and-errors">Warnings and errors</h2>
+          <p>
+            Severity is part of the registry, not a presentation choice.
+            <code>Exxx</code> codes are errors, with two exceptions the registry records
+            explicitly: E1105 (the std-override notice) is always a warning, and E1206
+            (client/server hash disagreement) is a warning at publish time but a hard
+            error on download. <code>Dxxx</code> severity is per rule — D001, D002 and
+            D004 are errors; D003 is a warning. The verdict follows severity: any
+            error-severity diagnostic makes <code>cohdl check</code> fail, while warnings
+            alone leave the verdict at pass. Plain-text and <code>--json</code> output
+            always report the identical diagnostic set, field for field.
+          </p>
+
+          <nav class="pager" aria-label="More">
+            <a href="/docs/layout/">← Layout &amp; fabrication</a>
+            <a href="/docs/editors/">Next: Editor support →</a>
+          </nav>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="mailto:hello@cohdl.org">hello@cohdl.org</a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

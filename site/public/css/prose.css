@@ -1,0 +1,530 @@
+/* cohdl.org — long-form styles for docs, blog and use-case pages.
+   Loaded AFTER style.css; shares its tokens and code-specimen classes. */
+
+/* ------------------------------------------------------------- page head */
+
+.page-head {
+  margin-bottom: clamp(2rem, 6vw, 3.2rem);
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  list-style: none;
+}
+
+.crumbs a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--accent);
+}
+
+.crumbs li:not(:last-child)::after {
+  margin-left: 0.45rem;
+  color: var(--border-strong);
+  content: "/";
+}
+
+.page-title {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 5.4vw, 3rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+
+.page-title em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.page-lede {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: clamp(1rem, 2.1vw, 1.12rem);
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 1.1rem 0 0;
+  color: var(--text-tertiary);
+  font-size: 0.88rem;
+}
+
+.post-meta .sep {
+  color: var(--border-strong);
+}
+
+/* ----------------------------------------------------------------- prose */
+
+.prose {
+  max-width: 70ch;
+}
+
+.prose--wide {
+  max-width: none;
+}
+
+.prose h2 {
+  margin: 2.6rem 0 0.9rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.prose h3 {
+  margin: 1.9rem 0 0.6rem;
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.prose h4 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1.05rem;
+  color: var(--text-secondary);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4rem;
+}
+
+.prose li {
+  margin-bottom: 0.4rem;
+}
+
+.prose li::marker {
+  color: var(--text-tertiary);
+}
+
+.prose strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.prose em {
+  color: var(--text);
+}
+
+.prose code {
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.prose a code {
+  color: inherit;
+}
+
+.prose pre {
+  margin: 1.3rem 0;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--surface-1), rgb(10 16 24 / 92%));
+}
+
+.prose pre code {
+  padding: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: 0.85rem/1.7 var(--font-mono);
+}
+
+.prose .code-figure {
+  margin: 1.3rem 0;
+}
+
+.prose .code-figure pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.prose blockquote {
+  margin: 1.3rem 0;
+  padding: 0.2rem 0 0.2rem 1.1rem;
+  border-left: 2px solid var(--border-strong);
+  color: var(--text-secondary);
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.prose hr {
+  height: 1px;
+  margin: 2.4rem 0;
+  border: 0;
+  background: var(--border-subtle);
+}
+
+.prose figure {
+  margin: 1.6rem 0;
+}
+
+.prose figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.prose figcaption {
+  margin-top: 0.6rem;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.table-scroll {
+  margin: 1.3rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.prose th {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: rgb(19 29 42 / 55%);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.prose td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.prose tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose td code,
+.prose th code {
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- callout */
+
+.callout {
+  margin: 1.3rem 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 0.94rem;
+}
+
+.callout > :first-child {
+  margin-top: 0;
+}
+
+.callout > :last-child {
+  margin-bottom: 0;
+}
+
+.callout-title {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ card grids */
+
+.card-grid {
+  display: grid;
+  gap: 1.1rem;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  transition:
+    border-color 0.15s var(--ease),
+    transform 0.15s var(--ease);
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.card-kicker {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card-title {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* The whole card is the click target. */
+.card-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card-title a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.card:hover .card-title a {
+  color: var(--accent-hover);
+}
+
+.card-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.93rem;
+}
+
+.card-meta {
+  margin: 0.8rem 0 0;
+  color: var(--text-tertiary);
+  font-size: 0.83rem;
+}
+
+/* ------------------------------------------------------------- post list */
+
+.post-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-item {
+  position: relative;
+  padding: 1.4rem 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.post-item:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.post-item-date {
+  margin: 0 0 0.3rem;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.post-item-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.post-item-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.post-item-title a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.post-item:hover .post-item-title a {
+  color: var(--accent-hover);
+}
+
+.post-item-excerpt {
+  max-width: 64ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* --------------------------------------------------------- rfc index */
+
+.rfc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rfc-item {
+  position: relative;
+  display: grid;
+  gap: 0.15rem 1.4rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-subtle);
+  grid-template-columns: 5.2rem 1fr;
+}
+
+.rfc-item:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rfc-no {
+  grid-row: span 2;
+  padding-top: 0.15rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
+
+.rfc-item-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.rfc-item-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.rfc-item-title a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.rfc-item:hover .rfc-item-title a {
+  color: var(--accent-hover);
+}
+
+.rfc-item-summary {
+  grid-column: 2;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 560px) {
+  .rfc-item {
+    grid-template-columns: 1fr;
+  }
+
+  .rfc-no {
+    grid-row: auto;
+  }
+
+  .rfc-item-summary {
+    grid-column: 1;
+  }
+}
+
+/* -------------------------------------------------------- fact panels */
+
+.fact-panel {
+  margin: 1.6rem 0;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+
+.fact-panel dl {
+  display: grid;
+  gap: 0.7rem 1.6rem;
+  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.fact-panel dt {
+  color: var(--text-tertiary);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fact-panel dd {
+  margin: 0.15rem 0 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* -------------------------------------------------------- pager / next */
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: space-between;
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.93rem;
+}
+
+.pager a {
+  text-decoration: none;
+}
+
+.pager a:hover {
+  text-decoration: underline;
+}

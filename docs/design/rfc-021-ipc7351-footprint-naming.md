@@ -38,7 +38,7 @@ IPC-7351B's naming convention is a family-specific template, but every family sh
 | `QFN` | Quad flat no-lead (incl. SON, VQFN) | `QFN` + pins + density + pitch(P) + body_X + `X` + body_Y + [`-1EP` + epad_X + `X` + epad_Y, if exposed pad] |
 | `SOIC` / `SOP` | Small-outline IC | `SOIC` or `SOP` + pins + `P` + pitch + `X` + leadspan + `X` + height + density |
 | `SOT` | Small-outline transistor | `SOT` + pins + `P` + pitch + `X` + body_X + `X` + body_Y + density |
-| `BGA` | Ball grid array | `BGA` + pins + (`C` | `N`) + pitch(P) + cols + `X` + rows + `_` + body_X + `X` + body_Y + `X` + height + density |
+| `BGA` | Ball grid array | `BGA` + pins + (`C` \| `N`) + pitch(P) + cols + `X` + rows + `_` + body_X + `X` + body_Y + `X` + height + density |
 | `CHIP`/`MELF` | Two-terminal passives (resistors/caps) | `CHIP`/`MELF` + `-` + EIA size code (e.g. `0402`, `0603`) — density suffix not applicable |
 
 - Pitch, span, body, height, and exposed-pad dimensions are encoded in hundredths of a millimeter, no decimal point, no unit suffix — this is IPC-7351B's own convention (e.g. 50 = 0.50mm pitch, 900 = 9.00mm), adopted verbatim rather than reinvented, so a footprint name is directly comparable against the real industry's published naming convention rather than a CoHDL-specific dialect — a naming-convention benefit only; CoHDL still never references any actual third-party footprint library or file.

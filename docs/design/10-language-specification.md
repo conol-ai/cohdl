@@ -965,7 +965,16 @@ pub footprint QFN10N40P300X300_1EP180X180 {
 ```
 
 - The identifier after pub footprint is the IPC-7351B designator itself, with - mapped to _ (CoHDL identifiers can't contain -) — a single, fixed substitution, not a free-form escaping scheme. E.g. the IPC-7351B designator QFN10N40P300X300-1EP180X180 becomes the CoHDL identifier QFN10N40P300X300_1EP180X180.
-- CoHDL's closed set of recognized IPC-7351B family templates (pitch/span/height/pin-count/density-suffix encoded per IPC-7351B's own convention — hundredths of a millimeter, no decimal point):Family prefixMeaning`QFP`Quad flat pack (incl. LQFP/TQFP)`QFN`Quad flat no-lead (incl. SON, VQFN)`SOIC` / `SOP`Small-outline IC`SOT`Small-outline transistor`BGA`Ball grid array`CHIP` / `MELF`Two-terminal passives (EIA size code, no density suffix)
+- CoHDL's closed set of recognized IPC-7351B family templates (pitch/span/height/pin-count/density-suffix encoded per IPC-7351B's own convention — hundredths of a millimeter, no decimal point):
+
+| Family prefix | Meaning |
+|---|---|
+| `QFP` | Quad flat pack (incl. LQFP/TQFP) |
+| `QFN` | Quad flat no-lead (incl. SON, VQFN) |
+| `SOIC` / `SOP` | Small-outline IC |
+| `SOT` | Small-outline transistor |
+| `BGA` | Ball grid array |
+| `CHIP` / `MELF` | Two-terminal passives (EIA size code, no density suffix) |
 - Density suffix is a closed three-value set: N (Nominal, default), L (Least), M (Most) — a missing or out-of-set suffix is a compile error for any name matching one of the closed families.
 - A footprint's name is checked in two stages, whenever it matches one of the closed family prefixes: (1) grammar well-formedness against the family-template table above (declaration time); (2) geometry cross-check, for geometrically-regular families only (QFP, QFN, SOIC/SOP, SOT; BGA/CHIP/MELF analogously) — pin count and pitch derived from the footprint's own pad N: ... at (x, y) placements must agree with what the name encodes. A mismatch is a compile error naming the specific disagreement (e.g. declared vs. actual pin count or pitch). Irregular/mixed-pitch layouts get stage (1) only — geometry consistency is not checked for these, disclosed as a real scope boundary, not an oversight.
 - A footprint whose package family falls outside the closed six-template set (e.g. connectors, relays) is unaffected — its name is checked only against RFC-016's ordinary identifier grammar, unchanged from before this RFC.

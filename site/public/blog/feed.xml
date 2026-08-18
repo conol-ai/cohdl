@@ -5,14 +5,22 @@
   <id>https://cohdl.org/blog/feed.xml</id>
   <link rel="alternate" type="text/html" href="https://cohdl.org/blog/" />
   <link rel="self" type="application/atom+xml" href="https://cohdl.org/blog/feed.xml" />
-  <updated>2026-08-17T12:00:00Z</updated>
+  <updated>2026-08-18T12:00:00Z</updated>
   <author><name>Tony Huang</name></author>
+  <entry>
+    <title>CoHDL v0.3.0 is out</title>
+    <link href="https://cohdl.org/blog/cohdl-v0-3-0/" />
+    <id>https://cohdl.org/blog/cohdl-v0-3-0/</id>
+    <published>2026-08-18T12:00:00Z</published>
+    <updated>2026-08-18T12:00:00Z</updated>
+    <summary>The compiler is open source, and for the first time you can install it without building anything: one line fetches a checksum-verified binary and puts a working toolchain on your machine.</summary>
+  </entry>
   <entry>
     <title>The schematic is source code</title>
     <link href="https://cohdl.org/blog/the-schematic-is-source-code/" />
     <id>https://cohdl.org/blog/the-schematic-is-source-code/</id>
     <published>2026-08-17T12:00:00Z</published>
-    <updated>2026-08-17T12:00:00Z</updated>
+    <updated>2026-08-18T12:00:00Z</updated>
     <summary>Software earned version control, code review, type checkers and CI. Schematics are still drawings, and their mistakes are still found at the assembly house. CoHDL is my answer: treat the board as a program, and give it a compiler.</summary>
   </entry>
   <entry>

@@ -279,9 +279,9 @@ a:hover {
   font-size: 0.94rem;
 }
 
-/* ---------------------------------------------------------------- waitlist */
+/* ------------------------------------------------------ closing CTA panel */
 
-.waitlist {
+.cta-panel {
   padding: clamp(1.6rem, 5vw, 2.6rem);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -290,19 +290,31 @@ a:hover {
     var(--surface-1);
 }
 
-.waitlist-title {
+.cta-panel-title {
   margin: 0 0 0.6rem;
   font-size: clamp(1.4rem, 3.4vw, 1.85rem);
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-.waitlist-lede {
+.cta-panel-lede {
   max-width: 54ch;
   margin: 0 0 1.75rem;
   color: var(--text-secondary);
 }
 
+.cta-panel-lede code {
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* The signup form left the landing page with the v0.3.0 release; these rules
+   (and js/main.js + the Worker endpoint) are kept until the waitlist's
+   promised announcement email has been sent — see site/README.md. */
 .signup-row {
   display: flex;
   flex-wrap: wrap;
@@ -368,6 +380,21 @@ a:hover {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+
+.install-line {
+  margin: 0 0 1.4rem;
+  padding: 0.8rem 1.1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+}
+
+.install-line code {
+  color: var(--text);
+  font: 0.88rem/1.5 var(--font-mono);
+  white-space: nowrap;
 }
 
 .signup-status {

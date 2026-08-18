@@ -78,10 +78,12 @@
 
         <div class="callout">
           <span class="callout-title">Status</span>
-          The language server and the VS Code extension are built and tested today, but
-          like the rest of the toolchain they are not downloadable yet. This page
-          describes them as they exist, so you know what to expect when the source
-          opens.
+          The language server ships inside the compiler —
+          <a href="/docs/getting-started/">install CoHDL</a> and
+          <code>cohdl lsp</code> is on your machine. The VS Code extension is published
+          to the
+          <a href="https://marketplace.visualstudio.com/items?itemName=conol.cohdl">Visual Studio Marketplace</a>
+          as <code>conol.cohdl</code>.
         </div>
 
         <article class="prose">
@@ -160,12 +162,14 @@
             notification — never a silently blank Problems panel.
           </p>
           <p>
-            The extension is packaged as a standard <code>.vsix</code>, and its release
-            automation publishes tagged versions to the VS Code Marketplace under the
-            <code>conol</code> publisher, to Open VSX, and as a plain downloadable
-            <code>.vsix</code>. Because it is only a client for <code>cohdl lsp</code>,
-            it becomes useful the moment the compiler is in your hands — distribution
-            accompanies the toolchain's public release.
+            The extension is on the
+            <a href="https://marketplace.visualstudio.com/items?itemName=conol.cohdl">Visual Studio Marketplace</a>
+            as <code>conol.cohdl</code> — install it from the extensions view, or grab
+            the plain <code>.vsix</code> attached to each
+            <code>vscode-v*</code> release. It is only a client for
+            <code>cohdl lsp</code>, so it needs the compiler installed; if
+            <code>cohdl</code> is not on VS Code's PATH, point the
+            <code>cohdl.path</code> setting at the binary.
           </p>
 
           <h2>Any LSP editor</h2>

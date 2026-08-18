@@ -1,7 +1,9 @@
 # cohdl.org
 
-The CoHDL project site: landing page, documentation, blog, use cases, and the
-waitlist that collects addresses until the compiler's source is public.
+The CoHDL project site: landing page, documentation, blog, and use cases.
+(The pre-release waitlist form is gone from the landing page since the v0.3.0
+open-source release; the Worker endpoint and D1 table remain so the collected
+addresses can be exported for the promised one-time announcement.)
 
 Hand-authored static pages plus one small Worker — no framework and no build
 step. The Worker fronts every request so HTTPS, HSTS and the CSP are enforced
@@ -11,7 +13,7 @@ through to Workers Assets (`auto-trailing-slash`, so `/docs/` serves
 
 ```
 public/
-  index.html         landing: hero, code specimen, pipeline, showcase, waitlist
+  index.html         landing: hero, code specimen, pipeline, showcase, install
   docs/              docs index + getting-started, language, cli, packages,
                      layout, errors, editors (one directory per page)
   docs/spec/         the language specification — GENERATED, do not hand-edit
@@ -21,7 +23,8 @@ public/
   img/openmicrokbd/  case-study photos (WebP, from the openmicrokbd repo, MIT)
   css/style.css      design tokens, chrome, landing sections, code highlighting
   css/prose.css      long-form styles for docs/blog/use-case pages
-  js/main.js         waitlist progressive enhancement
+  js/main.js         waitlist progressive enhancement (no longer referenced
+                     by the landing page; kept with the endpoint)
   404.html, favicon.svg, robots.txt, sitemap.xml
 src/worker.ts        security headers + POST /api/waitlist
 schema.sql           the D1 waitlist table
@@ -86,33 +89,26 @@ The `routes` block claims `cohdl.org` and `www.cohdl.org` as custom domains,
 so the zone must exist on the Cloudflare account; wrangler provisions the DNS
 records and certificates itself.
 
-## The waitlist
+## The waitlist (retired form, live data)
 
-`POST /api/waitlist` accepts either JSON (`{"email": "…"}`) or a plain form
-post, so the form works with JavaScript disabled — without JS the Worker
-answers with a redirect carrying the outcome in the query string, and
-`js/main.js` submits in place when it is available.
+The pre-release landing page carried a signup form; it was removed with the
+v0.3.0 open-source release, so nothing on the site posts to
+`POST /api/waitlist` any longer. The endpoint, `js/main.js` and the D1 table
+are kept as they were — the endpoint still behaves correctly if hit directly
+(strict shape check, idempotent insert, no enumeration oracle, honeypot,
+5/IP/hour rate limit, salted IP hash) — because the collected addresses are
+still owed their one promised announcement email.
 
-What it does with a submission:
-
-- trims and lower-cases the address, and rejects anything that fails a
-  deliberately strict shape check (no whitespace or list delimiters);
-- stores it with `ON CONFLICT DO NOTHING`, so a repeat signup is idempotent;
-- answers identically whether or not the address was already stored — a
-  waitlist should not double as an address-enumeration oracle;
-- silently accepts honeypot submissions, so a bot records success and leaves;
-- allows 5 signups per IP per hour;
-- keeps a salted hash of the IP, never the address itself.
-
-Reading the list:
+Reading the list for that send:
 
 ```sh
 npm run waitlist:count
 npm run waitlist:export     # email, created_at, source as JSON
 ```
 
-`?ref=…` on the landing page is carried into the `source` column, so a link
-shared somewhere specific can be attributed later.
+The `source` column holds the `?ref=…` attribution captured while the form
+was live. Once the announcement has gone out, the endpoint, `js/main.js`,
+`schema.sql` and the D1 binding can all be deleted together.
 
 ## CI
 

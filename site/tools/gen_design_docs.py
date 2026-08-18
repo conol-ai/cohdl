@@ -132,7 +132,9 @@ RFC_BANNER = (
     "design repository — a historical, normative record. Later RFCs can amend "
     "earlier ones; the compiled current statement of the language is the "
     '<a href="/docs/spec/">language specification</a>. Deliberate implementation '
-    "deviations are recorded in the compliance ledger that ships with the source."
+    "deviations are recorded in "
+    '<a href="https://github.com/conol-ai/cohdl/blob/main/docs/compliance-report.md">'
+    "the compliance ledger</a>."
 )
 
 SPEC_BANNER = (

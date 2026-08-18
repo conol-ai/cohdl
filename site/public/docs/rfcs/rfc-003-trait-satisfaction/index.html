@@ -64,7 +64,7 @@
         </div>
 
         <article class="prose">
-<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in the compliance ledger that ships with the source.</div>
+<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in <a href="https://github.com/conol-ai/cohdl/blob/main/docs/compliance-report.md">the compliance ledger</a>.</div>
 <h2>Revision note (2026-07-13, second revision)</h2>
 <p>Both prior drafts of this RFC were off-target. Draft 1 baked impl Trait directly into the device declaration (device MLCC&lt;...&gt;: impl Capacitor { ... }), which is structurally identical to C#'s class Foo : IBar — the type and its trait membership are declared as one inseparable unit. Draft 2 tried to fix "not flexible enough" by adding default methods, associated types, and blanket impls — all real Rust mechanisms, but none of them were the actual problem Tony pointed at. Tony's own example makes the real gap obvious:</p>
 <pre><code>pub trait TwoTerminal { /* ... */ }

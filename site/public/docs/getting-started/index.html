@@ -76,16 +76,32 @@
           </p>
         </div>
 
-        <div class="callout">
-          <span class="callout-title">Before the source is public</span>
-          The compiler is being prepared for its open-source release and is not
-          downloadable yet. Everything below — every command, every diagnostic, every
-          artifact — is genuine output from the real toolchain, so this page shows you
-          exactly what you will get. <a href="/#waitlist">The waitlist</a> will tell you
-          the moment it ships.
-        </div>
-
         <article class="prose">
+          <h2>Install the compiler</h2>
+          <p>
+            CoHDL is open source
+            (<a href="https://github.com/conol-ai/cohdl">github.com/conol-ai/cohdl</a>,
+            MIT), and every compiler release from v0.3.0 on ships prebuilt binaries
+            for macOS (Apple Silicon and Intel) and Linux (static builds for x86-64
+            and AArch64). One line fetches the newest release, verifies its sha256
+            against the release's published checksums, and installs to
+            <code>~/.cohdl/bin</code>:
+          </p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/conol-ai/cohdl/main/install.sh | sh</code></pre>
+          <p>
+            Set <code>COHDL_VERSION</code> to pin an exact version — v0.3.0 or later;
+            the older v0.1.0/v0.2.0 tags belong to the previous implementation and use
+            a different artifact scheme — and <code>COHDL_INSTALL_DIR</code> to install
+            elsewhere. An installed binary
+            updates itself with <code>cohdl self-update</code>
+            (<code>--check</code> reports without installing). On Windows, download
+            <code>cohdl-vX.Y.Z-x86_64-pc-windows-msvc.tar.gz</code> from the
+            <a href="https://github.com/conol-ai/cohdl/releases">releases page</a> by
+            hand. Building from source is plain <code>cargo build</code>. Everything
+            below — every command, every diagnostic, every artifact — is genuine
+            output from this toolchain.
+          </p>
+
           <h2>A project is a directory</h2>
           <p>
             A project needs exactly two things: a <code>cohdl.toml</code> manifest and
@@ -119,12 +135,27 @@ std = "0.3.0"</code></pre>
             Dependencies are library packages: <code>passive</code> owns chip resistors
             and capacitors, <code>led</code> owns LEDs, <code>connectors</code> owns
             headers and sockets, and <code>std</code> carries only the universal traits
-            every component package builds on. The toolchain ships with a catalog of
-            these packages, and more live on
-            <a href="https://registry.cohdl.org">the registry</a>. On the first check the
-            compiler writes <code>cohdl.lock</code> next to the manifest, recording each
-            dependency's exact version and a content hash; from then on a dependency
-            that changes out from under you is a hard error, not a silent difference.
+            every component package builds on. The official packages are published on
+            <a href="https://registry.cohdl.org">the registry</a>, and one command
+            fetches everything the manifest pins (paths below shortened to
+            <code>~</code>):
+          </p>
+
+          <pre><code>$ cohdl install .
+  fetched connectors 0.1.1 -&gt; ~/.cohdl/registry/connectors/0.1.1
+  fetched led 0.1.1 -&gt; ~/.cohdl/registry/led/0.1.1
+  fetched passive 0.2.1 -&gt; ~/.cohdl/registry/passive/0.2.1
+  fetched std 0.3.0 -&gt; ~/.cohdl/registry/std/0.3.0
+  installed 4 dependencies (4 fetched from the registry)</code></pre>
+
+          <p>
+            Forget this step and nothing guesses on your behalf: a check with unfetched
+            dependencies fails with <code>E1102</code>, naming the manifest line it
+            cannot resolve and telling you to run <code>cohdl install</code>. When a
+            dependency first resolves, the compiler writes <code>cohdl.lock</code> next
+            to the manifest, recording each dependency's exact version and a content
+            hash; from then on a dependency that changes out from under you is a hard
+            error, not a silent difference.
             <a href="/docs/packages/">Packages &amp; registry</a> has the full story.
           </p>
 

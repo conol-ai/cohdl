@@ -64,7 +64,7 @@
         </div>
 
         <article class="prose">
-<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in the compliance ledger that ships with the source.</div>
+<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in <a href="https://github.com/conol-ai/cohdl/blob/main/docs/compliance-report.md">the compliance ledger</a>.</div>
 <h2>Status</h2>
 <p>Redesigned same day, per Tony's direct correction. The first draft of this RFC proposed inst NAME[START..=END]: Device as pure name-expansion sugar — sw[1..=13]: SW_KEY meant nothing more than thirteen separately-named instances sw1..sw13, with the range usable only inside a net's member list (sw[1..=4].A). Tony's correction: this is not what was wanted. The real request is inst key_leds: [RGB_SK6812; 13] — one real, array-typed instance, indexed by a literal (key_leds[0]) anywhere an instance reference is valid today (net members, place, decouple, fn-call arguments) — not a naming trick scoped to one syntactic position. This revision replaces the first draft's design entirely.</p>
 <h2>Problem</h2>

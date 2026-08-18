@@ -64,7 +64,7 @@
         </div>
 
         <article class="prose">
-<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in the compliance ledger that ships with the source.</div>
+<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in <a href="https://github.com/conol-ai/cohdl/blob/main/docs/compliance-report.md">the compliance ledger</a>.</div>
 <h2>Problem</h2>
 <p>Grounded directly in a real gap surfaced applying <a href="/docs/rfcs/rfc-027-quilter-physics-constraints/">RFC-027</a> to a real design: which of a board's <code>inst</code>-declared capacitors should carry <code>#[bypass(...)]</code>? The clean, semantically-correct answer for a decoupling capacitor instantiated via a reusable <code>fn</code> — the common, idiomatic pattern <a href="/docs/rfcs/rfc-006-nested-fn-calls/">RFC-006</a> exists to support —</p>
 <pre><code>pub fn decouple(vdd: Pin, gnd: Pin) {

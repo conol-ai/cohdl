@@ -64,7 +64,7 @@
         </div>
 
         <article class="prose">
-<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in the compliance ledger that ships with the source.</div>
+<div class="callout">This is the accepted text of the proposal, mirrored verbatim from the CoHDL design repository — a historical, normative record. Later RFCs can amend earlier ones; the compiled current statement of the language is the <a href="/docs/spec/">language specification</a>. Deliberate implementation deviations are recorded in <a href="https://github.com/conol-ai/cohdl/blob/main/docs/compliance-report.md">the compliance ledger</a>.</div>
 <div class="callout">Live deviation: the shipped compiler accepts <code>rotate</code> at any whole degree in 0–359 — on <code>place</code> and on <code>pad</code> alike — superseding the closed {0, 90, 180, 270} set this text states, pending a follow-up RFC. See <a href="/docs/layout/">Layout &amp; fabrication</a>.</div>
 <h2>Problem</h2>
 <p>Grounded directly in a real, common footprint shape: QFN and LQFP packages place the same rectangular (or oval) pad shape on all four sides of the package, but pads on the top/bottom edges are rotated 90° relative to pads on the left/right edges — e.g. a real KiCad <code>QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</code> footprint places pads 1/3/5 (left side) as <code>0.825mm × 0.25mm</code>, and pads 6/8/10 (top side) as the same physical pad shape rotated 90°, i.e. <code>0.25mm × 0.825mm</code> — the width and height swapped.</p>

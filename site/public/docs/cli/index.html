@@ -16,7 +16,7 @@
     <meta property="og:title" content="CoHDL CLI reference" />
     <meta
       property="og:description"
-      content="One binary, ten verbs: check, build, fmt, lsp and the registry commands, with structured diagnostics and deterministic outputs."
+      content="One binary, eleven verbs: check, build, fmt, lsp, self-update and the registry commands, with structured diagnostics and deterministic outputs."
     />
     <meta property="og:url" content="https://cohdl.org/docs/cli/" />
     <meta name="twitter:card" content="summary" />
@@ -69,7 +69,7 @@
           </ol>
           <h1 class="page-title">CLI reference</h1>
           <p class="page-lede">
-            The whole toolchain is one binary, <code>cohdl</code>, with ten verbs. Two of
+            The whole toolchain is one binary, <code>cohdl</code>, with eleven verbs. Two of
             them do the compiling — <code>check</code> and <code>build</code> — and the
             rest keep source canonical, serve editors, and manage dependencies. Every
             command is deterministic: the same source and the same locked dependency set
@@ -78,7 +78,7 @@
         </div>
 
         <article class="prose">
-          <h2>One binary, ten verbs</h2>
+          <h2>One binary, eleven verbs</h2>
           <p>
             Verbs that operate on a project take an optional <code>PATH</code> — either a
             project directory (containing <code>cohdl.toml</code> and <code>src/</code>)
@@ -113,6 +113,10 @@
                 <tr>
                   <td><code>cohdl lsp</code></td>
                   <td>Start the Language Server Protocol server on stdio.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl self-update</code></td>
+                  <td>Replace the installed binary with the newest released one (<code>--check</code> to report only).</td>
                 </tr>
                 <tr>
                   <td><code>cohdl update</code></td>
@@ -374,6 +378,17 @@
             and 2 on a transport failure. Editor wiring — including the VS Code
             extension that packages this server — is covered in
             <a href="/docs/editors/">Editor support</a>.
+          </p>
+
+          <h2><code>cohdl self-update</code></h2>
+          <p>
+            Replaces the running binary with the newest released one, consuming the
+            same artifact contract as the one-line installer: it finds the newest
+            <code>vX.Y.Z</code> release on GitHub, verifies the download against the
+            release's published <code>sha256sums.txt</code>, and swaps it in place; a
+            release that publishes no build for this platform is reported as an error.
+            <code>--check</code> reports whether a newer release exists and installs
+            nothing. It takes no other arguments.
           </p>
 
           <h2>Registry verbs</h2>

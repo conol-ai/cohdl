@@ -36,6 +36,10 @@ CREATE TABLE IF NOT EXISTS versions (
   license TEXT,
   repository TEXT,
   docs TEXT,            -- JSON array of the version's RFC-017 `#[doc]` paths
+  -- Byte size of the version's api-docs sidecar in R2 (docs/apidocs.md).
+  -- NULL = no docs uploaded; the sidecar is replaceable, so this tracks
+  -- the latest upload.
+  api_docs_size INTEGER,
   PRIMARY KEY (name, version)
 );
 CREATE INDEX IF NOT EXISTS versions_recent ON versions (published_at DESC);

@@ -7,9 +7,11 @@
 //   GET  /packages/{name}/{ver}.tar      → the package content (from R2)
 //   POST /packages/{name}/{ver}          → publish (Bearer token; server recomputes
 //                                          the RFC-029 hash — authoritative)
+//   PUT  /packages/{name}/{ver}/docs     → api-docs sidecar upload (Bearer token,
+//                                          owner only; docs/apidocs.md)
 //   POST /login                          → token verify → { account, official, brands }
 //
-// Web-UI endpoints (/api/*): signup/session/tokens/search/recent/package/doc.
+// Web-UI endpoints (/api/*): signup/session/tokens/search/recent/package/doc/apidocs.
 // Everything else falls through to Workers Assets (the SPA).
 
 import {
@@ -24,6 +26,7 @@ import {
   verifyPassword,
 } from "./auth";
 import { adminApi, hasJsonContentType, validWriteOrigin } from "./admin";
+import { apidocsKey, apidocsPut } from "./apidocs";
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
@@ -62,6 +65,7 @@ interface VersionRow {
   license: string | null;
   repository: string | null;
   docs: string | null;
+  api_docs_size?: number | null;
 }
 
 /// The `[package]` metadata a version carries, in the shape every API
@@ -193,6 +197,16 @@ async function cliLogin(env: Env, request: Request): Promise<Response> {
 }
 
 async function packages(env: Env, request: Request, pathname: string): Promise<Response> {
+  // `PUT …/{version}/docs` — the api-docs sidecar upload (docs/apidocs.md).
+  // Strip the trailing verb segment, then reuse the right-to-left
+  // name/version parse the other package paths get.
+  if (request.method === "PUT" && pathname.endsWith("/docs")) {
+    const target = parsePackagePath(pathname.slice(0, -"/docs".length));
+    if (!target || !target.version || target.tar) {
+      return json(400, { error: "PUT api docs to /packages/{name}/{version}/docs" });
+    }
+    return await apidocsPut(env, request, target.name, target.version);
+  }
   const parsed = parsePackagePath(pathname);
   if (!parsed) return json(404, { error: "not found" });
   const { name, version, tar } = parsed;
@@ -559,7 +573,8 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
       .first();
     if (!pkg) return json(404, { error: "not found" });
     const versions = await env.DB.prepare(
-      `SELECT version, hash, size, published_at, description, license, repository, docs
+      `SELECT version, hash, size, published_at, description, license, repository, docs,
+              api_docs_size
          FROM versions WHERE name = ? ORDER BY published_at DESC`,
     )
       .bind(name)
@@ -571,6 +586,9 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
         hash: v.hash,
         size: v.size,
         published_at: v.published_at,
+        // Whether a `cohdl docs` sidecar was uploaded for this version
+        // (api_docs_size IS NOT NULL) — the UI's cue to offer the API tab.
+        api_docs: typeof v.api_docs_size === "number",
         ...manifestMeta(v),
       })),
     });
@@ -620,6 +638,27 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
         "X-Content-Type-Options": "nosniff",
         // A published version is immutable, so its documents are too.
         "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    });
+  }
+
+  // A version's api-docs sidecar (docs/apidocs.md), byte-for-byte as
+  // uploaded: `?pkg=<name>&version=<X.Y.Z>`. Public like the tar. Unlike
+  // the tar the sidecar is replaceable, so it is cached briefly rather
+  // than `immutable`.
+  if (path === "/api/apidocs" && request.method === "GET") {
+    const pkg = url.searchParams.get("pkg") ?? "";
+    const version = url.searchParams.get("version") ?? "";
+    if (!pkg || !EXACT_VERSION.test(version)) {
+      return json(400, { error: "need ?pkg=<name>&version=<X.Y.Z>" });
+    }
+    const obj = await env.PKG.get(apidocsKey(pkg, version));
+    if (!obj) return json(404, { error: `\`${pkg} ${version}\` has no api docs` });
+    return new Response(obj.body, {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "public, max-age=600",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   }

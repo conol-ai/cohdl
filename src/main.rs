@@ -21,6 +21,7 @@ USAGE:
     cohdl install [PATH]
     cohdl login
     cohdl publish [PATH]
+    cohdl docs   [PATH] [--out FILE] [--publish]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
     cohdl self-update [--check]
@@ -42,7 +43,11 @@ defaults to the current directory.
     login    store a registry token (opens the account page for you to copy
              one; paste it at the prompt)
     publish  package the current project and publish it to the registry
-             (three-tier namespace pre-flight, then POST; RFC-030)
+             (three-tier namespace pre-flight, then POST; RFC-030); also
+             uploads the package's API docs when the package checks cleanly
+    docs     emit the package API documentation JSON (docs/apidocs.md — the
+             registry's API explorer) to stdout, --out FILE, or, with
+             --publish, to the registry for the already-published version
     fmt      rewrite every .cohdl file into canonical form (RFC-009); in a
              project directory, also canonicalizes cohdl.toml's [dependencies]
     lsp      start the Language Server Protocol server on stdio (RFC-014)
@@ -59,6 +64,11 @@ defaults to the current directory.
              not already in canonical form
              self-update: report whether a newer release exists, install nothing
     --dep    update: re-resolve only the named dependency
+    --out    docs: write the JSON to FILE instead of stdout
+    --publish
+             docs: upload the JSON to the registry for this package's
+             published version (the backfill path; `cohdl publish` uploads
+             automatically)
     --std    development override: use DIR verbatim as the std package —
              emits the mandatory E1105 warning; the result is not reproducible
 ";
@@ -85,6 +95,10 @@ struct Args {
     /// RFC-030: the NAME positional of add/remove/update (`name` or
     /// `name@X.Y.Z` for add).
     name: Option<String>,
+    /// docs: `--out FILE` — write the API-docs JSON to FILE instead of stdout.
+    out_file: Option<PathBuf>,
+    /// docs: `--publish` — upload the JSON to the registry.
+    publish: bool,
 }
 
 impl Args {
@@ -107,10 +121,42 @@ impl Args {
         if self.dep.is_some() && self.command != "update" {
             return bad("--dep");
         }
+        if self.out_file.is_some() && self.command != "docs" {
+            return bad("--out");
+        }
+        if self.publish && self.command != "docs" {
+            return bad("--publish");
+        }
         match self.command.as_str() {
             "check" => {
                 if self.fmt_check {
                     return bad("--check");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+                if self.emit.is_some() {
+                    return bad("--emit");
+                }
+            }
+            "docs" => {
+                // The output IS JSON — a --json flag would be redundant; the
+                // rest simply do not apply (docs compiles the manifest's own
+                // locked dependency set, like the registry verbs).
+                if self.json {
+                    return bad("--json");
+                }
+                if self.fmt_check {
+                    return bad("--check");
+                }
+                if self.design.is_some() {
+                    return bad("--design");
+                }
+                if self.std_flag.is_some() {
+                    return bad("--std");
+                }
+                if self.no_std {
+                    return bad("--no-std");
                 }
                 if self.out_dir_given {
                     return bad("--out-dir");
@@ -236,6 +282,8 @@ fn parse_args() -> Result<Args, String> {
         emit: None,
         dep: None,
         name: None,
+        out_file: None,
+        publish: false,
     };
     let mut positional = Vec::new();
     while let Some(a) = argv.next() {
@@ -262,6 +310,10 @@ fn parse_args() -> Result<Args, String> {
             "--dep" => {
                 args.dep = Some(argv.next().ok_or("--dep needs a value")?);
             }
+            "--out" => {
+                args.out_file = Some(PathBuf::from(argv.next().ok_or("--out needs a value")?));
+            }
+            "--publish" => args.publish = true,
             "-h" | "--help" => return Err(USAGE.to_string()),
             other if other.starts_with('-') => {
                 return Err(format!("unknown flag `{}`\n\n{}", other, USAGE));
@@ -465,6 +517,7 @@ fn run(args: &Args) -> Result<bool, String> {
         "install" => return install_command(args),
         "login" => return login_command(),
         "publish" => return publish_command(args),
+        "docs" => return docs_command(args),
         "fmt" => return fmt_command(args),
         "lsp" => {
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
@@ -1538,6 +1591,29 @@ fn publish_command(args: &Args) -> Result<bool, String> {
             } else {
                 eprintln!("    documents: {}", docs.join(", "));
             }
+            // API docs (docs/apidocs.md): best-effort, never the publish's
+            // verdict — the tar is already up; extraction needs a cleanly
+            // checking package and the upload can be retried any time with
+            // `cohdl docs --publish`.
+            match build_api_docs(args) {
+                Ok(build) => {
+                    if upload_api_docs(&build, &token) {
+                        eprintln!("    api docs: published ({} items)", build.items);
+                    } else {
+                        eprintln!(
+                            "    api docs: upload failed — retry with `cohdl docs --publish`"
+                        );
+                    }
+                }
+                Err(DocsFailure::Diags(_)) => {
+                    eprintln!(
+                        "    api docs: skipped (the package does not check cleanly — fix `cohdl check`, then run `cohdl docs --publish`)"
+                    );
+                }
+                Err(DocsFailure::Prose(e)) => {
+                    eprintln!("    api docs: skipped ({e})");
+                }
+            }
             Ok(true)
         }
         401 => {
@@ -1580,6 +1656,261 @@ fn publish_command(args: &Args) -> Result<bool, String> {
         }
         other => Err(format!("publish failed: HTTP {other}")),
     }
+}
+
+/// The generated API-docs document plus what the CLI reports about it.
+struct ApiDocsBuild {
+    json: String,
+    items: usize,
+    name: String,
+    version: String,
+    /// The rendered (warning-only) diagnostics — `docs` shows them, the
+    /// publish hook stays quiet about them.
+    diag_text: String,
+}
+
+/// How API-docs generation fails: rendered diagnostics (exit 1) or an
+/// invocation-level prose error (exit 2) — mirroring `DepFailure`.
+enum DocsFailure {
+    Diags(String),
+    Prose(String),
+}
+
+/// Compile the package and render the docs/apidocs.md document. Refuses on
+/// any error-severity diagnostic: the API explorer documents packages that
+/// check, exactly as the emit rung refuses a failing design.
+fn build_api_docs(args: &Args) -> Result<ApiDocsBuild, DocsFailure> {
+    if !args.path.is_dir() || !args.path.join("cohdl.toml").is_file() {
+        return Err(DocsFailure::Prose(format!(
+            "`{}` is not a project directory (api docs need a cohdl.toml manifest)",
+            args.path.display()
+        )));
+    }
+    let (manifest_path, manifest) =
+        project::peek_manifest(&args.path).map_err(DocsFailure::Prose)?;
+    let Some(version) = manifest.version.clone() else {
+        return Err(DocsFailure::Prose(format!(
+            "{}: api docs need `[package] version`",
+            manifest_path.display()
+        )));
+    };
+    // std itself: it is every package's implicit prelude, so it compiles
+    // with NO dependency set and cannot go through the ordinary project
+    // loader (which reserves the `std` name). Its docs matter more than
+    // anyone's — every cross-package trait link lands on them.
+    let deps_list = if pipeline::package_root(&manifest.name) == "std" {
+        Vec::new()
+    } else {
+        match resolve_manifest_deps(args) {
+            Ok(deps) => deps,
+            Err(DepFailure::Prose(e)) => return Err(DocsFailure::Prose(e)),
+            Err(DepFailure::Diags(diags)) => {
+                return Err(DocsFailure::Diags(cohdl::deps::render_human(&diags)));
+            }
+        }
+    };
+    // Each dependency's version comes ONLY from its own manifest (RFC-029);
+    // a manifest-less dev-override dir degrades to 0.0.0.
+    let dep_metas: Vec<emit::docsjson::DepMeta> = deps_list
+        .iter()
+        .map(|(name, dir)| emit::docsjson::DepMeta {
+            name: name.clone(),
+            version: project::peek_manifest(dir)
+                .ok()
+                .and_then(|(_, m)| m.version)
+                .unwrap_or_else(|| "0.0.0".to_string()),
+            src_layout: dir.join("src").is_dir(),
+        })
+        .collect();
+    let dep_names: Vec<String> = deps_list.iter().map(|(n, _)| n.clone()).collect();
+    let (pkg_name, files, top) = if pipeline::package_root(&manifest.name) == "std" {
+        let src_dir = args.path.join("src");
+        let mut paths = collect_cohdl_files(&src_dir).map_err(DocsFailure::Prose)?;
+        paths.sort();
+        let mut files = Vec::new();
+        for p in &paths {
+            let rel = p
+                .strip_prefix(&src_dir)
+                .map_err(|_| "std source path escapes src/".to_string())
+                .map_err(DocsFailure::Prose)?;
+            let display = format!("src/{}", rel.display().to_string().replace('\\', "/"));
+            let content = std::fs::read_to_string(p)
+                .map_err(|e| format!("cannot read `{}`: {}", p.display(), e))
+                .map_err(DocsFailure::Prose)?;
+            files.push((display, content));
+        }
+        (manifest.name.clone(), files, None)
+    } else {
+        let proj =
+            project::load_project_with_deps(&args.path, &deps_list).map_err(DocsFailure::Prose)?;
+        (proj.name, proj.files, proj.top)
+    };
+    let checked = pipeline::check_files_in_with_deps(&pkg_name, &dep_names, &files, top.as_deref())
+        .map_err(DocsFailure::Prose)?;
+    let diag_text = checked.diags.render(&checked.sm);
+    if let Some(sel_err) = &checked.selection_error {
+        return Err(DocsFailure::Diags(format!("{diag_text}error: {sel_err}\n")));
+    }
+    if checked.diags.has_errors() {
+        return Err(DocsFailure::Diags(diag_text));
+    }
+    let rendered = emit::docsjson::render(
+        &checked,
+        &emit::docsjson::PackageMeta {
+            name: &manifest.name,
+            version: &version,
+            description: manifest.description.as_deref(),
+            license: manifest.license.as_deref(),
+            repository: manifest.repository.as_deref(),
+        },
+        &dep_metas,
+    );
+    Ok(ApiDocsBuild {
+        json: rendered.json,
+        items: rendered.items,
+        name: manifest.name,
+        version,
+        diag_text,
+    })
+}
+
+/// `PUT {registry}/packages/{name}/{version}/docs` (docs/apidocs.md). Prints
+/// its own E12xx diagnostics; returns whether the upload succeeded.
+fn upload_api_docs(build: &ApiDocsBuild, token: &str) -> bool {
+    use cohdl::registry;
+    let url = format!(
+        "{}/packages/{}/{}/docs",
+        registry::registry_url(),
+        build.name,
+        build.version
+    );
+    let tmp = std::env::temp_dir().join(format!("cohdl-docs-{}.json", std::process::id()));
+    if let Err(e) = std::fs::write(&tmp, &build.json) {
+        eprintln!("error: cannot stage the api docs upload: {e}");
+        return false;
+    }
+    let resp = registry::http_put(&url, &tmp, token, "application/json");
+    let _ = std::fs::remove_file(&tmp);
+    let resp = match resp {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("error: cannot reach the registry: {e}");
+            return false;
+        }
+    };
+    match resp.status {
+        200 => true,
+        401 => {
+            eprint!(
+                "{}",
+                render_diag(
+                    &cohdl::deps::PackageDiag::error(
+                        "E1201",
+                        "cohdl docs",
+                        0,
+                        "the registry rejected the stored token".to_string(),
+                    )
+                    .with_help("run `cohdl login` again".to_string())
+                )
+            );
+            false
+        }
+        404 => {
+            eprint!(
+                "{}",
+                render_diag(
+                    &cohdl::deps::PackageDiag::error(
+                        "E1203",
+                        &url,
+                        0,
+                        format!(
+                            "`{} {}` is not published — api docs attach to an existing version",
+                            build.name, build.version
+                        ),
+                    )
+                    .with_help("run `cohdl publish` first".to_string())
+                )
+            );
+            false
+        }
+        400 | 403 | 409 | 413 => {
+            let msg = registry::json_str_field(&resp.body, "error")
+                .unwrap_or_else(|| format!("api docs rejected (HTTP {})", resp.status));
+            eprint!(
+                "{}",
+                render_diag(&cohdl::deps::PackageDiag::error("E1202", &url, 0, msg))
+            );
+            false
+        }
+        0 => {
+            eprint!(
+                "{}",
+                render_diag(&registry::unreachable(format!(
+                    "PUT {url} did not complete"
+                )))
+            );
+            false
+        }
+        other => {
+            eprintln!("error: api docs upload failed: HTTP {other}");
+            false
+        }
+    }
+}
+
+/// `cohdl docs` (docs/apidocs.md): emit the package API documentation JSON —
+/// stdout by default, `--out FILE`, and/or `--publish` to the registry.
+fn docs_command(args: &Args) -> Result<bool, String> {
+    let build = match build_api_docs(args) {
+        Ok(b) => b,
+        Err(DocsFailure::Prose(e)) => return Err(e),
+        Err(DocsFailure::Diags(text)) => {
+            eprint!("{text}");
+            return Ok(false);
+        }
+    };
+    // Warning-severity diagnostics still surface (stderr, never mixed into
+    // the JSON on stdout).
+    eprint!("{}", build.diag_text);
+    match &args.out_file {
+        Some(path) => {
+            write_lock_file(path, &build.json)?;
+            eprintln!("  wrote {} ({} items)", path.display(), build.items);
+        }
+        None => {
+            if args.publish {
+                // --publish without --out: the JSON's destination is the
+                // registry; keep stdout clean for diagnostics-free scripting.
+            } else {
+                print!("{}", build.json);
+            }
+        }
+    }
+    if args.publish {
+        let Some(token) = cohdl::registry::read_token() else {
+            eprint!(
+                "{}",
+                render_diag(
+                    &cohdl::deps::PackageDiag::error(
+                        "E1201",
+                        "cohdl docs",
+                        0,
+                        "publishing api docs needs authentication".to_string(),
+                    )
+                    .with_help("run `cohdl login` first".to_string())
+                )
+            );
+            return Ok(false);
+        };
+        if !upload_api_docs(&build, &token) {
+            return Ok(false);
+        }
+        eprintln!(
+            "  published api docs for {} {} ({} items)",
+            build.name, build.version, build.items
+        );
+    }
+    Ok(true)
 }
 
 /// `cohdl fmt` (RFC-009): rewrite every `.cohdl` file at PATH into canonical

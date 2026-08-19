@@ -9,6 +9,7 @@ import {
   createRoute,
   useNavigate,
   useRouterState,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,6 +19,7 @@ import {
   post,
   put,
   useAdminAccounts,
+  useApiDocs,
   useConfig,
   useDocText,
   useMe,
@@ -29,6 +31,7 @@ import {
   type SearchRow,
   type VersionRow,
 } from "./api";
+import { ApiExplorer } from "./apidocs";
 import {
   BrandMark,
   CommandBox,
@@ -91,8 +94,12 @@ function usePageTitle(title: string) {
 function GlobalSearch() {
   const routeQuery = useRouterState({
     select: (state) => {
+      // Only the catalogue's own `q` belongs in this box — the package
+      // page's API explorer reuses the `q` param for its item filter, and
+      // mirroring that here would read as a site-wide search in flight.
       const search = state.location.search as Record<string, unknown>;
-      return typeof search.q === "string" ? search.q : "";
+      const mirrors = state.location.pathname === "/packages" || state.location.pathname === "/";
+      return mirrors && typeof search.q === "string" ? search.q : "";
     },
   });
   const [q, setQ] = useState(routeQuery);
@@ -259,6 +266,33 @@ function NotFound() {
             Explore packages
           </Link>
         </div>
+      </StatePanel>
+    </div>
+  );
+}
+
+/// The router's defaultErrorComponent (wired in main.tsx): any exception a
+/// route throws while rendering lands in this panel instead of unmounting
+/// the whole React root to a blank page.
+export function RouteErrorPanel({ error, reset }: ErrorComponentProps) {
+  return (
+    <div className="narrow-page">
+      <StatePanel
+        tone="error"
+        icon="shield"
+        title="This page failed to render"
+        action={
+          <div className="state-action-row">
+            <button className="button button-secondary" onClick={reset}>
+              Try again
+            </button>
+            <button className="button button-ghost" onClick={() => window.location.reload()}>
+              Reload the page
+            </button>
+          </div>
+        }
+      >
+        {error instanceof Error ? error.message : String(error)}
       </StatePanel>
     </div>
   );
@@ -803,7 +837,20 @@ function PackagePage() {
   const [tab, setTab] = useState<"overview" | "versions">("overview");
   const overviewTab = useRef<HTMLButtonElement>(null);
   const versionsTab = useRef<HTMLButtonElement>(null);
+  const apiTab = useRef<HTMLButtonElement>(null);
   usePageTitle(name || "Package");
+
+  const latest = pkg.data?.versions[0];
+  const requested = search.version;
+  const version =
+    pkg.data?.versions.find((candidate) => candidate.version === requested) ?? latest;
+  // A version row that says `api_docs: false` needs no probe; anything else
+  // (true, or a row predating the flag) asks the endpoint — a 404 resolves
+  // to `null`, the normal "no docs" state.
+  const apiDocs = useApiDocs(
+    name,
+    version && version.api_docs !== false ? version.version : undefined,
+  );
 
   useEffect(() => {
     if (
@@ -862,9 +909,6 @@ function PackagePage() {
     );
   }
 
-  const latest = pkg.data.versions[0];
-  const requested = search.version;
-  const version = pkg.data.versions.find((candidate) => candidate.version === requested) ?? latest;
   if (!version) {
     return (
       <StatePanel title="This package has no published versions">
@@ -880,6 +924,28 @@ function PackagePage() {
   const install = `cohdl add ${name}@${version.version}`;
   const docsCount = version.docs.length;
   const isLatest = version.version === latest?.version;
+  // The API tab is URL-driven (`view=api`, or an `item` deep link); the
+  // other two keep their local tab state untouched.
+  const apiSelected = search.view === "api" || !!search.item;
+  const activeTab: "overview" | "versions" | "api" = apiSelected ? "api" : tab;
+  const showApiTab = version.api_docs === true || !!apiDocs.data || apiSelected;
+  const versionSearch = { version: isLatest ? undefined : version.version };
+  const selectTab = (next: "overview" | "versions" | "api") => {
+    if (next === "api") {
+      if (!apiSelected) {
+        navigate({
+          to: "/package/$",
+          params: { _splat: name },
+          search: { ...versionSearch, view: "api" },
+        });
+      }
+      return;
+    }
+    setTab(next);
+    if (apiSelected) {
+      navigate({ to: "/package/$", params: { _splat: name }, search: versionSearch });
+    }
+  };
   const trustCopy =
     pkg.data.tier === "official"
       ? "Published from CoHDL’s official namespace."
@@ -923,10 +989,22 @@ function PackagePage() {
         onKeyDown={(event) => {
           if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
           event.preventDefault();
-          const next =
-            event.key === "ArrowRight" || event.key === "End" ? "versions" : "overview";
-          setTab(next);
-          (next === "overview" ? overviewTab : versionsTab).current?.focus();
+          const order: ("overview" | "versions" | "api")[] = showApiTab
+            ? ["overview", "versions", "api"]
+            : ["overview", "versions"];
+          const current = order.indexOf(activeTab);
+          const nextIndex =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? order.length - 1
+                : event.key === "ArrowRight"
+                  ? Math.min(current + 1, order.length - 1)
+                  : Math.max(current - 1, 0);
+          const next = order[nextIndex];
+          selectTab(next);
+          (next === "overview" ? overviewTab : next === "versions" ? versionsTab : apiTab)
+            .current?.focus();
         }}
       >
         <button
@@ -934,10 +1012,10 @@ function PackagePage() {
           id="package-overview-tab"
           type="button"
           role="tab"
-          aria-selected={tab === "overview"}
+          aria-selected={activeTab === "overview"}
           aria-controls="package-overview-panel"
-          tabIndex={tab === "overview" ? 0 : -1}
-          onClick={() => setTab("overview")}
+          tabIndex={activeTab === "overview" ? 0 : -1}
+          onClick={() => selectTab("overview")}
         >
           Overview
           <span>{docsCount > 0 ? `${docsCount} ${docsCount === 1 ? "doc" : "docs"}` : "metadata"}</span>
@@ -947,18 +1025,39 @@ function PackagePage() {
           id="package-versions-tab"
           type="button"
           role="tab"
-          aria-selected={tab === "versions"}
+          aria-selected={activeTab === "versions"}
           aria-controls="package-versions-panel"
-          tabIndex={tab === "versions" ? 0 : -1}
-          onClick={() => setTab("versions")}
+          tabIndex={activeTab === "versions" ? 0 : -1}
+          onClick={() => selectTab("versions")}
         >
           Versions <span>{pkg.data.versions.length}</span>
         </button>
+        {showApiTab && (
+          <button
+            ref={apiTab}
+            id="package-api-tab"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "api"}
+            aria-controls="package-api-panel"
+            tabIndex={activeTab === "api" ? 0 : -1}
+            onClick={() => selectTab("api")}
+          >
+            API
+            <span>
+              {apiDocs.data
+                ? `${(apiDocs.data.items ?? []).length} ${
+                    (apiDocs.data.items ?? []).length === 1 ? "item" : "items"
+                  }`
+                : "explorer"}
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="package-layout">
         <div className="package-primary">
-          {tab === "overview" ? (
+          {activeTab === "overview" ? (
             <section
               id="package-overview-panel"
               className="content-panel"
@@ -976,6 +1075,31 @@ function PackagePage() {
                 </span>
               </div>
               <Documents name={name} version={version} />
+            </section>
+          ) : activeTab === "api" ? (
+            <section
+              id="package-api-panel"
+              className="content-panel"
+              role="tabpanel"
+              aria-labelledby="package-api-tab"
+              tabIndex={0}
+            >
+              <div className="panel-heading">
+                <div>
+                  <p className="eyebrow">Extracted from {version.version}</p>
+                  <h2>API documentation</h2>
+                </div>
+                {apiDocs.data && (
+                  <span className="panel-count">{(apiDocs.data.items ?? []).length} items</span>
+                )}
+              </div>
+              <ApiExplorer
+                name={name}
+                version={version.version}
+                versionParam={isLatest ? undefined : version.version}
+                query={apiDocs}
+                search={{ item: search.item, q: search.q, kind: search.kind }}
+              />
             </section>
           ) : (
             <section
@@ -1157,9 +1281,18 @@ function PackagePage() {
 const packageRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/package/$",
-  validateSearch: (search: Record<string, unknown>): { version?: string } => ({
+  // API-explorer state is shareable: `view=api` (or a present `item`)
+  // selects the API tab, `item` deep-links one declaration, `q`/`kind`
+  // filter. Defaults are canonically omitted.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { version?: string; view?: "api"; item?: string; q?: string; kind?: string } => ({
     version:
       typeof search.version === "string" && search.version ? search.version : undefined,
+    view: search.view === "api" ? "api" : undefined,
+    item: typeof search.item === "string" && search.item ? search.item : undefined,
+    q: typeof search.q === "string" && search.q ? search.q : undefined,
+    kind: typeof search.kind === "string" && search.kind ? search.kind : undefined,
   }),
   component: PackagePage,
 });

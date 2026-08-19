@@ -748,3 +748,129 @@ fn build_manifest_enables_reownership() {
         .success());
     let _ = std::fs::remove_dir_all(&tmp);
 }
+
+// ---------------------------------------------------------------------------
+// docs/apidocs.md: the `cohdl docs` verb at the binary boundary.
+
+/// A project with a vendored std under `deps/` (the RFC-029 family layout),
+/// so `docs` resolves its locked dependency set without a global registry.
+fn make_docs_project(root: &Path, lib_src: &str) {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let (_, std_manifest) = cohdl::project::peek_manifest(&repo.join("lib/std")).unwrap();
+    let std_version = std_manifest.version.expect("std pins a version");
+    let vendored = root.join("deps/std").join(&std_version);
+    std::fs::create_dir_all(vendored.join("src")).unwrap();
+    std::fs::copy(repo.join("lib/std/cohdl.toml"), vendored.join("cohdl.toml")).unwrap();
+    for entry in std::fs::read_dir(repo.join("lib/std/src")).unwrap() {
+        let p = entry.unwrap().path();
+        if p.extension().is_some_and(|e| e == "cohdl") {
+            std::fs::copy(&p, vendored.join("src").join(p.file_name().unwrap())).unwrap();
+        }
+    }
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        format!(
+            "[package]\nname = \"t\"\nversion = \"0.1.0\"\nlicense = \"MIT\"\n\n[dependencies]\nstd = \"{std_version}\"\n"
+        ),
+    )
+    .unwrap();
+    std::fs::write(root.join("src/lib.cohdl"), lib_src).unwrap();
+}
+
+const DOCS_LIB: &str = r#"
+pub device Res { pins { A: 1 [passive], B: 2 [passive] } }
+impl TwoTerminal for Res {}
+pub footprint TFP {}
+pub part R1: Res { primary { mfr: "m", mpn: "n", footprint: TFP } }
+"#;
+
+#[test]
+fn docs_command_emits_json_to_stdout_and_file() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-docs-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_docs_project(&tmp, DOCS_LIB);
+
+    // stdout mode: the document (and only the document) on stdout.
+    let out = cohdl()
+        .args(["docs", tmp.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.starts_with("{\n  \"schema_version\": 1,\n"),
+        "document leads with the schema version:\n{}",
+        &stdout[..stdout.len().min(200)]
+    );
+    assert!(stdout.contains("\"fq\": \"t::R1\""));
+    assert!(stdout.ends_with("}\n"));
+
+    // --out FILE mode: identical bytes on disk, nothing on stdout.
+    let out_path = tmp.join("api.json");
+    let out2 = cohdl()
+        .args([
+            "docs",
+            tmp.to_str().unwrap(),
+            "--out",
+            out_path.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        out2.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out2.stderr)
+    );
+    assert!(out2.stdout.is_empty(), "--out keeps stdout clean");
+    assert_eq!(
+        std::fs::read_to_string(&out_path).unwrap(),
+        stdout,
+        "file and stdout bytes are identical"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn docs_command_refuses_errors_and_bad_flags() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-cli-docs2-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    // `nosuch` is unresolvable — the package does not check.
+    make_docs_project(
+        &tmp,
+        "pub part P1: nosuch::Dev { primary { mpn: \"x\" } }\n",
+    );
+
+    let out = cohdl()
+        .args(["docs", tmp.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(1),
+        "check errors → exit 1, no document"
+    );
+    assert!(out.stdout.is_empty(), "no partial document on errors");
+    assert!(!String::from_utf8_lossy(&out.stderr).is_empty());
+
+    // Flag matrix: --json is not valid with docs (the output IS JSON).
+    let out = cohdl()
+        .args(["docs", tmp.to_str().unwrap(), "--json"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("`--json` is not valid with `docs`"));
+
+    // And --out/--publish are docs-only.
+    let out = cohdl()
+        .args(["check", tmp.to_str().unwrap(), "--out", "x.json"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("`--out` is not valid with `check`"));
+    let _ = std::fs::remove_dir_all(&tmp);
+}

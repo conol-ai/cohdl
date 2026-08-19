@@ -221,7 +221,11 @@ block from E11xx (RFC-011's organizing principle: registry-interaction
 failures are a different kind of mistake from local resolution/hash
 failures, and E1204 in particular must never be conflated with E1103).
 Like E11xx these are pre-source `PackageDiag`s; they surface as CLI prose
-(none of these commands has a `--json` mode).
+(none of these commands has a `--json` mode). The API-docs sidecar upload
+(`cohdl docs --publish` and the automatic upload after `cohdl publish` —
+docs/apidocs.md) reuses this block unchanged: E1201 auth, E1202
+server-refused (including the 16 MiB size cap), E1203 version not yet
+published, E1204 unreachable. No new codes.
 
 | Code | Meaning |
 |---|---|

@@ -98,7 +98,11 @@ fn unspellable_module_segment(display: &str, deps: &[String]) -> Option<(String,
 /// the project package (directories + file stem become segments — files
 /// directly under `src/` live at the package root); anything else (loose
 /// files, test fixtures) is the package root.
-fn infer_module(package: &str, deps: &[String], display: &str) -> crate::resolve::ModuleInfo {
+pub(crate) fn infer_module(
+    package: &str,
+    deps: &[String],
+    display: &str,
+) -> crate::resolve::ModuleInfo {
     let d = display.replace('\\', "/");
     let dep_hit = deps.iter().find_map(|dep| {
         if d == *dep {

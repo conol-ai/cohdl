@@ -32,6 +32,16 @@ constituent `vitest`/`oxlint`) as devDependencies.
   implementation). It also re-reads `cohdl.toml` **from inside the
   archive**: a declared name or version that disagrees with the URL is
   refused, because the manifest is the sole identity authority.
+- `PUT /packages/{name}/{ver}/docs` → upload the version's API-docs
+  sidecar (`cohdl docs --publish` / the post-publish step; Bearer token,
+  package owner only, the version must already be published). The body is
+  the `schema_version: 1` JSON of `docs/apidocs.md`, at most 16 MiB; the
+  server validates only the envelope (UTF-8 JSON, top-level object,
+  `schema_version`, `package.name`/`package.version` matching the URL) —
+  deep schema validation stays with the emitter, and the UI renders every
+  field as inert text/SVG. Unlike the tar the sidecar is a derived,
+  re-generatable view, **not** identity: re-uploading replaces it (last
+  write wins), e.g. after a compiler upgrade.
 
 ## What a package can say about itself
 
@@ -59,6 +69,13 @@ from inside a document resolve the same way. Rendering goes through a
 Markdown subset that emits React elements only (`markdown.tsx`) — no raw
 HTML, no `dangerouslySetInnerHTML`, URLs limited to http/https/mailto and
 same-version relative paths.
+
+The API-docs sidecar is served by `GET /api/apidocs?pkg&version` —
+public, `Content-Type: application/json`, `nosniff`, and a ten-minute
+public cache (the sidecar is replaceable, so never `immutable`); 404 when
+that version has none. Each version row in `GET /api/packages/{name}`
+carries `api_docs: true/false` (derived from D1's `api_docs_size`), the
+UI's cue to offer the API explorer.
 - `POST /login` → token check → `{ account, official, brands }` (the CLI
   stores the grants for local publish pre-flight).
 
@@ -103,6 +120,7 @@ wrangler d1 create cohdl-registry           # then paste the id into wrangler.js
 wrangler kv namespace create SESSIONS      # likewise
 npm run db:init                             # fresh DB: the whole schema
 npm run db:migrate                         # existing DB: additive column adds
+npm run db:migrate:0002                    # …and the api-docs column
 npm run deploy
 ```
 

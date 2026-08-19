@@ -1,0 +1,11 @@
+-- Bring a registry DB created before the api-docs sidecar (docs/apidocs.md)
+-- existed up to the current schema.sql. Additive and one-shot: SQLite has no
+-- `ADD COLUMN IF NOT EXISTS`, so re-running this fails with "duplicate
+-- column name" — that failure means the DB is already migrated.
+--
+--   npm run db:migrate:0002            (production)
+--   npm run db:migrate:0002:local
+--
+-- Rows read as NULL until an owner uploads docs for that version, which is
+-- exactly what "no docs uploaded" means.
+ALTER TABLE versions ADD COLUMN api_docs_size INTEGER;

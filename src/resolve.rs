@@ -77,6 +77,10 @@ pub struct World {
     /// RFC-017 `#[doc("path")]` reference documents, fq path → paths in
     /// source order. Opaque to compilation; surfaced by the LSP.
     pub docs: BTreeMap<String, Vec<String>>,
+    /// RFC-012 item-level `#[intent("...")]` strings, keyed like `docs`
+    /// (module::name). Opaque to compilation — retained only for tooling
+    /// (the API-docs emitter); never read by any checking/emission pass.
+    pub intents: BTreeMap<String, String>,
     /// RFC-016 `use` imports, retained for the LSP (closes review R5-10:
     /// definition/hover on the imported path). Source order; `fq` is the
     /// imported path as written (`::`-joined), resolved or not.
@@ -399,6 +403,13 @@ pub fn build_world_in(
                         format!("{}::{}", module, name.name),
                         item.docs.iter().map(|(p, _)| p.clone()).collect(),
                     );
+                }
+            }
+            if let Some((intent, _)) = &item.intent {
+                if let Some(name) = item.kind.name() {
+                    world
+                        .intents
+                        .insert(format!("{}::{}", module, name.name), intent.clone());
                 }
             }
             match item.kind {

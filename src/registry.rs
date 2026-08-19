@@ -204,6 +204,28 @@ pub fn http_post(
     run_curl(&args)
 }
 
+/// PUT with a file body — the API-docs sidecar upload (docs/apidocs.md).
+/// Same transport discipline as [`http_post`]: the system curl, a bearer
+/// token, the body staged in a temp file.
+pub fn http_put(
+    url: &str,
+    body_file: &Path,
+    token: &str,
+    content_type: &str,
+) -> Result<HttpResponse, String> {
+    run_curl(&[
+        "-X".to_string(),
+        "PUT".to_string(),
+        "-H".to_string(),
+        format!("Content-Type: {content_type}"),
+        "-H".to_string(),
+        format!("Authorization: Bearer {token}"),
+        "--data-binary".to_string(),
+        format!("@{}", body_file.display()),
+        url.to_string(),
+    ])
+}
+
 // ---------------------------------------------------------------------------
 // Minimal JSON field extraction (the registry's responses are flat objects;
 // the crate's hand-rolled-JSON discipline applies to parsing too)

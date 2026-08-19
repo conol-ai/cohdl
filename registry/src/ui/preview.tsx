@@ -12,9 +12,15 @@ import {
   chamferPoints,
   footprintBounds,
   mm,
+  padNumberLabel,
   scaleBarMm,
   shortName,
+  SIGNAL_GAP,
+  signalFontSize,
+  signalLabels,
+  signalMargins,
   symbolSides,
+  type SideLengths,
 } from "./apidocs-model";
 
 // --- schematic symbol -------------------------------------------------------
@@ -329,32 +335,50 @@ function SilkShape({ g, hair }: { g: SilkDoc; hair: number }) {
 /// Exact footprint rendering from the docs payload. The authoring frame is
 /// y-down — identical to SVG — so coordinates are used verbatim; pad
 /// rotation is `rotate(-angle)` about the pad centre. Hovering a pad
-/// highlights it and its `<title>` names the pad number.
+/// highlights it and its `<title>` names the pad number. Pads carry their
+/// pin number; a `signals` map (electrical number → the bound device's pin
+/// name) adds datasheet-style signal labels beside the pads.
 export function FootprintPreview({
   footprint,
   pads,
   label,
+  signals,
+  showNumbers = true,
 }: {
   footprint: FootprintDoc;
   pads: ReadonlyMap<string, PadDoc>;
   label: string;
+  signals?: ReadonlyMap<string, string>;
+  showNumbers?: boolean;
 }) {
   if (footprint.placeholder) return null;
   const raw = footprintBounds(footprint, pads, 0);
   const rawW = raw.maxX - raw.minX;
   const rawH = raw.maxY - raw.minY;
+  // Stroke weights and the scale-bar text follow the footprint's own size,
+  // not the label-expanded view.
   const dim = Math.max(rawW, rawH, 0.001);
   const margin = Math.max(0.7, dim * 0.09);
   const textMm = Math.max(0.55, dim / 26);
   const hair = Math.max(0.04, dim / 260);
-  const minX = raw.minX - margin;
-  const minY = raw.minY - margin;
-  const width = rawW + margin * 2;
+
+  const labels = signals ? signalLabels(footprint, pads, signals) : [];
+  const sigSize = labels.length > 0 ? signalFontSize(footprint, pads) : 0;
+  const longest: SideLengths = { left: 0, right: 0, top: 0, bottom: 0 };
+  for (const l of labels) longest[l.side] = Math.max(longest[l.side], l.text.length);
+  const extra =
+    labels.length > 0
+      ? signalMargins(longest, sigSize, SIGNAL_GAP)
+      : { left: 0, right: 0, top: 0, bottom: 0 };
+
+  const minX = raw.minX - extra.left - margin;
+  const minY = raw.minY - extra.top - margin;
+  const width = rawW + extra.left + extra.right + margin * 2;
   const barZone = textMm * 2.4;
-  const height = rawH + margin * 2 + barZone;
+  const height = rawH + extra.top + extra.bottom + margin * 2 + barZone;
   const barMm = scaleBarMm(width);
   const barX = minX + width * 0.03;
-  const barY = raw.maxY + margin + barZone / 2;
+  const barY = raw.maxY + extra.bottom + margin + barZone / 2;
   const tick = textMm * 0.5;
 
   return (
@@ -437,6 +461,43 @@ export function FootprintPreview({
       })}
       {asArray(footprint.silk).map((g, i) => (
         <SilkShape key={`${g?.kind}-${i}`} g={g} hair={hair} />
+      ))}
+      {showNumbers &&
+        asArray(footprint.pads).map((placement, i) => {
+          const def = pads.get(placement?.pad);
+          if (!def) return null;
+          const x = mm(placement?.x);
+          const y = mm(placement?.y);
+          const { fontSize, rotated } = padNumberLabel(def, placement?.rotate ?? 0);
+          return (
+            <text
+              key={`num-${placement?.number}-${i}`}
+              className="fp-num"
+              x={x}
+              y={y}
+              fontSize={fontSize}
+              textAnchor="middle"
+              dominantBaseline="central"
+              transform={rotated ? `rotate(-90 ${x} ${y})` : undefined}
+            >
+              {String(placement?.number ?? "")}
+            </text>
+          );
+        })}
+      {labels.map((l) => (
+        <text
+          key={`sig-${l.number}`}
+          className="fp-signal"
+          x={l.x}
+          y={l.y}
+          fontSize={sigSize}
+          strokeWidth={sigSize * 0.18}
+          textAnchor={l.anchor}
+          dominantBaseline="central"
+          transform={l.rotated ? `rotate(-90 ${l.x} ${l.y})` : undefined}
+        >
+          {l.text}
+        </text>
       ))}
       {footprint.silkscreen_ref && (
         <text

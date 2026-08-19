@@ -32,6 +32,7 @@
   --fp-window: #58cfc0;
   --fp-hole: #0b1119;
   --fp-hole-edge: #7e8fa5;
+  --fp-num: #f8f2ee; /* pin numbers on the copper — near-white, warm to sit on the red */
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -2533,6 +2534,26 @@ button:disabled {
 .fp-ref {
   fill: var(--fp-silk);
   font-family: var(--font-mono);
+}
+
+/* Pin-number and signal-name labels sit above the pads but must never eat
+   the pad hover. */
+.fp-num {
+  fill: var(--fp-num);
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+.fp-signal {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  pointer-events: none;
+  /* Halo so a label stays legible where it crosses silkscreen art (a pin-1
+     dot sits exactly where a left-side signal wants to be); the width is set
+     inline per label, proportional to its font size. */
+  paint-order: stroke;
+  stroke: var(--canvas);
+  stroke-linejoin: round;
 }
 
 .fp-scalebar {

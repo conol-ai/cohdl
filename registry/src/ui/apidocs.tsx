@@ -22,6 +22,7 @@ import { Icon, StatePanel } from "./components";
 import {
   asArray,
   avlColumns,
+  buildSignalMap,
   classifyFq,
   filterItems,
   fnSignature,
@@ -33,6 +34,7 @@ import {
   padsByFq,
   partsForDevice,
   pinsForVariant,
+  signalsForFootprint,
   specsForVariant,
 } from "./apidocs-model";
 import { FootprintPreview, SymbolPreview } from "./preview";
@@ -992,6 +994,7 @@ function PartBody({
                   footprint={footprint}
                   pads={ctx.pads}
                   label={`Footprint ${footprintFq}`}
+                  signals={device ? buildSignalMap(device, part.variant) : undefined}
                 />
               </div>
             </Section>
@@ -1025,11 +1028,24 @@ function FootprintBody({
   const placements = asArray(footprint.pads);
   const holes = asArray(footprint.mount_holes);
   const markers = asArray(footprint.markers);
+  // A footprint has no device of its own — borrow the pin names of the first
+  // part (sorted by fq) that references it and resolves.
+  const signals = signalsForFootprint(fq, asArray(ctx.doc.items), asArray(ctx.doc.foreign));
   return (
     <>
       <div className="preview-panel">
-        <FootprintPreview footprint={footprint} pads={ctx.pads} label={`Footprint ${fq}`} />
+        <FootprintPreview
+          footprint={footprint}
+          pads={ctx.pads}
+          label={`Footprint ${fq}`}
+          signals={signals?.map}
+        />
       </div>
+      {signals && (
+        <p className="api-fact">
+          Signals: <FqRef fq={signals.deviceFq} doc={ctx.doc} nav={ctx.nav} />
+        </p>
+      )}
       <Section title="Pad placements" count={placements.length}>
         <div className="table-wrap">
           <table className="api-table">
@@ -1112,7 +1128,8 @@ function FootprintBody({
 }
 
 function PadBody({ fq, pad, ctx }: { fq: string; pad: PadDoc; ctx: DetailContext }) {
-  // A synthetic single-pad footprint gives the mini preview for free.
+  // A synthetic single-pad footprint gives the mini preview for free. The
+  // synthetic "1" is not a real pin number — no labels here.
   const solo: FootprintDoc = {
     placeholder: false,
     pads: [{ number: "1", pad: fq, x: "0", y: "0" }],
@@ -1121,7 +1138,7 @@ function PadBody({ fq, pad, ctx }: { fq: string; pad: PadDoc; ctx: DetailContext
   return (
     <>
       <div className="preview-panel">
-        <FootprintPreview footprint={solo} pads={ctx.pads} label={`Pad ${fq}`} />
+        <FootprintPreview footprint={solo} pads={ctx.pads} label={`Pad ${fq}`} showNumbers={false} />
       </div>
       <Section title="Pad definition" count={facts.length}>
         <div className="table-wrap">

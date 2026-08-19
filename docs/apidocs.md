@@ -368,8 +368,10 @@ for foreign items. All `file` fields are `/`-separated on every platform.
   chamfer), drills and slots, plated/non-plated mount holes, courtyard,
   window, expanded silkscreen, `REF**` anchor. Authoring frame is y-down —
   identical to SVG — and pad rotation is applied as `rotate(-angle)` about
-  the pad centre. Hovering a pad highlights it and shows its number; a scale
-  bar shows mm.
+  the pad centre. Hovering a pad highlights it and shows its number; pads
+  render their pin number, and signal names are drawn beside pads when a
+  bound device is known (from the part context, or on footprint pages via
+  the first part referencing the footprint); a scale bar shows mm.
 - Everything renders as text/attributes through React — the no-raw-HTML rule
   of the Markdown renderer extends to every docs-JSON string.
 

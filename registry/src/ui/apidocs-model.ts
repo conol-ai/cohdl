@@ -543,6 +543,230 @@ export function footprintBounds(
   };
 }
 
+// --- pin numbers and signal names -------------------------------------------
+
+function clamp(value: number, lo: number, hi: number): number {
+  return Math.min(Math.max(value, lo), hi);
+}
+
+/// Gap between a pad's copper edge and its signal label, mm.
+export const SIGNAL_GAP = 0.25;
+
+/// Electrical number → pin name for one device variant. A pin's `numbers`
+/// array fans out (one entry per physical pad); on a duplicate number the
+/// first writer wins, matching the pin set's declaration order.
+export function buildSignalMap(
+  device: DeviceDoc,
+  variant: string | undefined,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const pin of pinsForVariant(device, variant)) {
+    if (!pin) continue;
+    const name = String(pin.name ?? "");
+    if (!name) continue;
+    for (const number of asArray(pin.numbers)) {
+      const key = String(number ?? "");
+      if (key && !map.has(key)) map.set(key, name);
+    }
+  }
+  return map;
+}
+
+export interface FootprintSignals {
+  map: Map<string, string>;
+  /// The bound device's short name, for the caption.
+  source: string;
+  /// The bound device's fq, so the caption can link it.
+  deviceFq: string;
+}
+
+/// The signal names a footprint page can show: parts are scanned sorted by
+/// fq (deterministic — the document's own order is not contractual), and the
+/// first part bound to `fpFq` (primary or any alt) whose device resolves —
+/// in `items` first, then `foreign` — supplies the number → pin-name map for
+/// its variant. No resolving part means no signals, not an error.
+export function signalsForFootprint(
+  fpFq: string,
+  items: ApiDocsItem[],
+  foreign: ApiDocsItem[],
+): FootprintSignals | undefined {
+  const target = String(fpFq ?? "");
+  if (!target) return undefined;
+  const parts = asArray(items)
+    .filter((item) => item?.kind === "part" && !!item.part)
+    .sort((a, b) => {
+      const fa = String(a.fq ?? "");
+      const fb = String(b.fq ?? "");
+      return fa < fb ? -1 : fa > fb ? 1 : 0;
+    });
+  const deviceByFq = (fq: string): DeviceDoc | undefined => {
+    for (const pool of [asArray(items), asArray(foreign)]) {
+      for (const item of pool) {
+        if (item?.kind === "device" && item.fq === fq && item.device) return item.device;
+      }
+    }
+    return undefined;
+  };
+  for (const item of parts) {
+    if (item?.kind !== "part") continue;
+    const part = item.part;
+    const bound = [part.primary, ...asArray(part.alts)].some(
+      (entry) => entry?.footprint === target,
+    );
+    if (!bound) continue;
+    const deviceFq = String(part.device ?? "");
+    const device = deviceFq ? deviceByFq(deviceFq) : undefined;
+    if (!device) continue;
+    return {
+      map: buildSignalMap(device, part.variant),
+      source: shortName(deviceFq),
+      deviceFq,
+    };
+  }
+  return undefined;
+}
+
+/// A pad-number label, centred on the pad: font size follows the pad's short
+/// dimension, and the text turns −90° to run along the pad's long axis when
+/// the placement's effective height clearly dominates (the placement's own
+/// rotation swaps the effective extents first).
+export function padNumberLabel(
+  pad: PadDoc,
+  rotate: number,
+): { fontSize: number; rotated: boolean } {
+  const half = padHalfSize(pad);
+  const fontSize = clamp(0.62 * Math.min(half.hw, half.hh) * 2, 0.1, 0.8);
+  const eff = rotatedHalfExtents(half.hw, half.hh, rotate);
+  return { fontSize, rotated: eff.hh > 1.4 * eff.hw };
+}
+
+/// ONE signal font size for the whole footprint — the median pad short
+/// dimension keeps a lone thermal pad from inflating every label.
+export function signalFontSize(
+  footprint: FootprintDoc,
+  pads: ReadonlyMap<string, PadDoc>,
+): number {
+  const dims: number[] = [];
+  for (const placement of asArray(footprint.pads)) {
+    const def = placement ? pads.get(placement.pad) : undefined;
+    if (!def) continue;
+    const half = padHalfSize(def);
+    dims.push(Math.min(half.hw, half.hh) * 2);
+  }
+  dims.sort((a, b) => a - b);
+  const median =
+    dims.length === 0
+      ? 0
+      : dims.length % 2 === 1
+        ? dims[(dims.length - 1) / 2]
+        : (dims[dims.length / 2 - 1] + dims[dims.length / 2]) / 2;
+  return clamp(0.55 * median, 0.2, 0.7);
+}
+
+export type SignalSide = "left" | "right" | "top" | "bottom";
+
+/// Datasheet-pinout side for a pad: the dominant axis of the pad centre
+/// relative to the footprint bbox centre, ties going to the horizontal side
+/// (y-down frame: −y is `top`).
+export function signalSide(dx: number, dy: number): SignalSide {
+  if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? "left" : "right";
+  return dy < 0 ? "top" : "bottom";
+}
+
+export interface SignalLabel {
+  number: string;
+  text: string;
+  side: SignalSide;
+  x: number;
+  y: number;
+  anchor: "start" | "end";
+  /// Vertical text (top/bottom sides): SVG `rotate(-90)` about the anchor
+  /// point, reading bottom-to-top.
+  rotated: boolean;
+}
+
+/// Signal labels beside a footprint's pads. Each electrical number is
+/// labelled ONCE — on its first placement in source order; repeated
+/// placements (an exposed pad's extra copper) get no duplicate. Left/right
+/// labels are horizontal, top/bottom vertical, all offset `SIGNAL_GAP` past
+/// the placement's rotation-aware copper extent. Sides are assigned
+/// relative to the CENTROID of the pad placements (the compiler's own
+/// outward-marker policy) — never the drawing bounds, which the REF**
+/// anchor or silkscreen art can skew off the land pattern's centre.
+export function signalLabels(
+  footprint: FootprintDoc,
+  pads: ReadonlyMap<string, PadDoc>,
+  signals: ReadonlyMap<string, string>,
+): SignalLabel[] {
+  const placements = asArray(footprint.pads).filter(Boolean);
+  let cx = 0;
+  let cy = 0;
+  if (placements.length > 0) {
+    for (const p of placements) {
+      cx += mm(p.x);
+      cy += mm(p.y);
+    }
+    cx /= placements.length;
+    cy /= placements.length;
+  }
+  const labels: SignalLabel[] = [];
+  const seen = new Set<string>();
+  for (const placement of asArray(footprint.pads)) {
+    if (!placement) continue;
+    const number = String(placement.number ?? "");
+    if (!number || seen.has(number)) continue;
+    seen.add(number);
+    const text = signals.get(number);
+    if (text === undefined) continue;
+    const def = pads.get(placement.pad);
+    if (!def) continue;
+    const half = padHalfSize(def);
+    const { hw, hh } = rotatedHalfExtents(half.hw, half.hh, placement.rotate ?? 0);
+    const x = mm(placement.x);
+    const y = mm(placement.y);
+    const side = signalSide(x - cx, y - cy);
+    switch (side) {
+      case "left":
+        labels.push({ number, text, side, x: x - hw - SIGNAL_GAP, y, anchor: "end", rotated: false });
+        break;
+      case "right":
+        labels.push({ number, text, side, x: x + hw + SIGNAL_GAP, y, anchor: "start", rotated: false });
+        break;
+      case "top":
+        labels.push({ number, text, side, x, y: y - hh - SIGNAL_GAP, anchor: "start", rotated: true });
+        break;
+      case "bottom":
+        labels.push({ number, text, side, x, y: y + hh + SIGNAL_GAP, anchor: "end", rotated: true });
+        break;
+    }
+  }
+  return labels;
+}
+
+export interface SideLengths {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/// Extra viewBox margin per side for the signal labels: the longest label's
+/// estimated extent (chars × fontSize × 0.62 for the mono advance) plus the
+/// gap and one line height of slack. A side with no labels gets none.
+export function signalMargins(
+  longest: SideLengths,
+  fontSize: number,
+  gap: number,
+): SideLengths {
+  const extent = (chars: number) => (chars > 0 ? chars * fontSize * 0.62 + gap + fontSize : 0);
+  return {
+    left: extent(longest.left),
+    right: extent(longest.right),
+    top: extent(longest.top),
+    bottom: extent(longest.bottom),
+  };
+}
+
 // --- arcs and scale ---------------------------------------------------------
 
 function fmtNum(n: number): string {

@@ -13,7 +13,7 @@ through to Workers Assets (`auto-trailing-slash`, so `/docs/` serves
 
 ```
 public/
-  index.html         landing: hero, code specimen, pipeline, showcase, install
+  index.html         landing: hero, principles, pipeline, case study, install
   docs/              docs index + getting-started, language, cli, packages,
                      layout, errors, editors (one directory per page)
   docs/spec/         the language specification — GENERATED, do not hand-edit
@@ -21,17 +21,22 @@ public/
   blog/              blog index, one directory per post, Atom feed.xml
   use-cases/         use-case index + openmicrokbd/ case study
   img/openmicrokbd/  case-study photos (WebP, from the openmicrokbd repo, MIT)
-  css/style.css      design tokens, chrome, landing sections, code highlighting
+  css/home.css       isolated landing-page visual system and responsive layout
+  css/style.css      shared docs/blog/use-case tokens, chrome and code highlighting
   css/prose.css      long-form styles for docs/blog/use-case pages
+  js/home.js         progressive motion, navigation, pipeline scroll stack and copy control
   js/main.js         waitlist progressive enhancement (no longer referenced
                      by the landing page; kept with the endpoint)
+  logo.svg, og.png   landing mark and social preview card
   404.html, favicon.svg, robots.txt, sitemap.xml
 src/worker.ts        security headers + POST /api/waitlist
 schema.sql           the D1 waitlist table
 ```
 
-The visual system is the registry's: same dark canvas, accent, grid and brand
-mark, so cohdl.org and registry.cohdl.org read as one product. Every page
+The long-form pages use the registry's dark canvas, accent, grid and compact
+chrome. The landing page has its own expanded marketing system in `home.css`
+and `home.js`; keeping those files isolated prevents its light/dark chapters
+and motion treatments from leaking into documentation. Every long-form page
 copies the same masthead/footer chrome from `docs/index.html`; there is no
 templating, so a chrome change means editing each page (deliberate — the page
 count is small and the deploy story stays trivial).

@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   APIDOCS_MAX_BYTES,
+  apidocsContentKey,
   apidocsKey,
   handleApidocsPut,
+  partSearchMutations,
   validateApidocs,
   type ApidocsDependencies,
   type ApidocsStore,
@@ -25,6 +27,13 @@ describe("apidocsKey", () => {
 
   it("keeps a scoped name's @scope/ segment", () => {
     expect(apidocsKey("@st/stm32", "0.1.0")).toBe("apidocs/@st/stm32/0.1.0.json");
+  });
+
+  it("gives new uploads immutable content-addressed keys", () => {
+    expect(apidocsContentKey("abc123")).toBe("apidocs/sha256/abc123.json");
+    expect(
+      new TextEncoder().encode(apidocsContentKey("a".repeat(64))).length,
+    ).toBeLessThan(1024);
   });
 });
 
@@ -231,6 +240,16 @@ describe("handleApidocsPut", () => {
     expect(h.store.put).not.toHaveBeenCalled();
   });
 
+  it("rejects a declared oversized upload before buffering its body", async () => {
+    const h = harness();
+    const request = putRequest("{}");
+    request.headers.set("Content-Length", String(APIDOCS_MAX_BYTES + 1));
+    const response = await handleApidocsPut(request, "passive", "1.0.0", h.deps);
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "api docs exceed the 16 MiB upload limit" });
+    expect(h.store.put).not.toHaveBeenCalled();
+  });
+
   it("stores the exact uploaded bytes and reports name/version/size", async () => {
     const h = harness();
     const uploaded = doc();
@@ -239,10 +258,58 @@ describe("handleApidocsPut", () => {
     expect(response.headers.get("Content-Type")).toBe("application/json");
     expect(body).toEqual({ name: "passive", version: "1.0.0", size: uploaded.length });
     expect(h.store.put).toHaveBeenCalledTimes(1);
-    const [name, version, stored] = h.store.put.mock.calls[0];
+    const [name, version, stored, parts] = h.store.put.mock.calls[0];
     expect(name).toBe("passive");
     expect(version).toBe("1.0.0");
     expect([...stored]).toEqual([...uploaded]);
+    expect(parts).toEqual([]);
+  });
+
+  it("passes only local public parts, with primary and alternate AVL data, to storage", async () => {
+    const uploaded = new TextEncoder().encode(
+      JSON.stringify({
+        schema_version: 1,
+        package: { name: "passive", version: "1.0.0" },
+        items: [
+          {
+            fq: "passive::parts::C100N",
+            name: "C100N",
+            kind: "part",
+            pub: true,
+            part: {
+              device: "passive::devices::MLCC",
+              primary: { fields: [{ name: "mpn", value: "PRIMARY" }] },
+              alts: [{ fields: [{ name: "mpn", value: "ALTERNATE" }] }],
+            },
+          },
+          {
+            fq: "passive::parts::PRIVATE",
+            name: "PRIVATE",
+            kind: "part",
+            pub: false,
+            part: { device: "passive::devices::MLCC", primary: { fields: [] } },
+          },
+        ],
+        foreign: [
+          {
+            fq: "dep::parts::FOREIGN",
+            name: "FOREIGN",
+            kind: "part",
+            pub: true,
+            part: { device: "dep::Device", primary: { fields: [] } },
+          },
+        ],
+      }),
+    );
+    const h = harness();
+    expect((await invoke(h, uploaded)).response.status).toBe(200);
+    const indexed = h.store.put.mock.calls[0][3];
+    expect(indexed).toHaveLength(1);
+    expect(indexed[0].fq).toBe("passive::parts::C100N");
+    expect(JSON.parse(indexed[0].avl_json)).toEqual([
+      { primary: true, manufacturer: null, mpn: "PRIMARY" },
+      { primary: false, manufacturer: null, mpn: "ALTERNATE" },
+    ]);
   });
 
   it("lets the owner replace an existing upload (last write wins)", async () => {
@@ -252,5 +319,47 @@ describe("handleApidocsPut", () => {
     expect((await invoke(h)).response.status).toBe(200);
     expect((await invoke(h)).response.status).toBe(200);
     expect(h.store.put).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("part search D1 mutation plan", () => {
+  const indexed = {
+    package_name: "passive",
+    package_version: "1.0.0",
+    fq: "passive::parts::C100N",
+    name: "C100N",
+    device: "passive::devices::MLCC",
+    intent: null,
+    searchable: "C100N PRIMARY ALTERNATE",
+    avl_json: "[]",
+  };
+
+  it("updates metadata and atomically guards delete and insert by newest version", () => {
+    const key = "apidocs/sha256/hash.json";
+    const mutations = partSearchMutations("passive", "1.0.0", 1234, key, [indexed]);
+    expect(mutations).toHaveLength(3);
+    expect(mutations[0].sql).toContain("api_docs_size = ?, api_docs_r2_key = ?");
+    expect(mutations[0].bindings).toEqual([1234, key, "passive", "1.0.0"]);
+    for (const mutation of mutations.slice(1)) {
+      expect(mutation.sql).toContain("SELECT version FROM versions");
+      expect(mutation.sql).toContain("ORDER BY published_at DESC, version DESC");
+      expect(mutation.bindings.slice(-2)).toEqual(["1.0.0", "passive"]);
+    }
+    expect(mutations[1].sql).toContain("DELETE FROM part_search");
+    expect(mutations[2].sql).toContain("INSERT INTO part_search");
+    expect(mutations[2].sql).toContain("FROM json_each(?)");
+    expect(JSON.parse(mutations[2].bindings[0] as string)).toEqual([indexed]);
+  });
+
+  it("still clears newest-version rows when a valid sidecar has no indexable parts", () => {
+    const mutations = partSearchMutations(
+      "passive",
+      "2.0.0",
+      99,
+      "apidocs/sha256/hash.json",
+      [],
+    );
+    expect(mutations).toHaveLength(2);
+    expect(mutations[1].sql).toContain("DELETE FROM part_search");
   });
 });

@@ -619,24 +619,29 @@ A package's tier is determined structurally by its name's own shape, never a sep
 ```bash
 cohdl login                              # opens a browser-based auth flow, stores a token locally
 cohdl publish                            # packages the current project per its cohdl.toml, publishes to the registry
+cohdl search TPS59650                    # search packages and public parts; no project or login required
+cohdl search TPS59650 --json             # the same bounded result set as one JSON document
 
-cohdl add @sparkfun/power                 # add a package as a dependency (resolves latest version, writes [dependencies] + cohdl.lock)
+cohdl add @sparkfun/power                 # add a package as a dependency (resolves greatest semantic version, writes [dependencies] + cohdl.lock)
 cohdl add @sparkfun/power@1.0.0           # add a package pinned to one exact version
 cohdl remove @sparkfun/power              # remove a package from [dependencies] (and prunes its cohdl.lock row)
 cohdl install                             # install all dependencies: resolve every [dependencies] entry against cohdl.lock
-cohdl update                              # update dependencies: re-resolve every [dependencies] entry to its current exact version
+cohdl update                              # update dependencies: resolve each to its greatest semantic version
 cohdl update @sparkfun/power              # update one named dependency only
 ```
 
 Rules:
 
-- cohdl add resolves the package's latest published exact version (or the exact version given via @X.Y.Z) against the registry, validates the three-tier namespace grammar, writes the resulting entry into [dependencies], and performs RFC-029's first-resolution (writing the new cohdl.lock row) in one step.
+- cohdl add resolves the package's greatest published semantic version (or the exact version given via @X.Y.Z) against the registry, validates the three-tier namespace grammar, writes the resulting entry into [dependencies], and performs RFC-029's first-resolution (writing the new cohdl.lock row) in one step.
 - cohdl remove deletes the named [dependencies] entry and its cohdl.lock row in one step — the symmetric inverse of add.
 - cohdl install performs exactly RFC-029's existing resolution (check cohdl.lock, first-resolve any new entry, hard-error on any hash mismatch) against registry.cohdl.org as the content source — no new resolution rule.
-- cohdl update [] re-resolves one or every [dependencies] entry to its currently-latest published exact version, rewriting [dependencies]/cohdl.lock together — RFC-029's own "deliberate, visible act" pin-update path, never triggered implicitly by install/build.
+- cohdl update [] re-resolves one or every [dependencies] entry to its greatest published semantic version, rewriting [dependencies]/cohdl.lock together — RFC-029's own "deliberate, visible act" pin-update path, never triggered implicitly by install/build.
 - cohdl publish requires a prior cohdl login; it validates the local package name against the three-tier namespace rules before any network call, so a bare-name or unverified-@brand attempt is rejected locally with the same message the server would give.
+- cohdl search QUERY is an unauthenticated, read-only discovery command backed by the registry's stable GET /search endpoint. It requires no project, login, manifest, or cache; trims QUERY, requires 3 or more Unicode scalar values and at most 128 UTF-8 bytes, and rejects control characters before any network call. Human output and --json carry the same bounded package and public-part result set; no matches is a successful empty result, while each family discloses truncation through `has_more` without a total count.
+- Package search covers names and bounded descriptions. Part search is derived from cohdl docs API-documentation sidecars and indexes only package-local, pub part items — never private declarations or foreign dependency items. A part's fully-qualified path must belong to the uploading package's server-derived module root and end in its declared short name. Within fixed resource-safety projection budgets, search includes the owning package name, fully-qualified and short symbols, device, intent, arguments, structural variant, and primary/alternate AVL field names and values; pathological excess projection data is omitted without rejecting the stored sidecar. Uploading the most-recently-published version's sidecar atomically replaces that package's searchable rows; uploading an older sidecar never displaces them. Each existing package's most-recent sidecar is backfilled idempotently with cohdl docs --publish.
+- Search results call the most recently published exact version "latest", matching the registry catalogue. This is deliberately distinct from cohdl add/cohdl update's greatest-exact-version resolution rule; every hit names its exact version.
 - The registry independently re-computes each publish's content hash server-side — this server-computed hash, not the publisher's local computation, is what cohdl.lock later verifies against on every install, closing the real trust gap a bare version number alone would leave open.
-- Not yanking policy, package deletion, vulnerability advisories, organization/team accounts, search ranking, or private/scoped registries — all real, disclosed, not-yet-proposed future work.
+- Not yanking policy, package deletion, vulnerability advisories, organization/team accounts, or private/scoped registries — all real, disclosed, not-yet-proposed future work.
 - Not the registry's own server-side technology stack — deliberately unspecified; this section covers only the external contract (namespace rules, API shape, CLI commands).
 - Error codes for CLI-level registry failures (login required, unverified-brand/unowned-bare-name publish rejected, package/version not found, remove of an absent dependency, registry-unreachable) reserve their own new block, distinct from RFC-029's manifest/lock-verification block, per RFC-011's "kind of mistake" organizing principle.
 

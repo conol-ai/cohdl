@@ -68,10 +68,23 @@ fn binary_under_test(dir: &Path) -> (PathBuf, String) {
     let real = PathBuf::from(env!("CARGO_BIN_EXE_cohdl"));
     let copy = dir.join("cohdl-under-test");
     std::fs::copy(&real, &copy).expect("copy binary");
-    let out = Command::new(&copy)
-        .arg("--version")
-        .output()
-        .expect("run --version");
+    // GitHub's Linux runners can briefly return ETXTBSY when the freshly
+    // copied executable is spawned immediately. Retry only that transient
+    // kernel error; every other spawn failure remains an immediate failure.
+    let out = (0..20)
+        .find_map(
+            |attempt| match Command::new(&copy).arg("--version").output() {
+                Ok(out) => Some(out),
+                Err(error)
+                    if error.kind() == std::io::ErrorKind::ExecutableFileBusy && attempt < 19 =>
+                {
+                    std::thread::sleep(std::time::Duration::from_millis(10));
+                    None
+                }
+                Err(error) => panic!("run --version: {error}"),
+            },
+        )
+        .expect("ETXTBSY persisted while running --version");
     assert!(out.status.success(), "--version failed");
     let text = String::from_utf8_lossy(&out.stdout);
     let target = text

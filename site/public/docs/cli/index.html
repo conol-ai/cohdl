@@ -7,7 +7,7 @@
     <title>CLI reference — CoHDL docs</title>
     <meta
       name="description"
-      content="The cohdl command line: check, build, fmt, lsp and the registry verbs — flags, build artifacts, the --json diagnostics document, environment overrides and exit codes."
+      content="The cohdl command line: check, build, fmt, lsp, package and part search, and registry management — flags, structured output, environment overrides and exit codes."
     />
     <link rel="canonical" href="https://cohdl.org/docs/cli/" />
 
@@ -16,7 +16,7 @@
     <meta property="og:title" content="CoHDL CLI reference" />
     <meta
       property="og:description"
-      content="One binary, eleven verbs: check, build, fmt, lsp, self-update and the registry commands, with structured diagnostics and deterministic outputs."
+      content="One binary for checking, building, formatting, editor support, package discovery and registry management, with structured diagnostics and deterministic outputs."
     />
     <meta property="og:url" content="https://cohdl.org/docs/cli/" />
     <meta name="twitter:card" content="summary" />
@@ -69,21 +69,21 @@
           </ol>
           <h1 class="page-title">CLI reference</h1>
           <p class="page-lede">
-            The whole toolchain is one binary, <code>cohdl</code>, with eleven verbs. Two of
-            them do the compiling — <code>check</code> and <code>build</code> — and the
-            rest keep source canonical, serve editors, and manage dependencies. Every
-            command is deterministic: the same source and the same locked dependency set
-            produce the same verdict and the same output bytes.
+            The whole toolchain is one binary, <code>cohdl</code>, with focused verbs for
+            compiling, canonical source, editor support, registry discovery and dependency
+            management. The same source and locked dependency set produce the same verdict
+            and the same output bytes.
           </p>
         </div>
 
         <article class="prose">
-          <h2>One binary, eleven verbs</h2>
+          <h2>One binary, focused verbs</h2>
           <p>
             Verbs that operate on a project take an optional <code>PATH</code> — either a
             project directory (containing <code>cohdl.toml</code> and <code>src/</code>)
             or a single <code>.cohdl</code> file — and default to the current directory.
-            <code>login</code> and <code>lsp</code> take no path at all.
+            <code>login</code>, <code>lsp</code> and <code>self-update</code> take no path.
+            <code>search</code> takes a query instead and works without a project.
           </p>
 
           <div class="table-scroll">
@@ -119,8 +119,12 @@
                   <td>Replace the installed binary with the newest released one (<code>--check</code> to report only).</td>
                 </tr>
                 <tr>
+                  <td><code>cohdl search</code></td>
+                  <td>Search registry packages and the most-recently-published API docs for public parts.</td>
+                </tr>
+                <tr>
                   <td><code>cohdl update</code></td>
-                  <td>Re-resolve dependencies to the latest published exact version; rewrite the manifest and lock file.</td>
+                  <td>Re-resolve dependencies to the greatest published semantic version; rewrite the manifest and lock file.</td>
                 </tr>
                 <tr>
                   <td><code>cohdl add</code></td>
@@ -141,6 +145,10 @@
                 <tr>
                   <td><code>cohdl publish</code></td>
                   <td>Package the current project and publish it to registry.cohdl.org.</td>
+                </tr>
+                <tr>
+                  <td><code>cohdl docs</code></td>
+                  <td>Emit package API documentation or upload it to an already-published version.</td>
                 </tr>
               </tbody>
             </table>
@@ -391,19 +399,70 @@
             nothing. It takes no other arguments.
           </p>
 
-          <h2>Registry verbs</h2>
+          <h2><code>cohdl search</code></h2>
+          <pre><code>cohdl search QUERY [--json]</code></pre>
+          <p>
+            Searches both registry packages and package-local public <code>part</code>
+            declarations. It is read-only, needs neither a project nor a registry login,
+            and never changes a manifest, lock file or package cache. The query is
+            trimmed, must contain at least three Unicode scalar values, may occupy at
+            most 128 UTF-8 bytes, and may not contain a control character.
+          </p>
+          <pre><code>cohdl search TPS59650
+cohdl search TPS59650 --json
+cohdl search -- -12V</code></pre>
+          <p>
+            Human output has separate <strong>Packages</strong> and
+            <strong>Parts</strong> sections. Package hits include an actionable
+            <code>name@version</code>; part hits include the owning
+            <code>package@version</code>, importable fully-qualified name, trust tier and
+            matching manufacturer/MPN metadata. The JSON form carries the identical
+            bounded rows as one document: top-level <code>query</code>,
+            <code>packages</code> and <code>parts</code>, with a <code>results</code>
+            array and <code>has_more</code> boolean in each result family. There is no
+            total count; <code>has_more</code> is the explicit truncation signal.
+          </p>
+          <p>
+            Part search is projected from the most-recently-published version's
+            <code>cohdl docs</code> API sidecar. It indexes the owning package,
+            fully-qualified and short names, device, intent, arguments, structural
+            variant, and primary and alternate AVL fields within fixed resource-safety
+            projection budgets.
+            “Latest” here therefore means <em>most recently published</em>, and
+            every row names that exact version; it is deliberately different from the
+            greatest-semantic-version selection used by an unversioned
+            <code>cohdl add</code> or <code>cohdl update</code>. Each existing package's
+            most-recently-published version becomes searchable after its owner re-runs
+            <code>cohdl docs --publish</code> once to backfill the index.
+          </p>
+          <p>
+            A valid query with no hits prints
+            <code>No packages or parts matched `QUERY`.</code> and exits 0. Invalid input
+            is an invocation error (exit 2, prose on stderr, nothing on stdout). A
+            registry or response-protocol failure is E1204 and exits 1: the human form
+            writes the diagnostic to stderr, while <code>--json</code> writes the existing
+            diagnostic JSON document to stdout.
+          </p>
+
+          <h2>Registry commands</h2>
           <p>
             Dependencies in CoHDL are pinned to exact <code>X.Y.Z</code> versions —
             range syntax is rejected at parse time, permanently — and
             <code>cohdl.lock</code> records each dependency's version and sha256 content
             hash, re-verified on every <code>check</code> and <code>build</code>. The
-            registry verbs are the sanctioned ways those pins change. This is a summary;
+            dependency-management commands below are the sanctioned ways those pins
+            change; <code>search</code> and <code>docs</code> leave them untouched. This is a summary;
             <a href="/docs/packages/">Packages &amp; registry</a> covers the model.
           </p>
           <ul>
             <li>
-              <code>cohdl add NAME[@X.Y.Z] [PATH]</code> — resolve the latest published
-              version (or the exact one given), fetch it into the local cache, and write
+              <code>cohdl search QUERY [--json]</code> — discover packages and the
+              most-recently-published version's public parts, without a project or login.
+            </li>
+            <li>
+              <code>cohdl add NAME[@X.Y.Z] [PATH]</code> — resolve the greatest
+              published semantic version (or the exact one given), fetch it into the
+              local cache, and write
               the <code>[dependencies]</code> entry plus its lock row in one step. The
               three-tier namespace is validated before any network call: a bare name is
               CoHDL official, <code>@brand/name</code> is a verified manufacturer, and
@@ -421,7 +480,7 @@
             <li>
               <code>cohdl update [NAME] [PATH] [--dep NAME]</code> — the only sanctioned
               pin change: re-resolve one dependency (named positionally or with
-              <code>--dep</code>) or all of them to the latest published exact version,
+              <code>--dep</code>) or all of them to the greatest published semantic version,
               registry first with local packages as the fallback, rewriting
               <code>[dependencies]</code> and <code>cohdl.lock</code> together. It also
               migrates a manifest that predates dependency pinning by writing its first
@@ -437,6 +496,11 @@
               <code>[package] license</code> are all checked locally before anything is
               uploaded. The server independently recomputes the content hash, and that
               server-side hash is what consumers' lock files verify against.
+            </li>
+            <li>
+              <code>cohdl docs [PATH] [--out FILE] [--publish]</code> — emit the package's
+              API-document JSON; <code>--publish</code> uploads it to an already-published
+              version and is the idempotent backfill path for registry part search.
             </li>
           </ul>
           <p>
@@ -463,23 +527,29 @@
               <tbody>
                 <tr>
                   <td><code>0</code></td>
-                  <td>Clean. Warnings are allowed on a clean exit.</td>
+                  <td>
+                    Clean. Warnings are allowed on a clean exit, and a valid
+                    <code>search</code> with no matches is still successful.
+                  </td>
                 </tr>
                 <tr>
                   <td><code>1</code></td>
                   <td>
-                    Source diagnostics reported — errors in the design itself. Text
-                    renders to stderr; with <code>--json</code>, stdout carries exactly
-                    one JSON document instead. <code>fmt --check</code> also exits 1
-                    when any file is not canonical.
+                    The accepted command failed. Compiler errors render as source
+                    diagnostics; <code>fmt --check</code> uses 1 when a file is not
+                    canonical; and <code>search</code> uses E1204 for an unreachable
+                    registry or invalid response protocol. Human diagnostics render to
+                    stderr; with <code>--json</code>, stdout carries exactly one JSON
+                    document instead.
                   </td>
                 </tr>
                 <tr>
                   <td><code>2</code></td>
                   <td>
                     Invocation-level failure — the E000 class: bad flags, a flag invalid
-                    for the command, a missing project, a design-selection failure, or
-                    nothing to build. Prose on stderr, never a JSON document. Source
+                    for the command, an invalid search query, a missing project, a
+                    design-selection failure, or nothing to build. Prose on stderr,
+                    never a JSON document. Source
                     diagnostics collected before the failure still render to stderr
                     first — they are never discarded.
                   </td>
@@ -489,8 +559,9 @@
           </div>
           <p>
             The stream split is deliberate: stdout belongs to machine-readable output
-            (the <code>--json</code> document) and stderr to human-readable text, so a
-            tool consuming diagnostics never has to parse around progress messages.
+            (a successful <code>search --json</code> result document or a diagnostic
+            document) and stderr to human-readable text, so a tool never has to parse
+            around progress messages.
           </p>
 
           <nav class="pager" aria-label="More">

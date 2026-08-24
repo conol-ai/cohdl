@@ -6,7 +6,8 @@ contract shared by three implementations, which must agree exactly:
 1. the Rust emitter (`src/emit/docsjson.rs`, surfaced as the `cohdl docs` verb
    and the post-publish upload in `publish_command`),
 2. the registry worker (`registry/src/worker/apidocs.ts` + routes in
-   `registry/src/worker/index.ts`),
+   `registry/src/worker/index.ts`), including the most-recently-published public-part
+   search index derived from this document,
 3. the registry UI (the package page's API explorer and its SVG previews).
 
 The goal is docs.rs parity for CoHDL packages: every declaration in a
@@ -15,10 +16,13 @@ symbol previews for devices and exact footprint previews.
 
 ## Position relative to the RFCs
 
-- RFC-030 fixes the five normative registry endpoints and explicitly leaves
-  "search/browse endpoints backing the web UI" and page design as
-  implementation freedom. The API-docs endpoints below live in that zone, as
-  the existing `docs` index column and `GET /api/doc` already do.
+- RFC-030 originally fixed five normative registry endpoints and left
+  browser search/page design as implementation freedom. Its 2026-08-24
+  amendment adds one stable discovery endpoint, `GET /search`, while leaving
+  the browser's existing package-only `/api/search` shape unchanged. The
+  API-doc sidecar remains a tooling artifact, but its package-local public
+  `part` items are now the authoritative input to the most-recently-published part
+  search index.
 - RFC-030 line 47 binds the published tar to "the same content RFC-029's hash
   covers". Therefore the docs artifact is **never** part of the tar and never
   affects the content hash. It is a *derived, re-generatable view* uploaded as
@@ -66,19 +70,75 @@ cohdl docs [PATH] [--out FILE] [--publish]
   validates only: body parses as JSON, top level is an object,
   `schema_version` is `1`, and `package.name`/`package.version` equal the URL.
   Deep schema validation is deliberately not re-implemented server-side; the
-  UI renders every field as inert text/SVG (no HTML path exists). Stored in
-  R2 at `apidocs/{name}/{version}.json` (raw bytes, byte-preserving) and
-  flagged in D1 (`versions.api_docs_size`). Replaces any previous upload for
-  that version. Responses: `200 {"name","version","size"}`, or
+  UI renders every field as inert text/SVG (no HTML path exists). New uploads
+  are byte-preserved at fixed-length, content-addressed R2 keys
+  `apidocs/sha256/{sha256}.json`. The validated document envelope carries the
+  package name and version; D1 records `versions.api_docs_size` and
+  `versions.api_docs_r2_key`. Advancing that
+  pointer and replacing the derived search rows happen in one transaction, so
+  concurrent uploads remain internally consistent. Pre-migration sidecars at
+  `apidocs/{name}/{version}.json` remain readable as a legacy fallback.
+  Responses: `200 {"name","version","size"}`, or
   `400/401/403/404/413` with `{"error": "..."}`.
 - `GET /api/apidocs?pkg={name}&version={ver}` — public; serves the stored
   JSON with `Content-Type: application/json`,
   `Cache-Control: public, max-age=600`, `X-Content-Type-Options: nosniff`.
   404 when absent.
 - `GET /api/packages/{name}` — each version row gains `"api_docs": boolean`.
+- `GET /search?q={term}&kind={all|package|part}&limit={1..50}&offset={0..10000}`
+  — public, read-only package and most-recently-published public-part discovery. The
+  query is trimmed, contains no Unicode control characters, has at least three
+  Unicode scalar values, and is at most 128 UTF-8 bytes. `kind` defaults to
+  `all`, `limit` to 20, and `offset` to 0; offset and truncation apply
+  independently to packages and parts. Each response family carries
+  `results` plus `has_more`, never a total count. The exact response schema is
+  specified in RFC-030.
+
+## Search-index projection
+
+The sidecar remains byte-preserved in R2 and remains outside the immutable
+package hash. In addition, when docs are uploaded for the package's most
+recently published version, the registry projects a deliberately narrow
+search record from `items`:
+
+- only package-local entries with `kind: "part"` and `pub: true`;
+- the `fq` must be rooted under the server-derived module root for the
+  uploading package and its final segment must equal `name`; a sidecar cannot
+  advertise another package's path as its own;
+- never non-public entries and never the `foreign` array, which would
+  duplicate dependency-owned parts under every consumer;
+- the owning package name plus the part's `fq`, `name`, `device`, optional
+  `intent`, arguments and variant;
+- primary and alternate `fields` names and values within the fixed per-part
+  projection budgets, so ordinary primary and alternate manufacturer/MPN
+  lookups work.
+
+The PUT envelope rules do not change: malformed item entries do not reject an
+otherwise valid sidecar. Search extraction safely skips malformed,
+non-public, non-part, foreign, and ownership-inconsistent entries. Fixed
+budgets bound items inspected, arguments, AVL entries/fields, encoded row
+size, and D1 insert chunks; pathological excess projection data is
+deterministically omitted rather than failing or exhausting the upload. The
+stored sidecar remains available byte-for-byte to the API explorer.
+
+Uploading docs for the most-recently-published version atomically replaces
+that version's search rows, so removed and renamed parts do not survive.
+Uploading docs for an older version stores and serves its sidecar normally but
+never displaces the current search index. Publishing a newer version clears
+the prior rows until that new version's best-effort docs upload succeeds.
+
+The search-index migration cannot derive rows from D1 alone because existing
+sidecars live in R2. After deploying the index, the most-recently-published
+version of each existing package is backfilled by re-running
+`cohdl docs --publish`; the upload is already
+owner-authenticated, re-uploadable and idempotent, and does not alter the
+package tar or its RFC-029 content hash.
 
 D1 migration `0002-api-docs.sql`: `ALTER TABLE versions ADD COLUMN
-api_docs_size INTEGER` (NULL = no docs uploaded). `schema.sql` mirrors it.
+api_docs_size INTEGER` (NULL = no docs uploaded). Search adds migration
+`0003-part-search.sql`, which adds the content-addressed R2 pointer and the
+`part_search` FTS5 table with its trigram tokenizer. `schema.sql` mirrors both
+migrations.
 
 ## The document (schema_version 1)
 

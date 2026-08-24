@@ -7,6 +7,7 @@ use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::mpsc::{self, Receiver};
 
 fn cohdl() -> Command {
     Command::new(env!("CARGO_BIN_EXE_cohdl"))
@@ -130,6 +131,50 @@ fn spawn_mock(pkgs: Vec<MockPkg>, publish_response: Option<(u16, String)>) -> St
     url
 }
 
+/// One-request registry for `cohdl search`. Returning the request target over
+/// a channel lets the test prove curl encoded the query rather than merely
+/// proving the mock was permissive enough to answer it.
+fn spawn_search_mock(status: u16, body: &str) -> (String, Receiver<String>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    let body = body.as_bytes().to_vec();
+    let (tx, rx) = mpsc::channel();
+    std::thread::spawn(move || {
+        let Some(Ok(mut stream)) = listener.incoming().next() else {
+            return;
+        };
+        let mut request = Vec::new();
+        let mut chunk = [0u8; 2048];
+        loop {
+            let n = stream.read(&mut chunk).unwrap_or(0);
+            if n == 0 {
+                return;
+            }
+            request.extend_from_slice(&chunk[..n]);
+            if request.windows(4).any(|bytes| bytes == b"\r\n\r\n") {
+                break;
+            }
+        }
+        let head = String::from_utf8_lossy(&request);
+        let target = head
+            .lines()
+            .next()
+            .and_then(|line| line.split_whitespace().nth(1))
+            .unwrap_or_default()
+            .to_string();
+        let _ = tx.send(target);
+        let _ = stream.write_all(
+            format!(
+                "HTTP/1.1 {status} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            )
+            .as_bytes(),
+        );
+        let _ = stream.write_all(&body);
+    });
+    (url, rx)
+}
+
 fn route(
     pkgs: &[MockPkg],
     publish_response: &Option<(u16, String)>,
@@ -238,7 +283,309 @@ fn run(url: &str, home: &Path, args: &[&str]) -> (bool, String) {
     )
 }
 
+fn run_output(url: &str, home: &Path, args: &[&str]) -> std::process::Output {
+    cohdl()
+        .env("COHDL_REGISTRY", url)
+        .env("COHDL_HOME", home)
+        .args(args)
+        .output()
+        .unwrap()
+}
+
 // ---------------------------------------------------------------------------
+
+#[test]
+fn search_finds_packages_and_parts_and_url_encodes_the_query() {
+    let tmp = tmp_dir("search_human");
+    let response = r#"{
+      "query":"stm32 f0&usb",
+      "packages":{"results":[{
+        "name":"@st/stm32","tier":"brand","latest":"1.4.0",
+        "description":"Fast \u001b[31mred\u061c\n MCU package","updated":"2026-08-24T10:00:00Z"
+      }],"has_more":true},
+      "parts":{"results":[{
+        "package":"@st/stm32","tier":"brand","version":"1.4.0",
+        "fq":"st::stm32::STM32F072CBT6","name":"STM32F072CBT6",
+        "device":"st::stm32::STM32F072","intent":"USB \u001b]8;;bad\u0007\u200fcontroller",
+        "manufacturer":"STMicroelectronics","mpn":"STM32F072CBT6","primary":false
+      }],"has_more":false}
+    }"#;
+    let (url, request) = spawn_search_mock(200, response);
+    let out = run_output(&url, &tmp.join("home"), &["search", "stm32 f0&usb"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty(), "search results do not use stderr");
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(stdout.contains("Packages\n"), "{stdout}");
+    assert!(
+        stdout.contains("@st/stm32@1.4.0 [Verified manufacturer]"),
+        "{stdout}"
+    );
+    assert!(stdout.contains("Fast red MCU package"), "{stdout}");
+    assert!(stdout.contains("Parts\n"), "{stdout}");
+    assert!(
+        stdout.contains("STM32F072CBT6 — STMicroelectronics · STM32F072CBT6 · alternate"),
+        "{stdout}"
+    );
+    assert!(stdout.contains("USB controller"), "{stdout}");
+    assert!(
+        stdout.contains("More package matches are available"),
+        "{stdout}"
+    );
+    assert!(!stdout.contains('\u{1b}'), "terminal ESC must be removed");
+    assert!(
+        !stdout.contains('\u{061c}'),
+        "Arabic bidi control must be removed"
+    );
+    assert!(
+        !stdout.contains('\u{200f}'),
+        "direction mark must be removed"
+    );
+
+    let target = request.recv().unwrap();
+    assert_eq!(
+        target, "/search?q=stm32+f0%26usb",
+        "query syntax must be URL-encoded as data, not concatenated"
+    );
+}
+
+#[test]
+fn search_url_encoding_preserves_a_unicode_query() {
+    let tmp = tmp_dir("search_unicode_query");
+    let body = r#"{"query":"电源 usb&c","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#;
+    let (url, request) = spawn_search_mock(200, body);
+    let out = run_output(&url, &tmp.join("home"), &["search", "电源 usb&c"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        request.recv().unwrap().to_ascii_lowercase(),
+        "/search?q=%e7%94%b5%e6%ba%90+usb%26c"
+    );
+}
+
+#[test]
+fn search_normalizes_unicode_whitespace_and_bom_before_the_request() {
+    let tmp = tmp_dir("search_trim_query");
+    let body = r#"{"query":"stm32","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#;
+    let (url, request) = spawn_search_mock(200, body);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &["search", "\u{feff}\u{0085}stm32\u{2003}\u{feff}"],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(request.recv().unwrap(), "/search?q=stm32");
+}
+
+#[test]
+fn search_json_is_deterministic_and_preserves_nullable_fields() {
+    let tmp = tmp_dir("search_json");
+    let response = r#"{"parts":{"has_more":true,"results":[{"primary":false,"mpn":null,"manufacturer":"Acme","intent":null,"device":"parts::D","name":"P","fq":"parts::P","version":"2.0.0","tier":"contrib","package":"@contrib/parts"}]},"packages":{"has_more":false,"results":[{"updated":"now","description":"Rocket \ud83d\ude80","latest":"2.0.0","tier":"contrib","name":"@contrib/parts"}]},"query":"emoji parts"}"#;
+    let (url, _) = spawn_search_mock(200, response);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &["search", "emoji parts", "--json"],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    let expected = r#"{
+  "query": "emoji parts",
+  "packages": {
+    "results": [
+      {
+        "name": "@contrib/parts",
+        "tier": "contrib",
+        "latest": "2.0.0",
+        "description": "Rocket 🚀",
+        "updated": "now"
+      }
+    ],
+    "has_more": false
+  },
+  "parts": {
+    "results": [
+      {
+        "package": "@contrib/parts",
+        "tier": "contrib",
+        "version": "2.0.0",
+        "fq": "parts::P",
+        "name": "P",
+        "device": "parts::D",
+        "intent": null,
+        "manufacturer": "Acme",
+        "mpn": null,
+        "primary": false
+      }
+    ],
+    "has_more": true
+  }
+}
+"#;
+    assert_eq!(stdout, expected, "stable key order and formatting");
+}
+
+#[test]
+fn empty_search_is_a_success_in_human_and_json_modes() {
+    let tmp = tmp_dir("search_empty");
+    let body = r#"{"query":"no matches","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#;
+
+    let (url, _) = spawn_search_mock(200, body);
+    let out = run_output(&url, &tmp.join("home1"), &["search", "no matches"]);
+    assert!(out.status.success());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        "No packages or parts matched `no matches`.\n"
+    );
+    assert!(out.stderr.is_empty());
+
+    let (url, _) = spawn_search_mock(200, body);
+    let out = run_output(
+        &url,
+        &tmp.join("home2"),
+        &["search", "no matches", "--json"],
+    );
+    assert!(out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(stdout.contains("\"results\": []"), "{stdout}");
+    assert!(stdout.contains("\"has_more\": false"), "{stdout}");
+    assert!(!stdout.contains("No packages"), "JSON contains no prose");
+    assert!(out.stderr.is_empty());
+}
+
+#[test]
+fn malformed_search_response_is_e1204_in_human_and_json_modes() {
+    let tmp = tmp_dir("search_malformed");
+    // Missing the mandatory `parts` section: a 200 is not enough to trust a
+    // response as protocol-valid.
+    let body = r#"{"query":"bad response","packages":{"results":[],"has_more":false}}"#;
+    let (url, _) = spawn_search_mock(200, body);
+    let out = run_output(&url, &tmp.join("home1"), &["search", "bad response"]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(out.stdout.is_empty());
+    let stderr = String::from_utf8(out.stderr).unwrap();
+    assert!(stderr.contains("E1204"), "{stderr}");
+    assert!(stderr.contains("malformed response"), "{stderr}");
+
+    let (url, _) = spawn_search_mock(200, body);
+    let out = run_output(
+        &url,
+        &tmp.join("home2"),
+        &["search", "bad response", "--json"],
+    );
+    assert_eq!(out.status.code(), Some(1));
+    assert!(out.stderr.is_empty(), "JSON failure remains one stdout doc");
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(stdout.contains("\"verdict\": \"fail\""), "{stdout}");
+    assert!(stdout.contains("\"code\": \"E1204\""), "{stdout}");
+}
+
+#[test]
+fn search_decoder_rejects_ambiguous_or_wrong_typed_json() {
+    let tmp = tmp_dir("search_strict_json");
+    let cases = [
+        (
+            r#"{"query":"bad json","query":"bad json","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#,
+            "duplicate object key",
+        ),
+        (
+            r#"{"query":"bad json","packages":{"results":[{"name":"x","tier":"official","latest":"1.0.0","description":"\ud800","updated":"now"}],"has_more":false},"parts":{"results":[],"has_more":false}}"#,
+            "high surrogate",
+        ),
+        (
+            r#"{"query":"bad json","packages":{"results":[],"has_more":false},"parts":{"results":[{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"mpn":null,"primary":null}],"has_more":false}}"#,
+            "must be a boolean",
+        ),
+        (
+            r#"{"query":"bad json","packages":{"results":[{"name":"parts","tier":"official","latest":"1.0.0","updated":"now"}],"has_more":false},"parts":{"results":[],"has_more":false}}"#,
+            "missing `description`",
+        ),
+        (
+            r#"{"query":"bad json","packages":{"results":[],"has_more":false},"parts":{"results":[{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"primary":true}],"has_more":false}}"#,
+            "missing `mpn`",
+        ),
+        (
+            r#"{"query":"bad json","packages":{"results":[{"name":"parts","tier":"trusted","latest":"1.0.0","description":null,"updated":"now"}],"has_more":false},"parts":{"results":[],"has_more":false}}"#,
+            "must be official, brand, or contrib",
+        ),
+        (
+            r#"{"query":"different","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#,
+            "does not match requested query",
+        ),
+    ];
+    for (index, (body, needle)) in cases.iter().enumerate() {
+        let (url, _) = spawn_search_mock(200, body);
+        let out = run_output(
+            &url,
+            &tmp.join(format!("home{index}")),
+            &["search", "bad json"],
+        );
+        assert_eq!(out.status.code(), Some(1), "case {index}");
+        assert!(out.stdout.is_empty(), "case {index}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(stderr.contains("E1204"), "case {index}: {stderr}");
+        assert!(stderr.contains(needle), "case {index}: {stderr}");
+    }
+}
+
+#[test]
+fn search_decoder_enforces_default_result_and_transport_bounds() {
+    let tmp = tmp_dir("search_response_bounds");
+    let row =
+        r#"{"name":"p","tier":"official","latest":"1.0.0","description":null,"updated":"now"}"#;
+    let body = format!(
+        "{{\"query\":\"too many\",\"packages\":{{\"results\":[{}],\"has_more\":true}},\"parts\":{{\"results\":[],\"has_more\":false}}}}",
+        std::iter::repeat_n(row, 21).collect::<Vec<_>>().join(",")
+    );
+    let (url, _) = spawn_search_mock(200, &body);
+    let out = run_output(&url, &tmp.join("home1"), &["search", "too many"]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("exceeds the default limit of 20"));
+
+    let oversized = " ".repeat(1024 * 1024 + 1);
+    let (url, _) = spawn_search_mock(200, &oversized);
+    let out = run_output(&url, &tmp.join("home2"), &["search", "too large"]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("E1204"));
+}
+
+#[test]
+fn unreachable_search_registry_is_e1204() {
+    let tmp = tmp_dir("search_unreachable");
+    let out = run_output(
+        "http://127.0.0.1:9",
+        &tmp.join("home"),
+        &["search", "dead registry"],
+    );
+    assert_eq!(out.status.code(), Some(1));
+    assert!(out.stdout.is_empty());
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("E1204"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.contains("retry the search"), "{stderr}");
+    assert!(
+        !stderr.contains("vendor the package"),
+        "search must not suggest a project dependency workaround: {stderr}"
+    );
+}
 
 #[test]
 fn add_fetches_writes_manifest_and_lock() {

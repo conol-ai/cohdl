@@ -60,8 +60,26 @@ cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-0
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
 cargo run -- fmt lib --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
+cargo run -- search TPS59650                     # search registry packages + public parts
+cargo run -- search TPS59650 --json              # the same bounded results as JSON
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
+
+`cohdl search QUERY [--json]` is read-only discovery: it needs no project and
+no registry login. Queries are trimmed, must contain at least three Unicode
+scalar values, may be at most 128 UTF-8 bytes, and may not contain control
+characters. Results identify the owning package and exact most-recently-
+published version as well as importable public part paths and matching primary
+or alternate manufacturer/MPN data; a valid query with no matches still exits
+successfully. Use the standard option terminator when a literal query starts
+with a hyphen, for example `cohdl search -- -12V`. “Most recently published”
+is publication chronology, not the greatest semantic version chosen by an
+unversioned `cohdl add`/`cohdl update`.
+The package and part result families are bounded independently; each exposes
+`has_more` when truncated and never a total count. Human output separates the
+two families, while `--json` returns the same rows as one discovery document.
+For rollout, owners of existing packages backfill the current searchable
+version once with `cohdl docs --publish`; this does not change its tar or hash.
 
 `std` is a core-traits-only prelude; it carries no devices, parts, pads, or
 footprints. Shipped component packages include `passive`, `connectors`, `usb`,
@@ -90,7 +108,17 @@ Micro-Fit harnesses prevent the BEC input from being interchanged with a leg.
 
 ### Exit codes
 
-`0` = clean (warnings allowed), `1` = source diagnostics reported (errors; text on stderr, or one JSON document on stdout with `--json`), `2` = invocation-level failure (bad flags, invalid flag for the command, missing project, design selection, nothing to build) — prose on stderr, never a JSON document (the `E000` class in [`docs/error-codes.md`](docs/error-codes.md)); source diagnostics collected before the failure still render to stderr first. Note: RFC-010's text reserves stderr prose for pre-collection failures, so classifying post-collection selection failures this way is a documented deviation pending a note-side amendment (or a v2 schema envelope).
+`0` = clean (warnings and a valid no-match search are allowed); `1` = the
+accepted command failed (source errors, non-canonical `fmt --check`, or an E1204
+search registry/protocol failure); `2` = invocation-level failure (bad flags,
+an invalid search query, missing project, design selection, nothing to build).
+Human diagnostics use stderr. A successful `search --json` emits its discovery
+document on stdout, and an E1204 failure in that mode emits the existing
+diagnostic JSON there; bad invocations remain prose-only on stderr. See the
+formal [`docs/error-codes.md`](docs/error-codes.md) registry. Note: RFC-010's
+text reserves stderr prose for pre-collection failures, so classifying
+post-collection selection failures this way is a documented deviation pending
+a note-side amendment (or a v2 schema envelope).
 
 ## License
 

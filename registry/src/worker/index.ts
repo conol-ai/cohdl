@@ -5,6 +5,7 @@
 //   GET  /packages/{name}/{ver}          → { name, version, hash, size, published_at,
 //                                            description, license, repository, docs }
 //   GET  /packages/{name}/{ver}.tar      → the package content (from R2)
+//   GET  /search?q=...                   → stable package + public-part discovery
 //   POST /packages/{name}/{ver}          → publish (Bearer token; server recomputes
 //                                          the RFC-029 hash — authoritative)
 //   PUT  /packages/{name}/{ver}/docs     → api-docs sidecar upload (Bearer token,
@@ -31,6 +32,7 @@ import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
 import { nameTier, publishRejection } from "./namespace";
+import { searchApi } from "./search";
 import { readTar } from "./tar";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -168,6 +170,11 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     // catalogue. Only a non-empty suffix belongs to the CLI/package API.
     if (pathname.startsWith("/packages/") && pathname !== "/packages/") {
       return await packages(env, request, pathname);
+    }
+    // Stable external contract consumed by `cohdl search`. Keep separate
+    // from `/api/search`, whose package-only shape belongs to the web UI.
+    if (pathname === "/search") {
+      return await searchApi(env, request, url);
     }
     if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
       return await adminApi(env, request, url);
@@ -319,19 +326,20 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
     const now = new Date().toISOString();
     const tierInfo = nameTier(name);
     const tier = "tier" in tierInfo ? tierInfo.tier : "contrib";
+    const writes: D1PreparedStatement[] = [];
     if (!existing) {
-      await env.DB.prepare(
-        "INSERT INTO packages (name, tier, owner_account, created_at) VALUES (?, ?, ?, ?)",
-      )
-        .bind(name, tier, account.id, now)
-        .run();
+      writes.push(
+        env.DB.prepare(
+          "INSERT INTO packages (name, tier, owner_account, created_at) VALUES (?, ?, ?, ?)",
+        ).bind(name, tier, account.id, now),
+      );
     }
-    await env.DB.prepare(
-      `INSERT INTO versions
-         (name, version, hash, size, r2_key, published_at, description, license, repository, docs)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
+    writes.push(
+      env.DB.prepare(
+        `INSERT INTO versions
+           (name, version, hash, size, r2_key, published_at, description, license, repository, docs)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(
         name,
         version,
         hash,
@@ -342,8 +350,13 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
         manifest.license,
         manifest.repository,
         JSON.stringify(docs),
-      )
-      .run();
+      ),
+      // Search exposes only the newest release. Its docs upload immediately
+      // repopulates these rows; until then stale parts must not be advertised
+      // as belonging to the new exact version.
+      env.DB.prepare("DELETE FROM part_search WHERE package_name = ?").bind(name),
+    );
+    await env.DB.batch(writes);
     return json(200, { name, version, hash, docs });
   }
 
@@ -652,7 +665,15 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
     if (!pkg || !EXACT_VERSION.test(version)) {
       return json(400, { error: "need ?pkg=<name>&version=<X.Y.Z>" });
     }
-    const obj = await env.PKG.get(apidocsKey(pkg, version));
+    const row = await env.DB.prepare(
+      "SELECT api_docs_size, api_docs_r2_key FROM versions WHERE name = ? AND version = ?",
+    )
+      .bind(pkg, version)
+      .first<{ api_docs_size: number | null; api_docs_r2_key: string | null }>();
+    if (!row || typeof row.api_docs_size !== "number") {
+      return json(404, { error: `\`${pkg} ${version}\` has no api docs` });
+    }
+    const obj = await env.PKG.get(row.api_docs_r2_key ?? apidocsKey(pkg, version));
     if (!obj) return json(404, { error: `\`${pkg} ${version}\` has no api docs` });
     return new Response(obj.body, {
       headers: {

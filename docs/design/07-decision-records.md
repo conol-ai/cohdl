@@ -993,6 +993,27 @@ Server-stack Option 1 (specify a stack) was rejected per Tony's direct instructi
 
 If real registry usage volume surfaces a genuine need for yanking policy, organization/team accounts, or private registries — each is real, likely future work, deliberately not designed speculatively ahead of real need, per this project's recurring discipline. Also revisit if the three-tier namespace scheme proves too rigid in practice (e.g. a legitimate use case that doesn't fit any of the three tiers cleanly) — that would be a scoped extension of the tier scheme, not a silent reversion to a flat namespace.
 
+# DR-036 amendment (2026-08-24): stable package-and-part search contract
+
+## Context
+
+Tony directed adding `cohdl search` so a human or AI author can discover both packages and purchasable parts from the registry. The existing browser catalogue searched only package names/descriptions, while actual `part` declarations lived inside per-version `cohdl docs` API-documentation sidecars. Fetching every sidecar in the CLI was rejected as structurally wrong: one real published package (`passive 0.2.1`) alone carries thousands of public parts and a multi-megabyte sidecar, so discovery belongs in a bounded server-side index, not in every client.
+
+## Decision
+
+RFC-030 gains `cohdl search QUERY [--json]` and an unauthenticated, stable `GET /search?q=QUERY` registry contract. Search is read-only, project-independent, login-free, and returns separate bounded package and public-part result families whose own `has_more` flags disclose truncation without total counts. Part rows are derived only from package-local `pub part` items in API-doc sidecars, indexing primary and alternate AVL manufacturer/MPN data; private and `foreign` items are excluded. Re-uploading docs for the most-recently-published version replaces that package's searchable rows; an older upload never displaces them. "Latest" in discovery means most recently published, matching the catalogue, and every result carries the exact version; dependency resolution's greatest-exact-version rule is unchanged.
+
+## Consequences
+
+- No `.cohdl` grammar, verdict, netlist, package identity, dependency pin, or cache behavior changes.
+- The stable `/search` endpoint is separate from the browser's existing package-only `/api/search`, preserving that response contract.
+- `cohdl search --json` is a discovery-result document, not RFC-010's diagnostic/verdict schema. Human and JSON modes expose the same result set; valid no-match queries succeed.
+- Queries are bounded before the network call: trimmed, 3 or more Unicode scalar values, no more than 128 UTF-8 bytes, and no control characters.
+- Each existing package's most-recent sidecar requires an explicit one-time backfill. `cohdl docs --publish` remains the idempotent path for rebuilding that package-version's search rows without changing its immutable tar/hash identity.
+- Ranking is deterministic and contract-tested: package exact-name hits precede
+  name-prefix hits, then other matches by recency/name; part hits use FTS5
+  relevance, then package and fully-qualified name as stable tie-breakers.
+
 # DR-037: Silkscreen graphics for footprints — closed four-primitive vocabulary + pin-1/polarity marker sugar, pad-existence checked
 
 ## Context

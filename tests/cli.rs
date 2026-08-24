@@ -330,6 +330,15 @@ fn command_specific_flags_are_validated() {
             &["build", "--std", "lib/std", "--no-std"],
             "mutually exclusive",
         ),
+        (&["search", "stm32", "--check"], "--check"),
+        (&["search", "stm32", "--design", "B"], "--design"),
+        (&["search", "stm32", "--std", "lib/std"], "--std"),
+        (&["search", "stm32", "--no-std"], "--no-std"),
+        (&["search", "stm32", "--out-dir", "x"], "--out-dir"),
+        (&["search", "stm32", "--emit", "ipc2581"], "--emit"),
+        (&["search", "stm32", "--dep", "std"], "--dep"),
+        (&["search", "stm32", "--out", "result.json"], "--out"),
+        (&["search", "stm32", "--publish"], "--publish"),
     ];
     for (args, needle) in cases {
         let out = cohdl().args(*args).output().unwrap();
@@ -348,6 +357,67 @@ fn command_specific_flags_are_validated() {
             stderr
         );
     }
+}
+
+#[test]
+fn search_query_invocation_contract_is_validated_before_network() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["search"], "needs a query"),
+        (&["search", "stm32", "usb"], "exactly one query"),
+        (&["search", "ab"], "at least 3 characters"),
+        (&["search", "stm\n32"], "control characters"),
+    ];
+    for (args, needle) in cases {
+        let out = cohdl()
+            .env("COHDL_REGISTRY", "http://127.0.0.1:9")
+            .args(*args)
+            .output()
+            .unwrap();
+        assert_eq!(
+            out.status.code(),
+            Some(2),
+            "`cohdl {}` is an invocation error",
+            args.join(" ")
+        );
+        assert!(out.stdout.is_empty(), "invocation errors emit no JSON");
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(
+            stderr.contains(needle),
+            "`cohdl {}` must mention `{needle}`:\n{stderr}",
+            args.join(" ")
+        );
+    }
+
+    let too_long = "x".repeat(129);
+    let out = cohdl()
+        .env("COHDL_REGISTRY", "http://127.0.0.1:9")
+        .args(["search", too_long.as_str()])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("at most 128 UTF-8 bytes"));
+
+    // The minimum counts Unicode scalar values, while the maximum counts the
+    // actual UTF-8 bytes sent on the wire.
+    let out = cohdl()
+        .env("COHDL_REGISTRY", "http://127.0.0.1:9")
+        .args(["search", "电源"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "two Unicode scalars are too short"
+    );
+    assert!(String::from_utf8_lossy(&out.stderr).contains("at least 3 characters"));
+
+    let out = cohdl()
+        .env("COHDL_REGISTRY", "http://127.0.0.1:9")
+        .args(["search", "--", "-12V"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1), "`--` admits a hyphen-led query");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("E1204"));
 }
 
 // Review-3 (R3): post-check invocation failures (unwritable out dir, bad

@@ -104,7 +104,7 @@ SUMMARIES = {
     "rfc-027-quilter-physics-constraints.md": "Seven structured physics attributes plus diff_pair brackets, exported as the Quilter CSV set.",
     "rfc-028-phys-attrs-on-fn-pin-params.md": "Physics attributes on fn Pin and Instance parameters, resolved per call site.",
     "rfc-029-package-dependency-versioning.md": "Exact-version [dependencies], a sha256 content-hash lock file — and std becomes an ordinary package.",
-    "rfc-030-registry-service.md": "The external contract of registry.cohdl.org: a three-tier namespace, the publish/install verbs, server-authoritative hashes.",
+    "rfc-030-registry-service.md": "The external contract of registry.cohdl.org: trust-tiered packages, server-authoritative hashes, and stable package-and-part search.",
     "rfc-031-silkscreen-graphics.md": "Silkscreen primitives plus semantic pin-1 and polarity markers that expand to checked geometry.",
     "gc-002-amended-layout-door.md": "The governance amendment that admitted layout constraints into the conceptual model.",
 }

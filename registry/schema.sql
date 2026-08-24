@@ -40,6 +40,25 @@ CREATE TABLE IF NOT EXISTS versions (
   -- NULL = no docs uploaded; the sidecar is replaceable, so this tracks
   -- the latest upload.
   api_docs_size INTEGER,
+  -- Content-addressed sidecar object selected atomically with its search
+  -- projection. NULL means a pre-0003 upload at the legacy fixed R2 key.
+  api_docs_r2_key TEXT,
   PRIMARY KEY (name, version)
 );
 CREATE INDEX IF NOT EXISTS versions_recent ON versions (published_at DESC);
+
+-- Searchable public parts from the newest published version of each package.
+-- The source of truth remains that version's API-doc sidecar in R2; this is a
+-- replaceable discovery index. Trigrams make identifier/MPN substring search
+-- efficient without a leading-wildcard scan.
+CREATE VIRTUAL TABLE IF NOT EXISTS part_search USING fts5(
+  package_name UNINDEXED,
+  package_version UNINDEXED,
+  fq,
+  name,
+  device,
+  intent,
+  searchable,
+  avl_json UNINDEXED,
+  tokenize = 'trigram'
+);

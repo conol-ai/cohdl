@@ -459,8 +459,10 @@ error[E110]: net voltage annotation has the wrong unit type: expected `Voltage`,
             separate block from E11xx, because registry-interaction failures are a
             different kind of mistake from local resolution and hash failures; E1204 in
             particular must never be conflated with E1103. Like E11xx these are
-            pre-source diagnostics; they surface as CLI prose (none of these commands has
-            a <code>--json</code> mode).
+            pre-source diagnostics. Human commands surface them as CLI prose;
+            <code>cohdl search --json</code> instead emits the existing diagnostic JSON
+            document on stdout for an E1204 registry/protocol failure (successful search
+            output uses the separate RFC-030 discovery schema).
           </p>
           <div class="table-scroll">
             <table>
@@ -471,7 +473,7 @@ error[E110]: net voltage annotation has the wrong unit type: expected `Voltage`,
                 <tr><td><code>E1201</code></td><td>Authentication missing or rejected — <code>cohdl publish</code> without a stored token, or the registry refused it; the help names <code>cohdl login</code>.</td></tr>
                 <tr><td><code>E1202</code></td><td>Namespace rejection — a name outside the closed three-tier grammar (bare, <code>@brand/name</code>, <code>@contrib/name</code>), or the server refused a publish: a bare name not owned by the official account, an unverified brand, a version already published, an archive whose own manifest disagrees with the publish, or a version declaring no <code>[package] license</code>. Checked locally pre-flight and server-side (the server is authoritative).</td></tr>
                 <tr><td><code>E1203</code></td><td>Package or version not published on the registry.</td></tr>
-                <tr><td><code>E1204</code></td><td>Registry unreachable (or a protocol failure) with no cached copy — explicitly distinct from a hash mismatch (E1103): different kinds of mistake.</td></tr>
+                <tr><td><code>E1204</code></td><td>Registry unreachable or response-protocol failure; dependency operations additionally name when no cached copy is available. Explicitly distinct from a hash mismatch (E1103): different kinds of mistake.</td></tr>
                 <tr><td><code>E1205</code></td><td><code>cohdl remove</code> of a name not in <code>[dependencies]</code> — the help lists the actual current dependency list; never a silent no-op.</td></tr>
                 <tr><td><code>E1206</code></td><td>Client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what <code>cohdl.lock</code> will verify); a hard error on download (corrupted content is never cached).</td></tr>
               </tbody>

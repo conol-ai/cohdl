@@ -29,7 +29,7 @@ Severities: all `Exxx` are errors; `Dxxx` severity is per-rule.
 | E9xx | Structural variants (RFC-008) |
 | E10xx | Layout constraints (RFC-013) |
 | E11xx | Package resolution (RFC-029) — manifest `[dependencies]` + cohdl.lock, pre-pipeline |
-| E12xx | Registry interaction (RFC-030) — login/publish/add/remove/install against registry.cohdl.org; a different kind of mistake from E11xx's local resolution/hash failures |
+| E12xx | Registry interaction (RFC-030) — login/publish/search and dependency-management traffic against registry.cohdl.org; a different kind of mistake from E11xx's local resolution/hash failures |
 | D00x | Residual DRC (RFC-004) — exactly four, never more |
 
 **Enforcement**: `tests/error_registry.rs` runs the RFC-011 completeness check
@@ -220,8 +220,10 @@ CLI-level failures talking to registry.cohdl.org — deliberately a separate
 block from E11xx (RFC-011's organizing principle: registry-interaction
 failures are a different kind of mistake from local resolution/hash
 failures, and E1204 in particular must never be conflated with E1103).
-Like E11xx these are pre-source `PackageDiag`s; they surface as CLI prose
-(none of these commands has a `--json` mode). The API-docs sidecar upload
+Like E11xx these are pre-source `PackageDiag`s. Human commands surface them as
+CLI prose; `cohdl search --json` instead emits the existing diagnostic JSON
+document on stdout when an E1204 registry/protocol failure occurs (successful
+search output is the separate RFC-030 discovery schema). The API-docs sidecar upload
 (`cohdl docs --publish` and the automatic upload after `cohdl publish` —
 docs/apidocs.md) reuses this block unchanged: E1201 auth, E1202
 server-refused (including the 16 MiB size cap), E1203 version not yet
@@ -232,7 +234,7 @@ published, E1204 unreachable. No new codes.
 | E1201 | authentication missing or rejected — `cohdl publish` without a stored token, or the registry refused it; the help names `cohdl login` |
 | E1202 | namespace rejection — a name outside the closed three-tier grammar (bare / `@brand/name` / `@contrib/name`), or the server refused a publish (bare name not owned by the official account, unverified brand, version already published, an archive whose own manifest disagrees with the publish, or a version declaring no `[package] license`). Checked locally pre-flight AND server-side (authoritative) |
 | E1203 | package or version not published on the registry |
-| E1204 | registry unreachable (or protocol failure) with no cached copy — explicitly distinct from a hash mismatch (E1103): different kinds of mistakes, per RFC-030's failure modes |
+| E1204 | registry unreachable or response-protocol failure; dependency operations additionally name when no cached copy is available. Explicitly distinct from a hash mismatch (E1103): different kinds of mistakes, per RFC-030's failure modes |
 | E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |
 | E1206 | client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what cohdl.lock will verify); a hard error on download (corrupted content is never cached) |
 

@@ -1,5 +1,6 @@
 //! `cohdl` CLI: `check` and `build`, each with an optional `--json`
-//! (RFC-010: structured diagnostics). `fmt` (RFC-009) is a separate command.
+//! (RFC-010: structured diagnostics). `fmt` (RFC-009) and the registry
+//! commands are separate commands.
 
 use cohdl::emit;
 use cohdl::lock::LockState;
@@ -21,6 +22,7 @@ USAGE:
     cohdl install [PATH]
     cohdl login
     cohdl publish [PATH]
+    cohdl search QUERY [--json]
     cohdl docs   [PATH] [--out FILE] [--publish]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
@@ -45,6 +47,8 @@ defaults to the current directory.
     publish  package the current project and publish it to the registry
              (three-tier namespace pre-flight, then POST; RFC-030); also
              uploads the package's API docs when the package checks cleanly
+    search   search published packages and public parts in the registry;
+             no project or login is required
     docs     emit the package API documentation JSON (docs/apidocs.md — the
              registry's API explorer) to stdout, --out FILE, or, with
              --publish, to the registry for the already-published version
@@ -56,7 +60,7 @@ defaults to the current directory.
              its sha256, and replace the running executable
 
     --json   emit one JSON document to stdout instead of human-readable text
-             (RFC-010; check/build only)
+             (RFC-010 diagnostics for check/build; registry results for search)
     --emit   build: emit an additional output format. The only value today is
              `ipc2581` — a partially-specified IPC-2581B1 document
              (<name>.xml, logical-complete/physical-minimal; RFC-015)
@@ -95,6 +99,9 @@ struct Args {
     /// RFC-030: the NAME positional of add/remove/update (`name` or
     /// `name@X.Y.Z` for add).
     name: Option<String>,
+    /// Registry search's one positional query. It is deliberately distinct
+    /// from PATH: search never reads a project and `.` means a literal query.
+    query: Option<String>,
     /// docs: `--out FILE` — write the API-docs JSON to FILE instead of stdout.
     out_file: Option<PathBuf>,
     /// docs: `--publish` — upload the JSON to the registry.
@@ -160,6 +167,35 @@ impl Args {
                 }
                 if self.out_dir_given {
                     return bad("--out-dir");
+                }
+                if self.emit.is_some() {
+                    return bad("--emit");
+                }
+            }
+            "search" => {
+                // Search is registry-only. `--json` is its sole flag; unlike
+                // every path-taking command it neither discovers nor loads a
+                // project.
+                if self.fmt_check {
+                    return bad("--check");
+                }
+                if self.design.is_some() {
+                    return bad("--design");
+                }
+                if self.std_flag.is_some() {
+                    return bad("--std");
+                }
+                if self.no_std {
+                    return bad("--no-std");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+                if self.path_given {
+                    return Err(format!(
+                        "`search` takes a query, not a project path\n\n{}",
+                        USAGE
+                    ));
                 }
                 if self.emit.is_some() {
                     return bad("--emit");
@@ -282,6 +318,7 @@ fn parse_args() -> Result<Args, String> {
         emit: None,
         dep: None,
         name: None,
+        query: None,
         out_file: None,
         publish: false,
     };
@@ -314,6 +351,12 @@ fn parse_args() -> Result<Args, String> {
                 args.out_file = Some(PathBuf::from(argv.next().ok_or("--out needs a value")?));
             }
             "--publish" => args.publish = true,
+            "--" => {
+                // Standard option terminator. This is especially useful for
+                // registry searches whose literal query begins with `-`.
+                positional.extend(argv);
+                break;
+            }
             "-h" | "--help" => return Err(USAGE.to_string()),
             other if other.starts_with('-') => {
                 return Err(format!("unknown flag `{}`\n\n{}", other, USAGE));
@@ -321,6 +364,48 @@ fn parse_args() -> Result<Args, String> {
             other => positional.push(other.to_string()),
         }
     }
+    // Registry search has exactly one QUERY positional and never a PATH.
+    // Validate its small public-query contract locally so an invalid query
+    // fails as E000 (exit 2) before making a network request.
+    if args.command == "search" {
+        if positional.len() != 1 {
+            let why = if positional.is_empty() {
+                "`search` needs a query"
+            } else {
+                "`search` takes exactly one query (quote a multiword query)"
+            };
+            return Err(format!("{why}\n\n{USAGE}"));
+        }
+        // Keep this in lockstep with the Worker's query normalization:
+        // Unicode White_Space plus a leading/trailing BOM (which browser
+        // string trim historically treats as whitespace).
+        let query = positional
+            .pop()
+            .unwrap()
+            .trim_matches(|ch: char| ch.is_whitespace() || ch == '\u{feff}')
+            .to_string();
+        if query.chars().count() < 3 {
+            return Err(format!(
+                "search query must contain at least 3 characters\n\n{}",
+                USAGE
+            ));
+        }
+        if query.len() > 128 {
+            return Err(format!(
+                "search query must be at most 128 UTF-8 bytes\n\n{}",
+                USAGE
+            ));
+        }
+        if query.chars().any(char::is_control) {
+            return Err(format!(
+                "search query must not contain control characters\n\n{}",
+                USAGE
+            ));
+        }
+        args.query = Some(query);
+        return Ok(args);
+    }
+
     // RFC-030: add/remove take NAME [PATH]; update takes [NAME] [PATH]
     // (a NAME is recognized by the registry-name grammar; when a name
     // collides with a directory name, use --dep / a ./path spelling).
@@ -517,6 +602,7 @@ fn run(args: &Args) -> Result<bool, String> {
         "install" => return install_command(args),
         "login" => return login_command(),
         "publish" => return publish_command(args),
+        "search" => return search_command(args),
         "docs" => return docs_command(args),
         "fmt" => return fmt_command(args),
         "lsp" => {
@@ -1263,6 +1349,179 @@ fn render_diag(d: &cohdl::deps::PackageDiag) -> String {
     cohdl::deps::render_human(std::slice::from_ref(d))
 }
 
+/// Publisher-authored metadata is inert JSON on the wire, but a raw ESC or
+/// bidi control becomes active when printed to a terminal. Collapse
+/// whitespace, controls, and the Unicode Bidi_Control set for the human
+/// view; `--json` retains the exact value, escaped by the JSON renderer.
+fn terminal_text(value: &str) -> String {
+    let mut out = String::new();
+    let mut space = false;
+    let mut chars = value.chars().peekable();
+    while let Some(ch) = chars.next() {
+        // Remove complete ANSI CSI/OSC sequences, not only their ESC byte;
+        // otherwise `ESC [31m` becomes the misleading visible text `[31m`.
+        if ch == '\u{001b}' {
+            match chars.peek().copied() {
+                Some('[') => {
+                    chars.next();
+                    for code in chars.by_ref() {
+                        if ('@'..='~').contains(&code) {
+                            break;
+                        }
+                    }
+                }
+                Some(']') => {
+                    chars.next();
+                    while let Some(code) = chars.next() {
+                        if code == '\u{0007}' {
+                            break;
+                        }
+                        if code == '\u{001b}' && chars.peek() == Some(&'\\') {
+                            chars.next();
+                            break;
+                        }
+                    }
+                }
+                Some(_) => {
+                    chars.next();
+                }
+                None => {}
+            }
+            space = !out.is_empty();
+            continue;
+        }
+        let unsafe_format = matches!(
+            ch,
+            '\u{061c}'
+                | '\u{200e}'
+                | '\u{200f}'
+                | '\u{202a}'..='\u{202e}'
+                | '\u{2066}'..='\u{2069}'
+        );
+        if ch.is_whitespace() || ch.is_control() || unsafe_format {
+            space = !out.is_empty();
+        } else {
+            if space {
+                out.push(' ');
+                space = false;
+            }
+            out.push(ch);
+        }
+    }
+    out
+}
+
+fn registry_tier_label(tier: &str) -> &'static str {
+    match tier {
+        "official" => "Official",
+        "brand" => "Verified manufacturer",
+        "contrib" => "Community",
+        _ => "Unknown tier",
+    }
+}
+
+/// `cohdl search QUERY`: read-only package + public-part discovery. Search
+/// results are content, so the human form goes to stdout (and remains useful
+/// in a pipe); diagnostics keep the existing registry convention.
+fn search_command(args: &Args) -> Result<bool, String> {
+    let query = args.query.as_deref().expect("search query was parsed");
+    let results = match cohdl::registry::search(query) {
+        Ok(results) => results,
+        Err(diag) => {
+            if args.json {
+                print!("{}", emit::json::render_package_failure(&[diag]));
+            } else {
+                eprint!("{}", render_diag(&diag));
+            }
+            return Ok(false);
+        }
+    };
+
+    if args.json {
+        print!("{}", cohdl::registry::render_search_json(&results));
+        return Ok(true);
+    }
+
+    if results.packages.is_empty() && results.parts.is_empty() {
+        println!("No packages or parts matched `{}`.", terminal_text(query));
+        return Ok(true);
+    }
+
+    if !results.packages.is_empty() {
+        println!("Packages");
+        for package in &results.packages {
+            println!(
+                "  {}@{} [{}] · updated {}",
+                terminal_text(&package.name),
+                terminal_text(&package.latest),
+                registry_tier_label(&package.tier),
+                terminal_text(&package.updated)
+            );
+            if let Some(description) = package.description.as_deref() {
+                let description = terminal_text(description);
+                if !description.is_empty() {
+                    println!("    {description}");
+                }
+            }
+        }
+        if results.packages_has_more {
+            println!("  More package matches are available; refine the query.");
+        }
+    }
+
+    if !results.parts.is_empty() {
+        if !results.packages.is_empty() {
+            println!();
+        }
+        println!("Parts");
+        for part in &results.parts {
+            let mut identity: Vec<String> = Vec::new();
+            if let Some(manufacturer) = part.manufacturer.as_deref() {
+                let manufacturer = terminal_text(manufacturer);
+                if !manufacturer.is_empty() {
+                    identity.push(manufacturer);
+                }
+            }
+            if let Some(mpn) = part.mpn.as_deref() {
+                let mpn = terminal_text(mpn);
+                if !mpn.is_empty() {
+                    identity.push(mpn);
+                }
+            }
+            // `primary` qualifies an AVL identity, not the source declaration
+            // itself. If the registry has no manufacturer/MPN to show, a
+            // dangling “— primary” would claim an identity the row lacks.
+            if !identity.is_empty() {
+                identity.push(if part.primary { "primary" } else { "alternate" }.to_string());
+            }
+            let identity = if identity.is_empty() {
+                String::new()
+            } else {
+                format!(" — {}", identity.join(" · "))
+            };
+            println!("  {}{}", terminal_text(&part.name), identity);
+            println!(
+                "    {}@{} [{}] · {}",
+                terminal_text(&part.package),
+                terminal_text(&part.version),
+                registry_tier_label(&part.tier),
+                terminal_text(&part.fq)
+            );
+            println!("    device {}", terminal_text(&part.device));
+            if let Some(intent) = part.intent.as_deref() {
+                let intent = terminal_text(intent);
+                if !intent.is_empty() {
+                    println!("    {intent}");
+                }
+            }
+        }
+        if results.parts_has_more {
+            println!("  More part matches are available; refine the query.");
+        }
+    }
+    Ok(true)
+}
+
 /// `cohdl add NAME[@X.Y.Z]` (RFC-030): resolve, fetch into the cache, write
 /// `[dependencies]` + the cohdl.lock row in one step.
 fn add_command(args: &Args) -> Result<bool, String> {
@@ -1455,17 +1714,21 @@ fn login_command() -> Result<bool, String> {
         "application/json",
     );
     let _ = std::fs::remove_file(&tmp);
-    let resp = resp.map_err(|e| format!("cannot reach the registry: {e}"))?;
-    if resp.status == 0 {
-        // Never reached, so the token was never judged (E1204, not E1201).
-        eprint!(
-            "{}",
-            render_diag(&registry::unreachable(format!(
-                "POST {reg}/login did not complete"
-            )))
-        );
-        return Ok(false);
-    }
+    let resp = match resp {
+        Ok(resp) => resp,
+        Err(error) => {
+            // Never reached, so the token was never judged (E1204, not
+            // E1201). `run_curl` rejects every non-zero curl exit instead of
+            // trusting a potentially partial response body.
+            eprint!(
+                "{}",
+                render_diag(&registry::unreachable(format!(
+                    "POST {reg}/login did not complete: {error}"
+                )))
+            );
+            return Ok(false);
+        }
+    };
     if resp.status != 200 {
         return Err(format!(
             "the registry rejected the token (HTTP {})",
@@ -1562,7 +1825,18 @@ fn publish_command(args: &Args) -> Result<bool, String> {
     );
     let resp = registry::http_post(&url, Some(&tmp), Some(&token), "application/x-tar");
     let _ = std::fs::remove_file(&tmp);
-    let resp = resp.map_err(|e| format!("cannot reach the registry: {e}"))?;
+    let resp = match resp {
+        Ok(resp) => resp,
+        Err(error) => {
+            eprint!(
+                "{}",
+                render_diag(&registry::unreachable(format!(
+                    "POST {url} did not complete: {error}"
+                )))
+            );
+            return Ok(false);
+        }
+    };
     match resp.status {
         200 | 201 => {
             let server_hash = registry::json_str_field(&resp.body, "hash").unwrap_or_default();
@@ -1794,7 +2068,12 @@ fn upload_api_docs(build: &ApiDocsBuild, token: &str) -> bool {
     let resp = match resp {
         Ok(r) => r,
         Err(e) => {
-            eprintln!("error: cannot reach the registry: {e}");
+            eprint!(
+                "{}",
+                render_diag(&registry::unreachable(format!(
+                    "PUT {url} did not complete: {e}"
+                )))
+            );
             return false;
         }
     };

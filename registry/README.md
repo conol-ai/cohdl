@@ -39,9 +39,22 @@ constituent `vitest`/`oxlint`) as devDependencies.
   server validates only the envelope (UTF-8 JSON, top-level object,
   `schema_version`, `package.name`/`package.version` matching the URL) —
   deep schema validation stays with the emitter, and the UI renders every
-  field as inert text/SVG. Unlike the tar the sidecar is a derived,
+  field as inert text/SVG. Search projection safely skips malformed,
+  non-public, non-part, and foreign items rather than rejecting an otherwise
+  valid sidecar. Unlike the tar the sidecar is a derived,
   re-generatable view, **not** identity: re-uploading replaces it (last
   write wins), e.g. after a compiler upgrade.
+- `GET /search?q={term}&kind={all|package|part}&limit={1..50}&offset={0..10000}`
+  → the stable, unauthenticated CLI discovery contract. `q` is trimmed,
+  contains no Unicode control characters, is at least three Unicode scalar
+  values and at most 128 UTF-8 bytes. `kind` defaults to `all`, `limit` to
+  20, and `offset` to 0. Package and part results are paged independently;
+  each response family has `results` and `has_more`, never a total count.
+  The exact fields are pinned in RFC-030. This endpoint is deliberately
+  separate from the browser's existing package-only `/api/search`, whose
+  response stays unchanged.
+  Package names are searched in full; descriptions use and return a bounded
+  prefix of 1024 Unicode scalar values.
 
 ## What a package can say about itself
 
@@ -76,6 +89,32 @@ public cache (the sidecar is replaceable, so never `immutable`); 404 when
 that version has none. Each version row in `GET /api/packages/{name}`
 carries `api_docs: true/false` (derived from D1's `api_docs_size`), the
 UI's cue to offer the API explorer.
+
+The same sidecar feeds part discovery. Only the most-recently-published
+version is searchable, and only package-local `items` with `kind: "part"`
+and `pub: true` are indexed — never private declarations or `foreign`
+dependency items. Search covers the owning package name, symbol/FQ path,
+device, intent, arguments/variant, and every primary or alternate AVL field
+name/value within fixed projection budgets, so ordinary primary and alternate
+manufacturer/MPN queries resolve. The FQ must belong to the server-derived
+module root for the uploading package and end in its declared short name;
+malformed or pathological excess projection data is skipped while the raw
+sidecar remains available.
+Uploading docs for the most-recently-published version atomically replaces
+its rows; publishing a newer version clears the older index, and an
+older-version docs upload never displaces the current index.
+
+“Most-recently-published” is literal publication chronology, not the
+greatest semantic version used by unversioned `cohdl add`/`cohdl update`.
+Every package and part result therefore carries the exact searchable version.
+
+After `migrations/0003-part-search.sql` (the content-addressed sidecar pointer
+plus the `part_search` FTS5 trigram table) is deployed, each package's
+most-recent existing R2 sidecar needs an explicit
+backfill because D1 cannot derive its contents by migration alone.
+Re-run `cohdl docs --publish` for each package's newest version; the sidecar
+upload is idempotent and does not change the immutable package tar or hash.
+
 - `POST /login` → token check → `{ account, official, brands }` (the CLI
   stores the grants for local publish pre-flight).
 
@@ -121,6 +160,7 @@ wrangler kv namespace create SESSIONS      # likewise
 npm run db:init                             # fresh DB: the whole schema
 npm run db:migrate                         # existing DB: additive column adds
 npm run db:migrate:0002                    # …and the api-docs column
+npm run db:migrate:0003                    # …and sidecar pointer + part-search FTS index
 npm run deploy
 ```
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#070b11" />
-    <title>CoHDL: an AI-native programming language for hardware</title>
+    <title>CoHDL: An AI-Native Programming Language for Hardware</title>
     <meta
       name="description"
       content="Software development is becoming agentic. Hardware design is trapped in canvases and PDFs. CoHDL turns circuit topology into typed, compilable source code."
@@ -18,7 +18,7 @@
     <meta property="og:site_name" content="CoHDL" />
     <meta
       property="og:title"
-      content="CoHDL: an AI-native programming language for hardware"
+      content="CoHDL: An AI-Native Programming Language for Hardware"
     />
     <meta
       property="og:description"
@@ -91,13 +91,13 @@
             <li aria-current="page">Introducing CoHDL</li>
           </ol>
           <h1 class="page-title">
-            CoHDL: an AI-native programming language<br /><em>for hardware</em>
+            CoHDL: An AI-Native Programming Language<br /><em>for Hardware</em>
           </h1>
           <p class="page-lede">
-            Software could become AI-native so quickly because source code is text and
-            compilers can grade it. PCB design still asks agents to point at pixels and
-            read hundreds of PDF pages. CoHDL brings hardware into the write, check and
-            repair loop.
+            Software became AI-native so quickly because source code is text—and
+            compilers can grade it. PCB design still forces agents to point at pixels
+            and search through hundreds of pages of PDFs. CoHDL brings hardware into
+            the write, check, and repair loop.
           </p>
           <p class="post-meta">
             Tony Huang <span class="sep">·</span>
@@ -108,26 +108,26 @@
         <article class="prose">
           <p>
             The most important programming language of the AI era may not be another
-            language for software. It may be one for the physical world.
+            language for software. It may be a language for the physical world.
           </p>
           <p>
-            Today I am launching
+            Today, I’m launching
             <a href="https://github.com/conol-ai/cohdl">CoHDL</a>, an open-source,
-            AI-native programming language for PCB schematics. An AI can write a board
-            as text, ask a compiler what is wrong, repair the source, and produce
+            AI-native programming language for PCB schematics. An AI can describe a
+            board as text, ask a compiler what is wrong, repair the source, and produce
             deterministic artifacts for the rest of the hardware toolchain.
           </p>
           <p>
-            That sounds obvious only because software already taught us the pattern.
-            Code is compact, composable, diffable and machine-checkable. The agent does
-            not need to understand every consequence before it makes a change: the
-            compiler, tests and CI turn the repository into a feedback system. Hardware
-            has powerful tools too, but it has not had the same substrate.
+            The idea feels obvious only because software has already demonstrated the
+            pattern. Code is compact, composable, diffable, and machine-checkable. An
+            agent does not need to understand every consequence before making a change:
+            compilers, tests, and CI turn the repository into a feedback system.
+            Hardware has powerful tools too, but it has lacked the same substrate.
           </p>
 
           <h2>Software has crossed the AI-native threshold</h2>
           <p>
-            AI assistance is now a normal part of software development. The
+            AI assistance is now a standard part of software development. The
             <a
               href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report"
             >2025 DORA report</a>, based on nearly 5,000 technology professionals,
@@ -138,12 +138,12 @@
             development, while 51% of professional developers used them every day.
           </p>
           <p>
-            The direction is visible in how industry leaders talk about the work.
-            Andrej Karpathy wrote that
+            The direction is clear in how industry leaders describe the work. Andrej
+            Karpathy wrote,
             <a href="https://x.com/karpathy/status/1617979122625712128"
               >“The hottest new programming language is English.”</a
             >
-            Satya Nadella wrote that how we build, deploy and maintain code for AI
+            Satya Nadella wrote that how we build, deploy, and maintain code for AI
             applications is
             <a
               href="https://blogs.microsoft.com/blog/2025/01/13/introducing-core-ai-platform-and-tools/"
@@ -152,16 +152,16 @@
           </p>
           <p>
             We should still be precise. Autonomous agents do not yet ship most of the
-            world's software: the same Stack Overflow survey says agents are not yet
-            mainstream, with 52% of developers either not using agents or staying with
+            world’s software: the same Stack Overflow survey says agents are not yet
+            mainstream, with 52% of developers either not using agents or sticking with
             simpler AI tools. But the threshold has been crossed. AI assistance is
-            mainstream, and agents are beginning to be delegated complete units of work.
+            mainstream, and agents are beginning to take on complete units of work.
             GitHub reports that its Copilot coding agent contributed to
             <a
               href="https://github.blog/news-insights/octoverse/the-new-identity-of-a-developer-what-changes-and-what-doesnt-in-the-ai-era/"
               >more than one million merged pull requests in its first five months</a
-            >. Those changes were still reviewed, tested and validated by people — the
-            agent operates inside the engineering system rather than replacing it.
+            >. People still reviewed, tested, and validated those changes—the agent
+            operates within the engineering system rather than replacing it.
           </p>
           <blockquote>
             <p>
@@ -170,39 +170,39 @@
             </p>
           </blockquote>
           <p>
-            DORA's most useful finding is also a warning: AI amplifies the system around
-            it. The report found AI adoption was still associated with lower
-            software-delivery stability, and argues that faster change exposes weak
-            automated tests, version control and feedback loops downstream. The model
+            DORA’s most useful finding is also a warning: AI amplifies the system around
+            it. The report found that AI adoption was still associated with lower
+            software-delivery stability, arguing that faster change exposes weak
+            automated tests, version control, and downstream feedback loops. The model
             matters; the oracle matters more.
           </p>
 
           <h2>Hardware is still pointing at pixels</h2>
           <p>
-            Much of board-level schematic capture has not made the same transition.
-            Modern EDA tools are deeply capable, but their primary authoring model would
+            Board-level schematic capture has not undergone the same transition. Modern
+            EDA tools are deeply capable, but their primary authoring model would still
             be familiar to an engineer in the 1990s: place a symbol on a canvas, drag a
-            wire to another symbol, pan, zoom and repeat. The
+            wire to another symbol, pan, zoom, and repeat. The
             <a href="https://docs.kicad.org/10.0/en/eeschema/eeschema.pdf"
               >KiCad Schematic Editor manual</a
             >
             describes exactly that graphical workspace. We moved the drawing board onto
-            a computer; we did not turn the design into a programming environment.
+            a computer; we did not transform the design into a programming environment.
           </p>
           <p>
-            Then there are the component data sheets, reference designs and application
-            notes. Much of the knowledge needed to make a board is packaged as PDF. An
-            LLM can read a PDF, but that interface is expensive. Anthropic's own
+            Then there are component data sheets, reference designs, and application
+            notes. Much of the knowledge required to build a board is buried in PDFs.
+            An LLM can read a PDF, but that interface is expensive. Anthropic’s
             <a href="https://platform.claude.com/docs/en/build-with-claude/pdf-support"
               >PDF documentation</a
             >
-            says each page typically consumes 1,500–3,000 text tokens, with image tokens
-            added because every page is also rendered as an image. A 100-page MCU data
-            sheet can therefore cost 150,000–300,000 text tokens before the agent has
-            asked a single design question.
+            says each page typically consumes 1,500–3,000 text tokens, with additional
+            image tokens because every page is also rendered as an image. A 100-page MCU
+            data sheet can therefore cost 150,000–300,000 text tokens before the agent
+            asks a single design question.
           </p>
           <p>
-            Put those two interfaces together and the agent's job becomes: read a large
+            Combine these two interfaces, and the agent’s job becomes: read a large
             visual document, click through a graphical editor, inspect another image,
             and guess whether the result is electrically coherent. Screenshots are not
             semantic diffs. Mouse coordinates are not stable identifiers. A picture of
@@ -210,23 +210,23 @@
             connected” is not a deterministic verdict.
           </p>
           <p>
-            This is not a criticism of KiCad, Altium or the engineers who use them. They
-            are excellent tools designed around human eyes and hands. The problem is
-            that an interface optimized for a human at a canvas is a poor API for an
-            agent.
+            This is not a criticism of KiCad, Altium, or the engineers who use them.
+            They are excellent tools designed around human eyes and hands. The problem
+            is that an interface optimized for a human working on a canvas makes a poor
+            API for an agent.
           </p>
 
           <h2>A circuit is a graph before it is a drawing</h2>
           <p>
-            The irreducible core of a schematic is not where its symbols sit on a page.
-            It is a graph: component instances and pins, connected by named nets. The
-            drawing is one projection of that graph. KiCad's own documentation defines
-            a netlist in those terms, and circuit simulators have accepted textual
+            At its core, a schematic is not an arrangement of symbols on a page. It is
+            a graph: component instances and pins connected by named nets. The drawing
+            is one projection of that graph. KiCad’s own documentation defines a
+            netlist in those terms, and circuit simulators have accepted textual
             netlists for decades.
           </p>
           <p>
-            Topology is the beginning, not the whole design. A useful language must also
-            carry units, parameters, constraints, hierarchy, intent and stable identity.
+            But topology is only the beginning. A useful language must also carry units,
+            parameters, constraints, hierarchy, intent, and stable identity.
             That is what CoHDL adds. Here is a real excerpt from
             <a href="https://github.com/conol-ai/openmicrokbd/blob/main/hw/v1/src/main.cohdl"
               >OpenMicroKbd</a
@@ -249,43 +249,43 @@
           <p>
             Arrays and slices express repeated hardware without copy-and-paste.
             Engineering values are unit-typed; nets can carry typed voltage annotations
-            and checked, current-valued layout attributes. Device definitions say which
-            pins must be connected, and an intentional no-connect has to be explicit.
-            Traits describe the capabilities a generic circuit requires. The compiler
-            resolves the graph, checks those obligations and then runs the design rules
-            that only make sense once the whole circuit is known.
+            and checked, current-valued layout attributes. Device definitions specify
+            which pins must be connected, and every intentional no-connect must be
+            explicit. Traits describe the capabilities a generic circuit requires. The
+            compiler resolves the graph, checks those obligations, and then runs the
+            design rules that only make sense once the entire circuit is known.
           </p>
           <p>
             This is what “AI-native” means in CoHDL. There is no chat box embedded in the
-            language. The source is designed to be generated, graded and repaired. An
+            language. The source is designed to be generated, graded, and repaired. An
             agent writes <code>.cohdl</code>; <code>cohdl check --json</code> returns
             stable diagnostic codes and exact source spans; the agent edits the source
-            and checks again. The compiler is a deterministic oracle for the properties
-            the language can actually model.
+            and checks again. The compiler becomes a deterministic oracle for the
+            properties the language can actually model.
           </p>
           <div class="callout">
             <strong class="callout-title">A compiler is a guardrail, not a physics oracle.</strong>
-            CoHDL catches structural, type and modeled design-rule errors. It cannot
+            CoHDL catches structural, type, and modeled design-rule errors. It cannot
             prove that an unmodeled analog effect will behave as intended, or that a
             fabricated board must work. Engineering review still matters.
           </div>
 
           <h2>The toolchain is part of the language</h2>
           <p>
-            A syntax alone would not make hardware AI-native. Agents need the same
+            Syntax alone cannot make hardware AI-native. Agents need the same
             infrastructure software developers expect: canonical formatting, structured
-            diagnostics, editor intelligence, reusable dependencies and deterministic
-            build artifacts. CoHDL ships that loop as one toolchain:
+            diagnostics, editor intelligence, reusable dependencies, and deterministic
+            build artifacts. CoHDL delivers that loop through a single toolchain:
           </p>
           <ul>
             <li>
               <strong>A compiler and formatter.</strong> <code>cohdl fmt</code> creates
-              canonical source; <code>cohdl check</code> parses, resolves, type-checks
+              canonical source; <code>cohdl check</code> parses, resolves, type-checks,
               and runs the residual design-rule checks.
             </li>
             <li>
               <strong>Machine-readable feedback.</strong> <code>--json</code> produces a
-              structured diagnostic document for agents, CI and editor integrations.
+              structured diagnostic document for agents, CI, and editor integrations.
             </li>
             <li>
               <strong>Editor support.</strong> A language server and VS Code extension
@@ -296,11 +296,11 @@
               <strong>A package registry.</strong>
               <a href="https://registry.cohdl.org">registry.cohdl.org</a> publishes
               reusable component packages with exact semantic versions, immutable
-              releases and SHA-256 content hashes.
+              releases, and SHA-256 content hashes.
             </li>
             <li>
               <strong>Downstream handoff formats.</strong> <code>cohdl build</code>
-              produces a KiCad netlist, BOM CSV and <code>design.lock</code>; it emits
+              produces a KiCad netlist, BOM CSV, and <code>design.lock</code>; it emits
               <code>.kicad_mod</code> footprints when pad geometry is present, layout
               JSON and Quilter constraint CSVs when the design declares that metadata,
               and an optional, placement-staged and unrouted IPC-2581B1 document with
@@ -313,10 +313,10 @@ cohdl check . --json
 cohdl build . --emit ipc2581</code></pre>
 
           <p>
-            The boundary is deliberate. CoHDL does not place or route the PCB, and it
+            That boundary is deliberate. CoHDL does not place or route the PCB, and it
             does not emit Gerbers. It produces inspectable, source-derived handoff
-            artifacts for tools that do those jobs. That separation makes the build
-            honest — and makes every transition reviewable.
+            artifacts for the tools that perform those jobs. This separation keeps the
+            build honest—and every transition reviewable.
           </p>
 
           <h2>The proof is OpenMicroKbd</h2>
@@ -324,7 +324,7 @@ cohdl build . --emit ipc2581</code></pre>
             A language for hardware has to leave the screen. So I built
             <a href="https://github.com/conol-ai/openmicrokbd">OpenMicroKbd</a>, an
             open-source 13-key macropad with a rotary encoder, an analog joystick, a
-            capacitive touch pad, 21 addressable RGB LEDs, USB-C and an STM32F072CBT6.
+            capacitive touch pad, 21 addressable RGB LEDs, USB-C, and an STM32F072CBT6.
             Its schematic and board-specific part and footprint source total 823 lines
             of CoHDL across four files.
           </p>
@@ -344,24 +344,25 @@ cohdl build . --emit ipc2581</code></pre>
           </figure>
 
           <p>
-            CoHDL checked the schematic and generated the netlist, BOM, footprints and
+            CoHDL checked the schematic and generated the netlist, BOM, footprints, and
             layout constraints. Quilter handled placement and routing. A human reviewed
             the result, exported the fabrication package from the routed KiCad board,
-            assembled it and brought it up. The board came back and worked.
+            assembled it, and brought it up. The board came back—and it worked.
           </p>
           <p>
-            That division of labor is the point. The agent and the language do not have
-            to replace every tool or every engineer. They need to turn the design's
+            That division of labor is the point. The agent and the language do not need
+            to replace every tool or every engineer. They need to turn the design’s
             logical core into text, make mistakes legible, and hand a deterministic
             result to the next stage. You can read the full
             <a href="/use-cases/openmicrokbd/">OpenMicroKbd case study</a> or inspect
-            every source file and output in its repository.
+            every source file and output in
+            <a href="https://github.com/conol-ai/openmicrokbd">its repository</a>.
           </p>
 
           <h2>Start with one command</h2>
           <p>
             CoHDL is MIT licensed. The compiler, standard and component libraries,
-            registry service, VS Code extension, examples and repair harness are all
+            registry service, VS Code extension, examples, and repair harness are all
             open source. Install the latest release on macOS or Linux:
           </p>
 
@@ -370,9 +371,9 @@ cohdl build . --emit ipc2581</code></pre>
           <p>
             Then follow
             <a href="/docs/getting-started/">Getting started</a>, browse the
-            <a href="https://registry.cohdl.org">package registry</a>, and look through
+            <a href="https://registry.cohdl.org">package registry</a>, and explore
             <a href="https://github.com/conol-ai/cohdl">the source on GitHub</a>. If you
-            want to build a board, publish a component package or help shape the
+            want to build a board, publish a component package, or help shape the
             language,
             <a
               href="https://discord.gg/x7DXPvK66"

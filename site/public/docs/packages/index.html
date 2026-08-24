@@ -7,7 +7,7 @@
     <title>Packages &amp; the registry — CoHDL docs</title>
     <meta
       name="description"
-      content="How CoHDL packages work: the manifest and module tree, exact-version dependencies, the sha256 content-hash lock file, the three-tier registry namespace, the CLI verbs, and the libraries that ship today."
+      content="How CoHDL packages work: exact-version dependencies, content-hash locks, registry trust tiers, package and public-part search, publishing, and the libraries that ship today."
     />
     <link rel="canonical" href="https://cohdl.org/docs/packages/" />
 
@@ -72,8 +72,9 @@
             A CoHDL package is a directory the compiler can hash: a manifest and a
             source tree. Dependencies are pinned to exact versions, a lock file records
             a content hash for each one, and the registry's namespace makes trust
-            legible in the package name itself. This page covers all three layers, and
-            the libraries that ship today.
+            legible in the package name itself. Registry search discovers both packages
+            and public parts without opening a project. This page covers those layers
+            and the libraries that ship today.
           </p>
         </div>
 
@@ -279,8 +280,29 @@ hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
             building offline.
           </p>
 
+          <p>
+            <code>cohdl search QUERY [--json]</code> is the read-only discovery path. It
+            needs no project or login and searches package metadata plus package-local
+            public parts projected from <code>cohdl docs</code> API sidecars. Part search
+            includes the owning package, fully-qualified and short names, device,
+            intent, arguments, structural variant, and primary and alternate AVL fields
+            within fixed resource-safety projection budgets, including ordinary
+            manufacturer and MPN values. The query is
+            trimmed, must contain at least three Unicode scalar values, may occupy no
+            more than 128 UTF-8 bytes and may contain no control character.
+          </p>
+          <p>
+            Search uses the <em>most-recently-published</em> version and reports its exact
+            version on every result; that is distinct from the greatest-semantic-version
+            rule used by an unversioned <code>add</code> or <code>update</code>. Package
+            and part families are bounded independently and expose <code>has_more</code>
+            when truncated, never a total count. Each existing package's most-recent
+            sidecar needs one idempotent <code>cohdl docs --publish</code> re-upload after
+            the search-index rollout.
+          </p>
+
           <h2>The verbs</h2>
-          <p>In the order a project meets them:</p>
+          <p>Discovery and the package lifecycle:</p>
 
           <div class="table-scroll">
             <table>
@@ -292,9 +314,17 @@ hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
               </thead>
               <tbody>
                 <tr>
+                  <td><code>cohdl search TPS59650</code></td>
+                  <td>
+                    Searches packages and the most-recently-published API sidecars for
+                    public parts. It is project-free, login-free and read-only;
+                    <code>--json</code> returns the same bounded rows.
+                  </td>
+                </tr>
+                <tr>
                   <td><code>cohdl add @raspberrypi/mcu</code></td>
                   <td>
-                    Resolves the latest published exact version (or the one given as
+                    Resolves the greatest published semantic version (or the one given as
                     <code>name@X.Y.Z</code>), writes the
                     <code>[dependencies]</code> entry and the lock row in one step.
                   </td>
@@ -310,7 +340,7 @@ hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
                   <td><code>cohdl update passive</code></td>
                   <td>
                     Re-resolves one dependency (or all of them, with no name) to its
-                    current latest published exact version, rewriting manifest and lock
+                    greatest published semantic version, rewriting manifest and lock
                     together. This is the only sanctioned way a pin changes — never a
                     side effect of <code>install</code> or <code>build</code>.
                   </td>
@@ -334,6 +364,14 @@ hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
                   <td>
                     Validates the package name and license locally, packs the project
                     into a deterministic archive, and publishes it.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>cohdl docs --publish</code></td>
+                  <td>
+                    Re-generates and uploads API documentation for an already-published
+                    version; this also idempotently refreshes its public-part search rows
+                    when that version is the most recently published.
                   </td>
                 </tr>
               </tbody>
@@ -395,6 +433,17 @@ std = "0.3.0"</code></pre>
     }
 }</code></pre>
           </figure>
+
+          <p>
+            Separately, <code>cohdl docs</code> derives a structured API document from
+            the compiler's checked view of a package. <code>cohdl publish</code> uploads
+            it best-effort as a replaceable sidecar after the immutable package archive
+            succeeds; <code>cohdl docs --publish</code> regenerates or backfills that
+            sidecar later without changing the package tar or content hash. The registry
+            API explorer reads the sidecar, and its package-local public
+            <code>part</code> items feed the most-recently-published search index. Malformed,
+            private, non-part and foreign dependency entries are skipped by indexing.
+          </p>
 
           <h2>What ships today</h2>
           <p>

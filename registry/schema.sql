@@ -62,3 +62,31 @@ CREATE VIRTUAL TABLE IF NOT EXISTS part_search USING fts5(
   avl_json UNINDEXED,
   tokenize = 'trigram'
 );
+
+-- Missing component libraries requested by registry visitors. Repeated
+-- manufacturer/part pairs become demand counts rather than duplicate rows.
+CREATE TABLE IF NOT EXISTS component_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  manufacturer TEXT NOT NULL,
+  manufacturer_key TEXT NOT NULL,
+  part_number TEXT NOT NULL,
+  part_number_key TEXT NOT NULL,
+  datasheet_url TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved')),
+  request_count INTEGER NOT NULL DEFAULT 1 CHECK (request_count >= 1),
+  created_at TEXT NOT NULL,
+  last_requested_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  resolved_at TEXT,
+  resolved_by_account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+  CHECK (
+    (status = 'open' AND resolved_at IS NULL) OR
+    (status = 'resolved' AND resolved_at IS NOT NULL)
+  ),
+  UNIQUE (manufacturer_key, part_number_key)
+);
+CREATE INDEX IF NOT EXISTS component_requests_queue
+  ON component_requests (status, request_count DESC, last_requested_at DESC);
+CREATE INDEX IF NOT EXISTS component_requests_newest
+  ON component_requests (status, last_requested_at DESC, id DESC);

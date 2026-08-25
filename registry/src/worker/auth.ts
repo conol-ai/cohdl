@@ -14,6 +14,9 @@ export interface Env {
   /// disabled (local dev / pre-configuration).
   RECAPTCHA_SITE_KEY?: string;
   RECAPTCHA_SECRET_KEY?: string;
+  /// Anonymous component-library request submissions, limited per source IP.
+  COMPONENT_REQUEST_RATE_LIMITER: RateLimit;
+  COMPONENT_REQUEST_GLOBAL_RATE_LIMITER: RateLimit;
 }
 
 const PBKDF2_ITERS = 100_000;

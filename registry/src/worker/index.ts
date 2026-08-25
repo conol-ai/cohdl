@@ -28,10 +28,15 @@ import {
 } from "./auth";
 import { adminApi, hasJsonContentType, validWriteOrigin } from "./admin";
 import { apidocsKey, apidocsPut } from "./apidocs";
+import {
+  adminComponentRequestApi,
+  componentRequestApi,
+} from "./component-requests";
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
 import { nameTier, publishRejection } from "./namespace";
+import { recaptchaOk } from "./recaptcha";
 import { searchApi } from "./search";
 import { readTar } from "./tar";
 
@@ -175,6 +180,15 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     // from `/api/search`, whose package-only shape belongs to the web UI.
     if (pathname === "/search") {
       return await searchApi(env, request, url);
+    }
+    if (pathname === "/api/component-requests") {
+      return await componentRequestApi(env, request, url);
+    }
+    if (
+      pathname === "/api/admin/component-requests" ||
+      pathname.startsWith("/api/admin/component-requests/")
+    ) {
+      return await adminComponentRequestApi(env, request, url);
     }
     if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
       return await adminApi(env, request, url);
@@ -367,32 +381,6 @@ async function packages(env: Env, request: Request, pathname: string): Promise<R
 // Web UI API
 // ---------------------------------------------------------------------------
 
-/// reCAPTCHA v3 verification (signup/sign-in only — never the CLI token
-/// flow). Unconfigured secret = pass-through, so the service works before
-/// the dashboard variables exist.
-async function recaptchaOk(
-  env: Env,
-  request: Request,
-  token: string | undefined,
-  action: string,
-): Promise<boolean> {
-  if (!env.RECAPTCHA_SECRET_KEY) return true;
-  if (!token) return false;
-  const form = new URLSearchParams({
-    secret: env.RECAPTCHA_SECRET_KEY,
-    response: token,
-    remoteip: request.headers.get("CF-Connecting-IP") ?? "",
-  });
-  const resp = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form.toString(),
-  });
-  if (!resp.ok) return false;
-  const data = (await resp.json()) as { success?: boolean; score?: number; action?: string };
-  return data.success === true && data.action === action && (data.score ?? 0) >= 0.5;
-}
-
 /// Cookie-authenticated browser mutations must be non-simple, exact-origin
 /// JSON requests. This blocks cross-origin form/no-cors writes and same-site
 /// sibling origins from driving a user's registry session.
@@ -410,7 +398,12 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
   const path = url.pathname;
 
   if (path === "/api/config" && request.method === "GET") {
-    return json(200, { recaptcha_site_key: env.RECAPTCHA_SITE_KEY ?? null });
+    return json(200, {
+      recaptcha_site_key: env.RECAPTCHA_SITE_KEY ?? null,
+      component_requests_enabled:
+        isLoopbackHost(url.hostname) ||
+        Boolean(env.RECAPTCHA_SITE_KEY && env.RECAPTCHA_SECRET_KEY),
+    });
   }
 
   if (path === "/api/signup" && request.method === "POST") {

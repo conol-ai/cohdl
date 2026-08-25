@@ -45,43 +45,11 @@ import {
   formatSize,
 } from "./components";
 import { Markdown } from "./markdown";
-
-// reCAPTCHA v3 (loaded on demand when the registry has a site key
-// configured; see /api/config). Keys live in the Cloudflare dashboard.
-declare global {
-  interface Window {
-    grecaptcha?: {
-      ready(cb: () => void): void;
-      execute(siteKey: string, opts: { action: string }): Promise<string>;
-    };
-  }
-}
-
-let recaptchaLoaded: Promise<void> | null = null;
-function loadRecaptcha(siteKey: string): Promise<void> {
-  if (!recaptchaLoaded) {
-    recaptchaLoaded = new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-      s.onload = () => window.grecaptcha!.ready(resolve);
-      s.onerror = () => {
-        s.remove();
-        reject(new Error("could not load reCAPTCHA"));
-      };
-      document.head.appendChild(s);
-    });
-    recaptchaLoaded.catch(() => {
-      recaptchaLoaded = null;
-    });
-  }
-  return recaptchaLoaded;
-}
-
-async function recaptchaToken(siteKey: string | null | undefined, action: string) {
-  if (!siteKey) return undefined;
-  await loadRecaptcha(siteKey);
-  return window.grecaptcha!.execute(siteKey, { action });
-}
+import { recaptchaToken } from "./recaptcha";
+import {
+  AdminComponentRequestsPage,
+  ComponentRequestPage,
+} from "./component-requests";
 
 // ---------------------------------------------------------------------------
 
@@ -239,6 +207,7 @@ function Layout() {
           </div>
           <nav aria-label="Footer navigation">
             <Link to="/packages">Packages</Link>
+            <Link to="/request">Request a component</Link>
             <Link to="/docs">Publishing guide</Link>
             <Link to="/account">Account</Link>
             <a href="https://github.com/conol-ai/cohdl" rel="noopener noreferrer" target="_blank">
@@ -488,6 +457,20 @@ const homeRoute = createRoute({
   component: Home,
 });
 
+function ComponentRequestRoute() {
+  usePageTitle("Request a component");
+  const { part } = requestRoute.useSearch();
+  return <ComponentRequestPage initialPart={part} />;
+}
+
+const requestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/request",
+  validateSearch: (search: Record<string, unknown>): { part?: string } =>
+    typeof search.part === "string" && search.part ? { part: search.part } : {},
+  component: ComponentRequestRoute,
+});
+
 // ---------------------------------------------------------------------------
 
 type TierFilter = "all" | SearchRow["tier"];
@@ -526,13 +509,18 @@ function Catalogue() {
 
   return (
     <div className="catalogue-page">
-      <div className="page-heading">
-        <p className="eyebrow">Package catalogue</p>
-        <h1>{query ? `Search results for “${query}”` : "Explore hardware libraries"}</h1>
-        <p>
-          Find exact-pinned component libraries across official, manufacturer, and community
-          namespaces.
-        </p>
+      <div className="page-heading page-heading-row catalogue-page-heading">
+        <div>
+          <p className="eyebrow">Package catalogue</p>
+          <h1>{query ? `Search results for “${query}”` : "Explore hardware libraries"}</h1>
+          <p>
+            Find exact-pinned component libraries across official, manufacturer, and community
+            namespaces.
+          </p>
+        </div>
+        <Link className="button button-secondary" to="/request">
+          Request a component
+        </Link>
       </div>
 
       <div className="catalogue-toolbar">
@@ -621,15 +609,26 @@ function Catalogue() {
           title={query ? `No packages match “${query}”` : "No packages in this trust tier"}
           icon="search"
           action={
-            <button
-              className="button button-secondary"
-              onClick={() => {
-                setInput("");
-                navigate({ to: "/packages", search: {} });
-              }}
-            >
-              Clear filters
-            </button>
+            <div className="state-action-row">
+              {query && tier === "all" && (
+                <Link
+                  className="button button-primary"
+                  to="/request"
+                  search={{ part: query }}
+                >
+                  Request this component
+                </Link>
+              )}
+              <button
+                className="button button-secondary"
+                onClick={() => {
+                  setInput("");
+                  navigate({ to: "/packages", search: {} });
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
           }
         >
           Try another name, description, or namespace.
@@ -1777,6 +1776,13 @@ function AdminDashboard({ accountEmail }: { accountEmail: string }) {
         </span>
       </div>
 
+      <div className="admin-local-nav" aria-label="Registry administration sections">
+        <Link className="is-active" to="/admin" aria-current="page">
+          Publishers
+        </Link>
+        <Link to="/admin/requests">Component requests</Link>
+      </div>
+
       <div className="admin-workspace">
         <section className="content-panel account-browser" aria-labelledby="account-heading">
           <div className="panel-heading">
@@ -2159,6 +2165,17 @@ const adminRoute = createRoute({
   component: Admin,
 });
 
+function AdminComponentRequestRoute() {
+  usePageTitle("Component requests");
+  return <AdminComponentRequestsPage />;
+}
+
+const adminRequestsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/requests",
+  component: AdminComponentRequestRoute,
+});
+
 // ---------------------------------------------------------------------------
 
 const MANIFEST_EXAMPLE = `[package]
@@ -2334,9 +2351,11 @@ const docsRoute = createRoute({
 
 export const routeTree = rootRoute.addChildren([
   homeRoute,
+  requestRoute,
   catalogRoute,
   packageRoute,
   accountRoute,
   adminRoute,
+  adminRequestsRoute,
   docsRoute,
 ]);

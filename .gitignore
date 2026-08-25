@@ -26,6 +26,7 @@ examples/*/out/.history/
 /registry/node_modules
 /registry/dist
 /site/node_modules
+/ref/
 
 # wrangler files (bot-added; covers registry/.wrangler too)
 .wrangler

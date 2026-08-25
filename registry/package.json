@@ -19,7 +19,9 @@
     "db:migrate:0002": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0002-api-docs.sql",
     "db:migrate:0002:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0002-api-docs.sql",
     "db:migrate:0003": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0003-part-search.sql",
-    "db:migrate:0003:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0003-part-search.sql"
+    "db:migrate:0003:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0003-part-search.sql",
+    "db:migrate:0004": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0004-component-requests.sql",
+    "db:migrate:0004:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0004-component-requests.sql"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",

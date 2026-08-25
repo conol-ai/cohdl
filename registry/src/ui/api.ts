@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 
 export class ApiError extends Error {
   readonly status: number;
+  readonly fields?: Record<string, string>;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, fields?: Record<string, string>) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.fields = fields;
   }
 }
 
@@ -27,8 +29,10 @@ async function write<T>(method: "POST" | "PUT" | "DELETE", url: string, body: un
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = (await r.json().catch(() => null)) as (T & { error?: string }) | null;
-  if (!r.ok) throw new ApiError(data?.error ?? `HTTP ${r.status}`, r.status);
+  const data = (await r.json().catch(() => null)) as
+    | (T & { error?: string; fields?: Record<string, string> })
+    | null;
+  if (!r.ok) throw new ApiError(data?.error ?? `HTTP ${r.status}`, r.status, data?.fields);
   return data as T;
 }
 
@@ -340,6 +344,33 @@ export interface Me {
   brands: string[];
 }
 
+export interface RegistryConfig {
+  recaptcha_site_key: string | null;
+  component_requests_enabled: boolean;
+}
+
+export interface ComponentRequestResponse {
+  ok: true;
+  duplicate: boolean;
+}
+
+export type ComponentRequestStatus = "open" | "resolved";
+export type ComponentRequestSort = "requested" | "newest";
+
+export interface ComponentRequestRow {
+  id: number;
+  manufacturer: string;
+  part_number: string;
+  datasheet_url: string;
+  description: string | null;
+  status: ComponentRequestStatus;
+  request_count: number;
+  created_at: string;
+  last_requested_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
 /// URL of a published document's bytes — served sandboxed from the immutable
 /// tar in R2.
 export function docUrl(pkg: string, version: string, path: string): string {
@@ -420,7 +451,7 @@ export function useConfig() {
   return useQuery({
     queryKey: ["config"],
     staleTime: Infinity,
-    queryFn: () => get<{ recaptcha_site_key: string | null }>("/api/config"),
+    queryFn: () => get<RegistryConfig>("/api/config"),
   });
 }
 
@@ -438,6 +469,22 @@ export function useAdminAccounts(q: string) {
     queryFn: () =>
       get<{ accounts: AdminAccount[]; truncated: boolean }>(
         `/api/admin/accounts?q=${encodeURIComponent(q)}`,
+      ),
+  });
+}
+
+export function useAdminComponentRequests(
+  status: ComponentRequestStatus | "all",
+  sort: ComponentRequestSort,
+  q: string,
+) {
+  const params = new URLSearchParams({ status, sort });
+  if (q) params.set("q", q);
+  return useQuery({
+    queryKey: ["admin", "component-requests", status, sort, q],
+    queryFn: () =>
+      get<{ requests: ComponentRequestRow[]; truncated: boolean }>(
+        `/api/admin/component-requests?${params.toString()}`,
       ),
   });
 }

@@ -10,7 +10,7 @@ direct instruction: **all Cloudflare services** —
 | Service | Role |
 |---|---|
 | Workers | the API + UI host (one worker, `run_worker_first` API routes) |
-| D1 | the index: accounts, brands, tokens, packages, versions |
+| D1 | the index: accounts, brands, tokens, packages, versions, component requests |
 | R2 | package content (uncompressed tar archives) |
 | KV | web sessions |
 | Workers Assets | the SPA (single-page-application fallback) |
@@ -147,6 +147,37 @@ Cookie-authenticated admin writes require same-origin JSON requests in
 addition to the session cookie's `HttpOnly`, `Secure`, and `SameSite=Lax`
 attributes. Admin responses are never cached.
 
+## Missing component requests
+
+The catalogue exposes a public `/request` form for a component that is not
+yet covered by a published library. It asks only for the manufacturer, exact
+part number, an HTTPS datasheet/product-page URL, and an optional description;
+it does not collect a requester email or require an account.
+
+`POST /api/component-requests` is a browser-only, same-origin JSON endpoint.
+It streams at most 12 KiB, validates and bounds every field, verifies the
+existing reCAPTCHA v3 action `component_request`, and applies both a five-per-
+minute source limiter and a 100-per-minute route pressure valve. The rate
+limit bindings are location-local and permissive by design, so verification
+and the D1 uniqueness constraint remain part of the abuse boundary. No source
+IP, user agent, or CAPTCHA token is stored.
+
+Manufacturer and part number are canonicalized for equality without removing
+meaningful punctuation. Repeated requests atomically increment demand and the
+last-requested timestamp; they never overwrite the original datasheet or
+description and never reopen a resolved item. A new submission returns 202,
+an existing pair returns 200, and neither response exposes the internal row ID.
+
+Official web sessions can review the queue at `/admin/requests`. The internal
+API can search by manufacturer/part number, sort by demand or recency, and
+filter open/resolved requests. Resolve/reopen is idempotent and audit-logged;
+there is intentionally no delete operation, so demand history is preserved.
+CLI bearer tokens never authorize these controls.
+
+The anonymous endpoint fails closed outside loopback when either reCAPTCHA
+dashboard key is absent. Keep `RECAPTCHA_SITE_KEY` as a dashboard variable and
+`RECAPTCHA_SECRET_KEY` as a Worker secret before enabling the production form.
+
 ## Develop / test / deploy
 
 ```sh
@@ -161,6 +192,7 @@ npm run db:init                             # fresh DB: the whole schema
 npm run db:migrate                         # existing DB: additive column adds
 npm run db:migrate:0002                    # …and the api-docs column
 npm run db:migrate:0003                    # …and sidecar pointer + part-search FTS index
+npm run db:migrate:0004                    # …and the component-request review queue
 npm run deploy
 ```
 

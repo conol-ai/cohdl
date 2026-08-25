@@ -29,6 +29,18 @@
   "kv_namespaces": [
     { "binding": "SESSIONS", "id": "02a74c82d32241e99f45eee18a1fa1fc" }
   ],
+  "ratelimits": [
+    {
+      "name": "COMPONENT_REQUEST_RATE_LIMITER",
+      "namespace_id": "407031",
+      "simple": { "limit": 5, "period": 60 }
+    },
+    {
+      "name": "COMPONENT_REQUEST_GLOBAL_RATE_LIMITER",
+      "namespace_id": "407032",
+      "simple": { "limit": 100, "period": 60 }
+    }
+  ],
   "workers_dev": true,
   "routes": [{ "pattern": "registry.cohdl.org", "custom_domain": true }]
 }

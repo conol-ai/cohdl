@@ -213,6 +213,7 @@ E000's classification).
 | E1105 | (warning, CLI prose) std override active — `--std`/`COHDL_STD` bypasses the locked std; the build is not reproducible. Mandatory and unsuppressable on every affected run |
 | E1106 | package identity error — a package under a family dir declares a different name, carries no/an unparseable `[package]` identity, or two packages declare the same (name, version): a version is one immutable identity |
 | E1107 | unparseable `cohdl.lock` — machine-generated file corrupted or hand-edited; the help says to restore it from version control or delete and re-resolve |
+| E1108 | dependency version conflict — two *dependencies* pin different exact versions of the same package and the project's own manifest pins none (RFC-029 amendment: resolution walks the transitive closure; the project pin is the single authority and wins silently when present). Exact pins cannot be merged; the help says to pin the package in the project's `[dependencies]` to choose explicitly. Anchors to the later requirer's manifest line and names both requirers and both versions |
 
 ## E12xx — registry interaction (RFC-030)
 

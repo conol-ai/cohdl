@@ -38,10 +38,12 @@ defaults to the current directory.
              (registry first, local fallback) and rewrite [dependencies] +
              cohdl.lock (RFC-029/030); migrates a pre-RFC-029 manifest
     add      add a dependency: resolve latest (or the given @X.Y.Z), fetch
-             into the cache, write [dependencies] + cohdl.lock (RFC-030)
+             it and its own dependency closure into the cache, write
+             [dependencies] + cohdl.lock (RFC-030)
     remove   remove a dependency from [dependencies] and cohdl.lock (RFC-030)
-    install  resolve every dependency per cohdl.lock, fetching anything
-             missing from registry.cohdl.org into ~/.cohdl/registry (RFC-030)
+    install  resolve the full dependency closure per cohdl.lock, fetching
+             anything missing from registry.cohdl.org into ~/.cohdl/registry
+             (RFC-030)
     login    store a registry token (opens the account page for you to copy
              one; paste it at the prompt)
     publish  package the current project and publish it to the registry
@@ -1061,6 +1063,13 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
     let lock_display = lock_path.display().to_string();
     let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
 
+    // std settled outside the registry (override or --no-std) must not be
+    // re-introduced by a dependency's own std pin.
+    let skip_transitive: Vec<String> = if args.no_std || override_std.is_some() {
+        vec!["std".to_string()]
+    } else {
+        Vec::new()
+    };
     let resolution = deps::resolve(
         &manifest_display,
         &lock_display,
@@ -1068,6 +1077,10 @@ fn resolve_manifest_deps(args: &Args) -> Result<Vec<(String, PathBuf)>, DepFailu
         &registry,
         prior_lock_text.as_deref(),
         deps::Update::No,
+        deps::ResolveOpts {
+            skip_transitive: &skip_transitive,
+            fetch: None,
+        },
     )
     .map_err(DepFailure::Diags)?;
 
@@ -1200,20 +1213,6 @@ fn update_command(args: &Args) -> Result<bool, String> {
                 e.version = latest;
             }
         }
-        let on_disk = registry.families(&e.name).iter().any(|f| {
-            deps::available_versions(f, &e.name)
-                .map(|v| v.iter().any(|(ver, _)| *ver == e.version))
-                .unwrap_or(false)
-        });
-        if !on_disk {
-            match cohdl::registry::download_into_cache(&e.name, e.version) {
-                Ok(_) => {}
-                Err(d) => {
-                    eprint!("{}", render_diag(&d));
-                    return Ok(false);
-                }
-            }
-        }
     }
 
     let lock_path = args.path.join("cohdl.lock");
@@ -1224,6 +1223,11 @@ fn update_command(args: &Args) -> Result<bool, String> {
         None => deps::Update::All,
     };
 
+    // Anything missing on disk — a bumped pin, or a transitive dependency
+    // discovered during the closure walk — is fetched from the registry.
+    let mut fetch = |name: &str, version: deps::Version| -> Result<(), cohdl::deps::PackageDiag> {
+        cohdl::registry::download_into_cache(name, version).map(|_| ())
+    };
     match deps::resolve(
         &manifest_display,
         &lock_display,
@@ -1231,6 +1235,10 @@ fn update_command(args: &Args) -> Result<bool, String> {
         &registry,
         prior_lock_text.as_deref(),
         update,
+        deps::ResolveOpts {
+            skip_transitive: &[],
+            fetch: Some(&mut fetch),
+        },
     ) {
         Ok(resolution) => {
             if resolution.lock_changed || prior_lock_text.is_none() {
@@ -1525,7 +1533,7 @@ fn search_command(args: &Args) -> Result<bool, String> {
 /// `cohdl add NAME[@X.Y.Z]` (RFC-030): resolve, fetch into the cache, write
 /// `[dependencies]` + the cohdl.lock row in one step.
 fn add_command(args: &Args) -> Result<bool, String> {
-    use cohdl::registry;
+    use cohdl::{deps, registry};
     let arg = args.name.as_deref().expect("validated");
     let (name, ver) = registry::split_name_version(arg);
     let tier = match registry::name_tier(&name) {
@@ -1566,6 +1574,43 @@ fn add_command(args: &Args) -> Result<bool, String> {
     manifest_set_dep(&args.path.join("cohdl.toml"), &name, &version.to_string())?;
     lock_upsert(&args.path, &name, version, server_hash)?;
     eprintln!("  added {} {} — {}", name, version, tier.describe());
+
+    // Fetch the added package's transitive closure into the cache so the next
+    // check/build resolves offline. Content only: the walk's lock output is
+    // discarded — the closure's lock rows are first-resolution work for the
+    // next resolve, which sees the whole manifest (this walk sees one entry,
+    // and writing its lock would prune every other dependency's row).
+    let reg = deps::Registry {
+        lib_root: project::find_lib_root(),
+        project_deps: args.path.join("deps"),
+        cache_root: registry::cache_root(),
+    };
+    let seed = vec![cohdl::deps::DepEntry {
+        name: name.clone(),
+        version,
+        line: 0,
+    }];
+    let mut fetch =
+        |name: &str, version: cohdl::deps::Version| -> Result<(), cohdl::deps::PackageDiag> {
+            let (dir, _) = registry::download_into_cache(name, version)?;
+            eprintln!("  fetched {} {} -> {}", name, version, dir.display());
+            Ok(())
+        };
+    if let Err(diags) = deps::resolve(
+        &args.path.join("cohdl.toml").display().to_string(),
+        "cohdl add",
+        &seed,
+        &reg,
+        None,
+        deps::Update::No,
+        deps::ResolveOpts {
+            skip_transitive: &[],
+            fetch: Some(&mut fetch),
+        },
+    ) {
+        eprint!("{}", deps::render_human(&diags));
+        return Ok(false);
+    }
     Ok(true)
 }
 
@@ -1635,32 +1680,15 @@ fn install_command(args: &Args) -> Result<bool, String> {
         project_deps: args.path.join("deps"),
         cache_root: registry::cache_root(),
     };
+    // The closure walk calls back for anything not on disk — direct pins and
+    // the transitive dependencies each package's own manifest declares.
     let mut fetched = 0usize;
-    for dep in &entries {
-        let on_disk = reg.families(&dep.name).iter().any(|f| {
-            deps::available_versions(f, &dep.name)
-                .map(|v| v.iter().any(|(ver, _)| *ver == dep.version))
-                .unwrap_or(false)
-        });
-        if on_disk {
-            continue;
-        }
-        match registry::download_into_cache(&dep.name, dep.version) {
-            Ok((dir, _)) => {
-                fetched += 1;
-                eprintln!(
-                    "  fetched {} {} -> {}",
-                    dep.name,
-                    dep.version,
-                    dir.display()
-                );
-            }
-            Err(d) => {
-                eprint!("{}", render_diag(&d));
-                return Ok(false);
-            }
-        }
-    }
+    let mut fetch = |name: &str, version: deps::Version| -> Result<(), cohdl::deps::PackageDiag> {
+        let (dir, _) = registry::download_into_cache(name, version)?;
+        fetched += 1;
+        eprintln!("  fetched {} {} -> {}", name, version, dir.display());
+        Ok(())
+    };
     let lock_path = args.path.join("cohdl.lock");
     let prior = std::fs::read_to_string(&lock_path).ok();
     match deps::resolve(
@@ -1670,6 +1698,10 @@ fn install_command(args: &Args) -> Result<bool, String> {
         &reg,
         prior.as_deref(),
         deps::Update::No,
+        deps::ResolveOpts {
+            skip_transitive: &[],
+            fetch: Some(&mut fetch),
+        },
     ) {
         Ok(res) => {
             if res.lock_changed || prior.is_none() {

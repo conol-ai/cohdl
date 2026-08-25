@@ -649,6 +649,88 @@ fn install_fetches_only_whats_missing() {
     );
 }
 
+/// Like `make_pkg`, with a `[dependencies]` section of its own — the
+/// transitive-closure fixtures (RFC-029 amendment, 2026-08-25).
+fn make_pkg_with_deps(stage: &Path, name: &str, version: &str, deps: &str) -> MockPkg {
+    let dir = stage.join(format!("stage-{}-{}", name.replace('/', "_"), version));
+    std::fs::create_dir_all(dir.join("src")).unwrap();
+    std::fs::write(
+        dir.join("cohdl.toml"),
+        format!("[package]\nname = \"{name}\"\nversion = \"{version}\"\n\n[dependencies]\n{deps}"),
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("src/lib.cohdl"),
+        "pub device T { pins { A: 1 [passive], B: 2 [passive] } }\n",
+    )
+    .unwrap();
+    let tar = cohdl::registry::pack_tar(&dir).unwrap();
+    let hash = cohdl::hash::package_content_hash(&dir).unwrap();
+    MockPkg {
+        name: name.to_string(),
+        version: version.to_string(),
+        tar,
+        hash,
+    }
+}
+
+#[test]
+fn install_fetches_the_transitive_closure() {
+    let tmp = tmp_dir("install-transitive");
+    let home = tmp.join("home");
+    let sub = make_pkg(&tmp, "@contrib/subgadget", "1.0.0");
+    let top = make_pkg_with_deps(
+        &tmp,
+        "@contrib/gadgets",
+        "2.1.0",
+        "\"@contrib/subgadget\" = \"1.0.0\"\n",
+    );
+    let url = spawn_mock(vec![top, sub], None);
+    let proj = tmp.join("proj");
+    make_project(&proj, "\"@contrib/gadgets\" = \"2.1.0\"\n");
+
+    let (ok, err) = run(&url, &home, &["install", proj.to_str().unwrap()]);
+    assert!(ok, "{err}");
+    assert!(err.contains("2 fetched"), "direct + transitive: {err}");
+    let lock = std::fs::read_to_string(proj.join("cohdl.lock")).unwrap();
+    assert!(
+        lock.contains("name = \"@contrib/subgadget\""),
+        "the transitive dependency is locked: {lock}"
+    );
+}
+
+#[test]
+fn add_fetches_the_transitive_closure_into_the_cache() {
+    let tmp = tmp_dir("add-transitive");
+    let home = tmp.join("home");
+    let sub = make_pkg(&tmp, "@contrib/subgadget", "1.0.0");
+    let top = make_pkg_with_deps(
+        &tmp,
+        "@contrib/gadgets",
+        "2.1.0",
+        "\"@contrib/subgadget\" = \"1.0.0\"\n",
+    );
+    let url = spawn_mock(vec![top, sub], None);
+    let proj = tmp.join("proj");
+    make_project(&proj, "");
+
+    let (ok, err) = run(
+        &url,
+        &home,
+        &["add", "@contrib/gadgets@2.1.0", proj.to_str().unwrap()],
+    );
+    assert!(ok, "{err}");
+    assert!(
+        err.contains("fetched @contrib/subgadget 1.0.0"),
+        "the added package's own dependency is fetched too: {err}"
+    );
+    assert!(
+        home.join("registry/@contrib/subgadget/1.0.0/cohdl.toml")
+            .is_file(),
+        "the transitive package lands in the cache"
+    );
+}
+
 #[test]
 fn update_bumps_to_latest_published() {
     let tmp = tmp_dir("update");

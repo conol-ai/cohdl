@@ -3927,3 +3927,62 @@ Decisions of note:
   the real binary against a std-only local HTTP server (fetch across
   paginated release lists → verify → atomic self-replace with no workdir
   residue, plus --check, corrupted-download refusal, and up-to-date paths).
+
+## Transitive dependency resolution (RFC-029 amendment, user-directed 2026-08-25)
+
+RFC-029 as accepted resolved only the manifest's direct `[dependencies]`;
+a package whose own manifest declared dependencies (RFC-030 made these
+publishable facts) compiled fine as a project but failed as a dependency —
+`cohdl add @espressif/esp32` produced a consumer that could not resolve
+`qfn::…` footprints (E202) because the dependency's declared `qfn = "0.1.1"`
+was never loaded. Seven published packages carry `qfn`/`soic` pins, so every
+consumer of those hit this wall. User-directed amendment: resolution now
+covers the transitive closure.
+
+Semantics (all in `deps::resolve`, one walk shared by check/build, the LSP,
+and the RFC-030 verbs):
+
+1. **The closure walk.** Every resolved package's own `[dependencies]`
+   joins the work set (BFS in declaration order — deterministic, so every
+   diagnostic it can emit is too). The lock records the closure; rows no
+   longer reachable are pruned. E1101/E1102/E1103/E1106 apply uniformly at
+   every depth; a transitive E1102 names its requirer and anchors to the
+   declaring manifest's own line.
+2. **The project pin is the single authority.** A root `[dependencies]`
+   pin wins silently over any dependency's pin for the same name. Two
+   *dependencies* pinning different exact versions with no root pin is the
+   new E1108 hard error — exact pins cannot be merged, and the help says to
+   pin the name at the root to choose explicitly. No newest-wins, ever: a
+   resolution policy choosing versions would put a verdict on the other
+   side of a heuristic. (Root-wins over hard-error-always because exact
+   pins would otherwise deadlock the ecosystem: a dep pinning `qfn 0.1.1`
+   would conflict with every root that `cohdl update`d past it, and no
+   root-side action could ever resolve it.)
+3. **Offline stays offline.** check/build/LSP walk with `fetch: None` and
+   keep the E1102 "run `cohdl install`" contract; `install`/`update` pass a
+   fetch hook wired to the RFC-030 download, so missing closure members are
+   fetched exactly where direct ones were. `add` fetches the added
+   package's closure content into the cache (lock rows for the closure are
+   first-resolution work for the next resolve, which sees the whole
+   manifest — writing them from add's single-entry walk would prune every
+   other row).
+4. **std stays non-special.** A dependency's `std` pin is walked like any
+   other name; the only exception is caller context, not the name: under
+   `--no-std` or a `--std` override, std is already settled outside the
+   registry, so the CLI passes it in `ResolveOpts::skip_transitive` and a
+   dependency's std pin cannot re-introduce it.
+
+Visibility is unchanged: every loaded package's `pub` symbols remain
+referenceable by every other, so a root project can name a transitive
+package it never declared. Flagged, not decided: requiring a package to
+declare what it references is a separate strictness question for a future
+RFC (it needs an answer for std, which no source file names explicitly).
+
+Verification: seven fixture tests in tests/deps.rs (closure lock + byte
+stability, requirer-named E1102, E1108 + root-pin resolution of it,
+root-pin-wins selection, transitive E1103 tamper, prune-on-remove,
+`--no-std` std skip) and two mock-registry tests in tests/registry.rs
+(install fetches the closure; add caches the added package's closure). The
+original blocker reproduces fixed live: a project depending on
+`@espressif/esp32` alone now checks clean, `qfn 0.1.1` resolved and locked
+transitively.

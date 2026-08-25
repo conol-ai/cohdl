@@ -2,13 +2,18 @@
 //! registry resolution, and the `cohdl.lock` record.
 //!
 //! Everything here runs at project load, before any `.cohdl` parsing: an
-//! invalid dependency entry (E1101), an unresolvable version (E1102), or a
-//! locked-hash mismatch (E1103) gates the entire pipeline. Exact versions
-//! only — range syntax is rejected permanently (hardware libraries have no
-//! "safe patch" assumption: a patch-level footprint fix moves real copper).
+//! invalid dependency entry (E1101), an unresolvable version (E1102), a
+//! locked-hash mismatch (E1103), or a closure version conflict (E1108)
+//! gates the entire pipeline. Exact versions only — range syntax is
+//! rejected permanently (hardware libraries have no "safe patch"
+//! assumption: a patch-level footprint fix moves real copper). Resolution
+//! covers the TRANSITIVE dependency closure (RFC-029 amendment,
+//! user-directed 2026-08-25): every resolved package's own
+//! `[dependencies]` joins the work set, the project's pin is the single
+//! authority when names collide, and the lock records the closure.
 
 use crate::hash;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -449,16 +454,55 @@ pub enum Update {
 }
 
 pub struct Resolved {
-    /// (package name, on-disk dir), in manifest order — ready for
-    /// `load_project_with_deps`.
+    /// (package name, on-disk dir) for the full dependency closure, in
+    /// resolution order — ready for `load_project_with_deps`.
     pub deps: Vec<(String, PathBuf)>,
     pub lock: LockFile,
     pub lock_changed: bool,
 }
 
-/// Resolve and verify every dependency against the registry and the prior
-/// lock. This is RFC-029's load-bearing guarantee: a locked version whose
-/// content hash no longer matches is a hard error, never a warning.
+/// The two knobs the closure walk exposes (RFC-029 amendment, user-directed
+/// 2026-08-25: resolution covers the transitive dependency closure, not only
+/// the manifest's direct entries).
+#[derive(Default)]
+pub struct ResolveOpts<'a> {
+    /// Names never pulled in transitively. The CLI passes `std` here when a
+    /// std override or `--no-std` has already settled std outside the
+    /// registry — a dependency's own `std` pin must not re-introduce it.
+    /// This is a caller-context escape, not a property of any package name.
+    pub skip_transitive: &'a [String],
+    /// Fetch a missing (name, version) into some searched family — the
+    /// RFC-030 verbs wire this to the registry download. Offline contexts
+    /// (check/build/LSP) pass `None` and keep the E1102
+    /// "run `cohdl install`" contract.
+    #[allow(clippy::type_complexity)]
+    pub fetch: Option<&'a mut dyn FnMut(&str, Version) -> Result<(), PackageDiag>>,
+}
+
+/// Which manifest first demanded a package — the conflict rule's authority
+/// order. The project's own manifest is the single authority: its pin wins
+/// over any dependency's pin; two *dependencies* pinning different versions
+/// with no project pin is E1108 (exact pins cannot be merged).
+enum Requirer {
+    Project,
+    Dep(String),
+}
+
+/// One pending resolution: a dependency entry plus the manifest that
+/// declares it (where its diagnostics anchor).
+struct Work {
+    entry: DepEntry,
+    /// `None` = the project's own manifest.
+    required_by: Option<String>,
+    /// Display path of the declaring manifest.
+    display: String,
+}
+
+/// Resolve and verify the full dependency closure against the registry and
+/// the prior lock. Every resolved package's own `[dependencies]` joins the
+/// work set; the lock records the closure. This is RFC-029's load-bearing
+/// guarantee: a locked version whose content hash no longer matches is a
+/// hard error, never a warning.
 pub fn resolve(
     manifest_display: &str,
     lock_display: &str,
@@ -466,6 +510,7 @@ pub fn resolve(
     registry: &Registry,
     prior_lock_text: Option<&str>,
     update: Update,
+    mut opts: ResolveOpts<'_>,
 ) -> Result<Resolved, Vec<PackageDiag>> {
     let prior = match prior_lock_text {
         Some(text) => match LockFile::parse(text) {
@@ -492,44 +537,88 @@ pub fn resolve(
     };
     let mut diags = Vec::new();
 
+    // The closure walk: the project's entries seed the settled map (the
+    // project pin is the authority for its name), then each resolved
+    // package's own `[dependencies]` joins the queue. BFS in declaration
+    // order keeps the walk — and every diagnostic it can emit —
+    // deterministic.
+    let mut settled: BTreeMap<String, (Version, Requirer)> = BTreeMap::new();
+    let mut queue: VecDeque<Work> = VecDeque::new();
     for dep in deps {
+        settled.insert(dep.name.clone(), (dep.version, Requirer::Project));
+        queue.push_back(Work {
+            entry: dep.clone(),
+            required_by: None,
+            display: manifest_display.to_string(),
+        });
+    }
+
+    while let Some(work) = queue.pop_front() {
+        let dep = &work.entry;
         // -- locate the package: versions are discovered from manifests
         //    (the directory name is never consulted), searching the
         //    project-local family then the global one --
         let families = registry.families(&dep.name);
-        let mut found: Option<PathBuf> = None;
-        let mut available: Vec<Version> = Vec::new();
-        let mut family_err: Option<String> = None;
-        for family in &families {
-            match available_versions(family, &dep.name) {
-                Ok(versions) => {
-                    if found.is_none() {
+        let locate = |diags: &mut Vec<PackageDiag>| -> Result<Option<PathBuf>, Vec<Version>> {
+            let mut available: Vec<Version> = Vec::new();
+            for family in &families {
+                match available_versions(family, &dep.name) {
+                    Ok(versions) => {
                         if let Some((_, dir)) = versions.iter().find(|(v, _)| *v == dep.version) {
-                            found = Some(dir.clone());
+                            return Ok(Some(dir.clone()));
                         }
+                        available.extend(versions.iter().map(|(v, _)| *v));
                     }
-                    available.extend(versions.iter().map(|(v, _)| *v));
-                }
-                Err(e) => {
-                    family_err = Some(e);
-                    break;
+                    Err(e) => {
+                        diags.push(PackageDiag::error("E1106", &work.display, dep.line, e));
+                        return Ok(None);
+                    }
                 }
             }
+            Err(available)
+        };
+        let mut found: Option<PathBuf> = None;
+        let mut available: Vec<Version> = Vec::new();
+        let mut hard_failed = false;
+        match locate(&mut diags) {
+            Ok(Some(dir)) => found = Some(dir),
+            Ok(None) => hard_failed = true, // E1106 already pushed
+            Err(avail) => available = avail,
         }
-        if let Some(e) = family_err {
-            diags.push(PackageDiag::error("E1106", manifest_display, dep.line, e));
+        if hard_failed {
             continue;
+        }
+        // Not on disk anywhere: give the caller's fetch hook one shot at
+        // populating a family (the RFC-030 cache), then look again.
+        if found.is_none() {
+            if let Some(fetch) = opts.fetch.as_deref_mut() {
+                match fetch(&dep.name, dep.version) {
+                    Ok(()) => match locate(&mut diags) {
+                        Ok(Some(dir)) => found = Some(dir),
+                        Ok(None) => continue,
+                        Err(avail) => available = avail,
+                    },
+                    Err(d) => {
+                        diags.push(d);
+                        continue;
+                    }
+                }
+            }
         }
         let Some(dir) = found else {
             available.sort();
             available.dedup();
+            let requirer_note = match &work.required_by {
+                Some(pkg) => format!(" (required by `{pkg}`)"),
+                None => String::new(),
+            };
             let mut d = PackageDiag::error(
                 "E1102",
-                manifest_display,
+                &work.display,
                 dep.line,
                 format!(
-                    "cannot resolve `{} = \"{}\"` — no package on disk declares that version",
-                    dep.name, dep.version
+                    "cannot resolve `{} = \"{}\"`{} — no package on disk declares that version",
+                    dep.name, dep.version, requirer_note
                 ),
             )
             .with_help(format!(
@@ -561,7 +650,7 @@ pub fn resolve(
         let actual = match hash::package_content_hash(&dir) {
             Ok(h) => h,
             Err(e) => {
-                diags.push(PackageDiag::error("E1102", manifest_display, dep.line, e));
+                diags.push(PackageDiag::error("E1102", &work.display, dep.line, e));
                 continue;
             }
         };
@@ -604,17 +693,70 @@ pub fn resolve(
                 out.lock.entries.insert(dep.name.clone(), new_entry);
             }
         }
-        out.deps.push((dep.name.clone(), dir));
+        out.deps.push((dep.name.clone(), dir.clone()));
+
+        // -- the package's own [dependencies] join the closure --
+        let dep_manifest_display = dir.join("cohdl.toml").display().to_string();
+        let raw = match read_manifest_deps_raw(&dir) {
+            Ok(raw) => raw,
+            Err(e) => {
+                diags.push(PackageDiag::error("E1101", &dep_manifest_display, 0, e));
+                continue;
+            }
+        };
+        let sub_entries = match validate_deps(&dep_manifest_display, &raw) {
+            Ok(entries) => entries,
+            Err(mut sub_diags) => {
+                diags.append(&mut sub_diags);
+                continue;
+            }
+        };
+        for sub in sub_entries {
+            if opts.skip_transitive.iter().any(|s| s == &sub.name) {
+                continue;
+            }
+            match settled.get(&sub.name) {
+                None => {
+                    settled.insert(
+                        sub.name.clone(),
+                        (sub.version, Requirer::Dep(dep.name.clone())),
+                    );
+                    queue.push_back(Work {
+                        entry: sub.clone(),
+                        required_by: Some(dep.name.clone()),
+                        display: dep_manifest_display.clone(),
+                    });
+                }
+                Some((chosen, _)) if *chosen == sub.version => {} // agreement
+                Some((_, Requirer::Project)) => {}                // the project pin wins
+                Some((chosen, Requirer::Dep(first))) => {
+                    diags.push(
+                        PackageDiag::error(
+                            "E1108",
+                            &dep_manifest_display,
+                            sub.line,
+                            format!(
+                                "dependency version conflict: `{}` is required as {} by `{}` and as {} by `{}`",
+                                sub.name, chosen, first, sub.version, dep.name
+                            ),
+                        )
+                        .with_help(format!(
+                            "exact pins cannot be merged — pin `{}` in this project's [dependencies] to choose the version every package compiles against",
+                            sub.name
+                        )),
+                    );
+                }
+            }
+        }
     }
 
-    // Locked entries no longer in the manifest are dropped (the lock mirrors
-    // the manifest's dependency set exactly).
-    let manifest_names: Vec<&str> = deps.iter().map(|d| d.name.as_str()).collect();
+    // Locked entries no longer in the closure are dropped (the lock mirrors
+    // the resolved dependency closure exactly).
     let stale: Vec<String> = out
         .lock
         .entries
         .keys()
-        .filter(|k| !manifest_names.contains(&k.as_str()))
+        .filter(|k| !settled.contains_key(k.as_str()))
         .cloned()
         .collect();
     for k in stale {
@@ -627,6 +769,57 @@ pub fn resolve(
     } else {
         Err(diags)
     }
+}
+
+/// The `[dependencies]` a package's own manifest declares — raw
+/// (name, value, 1-based line) triples, the same shape the project loader
+/// hands `validate_deps`. A manifest with no `[dependencies]` section
+/// declares none; a malformed line inside the section is a hard error (the
+/// closure cannot be trusted past it). Callers have already resolved the
+/// package, so a missing manifest is an error too — except the bare-directory
+/// escape hatch (`--std` dev override), which has no manifest to read.
+pub fn read_manifest_deps_raw(dir: &Path) -> Result<Vec<(String, String, u32)>, String> {
+    let path = dir.join("cohdl.toml");
+    if !path.is_file() {
+        return Ok(Vec::new()); // bare-directory override package
+    }
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| format!("cannot read `{}`: {}", path.display(), e))?;
+    let mut section = String::new();
+    let mut out = Vec::new();
+    for (lineno, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some(s) = line.strip_prefix('[').and_then(|l| l.strip_suffix(']')) {
+            section = s.trim().to_string();
+            continue;
+        }
+        if section != "dependencies" {
+            continue;
+        }
+        let malformed = || {
+            format!(
+                "cannot read `{}` line {}: expected `name = \"X.Y.Z\"` under [dependencies]",
+                path.display(),
+                lineno + 1
+            )
+        };
+        let Some((key, value)) = line.split_once('=') else {
+            return Err(malformed());
+        };
+        let key = key.trim().trim_matches('"');
+        let Some(value) = value
+            .trim()
+            .strip_prefix('"')
+            .and_then(|v| v.strip_suffix('"'))
+        else {
+            return Err(malformed());
+        };
+        out.push((key.to_string(), value.to_string(), lineno as u32 + 1));
+    }
+    Ok(out)
 }
 
 /// `[package] name`/`version` from a package's own `cohdl.toml` (required

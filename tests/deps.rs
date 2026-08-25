@@ -548,6 +548,227 @@ fn a_library_root_is_recognized_by_the_packages_it_offers() {
     let _ = std::fs::remove_dir_all(&tmp);
 }
 
+// ---------------------------------------------------------------------------
+// Transitive resolution (RFC-029 amendment, 2026-08-25): the closure walk —
+// a resolved package's own [dependencies] join the compile and the lock
+// ---------------------------------------------------------------------------
+
+/// One package in the project-local `deps/` registry, with its own
+/// `[dependencies]` section when `deps` is non-empty.
+fn write_pkg(root: &Path, name: &str, version: &str, deps: &str, lib: &str) {
+    let pkg = root.join(format!("deps/{name}/{version}"));
+    std::fs::create_dir_all(pkg.join("src")).unwrap();
+    let deps_section = if deps.is_empty() {
+        String::new()
+    } else {
+        format!("\n[dependencies]\n{deps}")
+    };
+    std::fs::write(
+        pkg.join("cohdl.toml"),
+        format!("[package]\nname = \"{name}\"\nversion = \"{version}\"\n{deps_section}"),
+    )
+    .unwrap();
+    std::fs::write(pkg.join("src/lib.cohdl"), lib).unwrap();
+}
+
+fn write_root(root: &Path, deps: &str, main: &str) {
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        format!("[package]\nname = \"t\"\n\n[design]\ntop = \"B\"\n\n[dependencies]\n{deps}"),
+    )
+    .unwrap();
+    std::fs::write(root.join("src/main.cohdl"), main).unwrap();
+}
+
+const SUB_DEVICE: &str = "\
+pub device S { pins { A: 1 [passive], B: 2 [passive] } }
+pub footprint SFP {}
+pub part SP: S { primary { mfr: \"m\", mpn: \"s\", footprint: SFP } }
+";
+
+/// A design that instantiates both the direct dependency's part and the
+/// transitive dependency's part — the transitive package's files must
+/// actually join the compile, not merely its lock row.
+const TRANSITIVE_MAIN: &str = "\
+design B {
+    inst a: mypkg::P1
+    inst s: subpkg::SP
+    net X: a.A, s.A
+    net Y: a.B, s.B
+}
+";
+
+#[test]
+fn transitive_dependency_resolves_and_locks_the_closure() {
+    let tmp = tmp_dir("transitive");
+    write_root(&tmp, "mypkg = \"1.0.0\"\n", TRANSITIVE_MAIN);
+    write_pkg(&tmp, "mypkg", "1.0.0", "subpkg = \"1.0.0\"\n", DEP_LIB);
+    write_pkg(&tmp, "subpkg", "1.0.0", "", SUB_DEVICE);
+
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let lock_path = tmp.join("cohdl.lock");
+    let first = std::fs::read_to_string(&lock_path).unwrap();
+    assert!(
+        first.contains("name = \"subpkg\""),
+        "the lock records the transitive dependency: {first}"
+    );
+    assert!(first.contains("name = \"mypkg\""), "{first}");
+
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let second = std::fs::read_to_string(&lock_path).unwrap();
+    assert_eq!(first, second, "closure lock is byte-stable across builds");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn missing_transitive_dependency_names_its_requirer() {
+    let tmp = tmp_dir("transitive-missing");
+    write_root(&tmp, "mypkg = \"1.0.0\"\n", TRANSITIVE_MAIN);
+    write_pkg(&tmp, "mypkg", "1.0.0", "subpkg = \"1.0.0\"\n", DEP_LIB);
+    // subpkg exists nowhere on disk.
+
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(!ok);
+    assert!(err.contains("E1102"), "{err}");
+    assert!(err.contains("required by `mypkg`"), "{err}");
+    assert!(err.contains("cohdl install"), "{err}");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn divergent_transitive_pins_are_a_conflict_unless_the_project_chooses() {
+    let tmp = tmp_dir("transitive-conflict");
+    write_root(
+        &tmp,
+        "a = \"1.0.0\"\nb = \"1.0.0\"\n",
+        "design B {\n    inst s1: subpkg::SP\n    inst s2: subpkg::SP\n    net X: s1.A, s2.A\n    net Y: s1.B, s2.B\n}\n",
+    );
+    write_pkg(&tmp, "a", "1.0.0", "subpkg = \"1.0.0\"\n", "// a\n");
+    write_pkg(&tmp, "b", "1.0.0", "subpkg = \"1.0.1\"\n", "// b\n");
+    write_pkg(&tmp, "subpkg", "1.0.0", "", SUB_DEVICE);
+    write_pkg(&tmp, "subpkg", "1.0.1", "", SUB_DEVICE);
+
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(!ok);
+    assert!(err.contains("E1108"), "{err}");
+    assert!(err.contains("1.0.0") && err.contains("1.0.1"), "{err}");
+    assert!(err.contains("`a`") && err.contains("`b`"), "{err}");
+    assert!(
+        err.contains("pin `subpkg` in this project's [dependencies]"),
+        "{err}"
+    );
+
+    // The project pin is the single authority: adding one resolves the
+    // conflict without touching either dependency.
+    write_root(
+        &tmp,
+        "a = \"1.0.0\"\nb = \"1.0.0\"\nsubpkg = \"1.0.1\"\n",
+        "design B {\n    inst s1: subpkg::SP\n    inst s2: subpkg::SP\n    net X: s1.A, s2.A\n    net Y: s1.B, s2.B\n}\n",
+    );
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let lock = std::fs::read_to_string(tmp.join("cohdl.lock")).unwrap();
+    assert!(lock.contains("version = \"1.0.1\""), "{lock}");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn the_project_pin_wins_over_a_dependencys_pin() {
+    let tmp = tmp_dir("transitive-rootwins");
+    // subpkg 1.0.1 declares SP101; 1.0.0 does not. The design compiles only
+    // against the project's pin.
+    write_root(
+        &tmp,
+        "mypkg = \"1.0.0\"\nsubpkg = \"1.0.1\"\n",
+        "design B {\n    inst a: mypkg::P1\n    inst s: subpkg::SP101\n    net X: a.A, s.A\n    net Y: a.B, s.B\n}\n",
+    );
+    write_pkg(&tmp, "mypkg", "1.0.0", "subpkg = \"1.0.0\"\n", DEP_LIB);
+    write_pkg(&tmp, "subpkg", "1.0.0", "", SUB_DEVICE);
+    write_pkg(
+        &tmp,
+        "subpkg",
+        "1.0.1",
+        "",
+        "pub device S101 { pins { A: 1 [passive], B: 2 [passive] } }\npub footprint SFP {}\npub part SP101: S101 { primary { mfr: \"m\", mpn: \"s101\", footprint: SFP } }\n",
+    );
+
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let lock = std::fs::read_to_string(tmp.join("cohdl.lock")).unwrap();
+    assert!(
+        lock.contains("name = \"subpkg\"\nversion = \"1.0.1\""),
+        "one subpkg version in the build, and it is the project's: {lock}"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn tampered_transitive_content_is_a_hard_error() {
+    let tmp = tmp_dir("transitive-tamper");
+    write_root(&tmp, "mypkg = \"1.0.0\"\n", TRANSITIVE_MAIN);
+    write_pkg(&tmp, "mypkg", "1.0.0", "subpkg = \"1.0.0\"\n", DEP_LIB);
+    write_pkg(&tmp, "subpkg", "1.0.0", "", SUB_DEVICE);
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+
+    let lib = tmp.join("deps/subpkg/1.0.0/src/lib.cohdl");
+    let mut text = std::fs::read_to_string(&lib).unwrap();
+    text.push_str("// a silent edit under a published version\n");
+    std::fs::write(&lib, text).unwrap();
+
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(!ok);
+    assert!(err.contains("E1103"), "{err}");
+    assert!(err.contains("subpkg"), "{err}");
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn removing_the_direct_dependency_prunes_its_transitive_lock_rows() {
+    let tmp = tmp_dir("transitive-prune");
+    write_root(&tmp, "mypkg = \"1.0.0\"\n", TRANSITIVE_MAIN);
+    write_pkg(&tmp, "mypkg", "1.0.0", "subpkg = \"1.0.0\"\n", DEP_LIB);
+    write_pkg(&tmp, "subpkg", "1.0.0", "", SUB_DEVICE);
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+
+    // Drop the source's use of the packages, then remove the direct
+    // dependency; the next resolve prunes the now-unreachable subpkg row.
+    std::fs::write(tmp.join("src/main.cohdl"), LOCAL_DESIGN).unwrap();
+    let (ok, _, err) = run(&["remove", "mypkg", tmp.to_str().unwrap()]);
+    assert!(ok, "{err}");
+    let (ok, _, err) = run(&["check", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let lock = std::fs::read_to_string(tmp.join("cohdl.lock")).unwrap();
+    assert!(!lock.contains("mypkg"), "{lock}");
+    assert!(
+        !lock.contains("subpkg"),
+        "orphaned transitive rows are pruned: {lock}"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn no_std_skips_a_dependencys_std_pin() {
+    let tmp = tmp_dir("transitive-nostd");
+    write_root(&tmp, "mypkg = \"1.0.0\"\n", MAIN_SRC);
+    // A std pin no registry can satisfy: under --no-std the walk must skip
+    // it (std is settled outside the registry), or this build would E1102.
+    write_pkg(&tmp, "mypkg", "1.0.0", "std = \"9.9.9\"\n", DEP_LIB);
+
+    let (ok, _, err) = run(&["build", tmp.to_str().unwrap(), "--no-std"]);
+    assert!(ok, "{err}");
+    let lock = std::fs::read_to_string(tmp.join("cohdl.lock")).unwrap();
+    assert!(
+        !lock.contains("\"std\""),
+        "no std row under --no-std: {lock}"
+    );
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
 #[test]
 fn the_repos_std_is_an_ordinary_library_under_lib() {
     let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("lib");

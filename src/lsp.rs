@@ -316,8 +316,9 @@ enum AnalyzeError {
 /// dependency still resolves through project-local `deps/`, the shipped
 /// library root, then the content cache, with cohdl.lock hashes verified.
 ///
-/// Direct dependencies only: transitive manifest traversal is intentionally
-/// outside this prerequisite.
+/// Resolution walks the full dependency closure (RFC-029 amendment,
+/// 2026-08-25) exactly as the CLI does — offline: a transitive package
+/// missing from disk surfaces the same E1102 the CLI shows, never a fetch.
 fn resolve_manifest_deps(project_root: &Path) -> Result<Vec<(String, PathBuf)>, String> {
     use crate::deps;
 
@@ -383,6 +384,13 @@ fn resolve_manifest_deps(project_root: &Path) -> Result<Vec<(String, PathBuf)>, 
     let lock_path = project_root.join("cohdl.lock");
     let lock_display = lock_path.display().to_string();
     let prior_lock_text = std::fs::read_to_string(&lock_path).ok();
+    // std settled by the override must not be re-introduced by a
+    // dependency's own std pin.
+    let skip_transitive: Vec<String> = if override_std.is_some() {
+        vec!["std".to_string()]
+    } else {
+        Vec::new()
+    };
     let resolution = deps::resolve(
         &manifest_display,
         &lock_display,
@@ -390,6 +398,10 @@ fn resolve_manifest_deps(project_root: &Path) -> Result<Vec<(String, PathBuf)>, 
         &registry,
         prior_lock_text.as_deref(),
         deps::Update::No,
+        deps::ResolveOpts {
+            skip_transitive: &skip_transitive,
+            fetch: None,
+        },
     )
     .map_err(|d| deps::render_human(&d))?;
 
@@ -400,7 +412,7 @@ fn resolve_manifest_deps(project_root: &Path) -> Result<Vec<(String, PathBuf)>, 
     }
 
     // Keep std first for the pipeline's established file order, followed by
-    // every other direct dependency in stable name order.
+    // the rest of the dependency closure in stable name order.
     let mut rest = resolution.deps;
     rest.sort_by(|a, b| a.0.cmp(&b.0));
     resolved_deps.extend(rest);

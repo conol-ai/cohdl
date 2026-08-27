@@ -16,6 +16,7 @@ tests/fixtures/*/out/
 # document (--emit ipc2581), the tools/ visualizers' output, and KiCad session
 # files created when a generated .kicad_pcb is opened in pcbnew.
 examples/*/out/*.xml
+examples/*/out/*.enet
 examples/*/out/*.html
 examples/*/out/*.svg
 examples/*/out/*.kicad_pcb

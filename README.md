@@ -59,6 +59,7 @@ cargo run -- build examples/rpi-pico2            # + designators, parts, KiCad .
 cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-010)
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
 cargo run -- build examples/rpi-pico2 --emit kicad_pcb # + a native KiCad 10 board file — no KiCad needed
+cargo run -- build examples/rpi-pico2 --emit easyeda   # + an EasyEDA / LCEDA Pro netlist (.enet)
 cargo run -- fmt lib --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 cargo run -- search TPS59650                     # search registry packages + public parts
@@ -105,7 +106,7 @@ Micro-Fit harnesses prevent the BEC input from being interchanged with a leg.
 
 ### Build artifacts
 
-`cohdl build` writes to `out/` (or `--out-dir`): the KiCad netlist (`<name>.net`), the BOM (`<name>-bom.csv`), the designator lock (`design.lock` in the project root), a `.kicad_mod` per pad-bearing footprint under `out/footprints/` (RFC-018), and — only when the design declares layout metadata — the layout-constraint artifact `<name>-layout.json` (schema: [`docs/layout-json.md`](docs/layout-json.md)). With `--emit ipc2581` it additionally writes the IPC-2581B1 handoff document `<name>.xml` (RFC-015; [`docs/ipc2581.md`](docs/ipc2581.md)), and with `--emit kicad_pcb` a native KiCad 10 board file `<name>.kicad_pcb` — placements, net-bound footprints, and the board outline, with no KiCad installation involved ([`docs/kicad_pcb.md`](docs/kicad_pcb.md)); the two flags compose. Stale layout/IPC/board artifacts are removed when their source data is gone (the IPC document only if CoHDL wrote it — its completeness marker establishes ownership).
+`cohdl build` writes to `out/` (or `--out-dir`): the KiCad netlist (`<name>.net`), the BOM (`<name>-bom.csv`), the designator lock (`design.lock` in the project root), a `.kicad_mod` per pad-bearing footprint under `out/footprints/` (RFC-018), and — only when the design declares layout metadata — the layout-constraint artifact `<name>-layout.json` (schema: [`docs/layout-json.md`](docs/layout-json.md)). With `--emit ipc2581` it additionally writes the IPC-2581B1 handoff document `<name>.xml` (RFC-015; [`docs/ipc2581.md`](docs/ipc2581.md)), with `--emit kicad_pcb` a native KiCad 10 board file `<name>.kicad_pcb` — placements, net-bound footprints, and the board outline, with no KiCad installation involved ([`docs/kicad_pcb.md`](docs/kicad_pcb.md)), and with `--emit easyeda` an EasyEDA / LCEDA Pro netlist `<name>.enet` for **File → Import → Netlist** ([`docs/easyeda.md`](docs/easyeda.md)); the flags compose. Stale layout/IPC/board artifacts are removed when their source data is gone (the IPC document only if CoHDL wrote it — its completeness marker establishes ownership).
 
 ### Looking at a design
 

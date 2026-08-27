@@ -373,6 +373,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             layout: Some("out/x-layout.json".into()),
             ipc2581: Some("out/x.xml".into()),
             kicad_pcb: Some("out/x.kicad_pcb".into()),
+            easyeda: Some("out/x.enet".into()),
             quilter: None,
             kicad_mod: vec!["out/footprints/a.kicad_mod".into()],
         }),
@@ -384,6 +385,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     assert_eq!(build.get("layout").unwrap().as_str(), "out/x-layout.json");
     assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
     assert_eq!(build.get("kicad_pcb").unwrap().as_str(), "out/x.kicad_pcb");
+    assert_eq!(build.get("easyeda").unwrap().as_str(), "out/x.enet");
     // RFC-018: kicad_mod is an array, present only when non-empty.
     let mods = parsed.get("build").unwrap().get("kicad_mod").unwrap();
     assert_eq!(mods.as_arr().len(), 1);
@@ -396,6 +398,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             layout: None,
             ipc2581: None,
             kicad_pcb: None,
+            easyeda: None,
             kicad_mod: Vec::new(),
             quilter: None,
         }),
@@ -404,6 +407,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     assert!(parsed.get("build").unwrap().get("layout").is_none());
     assert!(parsed.get("build").unwrap().get("ipc2581").is_none());
     assert!(parsed.get("build").unwrap().get("kicad_pcb").is_none());
+    assert!(parsed.get("build").unwrap().get("easyeda").is_none());
 
     // RFC-015 without layout: ipc2581 is then the LAST key (comma handling).
     let ipc_only = json::render(
@@ -414,6 +418,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             layout: None,
             ipc2581: Some("out/x.xml".into()),
             kicad_pcb: None,
+            easyeda: None,
             kicad_mod: Vec::new(),
             quilter: None,
         }),

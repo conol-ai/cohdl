@@ -33,6 +33,9 @@ pub struct BuildArtifacts {
     /// Native KiCad board path, present only when `--emit kicad_pcb` was
     /// requested (same only-when-emitted pattern).
     pub kicad_pcb: Option<String>,
+    /// LCEDA Pro `.enet` netlist path, present only when `--emit easyeda`
+    /// was requested (same only-when-emitted pattern).
+    pub easyeda: Option<String>,
     /// RFC-018 `.kicad_mod` projections, present only when the design uses
     /// pad-bearing footprints (one path per projected footprint).
     pub kicad_mod: Vec<String>,
@@ -148,6 +151,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
         }
         if let Some(path) = &b.kicad_pcb {
             entries.push(("kicad_pcb", path));
+        }
+        if let Some(path) = &b.easyeda {
+            entries.push(("easyeda", path));
         }
         let has_mods = !b.kicad_mod.is_empty();
         let has_quilter = b.quilter.is_some();

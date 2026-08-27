@@ -15,7 +15,7 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                 [--emit ipc2581] [--emit kicad_pcb] [--json]
+                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
@@ -64,7 +64,9 @@ defaults to the current directory.
     --json   emit one JSON document to stdout instead of human-readable text
              (RFC-010 diagnostics for check/build; registry results for search)
     --emit   build: emit an additional output format (repeatable, distinct
-             values). `ipc2581` — a partially-specified IPC-2581B1 document
+             values). `easyeda` — an LCEDA Pro / EasyEDA Pro netlist
+             (<name>.enet, JSON v2.0.0, File → Import → Netlist);
+             `ipc2581` — a partially-specified IPC-2581B1 document
              (<name>.xml, logical-complete/physical-minimal; RFC-015);
              `kicad_pcb` — a native KiCad 10 board file (<name>.kicad_pcb,
              placements + net-bound footprints, no KiCad installation)
@@ -239,9 +241,9 @@ impl Args {
                 // Command compatibility above value validity: only here,
                 // where --emit is legal at all, is the value checked.
                 for format in &self.emit {
-                    if format != "ipc2581" && format != "kicad_pcb" {
+                    if format != "easyeda" && format != "ipc2581" && format != "kicad_pcb" {
                         return Err(format!(
-                            "unknown `--emit` format `{}` (valid: ipc2581, kicad_pcb)\n\n{}",
+                            "unknown `--emit` format `{}` (valid: easyeda, ipc2581, kicad_pcb)\n\n{}",
                             format, USAGE
                         ));
                     }
@@ -308,6 +310,11 @@ impl Args {
     /// Was `--emit kicad_pcb` requested (call after validate()).
     fn emit_kicad_pcb(&self) -> bool {
         self.emit.iter().any(|f| f == "kicad_pcb")
+    }
+
+    /// Was `--emit easyeda` requested (call after validate()).
+    fn emit_easyeda(&self) -> bool {
+        self.emit.iter().any(|f| f == "easyeda")
     }
 }
 
@@ -824,6 +831,7 @@ fn run(args: &Args) -> Result<bool, String> {
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
     let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
+    let enet_path = out_dir.join(format!("{}.enet", proj.name));
 
     write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(net_path.clone());
@@ -895,6 +903,14 @@ fn run(args: &Args) -> Result<bool, String> {
         written.push(pcb_path.clone());
     }
 
+    // The LCEDA Pro netlist, only when `--emit easyeda` (docs/easyeda.md).
+    if args.emit_easyeda() {
+        let ir = checked.ir.as_ref().unwrap();
+        let doc = emit::easyeda::emit_enet(&checked.world, ir);
+        write_artifact(&enet_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(enet_path.clone());
+    }
+
     // Stale sweep (R7-1): every prior-owned file we did NOT rewrite this build
     // is removed, safely (a symlink is unlinked, never followed to its target).
     let written_set: std::collections::BTreeSet<&std::path::PathBuf> = written.iter().collect();
@@ -947,6 +963,7 @@ fn run(args: &Args) -> Result<bool, String> {
             kicad_pcb: args
                 .emit_kicad_pcb()
                 .then(|| pcb_path.display().to_string()),
+            easyeda: args.emit_easyeda().then(|| enet_path.display().to_string()),
             kicad_mod: mod_paths.clone(),
             quilter: artifacts.quilter.as_ref().map(|_| {
                 quilter_paths
@@ -983,6 +1000,9 @@ fn run(args: &Args) -> Result<bool, String> {
     }
     if args.emit_kicad_pcb() {
         eprintln!("  wrote {}", pcb_path.display());
+    }
+    if args.emit_easyeda() {
+        eprintln!("  wrote {}", enet_path.display());
     }
     for p in &mod_paths {
         eprintln!("  wrote {}", p);

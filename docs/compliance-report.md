@@ -4059,3 +4059,43 @@ docs/kicad_pcb.md. Decisions of note:
   it. Once CoHDL owns the path, later builds rewrite/sweep it — so route
   on a copy outside `out/` (the established `pcb/` convention),
   documented rather than heuristically guessed.
+
+## EasyEDA / LCEDA Pro netlist emission (emitter tooling, user-directed 2026-08-27)
+
+`cohdl build --emit easyeda` writes `out/<name>.enet` — the LCEDA Pro
+netlist (JSON v2.0.0, **File → Import → Netlist**). Contract in
+docs/easyeda.md. Decisions of note:
+
+- **An MVP cut, superseded by direction.** The Constitution names three
+  codegen targets (KiCad `.net`, LCEDA `.enet`, BOM CSV);
+  09-mvp-definition.md cut `.enet` as "redundant proof" of netlist
+  fidelity — a priority call, not a design objection. The board author
+  directed its addition on 2026-08-27; AGENTS.md's cut-list line is
+  amended accordingly. Note-side, 09's cut list still reads as v0.1
+  scope: this ledger entry is the record until a note amendment.
+- **Format ground truth = the v1 emitter, not guesswork.** The legacy
+  branch's `cohdl-codegen-lceda` produced files this importer accepted;
+  its byte shape is what v2 pins (top-level struct order, string-sorted
+  object keys — the v1 serde_json BTreeMap bytes — `gge<n>` Unique IDs).
+  Reference for the FORMAT only; no code ported (the rebuild rule).
+  v1 fields with no v2 equivalent (`Supplier`/`Supplier Part` from LCSC
+  generic substitutions) are omitted, never invented; `Manufacturer` is
+  emitted alongside `Manufacturer Part` since v2 parts carry `mfr`.
+- **A netlist, not a board.** Placement, outline, and footprint geometry
+  stay with `--emit kicad_pcb` / `--emit ipc2581`; the three compose in
+  one build. EasyEDA's own footprint binding goes through `FootprintName`
+  (the resolved footprint symbol's fq path — the `.net`'s footprint
+  string), which an EasyEDA-side library must map; CoHDL does not track
+  third-party CAD footprint names (the RFC-021 principle).
+- **Shared derivations, cross-checked.** Designator order, principal
+  value, footprint symbol, and physical-pin expansion are the `.net`
+  emitter's own functions; tests/easyeda.rs asserts the two documents
+  agree on every shared string, plus determinism, nc absence
+  (DR-012's guaranteed-absence convention), multi-pad flattening
+  (RFC-027's one-row-per-pad), JSON well-formedness (python3 as the
+  neutral referee — the xmllint pattern), and both repo examples.
+- **Human checkpoint OPEN.** A live LCEDA Pro / EasyEDA Pro import of a
+  real example's `.enet` has not yet been performed in this rebuild —
+  the same standing a live pcbnew open had for `kicad_pcb` before its
+  verification pass. Until then the claim is "v1-shape-faithful and
+  internally consistent", not "import-verified".

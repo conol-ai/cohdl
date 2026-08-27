@@ -5,6 +5,7 @@
 
 pub mod bom;
 pub mod docsjson;
+pub mod easyeda;
 pub mod geom;
 pub mod ipc2581;
 pub mod json;

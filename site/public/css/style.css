@@ -121,22 +121,13 @@ a:hover {
 
 .brand-mark {
   flex: none;
-  color: var(--accent);
+  display: block;
+  width: 25px;
+  height: 25px;
+  background: var(--accent);
+  -webkit-mask: url("/logo.svg") center / contain no-repeat;
+  mask: url("/logo.svg") center / contain no-repeat;
   filter: drop-shadow(0 0 10px rgb(98 181 255 / 18%));
-}
-
-.brand-mark rect {
-  fill: rgb(98 181 255 / 8%);
-  stroke: currentColor;
-  stroke-width: 1.5;
-}
-
-.brand-mark path,
-.brand-mark circle {
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
 }
 
 .brand-word {

@@ -952,7 +952,7 @@ fn cli_emit_flag_matrix() {
         .unwrap();
     assert_eq!(out.status.code(), Some(2));
     assert!(
-        String::from_utf8_lossy(&out.stderr).contains("valid: ipc2581"),
+        String::from_utf8_lossy(&out.stderr).contains("valid: easyeda, ipc2581, kicad_pcb"),
         "{}",
         String::from_utf8_lossy(&out.stderr)
     );

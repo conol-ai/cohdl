@@ -270,7 +270,7 @@
 
           <h2><code>cohdl build</code></h2>
           <pre><code>cohdl build [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-            [--emit ipc2581] [--json]</code></pre>
+            [--emit ipc2581] [--emit kicad_pcb] [--json]</code></pre>
           <p>
             <code>build</code> runs the full <code>check</code>, then assigns designators
             (recorded in <code>design.lock</code>, so they stay stable across rebuilds),
@@ -325,6 +325,13 @@
                   <td>IPC-2581 handoff</td>
                   <td><code>out/&lt;name&gt;.xml</code></td>
                   <td>Only with <code>--emit ipc2581</code>.</td>
+                </tr>
+                <tr>
+                  <td>KiCad board</td>
+                  <td><code>out/&lt;name&gt;.kicad_pcb</code></td>
+                  <td>Only with <code>--emit kicad_pcb</code> — a native KiCad 10
+                    board file with placements and net-bound footprints, written by
+                    the compiler itself (no KiCad installation).</td>
                 </tr>
               </tbody>
             </table>

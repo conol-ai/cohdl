@@ -3986,3 +3986,76 @@ root-pin-wins selection, transitive E1103 tamper, prune-on-remove,
 original blocker reproduces fixed live: a project depending on
 `@espressif/esp32` alone now checks clean, `qfn 0.1.1` resolved and locked
 transitively.
+
+## Native .kicad_pcb emission (emitter tooling, user-directed 2026-08-25)
+
+`cohdl build --emit kicad_pcb` writes a KiCad 10 board file directly —
+`src/emit/kicad_pcb.rs`, zero dependencies, byte-stable — retiring the
+pcbnew-scripted `tools/kicad_board.py` assembly (and with it the
+kicad-board-needs-ipc-emit staleness trap: the emitter reads the same
+checked IR as every other artifact, no sidecar files). Contract in
+docs/kicad_pcb.md. Decisions of note:
+
+- **Format target = what pcbnew 10 itself writes.** `(version 20260206)`,
+  pad nets BY NAME with no board-level net table, TAB indentation, the
+  stock 2-copper-layer `(layers)`/`(setup)` blocks verbatim (the 2-layer
+  default is the pcbnew flow's status quo, consciously inherited). The
+  grammar was pinned from three pcbnew-written boards, not from
+  documentation.
+- **The frame is the authoring frame.** CoHDL authors +y-down = KiCad's
+  board frame; placements and footprint-local geometry pass through
+  verbatim. The IPC emitter's y-negation is that document's +y-up
+  requirement and must never leak here.
+- **RFC-026 back side, empirically pinned.** KiCad stores the LEFT_RIGHT
+  flip as y-mirror + 180° folded into the angle: fp angle = R+180 in
+  (−180, 180], every local y negated, F.*→B.*, `(justify mirror)`,
+  pad-local RFC-025 rotation REVERSED ((R−r) — reflection), asymmetric
+  chamfer corners swapped VERTICALLY (the horizontal half of the flip is
+  the folded 180). Derived from a pcbnew-written back-side footprint
+  diffed against its source `.kicad_mod`, then verified semantically
+  (footprint anchor/angle/side + absolute pad deltas + nets) against
+  fresh pcbnew-assembled boards: both repo examples and both external
+  OpenMicroKBD revisions (v1: 88 footprints / 33 bottom; v2: 140 / 53) —
+  identical within pcbnew's float-nanometer reconstruction noise (the
+  native coordinates are exact). All four native boards load in real
+  pcbnew 10.0.4 with correct flip/net/outline inventories. The repeatable
+  semantic oracle is `tools/validate_kicad_pcb.py`; it compares every
+  footprint, pad copy/net, field, graphic, and Edge.Cuts item while ignoring
+  random UUIDs, numeric net codes, and serialization order. A wrong-but-valid
+  orientation remains invisible to check/build; opening the board is a human
+  checkpoint, as ever.
+- **One derivation, two dialects.** Pad plans and body graphics were
+  extracted from the `.kicad_mod` emitter (`kicad_mod::pad_plans`,
+  `body_graphics` — coordinates exact at 10^-16 mm so odd-femto corner
+  halves survive) and both emitters render from them — the RFC-031
+  anti-drift shape, now covering pads. The `.kicad_mod` output is
+  byte-identical across the refactor (examples regression-verified).
+- **Determinism.** uuids are sha256-derived from stable identity
+  (RFC-4122-shaped, never random — the one part of pcbnew's output a
+  reproducible emitter must not copy). Outline arc midpoints honor DXF
+  winding (correct beyond 180°, unlike the retired script's bisector)
+  and round ONCE to nanometers — KiCad's own resolution — keeping libm
+  last-bit noise five orders below the rounding step; this is the silk
+  fp_arc f64-tessellation precedent, not a placement-rotation exception.
+- **Cross-validation correction (2026-08-27).** The first live four-board
+  semantic diff caught the initial midpoint implementation interpreting the
+  DXF winding flag in KiCad's displayed +y-down handedness. Numeric DXF
+  coordinates pass through unchanged, so midpoint selection must stay in the
+  DXF +y-up coordinate system and let KiCad flip only the visual handedness.
+  Before correction, ordinary rounded corners loaded as 270-degree major
+  arcs instead of 90-degree corners in all three outlined boards. Both winding
+  directions and explicit major-arc selection now have direct unit tests.
+- **Staging.** Unplaced instances stage on the same shelf the IPC
+  document uses (one convention, two emitters; `staging_positions`
+  shared); with no outline they take the retired script's 12 mm grid
+  from (40, 40) — never stacked at (0, 0).
+- **`--emit` is now repeatable with DISTINCT values** so the Quilter
+  handoff and the board come from one build (previously writing one
+  swept the other as stale). The same value twice keeps the F12.5
+  duplicate error; command-compat-before-value ordering unchanged.
+- **Routed-board protection is the ownership contract, not a special
+  case.** A pcbnew-generated or hand-routed board at `out/<name>.kicad_pcb`
+  is foreign to `.cohdl-manifest`, so the emitter refuses to overwrite
+  it. Once CoHDL owns the path, later builds rewrite/sweep it — so route
+  on a copy outside `out/` (the established `pcb/` convention),
+  documented rather than heuristically guessed.

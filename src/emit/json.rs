@@ -30,6 +30,9 @@ pub struct BuildArtifacts {
     /// RFC-015 IPC-2581 document path, present only when `--emit ipc2581`
     /// was requested (same only-when-emitted pattern as `layout`).
     pub ipc2581: Option<String>,
+    /// Native KiCad board path, present only when `--emit kicad_pcb` was
+    /// requested (same only-when-emitted pattern).
+    pub kicad_pcb: Option<String>,
     /// RFC-018 `.kicad_mod` projections, present only when the design uses
     /// pad-bearing footprints (one path per projected footprint).
     pub kicad_mod: Vec<String>,
@@ -142,6 +145,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
         }
         if let Some(path) = &b.ipc2581 {
             entries.push(("ipc2581", path));
+        }
+        if let Some(path) = &b.kicad_pcb {
+            entries.push(("kicad_pcb", path));
         }
         let has_mods = !b.kicad_mod.is_empty();
         let has_quilter = b.quilter.is_some();

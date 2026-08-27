@@ -111,7 +111,13 @@
             </li>
             <li>
               <code>&lt;package&gt;.xml</code> — an IPC-2581 handoff document, with
-              <code>build --emit ipc2581</code>.
+              <code>build --emit ipc2581</code>;
+            </li>
+            <li>
+              <code>&lt;package&gt;.kicad_pcb</code> — a native KiCad 10 board file
+              (placements, net-bound footprints, board outline), with
+              <code>build --emit kicad_pcb</code> — written by the compiler itself,
+              no KiCad installation required.
             </li>
           </ul>
           <p>

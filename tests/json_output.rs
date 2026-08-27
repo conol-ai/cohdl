@@ -372,6 +372,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: Some("out/x-layout.json".into()),
             ipc2581: Some("out/x.xml".into()),
+            kicad_pcb: Some("out/x.kicad_pcb".into()),
             quilter: None,
             kicad_mod: vec!["out/footprints/a.kicad_mod".into()],
         }),
@@ -382,6 +383,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     assert_eq!(build.get("bom").unwrap().as_str(), "out/x-bom.csv");
     assert_eq!(build.get("layout").unwrap().as_str(), "out/x-layout.json");
     assert_eq!(build.get("ipc2581").unwrap().as_str(), "out/x.xml");
+    assert_eq!(build.get("kicad_pcb").unwrap().as_str(), "out/x.kicad_pcb");
     // RFC-018: kicad_mod is an array, present only when non-empty.
     let mods = parsed.get("build").unwrap().get("kicad_mod").unwrap();
     assert_eq!(mods.as_arr().len(), 1);
@@ -393,6 +395,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: None,
             ipc2581: None,
+            kicad_pcb: None,
             kicad_mod: Vec::new(),
             quilter: None,
         }),
@@ -400,6 +403,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     let parsed = parse_json(&without);
     assert!(parsed.get("build").unwrap().get("layout").is_none());
     assert!(parsed.get("build").unwrap().get("ipc2581").is_none());
+    assert!(parsed.get("build").unwrap().get("kicad_pcb").is_none());
 
     // RFC-015 without layout: ipc2581 is then the LAST key (comma handling).
     let ipc_only = json::render(
@@ -409,6 +413,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
             bom: "out/x-bom.csv".into(),
             layout: None,
             ipc2581: Some("out/x.xml".into()),
+            kicad_pcb: None,
             kicad_mod: Vec::new(),
             quilter: None,
         }),

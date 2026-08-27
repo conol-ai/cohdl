@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Build a real, openable KiCad board (.kicad_pcb) from a CoHDL build's own
+"""SUPERSEDED (2026-08-25): `cohdl build --emit kicad_pcb` now writes the
+board natively — no KiCad installation, no IPC-XML sidecar, byte-stable
+(docs/kicad_pcb.md). This script is kept as the independent pcbnew-based
+reference implementation the native emitter was verified against.
+
+Build a real, openable KiCad board (.kicad_pcb) from a CoHDL build's own
 outputs: the KiCad netlist (.net), the emitted footprints (out/footprints/
 *.kicad_mod — RFC-018 geometry), and — since RFC-020 — the board outline and
 component placements taken from the emitted IPC-2581 document (out/<name>.xml).
@@ -26,6 +31,10 @@ Run with KiCad's bundled Python (so `pcbnew` imports):
   "$KPY" tools/kicad_board.py examples/rpi-pico2/out/rpi-pico2.net
 
 Output: <name>.kicad_pcb next to the netlist (File > Open in pcbnew).
+
+To cross-check a native board against this reference semantically (UUIDs and
+serialization deliberately differ), run ``tools/validate_kicad_pcb.py`` with
+the same KiCad Python.
 """
 import json
 import math
@@ -220,7 +229,12 @@ def main():
 
     placed, missing = {}, []
     col = rowy = 0
-    for ref, value, fpid in sorted(comps):
+    # The netlist emitter already writes components in canonical natural
+    # designator order (C9 before C10).  Preserve that order so the fallback
+    # grid is the same deterministic staging convention used by IPC-2581 and
+    # the native .kicad_pcb emitter; Python's tuple sort is lexicographic and
+    # would incorrectly put C10 before C3.
+    for ref, value, fpid in comps:
         fp = pcbnew.FootprintLoad(str(fp_dir), fpid.replace("::", "-"))
         if fp is None:
             missing.append((ref, fpid))

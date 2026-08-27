@@ -10,6 +10,7 @@ pub mod ipc2581;
 pub mod json;
 pub mod kicad;
 pub mod kicad_mod;
+pub mod kicad_pcb;
 pub mod layout;
 pub mod quilter;
 pub mod silk;

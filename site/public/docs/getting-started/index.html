@@ -323,8 +323,10 @@ std = "0.3.0"</code></pre>
           <p>
             When a design declares layout metadata — placements, rotations, physics
             hints — the build also writes the layout-constraint document
-            <code>blinky-layout.json</code>, and <code>--emit ipc2581</code> adds an
-            IPC-2581 handoff file for tools that speak it.
+            <code>blinky-layout.json</code>, <code>--emit ipc2581</code> adds an
+            IPC-2581 handoff file for tools that speak it, and
+            <code>--emit kicad_pcb</code> a ready-to-open KiCad board — no KiCad
+            installation involved.
             <a href="/docs/layout/">Layout &amp; fabrication</a> covers both.
           </p>
           <p>

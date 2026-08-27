@@ -112,7 +112,7 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
 
 /// The "value" field shown in KiCad: the domain-primary spec when the device
 /// has one (capacitance for capacitors, …), else the device name.
-fn principal_value(world: &World, inst: &crate::ir::IrInstance) -> String {
+pub(crate) fn principal_value(world: &World, inst: &crate::ir::IrInstance) -> String {
     const PRINCIPAL: [&str; 4] = ["capacitance", "resistance", "inductance", "frequency"];
     for field in PRINCIPAL {
         if let Some(v) = inst.specs.get(field) {
@@ -123,7 +123,7 @@ fn principal_value(world: &World, inst: &crate::ir::IrInstance) -> String {
     crate::resolve::short(&inst.device).to_string()
 }
 
-fn pin_sort_key(pin: &str) -> (u64, String) {
+pub(crate) fn pin_sort_key(pin: &str) -> (u64, String) {
     match pin.parse::<u64>() {
         Ok(n) => (n, String::new()),
         Err(_) => (u64::MAX, pin.to_string()),

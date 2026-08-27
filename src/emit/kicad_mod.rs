@@ -14,6 +14,12 @@
 //! fq-name order, pads in placement (source) order; all dimensions render
 //! canonically from the lexer's exact femto integers (emit::geom — KiCad's
 //! native unit is mm, no conversion, no floats).
+//!
+//! The geometry DERIVATION here (pad plans, body graphics) is shared with
+//! the `.kicad_pcb` board emitter: one derivation, two renderings — the
+//! same anti-drift shape RFC-031 mandates for silkscreen. Only the
+//! s-expression DIALECT differs (this file's terse one-line footprint form
+//! vs the board file's multi-line form with uuids and nets).
 
 use crate::ast::{
     MountHoleGeom, MountHolePlating, PadCorner, PadLayer, PadPaste, PadPlating, PadShape,
@@ -55,8 +61,269 @@ pub fn emit_kicad_mods(world: &World, ir: &DesignIr) -> Vec<(String, String, Str
 /// construction — `-` cannot appear in identifiers or module names, so two
 /// distinct fq paths can never collide (`__` could: `a__b::c` vs
 /// `a::b__c`).
-fn file_base(fq: &str) -> String {
+pub(crate) fn file_base(fq: &str) -> String {
     fq.replace("::", "-")
+}
+
+// ---------------------------------------------------------------------------
+// Shared derivation: footprint attribute, body graphics, pad plans
+// ---------------------------------------------------------------------------
+
+/// KiCad component attribute. Thermal vias repeated under an SMD exposed-pad
+/// number do not turn the package into a through-hole component: a PTH
+/// placement makes it through-hole only when that electrical number has no
+/// SMD land.
+pub(crate) fn footprint_attr(world: &World, fp: &crate::ast::FootprintDef) -> &'static str {
+    let smd_numbers: BTreeSet<&str> = fp
+        .pads
+        .iter()
+        .filter(|p| {
+            world
+                .pads
+                .get(&p.pad.name)
+                .and_then(|d| d.plating.as_ref())
+                .is_some_and(|(pl, _)| *pl == PadPlating::Smd)
+        })
+        .map(|p| p.number.text.as_str())
+        .collect();
+    let any_pth = fp.pads.iter().any(|p| {
+        !smd_numbers.contains(p.number.text.as_str())
+            && world
+                .pads
+                .get(&p.pad.name)
+                .and_then(|d| d.plating.as_ref())
+                .is_some_and(|(pl, _)| *pl == PadPlating::PlatedThroughHole)
+    });
+    if any_pth {
+        "through_hole"
+    } else {
+        "smd"
+    }
+}
+
+/// The layer a footprint body graphic lives on (front-side authoring frame;
+/// a board emitter maps these to B.* for a flipped instance).
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GfxLayer {
+    Silk,
+    Courtyard,
+    EdgeCuts,
+}
+
+/// One footprint body graphic. All coordinates are exact integers at
+/// 10^-16 mm (femto × 10) so courtyard corners at odd-femto halves stay
+/// exact; widths are plain femto-mm. `fill` maps to this dialect's
+/// `solid`/`none` and the board dialect's `yes`/`no`.
+pub(crate) enum BodyGraphic {
+    Line {
+        from: (i128, i128),
+        to: (i128, i128),
+        width: i128,
+        layer: GfxLayer,
+    },
+    Circle {
+        center: (i128, i128),
+        end: (i128, i128),
+        width: i128,
+        fill: bool,
+        layer: GfxLayer,
+    },
+    Arc {
+        start: (i128, i128),
+        mid: (i128, i128),
+        end: (i128, i128),
+        width: i128,
+        layer: GfxLayer,
+    },
+    Rect {
+        start: (i128, i128),
+        end: (i128, i128),
+        width: i128,
+        fill: bool,
+        layer: GfxLayer,
+    },
+    Poly {
+        points: Vec<(i128, i128)>,
+        width: i128,
+        fill: bool,
+        layer: GfxLayer,
+    },
+}
+
+const HAIRLINE: i128 = 50_000_000_000_000; // 0.05 mm in femto
+
+/// Every drawn body graphic of a footprint, in the emission order both
+/// dialects share: courtyard, window (board cutout), silkscreen. RFC-031
+/// markers are already expanded to primitives by `emit::silk::graphics`.
+pub(crate) fn body_graphics(world: &World, fp: &crate::ast::FootprintDef) -> Vec<BodyGraphic> {
+    let mut out = Vec::new();
+    let x10 = |v: &crate::units::UnitValue| v.femto * 10;
+    if let Some(c) = &fp.courtyard {
+        // KiCad courtyards are drawn shapes on F.CrtYd; a rect courtyard
+        // maps to fp_rect around the center point; circle to fp_circle.
+        match (c.shape.0, c.size.as_slice()) {
+            (PadShape::Rect | PadShape::Oval, [w, h]) => out.push(BodyGraphic::Rect {
+                start: (x10(&c.at.0) - w.femto * 5, x10(&c.at.1) - h.femto * 5),
+                end: (x10(&c.at.0) + w.femto * 5, x10(&c.at.1) + h.femto * 5),
+                width: HAIRLINE,
+                fill: false,
+                layer: GfxLayer::Courtyard,
+            }),
+            (PadShape::Circle, [d]) => out.push(BodyGraphic::Circle {
+                center: (x10(&c.at.0), x10(&c.at.1)),
+                end: (x10(&c.at.0) + d.femto * 5, x10(&c.at.1)),
+                width: HAIRLINE,
+                fill: false,
+                layer: GfxLayer::Courtyard,
+            }),
+            _ => {} // arity errors already reported at declaration check
+        }
+    }
+    // A `window` is a board CUTOUT, so it belongs on Edge.Cuts — the same layer
+    // and the same closed outline KiCad's own reverse-mount LED footprints draw
+    // for their light aperture. Corners stay square: a fabricator's router bit
+    // rounds them to its own radius, which is not ours to invent.
+    if let Some(w) = &fp.window {
+        match (w.shape.0, w.size.as_slice()) {
+            (PadShape::Rect | PadShape::Oval, [ww, wh]) => out.push(BodyGraphic::Rect {
+                start: (x10(&w.at.0) - ww.femto * 5, x10(&w.at.1) - wh.femto * 5),
+                end: (x10(&w.at.0) + ww.femto * 5, x10(&w.at.1) + wh.femto * 5),
+                width: HAIRLINE,
+                fill: false,
+                layer: GfxLayer::EdgeCuts,
+            }),
+            (PadShape::Circle, [d]) => out.push(BodyGraphic::Circle {
+                center: (x10(&w.at.0), x10(&w.at.1)),
+                end: (x10(&w.at.0) + d.femto * 5, x10(&w.at.1)),
+                width: HAIRLINE,
+                fill: false,
+                layer: GfxLayer::EdgeCuts,
+            }),
+            _ => {} // arity errors already reported at declaration check
+        }
+    }
+    // RFC-031: silkscreen graphics. Markers are already expanded to
+    // primitives by `emit::silk`, so this is a straight one-to-one
+    // projection. A bottom-side placement mirrors these along with
+    // everything else, exactly as pad geometry does.
+    for g in crate::emit::silk::graphics(world, fp) {
+        use crate::ast::{SilkFill, SilkGraphic};
+        let filled = |f: SilkFill| matches!(f, SilkFill::Solid);
+        match g {
+            SilkGraphic::Line { from, to, width } => out.push(BodyGraphic::Line {
+                from: (x10(&from.0), x10(&from.1)),
+                to: (x10(&to.0), x10(&to.1)),
+                width: width.femto,
+                layer: GfxLayer::Silk,
+            }),
+            SilkGraphic::Circle {
+                at,
+                radius,
+                width,
+                fill: f,
+            } => out.push(BodyGraphic::Circle {
+                // KiCad states a circle by centre + a point ON it.
+                center: (x10(&at.0), x10(&at.1)),
+                end: ((at.0.femto + radius.femto) * 10, x10(&at.1)),
+                width: width.femto,
+                fill: filled(f),
+                layer: GfxLayer::Silk,
+            }),
+            SilkGraphic::Arc {
+                at,
+                radius,
+                start_angle,
+                end_angle,
+                width,
+            } => {
+                // KiCad states an arc by start/mid/end points, so the three are
+                // computed here from centre+radius+angles. Integer-degree input
+                // (RFC-031) keeps this the only float arithmetic in the path,
+                // rounded once to femto — the same discipline RFC-020's arc
+                // centres already follow.
+                let pt = |deg: f64| -> (i128, i128) {
+                    let r = radius.femto as f64;
+                    let (s, c) = deg.to_radians().sin_cos();
+                    (
+                        (at.0.femto + (r * c).round() as i128) * 10,
+                        (at.1.femto + (r * s).round() as i128) * 10,
+                    )
+                };
+                out.push(BodyGraphic::Arc {
+                    start: pt(start_angle as f64),
+                    mid: pt((start_angle as f64 + end_angle as f64) / 2.0),
+                    end: pt(end_angle as f64),
+                    width: width.femto,
+                    layer: GfxLayer::Silk,
+                });
+            }
+            SilkGraphic::Polygon { points, fill: f } => out.push(BodyGraphic::Poly {
+                points: points.iter().map(|(x, y)| (x10(x), x10(y))).collect(),
+                width: HAIRLINE,
+                fill: filled(f),
+                layer: GfxLayer::Silk,
+            }),
+        }
+    }
+    out
+}
+
+/// A pad's KiCad layer membership, footprint-local. The board emitter swaps
+/// front and back for a flipped instance; `CuMask` (`*.Cu`/`*.Mask`) spans
+/// both faces and never swaps.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LayerSet {
+    CuMask,
+    Front,
+    FrontNoPaste,
+    Back,
+    BackNoPaste,
+    PasteFront,
+    PasteBack,
+}
+
+pub(crate) enum DrillPlan {
+    Round(i128),
+    Slot(i128, i128),
+}
+
+/// What sits inside the pad beyond the flat land: KiCad custom-pad
+/// primitives, with their exact point scales.
+pub(crate) enum PlanBody {
+    /// An ordinary land — no `options`/`primitives`.
+    Flat,
+    /// RFC-018 annulus: anchor circle + an unfilled ring stroke.
+    AnnulusRing { mid_radius: i128, stroke: i128 },
+    /// Oversize chamfer as the exact five-vertex polygon; points are stored
+    /// at TWICE their femto value (render via [`geom::half_mm_femto`]).
+    ChamferPoly { points: Vec<(i128, i128)> },
+    /// A segmented-annulus paste sector polygon; plain femto points.
+    PastePoly { points: Vec<(i128, i128)> },
+}
+
+/// One KiCad pad to emit — an electrical land, an unnumbered paste
+/// aperture, or a mount hole — with every field both dialects need.
+/// Coordinates and sizes are exact femto-mm integers.
+pub(crate) struct PadPlan {
+    /// The authored pad number text; empty for apertures and mount holes
+    /// (KiCad's own "no net, not electrical" convention).
+    pub number: String,
+    pub kind: &'static str,   // "smd" | "thru_hole" | "np_thru_hole"
+    pub kshape: &'static str, // "rect" | "roundrect" | "circle" | "oval" | "custom"
+    pub x: i128,
+    pub y: i128,
+    /// RFC-025 pad-local rotation, whole degrees.
+    pub rotate: u16,
+    pub size: (i128, i128),
+    pub drill: Option<DrillPlan>,
+    pub layers: LayerSet,
+    /// Native chamfer: (pre-rendered ratio, corner). The corner is kept
+    /// symbolic — a flipped board instance swaps it vertically.
+    pub chamfer: Option<(String, PadCorner)>,
+    /// Pre-rendered `roundrect_rratio` for `corner_radius`.
+    pub corner_radius: Option<String>,
+    pub mask_expansion: Option<i128>,
+    pub body: PlanBody,
 }
 
 /// KiCad clamps its native `chamfer_ratio` to 0.5.  A larger authored cut is
@@ -65,7 +332,7 @@ fn file_base(fq: &str) -> String {
 /// rotation and front/back layer selection continue to be handled by the pad
 /// itself.  Each coordinate is stored as twice its actual femto-mm value and
 /// rendered with [`geom::half_mm_femto`] to retain half-femto vertices.
-fn custom_chamfer_points(corner: PadCorner, w: i128, h: i128, cut: i128) -> String {
+fn custom_chamfer_points(corner: PadCorner, w: i128, h: i128, cut: i128) -> Vec<(i128, i128)> {
     let left = -w;
     let right = w;
     let top = -h;
@@ -101,24 +368,14 @@ fn custom_chamfer_points(corner: PadCorner, w: i128, h: i128, cut: i128) -> Stri
             (left, bottom - twice_cut),
         ],
     };
-    points
-        .iter()
-        .map(|(x, y)| {
-            format!(
-                "(xy {} {})",
-                geom::half_mm_femto(*x),
-                geom::half_mm_femto(*y)
-            )
-        })
-        .collect::<Vec<_>>()
-        .join(" ")
+    points.to_vec()
 }
 
 fn segmented_annulus_points(
     outer: i128,
     inner: i128,
     plan: crate::resolve::SegmentedAnnulusSectorPlan,
-) -> String {
+) -> Vec<(i128, i128)> {
     let outer_r = outer as f64 / 2.0;
     let inner_r = inner as f64 / 2.0;
     let conservative_inner = inner_r / (plan.step_angle / 2.0).cos();
@@ -136,199 +393,15 @@ fn segmented_annulus_points(
     }
     points
         .into_iter()
-        .map(|(x, y)| {
-            format!(
-                "(xy {} {})",
-                geom::mm_femto(x.round() as i128),
-                geom::mm_femto(y.round() as i128)
-            )
-        })
-        .collect::<Vec<_>>()
-        .join(" ")
+        .map(|(x, y)| (x.round() as i128, y.round() as i128))
+        .collect()
 }
 
-fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
-    let mut s = String::new();
-    let _ = writeln!(s, "(footprint \"{}\"", fq);
-    s.push_str("  (version 20240108)\n");
-    s.push_str("  (generator \"cohdl\")\n");
-    s.push_str("  (layer \"F.Cu\")\n");
-    // Attribute: thermal vias repeated under an SMD exposed-pad number do not
-    // turn the package into a through-hole component. A PTH placement makes it
-    // through-hole only when that electrical number has no SMD land.
-    let smd_numbers: BTreeSet<&str> = fp
-        .pads
-        .iter()
-        .filter(|p| {
-            world
-                .pads
-                .get(&p.pad.name)
-                .and_then(|d| d.plating.as_ref())
-                .is_some_and(|(pl, _)| *pl == PadPlating::Smd)
-        })
-        .map(|p| p.number.text.as_str())
-        .collect();
-    let any_pth = fp.pads.iter().any(|p| {
-        !smd_numbers.contains(p.number.text.as_str())
-            && world
-                .pads
-                .get(&p.pad.name)
-                .and_then(|d| d.plating.as_ref())
-                .is_some_and(|(pl, _)| *pl == PadPlating::PlatedThroughHole)
-    });
-    let _ = writeln!(
-        s,
-        "  (attr {})",
-        if any_pth { "through_hole" } else { "smd" }
-    );
-    if let Some((x, y, _)) = &fp.silkscreen_ref {
-        let _ = writeln!(
-            s,
-            "  (fp_text reference \"REF**\" (at {} {}) (layer \"F.SilkS\"))",
-            geom::mm(x),
-            geom::mm(y)
-        );
-    }
-    if let Some(c) = &fp.courtyard {
-        // KiCad courtyards are drawn shapes on F.CrtYd; a rect courtyard
-        // maps to fp_rect around the center point; circle to fp_circle.
-        match (c.shape.0, c.size.as_slice()) {
-            (PadShape::Rect | PadShape::Oval, [w, h]) => {
-                let _ = writeln!(
-                    s,
-                    "  (fp_rect (start {} {}) (end {} {}) (layer \"F.CrtYd\") (stroke (width 0.05) (type solid)) (fill none))",
-                    geom::corner_lo(&c.at.0, w),
-                    geom::corner_lo(&c.at.1, h),
-                    geom::corner_hi(&c.at.0, w),
-                    geom::corner_hi(&c.at.1, h)
-                );
-            }
-            (PadShape::Circle, [d]) => {
-                let _ = writeln!(
-                    s,
-                    "  (fp_circle (center {} {}) (end {} {}) (layer \"F.CrtYd\") (stroke (width 0.05) (type solid)) (fill none))",
-                    geom::mm(&c.at.0),
-                    geom::mm(&c.at.1),
-                    geom::corner_hi(&c.at.0, d),
-                    geom::mm(&c.at.1)
-                );
-            }
-            _ => {} // arity errors already reported at declaration check
-        }
-    }
-    // A `window` is a board CUTOUT, so it belongs on Edge.Cuts — the same layer
-    // and the same closed outline KiCad's own reverse-mount LED footprints draw
-    // for their light aperture. Corners stay square: a fabricator's router bit
-    // rounds them to its own radius, which is not ours to invent.
-    if let Some(w) = &fp.window {
-        match (w.shape.0, w.size.as_slice()) {
-            (PadShape::Rect | PadShape::Oval, [ww, wh]) => {
-                let _ = writeln!(
-                    s,
-                    "  (fp_rect (start {} {}) (end {} {}) (layer \"Edge.Cuts\") (stroke (width 0.05) (type solid)) (fill none))",
-                    geom::corner_lo(&w.at.0, ww),
-                    geom::corner_lo(&w.at.1, wh),
-                    geom::corner_hi(&w.at.0, ww),
-                    geom::corner_hi(&w.at.1, wh)
-                );
-            }
-            (PadShape::Circle, [d]) => {
-                let _ = writeln!(
-                    s,
-                    "  (fp_circle (center {} {}) (end {} {}) (layer \"Edge.Cuts\") (stroke (width 0.05) (type solid)) (fill none))",
-                    geom::mm(&w.at.0),
-                    geom::mm(&w.at.1),
-                    geom::corner_hi(&w.at.0, d),
-                    geom::mm(&w.at.1)
-                );
-            }
-            _ => {} // arity errors already reported at declaration check
-        }
-    }
-    // RFC-031: silkscreen graphics onto KiCad's own native graphic items on
-    // F.SilkS. Markers are already expanded to primitives by `emit::silk`, so
-    // this is a straight one-to-one projection. A bottom-side placement
-    // mirrors these along with everything else, exactly as pad geometry does.
-    for g in crate::emit::silk::graphics(world, fp) {
-        use crate::ast::{SilkFill, SilkGraphic};
-        let fill = |f: SilkFill| match f {
-            SilkFill::Solid => "solid",
-            SilkFill::None => "none",
-        };
-        match g {
-            SilkGraphic::Line { from, to, width } => {
-                let _ = writeln!(
-                    s,
-                    "  (fp_line (start {} {}) (end {} {}) (layer \"F.SilkS\") (stroke (width {}) (type solid)))",
-                    geom::mm(&from.0),
-                    geom::mm(&from.1),
-                    geom::mm(&to.0),
-                    geom::mm(&to.1),
-                    geom::mm(&width)
-                );
-            }
-            SilkGraphic::Circle {
-                at,
-                radius,
-                width,
-                fill: f,
-            } => {
-                // KiCad states a circle by centre + a point ON it.
-                let _ = writeln!(
-                    s,
-                    "  (fp_circle (center {} {}) (end {} {}) (layer \"F.SilkS\") (stroke (width {}) (type solid)) (fill {}))",
-                    geom::mm(&at.0),
-                    geom::mm(&at.1),
-                    geom::mm_femto(at.0.femto + radius.femto),
-                    geom::mm(&at.1),
-                    geom::mm(&width),
-                    fill(f)
-                );
-            }
-            SilkGraphic::Arc {
-                at,
-                radius,
-                start_angle,
-                end_angle,
-                width,
-            } => {
-                // KiCad states an arc by start/mid/end points, so the three are
-                // computed here from centre+radius+angles. Integer-degree input
-                // (RFC-031) keeps this the only float arithmetic in the path,
-                // rounded once to femto — the same discipline RFC-020's arc
-                // centres already follow.
-                let pt = |deg: f64| -> (String, String) {
-                    let r = radius.femto as f64;
-                    let (s, c) = deg.to_radians().sin_cos();
-                    (
-                        geom::mm_femto(at.0.femto + (r * c).round() as i128),
-                        geom::mm_femto(at.1.femto + (r * s).round() as i128),
-                    )
-                };
-                let (sx, sy) = pt(start_angle as f64);
-                let (mx, my) = pt((start_angle as f64 + end_angle as f64) / 2.0);
-                let (ex, ey) = pt(end_angle as f64);
-                let _ = writeln!(
-                    s,
-                    "  (fp_arc (start {} {}) (mid {} {}) (end {} {}) (layer \"F.SilkS\") (stroke (width {}) (type solid)))",
-                    sx, sy, mx, my, ex, ey,
-                    geom::mm(&width)
-                );
-            }
-            SilkGraphic::Polygon { points, fill: f } => {
-                let pts: Vec<String> = points
-                    .iter()
-                    .map(|(x, y)| format!("(xy {} {})", geom::mm(x), geom::mm(y)))
-                    .collect();
-                let _ = writeln!(
-                    s,
-                    "  (fp_poly (pts {}) (layer \"F.SilkS\") (stroke (width 0.05) (type solid)) (fill {}))",
-                    pts.join(" "),
-                    fill(f)
-                );
-            }
-        }
-    }
+/// Every KiCad pad a footprint emits, in the shared order: each electrical
+/// pad in source placement order (immediately followed by its paste-override
+/// aperture pads, RFC-018), then RFC-022/023 mount holes.
+pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<PadPlan> {
+    let mut out = Vec::new();
     for place in &fp.pads {
         let Some(pad) = world.pads.get(&place.pad.name) else {
             continue; // unresolved: reported at declaration check
@@ -352,84 +425,59 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
         };
-        let (w, h) = match pad.size.as_slice() {
-            [d] => (geom::mm(d), geom::mm(d)),
-            [w, h] => (geom::mm(w), geom::mm(h)),
+        let size = match pad.size.as_slice() {
+            [d] => (d.femto, d.femto),
+            [w, h] => (w.femto, h.femto),
             _ => continue, // arity errors already reported
         };
         let layers = match (plating, pad.layer.map(|(l, _)| l), pad.paste.is_some()) {
-            (PadPlating::PlatedThroughHole, _, _) => "\"*.Cu\" \"*.Mask\"",
-            (PadPlating::Smd, Some(PadLayer::BottomCopper), false) => {
-                "\"B.Cu\" \"B.Paste\" \"B.Mask\""
-            }
-            (PadPlating::Smd, Some(PadLayer::BottomCopper), true) => "\"B.Cu\" \"B.Mask\"",
-            (PadPlating::Smd, _, false) => "\"F.Cu\" \"F.Paste\" \"F.Mask\"",
-            (PadPlating::Smd, _, true) => "\"F.Cu\" \"F.Mask\"",
+            (PadPlating::PlatedThroughHole, _, _) => LayerSet::CuMask,
+            (PadPlating::Smd, Some(PadLayer::BottomCopper), false) => LayerSet::Back,
+            (PadPlating::Smd, Some(PadLayer::BottomCopper), true) => LayerSet::BackNoPaste,
+            (PadPlating::Smd, _, false) => LayerSet::Front,
+            (PadPlating::Smd, _, true) => LayerSet::FrontNoPaste,
         };
         // A slot uses KiCad's own oval-drill form — the same one RFC-023's
         // non-circular mount holes already emit.
-        let drill = pad
-            .drill
-            .as_ref()
-            .map(|(d, _)| match d {
-                crate::ast::PadDrill::Round(v) => format!(" (drill {})", geom::mm(v)),
-                crate::ast::PadDrill::Slot(w, l) => {
-                    format!(" (drill oval {} {})", geom::mm(w), geom::mm(l))
-                }
-            })
-            .unwrap_or_default();
-        // RFC-025: a rotated placement uses KiCad's own 3-argument
-        // `(at x y angle)` pad form, size UNCHANGED — the declared rotation is
-        // preserved losslessly rather than silently swapping w/h.
-        let angle = if place.rotate != 0 {
-            format!(" {}", place.rotate)
-        } else {
-            String::new()
-        };
+        let drill = pad.drill.as_ref().map(|(d, _)| match d {
+            crate::ast::PadDrill::Round(v) => DrillPlan::Round(v.femto),
+            crate::ast::PadDrill::Slot(w, l) => DrillPlan::Slot(w.femto, l.femto),
+        });
         let chamfer = pad
             .chamfer
             .as_ref()
             .filter(|_| !custom_chamfer)
             .map(|(corner, cut, _)| {
                 let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1).max(1);
-                format!(
-                    " (roundrect_rratio 0) (chamfer_ratio {}) (chamfer {})",
-                    geom::ratio(cut.femto, min),
-                    corner.name()
-                )
-            })
-            .unwrap_or_default();
-        let corner_radius = pad
-            .corner_radius
-            .as_ref()
-            .map(|(radius, _)| {
-                let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1).max(1);
-                format!(" (roundrect_rratio {})", geom::ratio(radius.femto, min))
-            })
-            .unwrap_or_default();
-        let mask_expansion = pad
-            .mask_expansion
-            .as_ref()
-            .map(|(m, _)| format!(" (solder_mask_margin {})", geom::mm(m)))
-            .unwrap_or_default();
+                (geom::ratio(cut.femto, min), *corner)
+            });
+        let corner_radius = pad.corner_radius.as_ref().map(|(radius, _)| {
+            let min = pad.size.iter().map(|v| v.femto).min().unwrap_or(1).max(1);
+            geom::ratio(radius.femto, min)
+        });
+        let mask_expansion = pad.mask_expansion.as_ref().map(|(m, _)| m.femto);
         if matches!(shape, PadShape::Annulus) {
             let [outer, inner] = pad.size.as_slice() else {
                 continue;
             };
-            let mid_radius = (outer.femto + inner.femto) / 4;
-            let stroke = (outer.femto - inner.femto) / 2;
-            let _ = writeln!(
-                s,
-                "  (pad \"{}\" smd custom (at {} {}{}) (size 0 0) (layers {}){} (options (clearance outline) (anchor circle)) (primitives (gr_circle (center 0 0) (end {} 0) (width {}) (fill none))))",
-                place.number.text,
-                geom::mm(&place.x),
-                geom::mm(&place.y),
-                angle,
+            out.push(PadPlan {
+                number: place.number.text.clone(),
+                kind: "smd",
+                kshape: "custom",
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size: (0, 0),
+                drill: None,
                 layers,
+                chamfer: None,
+                corner_radius: None,
                 mask_expansion,
-                geom::mm_femto(mid_radius),
-                geom::mm_femto(stroke)
-            );
+                body: PlanBody::AnnulusRing {
+                    mid_radius: (outer.femto + inner.femto) / 4,
+                    stroke: (outer.femto - inner.femto) / 2,
+                },
+            });
         } else if custom_chamfer {
             // The anchor is a centred square wholly contained by the authored
             // polygon.  Its union with the filled primitive therefore adds no
@@ -438,58 +486,62 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             let [pw, ph] = pad.size.as_slice() else {
                 continue; // arity errors already reported
             };
-            let anchor = geom::mm_femto(pw.femto.min(ph.femto) - cut.femto);
-            let points = custom_chamfer_points(*corner, pw.femto, ph.femto, cut.femto);
-            let _ = writeln!(
-                s,
-                "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}) (layers {}){} (options (clearance outline) (anchor rect)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
-                place.number.text,
+            let anchor = pw.femto.min(ph.femto) - cut.femto;
+            out.push(PadPlan {
+                number: place.number.text.clone(),
                 kind,
                 kshape,
-                geom::mm(&place.x),
-                geom::mm(&place.y),
-                angle,
-                anchor,
-                anchor,
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size: (anchor, anchor),
+                drill: None,
                 layers,
+                chamfer: None,
+                corner_radius: None,
                 mask_expansion,
-                points
-            );
+                body: PlanBody::ChamferPoly {
+                    points: custom_chamfer_points(*corner, pw.femto, ph.femto, cut.femto),
+                },
+            });
         } else {
-            let _ = writeln!(
-                s,
-                "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}){}{}{})",
-                place.number.text,
+            out.push(PadPlan {
+                number: place.number.text.clone(),
                 kind,
                 kshape,
-                geom::mm(&place.x),
-                geom::mm(&place.y),
-                angle,
-                w,
-                h,
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size,
                 drill,
                 layers,
                 chamfer,
                 corner_radius,
-                mask_expansion
-            );
+                mask_expansion,
+                body: PlanBody::Flat,
+            });
         }
+        let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
+            LayerSet::PasteBack
+        } else {
+            LayerSet::PasteFront
+        };
         if let Some((PadPaste::Rect(pw, ph), _)) = &pad.paste {
-            let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
-                "B.Paste"
-            } else {
-                "F.Paste"
-            };
-            let _ = writeln!(
-                s,
-                "  (pad \"\" smd rect (at {} {}{}) (size {} {}) (layers \"{}\"))",
-                geom::mm(&place.x),
-                geom::mm(&place.y),
-                angle,
-                geom::mm(pw),
-                geom::mm(ph),
-                paste_layer
-            );
+            out.push(PadPlan {
+                number: String::new(),
+                kind: "smd",
+                kshape: "rect",
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size: (pw.femto, ph.femto),
+                drill: None,
+                layers: paste_layer,
+                chamfer: None,
+                corner_radius: None,
+                mask_expansion: None,
+                body: PlanBody::Flat,
+            });
         } else if let Some((PadPaste::SegmentedAnnulus(values), _)) = &pad.paste {
             let [outer, inner, gap] = values.as_ref();
             let Some(plan) =
@@ -497,22 +549,24 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             else {
                 continue;
             };
-            let paste_layer = if matches!(pad.layer, Some((PadLayer::BottomCopper, _))) {
-                "B.Paste"
-            } else {
-                "F.Paste"
-            };
             for sector in plan.sectors {
-                let points = segmented_annulus_points(outer.femto, inner.femto, sector);
-                let _ = writeln!(
-                    s,
-                    "  (pad \"\" smd custom (at {} {}{}) (size 0 0) (layers \"{}\") (options (clearance outline) (anchor circle)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
-                    geom::mm(&place.x),
-                    geom::mm(&place.y),
-                    angle,
-                    paste_layer,
-                    points
-                );
+                out.push(PadPlan {
+                    number: String::new(),
+                    kind: "smd",
+                    kshape: "custom",
+                    x: place.x.femto,
+                    y: place.y.femto,
+                    rotate: place.rotate,
+                    size: (0, 0),
+                    drill: None,
+                    layers: paste_layer,
+                    chamfer: None,
+                    corner_radius: None,
+                    mask_expansion: None,
+                    body: PlanBody::PastePoly {
+                        points: segmented_annulus_points(outer.femto, inner.femto, sector),
+                    },
+                });
             }
         }
     }
@@ -528,30 +582,306 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             MountHolePlating::NonPlated => "np_thru_hole",
             MountHolePlating::Plated => "thru_hole",
         };
-        let (w, h, drill) = match &mh.geom {
-            MountHoleGeom::Diameter(d) => {
-                let d = geom::mm(d);
-                (d.clone(), d.clone(), format!("(drill {})", d))
-            }
+        let (size, drill) = match &mh.geom {
+            MountHoleGeom::Diameter(d) => ((d.femto, d.femto), DrillPlan::Round(d.femto)),
             MountHoleGeom::Size(dims, _) => {
                 // Checked to be exactly (w, h) before emit (E810).
-                let w = dims.first().map(geom::mm).unwrap_or_else(|| "0".into());
-                let h = dims.get(1).map(geom::mm).unwrap_or_else(|| "0".into());
-                let drill = format!("(drill oval {} {})", w, h);
-                (w, h, drill)
+                let w = dims.first().map(|v| v.femto).unwrap_or(0);
+                let h = dims.get(1).map(|v| v.femto).unwrap_or(0);
+                ((w, h), DrillPlan::Slot(w, h))
             }
         };
+        out.push(PadPlan {
+            number: String::new(),
+            kind,
+            kshape: mh.shape_or_default().name(),
+            x: mh.x.femto,
+            y: mh.y.femto,
+            rotate: 0,
+            size,
+            drill: Some(drill),
+            layers: LayerSet::CuMask,
+            chamfer: None,
+            corner_radius: None,
+            mask_expansion: None,
+            body: PlanBody::Flat,
+        });
+    }
+    out
+}
+
+/// The one-line `(xy …)` list for a chamfer polygon (half-scale points).
+pub(crate) fn chamfer_xy_list(points: &[(i128, i128)]) -> String {
+    points
+        .iter()
+        .map(|(x, y)| {
+            format!(
+                "(xy {} {})",
+                geom::half_mm_femto(*x),
+                geom::half_mm_femto(*y)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// The one-line `(xy …)` list for a paste-sector polygon (femto points).
+pub(crate) fn paste_xy_list(points: &[(i128, i128)]) -> String {
+    points
+        .iter()
+        .map(|(x, y)| format!("(xy {} {})", geom::mm_femto(*x), geom::mm_femto(*y)))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+// ---------------------------------------------------------------------------
+// The .kicad_mod dialect rendering
+// ---------------------------------------------------------------------------
+
+fn mod_layer(l: GfxLayer) -> &'static str {
+    match l {
+        GfxLayer::Silk => "F.SilkS",
+        GfxLayer::Courtyard => "F.CrtYd",
+        GfxLayer::EdgeCuts => "Edge.Cuts",
+    }
+}
+
+fn mod_layers(set: LayerSet) -> &'static str {
+    match set {
+        LayerSet::CuMask => "\"*.Cu\" \"*.Mask\"",
+        LayerSet::Front => "\"F.Cu\" \"F.Paste\" \"F.Mask\"",
+        LayerSet::FrontNoPaste => "\"F.Cu\" \"F.Mask\"",
+        LayerSet::Back => "\"B.Cu\" \"B.Paste\" \"B.Mask\"",
+        LayerSet::BackNoPaste => "\"B.Cu\" \"B.Mask\"",
+        LayerSet::PasteFront => "\"F.Paste\"",
+        LayerSet::PasteBack => "\"B.Paste\"",
+    }
+}
+
+fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
+    let mut s = String::new();
+    let _ = writeln!(s, "(footprint \"{}\"", fq);
+    s.push_str("  (version 20240108)\n");
+    s.push_str("  (generator \"cohdl\")\n");
+    s.push_str("  (layer \"F.Cu\")\n");
+    let _ = writeln!(s, "  (attr {})", footprint_attr(world, fp));
+    if let Some((x, y, _)) = &fp.silkscreen_ref {
         let _ = writeln!(
             s,
-            "  (pad \"\" {} {} (at {} {}) (size {} {}) {} (layers \"*.Cu\" \"*.Mask\"))",
-            kind,
-            mh.shape_or_default().name(),
-            geom::mm(&mh.x),
-            geom::mm(&mh.y),
-            w,
-            h,
-            drill
+            "  (fp_text reference \"REF**\" (at {} {}) (layer \"F.SilkS\"))",
+            geom::mm(x),
+            geom::mm(y)
         );
+    }
+    let g16 = |v: i128| geom::render(v, 16);
+    for g in body_graphics(world, fp) {
+        let fill = |f: bool| if f { "solid" } else { "none" };
+        match g {
+            BodyGraphic::Line {
+                from,
+                to,
+                width,
+                layer,
+            } => {
+                let _ = writeln!(
+                    s,
+                    "  (fp_line (start {} {}) (end {} {}) (layer \"{}\") (stroke (width {}) (type solid)))",
+                    g16(from.0),
+                    g16(from.1),
+                    g16(to.0),
+                    g16(to.1),
+                    mod_layer(layer),
+                    geom::mm_femto(width)
+                );
+            }
+            BodyGraphic::Circle {
+                center,
+                end,
+                width,
+                fill: f,
+                layer,
+            } => {
+                let _ = writeln!(
+                    s,
+                    "  (fp_circle (center {} {}) (end {} {}) (layer \"{}\") (stroke (width {}) (type solid)) (fill {}))",
+                    g16(center.0),
+                    g16(center.1),
+                    g16(end.0),
+                    g16(end.1),
+                    mod_layer(layer),
+                    geom::mm_femto(width),
+                    fill(f)
+                );
+            }
+            BodyGraphic::Arc {
+                start,
+                mid,
+                end,
+                width,
+                layer,
+            } => {
+                let _ = writeln!(
+                    s,
+                    "  (fp_arc (start {} {}) (mid {} {}) (end {} {}) (layer \"{}\") (stroke (width {}) (type solid)))",
+                    g16(start.0),
+                    g16(start.1),
+                    g16(mid.0),
+                    g16(mid.1),
+                    g16(end.0),
+                    g16(end.1),
+                    mod_layer(layer),
+                    geom::mm_femto(width)
+                );
+            }
+            BodyGraphic::Rect {
+                start,
+                end,
+                width,
+                fill: f,
+                layer,
+            } => {
+                let _ = writeln!(
+                    s,
+                    "  (fp_rect (start {} {}) (end {} {}) (layer \"{}\") (stroke (width {}) (type solid)) (fill {}))",
+                    g16(start.0),
+                    g16(start.1),
+                    g16(end.0),
+                    g16(end.1),
+                    mod_layer(layer),
+                    geom::mm_femto(width),
+                    fill(f)
+                );
+            }
+            BodyGraphic::Poly {
+                points,
+                width,
+                fill: f,
+                layer,
+            } => {
+                let pts: Vec<String> = points
+                    .iter()
+                    .map(|(x, y)| format!("(xy {} {})", g16(*x), g16(*y)))
+                    .collect();
+                let _ = writeln!(
+                    s,
+                    "  (fp_poly (pts {}) (layer \"{}\") (stroke (width {}) (type solid)) (fill {}))",
+                    pts.join(" "),
+                    mod_layer(layer),
+                    geom::mm_femto(width),
+                    fill(f)
+                );
+            }
+        }
+    }
+    for p in pad_plans(world, fp) {
+        // RFC-025: a rotated placement uses KiCad's own 3-argument
+        // `(at x y angle)` pad form, size UNCHANGED — the declared rotation is
+        // preserved losslessly rather than silently swapping w/h.
+        let angle = if p.rotate != 0 {
+            format!(" {}", p.rotate)
+        } else {
+            String::new()
+        };
+        let drill = p
+            .drill
+            .as_ref()
+            .map(|d| match d {
+                DrillPlan::Round(v) => format!(" (drill {})", geom::mm_femto(*v)),
+                DrillPlan::Slot(w, l) => {
+                    format!(
+                        " (drill oval {} {})",
+                        geom::mm_femto(*w),
+                        geom::mm_femto(*l)
+                    )
+                }
+            })
+            .unwrap_or_default();
+        let chamfer = p
+            .chamfer
+            .as_ref()
+            .map(|(ratio, corner)| {
+                format!(
+                    " (roundrect_rratio 0) (chamfer_ratio {}) (chamfer {})",
+                    ratio,
+                    corner.name()
+                )
+            })
+            .unwrap_or_default();
+        let corner_radius = p
+            .corner_radius
+            .as_ref()
+            .map(|ratio| format!(" (roundrect_rratio {})", ratio))
+            .unwrap_or_default();
+        let mask_expansion = p
+            .mask_expansion
+            .map(|m| format!(" (solder_mask_margin {})", geom::mm_femto(m)))
+            .unwrap_or_default();
+        match &p.body {
+            PlanBody::AnnulusRing { mid_radius, stroke } => {
+                let _ = writeln!(
+                    s,
+                    "  (pad \"{}\" smd custom (at {} {}{}) (size 0 0) (layers {}){} (options (clearance outline) (anchor circle)) (primitives (gr_circle (center 0 0) (end {} 0) (width {}) (fill none))))",
+                    p.number,
+                    geom::mm_femto(p.x),
+                    geom::mm_femto(p.y),
+                    angle,
+                    mod_layers(p.layers),
+                    mask_expansion,
+                    geom::mm_femto(*mid_radius),
+                    geom::mm_femto(*stroke)
+                );
+            }
+            PlanBody::ChamferPoly { points } => {
+                let _ = writeln!(
+                    s,
+                    "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}) (layers {}){} (options (clearance outline) (anchor rect)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
+                    p.number,
+                    p.kind,
+                    p.kshape,
+                    geom::mm_femto(p.x),
+                    geom::mm_femto(p.y),
+                    angle,
+                    geom::mm_femto(p.size.0),
+                    geom::mm_femto(p.size.1),
+                    mod_layers(p.layers),
+                    mask_expansion,
+                    chamfer_xy_list(points)
+                );
+            }
+            PlanBody::PastePoly { points } => {
+                let _ = writeln!(
+                    s,
+                    "  (pad \"{}\" {} {} (at {} {}{}) (size 0 0) (layers {}) (options (clearance outline) (anchor circle)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
+                    p.number,
+                    p.kind,
+                    p.kshape,
+                    geom::mm_femto(p.x),
+                    geom::mm_femto(p.y),
+                    angle,
+                    mod_layers(p.layers),
+                    paste_xy_list(points)
+                );
+            }
+            PlanBody::Flat => {
+                let _ = writeln!(
+                    s,
+                    "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}){}{}{})",
+                    p.number,
+                    p.kind,
+                    p.kshape,
+                    geom::mm_femto(p.x),
+                    geom::mm_femto(p.y),
+                    angle,
+                    geom::mm_femto(p.size.0),
+                    geom::mm_femto(p.size.1),
+                    drill,
+                    mod_layers(p.layers),
+                    chamfer,
+                    corner_radius,
+                    mask_expansion
+                );
+            }
+        }
     }
     s.push_str(")\n");
     s

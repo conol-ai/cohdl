@@ -839,7 +839,7 @@ fn enterprise_id(mfr: &str) -> String {
 }
 
 /// (MPN, manufacturer, footprint) — same source as the KiCad/BOM emitters.
-fn part_fields(world: &World, inst: &crate::ir::IrInstance) -> (String, String, String) {
+pub(crate) fn part_fields(world: &World, inst: &crate::ir::IrInstance) -> (String, String, String) {
     let part = inst.part.as_ref().and_then(|p| world.parts.get(p));
     let field = |name: &str| -> String {
         part.and_then(|p| p.primary.field(name))
@@ -872,7 +872,7 @@ fn union_bbox(b: &mut Option<(i128, i128, i128, i128)>, cx: i128, cy: i128, hw: 
 /// union of every pad extent and the courtyard. An empty (RFC-017 placeholder)
 /// footprint has no geometry, so it gets a nominal 1×1 mm box, enough to stage
 /// it beside its neighbors without a zero-size overlap.
-fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
+pub(crate) fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
     const NOMINAL_HALF: i128 = FEMTO_MM / 2; // 0.5mm → a 1×1mm nominal box
     let mut b: Option<(i128, i128, i128, i128)> = None;
     if let Some(fp) = world.footprints.get(fp_name) {
@@ -903,7 +903,7 @@ fn footprint_bbox(world: &World, fp_name: &str) -> (i128, i128, i128, i128) {
 
 /// Locked placements (`place <inst> at (x, y)`) as component path → origin in
 /// femto-mm. A placement tool treats these as pre-placed/fixed.
-fn placed_positions(ir: &DesignIr) -> BTreeMap<String, (i128, i128)> {
+pub(crate) fn placed_positions(ir: &DesignIr) -> BTreeMap<String, (i128, i128)> {
     ir.layout
         .placements
         .iter()
@@ -918,7 +918,7 @@ fn placed_positions(ir: &DesignIr) -> BTreeMap<String, (i128, i128)> {
 /// the RIGHT of the outline, so every component's full footprint lies outside
 /// the perimeter (Quilter's "please place me" signal) and no two overlap.
 /// Locked (`placed`) components are skipped — they keep their fixed position.
-fn staging_positions(
+pub(crate) fn staging_positions(
     world: &World,
     ir: &DesignIr,
     insts: &[&crate::ir::IrInstance],
@@ -990,7 +990,7 @@ fn principal_value(inst: &crate::ir::IrInstance) -> String {
     crate::resolve::short(&inst.device).to_string()
 }
 
-fn sorted_instances(ir: &DesignIr) -> Vec<&crate::ir::IrInstance> {
+pub(crate) fn sorted_instances(ir: &DesignIr) -> Vec<&crate::ir::IrInstance> {
     let mut insts: Vec<_> = ir.instances.values().collect();
     insts.sort_by_key(|i| crate::emit::designator_sort_key(i.designator.as_deref().unwrap_or("")));
     insts

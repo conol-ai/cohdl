@@ -15,7 +15,7 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                 [--emit ipc2581] [--json]
+                 [--emit ipc2581] [--emit kicad_pcb] [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
@@ -63,9 +63,11 @@ defaults to the current directory.
 
     --json   emit one JSON document to stdout instead of human-readable text
              (RFC-010 diagnostics for check/build; registry results for search)
-    --emit   build: emit an additional output format. The only value today is
-             `ipc2581` — a partially-specified IPC-2581B1 document
-             (<name>.xml, logical-complete/physical-minimal; RFC-015)
+    --emit   build: emit an additional output format (repeatable, distinct
+             values). `ipc2581` — a partially-specified IPC-2581B1 document
+             (<name>.xml, logical-complete/physical-minimal; RFC-015);
+             `kicad_pcb` — a native KiCad 10 board file (<name>.kicad_pcb,
+             placements + net-bound footprints, no KiCad installation)
     --check  fmt: report drift without rewriting; exit non-zero if any file is
              not already in canonical form
              self-update: report whether a newer release exists, install nothing
@@ -91,11 +93,12 @@ struct Args {
     out_dir_given: bool,
     json: bool,
     fmt_check: bool,
-    /// RFC-015: `--emit <FORMAT>` on `build`. The raw value is kept so
-    /// validate() can check command compatibility BEFORE the value — `fmt
-    /// --emit bogus` must say "--emit is not valid with fmt", not suggest a
-    /// format that would then be rejected anyway.
-    emit: Option<String>,
+    /// `--emit <FORMAT>` on `build` (RFC-015 ipc2581; kicad_pcb) —
+    /// repeatable with DISTINCT values, the same value twice is an error.
+    /// Raw values are kept so validate() can check command compatibility
+    /// BEFORE the value — `fmt --emit bogus` must say "--emit is not valid
+    /// with fmt", not suggest a format that would then be rejected anyway.
+    emit: Vec<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
     /// RFC-030: the NAME positional of add/remove/update (`name` or
@@ -144,7 +147,7 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
-                if self.emit.is_some() {
+                if !self.emit.is_empty() {
                     return bad("--emit");
                 }
             }
@@ -170,7 +173,7 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
-                if self.emit.is_some() {
+                if !self.emit.is_empty() {
                     return bad("--emit");
                 }
             }
@@ -199,7 +202,7 @@ impl Args {
                         USAGE
                     ));
                 }
-                if self.emit.is_some() {
+                if !self.emit.is_empty() {
                     return bad("--emit");
                 }
             }
@@ -225,7 +228,7 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
-                if self.emit.is_some() {
+                if !self.emit.is_empty() {
                     return bad("--emit");
                 }
             }
@@ -235,10 +238,10 @@ impl Args {
                 }
                 // Command compatibility above value validity: only here,
                 // where --emit is legal at all, is the value checked.
-                if let Some(format) = &self.emit {
-                    if format != "ipc2581" {
+                for format in &self.emit {
+                    if format != "ipc2581" && format != "kicad_pcb" {
                         return Err(format!(
-                            "unknown `--emit` format `{}` (valid: ipc2581)\n\n{}",
+                            "unknown `--emit` format `{}` (valid: ipc2581, kicad_pcb)\n\n{}",
                             format, USAGE
                         ));
                     }
@@ -260,7 +263,7 @@ impl Args {
                 if self.out_dir_given {
                     return bad("--out-dir");
                 }
-                if self.emit.is_some() {
+                if !self.emit.is_empty() {
                     return bad("--emit");
                 }
             }
@@ -272,7 +275,7 @@ impl Args {
                     || self.no_std
                     || self.out_dir_given
                     || self.path_given
-                    || self.emit.is_some()
+                    || !self.emit.is_empty()
                 {
                     return Err(format!("`lsp` takes no flags or arguments\n\n{}", USAGE));
                 }
@@ -284,7 +287,7 @@ impl Args {
                     || self.no_std
                     || self.out_dir_given
                     || self.path_given
-                    || self.emit.is_some()
+                    || !self.emit.is_empty()
                 {
                     return Err(format!(
                         "`self-update` takes no arguments (only `--check`)\n\n{}",
@@ -299,7 +302,12 @@ impl Args {
 
     /// RFC-015: was `--emit ipc2581` requested (call after validate()).
     fn emit_ipc2581(&self) -> bool {
-        self.emit.as_deref() == Some("ipc2581")
+        self.emit.iter().any(|f| f == "ipc2581")
+    }
+
+    /// Was `--emit kicad_pcb` requested (call after validate()).
+    fn emit_kicad_pcb(&self) -> bool {
+        self.emit.iter().any(|f| f == "kicad_pcb")
     }
 }
 
@@ -317,7 +325,7 @@ fn parse_args() -> Result<Args, String> {
         out_dir_given: false,
         json: false,
         fmt_check: false,
-        emit: None,
+        emit: Vec::new(),
         dep: None,
         name: None,
         query: None,
@@ -341,10 +349,17 @@ fn parse_args() -> Result<Args, String> {
                 args.out_dir_given = true;
             }
             "--emit" => {
-                if args.emit.is_some() {
-                    return Err(format!("`--emit` given more than once\n\n{}", USAGE));
+                let value = argv.next().ok_or("--emit needs a value")?.to_string();
+                // Repeatable with DISTINCT values (each format at most once);
+                // the same value twice keeps the original duplicate error —
+                // never a silent last-one-wins (F12.5).
+                if args.emit.contains(&value) {
+                    return Err(format!(
+                        "`--emit {}` given more than once\n\n{}",
+                        value, USAGE
+                    ));
                 }
-                args.emit = Some(argv.next().ok_or("--emit needs a value")?);
+                args.emit.push(value);
             }
             "--dep" => {
                 args.dep = Some(argv.next().ok_or("--dep needs a value")?);
@@ -808,6 +823,7 @@ fn run(args: &Args) -> Result<bool, String> {
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
+    let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
 
     write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(net_path.clone());
@@ -868,6 +884,17 @@ fn run(args: &Args) -> Result<bool, String> {
         written.push(ipc_path.clone());
     }
 
+    // The native KiCad board, only when `--emit kicad_pcb`. Ownership note:
+    // a routed board saved over this path by a human/Quilter is protected
+    // only while it is FOREIGN (not in the build manifest) — route on a
+    // copy outside out/, never in place (docs/kicad_pcb.md).
+    if args.emit_kicad_pcb() {
+        let ir = checked.ir.as_ref().unwrap();
+        let doc = emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, &proj.name);
+        write_artifact(&pcb_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(pcb_path.clone());
+    }
+
     // Stale sweep (R7-1): every prior-owned file we did NOT rewrite this build
     // is removed, safely (a symlink is unlinked, never followed to its target).
     let written_set: std::collections::BTreeSet<&std::path::PathBuf> = written.iter().collect();
@@ -917,6 +944,9 @@ fn run(args: &Args) -> Result<bool, String> {
                 .as_ref()
                 .map(|_| layout_path.display().to_string()),
             ipc2581: args.emit_ipc2581().then(|| ipc_path.display().to_string()),
+            kicad_pcb: args
+                .emit_kicad_pcb()
+                .then(|| pcb_path.display().to_string()),
             kicad_mod: mod_paths.clone(),
             quilter: artifacts.quilter.as_ref().map(|_| {
                 quilter_paths
@@ -950,6 +980,9 @@ fn run(args: &Args) -> Result<bool, String> {
     }
     if args.emit_ipc2581() {
         eprintln!("  wrote {}", ipc_path.display());
+    }
+    if args.emit_kicad_pcb() {
+        eprintln!("  wrote {}", pcb_path.display());
     }
     for p in &mod_paths {
         eprintln!("  wrote {}", p);

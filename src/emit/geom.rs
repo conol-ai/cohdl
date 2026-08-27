@@ -137,7 +137,7 @@ pub fn ratio(numerator: i128, denominator: i128) -> String {
     s
 }
 
-fn render(n: i128, scale: u32) -> String {
+pub(crate) fn render(n: i128, scale: u32) -> String {
     let neg = n < 0;
     let n = n.unsigned_abs();
     let base = 10u128.pow(scale);

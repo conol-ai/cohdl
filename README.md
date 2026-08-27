@@ -115,6 +115,10 @@ with datasheets and to-scale footprint previews in a side panel. It is a
 read-only projection: the `.cohdl` source stays the only thing that defines
 the circuit.
 
+On macOS, download the signed, notarized app from the latest
+[`explorer-v*` release](https://github.com/conol-ai/cohdl/releases?q=explorer&expanded=true)
+(mount the DMG, drag to Applications, pick a project). Or run it from source:
+
 ```sh
 cd explorer/web && npm install && npm run build   # once
 cd ../extractor

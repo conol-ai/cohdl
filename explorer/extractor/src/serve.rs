@@ -9,15 +9,42 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, SystemTime};
+use std::time::{Duration, Instant, SystemTime};
 
 struct State {
     /// Last-known-good ExplorerModel JSON.
     model: String,
     /// Extraction error for the current (possibly invalid) source state.
     error: Option<String>,
+}
+
+/// Live-viewer accounting for the app bundle's idle exit: an open tab holds
+/// its SSE stream, and a closed one drops it within a keepalive tick, so
+/// "no active streams" is a faithful "no tabs".
+#[derive(Default)]
+struct Viewers {
+    active: AtomicI64,
+    ever: AtomicBool,
+    last_drop: Mutex<Option<Instant>>,
+}
+
+struct ViewerGuard(Arc<Viewers>);
+
+impl ViewerGuard {
+    fn new(v: &Arc<Viewers>) -> Self {
+        v.ever.store(true, Ordering::SeqCst);
+        v.active.fetch_add(1, Ordering::SeqCst);
+        Self(Arc::clone(v))
+    }
+}
+
+impl Drop for ViewerGuard {
+    fn drop(&mut self) {
+        self.0.active.fetch_sub(1, Ordering::SeqCst);
+        *self.0.last_drop.lock().unwrap() = Some(Instant::now());
+    }
 }
 
 fn allowed_roots(project: &Path) -> Vec<std::path::PathBuf> {
@@ -52,7 +79,12 @@ fn photo_for(project: &Path, mpn: &str) -> Option<std::path::PathBuf> {
     None
 }
 
-pub fn serve(project: &Path, dist: &Path, port: u16) -> Result<(), String> {
+pub fn serve(
+    project: &Path,
+    dist: &Path,
+    port: u16,
+    idle_exit: Option<Duration>,
+) -> Result<(), String> {
     let model = crate::project_model::extract(project)
         .map(|m| serde_json::to_string(&m).unwrap())
         .map_err(|e| format!("initial extract failed: {e}"))?;
@@ -91,6 +123,35 @@ pub fn serve(project: &Path, dist: &Path, port: u16) -> Result<(), String> {
         });
     }
 
+    let viewers = Arc::new(Viewers::default());
+    // ---- idle exit (app bundle): retire once the last tab has been gone a
+    // while, or if no tab ever arrived (the browser open failed silently).
+    if let Some(idle) = idle_exit {
+        let viewers = Arc::clone(&viewers);
+        let started = Instant::now();
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(15));
+            if viewers.active.load(Ordering::SeqCst) > 0 {
+                continue;
+            }
+            if viewers.ever.load(Ordering::SeqCst) {
+                let quiet = viewers
+                    .last_drop
+                    .lock()
+                    .unwrap()
+                    .map(|t| t.elapsed())
+                    .unwrap_or_default();
+                if quiet > idle {
+                    eprintln!("[idle] last viewer left {}s ago — exiting", quiet.as_secs());
+                    std::process::exit(0);
+                }
+            } else if started.elapsed() > 3 * idle {
+                eprintln!("[idle] no viewer ever connected — exiting");
+                std::process::exit(0);
+            }
+        });
+    }
+
     let roots = allowed_roots(project);
     // Loopback only: /api/file serves datasheets/photos from the allow-listed
     // roots, which is fine to expose to the local user but not to the LAN.
@@ -105,8 +166,9 @@ pub fn serve(project: &Path, dist: &Path, port: u16) -> Result<(), String> {
         let dist = dist.to_path_buf();
         let roots = roots.clone();
         let project = project.to_path_buf();
+        let viewers = Arc::clone(&viewers);
         std::thread::spawn(move || {
-            let _ = handle(conn, &state, &version, &dist, &roots, &project);
+            let _ = handle(conn, &state, &version, &dist, &roots, &project, &viewers);
         });
     }
     Ok(())
@@ -144,6 +206,7 @@ fn handle(
     dist: &Path,
     roots: &[std::path::PathBuf],
     project: &Path,
+    viewers: &Arc<Viewers>,
 ) -> std::io::Result<()> {
     let mut reader = BufReader::new(conn.try_clone()?);
     let mut line = String::new();
@@ -229,6 +292,7 @@ fn handle(
             respond(&mut conn, 200, "application/json", body.as_bytes())
         }
         "/api/events" => {
+            let _viewer = ViewerGuard::new(viewers);
             conn.write_all(
                 b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nAccess-Control-Allow-Origin: *\r\nConnection: keep-alive\r\n\r\n",
             )?;

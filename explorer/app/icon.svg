@@ -1,0 +1,34 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDFEFE"/>
+      <stop offset="25%" stop-color="#F8FDFD"/>
+      <stop offset="50%" stop-color="#E6F7F8"/>
+      <stop offset="75%" stop-color="#CDEFF1"/>
+      <stop offset="100%" stop-color="#B4E5E8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Card background: rounded square -->
+  <rect x="55" y="61" width="912" height="904" rx="115" ry="115" fill="url(#bgGradient)"/>
+
+  <!-- Main diagonal capsule -->
+  <path d="M 702.09,226.56 L 221.24,735.05 A 79.65,79.65 0 0 0 336.99,844.50 L 817.84,336.01 A 79.65,79.65 0 0 0 702.09,226.56 Z"
+        fill="#DAEEED"/>
+
+  <!-- Diamond (rotated rounded square) -->
+  <rect x="457" y="147" width="162" height="162" rx="29" ry="29"
+        fill="#E2F4F4"
+        transform="rotate(45 538 228)"/>
+
+  <!-- Top-left capsule bar -->
+  <path d="M 399.60,308.06 L 249.13,467.17 A 44.49,44.49 0 0 0 313.78,528.30 L 464.25,369.19 A 44.49,44.49 0 0 0 399.60,308.06 Z"
+        fill="#E9F7F5"/>
+
+  <!-- Bottom-right capsule bar -->
+  <path d="M 689.62,582.02 L 556.66,722.61 A 42.39,42.39 0 0 0 618.26,780.86 L 751.22,640.27 A 42.39,42.39 0 0 0 689.62,582.02 Z"
+        fill="#B5E2E0"/>
+
+  <!-- Dot -->
+  <circle cx="502" cy="843" r="57" fill="#97D6D6"/>
+</svg>

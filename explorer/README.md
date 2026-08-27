@@ -7,6 +7,17 @@ board you can search, trace and inspect. It never edits a circuit — the
 
 ## Run
 
+**macOS app:** download the signed, notarized DMG from the latest
+[`explorer-v*` release](https://github.com/conol-ai/cohdl/releases?q=explorer&expanded=true),
+drag CoHDL Explorer to Applications, open it, and pick a CoHDL project
+directory. The app serves on a free loopback port, opens your browser, and
+quits itself a few minutes after the last tab closes. It is built by
+`.github/workflows/release-explorer.yml` from `app/` (Info.plist, icon,
+`make_dmg.sh`) — tag `explorer-vX.Y.Z` matching `extractor/Cargo.toml` to
+release.
+
+**From source:**
+
 ```sh
 cd explorer/web && npm install && npm run build      # once
 cd ../extractor

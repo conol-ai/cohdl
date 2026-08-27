@@ -1,0 +1,148 @@
+# Release automation for the CoHDL Explorer macOS app, triggered by
+# `explorer-vX.Y.Z` tags (disjoint from compiler `v[0-9]*` and extension
+# `vscode-v*` tags by first letter). The tag version must equal
+# explorer/extractor/Cargo.toml's `[package] version`.
+#
+# One job on the mac runner: gate (same checks as ci.yml's explorer job) →
+# build both architectures → assemble the universal app + DMG
+# (explorer/app/make_dmg.sh) → sign, notarize, STAPLE (a DMG can carry its
+# ticket offline, unlike the compiler's bare binaries) → GitHub release with
+# --latest=false (the repo's "latest" belongs to compiler releases).
+# Signing reuses the compiler release's APPLE_* secrets.
+name: Release explorer
+
+on:
+  push:
+    tags:
+      - "explorer-v[0-9]*"
+
+# Needed only to create the GitHub release that carries the DMG.
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag is explorer-vX.Y.Z matching the extractor version
+        run: |
+          tag_version="${GITHUB_REF_NAME#explorer-v}"
+          if ! echo "$tag_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::tag $GITHUB_REF_NAME is not an exact explorer-vX.Y.Z tag"
+            exit 1
+          fi
+          cargo_version="$(grep -m1 '^version = ' explorer/extractor/Cargo.toml | cut -d'"' -f2)"
+          if [ "$tag_version" != "$cargo_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $tag_version, but explorer/extractor/Cargo.toml says $cargo_version"
+            exit 1
+          fi
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          components: rustfmt, clippy
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: explorer/extractor
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Same gate as ci.yml's explorer job, on the tagged tree.
+      - name: Extractor format
+        working-directory: explorer/extractor
+        run: cargo fmt --check
+      - name: Extractor clippy
+        working-directory: explorer/extractor
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Extractor tests
+        working-directory: explorer/extractor
+        run: cargo test
+      - name: Web install
+        working-directory: explorer/web
+        run: npm ci || npm install
+      - name: Web typecheck
+        working-directory: explorer/web
+        run: npx tsc --noEmit
+      - name: Web build
+        working-directory: explorer/web
+        run: npm run build
+
+      - name: Build (both architectures)
+        working-directory: explorer/extractor
+        run: |
+          cargo build --release --target aarch64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+
+      # Identical keychain dance to release-cohdl.yml — see the comments there
+      # (chain-complete p12, throwaway keychain, search-list requirement).
+      - name: Import Developer ID identity
+        env:
+          APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/sign.keychain-db"
+          KCPW="$(uuidgen)"
+          security create-keychain -p "$KCPW" "$KC"
+          security set-keychain-settings -lut 1800 "$KC"
+          security unlock-keychain -p "$KCPW" "$KC"
+          printf '%s' "$APPLE_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KCPW" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" login.keychain-db
+          echo "SIGN_KEYCHAIN=$KC" >> "$GITHUB_ENV"
+
+      - name: Assemble signed universal app DMG
+        env:
+          SIGN_IDENTITY: "Developer ID Application: Jueshen Huang (4F93FJA939)"
+        run: |
+          version="${GITHUB_REF_NAME#explorer-v}"
+          explorer/app/make_dmg.sh "$version" explorer/web/dist \
+            "cohdl-explorer-v$version-macos-universal.dmg" \
+            explorer/extractor/target/aarch64-apple-darwin/release/cohdl-explorer \
+            explorer/extractor/target/x86_64-apple-darwin/release/cohdl-explorer
+
+      - name: Notarize and staple
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          version="${GITHUB_REF_NAME#explorer-v}"
+          dmg="cohdl-explorer-v$version-macos-universal.dmg"
+          printf '%s' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          # notarytool can exit 0 on a non-Accepted verdict, so gate on the
+          # status line itself, not the exit code.
+          out="$(xcrun notarytool submit "$dmg" \
+            --key "$RUNNER_TEMP/AuthKey.p8" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait --timeout 20m)"
+          echo "$out"
+          rm "$RUNNER_TEMP/AuthKey.p8"
+          echo "$out" | grep -q "status: Accepted" || { echo "::error::notarization was not Accepted"; exit 1; }
+          xcrun stapler staple "$dmg"
+          spctl -a -vv -t open --context context:primary-signature "$dmg"
+
+      # Same re-run-tolerant shape as the other two release workflows.
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#explorer-v}"
+          dmg="cohdl-explorer-v$version-macos-universal.dmg"
+          shasum -a 256 "$dmg" > sha256sums.txt
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$dmg" sha256sums.txt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$dmg" sha256sums.txt \
+              --verify-tag \
+              --latest=false \
+              --title "CoHDL Explorer $version" \
+              --notes "Signed and notarized universal macOS app: mount the DMG, drag CoHDL Explorer to Applications, open it, and pick a CoHDL project. Or run the explorer from source — see explorer/README.md."
+          fi

@@ -7,6 +7,8 @@
 //! against the ../cohdl lib root → verify lock hashes) but never writes the
 //! project's cohdl.lock — the extractor is strictly read-only.
 
+#[cfg(target_os = "macos")]
+mod app;
 mod model;
 mod project_model;
 mod serve;
@@ -31,6 +33,17 @@ fn main() -> ExitCode {
         }
     }
     let Some(dir) = dir else {
+        // Finder launches the bundle's binary with no argv: that IS the app.
+        #[cfg(target_os = "macos")]
+        if app::running_from_bundle() {
+            return match app::run() {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    eprintln!("error: {e}");
+                    ExitCode::from(1)
+                }
+            };
+        }
         eprintln!(
             "usage: cohdl-explorer <project-dir> [-o out.json] [--serve [--port N] [--dist DIR]]"
         );
@@ -39,7 +52,7 @@ fn main() -> ExitCode {
     if do_serve {
         let dist =
             dist.unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web/dist"));
-        return match serve::serve(&dir, &dist, port) {
+        return match serve::serve(&dir, &dist, port, None) {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("error: {e}");

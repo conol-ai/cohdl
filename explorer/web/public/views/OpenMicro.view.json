@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "design": "OpenMicro",
+  "views": [
+    {
+      "name": "Blocks",
+      "regions": [
+        {
+          "name": "USB Input",
+          "members": [
+            "J3",
+            "U1",
+            "R2",
+            "R3",
+            "C14",
+            "agg:GND + VBUS"
+          ]
+        },
+        {
+          "name": "3V3 Power",
+          "members": [
+            "U2",
+            "agg:GND + V3V3",
+            "agg:GND + V3V3 + VBUS"
+          ]
+        },
+        {
+          "name": "MCU Core",
+          "members": [
+            "U3",
+            "Y1",
+            "C28",
+            "C29",
+            "R1"
+          ]
+        },
+        {
+          "name": "Key Matrix",
+          "members": [
+            "SW3",
+            "SW4",
+            "SW5",
+            "SW6",
+            "SW7",
+            "SW8",
+            "SW9",
+            "SW10",
+            "SW11",
+            "SW12",
+            "SW13",
+            "SW14",
+            "SW15"
+          ]
+        },
+        {
+          "name": "LED Chain",
+          "members": [
+            "LED1",
+            "LED2",
+            "LED3",
+            "LED4",
+            "LED5",
+            "LED6",
+            "LED7",
+            "LED8",
+            "LED17",
+            "LED18",
+            "LED19",
+            "LED20",
+            "LED21",
+            "LED22",
+            "LED23",
+            "LED24",
+            "LED25",
+            "LED26",
+            "LED27",
+            "LED28",
+            "LED29"
+          ]
+        },
+        {
+          "name": "Input Devices",
+          "members": [
+            "SW1",
+            "J1",
+            "TP1"
+          ]
+        },
+        {
+          "name": "Debug/Mech",
+          "members": [
+            "J2",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Key Matrix",
+      "regions": [
+        {
+          "name": "MCU",
+          "members": [
+            "U3"
+          ]
+        },
+        {
+          "name": "Switches",
+          "members": [
+            "SW3",
+            "SW4",
+            "SW5",
+            "SW6",
+            "SW7",
+            "SW8",
+            "SW9",
+            "SW10",
+            "SW11",
+            "SW12",
+            "SW13",
+            "SW14",
+            "SW15"
+          ]
+        }
+      ]
+    }
+  ]
+}

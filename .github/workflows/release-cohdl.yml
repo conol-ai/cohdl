@@ -14,7 +14,10 @@
 # the aarch64 one cross-compiles on the x86_64 runner (arm runners are not
 # available on private repositories). macOS x86_64 cross-compiles on the
 # arm64 runner (the Intel runner image is retired). Both are pure-Rust
-# links, so only the linker differs.
+# links, so only the linker differs. The two macOS binaries are Developer
+# ID-signed and notarized in place before packaging (APPLE_* secrets);
+# artifact names are untouched, so this changes nothing for install.sh or
+# self-update.
 name: Release cohdl
 
 on:
@@ -103,6 +106,55 @@ jobs:
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER: ${{ matrix.cross_linker }}
         run: cargo build --profile dist --target ${{ matrix.target }}
+      # macOS binaries are Developer ID-signed (hardened runtime + secure
+      # timestamp) and notarized before packaging. The APPLE_CERT_P12 secret
+      # carries the identity WITH its intermediate CA so the runner needs no
+      # chain fetch; it goes into a throwaway keychain, never the login one.
+      # A bare executable cannot be stapled (stapler wants a bundle/dmg/pkg),
+      # so Gatekeeper validates the ticket online — submission is enough.
+      - name: Import Developer ID identity (macOS)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/sign.keychain-db"
+          KCPW="$(uuidgen)"
+          security create-keychain -p "$KCPW" "$KC"
+          security set-keychain-settings -lut 1800 "$KC"
+          security unlock-keychain -p "$KCPW" "$KC"
+          printf '%s' "$APPLE_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KCPW" "$KC" >/dev/null
+          echo "SIGN_KEYCHAIN=$KC" >> "$GITHUB_ENV"
+      - name: Sign (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          codesign --force --options runtime --timestamp \
+            --keychain "$SIGN_KEYCHAIN" \
+            --sign "Developer ID Application: Jueshen Huang (4F93FJA939)" \
+            "target/${{ matrix.target }}/dist/cohdl"
+          codesign --verify --strict -v "target/${{ matrix.target }}/dist/cohdl"
+      - name: Notarize (macOS)
+        if: runner.os == 'macOS'
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          printf '%s' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          ditto -c -k "target/${{ matrix.target }}/dist/cohdl" notarize.zip
+          # notarytool can exit 0 on a non-Accepted verdict, so gate on the
+          # status line itself, not the exit code.
+          out="$(xcrun notarytool submit notarize.zip \
+            --key "$RUNNER_TEMP/AuthKey.p8" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait --timeout 20m)"
+          echo "$out"
+          rm "$RUNNER_TEMP/AuthKey.p8" notarize.zip
+          echo "$out" | grep -q "status: Accepted" || { echo "::error::notarization was not Accepted"; exit 1; }
       - name: Package (unix)
         if: runner.os != 'Windows'
         run: |

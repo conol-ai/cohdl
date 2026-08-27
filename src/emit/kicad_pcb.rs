@@ -745,29 +745,6 @@ fn arc_mid(
     )
 }
 
-#[cfg(test)]
-mod arc_mid_tests {
-    use super::{arc_mid, FEMTO_MM};
-
-    #[test]
-    fn dxf_counterclockwise_quarter_uses_the_minor_arc() {
-        let got = arc_mid((FEMTO_MM, 0), (0, FEMTO_MM), (0, 0), false);
-        assert_eq!(got, (707_106_781_000_000, 707_106_781_000_000));
-    }
-
-    #[test]
-    fn dxf_clockwise_quarter_uses_the_minor_arc() {
-        let got = arc_mid((FEMTO_MM, 0), (0, -FEMTO_MM), (0, 0), true);
-        assert_eq!(got, (707_106_781_000_000, -707_106_781_000_000));
-    }
-
-    #[test]
-    fn winding_selects_the_major_arc_when_requested() {
-        let got = arc_mid((FEMTO_MM, 0), (0, FEMTO_MM), (0, 0), true);
-        assert_eq!(got, (-707_106_781_000_000, -707_106_781_000_000));
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Staging for unplaced instances
 // ---------------------------------------------------------------------------
@@ -844,4 +821,27 @@ fn uuid(pkg: &str, refdes: &str, kind: &str, ordinal: usize) -> String {
 
 fn quote(s: &str) -> String {
     format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+#[cfg(test)]
+mod arc_mid_tests {
+    use super::{arc_mid, FEMTO_MM};
+
+    #[test]
+    fn dxf_counterclockwise_quarter_uses_the_minor_arc() {
+        let got = arc_mid((FEMTO_MM, 0), (0, FEMTO_MM), (0, 0), false);
+        assert_eq!(got, (707_106_781_000_000, 707_106_781_000_000));
+    }
+
+    #[test]
+    fn dxf_clockwise_quarter_uses_the_minor_arc() {
+        let got = arc_mid((FEMTO_MM, 0), (0, -FEMTO_MM), (0, 0), true);
+        assert_eq!(got, (707_106_781_000_000, -707_106_781_000_000));
+    }
+
+    #[test]
+    fn winding_selects_the_major_arc_when_requested() {
+        let got = arc_mid((FEMTO_MM, 0), (0, FEMTO_MM), (0, 0), true);
+        assert_eq!(got, (-707_106_781_000_000, -707_106_781_000_000));
+    }
 }

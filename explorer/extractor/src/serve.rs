@@ -29,12 +29,18 @@ fn allowed_roots(project: &Path) -> Vec<std::path::PathBuf> {
         }
         roots.push(p);
     }
-    roots.into_iter().filter_map(|r| r.canonicalize().ok()).collect()
+    roots
+        .into_iter()
+        .filter_map(|r| r.canonicalize().ok())
+        .collect()
 }
 
 fn photo_for(project: &Path, mpn: &str) -> Option<std::path::PathBuf> {
     // sanitize: designators/MPNs are [A-Za-z0-9._-]
-    if !mpn.chars().all(|c| c.is_ascii_alphanumeric() || "._-".contains(c)) {
+    if !mpn
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
+    {
         return None;
     }
     for ext in ["jpg", "png", "jpeg", "webp"] {
@@ -76,15 +82,23 @@ pub fn serve(project: &Path, dist: &Path, port: u16) -> Result<(), String> {
                         }
                     }
                     version.fetch_add(1, Ordering::SeqCst);
-                    eprintln!("[watch] change detected -> version {}", version.load(Ordering::SeqCst));
+                    eprintln!(
+                        "[watch] change detected -> version {}",
+                        version.load(Ordering::SeqCst)
+                    );
                 }
             }
         });
     }
 
     let roots = allowed_roots(project);
-    let listener = TcpListener::bind(("0.0.0.0", port)).map_err(|e| e.to_string())?;
-    eprintln!("serving http://0.0.0.0:{port}/ (project: {})", project.display());
+    // Loopback only: /api/file serves datasheets/photos from the allow-listed
+    // roots, which is fine to expose to the local user but not to the LAN.
+    let listener = TcpListener::bind(("127.0.0.1", port)).map_err(|e| e.to_string())?;
+    eprintln!(
+        "serving http://127.0.0.1:{port}/ (project: {})",
+        project.display()
+    );
     for conn in listener.incoming().flatten() {
         let state = Arc::clone(&state);
         let version = Arc::clone(&version);
@@ -182,7 +196,11 @@ fn handle(
         let f = canon.unwrap();
         return match std::fs::read(&f) {
             Ok(bytes) => {
-                let ct = match f.extension().and_then(|x| x.to_str()).map(|e| e.to_ascii_lowercase()) {
+                let ct = match f
+                    .extension()
+                    .and_then(|x| x.to_str())
+                    .map(|e| e.to_ascii_lowercase())
+                {
                     Some(e) if e == "pdf" => "application/pdf",
                     Some(e) if e == "png" => "image/png",
                     Some(e) if e == "jpg" || e == "jpeg" => "image/jpeg",
@@ -234,9 +252,17 @@ fn handle(
         }
         _ => {
             // static files from dist/
-            let rel = if path == "/" { "index.html" } else { &path[1..] };
+            let rel = if path == "/" {
+                "index.html"
+            } else {
+                &path[1..]
+            };
             let f = dist.join(rel);
-            let f = if f.is_file() { f } else { dist.join("index.html") };
+            let f = if f.is_file() {
+                f
+            } else {
+                dist.join("index.html")
+            };
             match std::fs::read(&f) {
                 Ok(bytes) => {
                     let ct = match f.extension().and_then(|x| x.to_str()) {
@@ -256,7 +282,11 @@ fn handle(
 }
 
 fn respond(conn: &mut TcpStream, code: u16, ct: &str, body: &[u8]) -> std::io::Result<()> {
-    let status = if code == 200 { "200 OK" } else { "404 Not Found" };
+    let status = if code == 200 {
+        "200 OK"
+    } else {
+        "404 Not Found"
+    };
     conn.write_all(
         format!(
             "HTTP/1.1 {status}\r\nContent-Type: {ct}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",

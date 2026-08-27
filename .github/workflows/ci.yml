@@ -107,10 +107,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      # Same pinned toolchain as the compiler job: rust-toolchain.toml governs
+      # explorer/extractor too (rustup resolves it upward from the crate dir),
+      # so install exactly that version instead of letting @stable skew.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: explorer/extractor
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Extractor format
+        working-directory: explorer/extractor
+        run: cargo fmt --check
       - name: Extractor tests
         working-directory: explorer/extractor
         run: cargo test

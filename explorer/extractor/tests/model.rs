@@ -78,10 +78,12 @@ fn rpi_pico2_model() {
 }
 
 #[test]
-fn openmicro_model() {
-    let v = extract("openmicro");
+fn sf32_miniboard_model() {
+    // OpenMicro moved to the openmicrokbd repository; the SF32 miniboard is
+    // the second in-repo reference design.
+    let v = extract("sf32-miniboard");
     common_asserts(&v);
-    assert_eq!(v["design"], "OpenMicro");
+    assert_eq!(v["design"], "SF32MiniBoard");
     assert!(!v["nc"].as_array().unwrap().is_empty());
 }
 

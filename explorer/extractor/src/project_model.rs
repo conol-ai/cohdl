@@ -35,6 +35,12 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
         &registry,
         prior_lock.as_deref(),
         cohdl::deps::Update::No,
+        // Offline like check/LSP: no fetch (E1102 says "run `cohdl install`"),
+        // and no std override path here, so nothing is skipped transitively.
+        cohdl::deps::ResolveOpts {
+            skip_transitive: &[],
+            fetch: None,
+        },
     )
     .map_err(|d| render_pkg_diags(&d))?;
 
@@ -123,7 +129,10 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
         // #[doc] references: device-level plus part-level, source order,
         // resolved to absolute paths inside the owning package dir.
         let mut docs: Vec<DocRef> = Vec::new();
-        for key in [Some(&inst.device), inst.part.as_ref()].into_iter().flatten() {
+        for key in [Some(&inst.device), inst.part.as_ref()]
+            .into_iter()
+            .flatten()
+        {
             let ns = key.split("::").next().unwrap_or("");
             if let Some(ds) = world.docs.get(key) {
                 for d in ds {
@@ -198,7 +207,10 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
                 .map(|(p, l)| NetMember {
                     instance_path: p.clone(),
                     logical_pin: l.clone(),
-                    numbers: pin_numbers.get(&(p.clone(), l.clone())).cloned().unwrap_or_default(),
+                    numbers: pin_numbers
+                        .get(&(p.clone(), l.clone()))
+                        .cloned()
+                        .unwrap_or_default(),
                 })
                 .collect(),
             span: src_span(sm, n.span),
@@ -348,7 +360,9 @@ fn footprint_geo(world: &World, fp: &cohdl::ast::FootprintDef) -> FootprintGeo {
                     .map_or_else(|| "rect".to_string(), |(s, _)| s.name().to_string()),
                 x: femto_mm(&p.x),
                 y: femto_mm(&p.y),
-                size: def.map(|d| d.size.iter().map(femto_mm).collect()).unwrap_or_default(),
+                size: def
+                    .map(|d| d.size.iter().map(femto_mm).collect())
+                    .unwrap_or_default(),
                 rotate: p.rotate,
                 drill: def
                     .and_then(|d| d.drill.as_ref())

@@ -31,16 +31,20 @@ fn main() -> ExitCode {
         }
     }
     let Some(dir) = dir else {
-        eprintln!("usage: cohdl-explorer <project-dir> [-o out.json] [--serve [--port N] [--dist DIR]]");
+        eprintln!(
+            "usage: cohdl-explorer <project-dir> [-o out.json] [--serve [--port N] [--dist DIR]]"
+        );
         return ExitCode::from(2);
     };
     if do_serve {
-        let dist = dist.unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web/dist")
-        });
+        let dist =
+            dist.unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web/dist"));
         return match serve::serve(&dir, &dist, port) {
             Ok(()) => ExitCode::SUCCESS,
-            Err(e) => { eprintln!("error: {e}"); ExitCode::from(1) }
+            Err(e) => {
+                eprintln!("error: {e}");
+                ExitCode::from(1)
+            }
         };
     }
     match project_model::extract(&dir) {

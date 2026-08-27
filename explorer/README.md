@@ -14,10 +14,25 @@ COHDL_LIB=../../lib cargo run --release -- ../../examples/rpi-pico2 \
     --serve --dist ../web/dist --port 5199
 ```
 
-Open <http://127.0.0.1:5199/>. Editing any `.cohdl` in the project
-re-extracts and refreshes the browser within ~500 ms; a source that fails
-to compile keeps the last good view and reports the diagnostics inline.
-Add `?mode=sch` for the dark pin-level schematic view.
+Open <http://127.0.0.1:5199/> (the server binds loopback only — it serves
+project datasheets and photos, which belong to the local user, not the LAN).
+Editing any `.cohdl` in the project re-extracts and refreshes the browser
+within ~500 ms; a source that fails to compile keeps the last good view and
+reports the diagnostics inline. Add `?mode=sch` for the dark pin-level
+schematic view.
+
+## Develop (frontend hot-reload)
+
+For work on the frontend itself, run Vite's dev server alongside the
+extractor instead of rebuilding `dist`:
+
+```sh
+cd explorer/web && npm run dev        # http://localhost:5198/
+```
+
+It proxies `/api` (model, SSE, photos, files) to the extractor on 5199, so
+both live loops compose: a `.cohdl` edit re-extracts and refreshes the view,
+a `.tsx` edit hot-swaps modules in place without losing UI state.
 
 ## What is deterministic, what is AI
 

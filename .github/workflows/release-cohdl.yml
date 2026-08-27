@@ -127,6 +127,9 @@ jobs:
           security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
           rm "$RUNNER_TEMP/cert.p12"
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KCPW" "$KC" >/dev/null
+          # codesign resolves identities through the user's keychain SEARCH
+          # LIST — a keychain named only via --keychain is not enough.
+          security list-keychains -d user -s "$KC" login.keychain-db
           echo "SIGN_KEYCHAIN=$KC" >> "$GITHUB_ENV"
       - name: Sign (macOS)
         if: runner.os == 'macOS'

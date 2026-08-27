@@ -1,3 +1,9 @@
+// Mounting holes are mechanical features, not ICs: give them an "M"
+// designator prefix instead of the default "U".
+pub trait Mounting_Hole {
+    designator_prefix: "M"
+}
+
 #[doc("docs/README.md")]
 pub device TestPoint {
     pins {
@@ -9,12 +15,16 @@ pub device TestPoint {
 pub device MechanicalMountingHole {
 }
 
+impl Mounting_Hole for MechanicalMountingHole {}
+
 #[doc("docs/README.md")]
 pub device PlatedMountingHole {
     pins {
         required PAD: 1 [passive]
     }
 }
+
+impl Mounting_Hole for PlatedMountingHole {}
 
 pad P_TEST_POINT_ROUND_1MM {
     shape: circle

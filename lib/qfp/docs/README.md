@@ -66,3 +66,34 @@ it, so numbering chirality is preserved in CoHDL/KiCad's +Y-down frame.
 The footprint is reusable package geometry and therefore lives in `qfp`, not
 in the STM32 component package. Device and exact-part datasheets remain with
 their component libraries because `#[doc(...)]` paths are package-relative.
+
+## Generated KiCad QFP subset
+
+`src/kicad_generated.cohdl` adds 10 public `KICAD_*` LQFP footprints used by
+the source-backed STM32 catalog. The generated declarations do not replace or
+modify the three hand-audited ST patterns documented above.
+
+The normalized source is
+`tools/stm32_footprint_data/footprints.json`, imported from the official KiCad
+footprint library at commit
+`819223b66f96508feaeaa305301b5e6bb5c1038b` (footprint format `20260206`).
+Each source-file SHA-256 is retained in the snapshot and beside its generated
+declaration. Regenerate offline with:
+
+```text
+python3 tools/gen_stm32_footprints.py
+```
+
+The import preserves every pad number, round-rectangle copper size and corner
+radius, position, rotation, and default copper-following mask/paste geometry.
+KiCad's stepped QFP courtyards cannot be authored as one CoHDL courtyard, so
+they are intentionally projected to the conservative axis-aligned bounding
+rectangle of the exact source outline. The source pin-1 polygon vertices and
+fill are retained; CoHDL emits its standard silkscreen polygon hairline. Other
+package-outline/fabrication/3D graphics are outside this focused land-pattern
+projection.
+
+The generated subset is attributed to the KiCad project and contributors and
+is redistributed under CC-BY-SA-4.0 with the KiCad library exception; see
+`LICENSE.kicad.md`. Existing hand-authored declarations retain their original
+MIT terms. The package manifest records both licenses for the aggregate.

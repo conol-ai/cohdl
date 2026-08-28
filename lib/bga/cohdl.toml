@@ -1,8 +1,8 @@
 [package]
 name = "bga"
-version = "0.1.0"
-license = "MIT"
-description = "Verified BGA package land patterns."
+version = "0.2.0"
+license = "MIT AND CC-BY-SA-4.0"
+description = "Verified BGA land patterns, including pinned KiCad-derived STM32 footprints."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

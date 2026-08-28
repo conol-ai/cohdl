@@ -341,7 +341,10 @@ All geometry mm strings. Keys present only when the declaration carries them
 ```
 
 `drill` is `{ "round": d }` or `{ "slot": [w, l] }`. `paste` is `"none"`,
-`{ "rect": [w, h] }`, or `{ "segmented_annulus": [outer, inner, gap] }`.
+`{ "rect": [w, h] }`, `{ "circle": d }`, or
+`{ "segmented_annulus": [outer, inner, gap] }`.
+The circular paste diameter is independent of the copper envelope and may be
+smaller or larger.
 `size` arity follows the shape (circle 1; rect/oval/annulus 2 — annulus is
 `[outer_diameter, inner_diameter]`).
 

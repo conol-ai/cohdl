@@ -818,10 +818,20 @@ impl Server {
             end += 1;
         }
         let token = std::str::from_utf8(&source[start..end]).unwrap_or_default();
-        let syntax_help = match token {
-            "annulus" => Some("**annulus pad** — `size: (outer_diameter, inner_diameter)`; SMD copper only, with `outer > inner > 0`."),
-            "segmented_annulus" => Some("**segmented annulus paste** — `segmented_annulus(outer_diameter, inner_diameter, gap)` emits four cardinal stencil sectors."),
-            _ => None,
+        let circular_paste = token == "circle"
+            && world.pads.values().any(|pad| {
+                pad.paste.as_ref().is_some_and(|(paste, span)| {
+                    matches!(paste, crate::ast::PadPaste::Circle(_)) && contains(*span, fid, offset)
+                })
+            });
+        let syntax_help = if circular_paste {
+            Some("**circular paste aperture** — `circle(diameter)` emits one independently sized circular stencil opening on an SMD pad; it may be smaller or larger than copper.")
+        } else {
+            match token {
+                "annulus" => Some("**annulus pad** — `size: (outer_diameter, inner_diameter)`; SMD copper only, with `outer > inner > 0`."),
+                "segmented_annulus" => Some("**segmented annulus paste** — `segmented_annulus(outer_diameter, inner_diameter, gap)` emits four cardinal stencil sectors."),
+                _ => None,
+            }
         };
         if let Some(help) = syntax_help {
             let span = Span::new(fid, start as u32, end as u32);
@@ -1236,6 +1246,7 @@ impl Server {
             "drill",
             "paste",
             "mask_expansion",
+            "circle",
             "annulus",
             "segmented_annulus",
             "diameter",

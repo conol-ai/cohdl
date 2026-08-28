@@ -4,11 +4,12 @@
 // 47 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32F205RBTx; LQFP64; source mcu/STM32F205R(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RBTx {
     pins {
         required VBAT: 1 [power_in]
@@ -78,6 +79,7 @@ impl IC for STM32F205RBTx {}
 
 // ST model STM32F205RCTx; LQFP64; source mcu/STM32F205R(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RCTx {
     pins {
         required VBAT: 1 [power_in]
@@ -147,6 +149,7 @@ impl IC for STM32F205RCTx {}
 
 // ST model STM32F205RETx; LQFP64; source mcu/STM32F205R(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RETx {
     pins {
         required VBAT: 1 [power_in]
@@ -216,6 +219,7 @@ impl IC for STM32F205RETx {}
 
 // ST model STM32F205RFTx; LQFP64; source mcu/STM32F205R(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RFTx {
     pins {
         required VBAT: 1 [power_in]
@@ -285,6 +289,7 @@ impl IC for STM32F205RFTx {}
 
 // ST model STM32F205RGTx; LQFP64; source mcu/STM32F205R(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RGTx {
     pins {
         required VBAT: 1 [power_in]
@@ -354,6 +359,7 @@ impl IC for STM32F205RGTx {}
 
 // ST model STM32F205REYx; WLCSP66; source mcu/STM32F205R(E-G)Yx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205REYx {
     pins {
         optional PA14: A1 [bidirectional]
@@ -424,6 +430,7 @@ impl IC for STM32F205REYx {}
 
 // ST model STM32F205RGYx; WLCSP66; source mcu/STM32F205R(E-G)Yx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205RGYx {
     pins {
         optional PA14: A1 [bidirectional]
@@ -564,6 +571,7 @@ impl IC for STM32F205RGEx {}
 
 // ST model STM32F205VBTx; LQFP100; source mcu/STM32F205V(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205VBTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -666,6 +674,7 @@ impl IC for STM32F205VBTx {}
 
 // ST model STM32F205VCTx; LQFP100; source mcu/STM32F205V(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205VCTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -768,6 +777,7 @@ impl IC for STM32F205VCTx {}
 
 // ST model STM32F205VETx; LQFP100; source mcu/STM32F205V(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205VETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -870,6 +880,7 @@ impl IC for STM32F205VETx {}
 
 // ST model STM32F205VFTx; LQFP100; source mcu/STM32F205V(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205VFTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -972,6 +983,7 @@ impl IC for STM32F205VFTx {}
 
 // ST model STM32F205VGTx; LQFP100; source mcu/STM32F205V(B-C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205VGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -1074,6 +1086,7 @@ impl IC for STM32F205VGTx {}
 
 // ST model STM32F205ZCTx; LQFP144; source mcu/STM32F205Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205ZCTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -1208,6 +1221,7 @@ impl IC for STM32F205ZCTx {}
 
 // ST model STM32F205ZETx; LQFP144; source mcu/STM32F205Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205ZETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -1342,6 +1356,7 @@ impl IC for STM32F205ZETx {}
 
 // ST model STM32F205ZFTx; LQFP144; source mcu/STM32F205Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205ZFTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -1476,6 +1491,7 @@ impl IC for STM32F205ZFTx {}
 
 // ST model STM32F205ZGTx; LQFP144; source mcu/STM32F205Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F205ZGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -1610,6 +1626,7 @@ impl IC for STM32F205ZGTx {}
 
 // ST model STM32F207ICHx; UFBGA176; source mcu/STM32F207I(C-E-F-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ICHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -1774,6 +1791,7 @@ impl IC for STM32F207ICHx {}
 
 // ST model STM32F207IEHx; UFBGA176; source mcu/STM32F207I(C-E-F-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IEHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -1938,6 +1956,7 @@ impl IC for STM32F207IEHx {}
 
 // ST model STM32F207IFHx; UFBGA176; source mcu/STM32F207I(C-E-F-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IFHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -2102,6 +2121,7 @@ impl IC for STM32F207IFHx {}
 
 // ST model STM32F207IGHx; UFBGA176; source mcu/STM32F207I(C-E-F-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IGHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -2266,6 +2286,7 @@ impl IC for STM32F207IGHx {}
 
 // ST model STM32F207ICTx; LQFP176; source mcu/STM32F207I(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ICTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -2426,6 +2447,7 @@ impl IC for STM32F207ICTx {}
 
 // ST model STM32F207IETx; LQFP176; source mcu/STM32F207I(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -2586,6 +2608,7 @@ impl IC for STM32F207IETx {}
 
 // ST model STM32F207IFTx; LQFP176; source mcu/STM32F207I(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IFTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -2746,6 +2769,7 @@ impl IC for STM32F207IFTx {}
 
 // ST model STM32F207IGTx; LQFP176; source mcu/STM32F207I(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207IGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -2906,6 +2930,7 @@ impl IC for STM32F207IGTx {}
 
 // ST model STM32F207VCTx; LQFP100; source mcu/STM32F207V(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207VCTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3008,6 +3033,7 @@ impl IC for STM32F207VCTx {}
 
 // ST model STM32F207VETx; LQFP100; source mcu/STM32F207V(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207VETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3110,6 +3136,7 @@ impl IC for STM32F207VETx {}
 
 // ST model STM32F207VFTx; LQFP100; source mcu/STM32F207V(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207VFTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3212,6 +3239,7 @@ impl IC for STM32F207VFTx {}
 
 // ST model STM32F207VGTx; LQFP100; source mcu/STM32F207V(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207VGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3314,6 +3342,7 @@ impl IC for STM32F207VGTx {}
 
 // ST model STM32F207ZCTx; LQFP144; source mcu/STM32F207Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ZCTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3448,6 +3477,7 @@ impl IC for STM32F207ZCTx {}
 
 // ST model STM32F207ZETx; LQFP144; source mcu/STM32F207Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ZETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3582,6 +3612,7 @@ impl IC for STM32F207ZETx {}
 
 // ST model STM32F207ZFTx; LQFP144; source mcu/STM32F207Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ZFTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3716,6 +3747,7 @@ impl IC for STM32F207ZFTx {}
 
 // ST model STM32F207ZGTx; LQFP144; source mcu/STM32F207Z(C-E-F-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F207ZGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -3850,6 +3882,7 @@ impl IC for STM32F207ZGTx {}
 
 // ST model STM32F215RETx; LQFP64; source mcu/STM32F215R(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215RETx {
     pins {
         required VBAT: 1 [power_in]
@@ -3919,6 +3952,7 @@ impl IC for STM32F215RETx {}
 
 // ST model STM32F215RGTx; LQFP64; source mcu/STM32F215R(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215RGTx {
     pins {
         required VBAT: 1 [power_in]
@@ -3988,6 +4022,7 @@ impl IC for STM32F215RGTx {}
 
 // ST model STM32F215VETx; LQFP100; source mcu/STM32F215V(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215VETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -4090,6 +4125,7 @@ impl IC for STM32F215VETx {}
 
 // ST model STM32F215VGTx; LQFP100; source mcu/STM32F215V(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215VGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -4192,6 +4228,7 @@ impl IC for STM32F215VGTx {}
 
 // ST model STM32F215ZETx; LQFP144; source mcu/STM32F215Z(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215ZETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -4326,6 +4363,7 @@ impl IC for STM32F215ZETx {}
 
 // ST model STM32F215ZGTx; LQFP144; source mcu/STM32F215Z(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F215ZGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -4460,6 +4498,7 @@ impl IC for STM32F215ZGTx {}
 
 // ST model STM32F217IEHx; UFBGA176; source mcu/STM32F217I(E-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217IEHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -4624,6 +4663,7 @@ impl IC for STM32F217IEHx {}
 
 // ST model STM32F217IGHx; UFBGA176; source mcu/STM32F217I(E-G)Hx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217IGHx {
     pins {
         optional PE3: A1 [bidirectional]
@@ -4788,6 +4828,7 @@ impl IC for STM32F217IGHx {}
 
 // ST model STM32F217IETx; LQFP176; source mcu/STM32F217I(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217IETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -4948,6 +4989,7 @@ impl IC for STM32F217IETx {}
 
 // ST model STM32F217IGTx; LQFP176; source mcu/STM32F217I(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217IGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -5108,6 +5150,7 @@ impl IC for STM32F217IGTx {}
 
 // ST model STM32F217VETx; LQFP100; source mcu/STM32F217V(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217VETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -5210,6 +5253,7 @@ impl IC for STM32F217VETx {}
 
 // ST model STM32F217VGTx; LQFP100; source mcu/STM32F217V(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217VGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -5312,6 +5356,7 @@ impl IC for STM32F217VGTx {}
 
 // ST model STM32F217ZETx; LQFP144; source mcu/STM32F217Z(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217ZETx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -5446,6 +5491,7 @@ impl IC for STM32F217ZETx {}
 
 // ST model STM32F217ZGTx; LQFP144; source mcu/STM32F217Z(E-G)Tx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32F217ZGTx {
     pins {
         optional PE2: 1 [bidirectional]
@@ -5577,3 +5623,441 @@ pub device STM32F217ZGTx {
 }
 
 impl IC for STM32F217ZGTx {}
+
+// Source-backed exact order codes with complete copper geometry.
+// Tape/reel order codes are alternates only when they collapse
+// to the same checked electrical and package identity.
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RBT6: STM32F205RBTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RBT6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RBT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RBT7: STM32F205RBTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RBT7",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RCT6: STM32F205RCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RCT6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RCT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RCT7: STM32F205RCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RCT7",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RCT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RET6: STM32F205RETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RET6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RET7: STM32F205RETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RET7",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RET7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205REY6TR: STM32F205REYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205REY6TR",
+              footprint: csp::KICAD_ST_WLCSP_66_DIE411 }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RFT6: STM32F205RFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RFT6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RFT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RGT6: STM32F205RGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RGT6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205RGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RGT7: STM32F205RGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RGT7",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205RGY6TR: STM32F205RGYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205RGY6TR",
+              footprint: csp::KICAD_ST_WLCSP_66_DIE411 }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VBT6: STM32F205VBTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VBT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VBT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VCT6: STM32F205VCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VCT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VCT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VCT7: STM32F205VCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VCT7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VCT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VET6: STM32F205VETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VET6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VET7: STM32F205VETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VET7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VET7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VFT6: STM32F205VFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VFT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VFT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VGT6: STM32F205VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VGT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205VGT7: STM32F205VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205VGT7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205VGT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZCT6: STM32F205ZCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZCT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZCT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZCT7: STM32F205ZCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZCT7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZCT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZET6: STM32F205ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZET6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZET7: STM32F205ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZET7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZET7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZFT6: STM32F205ZFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZFT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZGT6: STM32F205ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZGT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F205ZGT7: STM32F205ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F205ZGT7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F205ZGT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ICH6: STM32F207ICHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ICH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ICT6: STM32F207ICTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ICT6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IEH6: STM32F207IEHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IEH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207IEH6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IET6: STM32F207IETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IET6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IFH6: STM32F207IFHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IFH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207IFH6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IFT6: STM32F207IFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IFT6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IGH6: STM32F207IGHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IGH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207IGH6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IGH7: STM32F207IGHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IGH7",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IGT6: STM32F207IGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IGT6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207IGT7: STM32F207IGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207IGT7",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VCT6: STM32F207VCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VCT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207VCT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VCT7: STM32F207VCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VCT7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VET6: STM32F207VETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VET6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207VET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VFT6: STM32F207VFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VFT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207VFT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VGT6: STM32F207VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VGT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207VGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207VGT7: STM32F207VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207VGT7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZCT6: STM32F207ZCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZCT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZCT7: STM32F207ZCTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZCT7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207ZCT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZET6: STM32F207ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZET6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207ZET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZFT6: STM32F207ZFTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZFT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZGT6: STM32F207ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZGT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F207ZGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F207ZGT7: STM32F207ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F207ZGT7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215RET6: STM32F215RETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215RET6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F215RET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215RGT6: STM32F215RGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215RGT6",
+              footprint: qfp::KICAD_LQFP_64_10X10MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F215RGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215VET6: STM32F215VETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215VET6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215VGT6: STM32F215VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215VGT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215VGT7: STM32F215VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215VGT7",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215ZET6: STM32F215ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215ZET6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F215ZET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215ZGT6: STM32F215ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215ZGT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F215ZGT7: STM32F215ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F215ZGT7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F215ZGT7TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217IEH6: STM32F217IEHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217IEH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217IET6: STM32F217IETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217IET6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217IGH6: STM32F217IGHx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217IGH6",
+              footprint: bga::KICAD_UFBGA_201_10X10MM_LAYOUT15X15_P0_65MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F217IGH6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217IGT6: STM32F217IGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217IGT6",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217IGT7: STM32F217IGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217IGT7",
+              footprint: qfp::KICAD_LQFP_176_24X24MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217VET6: STM32F217VETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217VET6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F217VET6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217VGT6: STM32F217VGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217VGT6",
+              footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32F217VGT6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217ZET6: STM32F217ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217ZET6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217ZET7: STM32F217ZETx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217ZET7",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32F217ZGT6: STM32F217ZGTx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32F217ZGT6",
+              footprint: qfp::KICAD_LQFP_144_20X20MM_P0_5MM }
+}

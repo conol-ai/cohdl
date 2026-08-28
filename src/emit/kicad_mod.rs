@@ -526,7 +526,23 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
         } else {
             LayerSet::PasteFront
         };
-        if let Some((PadPaste::Rect(pw, ph), _)) = &pad.paste {
+        if let Some((PadPaste::Circle(diameter), _)) = &pad.paste {
+            out.push(PadPlan {
+                number: String::new(),
+                kind: "smd",
+                kshape: "circle",
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size: (diameter.femto, diameter.femto),
+                drill: None,
+                layers: paste_layer,
+                chamfer: None,
+                corner_radius: None,
+                mask_expansion: None,
+                body: PlanBody::Flat,
+            });
+        } else if let Some((PadPaste::Rect(pw, ph), _)) = &pad.paste {
             out.push(PadPlan {
                 number: String::new(),
                 kind: "smd",

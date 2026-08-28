@@ -4,8 +4,8 @@
 // 28 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32N645A0HxQ; VFBGA169; source mcu/STM32N645A0HxQ.xml.
 #[doc("docs/stm32-open-pin-data.md")]

@@ -104,6 +104,47 @@ fn board_is_deterministic_with_a_fixed_format_stamp() {
     assert!(a.contains("(uuid \""));
 }
 
+#[test]
+fn circular_paste_aperture_is_independent_on_both_board_sides() {
+    let src = r#"
+pub trait Ic { designator_prefix: "U" }
+pub pad P_BALL { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(0.24mm) }
+pub footprint FP_BALL { pad 1: P_BALL at (1mm, 2mm) }
+pub device Dev { pins { A: 1 [passive] } }
+impl Ic for Dev {}
+pub part PART: Dev { primary { mfr: "m", mpn: "ball", footprint: FP_BALL } }
+design B {
+    inst u1: PART
+    inst u2: PART
+    nc: u1.A, u2.A
+    layout {
+        place u1 at (-5mm, 0mm)
+        place u2 at (5mm, 0mm) side bottom
+    }
+}
+"#;
+    let board = emit(src, None);
+    let top = fp_block(&board, "U1");
+    assert!(top.contains("\t\t(pad \"1\" smd circle\n"), "{top}");
+    assert!(top.contains("\t\t\t(size 0.3 0.3)\n"), "{top}");
+    assert!(
+        top.contains("\t\t\t(layers \"F.Cu\" \"F.Mask\")\n"),
+        "{top}"
+    );
+    assert!(top.contains("\t\t(pad \"\" smd circle\n"), "{top}");
+    assert!(top.contains("\t\t\t(size 0.24 0.24)\n"), "{top}");
+    assert!(top.contains("\t\t\t(layers \"F.Paste\")\n"), "{top}");
+    assert_eq!(top.matches("F.Paste").count(), 1, "{top}");
+
+    let bottom = fp_block(&board, "U2");
+    assert!(
+        bottom.contains("\t\t\t(layers \"B.Cu\" \"B.Mask\")\n"),
+        "{bottom}"
+    );
+    assert!(bottom.contains("\t\t\t(layers \"B.Paste\")\n"), "{bottom}");
+    assert_eq!(bottom.matches("B.Paste").count(), 1, "{bottom}");
+}
+
 // ---------------------------------------------------------------------------
 // Placement encoding — top side
 // ---------------------------------------------------------------------------

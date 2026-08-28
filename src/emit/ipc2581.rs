@@ -1399,6 +1399,14 @@ fn paste_prims(pad: &crate::ast::PadDef, copper: &Prim) -> Vec<Prim> {
             corner_radius: None,
             polygon: None,
         }],
+        Some((crate::ast::PadPaste::Circle(diameter), _)) => vec![Prim {
+            shape: crate::ast::PadShape::Circle,
+            w: diameter.femto,
+            h: diameter.femto,
+            chamfer: None,
+            corner_radius: None,
+            polygon: None,
+        }],
         Some((crate::ast::PadPaste::SegmentedAnnulus(values), _)) => {
             let [outer, inner, gap] = values.as_ref();
             let Some(plan) =

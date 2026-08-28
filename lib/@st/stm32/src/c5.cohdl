@@ -4,8 +4,8 @@
 // 89 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32C531CBT6; LQFP48; source Descriptors/pinout/STM32C531C(B-C)Tx_pinout.json.
 #[doc("docs/stm32c5xx-dfp.md")]

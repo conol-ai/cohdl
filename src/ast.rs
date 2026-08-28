@@ -173,12 +173,14 @@ impl PadCorner {
 }
 
 /// Paste override for an SMD pad.  Absence on [`PadDef`] preserves the
-/// historical behaviour (paste equals copper); `None` suppresses paste and
-/// `Rect` emits one centered rectangular stencil aperture.
+/// historical behaviour (paste equals copper); `None` suppresses paste,
+/// `Rect` emits one centered rectangular stencil aperture, and `Circle`
+/// emits one circular aperture whose diameter is independent of copper.
 #[derive(Debug, Clone)]
 pub enum PadPaste {
     None,
     Rect(UnitValue, UnitValue),
+    Circle(UnitValue),
     SegmentedAnnulus(Box<[UnitValue; 3]>),
 }
 

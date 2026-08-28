@@ -2,13 +2,23 @@
 
 [[package]]
 name = "bga"
+version = "0.2.0"
+hash = "sha256:997b238b4ea7097e976b03c3ceebbf59100febd12be15e3fe7c5ed407d99da76"
+
+[[package]]
+name = "csp"
 version = "0.1.0"
-hash = "sha256:48e2e957166b0434d1ef30d137c5e35ab42648cd56afe04fb04104c57c6af32d"
+hash = "sha256:e04af120c2e56ad844b42f1a8f9f1a380b858dd19ebf68a9ef532137616c15e3"
 
 [[package]]
 name = "qfp"
-version = "0.1.0"
-hash = "sha256:a08f91fee7f3f0d21d05ec3f45da07f4aba0215743fff3ba4562e669f69c274f"
+version = "0.2.0"
+hash = "sha256:5fbbbd39a0bf07ee50fa24020267d701945f3546f1c4f856c77676e3700a8b48"
+
+[[package]]
+name = "soic"
+version = "0.2.0"
+hash = "sha256:bab763d35a5aaa8c29628e49b3ed1bdecb8f2a74a24a44308c8cce5d0f0e096a"
 
 [[package]]
 name = "std"

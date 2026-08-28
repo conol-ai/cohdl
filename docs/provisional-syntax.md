@@ -270,7 +270,10 @@ pub pad P_RoundedLand {
   copper outline (including its chamfer).
 - `paste: none` suppresses the pad's paste aperture. `paste: (width, height)`
   replaces the historical copper-sized aperture with one centered rectangular
-  aperture no larger than the copper envelope. Omitting `paste` preserves the
+  aperture no larger than the copper envelope. `paste: circle(diameter)`
+  creates one centered circular aperture independently sized from the copper
+  shape: its diameter may be smaller or larger than the copper envelope
+  (negative or positive paste margin). Omitting `paste` preserves the
   historical behaviour: paste follows copper.
 
 An annular SMD land uses `shape: annulus` with

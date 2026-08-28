@@ -1388,6 +1388,26 @@ impl<'a> Parser<'a> {
                 "paste" => {
                     if self.eat_ident("none") {
                         def.paste = Some((PadPaste::None, field.span.to(self.prev_span())));
+                    } else if self.eat_ident("circle") {
+                        let Some((vals, span)) = self.length_tuple() else {
+                            self.sync_in_block();
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        let [diameter] = vals.as_slice() else {
+                            self.diags.push(Diagnostic::error(
+                                "E805",
+                                span,
+                                format!(
+                                    "`circle` paste is `circle(diameter)` — {} value{} given",
+                                    vals.len(),
+                                    if vals.len() == 1 { "" } else { "s" }
+                                ),
+                            ));
+                            self.eat(&TokenKind::Comma);
+                            continue;
+                        };
+                        def.paste = Some((PadPaste::Circle(diameter.clone()), field.span.to(span)));
                     } else if self.eat_ident("segmented_annulus") {
                         let Some((vals, span)) = self.length_tuple() else {
                             self.sync_in_block();

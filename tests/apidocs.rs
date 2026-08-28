@@ -468,6 +468,25 @@ fn output_is_deterministic_across_fresh_pipelines() {
     assert_eq!(a.json, b.json, "same source → same bytes");
 }
 
+#[test]
+fn circular_paste_uses_the_canonical_docs_shape() {
+    let rendered = docs_for(
+        "lands",
+        "0.1.0",
+        &[(
+            "src/pads.cohdl",
+            "pub pad P_BALL { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(0.24mm) }\n",
+        )],
+    );
+    assert!(
+        rendered
+            .json
+            .contains("\"paste\": {\n          \"circle\": \"0.24\"\n        }"),
+        "{}",
+        rendered.json
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Zero impact: docs generation never changes an existing artifact.
 
@@ -720,7 +739,9 @@ fn lib_stm32_transport_uses_streaming_path_and_fits_registry_cap() {
     let deps = vec![
         ("std".to_string(), root.join("lib/std")),
         ("bga".to_string(), root.join("lib/bga")),
+        ("csp".to_string(), root.join("lib/csp")),
         ("qfp".to_string(), root.join("lib/qfp")),
+        ("soic".to_string(), root.join("lib/soic")),
     ];
     let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
     let project =
@@ -757,7 +778,7 @@ fn lib_stm32_transport_uses_streaming_path_and_fits_registry_cap() {
         &dep_metas,
     );
     assert!(
-        rendered.items > 2200,
+        rendered.items > 4600,
         "the complete STM32 catalog must reach API docs, got {} items",
         rendered.items
     );

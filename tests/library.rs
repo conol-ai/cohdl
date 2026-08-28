@@ -348,7 +348,7 @@ fn generated_stm32_catalog_matches_the_pinned_st_snapshot() {
     );
     assert!(
         String::from_utf8_lossy(&output.stdout)
-            .contains("26 files, 2284 devices, 199920 logical pins, 14 audited parts"),
+            .contains("26 files, 2284 devices, 199920 logical pins, 2389 exact parts"),
         "unexpected STM32 coverage:\n{}",
         String::from_utf8_lossy(&output.stdout)
     );
@@ -359,10 +359,10 @@ fn generated_stm32_catalog_matches_the_pinned_st_snapshot() {
         "Identities matched exactly once to a pinned pinout: 3398",
         "Matched identities represented by emitted devices: 2731",
         "Exact order-code rows represented by emitted devices: 3708",
-        "Fabrication-ready audited pub parts: 14",
-        "Exact order-code rows covered by audited parts: 22",
-        "Represented exact rows awaiting fabrication audit: 3686",
-        "All portfolio rows not emitted as exact parts: 4908",
+        "Source-backed pub parts with concrete footprints: 2389",
+        "Exact order-code rows covered by exact parts: 3303",
+        "Represented exact rows awaiting fabrication audit: 405",
+        "All portfolio rows not emitted as exact parts: 1627",
         "STM32F072C(8-B)Ux.xml is incomplete: UFQFPN48",
         "STM32H553VGZx.xml is incomplete: LQFP100-EP",
     ] {
@@ -371,18 +371,32 @@ fn generated_stm32_catalog_matches_the_pinned_st_snapshot() {
             "missing coverage fact `{expected}`"
         );
     }
-    for entry in std::fs::read_dir(root.join("lib/@st/stm32/src")).unwrap() {
-        let path = entry.unwrap().path();
-        if path.extension().and_then(|extension| extension.to_str()) != Some("cohdl") {
-            continue;
-        }
-        let source = std::fs::read_to_string(&path).unwrap();
-        assert!(
-            !source.contains("ST portfolio order codes:"),
-            "tooling-only exact order-code rows leaked into {}",
-            path.display()
-        );
-    }
+    let catalog =
+        std::fs::read_to_string(root.join("lib/@st/stm32/docs/stm32-part-catalog.md")).unwrap();
+    assert!(catalog.contains("Electrical identities: 2389"));
+    assert!(catalog.contains("Exact order-code rows (including terminal `TR` packaging): 3303"));
+}
+
+#[test]
+fn generated_stm32_footprints_match_the_pinned_kicad_snapshot() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let output = std::process::Command::new("python3")
+        .args(["tools/gen_stm32_footprints.py", "--check"])
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "STM32 footprint generator check failed:\n{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("verified 103 footprints and 9147 exact electrical pad numbers"),
+        "unexpected STM32 footprint coverage:\n{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
 }
 
 #[test]
@@ -2001,7 +2015,9 @@ fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
     let deps = vec![
         ("std".to_string(), root.join("lib/std")),
         ("bga".to_string(), root.join("lib/bga")),
+        ("csp".to_string(), root.join("lib/csp")),
         ("qfp".to_string(), root.join("lib/qfp")),
+        ("soic".to_string(), root.join("lib/soic")),
     ];
     let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
     let project =
@@ -2157,9 +2173,13 @@ fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
             .keys()
             .filter(|name| name.starts_with("st_stm32::"))
             .count(),
-        audited_parts.len(),
-        "only fully audited exact STM32 parts may be public"
+        2389,
+        "every source-joined exact STM32 identity must be public"
     );
+    let audited_part_names = audited_parts
+        .iter()
+        .map(|(symbol, ..)| format!("st_stm32::{symbol}"))
+        .collect::<std::collections::BTreeSet<_>>();
     for (symbol, device, primary_mpn, alt_mpn, footprint) in audited_parts {
         let part_name = format!("st_stm32::{symbol}");
         let part = checked
@@ -2191,6 +2211,41 @@ fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
             checked.world.docs[&part_name],
             ["docs/stm32f072cb-datasheet.pdf"]
         );
+    }
+
+    let exact_parts = checked
+        .world
+        .parts
+        .iter()
+        .filter(|(name, _)| name.starts_with("st_stm32::"))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        exact_parts
+            .iter()
+            .map(|(_, part)| 1 + part.alts.len())
+            .sum::<usize>(),
+        3303,
+        "terminal-TR rows must be preserved as AVL alternates"
+    );
+    for (name, part) in exact_parts {
+        assert_eq!(
+            part.primary.field("mfr").map(|field| field.value.as_str()),
+            Some("STMicroelectronics")
+        );
+        let footprint = &part.primary.footprint.as_ref().unwrap().name;
+        assert!(
+            ["bga::", "csp::", "qfp::", "soic::"]
+                .iter()
+                .any(|prefix| footprint.starts_with(prefix)),
+            "STM32 part `{name}` has non-focused footprint `{footprint}`"
+        );
+        if !audited_part_names.contains(name) {
+            assert_eq!(
+                checked.world.docs[name],
+                ["docs/stm32-part-catalog.md"],
+                "catalog part `{name}` lost its local provenance index"
+            );
+        }
     }
 
     let assert_place = |footprint: &str, number: &str, x: &str, y: &str| {
@@ -2289,7 +2344,7 @@ fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
 
     // Broad generated coverage is source-locked by representative classic,
     // current, and high-pin-count families. Exact part emission remains a
-    // smaller, fail-closed overlay on this device-only catalog.
+    // fail-closed subset when no concrete pad-set-proven footprint exists.
     for name in [
         "st_stm32::STM32C531CBT6",
         "st_stm32::STM32F103C8Tx",

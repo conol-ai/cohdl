@@ -145,6 +145,18 @@ Create `docs/README.md` containing, for every file:
 - the CAD retrieval date and checksum when the vendor does not publish a
   versioned CAD artifact.
 
+For a catalog-scale generated package where duplicating hundreds of official
+PDFs would make the immutable registry archive operationally unusable, one
+deterministic local source-index document may replace the duplicate binaries.
+This exception does not weaken the evidence requirements: every exact part row
+must still record its official manufacturer document URL, exact device/pinout,
+concrete footprint, upstream artifact commits and licenses, retrieval date, and
+the hash of each frozen input. The importer must fail closed on ambiguous joins
+and prove the complete footprint pad-number set equals the manufacturer pin
+source. Keep a local PDF for any hand-audited override whose page geometry is
+the primary footprint authority. Document the exception and archive-size reason
+in the package's `docs/README.md`.
+
 One family datasheet may cover several parts, but the mapping must be explicit.
 Attach the local document to both the device and part declarations:
 

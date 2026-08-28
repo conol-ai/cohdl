@@ -1162,7 +1162,37 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
                     ),
                 ));
             }
-            if let crate::ast::PadPaste::Rect(w, h) = paste {
+            if let crate::ast::PadPaste::Circle(diameter) = paste {
+                if diameter.unit != UnitType::Length {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "circular paste aperture diameter is a `Length` (`mm`) literal — `{}` is a `{}`",
+                            diameter.text,
+                            diameter.unit.type_name()
+                        ),
+                    ));
+                } else if diameter.femto <= 0 {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` has a non-positive circular paste aperture diameter `{}`",
+                            pad.name.name, diameter.text
+                        ),
+                    ));
+                } else if !diameter.length_in_geom_range() {
+                    diags.push(Diagnostic::error(
+                        "E805",
+                        *span,
+                        format!(
+                            "pad `{}` circular paste aperture diameter `{}` is too large to project (review R5-5)",
+                            pad.name.name, diameter.text
+                        ),
+                    ));
+                }
+            } else if let crate::ast::PadPaste::Rect(w, h) = paste {
                 for v in [w, h] {
                     if v.unit != UnitType::Length {
                         diags.push(Diagnostic::error(

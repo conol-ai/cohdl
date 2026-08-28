@@ -21,6 +21,7 @@ footprints live in focused packages:
 | `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | QFN, DFN, and SON lands; each part binding still requires package-specific qualification |
 | `qfp` | `qfp::QFP50P900X900X160_48N` | audited QFP package land patterns, separated from manufacturer component libraries |
 | `bga` | `bga::BGA64C50P8X8_500X500X60N` | audited BGA package land patterns with exact populated-ball maps |
+| `csp` | `csp::KICAD_ST_WLCSP_49_DIE448` | attributed chip-scale package lands with exact populated-ball maps |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
@@ -43,7 +44,7 @@ footprints live in focused packages:
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
 | `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
-| `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::STM32C531CBT6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus audited exact parts with dependency-owned fabrication geometry |
+| `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::MCU_STM32F103C8T6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus source-joined exact parts with attributed dependency-owned fabrication geometry |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3`, `espressif_esp32::chips::s3::ESP32_S3R8` | Espressif SoCs and modules |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and public, manufacturer-land-pattern part bindings |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |

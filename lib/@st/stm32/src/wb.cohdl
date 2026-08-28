@@ -4,11 +4,12 @@
 // 10 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32WB15CCYx; WLCSP49; source mcu/STM32WB15CCYx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB15CCYx {
     pins {
         required VDDSMPS: A1 [power_in]
@@ -104,6 +105,7 @@ impl IC for STM32WB1MMCHx {}
 
 // ST model STM32WB55VCQx; UFBGA129; source mcu/STM32WB55VCQx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VCQx {
     pins {
         optional PE1: A1 [bidirectional]
@@ -205,6 +207,7 @@ impl IC for STM32WB55VCQx {}
 
 // ST model STM32WB55VCYx; WLCSP100; source mcu/STM32WB55VCYx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VCYx {
     pins {
         optional PA11: A1 [bidirectional]
@@ -305,6 +308,7 @@ impl IC for STM32WB55VCYx {}
 
 // ST model STM32WB55VEQx; UFBGA129; source mcu/STM32WB55VEQx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VEQx {
     pins {
         optional PE1: A1 [bidirectional]
@@ -406,6 +410,7 @@ impl IC for STM32WB55VEQx {}
 
 // ST model STM32WB55VEYx; WLCSP100; source mcu/STM32WB55VEYx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VEYx {
     pins {
         optional PA11: A1 [bidirectional]
@@ -506,6 +511,7 @@ impl IC for STM32WB55VEYx {}
 
 // ST model STM32WB55VGQx; UFBGA129; source mcu/STM32WB55VGQx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VGQx {
     pins {
         optional PE1: A1 [bidirectional]
@@ -607,6 +613,7 @@ impl IC for STM32WB55VGQx {}
 
 // ST model STM32WB55VGYx; WLCSP100; source mcu/STM32WB55VGYx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VGYx {
     pins {
         optional PA11: A1 [bidirectional]
@@ -707,6 +714,7 @@ impl IC for STM32WB55VGYx {}
 
 // ST model STM32WB55VYYx; WLCSP100; source mcu/STM32WB55VYYx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WB55VYYx {
     pins {
         optional PA11: A1 [bidirectional]
@@ -894,3 +902,99 @@ pub device STM32WB5MMGHx {
 }
 
 impl IC for STM32WB5MMGHx {}
+
+// Source-backed exact order codes with complete copper geometry.
+// Tape/reel order codes are alternates only when they collapse
+// to the same checked electrical and package identity.
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB15CCY6TR: STM32WB15CCYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB15CCY6TR",
+              footprint: csp::KICAD_ST_WLCSP_49_3_3X3_38MM_LAYOUT7X7_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VCQ6: STM32WB55VCQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VCQ6",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VCQ7: STM32WB55VCQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VCQ7",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VCY6TR: STM32WB55VCYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VCY6TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VCY7TR: STM32WB55VCYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VCY7TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VEQ6: STM32WB55VEQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VEQ6",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WB55VEQ6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VEQ7: STM32WB55VEQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VEQ7",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VEY6TR: STM32WB55VEYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VEY6TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VEY7TR: STM32WB55VEYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VEY7TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VGQ6: STM32WB55VGQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VGQ6",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WB55VGQ6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VGQ7: STM32WB55VGQx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VGQ7",
+              footprint: bga::KICAD_ST_UFBGA_129_7X7MM_LAYOUT13X13_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VGY6TR: STM32WB55VGYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VGY6TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VGY7TR: STM32WB55VGYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VGY7TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VYY6TR: STM32WB55VYYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VYY6TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WB55VYY7TR: STM32WB55VYYx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WB55VYY7TR",
+              footprint: csp::KICAD_ST_WLCSP_100_4_4X4_38MM_LAYOUT10X10_P0_4MM_OFFCENTER }
+}

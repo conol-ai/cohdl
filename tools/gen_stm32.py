@@ -4,9 +4,11 @@
 STM32_open_pin_data identifies package-specific product patterns such as
 ``STM32F103C(8-B)Tx``: the lowercase ``x`` is an ordering-code wildcard, not an
 exact purchasable MPN.  The broad import therefore emits devices.  Exact
-``pub part`` declarations are emitted only from the separately reviewed
-``tools/stm32_data/parts.json`` overlay, where each order code, local document,
-document hash, source device, and complete external land pattern is checked.
+``pub part`` declarations are emitted only after an exact order code, pinned ST
+pinout, official ST datasheet URL, and concrete dependency-owned land pattern
+join uniquely.  ``tools/stm32_data/parts.json`` retains the stronger local-PDF
+audit for fourteen F072 identities; ``kicad_parts.json`` freezes the broader
+attributed source join.
 
 Normal regeneration is offline and deterministic:
 
@@ -39,6 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / "tools" / "stm32_data" / "pin_data.json"
 ORDER_CODES = ROOT / "tools" / "stm32_data" / "order_codes.txt"
 PARTS = ROOT / "tools" / "stm32_data" / "parts.json"
+KICAD_PARTS = ROOT / "tools" / "stm32_data" / "kicad_parts.json"
 DEFAULT_OUT = ROOT / "lib" / "@st" / "stm32" / "src"
 PACKAGE_ROOT = DEFAULT_OUT.parent
 
@@ -48,12 +51,23 @@ C5_DFP_COMMIT = "a5f65bc64535cfa723e9d25f58d7ce23d0937aed"
 C5_DFP_TAG = "2.1.0"
 SNAPSHOT_SCHEMA = 1
 PARTS_SCHEMA = 1
+KICAD_PARTS_SCHEMA = 1
 SNAPSHOT_SHA256 = "c652aec5052601b99b9aacc066354a2f20450599e03d261e6fadebd95a48b682"
 ORDER_CODES_SHA256 = "5d6ae32eb20f8cbb82225b90c8332ebc93219a3398a93db634889644832cf8dc"
 PARTS_SHA256 = "3d0b76e8461f8fff3d33bbd6c1519d8ab9d6d1e7881e4b5ae494215003b6d6db"
+KICAD_PARTS_SHA256 = "3770ec5e52a60cf07f2134e4a721520acf200591a7ab6ead07e0614425e94c1f"
 
 DOC_OPEN = "docs/stm32-open-pin-data.md"
 DOC_C5 = "docs/stm32c5xx-dfp.md"
+DOC_CATALOG = "docs/stm32-part-catalog.md"
+
+KICAD_PACKAGE_OWNERS = {
+    "Package_BGA": "bga",
+    "Package_CSP": "csp",
+    "Package_QFP": "qfp",
+    "Package_SO": "soic",
+}
+CHECKED_FOCUSED_FOOTPRINTS: set[str] = set()
 
 # Preserve distinct names such as PC2_C/PC3_C.  Only strip the oscillator,
 # bracketed-remap, and similar annotations that follow a complete GPIO name.
@@ -495,8 +509,9 @@ def natural_key(value: str) -> tuple:
 def portfolio_matches(models: list[dict]) -> dict:
     """Map the exact ST portfolio inventory onto source pinout patterns.
 
-    The website inventory is a validation/search aid only. It never supplies
-    pin data, connection semantics, parts, or footprints.
+    The website inventory supplies exact factual order-code spelling only. It
+    never supplies pin data, connection semantics, or footprints; those must
+    arrive through the separately pinned source join before a part is emitted.
     """
     if not ORDER_CODES.is_file():
         raise ValueError(f"missing exact STM32 portfolio inventory {ORDER_CODES}")
@@ -911,6 +926,287 @@ def load_audited_parts(snapshot: dict, portfolio: dict) -> list[dict]:
     return sorted(loaded, key=lambda part: (part["family"], part["name"]))
 
 
+def cohdl_kicad_footprint(qualified: str) -> str:
+    """Map a pinned KiCad library name to its focused CoHDL package symbol."""
+    if qualified.count(":") != 1:
+        raise ValueError(f"invalid KiCad footprint name {qualified!r}")
+    library, stem = qualified.split(":", 1)
+    owner = KICAD_PACKAGE_OWNERS.get(library)
+    if owner is None:
+        raise ValueError(f"unsupported KiCad footprint library {library!r}")
+    symbol = "KICAD_" + re.sub(r"[^A-Za-z0-9]+", "_", stem).strip("_").upper()
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", symbol):
+        raise ValueError(f"KiCad footprint {qualified!r} cannot name a CoHDL symbol")
+    return f"{owner}::{symbol}"
+
+
+def require_focused_footprint_symbol(symbol: str, context: str) -> None:
+    if symbol in CHECKED_FOCUSED_FOOTPRINTS:
+        return
+    segments = symbol.split("::")
+    package_root = ROOT / "lib" / segments[0]
+    source_root = package_root / "src"
+    if not (package_root / "cohdl.toml").is_file() or not source_root.is_dir():
+        raise ValueError(
+            f"{context} footprint owner {segments[0]!r} is not a focused bare library"
+        )
+    expected_modules = segments[1:-1]
+    declaration = re.compile(
+        rf"^pub footprint {re.escape(segments[-1])}\s*\{{", re.MULTILINE
+    )
+    matches = []
+    for source in sorted(source_root.rglob("*.cohdl")):
+        relative = source.relative_to(source_root).with_suffix("")
+        actual_modules = [] if len(relative.parts) == 1 else list(relative.parts)
+        if actual_modules == expected_modules and declaration.search(source.read_text()):
+            matches.append(source)
+    if len(matches) != 1:
+        raise ValueError(
+            f"{context} footprint {symbol} resolves to {len(matches)} "
+            "focused-library declarations"
+        )
+    CHECKED_FOCUSED_FOOTPRINTS.add(symbol)
+
+
+def load_kicad_part_catalog() -> dict:
+    """Load the frozen, attributed KiCad/ST exact-part cross-reference."""
+    if not KICAD_PARTS.is_file():
+        raise ValueError(f"missing STM32 KiCad part catalog {KICAD_PARTS}")
+    encoded = KICAD_PARTS.read_bytes()
+    actual_hash = hashlib.sha256(encoded).hexdigest()
+    if actual_hash != KICAD_PARTS_SHA256:
+        raise ValueError(
+            f"STM32 KiCad part catalog hash is {actual_hash}; "
+            f"expected {KICAD_PARTS_SHA256}"
+        )
+    data = json.loads(encoded)
+    root_keys = {"coverage", "mappings", "schema_version", "sources"}
+    if not isinstance(data, dict) or set(data) != root_keys:
+        raise ValueError(
+            "STM32 KiCad part catalog must contain exactly "
+            + ", ".join(sorted(root_keys))
+        )
+    if data.get("schema_version") != KICAD_PARTS_SCHEMA:
+        raise ValueError(
+            f"unsupported STM32 KiCad catalog schema {data.get('schema_version')!r}"
+        )
+    expected_coverage = {
+        "electrical_identities": 2389,
+        "exact_order_code_rows": 3303,
+        "unique_datasheets": 1240,
+        "unique_footprints": 103,
+    }
+    if data.get("coverage") != expected_coverage:
+        raise ValueError(
+            f"STM32 KiCad catalog coverage changed: {data.get('coverage')!r}; "
+            f"expected {expected_coverage!r}"
+        )
+    expected_sources = {
+        "kicad_footprints": "819223b66f96508feaeaa305301b5e6bb5c1038b",
+        "kicad_symbols": "7800d91437ce44e2ed0928f2ad31a287457b8a68",
+    }
+    sources = data.get("sources")
+    if not isinstance(sources, dict) or set(sources) != set(expected_sources):
+        raise ValueError("STM32 KiCad catalog has an invalid sources table")
+    for name, commit in expected_sources.items():
+        source = sources[name]
+        if (
+            not isinstance(source, dict)
+            or source.get("commit") != commit
+            or source.get("license") != "CC-BY-SA-4.0"
+            or source.get("license_sha256")
+            != "45d2bce75e5a4208f5afb01b8fb2c406e700371c4fe2b5f5cd5c443d46db4d8f"
+        ):
+            raise ValueError(f"STM32 KiCad catalog source {name!r} changed")
+    if not isinstance(data.get("mappings"), list):
+        raise ValueError("STM32 KiCad catalog mappings must be a list")
+    return data
+
+
+def load_catalog_parts(
+    snapshot: dict,
+    portfolio: dict,
+    catalog: dict,
+    audited_parts: list[dict],
+) -> list[dict]:
+    """Derive exact parts from the frozen source/device/footprint join."""
+    mapping_keys = {
+        "datasheet",
+        "device",
+        "family",
+        "identity",
+        "kicad_footprint",
+        "package",
+        "pinout_id",
+        "source_model",
+        "symbol",
+        "symbol_path",
+    }
+    model_by_ref = {row["ref"]: (index, row) for index, row in enumerate(snapshot["models"])}
+    if len(model_by_ref) != len(snapshot["models"]):
+        raise ValueError("duplicate STM32 source model reference")
+    pinouts = {row["id"]: row for row in snapshot["pinouts"]}
+    audited_by_identity = {part["identity"]: part for part in audited_parts}
+    seen_identities: set[str] = set()
+    seen_mpns = {
+        row["mpn"]
+        for part in audited_parts
+        for row in [part["primary"], *part["alts"]]
+    }
+    derived = []
+
+    for mapping in catalog["mappings"]:
+        if not isinstance(mapping, dict) or set(mapping) != mapping_keys:
+            raise ValueError(
+                "each STM32 KiCad mapping must contain exactly "
+                + ", ".join(sorted(mapping_keys))
+            )
+        identity = mapping["identity"]
+        if not isinstance(identity, str) or not re.fullmatch(r"STM32[A-Z0-9]+", identity):
+            raise ValueError(f"invalid STM32 KiCad identity {identity!r}")
+        if identity in seen_identities:
+            raise ValueError(f"duplicate STM32 KiCad identity {identity}")
+        seen_identities.add(identity)
+        match = portfolio["matched_identities"].get(identity)
+        if match is None:
+            raise ValueError(f"STM32 KiCad identity {identity} has no exact pinout match")
+        model_index, device = match
+        model = snapshot["models"][model_index]
+        if mapping["source_model"] != model["ref"]:
+            raise ValueError(
+                f"STM32 KiCad identity {identity} selects source model "
+                f"{mapping['source_model']!r}, expected {model['ref']!r}"
+            )
+        if mapping["device"] != device or mapping["family"] != model["family"]:
+            raise ValueError(f"STM32 KiCad identity {identity} device/family drifted")
+        if mapping["pinout_id"] != model["pinout"]:
+            raise ValueError(f"STM32 KiCad identity {identity} pinout drifted")
+        pinout = pinouts.get(model["pinout"])
+        if pinout is None or pinout.get("incomplete"):
+            raise ValueError(f"STM32 KiCad identity {identity} selects an incomplete pinout")
+        normalized_pins(pinout)
+        if mapping["package"] != pinout["package"]:
+            raise ValueError(f"STM32 KiCad identity {identity} package drifted")
+        datasheet = mapping["datasheet"]
+        if (
+            not isinstance(datasheet, str)
+            or not datasheet.startswith("https://www.st.com/")
+            or any(char in datasheet for char in {'"', "\\", "\n", "\r"})
+        ):
+            raise ValueError(f"invalid official datasheet URL for {identity}")
+        footprint = cohdl_kicad_footprint(mapping["kicad_footprint"])
+        require_focused_footprint_symbol(
+            footprint, f"STM32 KiCad identity {identity}"
+        )
+
+        # The manually reviewed DS9826 overlay is a stronger primary source;
+        # keep its exact geometry and local PDF for those fourteen identities.
+        if identity in audited_by_identity:
+            continue
+
+        codes = sorted(portfolio["by_identity"][identity])
+        non_reel = [code for code in codes if not code.endswith("TR")]
+        if len(non_reel) > 1:
+            raise ValueError(f"STM32 identity {identity} has multiple non-TR order codes")
+        if non_reel:
+            primary_mpn = non_reel[0]
+            alternate_codes = [code for code in codes if code != primary_mpn]
+            if alternate_codes not in ([], [primary_mpn + "TR"]):
+                raise ValueError(
+                    f"STM32 identity {identity} has unsupported packaging rows "
+                    f"{alternate_codes}"
+                )
+        else:
+            if len(codes) != 1 or not codes[0].endswith("TR"):
+                raise ValueError(f"STM32 identity {identity} has no deterministic primary")
+            primary_mpn = codes[0]
+            alternate_codes = []
+        for code in codes:
+            if code in seen_mpns:
+                raise ValueError(f"STM32 MPN {code} is emitted more than once")
+            seen_mpns.add(code)
+        derived.append(
+            {
+                "alts": [
+                    {"mfr": "STMicroelectronics", "mpn": code}
+                    for code in alternate_codes
+                ],
+                "device": device,
+                "docs": [DOC_CATALOG],
+                "family": model["family"],
+                "footprint": footprint,
+                "identity": identity,
+                "model_index": model_index,
+                "name": "MCU_" + primary_mpn,
+                "primary": {"mfr": "STMicroelectronics", "mpn": primary_mpn},
+            }
+        )
+
+    if seen_identities != set(row["identity"] for row in catalog["mappings"]):
+        raise ValueError("STM32 KiCad catalog identity accounting failed")
+    combined = [*audited_parts, *derived]
+    if len(combined) != catalog["coverage"]["electrical_identities"]:
+        raise ValueError(
+            f"STM32 exact-part coverage is {len(combined)} identities; expected "
+            f"{catalog['coverage']['electrical_identities']}"
+        )
+    rows = sum(1 + len(part["alts"]) for part in combined)
+    if rows != catalog["coverage"]["exact_order_code_rows"]:
+        raise ValueError(
+            f"STM32 exact-part coverage is {rows} rows; expected "
+            f"{catalog['coverage']['exact_order_code_rows']}"
+        )
+    names = [part["name"] for part in combined]
+    if len(names) != len(set(names)):
+        raise ValueError("duplicate generated STM32 part name")
+    return sorted(combined, key=lambda part: (part["family"], part["name"]))
+
+
+def catalog_document(catalog: dict) -> str:
+    """Render the local per-identity provenance document shipped in the tar."""
+    coverage = catalog["coverage"]
+    lines = [
+        "# STM32 exact-part catalog sources",
+        "",
+        "This generated local document is the source index for the exact `pub part`",
+        "declarations in this package. It records the complete MPN-to-device,",
+        "official ST datasheet, and dependency-owned land-pattern join.",
+        "",
+        f"- Electrical identities: {coverage['electrical_identities']}",
+        f"- Exact order-code rows (including terminal `TR` packaging): {coverage['exact_order_code_rows']}",
+        f"- Official ST datasheet URLs: {coverage['unique_datasheets']}",
+        f"- Concrete KiCad footprint variants: {coverage['unique_footprints']}",
+        "- Exact-order-code source: STMicroelectronics MCU portfolio, retrieved 2026-08-27",
+        "  (<https://www.st.com/content/st_com/en/stm32-mcu-developer-zone/mcu-portfolio.html>)",
+        f"- Exact-order-code snapshot SHA-256: `{ORDER_CODES_SHA256}`",
+        "- ST pin sources: the pinned BSD-3-Clause repositories recorded in",
+        "  `stm32-open-pin-data.md` and `stm32c5xx-dfp.md`.",
+        "- KiCad symbol commit: `7800d91437ce44e2ed0928f2ad31a287457b8a68`",
+        "- KiCad footprint commit: `819223b66f96508feaeaa305301b5e6bb5c1038b`",
+        "- KiCad library license: CC-BY-SA-4.0 with its design-output exception;",
+        "  the unmodified notice is shipped as `KICAD_LIBRARY_LICENSE.md`.",
+        "",
+        "The KiCad mapping is secondary evidence. Import admitted a row only when",
+        "the concrete footprint's complete SMD pad-number set exactly equalled the",
+        "physical positions in ST's pinned pin source. No package-name-only or",
+        "nearest-footprint guesses are admitted. The fourteen DS9826-reviewed F072",
+        "parts retain their stronger local-PDF geometry bindings.",
+        "",
+        "## Per-identity source map",
+        "",
+        "| Electrical identity | Device | CoHDL footprint | Official ST datasheet |",
+        "|---|---|---|---|",
+    ]
+    for row in catalog["mappings"]:
+        lines.append(
+            f"| `{row['identity']}` | `{row['device']}` | "
+            f"`{cohdl_kicad_footprint(row['kicad_footprint'])}` | "
+            f"<{row['datasheet']}> |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def normalize_name(raw: str, position: str) -> str:
     raw = raw.strip()
     gpio = GPIO_NAME.match(raw)
@@ -1087,8 +1383,8 @@ def emit_family(
         f"// {expanded_count} models derived from pinned ST device data.",
         "// Ordering-code `x` is retained where ST publishes a wildcard; these",
         "// declarations are devices, not guessed purchasable parts.",
-        "// Exact parts below exist only when the audited overlay supplies a",
-        "// local checked document and a complete dependency-owned footprint.",
+        "// Exact parts below exist only when the source join supplies a local",
+        "// provenance record and a complete dependency-owned footprint.",
         "",
     ]
     docs_by_device: dict[str, list[str]] = {}
@@ -1156,7 +1452,7 @@ def emit_family(
     if parts:
         lines.extend(
             [
-                "// Audited exact order codes with complete fabrication data.",
+                "// Source-backed exact order codes with complete copper geometry.",
                 "// Tape/reel order codes are alternates only when they collapse",
                 "// to the same checked electrical and package identity.",
                 "",
@@ -1184,9 +1480,10 @@ def emit_family(
     return "\n".join(lines)
 
 
-def generated_sources(snapshot: dict) -> dict[str, str]:
+def generated_sources(snapshot: dict, catalog: dict) -> dict[str, str]:
     portfolio = portfolio_matches(snapshot["models"])
     audited_parts = load_audited_parts(snapshot, portfolio)
+    exact_parts = load_catalog_parts(snapshot, portfolio, catalog, audited_parts)
     audit_snapshot_pin_policy(snapshot["pinouts"])
     pinouts = {row["id"]: row for row in snapshot["pinouts"]}
     if len(pinouts) != len(snapshot["pinouts"]):
@@ -1221,19 +1518,19 @@ def generated_sources(snapshot: dict) -> dict[str, str]:
         for index, model in enumerate(snapshot["models"])
         if model["pinout"] in excluded_pinouts
     }
-    for part in audited_parts:
+    for part in exact_parts:
         if part["model_index"] in excluded_model_indices:
             model = snapshot["models"][part["model_index"]]
             raise ValueError(
-                f"audited STM32 part {part['name']} selects excluded pinout "
+                f"exact STM32 part {part['name']} selects excluded pinout "
                 f"{model['pinout']}: {excluded_pinouts[model['pinout']]}"
             )
     parts_by_family: dict[str, list[dict]] = {}
-    for part in audited_parts:
+    for part in exact_parts:
         parts_by_family.setdefault(part["family"], []).append(part)
     for family in parts_by_family:
         if family not in by_family:
-            raise ValueError(f"audited STM32 parts select ungenerated family {family}")
+            raise ValueError(f"exact STM32 parts select ungenerated family {family}")
 
     sources = {
         family_file(family): emit_family(
@@ -1255,10 +1552,8 @@ def generated_sources(snapshot: dict) -> dict[str, str]:
         for identity, (index, _) in portfolio["matched_identities"].items()
         if index not in excluded_model_indices
     )
-    audited_order_code_rows = sum(
-        1 + len(part["alts"]) for part in audited_parts
-    )
-    audited_identities = {part["identity"] for part in audited_parts}
+    exact_order_code_rows = sum(1 + len(part["alts"]) for part in exact_parts)
+    exact_identities = {part["identity"] for part in exact_parts}
     coverage = [
         "// Generated STM32 catalog coverage — do not hand-edit.",
         "//",
@@ -1271,18 +1566,19 @@ def generated_sources(snapshot: dict) -> dict[str, str]:
         f"// Matched identities represented by emitted devices: {emitted_portfolio_identities}",
         f"// Exact order-code rows represented by emitted devices: {emitted_portfolio_rows}",
         f"// Portfolio identities unmatched to pinned pinouts: {len(portfolio['unmatched'])}",
-        f"// Fabrication-ready audited pub parts: {len(audited_parts)}",
-        f"// Electrical identities covered by audited parts: {len(audited_identities)}",
-        f"// Exact order-code rows covered by audited parts: {audited_order_code_rows}",
+        f"// Source-backed pub parts with concrete footprints: {len(exact_parts)}",
+        f"// Electrical identities covered by exact parts: {len(exact_identities)}",
+        f"// Exact order-code rows covered by exact parts: {exact_order_code_rows}",
         "// Represented exact rows awaiting fabrication audit: "
-        f"{emitted_portfolio_rows - audited_order_code_rows}",
+        f"{emitted_portfolio_rows - exact_order_code_rows}",
         "// All portfolio rows not emitted as exact parts: "
-        f"{len(portfolio['rows']) - audited_order_code_rows}",
+        f"{len(portfolio['rows']) - exact_order_code_rows}",
         "//",
-        "// The broad exact portfolio is tooling-only validation input and is not",
-        "// copied wholesale into package sources. Exact rows appear only through",
-        "// the source-backed audited-parts overlay; the website inventory never",
-        "// supplies pin identity, electrical semantics, or fabrication geometry.",
+        "// The broad exact portfolio supplies exact MPN spelling only. A row",
+        "// becomes a part only through the frozen ST-pin/KiCad-footprint join",
+        "// whose pad set and official ST",
+        "// datasheet URL are checked; the website never supplies pin semantics or",
+        "// fabrication geometry.",
         "//",
         "// Product boundary: STM32MP application processors are not imported into",
         "// this MCU package; they require a separate interface and package policy.",
@@ -1341,8 +1637,19 @@ def write_or_check(sources: dict[str, str], out: pathlib.Path, check: bool) -> N
     parts = sum(content.count("pub part ") for content in sources.values())
     print(
         f"{verb} {len(sources)} files, {devices} devices, {pins} logical pins, "
-        f"{parts} audited parts under {out}"
+        f"{parts} exact parts under {out}"
     )
+
+
+def write_or_check_catalog_document(catalog: dict, check: bool) -> None:
+    path = PACKAGE_ROOT / DOC_CATALOG
+    encoded = catalog_document(catalog).encode()
+    if check:
+        if not path.is_file() or path.read_bytes() != encoded:
+            raise SystemExit(f"generated STM32 catalog document is stale: {path}")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(encoded)
 
 
 def main() -> None:
@@ -1368,7 +1675,9 @@ def main() -> None:
         snapshot = import_sources(*args.import_sources)
     else:
         snapshot = load_snapshot()
-    write_or_check(generated_sources(snapshot), args.output_root, args.check)
+    catalog = load_kicad_part_catalog()
+    write_or_check_catalog_document(catalog, args.check)
+    write_or_check(generated_sources(snapshot, catalog), args.output_root, args.check)
 
 
 if __name__ == "__main__":

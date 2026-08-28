@@ -1,11 +1,13 @@
 [package]
 name = "@st/stm32"
-version = "0.2.0"
-license = "MIT AND BSD-3-Clause"
-description = "STMicroelectronics STM32 MCU device catalog and source-audited exact parts."
+version = "0.2.1"
+license = "MIT AND BSD-3-Clause AND CC-BY-SA-4.0"
+description = "STMicroelectronics STM32 MCU catalog with source-joined exact parts and attributed fabrication data."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-bga = "0.1.0"
-qfp = "0.1.0"
+bga = "0.2.0"
+csp = "0.1.0"
+qfp = "0.2.0"
+soic = "0.2.0"
 std = "0.3.0"

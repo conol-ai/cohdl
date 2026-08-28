@@ -4,11 +4,12 @@
 // 10 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32WL54JCIx; UFBGA73; source mcu/STM32WL54JCIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WL54JCIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -82,6 +83,7 @@ impl IC for STM32WL54JCIx {}
 
 // ST model STM32WL55JCIx; UFBGA73; source mcu/STM32WL55JCIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WL55JCIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -279,6 +281,7 @@ impl IC for STM32WL5MOCHxS {}
 
 // ST model STM32WLE4J8Ix; UFBGA73; source mcu/STM32WLE4J8Ix.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE4J8Ix {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -352,6 +355,7 @@ impl IC for STM32WLE4J8Ix {}
 
 // ST model STM32WLE4JBIx; UFBGA73; source mcu/STM32WLE4JBIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE4JBIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -425,6 +429,7 @@ impl IC for STM32WLE4JBIx {}
 
 // ST model STM32WLE4JCIx; UFBGA73; source mcu/STM32WLE4JCIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE4JCIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -498,6 +503,7 @@ impl IC for STM32WLE4JCIx {}
 
 // ST model STM32WLE5J8Ix; UFBGA73; source mcu/STM32WLE5J8Ix.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE5J8Ix {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -571,6 +577,7 @@ impl IC for STM32WLE5J8Ix {}
 
 // ST model STM32WLE5JBIx; UFBGA73; source mcu/STM32WLE5JBIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE5JBIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -644,6 +651,7 @@ impl IC for STM32WLE5JBIx {}
 
 // ST model STM32WLE5JCIx; UFBGA73; source mcu/STM32WLE5JCIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WLE5JCIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -714,3 +722,82 @@ pub device STM32WLE5JCIx {
 }
 
 impl IC for STM32WLE5JCIx {}
+
+// Source-backed exact order codes with complete copper geometry.
+// Tape/reel order codes are alternates only when they collapse
+// to the same checked electrical and package identity.
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WL54JCI6: STM32WL54JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WL54JCI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WL54JCI7: STM32WL54JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WL54JCI7",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WL55JCI6: STM32WL55JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WL55JCI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WL55JCI6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WL55JCI7: STM32WL55JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WL55JCI7",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE4J8I6: STM32WLE4J8Ix {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE4J8I6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE4JBI6: STM32WLE4JBIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE4JBI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE4JCI6: STM32WLE4JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE4JCI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE4JCI7: STM32WLE4JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE4JCI7",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE5J8I6: STM32WLE5J8Ix {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE5J8I6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE5JBI6: STM32WLE5JBIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE5JBI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WLE5JBI6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE5JCI6: STM32WLE5JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE5JCI6",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WLE5JCI6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WLE5JCI7: STM32WLE5JCIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WLE5JCI7",
+              footprint: bga::KICAD_ST_UFBGA_73_5X5MM_LAYOUT9X9_P0_5MM }
+}

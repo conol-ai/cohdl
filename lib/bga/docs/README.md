@@ -57,7 +57,34 @@ also checked ball-for-ball against the pinned ST pin data above.
 
 DS9826 recommends a 0.370 mm typical solder-mask opening, a 0.280 mm stencil
 opening, and 0.100-0.125 mm stencil thickness for both packages; it additionally
-recommends a 0.100 mm trace width for UFBGA64. CoHDL's current pad declaration
-expresses the official copper land but cannot express independent solder-mask
-or paste apertures, stencil thickness, or trace width. Those values remain
+recommends a 0.100 mm trace width for UFBGA64. The two older hand-audited
+declarations express the official copper land only; their independent
+solder-mask/paste apertures, stencil thickness, and trace width remain recorded
 fabrication requirements for the board layout and stencil process.
+
+## Generated KiCad BGA subset
+
+`src/kicad_generated.cohdl` adds 20 public `KICAD_*` BGA footprints used by
+the source-backed STM32 catalog. These are additional patterns; the two
+hand-audited STM32F072 patterns above are preserved unchanged.
+
+The normalized source is
+`tools/stm32_footprint_data/footprints.json`, imported from the official KiCad
+footprint library at commit
+`819223b66f96508feaeaa305301b5e6bb5c1038b` (footprint format `20260206`).
+Each source-file SHA-256 is retained in the snapshot and beside its generated
+declaration. Regenerate offline with `python3 tools/gen_stm32_footprints.py`.
+
+For this generated subset, every ball number, copper diameter, position,
+rotation, solder-mask expansion, and effective circular paste-aperture
+diameter is retained exactly. KiCad paste ratios are evaluated on KiCad's
+one-nanometre internal grid before the aperture diameter is frozen. The source
+courtyards are already rectangles and remain exact. Source pin-1 polygon
+vertices and fill are retained; CoHDL emits its standard silkscreen polygon
+hairline. Other source package-outline/fabrication/3D graphics are outside
+this focused land-pattern projection.
+
+The generated subset is attributed to the KiCad project and contributors and
+is redistributed under CC-BY-SA-4.0 with the KiCad library exception; see
+`LICENSE.kicad.md`. Existing hand-authored declarations retain their original
+MIT terms. The package manifest records both licenses for the aggregate.

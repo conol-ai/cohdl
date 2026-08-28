@@ -458,6 +458,7 @@ fn pad_payload(p: &ast::PadDef) -> Val {
         let v = match paste {
             PadPaste::None => s("none"),
             PadPaste::Rect(w, h) => Val::Obj(vec![("rect", Val::Arr(vec![mm(w), mm(h)]))]),
+            PadPaste::Circle(diameter) => Val::Obj(vec![("circle", mm(diameter))]),
             PadPaste::SegmentedAnnulus(vals) => Val::Obj(vec![(
                 "segmented_annulus",
                 Val::Arr(vals.iter().map(mm).collect()),

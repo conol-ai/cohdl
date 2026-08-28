@@ -1190,6 +1190,9 @@ impl Formatter<'_> {
             let value = match paste {
                 crate::ast::PadPaste::None => "none".to_string(),
                 crate::ast::PadPaste::Rect(w, h) => format!("({}, {})", w.text, h.text),
+                crate::ast::PadPaste::Circle(diameter) => {
+                    format!("circle({})", diameter.text)
+                }
                 crate::ast::PadPaste::SegmentedAnnulus(values) => format!(
                     "segmented_annulus({}, {}, {})",
                     values[0].text, values[1].text, values[2].text

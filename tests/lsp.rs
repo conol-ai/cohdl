@@ -2167,6 +2167,7 @@ fn completion_covers_post_rfc014_keywords() {
         "bypass",
         "crystal_oscillator",
         "placement_hint",
+        "circle",
         "annulus",
         "segmented_annulus",
     ] {
@@ -2208,6 +2209,28 @@ fn annulus_hover_explains_bounded_geometry() {
             .is_some_and(|value| value.contains("four cardinal stencil sectors")),
         "{}",
         segmented
+    );
+    lsp.shutdown();
+}
+
+#[test]
+fn circular_paste_hover_explains_the_independent_aperture() {
+    let text = "pub pad P { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(0.24mm) }\n";
+    let column = (text.find("paste: circle").unwrap() + "paste: ".len()) as u64;
+    let (_path, uri, text) = fixture("circle-paste-hover.cohdl", text);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 0, "character": column } }),
+    );
+    assert!(
+        hover["contents"]["value"]
+            .as_str()
+            .is_some_and(|value| value.contains("independently sized circular stencil opening")),
+        "{}",
+        hover
     );
     lsp.shutdown();
 }

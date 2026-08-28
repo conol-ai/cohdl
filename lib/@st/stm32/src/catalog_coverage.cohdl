@@ -8,16 +8,17 @@
 // Matched identities represented by emitted devices: 2731
 // Exact order-code rows represented by emitted devices: 3708
 // Portfolio identities unmatched to pinned pinouts: 180
-// Fabrication-ready audited pub parts: 14
-// Electrical identities covered by audited parts: 14
-// Exact order-code rows covered by audited parts: 22
-// Represented exact rows awaiting fabrication audit: 3686
-// All portfolio rows not emitted as exact parts: 4908
+// Source-backed pub parts with concrete footprints: 2389
+// Electrical identities covered by exact parts: 2389
+// Exact order-code rows covered by exact parts: 3303
+// Represented exact rows awaiting fabrication audit: 405
+// All portfolio rows not emitted as exact parts: 1627
 //
-// The broad exact portfolio is tooling-only validation input and is not
-// copied wholesale into package sources. Exact rows appear only through
-// the source-backed audited-parts overlay; the website inventory never
-// supplies pin identity, electrical semantics, or fabrication geometry.
+// The broad exact portfolio supplies exact MPN spelling only. A row
+// becomes a part only through the frozen ST-pin/KiCad-footprint join
+// whose pad set and official ST
+// datasheet URL are checked; the website never supplies pin semantics or
+// fabrication geometry.
 //
 // Product boundary: STM32MP application processors are not imported into
 // this MCU package; they require a separate interface and package policy.

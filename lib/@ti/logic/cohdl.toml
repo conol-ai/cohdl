@@ -1,10 +1,10 @@
 [package]
 name = "@ti/logic"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Texas Instruments logic devices and purchasable parts."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-soic = "0.1.0"
+soic = "0.2.0"
 std = "0.3.0"

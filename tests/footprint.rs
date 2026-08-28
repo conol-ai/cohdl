@@ -66,6 +66,24 @@ pub part P: D { primary { mfr: "m", mpn: "controlled", footprint: FP_CONTROLLED 
 design B { inst p: P nc: p.A }
 "#;
 
+/// A BGA-style circular copper land with a smaller, independently authored
+/// circular stencil opening.
+const CIRCULAR_PASTE: &str = r#"
+pub pad P_Ball {
+    shape: circle
+    size: (0.3mm)
+    layer: top_copper
+    plating: smd
+    paste: circle(0.24mm)
+}
+pub footprint FP_BALL {
+    pad 1: P_Ball at (1mm, -2mm) rotate 90
+}
+pub device D { pins { A: 1 [passive] } }
+pub part P: D { primary { mfr: "m", mpn: "circular-paste", footprint: FP_BALL } }
+design B { inst p: P nc: p.A }
+"#;
+
 /// One electrical exposed-pad number implemented by front copper, a smaller
 /// rounded paste-segmentation land, two thermal vias, and back copper.
 const REPEATED_EP: &str = r#"
@@ -472,10 +490,132 @@ fn bounded_pad_controls_parse_and_validate() {
             assert_eq!(h.text, "0.15mm");
         }
         cohdl::ast::PadPaste::None => panic!("expected a reduced paste aperture"),
+        cohdl::ast::PadPaste::Circle(..) => {
+            panic!("expected a rectangular paste aperture")
+        }
         cohdl::ast::PadPaste::SegmentedAnnulus(..) => {
             panic!("expected a rectangular paste aperture")
         }
     }
+}
+
+#[test]
+fn circular_paste_parses_formats_and_validates() {
+    let (checked, rendered) = check(&[("src/main.cohdl", CIRCULAR_PASTE)]);
+    assert!(!rendered.contains("error"), "{rendered}");
+    let pad = &checked.world.pads["board::P_Ball"];
+    let cohdl::ast::PadPaste::Circle(diameter) = &pad.paste.as_ref().expect("paste parsed").0
+    else {
+        panic!("expected circular paste")
+    };
+    assert_eq!(diameter.text, "0.24mm");
+
+    let messy = CIRCULAR_PASTE.replace("paste: circle(0.24mm)", "paste : circle ( 0.24mm )");
+    let once = cohdl::fmt::format_source("circle-paste.cohdl", &messy).unwrap();
+    assert!(once.contains("    paste: circle(0.24mm)\n"), "{once}");
+    assert_eq!(
+        once,
+        cohdl::fmt::format_source("circle-paste.cohdl", &once).unwrap()
+    );
+
+    let cases = [
+        (
+            "Length",
+            "pub pad P { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(1ohm) }",
+        ),
+        (
+            "non-positive",
+            "pub pad P { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(0mm) }",
+        ),
+        (
+            "only valid on `plating: smd`",
+            "pub pad P { shape: circle, size: (0.5mm), layer: through_all, plating: plated_through_hole, drill: 0.2mm, paste: circle(0.3mm) }",
+        ),
+        (
+            "circle(diameter)",
+            "pub pad P { shape: circle, size: (0.3mm), layer: top_copper, plating: smd, paste: circle(0.2mm, 0.2mm) }",
+        ),
+    ];
+    for (needle, source) in cases {
+        let (_, rendered) = check(&[("bad.cohdl", source)]);
+        assert!(
+            rendered.contains("E805") && rendered.contains(needle),
+            "{needle} must be rejected cleanly:\n{rendered}"
+        );
+    }
+
+    let larger = CIRCULAR_PASTE.replace("circle(0.24mm)", "circle(0.36mm)");
+    let (_, rendered) = check(&[("larger.cohdl", &larger)]);
+    assert!(
+        !rendered.contains("error"),
+        "positive circular paste margins are valid:\n{rendered}"
+    );
+}
+
+#[test]
+fn circular_paste_projects_to_kicad_and_ipc2581() {
+    let (checked, artifacts) = build_real(CIRCULAR_PASTE);
+    assert!(
+        artifacts.is_some() && !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    let ir = checked.ir.as_ref().unwrap();
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    assert!(
+        kicad.contains(
+            "(pad \"1\" smd circle (at 1 -2 90) (size 0.3 0.3) (layers \"F.Cu\" \"F.Mask\"))"
+        ),
+        "{kicad}"
+    );
+    assert!(
+        kicad.contains("(pad \"\" smd circle (at 1 -2 90) (size 0.24 0.24) (layers \"F.Paste\"))"),
+        "{kicad}"
+    );
+    assert_eq!(kicad.matches("F.Paste").count(), 1, "{kicad}");
+
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    assert!(xml.contains("<Circle diameter=\"0.3\"/>"), "{xml}");
+    assert!(xml.contains("<Circle diameter=\"0.24\"/>"), "{xml}");
+    let padstack = xml
+        .split("<PadStackDef name=\"")
+        .nth(1)
+        .expect("padstack")
+        .split("</PadStackDef>")
+        .next()
+        .unwrap();
+    assert!(padstack.contains("layerRef=\"F.Cu\""), "{padstack}");
+    assert!(padstack.contains("layerRef=\"F.Mask\""), "{padstack}");
+    assert!(padstack.contains("layerRef=\"F.Paste\""), "{padstack}");
+    let refs: Vec<&str> = padstack
+        .split("StandardPrimitiveRef id=\"")
+        .skip(1)
+        .filter_map(|s| s.split('"').next())
+        .collect();
+    assert_eq!(refs.len(), 3, "{padstack}");
+    assert_eq!(refs[0], refs[1], "default mask must follow copper");
+    assert_ne!(
+        refs[0], refs[2],
+        "circular paste must retain its own diameter"
+    );
+
+    let larger = CIRCULAR_PASTE.replace("circle(0.24mm)", "circle(0.36mm)");
+    let (larger_checked, artifacts) = build_real(&larger);
+    assert!(
+        artifacts.is_some() && !larger_checked.diags.has_errors(),
+        "{}",
+        larger_checked.diags.render(&larger_checked.sm)
+    );
+    let larger_kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(
+        &larger_checked.world,
+        larger_checked.ir.as_ref().unwrap(),
+    )[0]
+    .2;
+    assert!(
+        larger_kicad
+            .contains("(pad \"\" smd circle (at 1 -2 90) (size 0.36 0.36) (layers \"F.Paste\"))"),
+        "positive paste margins must emit exactly:\n{larger_kicad}"
+    );
 }
 
 #[test]

@@ -4,8 +4,8 @@
 // 15 models derived from pinned ST device data.
 // Ordering-code `x` is retained where ST publishes a wildcard; these
 // declarations are devices, not guessed purchasable parts.
-// Exact parts below exist only when the audited overlay supplies a
-// local checked document and a complete dependency-owned footprint.
+// Exact parts below exist only when the source join supplies a local
+// provenance record and a complete dependency-owned footprint.
 
 // ST model STM32WBA25HEFx; WLCSP37_SMPS_USB; source mcu/STM32WBA25HEFx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
@@ -97,6 +97,7 @@ impl IC for STM32WBA55HEFx {}
 
 // ST model STM32WBA55HGFx; WLCSP41; source mcu/STM32WBA55HGFx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WBA55HGFx {
     pins {
         required VDDRF: A6 [power_in]
@@ -143,6 +144,7 @@ impl IC for STM32WBA55HGFx {}
 
 // ST model STM32WBA55UEIx; UFBGA59; source mcu/STM32WBA55UEIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WBA55UEIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -204,6 +206,7 @@ impl IC for STM32WBA55UEIx {}
 
 // ST model STM32WBA55UGIx; UFBGA59; source mcu/STM32WBA55UGIx.xml.
 #[doc("docs/stm32-open-pin-data.md")]
+#[doc("docs/stm32-part-catalog.md")]
 pub device STM32WBA55UGIx {
     pins {
         required VSSSMPS: A1 [power_in]
@@ -1170,3 +1173,45 @@ pub device STM32WBA6MOIHx {
 }
 
 impl IC for STM32WBA6MOIHx {}
+
+// Source-backed exact order codes with complete copper geometry.
+// Tape/reel order codes are alternates only when they collapse
+// to the same checked electrical and package identity.
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55HGF6TR: STM32WBA55HGFx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55HGF6TR",
+              footprint: csp::KICAD_ST_WLCSP_41_2_98X2_76MM_LAYOUT13X7_P0_4MM_STAGGER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55HGF7TR: STM32WBA55HGFx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55HGF7TR",
+              footprint: csp::KICAD_ST_WLCSP_41_2_98X2_76MM_LAYOUT13X7_P0_4MM_STAGGER }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55UEI6: STM32WBA55UEIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55UEI6",
+              footprint: bga::KICAD_ST_UFBGA_59_5X5MM_LAYOUT8X8_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55UEI7: STM32WBA55UEIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55UEI7",
+              footprint: bga::KICAD_ST_UFBGA_59_5X5MM_LAYOUT8X8_P0_5MM }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55UGI6: STM32WBA55UGIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55UGI6",
+              footprint: bga::KICAD_ST_UFBGA_59_5X5MM_LAYOUT8X8_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WBA55UGI6TR" }
+}
+
+#[doc("docs/stm32-part-catalog.md")]
+pub part MCU_STM32WBA55UGI7: STM32WBA55UGIx {
+    primary { mfr: "STMicroelectronics", mpn: "STM32WBA55UGI7",
+              footprint: bga::KICAD_ST_UFBGA_59_5X5MM_LAYOUT8X8_P0_5MM }
+    alt { mfr: "STMicroelectronics", mpn: "STM32WBA55UGI7TR" }
+}

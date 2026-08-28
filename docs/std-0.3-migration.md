@@ -29,7 +29,7 @@ source roots:
 "@espressif/esp32" = "0.1.0"
 "@raspberrypi/mcu" = "0.1.0"
 "@richtek/dcdc" = "0.1.0"
-"@st/stm32" = "0.1.0"
+"@st/stm32" = "0.2.0"
 "@ti/dcdc" = "0.1.0"
 connectors = "0.1.0"
 diode = "0.1.0"
@@ -62,12 +62,13 @@ the same package structure:
 | `XTAL_8M` and its 3225 land pattern | `osc::*` |
 | `D_1N4148W` and its SOD-123 land pattern | `diode::*` |
 | `J_SWD` 2×3 socket | `connectors::headers::smd_254::SOCKET_2X3_254_SMD` |
-| `MCU_STM32F072` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` |
+| `MCU_STM32F072` | `st_stm32::MCU_STM32F072CBT6` |
 
-The STM32 device now exposes datasheet GPIO names instead of OpenMicro-specific
-aliases. Board functions remain explicit in the design nets—for example,
-OpenMicro's `ROW0` uses `mcu.PA9`, USB D− uses `mcu.PA11`, and SWDIO uses
-`mcu.PA13`.
+The exact STM32F072CBT6 part now binds the generated family device and the
+dependency-owned `qfp` land pattern. It exposes datasheet GPIO names instead
+of OpenMicro-specific aliases. Board functions remain explicit in the design
+nets—for example, OpenMicro's `ROW0` uses `mcu.PA9`, USB D− uses `mcu.PA11`,
+and SWDIO uses `mcu.PA13`.
 
 ## Raspberry Pi Pico 2-local catalog follow-up
 

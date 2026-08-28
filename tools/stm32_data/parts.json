@@ -1,0 +1,335 @@
+{
+  "documents": [
+    {
+      "date": "2019-09-03",
+      "id": "ds9826-r6",
+      "official_url": "https://www.st.com/resource/en/datasheet/stm32f072cb.pdf",
+      "path": "docs/stm32f072cb-datasheet.pdf",
+      "revision": "DS9826 Rev 6",
+      "sha256": "660bc16b5cf99b649da4ebcd2d1bb8d232edd3fb1dc275977b3c6389a85d2453",
+      "title": "STM32F072x8 STM32F072xB datasheet"
+    }
+  ],
+  "package_variants": [
+    {
+      "document": "ds9826-r6",
+      "footprint": "bga::BGA100C50P12X12_700X700X60N",
+      "geometry_locator": "Figure 36, page 101",
+      "id": "ufbga100-7x7-p0p5-ds9826-r6",
+      "pinout_package": "UFBGA100"
+    },
+    {
+      "document": "ds9826-r6",
+      "footprint": "bga::BGA64C50P8X8_500X500X60N",
+      "geometry_locator": "Figure 42, page 107",
+      "id": "ufbga64-5x5-p0p5-ds9826-r6",
+      "pinout_package": "UFBGA64"
+    },
+    {
+      "document": "ds9826-r6",
+      "footprint": "qfp::QFP50P1600X1600X160_100N",
+      "geometry_locator": "Figure 39, page 104",
+      "id": "lqfp100-14x14-p0p5-ds9826-r6",
+      "pinout_package": "LQFP100"
+    },
+    {
+      "document": "ds9826-r6",
+      "footprint": "qfp::QFP50P1200X1200X160_64N",
+      "geometry_locator": "Figure 45, page 110",
+      "id": "lqfp64-10x10-p0p5-ds9826-r6",
+      "pinout_package": "LQFP64"
+    },
+    {
+      "document": "ds9826-r6",
+      "footprint": "qfp::QFP50P900X900X160_48N",
+      "geometry_locator": "Figure 50, page 116",
+      "id": "lqfp48-7x7-p0p5-ds9826-r6",
+      "pinout_package": "LQFP48"
+    }
+  ],
+  "parts": [
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072C8T6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072C8Tx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072C8T6",
+      "package_variant": "lqfp48-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072C8T6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (C/8/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072C8Tx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072C8T7",
+      "package_variant": "lqfp48-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072C8T7",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (C/8/T/7 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072CBT6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072CBTx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072CBT6",
+      "package_variant": "lqfp48-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072CBT6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (C/B/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072CBTx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072CBT7",
+      "package_variant": "lqfp48-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072CBT7",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (C/B/T/7 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072R8T6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072R8Tx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072R8T6",
+      "package_variant": "lqfp64-10x10-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072R8T6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (R/8/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072R8Tx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072R8T7",
+      "package_variant": "lqfp64-10x10-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072R8T7",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (R/8/T/7 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072RBT6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072RBTx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072RBT6",
+      "package_variant": "lqfp64-10x10-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072RBT6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (R/B/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072RBT7TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072RBTx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072RBT7",
+      "package_variant": "lqfp64-10x10-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072RBT7",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (R/B/T/7 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072V8Tx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072V8T6",
+      "package_variant": "lqfp100-14x14-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072V8T6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (V/8/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072VBT6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072VBTx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072VBT6",
+      "package_variant": "lqfp100-14x14-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072VBT6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (V/B/T/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072RBH6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072RBHx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072RBH6",
+      "package_variant": "ufbga64-5x5-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072RBH6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (R/B/H/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072V8Hx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072V8H6",
+      "package_variant": "ufbga100-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072V8H6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (V/8/H/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [
+        {
+          "mfr": "STMicroelectronics",
+          "mpn": "STM32F072VBH6TR",
+          "order_code_source": {
+            "document": "ds9826-r6",
+            "locator": "Section 8, page 124 (TR tape-and-reel option)"
+          }
+        }
+      ],
+      "device": "STM32F072VBHx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072VBH6",
+      "package_variant": "ufbga100-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072VBH6",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (V/B/H/6 ordering fields)"
+        }
+      }
+    },
+    {
+      "alts": [],
+      "device": "STM32F072VBHx",
+      "family": "STM32F0",
+      "name": "MCU_STM32F072VBH7",
+      "package_variant": "ufbga100-7x7-p0p5-ds9826-r6",
+      "primary": {
+        "mfr": "STMicroelectronics",
+        "mpn": "STM32F072VBH7",
+        "order_code_source": {
+          "document": "ds9826-r6",
+          "locator": "Section 8, page 124 (V/B/H/7 ordering fields)"
+        }
+      }
+    }
+  ],
+  "schema_version": 1
+}

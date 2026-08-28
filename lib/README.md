@@ -19,6 +19,8 @@ footprints live in focused packages:
 | `std` | unqualified prelude traits such as `IC` and `Connector` | universal component contracts only |
 | `passive` | `passive::MLCC` | generated chip resistors, MLCCs, chip inductors, lands, and passive helper circuits |
 | `qfn` | `qfn::QFN56N40P700X700_1EP400X400` | QFN, DFN, and SON lands; each part binding still requires package-specific qualification |
+| `qfp` | `qfp::QFP50P900X900X160_48N` | audited QFP package land patterns, separated from manufacturer component libraries |
+| `bga` | `bga::BGA64C50P8X8_500X500X60N` | audited BGA package land patterns with exact populated-ball maps |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
@@ -41,7 +43,7 @@ footprints live in focused packages:
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
 | `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
-| `@st/stm32` | `st_stm32::f0::stm32f072cb::MCU_STM32F072` | STMicroelectronics STM32 MCUs |
+| `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::STM32C531CBT6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus audited exact parts with dependency-owned fabrication geometry |
 | `@espressif/esp32` | `espressif_esp32::chips::s3::ESP32_S3`, `espressif_esp32::chips::s3::ESP32_S3R8` | Espressif SoCs and modules |
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and public, manufacturer-land-pattern part bindings |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
@@ -53,9 +55,9 @@ footprints live in focused packages:
 
 Scoped manifest names are quoted (`"@ti/dcdc"`, `"@raspberrypi/mcu"`); their
 CoHDL package namespace is normalized (`ti_dcdc`, `raspberrypi_mcu`).
-Because dependency loading is intentionally direct-only, a design that
-instantiates a part whose qualified footprint lives in `qfn` also lists
-`qfn = "0.1.0"` in its own manifest.
+Focused footprint dependencies such as `qfn`, `qfp`, and `bga` travel through
+the transitive package closure. A root design repeats one of those pins only
+when it intentionally uses RFC-029's root-pin authority to choose its version.
 
 Existing projects can use the
 [std 0.3 migration table](../docs/std-0.3-migration.md) to replace former

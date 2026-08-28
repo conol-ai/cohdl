@@ -278,10 +278,10 @@ locking the consumer:
 6. Run `cohdl update` for the manufacturer package and then check it, updating
    the consumer's lock entry through the CLI.
 7. Remove the old declaration completely; do not leave two owners.
-8. Add the package library as a direct dependency of every design that
-   instantiates the manufacturer part. CoHDL intentionally resolves only a
-   project's direct dependency set; it does not traverse dependency manifests
-   transitively.
+8. Let the manufacturer package carry the package-family dependency into the
+   transitive compile closure. A design may also pin that dependency directly
+   when it needs to choose the authoritative version for the full closure, but
+   it does not repeat the pin merely to make the qualified footprint resolve.
 
 For the ESP32 extraction:
 
@@ -295,10 +295,10 @@ std = "0.3.0"
 footprint: qfn::QFN56N40P700X700_1EP400X400
 ```
 
-A board that instantiates this part also declares `qfn = "0.1.0"` alongside
-`"@espressif/esp32" = "0.1.0"`. The manufacturer package needs `qfn` so it can
-be checked independently, while the board needs `qfn` so the qualified
-footprint symbol is present in its own compilation world.
+A board that instantiates this part declares `"@espressif/esp32" = "0.1.0"`;
+the manufacturer's `qfn` pin joins the transitive compile closure. The board
+declares `qfn` itself only when it intentionally exercises RFC-029's root-pin
+authority to select that dependency's version.
 
 Do not hand-edit `cohdl.lock`. A dependency's content hash covers its package
 files, so finish the dependency before recording it in a consumer. Once a

@@ -333,6 +333,59 @@ fn generated_zero_ohm_resistors_match_the_locked_oracle() {
 }
 
 #[test]
+fn generated_stm32_catalog_matches_the_pinned_st_snapshot() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let output = std::process::Command::new("python3")
+        .args(["tools/gen_stm32.py", "--check"])
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "STM32 generator check failed:\n{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("26 files, 2284 devices, 199920 logical pins, 14 audited parts"),
+        "unexpected STM32 coverage:\n{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let coverage =
+        std::fs::read_to_string(root.join("lib/@st/stm32/src/catalog_coverage.cohdl")).unwrap();
+    for expected in [
+        "Exact ST portfolio order-code rows: 4930",
+        "Identities matched exactly once to a pinned pinout: 3398",
+        "Matched identities represented by emitted devices: 2731",
+        "Exact order-code rows represented by emitted devices: 3708",
+        "Fabrication-ready audited pub parts: 14",
+        "Exact order-code rows covered by audited parts: 22",
+        "Represented exact rows awaiting fabrication audit: 3686",
+        "All portfolio rows not emitted as exact parts: 4908",
+        "STM32F072C(8-B)Ux.xml is incomplete: UFQFPN48",
+        "STM32H553VGZx.xml is incomplete: LQFP100-EP",
+    ] {
+        assert!(
+            coverage.contains(expected),
+            "missing coverage fact `{expected}`"
+        );
+    }
+    for entry in std::fs::read_dir(root.join("lib/@st/stm32/src")).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|extension| extension.to_str()) != Some("cohdl") {
+            continue;
+        }
+        let source = std::fs::read_to_string(&path).unwrap();
+        assert!(
+            !source.contains("ST portfolio order codes:"),
+            "tooling-only exact order-code rows leaked into {}",
+            path.display()
+        );
+    }
+}
+
+#[test]
 fn every_shipped_component_library_has_consistent_part_footprints() {
     fn assert_pin(
         world: &cohdl::resolve::World,
@@ -1943,9 +1996,13 @@ fn doc_paths_reject_dot_slash_and_empty_components() {
 // lived in the OpenMicro example's exit-criteria test until that project moved
 // to its own repository.)
 #[test]
-fn stm32f072cb_uses_canonical_datasheet_pins() {
+fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let deps = vec![("std".to_string(), root.join("lib/std"))];
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("bga".to_string(), root.join("lib/bga")),
+        ("qfp".to_string(), root.join("lib/qfp")),
+    ];
     let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
     let project =
         cohdl::project::load_project_with_deps(&root.join("lib/@st/stm32"), &deps).unwrap();
@@ -1958,7 +2015,7 @@ fn stm32f072cb_uses_canonical_datasheet_pins() {
         checked.diags.render(&checked.sm)
     );
 
-    let mcu = &checked.world.devices["st_stm32::f0::stm32f072cb::STM32F072CBT6"];
+    let mcu = &checked.world.devices["st_stm32::STM32F072CBTx"];
     let pins = mcu.pins_for(None);
     for (name, number) in [
         ("PA9", "30"),
@@ -1983,5 +2040,447 @@ fn stm32f072cb_uses_canonical_datasheet_pins() {
             pins.iter().all(|pin| pin.name.name != board_alias),
             "board alias `{board_alias}` leaked into the manufacturer library"
         );
+    }
+
+    assert!(
+        !checked
+            .world
+            .devices
+            .contains_key("st_stm32::f0::stm32f072cb::STM32F072CBT6"),
+        "the duplicate authored F072 device must be removed"
+    );
+
+    let audited_parts = [
+        (
+            "MCU_STM32F072C8T6",
+            "STM32F072C8Tx",
+            "STM32F072C8T6",
+            Some("STM32F072C8T6TR"),
+            "qfp::QFP50P900X900X160_48N",
+        ),
+        (
+            "MCU_STM32F072C8T7",
+            "STM32F072C8Tx",
+            "STM32F072C8T7",
+            None,
+            "qfp::QFP50P900X900X160_48N",
+        ),
+        (
+            "MCU_STM32F072CBT6",
+            "STM32F072CBTx",
+            "STM32F072CBT6",
+            Some("STM32F072CBT6TR"),
+            "qfp::QFP50P900X900X160_48N",
+        ),
+        (
+            "MCU_STM32F072CBT7",
+            "STM32F072CBTx",
+            "STM32F072CBT7",
+            None,
+            "qfp::QFP50P900X900X160_48N",
+        ),
+        (
+            "MCU_STM32F072R8T6",
+            "STM32F072R8Tx",
+            "STM32F072R8T6",
+            Some("STM32F072R8T6TR"),
+            "qfp::QFP50P1200X1200X160_64N",
+        ),
+        (
+            "MCU_STM32F072R8T7",
+            "STM32F072R8Tx",
+            "STM32F072R8T7",
+            None,
+            "qfp::QFP50P1200X1200X160_64N",
+        ),
+        (
+            "MCU_STM32F072RBH6",
+            "STM32F072RBHx",
+            "STM32F072RBH6",
+            Some("STM32F072RBH6TR"),
+            "bga::BGA64C50P8X8_500X500X60N",
+        ),
+        (
+            "MCU_STM32F072RBT6",
+            "STM32F072RBTx",
+            "STM32F072RBT6",
+            Some("STM32F072RBT6TR"),
+            "qfp::QFP50P1200X1200X160_64N",
+        ),
+        (
+            "MCU_STM32F072RBT7",
+            "STM32F072RBTx",
+            "STM32F072RBT7",
+            Some("STM32F072RBT7TR"),
+            "qfp::QFP50P1200X1200X160_64N",
+        ),
+        (
+            "MCU_STM32F072V8H6",
+            "STM32F072V8Hx",
+            "STM32F072V8H6",
+            None,
+            "bga::BGA100C50P12X12_700X700X60N",
+        ),
+        (
+            "MCU_STM32F072V8T6",
+            "STM32F072V8Tx",
+            "STM32F072V8T6",
+            None,
+            "qfp::QFP50P1600X1600X160_100N",
+        ),
+        (
+            "MCU_STM32F072VBH6",
+            "STM32F072VBHx",
+            "STM32F072VBH6",
+            Some("STM32F072VBH6TR"),
+            "bga::BGA100C50P12X12_700X700X60N",
+        ),
+        (
+            "MCU_STM32F072VBH7",
+            "STM32F072VBHx",
+            "STM32F072VBH7",
+            None,
+            "bga::BGA100C50P12X12_700X700X60N",
+        ),
+        (
+            "MCU_STM32F072VBT6",
+            "STM32F072VBTx",
+            "STM32F072VBT6",
+            Some("STM32F072VBT6TR"),
+            "qfp::QFP50P1600X1600X160_100N",
+        ),
+    ];
+    assert_eq!(
+        checked
+            .world
+            .parts
+            .keys()
+            .filter(|name| name.starts_with("st_stm32::"))
+            .count(),
+        audited_parts.len(),
+        "only fully audited exact STM32 parts may be public"
+    );
+    for (symbol, device, primary_mpn, alt_mpn, footprint) in audited_parts {
+        let part_name = format!("st_stm32::{symbol}");
+        let part = checked
+            .world
+            .parts
+            .get(&part_name)
+            .unwrap_or_else(|| panic!("missing audited part `{part_name}`"));
+        assert_eq!(part.device.name.name, format!("st_stm32::{device}"));
+        assert_eq!(
+            part.primary.field("mfr").map(|field| field.value.as_str()),
+            Some("STMicroelectronics")
+        );
+        assert_eq!(
+            part.primary.field("mpn").map(|field| field.value.as_str()),
+            Some(primary_mpn)
+        );
+        assert_eq!(part.primary.footprint.as_ref().unwrap().name, footprint);
+        match alt_mpn {
+            Some(expected) => {
+                assert_eq!(part.alts.len(), 1);
+                assert_eq!(
+                    part.alts[0].field("mpn").map(|field| field.value.as_str()),
+                    Some(expected)
+                );
+            }
+            None => assert!(part.alts.is_empty()),
+        }
+        assert_eq!(
+            checked.world.docs[&part_name],
+            ["docs/stm32f072cb-datasheet.pdf"]
+        );
+    }
+
+    let assert_place = |footprint: &str, number: &str, x: &str, y: &str| {
+        let place = checked.world.footprints[footprint]
+            .pads
+            .iter()
+            .find(|place| place.number.text == number)
+            .unwrap_or_else(|| panic!("missing `{footprint}` pad `{number}`"));
+        assert_eq!(
+            (place.x.text.as_str(), place.y.text.as_str()),
+            (x, y),
+            "wrong placement for `{footprint}` pad `{number}`"
+        );
+    };
+    for (footprint, count, samples) in [
+        (
+            "qfp::QFP50P900X900X160_48N",
+            48,
+            &[
+                ("1", "-4.25mm", "-2.75mm"),
+                ("13", "-2.75mm", "4.25mm"),
+                ("25", "4.25mm", "2.75mm"),
+                ("37", "2.75mm", "-4.25mm"),
+            ][..],
+        ),
+        (
+            "qfp::QFP50P1200X1200X160_64N",
+            64,
+            &[
+                ("1", "-5.75mm", "-3.75mm"),
+                ("17", "-3.75mm", "5.75mm"),
+                ("33", "5.75mm", "3.75mm"),
+                ("49", "3.75mm", "-5.75mm"),
+            ][..],
+        ),
+        (
+            "qfp::QFP50P1600X1600X160_100N",
+            100,
+            &[
+                ("1", "-7.75mm", "-6mm"),
+                ("26", "-6mm", "7.75mm"),
+                ("51", "7.75mm", "6mm"),
+                ("76", "6mm", "-7.75mm"),
+            ][..],
+        ),
+    ] {
+        assert_eq!(checked.world.footprints[footprint].pads.len(), count);
+        for (number, x, y) in samples {
+            assert_place(footprint, number, x, y);
+        }
+    }
+
+    let bga64 = &checked.world.footprints["bga::BGA64C50P8X8_500X500X60N"];
+    let bga100 = &checked.world.footprints["bga::BGA100C50P12X12_700X700X60N"];
+    assert_eq!(bga64.pads.len(), 64);
+    assert_eq!(bga100.pads.len(), 100);
+    assert_place("bga::BGA64C50P8X8_500X500X60N", "A1", "-1.75mm", "-1.75mm");
+    assert_place("bga::BGA64C50P8X8_500X500X60N", "H8", "1.75mm", "1.75mm");
+    assert_place(
+        "bga::BGA100C50P12X12_700X700X60N",
+        "A1",
+        "-2.75mm",
+        "-2.75mm",
+    );
+    assert_place(
+        "bga::BGA100C50P12X12_700X700X60N",
+        "M12",
+        "2.75mm",
+        "2.75mm",
+    );
+    for absent in ["C6", "C7", "F3", "F10", "I1"] {
+        assert!(
+            bga100.pads.iter().all(|place| place.number.text != absent),
+            "sparse UFBGA100 map must not fabricate ball `{absent}`"
+        );
+    }
+    for (device, footprint) in [
+        ("st_stm32::STM32F072RBHx", bga64),
+        ("st_stm32::STM32F072VBHx", bga100),
+    ] {
+        let device_pads = checked.world.devices[device]
+            .pins_for(None)
+            .iter()
+            .flat_map(|pin| pin.numbers.iter().map(|number| number.text.as_str()))
+            .collect::<std::collections::BTreeSet<_>>();
+        let footprint_pads = footprint
+            .pads
+            .iter()
+            .map(|place| place.number.text.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            footprint_pads, device_pads,
+            "`{device}` and its audited BGA ball map diverged"
+        );
+    }
+
+    // Broad generated coverage is source-locked by representative classic,
+    // current, and high-pin-count families. Exact part emission remains a
+    // smaller, fail-closed overlay on this device-only catalog.
+    for name in [
+        "st_stm32::STM32C531CBT6",
+        "st_stm32::STM32F103C8Tx",
+        "st_stm32::STM32G071KBTx",
+        "st_stm32::STM32H743VITx",
+        "st_stm32::STM32N657X0HxQ",
+        "st_stm32::STM32U585AIIx",
+        "st_stm32::STM32WB55VCQx",
+    ] {
+        assert!(checked.world.devices.contains_key(name), "missing `{name}`");
+    }
+    assert_eq!(
+        checked
+            .world
+            .devices
+            .keys()
+            .filter(|name| name.starts_with("st_stm32::"))
+            .count(),
+        2284,
+        "the duplicate authored F072 device must be replaced by its generated model"
+    );
+    for quarantined in [
+        "st_stm32::STM32C531CBU6",
+        "st_stm32::STM32F072CBUx",
+        "st_stm32::STM32H553VGZx",
+    ] {
+        assert!(
+            !checked.world.devices.contains_key(quarantined),
+            "incomplete exposed-pad device `{quarantined}` must stay quarantined"
+        );
+    }
+
+    let remappable = &checked.world.devices["st_stm32::STM32G071KBTx"];
+    let remappable_pins = remappable.pins_for(None);
+    for (name, number) in [("PA9", "19"), ("PA11", "22")] {
+        let pin = remappable_pins
+            .iter()
+            .find(|pin| pin.name.name == name)
+            .unwrap();
+        assert_eq!(pin.numbers[0].text, number);
+    }
+
+    let distinct = &checked.world.devices["st_stm32::STM32H743XIHx"];
+    let distinct_pins = distinct.pins_for(None);
+    for (name, number) in [
+        ("PC2", "M3"),
+        ("PC2_C", "R1"),
+        ("PC3", "M4"),
+        ("PC3_C", "R2"),
+    ] {
+        let pin = distinct_pins
+            .iter()
+            .find(|pin| pin.name.name == name)
+            .unwrap();
+        assert_eq!(pin.numbers[0].text, number);
+    }
+
+    // The generator's conservative electrical policy is part of the library
+    // contract, not merely a source-count check. Keep representative roles,
+    // obligations, grouped supplies, aliases, and inherited C5 descriptors
+    // pinned here so a broad upstream type bucket cannot silently weaken it.
+    let assert_catalog_pin = |device_name: &str,
+                              pin_name: &str,
+                              numbers: &[&str],
+                              role: cohdl::ast::PinRole,
+                              obligation: cohdl::ast::Obligation| {
+        let device = &checked.world.devices[device_name];
+        let pin = device
+            .pins_for(None)
+            .iter()
+            .find(|pin| pin.name.name == pin_name)
+            .unwrap_or_else(|| panic!("missing `{device_name}.{pin_name}`"));
+        assert_eq!(
+            pin.numbers
+                .iter()
+                .map(|number| number.text.as_str())
+                .collect::<Vec<_>>(),
+            numbers,
+            "wrong physical mapping for `{device_name}.{pin_name}`"
+        );
+        assert_eq!(
+            pin.role_or_default(),
+            role,
+            "wrong role for `{device_name}.{pin_name}`"
+        );
+        assert_eq!(
+            pin.obligation, obligation,
+            "wrong obligation for `{device_name}.{pin_name}`"
+        );
+    };
+
+    let optional = cohdl::ast::Obligation::Optional;
+    let required = cohdl::ast::Obligation::Required;
+    let input = cohdl::ast::PinRole::Input;
+    let output = cohdl::ast::PinRole::Output;
+    let passive = cohdl::ast::PinRole::Passive;
+    let bidirectional = cohdl::ast::PinRole::Bidirectional;
+    let power_in = cohdl::ast::PinRole::PowerIn;
+
+    for (name, number) in [
+        ("NC1_1", "1"),
+        ("NC2_2", "2"),
+        ("NC3_3", "3"),
+        ("NC4_4", "4"),
+        ("NC5_5", "5"),
+        ("NC6_50", "50"),
+        ("NC7_51", "51"),
+        ("NC9_53", "53"),
+    ] {
+        assert_catalog_pin(
+            "st_stm32::STM32WBA6MOIHx",
+            name,
+            &[number],
+            passive,
+            optional,
+        );
+    }
+    for (name, number, role) in [
+        ("ANT_OUT", "45", output),
+        ("ANT_IN", "47", input),
+        ("PD7", "17", bidirectional),
+        ("PD6", "18", bidirectional),
+    ] {
+        assert_catalog_pin("st_stm32::STM32WBA6MOIHx", name, &[number], role, optional);
+    }
+    for (name, number, role) in [("OSC_IN", "12", input), ("OSC_OUT", "13", output)] {
+        assert_catalog_pin("st_stm32::STM32F100V8Tx", name, &[number], role, optional);
+    }
+    for (device, name, number) in [
+        ("st_stm32::STM32F030CCTx", "PC14OSC32_IN", "3"),
+        ("st_stm32::STM32F030CCTx", "PC15OSC32_OUT", "4"),
+        ("st_stm32::STM32F091CBTx", "PF11BOOT0", "44"),
+        ("st_stm32::STM32H5E5IJKxQ", "OTG_HS_DM", "G15"),
+        ("st_stm32::STM32H5E5IJKxQ", "OTG_HS_DP", "F15"),
+    ] {
+        assert_catalog_pin(device, name, &[number], bidirectional, optional);
+    }
+    assert_catalog_pin(
+        "st_stm32::STM32L151QCHx",
+        "OPAMP1_VINM",
+        &["M3"],
+        input,
+        optional,
+    );
+    for (name, number, role) in [
+        ("OSCIN", "K1", input),
+        ("OSCOUT", "M1", output),
+        ("RF1", "M5", passive),
+    ] {
+        assert_catalog_pin("st_stm32::STM32WB05TZFx", name, &[number], role, optional);
+    }
+    for (name, number, role) in [
+        ("OTG1_HSDM", "A5", bidirectional),
+        ("OTG1_ID", "B4", input),
+        ("UCPD1_CC1", "B6", bidirectional),
+        ("CSI_CKN", "M3", input),
+        ("CSI_REXT", "N5", passive),
+    ] {
+        assert_catalog_pin("st_stm32::STM32N645A0HxQ", name, &[number], role, optional);
+    }
+    assert_catalog_pin(
+        "st_stm32::STM32F469AEHx",
+        "DSIHOST_CKN",
+        &["H13"],
+        output,
+        optional,
+    );
+
+    for (name, numbers, role, obligation) in [
+        ("NRST", &["7"][..], input, optional),
+        ("BOOT0", &["44"][..], input, required),
+        ("VSS", &["23", "35", "47"][..], power_in, required),
+        ("VDD", &["24", "36", "48"][..], power_in, required),
+    ] {
+        assert_catalog_pin("st_stm32::STM32F103C8Tx", name, numbers, role, obligation);
+    }
+
+    assert_catalog_pin(
+        "st_stm32::STM32C531FBP6",
+        "PA1_OR_PA2_OR_PA3",
+        &["7"],
+        bidirectional,
+        optional,
+    );
+    // This C5 variant has no variant-local descriptor in the PDSC; its
+    // LQFP80 pinout is inherited from the containing device declaration.
+    for (name, numbers, role) in [
+        ("VSS", &["6", "22", "39", "59", "79"][..], power_in),
+        ("VDD", &["7", "23", "40", "60", "80"][..], power_in),
+        ("VCAP", &["38"][..], passive),
+    ] {
+        assert_catalog_pin("st_stm32::STM32C551MCT6", name, numbers, role, required);
     }
 }

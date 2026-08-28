@@ -1,0 +1,306 @@
+// Verified QFP package land patterns.
+//
+// QFP50P900X900X160_48N is transcribed from STMicroelectronics DS9826 Rev 6,
+// Figure 50, "Recommended footprint for LQFP48 package":
+// https://www.st.com/resource/en/datasheet/stm32f072cb.pdf
+// Audited document SHA-256:
+// 660bc16b5cf99b649da4ebcd2d1bb8d232edd3fb1dc275977b3c6389a85d2453.
+
+// LQFP-48 0.50mm-pitch lead land, used on the left and right sides.
+pub pad P_LQFP48_Lead_H {
+    shape: rect
+    size: (1.2mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+// LQFP-48 0.50mm-pitch lead land, used on the top and bottom sides.
+pub pad P_LQFP48_Lead_V {
+    shape: rect
+    size: (0.3mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// LQFP-48, 7x7mm body, 0.50mm pitch, 1.60mm maximum height and 9x9mm
+// nominal lead span. The recommended land has a 9.70mm outside span and a
+// 5.80mm tangential row span. Origin is package centre. The source top view is
+// rotated as a whole into qfp's pin-1-at-upper-left convention; chirality is
+// preserved.
+pub footprint QFP50P900X900X160_48N {
+    pad 1: P_LQFP48_Lead_H at (-4.25mm, -2.75mm)
+    pad 2: P_LQFP48_Lead_H at (-4.25mm, -2.25mm)
+    pad 3: P_LQFP48_Lead_H at (-4.25mm, -1.75mm)
+    pad 4: P_LQFP48_Lead_H at (-4.25mm, -1.25mm)
+    pad 5: P_LQFP48_Lead_H at (-4.25mm, -0.75mm)
+    pad 6: P_LQFP48_Lead_H at (-4.25mm, -0.25mm)
+    pad 7: P_LQFP48_Lead_H at (-4.25mm, 0.25mm)
+    pad 8: P_LQFP48_Lead_H at (-4.25mm, 0.75mm)
+    pad 9: P_LQFP48_Lead_H at (-4.25mm, 1.25mm)
+    pad 10: P_LQFP48_Lead_H at (-4.25mm, 1.75mm)
+    pad 11: P_LQFP48_Lead_H at (-4.25mm, 2.25mm)
+    pad 12: P_LQFP48_Lead_H at (-4.25mm, 2.75mm)
+    pad 13: P_LQFP48_Lead_V at (-2.75mm, 4.25mm)
+    pad 14: P_LQFP48_Lead_V at (-2.25mm, 4.25mm)
+    pad 15: P_LQFP48_Lead_V at (-1.75mm, 4.25mm)
+    pad 16: P_LQFP48_Lead_V at (-1.25mm, 4.25mm)
+    pad 17: P_LQFP48_Lead_V at (-0.75mm, 4.25mm)
+    pad 18: P_LQFP48_Lead_V at (-0.25mm, 4.25mm)
+    pad 19: P_LQFP48_Lead_V at (0.25mm, 4.25mm)
+    pad 20: P_LQFP48_Lead_V at (0.75mm, 4.25mm)
+    pad 21: P_LQFP48_Lead_V at (1.25mm, 4.25mm)
+    pad 22: P_LQFP48_Lead_V at (1.75mm, 4.25mm)
+    pad 23: P_LQFP48_Lead_V at (2.25mm, 4.25mm)
+    pad 24: P_LQFP48_Lead_V at (2.75mm, 4.25mm)
+    pad 25: P_LQFP48_Lead_H at (4.25mm, 2.75mm)
+    pad 26: P_LQFP48_Lead_H at (4.25mm, 2.25mm)
+    pad 27: P_LQFP48_Lead_H at (4.25mm, 1.75mm)
+    pad 28: P_LQFP48_Lead_H at (4.25mm, 1.25mm)
+    pad 29: P_LQFP48_Lead_H at (4.25mm, 0.75mm)
+    pad 30: P_LQFP48_Lead_H at (4.25mm, 0.25mm)
+    pad 31: P_LQFP48_Lead_H at (4.25mm, -0.25mm)
+    pad 32: P_LQFP48_Lead_H at (4.25mm, -0.75mm)
+    pad 33: P_LQFP48_Lead_H at (4.25mm, -1.25mm)
+    pad 34: P_LQFP48_Lead_H at (4.25mm, -1.75mm)
+    pad 35: P_LQFP48_Lead_H at (4.25mm, -2.25mm)
+    pad 36: P_LQFP48_Lead_H at (4.25mm, -2.75mm)
+    pad 37: P_LQFP48_Lead_V at (2.75mm, -4.25mm)
+    pad 38: P_LQFP48_Lead_V at (2.25mm, -4.25mm)
+    pad 39: P_LQFP48_Lead_V at (1.75mm, -4.25mm)
+    pad 40: P_LQFP48_Lead_V at (1.25mm, -4.25mm)
+    pad 41: P_LQFP48_Lead_V at (0.75mm, -4.25mm)
+    pad 42: P_LQFP48_Lead_V at (0.25mm, -4.25mm)
+    pad 43: P_LQFP48_Lead_V at (-0.25mm, -4.25mm)
+    pad 44: P_LQFP48_Lead_V at (-0.75mm, -4.25mm)
+    pad 45: P_LQFP48_Lead_V at (-1.25mm, -4.25mm)
+    pad 46: P_LQFP48_Lead_V at (-1.75mm, -4.25mm)
+    pad 47: P_LQFP48_Lead_V at (-2.25mm, -4.25mm)
+    pad 48: P_LQFP48_Lead_V at (-2.75mm, -4.25mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (10.2mm, 10.2mm) }
+    silkscreen_ref { at: (0mm, -5.2mm) }
+}
+
+// QFP50P1200X1200X160_64N is transcribed from STMicroelectronics DS9826 Rev 6,
+// Figure 45, "Recommended footprint for LQFP64 package".
+// The official land is 1.20x0.30mm at 0.50mm pitch.
+pub pad P_LQFP64_Lead_H {
+    shape: rect
+    size: (1.2mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_LQFP64_Lead_V {
+    shape: rect
+    size: (0.3mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// LQFP-64, 10x10mm body, 0.50mm pitch, 1.60mm maximum height and
+// 12x12mm nominal lead span. The recommended land has a 12.70mm outside span
+// and a 7.80mm tangential row span. The source top view is rotated as a
+// whole into qfp's pin-1-at-upper-left convention; chirality is preserved.
+pub footprint QFP50P1200X1200X160_64N {
+    pad 1: P_LQFP64_Lead_H at (-5.75mm, -3.75mm)
+    pad 2: P_LQFP64_Lead_H at (-5.75mm, -3.25mm)
+    pad 3: P_LQFP64_Lead_H at (-5.75mm, -2.75mm)
+    pad 4: P_LQFP64_Lead_H at (-5.75mm, -2.25mm)
+    pad 5: P_LQFP64_Lead_H at (-5.75mm, -1.75mm)
+    pad 6: P_LQFP64_Lead_H at (-5.75mm, -1.25mm)
+    pad 7: P_LQFP64_Lead_H at (-5.75mm, -0.75mm)
+    pad 8: P_LQFP64_Lead_H at (-5.75mm, -0.25mm)
+    pad 9: P_LQFP64_Lead_H at (-5.75mm, 0.25mm)
+    pad 10: P_LQFP64_Lead_H at (-5.75mm, 0.75mm)
+    pad 11: P_LQFP64_Lead_H at (-5.75mm, 1.25mm)
+    pad 12: P_LQFP64_Lead_H at (-5.75mm, 1.75mm)
+    pad 13: P_LQFP64_Lead_H at (-5.75mm, 2.25mm)
+    pad 14: P_LQFP64_Lead_H at (-5.75mm, 2.75mm)
+    pad 15: P_LQFP64_Lead_H at (-5.75mm, 3.25mm)
+    pad 16: P_LQFP64_Lead_H at (-5.75mm, 3.75mm)
+    pad 17: P_LQFP64_Lead_V at (-3.75mm, 5.75mm)
+    pad 18: P_LQFP64_Lead_V at (-3.25mm, 5.75mm)
+    pad 19: P_LQFP64_Lead_V at (-2.75mm, 5.75mm)
+    pad 20: P_LQFP64_Lead_V at (-2.25mm, 5.75mm)
+    pad 21: P_LQFP64_Lead_V at (-1.75mm, 5.75mm)
+    pad 22: P_LQFP64_Lead_V at (-1.25mm, 5.75mm)
+    pad 23: P_LQFP64_Lead_V at (-0.75mm, 5.75mm)
+    pad 24: P_LQFP64_Lead_V at (-0.25mm, 5.75mm)
+    pad 25: P_LQFP64_Lead_V at (0.25mm, 5.75mm)
+    pad 26: P_LQFP64_Lead_V at (0.75mm, 5.75mm)
+    pad 27: P_LQFP64_Lead_V at (1.25mm, 5.75mm)
+    pad 28: P_LQFP64_Lead_V at (1.75mm, 5.75mm)
+    pad 29: P_LQFP64_Lead_V at (2.25mm, 5.75mm)
+    pad 30: P_LQFP64_Lead_V at (2.75mm, 5.75mm)
+    pad 31: P_LQFP64_Lead_V at (3.25mm, 5.75mm)
+    pad 32: P_LQFP64_Lead_V at (3.75mm, 5.75mm)
+    pad 33: P_LQFP64_Lead_H at (5.75mm, 3.75mm)
+    pad 34: P_LQFP64_Lead_H at (5.75mm, 3.25mm)
+    pad 35: P_LQFP64_Lead_H at (5.75mm, 2.75mm)
+    pad 36: P_LQFP64_Lead_H at (5.75mm, 2.25mm)
+    pad 37: P_LQFP64_Lead_H at (5.75mm, 1.75mm)
+    pad 38: P_LQFP64_Lead_H at (5.75mm, 1.25mm)
+    pad 39: P_LQFP64_Lead_H at (5.75mm, 0.75mm)
+    pad 40: P_LQFP64_Lead_H at (5.75mm, 0.25mm)
+    pad 41: P_LQFP64_Lead_H at (5.75mm, -0.25mm)
+    pad 42: P_LQFP64_Lead_H at (5.75mm, -0.75mm)
+    pad 43: P_LQFP64_Lead_H at (5.75mm, -1.25mm)
+    pad 44: P_LQFP64_Lead_H at (5.75mm, -1.75mm)
+    pad 45: P_LQFP64_Lead_H at (5.75mm, -2.25mm)
+    pad 46: P_LQFP64_Lead_H at (5.75mm, -2.75mm)
+    pad 47: P_LQFP64_Lead_H at (5.75mm, -3.25mm)
+    pad 48: P_LQFP64_Lead_H at (5.75mm, -3.75mm)
+    pad 49: P_LQFP64_Lead_V at (3.75mm, -5.75mm)
+    pad 50: P_LQFP64_Lead_V at (3.25mm, -5.75mm)
+    pad 51: P_LQFP64_Lead_V at (2.75mm, -5.75mm)
+    pad 52: P_LQFP64_Lead_V at (2.25mm, -5.75mm)
+    pad 53: P_LQFP64_Lead_V at (1.75mm, -5.75mm)
+    pad 54: P_LQFP64_Lead_V at (1.25mm, -5.75mm)
+    pad 55: P_LQFP64_Lead_V at (0.75mm, -5.75mm)
+    pad 56: P_LQFP64_Lead_V at (0.25mm, -5.75mm)
+    pad 57: P_LQFP64_Lead_V at (-0.25mm, -5.75mm)
+    pad 58: P_LQFP64_Lead_V at (-0.75mm, -5.75mm)
+    pad 59: P_LQFP64_Lead_V at (-1.25mm, -5.75mm)
+    pad 60: P_LQFP64_Lead_V at (-1.75mm, -5.75mm)
+    pad 61: P_LQFP64_Lead_V at (-2.25mm, -5.75mm)
+    pad 62: P_LQFP64_Lead_V at (-2.75mm, -5.75mm)
+    pad 63: P_LQFP64_Lead_V at (-3.25mm, -5.75mm)
+    pad 64: P_LQFP64_Lead_V at (-3.75mm, -5.75mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (13.2mm, 13.2mm) }
+    silkscreen_ref { at: (0mm, -6.7mm) }
+}
+
+// QFP50P1600X1600X160_100N is transcribed from STMicroelectronics DS9826 Rev 6,
+// Figure 39, "Recommended footprint for LQFP100 package".
+// The official land is 1.20x0.30mm at 0.50mm pitch.
+pub pad P_LQFP100_Lead_H {
+    shape: rect
+    size: (1.2mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_LQFP100_Lead_V {
+    shape: rect
+    size: (0.3mm, 1.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+// LQFP-100, 14x14mm body, 0.50mm pitch, 1.60mm maximum height and
+// 16x16mm nominal lead span. The recommended land has a 16.70mm outside span
+// and a 12.30mm tangential row span. The source top view is rotated as a
+// whole into qfp's pin-1-at-upper-left convention; chirality is preserved.
+pub footprint QFP50P1600X1600X160_100N {
+    pad 1: P_LQFP100_Lead_H at (-7.75mm, -6mm)
+    pad 2: P_LQFP100_Lead_H at (-7.75mm, -5.5mm)
+    pad 3: P_LQFP100_Lead_H at (-7.75mm, -5mm)
+    pad 4: P_LQFP100_Lead_H at (-7.75mm, -4.5mm)
+    pad 5: P_LQFP100_Lead_H at (-7.75mm, -4mm)
+    pad 6: P_LQFP100_Lead_H at (-7.75mm, -3.5mm)
+    pad 7: P_LQFP100_Lead_H at (-7.75mm, -3mm)
+    pad 8: P_LQFP100_Lead_H at (-7.75mm, -2.5mm)
+    pad 9: P_LQFP100_Lead_H at (-7.75mm, -2mm)
+    pad 10: P_LQFP100_Lead_H at (-7.75mm, -1.5mm)
+    pad 11: P_LQFP100_Lead_H at (-7.75mm, -1mm)
+    pad 12: P_LQFP100_Lead_H at (-7.75mm, -0.5mm)
+    pad 13: P_LQFP100_Lead_H at (-7.75mm, 0mm)
+    pad 14: P_LQFP100_Lead_H at (-7.75mm, 0.5mm)
+    pad 15: P_LQFP100_Lead_H at (-7.75mm, 1mm)
+    pad 16: P_LQFP100_Lead_H at (-7.75mm, 1.5mm)
+    pad 17: P_LQFP100_Lead_H at (-7.75mm, 2mm)
+    pad 18: P_LQFP100_Lead_H at (-7.75mm, 2.5mm)
+    pad 19: P_LQFP100_Lead_H at (-7.75mm, 3mm)
+    pad 20: P_LQFP100_Lead_H at (-7.75mm, 3.5mm)
+    pad 21: P_LQFP100_Lead_H at (-7.75mm, 4mm)
+    pad 22: P_LQFP100_Lead_H at (-7.75mm, 4.5mm)
+    pad 23: P_LQFP100_Lead_H at (-7.75mm, 5mm)
+    pad 24: P_LQFP100_Lead_H at (-7.75mm, 5.5mm)
+    pad 25: P_LQFP100_Lead_H at (-7.75mm, 6mm)
+    pad 26: P_LQFP100_Lead_V at (-6mm, 7.75mm)
+    pad 27: P_LQFP100_Lead_V at (-5.5mm, 7.75mm)
+    pad 28: P_LQFP100_Lead_V at (-5mm, 7.75mm)
+    pad 29: P_LQFP100_Lead_V at (-4.5mm, 7.75mm)
+    pad 30: P_LQFP100_Lead_V at (-4mm, 7.75mm)
+    pad 31: P_LQFP100_Lead_V at (-3.5mm, 7.75mm)
+    pad 32: P_LQFP100_Lead_V at (-3mm, 7.75mm)
+    pad 33: P_LQFP100_Lead_V at (-2.5mm, 7.75mm)
+    pad 34: P_LQFP100_Lead_V at (-2mm, 7.75mm)
+    pad 35: P_LQFP100_Lead_V at (-1.5mm, 7.75mm)
+    pad 36: P_LQFP100_Lead_V at (-1mm, 7.75mm)
+    pad 37: P_LQFP100_Lead_V at (-0.5mm, 7.75mm)
+    pad 38: P_LQFP100_Lead_V at (0mm, 7.75mm)
+    pad 39: P_LQFP100_Lead_V at (0.5mm, 7.75mm)
+    pad 40: P_LQFP100_Lead_V at (1mm, 7.75mm)
+    pad 41: P_LQFP100_Lead_V at (1.5mm, 7.75mm)
+    pad 42: P_LQFP100_Lead_V at (2mm, 7.75mm)
+    pad 43: P_LQFP100_Lead_V at (2.5mm, 7.75mm)
+    pad 44: P_LQFP100_Lead_V at (3mm, 7.75mm)
+    pad 45: P_LQFP100_Lead_V at (3.5mm, 7.75mm)
+    pad 46: P_LQFP100_Lead_V at (4mm, 7.75mm)
+    pad 47: P_LQFP100_Lead_V at (4.5mm, 7.75mm)
+    pad 48: P_LQFP100_Lead_V at (5mm, 7.75mm)
+    pad 49: P_LQFP100_Lead_V at (5.5mm, 7.75mm)
+    pad 50: P_LQFP100_Lead_V at (6mm, 7.75mm)
+    pad 51: P_LQFP100_Lead_H at (7.75mm, 6mm)
+    pad 52: P_LQFP100_Lead_H at (7.75mm, 5.5mm)
+    pad 53: P_LQFP100_Lead_H at (7.75mm, 5mm)
+    pad 54: P_LQFP100_Lead_H at (7.75mm, 4.5mm)
+    pad 55: P_LQFP100_Lead_H at (7.75mm, 4mm)
+    pad 56: P_LQFP100_Lead_H at (7.75mm, 3.5mm)
+    pad 57: P_LQFP100_Lead_H at (7.75mm, 3mm)
+    pad 58: P_LQFP100_Lead_H at (7.75mm, 2.5mm)
+    pad 59: P_LQFP100_Lead_H at (7.75mm, 2mm)
+    pad 60: P_LQFP100_Lead_H at (7.75mm, 1.5mm)
+    pad 61: P_LQFP100_Lead_H at (7.75mm, 1mm)
+    pad 62: P_LQFP100_Lead_H at (7.75mm, 0.5mm)
+    pad 63: P_LQFP100_Lead_H at (7.75mm, 0mm)
+    pad 64: P_LQFP100_Lead_H at (7.75mm, -0.5mm)
+    pad 65: P_LQFP100_Lead_H at (7.75mm, -1mm)
+    pad 66: P_LQFP100_Lead_H at (7.75mm, -1.5mm)
+    pad 67: P_LQFP100_Lead_H at (7.75mm, -2mm)
+    pad 68: P_LQFP100_Lead_H at (7.75mm, -2.5mm)
+    pad 69: P_LQFP100_Lead_H at (7.75mm, -3mm)
+    pad 70: P_LQFP100_Lead_H at (7.75mm, -3.5mm)
+    pad 71: P_LQFP100_Lead_H at (7.75mm, -4mm)
+    pad 72: P_LQFP100_Lead_H at (7.75mm, -4.5mm)
+    pad 73: P_LQFP100_Lead_H at (7.75mm, -5mm)
+    pad 74: P_LQFP100_Lead_H at (7.75mm, -5.5mm)
+    pad 75: P_LQFP100_Lead_H at (7.75mm, -6mm)
+    pad 76: P_LQFP100_Lead_V at (6mm, -7.75mm)
+    pad 77: P_LQFP100_Lead_V at (5.5mm, -7.75mm)
+    pad 78: P_LQFP100_Lead_V at (5mm, -7.75mm)
+    pad 79: P_LQFP100_Lead_V at (4.5mm, -7.75mm)
+    pad 80: P_LQFP100_Lead_V at (4mm, -7.75mm)
+    pad 81: P_LQFP100_Lead_V at (3.5mm, -7.75mm)
+    pad 82: P_LQFP100_Lead_V at (3mm, -7.75mm)
+    pad 83: P_LQFP100_Lead_V at (2.5mm, -7.75mm)
+    pad 84: P_LQFP100_Lead_V at (2mm, -7.75mm)
+    pad 85: P_LQFP100_Lead_V at (1.5mm, -7.75mm)
+    pad 86: P_LQFP100_Lead_V at (1mm, -7.75mm)
+    pad 87: P_LQFP100_Lead_V at (0.5mm, -7.75mm)
+    pad 88: P_LQFP100_Lead_V at (0mm, -7.75mm)
+    pad 89: P_LQFP100_Lead_V at (-0.5mm, -7.75mm)
+    pad 90: P_LQFP100_Lead_V at (-1mm, -7.75mm)
+    pad 91: P_LQFP100_Lead_V at (-1.5mm, -7.75mm)
+    pad 92: P_LQFP100_Lead_V at (-2mm, -7.75mm)
+    pad 93: P_LQFP100_Lead_V at (-2.5mm, -7.75mm)
+    pad 94: P_LQFP100_Lead_V at (-3mm, -7.75mm)
+    pad 95: P_LQFP100_Lead_V at (-3.5mm, -7.75mm)
+    pad 96: P_LQFP100_Lead_V at (-4mm, -7.75mm)
+    pad 97: P_LQFP100_Lead_V at (-4.5mm, -7.75mm)
+    pad 98: P_LQFP100_Lead_V at (-5mm, -7.75mm)
+    pad 99: P_LQFP100_Lead_V at (-5.5mm, -7.75mm)
+    pad 100: P_LQFP100_Lead_V at (-6mm, -7.75mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (17.2mm, 17.2mm) }
+    silkscreen_ref { at: (0mm, -8.7mm) }
+}

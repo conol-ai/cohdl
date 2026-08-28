@@ -1,0 +1,439 @@
+// Generated STM32 catalog coverage — do not hand-edit.
+//
+// Emitted device models: 2284
+// Excluded source patterns/variants: 411
+// Exact ST portfolio order-code rows: 4930
+// Electrical identities after terminal-TR collapse: 3578
+// Identities matched exactly once to a pinned pinout: 3398
+// Matched identities represented by emitted devices: 2731
+// Exact order-code rows represented by emitted devices: 3708
+// Portfolio identities unmatched to pinned pinouts: 180
+// Fabrication-ready audited pub parts: 14
+// Electrical identities covered by audited parts: 14
+// Exact order-code rows covered by audited parts: 22
+// Represented exact rows awaiting fabrication audit: 3686
+// All portfolio rows not emitted as exact parts: 4908
+//
+// The broad exact portfolio is tooling-only validation input and is not
+// copied wholesale into package sources. Exact rows appear only through
+// the source-backed audited-parts overlay; the website inventory never
+// supplies pin identity, electrical semantics, or fabrication geometry.
+//
+// Product boundary: STM32MP application processors are not imported into
+// this MCU package; they require a separate interface and package policy.
+//
+// Exclusions are fail-closed: the upstream package pinout cannot be
+// represented as one unambiguous CoHDL device without an alias/remap
+// decision or another reviewed normalization rule.
+//
+// - STM32C011F(4-6)Ux: open:STM32C011F(4-6)Ux.xml is incomplete: UFQFPN20 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C031C(4-6)Ux: open:STM32C031C(4-6)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C031G(4-6)Ux: open:STM32C031G(4-6)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C031K(4-6)Ux: open:STM32C031K(4-6)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C051C6Ux: open:STM32C051C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C051C8Ux: open:STM32C051C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C051G6Ux: open:STM32C051G6Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C051G8Ux: open:STM32C051G8Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C051K6Ux: open:STM32C051K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071C8Ux: open:STM32C071C8Ux.xml is incomplete: UFQFPN48_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071C8UxN: open:STM32C071C8UxN.xml is incomplete: UFQFPN48_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071CBUx: open:STM32C071CBUx.xml is incomplete: UFQFPN48_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071CBUxN: open:STM32C071CBUxN.xml is incomplete: UFQFPN48_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071G8Ux: open:STM32C071G8Ux.xml is incomplete: UFQFPN28_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071G8UxN: open:STM32C071G8UxN.xml is incomplete: UFQFPN28_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071GBUx: open:STM32C071GBUx.xml is incomplete: UFQFPN28_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071GBUxN: open:STM32C071GBUxN.xml is incomplete: UFQFPN28_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071K8Ux: open:STM32C071K8Ux.xml is incomplete: UFQFPN32_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071K8UxN: open:STM32C071K8UxN.xml is incomplete: UFQFPN32_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071KBUx: open:STM32C071KBUx.xml is incomplete: UFQFPN32_GP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C071KBUxN: open:STM32C071KBUxN.xml is incomplete: UFQFPN32_N requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091CBUx: open:STM32C091CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091CCUx: open:STM32C091CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091GBUx: open:STM32C091GBUx.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091GCUx: open:STM32C091GCUx.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091KBUx: open:STM32C091KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C091KCUx: open:STM32C091KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092CBUx: open:STM32C092CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092CCUx: open:STM32C092CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092GBUx: open:STM32C092GBUx.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092GCUx: open:STM32C092GCUx.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092KBUx: open:STM32C092KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C092KCUx: open:STM32C092KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32C531CBU6: c5:Descriptors/pinout/STM32C531C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531CCU3: c5:Descriptors/pinout/STM32C531C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531CCU6: c5:Descriptors/pinout/STM32C531C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531EBU6: c5:Descriptors/pinout/STM32C531E(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531ECU6: c5:Descriptors/pinout/STM32C531E(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531FBU6: c5:Descriptors/pinout/STM32C531F(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531FCU6: c5:Descriptors/pinout/STM32C531F(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531KBU3: c5:Descriptors/pinout/STM32C531K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531KBU6: c5:Descriptors/pinout/STM32C531K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531KCU3: c5:Descriptors/pinout/STM32C531K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C531KCU6: c5:Descriptors/pinout/STM32C531K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532CBU6: c5:Descriptors/pinout/STM32C5(3-4)2C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532CCU6: c5:Descriptors/pinout/STM32C5(3-4)2C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532EBU6: c5:Descriptors/pinout/STM32C5(3-4)2E(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532ECU6: c5:Descriptors/pinout/STM32C5(3-4)2E(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532FBU6: c5:Descriptors/pinout/STM32C5(3-4)2F(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532FCU6: c5:Descriptors/pinout/STM32C5(3-4)2F(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532KBU6: c5:Descriptors/pinout/STM32C5(3-4)2K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532KCU3: c5:Descriptors/pinout/STM32C5(3-4)2K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C532KCU6: c5:Descriptors/pinout/STM32C5(3-4)2K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C542CCU6: c5:Descriptors/pinout/STM32C5(3-4)2C(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C542ECU6: c5:Descriptors/pinout/STM32C5(3-4)2E(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C542FCU6: c5:Descriptors/pinout/STM32C5(3-4)2F(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C542KCU3: c5:Descriptors/pinout/STM32C5(3-4)2K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C542KCU6: c5:Descriptors/pinout/STM32C5(3-4)2K(B-C)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C551CCU6: c5:Descriptors/pinout/STM32C551C(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C551CEU6: c5:Descriptors/pinout/STM32C551C(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C551KCU6: c5:Descriptors/pinout/STM32C551K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C551KEU6: c5:Descriptors/pinout/STM32C551K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C552CCU6: c5:Descriptors/pinout/STM32C5(5-6)2C(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C552CEU6: c5:Descriptors/pinout/STM32C5(5-6)2C(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C552KCU3: c5:Descriptors/pinout/STM32C5(5-6)2K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C552KCU6: c5:Descriptors/pinout/STM32C5(5-6)2K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C552KEU6: c5:Descriptors/pinout/STM32C5(5-6)2K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C562CEU6: c5:Descriptors/pinout/STM32C5(5-6)2C(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C562KEU6: c5:Descriptors/pinout/STM32C5(5-6)2K(C-E)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C591CEU6: c5:Descriptors/pinout/STM32C591C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C591CGU6: c5:Descriptors/pinout/STM32C591C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C591KEU6: c5:Descriptors/pinout/STM32C591K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C591KGU6: c5:Descriptors/pinout/STM32C591K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C593CEU3: c5:Descriptors/pinout/STM32C5(9-A)3C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C593CEU6: c5:Descriptors/pinout/STM32C5(9-A)3C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C593CGU6: c5:Descriptors/pinout/STM32C5(9-A)3C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C593KEU6: c5:Descriptors/pinout/STM32C5(9-A)3K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C593KGU6: c5:Descriptors/pinout/STM32C5(9-A)3K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C5A3CGU6: c5:Descriptors/pinout/STM32C5(9-A)3C(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C5A3KGU3: c5:Descriptors/pinout/STM32C5(9-A)3K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32C5A3KGU6: c5:Descriptors/pinout/STM32C5(9-A)3K(E-G)Ux_pinout.json is incomplete: DFP package_type=4-edges-internal but bonds omit the exposed pad
+// - STM32F031G(4-6)Ux: open:STM32F031G(4-6)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F031K(4-6)Ux: open:STM32F031K(4-6)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F038G6Ux: open:STM32F038G6Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F038K6Ux: open:STM32F038K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F042C(4-6)Ux: open:STM32F042C(4-6)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F042G(4-6)Ux: open:STM32F042G(4-6)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F042K(4-6)Ux: open:STM32F042K(4-6)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F048C6Ux: open:STM32F048C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F048G6Ux: open:STM32F048G6Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051C4Ux: open:STM32F051C4Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051C6Ux: open:STM32F051C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051C8Ux: open:STM32F051C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051K4Ux: open:STM32F051K4Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051K6Ux: open:STM32F051K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F051K8Ux: open:STM32F051K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F058C8Ux: open:STM32F058C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F071C(8-B)Ux: open:STM32F071C(8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F072C(8-B)Ux: open:STM32F072C(8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F078CBUx: open:STM32F078CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F091C(B-C)Ux: open:STM32F091C(B-C)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F098CCUx: open:STM32F098CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F101C(8-B)Ux: open:STM32F101C(8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F101T(4-6)Ux: open:STM32F101T(4-6)Ux.xml is incomplete: VFQFPN36 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F101T(8-B)Ux: open:STM32F101T(8-B)Ux.xml is incomplete: VFQFPN36 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F103C6Ux: open:STM32F103C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F103CBUx: open:STM32F103CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F103T(4-6)Ux: open:STM32F103T(4-6)Ux.xml is incomplete: VFQFPN36 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F103T(8-B)Ux: open:STM32F103T(8-B)Ux.xml is incomplete: VFQFPN36 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F301K(6-8)Ux: open:STM32F301K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F302K(6-8)Ux: open:STM32F302K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F303K(6-8)Ux: open:STM32F303K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F318K8Ux: open:STM32F318K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F334K(4-6-8)Ux: open:STM32F334K(4-6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F401C(B-C)Ux: open:STM32F401C(B-C)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F401C(D-E)Ux: open:STM32F401C(D-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F410C(8-B)Ux: open:STM32F410C(8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F411C(C-E)Ux: open:STM32F411C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F412C(E-G)Ux: open:STM32F412C(E-G)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F413C(G-H)Ux: open:STM32F413C(G-H)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F423CHUx: open:STM32F423CHUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F723RCVx: open:STM32F723RCVx.xml is incomplete: VQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32F723REVx: open:STM32F723REVx.xml is incomplete: VQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G030J6Mx: open:STM32G030J6Mx.xml has incompatible aliases at position 4: NRST=optional/input, PA0=optional/bidirectional, PA1=optional/bidirectional, PA2=optional/bidirectional
+// - STM32G031C(4-6-8)Ux: open:STM32G031C(4-6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G031G(4-6-8)Ux: open:STM32G031G(4-6-8)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G031K(4-6-8)Ux: open:STM32G031K(4-6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G041C(6-8)Ux: open:STM32G041C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G041G(6-8)Ux: open:STM32G041G(6-8)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G041K(6-8)Ux: open:STM32G041K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G051C(6-8)Ux: open:STM32G051C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G051G(6-8)Ux: open:STM32G051G(6-8)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G051K(6-8)Ux: open:STM32G051K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G061C(6-8)Ux: open:STM32G061C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G061G(6-8)Ux: open:STM32G061G(6-8)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G061K(6-8)Ux: open:STM32G061K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G071C(6-8-B)Ux: open:STM32G071C(6-8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G071G(6-8-B)Ux: open:STM32G071G(6-8-B)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G071G(8-B)UxN: open:STM32G071G(8-B)UxN.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G071K(6-8-B)Ux: open:STM32G071K(6-8-B)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G071K(8-B)UxN: open:STM32G071K(8-B)UxN.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G081CBUx: open:STM32G081CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G081GBUx: open:STM32G081GBUx.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G081GBUxN: open:STM32G081GBUxN.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G081KBUx: open:STM32G081KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G081KBUxN: open:STM32G081KBUxN.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0B1C(B-C-E)Ux: open:STM32G0B1C(B-C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0B1C(B-C-E)UxN: open:STM32G0B1C(B-C-E)UxN.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0B1K(B-C-E)Ux: open:STM32G0B1K(B-C-E)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0B1K(B-C-E)UxN: open:STM32G0B1K(B-C-E)UxN.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0C1C(C-E)Ux: open:STM32G0C1C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0C1C(C-E)UxN: open:STM32G0C1C(C-E)UxN.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0C1K(C-E)Ux: open:STM32G0C1K(C-E)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G0C1K(C-E)UxN: open:STM32G0C1K(C-E)UxN.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411C6Ux: open:STM32G411C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411C8Ux: open:STM32G411C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411CBUx: open:STM32G411CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411CCUx: open:STM32G411CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411K6Ux: open:STM32G411K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411K8Ux: open:STM32G411K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G411KBUx: open:STM32G411KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G414CBUx: open:STM32G414CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G414CCUx: open:STM32G414CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G431C(6-8-B)Ux: open:STM32G431C(6-8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G431K(6-8-B)Ux: open:STM32G431K(6-8-B)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G441CBUx: open:STM32G441CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G441KBUx: open:STM32G441KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G471C(C-E)Ux: open:STM32G471C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G473C(B-C-E)Ux: open:STM32G473C(B-C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G474C(B-C-E)Ux: open:STM32G474C(B-C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G483CEUx: open:STM32G483CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G484CEUx: open:STM32G484CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G491C(C-E)Ux: open:STM32G491C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G491K(C-E)Ux: open:STM32G491K(C-E)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G4A1CEUx: open:STM32G4A1CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32G4A1KEUx: open:STM32G4A1KEUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H503CBUx: open:STM32H503CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H503KBUx: open:STM32H503KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H523CCUx: open:STM32H523CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H523CEUx: open:STM32H523CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H533CEUx: open:STM32H533CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543CEUx: open:STM32H543CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543CGUx: open:STM32H543CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543VEZx: open:STM32H543VEZx.xml is incomplete: LQFP100-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543VGZx: open:STM32H543VGZx.xml is incomplete: LQFP100-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543ZEZx: open:STM32H543ZEZx.xml is incomplete: LQFP144-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H543ZGZx: open:STM32H543ZGZx.xml is incomplete: LQFP144-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H553CGUx: open:STM32H553CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H553VGZx: open:STM32H553VGZx.xml is incomplete: LQFP100-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H553ZGZx: open:STM32H553ZGZx.xml is incomplete: LQFP144-EP requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H562RGVx: open:STM32H562RGVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H562RIVx: open:STM32H562RIVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H563RGVx: open:STM32H563RGVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H563RIVx: open:STM32H563RIVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H573RIVx: open:STM32H573RIVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H725REVx: open:STM32H725REVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H725RGVx: open:STM32H725RGVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H735RGVx: open:STM32H735RGVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H7R3R8Vx: open:STM32H7R3R8Vx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32H7S3R8Vx: open:STM32H7S3R8Vx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L011F(3-4)Ux: open:STM32L011F(3-4)Ux.xml is incomplete: UFQFPN20 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L011G(3-4)Ux: open:STM32L011G(3-4)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L011K(3-4)Ux: open:STM32L011K(3-4)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L021F4Ux: open:STM32L021F4Ux.xml is incomplete: UFQFPN20 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L021G4Ux: open:STM32L021G4Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L021K4Ux: open:STM32L021K4Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L031C(4-6)Ux: open:STM32L031C(4-6)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L031G(4-6)Ux: open:STM32L031G(4-6)Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L031G6UxS: open:STM32L031G6UxS.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L031K(4-6)Ux: open:STM32L031K(4-6)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L041C6Ux: open:STM32L041C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L041G6Ux: open:STM32L041G6Ux.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L041G6UxS: open:STM32L041G6UxS.xml is incomplete: UFQFPN28 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L041K6Ux: open:STM32L041K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L051C(6-8)Ux: open:STM32L051C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L051K(6-8)Ux: open:STM32L051K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L052C(6-8)Ux: open:STM32L052C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L052K(6-8)Ux: open:STM32L052K(6-8)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L053C(6-8)Ux: open:STM32L053C(6-8)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L062C8Ux: open:STM32L062C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L062K8Ux: open:STM32L062K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L063C8Ux: open:STM32L063C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L071C(B-Z)Ux: open:STM32L071C(B-Z)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L071C8Ux: open:STM32L071C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L071K(B-Z)Ux: open:STM32L071K(B-Z)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L071K8Ux: open:STM32L071K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L072C(B-Z)Ux: open:STM32L072C(B-Z)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L072K(B-Z)Ux: open:STM32L072K(B-Z)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L073C(B-Z)Ux: open:STM32L073C(B-Z)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L081CZUx: open:STM32L081CZUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L081KZUx: open:STM32L081KZUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L082CZUx: open:STM32L082CZUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L082K(B-Z)Ux: open:STM32L082K(B-Z)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L083CZUx: open:STM32L083CZUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L100C6Ux: open:STM32L100C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L100C6UxA: open:STM32L100C6UxA.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L151C(6-8-B)Ux: open:STM32L151C(6-8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L151C(6-8-B)UxA: open:STM32L151C(6-8-B)UxA.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L151CCUx: open:STM32L151CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L152C(6-8-B)Ux: open:STM32L152C(6-8-B)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L152C(6-8-B)UxA: open:STM32L152C(6-8-B)UxA.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L152CCUx: open:STM32L152CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L412C8Ux: open:STM32L412C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L412CBUx: open:STM32L412CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L412CBUxP: open:STM32L412CBUxP.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L412K8Ux: open:STM32L412K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L412KBUx: open:STM32L412KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L422CBUx: open:STM32L422CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L422KBUx: open:STM32L422KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L431C(B-C)Ux: open:STM32L431C(B-C)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L431K(B-C)Ux: open:STM32L431K(B-C)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L432K(B-C)Ux: open:STM32L432K(B-C)Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L433C(B-C)Ux: open:STM32L433C(B-C)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L442KCUx: open:STM32L442KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L443CCUx: open:STM32L443CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L451C(C-E)Ux: open:STM32L451C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L452C(C-E)Ux: open:STM32L452C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L462CEUx: open:STM32L462CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L4P5C(G-E)Ux: open:STM32L4P5C(G-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L4P5CGUxP: open:STM32L4P5CGUxP.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L4Q5CGUx: open:STM32L4Q5CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L4Q5CGUxP: open:STM32L4Q5CGUxP.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L552C(C-E)Ux: open:STM32L552C(C-E)Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L552CEUxP: open:STM32L552CEUxP.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L562CEUx: open:STM32L562CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32L562CEUxP: open:STM32L562CEUxP.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U031C6Ux: open:STM32U031C6Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U031C8Ux: open:STM32U031C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U031K4Ux: open:STM32U031K4Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U031K6Ux: open:STM32U031K6Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U031K8Ux: open:STM32U031K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073C8Ux: open:STM32U073C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073CBUx: open:STM32U073CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073CCUx: open:STM32U073CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073K8Ux: open:STM32U073K8Ux.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073KBUx: open:STM32U073KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U073KCUx: open:STM32U073KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U083CCUx: open:STM32U083CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U083KCUx: open:STM32U083KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335CBUx: open:STM32U335CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335CBUxQ: open:STM32U335CBUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335CBYxQ: open:STM32U335CBYxQ.xml has incompatible aliases at position 29: PC9=optional/bidirectional, VSS=required/power_in
+// - STM32U335CCUx: open:STM32U335CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335CCUxQ: open:STM32U335CCUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335CCYxQ: open:STM32U335CCYxQ.xml has incompatible aliases at position 29: PC9=optional/bidirectional, VSS=required/power_in
+// - STM32U335KBUx: open:STM32U335KBUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U335KCUx: open:STM32U335KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U345CCUx: open:STM32U345CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U345CCUxQ: open:STM32U345CCUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U345CCYxQ: open:STM32U345CCYxQ.xml has incompatible aliases at position 29: PC9=optional/bidirectional, VSS=required/power_in
+// - STM32U345KCUx: open:STM32U345KCUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356CCUx: open:STM32U356CCUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356CCUxQ: open:STM32U356CCUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356CEUx: open:STM32U356CEUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356CEUxQ: open:STM32U356CEUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356KCUx: open:STM32U356KCUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U356KEUx: open:STM32U356KEUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U366CEUx: open:STM32U366CEUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U366CEUxQ: open:STM32U366CEUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U366KEUx: open:STM32U366KEUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375CEUx: open:STM32U375CEUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375CEUxQ: open:STM32U375CEUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375CGUx: open:STM32U375CGUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375CGUxQ: open:STM32U375CGUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375KEUx: open:STM32U375KEUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U375KGUx: open:STM32U375KGUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U385CGUx: open:STM32U385CGUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U385CGUxQ: open:STM32U385CGUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U385KGUx: open:STM32U385KGUx.xml is incomplete: UQFN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3B5CGUx: open:STM32U3B5CGUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3B5CGUxQ: open:STM32U3B5CGUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3B5CIUx: open:STM32U3B5CIUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3B5CIUxQ: open:STM32U3B5CIUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3C5CIUx: open:STM32U3C5CIUx.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U3C5CIUxQ: open:STM32U3C5CIUxQ.xml is incomplete: UQFN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CBUx: open:STM32U535CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CBUxQ: open:STM32U535CBUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CCUx: open:STM32U535CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CCUxQ: open:STM32U535CCUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CEUx: open:STM32U535CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U535CEUxQ: open:STM32U535CEUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U545CEUx: open:STM32U545CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U545CEUxQ: open:STM32U545CEUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U575CGUx: open:STM32U575CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U575CGUxQ: open:STM32U575CGUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U575CIUx: open:STM32U575CIUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U575CIUxQ: open:STM32U575CIUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U585CIUx: open:STM32U585CIUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32U585CIUxQ: open:STM32U585CIUxQ.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB05KZVx: open:STM32WB05KZVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB06CCVx: open:STM32WB06CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB06KCVx: open:STM32WB06KCVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB07CCVx: open:STM32WB07CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB07KCVx: open:STM32WB07KCVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB09KEVx: open:STM32WB09KEVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB10CCUx: open:STM32WB10CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB15CCUx: open:STM32WB15CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB15CCUxE: open:STM32WB15CCUxE.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB30CEUxA: open:STM32WB30CEUxA.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB35C(C-E)UxA: open:STM32WB35C(C-E)UxA.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB50CGUx: open:STM32WB50CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55CCUx: open:STM32WB55CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55CEUx: open:STM32WB55CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55CGUx: open:STM32WB55CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55RCVx: open:STM32WB55RCVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55REVx: open:STM32WB55REVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WB55RGVx: open:STM32WB55RGVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA23CEUx: open:STM32WBA23CEUx.xml is incomplete: UFQFPN48_SMPS requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA23KEUx: open:STM32WBA23KEUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA25CEUx: open:STM32WBA25CEUx.xml is incomplete: UFQFPN48_SMPS_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA50KGUx: open:STM32WBA50KGUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA52CEUx: open:STM32WBA52CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA52CGUx: open:STM32WBA52CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA52KEUx: open:STM32WBA52KEUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA52KGUx: open:STM32WBA52KGUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA54CEUx: open:STM32WBA54CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA54CGUx: open:STM32WBA54CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA54KEUx: open:STM32WBA54KEUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA54KGUx: open:STM32WBA54KGUx.xml is incomplete: UFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA55CEUx: open:STM32WBA55CEUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA55CGUx: open:STM32WBA55CGUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA62CGUx: open:STM32WBA62CGUx.xml is incomplete: UFQFPN48_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA62CIUx: open:STM32WBA62CIUx.xml is incomplete: UFQFPN48_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA63CGUx: open:STM32WBA63CGUx.xml is incomplete: UFQFPN48_SMPS requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA63CIUx: open:STM32WBA63CIUx.xml is incomplete: UFQFPN48_SMPS requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA64CGUx: open:STM32WBA64CGUx.xml is incomplete: UFQFPN48_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA64CIUx: open:STM32WBA64CIUx.xml is incomplete: UFQFPN48_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA65CGUx: open:STM32WBA65CGUx.xml is incomplete: UFQFPN48_SMPS_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA65CIUx: open:STM32WBA65CIUx.xml is incomplete: UFQFPN48_SMPS_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA65RGVx: open:STM32WBA65RGVx.xml is incomplete: VFQFPN68_SMPS_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WBA65RIVx: open:STM32WBA65RIVx.xml is incomplete: VFQFPN68_SMPS_USB requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL30K8Vx: open:STM32WL30K8Vx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL30KBVx: open:STM32WL30KBVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL31C8Vx: open:STM32WL31C8Vx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL31CBVx: open:STM32WL31CBVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL31K8Vx: open:STM32WL31K8Vx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL31KBVx: open:STM32WL31KBVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33C8Vx: open:STM32WL33C8Vx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33C8VxX: open:STM32WL33C8VxX.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33CBVx: open:STM32WL33CBVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33CBVxX: open:STM32WL33CBVxX.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33CCVx: open:STM32WL33CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33CCVxX: open:STM32WL33CCVxX.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33K8Vx: open:STM32WL33K8Vx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33K8VxX: open:STM32WL33K8VxX.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33KBVx: open:STM32WL33KBVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33KBVxX: open:STM32WL33KBVxX.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33KCVx: open:STM32WL33KCVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL33KCVxX: open:STM32WL33KCVxX.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL3RK8Vx: open:STM32WL3RK8Vx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL3RK8VxX: open:STM32WL3RK8VxX.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL3RKBVx: open:STM32WL3RKBVx.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL3RKBVxX: open:STM32WL3RKBVxX.xml is incomplete: VFQFPN32 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL40CCVx: open:STM32WL40CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL40CEVx: open:STM32WL40CEVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL41CCVx: open:STM32WL41CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL41CEVx: open:STM32WL41CEVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL41RCVx: open:STM32WL41RCVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL41REVx: open:STM32WL41REVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL43CCVx: open:STM32WL43CCVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL43CEVx: open:STM32WL43CEVx.xml is incomplete: VFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL43RCVx: open:STM32WL43RCVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL43REVx: open:STM32WL43REVx.xml is incomplete: VFQFPN68 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL54CCUx: open:STM32WL54CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WL55CCUx: open:STM32WL55CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE4C8Ux: open:STM32WLE4C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE4CBUx: open:STM32WLE4CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE4CCUx: open:STM32WLE4CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE5C8Ux: open:STM32WLE5C8Ux.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE5CBUx: open:STM32WLE5CBUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions
+// - STM32WLE5CCUx: open:STM32WLE5CCUx.xml is incomplete: UFQFPN48 requires an exposed-pad audit but the XML lists only perimeter positions

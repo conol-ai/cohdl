@@ -1,0 +1,206 @@
+// Verified BGA package land patterns.
+//
+// Both footprints are transcribed from STMicroelectronics DS9826 Rev 6:
+// https://www.st.com/resource/en/datasheet/stm32f072cb.pdf
+// Audited document SHA-256:
+// 660bc16b5cf99b649da4ebcd2d1bb8d232edd3fb1dc275977b3c6389a85d2453.
+//
+// The official recommended PCB design rules specify a circular 0.280mm copper
+// land for both 0.50mm-pitch UFBGA packages. Independent solder-mask and paste
+// apertures are documented in docs/README.md because the current pad model
+// cannot express them separately.
+
+pub pad P_UFBGA_LAND_028 {
+    shape: circle
+    size: (0.28mm)
+    layer: top_copper
+    plating: smd
+}
+
+// UFBGA64, full 8x8 ball array, 5x5mm nominal body, 0.50mm pitch and
+// 0.60mm maximum height. Figure 41's bottom view has column 1 on the right;
+// this PCB top view mirrors it so A1 is upper-left, with columns increasing
+// rightward and rows increasing downward in CoHDL/KiCad's +Y-down frame.
+pub footprint BGA64C50P8X8_500X500X60N {
+    pad A1: P_UFBGA_LAND_028 at (-1.75mm, -1.75mm)
+    pad A2: P_UFBGA_LAND_028 at (-1.25mm, -1.75mm)
+    pad A3: P_UFBGA_LAND_028 at (-0.75mm, -1.75mm)
+    pad A4: P_UFBGA_LAND_028 at (-0.25mm, -1.75mm)
+    pad A5: P_UFBGA_LAND_028 at (0.25mm, -1.75mm)
+    pad A6: P_UFBGA_LAND_028 at (0.75mm, -1.75mm)
+    pad A7: P_UFBGA_LAND_028 at (1.25mm, -1.75mm)
+    pad A8: P_UFBGA_LAND_028 at (1.75mm, -1.75mm)
+    pad B1: P_UFBGA_LAND_028 at (-1.75mm, -1.25mm)
+    pad B2: P_UFBGA_LAND_028 at (-1.25mm, -1.25mm)
+    pad B3: P_UFBGA_LAND_028 at (-0.75mm, -1.25mm)
+    pad B4: P_UFBGA_LAND_028 at (-0.25mm, -1.25mm)
+    pad B5: P_UFBGA_LAND_028 at (0.25mm, -1.25mm)
+    pad B6: P_UFBGA_LAND_028 at (0.75mm, -1.25mm)
+    pad B7: P_UFBGA_LAND_028 at (1.25mm, -1.25mm)
+    pad B8: P_UFBGA_LAND_028 at (1.75mm, -1.25mm)
+    pad C1: P_UFBGA_LAND_028 at (-1.75mm, -0.75mm)
+    pad C2: P_UFBGA_LAND_028 at (-1.25mm, -0.75mm)
+    pad C3: P_UFBGA_LAND_028 at (-0.75mm, -0.75mm)
+    pad C4: P_UFBGA_LAND_028 at (-0.25mm, -0.75mm)
+    pad C5: P_UFBGA_LAND_028 at (0.25mm, -0.75mm)
+    pad C6: P_UFBGA_LAND_028 at (0.75mm, -0.75mm)
+    pad C7: P_UFBGA_LAND_028 at (1.25mm, -0.75mm)
+    pad C8: P_UFBGA_LAND_028 at (1.75mm, -0.75mm)
+    pad D1: P_UFBGA_LAND_028 at (-1.75mm, -0.25mm)
+    pad D2: P_UFBGA_LAND_028 at (-1.25mm, -0.25mm)
+    pad D3: P_UFBGA_LAND_028 at (-0.75mm, -0.25mm)
+    pad D4: P_UFBGA_LAND_028 at (-0.25mm, -0.25mm)
+    pad D5: P_UFBGA_LAND_028 at (0.25mm, -0.25mm)
+    pad D6: P_UFBGA_LAND_028 at (0.75mm, -0.25mm)
+    pad D7: P_UFBGA_LAND_028 at (1.25mm, -0.25mm)
+    pad D8: P_UFBGA_LAND_028 at (1.75mm, -0.25mm)
+    pad E1: P_UFBGA_LAND_028 at (-1.75mm, 0.25mm)
+    pad E2: P_UFBGA_LAND_028 at (-1.25mm, 0.25mm)
+    pad E3: P_UFBGA_LAND_028 at (-0.75mm, 0.25mm)
+    pad E4: P_UFBGA_LAND_028 at (-0.25mm, 0.25mm)
+    pad E5: P_UFBGA_LAND_028 at (0.25mm, 0.25mm)
+    pad E6: P_UFBGA_LAND_028 at (0.75mm, 0.25mm)
+    pad E7: P_UFBGA_LAND_028 at (1.25mm, 0.25mm)
+    pad E8: P_UFBGA_LAND_028 at (1.75mm, 0.25mm)
+    pad F1: P_UFBGA_LAND_028 at (-1.75mm, 0.75mm)
+    pad F2: P_UFBGA_LAND_028 at (-1.25mm, 0.75mm)
+    pad F3: P_UFBGA_LAND_028 at (-0.75mm, 0.75mm)
+    pad F4: P_UFBGA_LAND_028 at (-0.25mm, 0.75mm)
+    pad F5: P_UFBGA_LAND_028 at (0.25mm, 0.75mm)
+    pad F6: P_UFBGA_LAND_028 at (0.75mm, 0.75mm)
+    pad F7: P_UFBGA_LAND_028 at (1.25mm, 0.75mm)
+    pad F8: P_UFBGA_LAND_028 at (1.75mm, 0.75mm)
+    pad G1: P_UFBGA_LAND_028 at (-1.75mm, 1.25mm)
+    pad G2: P_UFBGA_LAND_028 at (-1.25mm, 1.25mm)
+    pad G3: P_UFBGA_LAND_028 at (-0.75mm, 1.25mm)
+    pad G4: P_UFBGA_LAND_028 at (-0.25mm, 1.25mm)
+    pad G5: P_UFBGA_LAND_028 at (0.25mm, 1.25mm)
+    pad G6: P_UFBGA_LAND_028 at (0.75mm, 1.25mm)
+    pad G7: P_UFBGA_LAND_028 at (1.25mm, 1.25mm)
+    pad G8: P_UFBGA_LAND_028 at (1.75mm, 1.25mm)
+    pad H1: P_UFBGA_LAND_028 at (-1.75mm, 1.75mm)
+    pad H2: P_UFBGA_LAND_028 at (-1.25mm, 1.75mm)
+    pad H3: P_UFBGA_LAND_028 at (-0.75mm, 1.75mm)
+    pad H4: P_UFBGA_LAND_028 at (-0.25mm, 1.75mm)
+    pad H5: P_UFBGA_LAND_028 at (0.25mm, 1.75mm)
+    pad H6: P_UFBGA_LAND_028 at (0.75mm, 1.75mm)
+    pad H7: P_UFBGA_LAND_028 at (1.25mm, 1.75mm)
+    pad H8: P_UFBGA_LAND_028 at (1.75mm, 1.75mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.65mm, 5.65mm) }
+    silkscreen_ref { at: (0mm, -3.3mm) }
+}
+
+// UFBGA100, sparse 100-ball array on a 12x12 grid, 7x7mm nominal body,
+// 0.50mm pitch and 0.60mm maximum height. The exact populated map follows
+// Figures 35 and 36 and is checked against the pinned STM32F072V(8-B)Hx ST
+// pinout. Top-view A1 is upper-left; row I is skipped by the ball designators.
+pub footprint BGA100C50P12X12_700X700X60N {
+    pad A1: P_UFBGA_LAND_028 at (-2.75mm, -2.75mm)
+    pad A2: P_UFBGA_LAND_028 at (-2.25mm, -2.75mm)
+    pad A3: P_UFBGA_LAND_028 at (-1.75mm, -2.75mm)
+    pad A4: P_UFBGA_LAND_028 at (-1.25mm, -2.75mm)
+    pad A5: P_UFBGA_LAND_028 at (-0.75mm, -2.75mm)
+    pad A6: P_UFBGA_LAND_028 at (-0.25mm, -2.75mm)
+    pad A7: P_UFBGA_LAND_028 at (0.25mm, -2.75mm)
+    pad A8: P_UFBGA_LAND_028 at (0.75mm, -2.75mm)
+    pad A9: P_UFBGA_LAND_028 at (1.25mm, -2.75mm)
+    pad A10: P_UFBGA_LAND_028 at (1.75mm, -2.75mm)
+    pad A11: P_UFBGA_LAND_028 at (2.25mm, -2.75mm)
+    pad A12: P_UFBGA_LAND_028 at (2.75mm, -2.75mm)
+    pad B1: P_UFBGA_LAND_028 at (-2.75mm, -2.25mm)
+    pad B2: P_UFBGA_LAND_028 at (-2.25mm, -2.25mm)
+    pad B3: P_UFBGA_LAND_028 at (-1.75mm, -2.25mm)
+    pad B4: P_UFBGA_LAND_028 at (-1.25mm, -2.25mm)
+    pad B5: P_UFBGA_LAND_028 at (-0.75mm, -2.25mm)
+    pad B6: P_UFBGA_LAND_028 at (-0.25mm, -2.25mm)
+    pad B7: P_UFBGA_LAND_028 at (0.25mm, -2.25mm)
+    pad B8: P_UFBGA_LAND_028 at (0.75mm, -2.25mm)
+    pad B9: P_UFBGA_LAND_028 at (1.25mm, -2.25mm)
+    pad B10: P_UFBGA_LAND_028 at (1.75mm, -2.25mm)
+    pad B11: P_UFBGA_LAND_028 at (2.25mm, -2.25mm)
+    pad B12: P_UFBGA_LAND_028 at (2.75mm, -2.25mm)
+    pad C1: P_UFBGA_LAND_028 at (-2.75mm, -1.75mm)
+    pad C2: P_UFBGA_LAND_028 at (-2.25mm, -1.75mm)
+    pad C3: P_UFBGA_LAND_028 at (-1.75mm, -1.75mm)
+    pad C4: P_UFBGA_LAND_028 at (-1.25mm, -1.75mm)
+    pad C5: P_UFBGA_LAND_028 at (-0.75mm, -1.75mm)
+    pad C8: P_UFBGA_LAND_028 at (0.75mm, -1.75mm)
+    pad C9: P_UFBGA_LAND_028 at (1.25mm, -1.75mm)
+    pad C10: P_UFBGA_LAND_028 at (1.75mm, -1.75mm)
+    pad C11: P_UFBGA_LAND_028 at (2.25mm, -1.75mm)
+    pad C12: P_UFBGA_LAND_028 at (2.75mm, -1.75mm)
+    pad D1: P_UFBGA_LAND_028 at (-2.75mm, -1.25mm)
+    pad D2: P_UFBGA_LAND_028 at (-2.25mm, -1.25mm)
+    pad D3: P_UFBGA_LAND_028 at (-1.75mm, -1.25mm)
+    pad D10: P_UFBGA_LAND_028 at (1.75mm, -1.25mm)
+    pad D11: P_UFBGA_LAND_028 at (2.25mm, -1.25mm)
+    pad D12: P_UFBGA_LAND_028 at (2.75mm, -1.25mm)
+    pad E1: P_UFBGA_LAND_028 at (-2.75mm, -0.75mm)
+    pad E2: P_UFBGA_LAND_028 at (-2.25mm, -0.75mm)
+    pad E3: P_UFBGA_LAND_028 at (-1.75mm, -0.75mm)
+    pad E10: P_UFBGA_LAND_028 at (1.75mm, -0.75mm)
+    pad E11: P_UFBGA_LAND_028 at (2.25mm, -0.75mm)
+    pad E12: P_UFBGA_LAND_028 at (2.75mm, -0.75mm)
+    pad F1: P_UFBGA_LAND_028 at (-2.75mm, -0.25mm)
+    pad F2: P_UFBGA_LAND_028 at (-2.25mm, -0.25mm)
+    pad F11: P_UFBGA_LAND_028 at (2.25mm, -0.25mm)
+    pad F12: P_UFBGA_LAND_028 at (2.75mm, -0.25mm)
+    pad G1: P_UFBGA_LAND_028 at (-2.75mm, 0.25mm)
+    pad G2: P_UFBGA_LAND_028 at (-2.25mm, 0.25mm)
+    pad G11: P_UFBGA_LAND_028 at (2.25mm, 0.25mm)
+    pad G12: P_UFBGA_LAND_028 at (2.75mm, 0.25mm)
+    pad H1: P_UFBGA_LAND_028 at (-2.75mm, 0.75mm)
+    pad H2: P_UFBGA_LAND_028 at (-2.25mm, 0.75mm)
+    pad H3: P_UFBGA_LAND_028 at (-1.75mm, 0.75mm)
+    pad H10: P_UFBGA_LAND_028 at (1.75mm, 0.75mm)
+    pad H11: P_UFBGA_LAND_028 at (2.25mm, 0.75mm)
+    pad H12: P_UFBGA_LAND_028 at (2.75mm, 0.75mm)
+    pad J1: P_UFBGA_LAND_028 at (-2.75mm, 1.25mm)
+    pad J2: P_UFBGA_LAND_028 at (-2.25mm, 1.25mm)
+    pad J3: P_UFBGA_LAND_028 at (-1.75mm, 1.25mm)
+    pad J10: P_UFBGA_LAND_028 at (1.75mm, 1.25mm)
+    pad J11: P_UFBGA_LAND_028 at (2.25mm, 1.25mm)
+    pad J12: P_UFBGA_LAND_028 at (2.75mm, 1.25mm)
+    pad K1: P_UFBGA_LAND_028 at (-2.75mm, 1.75mm)
+    pad K2: P_UFBGA_LAND_028 at (-2.25mm, 1.75mm)
+    pad K3: P_UFBGA_LAND_028 at (-1.75mm, 1.75mm)
+    pad K4: P_UFBGA_LAND_028 at (-1.25mm, 1.75mm)
+    pad K5: P_UFBGA_LAND_028 at (-0.75mm, 1.75mm)
+    pad K8: P_UFBGA_LAND_028 at (0.75mm, 1.75mm)
+    pad K9: P_UFBGA_LAND_028 at (1.25mm, 1.75mm)
+    pad K10: P_UFBGA_LAND_028 at (1.75mm, 1.75mm)
+    pad K11: P_UFBGA_LAND_028 at (2.25mm, 1.75mm)
+    pad K12: P_UFBGA_LAND_028 at (2.75mm, 1.75mm)
+    pad L1: P_UFBGA_LAND_028 at (-2.75mm, 2.25mm)
+    pad L2: P_UFBGA_LAND_028 at (-2.25mm, 2.25mm)
+    pad L3: P_UFBGA_LAND_028 at (-1.75mm, 2.25mm)
+    pad L4: P_UFBGA_LAND_028 at (-1.25mm, 2.25mm)
+    pad L5: P_UFBGA_LAND_028 at (-0.75mm, 2.25mm)
+    pad L6: P_UFBGA_LAND_028 at (-0.25mm, 2.25mm)
+    pad L7: P_UFBGA_LAND_028 at (0.25mm, 2.25mm)
+    pad L8: P_UFBGA_LAND_028 at (0.75mm, 2.25mm)
+    pad L9: P_UFBGA_LAND_028 at (1.25mm, 2.25mm)
+    pad L10: P_UFBGA_LAND_028 at (1.75mm, 2.25mm)
+    pad L11: P_UFBGA_LAND_028 at (2.25mm, 2.25mm)
+    pad L12: P_UFBGA_LAND_028 at (2.75mm, 2.25mm)
+    pad M1: P_UFBGA_LAND_028 at (-2.75mm, 2.75mm)
+    pad M2: P_UFBGA_LAND_028 at (-2.25mm, 2.75mm)
+    pad M3: P_UFBGA_LAND_028 at (-1.75mm, 2.75mm)
+    pad M4: P_UFBGA_LAND_028 at (-1.25mm, 2.75mm)
+    pad M5: P_UFBGA_LAND_028 at (-0.75mm, 2.75mm)
+    pad M6: P_UFBGA_LAND_028 at (-0.25mm, 2.75mm)
+    pad M7: P_UFBGA_LAND_028 at (0.25mm, 2.75mm)
+    pad M8: P_UFBGA_LAND_028 at (0.75mm, 2.75mm)
+    pad M9: P_UFBGA_LAND_028 at (1.25mm, 2.75mm)
+    pad M10: P_UFBGA_LAND_028 at (1.75mm, 2.75mm)
+    pad M11: P_UFBGA_LAND_028 at (2.25mm, 2.75mm)
+    pad M12: P_UFBGA_LAND_028 at (2.75mm, 2.75mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.65mm, 7.65mm) }
+    silkscreen_ref { at: (0mm, -4.3mm) }
+}

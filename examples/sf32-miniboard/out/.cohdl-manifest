@@ -23,6 +23,7 @@ out/ground_nets.csv
 out/high_current_nets.csv
 out/sf32-miniboard-bom.csv
 out/sf32-miniboard-layout.json
+out/sf32-miniboard.enet
 out/sf32-miniboard.net
 out/sf32-miniboard.xml
 out/single_ended_impedance_signals.csv

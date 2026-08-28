@@ -24,6 +24,7 @@ out/ground_nets.csv
 out/high_current_nets.csv
 out/rpi-pico2-bom.csv
 out/rpi-pico2-layout.json
+out/rpi-pico2.enet
 out/rpi-pico2.net
 out/rpi-pico2.xml
 out/single_ended_impedance_signals.csv

@@ -62,10 +62,35 @@ net membership.
 under the flag, byte-stable, swept as stale when a later build omits
 `--emit easyeda`. Zero impact on every other artifact and on the verdict.
 
+## Footprints first: the import workflow
+
+The netlist references footprints by their CoHDL fq names, and the
+importer resolves those against **your LCEDA library** — an import into a
+library that has never seen them fails with 封装在库中不存在 listing
+every footprint in the design. CoHDL itself ships the footprints: each
+`out/footprints/<pkg>-<name>.kicad_mod` projection carries the fq name
+(`passive::CHIP_0402`) as its internal footprint name, so the sequence
+is:
+
+1. **文件 → 导入 → KiCad** with the design's `out/footprints/*.kicad_mod`
+   files — they register in a personal library under their internal fq
+   names.
+2. **文件 → 导入 → 网表** with `out/<name>.enet` — `FootprintName` now
+   resolves.
+
+No third-party footprint names are tracked on the CoHDL side (the
+RFC-021 principle): the names that must exist in LCEDA are CoHDL's own,
+delivered by CoHDL's own projection.
+
 ## Verification status
 
 Byte shape and semantics are pinned by `tests/easyeda.rs` (structure,
 determinism, `.net` agreement, JSON well-formedness via python3 — the
-xmllint pattern — and both repo examples). A live **File → Import →
-Netlist** into LCEDA Pro / EasyEDA Pro is the human checkpoint, the same
-role a live pcbnew open plays for `--emit kicad_pcb`.
+xmllint pattern — and both repo examples). First live import
+(2026-08-28, LCEDA Pro, sf32-miniboard): the document itself was
+ACCEPTED — parsing reached footprint resolution, which then reported
+exactly the design's 16 footprints missing from a fresh library, the
+workflow above. The remaining human checkpoint is the footprints-first
+sequence end-to-end (open question: whether LCEDA registers imported
+`.kicad_mod` footprints under their internal fq names verbatim — if it
+renames, `FootprintName` should switch to the same convention).

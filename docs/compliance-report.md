@@ -4094,8 +4094,14 @@ docs/easyeda.md. Decisions of note:
   (DR-012's guaranteed-absence convention), multi-pad flattening
   (RFC-027's one-row-per-pad), JSON well-formedness (python3 as the
   neutral referee — the xmllint pattern), and both repo examples.
-- **Human checkpoint OPEN.** A live LCEDA Pro / EasyEDA Pro import of a
-  real example's `.enet` has not yet been performed in this rebuild —
-  the same standing a live pcbnew open had for `kicad_pcb` before its
-  verification pass. Until then the claim is "v1-shape-faithful and
-  internally consistent", not "import-verified".
+- **Human checkpoint: first pass 2026-08-28, narrowed.** A live LCEDA
+  Pro import of sf32-miniboard's `.enet` ACCEPTED the document — parsing
+  reached footprint resolution, which reported exactly the design's 16
+  footprints missing from a fresh personal library (封装在库中不存在),
+  a 1:1 match with the design's `out/footprints/` projection set. The
+  fix is workflow, not format: import the `.kicad_mod` projections first
+  (they carry the fq names internally), then the netlist — documented in
+  docs/easyeda.md. Still open: the footprints-first sequence end-to-end,
+  including whether LCEDA registers imported footprints under their
+  internal fq names verbatim (if it renames, `FootprintName` should
+  switch to the same convention).

@@ -86,11 +86,11 @@ delivered by CoHDL's own projection.
 
 Byte shape and semantics are pinned by `tests/easyeda.rs` (structure,
 determinism, `.net` agreement, JSON well-formedness via python3 — the
-xmllint pattern — and both repo examples). First live import
-(2026-08-28, LCEDA Pro, sf32-miniboard): the document itself was
-ACCEPTED — parsing reached footprint resolution, which then reported
-exactly the design's 16 footprints missing from a fresh library, the
-workflow above. The remaining human checkpoint is the footprints-first
-sequence end-to-end (open question: whether LCEDA registers imported
-`.kicad_mod` footprints under their internal fq names verbatim — if it
-renames, `FootprintName` should switch to the same convention).
+xmllint pattern — and both repo examples). **Import-verified live**
+(2026-08-28, LCEDA Pro, by the board author): the first import attempt
+ACCEPTED the document and reported exactly the design's 16 footprints
+missing from a fresh library — confirming the resolution path — and the
+footprints-first sequence above then completed the import, with the
+`.kicad_mod` projections registering under their internal fq names as
+the netlist references them. The human checkpoint is closed, the same
+standing the live pcbnew pass gave `--emit kicad_pcb`.

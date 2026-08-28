@@ -14,6 +14,11 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const MAX_SEARCH_RESPONSE: usize = 1024 * 1024;
+/// Application-side API-doc upload ceiling. Kept byte-for-byte aligned with
+/// `registry/src/worker/apidocs.ts` and docs/apidocs.md.
+pub const API_DOCS_MAX_BYTES: usize = 200_000_000;
+/// Documents above this size use the Worker's fixed-length streaming path.
+pub const API_DOCS_BUFFER_MAX_BYTES: usize = 16_000_000;
 
 /// The one official registry (RFC-030); `COHDL_REGISTRY` overrides it for
 /// development and tests.
@@ -138,9 +143,16 @@ pub struct HttpResponse {
     pub body: Vec<u8>,
 }
 
-fn run_curl(args: &[String]) -> Result<HttpResponse, String> {
+fn run_curl_with_timeout(args: &[String], max_time_seconds: u32) -> Result<HttpResponse, String> {
+    let max_time = max_time_seconds.to_string();
     let out = Command::new("curl")
-        .args(["-sS", "-w", "\n%{http_code}", "--max-time", "60"])
+        .args([
+            "-sS",
+            "-w",
+            "\n%{http_code}",
+            "--max-time",
+            max_time.as_str(),
+        ])
         .args(args)
         .output()
         .map_err(|e| {
@@ -168,6 +180,10 @@ fn run_curl(args: &[String]) -> Result<HttpResponse, String> {
         status,
         body: body[..split].to_vec(),
     })
+}
+
+fn run_curl(args: &[String]) -> Result<HttpResponse, String> {
+    run_curl_with_timeout(args, 60)
 }
 
 pub fn http_get(url: &str) -> Result<HttpResponse, String> {
@@ -236,8 +252,9 @@ pub fn http_put(
     body_file: &Path,
     token: &str,
     content_type: &str,
+    extra_headers: &[(&str, &str)],
 ) -> Result<HttpResponse, String> {
-    run_curl(&[
+    let mut args = vec![
         "-X".to_string(),
         "PUT".to_string(),
         "-H".to_string(),
@@ -246,8 +263,59 @@ pub fn http_put(
         format!("Authorization: Bearer {token}"),
         "--data-binary".to_string(),
         format!("@{}", body_file.display()),
-        url.to_string(),
-    ])
+    ];
+    for (name, value) in extra_headers {
+        args.push("-H".to_string());
+        args.push(format!("{name}: {value}"));
+    }
+    args.push(url.to_string());
+    // API-doc sidecars may be hundreds of megabytes. Keep the ordinary
+    // registry calls at 60 seconds, but allow a 200 MB upload to complete on
+    // a slow link without changing any protocol semantics.
+    run_curl_with_timeout(&args, 1800)
+}
+
+/// Remove insignificant JSON whitespace for the registry upload only.
+///
+/// `cohdl docs` remains human-readable on stdout and with `--out`; the
+/// uploaded sidecar is the same JSON value in a substantially smaller byte
+/// representation. The emitter has already produced valid UTF-8 JSON, so a
+/// tiny string/escape state machine is sufficient and deterministic.
+pub fn compact_json_for_upload(json: &str) -> Vec<u8> {
+    // Count first so a heavily indented generated document does not reserve
+    // its full pretty-printed size in addition to the compact body.
+    let mut compact_len = 0usize;
+    visit_compact_json_bytes(json, |_| compact_len += 1);
+    let mut out = Vec::with_capacity(compact_len);
+    visit_compact_json_bytes(json, |byte| out.push(byte));
+    debug_assert_eq!(out.len(), compact_len);
+    out
+}
+
+fn visit_compact_json_bytes(json: &str, mut keep: impl FnMut(u8)) {
+    let mut in_string = false;
+    let mut escaped = false;
+    for byte in json.bytes() {
+        if in_string {
+            keep(byte);
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+        } else if byte == b'"' {
+            in_string = true;
+            keep(byte);
+        } else if !matches!(byte, b' ' | b'\n' | b'\r' | b'\t') {
+            keep(byte);
+        }
+    }
+    debug_assert!(
+        !in_string,
+        "the emitter always produces complete JSON strings"
+    );
 }
 
 // ---------------------------------------------------------------------------

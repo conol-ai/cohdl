@@ -432,6 +432,9 @@ export function useApiDocs(pkg: string, version: string | undefined) {
     queryKey: ["apidocs", pkg, version],
     enabled: !!pkg && !!version,
     staleTime: 10 * 60 * 1000, // matches the endpoint's Cache-Control max-age
+    // Generated catalogs can be very large. Once the API tab is no longer
+    // observing this version, release its parsed object graph promptly.
+    gcTime: 60 * 1000,
     retry: (failureCount, error) =>
       !(error instanceof ApiError && error.status === 404) && failureCount < 2,
     queryFn: async (): Promise<ApiDocs | null> => {

@@ -45,16 +45,29 @@ impl Sha256 {
         }
     }
 
-    pub fn update(&mut self, data: &[u8]) {
+    pub fn update(&mut self, mut data: &[u8]) {
         self.len = self.len.wrapping_add(data.len() as u64);
-        self.buf.extend_from_slice(data);
-        let mut off = 0;
-        while self.buf.len() - off >= 64 {
-            let block: [u8; 64] = self.buf[off..off + 64].try_into().unwrap();
-            self.compress(&block);
-            off += 64;
+
+        // Complete the buffered tail first. Never append the whole input to
+        // `buf`: API-doc uploads can be hundreds of megabytes, and hashing a
+        // large slice must stay O(1) in auxiliary memory.
+        if !self.buf.is_empty() {
+            let take = (64 - self.buf.len()).min(data.len());
+            self.buf.extend_from_slice(&data[..take]);
+            data = &data[take..];
+            if self.buf.len() == 64 {
+                let block: [u8; 64] = self.buf.as_slice().try_into().unwrap();
+                self.compress(&block);
+                self.buf.clear();
+            }
         }
-        self.buf.drain(..off);
+
+        while data.len() >= 64 {
+            let block: [u8; 64] = data[..64].try_into().unwrap();
+            self.compress(&block);
+            data = &data[64..];
+        }
+        self.buf.extend_from_slice(data);
     }
 
     pub fn finish(mut self) -> [u8; 32] {

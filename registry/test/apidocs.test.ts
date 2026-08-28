@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  APIDOCS_BUFFER_MAX_BYTES,
   APIDOCS_MAX_BYTES,
   apidocsContentKey,
   apidocsKey,
+  apidocsSizeWithinLimit,
   handleApidocsPut,
   partSearchMutations,
   validateApidocs,
   type ApidocsDependencies,
+  type ApidocsLimits,
   type ApidocsStore,
 } from "../src/worker/apidocs";
 import type { Account } from "../src/worker/auth";
@@ -124,29 +127,13 @@ describe("validateApidocs", () => {
     if (!noPkg.ok) expect(noPkg.error).toContain('`package.name = ""`');
   });
 
-  it("accepts exactly 16 MiB and refuses one byte more", () => {
-    // JSON whitespace pads a valid document to the boundary cheaply (the
-    // base document is pure ASCII, so string length is byte length).
-    const base = JSON.stringify({
-      schema_version: 1,
-      package: { name: "p", version: "1.0.0" },
-    });
-    const exact = new TextEncoder().encode(base + " ".repeat(APIDOCS_MAX_BYTES - base.length));
-    expect(exact.length).toBe(APIDOCS_MAX_BYTES);
-    expect(validateApidocs(exact, "p", "1.0.0")).toEqual({
-      ok: true,
-      size: APIDOCS_MAX_BYTES,
-    });
-
-    const over = new Uint8Array(APIDOCS_MAX_BYTES + 1);
-    over.set(exact);
-    over[APIDOCS_MAX_BYTES] = 0x20;
-    const verdict = validateApidocs(over, "p", "1.0.0");
-    expect(verdict.ok).toBe(false);
-    if (!verdict.ok) {
-      expect(verdict.status).toBe(413);
-      expect(verdict.error).toContain("16 MiB");
-    }
+  it("keeps a 16 MB fully parsed threshold under the 200 MB application cap", () => {
+    expect(APIDOCS_BUFFER_MAX_BYTES).toBe(16_000_000);
+    expect(APIDOCS_MAX_BYTES).toBe(200_000_000);
+    // Prove both inclusive numeric boundaries without allocating either a
+    // 16 MB legacy document or a 200 MB streaming document in the test.
+    expect(apidocsSizeWithinLimit(APIDOCS_MAX_BYTES)).toBe(true);
+    expect(apidocsSizeWithinLimit(APIDOCS_MAX_BYTES + 1)).toBe(false);
   });
 });
 
@@ -158,13 +145,17 @@ interface Harness {
     packageOwner: ReturnType<typeof vi.fn<ApidocsStore["packageOwner"]>>;
     versionExists: ReturnType<typeof vi.fn<ApidocsStore["versionExists"]>>;
     put: ReturnType<typeof vi.fn<ApidocsStore["put"]>>;
+    putStream: ReturnType<typeof vi.fn<ApidocsStore["putStream"]>>;
   };
+  streamed: Uint8Array<ArrayBuffer>[];
 }
 
 function harness(
   account: Account | null = OWNER,
   facts: { owner?: number | null; exists?: boolean } = {},
+  limits?: ApidocsLimits,
 ): Harness {
+  const streamed: Uint8Array<ArrayBuffer>[] = [];
   const store = {
     packageOwner: vi
       .fn<ApidocsStore["packageOwner"]>()
@@ -173,10 +164,16 @@ function harness(
       .fn<ApidocsStore["versionExists"]>()
       .mockResolvedValue(facts.exists ?? true),
     put: vi.fn<ApidocsStore["put"]>().mockResolvedValue(undefined),
+    putStream: vi
+      .fn<ApidocsStore["putStream"]>()
+      .mockImplementation(async (_name, _version, body) => {
+        streamed.push(new Uint8Array(await new Response(body).arrayBuffer()));
+      }),
   };
   return {
     store,
-    deps: { tokenAccount: vi.fn().mockResolvedValue(account), store },
+    streamed,
+    deps: { tokenAccount: vi.fn().mockResolvedValue(account), store, limits },
   };
 }
 
@@ -186,6 +183,49 @@ function putRequest(body: Uint8Array<ArrayBuffer> | string): Request {
     headers: {
       Authorization: "Bearer cohdl_token",
       "Content-Type": "application/json",
+    },
+    body,
+  });
+}
+
+const STREAM_LIMITS: ApidocsLimits = {
+  maxBytes: 2_048,
+  bufferMaxBytes: 32,
+  prefixMaxBytes: 512,
+};
+
+function canonicalDoc(name = "passive", version = "1.0.0"): Uint8Array<ArrayBuffer> {
+  return new TextEncoder().encode(
+    JSON.stringify({
+      schema_version: 1,
+      generator: "cohdl test",
+      package: { name, version, root: "passive" },
+      dependencies: [],
+      items: [],
+      impls: [],
+      foreign: [],
+    }),
+  );
+}
+
+async function bodySha256(body: Uint8Array<ArrayBuffer>): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", body));
+  return [...digest].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function streamingRequest(
+  body: Uint8Array<ArrayBuffer>,
+  headers: Record<string, string> = {},
+): Promise<Request> {
+  return new Request("https://registry.cohdl.org/packages/passive/1.0.0/docs", {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer cohdl_token",
+      "Content-Type": "application/json",
+      "Content-Length": String(body.byteLength),
+      "X-CoHDL-Api-Docs-Schema": "1",
+      "X-CoHDL-Api-Docs-SHA256": await bodySha256(body),
+      ...headers,
     },
     body,
   });
@@ -246,8 +286,118 @@ describe("handleApidocsPut", () => {
     request.headers.set("Content-Length", String(APIDOCS_MAX_BYTES + 1));
     const response = await handleApidocsPut(request, "passive", "1.0.0", h.deps);
     expect(response.status).toBe(413);
-    expect(await response.json()).toEqual({ error: "api docs exceed the 16 MiB upload limit" });
+    expect(await response.json()).toEqual({ error: "api docs exceed the 200 MB upload limit" });
     expect(h.store.put).not.toHaveBeenCalled();
+    expect(h.store.putStream).not.toHaveBeenCalled();
+  });
+
+  it("streams a compact canonical document above the buffered threshold", async () => {
+    const h = harness(OWNER, {}, STREAM_LIMITS);
+    const uploaded = canonicalDoc();
+    const sha256 = await bodySha256(uploaded);
+    expect(uploaded.byteLength).toBeGreaterThan(STREAM_LIMITS.bufferMaxBytes);
+
+    const response = await handleApidocsPut(
+      await streamingRequest(uploaded),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      name: "passive",
+      version: "1.0.0",
+      size: uploaded.byteLength,
+    });
+    expect(h.store.put).not.toHaveBeenCalled();
+    expect(h.store.putStream).toHaveBeenCalledTimes(1);
+    const [name, version, _stream, size, suppliedSha256] = h.store.putStream.mock.calls[0];
+    expect(name).toBe("passive");
+    expect(version).toBe("1.0.0");
+    expect(size).toBe(uploaded.byteLength);
+    expect(suppliedSha256).toBe(sha256);
+    expect(h.streamed).toHaveLength(1);
+    expect([...h.streamed[0]]).toEqual([...uploaded]);
+  });
+
+  it("requires both streaming metadata headers", async () => {
+    const uploaded = canonicalDoc();
+    const missingSchema = harness(OWNER, {}, STREAM_LIMITS);
+    const noSchema = await streamingRequest(uploaded, {
+      "X-CoHDL-Api-Docs-Schema": "2",
+    });
+    let response = await handleApidocsPut(
+      noSchema,
+      "passive",
+      "1.0.0",
+      missingSchema.deps,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "large api docs need `X-CoHDL-Api-Docs-Schema: 1`",
+    });
+    expect(missingSchema.store.putStream).not.toHaveBeenCalled();
+
+    const badHash = harness(OWNER, {}, STREAM_LIMITS);
+    response = await handleApidocsPut(
+      await streamingRequest(uploaded, { "X-CoHDL-Api-Docs-SHA256": "A".repeat(64) }),
+      "passive",
+      "1.0.0",
+      badHash.deps,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "large api docs need `X-CoHDL-Api-Docs-SHA256` as 64 lowercase hex digits",
+    });
+    expect(badHash.store.putStream).not.toHaveBeenCalled();
+  });
+
+  it("validates the actual compact prefix rather than trusting its headers", async () => {
+    const h = harness(OWNER, {}, STREAM_LIMITS);
+    const wrongPackage = canonicalDoc("other");
+    const response = await handleApidocsPut(
+      await streamingRequest(wrongPackage),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toContain('`package.name = "other"`');
+    expect(h.store.putStream).not.toHaveBeenCalled();
+  });
+
+  it("bounds canonical-prefix inspection independently of the total cap", async () => {
+    const limits = { ...STREAM_LIMITS, prefixMaxBytes: 24 };
+    const h = harness(OWNER, {}, limits);
+    const uploaded = canonicalDoc();
+    const response = await handleApidocsPut(
+      await streamingRequest(uploaded),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "large api docs must reach the canonical `items` opener within 24 bytes",
+    });
+    expect(h.store.putStream).not.toHaveBeenCalled();
+  });
+
+  it("does not buffer an undeclared document past the legacy threshold", async () => {
+    const h = harness(OWNER, {}, STREAM_LIMITS);
+    const response = await handleApidocsPut(
+      putRequest(canonicalDoc()),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({
+      error: "api docs larger than 32 bytes require streaming metadata",
+    });
+    expect(h.store.put).not.toHaveBeenCalled();
+    expect(h.store.putStream).not.toHaveBeenCalled();
   });
 
   it("stores the exact uploaded bytes and reports name/version/size", async () => {

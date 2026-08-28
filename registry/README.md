@@ -35,13 +35,14 @@ constituent `vitest`/`oxlint`) as devDependencies.
 - `PUT /packages/{name}/{ver}/docs` → upload the version's API-docs
   sidecar (`cohdl docs --publish` / the post-publish step; Bearer token,
   package owner only, the version must already be published). The body is
-  the `schema_version: 1` JSON of `docs/apidocs.md`, at most 16 MiB; the
-  server validates only the envelope (UTF-8 JSON, top-level object,
-  `schema_version`, `package.name`/`package.version` matching the URL) —
-  deep schema validation stays with the emitter, and the UI renders every
-  field as inert text/SVG. Search projection safely skips malformed,
-  non-public, non-part, and foreign items rather than rejecting an otherwise
-  valid sidecar. Unlike the tar the sidecar is a derived,
+  the `schema_version: 1` JSON of `docs/apidocs.md`, at most 200 MB. Through
+  16,000,000 bytes the server fully parses its envelope and projects bounded
+  public-part search rows. Larger bodies require canonical compact compiler
+  bytes plus fixed length/schema/SHA-256 headers; the Worker validates their
+  real prefix and streams them checksum-verified into R2 without a full JSON
+  object or part-search projection. Deep schema validation stays with the
+  emitter, and the UI renders every field as inert text/SVG. Unlike the tar
+  the sidecar is a derived,
   re-generatable view, **not** identity: re-uploading replaces it (last
   write wins), e.g. after a compiler upgrade.
 - `GET /search?q={term}&kind={all|package|part}&limit={1..50}&offset={0..10000}`

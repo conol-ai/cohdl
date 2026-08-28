@@ -37,11 +37,13 @@ because the broad pin source omits their required exposed pad; its WLCSP parts
 remain devices because the document gives bump mechanics but no recommended
 PCB land diameter.
 
-The 2,284-device catalog already expands beyond the registry's 16 MiB API-docs
-schema-v1 sidecar cap, although package publication itself remains valid
-because API-doc upload is best-effort. Do not silently drop device coverage to
-fit the UI artifact; resolving this requires a shared-pinout API-doc
-representation or an explicit package split.
+The 2,284-device catalog produces a large API-docs schema-v1 sidecar. Registry
+uploads remove insignificant JSON whitespace for transport, and the registry's
+200 MB application limit accommodates the complete catalog without silently
+dropping device coverage. The browser fetches this document only when the API
+tab or an item deep link is selected. Its compact sidecar exceeds the Worker's
+16,000,000-byte in-memory indexing threshold, so it is streamed and remains
+fully browsable but does not contribute part rows to registry search.
 
 ## `stm32f072cb-datasheet.pdf`
 

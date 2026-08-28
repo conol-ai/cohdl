@@ -30,7 +30,7 @@ const MAX_AVL_ENTRIES_PER_PART = 256;
 const MAX_FIELDS_PER_AVL = 64;
 export const PART_SEARCH_CHUNK_BYTES = 512 * 1024;
 // Four MiB retains the current largest real package (`passive`, 8,972 public
-// parts) while preventing a hostile 16 MiB sidecar from multiplying into
+// parts) while preventing an accepted sidecar from multiplying into
 // tens of MiB of derived JS objects before chunking. Eight half-MiB inserts
 // also leave ample room beneath D1 Free's 50-query invocation ceiling.
 export const MAX_PART_SEARCH_INDEX_BYTES = 4 * 1024 * 1024;

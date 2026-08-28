@@ -843,12 +843,14 @@ function PackagePage() {
   const requested = search.version;
   const version =
     pkg.data?.versions.find((candidate) => candidate.version === requested) ?? latest;
-  // A version row that says `api_docs: false` needs no probe; anything else
-  // (true, or a row predating the flag) asks the endpoint — a 404 resolves
-  // to `null`, the normal "no docs" state.
+  // API documents can be large generated catalogs. Fetch only when the API
+  // view (or an item deep link) is selected; merely opening Overview must not
+  // download and parse the entire sidecar. A 404 still resolves to `null`,
+  // the normal "no docs" state for a legacy/deep-linked version.
+  const apiSelected = search.view === "api" || !!search.item;
   const apiDocs = useApiDocs(
     name,
-    version && version.api_docs !== false ? version.version : undefined,
+    apiSelected && version && version.api_docs !== false ? version.version : undefined,
   );
 
   useEffect(() => {
@@ -925,7 +927,6 @@ function PackagePage() {
   const isLatest = version.version === latest?.version;
   // The API tab is URL-driven (`view=api`, or an `item` deep link); the
   // other two keep their local tab state untouched.
-  const apiSelected = search.view === "api" || !!search.item;
   const activeTab: "overview" | "versions" | "api" = apiSelected ? "api" : tab;
   const showApiTab = version.api_docs === true || !!apiDocs.data || apiSelected;
   const versionSearch = { version: isLatest ? undefined : version.version };

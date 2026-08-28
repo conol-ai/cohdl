@@ -175,6 +175,114 @@ fn spawn_search_mock(status: u16, body: &str) -> (String, Receiver<String>) {
     (url, rx)
 }
 
+struct CapturedRequest {
+    method: String,
+    target: String,
+    headers: std::collections::BTreeMap<String, String>,
+    body: Vec<u8>,
+}
+
+/// One-request registry that captures an upload only after curl has sent the
+/// complete declared body. Header names are normalized because HTTP field
+/// names are case-insensitive; values and body bytes are left untouched.
+fn spawn_upload_capture_mock() -> (String, Receiver<CapturedRequest>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    let (tx, rx) = mpsc::channel();
+    std::thread::spawn(move || {
+        let Some(Ok(mut stream)) = listener.incoming().next() else {
+            return;
+        };
+        let mut request = Vec::new();
+        let mut chunk = [0u8; 4096];
+        let header_end = loop {
+            let n = stream.read(&mut chunk).unwrap_or(0);
+            if n == 0 {
+                return;
+            }
+            request.extend_from_slice(&chunk[..n]);
+            if let Some(pos) = request.windows(4).position(|bytes| bytes == b"\r\n\r\n") {
+                break pos + 4;
+            }
+        };
+        let head = String::from_utf8(request[..header_end].to_vec()).unwrap();
+        let mut lines = head.split("\r\n");
+        let request_line = lines.next().unwrap_or_default();
+        let mut request_parts = request_line.split_whitespace();
+        let method = request_parts.next().unwrap_or_default().to_string();
+        let target = request_parts.next().unwrap_or_default().to_string();
+        let mut headers = std::collections::BTreeMap::new();
+        for line in lines.filter(|line| !line.is_empty()) {
+            if let Some((name, value)) = line.split_once(':') {
+                headers.insert(name.trim().to_ascii_lowercase(), value.trim().to_string());
+            }
+        }
+        if headers
+            .get("expect")
+            .is_some_and(|value| value.eq_ignore_ascii_case("100-continue"))
+        {
+            stream.write_all(b"HTTP/1.1 100 Continue\r\n\r\n").unwrap();
+        }
+        let content_length: usize = headers
+            .get("content-length")
+            .expect("curl must send a fixed content length")
+            .parse()
+            .unwrap();
+        let mut body = request[header_end..].to_vec();
+        while body.len() < content_length {
+            let n = stream.read(&mut chunk).unwrap_or(0);
+            if n == 0 {
+                break;
+            }
+            body.extend_from_slice(&chunk[..n]);
+        }
+        body.truncate(content_length);
+        tx.send(CapturedRequest {
+            method,
+            target,
+            headers,
+            body,
+        })
+        .unwrap();
+        stream
+            .write_all(
+                b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}",
+            )
+            .unwrap();
+    });
+    (url, rx)
+}
+
+/// Independent JSON-whitespace projection for the transport assertion. This
+/// deliberately does not call the production compactor under test.
+fn compact_json_for_assertion(pretty: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(pretty.len());
+    let mut in_string = false;
+    let mut escaped = false;
+    for &byte in pretty {
+        if in_string {
+            out.push(byte);
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+        } else if byte == b'"' {
+            in_string = true;
+            out.push(byte);
+        } else if !byte.is_ascii_whitespace() {
+            out.push(byte);
+        }
+    }
+    assert!(
+        !in_string,
+        "the generated docs JSON must end outside a string"
+    );
+    out
+}
+
 fn route(
     pkgs: &[MockPkg],
     publish_response: &Option<(u16, String)>,
@@ -853,6 +961,92 @@ fn publish_needs_login_and_reports_server_hash() {
     assert!(err.contains("published @contrib/mylib 0.1.0"), "{err}");
     assert!(err.contains("E1206"), "hash disagreement warned: {err}");
     assert!(err.contains("sha256:feedface"), "server hash shown: {err}");
+}
+
+#[test]
+fn docs_publish_sends_compact_length_delimited_authenticated_sidecar() {
+    let tmp = tmp_dir("docs_publish_transport");
+    let home = tmp.join("home");
+    let pkg_dir = tmp.join("docs-upload");
+    std::fs::create_dir_all(pkg_dir.join("src")).unwrap();
+    std::fs::write(
+        pkg_dir.join("cohdl.toml"),
+        "[package]\nname = \"@contrib/docs-upload\"\nversion = \"0.1.0\"\nlicense = \"MIT\"\n\n[dependencies]\n",
+    )
+    .unwrap();
+    std::fs::write(
+        pkg_dir.join("src/lib.cohdl"),
+        "#[intent(\"two  spaces stay\")]\npub device Tiny { pins { A: 1 [passive] } }\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(&home).unwrap();
+    std::fs::write(home.join("credentials.toml"), "token = \"tok123\"\n").unwrap();
+    let std_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("lib/std");
+    let pretty_path = tmp.join("api.json");
+    let (url, captured) = spawn_upload_capture_mock();
+    let uploaded = cohdl()
+        .env("COHDL_REGISTRY", &url)
+        .env("COHDL_HOME", &home)
+        .env("COHDL_STD", &std_dir)
+        .args([
+            "docs",
+            pkg_dir.to_str().unwrap(),
+            "--out",
+            pretty_path.to_str().unwrap(),
+            "--publish",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        uploaded.status.success(),
+        "{}",
+        String::from_utf8_lossy(&uploaded.stderr)
+    );
+
+    // --out preserves the human-readable artifact. Compact it independently
+    // so this assertion does not compare the production compactor with itself.
+    let expected_body = compact_json_for_assertion(&std::fs::read(pretty_path).unwrap());
+    assert!(
+        expected_body.windows(16).any(|w| w == b"two  spaces stay"),
+        "whitespace inside JSON strings must survive compaction"
+    );
+    assert!(!expected_body.contains(&b'\n'));
+    let request = captured
+        .recv_timeout(std::time::Duration::from_secs(5))
+        .expect("docs upload reaches the loopback registry");
+    assert_eq!(request.method, "PUT");
+    assert_eq!(request.target, "/packages/@contrib/docs-upload/0.1.0/docs");
+    assert_eq!(
+        request.headers.get("authorization").map(String::as_str),
+        Some("Bearer tok123")
+    );
+    assert_eq!(
+        request
+            .headers
+            .get("x-cohdl-api-docs-schema")
+            .map(String::as_str),
+        Some("1")
+    );
+    assert_eq!(request.body, expected_body, "exact compact JSON bytes");
+    let expected_content_length = request.body.len().to_string();
+    assert_eq!(
+        request.headers.get("content-length").map(String::as_str),
+        Some(expected_content_length.as_str()),
+        "Content-Length must describe the exact uploaded body"
+    );
+    let expected_sha256 = cohdl::hash::sha256_hex(&request.body);
+    let sent_sha256 = request
+        .headers
+        .get("x-cohdl-api-docs-sha256")
+        .expect("upload checksum header");
+    assert_eq!(sent_sha256, &expected_sha256);
+    assert_eq!(sent_sha256.len(), 64);
+    assert!(
+        sent_sha256
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)),
+        "SHA-256 must be lowercase hexadecimal: {sent_sha256}"
+    );
 }
 
 #[test]

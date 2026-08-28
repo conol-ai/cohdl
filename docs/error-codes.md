@@ -227,7 +227,7 @@ document on stdout when an E1204 registry/protocol failure occurs (successful
 search output is the separate RFC-030 discovery schema). The API-docs sidecar upload
 (`cohdl docs --publish` and the automatic upload after `cohdl publish` —
 docs/apidocs.md) reuses this block unchanged: E1201 auth, E1202
-server-refused (including the 16 MiB size cap), E1203 version not yet
+server-refused (including the 200 MB sidecar cap), E1203 version not yet
 published, E1204 unreachable. No new codes.
 
 | Code | Meaning |

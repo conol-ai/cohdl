@@ -694,9 +694,86 @@ fn lib_passive_scales_and_stays_deterministic() {
     );
     assert!(
         a.json.len() < 16 * 1024 * 1024,
-        "must fit the registry's 16 MiB sidecar cap ({} bytes)",
+        "passive's API document unexpectedly exceeded its 16 MiB scale budget ({} bytes)",
         a.json.len()
     );
+}
+
+#[test]
+fn registry_upload_compaction_preserves_string_bytes_and_removes_only_json_whitespace() {
+    let pretty = r#"{
+  "message": "spaces stay; quote: \" and slash: \\",
+  "values": [1, 2, true]
+}
+"#;
+    let compact = cohdl::registry::compact_json_for_upload(pretty);
+    assert_eq!(
+        String::from_utf8(compact).unwrap(),
+        r#"{"message":"spaces stay; quote: \" and slash: \\","values":[1,2,true]}"#
+    );
+}
+
+#[test]
+fn lib_stm32_transport_uses_streaming_path_and_fits_registry_cap() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let package_dir = root.join("lib/@st/stm32");
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("bga".to_string(), root.join("lib/bga")),
+        ("qfp".to_string(), root.join("lib/qfp")),
+    ];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project =
+        cohdl::project::load_project_with_deps(&package_dir, &deps).expect("lib/@st/stm32 loads");
+    let checked = check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+        .expect("pipeline runs");
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let (_, manifest) = cohdl::project::peek_manifest(&package_dir).unwrap();
+    let dep_metas: Vec<DepMeta> = deps
+        .iter()
+        .map(|(name, dir)| {
+            let (_, dep_manifest) = cohdl::project::peek_manifest(dir).unwrap();
+            DepMeta {
+                name: name.clone(),
+                version: dep_manifest.version.unwrap(),
+                src_layout: true,
+            }
+        })
+        .collect();
+    let rendered = render(
+        &checked,
+        &PackageMeta {
+            name: &manifest.name,
+            version: manifest.version.as_deref().unwrap(),
+            description: manifest.description.as_deref(),
+            license: manifest.license.as_deref(),
+            repository: manifest.repository.as_deref(),
+        },
+        &dep_metas,
+    );
+    assert!(
+        rendered.items > 2200,
+        "the complete STM32 catalog must reach API docs, got {} items",
+        rendered.items
+    );
+
+    let compact = cohdl::registry::compact_json_for_upload(&rendered.json);
+    assert!(
+        compact.len() > cohdl::registry::API_DOCS_BUFFER_MAX_BYTES,
+        "STM32 should exercise the registry's streaming path ({} bytes)",
+        compact.len()
+    );
+    assert!(
+        compact.len() <= cohdl::registry::API_DOCS_MAX_BYTES,
+        "STM32 must fit the registry's 200 MB cap ({} bytes)",
+        compact.len()
+    );
+    assert!(compact.starts_with(br#"{"schema_version":1,"generator":"#));
 }
 
 // ---------------------------------------------------------------------------

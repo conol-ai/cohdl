@@ -2144,11 +2144,44 @@ fn upload_api_docs(build: &ApiDocsBuild, token: &str) -> bool {
         build.version
     );
     let tmp = std::env::temp_dir().join(format!("cohdl-docs-{}.json", std::process::id()));
-    if let Err(e) = std::fs::write(&tmp, &build.json) {
+    // The local `cohdl docs` artifact stays pretty-printed for humans. Strip
+    // insignificant whitespace only for transport: large generated catalogs
+    // (notably STM32) become far smaller without changing their schema or
+    // value, reducing edge memory and upload time. The checksum lets the
+    // registry stream documents above its in-memory validation threshold
+    // straight into R2 while R2 verifies the exact bytes.
+    let upload = registry::compact_json_for_upload(&build.json);
+    if upload.len() > registry::API_DOCS_MAX_BYTES {
+        eprint!(
+            "{}",
+            render_diag(&cohdl::deps::PackageDiag::error(
+                "E1202",
+                &url,
+                0,
+                format!(
+                    "api docs are {} bytes after transport compaction — the registry limit is 200 MB ({} bytes)",
+                    upload.len(),
+                    registry::API_DOCS_MAX_BYTES
+                ),
+            ))
+        );
+        return false;
+    }
+    let sha256 = cohdl::hash::sha256_hex(&upload);
+    if let Err(e) = std::fs::write(&tmp, &upload) {
         eprintln!("error: cannot stage the api docs upload: {e}");
         return false;
     }
-    let resp = registry::http_put(&url, &tmp, token, "application/json");
+    let resp = registry::http_put(
+        &url,
+        &tmp,
+        token,
+        "application/json",
+        &[
+            ("X-CoHDL-Api-Docs-Schema", "1"),
+            ("X-CoHDL-Api-Docs-SHA256", sha256.as_str()),
+        ],
+    );
     let _ = std::fs::remove_file(&tmp);
     let resp = match resp {
         Ok(r) => r,

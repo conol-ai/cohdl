@@ -53,8 +53,11 @@ cohdl docs [PATH] [--out FILE] [--publish]
   `name@version`. Requires a stored token; the version must already be
   published; the server enforces ownership. This is the backfill path for
   versions published before this feature existed.
-- `cohdl publish` runs the same extraction after a successful upload and
-  `PUT`s the result. On extraction or upload failure it prints
+- Both `cohdl docs --publish` and the automatic post-`cohdl publish` upload
+  remove insignificant JSON whitespace for transport (ordinary `cohdl docs`
+  stdout/`--out` output remains human-readable), then send the compact byte
+  length, schema-version header, and SHA-256 of those exact bytes. On
+  extraction or upload failure `cohdl publish` prints
   `api docs: skipped (...)` / a registry diagnostic and still exits 0 for the
   publish itself.
 - Error mapping for the PUT reuses the E12xx block: missing token / 401 →
@@ -66,12 +69,22 @@ cohdl docs [PATH] [--out FILE] [--publish]
 
 - `PUT /packages/{name}/{version}/docs` — authenticated (Bearer token), owner
   of the package only, `(name, version)` must exist. Body: the JSON document
-  below, `Content-Type: application/json`, at most **16 MiB**. The server
-  validates only: body parses as JSON, top level is an object,
-  `schema_version` is `1`, and `package.name`/`package.version` equal the URL.
-  Deep schema validation is deliberately not re-implemented server-side; the
-  UI renders every field as inert text/SVG (no HTML path exists). New uploads
-  are byte-preserved at fixed-length, content-addressed R2 keys
+  below, `Content-Type: application/json`, at most **200 MB** (200,000,000
+  bytes). This is the registry application's cap; Cloudflare's plan-dependent
+  request-body ceiling may be lower. Documents at most **16 MB** (16,000,000
+  bytes) take the fully parsed path: the server requires valid UTF-8 JSON, a
+  top-level object, `schema_version: 1`, and URL-matching
+  `package.name`/`package.version`, then derives the bounded part-search
+  projection. Larger documents require a canonical decimal `Content-Length`,
+  compact canonical emitter bytes, `X-CoHDL-Api-Docs-Schema: 1`, and
+  `X-CoHDL-Api-Docs-SHA256: <64 lowercase hex digits>`. The Worker validates
+  the actual canonical envelope through the `items` opener within the first
+  64 KiB, including the package identity, then streams the complete request
+  through a fixed-length body to R2; R2 verifies the declared SHA-256. This
+  path deliberately avoids materializing the full JSON tree and therefore
+  publishes no part-search rows. Deep schema validation remains the emitter's
+  responsibility; the UI renders every field as inert text/SVG (no HTML path
+  exists). New uploads are byte-preserved at content-addressed R2 keys
   `apidocs/sha256/{sha256}.json`. The validated document envelope carries the
   package name and version; D1 records `versions.api_docs_size` and
   `versions.api_docs_r2_key`. Advancing that
@@ -97,9 +110,9 @@ cohdl docs [PATH] [--out FILE] [--publish]
 ## Search-index projection
 
 The sidecar remains byte-preserved in R2 and remains outside the immutable
-package hash. In addition, when docs are uploaded for the package's most
-recently published version, the registry projects a deliberately narrow
-search record from `items`:
+package hash. For a document on the fully parsed path, when docs are uploaded
+for the package's most recently published version, the registry projects a
+deliberately narrow search record from `items`:
 
 - only package-local entries with `kind: "part"` and `pub: true`;
 - the `fq` must be rooted under the server-derived module root for the
@@ -122,7 +135,10 @@ deterministically omitted rather than failing or exhausting the upload. The
 stored sidecar remains available byte-for-byte to the API explorer.
 
 Uploading docs for the most-recently-published version atomically replaces
-that version's search rows, so removed and renamed parts do not survive.
+that version's search rows, so removed and renamed parts do not survive. A
+document above 16,000,000 bytes takes the streaming path and atomically clears
+those rows instead: its complete API remains browsable, but its parts are not
+projected into registry search.
 Uploading docs for an older version stores and serves its sidecar normally but
 never displaces the current search index. Publishing a newer version clears
 the prior rows until that new version's best-effort docs upload succeeds.

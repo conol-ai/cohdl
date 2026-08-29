@@ -321,7 +321,7 @@ def main() -> int:
             'version = "0.1.0"\n'
             '\n'
             '[dependencies]\n'
-            '"@espressif/esp32" = "0.1.0"\n'
+            '"@espressif/esp32" = "0.2.0"\n'
             'esd = "0.1.0"\n'
             'ldo = "0.1.0"\n'
             'led = "0.1.0"\n'

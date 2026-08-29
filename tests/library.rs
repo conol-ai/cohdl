@@ -400,6 +400,54 @@ fn generated_stm32_footprints_match_the_pinned_kicad_snapshot() {
 }
 
 #[test]
+fn generated_esp32_footprints_match_the_pinned_manufacturer_snapshot() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let output = std::process::Command::new("python3")
+        .args(["tools/gen_esp32_footprints.py", "--check"])
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "ESP32 footprint generator check failed:\n{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn generated_esp32_catalog_matches_the_pinned_official_sources() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let output = std::process::Command::new("python3")
+        .args(["tools/gen_esp32.py", "--check"])
+        .env("PYTHONDONTWRITEBYTECODE", "1")
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "ESP32 catalog generator check failed:\n{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "318 selector rows; 140 admitted (4 existing), 178 omitted; 34 source symbols"
+        ),
+        "unexpected ESP32 catalog coverage:\n{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    let catalog =
+        std::fs::read_to_string(root.join("lib/@espressif/esp32/docs/esp32-part-catalog.md"))
+            .unwrap();
+    assert!(catalog.contains("**140 admitted**"));
+    assert!(catalog.contains("**178 omitted**"));
+    assert!(catalog.contains("`140 + 178 = 318`"));
+    assert!(catalog.contains("memory variant changes pin availability or I/O voltage"));
+}
+
+#[test]
 fn every_shipped_component_library_has_consistent_part_footprints() {
     fn assert_pin(
         world: &cohdl::resolve::World,
@@ -1369,6 +1417,64 @@ fn esp32_s3_wroom_uses_exact_segmented_ep_and_distinct_memory_parts() {
             "memory variants are exact standalone parts, not AVL alternates"
         );
     }
+
+    let esp_parts = checked
+        .world
+        .parts
+        .iter()
+        .filter(|(name, _)| name.starts_with("espressif_esp32::"))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        esp_parts.len(),
+        140,
+        "every admitted Product Selector identity must be exported as one part"
+    );
+    let exact_mpns = esp_parts
+        .iter()
+        .map(|(_, part)| {
+            assert_eq!(
+                part.primary.field("mfr").map(|field| field.value.as_str()),
+                Some("Espressif")
+            );
+            assert!(
+                part.alts.is_empty(),
+                "ESP32 exact MPNs must not be AVL alts"
+            );
+            part.primary.field("mpn").unwrap().value.as_str()
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(exact_mpns.len(), 140, "every ESP32 MPN must be unique");
+
+    let c3 = &checked.world.parts["espressif_esp32::ESP32_C3"];
+    assert_eq!(c3.device.name.name, "espressif_esp32::DEV_ESP32_C3");
+    assert_eq!(
+        c3.primary.footprint.as_ref().unwrap().name,
+        "qfn::ESPRESSIF_QFN32_0P5_5"
+    );
+    assert_eq!(
+        checked.world.docs["espressif_esp32::ESP32_C3"],
+        ["docs/esp32-part-catalog.md"]
+    );
+    assert!(
+        !checked
+            .world
+            .parts
+            .contains_key("espressif_esp32::ESP32_S3_WROOM_1_N8R8"),
+        "an Octal-PSRAM row must stay omitted until its pin availability has an exact model"
+    );
+
+    let c5 = &checked.world.devices["espressif_esp32::DEV_ESP32_C5"];
+    let c5_pin_names = c5
+        .pins_for(None)
+        .iter()
+        .map(|pin| pin.name.name.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(c5_pin_names.contains("RESERVED_25"));
+    assert!(c5_pin_names.contains("RESERVED_32"));
+    assert!(
+        !c5_pin_names.contains("GPIO15"),
+        "upstream no-connect die aliases must not become connectable-looking GPIO APIs"
+    );
 }
 
 // ---------------------------------------------------------------------------

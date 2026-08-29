@@ -37,8 +37,8 @@ hash = "sha256:8d5f98ff377276fc3bb2330ebe49dfc4770979c42c07f1ae20f48b99caa2570f"
 
 [[package]]
 name = "flash"
-version = "0.1.1"
-hash = "sha256:d32516d8f56fbfcf39bdfd46f598b530c6c152fc20c29cf5e542a9e5453256ff"
+version = "0.1.3"
+hash = "sha256:651a36717bc5071b0a825aed98b45e0d1770c3277da5d62c3d65602aaf2e28cc"
 
 [[package]]
 name = "osc"
@@ -52,8 +52,8 @@ hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
 
 [[package]]
 name = "qfn"
-version = "0.1.1"
-hash = "sha256:c8d264ac35829d30c3b4366987f96bc359fc4743433628f2652e4b8f8a8a04aa"
+version = "0.2.0"
+hash = "sha256:35f00df7f09e3dd9b4bf6cc686277d1a99ca9f86a4a95742278abace3786c44d"
 
 [[package]]
 name = "soic"

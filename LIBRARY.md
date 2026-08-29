@@ -15,9 +15,9 @@ audited without relying on undocumented assumptions.
 |---|---|---|
 | Manufacturer devices and parts | [`lib/@espressif/esp32/src/`](lib/@espressif/esp32/src/) | Keep manufacturer-specific component models in `lib/@manufacturer/family`. |
 | Manufacturer-specific module land pattern | `FP_ESP32_S3_WROOM_1` in [`footprints.cohdl`](lib/@espressif/esp32/src/footprints.cohdl) | Keep module, connector, and other vendor-specific geometry with the component library. |
-| Reusable package land pattern | `qfn::QFN56N40P700X700_1EP400X400` in [`lib/qfn`](lib/qfn/) | Put reusable QFN, DFN, and SON geometry in a dedicated package library and reference it by a qualified name. |
+| Reusable package land pattern | `qfn::ESPRESSIF_QFN56_0P4_7B` in [`lib/qfn`](lib/qfn/) | Put reusable QFN, DFN, and SON geometry in a dedicated package library and reference it by a qualified name. |
 | Primary-source documents | [`lib/@espressif/esp32/docs/`](lib/@espressif/esp32/docs/) | Save every applicable official datasheet locally and record provenance and checksums. |
-| Cross-library dependency | `qfn = "0.1.0"` in the ESP32 manifest | Pin exact versions and commit generated `cohdl.lock` files. |
+| Cross-library dependency | `qfn = "0.2.0"` in the ESP32 manifest | Pin exact versions and commit generated `cohdl.lock` files. |
 | Shipped-library validation | [`tests/library.rs`](tests/library.rs) | Load every dependency declared by the package before checking part/footprint consistency. |
 
 The reference structure is:
@@ -216,7 +216,7 @@ pub part PART_NAME: DEVICE_NAME {
     primary {
         mfr: "Manufacturer",
         mpn: "Exact-MPN",
-        footprint: qfn::QFN56N40P700X700_1EP400X400
+        footprint: qfn::ESPRESSIF_QFN56_0P4_7B
     }
 }
 ```
@@ -259,7 +259,9 @@ this as `pads N and M have overlapping copper bounds on a shared layer`.
 
 Keep the official CAD URL and the exact source dimensions beside the footprint.
 Use the IPC-style identifier when one is available, such as
-`QFN56N40P700X700_1EP400X400`.
+`QFN60N40P700X700_1EP340X340`. Prefix source-specific or irregular geometry
+whose source name begins with a closed IPC family token, such as
+`ESPRESSIF_QFN56_0P4_7B`, so it is not mistaken for an IPC-7351 declaration.
 
 When CoHDL cannot express a manufacturing detail, preserve electrical
 correctness and document the required layout action prominently. Current
@@ -270,10 +272,14 @@ examples are:
 - thermal-via arrays;
 - footprint-level antenna keepouts.
 
-For the QFN56 and WROOM exposed pads, the library preserves the full copper
-envelope and explicitly requires paste segmentation and thermal vias during
-layout. The WROOM antenna outline is only a silkscreen guide, so the board must
-enforce the official keepout.
+The ESP32 importer preserves repeated-number exposed-pad copper and thermal
+vias as distinct physical placements sharing the electrical pad number. PADS
+top/bottom solder-mask artwork that cannot be represented by CoHDL's centered
+mask-expansion field remains explicit unprojected evidence in the snapshot;
+it is not mislabeled as paste. Module antenna keepout polygons are retained as
+silkscreen guides because the language cannot yet enforce copper keepouts; the
+board must still enforce the official RF clearance and review the production
+stencil/mask rules.
 
 ## 5. Extract reusable package footprints
 
@@ -299,15 +305,15 @@ For the ESP32 extraction:
 
 ```toml
 [dependencies]
-qfn = "0.1.0"
+qfn = "0.2.0"
 std = "0.3.0"
 ```
 
 ```cohdl
-footprint: qfn::QFN56N40P700X700_1EP400X400
+footprint: qfn::ESPRESSIF_QFN56_0P4_7B
 ```
 
-A board that instantiates this part declares `"@espressif/esp32" = "0.1.0"`;
+A board that instantiates this part declares `"@espressif/esp32" = "0.2.0"`;
 the manufacturer's `qfn` pin joins the transitive compile closure. The board
 declares `qfn` itself only when it intentionally exercises RFC-029's root-pin
 authority to select that dependency's version.

@@ -797,6 +797,70 @@ fn lib_stm32_transport_uses_streaming_path_and_fits_registry_cap() {
     assert!(compact.starts_with(br#"{"schema_version":1,"generator":"#));
 }
 
+#[test]
+fn lib_esp32_exports_every_admitted_part_and_fits_registry_cap() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let package_dir = root.join("lib/@espressif/esp32");
+    let deps = vec![
+        ("std".to_string(), root.join("lib/std")),
+        ("qfn".to_string(), root.join("lib/qfn")),
+    ];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project = cohdl::project::load_project_with_deps(&package_dir, &deps)
+        .expect("lib/@espressif/esp32 loads");
+    let checked = check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+        .expect("pipeline runs");
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+
+    let (_, manifest) = cohdl::project::peek_manifest(&package_dir).unwrap();
+    let dep_metas: Vec<DepMeta> = deps
+        .iter()
+        .map(|(name, dir)| {
+            let (_, dep_manifest) = cohdl::project::peek_manifest(dir).unwrap();
+            DepMeta {
+                name: name.clone(),
+                version: dep_manifest.version.unwrap(),
+                src_layout: true,
+            }
+        })
+        .collect();
+    let rendered = render(
+        &checked,
+        &PackageMeta {
+            name: &manifest.name,
+            version: manifest.version.as_deref().unwrap(),
+            description: manifest.description.as_deref(),
+            license: manifest.license.as_deref(),
+            repository: manifest.repository.as_deref(),
+        },
+        &dep_metas,
+    );
+
+    assert_eq!(
+        rendered.json.matches("\"kind\": \"part\"").count(),
+        140,
+        "every admitted exact ESP32 MPN must reach the public API document"
+    );
+    assert!(rendered
+        .json
+        .contains("\"fq\": \"espressif_esp32::ESP32_C3\""));
+    assert!(rendered
+        .json
+        .contains("\"fq\": \"espressif_esp32::ESP32_S31_WROOM_3_N16R16V\""));
+
+    let compact = cohdl::registry::compact_json_for_upload(&rendered.json);
+    assert!(
+        compact.len() <= cohdl::registry::API_DOCS_MAX_BYTES,
+        "ESP32 must fit the registry's 200 MB API-doc cap ({} bytes)",
+        compact.len()
+    );
+    assert!(compact.starts_with(br#"{"schema_version":1,"generator":"#));
+}
+
 // ---------------------------------------------------------------------------
 // Platform-independence: Windows display names use `\` separators; the
 // emitter must normalize so impls/designs are never dropped and every

@@ -220,7 +220,7 @@ Every other package must be pinned explicitly in the project manifest:
 | `ldo = "0.1.0"` | `ldo` | `ldo::LDO_AP2112K_3V3` |
 | `led = "0.1.0"` | `led` | `led::LED_RED_0603` |
 | `mic = "0.1.0"` | `mic` | `mic::MIC_ICS43434` |
-| `"@espressif/esp32" = "0.1.0"` | `espressif_esp32` | `espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1_N8` |
+| `"@espressif/esp32" = "0.2.0"` | `espressif_esp32` | `espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1_N8` |
 
 Devices used by the sensor-node prompt:
 

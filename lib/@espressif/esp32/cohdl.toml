@@ -1,10 +1,10 @@
 [package]
 name = "@espressif/esp32"
-version = "0.1.1"
-license = "MIT"
+version = "0.2.0"
+license = "MIT AND CC-BY-SA-4.0"
 description = "Espressif ESP32 modules, devices, parts, and package land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfn = "0.1.1"
+qfn = "0.2.0"
 std = "0.3.0"

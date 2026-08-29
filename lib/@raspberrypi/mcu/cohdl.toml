@@ -1,10 +1,10 @@
 [package]
 name = "@raspberrypi/mcu"
-version = "0.1.1"
+version = "0.1.2"
 license = "MIT"
 description = "Raspberry Pi microcontrollers, parts, and package land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfn = "0.1.1"
+qfn = "0.2.0"
 std = "0.3.0"

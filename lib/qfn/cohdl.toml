@@ -1,7 +1,7 @@
 [package]
 name = "qfn"
-version = "0.1.1"
-license = "MIT"
+version = "0.2.0"
+license = "MIT AND CC-BY-SA-4.0"
 description = "Verified QFN, DFN, and SON package land patterns."
 repository = "https://github.com/conol-ai/cohdl"
 

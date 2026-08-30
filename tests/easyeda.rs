@@ -239,7 +239,13 @@ fn example_boards_are_deterministic_and_complete() {
     assert!(pico.contains("\"net\": \"GND\""));
 
     let sf32 = example_enet("examples/sf32-miniboard");
-    assert_eq!(sf32.matches("\"Unique ID\": ").count(), 49);
+    assert_eq!(sf32.matches("\"Unique ID\": ").count(), 69);
+    assert!(sf32.contains("\"Manufacturer Part\": \"OK-F302-31115\""));
+    assert_eq!(
+        sf32.matches("\"Manufacturer Part\": \"MOUNTING-HOLE-M2-NPTH-2.2MM\"")
+            .count(),
+        4
+    );
 }
 
 // ---- CLI-level behavior --------------------------------------------------

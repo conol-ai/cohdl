@@ -11,12 +11,18 @@ out/footprints/contrib_ldo-SOT3P190X290X160N.kicad_mod
 out/footprints/contrib_level_shifter-QFN12N40P200X170.kicad_mod
 out/footprints/contrib_sf32-FP_SiFli_SF32LB52X_QFN68L_7X7.kicad_mod
 out/footprints/esd-FP_SOT_23_6.kicad_mod
+out/footprints/load_switch-FP_SGM2554_SOT235.kicad_mod
+out/footprints/misc-FP_MOUNTING_HOLE_M2_NPTH_2P2.kicad_mod
 out/footprints/osc-FP_Crystal_SMD_2016_4Pin_E1SB.kicad_mod
 out/footprints/osc-FP_Crystal_SMD_3215_2Pin_ABS07.kicad_mod
 out/footprints/passive-CHIP_0402.kicad_mod
 out/footprints/passive-CHIP_0603.kicad_mod
 out/footprints/passive-CHIP_0805.kicad_mod
+out/footprints/passive-CHIP_1206.kicad_mod
+out/footprints/passive-FP_L_0806_2016Metric.kicad_mod
 out/footprints/passive-FP_L_WPN201610U_2016Metric.kicad_mod
+out/footprints/qfn-QFN10N50P250X250_1EP120X200.kicad_mod
+out/footprints/sf32_miniboard-FP_FPC_OK_F302_31115.kicad_mod
 out/footprints/soic-SOIC8P127X790X216N.kicad_mod
 out/footprints/usb-connectors-type_c-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
 out/ground_nets.csv
@@ -24,6 +30,7 @@ out/high_current_nets.csv
 out/sf32-miniboard-bom.csv
 out/sf32-miniboard-layout.json
 out/sf32-miniboard.enet
+out/sf32-miniboard.kicad_pcb
 out/sf32-miniboard.net
 out/sf32-miniboard.xml
 out/single_ended_impedance_signals.csv

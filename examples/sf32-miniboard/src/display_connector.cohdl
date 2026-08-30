@@ -1,0 +1,129 @@
+// Board-local bindings for the Huaxia RGB H0216F002AM 2.16-inch AMOLED
+// touch module used by OpenMicroKBD v2. The plug-in module itself is not a
+// soldered board part; the BOM carries its OCN OK-F302-31115 receptacle.
+
+// Adjustable RT6150B for the display's 3.987V VBAT rail. The shared package
+// binds the fixed-output ordering code, while RT6150BGQW exposes FB.
+pub part DISPLAY_RAIL_RT6150B_ADJ: richtek_dcdc::buck_boost::rt6150b::RT6150B {
+    primary { mfr: "Richtek", mpn: "RT6150BGQW", footprint: qfn::QFN10N50P250X250_1EP120X200 }
+}
+
+// RT6150B requires at least 10uF X7R at its input and 20uF at its output.
+pub part C_10U_16V_X7R_1206: passive::MLCC<10uF, 16V, 10%>[C1206] {
+    primary { mfr: "TDK", mpn: "C3216X7R1C106K160AC", footprint: passive::CHIP_1206 }
+}
+
+// SGM2554A pinout from the manufacturer sheet: OUT is pins 1+5, GND is 2,
+// VIN is 3, and EN is 4. This corrected local device uses the shared land.
+pub device SGM2554A_CORRECT {
+    pins {
+        required OUT: 1, 5 [power_out]
+        required GND: 2 [power_in]
+        required IN: 3 [power_in]
+        required EN: 4 [input]
+    }
+}
+
+impl IC for SGM2554A_CORRECT {}
+
+pub part DISPLAY_LOGIC_SWITCH: SGM2554A_CORRECT {
+    primary { mfr: "SGMICRO", mpn: "SGM2554AYN5G/TR", footprint: load_switch::FP_SGM2554_SOT235 }
+}
+
+// OCN OK-F302-31115 receptacle. Pin names and roles model the attached
+// H0216F002AM module. TP_VCC is an output from the module; MTP_PWR and the
+// MIPI-DSI lane pins must remain open during normal QSPI operation.
+pub device DisplayFPC31 {
+    pins {
+        required GND: 1, 7, 12, 22, 25, 28, 31 [power_in]
+        optional TP_INT: 2 [output]
+        optional TP_RST: 3 [input]
+        optional TP_SDA: 4 [bidirectional]
+        optional TP_SCL: 5 [input]
+        optional TP_VCC: 6 [power_out]
+        required IOVCC: 8 [power_in]
+        required VCI: 9 [power_in]
+        required VBAT: 10 [power_in]
+        optional VCI_EN: 11 [power_in]
+        optional MTP_PWR: 13 [power_in]
+        required RESET: 14 [input]
+        optional CSX: 15 [input]
+        optional SDI_RDX: 16 [bidirectional]
+        optional DCX: 17 [input]
+        optional WRX_SCL: 18 [input]
+        optional D1: 19 [input]
+        optional D0: 20 [input]
+        optional TE: 21 [output]
+        optional D1P: 23 [input]
+        optional D1N: 24 [input]
+        optional CLKP: 26 [input]
+        optional CLKN: 27 [input]
+        optional D0P: 29 [input]
+        optional D0N: 30 [input]
+    }
+}
+
+impl Connector for DisplayFPC31 {}
+
+pub part DISPLAY_FPC_OK_F302: DisplayFPC31 {
+    primary { mfr: "OCN Technology", mpn: "OK-F302-31115", footprint: FP_FPC_OK_F302_31115 }
+}
+
+// OCN's official recommended pattern uses staggered 0.60mm-pitch rows that
+// interleave into the connector's 0.30mm contact pitch.
+pad P_FPC31_SHORT {
+    shape: rect
+    size: (0.2mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pad P_FPC31_LONG {
+    shape: rect
+    size: (0.2mm, 0.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+// n=31: the 16-contact C=9.00mm row carries odd pins; the 15-contact
+// B=8.40mm row carries even pins. Pin 1 is at -x with the opening at +y.
+// Verify the stagger and pin-1 orientation against a physical connector
+// before fabrication, as the source drawing's contact view is easy to mirror.
+footprint FP_FPC_OK_F302_31115 {
+    pad 1: P_FPC31_SHORT at (-4.5mm, -1.425mm)
+    pad 3: P_FPC31_SHORT at (-3.9mm, -1.425mm)
+    pad 5: P_FPC31_SHORT at (-3.3mm, -1.425mm)
+    pad 7: P_FPC31_SHORT at (-2.7mm, -1.425mm)
+    pad 9: P_FPC31_SHORT at (-2.1mm, -1.425mm)
+    pad 11: P_FPC31_SHORT at (-1.5mm, -1.425mm)
+    pad 13: P_FPC31_SHORT at (-0.9mm, -1.425mm)
+    pad 15: P_FPC31_SHORT at (-0.3mm, -1.425mm)
+    pad 17: P_FPC31_SHORT at (0.3mm, -1.425mm)
+    pad 19: P_FPC31_SHORT at (0.9mm, -1.425mm)
+    pad 21: P_FPC31_SHORT at (1.5mm, -1.425mm)
+    pad 23: P_FPC31_SHORT at (2.1mm, -1.425mm)
+    pad 25: P_FPC31_SHORT at (2.7mm, -1.425mm)
+    pad 27: P_FPC31_SHORT at (3.3mm, -1.425mm)
+    pad 29: P_FPC31_SHORT at (3.9mm, -1.425mm)
+    pad 31: P_FPC31_SHORT at (4.5mm, -1.425mm)
+    pad 2: P_FPC31_LONG at (-4.2mm, 1.325mm)
+    pad 4: P_FPC31_LONG at (-3.6mm, 1.325mm)
+    pad 6: P_FPC31_LONG at (-3mm, 1.325mm)
+    pad 8: P_FPC31_LONG at (-2.4mm, 1.325mm)
+    pad 10: P_FPC31_LONG at (-1.8mm, 1.325mm)
+    pad 12: P_FPC31_LONG at (-1.2mm, 1.325mm)
+    pad 14: P_FPC31_LONG at (-0.6mm, 1.325mm)
+    pad 16: P_FPC31_LONG at (0mm, 1.325mm)
+    pad 18: P_FPC31_LONG at (0.6mm, 1.325mm)
+    pad 20: P_FPC31_LONG at (1.2mm, 1.325mm)
+    pad 22: P_FPC31_LONG at (1.8mm, 1.325mm)
+    pad 24: P_FPC31_LONG at (2.4mm, 1.325mm)
+    pad 26: P_FPC31_LONG at (3mm, 1.325mm)
+    pad 28: P_FPC31_LONG at (3.6mm, 1.325mm)
+    pad 30: P_FPC31_LONG at (4.2mm, 1.325mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0.4mm), size: (11.4mm, 5.2mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
+}

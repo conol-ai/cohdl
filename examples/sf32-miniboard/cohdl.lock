@@ -26,6 +26,11 @@ version = "0.1.0"
 hash = "sha256:619353ee357ea0c30b591424cdb7715b077b9f1807e6e2334e5828b8a900623c"
 
 [[package]]
+name = "@richtek/dcdc"
+version = "0.1.2"
+hash = "sha256:4285742de741340f632a9137f050fbdb1bc19b04f1ff1f7306ba4e1834e40f0f"
+
+[[package]]
 name = "connectors"
 version = "0.1.1"
 hash = "sha256:a7a192b02b1e75c6772dd3e75516bf6fdaf28e9354def86b132f6204f023f3dd"
@@ -39,6 +44,16 @@ hash = "sha256:8d5f98ff377276fc3bb2330ebe49dfc4770979c42c07f1ae20f48b99caa2570f"
 name = "flash"
 version = "0.1.3"
 hash = "sha256:651a36717bc5071b0a825aed98b45e0d1770c3277da5d62c3d65602aaf2e28cc"
+
+[[package]]
+name = "load-switch"
+version = "0.1.0"
+hash = "sha256:81a4a502c494bb3d48edfe63aac7a2bb71a6612942d99320e7d924b3eb09d2e1"
+
+[[package]]
+name = "misc"
+version = "0.1.1"
+hash = "sha256:e54a7d8b49abf495644d31f2b1f4da83eeebbac3bada3d1392643789b44dcf73"
 
 [[package]]
 name = "osc"

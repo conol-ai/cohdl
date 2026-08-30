@@ -9,9 +9,28 @@ been audited:
 - an `XC6206P182MR-G` 1.8V regulator and `RS0104YUTQH12` four-channel
   translator for the BHI260AP digital domain;
 - external `W25Q128JVSIQ` QSPI flash on the SF32 MPI2 mapping;
+- the OpenMicroKBD v2 `H0216F002AM` 2.16-inch AMOLED/touch interface, using
+  QSPI on the SF32 LCDC1 pin group and I2C for touch;
 - `BHI260AP` smart IMU and `BME280` environmental sensor on I2C1;
 - manufacturer-qualified 48MHz and 32.768kHz crystals; and
 - a six-pin debug/calibration socket.
+
+The display connects through the 31-contact, 0.3mm-pitch OCN
+`OK-F302-31115` FPC receptacle used by OpenMicroKBD v2. LCDC1 maps RESET, TE,
+CS, CLK, and D0-D3 to PA00 and PA02-PA08; this is independent of the PA12-PA17
+MPI2 flash bus. The CST9220 touch controller shares the board's 3.3V I2C1 bus
+and has dedicated interrupt/reset GPIOs. The module's MIPI-DSI contacts and
+normal-use programming pin remain open because the SF32LB52 uses QSPI here.
+
+The H0216F002AM cannot be powered directly from either existing rail: 5V
+exceeds its 4.6V absolute maximum and 3.3V is below its 3.7V operating
+minimum. An adjustable `RT6150BGQW` therefore generates 3.987V for VBAT, and
+an `SGM2554A` delays the 3.3V VCI/VCI_EN rail until IOVCC is stable. The panel
+rail uses the Richtek-required 10uF input and 20uF output network, while the
+module pins have local high-frequency and bulk decoupling. The module sheet
+does not specify normal/maximum operating current, so the voltage design is
+valid but the USB current budget is not claimed as qualified at full
+brightness.
 
 The SF32 power network follows SiFli's reference schematic. In particular,
 `VDD_SIP` is a decoupling-only node for this E-series device; it is not tied to
@@ -31,7 +50,7 @@ both BHI260AP supply domains from 1.8V. I2C SDA/SCL, interrupt, and reset all
 cross the `RS0104` translator; the BME280 remains on the 3.3V side. Both I2C
 sides have their own 4.7kohm pull-ups, and reset has a 10kohm default-high
 pull-up in each voltage domain. The translator starts disabled through a
-10kohm OE pull-down; firmware enables it with PA00 after both rails are stable.
+10kohm OE pull-down; firmware enables it with PA25 after both rails are stable.
 
 The former CH343P, microSD, and bare SX1262 circuits are intentionally absent.
 The external flash already consumes PA12-PA17, which are the same pins used by
@@ -41,6 +60,11 @@ pin. Bluetooth is disabled here for the same RF-layout reason: `BRF_ANT` is
 open until a controlled-impedance antenna path and any required matching
 network are designed and qualified.
 
-This source describes the electrical design and routing constraints. It does
-not claim a production-ready placement, antenna implementation, enclosure, or
-board outline; those remain board-level engineering work.
+The board now carries a 60 x 40mm mechanical outline with 3mm corner radii in
+`mechanical/sf32-miniboard-outline.dxf`, plus four M2 non-plated mounting
+holes. USB-C, the display FPC, debug connector, MCU, flash, display-power, and
+crystal clusters have seeded placements. The AMOLED panel remains off-board
+in the enclosure. Before fabrication, verify the connector's stagger and
+pin-1 orientation against a physical `OK-F302-31115`. The remaining parts
+still require placement/routing, and the design does not claim a qualified RF
+antenna implementation or production-ready enclosure.

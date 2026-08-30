@@ -404,9 +404,25 @@ fn example_boards_are_deterministic_and_complete() {
     let sf32 = example_board("examples/sf32-miniboard");
     assert_eq!(
         sf32.matches("\n\t(footprint ").count(),
-        49,
+        69,
         "every instance embeds a footprint"
     );
+    assert!(sf32.contains("sf32_miniboard-FP_FPC_OK_F302_31115"));
+    assert!(
+        sf32.contains("\t(gr_arc\n"),
+        "SF32 rounded outline arcs project"
+    );
+    assert!(sf32.contains("\t(gr_line\n"), "SF32 outline lines project");
+    let display_start = sf32
+        .find("\t(footprint \"sf32_miniboard-FP_FPC_OK_F302_31115\"")
+        .expect("display footprint");
+    let display_rest = &sf32[display_start..];
+    let display_end = display_rest[1..]
+        .find("\n\t(footprint ")
+        .map(|i| i + 1)
+        .unwrap_or(display_rest.len());
+    let display = &display_rest[..display_end];
+    assert!(display.contains("\t\t(at 0 -13.5 180)\n"), "{display}");
 }
 
 // ---------------------------------------------------------------------------

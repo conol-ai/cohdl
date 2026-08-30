@@ -1,1 +1,10 @@
 capacitor,bypassed_component,bypassed_pin,capacitance
+C32,U11,5,10000
+C32,U11,8,10000
+C33,U11,1,10000
+C34,U11,1,10000
+C30,J3,8,100
+C31,U10,3,1000
+C37,J3,9,1000
+C35,J3,10,4700
+C36,J3,10,100

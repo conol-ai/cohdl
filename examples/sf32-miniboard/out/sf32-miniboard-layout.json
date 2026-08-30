@@ -2,16 +2,36 @@
   "schema_version": 1,
   "net_classes": [
     { "name": "USB", "nets": ["USBC_DP", "USBC_DM", "USB_DP", "USB_DM"] },
-    { "name": "Clock", "nets": ["XTAL48_XI", "XTAL48_XO", "XTAL32_XI", "XTAL32_XO", "FLASH_CLK"] }
+    { "name": "Clock", "nets": ["XTAL48_XI", "XTAL48_XO", "XTAL32_XI", "XTAL32_XO", "FLASH_CLK", "DISP_CLK"] },
+    { "name": "DisplayQSPI", "nets": ["DISP_RESET", "DISP_TE", "DISP_CS", "DISP_CLK", "DISP_D0", "DISP_D1", "DISP_D2", "DISP_D3"] }
   ],
   "diff_pairs": [
     { "p": "USBC_DP", "n": "USBC_DM" },
     { "p": "USB_DP", "n": "USB_DM" }
   ],
   "length_matches": [
-    { "nets": ["USB_DP", "USB_DM"], "tolerance": "0.15mm" }
+    { "nets": ["USB_DP", "USB_DM"], "tolerance": "0.15mm" },
+    { "nets": ["DISP_CLK", "DISP_D0", "DISP_D1", "DISP_D2", "DISP_D3"], "tolerance": "0.5mm" }
   ],
-  "board_outline": null,
-  "placements": [],
-  "placement_hints": []
+  "board_outline": { "source": "mechanical/sf32-miniboard-outline.dxf", "start": [-27, -20], "segments": [{ "type": "line", "to": [27, -20] }, { "type": "arc", "to": [30, -17], "center": [27, -17], "clockwise": false }, { "type": "line", "to": [30, 17] }, { "type": "arc", "to": [27, 20], "center": [27, 17], "clockwise": false }, { "type": "line", "to": [-27, 20] }, { "type": "arc", "to": [-30, 17], "center": [-27, 17], "clockwise": false }, { "type": "line", "to": [-30, -17] }, { "type": "arc", "to": [-27, -20], "center": [-27, -17], "clockwise": false }] },
+  "placements": [
+    { "instance": "SF32MiniBoard::usbc", "at": [-28.14, 0], "rotate": 270 },
+    { "instance": "SF32MiniBoard::esd", "at": [-20, 0], "rotate": 0 },
+    { "instance": "SF32MiniBoard::display", "at": [0, -13.5], "rotate": 180 },
+    { "instance": "SF32MiniBoard::debug", "at": [23, 6], "rotate": 90 },
+    { "instance": "SF32MiniBoard::mounting_0", "at": [-25, -15], "rotate": 0 },
+    { "instance": "SF32MiniBoard::mounting_1", "at": [25, -15], "rotate": 0 },
+    { "instance": "SF32MiniBoard::mounting_2", "at": [25, 15], "rotate": 0 },
+    { "instance": "SF32MiniBoard::mounting_3", "at": [-25, 15], "rotate": 0 },
+    { "instance": "SF32MiniBoard::mcu", "at": [-5, 2], "rotate": 0 },
+    { "instance": "SF32MiniBoard::flash", "at": [-12, 10], "rotate": 90 },
+    { "instance": "SF32MiniBoard::xtal_48m", "at": [-3, -5], "rotate": 0 },
+    { "instance": "SF32MiniBoard::xtal_32k", "at": [-12, 2], "rotate": 90 },
+    { "instance": "SF32MiniBoard::disp_reg", "at": [9, -9], "rotate": 180 },
+    { "instance": "SF32MiniBoard::l_disp", "at": [9, -5], "rotate": 0 },
+    { "instance": "SF32MiniBoard::disp_logic_sw", "at": [15, -9], "rotate": 180 }
+  ],
+  "placement_hints": [
+    { "designator": "J3", "instance": "SF32MiniBoard::display", "hint": "top board edge, FPC opening facing outward" }
+  ]
 }

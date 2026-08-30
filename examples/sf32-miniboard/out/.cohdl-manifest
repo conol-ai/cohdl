@@ -9,7 +9,6 @@ out/footprints/contrib_imu-LGA44P40_360X410.kicad_mod
 out/footprints/contrib_ldo-FP_Richtek_ZQFN4L_1X1.kicad_mod
 out/footprints/contrib_ldo-SOT3P190X290X160N.kicad_mod
 out/footprints/contrib_level_shifter-QFN12N40P200X170.kicad_mod
-out/footprints/contrib_sf32-FP_SiFli_SF32LB52X_QFN68L_7X7.kicad_mod
 out/footprints/esd-FP_SOT_23_6.kicad_mod
 out/footprints/load_switch-FP_SGM2554_SOT235.kicad_mod
 out/footprints/misc-FP_MOUNTING_HOLE_M2_NPTH_2P2.kicad_mod
@@ -23,6 +22,7 @@ out/footprints/passive-FP_L_0806_2016Metric.kicad_mod
 out/footprints/passive-FP_L_WPN201610U_2016Metric.kicad_mod
 out/footprints/qfn-QFN10N50P250X250_1EP120X200.kicad_mod
 out/footprints/sf32_miniboard-FP_FPC_OK_F302_31115.kicad_mod
+out/footprints/sifli_sf32-FP_SiFli_SF32LB52X_QFN68L_7X7.kicad_mod
 out/footprints/soic-SOIC8P127X790X216N.kicad_mod
 out/footprints/usb-connectors-type_c-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kicad_mod
 out/ground_nets.csv

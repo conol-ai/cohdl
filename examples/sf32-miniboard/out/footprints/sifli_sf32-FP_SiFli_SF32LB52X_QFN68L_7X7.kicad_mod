@@ -1,4 +1,4 @@
-(footprint "contrib_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7"
+(footprint "sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7"
   (version 20240108)
   (generator "cohdl")
   (layer "F.Cu")

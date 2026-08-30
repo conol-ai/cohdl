@@ -1,8 +1,8 @@
 [package]
-name = "@contrib/sf32"
+name = "@sifli/sf32"
 version = "0.1.0"
 license = "MIT"
-description = "Community-contributed SiFli SF32LB52X AIoT MCU device declarations."
+description = "SiFli SF32LB52X AIoT MCU device declarations."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

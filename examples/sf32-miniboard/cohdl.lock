@@ -21,14 +21,14 @@ version = "0.1.0"
 hash = "sha256:5bf4510f4674e3a29f20ff59c0d5877a00df494bb72a20d492e932e2281c5fec"
 
 [[package]]
-name = "@contrib/sf32"
-version = "0.1.0"
-hash = "sha256:619353ee357ea0c30b591424cdb7715b077b9f1807e6e2334e5828b8a900623c"
-
-[[package]]
 name = "@richtek/dcdc"
 version = "0.1.2"
 hash = "sha256:4285742de741340f632a9137f050fbdb1bc19b04f1ff1f7306ba4e1834e40f0f"
+
+[[package]]
+name = "@sifli/sf32"
+version = "0.1.0"
+hash = "sha256:75a3dc1960eafa6a1f825f112ed524d21d18c96c2f45876bdc4a361d6ee5e50e"
 
 [[package]]
 name = "connectors"

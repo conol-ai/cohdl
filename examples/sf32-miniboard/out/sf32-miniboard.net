@@ -611,7 +611,7 @@
       (tstamp "0000003C")
     )
     (comp (ref "U6") (value "SF32LB52X")
-      (footprint "contrib_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7")
+      (footprint "sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7")
       (libsource (lib "cohdl") (part "SF32LB52X") (description ""))
       (fields
         (field (name "MPN") "SF32LB52EUB6")

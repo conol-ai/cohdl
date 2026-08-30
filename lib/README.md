@@ -49,7 +49,7 @@ footprints live in focused packages:
 | `@contrib/imu` | `contrib_imu::IMU_BHI260AP` | community-contributed IMU devices and public, manufacturer-land-pattern part bindings |
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
 | `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |
-| `@contrib/sf32` | `contrib_sf32::MCU_SF32LB52EUB6` | community-contributed SiFli SF32LB52X device and qualified EUB6 package binding |
+| `@sifli/sf32` | `sifli_sf32::MCU_SF32LB52EUB6` | SiFli SF32LB52X device and qualified EUB6 package binding |
 | `@contrib/io-expander` | `contrib_io_expander::IOEXP_XL9555` | community-contributed I2C/SMBus I/O expander variants and a public TSSOP24 binding with an independently derived land pattern |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
@@ -115,7 +115,7 @@ part in `lib/`.
 | Public part | Exact orderable identity | Land-pattern evidence |
 |---|---|---|
 | `contrib_imu::IMU_BHI260AP` | Bosch Sensortec `BHI260AP` | Bosch Figure 37, including its eight paired inner-ring copper chamfers and 50 um mask frame |
-| `contrib_sf32::MCU_SF32LB52EUB6` | SiFli `SF32LB52EUB6` | SiFli Figure 5-2 package envelope plus the pinned official footprint generator, including segmented paste, repeated exposed-pad copper, and 16 thermal vias |
+| `sifli_sf32::MCU_SF32LB52EUB6` | SiFli `SF32LB52EUB6` | SiFli Figure 5-2 package envelope plus the pinned official footprint generator, including segmented paste, repeated exposed-pad copper, and 16 thermal vias |
 | `contrib_gnss::GNSS_L76K` | Quectel `L76K` | Quectel hardware-manual recommended 18-LCC land |
 | `contrib_gnss::GNSS_MIA_M10Q` | u-blox `MIA-M10Q-00B` | u-blox integration-manual copper, mask, and paste dimensions |
 | `contrib_ldo::LDO_RT9080_33_ZQFN` | Richtek `RT9080-33GQZ` | Richtek section 20.2 asymmetric ZQFN land, including four inner chamfers and the isolated SGND diamond |

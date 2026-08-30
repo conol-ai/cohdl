@@ -782,7 +782,10 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         // authored courtyard and distinct electrical pads must not overlap.
         // Keep this source-independent backstop beside the declaration-wide
         // E807 check so every newly exported contrib part is covered.
-        if project.name.starts_with("@contrib/") {
+        // @sifli/ graduated out of @contrib and stays under the same audit;
+        // the generated catalogs (@st/stm32, @espressif/esp32) carry their
+        // own pinned-source tests instead.
+        if project.name.starts_with("@contrib/") || project.name.starts_with("@sifli/") {
             const QUARANTINED_SHARED_QFN_LANDS: [&str; 8] = [
                 "qfn::QFN68N35P700X700_1EP549X549",
                 "qfn::QFN24N50P400X400_1EP27X27",
@@ -1010,7 +1013,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/rtc::RTC_PCF85063ATL|NXP|PCF85063ATL/1,118|contrib_rtc::FP_NXP_DFN2626_10_SOT1197_1|contrib_rtc::PCF85063A[DFN10]|0adb4e66d4b7917d6471953d8775cc5a085ed22aa53452b53826f8f1ad495abc",
         "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
         "@contrib/sd-card::CONN_MICROSD|Wurth Elektronik|693070010811|contrib_sd_card::FP_MicroSD_Wurth_693070010811|contrib_sd_card::MICROSD_SOCKET[-]|a927f96998d32e2e6ae630deb905da79cb9bdf0b7d504ee70441b294296dcec4",
-        "@contrib/sf32::MCU_SF32LB52EUB6|SiFli Technologies|SF32LB52EUB6|contrib_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7|contrib_sf32::SF32LB52X[-]|11de47e07e71b155bf398a53e99c7011ce044a580436db4bab4df7a8a7c69be5",
+        "@sifli/sf32::MCU_SF32LB52EUB6|SiFli Technologies|SF32LB52EUB6|sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7|sifli_sf32::SF32LB52X[-]|11de47e07e71b155bf398a53e99c7011ce044a580436db4bab4df7a8a7c69be5",
     ]
     .into_iter()
     .map(str::to_string)

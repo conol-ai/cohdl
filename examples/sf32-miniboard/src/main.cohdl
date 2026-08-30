@@ -8,7 +8,7 @@
 
 design SF32MiniBoard {
     // ---- major devices ----
-    inst mcu: contrib_sf32::MCU_SF32LB52EUB6
+    inst mcu: sifli_sf32::MCU_SF32LB52EUB6
     inst ldo_3v3: contrib_ldo::LDO_RT9080_33_ZQFN
     inst ldo_1v8: contrib_ldo::LDO_XC6206P182MR
     inst level: contrib_level_shifter::LS_RS0104_QFN12_2X1P7

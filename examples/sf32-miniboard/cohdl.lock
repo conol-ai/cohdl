@@ -17,8 +17,8 @@ hash = "sha256:21c4c4a1060c75da30f2d72a985e04c58371a70c753868e4f60b5fedf0a21ff7"
 
 [[package]]
 name = "@contrib/level-shifter"
-version = "0.1.0"
-hash = "sha256:5bf4510f4674e3a29f20ff59c0d5877a00df494bb72a20d492e932e2281c5fec"
+version = "0.1.1"
+hash = "sha256:623c7696196b031b3f8b35312c13524d532f8a65b9a7710c26d5f467086d2516"
 
 [[package]]
 name = "@richtek/dcdc"
@@ -72,8 +72,8 @@ hash = "sha256:35f00df7f09e3dd9b4bf6cc686277d1a99ca9f86a4a95742278abace3786c44d"
 
 [[package]]
 name = "soic"
-version = "0.1.0"
-hash = "sha256:43b1dff42fa90974606c3071bf6972eb02e8f8cade0a135334282455921c176a"
+version = "0.2.0"
+hash = "sha256:bab763d35a5aaa8c29628e49b3ed1bdecb8f2a74a24a44308c8cce5d0f0e096a"
 
 [[package]]
 name = "std"

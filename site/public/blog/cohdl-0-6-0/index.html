@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>CoHDL 0.6.0: An EasyEDA Backend and the STM32 Catalog</title>
+    <meta
+      name="description"
+      content="CoHDL 0.6.0 emits EasyEDA / LCEDA Pro netlists — import-verified end to end — while the library gains a pinned-source STM32 catalog, an expanded ESP32 lineage, and SiFli's own manufacturer scope."
+    />
+    <link
+      rel="canonical"
+      href="https://cohdl.org/blog/cohdl-0-6-0/"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta
+      property="og:title"
+      content="CoHDL 0.6.0: An EasyEDA Backend and the STM32 Catalog"
+    />
+    <meta
+      property="og:description"
+      content="The compiler now writes LCEDA Pro netlists importable with File → Import → Netlist, and the registry gains STM32 and ESP32 device catalogs generated from pinned vendor sources."
+    />
+    <meta property="og:url" content="https://cohdl.org/blog/cohdl-0-6-0/" />
+    <meta property="og:image" content="https://cohdl.org/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+    <link rel="alternate" type="application/atom+xml" title="CoHDL blog" href="/blog/feed.xml" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/">Docs</a>
+          <a class="site-nav-link" href="/blog/" aria-current="page">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/blog/">Blog</a></li>
+            <li aria-current="page">CoHDL 0.6.0</li>
+          </ol>
+          <h1 class="page-title">
+            CoHDL 0.6.0: An EasyEDA Backend<br /><em>and the STM32 Catalog</em>
+          </h1>
+          <p class="page-lede">
+            The compiler now writes EasyEDA / LCEDA Pro netlists — verified end to
+            end with a real import — and the package registry gains device catalogs
+            for the STM32 and ESP32 families, generated from pinned vendor sources.
+          </p>
+          <p class="post-meta">
+            Tony Huang <span class="sep">·</span>
+            <time datetime="2026-09-01">September 1, 2026</time>
+          </p>
+        </div>
+
+        <article class="prose">
+          <p>
+            CoHDL 0.6.0 is out — <code>cohdl self-update</code> if you have it, or:
+          </p>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/conol-ai/cohdl/main/install.sh | sh</code></pre>
+
+          <h2>A third netlist target: EasyEDA / LCEDA Pro</h2>
+          <p>
+            <code>cohdl build --emit easyeda</code> writes
+            <code>out/&lt;name&gt;.enet</code> — the LCEDA&nbsp;Pro netlist (JSON
+            v2.0.0) that <strong>File → Import → Netlist</strong> accepts. Every
+            instance becomes a component with its designator, manufacturer part, and
+            footprint binding; every connected pin binds its net by name; a multi-pad
+            power pin flattens to one row per physical pad; a pin marked
+            <code>nc</code> is guaranteed absent. The document is derived from the
+            same functions that produce the KiCad <code>.net</code>, so the two
+            netlists cannot disagree about the design — and like everything the
+            compiler emits, the same source produces the same bytes.
+          </p>
+          <p>
+            Footprints come first: CoHDL already projects every footprint it knows
+            into <code>out/footprints/*.kicad_mod</code>, and each projection carries
+            its CoHDL name internally. Import those into your LCEDA library
+            (<strong>File → Import → KiCad</strong>), then the netlist — the names
+            bind exactly. We verified the whole loop against a real board: the
+            SF32 miniboard example imported into LCEDA&nbsp;Pro with all 22
+            footprints resolving. The three <code>--emit</code> formats — the KiCad
+            board, the IPC-2581 document, and now the EasyEDA netlist — compose in a
+            single build.
+          </p>
+
+          <h2>The STM32 and ESP32 catalogs</h2>
+          <p>
+            The <a href="https://registry.cohdl.org">registry</a> now carries a
+            device catalog for the STM32 family
+            (<a href="https://registry.cohdl.org/packages/@st/stm32">@st/stm32</a>)
+            and an expanded ESP32 lineage
+            (<a href="https://registry.cohdl.org/packages/@espressif/esp32">@espressif/esp32</a>).
+            Both are <em>generated</em>, not transcribed: the catalogs are built from
+            pinned vendor sources, joined against real order codes, and their
+            generators&rsquo; outputs are locked by tests, so a regenerated catalog
+            that drifts from the pinned sources fails the build rather than shipping
+            a lie. Exact parts carry audited footprints; reusable package geometry
+            stays owned by the geometry packages rather than being copied per vendor.
+          </p>
+
+          <h2>SiFli gets its own scope</h2>
+          <p>
+            The SF32LB52X package moved from the community tier to a proper
+            manufacturer scope:
+            <a href="https://registry.cohdl.org/packages/@sifli/sf32">@sifli/sf32</a>.
+            Its QFN68 land stays with the chip rather than joining the generic QFN
+            package, deliberately — it is SiFli&rsquo;s own qualified land, with a
+            segmented exposed-pad stencil and sixteen thermal vias-in-pad from the
+            official reference, and the library&rsquo;s audit quarantines the generic
+            land for qualified parts. The SF32 miniboard example also grew up: it now
+            drives the OpenMicroKBD&nbsp;v2 AMOLED display over a 31-pin FPC, with
+            the panel&rsquo;s own buck-boost rail and power sequencing.
+          </p>
+
+          <h2>Smaller things</h2>
+          <ul>
+            <li>
+              Mounting holes now take <code>M</code> designators instead of counting
+              up the <code>U</code> series (<code>misc</code> 0.1.1).
+            </li>
+            <li>
+              The <a href="/blog/cohdl-0-5-0/">schematic explorer</a> ships as a
+              signed, notarized universal macOS app —
+              <a href="https://github.com/conol-ai/cohdl/releases/tag/explorer-v0.1.0"
+                >drag the DMG to Applications</a
+              >, open it, pick a project.
+            </li>
+            <li>
+              Registry package pages can now serve API-documentation sidecars up to
+              200&nbsp;MB, ready for catalog-sized packages.
+            </li>
+          </ul>
+
+          <p>
+            Full source and design record:
+            <a href="https://github.com/conol-ai/cohdl">github.com/conol-ai/cohdl</a>.
+          </p>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a
+            href="https://discord.gg/x7DXPvK66"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Join on Discord (opens in a new tab)"
+          >Join on Discord <span aria-hidden="true">↗</span></a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

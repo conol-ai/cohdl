@@ -16,6 +16,7 @@ thousands of hand-edited declarations.
 | Samsung CL MLCC alternates | 716 | `samsung_mlcc_catalog_2025-12.pdf` plus the exact-MPN product-database snapshot in `tools/passive_data/samsung_cl.json`. |
 | Murata GRM MLCC alternates | 2 | One part-specific reference sheet for each exact base MPN; the packaged `D` ordering suffix is listed in each sheet. |
 | Power inductors | 3 | One official detailed specification per series (Murata and Sunlord). |
+| Ferrite beads | 1 | Murata exact BLM15PD121SN1D reference specification and recommended land. |
 
 The exact-MPN validation snapshots are dated 2026-07-25. The Samsung snapshot
 contains only CL-series, mass-production entries with the size, voltage,
@@ -46,6 +47,7 @@ nonexistent `DFE201612E-3R3M` with the in-production
 | `murata_dfe201612e_detailed_specification.pdf` | `DFE201612E-2R2M=P2`; reference specification `J(E)TE243A-0006D-01`, created 2024-11-20. | [Murata DFE201612E specification](https://pim.murata.com/asset/pim4/inductor/J%28E%29TE243A-0006_PDF_INDUCTOR?lastModifiedDatetime=20250708072023) | `6fbbdccedc9f58904a3e60d7e9c0e33917a03b7dd0d96716821988e89e4fb8ad` |
 | `murata_lqh2mcn_detailed_specification.pdf` | `LQH2MCN3R3M52L`; reference specification `JELF243A-0060P`, created 2025-03-25. | [Murata LQH2MCN specification](https://pim.murata.com/asset/pim4/inductor/JELF243A-0060_PDF_INDUCTOR?lastModifiedDatetime=20250708072043) | `44845e110a0fb7a56ab90e9f72ac93a7dc022022aa05d4554ac6979b32978bae` |
 | `sunlord_wpn_series.pdf` | `WPN201610U4R7MT`, 4.7 uH, 1.30 A minimum saturation current, 0.288 ohm maximum DCR; WPN series catalog revised 2022-05-15. | [Sunlord WPN series](https://www.sunlordinc.com/uploads/files/20221122/WPN%C2%A0series%C2%A0of%C2%A0SMD%C2%A0Power%C2%A0Inductor.pdf) | `8885516070f2b85f5e57fa7a3fe390441f488912065e7b4f2f317e6d27d3f72d` |
+| `murata_blm15pd121sn1d.pdf` | `BLM15PD121SN1D`, 120 ohm at 100 MHz, 1.3 A rated current, 0.09 ohm max DCR; reference specification JENF243A-0018AJ-01. | [LCSC C76891 manufacturer document](https://datasheet.lcsc.com/datasheet/pdf/f85b01b3a1a015a5ec4a9f03876e0063.pdf?productCode=C76891) | `72584e2b0fad42b4fd0fc45b175151fa42acab38f373431d3f726f55317918aa` |
 
 ## Footprint audit
 
@@ -76,5 +78,9 @@ and are exercised by their corresponding parts.
 recommended land: 0.7 mm inner gap, two 0.7 x 1.7 mm pads, and pad centres at
 x = ±0.7 mm. Page 166 supplies the exact 4.7 uH ordering code and ratings.
 
-Relevant source pages and package drawings were rendered and visually checked
+Relevant manufacturer pages and package drawings were rendered and visually checked
 on 2026-07-30 and 2026-08-05. Temporary render artifacts are not shipped.
+
+`FP_Murata_BLM15PD_1005Metric` transcribes the manufacturer recommendation
+for BLM15P parts at up to 1.5 A: 0.4 mm inner gap, nominal 1.3 mm outer span,
+and 0.5 x 0.5 mm lands. It is exercised by the exact BLM15PD121SN1D part.

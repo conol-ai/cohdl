@@ -1,0 +1,39 @@
+// XFCN 1.27 mm single-row vertical through-hole header, exact four-pin order
+// code used by the source UART1 and LTE_DOWNLOAD connectors.
+#[doc("docs/xfcn-pz127v-11-04-0720.pdf")]
+pub device XFCN_PZ127V_4P {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+        required P4: 4 [passive]
+    }
+}
+impl Connector for XFCN_PZ127V_4P {}
+
+#[doc("docs/xfcn-pz127v-11-04-0720.pdf")]
+pub part CON_XFCN_PZ127V_11_04_0720: XFCN_PZ127V_4P {
+    primary { mfr: "XFCN", mpn: "PZ127V-11-04-0720", footprint: FP_XFCN_PZ127V_4P }
+}
+
+// Manufacturer PCB layout: 0.65 mm holes on 1.27 mm pitch. The exact LCSC
+// EDA model supplies a 1.00 mm copper diameter and left-to-right numbering.
+pub pad P_XFCN_PZ127V_4P {
+    shape: circle
+    size: (1.0mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.65mm
+}
+
+pub footprint FP_XFCN_PZ127V_4P {
+    pad 1: P_XFCN_PZ127V_4P at (-1.905mm, 0mm)
+    pad 2: P_XFCN_PZ127V_4P at (-0.635mm, 0mm)
+    pad 3: P_XFCN_PZ127V_4P at (0.635mm, 0mm)
+    pad 4: P_XFCN_PZ127V_4P at (1.905mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.1mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.0mm) }
+}

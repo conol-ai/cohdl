@@ -1,0 +1,49 @@
+// LAILAN 1.27 mm single-row vertical through-hole header. The exact
+// C54950573 listing and Shenzhen LAILIAN drawing identify the four-pin
+// LAIL-PZ1.27-4P-L used by the source ESP_DOWNLOAD and SF_DOWNLOAD ports.
+#[doc("docs/lailan-pz127-4p.pdf")]
+pub device LAILAN_PZ127_4P {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+        required P4: 4 [passive]
+    }
+}
+impl Connector for LAILAN_PZ127_4P {}
+
+#[doc("docs/lailan-pz127-4p.pdf")]
+pub part CON_LAILAN_PZ1_27_4P_L: LAILAN_PZ127_4P {
+    primary { mfr: "LAILAN", mpn: "LAIL-PZ1.27-4P-L", footprint: FP_LAILAN_PZ127_4P }
+}
+
+// Manufacturer PCB layout: 0.70 mm plated holes on 1.27 mm pitch. The exact
+// C54950573 EDA model supplies 1.00 mm copper pads, left-to-right numbering,
+// and a rectangular pin-1 pad.
+pub pad P_LAILAN_PZ127_PIN1 {
+    shape: rect
+    size: (1.0mm, 1.0mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.70mm
+}
+
+pub pad P_LAILAN_PZ127_PIN {
+    shape: circle
+    size: (1.0mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 0.70mm
+}
+
+pub footprint FP_LAILAN_PZ127_4P {
+    pad 1: P_LAILAN_PZ127_PIN1 at (-1.905mm, 0mm)
+    pad 2: P_LAILAN_PZ127_PIN at (-0.635mm, 0mm)
+    pad 3: P_LAILAN_PZ127_PIN at (0.635mm, 0mm)
+    pad 4: P_LAILAN_PZ127_PIN at (1.905mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.1mm, 3.1mm) }
+    silkscreen_ref { at: (0mm, -2.1mm) }
+}

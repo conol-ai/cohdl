@@ -1,9 +1,11 @@
 // Winbond W25Q128JV: 128Mbit serial flash, SPI/QSPI, 2.7-3.6V (datasheet
-// rev G, April 2019). SOIC-8 208-mil (package code S, PDF p68). Pin map p6.
+// rev G, April 2019). Pin map p5; SOIC-8 package code S is on p68 and
+// WSON-8 6x5mm package code P is on p69.
 
 #[doc("docs/w25q128jv.pdf")]
 pub device W25Q128JV {
-    pins {
+    variants { SOIC8, WSON8_6X5 }
+    pins[SOIC8] {
         optional CS: 1 [input] // chip select, active-low (p6)
         optional DO: 2 [bidirectional] // data out / IO1 (p6)
         optional WP: 3 [bidirectional] // write-protect / IO2, active-low (p6)
@@ -13,11 +15,63 @@ pub device W25Q128JV {
         optional HOLD: 7 [bidirectional] // hold-or-reset / IO3, active-low (p6)
         required VCC: 8 [power_in] // 2.7-3.6V (p6)
     }
+    pins[WSON8_6X5] {
+        optional CS: 1 [input]
+        optional DO: 2 [bidirectional]
+        optional WP: 3 [bidirectional]
+        required GND: 4 [power_in]
+        optional DI: 5 [bidirectional]
+        optional CLK: 6 [input]
+        optional HOLD: 7 [bidirectional]
+        required VCC: 8 [power_in]
+        optional EP: 9 [passive] // bottom metal may float or connect to GND (p69)
+    }
 }
 
 impl IC for W25Q128JV {}
 
 #[doc("docs/w25q128jv.pdf")]
-pub part FLASH_W25Q128JVSIQ: W25Q128JV {
+pub part FLASH_W25Q128JVSIQ: W25Q128JV[SOIC8] {
     primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N }
+}
+
+#[doc("docs/w25q128jv.pdf")]
+pub part FLASH_W25Q128JVPIQ: W25Q128JV[WSON8_6X5] {
+    primary { mfr: "Winbond", mpn: "W25Q128JVPIQ", footprint: FP_W25Q128JV_WSON8_6X5 }
+}
+
+// Winbond p69 gives a 6.0x5.0mm body, 1.27mm lead pitch, 0.35..0.48mm
+// terminal width, 0.55..0.65mm terminal length, and 3.4x4.3mm bottom metal.
+// Winbond does not publish a PCB land pattern. The 0.75x0.50mm perimeter
+// lands and courtyard follow KiCad 9's generated generic
+// WSON-8-1EP_6x5mm_P1.27mm_EP3.4x4.3mm footprint, inspected locally.
+pub pad P_W25Q128JV_WSON8_LEAD {
+    shape: rect
+    size: (0.75mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_W25Q128JV_WSON8_EP {
+    shape: rect
+    size: (3.4mm, 4.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_W25Q128JV_WSON8_6X5 {
+    pad 1: P_W25Q128JV_WSON8_LEAD at (-2.7mm, -1.905mm)
+    pad 2: P_W25Q128JV_WSON8_LEAD at (-2.7mm, -0.635mm)
+    pad 3: P_W25Q128JV_WSON8_LEAD at (-2.7mm, 0.635mm)
+    pad 4: P_W25Q128JV_WSON8_LEAD at (-2.7mm, 1.905mm)
+    pad 5: P_W25Q128JV_WSON8_LEAD at (2.7mm, 1.905mm)
+    pad 6: P_W25Q128JV_WSON8_LEAD at (2.7mm, 0.635mm)
+    pad 7: P_W25Q128JV_WSON8_LEAD at (2.7mm, -0.635mm)
+    pad 8: P_W25Q128JV_WSON8_LEAD at (2.7mm, -1.905mm)
+    pad 9: P_W25Q128JV_WSON8_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.7mm, 5.6mm) }
+    silkscreen_ref { at: (0mm, -3.3mm) }
 }

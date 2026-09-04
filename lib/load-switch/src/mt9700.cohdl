@@ -1,0 +1,57 @@
+// Xi'an Aerosemi MT9700: 80mOhm adjustable current-limited P-MOSFET
+// power-distribution switch, 2.4-5.5V in (datasheet MT9700 Rev2.1).
+// The accepted orderable model MT9700-N is listed by LCSC
+// as C42441843 (productModel MT9700-N, brand XI'AN Aerosemi Tech,
+// SOT-23-5); its listing carries this Rev2.1 document. Pin configuration
+// p2; SOT23-5 package outline p7; order table lists the family part number
+// MT9700 with top mark D00HAW.
+
+#[doc("docs/mt9700.pdf")]
+pub device MT9700 {
+    pins {
+        required VOUT: 1 [power_out] // power-switch output (p2)
+        required GND: 2 [power_in]
+        // External RSET to GND programs the current-limit threshold (p2).
+        required SET: 3 [passive]
+        required EN: 4 [input] // enable, logic high turns the switch on (p2)
+        required VIN: 5 [power_in] // 2.4-5.5V input (p2)
+    }
+}
+
+impl IC for MT9700 {}
+
+#[doc("docs/mt9700.pdf")]
+pub part LOADSW_MT9700N: MT9700 {
+    primary { mfr: "Xi'an Aerosemi Tech", mpn: "MT9700-N", footprint: FP_Aerosemi_SOT23_5 }
+}
+
+// Aerosemi publishes the SOT23-5 package outline (datasheet p7: e 0.95 REF,
+// e1 1.90 REF, lead B 0.3-0.5 x L 0.35-0.8, body D 2.8-3.0 x E 1.5-1.7) but
+// no recommended PCB land pattern; Figure 3 is topological only. The land
+// below is the nominal generic KiCad SOT-23-5 (JEDEC MO-178 Var AA) of
+// kicad-footprints Package_TO_SOT_SMD, inspected 2026-09-04:
+// https://gitlab.com/kicad/libraries/kicad-footprints/-/blob/master/Package_TO_SOT_SMD.pretty/SOT-23-5.kicad_mod
+// sha256 455a3f7c3e5eb5b8847eaa5df23e18651e78ab9f75afd09a0883758a0d901761
+// (pads 1.325 x 0.6mm on 0.95mm row pitch, 2.275mm outer pad-center span,
+// courtyard 4.1 x 3.4mm). This secondary generic reference is not Aerosemi
+// authority and keeps the assembly-validation requirement, exactly like the
+// accepted W25Q128JVPIQ nominal land derivation.
+pub pad P_Aerosemi_SOT23_5_LEAD {
+    shape: rect
+    size: (1.325mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Aerosemi_SOT23_5 {
+    pad 1: P_Aerosemi_SOT23_5_LEAD at (-1.1375mm, -0.95mm)
+    pad 2: P_Aerosemi_SOT23_5_LEAD at (-1.1375mm, 0mm)
+    pad 3: P_Aerosemi_SOT23_5_LEAD at (-1.1375mm, 0.95mm)
+    pad 4: P_Aerosemi_SOT23_5_LEAD at (1.1375mm, 0.95mm)
+    pad 5: P_Aerosemi_SOT23_5_LEAD at (1.1375mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}

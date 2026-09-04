@@ -1,0 +1,112 @@
+// LAILAN 31-contact, 0.30 mm pitch, bottom-contact flip-lock FPC connector.
+// The manufacturer recommended PCB layout uses staggered odd/even rows.
+#[doc("docs/lailan-fpc-cx01-31p0.3-gw.pdf")]
+pub device LAILAN_FPC_CX01_31P {
+    pins {
+        optional P1: 1 [passive]
+        optional P2: 2 [passive]
+        optional P3: 3 [passive]
+        optional P4: 4 [passive]
+        optional P5: 5 [passive]
+        optional P6: 6 [passive]
+        optional P7: 7 [passive]
+        optional P8: 8 [passive]
+        optional P9: 9 [passive]
+        optional P10: 10 [passive]
+        optional P11: 11 [passive]
+        optional P12: 12 [passive]
+        optional P13: 13 [passive]
+        optional P14: 14 [passive]
+        optional P15: 15 [passive]
+        optional P16: 16 [passive]
+        optional P17: 17 [passive]
+        optional P18: 18 [passive]
+        optional P19: 19 [passive]
+        optional P20: 20 [passive]
+        optional P21: 21 [passive]
+        optional P22: 22 [passive]
+        optional P23: 23 [passive]
+        optional P24: 24 [passive]
+        optional P25: 25 [passive]
+        optional P26: 26 [passive]
+        optional P27: 27 [passive]
+        optional P28: 28 [passive]
+        optional P29: 29 [passive]
+        optional P30: 30 [passive]
+        optional P31: 31 [passive]
+        required SHELL32: 32 [passive]
+        required SHELL33: 33 [passive]
+    }
+}
+impl Connector for LAILAN_FPC_CX01_31P {}
+
+#[doc("docs/lailan-fpc-cx01-31p0.3-gw.pdf")]
+pub part CON_LAILAN_FPC_CX01_31P0_3_GW: LAILAN_FPC_CX01_31P {
+    primary { mfr: "LAILAN", mpn: "LAIL-FPC-CX01-31P0.3-GW",
+              footprint: FP_LAILAN_FPC_CX01_31P0_3_GW }
+}
+
+pub pad P_LAILAN_FPC_CX01_ODD {
+    shape: rect
+    size: (0.3mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_LAILAN_FPC_CX01_EVEN {
+    shape: rect
+    size: (0.3mm, 0.65mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_LAILAN_FPC_CX01_SHELL {
+    shape: rect
+    size: (0.3mm, 1.15mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Pin centres advance by 0.30 mm. Odd contacts are on the No.1 row and even
+// contacts on the No.2 row; their centre separation is
+// 0.80/2 + 2.15 + 0.65/2 = 2.875 mm. Shell centres are 10.30 mm apart.
+pub footprint FP_LAILAN_FPC_CX01_31P0_3_GW {
+    pad 1: P_LAILAN_FPC_CX01_ODD at (-4.5mm, 1.4375mm)
+    pad 2: P_LAILAN_FPC_CX01_EVEN at (-4.2mm, -1.4375mm)
+    pad 3: P_LAILAN_FPC_CX01_ODD at (-3.9mm, 1.4375mm)
+    pad 4: P_LAILAN_FPC_CX01_EVEN at (-3.6mm, -1.4375mm)
+    pad 5: P_LAILAN_FPC_CX01_ODD at (-3.3mm, 1.4375mm)
+    pad 6: P_LAILAN_FPC_CX01_EVEN at (-3.0mm, -1.4375mm)
+    pad 7: P_LAILAN_FPC_CX01_ODD at (-2.7mm, 1.4375mm)
+    pad 8: P_LAILAN_FPC_CX01_EVEN at (-2.4mm, -1.4375mm)
+    pad 9: P_LAILAN_FPC_CX01_ODD at (-2.1mm, 1.4375mm)
+    pad 10: P_LAILAN_FPC_CX01_EVEN at (-1.8mm, -1.4375mm)
+    pad 11: P_LAILAN_FPC_CX01_ODD at (-1.5mm, 1.4375mm)
+    pad 12: P_LAILAN_FPC_CX01_EVEN at (-1.2mm, -1.4375mm)
+    pad 13: P_LAILAN_FPC_CX01_ODD at (-0.9mm, 1.4375mm)
+    pad 14: P_LAILAN_FPC_CX01_EVEN at (-0.6mm, -1.4375mm)
+    pad 15: P_LAILAN_FPC_CX01_ODD at (-0.3mm, 1.4375mm)
+    pad 16: P_LAILAN_FPC_CX01_EVEN at (0mm, -1.4375mm)
+    pad 17: P_LAILAN_FPC_CX01_ODD at (0.3mm, 1.4375mm)
+    pad 18: P_LAILAN_FPC_CX01_EVEN at (0.6mm, -1.4375mm)
+    pad 19: P_LAILAN_FPC_CX01_ODD at (0.9mm, 1.4375mm)
+    pad 20: P_LAILAN_FPC_CX01_EVEN at (1.2mm, -1.4375mm)
+    pad 21: P_LAILAN_FPC_CX01_ODD at (1.5mm, 1.4375mm)
+    pad 22: P_LAILAN_FPC_CX01_EVEN at (1.8mm, -1.4375mm)
+    pad 23: P_LAILAN_FPC_CX01_ODD at (2.1mm, 1.4375mm)
+    pad 24: P_LAILAN_FPC_CX01_EVEN at (2.4mm, -1.4375mm)
+    pad 25: P_LAILAN_FPC_CX01_ODD at (2.7mm, 1.4375mm)
+    pad 26: P_LAILAN_FPC_CX01_EVEN at (3.0mm, -1.4375mm)
+    pad 27: P_LAILAN_FPC_CX01_ODD at (3.3mm, 1.4375mm)
+    pad 28: P_LAILAN_FPC_CX01_EVEN at (3.6mm, -1.4375mm)
+    pad 29: P_LAILAN_FPC_CX01_ODD at (3.9mm, 1.4375mm)
+    pad 30: P_LAILAN_FPC_CX01_EVEN at (4.2mm, -1.4375mm)
+    pad 31: P_LAILAN_FPC_CX01_ODD at (4.5mm, 1.4375mm)
+    pad 32: P_LAILAN_FPC_CX01_SHELL at (5.15mm, 1.0625mm)
+    pad 33: P_LAILAN_FPC_CX01_SHELL at (-5.15mm, 1.0625mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (11.8mm, 4.6mm) }
+    silkscreen_ref { at: (0mm, -2.8mm) }
+}

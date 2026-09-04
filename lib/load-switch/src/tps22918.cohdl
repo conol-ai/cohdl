@@ -1,0 +1,45 @@
+// Texas Instruments TPS22918: 5.5V, 2A load switch with adjustable output
+// slew rate and quick output discharge. Datasheet SLVSD76C, revised July
+// 2017; current DBV package drawing 4214840/G, August 2024.
+
+#[doc("docs/tps22918.pdf")]
+pub device TPS22918 {
+    pins {
+        required VIN: 1 [power_in] // switch input; bypass to GND (p3)
+        required GND: 2 [power_in]
+        required ON: 3 [input] // active high; must not float (p3)
+        optional CT: 4 [output] // slew-rate capacitor; may float (p3)
+        optional QOD: 5 [output] // quick-output-discharge configuration (p3)
+        required VOUT: 6 [power_out]
+    }
+}
+
+impl IC for TPS22918 {}
+
+#[doc("docs/tps22918.pdf")]
+pub part LOADSW_TPS22918DBVR: TPS22918 {
+    primary { mfr: "Texas Instruments", mpn: "TPS22918DBVR", footprint: FP_TI_DBV0006A }
+}
+
+// TI DBV0006A example board layout: six 1.1x0.6mm lands, 0.95mm pitch,
+// with 2.6mm opposing row-centre spacing (package appendix).
+pub pad P_TPS22918_DBV_LEAD {
+    shape: rect
+    size: (1.1mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_TI_DBV0006A {
+    pad 1: P_TPS22918_DBV_LEAD at (-1.3mm, -0.95mm)
+    pad 2: P_TPS22918_DBV_LEAD at (-1.3mm, 0mm)
+    pad 3: P_TPS22918_DBV_LEAD at (-1.3mm, 0.95mm)
+    pad 4: P_TPS22918_DBV_LEAD at (1.3mm, 0.95mm)
+    pad 5: P_TPS22918_DBV_LEAD at (1.3mm, 0mm)
+    pad 6: P_TPS22918_DBV_LEAD at (1.3mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

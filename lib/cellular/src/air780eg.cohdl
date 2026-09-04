@@ -1,0 +1,77 @@
+// Luat (Hezhou) Air780EG: Cat.1 bis cellular module with integrated GNSS,
+// LGA-109, 17.7x15.8x2.3mm. Pin map follows the official hardware design
+// manual V1.1.2, August 2024. The official recommended PCB land drawing on
+// p60 matches the Air780E 109-pad geometry already owned by this package.
+
+#[doc("docs/air780eg-hw.pdf")]
+pub device AIR780EG {
+    pins {
+        required GND: 1, 10, 27, 34, 36, 37, 40, 41, 45, 46, 47, 48, 70, 71, 72, 73, 88, 89, 90, 91,
+                      92, 93, 94, 95 [power_in]
+        required VBAT: 42, 43 [power_in]
+        required PWRKEY: 7 [input]
+        required RESET_N: 15 [input]
+        optional VDD_EXT: 24 [power_out]
+        optional VBUS: 61 [power_in]
+        optional IO_1833_SEL: 100 [input]
+        optional GNSS_ANT: 2 [bidirectional]
+        optional GNSS_VCC: 8 [power_out]
+        optional LTE_ANT: 35 [bidirectional]
+        optional ADC0: 9 [input]
+        optional ADC1: 96 [input]
+        optional AGPIO3: 99 [bidirectional]
+        optional USIM_DAT: 11 [bidirectional]
+        optional USIM_RST: 12 [output]
+        optional USIM_CLK: 13 [output]
+        optional USIM_VDD: 14 [power_out]
+        optional USIM2_CLK: 62 [output]
+        optional USIM2_RST: 63 [output]
+        optional USIM2_DAT: 64 [bidirectional]
+        optional USIM2_VDD: 65 [power_out]
+        optional USIM_DET: 79 [input]
+        optional NET_STATUS: 16 [output]
+        optional STATUS: 25 [output]
+        optional MAIN_RXD: 17 [input]
+        optional MAIN_TXD: 18 [output]
+        optional MAIN_DTR: 19 [input]
+        optional MAIN_RI: 20 [output]
+        optional MAIN_DCD: 21 [input]
+        optional MAIN_CTS: 22 [output]
+        optional MAIN_RTS: 23 [input]
+        optional DBG_RXD: 38 [input]
+        optional DBG_TXD: 39 [output]
+        optional GNSS_TXD: 28 [output]
+        optional GNSS_RXD: 29 [input]
+        optional I2S_MCLK: 26 [bidirectional]
+        optional I2S_BCK: 30 [output]
+        optional I2S_LRCK: 31 [output]
+        optional I2S_DIN: 32 [input]
+        optional I2S_DOUT: 33 [output]
+        optional LCD_RST: 49 [output]
+        optional LCD_DOUT: 50 [output]
+        optional LCD_RS: 51 [output]
+        optional LCD_CS: 52 [output]
+        optional LCD_CLK: 53 [output]
+        optional LCD_TE: 78 [bidirectional]
+        optional USB_DP: 59 [bidirectional]
+        optional USB_DM: 60 [bidirectional]
+        optional I2C_SDA: 66 [bidirectional]
+        optional I2C_SCL: 67 [bidirectional]
+        optional USB_BOOT: 82 [input]
+        optional LDO_CTL: 97 [bidirectional]
+        optional WAKEUP0: 101 [input]
+        optional AGPIOWU0: 102 [bidirectional]
+        optional AGPIO5: 106 [bidirectional]
+        optional AGPIOWU1: 107 [bidirectional]
+        optional PPS_1: 108 [output]
+        optional NC: 3, 4, 5, 6, 44, 54, 55, 56, 57, 58, 68, 69, 74, 75, 76, 77, 80, 81, 83, 84, 85,
+                     86, 87, 98, 103, 104, 105, 109 [passive]
+    }
+}
+
+impl IC for AIR780EG {}
+
+#[doc("docs/air780eg-hw.pdf")]
+pub part CELL_AIR780EG: AIR780EG {
+    primary { mfr: "Luat (Hezhou)", mpn: "Air780EG", footprint: FP_Luat_AIR780E_LGA109_177x158mm }
+}

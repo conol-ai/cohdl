@@ -1,0 +1,67 @@
+// CellWise CW2015CHBD: sense-resistor-free system/pack-side fuel gauge with
+// 14-bit sigma-delta ADC, I2C interface and low-SOC alert (datasheet
+// CW2015CHBD-DS V1.3). TDFN8 2x3mm package, 0.5mm pitch; pin configuration
+// p3, package outline dimensions p14.
+
+#[doc("docs/cw2015chbd.pdf")]
+pub device CW2015 {
+    pins {
+        required CTG: 1 [power_in] // connect to ground (p3)
+        required CELL: 2 [input] // battery voltage monitor I/O (p3)
+        required VDD: 3 [power_in] // system power supply (p3)
+        required GND: 4 [power_in]
+        // Open-drain low-SOC alert; stays low until the host clears the flag.
+        optional ALRT: 5 [output]
+        optional QSTRT: 6 [input] // rising edge triggers a quick SOC estimate
+        required SCL: 7 [input]
+        required SDA: 8 [bidirectional]
+        // Exposed pad; "connect to GND or let floating" (p3).
+        optional EP: 9 [power_in]
+    }
+}
+
+impl IC for CW2015 {}
+
+#[doc("docs/cw2015chbd.pdf")]
+pub part FGAUGE_CW2015CHBD: CW2015 {
+    primary { mfr: "CellWise Microelectronics", mpn: "CW2015CHBD",
+              footprint: FP_CellWise_TDFN8_2X3 }
+}
+
+// The datasheet gives the complete TDFN 2x3-8L outline (p14: pitch 0.5mm,
+// lead b=0.2-0.3mm, L=0.224-0.376mm, body D=2.0/E=3.0mm, 1.4-1.6mm EP) but
+// no PCB land, so FP_CellWise_TDFN8_2X3 is an independent nominal-density
+// derivation: 0.3 x 0.6mm lands, row centres at +/-1.2mm, and a 1.6 x 1.6mm
+// EP land. Production use requires assembly-process qualification. Pin 1 is
+// upper-left in CoHDL top view; the datasheet pin-config drawing (p3, pad
+// side down) is rotated 180 degrees relative to this.
+pub pad P_CW2015_LEAD {
+    shape: rect
+    size: (0.3mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_CW2015_EP {
+    shape: rect
+    size: (1.6mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_CellWise_TDFN8_2X3 {
+    pad 1: P_CW2015_LEAD at (-0.75mm, -1.2mm)
+    pad 2: P_CW2015_LEAD at (-0.25mm, -1.2mm)
+    pad 3: P_CW2015_LEAD at (0.25mm, -1.2mm)
+    pad 4: P_CW2015_LEAD at (0.75mm, -1.2mm)
+    pad 5: P_CW2015_LEAD at (0.75mm, 1.2mm)
+    pad 6: P_CW2015_LEAD at (0.25mm, 1.2mm)
+    pad 7: P_CW2015_LEAD at (-0.25mm, 1.2mm)
+    pad 8: P_CW2015_LEAD at (-0.75mm, 1.2mm)
+    pad 9: P_CW2015_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.6mm, 3.6mm) }
+    silkscreen_ref { at: (0mm, -2.1mm) }
+}

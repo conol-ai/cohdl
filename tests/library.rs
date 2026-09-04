@@ -985,18 +985,26 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/analog-switch::SW_RS2257XH|Run-IC|RS2257XH|contrib_analog_switch::SOT6P95X290X160N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
         "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|a235edfeb77483f6ce49859d1508a02037c924c3165314e2168b59421b4b7aa0",
         "@contrib/audio-amp::AMP_NS4150B|Nsiway|NS4150B|contrib_audio_amp::SOP8P65X490X110N|contrib_audio_amp::NS4150B[-]|68c467ea216f68d6c7f2fe1439b14bed81dae3b5cbec8a04b5b45bafc4dc6f19",
+        "@contrib/charger::CHARGER_BQ25185DLHR|Texas Instruments|BQ25185DLHR|contrib_charger::FP_TI_DLH0010A|contrib_charger::BQ25185[-]|cf11afa6d86f56bdf247261f4d68b09632916cae85d2e0c82b51e74553a1ea28",
         "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|2fc6771cc0150a98f6ca02490534f5cfc8f529cef28651d676ddd39ac8e69d79",
         "@contrib/env::ENV_BME280|Bosch Sensortec|BME280|contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm|contrib_env::BME280[-]|3383b88fba1dfc37e0ab29f9c06b5ea75ef23e02ffb0c151c33c7e0fd4a532cc",
         "@contrib/esd::ESD_GBLC05C|ProTek|GBLC05C-LF-T7|contrib_esd::FP_SOD323_2P5X1P25mm|contrib_esd::GBLC05C[-]|8728da7595e160597f639c23bd3e6d2de2099a14d567437c396215734b86cd55",
         "@contrib/esd::ESD_ULC0511C|Tergy|ULC0511C|contrib_esd::QFN2N65P60X100|contrib_esd::ULC0511C[-]|8728da7595e160597f639c23bd3e6d2de2099a14d567437c396215734b86cd55",
+        "@contrib/fuel-gauge::FGAUGE_CW2015CHBD|CellWise Microelectronics|CW2015CHBD|contrib_fuel_gauge::FP_CellWise_TDFN8_2X3|contrib_fuel_gauge::CW2015[-]|f3f4c521a3e4e50df26b5141d9b02468eee841e9d0fe3e3b0631f81020b6bd82",
         "@contrib/gnss::GNSS_L76K|Quectel|L76K|contrib_gnss::FP_Quectel_L76K_18LCC_101x97mm|contrib_gnss::L76K[-]|58c60801994860f9f08f7e1cc9c21d17128f8c2f10f6c4272d8d550b21985b21",
         "@contrib/gnss::GNSS_MIA_M10Q|u-blox|MIA-M10Q-00B|contrib_gnss::FP_Ublox_MIA_M10Q_MLGA53_45x45mm|contrib_gnss::MIA_M10Q[-]|10c63eb92f8f9d8d5cb02c643e40817f4f9fcc3a59520c37e30368f3744f8ed9",
         "@contrib/haptic::HAPTIC_AW86224|Awinic|AW86224AFCR|contrib_haptic::QFN9N40P137X137|contrib_haptic::AW86224[-]|a243e2e20b41f64545620918dcbc20ab5293f487c3db74df83d7ced63e6bcbbc",
         "@contrib/haptic::HAPTIC_DRV2605|Texas Instruments|DRV2605YZFR|contrib_haptic::BGA9C50P3X3_145X145X50N|contrib_haptic::DRV2605[-]|3f27e5ab72d051a631cca7886c663c47443161dde6e7d695fa3fe279a9278c99",
         "@contrib/imu::IMU_BHI260AP|Bosch Sensortec|BHI260AP|contrib_imu::LGA44P40_360X410|contrib_imu::BHI260AP[-]|ee1867a4965abf5cebcdd6645b1730f58f27b9ac87615d687c2c5113aac55cbb",
+        "@contrib/imu::IMU_LSM6DS3TR_C|STMicroelectronics|LSM6DS3TR-C|contrib_imu::LGA14P50_300X250X86N|contrib_imu::LSM6DS3TR_C[-]|2f2a0807fc29b31dde1e7b041559d4b86211eba60abf218215d40fcb7d2334d9",
+        "@contrib/imu::MAG_MMC5603NJ|MEMSIC|MMC5603NJ|contrib_imu::WLP4C40P2X2_82X82X40N|contrib_imu::MMC5603NJ[-]|4cc4cc655d3788e9f93526e6db78f983d3ad69890680effef545ff115b17e2e6",
         "@contrib/io-expander::IOEXP_XL9555|Xinluda|XL9555|contrib_io_expander::SOP24P65X640X120N|contrib_io_expander::XL9555[TSSOP24]|828026a20b79c80dc8710194390ea3c1f0babb682b9105268ed7e25548088c9e",
         "@contrib/ir-emitter::IR_VSMY14940|Vishay|VSMY14940|contrib_ir_emitter::FP_VSMY14940_3P0X2P51mm|contrib_ir_emitter::VSMY14940[-]|47809dba08bd124beed8a95e1a84adc2edb8a56869dfd3541499756a90857b46",
         "@contrib/keyscan::KEYSCAN_TCA8418|Texas Instruments|TCA8418RTWR|contrib_keyscan::QFN24N50P400X400_1EP245X245|contrib_keyscan::TCA8418[-]|e6a3ac51dc59733ef5b19704192c0a1532dd283277c3729ac36c7297f3dcdcef",
+        "@contrib/ldo::LDO_ETA5060V330S8F|ETA Solutions|ETA5060V330S8F|contrib_ldo::FP_ETA_SOT89_5|contrib_ldo::ETA5060[-]|00c7c7994b6db754a34ea74774b6c333ffafb7e17689b782806fb57fcffc1386",
+        "@contrib/ldo::LDO_ME6211C15M5G_N|Microne|ME6211C15M5G-N|contrib_ldo::FP_Microne_ME6211_SOT23_5|contrib_ldo::ME6211C_M5G_N[-]|7f61983fc64e6376c5d9ea993d0082f9604d2798855935eda06ff745bb17c89a",
+        "@contrib/ldo::LDO_ME6211C18M5G_N|Microne|ME6211C18M5G-N|contrib_ldo::FP_Microne_ME6211_SOT23_5|contrib_ldo::ME6211C_M5G_N[-]|7f61983fc64e6376c5d9ea993d0082f9604d2798855935eda06ff745bb17c89a",
+        "@contrib/ldo::LDO_ME6211C28M5G_N|Microne|ME6211C28M5G-N|contrib_ldo::FP_Microne_ME6211_SOT23_5|contrib_ldo::ME6211C_M5G_N[-]|7f61983fc64e6376c5d9ea993d0082f9604d2798855935eda06ff745bb17c89a",
         "@contrib/ldo::LDO_RT9080_33|Richtek|RT9080-33GJ5|contrib_ldo::SOT5P95X290X160N|contrib_ldo::RT9080[TSOT235]|6dbd8af8e6a20e00cb2e3ffa13af396f04f9aa9c5104208ea2d9b5f9f223f543",
         "@contrib/ldo::LDO_RT9080_33_ZQFN|Richtek|RT9080-33GQZ|contrib_ldo::FP_Richtek_ZQFN4L_1X1|contrib_ldo::RT9080[ZQFN4L]|14066b95d4fc1864b8f120c80b2b0632482e810d7e21c61c97c40f36768e4565",
         "@contrib/ldo::LDO_XC6206P182MR|Torex Semiconductor|XC6206P182MR-G|contrib_ldo::SOT3P190X290X160N|contrib_ldo::XC6206[SOT23]|0e5219461d83760afc2356ad46efb87eeb2e841033237fefe2cf164633d6fd8e",
@@ -1025,7 +1033,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
 }
 
 #[test]
-fn promoted_w25q128_uses_the_datasheet_pinout_and_shared_soic_land() {
+fn promoted_w25q128_variants_use_the_datasheet_pinouts_and_exact_lands() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let deps = vec![
         ("std".to_string(), root.join("lib/std")),
@@ -1044,35 +1052,55 @@ fn promoted_w25q128_uses_the_datasheet_pinout_and_shared_soic_land() {
     );
 
     let flash = checked.world.devices.get("flash::W25Q128JV").unwrap();
-    let pins = flash.pins_for(None);
-    for (name, number) in [
-        ("CS", "1"),
-        ("DO", "2"),
-        ("WP", "3"),
-        ("GND", "4"),
-        ("DI", "5"),
-        ("CLK", "6"),
-        ("HOLD", "7"),
-        ("VCC", "8"),
-    ] {
-        let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
-        assert_eq!(
-            pin.numbers
-                .iter()
-                .map(|number| number.text.as_str())
-                .collect::<Vec<_>>(),
-            [number],
-            "wrong W25Q128JV physical mapping for {name}"
-        );
+    for variant in ["SOIC8", "WSON8_6X5"] {
+        let pins = flash.pins_for(Some(variant));
+        for (name, number) in [
+            ("CS", "1"),
+            ("DO", "2"),
+            ("WP", "3"),
+            ("GND", "4"),
+            ("DI", "5"),
+            ("CLK", "6"),
+            ("HOLD", "7"),
+            ("VCC", "8"),
+        ] {
+            let pin = pins.iter().find(|pin| pin.name.name == name).unwrap();
+            assert_eq!(
+                pin.numbers
+                    .iter()
+                    .map(|number| number.text.as_str())
+                    .collect::<Vec<_>>(),
+                [number],
+                "wrong W25Q128JV {variant} physical mapping for {name}"
+            );
+        }
     }
+    let wson_pins = flash.pins_for(Some("WSON8_6X5"));
+    let ep = wson_pins.iter().find(|pin| pin.name.name == "EP").unwrap();
+    assert_eq!(
+        ep.numbers
+            .iter()
+            .map(|number| number.text.as_str())
+            .collect::<Vec<_>>(),
+        ["9"],
+        "wrong W25Q128JV WSON exposed-pad mapping"
+    );
     assert!(checked
         .world
         .parts
         .contains_key("flash::FLASH_W25Q128JVSIQ"));
     assert!(checked
         .world
+        .parts
+        .contains_key("flash::FLASH_W25Q128JVPIQ"));
+    assert!(checked
+        .world
         .footprints
         .contains_key("soic::SOIC8P127X790X216N"));
+    assert!(checked
+        .world
+        .footprints
+        .contains_key("flash::FP_W25Q128JV_WSON8_6X5"));
 }
 
 #[test]

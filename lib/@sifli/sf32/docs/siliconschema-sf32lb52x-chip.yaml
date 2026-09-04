@@ -1,0 +1,271 @@
+# SF32LB52_X 系列芯片定义
+# pinmux 配置从 common/pinmux/sf32lb52/pinmux.yaml 合并
+
+schema_version: 0.2.0
+model_id: SF32LB52X
+lifecycle: production
+shared_pinmux: sf32lb52
+
+docs:
+  - datasheet:
+      zh: "https://downloads.sifli.com/user%20manual/DS5202-SF32LB52X-%E8%8A%AF%E7%89%87%E6%8A%80%E6%9C%AF%E8%A7%84%E6%A0%BC%E4%B9%A6%20V0p2p5.pdf"
+      en: "https://downloads.sifli.com/user%20manual/DS5202-SF32LB52X-Datasheet%20V0p2p5.pdf"
+
+# GPIO Pads（pinmux 从共享文件合并）
+pads:
+  PA00: {type: bidirectional}
+  PA01: {type: bidirectional}
+  PA02: {type: bidirectional}
+  PA03: {type: bidirectional}
+  PA04: {type: bidirectional}
+  PA05: {type: bidirectional}
+  PA06: {type: bidirectional}
+  PA07: {type: bidirectional}
+  PA08: {type: bidirectional}
+  PA09: {type: bidirectional}
+  PA10: {type: bidirectional}
+  PA11: {type: bidirectional}
+  PA12: {type: bidirectional}
+  PA13: {type: bidirectional}
+  PA14: {type: bidirectional}
+  PA15: {type: bidirectional}
+  PA16: {type: bidirectional}
+  PA17: {type: bidirectional}
+  PA18: {type: bidirectional}
+  PA19: {type: bidirectional}
+  PA20: {type: bidirectional}
+  PA21: {type: bidirectional}
+  PA22: {type: bidirectional}
+  PA23: {type: bidirectional}
+  PA24: {type: bidirectional}
+  PA25: {type: bidirectional}
+  PA26: {type: bidirectional}
+  PA27: {type: bidirectional}
+  PA28: {type: bidirectional}
+  PA29: {type: bidirectional}
+  PA30: {type: bidirectional}
+  PA31: {type: bidirectional}
+  PA32: {type: bidirectional}
+  PA33: {type: bidirectional}
+  PA34: {type: bidirectional}
+  PA35: {type: bidirectional}
+  PA36: {type: bidirectional}
+  PA37: {type: bidirectional}
+  PA38: {type: bidirectional}
+  PA39: {type: bidirectional}
+  PA40: {type: bidirectional}
+  PA41: {type: bidirectional}
+  PA42: {type: bidirectional}
+  PA43: {type: bidirectional}
+  PA44: {type: bidirectional}
+
+  # 电源/模拟专用 Pads
+  VBATS:
+    type: input
+    subsystem: analog
+    description: "Battery voltage sense input"
+  BUCK_LX:
+    type: bidirectional
+    subsystem: power
+    description: "Buck inductor switching node"
+  BUCK_FB:
+    type: power_output
+    subsystem: power
+    description: "Buck feedback node"
+  VDD_RET:
+    type: power_output
+    subsystem: power
+    description: "Retention LDO output"
+  VDD_RTC:
+    type: power_output
+    subsystem: power
+    description: "RTC LDO output"
+  PVDD:
+    type: power_input
+    subsystem: power
+    description: "Main system supply input"
+  VDDIOA:
+    type: power_input
+    subsystem: power
+    description: "GPIO bank supply input"
+  VDD_SIP:
+    type: power_input
+    subsystem: power
+    description: "SiP supply input"
+  NC22:
+    type: unconnected
+    description: "No internal connection"
+  AVDD33:
+    type: power_input
+    subsystem: analog
+    description: "Analog 3.3 V supply input"
+  GPADC_VREF:
+    type: input
+    subsystem: analog
+    description: "GPADC reference input"
+  XTAL48M_XI:
+    type: input
+    subsystem: crystal
+    description: "48 MHz crystal input"
+  XTAL48M_XO:
+    type: output
+    subsystem: crystal
+    description: "48 MHz crystal output"
+  BRF_ANT:
+    type: bidirectional
+    subsystem: rf
+    description: "Bluetooth RF antenna port"
+  AVDD_BRF:
+    type: power_input
+    subsystem: rf
+    description: "RF analog supply input"
+  ADCP:
+    type: input
+    subsystem: audio
+    description: "Audio ADC positive input"
+  MIC_BIAS:
+    type: power_output
+    subsystem: audio
+    description: "Microphone bias output"
+  AUD_VREF:
+    type: input
+    subsystem: audio
+    description: "Audio reference input"
+  AVDD33_AUD:
+    type: power_input
+    subsystem: audio
+    description: "Audio analog 3.3 V supply input"
+  DACP:
+    type: output
+    subsystem: audio
+    description: "Audio DAC positive output"
+  DACN:
+    type: output
+    subsystem: audio
+    description: "Audio DAC negative output"
+  GND:
+    type: power_input
+    subsystem: power
+    description: "Exposed pad ground"
+
+variants:
+  - part_number: SF32LB52BU36
+    description: "3.3V, 8Mb NOR Flash"
+    memory:
+      - mpi: mpi1
+        type: nor
+        size: 1048576      # 8Mb = 1MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: &SF32LB52X_QFN68_PINS
+      - {number: "1", pad: PA32}
+      - {number: "2", pad: PA31}
+      - {number: "3", pad: PA30}
+      - {number: "4", pad: PA29}
+      - {number: "5", pad: PA28}
+      - {number: "6", pad: PA27}
+      - {number: "7", pad: PA26}
+      - {number: "8", pad: PA25}
+      - {number: "9", pad: PA24}
+      - {number: "10", pad: PA23}
+      - {number: "11", pad: PA22}
+      - {number: "12", pad: VDD_RTC}
+      - {number: "13", pad: VDD_RET}
+      - {number: "14", pad: AVDD33}
+      - {number: "17", pad: BUCK_FB}
+      - {number: "18", pad: BUCK_LX}
+      - {number: "19", pad: PVDD}
+      - {number: "20", pad: VBATS}
+      - {number: "21", pad: VDDIOA}
+      - {number: "22", pad: NC22}
+      - {number: "23", pad: VDD_SIP}
+      - {number: "24", pad: PA21}
+      - {number: "25", pad: PA20}
+      - {number: "26", pad: PA19}
+      - {number: "27", pad: PA18}
+      - {number: "28", pad: PA17}
+      - {number: "29", pad: PA16}
+      - {number: "30", pad: PA15}
+      - {number: "31", pad: PA14}
+      - {number: "32", pad: PA13}
+      - {number: "33", pad: PA12}
+      - {number: "34", pad: PA11}
+      - {number: "35", pad: PA10}
+      - {number: "36", pad: DACN}
+      - {number: "37", pad: DACP}
+      - {number: "38", pad: AVDD33_AUD}
+      - {number: "39", pad: AUD_VREF}
+      - {number: "40", pad: MIC_BIAS}
+      - {number: "41", pad: ADCP}
+      - {number: "42", pad: PA09}
+      - {number: "43", pad: PA08}
+      - {number: "44", pad: PA07}
+      - {number: "45", pad: PA06}
+      - {number: "46", pad: PA05}
+      - {number: "47", pad: PA04}
+      - {number: "48", pad: PA03}
+      - {number: "49", pad: PA02}
+      - {number: "50", pad: PA01}
+      - {number: "51", pad: PA00}
+      - {number: "52", pad: AVDD_BRF}
+      - {number: "53", pad: BRF_ANT}
+      - {number: "54", pad: XTAL48M_XO}
+      - {number: "55", pad: XTAL48M_XI}
+      - {number: "56", pad: PA44}
+      - {number: "57", pad: PA43}
+      - {number: "58", pad: PA42}
+      - {number: "59", pad: PA41}
+      - {number: "60", pad: PA40}
+      - {number: "61", pad: PA39}
+      - {number: "62", pad: PA38}
+      - {number: "63", pad: PA37}
+      - {number: "64", pad: PA36}
+      - {number: "65", pad: PA35}
+      - {number: "66", pad: PA34}
+      - {number: "67", pad: PA33}
+      - {number: "68", pad: GPADC_VREF}
+      - {number: "69", pad: GND}
+
+  - part_number: SF32LB52BU56
+    description: "3.3V, 32Mb NOR Flash"
+    memory:
+      - mpi: mpi1
+        type: nor
+        size: 4194304      # 32Mb = 4MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: *SF32LB52X_QFN68_PINS
+
+  - part_number: SF32LB52DUB6
+    description: "1.8V, 32Mb pSRAM"
+    memory:
+      - mpi: mpi1
+        type: psram
+        size: 4194304      # 32Mb = 4MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: *SF32LB52X_QFN68_PINS
+
+  - part_number: SF32LB52EUB6
+    description: "3.3V, 32Mb pSRAM"
+    memory:
+      - mpi: mpi1
+        type: psram
+        size: 4194304      # 32Mb = 4MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: *SF32LB52X_QFN68_PINS
+
+  - part_number: SF32LB52GUC6
+    description: "3.3V, 64Mb pSRAM"
+    memory:
+      - mpi: mpi1
+        type: psram
+        size: 8388608      # 64Mb = 8MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: *SF32LB52X_QFN68_PINS
+
+  - part_number: SF32LB52JUD6
+    description: "3.3V, 128Mb pSRAM"
+    memory:
+      - mpi: mpi1
+        type: psram
+        size: 16777216     # 128Mb = 16MB
+    package: QFN-68-1EP_7x7mm_P0.35mm_EP5.49x5.49mm
+    pins: *SF32LB52X_QFN68_PINS

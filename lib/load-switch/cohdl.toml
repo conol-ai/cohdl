@@ -1,6 +1,6 @@
 [package]
 name = "load-switch"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Power-distribution load switches with their verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"

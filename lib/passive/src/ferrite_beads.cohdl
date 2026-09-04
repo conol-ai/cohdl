@@ -1,0 +1,42 @@
+pub trait FerriteBead {
+    designator_prefix: "L"
+}
+
+#[doc("docs/murata_blm15pd121sn1d.pdf")]
+pub device BLM15PD121SN1D {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        impedance_100mhz: 120ohm
+        current_rating: 1.3A
+        dc_resistance_max: 0.09ohm
+    }
+}
+
+impl TwoTerminal for BLM15PD121SN1D {}
+
+impl FerriteBead for BLM15PD121SN1D {}
+
+#[doc("docs/murata_blm15pd121sn1d.pdf")]
+pub part FERRITE_BLM15PD121SN1D: BLM15PD121SN1D {
+    primary { mfr: "Murata", mpn: "BLM15PD121SN1D", footprint: FP_Murata_BLM15PD_1005Metric }
+}
+
+// Murata JENF243A-0018AJ-01 p8 recommends, for BLM15P parts rated at no
+// more than 1.5A, a 0.4mm inner gap, 1.2-1.4mm overall land span and
+// 0.5 x 0.5mm lands. Nominal 1.3mm span gives pad centres at +/-0.4mm.
+pub pad P_Murata_BLM15PD_1005Metric {
+    shape: rect
+    size: (0.5mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Murata_BLM15PD_1005Metric {
+    pad 1: P_Murata_BLM15PD_1005Metric at (-0.4mm, 0mm)
+    pad 2: P_Murata_BLM15PD_1005Metric at (0.4mm, 0mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.6mm, 1.1mm) }
+    silkscreen_ref { at: (0mm, -1.25mm) }
+}

@@ -1,0 +1,58 @@
+// ETA Solutions ETA5060: 1A LDO with enable and internal 2M-ohm EN pulldown,
+// 1.8-5.5V in (datasheet ETA5060-V2.6). SOT89-5 variant; the exact order code
+// ETA5060V330S8F is the fixed 3.3V version with top mark SG7 (ordering table
+// p1/p7). Pin configuration p2; SOT89-5 package outline and recommended land
+// p10.
+
+#[doc("docs/eta5060.pdf")]
+pub device ETA5060 {
+    pins {
+        required IN: 4 [power_in] // input supply, 1.8-5.5V (p2)
+        required GND: 2 [power_in]
+        // Internal 2M-ohm pulldown, so floating EN keeps the part off (p2).
+        optional EN: 3 [input]
+        required OUT: 5 [power_out]
+        // Pin 1 is FB only on the adjustable V0 part; on every fixed-voltage
+        // order code (incl. V330) it is internally unconnected (p2).
+        optional NC_FB: 1 [passive]
+    }
+}
+
+impl IC for ETA5060 {}
+
+#[doc("docs/eta5060.pdf")]
+pub part LDO_ETA5060V330S8F: ETA5060 {
+    primary { mfr: "ETA Solutions", mpn: "ETA5060V330S8F", footprint: FP_ETA_SOT89_5 }
+}
+
+// ETA5060 datasheet p10 SOT89-5 recommended land: pitch e=1.5mm, outer pad
+// span E=4.9mm, corner pads b1 x L = 0.7 x 1.4mm, and a central 0.8 x 4.65mm
+// (b x E1) pad 2 drawn from the body top edge to the bottom pad outer edge.
+// Pin 1 is upper-left in CoHDL top view; the datasheet pin-config view is
+// rotated 180 degrees relative to this.
+pub pad P_ETA_SOT89_LEAD {
+    shape: rect
+    size: (0.7mm, 1.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ETA_SOT89_TAB {
+    shape: rect
+    size: (0.8mm, 4.65mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_ETA_SOT89_5 {
+    pad 1: P_ETA_SOT89_LEAD at (-1.5mm, -1.75mm)
+    pad 5: P_ETA_SOT89_LEAD at (1.5mm, -1.75mm)
+    pad 3: P_ETA_SOT89_LEAD at (-1.5mm, 1.75mm)
+    pad 4: P_ETA_SOT89_LEAD at (1.5mm, 1.75mm)
+    pad 2: P_ETA_SOT89_TAB at (0mm, 0.125mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.8mm, 5.2mm) }
+    silkscreen_ref { at: (0mm, -2.9mm) }
+}

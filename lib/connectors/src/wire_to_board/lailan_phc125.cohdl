@@ -1,0 +1,52 @@
+// LAILAN right-angle 1.25 mm wire-to-board header. The exact C54905971
+// listing and manufacturer drawing identify LAIL-PHC1.25-2P-01-PB-WT.
+// Contact numbering/chirality is cross-checked against the exact listing's
+// distributor EDA model: contact 1 is left and contact 2 is right when the
+// manufacturer PCB-layout view is used; shell pads 4/3 are left/right.
+#[doc("docs/lailan-phc125-2p.pdf")]
+pub device LAILAN_PHC125_2P {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required SHELL3: 3 [passive]
+        required SHELL4: 4 [passive]
+    }
+}
+impl Connector for LAILAN_PHC125_2P {}
+
+#[doc("docs/lailan-phc125-2p.pdf")]
+pub part CON_LAILAN_PHC125_2P_01_PB_WT: LAILAN_PHC125_2P {
+    primary { mfr: "LAILAN", mpn: "LAIL-PHC1.25-2P-01-PB-WT",
+              footprint: FP_LAILAN_PHC125_2P_RIGHT_ANGLE }
+}
+
+// Manufacturer PCB layout: 0.70 x 1.70 mm contact lands.
+pub pad P_LAILAN_PHC125_CONTACT {
+    shape: rect
+    size: (0.7mm, 1.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Manufacturer PCB layout: 1.80 x 2.50 mm mechanical solder-lug lands.
+pub pad P_LAILAN_PHC125_SHELL {
+    shape: rect
+    size: (1.8mm, 2.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Coordinates reproduce the manufacturer's PCB-layout view. Signal contacts
+// are on 1.25 mm pitch. Shell centers are 6.06 mm apart; their top edges sit
+// 0.40 mm below the signal-land bottom edges, hence the 2.50 mm y offset.
+pub footprint FP_LAILAN_PHC125_2P_RIGHT_ANGLE {
+    pad 1: P_LAILAN_PHC125_CONTACT at (-0.625mm, 0mm)
+    pad 2: P_LAILAN_PHC125_CONTACT at (0.625mm, 0mm)
+    pad 3: P_LAILAN_PHC125_SHELL at (3.03mm, 2.5mm)
+    pad 4: P_LAILAN_PHC125_SHELL at (-3.03mm, 2.5mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 1.75mm), size: (8.36mm, 6.0mm) }
+    silkscreen_ref { at: (0mm, 5.1mm) }
+}

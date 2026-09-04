@@ -50,6 +50,7 @@ nonexistent `DFE201612E-3R3M` with the in-production
 | `murata_lqh2mcn_detailed_specification.pdf` | `LQH2MCN3R3M52L`; reference specification `JELF243A-0060P`, created 2025-03-25. | [Murata LQH2MCN specification](https://pim.murata.com/asset/pim4/inductor/JELF243A-0060_PDF_INDUCTOR?lastModifiedDatetime=20250708072043) | `44845e110a0fb7a56ab90e9f72ac93a7dc022022aa05d4554ac6979b32978bae` |
 | `sunlord_wpn_series.pdf` | `WPN201610U4R7MT`, 4.7 uH, 1.30 A minimum saturation current, 0.288 ohm maximum DCR; WPN series catalog revised 2022-05-15. | [Sunlord WPN series](https://www.sunlordinc.com/uploads/files/20221122/WPN%C2%A0series%C2%A0of%C2%A0SMD%C2%A0Power%C2%A0Inductor.pdf) | `8885516070f2b85f5e57fa7a3fe390441f488912065e7b4f2f317e6d27d3f72d` |
 | `murata_blm15pd121sn1d.evidence.md` | `BLM15PD121SN1D`, 120 ohm at 100 MHz, 1.3 A rated current, 0.09 ohm max DCR; reference specification JENF243A-0018AJ-01. | [LCSC C76891 manufacturer document](https://datasheet.lcsc.com/datasheet/pdf/f85b01b3a1a015a5ec4a9f03876e0063.pdf?productCode=C76891) | `72584e2b0fad42b4fd0fc45b175151fa42acab38f373431d3f726f55317918aa` (upstream PDF) |
+| `panasonic_6svpc220m.evidence.md` | `6SVPC220M`, 220 µF / 6.3 V OS-CON, 27 mΩ max ESR and 2320 mA RMS ripple at 100 kHz / 105 °C; C6 land pattern. | [Panasonic product page](https://industrial.panasonic.com/ww/products/pt/os-con/models/6svpc220m) | `1c506b7474c011582460982e9a7ab23e71224007e79a6e85ebb8ee578060db17` (datasheet) |
 
 ## Footprint audit
 
@@ -86,3 +87,8 @@ on 2026-07-30 and 2026-08-05. Temporary render artifacts are not shipped.
 `FP_Murata_BLM15PD_1005Metric` transcribes the manufacturer recommendation
 for BLM15P parts at up to 1.5 A: 0.4 mm inner gap, nominal 1.3 mm outer span,
 and 0.5 x 0.5 mm lands. It is exercised by the exact BLM15PD121SN1D part.
+
+`FP_PANASONIC_OSCON_C6` transcribes Panasonic's C6 OS-CON recommendation:
+2.1 mm inner gap, 9.1 mm total copper span and 1.6 mm land width, producing
+two 3.5 x 1.6 mm pads centred at x = ±2.8 mm. Pad 2 carries the negative
+polarity mark.

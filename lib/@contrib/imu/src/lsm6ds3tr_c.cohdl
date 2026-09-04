@@ -2,7 +2,7 @@
 // DocID030071 Rev 3, Table 2. The package is LGA-14, 3.0 x 2.5mm,
 // with 0.5mm terminal pitch.
 
-#[doc("docs/lsm6ds3tr-c.pdf")]
+#[doc("docs/lsm6ds3tr-c.evidence.md")]
 pub device LSM6DS3TR_C {
     pins {
         required SDO_SA0: 1 [bidirectional]
@@ -25,7 +25,7 @@ pub device LSM6DS3TR_C {
 
 impl IC for LSM6DS3TR_C {}
 
-#[doc("docs/lsm6ds3tr-c.pdf")]
+#[doc("docs/lsm6ds3tr-c.evidence.md")]
 pub part IMU_LSM6DS3TR_C: LSM6DS3TR_C {
     primary { mfr: "STMicroelectronics", mpn: "LSM6DS3TR-C", footprint: LGA14P50_300X250X86N }
 }

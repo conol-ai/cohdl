@@ -5,7 +5,7 @@ pub trait ESD_Protector {
 }
 
 // TPD1E05U06: one unidirectional low-capacitance protected channel.
-#[doc("docs/tpd1e05u06.pdf")]
+#[doc("docs/tpd1e05u06.evidence.md")]
 pub device TPD1E05U06 {
     pins {
         required IO: 1 [bidirectional]
@@ -15,14 +15,14 @@ pub device TPD1E05U06 {
 
 impl ESD_Protector for TPD1E05U06 {}
 
-#[doc("docs/tpd1e05u06.pdf")]
+#[doc("docs/tpd1e05u06.evidence.md")]
 pub part ESD_TPD1E05U06DPYR: TPD1E05U06 {
     primary { mfr: "Texas Instruments", mpn: "TPD1E05U06DPYR", footprint: FP_X1SON_DPY_2 }
 }
 
 // TPD1E1B04: bidirectional two-terminal ESD suppressor. Both terminals are
 // equivalent signal I/O pins; neither one is a dedicated ground terminal.
-#[doc("docs/tpd1e1b04.pdf")]
+#[doc("docs/tpd1e1b04.evidence.md")]
 pub device TPD1E1B04 {
     pins {
         required IO1: 1 [bidirectional]
@@ -32,7 +32,7 @@ pub device TPD1E1B04 {
 
 impl ESD_Protector for TPD1E1B04 {}
 
-#[doc("docs/tpd1e1b04.pdf")]
+#[doc("docs/tpd1e1b04.evidence.md")]
 pub part ESD_TPD1E1B04DPYR: TPD1E1B04 {
     primary { mfr: "Texas Instruments", mpn: "TPD1E1B04DPYR", footprint: FP_X1SON_DPY_2 }
 }
@@ -56,7 +56,7 @@ pub footprint FP_X1SON_DPY_2 {
 }
 
 // ESD122 DMY: two protected channels with a common ground.
-#[doc("docs/esd122.pdf")]
+#[doc("docs/esd122.evidence.md")]
 pub device ESD122 {
     pins {
         required GND: 1 [power_in]
@@ -67,7 +67,7 @@ pub device ESD122 {
 
 impl ESD_Protector for ESD122 {}
 
-#[doc("docs/esd122.pdf")]
+#[doc("docs/esd122.evidence.md")]
 pub part ESD_ESD122DMYR: ESD122 {
     primary { mfr: "Texas Instruments", mpn: "ESD122DMYR", footprint: FP_X2SON_DMY_3 }
 }

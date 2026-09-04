@@ -1,7 +1,7 @@
 // LAILAN 1.27 mm single-row vertical through-hole header. The exact
 // C54950573 listing and Shenzhen LAILIAN drawing identify the four-pin
 // LAIL-PZ1.27-4P-L used by the source ESP_DOWNLOAD and SF_DOWNLOAD ports.
-#[doc("docs/lailan-pz127-4p.pdf")]
+#[doc("docs/lailan-pz127-4p.evidence.md")]
 pub device LAILAN_PZ127_4P {
     pins {
         required P1: 1 [passive]
@@ -12,7 +12,7 @@ pub device LAILAN_PZ127_4P {
 }
 impl Connector for LAILAN_PZ127_4P {}
 
-#[doc("docs/lailan-pz127-4p.pdf")]
+#[doc("docs/lailan-pz127-4p.evidence.md")]
 pub part CON_LAILAN_PZ1_27_4P_L: LAILAN_PZ127_4P {
     primary { mfr: "LAILAN", mpn: "LAIL-PZ1.27-4P-L", footprint: FP_LAILAN_PZ127_4P }
 }

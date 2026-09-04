@@ -3,7 +3,7 @@
 // Contact numbering/chirality is cross-checked against the exact listing's
 // distributor EDA model: contact 1 is left and contact 2 is right when the
 // manufacturer PCB-layout view is used; shell pads 4/3 are left/right.
-#[doc("docs/lailan-phc125-2p.pdf")]
+#[doc("docs/lailan-phc125-2p.evidence.md")]
 pub device LAILAN_PHC125_2P {
     pins {
         required P1: 1 [passive]
@@ -14,7 +14,7 @@ pub device LAILAN_PHC125_2P {
 }
 impl Connector for LAILAN_PHC125_2P {}
 
-#[doc("docs/lailan-phc125-2p.pdf")]
+#[doc("docs/lailan-phc125-2p.evidence.md")]
 pub part CON_LAILAN_PHC125_2P_01_PB_WT: LAILAN_PHC125_2P {
     primary { mfr: "LAILAN", mpn: "LAIL-PHC1.25-2P-01-PB-WT",
               footprint: FP_LAILAN_PHC125_2P_RIGHT_ANGLE }

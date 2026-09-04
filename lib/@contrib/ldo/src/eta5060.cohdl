@@ -4,7 +4,7 @@
 // p1/p7). Pin configuration p2; SOT89-5 package outline and recommended land
 // p10.
 
-#[doc("docs/eta5060.pdf")]
+#[doc("docs/eta5060.evidence.md")]
 pub device ETA5060 {
     pins {
         required IN: 4 [power_in] // input supply, 1.8-5.5V (p2)
@@ -20,7 +20,7 @@ pub device ETA5060 {
 
 impl IC for ETA5060 {}
 
-#[doc("docs/eta5060.pdf")]
+#[doc("docs/eta5060.evidence.md")]
 pub part LDO_ETA5060V330S8F: ETA5060 {
     primary { mfr: "ETA Solutions", mpn: "ETA5060V330S8F", footprint: FP_ETA_SOT89_5 }
 }

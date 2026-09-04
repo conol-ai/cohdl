@@ -6,7 +6,7 @@
 // p2; SOT23-5 package outline p7; order table lists the family part number
 // MT9700 with top mark D00HAW.
 
-#[doc("docs/mt9700.pdf")]
+#[doc("docs/mt9700.evidence.md")]
 pub device MT9700 {
     pins {
         required VOUT: 1 [power_out] // power-switch output (p2)
@@ -20,7 +20,7 @@ pub device MT9700 {
 
 impl IC for MT9700 {}
 
-#[doc("docs/mt9700.pdf")]
+#[doc("docs/mt9700.evidence.md")]
 pub part LOADSW_MT9700N: MT9700 {
     primary { mfr: "Xi'an Aerosemi Tech", mpn: "MT9700-N", footprint: FP_Aerosemi_SOT23_5 }
 }

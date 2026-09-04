@@ -2,9 +2,9 @@
 // below are fixed-output, enable-controlled SOT-23-5 parts. Manufacturer
 // pin assignment: VIN 1, VSS 2, CE 3, NC 4, VOUT 5 (ME6211 V20 p4).
 
-#[doc("docs/me6211c15.pdf")]
-#[doc("docs/me6211c18.pdf")]
-#[doc("docs/me6211c28.pdf")]
+#[doc("docs/me6211c15.evidence.md")]
+#[doc("docs/me6211c18.evidence.md")]
+#[doc("docs/me6211c28.evidence.md")]
 pub device ME6211C_M5G_N {
     pins {
         required VIN: 1 [power_in]
@@ -17,17 +17,17 @@ pub device ME6211C_M5G_N {
 
 impl IC for ME6211C_M5G_N {}
 
-#[doc("docs/me6211c15.pdf")]
+#[doc("docs/me6211c15.evidence.md")]
 pub part LDO_ME6211C15M5G_N: ME6211C_M5G_N {
     primary { mfr: "Microne", mpn: "ME6211C15M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
 }
 
-#[doc("docs/me6211c18.pdf")]
+#[doc("docs/me6211c18.evidence.md")]
 pub part LDO_ME6211C18M5G_N: ME6211C_M5G_N {
     primary { mfr: "Microne", mpn: "ME6211C18M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
 }
 
-#[doc("docs/me6211c28.pdf")]
+#[doc("docs/me6211c28.evidence.md")]
 pub part LDO_ME6211C28M5G_N: ME6211C_M5G_N {
     primary { mfr: "Microne", mpn: "ME6211C28M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
 }

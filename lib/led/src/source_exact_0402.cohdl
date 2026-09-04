@@ -1,6 +1,6 @@
 // Exact 0402 LEDs backed by manufacturer documents and orderable identities.
 
-#[doc("docs/xinglight-xl-1005ubc.pdf")]
+#[doc("docs/xinglight-xl-1005ubc.evidence.md")]
 pub part LED_XINGLIGHT_XL_1005UBC: ChipLED {
     primary { mfr: "XINGLIGHT", mpn: "XL-1005UBC", footprint: FP_XINGLIGHT_XL_1005UBC }
 }
@@ -24,7 +24,7 @@ pub footprint FP_XINGLIGHT_XL_1005UBC {
     silkscreen_ref { at: (0mm, -1.0mm) }
 }
 
-#[doc("docs/nationstar-ncd0402r1.pdf")]
+#[doc("docs/nationstar-ncd0402r1.evidence.md")]
 pub part LED_NATIONSTAR_NCD0402R1: ChipLED {
     primary { mfr: "NATIONSTAR", mpn: "NCD0402R1", footprint: FP_NATIONSTAR_NCD0402R1 }
 }

@@ -2,7 +2,7 @@
 // slew rate and quick output discharge. Datasheet SLVSD76C, revised July
 // 2017; current DBV package drawing 4214840/G, August 2024.
 
-#[doc("docs/tps22918.pdf")]
+#[doc("docs/tps22918.evidence.md")]
 pub device TPS22918 {
     pins {
         required VIN: 1 [power_in] // switch input; bypass to GND (p3)
@@ -16,7 +16,7 @@ pub device TPS22918 {
 
 impl IC for TPS22918 {}
 
-#[doc("docs/tps22918.pdf")]
+#[doc("docs/tps22918.evidence.md")]
 pub part LOADSW_TPS22918DBVR: TPS22918 {
     primary { mfr: "Texas Instruments", mpn: "TPS22918DBVR", footprint: FP_TI_DBV0006A }
 }

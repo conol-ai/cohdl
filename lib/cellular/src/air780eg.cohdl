@@ -3,7 +3,7 @@
 // manual V1.1.2, August 2024. The official recommended PCB land drawing on
 // p60 matches the Air780E 109-pad geometry already owned by this package.
 
-#[doc("docs/air780eg-hw.pdf")]
+#[doc("docs/air780eg-hw.evidence.md")]
 pub device AIR780EG {
     pins {
         required GND: 1, 10, 27, 34, 36, 37, 40, 41, 45, 46, 47, 48, 70, 71, 72, 73, 88, 89, 90, 91,
@@ -71,7 +71,7 @@ pub device AIR780EG {
 
 impl IC for AIR780EG {}
 
-#[doc("docs/air780eg-hw.pdf")]
+#[doc("docs/air780eg-hw.evidence.md")]
 pub part CELL_AIR780EG: AIR780EG {
     primary { mfr: "Luat (Hezhou)", mpn: "Air780EG", footprint: FP_Luat_AIR780E_LGA109_177x158mm }
 }

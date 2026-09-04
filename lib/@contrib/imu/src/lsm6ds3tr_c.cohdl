@@ -1,0 +1,71 @@
+// STMicroelectronics LSM6DS3TR-C six-axis IMU. The pin map is from
+// DocID030071 Rev 3, Table 2. The package is LGA-14, 3.0 x 2.5mm,
+// with 0.5mm terminal pitch.
+
+#[doc("docs/lsm6ds3tr-c.pdf")]
+pub device LSM6DS3TR_C {
+    pins {
+        required SDO_SA0: 1 [bidirectional]
+        optional SDX: 2 [bidirectional]
+        optional SCX: 3 [bidirectional]
+        optional INT1: 4 [output]
+        required VDDIO: 5 [power_in]
+        required GND: 6, 7 [power_in]
+        required VDD: 8 [power_in]
+        optional INT2: 9 [output]
+        optional NC: 10, 11 [passive]
+        required CS: 12 [input]
+        required SCL: 13 [input]
+        required SDA: 14 [bidirectional]
+    }
+    spec {
+        voltage_rating: 3.6V
+    }
+}
+
+impl IC for LSM6DS3TR_C {}
+
+#[doc("docs/lsm6ds3tr-c.pdf")]
+pub part IMU_LSM6DS3TR_C: LSM6DS3TR_C {
+    primary { mfr: "STMicroelectronics", mpn: "LSM6DS3TR-C", footprint: LGA14P50_300X250X86N }
+}
+
+// The ST data sheet gives 0.25 +/-0.05 x 0.475 +/-0.05mm package terminals,
+// but refers PCB-land guidance to the ST MEMS soldering recommendations. This
+// nominal-density land is independently derived and cross-checked against the
+// KiCad 9 ST-specific LGA-14 generator output cited in the package manifest.
+pub pad P_LSM6DS3TR_C_H {
+    shape: rect
+    size: (0.625mm, 0.35mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_LSM6DS3TR_C_V {
+    shape: rect
+    size: (0.35mm, 0.625mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint LGA14P50_300X250X86N {
+    pad 1: P_LSM6DS3TR_C_H at (-1.1625mm, -0.75mm)
+    pad 2: P_LSM6DS3TR_C_H at (-1.1625mm, -0.25mm)
+    pad 3: P_LSM6DS3TR_C_H at (-1.1625mm, 0.25mm)
+    pad 4: P_LSM6DS3TR_C_H at (-1.1625mm, 0.75mm)
+    pad 5: P_LSM6DS3TR_C_V at (-0.5mm, 0.9125mm)
+    pad 6: P_LSM6DS3TR_C_V at (0mm, 0.9125mm)
+    pad 7: P_LSM6DS3TR_C_V at (0.5mm, 0.9125mm)
+    pad 8: P_LSM6DS3TR_C_H at (1.1625mm, 0.75mm)
+    pad 9: P_LSM6DS3TR_C_H at (1.1625mm, 0.25mm)
+    pad 10: P_LSM6DS3TR_C_H at (1.1625mm, -0.25mm)
+    pad 11: P_LSM6DS3TR_C_H at (1.1625mm, -0.75mm)
+    pad 12: P_LSM6DS3TR_C_V at (0.5mm, -0.9125mm)
+    pad 13: P_LSM6DS3TR_C_V at (0mm, -0.9125mm)
+    pad 14: P_LSM6DS3TR_C_V at (-0.5mm, -0.9125mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.0mm) }
+    silkscreen_ref { at: (0mm, -2.0mm) }
+}

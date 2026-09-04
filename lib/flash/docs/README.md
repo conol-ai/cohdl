@@ -24,16 +24,17 @@ the footprint source.
 ## `w25q128jv.pdf`
 
 - Retrieved and audited: 2026-08-04.
-- Covers: `W25Q128JVSIQ`, package code S (8-pin SOIC 208-mil).
+- Covers: `W25Q128JVSIQ`, package code S (8-pin SOIC 208-mil), and
+  `W25Q128JVPIQ`, package code P (8-pad WSON 6 x 5 mm).
 - Document identity: Revision G, 2019-04-08.
 - Official source: <https://www.winbond.com>.
 - SHA-256:
   `5e2f6a77e0225a5c61b8f4b5b9680b57e0e1fe68cfc011465e30f665fe282057`
 
-The SOIC pin configuration and description were visually inspected on PDF
-page 6; they identify CLK as pin 6 and HOLD/RESET (IO3) as pin 7. The package
-drawing was inspected on PDF page 68. Winbond specifies the package dimensions
-but does not publish a recommended PCB land pattern.
+The SOIC and WSON pin configurations and descriptions were visually inspected
+on PDF pages 5-6; they identify CLK as pin 6 and HOLD/RESET (IO3) as pin 7.
+The package drawings were inspected on PDF pages 68-69. Winbond specifies the
+package dimensions but does not publish a recommended PCB land pattern.
 
 ## Secondary land-pattern reference
 
@@ -54,3 +55,9 @@ The W25Q128JV part uses the reusable
 `soic::SOIC8P127X790X216N` land pattern. Its dimensional derivation, secondary
 KiCad reference, and assembly-validation limitation are recorded beside the
 footprint in `lib/soic`.
+
+The W25Q128JVPIQ part uses a package-local WSON 6 x 5 mm footprint. Its
+perimeter copper and courtyard follow KiCad 9's generated generic
+`WSON-8-1EP_6x5mm_P1.27mm_EP3.4x4.3mm`; the center metal dimensions come
+directly from Winbond page 69. This secondary land-pattern choice still
+requires assembly validation.

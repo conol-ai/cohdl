@@ -1,0 +1,59 @@
+// Microne ME6211 high-PSRR 500mA LDO family. The exact M5G-N order codes
+// below are fixed-output, enable-controlled SOT-23-5 parts. Manufacturer
+// pin assignment: VIN 1, VSS 2, CE 3, NC 4, VOUT 5 (ME6211 V20 p4).
+
+#[doc("docs/me6211c15.pdf")]
+#[doc("docs/me6211c18.pdf")]
+#[doc("docs/me6211c28.pdf")]
+pub device ME6211C_M5G_N {
+    pins {
+        required VIN: 1 [power_in]
+        required VSS: 2 [power_in]
+        required CE: 3 [input]
+        optional NC: 4 [passive]
+        required VOUT: 5 [power_out]
+    }
+}
+
+impl IC for ME6211C_M5G_N {}
+
+#[doc("docs/me6211c15.pdf")]
+pub part LDO_ME6211C15M5G_N: ME6211C_M5G_N {
+    primary { mfr: "Microne", mpn: "ME6211C15M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
+}
+
+#[doc("docs/me6211c18.pdf")]
+pub part LDO_ME6211C18M5G_N: ME6211C_M5G_N {
+    primary { mfr: "Microne", mpn: "ME6211C18M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
+}
+
+#[doc("docs/me6211c28.pdf")]
+pub part LDO_ME6211C28M5G_N: ME6211C_M5G_N {
+    primary { mfr: "Microne", mpn: "ME6211C28M5G-N", footprint: FP_Microne_ME6211_SOT23_5 }
+}
+
+// Microne publishes the SOT-23-5 component outline (ME6211 V20 p19-20:
+// e=0.95mm, e1=1.90mm, lead width 0.25-0.50mm, body 2.82-3.05mm by
+// 1.50-1.75mm) but no recommended PCB land. This uses the same nominal
+// KiCad SOT-23-5 land audited for MT9700-N: 1.325 x 0.6mm pads on 0.95mm
+// row pitch and 2.275mm outer pad-centre span. It remains flagged for
+// assembly validation before manufacturing release.
+pub pad P_Microne_ME6211_SOT23_5_LEAD {
+    shape: rect
+    size: (1.325mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Microne_ME6211_SOT23_5 {
+    pad 1: P_Microne_ME6211_SOT23_5_LEAD at (-1.1375mm, -0.95mm)
+    pad 2: P_Microne_ME6211_SOT23_5_LEAD at (-1.1375mm, 0mm)
+    pad 3: P_Microne_ME6211_SOT23_5_LEAD at (-1.1375mm, 0.95mm)
+    pad 4: P_Microne_ME6211_SOT23_5_LEAD at (1.1375mm, 0.95mm)
+    pad 5: P_Microne_ME6211_SOT23_5_LEAD at (1.1375mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}

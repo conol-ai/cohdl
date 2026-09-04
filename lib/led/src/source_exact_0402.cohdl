@@ -1,0 +1,49 @@
+// Exact 0402 LEDs backed by manufacturer documents and orderable identities.
+
+#[doc("docs/xinglight-xl-1005ubc.pdf")]
+pub part LED_XINGLIGHT_XL_1005UBC: ChipLED {
+    primary { mfr: "XINGLIGHT", mpn: "XL-1005UBC", footprint: FP_XINGLIGHT_XL_1005UBC }
+}
+
+// XINGLIGHT p7: pad 1 is cathode, pad 2 is anode. The recommended pattern
+// has 0.30 x 0.55 mm lands, a 0.50 mm inner gap and 0.80 mm centre pitch.
+pub pad P_XINGLIGHT_XL_1005UBC {
+    shape: rect
+    size: (0.3mm, 0.55mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_XINGLIGHT_XL_1005UBC {
+    pad 1: P_XINGLIGHT_XL_1005UBC at (-0.4mm, 0mm)
+    pad 2: P_XINGLIGHT_XL_1005UBC at (0.4mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.7mm, 1.25mm) }
+    silkscreen_ref { at: (0mm, -1.0mm) }
+}
+
+#[doc("docs/nationstar-ncd0402r1.pdf")]
+pub part LED_NATIONSTAR_NCD0402R1: ChipLED {
+    primary { mfr: "NATIONSTAR", mpn: "NCD0402R1", footprint: FP_NATIONSTAR_NCD0402R1 }
+}
+
+// NATIONSTAR p2: 1.10 mm total span, 0.40 mm inner gap and 0.50 mm height,
+// hence two 0.35 x 0.50 mm lands on 0.75 mm centre pitch.
+pub pad P_NATIONSTAR_NCD0402R1 {
+    shape: rect
+    size: (0.35mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_NATIONSTAR_NCD0402R1 {
+    pad 1: P_NATIONSTAR_NCD0402R1 at (-0.375mm, 0mm)
+    pad 2: P_NATIONSTAR_NCD0402R1 at (0.375mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.7mm, 1.2mm) }
+    silkscreen_ref { at: (0mm, -1.0mm) }
+}

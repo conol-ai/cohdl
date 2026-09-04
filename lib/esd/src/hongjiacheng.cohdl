@@ -1,0 +1,42 @@
+// Zhuhai Hongjiacheng H5VL10B: bidirectional 5V low-capacitance ESD
+// protection diode, VRWM 5.0V, CJ 15pF typ (datasheet Rev 2.0). DFN1006-2L
+// (1.00 x 0.60 x 0.37mm). The accepted component identity is the exact preferred
+// P/N H5VL10B (ordering table p3); LCSC lists it as C7420372.
+
+#[doc("docs/h5vl10b.pdf")]
+pub device H5VL10B {
+    pins {
+        required IO1: 1 [bidirectional]
+        required IO2: 2 [bidirectional]
+    }
+}
+
+impl ESD_Protector for H5VL10B {}
+
+#[doc("docs/h5vl10b.pdf")]
+pub part ESD_H5VL10B: H5VL10B {
+    primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VL10B",
+              footprint: FP_Hongjiacheng_DFN1006_2L }
+}
+
+// Manufacturer-suggested pad layout, datasheet Rev 2.0 p3: each land is
+// J (0.50-0.60mm) long x M (0.55-0.65mm) wide with a K (0.25-0.35mm) gap,
+// so the nominal lands are 0.55 x 0.60mm centred +/-0.425mm apart. Pin 1
+// is the left land in the CoHDL top view, matching the datasheet function
+// diagram (1 PB 2).
+pub pad P_H5VL10B_DFN1006_LAND {
+    shape: rect
+    size: (0.55mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_Hongjiacheng_DFN1006_2L {
+    pad 1: P_H5VL10B_DFN1006_LAND at (-0.425mm, 0mm)
+    pad 2: P_H5VL10B_DFN1006_LAND at (0.425mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.7mm, 1.1mm) }
+    silkscreen_ref { at: (0mm, -0.85mm) }
+}

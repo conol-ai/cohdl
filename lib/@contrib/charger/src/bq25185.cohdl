@@ -1,0 +1,63 @@
+// Texas Instruments BQ25185: standalone single-cell linear charger with
+// power path, 1A charge capability, and resistor-programmed current/voltage.
+// Datasheet SLUSF65B, revised August 2026; DLH0010A WSON package.
+
+#[doc("docs/bq25185.pdf")]
+pub device BQ25185 {
+    pins {
+        required SYS: 1 [power_out] // regulated system output (p4)
+        required BAT: 2 [bidirectional] // battery terminal (p4)
+        optional STAT2: 3 [output] // open-drain status output (p4)
+        required CE: 4 [input] // active-low charge enable (p4)
+        required GND: 5 [power_in]
+        optional TS_MR: 6 [bidirectional] // thermistor/manual-reset input (p4)
+        required ILIM_VSET: 7 [bidirectional] // current-limit / VBAT regulation program (p4)
+        required ISET: 8 [bidirectional] // charge-current program (p4)
+        optional STAT1: 9 [output] // open-drain status output (p4)
+        required IN: 10 [power_in] // external DC input (p4)
+        required EP: 11 [power_in] // solder to ground plane (p23/package notes)
+    }
+}
+
+impl IC for BQ25185 {}
+
+#[doc("docs/bq25185.pdf")]
+pub part CHARGER_BQ25185DLHR: BQ25185 {
+    primary { mfr: "Texas Instruments", mpn: "BQ25185DLHR", footprint: FP_TI_DLH0010A }
+}
+
+// TI DLH0010A example board layout: 10 lands, each 0.5x0.2mm, at 0.4mm
+// pitch. The opposing land-row centres are 1.6mm apart. The exposed pad is
+// 0.9x1.5mm. Optional thermal vias shown by TI are not projected here.
+pub pad P_BQ25185_DLH_LEAD {
+    shape: rect
+    size: (0.5mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_BQ25185_DLH_EP {
+    shape: rect
+    size: (0.9mm, 1.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_TI_DLH0010A {
+    pad 1: P_BQ25185_DLH_LEAD at (-0.8mm, -0.8mm)
+    pad 2: P_BQ25185_DLH_LEAD at (-0.8mm, -0.4mm)
+    pad 3: P_BQ25185_DLH_LEAD at (-0.8mm, 0mm)
+    pad 4: P_BQ25185_DLH_LEAD at (-0.8mm, 0.4mm)
+    pad 5: P_BQ25185_DLH_LEAD at (-0.8mm, 0.8mm)
+    pad 6: P_BQ25185_DLH_LEAD at (0.8mm, 0.8mm)
+    pad 7: P_BQ25185_DLH_LEAD at (0.8mm, 0.4mm)
+    pad 8: P_BQ25185_DLH_LEAD at (0.8mm, 0mm)
+    pad 9: P_BQ25185_DLH_LEAD at (0.8mm, -0.4mm)
+    pad 10: P_BQ25185_DLH_LEAD at (0.8mm, -0.8mm)
+    pad 11: P_BQ25185_DLH_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.7mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
+}

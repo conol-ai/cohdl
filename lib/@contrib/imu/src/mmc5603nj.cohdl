@@ -1,0 +1,42 @@
+// MEMSIC MMC5603NJ: three-axis AMR magnetometer with I2C/I3C interface.
+// Datasheet Rev. B, formal release January 17, 2022. Four-ball WLP,
+// 0.82x0.82mm body and 0.40mm pitch.
+
+#[doc("docs/mmc5603nj.pdf")]
+pub device MMC5603NJ {
+    pins {
+        required VSA: A1 [power_in] // magnetic-sensor ground (p4)
+        required SCL: A2 [input] // serial clock (p4)
+        required VDD: B1 [power_in] // 1.62-3.6V supply (p2, p4)
+        required SDA: B2 [bidirectional] // serial data (p4)
+    }
+}
+
+impl IC for MMC5603NJ {}
+
+#[doc("docs/mmc5603nj.pdf")]
+pub part MAG_MMC5603NJ: MMC5603NJ {
+    primary { mfr: "MEMSIC", mpn: "MMC5603NJ", footprint: WLP4C40P2X2_82X82X40N }
+}
+
+// Datasheet p17 recommends four 0.23mm circular PCB lands at 0.40mm pitch.
+// The package top view places A1 at upper left; CoHDL uses the same top-view
+// orientation and +Y downward board coordinates.
+pub pad P_MMC5603NJ_WLP_BALL {
+    shape: circle
+    size: (0.23mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint WLP4C40P2X2_82X82X40N {
+    pad A1: P_MMC5603NJ_WLP_BALL at (-0.2mm, -0.2mm)
+    pad A2: P_MMC5603NJ_WLP_BALL at (0.2mm, -0.2mm)
+    pad B1: P_MMC5603NJ_WLP_BALL at (-0.2mm, 0.2mm)
+    pad B2: P_MMC5603NJ_WLP_BALL at (0.2mm, 0.2mm)
+    silkscreen {
+        pin_1_marker near pad A1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.4mm, 1.4mm) }
+    silkscreen_ref { at: (0mm, -1.0mm) }
+}

@@ -8,6 +8,10 @@ Retrieved and revalidated on 2026-08-05.
 | `samtec-ssw-1xx-22-surface-mount-drawing.pdf` | Samtec `SSW-103-22-SM-D-VS` assembly, numbering, and package envelope | Rev BC, 2020-07-24 | [Samtec](https://suddendocs.samtec.com/prints/ssw-1xx-22-xxx-x-vs-xx-x-x-xx-mkt.pdf) | `b058e14102bd07ea190bdc2904126003354b68f092e492c4fe77b4545dc83061` |
 | `samtec-ssw-double-row-smt-footprint.pdf` | Samtec SSW-DVS double-row SMT land pattern | Rev A, 2000-06-21 | [Samtec](https://suddendocs.samtec.com/prints/ssw-dvs.pdf) | `a8e837ed7fac38b784c95c2bcada75ed5d751a339400c7c85f204d258769d58c` |
 | `molex-43045-0612-sales-drawing.pdf` | Molex Micro-Fit 3.0 vertical THT headers `43045-0212`, `43045-0412`, and `43045-0612`; the drawing's 2–24-circuit table covers all three exact MPNs | SD-43045-005, Rev G1, 2021-01-11 | [Molex](https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/430/43045/430450612_sd.pdf) | `549ffa2364c390fcb90f9df06ff1a8a4aac621818f54e6d2f86de5a91d6febba` |
+| `lailan-phc125-2p.pdf` | LAILAN `LAIL-PHC1.25-2P-01-PB-WT` right-angle 2-contact header and recommended PCB layout | Rev A, retrieved 2026-09-04 | [LCSC C54905971 manufacturer drawing](https://datasheet.lcsc.com/datasheet/pdf/ed062a34b8a33b6bfd770152d865d754.pdf?productCode=C54905971) | `db858cd19d16297a52f0ecd62abc0df81e90cfc4e206161172b3881a3a9aac7a` |
+| `xfcn-pz127v-11-04-0720.pdf` | XFCN `PZ127V-11-04-0720` four-pin 1.27 mm vertical header | Rev A1, 2024-06-17 | [LCSC C541879 manufacturer drawing](https://datasheet.lcsc.com/datasheet/pdf/d235e62233ad54b54d9e8641381a1659.pdf) | `febe17bae503c6abf777a69386350fd4b5bb964b093a446397b8574a03e4e647` |
+| `lailan-fpc-cx01-31p0.3-gw.pdf` | LAILAN `LAIL-FPC-CX01-31P0.3-GW` 31-contact staggered FPC connector | Rev A, retrieved 2026-09-04 | [LCSC C55172970 manufacturer drawing](https://datasheet.lcsc.com/datasheet/pdf/8d1d72e9ef181a8e41c7604fe1e40f44.pdf) | `a1d77fa3ac22bbbc6e2c833b37e51edd05d5c436ee207b1e2411d449427cfb5b` |
+| `lailan-pz127-4p.pdf` | LAILAN `LAIL-PZ1.27-4P-L` four-pin 1.27 mm vertical header | Rev A, 2026-05 | [LCSC C54950573 manufacturer drawing](https://datasheet.lcsc.com/datasheet/pdf/837a22e906052b604df03c5cafb07fe6.pdf) | `156253cf1a3b99a7b16bebd6bb2c276905f54cf0a8e6e02e819f5f9a4890b908` |
 | External specification | Micro-Fit 3.0 dual-row electrical, environmental, and current-derating requirements | PS-43045 Rev R, 2025-11-14 | [Molex PDF](https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/productspecificationpdf/430/43045/PS-43045-001.pdf) | Not vendored; audited facts are summarized below |
 
 ## CAD and footprint audit
@@ -38,6 +42,23 @@ Retrieved and revalidated on 2026-08-05.
   electrical PTHs and both NPTH locator holes are 1.02 mm; electrical contacts
   are on a 3.00 mm row/column pitch. The rectangular courtyards enclose the
   maximum drawing envelope plus 0.50 mm nominal placement clearance.
+- `CON_LAILAN_PHC125_2P_01_PB_WT` uses the manufacturer PCB layout directly:
+  0.70 x 1.70 mm signal lands on 1.25 mm pitch and 1.80 x 2.50 mm shell lands
+  on 6.06 mm centers with a 0.40 mm vertical gap. The exact C54905971 EDA
+  model establishes pad chirality omitted from the dimension drawing: signal
+  pads 1/2 are left/right and shell pads 4/3 are left/right in that view.
+- `CON_XFCN_PZ127V_11_04_0720` uses the manufacturer's 0.65 mm PCB holes on
+  1.27 mm pitch. The exact C541879 EDA model confirms left-to-right pin
+  numbering and 1.00 mm copper pads.
+- `CON_LAILAN_FPC_CX01_31P0_3_GW` transcribes the manufacturer's staggered
+  layout: 0.30 mm pitch; 0.30 x 0.80 mm odd lands; 0.30 x 0.65 mm even lands;
+  2.875 mm row-centre separation; and 0.30 x 1.15 mm shell lands on 10.30 mm
+  centres. The C55172970 EDA model confirms odd/even numbering and shell pads
+  32/33.
+- `CON_LAILAN_PZ1_27_4P_L` uses the manufacturer PCB layout directly: four
+  0.70 mm plated holes at 1.27 mm pitch. The exact C54950573 EDA model confirms
+  1.00 mm copper pads, left-to-right numbering 1..4 and the rectangular pin-1
+  pad; it is distinct from the source's XFCN PZ127V connector.
 
 ## Molex Micro-Fit 3.0 mating BOM and ratings
 

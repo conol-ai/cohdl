@@ -1,0 +1,9 @@
+[package]
+name = "switches"
+version = "0.1.0"
+license = "MIT"
+description = "Evidence-backed tactile and electromechanical switches."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

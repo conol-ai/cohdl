@@ -2,7 +2,7 @@ pub trait Switch {
     designator_prefix: "SW"
 }
 
-#[doc("docs/xunpu-ts-1088r-02026.pdf")]
+#[doc("docs/xunpu-ts-1088r-02026.evidence.md")]
 pub device TactileSwitchSPST {
     pins {
         required P1: 1 [passive]
@@ -11,7 +11,7 @@ pub device TactileSwitchSPST {
 }
 impl Switch for TactileSwitchSPST {}
 
-#[doc("docs/xunpu-ts-1088r-02026.pdf")]
+#[doc("docs/xunpu-ts-1088r-02026.evidence.md")]
 pub part SW_XUNPU_TS_1088R_02026: TactileSwitchSPST {
     primary { mfr: "XUNPU", mpn: "TS-1088R-02026", footprint: FP_XUNPU_TS_1088R }
 }

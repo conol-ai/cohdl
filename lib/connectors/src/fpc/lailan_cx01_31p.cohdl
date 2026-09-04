@@ -1,6 +1,6 @@
 // LAILAN 31-contact, 0.30 mm pitch, bottom-contact flip-lock FPC connector.
 // The manufacturer recommended PCB layout uses staggered odd/even rows.
-#[doc("docs/lailan-fpc-cx01-31p0.3-gw.pdf")]
+#[doc("docs/lailan-fpc-cx01-31p0.3-gw.evidence.md")]
 pub device LAILAN_FPC_CX01_31P {
     pins {
         optional P1: 1 [passive]
@@ -40,7 +40,7 @@ pub device LAILAN_FPC_CX01_31P {
 }
 impl Connector for LAILAN_FPC_CX01_31P {}
 
-#[doc("docs/lailan-fpc-cx01-31p0.3-gw.pdf")]
+#[doc("docs/lailan-fpc-cx01-31p0.3-gw.evidence.md")]
 pub part CON_LAILAN_FPC_CX01_31P0_3_GW: LAILAN_FPC_CX01_31P {
     primary { mfr: "LAILAN", mpn: "LAIL-FPC-CX01-31P0.3-GW",
               footprint: FP_LAILAN_FPC_CX01_31P0_3_GW }

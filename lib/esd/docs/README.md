@@ -1,14 +1,18 @@
 # ESD source manifest
 
-Retrieved and revalidated on 2026-07-30; `h5vl10b.pdf` added 2026-09-04.
+Retrieved and revalidated on 2026-07-30; `h5vl10b.evidence.md` added 2026-09-04.
+
+Entries ending in `.evidence.md` are repository-authored evidence records.
+Their SHA-256 values identify upstream manufacturer PDFs that are not
+redistributed here.
 
 | Local file | Covered exact MPN | Document version/date | Official source | SHA-256 |
 |---|---|---|---|---|
 | `st-usblc6-2-datasheet.pdf` | STMicroelectronics `USBLC6-2SC6` | `DS4260` Rev 7, 2021-12-24 | [STMicroelectronics](https://www.st.com/resource/en/datasheet/usblc6-2.pdf) | `bc30154f310cd631043214ed52571daefe04270587ec55072d49a23bd18b9068` |
-| `tpd1e05u06.pdf` | Texas Instruments `TPD1E05U06DPYR` | `SLVSBO7O`, revised 2024-08 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/tpd1e05u06.pdf) | `c167cf1e72a5473a4d2c59b6a3c0251498701da05b7785919b9ceaae3b3e02c6` |
-| `tpd1e1b04.pdf` | Texas Instruments `TPD1E1B04DPYR` | `SLVSDL0A`, revised 2016-07 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/tpd1e1b04.pdf) | `f32ea1cd8859cb177c75b6eed470012971a1abd6fbc93907fd12820012ec5d29` |
-| `esd122.pdf` | Texas Instruments `ESD122DMYR` | `SLVSDP5A`, revised 2018-08 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/esd122.pdf) | `16ba54c64476aa5abbadc84ce72e60cee6baf710c958be0aad90cf363393f3ab` |
-| `h5vl10b.pdf` | Zhuhai Hongjiacheng `H5VL10B` | `Rev 2.0`, 3 pages | Zhuhai Hongjiacheng Technology Co., Ltd (retrieved via LCSC C7420372) | `0d0aaef1b2af0c641cfc5b2135b7242b346aa0a792611d7dcd0fbefd8bf58048` |
+| `tpd1e05u06.evidence.md` | Texas Instruments `TPD1E05U06DPYR` | `SLVSBO7O`, revised 2024-08 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/tpd1e05u06.pdf) | `c167cf1e72a5473a4d2c59b6a3c0251498701da05b7785919b9ceaae3b3e02c6` |
+| `tpd1e1b04.evidence.md` | Texas Instruments `TPD1E1B04DPYR` | `SLVSDL0A`, revised 2016-07 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/tpd1e1b04.pdf) | `f32ea1cd8859cb177c75b6eed470012971a1abd6fbc93907fd12820012ec5d29` |
+| `esd122.evidence.md` | Texas Instruments `ESD122DMYR` | `SLVSDP5A`, revised 2018-08 | [Texas Instruments](https://www.ti.com/lit/ds/symlink/esd122.pdf) | `16ba54c64476aa5abbadc84ce72e60cee6baf710c958be0aad90cf363393f3ab` |
+| `h5vl10b.evidence.md` | Zhuhai Hongjiacheng `H5VL10B` | `Rev 2.0`, 3 pages | Zhuhai Hongjiacheng Technology Co., Ltd (retrieved via LCSC C7420372) | `0d0aaef1b2af0c641cfc5b2135b7242b346aa0a792611d7dcd0fbefd8bf58048` |
 
 ## Footprint and pin audit
 

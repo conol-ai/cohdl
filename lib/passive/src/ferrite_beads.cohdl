@@ -2,7 +2,7 @@ pub trait FerriteBead {
     designator_prefix: "L"
 }
 
-#[doc("docs/murata_blm15pd121sn1d.pdf")]
+#[doc("docs/murata_blm15pd121sn1d.evidence.md")]
 pub device BLM15PD121SN1D {
     pins {
         required A: 1 [passive]
@@ -19,7 +19,7 @@ impl TwoTerminal for BLM15PD121SN1D {}
 
 impl FerriteBead for BLM15PD121SN1D {}
 
-#[doc("docs/murata_blm15pd121sn1d.pdf")]
+#[doc("docs/murata_blm15pd121sn1d.evidence.md")]
 pub part FERRITE_BLM15PD121SN1D: BLM15PD121SN1D {
     primary { mfr: "Murata", mpn: "BLM15PD121SN1D", footprint: FP_Murata_BLM15PD_1005Metric }
 }

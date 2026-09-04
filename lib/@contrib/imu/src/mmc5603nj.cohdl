@@ -2,7 +2,7 @@
 // Datasheet Rev. B, formal release January 17, 2022. Four-ball WLP,
 // 0.82x0.82mm body and 0.40mm pitch.
 
-#[doc("docs/mmc5603nj.pdf")]
+#[doc("docs/mmc5603nj.evidence.md")]
 pub device MMC5603NJ {
     pins {
         required VSA: A1 [power_in] // magnetic-sensor ground (p4)
@@ -14,7 +14,7 @@ pub device MMC5603NJ {
 
 impl IC for MMC5603NJ {}
 
-#[doc("docs/mmc5603nj.pdf")]
+#[doc("docs/mmc5603nj.evidence.md")]
 pub part MAG_MMC5603NJ: MMC5603NJ {
     primary { mfr: "MEMSIC", mpn: "MMC5603NJ", footprint: WLP4C40P2X2_82X82X40N }
 }

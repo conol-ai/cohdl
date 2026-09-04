@@ -2,7 +2,7 @@
 // power path, 1A charge capability, and resistor-programmed current/voltage.
 // Datasheet SLUSF65B, revised August 2026; DLH0010A WSON package.
 
-#[doc("docs/bq25185.pdf")]
+#[doc("docs/bq25185.evidence.md")]
 pub device BQ25185 {
     pins {
         required SYS: 1 [power_out] // regulated system output (p4)
@@ -21,7 +21,7 @@ pub device BQ25185 {
 
 impl IC for BQ25185 {}
 
-#[doc("docs/bq25185.pdf")]
+#[doc("docs/bq25185.evidence.md")]
 pub part CHARGER_BQ25185DLHR: BQ25185 {
     primary { mfr: "Texas Instruments", mpn: "BQ25185DLHR", footprint: FP_TI_DLH0010A }
 }

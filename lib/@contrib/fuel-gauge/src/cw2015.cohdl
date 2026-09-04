@@ -3,7 +3,7 @@
 // CW2015CHBD-DS V1.3). TDFN8 2x3mm package, 0.5mm pitch; pin configuration
 // p3, package outline dimensions p14.
 
-#[doc("docs/cw2015chbd.pdf")]
+#[doc("docs/cw2015chbd.evidence.md")]
 pub device CW2015 {
     pins {
         required CTG: 1 [power_in] // connect to ground (p3)
@@ -22,7 +22,7 @@ pub device CW2015 {
 
 impl IC for CW2015 {}
 
-#[doc("docs/cw2015chbd.pdf")]
+#[doc("docs/cw2015chbd.evidence.md")]
 pub part FGAUGE_CW2015CHBD: CW2015 {
     primary { mfr: "CellWise Microelectronics", mpn: "CW2015CHBD",
               footprint: FP_CellWise_TDFN8_2X3 }

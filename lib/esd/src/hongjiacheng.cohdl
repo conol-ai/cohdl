@@ -3,7 +3,7 @@
 // (1.00 x 0.60 x 0.37mm). The accepted component identity is the exact preferred
 // P/N H5VL10B (ordering table p3); LCSC lists it as C7420372.
 
-#[doc("docs/h5vl10b.pdf")]
+#[doc("docs/h5vl10b.evidence.md")]
 pub device H5VL10B {
     pins {
         required IO1: 1 [bidirectional]
@@ -13,7 +13,7 @@ pub device H5VL10B {
 
 impl ESD_Protector for H5VL10B {}
 
-#[doc("docs/h5vl10b.pdf")]
+#[doc("docs/h5vl10b.evidence.md")]
 pub part ESD_H5VL10B: H5VL10B {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VL10B",
               footprint: FP_Hongjiacheng_DFN1006_2L }

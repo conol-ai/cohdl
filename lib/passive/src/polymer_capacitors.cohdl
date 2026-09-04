@@ -1,0 +1,49 @@
+// Panasonic OS-CON SVPC conductive-polymer capacitor family.
+// Pad 1 is positive; pad 2 is the marked negative terminal.
+
+#[doc("docs/panasonic_6svpc220m.evidence.md")]
+pub device ConductivePolymerCapacitor<C: Capacitance, V: Voltage, T: Tolerance = 20%> {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+    spec {
+        capacitance: C
+        voltage_rating: V
+        tolerance: T
+    }
+}
+
+impl TwoTerminal for ConductivePolymerCapacitor {}
+impl Capacitor for ConductivePolymerCapacitor {}
+impl Polarized for ConductivePolymerCapacitor {
+    pins {
+        Anode: A
+        Cathode: B
+    }
+}
+
+#[doc("docs/panasonic_6svpc220m.evidence.md")]
+pub part C_220u_6V3_PANASONIC_6SVPC220M: ConductivePolymerCapacitor<220uF, 6.3V, 20%> {
+    primary { mfr: "Panasonic", mpn: "6SVPC220M", footprint: FP_PANASONIC_OSCON_C6 }
+}
+
+// Panasonic OS-CON C6 recommended land: a=2.1 mm inner gap,
+// b=9.1 mm total copper span and c=1.6 mm land width. Therefore each
+// land is 3.5 x 1.6 mm and its centre lies at x = +/-2.8 mm.
+pub pad P_PANASONIC_OSCON_C6 {
+    shape: rect
+    size: (3.5mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_PANASONIC_OSCON_C6 {
+    pad 1: P_PANASONIC_OSCON_C6 at (-2.8mm, 0mm)
+    pad 2: P_PANASONIC_OSCON_C6 at (2.8mm, 0mm)
+    silkscreen {
+        polarity_marker cathode_pin 2 shape band
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.6mm, 7.1mm) }
+    silkscreen_ref { at: (0mm, -4.05mm) }
+}

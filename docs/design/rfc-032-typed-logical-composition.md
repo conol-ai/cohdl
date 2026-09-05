@@ -16,7 +16,10 @@ artifacts. However, using a device-shaped instance as a page boundary risks
 adding a special kind of fake component to solve what may actually be a
 hierarchy and composition problem.
 
-The design question is therefore broader and more fundamental:
+The design question is therefore broader and more fundamental. `module` is
+already CoHDL's source-organization and namespace mechanism; it can organize
+the declarations involved, but it does not itself create circuit structure or
+connect pins. The remaining semantic choice is:
 
 > Should reusable logical composition use the existing expansion-oriented
 > `fn` concept, or does CoHDL need a first-class typed `subdesign` concept that
@@ -47,7 +50,28 @@ The design question is therefore broader and more fundamental:
 
 ## Design
 
-This Draft evaluates three designs. No syntax in this section is Accepted.
+This Draft uses a layered model and evaluates three composition designs. No
+syntax in this section is Accepted.
+
+### Layer 0: `module` organizes source, not circuit hierarchy
+
+```cohdl
+// power.cohdl
+pub fn power_section(vbat: Pin, gnd: Pin) {
+    // reusable circuit fragment
+}
+```
+
+```cohdl
+use power::power_section
+```
+
+RFC-016 already gives `module` one precise responsibility: file-tree
+namespaces, imports, qualification, and visibility. A module may contain a
+`fn` or a future `subdesign`, but importing a module must not instantiate
+components, create nets, or affect manufacturing output. Reusing `module` as
+the electrical composition boundary would conflate where code is declared
+with what circuit structure exists in a design.
 
 ### Option A: existing `fn` composition
 
@@ -89,9 +113,10 @@ subdesign PowerSection {
 }
 
 design Board {
-    inst power: PowerSection
-    net VBAT: input.VBAT, power.VBAT
-    net GND: input.GND, power.GND
+    subdesign power: PowerSection {
+        VBAT: input.VBAT,
+        GND: input.GND,
+    }
 }
 ```
 
@@ -101,10 +126,15 @@ would not itself be a part, receive a designator, or appear in a BOM. CAD tools
 could choose to render a subdesign on one page, several pages, or inline; that
 presentation decision would remain outside the language.
 
+The use site deliberately says `subdesign power`, not `inst power`. `inst`
+currently denotes a concrete device occurrence whose manufacturing identity is
+settled through part binding and designators. Reusing it would preserve the
+same category ambiguity that makes `#[virtual] inst` questionable.
+
 This option is conceptually cleaner if retained hierarchy is a real
-requirement, but it has permanent cost: a new declaration kind, port rules,
-name-resolution rules, instantiation semantics, diagnostics, Explorer shape,
-and interactions with `fn`, generics, modules, placement, and designators.
+requirement, but it has permanent cost: a new declaration and composition
+statement, port rules, name-resolution rules, diagnostics, Explorer shape, and
+interactions with `fn`, generics, modules, placement, and designators.
 
 ### Option C: `#[virtual] inst` prototype
 
@@ -123,6 +153,17 @@ the language model.
 The prototype remains evidence for implementation feasibility, not an
 Accepted design.
 
+### Recommended decision rule
+
+Use `module + fn` unless a concrete workflow requires the composition boundary
+to survive expansion as a named, typed, independently addressable object. Only
+that retained-hierarchy requirement justifies `subdesign`.
+
+Presentation grouping remains tooling metadata. Explorer may map one
+`subdesign` to one page, several pages, or no dedicated page; it may also group
+ordinary `fn` expansions visually. None of those view choices change language
+semantics.
+
 ## Type-system-first test
 
 This is not a residual-DRC proposal. Any accepted design must be structural and
@@ -140,6 +181,7 @@ No option may weaken E801 for ordinary real instances.
 
 | Option | Permanent conceptual impact |
 |---|---|
+| `module` alone | None, but insufficient: it organizes declarations and does not compose a circuit. |
 | `fn` | None; reuse the existing circuit-fragment expansion concept. |
 | `subdesign` | High; add a retained hierarchical composition concept and explicit port boundary. |
 | `#[virtual] inst` | Medium; add a non-manufacturing state to `Instance`. |
@@ -149,6 +191,7 @@ The canonical vocabulary must remain clear:
 - `Device` describes an electrical interface.
 - `Part` supplies manufacturable evidence for a device.
 - `Instance` is a concrete occurrence in a design.
+- `module` organizes declarations, imports, and visibility.
 - `fn` expands a reusable circuit fragment.
 - A possible `subdesign` would group checked circuit structure behind typed
   ports; it would not mean schematic page.
@@ -203,6 +246,10 @@ hierarchy, never based on how a schematic happens to be split into pages.
 
 - Global labels or net aliases: rejected as the main solution because they do
   not create a typed composition boundary.
+- Reuse `module` as the electrical hierarchy: rejected because RFC-016 defines
+  modules as source namespaces. Importing code must not instantiate a circuit,
+  and one module may legitimately contain several reusable functions,
+  subdesigns, devices, parts, or footprints.
 - A `page` declaration: rejected because it encodes presentation rather than
   circuit semantics.
 - Fake parts or footprints: rejected because they make manufacturing output
@@ -234,10 +281,11 @@ but only after resolving the conceptual objection recorded here.
 
 ## Teaching cost
 
-`fn` has the lowest new teaching cost. `subdesign` has higher initial cost but
-may produce a cleaner long-term distinction between reusable expansion and
-retained hierarchy. `#[virtual]` is small in syntax but introduces a special
-instance category and a prohibition list.
+`module + fn` has the lowest new teaching cost and preserves both concepts'
+existing meanings. `subdesign` has higher initial cost but may produce a
+cleaner long-term distinction between reusable expansion and retained
+hierarchy. `#[virtual]` is small in syntax but introduces a special instance
+category and a prohibition list.
 
 The RFC cannot compare teaching cost honestly until the retained-hierarchy
 requirement is confirmed with concrete workflows beyond page presentation.
@@ -245,6 +293,7 @@ requirement is confirmed with concrete workflows beyond page presentation.
 ## Failure modes
 
 - A CAD page concept becomes a permanent language concept.
+- A source module import accidentally gains circuit-instantiation semantics.
 - A logical container is mistaken for a fitted component.
 - A real component is hidden from the BOM or netlist.
 - `fn` is selected despite tools needing a retained addressable boundary.
@@ -264,6 +313,8 @@ and port connections. No provisional syntax should be promised stable.
 
 **Draft — revised 2026-09-06.** No option is Accepted and no decision record is
 assigned. Review must first determine whether retained typed hierarchy is a
-real semantic requirement. If it is not, use existing `fn`; if it is, specify
-`subdesign` completely before implementation. The `#[virtual]` implementation
-in PR #33 remains a prototype and does not update the Language Specification.
+real semantic requirement. If it is not, use `module` for source organization
+and existing `fn` for circuit composition. If it is, specify `subdesign`
+completely before implementation, while keeping `module` as namespace only.
+The `#[virtual]` implementation in PR #33 remains a prototype and does not
+update the Language Specification.

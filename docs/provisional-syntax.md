@@ -179,8 +179,10 @@ on a part-bound instance and rejects combining it with `#[designator]`,
 
 This syntax is an implementation prototype under RFC-032 Draft review. It is
 not part of the Accepted Language Specification. The review is deciding whether
-the requirement should instead use existing `fn` composition or a first-class
-typed `subdesign`; no schematic `page` concept is proposed.
+the requirement should instead use `module` for source organization plus
+existing `fn` composition, or a first-class typed `subdesign` when retained
+hierarchy is required. Neither `module` nor schematic `page` gains electrical
+semantics from this prototype.
 
 ## 7. Residual-DRC rule concretions (RFC-004's four rules)
 

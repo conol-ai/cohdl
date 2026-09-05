@@ -158,6 +158,17 @@ This section documents guarantees, not new syntax — designator assignment is a
 - Two new instances needing the same prefix (e.g. both defaulting to U) are guaranteed different numbers, deterministically, regardless of the order they were declared or collected in — this closes the specific collision class v1 exhibited (two devices both assigned U3).
 - A device's designator prefix comes from designator_prefix: "X" declared on a trait it implements (the lexicographically-smallest such trait name, if it implements several with a prefix); default "U" when none declares one.
 
+Board-only hierarchical connectivity helpers may use the zero-argument
+`#[virtual]` instance attribute. A virtual instance participates in normal
+resolution, pin checking, net merging and residual DRC, then is removed before
+designator allocation, part binding and manufacturing emission. It therefore
+cannot create a footprint, netlist component or BOM row. This is restricted to
+non-fitted logical structure; a real component still requires an evidence-backed
+part binding and cannot use `#[virtual]` to evade E801.
+The checker therefore rejects virtual part instances and virtual instances
+that also declare a designator, placement hint, or manufacturing-physics
+attribute.
+
 # Residual DRC
 
 *Accepted via RFC-004, see RFC-004: DRC/type-system reclassification pass + DR-014.*

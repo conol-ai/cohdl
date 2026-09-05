@@ -1004,6 +1004,72 @@ design B {
     assert!(rendered.contains("no part binding"), "{}", rendered);
 }
 
+#[test]
+fn virtual_instance_merges_connectivity_but_is_not_manufactured() {
+    let (mut checked, rendered) = check_with_std(
+        r#"
+pub device Boundary { pins { A: 1 [passive], B: 2 [passive] } }
+pub device Resistor { pins { A: 1 [passive], B: 2 [passive] } }
+pub pad P {
+    shape: rect
+    size: (1mm, 1mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint FP {
+    pad 1: P at (0mm, 0mm)
+    pad 2: P at (2mm, 0mm)
+}
+pub part R: Resistor { primary { mfr: "Example", mpn: "R", footprint: FP } }
+design B {
+    #[virtual]
+    inst boundary: Boundary
+    #[designator("R1")]
+    inst r1: R
+    net X: boundary.A, boundary.B, r1.A
+    nc: r1.B
+}
+"#,
+    );
+    assert!(!rendered.contains("error"), "{}", rendered);
+    let artifacts = build_artifacts(&mut checked, &LockState::default())
+        .expect("virtual helper must not require a part binding");
+    assert!(artifacts.bom.contains("R1"));
+    assert!(!artifacts.bom.contains("boundary"));
+    assert!(!artifacts.netlist.contains("boundary"));
+}
+
+#[test]
+fn virtual_instance_cannot_hide_a_real_part_or_designator() {
+    let (_, rendered) = check_with_std(
+        r#"
+pub device Resistor { pins { A: 1 [passive], B: 2 [passive] } }
+pub pad P { shape: rect, size: (1mm, 1mm), layer: top_copper, plating: smd }
+pub footprint FP {
+    pad 1: P at (0mm, 0mm)
+    pad 2: P at (2mm, 0mm)
+}
+pub part R: Resistor { primary { mfr: "Example", mpn: "R", footprint: FP } }
+design B {
+    #[virtual]
+    #[designator("R1")]
+    inst hidden_real_part: R
+    nc: hidden_real_part.A, hidden_real_part.B
+}
+"#,
+    );
+    assert!(
+        rendered.contains("cannot annotate a part-bound instance"),
+        "{}",
+        rendered
+    );
+    assert!(
+        rendered.contains("cannot be combined with `#[designator]`"),
+        "{}",
+        rendered
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Compliance-audit regressions (confirmed deviations from the RFCs, fixed):
 // see docs/compliance-report.md.

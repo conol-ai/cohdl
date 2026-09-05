@@ -3051,12 +3051,12 @@ impl<'a> Parser<'a> {
                 // (adversarial finding; expansion-time validation only runs
                 // for reachable bodies).
                 for a in &attrs {
-                    if a.name.name != "designator" {
+                    if a.name.name != "designator" && a.name.name != "virtual" {
                         self.diags.push(Diagnostic::error(
                             "E010",
                             a.span,
                             format!(
-                                "unrecognized attribute `{}` (an `inst` takes `#[designator(\"…\")]`, `#[intent(\"…\")]`, or `#[placement_hint(\"…\")]`)",
+                                "unrecognized attribute `{}` (an `inst` takes `#[designator(\"…\")]`, `#[virtual]`, `#[intent(\"…\")]`, or `#[placement_hint(\"…\")]`)",
                                 a.name.name
                             ),
                         ));
@@ -3064,7 +3064,7 @@ impl<'a> Parser<'a> {
                 }
                 let attrs: Vec<Attr> = attrs
                     .into_iter()
-                    .filter(|a| a.name.name == "designator")
+                    .filter(|a| a.name.name == "designator" || a.name.name == "virtual")
                     .collect();
                 let start = self.span();
                 self.bump();

@@ -881,8 +881,10 @@ impl<'w, 'd> Expander<'w, 'd> {
             }
         }
 
-        // #[designator("U7")] override (RFC-005).
+        // #[designator("U7")] override (RFC-005) and board-only #[virtual].
         let mut designator_override = None;
+        let mut virtual_only = false;
+        let mut virtual_span = None;
         for attr in &inst.attrs {
             if attr.name.name == "designator" {
                 match attr.args.as_slice() {
@@ -908,14 +910,49 @@ impl<'w, 'd> Expander<'w, 'd> {
                         ));
                     }
                 }
+            } else if attr.name.name == "virtual" {
+                if attr.args.is_empty() {
+                    virtual_only = true;
+                    virtual_span = Some(attr.span);
+                } else {
+                    self.diags.push(Diagnostic::error(
+                        "E010",
+                        attr.span,
+                        "`#[virtual]` takes no arguments",
+                    ));
+                }
             } else {
                 self.diags.push(Diagnostic::error(
                     "E010",
                     attr.span,
                     format!(
-                        "unrecognized attribute `{}` (only `#[designator(\"…\")]` and `#[intent(\"…\")]` are supported)",
+                        "unrecognized attribute `{}` (only `#[designator(\"…\")]`, `#[virtual]` and `#[intent(\"…\")]` are supported)",
                         attr.name.name
                     ),
+                ));
+            }
+        }
+
+        if let Some(span) = virtual_span {
+            if part.is_some() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`#[virtual]` cannot annotate a part-bound instance — real parts must remain in manufacturing outputs",
+                ));
+            }
+            if designator_override.is_some() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`#[virtual]` cannot be combined with `#[designator]`",
+                ));
+            }
+            if inst.placement_hint.is_some() || !inst.phys.is_empty() {
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`#[virtual]` cannot carry placement or manufacturing-physics attributes",
                 ));
             }
         }
@@ -932,6 +969,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 variant,
                 specs,
                 part,
+                virtual_only,
                 designator_override,
                 designator: None,
                 placement_hint: inst.placement_hint.as_ref().map(|(s, _)| s.clone()),

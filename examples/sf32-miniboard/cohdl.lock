@@ -7,13 +7,13 @@ hash = "sha256:0e7f8c2fd4337a2c7c9f1fc01321bd86491df4248a5b2bbe3909cbc6661e29f6"
 
 [[package]]
 name = "@contrib/imu"
-version = "0.1.0"
-hash = "sha256:03cd5c3c2537521d12023a6e05eef87defe49523388a2a717d691f9041efbaf2"
+version = "0.1.1"
+hash = "sha256:4d54dfce0498859acf3621cf872fd70ff13eb3919a8896f7e5bf275f8f6bc4c9"
 
 [[package]]
 name = "@contrib/ldo"
-version = "0.1.0"
-hash = "sha256:21c4c4a1060c75da30f2d72a985e04c58371a70c753868e4f60b5fedf0a21ff7"
+version = "0.1.1"
+hash = "sha256:450faea5d5f75829cd104017dba816a34474b1961b0d6d9f4271f8a197653f98"
 
 [[package]]
 name = "@contrib/level-shifter"
@@ -27,28 +27,28 @@ hash = "sha256:4285742de741340f632a9137f050fbdb1bc19b04f1ff1f7306ba4e1834e40f0f"
 
 [[package]]
 name = "@sifli/sf32"
-version = "0.1.0"
-hash = "sha256:75a3dc1960eafa6a1f825f112ed524d21d18c96c2f45876bdc4a361d6ee5e50e"
+version = "0.1.2"
+hash = "sha256:5dac963e482386ae07e9e6d9566562c61e973fde646c7cc07f0525193f248c6b"
 
 [[package]]
 name = "connectors"
-version = "0.1.1"
-hash = "sha256:a7a192b02b1e75c6772dd3e75516bf6fdaf28e9354def86b132f6204f023f3dd"
+version = "0.1.6"
+hash = "sha256:dca088cad9548a42976cfd1de300377722ca56f773cf4785a135d54a90964519"
 
 [[package]]
 name = "esd"
-version = "0.1.0"
-hash = "sha256:8d5f98ff377276fc3bb2330ebe49dfc4770979c42c07f1ae20f48b99caa2570f"
+version = "0.1.1"
+hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
 
 [[package]]
 name = "flash"
-version = "0.1.3"
-hash = "sha256:651a36717bc5071b0a825aed98b45e0d1770c3277da5d62c3d65602aaf2e28cc"
+version = "0.1.4"
+hash = "sha256:0d70b8d15ffbb1f1bc69253218f6f7d4c4281635caa296b43eccb4caca301709"
 
 [[package]]
 name = "load-switch"
-version = "0.1.0"
-hash = "sha256:81a4a502c494bb3d48edfe63aac7a2bb71a6612942d99320e7d924b3eb09d2e1"
+version = "0.1.1"
+hash = "sha256:9a52bb72e7109b05bcdf93de066ddb05175e765db44242a62946625e8b3198e6"
 
 [[package]]
 name = "misc"
@@ -62,8 +62,8 @@ hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
 
 [[package]]
 name = "passive"
-version = "0.2.1"
-hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
+version = "0.2.2"
+hash = "sha256:d5ae92b0190fffa84253edd6509bff5fa3e4c478e87d0b64110e4cbb1f3ba819"
 
 [[package]]
 name = "qfn"

@@ -1052,7 +1052,7 @@ If a real footprint needs a fifth primitive kind (e.g. a filled rectangle distin
 
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-031 is fully recorded above.)
+(none — the backlog through RFC-032 is fully recorded in this document.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 
@@ -1329,3 +1329,74 @@ Option 1 was never a live option once Tony raised the correction — it was the 
 ## Revisit when
 
 If a real design's repetition need genuinely requires auto-generated daisy-chain wiring or arithmetic-derived per-element place/decouple data — array-typed instances (this RFC) are the natural foundation such a construct would iterate over, but designing it well is separate, not-yet-proposed scope, to be triggered by a real concrete need rather than bundled in speculatively. Also revisit if a genuine need for multi-dimensional arrays emerges from real matrix/grid-shaped hardware.
+
+# DR-038: Virtual connectivity instances — checked logical structure, centrally excluded from manufacturing
+
+## Context
+
+Real multi-page boards need typed page-boundary instances to carry named
+connectivity between schematic regions. Those boundaries must be
+visible to resolution, pin-obligation checks, net merging, residual DRC, and
+the schematic explorer, but they are not fitted components. Treating them as
+ordinary instances either triggers E801 (correctly, because no real part
+evidence exists) or requires a fake part that makes designators, footprints,
+netlists, and BOM output untrue.
+
+The initial implementation added `#[virtual]` directly. Review correctly
+classified that as a language feature: it changes instance semantics and the
+checked-graph/manufacturing-IR boundary, so it requires the full RFC process to
+keep grammar, oracle, diagnostics, tooling, and emitters consistent.
+
+## Options
+
+1. Keep ordinary part-less instances and special-case E801 when no part exists.
+2. Require authors to bind a fake non-fitted part/footprint to each boundary.
+3. Reinterpret `#[intent("virtual")]` as behavior instead of opaque metadata.
+4. Add a new `virtual inst` grammar form and make each emitter filter it.
+5. Add a zero-argument `#[virtual]` instance attribute; fully check the
+   instance, then centrally remove it before all manufacturing stages, with
+   structural checks preventing use on real parts or with manufacturing facts.
+6. Flatten page boundaries into repeated nets and add no language feature.
+
+## Decision
+
+Option 5. `#[virtual]` is the one explicit marker for a non-fitted typed
+connectivity helper. It takes no arguments. Virtual instances participate in
+the complete checked connectivity graph, then are removed once, centrally,
+before designator allocation, part binding, placement/physics handling, and
+manufacturing emission. A part-bound instance cannot be virtual, and virtual
+cannot be combined with `#[designator]`, `#[placement_hint]`, or manufacturing
+physics.
+
+## Rationale
+
+Option 1 was rejected because missing part evidence is normally an error;
+inferring virtuality from absence would weaken E801 and make mistakes look like
+intent. Option 2 was rejected because it deliberately corrupts manufacturing
+truth. Option 3 was rejected because RFC-012 guarantees that `#[intent]` is
+opaque metadata with no verdict or emitted-byte effect. Option 4 was rejected
+because attributes are already the local syntax for instance modifiers, and
+per-emitter filtering can drift. Option 6 was rejected because it destroys the
+typed, reviewable hierarchy that exposed the real requirement.
+
+## Consequences
+
+- Instance gains one narrow semantic state (`virtual_only`); no new top-level
+  declaration kind or connectivity primitive is introduced.
+- Check-time tools, including the explorer, can show the logical boundary;
+  manufacturing tools never receive it.
+- Existing source and emitted bytes are unchanged unless an author explicitly
+  adds `#[virtual]`.
+- E010 covers malformed or contradictory attribute use; E801 remains the
+  unsuppressed rule for every ordinary part-less instance.
+- Every future manufacturing backend must consume the shared filtered IR, not
+  invent its own virtual-instance policy.
+- DNP/DNI components remain real components and are explicitly outside this
+  feature.
+
+## Revisit when
+
+If a real requirement appears for assembly-population states (DNP/DNI),
+simulation-only models, first-class hierarchy ports, or virtual objects with
+non-connectivity behavior, each needs its own scoped RFC. None should broaden
+`#[virtual]` silently beyond its accepted meaning.

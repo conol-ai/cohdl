@@ -5,7 +5,7 @@ downloaded; none was regenerated or optimized.
 
 | Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
 | --- | --- | --- | --- | --- |
-| `ds0052-sf32lb52x-cn.pdf` | `SF32LB52X` and public `SF32LB52EUB6` binding | SiFli DS0052-SF32LB52X V0.1, 2024 | <https://www.sifli.com> | `68ad87f5846c47908614e980eaa56b0eea5e4ae036d0a5cee9357f80db7357c2` |
+| `ds0052-sf32lb52x-cn.pdf` | `SF32LB52X` family/base pin-map evidence and public `SF32LB52EUB6` binding | SiFli DS0052-SF32LB52X V0.1, 2024 | <https://www.sifli.com> | `68ad87f5846c47908614e980eaa56b0eea5e4ae036d0a5cee9357f80db7357c2` |
 
 SHA-256 checksums:
 
@@ -55,9 +55,13 @@ and generates the IPC pull-back thermal-via footprint as follows:
   on the Cartesian product of `{-2.495, -0.831667, +0.831667, +2.495}` mm in
   X and Y; every via is pin 69.
 
-`MCU_SF32LB52EUB6` reproduces this geometry directly. The EP is one continuous
-top-copper land with paste suppressed; nine same-number auxiliary lands wholly
-inside that copper create only the segmented stencil union. Sixteen repeated
-pin-69 PTH placements and a matching bottom-copper land remain on the same
-electrical pin and net. The resulting KiCad and IPC-2581 physical layers match
-the official geometry without a solid 5.49 mm paste opening.
+`MCU_SF32LB52EUB6` and `MCU_SF32LB52GUC6` reproduce this geometry directly.
+The latter is the official 3.3 V / 64 Mb pSRAM ordering variant recorded by
+DS5202-SF32LB52X English V0.2.5 and the pinned SiliconSchema. No equivalence is
+claimed for part numbers absent from those public manufacturer sources. The EP
+is one continuous top-copper land with paste suppressed; nine same-number
+auxiliary lands wholly inside that copper create only the segmented stencil
+union. Sixteen repeated pin-69 PTH placements and a matching bottom-copper land
+remain on the same electrical pin and net. The resulting KiCad and IPC-2581
+physical layers match the official geometry without a solid 5.49 mm paste
+opening.

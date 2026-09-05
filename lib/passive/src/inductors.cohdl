@@ -35,6 +35,18 @@ pub part IND_4U7_WPN201610U: ChipInductor<4.7uH> {
     primary { mfr: "Sunlord", mpn: "WPN201610U4R7MT", footprint: FP_L_WPN201610U_2016Metric }
 }
 
+// Coilcraft 0402DC high-Q wirewound inductors. The J suffix selects +/-5%
+// tolerance, R the RoHS matte-tin termination and W the 7-inch reel.
+#[doc("docs/coilcraft_0402dc.evidence.md")]
+pub part IND_2N0_COILCRAFT_0402DC: ChipInductor<2nH> {
+    primary { mfr: "Coilcraft", mpn: "0402DC-2N0XJRW", footprint: FP_COILCRAFT_0402DC }
+}
+
+#[doc("docs/coilcraft_0402dc.evidence.md")]
+pub part IND_3N0_COILCRAFT_0402DC: ChipInductor<3nH> {
+    primary { mfr: "Coilcraft", mpn: "0402DC-3N0XJRW", footprint: FP_COILCRAFT_0402DC }
+}
+
 // DFE201612E body: 2.0 +/-0.2 x 1.6 +/-0.2mm, terminal length
 // 0.5 +0.3/-0mm. IPC-7351 nominal land, checked against the official package
 // drawing in J(E)TE243A-0006D-01.
@@ -86,4 +98,22 @@ pub footprint FP_L_WPN201610U_2016Metric {
     // Body maximum 2.2 x 1.8mm plus 0.25mm courtyard excess per side.
     courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.3mm) }
     silkscreen_ref { at: (0mm, -1.85mm) }
+}
+
+// Coilcraft Document 1153 recommended land: F=0.36mm pad length,
+// G=0.61mm inner gap and H=0.66mm pad width. Pad centres are therefore
+// +/-0.485mm and the total copper span is 1.33mm.
+pub pad P_COILCRAFT_0402DC {
+    shape: rect
+    size: (0.36mm, 0.66mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_COILCRAFT_0402DC {
+    pad 1: P_COILCRAFT_0402DC at (-0.485mm, 0mm)
+    pad 2: P_COILCRAFT_0402DC at (0.485mm, 0mm)
+    // Maximum body 1.11 x 0.66mm plus 0.25mm courtyard excess per side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.61mm, 1.16mm) }
+    silkscreen_ref { at: (0mm, -1.3mm) }
 }

@@ -6,6 +6,7 @@ downloaded; it was not regenerated or optimized.
 | Local file | Exact library coverage | Manufacturer document | Official source | SHA-256 |
 | --- | --- | --- | --- | --- |
 | `tdk-invensense-ics-43434.pdf` | `ICS-43434` | InvenSense DS-000069 Revision 1.2, released 2016-08-29 | <https://invensense.tdk.com/wp-content/uploads/2016/02/DS-000069-ICS-43434-v1.2.pdf> | `5f940de70ac517f541528d1ad5bb9a5cb4326fe6dfc1228e000cd1b3aed9d927` |
+| `ics-40300.evidence.md` | `ICS-40300` | InvenSense DS-ICS-40300-00 Revision 1.3, released 2018-07-17 | <https://admin-uat.invensense.com/sites/default/files/2026-01/DS-ICS-40300-00-v1.3.pdf> | `65073ca752d946f2bdd13566578846d9bc58a0998dfb1d4c6ae161b05f6519c4` |
 
 ## Retrieval and lifecycle notes
 

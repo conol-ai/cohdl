@@ -1,6 +1,6 @@
 [package]
 name = "mic"
-version = "0.1.0"
+version = "0.1.1"
 license = "MIT"
 description = "Microphone devices and purchasable parts."
 repository = "https://github.com/conol-ai/cohdl"

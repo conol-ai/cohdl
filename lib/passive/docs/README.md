@@ -17,7 +17,7 @@ thousands of hand-edited declarations.
 | Yageo CC MLCC primaries | 1,225 | The NP0/C0G, X5R, and X7R family documents below; every emitted MPN was accepted by Yageo's official specsheet endpoint. |
 | Samsung CL MLCC alternates | 716 | `samsung_mlcc_catalog_2025-12.pdf` plus the exact-MPN product-database snapshot in `tools/passive_data/samsung_cl.json`. |
 | Murata GRM MLCC alternates | 2 | One part-specific reference sheet for each exact base MPN; the packaged `D` ordering suffix is listed in each sheet. |
-| Power inductors | 3 | One official detailed specification per series (Murata and Sunlord). |
+| Power/RF inductors | 5 | One official detailed specification or evidence record per series (Murata, Sunlord and Coilcraft). |
 | Ferrite beads | 1 | Murata exact BLM15PD121SN1D reference specification and recommended land. |
 
 The exact-MPN validation snapshots are dated 2026-07-25. The Samsung snapshot
@@ -51,6 +51,7 @@ nonexistent `DFE201612E-3R3M` with the in-production
 | `sunlord_wpn_series.pdf` | `WPN201610U4R7MT`, 4.7 uH, 1.30 A minimum saturation current, 0.288 ohm maximum DCR; WPN series catalog revised 2022-05-15. | [Sunlord WPN series](https://www.sunlordinc.com/uploads/files/20221122/WPN%C2%A0series%C2%A0of%C2%A0SMD%C2%A0Power%C2%A0Inductor.pdf) | `8885516070f2b85f5e57fa7a3fe390441f488912065e7b4f2f317e6d27d3f72d` |
 | `murata_blm15pd121sn1d.evidence.md` | `BLM15PD121SN1D`, 120 ohm at 100 MHz, 1.3 A rated current, 0.09 ohm max DCR; reference specification JENF243A-0018AJ-01. | [LCSC C76891 manufacturer document](https://datasheet.lcsc.com/datasheet/pdf/f85b01b3a1a015a5ec4a9f03876e0063.pdf?productCode=C76891) | `72584e2b0fad42b4fd0fc45b175151fa42acab38f373431d3f726f55317918aa` (upstream PDF) |
 | `panasonic_6svpc220m.evidence.md` | `6SVPC220M`, 220 µF / 6.3 V OS-CON, 27 mΩ max ESR and 2320 mA RMS ripple at 100 kHz / 105 °C; C6 land pattern. | [Panasonic product page](https://industrial.panasonic.com/ww/products/pt/os-con/models/6svpc220m) | `1c506b7474c011582460982e9a7ab23e71224007e79a6e85ebb8ee578060db17` (datasheet) |
+| `coilcraft_0402dc.evidence.md` | `0402DC-2N0XJRW` and `0402DC-3N0XJRW`; 2.0/3.0 nH, high-Q 0402 wirewound inductors and exact recommended land. | [Coilcraft 0402DC Document 1153](https://www.coilcraft.com/pdfs/0402dc.pdf) | `a61dfff73ba0e33a63a83459cd443709c438faadd488e11cfcaac0ffdf3bd682` (upstream PDF) |
 
 ## Footprint audit
 
@@ -92,3 +93,7 @@ and 0.5 x 0.5 mm lands. It is exercised by the exact BLM15PD121SN1D part.
 2.1 mm inner gap, 9.1 mm total copper span and 1.6 mm land width, producing
 two 3.5 x 1.6 mm pads centred at x = ±2.8 mm. Pad 2 carries the negative
 polarity mark.
+
+`FP_COILCRAFT_0402DC` transcribes Coilcraft Document 1153 directly: two
+0.36 x 0.66 mm lands separated by a 0.61 mm inner gap, with centres at
+x = ±0.485 mm. The exact 2.0 nH and 3.0 nH parts both exercise this footprint.

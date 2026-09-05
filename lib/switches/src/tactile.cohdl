@@ -35,3 +35,25 @@ pub footprint FP_XUNPU_TS_1088R {
     courtyard { shape: rect, at: (0mm, 0mm), size: (6.0mm, 4.0mm) }
     silkscreen_ref { at: (0mm, -2.5mm) }
 }
+
+#[doc("docs/ck-pts636.evidence.md")]
+pub part SW_CK_PTS636SM25SMTRLFS: TactileSwitchSPST {
+    primary { mfr: "C&K", mpn: "PTS636SM25SMTRLFS", footprint: FP_CK_PTS636SM25 }
+}
+
+pub pad P_CK_PTS636SM25 {
+    shape: rect
+    size: (1.25mm, 1.0mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_CK_PTS636SM25 {
+    pad 1: P_CK_PTS636SM25 at (-3.875mm, 0mm)
+    pad 2: P_CK_PTS636SM25 at (3.875mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.0mm, 4.5mm) }
+    silkscreen_ref { at: (0mm, -3.0mm) }
+}

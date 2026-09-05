@@ -32,6 +32,16 @@ fn assert_smd_rect(checked: &cohdl::pipeline::Checked, name: &str, size: [&str; 
     assert_eq!(pad.plating.unwrap().0, PadPlating::Smd);
 }
 
+fn assert_corner_radius(checked: &cohdl::pipeline::Checked, name: &str, radius: &str) {
+    assert_eq!(
+        checked.world.pads[name]
+            .corner_radius
+            .as_ref()
+            .map(|(value, _)| value.text.as_str()),
+        Some(radius)
+    );
+}
+
 #[test]
 fn exact_source_leds_match_manufacturer_polarity_and_lands() {
     let checked = load_package("lib/led");
@@ -58,30 +68,19 @@ fn exact_source_leds_match_manufacturer_polarity_and_lands() {
     assert_eq!(pins[1].name.name, "Anode");
     assert_eq!(pins[1].numbers[0].text, "2");
 
-    assert_smd_rect(
-        &checked,
-        "led::P_XINGLIGHT_XL_1005UBC",
-        ["0.3mm", "0.55mm"],
-    );
-    assert_smd_rect(
-        &checked,
-        "led::P_NATIONSTAR_NCD0402R1",
-        ["0.35mm", "0.5mm"],
-    );
+    assert_smd_rect(&checked, "led::P_XINGLIGHT_XL_1005UBC", ["0.3mm", "0.55mm"]);
+    assert_smd_rect(&checked, "led::P_NATIONSTAR_NCD0402R1", ["0.35mm", "0.5mm"]);
 }
 
 #[test]
 fn exact_xfcn_header_and_lailan_fpc_match_layouts() {
     let checked = load_package("lib/connectors");
-    let pz = &checked.world.parts
-        ["connectors::headers::xfcn_pz127v::CON_XFCN_PZ127V_11_04_0720"];
+    let pz = &checked.world.parts["connectors::headers::xfcn_pz127v::CON_XFCN_PZ127V_11_04_0720"];
     assert_eq!(pz.primary.field("mpn").unwrap().value, "PZ127V-11-04-0720");
-    let pz_fp = &checked.world.footprints
-        ["connectors::headers::xfcn_pz127v::FP_XFCN_PZ127V_4P"];
+    let pz_fp = &checked.world.footprints["connectors::headers::xfcn_pz127v::FP_XFCN_PZ127V_4P"];
     let pz_x: Vec<_> = pz_fp.pads.iter().map(|pad| pad.x.text.as_str()).collect();
     assert_eq!(pz_x, ["-1.905mm", "-0.635mm", "0.635mm", "1.905mm"]);
-    let pz_pad = &checked.world.pads
-        ["connectors::headers::xfcn_pz127v::P_XFCN_PZ127V_4P"];
+    let pz_pad = &checked.world.pads["connectors::headers::xfcn_pz127v::P_XFCN_PZ127V_4P"];
     assert_eq!(pz_pad.size[0].text, "1.0mm");
     match &pz_pad.drill {
         Some((PadDrill::Round(drill), _)) => assert_eq!(drill.text, "0.65mm"),
@@ -90,14 +89,14 @@ fn exact_xfcn_header_and_lailan_fpc_match_layouts() {
     assert_eq!(pz_pad.layer.unwrap().0, PadLayer::ThroughAll);
     assert_eq!(pz_pad.plating.unwrap().0, PadPlating::PlatedThroughHole);
 
-    let fpc = &checked.world.parts
-        ["connectors::fpc::lailan_cx01_31p::CON_LAILAN_FPC_CX01_31P0_3_GW"];
+    let fpc =
+        &checked.world.parts["connectors::fpc::lailan_cx01_31p::CON_LAILAN_FPC_CX01_31P0_3_GW"];
     assert_eq!(
         fpc.primary.field("mpn").unwrap().value,
         "LAIL-FPC-CX01-31P0.3-GW"
     );
-    let fpc_fp = &checked.world.footprints
-        ["connectors::fpc::lailan_cx01_31p::FP_LAILAN_FPC_CX01_31P0_3_GW"];
+    let fpc_fp =
+        &checked.world.footprints["connectors::fpc::lailan_cx01_31p::FP_LAILAN_FPC_CX01_31P0_3_GW"];
     assert_eq!(fpc_fp.pads.len(), 33);
     assert_eq!(
         (
@@ -120,13 +119,102 @@ fn exact_xunpu_switch_matches_normally_open_two_pad_drawing() {
     let part = &checked.world.parts["switches::SW_XUNPU_TS_1088R_02026"];
     assert_eq!(part.primary.field("mfr").unwrap().value, "XUNPU");
     assert_eq!(part.primary.field("mpn").unwrap().value, "TS-1088R-02026");
-    assert_smd_rect(
-        &checked,
-        "switches::P_XUNPU_TS_1088R",
-        ["1.05mm", "2.0mm"],
-    );
-    let footprint =
-        &checked.world.footprints["switches::FP_XUNPU_TS_1088R"];
+    assert_smd_rect(&checked, "switches::P_XUNPU_TS_1088R", ["1.05mm", "2.0mm"]);
+    let footprint = &checked.world.footprints["switches::FP_XUNPU_TS_1088R"];
     assert_eq!(footprint.pads[0].x.text, "-2.225mm");
     assert_eq!(footprint.pads[1].x.text, "2.225mm");
+}
+
+#[test]
+fn hirose_ufl_matches_locked_kicad_roundrect_geometry() {
+    let checked = load_package("lib/connectors");
+    let module = "connectors::coax::hirose_ufl";
+    let part = &checked.world.parts[&format!("{module}::CON_HIROSE_UFL_R_SMT_1_10")];
+    assert_eq!(
+        part.primary.field("mpn").map(|field| field.value.as_str()),
+        Some("U.FL-R-SMT-1(10)")
+    );
+    assert_smd_rect(
+        &checked,
+        &format!("{module}::P_HIROSE_UFL_SIGNAL"),
+        ["1.05mm", "1.0mm"],
+    );
+    assert_corner_radius(
+        &checked,
+        &format!("{module}::P_HIROSE_UFL_SIGNAL"),
+        "0.25mm",
+    );
+    assert_smd_rect(
+        &checked,
+        &format!("{module}::P_HIROSE_UFL_GROUND"),
+        ["2.2mm", "1.05mm"],
+    );
+    assert_corner_radius(
+        &checked,
+        &format!("{module}::P_HIROSE_UFL_GROUND"),
+        "0.25mm",
+    );
+
+    let footprint = &checked.world.footprints[&format!("{module}::FP_HIROSE_UFL_R_SMT_1")];
+    assert_eq!(footprint.pads.len(), 3);
+    let placements = footprint
+        .pads
+        .iter()
+        .map(|pad| {
+            (
+                pad.number.text.as_str(),
+                pad.x.text.as_str(),
+                pad.y.text.as_str(),
+            )
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        placements,
+        [
+            ("1", "-1.05mm", "0mm"),
+            ("2", "0.475mm", "-1.475mm"),
+            ("2", "0.475mm", "1.475mm"),
+        ]
+    );
+}
+
+#[test]
+fn max16054_matches_locked_kicad_roundrect_geometry() {
+    let checked = load_package("lib/switches");
+    let part = &checked.world.parts["switches::PUSHBUTTON_CTRL_MAX16054AZT_T"];
+    assert_eq!(
+        part.primary.field("mpn").map(|field| field.value.as_str()),
+        Some("MAX16054AZT+T")
+    );
+    assert_smd_rect(
+        &checked,
+        "switches::P_MAX16054_SOT23_6_LEAD",
+        ["1.325mm", "0.6mm"],
+    );
+    assert_corner_radius(&checked, "switches::P_MAX16054_SOT23_6_LEAD", "0.15mm");
+
+    let footprint = &checked.world.footprints["switches::FP_MAX16054_THIN_SOT23_6"];
+    assert_eq!(footprint.pads.len(), 6);
+    let placements = footprint
+        .pads
+        .iter()
+        .map(|pad| {
+            (
+                pad.number.text.as_str(),
+                pad.x.text.as_str(),
+                pad.y.text.as_str(),
+            )
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        placements,
+        [
+            ("1", "-1.1375mm", "-0.95mm"),
+            ("2", "-1.1375mm", "0mm"),
+            ("3", "-1.1375mm", "0.95mm"),
+            ("4", "1.1375mm", "0.95mm"),
+            ("5", "1.1375mm", "0mm"),
+            ("6", "1.1375mm", "-0.95mm"),
+        ]
+    );
 }

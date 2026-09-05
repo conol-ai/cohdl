@@ -1,0 +1,92 @@
+// Exact 26-contact, 0.5 mm pitch Hirose FH12 bottom-contact FPC receptacle.
+
+#[doc("docs/hirose-fh12-26s-0.5sh.evidence.md")]
+pub device FPC26_0P5_HIROSE_FH12 {
+    pins {
+        optional P1: 1 [bidirectional]
+        optional P2: 2 [bidirectional]
+        optional P3: 3 [bidirectional]
+        optional P4: 4 [bidirectional]
+        optional P5: 5 [bidirectional]
+        optional P6: 6 [bidirectional]
+        optional P7: 7 [bidirectional]
+        optional P8: 8 [bidirectional]
+        optional P9: 9 [bidirectional]
+        optional P10: 10 [bidirectional]
+        optional P11: 11 [bidirectional]
+        optional P12: 12 [bidirectional]
+        optional P13: 13 [bidirectional]
+        optional P14: 14 [bidirectional]
+        optional P15: 15 [bidirectional]
+        optional P16: 16 [bidirectional]
+        optional P17: 17 [bidirectional]
+        optional P18: 18 [bidirectional]
+        optional P19: 19 [bidirectional]
+        optional P20: 20 [bidirectional]
+        optional P21: 21 [bidirectional]
+        optional P22: 22 [bidirectional]
+        optional P23: 23 [bidirectional]
+        optional P24: 24 [bidirectional]
+        optional P25: 25 [bidirectional]
+        optional P26: 26 [bidirectional]
+        optional MP: MP [passive]
+    }
+}
+
+impl Connector for FPC26_0P5_HIROSE_FH12 {}
+
+#[doc("docs/hirose-fh12-26s-0.5sh.evidence.md")]
+pub part CON_HIROSE_FH12_26S_0P5SH_55: FPC26_0P5_HIROSE_FH12 {
+    primary { mfr: "Hirose Electric", mpn: "FH12-26S-0.5SH(55)",
+              footprint: FP_HIROSE_FH12_26S_0P5SH }
+}
+
+pub pad P_HIROSE_FH12_0P5_CONTACT {
+    shape: rect
+    size: (0.3mm, 1.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_HIROSE_FH12_0P5_HOLD_DOWN {
+    shape: rect
+    size: (1.8mm, 2.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_HIROSE_FH12_26S_0P5SH {
+    pad 1: P_HIROSE_FH12_0P5_CONTACT at (-6.25mm, -1.85mm)
+    pad 2: P_HIROSE_FH12_0P5_CONTACT at (-5.75mm, -1.85mm)
+    pad 3: P_HIROSE_FH12_0P5_CONTACT at (-5.25mm, -1.85mm)
+    pad 4: P_HIROSE_FH12_0P5_CONTACT at (-4.75mm, -1.85mm)
+    pad 5: P_HIROSE_FH12_0P5_CONTACT at (-4.25mm, -1.85mm)
+    pad 6: P_HIROSE_FH12_0P5_CONTACT at (-3.75mm, -1.85mm)
+    pad 7: P_HIROSE_FH12_0P5_CONTACT at (-3.25mm, -1.85mm)
+    pad 8: P_HIROSE_FH12_0P5_CONTACT at (-2.75mm, -1.85mm)
+    pad 9: P_HIROSE_FH12_0P5_CONTACT at (-2.25mm, -1.85mm)
+    pad 10: P_HIROSE_FH12_0P5_CONTACT at (-1.75mm, -1.85mm)
+    pad 11: P_HIROSE_FH12_0P5_CONTACT at (-1.25mm, -1.85mm)
+    pad 12: P_HIROSE_FH12_0P5_CONTACT at (-0.75mm, -1.85mm)
+    pad 13: P_HIROSE_FH12_0P5_CONTACT at (-0.25mm, -1.85mm)
+    pad 14: P_HIROSE_FH12_0P5_CONTACT at (0.25mm, -1.85mm)
+    pad 15: P_HIROSE_FH12_0P5_CONTACT at (0.75mm, -1.85mm)
+    pad 16: P_HIROSE_FH12_0P5_CONTACT at (1.25mm, -1.85mm)
+    pad 17: P_HIROSE_FH12_0P5_CONTACT at (1.75mm, -1.85mm)
+    pad 18: P_HIROSE_FH12_0P5_CONTACT at (2.25mm, -1.85mm)
+    pad 19: P_HIROSE_FH12_0P5_CONTACT at (2.75mm, -1.85mm)
+    pad 20: P_HIROSE_FH12_0P5_CONTACT at (3.25mm, -1.85mm)
+    pad 21: P_HIROSE_FH12_0P5_CONTACT at (3.75mm, -1.85mm)
+    pad 22: P_HIROSE_FH12_0P5_CONTACT at (4.25mm, -1.85mm)
+    pad 23: P_HIROSE_FH12_0P5_CONTACT at (4.75mm, -1.85mm)
+    pad 24: P_HIROSE_FH12_0P5_CONTACT at (5.25mm, -1.85mm)
+    pad 25: P_HIROSE_FH12_0P5_CONTACT at (5.75mm, -1.85mm)
+    pad 26: P_HIROSE_FH12_0P5_CONTACT at (6.25mm, -1.85mm)
+    pad MP: P_HIROSE_FH12_0P5_HOLD_DOWN at (-8.15mm, 1.4mm)
+    pad MP: P_HIROSE_FH12_0P5_HOLD_DOWN at (8.15mm, 1.4mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0.95mm), size: (19.1mm, 7.9mm) }
+    silkscreen_ref { at: (0mm, -3.7mm) }
+}

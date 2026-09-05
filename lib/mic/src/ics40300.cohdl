@@ -1,0 +1,58 @@
+// TDK/InvenSense ICS-40300 high-SPL analog MEMS microphone.
+
+#[doc("docs/ics-40300.evidence.md")]
+pub device ICS40300 {
+    pins {
+        required OUTPUT: 1 [output]
+        required GND2: 2 [power_in]
+        required GND3: 3 [power_in]
+        required GND4: 4 [power_in]
+        required VDD: 5 [power_in]
+        required GND6: 6 [power_in]
+    }
+}
+
+impl Microphone for ICS40300 {}
+
+#[doc("docs/ics-40300.evidence.md")]
+pub part MIC_ICS40300: ICS40300 {
+    primary { mfr: "TDK/InvenSense", mpn: "ICS-40300", footprint: FP_TDK_ICS40300 }
+}
+
+pub pad P_ICS40300_0P90 {
+    shape: circle
+    size: (0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ICS40300_0P70 {
+    shape: circle
+    size: (0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ICS40300_GROUND_RING {
+    shape: circle
+    size: (1.68mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Datasheet Figure 14/16, bottom view. Pin 3 surrounds the acoustic port;
+// the NPTH removes the 1.10 mm centre from the 1.68 mm ground land.
+pub footprint FP_TDK_ICS40300 {
+    pad 1: P_ICS40300_0P90 at (-1.31mm, 1.27mm)
+    pad 2: P_ICS40300_0P70 at (1.31mm, 1.27mm)
+    pad 3: P_ICS40300_GROUND_RING at (0mm, 0mm)
+    pad 4: P_ICS40300_0P70 at (1.31mm, -1.27mm)
+    pad 5: P_ICS40300_0P90 at (-1.31mm, -1.27mm)
+    pad 6: P_ICS40300_0P90 at (-1.31mm, 0mm)
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 1.1mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.22mm, 4.26mm) }
+    silkscreen_ref { at: (0mm, -2.7mm) }
+}

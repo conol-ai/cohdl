@@ -1,0 +1,46 @@
+pub trait BipolarTransistor {
+    designator_prefix: "Q"
+}
+
+#[doc("docs/jscj_s8050.evidence.md")]
+pub device NPN_SOT23_BEC {
+    pins {
+        required B: 1 [input]
+        required E: 2 [passive]
+        required C: 3 [passive]
+    }
+    spec {
+        collector_emitter_voltage: 25V
+        collector_current: 500mA
+        power_dissipation: 300mW
+    }
+}
+
+impl BipolarTransistor for NPN_SOT23_BEC {}
+
+#[doc("docs/jscj_s8050.evidence.md")]
+pub part BJT_JSCJ_S8050_J3Y: NPN_SOT23_BEC {
+    primary { mfr: "Jiangsu Changjing Electronics Technology", mpn: "S8050 J3Y(RANGE:200-350)",
+              footprint: FP_JSCJ_SOT23 }
+}
+
+// JSCJ S8050 suggested SOT-23 land: 0.6 x 0.8mm pads, 1.90mm
+// outer-column centre spacing and 2.02mm row centre spacing.
+pub pad P_JSCJ_SOT23 {
+    shape: rect
+    size: (0.6mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_JSCJ_SOT23 {
+    pad 1: P_JSCJ_SOT23 at (-0.95mm, -1.01mm)
+    pad 2: P_JSCJ_SOT23 at (0.95mm, -1.01mm)
+    pad 3: P_JSCJ_SOT23 at (0mm, 1.01mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Maximum package span 3.0 x 2.55mm plus 0.25mm excess per side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.05mm) }
+    silkscreen_ref { at: (0mm, -2.05mm) }
+}

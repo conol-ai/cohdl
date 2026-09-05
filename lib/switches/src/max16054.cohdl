@@ -1,0 +1,43 @@
+// MAX16054 push-on/push-off controller with internal mechanical-switch debounce.
+
+#[doc("docs/max16054.evidence.md")]
+pub device MAX16054 {
+    pins {
+        required IN: 1 [input]
+        required GND: 2 [power_in]
+        required CLEAR: 3 [input]
+        required OUT_N: 4 [output]
+        required OUT: 5 [output]
+        required VCC: 6 [power_in]
+    }
+}
+
+impl IC for MAX16054 {}
+
+#[doc("docs/max16054.evidence.md")]
+pub part PUSHBUTTON_CTRL_MAX16054AZT_T: MAX16054 {
+    primary { mfr: "Analog Devices/Maxim Integrated", mpn: "MAX16054AZT+T",
+              footprint: FP_MAX16054_THIN_SOT23_6 }
+}
+
+pub pad P_MAX16054_SOT23_6_LEAD {
+    shape: rect
+    size: (1.325mm, 0.6mm)
+    corner_radius: 0.15mm
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_MAX16054_THIN_SOT23_6 {
+    pad 1: P_MAX16054_SOT23_6_LEAD at (-1.1375mm, -0.95mm)
+    pad 2: P_MAX16054_SOT23_6_LEAD at (-1.1375mm, 0mm)
+    pad 3: P_MAX16054_SOT23_6_LEAD at (-1.1375mm, 0.95mm)
+    pad 4: P_MAX16054_SOT23_6_LEAD at (1.1375mm, 0.95mm)
+    pad 5: P_MAX16054_SOT23_6_LEAD at (1.1375mm, 0mm)
+    pad 6: P_MAX16054_SOT23_6_LEAD at (1.1375mm, -0.95mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.0mm) }
+}

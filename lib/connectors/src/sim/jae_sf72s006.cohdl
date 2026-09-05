@@ -1,0 +1,112 @@
+// JAE SF72S006 nano-SIM (4FF) push-push connector with card detect.
+
+#[doc("docs/jae-sf72s006.evidence.md")]
+pub device JAE_SF72S006 {
+    pins {
+        required VCC: C1 [power_in]
+        required RST: C2 [input]
+        required CLK: C3 [input]
+        required GND: C5 [power_in]
+        optional VPP: C6 [bidirectional]
+        required IO: C7 [bidirectional]
+        required DSW: DSW [passive]
+        required CSW: CSW [passive]
+        required SH: SH [power_in]
+    }
+}
+
+impl Connector for JAE_SF72S006 {}
+
+#[doc("docs/jae-sf72s006.evidence.md")]
+pub part CON_JAE_SF72S006VBA_R2500: JAE_SF72S006 {
+    primary { mfr: "JAE", mpn: "SF72S006VBA(R2500)", footprint: FP_JAE_SF72S006 }
+}
+
+pub pad P_JAE_SF72_CARD_CONTACT {
+    shape: rect
+    size: (0.9mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_DETECT_CSW {
+    shape: rect
+    size: (0.7mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_DETECT_DSW {
+    shape: rect
+    size: (1.2mm, 0.65mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_V1 {
+    shape: rect
+    size: (0.45mm, 2.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_V2 {
+    shape: rect
+    size: (0.45mm, 1.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_V3 {
+    shape: rect
+    size: (0.45mm, 2.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_H1 {
+    shape: rect
+    size: (1.4mm, 0.5mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_SMALL {
+    shape: rect
+    size: (0.3mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_JAE_SF72_SH_AUX {
+    shape: rect
+    size: (0.75mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_JAE_SF72S006 {
+    pad C1: P_JAE_SF72_CARD_CONTACT at (-2.54mm, -2.46mm)
+    pad C2: P_JAE_SF72_CARD_CONTACT at (0mm, -2.46mm)
+    pad C3: P_JAE_SF72_CARD_CONTACT at (2.54mm, -2.46mm)
+    pad C5: P_JAE_SF72_CARD_CONTACT at (-2.54mm, 0.71mm)
+    pad C6: P_JAE_SF72_CARD_CONTACT at (0mm, 0.71mm)
+    pad C7: P_JAE_SF72_CARD_CONTACT at (2.54mm, 0.71mm)
+    pad CSW: P_JAE_SF72_DETECT_CSW at (4.27mm, 4.04mm)
+    pad DSW: P_JAE_SF72_DETECT_DSW at (0.55mm, 7.715mm)
+    pad SH: P_JAE_SF72_SH_V1 at (-6.555mm, -3.16mm)
+    pad SH: P_JAE_SF72_SH_V2 at (-6.555mm, 1.69mm)
+    pad SH: P_JAE_SF72_SH_V3 at (-6.555mm, 6.84mm)
+    pad SH: P_JAE_SF72_SH_H1 at (-2.2mm, 8.79mm)
+    pad SH: P_JAE_SF72_SH_SMALL at (-1.22mm, -4.31mm)
+    pad SH: P_JAE_SF72_SH_SMALL at (1.22mm, -4.31mm)
+    pad SH: P_JAE_SF72_SH_H1 at (2.22mm, 8.79mm)
+    pad SH: P_JAE_SF72_SH_AUX at (4.095mm, 5.84mm)
+    pad SH: P_JAE_SF72_SH_V1 at (4.595mm, -3.16mm)
+    pad SH: P_JAE_SF72_SH_V2 at (4.595mm, 1.69mm)
+    silkscreen {
+        pin_1_marker near pad C1 shape dot
+    }
+    courtyard { shape: rect, at: (-0.98mm, 2.115mm), size: (12mm, 15.15mm) }
+    silkscreen_ref { at: (-0.98mm, -6.5mm) }
+}

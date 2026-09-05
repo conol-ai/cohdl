@@ -50,7 +50,7 @@ footprints live in focused packages:
 | `@contrib/charger` | `contrib_charger::CHARGER_SGM41562B` | community-contributed battery charger / power-path devices and parts |
 | `@contrib/env` | `contrib_env::ENV_BME280` | community-contributed environmental sensor devices and parts |
 | `@contrib/fuel-gauge` | `contrib_fuel_gauge::FGAUGE_CW2015CHBD` | community-contributed battery fuel-gauge devices and audited public part bindings |
-| `@sifli/sf32` | `sifli_sf32::MCU_SF32LB52EUB6` | SiFli SF32LB52X device and qualified EUB6 package binding |
+| `@sifli/sf32` | `sifli_sf32::MCU_SF32LB52EUB6`, `sifli_sf32::MCU_SF32LB52GUC6` | SiFli SF32LB52X device and qualified EUB6/GUC6 package bindings |
 | `@contrib/io-expander` | `contrib_io_expander::IOEXP_XL9555` | community-contributed I2C/SMBus I/O expander variants and a public TSSOP24 binding with an independently derived land pattern |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
@@ -124,6 +124,9 @@ part in `lib/`.
 | `contrib_audio_amp::AMP_MAX98357A` | Analog Devices `MAX98357AETE+` | Analog Devices land pattern 90-0031 rev C |
 | `passive::IND_4U7_WPN201610U` | Sunlord `WPN201610U4R7MT` | Sunlord WPN-series recommended 2016 land |
 | `osc::XTAL_48MHZ` | Hosonic `E1SB48E001G00E` | Hosonic E1SB recommended land; SiFli-certified 22 ohm maximum ESR selection |
+| `passive::IND_2N0_COILCRAFT_0402DC` | Coilcraft `0402DC-2N0XJRW` | 0402DC manufacturer land; 2.0 nH high-Q supply/RF selection |
+| `passive::IND_3N0_COILCRAFT_0402DC` | Coilcraft `0402DC-3N0XJRW` | 0402DC manufacturer land; 3.0 nH high-Q RF selection |
+| `transistor::BJT_JSCJ_S8050_J3Y` | JSCJ `S8050 J3Y(RANGE:200-350)` | Exact B/E/C pinout and manufacturer SOT-23 land |
 | `osc::XTAL_32K768` | Abracon `ABS07-32.768KHZ-9-T` | Abracon ABS07 recommended land |
 
 The following are also public part bindings with exact manufacturer identity

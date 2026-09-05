@@ -1022,6 +1022,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
         "@contrib/sd-card::CONN_MICROSD|Wurth Elektronik|693070010811|contrib_sd_card::FP_MicroSD_Wurth_693070010811|contrib_sd_card::MICROSD_SOCKET[-]|a927f96998d32e2e6ae630deb905da79cb9bdf0b7d504ee70441b294296dcec4",
         "@sifli/sf32::MCU_SF32LB52EUB6|SiFli Technologies|SF32LB52EUB6|sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7|sifli_sf32::SF32LB52X[-]|11de47e07e71b155bf398a53e99c7011ce044a580436db4bab4df7a8a7c69be5",
+        "@sifli/sf32::MCU_SF32LB52GUC6|SiFli Technologies|SF32LB52GUC6|sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7|sifli_sf32::SF32LB52X[-]|11de47e07e71b155bf398a53e99c7011ce044a580436db4bab4df7a8a7c69be5",
     ]
     .into_iter()
     .map(str::to_string)

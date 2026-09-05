@@ -96,6 +96,12 @@ pub part MCU_SF32LB52EUB6: SF32LB52X {
               footprint: FP_SiFli_SF32LB52X_QFN68L_7X7 }
 }
 
+#[doc("docs/ds0052-sf32lb52x-cn.pdf")]
+pub part MCU_SF32LB52GUC6: SF32LB52X {
+    primary { mfr: "SiFli Technologies", mpn: "SF32LB52GUC6",
+              footprint: FP_SiFli_SF32LB52X_QFN68L_7X7 }
+}
+
 // SiFli Figure 5-2 package envelope and the pinned official KiCad generator
 // define the exact package land. Perimeter copper is 0.55 x 0.25mm on 0.35mm pitch, with
 // 0.05mm local mask expansion and 0.0625mm round-rectangle corner radius.

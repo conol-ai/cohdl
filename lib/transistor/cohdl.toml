@@ -1,0 +1,9 @@
+[package]
+name = "transistor"
+version = "0.1.0"
+license = "MIT"
+description = "Discrete bipolar transistors with verified pinouts and land patterns."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+std = "0.3.0"

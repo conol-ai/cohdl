@@ -1,6 +1,6 @@
 [package]
 name = "connectors"
-version = "0.1.4"
+version = "0.1.6"
 license = "MIT"
 description = "General-purpose board connectors and their land patterns."
 repository = "https://github.com/conol-ai/cohdl"

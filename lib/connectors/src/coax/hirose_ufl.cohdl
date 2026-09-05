@@ -1,0 +1,45 @@
+// Hirose U.FL board receptacle selected as a reusable 50 ohm RF interface.
+
+#[doc("docs/hirose-ufl-r-smt-1.evidence.md")]
+pub device HIROSE_UFL_RECEPTACLE {
+    pins {
+        required RF: 1 [bidirectional]
+        required GND: 2 [power_in]
+    }
+}
+
+impl Connector for HIROSE_UFL_RECEPTACLE {}
+
+#[doc("docs/hirose-ufl-r-smt-1.evidence.md")]
+pub part CON_HIROSE_UFL_R_SMT_1_10: HIROSE_UFL_RECEPTACLE {
+    primary { mfr: "Hirose Electric", mpn: "U.FL-R-SMT-1(10)", footprint: FP_HIROSE_UFL_R_SMT_1 }
+}
+
+pub pad P_HIROSE_UFL_SIGNAL {
+    shape: rect
+    size: (1.05mm, 1.0mm)
+    corner_radius: 0.25mm
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_HIROSE_UFL_GROUND {
+    shape: rect
+    size: (2.2mm, 1.05mm)
+    corner_radius: 0.25mm
+    layer: top_copper
+    plating: smd
+}
+
+// Manufacturer/KiCad land orientation: RF lead at left; the two shell lands
+// are the same logical ground pin.
+pub footprint FP_HIROSE_UFL_R_SMT_1 {
+    pad 1: P_HIROSE_UFL_SIGNAL at (-1.05mm, 0mm)
+    pad 2: P_HIROSE_UFL_GROUND at (0.475mm, -1.475mm)
+    pad 2: P_HIROSE_UFL_GROUND at (0.475mm, 1.475mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0.13mm, 0mm), size: (4.3mm, 5.2mm) }
+    silkscreen_ref { at: (0mm, -3.1mm) }
+}

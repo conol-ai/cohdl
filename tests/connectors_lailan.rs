@@ -27,15 +27,13 @@ fn load_connectors() -> cohdl::pipeline::Checked {
 #[test]
 fn exact_lailan_part_binds_four_passive_pads() {
     let checked = load_connectors();
-    let device = &checked.world.devices
-        ["connectors::wire_to_board::lailan_phc125::LAILAN_PHC125_2P"];
+    let device =
+        &checked.world.devices["connectors::wire_to_board::lailan_phc125::LAILAN_PHC125_2P"];
     let pins = device.pins_for(None);
-    for (pin, (name, number)) in pins.iter().zip([
-        ("P1", "1"),
-        ("P2", "2"),
-        ("SHELL3", "3"),
-        ("SHELL4", "4"),
-    ]) {
+    for (pin, (name, number)) in
+        pins.iter()
+            .zip([("P1", "1"), ("P2", "2"), ("SHELL3", "3"), ("SHELL4", "4")])
+    {
         assert_eq!(pin.name.name, name);
         assert_eq!(pin.numbers[0].text, number);
         assert_eq!(pin.role_or_default(), PinRole::Passive);
@@ -63,13 +61,15 @@ fn lailan_lands_and_chirality_match_the_manufacturer_layout() {
         ("P_LAILAN_PHC125_CONTACT", ["0.7mm", "1.7mm"]),
         ("P_LAILAN_PHC125_SHELL", ["1.8mm", "2.5mm"]),
     ] {
-        let pad = &checked.world.pads
-            [&format!("connectors::wire_to_board::lailan_phc125::{name}")];
+        let pad = &checked.world.pads[&format!("connectors::wire_to_board::lailan_phc125::{name}")];
         assert_eq!(pad.shape.map(|(shape, _)| shape), Some(PadShape::Rect));
         assert_eq!(pad.size[0].text, size[0]);
         assert_eq!(pad.size[1].text, size[1]);
         assert_eq!(pad.layer.map(|(layer, _)| layer), Some(PadLayer::TopCopper));
-        assert_eq!(pad.plating.map(|(plating, _)| plating), Some(PadPlating::Smd));
+        assert_eq!(
+            pad.plating.map(|(plating, _)| plating),
+            Some(PadPlating::Smd)
+        );
     }
 
     let footprint = &checked.world.footprints
@@ -99,28 +99,21 @@ fn lailan_lands_and_chirality_match_the_manufacturer_layout() {
 #[test]
 fn exact_lailan_pz127_part_binds_four_passive_pins() {
     let checked = load_connectors();
-    let device =
-        &checked.world.devices["connectors::headers::lailan_pz127::LAILAN_PZ127_4P"];
+    let device = &checked.world.devices["connectors::headers::lailan_pz127::LAILAN_PZ127_4P"];
     let pins = device.pins_for(None);
-    for (pin, (name, number)) in pins.iter().zip([
-        ("P1", "1"),
-        ("P2", "2"),
-        ("P3", "3"),
-        ("P4", "4"),
-    ]) {
+    for (pin, (name, number)) in
+        pins.iter()
+            .zip([("P1", "1"), ("P2", "2"), ("P3", "3"), ("P4", "4")])
+    {
         assert_eq!(pin.name.name, name);
         assert_eq!(pin.numbers[0].text, number);
         assert_eq!(pin.role_or_default(), PinRole::Passive);
         assert_eq!(pin.obligation, Obligation::Required);
     }
 
-    let part =
-        &checked.world.parts["connectors::headers::lailan_pz127::CON_LAILAN_PZ1_27_4P_L"];
+    let part = &checked.world.parts["connectors::headers::lailan_pz127::CON_LAILAN_PZ1_27_4P_L"];
     assert_eq!(part.primary.field("mfr").unwrap().value, "LAILAN");
-    assert_eq!(
-        part.primary.field("mpn").unwrap().value,
-        "LAIL-PZ1.27-4P-L"
-    );
+    assert_eq!(part.primary.field("mpn").unwrap().value, "LAIL-PZ1.27-4P-L");
     assert_eq!(
         part.primary.footprint.as_ref().unwrap().name,
         "connectors::headers::lailan_pz127::FP_LAILAN_PZ127_4P"
@@ -138,7 +131,10 @@ fn lailan_pz127_holes_pitch_and_numbering_match_exact_sources() {
         let pad = &checked.world.pads[&format!("connectors::headers::lailan_pz127::{name}")];
         assert_eq!(pad.shape.map(|(actual, _)| actual), Some(shape));
         assert_eq!(pad.size[0].text, "1.0mm");
-        assert_eq!(pad.layer.map(|(layer, _)| layer), Some(PadLayer::ThroughAll));
+        assert_eq!(
+            pad.layer.map(|(layer, _)| layer),
+            Some(PadLayer::ThroughAll)
+        );
         assert_eq!(
             pad.plating.map(|(plating, _)| plating),
             Some(PadPlating::PlatedThroughHole)

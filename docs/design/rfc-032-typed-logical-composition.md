@@ -47,6 +47,10 @@ connect pins. The remaining semantic choice is:
 - Choosing syntax before the semantic distinction between `fn` and
   `subdesign` is settled.
 - Making the current `#[virtual]` prototype normative merely because it exists.
+- Whole-subdesign placement, rotation, mirroring, local board outlines, or
+  independent fabrication outputs in the first version.
+- Arbitrary references into another subdesign's private internal instances.
+- Automatic wiring or a second connectivity mechanism beside `net`.
 
 ## Design
 
@@ -136,6 +140,52 @@ requirement, but it has permanent cost: a new declaration and composition
 statement, port rules, name-resolution rules, diagnostics, Explorer shape, and
 interactions with `fn`, generics, modules, placement, and designators.
 
+#### Minimum viable semantic contract
+
+If `subdesign` is selected, its first version should be deliberately narrow:
+
+1. **Declaration and use are distinct from physical instances.** A top-level
+   `subdesign Name { ... }` declares a reusable composition. A body-level
+   `subdesign local: Name { ... }` creates a logical hierarchy node. Neither is
+   a `Device`, `Part`, or physical `Instance`.
+2. **Ports reuse existing pin semantics.** A port is a typed connection point,
+   with explicit connection obligations checked like ordinary pins. Every
+   required port must be connected at the use site or explicitly handled by
+   whatever accepted not-connected form applies to ports.
+3. **`net` remains the only connectivity mechanism.** A port connects an
+   internal net to an external net; the checker merges them into one electrical
+   equivalence class. `subdesign` must not introduce implicit wiring.
+4. **Internal objects remain ordinary.** Every real internal `inst` still
+   requires part evidence, receives a stable designator, participates in DRC,
+   and appears normally in manufacturing output.
+5. **The container is logical only.** The subdesign node itself has no part,
+   designator, footprint, placement, BOM row, or emitted component record.
+6. **Hierarchy is retained in checked IR and flattened only for manufacturing.**
+   Explorer, LSP, and diagnostics can address `Board::power::charger`; emitters
+   receive the contained real components and nets, not a fake `power`
+   component.
+7. **Paths are deterministic.** Two uses of the same subdesign produce
+   distinct, stable hierarchical paths that feed RFC-005's existing
+   designator allocator without changing its collision guarantees.
+8. **Nesting is composable and acyclic.** A subdesign may contain another
+   subdesign, but direct or indirect recursive containment is a structural
+   compile error naming the full cycle.
+9. **Visibility stays RFC-016's job.** A `pub subdesign` may be referenced from
+   another package; non-`pub` visibility, `use`, and fully-qualified paths obey
+   the existing module rules unchanged.
+10. **Generic syntax is reused, not reinvented.** If parameterized subdesigns
+    are admitted, they use RFC-007's existing generic/spec-bound machinery and
+    substitution rules; RFC-032 adds no second generic system.
+11. **Internals are encapsulated by default.** External source connects only
+    to declared ports. Reaching into `power::charger.VBAT` is not permitted in
+    the first version; otherwise the port boundary would not be a real
+    contract.
+
+Whole-subdesign placement and physical group transforms remain out of scope.
+Authors place the contained real instances individually through the existing
+layout mechanism. This keeps the first version a schematic-composition feature
+rather than a new physical-layout hierarchy.
+
 ### Option C: `#[virtual] inst` prototype
 
 ```cohdl
@@ -221,10 +271,14 @@ only parser tests:
 
 - typed boundary inputs and outputs resolve correctly;
 - missing or wrongly typed connections fail at the boundary;
+- external references to undeclared/private internals are rejected;
 - internal real components still require honest part bindings;
 - composition preserves connectivity and residual DRC behavior;
 - no logical container becomes a designator, footprint, component, or BOM row;
 - two uses of the same composition remain hygienic and deterministic;
+- nested composition works and recursive containment reports the full cycle;
+- `pub`, `use`, and qualified paths behave identically to other RFC-016
+  declaration kinds;
 - Explorer and diagnostics either retain or deliberately erase the boundary,
   matching the chosen semantics.
 
@@ -277,7 +331,18 @@ but only after resolving the conceptual objection recorded here.
   explicit; tools must not guess from names or editor pages.
 - Manufacturing emitters must share one IR boundary and cannot independently
   decide whether a logical container is physical.
+- `design.lock` continues to store only physical child-instance designators,
+  keyed by their stable subdesign-qualified paths; no lock row is created for
+  the logical container.
 - Source changes must remain diffable and reversible.
+
+Implementation complexity is **medium-high** even with the narrow contract.
+It touches parser/AST, declaration-kind resolution, expansion and cycle
+detection, checked IR hierarchy, diagnostics, formatter, LSP, Explorer,
+designator-path regressions, and conformance tests. Manufacturing emitters can
+remain comparatively simple if they continue consuming one centrally flattened
+manufacturing IR. Adding group placement, public internal references, or page
+semantics in the same change would make the scope high-risk and is excluded.
 
 ## Teaching cost
 

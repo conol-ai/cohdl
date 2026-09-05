@@ -12,8 +12,8 @@ hash = "sha256:4285742de741340f632a9137f050fbdb1bc19b04f1ff1f7306ba4e1834e40f0f"
 
 [[package]]
 name = "connectors"
-version = "0.1.1"
-hash = "sha256:a7a192b02b1e75c6772dd3e75516bf6fdaf28e9354def86b132f6204f023f3dd"
+version = "0.1.6"
+hash = "sha256:dca088cad9548a42976cfd1de300377722ca56f773cf4785a135d54a90964519"
 
 [[package]]
 name = "diode"
@@ -22,18 +22,18 @@ hash = "sha256:ea1d68d2aa41dd4e415775fc04c6b8a45f0f3b6cf8d3b9064eb0db5e07fbc272"
 
 [[package]]
 name = "esd"
-version = "0.1.0"
-hash = "sha256:8d5f98ff377276fc3bb2330ebe49dfc4770979c42c07f1ae20f48b99caa2570f"
+version = "0.1.1"
+hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
 
 [[package]]
 name = "flash"
-version = "0.1.3"
-hash = "sha256:651a36717bc5071b0a825aed98b45e0d1770c3277da5d62c3d65602aaf2e28cc"
+version = "0.1.4"
+hash = "sha256:0d70b8d15ffbb1f1bc69253218f6f7d4c4281635caa296b43eccb4caca301709"
 
 [[package]]
 name = "led"
-version = "0.1.1"
-hash = "sha256:d057ea2d9b88103a01f3a222c514c01808ab287059af60f8d77b56114b899d07"
+version = "0.1.2"
+hash = "sha256:4673cff4c6338b2fa07265a9e4a506a0260421e6305552787f98cf68a449d6c0"
 
 [[package]]
 name = "mosfet"
@@ -47,8 +47,8 @@ hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
 
 [[package]]
 name = "passive"
-version = "0.2.1"
-hash = "sha256:75d19bb814aee93091c2f49d7be59f85b55d9ccb2c2654924814d44737d6023e"
+version = "0.2.2"
+hash = "sha256:d5ae92b0190fffa84253edd6509bff5fa3e4c478e87d0b64110e4cbb1f3ba819"
 
 [[package]]
 name = "qfn"

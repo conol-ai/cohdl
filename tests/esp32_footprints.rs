@@ -870,7 +870,6 @@ fn emitter_witness(world: &mut cohdl::resolve::World, footprint: &str, index: us
                 variant: None,
                 specs: BTreeMap::new(),
                 part: Some(part_name),
-                virtual_only: false,
                 designator_override: None,
                 designator: Some(format!("U{}", index + 1)),
                 placement_hint: None,

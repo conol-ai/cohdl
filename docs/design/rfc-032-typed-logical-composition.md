@@ -1,0 +1,269 @@
+# RFC-032: Typed logical composition without manufacturing identity
+
+**Status: Draft — design review revised 2026-09-06.**
+
+## Problem
+
+CoHDL needs a way to compose a design from named, typed logical regions that
+can connect through explicit interfaces without becoming fabricated parts.
+The requirement is structural composition, not reproduction of a paper or CAD
+schematic's page layout.
+
+An initial implementation introduced `#[virtual]` on an `inst`. It proved a
+useful implementation fact: an object can participate in resolution, pin
+checking, connectivity, and residual DRC, then be absent from manufacturing
+artifacts. However, using a device-shaped instance as a page boundary risks
+adding a special kind of fake component to solve what may actually be a
+hierarchy and composition problem.
+
+The design question is therefore broader and more fundamental:
+
+> Should reusable logical composition use the existing expansion-oriented
+> `fn` concept, or does CoHDL need a first-class typed `subdesign` concept that
+> preserves hierarchy without carrying manufacturing identity?
+
+## Goals
+
+- Serve the Constitution's rank-1 correctness and rank-2 AI-verifiability
+  goals: logical composition must remain fully compiler-checked.
+- Model circuit structure rather than editor pages or drawing sheets.
+- Keep every fabricated component subject to normal part binding, designator,
+  footprint, placement, and BOM rules.
+- Give authors an explicit typed interface between reusable logical regions.
+- Decide whether retained hierarchy is required, rather than assuming it from
+  the motivating schematic presentation.
+- Preserve deterministic, truthful manufacturing output.
+
+## Non-goals
+
+- Introducing `page`, `sheet`, or coordinates for schematic presentation into
+  the core language.
+- A general simulation-only object model.
+- DNP/DNI assembly-population states.
+- Allowing real parts to disappear from manufacturing artifacts.
+- Choosing syntax before the semantic distinction between `fn` and
+  `subdesign` is settled.
+- Making the current `#[virtual]` prototype normative merely because it exists.
+
+## Design
+
+This Draft evaluates three designs. No syntax in this section is Accepted.
+
+### Option A: existing `fn` composition
+
+```cohdl
+fn power_section(vbat: Pin, gnd: Pin) {
+    inst charger: Charger
+    net _: vbat, charger.VBAT
+    net _: gnd, charger.GND
+}
+
+design Board {
+    power_section(input.VBAT, input.GND)
+}
+```
+
+RFC-006 already defines `fn` as an expansion mechanism for reusable circuit
+fragments. This is the smallest conceptual solution when callers only need the
+expanded instances and nets. It adds no concept or grammar.
+
+Its limitation is intentional: expansion produces hierarchical internal paths
+for hygiene and designators, but the call is not itself a retained typed design
+object. If Explorer, diagnostics, independent checking, or later references
+must address the composed region as a stable unit, `fn` may be insufficient.
+
+### Option B: first-class `subdesign` composition
+
+Illustrative syntax only:
+
+```cohdl
+subdesign PowerSection {
+    ports {
+        VBAT: Pin,
+        GND: Pin,
+    }
+
+    inst charger: Charger
+    net VBAT: self.VBAT, charger.VBAT
+    net GND: self.GND, charger.GND
+}
+
+design Board {
+    inst power: PowerSection
+    net VBAT: input.VBAT, power.VBAT
+    net GND: input.GND, power.GND
+}
+```
+
+A `subdesign` would be a typed composition boundary with explicit ports and a
+retained hierarchical identity. It would contain real component instances but
+would not itself be a part, receive a designator, or appear in a BOM. CAD tools
+could choose to render a subdesign on one page, several pages, or inline; that
+presentation decision would remain outside the language.
+
+This option is conceptually cleaner if retained hierarchy is a real
+requirement, but it has permanent cost: a new declaration kind, port rules,
+name-resolution rules, instantiation semantics, diagnostics, Explorer shape,
+and interactions with `fn`, generics, modules, placement, and designators.
+
+### Option C: `#[virtual] inst` prototype
+
+```cohdl
+#[virtual]
+inst boundary: BoundaryDevice
+```
+
+The prototype fully checks the instance and centrally removes it before
+manufacturing. It is local and inexpensive to implement, but it represents a
+logical composition boundary as a special device instance. That creates a
+semantic exception precisely where `subdesign` could express the distinction
+directly, and its page-boundary motivation can leak presentation concepts into
+the language model.
+
+The prototype remains evidence for implementation feasibility, not an
+Accepted design.
+
+## Type-system-first test
+
+This is not a residual-DRC proposal. Any accepted design must be structural and
+checked before artifact generation.
+
+- `fn` uses its existing parameter typing and expansion checks.
+- `subdesign` would require statically typed ports, complete internal checking,
+  and ordinary checks for every contained real instance.
+- `#[virtual]` uses attribute validation and instance classification, but its
+  conceptual fit remains under review.
+
+No option may weaken E801 for ordinary real instances.
+
+## Conceptual impact
+
+| Option | Permanent conceptual impact |
+|---|---|
+| `fn` | None; reuse the existing circuit-fragment expansion concept. |
+| `subdesign` | High; add a retained hierarchical composition concept and explicit port boundary. |
+| `#[virtual] inst` | Medium; add a non-manufacturing state to `Instance`. |
+
+The canonical vocabulary must remain clear:
+
+- `Device` describes an electrical interface.
+- `Part` supplies manufacturable evidence for a device.
+- `Instance` is a concrete occurrence in a design.
+- `fn` expands a reusable circuit fragment.
+- A possible `subdesign` would group checked circuit structure behind typed
+  ports; it would not mean schematic page.
+
+## Coherence matrix row
+
+| Candidate | Concepts | Grammar | Oracle | Diagnostics | Netlist | Compat | Trust |
+|---|---|---|---|---|---|---|---|
+| `fn` | Low | Low | Med | Low | Med | Low | High |
+| `subdesign` | High | High | High | High | High | Low | High |
+| `#[virtual]` | Med | Med | High | Med | High | Low | High |
+
+- **`subdesign` Concepts/Grammar — High:** acceptance requires a complete
+  definition of ports, containment, references, generics, and interaction with
+  existing `fn` and `design` concepts.
+- **Oracle — High:** every contained or virtualized structure must be checked
+  before any manufacturing projection; no option may turn errors into omitted
+  output.
+- **Netlist — High:** logical containers must never become fake components,
+  while their contained real components and connectivity must remain exact.
+- **Trust — High:** no mechanism may hide a part-bound instance or bypass E801.
+
+## Gradeability
+
+The decision needs conformance tests that answer the semantic question, not
+only parser tests:
+
+- typed boundary inputs and outputs resolve correctly;
+- missing or wrongly typed connections fail at the boundary;
+- internal real components still require honest part bindings;
+- composition preserves connectivity and residual DRC behavior;
+- no logical container becomes a designator, footprint, component, or BOM row;
+- two uses of the same composition remain hygienic and deterministic;
+- Explorer and diagnostics either retain or deliberately erase the boundary,
+  matching the chosen semantics.
+
+The current `#[virtual]` tests cover only the prototype's manufacturing-safety
+properties; they do not decide whether the abstraction belongs in the language.
+
+## AI-generatability
+
+`fn` is already teachable and local, but does not advertise a retained module
+boundary. `subdesign` would be explicit and structurally legible to an AI, at
+the cost of another declaration concept. `#[virtual]` is syntactically small
+but requires learning why an apparent instance is not manufactured.
+
+The preferred design should minimize exceptions: an AI should select an
+abstraction based on whether it needs reusable expansion or retained typed
+hierarchy, never based on how a schematic happens to be split into pages.
+
+## Alternatives
+
+- Global labels or net aliases: rejected as the main solution because they do
+  not create a typed composition boundary.
+- A `page` declaration: rejected because it encodes presentation rather than
+  circuit semantics.
+- Fake parts or footprints: rejected because they make manufacturing output
+  untruthful.
+- Inferring non-manufacturing behavior from a missing part: rejected because
+  absence of evidence is normally an E801 authoring error.
+- Keeping `#[virtual]` solely because implementation exists: rejected; an RFC
+  evaluates language coherence, not sunk implementation cost.
+
+## Compatibility
+
+No accepted language change exists yet. The implementation in PR #33 is an
+experimental prototype and must not be treated as stable syntax.
+
+Choosing `fn` may require no language compatibility story. Choosing
+`subdesign` would be additive but would need a migration path from any
+prototype `#[virtual]` source. Accepting `#[virtual]` would also be additive,
+but only after resolving the conceptual objection recorded here.
+
+## Tooling & operations
+
+- `fmt`, parser recovery, `check --json`, LSP, and Explorer must understand the
+  accepted abstraction consistently.
+- The checked-design representation must make hierarchy retention or erasure
+  explicit; tools must not guess from names or editor pages.
+- Manufacturing emitters must share one IR boundary and cannot independently
+  decide whether a logical container is physical.
+- Source changes must remain diffable and reversible.
+
+## Teaching cost
+
+`fn` has the lowest new teaching cost. `subdesign` has higher initial cost but
+may produce a cleaner long-term distinction between reusable expansion and
+retained hierarchy. `#[virtual]` is small in syntax but introduces a special
+instance category and a prohibition list.
+
+The RFC cannot compare teaching cost honestly until the retained-hierarchy
+requirement is confirmed with concrete workflows beyond page presentation.
+
+## Failure modes
+
+- A CAD page concept becomes a permanent language concept.
+- A logical container is mistaken for a fitted component.
+- A real component is hidden from the BOM or netlist.
+- `fn` is selected despite tools needing a retained addressable boundary.
+- `subdesign` duplicates `fn` without a crisp semantic distinction.
+- Two composition mechanisms produce different checking or naming rules.
+- Explorer preserves hierarchy while compiler diagnostics or emitters flatten
+  it inconsistently.
+
+## Migration path
+
+None while Draft. If `fn` is sufficient, prototype `#[virtual]` usages should
+be rewritten as ordinary typed function composition. If `subdesign` is
+accepted, prototype usages should migrate to explicit subdesign declarations
+and port connections. No provisional syntax should be promised stable.
+
+## Decision
+
+**Draft — revised 2026-09-06.** No option is Accepted and no decision record is
+assigned. Review must first determine whether retained typed hierarchy is a
+real semantic requirement. If it is not, use existing `fn`; if it is, specify
+`subdesign` completely before implementation. The `#[virtual]` implementation
+in PR #33 remains a prototype and does not update the Language Specification.

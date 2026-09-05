@@ -881,7 +881,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             }
         }
 
-        // #[designator("U7")] override (RFC-005) and board-only #[virtual].
+        // #[designator("U7")] override (RFC-005) and provisional #[virtual].
         let mut designator_override = None;
         let mut virtual_only = false;
         let mut virtual_span = None;

@@ -307,6 +307,30 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
     // IR, so an unused part's mismatched footprint is still caught (R5-4).
     crate::check::footprints::check_pad_consistency(&checked.world, &mut diags);
     let ir = checked.ir.as_mut()?;
+    // `#[virtual]` instances are connectivity-only authoring helpers. Net
+    // merging and all electrical checks have already run; manufacturing
+    // artifacts must contain neither fake parts nor fake BOM rows for them.
+    let virtual_paths: std::collections::BTreeSet<String> = ir
+        .instances
+        .iter()
+        .filter(|(_, inst)| inst.virtual_only)
+        .map(|(path, _)| path.clone())
+        .collect();
+    if !virtual_paths.is_empty() {
+        ir.instances.retain(|path, _| !virtual_paths.contains(path));
+        for net in &mut ir.nets {
+            net.members
+                .retain(|(path, _)| !virtual_paths.contains(path));
+        }
+        ir.nets.retain(|net| !net.members.is_empty());
+        ir.nc_pins.retain(|(path, _)| !virtual_paths.contains(path));
+        ir.layout
+            .placements
+            .retain(|placement| !virtual_paths.contains(&placement.path));
+        ir.layout
+            .bga_fanouts
+            .retain(|path| !virtual_paths.contains(path));
+    }
     let mut notes = Vec::new();
     let lock = crate::lock::assign_designators(&checked.world, ir, prior_lock, &mut diags);
     crate::emit::bind_parts(&checked.world, ir, &mut diags, &mut notes);

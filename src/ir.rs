@@ -170,6 +170,10 @@ pub struct IrInstance {
     pub specs: BTreeMap<String, UnitValue>,
     /// Part binding (by-name at expansion; by-exact-match filled at build).
     pub part: Option<String>,
+    /// Board-only logical connectivity helper. Virtual instances participate
+    /// in checking/net merging, then are removed before designator allocation,
+    /// part binding and manufacturing emission.
+    pub virtual_only: bool,
     pub designator_override: Option<(String, Span)>,
     /// Assigned by the allocator (RFC-005) during `build`.
     pub designator: Option<String>,

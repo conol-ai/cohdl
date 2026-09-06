@@ -164,6 +164,26 @@ pub trait Capacitor: TwoTerminal {
 - `#[designator("U7")]` on an `inst` statement overrides the full designator
   (prefix + number), resolved before fresh assignment per RFC-005.
 
+### Experimental `#[virtual]` connectivity-only instances
+
+`#[virtual]` may annotate an `inst` that exists only to carry and merge logical
+connectivity without representing a fabricated component. It takes no
+arguments.
+The instance participates in parsing, resolution, pin checks, net merging and
+residual DRC. At `build`, it is removed before designator allocation, part
+binding and manufacturing emission, so it creates no footprint, netlist
+component or BOM row. Real fitted components must never use `#[virtual]` to
+bypass the E801 part-binding requirement. The compiler rejects `#[virtual]`
+on a part-bound instance and rejects combining it with `#[designator]`,
+`#[placement_hint]`, or manufacturing-physics attributes.
+
+This syntax is an implementation prototype under RFC-032 Draft review. It is
+not part of the Accepted Language Specification. The review is deciding whether
+the requirement should instead use `module` for source organization plus
+existing `fn` composition, or a first-class typed `subdesign` when retained
+hierarchy is required. Neither `module` nor schematic `page` gains electrical
+semantics from this prototype.
+
 ## 7. Residual-DRC rule concretions (RFC-004's four rules)
 
 | Code | Rule | Fires when |

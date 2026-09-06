@@ -170,6 +170,7 @@ fn insert_emitter_witnesses(
                 variant: None,
                 specs: BTreeMap::new(),
                 part: Some(part_name),
+                virtual_only: false,
                 designator_override: None,
                 designator: None,
                 placement_hint: None,

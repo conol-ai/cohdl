@@ -36,6 +36,19 @@ live note wins — re-extract with `python3 tools/extract_design_repo.py docs/de
 | `rfc-017-library-registry.md` | RFC-017: Library registry (cohdl source + docs + footprint symbols) |
 | `rfc-018-footprint-format.md` | RFC-018: Footprint format — Cadence-style pad/footprint split |
 | `rfc-019-vscode-extension.md` | RFC-019: VS Code extension for CoHDL |
+| `rfc-020-board-outline-dxf.md` | RFC-020: Board outline from scoped DXF geometry |
+| `rfc-021-ipc7351-footprint-naming.md` | RFC-021: IPC-7351 footprint naming |
+| `rfc-022-mount-hole.md` | RFC-022: Footprint mounting holes |
+| `rfc-023-non-circular-mount-hole.md` | RFC-023: Non-circular mounting holes |
+| `rfc-024-instance-arrays.md` | RFC-024: Array-typed instances |
+| `rfc-025-rotated-pad-placements.md` | RFC-025: Rotated pad placements |
+| `rfc-026-back-side-placement.md` | RFC-026: Back-side placement |
+| `rfc-027-quilter-physics-constraints.md` | RFC-027: Quilter physics constraints |
+| `rfc-028-phys-attrs-on-fn-pin-params.md` | RFC-028: Physics attributes on function parameters |
+| `rfc-029-package-dependency-versioning.md` | RFC-029: Package dependency versioning |
+| `rfc-030-registry-service.md` | RFC-030: Registry service |
+| `rfc-031-silkscreen-graphics.md` | RFC-031: Silkscreen graphics |
+| `rfc-032-typed-logical-composition.md` | RFC-032 (Draft): Typed logical composition without manufacturing identity |
 | `gc-002-amended-layout-door.md` | GC-002 (amended): Admit layout constraints into the conceptual model |
 | `07-decision-records.md` | 🗂️ 7. Decision Records |
 | `08-evolution-governance.md` | 🧬 8. Evolution Governance & Design Regression |

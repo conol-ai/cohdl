@@ -100,6 +100,49 @@ for hygiene and designators, but the call is not itself a retained typed design
 object. If Explorer, diagnostics, independent checking, or later references
 must address the composed region as a stable unit, `fn` may be insufficient.
 
+Current `fn` also has no return value: its parameters may bind existing pins or
+instances, but a caller cannot bind a new source-level name to an internal pin
+created by a completed sibling call. Therefore this flat shape is not generally
+available today:
+
+```cohdl
+design Board {
+    power()       // internally creates regulator.OUT
+    controller()  // cannot name power's internal regulator.OUT here
+}
+```
+
+That does not yet prove a new concept is needed. RFC-006 permits nested calls,
+and existing fn parameters can carry `Pin` references and trait-bound instance
+references. A parent fn can own the shared component and pass its pins into
+smaller child fragments:
+
+```cohdl
+fn controller(vdd: Pin, gnd: Pin) {
+    inst mcu: McuPart
+    net _: vdd, mcu.VDD
+    net _: gnd, mcu.GND
+}
+
+fn system_power(vbat: Pin, gnd: Pin) {
+    inst regulator: RegulatorPart
+    net _: vbat, regulator.IN
+    net _: gnd, regulator.GND
+    controller(regulator.OUT, gnd)
+}
+
+design Board {
+    inst battery: BatteryPart
+    system_power(battery.VBAT, battery.GND)
+}
+```
+
+This is composition by explicit dataflow rather than by drawing-sheet
+boundaries. Different source modules may define the child fns; `use` imports
+them, and one design or orchestration fn composes them. The hierarchy is still
+deterministic in compiler-generated paths, but it is not a retained public
+interface object.
+
 ### Option B: first-class `subdesign` composition
 
 Illustrative syntax only:
@@ -209,6 +252,13 @@ Use `module + fn` unless a concrete workflow requires the composition boundary
 to survive expansion as a named, typed, independently addressable object. Only
 that retained-hierarchy requirement justifies `subdesign`.
 
+Before selecting `subdesign`, the motivating design must be rewritten once
+using existing module-scoped fns, Pin/instance parameters, and nested
+orchestration. The rewrite must record exactly which requirement, if any,
+cannot be expressed. A preference for peer-shaped blocks or pages is not such a
+requirement; an inability to expose a stable typed interface after reasonable
+fn decomposition may be.
+
 Presentation grouping remains tooling metadata. Explorer may map one
 `subdesign` to one page, several pages, or no dedicated page; it may also group
 ordinary `fn` expansions visually. None of those view choices change language
@@ -269,6 +319,9 @@ The canonical vocabulary must remain clear:
 The decision needs conformance tests that answer the semantic question, not
 only parser tests:
 
+- the motivating composition can or cannot be expressed with existing nested
+  fns, with the specific unexpressible operation recorded rather than assumed;
+
 - typed boundary inputs and outputs resolve correctly;
 - missing or wrongly typed connections fail at the boundary;
 - external references to undeclared/private internals are rejected;
@@ -312,6 +365,14 @@ hierarchy, never based on how a schematic happens to be split into pages.
   absence of evidence is normally an E801 authoring error.
 - Keeping `#[virtual]` solely because implementation exists: rejected; an RFC
   evaluates language coherence, not sunk implementation cost.
+- Add general return values and `let` bindings to `fn`: deferred unless the
+  existing-fn rewrite proves that exposing an internal pin is the only missing
+  operation. CoHDL is currently statement-oriented; a general expression and
+  return model would be a separate permanent language expansion, not a trivial
+  substitute for `subdesign`.
+- Add a narrow `fn` output-port mechanism: potentially smaller than
+  `subdesign`, but only justified by the same rewrite evidence. It must not add
+  implicit connectivity or create a second kind of net alias.
 
 ## Compatibility
 
@@ -381,5 +442,7 @@ assigned. Review must first determine whether retained typed hierarchy is a
 real semantic requirement. If it is not, use `module` for source organization
 and existing `fn` for circuit composition. If it is, specify `subdesign`
 completely before implementation, while keeping `module` as namespace only.
-The `#[virtual]` implementation in PR #33 remains a prototype and does not
-update the Language Specification.
+The next design gate is a concrete rewrite using nested fns; only a precisely
+recorded remaining gap may justify either a narrow fn-output extension or
+`subdesign`. The `#[virtual]` implementation in PR #33 remains a prototype and
+does not update the Language Specification.

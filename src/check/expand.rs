@@ -256,6 +256,8 @@ impl<'w, 'd> Expander<'w, 'd> {
                     Some((n, span)) => {
                         if scope.arrays.contains_key(&inst.name.name)
                             || scope.local_insts.contains_key(&inst.name.name)
+                            || scope.local_subs.contains_key(&inst.name.name)
+                            || scope.bindings.contains_key(&inst.name.name)
                         {
                             self.diags.push(Diagnostic::error(
                                 "E201",
@@ -733,41 +735,79 @@ impl<'w, 'd> Expander<'w, 'd> {
         // RFC-028: an instance argument may be a local inst OR a fn's
         // Instance-typed parameter — the same two forms every other instance
         // reference already resolves through.
-        let resolve_inst =
-            |ex: &mut Self, id: &Ident, index: Option<(i64, Span)>| -> Option<String> {
-                // RFC-024: `NAME[i]` resolves through the SAME element resolver
-                // `place` uses, so the two can never disagree about which element
-                // an index names. An unindexed name keeps its old meaning.
-                if index.is_some() || scope.arrays.contains_key(&id.name) {
-                    let local = ex.indexed_local(
-                        id,
-                        index,
-                        scope,
-                        &format!(
-                            "`{}` is array-typed — name one element, e.g. `{}[0]`",
-                            id.name, id.name
-                        ),
-                    )?;
-                    if let Some(p) = scope.local_insts.get(&local) {
-                        return Some(p.clone());
-                    }
-                }
-                if let Some(p) = scope.local_insts.get(&id.name) {
+        let resolve_inst = |ex: &mut Self,
+                            id: &Ident,
+                            index: Option<(i64, Span)>|
+         -> Option<String> {
+            // RFC-024: `NAME[i]` resolves through the SAME element resolver
+            // `place` uses, so the two can never disagree about which element
+            // an index names. An unindexed name keeps its old meaning.
+            if index.is_some() || scope.arrays.contains_key(&id.name) {
+                let local = ex.indexed_local(
+                    id,
+                    index,
+                    scope,
+                    &format!(
+                        "`{}` is array-typed — name one element, e.g. `{}[0]`",
+                        id.name, id.name
+                    ),
+                )?;
+                if let Some(p) = scope.local_insts.get(&local) {
                     return Some(p.clone());
                 }
-                if let Some(Binding::Instance { path, .. }) = scope.bindings.get(&id.name) {
-                    return Some(path.clone());
-                }
+            }
+            if let Some(p) = scope.local_insts.get(&id.name) {
+                return Some(p.clone());
+            }
+            if let Some(Binding::Instance { path, .. }) = scope.bindings.get(&id.name) {
+                return Some(path.clone());
+            }
+            // RFC-032: a subdesign node is never a physics target — its
+            // real components are behind the port boundary.
+            if scope.local_subs.contains_key(&id.name) {
                 ex.diags.push(Diagnostic::error(
-                    "E1009",
-                    id.span,
-                    format!("`{}` is not an instance in this scope", id.name),
-                ));
-                None
-            };
+                        "E1009",
+                        id.span,
+                        format!(
+                            "`{}` is a subdesign — a physics attribute needs a real instance; attach it inside the subdesign that owns the part (RFC-032)",
+                            id.name
+                        ),
+                    ));
+                return None;
+            }
+            ex.diags.push(Diagnostic::error(
+                "E1009",
+                id.span,
+                format!("`{}` is not an instance in this scope", id.name),
+            ));
+            None
+        };
         // The referenced instance's device pin, by NAME -> its pad numbers.
         let pin_pads = |ex: &mut Self, path: &str, pin: &Ident| -> Option<Vec<String>> {
-            let target = &ex.instances[path];
+            // RFC-032: a `Binding::Pin` may carry a subdesign PORT — a
+            // logical junction with no physical pads. A physics fact needs a
+            // real device pin, so say that precisely (never index-panic on
+            // the deliberately-absent node path).
+            let Some(target) = ex.instances.get(path) else {
+                let what = if ex.sub_nodes.contains_key(path) {
+                    format!(
+                        "`{}` resolves to a port of subdesign use site `{}`",
+                        pin.name,
+                        crate::resolve::short(path)
+                    )
+                } else {
+                    format!("`{}` does not resolve to a physical pin", pin.name)
+                };
+                ex.diags.push(Diagnostic::error(
+                    "E1009",
+                    pin.span,
+                    format!(
+                        "{} — a physics attribute needs a real device pin; attach it inside the subdesign that owns the pin (RFC-032)",
+                        what
+                    ),
+                ));
+                return None;
+            };
             let dev = ex.world.devices.get(&target.device)?;
             let variant = target.variant.clone();
             match dev
@@ -1946,6 +1986,21 @@ impl<'w, 'd> Expander<'w, 'd> {
         let body = sd.body.clone();
         let fq = ty_name.name.clone();
         for elem in element_names {
+            // RFC-024 discipline: each element is fully real, so its
+            // generated name takes the SAME duplicate check a hand-written
+            // declaration would (physical arrays get this via handle_inst).
+            if scope.local_insts.contains_key(&elem)
+                || scope.bindings.contains_key(&elem)
+                || scope.local_subs.contains_key(&elem)
+                || scope.arrays.contains_key(&elem)
+            {
+                self.diags.push(Diagnostic::error(
+                    "E201",
+                    stmt.name.span,
+                    format!("`{}` is already defined in this scope", elem),
+                ));
+                continue;
+            }
             let node_path = format!("{}::{}", scope.path, elem);
             scope.local_subs.insert(elem, node_path.clone());
             // Inside the body, every port is a pin OF THE NODE — the same
@@ -1970,19 +2025,30 @@ impl<'w, 'd> Expander<'w, 'd> {
                 arrays: BTreeMap::new(),
             };
             self.active_subs.push(fq.clone());
-            self.walk_body(&body, &mut inner);
-            self.active_subs.pop();
+            // The node exists BEFORE its body walks: an in-body reference
+            // that lands on the node path (a port used as a physics target,
+            // say) must identify it as a subdesign node, not fall through to
+            // a generic "not physical" shape. Children fill in after.
             self.sub_nodes.insert(
-                node_path,
+                node_path.clone(),
                 SubNode {
                     fq: fq.clone(),
                     use_span: stmt.span,
                     ports: ports.clone(),
-                    children_insts: inner.local_insts,
-                    children_subs: inner.local_subs,
-                    children_arrays: inner.arrays,
+                    children_insts: BTreeMap::new(),
+                    children_subs: BTreeMap::new(),
+                    children_arrays: BTreeMap::new(),
                 },
             );
+            self.walk_body(&body, &mut inner);
+            self.active_subs.pop();
+            let node = self
+                .sub_nodes
+                .get_mut(&node_path)
+                .expect("stub inserted above");
+            node.children_insts = inner.local_insts;
+            node.children_subs = inner.local_subs;
+            node.children_arrays = inner.arrays;
         }
     }
 
@@ -2366,9 +2432,15 @@ impl<'w, 'd> Expander<'w, 'd> {
                     anchors.insert(np.clone(), d.clone());
                     continue;
                 }
+                // Only an entry whose owner IS anchored can place this
+                // node; an entry in an unanchored ancestor's layout is inert
+                // and must not shadow a usable one further in (owners are
+                // strict ancestors, already final in this depth-sorted walk).
                 let mut best: Option<(usize, usize)> = None;
                 for (i, r) in self.rel_places.iter().enumerate() {
-                    if matches!(&r.target, PlaceTarget::Node(p) if p == np) {
+                    if matches!(&r.target, PlaceTarget::Node(p) if p == np)
+                        && anchors.contains_key(&r.owner)
+                    {
                         let key = (depth(&r.owner), i);
                         if best.is_none_or(|b| key < b) {
                             best = Some(key);
@@ -2377,15 +2449,16 @@ impl<'w, 'd> Expander<'w, 'd> {
                 }
                 if let Some((_, i)) = best {
                     let r = &self.rel_places[i];
-                    if let Some(pa) = anchors.get(&r.owner) {
-                        let composed = compose_place(pa, &r.data);
-                        anchors.insert(np.clone(), composed);
-                    }
+                    let composed = compose_place(&anchors[&r.owner], &r.data);
+                    anchors.insert(np.clone(), composed);
                 }
             }
             let mut best_inst: BTreeMap<String, (usize, usize)> = BTreeMap::new();
             for (i, r) in self.rel_places.iter().enumerate() {
                 if let PlaceTarget::Inst(p) = &r.target {
+                    if !anchors.contains_key(&r.owner) {
+                        continue;
+                    }
                     let key = (depth(&r.owner), i);
                     let slot = best_inst.entry(p.clone()).or_insert(key);
                     if key < *slot {

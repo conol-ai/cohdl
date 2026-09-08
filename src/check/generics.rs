@@ -82,7 +82,7 @@ pub fn resolve_generic_args(
     subst
 }
 
-fn describe_param(param: &GenericParam) -> String {
+pub(crate) fn describe_param(param: &GenericParam) -> String {
     match &param.bound {
         GenericBound::Unit(u) => format!(
             "`{}` expects a `{}` value (e.g. `{}`)",
@@ -118,7 +118,7 @@ fn example_literal(unit: crate::units::UnitType) -> String {
     }
 }
 
-fn resolve_one(
+pub(crate) fn resolve_one(
     world: &World,
     param: &GenericParam,
     arg: &GenericArg,

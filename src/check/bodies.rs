@@ -147,6 +147,7 @@ fn check_one(world: &World, f: &FnDef, allow_sub_use: bool, diags: &mut Diagnost
                     ));
                     continue;
                 }
+                check_sub_use_site(world, f, sub, diags);
                 check_named_generic_args(world, f, &sub.ty.generic_args, diags);
                 for conn in &sub.conns {
                     // A bare name may be a net (resolved at expansion); only
@@ -301,6 +302,135 @@ fn check_device_generic_args(
                     ),
                 ));
             }
+        }
+    }
+}
+
+/// RFC-032: the statically-knowable properties of a NESTED use site — target
+/// kind, variant selector, generic arity, argument kinds and concrete
+/// values/bounds, and connection port keys. A use site inside an unused
+/// subdesign otherwise escapes all of this until a consumer instantiates
+/// the enclosing one. Judgments come from THE bound checker (`resolve_one`,
+/// DR-016) so messages mirror expansion's exactly and a used enclosing
+/// subdesign reported by both collapses under dedup.
+fn check_sub_use_site(
+    world: &World,
+    f: &FnDef,
+    stmt: &crate::ast::SubdesignUseStmt,
+    diags: &mut Diagnostics,
+) {
+    let name = &stmt.ty.name;
+    let Some(sd) = world.subdesigns.get(&name.name) else {
+        if let Some(sym) = world.symbols.get(&name.name) {
+            diags.push(Diagnostic::error(
+                "E205",
+                name.span,
+                format!(
+                    "`{}` is a {} — a `subdesign` use site requires a subdesign",
+                    name.name, sym.kind
+                ),
+            ));
+        }
+        return;
+    };
+    if let Some(sel) = &stmt.ty.variant {
+        diags.push(Diagnostic::error(
+            "E1303",
+            sel.span,
+            format!(
+                "a subdesign has no variants — remove the `[{}]` selector",
+                sel.name
+            ),
+        ));
+    }
+    let args = &stmt.ty.generic_args;
+    if args.len() > sd.generics.len() {
+        diags.push(Diagnostic::error(
+            "E401",
+            stmt.ty.span,
+            format!(
+                "subdesign `{}` takes {} generic argument{}, but {} {} given",
+                short(&name.name),
+                sd.generics.len(),
+                if sd.generics.len() == 1 { "" } else { "s" },
+                args.len(),
+                if args.len() == 1 { "was" } else { "were" }
+            ),
+        ));
+    }
+    let enclosing: BTreeSet<&str> = f.generics.iter().map(|g| g.name.name.as_str()).collect();
+    for (i, param) in sd.generics.iter().enumerate() {
+        match args.get(i) {
+            Some(arg) => {
+                // Deferred to expansion: a name referencing an ENCLOSING
+                // generic (its value exists only per use, RFC-006) or an
+                // unknown name (check_named_generic_args' E202 above owns
+                // that report). Everything else — unit literals, bare
+                // numbers, concrete device/part names — is judged now with
+                // an empty substitution, which for these argument shapes
+                // behaves exactly as expansion's env does.
+                let deferred = matches!(arg, GenericArg::Name(id)
+                    if enclosing.contains(id.name.as_str())
+                        || !world.symbols.contains_key(&id.name));
+                if !deferred {
+                    let _ = crate::check::generics::resolve_one(
+                        world,
+                        param,
+                        arg,
+                        &crate::check::generics::Substitution::new(),
+                        diags,
+                    );
+                }
+            }
+            None => {
+                if param.default.is_none() {
+                    diags.push(
+                        Diagnostic::error(
+                            "E401",
+                            stmt.ty.span,
+                            format!(
+                                "missing generic argument for `{}` of subdesign `{}` (it has no default)",
+                                param.name.name,
+                                short(&name.name)
+                            ),
+                        )
+                        .with_help(crate::check::generics::describe_param(param)),
+                    );
+                }
+            }
+        }
+    }
+    let ports: BTreeSet<&str> = sd.ports.iter().map(|p| p.name.name.as_str()).collect();
+    let mut seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
+    for conn in &stmt.conns {
+        if let Some(prev) = seen.insert(conn.port.name.as_str(), conn.span) {
+            diags.push(
+                Diagnostic::error(
+                    "E1301",
+                    conn.port.span,
+                    format!("port `{}` is connected more than once", conn.port.name),
+                )
+                .with_secondary(prev, "first connected here".to_string()),
+            );
+            continue;
+        }
+        if !ports.contains(conn.port.name.as_str()) {
+            diags.push(
+                Diagnostic::error(
+                    "E1301",
+                    conn.port.span,
+                    format!(
+                        "subdesign `{}` (use site `{}`) has no port named `{}`",
+                        short(&name.name),
+                        stmt.name.name,
+                        conn.port.name
+                    ),
+                )
+                .with_help(format!(
+                    "its ports are: {}",
+                    ports.iter().cloned().collect::<Vec<_>>().join(", ")
+                )),
+            );
         }
     }
 }

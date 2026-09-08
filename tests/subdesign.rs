@@ -718,3 +718,310 @@ design B {
     assert!(e.contains("E209"), "{e}");
     assert!(e.contains("subdesign"), "the E209 help names the kind: {e}");
 }
+
+// ---------------------------------------------------------------------------
+// 2026-09-08 audit regressions (F1/F2/F3/F5; the LSP finding F4 is pinned in
+// tests/lsp.rs)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn physics_attr_through_a_port_is_e1009_never_a_panic() {
+    // Direct: `#[bypass]` names a port inside the subdesign body.
+    let direct = format!(
+        "{LIB}
+subdesign Dec {{
+    ports {{ required V: Pin required G: Pin }}
+    #[bypass(V, 100nF)]
+    inst c: C100N
+    net _: V, c.A
+    net _: G, c.B
+}}
+design B {{
+    inst load: C1U
+    subdesign d: Dec {{ V: load.A, G: load.B }}
+}}
+"
+    );
+    let e = errors_of(&direct);
+    assert!(e.contains("E1009"), "{e}");
+    assert!(
+        e.contains("resolves to a port of subdesign use site"),
+        "{e}"
+    );
+
+    // Indirect: a Pin-typed helper receives the port (RFC-028 binding).
+    let helper = format!(
+        "{LIB}
+fn dec(v: Pin, g: Pin) {{
+    #[bypass(v, 100nF)]
+    inst c: C100N
+    net _: v, c.A
+    net _: g, c.B
+}}
+subdesign Dec {{
+    ports {{ required V: Pin required G: Pin }}
+    dec(V, G)
+}}
+design B {{
+    inst load: C1U
+    subdesign d: Dec {{ V: load.A, G: load.B }}
+}}
+"
+    );
+    let e = errors_of(&helper);
+    assert!(e.contains("E1009"), "{e}");
+
+    // The use site itself as an instance-shaped physics target.
+    let on_site = format!(
+        "{LIB}
+design B {{
+    inst load: C1U
+    subdesign vr: Vreg<100nF> {{ VIN: rail, VOUT: out }}
+    #[bypass(vr, 100nF)]
+    inst c2: C100N
+    net rail [5V]: load.A, c2.A
+    net out: load.B, c2.B
+}}
+"
+    );
+    let e = errors_of(&on_site);
+    assert!(e.contains("E1009"), "{e}");
+
+    // An instance-shaped physics argument naming the use site (RFC-028's
+    // parent-resolution path).
+    let as_parent = format!(
+        "{LIB}
+design B {{
+    inst load: C1U
+    subdesign vr: Vreg<100nF> {{ VIN: rail, VOUT: out }}
+    #[crystal_oscillator(vr, VIN, VOUT)]
+    inst x: C100N
+    net rail [5V]: load.A, x.A
+    net out: load.B, x.B
+}}
+"
+    );
+    let e = errors_of(&as_parent);
+    assert!(e.contains("E1009"), "{e}");
+    assert!(e.contains("`vr` is a subdesign"), "{e}");
+}
+
+#[test]
+fn array_element_name_collisions_are_e201_in_both_directions() {
+    let block = "
+pub subdesign Block {
+    inst c: C100N
+    net _: c.A
+    net _: c.B
+}
+";
+    // A subdesign array's generated element collides with an earlier use
+    // site — before the fix this silently OVERWROTE `B::b_0::c` and lost a
+    // component from the BOM/netlists.
+    let sub_over_sub = format!(
+        "{LIB}{block}
+design B {{
+    subdesign b_0: Block
+    subdesign b: [Block; 2]
+}}
+"
+    );
+    let e = errors_of(&sub_over_sub);
+    assert!(e.contains("E201"), "{e}");
+    assert!(e.contains("`b_0` is already defined in this scope"), "{e}");
+
+    // A physical array's base name colliding with a use site.
+    let inst_over_sub = format!(
+        "{LIB}{block}
+design B {{
+    subdesign b: Block
+    inst b: [C100N; 2]
+}}
+"
+    );
+    let e = errors_of(&inst_over_sub);
+    assert!(e.contains("E201"), "{e}");
+    assert!(e.contains("`b` is already defined in this scope"), "{e}");
+}
+
+#[test]
+fn unused_subdesign_still_validates_nested_use_sites() {
+    // None of these enclosing subdesigns is ever used; the nested use-site
+    // defects are declaration-time facts and must not ship to a consumer.
+    let src = format!(
+        "{LIB}
+subdesign BadUnit {{
+    subdesign child: Vreg<5V>
+}}
+subdesign BadArity {{
+    subdesign child: Vreg<100nF, 5V>
+}}
+subdesign BadPort {{
+    inst c: C1U
+    subdesign child: Vreg<100nF> {{ TYPO: c.A }}
+    net _: c.B
+}}
+design B {{
+    inst load: C1U
+    net rail [5V]: load.A
+    net out: load.B
+}}
+"
+    );
+    let e = errors_of(&src);
+    assert!(e.contains("E112"), "wrong unit must be caught:\n{e}");
+    assert!(e.contains("expected `Capacitance`, found `Voltage`"), "{e}");
+    assert!(e.contains("E401"), "over-arity must be caught:\n{e}");
+    assert!(
+        e.contains("subdesign `Vreg` takes 1 generic argument, but 2 were given"),
+        "{e}"
+    );
+    assert!(e.contains("E1301"), "unknown port must be caught:\n{e}");
+    assert!(
+        e.contains("subdesign `Vreg` (use site `child`) has no port named `TYPO`"),
+        "{e}"
+    );
+}
+
+#[test]
+fn unused_subdesign_validates_argument_kinds_and_trait_bounds() {
+    // The recheck's residual F3 cases: bare numbers, unit literals for
+    // trait-bound parameters, and concrete devices missing the bound are
+    // all declaration-time facts. A name referencing an ENCLOSING generic
+    // is the one legitimately deferred shape.
+    let src = format!(
+        "{LIB}
+pub subdesign NeedsIc<T: Ic> {{
+}}
+subdesign BadNumber {{
+    subdesign child: Vreg<100>
+}}
+subdesign BadKind {{
+    subdesign child: NeedsIc<5V>
+}}
+subdesign BadBound {{
+    subdesign child: NeedsIc<C2T>
+}}
+subdesign Forwards<D: Ic> {{
+    subdesign child: NeedsIc<D>
+}}
+design B {{
+    inst load: C1U
+    net rail [5V]: load.A
+    net out: load.B
+}}
+"
+    );
+    let e = errors_of(&src);
+    assert!(e.contains("E113"), "bare number must be caught:\n{e}");
+    assert!(
+        e.contains("a bare number is never valid for `Cin: Capacitance`"),
+        "{e}"
+    );
+    assert!(
+        e.contains("`T` expects a device type, found unit literal `5V`"),
+        "unit-for-trait must be E403:\n{e}"
+    );
+    assert!(
+        e.matches("E403").count() >= 2,
+        "wrong-trait concrete device must also be E403:\n{e}"
+    );
+    assert!(
+        !e.contains("`D`"),
+        "a name referencing an enclosing generic is deferred, never flagged:\n{e}"
+    );
+}
+
+#[test]
+fn used_subdesign_reports_each_static_defect_once() {
+    // The static pass mirrors expansion's messages EXACTLY so a used
+    // enclosing subdesign collapses under dedup instead of double-reporting.
+    let src = format!(
+        "{LIB}
+subdesign BadUnit {{
+    subdesign child: Vreg<5V>
+}}
+design B {{
+    subdesign bad: BadUnit
+    inst load: C1U
+    net rail [5V]: load.A
+    net out: load.B
+}}
+"
+    );
+    let e = errors_of(&src);
+    assert_eq!(
+        e.matches("wrong unit type").count(),
+        1,
+        "one E112, not a static+expansion double report:\n{e}"
+    );
+}
+
+#[test]
+fn unanchored_outer_override_does_not_shadow_an_anchored_default() {
+    // The audit's F5 shape: `B::o` is unanchored, so its reach-in override
+    // for `inner.c` is inert — but `B::o::inner` IS anchored (design-level
+    // reach-in), and its own default for `c` must still land.
+    let src = format!(
+        "{LIB}
+subdesign Inner {{
+    inst c: C1U
+    net _: c.A
+    net _: c.B
+    layout {{ place c at (1mm, 2mm) }}
+}}
+subdesign Outer {{
+    subdesign inner: Inner
+    layout {{
+        place inner at (10mm, 20mm)
+        place inner.c at (3mm, 4mm)
+    }}
+}}
+design B {{
+    subdesign o: Outer
+    layout {{ place o.inner at (100mm, 200mm) }}
+}}
+"
+    );
+    let c = checked_ok(&src);
+    let ir = c.ir.as_ref().unwrap();
+    let p = place_of(ir, "B::o::inner::c");
+    assert_eq!(
+        (p.at.0.femto, p.at.1.femto),
+        (101_000_000_000_000_000, 202_000_000_000_000_000),
+        "the anchored owner's default composes; the unanchored owner's entry is inert"
+    );
+
+    // The node-anchor side of the same defect: an unanchored grandparent's
+    // whole-unit entry for a node must not shadow the anchored parent's.
+    let src = format!(
+        "{LIB}
+subdesign Inner {{
+    inst c: C1U
+    net _: c.A
+    net _: c.B
+    layout {{ place c at (1mm, 2mm) }}
+}}
+subdesign Mid {{
+    subdesign inner: Inner
+    layout {{ place inner at (7mm, 0mm) }}
+}}
+subdesign Outer {{
+    subdesign mid: Mid
+    layout {{ place mid.inner at (99mm, 99mm) }}
+}}
+design B {{
+    subdesign o: Outer
+    layout {{ place o.mid at (100mm, 200mm) }}
+}}
+"
+    );
+    let c = checked_ok(&src);
+    let ir = c.ir.as_ref().unwrap();
+    let p = place_of(ir, "B::o::mid::inner::c");
+    assert_eq!(
+        (p.at.0.femto, p.at.1.femto),
+        (108_000_000_000_000_000, 202_000_000_000_000_000),
+        "anchor chains through the anchored owner, skipping the inert entry"
+    );
+}

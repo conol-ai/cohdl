@@ -2234,3 +2234,75 @@ fn circular_paste_hover_explains_the_independent_aperture() {
     );
     lsp.shutdown();
 }
+
+// RFC-032 goto-definition (2026-09-08 audit F4): use-site type names, use
+// sites and ports as reference bases, placement reach-in segments, and
+// ordinary references inside a subdesign's own body.
+#[test]
+fn goto_definition_resolves_subdesign_references() {
+    let src = "\
+pub trait ZzIc { designator_prefix: \"U\" }
+pub device ZzReg { pins { VIN: 1 [power_in], VOUT: 2 [power_out] } }
+impl ZzIc for ZzReg {}
+pub subdesign ZzVreg {
+    ports { required VIN: Pin required VOUT: Pin }
+    inst reg: ZzReg
+    net _: VIN, reg.VIN
+    net OUT: VOUT, reg.VOUT
+    layout { place reg at (1mm, 2mm) }
+}
+design ZzB {
+    inst load: ZzReg
+    subdesign vr: ZzVreg { VIN: rail }
+    net rail [5V]: load.VIN
+    net _: vr.VOUT, load.VOUT
+    layout {
+        place vr.reg at (3mm, 4mm)
+    }
+}
+";
+    let (_path, uri, _text) = fixture("subdef.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, src);
+    let _ = lsp.await_diagnostics(&uri);
+
+    let line = |n: usize| src.lines().nth(n).unwrap();
+    let mut probe = |from_line: usize, needle: &str, to_line: u64, target: &str, what: &str| {
+        let col = line(from_line).find(needle).unwrap() as u64;
+        let def = lsp.request(
+            "textDocument/definition",
+            json!({ "textDocument": { "uri": uri },
+                    "position": { "line": from_line as u64, "character": col + 1 } }),
+        );
+        assert_eq!(def["uri"].as_str(), Some(uri.as_str()), "{what}: {def}");
+        let decl_col = line(to_line as usize).find(target).unwrap() as u64;
+        assert_eq!(
+            def["range"]["start"]["line"].as_u64(),
+            Some(to_line),
+            "{what}: {def}"
+        );
+        assert_eq!(
+            def["range"]["start"]["character"].as_u64(),
+            Some(decl_col),
+            "{what}: {def}"
+        );
+        assert_eq!(
+            def["range"]["end"]["character"].as_u64(),
+            Some(decl_col + target.len() as u64),
+            "{what}: {def}"
+        );
+    };
+
+    // `ZzVreg` in `subdesign vr: ZzVreg { … }` → the subdesign declaration.
+    probe(12, "ZzVreg", 3, "ZzVreg", "use-site type name");
+    // `vr` in `net _: vr.VOUT, …` → the use site.
+    probe(14, "vr", 12, "vr", "use site as reference base");
+    // `VOUT` in `vr.VOUT` → the port declaration.
+    probe(14, "VOUT", 4, "VOUT", "port reference");
+    // `reg` in `place vr.reg` → the inst inside the subdesign body.
+    probe(16, "reg", 5, "reg", "placement reach-in segment");
+    // `reg` in a pin reference inside the subdesign's own body.
+    probe(7, "reg", 5, "reg", "reference inside the declaration body");
+
+    lsp.shutdown();
+}

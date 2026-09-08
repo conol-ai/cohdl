@@ -147,7 +147,7 @@ fn check_one(world: &World, f: &FnDef, allow_sub_use: bool, diags: &mut Diagnost
                     ));
                     continue;
                 }
-                check_sub_use_site(world, sub, diags);
+                check_sub_use_site(world, f, sub, diags);
                 check_named_generic_args(world, f, &sub.ty.generic_args, diags);
                 for conn in &sub.conns {
                     // A bare name may be a net (resolved at expansion); only
@@ -307,12 +307,18 @@ fn check_device_generic_args(
 }
 
 /// RFC-032: the statically-knowable properties of a NESTED use site — target
-/// kind, variant selector, generic arity + concrete unit literals, and
-/// connection port keys. A use site inside an unused subdesign otherwise
-/// escapes all of this until a consumer instantiates the enclosing one.
-/// Messages mirror expansion's exactly so a used enclosing subdesign
-/// reported by both collapses under dedup.
-fn check_sub_use_site(world: &World, stmt: &crate::ast::SubdesignUseStmt, diags: &mut Diagnostics) {
+/// kind, variant selector, generic arity, argument kinds and concrete
+/// values/bounds, and connection port keys. A use site inside an unused
+/// subdesign otherwise escapes all of this until a consumer instantiates
+/// the enclosing one. Judgments come from THE bound checker (`resolve_one`,
+/// DR-016) so messages mirror expansion's exactly and a used enclosing
+/// subdesign reported by both collapses under dedup.
+fn check_sub_use_site(
+    world: &World,
+    f: &FnDef,
+    stmt: &crate::ast::SubdesignUseStmt,
+    diags: &mut Diagnostics,
+) {
     let name = &stmt.ty.name;
     let Some(sd) = world.subdesigns.get(&name.name) else {
         if let Some(sym) = world.symbols.get(&name.name) {
@@ -352,34 +358,30 @@ fn check_sub_use_site(world: &World, stmt: &crate::ast::SubdesignUseStmt, diags:
             ),
         ));
     }
+    let enclosing: BTreeSet<&str> = f.generics.iter().map(|g| g.name.name.as_str()).collect();
     for (i, param) in sd.generics.iter().enumerate() {
         match args.get(i) {
-            // Only a concrete unit literal is judged here; a name argument
-            // may reference an enclosing generic, resolvable only per use.
-            Some(GenericArg::Unit(v, span)) => {
-                if let GenericBound::Unit(u) = &param.bound {
-                    if v.unit != u.unit {
-                        diags.push(
-                            Diagnostic::error(
-                                "E112",
-                                *span,
-                                format!(
-                                    "generic argument for `{}` has the wrong unit type: expected `{}`, found `{}`",
-                                    param.name.name,
-                                    u.unit.type_name(),
-                                    v.unit.type_name()
-                                ),
-                            )
-                            .with_primary_label(format!(
-                                "`{}` is a `{}`",
-                                v.text,
-                                v.unit.type_name()
-                            )),
-                        );
-                    }
+            Some(arg) => {
+                // Deferred to expansion: a name referencing an ENCLOSING
+                // generic (its value exists only per use, RFC-006) or an
+                // unknown name (check_named_generic_args' E202 above owns
+                // that report). Everything else — unit literals, bare
+                // numbers, concrete device/part names — is judged now with
+                // an empty substitution, which for these argument shapes
+                // behaves exactly as expansion's env does.
+                let deferred = matches!(arg, GenericArg::Name(id)
+                    if enclosing.contains(id.name.as_str())
+                        || !world.symbols.contains_key(&id.name));
+                if !deferred {
+                    let _ = crate::check::generics::resolve_one(
+                        world,
+                        param,
+                        arg,
+                        &crate::check::generics::Substitution::new(),
+                        diags,
+                    );
                 }
             }
-            Some(_) => {}
             None => {
                 if param.default.is_none() {
                     diags.push(

@@ -884,6 +884,55 @@ design B {{
 }
 
 #[test]
+fn unused_subdesign_validates_argument_kinds_and_trait_bounds() {
+    // The recheck's residual F3 cases: bare numbers, unit literals for
+    // trait-bound parameters, and concrete devices missing the bound are
+    // all declaration-time facts. A name referencing an ENCLOSING generic
+    // is the one legitimately deferred shape.
+    let src = format!(
+        "{LIB}
+pub subdesign NeedsIc<T: Ic> {{
+}}
+subdesign BadNumber {{
+    subdesign child: Vreg<100>
+}}
+subdesign BadKind {{
+    subdesign child: NeedsIc<5V>
+}}
+subdesign BadBound {{
+    subdesign child: NeedsIc<C2T>
+}}
+subdesign Forwards<D: Ic> {{
+    subdesign child: NeedsIc<D>
+}}
+design B {{
+    inst load: C1U
+    net rail [5V]: load.A
+    net out: load.B
+}}
+"
+    );
+    let e = errors_of(&src);
+    assert!(e.contains("E113"), "bare number must be caught:\n{e}");
+    assert!(
+        e.contains("a bare number is never valid for `Cin: Capacitance`"),
+        "{e}"
+    );
+    assert!(
+        e.contains("`T` expects a device type, found unit literal `5V`"),
+        "unit-for-trait must be E403:\n{e}"
+    );
+    assert!(
+        e.matches("E403").count() >= 2,
+        "wrong-trait concrete device must also be E403:\n{e}"
+    );
+    assert!(
+        !e.contains("`D`"),
+        "a name referencing an enclosing generic is deferred, never flagged:\n{e}"
+    );
+}
+
+#[test]
 fn used_subdesign_reports_each_static_defect_once() {
     // The static pass mirrors expansion's messages EXACTLY so a used
     // enclosing subdesign collapses under dedup instead of double-reporting.

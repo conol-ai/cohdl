@@ -118,7 +118,7 @@ fn example_literal(unit: crate::units::UnitType) -> String {
     }
 }
 
-fn resolve_one(
+pub(crate) fn resolve_one(
     world: &World,
     param: &GenericParam,
     arg: &GenericArg,

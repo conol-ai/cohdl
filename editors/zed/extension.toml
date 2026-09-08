@@ -16,5 +16,5 @@ language = "CoHDL"
 # grammar first, then this pin).
 [grammars.cohdl]
 repository = "https://github.com/conol-ai/cohdl"
-rev = "COHDL_GRAMMAR_REV"
+rev = "b3175fd2d497a8505d21cd2fc1db1dfd9775b9db"
 path = "editors/zed/grammar"

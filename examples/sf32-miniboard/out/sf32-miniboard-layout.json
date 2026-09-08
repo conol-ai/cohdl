@@ -27,9 +27,9 @@
     { "instance": "SF32MiniBoard::flash", "at": [-12, 10], "rotate": 90 },
     { "instance": "SF32MiniBoard::xtal_48m", "at": [-3, -5], "rotate": 0 },
     { "instance": "SF32MiniBoard::xtal_32k", "at": [-12, 2], "rotate": 90 },
-    { "instance": "SF32MiniBoard::disp_reg", "at": [9, -9], "rotate": 180 },
-    { "instance": "SF32MiniBoard::l_disp", "at": [9, -5], "rotate": 0 },
-    { "instance": "SF32MiniBoard::disp_logic_sw", "at": [15, -9], "rotate": 180 }
+    { "instance": "SF32MiniBoard::disp_pwr::disp_logic_sw", "at": [15, -9], "rotate": 180 },
+    { "instance": "SF32MiniBoard::disp_pwr::disp_reg", "at": [9, -9], "rotate": 180 },
+    { "instance": "SF32MiniBoard::disp_pwr::l_disp", "at": [9, -5], "rotate": 0 }
   ],
   "placement_hints": [
     { "designator": "J3", "instance": "SF32MiniBoard::display", "hint": "top board edge, FPC opening facing outward" }

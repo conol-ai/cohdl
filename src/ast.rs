@@ -531,6 +531,8 @@ pub enum ItemKind {
     Pad(PadDef),
     /// RFC-017/018 footprint (pad placements; empty = stage-one placeholder).
     Footprint(FootprintDef),
+    /// RFC-032 typed logical composition boundary.
+    Subdesign(SubdesignDef),
     /// RFC-016 `use path::Name;` — a file-scoped import, not a declaration.
     Use(UseDecl),
 }
@@ -545,6 +547,7 @@ impl ItemKind {
             ItemKind::Design(d) => Some(&d.name),
             ItemKind::Pad(p) => Some(&p.name),
             ItemKind::Footprint(f) => Some(&f.name),
+            ItemKind::Subdesign(s) => Some(&s.name),
             ItemKind::Impl(_) | ItemKind::Use(_) => None,
         }
     }
@@ -559,6 +562,7 @@ impl ItemKind {
             ItemKind::Design(_) => "design",
             ItemKind::Pad(_) => "pad",
             ItemKind::Footprint(_) => "footprint",
+            ItemKind::Subdesign(_) => "subdesign",
             ItemKind::Use(_) => "use",
         }
     }
@@ -902,7 +906,67 @@ pub enum FnParamTy {
 }
 
 // ---------------------------------------------------------------------------
-// Statements (fn and design bodies)
+// Subdesigns (RFC-032)
+
+/// RFC-032 `subdesign NAME<G…> { ports { … } … layout { … } }` — a retained,
+/// typed, hierarchical composition boundary: explicit ports, real internal
+/// instances, an optional default internal layout, and (optionally) RFC-007
+/// generic parameters. Never a device, part, or physical instance.
+#[derive(Debug, Clone)]
+pub struct SubdesignDef {
+    pub name: Ident,
+    /// RFC-007 generics, reused verbatim (no second parameter mechanism).
+    pub generics: Vec<GenericParam>,
+    /// The typed interface. Every port is `Pin`-typed (the only port type);
+    /// obligations reuse RFC-002's `required`/`optional` semantics.
+    pub ports: Vec<SubdesignPort>,
+    /// Span of the `ports { … }` block (comment preservation in `fmt`).
+    pub ports_span: Option<Span>,
+    /// Ordinary body statements — `inst`, `net`, `nc`, fn calls, nested
+    /// `subdesign` use sites, and the internal `layout { … }` block whose
+    /// placements are DEFAULTS, relative to this subdesign's own origin.
+    pub body: Vec<Stmt>,
+}
+
+/// One `required NAME: Pin` port declaration.
+#[derive(Debug, Clone)]
+pub struct SubdesignPort {
+    pub obligation: Obligation,
+    pub name: Ident,
+    pub span: Span,
+}
+
+/// RFC-032 use site: `subdesign local: Name<args> { PORT: target, … }` or the
+/// array-typed `subdesign local: [Name; N]` (RFC-024 reused verbatim).
+/// Behaves like `inst`: nameable, referenceable wherever an instance
+/// reference is valid — but creates a retained hierarchy NODE, never a
+/// physical instance.
+#[derive(Debug, Clone)]
+pub struct SubdesignUseStmt {
+    /// RFC-012 opaque `#[intent("...")]` metadata (never compiled).
+    pub intent: Option<(String, Span)>,
+    pub name: Ident,
+    /// RFC-024 array form; `None` is the ordinary single-node form. When set,
+    /// a bare `NAME` is never a valid reference — every use is `NAME[i]`.
+    pub array_len: Option<(i64, Span)>,
+    pub ty: TypeRef,
+    /// The optional inline port-connection block `{ PORT: target, … }`.
+    pub conns: Vec<PortConn>,
+    pub span: Span,
+}
+
+/// One `PORT: target` entry — the target is an `INST.PIN` reference or a bare
+/// net name in the enclosing scope (a port merges nets, so both forms name
+/// the same thing: an electrical equivalence class to join).
+#[derive(Debug, Clone)]
+pub struct PortConn {
+    pub port: Ident,
+    pub value: PinRef,
+    pub span: Span,
+}
+
+// ---------------------------------------------------------------------------
+// Statements (fn, design, and subdesign bodies)
 
 #[derive(Debug, Clone)]
 pub enum Stmt {
@@ -913,6 +977,9 @@ pub enum Stmt {
     /// RFC-013 `layout { … }` — layout-constraint metadata, structurally
     /// checked but never affecting connectivity or emitted netlist bytes.
     Layout(LayoutBlock),
+    /// RFC-032 subdesign use site (design/subdesign bodies only — a `fn`
+    /// retains no path for one to live under).
+    SubdesignUse(SubdesignUseStmt),
 }
 
 impl Stmt {
@@ -923,6 +990,7 @@ impl Stmt {
             Stmt::Nc(s) => s.span,
             Stmt::Call(s) => s.span,
             Stmt::Layout(s) => s.span,
+            Stmt::SubdesignUse(s) => s.span,
         }
     }
 }
@@ -947,15 +1015,17 @@ pub struct LayoutBlock {
     pub span: Span,
 }
 
-/// `place <inst> at (x, y) [rotate ANGLE]` — a locked, optionally-rotated
-/// placement of one instance (RFC-020). `rotate` is one of the closed set
-/// {0, 90, 180, 270}; 0 (unrotated) is the default when omitted.
+/// `place <path> at (x, y) [rotate ANGLE]` — a locked, optionally-rotated
+/// placement (RFC-020). RFC-032: the target is a dotted PATH — a single
+/// segment for an ordinary instance, or a path walking through one or more
+/// `subdesign` use sites to a real internal instance (the placement
+/// reach-in, the sole admitted internals exception) or to a whole subdesign
+/// node (placing its default internal layout as one unit).
 #[derive(Debug, Clone)]
 pub struct Placement {
-    pub inst: Ident,
-    /// RFC-024: `place NAME[i] at (…)` — always exactly one element, never a
-    /// range (each element needs its own coordinates).
-    pub index: Option<(i64, Span)>,
+    /// One or more `.`-separated segments; never empty. Each may carry an
+    /// RFC-024 single-element index (`phases[1].ls_fet`).
+    pub path: Vec<PlacementSeg>,
     pub at: (UnitValue, UnitValue),
     pub rotate: u16,
     /// RFC-026: `side top | bottom` — which outer face the whole component
@@ -965,6 +1035,39 @@ pub struct Placement {
     /// The `side` clause's span when written (diagnostics); `None` = defaulted.
     pub side_span: Option<Span>,
     pub span: Span,
+}
+
+/// One segment of a `place` target path.
+#[derive(Debug, Clone)]
+pub struct PlacementSeg {
+    pub name: Ident,
+    /// RFC-024: `NAME[i]` — always exactly one element, never a range (each
+    /// element needs its own coordinates).
+    pub index: Option<(i64, Span)>,
+}
+
+impl Placement {
+    /// The full dotted path as written (diagnostics/fmt).
+    pub fn path_text(&self) -> String {
+        self.path
+            .iter()
+            .map(|s| match s.index {
+                Some((i, _)) => format!("{}[{}]", s.name.name, i),
+                None => s.name.name.clone(),
+            })
+            .collect::<Vec<_>>()
+            .join(".")
+    }
+
+    /// The whole path's span, from the first segment's name to the last's.
+    pub fn path_span(&self) -> Span {
+        let first = self.path.first().expect("place path is never empty");
+        let last = self.path.last().expect("place path is never empty");
+        first.name.span.to(match last.index {
+            Some((_, s)) => s,
+            None => last.name.span,
+        })
+    }
 }
 
 /// RFC-026's closed two-value side set. There are exactly two outer faces.

@@ -27,6 +27,11 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         layout_raw: Vec::new(),
         board_outline: None,
         placements: Vec::new(),
+        sub_nodes: BTreeMap::new(),
+        active_subs: Vec::new(),
+        abs_node_places: BTreeMap::new(),
+        rel_places: Vec::new(),
+        synth_net_conns: Vec::new(),
         phys_grounds: Vec::new(),
         phys_high_currents: Vec::new(),
         phys_impedances: Vec::new(),
@@ -42,9 +47,11 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         design_name: design.name.name.clone(),
         path: design.name.name.clone(),
         is_design_body: true,
+        place_ctx: PlaceCtx::Design,
         subst: Substitution::new(),
         bindings: BTreeMap::new(),
         local_insts: BTreeMap::new(),
+        local_subs: BTreeMap::new(),
         arrays: BTreeMap::new(),
     };
     ex.walk_body(&design.body, &mut scope);
@@ -66,14 +73,29 @@ enum Binding {
     },
 }
 
+/// What kind of body a `place`/`board_outline` statement sits in — a design's
+/// own layout (absolute placements), a subdesign's internal layout (RFC-032
+/// default placements, relative to the subdesign's origin), or a called fn
+/// (no retained path; `place` rejected, unchanged from RFC-020).
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum PlaceCtx {
+    Design,
+    Sub,
+    Fn,
+}
+
 struct Scope {
     design_name: String,
     path: String,
     is_design_body: bool,
+    place_ctx: PlaceCtx,
     subst: Substitution,
     bindings: BTreeMap<String, Binding>,
     /// local instance name → full path.
     local_insts: BTreeMap<String, String>,
+    /// RFC-032: local subdesign use-site name → full node path. Node paths
+    /// are retained hierarchy, never physical instances.
+    local_subs: BTreeMap<String, String>,
     /// RFC-024: array-typed instance name → (declared length, decl span).
     /// An array's NAME is never itself in `local_insts` — only its elements
     /// (`NAME_0`…`NAME_{N-1}`), so a bare unindexed reference cannot resolve.
@@ -88,9 +110,52 @@ struct NetDecl {
     /// Candidate emitted name.
     display_name: String,
     is_design_level_name: bool,
+    /// RFC-032: true for the net declaration a port-connection block
+    /// synthesizes — it may join an existing named net but never prove that
+    /// net exists (validated at assembly).
+    synthesized: bool,
     annotation: Option<NetAnnotation>,
     members: Vec<(String, String)>,
     span: Span,
+}
+
+/// RFC-032: one expanded subdesign use site — a retained hierarchy node.
+struct SubNode {
+    /// The subdesign declaration's fq name (diagnostics).
+    fq: String,
+    /// The use-site statement's span (port-exhaustiveness diagnostics).
+    use_span: Span,
+    /// Declared ports: name → (obligation, declaration span).
+    ports: BTreeMap<String, (Obligation, Span)>,
+    /// The node's DIRECT children, snapshotted from its body's scope —
+    /// the resolution table for placement reach-in paths.
+    children_insts: BTreeMap<String, String>,
+    children_subs: BTreeMap<String, String>,
+    children_arrays: BTreeMap<String, (i64, Span)>,
+}
+
+/// The data half of a `place` statement (target resolved separately).
+#[derive(Clone)]
+struct PlaceData {
+    at: (UnitValue, UnitValue),
+    rotate: u16,
+    side: PlacementSide,
+    span: Span,
+}
+
+/// What a resolved placement path targets.
+enum PlaceTarget {
+    Inst(String),
+    Node(String),
+}
+
+/// One placement recorded inside a subdesign's own `layout {}` block: a
+/// DEFAULT, relative to `owner`'s origin, transformed onto the board only
+/// when (and however) the owner itself ends up anchored.
+struct RelPlace {
+    owner: String,
+    target: PlaceTarget,
+    data: PlaceData,
 }
 
 struct Expander<'w, 'd> {
@@ -109,6 +174,18 @@ struct Expander<'w, 'd> {
     /// Locked component placements (`place <inst> at (x, y)`), design-level
     /// only, resolved to IR paths and validated on collection (E1007).
     placements: Vec<crate::ir::LayoutPlacement>,
+    /// RFC-032: every expanded subdesign use site, keyed by node path.
+    sub_nodes: BTreeMap<String, SubNode>,
+    /// Subdesign fq names currently being expanded (containment-cycle guard,
+    /// mirroring `active_calls`; the full-cycle diagnostic is declaration-time).
+    active_subs: Vec<String>,
+    /// Design-level whole-unit placements of subdesign nodes (absolute).
+    abs_node_places: BTreeMap<String, PlaceData>,
+    /// Placements declared inside subdesign bodies (defaults, owner-relative).
+    rel_places: Vec<RelPlace>,
+    /// RFC-032 port connections written as bare net names, validated against
+    /// the real declared net set at assembly: (net key, source ident).
+    synth_net_conns: Vec<(String, Ident)>,
     /// RFC-027 net-target physics attributes, collected per net declaration
     /// with spans (duplicate/one-primary validation happens at assembly).
     phys_grounds: Vec<(crate::ir::QuilterGround, Span)>,
@@ -161,8 +238,12 @@ fn element_name(base: &str, i: i64) -> String {
 
 impl<'w, 'd> Expander<'w, 'd> {
     fn walk_body(&mut self, body: &[Stmt], scope: &mut Scope) {
-        // Pass 1: instances (declarative bodies — nets may reference later insts).
+        // Pass 1: instances AND subdesign use sites (declarative bodies —
+        // nets may reference later insts and later use sites' ports).
         for stmt in body {
+            if let Stmt::SubdesignUse(sub) = stmt {
+                self.handle_subdesign_use(sub, scope);
+            }
             if let Stmt::Inst(inst) = stmt {
                 match inst.array_len {
                     None => self.handle_inst(inst, scope),
@@ -207,7 +288,9 @@ impl<'w, 'd> Expander<'w, 'd> {
                 }
             }
         }
-        // Pass 2: everything else, in source order.
+        // Pass 2: everything else, in source order. Port-connection blocks
+        // resolve here (their pin references may name instances declared
+        // anywhere in this body).
         for stmt in body {
             match stmt {
                 Stmt::Inst(_) => {}
@@ -215,6 +298,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 Stmt::Nc(nc) => self.handle_nc(nc, scope),
                 Stmt::Call(call) => self.handle_call(call, scope),
                 Stmt::Layout(block) => self.handle_layout(block, scope),
+                Stmt::SubdesignUse(sub) => self.handle_subdesign_conns(sub, scope),
             }
         }
     }
@@ -266,7 +350,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             self.layout_raw.push(raw);
         }
         if let Some(outline) = &block.board_outline {
-            self.handle_board_outline(outline);
+            self.handle_board_outline(outline, scope);
         }
         for placement in &block.placements {
             self.handle_placement(placement, scope);
@@ -330,43 +414,146 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
     }
 
-    /// Validate and record a locked component placement (E1007): design-level
-    /// only, the instance must exist, and the coordinates must be `Length`
-    /// values in geometry range.
+    /// Validate and record a locked placement (E1007/RFC-032). In the
+    /// design's own layout: absolute, targeting a local instance, a
+    /// subdesign node (whole-unit), or — through a dotted path — one real
+    /// instance inside a subdesign (the placement reach-in). In a
+    /// subdesign's internal layout: the same forms, recorded as DEFAULTS
+    /// relative to that subdesign's origin. Inside a called fn: rejected,
+    /// unchanged from RFC-020.
     fn handle_placement(&mut self, placement: &crate::ast::Placement, scope: &Scope) {
         use crate::units::UnitType;
-        if !self.active_calls.is_empty() {
+        if scope.place_ctx == PlaceCtx::Fn || !self.active_calls.is_empty() {
             self.diags.push(Diagnostic::error(
                 "E1007",
                 placement.span,
-                "`place` is only valid in the design's own `layout {}` block, not inside a called `fn`".to_string(),
+                "`place` is only valid in a design's or subdesign's own `layout {}` block, not inside a called `fn`".to_string(),
             ));
             return;
         }
         // RFC-024: `place NAME[i]` targets one real array element — the same
         // reference form valid in every other instance position.
+        let first = &placement.path[0];
         let Some(local) = self.indexed_local(
-            &placement.inst,
-            placement.index,
+            &first.name,
+            first.index,
             scope,
             &format!(
                 "`{}` is array-typed — place one element, e.g. `place {}[0] at (…)`",
-                placement.inst.name, placement.inst.name
+                first.name.name, first.name.name
             ),
         ) else {
             return;
         };
-        let Some(path) = scope.local_insts.get(&local).cloned() else {
+        let mut cur = if let Some(p) = scope.local_insts.get(&local) {
+            PlaceTarget::Inst(p.clone())
+        } else if let Some(p) = scope.local_subs.get(&local) {
+            PlaceTarget::Node(p.clone())
+        } else {
             self.diags.push(Diagnostic::error(
                 "E1007",
-                placement.inst.span,
+                first.name.span,
                 format!(
-                    "`place` names `{}`, which is not an instance in this design",
-                    placement.inst.name
+                    "`place` names `{}`, which is not an instance or subdesign in this scope",
+                    first.name.name
                 ),
             ));
             return;
         };
+        // RFC-032: walk the remaining segments through subdesign nodes. The
+        // FIRST segment that fails to resolve is named exactly.
+        for seg in &placement.path[1..] {
+            let node_path = match cur {
+                PlaceTarget::Node(p) => p,
+                PlaceTarget::Inst(p) => {
+                    self.diags.push(Diagnostic::error(
+                        "E1305",
+                        seg.name.span,
+                        format!(
+                            "`{}` is an instance — an instance has no internals for a placement path to reach",
+                            crate::resolve::short(&p)
+                        ),
+                    ));
+                    return;
+                }
+            };
+            let (arrays_entry, node_fq) = {
+                let node = &self.sub_nodes[&node_path];
+                (
+                    node.children_arrays.get(&seg.name.name).copied(),
+                    node.fq.clone(),
+                )
+            };
+            let child = match (seg.index, arrays_entry) {
+                (None, None) => seg.name.name.clone(),
+                (None, Some(_)) => {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        seg.name.span,
+                        format!(
+                            "`{}` is array-typed — place one element, e.g. `{}[0]`",
+                            seg.name.name, seg.name.name
+                        ),
+                    ));
+                    return;
+                }
+                (Some((_, sp)), None) => {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        sp,
+                        format!(
+                            "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
+                            seg.name.name
+                        ),
+                    ));
+                    return;
+                }
+                (Some((i, sp)), Some((n, _))) => {
+                    if i < 0 || i >= n {
+                        self.diags.push(Diagnostic::error(
+                            "E202",
+                            sp,
+                            format!(
+                                "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
+                                i, seg.name.name, n - 1, n
+                            ),
+                        ));
+                        return;
+                    }
+                    element_name(&seg.name.name, i)
+                }
+            };
+            let (child_inst, child_sub) = {
+                let node = &self.sub_nodes[&node_path];
+                (
+                    node.children_insts.get(&child).cloned(),
+                    node.children_subs.get(&child).cloned(),
+                )
+            };
+            cur = if let Some(p) = child_inst {
+                PlaceTarget::Inst(p)
+            } else if let Some(p) = child_sub {
+                PlaceTarget::Node(p)
+            } else {
+                self.diags.push(
+                    Diagnostic::error(
+                        "E1305",
+                        seg.name.span,
+                        format!(
+                            "`{}` is not an instance or subdesign inside `{}` (subdesign `{}`)",
+                            seg.name.name,
+                            crate::resolve::short(&node_path),
+                            crate::resolve::short(&node_fq)
+                        ),
+                    )
+                    .with_help(
+                        "placement reaches real internal instances and nested subdesigns only; a `fn`-expanded instance retains no stable path (RFC-032)"
+                            .to_string(),
+                    ),
+                );
+                return;
+            };
+        }
         for (v, what) in [(&placement.at.0, "x"), (&placement.at.1, "y")] {
             if v.unit != UnitType::Length {
                 self.diags.push(Diagnostic::error(
@@ -414,20 +601,63 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         }
-        if self.placements.iter().any(|p| p.path == path) {
-            self.diags.push(Diagnostic::error(
-                "E1007",
-                placement.inst.span,
-                format!("`{}` is placed more than once", placement.inst.name),
-            ));
-            return;
-        }
-        self.placements.push(crate::ir::LayoutPlacement {
-            path,
+        let data = PlaceData {
             at: (placement.at.0.clone(), placement.at.1.clone()),
             rotate: placement.rotate,
             side: placement.side,
-        });
+            span: placement.span,
+        };
+        let dup = |ex: &mut Self, span: Span| {
+            ex.diags.push(Diagnostic::error(
+                "E1007",
+                span,
+                format!("`{}` is placed more than once", placement.path_text()),
+            ));
+        };
+        match (scope.place_ctx, cur) {
+            (PlaceCtx::Design, PlaceTarget::Inst(path)) => {
+                if self.placements.iter().any(|p| p.path == path) {
+                    dup(self, placement.path_span());
+                    return;
+                }
+                self.placements.push(crate::ir::LayoutPlacement {
+                    path,
+                    at: data.at,
+                    rotate: data.rotate,
+                    side: data.side,
+                });
+            }
+            (PlaceCtx::Design, PlaceTarget::Node(path)) => {
+                if self.abs_node_places.contains_key(&path) {
+                    dup(self, placement.path_span());
+                    return;
+                }
+                self.abs_node_places.insert(path, data);
+            }
+            (PlaceCtx::Sub, target) => {
+                let target_path = match &target {
+                    PlaceTarget::Inst(p) | PlaceTarget::Node(p) => p.clone(),
+                };
+                let owner = scope.path.clone();
+                let same = |t: &PlaceTarget| match t {
+                    PlaceTarget::Inst(p) | PlaceTarget::Node(p) => *p == target_path,
+                };
+                if self
+                    .rel_places
+                    .iter()
+                    .any(|r| r.owner == owner && same(&r.target))
+                {
+                    dup(self, placement.path_span());
+                    return;
+                }
+                self.rel_places.push(RelPlace {
+                    owner,
+                    target,
+                    data,
+                });
+            }
+            (PlaceCtx::Fn, _) => unreachable!("rejected above"),
+        }
     }
 
     /// Validate and record the board outline (RFC-020, E1006): a project-
@@ -435,12 +665,12 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// layout block — never inside a called fn (a board has one physical
     /// perimeter). The DXF is NOT read here — that happens at `cohdl build`
     /// (`pipeline::resolve_board_outline`); this only validates the reference.
-    fn handle_board_outline(&mut self, outline: &crate::ast::BoardOutline) {
-        if !self.active_calls.is_empty() {
+    fn handle_board_outline(&mut self, outline: &crate::ast::BoardOutline, scope: &Scope) {
+        if scope.place_ctx != PlaceCtx::Design || !self.active_calls.is_empty() {
             self.diags.push(Diagnostic::error(
                 "E1006",
                 outline.span,
-                "`board_outline` is only valid in the design's own `layout {}` block, not inside a called `fn`".to_string(),
+                "`board_outline` is only valid in the design's own `layout {}` block — a board has one physical perimeter".to_string(),
             ));
             return;
         }
@@ -695,6 +925,8 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
         if scope.local_insts.contains_key(&inst.name.name)
             || scope.bindings.contains_key(&inst.name.name)
+            || scope.local_subs.contains_key(&inst.name.name)
+            || scope.arrays.contains_key(&inst.name.name)
         {
             self.diags.push(Diagnostic::error(
                 "E201",
@@ -1111,6 +1343,49 @@ impl<'w, 'd> Expander<'w, 'd> {
                 }
             };
         }
+        // Base: a subdesign use site? Its PORTS are its whole electrical
+        // surface (RFC-032) — internal nets and instances stay behind the
+        // boundary; only `place` may reach in.
+        if let Some(node_path) = scope.local_subs.get(&r.base.name) {
+            let node = &self.sub_nodes[node_path];
+            let Some(pin) = &r.pin else {
+                self.diags.push(Diagnostic::error(
+                    "E1303",
+                    r.span,
+                    format!(
+                        "`{}` is a subdesign — reference one of its ports (e.g. `{}.{}`)",
+                        r.base.name,
+                        r.base.name,
+                        node.ports
+                            .keys()
+                            .next()
+                            .map(|p| p.as_str())
+                            .unwrap_or("PORT")
+                    ),
+                ));
+                return None;
+            };
+            if node.ports.contains_key(&pin.name) {
+                return Some((node_path.clone(), pin.name.clone()));
+            }
+            self.diags.push(
+                Diagnostic::error(
+                    "E1301",
+                    pin.span,
+                    format!(
+                        "subdesign `{}` (use site `{}`) has no port named `{}`",
+                        crate::resolve::short(&node.fq),
+                        r.base.name,
+                        pin.name
+                    ),
+                )
+                .with_help(format!(
+                    "its ports are: {} — internal nets and instances are behind the port boundary; only `place` may reach in (RFC-032)",
+                    node.ports.keys().cloned().collect::<Vec<_>>().join(", ")
+                )),
+            );
+            return None;
+        }
         // Base: a local instance?
         if let Some(path) = scope.local_insts.get(&r.base.name) {
             let inst = &self.instances[path];
@@ -1331,6 +1606,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             key,
             display_name,
             is_design_level_name,
+            synthesized: false,
             annotation: net.annotation.clone(),
             members,
             span: net.span,
@@ -1340,6 +1616,20 @@ impl<'w, 'd> Expander<'w, 'd> {
     fn handle_nc(&mut self, nc: &NcStmt, scope: &mut Scope) {
         for m in &nc.members {
             if let Some(resolved) = self.resolve_pin_ref(m, scope) {
+                // RFC-032: a port is a connection surface, not a device pin —
+                // `nc` has no meaning for it (an optional port is simply left
+                // unconnected).
+                if self.sub_nodes.contains_key(&resolved.0) {
+                    self.diags.push(Diagnostic::error(
+                        "E1306",
+                        m.span,
+                        format!(
+                            "a subdesign port cannot be marked `nc` — leave the optional port `{}` unconnected instead",
+                            m
+                        ),
+                    ));
+                    continue;
+                }
                 self.nc_pins.push((resolved, m.span));
             }
         }
@@ -1536,9 +1826,11 @@ impl<'w, 'd> Expander<'w, 'd> {
             design_name: scope.design_name.clone(),
             path: format!("{}::{}", scope.path, seg),
             is_design_body: false,
+            place_ctx: PlaceCtx::Fn,
             subst,
             bindings,
             local_insts: BTreeMap::new(),
+            local_subs: BTreeMap::new(),
             arrays: BTreeMap::new(),
         };
         self.active_calls.push(call.callee.name.clone());
@@ -1546,6 +1838,248 @@ impl<'w, 'd> Expander<'w, 'd> {
         let body = fndef.body.clone();
         self.walk_body(&body, &mut inner);
         self.active_calls.pop();
+    }
+
+    // -- subdesign use sites (RFC-032) ---------------------------------------
+
+    /// Expand one `subdesign local: Name<…>` use site into its retained node
+    /// (or, array-typed, its N nodes) — pass 1, so nets anywhere in the body
+    /// can reference `local.PORT`.
+    fn handle_subdesign_use(&mut self, stmt: &SubdesignUseStmt, scope: &mut Scope) {
+        if !self.check_not_reserved(&stmt.name, "subdesign use-site") {
+            return;
+        }
+        if scope.place_ctx == PlaceCtx::Fn {
+            self.diags.push(Diagnostic::error(
+                "E1307",
+                stmt.span,
+                "a `subdesign` use site needs a retained hierarchy path — a `fn` expands inline and cannot contain one (RFC-032); move it into the design or a subdesign".to_string(),
+            ));
+            return;
+        }
+        if scope.local_insts.contains_key(&stmt.name.name)
+            || scope.bindings.contains_key(&stmt.name.name)
+            || scope.local_subs.contains_key(&stmt.name.name)
+            || scope.arrays.contains_key(&stmt.name.name)
+        {
+            self.diags.push(Diagnostic::error(
+                "E201",
+                stmt.name.span,
+                format!("`{}` is already defined in this scope", stmt.name.name),
+            ));
+            return;
+        }
+        let ty_name = &stmt.ty.name;
+        let Some(sd) = self.world.subdesigns.get(&ty_name.name) else {
+            // Unresolved names were already reported at the rewrite pass;
+            // a name of the WRONG KIND is reported here, precisely.
+            if let Some(sym) = self.world.symbols.get(&ty_name.name) {
+                self.diags.push(Diagnostic::error(
+                    "E205",
+                    ty_name.span,
+                    format!(
+                        "`{}` is a {} — a `subdesign` use site requires a subdesign",
+                        ty_name.name, sym.kind
+                    ),
+                ));
+            }
+            return;
+        };
+        if let Some(sel) = &stmt.ty.variant {
+            self.diags.push(Diagnostic::error(
+                "E1303",
+                sel.span,
+                format!(
+                    "a subdesign has no variants — remove the `[{}]` selector",
+                    sel.name
+                ),
+            ));
+            return;
+        }
+        // Containment-cycle guard (the full-cycle diagnostic is declaration-
+        // time in check::subdesigns; this stops runaway expansion the same
+        // way `active_calls` does for fns, RFC-006 discipline).
+        if self.active_subs.contains(&ty_name.name) {
+            let mut chain: Vec<&str> = self
+                .active_subs
+                .iter()
+                .skip_while(|n| **n != ty_name.name)
+                .map(|s| s.as_str())
+                .collect();
+            chain.push(&ty_name.name);
+            self.diags.push(Diagnostic::error(
+                "E1304",
+                stmt.span,
+                format!(
+                    "recursive subdesign containment: {}",
+                    chain
+                        .iter()
+                        .map(|s| format!("`{}`", crate::resolve::short(s)))
+                        .collect::<Vec<_>>()
+                        .join(" → ")
+                ),
+            ));
+            return;
+        }
+        // RFC-007 generics, reused verbatim.
+        let subst = resolve_generic_args(
+            self.world,
+            &format!("subdesign `{}`", crate::resolve::short(&ty_name.name)),
+            &sd.generics,
+            &stmt.ty.generic_args,
+            &scope.subst,
+            stmt.ty.span,
+            self.diags,
+        );
+        let ports: BTreeMap<String, (Obligation, Span)> = sd
+            .ports
+            .iter()
+            .map(|p| (p.name.name.clone(), (p.obligation, p.span)))
+            .collect();
+        let element_names: Vec<String> = match stmt.array_len {
+            None => vec![stmt.name.name.clone()],
+            Some((n, span)) => {
+                scope.arrays.insert(stmt.name.name.clone(), (n, span));
+                (0..n).map(|i| element_name(&stmt.name.name, i)).collect()
+            }
+        };
+        let body = sd.body.clone();
+        let fq = ty_name.name.clone();
+        for elem in element_names {
+            let node_path = format!("{}::{}", scope.path, elem);
+            scope.local_subs.insert(elem, node_path.clone());
+            // Inside the body, every port is a pin OF THE NODE — the same
+            // `Binding::Pin` a fn's `Pin` parameter uses, so all existing
+            // reference machinery applies unchanged. The (node, port) members
+            // this creates are phantoms: they merge nets (a port is an
+            // equivalence-class join) and are stripped before the IR leaves
+            // assembly — a node is never a manufacturable instance.
+            let bindings: BTreeMap<String, Binding> = ports
+                .keys()
+                .map(|p| (p.clone(), Binding::Pin((node_path.clone(), p.clone()))))
+                .collect();
+            let mut inner = Scope {
+                design_name: scope.design_name.clone(),
+                path: node_path.clone(),
+                is_design_body: false,
+                place_ctx: PlaceCtx::Sub,
+                subst: subst.clone(),
+                bindings,
+                local_insts: BTreeMap::new(),
+                local_subs: BTreeMap::new(),
+                arrays: BTreeMap::new(),
+            };
+            self.active_subs.push(fq.clone());
+            self.walk_body(&body, &mut inner);
+            self.active_subs.pop();
+            self.sub_nodes.insert(
+                node_path,
+                SubNode {
+                    fq: fq.clone(),
+                    use_span: stmt.span,
+                    ports: ports.clone(),
+                    children_insts: inner.local_insts,
+                    children_subs: inner.local_subs,
+                    children_arrays: inner.arrays,
+                },
+            );
+        }
+    }
+
+    /// Resolve a use site's inline port-connection block — pass 2 (its pin
+    /// references may name instances declared later in the body). Each entry
+    /// synthesizes one net declaration joining the port's phantom member with
+    /// the target, and the ordinary shared-member merge does the rest.
+    fn handle_subdesign_conns(&mut self, stmt: &SubdesignUseStmt, scope: &mut Scope) {
+        if stmt.conns.is_empty() {
+            return;
+        }
+        let Some(node_path) = scope.local_subs.get(&stmt.name.name).cloned() else {
+            return; // the use site itself failed earlier (already reported)
+        };
+        let ports = self.sub_nodes[&node_path].ports.clone();
+        let sub_short = crate::resolve::short(&self.sub_nodes[&node_path].fq).to_string();
+        let mut seen: BTreeMap<&str, Span> = BTreeMap::new();
+        for conn in &stmt.conns {
+            if let Some(prev) = seen.insert(conn.port.name.as_str(), conn.span) {
+                self.diags.push(
+                    Diagnostic::error(
+                        "E1301",
+                        conn.port.span,
+                        format!("port `{}` is connected more than once", conn.port.name),
+                    )
+                    .with_secondary(prev, "first connected here".to_string()),
+                );
+                continue;
+            }
+            if !ports.contains_key(&conn.port.name) {
+                self.diags.push(
+                    Diagnostic::error(
+                        "E1301",
+                        conn.port.span,
+                        format!(
+                            "subdesign `{}` (use site `{}`) has no port named `{}`",
+                            sub_short, stmt.name.name, conn.port.name
+                        ),
+                    )
+                    .with_help(format!(
+                        "its ports are: {}",
+                        ports.keys().cloned().collect::<Vec<_>>().join(", ")
+                    )),
+                );
+                continue;
+            }
+            let phantom = (node_path.clone(), conn.port.name.clone());
+            let v = &conn.value;
+            let is_bare_unknown = v.pin.is_none()
+                && v.index.is_none()
+                && !scope.bindings.contains_key(&v.base.name)
+                && !scope.local_insts.contains_key(&v.base.name)
+                && !scope.local_subs.contains_key(&v.base.name)
+                && !scope.arrays.contains_key(&v.base.name);
+            if is_bare_unknown {
+                // A net name in the enclosing scope: join the port to that
+                // named net's equivalence class by KEY (a later `net NAME:`
+                // declaration merges by the same key). Whether the name is
+                // ever really declared is validated at assembly.
+                let key = if scope.is_design_body {
+                    format!("named:{}", v.base.name)
+                } else {
+                    format!("scoped:{}::{}", scope.path, v.base.name)
+                };
+                self.synth_net_conns.push((key.clone(), v.base.clone()));
+                let display_name = resolve_net_name(&v.base.name, scope);
+                self.net_decls.push(NetDecl {
+                    key,
+                    display_name,
+                    is_design_level_name: scope.is_design_body,
+                    synthesized: true,
+                    annotation: None,
+                    members: vec![phantom],
+                    span: conn.span,
+                });
+            } else {
+                let Some(resolved) = self.resolve_pin_ref(v, scope) else {
+                    continue;
+                };
+                let n = self.anon_net_counter;
+                self.anon_net_counter += 1;
+                let scoped = format!("{}::__net{}", scope.path, n);
+                let display = scoped
+                    .strip_prefix(&format!("{}::", scope.design_name))
+                    .unwrap_or(&scoped)
+                    .to_string();
+                self.net_decls.push(NetDecl {
+                    key: format!("scoped:{}", scoped),
+                    display_name: display,
+                    is_design_level_name: false,
+                    synthesized: true,
+                    annotation: None,
+                    members: vec![phantom, resolved],
+                    span: conn.span,
+                });
+            }
+        }
     }
 
     /// Resolve a call argument that must be an instance (for a generic /
@@ -1638,6 +2172,42 @@ impl<'w, 'd> Expander<'w, 'd> {
             groups.entry(root).or_default().push(i);
         }
 
+        // RFC-032: use-site port exhaustiveness — every REQUIRED port must
+        // reach the world OUTSIDE its node (a member of its merged
+        // equivalence class whose path is neither the node nor inside it).
+        // Checked before phantom members are stripped below.
+        for (node_path, node) in &self.sub_nodes {
+            let local = crate::resolve::short(node_path);
+            let inside = format!("{}::", node_path);
+            for (port, (obligation, _)) in &node.ports {
+                if *obligation != Obligation::Required {
+                    continue;
+                }
+                let key = (node_path.clone(), port.clone());
+                let connected = groups.values().any(|decl_idxs| {
+                    decl_idxs
+                        .iter()
+                        .any(|&i| self.net_decls[i].members.contains(&key))
+                        && decl_idxs
+                            .iter()
+                            .flat_map(|&i| &self.net_decls[i].members)
+                            .any(|(p, _)| p != node_path && !p.starts_with(&inside))
+                });
+                if !connected {
+                    self.diags.push(Diagnostic::error(
+                        "E1302",
+                        node.use_span,
+                        format!(
+                            "required port `{}` of `{}` (subdesign `{}`) is not connected — connect it in the use site's port block or a `net`",
+                            port,
+                            local,
+                            crate::resolve::short(&node.fq)
+                        ),
+                    ));
+                }
+            }
+        }
+
         let mut nets = Vec::new();
         // RFC-013: every declared net name (including aliases merged into a
         // differently-named group) maps to that group's final name, so a layout
@@ -1647,11 +2217,21 @@ impl<'w, 'd> Expander<'w, 'd> {
         for decl_idxs in groups.values() {
             let decls: Vec<&NetDecl> = decl_idxs.iter().map(|&i| &self.net_decls[i]).collect();
             // Name: smallest design-level name, else smallest scoped name.
+            // RFC-032: declarations synthesized by port-connection blocks
+            // never compete — an author-written name always beats a
+            // compiler-generated `__netN` join.
             let name = decls
                 .iter()
-                .filter(|d| d.is_design_level_name)
+                .filter(|d| d.is_design_level_name && !d.synthesized)
                 .map(|d| d.display_name.clone())
                 .min()
+                .or_else(|| {
+                    decls
+                        .iter()
+                        .filter(|d| !d.synthesized)
+                        .map(|d| d.display_name.clone())
+                        .min()
+                })
                 .or_else(|| decls.iter().map(|d| d.display_name.clone()).min())
                 .unwrap();
             for d in &decls {
@@ -1660,10 +2240,13 @@ impl<'w, 'd> Expander<'w, 'd> {
             let members: BTreeSet<(String, String)> = decls
                 .iter()
                 .flat_map(|d| d.members.iter().cloned())
+                // RFC-032: port phantoms did their job (merging the classes);
+                // a subdesign node is never a manufacturable member.
+                .filter(|(p, _)| !self.sub_nodes.contains_key(p))
                 .collect();
             if members.is_empty() {
-                // Every member failed to resolve — errors already reported;
-                // (a zero-member net is unrepresentable in the grammar).
+                // Every member failed to resolve (errors already reported), or
+                // the class held only subdesign ports and dissolves with them.
                 continue;
             }
             let span = decls
@@ -1722,6 +2305,33 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
         nets.sort_by(|a, b| a.name.cmp(&b.name));
 
+        // RFC-032: a port connection written as a bare name must name a net
+        // that really exists (a synthesized declaration may JOIN a named
+        // net's class, never prove it).
+        {
+            let real_keys: BTreeSet<&str> = self
+                .net_decls
+                .iter()
+                .filter(|d| !d.synthesized)
+                .map(|d| d.key.as_str())
+                .collect();
+            let mut reported: BTreeSet<(&str, u32, u32)> = BTreeSet::new();
+            for (key, ident) in &self.synth_net_conns {
+                if !real_keys.contains(key.as_str())
+                    && reported.insert((key.as_str(), ident.span.file.0, ident.span.start))
+                {
+                    self.diags.push(Diagnostic::error(
+                        "E1303",
+                        ident.span,
+                        format!(
+                            "`{}` is not a declared net, an instance pin, or a port in this scope — a port connects to a net name or an `INST.PIN`",
+                            ident.name
+                        ),
+                    ));
+                }
+            }
+        }
+
         let nc_pins: BTreeSet<(String, String)> =
             self.nc_pins.iter().map(|(p, _)| p.clone()).collect();
 
@@ -1732,6 +2342,79 @@ impl<'w, 'd> Expander<'w, 'd> {
         // the same IR.
         layout.board_outline = self.board_outline;
         layout.placements = self.placements;
+
+        // RFC-032: transform subdesign default layouts onto the board.
+        //
+        // 1. Anchor every node: a design-level whole-unit `place` (absolute)
+        //    wins; else the node's placement in an ancestor's layout composes
+        //    with that ancestor's own anchor — the entry from the OUTERMOST
+        //    layout wins ("explicit beats the subdesign's own default"). An
+        //    unanchored node contributes no default positions at all: its
+        //    internals stay unplaced (staged) unless individually overridden.
+        // 2. Give every internally-placed real instance its composed default,
+        //    unless an explicit (design-level, possibly reached-in) placement
+        //    exists for it. Explicit placements keep their declaration order
+        //    (byte-stability for pre-RFC-032 designs); composed defaults
+        //    append after, in path order.
+        {
+            let depth = |p: &str| p.matches("::").count();
+            let mut anchors: BTreeMap<String, PlaceData> = BTreeMap::new();
+            let mut node_paths: Vec<String> = self.sub_nodes.keys().cloned().collect();
+            node_paths.sort_by_key(|p| (depth(p), p.clone()));
+            for np in &node_paths {
+                if let Some(d) = self.abs_node_places.get(np) {
+                    anchors.insert(np.clone(), d.clone());
+                    continue;
+                }
+                let mut best: Option<(usize, usize)> = None;
+                for (i, r) in self.rel_places.iter().enumerate() {
+                    if matches!(&r.target, PlaceTarget::Node(p) if p == np) {
+                        let key = (depth(&r.owner), i);
+                        if best.is_none_or(|b| key < b) {
+                            best = Some(key);
+                        }
+                    }
+                }
+                if let Some((_, i)) = best {
+                    let r = &self.rel_places[i];
+                    if let Some(pa) = anchors.get(&r.owner) {
+                        let composed = compose_place(pa, &r.data);
+                        anchors.insert(np.clone(), composed);
+                    }
+                }
+            }
+            let mut best_inst: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+            for (i, r) in self.rel_places.iter().enumerate() {
+                if let PlaceTarget::Inst(p) = &r.target {
+                    let key = (depth(&r.owner), i);
+                    let slot = best_inst.entry(p.clone()).or_insert(key);
+                    if key < *slot {
+                        *slot = key;
+                    }
+                }
+            }
+            let explicit: BTreeSet<&str> =
+                layout.placements.iter().map(|p| p.path.as_str()).collect();
+            let mut defaults: Vec<crate::ir::LayoutPlacement> = Vec::new();
+            for (path, (_, i)) in &best_inst {
+                if explicit.contains(path.as_str()) {
+                    continue;
+                }
+                let r = &self.rel_places[*i];
+                let Some(pa) = anchors.get(&r.owner) else {
+                    continue;
+                };
+                let d = compose_place(pa, &r.data);
+                defaults.push(crate::ir::LayoutPlacement {
+                    path: path.clone(),
+                    at: d.at,
+                    rotate: d.rotate,
+                    side: d.side,
+                });
+            }
+            defaults.sort_by(|a, b| a.path.cmp(&b.path));
+            layout.placements.extend(defaults);
+        }
 
         // RFC-027: validate + adopt the physics-constraint facts. At most one
         // primary ground per design; at most one attribute of each kind per
@@ -1815,6 +2498,52 @@ impl<'w, 'd> Expander<'w, 'd> {
         // design assembly, after all inlining/monomorphization.
         check_pin_obligations(self.world, &ir, self.diags);
         ir
+    }
+}
+
+/// RFC-032: transform a child placement, relative to a subdesign's origin,
+/// through the subdesign's own anchor placement — the identical geometric
+/// operation RFC-025/026 already define for a pad inside a placed footprint:
+/// rotate about the anchor; on the back side, mirror x BEFORE rotating, flip
+/// the side, and REVERSE the child's own rotation (a reflection).
+///
+/// The authoring frame is +y-down (KiCad's board frame); `trig::rotate` is
+/// counter-clockwise in the +y-up IPC frame, so the board-frame rotation is
+/// its inverse angle. Exact fixed-point arithmetic throughout — placement
+/// coordinates are byte-stability-critical (never `f64::sin`/`cos`).
+fn compose_place(parent: &PlaceData, child: &PlaceData) -> PlaceData {
+    use crate::ast::PlacementSide;
+    let bottom = parent.side == PlacementSide::Bottom;
+    let (dx, dy) = (child.at.0.femto, child.at.1.femto);
+    let dx = if bottom { -dx } else { dx };
+    let inv = ((360 - (parent.rotate as u32 % 360)) % 360) as u16;
+    let (rx, ry) = crate::trig::rotate(dx, dy, inv);
+    let x = parent.at.0.femto + rx;
+    let y = parent.at.1.femto + ry;
+    let rotate = if bottom {
+        ((parent.rotate as u32 + 360 - child.rotate as u32) % 360) as u16
+    } else {
+        ((parent.rotate as u32 + child.rotate as u32) % 360) as u16
+    };
+    let side = match (bottom, child.side) {
+        (false, s) => s,
+        (true, PlacementSide::Top) => PlacementSide::Bottom,
+        (true, PlacementSide::Bottom) => PlacementSide::Top,
+    };
+    PlaceData {
+        at: (length_value(x), length_value(y)),
+        rotate,
+        side,
+        span: child.span,
+    }
+}
+
+/// A computed `Length` value: exact femto-mm integer, canonical mm text.
+fn length_value(femto: i128) -> UnitValue {
+    UnitValue {
+        unit: crate::units::UnitType::Length,
+        femto,
+        text: format!("{}mm", crate::emit::geom::mm_femto(femto)),
     }
 }
 

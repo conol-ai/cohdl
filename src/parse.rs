@@ -158,7 +158,11 @@ impl<'a> Parser<'a> {
                 | TokenKind::Part
                 | TokenKind::Design
                 | TokenKind::Hash => return,
-                TokenKind::Ident(n) if n == "use" || n == "footprint" || n == "pad" => return,
+                TokenKind::Ident(n)
+                    if n == "use" || n == "footprint" || n == "pad" || n == "subdesign" =>
+                {
+                    return
+                }
                 _ => {
                     self.bump();
                 }
@@ -278,6 +282,32 @@ impl<'a> Parser<'a> {
                 kind,
             });
         }
+        // RFC-032 `subdesign NAME { … }` — contextual keyword, like `use`.
+        if self.at_ident("subdesign") && matches!(self.peek_ahead(1), TokenKind::Ident(_)) {
+            let kind = self.subdesign_def().map(ItemKind::Subdesign);
+            self.reject_attrs(&rest);
+            let kind = kind?;
+            return Some(Item {
+                is_pub,
+                intent,
+                docs,
+                decl_span: decl_start,
+                span: start.to(self.prev_span()),
+                kind,
+            });
+        }
+        if self.at_ident("subdesign") && self.peek_ahead(1) == &TokenKind::LBrace {
+            let span = self.span();
+            self.diags.push(Diagnostic::error(
+                "E010",
+                span,
+                "a `subdesign` declaration needs a name: `subdesign NAME { … }`".to_string(),
+            ));
+            self.bump(); // subdesign
+            self.bump(); // `{` — skip_braced_body expects the opener consumed
+            self.skip_braced_body(span);
+            return None;
+        }
         if !docs.is_empty() && matches!(self.peek(), TokenKind::Impl) {
             for (_, doc_span) in &docs {
                 self.diags.push(Diagnostic::error(
@@ -297,7 +327,7 @@ impl<'a> Parser<'a> {
             TokenKind::Design => self.design_def().map(ItemKind::Design),
             other => {
                 self.error_here(format!(
-                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `footprint`, `pad`, or `use`), found {}",
+                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `subdesign`, `footprint`, `pad`, or `use`), found {}",
                     other.describe()
                 ));
                 self.sync_top_level();
@@ -2878,6 +2908,184 @@ impl<'a> Parser<'a> {
         Some(DesignDef { name, body })
     }
 
+    /// RFC-032 `subdesign NAME<G…> { ports { … } … }` — the declaration.
+    fn subdesign_def(&mut self) -> Option<SubdesignDef> {
+        self.bump(); // subdesign
+        let name = self.ident("as the subdesign name")?;
+        let generics = if self.at(&TokenKind::Lt) {
+            self.generic_params()
+        } else {
+            Vec::new()
+        };
+        if !self.expect(&TokenKind::LBrace, "to open the subdesign body") {
+            self.sync_top_level();
+            return None;
+        }
+        let mut ports: Vec<SubdesignPort> = Vec::new();
+        let mut ports_span: Option<Span> = None;
+        let mut body = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if self.at_ident("ports") && self.peek_ahead(1) == &TokenKind::LBrace {
+                let block_start = self.span();
+                self.bump(); // ports
+                self.bump(); // {
+                if ports_span.is_some() {
+                    self.diags.push(Diagnostic::error(
+                        "E010",
+                        block_start,
+                        "a subdesign has exactly one `ports { … }` block".to_string(),
+                    ));
+                }
+                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                    let entry_start = self.span();
+                    let obligation = self.obligation();
+                    let Some(pname) = self.ident("as the port name") else {
+                        self.sync_in_block_advancing();
+                        continue;
+                    };
+                    self.expect(&TokenKind::Colon, "after the port name");
+                    match self.ident("as the port type") {
+                        // The one port type: `Pin`. Ports reuse RFC-002's pin
+                        // semantics; there is nothing else a port could be.
+                        Some(t) if t.name == "Pin" => {}
+                        Some(t) => {
+                            self.diags.push(Diagnostic::error(
+                                "E1303",
+                                t.span,
+                                format!(
+                                    "`{}` is not a port type — every subdesign port is `Pin`-typed",
+                                    t.name
+                                ),
+                            ));
+                        }
+                        None => {
+                            self.sync_in_block_advancing();
+                            continue;
+                        }
+                    }
+                    ports.push(SubdesignPort {
+                        obligation,
+                        name: pname,
+                        span: entry_start.to(self.prev_span()),
+                    });
+                    if !self.eat(&TokenKind::Comma) && !self.at(&TokenKind::RBrace) {
+                        // Newline-separated entries are fine; anything else
+                        // resynchronizes at the next comma/brace.
+                        if !matches!(
+                            self.peek(),
+                            TokenKind::Ident(_) | TokenKind::Required | TokenKind::Optional
+                        ) {
+                            self.sync_in_block_advancing();
+                        }
+                    }
+                }
+                self.expect(&TokenKind::RBrace, "to close the ports block");
+                ports_span.get_or_insert(block_start.to(self.prev_span()));
+                continue;
+            }
+            if let Some(stmt) = self.stmt() {
+                body.push(stmt);
+            } else {
+                self.sync_stmt();
+            }
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close the subdesign body");
+        Some(SubdesignDef {
+            name,
+            generics,
+            ports,
+            ports_span,
+            body,
+        })
+    }
+
+    /// RFC-032 use site (statement position). The caller verified the shape
+    /// `subdesign IDENT :`.
+    fn subdesign_use_stmt(&mut self, intent: Option<(String, Span)>) -> Option<Stmt> {
+        let start = self.span();
+        self.bump(); // subdesign
+        let name = self.ident("as the use-site name")?;
+        self.expect(&TokenKind::Colon, "after the use-site name");
+        // RFC-024 array form, exactly as `inst` spells it.
+        let (ty, array_len) = if self.at(&TokenKind::LBracket) {
+            let open = self.span();
+            self.bump();
+            let ty = self.type_ref()?;
+            self.expect(
+                &TokenKind::Semi,
+                "between the subdesign type and the array length",
+            );
+            let n = self.index_number("as the array length")?;
+            self.expect(&TokenKind::RBracket, "to close the array type");
+            let span = open.to(self.prev_span());
+            if n < 1 {
+                self.diags.push(Diagnostic::error(
+                    "E211",
+                    span,
+                    format!("array length `{}` must be 1 or more", n),
+                ));
+                return None;
+            }
+            (ty, Some((n, span)))
+        } else {
+            (self.type_ref()?, None)
+        };
+        let mut conns = Vec::new();
+        if self.at(&TokenKind::LBrace) {
+            let block_start = self.span();
+            self.bump();
+            while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let entry_start = self.span();
+                let Some(port) = self.ident("as the port name") else {
+                    self.sync_in_block_advancing();
+                    continue;
+                };
+                self.expect(&TokenKind::Colon, "after the port name");
+                let Some(value) = self.pin_ref() else {
+                    self.sync_in_block_advancing();
+                    continue;
+                };
+                conns.push(PortConn {
+                    port,
+                    value,
+                    span: entry_start.to(self.prev_span()),
+                });
+                // Newline-separated entries (the canonical form) carry no
+                // comma; only a genuinely malformed continuation resyncs.
+                if !self.eat(&TokenKind::Comma)
+                    && !self.at(&TokenKind::RBrace)
+                    && !matches!(self.peek(), TokenKind::Ident(_))
+                {
+                    self.sync_in_block_advancing();
+                }
+            }
+            self.expect(&TokenKind::RBrace, "to close the port-connection block");
+            if array_len.is_some() && !conns.is_empty() {
+                self.diags.push(Diagnostic::error(
+                    "E1303",
+                    block_start.to(self.prev_span()),
+                    format!(
+                        "an array-typed use site connects through `net` statements (`{}[i].PORT`) — a port block would bind every element to the same pins",
+                        name.name
+                    ),
+                ));
+                conns.clear();
+            }
+        }
+        Some(Stmt::SubdesignUse(SubdesignUseStmt {
+            intent,
+            name,
+            array_len,
+            ty,
+            conns,
+            span: start.to(self.prev_span()),
+        }))
+    }
+
     fn stmt_block(&mut self) -> Vec<Stmt> {
         let mut stmts = Vec::new();
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
@@ -2979,6 +3187,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Design
                 | TokenKind::Hash
         ) || self.at_ident("use")
+            || (self.at_ident("subdesign") && matches!(self.peek_ahead(1), TokenKind::Ident(_)))
     }
 
     /// Recovery inside a footprint body: skip to the next member keyword
@@ -3243,6 +3452,32 @@ impl<'a> Parser<'a> {
                 let _ = self.use_decl();
                 None
             }
+            // RFC-032 use site: `subdesign local: Name<…> { PORT: t, … }` or
+            // the array form `subdesign local: [Name; N]`.
+            TokenKind::Ident(n)
+                if n == "subdesign"
+                    && matches!(self.peek_ahead(1), TokenKind::Ident(_))
+                    && self.peek_ahead(2) == &TokenKind::Colon =>
+            {
+                self.reject_phys(&phys, "a `subdesign` use site");
+                self.reject_attrs(&attrs);
+                self.subdesign_use_stmt(intent)
+            }
+            TokenKind::Ident(n)
+                if n == "subdesign" && matches!(self.peek_ahead(1), TokenKind::Ident(_)) =>
+            {
+                self.reject_attrs(&attrs);
+                let span = self.span();
+                self.diags.push(Diagnostic::error(
+                    "E010",
+                    span,
+                    "`subdesign` declarations are top-level — inside a body, a use site reads `subdesign name: Type { … }`"
+                        .to_string(),
+                ));
+                // Consume the misplaced declaration so the body keeps parsing.
+                let _ = self.subdesign_def();
+                None
+            }
             TokenKind::Ident(_) => {
                 self.reject_phys(&phys, "a `fn` call");
                 self.reject_attrs(&attrs);
@@ -3388,31 +3623,43 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// `place <inst> at (x, y) [rotate ANGLE]` (RFC-020) — a locked, optionally
-    /// rotated component placement. Instance existence, coordinate unit-type,
-    /// and the rotation's 0..=359 range are validated at assembly (E1007).
+    /// `place <path> at (x, y) [rotate ANGLE]` (RFC-020/032) — a locked,
+    /// optionally rotated placement. The target is a dotted path (RFC-032
+    /// reach-in); existence, coordinate unit-type, and the rotation's 0..=359
+    /// range are validated at assembly (E1007/E1305).
     fn placement(&mut self) -> Option<Placement> {
         let start = self.span();
         self.bump(); // `place`
-        let inst = self.ident("as the instance to place")?;
-        // RFC-024: `place NAME[i]` — always exactly ONE element; a range has
-        // no single sensible meaning here (each element needs its own
-        // coordinates).
-        let index = if self.at(&TokenKind::LBracket) {
-            match self.index_sel()? {
-                IndexSel::Single(i, sp) => Some((i, sp)),
-                other => {
-                    self.diags.push(Diagnostic::error(
-                        "E211",
-                        other.span(),
-                        "`place` takes a single element `NAME[i]` — a range or index list has no single position".to_string(),
-                    ));
-                    return None;
+        let mut path = Vec::new();
+        loop {
+            let name = self.ident(if path.is_empty() {
+                "as the instance to place"
+            } else {
+                "as the next segment of the placement path"
+            })?;
+            // RFC-024: `NAME[i]` — always exactly ONE element; a range has no
+            // single sensible meaning here (each element needs its own
+            // coordinates).
+            let index = if self.at(&TokenKind::LBracket) {
+                match self.index_sel()? {
+                    IndexSel::Single(i, sp) => Some((i, sp)),
+                    other => {
+                        self.diags.push(Diagnostic::error(
+                            "E211",
+                            other.span(),
+                            "`place` takes a single element `NAME[i]` — a range or index list has no single position".to_string(),
+                        ));
+                        return None;
+                    }
                 }
+            } else {
+                None
+            };
+            path.push(PlacementSeg { name, index });
+            if !self.eat(&TokenKind::Dot) {
+                break;
             }
-        } else {
-            None
-        };
+        }
         if !self.at_ident("at") {
             self.error_here("expected `at (x, y)` after the instance name".to_string());
             return None;
@@ -3467,8 +3714,7 @@ impl<'a> Parser<'a> {
             }
         }
         Some(Placement {
-            inst,
-            index,
+            path,
             at,
             rotate,
             side,

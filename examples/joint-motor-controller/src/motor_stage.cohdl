@@ -1,0 +1,49 @@
+// Brushed-motor H-bridge stage as a typed composition boundary (RFC-032).
+//
+// The DRV8231A runs straight from the 2S pack (VM 4.5-33V) and reports
+// load current through IPROPI's integrated mirror (A_IPROPI = 1500uA/A,
+// SLVSFZ8A section 6.5): the 560-ohm sense resistor puts the 3.7A peak at
+// 3.11V, inside the MCU's 3.3V ADC range. The VREF divider halves 3.3V to
+// 1.65V, so the driver's own fixed-off-time chopping regulates at
+// I_TRIP = 1.65V / (1500uA/A x 560 ohm) = 1.96A — stall protection with no
+// firmware in the loop (section 7.4.2).
+
+subdesign MotorStage {
+    ports {
+        required IN1: Pin
+        required IN2: Pin
+        required ISENSE: Pin
+        required VM: Pin
+        required OUT1: Pin
+        required OUT2: Pin
+        required V3V3: Pin
+        required GND: Pin
+    }
+
+    inst drv: motor_driver::MOTOR_DRV8231A
+    inst r_ipropi: passive::R_560R_F_0402
+    inst r_vref_top: passive::R_10K_F_0402
+    inst r_vref_bot: passive::R_10K_F_0402
+    inst c_vref: passive::C_100n_10V_X5R_0402
+    #[bypass(drv.VM, 100nF)]
+    inst c_vm_hf: passive::C_100n_10V_X5R_0402
+    inst c_vm_bulk_a: passive::C_10u_25V_X5R_0805
+    inst c_vm_bulk_b: passive::C_10u_25V_X5R_0805
+
+    net _: IN1, drv.IN1
+    net _: IN2, drv.IN2
+    net MOTOR_IPROPI: drv.IPROPI, r_ipropi.A, ISENSE
+    net MOTOR_VREF: drv.VREF, r_vref_top.B, r_vref_bot.A, c_vref.A
+    net _: V3V3, r_vref_top.A
+    net _: VM, drv.VM, c_vm_hf.A, c_vm_bulk_a.A, c_vm_bulk_b.A
+    net _: OUT1, drv.OUT1
+    net _: OUT2, drv.OUT2
+    net _: GND, drv.GND, drv.PAD, r_ipropi.B, r_vref_bot.B, c_vref.B, c_vm_hf.B, c_vm_bulk_a.B,
+           c_vm_bulk_b.B
+
+    layout {
+        place drv at (0mm, 0mm)
+        place c_vm_hf at (-4mm, -1mm) rotate 90
+        place c_vm_bulk_a at (-4mm, 1.5mm) rotate 90
+    }
+}

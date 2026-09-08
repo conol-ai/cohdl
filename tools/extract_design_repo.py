@@ -43,6 +43,7 @@ PAGES = [
     ("aa6vrcv1vjfryojsi1czdqdx", "rfc-029-package-dependency-versioning"),
     ("bmxizx2mggn0pdfccutph36s", "rfc-030-registry-service"),
     ("o7im9xeabkm52521x6kcwcbh", "rfc-031-silkscreen-graphics"),
+    ("j9398kl7u3hkgfekzm0pr7wq", "rfc-032-subdesign"),
     ("a7zrlrt7a910k2x10ja6fdhd", "gc-002-amended-layout-door"),
     ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
     ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),

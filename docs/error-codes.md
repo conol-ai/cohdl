@@ -239,6 +239,24 @@ published, E1204 unreachable. No new codes.
 | E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |
 | E1206 | client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what cohdl.lock will verify); a hard error on download (corrupted content is never cached) |
 
+## E13xx — typed logical composition (RFC-032 `subdesign`)
+
+A new kind of mistake per RFC-011's organizing principle: the composition
+boundary's own contract — ports, containment, and the placement reach-in —
+distinct from ordinary `fn`/`place` diagnostics. Array-typed use sites reuse
+RFC-024's existing codes (E202/E211) unchanged, and unresolved names reuse
+the RFC-016 classes (E202/E205), exactly as the RFC directs.
+
+| Code | Meaning |
+|---|---|
+| E1301 | port-name mistake: a reference or connection names a port the subdesign does not declare (the help lists the real ports and names the port boundary), a port is connected more than once in one block, or a subdesign declares the same port twice |
+| E1302 | required port not connected at the use site — the port's merged equivalence class never reaches outside the node (RFC-002 obligation semantics at the composition boundary) |
+| E1303 | port-boundary type mistake: a non-`Pin` port type, a bare subdesign reference where a port is needed, a connection target that is neither a declared net nor an `INST.PIN`, a variant selector on a subdesign, or a port block on an array-typed use site |
+| E1304 | recursive subdesign containment, direct or indirect — the full cycle is named, mirroring E501's discipline for cyclic `fn` calls |
+| E1305 | placement reach-in path failure — the exact failing segment is named: an instance has no internals to walk into, or a segment is not an instance or subdesign inside the node (a `fn`-expanded instance retains no stable path) |
+| E1306 | `nc` on a subdesign port — a port is a connection surface, not a device pin; an optional port is simply left unconnected |
+| E1307 | a `subdesign` use site inside a `fn` body — a fn expands inline and retains no hierarchy path for the node to live under |
+
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 
 | Code | Severity | Rule |

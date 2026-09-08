@@ -1,0 +1,22 @@
+[package]
+name = "joint-motor-controller"
+version = "0.1.0"
+
+[design]
+top = "JointMC"
+
+[dependencies]
+"@st/stm32" = "0.2.1"
+bga = "0.2.0"
+can = "0.1.0"
+connectors = "0.1.6"
+csp = "0.1.0"
+dcdc = "0.1.1"
+led = "0.1.2"
+misc = "0.1.1"
+motor-driver = "0.1.0"
+osc = "0.1.1"
+passive = "0.2.2"
+qfp = "0.2.0"
+soic = "0.2.0"
+std = "0.3.0"

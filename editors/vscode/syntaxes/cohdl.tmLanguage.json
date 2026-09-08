@@ -48,7 +48,7 @@
       "comment": "A declaration keyword followed by the declared name.",
       "patterns": [
         {
-          "match": "\\b(device|trait|part|fn|design|footprint|pad)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "match": "\\b(device|trait|part|fn|design|subdesign|footprint|pad)\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": { "name": "keyword.other.declaration.cohdl" },
             "2": { "name": "entity.name.type.cohdl" }
@@ -87,12 +87,12 @@
         {
           "comment": "Declaration + import keywords (contextual `use`/`pad`/`footprint`/`variants`/`layout` included).",
           "name": "keyword.other.declaration.cohdl",
-          "match": "\\b(pub|device|trait|part|fn|design|impl|use|pad|footprint)\\b"
+          "match": "\\b(pub|device|trait|part|fn|design|subdesign|impl|use|pad|footprint)\\b"
         },
         {
           "comment": "Body / statement keywords.",
           "name": "keyword.control.cohdl",
-          "match": "\\b(pins|spec|net|nc|inst|variants|layout|required|optional|for|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
+          "match": "\\b(pins|spec|net|nc|inst|ports|variants|layout|required|optional|for|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
         }
       ]
     },

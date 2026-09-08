@@ -18,8 +18,7 @@ design SF32MiniBoard {
     inst usbc: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
     inst esd: esd::ESD_USBLC6
     inst debug: connectors::headers::smd_254::SOCKET_2X3_254_SMD
-    inst disp_reg: DISPLAY_RAIL_RT6150B_ADJ
-    inst disp_logic_sw: DISPLAY_LOGIC_SWITCH
+    subdesign disp_pwr: DisplayPower
     #[placement_hint("top board edge, FPC opening facing outward")]
     inst display: DISPLAY_FPC_OK_F302
     inst mounting: [misc::MOUNTING_HOLE_M2_NPTH; 4]
@@ -30,7 +29,6 @@ design SF32MiniBoard {
     #[crystal_oscillator(mcu, PA22, PA23)]
     inst xtal_32k: osc::XTAL_32K768
     inst l_buck: passive::IND_4U7_WPN201610U
-    inst l_disp: passive::IND_2U2
 
     // ---- USB-C and control resistors ----
     inst r_cc1: passive::R_5K1_F_0402
@@ -42,9 +40,6 @@ design SF32MiniBoard {
     inst r_imu_reset_hi: passive::R_10K_F_0402
     inst r_imu_reset_lo: passive::R_10K_F_0402
     inst r_level_oe: passive::R_10K_F_0402
-    inst r_disp_fb_top: passive::R_604K_F_0402
-    inst r_disp_fb_bottom: passive::R_86K6_F_0402
-    inst r_disp_en_pd: passive::R_100K_F_0402
     inst r_disp_reset_pd: passive::R_100K_F_0402
 
     // ---- regulator and SF32 rail capacitors ----
@@ -77,16 +72,8 @@ design SF32MiniBoard {
     inst c_level_vccb: passive::C_100n_10V_X5R_0402
     inst c_env_vdd: passive::C_100n_10V_X5R_0402
     inst c_env_vddio: passive::C_100n_10V_X5R_0402
-    #[bypass(disp_reg.VIN, 10uF)]
-    inst c_disp_reg_in: C_10U_16V_X7R_1206
-    #[bypass(disp_reg.VOUT, 10uF)]
-    inst c_disp_reg_out_a: C_10U_16V_X7R_1206
-    #[bypass(disp_reg.VOUT, 10uF)]
-    inst c_disp_reg_out_b: C_10U_16V_X7R_1206
     #[bypass(display.IOVCC, 100nF)]
     inst c_disp_iovcc: passive::C_100n_10V_X5R_0402
-    #[bypass(disp_logic_sw.IN, 1uF)]
-    inst c_disp_logic_in: passive::C_1u_10V_X5R_0603
     #[bypass(display.VCI, 1uF)]
     inst c_disp_vci: passive::C_1u_10V_X5R_0603
     #[bypass(display.VBAT, 4.7uF)]
@@ -96,16 +83,15 @@ design SF32MiniBoard {
 
     // ---- USB power: VBUS -> always-enabled 3.3V regulator ----
     #[high_current(500mA)]
-    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo_3v3.VIN, ldo_3v3.EN, disp_reg.VIN, c_vbus.A,
-                   c_disp_reg_in.A
+    net VBUS [5V]: usbc.VBUS, esd.VBUS, ldo_3v3.VIN, ldo_3v3.EN, disp_pwr.VIN_5V, c_vbus.A
     #[intent("RT9080 fixed 3.3V output powers the MCU, flash, and sensors")]
     #[high_current(500mA)]
     net V3V3 [3.3V]: ldo_3v3.VOUT, ldo_1v8.VIN, level.VCCB, mcu.PVDD, mcu.VDDIOA, mcu.AVDD33,
                      mcu.AVDD33_AUD, mcu.AVDD_BRF, flash.VCC, env.VDD, env.VDDIO, debug.P1,
-                     debug.P6, env.CSB, display.IOVCC, disp_logic_sw.IN, r_i2c_sda_hi.A,
+                     debug.P6, env.CSB, display.IOVCC, disp_pwr.VIN_3V3, r_i2c_sda_hi.A,
                      r_i2c_scl_hi.A, r_imu_reset_hi.A, c_ldo_out.A, c_ldo_1v8_in.A, c_level_vccb.A,
                      c_pvdd.A, c_vddioa.A, c_avdd33.A, c_avdd_brf.A, c_avdd_aud.A, c_flash.A,
-                     c_env_vdd.A, c_env_vddio.A, c_disp_iovcc.A, c_disp_logic_in.A
+                     c_env_vdd.A, c_env_vddio.A, c_disp_iovcc.A
 
     // BHI260AP VDDIO/Fuser2 is limited to 1.89V maximum. Both IMU supply
     // domains use the dedicated 1.8V regulator; every signal crossing to the
@@ -129,17 +115,13 @@ design SF32MiniBoard {
 
     // ---- H0216F002AM display power sequencing ----
     // IOVCC is always present at 3.3V. Firmware raises PA27 only after that
-    // rail is stable, enabling both the 3.987V panel rail and switched VCI.
-    net DISP_LX1: disp_reg.LX1, l_disp.A
-    net DISP_LX2: disp_reg.LX2, l_disp.B
-    #[intent("RT6150BGQW adjustable rail: 0.5V * (1 + 604k/86.6k) = 3.987V")]
+    // rail is stable, enabling both the 3.987V panel rail and switched VCI —
+    // the whole converter chain lives behind DisplayPower's ports (RFC-032).
     #[high_current(800mA)]
-    net VDISP [4V]: disp_reg.VOUT, display.VBAT, r_disp_fb_top.A, c_disp_reg_out_a.A,
-                    c_disp_reg_out_b.A, c_disp_vbat.A, c_disp_vbat_hf.A
-    net DISP_FB: disp_reg.FB, r_disp_fb_top.B, r_disp_fb_bottom.A
-    net DISP_POWER_EN: mcu.PA27, disp_reg.EN, disp_logic_sw.EN, r_disp_en_pd.A
+    net VDISP [4V]: disp_pwr.VPANEL, display.VBAT, c_disp_vbat.A, c_disp_vbat_hf.A
+    net DISP_POWER_EN: mcu.PA27, disp_pwr.EN
     #[intent("switched 3.3V VCI rail; display IOVCC is stable before PA27 rises")]
-    net VDISP_LOGIC [3.3V]: disp_logic_sw.OUT, display.VCI, display.VCI_EN, c_disp_vci.A
+    net VDISP_LOGIC [3.3V]: disp_pwr.VLOGIC, display.VCI, display.VCI_EN, c_disp_vci.A
 
     // ---- 48MHz main crystal and 32.768kHz RTC crystal ----
     // SiFli specifies no fitted matching capacitors for crystals below 12pF
@@ -205,16 +187,15 @@ design SF32MiniBoard {
 
     #[ground(primary)]
     net GND [gnd]: usbc.GND, usbc.SHIELD, esd.GND, ldo_3v3.GND, ldo_3v3.SGND, ldo_1v8.VSS,
-                   level.GND, disp_reg.GND, disp_reg.PS, disp_logic_sw.GND, display.GND, mcu.EPAD,
-                   flash.GND, imu.GND, imu.GNDIO, env.GND, xtal_48m.GND, debug.P2, r_cc1.B, r_cc2.B,
-                   r_level_oe.B, r_disp_fb_bottom.B, r_disp_en_pd.B, r_disp_reset_pd.B, imu.HSDO,
-                   env.SDO, c_vbus.B, c_ldo_out.B, c_ldo_1v8_in.B, c_ldo_1v8_out.B, c_level_vcca.B,
-                   c_level_vccb.B, c_pvdd.B, c_buck_fb.B, c_vout1.B, c_vout2.B, c_vdd_ret.B,
-                   c_vdd_rtc.B, c_vddioa.B, c_vdd_sip.B, c_avdd33.B, c_avdd_brf.B, c_avdd_aud.B,
-                   c_aud_vref.B, c_mic_bias.B, c_gpadc_vref.B, c_flash.B, c_imu_vdd.B,
-                   c_imu_vddio_hf.B, c_imu_vddio_bulk.B, c_imu_vreg.B, c_env_vdd.B, c_env_vddio.B,
-                   c_disp_reg_in.B, c_disp_reg_out_a.B, c_disp_reg_out_b.B, c_disp_iovcc.B,
-                   c_disp_logic_in.B, c_disp_vci.B, c_disp_vbat.B, c_disp_vbat_hf.B
+                   level.GND, disp_pwr.GND, display.GND, mcu.EPAD, flash.GND, imu.GND, imu.GNDIO,
+                   env.GND, xtal_48m.GND, debug.P2, r_cc1.B, r_cc2.B, r_level_oe.B,
+                   r_disp_reset_pd.B, imu.HSDO, env.SDO, c_vbus.B, c_ldo_out.B, c_ldo_1v8_in.B,
+                   c_ldo_1v8_out.B, c_level_vcca.B, c_level_vccb.B, c_pvdd.B, c_buck_fb.B,
+                   c_vout1.B, c_vout2.B, c_vdd_ret.B, c_vdd_rtc.B, c_vddioa.B, c_vdd_sip.B,
+                   c_avdd33.B, c_avdd_brf.B, c_avdd_aud.B, c_aud_vref.B, c_mic_bias.B,
+                   c_gpadc_vref.B, c_flash.B, c_imu_vdd.B, c_imu_vddio_hf.B, c_imu_vddio_bulk.B,
+                   c_imu_vreg.B, c_env_vdd.B, c_env_vddio.B, c_disp_iovcc.B, c_disp_vci.B,
+                   c_disp_vbat.B, c_disp_vbat_hf.B
 
     // Connector contacts and deliberately unused SF32 functions.
     nc: usbc.SBU1, usbc.SBU2, mcu.NC, mcu.VBATS, mcu.BRF_ANT
@@ -261,8 +242,8 @@ design SF32MiniBoard {
         place flash at (-12mm, 10mm) rotate 90
         place xtal_48m at (-3mm, -5mm)
         place xtal_32k at (-12mm, 2mm) rotate 90
-        place disp_reg at (9mm, -9mm) rotate 180
-        place l_disp at (9mm, -5mm)
-        place disp_logic_sw at (15mm, -9mm) rotate 180
+        // The display power chain drops in as one unit: its own default
+        // layout carries the converter cluster (RFC-032 whole-unit place).
+        place disp_pwr at (9mm, -9mm)
     }
 }

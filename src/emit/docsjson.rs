@@ -206,6 +206,22 @@ fn body_summary(body: &[Stmt]) -> Vec<(&'static str, Val)> {
             Stmt::Call(c) => {
                 calls.insert(c.callee.name.clone());
             }
+            // RFC-032: a use site rides the inst list with its own kind
+            // marker — a retained node, not a physical instance.
+            Stmt::SubdesignUse(u) => {
+                let mut fields: Vec<(&'static str, Val)> = vec![
+                    ("name", s(&u.name.name)),
+                    ("type", s(&u.ty.name.name)),
+                    ("kind", s("subdesign")),
+                ];
+                if let Some((len, _)) = &u.array_len {
+                    fields.push(("array", raw(len.to_string())));
+                }
+                if !u.ty.generic_args.is_empty() {
+                    fields.push(("args", strs(u.ty.generic_args.iter().map(generic_arg_text))));
+                }
+                insts.push(Val::Obj(fields));
+            }
             Stmt::Net(_) => nets += 1,
             Stmt::Nc(_) | Stmt::Layout(_) => {}
         }
@@ -400,6 +416,30 @@ fn fn_payload(f: &ast::FnDef) -> Val {
         ),
     ));
     fields.extend(body_summary(&f.body));
+    Val::Obj(fields)
+}
+
+/// RFC-032: a subdesign's typed surface — generics, ports, body summary.
+fn subdesign_payload(sd: &ast::SubdesignDef) -> Val {
+    let mut fields: Vec<(&'static str, Val)> = Vec::new();
+    if !sd.generics.is_empty() {
+        fields.push(("generics", generics_val(&sd.generics)));
+    }
+    fields.push((
+        "ports",
+        Val::Arr(
+            sd.ports
+                .iter()
+                .map(|p| {
+                    Val::Obj(vec![
+                        ("name", s(&p.name.name)),
+                        ("obligation", s(p.obligation.keyword())),
+                    ])
+                })
+                .collect(),
+        ),
+    ));
+    fields.extend(body_summary(&sd.body));
     Val::Obj(fields)
 }
 
@@ -691,6 +731,10 @@ fn item_val(world: &World, sm: &SourceMap, item: &ItemRef<'_>, file: String) -> 
             .designs
             .get(item.fq)
             .map(|d| ("design", design_payload(d))),
+        "subdesign" => world
+            .subdesigns
+            .get(item.fq)
+            .map(|sd| ("subdesign", subdesign_payload(sd))),
         _ => None,
     };
     if let Some((key, val)) = payload {

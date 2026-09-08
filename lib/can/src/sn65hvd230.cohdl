@@ -1,0 +1,31 @@
+// Texas Instruments SN65HVD230: 3.3V CAN bus transceiver, ISO 11898-2, up
+// to 1 Mbps (CAN 2.0B bit rates). Pinout audited against SLOS346O (revised
+// April 2018): Section 7 pin table, SOIC-8 "D" package, 4.90 x 3.91 mm body.
+// RS (pin 8) selects the mode: a strong pulldown to ground is high-speed
+// mode; a 10k-100k series resistor to ground sets slope control; high is
+// low-power standby.
+
+#[doc("docs/sn65hvd230.pdf")]
+pub device CAN_SN65HVD230 {
+    pins {
+        required D: 1 [input] // CAN transmit data input (TXD; LOW = dominant)
+        required GND: 2 [power_in] // ground connection
+        required VCC: 3 [power_in] // transceiver 3.3V supply
+        required R: 4 [output] // CAN receive data output (RXD; LOW = dominant)
+        optional VREF: 5 [output] // VCC/2 reference output
+        required CANL: 6 [bidirectional] // low-level CAN bus line
+        required CANH: 7 [bidirectional] // high-level CAN bus line
+        required RS: 8 [input] // mode select: GND = high speed, resistor = slope control
+    }
+}
+
+impl IC for CAN_SN65HVD230 {}
+
+// The D package is the JEDEC MS-012 narrow SOIC-8 (1.27mm pitch, 3.9mm
+// body); the land is the dependency-owned KiCad snapshot geometry.
+#[doc("docs/sn65hvd230.pdf")]
+pub part XCVR_SN65HVD230: CAN_SN65HVD230 {
+    primary { mfr: "Texas Instruments", mpn: "SN65HVD230DR",
+              footprint: soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM }
+    alt { mfr: "Texas Instruments", mpn: "SN65HVD230D" }
+}

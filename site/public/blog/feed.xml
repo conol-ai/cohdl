@@ -5,8 +5,16 @@
   <id>https://cohdl.org/blog/feed.xml</id>
   <link rel="alternate" type="text/html" href="https://cohdl.org/blog/" />
   <link rel="self" type="application/atom+xml" href="https://cohdl.org/blog/feed.xml" />
-  <updated>2026-09-01T02:00:00Z</updated>
+  <updated>2026-09-08T13:30:00Z</updated>
   <author><name>Tony Huang</name></author>
+  <entry>
+    <title>CoHDL 0.7.0: Subdesigns and a Zed Extension</title>
+    <link href="https://cohdl.org/blog/cohdl-0-7-0/" />
+    <id>https://cohdl.org/blog/cohdl-0-7-0/</id>
+    <published>2026-09-08T13:30:00Z</published>
+    <updated>2026-09-08T13:30:00Z</updated>
+    <summary>Circuits become reusable, typed building blocks: subdesign exposes ports, keeps its internals behind them, and carries its own default layout onto the board as one placed unit — plus a CAN joint-motor-controller example and a Zed extension.</summary>
+  </entry>
   <entry>
     <title>CoHDL 0.6.0: An EasyEDA Backend and the STM32 Catalog</title>
     <link href="https://cohdl.org/blog/cohdl-0-6-0/" />

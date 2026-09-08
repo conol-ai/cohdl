@@ -36,7 +36,7 @@ standalone package outside the compiler's zero-dependency rule.
 
 ```sh
 cd grammar && npm ci && ./check.sh          # grammar gate
-cargo build --release --target wasm32-wasip1  # the extension itself
+cargo build --release --target wasm32-wasip2  # the target current Zed builds for
 ```
 
 In Zed: **Extensions → Install Dev Extension** and select this

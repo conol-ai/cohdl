@@ -67,7 +67,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.92.0
-          targets: wasm32-wasip1
+          targets: wasm32-wasip2
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: editors/zed
@@ -80,9 +80,9 @@ jobs:
       - name: Grammar gate
         working-directory: editors/zed/grammar
         run: ./check.sh
-      - name: Build extension (wasm32-wasip1)
+      - name: Build extension (wasm32-wasip2)
         working-directory: editors/zed
-        run: cargo build --release --locked --target wasm32-wasip1
+        run: cargo build --release --locked --target wasm32-wasip2
 
   # registry.cohdl.org (RFC-030) — its own tooling CI: vitest (incl. the
   # cross-language RFC-029 hash vector against src/hash.rs), typecheck,

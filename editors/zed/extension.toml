@@ -1,0 +1,20 @@
+id = "cohdl"
+name = "CoHDL"
+description = "CoHDL language support: syntax highlighting and the cohdl language server."
+version = "0.1.0"
+schema_version = 1
+authors = ["Tony Huang <tony@conol.ai>"]
+repository = "https://github.com/conol-ai/cohdl"
+
+[language_servers.cohdl]
+name = "CoHDL LSP"
+language = "CoHDL"
+
+# The grammar lives in this same repository (editors/zed/grammar). Zed
+# fetches it by rev, so the rev must name a commit that already CONTAINS
+# the grammar — bump it whenever grammar.js changes (two-commit dance:
+# grammar first, then this pin).
+[grammars.cohdl]
+repository = "https://github.com/conol-ai/cohdl"
+rev = "b3175fd2d497a8505d21cd2fc1db1dfd9775b9db"
+path = "editors/zed/grammar"

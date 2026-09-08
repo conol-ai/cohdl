@@ -68,6 +68,21 @@ Set `cohdl.path` if the `cohdl` binary is not on `PATH`. The snippets below
 remain valid for a generic LSP client or a quick extension-development-host
 try-out.
 
+### Zed — packaged extension
+
+[`editors/zed/`](../editors/zed/) is the same discipline for Zed: a
+tree-sitter grammar plus this server, zero compiler changes. Install it as a
+dev extension (**Extensions → Install Dev Extension**, select
+`editors/zed/`); it finds `cohdl` on `PATH` or downloads the newest GitHub
+release on demand, and a specific binary can be pinned in Zed's
+`settings.json`:
+
+```json
+{
+  "lsp": { "cohdl": { "binary": { "path": "/path/to/cohdl" } } }
+}
+```
+
 ### VS Code (minimal client, via an extension development host or a generic
 LSP client extension)
 

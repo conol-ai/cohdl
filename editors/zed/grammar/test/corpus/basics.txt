@@ -1,0 +1,226 @@
+================================================================================
+declarations: device, trait, part with variant selector
+================================================================================
+
+pub trait Capacitor: TwoTerminal {
+    designator_prefix: "C"
+}
+
+pub device MLCC<C: Capacitance, V: Voltage = 16V> {
+    variants { C0402, C0603 }
+}
+
+pub part C_100n: MLCC<100nF, 10V>[C0402] {
+    primary { mfr: "Yageo", mpn: "CC0402KRX5R6BB104", footprint: CHIP_0402 }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (declaration
+    name: (identifier))
+  (identifier)
+  (block
+    (identifier)
+    (string))
+  (declaration
+    name: (identifier))
+  (identifier)
+  (identifier)
+  (identifier)
+  (identifier)
+  (unit_literal)
+  (block
+    (identifier)
+    (block
+      (identifier)
+      (identifier)))
+  (declaration
+    name: (identifier))
+  (identifier)
+  (unit_literal)
+  (unit_literal)
+  (brackets
+    (identifier))
+  (block
+    (identifier)
+    (block
+      (identifier)
+      (string)
+      (identifier)
+      (string)
+      (identifier))))
+
+================================================================================
+footprint body: pad placements, mount_hole, silkscreen, courtyard
+================================================================================
+
+pub footprint F {
+    pad 1: P at (-0.32mm, 0mm)
+    pad 2: P at (0.32mm, 0mm) rotate 90
+    mount_hole 1: non_plated at (0mm, 0mm) diameter 1.1mm
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+        polygon [(-2.6mm, -2.47mm), (-2.84mm, -2.8mm)]
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (1.4mm, 0.7mm) }
+    silkscreen_ref { at: (0mm, -1.05mm) }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (declaration
+    name: (identifier))
+  (block
+    (pad_placement
+      number: (number))
+    (identifier)
+    (identifier)
+    (parens
+      (unit_literal)
+      (unit_literal))
+    (pad_placement
+      number: (number))
+    (identifier)
+    (identifier)
+    (parens
+      (unit_literal)
+      (unit_literal))
+    (identifier)
+    (number)
+    (identifier)
+    (number)
+    (identifier)
+    (identifier)
+    (parens
+      (unit_literal)
+      (unit_literal))
+    (identifier)
+    (unit_literal)
+    (identifier)
+    (block
+      (identifier)
+      (identifier)
+      (pad_placement
+        number: (number))
+      (identifier)
+      (identifier)
+      (identifier)
+      (brackets
+        (parens
+          (unit_literal)
+          (unit_literal))
+        (parens
+          (unit_literal)
+          (unit_literal))))
+    (identifier)
+    (block
+      (identifier)
+      (identifier)
+      (identifier)
+      (parens
+        (unit_literal)
+        (unit_literal))
+      (identifier)
+      (parens
+        (unit_literal)
+        (unit_literal)))
+    (identifier)
+    (block
+      (identifier)
+      (parens
+        (unit_literal)
+        (unit_literal)))))
+
+================================================================================
+design body: use, impl, inst arrays, nets with fan-out, attributes, layout
+================================================================================
+
+use passive::decoupling_100n
+impl Ic for Reg
+
+design B {
+    #[bypass(mcu.VDD, 100nF)]
+    inst c: C_100n
+    inst mounting: [misc::MOUNTING_HOLE_M2_NPTH; 4]
+    subdesign rail: LogicRail
+    net VBAT [7.4V]: conn.P1, rail.VIN, leds[0..=12].VDD
+    net _: c.A
+    layout {
+        place mounting[0] at (-22.5mm, -15mm) rotate 90 side bottom
+        place rail.c_in at (1mm, 2mm)
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    path: (path
+      (identifier)
+      (identifier)))
+  (impl_declaration
+    trait: (path
+      (identifier))
+    device: (path
+      (identifier)))
+  (declaration
+    name: (identifier))
+  (block
+    (attribute
+      (identifier)
+      (parens
+        (identifier)
+        (identifier)
+        (unit_literal)))
+    (inst_statement
+      name: (identifier))
+    (identifier)
+    (inst_statement
+      name: (identifier))
+    (brackets
+      (identifier)
+      (identifier)
+      (number))
+    (declaration
+      name: (identifier))
+    (identifier)
+    (net_statement
+      name: (identifier))
+    (brackets
+      (unit_literal))
+    (identifier)
+    (identifier)
+    (identifier)
+    (identifier)
+    (identifier)
+    (brackets
+      (number)
+      (number))
+    (identifier)
+    (net_statement
+      name: (wildcard))
+    (identifier)
+    (identifier)
+    (identifier)
+    (block
+      (identifier)
+      (identifier)
+      (brackets
+        (number))
+      (identifier)
+      (parens
+        (unit_literal)
+        (unit_literal))
+      (identifier)
+      (number)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (parens
+        (unit_literal)
+        (unit_literal)))))

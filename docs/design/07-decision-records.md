@@ -993,27 +993,6 @@ Server-stack Option 1 (specify a stack) was rejected per Tony's direct instructi
 
 If real registry usage volume surfaces a genuine need for yanking policy, organization/team accounts, or private registries — each is real, likely future work, deliberately not designed speculatively ahead of real need, per this project's recurring discipline. Also revisit if the three-tier namespace scheme proves too rigid in practice (e.g. a legitimate use case that doesn't fit any of the three tiers cleanly) — that would be a scoped extension of the tier scheme, not a silent reversion to a flat namespace.
 
-# DR-036 amendment (2026-08-24): stable package-and-part search contract
-
-## Context
-
-Tony directed adding `cohdl search` so a human or AI author can discover both packages and purchasable parts from the registry. The existing browser catalogue searched only package names/descriptions, while actual `part` declarations lived inside per-version `cohdl docs` API-documentation sidecars. Fetching every sidecar in the CLI was rejected as structurally wrong: one real published package (`passive 0.2.1`) alone carries thousands of public parts and a multi-megabyte sidecar, so discovery belongs in a bounded server-side index, not in every client.
-
-## Decision
-
-RFC-030 gains `cohdl search QUERY [--json]` and an unauthenticated, stable `GET /search?q=QUERY` registry contract. Search is read-only, project-independent, login-free, and returns separate bounded package and public-part result families whose own `has_more` flags disclose truncation without total counts. Part rows are derived only from package-local `pub part` items in API-doc sidecars, indexing primary and alternate AVL manufacturer/MPN data; private and `foreign` items are excluded. Re-uploading docs for the most-recently-published version replaces that package's searchable rows; an older upload never displaces them. "Latest" in discovery means most recently published, matching the catalogue, and every result carries the exact version; dependency resolution's greatest-exact-version rule is unchanged.
-
-## Consequences
-
-- No `.cohdl` grammar, verdict, netlist, package identity, dependency pin, or cache behavior changes.
-- The stable `/search` endpoint is separate from the browser's existing package-only `/api/search`, preserving that response contract.
-- `cohdl search --json` is a discovery-result document, not RFC-010's diagnostic/verdict schema. Human and JSON modes expose the same result set; valid no-match queries succeed.
-- Queries are bounded before the network call: trimmed, 3 or more Unicode scalar values, no more than 128 UTF-8 bytes, and no control characters.
-- Each existing package's most-recent sidecar requires an explicit one-time backfill. `cohdl docs --publish` remains the idempotent path for rebuilding that package-version's search rows without changing its immutable tar/hash identity.
-- Ranking is deterministic and contract-tested: package exact-name hits precede
-  name-prefix hits, then other matches by recency/name; part hits use FTS5
-  relevance, then package and fully-qualified name as stable tie-breakers.
-
 # DR-037: Silkscreen graphics for footprints — closed four-primitive vocabulary + pin-1/polarity marker sugar, pad-existence checked
 
 ## Context
@@ -1050,9 +1029,46 @@ Option 1 (extend SilkscreenRef) was rejected: SilkscreenRef is a fixed-purpose r
 
 If a real footprint needs a fifth primitive kind (e.g. a filled rectangle distinct from a closed 4-vertex polygon, for authoring convenience) — extend the closed set via a scoped follow-up RFC, the same discipline PadShape/units/rotation sets already established. Also revisit if freeform silkscreen text becomes a real, concrete need. Also revisit if real library authoring reveals the fixed conventional standoff/shape choices baked into pin_1_marker/polarity_marker's expansion are too rigid for some real package family — that would be a scoped extension to the marker sugar, not a change to the underlying primitive vocabulary.
 
+# DR-038: Typed logical composition (subdesign) — retained hierarchy, package citizenship, one narrow placement reach-in
+
+## Context
+
+Aden's PR #33 introduced `#[virtual] inst` — an instance fully checked (pins, nets, DRC) but stripped before designator allocation, part binding, and manufacturing emission — motivated by wanting to avoid the KiCad-style pattern of splitting a schematic across pages joined by hierarchical sheet symbols. Aden's own RFC-032 draft withdrew that implementation as a category error (a fake device-shaped instance standing in for a hierarchy boundary) and correctly reframed the question: does CoHDL need retained, addressable typed hierarchy beyond what `fn` (RFC-006) already gives, and if so, why? Review with Tony resolved the question with a concrete real workload — a 3-phase BLDC controller board — surfacing two distinct real needs: (1) board-section organization that also needs an outer design to place one level into a section's real internal instances (a phase driver's MOSFET needs board-specific coordinates), and (2) cross-board, versioned reuse of a duplicated sub-circuit shippable like a registry package, which `fn` cannot give since it has no package citizenship. A second review round added three further required capabilities: generic parameters for sub-circuit configuration (e.g. a DC-DC converter's voltage/current), a subdesign's own default internal layout (with per-instance override from the outer design), and `inst`-like array-typed use sites.
+
+## Options
+
+1. Accept `#[virtual] inst` as originally prototyped in PR #33.
+2. Reject retained hierarchy entirely; rely on `module` (namespace only) + existing `fn` (same-package expansion), with review grouping left to Explorer/LSP tooling.
+3. A first-class `subdesign` declaration kind with full encapsulation — retained hierarchy, explicit typed ports, package/registry-resolvable exactly like `device`/`trait`/`fn`/`part`/`footprint` — with internals fully encapsulated behind ports, no reach-in of any kind.
+4. Same as Option 3, plus: one narrow, principled reach-in exception (`place`/`rotate`/`side` may target a real internal instance through a subdesign's stable path), generic parameters reusing RFC-007, a subdesign's own default internal layout with per-instance override, and `inst`-like array-typed use sites reusing RFC-024 — chosen.
+5. A general reach-in mechanism permitting external access to any `subdesign` internal (net, spec, arbitrary attribute), not just placement.
+6. A new, second parameter mechanism for `subdesign`, distinct from RFC-007's generics.
+
+## Decision
+
+Option 4. `subdesign` is Accepted as a new, first-class declaration kind: a retained, typed, hierarchical composition boundary with explicit ports, generic parameters (reusing RFC-007 verbatim), its own default internal `layout {}` block, and array-typeable `inst`-like use sites (reusing RFC-024's array/indexing mechanism verbatim) — resolved through RFC-016's module system and RFC-029/030's package/registry/versioning machinery exactly like every other declaration kind. Nesting is supported from day one (acyclic, cycle-detected, mirroring RFC-006's cyclic-`fn`-call diagnostic discipline), including nesting within a subdesign's own internal layout block. `place`/`rotate`/`side` gain a dotted path form that may walk through nested `subdesign` instances to target one real, part-bound internal instance, either transforming the subdesign's own default layout as one unit (reusing RFC-025/026's existing rotation/mirroring math) or overriding one specific internal instance for one instantiation — closing RFC-020/DR-026's own long-disclosed "place scoped to top-level instances only... deferred pending a real concrete need" gap, now materialized by the BLDC phase-driver requirement. No other internal access (net, spec, arbitrary attribute) is admitted. Every contained real instance remains fully part-bound (E801 unweakened), designatored (RFC-005), and DRC'd. The container itself carries no part, designator, footprint, or BOM row. `#[virtual] inst` (Option 1) is rejected outright and removed from the codebase — it never reached Accepted status.
+
+## Rationale
+
+Option 1 was rejected per Aden's own withdrawal rationale: a device-shaped instance standing in for a hierarchy boundary is a category error, and its page-boundary motivation risks leaking presentation concepts (KiCad's own page/sheet-symbol pattern) into the language model one level indirectly — the exact anti-pattern this whole review exists to avoid. Option 2 was rejected once the BLDC example was examined concretely: the board-section split and phase-driver duplication both looked, at first, like they might be satisfied by `fn` plus tooling grouping, but the cross-package versioned-reuse need and the placement-reach-in need are both real and neither is a presentation concern — `fn` has no package citizenship and `place` has no path into a `fn`'s expanded instances, so Option 2 would leave two real, distinct gaps unclosed. Option 3 (full encapsulation, no reach-in, no own-layout) was rejected as one increment too conservative: it correctly identifies retained hierarchy and package citizenship as real needs, but its blanket "no reach-in" rule directly blocks the BLDC board's real placement requirement, and its lack of an own-default-layout would force every consumer of a shipped/versioned sub-circuit package to hand-place every internal component from scratch, undermining the cross-package-reuse goal. Option 5 (general reach-in) was rejected as reopening exactly the encapsulation risk Option 3's own rule existed to prevent — no concrete need beyond placement was ever shown, and opening `net`/`spec` access would make the port boundary a non-contract. Option 6 (a second parameter mechanism) was rejected because the values in question (voltage/current) are already exactly RFC-001 unit-typed values RFC-007's generics already carry — a second mechanism would repeat DR-016's already-corrected mistake of maintaining two independent, later-unified mechanisms for the same underlying question.
+
+## Consequences
+
+- One genuinely new core concept (`subdesign`) with permanent conceptual cost, justified by two independently-real, concretely-demonstrated needs (placement reach-in; cross-package versioned reuse) — not speculative generality.
+- `place`/`rotate`/`side`'s grammar gains a dotted-path target form and a whole-unit layout-transform capability, extending RFC-020/025/026's existing constructs and reusing their exact rotation/mirroring math, rather than inventing a parallel placement mechanism.
+- `subdesign` becomes a sixth package/module-resolvable declaration kind (peer of `device`/`trait`/`fn`/`part`/`footprint`) and a first-class RFC-029/030 dependency citizen — no new resolution or versioning mechanism.
+- `subdesign` generic parameters and array-typed use sites are direct, verbatim reuses of RFC-007 and RFC-024 respectively — confirmed against real source (`src/check/expand.rs`'s `Scope.arrays: BTreeMap<String, (i64, Span)>`) that the array table is structurally independent of `Device`/`Part` typing, making this a clean reuse, not a new mechanism.
+- `fn` is explicitly retained, unchanged, as the right tool for same-package, no-reach-in, no-package-citizenship, no-own-layout repetition (e.g. RFC-006/027/028's existing `decouple`-style helper patterns) — `subdesign` does not replace or deprecate it.
+- The `#[virtual]` prototype and its fixtures (from PR #33: `src/check/expand.rs`, `src/parse.rs`, `tests/exit_criteria.rs` changes) must be removed, not merged, before `subdesign` implementation lands — no source ever depended on it as stable syntax, so this is a clean removal, not a migration.
+- Real, disclosed new diagnostic surface: missing/extra port connection, port type mismatch, generic-parameter substitution failure, recursive `subdesign` containment, placement-reach-in path segment not found, placement-reach-in path attempting to cross a net/spec boundary, array-typed use-site index errors.
+
+## Revisit when
+
+If a genuine need for reach-in beyond placement (e.g. reading a spec value from an internal instance for a downstream calculation) is demonstrated with a concrete workload — that would need its own narrowly-scoped RFC, evaluated against the same "is this electrical/data access, or physical-layout access" distinction this RFC drew, not a silent widening of the placement exception. Also revisit if real usage reveals the default-layout/override precedence rule needs finer granularity (e.g. overriding a whole nested subdesign's layout rather than one leaf instance).
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-031 is fully recorded above.)
+(none — the backlog through RFC-032 is fully recorded above.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

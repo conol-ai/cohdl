@@ -210,6 +210,71 @@ Rules:
 - There is no depth limit on (acyclic) nesting.
 - Calls use name::(args) (turbofish) when the fn has generic parameters, or name(args) otherwise. Generic arguments are positional.
 
+# Typed logical composition (subdesign)
+
+Accepted via RFC-032, see RFC-032: Typed logical composition (subdesign) + DR-038. Closes a real gap fn (above) deliberately does not cover: fn is a same-package, no-port, no-retained-path, no-package-citizenship expansion mechanism — the right tool for one-off inline repetition, but not for reuse that crosses a package boundary or needs an outer design to reach into the sub-circuit's own real components for physical placement or its own default layout. Rejects and replaces PR #33's withdrawn #[virtual] inst prototype outright — a device-shaped instance is never an acceptable stand-in for a hierarchy boundary.
+
+```cohdl
+pub subdesign DcDcConverter<Vin: Voltage, Vout: Voltage, Iout: Current> {
+    ports {
+        required VIN: Pin,
+        required GND: Pin,
+        required VOUT: Pin,
+    }
+
+    inst reg: BuckRegulator<Vin, Vout, Iout>
+    inst c_in: MLCC<10uF, Vin>
+    inst c_out: MLCC<22uF, Vout>
+
+    net _: VIN, reg.VIN, c_in.A
+    net _: GND, reg.GND, c_in.B, c_out.B
+    net _: VOUT, reg.VOUT, c_out.A
+
+    layout {
+        place reg at (0mm, 0mm)
+        place c_in at (-3mm, 2mm)
+        place c_out at (3mm, 2mm)
+    }
+}
+
+design BldcController {
+    subdesign vreg: DcDcConverter<24V, 5V, 2A> {
+        VIN: input.VBAT, GND: gnd, VOUT: v5_rail,
+    }
+
+    subdesign phases: [PhaseDriver; 3]
+    // ... net wiring to phases[0..2]'s ports ...
+
+    layout {
+        place vreg at (0mm, 0mm)
+        place phases[0] at (10mm, 5mm)
+        place phases[1] at (20mm, 5mm)
+        place phases[2] at (30mm, 5mm)
+
+        // Override: explicit beats the subdesign's own default, for this
+        // one instantiation only.
+        place phases[1].ls_fet at (22mm, 9mm)
+    }
+}
+```
+
+subdesign is a sixth top-level declaration kind, a peer of device/trait/fn/part/footprint, resolved through RFC-016's existing module-path/use/pub machinery unchanged — no new resolution mechanism. A package exporting a pub subdesign is depended upon, versioned, locked, and hash-verified exactly like any other RFC-029/030 dependency (`"@acme/motor-drivers" = "2.1.0"` in [dependencies]) — this is what makes subdesign a genuinely shippable, versioned reuse unit, unlike fn.
+
+Rules:
+
+- ports { ... } declares a subdesign's typed connection points, reusing RFC-002's pin-obligation semantics unchanged (required/optional, checked exhaustively at the use site).
+- net remains the only connectivity mechanism — a port connects an internal net to an external net, merged into one electrical equivalence class. subdesign introduces no implicit wiring.
+- Generic parameters (e.g. `<Vin: Voltage, Vout: Voltage, Iout: Current>`) reuse RFC-007's existing generic/spec-bound machinery and substitution rules verbatim — no second generic system.
+- A subdesign local: Name { PORT: value, ... } use site creates one retained hierarchy node with a stable path (BldcController::vreg). Two uses of the same subdesign type are two distinct, independently-checked, independently-designatored nodes.
+- Use-site instantiations behave like inst: nameable, referenceable in every position an ordinary instance reference is valid (net members, place, fn-call arguments), and array-typeable (`subdesign phases: [PhaseDriver; 3]`, `phases[i]`) — reusing RFC-024's existing array/indexing mechanism verbatim.
+- Every real internal inst inside a subdesign still requires part evidence (E801, unweakened), receives a stable designator (RFC-005), participates in residual DRC, and appears normally in manufacturing output.
+- The subdesign node itself has no part, designator, footprint, or BOM row. Manufacturing emitters receive the contained real components and nets, flattened — never a fake subdesign component. design.lock stores only physical child-instance designators, keyed by their subdesign-qualified paths; no lock row exists for the container.
+- A subdesign declares its own internal layout { ... } block, giving every internal instance a default relative position/rotation/side. The outer design may place the whole subdesign instance as one unit (`place vreg at (x, y) [rotate ANGLE] [side SIDE]`) — this translates the subdesign's own internal relative layout onto the board at that anchor, rotating/mirroring every internal relative coordinate about the anchor exactly as RFC-025/026 already rotate a pad's geometry / mirror a back-side footprint's pads. The outer design may also override one specific internal instance's placement (`place phases[1].ls_fet at (...)`) — explicit beats the subdesign's own default, for that one instantiation only.
+- A subdesign may contain another subdesign (nesting is supported from the first version, including within a subdesign's own internal layout block); direct or indirect recursive containment is a compile error naming the full cycle, mirroring RFC-006's cyclic-fn-call diagnostic discipline exactly.
+- Internals are otherwise encapsulated by default: external source connects only to declared ports for electrical/data purposes. net, spec, and any other internal reference remain rejected.
+- **The one admitted exception**: place/rotate/side may target a real internal instance reached through a dotted path walking into one or more subdesign instances — closing RFC-020/DR-026's own long-disclosed "place scoped to top-level instances only" gap. This is a narrow, physical-layout-only exception; it does not extend to net/spec/any other internal access. fn-internal instances remain unreachable by place — only subdesign-internal instances gain reachability, since only subdesign retains a stable, checked hierarchy path for place to resolve against.
+- Reserves a new error-code block for subdesign-specific diagnostics: missing/extra port connection, port type mismatch, generic-parameter substitution failure (reusing RFC-007's existing diagnostic shape), recursive containment, placement-reach-in path segment not found, placement-reach-in path attempting to cross a net/spec boundary, array-typed use-site index errors (reusing RFC-024's existing diagnostic shape).
+
 # Generics-over-specs and generic trait bounds
 
 Accepted via RFC-007, see RFC-007: Generics-over-specs and generic trait bounds + DR-016.
@@ -619,29 +684,24 @@ A package's tier is determined structurally by its name's own shape, never a sep
 ```bash
 cohdl login                              # opens a browser-based auth flow, stores a token locally
 cohdl publish                            # packages the current project per its cohdl.toml, publishes to the registry
-cohdl search TPS59650                    # search packages and public parts; no project or login required
-cohdl search TPS59650 --json             # the same bounded result set as one JSON document
 
-cohdl add @sparkfun/power                 # add a package as a dependency (resolves greatest semantic version, writes [dependencies] + cohdl.lock)
+cohdl add @sparkfun/power                 # add a package as a dependency (resolves latest version, writes [dependencies] + cohdl.lock)
 cohdl add @sparkfun/power@1.0.0           # add a package pinned to one exact version
 cohdl remove @sparkfun/power              # remove a package from [dependencies] (and prunes its cohdl.lock row)
 cohdl install                             # install all dependencies: resolve every [dependencies] entry against cohdl.lock
-cohdl update                              # update dependencies: resolve each to its greatest semantic version
+cohdl update                              # update dependencies: re-resolve every [dependencies] entry to its current exact version
 cohdl update @sparkfun/power              # update one named dependency only
 ```
 
 Rules:
 
-- cohdl add resolves the package's greatest published semantic version (or the exact version given via @X.Y.Z) against the registry, validates the three-tier namespace grammar, writes the resulting entry into [dependencies], and performs RFC-029's first-resolution (writing the new cohdl.lock row) in one step.
+- cohdl add resolves the package's latest published exact version (or the exact version given via @X.Y.Z) against the registry, validates the three-tier namespace grammar, writes the resulting entry into [dependencies], and performs RFC-029's first-resolution (writing the new cohdl.lock row) in one step.
 - cohdl remove deletes the named [dependencies] entry and its cohdl.lock row in one step — the symmetric inverse of add.
 - cohdl install performs exactly RFC-029's existing resolution (check cohdl.lock, first-resolve any new entry, hard-error on any hash mismatch) against registry.cohdl.org as the content source — no new resolution rule.
-- cohdl update [] re-resolves one or every [dependencies] entry to its greatest published semantic version, rewriting [dependencies]/cohdl.lock together — RFC-029's own "deliberate, visible act" pin-update path, never triggered implicitly by install/build.
+- cohdl update [] re-resolves one or every [dependencies] entry to its currently-latest published exact version, rewriting [dependencies]/cohdl.lock together — RFC-029's own "deliberate, visible act" pin-update path, never triggered implicitly by install/build.
 - cohdl publish requires a prior cohdl login; it validates the local package name against the three-tier namespace rules before any network call, so a bare-name or unverified-@brand attempt is rejected locally with the same message the server would give.
-- cohdl search QUERY is an unauthenticated, read-only discovery command backed by the registry's stable GET /search endpoint. It requires no project, login, manifest, or cache; trims QUERY, requires 3 or more Unicode scalar values and at most 128 UTF-8 bytes, and rejects control characters before any network call. Human output and --json carry the same bounded package and public-part result set; no matches is a successful empty result, while each family discloses truncation through `has_more` without a total count.
-- Package search covers names and bounded descriptions. Part search is derived from cohdl docs API-documentation sidecars and indexes only package-local, pub part items — never private declarations or foreign dependency items. A part's fully-qualified path must belong to the uploading package's server-derived module root and end in its declared short name. Within fixed resource-safety projection budgets, search includes the owning package name, fully-qualified and short symbols, device, intent, arguments, structural variant, and primary/alternate AVL field names and values; pathological excess projection data is omitted without rejecting the stored sidecar. Uploading the most-recently-published version's sidecar atomically replaces that package's searchable rows; uploading an older sidecar never displaces them. Each existing package's most-recent sidecar is backfilled idempotently with cohdl docs --publish.
-- Search results call the most recently published exact version "latest", matching the registry catalogue. This is deliberately distinct from cohdl add/cohdl update's greatest-exact-version resolution rule; every hit names its exact version.
 - The registry independently re-computes each publish's content hash server-side — this server-computed hash, not the publisher's local computation, is what cohdl.lock later verifies against on every install, closing the real trust gap a bare version number alone would leave open.
-- Not yanking policy, package deletion, vulnerability advisories, organization/team accounts, or private/scoped registries — all real, disclosed, not-yet-proposed future work.
+- Not yanking policy, package deletion, vulnerability advisories, organization/team accounts, search ranking, or private/scoped registries — all real, disclosed, not-yet-proposed future work.
 - Not the registry's own server-side technology stack — deliberately unspecified; this section covers only the external contract (namespace rules, API shape, CLI commands).
 - Error codes for CLI-level registry failures (login required, unverified-brand/unowned-bare-name publish rejected, package/version not found, remove of an absent dependency, registry-unreachable) reserve their own new block, distinct from RFC-029's manifest/lock-verification block, per RFC-011's "kind of mistake" organizing principle.
 
@@ -716,21 +776,11 @@ pub pad Round_0_5mm_THT {
 }
 ```
 
-- shape: one of rect, circle, oval, annulus (closed set). Annulus is accepted
-  only for electrical SMD pads on a copper face.
-- size: shape-dependent — (w, h) for rect/oval, (d) for circle, and
-  (outer_diameter, inner_diameter) for annulus.
+- shape: one of rect, circle, oval (closed set).
+- size: shape-dependent — (w, h) for rect/oval, (d) for circle.
 - layer: one of top_copper, bottom_copper, through_all (closed set).
 - plating: smd or plated_through_hole.
 - drill: required when plating: plated_through_hole; a compile error if present when plating: smd.
-- provisional bounded fabrication controls (see `docs/provisional-syntax.md`):
-  `chamfer: (corner, cut)` for one 45-degree corner on a rectangular SMD pad,
-  positive `corner_radius: radius` for all four corners of a rectangular SMD
-  pad (at most half its smaller dimension and mutually exclusive with chamfer),
-  nonnegative `mask_expansion: margin`, and
-  `paste: none | (width, height) | segmented_annulus(outer, inner, gap)`
-  for an omitted or centered reduced stencil aperture. Omitting these fields
-  preserves the RFC-018 geometry.
 
 footprint — composed of pad references:
 
@@ -743,18 +793,11 @@ pub footprint QFN10_3x3 {
     pad 1: Rect_0_3x0_9mm at (-1.5mm, 1.0mm)
     pad 2: Rect_0_3x0_9mm at (-1.5mm, 0.5mm)
     pad 3: Rect_0_3x0_9mm at (-1.5mm, 0.0mm)
-    // ... at least one entry per electrical pad number; repeated numbers are physical features of one terminal
+    // ... one entry per pad, matching the bound device's pin count and numbering
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.5mm) }
     silkscreen_ref { at: (0mm, -2.2mm) }
 }
 ```
-
-The same electrical pad number may occur in multiple placement statements.
-This models one terminal implemented by several physical features—for example,
-an exposed pad's top land, overlapping paste-segmentation lands, plated thermal
-vias, and back land. The footprint/device check compares distinct pad-number
-sets. KiCad and IPC-2581 physical layers retain every placement; IPC-2581 emits
-one logical package pin per distinct number.
 
 ```cohdl
 use sparkfun::footprints::qfn::QFN10_3x3;
@@ -825,12 +868,12 @@ Two semantic marker shorthands — sugar that expands to real, checked primitive
 - pin_1_marker near pad N shape SHAPE — SHAPE closed to {dot, triangle}. Expands to a filled circle (radius 0.2mm, dot) or a small filled polygon triangle (triangle) at a fixed 0.3mm standoff from pad N, on the side nearest the footprint outline.
 - polarity_marker cathode_pin N shape SHAPE — SHAPE closed to {band, arrow}. Expands to a line (a short, wide stroke perpendicular to the terminal axis, band — the conventional diode cathode band) or a filled polygon triangle pointing from the cathode toward the anode (arrow).
 
-Both markers require N to name an already-declared pad number on the same footprint — checked immediately, the same local, single-declaration lookup discipline mount_hole/pad numbering already uses. A marker naming a nonexistent pad is a compile error listing the footprint's valid pad range. A `polarity_marker` additionally requires at least two **distinct electrical pad numbers** so it has another terminal to orient toward; repeated physical placements of its one number are still one terminal.
+Both markers require N to name an already-declared pad number on the same footprint — checked immediately, the same local, single-declaration lookup discipline mount_hole/pad numbering already uses. A marker naming a nonexistent pad is a compile error listing the footprint's valid pad range.
 
 Rules:
 
 - No auto-inference — CoHDL never infers a pin-1/polarity location from Pin/Pad role data (RFC-008); every mark is an explicit, author-written statement, the same discipline RFC-027 established for physics-constraint attributes.
-- CoHDL checks that a marker's referenced pad number exists and that a polarity marker has a second distinct electrical number to orient toward — not that the target is truly the electrically-correct pin-1/cathode in the real world; this mirrors the trust boundary RFC-018 already draws for ordinary pad-count/numbering consistency.
+- CoHDL checks only that a marker's referenced pad number exists — not that it's truly the electrically-correct pin-1/cathode in the real world; this mirrors the trust boundary RFC-018 already draws for ordinary pad-count/numbering consistency.
 - cohdl build's KiCad .kicad_mod emitter projects each primitive directly onto KiCad's own native silkscreen graphic-item forms — line → fp_line, circle → fp_circle, arc → fp_arc, polygon → fp_poly — on layer F.SilkS (or B.SilkS, mirroring per RFC-026's side bottom, the same way pad geometry already mirrors).
 - cohdl build's IPC-2581 emitter gains its first-ever silkscreen output of any kind (previously none) — each primitive projects into IPC-2581's own silkscreen-layer line-segment/polygon constructs.
 - Freeform silkscreen text (component values, library logos) beyond the existing silkscreen_ref is explicitly deferred — a real, plausible future need, not solved here.
@@ -970,16 +1013,7 @@ pub footprint QFN10N40P300X300_1EP180X180 {
 ```
 
 - The identifier after pub footprint is the IPC-7351B designator itself, with - mapped to _ (CoHDL identifiers can't contain -) — a single, fixed substitution, not a free-form escaping scheme. E.g. the IPC-7351B designator QFN10N40P300X300-1EP180X180 becomes the CoHDL identifier QFN10N40P300X300_1EP180X180.
-- CoHDL's closed set of recognized IPC-7351B family templates (pitch/span/height/pin-count/density-suffix encoded per IPC-7351B's own convention — hundredths of a millimeter, no decimal point):
-
-| Family prefix | Meaning |
-|---|---|
-| `QFP` | Quad flat pack (incl. LQFP/TQFP) |
-| `QFN` | Quad flat no-lead (incl. SON, VQFN) |
-| `SOIC` / `SOP` | Small-outline IC |
-| `SOT` | Small-outline transistor |
-| `BGA` | Ball grid array |
-| `CHIP` / `MELF` | Two-terminal passives (EIA size code, no density suffix) |
+- CoHDL's closed set of recognized IPC-7351B family templates (pitch/span/height/pin-count/density-suffix encoded per IPC-7351B's own convention — hundredths of a millimeter, no decimal point):Family prefixMeaning`QFP`Quad flat pack (incl. LQFP/TQFP)`QFN`Quad flat no-lead (incl. SON, VQFN)`SOIC` / `SOP`Small-outline IC`SOT`Small-outline transistor`BGA`Ball grid array`CHIP` / `MELF`Two-terminal passives (EIA size code, no density suffix)
 - Density suffix is a closed three-value set: N (Nominal, default), L (Least), M (Most) — a missing or out-of-set suffix is a compile error for any name matching one of the closed families.
 - A footprint's name is checked in two stages, whenever it matches one of the closed family prefixes: (1) grammar well-formedness against the family-template table above (declaration time); (2) geometry cross-check, for geometrically-regular families only (QFP, QFN, SOIC/SOP, SOT; BGA/CHIP/MELF analogously) — pin count and pitch derived from the footprint's own pad N: ... at (x, y) placements must agree with what the name encodes. A mismatch is a compile error naming the specific disagreement (e.g. declared vs. actual pin count or pitch). Irregular/mixed-pitch layouts get stage (1) only — geometry consistency is not checked for these, disclosed as a real scope boundary, not an oversight.
 - A footprint whose package family falls outside the closed six-template set (e.g. connectors, relays) is unaffected — its name is checked only against RFC-016's ordinary identifier grammar, unchanged from before this RFC.
@@ -1086,4 +1120,4 @@ The following constructs are referenced conversationally (in the Conceptual Mode
 - Multi-dimensional array-typed instances (e.g. sw[row][col]) — explicitly deferred per RFC-024's own direct decision; no concrete need has been shown (OpenMicro's own keyboard matrix is expressed via ROW/COL nets, not a 2D instance grid).
 - Everything else in the Conceptual Model (Part, Instance, Net, Design) whose concrete syntax/semantics hasn't been directly pinned down by an Accepted RFC beyond what's already threaded through the sections above — note 2 describes their intended shape and philosophy in full.
 
-As of 2026-07-27, RFC-001 through RFC-031 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds array-typed instances (inst NAME: [Device; N]) with real, indexed instance references (NAME[i]) valid everywhere an ordinary instance reference already is — net members, place, decouple, fn-call arguments — redesigned same day from an initial name-expansion-sugar draft per Tony's direct correction, grounded in the real OpenMicro macropad's 42-instance repetition and its real WS2812 daisy-chain wiring/per-LED placement needs, explicitly not introducing a loop construct or auto-generating daisy-chain/grid-place data; RFC-025 adds an optional rotate clause to pad placements inside footprint, reusing RFC-020's exact closed {0, 90, 180, 270} rotation set and keyword by direct precedent, grounded in a real KiCad QFN footprint's per-side-rotated-pad pattern, deliberately not adopting the KiCad-library convention of silently swapping pad width/height instead; RFC-026 adds an optional side clause to place, closed to {top, bottom}, defaulting to top, fully independent of and composable with rotate, grounded in the real KiCad .kicad_pcb per-component layer/mirroring mechanism, deliberately kept distinct from RFC-018's unrelated pad.layer concept; RFC-027 adds seven structured Quilter physics-constraint attributes (#[ground(...)], #[high_current(...)], #[impedance(...)], #[bypass(...)], #[crystal_oscillator(...)], #[switching_converter(...)], #[bga_fanout]) attached directly to the net/inst declaration each fact describes, reusing the existing #[name(...)] attribute-bracket syntax, redesigned same day from an initial seven-new-bare-keyword draft per Tony's direct correction, plus an additive optional bracket on diff_pair (RFC-013) for Quilter's three extra numeric fields; grounded in eight real CSV files Tony supplied matching Quilter's own documented Physics Constraints schema, explicitly not auto-inferring any constraint; RFC-028 extends #[bypass(...)], #[crystal_oscillator(...)], and #[switching_converter(...)]'s target/instance arguments to also accept a bare Pin-typed fn parameter, reusing the existing resolve_pin_ref/Binding::Pin machinery (RFC-006) confirmed real in src/check/expand.rs, closing a real gap where a reusable decoupling fn's own internal bypass capacitor could not carry #[bypass(...)] at all — zero new grammar, zero new binding concept, purely a checker correction with each real call site producing its own independently-resolved CSV row; RFC-029 introduces a real [dependencies] manifest section (exact semver versions only — no ranges, ever, a permanent rule for hardware-safety reasons) plus a content-hash-verified cohdl.lock mirroring RFC-005's design.lock discipline, retiring std's hardcoded find_std_dir singleton resolution in favor of making std an ordinary versioned registry package, closing a real gap RFC-016/017's Non-goals and DR-024's Consequences had all explicitly disclosed and deferred; RFC-030 specifies registry.cohdl.org's real hosted-registry external contract — a closed three-tier namespace scheme (bare = CoHDL official, @brand/name = verified-manufacturer-only, @contrib/name = open community, all enforced client-side and server-side) plus a cohdl login/publish/add/remove/install/update CLI surface composing directly with RFC-029's unmodified exact-version/hash-verification mechanism, redesigned same day from an initial single-fetch-command draft to the four-verb add/remove/install/update surface per Tony's direct correction, with the registry's own server-side technology stack deliberately left unspecified; RFC-031 adds a new, optional silkscreen { ... } footprint-body block carrying a closed four-primitive drawable-graphics vocabulary (line/circle/arc/polygon, via a new SilkGraphic/SilkShape/SilkFill type family) plus two semantic marker shorthands (pin_1_marker, polarity_marker) that expand to real, checked primitives referencing an already-declared pad number — no auto-inference from pin-role data, deliberately kept distinct from the existing silkscreen_ref/courtyard/PadShape constructs, giving the IPC-2581 emitter its first-ever silkscreen output).
+As of 2026-09-08, RFC-001 through RFC-032 are all Accepted (RFC-017 revised same day per Tony's footprint-scope correction; RFC-018 gives RFC-017's placeholder footprint keyword real pad/footprint content, corrected same day from invented names copad/cofp to plain pad/footprint; RFC-019 packages the already-Accepted cohdl lsp for real VS Code use; RFC-020 corrects an unauthorized board-outline/placement implementation per Tony's direct review, revised twice further same day to require real scoped DXF geometry extraction and to explicitly defer fn-nested placement rather than solve it speculatively; RFC-021 adopts IPC-7351 as CoHDL's canonical footprint naming practice, revised twice same day per Tony's direct corrections; RFC-022 adds mount_hole, a footprint-body construct for mechanical locating holes disjoint from pad's pin-bound numbering, grounded in KiCad's np_thru_hole precedent; RFC-023 extends mount_hole with an optional shape:/size: pair, reusing RFC-018's existing PadShape enum, grounded in a real datasheet — the Kailh Choc V2 switch's rectangular mounting legs; RFC-024 adds array-typed instances (inst NAME: [Device; N]) with real, indexed instance references (NAME[i]) valid everywhere an ordinary instance reference already is — net members, place, decouple, fn-call arguments — redesigned same day from an initial name-expansion-sugar draft per Tony's direct correction, grounded in the real OpenMicro macropad's 42-instance repetition and its real WS2812 daisy-chain wiring/per-LED placement needs, explicitly not introducing a loop construct or auto-generating daisy-chain/grid-place data; RFC-025 adds an optional rotate clause to pad placements inside footprint, reusing RFC-020's exact closed {0, 90, 180, 270} rotation set and keyword by direct precedent, grounded in a real KiCad QFN footprint's per-side-rotated-pad pattern, deliberately not adopting the KiCad-library convention of silently swapping pad width/height instead; RFC-026 adds an optional side clause to place, closed to {top, bottom}, defaulting to top, fully independent of and composable with rotate, grounded in the real KiCad .kicad_pcb per-component layer/mirroring mechanism, deliberately kept distinct from RFC-018's unrelated pad.layer concept; RFC-027 adds seven structured Quilter physics-constraint attributes (#[ground(...)], #[high_current(...)], #[impedance(...)], #[bypass(...)], #[crystal_oscillator(...)], #[switching_converter(...)], #[bga_fanout]) attached directly to the net/inst declaration each fact describes, reusing the existing #[name(...)] attribute-bracket syntax, redesigned same day from an initial seven-new-bare-keyword draft per Tony's direct correction, plus an additive optional bracket on diff_pair (RFC-013) for Quilter's three extra numeric fields; grounded in eight real CSV files Tony supplied matching Quilter's own documented Physics Constraints schema, explicitly not auto-inferring any constraint; RFC-028 extends #[bypass(...)], #[crystal_oscillator(...)], and #[switching_converter(...)]'s target/instance arguments to also accept a bare Pin-typed fn parameter, reusing the existing resolve_pin_ref/Binding::Pin machinery (RFC-006) confirmed real in src/check/expand.rs, closing a real gap where a reusable decoupling fn's own internal bypass capacitor could not carry #[bypass(...)] at all — zero new grammar, zero new binding concept, purely a checker correction with each real call site producing its own independently-resolved CSV row; RFC-029 introduces a real [dependencies] manifest section (exact semver versions only — no ranges, ever, a permanent rule for hardware-safety reasons) plus a content-hash-verified cohdl.lock mirroring RFC-005's design.lock discipline, retiring std's hardcoded find_std_dir singleton resolution in favor of making std an ordinary versioned registry package, closing a real gap RFC-016/017's Non-goals and DR-024's Consequences had all explicitly disclosed and deferred; RFC-030 specifies registry.cohdl.org's real hosted-registry external contract — a closed three-tier namespace scheme (bare = CoHDL official, @brand/name = verified-manufacturer-only, @contrib/name = open community, all enforced client-side and server-side) plus a cohdl login/publish/add/remove/install/update CLI surface composing directly with RFC-029's unmodified exact-version/hash-verification mechanism, redesigned same day from an initial single-fetch-command draft to the four-verb add/remove/install/update surface per Tony's direct correction, with the registry's own server-side technology stack deliberately left unspecified; RFC-031 adds a new, optional silkscreen { ... } footprint-body block carrying a closed four-primitive drawable-graphics vocabulary (line/circle/arc/polygon, via a new SilkGraphic/SilkShape/SilkFill type family) plus two semantic marker shorthands (pin_1_marker, polarity_marker) that expand to real, checked primitives referencing an already-declared pad number — no auto-inference from pin-role data, deliberately kept distinct from the existing silkscreen_ref/courtyard/PadShape constructs, giving the IPC-2581 emitter its first-ever silkscreen output; RFC-032 introduces subdesign, a sixth top-level declaration kind for typed logical composition — explicit typed ports (reusing RFC-002), generic parameters (reusing RFC-007 verbatim), its own default internal layout block, and array-typeable inst-like use sites (reusing RFC-024 verbatim) — resolved through RFC-016's module system and RFC-029/030's package/registry/versioning machinery exactly like device/trait/fn/part/footprint, with place/rotate/side (RFC-020/025/026) gaining a dotted-path form that reaches through subdesign instances to one real internal instance as the sole admitted internals exception, closing RFC-020/DR-026's own long-disclosed placement-scope gap; rejects and removes PR #33's withdrawn #[virtual] inst prototype outright).

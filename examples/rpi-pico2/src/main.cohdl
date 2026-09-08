@@ -14,9 +14,7 @@ design Pico2 {
     inst flash: flash::FLASH_W25Q32
     #[placement_hint("close to XIN/XOUT with short, guarded traces")]
     inst xtal: osc::XTAL_12MHZ
-    #[placement_hint("board edge, USB-C cutout")]
-    inst usb: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
-    inst esd: esd::ESD_USBLC6
+    subdesign usb_fe: UsbFrontEnd
     inst hdr: HEADER_40W
     inst swd: connectors::headers::castellated_254::HEADER_SWD_3W
     inst boot: BOOTSEL_SW
@@ -28,10 +26,6 @@ design Pico2 {
 
     // ---- discrete R/C ----
     inst r_led: passive::R_470R_F_0201
-    inst r_dp: passive::R_27R_F_0201
-    inst rcc1: passive::R_5K1_F_0402
-    inst rcc2: passive::R_5K1_F_0402
-    inst r_dm: passive::R_27R_F_0201
     inst r_xosc: passive::R_1K_F_0402
     inst r_boot: passive::R_1K_F_0402
     inst r_swclk: passive::R_100R_F_0201
@@ -55,7 +49,7 @@ design Pico2 {
     // ---- power in: USB VBUS -> Schottky -> VSYS -> RT6150 buck-boost -> 3V3 ----
     #[intent("USB-C VBUS is 5V (5.1k Rd pulldowns advertise a UFP sink); the Schottky reverse-blocks so an external VSYS supply cannot backfeed the host")]
     #[high_current(500mA)]
-    net VBUS [5V]: usb.VBUS, esd.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
+    net VBUS [5V]: usb_fe.VBUS, d_vbus.Anode, r_vbus_top.A, hdr.VBUS
     net VBUS_SENSE: r_vbus_top.B, r_vbus_bot.A, mcu.GPIO24
     net VSYS [5V]: d_vbus.Cathode, reg.VIN, r_en.A, r_vsys_top.A, hdr.VSYS
 
@@ -71,17 +65,10 @@ design Pico2 {
     net CORE_LX: mcu.VREG_LX, l_core.A
     net V1V1 [1.1V]: l_core.B, mcu.DVDD, mcu.VREG_FB
 
-    // ---- USB 1.1 data: receptacle -> ESD array -> 27R series -> RP2350 ----
-    net USBC_DP: usb.DP, esd.IO1_A
-    net USB_DP: esd.IO1_B, r_dp.A
-    net USB_DPX: r_dp.B, mcu.USB_DP
-    net USBC_DM: usb.DN, esd.IO2_A
-    net USB_DM: esd.IO2_B, r_dm.A
-    net USB_DMX: r_dm.B, mcu.USB_DM
-    // USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)
-    net CC1: usb.CC1, rcc1.A
-    net CC2: usb.CC2, rcc2.A
-    nc: usb.SBU1, usb.SBU2
+    // ---- USB 1.1 data: the front-end subdesign owns the receptacle, ESD,
+    // CC pulldowns, and 27R series terminations behind its DP/DM ports ----
+    net USB_DPX: usb_fe.DP, mcu.USB_DP
+    net USB_DMX: usb_fe.DM, mcu.USB_DM
 
     // ---- 12 MHz crystal with 15pF loads and a 1k XOUT series resistor ----
     net XIN: mcu.XIN, xtal.XIN, c_xin.A
@@ -120,10 +107,9 @@ design Pico2 {
 
     // ---- ground (analog ground ties to the digital plane at the header) ----
     #[ground(primary)]
-    net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb.GND, usb.SHIELD,
-                   esd.GND, rcc1.B, rcc2.B, swd.P2, boot.B, led.Cathode, hdr.GND, hdr.AGND,
-                   r_vbus_bot.B, r_ps.B, r_vsys_mid.B, r_gpio29.B, c_xin.B, c_xout.B, c_vsysdiv.B,
-                   c_adc.B, c_vreg_avdd.B
+    net GND [gnd]: mcu.GND, mcu.VREG_PGND, reg.GND, flash.GND, xtal.GND, usb_fe.GND, swd.P2, boot.B,
+                   led.Cathode, hdr.GND, hdr.AGND, r_vbus_bot.B, r_ps.B, r_vsys_mid.B, r_gpio29.B,
+                   c_xin.B, c_xout.B, c_vsysdiv.B, c_adc.B, c_vreg_avdd.B
 
     // ---- GPIO breakout to the 40-pin castellated header ----
     net GP0: mcu.GPIO0, hdr.GP0
@@ -171,9 +157,7 @@ design Pico2 {
 
     // ---- layout constraints for the partner layout tool (RFC-013) ----
     layout {
-        net_class HighSpeed { USBC_DP, USBC_DM, USB_DP, USB_DM, USB_DPX, USB_DMX }
-        diff_pair(USBC_DP,
-                  USBC_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
+        net_class HighSpeed { USB_DPX, USB_DMX }
         diff_pair(USB_DPX,
                   USB_DMX) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
         length_match(USB_DPX, USB_DMX) [tolerance: 0.15mm]
@@ -186,15 +170,12 @@ design Pico2 {
         // locations, oriented; the layout partner places the rest around them.
         // The 40-pin castellated header IS the board edge — centered.
         place hdr at (0mm, 0mm)
-        // USB-C at the left short edge, mouth facing OUTWARD (-x). Per the
-        // HRO datasheet's recommended layout, the PCB EDGE line sits 1.86mm
-        // from the footprint origin on the mouth side (positioning holes
-        // 4.46mm from the edge; the shell front overhangs the edge by ~1.8mm
-        // so a plug seats fully). rotate 270 turns that +y edge side to -x:
-        // origin at -25.5 + 1.86 = -23.64.
-        place usb at (-23.64mm, 0mm) rotate 270
-        // ESD array tight to the receptacle, on the USB2 path to the MCU.
-        place esd at (-13mm, 0mm)
+        // USB front end at the left short edge, mouth facing OUTWARD (-x):
+        // the subdesign's own default layout carries the receptacle-edge
+        // geometry and the ESD array's position; the design anchors the
+        // whole unit at the edge coordinate (origin at -25.5 + 1.86 =
+        // -23.64, per the HRO datasheet's recommended layout).
+        place usb_fe at (-23.64mm, 0mm)
         // 3-pin SWD debug header at the right short edge.
         place swd at (22mm, 0mm) rotate 90
 

@@ -1,0 +1,55 @@
+// H0216F002AM display power as a typed composition boundary (RFC-032).
+//
+// The panel cannot run from either existing rail (5V exceeds its 4.6V
+// absolute maximum, 3.3V is under its 3.7V operating minimum), so this
+// subdesign owns the whole chain: the adjustable RT6150B generating the
+// 3.987V VBAT rail, its inductor, feedback divider and bulk capacitors, and
+// the SGM2554A that sequences the switched 3.3V VCI rail after IOVCC.
+// One enable port gates both, and the internal default layout carries the
+// converter cluster's positions relative to the regulator's own origin.
+
+subdesign DisplayPower {
+    ports {
+        required VIN_5V: Pin
+        required VIN_3V3: Pin
+        required EN: Pin
+        required VPANEL: Pin
+        required VLOGIC: Pin
+        required GND: Pin
+    }
+
+    inst disp_reg: DISPLAY_RAIL_RT6150B_ADJ
+    inst disp_logic_sw: DISPLAY_LOGIC_SWITCH
+    inst l_disp: passive::IND_2U2
+    inst r_disp_fb_top: passive::R_604K_F_0402
+    inst r_disp_fb_bottom: passive::R_86K6_F_0402
+    inst r_disp_en_pd: passive::R_100K_F_0402
+    #[bypass(disp_reg.VIN, 10uF)]
+    inst c_disp_reg_in: C_10U_16V_X7R_1206
+    #[bypass(disp_reg.VOUT, 10uF)]
+    inst c_disp_reg_out_a: C_10U_16V_X7R_1206
+    #[bypass(disp_reg.VOUT, 10uF)]
+    inst c_disp_reg_out_b: C_10U_16V_X7R_1206
+    #[bypass(disp_logic_sw.IN, 1uF)]
+    inst c_disp_logic_in: passive::C_1u_10V_X5R_0603
+
+    net _: VIN_5V, disp_reg.VIN, c_disp_reg_in.A
+    net _: VIN_3V3, disp_logic_sw.IN, c_disp_logic_in.A
+    net DISP_LX1: disp_reg.LX1, l_disp.A
+    net DISP_LX2: disp_reg.LX2, l_disp.B
+    #[intent("RT6150BGQW adjustable rail: 0.5V * (1 + 604k/86.6k) = 3.987V")]
+    net _: VPANEL, disp_reg.VOUT, r_disp_fb_top.A, c_disp_reg_out_a.A, c_disp_reg_out_b.A
+    net DISP_FB: disp_reg.FB, r_disp_fb_top.B, r_disp_fb_bottom.A
+    net _: EN, disp_reg.EN, disp_logic_sw.EN, r_disp_en_pd.A
+    net _: VLOGIC, disp_logic_sw.OUT
+    net _: GND, disp_reg.GND, disp_reg.PS, disp_logic_sw.GND, r_disp_fb_bottom.B, r_disp_en_pd.B,
+           c_disp_reg_in.B, c_disp_reg_out_a.B, c_disp_reg_out_b.B, c_disp_logic_in.B
+
+    layout {
+        // Relative to the regulator's own origin; the divider, enable
+        // pulldown, and capacitors stay partner-placed around the cluster.
+        place disp_reg at (0mm, 0mm) rotate 180
+        place l_disp at (0mm, 4mm)
+        place disp_logic_sw at (6mm, 0mm) rotate 180
+    }
+}

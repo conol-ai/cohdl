@@ -1,0 +1,54 @@
+// USB-C front end as a typed composition boundary (RFC-032): the
+// receptacle, ESD array, CC pulldowns, and the 27R series terminations,
+// with the receptacle's board-edge geometry as the subdesign's own default
+// layout. The design places the whole unit at the board edge; the four
+// ports are its only electrical surface.
+
+subdesign UsbFrontEnd {
+    ports {
+        required VBUS: Pin
+        required DP: Pin
+        required DM: Pin
+        required GND: Pin
+    }
+
+    #[placement_hint("board edge, USB-C cutout")]
+    inst usb: usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12
+    inst esd: esd::ESD_USBLC6
+    inst rcc1: passive::R_5K1_F_0402
+    inst rcc2: passive::R_5K1_F_0402
+    inst r_dp: passive::R_27R_F_0201
+    inst r_dm: passive::R_27R_F_0201
+
+    net _: VBUS, usb.VBUS, esd.VBUS
+
+    // receptacle -> ESD array -> 27R series -> the DP/DM ports
+    net USBC_DP: usb.DP, esd.IO1_A
+    net USB_DP: esd.IO1_B, r_dp.A
+    net _: DP, r_dp.B
+    net USBC_DM: usb.DN, esd.IO2_A
+    net USB_DM: esd.IO2_B, r_dm.A
+    net _: DM, r_dm.B
+
+    // USB-C CC pulldowns (5.1k Rd — advertise a UFP/device sink)
+    net CC1: usb.CC1, rcc1.A
+    net CC2: usb.CC2, rcc2.A
+    nc: usb.SBU1, usb.SBU2
+
+    net _: GND, usb.GND, usb.SHIELD, esd.GND, rcc1.B, rcc2.B
+
+    layout {
+        net_class HighSpeed { USBC_DP, USBC_DM, USB_DP, USB_DM }
+        diff_pair(USBC_DP,
+                  USBC_DM) [differential_impedance: 100ohm, single_ended_impedance: 50ohm, frequency: 1GHz]
+
+        // The receptacle IS the subdesign's origin: per the HRO datasheet's
+        // recommended layout the PCB edge line sits 1.86mm from the footprint
+        // origin on the mouth side, so the design anchors the whole unit at
+        // the edge coordinate and the receptacle stays at the local origin.
+        // rotate 270 turns the footprint's +y edge side to -x (mouth outward).
+        place usb at (0mm, 0mm) rotate 270
+        // ESD array tight to the receptacle, on the USB2 path to the MCU.
+        place esd at (10.64mm, 0mm)
+    }
+}

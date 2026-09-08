@@ -1,0 +1,104 @@
+# Release automation for the Zed extension. Triggered by tags of the form
+# `zed-vX.Y.Z` (the `zed-` prefix keeps this track distinct from compiler
+# `vX.Y.Z`, `vscode-v*`, and `explorer-v*` tags). The tag version must match
+# editors/zed/extension.toml — mismatches fail before anything runs.
+#
+# Zed extensions are not published as artifacts: the registry is the
+# zed-industries/extensions repository, where this extension is a git
+# submodule (pinned to a commit of this repo) plus an extensions.toml entry
+# carrying `path = "editors/zed"` and the version. "Publishing" therefore
+# means opening a version-bump PR there, which huacnlee/zed-extension-action
+# automates through a fork.
+#
+# One-time setup:
+#   1. The FIRST submission is manual (the action only bumps existing
+#      entries): fork zed-industries/extensions to conol-ai/extensions, add
+#      the submodule and entry —
+#        git submodule add https://github.com/conol-ai/cohdl.git extensions/cohdl
+#        # extensions.toml:
+#        #   [cohdl]
+#        #   submodule = "extensions/cohdl"
+#        #   path = "editors/zed"
+#        #   version = "0.1.0"
+#      — sort with `pnpm sort-extensions`, and open the PR upstream.
+#   2. Repository secret ZED_COMMITTER_TOKEN — a personal access token with
+#      the "repo" and "workflow" scopes, allowed to push branches to the
+#      conol-ai/extensions fork. Required; the publish job fails closed
+#      without it.
+name: Release Zed extension
+
+on:
+  push:
+    tags:
+      - "zed-v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The grammar-pin gate below diffs against an older commit.
+          fetch-depth: 0
+
+      - name: Check tag matches extension.toml version
+        run: |
+          tag_version="${GITHUB_REF_NAME#zed-v}"
+          manifest_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' editors/zed/extension.toml | head -1)"
+          if [ "$tag_version" != "$manifest_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $tag_version, but extension.toml says $manifest_version"
+            exit 1
+          fi
+
+      # Zed fetches the grammar by repository+rev+path, NOT from the tagged
+      # tree — so a tag whose pinned rev carries different grammar bytes than
+      # the tree it tags would publish a skewed extension. Enforce the
+      # two-commit dance here.
+      - name: Check the grammar rev pin is current
+        run: |
+          rev="$(sed -n 's/^rev = "\(.*\)"$/\1/p' editors/zed/extension.toml | head -1)"
+          if ! git cat-file -e "$rev^{commit}" 2>/dev/null; then
+            echo "::error::extension.toml pins grammar rev $rev, which is not a commit in this repository"
+            exit 1
+          fi
+          if ! git diff --quiet "$rev" "$GITHUB_SHA" -- editors/zed/grammar; then
+            echo "::error::editors/zed/grammar differs between pinned rev $rev and the tagged tree — re-pin extension.toml's rev to a commit carrying the current grammar"
+            exit 1
+          fi
+
+      # Same gates as ci.yml's zed-extension job: nothing publishes unless
+      # the grammar gate and a locked wasm build pass on the tagged tree.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          targets: wasm32-wasip2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install grammar toolchain
+        working-directory: editors/zed/grammar
+        run: npm ci
+      - name: Grammar gate
+        working-directory: editors/zed/grammar
+        run: ./check.sh
+      - name: Build extension (wasm32-wasip2)
+        working-directory: editors/zed
+        run: cargo build --release --locked --target wasm32-wasip2
+
+      - name: Require the committer token
+        run: |
+          if [ -z "${{ secrets.ZED_COMMITTER_TOKEN }}" ]; then
+            echo "::error::ZED_COMMITTER_TOKEN is not configured — see the header of this workflow"
+            exit 1
+          fi
+
+      # Opens the version-bump PR against zed-industries/extensions through
+      # the conol-ai/extensions fork: updates the submodule pin to this tag's
+      # commit and extensions.toml's version to extension.toml's.
+      - name: Open the extensions-registry bump PR
+        uses: huacnlee/zed-extension-action@v1
+        with:
+          extension-name: cohdl
+          push-to: conol-ai/extensions
+        env:
+          COMMITTER_TOKEN: ${{ secrets.ZED_COMMITTER_TOKEN }}

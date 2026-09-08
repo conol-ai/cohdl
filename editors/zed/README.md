@@ -64,7 +64,13 @@ Zed's `settings.json`:
 
 ## Publishing
 
-Zed extensions ship through a PR to
-[zed-industries/extensions](https://github.com/zed-industries/extensions)
-adding this directory as a git submodule + an `extensions.toml` entry;
-version bumps update the submodule pin. Not yet submitted.
+Zed extensions ship through
+[zed-industries/extensions](https://github.com/zed-industries/extensions):
+this repository as a git submodule plus an `extensions.toml` entry with
+`path = "editors/zed"`. The **first** submission is a manual PR there
+(not yet submitted); after that, pushing a `zed-vX.Y.Z` tag runs
+`.github/workflows/release-zed.yml`, which gates the tagged tree (version
+match, grammar-rev pin freshness, the full grammar gate, a locked wasm
+build) and opens the version-bump PR automatically through the
+`conol-ai/extensions` fork (needs the `ZED_COMMITTER_TOKEN` repository
+secret — a PAT with `repo` + `workflow` scopes; see the workflow header).

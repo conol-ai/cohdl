@@ -1,0 +1,11 @@
+{
+  "name": "tree-sitter-cohdl",
+  "version": "0.1.0",
+  "description": "CoHDL grammar for tree-sitter (editor highlighting; the cohdl compiler is the authoritative parser)",
+  "repository": "https://github.com/conol-ai/cohdl",
+  "license": "MIT",
+  "main": "bindings/node",
+  "devDependencies": {
+    "tree-sitter-cli": "0.24.7"
+  }
+}

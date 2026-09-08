@@ -1,0 +1,29 @@
+{
+  "grammars": [
+    {
+      "name": "cohdl",
+      "camelcase": "Cohdl",
+      "scope": "source.cohdl",
+      "path": ".",
+      "file-types": [
+        "cohdl"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "CoHDL grammar for tree-sitter (editor highlighting; the cohdl compiler is the authoritative parser)",
+    "links": {
+      "repository": "https://github.com/conol-ai/cohdl"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}

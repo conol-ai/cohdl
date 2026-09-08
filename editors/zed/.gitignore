@@ -1,0 +1,3 @@
+target/
+grammar/node_modules/
+*.wasm

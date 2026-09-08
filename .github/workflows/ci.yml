@@ -55,6 +55,35 @@ jobs:
       - name: Package .vsix
         run: npm run package
 
+  # The Zed extension (editors/zed) — the RFC-019/DR-025 discipline applied
+  # to a second editor: a tree-sitter grammar (editors/zed/grammar) plus a
+  # WASM crate wiring `cohdl lsp`. The grammar gate regenerates the parser
+  # (must be a no-op against the committed src/), runs the corpus tests, and
+  # parses EVERY .cohdl file in the repository expecting zero error nodes.
+  zed-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.92.0
+          targets: wasm32-wasip1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: editors/zed
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install grammar toolchain
+        working-directory: editors/zed/grammar
+        run: npm ci
+      - name: Grammar gate
+        working-directory: editors/zed/grammar
+        run: ./check.sh
+      - name: Build extension (wasm32-wasip1)
+        working-directory: editors/zed
+        run: cargo build --release --locked --target wasm32-wasip1
+
   # registry.cohdl.org (RFC-030) — its own tooling CI: vitest (incl. the
   # cross-language RFC-029 hash vector against src/hash.rs), typecheck,
   # oxlint, and a full vite build (worker + SPA). No Cloudflare credentials

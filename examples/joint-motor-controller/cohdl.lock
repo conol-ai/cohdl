@@ -13,7 +13,7 @@ hash = "sha256:997b238b4ea7097e976b03c3ceebbf59100febd12be15e3fe7c5ed407d99da76"
 [[package]]
 name = "can"
 version = "0.1.0"
-hash = "sha256:b620cbebe884a372ea806d2a2df7a43f6af0418a6eaf4316937aae5b5819ef48"
+hash = "sha256:7b5cbdab944f62fa1e222257b76f7c4e80f5a2593d020849acd61ad81381b4dd"
 
 [[package]]
 name = "connectors"
@@ -43,7 +43,7 @@ hash = "sha256:e54a7d8b49abf495644d31f2b1f4da83eeebbac3bada3d1392643789b44dcf73"
 [[package]]
 name = "motor-driver"
 version = "0.1.0"
-hash = "sha256:8e780fc574c654b1585f72ea5342bc13bd69f197474bd1e4feffc63127e168ba"
+hash = "sha256:420c332614891fa13dc6c5f8382771b78037ee87473f2173f7a7b3b299ed2e96"
 
 [[package]]
 name = "osc"

@@ -1123,7 +1123,8 @@ impl Server {
             .or_else(|| world.fns.get(&name).map(|f| f.name.span))
             .or_else(|| world.parts.get(&name).map(|p| p.name.span))
             .or_else(|| world.footprints.get(&name).map(|f| f.name.span))
-            .or_else(|| world.pads.get(&name).map(|p| p.name.span))?;
+            .or_else(|| world.pads.get(&name).map(|p| p.name.span))
+            .or_else(|| world.subdesigns.get(&name).map(|s| s.name.span))?;
         Some(lt::Location {
             uri: analysis.uri_for(target.file)?,
             range: span_to_range(&analysis, target),
@@ -1456,6 +1457,7 @@ fn body_pin_refs(body: &[Stmt]) -> Vec<&PinRef> {
             Stmt::Net(s) => out.extend(s.members.iter()),
             Stmt::Nc(s) => out.extend(s.members.iter()),
             Stmt::Call(s) => out.extend(s.args.iter()),
+            Stmt::SubdesignUse(s) => out.extend(s.conns.iter().map(|c| &c.value)),
             _ => {}
         }
     }
@@ -1472,6 +1474,7 @@ fn pin_ref_hover(analysis: &Analysis, fid: FileId, offset: u32) -> Option<lt::Ho
         .values()
         .map(|d| (d.body.as_slice(), None))
         .chain(world.fns.values().map(|f| (f.body.as_slice(), Some(f))))
+        .chain(world.subdesigns.values().map(|s| (s.body.as_slice(), None)))
         .collect();
     for (body, func) in bodies {
         for pr in body_pin_refs(body) {
@@ -1713,6 +1716,14 @@ fn body_inst<'a>(body: &'a [Stmt], name: &str) -> Option<&'a InstStmt> {
     })
 }
 
+/// The RFC-032 use site named `name` in `body`, if any.
+fn body_sub_use<'a>(body: &'a [Stmt], name: &str) -> Option<&'a SubdesignUseStmt> {
+    body.iter().find_map(|s| match s {
+        Stmt::SubdesignUse(u) if u.name.name == name => Some(u),
+        _ => None,
+    })
+}
+
 /// The first named `net` statement in `body` declaring `name`.
 fn body_net_span(body: &[Stmt], name: &str) -> Option<Span> {
     body.iter().find_map(|s| match s {
@@ -1781,19 +1792,39 @@ fn param_trait_names(f: &FnDef, base: &str) -> Vec<String> {
 /// layout-constraint net names (to the net statement).
 fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Option<Span> {
     let hit = |id: &Ident| contains(id.span, fid, offset);
-    let bodies: Vec<(&[Stmt], Option<&FnDef>)> = world
+    let bodies: Vec<(&[Stmt], Option<&FnDef>, Option<&SubdesignDef>)> = world
         .designs
         .values()
-        .map(|d| (d.body.as_slice(), None))
-        .chain(world.fns.values().map(|f| (f.body.as_slice(), Some(f))))
+        .map(|d| (d.body.as_slice(), None, None))
+        .chain(
+            world
+                .fns
+                .values()
+                .map(|f| (f.body.as_slice(), Some(f), None)),
+        )
+        .chain(
+            world
+                .subdesigns
+                .values()
+                .map(|s| (s.body.as_slice(), None, Some(s))),
+        )
         .collect();
-    for (body, func) in bodies {
-        // The instance a reference resolves to: an `inst` in this body, or a
-        // fn parameter (RFC-028 lets physics attrs target Pin/Instance
+    for (body, func, sub) in bodies {
+        // The instance a reference resolves to: an `inst` in this body, a
+        // subdesign use site (RFC-032), a port of the enclosing subdesign, or
+        // a fn parameter (RFC-028 lets physics attrs target Pin/Instance
         // params).
         let inst_target = |id: &Ident| -> Option<Span> {
             if let Some(i) = body_inst(body, &id.name) {
                 return Some(i.name.span);
+            }
+            if let Some(u) = body_sub_use(body, &id.name) {
+                return Some(u.name.span);
+            }
+            if let Some(s) = sub {
+                if let Some(p) = s.ports.iter().find(|p| p.name.name == id.name) {
+                    return Some(p.name.span);
+                }
             }
             func.and_then(|f| {
                 f.params
@@ -1809,6 +1840,16 @@ fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Op
                     .iter()
                     .find(|p| p.name.name == pin.name)
                     .map(|p| p.name.span);
+            }
+            // RFC-032: a use site's ports are its whole pin surface.
+            if let Some(u) = body_sub_use(body, &base.name) {
+                if let Some(sd) = world.subdesigns.get(&u.ty.name.name) {
+                    return sd
+                        .ports
+                        .iter()
+                        .find(|p| p.name.name == pin.name)
+                        .map(|p| p.name.span);
+                }
             }
             let f = func?;
             for tn in param_trait_names(f, &base.name) {
@@ -1898,16 +1939,40 @@ fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Op
                     _ => {}
                 }
             }
-            if let Stmt::Layout(lb) = stmt {
-                for pl in &lb.placements {
-                    // RFC-032: definition on the FIRST path segment only —
-                    // deeper segments live inside another declaration's body.
-                    if let Some(seg) = pl.path.first() {
-                        if hit(&seg.name) {
-                            if let Some(i) = body_inst(body, &seg.name.name) {
-                                return Some(i.name.span);
+            if let Stmt::SubdesignUse(u) = stmt {
+                for conn in &u.conns {
+                    if hit(&conn.port) {
+                        if let Some(sd) = world.subdesigns.get(&u.ty.name.name) {
+                            if let Some(p) = sd.ports.iter().find(|p| p.name.name == conn.port.name)
+                            {
+                                return Some(p.name.span);
                             }
                         }
+                    }
+                }
+            }
+            if let Stmt::Layout(lb) = stmt {
+                for pl in &lb.placements {
+                    // RFC-032: walk the dotted path — each segment before the
+                    // one under the cursor descends through a subdesign use
+                    // site into that subdesign's body.
+                    let mut cur: &[Stmt] = body;
+                    for seg in &pl.path {
+                        if hit(&seg.name) {
+                            if let Some(i) = body_inst(cur, &seg.name.name) {
+                                return Some(i.name.span);
+                            }
+                            if let Some(u) = body_sub_use(cur, &seg.name.name) {
+                                return Some(u.name.span);
+                            }
+                            break;
+                        }
+                        let Some(next) = body_sub_use(cur, &seg.name.name)
+                            .and_then(|u| world.subdesigns.get(&u.ty.name.name))
+                        else {
+                            break;
+                        };
+                        cur = &next.body;
                     }
                 }
                 for c in &lb.constraints {
@@ -2081,6 +2146,15 @@ fn use_site_name(world: &crate::resolve::World, fid: FileId, offset: u32) -> Opt
             return Some(n);
         }
     }
+    // RFC-032: subdesign generic bounds + bodies.
+    for s in world.subdesigns.values() {
+        if let Some(n) = bound_hit(&s.generics) {
+            return Some(n);
+        }
+        if let Some(n) = body_use_site(&s.body, &hit) {
+            return Some(n);
+        }
+    }
     // Footprint pad placements reference pad symbols (RFC-018).
     for fp in world.footprints.values() {
         for place in &fp.pads {
@@ -2131,6 +2205,18 @@ fn body_use_site(body: &[Stmt], hit: &impl Fn(&Ident) -> bool) -> Option<String>
                     return Some(s.callee.name.clone());
                 }
                 for arg in &s.generic_args {
+                    if let GenericArg::Name(id) = arg {
+                        if hit(id) {
+                            return Some(id.name.clone());
+                        }
+                    }
+                }
+            }
+            Stmt::SubdesignUse(s) => {
+                if hit(&s.ty.name) {
+                    return Some(s.ty.name.name.clone());
+                }
+                for arg in &s.ty.generic_args {
                     if let GenericArg::Name(id) = arg {
                         if hit(id) {
                             return Some(id.name.clone());

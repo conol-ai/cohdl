@@ -1,0 +1,43 @@
+// 2S battery to 3.3V logic rail as a typed composition boundary (RFC-032).
+//
+// The JW5033S runs the datasheet's own 3.3V/2A typical application verbatim
+// (Rev 0.88, page 1): 49.9k / 16k feedback divider on the 0.8V reference
+// (3.30V out), 3.3uH inductor, 100nF bootstrap, and a 100k enable pull-up
+// to VIN so the rail rises with the pack. The datasheet's single 22uF in /
+// 22uF out are carried as paired 10uF/25V X5R 0805s — equivalent
+// capacitance from the audited catalog, rated for a full 8.4V pack.
+
+subdesign LogicRail {
+    ports {
+        required VIN: Pin
+        required VOUT: Pin
+        required GND: Pin
+    }
+
+    #[switching_converter(inductor: l_buck, input_capacitor: c_in_a, output_capacitor: c_out_a)]
+    inst buck: dcdc::DCDC_JW5033S
+    inst l_buck: passive::IND_3U3
+    inst r_en: passive::R_100K_F_0402
+    inst r_fb_top: passive::R_49K9_F_0402
+    inst r_fb_bot: passive::R_16K_F_0402
+    inst c_bst: passive::C_100n_10V_X5R_0402
+    inst c_in_a: passive::C_10u_25V_X5R_0805
+    inst c_in_b: passive::C_10u_25V_X5R_0805
+    inst c_out_a: passive::C_10u_25V_X5R_0805
+    inst c_out_b: passive::C_10u_25V_X5R_0805
+
+    net _: VIN, buck.IN, r_en.A, c_in_a.A, c_in_b.A
+    net BUCK_EN: buck.EN, r_en.B
+    net BUCK_BST: buck.BS, c_bst.A
+    net BUCK_LX: buck.SW, l_buck.A, c_bst.B
+    net _: VOUT, l_buck.B, r_fb_top.A, c_out_a.A, c_out_b.A
+    net BUCK_FB: buck.FB, r_fb_top.B, r_fb_bot.A
+    net _: GND, buck.GND, r_fb_bot.B, c_in_a.B, c_in_b.B, c_out_a.B, c_out_b.B
+
+    layout {
+        place buck at (0mm, 0mm)
+        place l_buck at (0mm, 3.2mm)
+        place c_in_a at (-3mm, 0mm) rotate 90
+        place c_out_a at (3mm, 1.6mm) rotate 90
+    }
+}

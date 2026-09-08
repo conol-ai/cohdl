@@ -1,0 +1,36 @@
+// CAN 2.0B physical layer as a typed composition boundary (RFC-032).
+//
+// The SN65HVD230 runs in slope-control mode: a 10k RS resistor to ground
+// sets ~15V/us edges (SLOS346O section 5) for clean emissions on the joint
+// harness. VREF is left open (optional). No on-board termination: joint
+// nodes daisy-chain mid-bus, and the 120-ohm terminations belong at the two
+// ends of the harness, not on every node.
+
+subdesign CanPort {
+    ports {
+        required TXD: Pin
+        required RXD: Pin
+        required CANH: Pin
+        required CANL: Pin
+        required V3V3: Pin
+        required GND: Pin
+    }
+
+    inst xcvr: can::XCVR_SN65HVD230
+    inst r_slope: passive::R_10K_F_0402
+    #[bypass(xcvr.VCC, 100nF)]
+    inst c_vcc: passive::C_100n_10V_X5R_0402
+
+    net _: TXD, xcvr.D
+    net _: RXD, xcvr.R
+    net _: CANH, xcvr.CANH
+    net _: CANL, xcvr.CANL
+    net CAN_RS: xcvr.RS, r_slope.A
+    net _: V3V3, xcvr.VCC, c_vcc.A
+    net _: GND, xcvr.GND, r_slope.B, c_vcc.B
+
+    layout {
+        place xcvr at (0mm, 0mm)
+        place c_vcc at (-3.2mm, 0mm) rotate 90
+    }
+}

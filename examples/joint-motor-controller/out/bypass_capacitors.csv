@@ -1,0 +1,7 @@
+capacitor,bypassed_component,bypassed_pin,capacitance
+C10,U1,3,100
+C13,U3,5,100
+C1,U2,24,100
+C1,U2,48,100
+C2,U2,24,100
+C2,U2,48,100

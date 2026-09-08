@@ -1,0 +1,68 @@
+// Texas Instruments DRV8231A: 3.7A peak N-channel H-bridge brushed DC motor
+// driver with integrated current-mirror sensing (IPROPI) and current
+// regulation. 4.5-33V VM — a 2S lithium pack (6.0-8.4V) sits comfortably
+// inside the range. Pinout audited against SLVSFZ8A (revised January 2026):
+// Table 5-1, DDA 8-pin PowerPAD SOIC (HSOP), exposed thermal pad to ground.
+
+#[doc("docs/drv8231a.pdf")]
+pub device DRV8231A {
+    pins {
+        required IPROPI: 1 [output] // analog current output, proportional to load current
+        required IN2: 2 [input] // H-bridge logic input (internal pulldown)
+        required IN1: 3 [input] // H-bridge logic input (internal pulldown)
+        required VREF: 4 [input] // 0-5V analog input setting the current-regulation threshold
+        required VM: 5 [power_in] // 4.5-33V supply; 100nF bypass + bulk at the pin
+        required OUT1: 6 [output] // H-bridge output, directly to the motor
+        required GND: 7 [power_in] // device power ground
+        required OUT2: 8 [output] // H-bridge output, directly to the motor
+        required PAD: 9 [power_in] // thermal pad — connect to board ground
+    }
+}
+
+impl IC for DRV8231A {}
+
+#[doc("docs/drv8231a.pdf")]
+pub part MOTOR_DRV8231A: DRV8231A {
+    primary { mfr: "Texas Instruments", mpn: "DRV8231ADDAR", footprint: FP_TI_DRV8231A_DDA }
+}
+
+// DDA0008B land, from TI drawing 4214849/B (the datasheet's own "land
+// pattern example"): eight 1.55 x 0.6mm perimeter pads on a 1.27mm pitch,
+// pad centers 1.925mm off the package center (5.4mm outer extent), and a
+// 2.71 x 3.40mm exposed-pad land with 100% printed paste coverage (the
+// drawing's 0.125mm-stencil row). Thermal vias are optional per the
+// drawing's note 10 and are left to the board.
+pub pad P_DRV8231A_DDA_LEAD {
+    shape: rect
+    size: (1.55mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_DRV8231A_DDA_EP {
+    shape: rect
+    size: (2.71mm, 3.4mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_TI_DRV8231A_DDA {
+    // Left column, pin 1 at the top (y-down authoring frame).
+    pad 1: P_DRV8231A_DDA_LEAD at (-1.925mm, -1.905mm)
+    pad 2: P_DRV8231A_DDA_LEAD at (-1.925mm, -0.635mm)
+    pad 3: P_DRV8231A_DDA_LEAD at (-1.925mm, 0.635mm)
+    pad 4: P_DRV8231A_DDA_LEAD at (-1.925mm, 1.905mm)
+    // Right column, bottom to top.
+    pad 5: P_DRV8231A_DDA_LEAD at (1.925mm, 1.905mm)
+    pad 6: P_DRV8231A_DDA_LEAD at (1.925mm, 0.635mm)
+    pad 7: P_DRV8231A_DDA_LEAD at (1.925mm, -0.635mm)
+    pad 8: P_DRV8231A_DDA_LEAD at (1.925mm, -1.905mm)
+    pad 9: P_DRV8231A_DDA_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Body 4.0 x 5.0mm, lead span 6.2mm max: the land's outer extent is
+    // 5.4mm wide, so the courtyard clears both the leads and the body ends.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6.8mm, 5.6mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
+}

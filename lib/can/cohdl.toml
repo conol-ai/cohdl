@@ -1,0 +1,10 @@
+[package]
+name = "can"
+version = "0.1.0"
+license = "MIT"
+description = "CAN bus physical-layer transceivers."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+soic = "0.2.0"
+std = "0.3.0"

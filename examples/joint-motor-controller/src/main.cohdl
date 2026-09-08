@@ -1,0 +1,132 @@
+// Joint motor controller: one daisy-chainable CAN 2.0B node driving a
+// brushed gear motor from a 2S lithium pack (7.4V nominal, 6.0-8.4V).
+//
+// An STM32F072 (bxCAN, PB8/PB9 on AF4) talks to the bus through an
+// SN65HVD230 and drives a DRV8231A H-bridge, which runs straight from the
+// pack and regulates its own stall current (RFC-032 subdesigns own all
+// three analog regions). Joint angle comes from an external potentiometer
+// on the AUX port's ADC input; load current from the driver's IPROPI
+// mirror. HSE is a real 12MHz crystal — bxCAN bit timing needs crystal
+// accuracy, not the HSI RC. The node ID lives in firmware flash, set over
+// SWD at commissioning (no ID straps). Two identical bus connectors pass
+// CANH/CANL/GND through, so joints chain like vertebrae; the 120-ohm
+// terminations live at the harness ends, never on a node.
+
+design JointMC {
+    // ---- major devices ----
+    inst mcu: st_stm32::MCU_STM32F072C8T6
+    subdesign rail: LogicRail
+    subdesign canp: CanPort
+    subdesign motor: MotorStage
+    #[crystal_oscillator(mcu, PF0, PF1)]
+    inst xtal: osc::XTAL_12MHZ
+    inst c_xin: passive::C_15p_25V_C0G_0402
+    inst c_xout: passive::C_15p_25V_C0G_0402
+
+    // ---- connectors ----
+    #[placement_hint("left board edge, pack harness strain-relieved")]
+    inst conn_pwr: connectors::headers::micro_fit_3::MOLEX_43045_0212
+    #[placement_hint("right board edge, motor leads")]
+    inst conn_motor: connectors::headers::micro_fit_3::MOLEX_43045_0212
+    inst conn_can_a: connectors::headers::micro_fit_3::MOLEX_43045_0412
+    inst conn_can_b: connectors::headers::micro_fit_3::MOLEX_43045_0412
+    inst swd: connectors::headers::smd_254::SOCKET_2X3_254_SMD
+    inst aux: connectors::headers::smd_254::SOCKET_2X3_254_SMD
+    inst mounting: [misc::MOUNTING_HOLE_M2_NPTH; 4]
+
+    // ---- MCU support ----
+    inst r_boot0: passive::R_10K_F_0402
+    inst r_led: passive::R_470R_F_0402
+    inst led: led::LED_GREEN
+    inst c_nrst: passive::C_100n_10V_X5R_0402
+    inst c_vdda_hf: passive::C_100n_10V_X5R_0402
+    inst c_vdda_bulk: passive::C_1u_10V_X5R_0603
+    inst c_vddio2: passive::C_100n_10V_X5R_0402
+    inst c_bulk: passive::C_4u7_10V_X5R_0603
+
+    // ---- power: pack -> logic rail; the H-bridge runs from the pack ----
+    #[intent("the motor stage draws from the raw pack; only logic goes through the buck")]
+    #[high_current(3A)]
+    net VBAT [7.4V]: conn_pwr.P1, rail.VIN, motor.VM
+    #[high_current(500mA)]
+    net V3V3 [3.3V]: rail.VOUT, mcu.VDD, mcu.VBAT, mcu.VDDIO2, canp.V3V3, motor.V3V3, swd.P1,
+                     aux.P1, c_vddio2.A, c_bulk.A
+    net VDDA [3.3V]: mcu.VDDA, c_vdda_hf.A, c_vdda_bulk.A, rail.VOUT
+
+    // ---- CAN 2.0B: bxCAN on PB8/PB9 (AF4), two pass-through connectors ----
+    net CAN_TX: mcu.PB9, canp.TXD
+    net CAN_RX: mcu.PB8, canp.RXD
+    net CANH: canp.CANH, conn_can_a.P1, conn_can_b.P1
+    net CANL: canp.CANL, conn_can_a.P2, conn_can_b.P2
+
+    // ---- motor drive: TIM3 CH1/CH2 PWM, IPROPI current into the ADC ----
+    net MOTOR_IN1: mcu.PA6, motor.IN1
+    net MOTOR_IN2: mcu.PA7, motor.IN2
+    net MOTOR_ISENSE: mcu.PA0, motor.ISENSE
+    #[high_current(2A)]
+    net MOTOR_A: motor.OUT1, conn_motor.P1
+    #[high_current(2A)]
+    net MOTOR_B: motor.OUT2, conn_motor.P2
+
+    // ---- joint angle: external potentiometer on the AUX port ----
+    net POT_WIPER: mcu.PA1, aux.P3
+    net AUX_GPIO_A: mcu.PA5, aux.P4
+    net AUX_GPIO_B: mcu.PB1, aux.P5
+
+    // ---- 12MHz HSE crystal with 15pF loads ----
+    net XIN: mcu.PF0, xtal.XIN, c_xin.A
+    net XOUT: mcu.PF1, xtal.XOUT, c_xout.A
+
+    // ---- SWD debug: SWCLK/SWDIO, reset, and BOOT0 recovery strap ----
+    net SWCLK: mcu.PA14, swd.P3
+    net SWDIO: mcu.PA13, swd.P4
+    net NRST: mcu.NRST, swd.P5, c_nrst.A
+    net BOOT0: mcu.BOOT0, r_boot0.A, swd.P6
+
+    // ---- status LED on PA4 ----
+    net LED_A: mcu.PA4, r_led.A
+    net LED_K: r_led.B, led.Anode
+
+    #[ground(primary)]
+    net GND [gnd]: mcu.VSS, mcu.VSSA, rail.GND, canp.GND, motor.GND, conn_pwr.P2, conn_can_a.P3,
+                   conn_can_a.P4, conn_can_b.P3, conn_can_b.P4, swd.P2, aux.P2, aux.P6, xtal.GND,
+                   c_xin.B, c_xout.B, led.Cathode, r_boot0.B, c_nrst.B, c_vdda_hf.B, c_vdda_bulk.B,
+                   c_vddio2.B, c_bulk.B
+
+    // ---- per-pin decoupling on the MCU supplies ----
+    passive::decoupling_100n(mcu.VDD, mcu.VSS)
+    passive::decoupling_100n(mcu.VDD, mcu.VSS)
+
+    layout {
+        net_class CanBus { CANH, CANL }
+        diff_pair(CANH, CANL) [differential_impedance: 120ohm, frequency: 1MHz]
+        net_class Clock { XIN, XOUT }
+
+        // 50 x 35mm rectangle, extracted from the DXF's closed polyline.
+        board_outline: "mechanical/joint-mc-outline.dxf"
+
+        // Edge interfaces and mounting are locked; each subdesign drops in
+        // as one unit carrying its own converter/transceiver/bridge cluster.
+        place conn_pwr at (-21mm, -8mm) rotate 90
+        place conn_can_a at (-21mm, 6mm) rotate 90
+        place conn_can_b at (21mm, 6mm) rotate 270
+        place conn_motor at (21mm, -8mm) rotate 270
+        place swd at (-8mm, 14mm) rotate 180
+        place aux at (8mm, 14mm) rotate 180
+        place mounting[0] at (-22.5mm, -15mm)
+        place mounting[1] at (22.5mm, -15mm)
+        place mounting[2] at (22.5mm, 15mm)
+        place mounting[3] at (-22.5mm, 15mm)
+        place mcu at (-4mm, 2mm)
+        place xtal at (-4mm, -4mm)
+        place c_xin at (-7.5mm, -4mm) rotate 90
+        place c_xout at (-0.5mm, -4mm) rotate 270
+        place rail at (-12mm, -9mm)
+        place canp at (-12mm, 8mm)
+        place motor at (12mm, -6mm) rotate 90
+        // One board-specific override: the second bulk capacitor slides
+        // toward the motor connector's current loop (RFC-032 reach-in;
+        // explicit beats the subdesign's own default for this board only).
+        place motor.c_vm_bulk_b at (16.5mm, -2mm) rotate 90
+    }
+}

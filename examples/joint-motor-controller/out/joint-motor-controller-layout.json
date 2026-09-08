@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "net_classes": [
+    { "name": "CanBus", "nets": ["CANH", "CANL"] },
+    { "name": "Clock", "nets": ["XIN", "XOUT"] }
+  ],
+  "diff_pairs": [
+    { "p": "CANH", "n": "CANL" }
+  ],
+  "length_matches": [],
+  "board_outline": { "source": "mechanical/joint-mc-outline.dxf", "start": [-25, -17.5], "segments": [{ "type": "line", "to": [25, -17.5] }, { "type": "line", "to": [25, 17.5] }, { "type": "line", "to": [-25, 17.5] }, { "type": "line", "to": [-25, -17.5] }] },
+  "placements": [
+    { "instance": "JointMC::conn_pwr", "at": [-21, -8], "rotate": 90 },
+    { "instance": "JointMC::conn_can_a", "at": [-21, 6], "rotate": 90 },
+    { "instance": "JointMC::conn_can_b", "at": [21, 6], "rotate": 270 },
+    { "instance": "JointMC::conn_motor", "at": [21, -8], "rotate": 270 },
+    { "instance": "JointMC::swd", "at": [-8, 14], "rotate": 180 },
+    { "instance": "JointMC::aux", "at": [8, 14], "rotate": 180 },
+    { "instance": "JointMC::mounting_0", "at": [-22.5, -15], "rotate": 0 },
+    { "instance": "JointMC::mounting_1", "at": [22.5, -15], "rotate": 0 },
+    { "instance": "JointMC::mounting_2", "at": [22.5, 15], "rotate": 0 },
+    { "instance": "JointMC::mounting_3", "at": [-22.5, 15], "rotate": 0 },
+    { "instance": "JointMC::mcu", "at": [-4, 2], "rotate": 0 },
+    { "instance": "JointMC::xtal", "at": [-4, -4], "rotate": 0 },
+    { "instance": "JointMC::c_xin", "at": [-7.5, -4], "rotate": 90 },
+    { "instance": "JointMC::c_xout", "at": [-0.5, -4], "rotate": 270 },
+    { "instance": "JointMC::motor::c_vm_bulk_b", "at": [16.5, -2], "rotate": 90 },
+    { "instance": "JointMC::canp::c_vcc", "at": [-15.2, 8], "rotate": 90 },
+    { "instance": "JointMC::canp::xcvr", "at": [-12, 8], "rotate": 0 },
+    { "instance": "JointMC::motor::c_vm_bulk_a", "at": [13.5, -2], "rotate": 180 },
+    { "instance": "JointMC::motor::c_vm_hf", "at": [11, -2], "rotate": 180 },
+    { "instance": "JointMC::motor::drv", "at": [12, -6], "rotate": 90 },
+    { "instance": "JointMC::rail::buck", "at": [-12, -9], "rotate": 0 },
+    { "instance": "JointMC::rail::c_in_a", "at": [-15, -9], "rotate": 90 },
+    { "instance": "JointMC::rail::c_out_a", "at": [-9, -7.4], "rotate": 90 },
+    { "instance": "JointMC::rail::l_buck", "at": [-12, -5.8], "rotate": 0 }
+  ],
+  "placement_hints": [
+    { "designator": "J4", "instance": "JointMC::conn_motor", "hint": "right board edge, motor leads" },
+    { "designator": "J5", "instance": "JointMC::conn_pwr", "hint": "left board edge, pack harness strain-relieved" }
+  ]
+}

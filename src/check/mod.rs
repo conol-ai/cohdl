@@ -6,6 +6,7 @@ pub mod footprints;
 pub mod generics;
 pub mod impls;
 pub mod ipc7351;
+pub mod subdesigns;
 
 use crate::ast::SourceFile;
 use crate::diag::Diagnostics;
@@ -24,6 +25,8 @@ fn run_declaration_checks(world: &mut World, diags: &mut Diagnostics) {
     generics::check_parts(world, diags);
     // Semantically validate every function body, called or not (R6-3).
     bodies::check_fn_bodies(world, diags);
+    // RFC-032: every subdesign body, used or not, plus containment cycles.
+    subdesigns::check_subdesigns(world, diags);
 }
 
 /// Build the world and run every declaration-level check (everything that

@@ -1229,6 +1229,9 @@ impl Server {
             // modules + library registry (RFC-016/017)
             "use",
             "footprint",
+            // typed logical composition (RFC-032)
+            "subdesign",
+            "ports",
             // parts
             "primary",
             "alt",
@@ -1897,9 +1900,13 @@ fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Op
             }
             if let Stmt::Layout(lb) = stmt {
                 for pl in &lb.placements {
-                    if hit(&pl.inst) {
-                        if let Some(i) = body_inst(body, &pl.inst.name) {
-                            return Some(i.name.span);
+                    // RFC-032: definition on the FIRST path segment only —
+                    // deeper segments live inside another declaration's body.
+                    if let Some(seg) = pl.path.first() {
+                        if hit(&seg.name) {
+                            if let Some(i) = body_inst(body, &seg.name.name) {
+                                return Some(i.name.span);
+                            }
                         }
                     }
                 }
@@ -1923,17 +1930,11 @@ fn ref_definition(world: &crate::resolve::World, fid: FileId, offset: u32) -> Op
     None
 }
 
-/// `place` hover body (RFC-020/024/026).
+/// `place` hover body (RFC-020/024/026/032).
 fn placement_text(pl: &Placement) -> String {
-    let idx = pl
-        .index
-        .as_ref()
-        .map(|(i, _)| format!("[{}]", i))
-        .unwrap_or_default();
     format!(
-        "**place** `{}{}` at ({}, {}) rotate {} side {}",
-        pl.inst.name,
-        idx,
+        "**place** `{}` at ({}, {}) rotate {} side {}",
+        pl.path_text(),
         pl.at.0.text,
         pl.at.1.text,
         pl.rotate,

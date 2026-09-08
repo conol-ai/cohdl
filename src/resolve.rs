@@ -65,6 +65,8 @@ pub struct World {
     pub pads: BTreeMap<String, PadDef>,
     /// RFC-017/018 footprints (empty body = stage-one placeholder).
     pub footprints: BTreeMap<String, FootprintDef>,
+    /// RFC-032 subdesigns — typed logical composition boundaries.
+    pub subdesigns: BTreeMap<String, SubdesignDef>,
     pub designs: BTreeMap<String, DesignDef>,
     pub impls: Vec<ImplDef>,
     /// (trait fq path, device fq path) → index into `impls`. Populated only
@@ -439,6 +441,11 @@ pub fn build_world_in(
                         .footprints
                         .insert(format!("{}::{}", module, f.name.name), f);
                 }
+                ItemKind::Subdesign(s) => {
+                    world
+                        .subdesigns
+                        .insert(format!("{}::{}", module, s.name.name), s);
+                }
                 ItemKind::Design(d) => {
                     world.designs.insert(d.name.name.clone(), d);
                 }
@@ -543,6 +550,20 @@ impl Resolver<'_> {
                     let body = &mut d.body;
                     self.rewrite_body(body, module, &no_shadow, diags);
                 }
+                ItemKind::Subdesign(s) => {
+                    // RFC-032: same shadowing precedence as a fn — the
+                    // subdesign's own generic parameter names shadow globals.
+                    let shadow: BTreeSet<String> =
+                        s.generics.iter().map(|g| g.name.name.clone()).collect();
+                    for g in &mut s.generics {
+                        if let GenericBound::Traits(ts) = &mut g.bound {
+                            for t in ts {
+                                self.resolve(t, module, &no_shadow, diags);
+                            }
+                        }
+                    }
+                    self.rewrite_body(&mut s.body, module, &shadow, diags);
+                }
                 ItemKind::Impl(im) => {
                     self.resolve(&mut im.trait_name, module, &no_shadow, diags);
                     self.resolve(&mut im.device_name, module, &no_shadow, diags);
@@ -611,6 +632,31 @@ impl Resolver<'_> {
                         diags.push(d);
                     }
                     for arg in &mut s.generic_args {
+                        if let GenericArg::Name(id) = arg {
+                            if !shadow.contains(&id.name) {
+                                self.resolve(id, module, shadow, diags);
+                            }
+                        }
+                    }
+                }
+                Stmt::SubdesignUse(s) => {
+                    if !shadow.contains(&s.ty.name.name) {
+                        self.resolve(&mut s.ty.name, module, shadow, diags);
+                        // Same discipline as inst/call (R5-2): an unresolved
+                        // use-site type is unknown NOW, at the rewrite pass.
+                        if !self.symbols.contains_key(&s.ty.name.name) {
+                            let mut d = Diagnostic::error(
+                                "E202",
+                                s.ty.name.span,
+                                format!("unknown subdesign `{}`", s.ty.name.name),
+                            );
+                            if let Some(sugg) = suggest_in(self.symbols, &s.ty.name.name) {
+                                d = d.with_help(format!("did you mean `{}`?", sugg));
+                            }
+                            diags.push(d);
+                        }
+                    }
+                    for arg in &mut s.ty.generic_args {
                         if let GenericArg::Name(id) = arg {
                             if !shadow.contains(&id.name) {
                                 self.resolve(id, module, shadow, diags);
@@ -726,10 +772,42 @@ fn validate(world: &mut World, diags: &mut Diagnostics) {
     validate_traits(world, diags);
     validate_devices(world, diags);
     validate_fns(world, diags);
+    validate_subdesigns(world, diags);
     validate_pads(world, diags);
     validate_footprints(world, diags);
     index_impls(world, diags);
     // Parts are validated in check::generics (they need generic-arg checking).
+}
+
+/// RFC-032 declaration-shape validation: unique generic/port names and
+/// well-formed generic parameters. Body statements and containment cycles
+/// are `check::subdesigns`' job (they need the whole world assembled).
+fn validate_subdesigns(world: &World, diags: &mut Diagnostics) {
+    for s in world.subdesigns.values() {
+        check_dup_names(
+            s.generics.iter().map(|g| &g.name),
+            "generic parameter",
+            &s.name.name,
+            diags,
+        );
+        validate_generic_params(world, &s.generics, diags);
+        let mut seen: BTreeMap<&str, crate::span::Span> = BTreeMap::new();
+        for p in &s.ports {
+            if let Some(prev) = seen.insert(p.name.name.as_str(), p.name.span) {
+                diags.push(
+                    Diagnostic::error(
+                        "E1301",
+                        p.name.span,
+                        format!(
+                            "duplicate port `{}` on subdesign `{}`",
+                            p.name.name, s.name.name
+                        ),
+                    )
+                    .with_secondary(prev, "first declared here".to_string()),
+                );
+            }
+        }
+    }
 }
 
 const MM: i128 = 1_000_000_000_000_000;

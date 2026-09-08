@@ -4105,3 +4105,43 @@ docs/easyeda.md. Decisions of note:
   registers the projections under their internal fq names verbatim, and
   `FootprintName` binds. Same standing as `kicad_pcb`'s live pcbnew
   pass.
+
+## RFC-032 — typed logical composition (`subdesign`), 2026-09-08
+
+Implemented in full: declaration kind, `Pin`-typed ports with RFC-002
+obligations, RFC-007 generics and RFC-024 arrays reused verbatim at use
+sites, retained `Design::use::inst` paths, cross-package citizenship
+through RFC-016/029/030 unchanged, containment-cycle rejection at
+declaration, the internal default `layout {}` with whole-unit transform +
+per-instance override, and the dotted placement reach-in as the sole
+internals exception. E1301-E1307 registered. Notes and honest narrowings:
+
+- **Ports as phantom members.** Inside a body a port binds exactly like a
+  fn's `Pin` parameter, resolving to a `(node, PORT)` member; the ordinary
+  shared-member union-find then merges internal and external classes — one
+  mechanism, no new wiring machinery. Phantoms are stripped at assembly
+  after the required-port check runs; a class left with only ports
+  dissolves.
+- **Required-port rule made precise:** the RFC's "checked exhaustively at
+  the use site" is implemented as *the port's merged class must reach
+  outside the node* — a `net` naming only that port connects nothing and
+  still fails E1302.
+- **Merged-net naming.** An internal net exposed through a port keeps the
+  established provisional-§5 rule: smallest design-level name wins, else
+  the smallest scoped name (`vr::OUT`). Port-block-synthesized joins never
+  compete for the name.
+- **Whole-unit transform math** is the RFC-025/026 pad math verbatim
+  (mirror-x-before-rotate, side flip, local rotation reversed on the back
+  side), computed in exact fixed-point via `trig.rs`, pinned in tests
+  against kicad_pcb's own worked example ((5,0) r90 bottom, local (1,2) →
+  (7,1)).
+- **`fmt` narrowing, deviating from the RFC's tooling note:** canonical
+  form preserves body statement ORDER (the ports block is formatted where
+  written; the RFC's "layout block last" is authoring convention, not an
+  enforced reordering). Reordering would fight the comment-preserving
+  line-walking machinery for no checked-property gain.
+- **Array-typed use sites with a port block are rejected** (E1303): the
+  RFC leaves element-wise connection to `net` statements, and binding
+  every element to one pin silently was judged a trap, not a feature.
+- **`nc` on a port is rejected** (E1306): a port is a connection surface,
+  not a device pin; an optional port dangles by simply not being wired.

@@ -565,6 +565,7 @@ impl Formatter<'_> {
             ItemKind::Design(d) => self.design_def(vis, item, d),
             ItemKind::Pad(p) => self.pad_def(vis, item, p),
             ItemKind::Footprint(f) => self.footprint_def(vis, item, f),
+            ItemKind::Subdesign(s) => self.subdesign_def(vis, item, s),
             // Reached only when a use import is emitted outside a run.
             ItemKind::Use(u) => self.push(0, format!("use {};", u.path_text())),
         }
@@ -843,6 +844,48 @@ impl Formatter<'_> {
         self.push(0, "}");
     }
 
+    /// RFC-032 `subdesign` declaration. Canonical form: the `ports { … }`
+    /// block first (one entry per line, comma-less), then body statements in
+    /// declaration order — the same convention design bodies follow.
+    fn subdesign_def(&mut self, vis: &str, item: &Item, s: &SubdesignDef) {
+        let mut header = format!("{}subdesign {}", vis, s.name.name);
+        if !s.generics.is_empty() {
+            header.push_str(&generic_params(&s.generics));
+        }
+        self.push(0, format!("{} {{", header));
+        self.attach_trailing(self.line_start(item.decl_span));
+        if let Some(ps) = s.ports_span {
+            self.flush_leading(self.line_start(ps), 1);
+            let held = self.hold_line_comment(self.line_start(ps), self.line_end(ps));
+            self.push(1, "ports {");
+            self.attach_trailing(self.line_start(ps));
+            for p in &s.ports {
+                self.flush_leading(self.line_start(p.span), 2);
+                self.push(
+                    2,
+                    format!("{} {}: Pin", p.obligation.keyword(), p.name.name),
+                );
+                self.finish_construct(self.line_start(p.span), self.line_end(p.span), 2);
+            }
+            self.flush_leading(self.line_end(ps), 2);
+            self.push(1, "}");
+            self.append_held(held);
+            self.attach_trailing(self.line_end(ps));
+        }
+        for (idx, stmt) in s.body.iter().enumerate() {
+            self.flush_leading(self.stmt_first_line(stmt), 1);
+            self.stmt(stmt, 1);
+            let end = self.line_end(stmt.span());
+            let next_shares = s
+                .body
+                .get(idx + 1)
+                .is_some_and(|n| self.stmt_first_line(n) == end);
+            self.finish_construct_ext(self.line_start(stmt.span()), end, 1, !next_shares);
+        }
+        self.flush_leading(self.line_end(item.span), 1);
+        self.push(0, "}");
+    }
+
     fn body(&mut self, stmts: &[Stmt], item: &Item) {
         // A trailing comment on the fn/design header line survives.
         self.attach_trailing(self.line_start(item.decl_span));
@@ -902,6 +945,11 @@ impl Formatter<'_> {
                 }
             }
             Stmt::Call(s) => {
+                if let Some((_, sp)) = &s.intent {
+                    consider(sp);
+                }
+            }
+            Stmt::SubdesignUse(s) => {
                 if let Some((_, sp)) = &s.intent {
                     consider(sp);
                 }
@@ -1011,14 +1059,11 @@ impl Formatter<'_> {
                     } else {
                         format!(" rotate {}", p.rotate)
                     };
-                    // RFC-024: `place NAME[i]` — the index is part of which
-                    // element is being placed, never droppable.
-                    let idx = match p.index {
-                        Some((i, _)) => format!("[{}]", i),
-                        None => String::new(),
-                    };
                     // RFC-026: canonical clause order is `rotate` THEN
                     // `side`; the default `top` is never spelled out.
+                    // RFC-024/032: indices and the dotted reach-in path are
+                    // part of WHICH target is being placed, never droppable —
+                    // `path_text` renders both.
                     let side = match p.side {
                         crate::ast::PlacementSide::Top => String::new(),
                         crate::ast::PlacementSide::Bottom => " side bottom".to_string(),
@@ -1026,8 +1071,12 @@ impl Formatter<'_> {
                     self.push(
                         indent + 1,
                         format!(
-                            "place {}{} at ({}, {}){}{}",
-                            p.inst.name, idx, p.at.0.text, p.at.1.text, rot, side
+                            "place {} at ({}, {}){}{}",
+                            p.path_text(),
+                            p.at.0.text,
+                            p.at.1.text,
+                            rot,
+                            side
                         ),
                     );
                     self.finish_construct(
@@ -1054,6 +1103,33 @@ impl Formatter<'_> {
                 };
                 let args = join(s.args.iter().map(|a| a.to_string()), ", ");
                 self.push(indent, format!("{}{}({})", s.callee.name, generics, args));
+            }
+            Stmt::SubdesignUse(s) => {
+                self.emit_string_attr("intent", &s.intent, indent, self.line_start(s.span));
+                self.flush_leading(self.line_start(s.span), indent);
+                // RFC-024: dropping the array length would silently turn an
+                // N-node array into a single node on reformat (same rule as
+                // `inst`).
+                let ty = match s.array_len {
+                    Some((n, _)) => format!("[{}; {}]", type_ref_text(&s.ty), n),
+                    None => type_ref_text(&s.ty),
+                };
+                if s.conns.is_empty() {
+                    self.push(indent, format!("subdesign {}: {}", s.name.name, ty));
+                } else {
+                    self.push(indent, format!("subdesign {}: {} {{", s.name.name, ty));
+                    for c in &s.conns {
+                        self.flush_leading(self.line_start(c.span), indent + 1);
+                        self.push(indent + 1, format!("{}: {}", c.port.name, c.value));
+                        self.finish_construct(
+                            self.line_start(c.span),
+                            self.line_end(c.span),
+                            indent + 1,
+                        );
+                    }
+                    self.flush_leading(self.line_end(s.span), indent + 1);
+                    self.push(indent, "}");
+                }
             }
         }
     }

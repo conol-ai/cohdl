@@ -95,41 +95,47 @@
             required port is a compile error at the use site, not a surprise at
             bring-up.
           </p>
-          <pre><code>subdesign MotorStage {
-    ports {
-        required IN1: Pin
-        required IN2: Pin
-        required VM: Pin
-        required GND: Pin
+          <figure class="code-figure">
+            <figcaption class="code-caption">
+              <span class="code-file">examples/joint-motor-controller/src/</span>
+              <span class="code-hint">excerpt</span>
+            </figcaption>
+            <pre class="code"><code><span class="c-kw">subdesign</span> <span class="c-ty">MotorStage</span> {
+    <span class="c-kw">ports</span> {
+        <span class="c-kw">required</span> IN1: <span class="c-ty">Pin</span>
+        <span class="c-kw">required</span> IN2: <span class="c-ty">Pin</span>
+        <span class="c-kw">required</span> VM: <span class="c-ty">Pin</span>
+        <span class="c-kw">required</span> GND: <span class="c-ty">Pin</span>
     }
 
-    inst drv: motor_driver::MOTOR_DRV8231A
-    #[bypass(drv.VM, 100nF)]
-    inst c_vm_hf: passive::C_100n_10V_X5R_0402
-    inst c_vm_bulk_b: passive::C_10u_25V_X5R_0805
+    <span class="c-kw">inst</span> drv: motor_driver::<span class="c-ty">MOTOR_DRV8231A</span>
+    <span class="c-at">#[bypass(drv.VM, 100nF)]</span>
+    <span class="c-kw">inst</span> c_vm_hf: passive::<span class="c-ty">C_100n_10V_X5R_0402</span>
+    <span class="c-kw">inst</span> c_vm_bulk_b: passive::<span class="c-ty">C_10u_25V_X5R_0805</span>
 
-    net _: IN1, drv.IN1
-    net _: IN2, drv.IN2
-    net _: VM, drv.VM, c_vm_hf.A, c_vm_bulk_b.A
-    net _: GND, drv.GND, c_vm_hf.B, c_vm_bulk_b.B
+    <span class="c-kw">net</span> _: IN1, drv.IN1
+    <span class="c-kw">net</span> _: IN2, drv.IN2
+    <span class="c-kw">net</span> _: VM, drv.VM, c_vm_hf.A, c_vm_bulk_b.A
+    <span class="c-kw">net</span> _: GND, drv.GND, c_vm_hf.B, c_vm_bulk_b.B
 
-    layout {
-        place drv at (0mm, 0mm)
-        place c_vm_hf at (-4mm, -1mm) rotate 90
+    <span class="c-kw">layout</span> {
+        <span class="c-kw">place</span> drv <span class="c-kw">at</span> (<span class="c-unit">0mm</span>, <span class="c-unit">0mm</span>)
+        <span class="c-kw">place</span> c_vm_hf <span class="c-kw">at</span> (<span class="c-unit">-4mm</span>, <span class="c-unit">-1mm</span>) <span class="c-kw">rotate</span> 90
     }
 }
 
-design JointMC {
-    subdesign motor: MotorStage
-    net VBAT [7.4V]: conn_pwr.P1, motor.VM
+<span class="c-kw">design</span> <span class="c-ty">JointMC</span> {
+    <span class="c-kw">subdesign</span> motor: <span class="c-ty">MotorStage</span>
+    <span class="c-kw">net</span> VBAT <span class="c-unit">[7.4V]</span>: conn_pwr.P1, motor.VM
 
-    layout {
-        place motor at (12mm, -6mm) rotate 90
-        // This board only: pull the bulk capacitor into the
-        // motor connector's current loop.
-        place motor.c_vm_bulk_b at (16.5mm, -2mm) rotate 90
+    <span class="c-kw">layout</span> {
+        <span class="c-kw">place</span> motor <span class="c-kw">at</span> (<span class="c-unit">12mm</span>, <span class="c-unit">-6mm</span>) <span class="c-kw">rotate</span> 90
+        <span class="c-cm">// This board only: pull the bulk capacitor into the</span>
+        <span class="c-cm">// motor connector&rsquo;s current loop.</span>
+        <span class="c-kw">place</span> motor.c_vm_bulk_b <span class="c-kw">at</span> (<span class="c-unit">16.5mm</span>, <span class="c-unit">-2mm</span>) <span class="c-kw">rotate</span> 90
     }
 }</code></pre>
+          </figure>
           <p>
             The container itself never becomes a component: no designator, no BOM
             row, no netlist entry. Ports dissolve into the nets they join, and what

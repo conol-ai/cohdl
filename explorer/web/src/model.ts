@@ -5,6 +5,8 @@ export interface ExplorerModel {
   design: string
   verdict: string
   instances: Instance[]
+  /** Additive v1 metadata. Older snapshots have no retained boundaries. */
+  subdesigns?: Subdesign[]
   nets: Net[]
   nc: { instance_path: string; logical_pin: string }[]
   diagnostics: Diag[]
@@ -15,6 +17,54 @@ export interface ExplorerModel {
     bypasses: { cap: string; target: string }[]
   }
   footprints: Record<string, FootprintGeo>
+  /** Absent on old snapshots; null when no layout facts were declared. */
+  layout?: DesignLayout | null
+}
+
+export type Matrix = [number, number, number, number]
+export interface Placement {
+  instance: string
+  at: [number, number]
+  at_mm: [string, string]
+  rotate: number
+  side: 'top' | 'bottom'
+  matrix: Matrix
+}
+
+export interface BoardOutline {
+  source: string
+  start: [number, number]
+  segments: ({ type: 'line'; to: [number, number] } | {
+    type: 'arc'; to: [number, number]; center: [number, number]; clockwise: boolean
+  })[]
+}
+
+export interface DesignLayout {
+  placements: Placement[]
+  board_outline: BoardOutline | null
+  outline_source?: string
+  outline_error?: string
+  net_classes: { name: string; nets: string[] }[]
+  diff_pairs: { p: string; n: string }[]
+  length_matches: { nets: string[]; tolerance: string | null }[]
+  placement_hints: { designator: string; instance: string; hint: string }[]
+}
+
+export interface Subdesign {
+  path: string
+  definition: string
+  parent?: string
+  span: SrcSpan
+  ports: SubdesignPort[]
+  /** Defaults in this scope's local frame, independent of its board anchor. */
+  local_placements?: Placement[]
+}
+
+export interface SubdesignPort {
+  name: string
+  obligation: string
+  net?: string
+  connected: boolean
 }
 
 export interface FootprintGeo {
@@ -26,11 +76,15 @@ export interface FootprintGeo {
 
 export interface FpPad {
   number: string
-  shape: 'rect' | 'circle' | 'oval'
+  shape: 'rect' | 'circle' | 'oval' | 'annulus'
   x: number
   y: number
   size: number[]
   rotate: number
+  matrix?: Matrix
+  layer?: string
+  corner_radius?: number
+  chamfer?: { corner: string; cut: number }
   drill?: number[]
   pth: boolean
 }

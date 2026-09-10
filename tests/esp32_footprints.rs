@@ -862,6 +862,7 @@ fn emitter_witness(world: &mut cohdl::resolve::World, footprint: &str, index: us
     let path = format!("Witness::{index:02}");
     DesignIr {
         name: format!("ESP32FootprintWitness{index:02}"),
+        subdesigns: BTreeMap::new(),
         instances: BTreeMap::from([(
             path.clone(),
             IrInstance {

@@ -1,0 +1,43 @@
+pub trait TwoTerminal { designator_prefix: "R" }
+pub device Res<R: Resistance> {
+    pins { A: 1 [passive], B: 2 [passive] }
+    spec { resistance: R }
+}
+impl TwoTerminal for Res {}
+pub footprint Land {}
+pub part R10K: Res<10kohm> {
+    primary { mfr: "Fixture", mpn: "R10K", footprint: Land }
+}
+fn shunt(a: Pin, b: Pin) {
+    inst r: R10K
+    net _: a, r.A
+    net _: b, r.B
+}
+pub subdesign Cell<R: Resistance> {
+    ports { required IN: Pin, required OUT: Pin, optional TAP: Pin, optional UNUSED: Pin }
+    inst r: Res<R>
+    net _: IN, r.A, TAP
+    net _: OUT, r.B
+    shunt(IN, OUT)
+}
+pub subdesign Pair<R: Resistance> {
+    ports { required IN: Pin, required OUT: Pin }
+    subdesign lanes: [Cell<R>; 2]
+    net _: IN, lanes[0].IN
+    net MID: lanes[0].OUT, lanes[1].IN
+    net _: OUT, lanes[1].OUT
+}
+pub subdesign Jumper {
+    ports { required A: Pin, required B: Pin }
+    net LINK: A, B
+}
+pub subdesign Empty {}
+design Board {
+    subdesign banks: [Pair<10kohm>; 2]
+    inst load: R10K
+    net INPUT: load.A, banks[0].IN, banks[1].IN
+    net OUTPUT: load.B, banks[0].OUT, banks[1].OUT
+    subdesign links: [Jumper; 2]
+    net ONLY_PORTS: links[0].A, links[1].B
+    subdesign empty: Empty
+}

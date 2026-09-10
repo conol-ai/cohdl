@@ -2274,6 +2274,38 @@ impl<'w, 'd> Expander<'w, 'd> {
             }
         }
 
+        let mut subdesigns: BTreeMap<String, crate::ir::IrSubdesign> = self
+            .sub_nodes
+            .iter()
+            .map(|(path, node)| {
+                let parent = path.rsplit_once("::").map(|(p, _)| p);
+                (
+                    path.clone(),
+                    crate::ir::IrSubdesign {
+                        definition: node.fq.clone(),
+                        parent: parent
+                            .filter(|p| self.sub_nodes.contains_key(*p))
+                            .map(str::to_string),
+                        span: node.use_span,
+                        local_placements: Vec::new(),
+                        ports: node
+                            .ports
+                            .iter()
+                            .map(|(name, (obligation, _))| {
+                                (
+                                    name.clone(),
+                                    crate::ir::IrSubdesignPort {
+                                        obligation: *obligation,
+                                        net: None,
+                                        connected: false,
+                                    },
+                                )
+                            })
+                            .collect(),
+                    },
+                )
+            })
+            .collect();
         let mut nets = Vec::new();
         // RFC-013: every declared net name (including aliases merged into a
         // differently-named group) maps to that group's final name, so a layout
@@ -2302,6 +2334,22 @@ impl<'w, 'd> Expander<'w, 'd> {
                 .unwrap();
             for d in &decls {
                 declared_to_merged.insert(d.display_name.clone(), name.clone());
+            }
+            // Retain boundary-to-net identity BEFORE stripping port phantoms.
+            // This also preserves empty/pass-through logical subdesigns.
+            for (path, port) in decls.iter().flat_map(|d| &d.members) {
+                let Some(node) = subdesigns.get_mut(path) else {
+                    continue;
+                };
+                let Some(port) = node.ports.get_mut(port) else {
+                    continue;
+                };
+                let inside = format!("{path}::");
+                port.net = Some(name.clone());
+                port.connected = decls
+                    .iter()
+                    .flat_map(|d| &d.members)
+                    .any(|(p, _)| p != path && !p.starts_with(&inside));
             }
             let members: BTreeSet<(String, String)> = decls
                 .iter()
@@ -2423,70 +2471,34 @@ impl<'w, 'd> Expander<'w, 'd> {
         //    (byte-stability for pre-RFC-032 designs); composed defaults
         //    append after, in path order.
         {
-            let depth = |p: &str| p.matches("::").count();
-            let mut anchors: BTreeMap<String, PlaceData> = BTreeMap::new();
             let mut node_paths: Vec<String> = self.sub_nodes.keys().cloned().collect();
-            node_paths.sort_by_key(|p| (depth(p), p.clone()));
-            for np in &node_paths {
-                if let Some(d) = self.abs_node_places.get(np) {
-                    anchors.insert(np.clone(), d.clone());
-                    continue;
-                }
-                // Only an entry whose owner IS anchored can place this
-                // node; an entry in an unanchored ancestor's layout is inert
-                // and must not shadow a usable one further in (owners are
-                // strict ancestors, already final in this depth-sorted walk).
-                let mut best: Option<(usize, usize)> = None;
-                for (i, r) in self.rel_places.iter().enumerate() {
-                    if matches!(&r.target, PlaceTarget::Node(p) if p == np)
-                        && anchors.contains_key(&r.owner)
-                    {
-                        let key = (depth(&r.owner), i);
-                        if best.is_none_or(|b| key < b) {
-                            best = Some(key);
-                        }
-                    }
-                }
-                if let Some((_, i)) = best {
-                    let r = &self.rel_places[i];
-                    let composed = compose_place(&anchors[&r.owner], &r.data);
-                    anchors.insert(np.clone(), composed);
-                }
-            }
-            let mut best_inst: BTreeMap<String, (usize, usize)> = BTreeMap::new();
-            for (i, r) in self.rel_places.iter().enumerate() {
-                if let PlaceTarget::Inst(p) = &r.target {
-                    if !anchors.contains_key(&r.owner) {
-                        continue;
-                    }
-                    let key = (depth(&r.owner), i);
-                    let slot = best_inst.entry(p.clone()).or_insert(key);
-                    if key < *slot {
-                        *slot = key;
-                    }
-                }
-            }
+            node_paths.sort_by_key(|p| (p.matches("::").count(), p.clone()));
             let explicit: BTreeSet<&str> =
                 layout.placements.iter().map(|p| p.path.as_str()).collect();
-            let mut defaults: Vec<crate::ir::LayoutPlacement> = Vec::new();
-            for (path, (_, i)) in &best_inst {
-                if explicit.contains(path.as_str()) {
-                    continue;
-                }
-                let r = &self.rel_places[*i];
-                let Some(pa) = anchors.get(&r.owner) else {
-                    continue;
-                };
-                let d = compose_place(pa, &r.data);
-                defaults.push(crate::ir::LayoutPlacement {
-                    path: path.clone(),
-                    at: d.at,
-                    rotate: d.rotate,
-                    side: d.side,
-                });
-            }
-            defaults.sort_by(|a, b| a.path.cmp(&b.path));
+            let defaults: Vec<_> =
+                default_placements(&node_paths, &self.rel_places, self.abs_node_places)
+                    .into_iter()
+                    .filter(|p| !explicit.contains(p.path.as_str()))
+                    .collect();
             layout.placements.extend(defaults);
+
+            // Preserve each subdesign's authored layout for tooling even if
+            // it has no board anchor. The SAME precedence/composition pass
+            // runs from that scope's identity frame; outer overrides never
+            // enter it, and these rows never enter the manufacturing layout.
+            for (path, node) in &mut subdesigns {
+                let origin = PlaceData {
+                    at: (length_value(0), length_value(0)),
+                    rotate: 0,
+                    side: PlacementSide::Top,
+                    span: node.span,
+                };
+                node.local_placements = default_placements(
+                    &node_paths,
+                    &self.rel_places,
+                    BTreeMap::from([(path.clone(), origin)]),
+                );
+            }
         }
 
         // RFC-027: validate + adopt the physics-constraint facts. At most one
@@ -2562,6 +2574,7 @@ impl<'w, 'd> Expander<'w, 'd> {
         let ir = DesignIr {
             name: design.name.name.clone(),
             instances: self.instances,
+            subdesigns,
             nets,
             nc_pins,
             layout,
@@ -2572,6 +2585,66 @@ impl<'w, 'd> Expander<'w, 'd> {
         check_pin_obligations(self.world, &ir, self.diags);
         ir
     }
+}
+
+/// Resolve defaults reachable from the supplied coordinate-frame anchors.
+/// Node paths must be sorted by depth then path. A shallower anchored owner
+/// wins over an inner default; an unanchored owner cannot shadow one.
+fn default_placements(
+    node_paths: &[String],
+    relative: &[RelPlace],
+    mut anchors: BTreeMap<String, PlaceData>,
+) -> Vec<crate::ir::LayoutPlacement> {
+    let depth = |p: &str| p.matches("::").count();
+    // Each frame visits only a node's own candidates, rather than scanning
+    // all relative placements for every node (notably with array use sites).
+    let mut node_defaults: BTreeMap<&str, Vec<(usize, &RelPlace)>> = BTreeMap::new();
+    for (i, r) in relative.iter().enumerate() {
+        if let PlaceTarget::Node(path) = &r.target {
+            node_defaults.entry(path).or_default().push((i, r));
+        }
+    }
+    for np in node_paths {
+        if anchors.contains_key(np) {
+            continue;
+        }
+        let Some(candidates) = node_defaults.get(np.as_str()) else {
+            continue;
+        };
+        let best = candidates
+            .iter()
+            .filter(|(_, r)| anchors.contains_key(&r.owner))
+            .min_by_key(|(i, r)| (depth(&r.owner), *i));
+        if let Some((_, r)) = best {
+            anchors.insert(np.clone(), compose_place(&anchors[&r.owner], &r.data));
+        }
+    }
+    let mut best_inst: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+    for (i, r) in relative.iter().enumerate() {
+        if let PlaceTarget::Inst(p) = &r.target {
+            if !anchors.contains_key(&r.owner) {
+                continue;
+            }
+            let key = (depth(&r.owner), i);
+            let slot = best_inst.entry(p.clone()).or_insert(key);
+            if key < *slot {
+                *slot = key;
+            }
+        }
+    }
+    best_inst
+        .into_iter()
+        .map(|(path, (_, i))| {
+            let r = &relative[i];
+            let d = compose_place(&anchors[&r.owner], &r.data);
+            crate::ir::LayoutPlacement {
+                path,
+                at: d.at,
+                rotate: d.rotate,
+                side: d.side,
+            }
+        })
+        .collect()
 }
 
 /// RFC-032: transform a child placement, relative to a subdesign's origin,

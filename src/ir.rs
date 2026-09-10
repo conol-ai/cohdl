@@ -1,4 +1,4 @@
-//! Flat post-expansion design IR — the "connects" rung of the verdict ladder.
+//! Post-expansion design IR — the "connects" rung of the verdict ladder.
 //!
 //! Everything downstream (designators, residual DRC, emitters) consumes this.
 //! All collections are ordered (BTree/sorted Vec) so output is byte-stable.
@@ -13,6 +13,9 @@ pub struct DesignIr {
     pub name: String,
     /// Keyed by hierarchical path (`Board::__fn0_power_rail::c`).
     pub instances: BTreeMap<String, IrInstance>,
+    /// RFC-032 logical hierarchy, separate from manufacturing instances/nets.
+    /// Tooling consumes these boundaries; emitters still consume real parts.
+    pub subdesigns: BTreeMap<String, IrSubdesign>,
     /// Merged electrical nets, sorted by emitted name.
     pub nets: Vec<IrNet>,
     /// Pins explicitly marked not-connected: (instance path, logical pin).
@@ -20,6 +23,30 @@ pub struct DesignIr {
     /// RFC-013 layout constraints, resolved to IR net names. Rides into the
     /// separate `layout.json` artifact — never the `.net`/BOM connectivity data.
     pub layout: LayoutIr,
+}
+
+#[derive(Debug)]
+pub struct IrSubdesign {
+    pub definition: String,
+    /// Parent subdesign path, or None for a design-level use site.
+    pub parent: Option<String>,
+    pub span: Span,
+    pub ports: BTreeMap<String, IrSubdesignPort>,
+    /// Authored defaults in this use site's own coordinate frame, including
+    /// reachable nested layouts. Tooling only: never board placements, and
+    /// unaffected by placements/overrides outside this subdesign.
+    pub local_placements: Vec<LayoutPlacement>,
+}
+
+#[derive(Debug)]
+pub struct IrSubdesignPort {
+    pub obligation: crate::ast::Obligation,
+    /// Final merged net identity, including classes containing only ports.
+    /// Such classes have no manufacturing net in `DesignIr::nets`.
+    pub net: Option<String>,
+    /// The same outside-the-boundary predicate used for E1302. An internal
+    /// connection alone does not satisfy a required use-site port.
+    pub connected: bool,
 }
 
 /// Resolved layout constraints (RFC-013). Net references are IR net names.

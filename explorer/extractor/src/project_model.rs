@@ -77,6 +77,7 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
         .or_else(|_| cohdl::lock::LockState::parse(""))
         .map_err(|e| format!("design.lock parse: {e}"))?;
     cohdl::lock::assign_designators(world, &mut ir, &prior, &mut checked.diags);
+    let layout = layout_model(dir, &mut ir)?;
     let ir = &ir;
 
     // Connectivity index: (instance path, logical pin) -> connected.
@@ -265,7 +266,7 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
     let mut groups: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in ir.instances.keys() {
         let segs: Vec<&str> = path.split("::").collect();
-        if segs.len() > 2 {
+        if segs.len() > 2 && segs[segs.len() - 2].starts_with("__fn") {
             groups
                 .entry(segs[..segs.len() - 1].join("::"))
                 .or_default()
@@ -315,6 +316,27 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
         design: checked.design_name.clone().unwrap_or_default(),
         verdict: verdict.to_string(),
         instances,
+        subdesigns: ir
+            .subdesigns
+            .iter()
+            .map(|(path, node)| Subdesign {
+                path: path.clone(),
+                definition: node.definition.clone(),
+                parent: node.parent.clone(),
+                span: src_span(sm, node.span),
+                local_placements: node.local_placements.iter().map(placement_model).collect(),
+                ports: node
+                    .ports
+                    .iter()
+                    .map(|(name, port)| SubdesignPort {
+                        name: name.clone(),
+                        obligation: port.obligation.keyword().to_string(),
+                        net: port.net.clone(),
+                        connected: port.connected,
+                    })
+                    .collect(),
+            })
+            .collect(),
         nets,
         nc,
         diagnostics,
@@ -325,7 +347,82 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
             bypasses,
         },
         footprints,
+        layout,
     })
+}
+
+/// Read the referenced DXF through the compiler's parser. Missing/invalid
+/// geometry is a layout-view issue; it must not erase the checked schematic
+/// or change its check verdict. Never write build outputs or lock files.
+fn layout_model(
+    dir: &Path,
+    ir: &mut cohdl::ir::DesignIr,
+) -> Result<Option<serde_json::Value>, String> {
+    let mut outline_error = None;
+    if let Some(bo) = &mut ir.layout.board_outline {
+        let read = || -> Result<cohdl::dxf::Outline, String> {
+            let root = dir.canonicalize().map_err(|e| e.to_string())?;
+            let path = root
+                .join(&bo.path)
+                .canonicalize()
+                .map_err(|e| e.to_string())?;
+            if !path.starts_with(&root) {
+                return Err("board outline must stay inside the project directory".into());
+            }
+            let source = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+            cohdl::dxf::extract_outline(&source, cohdl::dxf::OUTLINE_LAYER)
+                .map_err(|e| e.message(cohdl::dxf::OUTLINE_LAYER))
+        };
+        match read() {
+            Ok(geometry) => bo.geom = Some(geometry),
+            Err(e) => outline_error = Some(format!("{}: {e}", bo.path)),
+        }
+    }
+    let Some(json) = cohdl::emit::layout::emit_layout_json(ir) else {
+        return Ok(None);
+    };
+    let mut layout: serde_json::Value = serde_json::from_str(&json).map_err(|e| e.to_string())?;
+    if let Some(bo) = &ir.layout.board_outline {
+        layout["outline_source"] = bo.path.clone().into();
+    }
+    if let Some(error) = outline_error {
+        layout["outline_error"] = error.into();
+    }
+    for (row, p) in layout["placements"]
+        .as_array_mut()
+        .expect("layout placements")
+        .iter_mut()
+        .zip(&ir.layout.placements)
+    {
+        *row = placement_model(p);
+    }
+    Ok(Some(layout))
+}
+
+fn placement_model(p: &cohdl::ir::LayoutPlacement) -> serde_json::Value {
+    let bottom = p.side == cohdl::ast::PlacementSide::Bottom;
+    let at_mm = [
+        cohdl::emit::geom::mm(&p.at.0),
+        cohdl::emit::geom::mm(&p.at.1),
+    ];
+    let at: serde_json::Value = serde_json::from_str(&format!("[{},{}]", at_mm[0], at_mm[1]))
+        .expect("canonical placement coordinates");
+    serde_json::json!({
+        "instance": p.path, "at": at, "at_mm": at_mm,
+        "rotate": p.rotate, "side": if bottom { "bottom" } else { "top" },
+        "matrix": board_matrix(p.rotate, bottom),
+    })
+}
+
+/// SVG matrix [a,b,c,d]: authoring frame is +y-down, so rotate by -angle.
+/// Bottom-side placement mirrors local x BEFORE rotation (RFC-026/032).
+/// All rotation coefficients come from the compiler's portable sine table.
+fn board_matrix(angle: u16, bottom: bool) -> [f64; 4] {
+    let (s, c) = cohdl::trig::sin_cos(angle);
+    let scale = cohdl::trig::SCALE as f64;
+    let (s, c) = (s as f64 / scale, c as f64 / scale);
+    let mirror = if bottom { -1.0 } else { 1.0 };
+    [c * mirror, -s * mirror, s, c].map(|v| if v == 0.0 { 0.0 } else { v })
 }
 
 const FEMTO_PER_MM: f64 = 1e15;
@@ -364,6 +461,20 @@ fn footprint_geo(world: &World, fp: &cohdl::ast::FootprintDef) -> FootprintGeo {
                     .map(|d| d.size.iter().map(femto_mm).collect())
                     .unwrap_or_default(),
                 rotate: p.rotate,
+                matrix: board_matrix(p.rotate, false),
+                layer: def
+                    .and_then(|d| d.layer)
+                    .map_or("top_copper", |(l, _)| l.name())
+                    .into(),
+                corner_radius: def
+                    .and_then(|d| d.corner_radius.as_ref())
+                    .map(|(r, _)| femto_mm(r)),
+                chamfer: def
+                    .and_then(|d| d.chamfer.as_ref())
+                    .map(|(c, cut, _)| PadChamfer {
+                        corner: c.name().into(),
+                        cut: femto_mm(cut),
+                    }),
                 drill: def
                     .and_then(|d| d.drill.as_ref())
                     .map(|(dr, _)| match dr {

@@ -68,6 +68,9 @@ jobs:
       - name: Web typecheck
         working-directory: explorer/web
         run: npx tsc --noEmit
+      - name: Web projection tests
+        working-directory: explorer/web
+        run: npm test
       - name: Web build
         working-directory: explorer/web
         run: npm run build

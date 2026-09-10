@@ -96,6 +96,13 @@ design B {{
     // Retained paths, ordinary designators, no node instance.
     assert!(ir.instances.contains_key("B::vr::reg"));
     assert!(ir.instances.contains_key("B::vr::c_in"));
+    let node = &ir.subdesigns["B::vr"];
+    assert_eq!(node.definition, "board::Vreg");
+    assert!(node.parent.is_none());
+    assert_eq!(node.ports["VIN"].net.as_deref(), Some("vbat"));
+    assert!(node.ports["VIN"].connected);
+    assert_eq!(node.ports["SENSE"].net.as_deref(), Some("vr::SNS"));
+    assert!(!node.ports["SENSE"].connected);
     assert!(
         !ir.instances.contains_key("B::vr"),
         "the node is not an instance"
@@ -131,6 +138,27 @@ design B {{
         .expect("artifacts")
         .bom;
     assert!(bom.contains("reg") && bom.contains("c100n") && bom.contains("c1u"));
+}
+
+#[test]
+fn retained_hierarchy_is_inert_for_manufacturing_bytes() {
+    let src = format!(
+        "{LIB}\ndesign B {{
+        inst load: C1U
+        subdesign vr: Vreg<100nF> {{ VIN: rail, VOUT: load.A }}
+        net rail [5V]: load.B
+        layout {{ place vr at (10mm, 20mm) rotate 37 side bottom }}
+    }}"
+    );
+    let mut c = checked_ok(&src);
+    let before = build_artifacts(&mut c, &LockState::default()).unwrap();
+    c.ir.as_mut().unwrap().subdesigns.clear();
+    let after = build_artifacts(&mut c, &LockState::default()).unwrap();
+    assert_eq!(before.netlist, after.netlist);
+    assert_eq!(before.bom, after.bom);
+    assert_eq!(before.layout, after.layout);
+    assert_eq!(before.quilter, after.quilter);
+    assert_eq!(before.lock.render(), after.lock.render());
 }
 
 #[test]
@@ -210,11 +238,16 @@ design B {{
 }}
 "
     );
-    let e = errors_of(&src);
+    let c = checked(&src);
+    let e = c.diags.render(&c.sm);
     assert!(e.contains("E1302"), "{e}");
     assert!(e.contains("required port `VOUT`"), "{e}");
     // The optional SENSE port dangles silently.
     assert!(!e.contains("SENSE"), "{e}");
+    let node = &c.ir.as_ref().unwrap().subdesigns["B::vr"];
+    assert!(node.ports["VIN"].connected);
+    assert!(!node.ports["VOUT"].connected);
+    assert_eq!(node.ports["VOUT"].net.as_deref(), Some("vr::OUT"));
 }
 
 #[test]
@@ -472,6 +505,18 @@ design B {{
     // a.reg keeps its transformed default alongside the sibling override.
     let a_reg = place_of(ir, "B::a::reg");
     assert_eq!(a_reg.at.0.femto, 11_000_000_000_000_000);
+    // A board override cannot rewrite the authored local defaults.
+    for path in ["B::a", "B::b"] {
+        let local = ir.subdesigns[path]
+            .local_placements
+            .iter()
+            .find(|p| p.path.ends_with("::c_in"))
+            .unwrap();
+        assert_eq!(
+            (local.at.0.femto, local.at.1.femto, local.rotate),
+            (-1_000_000_000_000_000, -2_000_000_000_000_000, 90)
+        );
+    }
 }
 
 #[test]
@@ -496,6 +541,13 @@ design B {{
             .iter()
             .map(|p| &p.path)
             .collect::<Vec<_>>()
+    );
+    let local = &ir.subdesigns["B::vr"].local_placements;
+    assert_eq!(local.len(), 2, "unanchored layouts remain inspectable");
+    let reg = local.iter().find(|p| p.path == "B::vr::reg").unwrap();
+    assert_eq!(
+        (reg.at.0.femto, reg.at.1.femto),
+        (1_000_000_000_000_000, 2_000_000_000_000_000)
     );
 }
 
@@ -588,6 +640,22 @@ design B {{
         (112_000_000_000_000_000, 49_000_000_000_000_000)
     );
     assert_eq!(second_reg.rotate, 90);
+    let local = &ir.subdesigns["B::duo"].local_placements;
+    assert_eq!(local.len(), 4);
+    let second = local
+        .iter()
+        .find(|p| p.path == "B::duo::second::reg")
+        .unwrap();
+    assert_eq!(
+        (second.at.0.femto, second.at.1.femto, second.rotate),
+        (12_000_000_000_000_000, -1_000_000_000_000_000, 90)
+    );
+    let inner = &ir.subdesigns["B::duo::second"].local_placements;
+    let reg = inner.iter().find(|p| p.path.ends_with("::reg")).unwrap();
+    assert_eq!(
+        (reg.at.0.femto, reg.at.1.femto, reg.rotate),
+        (1_000_000_000_000_000, 2_000_000_000_000_000, 0)
+    );
 }
 
 // ---------------------------------------------------------------------------

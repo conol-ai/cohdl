@@ -181,6 +181,7 @@ fn insert_emitter_witnesses(
     DesignIr {
         name: "STM32FootprintWitness".to_string(),
         instances,
+        subdesigns: BTreeMap::new(),
         nets: Vec::new(),
         nc_pins: BTreeSet::new(),
         layout: LayoutIr::default(),

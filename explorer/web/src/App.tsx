@@ -15,12 +15,14 @@ import {
 import '@xyflow/react/dist/style.css'
 import type { ExplorerModel, Instance, Net } from './model'
 import { shortName } from './model'
+import { explorerNets, ownerScope } from './hierarchy'
 import { buildGraph, focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
 import { assignRegions, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
+  BoundaryNode,
   FootprintPreview,
   PartNode,
   RegionNode,
@@ -29,8 +31,11 @@ import {
 } from './nodes'
 import { LaneEdge } from './edges'
 import { toPng } from 'html-to-image'
+import { BoardLayout } from './BoardLayout'
+import { passiveTerminals, wireHandles } from './handles'
+import { layoutScope } from './boardGeometry'
 
-const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode }
+const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
 const edgeTypes = { lane: LaneEdge }
 
 // ---------- app ----------
@@ -48,14 +53,37 @@ export default function App() {
   const [photoUrl, setPhotoUrl] = useState<string>('')
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
+  const [layoutFrame, setLayoutFrame] = useState<'board' | 'local'>('local')
+  const [scope, setScope] = useState<string | null>(() => {
+    const value = new URLSearchParams(location.search).get('scope')
+    return value === 'all' ? null : value ?? ''
+  })
+  const [jump, setJump] = useState<{ id?: string; net?: string } | null>(null)
+  const allNets = useMemo(() => model ? explorerNets(model) : [], [model])
+  const currentSubdesign = model?.subdesigns?.find((s) => s.path === scope)
+  const navigateScope = useCallback((path: string | null, target?: { id?: string; net?: string }) => {
+    setScope(path)
+    setActiveView('')
+    setRegionFocus('')
+    setSel([])
+    setSelNet('')
+    setQuery('')
+    setJump(target ?? null)
+  }, [])
+
+  // A live edit can remove or rename the open use site.
+  useEffect(() => {
+    if (model && scope && !model.subdesigns?.some((s) => s.path === scope)) navigateScope('')
+  }, [model, scope, navigateScope])
   /** Node id -> position produced by the layout engine (reset target). */
   const pristine = useRef<Map<string, { x: number; y: number }>>(new Map())
   /** Latest resetLayout, so the key handler binds once. */
   const resetLayoutRef = useRef<(() => void) | null>(null)
-  const [mode, setMode] = useState<'overview' | 'sch'>(
-    new URLSearchParams(location.search).get('mode') === 'sch' ? 'sch' : 'overview',
-  )
-  const dark = mode === 'sch'
+  const [mode, setMode] = useState<'overview' | 'sch' | 'layout'>(() => {
+    const value = new URLSearchParams(location.search).get('mode')
+    return value === 'sch' || value === 'layout' ? value : 'overview'
+  })
+  const dark = mode !== 'overview'
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
@@ -94,15 +122,21 @@ export default function App() {
 
   useEffect(() => {
     if (!model) return
+    let cancelled = false
     fetch(`/views/${model.design}.view.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then((c) => {
+        if (cancelled) return
         setViewCfg(c)
         const pv = params.get('view')
-        if (c && pv && c.views.some((v: any) => v.name === pv)) setActiveView(pv)
+        if (c && pv && c.views.some((v: any) => v.name === pv)) {
+          setActiveView(pv)
+          setScope(null)
+        }
       })
-      .catch(() => setViewCfg(null))
-  }, [model])
+      .catch(() => { if (!cancelled) setViewCfg(null) })
+    return () => { cancelled = true }
+  }, [model?.design])
 
   // rail/net chip clicks from inside custom nodes
   useEffect(() => {
@@ -135,7 +169,14 @@ export default function App() {
 
   useEffect(() => {
     if (!model) return
-    const g = buildGraph(model)
+    if (mode === 'layout') {
+      setGraph(null)
+      if (jump?.id) setSel([jump.id])
+      if (jump?.net) setSelNet(jump.net)
+      return
+    }
+    let cancelled = false
+    const g = buildGraph(model, scope)
     if (mode === 'sch')
       for (const n of g.nodes) {
         const sz = detailedSize(n)
@@ -158,7 +199,10 @@ export default function App() {
     setGraph(gg)
     const layoutRegions = regionFocus ? undefined : regions
     layout(gg, layoutRegions, { compact: mode === 'overview' }).then(({ positions, regionBoxes }) => {
-      const preset = params.get('select')?.split(',') ?? []
+      if (cancelled) return
+      const target = jump?.id ? gg.location.get(jump.id) ?? jump.id : undefined
+      const preset = target ? [target] : params.get('select')?.split(',') ?? []
+      setSelNet(jump?.net ?? '')
       // SCH mode: each connected pin picks the side facing its counterpart
       // node (capped at the row count so node height stays fixed), then rows
       // within a side sort by the counterpart's y so wires run near-straight.
@@ -231,18 +275,19 @@ export default function App() {
         ...regionNodes,
         ...gg.nodes.map((n) => ({
           id: n.id,
-          type: mode === 'sch' && n.kind === 'ic' ? 'detailed' : 'part',
-          // Overview only: explicit dims + static handle coordinates (the
-          // v12 SSR mechanism) make nodes AND edges render without any async
-          // measurement — kills the cold-start "parts but no wires" race and
-          // the extent:'parent' hidden stranding. SCH must stay on DOM
-          // measurement or pin-handle edge anchoring breaks.
-          ...(mode === 'sch'
+          type: n.ports ? 'boundary' : mode === 'sch' && n.kind === 'ic' ? 'detailed' : 'part',
+          // Explicit dimensions also preserve reused nodes across scope/live
+          // changes: an unchanged DOM size may not fire ResizeObserver again.
+          // Pin-level renderers refresh their own DOM handle measurements.
+          width: n.width,
+          height: n.height,
+          ...(n.ports || (mode === 'sch' && n.kind === 'ic')
             ? {}
             : {
-                width: n.width,
-                height: n.height,
-                handles: [
+                handles: n.kind === 'passive' ? passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => ({
+                  id: p.id, type, position: p.side === 'left' ? Position.Left : Position.Right,
+                  x: p.x, y: p.y, width: 4, height: 4,
+                }))) : [
                   { type: 'target' as const, position: Position.Left, x: 0, y: n.height / 2, width: 2, height: 2 },
                   { type: 'source' as const, position: Position.Right, x: n.width, y: n.height / 2, width: 2, height: 2 },
                 ],
@@ -278,9 +323,7 @@ export default function App() {
           }
         }
       }
-      // Pin-level anchors exist only on DetailedNode (ic); naming a handle
-      // on any other node kind makes React Flow drop the edge silently.
-      const kindOf = new Map(gg.nodes.map((n) => [n.id, n.kind]))
+      const nodesById = new Map(gg.nodes.map((n) => [n.id, n]))
       // Absolute node bottoms feed the detour router (region children carry
       // parent-relative positions).
       const bottomOf = new Map(
@@ -301,12 +344,7 @@ export default function App() {
             id: e.id,
             source: e.source,
             target: e.target,
-            ...(mode === 'sch' && e.sourcePin && kindOf.get(e.source) === 'ic'
-              ? { sourceHandle: 'p:' + e.sourcePin }
-              : {}),
-            ...(mode === 'sch' && e.targetPin && kindOf.get(e.target) === 'ic'
-              ? { targetHandle: 'p:' + e.targetPin }
-              : {}),
+            ...wireHandles(e, nodesById, mode === 'sch'),
             label: e.label,
             type: 'lane',
             data: {
@@ -331,8 +369,31 @@ export default function App() {
           }
         }),
       )
+      // Fit the completed layout, not React Flow's previous node store.
+      // A scope change can otherwise fit stale bounds before its new nodes
+      // arrive, leaving the new schematic zoomed in and mostly offscreen.
+      const boxes = gg.nodes.map((n) => {
+        const p = positions.get(n.id) ?? { x: 0, y: 0 }
+        const region = layoutRegions
+          ? regionBoxes.get(`region:${layoutRegions.byNode.get(n.id) ?? 'Other'}`)
+          : undefined
+        return { x: p.x + (region?.x ?? 0), y: p.y + (region?.y ?? 0), width: n.width, height: n.height }
+      })
+      boxes.push(...regionBoxes.values())
+      if (boxes.length) {
+        const x = Math.min(...boxes.map((b) => b.x))
+        const y = Math.min(...boxes.map((b) => b.y))
+        const width = Math.max(...boxes.map((b) => b.x + b.width)) - x
+        const height = Math.max(...boxes.map((b) => b.y + b.height)) - y
+        requestAnimationFrame(() => {
+          if (!cancelled) rf.current?.fitBounds({ x, y, width, height }, { duration: 250, padding: 0.2 })
+        })
+      }
+    }).catch((e) => {
+      if (!cancelled) setErr(`Layout: ${String(e)}`)
     })
-  }, [model, viewCfg, activeView, mode, regionFocus])
+    return () => { cancelled = true }
+  }, [model, viewCfg, activeView, mode, regionFocus, scope, jump])
 
   // Focus paths (multi-select) + net highlight
   useEffect(() => {
@@ -341,13 +402,12 @@ export default function App() {
     const active = keep.size > 0
     const netNodes = new Set<string>()
     const netPins = new Map<string, string[]>()
-    if (selNet && model) {
-      const net = model.nets.find((x) => x.name === selNet)
-      for (const mem of net?.members ?? []) {
-        const loc = graph.location.get(mem.instance_path)
-        if (loc && loc !== '(edge)') {
-          netNodes.add(loc)
-          netPins.set(loc, [...(netPins.get(loc) ?? []), mem.logical_pin])
+    if (selNet) {
+      for (const n of graph.nodes) {
+        const pins = Object.entries(n.pinNets).filter(([, net]) => net === selNet).map(([pin]) => pin)
+        if (pins.length || n.railTags.includes(selNet) || (n.kind === 'net' && n.title === selNet)) {
+          netNodes.add(n.id)
+          netPins.set(n.id, pins)
         }
       }
     }
@@ -426,7 +486,14 @@ export default function App() {
     () => (sel.length === 1 && graph ? graph.nodes.find((n) => n.id === sel[0]) : undefined),
     [sel, graph],
   )
-  const selInst: Instance | undefined = selNode?.inst
+  const selInst: Instance | undefined = mode === 'layout'
+    ? model?.instances.find((i) => sel.length === 1 && i.path === sel[0]) : selNode?.inst
+  const physicalScope = useMemo(() => model ? layoutScope(model, scope, layoutFrame) : undefined, [model, scope, layoutFrame])
+  const selectedBoardPlacement = model?.layout?.placements.find((p) => p.instance === selInst?.path)
+  const selectedPlacement = mode === 'layout' ? physicalScope?.placements.find((p) => p.instance === selInst?.path) : selectedBoardPlacement
+  const localPlacementView = mode === 'layout' && physicalScope?.frame === 'local'
+  const localPlacementScope = model && selInst ? model.subdesigns?.find((s) => s.path === ownerScope(model, selInst.path) && s.local_placements?.some((p) => p.instance === selInst.path)) : undefined
+  const inspectedSubdesign = selNode?.subdesign ?? currentSubdesign
   /** Members of a selected decoupling/pull aggregate, resolved to instances. */
   const aggInsts: Instance[] = useMemo(() => {
     if (!selNode?.aggMembers || !model) return []
@@ -450,8 +517,8 @@ export default function App() {
   }, [selInst])
 
   const selNetObj: Net | undefined = useMemo(
-    () => (selNet ? model?.nets.find((n) => n.name === selNet) : undefined),
-    [selNet, model],
+    () => (selNet ? allNets.find((n) => n.name === selNet) : undefined),
+    [selNet, allNets],
   )
 
   /** Selected instance's logical pin -> net, for the clickable pin table. */
@@ -489,58 +556,63 @@ export default function App() {
   )
   const locateNode = useCallback(
     (id: string) => {
+      if (mode === 'layout') {
+        if (model && scope && !id.startsWith(`${scope}::`)) navigateScope(ownerScope(model, id), { id })
+        else { setSel([id]); setSelNet(''); setJump({ id }) }
+        return
+      }
+      const loc = graph?.location.get(id) ?? id
+      if (!nodes.some((n) => n.id === loc) && model) {
+        navigateScope(ownerScope(model, id), { id })
+        return
+      }
       setSelNet('')
-      setSel([id])
-      setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === id })))
-      flyTo(id)
+      setSel([loc])
+      setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === loc })))
+      flyTo(loc)
     },
-    [flyTo],
+    [flyTo, nodes, graph, model, navigateScope, mode, scope],
   )
   const locateNet = useCallback(
     (name: string) => {
+      if (mode === 'layout') {
+        setSel([])
+        setSelNet(name)
+        setJump(null)
+        return
+      }
+      const first = graph?.nodes.find((n) => Object.values(n.pinNets).includes(name) || n.railTags.includes(name))
+      if (!first && model) {
+        const member = allNets.find((n) => n.name === name)?.members[0]
+        const owner = member ? ownerScope(model, member.instance_path)
+          : model.subdesigns?.find((s) => s.ports.some((p) => p.net === name))?.path ?? ''
+        navigateScope(owner, { net: name })
+        return
+      }
       setSel([])
       setNodes((ns) => ns.map((n) => ({ ...n, selected: false })))
       setSelNet(name)
-      const first = model?.nets
-        .find((n) => n.name === name)
-        ?.members.map((mm) => graph?.location.get(mm.instance_path))
-        .find((l) => l && l !== '(edge)')
-      if (first) flyTo(first)
+      if (first) flyTo(first.id)
     },
-    [model, graph, flyTo],
+    [model, allNets, graph, flyTo, navigateScope, mode],
   )
 
   const hits = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q || !graph || !model) return [] as { id: string; kind: 'part' | 'net'; label: string; sub: string }[]
-    const out: { id: string; kind: 'part' | 'net'; label: string; sub: string }[] = []
-    for (const n of graph.nodes) {
-      if (n.kind === 'net') continue
-      const i = n.inst
-      const hay = [
-        i?.designator,
-        i ? shortName(i.device_fq) : n.title,
-        i?.part?.mpn,
-        n.title,
-        ...(n.aggMembers ?? []),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-      if (hay.includes(q))
-        out.push({
-          id: n.id,
-          kind: 'part',
-          label: n.title,
-          sub: i?.part?.mpn ?? (n.aggMembers ? `${n.aggMembers.length} caps` : ''),
-        })
-    }
-    for (const n of model.nets)
+    if (!q || !model) return [] as { id: string; kind: 'part' | 'net' | 'subdesign'; label: string; sub: string }[]
+    const out: { id: string; kind: 'part' | 'net' | 'subdesign'; label: string; sub: string }[] = []
+    for (const s of model.subdesigns ?? [])
+      if ([s.path, s.definition, ...s.ports.map((p) => p.name)].join(' ').toLowerCase().includes(q))
+        out.push({ id: s.path, kind: 'subdesign', label: s.path, sub: shortName(s.definition) })
+    for (const i of model.instances)
+      if ([i.path, i.designator, i.device_fq, i.part?.mpn].join(' ').toLowerCase().includes(q))
+        out.push({ id: i.path, kind: 'part', label: `${i.designator ?? ''} ${shortName(i.device_fq)}`.trim(), sub: i.path })
+    for (const n of allNets)
       if (n.name.toLowerCase().includes(q))
         out.push({ id: n.name, kind: 'net', label: n.name, sub: `${n.members.length} pins` })
     const rank = (h: { label: string }) => (h.label.toLowerCase().startsWith(q) ? 0 : 1)
     return out.sort((a, b) => rank(a) - rank(b)).slice(0, 12)
-  }, [query, graph, model])
+  }, [query, model, allNets])
 
   const chip = (label: string, on: boolean, onClick: () => void, color = '#2563eb') => (
     <button
@@ -584,6 +656,7 @@ export default function App() {
         >
           <b>{model.design}</b> · {model.instances.length} parts · {model.nets.length} nets ·{' '}
           {model.verdict}
+          {!!model.subdesigns?.length && <span> · {model.subdesigns.length} subdesigns</span>}
           {(model as any).live_error && (
             <div style={{ color: '#f87171', maxWidth: 480 }}>
               ⚠ source currently fails to compile (showing last good state)
@@ -604,20 +677,21 @@ export default function App() {
                 </div>
               ) : null
             })()}
-          {sel.length >= 2 && <span style={{ color: '#f43f5e' }}> · trace: {sel.length} parts</span>}
+          {sel.length >= 2 && <span style={{ color: '#f43f5e' }}> · {mode === 'layout' ? 'selected' : 'trace'}: {sel.length} parts</span>}
           {selNet && <span style={{ color: '#0ea5e9' }}> · net: {selNet}</span>}
-          <span style={{ color: '#9ca3af' }}> (drag/⌘-click parts to trace, Esc to reset)</span>
+          <span style={{ color: '#9ca3af' }}> {mode === 'layout' ? '(select a part to inspect its placement)' : '(drag/⌘-click parts to trace, Esc to reset)'}</span>
           <div style={{ marginTop: 5, position: 'relative' }}>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && hits[0]) {
-                  hits[0].kind === 'net' ? locateNet(hits[0].id) : locateNode(hits[0].id)
+                  hits[0].kind === 'net' ? locateNet(hits[0].id)
+                    : hits[0].kind === 'subdesign' ? navigateScope(hits[0].id) : locateNode(hits[0].id)
                   setQuery('')
                 } else if (e.key === 'Escape') setQuery('')
               }}
-              placeholder="Search parts, MPN or nets…  (Enter = jump)"
+              placeholder="Search parts, paths, subdesigns or nets…"
               style={{
                 width: 300, fontSize: 11, padding: '4px 8px', borderRadius: 6,
                 border: `1px solid ${dark ? '#2a2f3a' : '#d1d5db'}`,
@@ -638,7 +712,8 @@ export default function App() {
                   <div
                     key={h.kind + h.id}
                     onClick={() => {
-                      h.kind === 'net' ? locateNet(h.id) : locateNode(h.id)
+                      h.kind === 'net' ? locateNet(h.id)
+                        : h.kind === 'subdesign' ? navigateScope(h.id) : locateNode(h.id)
                       setQuery('')
                     }}
                     style={{
@@ -648,7 +723,7 @@ export default function App() {
                     }}
                   >
                     <span style={{ color: h.kind === 'net' ? '#22d3ee' : panelFg }}>
-                      {h.kind === 'net' ? '⎯ ' : '▢ '}
+                      {h.kind === 'net' ? '⎯ ' : h.kind === 'subdesign' ? '◇ ' : '▢ '}
                       {h.label}
                     </span>
                     <span style={{ color: '#6b7280' }}>{h.sub}</span>
@@ -660,7 +735,7 @@ export default function App() {
           <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button
               onClick={() => {
-                const el = document.querySelector('.react-flow') as HTMLElement
+                const el = document.querySelector(mode === 'layout' ? '.board-layout' : '.react-flow') as HTMLElement
                 if (!el) return
                 toPng(el, {
                   backgroundColor: dark ? '#111318' : '#ffffff',
@@ -676,7 +751,7 @@ export default function App() {
             >
               Export PNG
             </button>
-            <button
+            {mode !== 'layout' && <button
               onClick={resetLayout}
               title="Undo any manual moves: restore the computed layout and refit the view (R)"
               style={{
@@ -687,13 +762,31 @@ export default function App() {
               }}
             >
               ⟲ Reset layout
-            </button>
-            {chip(mode === 'sch' ? 'SCH view' : 'Overview', true, () => setMode(mode === 'sch' ? 'overview' : 'sch'))}
-            {viewCfg &&
+            </button>}
+            {chip('Overview', mode === 'overview', () => setMode('overview'))}
+            {chip('SCH view', mode === 'sch', () => setMode('sch'))}
+            {chip('Layout', mode === 'layout', () => { setMode('layout'); setActiveView(''); setRegionFocus('') }, '#047857')}
+            {viewCfg && mode !== 'layout' &&
               ['', ...viewCfg.views.map((v) => v.name)].map((v) =>
-                chip(v || 'All', activeView === v, () => setActiveView(v), '#0e7490'),
+                chip(v || 'No regions', activeView === v, () => { setActiveView(v); setScope(null); setJump(null) }, '#0e7490'),
               )}
           </div>
+          {!!model.subdesigns?.length && (
+            <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <label htmlFor="hierarchy-scope">Hierarchy</label>
+              <select id="hierarchy-scope" value={scope ?? 'all'} onChange={(e) => navigateScope(e.target.value === 'all' ? null : e.target.value)}
+                style={{ maxWidth: 300, fontSize: 11, background: panelBg, color: panelFg }}>
+                <option value="">{model.design}</option>
+                {model.subdesigns.map((s) => <option key={s.path} value={s.path}>{s.path}</option>)}
+                <option value="all">All parts (flattened)</option>
+              </select>
+              {chip(model.design, scope === '', () => navigateScope(''), '#7c3aed')}
+              {(model.subdesigns ?? []).filter((s) => scope === s.path || scope?.startsWith(`${s.path}::`)).map((s) => (
+                chip(shortName(s.path), scope === s.path, () => navigateScope(s.path), '#7c3aed')
+              ))}
+              <span style={{ color: '#9ca3af', fontSize: 10 }}>{mode === 'layout' ? localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates' : 'Double-click a subdesign to open'}</span>
+            </div>
+          )}
           {viewDef && (
             <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ color: '#9ca3af', fontSize: 10 }}>regions:</span>
@@ -704,7 +797,9 @@ export default function App() {
             </div>
           )}
         </div>
-        <ReactFlow
+        {mode === 'layout' ? <BoardLayout model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump}
+          onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
+          onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
@@ -713,6 +808,10 @@ export default function App() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
+          onNodeDoubleClick={(_, n) => {
+            const subdesign = (n.data.g as GNode | undefined)?.subdesign
+            if (subdesign) navigateScope(subdesign.path)
+          }}
           onEdgeClick={(_, e) => {
             if (!(e.data?.dashed as boolean)) {
               setSel([])
@@ -734,9 +833,9 @@ export default function App() {
         >
           <Background color={dark ? '#2a2f3a' : undefined} />
           <Controls />
-        </ReactFlow>
+        </ReactFlow>}
       </div>
-      {(selInst || selNetObj || aggInsts.length > 0) && (
+      {(selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
         <div
           style={{
             width: 330,
@@ -748,6 +847,37 @@ export default function App() {
             color: panelFg,
           }}
         >
+          {inspectedSubdesign && (
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
+              <div style={{ overflowWrap: 'anywhere' }}>{inspectedSubdesign.path}</div>
+              <div style={{ color: '#6b7280', margin: '4px 0' }}>subdesign {inspectedSubdesign.definition}</div>
+              <div style={{ color: '#6b7280', margin: '4px 0' }}>
+                {model.instances.filter((i) => i.path.startsWith(`${inspectedSubdesign.path}::`)).length} contained parts
+                {' · '}{inspectedSubdesign.ports.length} ports
+              </div>
+              {scope !== inspectedSubdesign.path && <button onClick={() => navigateScope(inspectedSubdesign.path)}>Open subdesign</button>}
+              <div style={{ color: '#6b7280', margin: '6px 0', overflowWrap: 'anywhere' }}>
+                source {inspectedSubdesign.span.file}:{inspectedSubdesign.span.line}
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead><tr><th>port</th><th>obligation</th><th>outside</th></tr></thead>
+                <tbody>{inspectedSubdesign.ports.map((p) => (
+                  <tr key={p.name} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}` }}>
+                    <td style={{ padding: '5px 0' }}>
+                      <b>{p.name}</b> <span style={{ color: '#6b7280' }}>Pin</span>
+                      {p.net && <div><button onClick={() => locateNet(p.net!)} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', textAlign: 'left', overflowWrap: 'anywhere' }}>{p.net}</button></div>}
+                    </td>
+                    <td>{p.obligation}</td>
+                    <td style={{ color: p.connected ? '#059669' : p.obligation === 'required' ? '#dc2626' : '#6b7280' }}>{p.connected ? 'wired' : 'open'}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+              {(model.subdesigns ?? []).filter((s) => s.parent === inspectedSubdesign.path).map((s) => (
+                <div key={s.path} style={{ marginTop: 6 }}><button onClick={() => navigateScope(s.path)}>{shortName(s.path)} ↗</button></div>
+              ))}
+            </div>
+          )}
           {aggInsts.length > 0 && selNode && (
             <>
               <h3 style={{ margin: '0 0 2px' }}>{selNode.title}</h3>
@@ -801,6 +931,21 @@ export default function App() {
                 {selInst.designator} {shortName(selInst.device_fq)}
               </h3>
               <div style={{ color: '#6b7280' }}>{selInst.device_fq}</div>
+              <div style={{ margin: '4px 0', overflowWrap: 'anywhere' }}>{selInst.path}</div>
+              <div style={{ margin: '8px 0', padding: 8, borderRadius: 6, background: dark ? '#102c29' : '#ecfdf5' }}>
+                <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
+                {selectedPlacement ? <>
+                  <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm</div>
+                  <div>{selectedPlacement.rotate}° · {selectedPlacement.side} side</div>
+                </> : <div>{localPlacementView ? 'No placement in this local frame' : model.layout === undefined ? 'Layout data unavailable in this snapshot' : 'No resolved board placement'}</div>}
+                {localPlacementView && <div style={{ marginTop: 4, color: '#9ca3af' }}>{selectedBoardPlacement ? 'Board placement available in Board coordinates' : 'Not yet placed on the board'}</div>}
+                {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
+                  setLayoutFrame(selectedBoardPlacement ? 'board' : 'local')
+                  setMode('layout')
+                  navigateScope(localPlacementScope?.path ?? scope, { id: selInst.path })
+                }}>Show in layout</button>}
+              </div>
+              {ownerScope(model, selInst.path) && <button onClick={() => navigateScope(ownerScope(model, selInst.path), { id: selInst.path })}>Open containing subdesign</button>}
               {selInst.part && (
                 <div style={{ margin: '6px 0' }}>
                   <b>{selInst.part.mfr}</b> {selInst.part.mpn}
@@ -953,7 +1098,7 @@ export default function App() {
                     return (
                       <tr key={i} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}` }}>
                         <td>
-                          <b>{inst?.designator ?? shortName(m.instance_path)}</b>{' '}
+                          <button onClick={() => locateNode(m.instance_path)} title={m.instance_path} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', fontWeight: 700 }}>{inst?.designator ?? shortName(m.instance_path)}</button>{' '}
                           <span style={{ color: '#6b7280' }}>
                             {inst ? shortName(inst.device_fq) : ''}
                           </span>
@@ -965,6 +1110,12 @@ export default function App() {
                   })}
                 </tbody>
               </table>
+              {(model.subdesigns ?? []).filter((s) => s.ports.some((p) => p.net === selNet)).map((s) => (
+                <div key={s.path} style={{ marginTop: 6 }}>
+                  <button onClick={() => navigateScope(s.path, { net: selNet })}>{s.path} ↗</button>
+                  <span style={{ marginLeft: 4 }}>{s.ports.filter((p) => p.net === selNet).map((p) => p.name).join(', ')}</span>
+                </div>
+              ))}
             </>
           )}
         </div>

@@ -185,7 +185,9 @@ fn scan_mtime(project: &Path) -> Vec<(PathBuf, SystemTime)> {
                     if p.file_name().is_some_and(|n| n != "out" && n != "target") {
                         stack.push(p);
                     }
-                } else if p.extension().is_some_and(|x| x == "cohdl")
+                } else if p
+                    .extension()
+                    .is_some_and(|x| x == "cohdl" || x.eq_ignore_ascii_case("dxf"))
                     || p.file_name().is_some_and(|n| n == "cohdl.toml")
                 {
                     if let Ok(md) = p.metadata() {

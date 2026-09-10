@@ -11,6 +11,8 @@ pub struct ExplorerModel {
     pub design: String,
     pub verdict: String,
     pub instances: Vec<Instance>,
+    /// Additive v1 field: RFC-032 use sites, never physical instances.
+    pub subdesigns: Vec<Subdesign>,
     pub nets: Vec<Net>,
     pub nc: Vec<NcPin>,
     pub diagnostics: Vec<Diag>,
@@ -19,6 +21,31 @@ pub struct ExplorerModel {
     /// bound part, keyed by footprint fq name (RFC-018 declarations projected
     /// to plain mm floats — display-only, never byte-stability-critical).
     pub footprints: std::collections::BTreeMap<String, FootprintGeo>,
+    /// The compiler's layout.json projection, augmented with display matrices
+    /// from its fixed-point trig and exact mm strings for inspection.
+    pub layout: Option<serde_json::Value>,
+}
+
+#[derive(Serialize)]
+pub struct Subdesign {
+    pub path: String,
+    pub definition: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent: Option<String>,
+    pub span: SrcSpan,
+    pub ports: Vec<SubdesignPort>,
+    /// Authored placements in this subdesign's local frame, even unanchored.
+    pub local_placements: Vec<serde_json::Value>,
+}
+
+#[derive(Serialize)]
+pub struct SubdesignPort {
+    pub name: String,
+    pub obligation: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub net: Option<String>,
+    /// Connected outside this use site's boundary (not merely internally).
+    pub connected: bool,
 }
 
 #[derive(Serialize)]
@@ -34,17 +61,29 @@ pub struct FootprintGeo {
 #[derive(Serialize)]
 pub struct FpPad {
     pub number: String,
-    /// "rect" | "circle" | "oval"
+    /// "rect" | "circle" | "oval" | "annulus"
     pub shape: String,
     pub x: f64,
     pub y: f64,
-    /// (w, h) for rect/oval; (d) for circle. mm.
+    /// (w, h) for rect/oval; (d) for circle; (outer, inner) for annulus. mm.
     pub size: Vec<f64>,
     pub rotate: u16,
+    pub matrix: [f64; 4],
+    pub layer: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub corner_radius: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chamfer: Option<PadChamfer>,
     /// Round drill diameter or slot (w, l). Present only on PTH pads. mm.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub drill: Vec<f64>,
     pub pth: bool,
+}
+
+#[derive(Serialize)]
+pub struct PadChamfer {
+    pub corner: String,
+    pub cut: f64,
 }
 
 #[derive(Serialize)]

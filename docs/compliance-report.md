@@ -4121,7 +4121,20 @@ internals exception. E1301-E1307 registered. Notes and honest narrowings:
   shared-member union-find then merges internal and external classes — one
   mechanism, no new wiring machinery. Phantoms are stripped at assembly
   after the required-port check runs; a class left with only ports
-  dissolves.
+  dissolves from manufacturing nets. Tooling retains that class's identity
+  in the port metadata described below.
+- **Explorer hierarchy follow-through (2026-09-10).** `DesignIr::subdesigns`
+  retains declaration identity, parent/use-site path and span, and each
+  port's obligation, merged net identity and outside-connection predicate.
+  It is separate from physical instances/nets and ignored by manufacturing
+  emitters. Explorer projects it as additive v1 metadata, draws logical
+  port boundaries and supports nested/array drill-down, breadcrumbs, global
+  search and net inspection, including empty and port-only subdesigns.
+  Function groups no longer misclassify subdesign path prefixes.
+  The same placement-composition pass also retains each subdesign's local
+  defaults, including nested transforms, independently of board anchoring.
+  Explorer can switch between local and board frames; these local rows are
+  tooling metadata only and never enter manufacturing `layout.placements`.
 - **Required-port rule made precise:** the RFC's "checked exhaustively at
   the use site" is implemented as *the port's merged class must reach
   outside the node* — a `net` naming only that port connects nothing and

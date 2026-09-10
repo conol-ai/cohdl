@@ -1,0 +1,14 @@
+/* Native SVG focus outlines scale with the mm viewBox and can cover the
+   layout. Keep keyboard focus visible with our own non-scaling SVG stroke. */
+.board-layout__component:focus {
+  outline: none;
+}
+
+.board-layout__focus-ring {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.board-layout__component:focus-visible .board-layout__focus-ring {
+  visibility: visible;
+}

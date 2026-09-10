@@ -1,18 +1,19 @@
 // Display-rule engine (spec R1-R4): ExplorerModel -> graph nodes/edges.
 //
-// R1  Two-terminal parts do not occupy layout nodes: series parts become
-//     edge relays; rail-to-rail parts aggregate into per-rail-combo nodes.
+// R1  Two-terminal parts use compact nodes with distinct pin anchors;
+//     rail-to-rail parts aggregate into per-rail-combo nodes.
 // R2  Rail nets (GND / voltage-annotated / high fan-out) render as stub tags
 //     on each node instead of drawn wires.
 // R3  Non-rail nets with >3 endpoints render as net-label badges, not wires.
 // R4  Only connected pins count toward node size; unused pins collapse.
 
-import type { ExplorerModel, Instance } from './model'
+import type { ExplorerModel, Instance, Subdesign, SubdesignPort } from './model'
 import { shortName } from './model'
+import { projectScope } from './hierarchy'
 
 export interface GNode {
   id: string
-  kind: 'ic' | 'agg' | 'passive' | 'net'
+  kind: 'ic' | 'agg' | 'passive' | 'net' | 'subdesign' | 'port'
   title: string
   sub: string
   railTags: string[]
@@ -23,6 +24,8 @@ export interface GNode {
   /** logical pin -> net name (connected pins only). */
   pinNets: Record<string, string>
   inst?: Instance
+  subdesign?: Subdesign
+  ports?: SubdesignPort[]
   aggMembers?: string[]
   width: number
   height: number
@@ -53,7 +56,8 @@ export interface Graph {
 const spec = (i: Instance, name: string): string | undefined =>
   i.specs.find((s) => s.name === name)?.value
 
-export function buildGraph(m: ExplorerModel): Graph {
+export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''): Graph {
+  const { model: m, boundaries } = projectScope(fullModel, scope)
   const railSet = new Set(m.derived.rails)
   const twoT = new Set(m.derived.two_terminal)
   const inst = new Map(m.instances.map((i) => [i.path, i]))
@@ -75,7 +79,7 @@ export function buildGraph(m: ExplorerModel): Graph {
   const edges: GEdge[] = []
   const location = new Map<string, string>()
   const aggs = new Map<string, string[]>() // group key -> member paths
-  const bypassOf = new Map(m.derived.bypasses.map((b) => [b.cap, b.target]))
+  const bypassOf = new Map(m.derived.bypasses.filter((b) => inst.has(b.target)).map((b) => [b.cap, b.target]))
 
   // ---- classify two-terminal instances (R1, unified): every 2T part with a
   // non-rail end renders as ONE compact mini node, always wired — series
@@ -175,6 +179,19 @@ export function buildGraph(m: ExplorerModel): Graph {
   }
 
   // ---- edges (non-rail nets)
+  for (const b of boundaries) {
+    const nets = instNets.get(b.path) ?? []
+    nodes.push({
+      id: b.path, kind: b.kind, title: b.title, sub: b.sub,
+      subdesign: b.subdesign, ports: b.ports,
+      railTags: nets.filter((n) => railSet.has(n)), netLabels: [], decors: [],
+      pinsConnected: b.ports.filter((p) => p.net).length,
+      pinsTotal: b.ports.length, pinNets: pinNet.get(b.path) ?? {},
+      width: Math.max(200, Math.max(b.title.length, b.sub.length) * 7 + 28),
+      height: 60 + b.ports.length * 18,
+    })
+    location.set(b.path, b.path)
+  }
   const nodeIds = new Set(nodes.map((n) => n.id))
   const edgeSeen = new Set<string>()
   const pinFor = (nodeId: string, netName: string): string | undefined => {

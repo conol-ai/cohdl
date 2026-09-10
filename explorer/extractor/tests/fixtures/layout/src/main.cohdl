@@ -1,0 +1,44 @@
+pub trait Ic { designator_prefix: "U" }
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+impl Ic for D {}
+pub pad S { shape: rect, size: (2mm, 1mm), layer: top_copper, plating: smd }
+pub pad H { shape: oval, size: (1mm, 3mm), layer: through_all, plating: plated_through_hole, drill: (0.4mm, 1mm) }
+pub footprint F {
+    pad 1: S at (1mm, 2mm) rotate 90
+    pad 2: H at (-2mm, 0mm)
+    mount_hole 1: non_plated at (3mm, 0mm) diameter 1mm
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8mm, 8mm) }
+}
+pub part PD: D { primary { mfr: "Fixture", mpn: "D", footprint: F } }
+pub subdesign Cell {
+    ports { required A: Pin, required B: Pin }
+    inst chip: PD
+    net _: A, chip.A
+    net _: B, chip.B
+    layout { place chip at (1mm, 2mm) rotate 90 }
+}
+pub subdesign Group {
+    ports { required A: Pin, required B: Pin }
+    subdesign child: Cell
+    net _: A, child.A
+    net _: B, child.B
+    layout { place child at (3mm, 4mm) rotate 90 side bottom }
+}
+design Board {
+    subdesign rotated: Group { A: INPUT, B: OUTPUT }
+    subdesign overridden: Group { A: INPUT, B: OUTPUT }
+    subdesign loose: Cell { A: INPUT, B: OUTPUT }
+    inst fixed: PD
+    net INPUT: fixed.A
+    net OUTPUT: fixed.B
+    layout {
+        board_outline: "outline.dxf"
+        place rotated at (10mm, 20mm) rotate 90 side bottom
+        place overridden at (30mm, 40mm) rotate 37
+        place overridden.child.chip at (-3.25mm, 6.5mm) rotate 270 side bottom
+        place fixed at (0mm, 0mm) rotate 37
+        net_class Signals { INPUT, OUTPUT }
+        diff_pair(INPUT, OUTPUT)
+        length_match(INPUT, OUTPUT) [tolerance: 0.15mm]
+    }
+}

@@ -1,14 +1,56 @@
 // Custom React Flow node renderers: compact overview parts, mini passives,
 // SCH pin-level ICs, region frames, and the to-scale footprint preview.
 
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { useLayoutEffect } from 'react'
+import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react'
 import type { FootprintGeo } from './model'
 import { shortName } from './model'
 import type { GNode } from './transform'
 import { netWireColor, railColor, selectNet } from './palette'
+import { passiveTerminals } from './handles'
 
-export function PartNode({ data, selected }: NodeProps) {
+/** Logical boundaries have named Pin ports and no physical pin numbers. */
+export function BoundaryNode({ id, data, selected }: NodeProps) {
   const n = data.g as GNode
+  const updateInternals = useUpdateNodeInternals()
+  useLayoutEffect(() => { updateInternals(id) }, [id, n, updateInternals])
+  const dark = data.dark as boolean
+  const hlPins = (data.hlPins ?? []) as string[]
+  return (
+    <div style={{
+      width: n.width, height: n.height, boxSizing: 'border-box',
+      border: `2px ${n.kind === 'port' ? 'dashed' : 'solid'} ${selected ? '#f59e0b' : data.hl ? '#22d3ee' : '#8b5cf6'}`,
+      borderRadius: 8, background: dark ? '#22202f' : '#f5f3ff',
+      color: dark ? '#ede9fe' : '#4c1d95', opacity: data.dim ? 0.18 : 1,
+    }}>
+      <div style={{ padding: '6px 10px', fontSize: 12, fontWeight: 700 }}>
+        {n.title}{n.kind === 'subdesign' && ' ↗'}
+        <div style={{ fontSize: 10, fontWeight: 400, color: dark ? '#c4b5fd' : '#7c3aed' }}>{n.sub}</div>
+      </div>
+      {(n.ports ?? []).map((p, index) => (
+        <div key={p.name} onClick={() => p.net && selectNet(p.net)} style={{
+          position: 'absolute', top: 46 + index * 18, left: 0, right: 0,
+          height: 18, padding: '0 10px', fontSize: 10,
+          color: hlPins.includes(p.name) ? '#06b6d4' : undefined,
+          cursor: p.net ? 'pointer' : 'default',
+          display: 'flex', justifyContent: 'space-between', gap: 12,
+        }}>
+          <Handle id={`p:${p.name}`} type="target" position={Position.Left} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
+          <span>{p.name}{p.obligation === 'required' ? ' *' : ''}</span>
+          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.net ?? 'open'}
+          </span>
+          <Handle id={`p:${p.name}`} type="source" position={Position.Right} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function PartNode({ id, data, selected }: NodeProps) {
+  const n = data.g as GNode
+  const updateInternals = useUpdateNodeInternals()
+  useLayoutEffect(() => { updateInternals(id) }, [id, n, updateInternals])
   const dark = data.dark as boolean
   if (n.kind === 'net') {
     const c = netWireColor(n.title, dark)
@@ -36,7 +78,7 @@ export function PartNode({ data, selected }: NodeProps) {
   const fg = dark ? '#e5e7eb' : '#111827'
   const hl = data.hl as boolean
   if (n.kind === 'passive') {
-    // Uniform mini style for every R/C/L: one compact chip riding its wire.
+    // Each logical terminal owns its side, independent of edge direction.
     return (
       <div
         style={{
@@ -50,8 +92,12 @@ export function PartNode({ data, selected }: NodeProps) {
           gap: 4, fontSize: 9, fontWeight: 600, padding: '0 4px',
         }}
       >
-        <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
-        <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
+        {passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => (
+          <Handle key={p.id + type} id={p.id} type={type}
+            position={p.side === 'left' ? Position.Left : Position.Right}
+            title={p.label} aria-label={p.label}
+            style={{ top: p.y, width: 4, height: 4, background: border, border: 0 }} />
+        )))}
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {n.title}
           {n.inst && n.pinsConnected === 0 && <span style={{ color: '#ef4444' }}> ✕</span>}
@@ -268,6 +314,8 @@ export function detailedSize(n: GNode): { width: number; height: number } {
 export function DetailedNode(props: NodeProps) {
   const { data, selected } = props
   const n = data.g as GNode
+  const updateInternals = useUpdateNodeInternals()
+  useLayoutEffect(() => { updateInternals(props.id) }, [props.id, n, data.pinOrder, updateInternals])
   if (n.kind !== 'ic' || !n.inst) return <PartNode {...props} />
   const pins = detailedPins(n)
   const rows = Math.ceil(pins.length / 2)

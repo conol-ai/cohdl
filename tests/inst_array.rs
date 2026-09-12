@@ -15,6 +15,7 @@
 
 use cohdl::lock::LockState;
 use cohdl::pipeline::{build_artifacts, check_files_in};
+use std::collections::BTreeSet;
 
 fn check(src: &str) -> (cohdl::pipeline::Checked, String) {
     let files = vec![("src/main.cohdl".to_string(), src.to_string())];
@@ -167,6 +168,347 @@ design B {{
     );
     let (_c, rendered) = check(&src);
     assert!(!rendered.contains("error"), "{}", rendered);
+}
+
+const TWO_PIN: &str = r#"
+trait TwoPin { pins { required A: pin, required B: pin } }
+device Element { pins { required A: 1 [passive], required B: 2 [passive] } }
+impl TwoPin for Element {}
+"#;
+
+const INSTANCE_FNS: [(&str, &str); 2] = [
+    ("fn tie(x: impl TwoPin)", "tie"),
+    ("fn tie<T: TwoPin>(x: T)", "tie::<Element>"),
+];
+
+#[test]
+fn indexed_instance_arguments_connect_distinct_elements() {
+    // Issue #41: indexed Pin arguments worked, but whole instances did not.
+    // Both elements and the scalar control must retain their own identity.
+    for (header, callee) in INSTANCE_FNS {
+        let src = format!(
+            "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [Element; 2]
+    inst scalar: Element
+    {callee}(xs[0])
+    {callee}(xs[1])
+    {callee}(scalar)
+}}"
+        );
+        let (checked, rendered) = check(&src);
+        assert!(!checked.diags.has_errors(), "{header}:\n{rendered}");
+        let ir = checked.ir.unwrap();
+        assert_eq!(ir.instances.len(), 3);
+        assert_eq!(ir.nets.len(), 3);
+        for path in ["Demo::xs_0", "Demo::xs_1", "Demo::scalar"] {
+            let expected = BTreeSet::from([(path.into(), "A".into()), (path.into(), "B".into())]);
+            assert!(
+                ir.nets.iter().any(|n| n.members == expected),
+                "{header}: {path}"
+            );
+        }
+    }
+}
+
+#[test]
+fn indexed_instance_arguments_emit_like_explicit_instances() {
+    for (header, callee) in INSTANCE_FNS {
+        let src = format!(
+            "{TWO_PIN}
+footprint FP {{}}
+part EL: Element {{ primary {{ mfr: \"m\", mpn: \"el\", footprint: FP }} }}
+{header} {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [EL; 2]
+    {callee}(xs[0])
+    {callee}(xs[1])
+}}"
+        );
+        let explicit = src
+            .replace("inst xs: [EL; 2]", "inst xs_0: EL\n    inst xs_1: EL")
+            .replace("xs[0]", "xs_0")
+            .replace("xs[1]", "xs_1");
+        assert_eq!(netlist(&src), netlist(&explicit), "{header}");
+    }
+}
+
+#[test]
+fn indexed_instance_arguments_work_in_nested_scopes() {
+    for (header, callee) in INSTANCE_FNS {
+        let src = format!(
+            "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+fn relay(x: impl TwoPin) {{ {callee}(x) }}
+fn populate() {{
+    inst xs: [Element; 2]
+    relay(xs[0])
+    relay(xs[1])
+}}
+subdesign Block {{
+    inst xs: [Element; 2]
+    relay(xs[0])
+    relay(xs[1])
+}}
+design Demo {{
+    populate()
+    subdesign block: Block
+}}"
+        );
+        let (checked, rendered) = check(&src);
+        assert!(!checked.diags.has_errors(), "{header}:\n{rendered}");
+        let ir = checked.ir.unwrap();
+        assert_eq!(ir.instances.len(), 4);
+        assert_eq!(ir.nets.len(), 4);
+        for path in ir.instances.keys() {
+            let expected = BTreeSet::from([(path.clone(), "A".into()), (path.clone(), "B".into())]);
+            assert!(
+                ir.nets.iter().any(|n| n.members == expected),
+                "{header}: {path}"
+            );
+        }
+    }
+}
+
+#[test]
+fn instance_argument_selectors_are_validated() {
+    for (header, callee) in INSTANCE_FNS {
+        for (arg, code, message) in [
+            ("xs[2]", "E202", "valid indices are 0..=1 (length 2)"),
+            ("xs[99]", "E202", "valid indices are 0..=1 (length 2)"),
+            ("xs", "E211", "reference one element, e.g. `xs[0]`"),
+            ("xs[0..=1]", "E211", "only valid in a net's member list"),
+            ("xs[0, 1]", "E211", "only valid in a net's member list"),
+            (
+                "scalar[0]",
+                "E211",
+                "`scalar` is not an array-typed instance",
+            ),
+            (
+                "scalar[99]",
+                "E211",
+                "`scalar` is not an array-typed instance",
+            ),
+            (
+                "scalar[0..=1]",
+                "E211",
+                "`scalar` is not an array-typed instance",
+            ),
+            (
+                "scalar[0, 1]",
+                "E211",
+                "`scalar` is not an array-typed instance",
+            ),
+        ] {
+            let src = format!(
+                "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [Element; 2]
+    inst scalar: Element
+    {callee}({arg})
+    net _: xs[0].A, xs[0].B
+    net _: xs[1].A, xs[1].B
+    net _: scalar.A, scalar.B
+}}"
+            );
+            let (checked, rendered) = check(&src);
+            // Wiring the pins separately isolates the argument diagnostic.
+            assert_eq!(
+                checked.diags.error_count(),
+                1,
+                "{header} / {arg}:\n{rendered}"
+            );
+            let diagnostic = checked
+                .diags
+                .iter()
+                .find(|d| d.code == code)
+                .unwrap_or_else(|| panic!("{header} / {arg}: expected {code}:\n{rendered}"));
+            assert!(
+                diagnostic.message.contains(message),
+                "{header} / {arg}:\n{rendered}"
+            );
+            let span = diagnostic.primary.span;
+            let highlighted = &src[span.start as usize..span.end as usize];
+            assert_eq!(highlighted, arg.find('[').map_or(arg, |i| &arg[i..]));
+        }
+    }
+}
+
+#[test]
+fn forwarded_instance_arguments_cannot_be_indexed() {
+    for (header, callee) in INSTANCE_FNS {
+        for arg in ["x[99]", "x[0..=1]", "x[0, 1]"] {
+            let src = format!(
+                "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+fn relay(x: impl TwoPin) {{ {callee}({arg}) }}
+design Demo {{
+    inst scalar: Element
+    relay(scalar)
+    net _: scalar.A, scalar.B
+}}"
+            );
+            let (checked, rendered) = check(&src);
+            assert_eq!(
+                checked.diags.error_count(),
+                1,
+                "{header} / {arg}:\n{rendered}"
+            );
+            assert!(
+                rendered.contains("E211")
+                    && rendered.contains("`x` is not an array-typed instance"),
+                "{header} / {arg}:\n{rendered}"
+            );
+        }
+    }
+}
+
+#[test]
+fn indexed_instance_arguments_preserve_trait_bounds() {
+    for (header, callee) in INSTANCE_FNS {
+        let lib = TWO_PIN.replace("impl TwoPin for Element {}", "");
+        let src = format!(
+            "{lib}
+{header} {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [Element; 1]
+    {callee}(xs[0])
+    net _: xs[0].A, xs[0].B
+}}"
+        );
+        let (checked, rendered) = check(&src);
+        assert_eq!(checked.diags.error_count(), 1, "{header}:\n{rendered}");
+        assert!(
+            rendered.contains("E403") && rendered.contains("`Element` does not implement `TwoPin`"),
+            "{header}:\n{rendered}"
+        );
+    }
+}
+
+#[test]
+fn indexed_instance_arguments_preserve_generic_device_matching() {
+    let src = format!(
+        "{TWO_PIN}
+device Other {{ pins {{ required A: 1 [passive], required B: 2 [passive] }} }}
+impl TwoPin for Other {{}}
+fn tie<T: TwoPin>(x: T) {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [Other; 1]
+    tie::<Element>(xs[0])
+    net _: xs[0].A, xs[0].B
+}}"
+    );
+    let (checked, rendered) = check(&src);
+    assert_eq!(checked.diags.error_count(), 1, "{rendered}");
+    assert!(
+        rendered.contains("E503")
+            && rendered.contains("expects an instance of")
+            && rendered.contains("Element")
+            && rendered.contains("Other"),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn indexed_instance_arguments_preserve_pin_obligations() {
+    for (header, callee) in INSTANCE_FNS {
+        let src = format!(
+            "{TWO_PIN}
+{header} {{ nc: x.A }}
+design Demo {{
+    inst xs: [Element; 1]
+    {callee}(xs[0])
+}}"
+        );
+        let (checked, rendered) = check(&src);
+        assert_eq!(checked.diags.error_count(), 1, "{header}:\n{rendered}");
+        assert!(
+            rendered.contains("E701")
+                && rendered.contains("required pin `Demo::xs_0.B` is unresolved"),
+            "{header}:\n{rendered}"
+        );
+        assert!(checked
+            .ir
+            .unwrap()
+            .nc_pins
+            .contains(&("Demo::xs_0".into(), "A".into())));
+    }
+}
+
+#[test]
+fn instance_arguments_still_reject_indexed_pins() {
+    for (header, callee) in INSTANCE_FNS {
+        let src = format!(
+            "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+design Demo {{
+    inst xs: [Element; 1]
+    {callee}(xs[0].A)
+    net _: xs[0].A, xs[0].B
+}}"
+        );
+        let (checked, rendered) = check(&src);
+        assert_eq!(checked.diags.error_count(), 1, "{header}:\n{rendered}");
+        assert!(
+            rendered.contains("E503")
+                && rendered.contains("expected an instance, found pin reference `xs[0].A`"),
+            "{header}:\n{rendered}"
+        );
+    }
+}
+
+#[test]
+fn unused_bodies_check_instance_argument_kinds() {
+    for (header, callee) in INSTANCE_FNS {
+        for (params, body, arg, code, message) in [
+            (
+                "",
+                "inst xs: [Element; 1]",
+                "xs[0].A",
+                "E503",
+                "expected an instance, found pin reference `xs[0].A`",
+            ),
+            (
+                "p: Pin",
+                "",
+                "p",
+                "E503",
+                "expected an instance, but `p` is a `Pin` parameter",
+            ),
+            (
+                "",
+                "",
+                "missing",
+                "E202",
+                "unknown instance `missing` in this scope",
+            ),
+        ] {
+            let src = format!(
+                "{TWO_PIN}
+{header} {{ net _: x.A, x.B }}
+fn unused({params}) {{
+    {body}
+    {callee}({arg})
+}}
+design Demo {{}}"
+            );
+            let (checked, rendered) = check(&src);
+            assert_eq!(
+                checked.diags.error_count(),
+                1,
+                "{header} / {arg}:\n{rendered}"
+            );
+            assert!(
+                checked
+                    .diags
+                    .iter()
+                    .any(|d| d.code == code && d.message == message),
+                "{header} / {arg}:\n{rendered}"
+            );
+        }
+    }
 }
 
 #[test]

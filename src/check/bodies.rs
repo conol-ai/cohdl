@@ -463,9 +463,10 @@ fn check_call_kind(world: &World, callee: &crate::ast::Ident, diags: &mut Diagno
     // Unresolved: already reported at the rewrite pass (E504).
 }
 
-/// Call value-argument count (vs the fn's `Pin` parameters) and each
-/// argument's reference base (E502 arity, mirrors expansion; unknown bases
-/// reuse the pin-ref path).
+/// Call value-argument count and reference kinds, using the callee's parameter
+/// types. A whole instance is valid for an instance parameter; only a `Pin`
+/// parameter requires a pin reference. Bounds and selectors are checked at
+/// expansion, as for net/nc references in this pass.
 fn check_call_args(
     world: &World,
     _f: &FnDef,
@@ -473,7 +474,8 @@ fn check_call_args(
     bases: &BTreeMap<&str, Base>,
     diags: &mut Diagnostics,
 ) {
-    if let Some(callee) = world.fns.get(&call.callee.name) {
+    let callee = world.fns.get(&call.callee.name);
+    if let Some(callee) = callee {
         if call.args.len() != callee.params.len() {
             diags.push(Diagnostic::error(
                 "E502",
@@ -488,8 +490,36 @@ fn check_call_args(
             ));
         }
     }
-    for arg in &call.args {
-        check_pin_ref(world, bases, arg, diags);
+    for (i, arg) in call.args.iter().enumerate() {
+        match callee.and_then(|f| f.params.get(i)).map(|p| &p.ty) {
+            Some(FnParamTy::Generic(_) | FnParamTy::ImplTrait(..)) => {
+                if arg.pin.is_some() {
+                    diags.push(Diagnostic::error(
+                        "E503",
+                        arg.span,
+                        format!("expected an instance, found pin reference `{}`", arg),
+                    ));
+                } else {
+                    match bases.get(arg.base.name.as_str()) {
+                        Some(Base::Concrete(..) | Base::Abstract) => {}
+                        Some(Base::Pin) => diags.push(Diagnostic::error(
+                            "E503",
+                            arg.span,
+                            format!(
+                                "expected an instance, but `{}` is a `Pin` parameter",
+                                arg.base.name
+                            ),
+                        )),
+                        None | Some(Base::Sub { .. }) => diags.push(Diagnostic::error(
+                            "E202",
+                            arg.base.span,
+                            format!("unknown instance `{}` in this scope", arg.base.name),
+                        )),
+                    }
+                }
+            }
+            _ => check_pin_ref(world, bases, arg, diags),
+        }
     }
 }
 

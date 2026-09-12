@@ -15,6 +15,7 @@ use crate::ir::{
 use crate::resolve::World;
 use crate::span::Span;
 use crate::units::UnitValue;
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics) -> DesignIr {
@@ -1284,15 +1285,14 @@ impl<'w, 'd> Expander<'w, 'd> {
             .collect()
     }
 
-    fn resolve_pin_ref(&mut self, r: &PinRef, scope: &Scope) -> Option<(String, String)> {
-        // RFC-024: resolve an array-typed reference to its one real element.
-        // `NAME[i]` is valid in EVERY position an ordinary instance reference
-        // is; only the range/list fan-out sugar is net-member-only, and that
-        // has already been expanded to `Single`s by `handle_net`.
+    /// RFC-024: resolve one reference's selector before looking up its base.
+    /// Pin references and instance arguments must share the same element
+    /// identity and validation. Net-member fan-out is expanded by `handle_net`
+    /// before reaching this single-element resolver.
+    fn resolve_array_ref<'r>(&mut self, r: &'r PinRef, scope: &Scope) -> Option<Cow<'r, PinRef>> {
         let array = scope.arrays.get(&r.base.name).copied();
-        let owned;
-        let r = match (&r.index, array) {
-            (None, None) => r,
+        match (&r.index, array) {
+            (None, None) => Some(Cow::Borrowed(r)),
             (None, Some(_)) => {
                 self.diags.push(Diagnostic::error(
                     "E211",
@@ -1302,7 +1302,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                         r.base.name, r.base.name
                     ),
                 ));
-                return None;
+                None
             }
             (Some(sel), None) => {
                 self.diags.push(Diagnostic::error(
@@ -1313,7 +1313,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                         r.base.name
                     ),
                 ));
-                return None;
+                None
             }
             (Some(sel), Some((n, _))) => {
                 let IndexSel::Single(i, _) = sel else {
@@ -1328,7 +1328,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                     return None;
                 };
                 self.array_bounds(&r.base, sel, n)?;
-                owned = PinRef {
+                Some(Cow::Owned(PinRef {
                     base: Ident {
                         name: element_name(&r.base.name, *i),
                         span: r.base.span,
@@ -1336,10 +1336,13 @@ impl<'w, 'd> Expander<'w, 'd> {
                     index: None,
                     pin: r.pin.clone(),
                     span: r.span,
-                };
-                &owned
+                }))
             }
-        };
+        }
+    }
+
+    fn resolve_pin_ref(&mut self, r: &PinRef, scope: &Scope) -> Option<(String, String)> {
+        let r = self.resolve_array_ref(r, scope)?;
         // Base: a fn parameter binding?
         if let Some(binding) = scope.bindings.get(&r.base.name) {
             return match (binding, &r.pin) {
@@ -2159,6 +2162,7 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return None;
         }
+        let arg = self.resolve_array_ref(arg, scope)?;
         if let Some(binding) = scope.bindings.get(&arg.base.name) {
             return match binding {
                 Binding::Instance { path, device, .. } => Some((path.clone(), device.clone())),

@@ -120,6 +120,33 @@ async function main() {
   ]);
 
   const failures = [];
+  // Check the actual token at each expression site: a keyword substring
+  // elsewhere (for example `in` inside `pins`) must not satisfy these cases.
+  const expressionCases = [
+    ["pub fn bank<const N: Int>(p: Pin) {", "const", "keyword"],
+    ["pub fn bank<const N: Int>(p: Pin) {", "Int", "type"],
+    ["const PITCH: Length = 1.50mm", "const", "keyword"],
+    ["for wiring: i in 0..N step 2 {", "for", "keyword"],
+    ["for wiring: i in 0..N step 2 {", "in", "keyword"],
+    ["for wiring: i in 0..N step 2 {", "step", "keyword"],
+    ["for wiring: i in 0..N step 2 {", "..", "operator"],
+    ["net _: a[0..=N - 1].A", "..=", "operator"],
+    ["const N: Int = 7 + 2 - 1 * 4 / 2 % 3", "+", "operator"],
+    ["const N: Int = 7 + 2 - 1 * 4 / 2 % 3", "-", "operator"],
+    ["const N: Int = 7 + 2 - 1 * 4 / 2 % 3", "*", "operator"],
+    ["const N: Int = 7 + 2 - 1 * 4 / 2 % 3", "/", "operator"],
+    ["const N: Int = 7 + 2 - 1 * 4 / 2 % 3", "%", "operator"],
+    ['#[intent("const in for")]', "const", "string"],
+    ["// const in for / *", "const", "comment"],
+  ];
+  for (const [line, token, wantScope] of expressionCases) {
+    const offset = line.lastIndexOf(token);
+    const tokens = grammar.tokenizeLine(line, vsctm.INITIAL).tokens;
+    const styled = tokens.find((t) => t.startIndex <= offset && offset < t.endIndex);
+    if (!styled?.scopes.some((scope) => scope.includes(wantScope))) {
+      failures.push(`  '${token}' in '${line}' was not scoped as *${wantScope}*`);
+    }
+  }
   for (const [sub, wantScope] of EXPECTATIONS) {
     let matched = false;
     for (const line of lines) {
@@ -140,7 +167,7 @@ async function main() {
     console.error("Grammar coverage FAILED:\n" + failures.join("\n"));
     process.exit(1);
   }
-  console.log(`Grammar coverage OK — ${EXPECTATIONS.length} token classes styled.`);
+  console.log(`Grammar coverage OK — ${EXPECTATIONS.length} token classes and ${expressionCases.length} expression sites styled.`);
 }
 
 main().catch((e) => {

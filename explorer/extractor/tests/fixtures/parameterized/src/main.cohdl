@@ -1,0 +1,31 @@
+pub trait Ref { designator_prefix: "R" }
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+impl Ref for D {}
+pub footprint F {}
+pub part P: D { primary { mfr: "Fixture", mpn: "D", footprint: F } }
+
+pub fn attach(p: Pin) {
+    inst helper: P
+    net _: p, helper.A, helper.B
+}
+
+pub subdesign Bank<const N: Int> {
+    ports { required IN: Pin }
+    inst chips: [P; N]
+    for wiring: i in 0..N { net _: IN, chips[i].A, chips[i].B }
+    layout {
+        for placement: i in 0..N { place chips[i] at (i * 5mm, 0mm) }
+    }
+}
+
+design Board {
+    inst source: P
+    net BUS: source.A, source.B
+    subdesign bank: Bank<3> { IN: source.A }
+    for helpers: i in 0..2 { attach(source.A) }
+    layout {
+        place source at (0mm, 0mm)
+        place bank at (20mm, 20mm) rotate 90
+        place bank.chips[2] at (40mm, 40mm)
+    }
+}

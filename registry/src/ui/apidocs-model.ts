@@ -12,9 +12,11 @@ import type {
   DevicePinDoc,
   FnDoc,
   FootprintDoc,
+  GenericDoc,
   PadDoc,
   PartDoc,
   SpecFieldDoc,
+  SubdesignDoc,
 } from "./api";
 
 /// Canonical-mm decimal string → number. Unparseable input degrades to 0 —
@@ -80,6 +82,7 @@ export function filterItems(items: ApiDocsItem[], filter: ItemFilter): ApiDocsIt
 /// this package" down to raw geometry.
 export const KIND_ORDER: ApiDocsKind[] = [
   "design",
+  "subdesign",
   "device",
   "part",
   "trait",
@@ -175,6 +178,14 @@ export function avlColumns(part: PartDoc): string[] {
   return cols;
 }
 
+/// A v1 summary always carries a numeric `nets` (possibly 0). RFC-033 M2
+/// items omit the whole summary, so a genuinely absent key yields null — the
+/// caller then omits the net count instead of printing a bogus one. A
+/// hostile non-number also degrades to null, in the spirit of `mm`.
+export function netCount(nets: number | undefined): number | null {
+  return typeof nets === "number" && Number.isFinite(nets) ? nets : null;
+}
+
 /// One list-row line: the `#[intent]` when present, otherwise a small
 /// derived fact. Deterministic — it only reads the item. A hostile item
 /// missing its kind-named payload gets an empty summary, never a crash.
@@ -202,10 +213,12 @@ export function itemSummary(item: ApiDocsItem): string {
     }
     case "fn": {
       if (!item.fn) return "";
+      // RFC-033: an M2 item carries body_source instead of the lossy summary.
+      if (item.body_source !== undefined) return "full body source";
       const params = asArray(item.fn.params).length;
-      return `${params} parameter${params === 1 ? "" : "s"} · ${item.fn.nets} net${
-        item.fn.nets === 1 ? "" : "s"
-      }`;
+      const nets = netCount(item.fn.nets);
+      const netPart = nets === null ? "" : ` · ${nets} net${nets === 1 ? "" : "s"}`;
+      return `${params} parameter${params === 1 ? "" : "s"}${netPart}`;
     }
     case "pad": {
       if (!item.pad) return "";
@@ -225,10 +238,19 @@ export function itemSummary(item: ApiDocsItem): string {
     }
     case "design": {
       if (!item.design) return "";
+      if (item.body_source !== undefined) return "full body source";
       const insts = asArray(item.design.insts).length;
-      return `${insts} instance${insts === 1 ? "" : "s"} · ${item.design.nets} net${
-        item.design.nets === 1 ? "" : "s"
-      }`;
+      const nets = netCount(item.design.nets);
+      const netPart = nets === null ? "" : ` · ${nets} net${nets === 1 ? "" : "s"}`;
+      return `${insts} instance${insts === 1 ? "" : "s"}${netPart}`;
+    }
+    case "subdesign": {
+      if (!item.subdesign) return "";
+      if (item.body_source !== undefined) return "full body source";
+      const ports = asArray(item.subdesign.ports).length;
+      const nets = netCount(item.subdesign.nets);
+      const netPart = nets === null ? "" : ` · ${nets} net${nets === 1 ? "" : "s"}`;
+      return `${ports} port${ports === 1 ? "" : "s"}${netPart}`;
     }
   }
 }
@@ -243,17 +265,33 @@ export function fnParamType(
   return t.kind;
 }
 
-/// A cohdl-style one-line signature for fn (and, with "design", design)
-/// pages. Designs are bare-named blocks — no generics, no parameter list.
-export function fnSignature(keyword: string, name: string, fn: FnDoc): string {
+/// The signature spelling of one generic parameter. RFC-033 `const Int`
+/// generics render in their own spelling (`const N: Int = 2`); unit/trait
+/// generics keep the legacy `{name}: {bound}` form.
+export function genericSignature(g: GenericDoc | undefined): string {
+  if (!g) return "";
+  const dflt = g.default !== undefined ? ` = ${g.default}` : "";
+  if (g.bound?.const === "Int") return `const ${g.name}: Int${dflt}`;
+  const bound = g.bound?.unit ?? asArray(g.bound?.traits).join(" + ");
+  return bound ? `${g.name}: ${bound}${dflt}` : `${g.name}${dflt}`;
+}
+
+/// A cohdl-style one-line signature for fn (and, with "design"/"subdesign",
+/// subdesign) pages. Designs are bare-named blocks; a subdesign takes
+/// generics and ports (not fn-style parentheses), per the RFC-032/RFC-033
+/// grammar — `subdesign Bank<const N: Int = 2>`.
+export function fnSignature(
+  keyword: string,
+  name: string,
+  fn: FnDoc | SubdesignDoc,
+): string {
   if (keyword === "design") return `design ${name}`;
-  const generics = asArray(fn.generics).map((g) => {
-    const bound = g?.bound?.unit ?? asArray(g?.bound?.traits).join(" + ");
-    const dflt = g?.default !== undefined ? ` = ${g?.default}` : "";
-    return bound ? `${g?.name}: ${bound}${dflt}` : `${g?.name}${dflt}`;
-  });
-  const params = asArray(fn.params).map((p) => `${p?.name}: ${fnParamType(p?.type)}`);
+  const generics = asArray(fn.generics).map(genericSignature);
   const genericPart = generics.length > 0 ? `<${generics.join(", ")}>` : "";
+  if (keyword === "subdesign") return `${keyword} ${name}${genericPart}`;
+  const params = asArray((fn as FnDoc).params).map(
+    (p) => `${p?.name}: ${fnParamType(p?.type)}`,
+  );
   return `${keyword} ${name}${genericPart}(${params.join(", ")})`;
 }
 

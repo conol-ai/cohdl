@@ -102,8 +102,9 @@ function parseApidocs(body: Uint8Array, name: string, version: string): ParsedAp
   if (typeof doc !== "object" || doc === null || Array.isArray(doc)) {
     return { ok: false, status: 400, error: "api docs must be a top-level JSON object" };
   }
-  if (Reflect.get(doc, "schema_version") !== 1) {
-    return { ok: false, status: 400, error: "api docs must declare `schema_version` 1" };
+  const schemaVer: unknown = Reflect.get(doc, "schema_version");
+  if (schemaVer !== 1 && schemaVer !== 2) {
+    return { ok: false, status: 400, error: "api docs must declare `schema_version` 1 or 2" };
   }
   const pkgField: unknown = Reflect.get(doc, "package");
   const pkg =
@@ -277,7 +278,8 @@ function declaredContentLength(request: Request): DeclaredLengthVerdict {
   return { ok: true, size };
 }
 
-const CANONICAL_START = new TextEncoder().encode('{"schema_version":1,"generator":');
+const CANONICAL_START_1 = new TextEncoder().encode('{"schema_version":1,"generator":');
+const CANONICAL_START_2 = new TextEncoder().encode('{"schema_version":2,"generator":');
 const CANONICAL_ITEMS_OPENER = new TextEncoder().encode(',"items":[');
 
 function bytesStartWith(body: Uint8Array, prefix: Uint8Array): boolean {
@@ -286,6 +288,10 @@ function bytesStartWith(body: Uint8Array, prefix: Uint8Array): boolean {
     if (body[index] !== prefix[index]) return false;
   }
   return true;
+}
+
+function bytesStartWithEither(body: Uint8Array): boolean {
+  return bytesStartWith(body, CANONICAL_START_1) || bytesStartWith(body, CANONICAL_START_2);
 }
 
 function findBytes(body: Uint8Array, needle: Uint8Array): number {
@@ -306,7 +312,7 @@ function canonicalPrefixEnvelope(
   name: string,
   version: string,
 ): PrefixVerdict {
-  if (!bytesStartWith(prefix, CANONICAL_START)) {
+  if (!bytesStartWithEither(prefix)) {
     return { ok: false, error: "large api docs must use the canonical CoHDL JSON prefix" };
   }
   const opener = findBytes(prefix, CANONICAL_ITEMS_OPENER);
@@ -346,8 +352,15 @@ function canonicalPrefixEnvelope(
   ) {
     return { ok: false, error: "large api docs must use the canonical CoHDL JSON envelope" };
   }
-  if (Reflect.get(document, "schema_version") !== 1) {
-    return { ok: false, error: "api docs must declare `schema_version` 1" };
+  const schemaVer: unknown = Reflect.get(document, "schema_version");
+  // Schema 2 (RFC-033) adds body_source-carrying items; the canonical envelope
+  // itself is unchanged. The buffered path already accepts 1 or 2 — keep the
+  // two paths in lockstep. This is the DOCUMENT schema, deliberately distinct
+  // from the `X-CoHDL-Api-Docs-Schema: 1` transport handshake below, which
+  // pins the streaming upload contract (canonical prefix + SHA-256) and does
+  // not change with the document schema.
+  if (schemaVer !== 1 && schemaVer !== 2) {
+    return { ok: false, error: "api docs must declare `schema_version` 1 or 2" };
   }
   const pkgField: unknown = Reflect.get(document, "package");
   const pkg =

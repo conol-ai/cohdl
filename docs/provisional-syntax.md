@@ -348,3 +348,20 @@ source (the four DRC rules are engine-builtin; in-language `rule` syntax
 returns with a future RFC), no bare `Ident` external net endpoints (v1's
 "external" nets — every net member must be a real pin). Package/footprint
 variants, formerly on this list, landed via RFC-008.
+
+
+## Parameterized circuit construction proposal (RFC-033 review branch)
+
+**Named loop nets (PR-43 review revision, provisional):** a directly authored named `net NAME: …` inside a circuit `for` body is rejected (E1406) — declare the named net outside the loop and join it inside with an anonymous `net _` through the shared pins/ports. Named nets inside helper fns called from loops keep ordinary per-frame privacy.
+
+The implementation under review in PR #43 follows the Candidate A proposal in
+`docs/design/rfc-033-parameterized-circuit.md`. That proposal still records its
+status as Proposed; its presence in this branch is not evidence of central RFC
+number or E140x allocation, nor of an Accepted language decision. The runtime
+features remain subject to that acceptance review, including the electrical
+scope of named nets inside a loop.
+
+The generated `docs/design/10-language-specification.md` snapshot must contain
+only the upstream Accepted specification. Update the design source and the
+extractor's page registry before synchronizing a new Accepted section; local
+compiler changes or passing tests cannot promote a proposal.

@@ -97,12 +97,20 @@ export interface PackageDetail {
 }
 
 // ---------------------------------------------------------------------------
-// Package API documentation — the schema_version 1 document of
+// Package API documentation — the schema_version 1 and 2 documents of
 // docs/apidocs.md, produced by the Rust emitter and served byte-for-byte.
 // Every string in it is publisher-derived content: it must only ever render
 // as React text or SVG attributes, never as HTML.
 
-export type ApiDocsKind = "trait" | "device" | "fn" | "part" | "pad" | "footprint" | "design";
+export type ApiDocsKind =
+  | "trait"
+  | "device"
+  | "fn"
+  | "part"
+  | "pad"
+  | "footprint"
+  | "design"
+  | "subdesign";
 
 export interface ApiDocsPackage {
   name: string;
@@ -138,8 +146,11 @@ export interface TraitDoc {
 
 export interface GenericDoc {
   name: string;
-  bound: { unit?: string; traits?: string[] };
-  default?: string;
+  /// v1: `{unit}` or `{traits}`. v2 adds `{const: "Int"}` — a compile-time
+  /// integer parameter (RFC-033); exactly one of the three is present.
+  bound: { unit?: string; traits?: string[]; const?: "Int" };
+  /// A number for `const Int` generics, source text otherwise.
+  default?: string | number;
 }
 
 export type PinRole = "input" | "output" | "bidirectional" | "passive" | "power_in" | "power_out";
@@ -184,15 +195,27 @@ export interface InstDoc {
 export interface FnDoc {
   generics?: GenericDoc[];
   params?: FnParamDoc[];
+  /// RFC-033 (schema 2): an M2 item omits the lossy insts/calls/nets
+  /// summary entirely — body_source at the ITEM level replaces it. v1 items
+  /// always carry `nets` (possibly 0); `insts`/`calls` only when non-empty.
   insts?: InstDoc[];
   calls?: string[];
-  nets: number;
+  nets?: number;
+}
+
+/// RFC-032: a subdesign's typed surface — like an fn, plus ports.
+export interface SubdesignDoc {
+  generics?: GenericDoc[];
+  ports?: { name: string; obligation: "required" | "optional" }[];
+  insts?: InstDoc[];
+  calls?: string[];
+  nets?: number;
 }
 
 export interface DesignDoc {
   insts?: InstDoc[];
   calls?: string[];
-  nets: number;
+  nets?: number;
 }
 
 export interface AvlEntryDoc {
@@ -294,7 +317,9 @@ interface ApiDocsItemBase {
 }
 
 /// One `items`/`foreign` entry: the common keys plus exactly one payload key
-/// named after the kind.
+/// named after the kind. RFC-033 (schema 2): an M2 item additionally carries
+/// `body_source` — its fmt-canonical body text — and omits the lossy
+/// `insts`/`calls`/`nets` summary inside the payload.
 export type ApiDocsItem = ApiDocsItemBase &
   (
     | { kind: "trait"; trait: TraitDoc }
@@ -304,7 +329,9 @@ export type ApiDocsItem = ApiDocsItemBase &
     | { kind: "pad"; pad: PadDoc }
     | { kind: "footprint"; footprint: FootprintDoc }
     | { kind: "design"; design: DesignDoc }
-  );
+    | { kind: "subdesign"; subdesign: SubdesignDoc }
+  ) &
+  { body_source?: string };
 
 export interface ApiDocsImpl {
   trait: string;

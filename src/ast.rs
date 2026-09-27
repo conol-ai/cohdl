@@ -803,7 +803,7 @@ pub struct GenericParam {
     pub name: Ident,
     pub bound: GenericBound,
     /// Visible default — valid only on unit-type parameters (E406 otherwise).
-    pub default: Option<(UnitValue, Span)>,
+    pub default: Option<GenericDefault>,
     pub span: Span,
 }
 
@@ -813,6 +813,17 @@ pub enum GenericBound {
     Unit(UnitTypeRef),
     /// `D: Capacitor + Polarized`
     Traits(Vec<Ident>),
+    /// `const N: Int` (RFC-033) — a compile-time integer parameter. Span is
+    /// the bound's own (`Int`), for diagnostics.
+    Int(Span),
+}
+
+/// A generic parameter's default (RFC-033). Unit defaults existed before;
+/// `Int` defaults arrive with `const N: Int = 2`.
+#[derive(Debug, Clone)]
+pub enum GenericDefault {
+    Unit(UnitValue, Span),
+    Int(i64, Span),
 }
 
 /// A generic argument at a use site: `MLCC<100nF, V>`, `foo::<MLCC>(…)`.
@@ -825,6 +836,9 @@ pub enum GenericArg {
     /// A bare number — syntactically accepted so the type checker can reject
     /// it with the precise E404/E111 diagnostic rather than a parse error.
     Number(String, Span),
+    /// An Int/Length expression argument (RFC-033). Task 3 parses these;
+    /// Task 2 admits the node so the enum carries it.
+    Expr(Expr),
 }
 
 impl GenericArg {
@@ -833,6 +847,7 @@ impl GenericArg {
             GenericArg::Unit(_, s) => *s,
             GenericArg::Name(i) => i.span,
             GenericArg::Number(_, s) => *s,
+            GenericArg::Expr(e) => e.span(),
         }
     }
 }
@@ -948,7 +963,8 @@ pub struct SubdesignUseStmt {
     pub name: Ident,
     /// RFC-024 array form; `None` is the ordinary single-node form. When set,
     /// a bare `NAME` is never a valid reference — every use is `NAME[i]`.
-    pub array_len: Option<(i64, Span)>,
+    /// RFC-033: expression-valued (literal-only until Task 7).
+    pub array_len: Option<(Expr, Span)>,
     pub ty: TypeRef,
     /// The optional inline port-connection block `{ PORT: target, … }`.
     pub conns: Vec<PortConn>,
@@ -966,6 +982,154 @@ pub struct PortConn {
 }
 
 // ---------------------------------------------------------------------------
+// Expressions (RFC-033)
+
+/// A compile-time Int/Length expression. Parsed by Task 3's precedence
+/// climber; every literal-only consumer keeps working through
+/// `as_int_literal` / `as_length_literal`.
+#[derive(Debug, Clone)]
+pub enum Expr {
+    /// A decimal integer literal (already sign-combined when written
+    /// `-9223372036854775808`).
+    Int(i64, Span),
+    /// A Length literal (`4mm`, `-1.5mm`), original text preserved in the
+    /// UnitValue.
+    Length(UnitValue, Span),
+    /// A visible name: const, loop binder, generic parameter (Int or Length).
+    Name(Ident),
+    /// `ARRAY.len`
+    Len(Ident, Span),
+    Unary {
+        op: UnaryOp,
+        rhs: Box<Expr>,
+        span: Span,
+    },
+    Binary {
+        op: BinOp,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
+        span: Span,
+    },
+    Paren(Box<Expr>, Span),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnaryOp {
+    Neg,
+    Plus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BinOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Rem,
+}
+
+impl Expr {
+    pub fn span(&self) -> Span {
+        match self {
+            Expr::Int(_, s) | Expr::Length(_, s) | Expr::Len(_, s) => *s,
+            Expr::Name(id) => id.span,
+            Expr::Unary { span, .. } | Expr::Binary { span, .. } | Expr::Paren(_, span) => *span,
+        }
+    }
+    /// `Some(n)` when this is a bare integer literal (possibly parenthesized).
+    pub fn as_int_literal(&self) -> Option<i64> {
+        match self {
+            Expr::Int(n, _) => Some(*n),
+            Expr::Paren(e, _) => e.as_int_literal(),
+            _ => None,
+        }
+    }
+    pub fn as_length_literal(&self) -> Option<&UnitValue> {
+        match self {
+            Expr::Length(v, _) => Some(v),
+            Expr::Paren(e, _) => e.as_length_literal(),
+            _ => None,
+        }
+    }
+    pub fn int(n: i64, span: Span) -> Expr {
+        Expr::Int(n, span)
+    }
+}
+
+/// The two compile-time constant types (RFC-033 §2).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConstTy {
+    Int,
+    Length,
+}
+
+/// `const NAME: TY = VALUE` (RFC-033 §4). Task 3 parses; Task 5+ evaluates.
+#[derive(Debug, Clone)]
+pub struct ConstStmt {
+    pub name: Ident,
+    pub ty: ConstTy,
+    pub value: Expr,
+    pub span: Span,
+}
+
+/// `for LABEL: BINDER in START..END { … }` (RFC-033 §6) — mandatory label,
+/// half-open range, body admits const/net/nc/calls/nested for/layout.
+#[derive(Debug, Clone)]
+pub struct ForStmt {
+    pub label: Ident,
+    pub binder: Ident,
+    pub start: Expr,
+    pub end: Expr,
+    pub body: Vec<Stmt>,
+    pub span: Span,
+}
+
+/// A `for` inside a `layout {}` block: only const, place and nested for.
+#[derive(Debug, Clone)]
+pub struct LayoutFor {
+    pub label: Ident,
+    pub binder: Ident,
+    pub start: Expr,
+    pub end: Expr,
+    pub consts: Vec<ConstStmt>,
+    pub placements: Vec<Placement>,
+    pub loops: Vec<LayoutFor>,
+    pub span: Span,
+}
+
+/// The canonical spelling of an expression: binary operators spaced, unary
+/// tight, parentheses preserved, literals by original text, `NAME.len`.
+/// Task 4's `fmt` and diagnostics both print through this so the two can
+/// never disagree (RFC-033 §8).
+pub fn expr_text(e: &Expr) -> String {
+    match e {
+        Expr::Int(n, _) => n.to_string(),
+        Expr::Length(v, _) => v.text.clone(),
+        Expr::Name(id) => id.name.clone(),
+        Expr::Len(id, _) => format!("{}.len", id.name),
+        Expr::Unary { op, rhs, .. } => format!(
+            "{}{}",
+            match op {
+                UnaryOp::Neg => "-",
+                UnaryOp::Plus => "+",
+            },
+            expr_text(rhs)
+        ),
+        Expr::Binary { op, lhs, rhs, .. } => {
+            let sym = match op {
+                BinOp::Add => "+",
+                BinOp::Sub => "-",
+                BinOp::Mul => "*",
+                BinOp::Div => "/",
+                BinOp::Rem => "%",
+            };
+            format!("{} {} {}", expr_text(lhs), sym, expr_text(rhs))
+        }
+        Expr::Paren(inner, _) => format!("({})", expr_text(inner)),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Statements (fn, design, and subdesign bodies)
 
 #[derive(Debug, Clone)]
@@ -980,6 +1144,10 @@ pub enum Stmt {
     /// RFC-032 subdesign use site (design/subdesign bodies only — a `fn`
     /// retains no path for one to live under).
     SubdesignUse(SubdesignUseStmt),
+    /// RFC-033 `const NAME: Int|Length = EXPR` (parsed by Task 3).
+    Const(ConstStmt),
+    /// RFC-033 `for LABEL: binder in EXPR..EXPR { … }` (parsed by Task 3).
+    For(ForStmt),
 }
 
 impl Stmt {
@@ -991,6 +1159,8 @@ impl Stmt {
             Stmt::Call(s) => s.span,
             Stmt::Layout(s) => s.span,
             Stmt::SubdesignUse(s) => s.span,
+            Stmt::Const(s) => s.span,
+            Stmt::For(s) => s.span,
         }
     }
 }
@@ -1012,6 +1182,12 @@ pub struct LayoutBlock {
     /// the rest; used for board-edge/mechanical parts (connectors, mounting).
     /// Same pragmatic-extension status as `board_outline`.
     pub placements: Vec<Placement>,
+    /// RFC-033 layout-block consts (`const P: Length = 1mm` inside
+    /// `layout { … }`); parsed by Task 3.
+    pub consts: Vec<ConstStmt>,
+    /// RFC-033 layout loops (`for LABEL: i in 0..N { place … }`); parsed by
+    /// Task 3.
+    pub loops: Vec<LayoutFor>,
     pub span: Span,
 }
 
@@ -1026,8 +1202,11 @@ pub struct Placement {
     /// One or more `.`-separated segments; never empty. Each may carry an
     /// RFC-024 single-element index (`phases[1].ls_fet`).
     pub path: Vec<PlacementSeg>,
-    pub at: (UnitValue, UnitValue),
-    pub rotate: u16,
+    /// RFC-033: expression-valued coordinates (literal-only until Task 7
+    /// evaluates them; `as_length_literal` covers every pre-RFC fixture).
+    pub at: (Expr, Expr),
+    /// RFC-033: expression-valued rotation; `None` = 0 (never printed).
+    pub rotate: Option<Expr>,
     /// RFC-026: `side top | bottom` — which outer face the whole component
     /// sits on. `Top` is the default and the pre-RFC-026 meaning; mirroring a
     /// bottom-side footprint is emitter work, never computed here.
@@ -1042,8 +1221,8 @@ pub struct Placement {
 pub struct PlacementSeg {
     pub name: Ident,
     /// RFC-024: `NAME[i]` — always exactly one element, never a range (each
-    /// element needs its own coordinates).
-    pub index: Option<(i64, Span)>,
+    /// element needs its own coordinates). RFC-033: expression-valued.
+    pub index: Option<(Expr, Span)>,
 }
 
 impl Placement {
@@ -1051,8 +1230,8 @@ impl Placement {
     pub fn path_text(&self) -> String {
         self.path
             .iter()
-            .map(|s| match s.index {
-                Some((i, _)) => format!("{}[{}]", s.name.name, i),
+            .map(|s| match &s.index {
+                Some((e, _)) => format!("{}[{}]", s.name.name, expr_text(e)),
                 None => s.name.name.clone(),
             })
             .collect::<Vec<_>>()
@@ -1063,8 +1242,8 @@ impl Placement {
     pub fn path_span(&self) -> Span {
         let first = self.path.first().expect("place path is never empty");
         let last = self.path.last().expect("place path is never empty");
-        first.name.span.to(match last.index {
-            Some((_, s)) => s,
+        first.name.span.to(match &last.index {
+            Some((_, s)) => *s,
             None => last.name.span,
         })
     }
@@ -1163,7 +1342,8 @@ pub struct InstStmt {
     /// RFC-024: `inst NAME: [Device; N]` — an array-typed instance of fixed
     /// length N. `None` is the ordinary single-instance form. When set, `NAME`
     /// alone is NEVER a valid reference; every use must be indexed `NAME[i]`.
-    pub array_len: Option<(i64, Span)>,
+    /// RFC-033: expression-valued length (literal-only until Task 7).
+    pub array_len: Option<(Expr, Span)>,
     pub ty: TypeRef,
     pub span: Span,
 }
@@ -1200,8 +1380,9 @@ pub enum PhysAttr {
     Bypass {
         inst: Ident,
         /// RFC-024: `#[bypass(NAME[i].PIN, …)]` — an array element is a valid
-        /// instance reference here as anywhere else.
-        index: Option<(i64, Span)>,
+        /// instance reference here as anywhere else. RFC-033:
+        /// expression-valued.
+        index: Option<(Expr, Span)>,
         pin: Option<Ident>,
         capacitance: UnitValue,
         span: Span,
@@ -1304,39 +1485,53 @@ pub struct NcStmt {
 #[derive(Debug, Clone)]
 pub enum IndexSel {
     /// `[i]` — one element. The real reference form.
-    Single(i64, Span),
+    Single(Expr, Span),
     /// `[START..=END]`, or `[START..=END step STEP]` when `step` is written.
     Range {
-        start: i64,
-        end: i64,
-        /// Always >= 1; absent in source means 1.
-        step: i64,
-        /// True when `step` was written, so `fmt` round-trips it.
-        explicit_step: bool,
+        start: Expr,
+        end: Expr,
+        /// RFC-033: expression-valued stride; `None` means the implicit 1
+        /// (never printed). Absent-in-source is no longer an i64 1 so `fmt`
+        /// can round-trip `step N*2` unchanged.
+        step: Option<Expr>,
         span: Span,
     },
     /// `[i1, i2, i3, …]` — a genuinely irregular set a stride can't express.
-    List(Vec<i64>, Span),
+    List(Vec<Expr>, Span),
 }
 
 impl IndexSel {
-    /// The selected indices, in written order.
-    pub fn indices(&self) -> Vec<i64> {
+    /// The selected indices, in written order — `None` when any part is not
+    /// a bare integer literal (RFC-033: expression-valued selectors are
+    /// evaluated by Task 7's expander, not here).
+    pub fn literal_indices(&self) -> Option<Vec<i64>> {
         match self {
-            IndexSel::Single(i, _) => vec![*i],
+            IndexSel::Single(e, _) => Some(vec![e.as_int_literal()?]),
             IndexSel::Range {
                 start, end, step, ..
             } => {
-                let step = (*step).max(1);
+                let start = start.as_int_literal()?;
+                let end = end.as_int_literal()?;
+                let step = match step {
+                    None => 1,
+                    Some(e) => e.as_int_literal()?,
+                };
+                let step = step.max(1);
                 let mut out = Vec::new();
-                let mut i = *start;
-                while i <= *end {
+                let mut i = start;
+                while i <= end {
                     out.push(i);
                     i += step;
                 }
-                out
+                Some(out)
             }
-            IndexSel::List(v, _) => v.clone(),
+            IndexSel::List(v, _) => {
+                let mut out = Vec::with_capacity(v.len());
+                for e in v {
+                    out.push(e.as_int_literal()?);
+                }
+                Some(out)
+            }
         }
     }
     pub fn span(&self) -> Span {
@@ -1351,24 +1546,20 @@ impl IndexSel {
 impl std::fmt::Display for IndexSel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IndexSel::Single(i, _) => write!(f, "[{}]", i),
+            IndexSel::Single(e, _) => write!(f, "[{}]", expr_text(e)),
             IndexSel::Range {
-                start,
-                end,
-                step,
-                explicit_step,
-                ..
+                start, end, step, ..
             } => {
-                write!(f, "[{}..={}", start, end)?;
+                write!(f, "[{}..={}", expr_text(start), expr_text(end))?;
                 // An implicit stride of 1 is never spelled out, so an
                 // unstrided range round-trips byte-identically.
-                if *explicit_step {
-                    write!(f, " step {}", step)?;
+                if let Some(step) = step {
+                    write!(f, " step {}", expr_text(step))?;
                 }
                 f.write_str("]")
             }
             IndexSel::List(v, _) => {
-                let items: Vec<String> = v.iter().map(|i| i.to_string()).collect();
+                let items: Vec<String> = v.iter().map(expr_text).collect();
                 write!(f, "[{}]", items.join(", "))
             }
         }

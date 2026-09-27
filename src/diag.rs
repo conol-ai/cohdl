@@ -91,6 +91,14 @@ impl Diagnostics {
         Self::default()
     }
 
+    /// RFC-033: drain the batch (the expander's helpers evaluate against a
+    /// local batch so the frame suffix can be appended before re-pushing).
+    /// Named `drain_batch`, not `into_iter`, so it cannot be confused with
+    /// `IntoIterator::into_iter`.
+    pub fn drain_batch(self) -> impl Iterator<Item = Diagnostic> {
+        self.diags.into_iter()
+    }
+
     pub fn push(&mut self, d: Diagnostic) {
         self.diags.push(d);
     }

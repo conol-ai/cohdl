@@ -194,6 +194,28 @@ struct Formatter<'a> {
     cursor: u32,
 }
 
+/// Layout syntax is stored by category in the AST. Keep references together
+/// while printing so M2 blocks can follow source order without moving comments.
+enum LayoutMember<'a> {
+    Const(&'a ConstStmt),
+    Constraint(&'a LayoutConstraint),
+    Outline(&'a BoardOutline),
+    Place(&'a Placement),
+    For(&'a LayoutFor),
+}
+
+impl LayoutMember<'_> {
+    fn span(&self) -> Span {
+        match self {
+            Self::Const(c) => c.span,
+            Self::Constraint(c) => c.span(),
+            Self::Outline(o) => o.span,
+            Self::Place(p) => p.span,
+            Self::For(f) => f.span,
+        }
+    }
+}
+
 impl Formatter<'_> {
     fn line_start(&self, span: Span) -> u32 {
         self.sm.line_col(self.file, span.start).line
@@ -471,7 +493,7 @@ impl Formatter<'_> {
                 ..
             } => {
                 let target = match index {
-                    Some((i, _)) => format!("{}[{}]", inst.name, i),
+                    Some((e, _)) => format!("{}[{}]", inst.name, crate::ast::expr_text(e)),
                     None => inst.name.clone(),
                 };
                 match pin {
@@ -872,16 +894,7 @@ impl Formatter<'_> {
             self.append_held(held);
             self.attach_trailing(self.line_end(ps));
         }
-        for (idx, stmt) in s.body.iter().enumerate() {
-            self.flush_leading(self.stmt_first_line(stmt), 1);
-            self.stmt(stmt, 1);
-            let end = self.line_end(stmt.span());
-            let next_shares = s
-                .body
-                .get(idx + 1)
-                .is_some_and(|n| self.stmt_first_line(n) == end);
-            self.finish_construct_ext(self.line_start(stmt.span()), end, 1, !next_shares);
-        }
+        self.stmts(&s.body, 1);
         self.flush_leading(self.line_end(item.span), 1);
         self.push(0, "}");
     }
@@ -889,22 +902,31 @@ impl Formatter<'_> {
     fn body(&mut self, stmts: &[Stmt], item: &Item) {
         // A trailing comment on the fn/design header line survives.
         self.attach_trailing(self.line_start(item.decl_span));
+        self.stmts(stmts, 1);
+        self.flush_leading(self.line_end(item.span), 1);
+    }
+
+    /// Use the same comment ownership at every circuit-body nesting level.
+    fn stmts(&mut self, stmts: &[Stmt], indent: usize) {
         for (idx, stmt) in stmts.iter().enumerate() {
-            // Flush to the FIRST line of the whole statement group — its
-            // attributes included — so comments before an attribute stay
-            // before it.
-            self.flush_leading(self.stmt_first_line(stmt), 1);
-            self.stmt(stmt, 1);
+            self.flush_leading(self.stmt_first_line(stmt), indent);
             let end = self.line_end(stmt.span());
-            // When the NEXT statement starts on this statement's last source
-            // line, the line's trailing comment belongs to the last construct
-            // on that line — defer it (sweep interiors only).
             let next_shares = stmts
                 .get(idx + 1)
                 .is_some_and(|n| self.stmt_first_line(n) == end);
-            self.finish_construct_ext(self.line_start(stmt.span()), end, 1, !next_shares);
+            // A nested emitter must not take a comment belonging to a later
+            // sibling on the same source line.
+            let deferred = if next_shares {
+                self.c.trailing.remove(&end)
+            } else {
+                None
+            };
+            self.stmt(stmt, indent);
+            if let Some(comment) = deferred {
+                self.c.trailing.insert(end, comment);
+            }
+            self.finish_construct_ext(self.line_start(stmt.span()), end, indent, !next_shares);
         }
-        self.flush_leading(self.line_end(item.span), 1);
     }
 
     /// The first source line a statement occupies, attributes included.
@@ -931,6 +953,9 @@ impl Formatter<'_> {
                     consider(&pa.span());
                 }
             }
+            // RFC-033: const/for spans ride the statement's own span.
+            Stmt::Const(s) => consider(&s.span),
+            Stmt::For(f) => consider(&f.span),
             Stmt::Net(s) => {
                 if let Some((_, sp)) = &s.intent {
                     consider(sp);
@@ -961,6 +986,37 @@ impl Formatter<'_> {
 
     fn stmt(&mut self, stmt: &Stmt, indent: usize) {
         match stmt {
+            Stmt::Const(c) => {
+                self.flush_leading(self.line_start(c.span), indent);
+                let ty = match c.ty {
+                    ConstTy::Int => "Int",
+                    ConstTy::Length => "Length",
+                };
+                self.push(
+                    indent,
+                    format!("const {}: {} = {}", c.name.name, ty, expr_text(&c.value)),
+                );
+            }
+            Stmt::For(f) => {
+                let held = self.hold_line_comment(self.line_start(f.span), self.line_end(f.span));
+                self.flush_leading(self.line_start(f.span), indent);
+                self.push(
+                    indent,
+                    format!(
+                        "for {}: {} in {}..{} {{",
+                        f.label.name,
+                        f.binder.name,
+                        expr_text(&f.start),
+                        expr_text(&f.end)
+                    ),
+                );
+                self.attach_trailing(self.line_start(f.span));
+                self.stmts(&f.body, indent + 1);
+                self.flush_leading(self.line_end(f.span), indent + 1);
+                self.push(indent, "}");
+                self.append_held(held);
+                self.cursor = self.cursor.max(self.line_end(f.span) + 1);
+            }
             Stmt::Inst(s) => {
                 // All attributes in SOURCE order (never a fixed canonical
                 // order — reordering would drag comments with it), with the
@@ -1002,8 +1058,10 @@ impl Formatter<'_> {
                 // RFC-024: `[Device; N]` in type position — dropping the array
                 // length here would silently turn an N-element array into a
                 // single instance on reformat.
-                let ty = match s.array_len {
-                    Some((n, _)) => format!("[{}; {}]", type_ref_text(&s.ty), n),
+                let ty = match &s.array_len {
+                    Some((e, _)) => {
+                        format!("[{}; {}]", type_ref_text(&s.ty), crate::ast::expr_text(e))
+                    }
                     None => type_ref_text(&s.ty),
                 };
                 self.push(indent, format!("inst {}: {}", s.name.name, ty));
@@ -1034,57 +1092,16 @@ impl Formatter<'_> {
                 let held = self.hold_line_comment(self.line_start(s.span), self.line_end(s.span));
                 self.push(indent, "layout {");
                 self.attach_trailing(self.line_start(s.span));
-                for c in &s.constraints {
-                    self.flush_leading(self.line_start(c.span()), indent + 1);
-                    self.layout_constraint(c, indent + 1);
-                    self.finish_construct(
-                        self.line_start(c.span()),
-                        self.line_end(c.span()),
-                        indent + 1,
-                    );
+                let mut members: Vec<_> = s.consts.iter().map(LayoutMember::Const).collect();
+                members.extend(s.constraints.iter().map(LayoutMember::Constraint));
+                members.extend(s.board_outline.iter().map(LayoutMember::Outline));
+                members.extend(s.placements.iter().map(LayoutMember::Place));
+                members.extend(s.loops.iter().map(LayoutMember::For));
+                // Preserve the pre-M2 canonical category order for old blocks.
+                if !s.consts.is_empty() || !s.loops.is_empty() {
+                    members.sort_by_key(|m| m.span().start);
                 }
-                if let Some(bo) = &s.board_outline {
-                    self.flush_leading(self.line_start(bo.span), indent + 1);
-                    self.push(indent + 1, format!("board_outline: {}", str_lit(&bo.path)));
-                    self.finish_construct(
-                        self.line_start(bo.span),
-                        self.line_end(bo.span),
-                        indent + 1,
-                    );
-                }
-                for p in &s.placements {
-                    self.flush_leading(self.line_start(p.span), indent + 1);
-                    let rot = if p.rotate == 0 {
-                        String::new()
-                    } else {
-                        format!(" rotate {}", p.rotate)
-                    };
-                    // RFC-026: canonical clause order is `rotate` THEN
-                    // `side`; the default `top` is never spelled out.
-                    // RFC-024/032: indices and the dotted reach-in path are
-                    // part of WHICH target is being placed, never droppable —
-                    // `path_text` renders both.
-                    let side = match p.side {
-                        crate::ast::PlacementSide::Top => String::new(),
-                        crate::ast::PlacementSide::Bottom => " side bottom".to_string(),
-                    };
-                    self.push(
-                        indent + 1,
-                        format!(
-                            "place {} at ({}, {}){}{}",
-                            p.path_text(),
-                            p.at.0.text,
-                            p.at.1.text,
-                            rot,
-                            side
-                        ),
-                    );
-                    self.finish_construct(
-                        self.line_start(p.span),
-                        self.line_end(p.span),
-                        indent + 1,
-                    );
-                }
+                self.layout_members(&members, indent + 1);
                 self.flush_leading(self.line_end(s.span), indent + 1);
                 self.push(indent, "}");
                 self.append_held(held);
@@ -1110,8 +1127,10 @@ impl Formatter<'_> {
                 // RFC-024: dropping the array length would silently turn an
                 // N-node array into a single node on reformat (same rule as
                 // `inst`).
-                let ty = match s.array_len {
-                    Some((n, _)) => format!("[{}; {}]", type_ref_text(&s.ty), n),
+                let ty = match &s.array_len {
+                    Some((e, _)) => {
+                        format!("[{}; {}]", type_ref_text(&s.ty), crate::ast::expr_text(e))
+                    }
                     None => type_ref_text(&s.ty),
                 };
                 if s.conns.is_empty() {
@@ -1134,8 +1153,92 @@ impl Formatter<'_> {
         }
     }
 
-    /// One layout constraint, wrapping long net lists (RFC-009's 100-column
-    /// soft target applies inside `layout {}` too).
+    /// A labelled layout loop with source-ordered members and comments.
+    fn layout_for(&mut self, f: &LayoutFor, indent: usize) {
+        let held = self.hold_line_comment(self.line_start(f.span), self.line_end(f.span));
+        self.flush_leading(self.line_start(f.span), indent);
+        self.push(
+            indent,
+            format!(
+                "for {}: {} in {}..{} {{",
+                f.label.name,
+                f.binder.name,
+                expr_text(&f.start),
+                expr_text(&f.end)
+            ),
+        );
+        self.attach_trailing(self.line_start(f.span));
+        let mut members: Vec<_> = f.consts.iter().map(LayoutMember::Const).collect();
+        members.extend(f.placements.iter().map(LayoutMember::Place));
+        members.extend(f.loops.iter().map(LayoutMember::For));
+        members.sort_by_key(|m| m.span().start);
+        self.layout_members(&members, indent + 1);
+        self.flush_leading(self.line_end(f.span), indent + 1);
+        self.push(indent, "}");
+        self.append_held(held);
+        self.cursor = self.cursor.max(self.line_end(f.span) + 1);
+    }
+
+    fn layout_members(&mut self, members: &[LayoutMember<'_>], indent: usize) {
+        for (idx, member) in members.iter().enumerate() {
+            let span = member.span();
+            let end = self.line_end(span);
+            self.flush_leading(self.line_start(span), indent);
+            let next_shares = members
+                .get(idx + 1)
+                .is_some_and(|next| self.line_start(next.span()) == end);
+            let deferred = if next_shares {
+                self.c.trailing.remove(&end)
+            } else {
+                None
+            };
+            match member {
+                LayoutMember::Const(c) => {
+                    let ty = match c.ty {
+                        ConstTy::Int => "Int",
+                        ConstTy::Length => "Length",
+                    };
+                    self.push(
+                        indent,
+                        format!("const {}: {} = {}", c.name.name, ty, expr_text(&c.value)),
+                    );
+                }
+                LayoutMember::Constraint(c) => self.layout_constraint(c, indent),
+                LayoutMember::Outline(o) => {
+                    self.push(indent, format!("board_outline: {}", str_lit(&o.path)))
+                }
+                LayoutMember::Place(p) => {
+                    let rot = match &p.rotate {
+                        None => String::new(),
+                        Some(e) if matches!(e.as_int_literal(), Some(0)) => String::new(),
+                        Some(e) => format!(" rotate {}", expr_text(e)),
+                    };
+                    let side = match p.side {
+                        PlacementSide::Top => "",
+                        PlacementSide::Bottom => " side bottom",
+                    };
+                    self.push(
+                        indent,
+                        format!(
+                            "place {} at ({}, {}){}{}",
+                            p.path_text(),
+                            expr_text(&p.at.0),
+                            expr_text(&p.at.1),
+                            rot,
+                            side
+                        ),
+                    );
+                }
+                LayoutMember::For(f) => self.layout_for(f, indent),
+            }
+            if let Some(comment) = deferred {
+                self.c.trailing.insert(end, comment);
+            }
+            self.finish_construct_ext(self.line_start(span), end, indent, !next_shares);
+        }
+    }
+
+    /// One layout constraint, wrapping long net lists at the soft column limit.
     fn layout_constraint(&mut self, c: &LayoutConstraint, indent: usize) {
         match c {
             LayoutConstraint::NetClass { name, nets, .. } => {
@@ -1580,6 +1683,7 @@ fn generic_arg_text(arg: &GenericArg) -> String {
         GenericArg::Unit(v, _) => v.text.clone(),
         GenericArg::Name(id) => id.name.clone(),
         GenericArg::Number(n, _) => n.clone(),
+        GenericArg::Expr(e) => crate::ast::expr_text(e),
     }
 }
 
@@ -1589,12 +1693,22 @@ fn generic_params(params: &[GenericParam]) -> String {
             let bound = match &p.bound {
                 GenericBound::Unit(u) => u.unit.type_name().to_string(),
                 GenericBound::Traits(ts) => join(ts.iter().map(|t| t.name.clone()), " + "),
+                // RFC-033: `const N: Int` — the `const` is part of the
+                // canonical spelling (round-trips byte-identically).
+                GenericBound::Int(_) => format!("const {}: Int", p.name.name),
             };
             let default = match &p.default {
-                Some((v, _)) => format!(" = {}", v.text),
+                Some(GenericDefault::Unit(v, _)) => format!(" = {}", v.text),
+                Some(GenericDefault::Int(n, _)) => format!(" = {}", n),
                 None => String::new(),
             };
-            format!("{}: {}{}", p.name.name, bound, default)
+            // An Int param's `bound` already carries the full
+            // `const NAME: Int` spelling; the legacy `{name}: {bound}`
+            // shape would double the name.
+            match &p.bound {
+                GenericBound::Int(_) => format!("{}{}", bound, default),
+                _ => format!("{}: {}{}", p.name.name, bound, default),
+            }
         }),
         ", ",
     );

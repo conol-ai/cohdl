@@ -56,6 +56,16 @@ pub enum TokenKind {
     Plus,
     Hash,
     Percent,
+    /// `-` — always a standalone token; the parser assembles signed literals
+    /// when it is byte-adjacent to a number/unit in operand position (RFC-033).
+    Minus,
+    /// `*` — multiplication in expressions (RFC-033).
+    Star,
+    /// `/` — division in expressions (RFC-033).
+    Slash,
+    /// `..` — the half-open range delimiter (`for i in 0..N`); the inclusive
+    /// fan-out `..=` is still parsed as DotDot then Eq.
+    DotDot,
     /// `;` — only the RFC-016 `use` import ends with one.
     Semi,
 
@@ -109,6 +119,10 @@ impl TokenKind {
             TokenKind::Plus => "+",
             TokenKind::Hash => "#",
             TokenKind::Percent => "%",
+            TokenKind::Minus => "-",
+            TokenKind::Star => "*",
+            TokenKind::Slash => "/",
+            TokenKind::DotDot => "..",
             _ => unreachable!(),
         }
     }
@@ -189,6 +203,17 @@ impl<'a> Lexer<'a> {
                         self.pos += 1;
                     }
                 }
+                b'/' => self.punct(TokenKind::Slash),
+                b'*' => self.punct(TokenKind::Star),
+                b'-' => self.punct(TokenKind::Minus),
+                b'.' => {
+                    if self.peek(1) == Some(b'.') {
+                        self.pos += 2;
+                        self.push(TokenKind::DotDot, start);
+                    } else {
+                        self.punct(TokenKind::Dot);
+                    }
+                }
                 b'{' => self.punct(TokenKind::LBrace),
                 b'}' => self.punct(TokenKind::RBrace),
                 b'(' => self.punct(TokenKind::LParen),
@@ -198,7 +223,6 @@ impl<'a> Lexer<'a> {
                 b'<' => self.punct(TokenKind::Lt),
                 b'>' => self.punct(TokenKind::Gt),
                 b',' => self.punct(TokenKind::Comma),
-                b'.' => self.punct(TokenKind::Dot),
                 b'=' => self.punct(TokenKind::Eq),
                 b'+' => self.punct(TokenKind::Plus),
                 b'#' => self.punct(TokenKind::Hash),
@@ -213,17 +237,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 b'"' => self.string(start),
-                b'-' => {
-                    // A `-` is only meaningful directly before a numeric
-                    // literal (Temperature and Length are the signed unit types).
-                    if self.peek(1).is_some_and(|c| c.is_ascii_digit()) {
-                        self.pos += 1;
-                        self.number(start, true);
-                    } else {
-                        self.error_char(start, "`-` is only valid as the sign of a `Temperature` or `Length` literal (e.g. `-40C`, `-1.5mm`)");
-                    }
-                }
-                b'0'..=b'9' => self.number(start, false),
+                b'0'..=b'9' => self.number(start),
                 _ if b == b'_' || b.is_ascii_alphabetic() => self.ident(start),
                 _ => {
                     // Multi-byte / unknown character. Special-case the two
@@ -350,8 +364,10 @@ impl<'a> Lexer<'a> {
 
     /// Lex a number, and — if it is immediately followed by letters or `%` —
     /// a unit literal. `100nF` is one token; `100 nF` is not (and the parser
-    /// will reject the stray identifier).
-    fn number(&mut self, start: usize, negative: bool) {
+    /// will reject the stray identifier). Unit literals are always
+    /// non-negative here; a preceding `-` lexes as its own `Minus` token and
+    /// the parser assembles the signed literal (RFC-033).
+    fn number(&mut self, start: usize) {
         let digits_start = self.pos;
         while self.peek(0).is_some_and(|b| b.is_ascii_digit()) {
             self.pos += 1;
@@ -411,15 +427,6 @@ impl<'a> Lexer<'a> {
         }
 
         if ascii_suffix.is_empty() {
-            if negative {
-                let span = Span::new(self.file, start as u32, self.pos as u32);
-                self.diags.push(Diagnostic::error(
-                    "E102",
-                    span,
-                    "a bare number cannot be negative — only `Temperature` and `Length` literals may carry a leading `-` (e.g. `-40C`, `-0.5mm`)",
-                ));
-                return;
-            }
             self.push(TokenKind::Number(mantissa), start);
             return;
         }
@@ -432,7 +439,7 @@ impl<'a> Lexer<'a> {
         let full_text = &self.text[start..self.pos];
 
         let parsed = units::parse_suffix(ascii_suffix).and_then(|(prefix, unit)| {
-            units::make_value(negative, &mantissa, prefix, unit, full_text)
+            units::make_value(false, &mantissa, prefix, unit, full_text)
         });
         match parsed {
             Ok(value) => self.push(TokenKind::Unit(value), start),
@@ -599,9 +606,40 @@ mod tests {
     }
 
     #[test]
-    fn negative_voltage_rejected() {
-        let rendered = lex_err("-5V");
-        assert!(rendered.contains("cannot be negative"), "{}", rendered);
+    fn minus_is_always_standalone() {
+        let toks = lex_ok("n-1 - 1.00mm -40C");
+        assert_eq!(
+            toks,
+            vec![
+                TokenKind::Ident("n".into()),
+                TokenKind::Minus,
+                TokenKind::Number("1".into()),
+                TokenKind::Minus,
+                TokenKind::Unit(
+                    units::make_value(false, "1.00", None, UnitType::Length, "1.00mm").unwrap()
+                ),
+                TokenKind::Minus,
+                TokenKind::Unit(
+                    units::make_value(false, "40", None, UnitType::Temperature, "40C").unwrap()
+                ),
+                TokenKind::Eof,
+            ]
+        );
+    }
+
+    #[test]
+    fn arithmetic_punctuation() {
+        let toks = lex_ok("(n + 1) * 4mm / 2 % 3 0..N");
+        assert!(toks.contains(&TokenKind::Star));
+        assert!(toks.contains(&TokenKind::Slash));
+        assert!(toks.contains(&TokenKind::Percent));
+        assert!(toks.contains(&TokenKind::DotDot));
+        // `10%` stays ONE Tolerance token; `10 % 3` is three tokens.
+        let t = lex_ok("10% 10 % 3");
+        assert!(matches!(t[0], TokenKind::Unit(ref v) if v.unit == UnitType::Tolerance));
+        assert_eq!(t[1], TokenKind::Number("10".into()));
+        assert_eq!(t[2], TokenKind::Percent);
+        assert_eq!(t[3], TokenKind::Number("3".into()));
     }
 
     #[test]

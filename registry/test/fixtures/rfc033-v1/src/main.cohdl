@@ -1,0 +1,3 @@
+pub fn wire(p: Pin) { net _: p }
+pub subdesign Rail { ports { required P: Pin } net _: P }
+design Empty {}

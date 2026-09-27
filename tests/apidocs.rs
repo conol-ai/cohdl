@@ -962,3 +962,35 @@ fn srcless_dependency_foreign_files_have_no_src_prefix() {
         "no fabricated src/ prefix"
     );
 }
+
+// Captured from the pre-RFC-033 b78b743 CLI. Only release metadata is
+// normalized; every remaining byte (including legacy array/param summaries,
+// signed Length generic arguments and placements) is part of the golden.
+const LEGACY_LAYOUT_SRC: &str = r#"pub device Dev<L: Length = 1mm, V: Voltage = 5V> { pins { optional A: 1 [passive] } }
+pub subdesign Sub<L: Length = 1mm> { ports { required P: Pin } net _: P }
+pub fn helper<L: Length = 1mm>(p: Pin) { net _: p }
+pub fn plain<L: Length>(p: Pin) { inst a: [Dev<L, 5V>; 3] helper::<L>(p) net _: p, a[0..=2].A }
+pub subdesign placed { inst a: [Dev<1mm, 5V>; 3] subdesign b: [Sub; 3] layout { place a[0] at (1mm, -2mm) rotate 90 } }
+design Board { inst a: Dev<-1mm, 5V> nc: a.A layout { place a at (-1mm, 2mm) rotate 0 } }
+"#;
+
+#[test]
+fn legacy_layout_docs_match_pre_rfc033_bytes() {
+    let docs = docs_for("probe", "0.1.0", &[("src/main.cohdl", LEGACY_LAYOUT_SRC)]);
+    let normalized = docs
+        .json
+        .replace(
+            &format!("\"generator\": \"cohdl {}\"", env!("CARGO_PKG_VERSION")),
+            "\"generator\": \"cohdl {VERSION}\"",
+        )
+        .replace(
+            &format!("\"version\": \"{}\"", std_version()),
+            "\"version\": \"{STD_VERSION}\"",
+        );
+    assert_eq!(
+        cohdl::hash::sha256_hex(normalized.as_bytes()),
+        "0587f4f55b77a7cccd095a3b7223ae697c832832055ab46845c654995582b70d",
+        "legacy docs changed:\n{}",
+        docs.json
+    );
+}

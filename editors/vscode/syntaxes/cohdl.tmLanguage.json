@@ -92,7 +92,7 @@
         {
           "comment": "Body / statement keywords.",
           "name": "keyword.control.cohdl",
-          "match": "\\b(pins|spec|net|nc|inst|ports|variants|layout|required|optional|for|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
+          "match": "\\b(pins|spec|net|nc|inst|ports|variants|layout|required|optional|const|for|in|step|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
         }
       ]
     },
@@ -102,9 +102,9 @@
       "match": "\\b(passive|power_in|power_out|output|input|bidirectional|gnd)\\b"
     },
     "unit-types": {
-      "comment": "RFC-001 unit type names + Pin (RFC-006 fn param type) + `pin` (RFC-002 abstract trait-pin type). support.type — they name types, not values.",
+      "comment": "Unit type names, Pin/pin and the compile-time Int type. support.type — they name types, not values.",
       "name": "support.type.unit.cohdl",
-      "match": "\\b(Voltage|Capacitance|Resistance|Current|Frequency|Time|Inductance|Power|Temperature|Tolerance|Length|Pin|pin)\\b"
+      "match": "\\b(Voltage|Capacitance|Resistance|Current|Frequency|Time|Inductance|Power|Temperature|Tolerance|Length|Int|Pin|pin)\\b"
     },
     "unit-literals": {
       "comment": "RFC-001/018 unit literals: a number with an SI-prefixed unit suffix (V F ohm A Hz s H W C % mm). A single class, not one rule per unit (RFC-019 Design).",
@@ -119,7 +119,7 @@
     "operators": {
       "patterns": [
         { "name": "keyword.operator.path.cohdl", "match": "::" },
-        { "name": "keyword.operator.cohdl", "match": "[<>=+]" }
+        { "name": "keyword.operator.cohdl", "match": "\\.\\.=?|[<>=+*/%\\-]" }
       ]
     }
   }

@@ -523,6 +523,10 @@
     "named": false
   },
   {
+    "type": "%",
+    "named": false
+  },
+  {
     "type": "(",
     "named": false
   },
@@ -531,7 +535,19 @@
     "named": false
   },
   {
+    "type": "*",
+    "named": false
+  },
+  {
+    "type": "+",
+    "named": false
+  },
+  {
     "type": ",",
+    "named": false
+  },
+  {
+    "type": "-",
     "named": false
   },
   {
@@ -539,7 +555,15 @@
     "named": false
   },
   {
+    "type": "..",
+    "named": false
+  },
+  {
     "type": "..=",
+    "named": false
+  },
+  {
+    "type": "/",
     "named": false
   },
   {
@@ -579,6 +603,10 @@
     "named": true
   },
   {
+    "type": "const",
+    "named": false
+  },
+  {
     "type": "design",
     "named": false
   },
@@ -607,6 +635,10 @@
     "named": false
   },
   {
+    "type": "in",
+    "named": false
+  },
+  {
     "type": "inst",
     "named": false
   },
@@ -628,6 +660,10 @@
   },
   {
     "type": "pub",
+    "named": false
+  },
+  {
+    "type": "step",
     "named": false
   },
   {

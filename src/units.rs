@@ -224,6 +224,22 @@ impl UnitValue {
         self.femto.cmp(&other.femto)
     }
 
+    /// RFC-033 signed-literal assembly (parser side): negate a non-negative
+    /// lexed unit literal for a byte-adjacent leading `-`. Returns `Err` with
+    /// the E105 message when the unit may not be negative (identical wording
+    /// to the pre-RFC lexer diagnostic so codes/behavior stay stable).
+    pub fn negate_for_literal(mut self) -> Result<UnitValue, String> {
+        if !self.unit.allows_negative() {
+            return Err(format!(
+                "`{}` cannot be negative — only `Temperature` and `Length` literals may carry a leading `-`",
+                self.unit.type_name()
+            ));
+        }
+        self.femto = -self.femto;
+        self.text = format!("-{}", self.text);
+        Ok(self)
+    }
+
     /// True when this `Length` (or any) value is small enough for the
     /// geometry emitters' corner arithmetic to stay within `i128` (review
     /// R5-5). Checked at pad/footprint validation so an out-of-range value

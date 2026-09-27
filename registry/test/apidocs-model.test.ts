@@ -796,3 +796,305 @@ describe("signal viewBox margins", () => {
     expect(m.bottom).toBeCloseTo(1 * 0.5 * 0.62 + 0.25 + 0.5, 9);
   });
 });
+
+// --- schema 2 (RFC-033) -------------------------------------------------------
+//
+// Fixtures follow the REAL emitter field hierarchy (src/emit/docsjson.rs):
+// body_source sits at the ITEM level (a sibling of the kind-named payload),
+// an M2 item omits insts/calls/nets inside its payload, and a const Int
+// generic is {"name": N, "bound": {"const": "Int"}, "default": <number>}.
+
+import { fnSignature, genericSignature, kindCounts } from "../src/ui/apidocs-model";
+
+function m2FnItem(fq: string, bodySource: string): Extract<ApiDocsItem, { kind: "fn" }> {
+  const idx = fq.lastIndexOf("::");
+  return {
+    fq,
+    name: idx === -1 ? fq : fq.slice(idx + 2),
+    kind: "fn",
+    pub: true,
+    module: idx === -1 ? "pkg" : fq.slice(0, idx),
+    file: "src/main.cohdl",
+    line: 3,
+    // RFC-033: the M2 payload keeps generics/params and OMITS the
+    // insts/calls/nets summary — body_source at the item level replaces it.
+    // No fake `nets` value: the summary keys are genuinely absent.
+    fn: {
+      generics: [{ name: "N", bound: { const: "Int" }, default: 2 }],
+      params: [{ name: "p", type: { kind: "pin" } }],
+    },
+    body_source: bodySource,
+  };
+}
+
+describe("schema 2 rendering model", () => {
+  it("signatures const Int generics in their own spelling, with numeric defaults", () => {
+    expect(genericSignature({ name: "N", bound: { const: "Int" }, default: 4 })).toBe(
+      "const N: Int = 4",
+    );
+    expect(genericSignature({ name: "N", bound: { const: "Int" } })).toBe("const N: Int");
+    expect(fnSignature("fn", "bank", m2FnItem("pkg::bank", "").fn)).toBe(
+      "fn bank<const N: Int = 2>(p: Pin)",
+    );
+  });
+
+  it("signatures a subdesign without fn-style parentheses, per the grammar", () => {
+    expect(
+      fnSignature("subdesign", "Bank", {
+        generics: [{ name: "N", bound: { const: "Int" }, default: 2 }],
+        ports: [{ name: "P", obligation: "required" }],
+      }),
+    ).toBe("subdesign Bank<const N: Int = 2>");
+    expect(fnSignature("subdesign", "Rail", { ports: [] })).toBe("subdesign Rail");
+    expect(
+      fnSignature("subdesign", "Typed", {
+        generics: [{ name: "L", bound: { unit: "Length" } }],
+        ports: [{ name: "P", obligation: "required" }],
+      }),
+    ).toBe("subdesign Typed<L: Length>");
+  });
+
+  it("keeps the legacy unit/trait generic spelling on v1 documents", () => {
+    expect(genericSignature({ name: "L", bound: { unit: "Length" }, default: "1.5mm" })).toBe(
+      "L: Length = 1.5mm",
+    );
+    expect(genericSignature({ name: "T", bound: { traits: ["std::Capacitor"] } })).toBe(
+      "T: std::Capacitor",
+    );
+    expect(
+      fnSignature("fn", "legacy", {
+        generics: [{ name: "L", bound: { unit: "Length" } }],
+        params: [],
+        nets: 2,
+      }),
+    ).toBe("fn legacy<L: Length>()");
+  });
+
+  it("summarizes a body_source item as full body source, never 'undefined nets'", () => {
+    const item = m2FnItem("pkg::banks::BANK", "for x: i in 0..N {\n  net _: p\n}");
+    const summary = itemSummary(item);
+    expect(summary).toBe("full body source");
+    expect(summary).not.toContain("undefined");
+
+    const designItem: Extract<ApiDocsItem, { kind: "design" }> = {
+      ...m2FnItem("MainBoard", ""),
+      kind: "design",
+      design: {},
+      body_source: "layout for x: i in 0..4 { place R(x) }",
+    };
+    expect(itemSummary(designItem)).toBe("full body source");
+
+    const subItem: Extract<ApiDocsItem, { kind: "subdesign" }> = {
+      ...m2FnItem("pkg::rail::LogicRail", ""),
+      kind: "subdesign",
+      subdesign: { ports: [{ name: "VIN", obligation: "required" }] },
+      body_source: "net gnd: GND",
+    };
+    expect(itemSummary(subItem)).toBe("full body source");
+  });
+
+  it("omits the net count, without 'undefined', when a v1 summary lacks nets", () => {
+    // A v1-shaped payload missing `nets` (hostile or partial document):
+    // the summary degrades to the params line, never a bogus count.
+    const noNets: Extract<ApiDocsItem, { kind: "fn" }> = {
+      fq: "pkg::partial",
+      name: "partial",
+      kind: "fn",
+      pub: true,
+      module: "pkg",
+      file: "src/main.cohdl",
+      line: 1,
+      fn: { params: [{ name: "p", type: { kind: "pin" } }] },
+    };
+    const summary = itemSummary(noNets);
+    expect(summary).toBe("1 parameter");
+    expect(summary).not.toContain("undefined");
+    expect(summary).not.toContain("NaN");
+
+    const designNoNets: Extract<ApiDocsItem, { kind: "design" }> = {
+      ...m2FnItem("NoNets", ""),
+      kind: "design",
+      design: {},
+    };
+    delete designNoNets.body_source;
+    expect(itemSummary(designNoNets)).toBe("0 instances");
+
+    const subNoNets: Extract<ApiDocsItem, { kind: "subdesign" }> = {
+      ...m2FnItem("pkg::s::S", ""),
+      kind: "subdesign",
+      subdesign: { ports: [{ name: "P", obligation: "required" }] },
+    };
+    delete subNoNets.body_source;
+    expect(itemSummary(subNoNets)).toBe("1 port");
+  });
+
+  it("keeps the v1 insts/calls/nets summary for items without body_source", () => {
+    const legacy: ApiDocsItem = {
+      fq: "pkg::plain",
+      name: "plain",
+      kind: "fn",
+      pub: true,
+      module: "pkg",
+      file: "src/main.cohdl",
+      line: 1,
+      fn: { params: [{ name: "p", type: { kind: "pin" } }], nets: 3 },
+    };
+    expect(itemSummary(legacy)).toBe("1 parameter · 3 nets");
+  });
+
+  it("counts the subdesign kind alongside the legacy kinds", () => {
+    const subItem: Extract<ApiDocsItem, { kind: "subdesign" }> = {
+      ...m2FnItem("pkg::a::S", ""),
+      kind: "subdesign",
+      subdesign: { ports: [] },
+    };
+    const counts = kindCounts([m2FnItem("pkg::a::F", ""), subItem]);
+    expect(counts.map((c) => c.kind)).toEqual(["subdesign", "fn"]);
+  });
+});
+
+// --- real compiler documents (RFC-033 T4 acceptance) --------------------------
+//
+// The JSON below is the byte-exact output of the REAL emitter (`cohdl docs`,
+// compiler a8ff6c4, std 0.3.0 locked), generated by the outer loop from the
+// adjacent cohdl.toml/src/main.cohdl fixtures and copied here (SHA-256
+// verified against the originals). v1 has wire/Rail/Empty with the classic
+// insts/calls/nets summaries; v2 has bank/Bank/Empty with item-level
+// body_source and NO nets/insts/calls in the payloads — exactly what the
+// emitter produces, not a hand-shaped approximation.
+
+import v1Json from "./fixtures/rfc033-v1/api.json";
+import v2Json from "./fixtures/rfc033-v2/api.json";
+import type {
+  ApiDocs,
+  DesignDoc,
+  FnDoc,
+  SubdesignDoc,
+} from "../src/ui/api";
+
+const realV1 = v1Json as ApiDocs;
+const realV2 = v2Json as ApiDocs;
+
+describe("real compiler v1 document", () => {
+  const doc = realV1;
+
+  it("declares schema 1 and carries the legacy summaries", () => {
+    expect(doc.schema_version).toBe(1);
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    expect(items.map((i) => i.name).sort()).toEqual(["Empty", "Rail", "wire"]);
+    for (const item of items) {
+      expect(item.body_source).toBeUndefined();
+    }
+  });
+
+  it("summarizes the legacy fn/subdesign/design with their net counts", () => {
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    const wire = items.find((i) => i.kind === "fn")!;
+    expect(wire.fn?.nets).toBe(1);
+    expect(itemSummary(wire)).toBe("1 parameter · 1 net");
+    const rail = items.find((i) => i.kind === "subdesign") as
+      | Extract<ApiDocsItem, { kind: "subdesign" }>
+      | undefined;
+    expect(rail!.subdesign?.nets).toBe(1);
+    expect(rail!.subdesign?.ports).toEqual([{ name: "P", obligation: "required" }]);
+    expect(itemSummary(rail!)).toBe("1 port · 1 net");
+    const empty = items.find((i) => i.kind === "design") as
+      | Extract<ApiDocsItem, { kind: "design" }>
+      | undefined;
+    expect(empty!.design?.nets).toBe(0);
+    expect(itemSummary(empty!)).toBe("0 instances · 0 nets");
+  });
+
+  it("signatures the real legacy declarations", () => {
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    expect(fnSignature("fn", "wire", items.find((i) => i.kind === "fn")!.fn!)).toBe(
+      "fn wire(p: Pin)",
+    );
+    expect(
+      fnSignature(
+        "subdesign",
+        "Rail",
+        (items.find((i) => i.kind === "subdesign") as
+          | Extract<ApiDocsItem, { kind: "subdesign" }>
+          | undefined)!.subdesign!,
+      ),
+    ).toBe("subdesign Rail");
+    expect(
+      fnSignature(
+        "design",
+        "Empty",
+        (items.find((i) => i.kind === "design") as
+          | Extract<ApiDocsItem, { kind: "design" }>
+          | undefined)!.design!,
+      ),
+    ).toBe("design Empty");
+  });
+});
+
+describe("real compiler v2 document", () => {
+  const doc = realV2;
+
+  it("declares schema 2 and its M2 items genuinely omit the nets summary", () => {
+    expect(doc.schema_version).toBe(2);
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    expect(items.map((i) => i.name).sort()).toEqual(["Bank", "Empty", "bank"]);
+    for (const item of items) {
+      expect(typeof item.body_source).toBe("string");
+      const payload: FnDoc | SubdesignDoc | DesignDoc | undefined =
+        item.kind === "fn"
+          ? item.fn
+          : item.kind === "subdesign"
+            ? item.subdesign
+            : item.kind === "design"
+              ? item.design
+              : undefined;
+      expect(payload && "nets" in payload ? payload.nets : undefined).toBeUndefined();
+    }
+  });
+
+  it("renders the const Int signatures and canonical body text", () => {
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    const bank = items.find((i) => i.kind === "fn")!;
+    expect(fnSignature("fn", "bank", bank.fn!)).toBe("fn bank<const N: Int = 2>(p: Pin)");
+    expect(bank.body_source).toContain("for x: i in 0..N");
+    expect(bank.body_source).toContain("net _: p");
+    const bankSd = items.find((i) => i.kind === "subdesign") as
+      | Extract<ApiDocsItem, { kind: "subdesign" }>
+      | undefined;
+    expect(fnSignature("subdesign", "Bank", bankSd!.subdesign!)).toBe(
+      "subdesign Bank<const N: Int = 2>",
+    );
+    expect(bankSd!.subdesign?.ports).toEqual([{ name: "P", obligation: "required" }]);
+    expect(bankSd!.body_source).toContain("for w: i in 0..N");
+    const empty = items.find((i) => i.kind === "design") as
+      | Extract<ApiDocsItem, { kind: "design" }>
+      | undefined;
+    expect(fnSignature("design", "Empty", empty!.design!)).toBe("design Empty");
+    expect(empty!.body_source).toContain("const N: Int = 2");
+  });
+
+  it("summarizes every M2 item as full body source, never undefined", () => {
+    for (const item of asArrayOf<ApiDocsItem>(doc.items)) {
+      const summary = itemSummary(item);
+      expect(summary).toBe("full body source");
+      expect(summary).not.toContain("undefined");
+      expect(summary).not.toContain("NaN");
+    }
+  });
+
+  it("keeps the real default value as the emitter's number", () => {
+    const items = asArrayOf<ApiDocsItem>(doc.items);
+    for (const item of items) {
+      if (item.kind !== "fn" && item.kind !== "subdesign") continue;
+      const generics = (item.kind === "fn" ? item.fn?.generics : item.subdesign?.generics) ?? [];
+      for (const g of generics) {
+        expect(g.bound?.const).toBe("Int");
+        expect(g.default).toBe(2);
+      }
+    }
+  });
+});
+
+function asArrayOf<T>(value: T[] | undefined | null): T[] {
+  return Array.isArray(value) ? value : [];
+}

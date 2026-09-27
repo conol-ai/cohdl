@@ -7,7 +7,9 @@
 //! reference an instance declared later in the same body.
 
 use crate::ast::*;
-use crate::check::generics::{resolve_generic_args, GenericValue, Substitution};
+use crate::check::generics::{
+    resolve_generic_args, resolve_generic_args_in, CallerEnv, GenericValue, Substitution,
+};
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::{
     DesignIr, IrInstance, IrNet, LayoutDiffPair, LayoutIr, LayoutLengthMatch, LayoutNetClass,
@@ -19,8 +21,10 @@ use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics) -> DesignIr {
+    let definition_failures = crate::check::eval::expression_failures(diags);
     let mut ex = Expander {
         world,
+        definition_failures,
         diags,
         instances: BTreeMap::new(),
         net_decls: Vec::new(),
@@ -31,6 +35,7 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         sub_nodes: BTreeMap::new(),
         active_subs: Vec::new(),
         abs_node_places: BTreeMap::new(),
+        reported_place_conflicts: BTreeSet::new(),
         rel_places: Vec::new(),
         synth_net_conns: Vec::new(),
         phys_grounds: Vec::new(),
@@ -43,19 +48,40 @@ pub fn expand_design(world: &World, design: &DesignDef, diags: &mut Diagnostics)
         active_calls: Vec::new(),
         call_counter: 0,
         anon_net_counter: 0,
+        meter: crate::check::meter::Meter::new(crate::check::meter::metering_needed(world, design)),
     };
     let mut scope = Scope {
         design_name: design.name.name.clone(),
         path: design.name.name.clone(),
         is_design_body: true,
         place_ctx: PlaceCtx::Design,
+        layout_owner: None,
         subst: Substitution::new(),
         bindings: BTreeMap::new(),
         local_insts: BTreeMap::new(),
         local_subs: BTreeMap::new(),
         arrays: BTreeMap::new(),
+        declared_lens: BTreeMap::new(),
+        failed_expressions: Vec::new(),
+        unknown_arrays: BTreeSet::new(),
+        consts: BTreeMap::new(),
+        binders: BTreeMap::new(),
+        caller_frames: Vec::new(),
+        frame: Vec::new(),
     };
     ex.walk_body(&design.body, &mut scope);
+    // RFC-033 §9: a tripped meter leaves no IR — assembly (and its
+    // obligation checks) is skipped; the E1405 already names the site.
+    if ex.meter.tripped() {
+        return DesignIr {
+            name: design.name.name.clone(),
+            instances: Default::default(),
+            subdesigns: Default::default(),
+            nets: Vec::new(),
+            nc_pins: Default::default(),
+            layout: Default::default(),
+        };
+    }
     ex.assemble(design)
 }
 
@@ -85,11 +111,20 @@ enum PlaceCtx {
     Fn,
 }
 
+#[derive(Clone)]
 struct Scope {
     design_name: String,
     path: String,
     is_design_body: bool,
     place_ctx: PlaceCtx,
+    /// The coordinate frame a `place` statement's DEFAULT is recorded against:
+    /// the enclosing subdesign node's retained path, or None at design level
+    /// (where placements are absolute). This is deliberately NOT `path` — a
+    /// loop frame appends `__for_{label}_{value}` to `path` for iteration
+    /// identity, but a loop NEVER creates a new coordinate node: every
+    /// iteration's placements stay relative to the same subdesign origin.
+    /// Set when entering a subdesign body; inherited unchanged by `enter_frame`.
+    layout_owner: Option<String>,
     subst: Substitution,
     bindings: BTreeMap<String, Binding>,
     /// local instance name → full path.
@@ -101,6 +136,53 @@ struct Scope {
     /// An array's NAME is never itself in `local_insts` — only its elements
     /// (`NAME_0`…`NAME_{N-1}`), so a bare unindexed reference cannot resolve.
     arrays: BTreeMap<String, (i64, crate::span::Span)>,
+    /// Evaluated declaration lengths, visible before instances are expanded.
+    /// Separate from `arrays`, whose entries also signal materialized arrays.
+    declared_lens: BTreeMap<String, i64>,
+    /// RFC-033 §3: local const bindings; failed dependencies remain typed
+    /// unknowns, never fabricated zero values.
+    consts: BTreeMap<String, crate::check::eval::NameKind>,
+    failed_expressions: Vec<Span>,
+    unknown_arrays: BTreeSet<String>,
+    /// RFC-033 §6: visible loop binders (name → current value). Empty until
+    /// Task 8's frames; the field exists so `names()` has one shape.
+    binders: BTreeMap<String, i64>,
+    /// RFC-033 §6: active loop frames (label, value, binder) — innermost
+    /// last. Empty until Task 8.
+    frame: Vec<(String, i64, String)>,
+    /// Diagnostic provenance across calls; never participates in lexical name lookup.
+    caller_frames: Vec<(String, i64, String)>,
+}
+
+impl Scope {
+    fn caller_env(&self) -> CallerEnv {
+        CallerEnv {
+            subst: self.subst.clone(),
+            names: self.names(),
+            array_lens: self.array_lens(),
+        }
+    }
+    /// RFC-033: expression names and kinds. Pin/instance parameters are
+    /// known names, but cannot be used as Int/Length values.
+    fn names(&self) -> BTreeMap<String, crate::check::eval::NameKind> {
+        let mut m = crate::check::generics::subst_names(&self.subst);
+        for name in self.bindings.keys() {
+            m.insert(name.clone(), crate::check::eval::NameKind::NonValue);
+        }
+        for (k, v) in &self.consts {
+            m.insert(k.clone(), v.clone());
+        }
+        for (k, v) in &self.binders {
+            m.insert(k.clone(), crate::check::eval::NameKind::Binder(*v));
+        }
+        m
+    }
+    /// RFC-033: visible array lengths (`.len`).
+    fn array_lens(&self) -> BTreeMap<String, i64> {
+        let mut lens = self.declared_lens.clone();
+        lens.extend(self.arrays.iter().map(|(k, (n, _))| (k.clone(), *n)));
+        lens
+    }
 }
 
 /// One `net` declaration with resolved members, pre-merge.
@@ -162,6 +244,8 @@ struct RelPlace {
 struct Expander<'w, 'd> {
     world: &'w World,
     diags: &'d mut Diagnostics,
+    /// Only failures established before expansion; activation errors never enter here.
+    definition_failures: Vec<Span>,
     instances: BTreeMap<String, IrInstance>,
     net_decls: Vec<NetDecl>,
     nc_pins: Vec<((String, String), Span)>,
@@ -182,6 +266,11 @@ struct Expander<'w, 'd> {
     active_subs: Vec<String>,
     /// Design-level whole-unit placements of subdesign nodes (absolute).
     abs_node_places: BTreeMap<String, PlaceData>,
+    /// Re-review (B): duplicate-placement conflicts already reported, keyed
+    /// by the coordinate OWNER plus the resolved target — a 5000-iteration
+    /// loop placing one target reports the first conflict once, while two
+    /// independent targets or different owners still report each.
+    reported_place_conflicts: BTreeSet<(String, String)>,
     /// Placements declared inside subdesign bodies (defaults, owner-relative).
     rel_places: Vec<RelPlace>,
     /// RFC-032 port connections written as bare net names, validated against
@@ -199,6 +288,9 @@ struct Expander<'w, 'd> {
     phys_bga: Vec<String>,
     /// fn names currently being expanded (cycle detection, RFC-006).
     active_calls: Vec<String>,
+    /// RFC-033 §9: the expansion budget ledger. Inactive (legacy graphs)
+    /// charges are always free.
+    meter: crate::check::meter::Meter,
     /// Global (per-design) call counter — `__fn{N}_{name}` segments.
     call_counter: usize,
     anon_net_counter: usize,
@@ -239,14 +331,48 @@ fn element_name(base: &str, i: i64) -> String {
 
 impl<'w, 'd> Expander<'w, 'd> {
     fn walk_body(&mut self, body: &[Stmt], scope: &mut Scope) {
+        // Resolve the same lexical dependency graph used by definition and
+        // layout validation. Only positive validated lengths can materialize.
+        let locals: Vec<_> = body
+            .iter()
+            .filter_map(|stmt| {
+                let (name, value, ty) = match stmt {
+                    Stmt::Const(c) => (
+                        &c.name,
+                        &c.value,
+                        Some(match c.ty {
+                            ConstTy::Int => crate::check::eval::Ty::Int,
+                            ConstTy::Length => crate::check::eval::Ty::Length,
+                        }),
+                    ),
+                    Stmt::Inst(i) => (&i.name, &i.array_len.as_ref()?.0, None),
+                    Stmt::SubdesignUse(u) => (&u.name, &u.array_len.as_ref()?.0, None),
+                    _ => return None,
+                };
+                Some(crate::check::eval::LocalExpr {
+                    name: name.clone(),
+                    value: value.clone(),
+                    ty,
+                    span: match stmt {
+                        Stmt::Const(c) => c.span,
+                        _ => value.span(),
+                    },
+                })
+            })
+            .collect();
+        self.bind_locals(&locals, scope);
+
         // Pass 1: instances AND subdesign use sites (declarative bodies —
         // nets may reference later insts and later use sites' ports).
         for stmt in body {
+            if self.meter.tripped() {
+                return;
+            }
             if let Stmt::SubdesignUse(sub) = stmt {
                 self.handle_subdesign_use(sub, scope);
             }
             if let Stmt::Inst(inst) = stmt {
-                match inst.array_len {
+                match &inst.array_len {
                     None => self.handle_inst(inst, scope),
                     // RFC-024: `inst NAME: [Device; N]` is ONE array-typed
                     // instance whose N elements are each fully real. Each
@@ -254,7 +380,14 @@ impl<'w, 'd> Expander<'w, 'd> {
                     // written `inst` does, so designator allocation (RFC-005),
                     // pin obligations (RFC-002) and trait satisfaction
                     // (RFC-003) apply to it completely unchanged.
-                    Some((n, span)) => {
+                    Some((len_expr, span)) => {
+                        // RFC-033 pass 0 already evaluated the length
+                        // dependency-ordered (consts, .len, cycles); read
+                        // the memoized result here.
+                        let _ = span;
+                        let Some(n) = scope.declared_lens.get(&inst.name.name).copied() else {
+                            continue; // already diagnosed in pass 0
+                        };
                         if scope.arrays.contains_key(&inst.name.name)
                             || scope.local_insts.contains_key(&inst.name.name)
                             || scope.local_subs.contains_key(&inst.name.name)
@@ -267,8 +400,21 @@ impl<'w, 'd> Expander<'w, 'd> {
                             ));
                             continue;
                         }
-                        scope.arrays.insert(inst.name.name.clone(), (n, span));
+                        scope
+                            .arrays
+                            .insert(inst.name.name.clone(), (n, len_expr.span()));
+                        if !self.meter.ensure_capacity(
+                            n as u64,
+                            "`inst` array",
+                            inst.span,
+                            self.diags,
+                        ) {
+                            return;
+                        }
                         for i in 0..n {
+                            if self.meter.tripped() {
+                                return;
+                            }
                             let mut elem = inst.clone();
                             elem.name = Ident {
                                 name: element_name(&inst.name.name, i),
@@ -285,6 +431,9 @@ impl<'w, 'd> Expander<'w, 'd> {
         // after EVERY instance in this body exists — a bypass may reference an
         // instance declared later in source.
         for stmt in body {
+            if self.meter.tripped() {
+                return;
+            }
             if let Stmt::Inst(inst) = stmt {
                 if !inst.phys.is_empty() {
                     self.handle_inst_phys(inst, scope);
@@ -295,6 +444,9 @@ impl<'w, 'd> Expander<'w, 'd> {
         // resolve here (their pin references may name instances declared
         // anywhere in this body).
         for stmt in body {
+            if self.meter.tripped() {
+                return;
+            }
             match stmt {
                 Stmt::Inst(_) => {}
                 Stmt::Net(net) => self.handle_net(net, scope),
@@ -302,6 +454,13 @@ impl<'w, 'd> Expander<'w, 'd> {
                 Stmt::Call(call) => self.handle_call(call, scope),
                 Stmt::Layout(block) => self.handle_layout(block, scope),
                 Stmt::SubdesignUse(sub) => self.handle_subdesign_conns(sub, scope),
+                // RFC-033: const/loop expansion lands with Tasks 7/8; the
+                // statements cannot parse until Task 3, so no behavior to
+                // preserve yet — the arms exist so the match stays total.
+                // RFC-033: loop frames expand here (pass 2); consts inside a
+                // loop body are collected by that frame's own walk_body.
+                Stmt::Const(_) => {}
+                Stmt::For(f) => self.handle_for(f, scope),
             }
         }
     }
@@ -312,13 +471,334 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// to its candidate IR net name within the current scope. Validation
     /// against the final net set happens in `assemble` (net existence is only
     /// knowable once every declaration in the design is processed).
+    /// RFC-033 §5-§7: a labelled `for` loop expands as one FRAME per
+    /// iteration — hygienic (each frame's path names the label and value),
+    /// re-entrant through `walk_body` for nested loops.
+    fn handle_for(&mut self, f: &ForStmt, scope: &mut Scope) {
+        // Static admission first: a loop body may not declare.
+        for s in &f.body {
+            match s {
+                Stmt::Inst(i) => self.diags.push(Diagnostic::error(
+                    "E1406",
+                    i.span,
+                    "`inst` is not admitted inside a `for` body — declare the array outside the loop and repeat only connections, calls and placements here (RFC-033 Candidate A)".to_string(),
+                )),
+                Stmt::SubdesignUse(u) => {
+                    if scope.place_ctx == PlaceCtx::Fn {
+                        // E1307 wins (the fn-body restriction is stricter and
+                        // pre-existing).
+                        self.diags.push(Diagnostic::error(
+                            "E1307",
+                            u.span,
+                            "a `subdesign` use site needs a retained hierarchy path — a `fn` expands inline and cannot contain one (RFC-032); move it into the design or a subdesign".to_string(),
+                        ));
+                    } else {
+                        self.diags.push(Diagnostic::error(
+                            "E1406",
+                            u.span,
+                            "a `subdesign` use site is not admitted inside a `for` body — declare it outside the loop".to_string(),
+                        ));
+                    }
+                }
+                _ => {}
+            }
+        }
+        if !self.check_not_reserved(&f.label, "loop label")
+            || !self.check_not_reserved(&f.binder, "loop variable")
+        {
+            return;
+        }
+        // Label/binder collisions with anything visible.
+        for id in [&f.label, &f.binder] {
+            if scope.local_insts.contains_key(&id.name)
+                || scope.local_subs.contains_key(&id.name)
+                || scope.arrays.contains_key(&id.name)
+                || scope.bindings.contains_key(&id.name)
+                || scope.consts.contains_key(&id.name)
+                || scope.binders.contains_key(&id.name)
+                || scope.frame.iter().any(|(l, _, _)| l == &id.name)
+            {
+                self.diags.push(Diagnostic::error(
+                    "E201",
+                    id.span,
+                    format!("`{}` is already defined in this scope", id.name),
+                ));
+                return;
+            }
+        }
+        let Some(lo) = self.eval_int(&f.start, scope, "a loop bound") else {
+            return;
+        };
+        let Some(hi) = self.eval_int(&f.end, scope, "a loop bound") else {
+            return;
+        };
+        // RFC-033 §8: static validation of the loop body ONCE per loop entry,
+        // under the bound substitution (before the range decision — even an
+        // empty or skipped loop hides nothing decidable).
+        {
+            let mut names = scope.names();
+            names.insert(
+                f.binder.name.clone(),
+                crate::check::eval::NameKind::Unknown(crate::check::eval::Ty::Int),
+            );
+            let mut bases: std::collections::BTreeSet<String> =
+                scope.bindings.keys().cloned().collect();
+            for k in scope
+                .local_insts
+                .keys()
+                .chain(scope.local_subs.keys())
+                .chain(scope.arrays.keys())
+            {
+                bases.insert(k.clone());
+            }
+            let mut local_diags = Diagnostics::new();
+            crate::check::bodies::check_loop_body_bound(
+                self.world,
+                &f.body,
+                &names,
+                &bases,
+                &scope.array_lens(),
+                &mut local_diags,
+            );
+            self.record_validation(local_diags, scope);
+        }
+        if lo > hi {
+            self.diags.push(Diagnostic::error(
+                "E1404",
+                f.start.span().to(f.end.span()),
+                format!(
+                    "loop `{}` has a reversed range {}..{} — the end must not be below the start (a half-open range with equal bounds is empty){}",
+                    f.label.name,
+                    lo,
+                    hi,
+                    self.frame_suffix(scope)
+                ),
+            ));
+            return;
+        }
+        // Frame depth is part of the budget (Task 10); iterations charged there too.
+        if !self.meter.enter_frame(f.span, self.diags) {
+            return;
+        }
+        for v in lo..hi {
+            if !self.meter.enter_iteration(f.span, self.diags) {
+                break;
+            }
+            let mut inner = self.enter_frame(&f.label, &f.binder, v, scope);
+            let saved = (self.anon_net_counter, self.call_counter);
+            self.anon_net_counter = 0;
+            self.call_counter = 0;
+            self.walk_body(&f.body, &mut inner);
+            self.anon_net_counter = saved.0;
+            self.call_counter = saved.1;
+        }
+        self.meter.leave_frame();
+    }
+
+    /// RFC-033 §6: one iteration's frame — path gains `__for_{label}_{value}`
+    /// (negative values as `neg{abs}`), the binder becomes visible, and the
+    /// parent's declarations ride as cloned read-only views.
+    fn enter_frame(&mut self, label: &Ident, binder: &Ident, value: i64, scope: &Scope) -> Scope {
+        let mut inner = Scope {
+            design_name: scope.design_name.clone(),
+            path: format!(
+                "{}::__for_{}_{}",
+                scope.path,
+                label.name,
+                frame_value_text(value)
+            ),
+            is_design_body: false,
+            place_ctx: scope.place_ctx,
+            layout_owner: scope.layout_owner.clone(),
+            subst: scope.subst.clone(),
+            bindings: scope.bindings.clone(),
+            local_insts: scope.local_insts.clone(),
+            local_subs: scope.local_subs.clone(),
+            arrays: scope.arrays.clone(),
+            declared_lens: scope.declared_lens.clone(),
+            consts: scope.consts.clone(),
+            failed_expressions: scope.failed_expressions.clone(),
+            unknown_arrays: scope.unknown_arrays.clone(),
+            binders: scope.binders.clone(),
+            caller_frames: scope.caller_frames.clone(),
+            frame: scope.frame.clone(),
+        };
+        inner.binders.insert(binder.name.clone(), value);
+        inner
+            .frame
+            .push((label.name.clone(), value, binder.name.clone()));
+        inner
+    }
+
+    /// RFC-033 §6 layout loops: consts → placements → nested loops, one frame
+    /// per iteration (E1404 for reversed ranges, E1406 handled at parse).
+    fn handle_layout_for(&mut self, f: &LayoutFor, scope: &mut Scope) {
+        if !self.check_not_reserved(&f.label, "loop label")
+            || !self.check_not_reserved(&f.binder, "loop variable")
+        {
+            return;
+        }
+        for id in [&f.label, &f.binder] {
+            if scope.local_insts.contains_key(&id.name)
+                || scope.local_subs.contains_key(&id.name)
+                || scope.arrays.contains_key(&id.name)
+                || scope.bindings.contains_key(&id.name)
+                || scope.consts.contains_key(&id.name)
+                || scope.binders.contains_key(&id.name)
+            {
+                self.diags.push(Diagnostic::error(
+                    "E201",
+                    id.span,
+                    format!("`{}` is already defined in this scope", id.name),
+                ));
+                return;
+            }
+        }
+        let Some(lo) = self.eval_int(&f.start, scope, "a loop bound") else {
+            return;
+        };
+        let Some(hi) = self.eval_int(&f.end, scope, "a loop bound") else {
+            return;
+        };
+        if lo > hi {
+            self.diags.push(Diagnostic::error(
+                "E1404",
+                f.start.span().to(f.end.span()),
+                format!(
+                    "loop `{}` has a reversed range {}..{} — the end must not be below the start (a half-open range with equal bounds is empty){}",
+                    f.label.name,
+                    lo,
+                    hi,
+                    self.frame_suffix(scope)
+                ),
+            ));
+            return;
+        }
+        if !self.meter.enter_frame(f.span, self.diags) {
+            return;
+        }
+        for v in lo..hi {
+            if !self.meter.enter_iteration(f.span, self.diags) {
+                break;
+            }
+            let mut inner = self.enter_frame(&f.label, &f.binder, v, scope);
+            self.bind_layout_constants(&f.consts, &mut inner);
+            for p in &f.placements {
+                if self.meter.tripped() {
+                    break;
+                }
+                self.handle_placement(p, &inner);
+            }
+            for nested in &f.loops {
+                if self.meter.tripped() {
+                    break;
+                }
+                let mut inner_mut = inner.clone();
+                self.handle_layout_for(nested, &mut inner_mut);
+            }
+        }
+        self.meter.leave_frame();
+    }
+
+    fn bind_layout_constants(&mut self, consts: &[ConstStmt], scope: &mut Scope) {
+        let locals: Vec<_> = consts
+            .iter()
+            .map(|c| crate::check::eval::LocalExpr {
+                name: c.name.clone(),
+                value: c.value.clone(),
+                span: c.span,
+                ty: Some(match c.ty {
+                    ConstTy::Int => crate::check::eval::Ty::Int,
+                    ConstTy::Length => crate::check::eval::Ty::Length,
+                }),
+            })
+            .collect();
+        self.bind_locals(&locals, scope);
+    }
+
+    fn bind_locals(&mut self, locals: &[crate::check::eval::LocalExpr], scope: &mut Scope) {
+        let mut names = scope.names();
+        let mut lens = scope.array_lens();
+        let mut unknown = scope.unknown_arrays.clone();
+        let mut diags = Diagnostics::new();
+        let failed: Vec<_> = self
+            .definition_failures
+            .iter()
+            .chain(&scope.failed_expressions)
+            .copied()
+            .collect();
+        crate::check::eval::resolve_locals(
+            locals,
+            &mut names,
+            &mut lens,
+            &mut unknown,
+            &failed,
+            &mut diags,
+        );
+        self.record_validation(diags, scope);
+        for local in locals {
+            if local.ty.is_some() {
+                if let Some(value) = names.get(&local.name.name) {
+                    scope.consts.insert(local.name.name.clone(), value.clone());
+                }
+            }
+        }
+        scope.declared_lens = lens;
+        scope.unknown_arrays = unknown;
+    }
+
+    fn expression_failed(&self, span: Span, scope: &Scope) -> bool {
+        crate::check::eval::expression_failed(span, &self.definition_failures)
+            || crate::check::eval::expression_failed(span, &scope.failed_expressions)
+    }
+
+    /// Validation happens before iteration. Remember only this activation's
+    /// newly failed sites; child frames inherit them, sibling calls do not.
+    fn record_validation(&mut self, local: Diagnostics, scope: &mut Scope) {
+        let failed = crate::check::eval::expression_failures(&local);
+        self.push_with_suffix(local, scope);
+        scope.failed_expressions.extend(failed);
+    }
+
     fn handle_layout(&mut self, block: &LayoutBlock, scope: &Scope) {
+        let mut validated_scope = scope.clone();
+        let mut local_diags = Diagnostics::new();
+        crate::check::bodies::check_layout_bound(
+            self.world,
+            block,
+            &scope.names(),
+            &scope.array_lens(),
+            &mut local_diags,
+        );
+        self.record_validation(local_diags, &mut validated_scope);
+        let scope = &validated_scope;
         let resolve = |nets: &[Ident]| -> Vec<(String, Ident)> {
             nets.iter()
                 .map(|nid| (resolve_net_name(&nid.name, scope), nid.clone()))
                 .collect()
         };
         for c in &block.constraints {
+            let nets = match c {
+                LayoutConstraint::NetClass { nets, .. }
+                | LayoutConstraint::DiffPair { nets, .. }
+                | LayoutConstraint::LengthMatch { nets, .. } => nets,
+            };
+            if !self.meter.charge(
+                1 + nets.len() as u64,
+                "layout constraint",
+                c.span(),
+                self.diags,
+            ) {
+                return;
+            }
+            if matches!(c, LayoutConstraint::DiffPair { differential_impedance, single_ended_impedance, frequency, .. }
+                if differential_impedance.is_some() || single_ended_impedance.is_some() || frequency.is_some())
+                && !self
+                    .meter
+                    .charge(1, "diff-pair physics bracket", c.span(), self.diags)
+            {
+                return;
+            }
             let raw = match c {
                 LayoutConstraint::NetClass { name, nets, .. } => RawLayout::NetClass {
                     name: name.clone(),
@@ -355,27 +835,181 @@ impl<'w, 'd> Expander<'w, 'd> {
         if let Some(outline) = &block.board_outline {
             self.handle_board_outline(outline, scope);
         }
+        // RFC-033: layout consts are visible only in this layout and its
+        // loops — evaluate into a local scope clone.
+        let mut layout_scope = scope.clone();
+        self.bind_layout_constants(&block.consts, &mut layout_scope);
         for placement in &block.placements {
-            self.handle_placement(placement, scope);
+            if self.meter.tripped() {
+                return;
+            }
+            self.handle_placement(placement, &layout_scope);
+        }
+        // RFC-033: labelled placement loops.
+        for lf in &block.loops {
+            if self.meter.tripped() {
+                return;
+            }
+            let mut s = layout_scope.clone();
+            self.handle_layout_for(lf, &mut s);
         }
     }
 
-    /// RFC-024: resolve a possibly-indexed instance reference to its LOCAL
-    /// element name — `NAME` for an ordinary instance, `NAME_i` for `NAME[i]`.
-    ///
-    /// One resolver, because the accepted text is that an array element is a
-    /// valid instance reference EVERYWHERE an ordinary one is: `place` and
-    /// `#[bypass]` must agree on what `NAME[i]` means, and they can only be
-    /// guaranteed to agree by sharing the code. `unindexed_help` is the one
-    /// thing that legitimately differs — the advice for naming a bare array
-    /// reads differently in a `place` than in an attribute.
+    /// RFC-033 §6: the frame suffix appended to diagnostics raised inside a
+    /// loop frame (" — in <path>, <binder> = <value>"); empty at top level.
+    fn frame_suffix(&self, scope: &Scope) -> String {
+        if scope.frame.is_empty() && scope.place_ctx == PlaceCtx::Design {
+            return String::new();
+        }
+        let mut suffix = format!(" — in {}", scope.path);
+        for (_, value, binder) in scope.caller_frames.iter().chain(&scope.frame) {
+            suffix.push_str(&format!(", {binder} = {value}"));
+        }
+        for (name, value) in &scope.subst {
+            match value {
+                GenericValue::Int(n) => suffix.push_str(&format!(", {name} = {n}")),
+                GenericValue::Unit(v) if v.unit == crate::units::UnitType::Length => {
+                    suffix.push_str(&format!(", {name} = {}", v.text));
+                }
+                _ => {}
+            }
+        }
+        suffix
+    }
+
+    /// Re-push diagnostics from a local batch with the frame suffix appended
+    /// to each main message.
+    fn push_with_suffix(&mut self, local: Diagnostics, scope: &Scope) {
+        for mut d in local.drain_batch() {
+            if self.expression_failed(d.primary.span, scope) {
+                continue;
+            }
+            d.message.push_str(&self.frame_suffix(scope));
+            self.diags.push(d);
+        }
+    }
+
+    fn bound_generic_args(
+        &mut self,
+        owner: &str,
+        params: &[GenericParam],
+        args: &[GenericArg],
+        scope: &Scope,
+        site: Span,
+    ) -> Substitution {
+        let mut local = Diagnostics::new();
+        let subst = resolve_generic_args_in(
+            self.world,
+            owner,
+            params,
+            args,
+            &scope.caller_env(),
+            site,
+            &mut local,
+        );
+        for d in local.drain_batch() {
+            if matches!(d.code, "E1401" | "E1402" | "E1403") {
+                let mut batch = Diagnostics::new();
+                batch.push(d);
+                self.push_with_suffix(batch, scope);
+            } else {
+                // In particular, definition and activation E112 must retain
+                // the identical shape established by wrong_unit_argument.
+                self.diags.push(d);
+            }
+        }
+        subst
+    }
+
+    /// RFC-033: evaluate an Int-valued expression against the scope's
+    /// visible names/arrays. A Length result is E1401.
+    fn eval_int(&mut self, e: &Expr, scope: &Scope, what: &str) -> Option<i64> {
+        if self.expression_failed(e.span(), scope) {
+            return None;
+        }
+        let names = scope.names();
+        let lens = scope.array_lens();
+        let env = crate::check::eval::Env {
+            names: &names,
+            array_lens: &lens,
+            unknown_arrays: &scope.unknown_arrays,
+        };
+        let mut local = Diagnostics::new();
+        let v = crate::check::eval::eval(e, &env, &mut local);
+        self.push_with_suffix(local, scope);
+        match v {
+            Some(crate::check::eval::Value::Int(i)) => Some(i),
+            Some(crate::check::eval::Value::Length(_)) => {
+                self.diags.push(Diagnostic::error(
+                    "E1401",
+                    e.span(),
+                    format!(
+                        "{} must be an Int, but `{}` is a Length{}",
+                        what,
+                        crate::ast::expr_text(e),
+                        self.frame_suffix(scope)
+                    ),
+                ));
+                None
+            }
+            None => None,
+        }
+    }
+
+    /// RFC-033: evaluate a Length-valued expression. A literal keeps its own
+    /// spelling; a computed value gets the canonical text. An Int result is
+    /// E1401.
+    fn eval_length(&mut self, e: &Expr, scope: &Scope, what: &str) -> Option<UnitValue> {
+        // Legacy literal coordinates keep their position-specific E1007
+        // unit check; definition validation may also reject their Expr kind.
+        if let Some(v) = e.as_length_literal() {
+            return Some(v.clone());
+        }
+        if self.expression_failed(e.span(), scope) {
+            return None;
+        }
+        let names = scope.names();
+        let lens = scope.array_lens();
+        let env = crate::check::eval::Env {
+            names: &names,
+            array_lens: &lens,
+            unknown_arrays: &scope.unknown_arrays,
+        };
+        let mut local = Diagnostics::new();
+        let v = crate::check::eval::eval(e, &env, &mut local);
+        self.push_with_suffix(local, scope);
+        match v {
+            Some(crate::check::eval::Value::Length(v)) => Some(v),
+            Some(crate::check::eval::Value::Int(_)) => {
+                self.diags.push(Diagnostic::error(
+                    "E1401",
+                    e.span(),
+                    format!(
+                        "{} is a `Length` (`mm`) value — `{}` is an Int{}",
+                        what,
+                        crate::ast::expr_text(e),
+                        self.frame_suffix(scope)
+                    ),
+                ));
+                None
+            }
+            None => None,
+        }
+    }
+
     fn indexed_local(
         &mut self,
         id: &Ident,
-        index: Option<(i64, Span)>,
+        index: Option<&(Expr, Span)>,
         scope: &Scope,
         unindexed_help: &str,
     ) -> Option<String> {
+        // RFC-033: the index evaluates through the scope (consts, generics,
+        // and — from Task 8 — loop binders); a Length result is E1401.
+        let index: Option<(i64, Span)> = match index {
+            None => None,
+            Some((e, sp)) => Some((self.eval_int(e, scope, "an index")?, *sp)),
+        };
         match (index, scope.arrays.get(&id.name).copied()) {
             (None, None) => Some(id.name.clone()),
             (None, Some(_)) => {
@@ -403,11 +1037,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                         "E202",
                         sp,
                         format!(
-                            "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
+                            "index {} is out of bounds for `{}` — valid indices are 0..={} (length {}){}",
                             i,
                             id.name,
                             n - 1,
-                            n
+                            n,
+                            self.frame_suffix(scope)
                         ),
                     ));
                     return None;
@@ -425,6 +1060,13 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// relative to that subdesign's origin. Inside a called fn: rejected,
     /// unchanged from RFC-020.
     fn handle_placement(&mut self, placement: &crate::ast::Placement, scope: &Scope) {
+        // RFC-033 §9: one work item per placement, before any resolution.
+        if !self
+            .meter
+            .charge(1, "the placement", placement.span, self.diags)
+        {
+            return;
+        }
         use crate::units::UnitType;
         if scope.place_ctx == PlaceCtx::Fn || !self.active_calls.is_empty() {
             self.diags.push(Diagnostic::error(
@@ -439,7 +1081,7 @@ impl<'w, 'd> Expander<'w, 'd> {
         let first = &placement.path[0];
         let Some(local) = self.indexed_local(
             &first.name,
-            first.index,
+            first.index.as_ref(),
             scope,
             &format!(
                 "`{}` is array-typed — place one element, e.g. `place {}[0] at (…)`",
@@ -487,7 +1129,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                     node.fq.clone(),
                 )
             };
-            let child = match (seg.index, arrays_entry) {
+            let child = match (&seg.index, arrays_entry) {
                 (None, None) => seg.name.name.clone(),
                 (None, Some(_)) => {
                     self.diags.push(Diagnostic::error(
@@ -503,7 +1145,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 (Some((_, sp)), None) => {
                     self.diags.push(Diagnostic::error(
                         "E211",
-                        sp,
+                        *sp,
                         format!(
                             "`{}` is not an array-typed instance — only `inst NAME: [Device; N]` can be indexed",
                             seg.name.name
@@ -511,14 +1153,20 @@ impl<'w, 'd> Expander<'w, 'd> {
                     ));
                     return;
                 }
-                (Some((i, sp)), Some((n, _))) => {
+                (Some((e, sp)), Some((n, _))) => {
+                    // RFC-033: the path-segment index evaluates in this scope.
+                    let Some(i) = self.eval_int(e, scope, "a placement index") else {
+                        return;
+                    };
+                    let _ = sp;
                     if i < 0 || i >= n {
                         self.diags.push(Diagnostic::error(
                             "E202",
-                            sp,
+                            *sp,
                             format!(
-                                "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
-                                i, seg.name.name, n - 1, n
+                                "index {} is out of bounds for `{}` — valid indices are 0..={} (length {}){}",
+                                i, seg.name.name, n - 1, n,
+                                self.frame_suffix(scope)
                             ),
                         ));
                         return;
@@ -557,65 +1205,112 @@ impl<'w, 'd> Expander<'w, 'd> {
                 return;
             };
         }
-        for (v, what) in [(&placement.at.0, "x"), (&placement.at.1, "y")] {
-            if v.unit != UnitType::Length {
-                self.diags.push(Diagnostic::error(
-                    "E1007",
-                    placement.span,
-                    format!(
-                        "placement {} is a `Length` (`mm`) literal — `{}` is a `{}`",
-                        what,
-                        v.text,
-                        v.unit.type_name()
-                    ),
-                ));
+        let resolved_target = match &cur {
+            PlaceTarget::Inst(p) | PlaceTarget::Node(p) => p.clone(),
+        };
+        // RFC-033: coordinates evaluate through `eval_length` (a literal keeps
+        // its spelling; a computed value gets canonical text), then the
+        // existing unit-type and geometry-range checks run unchanged.
+        let at: (UnitValue, UnitValue) = {
+            let Some(x) = self.eval_length(&placement.at.0, scope, "placement x") else {
                 return;
-            }
-            if !v.length_in_geom_range() {
-                self.diags.push(Diagnostic::error(
-                    "E1007",
-                    placement.span,
-                    format!(
-                        "placement {} `{}` is too large to project (review R5-5)",
-                        what, v.text
-                    ),
-                ));
+            };
+            let Some(y) = self.eval_length(&placement.at.1, scope, "placement y") else {
                 return;
+            };
+            for (v, what) in [(&x, "x"), (&y, "y")] {
+                if v.unit != UnitType::Length {
+                    self.diags.push(Diagnostic::error(
+                        "E1007",
+                        placement.span,
+                        format!(
+                            "placement {} is a `Length` (`mm`) literal — `{}` is a `{}`",
+                            what,
+                            v.text,
+                            v.unit.type_name()
+                        ),
+                    ));
+                    return;
+                }
+                if !v.length_in_geom_range() {
+                    self.diags.push(Diagnostic::error(
+                        "E1007",
+                        placement.span,
+                        format!(
+                            "placement {} `{}` is too large to project (review R5-5)",
+                            what, v.text
+                        ),
+                    ));
+                    return;
+                }
             }
-        }
+            (x, y)
+        };
         // Rotation is any whole degree in 0..=359 (deviation from RFC-020's
         // closed {0, 90, 180, 270}, at the board author's direction — ledgered
         // in docs/compliance-report.md). A full turn is 0, so 360 and beyond is
         // rejected rather than silently reduced: `rotate 450` is far more likely
         // a mistake than a deliberate 90.
-        if placement.rotate > 359 {
-            let shown = if placement.rotate == u16::MAX {
-                "that value".to_string()
-            } else {
-                placement.rotate.to_string()
-            };
-            self.diags.push(Diagnostic::error(
-                "E1007",
-                placement.span,
-                format!(
-                    "`rotate {}` is not a rotation — give a whole number of degrees in 0..=359 (counter-clockwise)",
-                    shown
-                ),
-            ));
-            return;
-        }
+        let rotate: u16 = match &placement.rotate {
+            None => 0,
+            Some(e) => {
+                let Some(n) = self.eval_int(e, scope, "a rotation") else {
+                    return;
+                };
+                if !(0..=359).contains(&n) {
+                    let mut diagnostic = Diagnostic::error(
+                        "E1007", e.span(), format!(
+                            "`rotate {}` is not a rotation — give a whole number of degrees in 0..=359 (counter-clockwise)", n
+                        ),
+                    );
+                    if !scope.frame.is_empty() {
+                        let context = format!(
+                            "target `{resolved_target}`, computed angle {n}{}",
+                            self.frame_suffix(scope)
+                        );
+                        // Message-only consumers must retain activation provenance.
+                        diagnostic.message.push_str(&format!("; {context}"));
+                        diagnostic = diagnostic.with_primary_label(context);
+                    }
+                    self.diags.push(diagnostic);
+                    return;
+                }
+                n as u16
+            }
+        };
         let data = PlaceData {
-            at: (placement.at.0.clone(), placement.at.1.clone()),
-            rotate: placement.rotate,
+            at: (at.0.clone(), at.1.clone()),
+            rotate,
             side: placement.side,
             span: placement.span,
         };
+        // The duplicate-placement conflict key: the actual coordinate owner
+        // (subdesign node for defaults, the design for absolute placements)
+        // plus the RESOLVED target — never the source spelling or the error
+        // code/message, so distinct targets/owners can never be swallowed.
+        let conflict_owner = match scope.place_ctx {
+            PlaceCtx::Sub => scope
+                .layout_owner
+                .clone()
+                .expect("PlaceCtx::Sub always carries the subdesign node as layout_owner"),
+            _ => String::new(),
+        };
         let dup = |ex: &mut Self, span: Span| {
-            ex.diags.push(Diagnostic::error(
+            let key = (conflict_owner.clone(), resolved_target.clone());
+            if !ex.reported_place_conflicts.insert(key) {
+                return; // same owner + same resolved target: already reported
+            }
+            let mut diagnostic = Diagnostic::error(
                 "E1007",
                 span,
                 format!("`{}` is placed more than once", placement.path_text()),
-            ));
+            );
+            if !scope.frame.is_empty() {
+                let context = format!("target `{resolved_target}`{}", ex.frame_suffix(scope));
+                diagnostic.message.push_str(&format!("; {context}"));
+                diagnostic = diagnostic.with_primary_label(context);
+            }
+            ex.diags.push(diagnostic);
         };
         match (scope.place_ctx, cur) {
             (PlaceCtx::Design, PlaceTarget::Inst(path)) => {
@@ -641,7 +1336,15 @@ impl<'w, 'd> Expander<'w, 'd> {
                 let target_path = match &target {
                     PlaceTarget::Inst(p) | PlaceTarget::Node(p) => p.clone(),
                 };
-                let owner = scope.path.clone();
+                // The frame a default is recorded against is the enclosing
+                // subdesign NODE, never the loop-qualified `scope.path`: a
+                // layout `for` iterates within the same coordinate owner
+                // (RFC-033 §6 — `Scope::path` keeps iteration identity,
+                // `Scope::layout_owner` keeps the coordinate frame).
+                let owner = scope
+                    .layout_owner
+                    .clone()
+                    .expect("PlaceCtx::Sub is only entered via handle_subdesign_use, which always sets layout_owner to the node path");
                 let same = |t: &PlaceTarget| match t {
                     PlaceTarget::Inst(p) | PlaceTarget::Node(p) => *p == target_path,
                 };
@@ -738,7 +1441,7 @@ impl<'w, 'd> Expander<'w, 'd> {
         // reference already resolves through.
         let resolve_inst = |ex: &mut Self,
                             id: &Ident,
-                            index: Option<(i64, Span)>|
+                            index: Option<&(Expr, Span)>|
          -> Option<String> {
             // RFC-024: `NAME[i]` resolves through the SAME element resolver
             // `place` uses, so the two can never disagree about which element
@@ -833,6 +1536,26 @@ impl<'w, 'd> Expander<'w, 'd> {
             }
         };
         for pa in &inst.phys {
+            let targets = match pa {
+                PhysAttr::Bypass { .. } => 1,
+                PhysAttr::CrystalOscillator { .. } => 3,
+                PhysAttr::SwitchingConverter {
+                    input_capacitor,
+                    output_capacitor,
+                    ..
+                } => {
+                    1 + u64::from(input_capacitor.is_some()) + u64::from(output_capacitor.is_some())
+                }
+                _ => 0,
+            };
+            if !self.meter.charge(
+                1 + targets,
+                "physics record and targets",
+                pa.span(),
+                self.diags,
+            ) {
+                return;
+            }
             match pa {
                 PhysAttr::Bypass {
                     inst: target,
@@ -846,7 +1569,8 @@ impl<'w, 'd> Expander<'w, 'd> {
                     // the same Binding::Pin every net member already uses.
                     let (target_path, pads) = match pin {
                         Some(pin) => {
-                            let Some(target_path) = resolve_inst(self, target, *index) else {
+                            let Some(target_path) = resolve_inst(self, target, index.as_ref())
+                            else {
                                 continue;
                             };
                             let Some(pads) = pin_pads(self, &target_path, pin) else {
@@ -976,6 +1700,11 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         }
+        // RFC-033 §9: one work item per real instance, charged BEFORE any
+        // materialization (a tripped meter leaves nothing behind).
+        if !self.meter.charge(1, "`inst`", inst.span, self.diags) {
+            return;
+        }
 
         let ty_name = &inst.ty.name;
         let (device_name, args, part): (String, Substitution, Option<String>) = if let Some(
@@ -1026,14 +1755,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                 Some(ty_name.name.clone()),
             )
         } else if let Some(dev) = self.world.devices.get(&ty_name.name) {
-            let args = resolve_generic_args(
-                self.world,
+            let args = self.bound_generic_args(
                 &format!("device `{}`", dev.name.name),
                 &dev.generics,
                 &inst.ty.generic_args,
-                &scope.subst,
+                scope,
                 inst.ty.span,
-                self.diags,
             );
             (ty_name.name.clone(), args, None)
         } else if scope.subst.contains_key(&ty_name.name) {
@@ -1220,9 +1947,101 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// RFC-024: an array element's internal identity — exactly as if the
     /// author had hand-written `NAME_0: Device`, `NAME_1: Device`, … The
     /// source-facing spelling stays `NAME[i]`.
-    fn array_bounds(&mut self, base: &Ident, sel: &IndexSel, n: i64) -> Option<Vec<i64>> {
-        let idx = sel.indices();
-        if idx.is_empty() {
+    /// RFC-033: evaluate a selector's expressions to concrete indices
+    /// (Range inclusive semantics: start..=end with optional step).
+    fn array_bounds(
+        &mut self,
+        base: &Ident,
+        sel: &IndexSel,
+        n: i64,
+        scope: &Scope,
+        charge_members: bool,
+    ) -> Option<Vec<i64>> {
+        let out_of_bounds = |ex: &mut Self, i: i64| {
+            ex.diags.push(Diagnostic::error(
+                "E202",
+                sel.span(),
+                format!(
+                    "index {} is out of bounds for `{}` — valid indices are 0..={} (length {}){}",
+                    i,
+                    base.name,
+                    n - 1,
+                    n,
+                    ex.frame_suffix(scope)
+                ),
+            ));
+        };
+        let indices = match sel {
+            IndexSel::Range {
+                start, end, step, ..
+            } => {
+                let start = self.eval_int(start, scope, "a range start")?;
+                let end = self.eval_int(end, scope, "a range end")?;
+                let step = match step {
+                    None => 1,
+                    Some(e) => self.eval_int(e, scope, "a stride")?,
+                };
+                if step <= 0 {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        sel.span(),
+                        format!("array range stride `{step}` must be 1 or more"),
+                    ));
+                    return None;
+                }
+                if start > end {
+                    Vec::new()
+                } else {
+                    // Count and validate a range without constructing it. i128
+                    // handles the distance between any two i64 endpoints.
+                    if start < 0 || start >= n {
+                        out_of_bounds(self, start);
+                        return None;
+                    }
+                    let count = (i128::from(end) - i128::from(start)) / i128::from(step) + 1;
+                    let last = i128::from(start) + (count - 1) * i128::from(step);
+                    if last >= i128::from(n) {
+                        let first_bad = i128::from(start)
+                            + ((i128::from(n) - i128::from(start) - 1) / i128::from(step) + 1)
+                                * i128::from(step);
+                        out_of_bounds(self, first_bad as i64);
+                        return None;
+                    }
+                    if charge_members
+                        && !self
+                            .meter
+                            .charge(count as u64, "net members", sel.span(), self.diags)
+                    {
+                        return None;
+                    }
+                    return Some(
+                        std::iter::successors(Some(start), |i| {
+                            i.checked_add(step).filter(|next| *next <= end)
+                        })
+                        .collect(),
+                    );
+                }
+            }
+            IndexSel::Single(e, _) => vec![self.eval_int(e, scope, "an index")?],
+            IndexSel::List(items, _) => {
+                if charge_members
+                    && !self.meter.ensure_capacity(
+                        items.len() as u64,
+                        "net members",
+                        sel.span(),
+                        self.diags,
+                    )
+                {
+                    return None;
+                }
+                let mut out = Vec::with_capacity(items.len());
+                for e in items {
+                    out.push(self.eval_int(e, scope, "an index")?);
+                }
+                out
+            }
+        };
+        if indices.is_empty() {
             self.diags.push(Diagnostic::error(
                 "E211",
                 sel.span(),
@@ -1230,23 +2049,20 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return None;
         }
-        for i in &idx {
+        for i in &indices {
             if *i < 0 || *i >= n {
-                self.diags.push(Diagnostic::error(
-                    "E202",
-                    sel.span(),
-                    format!(
-                        "index {} is out of bounds for `{}` — valid indices are 0..={} (length {})",
-                        i,
-                        base.name,
-                        n - 1,
-                        n
-                    ),
-                ));
+                out_of_bounds(self, *i);
                 return None;
             }
         }
-        Some(idx)
+        if charge_members
+            && !self
+                .meter
+                .charge(indices.len() as u64, "net members", sel.span(), self.diags)
+        {
+            return None;
+        }
+        Some(indices)
     }
 
     /// RFC-024: expand a possibly-indexed net member into flat, ordinary
@@ -1259,7 +2075,11 @@ impl<'w, 'd> Expander<'w, 'd> {
         // Only the fan-out SUGAR (range/list) expands here; a `Single` index
         // is a real reference and is resolved by `resolve_pin_ref` itself.
         let Some(sel @ (IndexSel::Range { .. } | IndexSel::List(..))) = &m.index else {
-            return vec![m.clone()];
+            return if self.meter.charge(1, "net member", m.span, self.diags) {
+                vec![m.clone()]
+            } else {
+                Vec::new()
+            };
         };
         let Some((n, _)) = scope.arrays.get(&m.base.name).copied() else {
             self.diags.push(Diagnostic::error(
@@ -1272,13 +2092,13 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return Vec::new();
         };
-        let Some(idx) = self.array_bounds(&m.base, sel, n) else {
+        let Some(idx) = self.array_bounds(&m.base, sel, n, scope, true) else {
             return Vec::new();
         };
         idx.into_iter()
             .map(|i| PinRef {
                 base: m.base.clone(),
-                index: Some(IndexSel::Single(i, sel.span())),
+                index: Some(IndexSel::Single(Expr::int(i, sel.span()), sel.span())),
                 pin: m.pin.clone(),
                 span: m.span,
             })
@@ -1316,7 +2136,7 @@ impl<'w, 'd> Expander<'w, 'd> {
                 None
             }
             (Some(sel), Some((n, _))) => {
-                let IndexSel::Single(i, _) = sel else {
+                let IndexSel::Single(e, _) = sel else {
                     self.diags.push(Diagnostic::error(
                         "E211",
                         sel.span(),
@@ -1327,10 +2147,12 @@ impl<'w, 'd> Expander<'w, 'd> {
                     ));
                     return None;
                 };
-                self.array_bounds(&r.base, sel, n)?;
+                // RFC-033: a computed single index evaluates in this scope.
+                let i = self.eval_int(e, scope, "an index")?;
+                self.array_bounds(&r.base, sel, n, scope, false)?;
                 Some(Cow::Owned(PinRef {
                     base: Ident {
-                        name: element_name(&r.base.name, *i),
+                        name: element_name(&r.base.name, i),
                         span: r.base.span,
                     },
                     index: None,
@@ -1565,6 +2387,11 @@ impl<'w, 'd> Expander<'w, 'd> {
     }
 
     fn handle_net(&mut self, net: &NetStmt, scope: &mut Scope) {
+        // RFC-033 §9: one work item per statement + one per member, before
+        // any resolution push.
+        if !self.meter.charge(1, "`net`", net.span, self.diags) {
+            return;
+        }
         if let Some(name) = &net.name {
             if !self.check_not_reserved(name, "net") {
                 return;
@@ -1575,7 +2402,11 @@ impl<'w, 'd> Expander<'w, 'd> {
             // RFC-024: a range/stride/list member expands to the flat PinRef
             // list first; everything downstream is byte-identical to the
             // hand-written form.
-            for expanded in self.expand_member(m, scope) {
+            let expanded_members = self.expand_member(m, scope);
+            if self.meter.tripped() {
+                return;
+            }
+            for expanded in expanded_members {
                 if let Some(resolved) = self.resolve_pin_ref(&expanded, scope) {
                     members.push(resolved);
                 }
@@ -1605,6 +2436,12 @@ impl<'w, 'd> Expander<'w, 'd> {
         // RFC-027: record this declaration's physics attributes against the
         // net's emitted display name (dup/one-primary checks at assembly).
         for pa in &net.phys {
+            if !self
+                .meter
+                .charge(1, "net physics record", pa.span(), self.diags)
+            {
+                return;
+            }
             match pa {
                 PhysAttr::Ground {
                     primary,
@@ -1657,7 +2494,19 @@ impl<'w, 'd> Expander<'w, 'd> {
     }
 
     fn handle_nc(&mut self, nc: &NcStmt, scope: &mut Scope) {
+        // RFC-033 §9: one work item per statement + one per member.
+        if !self.meter.charge(1, "`nc`", nc.span, self.diags) {
+            return;
+        }
+        if !self
+            .meter
+            .charge(nc.members.len() as u64, "nc members", nc.span, self.diags)
+        {
+            return;
+        }
         for m in &nc.members {
+            // Fan-out sugar stays scoped to NET member lists (E211 contract,
+            // tests/inst_array.rs) — `nc` takes single elements only.
             if let Some(resolved) = self.resolve_pin_ref(m, scope) {
                 // RFC-032: a port is a connection surface, not a device pin —
                 // `nc` has no meaning for it (an optional port is simply left
@@ -1681,6 +2530,9 @@ impl<'w, 'd> Expander<'w, 'd> {
     // -- calls (RFC-006) -----------------------------------------------------
 
     fn handle_call(&mut self, call: &CallStmt, scope: &mut Scope) {
+        if self.expression_failed(call.span, scope) {
+            return;
+        }
         let Some(fndef) = self.world.fns.get(&call.callee.name) else {
             let d = if self.world.devices.contains_key(&call.callee.name)
                 || self.world.parts.contains_key(&call.callee.name)
@@ -1734,16 +2586,22 @@ impl<'w, 'd> Expander<'w, 'd> {
             return;
         }
 
+        if fndef
+            .generics
+            .iter()
+            .any(|p| self.expression_failed(p.span, scope))
+        {
+            return;
+        }
+
         // Named generic parameters come from the turbofish, resolved in the
-        // CALLER's substitution (outward-in threading, RFC-006).
-        let subst = resolve_generic_args(
-            self.world,
+        // CALLER's lexical environment (outward-in threading, RFC-006/033).
+        let subst = self.bound_generic_args(
             &format!("fn `{}`", fndef.name.name),
             &fndef.generics,
             &call.generic_args,
-            &scope.subst,
+            scope,
             call.span,
-            self.diags,
         );
 
         // Bind value parameters.
@@ -1864,17 +2722,34 @@ impl<'w, 'd> Expander<'w, 'd> {
         }
 
         let seg = format!("__fn{}_{}", self.call_counter, fndef.name.name);
+        // RFC-033 §9: one work item per entered call, before the body walk.
+        if !self.meter.charge(1, "the call", call.span, self.diags) {
+            return;
+        }
         self.call_counter += 1;
         let mut inner = Scope {
             design_name: scope.design_name.clone(),
             path: format!("{}::{}", scope.path, seg),
             is_design_body: false,
             place_ctx: PlaceCtx::Fn,
+            layout_owner: None, // `place` is rejected in Fn contexts outright
             subst,
             bindings,
             local_insts: BTreeMap::new(),
             local_subs: BTreeMap::new(),
             arrays: BTreeMap::new(),
+            declared_lens: BTreeMap::new(),
+            failed_expressions: Vec::new(),
+            unknown_arrays: BTreeSet::new(),
+            consts: BTreeMap::new(),
+            binders: BTreeMap::new(),
+            frame: Vec::new(),
+            caller_frames: scope
+                .caller_frames
+                .iter()
+                .chain(&scope.frame)
+                .cloned()
+                .collect(),
         };
         self.active_calls.push(call.callee.name.clone());
         // Clone the body to release the borrow on `self.world`.
@@ -1889,6 +2764,10 @@ impl<'w, 'd> Expander<'w, 'd> {
     /// (or, array-typed, its N nodes) — pass 1, so nets anywhere in the body
     /// can reference `local.PORT`.
     fn handle_subdesign_use(&mut self, stmt: &SubdesignUseStmt, scope: &mut Scope) {
+        // A rejected length must not reach even the node/port budget preflight.
+        if stmt.array_len.is_some() && !scope.declared_lens.contains_key(&stmt.name.name) {
+            return;
+        }
         if !self.check_not_reserved(&stmt.name, "subdesign use-site") {
             return;
         }
@@ -1964,31 +2843,73 @@ impl<'w, 'd> Expander<'w, 'd> {
             ));
             return;
         }
+        if self.expression_failed(stmt.ty.span, scope)
+            || sd
+                .generics
+                .iter()
+                .any(|p| self.expression_failed(p.span, scope))
+        {
+            return;
+        }
         // RFC-007 generics, reused verbatim.
-        let subst = resolve_generic_args(
-            self.world,
+        let subst = self.bound_generic_args(
             &format!("subdesign `{}`", crate::resolve::short(&ty_name.name)),
             &sd.generics,
             &stmt.ty.generic_args,
-            &scope.subst,
+            scope,
             stmt.ty.span,
-            self.diags,
         );
+        let node_work = 1 + sd.ports.len() as u64;
+        if !self
+            .meter
+            .ensure_capacity(node_work, "subdesign node and ports", stmt.span, self.diags)
+        {
+            return;
+        }
         let ports: BTreeMap<String, (Obligation, Span)> = sd
             .ports
             .iter()
             .map(|p| (p.name.name.clone(), (p.obligation, p.span)))
             .collect();
-        let element_names: Vec<String> = match stmt.array_len {
-            None => vec![stmt.name.name.clone()],
-            Some((n, span)) => {
-                scope.arrays.insert(stmt.name.name.clone(), (n, span));
-                (0..n).map(|i| element_name(&stmt.name.name, i)).collect()
+        let element_count = match &stmt.array_len {
+            None => 1,
+            Some((len_expr, _)) => {
+                let Some(n) = scope.declared_lens.get(&stmt.name.name).copied() else {
+                    return; // rejected (or unknown) in the shared dependency pass
+                };
+                scope
+                    .arrays
+                    .insert(stmt.name.name.clone(), (n, len_expr.span()));
+                n
             }
         };
         let body = sd.body.clone();
         let fq = ty_name.name.clone();
-        for elem in element_names {
+        // Empty bodies have no intervening source sites. Preflight their
+        // entire array before bulk allocation; nonempty bodies stay interleaved
+        // per node so an earlier body failure retains its original site.
+        if body.is_empty()
+            && !self.meter.ensure_capacity(
+                (element_count as u64).saturating_mul(node_work),
+                "subdesign nodes and ports",
+                stmt.span,
+                self.diags,
+            )
+        {
+            return;
+        }
+        for i in 0..element_count {
+            if !self
+                .meter
+                .charge(node_work, "subdesign node and ports", stmt.span, self.diags)
+            {
+                return;
+            }
+            let elem = if stmt.array_len.is_some() {
+                element_name(&stmt.name.name, i)
+            } else {
+                stmt.name.name.clone()
+            };
             // RFC-024 discipline: each element is fully real, so its
             // generated name takes the SAME duplicate check a hand-written
             // declaration would (physical arrays get this via handle_inst).
@@ -2021,11 +2942,24 @@ impl<'w, 'd> Expander<'w, 'd> {
                 path: node_path.clone(),
                 is_design_body: false,
                 place_ctx: PlaceCtx::Sub,
+                layout_owner: Some(node_path.clone()),
                 subst: subst.clone(),
                 bindings,
                 local_insts: BTreeMap::new(),
                 local_subs: BTreeMap::new(),
                 arrays: BTreeMap::new(),
+                declared_lens: BTreeMap::new(),
+                failed_expressions: Vec::new(),
+                unknown_arrays: BTreeSet::new(),
+                consts: BTreeMap::new(),
+                binders: BTreeMap::new(),
+                frame: Vec::new(),
+                caller_frames: scope
+                    .caller_frames
+                    .iter()
+                    .chain(&scope.frame)
+                    .cloned()
+                    .collect(),
             };
             self.active_subs.push(fq.clone());
             // The node exists BEFORE its body walks: an in-body reference
@@ -2070,6 +3004,14 @@ impl<'w, 'd> Expander<'w, 'd> {
         let sub_short = crate::resolve::short(&self.sub_nodes[&node_path].fq).to_string();
         let mut seen: BTreeMap<&str, Span> = BTreeMap::new();
         for conn in &stmt.conns {
+            // One authored entry plus its one scalar pin/net target. The
+            // synthesized joining net below is deliberately not charged.
+            if !self
+                .meter
+                .charge(2, "port connection", conn.span, self.diags)
+            {
+                return;
+            }
             if let Some(prev) = seen.insert(conn.port.name.as_str(), conn.span) {
                 self.diags.push(
                     Diagnostic::error(
@@ -2861,6 +3803,16 @@ fn map_layout_nets(
 
 /// Deduplicate, preserving first-occurrence order (never sort — the artifact's
 /// determinism comes from source order).
+/// RFC-033 §6: a frame value's path spelling — non-negative in decimal,
+/// negative as `neg{abs}` (`__` names stay reserved).
+fn frame_value_text(v: i64) -> String {
+    if v >= 0 {
+        v.to_string()
+    } else {
+        format!("neg{}", v.unsigned_abs())
+    }
+}
+
 fn dedup_in_order(nets: Vec<String>) -> Vec<String> {
     let mut seen = BTreeSet::new();
     nets.into_iter()
@@ -2922,4 +3874,187 @@ fn is_valid_designator(s: &str) -> bool {
         && s.len() > prefix_len
         && s[prefix_len..].chars().all(|c| c.is_ascii_digit())
         && !s[prefix_len..].starts_with('0')
+}
+
+#[cfg(test)]
+mod budget_tests {
+    use super::*;
+    use crate::check::meter::MAX_WORK_ITEMS;
+
+    const LIB: &str = "pub device D { pins { A: 1 [passive], B: 2 [passive] } }";
+
+    // Exercise the real expansion handlers close to the production limit,
+    // without allocating a million objects to prove each semantic charge.
+    fn metered(src: &str, initial_work: u64) -> (u64, usize, String) {
+        let checked = crate::pipeline::check_files_in(
+            "board",
+            &[("main.cohdl".into(), format!("{LIB} {src}"))],
+            None,
+        )
+        .unwrap();
+        assert!(
+            !checked.diags.has_errors(),
+            "{}",
+            checked.diags.render(&checked.sm)
+        );
+        let design = checked.world.designs.values().next().unwrap();
+        let mut diags = Diagnostics::new();
+        let mut ex = Expander {
+            world: &checked.world,
+            definition_failures: Vec::new(),
+            diags: &mut diags,
+            instances: BTreeMap::new(),
+            net_decls: Vec::new(),
+            nc_pins: Vec::new(),
+            layout_raw: Vec::new(),
+            board_outline: None,
+            placements: Vec::new(),
+            sub_nodes: BTreeMap::new(),
+            active_subs: Vec::new(),
+            abs_node_places: BTreeMap::new(),
+            reported_place_conflicts: BTreeSet::new(),
+            rel_places: Vec::new(),
+            synth_net_conns: Vec::new(),
+            phys_grounds: Vec::new(),
+            phys_high_currents: Vec::new(),
+            phys_impedances: Vec::new(),
+            phys_bypasses: Vec::new(),
+            phys_crystals: Vec::new(),
+            phys_converters: Vec::new(),
+            phys_bga: Vec::new(),
+            active_calls: Vec::new(),
+            call_counter: 0,
+            anon_net_counter: 0,
+            meter: crate::check::meter::Meter::new(true),
+        };
+        let mut scope = Scope {
+            design_name: design.name.name.clone(),
+            path: design.name.name.clone(),
+            is_design_body: true,
+            place_ctx: PlaceCtx::Design,
+            layout_owner: None,
+            subst: Substitution::new(),
+            bindings: BTreeMap::new(),
+            local_insts: BTreeMap::new(),
+            local_subs: BTreeMap::new(),
+            arrays: BTreeMap::new(),
+            declared_lens: BTreeMap::new(),
+            failed_expressions: Vec::new(),
+            unknown_arrays: BTreeSet::new(),
+            consts: BTreeMap::new(),
+            binders: BTreeMap::new(),
+            caller_frames: Vec::new(),
+            frame: Vec::new(),
+        };
+
+        ex.meter.work = initial_work;
+        ex.walk_body(&design.body, &mut scope);
+        let result = (ex.meter.work, ex.sub_nodes.len());
+        (result.0, result.1, diags.render(&checked.sm))
+    }
+
+    #[test]
+    fn logical_nodes_and_optional_ports_are_charged_before_materialization() {
+        let source = "pub subdesign S { ports { optional P: Pin optional Q: Pin } }
+            design B { subdesign a: S subdesign b: S }";
+        let (work, nodes, diagnostics) = metered(source, MAX_WORK_ITEMS - 5);
+        assert_eq!(nodes, 1, "{diagnostics}");
+        assert_eq!(work, MAX_WORK_ITEMS - 2);
+        assert_eq!(
+            diagnostics.matches("error[E1405]").count(),
+            1,
+            "{diagnostics}"
+        );
+        let (_, nodes, diagnostics) = metered(
+            "pub subdesign S {} design B { subdesign a: S subdesign b: S }",
+            MAX_WORK_ITEMS - 1,
+        );
+        assert_eq!(nodes, 1, "{diagnostics}");
+        assert_eq!(
+            diagnostics.matches("error[E1405]").count(),
+            1,
+            "{diagnostics}"
+        );
+        let (work, nodes, diagnostics) = metered(
+            "pub subdesign S { ports { optional P: Pin optional Q: Pin } }
+            design B { subdesign a: S }",
+            MAX_WORK_ITEMS - 3,
+        );
+        assert_eq!((work, nodes), (MAX_WORK_ITEMS, 1));
+        assert!(diagnostics.is_empty(), "{diagnostics}");
+    }
+
+    #[test]
+    fn array_preflight_preserves_first_failing_body_site() {
+        let (work, nodes, diagnostics) = metered(
+            "pub subdesign S { ports { optional P: Pin } net inside: P }
+            design B { subdesign a: [S; 3] }",
+            MAX_WORK_ITEMS - 2,
+        );
+        assert_eq!((work, nodes), (MAX_WORK_ITEMS, 1));
+        assert_eq!(
+            diagnostics.matches("error[E1405]").count(),
+            1,
+            "{diagnostics}"
+        );
+        assert!(diagnostics.contains("`net` would exceed"), "{diagnostics}");
+    }
+
+    #[test]
+    fn list_fanout_charges_repeated_members_before_materialization() {
+        let (work, _, diagnostics) = metered(
+            "design B { inst a: [D; 1] net _: a[0, 0, 0].A nc: a[0].B }",
+            MAX_WORK_ITEMS - 4,
+        );
+        assert_eq!(work, MAX_WORK_ITEMS - 2);
+        assert_eq!(
+            diagnostics.matches("error[E1405]").count(),
+            1,
+            "{diagnostics}"
+        );
+        assert!(
+            diagnostics.contains("net members would exceed"),
+            "{diagnostics}"
+        );
+    }
+
+    #[test]
+    fn authored_port_connections_charge_entry_and_target_without_synthesized_net() {
+        let (work, _, diagnostics) = metered(
+            "pub subdesign S { ports { optional P: Pin optional Q: Pin } }
+            design B { inst a: D subdesign s: S { P: a.A Q: named } net named: a.B }",
+            0,
+        );
+        assert!(diagnostics.is_empty(), "{diagnostics}");
+        // Instance + node and two ports + two (entry + target) + net and member.
+        assert_eq!(work, 1 + 3 + 4 + 2);
+    }
+
+    #[test]
+    fn layout_constraints_charge_declaration_references_and_physics_bracket() {
+        let (work, _, diagnostics) = metered(
+            "design B { inst a: D net P: a.A net N: a.B
+            layout { net_class C { P, N } length_match(P, N)
+                diff_pair(P, N) [differential_impedance: 100ohm] } }",
+            0,
+        );
+        assert!(diagnostics.is_empty(), "{diagnostics}");
+        // One instance, two net/member pairs, three constraints with two refs,
+        // and one resolved diff-pair physics bracket.
+        assert_eq!(work, 1 + 4 + 9 + 1);
+    }
+
+    #[test]
+    fn physics_records_and_authored_targets_are_charged() {
+        let (work, _, diagnostics) = metered(
+            "design B { #[bga_fanout] inst a: D
+            #[bypass(a.A, 100nF)] inst b: D
+            #[ground(primary)] net G: a.A, a.B, b.A, b.B }",
+            0,
+        );
+        assert!(diagnostics.is_empty(), "{diagnostics}");
+        // Two instances; bare BGA record; bypass record and explicit pin target;
+        // net statement and four members; ground record (no explicit targets).
+        assert_eq!(work, 2 + 1 + 2 + 5 + 1);
+    }
 }

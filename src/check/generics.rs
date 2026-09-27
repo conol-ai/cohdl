@@ -17,9 +17,75 @@ pub enum GenericValue {
     Unit(UnitValue),
     /// A concrete device name (for trait-bound parameters).
     Device(String),
+    /// RFC-033: a resolved `const N: Int` value.
+    Int(i64),
 }
 
 pub type Substitution = BTreeMap<String, GenericValue>;
+
+/// Expression values at an actual call site, alongside legacy generic bindings.
+#[derive(Default)]
+pub struct CallerEnv {
+    pub subst: Substitution,
+    pub names: BTreeMap<String, crate::check::eval::NameKind>,
+    pub array_lens: BTreeMap<String, i64>,
+}
+
+impl CallerEnv {
+    fn from_subst(subst: &Substitution) -> Self {
+        Self {
+            subst: subst.clone(),
+            names: subst_names(subst),
+            array_lens: BTreeMap::new(),
+        }
+    }
+
+    fn eval_env(&self) -> crate::check::eval::Env<'_> {
+        crate::check::eval::Env {
+            names: &self.names,
+            array_lens: &self.array_lens,
+            unknown_arrays: crate::check::eval::Env::empty().unknown_arrays,
+        }
+    }
+}
+
+pub(crate) fn checked_int(text: &str, span: Span, diags: &mut Diagnostics) -> Option<i64> {
+    text.parse().map_err(|error: std::num::ParseIntError| {
+        let overflow = !text.contains('.') && matches!(error.kind(), std::num::IntErrorKind::PosOverflow | std::num::IntErrorKind::NegOverflow);
+        diags.push(Diagnostic::error(
+            if overflow { "E1402" } else { "E1401" },
+            span,
+            if overflow {
+                format!("`{text}` is out of range for an Int (−2^63 … 2^63−1)")
+            } else {
+                format!("`{text}` is not an Int — integer literals are whole decimal numbers in −2^63 … 2^63−1")
+            },
+        ));
+    }).ok()
+}
+
+/// RFC-033: the `NameKind` view of a substitution — the single source every
+/// expander `Env` construction goes through. Int → `GenericInt`; a Length
+/// unit value → `GenericLength`; other units and device bindings carry no
+/// expression meaning and are omitted.
+pub fn subst_names(subst: &Substitution) -> BTreeMap<String, crate::check::eval::NameKind> {
+    let mut out = BTreeMap::new();
+    for (name, value) in subst {
+        match value {
+            GenericValue::Int(i) => {
+                out.insert(name.clone(), crate::check::eval::NameKind::GenericInt(*i));
+            }
+            GenericValue::Unit(v) if v.unit == crate::units::UnitType::Length => {
+                out.insert(
+                    name.clone(),
+                    crate::check::eval::NameKind::GenericLength(v.clone()),
+                );
+            }
+            GenericValue::Unit(_) | GenericValue::Device(_) => {}
+        }
+    }
+    out
+}
 
 /// Resolve `args` against `params`, checking bounds (RFC-007).
 ///
@@ -33,6 +99,26 @@ pub fn resolve_generic_args(
     params: &[GenericParam],
     args: &[GenericArg],
     env: &Substitution,
+    site: Span,
+    diags: &mut Diagnostics,
+) -> Substitution {
+    resolve_generic_args_in(
+        world,
+        owner_desc,
+        params,
+        args,
+        &CallerEnv::from_subst(env),
+        site,
+        diags,
+    )
+}
+
+pub fn resolve_generic_args_in(
+    world: &World,
+    owner_desc: &str,
+    params: &[GenericParam],
+    args: &[GenericArg],
+    env: &CallerEnv,
     site: Span,
     diags: &mut Diagnostics,
 ) -> Substitution {
@@ -55,13 +141,18 @@ pub fn resolve_generic_args(
     for (i, param) in params.iter().enumerate() {
         match args.get(i) {
             Some(arg) => {
-                if let Some(value) = resolve_one(world, param, arg, env, diags) {
+                if let Some(value) = resolve_one_in(world, param, arg, env, diags) {
                     subst.insert(param.name.name.clone(), value);
                 }
             }
             None => match (&param.default, &param.bound) {
-                (Some((val, _)), _) => {
+                (Some(GenericDefault::Unit(val, _)), _) => {
                     subst.insert(param.name.name.clone(), GenericValue::Unit(val.clone()));
+                }
+                // RFC-033: an `Int` parameter's default is an integer
+                // literal (the parser already enforces that shape).
+                (Some(GenericDefault::Int(n, _)), _) => {
+                    subst.insert(param.name.name.clone(), GenericValue::Int(*n));
                 }
                 (None, _) => {
                     diags.push(
@@ -89,6 +180,12 @@ pub(crate) fn describe_param(param: &GenericParam) -> String {
             param.name.name,
             u.unit.type_name(),
             example_literal(u.unit)
+        ),
+        // RFC-033: `const N: Int` parameters (resolved by Task 7's
+        // evaluator; descriptive text only until then).
+        GenericBound::Int(_) => format!(
+            "`{}` expects an `Int` expression (e.g. `{}`)",
+            param.name.name, param.name.name
         ),
         GenericBound::Traits(ts) => format!(
             "`{}` expects a device type implementing {}",
@@ -125,25 +222,91 @@ pub(crate) fn resolve_one(
     env: &Substitution,
     diags: &mut Diagnostics,
 ) -> Option<GenericValue> {
+    resolve_one_in(world, param, arg, &CallerEnv::from_subst(env), diags)
+}
+
+/// Static validation and expansion describe a concrete wrong-unit argument
+/// identically, allowing the existing exact diagnostic deduplication to merge
+/// their reports without dropping errors from distinct bindings.
+pub(super) fn wrong_unit_argument(
+    param: &GenericParam,
+    expected: crate::units::UnitType,
+    actual: crate::units::UnitType,
+    text: &str,
+    span: Span,
+) -> Diagnostic {
+    Diagnostic::error(
+        "E112",
+        span,
+        format!(
+            "generic argument for `{}` has the wrong unit type: expected `{}`, found `{}`",
+            param.name.name,
+            expected.type_name(),
+            actual.type_name()
+        ),
+    )
+    .with_primary_label(format!("`{text}` is a `{}`", actual.type_name()))
+}
+
+/// A Length expression's type mismatch is independent of its eventual value.
+/// Keep literal labels compatible; other expressions name the expression so
+/// definition and activation diagnostics agree even before generics bind.
+pub(super) fn wrong_length_expression(
+    param: &GenericParam,
+    expected: crate::units::UnitType,
+    expr: &Expr,
+) -> Diagnostic {
+    let mut inner = expr;
+    while let Expr::Paren(e, _) = inner {
+        inner = e;
+    }
+    let text = match inner {
+        Expr::Length(value, _) => value.text.clone(),
+        _ => expr_text(expr),
+    };
+    wrong_unit_argument(
+        param,
+        expected,
+        crate::units::UnitType::Length,
+        &text,
+        expr.span(),
+    )
+}
+
+fn resolve_one_in(
+    world: &World,
+    param: &GenericParam,
+    arg: &GenericArg,
+    caller: &CallerEnv,
+    diags: &mut Diagnostics,
+) -> Option<GenericValue> {
+    let env = &caller.subst;
+    // Local Int/Length values use the same evaluator as expression arguments.
+    // Keep legacy substitution forwarding first to preserve unit text and errors.
+    if let GenericArg::Name(name) = arg {
+        if !env.contains_key(&name.name)
+            && caller.names.contains_key(&name.name)
+            && (matches!(param.bound, GenericBound::Int(_))
+                || matches!(&param.bound, GenericBound::Unit(u) if u.unit == crate::units::UnitType::Length))
+        {
+            return resolve_one_in(
+                world,
+                param,
+                &GenericArg::Expr(Expr::Name(name.clone())),
+                caller,
+                diags,
+            );
+        }
+    }
     match (&param.bound, arg) {
         // ---- unit-bound parameter ----
         (GenericBound::Unit(u), GenericArg::Unit(val, span)) => {
             if val.unit == u.unit {
                 Some(GenericValue::Unit(val.clone()))
             } else {
-                diags.push(
-                    Diagnostic::error(
-                        "E112",
-                        *span,
-                        format!(
-                            "generic argument for `{}` has the wrong unit type: expected `{}`, found `{}`",
-                            param.name.name,
-                            u.unit.type_name(),
-                            val.unit.type_name()
-                        ),
-                    )
-                    .with_primary_label(format!("`{}` is a `{}`", val.text, val.unit.type_name())),
-                );
+                diags.push(wrong_unit_argument(
+                    param, u.unit, val.unit, &val.text, *span,
+                ));
                 None
             }
         }
@@ -182,6 +345,21 @@ pub(crate) fn resolve_one(
                     ));
                     None
                 }
+            }
+            // RFC-033: an Int-count binding named where a unit value is
+            // expected.
+            Some(GenericValue::Int(_)) => {
+                diags.push(Diagnostic::error(
+                    "E112",
+                    name.span,
+                    format!(
+                        "`{}` resolves to an Int count, but `{}` expects a `{}`",
+                        name.name,
+                        param.name.name,
+                        u.unit.type_name()
+                    ),
+                ));
+                None
             }
             Some(GenericValue::Device(d)) => {
                 diags.push(Diagnostic::error(
@@ -241,6 +419,19 @@ pub(crate) fn resolve_one(
                     ));
                     return None;
                 }
+                // RFC-033: an Int-count binding named where a device type is
+                // expected.
+                Some(GenericValue::Int(_)) => {
+                    diags.push(Diagnostic::error(
+                        "E403",
+                        name.span,
+                        format!(
+                            "`{}` resolves to an Int count, but `{}` expects a device type",
+                            name.name, param.name.name
+                        ),
+                    ));
+                    return None;
+                }
                 None => {
                     if world.devices.contains_key(&name.name) {
                         name.name.clone()
@@ -286,6 +477,129 @@ pub(crate) fn resolve_one(
             ));
             None
         }
+        // ---- RFC-033 expression arguments against legacy bounds ----
+        // A `Length`-bound parameter accepts a computed Length; any other
+        // unit-typed parameter rejects expressions outright.
+        (GenericBound::Unit(u), GenericArg::Expr(e))
+            if u.unit == crate::units::UnitType::Length =>
+        {
+            let env_ref = caller.eval_env();
+            match crate::check::eval::eval(e, &env_ref, diags)? {
+                crate::check::eval::Value::Length(v) => Some(GenericValue::Unit(v)),
+                crate::check::eval::Value::Int(_) => {
+                    diags.push(Diagnostic::error(
+                        "E1401",
+                        e.span(),
+                        format!(
+                            "`{}` is an Int, but `{}` expects a `Length`",
+                            expr_text(e),
+                            param.name.name
+                        ),
+                    ));
+                    None
+                }
+            }
+        }
+        (GenericBound::Unit(u), GenericArg::Expr(e)) => {
+            let env_ref = caller.eval_env();
+            match crate::check::eval::eval(e, &env_ref, diags) {
+                // A bare Length literal in a non-Length unit slot is the same
+                // wrong-unit mistake a unit literal makes — the historical
+                // E112 shape (code, message, label) the pre-expression
+                // grammar produced, not E1401.
+                Some(crate::check::eval::Value::Length(_)) => {
+                    diags.push(wrong_length_expression(param, u.unit, e));
+                    None
+                }
+                Some(crate::check::eval::Value::Int(_)) => {
+                    diags.push(Diagnostic::error(
+                        "E1401",
+                        e.span(),
+                        format!(
+                            "`{}` is an Int, but `{}` expects a `{}`",
+                            expr_text(e),
+                            param.name.name,
+                            u.unit.type_name()
+                        ),
+                    ));
+                    None
+                }
+                None => None, // already diagnosed by the evaluator
+            }
+        }
+        (GenericBound::Traits(_), GenericArg::Expr(e)) => {
+            diags.push(Diagnostic::error(
+                "E403",
+                e.span(),
+                format!(
+                    "`{}` expects a device type, found the expression `{}`",
+                    param.name.name,
+                    expr_text(e)
+                ),
+            ));
+            None
+        }
+        // ---- RFC-033 `const N: Int` parameter ----
+        // An expression (or a bare number, syntactically admitted) evaluates
+        // through the Task 5 evaluator against the ENCLOSING substitution.
+        (GenericBound::Int(_), arg @ (GenericArg::Expr(_) | GenericArg::Number(..))) => {
+            let e = match arg {
+                GenericArg::Expr(e) => e.clone(),
+                GenericArg::Number(n, sp) => Expr::Int(checked_int(n, *sp, diags)?, *sp),
+                _ => unreachable!(),
+            };
+            let env_ref = caller.eval_env();
+            match crate::check::eval::eval(&e, &env_ref, diags)? {
+                crate::check::eval::Value::Int(i) => Some(GenericValue::Int(i)),
+                crate::check::eval::Value::Length(_) => {
+                    diags.push(Diagnostic::error(
+                        "E1401",
+                        e.span(),
+                        format!(
+                            "`{}` is a Length, but `const {}: Int` expects an Int",
+                            expr_text(&e),
+                            param.name.name
+                        ),
+                    ));
+                    None
+                }
+            }
+        }
+        (GenericBound::Int(_), GenericArg::Unit(v, span)) => {
+            diags.push(Diagnostic::error(
+                "E1401",
+                *span,
+                format!(
+                    "`{}` is a `{}`, but `const {}: Int` expects an Int (a count, not a unit value)",
+                    v.text,
+                    v.unit.type_name(),
+                    param.name.name
+                ),
+            ));
+            None
+        }
+        (GenericBound::Int(_), GenericArg::Name(name)) => match env.get(&name.name) {
+            Some(GenericValue::Int(i)) => Some(GenericValue::Int(*i)),
+            Some(_) => {
+                diags.push(Diagnostic::error(
+                    "E1401",
+                    name.span,
+                    format!(
+                        "`{}` is not an Int here, but `const {}: Int` expects one",
+                        name.name, param.name.name
+                    ),
+                ));
+                None
+            }
+            None => {
+                diags.push(Diagnostic::error(
+                    "E405",
+                    name.span,
+                    format!("`{}` is not a generic parameter in scope here", name.name),
+                ));
+                None
+            }
+        },
     }
 }
 
@@ -609,7 +923,10 @@ fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
                     .map(|(i, param)| match part.device.generic_args.get(i) {
                         Some(arg) => normalize_generic_arg(arg),
                         None => match &param.default {
-                            Some((v, _)) => format!("{}{}", v.femto, v.unit.type_name()),
+                            Some(GenericDefault::Unit(v, _)) => {
+                                format!("{}{}", v.femto, v.unit.type_name())
+                            }
+                            Some(GenericDefault::Int(n, _)) => n.to_string(),
                             None => String::new(),
                         },
                     })
@@ -677,6 +994,31 @@ fn normalize_generic_arg(a: &crate::ast::GenericArg) -> String {
         crate::ast::GenericArg::Unit(v, _) => format!("{}{}", v.femto, v.unit.type_name()),
         crate::ast::GenericArg::Name(i) => i.name.clone(),
         crate::ast::GenericArg::Number(n, _) => n.clone(),
+        // RFC-033: an expression argument's identity is its EVALUATED value —
+        // exact femto + unit, so `1.50mm` and `1.5mm` are one component.
+        // Identity calculation is pure: evaluation diagnostics stay local;
+        // argument validation is owned by the binding checks.
+        crate::ast::GenericArg::Expr(e) => {
+            let names = std::collections::BTreeMap::new();
+            let lens = std::collections::BTreeMap::new();
+            let unknown_arrays = std::collections::BTreeSet::new();
+            let env = crate::check::eval::Env {
+                names: &names,
+                array_lens: &lens,
+                unknown_arrays: &unknown_arrays,
+            };
+            let mut scratch = crate::diag::Diagnostics::new();
+            match crate::check::eval::eval(e, &env, &mut scratch) {
+                Some(crate::check::eval::Value::Length(v)) => {
+                    format!("{}{}", v.femto, v.unit.type_name())
+                }
+                Some(crate::check::eval::Value::Int(i)) => i.to_string(),
+                // Not evaluable as a constant here (a Name argument is
+                // rejected as non-concrete by the part check anyway) — the
+                // written text keeps distinct entries distinct.
+                None => crate::ast::expr_text(e),
+            }
+        }
     }
 }
 

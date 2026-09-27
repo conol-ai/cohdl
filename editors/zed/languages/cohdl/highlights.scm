@@ -1,5 +1,5 @@
 ; CoHDL highlighting for Zed. Scope coverage mirrors the VS Code TextMate
-; grammar (RFC-019/DR-025) extended through RFC-032: structural keywords are
+; grammar (RFC-019/DR-025), including parameterized circuit syntax: keywords are
 ; grammar tokens; statement keywords, RFC-002 roles, and RFC-001 unit types
 ; are contextual identifier matches — the same single-class discipline.
 
@@ -12,6 +12,7 @@
 [
   "pub" "device" "trait" "part" "fn" "design" "subdesign"
   "footprint" "pad" "use" "impl" "for" "inst" "net"
+  "const" "in" "step"
 ] @keyword
 
 (declaration name: (identifier) @type)
@@ -43,12 +44,12 @@
  (#any-of? @constant
   "passive" "power_in" "power_out" "output" "input" "bidirectional" "gnd"))
 
-; RFC-001 unit type names + Pin (RFC-006) + pin (RFC-002 trait-pin type).
+; Unit type names, Pin/pin and the compile-time Int type.
 ((identifier) @type
  (#any-of? @type
   "Voltage" "Capacitance" "Resistance" "Current" "Frequency" "Time"
-  "Inductance" "Power" "Temperature" "Tolerance" "Length" "Pin" "pin"))
+  "Inductance" "Power" "Temperature" "Tolerance" "Length" "Int" "Pin" "pin"))
 
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 [":" "," "." ";"] @punctuation.delimiter
-["::" "<" ">" "=" "..="] @operator
+["::" "<" ">" "=" ".." "..=" "+" "-" "*" "/" "%"] @operator

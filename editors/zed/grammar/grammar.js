@@ -47,7 +47,8 @@ module.exports = grammar({
       $.wildcard,
       $.identifier,
       $._keyword_fallback,
-      ':', ',', '.', '::', '..=', '<', '>', '=', ';',
+      ':', ',', '.', '::', '..', '..=', '<', '>', '=', ';',
+      '+', '-', '*', '/', '%',
     ),
 
     // A structured-rule keyword in a position its rule cannot parse — e.g.
@@ -57,6 +58,7 @@ module.exports = grammar({
     _keyword_fallback: _ => choice(
       'device', 'trait', 'part', 'fn', 'design', 'subdesign',
       'footprint', 'pad', 'use', 'impl', 'for', 'inst', 'net', 'pub',
+      'const', 'in', 'step',
     ),
 
     comment: _ => token(seq('//', /[^\n]*/)),

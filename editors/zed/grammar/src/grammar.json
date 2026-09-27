@@ -95,6 +95,10 @@
         },
         {
           "type": "STRING",
+          "value": ".."
+        },
+        {
+          "type": "STRING",
           "value": "..="
         },
         {
@@ -112,6 +116,26 @@
         {
           "type": "STRING",
           "value": ";"
+        },
+        {
+          "type": "STRING",
+          "value": "+"
+        },
+        {
+          "type": "STRING",
+          "value": "-"
+        },
+        {
+          "type": "STRING",
+          "value": "*"
+        },
+        {
+          "type": "STRING",
+          "value": "/"
+        },
+        {
+          "type": "STRING",
+          "value": "%"
         }
       ]
     },
@@ -173,6 +197,18 @@
         {
           "type": "STRING",
           "value": "pub"
+        },
+        {
+          "type": "STRING",
+          "value": "const"
+        },
+        {
+          "type": "STRING",
+          "value": "in"
+        },
+        {
+          "type": "STRING",
+          "value": "step"
         }
       ]
     },

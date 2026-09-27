@@ -665,6 +665,11 @@ impl Resolver<'_> {
                     }
                 }
                 Stmt::Net(_) | Stmt::Nc(_) | Stmt::Layout(_) => {}
+                // RFC-033: a const introduces no names needing qualification;
+                // a for body is a real nested body — recursion NOW, or nested
+                // loop bodies keep unresolved short names.
+                Stmt::Const(_) => {}
+                Stmt::For(f) => self.rewrite_body(&mut f.body, module, shadow, diags),
             }
         }
     }
@@ -2515,7 +2520,7 @@ fn validate_generic_params(world: &World, generics: &[GenericParam], diags: &mut
     for g in generics {
         match &g.bound {
             GenericBound::Unit(u) => {
-                if let Some((val, span)) = &g.default {
+                if let Some(GenericDefault::Unit(val, span)) = &g.default {
                     if val.unit != u.unit {
                         diags.push(
                             Diagnostic::error(
@@ -2537,7 +2542,7 @@ fn validate_generic_params(world: &World, generics: &[GenericParam], diags: &mut
                 for t in traits {
                     check_trait_ref(world, t, diags);
                 }
-                if let Some((_, span)) = &g.default {
+                if let Some(GenericDefault::Unit(_, span)) = &g.default {
                     diags.push(Diagnostic::error(
                         "E406",
                         *span,
@@ -2548,6 +2553,10 @@ fn validate_generic_params(world: &World, generics: &[GenericParam], diags: &mut
                     ));
                 }
             }
+            // RFC-033: `const N: Int = 2` — a default is exactly how `Int`
+            // parameters are declared; no trait refs to check. Validation of
+            // the value itself lands with Task 3's parser.
+            GenericBound::Int(_) => {}
         }
     }
 }

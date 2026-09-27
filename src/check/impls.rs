@@ -329,6 +329,8 @@ fn device_spec_unit(dev: &DeviceDef, field: &DeviceSpecField) -> Option<UnitType
             match &g.bound {
                 GenericBound::Unit(u) => Some(u.unit),
                 GenericBound::Traits(_) => None,
+                // RFC-033: an `Int` parameter is not a unit value.
+                GenericBound::Int(_) => None,
             }
         }
     }

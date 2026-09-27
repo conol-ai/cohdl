@@ -11,22 +11,68 @@ use crate::lex::{Token, TokenKind};
 use crate::span::Span;
 use crate::units::{UnitType, UnitValue};
 
+/// Maximum recursive syntax/AST path: enclosing `for` nodes plus expression
+/// nodes (leaves count as one). Independent of the expansion frame budget.
+/// Kept small for parser, downstream visitors, Clone and Drop on ordinary
+/// thread stacks; checked BEFORE descending or constructing a parent node.
+/// Debug probes on the default test-thread stack overflow with candidate 256
+/// on parentheses and candidate 128 on circuit loops; 96 passes both paths.
+/// Loop headers use the same budget as their body (a literal costs one).
+const MAX_SYNTAX_DEPTH: usize = 96;
+
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
-    Parser {
+    let mut local = Diagnostics::new();
+    let mut parser = Parser {
         tokens,
         pos: 0,
-        diags,
+        diags: &mut local,
+        nesting: 0,
+        depth_error: None,
+    };
+    let file = parser.file();
+    if let Some(span) = parser.depth_error {
+        // Resource-limit recovery abandons this file. Do not forward a partial
+        // body to consumers or emit cascaded missing-delimiter diagnostics from
+        // the bounded unwind. Lexer diagnostics already in `diags` survive.
+        diags.push(Diagnostic::error(
+            "E102",
+            span,
+            format!("syntax/AST depth limit of {MAX_SYNTAX_DEPTH} exceeded"),
+        ));
+        SourceFile { items: Vec::new() }
+    } else {
+        diags.extend(local);
+        file
     }
-    .file()
 }
 
 struct Parser<'a> {
     tokens: Vec<Token>,
     pos: usize,
     diags: &'a mut Diagnostics,
+    nesting: usize,
+    depth_error: Option<Span>,
 }
 
 impl<'a> Parser<'a> {
+    fn depth_exceeded<T>(&mut self, span: Span) -> Option<T> {
+        self.depth_error.get_or_insert(span);
+        // Constant-time, forward-only recovery; no recursion through the rest
+        // of an adversarial file, even if its delimiters are malformed.
+        self.pos = self.tokens.len() - 1;
+        None
+    }
+
+    fn nested<T>(&mut self, parse: impl FnOnce(&mut Self) -> Option<T>) -> Option<T> {
+        if self.nesting == MAX_SYNTAX_DEPTH {
+            return self.depth_exceeded(self.span());
+        }
+        self.nesting += 1;
+        let result = parse(self);
+        self.nesting -= 1;
+        result
+    }
+
     // -- token plumbing ------------------------------------------------------
 
     fn peek(&self) -> &TokenKind {
@@ -131,7 +177,7 @@ impl<'a> Parser<'a> {
 
     // -- file / items --------------------------------------------------------
 
-    fn file(mut self) -> SourceFile {
+    fn file(&mut self) -> SourceFile {
         let mut items = Vec::new();
         while !self.at(&TokenKind::Eof) {
             let before = self.pos;
@@ -577,6 +623,11 @@ impl<'a> Parser<'a> {
                 };
                 PinNumber { text, span: t.span }
             }
+            // RFC-033: a signed mount-hole number is E102 (`legacy_number`).
+            TokenKind::Minus if matches!(self.peek_ahead(1), TokenKind::Number(_)) => {
+                let _ = self.legacy_number("as the mount-hole number");
+                return None;
+            }
             other => {
                 self.error_here(format!(
                     "expected the mount-hole number (e.g. `1`), found {}",
@@ -692,6 +743,11 @@ impl<'a> Parser<'a> {
         let start = self.span();
         self.bump(); // `pad`
         let number = match self.peek() {
+            // RFC-033: a signed pad number is E102 (`legacy_number`).
+            TokenKind::Minus if matches!(self.peek_ahead(1), TokenKind::Number(_)) => {
+                let _ = self.legacy_number("as the pad number");
+                return None;
+            }
             TokenKind::Number(_) => {
                 let t = self.bump();
                 let TokenKind::Number(text) = t.kind else {
@@ -1164,14 +1220,21 @@ impl<'a> Parser<'a> {
 
     /// `(x, y)` — exactly two unit literals (unit TYPE checked later).
     fn length_pair(&mut self) -> Option<(UnitValue, UnitValue)> {
+        let (x, y) = self.length_pair_spans()?;
+        Some((x.0, y.0))
+    }
+
+    /// `length_pair` keeping each literal's own span (RFC-033: placement
+    /// coordinates ride as `Expr::Length` nodes).
+    fn length_pair_spans(&mut self) -> Option<((UnitValue, Span), (UnitValue, Span))> {
         if !self.expect(&TokenKind::LParen, "to open the coordinate pair") {
             // One defect, one diagnostic — a missing `(` already implies the
             // offsets are absent; don't also report each of them.
             return None;
         }
-        let x = self.unit_literal("as the x offset")?;
+        let x = self.unit_literal_with_span("as the x offset")?;
         self.expect(&TokenKind::Comma, "between the coordinates");
-        let y = self.unit_literal("as the y offset")?;
+        let y = self.unit_literal_with_span("as the y offset")?;
         self.expect(&TokenKind::RParen, "to close the coordinate pair");
         Some((x, y))
     }
@@ -1191,13 +1254,49 @@ impl<'a> Parser<'a> {
     }
 
     fn unit_literal(&mut self, ctx: &str) -> Option<UnitValue> {
+        // RFC-033: signed literals (`-1.5mm`) assemble here — one source of
+        // truth for the sign rule (`signed_unit_literal`, which also handles
+        // the plain non-signed case), replacing the blocks previously
+        // inlined in this fn and `device_spec_field`.
+        let _ = ctx;
+        self.signed_unit_literal().map(|(v, _)| v)
+    }
+
+    /// `unit_literal` keeping the literal's own span (RFC-033 expression
+    /// nodes need it).
+    fn unit_literal_with_span(&mut self, ctx: &str) -> Option<(UnitValue, Span)> {
+        // RFC-033: `-` lexes as its own token; a `-` byte-adjacent to a unit
+        // literal here is still a signed literal (`-1.5mm`, `-40C`).
+        if self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Unit(_)) {
+            let minus_span = self.span();
+            let adjacent = {
+                let idx = self.pos;
+                idx + 1 < self.tokens.len()
+                    && self.tokens[idx].span.end == self.tokens[idx + 1].span.start
+            };
+            if adjacent {
+                self.bump(); // -
+                let t = self.bump();
+                let TokenKind::Unit(v) = t.kind else {
+                    unreachable!()
+                };
+                return match v.negate_for_literal() {
+                    Ok(v) => Some((v, minus_span.to(t.span))),
+                    Err(msg) => {
+                        self.diags
+                            .push(Diagnostic::error("E105", minus_span.to(t.span), msg));
+                        None
+                    }
+                };
+            }
+        }
         match self.peek() {
             TokenKind::Unit(_) => {
                 let t = self.bump();
                 let TokenKind::Unit(v) = t.kind else {
                     unreachable!()
                 };
-                Some(v)
+                Some((v, t.span))
             }
             other => {
                 self.error_here(format!(
@@ -1934,7 +2033,7 @@ impl<'a> Parser<'a> {
                 // index — a range would name several targets for one cap.
                 let index = if self.at(&TokenKind::LBracket) {
                     match self.index_sel()? {
-                        IndexSel::Single(i, sp) => Some((i, sp)),
+                        IndexSel::Single(e, sp) => Some((e, sp)),
                         other => {
                             self.diags.push(Diagnostic::error(
                                 "E211",
@@ -2341,6 +2440,12 @@ impl<'a> Parser<'a> {
         let mut numbers = Vec::new();
         loop {
             match self.peek() {
+                // RFC-033: a signed pin number is E102, the pre-RFC code —
+                // `legacy_number` owns the exact wording/span.
+                TokenKind::Minus if matches!(self.peek_ahead(1), TokenKind::Number(_)) => {
+                    let _ = self.legacy_number("as a physical pin number");
+                    return None;
+                }
                 TokenKind::Number(_) => {
                     let t = self.bump();
                     let TokenKind::Number(text) = t.kind else {
@@ -2431,6 +2536,19 @@ impl<'a> Parser<'a> {
         let start = self.span();
         let name = self.ident("as the spec field name")?;
         self.expect(&TokenKind::Colon, "after the spec field name");
+        // RFC-033: `-5V`-style signed literals resolve through the SAME
+        // `signed_unit_literal` every other legacy unit position uses (E105
+        // for unsigned types) — one source of truth, no duplicated block.
+        if self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Unit(_)) {
+            if let Some((v, span)) = self.signed_unit_literal() {
+                return Some(DeviceSpecField {
+                    name,
+                    value: SpecValue::Lit(v, span),
+                    span: start.to(self.prev_span()),
+                });
+            }
+            return None;
+        }
         let value = match self.peek() {
             TokenKind::Unit(_) => {
                 let t = self.bump();
@@ -2479,6 +2597,85 @@ impl<'a> Parser<'a> {
         let mut params = Vec::new();
         while !self.at(&TokenKind::Gt) && !self.at(&TokenKind::Eof) {
             let start = self.span();
+            // RFC-033: `const N: Int [= LITERAL]` — the `const` keyword
+            // PRECEDES the name. Contextual: anything else is the legacy
+            // `NAME: Bound` shape, so `const`-named instances keep working.
+            let is_const_int = self.at_ident("const")
+                && matches!(self.peek_ahead(1), TokenKind::Ident(_))
+                && self.peek_ahead(2) == &TokenKind::Colon;
+            if is_const_int {
+                self.bump(); // const
+                let Some(name) = self.ident("as the const parameter name") else {
+                    break;
+                };
+                self.expect(&TokenKind::Colon, "after the const parameter name");
+                let ty_span = self.span();
+                let Some(ty_id) = self.ident("as the const parameter type (`Int`)") else {
+                    break;
+                };
+                if ty_id.name != "Int" {
+                    self.diags.push(Diagnostic::error(
+                        "E406",
+                        ty_id.span,
+                        format!("`const` parameters are `Int` — `{}` is not", ty_id.name),
+                    ));
+                    break;
+                }
+                let mut default = None;
+                if self.eat(&TokenKind::Eq) {
+                    match self.peek() {
+                        TokenKind::Number(_) => {
+                            let t = self.bump();
+                            let TokenKind::Number(n) = t.kind else {
+                                unreachable!()
+                            };
+                            default = crate::check::generics::checked_int(&n, t.span, self.diags)
+                                .map(|v| GenericDefault::Int(v, t.span));
+                        }
+                        TokenKind::Minus if matches!(self.peek_ahead(1), TokenKind::Number(_)) => {
+                            let minus = self.bump();
+                            let t = self.bump();
+                            let TokenKind::Number(n) = t.kind else {
+                                unreachable!()
+                            };
+                            let span = minus.span.to(t.span);
+                            default = crate::check::generics::checked_int(
+                                &format!("-{n}"),
+                                span,
+                                self.diags,
+                            )
+                            .map(|v| GenericDefault::Int(v, span));
+                        }
+                        other => {
+                            // An Int default must be an integer literal — a
+                            // unit literal (`2mm`) is a kind error (E406).
+                            self.diags.push(Diagnostic::error(
+                                "E406",
+                                self.span(),
+                                format!(
+                                    "an Int default must be an integer literal — `{}` is {}",
+                                    other.describe(),
+                                    if matches!(other, TokenKind::Unit(_)) {
+                                        "a unit value"
+                                    } else {
+                                        "not an integer"
+                                    }
+                                ),
+                            ));
+                        }
+                    }
+                }
+                params.push(GenericParam {
+                    span: start.to(self.prev_span()),
+                    name,
+                    bound: GenericBound::Int(ty_span),
+                    default,
+                });
+                if !self.eat(&TokenKind::Comma) {
+                    break;
+                }
+                continue;
+            }
             let Some(name) = self.ident("as the generic parameter name") else {
                 break;
             };
@@ -2505,31 +2702,39 @@ impl<'a> Parser<'a> {
             };
             let mut default = None;
             if self.eat(&TokenKind::Eq) {
-                match self.peek() {
-                    TokenKind::Unit(_) => {
-                        let t = self.bump();
-                        let TokenKind::Unit(v) = t.kind else {
-                            unreachable!()
-                        };
-                        default = Some((v, t.span));
+                // RFC-033: signed unit defaults (`-5V` → E105) resolve through
+                // the shared `signed_unit_literal` (single sign-rule source).
+                if self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Unit(_)) {
+                    if let Some((v, span)) = self.signed_unit_literal() {
+                        default = Some(GenericDefault::Unit(v, span));
                     }
-                    TokenKind::Number(_) => {
-                        let t = self.bump();
-                        self.diags.push(
-                            Diagnostic::error(
-                                "E111",
-                                t.span,
-                                "a bare number is never valid as a generic default — write it with its unit",
-                            )
-                            .with_help("e.g. `V: Voltage = 10V`, `T: Tolerance = 10%`"),
-                        );
-                    }
-                    other => {
-                        let msg = format!(
-                            "expected a unit literal as the generic default, found {}",
-                            other.describe()
-                        );
-                        self.error_here(msg);
+                } else {
+                    match self.peek() {
+                        TokenKind::Unit(_) => {
+                            let t = self.bump();
+                            let TokenKind::Unit(v) = t.kind else {
+                                unreachable!()
+                            };
+                            default = Some(GenericDefault::Unit(v, t.span));
+                        }
+                        TokenKind::Number(_) => {
+                            let t = self.bump();
+                            self.diags.push(
+                                Diagnostic::error(
+                                    "E111",
+                                    t.span,
+                                    "a bare number is never valid as a generic default — write it with its unit",
+                                )
+                                .with_help("e.g. `V: Voltage = 10V`, `T: Tolerance = 10%`"),
+                            );
+                        }
+                        other => {
+                            let msg = format!(
+                                "expected a unit literal as the generic default, found {}",
+                                other.describe()
+                            );
+                            self.error_here(msg);
+                        }
                     }
                 }
             }
@@ -2551,32 +2756,88 @@ impl<'a> Parser<'a> {
         self.bump(); // <
         let mut args = Vec::new();
         while !self.at(&TokenKind::Gt) && !self.at(&TokenKind::Eof) {
-            match self.peek() {
+            // RFC-033: an argument starting with a Length literal, `(`
+            // or `+`, or a number/name/unit FOLLOWED by an arithmetic
+            // operator, is a full expression (`bank::<1 + 1, 2mm * 2>`).
+            // A bare number stays `GenericArg::Number` (E113's precise
+            // report at type check); a NON-Length unit literal stays
+            // `GenericArg::Unit` (`MLCC<100nF, 16V, 10%>`); a bare ident
+            // stays a Name; a name followed by `.len` is an expression.
+            // Re-review: a leading `-` byte-adjacent to a TEMPERATURE unit
+            // literal immediately followed by `,` or `>` is the legacy
+            // signed bare literal (`Td<-40C>`) via `signed_unit_literal`.
+            // Length keeps the expression path so `-1mm + 2mm` arithmetic
+            // is not truncated; other negative units keep their original
+            // path (expression grammar / E105).
+            let signed_temperature_bare = self.at(&TokenKind::Minus)
+                && matches!(self.peek_ahead(1), TokenKind::Unit(v) if v.unit == UnitType::Temperature)
+                && {
+                    let idx = self.pos;
+                    idx + 1 < self.tokens.len()
+                        && self.tokens[idx].span.end == self.tokens[idx + 1].span.start
+                }
+                && matches!(
+                    self.tokens.get(self.pos + 2).map(|t| &t.kind),
+                    Some(TokenKind::Comma) | Some(TokenKind::Gt)
+                );
+            let op_ahead = matches!(
+                self.peek_ahead(1),
+                TokenKind::Plus
+                    | TokenKind::Minus
+                    | TokenKind::Star
+                    | TokenKind::Slash
+                    | TokenKind::Percent
+            );
+            let starts_expr = match self.peek() {
+                TokenKind::LParen | TokenKind::Plus => true,
+                TokenKind::Minus => !signed_temperature_bare,
+                TokenKind::Number(_) => op_ahead,
                 TokenKind::Unit(_) => {
-                    let t = self.bump();
-                    let TokenKind::Unit(v) = t.kind else {
-                        unreachable!()
-                    };
-                    args.push(GenericArg::Unit(v, t.span));
+                    op_ahead
+                        || matches!(self.peek(), TokenKind::Unit(v) if v.unit == UnitType::Length)
                 }
-                TokenKind::Number(_) => {
-                    let t = self.bump();
-                    let TokenKind::Number(n) = t.kind else {
-                        unreachable!()
-                    };
-                    args.push(GenericArg::Number(n, t.span));
+                TokenKind::Ident(_) => op_ahead || matches!(self.peek_ahead(1), TokenKind::Dot),
+                _ => false,
+            };
+            if signed_temperature_bare {
+                match self.signed_unit_literal() {
+                    Some((v, span)) => args.push(GenericArg::Unit(v, span)),
+                    // E105 already reported (unsigned type made negative)
+                    None => break,
                 }
-                TokenKind::Ident(_) => {
-                    let ident = self.path_ident("").unwrap();
-                    args.push(GenericArg::Name(ident));
+            } else if starts_expr {
+                match self.expr() {
+                    Some(e) => args.push(GenericArg::Expr(e)),
+                    None => break,
                 }
-                other => {
-                    let msg = format!(
-                        "expected a generic argument (unit literal or name), found {}",
-                        other.describe()
-                    );
-                    self.error_here(msg);
-                    break;
+            } else {
+                match self.peek() {
+                    TokenKind::Unit(_) => {
+                        let t = self.bump();
+                        let TokenKind::Unit(v) = t.kind else {
+                            unreachable!()
+                        };
+                        args.push(GenericArg::Unit(v, t.span));
+                    }
+                    TokenKind::Number(_) => {
+                        let t = self.bump();
+                        let TokenKind::Number(n) = t.kind else {
+                            unreachable!()
+                        };
+                        args.push(GenericArg::Number(n, t.span));
+                    }
+                    TokenKind::Ident(_) => {
+                        let ident = self.path_ident("").unwrap();
+                        args.push(GenericArg::Name(ident));
+                    }
+                    other => {
+                        let msg = format!(
+                            "expected a generic argument (unit literal or name), found {}",
+                            other.describe()
+                        );
+                        self.error_here(msg);
+                        break;
+                    }
                 }
             }
             if !self.eat(&TokenKind::Comma) {
@@ -3019,18 +3280,21 @@ impl<'a> Parser<'a> {
                 &TokenKind::Semi,
                 "between the subdesign type and the array length",
             );
-            let n = self.index_number("as the array length")?;
+            let len_expr = self.expr()?;
             self.expect(&TokenKind::RBracket, "to close the array type");
             let span = open.to(self.prev_span());
-            if n < 1 {
-                self.diags.push(Diagnostic::error(
-                    "E211",
-                    span,
-                    format!("array length `{}` must be 1 or more", n),
-                ));
-                return None;
+            if let Expr::Int(n, nspan) = &len_expr {
+                if *n < 1 {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        *nspan,
+                        format!("array length `{}` must be 1 or more", n),
+                    ));
+                    return None;
+                }
             }
-            (ty, Some((n, span)))
+            // RFC-033: the length rides as an expression node.
+            (ty, Some((len_expr, span)))
         } else {
             (self.type_ref()?, None)
         };
@@ -3245,6 +3509,24 @@ impl<'a> Parser<'a> {
             self.reject_phys(&phys, "a `layout {}` block");
             return self.layout_block();
         }
+        // RFC-033 `const NAME: Int|Length = EXPR` — `const` is contextual: the
+        // three-token shape (Ident "const", Ident, Colon) never collides with
+        // a `const`-named instance being declared.
+        if matches!(self.peek(), TokenKind::Ident(n) if n == "const")
+            && matches!(self.peek_ahead(1), TokenKind::Ident(_))
+            && self.peek_ahead(2) == &TokenKind::Colon
+        {
+            self.reject_attrs(&attrs);
+            self.reject_phys(&phys, "a `const`");
+            return self.const_stmt().map(Stmt::Const);
+        }
+        // RFC-033 `for LABEL: binder in EXPR..EXPR { … }` — `for` was already
+        // a keyword (impl for).
+        if self.at(&TokenKind::For) {
+            self.reject_attrs(&attrs);
+            self.reject_phys(&phys, "a `for` loop");
+            return self.for_stmt().map(Stmt::For);
+        }
         // RFC-012: split off `#[intent("...")]` (valid on any statement); the
         // remaining attributes are inst-only (`#[designator]`/`#[placement_hint]`).
         let (intent, attrs) = self.take_intent(attrs);
@@ -3289,18 +3571,24 @@ impl<'a> Parser<'a> {
                         &TokenKind::Semi,
                         "between the element type and the array length",
                     );
-                    let n = self.index_number("as the array length")?;
+                    // RFC-033: the array length is a full expression.
+                    let len_expr = self.expr()?;
                     self.expect(&TokenKind::RBracket, "to close the array type");
                     let span = open.to(self.prev_span());
-                    if n < 1 {
-                        self.diags.push(Diagnostic::error(
-                            "E211",
-                            span,
-                            format!("array length `{}` must be 1 or more", n),
-                        ));
-                        return None;
+                    // The literal fast-path keeps the pre-RFC E211 checks
+                    // byte-identical; a computed length is judged at
+                    // expansion (Task 7) — never here.
+                    if let Expr::Int(n, nspan) = &len_expr {
+                        if *n < 1 {
+                            self.diags.push(Diagnostic::error(
+                                "E211",
+                                *nspan,
+                                format!("array length `{}` must be 1 or more", n),
+                            ));
+                            return None;
+                        }
                     }
-                    (ty, Some((n, span)))
+                    (ty, Some((len_expr, span)))
                 } else {
                     (self.type_ref()?, None)
                 };
@@ -3556,9 +3844,23 @@ impl<'a> Parser<'a> {
         let mut constraints = Vec::new();
         let mut board_outline: Option<BoardOutline> = None;
         let mut placements = Vec::new();
+        let mut consts = Vec::new();
+        let mut loops = Vec::new();
         while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
             let before = self.pos;
-            if self.at_ident("board_outline") {
+            // RFC-033: layout consts and labelled placement loops.
+            if matches!(self.peek(), TokenKind::Ident(n) if n == "const")
+                && matches!(self.peek_ahead(1), TokenKind::Ident(_))
+                && self.peek_ahead(2) == &TokenKind::Colon
+            {
+                if let Some(c) = self.const_stmt() {
+                    consts.push(c);
+                }
+            } else if self.at(&TokenKind::For) {
+                if let Some(l) = self.layout_for() {
+                    loops.push(l);
+                }
+            } else if self.at_ident("board_outline") {
                 match (&board_outline, self.board_outline()) {
                     (Some(prev), Some(next)) => self.diags.push(
                         Diagnostic::error(
@@ -3589,8 +3891,69 @@ impl<'a> Parser<'a> {
             constraints,
             board_outline,
             placements,
+            consts,
+            loops,
             span: start.to(self.prev_span()),
         }))
+    }
+
+    /// RFC-033 `for LABEL: binder in EXPR..EXPR { place/const/for }` — a
+    /// layout loop admits only `const`, `place` and nested `for` (E1406 for
+    /// anything else; static validation lands with Task 9, but the shape is
+    /// rejected right here so the grammar stays closed).
+    fn layout_for(&mut self) -> Option<LayoutFor> {
+        self.nested(Self::layout_for_inner)
+    }
+
+    fn layout_for_inner(&mut self) -> Option<LayoutFor> {
+        let (label, binder, start_e, end_e, start) = self.for_header()?;
+        self.expect(&TokenKind::LBrace, "to open the layout loop body");
+        let mut consts = Vec::new();
+        let mut placements = Vec::new();
+        let mut loops = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if matches!(self.peek(), TokenKind::Ident(n) if n == "const")
+                && matches!(self.peek_ahead(1), TokenKind::Ident(_))
+                && self.peek_ahead(2) == &TokenKind::Colon
+            {
+                if let Some(c) = self.const_stmt() {
+                    consts.push(c);
+                }
+            } else if self.at(&TokenKind::For) {
+                if let Some(l) = self.layout_for() {
+                    loops.push(l);
+                }
+            } else if self.at_ident("place") {
+                if let Some(p) = self.placement() {
+                    placements.push(p);
+                }
+            } else {
+                self.diags.push(Diagnostic::error(
+                    "E1406",
+                    self.span(),
+                    format!(
+                        "`{}` is not admitted inside a layout loop — only `const`, `place` and nested `for`",
+                        self.peek().describe()
+                    ),
+                ));
+                self.bump();
+            }
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close the layout loop body");
+        Some(LayoutFor {
+            label,
+            binder,
+            start: start_e,
+            end: end_e,
+            consts,
+            placements,
+            loops,
+            span: start.to(self.prev_span()),
+        })
     }
 
     /// `board_outline: "path.dxf"` (RFC-020) — a reference to a DXF file. The
@@ -3642,7 +4005,7 @@ impl<'a> Parser<'a> {
             // coordinates).
             let index = if self.at(&TokenKind::LBracket) {
                 match self.index_sel()? {
-                    IndexSel::Single(i, sp) => Some((i, sp)),
+                    IndexSel::Single(e, sp) => Some((e, sp)),
                     other => {
                         self.diags.push(Diagnostic::error(
                             "E211",
@@ -3665,11 +4028,17 @@ impl<'a> Parser<'a> {
             return None;
         }
         self.bump(); // `at`
-        let at = self.length_pair()?;
+        self.expect(&TokenKind::LParen, "to open the coordinate pair");
+        // RFC-033: coordinates are full expressions (`10mm + n * PITCH`).
+        let x = self.expr()?;
+        self.expect(&TokenKind::Comma, "between the coordinates");
+        let y = self.expr()?;
+        self.expect(&TokenKind::RParen, "to close the coordinate pair");
+        let at = (x, y);
         // Optional `rotate ANGLE` (E1007) and `side SIDE` (RFC-026, E1008) —
         // independent clauses, accepted in either order per the accepted text;
         // `fmt` canonicalizes to rotate-then-side.
-        let mut rotate = 0u16;
+        let mut rotate = None;
         let mut saw_rotate = false;
         let mut side = crate::ast::PlacementSide::Top;
         let mut side_span = None;
@@ -3677,15 +4046,15 @@ impl<'a> Parser<'a> {
             if !saw_rotate && self.at_ident("rotate") {
                 saw_rotate = true;
                 self.bump(); // `rotate`
+                             // RFC-033: the angle is a full expression (`90 * n`).
                 match self.peek() {
-                    TokenKind::Number(_) => {
-                        let t = self.bump();
-                        if let TokenKind::Number(n) = t.kind {
-                            // Out-of-range / non-integer values are reported
-                            // at assembly (E1007); an unparseable value maps to
-                            // a sentinel that fails that range check.
-                            rotate = n.parse::<u16>().unwrap_or(u16::MAX);
-                        }
+                    TokenKind::Number(_)
+                    | TokenKind::Unit(_)
+                    | TokenKind::LParen
+                    | TokenKind::Ident(_)
+                    | TokenKind::Minus
+                    | TokenKind::Plus => {
+                        rotate = Some(self.expr()?);
                     }
                     _ => {
                         self.error_here(format!(
@@ -3924,6 +4293,378 @@ impl<'a> Parser<'a> {
         value
     }
 
+    // -- expressions (RFC-033) ----------------------------------------------
+
+    fn const_stmt(&mut self) -> Option<ConstStmt> {
+        let start = self.span();
+        self.bump(); // const
+        let name = self.ident("as the constant name")?;
+        self.expect(&TokenKind::Colon, "after the constant name");
+        let ty_id = self.ident("as the constant type (`Int` or `Length`)")?;
+        let ty = match ty_id.name.as_str() {
+            "Int" => ConstTy::Int,
+            "Length" => ConstTy::Length,
+            other => {
+                self.diags.push(Diagnostic::error(
+                    "E1401",
+                    ty_id.span,
+                    format!(
+                        "`{}` is not a constant type — a `const` is `Int` or `Length`",
+                        other
+                    ),
+                ));
+                return None;
+            }
+        };
+        self.expect(&TokenKind::Eq, "before the constant's value");
+        let value = self.expr()?;
+        Some(ConstStmt {
+            name,
+            ty,
+            value,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    fn for_stmt(&mut self) -> Option<ForStmt> {
+        self.nested(Self::for_stmt_inner)
+    }
+
+    fn for_stmt_inner(&mut self) -> Option<ForStmt> {
+        let (label, binder, start_e, end_e, start) = self.for_header()?;
+        self.expect(&TokenKind::LBrace, "to open the loop body");
+        let mut body = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.pos;
+            if let Some(s) = self.stmt() {
+                body.push(s);
+            }
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close the loop body");
+        Some(ForStmt {
+            label,
+            binder,
+            start: start_e,
+            end: end_e,
+            body,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// `for LABEL: IDENT in expr .. expr` — shared by body and layout loops.
+    fn for_header(&mut self) -> Option<(Ident, Ident, Expr, Expr, Span)> {
+        let start = self.span();
+        self.bump(); // for
+                     // Every loop is labelled (RFC-033 §6): `for LINKS: n in …`. The label
+                     // is how each generated object's provenance is spelled, so its
+                     // absence gets the maximally specific hint.
+        let label = match self.peek() {
+            TokenKind::Ident(_) => {
+                let id = self
+                    .ident("as the loop label (every loop is labelled: `for links: n in 0..N`)")?;
+                if !self.expect(&TokenKind::Colon, "after the loop label") {
+                    self.diags.push(
+                        Diagnostic::error(
+                            "E010",
+                            id.span,
+                            format!(
+                                "every loop is labelled — write `for {}: BINDER in 0..N {{ … }}`",
+                                id.name
+                            ),
+                        )
+                        .with_help("the label names this loop's generated objects (provenance), e.g. `for links: n in 0..N`".to_string()),
+                    );
+                    return None;
+                }
+                id
+            }
+            other => {
+                let m = format!(
+                    "expected a loop label (every loop is labelled: `for links: n in 0..N`), found {}",
+                    other.describe()
+                );
+                self.error_here(m);
+                return None;
+            }
+        };
+        let binder = self.ident("as the loop variable")?;
+        match self.peek() {
+            TokenKind::Ident(n) if n == "in" => {
+                self.bump();
+            }
+            other => {
+                let m = format!(
+                    "expected `in` after the loop variable, found {}",
+                    other.describe()
+                );
+                self.error_here(m);
+                return None;
+            }
+        }
+        let lo = self.expr()?;
+        if !self.expect(&TokenKind::DotDot, "as the half-open range delimiter `..` (loops are exclusive at the end; `..=` is only for net fan-out)") {
+            return None;
+        }
+        let hi = self.expr()?;
+        Some((label, binder, lo, hi, start))
+    }
+
+    fn expr(&mut self) -> Option<Expr> {
+        self.expr_add(MAX_SYNTAX_DEPTH - self.nesting)
+            .map(|(expr, _)| expr)
+    }
+
+    // Private expression routines carry exact subtree depth beside the node.
+    // Each operator updates it in O(1); no rescanning or public AST metadata.
+    // Reserving a slot before parsing each child bounds both descent and the
+    // left-deep trees produced by these otherwise iterative precedence loops.
+    fn expr_add(&mut self, budget: usize) -> Option<(Expr, usize)> {
+        let (mut lhs, mut depth) = self.expr_mul(budget)?;
+        loop {
+            let op = match self.peek() {
+                TokenKind::Plus => BinOp::Add,
+                TokenKind::Minus => BinOp::Sub,
+                _ => break,
+            };
+            let operator = self.span();
+            if depth == budget {
+                return self.depth_exceeded(operator);
+            }
+            self.bump();
+            let (rhs, rhs_depth) = self.expr_mul(budget - 1)?;
+            depth = depth.max(rhs_depth) + 1;
+            let span = lhs.span().to(rhs.span());
+            lhs = Expr::Binary {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+                span,
+            };
+        }
+        Some((lhs, depth))
+    }
+
+    fn expr_mul(&mut self, budget: usize) -> Option<(Expr, usize)> {
+        let (mut lhs, mut depth) = self.expr_unary(budget)?;
+        loop {
+            let op = match self.peek() {
+                TokenKind::Star => BinOp::Mul,
+                TokenKind::Slash => BinOp::Div,
+                TokenKind::Percent => BinOp::Rem,
+                _ => break,
+            };
+            let operator = self.span();
+            if depth == budget {
+                return self.depth_exceeded(operator);
+            }
+            self.bump();
+            let (rhs, rhs_depth) = self.expr_unary(budget - 1)?;
+            depth = depth.max(rhs_depth) + 1;
+            let span = lhs.span().to(rhs.span());
+            lhs = Expr::Binary {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+                span,
+            };
+        }
+        Some((lhs, depth))
+    }
+
+    fn expr_unary(&mut self, budget: usize) -> Option<(Expr, usize)> {
+        if budget == 0 {
+            return self.depth_exceeded(self.span());
+        }
+        let start = self.span();
+        match self.peek() {
+            TokenKind::Minus => {
+                let minus = self.bump();
+                // Signed-literal assembly: byte-adjacent number/unit.
+                let adjacent = self.span().start == minus.span.end;
+                match self.peek() {
+                    TokenKind::Number(_) if adjacent => {
+                        let t = self.bump();
+                        let TokenKind::Number(text) = t.kind else {
+                            unreachable!()
+                        };
+                        let span = minus.span.to(t.span);
+                        return crate::check::generics::checked_int(
+                            &format!("-{text}"),
+                            span,
+                            self.diags,
+                        )
+                        .map(|n| (Expr::Int(n, span), 1));
+                    }
+                    TokenKind::Unit(_) if adjacent => {
+                        let t = self.bump();
+                        let TokenKind::Unit(v) = t.kind else {
+                            unreachable!()
+                        };
+                        let span = minus.span.to(t.span);
+                        // The E105 wording is exactly `negate_for_literal`'s
+                        // (one source of truth for the sign rule).
+                        match v.negate_for_literal() {
+                            Ok(neg) => return Some((Expr::Length(neg, span), 1)),
+                            Err(msg) => {
+                                self.diags.push(Diagnostic::error("E105", span, msg));
+                                return None;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                let (rhs, depth) = self.expr_unary(budget - 1)?;
+                let span = start.to(rhs.span());
+                Some((
+                    Expr::Unary {
+                        op: UnaryOp::Neg,
+                        rhs: Box::new(rhs),
+                        span,
+                    },
+                    depth + 1,
+                ))
+            }
+            TokenKind::Plus => {
+                self.bump();
+                let (rhs, depth) = self.expr_unary(budget - 1)?;
+                let span = start.to(rhs.span());
+                Some((
+                    Expr::Unary {
+                        op: UnaryOp::Plus,
+                        rhs: Box::new(rhs),
+                        span,
+                    },
+                    depth + 1,
+                ))
+            }
+            _ => self.expr_primary(budget),
+        }
+    }
+
+    fn expr_primary(&mut self, budget: usize) -> Option<(Expr, usize)> {
+        match self.peek() {
+            TokenKind::Number(_) => {
+                let t = self.bump();
+                let TokenKind::Number(text) = t.kind else {
+                    unreachable!()
+                };
+                crate::check::generics::checked_int(&text, t.span, self.diags)
+                    .map(|n| (Expr::Int(n, t.span), 1))
+            }
+            TokenKind::Unit(_) => {
+                let t = self.bump();
+                let TokenKind::Unit(v) = t.kind else {
+                    unreachable!()
+                };
+                if v.unit == UnitType::Length {
+                    Some((Expr::Length(v, t.span), 1))
+                } else {
+                    // A non-Length unit in an expression position. `place`
+                    // coordinates historically report E1007 AT CHECK (the
+                    // fixture contract — `place r1 at (0mm, 3V)`), so the node
+                    // parses and the check-side unit validation stays the
+                    // single owner of that diagnostic. Everywhere else the
+                    // expression kinds are wrong (E1401 at evaluation, Task 5).
+                    Some((Expr::Length(v, t.span), 1))
+                }
+            }
+            TokenKind::LParen => {
+                let open = self.span();
+                self.bump();
+                let Some((inner, depth)) = self.expr_add(budget - 1) else {
+                    // A rejected numeric literal has already consumed its token.
+                    // Close its parentheses so a generic use does not acquire
+                    // unrelated delimiter errors during recovery.
+                    self.eat(&TokenKind::RParen);
+                    return None;
+                };
+                self.expect(&TokenKind::RParen, "to close the parenthesized expression");
+                Some((
+                    Expr::Paren(Box::new(inner), open.to(self.prev_span())),
+                    depth + 1,
+                ))
+            }
+            TokenKind::Ident(_) => {
+                let id = self.ident("in an expression")?;
+                if self.at(&TokenKind::Dot)
+                    && matches!(self.peek_ahead(1), TokenKind::Ident(n) if n == "len")
+                {
+                    self.bump();
+                    let t = self.bump();
+                    return Some((Expr::Len(id.clone(), id.span.to(t.span)), 1));
+                }
+                Some((Expr::Name(id), 1))
+            }
+            other => {
+                let msg = format!(
+                    "expected an Int or Length expression, found {}",
+                    other.describe()
+                );
+                self.error_here(msg);
+                None
+            }
+        }
+    }
+
+    /// RFC-033: legacy number positions (pin numbers, pad numbers,
+    /// mount-hole numbers) keep E102 — a bare number may not carry a sign.
+    fn legacy_number(&mut self, ctx: &str) -> Option<i64> {
+        if self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Number(_)) {
+            let minus_span = self.span();
+            let adjacent = {
+                let idx = self.pos;
+                idx + 1 < self.tokens.len()
+                    && self.tokens[idx].span.end == self.tokens[idx + 1].span.start
+            };
+            if adjacent {
+                self.bump(); // -
+                let t = self.bump(); // the number itself
+                self.diags.push(Diagnostic::error(
+                    "E102",
+                    minus_span.to(t.span),
+                    "a bare number cannot be negative — only `Temperature` and `Length` literals may carry a leading `-` (e.g. `-40C`, `-0.5mm`)".to_string(),
+                ));
+                let _ = ctx;
+                return None;
+            }
+        }
+        self.index_number(ctx)
+    }
+
+    /// RFC-033 signed unit literal for LEGACY positions (spec values, generic
+    /// defaults, coordinates…): `-` byte-adjacent to a unit literal negates
+    /// Temperature/Length, E105 otherwise. One source of truth — the pre-RFC
+    /// inlined blocks in `unit_literal`/`device_spec_field` collapsed here.
+    fn signed_unit_literal(&mut self) -> Option<(UnitValue, Span)> {
+        if self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Unit(_)) {
+            let minus_span = self.span();
+            let adjacent = {
+                let idx = self.pos;
+                idx + 1 < self.tokens.len()
+                    && self.tokens[idx].span.end == self.tokens[idx + 1].span.start
+            };
+            if adjacent {
+                self.bump(); // -
+                let t = self.bump();
+                let TokenKind::Unit(v) = t.kind else {
+                    unreachable!()
+                };
+                return match v.negate_for_literal() {
+                    Ok(v) => Some((v, minus_span.to(t.span))),
+                    Err(msg) => {
+                        self.diags
+                            .push(Diagnostic::error("E105", minus_span.to(t.span), msg));
+                        None
+                    }
+                };
+            }
+        }
+        self.unit_literal_with_span("")
+    }
+
     /// One non-negative integer index (RFC-024). Indices are plain counting
     /// numbers — an instance name is `{base}{index}`, so nothing else parses.
     fn index_number(&mut self, ctx: &str) -> Option<i64> {
@@ -3958,66 +4699,67 @@ impl<'a> Parser<'a> {
 
     /// RFC-024 `[…]` after a name: `[S..=E]`, `[S..=E step N]`, or `[i, j, k]`.
     /// Assumes the caller has confirmed the next token is `[`.
+    /// RFC-033: every position is a full expression.
     fn index_sel(&mut self) -> Option<IndexSel> {
         let open = self.span();
         self.bump(); // `[`
-        let first = self.index_number("in the index")?;
-        // `..=` lexes as Dot Dot Eq — the range form; anything else is a list.
-        if self.at(&TokenKind::Dot) {
+        let first = self.expr()?;
+        // `..=` lexes as DotDot Eq — the range form; anything else is a list.
+        if self.at(&TokenKind::DotDot) {
             self.bump();
-            self.expect(&TokenKind::Dot, "in the range `..=`");
             self.expect(&TokenKind::Eq, "in the range `..=` (ranges are inclusive)");
-            let end = self.index_number("as the range end")?;
-            let mut step = 1;
-            let mut explicit_step = false;
+            let end = self.expr()?;
+            let mut step = None;
             if self.at_ident("step") {
                 self.bump();
-                step = self.index_number("as the stride")?;
-                explicit_step = true;
+                step = Some(self.expr()?);
             }
             self.expect(&TokenKind::RBracket, "to close the index bracket");
             let span = open.to(self.prev_span());
-            if end < first {
-                self.diags.push(Diagnostic::error(
-                    "E211",
-                    span,
-                    format!(
-                        "range `{}..={}` is empty — the end must not be below the start",
-                        first, end
-                    ),
-                ));
-                return None;
-            }
-            if step < 1 {
-                self.diags.push(Diagnostic::error(
-                    "E211",
-                    span,
-                    format!("stride `{}` must be 1 or more", step),
-                ));
-                return None;
+            // Literal fast-path: the pre-RFC E211 checks stay byte-identical;
+            // computed bounds are judged by Task 7's evaluator.
+            if let (Some(f), Some(e)) = (first.as_int_literal(), end.as_int_literal()) {
+                if e < f {
+                    self.diags.push(Diagnostic::error(
+                        "E211",
+                        span,
+                        format!(
+                            "range `{}..={}` is empty — the end must not be below the start",
+                            f, e
+                        ),
+                    ));
+                    return None;
+                }
+                if let Some(Expr::Int(s, _)) = &step {
+                    if *s < 1 {
+                        self.diags.push(Diagnostic::error(
+                            "E211",
+                            span,
+                            format!("stride `{}` must be 1 or more", s),
+                        ));
+                        return None;
+                    }
+                }
             }
             Some(IndexSel::Range {
                 start: first,
                 end,
                 step,
-                explicit_step,
                 span,
             })
         } else {
             let mut items = vec![first];
-            let mut had_comma = false;
             while self.eat(&TokenKind::Comma) {
-                had_comma = true;
-                items.push(self.index_number("in the index list")?);
+                items.push(self.expr()?);
             }
             self.expect(&TokenKind::RBracket, "to close the index bracket");
             let span = open.to(self.prev_span());
             // `[i]` is the REAL reference form (valid everywhere); only a
             // comma-separated set is the net-member-only list sugar.
-            if had_comma {
+            if items.len() > 1 {
                 Some(IndexSel::List(items, span))
             } else {
-                Some(IndexSel::Single(first, span))
+                Some(IndexSel::Single(items.pop().expect("one item"), span))
             }
         }
     }

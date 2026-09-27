@@ -4158,3 +4158,146 @@ internals exception. E1301-E1307 registered. Notes and honest narrowings:
   every element to one pin silently was judged a trap, not a feature.
 - **`nc` on a port is rejected** (E1306): a port is a connection surface,
   not a device pin; an optional port dangles by simply not being wired.
+
+## RFC-033 — parameterized circuit construction, 2026-09-17
+
+Candidate A adds checked i64 `Int` and exact femto-i128 `Length`
+expressions, local `const`, `const N: Int` generics on functions and
+subdesigns, expression-valued arrays and placements, and labelled
+half-open `for` loops. This section records implementation evidence;
+**the source RFC is still Proposed**. Its provisional number, E140x
+allocation and acceptance require confirmation in the design source.
+The generated Accepted-only language specification is not an acceptance
+record for this implementation.
+
+- **Expansion identity and layout ownership are separate.** The
+  `__for_{LABEL}_{VALUE}` path segment identifies an iteration; a
+  subdesign's layout defaults belong to its actual subdesign node.
+  Tests compare complete placement maps through nested loops, parent
+  rotation/side transforms and explicit overrides. LED, RC and FilterBank
+  oracles also check complete endpoint partitions, named rails, nc,
+  parts, BOM and surviving designators against hand-authored expectations.
+- **Directly authored named nets in circuit loops are rejected.** This
+  PR implements the review's conservative option: E1406 points at the
+  net name and explains the shared-pin/anonymous-net alternative. The
+  definition pass checks empty/nested loops and unused definitions once
+  per source site; repeated helper calls do not duplicate the diagnostic,
+  and separate sites are not collapsed. Shared rails are declared outside
+  the loop and joined through an explicit shared pin. Helper-private nets
+  keep their existing isolation. Regressions check exact diagnostic counts
+  and spans, complete endpoint sets, manufacturing names and power/ground
+  attributes. This is a Proposed implementation choice for review, not a
+  formal acceptance record or a change to global net-name merging.
+- **Length identity uses the typed value, while forwarding preserves
+  authored text.** Literal, parenthesized-literal and pure parameter/const
+  forwarding retain spellings such as `1.50mm`; arithmetic results use
+  canonical value text. Equal femto values do not create false E802
+  conflicts. Bare Length arguments use an expression AST node; other
+  legacy bare generic arguments retain their existing representation.
+  Diagnostic compatibility is checked at actual use sites, not inferred
+  from the AST variant.
+- **Declaration checks are intentionally stricter.** Duplicate locals in
+  unused definitions and known-kind/known-zero expression errors in empty
+  loops are diagnosed before expansion. Wrong-unit generic arguments are
+  still checked in unused functions/subdesigns, including expressions
+  whose type is known but value is not. Historical duplicate E112 reports
+  at one called-function site become one; unused-definition E112 reports
+  gain a primary label. These are explicit diagnostic changes, not a
+  claim that all historical diagnostics are byte-identical.
+- **Syntax/AST depth is bounded at 96.** The parser checks before descent
+  or AST construction, including left-associated operator chains. An
+  over-limit file reports E102 and discards its partial AST. Boundary,
+  very-deep CLI/fmt/docs, debug/release and consecutive LSP-edit tests
+  exercise normal process stacks. This is independent of the expansion
+  budget: 100,000 iterations, 1,000,000 work items and 64 active frames
+  (E1405). Metering activates on reachable M2 syntax; ordinary legacy
+  literal placements do not activate it, while empty `for` loops do.
+- **Formatting preserves comments and source order.** Circuit bodies use
+  the shared statement formatter. Layout blocks containing M2 merge
+  const/place/for/constraint/outline entries by source span, recursively;
+  existing non-M2 layout formatting retains its prior conventions.
+  Golden fixtures, idempotence and full electrical/layout comparisons
+  cover this behavior. VS Code and Zed recognize the new constructs;
+  the Zed generated parser is kept in sync with its grammar.
+- **API docs and Registry support both schemas locally.** Legacy docs
+  remain v1; M2 items use v2 `body_source` and omit inapplicable legacy
+  summaries. Classification visits every expression-bearing position;
+  parenthesized array lengths cannot enter JSON as raw DSL. The compiler
+  suite parses complete documents with a standard JSON parser. Registry
+  tests cover buffered and streaming v1/v2, optional summaries and Int
+  signatures. A real compiler-generated document, padded through an
+  intent attribute to 16,661,062 uploaded bytes, was stored and retrieved
+  identically by a local Worker. This does not verify production
+  deployment or browser rendering. Manual browser checks are optional
+  follow-up, not a prerequisite for this language PR. Deployment is a
+  separate release task: deploy the consumer before a compiler release
+  that emits v2.
+- **Compatibility evidence is scoped to fixed inputs and revisions.**
+  The pre-RFC baseline is `b78b7432b1dc9e01bd9e751c0878b11602c8c456`,
+  not `99e9385` (which already contains RFC-033). At verified code
+  revision `9950a9c`, all **63 package directories** from the baseline
+  tree (**60 lib + 3 examples**) have identical complete diagnostic JSON,
+  exit status and stderr. The three examples also have byte-identical
+  outputs from all four emitters, including output manifests and
+  `design.lock`. Seven additional old-language Length cases cover the
+  noncanonical spellings absent from those examples. OpenMicroKBD was
+  checked both unchanged and with 15 switch placements replaced by nested
+  loops: the latter changes layout-record order only, with the complete
+  placement map, other emitted bytes and designators preserved. These
+  runs cover this code revision; later language changes require fresh
+  validation. They are not proof for every possible old program or a
+  substitute for final CI.
+- **Explorer verification has an explicit boundary.** Its parameterized
+  fixture checks all six instance identities, the complete BUS net, four
+  resolved placements, exact source file/line/column and read-only,
+  deterministic extraction. Browser selection/source navigation remains
+  an optional follow-up check, not a language-PR acceptance gate.
+- **Combined local checks at `9950a9c`:** 836 Rust tests, the IPC-2581
+  schema gate with `xmllint`, all-targets clippy, Rust/source formatting and
+  build passed. Explorer's eight extractor tests passed, including the
+  message-only diagnostic consumer. Registry's 207 tests/typecheck/lint/build
+  and Explorer's eleven web tests/build remain valid from `26adacf`: those
+  targets' source trees are unchanged. The old
+  corpus, seven Length cases, product oracles and OpenMicroKBD comparisons
+  above were repeated with this same compiler binary. Eleven additional
+  real-CLI acceptance groups check named-net rejection and legal complete
+  topology, including IPC-2581 power/ground classification. The upstream
+  allocation/acceptance record and CI on the eventual PR head remain open.
+  Manual UI checks remain unverified optional follow-up.
+- **Activation context survives message-only consumers.** Loop E1007
+  duplicate-placement and rotation failures include the resolved target,
+  loop path and binder values in the main diagnostic message. Putting this
+  information only in a primary label was insufficient: LSP and Explorer
+  project the main message. Real CLI/LSP subprocess tests without the
+  related-information capability and an Explorer regression now enforce
+  that contract, including nested loops and distinct messages for multiple
+  iterations at the same source span. Non-loop E1007 messages retain their
+  previous shape.
+- **Re-review corrections, 2026-09-27:** a bare signed Temperature generic
+  argument such as `Td<-40C>` uses the legacy unit-literal path, preserving
+  its exact value, spelling and span. The exception is limited to a bare
+  Temperature argument; signed Length arithmetic still uses the expression
+  evaluator. Targeted comparisons with `b78b743` cover inst/part/fn/subdesign
+  arguments, defaults, signed zero, wrong-unit diagnostics and complete
+  manufacturing output, including `-40.00C` spelling.
+- **Repeated diagnostics are bounded by the underlying error.** Duplicate
+  placement conflicts report once per resolved target and coordinate owner,
+  retaining the first conflict's source span and activation context. A
+  99,999-iteration same-target loop reports one E1007; different targets or
+  owners remain distinct, as do per-iteration rotation errors. Undefined
+  expression names (E202) join the existing failed-expression tracking:
+  empty loops and unused definitions are checked, separate source sites
+  remain separate, and dynamic index failures survive across iterations
+  and helper calls. Legal default/override composition is unchanged.
+- **Re-review verification at `c2f0abd`:** 856 Rust tests passed, with zero
+  failures and one existing ignored fixture; fmt, all-targets clippy,
+  doctests, build and lib/examples source formatting passed. Fourteen
+  targeted CLI acceptance groups include exact Temperature compatibility,
+  signed Length arithmetic and diagnostic-volume boundaries. Two actual
+  message-only LSP cases verify single-diagnostic responses and exact
+  source ranges for repeated placement and undefined-name errors. The
+  previous seven Length cases, fourteen diagnostic probes, two LSP
+  provenance cases, seven product oracles and eight Explorer extractor
+  tests also passed with this compiler. The earlier 63-package and
+  three-example corpus results above remain evidence for their recorded
+  revision; this pass adds targeted coverage for the shapes they missed.

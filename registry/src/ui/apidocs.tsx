@@ -1,8 +1,10 @@
 // The package API explorer (docs/apidocs.md): kind and module navigation
-// over the schema_version 1 document, per-kind item pages, and the SVG
+// over the schema_version 1 and 2 documents, per-kind item pages, and the SVG
 // previews. The document is publisher-derived content — every string in it
 // renders as React text or an SVG attribute, extending the Markdown
-// renderer's no-raw-HTML rule to this whole surface.
+// renderer's no-raw-HTML rule to this whole surface. Schema-2 (RFC-033) M2
+// items carry `body_source`, rendered verbatim in a preformatted block —
+// never evaluated.
 
 import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -16,7 +18,9 @@ import {
   type DeviceDoc,
   type FnDoc,
   type FootprintDoc,
+  type InstDoc,
   type PadDoc,
+  type SubdesignDoc,
 } from "./api";
 import { Icon, StatePanel } from "./components";
 import {
@@ -30,6 +34,7 @@ import {
   itemsByFq,
   kindCounts,
   moduleGroups,
+  netCount,
   padFacts,
   padsByFq,
   partsForDevice,
@@ -558,7 +563,25 @@ function KindBody({ item, ctx }: { item: ApiDocsItem; ctx: DetailContext }) {
       return item.device ? <DeviceBody fq={item.fq} device={item.device} ctx={ctx} /> : null;
     case "fn":
       return item.fn ? (
-        <CircuitBody keyword="fn" name={item.name} body={item.fn} ctx={ctx} />
+        <CircuitBody
+          keyword="fn"
+          name={item.name}
+          body={item.fn}
+          bodySource={item.body_source}
+          ports={undefined}
+          ctx={ctx}
+        />
+      ) : null;
+    case "subdesign":
+      return item.subdesign ? (
+        <CircuitBody
+          keyword="subdesign"
+          name={item.name}
+          body={item.subdesign}
+          bodySource={item.body_source}
+          ports={item.subdesign.ports}
+          ctx={ctx}
+        />
       ) : null;
     case "part":
       return item.part ? <PartBody item={item} ctx={ctx} /> : null;
@@ -573,7 +596,13 @@ function KindBody({ item, ctx }: { item: ApiDocsItem; ctx: DetailContext }) {
         <CircuitBody
           keyword="design"
           name={item.name}
-          body={{ nets: item.design.nets, insts: item.design.insts, calls: item.design.calls }}
+          body={{
+            nets: item.design.nets,
+            insts: item.design.insts,
+            calls: item.design.calls,
+          }}
+          bodySource={item.body_source}
+          ports={undefined}
           ctx={ctx}
         />
       ) : null;
@@ -735,13 +764,17 @@ function DeviceBody({ fq, device, ctx }: { fq: string; device: DeviceDoc; ctx: D
                       <code>{generic?.name}</code>
                     </td>
                     <td>
-                      {generic?.bound?.unit ??
-                        asArray(generic?.bound?.traits).map((t, i) => (
-                          <React.Fragment key={t}>
-                            {i > 0 && " + "}
-                            <FqRef fq={t} doc={ctx.doc} nav={ctx.nav} />
-                          </React.Fragment>
-                        ))}
+                      {generic?.bound?.const === "Int" ? (
+                        <code>const Int</code>
+                      ) : (
+                        (generic?.bound?.unit ??
+                          asArray(generic?.bound?.traits).map((t, i) => (
+                            <React.Fragment key={t}>
+                              {i > 0 && " + "}
+                              <FqRef fq={t} doc={ctx.doc} nav={ctx.nav} />
+                            </React.Fragment>
+                          )))
+                      )}
                     </td>
                     <td>{generic?.default ?? "—"}</td>
                   </tr>
@@ -833,29 +866,62 @@ function DeviceBody({ fq, device, ctx }: { fq: string; device: DeviceDoc; ctx: D
   );
 }
 
-/// fn and design pages share the signature + insts/calls/nets summary; a
-/// design body is an `FnDoc` with no generics or params.
+/// fn, subdesign, and design pages share the signature + body rendering; a
+/// design body is an `FnDoc`-shaped summary with no generics or params. A
+/// schema-2 (RFC-033) M2 item carries `body_source` — its fmt-canonical body
+/// text — instead of the lossy insts/calls/nets summary: render the source
+/// preformatted and never derive a count that is not there.
 function CircuitBody({
   keyword,
   name,
   body,
+  bodySource,
+  ports,
   ctx,
 }: {
-  keyword: "fn" | "design";
+  keyword: "fn" | "design" | "subdesign";
   name: string;
-  body: FnDoc;
+  body: FnDoc | SubdesignDoc;
+  bodySource: string | undefined;
+  ports: { name: string; obligation: string }[] | undefined;
   ctx: DetailContext;
 }) {
-  const insts = asArray(body.insts);
-  const calls = asArray(body.calls);
+  const insts = asArray(body.insts) as InstDoc[];
+  const calls = asArray(body.calls) as string[];
+  const portList = asArray(ports);
+  const hasSummary = bodySource === undefined;
   return (
     <>
       <pre className="code-panel api-signature">
         <code>{fnSignature(keyword, name, body)}</code>
       </pre>
-      <p className="api-fact">
-        {body.nets} net statement{body.nets === 1 ? "" : "s"} in the body
-      </p>
+      {portList.length > 0 && (
+        <Section title="Ports" count={portList.length}>
+          <ul className="api-ref-list">
+            {portList.map((port) => (
+              <li key={port?.name}>
+                <code>{port?.name}</code>
+                {port?.obligation === "optional" && (
+                  <span className="api-fact"> (optional)</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+      {hasSummary ? (
+        typeof netCount(body.nets) === "number" ? (
+          <p className="api-fact">
+            {body.nets} net statement{body.nets === 1 ? "" : "s"} in the body
+          </p>
+        ) : null
+      ) : (
+        <Section title="Body (canonical source)" count={1}>
+          <pre className="code-panel api-body-source">
+            <code>{bodySource}</code>
+          </pre>
+        </Section>
+      )}
       {insts.length > 0 && (
         <Section title="Instances" count={insts.length}>
           <div className="table-wrap">

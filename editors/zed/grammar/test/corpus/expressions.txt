@@ -1,0 +1,40 @@
+================================================================================
+const generics, loops, ranges and arithmetic
+================================================================================
+
+fn bank<const N: Int>(p: Pin) {
+    const M: Int = (N + 1) * 2 / 2 % 3 - 1
+    for wiring: i in 0..N step 2 {
+        net _: p, a[i].A, a[0..=N - 1].B
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (declaration name: (identifier))
+  (identifier)
+  (identifier)
+  (parens (identifier) (identifier))
+  (block
+    (identifier)
+    (identifier)
+    (parens (identifier) (number))
+    (number)
+    (number)
+    (number)
+    (number)
+    (identifier)
+    (identifier)
+    (number)
+    (identifier)
+    (number)
+    (block
+      (net_statement name: (wildcard))
+      (identifier)
+      (identifier)
+      (brackets (identifier))
+      (identifier)
+      (identifier)
+      (brackets (number) (identifier) (number))
+      (identifier))))

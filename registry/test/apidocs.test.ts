@@ -79,8 +79,8 @@ describe("validateApidocs", () => {
     }
   });
 
-  it("refuses every schema_version except the number 1", () => {
-    for (const schema_version of [2, 0, "1", 1.5, null, undefined, [1]]) {
+  it("refuses every schema_version except 1 or 2", () => {
+    for (const schema_version of [0, "1", 1.5, null, undefined, [1], [1, 2]]) {
       const body = new TextEncoder().encode(
         JSON.stringify({ schema_version, package: { name: "p", version: "1.0.0" } }),
       );
@@ -88,8 +88,26 @@ describe("validateApidocs", () => {
       expect(verdict).toEqual({
         ok: false,
         status: 400,
-        error: "api docs must declare `schema_version` 1",
+        error: "api docs must declare `schema_version` 1 or 2",
       });
+    }
+    // Schema 2 (RFC-033) is accepted; its items may carry body_source text.
+    for (const schema_version of [1, 2]) {
+      const body = new TextEncoder().encode(
+        JSON.stringify({
+          schema_version,
+          package: { name: "p", version: "1.0.0" },
+          items: [
+            {
+              name: "bank",
+              kind: "fn",
+              body_source: "for x: i in 0..N {\n  net _: p\n}",
+            },
+          ],
+        }),
+      );
+      const verdict = validateApidocs(body, "p", "1.0.0");
+      expect(verdict.ok).toBe(true);
     }
   });
 
@@ -194,10 +212,14 @@ const STREAM_LIMITS: ApidocsLimits = {
   prefixMaxBytes: 512,
 };
 
-function canonicalDoc(name = "passive", version = "1.0.0"): Uint8Array<ArrayBuffer> {
+function canonicalDoc(
+  name = "passive",
+  version = "1.0.0",
+  schemaVersion: 1 | 2 = 1,
+): Uint8Array<ArrayBuffer> {
   return new TextEncoder().encode(
     JSON.stringify({
-      schema_version: 1,
+      schema_version: schemaVersion,
       generator: "cohdl test",
       package: { name, version, root: "passive" },
       dependencies: [],
@@ -274,9 +296,30 @@ describe("handleApidocsPut", () => {
 
   it("rejects an invalid body without storing anything", async () => {
     const h = harness();
+    const { response, body } = await invoke(h, JSON.stringify({ schema_version: 3 }));
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("api docs must declare `schema_version` 1 or 2");
+    expect(h.store.put).not.toHaveBeenCalled();
+  });
+
+  it("accepts schema v2 uploads for the published package and version", async () => {
+    const h = harness();
+    const uploaded = new TextEncoder().encode(JSON.stringify({
+      schema_version: 2,
+      package: { name: "passive", version: "1.0.0" },
+      items: [],
+    }));
+    const { response, body } = await invoke(h, uploaded);
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ name: "passive", version: "1.0.0", size: uploaded.length });
+    expect(h.store.put).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects schema v2 without the package envelope", async () => {
+    const h = harness();
     const { response, body } = await invoke(h, JSON.stringify({ schema_version: 2 }));
     expect(response.status).toBe(400);
-    expect(body.error).toBe("api docs must declare `schema_version` 1");
+    expect(body.error).toContain("package.name");
     expect(h.store.put).not.toHaveBeenCalled();
   });
 
@@ -320,6 +363,111 @@ describe("handleApidocsPut", () => {
     expect([...h.streamed[0]]).toEqual([...uploaded]);
   });
 
+  it("streams a real >16,000,001-byte schema 2 document at production limits", async () => {
+    // RFC-033 acceptance: a genuine v2 payload above the buffered threshold,
+    // using the real (default) limits — not an injected low threshold. The
+    // document is built as one canonical envelope whose `items` array carries
+    // ~26k body_source items (M2 fns), exactly the field hierarchy the emitter
+    // produces; the prefix validator must accept schema 2, the store must
+    // receive the exact bytes, and the SHA must match what was declared.
+    const encoder = new TextEncoder();
+
+    // Canonical compact prefix through the `items` opener — the byte sequence
+    // validateCanonicalPrefix actually inspects (well under 64 KiB).
+    const prefix =
+      '{"schema_version":2,"generator":"cohdl 0.3.0",' +
+      '"package":{"name":"passive","version":"1.0.0","root":"passive"},' +
+      '"dependencies":[],"items":[';
+    const prefixBytes = encoder.encode(prefix);
+
+    // One body_source item (~1.05 KB each, realistic M2 fn shape).
+    const item =
+      '{"fq":"passive::banks::BANK","name":"BANK","kind":"fn","pub":true,' +
+      '"module":"passive::banks","file":"src/main.cohdl","line":3,' +
+      '"fn":{"generics":[{"name":"N","bound":{"const":"Int"},"default":2}],' +
+      '"params":[{"name":"p","type":{"kind":"pin"}}]},' +
+      '"body_source":"for x: i in 0..N {\\n  net _: p\\n}"}';
+    const itemBytes = encoder.encode(item);
+
+    // Size to just over the 16,000,000-byte buffered threshold: item bytes
+    // plus one ',' separator before each item after the first, plus the
+    // closing ']' + '\n' + '}' tail.
+    const perItem = itemBytes.byteLength + 1;
+    const count = Math.floor((16_000_001 - prefixBytes.byteLength - 3) / perItem) + 1;
+    const total = prefixBytes.byteLength + count * perItem + 3 - 1;
+    expect(total).toBeGreaterThan(16_000_000);
+
+    // Assemble the real bytes as one buffer, then hand them to the handler
+    // as a stream with a canonical Content-Length.
+    const bytes = new Uint8Array(total);
+    bytes.set(prefixBytes, 0);
+    let offset = prefixBytes.byteLength;
+    for (let i = 0; i < count; i++) {
+      if (i > 0) bytes[offset++] = 0x2c; // ','
+      bytes.set(itemBytes, offset);
+      offset += itemBytes.byteLength;
+    }
+    bytes[offset++] = 0x5d; // ']'
+    bytes[offset++] = 0x0a; // '\n'
+    bytes[offset++] = 0x7d; // '}'
+    expect(offset).toBe(total);
+
+    const uploaded = bytes.buffer as ArrayBuffer;
+    const sha256 = await bodySha256(new Uint8Array(uploaded));
+    let sawStream: ReadableStream<Uint8Array> | null = null;
+    const captureStream = harness(OWNER);
+    captureStream.store.putStream.mockImplementation(async (_n, _v, body) => {
+      sawStream = body;
+      // Drain nothing here: keep the stream un-consumed for direct inspection.
+    });
+    const request = new Request("https://registry.cohdl.org/packages/passive/1.0.0/docs", {
+      method: "PUT",
+      // Node's undici requires `duplex: "half"` for streamed bodies (absent
+      // from the workers-types RequestInit).
+      duplex: "half",
+      headers: {
+        Authorization: "Bearer cohdl_token",
+        "Content-Type": "application/json",
+        "Content-Length": String(total),
+        "X-CoHDL-Api-Docs-Schema": "1",
+        "X-CoHDL-Api-Docs-SHA256": sha256,
+      },
+      body: new ReadableStream<Uint8Array>({
+        // Chunked at 1 MiB — streaming, not one buffered write.
+        async start(controller) {
+          const CHUNK = 1 << 20;
+          for (let at = 0; at < total; at += CHUNK) {
+            controller.enqueue(bytes.subarray(at, Math.min(at + CHUNK, total)));
+          }
+          controller.close();
+        },
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as unknown as RequestInit);
+
+    const response = await handleApidocsPut(request, "passive", "1.0.0", captureStream.deps);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ name: "passive", version: "1.0.0", size: total });
+
+    // Store integrity: exact bytes, exact SHA.
+    expect(captureStream.store.put).not.toHaveBeenCalled();
+    expect(captureStream.store.putStream).toHaveBeenCalledTimes(1);
+    const [name, version, streamArg, size, suppliedSha] =
+      captureStream.store.putStream.mock.calls[0];
+    expect(name).toBe("passive");
+    expect(version).toBe("1.0.0");
+    expect(size).toBe(total);
+    expect(suppliedSha).toBe(sha256);
+    const stored = new Uint8Array(await new Response(streamArg).arrayBuffer());
+    expect(stored.byteLength).toBe(total);
+    expect(await bodySha256(stored)).toBe(sha256);
+
+    // The streamed bytes are the uploaded bytes: same head, same tail.
+    expect(stored.subarray(0, prefixBytes.byteLength)).toEqual(prefixBytes);
+    expect(stored[total - 1]).toBe(0x7d);
+    expect(sawStream).not.toBeNull();
+  });
+
   it("requires both streaming metadata headers", async () => {
     const uploaded = canonicalDoc();
     const missingSchema = harness(OWNER, {}, STREAM_LIMITS);
@@ -357,6 +505,89 @@ describe("handleApidocsPut", () => {
     const wrongPackage = canonicalDoc("other");
     const response = await handleApidocsPut(
       await streamingRequest(wrongPackage),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toContain('`package.name = "other"`');
+    expect(h.store.putStream).not.toHaveBeenCalled();
+  });
+
+  it("streams a schema 2 document with the same byte, SHA, and header contract", async () => {
+    // RFC-033: a v2 document (const Int generics / body_source items) uses the
+    // identical transport. The transport handshake X-CoHDL-Api-Docs-Schema
+    // stays "1" — it versions the canonical-prefix + SHA-256 upload protocol,
+    // not the document's schema_version.
+    const h = harness(OWNER, {}, STREAM_LIMITS);
+    const uploaded = canonicalDoc(undefined, undefined, 2);
+    const sha256 = await bodySha256(uploaded);
+    expect(uploaded.byteLength).toBeGreaterThan(STREAM_LIMITS.bufferMaxBytes);
+
+    const response = await handleApidocsPut(
+      await streamingRequest(uploaded),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      name: "passive",
+      version: "1.0.0",
+      size: uploaded.byteLength,
+    });
+    expect(h.store.put).not.toHaveBeenCalled();
+    expect(h.store.putStream).toHaveBeenCalledTimes(1);
+    const [name, version, _stream, size, suppliedSha256] = h.store.putStream.mock.calls[0];
+    expect(name).toBe("passive");
+    expect(version).toBe("1.0.0");
+    expect(size).toBe(uploaded.byteLength);
+    expect(suppliedSha256).toBe(sha256);
+    expect(h.streamed).toHaveLength(1);
+    expect([...h.streamed[0]]).toEqual([...uploaded]);
+    const stored = new TextDecoder().decode(h.streamed[0]);
+    expect(stored).toContain('"schema_version":2');
+  });
+
+  it("rejects an unknown schema version on the streaming path too", async () => {
+    const h = harness(OWNER, {}, STREAM_LIMITS);
+    // Canonical shape but schema_version 3 — the prefix check passes the byte
+    // prefix `{"schema_version":3,"generator":`? No: the canonical starter is
+    // pinned to 1|2, so a v3 body fails the canonical-prefix gate BEFORE the
+    // envelope schema check. Drive both halves: v3 bytes (canonical-prefix
+    // rejection) and v2 bytes whose envelope declares a foreign package
+    // (envelope-level rejection), plus a non-canonical v3 envelope.
+    const bogusV3 = new TextEncoder().encode(
+      '{"schema_version":3,"generator":"cohdl test",' +
+        '"package":{"name":"passive","version":"1.0.0","root":"passive"},' +
+        '"dependencies":[],"items":[',
+    );
+    let response = await handleApidocsPut(
+      await streamingRequest(bogusV3),
+      "passive",
+      "1.0.0",
+      h.deps,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: "large api docs must use the canonical CoHDL JSON prefix",
+    });
+    expect(h.store.putStream).not.toHaveBeenCalled();
+
+    // A document whose canonical prefix parses but whose schema_version is
+    // neither 1 nor 2 cannot exist in canonical form (the starter pins the
+    // version), so the remaining envelope rejection is exercised through the
+    // buffered path (see validateApidoc tests above). Here, pin that the
+    // canonical v2 envelope with mismatched package identity is still
+    // rejected by the streaming envelope check.
+    const wrongPkg = new TextEncoder().encode(
+      '{"schema_version":2,"generator":"cohdl test",' +
+        '"package":{"name":"other","version":"1.0.0","root":"passive"},' +
+        '"dependencies":[],"items":[',
+    );
+    response = await handleApidocsPut(
+      await streamingRequest(wrongPkg),
       "passive",
       "1.0.0",
       h.deps,

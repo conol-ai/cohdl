@@ -1,0 +1,6 @@
+[package]
+name = "rfc033-v2"
+version = "0.1.0"
+
+[dependencies]
+std = "0.3.0"

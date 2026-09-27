@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "generator": "cohdl 0.7.1",
+  "package": {
+    "name": "rfc033-v1",
+    "version": "0.1.0",
+    "root": "rfc033_v1"
+  },
+  "dependencies": [
+    {
+      "name": "std",
+      "version": "0.3.0",
+      "root": "std"
+    }
+  ],
+  "items": [
+    {
+      "fq": "Empty",
+      "name": "Empty",
+      "kind": "design",
+      "pub": true,
+      "module": "rfc033_v1",
+      "file": "src/main.cohdl",
+      "line": 3,
+      "design": {
+        "nets": 0
+      }
+    },
+    {
+      "fq": "rfc033_v1::Rail",
+      "name": "Rail",
+      "kind": "subdesign",
+      "pub": true,
+      "module": "rfc033_v1",
+      "file": "src/main.cohdl",
+      "line": 2,
+      "subdesign": {
+        "ports": [
+          {
+            "name": "P",
+            "obligation": "required"
+          }
+        ],
+        "nets": 1
+      }
+    },
+    {
+      "fq": "rfc033_v1::wire",
+      "name": "wire",
+      "kind": "fn",
+      "pub": true,
+      "module": "rfc033_v1",
+      "file": "src/main.cohdl",
+      "line": 1,
+      "fn": {
+        "params": [
+          {
+            "name": "p",
+            "type": {
+              "kind": "pin"
+            }
+          }
+        ],
+        "nets": 1
+      }
+    }
+  ],
+  "impls": [],
+  "foreign": []
+}

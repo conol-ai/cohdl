@@ -73,14 +73,17 @@ cohdl docs [PATH] [--out FILE] [--publish]
   bytes). This is the registry application's cap; Cloudflare's plan-dependent
   request-body ceiling may be lower. Documents at most **16 MB** (16,000,000
   bytes) take the fully parsed path: the server requires valid UTF-8 JSON, a
-  top-level object, `schema_version: 1`, and URL-matching
+  top-level object, `schema_version` 1 or 2, and URL-matching
   `package.name`/`package.version`, then derives the bounded part-search
   projection. Larger documents require a canonical decimal `Content-Length`,
   compact canonical emitter bytes, `X-CoHDL-Api-Docs-Schema: 1`, and
-  `X-CoHDL-Api-Docs-SHA256: <64 lowercase hex digits>`. The Worker validates
-  the actual canonical envelope through the `items` opener within the first
-  64 KiB, including the package identity, then streams the complete request
-  through a fixed-length body to R2; R2 verifies the declared SHA-256. This
+  `X-CoHDL-Api-Docs-SHA256: <64 lowercase hex digits>`. `X-CoHDL-Api-Docs-Schema`
+  versions the TRANSPORT handshake (canonical prefix + checksum streaming), not
+  the document's `schema_version` — it stays `1` for both v1 and v2 documents.
+  The Worker validates the actual canonical envelope (either `schema_version`)
+  through the `items` opener within the first 64 KiB, including the package
+  identity, then streams the complete request through a fixed-length body to
+  R2; R2 verifies the declared SHA-256. This
   path deliberately avoids materializing the full JSON tree and therefore
   publishes no part-search rows. Deep schema validation remains the emitter's
   responsibility; the UI renders every field as inert text/SVG (no HTML path
@@ -156,13 +159,31 @@ api_docs_size INTEGER` (NULL = no docs uploaded). Search adds migration
 `part_search` FTS5 table with its trigram tokenizer. `schema.sql` mirrors both
 migrations.
 
-## The document (schema_version 1)
+## The document (schema_version 1 and 2)
 
 Produced only by the Rust emitter. Deterministic: same source + same exact
 dependency set → same bytes. Hand-rolled JSON following `src/emit/json.rs`
 conventions — `json_str` escaping, fixed key order, 2-space indent, optional
 keys present only when they have content, one trailing newline, inputs
 pre-sorted (the emitter never sorts at print time).
+
+**Schema 2 (RFC-033).** A document declares `schema_version: 2` iff any
+emitted item — local or foreign — uses RFC-033 syntax (`const N: Int`
+generics, `const`/`for` statements, layout consts/loops, or a non-literal
+expression in a signature/body position); a package without any such item
+stays `schema_version: 1`, byte-identical to before. In a v2 document an
+M2 item carries `"body_source": "<canonical body text>"` — the item's body
+formatted through `cohdl fmt` and sliced from the formatted source — and
+omits the `insts`/`calls`/`nets` summary (the full source text replaces the
+lossy summary). An `Int` generic renders `"bound": {"const": "Int"}` with a
+numeric `"default"`. Consumers treat `body_source` as opaque escaped text:
+render it preformatted, never evaluate it. The registry worker accepts
+`schema_version` 1 or 2 on both the fully parsed path and the streaming
+canonical-prefix path. The UI renders `body_source` verbatim in a
+preformatted panel (never HTML), spells a const Int generic as
+`const N: Int = <default>` in signatures and `const Int` in device generic
+tables, and shows a neutral "full body source" row summary instead of a
+missing net count; v1 items keep their insts/calls/nets summaries.
 
 Value conventions:
 
@@ -453,6 +474,11 @@ for foreign items. All `file` fields are `/`-separated on every platform.
   the first part referencing the footprint); a scale bar shows mm.
 - Everything renders as text/attributes through React — the no-raw-HTML rule
   of the Markdown renderer extends to every docs-JSON string.
+- **Schema 2 (RFC-033) items**: an M2 item's `body_source` renders verbatim
+  in a scrollable preformatted panel (no evaluation, no re-parse); its
+  signature spells `const N: Int = <default>` generics; the item row shows a
+  neutral "full body source" summary instead of a net count. v1 items are
+  unaffected — same summaries, same byte-stable documents.
 
 ## Determinism & zero impact
 

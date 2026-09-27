@@ -1,0 +1,3 @@
+pub fn bank<const N: Int = 2>(p: Pin) { for x: i in 0..N { net _: p } }
+pub subdesign Bank<const N: Int = 2> { ports { required P: Pin } for w: i in 0..N { net _: P } }
+design Empty { const N: Int = 2 for empty: i in 0..N {} }

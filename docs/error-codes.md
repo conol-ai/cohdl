@@ -56,7 +56,7 @@ CLI-only has at least one real call site in `src/`.
 | Code | Meaning |
 |---|---|
 | E101 | non-ASCII unit spelling (`Ω`, `°C`) directly after a number |
-| E102 | negative bare number (only `Temperature` and `Length` literals may be negative) |
+| E102 | negative bare number in legacy pin/pad/mount-hole number positions; also syntax/AST nesting deeper than 96, reported before recursive descent or constructing an over-limit tree (distinct from the 64-frame expansion budget, E1405) |
 | E103 | unknown unit suffix |
 | E104 | SI prefix not allowed for this unit (incl. any prefix on `Temperature`/`Tolerance`) |
 | E105 | leading `-` on a unit literal whose type is not signed (only `Temperature` and `Length` may carry a sign) |
@@ -71,7 +71,7 @@ CLI-only has at least one real call site in `src/`.
 
 | Code | Meaning |
 |---|---|
-| E201 | duplicate top-level declaration |
+| E201 | duplicate declaration — a top-level name declared twice at one module path, or a local name (instance, array, subdesign use site, const, loop label or loop variable) that collides with anything visible in its scope |
 | E202 | unknown name |
 | E203 | unknown pin on device/trait |
 | E204 | `[RESERVED, not yet implemented]` unknown spec field — no call site yet |
@@ -256,6 +256,18 @@ the RFC-016 classes (E202/E205), exactly as the RFC directs.
 | E1305 | placement reach-in path failure — the exact failing segment is named: an instance has no internals to walk into, or a segment is not an instance or subdesign inside the node (a `fn`-expanded instance retains no stable path) |
 | E1306 | `nc` on a subdesign port — a port is a connection surface, not a device pin; an optional port is simply left unconnected |
 | E1307 | a `subdesign` use site inside a `fn` body — a fn expands inline and retains no hierarchy path for the node to live under |
+
+## E14xx — parameterized circuit construction (RFC-033)
+
+| Code | Meaning |
+|---|---|
+| E1401 | expected a compile-time `Int` or `Length` (or a supported operand pairing) — a unit literal where a count is required, an Int where a `Length` coordinate is required, `Int + Length`, `Length * Length`, a non-`Int`/`Length` const type, or an expression given to a non-Int/Length generic parameter; a fractional numeric literal in an Int position is E1401, while an integer outside i64 is E1402 |
+| E1402 | Int or Length overflow, `MIN / -1`, `MIN % -1`, an out-of-range integer literal, or a `Length / Int` that is not exactly representable (Length arithmetic never rounds) |
+| E1403 | division or remainder by zero, including a known zero divisor inside a loop body that never runs |
+| E1404 | reversed `for` range — the end is below the start (equal bounds are an empty loop, not an error) |
+| E1405 | deterministic expansion budget exceeded: 100,000 entered iterations, 1,000,000 work items, or 64 active loop frames; reported before the excess object is materialized, never a partial build |
+| E1406 | a declaration or operation not admitted in this context: `inst`/`subdesign` inside a `for` body (including an empty one), a directly authored named `net NAME: …` inside a `for` body (declare the named net outside the loop and join it inside via an anonymous `net _` through shared pins/ports; helper-fn private named nets called from loops are unaffected), or anything but `const`/`place`/`for` inside a layout loop |
+| E1407 | cyclic constant / array-length dependency — the complete cycle is named (`N` → `leds.len` → `N`) |
 
 ## D00x — residual DRC (RFC-004; exactly four, never more)
 

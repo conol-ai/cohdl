@@ -2444,6 +2444,16 @@ button:disabled {
   color: var(--text);
 }
 
+.kind-subdesign {
+  color: var(--accent-hover);
+}
+
+.api-body-source {
+  margin: 0;
+  max-height: 480px;
+  overflow: auto;
+}
+
 .api-kind-label {
   display: inline-flex;
   align-items: center;

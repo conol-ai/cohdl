@@ -1,0 +1,87 @@
+{
+  "schema_version": 2,
+  "generator": "cohdl 0.7.1",
+  "package": {
+    "name": "rfc033-v2",
+    "version": "0.1.0",
+    "root": "rfc033_v2"
+  },
+  "dependencies": [
+    {
+      "name": "std",
+      "version": "0.3.0",
+      "root": "std"
+    }
+  ],
+  "items": [
+    {
+      "fq": "Empty",
+      "name": "Empty",
+      "kind": "design",
+      "pub": true,
+      "module": "rfc033_v2",
+      "file": "src/main.cohdl",
+      "line": 3,
+      "design": {},
+      "body_source": "const N: Int = 2\n    for empty: i in 0..N {\n    }"
+    },
+    {
+      "fq": "rfc033_v2::Bank",
+      "name": "Bank",
+      "kind": "subdesign",
+      "pub": true,
+      "module": "rfc033_v2",
+      "file": "src/main.cohdl",
+      "line": 2,
+      "subdesign": {
+        "generics": [
+          {
+            "name": "N",
+            "bound": {
+              "const": "Int"
+            },
+            "default": 2
+          }
+        ],
+        "ports": [
+          {
+            "name": "P",
+            "obligation": "required"
+          }
+        ]
+      },
+      "body_source": "for w: i in 0..N {\n        net _: P\n    }"
+    },
+    {
+      "fq": "rfc033_v2::bank",
+      "name": "bank",
+      "kind": "fn",
+      "pub": true,
+      "module": "rfc033_v2",
+      "file": "src/main.cohdl",
+      "line": 1,
+      "fn": {
+        "generics": [
+          {
+            "name": "N",
+            "bound": {
+              "const": "Int"
+            },
+            "default": 2
+          }
+        ],
+        "params": [
+          {
+            "name": "p",
+            "type": {
+              "kind": "pin"
+            }
+          }
+        ]
+      },
+      "body_source": "for x: i in 0..N {\n        net _: p\n    }"
+    }
+  ],
+  "impls": [],
+  "foreign": []
+}

@@ -1163,6 +1163,94 @@ fn related_information_requires_client_capability() {
     lsp.shutdown();
 }
 
+// RFC-033 constraint 12: message-only clients must distinguish activations.
+// Exercise real CLI and LSP subprocesses without relatedInformation support.
+#[test]
+fn loop_placement_main_messages_survive_without_related_information() {
+    for nested in [false, true] {
+        for rotate in [false, true] {
+            let placements = if rotate {
+                "place a[i] at (0mm, 0mm) rotate 200 * i"
+            } else {
+                "place a[i] at (0mm, 0mm) place a[i] at (1mm, 0mm)"
+            };
+            let loop_body = format!("for pos: i in 2..4 {{\n{placements}\n}}");
+            let loop_body = if nested {
+                format!("for rows: row in 7..8 {{\n{loop_body}\n}}")
+            } else {
+                loop_body
+            };
+            let src = format!("pub device Probe {{ pins {{ A: 1 [passive], B: 2 [passive] }} }}\ndesign B {{\ninst a: [Probe; 4]\nnet _: a[0..=3].A, a[0..=3].B\nlayout {{\n{loop_body}\n}}\n}}\n");
+            let (path, uri, text) = fixture(&format!("loop-message-{nested}-{rotate}.cohdl"), &src);
+            let out = Command::new(env!("CARGO_BIN_EXE_cohdl"))
+                .args(["check", path.to_str().unwrap(), "--json"])
+                .env("COHDL_STD", repo_std())
+                .output()
+                .unwrap();
+            assert_eq!(out.status.code(), Some(1));
+            let doc: Value = serde_json::from_slice(&out.stdout).unwrap();
+            // COHDL_STD contributes an unrelated project warning without a
+            // source file. Assert the COMPLETE source diagnostic set below.
+            let cli: Vec<_> = doc["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|d| d["primary"]["file"].as_str() == Some(path.to_str().unwrap()))
+                .collect();
+            let mut lsp = Lsp::spawn();
+            let _ = lsp.request("initialize", json!({ "capabilities": {} }));
+            lsp.notify("initialized", json!({}));
+            did_open(&mut lsp, &uri, &text);
+            let diagnostics = lsp.await_diagnostics(&uri);
+            lsp.shutdown();
+            assert_eq!(cli.len(), 2, "{doc}");
+            assert_eq!(diagnostics.len(), 2, "{diagnostics:?}");
+            // Literal source coordinates, independent of checked IR/diagnostics:
+            // placement line 7 (8 when nested), duplicate target at column 32,
+            // or rotation expression at column 33 (all 1-based, ASCII).
+            let line0 = if nested { 7 } else { 6 };
+            let (start, end) = if rotate { (32, 39) } else { (31, 35) };
+            let range = json!({
+                "start": { "line": line0, "character": start },
+                "end": { "line": line0, "character": end },
+            });
+            for (i, (j, l)) in (2..4).zip(cli.iter().zip(&diagnostics)) {
+                let frame = if nested {
+                    format!("B::__for_rows_7::__for_pos_{i}, row = 7, i = {i}")
+                } else {
+                    format!("B::__for_pos_{i}, i = {i}")
+                };
+                let (base, label) = if rotate {
+                    (format!("`rotate {}` is not a rotation — give a whole number of degrees in 0..=359 (counter-clockwise)", 200 * i), format!("target `B::a_{i}`, computed angle {} — in {frame}", 200 * i))
+                } else {
+                    (
+                        "`a[i]` is placed more than once".to_string(),
+                        format!("target `B::a_{i}` — in {frame}"),
+                    )
+                };
+                let message = format!("{base}; {label}");
+                assert_eq!(l["message"], message);
+                assert_eq!(j["code"], "E1007");
+                assert_eq!(j["severity"], "error");
+                assert_eq!(j["message"], message);
+                assert_eq!(j["primary"]["message"], label);
+                assert_eq!(j["primary"]["start_line"], line0 + 1);
+                assert_eq!(j["primary"]["end_line"], line0 + 1);
+                assert_eq!(j["primary"]["start_col"], start + 1);
+                assert_eq!(j["primary"]["end_col"], end + 1);
+                assert_eq!(j["secondary"], json!([]));
+                assert_eq!(j["help"], json!([]));
+                assert_eq!(l["code"], "E1007");
+                assert_eq!(l["severity"], 1);
+                assert_eq!(l["message"], j["message"]);
+                assert_eq!(l["range"], range);
+                assert!(l.get("relatedInformation").is_none());
+            }
+            assert_ne!(diagnostics[0]["message"], diagnostics[1]["message"]);
+        }
+    }
+}
+
 // R8: header field names are case-insensitive (HTTP semantics).
 #[test]
 fn lowercase_content_length_header_accepted() {
@@ -2304,5 +2392,129 @@ design ZzB {
     // `reg` in a pin reference inside the subdesign's own body.
     probe(7, "reg", 5, "reg", "reference inside the declaration body");
 
+    lsp.shutdown();
+}
+
+// ---------------------------------------------------------------------------
+// RFC-033: hover and completion for consts, loop binders and `.len`.
+
+#[test]
+fn rfc033_hover_const_binder_and_len() {
+    let src = "\
+pub device Led { pins { A: 1 [passive], B: 2 [passive] } }
+design Chain {
+    const N: Int = 4
+    inst leds: [Led; N]
+    net P: leds[0..=3].A
+    for links: n in 0..N - 1 {
+        net _: leds[n].A, leds[n + 1].B
+    }
+    nc: leds[0..=3].B
+}
+";
+    let (_path, uri, text) = fixture("rfc033hover.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Hover on `.len` inside a const that reads the array's length
+    // (`const LEN: Int = leds.len` on line 2 of THIS variant).
+    {
+        let src2 = src.replace(
+            "    const N: Int = 4\n",
+            "    const LEN: Int = leds.len\n    const N: Int = 4\n",
+        );
+        let (_p2, uri2, text2) = fixture("rfc033len.cohdl", &src2);
+        let mut lsp2 = Lsp::start();
+        did_open(&mut lsp2, &uri2, &text2);
+        let _ = lsp2.await_diagnostics(&uri2);
+        let line = src2.lines().nth(2).unwrap();
+        let col = line.find(".len").map(|c| c + 2).unwrap() as u64;
+        let hover = lsp2.request(
+            "textDocument/hover",
+            json!({ "textDocument": { "uri": uri2 }, "position": { "line": 2, "character": col } }),
+        );
+        let hv = hover["contents"]["value"].as_str().unwrap_or_default();
+        assert!(
+            hv.contains("leds.len") && hv.contains("4"),
+            ".len hover shows the array length:\n{hover}"
+        );
+        lsp2.shutdown();
+    }
+
+    // Hover on the const declaration name `N` (line 2).
+    let col = src.lines().nth(2).unwrap().find("N:").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 2, "character": col } }),
+    );
+    let hv = hover["contents"]["value"].as_str().unwrap_or_default();
+    assert!(hv.contains("const N: Int"), "const hover:\n{hover}");
+    assert!(
+        hv.contains("value: 4"),
+        "design-body const shows its value:\n{hover}"
+    );
+
+    // Hover on a USE of `N` inside the loop bound (line 5, `0..N - 1`).
+    let line5 = src.lines().nth(5).unwrap();
+    let col = line5.find("N -").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 5, "character": col } }),
+    );
+    let hv = hover["contents"]["value"].as_str().unwrap_or_default();
+    assert!(
+        hv.contains("const N: Int"),
+        "const use-site hover:\n{hover}"
+    );
+
+    // Hover on the loop binder `n` inside the loop body (line 6).
+    let line6 = src.lines().nth(6).unwrap();
+    let col = line6.find("n]").unwrap() as u64;
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 6, "character": col } }),
+    );
+    let hv = hover["contents"]["value"].as_str().unwrap_or_default();
+    assert!(hv.contains("loop variable"), "binder hover:\n{hover}");
+    assert!(hv.contains("links"), "names the loop label:\n{hover}");
+
+    lsp.shutdown();
+}
+
+#[test]
+fn rfc033_completion_lists_const_and_loop_symbols() {
+    let src = "\
+pub device Led { pins { A: 1 [passive], B: 2 [passive] } }
+design Chain {
+    const N: Int = 4
+    inst leds: [Led; N]
+    net P: leds[0..=3].A
+    for links: n in 0..N - 1 {
+        net _: leds[n].A, leds[n + 1].B
+    }
+    nc: leds[0..=3].B
+}
+";
+    let (_path, uri, text) = fixture("rfc033comp.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+
+    // Completion on the closing `}` line of the loop (line 7): the loop's
+    // span still contains the cursor, so the label, the binder and the
+    // body's consts are all in-scope with an empty prefix.
+    let comp = lsp.request(
+        "textDocument/completion",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 7, "character": 0 } }),
+    );
+    let items = comp["items"].as_array().cloned().unwrap_or_default();
+    let labels: Vec<&str> = items.iter().filter_map(|i| i["label"].as_str()).collect();
+    assert!(labels.contains(&"N"), "const N in symbols: {labels:?}");
+    assert!(
+        labels.contains(&"links"),
+        "loop label in symbols: {labels:?}"
+    );
+    assert!(labels.contains(&"n"), "binder in symbols: {labels:?}");
     lsp.shutdown();
 }

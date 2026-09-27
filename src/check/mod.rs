@@ -1,15 +1,17 @@
 //! The type checker: the "resolves + type-checks" rungs of the verdict ladder.
 
 pub mod bodies;
+pub mod eval;
 pub mod expand;
 pub mod footprints;
 pub mod generics;
 pub mod impls;
 pub mod ipc7351;
+pub mod meter;
 pub mod subdesigns;
 
-use crate::ast::SourceFile;
-use crate::diag::Diagnostics;
+use crate::ast::{GenericBound, SourceFile};
+use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::{build_world, World};
 
@@ -23,8 +25,25 @@ use crate::resolve::{build_world, World};
 fn run_declaration_checks(world: &mut World, diags: &mut Diagnostics) {
     impls::check_impls(world, diags);
     generics::check_parts(world, diags);
+    // RFC-033: `const N: Int` is admitted on `fn` and `subdesign` only — a
+    // device's pin interface is a structural variant (RFC-008), never a
+    // count-parameterized family.
+    for dev in world.devices.values() {
+        for g in &dev.generics {
+            if let GenericBound::Int(span) = &g.bound {
+                diags.push(Diagnostic::error(
+                    "E406",
+                    *span,
+                    "integer generics are not admitted on `device` declarations — pin interfaces are structural variants (RFC-008)".to_string(),
+                ));
+            }
+        }
+    }
     // Semantically validate every function body, called or not (R6-3).
     bodies::check_fn_bodies(world, diags);
+    // RFC-033 §8: every design body gets the same uniform static validation
+    // (duplicate locals, const kinds, loop bounds and admission).
+    bodies::check_design_bodies(world, diags);
     // RFC-032: every subdesign body, used or not, plus containment cycles.
     subdesigns::check_subdesigns(world, diags);
 }

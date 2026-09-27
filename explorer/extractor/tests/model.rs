@@ -4,7 +4,7 @@ use std::path::Path;
 
 fn extract(example: &str) -> serde_json::Value {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../cohdl/examples")
+        .join("../../examples")
         .join(example);
     let model = cohdl_explorer::project_model::extract(&dir).expect("extract");
     serde_json::to_value(&model).expect("serialize")

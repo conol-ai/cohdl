@@ -1,6 +1,6 @@
 # cohdl.org
 
-The CoHDL project site: landing page, documentation, blog, and use cases.
+The CoHDL project site: landing page, documentation, blog, use cases, and hiring.
 (The pre-release waitlist form is gone from the landing page since the v0.3.0
 open-source release; the Worker endpoint and D1 table remain so the collected
 addresses can be exported for the promised one-time announcement.)
@@ -20,8 +20,10 @@ public/
   docs/rfcs/         RFC index + one page per RFC — GENERATED, do not hand-edit
   blog/              blog index, one directory per post, Atom feed.xml
   use-cases/         use-case index + openmicrokbd/ case study
+  hiring.html        remote openings for designers, product managers and engineers
   img/openmicrokbd/  case-study photos (WebP, from the openmicrokbd repo, MIT)
   css/home.css       isolated landing-page visual system and responsive layout
+  css/hiring.css     isolated hiring-page layout and role details
   css/style.css      shared docs/blog/use-case tokens, chrome and code highlighting
   css/prose.css      long-form styles for docs/blog/use-case pages
   js/home.js         progressive motion, navigation, pipeline scroll stack and copy control
@@ -51,6 +53,9 @@ Editing notes:
 - A new blog post gets its own directory, an entry at the top of
   `blog/index.html`, and an `<entry>` in `blog/feed.xml`.
 - Add new pages to `sitemap.xml`.
+- Keep hiring content in `hiring.html` and its page-specific styles in
+  `css/hiring.css`; update the homepage's desktop, mobile and footer Hiring links
+  together if the hiring URL changes.
 - `docs/spec/` and `docs/rfcs/` are generated verbatim from `docs/design/` by
   `site/tools/gen_design_docs.py` (chrome template + curated summaries live in
   the script). After a design-repo re-extract, re-run it and commit the diff;

@@ -536,6 +536,32 @@ body[data-theme="light"] #pcb-canvas {
   gap: clamp(38px, 5vw, 72px);
 }
 
+.hiring-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  padding: 0.9rem 1.2rem;
+  border: 1px solid rgba(var(--accent-rgb), 0.28);
+  border-radius: 10px;
+  background: rgba(var(--accent-rgb), 0.06);
+  color: var(--text);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.hiring-banner:hover {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+.hiring-banner__label,
+.hiring-banner__cta { font-weight: 600; }
+.hiring-banner__copy { color: var(--text-2); }
+.hiring-banner__cta { color: var(--accent); white-space: nowrap; }
+
 .hero__title {
   max-width: 10.5ch;
   margin: 0.15rem 0 1.8rem;
@@ -1935,6 +1961,14 @@ html.js [data-demo].is-visible .code-line:nth-child(11) { animation-delay: 0.52s
   }
 
   .hero { padding-block: 110px 72px; }
+
+  .hiring-banner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.35rem 1rem;
+  }
+
+  .hiring-banner__copy { grid-column: 1 / -1; grid-row: 2; }
+  .hiring-banner__cta { grid-column: 2; grid-row: 1; }
 
   .hero__title {
     margin-bottom: 1.35rem;

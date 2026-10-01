@@ -1,0 +1,223 @@
+/* Hiring uses the shared site tokens; its layout stays local to this page. */
+
+.hiring-eyebrow,
+.hiring-role-number,
+.hiring-count,
+.hiring-section-note,
+.hiring-location {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.hiring-eyebrow {
+  margin: 0 0 1.4rem;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hiring-hero h1 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(2.75rem, 7.8vw, 5.2rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.05em;
+}
+
+.hiring-hero h1 em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.hiring-lede {
+  max-width: 46ch;
+  margin: 0 0 1.8rem;
+  color: var(--text-secondary);
+  font-size: clamp(1.05rem, 2.3vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.hiring-meta,
+.hiring-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+
+.hiring-count,
+.hiring-section-note {
+  color: var(--text-tertiary);
+}
+
+.hiring-actions {
+  margin-top: 2rem;
+}
+
+.hiring-product-link {
+  padding-block: 0.7rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.hiring-product-link:hover {
+  color: var(--accent-hover);
+}
+
+.hiring-positions {
+  margin-top: clamp(4rem, 10vw, 6rem);
+  scroll-margin-top: 2rem;
+}
+
+.hiring-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.hiring-section-head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.hiring-role {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 2.5rem;
+  padding-block: 2.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  scroll-margin-top: 2rem;
+}
+
+.hiring-role-number {
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+
+.hiring-role h3 {
+  margin: 0 0 0.8rem;
+  font-size: clamp(1.65rem, 3.2vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.hiring-location {
+  display: inline-block;
+  margin: 0;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+}
+
+.hiring-role-intro {
+  margin: 0 0 1.75rem;
+  color: var(--text);
+  font-size: 1.06rem;
+}
+
+.hiring-role h4 {
+  margin: 1.6rem 0 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hiring-role ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-secondary);
+  font-size: 0.94rem;
+}
+
+.hiring-role li::marker {
+  color: var(--border-strong);
+}
+
+.hiring-apply {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding-block: 0.5rem;
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hiring-apply:hover {
+  text-decoration: underline;
+}
+
+.hiring-contact {
+  margin-top: clamp(3rem, 7vw, 4.5rem);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+
+.hiring-contact .hiring-eyebrow {
+  margin-bottom: 0.85rem;
+}
+
+.hiring-contact h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.hiring-contact p:not(.hiring-eyebrow) {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.hiring-contact p.hiring-contact-note {
+  margin-top: 1rem;
+  color: var(--text-tertiary);
+  font-size: 0.87rem;
+}
+
+@media (max-width: 640px) {
+  .hiring-role {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.4rem;
+    padding-block: 2rem;
+  }
+
+  .hiring-role-heading {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+
+  .hiring-role-number {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .hiring-role h3 {
+    margin: 0;
+  }
+
+  .hiring-location {
+    justify-self: end;
+  }
+
+  .hiring-desktop-break {
+    display: none;
+  }
+}

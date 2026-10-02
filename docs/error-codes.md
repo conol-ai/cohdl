@@ -56,7 +56,7 @@ CLI-only has at least one real call site in `src/`.
 | Code | Meaning |
 |---|---|
 | E101 | non-ASCII unit spelling (`Ω`, `°C`) directly after a number |
-| E102 | negative bare number in legacy pin/pad/mount-hole number positions; also syntax/AST nesting deeper than 96, reported before recursive descent or constructing an over-limit tree (distinct from the 64-frame expansion budget, E1405); also the per-file syntax-error budget — the error that would be a file's 201st (`parse::MAX_PARSE_ERRORS`) is replaced by one E102 "too many syntax errors" and parsing of that file stops, which also bounds any recovery path that fails to make progress |
+| E102 | negative bare number in legacy pin/pad/mount-hole number positions; also syntax/AST nesting deeper than 96, reported before recursive descent or constructing an over-limit tree (distinct from the 64-frame expansion budget, E1405); also the per-file syntax-error budget — the error that would be a file's 201st (`parse::MAX_PARSE_ERRORS`) is replaced by one E102 "too many syntax errors" and parsing of that file stops, which also bounds any recovery path that fails to make progress. A file stopped by either limit has not had all its declarations read, so that check reports syntax errors only: name resolution and design checks are skipped rather than reporting declarations that exist as unknown |
 | E103 | unknown unit suffix |
 | E104 | SI prefix not allowed for this unit (incl. any prefix on `Temperature`/`Tolerance`) |
 | E105 | leading `-` on a unit literal whose type is not signed (only `Temperature` and `Length` may carry a sign) |

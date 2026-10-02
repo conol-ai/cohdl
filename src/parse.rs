@@ -2186,6 +2186,7 @@ impl<'a> Parser<'a> {
             pins_span: None,
             spec_span: None,
         };
+        let mut stray = StrayTraitMembers::default();
         let mut progress = Progress::default();
         while self.block_continues(&mut progress) {
             if self.at(&TokenKind::Pins) {
@@ -2236,6 +2237,25 @@ impl<'a> Parser<'a> {
                         self.peek().describe()
                     )),
                 }
+            } else if let Some(kind) = self.stray_member_kind(None) {
+                let entry = (self.span(), self.stray_member_name());
+                match kind {
+                    StrayKind::Pin => {
+                        stray.pin_entries.push(entry);
+                        match self.trait_pin() {
+                            Some(pin) => stray.pins.push(pin),
+                            None => self.sync_in_block_advancing(),
+                        }
+                    }
+                    StrayKind::Spec => {
+                        stray.spec_entries.push(entry);
+                        match self.trait_spec_field() {
+                            Some(field) => stray.specs.push(field),
+                            None => self.sync_in_block_advancing(),
+                        }
+                    }
+                }
+                self.eat(&TokenKind::Comma);
             } else {
                 self.error_here(format!(
                     "expected `pins`, `spec`, or `designator_prefix` in the trait body, found {}",
@@ -2247,6 +2267,7 @@ impl<'a> Parser<'a> {
             }
         }
         self.expect(&TokenKind::RBrace, "to close the trait body");
+        self.finish_stray_trait_members(&mut def, stray);
         Some(def)
     }
 
@@ -2359,6 +2380,7 @@ impl<'a> Parser<'a> {
             pin_blocks: Vec::new(),
             spec_blocks: Vec::new(),
         };
+        let mut stray = StrayDeviceMembers::default();
         let mut progress = Progress::default();
         while self.block_continues(&mut progress) {
             if self.at_ident("variants") {
@@ -2404,9 +2426,10 @@ impl<'a> Parser<'a> {
                 let variant = self.block_variant_qualifier();
                 self.expect(&TokenKind::LBrace, "to open the pins block");
                 let mut pins = Vec::new();
+                let mut slips = PinSlips::default();
                 let mut progress = Progress::default();
                 while self.block_continues(&mut progress) {
-                    if let Some(pin) = self.device_pin() {
+                    if let Some(pin) = self.device_pin(&mut slips) {
                         pins.push(pin);
                     } else {
                         self.sync_in_block();
@@ -2414,6 +2437,7 @@ impl<'a> Parser<'a> {
                     self.eat(&TokenKind::Comma);
                 }
                 self.expect(&TokenKind::RBrace, "to close the pins block");
+                self.report_pin_slips(&slips);
                 def.pin_blocks.push(PinBlock {
                     variant,
                     pins,
@@ -2440,6 +2464,25 @@ impl<'a> Parser<'a> {
                     fields,
                     span: block_start.to(self.prev_span()),
                 });
+            } else if let Some(kind) = self.stray_member_kind(Some(&def.generics)) {
+                let entry = (self.span(), self.stray_member_name());
+                match kind {
+                    StrayKind::Pin => {
+                        stray.pin_entries.push(entry);
+                        match self.device_pin(&mut stray.pin_slips) {
+                            Some(pin) => stray.pins.push(pin),
+                            None => self.sync_in_block_advancing(),
+                        }
+                    }
+                    StrayKind::Spec => {
+                        stray.spec_entries.push(entry);
+                        match self.device_spec_field() {
+                            Some(field) => stray.specs.push(field),
+                            None => self.sync_in_block_advancing(),
+                        }
+                    }
+                }
+                self.eat(&TokenKind::Comma);
             } else {
                 self.error_here(format!(
                     "expected `pins`, `spec`, or `variants` in the device body, found {}",
@@ -2451,7 +2494,198 @@ impl<'a> Parser<'a> {
             }
         }
         self.expect(&TokenKind::RBrace, "to close the device body");
+        self.finish_stray_device_members(&mut def, stray);
         Some(def)
+    }
+
+    /// A member written straight into a trait/device body, where only block
+    /// keywords are legal: `[required|optional] NAME: …`. Which block it
+    /// belongs in is read off the token after the `:` (2-token lookahead,
+    /// like `device_pin`'s list continuation). `generics` is `Some` for a
+    /// device body (a generic parameter name there is a spec value).
+    fn stray_member_kind(&self, generics: Option<&[GenericParam]>) -> Option<StrayKind> {
+        if matches!(self.peek(), TokenKind::Required | TokenKind::Optional) {
+            return (matches!(self.peek_ahead(1), TokenKind::Ident(_))
+                && self.peek_ahead(2) == &TokenKind::Colon)
+                .then_some(StrayKind::Pin);
+        }
+        if !matches!(self.peek(), TokenKind::Ident(_)) || self.peek_ahead(1) != &TokenKind::Colon {
+            return None;
+        }
+        let value = self.peek_ahead(2);
+        match generics {
+            // Device: `NAME: 5V` / `NAME: C` is a spec field; `NAME: 1 …`,
+            // `NAME: A3 …`, `NAME: [1, 2] …`, `NAME: required …` a pin.
+            Some(generics) => match value {
+                TokenKind::Unit(_) | TokenKind::Minus => Some(StrayKind::Spec),
+                TokenKind::Ident(n) if generics.iter().any(|g| &g.name.name == n) => {
+                    Some(StrayKind::Spec)
+                }
+                TokenKind::Number(_)
+                | TokenKind::LBracket
+                | TokenKind::Required
+                | TokenKind::Optional => Some(StrayKind::Pin),
+                TokenKind::Ident(n) if is_pad_name(n) => Some(StrayKind::Pin),
+                _ => None,
+            },
+            // Trait: `NAME: pin` is a pin role, `NAME: Voltage` a spec field.
+            None => match value {
+                TokenKind::Ident(n) if n == "pin" => Some(StrayKind::Pin),
+                TokenKind::Ident(n) if UnitType::from_type_name(n).is_some() => {
+                    Some(StrayKind::Spec)
+                }
+                _ => None,
+            },
+        }
+    }
+
+    /// The member name of the entry `stray_member_kind` just classified.
+    fn stray_member_name(&self) -> String {
+        let at = usize::from(matches!(
+            self.peek(),
+            TokenKind::Required | TokenKind::Optional
+        ));
+        match self.peek_ahead(at) {
+            TokenKind::Ident(n) => n.clone(),
+            _ => unreachable!("stray_member_kind matched an identifier here"),
+        }
+    }
+
+    /// One diagnostic per kind of member found outside its block, naming
+    /// the first and counting the rest, with the entry rewritten in place —
+    /// then adopt the entries as the block they were meant to be (when the
+    /// body has no real one) so the rest of the pipeline checks the device
+    /// the author meant instead of cascading "no pin `X`" errors.
+    fn finish_stray_device_members(&mut self, def: &mut DeviceDef, stray: StrayDeviceMembers) {
+        if let Some((span, name)) = stray.pin_entries.first() {
+            let n = stray.pin_entries.len();
+            let example = stray.pins.first().map_or_else(
+                || "required NAME: 1, 2 [passive]".to_string(),
+                canonical_pin,
+            );
+            let more = if n > 1 { " …" } else { "" };
+            let mut d = Diagnostic::error(
+                "E010",
+                *span,
+                format!(
+                    "pin entry `{name}` is written directly in the device body{} — device pins are declared inside a `pins {{ … }}` block",
+                    and_more(n, "in this device")
+                ),
+            )
+            .with_help(format!(
+                "write `pins {{ {example}{more} }}` — one `[required|optional] NAME: N, N, … [ROLE]` entry per line inside the block"
+            ));
+            if !stray.pin_slips.obligation_after_name.is_empty() {
+                d = d.with_help(
+                    "`required`/`optional` comes before the pin name, never after the `:`",
+                );
+            }
+            if !stray.pin_slips.bracketed_numbers.is_empty() {
+                d = d.with_help(
+                    "pin numbers are a bare comma-separated list — only the role is bracketed",
+                );
+            }
+            self.report(d);
+            if def.pin_blocks.is_empty() && !stray.pins.is_empty() {
+                let span = stray.pins[0].span.to(stray.pins[stray.pins.len() - 1].span);
+                def.pin_blocks.push(PinBlock {
+                    variant: None,
+                    pins: stray.pins,
+                    span,
+                });
+            }
+        }
+        if let Some((span, name)) = stray.spec_entries.first() {
+            let n = stray.spec_entries.len();
+            let example = stray.specs.first().map_or_else(
+                || format!("{name}: 5V"),
+                |f| {
+                    let value = match &f.value {
+                        SpecValue::Lit(v, _) => v.text.clone(),
+                        SpecValue::GenericRef(g) => g.name.clone(),
+                    };
+                    format!("{}: {}", f.name.name, value)
+                },
+            );
+            let more = if n > 1 { ", …" } else { "" };
+            self.report(
+                Diagnostic::error(
+                    "E010",
+                    *span,
+                    format!(
+                        "spec field `{name}` is written directly in the device body{} — device specs are declared inside a `spec {{ … }}` block",
+                        and_more(n, "in this device")
+                    ),
+                )
+                .with_help(format!("write `spec {{ {example}{more} }}`")),
+            );
+            if def.spec_blocks.is_empty() && !stray.specs.is_empty() {
+                let span = stray.specs[0]
+                    .span
+                    .to(stray.specs[stray.specs.len() - 1].span);
+                def.spec_blocks.push(SpecBlock {
+                    variant: None,
+                    fields: stray.specs,
+                    span,
+                });
+            }
+        }
+    }
+
+    /// The trait-body counterpart of `finish_stray_device_members`.
+    fn finish_stray_trait_members(&mut self, def: &mut TraitDef, stray: StrayTraitMembers) {
+        if let Some((span, name)) = stray.pin_entries.first() {
+            let n = stray.pin_entries.len();
+            let example = stray.pins.first().map_or_else(
+                || format!("required {name}: pin"),
+                |p| format!("{} {}: pin", p.obligation.keyword(), p.name.name),
+            );
+            let more = if n > 1 { " …" } else { "" };
+            self.report(
+                Diagnostic::error(
+                    "E010",
+                    *span,
+                    format!(
+                        "pin role `{name}` is written directly in the trait body{} — trait pins are declared inside a `pins {{ … }}` block",
+                        and_more(n, "in this trait")
+                    ),
+                )
+                .with_help(format!(
+                    "write `pins {{ {example}{more} }}` — one `[required|optional] NAME: pin` entry per line inside the block"
+                )),
+            );
+            if def.pins_span.is_none() && !stray.pins.is_empty() {
+                def.pins_span = Some(stray.pins[0].span.to(stray.pins[stray.pins.len() - 1].span));
+                def.pins = stray.pins;
+            }
+        }
+        if let Some((span, name)) = stray.spec_entries.first() {
+            let n = stray.spec_entries.len();
+            let example = stray.specs.first().map_or_else(
+                || format!("{name}: Voltage"),
+                |f| format!("{}: {}", f.name.name, f.ty.unit.type_name()),
+            );
+            let more = if n > 1 { ", …" } else { "" };
+            self.report(
+                Diagnostic::error(
+                    "E010",
+                    *span,
+                    format!(
+                        "spec field `{name}` is written directly in the trait body{} — trait specs are declared inside a `spec {{ … }}` block",
+                        and_more(n, "in this trait")
+                    ),
+                )
+                .with_help(format!("write `spec {{ {example}{more} }}`")),
+            );
+            if def.spec_span.is_none() && !stray.specs.is_empty() {
+                def.spec_span = Some(
+                    stray.specs[0]
+                        .span
+                        .to(stray.specs[stray.specs.len() - 1].span),
+                );
+                def.specs = stray.specs;
+            }
+        }
     }
 
     /// The optional `[VARIANT]` qualifier on a `pins`/`spec` block (RFC-008).
@@ -2471,11 +2705,40 @@ impl<'a> Parser<'a> {
     /// an identifier NOT followed by `:`) continues the current pin-number
     /// list; an identifier followed by `:` (or `required`/`optional`) starts
     /// the next entry.
-    fn device_pin(&mut self) -> Option<DevicePin> {
+    ///
+    /// Two slips are recovered rather than cascaded — `NAME: required …`
+    /// (the obligation after the colon) and `NAME: [1, 2] [role]` (numbers
+    /// bracketed like the role). The entry still parses to its intended
+    /// meaning; the slip lands in `slips` and is reported once per block.
+    fn device_pin(&mut self, slips: &mut PinSlips) -> Option<DevicePin> {
         let start = self.span();
-        let obligation = self.obligation();
+        let mut obligation = self.obligation();
         let name = self.ident("as the pin name")?;
         self.expect(&TokenKind::Colon, "after the pin name");
+        let mut slipped = false;
+        if matches!(self.peek(), TokenKind::Required | TokenKind::Optional) {
+            let span = self.span();
+            obligation = self.obligation();
+            slips
+                .obligation_after_name
+                .push((span, name.name.clone(), obligation));
+            slipped = true;
+        }
+        // A pad name is uppercase and a role lowercase, so `[` + number or
+        // pad name is a bracketed number list, never the role bracket.
+        let bracketed = self.at(&TokenKind::LBracket)
+            && match self.peek_ahead(1) {
+                TokenKind::Number(_) => true,
+                TokenKind::Ident(n) => is_pad_name(n),
+                _ => false,
+            };
+        if bracketed {
+            slips
+                .bracketed_numbers
+                .push((self.span(), name.name.clone()));
+            self.bump(); // `[`
+            slipped = true;
+        }
         let mut numbers = Vec::new();
         loop {
             match self.peek() {
@@ -2525,6 +2788,9 @@ impl<'a> Parser<'a> {
             }
             break;
         }
+        if bracketed && !self.expect(&TokenKind::RBracket, "to close the bracketed pin numbers") {
+            return None;
+        }
         let mut role = None;
         if self.at(&TokenKind::LBracket) {
             self.bump();
@@ -2562,13 +2828,56 @@ impl<'a> Parser<'a> {
                 ),
             );
         }
-        Some(DevicePin {
+        let pin = DevicePin {
             obligation,
             name,
             numbers,
             role,
             span: start.to(self.prev_span()),
-        })
+        };
+        if slipped && slips.example.is_none() {
+            slips.example = Some(canonical_pin(&pin));
+        }
+        Some(pin)
+    }
+
+    /// Report the slips `device_pin` recovered in one `pins { }` block — one
+    /// diagnostic per kind, naming the first entry and counting the rest, so
+    /// a 50-pin device written in the wrong shape yields two lines, not 100.
+    fn report_pin_slips(&mut self, slips: &PinSlips) {
+        let example = slips
+            .example
+            .as_ref()
+            .map(|e| format!("write the entry as `{e}`"));
+        if let Some((span, pin, obligation)) = slips.obligation_after_name.first() {
+            let kw = obligation.keyword();
+            let mut d = Diagnostic::error(
+                "E010",
+                *span,
+                format!(
+                    "`{kw}` is written after the pin name `{pin}`{} — the obligation comes first: `{kw} {pin}: …`",
+                    and_more(slips.obligation_after_name.len(), "in this block")
+                ),
+            );
+            if let Some(e) = &example {
+                d = d.with_help(e.clone());
+            }
+            self.report(d);
+        }
+        if let Some((span, pin)) = slips.bracketed_numbers.first() {
+            let mut d = Diagnostic::error(
+                "E010",
+                *span,
+                format!(
+                    "the pin numbers of `{pin}` are bracketed{} — they are a bare comma-separated list; only the role takes brackets: `{pin}: 1, 2 [passive]`",
+                    and_more(slips.bracketed_numbers.len(), "in this block")
+                ),
+            );
+            if let Some(e) = &example {
+                d = d.with_help(e.clone());
+            }
+            self.report(d);
+        }
     }
 
     fn device_spec_field(&mut self) -> Option<DeviceSpecField> {
@@ -4873,6 +5182,69 @@ impl<'a> Parser<'a> {
     }
 }
 
+/// Slips `device_pin` recovers, collected per `pins { }` block (or per
+/// device body, for entries written outside one) so each kind is reported
+/// once with a count rather than once per line.
+#[derive(Default)]
+struct PinSlips {
+    /// `NAME: required …` — the obligation after the colon.
+    obligation_after_name: Vec<(Span, String, Obligation)>,
+    /// `NAME: [1, 2] [role]` — the pin numbers bracketed.
+    bracketed_numbers: Vec<(Span, String)>,
+    /// The canonical spelling of the first slipped entry, for the help line.
+    example: Option<String>,
+}
+
+/// Which block a member written straight into a trait/device body belongs
+/// in (`IOVDD: required [1] [power_in]` at body level is a `pins` entry).
+#[derive(Clone, Copy)]
+enum StrayKind {
+    Pin,
+    Spec,
+}
+
+/// `pins`/`spec` entries found directly in a device body: where each began
+/// (all of them, for the count) and the ones that parsed (for recovery).
+#[derive(Default)]
+struct StrayDeviceMembers {
+    pin_entries: Vec<(Span, String)>,
+    pins: Vec<DevicePin>,
+    pin_slips: PinSlips,
+    spec_entries: Vec<(Span, String)>,
+    specs: Vec<DeviceSpecField>,
+}
+
+/// The trait-body counterpart of `StrayDeviceMembers`.
+#[derive(Default)]
+struct StrayTraitMembers {
+    pin_entries: Vec<(Span, String)>,
+    pins: Vec<TraitPin>,
+    spec_entries: Vec<(Span, String)>,
+    specs: Vec<TraitSpecField>,
+}
+
+/// ` (and N more entries PLACE)` when a slip repeats, else nothing.
+fn and_more(n: usize, place: &str) -> String {
+    match n {
+        0 | 1 => String::new(),
+        2 => format!(" (and 1 more entry {place})"),
+        _ => format!(" (and {} more entries {place})", n - 1),
+    }
+}
+
+/// A device pin entry in canonical form: `required IOVDD: 1, 10 [power_in]`.
+fn canonical_pin(pin: &DevicePin) -> String {
+    let numbers: Vec<&str> = pin.numbers.iter().map(|n| n.text.as_str()).collect();
+    let role = pin.role.map_or("ROLE", |(r, _)| r.name());
+    format!(
+        "{} {}: {} [{}]",
+        pin.obligation.keyword(),
+        pin.name.name,
+        numbers.join(", "),
+        role
+    )
+}
+
 /// Non-numeric physical pad names: uppercase alphanumerics starting with a
 /// letter — BGA grid positions (`A1`, `C3`) and named pads as they appear in
 /// real footprints (`SH`, `EP`).
@@ -5250,6 +5622,114 @@ design B {
             };
             assert_eq!(parsed, blocks, "{src}\n{rendered}");
         }
+    }
+
+    // The shape a model wrote for a whole board (pd-meter, 51 RP2040 pins):
+    // pin entries straight in the device body, obligation after the colon,
+    // numbers bracketed like the role. One diagnostic per device, the
+    // entry rewritten in canonical form, and the pins kept so later passes
+    // check the device the author meant.
+    #[test]
+    fn pin_entries_outside_pins_get_one_targeted_diagnostic() {
+        let src = "device X { A: required [1, 2] [passive] }\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(
+            rendered.contains("pin entry `A` is written directly in the device body — device pins are declared inside a `pins { … }` block"),
+            "{rendered}"
+        );
+        assert!(
+            rendered.contains("write `pins { required A: 1, 2 [passive] }`"),
+            "{rendered}"
+        );
+        assert!(rendered.contains("comes before the pin name"), "{rendered}");
+        assert!(
+            rendered.contains("only the role is bracketed"),
+            "{rendered}"
+        );
+        let ItemKind::Device(d) = &file.items[0].kind else {
+            panic!()
+        };
+        assert_eq!(d.pin_blocks.len(), 1);
+        let pin = &d.pin_blocks[0].pins[0];
+        assert_eq!(pin.name.name, "A");
+        assert_eq!(pin.obligation, Obligation::Required);
+        let numbers: Vec<&str> = pin.numbers.iter().map(|n| n.text.as_str()).collect();
+        assert_eq!(numbers, ["1", "2"]);
+        assert_eq!(pin.role.map(|(r, _)| r), Some(PinRole::Passive));
+    }
+
+    #[test]
+    fn stray_members_are_counted_per_body_and_classified_by_value() {
+        // Canonically spelled entries, just not in their blocks: no slip
+        // hints, one diagnostic per kind, the count, and both adopted.
+        let src = "pub device MCU<V: Voltage> {\n    required VDD: 1 [power_in]\n    GND: 2, 3 [power_in]\n    vmax: V\n    vmin: 1V\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 2, "{rendered}");
+        assert!(rendered.contains("pin entry `VDD` is written directly in the device body (and 1 more entry in this device)"), "{rendered}");
+        assert!(
+            rendered.contains("write `pins { required VDD: 1 [power_in] … }`"),
+            "{rendered}"
+        );
+        assert!(rendered.contains("spec field `vmax` is written directly in the device body (and 1 more entry in this device)"), "{rendered}");
+        assert!(
+            rendered.contains("write `spec { vmax: V, … }`"),
+            "{rendered}"
+        );
+        assert!(
+            !rendered.contains("comes before the pin name"),
+            "{rendered}"
+        );
+        let ItemKind::Device(d) = &file.items[0].kind else {
+            panic!()
+        };
+        assert_eq!(d.pin_blocks[0].pins.len(), 2);
+        assert_eq!(d.spec_blocks[0].fields.len(), 2);
+
+        let src =
+            "pub trait T {\n    required A: pin\n    B: pin\n    capacitance: Capacitance\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 2, "{rendered}");
+        assert!(rendered.contains("pin role `A` is written directly in the trait body (and 1 more entry in this trait)"), "{rendered}");
+        assert!(
+            rendered.contains("write `pins { required A: pin … }`"),
+            "{rendered}"
+        );
+        assert!(
+            rendered.contains("spec field `capacitance` is written directly in the trait body"),
+            "{rendered}"
+        );
+        let ItemKind::Trait(t) = &file.items[0].kind else {
+            panic!()
+        };
+        assert_eq!((t.pins.len(), t.specs.len()), (2, 1));
+    }
+
+    #[test]
+    fn misordered_pin_entries_inside_pins_are_recovered_once_per_block() {
+        let src = "pub device X {\n    pins {\n        A: required [1, 2] [passive]\n        B: optional [3] [passive]\n    }\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 2, "{rendered}");
+        assert!(
+            rendered.contains("`required` is written after the pin name `A` (and 1 more entry in this block) — the obligation comes first: `required A: …`"),
+            "{rendered}"
+        );
+        assert!(
+            rendered
+                .contains("the pin numbers of `A` are bracketed (and 1 more entry in this block)"),
+            "{rendered}"
+        );
+        assert!(
+            rendered.contains("write the entry as `required A: 1, 2 [passive]`"),
+            "{rendered}"
+        );
+        let ItemKind::Device(d) = &file.items[0].kind else {
+            panic!()
+        };
+        let pins = &d.pin_blocks[0].pins;
+        assert_eq!(pins.len(), 2);
+        assert_eq!(pins[1].obligation, Obligation::Optional);
+        assert_eq!(pins[1].numbers[0].text, "3");
     }
 
     // `sync_in_block_advancing` used to consume the `}` it stalled on, so

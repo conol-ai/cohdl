@@ -21,6 +21,12 @@ impl std::fmt::Display for Ident {
 #[derive(Debug, Clone)]
 pub struct SourceFile {
     pub items: Vec<Item>,
+    /// The parser stopped at its per-file error budget (E102 "too many
+    /// syntax errors"): `items` holds only the declarations before the stop
+    /// point, so the file's declaration set is incomplete. The pipeline
+    /// then reports the syntax errors alone — resolving names against a
+    /// partial file would report declarations that exist as unknown.
+    pub truncated: bool,
 }
 
 #[derive(Debug, Clone)]

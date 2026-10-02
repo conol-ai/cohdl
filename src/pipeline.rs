@@ -217,10 +217,22 @@ pub fn check_files_in_with_deps(
         parsed.push(crate::parse::parse(tokens, &mut diags));
         modules.push(infer_module(&root, deps, name));
     }
-    let world = crate::check::check_declarations_in(parsed, &modules, &mut diags);
+    // A file the parser abandoned at its error budget (E102 "too many
+    // syntax errors") is missing every declaration after the stop point:
+    // resolving against it would report declarations that exist as
+    // unknown (and a `design` past the stop as a selection error, exit 2).
+    // The world is still built for tooling, but this run reports the
+    // syntax errors alone and checks no design.
+    let truncated = parsed.iter().any(|f| f.truncated);
+    let world = if truncated {
+        crate::check::check_declarations_in(parsed, &modules, &mut Diagnostics::new())
+    } else {
+        crate::check::check_declarations_in(parsed, &modules, &mut diags)
+    };
 
     let mut selection_error = None;
     let design_name = match design {
+        _ if truncated => None,
         Some(d) => {
             if !world.designs.contains_key(d) {
                 let available: Vec<&String> = world.designs.keys().collect();

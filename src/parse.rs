@@ -34,7 +34,60 @@ const MAX_SYNTAX_DEPTH: usize = 96;
 /// the OS kills the process (the cohdl 0.8.0 `device X { , }` hang).
 const MAX_PARSE_ERRORS: usize = 200;
 
+/// Test builds only: `count_step`'s cap is this many `peek`s per token
+/// (plus 10,000). Terminating parses peek fewer than 3 times per token on
+/// both fuzz bases, every budget-halted variant included; a stalled loop
+/// passes the cap within milliseconds, a few megabytes in.
+#[cfg(test)]
+const TEST_PEEKS_PER_TOKEN: usize = 100;
+
+/// Test-only switches that turn off one termination defence at a time —
+/// the `block_continues` guard or `sync_in_block_advancing`'s bump — so
+/// the tests can show each holds on its own, plus a count of the times the
+/// guard fired. Thread-local: set them on the thread that parses.
+#[cfg(test)]
+mod test_hooks {
+    use std::cell::Cell;
+
+    thread_local! {
+        static GUARD_OFF: Cell<bool> = const { Cell::new(false) };
+        static ADVANCING_OFF: Cell<bool> = const { Cell::new(false) };
+        static GUARD_FIRED: Cell<usize> = const { Cell::new(0) };
+    }
+
+    pub(super) fn guard_on() -> bool {
+        !GUARD_OFF.with(Cell::get)
+    }
+
+    pub(super) fn advancing_on() -> bool {
+        !ADVANCING_OFF.with(Cell::get)
+    }
+
+    pub(super) fn guard_fired() {
+        GUARD_FIRED.with(|c| c.set(c.get() + 1));
+    }
+
+    /// Enable/disable the two defences on this thread; resets the count.
+    pub(super) fn set(guard: bool, advancing: bool) {
+        GUARD_OFF.with(|c| c.set(!guard));
+        ADVANCING_OFF.with(|c| c.set(!advancing));
+        GUARD_FIRED.with(|c| c.set(0));
+    }
+
+    /// How often the guard fired on this thread since the last `set`.
+    pub(super) fn fired() -> usize {
+        GUARD_FIRED.with(Cell::get)
+    }
+}
+
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
+    parse_with_budget(tokens, diags, MAX_PARSE_ERRORS)
+}
+
+/// `parse` with an explicit error budget. Production always passes
+/// `MAX_PARSE_ERRORS`; the tests pass every smaller budget so the halt
+/// lands at each error point a malformed input reaches (see `report`).
+fn parse_with_budget(tokens: Vec<Token>, diags: &mut Diagnostics, max_errors: usize) -> SourceFile {
     let mut local = Diagnostics::new();
     let mut parser = Parser {
         tokens,
@@ -43,18 +96,31 @@ pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
         nesting: 0,
         depth_error: None,
         halted: false,
+        max_errors,
+        #[cfg(test)]
+        steps: std::cell::Cell::new(0),
     };
-    let file = parser.file();
+    let mut file = parser.file();
+    file.truncated = parser.halted;
     if let Some(span) = parser.depth_error {
         // Resource-limit recovery abandons this file. Do not forward a partial
         // body to consumers or emit cascaded missing-delimiter diagnostics from
         // the bounded unwind. Lexer diagnostics already in `diags` survive.
-        diags.push(Diagnostic::error(
-            "E102",
-            span,
-            format!("syntax/AST depth limit of {MAX_SYNTAX_DEPTH} exceeded"),
-        ));
-        SourceFile { items: Vec::new() }
+        diags.push(
+            Diagnostic::error(
+                "E102",
+                span,
+                format!("syntax/AST depth limit of {MAX_SYNTAX_DEPTH} exceeded"),
+            )
+            .with_help(
+                "this file's declarations were not read, so no name-resolution or design \
+                 checks ran — an \"unknown\" name is not reported until the file parses",
+            ),
+        );
+        SourceFile {
+            items: Vec::new(),
+            truncated: true,
+        }
     } else {
         diags.extend(local);
         file
@@ -75,6 +141,11 @@ struct Parser<'a> {
     /// Set once the file has used up its `MAX_PARSE_ERRORS` budget; the
     /// cursor then sits on EOF and further diagnostics are dropped.
     halted: bool,
+    /// The error budget `report` enforces — `MAX_PARSE_ERRORS` outside tests.
+    max_errors: usize,
+    /// Test builds only: `peek` calls so far, capped by `count_step`.
+    #[cfg(test)]
+    steps: std::cell::Cell<usize>,
 }
 
 impl<'a> Parser<'a> {
@@ -83,29 +154,55 @@ impl<'a> Parser<'a> {
     /// replaced by one E102 at its position, and the cursor jumps to EOF —
     /// the same constant-time, forward-only abandonment `depth_exceeded`
     /// uses, so every loop (all of which stop at EOF) unwinds at once.
+    ///
+    /// INVARIANT this imposes on every production: once any call that can
+    /// report has returned, the token the code peeked before it may be
+    /// gone — the cursor can now be on EOF. A branch chosen on a peeked
+    /// token must re-check the cursor (or propagate `None`) after such a
+    /// call, never `unwrap` a parse of that token: `stmt`'s call arm did,
+    /// and a file whose 201st error landed on its `reject_attrs` panicked
+    /// (exit 101) instead of reporting. The budget-boundary fuzz in the
+    /// tests halts every malformed input at each of its error points.
     fn report(&mut self, d: Diagnostic) {
         if self.halted {
             return;
         }
-        if d.severity == Severity::Error && self.diags.error_count() >= MAX_PARSE_ERRORS {
+        if d.severity == Severity::Error && self.diags.error_count() >= self.max_errors {
             self.halted = true;
             self.diags.push(
                 Diagnostic::error(
                     "E102",
                     d.primary.span,
                     format!(
-                        "too many syntax errors — stopped parsing this file after {MAX_PARSE_ERRORS}"
+                        "too many syntax errors — stopped parsing this file after {}",
+                        self.max_errors
                     ),
                 )
                 .with_help(
                     "fix the errors reported above and check again; later ones are often \
                      knock-on effects of the first",
+                )
+                .with_help(
+                    "the rest of this file was not read, so no name-resolution or design \
+                     checks ran — an \"unknown\" name is not reported until the file parses",
                 ),
             );
             self.pos = self.tokens.len() - 1;
             return;
         }
         self.diags.push(d);
+    }
+
+    /// `check::generics::checked_int` (the Int-literal range check), with
+    /// its diagnostic routed through `report` so it counts against — and
+    /// stops at — the error budget like every other parser diagnostic.
+    fn checked_int(&mut self, text: &str, span: Span) -> Option<i64> {
+        let mut out = Diagnostics::new();
+        let value = crate::check::generics::checked_int(text, span, &mut out);
+        for d in out.drain_batch() {
+            self.report(d);
+        }
+        value
     }
 
     fn depth_exceeded<T>(&mut self, span: Span) -> Option<T> {
@@ -129,7 +226,27 @@ impl<'a> Parser<'a> {
     // -- token plumbing ------------------------------------------------------
 
     fn peek(&self) -> &TokenKind {
+        #[cfg(test)]
+        self.count_step();
         &self.tokens[self.pos].kind
+    }
+
+    /// Test builds only: panic once this parse has peeked far more often
+    /// than any terminating parse of its input can. The tests parse on
+    /// worker threads under a deadline, but a timed-out worker keeps
+    /// running — a stall that also escaped the error budget would grow the
+    /// test process itself by gigabytes a second. This bounds it on every
+    /// platform (macOS does not enforce memory rlimits).
+    #[cfg(test)]
+    fn count_step(&self) {
+        let steps = self.steps.get() + 1;
+        self.steps.set(steps);
+        let cap = TEST_PEEKS_PER_TOKEN * self.tokens.len() + 10_000;
+        assert!(
+            steps <= cap,
+            "parser stalled: {steps} peeks for {} tokens",
+            self.tokens.len()
+        );
     }
 
     fn peek_ahead(&self, n: usize) -> &TokenKind {
@@ -241,7 +358,10 @@ impl<'a> Parser<'a> {
                 self.bump();
             }
         }
-        SourceFile { items }
+        SourceFile {
+            items,
+            truncated: false,
+        }
     }
 
     fn sync_top_level(&mut self) {
@@ -2247,7 +2367,9 @@ impl<'a> Parser<'a> {
                             None => self.sync_in_block_advancing(),
                         }
                     }
-                    StrayKind::Spec => {
+                    // (`Signed` is device-only; `stray_member_kind(None)`
+                    // never returns it.)
+                    StrayKind::Spec | StrayKind::Signed => {
                         stray.spec_entries.push(entry);
                         match self.trait_spec_field() {
                             Some(field) => stray.specs.push(field),
@@ -2481,6 +2603,7 @@ impl<'a> Parser<'a> {
                             None => self.sync_in_block_advancing(),
                         }
                     }
+                    StrayKind::Signed => self.stray_signed_member(&mut stray),
                 }
                 self.eat(&TokenKind::Comma);
             } else {
@@ -2515,9 +2638,11 @@ impl<'a> Parser<'a> {
         let value = self.peek_ahead(2);
         match generics {
             // Device: `NAME: 5V` / `NAME: C` is a spec field; `NAME: 1 …`,
-            // `NAME: A3 …`, `NAME: [1, 2] …`, `NAME: required …` a pin.
+            // `NAME: A3 …`, `NAME: [1, 2] …`, `NAME: required …` a pin;
+            // `NAME: -…` either, decided by the token after the `-`.
             Some(generics) => match value {
-                TokenKind::Unit(_) | TokenKind::Minus => Some(StrayKind::Spec),
+                TokenKind::Unit(_) => Some(StrayKind::Spec),
+                TokenKind::Minus => Some(StrayKind::Signed),
                 TokenKind::Ident(n) if generics.iter().any(|g| &g.name.name == n) => {
                     Some(StrayKind::Spec)
                 }
@@ -2551,11 +2676,70 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// A `NAME: -…` member in a device body (`StrayKind::Signed`): with
+    /// `NAME :` consumed, `-` + number is a pin entry with a signed pin
+    /// number and `-` + unit literal a negative spec value; anything else
+    /// is neither, and gets the plain device-body error.
+    fn stray_signed_member(&mut self, stray: &mut StrayDeviceMembers) {
+        let start = self.span();
+        let found = self.peek().describe();
+        let t = self.bump();
+        let TokenKind::Ident(text) = t.kind else {
+            unreachable!("stray_member_kind matched an identifier here")
+        };
+        let name = Ident {
+            name: text,
+            span: t.span,
+        };
+        self.bump(); // `:`
+        let entry = (start, name.name.clone());
+        let parsed = match self.peek_ahead(1) {
+            TokenKind::Number(_) => {
+                stray.pin_entries.push(entry);
+                self.device_pin_value(
+                    start,
+                    Obligation::Required,
+                    name,
+                    true,
+                    &mut stray.pin_slips,
+                )
+                .map(|pin| stray.pins.push(pin))
+            }
+            TokenKind::Unit(_) => {
+                stray.spec_entries.push(entry);
+                self.device_spec_value(start, name)
+                    .map(|field| stray.specs.push(field))
+            }
+            _ => {
+                self.report(Diagnostic::error(
+                    "E010",
+                    start,
+                    format!(
+                        "expected `pins`, `spec`, or `variants` in the device body, found {found}"
+                    ),
+                ));
+                None
+            }
+        };
+        if parsed.is_none() {
+            self.sync_in_block_advancing();
+        }
+    }
+
     /// One diagnostic per kind of member found outside its block, naming
-    /// the first and counting the rest, with the entry rewritten in place —
-    /// then adopt the entries as the block they were meant to be (when the
-    /// body has no real one) so the rest of the pipeline checks the device
-    /// the author meant instead of cascading "no pin `X`" errors.
+    /// the first and counting the rest, with the entry rewritten in place
+    /// and the help fitted to the blocks the device already has — then
+    /// adopt the entries where that help puts them, so the rest of the
+    /// pipeline checks the device the author meant instead of cascading
+    /// "no pin `X`" errors:
+    /// - no unqualified `pins { }`: the entries become that block;
+    /// - one exists: they join it (writing a second would be E201);
+    /// - the device declares variants: they stay out — which
+    ///   `pins[VARIANT]` block each belongs to is the author's call, and an
+    ///   unqualified block there is E908.
+    ///
+    /// `spec` is the same minus the variant case: an unqualified `spec { }`
+    /// beside variants is legal (fields shared by every variant).
     fn finish_stray_device_members(&mut self, def: &mut DeviceDef, stray: StrayDeviceMembers) {
         if let Some((span, name)) = stray.pin_entries.first() {
             let n = stray.pin_entries.len();
@@ -2564,6 +2748,42 @@ impl<'a> Parser<'a> {
                 canonical_pin,
             );
             let more = if n > 1 { " …" } else { "" };
+            let these = if n > 1 { "these entries" } else { "this entry" };
+            let entries = "one `[required|optional] NAME: N, N, … [ROLE]` entry per line";
+            let existing = def.pin_blocks.iter().position(|b| b.variant.is_none());
+            let help = if def.variants.is_empty() {
+                match existing {
+                    Some(_) => format!(
+                        "move {these} into the device's existing `pins {{ … }}` block, written `{example}` — {entries}; a second `pins` block would be a duplicate (E201)"
+                    ),
+                    None => format!(
+                        "write `pins {{ {example}{more} }}` — {entries} inside the block"
+                    ),
+                }
+            } else {
+                let variants: Vec<&str> = def.variants.iter().map(|v| v.name.as_str()).collect();
+                let uncovered = def.variants.iter().find(|v| {
+                    !def.pin_blocks
+                        .iter()
+                        .any(|b| b.variant.as_ref().is_some_and(|q| q.name == v.name))
+                });
+                match uncovered {
+                    Some(v) => format!(
+                        "device `{}` declares variants ({}), so its pins go in one qualified block per variant — e.g. `pins[{}] {{ {example}{more} }}`, {entries}",
+                        def.name.name,
+                        variants.join(", "),
+                        v.name
+                    ),
+                    None => format!(
+                        "device `{}` declares variants ({}) and has a `pins[VARIANT] {{ … }}` block for each — move {these} into the block{} {} belong{} to, {entries}",
+                        def.name.name,
+                        variants.join(", "),
+                        if n > 1 { "s" } else { "" },
+                        if n > 1 { "they" } else { "it" },
+                        if n > 1 { "" } else { "s" },
+                    ),
+                }
+            };
             let mut d = Diagnostic::error(
                 "E010",
                 *span,
@@ -2572,9 +2792,7 @@ impl<'a> Parser<'a> {
                     and_more(n, "in this device")
                 ),
             )
-            .with_help(format!(
-                "write `pins {{ {example}{more} }}` — one `[required|optional] NAME: N, N, … [ROLE]` entry per line inside the block"
-            ));
+            .with_help(help);
             if !stray.pin_slips.obligation_after_name.is_empty() {
                 d = d.with_help(
                     "`required`/`optional` comes before the pin name, never after the `:`",
@@ -2586,13 +2804,18 @@ impl<'a> Parser<'a> {
                 );
             }
             self.report(d);
-            if def.pin_blocks.is_empty() && !stray.pins.is_empty() {
-                let span = stray.pins[0].span.to(stray.pins[stray.pins.len() - 1].span);
-                def.pin_blocks.push(PinBlock {
-                    variant: None,
-                    pins: stray.pins,
-                    span,
-                });
+            if def.variants.is_empty() && !stray.pins.is_empty() {
+                match existing {
+                    Some(i) => def.pin_blocks[i].pins.extend(stray.pins),
+                    None => {
+                        let span = stray.pins[0].span.to(stray.pins[stray.pins.len() - 1].span);
+                        def.pin_blocks.push(PinBlock {
+                            variant: None,
+                            pins: stray.pins,
+                            span,
+                        });
+                    }
+                }
             }
         }
         if let Some((span, name)) = stray.spec_entries.first() {
@@ -2608,6 +2831,14 @@ impl<'a> Parser<'a> {
                 },
             );
             let more = if n > 1 { ", …" } else { "" };
+            let existing = def.spec_blocks.iter().position(|b| b.variant.is_none());
+            let help = match existing {
+                Some(_) => format!(
+                    "move {} into the device's existing `spec {{ … }}` block, written `{example}`; a second `spec` block would be a duplicate (E201)",
+                    if n > 1 { "these entries" } else { "this entry" }
+                ),
+                None => format!("write `spec {{ {example}{more} }}`"),
+            };
             self.report(
                 Diagnostic::error(
                     "E010",
@@ -2617,17 +2848,22 @@ impl<'a> Parser<'a> {
                         and_more(n, "in this device")
                     ),
                 )
-                .with_help(format!("write `spec {{ {example}{more} }}`")),
+                .with_help(help),
             );
-            if def.spec_blocks.is_empty() && !stray.specs.is_empty() {
-                let span = stray.specs[0]
-                    .span
-                    .to(stray.specs[stray.specs.len() - 1].span);
-                def.spec_blocks.push(SpecBlock {
-                    variant: None,
-                    fields: stray.specs,
-                    span,
-                });
+            if !stray.specs.is_empty() {
+                match existing {
+                    Some(i) => def.spec_blocks[i].fields.extend(stray.specs),
+                    None => {
+                        let span = stray.specs[0]
+                            .span
+                            .to(stray.specs[stray.specs.len() - 1].span);
+                        def.spec_blocks.push(SpecBlock {
+                            variant: None,
+                            fields: stray.specs,
+                            span,
+                        });
+                    }
+                }
             }
         }
     }
@@ -2712,11 +2948,32 @@ impl<'a> Parser<'a> {
     /// meaning; the slip lands in `slips` and is reported once per block.
     fn device_pin(&mut self, slips: &mut PinSlips) -> Option<DevicePin> {
         let start = self.span();
-        let mut obligation = self.obligation();
+        let obligation = self.obligation();
         let name = self.ident("as the pin name")?;
-        self.expect(&TokenKind::Colon, "after the pin name");
+        let colon = self.expect(&TokenKind::Colon, "after the pin name");
+        self.device_pin_value(start, obligation, name, colon, slips)
+    }
+
+    /// The rest of a device pin entry once `[obligation] NAME :` is read
+    /// (`colon`: whether the `:` was actually there).
+    fn device_pin_value(
+        &mut self,
+        start: Span,
+        mut obligation: Obligation,
+        name: Ident,
+        colon: bool,
+        slips: &mut PinSlips,
+    ) -> Option<DevicePin> {
         let mut slipped = false;
-        if matches!(self.peek(), TokenKind::Required | TokenKind::Optional) {
+        // The slip is the obligation right AFTER the `:`. Not a slip:
+        // `required`/`optional` + `NAME :`, which is the NEXT entry (this
+        // one has no numbers — `required A:` on a line of its own), or one
+        // standing where the `:` is missing (`A required: 1`). Both are
+        // reported by the number list below as they are.
+        let next_entry = matches!(self.peek_ahead(1), TokenKind::Ident(_))
+            && self.peek_ahead(2) == &TokenKind::Colon;
+        if colon && matches!(self.peek(), TokenKind::Required | TokenKind::Optional) && !next_entry
+        {
             let span = self.span();
             obligation = self.obligation();
             slips
@@ -2732,13 +2989,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Ident(n) => is_pad_name(n),
                 _ => false,
             };
-        if bracketed {
-            slips
-                .bracketed_numbers
-                .push((self.span(), name.name.clone()));
-            self.bump(); // `[`
-            slipped = true;
-        }
+        let bracket = bracketed.then(|| self.bump().span); // `[`
         let mut numbers = Vec::new();
         loop {
             match self.peek() {
@@ -2788,8 +3039,14 @@ impl<'a> Parser<'a> {
             }
             break;
         }
-        if bracketed && !self.expect(&TokenKind::RBracket, "to close the bracketed pin numbers") {
-            return None;
+        if let Some(span) = bracket {
+            // Only a list that closes is the slip; an unclosed `[` is one
+            // "expected `]`" error, not a guess at what was meant.
+            if !self.expect(&TokenKind::RBracket, "to close the bracketed pin numbers") {
+                return None;
+            }
+            slips.bracketed_numbers.push((span, name.name.clone()));
+            slipped = true;
         }
         let mut role = None;
         if self.at(&TokenKind::LBracket) {
@@ -2884,6 +3141,11 @@ impl<'a> Parser<'a> {
         let start = self.span();
         let name = self.ident("as the spec field name")?;
         self.expect(&TokenKind::Colon, "after the spec field name");
+        self.device_spec_value(start, name)
+    }
+
+    /// The value of a device spec field once `NAME :` is read.
+    fn device_spec_value(&mut self, start: Span, name: Ident) -> Option<DeviceSpecField> {
         // RFC-033: `-5V`-style signed literals resolve through the SAME
         // `signed_unit_literal` every other legacy unit position uses (E105
         // for unsigned types) — one source of truth, no duplicated block.
@@ -2977,7 +3239,8 @@ impl<'a> Parser<'a> {
                             let TokenKind::Number(n) = t.kind else {
                                 unreachable!()
                             };
-                            default = crate::check::generics::checked_int(&n, t.span, self.diags)
+                            default = self
+                                .checked_int(&n, t.span)
                                 .map(|v| GenericDefault::Int(v, t.span));
                         }
                         TokenKind::Minus if matches!(self.peek_ahead(1), TokenKind::Number(_)) => {
@@ -2987,12 +3250,9 @@ impl<'a> Parser<'a> {
                                 unreachable!()
                             };
                             let span = minus.span.to(t.span);
-                            default = crate::check::generics::checked_int(
-                                &format!("-{n}"),
-                                span,
-                                self.diags,
-                            )
-                            .map(|v| GenericDefault::Int(v, span));
+                            default = self
+                                .checked_int(&format!("-{n}"), span)
+                                .map(|v| GenericDefault::Int(v, span));
                         }
                         other => {
                             // An Int default must be an integer literal — a
@@ -3765,7 +4025,12 @@ impl<'a> Parser<'a> {
         if !inside(self) {
             return false;
         }
-        if progress.0 == Some(self.pos) {
+        let stalled = progress.0 == Some(self.pos);
+        #[cfg(test)]
+        let stalled = stalled && test_hooks::guard_on();
+        if stalled {
+            #[cfg(test)]
+            test_hooks::guard_fired();
             self.bump();
             if !inside(self) {
                 return false;
@@ -3788,7 +4053,10 @@ impl<'a> Parser<'a> {
     fn sync_in_block_advancing(&mut self) {
         let before = self.pos;
         self.sync_in_block();
-        if self.pos == before && !self.at(&TokenKind::RBrace) {
+        let stuck = self.pos == before && !self.at(&TokenKind::RBrace);
+        #[cfg(test)]
+        let stuck = stuck && test_hooks::advancing_on();
+        if stuck {
             self.bump();
         }
     }
@@ -4163,7 +4431,10 @@ impl<'a> Parser<'a> {
                 self.reject_attrs(&attrs);
                 // The callee may be a qualified path; `::<` stays turbofish
                 // (path_ident's two-token lookahead never eats `::` + `<`).
-                let callee = self.path_ident("").unwrap();
+                // `?`, not `unwrap`: either reject above can be the error
+                // that exhausts the budget, which moves the cursor to EOF
+                // (see `report`).
+                let callee = self.path_ident("")?;
                 let start = callee.span;
                 let generic_args = if self.at(&TokenKind::PathSep) {
                     self.bump();
@@ -4873,12 +5144,9 @@ impl<'a> Parser<'a> {
                             unreachable!()
                         };
                         let span = minus.span.to(t.span);
-                        return crate::check::generics::checked_int(
-                            &format!("-{text}"),
-                            span,
-                            self.diags,
-                        )
-                        .map(|n| (Expr::Int(n, span), 1));
+                        return self
+                            .checked_int(&format!("-{text}"), span)
+                            .map(|n| (Expr::Int(n, span), 1));
                     }
                     TokenKind::Unit(_) if adjacent => {
                         let t = self.bump();
@@ -4933,7 +5201,7 @@ impl<'a> Parser<'a> {
                 let TokenKind::Number(text) = t.kind else {
                     unreachable!()
                 };
-                crate::check::generics::checked_int(&text, t.span, self.diags)
+                self.checked_int(&text, t.span)
                     .map(|n| (Expr::Int(n, t.span), 1))
             }
             TokenKind::Unit(_) => {
@@ -5201,6 +5469,10 @@ struct PinSlips {
 enum StrayKind {
     Pin,
     Spec,
+    /// Device body only: `NAME: -…` — a signed pin number (`A: -1 …`, the
+    /// legacy E102) or a negative spec value (`v: -5V`). The token after
+    /// the `-` decides, read once `NAME :` is consumed (2-token lookahead).
+    Signed,
 }
 
 /// `pins`/`spec` entries found directly in a device body: where each began
@@ -5785,83 +6057,577 @@ design B {
         );
     }
 
-    /// Fuzz-ish: insert each token kind (and each keyword) before every
-    /// token of a small valid trait/device/impl/part file. Every variant
-    /// must finish quickly with a small, bounded number of diagnostics.
-    /// One worker runs them all; the test fails, naming the input, if any
-    /// single parse takes longer than the deadline.
+    /// `parse_within` on a worker whose two termination defences are set
+    /// as given (see `test_hooks`); also returns how often the
+    /// `block_continues` guard fired.
+    fn parse_within_hooked(
+        src: &str,
+        guard: bool,
+        advancing: bool,
+    ) -> (SourceFile, usize, String, usize) {
+        let owned = src.to_string();
+        let (tx, rx) = mpsc::channel();
+        std::thread::spawn(move || {
+            test_hooks::set(guard, advancing);
+            let mut sm = SourceMap::new();
+            let f = sm.add_file("test.cohdl", owned.as_str());
+            let mut diags = Diagnostics::new();
+            let tokens = lex(f, &owned, &mut diags);
+            let file = parse(tokens, &mut diags);
+            let _ = tx.send((
+                file,
+                diags.error_count(),
+                diags.render(&sm),
+                test_hooks::fired(),
+            ));
+        });
+        rx.recv_timeout(LIMIT).unwrap_or_else(|e| {
+            panic!("parse panicked or did not finish ({e}) within {LIMIT:?} for:\n{src}")
+        })
+    }
+
+    /// Each termination defence holds on its own — the device/trait body
+    /// recovery that advances past a stray `,`, and the loop-level
+    /// progress guard — and with both off, the error budget still ends the
+    /// parse. (Defence in depth hides a broken half: before these switches,
+    /// disabling either one alone failed no test.)
     #[test]
-    fn single_token_insertions_terminate_with_bounded_diagnostics() {
-        const BASE: &str = "pub trait T: TwoTerminal {\n    designator_prefix: \"U\"\n    pins {\n        required A: pin\n        optional B: pin\n    }\n    spec {\n        v: Voltage\n    }\n}\n\npub device D<V: Voltage = 5V> {\n    variants { X, Y }\n    pins[X] {\n        required A: 1, 2 [passive]\n        optional B: A3 [power_in]\n    }\n    pins[Y] { required A: 1 [passive], optional B: 2 [power_in] }\n    spec { v: V }\n}\n\nimpl T for D {\n    pins { A: A, B: B }\n}\n\npub part P: D<5V>[X] {\n    primary { mfr: \"M\", mpn: \"N\", footprint: F }\n    alt { mfr: \"M2\", mpn: \"N2\", footprint: lib::F }\n}\n";
-        const INSERTS: &[&str] = &[
-            ",",
-            ":",
-            ";",
-            "{",
-            "}",
-            "(",
-            ")",
-            "[",
-            "]",
-            "<",
-            ">",
-            "=",
-            "+",
-            "-",
-            "*",
-            "/",
-            "%",
-            ".",
-            "..",
-            "::",
-            "#",
-            "\"s\"",
-            "1",
-            "5V",
-            "-5V",
-            "A1",
-            "x",
-            "_",
-            "pins",
-            "spec",
-            "variants",
-            "required",
-            "optional",
-            "pin",
-            "designator_prefix",
-            "pub",
-            "trait",
-            "device",
-            "impl",
-            "for",
-            "fn",
-            "part",
-            "design",
-            "inst",
-            "net",
-            "nc",
-            "use",
-            "footprint",
-            "pad",
-            "subdesign",
-            "primary",
-            "alt",
-            "layout",
-            "const",
-            "Voltage",
-            "passive",
-            "\u{3a9}",
-        ];
-        // The point is "bounded", against the unbounded growth (or the
-        // 200-error budget) of a stall. Worst today is 11: an inserted `}`
-        // or keyword ends a declaration early and the remainder of its
-        // body is reported token group by token group.
-        const BOUND: usize = 20;
-        parse_ok(BASE);
+    fn each_termination_defence_holds_on_its_own() {
+        for src in [
+            "device X { , }\n",
+            "trait T { , }\n",
+            "pub trait T {\n    designator_prefix: \"C\",\n    pins { required A: pin }\n}\n",
+            "pub device D {\n    pins { A: 1 [passive] },\n    spec { v: 5V }\n}\n",
+        ] {
+            for (guard, advancing) in [(false, true), (true, false)] {
+                let (_, errors, rendered, _) = parse_within_hooked(src, guard, advancing);
+                assert_eq!(
+                    errors, 1,
+                    "guard {guard}, advancing {advancing}:\n{src}\n{rendered}"
+                );
+            }
+            let (file, errors, rendered, _) = parse_within_hooked(src, false, false);
+            assert_eq!(errors, MAX_PARSE_ERRORS + 1, "{src}\n{rendered}");
+            assert!(file.truncated, "{src}");
+        }
+    }
+
+    /// The progress guard alone moves these loops past an unknown member:
+    /// `layout { }` and `for` bodies report it without consuming it (the
+    /// per-loop bumps they had were folded into the guard).
+    #[test]
+    fn the_progress_guard_moves_layout_and_for_bodies_past_an_unknown_member() {
+        for src in [
+            "design D {\n    layout {\n        diff_pair(A, B)\n        x\n    }\n}\n",
+            "design D {\n    for l: n in 0..2 {\n        1\n        net _: a.B\n    }\n}\n",
+        ] {
+            let (file, errors, rendered, fired) = parse_within_hooked(src, true, true);
+            assert_eq!(errors, 1, "{src}\n{rendered}");
+            assert!(fired > 0, "the guard did not fire:\n{src}\n{rendered}");
+            assert!(!file.truncated, "{src}");
+            // Without the guard the same loop stalls into the error budget.
+            let (file, errors, rendered, _) = parse_within_hooked(src, false, true);
+            assert_eq!(errors, MAX_PARSE_ERRORS + 1, "{src}\n{rendered}");
+            assert!(file.truncated, "{src}");
+        }
+    }
+
+    /// The test-build peek cap ends a stall that escapes every other bound
+    /// (both defences off, a budget too large to matter), so a regression
+    /// fails its test within milliseconds instead of growing the test
+    /// process on a timed-out worker. Without the cap this input still
+    /// ends — at the 10,000-error budget — and the test fails.
+    #[test]
+    fn the_test_peek_cap_ends_a_stall_that_escapes_the_budget() {
+        let outcome = std::thread::spawn(|| {
+            test_hooks::set(false, false);
+            let src = "device X { , }\n";
+            let mut sm = SourceMap::new();
+            let f = sm.add_file("test.cohdl", src);
+            let mut diags = Diagnostics::new();
+            let tokens = lex(f, src, &mut diags);
+            let _ = parse_with_budget(tokens, &mut diags, 10_000);
+        })
+        .join();
+        let payload = outcome.expect_err("an unbounded stall must hit the peek cap");
+        let message = payload
+            .downcast_ref::<String>()
+            .map(String::as_str)
+            .unwrap_or_default();
+        assert!(message.contains("parser stalled"), "{message}");
+    }
+
+    /// A file whose 201st error lands between a production's branch choice
+    /// and its use of the token it chose on: the budget moves the cursor to
+    /// EOF in between. `stmt`'s call arm `unwrap`ped the callee there and
+    /// the compiler panicked (exit 101) where 0.8.0 reported 203 errors.
+    #[test]
+    fn an_error_at_the_budget_boundary_never_panics() {
+        let src = format!(
+            "{}design D {{\n    #[placement_hint(\"x\")] foo(a.B)\n}}\n",
+            "pub 1\n".repeat(MAX_PARSE_ERRORS)
+        );
+        let (file, errors, rendered) = parse_within(&src, LIMIT);
+        assert_eq!(errors, MAX_PARSE_ERRORS + 1, "{rendered}");
+        assert!(
+            rendered.contains("too many syntax errors — stopped parsing this file after 200"),
+            "{rendered}"
+        );
+        assert!(file.truncated);
+    }
+
+    /// `required A:` with no numbers, then the next entry: the next
+    /// entry's obligation is not this one's misplaced obligation (and its
+    /// name not a pad number) — one accurate error, no slip rewrite. Nor
+    /// is an obligation where the `:` is missing, or a `[` that never
+    /// closes: a slip is reported only where the entry's shape is certain.
+    #[test]
+    fn an_entry_without_numbers_is_not_an_obligation_slip() {
+        for (src, want, found) in [
+            (
+                "pub device D {\n    pins { A required: 1 [passive] }\n}\n",
+                2,
+                "expected `:` after the pin name, found `required`",
+            ),
+            (
+                "pub device D {\n    pins { A: [ 21 [power_in] }\n}\n",
+                1,
+                "expected `]` to close the bracketed pin numbers, found `[`",
+            ),
+            (
+                "pub device D {\n    pins {\n        required A:\n        required B: 2 [passive]\n    }\n}\n",
+                1,
+                "expected a physical pin number (e.g. `1` or `A3`), found `required`",
+            ),
+            (
+                "pub device D {\n    pins {\n        required A: 1 [passive]\n        required B:\n        optional C: 3 [passive]\n        required E: 4 [passive]\n    }\n}\n",
+                1,
+                "expected a physical pin number (e.g. `1` or `A3`), found `optional`",
+            ),
+            // Body level: the same error, plus the entry's placement.
+            (
+                "pub device D {\n    A:\n    required B: 2 [passive]\n}\n",
+                2,
+                "expected a physical pin number (e.g. `1` or `A3`), found `required`",
+            ),
+        ] {
+            let (_, errors, rendered) = parse_within(src, LIMIT);
+            assert_eq!(errors, want, "{src}\n{rendered}");
+            assert!(rendered.contains(found), "{rendered}");
+            for slip in [
+                "is written after the pin name",
+                "comes before the pin name",
+                "are bracketed",
+                "write the entry as",
+                "has no role annotation",
+            ] {
+                assert!(!rendered.contains(slip), "{slip}:\n{rendered}");
+            }
+            if src.contains("    A:\n") {
+                assert!(
+                    rendered.contains("pin entry `A` is written directly in the device body"),
+                    "{rendered}"
+                );
+            }
+        }
+        // The real slip, with a pad-name number, is still recognised.
+        let src = "pub device D {\n    pins { A: required B3 [passive] }\n}\n";
+        let (_, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(
+            rendered.contains("write the entry as `required A: B3 [passive]`"),
+            "{rendered}"
+        );
+    }
+
+    /// The stray-entry help (and where the entries are adopted) follows
+    /// the blocks the device already has, so following the help literally
+    /// never produces E201/E908.
+    #[test]
+    fn stray_entry_help_and_adoption_follow_the_devices_own_blocks() {
+        let device = |file: &SourceFile| match &file.items[0].kind {
+            ItemKind::Device(d) => d.clone(),
+            _ => panic!(),
+        };
+        // A variant device: pins live in `pins[VARIANT]` blocks. Nothing is
+        // adopted (an unqualified block there is E908); the help names one.
+        let src = "pub device V {\n    variants { X, Y }\n    A: required [1] [passive]\n    B: required [2] [passive]\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(rendered.contains("device `V` declares variants (X, Y), so its pins go in one qualified block per variant — e.g. `pins[X] { required A: 1 [passive] … }`"), "{rendered}");
+        assert!(!rendered.contains("write `pins {"), "{rendered}");
+        assert!(device(&file).pin_blocks.is_empty());
+        let checked = crate::pipeline::check_files_in(
+            "p",
+            &[("src/main.cohdl".to_string(), src.to_string())],
+            None,
+        )
+        .unwrap();
+        assert!(
+            !checked.diags.render(&checked.sm).contains("E908"),
+            "{}",
+            checked.diags.render(&checked.sm)
+        );
+        // The example names a variant that has no block yet...
+        let src = "pub device V {\n    variants { X, Y }\n    pins[X] { required A: 1 [passive] }\n    A: 2 [passive]\n}\n";
+        let (_, _, rendered) = parse_within(src, LIMIT);
+        assert!(
+            rendered.contains("e.g. `pins[Y] { required A: 2 [passive] }`"),
+            "{rendered}"
+        );
+        // ...and with every variant covered, says to move the entry.
+        let src = "pub device V {\n    variants { X }\n    pins[X] { required A: 1 [passive] }\n    B: 2 [passive]\n}\n";
+        let (_, _, rendered) = parse_within(src, LIMIT);
+        assert!(rendered.contains("has a `pins[VARIANT] { … }` block for each — move this entry into the block it belongs to"), "{rendered}");
+        // A real `pins { }` already there: the strays join it.
+        let src = "pub device D {\n    IOVDD: required [1, 10] [power_in]\n    pins { required GND: 2 [power_in] }\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(rendered.contains("move this entry into the device's existing `pins { … }` block, written `required IOVDD: 1, 10 [power_in]`"), "{rendered}");
+        assert!(!rendered.contains("write `pins {"), "{rendered}");
+        let d = device(&file);
+        assert_eq!(d.pin_blocks.len(), 1);
+        let names: Vec<&str> = d.pin_blocks[0]
+            .pins
+            .iter()
+            .map(|p| p.name.name.as_str())
+            .collect();
+        assert_eq!(names, ["GND", "IOVDD"]);
+        // Same for `spec { }`.
+        let src = "pub device D {\n    spec { v: 5V }\n    i: 1A\n    pins { A: 1 [passive] }\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(
+            rendered.contains(
+                "move this entry into the device's existing `spec { … }` block, written `i: 1A`"
+            ),
+            "{rendered}"
+        );
+        let d = device(&file);
+        assert_eq!(d.spec_blocks.len(), 1);
+        assert_eq!(d.spec_blocks[0].fields.len(), 2);
+    }
+
+    /// `NAME: -…` in a device body is a pin entry when a number follows
+    /// the `-` (a signed pin number, the legacy E102) and a spec field
+    /// when a unit literal does — not a spec field for every `-`.
+    #[test]
+    fn a_signed_stray_member_is_classified_by_what_follows_the_minus() {
+        let src = "pub device D {\n    A: -1 [passive]\n}\n";
+        let (_, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 2, "{rendered}");
+        assert!(
+            rendered.contains("pin entry `A` is written directly in the device body"),
+            "{rendered}"
+        );
+        assert!(
+            rendered.contains("error[E102]: a bare number cannot be negative"),
+            "{rendered}"
+        );
+        assert!(!rendered.contains("spec field"), "{rendered}");
+
+        let src = "pub device D {\n    t: -40C\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(
+            rendered.contains("spec field `t` is written directly in the device body"),
+            "{rendered}"
+        );
+        let ItemKind::Device(d) = &file.items[0].kind else {
+            panic!()
+        };
+        assert_eq!(d.spec_blocks[0].fields[0].name.name, "t");
+
+        // Neither: the plain device-body error, nothing invented.
+        let src = "pub device D {\n    A: - x\n}\n";
+        let (_, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert!(
+            rendered
+                .contains("expected `pins`, `spec`, or `variants` in the device body, found `A`"),
+            "{rendered}"
+        );
+    }
+
+    /// A broken AVL field or impl mapping skips to its own `,` and the
+    /// block goes on — one error, and the entries after it still parse.
+    #[test]
+    fn a_broken_avl_field_or_impl_mapping_resyncs_at_the_next_entry() {
+        for (entry, found) in [
+            (
+                "mfr: 7",
+                "expected a string value for AVL field `mfr`, found number `7`",
+            ),
+            (
+                "9: \"x\"",
+                "expected an identifier as the AVL field name (e.g. `mpn`), found number `9`",
+            ),
+        ] {
+            let src = format!(
+                "pub part P: D {{\n    primary {{ {entry}, mpn: \"M\", footprint: F }}\n}}\n"
+            );
+            let (file, errors, rendered) = parse_within(&src, LIMIT);
+            assert_eq!(errors, 1, "{rendered}");
+            assert!(rendered.contains(found), "{rendered}");
+            let ItemKind::Part(p) = &file.items[0].kind else {
+                panic!("{rendered}")
+            };
+            assert!(
+                p.primary
+                    .fields
+                    .iter()
+                    .any(|f| f.name.name == "mpn" && f.value == "M"),
+                "{:?}",
+                p.primary.fields
+            );
+            assert_eq!(
+                p.primary.footprint.as_ref().map(|f| f.name.as_str()),
+                Some("F")
+            );
+        }
+        for (src, found) in [
+            (
+                "impl T for D {\n    pins { A: 7, B: C }\n}\n",
+                "expected an identifier as the device's own name, found number `7`",
+            ),
+            (
+                "impl T for D {\n    pins { 7: A, B: C }\n}\n",
+                "expected an identifier as the trait's required name, found number `7`",
+            ),
+        ] {
+            let (file, errors, rendered) = parse_within(src, LIMIT);
+            assert_eq!(errors, 1, "{src}\n{rendered}");
+            assert!(rendered.contains(found), "{rendered}");
+            let ItemKind::Impl(i) = &file.items[0].kind else {
+                panic!("{rendered}")
+            };
+            assert!(
+                i.pin_map
+                    .iter()
+                    .any(|m| m.role.name == "B" && m.target.name == "C"),
+                "{rendered}"
+            );
+        }
+    }
+
+    /// Every parser diagnostic goes through `report`: the error budget —
+    /// and with it the bound on any stalled recovery — holds only for the
+    /// diagnostics it sees.
+    #[test]
+    fn every_parser_diagnostic_goes_through_report() {
+        let src = include_str!("parse.rs");
+        let prod = &src[..src.find("#[cfg(test)]\nmod tests").unwrap()];
+        let start = prod.find("    fn report(&mut self").unwrap();
+        let end = start + prod[start..].find("\n    }\n").unwrap();
+        let hits: Vec<usize> = prod
+            .match_indices("self.diags")
+            .map(|(at, _)| at)
+            .filter(|at| !(start..end).contains(at))
+            .map(|at| prod[..at].matches('\n').count() + 1)
+            .collect();
+        assert!(
+            hits.is_empty(),
+            "record parser diagnostics with `self.report(…)`, which enforces the error budget — `self.diags` used directly at src/parse.rs lines {hits:?}"
+        );
+    }
+
+    /// A file stopped at its error budget lacks every declaration after
+    /// the stop point. Resolving against it reported declarations that
+    /// exist as unknown in other files — and a `design` past the stop as a
+    /// selection error, exit 2, an "invocation" failure to a caller — so
+    /// the pipeline reports the syntax errors alone.
+    #[test]
+    fn a_truncated_file_reports_only_its_syntax_errors() {
+        let commas = ", ".repeat(MAX_PARSE_ERRORS + 60);
+        let devices = |x_body: &str| {
+            format!(
+                "pub device R {{\n    pins {{ required A: 1 [passive], required B: 2 [passive] }}\n}}\n\npub device X {{ {x_body} }}\n\npub device Y {{\n    pins {{ required A: 1 [passive], required B: 2 [passive] }}\n}}\n"
+            )
+        };
+        let top = "design Top {\n    inst r: R\n    inst y: Y\n    net N1: r.A, y.A\n    net N2: r.B, y.B\n}\n";
+        let project = |x_body: &str| {
+            vec![
+                ("src/devices.cohdl".to_string(), devices(x_body)),
+                ("src/top.cohdl".to_string(), top.to_string()),
+            ]
+        };
+        let one_file = vec![(
+            "src/main.cohdl".to_string(),
+            format!("{}\n{top}", devices(&commas)),
+        )];
+        for (files, design) in [
+            (project(&commas), None),
+            (project(&commas), Some("Top")),
+            (one_file, Some("Top")),
+        ] {
+            let checked = crate::pipeline::check_files_in("p", &files, design).unwrap();
+            let rendered = checked.diags.render(&checked.sm);
+            assert_eq!(
+                checked.diags.error_count(),
+                MAX_PARSE_ERRORS + 1,
+                "{rendered}"
+            );
+            assert!(!rendered.contains("E202"), "{rendered}");
+            assert!(
+                rendered.contains("no name-resolution or design checks ran"),
+                "{rendered}"
+            );
+            assert_eq!(checked.selection_error, None);
+        }
+        // Control: the same project with a well-formed `X` checks clean.
+        let checked =
+            crate::pipeline::check_files_in("p", &project("pins { A: 1 [passive] }"), None)
+                .unwrap();
+        assert!(
+            !checked.diags.has_errors(),
+            "{}",
+            checked.diags.render(&checked.sm)
+        );
+    }
+
+    /// The small valid trait/device/impl/part file the insertion fuzz
+    /// mutates first.
+    const BASE: &str = "pub trait T: TwoTerminal {\n    designator_prefix: \"U\"\n    pins {\n        required A: pin\n        optional B: pin\n    }\n    spec {\n        v: Voltage\n    }\n}\n\npub device D<V: Voltage = 5V> {\n    variants { X, Y }\n    pins[X] {\n        required A: 1, 2 [passive]\n        optional B: A3 [power_in]\n    }\n    pins[Y] { required A: 1 [passive], optional B: 2 [power_in] }\n    spec { v: V }\n}\n\nimpl T for D {\n    pins { A: A, B: B }\n}\n\npub part P: D<5V>[X] {\n    primary { mfr: \"M\", mpn: \"N\", footprint: F }\n    alt { mfr: \"M2\", mpn: \"N2\", footprint: lib::F }\n}\n";
+
+    /// The second fuzz base: the statement- and geometry-level bodies —
+    /// pad, footprint (pads, a mount hole, silkscreen, courtyard), a
+    /// subdesign with ports and a layout, a `fn` with an attributed `inst`,
+    /// and a design with an attributed array `inst`, a `for` loop, a call,
+    /// a subdesign use site, `nc`, and a layout with a loop and net rules.
+    const BASE2: &str = r#"pub pad P {
+    shape: rect
+    size: (0.6mm, 0.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint F {
+    pad 1: P at (-1mm, 0mm)
+    pad 2: P at (1mm, 0mm) rotate 90
+    mount_hole 1: non_plated at (0mm, 2mm) diameter 2.2mm
+    silkscreen {
+        line from (-2mm, -1mm) to (2mm, -1mm) width 0.15mm
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3mm, 2mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}
+
+pub subdesign S<C: Capacitance> {
+    ports {
+        required VIN: Pin
+        optional VOUT: Pin
+    }
+    inst c: Cap<C>
+    net _: VIN, c.A
+    layout { place c at (1mm, 2mm) rotate 90 }
+}
+
+pub fn link(a: Pin, b: Pin) {
+    #[bypass(a, 100nF)]
+    inst c: Cap<100nF>
+    net _: a, c.A, b
+}
+
+design Top {
+    const N: Int = 3
+    inst host: Host
+    #[placement_hint("left")]
+    inst leds: [Led; N]
+    net VCC [5V]: host.V5, leds[0..=(leds.len - 1)].VDD
+    for chain: n in 0..(leds.len - 1) {
+        net _: leds[n].DOUT, leds[n + 1].DIN
+    }
+    link(host.DATA, leds[0].DIN)
+    subdesign reg: S<1uF> { VIN: host.V5 }
+    nc: leds[2].DOUT
+    layout {
+        for grid: n in 0..leds.len {
+            place leds[n] at (10mm + n * 4mm, 10mm) side bottom
+        }
+        net_class Power { VCC }
+        diff_pair(VCC, VCC)
+    }
+}
+"#;
+
+    const INSERTS: &[&str] = &[
+        ",",
+        ":",
+        ";",
+        "{",
+        "}",
+        "(",
+        ")",
+        "[",
+        "]",
+        "<",
+        ">",
+        "=",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        ".",
+        "..",
+        "::",
+        "#",
+        "\"s\"",
+        "1",
+        "5V",
+        "-5V",
+        "A1",
+        "x",
+        "_",
+        "pins",
+        "spec",
+        "variants",
+        "required",
+        "optional",
+        "pin",
+        "designator_prefix",
+        "pub",
+        "trait",
+        "device",
+        "impl",
+        "for",
+        "fn",
+        "part",
+        "design",
+        "inst",
+        "net",
+        "nc",
+        "use",
+        "footprint",
+        "pad",
+        "subdesign",
+        "primary",
+        "alt",
+        "layout",
+        "const",
+        "Voltage",
+        "passive",
+        "\u{3a9}",
+    ];
+
+    /// Fuzz-ish: insert each of `INSERTS` before every token of the valid
+    /// file `base`. Every variant must finish quickly with at most `bound`
+    /// errors. And since the error budget can halt a parse at ANY of its
+    /// errors — leaving the cursor on EOF mid-production (see `report`) —
+    /// each variant with `n` errors is parsed again under every budget
+    /// below `n`, so the halt lands at each error point the variant
+    /// reaches; each must end cleanly with exactly that many errors plus
+    /// the E102 (it once panicked at `stmt`'s call arm instead). One worker
+    /// runs them all; the test fails, naming the input, if a parse panics
+    /// or overruns the deadline. Returns (variants, worst error count,
+    /// times the `block_continues` guard fired).
+    fn insertion_fuzz(base: &'static str, bound: usize) -> (usize, usize, usize) {
+        parse_ok(base);
         let mut sm = SourceMap::new();
-        let f = sm.add_file("base.cohdl", BASE);
+        let f = sm.add_file("base.cohdl", base);
         let mut scratch = Diagnostics::new();
-        let at: Vec<usize> = lex(f, BASE, &mut scratch)
+        let at: Vec<usize> = lex(f, base, &mut scratch)
             .iter()
             .map(|t| t.span.start as usize)
             .collect();
@@ -5869,23 +6635,38 @@ design B {
         enum Msg {
             Start(String),
             Errors(usize),
-            Done,
+            Done(usize),
         }
         let (tx, rx) = mpsc::channel();
         std::thread::spawn(move || {
+            test_hooks::set(true, true);
             for &i in &at {
                 for ins in INSERTS {
-                    let src = format!("{} {ins} {}", &BASE[..i], &BASE[i..]);
+                    let src = format!("{} {ins} {}", &base[..i], &base[i..]);
                     tx.send(Msg::Start(src.clone())).unwrap();
-                    let mut sm = SourceMap::new();
-                    let f = sm.add_file("fuzz.cohdl", src.as_str());
-                    let mut diags = Diagnostics::new();
-                    let tokens = lex(f, &src, &mut diags);
-                    let _ = parse(tokens, &mut diags);
-                    tx.send(Msg::Errors(diags.error_count())).unwrap();
+                    // Parser errors only (the budget does not count the
+                    // lexer's), and whether the parse was cut short.
+                    let parse_errors = |budget: usize| {
+                        let mut sm = SourceMap::new();
+                        let f = sm.add_file("fuzz.cohdl", src.as_str());
+                        let tokens = lex(f, &src, &mut Diagnostics::new());
+                        let mut diags = Diagnostics::new();
+                        let file = parse_with_budget(tokens, &mut diags, budget);
+                        (diags.error_count(), file.truncated)
+                    };
+                    let (n, truncated) = parse_errors(MAX_PARSE_ERRORS);
+                    assert!(!truncated, "the full budget halted:\n{src}");
+                    for budget in 0..n {
+                        let (m, truncated) = parse_errors(budget);
+                        assert!(
+                            truncated && m == budget + 1,
+                            "budget {budget}: {m} errors, truncated: {truncated}, for:\n{src}"
+                        );
+                    }
+                    tx.send(Msg::Errors(n)).unwrap();
                 }
             }
-            tx.send(Msg::Done).unwrap();
+            tx.send(Msg::Done(test_hooks::fired())).unwrap();
         });
         let (mut current, mut cases, mut worst) = (String::new(), 0usize, 0usize);
         loop {
@@ -5895,15 +6676,40 @@ design B {
                     cases += 1;
                     worst = worst.max(n);
                     assert!(
-                        n <= BOUND,
-                        "{n} errors (bound {BOUND}) for one inserted token:\n{current}"
+                        n <= bound,
+                        "{n} errors (bound {bound}) for one inserted token:\n{current}"
                     );
                 }
-                Ok(Msg::Done) => break,
-                Err(e) => panic!("parse did not finish ({e}) within 5s on:\n{current}"),
+                Ok(Msg::Done(fired)) => return (cases, worst, fired),
+                Err(e) => panic!("parse panicked or did not finish ({e}) within 5s on:\n{current}"),
             }
         }
+    }
+
+    #[test]
+    fn single_token_insertions_terminate_with_bounded_diagnostics() {
+        // The point is "bounded", against the unbounded growth (or the
+        // 200-error budget) of a stall. Worst today is 11: an inserted `}`
+        // or keyword ends a declaration early and the remainder of its
+        // body is reported token group by token group.
+        let (cases, worst, fired) = insertion_fuzz(BASE, 20);
         assert!(cases > 5_000, "only {cases} variants ran");
-        eprintln!("{cases} single-token insertions, worst case {worst} errors");
+        eprintln!(
+            "{cases} single-token insertions, worst case {worst} errors, guard fired {fired}x"
+        );
+    }
+
+    #[test]
+    fn single_token_insertions_into_statement_bodies_terminate() {
+        // Worst today is 20: an inserted `}` ends the design early and the
+        // rest of its statements are reported at the top level.
+        let (cases, worst, fired) = insertion_fuzz(BASE2, 30);
+        assert!(cases > 20_000, "only {cases} variants ran");
+        // The `block_continues` guard is load-bearing here: unknown members
+        // of `layout { }` and `for` bodies are reported without consuming.
+        assert!(fired > 0, "the progress guard never fired");
+        eprintln!(
+            "{cases} single-token insertions, worst case {worst} errors, guard fired {fired}x"
+        );
     }
 }

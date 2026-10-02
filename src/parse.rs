@@ -4,9 +4,14 @@
 //! deterministic-grammar hard constraint. Error recovery is panic-mode: skip
 //! to the next top-level keyword (items) or statement keyword / closing brace
 //! (bodies), so one mistake doesn't cascade.
+//!
+//! Termination on ANY input is structural, not per call site: every `{ … }`
+//! body loop runs on `block_continues` (an iteration that consumed nothing
+//! consumes the token it stalled on), and every diagnostic goes through
+//! `report`, which stops the file at `MAX_PARSE_ERRORS` (E102).
 
 use crate::ast::*;
-use crate::diag::{Diagnostic, Diagnostics};
+use crate::diag::{Diagnostic, Diagnostics, Severity};
 use crate::lex::{Token, TokenKind};
 use crate::span::Span;
 use crate::units::{UnitType, UnitValue};
@@ -20,6 +25,15 @@ use crate::units::{UnitType, UnitValue};
 /// Loop headers use the same budget as their body (a literal costs one).
 const MAX_SYNTAX_DEPTH: usize = 96;
 
+/// Syntax errors one file may report before parsing it stops (E102). A
+/// backstop, not a style limit: real files with this many independent
+/// mistakes are rare, and past it the output is cascade noise to a human
+/// and to the repair loop alike. It also bounds the cost of any recovery
+/// path that fails to make progress — every such pass reports, so a
+/// stalled loop reaches the budget and ends instead of allocating until
+/// the OS kills the process (the cohdl 0.8.0 `device X { , }` hang).
+const MAX_PARSE_ERRORS: usize = 200;
+
 pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
     let mut local = Diagnostics::new();
     let mut parser = Parser {
@@ -28,6 +42,7 @@ pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
         diags: &mut local,
         nesting: 0,
         depth_error: None,
+        halted: false,
     };
     let file = parser.file();
     if let Some(span) = parser.depth_error {
@@ -46,15 +61,53 @@ pub fn parse(tokens: Vec<Token>, diags: &mut Diagnostics) -> SourceFile {
     }
 }
 
+/// Per-loop state for `Parser::block_continues`: where the current
+/// iteration of one body loop began.
+#[derive(Default)]
+struct Progress(Option<usize>);
+
 struct Parser<'a> {
     tokens: Vec<Token>,
     pos: usize,
     diags: &'a mut Diagnostics,
     nesting: usize,
     depth_error: Option<Span>,
+    /// Set once the file has used up its `MAX_PARSE_ERRORS` budget; the
+    /// cursor then sits on EOF and further diagnostics are dropped.
+    halted: bool,
 }
 
 impl<'a> Parser<'a> {
+    /// The one way the parser records a diagnostic. Enforces the per-file
+    /// error budget: the error that would exceed `MAX_PARSE_ERRORS` is
+    /// replaced by one E102 at its position, and the cursor jumps to EOF —
+    /// the same constant-time, forward-only abandonment `depth_exceeded`
+    /// uses, so every loop (all of which stop at EOF) unwinds at once.
+    fn report(&mut self, d: Diagnostic) {
+        if self.halted {
+            return;
+        }
+        if d.severity == Severity::Error && self.diags.error_count() >= MAX_PARSE_ERRORS {
+            self.halted = true;
+            self.diags.push(
+                Diagnostic::error(
+                    "E102",
+                    d.primary.span,
+                    format!(
+                        "too many syntax errors — stopped parsing this file after {MAX_PARSE_ERRORS}"
+                    ),
+                )
+                .with_help(
+                    "fix the errors reported above and check again; later ones are often \
+                     knock-on effects of the first",
+                ),
+            );
+            self.pos = self.tokens.len() - 1;
+            return;
+        }
+        self.diags.push(d);
+    }
+
     fn depth_exceeded<T>(&mut self, span: Span) -> Option<T> {
         self.depth_error.get_or_insert(span);
         // Constant-time, forward-only recovery; no recursion through the rest
@@ -128,8 +181,7 @@ impl<'a> Parser<'a> {
     }
 
     fn error_here(&mut self, message: String) {
-        self.diags
-            .push(Diagnostic::error("E010", self.span(), message));
+        self.report(Diagnostic::error("E010", self.span(), message));
     }
 
     fn ident(&mut self, ctx: &str) -> Option<Ident> {
@@ -220,7 +272,7 @@ impl<'a> Parser<'a> {
         let start = self.span();
         let (attrs, phys) = self.attrs();
         for pa in &phys {
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E1009",
                 pa.span(),
                 format!(
@@ -242,7 +294,7 @@ impl<'a> Parser<'a> {
         if self.at_ident("use") {
             if is_pub {
                 // Anchor at the `pub` token itself (decl_start), not `use`.
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     decl_start,
                     "`pub use` re-exports are not in RFC-016's first pass — remove `pub`"
@@ -254,14 +306,14 @@ impl<'a> Parser<'a> {
             if let Some((_, intent_span)) = &intent {
                 // Anchor at the attribute, not whatever token follows the
                 // already-consumed statement.
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     *intent_span,
                     "`#[intent]` is not valid on a `use` import".to_string(),
                 ));
             }
             for (_, doc_span) in &docs {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     *doc_span,
                     "`#[doc]` is not valid on a `use` import".to_string(),
@@ -280,7 +332,7 @@ impl<'a> Parser<'a> {
         // RFC-017 `footprint NAME {}` — contextual keyword, like `use`.
         if self.at_ident("footprint") && self.peek_ahead(1) == &TokenKind::LBrace {
             let span = self.span();
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E010",
                 span,
                 "a `footprint` declaration needs a name: `footprint NAME {}`".to_string(),
@@ -305,7 +357,7 @@ impl<'a> Parser<'a> {
         }
         if self.at_ident("pad") && self.peek_ahead(1) == &TokenKind::LBrace {
             let span = self.span();
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E010",
                 span,
                 "a `pad` declaration needs a name: `pad NAME { … }`".to_string(),
@@ -344,7 +396,7 @@ impl<'a> Parser<'a> {
         }
         if self.at_ident("subdesign") && self.peek_ahead(1) == &TokenKind::LBrace {
             let span = self.span();
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E010",
                 span,
                 "a `subdesign` declaration needs a name: `subdesign NAME { … }`".to_string(),
@@ -356,7 +408,7 @@ impl<'a> Parser<'a> {
         }
         if !docs.is_empty() && matches!(self.peek(), TokenKind::Impl) {
             for (_, doc_span) in &docs {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     *doc_span,
                     "`#[doc]` is not valid on an `impl` — impls are unnamed; attach the document to the trait or device"
@@ -423,7 +475,7 @@ impl<'a> Parser<'a> {
         }
         if path.len() < 2 {
             // Anchor at the lone segment, not the token after it.
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E010",
                 path[0].span,
                 format!(
@@ -464,13 +516,13 @@ impl<'a> Parser<'a> {
         let mut silkscreen: Option<Box<SilkscreenBlock>> = None;
         let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
         let mut unclosed = false;
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             // A top-level declaration keyword means the body's `}` is
             // missing (nothing top-level is legal in a footprint body) —
             // stop WITHOUT consuming so the declaration survives.
             if self.at_decl_keyword() {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     open_span,
                     format!(
@@ -497,7 +549,7 @@ impl<'a> Parser<'a> {
                 let c = self.shape_block("courtyard");
                 match (&courtyard, c) {
                     (Some(prev), Some(next)) => {
-                        self.diags.push(
+                        self.report(
                             Diagnostic::error(
                                 "E806",
                                 next.span,
@@ -515,7 +567,7 @@ impl<'a> Parser<'a> {
                 let blk = self.silkscreen_block();
                 match (&silkscreen, blk) {
                     (Some(prev), Some(next)) => {
-                        self.diags.push(
+                        self.report(
                             Diagnostic::error(
                                 "E812",
                                 next.span,
@@ -531,7 +583,7 @@ impl<'a> Parser<'a> {
                 let w = self.shape_block("window");
                 match (&window, w) {
                     (Some(prev), Some(next)) => {
-                        self.diags.push(
+                        self.report(
                             Diagnostic::error(
                                 "E806",
                                 next.span,
@@ -566,7 +618,7 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::RBrace, "to close `silkscreen_ref`");
                 let span = start_sr.to(self.prev_span());
                 if let Some((_, _, prev)) = &silkscreen_ref {
-                    self.diags.push(
+                    self.report(
                         Diagnostic::error(
                             "E806",
                             span,
@@ -578,7 +630,7 @@ impl<'a> Parser<'a> {
                     silkscreen_ref = Some((x, y, span));
                 }
             } else {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E806",
                     self.span(),
                     format!(
@@ -587,11 +639,6 @@ impl<'a> Parser<'a> {
                     ),
                 ));
                 self.sync_footprint_body();
-            }
-            // Recovery stops AT boundary tokens without consuming —
-            // guarantee progress so a stray token can never loop forever.
-            if self.pos == before {
-                self.bump();
             }
         }
         if !unclosed {
@@ -642,7 +689,7 @@ impl<'a> Parser<'a> {
             match MountHolePlating::from_name(&v.name) {
                 Some(p) => p,
                 None => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E810",
                         v.span,
                         format!(
@@ -672,7 +719,7 @@ impl<'a> Parser<'a> {
                 let v = self.ident("as the mount-hole shape")?;
                 match PadShape::from_name(&v.name) {
                     Some(PadShape::Annulus) => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E810",
                             v.span,
                             "`annulus` is only valid for electrical pads, not `mount_hole`"
@@ -682,7 +729,7 @@ impl<'a> Parser<'a> {
                     }
                     Some(s) => shape = Some((s, v.span)),
                     None => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E810",
                             v.span,
                             format!(
@@ -864,7 +911,7 @@ impl<'a> Parser<'a> {
             Some(v) => match SilkFill::from_name(&v.name) {
                 Some(f) => f,
                 None => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E812",
                         v.span,
                         format!("`{}` is not a fill — fills are: none, solid", v.name),
@@ -881,7 +928,7 @@ impl<'a> Parser<'a> {
     fn silk_angle(&mut self, what: &str) -> Option<i32> {
         let t = self.bump();
         let TokenKind::Number(text) = &t.kind else {
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E812",
                 t.span,
                 format!(
@@ -895,7 +942,7 @@ impl<'a> Parser<'a> {
         match text.parse::<i32>() {
             Ok(n) if (0..=360).contains(&n) => Some(n),
             _ => {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E812",
                     t.span,
                     format!(
@@ -917,8 +964,8 @@ impl<'a> Parser<'a> {
             return None;
         }
         let mut items: Vec<SilkItem> = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             let kw_span = self.span();
             let Some(kw) = self.ident(
                 "as a silkscreen statement (`line`, `circle`, `arc`, `polygon`, \
@@ -926,9 +973,6 @@ impl<'a> Parser<'a> {
             ) else {
                 self.sync_in_block();
                 self.eat(&TokenKind::Comma);
-                if self.pos == before {
-                    self.bump();
-                }
                 continue;
             };
             let item = match kw.name.as_str() {
@@ -988,7 +1032,7 @@ impl<'a> Parser<'a> {
                     self.expect(&TokenKind::RBracket, "to close the vertex list");
                     let fill = self.silk_fill(SilkFill::Solid);
                     if points.len() < 3 {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E812",
                             kw_span.to(self.prev_span()),
                             format!(
@@ -1011,7 +1055,7 @@ impl<'a> Parser<'a> {
                             "dot" => Pin1Shape::Dot,
                             "triangle" => Pin1Shape::Triangle,
                             other => {
-                                self.diags.push(Diagnostic::error(
+                                self.report(Diagnostic::error(
                                     "E812",
                                     v.span,
                                     format!(
@@ -1033,9 +1077,6 @@ impl<'a> Parser<'a> {
                     } else {
                         self.sync_in_block();
                     }
-                    if self.pos == before {
-                        self.bump();
-                    }
                     continue;
                 }
                 "polarity_marker" => {
@@ -1048,7 +1089,7 @@ impl<'a> Parser<'a> {
                             "band" => PolarityShape::Band,
                             "arrow" => PolarityShape::Arrow,
                             other => {
-                                self.diags.push(Diagnostic::error(
+                                self.report(Diagnostic::error(
                                     "E812",
                                     v.span,
                                     format!(
@@ -1070,13 +1111,10 @@ impl<'a> Parser<'a> {
                     } else {
                         self.sync_in_block();
                     }
-                    if self.pos == before {
-                        self.bump();
-                    }
                     continue;
                 }
                 other => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E812",
                         kw.span,
                         format!(
@@ -1094,9 +1132,6 @@ impl<'a> Parser<'a> {
                 None => self.sync_in_block(),
             }
             self.eat(&TokenKind::Comma);
-            if self.pos == before {
-                self.bump();
-            }
         }
         self.expect(&TokenKind::RBrace, "to close `silkscreen`");
         Some(SilkscreenBlock {
@@ -1119,8 +1154,8 @@ impl<'a> Parser<'a> {
         let mut at: Option<(UnitValue, UnitValue)> = None;
         let mut size: Option<(Vec<UnitValue>, Span)> = None;
         let mut unclosed = false;
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if self.at_ident("pad")
                 || self.at_ident("courtyard")
                 || self.at_ident("window")
@@ -1128,7 +1163,7 @@ impl<'a> Parser<'a> {
                 || self.at_ident("silkscreen_ref")
                 || self.at_decl_keyword()
             {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     open_span,
                     format!(
@@ -1149,13 +1184,13 @@ impl<'a> Parser<'a> {
             match field.name.as_str() {
                 "shape" => match self.ident("as the shape") {
                     Some(v) => match PadShape::from_name(&v.name) {
-                        Some(PadShape::Annulus) => self.diags.push(Diagnostic::error(
+                        Some(PadShape::Annulus) => self.report(Diagnostic::error(
                             "E806",
                             v.span,
                             format!("`annulus` is only valid for electrical pads, not `{}`", kw),
                         )),
                         Some(s) => shape = Some((s, v.span)),
-                        None => self.diags.push(Diagnostic::error(
+                        None => self.report(Diagnostic::error(
                             "E806",
                             v.span,
                             format!(
@@ -1181,7 +1216,7 @@ impl<'a> Parser<'a> {
                     }
                 },
                 other => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E806",
                         field.span,
                         format!(
@@ -1193,16 +1228,13 @@ impl<'a> Parser<'a> {
                 }
             }
             self.eat(&TokenKind::Comma);
-            if self.pos == before {
-                self.bump();
-            }
         }
         if !unclosed {
             self.expect(&TokenKind::RBrace, "to close the block");
         }
         let span = start.to(self.prev_span());
         let (Some(shape), Some(at), Some((size, size_span))) = (shape, at, size) else {
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E806",
                 span,
                 format!("`{}` needs `shape`, `at`, and `size`", kw),
@@ -1283,8 +1315,7 @@ impl<'a> Parser<'a> {
                 return match v.negate_for_literal() {
                     Ok(v) => Some((v, minus_span.to(t.span))),
                     Err(msg) => {
-                        self.diags
-                            .push(Diagnostic::error("E105", minus_span.to(t.span), msg));
+                        self.report(Diagnostic::error("E105", minus_span.to(t.span), msg));
                         None
                     }
                 };
@@ -1344,10 +1375,10 @@ impl<'a> Parser<'a> {
             paste: None,
             span: start,
         };
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if self.at_decl_keyword() {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     open_span,
                     format!(
@@ -1376,7 +1407,7 @@ impl<'a> Parser<'a> {
                     };
                     match PadShape::from_name(&v.name) {
                         Some(s) => def.shape = Some((s, v.span)),
-                        None => self.diags.push(Diagnostic::error(
+                        None => self.report(Diagnostic::error(
                             "E805",
                             v.span,
                             format!(
@@ -1403,7 +1434,7 @@ impl<'a> Parser<'a> {
                     };
                     match PadLayer::from_name(&v.name) {
                         Some(l) => def.layer = Some((l, v.span)),
-                        None => self.diags.push(Diagnostic::error(
+                        None => self.report(Diagnostic::error(
                             "E805",
                             v.span,
                             format!(
@@ -1421,7 +1452,7 @@ impl<'a> Parser<'a> {
                     };
                     match PadPlating::from_name(&v.name) {
                         Some(p) => def.plating = Some((p, v.span)),
-                        None => self.diags.push(Diagnostic::error(
+                        None => self.report(Diagnostic::error(
                             "E805",
                             v.span,
                             format!(
@@ -1441,7 +1472,7 @@ impl<'a> Parser<'a> {
                             continue;
                         };
                         let [w, l] = vals.as_slice() else {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E805",
                                 span,
                                 format!(
@@ -1477,7 +1508,7 @@ impl<'a> Parser<'a> {
                     };
                     let parsed_corner = PadCorner::from_name(&corner.name);
                     if parsed_corner.is_none() {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E805",
                             corner.span,
                             format!(
@@ -1524,7 +1555,7 @@ impl<'a> Parser<'a> {
                             continue;
                         };
                         let [diameter] = vals.as_slice() else {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E805",
                                 span,
                                 format!(
@@ -1544,7 +1575,7 @@ impl<'a> Parser<'a> {
                             continue;
                         };
                         let [outer, inner, gap] = vals.as_slice() else {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E805",
                                 span,
                                 format!(
@@ -1571,7 +1602,7 @@ impl<'a> Parser<'a> {
                             continue;
                         };
                         let [w, h] = vals.as_slice() else {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E805",
                                 span,
                                 format!(
@@ -1588,7 +1619,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 other => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E805",
                         field.span,
                         format!(
@@ -1602,9 +1633,6 @@ impl<'a> Parser<'a> {
                 }
             }
             self.eat(&TokenKind::Comma);
-            if self.pos == before {
-                self.bump();
-            }
         }
         if !unclosed {
             self.expect(&TokenKind::RBrace, "to close the pad body");
@@ -1621,7 +1649,7 @@ impl<'a> Parser<'a> {
         loop {
             match self.peek() {
                 TokenKind::Eof => {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E010",
                         opened_at,
                         "unclosed body — missing `}` before end of file".to_string(),
@@ -1683,7 +1711,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
             if a.args.len() != 1 {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     a.span,
                     "`#[doc(…)]` takes exactly one string per attribute — use several `#[doc]`s for several documents"
@@ -1722,7 +1750,7 @@ impl<'a> Parser<'a> {
                 None
             };
             if let Some(why) = bad {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     a.span,
                     format!(
@@ -1754,7 +1782,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
             if a.args.len() != 1 {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     a.span,
                     format!(
@@ -1765,7 +1793,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
             if value.is_some() {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     a.span,
                     format!(
@@ -1849,7 +1877,7 @@ impl<'a> Parser<'a> {
     /// RFC-027: physics attributes are net/inst-only — reject elsewhere.
     fn reject_phys(&mut self, phys: &[PhysAttr], what: &str) {
         for pa in phys {
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E1009",
                 pa.span(),
                 format!("`#[{}]` cannot be attached to {}", pa.name(), what),
@@ -1864,7 +1892,7 @@ impl<'a> Parser<'a> {
         let mut kept: Vec<PhysAttr> = Vec::new();
         for pa in phys {
             if pa.is_net_attr() != net_target {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E1009",
                     pa.span(),
                     format!(
@@ -1887,7 +1915,7 @@ impl<'a> Parser<'a> {
                     format!("duplicate `#[{}]` on one declaration", pa.name()),
                 )
                 .with_secondary(prev.span(), "first written here".to_string());
-                self.diags.push(d);
+                self.report(d);
                 continue;
             }
             kept.push(pa);
@@ -1905,7 +1933,7 @@ impl<'a> Parser<'a> {
         let unit_arg = |p: &mut Self, expected: UnitType, what: &str| -> Option<UnitValue> {
             let v = p.unit_literal(what)?;
             if v.unit != expected {
-                p.diags.push(Diagnostic::error(
+                p.report(Diagnostic::error(
                     "E110",
                     name.span,
                     format!(
@@ -1925,7 +1953,7 @@ impl<'a> Parser<'a> {
             "bga_fanout" => {
                 // Bare — no argument list at all.
                 if self.at(&TokenKind::LParen) {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E1009",
                         name.span,
                         "`#[bga_fanout]` takes no arguments".to_string(),
@@ -1943,7 +1971,7 @@ impl<'a> Parser<'a> {
                     "primary" => true,
                     "secondary" => false,
                     other => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E1009",
                             v.span,
                             format!(
@@ -1958,7 +1986,7 @@ impl<'a> Parser<'a> {
                 if self.eat(&TokenKind::Comma) {
                     let f = self.ident("as the flag (`region_pour`)")?;
                     if f.name != "region_pour" {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E1009",
                             f.span,
                             format!(
@@ -1984,7 +2012,7 @@ impl<'a> Parser<'a> {
                 if self.eat(&TokenKind::Comma) {
                     let f = self.ident("as the flag (`power_pour`)")?;
                     if f.name != "power_pour" {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E1009",
                             f.span,
                             format!("`{}` is not a `#[high_current]` flag — the only flag is `power_pour`", f.name),
@@ -2006,7 +2034,7 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::Comma, "before `frequency:`");
                 let k = self.ident("as the named argument `frequency`")?;
                 if k.name != "frequency" {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E1009",
                         k.span,
                         format!(
@@ -2035,7 +2063,7 @@ impl<'a> Parser<'a> {
                     match self.index_sel()? {
                         IndexSel::Single(e, sp) => Some((e, sp)),
                         other => {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E211",
                                 other.span(),
                                 "`#[bypass]` takes a single element `NAME[i]` — a range or index list names more than one target".to_string(),
@@ -2096,7 +2124,7 @@ impl<'a> Parser<'a> {
                         "input_capacitor" => input_capacitor = Some(v),
                         "output_capacitor" => output_capacitor = Some(v),
                         other => {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E1009",
                                 k.span,
                                 format!(
@@ -2113,7 +2141,7 @@ impl<'a> Parser<'a> {
                 }
                 self.expect(&TokenKind::RParen, "to close the attribute arguments");
                 let Some(inductor) = inductor else {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E1009",
                         name.span,
                         "`#[switching_converter]` requires the `inductor:` argument".to_string(),
@@ -2158,12 +2186,14 @@ impl<'a> Parser<'a> {
             pins_span: None,
             spec_span: None,
         };
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if self.at(&TokenKind::Pins) {
                 let block_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the pins block");
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     if let Some(pin) = self.trait_pin() {
                         def.pins.push(pin);
                     } else {
@@ -2178,7 +2208,8 @@ impl<'a> Parser<'a> {
                 let block_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the spec block");
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     if let Some(field) = self.trait_spec_field() {
                         def.specs.push(field);
                     } else {
@@ -2210,7 +2241,9 @@ impl<'a> Parser<'a> {
                     "expected `pins`, `spec`, or `designator_prefix` in the trait body, found {}",
                     self.peek().describe()
                 ));
-                self.sync_in_block();
+                // Advancing: a stray `,` here used to stall this loop
+                // forever (cohdl 0.8.0 `trait T { , }`).
+                self.sync_in_block_advancing();
             }
         }
         self.expect(&TokenKind::RBrace, "to close the trait body");
@@ -2258,7 +2291,7 @@ impl<'a> Parser<'a> {
                 span: ident.span,
             }),
             None => {
-                self.diags.push(
+                self.report(
                     Diagnostic::error(
                         "E010",
                         ident.span,
@@ -2298,7 +2331,7 @@ impl<'a> Parser<'a> {
         };
         if self.at(&TokenKind::Colon) {
             // v1-era `device X: impl Trait` — superseded by RFC-003.
-            self.diags.push(
+            self.report(
                 Diagnostic::error(
                     "E010",
                     self.span(),
@@ -2326,19 +2359,21 @@ impl<'a> Parser<'a> {
             pin_blocks: Vec::new(),
             spec_blocks: Vec::new(),
         };
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if self.at_ident("variants") {
                 let variants_start = self.span();
                 self.bump();
                 self.expect(&TokenKind::LBrace, "to open the variants block");
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     let Some(v) = self.ident("as a variant name") else {
                         self.sync_in_block_advancing();
                         continue;
                     };
                     // RFC-008 rejects wildcard/default arms outright.
                     if v.name == "_" {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E010",
                             v.span,
                             "`_` is not a valid variant name — every variant is named explicitly, no wildcard/catch-all arms (RFC-008)",
@@ -2348,7 +2383,7 @@ impl<'a> Parser<'a> {
                     }
                     // RFC-008: the closed set is duplicate-checked at parse.
                     if let Some(prev) = def.variants.iter().find(|x| x.name == v.name) {
-                        self.diags.push(
+                        self.report(
                             Diagnostic::error(
                                 "E906",
                                 v.span,
@@ -2369,7 +2404,8 @@ impl<'a> Parser<'a> {
                 let variant = self.block_variant_qualifier();
                 self.expect(&TokenKind::LBrace, "to open the pins block");
                 let mut pins = Vec::new();
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     if let Some(pin) = self.device_pin() {
                         pins.push(pin);
                     } else {
@@ -2389,7 +2425,8 @@ impl<'a> Parser<'a> {
                 let variant = self.block_variant_qualifier();
                 self.expect(&TokenKind::LBrace, "to open the spec block");
                 let mut fields = Vec::new();
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     if let Some(field) = self.device_spec_field() {
                         fields.push(field);
                     } else {
@@ -2408,7 +2445,9 @@ impl<'a> Parser<'a> {
                     "expected `pins`, `spec`, or `variants` in the device body, found {}",
                     self.peek().describe()
                 ));
-                self.sync_in_block();
+                // Advancing: a stray `,` here used to stall this loop
+                // forever (cohdl 0.8.0 `device X { , }`).
+                self.sync_in_block_advancing();
             }
         }
         self.expect(&TokenKind::RBrace, "to close the device body");
@@ -2493,7 +2532,7 @@ impl<'a> Parser<'a> {
             match PinRole::from_name(&role_ident.name) {
                 Some(r) => role = Some((r, role_ident.span)),
                 None => {
-                    self.diags.push(
+                    self.report(
                         Diagnostic::error(
                             "E010",
                             role_ident.span,
@@ -2509,7 +2548,7 @@ impl<'a> Parser<'a> {
         } else {
             // RFC-008: every device pin carries an explicit role — the
             // implicit `passive` default is retired.
-            self.diags.push(
+            self.report(
                 Diagnostic::error(
                     "E901",
                     name.span,
@@ -2563,7 +2602,7 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Number(_) => {
                 let t = self.bump();
-                self.diags.push(
+                self.report(
                     Diagnostic::error(
                         "E111",
                         t.span,
@@ -2614,7 +2653,7 @@ impl<'a> Parser<'a> {
                     break;
                 };
                 if ty_id.name != "Int" {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E406",
                         ty_id.span,
                         format!("`const` parameters are `Int` — `{}` is not", ty_id.name),
@@ -2649,7 +2688,7 @@ impl<'a> Parser<'a> {
                         other => {
                             // An Int default must be an integer literal — a
                             // unit literal (`2mm`) is a kind error (E406).
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E406",
                                 self.span(),
                                 format!(
@@ -2719,7 +2758,7 @@ impl<'a> Parser<'a> {
                         }
                         TokenKind::Number(_) => {
                             let t = self.bump();
-                            self.diags.push(
+                            self.report(
                                 Diagnostic::error(
                                     "E111",
                                     t.span,
@@ -2889,7 +2928,8 @@ impl<'a> Parser<'a> {
         let mut spec_map = Vec::new();
         let mut pins_span: Option<Span> = None;
         let mut spec_span: Option<Span> = None;
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             let block_start = self.span();
             let is_pins = self.at(&TokenKind::Pins);
             let target = if self.at(&TokenKind::Pins) {
@@ -2907,15 +2947,21 @@ impl<'a> Parser<'a> {
                 continue;
             };
             self.expect(&TokenKind::LBrace, "to open the mapping block");
-            while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let mut progress = Progress::default();
+            while self.block_continues(&mut progress) {
+                // A broken entry skips to its own `,`/`}` and the block
+                // continues — `break` left the rest of the block to the
+                // impl-body loop, one "only contains" error per token.
                 let Some(role) = self.ident("as the trait's required name") else {
                     self.sync_in_block();
-                    break;
+                    self.eat(&TokenKind::Comma);
+                    continue;
                 };
                 self.expect(&TokenKind::Colon, "in the mapping");
                 let Some(map_target) = self.ident("as the device's own name") else {
                     self.sync_in_block();
-                    break;
+                    self.eat(&TokenKind::Comma);
+                    continue;
                 };
                 let span = role.span.to(map_target.span);
                 target.push(MapEntry {
@@ -3018,7 +3064,8 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace, "to open the part body");
         let mut primary: Option<AvlEntry> = None;
         let mut alts = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             let is_primary = if self.at_ident("primary") {
                 true
             } else if self.at_ident("alt") {
@@ -3036,10 +3083,15 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::LBrace, "to open the AVL entry");
             let mut fields = Vec::new();
             let mut footprint: Option<Ident> = None;
-            while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let mut progress = Progress::default();
+            while self.block_continues(&mut progress) {
+                // A broken field skips to its own `,`/`}` and the entry
+                // continues — `break` left the rest of the entry to the
+                // part-body loop, one "expected `primary`" error per field.
                 let Some(fname) = self.ident("as the AVL field name (e.g. `mpn`)") else {
                     self.sync_in_block();
-                    break;
+                    self.eat(&TokenKind::Comma);
+                    continue;
                 };
                 self.expect(&TokenKind::Colon, "after the AVL field name");
                 // RFC-017: `footprint:` takes a SYMBOL reference (resolved
@@ -3049,7 +3101,7 @@ impl<'a> Parser<'a> {
                         TokenKind::Ident(_) => {
                             if let Some(sym) = self.path_ident("as the footprint symbol") {
                                 if let Some(prev) = &footprint {
-                                    self.diags.push(
+                                    self.report(
                                         Diagnostic::error(
                                             "E802",
                                             sym.span,
@@ -3064,7 +3116,7 @@ impl<'a> Parser<'a> {
                         }
                         TokenKind::Str(_) => {
                             let t = self.bump();
-                            self.diags.push(
+                            self.report(
                                 Diagnostic::error(
                                     "E010",
                                     t.span,
@@ -3082,6 +3134,7 @@ impl<'a> Parser<'a> {
                                 other.describe()
                             );
                             self.error_here(msg);
+                            self.sync_in_block();
                         }
                     }
                     self.eat(&TokenKind::Comma);
@@ -3107,6 +3160,7 @@ impl<'a> Parser<'a> {
                             other.describe()
                         );
                         self.error_here(msg);
+                        self.sync_in_block();
                     }
                 }
                 self.eat(&TokenKind::Comma);
@@ -3119,7 +3173,7 @@ impl<'a> Parser<'a> {
             };
             if is_primary {
                 if primary.is_some() {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E802",
                         entry.span,
                         format!("part `{}` has more than one `primary` entry", name.name),
@@ -3134,7 +3188,7 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::RBrace, "to close the part body");
         let span = start.to(self.prev_span());
         let Some(primary) = primary else {
-            self.diags.push(
+            self.report(
                 Diagnostic::error(
                     "E802",
                     span,
@@ -3185,20 +3239,21 @@ impl<'a> Parser<'a> {
         let mut ports: Vec<SubdesignPort> = Vec::new();
         let mut ports_span: Option<Span> = None;
         let mut body = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if self.at_ident("ports") && self.peek_ahead(1) == &TokenKind::LBrace {
                 let block_start = self.span();
                 self.bump(); // ports
                 self.bump(); // {
                 if ports_span.is_some() {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E010",
                         block_start,
                         "a subdesign has exactly one `ports { … }` block".to_string(),
                     ));
                 }
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     let entry_start = self.span();
                     let obligation = self.obligation();
                     let Some(pname) = self.ident("as the port name") else {
@@ -3211,7 +3266,7 @@ impl<'a> Parser<'a> {
                         // semantics; there is nothing else a port could be.
                         Some(t) if t.name == "Pin" => {}
                         Some(t) => {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E1303",
                                 t.span,
                                 format!(
@@ -3250,9 +3305,6 @@ impl<'a> Parser<'a> {
             } else {
                 self.sync_stmt();
             }
-            if self.pos == before {
-                self.bump();
-            }
         }
         self.expect(&TokenKind::RBrace, "to close the subdesign body");
         Some(SubdesignDef {
@@ -3285,7 +3337,7 @@ impl<'a> Parser<'a> {
             let span = open.to(self.prev_span());
             if let Expr::Int(n, nspan) = &len_expr {
                 if *n < 1 {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E211",
                         *nspan,
                         format!("array length `{}` must be 1 or more", n),
@@ -3302,7 +3354,8 @@ impl<'a> Parser<'a> {
         if self.at(&TokenKind::LBrace) {
             let block_start = self.span();
             self.bump();
-            while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let mut progress = Progress::default();
+            while self.block_continues(&mut progress) {
                 let entry_start = self.span();
                 let Some(port) = self.ident("as the port name") else {
                     self.sync_in_block_advancing();
@@ -3329,7 +3382,7 @@ impl<'a> Parser<'a> {
             }
             self.expect(&TokenKind::RBrace, "to close the port-connection block");
             if array_len.is_some() && !conns.is_empty() {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E1303",
                     block_start.to(self.prev_span()),
                     format!(
@@ -3352,15 +3405,12 @@ impl<'a> Parser<'a> {
 
     fn stmt_block(&mut self) -> Vec<Stmt> {
         let mut stmts = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if let Some(stmt) = self.stmt() {
                 stmts.push(stmt);
             } else {
                 self.sync_stmt();
-            }
-            if self.pos == before {
-                self.bump();
             }
         }
         stmts
@@ -3382,21 +3432,54 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Block-level recovery that is guaranteed to advance.
+    /// The loop condition of EVERY `{ … }` body loop in this parser: true
+    /// while the cursor is still inside the block (not at its `}` or EOF).
+    ///
+    /// It is also the parser's termination guarantee. Recovery stops *at*
+    /// the delimiter it finds (`sync_in_block` at a `,`) so the caller can
+    /// decide what to do with it, and a body loop that re-enters the same
+    /// recovery on that same token never ends — not a slow parse but a hang
+    /// that appends a diagnostic per pass until the OS kills the process.
+    /// cohdl 0.8.0 shipped five such shapes (`device X { , }`, `trait T {
+    /// , }`, a comma after `designator_prefix: "C"` or between device
+    /// blocks, pin entries written outside `pins { }`) after the part,
+    /// impl, and variants loops had been fixed one call site at a time
+    /// (`malformed_input_never_spins_in_recovery`). Valid input consumes at
+    /// least one token per iteration, so an iteration that ended where it
+    /// began has already reported an error: consume the token it stalled
+    /// on before testing the condition again. Being the condition, this
+    /// runs after every iteration — `continue` included — so a new body
+    /// loop gets the guarantee by construction. (A unit test fails if a
+    /// body loop is written with a bare `!self.at(RBrace)` condition.)
+    fn block_continues(&mut self, progress: &mut Progress) -> bool {
+        let inside = |p: &Self| !p.at(&TokenKind::RBrace) && !p.at(&TokenKind::Eof);
+        if !inside(self) {
+            return false;
+        }
+        if progress.0 == Some(self.pos) {
+            self.bump();
+            if !inside(self) {
+                return false;
+            }
+        }
+        progress.0 = Some(self.pos);
+        true
+    }
+
+    /// Block-level recovery that always moves past a stray `,`.
     ///
     /// `sync_in_block` deliberately stops *at* the `,`/`}` it finds so the
-    /// caller can decide what to do with the delimiter. A caller that loops
-    /// and re-enters recovery on that same token therefore never terminates
-    /// — a hang, not a slow parse, and one that appends a diagnostic per
-    /// iteration until memory runs out. Three ordinary malformed shapes
-    /// reached it: a bad generic argument in a `part` type (`D<1e+06ohm,
-    /// 1%>`), a stray comma in a part body, and a non-string AVL value
-    /// (`mfr: 7`). When recovery could not move, consume the token it
-    /// stalled on; the loop condition then sees a genuinely new position.
+    /// caller can decide what to do with the delimiter. When it could not
+    /// move at all, the cursor is on a `,` the caller has no use for:
+    /// consume it so the next pass starts on a genuinely new token. A `}`
+    /// is never consumed — every caller is a body loop that stops there,
+    /// and eating it ran recovery on into the enclosing block (`ports {
+    /// required }` swallowed the rest of the subdesign). `block_continues`
+    /// is the loop-level backstop; this keeps the recovery itself tight.
     fn sync_in_block_advancing(&mut self) {
         let before = self.pos;
         self.sync_in_block();
-        if self.pos == before {
+        if self.pos == before && !self.at(&TokenKind::RBrace) {
             self.bump();
         }
     }
@@ -3543,7 +3626,7 @@ impl<'a> Parser<'a> {
                 // for reachable bodies).
                 for a in &attrs {
                     if a.name.name != "designator" {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E010",
                             a.span,
                             format!(
@@ -3580,7 +3663,7 @@ impl<'a> Parser<'a> {
                     // expansion (Task 7) — never here.
                     if let Expr::Int(n, nspan) = &len_expr {
                         if *n < 1 {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E211",
                                 *nspan,
                                 format!("array length `{}` must be 1 or more", n),
@@ -3631,7 +3714,7 @@ impl<'a> Parser<'a> {
                                 // RFC-001 comparison discipline: the annotation
                                 // participates in the D001 Voltage comparison,
                                 // so a non-Voltage literal is a unit-type error.
-                                self.diags.push(
+                                self.report(
                                     Diagnostic::error(
                                         "E110",
                                         t.span,
@@ -3697,7 +3780,7 @@ impl<'a> Parser<'a> {
             {
                 self.reject_attrs(&attrs);
                 let span = self.span();
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     span,
                     "`pad` lines live in `footprint { … }` bodies (placements) or at top level (declarations) — not in a design/fn body"
@@ -3718,7 +3801,7 @@ impl<'a> Parser<'a> {
             {
                 self.reject_attrs(&attrs);
                 let span = self.span();
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     span,
                     "`footprint` declarations are top-level — move it out of the design/fn body"
@@ -3731,7 +3814,7 @@ impl<'a> Parser<'a> {
             TokenKind::Ident(n) if n == "use" => {
                 self.reject_attrs(&attrs);
                 let span = self.span();
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     span,
                     "`use` imports are file-level — move it above the design/fn body".to_string(),
@@ -3756,7 +3839,7 @@ impl<'a> Parser<'a> {
             {
                 self.reject_attrs(&attrs);
                 let span = self.span();
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E010",
                     span,
                     "`subdesign` declarations are top-level — inside a body, a use site reads `subdesign name: Type { … }`"
@@ -3824,7 +3907,7 @@ impl<'a> Parser<'a> {
     /// `#[designator(…)]` is inst-only (RFC-005); no other attribute exists.
     fn reject_attrs(&mut self, attrs: &[Attr]) {
         if let Some(a) = attrs.first() {
-            self.diags.push(Diagnostic::error(
+            self.report(Diagnostic::error(
                 "E010",
                 a.span,
                 format!(
@@ -3846,8 +3929,8 @@ impl<'a> Parser<'a> {
         let mut placements = Vec::new();
         let mut consts = Vec::new();
         let mut loops = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             // RFC-033: layout consts and labelled placement loops.
             if matches!(self.peek(), TokenKind::Ident(n) if n == "const")
                 && matches!(self.peek_ahead(1), TokenKind::Ident(_))
@@ -3862,7 +3945,7 @@ impl<'a> Parser<'a> {
                 }
             } else if self.at_ident("board_outline") {
                 match (&board_outline, self.board_outline()) {
-                    (Some(prev), Some(next)) => self.diags.push(
+                    (Some(prev), Some(next)) => self.report(
                         Diagnostic::error(
                             "E1006",
                             next.span,
@@ -3879,11 +3962,6 @@ impl<'a> Parser<'a> {
                 }
             } else if let Some(c) = self.layout_constraint() {
                 constraints.push(c);
-            }
-            if self.pos == before {
-                // No progress on a malformed constraint — skip a token so the
-                // block can still close.
-                self.bump();
             }
         }
         self.expect(&TokenKind::RBrace, "to close the layout block");
@@ -3911,8 +3989,8 @@ impl<'a> Parser<'a> {
         let mut consts = Vec::new();
         let mut placements = Vec::new();
         let mut loops = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if matches!(self.peek(), TokenKind::Ident(n) if n == "const")
                 && matches!(self.peek_ahead(1), TokenKind::Ident(_))
                 && self.peek_ahead(2) == &TokenKind::Colon
@@ -3929,7 +4007,7 @@ impl<'a> Parser<'a> {
                     placements.push(p);
                 }
             } else {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E1406",
                     self.span(),
                     format!(
@@ -3937,9 +4015,6 @@ impl<'a> Parser<'a> {
                         self.peek().describe()
                     ),
                 ));
-                self.bump();
-            }
-            if self.pos == before {
                 self.bump();
             }
         }
@@ -4007,7 +4082,7 @@ impl<'a> Parser<'a> {
                 match self.index_sel()? {
                     IndexSel::Single(e, sp) => Some((e, sp)),
                     other => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E211",
                             other.span(),
                             "`place` takes a single element `NAME[i]` — a range or index list has no single position".to_string(),
@@ -4070,7 +4145,7 @@ impl<'a> Parser<'a> {
                 match crate::ast::PlacementSide::from_name(&v.name) {
                     Some(sd) => side = sd,
                     None => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E1008",
                             v.span,
                             format!("`{}` is not a side — sides are: top, bottom", v.name),
@@ -4100,7 +4175,8 @@ impl<'a> Parser<'a> {
                 let name = self.ident("as the net-class name")?;
                 self.expect(&TokenKind::LBrace, "to open the net_class body");
                 let mut nets = Vec::new();
-                while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+                let mut progress = Progress::default();
+                while self.block_continues(&mut progress) {
                     nets.push(self.ident("as a net name in the net_class")?);
                     self.eat(&TokenKind::Comma);
                 }
@@ -4140,7 +4216,7 @@ impl<'a> Parser<'a> {
                             }
                             "frequency" => (&mut frequency, UnitType::Frequency),
                             other => {
-                                self.diags.push(Diagnostic::error(
+                                self.report(Diagnostic::error(
                                         "E1009",
                                         k.span,
                                         format!(
@@ -4152,7 +4228,7 @@ impl<'a> Parser<'a> {
                             }
                         };
                         if slot.is_some() {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E1009",
                                 k.span,
                                 format!("duplicate diff_pair field `{}`", k.name),
@@ -4161,7 +4237,7 @@ impl<'a> Parser<'a> {
                         }
                         let v = self.unit_literal("as the field value")?;
                         if v.unit != expected {
-                            self.diags.push(Diagnostic::error(
+                            self.report(Diagnostic::error(
                                 "E110",
                                 k.span,
                                 format!(
@@ -4264,7 +4340,7 @@ impl<'a> Parser<'a> {
                 if matches!(v.unit, UnitType::Time | UnitType::Length) {
                     Some((v.text.clone(), t.span))
                 } else {
-                    self.diags.push(
+                    self.report(
                         Diagnostic::error(
                             "E110",
                             t.span,
@@ -4305,7 +4381,7 @@ impl<'a> Parser<'a> {
             "Int" => ConstTy::Int,
             "Length" => ConstTy::Length,
             other => {
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E1401",
                     ty_id.span,
                     format!(
@@ -4334,13 +4410,10 @@ impl<'a> Parser<'a> {
         let (label, binder, start_e, end_e, start) = self.for_header()?;
         self.expect(&TokenKind::LBrace, "to open the loop body");
         let mut body = Vec::new();
-        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
-            let before = self.pos;
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
             if let Some(s) = self.stmt() {
                 body.push(s);
-            }
-            if self.pos == before {
-                self.bump();
             }
         }
         self.expect(&TokenKind::RBrace, "to close the loop body");
@@ -4366,7 +4439,7 @@ impl<'a> Parser<'a> {
                 let id = self
                     .ident("as the loop label (every loop is labelled: `for links: n in 0..N`)")?;
                 if !self.expect(&TokenKind::Colon, "after the loop label") {
-                    self.diags.push(
+                    self.report(
                         Diagnostic::error(
                             "E010",
                             id.span,
@@ -4509,7 +4582,7 @@ impl<'a> Parser<'a> {
                         match v.negate_for_literal() {
                             Ok(neg) => return Some((Expr::Length(neg, span), 1)),
                             Err(msg) => {
-                                self.diags.push(Diagnostic::error("E105", span, msg));
+                                self.report(Diagnostic::error("E105", span, msg));
                                 return None;
                             }
                         }
@@ -4622,7 +4695,7 @@ impl<'a> Parser<'a> {
             if adjacent {
                 self.bump(); // -
                 let t = self.bump(); // the number itself
-                self.diags.push(Diagnostic::error(
+                self.report(Diagnostic::error(
                     "E102",
                     minus_span.to(t.span),
                     "a bare number cannot be negative — only `Temperature` and `Length` literals may carry a leading `-` (e.g. `-40C`, `-0.5mm`)".to_string(),
@@ -4655,8 +4728,7 @@ impl<'a> Parser<'a> {
                 return match v.negate_for_literal() {
                     Ok(v) => Some((v, minus_span.to(t.span))),
                     Err(msg) => {
-                        self.diags
-                            .push(Diagnostic::error("E105", minus_span.to(t.span), msg));
+                        self.report(Diagnostic::error("E105", minus_span.to(t.span), msg));
                         None
                     }
                 };
@@ -4677,7 +4749,7 @@ impl<'a> Parser<'a> {
                 match text.parse::<i64>() {
                     Ok(v) => Some(v),
                     Err(_) => {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E211",
                             t.span,
                             format!("`{}` is not a whole-number index", text),
@@ -4720,7 +4792,7 @@ impl<'a> Parser<'a> {
             // computed bounds are judged by Task 7's evaluator.
             if let (Some(f), Some(e)) = (first.as_int_literal(), end.as_int_literal()) {
                 if e < f {
-                    self.diags.push(Diagnostic::error(
+                    self.report(Diagnostic::error(
                         "E211",
                         span,
                         format!(
@@ -4732,7 +4804,7 @@ impl<'a> Parser<'a> {
                 }
                 if let Some(Expr::Int(s, _)) = &step {
                     if *s < 1 {
-                        self.diags.push(Diagnostic::error(
+                        self.report(Diagnostic::error(
                             "E211",
                             span,
                             format!("stride `{}` must be 1 or more", s),
@@ -5118,5 +5190,240 @@ design B {
                 "recovery emitted {n} diagnostics (it used to spin) for:\n{src}\n{rendered}"
             );
         }
+    }
+
+    // -- termination guarantee (the cohdl 0.8.0 device/trait-body hang) ------
+    //
+    // `device X { , }` made 0.8.0 allocate ~4 GB/s with no output until the
+    // OS killed it: the device- and trait-body loops re-entered
+    // `sync_in_block` on the `,` it stops at. Every test here parses on a
+    // worker thread with a deadline, so a regression FAILS instead of
+    // hanging the suite; the per-file error budget bounds its memory.
+
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    /// Lex + parse `src` on a worker thread; panic if it has not finished
+    /// within `limit`. Returns the AST, the error count, and the rendering.
+    fn parse_within(src: &str, limit: Duration) -> (SourceFile, usize, String) {
+        let owned = src.to_string();
+        let (tx, rx) = mpsc::channel();
+        std::thread::spawn(move || {
+            let mut sm = SourceMap::new();
+            let f = sm.add_file("test.cohdl", owned.as_str());
+            let mut diags = Diagnostics::new();
+            let tokens = lex(f, &owned, &mut diags);
+            let file = parse(tokens, &mut diags);
+            let _ = tx.send((file, diags.error_count(), diags.render(&sm)));
+        });
+        rx.recv_timeout(limit)
+            .unwrap_or_else(|e| panic!("parse did not finish ({e}) within {limit:?} for:\n{src}"))
+    }
+
+    const LIMIT: Duration = Duration::from_secs(10);
+
+    #[test]
+    fn stray_comma_in_a_device_or_trait_body_is_one_error() {
+        for (src, found, blocks) in [
+            ("device X { , }\n", "in the device body, found `,`", 0),
+            ("trait T { , }\n", "in the trait body, found `,`", 0),
+            // a trailing comma after a trait field, and between device blocks
+            (
+                "pub trait T {\n    designator_prefix: \"C\",\n    pins { required A: pin }\n}\n",
+                "in the trait body, found `,`",
+                1,
+            ),
+            (
+                "pub device D {\n    pins { A: 1 [passive] },\n    spec { v: 5V }\n}\n",
+                "in the device body, found `,`",
+                2,
+            ),
+        ] {
+            let (file, errors, rendered) = parse_within(src, LIMIT);
+            assert_eq!(errors, 1, "{src}\n{rendered}");
+            assert!(rendered.contains(found), "{rendered}");
+            // ...and the blocks around the comma still parse.
+            let parsed = match &file.items[0].kind {
+                ItemKind::Device(d) => d.pin_blocks.len() + d.spec_blocks.len(),
+                ItemKind::Trait(t) => t.pins.len() + t.specs.len(),
+                _ => panic!("{src}"),
+            };
+            assert_eq!(parsed, blocks, "{src}\n{rendered}");
+        }
+    }
+
+    // `sync_in_block_advancing` used to consume the `}` it stalled on, so
+    // a broken port entry ran recovery on through the subdesign's own
+    // statements and into the next declaration.
+    #[test]
+    fn advancing_recovery_never_eats_the_closing_brace() {
+        let src = "pub subdesign S {\n    ports { required }\n    inst r: R\n}\n\npub device R {\n    pins { A: 1 [passive] }\n}\n";
+        let (file, errors, rendered) = parse_within(src, LIMIT);
+        assert_eq!(errors, 1, "{rendered}");
+        assert_eq!(file.items.len(), 2, "{rendered}");
+        let ItemKind::Subdesign(s) = &file.items[0].kind else {
+            panic!()
+        };
+        assert!(matches!(s.body.as_slice(), [Stmt::Inst(_)]), "{rendered}");
+    }
+
+    #[test]
+    fn a_file_stops_parsing_after_its_error_budget() {
+        let src = format!(
+            "device X {{ {}}}\n\npub device Y {{\n    pins {{ A: 1 [passive] }}\n}}\n",
+            ", ".repeat(MAX_PARSE_ERRORS + 50)
+        );
+        let (file, errors, rendered) = parse_within(&src, LIMIT);
+        assert_eq!(errors, MAX_PARSE_ERRORS + 1, "{rendered}");
+        assert_eq!(
+            rendered
+                .matches(
+                    "error[E102]: too many syntax errors — stopped parsing this file after 200"
+                )
+                .count(),
+            1
+        );
+        // Abandoned, not resumed: nothing after the budget is parsed.
+        assert_eq!(file.items.len(), 1);
+    }
+
+    /// Every `{ … }` body loop runs on `block_continues` — the loop-level
+    /// termination guarantee. A bare `!self.at(RBrace)` condition is how
+    /// both 0.8.0 hang loops were written.
+    #[test]
+    fn every_body_loop_uses_the_progress_guard() {
+        let bare = concat!("while !self.at(&TokenKind::", "RBrace)");
+        let hits: Vec<usize> = include_str!("parse.rs")
+            .lines()
+            .enumerate()
+            .filter(|(_, l)| l.contains(bare))
+            .map(|(i, _)| i + 1)
+            .collect();
+        assert!(
+            hits.is_empty(),
+            "write body loops as `while self.block_continues(&mut progress)` — bare `{bare}` at src/parse.rs lines {hits:?}"
+        );
+    }
+
+    /// Fuzz-ish: insert each token kind (and each keyword) before every
+    /// token of a small valid trait/device/impl/part file. Every variant
+    /// must finish quickly with a small, bounded number of diagnostics.
+    /// One worker runs them all; the test fails, naming the input, if any
+    /// single parse takes longer than the deadline.
+    #[test]
+    fn single_token_insertions_terminate_with_bounded_diagnostics() {
+        const BASE: &str = "pub trait T: TwoTerminal {\n    designator_prefix: \"U\"\n    pins {\n        required A: pin\n        optional B: pin\n    }\n    spec {\n        v: Voltage\n    }\n}\n\npub device D<V: Voltage = 5V> {\n    variants { X, Y }\n    pins[X] {\n        required A: 1, 2 [passive]\n        optional B: A3 [power_in]\n    }\n    pins[Y] { required A: 1 [passive], optional B: 2 [power_in] }\n    spec { v: V }\n}\n\nimpl T for D {\n    pins { A: A, B: B }\n}\n\npub part P: D<5V>[X] {\n    primary { mfr: \"M\", mpn: \"N\", footprint: F }\n    alt { mfr: \"M2\", mpn: \"N2\", footprint: lib::F }\n}\n";
+        const INSERTS: &[&str] = &[
+            ",",
+            ":",
+            ";",
+            "{",
+            "}",
+            "(",
+            ")",
+            "[",
+            "]",
+            "<",
+            ">",
+            "=",
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            ".",
+            "..",
+            "::",
+            "#",
+            "\"s\"",
+            "1",
+            "5V",
+            "-5V",
+            "A1",
+            "x",
+            "_",
+            "pins",
+            "spec",
+            "variants",
+            "required",
+            "optional",
+            "pin",
+            "designator_prefix",
+            "pub",
+            "trait",
+            "device",
+            "impl",
+            "for",
+            "fn",
+            "part",
+            "design",
+            "inst",
+            "net",
+            "nc",
+            "use",
+            "footprint",
+            "pad",
+            "subdesign",
+            "primary",
+            "alt",
+            "layout",
+            "const",
+            "Voltage",
+            "passive",
+            "\u{3a9}",
+        ];
+        // The point is "bounded", against the unbounded growth (or the
+        // 200-error budget) of a stall. Worst today is 11: an inserted `}`
+        // or keyword ends a declaration early and the remainder of its
+        // body is reported token group by token group.
+        const BOUND: usize = 20;
+        parse_ok(BASE);
+        let mut sm = SourceMap::new();
+        let f = sm.add_file("base.cohdl", BASE);
+        let mut scratch = Diagnostics::new();
+        let at: Vec<usize> = lex(f, BASE, &mut scratch)
+            .iter()
+            .map(|t| t.span.start as usize)
+            .collect();
+
+        enum Msg {
+            Start(String),
+            Errors(usize),
+            Done,
+        }
+        let (tx, rx) = mpsc::channel();
+        std::thread::spawn(move || {
+            for &i in &at {
+                for ins in INSERTS {
+                    let src = format!("{} {ins} {}", &BASE[..i], &BASE[i..]);
+                    tx.send(Msg::Start(src.clone())).unwrap();
+                    let mut sm = SourceMap::new();
+                    let f = sm.add_file("fuzz.cohdl", src.as_str());
+                    let mut diags = Diagnostics::new();
+                    let tokens = lex(f, &src, &mut diags);
+                    let _ = parse(tokens, &mut diags);
+                    tx.send(Msg::Errors(diags.error_count())).unwrap();
+                }
+            }
+            tx.send(Msg::Done).unwrap();
+        });
+        let (mut current, mut cases, mut worst) = (String::new(), 0usize, 0usize);
+        loop {
+            match rx.recv_timeout(Duration::from_secs(5)) {
+                Ok(Msg::Start(src)) => current = src,
+                Ok(Msg::Errors(n)) => {
+                    cases += 1;
+                    worst = worst.max(n);
+                    assert!(
+                        n <= BOUND,
+                        "{n} errors (bound {BOUND}) for one inserted token:\n{current}"
+                    );
+                }
+                Ok(Msg::Done) => break,
+                Err(e) => panic!("parse did not finish ({e}) within 5s on:\n{current}"),
+            }
+        }
+        assert!(cases > 5_000, "only {cases} variants ran");
+        eprintln!("{cases} single-token insertions, worst case {worst} errors");
     }
 }

@@ -21,7 +21,7 @@ pub fn emit_bom_csv(world: &World, ir: &DesignIr) -> String {
     // second manufacturer's row entirely (review F5). MPN stays the primary
     // sort key; the IPC-2581 emitter uses the identical key so the two
     // artifacts always agree.
-    let mut groups: BTreeMap<(String, String), (Vec<String>, String)> = BTreeMap::new();
+    let mut groups: BTreeMap<(String, String, String), (Vec<String>, String)> = BTreeMap::new();
 
     for inst in ir.instances.values() {
         let refdes = inst.designator.clone().unwrap_or_else(|| "?".to_string());
@@ -38,14 +38,20 @@ pub fn emit_bom_csv(world: &World, ir: &DesignIr) -> String {
             .and_then(|p| p.primary.footprint.as_ref())
             .map(|f| crate::resolve::short(&f.name).to_string())
             .unwrap_or_default();
+        // An unknown MPN cannot prove two declarations are the same part.
+        let unknown_identity = if mpn.is_empty() {
+            inst.part.clone().unwrap_or_default()
+        } else {
+            String::new()
+        };
         let entry = groups
-            .entry((mpn, mfr))
+            .entry((mpn, mfr, unknown_identity))
             .or_insert_with(|| (Vec::new(), footprint));
         entry.0.push(refdes);
     }
 
     let mut out = String::from("Manufacturer,Comment,Designator,Footprint\n");
-    for ((mpn, mfr), (mut refdes, footprint)) in groups {
+    for ((mpn, mfr, _), (mut refdes, footprint)) in groups {
         refdes.sort_by_key(|d| crate::emit::designator_sort_key(d));
         out.push_str(&format!(
             "{},{},{},{}\n",

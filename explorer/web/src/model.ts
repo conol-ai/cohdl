@@ -76,13 +76,14 @@ export interface FootprintGeo {
 
 export interface FpPad {
   number: string
-  shape: 'rect' | 'circle' | 'oval' | 'annulus'
+  shape: 'rect' | 'circle' | 'oval' | 'annulus' | 'polygon'
   x: number
   y: number
   size: number[]
+  vertices?: [number, number][]
   rotate: number
   matrix?: Matrix
-  layer?: string
+  layer?: 'top_copper' | 'bottom_copper' | 'top_paste' | 'bottom_paste' | 'through_all' | null
   corner_radius?: number
   chamfer?: { corner: string; cut: number }
   drill?: number[]
@@ -94,7 +95,7 @@ export interface FpHole {
   x: number
   y: number
   size: number[]
-  plated: boolean
+  plated: boolean | null
 }
 
 export interface FpShape {

@@ -9,7 +9,8 @@ const bottomColor = '#60a5fa'
 const mm = (n: number) => Number(n.toFixed(4)).toString()
 
 /** Shape coordinates are local mm; SVG transforms preserve their handedness. */
-function Land({ shape, size, corner_radius, chamfer }: Pick<FpPad, 'shape' | 'size' | 'corner_radius' | 'chamfer'>) {
+function Land({ shape, size, vertices, corner_radius, chamfer }: Pick<FpPad, 'shape' | 'size' | 'vertices' | 'corner_radius' | 'chamfer'>) {
+  if (shape === 'polygon') return <polygon points={(vertices ?? []).map((p) => p.join(',')).join(' ')} />
   const w = size[0] ?? 0, h = size[1] ?? w
   if (shape === 'circle') return <circle r={w / 2} />
   if (shape === 'annulus') {
@@ -183,7 +184,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
                 {padNumbers && <text fill="#111827" textAnchor="middle" dominantBaseline="central" fontSize={Math.min(0.7, pad.size[0] * 0.65)}>{pad.number}</text>}
               </g>
             })}
-            {fp?.mount_holes.map((hole, index) => <g key={index} transform={`translate(${hole.x} ${hole.y})`} fill="#111820" stroke={hole.plated ? '#d6b96c' : '#94a3b8'} strokeWidth={0.08}><Land shape={hole.shape as FpPad['shape']} size={hole.size} /></g>)}
+            {fp?.mount_holes.map((hole, index) => <g key={index} data-plating={hole.plated === null ? 'source_unspecified' : hole.plated ? 'plated' : 'non_plated'} transform={`translate(${hole.x} ${hole.y})`} fill="#111820" stroke={hole.plated ? '#d6b96c' : '#94a3b8'} strokeWidth={0.08}><title>{hole.plated === null ? 'Hole plating: source unspecified' : hole.plated ? 'Plated hole' : 'Non-plated hole'}</title><Land shape={hole.shape as FpPad['shape']} size={hole.size} /></g>)}
             <path d="M -0.3 0 H 0.3 M 0 -0.3 V 0.3" stroke={color} strokeWidth={0.08} />
             {!fp && <circle r={0.7} fill="none" stroke={color} strokeWidth={0.08} strokeDasharray="0.2 0.15" />}
             <rect className="board-layout__focus-ring" aria-hidden="true"

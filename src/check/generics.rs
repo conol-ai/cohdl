@@ -751,6 +751,23 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
             part.device.span,
             diags,
         );
+        if let Some(marker) = &part.source_unspecified {
+            let mut seen = std::collections::BTreeSet::new();
+            if marker.args.is_empty() {
+                diags.push(Diagnostic::error(
+                    "E802",
+                    marker.span,
+                    "`source_unspecified` requires at least one source-empty field".to_string(),
+                ));
+            }
+            for (name, span) in &marker.args {
+                let valid = matches!(name.as_str(), "mpn" | "mfr") && seen.insert(name);
+                let empty = part.primary.field(name).is_some_and(|f| f.value.is_empty());
+                if !valid || !empty {
+                    diags.push(Diagnostic::error("E802", *span, format!("`source_unspecified` field `{}` must name a distinct, explicitly empty primary `mpn` or `mfr`", name)));
+                }
+            }
+        }
         // AVL discipline.
         for (entry, is_primary) in
             std::iter::once((&part.primary, true)).chain(part.alts.iter().map(|a| (a, false)))
@@ -767,7 +784,7 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
                 )),
                 // An empty string parses but is not a binding — it would emit
                 // `Component part=""` and a synthetic `_` package (review F5).
-                Some(f) if f.value.trim().is_empty() => diags.push(Diagnostic::error(
+                Some(f) if f.value.trim().is_empty() && !(is_primary && f.value.is_empty() && part.allows_source_empty("mpn")) => diags.push(Diagnostic::error(
                     "E802",
                     f.span,
                     format!(
@@ -781,7 +798,9 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
             // every emitted component carries it (RFC-015 AVL), so an empty
             // `mfr` is rejected rather than silently written as a blank vendor.
             if let Some(f) = entry.field("mfr") {
-                if f.value.trim().is_empty() {
+                if f.value.trim().is_empty()
+                    && !(is_primary && f.value.is_empty() && part.allows_source_empty("mfr"))
+                {
                     diags.push(Diagnostic::error(
                         "E802",
                         f.span,

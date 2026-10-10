@@ -2518,3 +2518,47 @@ design Chain {
     assert!(labels.contains(&"n"), "binder in symbols: {labels:?}");
     lsp.shutdown();
 }
+
+#[test]
+fn polygon_fields_are_available_in_language_service() {
+    let text = "pub pad P { shape: polygon, size: (1mm, 1mm), layer: top_copper, plating: smd, vertices: [(-0.5mm,-0.5mm),(0.5mm,-0.5mm),(0mm,0.5mm)] }\n";
+    let (_path, uri, text) = fixture("polygon-hover.cohdl", text);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let diagnostics = lsp.await_diagnostics(&uri);
+    assert!(diagnostics.is_empty(), "{diagnostics:?}");
+    for field in ["polygon", "vertices"] {
+        let position = text.find(field).unwrap();
+        let hover = lsp.request(
+            "textDocument/hover",
+            json!({"textDocument":{"uri":uri}, "position":{"line":0,"character":position}}),
+        );
+        assert!(
+            hover["contents"]["value"]
+                .as_str()
+                .is_some_and(|v| v.contains("polygon")),
+            "{hover}"
+        );
+    }
+    lsp.shutdown();
+}
+
+#[test]
+fn unknown_mount_hole_plating_has_language_service_help() {
+    let text = "pub footprint F { mount_hole 1: source_unspecified at (0mm,0mm) diameter 2mm }\n";
+    let (_path, uri, text) = fixture("unknown-hole-hover.cohdl", text);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    assert!(lsp.await_diagnostics(&uri).is_empty());
+    let position = text.find("source_unspecified").unwrap();
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({"textDocument":{"uri":uri}, "position":{"line":0,"character":position}}),
+    );
+    let help = hover["contents"]["value"].as_str().unwrap();
+    assert!(
+        help.contains("unknown plating") && help.contains("--logical-only"),
+        "{hover}"
+    );
+    lsp.shutdown();
+}

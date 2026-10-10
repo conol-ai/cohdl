@@ -53,7 +53,12 @@ const EPOCH: &str = "1970-01-01T00:00:00Z";
 
 /// Emit the IPC-2581B1 document for a built design. Requires designators
 /// assigned and parts bound (call only after `build_artifacts` succeeded).
-pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String {
+pub fn emit_ipc2581(
+    world: &World,
+    ir: &DesignIr,
+    package_name: &str,
+) -> Result<String, crate::emit::PhysicalExportError> {
+    crate::emit::validate_physical_export(world, ir)?;
     let insts = sorted_instances(ir);
     let bom = bom_groups(world, ir);
     let enterprises = enterprise_map(&bom);
@@ -683,7 +688,7 @@ pub fn emit_ipc2581(world: &World, ir: &DesignIr, package_name: &str) -> String 
     }
 
     out.push_str("</IPC-2581>\n");
-    out
+    Ok(out)
 }
 
 /// RFC-013 constraints as `CadHeader/Spec` entries — IPC-2581's own place
@@ -761,20 +766,25 @@ fn bom_groups(world: &World, ir: &DesignIr) -> Vec<BomGroup> {
     // silently dropped the second manufacturer's identity and value from
     // both the CSV and the XML (review F5). MPN stays the primary sort key
     // (BOM readability); manufacturer only breaks genuine ties.
-    let mut groups: BTreeMap<(String, String), GroupAcc> = BTreeMap::new();
+    let mut groups: BTreeMap<(String, String, String), GroupAcc> = BTreeMap::new();
     for inst in ir.instances.values() {
         let refdes = inst.designator.clone().unwrap_or_else(|| "?".to_string());
         let (mpn, mfr, footprint) = part_fields(world, inst);
         let value = principal_value(inst);
+        let unknown_identity = if mpn.is_empty() {
+            inst.part.clone().unwrap_or_default()
+        } else {
+            String::new()
+        };
         groups
-            .entry((mpn, mfr))
+            .entry((mpn, mfr, unknown_identity))
             .or_insert_with(|| (value, Vec::new()))
             .1
             .push((refdes, footprint));
     }
     let mut used = BTreeSet::new();
     let mut out = Vec::new();
-    for ((mpn, mfr), (value, mut refdes)) in groups {
+    for ((mpn, mfr, _), (value, mut refdes)) in groups {
         refdes.sort_by_key(|(d, _)| crate::emit::designator_sort_key(d));
         let mut key = sanitize(&mpn, false);
         while !used.insert(key.clone()) {
@@ -1273,7 +1283,10 @@ fn copper_prim(pad: &crate::ast::PadDef, shape: crate::ast::PadShape, w: i128, h
             .as_ref()
             .map(|(corner, cut, _)| (*corner, cut.femto)),
         corner_radius: pad.corner_radius.as_ref().map(|(radius, _)| radius.femto),
-        polygon: None,
+        polygon: pad
+            .vertices
+            .as_ref()
+            .map(|(points, _)| points.iter().map(|(x, y)| (x.femto, y.femto)).collect()),
     }
 }
 
@@ -1321,6 +1334,13 @@ fn logical_pin_cmp(
 }
 
 fn mirror_prim_x(mut prim: Prim) -> Prim {
+    if matches!(prim.shape, crate::ast::PadShape::Polygon) {
+        if let Some(points) = &mut prim.polygon {
+            for (x, _) in points {
+                *x = -*x;
+            }
+        }
+    }
     prim.chamfer = prim.chamfer.map(|(corner, cut)| {
         let mirrored = match corner {
             crate::ast::PadCorner::TopLeft => crate::ast::PadCorner::TopRight,
@@ -1583,7 +1603,13 @@ fn build_physical(
             if w <= 0 || h <= 0 {
                 continue; // non-positive: reported at declaration check
             }
-            let plated = matches!(mh.plating, crate::ast::MountHolePlating::Plated);
+            let plated = match mh.plating {
+                crate::ast::MountHolePlating::Plated => true,
+                crate::ast::MountHolePlating::NonPlated => false,
+                crate::ast::MountHolePlating::SourceUnspecified => unreachable!(
+                    "physical export preflight rejects source-unspecified hole plating"
+                ),
+            };
             let prim = dedup(
                 &mut prims,
                 Prim {
@@ -1728,6 +1754,7 @@ fn prim_body(p: &Prim) -> String {
         );
     }
     match p.shape {
+        crate::ast::PadShape::Polygon => unreachable!("checked polygons carry exact vertices"),
         crate::ast::PadShape::Annulus => {
             let outer = p.w / 2;
             let inner = p.h / 2;

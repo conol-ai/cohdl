@@ -536,7 +536,28 @@ impl<'a> Parser<'a> {
                 ));
             }
         }
-        let kind = match self.peek() {
+        let mut rest = rest;
+        let source_unspecified = if matches!(self.peek(), TokenKind::Part) {
+            let mut marker = None;
+            rest.retain(|a| {
+                if a.name.name != "source_unspecified" {
+                    return true;
+                }
+                if marker.is_some() {
+                    self.report(Diagnostic::error(
+                        "E802",
+                        a.span,
+                        "duplicate `source_unspecified` marker".to_string(),
+                    ));
+                }
+                marker = Some(a.clone());
+                false
+            });
+            marker
+        } else {
+            None
+        };
+        let mut kind = match self.peek() {
             TokenKind::Trait => self.trait_def().map(ItemKind::Trait),
             TokenKind::Device => self.device_def().map(ItemKind::Device),
             TokenKind::Impl => self.impl_def().map(ItemKind::Impl),
@@ -552,6 +573,9 @@ impl<'a> Parser<'a> {
                 None
             }
         };
+        if let Some(ItemKind::Part(part)) = &mut kind {
+            part.source_unspecified = source_unspecified;
+        }
         self.reject_attrs(&rest);
         let kind = kind?;
         Some(Item {
@@ -805,7 +829,8 @@ impl<'a> Parser<'a> {
         };
         self.expect(&TokenKind::Colon, "after the mount-hole number");
         let plating = {
-            let v = self.ident("as the plating (`non_plated` or `plated`)")?;
+            let v =
+                self.ident("as the plating (`non_plated`, `plated`, or `source_unspecified`)")?;
             match MountHolePlating::from_name(&v.name) {
                 Some(p) => p,
                 None => {
@@ -813,7 +838,7 @@ impl<'a> Parser<'a> {
                         "E810",
                         v.span,
                         format!(
-                            "`{}` is not a mount-hole plating — platings are: non_plated, plated",
+                            "`{}` is not a mount-hole plating — platings are: non_plated, plated, source_unspecified",
                             v.name
                         ),
                     ));
@@ -838,12 +863,14 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::Colon, "after `shape`");
                 let v = self.ident("as the mount-hole shape")?;
                 match PadShape::from_name(&v.name) {
-                    Some(PadShape::Annulus) => {
+                    Some(PadShape::Annulus | PadShape::Polygon) => {
                         self.report(Diagnostic::error(
                             "E810",
                             v.span,
-                            "`annulus` is only valid for electrical pads, not `mount_hole`"
-                                .to_string(),
+                            format!(
+                                "`{}` is only valid for electrical pads, not `mount_hole`",
+                                v.name
+                            ),
                         ));
                         return None;
                     }
@@ -1304,11 +1331,16 @@ impl<'a> Parser<'a> {
             match field.name.as_str() {
                 "shape" => match self.ident("as the shape") {
                     Some(v) => match PadShape::from_name(&v.name) {
-                        Some(PadShape::Annulus) => self.report(Diagnostic::error(
-                            "E806",
-                            v.span,
-                            format!("`annulus` is only valid for electrical pads, not `{}`", kw),
-                        )),
+                        Some(PadShape::Annulus | PadShape::Polygon) => {
+                            self.report(Diagnostic::error(
+                                "E806",
+                                v.span,
+                                format!(
+                                    "`{}` is only valid for electrical pads, not `{}`",
+                                    v.name, kw
+                                ),
+                            ))
+                        }
                         Some(s) => shape = Some((s, v.span)),
                         None => self.report(Diagnostic::error(
                             "E806",
@@ -1486,6 +1518,7 @@ impl<'a> Parser<'a> {
             shape: None,
             size: Vec::new(),
             size_span: None,
+            vertices: None,
             layer: None,
             plating: None,
             drill: None,
@@ -1531,7 +1564,7 @@ impl<'a> Parser<'a> {
                             "E805",
                             v.span,
                             format!(
-                                "`{}` is not a pad shape — shapes are: rect, circle, oval, annulus",
+                                "`{}` is not a pad shape — shapes are: rect, circle, oval, annulus, polygon",
                                 v.name
                             ),
                         )),
@@ -1545,6 +1578,34 @@ impl<'a> Parser<'a> {
                     };
                     def.size = vals;
                     def.size_span = Some(span);
+                }
+                "vertices" => {
+                    let points = (|| {
+                        if !self.expect(&TokenKind::LBracket, "to open the vertex list") {
+                            return None;
+                        }
+                        let mut points = Vec::new();
+                        while !self.at(&TokenKind::RBracket) && !self.at(&TokenKind::Eof) {
+                            points.push(self.length_pair()?);
+                            if !self.eat(&TokenKind::Comma) {
+                                break;
+                            }
+                        }
+                        self.expect(&TokenKind::RBracket, "to close the vertex list");
+                        Some(points)
+                    })();
+                    if let Some(points) = points {
+                        if def.vertices.is_some() {
+                            self.report(Diagnostic::error(
+                                "E805",
+                                field.span,
+                                "duplicate pad `vertices` field".to_string(),
+                            ));
+                        }
+                        def.vertices = Some((points, field.span.to(self.prev_span())));
+                    } else {
+                        self.sync_in_block();
+                    }
                 }
                 "layer" => {
                     let Some(v) = self.ident("as the layer") else {
@@ -1743,7 +1804,7 @@ impl<'a> Parser<'a> {
                         "E805",
                         field.span,
                         format!(
-                            "unknown pad field `{}` (expected `shape`, `size`, `layer`, `plating`, `drill`, `chamfer`, `corner_radius`, `mask_expansion`, or `paste`)",
+                            "unknown pad field `{}` (expected `shape`, `size`, `vertices`, `layer`, `plating`, `drill`, `chamfer`, `corner_radius`, `mask_expansion`, or `paste`)",
                             other
                         ),
                     ));
@@ -3774,6 +3835,7 @@ impl<'a> Parser<'a> {
             device,
             primary,
             alts,
+            source_unspecified: None,
             span,
         })
     }

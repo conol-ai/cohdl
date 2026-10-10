@@ -915,6 +915,13 @@ fn validate_pads(world: &World, diags: &mut Diagnostics) {
         require(pad.size_span.is_some(), "size");
         require(pad.layer.is_some(), "layer");
         require(pad.plating.is_some(), "plating");
+        if let Err(reason) = crate::polygon::validate(pad) {
+            diags.push(Diagnostic::error(
+                "E805",
+                pad.name.span,
+                format!("pad `{}`: {}", pad.name.name, reason),
+            ));
+        }
 
         if let (Some((shape, _)), Some(size_span)) = (&pad.shape, &pad.size_span) {
             if pad.size.len() != shape.size_arity() {

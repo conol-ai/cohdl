@@ -15,7 +15,7 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--json]
+                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only] [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
@@ -73,6 +73,7 @@ defaults to the current directory.
     --check  fmt: report drift without rewriting; exit non-zero if any file is
              not already in canonical form
              self-update: report whether a newer release exists, install nothing
+    --logical-only  build: emit logical artifacts without footprints or manufacturing output
     --dep    update: re-resolve only the named dependency
     --out    docs: write the JSON to FILE instead of stdout
     --publish
@@ -101,6 +102,7 @@ struct Args {
     /// BEFORE the value — `fmt --emit bogus` must say "--emit is not valid
     /// with fmt", not suggest a format that would then be rejected anyway.
     emit: Vec<String>,
+    logical_only: bool,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
     /// RFC-030: the NAME positional of add/remove/update (`name` or
@@ -126,6 +128,14 @@ impl Args {
                 what, self.command, USAGE
             ))
         };
+        if self.logical_only && self.command != "build" {
+            return bad("--logical-only");
+        }
+        if self.logical_only && !self.emit.is_empty() {
+            return Err(
+                "`--logical-only` cannot be combined with manufacturing `--emit`".to_string(),
+            );
+        }
         if self.std_flag.is_some() && self.no_std {
             return Err(format!(
                 "`--std` and `--no-std` are mutually exclusive\n\n{}",
@@ -333,6 +343,7 @@ fn parse_args() -> Result<Args, String> {
         json: false,
         fmt_check: false,
         emit: Vec::new(),
+        logical_only: false,
         dep: None,
         name: None,
         query: None,
@@ -350,6 +361,7 @@ fn parse_args() -> Result<Args, String> {
             }
             "--no-std" => args.no_std = true,
             "--json" => args.json = true,
+            "--logical-only" => args.logical_only = true,
             "--check" => args.fmt_check = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
@@ -780,6 +792,12 @@ fn run(args: &Args) -> Result<bool, String> {
         return Ok(false);
     }
 
+    // Reject unsupported physical facts before creating or changing artifacts.
+    if !args.logical_only {
+        emit::validate_physical_export(&checked.world, checked.ir.as_ref().unwrap())
+            .map_err(|e| diags_then(&checked, e.to_string()))?;
+    }
+
     // Defence in depth (review F4): the artifact basename is `proj.name`,
     // which for a manifest project is already an identifier, but a
     // single-file target derives it from the filename stem. Refuse anything
@@ -853,7 +871,7 @@ fn run(args: &Args) -> Result<bool, String> {
     // carries physics facts. Absent facts leave the files out of the new
     // manifest, so the stale-file sweep removes them.
     let mut quilter_paths: Vec<std::path::PathBuf> = Vec::new();
-    if let Some(csvs) = &artifacts.quilter {
+    if let Some(csvs) = artifacts.quilter.as_ref().filter(|_| !args.logical_only) {
         for (name, content) in csvs {
             let path = out_dir.join(name);
             write_artifact(&path, content, &owned).map_err(|e| diags_then(&checked, e))?;
@@ -863,9 +881,12 @@ fn run(args: &Args) -> Result<bool, String> {
     }
 
     // RFC-018: `.kicad_mod` projections for pad-bearing footprints.
-    let mods = {
+    let mods = if args.logical_only {
+        Vec::new()
+    } else {
         let ir = checked.ir.as_ref().unwrap();
         emit::kicad_mod::emit_kicad_mods(&checked.world, ir)
+            .map_err(|e| diags_then(&checked, e.to_string()))?
     };
     let mut mod_paths: Vec<String> = Vec::new();
     if !mods.is_empty() {
@@ -887,7 +908,8 @@ fn run(args: &Args) -> Result<bool, String> {
     // RFC-015: the IPC-2581 handoff artifact, only when `--emit ipc2581`.
     if args.emit_ipc2581() {
         let ir = checked.ir.as_ref().unwrap();
-        let doc = emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
+        let doc = emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name)
+            .map_err(|e| diags_then(&checked, e.to_string()))?;
         write_artifact(&ipc_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
         written.push(ipc_path.clone());
     }
@@ -898,7 +920,8 @@ fn run(args: &Args) -> Result<bool, String> {
     // copy outside out/, never in place (docs/kicad_pcb.md).
     if args.emit_kicad_pcb() {
         let ir = checked.ir.as_ref().unwrap();
-        let doc = emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, &proj.name);
+        let doc = emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, &proj.name)
+            .map_err(|e| diags_then(&checked, e.to_string()))?;
         write_artifact(&pcb_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
         written.push(pcb_path.clone());
     }
@@ -965,12 +988,16 @@ fn run(args: &Args) -> Result<bool, String> {
                 .then(|| pcb_path.display().to_string()),
             easyeda: args.emit_easyeda().then(|| enet_path.display().to_string()),
             kicad_mod: mod_paths.clone(),
-            quilter: artifacts.quilter.as_ref().map(|_| {
-                quilter_paths
-                    .iter()
-                    .map(|p| p.display().to_string())
-                    .collect()
-            }),
+            quilter: artifacts
+                .quilter
+                .as_ref()
+                .filter(|_| !args.logical_only)
+                .map(|_| {
+                    quilter_paths
+                        .iter()
+                        .map(|p| p.display().to_string())
+                        .collect()
+                }),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
         return Ok(true);

@@ -8,6 +8,7 @@ import { shortName } from './model'
 import type { GNode } from './transform'
 import { netWireColor, railColor, selectNet } from './palette'
 import { passiveTerminals } from './handles'
+import { transformPoint, svgMatrix } from './boardGeometry'
 
 /** Logical boundaries have named Pin ports and no physical pin numbers. */
 export function BoundaryNode({ id, data, selected }: NodeProps) {
@@ -213,7 +214,15 @@ export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boole
     minY = Math.min(minY, y - hh); maxY = Math.max(maxY, y + hh)
   }
   for (const p of geo.pads) {
-    const [a, b] = p.shape === 'circle' ? [p.size[0] ?? 0, p.size[0] ?? 0] : [p.size[0] ?? 0, p.size[1] ?? 0]
+    if (p.shape === 'polygon') {
+      const c = Math.cos(rad(p.rotate)), s = -Math.sin(rad(p.rotate))
+      for (const pt of p.vertices ?? []) {
+        const [x, y] = transformPoint(pt, p.matrix ?? [c, s, -s, c], [p.x, p.y])
+        grow(x, y, 0, 0)
+      }
+      continue
+    }
+    const [a, b] = p.shape === 'circle' || p.shape === 'annulus' ? [p.size[0] ?? 0, p.size[0] ?? 0] : [p.size[0] ?? 0, p.size[1] ?? 0]
     const c = Math.abs(Math.cos(rad(p.rotate))), s = Math.abs(Math.sin(rad(p.rotate)))
     grow(p.x, p.y, (a * c + b * s) / 2, (a * s + b * c) / 2)
   }
@@ -255,16 +264,29 @@ export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boole
             {p.number}
           </text>
         )
-        if (p.shape === 'circle') {
+        if (p.shape === 'circle' || p.shape === 'annulus') {
           return (
             <g key={i}>
               <circle cx={X(p.x)} cy={Y(p.y)} r={((p.size[0] ?? 0) / 2) * scale} fill={copper} />
+              {p.shape === 'annulus' && (
+                <circle cx={X(p.x)} cy={Y(p.y)} r={((p.size[1] ?? 0) / 2) * scale} fill={dark ? '#181c22' : '#fff'} />
+              )}
               {p.drill && p.drill.length > 0 && (
                 <circle cx={X(p.x)} cy={Y(p.y)} r={(p.drill[0] / 2) * scale} fill={dark ? '#181c22' : '#fff'} />
               )}
               {num}
             </g>
           )
+        }
+        if (p.shape === 'polygon') {
+          const c = Math.cos(rad(p.rotate)), s = -Math.sin(rad(p.rotate))
+          return <g key={i}>
+            <g transform={svgMatrix(p.matrix ?? [c, s, -s, c], [X(p.x), Y(p.y)])}>
+              <polygon points={(p.vertices ?? []).map(([x, y]) => `${x * scale},${y * scale}`).join(' ')} fill={copper} />
+            </g>
+            {p.drill && p.drill.length > 0 && <circle cx={X(p.x)} cy={Y(p.y)} r={(p.drill[0] / 2) * scale} fill={dark ? '#181c22' : '#fff'} />}
+            {num}
+          </g>
         }
         const pw = (p.size[0] ?? 0) * scale, ph = (p.size[1] ?? 0) * scale
         return (
@@ -278,7 +300,8 @@ export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boole
         )
       })}
       {geo.mount_holes.map((mh, i) => (
-        <g key={'mh' + i}>
+        <g key={'mh' + i} data-plating={mh.plated === null ? 'source_unspecified' : mh.plated ? 'plated' : 'non_plated'}>
+          <title>{mh.plated === null ? 'Hole plating: source unspecified' : mh.plated ? 'Plated hole' : 'Non-plated hole'}</title>
           <circle cx={X(mh.x)} cy={Y(mh.y)} r={((mh.size[0] ?? 0) / 2) * scale} fill="none" stroke={dark ? '#6b7280' : '#9ca3af'} strokeWidth={1.5} />
           <circle cx={X(mh.x)} cy={Y(mh.y)} r={((mh.size[0] ?? 0) / 2) * scale * 0.7} fill={dark ? '#181c22' : '#fff'} stroke="none" />
         </g>

@@ -158,6 +158,7 @@ fn insert_emitter_witnesses(
                     span,
                 },
                 alts: Vec::new(),
+                source_unspecified: None,
                 span,
             },
         );
@@ -562,7 +563,7 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
     for package in ["bga", "csp", "qfp", "soic"] {
         let world = worlds.get_mut(package).unwrap();
         let ir = insert_emitter_witnesses(package, world, &grouped[package]);
-        let emitted = emit::kicad_mod::emit_kicad_mods(world, &ir);
+        let emitted = emit::kicad_mod::emit_kicad_mods(world, &ir).unwrap();
         assert_eq!(emitted.len(), grouped[package].len());
         for (fq, _, text) in emitted {
             assert!(emitted_by_fq.insert(fq, text).is_none());

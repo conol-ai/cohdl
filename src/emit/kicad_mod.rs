@@ -33,7 +33,11 @@ use std::fmt::Write as _;
 
 /// The content-bearing footprints used by the design: (fq name, file base
 /// name, rendered `.kicad_mod` content), in fq order.
-pub fn emit_kicad_mods(world: &World, ir: &DesignIr) -> Vec<(String, String, String)> {
+pub fn emit_kicad_mods(
+    world: &World,
+    ir: &DesignIr,
+) -> Result<Vec<(String, String, String)>, crate::emit::PhysicalExportError> {
+    crate::emit::validate_physical_export(world, ir)?;
     let mut used: BTreeSet<&str> = BTreeSet::new();
     for inst in ir.instances.values() {
         if let Some(part) = inst.part.as_ref().and_then(|p| world.parts.get(p)) {
@@ -54,7 +58,7 @@ pub fn emit_kicad_mods(world: &World, ir: &DesignIr) -> Vec<(String, String, Str
         }
         out.push((fq.to_string(), file_base(fq), render(world, fq, fp)));
     }
-    out
+    Ok(out)
 }
 
 /// The file base name: the fq path with `::` → `-`. Injective by
@@ -297,8 +301,8 @@ pub(crate) enum PlanBody {
     /// Oversize chamfer as the exact five-vertex polygon; points are stored
     /// at TWICE their femto value (render via [`geom::half_mm_femto`]).
     ChamferPoly { points: Vec<(i128, i128)> },
-    /// A segmented-annulus paste sector polygon; plain femto points.
-    PastePoly { points: Vec<(i128, i128)> },
+    /// An exact copper or paste polygon; plain femto points.
+    ExactPoly { points: Vec<(i128, i128)> },
 }
 
 /// One KiCad pad to emit — an electrical land, an unnumbered paste
@@ -418,7 +422,7 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
             cut.femto.saturating_mul(2) > min
         });
         let kshape = match shape {
-            PadShape::Annulus => "custom",
+            PadShape::Annulus | PadShape::Polygon => "custom",
             PadShape::Rect if custom_chamfer => "custom",
             PadShape::Rect if pad.chamfer.is_some() || pad.corner_radius.is_some() => "roundrect",
             PadShape::Rect => "rect",
@@ -456,7 +460,32 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
             geom::ratio(radius.femto, min)
         });
         let mask_expansion = pad.mask_expansion.as_ref().map(|(m, _)| m.femto);
-        if matches!(shape, PadShape::Annulus) {
+        if matches!(shape, PadShape::Polygon) {
+            out.push(PadPlan {
+                number: place.number.text.clone(),
+                kind,
+                kshape,
+                x: place.x.femto,
+                y: place.y.femto,
+                rotate: place.rotate,
+                size: (1_000_000_000, 1_000_000_000),
+                drill,
+                layers,
+                chamfer: None,
+                corner_radius: None,
+                mask_expansion,
+                body: PlanBody::ExactPoly {
+                    points: pad
+                        .vertices
+                        .as_ref()
+                        .expect("checked polygon vertices")
+                        .0
+                        .iter()
+                        .map(|(x, y)| (x.femto, y.femto))
+                        .collect(),
+                },
+            });
+        } else if matches!(shape, PadShape::Annulus) {
             let [outer, inner] = pad.size.as_slice() else {
                 continue;
             };
@@ -579,7 +608,7 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
                     chamfer: None,
                     corner_radius: None,
                     mask_expansion: None,
-                    body: PlanBody::PastePoly {
+                    body: PlanBody::ExactPoly {
                         points: segmented_annulus_points(outer.femto, inner.femto, sector),
                     },
                 });
@@ -597,6 +626,9 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
         let kind = match mh.plating {
             MountHolePlating::NonPlated => "np_thru_hole",
             MountHolePlating::Plated => "thru_hole",
+            MountHolePlating::SourceUnspecified => {
+                unreachable!("physical export preflight rejects source-unspecified hole plating")
+            }
         };
         let (size, drill) = match &mh.geom {
             MountHoleGeom::Diameter(d) => ((d.femto, d.femto), DrillPlan::Round(d.femto)),
@@ -864,17 +896,21 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
                     chamfer_xy_list(points)
                 );
             }
-            PlanBody::PastePoly { points } => {
+            PlanBody::ExactPoly { points } => {
                 let _ = writeln!(
                     s,
-                    "  (pad \"{}\" {} {} (at {} {}{}) (size 0 0) (layers {}) (options (clearance outline) (anchor circle)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
+                    "  (pad \"{}\" {} {} (at {} {}{}) (size {} {}){} (layers {}){} (options (clearance outline) (anchor circle)) (primitives (gr_poly (pts {}) (width 0) (fill yes))))",
                     p.number,
                     p.kind,
                     p.kshape,
                     geom::mm_femto(p.x),
                     geom::mm_femto(p.y),
                     angle,
+                    geom::mm_femto(p.size.0),
+                    geom::mm_femto(p.size.1),
+                    drill,
                     mod_layers(p.layers),
+                    mask_expansion,
                     paste_xy_list(points)
                 );
             }

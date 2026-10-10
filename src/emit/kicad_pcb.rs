@@ -137,7 +137,12 @@ const HEADER: &str = r#"(kicad_pcb
 	)
 "#;
 
-pub fn emit_kicad_pcb(world: &World, ir: &DesignIr, package_name: &str) -> String {
+pub fn emit_kicad_pcb(
+    world: &World,
+    ir: &DesignIr,
+    package_name: &str,
+) -> Result<String, crate::emit::PhysicalExportError> {
+    crate::emit::validate_physical_export(world, ir)?;
     let insts = crate::emit::ipc2581::sorted_instances(ir);
     let placed = crate::emit::ipc2581::placed_positions(ir);
     let staged = staging(world, ir, &insts, &placed);
@@ -257,7 +262,7 @@ pub fn emit_kicad_pcb(world: &World, ir: &DesignIr, package_name: &str) -> Strin
     outline(&mut s, ir, package_name);
     s.push_str("\t(embedded_fonts no)\n");
     s.push_str(")\n");
-    s
+    Ok(s)
 }
 
 // ---------------------------------------------------------------------------
@@ -604,7 +609,7 @@ fn pad(
                 "\t\t\t\t\t)\n\t\t\t\t\t(width 0)\n\t\t\t\t\t(fill yes)\n\t\t\t\t)\n\t\t\t)\n",
             );
         }
-        PlanBody::PastePoly { points } => {
+        PlanBody::ExactPoly { points } => {
             let points: Vec<(i128, i128)> = points
                 .iter()
                 .map(|(x, y)| (*x, flip_y(*y, bottom)))

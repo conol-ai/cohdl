@@ -829,6 +829,9 @@ impl Server {
         } else {
             match token {
                 "annulus" => Some("**annulus pad** — `size: (outer_diameter, inner_diameter)`; SMD copper only, with `outer > inner > 0`."),
+                "polygon" => Some("**polygon pad** — exact ordered `vertices: [(x, y), ...]` relative to the pad center, with `size: (w, h)`."),
+                "vertices" => Some("**polygon vertices** — ordered local Length pairs; repeated closing and consecutive duplicate points are preserved."),
+                "source_unspecified" => Some("**source-unspecified fact** — on a part, explicitly list empty primary `mpn`/`mfr` fields copied from the source BOM; on a mount hole, preserve unknown plating and require `build --logical-only`."),
                 "segmented_annulus" => Some("**segmented annulus paste** — `segmented_annulus(outer_diameter, inner_diameter, gap)` emits four cardinal stencil sectors."),
                 _ => None,
             }
@@ -1258,6 +1261,9 @@ impl Server {
             "mask_expansion",
             "circle",
             "annulus",
+            "polygon",
+            "vertices",
+            "source_unspecified",
             "segmented_annulus",
             "diameter",
             "at",

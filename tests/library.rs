@@ -249,10 +249,16 @@ design T3902Consumer {
     assert!(artifacts.bom.contains("MMICT3902-00-012"));
     let ir = checked.ir.as_ref().unwrap();
     assert_eq!(
-        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).len(),
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)
+            .unwrap()
+            .len(),
         1
     );
-    assert!(cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "t3902").contains("<Cutout>"));
+    assert!(
+        cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "t3902")
+            .unwrap()
+            .contains("<Cutout>")
+    );
 }
 
 #[test]

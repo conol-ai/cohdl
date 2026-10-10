@@ -68,7 +68,7 @@ fn build_with_dxf(name: &str, src: &str, dxf: &str) -> Built {
     cohdl::pipeline::resolve_board_outline(&mut checked, |_| Ok(dxf.to_string()));
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, name);
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, name).unwrap();
     Built {
         netlist: artifacts.netlist,
         bom: artifacts.bom,
@@ -114,7 +114,7 @@ fn build_example(dir: &str) -> Built {
     });
     let artifacts = build_artifacts(&mut checked, &LockState::default()).expect("build");
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name);
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, &proj.name).unwrap();
     Built {
         netlist: artifacts.netlist,
         bom: artifacts.bom,

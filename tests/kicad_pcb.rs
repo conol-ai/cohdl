@@ -66,7 +66,7 @@ fn emit(src: &str, dxf: Option<&str>) -> String {
         checked.diags.render(&checked.sm)
     );
     let ir = checked.ir.as_ref().unwrap();
-    cohdl::emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, "board")
+    cohdl::emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, "board").unwrap()
 }
 
 /// The footprint block whose Reference property is `refdes`.
@@ -383,7 +383,7 @@ fn example_board(dir: &str) -> String {
     });
     let _ = build_artifacts(&mut checked, &LockState::default()).expect("build");
     let ir = checked.ir.as_ref().unwrap();
-    cohdl::emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, &proj.name)
+    cohdl::emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, &proj.name).unwrap()
 }
 
 #[test]

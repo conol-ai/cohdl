@@ -61,15 +61,17 @@ pub struct FootprintGeo {
 #[derive(Serialize)]
 pub struct FpPad {
     pub number: String,
-    /// "rect" | "circle" | "oval" | "annulus"
+    /// "rect" | "circle" | "oval" | "annulus" | "polygon"
     pub shape: String,
     pub x: f64,
     pub y: f64,
     /// (w, h) for rect/oval; (d) for circle; (outer, inner) for annulus. mm.
     pub size: Vec<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vertices: Option<Vec<[f64; 2]>>,
     pub rotate: u16,
     pub matrix: [f64; 4],
-    pub layer: String,
+    pub layer: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub corner_radius: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -92,7 +94,8 @@ pub struct FpHole {
     pub x: f64,
     pub y: f64,
     pub size: Vec<f64>,
-    pub plated: bool,
+    /// None means the source does not specify barrel plating.
+    pub plated: Option<bool>,
 }
 
 #[derive(Serialize)]

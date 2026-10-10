@@ -260,7 +260,8 @@ fn rge0024m_builds_and_projects_all_39_pad_features() {
         checked.diags.render(&checked.sm)
     );
     let modules =
-        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap())
+            .unwrap();
     assert_eq!(modules.len(), 1);
     assert_eq!(modules[0].0, "ti_power_switch::TI_RGE0024M");
     let module = &modules[0].2;

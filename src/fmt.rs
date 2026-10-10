@@ -566,14 +566,22 @@ impl Formatter<'_> {
         if let Some(i) = &item.intent {
             attrs.push(("intent", i));
         }
-        attrs.sort_by_key(|(_, (_, sp))| sp.start);
-        for (name, value) in attrs {
-            self.emit_string_attr(
-                name,
-                &Some(value.clone()),
-                0,
-                self.line_start(item.decl_span),
-            );
+        let mut attrs: Vec<(String, Span)> = attrs
+            .into_iter()
+            .map(|(name, (text, span))| (format!("#[{}({})]", name, str_lit(text)), *span))
+            .collect();
+        if let ItemKind::Part(p) = &item.kind {
+            if let Some(a) = &p.source_unspecified {
+                attrs.push((attr_text(a), a.span));
+            }
+        }
+        attrs.sort_by_key(|(_, sp)| sp.start);
+        for (text, span) in attrs {
+            self.flush_leading(self.line_start(span), 0);
+            self.push(0, text);
+            if self.line_end(span) < self.line_start(item.decl_span) {
+                self.attach_trailing(self.line_end(span));
+            }
         }
         // Comments between the attribute and the declaration stay between.
         self.flush_leading(self.line_start(item.decl_span), 0);
@@ -1343,6 +1351,14 @@ impl Formatter<'_> {
         }
         if let Some(sp) = &p.size_span {
             fields.push((sp.start, format!("size: ({})", unit_list(&p.size))));
+        }
+        if let Some((points, sp)) = &p.vertices {
+            let points = points
+                .iter()
+                .map(|(x, y)| format!("({}, {})", x.text, y.text))
+                .collect::<Vec<_>>()
+                .join(", ");
+            fields.push((sp.start, format!("vertices: [{}]", points)));
         }
         if let Some((layer, sp)) = &p.layer {
             fields.push((sp.start, format!("layer: {}", layer.name())));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, test } from 'node:test'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
@@ -9,18 +9,45 @@ import ts from 'typescript'
 // Compile the pure projection with the existing TypeScript dependency; no
 // browser, compiler binary, or additional test framework is needed.
 const outDir = mkdtempSync(join(tmpdir(), 'cohdl-explorer-test-'))
+symlinkSync(resolve('node_modules'), join(outDir, 'node_modules'), 'dir')
 after(() => rmSync(outDir, { recursive: true, force: true }))
-const program = ts.createProgram(['src/hierarchy.ts', 'src/transform.ts', 'src/boardGeometry.ts', 'src/handles.ts'], {
+const program = ts.createProgram(['src/hierarchy.ts', 'src/transform.ts', 'src/boardGeometry.ts', 'src/handles.ts', 'src/nodes.tsx'], {
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS,
-  outDir, strict: true, skipLibCheck: true, types: [],
+  outDir, strict: true, skipLibCheck: true, types: [], jsx: ts.JsxEmit.ReactJSX,
 })
 assert.deepEqual(ts.getPreEmitDiagnostics(program).map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n')), [])
 program.emit()
 const require = createRequire(import.meta.url)
+const { renderToStaticMarkup } = require('react-dom/server')
+const { FootprintPreview } = require(resolve(outDir, 'nodes.js'))
 const { projectScope, ownerScope, explorerNets } = require(resolve(outDir, 'hierarchy.js'))
 const { buildGraph } = require(resolve(outDir, 'transform.js'))
 const { passiveTerminals, wireHandles } = require(resolve(outDir, 'handles.js'))
 const { transformPoint, placedBounds, footprintBounds, layoutScope, outlinePath, outlineBounds } = require(resolve(outDir, 'boardGeometry.js'))
+
+test('polygon bounds use ordered source vertices and compiler rotation rather than supplier size metadata', () => {
+  const polygon = { number: '2', shape: 'polygon', x: 4, y: 5, size: [1, 1], vertices: [[-2, -1], [3, -1], [3, 4]], rotate: 90, matrix: [0, -1, 1, 0], layer: 'bottom_copper', pth: false }
+  const fp = { pads: [polygon], mount_holes: [] }
+  const before = JSON.stringify(fp)
+  assert.deepEqual(footprintBounds(fp), { x: 3, y: 2, width: 5, height: 5 })
+  assert.equal(JSON.stringify(fp), before)
+})
+
+test('polygon preview labels stay at the pad center and legacy rotation agrees with compiler matrices', () => {
+  const pad = { number: '2', shape: 'polygon', x: 4, y: 5, size: [2, 2], vertices: [[-1, -1], [1, -1], [1, 1], [-1, 1]], rotate: 90, matrix: [0, -1, 1, 0], layer: 'top_copper', pth: false }
+  const render = (p) => renderToStaticMarkup(FootprintPreview({ geo: { pads: [p], mount_holes: [] }, dark: false }))
+  const html = render(pad)
+  const match = html.match(/<g transform="matrix\(([^)]+)\)"><polygon[^>]+><\/polygon><\/g><text x="([^"]+)" y="([^"]+)"/)
+  assert.ok(match, 'polygon transform ends before the pad-center label')
+  const actual = match[1].split(' ').map(Number)
+  assert.deepEqual(actual.slice(0, 4), pad.matrix)
+  assert.equal(actual[4], Number(match[2]))
+  assert.equal(actual[5], Number(match[3]))
+  const { matrix, ...legacy } = pad
+  const old = render(legacy)
+  const coefficients = old.match(/matrix\(([^)]+)\)/)[1].split(' ').map(Number)
+  coefficients.forEach((value, index) => assert.ok(Math.abs(value - actual[index]) < 1e-10))
+})
 
 const span = { file: 'src/main.cohdl', line: 1, col: 1 }
 const port = (name, net, connected = true) => ({ name, net, connected, obligation: 'required' })

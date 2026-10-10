@@ -217,7 +217,8 @@ fn misc_library_emits_exact_kicad_pad_semantics() {
     let modules = cohdl::emit::kicad_mod::emit_kicad_mods(
         &checked.world,
         checked.ir.as_ref().expect("misc design IR"),
-    );
+    )
+    .unwrap();
     assert_eq!(modules.len(), 3);
 
     let module = |name: &str| {
@@ -421,7 +422,7 @@ fn pad_set_must_match_the_bound_device() {
 fn kicad_mod_projection() {
     let (checked, _artifacts) = build_real(REAL);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert_eq!(mods.len(), 1, "one pad-bearing footprint used");
     let (fq, base, content) = &mods[0];
     assert_eq!(fq, "board::FP_R0402");
@@ -451,7 +452,7 @@ fn kicad_mod_projection() {
         content
     );
     // Determinism.
-    let again = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let again = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert_eq!(mods, again);
 
     // A THT pad projects thru_hole with drill.
@@ -463,7 +464,7 @@ fn kicad_mod_projection() {
         .replace("mpn: \"n\"", "mpn: \"n2\"");
     let (checked, _) = build_real(&tht);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert!(
         mods[0].2.contains("(pad \"1\" thru_hole circle (at -0.5 0) (size 1.7 1.7) (drill 1) (layers \"*.Cu\" \"*.Mask\"))"),
         "{}",
@@ -561,7 +562,7 @@ fn circular_paste_projects_to_kicad_and_ipc2581() {
         checked.diags.render(&checked.sm)
     );
     let ir = checked.ir.as_ref().unwrap();
-    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
     assert!(
         kicad.contains(
             "(pad \"1\" smd circle (at 1 -2 90) (size 0.3 0.3) (layers \"F.Cu\" \"F.Mask\"))"
@@ -574,7 +575,7 @@ fn circular_paste_projects_to_kicad_and_ipc2581() {
     );
     assert_eq!(kicad.matches("F.Paste").count(), 1, "{kicad}");
 
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     assert!(xml.contains("<Circle diameter=\"0.3\"/>"), "{xml}");
     assert!(xml.contains("<Circle diameter=\"0.24\"/>"), "{xml}");
     let padstack = xml
@@ -609,8 +610,9 @@ fn circular_paste_projects_to_kicad_and_ipc2581() {
     let larger_kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(
         &larger_checked.world,
         larger_checked.ir.as_ref().unwrap(),
-    )[0]
-    .2;
+    )
+    .unwrap()[0]
+        .2;
     assert!(
         larger_kicad
             .contains("(pad \"\" smd circle (at 1 -2 90) (size 0.36 0.36) (layers \"F.Paste\"))"),
@@ -692,7 +694,8 @@ fn repeated_ep_and_roundrect_project_losslessly() {
     let (checked, artifacts) = build_real(REPEATED_EP);
     assert!(artifacts.is_some() && !checked.diags.has_errors());
     let mods =
-        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap())
+            .unwrap();
     let content = &mods[0].2;
     assert!(
         content.contains("(attr smd)"),
@@ -713,7 +716,8 @@ fn repeated_ep_and_roundrect_project_losslessly() {
         &checked.world,
         checked.ir.as_ref().unwrap(),
         "repeated-ep",
-    );
+    )
+    .unwrap();
     let package = xml
         .split("<Package name=\"")
         .nth(1)
@@ -791,7 +795,8 @@ fn repeated_pin_ipc_representative_is_stable_when_a_via_is_authored_first() {
         &checked.world,
         checked.ir.as_ref().unwrap(),
         "repeated-ep-via-first",
-    );
+    )
+    .unwrap();
     let pin = xml
         .split("<Pin number=\"69\"")
         .nth(1)
@@ -863,7 +868,8 @@ design B { inst p: P nc: p.A, p.B }
         &checked.world,
         checked.ir.as_ref().unwrap(),
         "rotated-repeat",
-    );
+    )
+    .unwrap();
     let package = xml
         .split("<Package ")
         .nth(1)
@@ -907,7 +913,7 @@ fn bounded_pad_controls_project_to_kicad_without_implicit_paste() {
         checked.diags.render(&checked.sm)
     );
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let content = &mods[0].2;
     assert!(
         content.contains("(pad \"1\" smd custom (at 1 -2 90) (size 0.074 0.074) (layers \"F.Cu\" \"F.Mask\") (solder_mask_margin 0.05)"),
@@ -935,7 +941,8 @@ fn bounded_pad_controls_project_to_kicad_without_implicit_paste() {
     let (checked, artifacts) = build_real(&no_paste);
     assert!(artifacts.is_some() && !checked.diags.has_errors());
     let mods =
-        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+        cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap())
+            .unwrap();
     assert!(!mods[0].2.contains("F.Paste"), "{}", mods[0].2);
 }
 
@@ -947,7 +954,8 @@ fn bounded_pad_controls_project_distinct_ipc_mask_and_paste() {
         &checked.world,
         checked.ir.as_ref().unwrap(),
         "controlled",
-    );
+    )
+    .unwrap();
     assert!(xml.contains("<Contour><Polygon>"), "{}", xml);
     assert!(
         xml.contains("<RectCenter width=\"0.4\" height=\"0.15\"/>"),
@@ -1000,7 +1008,7 @@ fn bounded_pad_controls_project_distinct_ipc_mask_and_paste() {
 fn ipc2581_projects_real_pins_and_stays_schema_valid() {
     let (checked, _artifacts) = build_real(REAL);
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // Real pins with shapes and locations; plating rides @mountType (R5-8).
     // Pin geometry is a StandardPrimitiveRef into the shared dictionary —
     // the encoding consumers implement; an inline primitive under <Pin> is
@@ -1161,7 +1169,7 @@ fn e807_checks_alt_entry_footprints_too() {
     let (checked, artifacts) = build_real(&good);
     assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let names: Vec<&str> = mods.iter().map(|(fq, _, _)| fq.as_str()).collect();
     assert_eq!(
         names,
@@ -1200,7 +1208,7 @@ fn kicad_mod_file_names_cannot_collide() {
     checked.diags.sort(&checked.sm);
     assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let bases: std::collections::BTreeSet<&str> = mods.iter().map(|(_, b, _)| b.as_str()).collect();
     assert_eq!(
         mods.len(),
@@ -1374,7 +1382,7 @@ fn courtyard_only_footprint_is_real_content() {
     // And its authored geometry projects (the check reports, but the
     // emitters must never silently drop authored content).
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert_eq!(mods.len(), 1, "courtyard-only footprints project");
     assert!(mods[0].2.contains("(fp_rect"), "{}", mods[0].2);
 }
@@ -1390,13 +1398,13 @@ fn geometry_is_exact_beyond_six_decimals_and_canonical() {
         .replace("silkscreen_ref { at: (0mm, -1.2mm) }\n", "");
     let (checked, _artifacts) = build_real(&src);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert!(
         mods[0].2.contains("(start -0.00000095 -0.5)"),
         "7-decimal literals halve exactly:\n{}",
         mods[0].2
     );
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // Both emitters compute the same EXACT femto corners; the IPC frame is
     // +y-up (KiCad's export convention), so its y is the negation of the
     // .kicad_mod's +y-down y (x, and both magnitudes, are identical).
@@ -1409,8 +1417,8 @@ fn geometry_is_exact_beyond_six_decimals_and_canonical() {
     // Spelling canonicalization: `1.0mm` and `1mm` project identically.
     let a = build_real(&REAL.replace("drill: 1.0mm", "drill: 1mm"));
     let b = build_real(REAL);
-    let ma = cohdl::emit::kicad_mod::emit_kicad_mods(&a.0.world, a.0.ir.as_ref().unwrap());
-    let mb = cohdl::emit::kicad_mod::emit_kicad_mods(&b.0.world, b.0.ir.as_ref().unwrap());
+    let ma = cohdl::emit::kicad_mod::emit_kicad_mods(&a.0.world, a.0.ir.as_ref().unwrap()).unwrap();
+    let mb = cohdl::emit::kicad_mod::emit_kicad_mods(&b.0.world, b.0.ir.as_ref().unwrap()).unwrap();
     assert_eq!(ma, mb, "two spellings of one value are one geometry");
 }
 
@@ -1426,9 +1434,9 @@ fn circle_courtyard_projects_in_both_emitters() {
     );
     let (checked, _artifacts) = build_real(&src);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert!(mods[0].2.contains("(fp_circle"), "{}", mods[0].2);
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // Bounding square of the circle, in IPC's +y-up frame (y negated).
     assert!(
         xml.contains("<PolyBegin x=\"-1\" y=\"1\"/>"),
@@ -1795,7 +1803,7 @@ fn mount_hole_projects_np_and_plated_thru_hole() {
     let mut checked = check_files_in("board", &files, None).expect("selection");
     let _ = build_artifacts(&mut checked, &LockState::default());
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let content = &mods[0].2;
     // non_plated → KiCad's np_thru_hole with an empty pad number (no net).
     assert!(
@@ -1817,7 +1825,7 @@ fn mount_hole_ipc_is_nonplated_and_schema_valid() {
     let mut checked = check_files_in("board", &files, None).expect("selection");
     let _ = build_artifacts(&mut checked, &LockState::default());
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // The schema enum is NONPLATED (no underscore) — a non_plated mount_hole
     // must emit exactly that, both on its PadstackHoleDef and its board Hole.
     assert!(xml.contains("platingStatus=\"NONPLATED\""), "{}", xml);
@@ -1963,7 +1971,7 @@ fn mount_hole_rect_oval_project_to_kicad_slots() {
     let mut checked = check_files_in("board", &files, None).expect("selection");
     let _ = build_artifacts(&mut checked, &LockState::default());
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let content = &mods[0].2;
     // The circular hole is byte-for-byte what RFC-022 already emitted.
     assert!(
@@ -2104,7 +2112,7 @@ fn mount_hole_rect_ipc_is_schema_valid() {
     let mut checked = check_files_in("board", &files, None).expect("selection");
     let _ = build_artifacts(&mut checked, &LockState::default());
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // A non-circular hole still projects as hole geometry with no net.
     assert!(xml.contains("platingStatus=\"NONPLATED\""), "{}", xml);
     let schema = manifest().join("tests/schema/IPC-2581B1.xsd");
@@ -2185,7 +2193,7 @@ fn slot_drill_projects_kicad_oval_drill() {
     let rendered = checked.diags.render(&checked.sm);
     assert!(!rendered.contains("error"), "{}", rendered);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     // KiCad's own oval-drill form — the pad size is NOT the drill, and the
     // two dimensions keep their declared order (width, then length).
     assert!(
@@ -2196,7 +2204,7 @@ fn slot_drill_projects_kicad_oval_drill() {
         mods[0].2
     );
     // Determinism, same as every other geometry projection.
-    let again = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let again = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     assert_eq!(mods, again);
 }
 
@@ -2204,7 +2212,7 @@ fn slot_drill_projects_kicad_oval_drill() {
 fn slot_drill_reports_its_minor_axis_to_ipc2581() {
     let (checked, _) = build_real(SLOT);
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // IPC's <Hole> carries one scalar, so a slot reports the width it is
     // routed with (0.6), never its length — the same convention RFC-023's
     // oval mount holes already use. The full extent rides the primitive.
@@ -2303,7 +2311,7 @@ fn window_projects_onto_kicad_edge_cuts() {
     let rendered = checked.diags.render(&checked.sm);
     assert!(!rendered.contains("error"), "{}", rendered);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     // A cutout is board edge, NOT a courtyard and NOT a drilled hole.
     assert!(
         mods[0]
@@ -2424,7 +2432,7 @@ design B { inst mic: MIC nc: mic.GND }
     let (checked, artifacts) = build_real(source);
     assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
     let ir = checked.ir.as_ref().unwrap();
-    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
     assert!(kicad.contains("(gr_circle (center 0 0)"), "{kicad}");
     assert_eq!(kicad.matches("(layers \"F.Paste\")").count(), 4, "{kicad}");
     assert!(kicad.contains("(at 0 0 90)"), "{kicad}");
@@ -2433,7 +2441,7 @@ design B { inst mic: MIC nc: mic.GND }
         "{kicad}"
     );
 
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     assert!(xml.contains("<Cutout>"), "{xml}");
     assert_eq!(
         xml.matches("<LayerFeature layerRef=\"F.Paste\">").count(),
@@ -2491,13 +2499,13 @@ design B {{ inst p: P nc: p.GND }}
     let (checked, artifacts) = build_real(&accepted);
     assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
     let ir = checked.ir.as_ref().unwrap();
-    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
     assert_eq!(
         kicad.matches("(xy ").count(),
         520,
         "the accepted cap must emit exactly 520 paste vertices:\n{kicad}"
     );
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     assert_eq!(
         xml.matches("<PolyStepSegment").count(),
         524,
@@ -2508,7 +2516,7 @@ design B {{ inst p: P nc: p.GND }}
     let (checked, artifacts) = build_real(&rejected);
     if artifacts.is_some() {
         let ir = checked.ir.as_ref().unwrap();
-        let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+        let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
         panic!(
             "the first over-cap diameter was accepted and emitted {} paste vertices",
             kicad.matches("(xy ").count()
@@ -2573,7 +2581,7 @@ fn silkscreen_primitives_project_onto_kicad_silk_layer() {
     let rendered = checked.diags.render(&checked.sm);
     assert!(!rendered.contains("error"), "{}", rendered);
     let ir = checked.ir.as_ref().unwrap();
-    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
     // Each primitive maps to KiCad's own native graphic item, on F.SilkS.
     assert!(
         m.contains("(fp_line (start -2.36 -1) (end 1.65 -1) (layer \"F.SilkS\")"),
@@ -2598,7 +2606,7 @@ fn silkscreen_primitives_project_onto_kicad_silk_layer() {
     // Determinism, like every other geometry projection.
     assert_eq!(
         m,
-        &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2
+        &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2
     );
 }
 
@@ -2606,7 +2614,7 @@ fn silkscreen_primitives_project_onto_kicad_silk_layer() {
 fn markers_expand_to_real_geometry_clear_of_their_pad() {
     let (checked, _) = build_real(SILK);
     let ir = checked.ir.as_ref().unwrap();
-    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+    let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
     // The cathode band: a 0.3mm stroke standing off the cathode land's EDGE
     // (pad 1 spans x -2.1..-1.2), perpendicular to the terminal axis, spanning
     // the pad's own height. A band ON the pad would defeat its purpose.
@@ -2634,7 +2642,7 @@ fn pin_1_marker_shapes_both_expand() {
         );
         let (checked, _) = build_real(&src);
         let ir = checked.ir.as_ref().unwrap();
-        let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir)[0].2;
+        let m = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
         assert!(m.contains(needle), "{} marker:\n{}", shape, m);
     }
 }
@@ -2664,7 +2672,8 @@ design B { inst u: P nc: u.A, u.B }
         let (checked, artifacts) = build_real(src);
         assert!(artifacts.is_some() && !checked.diags.has_errors());
         let mods =
-            cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap());
+            cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap())
+                .unwrap();
         mods[0]
             .2
             .lines()

@@ -461,11 +461,14 @@ fn footprint_geo(world: &World, fp: &cohdl::ast::FootprintDef) -> FootprintGeo {
                     .map(|d| d.size.iter().map(femto_mm).collect())
                     .unwrap_or_default(),
                 rotate: p.rotate,
+                vertices: def.and_then(|d| d.vertices.as_ref()).map(|(points, _)| {
+                    points
+                        .iter()
+                        .map(|(x, y)| [femto_mm(x), femto_mm(y)])
+                        .collect()
+                }),
                 matrix: board_matrix(p.rotate, false),
-                layer: def
-                    .and_then(|d| d.layer)
-                    .map_or("top_copper", |(l, _)| l.name())
-                    .into(),
+                layer: def.and_then(|d| d.layer).map(|(l, _)| l.name().to_string()),
                 corner_radius: def
                     .and_then(|d| d.corner_radius.as_ref())
                     .map(|(r, _)| femto_mm(r)),
@@ -497,7 +500,11 @@ fn footprint_geo(world: &World, fp: &cohdl::ast::FootprintDef) -> FootprintGeo {
                 MountHoleGeom::Diameter(d) => vec![femto_mm(d)],
                 MountHoleGeom::Size(s, _) => s.iter().map(femto_mm).collect(),
             },
-            plated: h.plating == MountHolePlating::Plated,
+            plated: match h.plating {
+                MountHolePlating::Plated => Some(true),
+                MountHolePlating::NonPlated => Some(false),
+                MountHolePlating::SourceUnspecified => None,
+            },
         })
         .collect();
     FootprintGeo {

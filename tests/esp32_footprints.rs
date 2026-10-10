@@ -856,6 +856,7 @@ fn emitter_witness(world: &mut cohdl::resolve::World, footprint: &str, index: us
                 span,
             },
             alts: Vec::new(),
+            source_unspecified: None,
             span,
         },
     );
@@ -914,20 +915,23 @@ fn esp32_representative_geometry_is_consistent_across_all_board_emitters() {
             "missing representative `{fq}`"
         );
         let ir = emitter_witness(&mut world, fq, index);
-        let modules = emit::kicad_mod::emit_kicad_mods(&world, &ir);
+        let modules = emit::kicad_mod::emit_kicad_mods(&world, &ir).unwrap();
         assert_eq!(modules.len(), 1, "{fq}: one standalone footprint");
         assert_eq!(modules[0].0, *fq);
         let module = &modules[0].2;
-        assert_eq!(modules, emit::kicad_mod::emit_kicad_mods(&world, &ir));
-        let ipc = emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test");
+        assert_eq!(
+            modules,
+            emit::kicad_mod::emit_kicad_mods(&world, &ir).unwrap()
+        );
+        let ipc = emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test").unwrap();
         assert_eq!(
             ipc,
-            emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test")
+            emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test").unwrap()
         );
-        let board = emit::kicad_pcb::emit_kicad_pcb(&world, &ir, "esp32-footprint-test");
+        let board = emit::kicad_pcb::emit_kicad_pcb(&world, &ir, "esp32-footprint-test").unwrap();
         assert_eq!(
             board,
-            emit::kicad_pcb::emit_kicad_pcb(&world, &ir, "esp32-footprint-test")
+            emit::kicad_pcb::emit_kicad_pcb(&world, &ir, "esp32-footprint-test").unwrap()
         );
 
         let footprint = &world.footprints[*fq];

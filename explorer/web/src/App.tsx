@@ -948,7 +948,7 @@ export default function App() {
               {ownerScope(model, selInst.path) && <button onClick={() => navigateScope(ownerScope(model, selInst.path), { id: selInst.path })}>Open containing subdesign</button>}
               {selInst.part && (
                 <div style={{ margin: '6px 0' }}>
-                  <b>{selInst.part.mfr}</b> {selInst.part.mpn}
+                  <b>{selInst.part.mfr || 'Manufacturer unspecified'}</b> {selInst.part.mpn || 'MPN unspecified'}
                   {selInst.part.footprint && (
                     <div style={{ color: '#6b7280' }}>{shortName(selInst.part.footprint)}</div>
                   )}

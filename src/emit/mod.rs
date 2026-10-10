@@ -20,6 +20,53 @@ use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::World;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PhysicalExportError(String);
+
+impl std::fmt::Display for PhysicalExportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for PhysicalExportError {}
+
+pub fn validate_physical_export(world: &World, ir: &DesignIr) -> Result<(), PhysicalExportError> {
+    for inst in ir.instances.values() {
+        let Some(part) = inst.part.as_ref().and_then(|p| world.parts.get(p)) else {
+            continue;
+        };
+        for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+            let Some(fp) = entry
+                .footprint
+                .as_ref()
+                .and_then(|f| world.footprints.get(&f.name))
+            else {
+                continue;
+            };
+            if let Some(hole) = fp
+                .mount_holes
+                .iter()
+                .find(|h| h.plating == crate::ast::MountHolePlating::SourceUnspecified)
+            {
+                return Err(PhysicalExportError(format!("cannot physically export footprint `{}`: mount_hole `{}` has source-unspecified hole plating; use `build --logical-only` and retain the unknown source fact", fp.name.name, hole.number.text)));
+            }
+            for place in &fp.pads {
+                let Some(pad) = world.pads.get(&place.pad.name) else {
+                    continue;
+                };
+                crate::polygon::validate(pad).map_err(|cause| {
+                    PhysicalExportError(format!(
+                        "cannot export pad `{}` in footprint `{}`: {}",
+                        pad.name.name, fp.name.name, cause
+                    ))
+                })?;
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Bind every instance to a part (provisional-syntax.md §2). Instances typed
 /// by a part name are already bound; the rest bind by exact match on
 /// (device, resolved spec values). No match → E801 (the BOM must not lie).

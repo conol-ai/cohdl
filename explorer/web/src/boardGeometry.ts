@@ -27,8 +27,12 @@ export function corners(b: Bounds): Point[] {
 export function footprintBounds(fp?: FootprintGeo): Bounds {
   if (!fp) return { x: -0.8, y: -0.8, width: 1.6, height: 1.6 }
   const points: Point[] = []
-  const shapes: (FpShape & { matrix?: Matrix })[] = [...fp.pads, ...fp.mount_holes, ...[fp.courtyard, fp.window].filter((s) => !!s)]
+  const shapes: (FpShape & { matrix?: Matrix; vertices?: Point[] })[] = [...fp.pads, ...fp.mount_holes, ...[fp.courtyard, fp.window].filter((s) => !!s)]
   for (const shape of shapes) {
+    if (shape.shape === 'polygon') {
+      for (const pt of shape.vertices ?? []) points.push(transformPoint(pt, shape.matrix ?? identity, [shape.x, shape.y]))
+      continue
+    }
     const round = shape.shape === 'circle' || shape.shape === 'annulus'
     const w = shape.size[0] ?? 0
     const h = round ? w : shape.size[1] ?? w

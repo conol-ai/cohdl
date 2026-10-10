@@ -71,7 +71,7 @@ fn pad_rotate_parses_and_emits_kicad_angle() {
     assert_eq!(fp.pads[1].rotate, 90);
     let (checked, _a) = build(&full());
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let content = &mods[0].2;
     // Unrotated pad: the 2-argument form, byte-identical to pre-RFC-025.
     assert!(
@@ -95,7 +95,7 @@ fn pad_rotate_accepts_an_arbitrary_angle() {
     assert!(!r.contains("E811"), "45 must be accepted:\n{r}");
     let (checked, _a) = build(&src);
     let ir = checked.ir.as_ref().unwrap();
-    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir);
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
     let content = &mods[0].2;
     // KiCad's 3-argument pad form carries the angle through verbatim; size is
     // never swapped, exactly as at the cardinals.
@@ -181,7 +181,7 @@ fn side_and_rotate_accept_either_order_and_fmt_canonicalizes() {
 fn ipc_carries_side_and_mirrored_pads() {
     let (checked, _a) = build(&full());
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     // Component: bottom side rides layerRef + the Xform mirror attribute.
     assert!(xml.contains("layerRef=\"B.Cu\" mountType=\"SMT\""), "{xml}");
     assert!(xml.contains("mirror=\"true\""), "{xml}");
@@ -216,7 +216,7 @@ fn ipc_rotates_pads_at_a_non_cardinal_angle() {
     );
     let (checked, _a) = build(&src);
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     assert!(
         xml.contains("rotation=\"30\""),
         "component Xform must carry the angle:\n{xml}"
@@ -234,7 +234,7 @@ fn ipc_rotates_pads_at_a_non_cardinal_angle() {
     );
     // Byte-reproducible: same source, same bytes. This is the invariant the
     // integer table exists to protect.
-    let again = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let again = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     assert_eq!(xml, again);
 }
 
@@ -242,7 +242,7 @@ fn ipc_rotates_pads_at_a_non_cardinal_angle() {
 fn ipc_with_side_and_pad_rotate_is_schema_valid() {
     let (checked, _a) = build(&full());
     let ir = checked.ir.as_ref().unwrap();
-    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board");
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "board").unwrap();
     let schema =
         std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/schema/IPC-2581B1.xsd");
     let tmp = std::env::temp_dir().join("cohdl_side_rotate_ipc.xml");
@@ -287,7 +287,8 @@ design B {
         &checked.world,
         checked.ir.as_ref().unwrap(),
         "bottom-pad-local",
-    );
+    )
+    .unwrap();
     // MirrorX changes top_left to top_right, whose IPC +Y-up contour begins
     // along the full left edge then cuts the upper-right corner.
     assert!(

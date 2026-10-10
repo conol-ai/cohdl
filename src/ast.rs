@@ -85,6 +85,7 @@ pub enum PadShape {
     Circle,
     Oval,
     Annulus,
+    Polygon,
 }
 
 impl PadShape {
@@ -94,6 +95,7 @@ impl PadShape {
             PadShape::Circle => "circle",
             PadShape::Oval => "oval",
             PadShape::Annulus => "annulus",
+            PadShape::Polygon => "polygon",
         }
     }
     pub fn from_name(s: &str) -> Option<PadShape> {
@@ -102,6 +104,7 @@ impl PadShape {
             "circle" => PadShape::Circle,
             "oval" => PadShape::Oval,
             "annulus" => PadShape::Annulus,
+            "polygon" => PadShape::Polygon,
             _ => return None,
         })
     }
@@ -109,7 +112,7 @@ impl PadShape {
     pub fn size_arity(self) -> usize {
         match self {
             PadShape::Circle => 1,
-            PadShape::Rect | PadShape::Oval | PadShape::Annulus => 2,
+            PadShape::Rect | PadShape::Oval | PadShape::Annulus | PadShape::Polygon => 2,
         }
     }
 }
@@ -216,6 +219,8 @@ pub struct PadDef {
     /// `(w, h)` or `(d)` — arity validated against the shape.
     pub size: Vec<UnitValue>,
     pub size_span: Option<Span>,
+    /// Ordered polygon coordinates relative to the pad's placed center.
+    pub vertices: Option<(Vec<(UnitValue, UnitValue)>, Span)>,
     pub layer: Option<(PadLayer, Span)>,
     pub plating: Option<(PadPlating, Span)>,
     /// Required iff `plating: plated_through_hole`.
@@ -296,6 +301,7 @@ pub struct PadPlace {
 pub enum MountHolePlating {
     NonPlated,
     Plated,
+    SourceUnspecified,
 }
 
 impl MountHolePlating {
@@ -303,12 +309,14 @@ impl MountHolePlating {
         match self {
             MountHolePlating::NonPlated => "non_plated",
             MountHolePlating::Plated => "plated",
+            MountHolePlating::SourceUnspecified => "source_unspecified",
         }
     }
     pub fn from_name(s: &str) -> Option<MountHolePlating> {
         Some(match s {
             "non_plated" => MountHolePlating::NonPlated,
             "plated" => MountHolePlating::Plated,
+            "source_unspecified" => MountHolePlating::SourceUnspecified,
             _ => return None,
         })
     }
@@ -1620,7 +1628,17 @@ pub struct PartDef {
     pub device: TypeRef,
     pub primary: AvlEntry,
     pub alts: Vec<AvlEntry>,
+    /// Explicit source-empty primary procurement fields, never guessed values.
+    pub source_unspecified: Option<Attr>,
     pub span: Span,
+}
+
+impl PartDef {
+    pub fn allows_source_empty(&self, field: &str) -> bool {
+        self.source_unspecified
+            .as_ref()
+            .is_some_and(|a| a.args.iter().any(|(name, _)| name == field))
+    }
 }
 
 #[derive(Debug, Clone)]

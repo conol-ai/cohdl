@@ -13,9 +13,10 @@ fn project(src: &str) -> String {
         "{}",
         checked.diags.render(&checked.sm)
     );
-    cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap())[0]
-        .2
-        .clone()
+    cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, checked.ir.as_ref().unwrap()).unwrap()
+        [0]
+    .2
+    .clone()
 }
 
 const SOURCE: &str = r#"

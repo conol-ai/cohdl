@@ -34,19 +34,22 @@ test('polygon bounds use ordered source vertices and compiler rotation rather th
 })
 
 test('polygon preview labels stay at the pad center and legacy rotation agrees with compiler matrices', () => {
-  const pad = { number: '2', shape: 'polygon', x: 4, y: 5, size: [2, 2], vertices: [[-1, -1], [1, -1], [1, 1], [-1, 1]], rotate: 90, matrix: [0, -1, 1, 0], layer: 'top_copper', pth: false }
   const render = (p) => renderToStaticMarkup(FootprintPreview({ geo: { pads: [p], mount_holes: [] }, dark: false }))
-  const html = render(pad)
-  const match = html.match(/<g transform="matrix\(([^)]+)\)"><polygon[^>]+><\/polygon><\/g><text x="([^"]+)" y="([^"]+)"/)
-  assert.ok(match, 'polygon transform ends before the pad-center label')
-  const actual = match[1].split(' ').map(Number)
-  assert.deepEqual(actual.slice(0, 4), pad.matrix)
-  assert.equal(actual[4], Number(match[2]))
-  assert.equal(actual[5], Number(match[3]))
-  const { matrix, ...legacy } = pad
-  const old = render(legacy)
-  const coefficients = old.match(/matrix\(([^)]+)\)/)[1].split(' ').map(Number)
-  coefficients.forEach((value, index) => assert.ok(Math.abs(value - actual[index]) < 1e-10))
+  const rotations = [[0, [1, 0, 0, 1]], [90, [0, -1, 1, 0]], [180, [-1, 0, 0, -1]], [270, [0, 1, -1, 0]]]
+  for (const [rotate, matrix] of rotations) {
+    const pad = { number: '2', shape: 'polygon', x: 4, y: 5, size: [2, 2], vertices: [[-1, -1], [1, -1], [1, 1], [-1, 1]], rotate, matrix, layer: 'top_copper', pth: false }
+    const html = render(pad)
+    const match = html.match(/<g transform="matrix\(([^)]+)\)"><polygon[^>]+><\/polygon><\/g><text x="([^"]+)" y="([^"]+)"/)
+    assert.ok(match, `polygon transform ends before the pad-center label at ${rotate} degrees`)
+    const actual = match[1].split(' ').map(Number)
+    assert.deepEqual(actual.slice(0, 4), matrix)
+    assert.equal(actual[4], Number(match[2]))
+    assert.equal(actual[5], Number(match[3]))
+    const { matrix: _, ...legacy } = pad
+    const old = render(legacy)
+    const coefficients = old.match(/matrix\(([^)]+)\)/)[1].split(' ').map(Number)
+    coefficients.forEach((value, index) => assert.ok(Math.abs(value - actual[index]) < 1e-10, `legacy coefficient ${index} at ${rotate} degrees`))
+  }
 })
 
 const span = { file: 'src/main.cohdl', line: 1, col: 1 }

@@ -26,21 +26,29 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       overflow: document.documentElement.scrollWidth > innerWidth }
   })
   const records = []
+  const trace = async () => {
+    await page.click('input[aria-label="Search circuit"]', { clickCount: 3 })
+    await page.keyboard.press('Backspace')
+    await page.type('input[aria-label="Search circuit"]', 'CAM_HREF')
+    await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('CAM_HREF') && b.textContent.includes('pins')).click())
+    await page.waitForSelector('tr[data-endpoint]')
+  }
   try {
     for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
       await page.setViewport(viewport)
       await page.goto(`${url}?model=/__m6_layout_fixture.json&nolive=1`, { waitUntil: 'domcontentloaded' })
       await ready()
-      await page.type('input[aria-label="Search circuit"]', 'CAM_HREF')
-      await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('CAM_HREF') && b.textContent.includes('pins')).click())
       await clickText('Layout')
       await page.waitForSelector('select[aria-label="Component side"]')
+      await trace()
       await page.select('select[aria-label="Component side"]', 'top')
       await page.waitForFunction(() => document.querySelectorAll('.board-layout__component').length === 1)
       const top = await snapshot()
       assert.deepEqual(top.paths, [members[0].instance_path])
       assert.equal(top.endpoints.find((e) => e.path === members[1].instance_path).visible, 'false', 'Bottom endpoint must be hidden by Top filter')
       await clickText('Camera')
+      assert.equal((await snapshot()).net, undefined, 'User group changes clear the old trace')
+      await trace()
       await page.waitForSelector('tr[data-endpoint][data-visible="false"] button')
       await (await page.$('tr[data-endpoint][data-visible="true"] button')).click()
       await page.waitForSelector('svg[aria-label="Physical component layout in millimetres"]')
@@ -77,6 +85,7 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       assert.equal(resized.overflow, false)
       await page.screenshot({ path: resolve(output, `union-${label}-layout-fixture.png`) })
       await clickText('Camera')
+      await trace()
       await page.select('select[aria-label="Component side"]', 'bottom')
       await page.waitForFunction(() => document.querySelectorAll('.board-layout__component').length === 1)
       const bottom = await snapshot()

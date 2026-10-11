@@ -18,7 +18,7 @@ export async function runUnionSmoke(page, { url, output, ready, clickText, geome
     const canvas = document.querySelector('.explorer-canvas').getBoundingClientRect()
     const transform = new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform)
     return {
-      parts: [...document.querySelectorAll('.react-flow__node')].map((n) => n.dataset.id).filter((id) => !id.startsWith('region:') && !id.startsWith('net:')).sort(),
+      parts: [...document.querySelectorAll('.react-flow__node')].map((n) => n.dataset.id).filter((id) => !id.startsWith('region:') && !id.startsWith('net:') && !id.startsWith('bundle:') && !id.startsWith('group:')).sort(),
       selected: [...document.querySelectorAll('.react-flow__node.selected')].map((n) => n.dataset.id).sort(),
       groups: [...document.querySelectorAll('.group-selector input:checked')].map((i) => i.parentElement.textContent.trim()).sort(),
       net: [...document.querySelectorAll('.explorer-inspector h3')].map((h) => h.textContent).find((h) => h.startsWith('net ')),
@@ -109,12 +109,16 @@ export async function runUnionSmoke(page, { url, output, ready, clickText, geome
     await geometry(`${label}-restored-fit`)
     await clickText('Clear filters')
     await ready()
+    await clickText('Expand all groups')
+    await ready()
     await assertUnion([])
     await clickText('Other')
     await page.waitForFunction(() => document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false')
     assert.equal(Number((await inspect()).counts.parts), 0)
     await page.waitForSelector('.empty-recovery', { visible: true })
     await page.click('.empty-recovery')
+    await ready()
+    await clickText('Expand all groups')
     await ready()
     await assertUnion([])
     snapshots.push({ label, endpoints, controlsOnly, controlsRestored, before, destination, restored, resized })

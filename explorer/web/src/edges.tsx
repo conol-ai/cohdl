@@ -2,6 +2,7 @@
 // lower corridor for backward ones so no segment crosses a node body.
 
 import { BaseEdge, EdgeLabelRenderer, Position, type EdgeProps } from '@xyflow/react'
+import type { EdgeRoute } from './layout'
 
 /** Orthogonal polyline with rounded corners, collinear points dropped. */
 function roundedPath(pts: { x: number; y: number }[], radius = 6): string {
@@ -25,6 +26,41 @@ function roundedPath(pts: { x: number; y: number }[], radius = 6): string {
   return d + ` L ${e.x} ${e.y}`
 }
 
+function BundleEdge({ id, style, label, labelStyle, data }: Pick<EdgeProps, 'id' | 'style' | 'label' | 'labelStyle' | 'data'>) {
+  const route = data?.route as EdgeRoute | undefined
+  if (!route || route.points.length < 2) return null
+  const bundleId = data?.bundleId as string
+  const onBundle = data?.onBundle as ((id: string) => void) | undefined
+  const activate = () => onBundle?.(bundleId)
+  const description = `${typeof label === 'string' && label ? `${label}: ` : ''}Open connected networks`
+  return (
+    <>
+      <g role="button" tabIndex={0} aria-label={description}
+        onClick={(event) => { event.stopPropagation(); activate() }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          event.stopPropagation()
+          activate()
+        }}>
+        <title>{description}</title>
+        <BaseEdge id={id} path={roundedPath(route.points)} style={style} interactionWidth={24} />
+      </g>
+      {label ? <EdgeLabelRenderer>
+        <button type="button" className="nodrag nopan" title={description} aria-label={description}
+          onClick={(event) => { event.stopPropagation(); activate() }}
+          style={{
+            position: 'absolute', transform: `translate(-50%, -50%) translate(${route.label.x}px, ${route.label.y}px)`,
+            pointerEvents: 'all', width: typeof label === 'string' ? label.length * 7 + 12 : undefined,
+            height: 20, boxSizing: 'border-box', padding: '0 6px', border: '1px solid #cbd5e1', borderRadius: 3,
+            background: (data?.labelBg as string) ?? '#ffffff',
+            color: (labelStyle as { fill?: string } | undefined)?.fill ?? '#475569', fontSize: 11, lineHeight: '18px', cursor: 'pointer',
+          }}>{label}</button>
+      </EdgeLabelRenderer> : null}
+    </>
+  )
+}
+
 // Orthogonal edge with lane separation: a forward wire turns at its own
 // fraction of the horizontal gap; a backward/same-side wire detours BELOW
 // both nodes instead of cutting through the IC body.
@@ -32,6 +68,7 @@ export function LaneEdge({
   id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition,
   style, label, labelStyle, data,
 }: EdgeProps) {
+  if (data?.bundleId) return <BundleEdge id={id} style={style} label={label} labelStyle={labelStyle} data={data} />
   const t = (data?.lane as number) ?? 0.5
   const STUB = 16
   const dirS = sourcePosition === Position.Left ? -1 : 1

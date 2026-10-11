@@ -322,10 +322,16 @@ and port-only connections; it can also be opened with `--serve` for UI checks.
 ## What is deterministic, what is AI
 
 Extraction, display rules, layout and wire routing are ordinary code:
-the same source always yields the same drawing. AI only writes the
-partition labels — `views/<Design>.view.json`, generated with
-`skills/view-gen/SKILL.md`, which decides the page tabs and the region
-each part belongs to. A bad view file changes grouping, never topology.
+the same source always yields the same drawing. Project partition labels in
+`views/<Design>.view.json` control views and group membership; changing them
+does not change circuit topology. The existing `skills/view-gen/SKILL.md`
+describes generating these configurations.
+
+[Explorer Assist](assist/README.md) also provides source-cited AI grouping,
+read-only interface planning and connection proposals through its CLI. It
+retains actual provider output, exact diffs and compiler validation. The
+Proposals tab displays those records; applying or reverting a checked change
+is an explicit CLI operation. The browser remains a read-only circuit viewer.
 
 ## Layout
 

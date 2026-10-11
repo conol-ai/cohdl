@@ -73,6 +73,54 @@ invalid encoding, traversal and symlinks escaping the declared file root are
 rejected. Ordinary HTTP responses use `Cache-Control: no-store` so reloaded
 configs cannot retain stale content.
 
+## Document Evidence And Source Excerpts
+
+Project `explorer/documents.json` supplies an optional schema-1 registry:
+
+```json
+{"schema":1,"documents":[{"id":"manual","title":"Device manual","kind":"pdf","path":"docs/manual.pdf","revision":null,"sha256":null,"pages":null,"review":"unreviewed","uncertainty":"Original revision has not been established","applicability":[{"instances":["Board::device"],"groups":[],"relation":"exact","page":1}]}],"constraints":[]}
+```
+
+Replace the instance with its exact checked path and `sha256` with the actual
+lowercase SHA-256 before opening local evidence. `kind` is `pdf` or `markdown`;
+Markdown uses `section` citations and null `pages`. Unknown revision, expected
+hash, total pages or local original path stays null. Each applicability record
+names exact instance paths and/or `{ "view": "Functional", "region": "Core" }`
+groups. `relation` is `exact` or `related`; related evidence requires explicit
+uncertainty. `review` is `unreviewed`, `reviewed` or `rejected`. Optional
+`source_url` must be HTTPS; optional `facts` retains literal string values,
+including authored empty strings. Constraints contain `text`, `instances`,
+`groups`, `citations` (`document` ID plus optional `page`/`section`) and optional
+`uncertainty`. An absent original PDF and local supporting Markdown are separate
+records.
+
+```sh
+curl http://127.0.0.1:5199/api/documents
+curl http://127.0.0.1:5199/api/documents/manual
+curl 'http://127.0.0.1:5199/api/source?path=src%2Fmain.cohdl&line=1&count=20'
+```
+
+The registry API derives `status`, `actual_sha256`, `issues` and `open_url` from
+actual confined bytes. Missing registry returns 404; malformed/unsupported
+registry returns 422. Invalid individual records remain inspectable beside
+valid evidence and cannot open. Local opening requires matching declared hash,
+valid applicability/metadata and accepted file format; unreviewed evidence is
+labeled and rejected evidence is disabled. PDF links use `#page=N`, checked
+against a known total; unknown totals remain explicit. Local evidence and source
+paths cannot escape the project through traversal or symlinks. Document IDs
+resolve through the registry rather than accepting arbitrary download paths.
+
+Limits: registry and Markdown 4 MiB, PDF 64 MiB, source 1 MiB, excerpt 64 KiB;
+source `line` starts at 1 and `count` is 1–200. Source excerpts include the actual
+file SHA-256. Registry/file additions, edits and deletions refresh evidence via
+the existing SSE stream without re-extracting or changing the checked circuit.
+The inspector exposes citations, literal source facts and constraints for parts
+and groups while keeping existing compiler documentation links available.
+
+```sh
+node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage documents
+```
+
 ## Subdesigns
 
 RFC-032 subdesign use sites appear as logical blocks with their declared

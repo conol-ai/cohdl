@@ -94,8 +94,8 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   useEffect(() => { onCamera?.() }, [view, onCamera])
   useLayoutEffect(() => {
     const next = currentSize()
-    size.current = next
     if (restore && restore !== restored.current) {
+      size.current = next
       restored.current = restore
       focused.current = focus
       autoFit.current = restore.autoFit
@@ -116,6 +116,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     const box = boundsOf(boxes)
     const span = Math.max(12, box.width * 2, box.height * 2)
     autoFit.current = false
+    size.current = next
     setView({ x: box.x + box.width / 2 - span / 2, y: box.y + box.height / 2 - span / 2, width: span, height: span })
   }, [fitted, focus, geometry, model.nets, restore, scoped, side, onSide, visiblePaths])
   useLayoutEffect(() => {

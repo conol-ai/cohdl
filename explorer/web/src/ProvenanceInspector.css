@@ -1,0 +1,29 @@
+.provenance-inspector { margin: 10px 0; padding-top: 8px; border-top: 1px solid #9ca3af66; overflow-wrap: anywhere; }
+.provenance-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.provenance-heading h3 { margin: 0; font-size: 13px; }
+.provenance-heading button { width: 28px; height: 28px; padding: 5px; }
+.document-evidence { padding: 8px 0; border-bottom: 1px solid #9ca3af44; }
+.document-evidence > summary { cursor: pointer; font-weight: 600; }
+.document-status { color: #0f9683; margin: 4px 0; }
+.document-uncertainty { margin: 5px 0; color: #b57a11; }
+.document-issue { color: #df5252; margin: 3px 0; }
+.document-applicability { margin: 6px 0; }
+.document-applicability strong { display: block; font-weight: 500; }
+.provenance-inspector a { display: flex; align-items: baseline; gap: 4px; color: #1596c5; margin: 4px 0; }
+.provenance-inspector [aria-disabled] { display: block; color: #888b93; margin: 4px 0; }
+.document-applicability dl { margin: 5px 0; }
+.document-applicability dl > div { display: grid; grid-template-columns: minmax(70px, 1fr) minmax(0, 2fr); gap: 6px; }
+.document-applicability dt { color: #888b93; }
+.document-applicability dd { margin: 0; min-width: 0; }
+.document-empty { font-style: italic; }
+.document-fingerprint { font-size: 10px; margin: 5px 0; }
+.document-fingerprint summary { cursor: pointer; }
+.document-hash { overflow-wrap: anywhere; font: 10px monospace; margin: 3px 0; }
+.document-constraint { padding: 6px 0; border-top: 1px solid #9ca3af44; }
+.document-constraint p { margin: 4px 0; }
+.source-excerpt { margin: 8px 0; overflow-wrap: anywhere; }
+.source-excerpt summary { cursor: pointer; }
+.source-excerpt summary svg { vertical-align: middle; }
+.source-excerpt pre { font-size: 10px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 5px 0; }
+.source-excerpt pre span { color: #888b93; }
+.source-excerpt [data-current="true"] { background: #15a6b322; }

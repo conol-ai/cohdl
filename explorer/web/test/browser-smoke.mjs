@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer-core'
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
 const stage = value('--stage', 'groups')
-assert.ok(['groups', 'union', 'navigation', 'locate'].includes(stage), `Unknown browser stage: ${stage}`)
+assert.ok(['groups', 'union', 'navigation', 'locate', 'documents'].includes(stage), `Unknown browser stage: ${stage}`)
 const output = resolve(value('--output', '/tmp/cohdl-explorer-browser'))
 mkdirSync(output, { recursive: true })
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
@@ -49,7 +49,12 @@ try {
     console.log(JSON.stringify({ label, canvas: result.canvas, nodeCount: result.nodes.length, overflow: result.overflow }))
   }
   await ready()
-  if (stage === 'union') {
+  if (stage === 'documents') {
+    const { runDocumentsSmoke } = await import('./documents-smoke.mjs')
+    await runDocumentsSmoke(page, { url, output, ready, clickText })
+    assert.deepEqual(errors, [], 'Browser runtime errors')
+    console.log(JSON.stringify({ result: 'PASS', stage, output }))
+  } else if (stage === 'union') {
     const { runUnionSmoke } = await import('./union-smoke.mjs')
     await runUnionSmoke(page, { url, output, ready, clickText, geometry })
     const { runLayoutInspectionSmoke } = await import('./layout-inspection-smoke.mjs')

@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{Shutdown, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -75,12 +75,34 @@ impl Server {
         stream
             .set_read_timeout(Some(Duration::from_secs(3)))
             .unwrap();
-        write!(stream, "GET {path} HTTP/1.1\r\nHost: localhost\r\n\r\n").unwrap();
-        let mut response = String::new();
-        stream.read_to_string(&mut response).unwrap();
-        let (headers, body) = response.split_once("\r\n\r\n").unwrap();
+        stream
+            .write_all(
+                format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+                    .as_bytes(),
+            )
+            .unwrap();
+        stream.shutdown(Shutdown::Write).unwrap();
+        let mut reader = BufReader::new(stream);
+        let mut headers = String::new();
+        loop {
+            let mut line = String::new();
+            reader.read_line(&mut line).unwrap();
+            if line == "\r\n" {
+                break;
+            }
+            assert!(!line.is_empty(), "Incomplete response headers");
+            headers.push_str(&line);
+        }
+        let length = headers
+            .lines()
+            .find_map(|line| line.strip_prefix("Content-Length: "))
+            .unwrap()
+            .parse()
+            .unwrap();
+        let mut body = vec![0; length];
+        reader.read_exact(&mut body).unwrap();
         let code = headers.split_whitespace().nth(1).unwrap().parse().unwrap();
-        (code, headers.to_string(), body.to_string())
+        (code, headers, String::from_utf8(body).unwrap())
     }
 
     fn config(&self, location: &str, value: &Value) {
@@ -328,3 +350,6 @@ fn view_add_change_delete_emit_sse_without_changing_model() {
         "bundled edit changed model bytes"
     );
 }
+
+#[path = "server/documents.rs"]
+mod document_tests;

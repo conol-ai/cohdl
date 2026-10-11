@@ -18,7 +18,7 @@ import { shortName } from './model'
 import { explorerNets, ownerScope } from './hierarchy'
 import { focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
-import { buildViewGraph, projectGroupUnion, collapseGroups, parseViewConfig, type ViewConfig } from './views'
+import { buildViewGraph, projectGroupUnion, collapseGroups, groupNodeId, parseViewConfig, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
@@ -41,6 +41,9 @@ import { netEndpoints, type InspectionContext } from './inspection'
 import { searchCircuit, type SearchHit } from './search'
 import { useInspectionNavigation } from './useInspectionNavigation'
 import { InspectionLists } from './InspectionLists'
+import { useDocuments } from './useDocuments'
+import { ProvenanceInspector } from './ProvenanceInspector'
+import { SourceExcerpt } from './SourceExcerpt'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -49,6 +52,7 @@ const edgeTypes = { lane: LaneEdge }
 // ---------- app ----------
 export default function App() {
   const [model, setModel] = useState<ExplorerModel | null>(null)
+  const documents = useDocuments(model)
   const [graph, setGraph] = useState<Graph | null>(null)
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
@@ -531,6 +535,7 @@ export default function App() {
     [sel, graph],
   )
   const selInst: Instance | undefined = model?.instances.find((i) => sel.length === 1 && i.path === sel[0]) ?? selNode?.inst
+  const evidenceGroups = selNode?.id === groupNodeId(activeView, selNode?.title ?? '') ? [selNode.title] : selectedGroups
   const physicalScope = useMemo(() => model ? layoutScope(model, scope, layoutFrame) : undefined, [model, scope, layoutFrame])
   const physicalPlacements = useMemo(() => physicalScope?.placements.filter((p) =>
     (!selectedGroups.length || projection?.represented.has(p.instance)) && (layoutSide === 'both' || p.side === layoutSide)) ?? [],
@@ -876,7 +881,7 @@ export default function App() {
         </div>}
         </div>
       </main>
-      {(tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
+      {(tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign || evidenceGroups.length > 0) && (
         <div
           className="explorer-inspector"
           style={{
@@ -899,6 +904,7 @@ export default function App() {
               else setIssueFocus(`${issue.span?.file}:${issue.span?.line}:${issue.span?.col} · ${issue.message} · No component is declared at this source location`)
             }
           }} /></> : <>
+          {!selInst && evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
           {inspectedSubdesign && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
@@ -988,6 +994,8 @@ export default function App() {
               </h3>
               <div style={{ color: '#6b7280' }}>{selInst.device_fq}</div>
               <div style={{ margin: '4px 0', overflowWrap: 'anywhere' }}>{selInst.path}</div>
+              <SourceExcerpt key={selInst.path} span={selInst.span} />
+              <ProvenanceInspector resource={documents} instance={selInst.path} view={activeView} groups={selectedGroups} />
               <div style={{ margin: '8px 0', padding: 8, borderRadius: 6, background: dark ? '#102c29' : '#ecfdf5' }}>
                 <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
                 {selectedPlacement ? <>

@@ -100,6 +100,7 @@ pub fn serve(
         let dist = dist.to_path_buf();
         let mut last = scan_mtime(&project);
         let mut views = scan_views(&project, &dist);
+        let mut documents = crate::document_api::watch_snapshot(&project);
         std::thread::spawn(move || loop {
             std::thread::sleep(Duration::from_millis(500));
             let now = scan_mtime(&project);
@@ -120,7 +121,10 @@ pub fn serve(
             let current_views = scan_views(&project, &dist);
             let views_changed = current_views != views;
             views = current_views;
-            if source_changed || views_changed {
+            let current_documents = crate::document_api::watch_snapshot(&project);
+            let documents_changed = current_documents != documents;
+            documents = current_documents;
+            if source_changed || views_changed || documents_changed {
                 version.fetch_add(1, Ordering::SeqCst);
                 eprintln!(
                     "[watch] change detected -> version {}",
@@ -206,6 +210,18 @@ fn handle(
         return respond(&mut conn, 404, "text/plain", b"not found");
     };
     let path = path.as_str();
+
+    if path == "/api/source" || path == "/api/documents" || path.starts_with("/api/documents/") {
+        let model = state.lock().unwrap().model.clone();
+        if let Some(response) = crate::document_api::handle(path, &full, project, dist, &model) {
+            return respond(
+                &mut conn,
+                response.code,
+                response.content_type,
+                &response.body,
+            );
+        }
+    }
 
     // /api/photo?mpn=<mpn>: part photo from <project>/docs/photos/<mpn>.<ext>
     if path == "/api/photo" {

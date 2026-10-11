@@ -10,6 +10,9 @@
 #[cfg(target_os = "macos")]
 mod app;
 mod cli;
+mod document_api;
+mod document_registry;
+mod document_types;
 mod http_files;
 mod model;
 mod project_model;

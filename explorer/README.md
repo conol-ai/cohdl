@@ -44,6 +44,16 @@ still opens the macOS folder picker.
 
 ## Project Views And HTTP
 
+`GET /api/project` returns `{ "schema": 1, "id": "<sha256>", "design": "<name>" }`
+for project-scoped browser preferences. The ID hashes the canonical project
+directory's native path bytes with SHA256; the response does not return the
+path. It stays stable across restart at the same directory and separates
+same-name projects in different directories. It is a local persistence key,
+not authentication or an anonymity guarantee. Moving the project starts a new
+namespace. The endpoint is read-only; non-GET methods return404. Model and
+standalone extraction bytes are unchanged. If the identity or browser storage
+is unavailable, Important marks remain usable for the current session.
+
 `GET /views/<Design>.view.json` first reads the project's
 `views/<Design>.view.json`, then falls back to the bundled
 `<dist>/views/<Design>.view.json` when no project override exists. A malformed

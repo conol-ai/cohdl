@@ -338,3 +338,84 @@ fn document_and_source_size_limits_fail_closed() {
         .unwrap();
     assert_eq!(server.request("/api/documents").0, 422);
 }
+
+#[cfg(unix)]
+#[test]
+fn canonical_targets_require_visible_paths_and_matching_media_extensions() {
+    let server = Server::start();
+    let value = documents(&server);
+    registry(&server, &value);
+    std::fs::create_dir_all(server.root.join("project/.private")).unwrap();
+    for target in [".private/dummy.cohdl", "docs/dummy.txt"] {
+        std::fs::write(
+            server.root.join("project").join(target),
+            "synthetic fixture content",
+        )
+        .unwrap();
+        let alias = server.root.join("project/src/alias.cohdl");
+        std::os::unix::fs::symlink(server.root.join("project").join(target), &alias).unwrap();
+        assert_eq!(
+            server.request("/api/source?path=src/alias.cohdl").0,
+            422,
+            "{target}"
+        );
+        std::fs::remove_file(alias).unwrap();
+    }
+    for (kind, alias, target, bytes) in [
+        (
+            "markdown",
+            "docs/alias.md",
+            ".private/dummy.md",
+            "synthetic fixture content",
+        ),
+        (
+            "markdown",
+            "docs/alias.md",
+            "docs/dummy.txt",
+            "synthetic fixture content",
+        ),
+        (
+            "pdf",
+            "docs/alias.pdf",
+            ".private/dummy.pdf",
+            "%PDF-synthetic fixture",
+        ),
+        (
+            "pdf",
+            "docs/alias.pdf",
+            "docs/dummy.txt",
+            "%PDF-synthetic fixture",
+        ),
+    ] {
+        std::fs::write(server.root.join("project").join(target), bytes).unwrap();
+        let link = server.root.join("project").join(alias);
+        std::os::unix::fs::symlink(server.root.join("project").join(target), &link).unwrap();
+        let mut invalid = value.clone();
+        invalid["documents"][0]["kind"] = json!(kind);
+        invalid["documents"][0]["path"] = json!(alias);
+        invalid["documents"][0]["sha256"] = json!(cohdl::hash::sha256_hex(bytes.as_bytes()));
+        invalid["documents"][0]["applicability"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("section");
+        registry(&server, &invalid);
+        assert_eq!(server.request("/api/documents/support").0, 404, "{target}");
+        let body: Value = serde_json::from_str(&server.request("/api/documents").2).unwrap();
+        assert_eq!(
+            body["documents"][0]["actual_sha256"],
+            Value::Null,
+            "{target}"
+        );
+        std::fs::remove_file(link).unwrap();
+    }
+    for target in [".private/registry.json", "docs/registry.txt"] {
+        let source = server.root.join("project").join(target);
+        std::fs::write(&source, value.to_string()).unwrap();
+        let link = server.root.join("project/explorer/documents.json");
+        std::fs::remove_file(&link).unwrap();
+        std::os::unix::fs::symlink(source, &link).unwrap();
+        assert_eq!(server.request("/api/documents").0, 422, "{target}");
+        std::fs::remove_file(link).unwrap();
+        registry(&server, &value);
+    }
+}

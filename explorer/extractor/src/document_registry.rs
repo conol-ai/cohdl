@@ -2,7 +2,7 @@ use crate::document_types::*;
 use crate::http_files::{confined_file, view_file};
 use std::collections::BTreeSet;
 use std::io::Read;
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
 
 pub const REGISTRY_LIMIT: u64 = 4 * 1024 * 1024;
 pub const PDF_LIMIT: u64 = 64 * 1024 * 1024;
@@ -34,10 +34,25 @@ pub fn safe_relative(value: &str) -> bool {
         )
 }
 
+pub fn safe_file(project: &Path, relative: &str, extension: &str) -> Option<PathBuf> {
+    let has_extension = |path: &Path| {
+        path.extension()
+            .and_then(|s| s.to_str())
+            .is_some_and(|s| s.eq_ignore_ascii_case(extension))
+    };
+    if !safe_relative(relative) || !has_extension(Path::new(relative)) {
+        return None;
+    }
+    let file = confined_file(project, relative)?;
+    let root = project.canonicalize().ok()?;
+    let canonical_relative = file.strip_prefix(root).ok()?.to_str()?;
+    (safe_relative(canonical_relative) && has_extension(&file)).then_some(file)
+}
+
 pub fn read(project: &Path) -> Result<Registry, (u16, String)> {
     let relative = "explorer/documents.json";
     let exists = std::fs::symlink_metadata(project.join(relative)).is_ok();
-    let file = confined_file(project, relative).ok_or((
+    let file = safe_file(project, relative, "json").ok_or((
         if exists { 422 } else { 404 },
         "Document registry is unavailable".into(),
     ))?;
@@ -200,19 +215,16 @@ pub fn document_bytes(project: &Path, document: &Document) -> Result<Vec<u8>, St
         .path
         .as_deref()
         .ok_or("Local original is unavailable")?;
-    let extension = Path::new(relative)
-        .extension()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
-    let allowed = match document.kind {
-        Kind::Pdf => extension.eq_ignore_ascii_case("pdf"),
-        Kind::Markdown => extension.eq_ignore_ascii_case("md"),
-    };
-    if !safe_relative(relative) || !allowed {
-        return Err("Document path is not an allowed project-local file".into());
-    }
-    let file = confined_file(project, relative)
-        .ok_or("Local document is missing or outside the project")?;
+    let file = safe_file(
+        project,
+        relative,
+        if document.kind == Kind::Pdf {
+            "pdf"
+        } else {
+            "md"
+        },
+    )
+    .ok_or("Local document is missing or not an allowed project-local file")?;
     let bytes = read_bounded(
         &file,
         if document.kind == Kind::Pdf {

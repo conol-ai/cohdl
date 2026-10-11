@@ -80,22 +80,25 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     const pad = Math.max(2, Math.max(b.width, b.height) * 0.12)
     return { x: b.x - pad, y: b.y - pad, width: b.width + pad * 2, height: b.height + pad * 2 }
   }, [geometry, scoped.outline])
-  const [view, setView] = useState<Bounds>(fitted)
+  const [camera, setCamera] = useState<{ view: Bounds; size: CanvasSize }>({ view: fitted, size: { width: 0, height: 0 } })
+  const { view } = camera
   const svg = useRef<SVGSVGElement>(null)
   const autoFit = useRef(true)
   const restored = useRef<typeof restore>(undefined)
   const focused = useRef<typeof focus>(null)
-  const size = useRef<CanvasSize>({ width: 0, height: 0 })
   const currentSize = () => {
     const rect = svg.current?.getBoundingClientRect()
     return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
   }
-  useImperativeHandle(cameraRef, () => ({ capture: () => ({ view: { ...view }, size: currentSize(), autoFit: autoFit.current }) }), [view])
+  const setView = (nextView: Bounds | ((previous: Bounds) => Bounds)) => {
+    const next = currentSize()
+    setCamera(previous => ({ view: typeof nextView === 'function' ? nextView(resizeBoardView(previous.view, previous.size, next)) : nextView, size: next }))
+  }
+  useImperativeHandle(cameraRef, () => ({ capture: () => ({ view: { ...camera.view }, size: { ...camera.size }, autoFit: autoFit.current }) }), [camera])
   useEffect(() => { onCamera?.() }, [view, onCamera])
   useLayoutEffect(() => {
     const next = currentSize()
     if (restore && restore !== restored.current) {
-      size.current = next
       restored.current = restore
       focused.current = focus
       autoFit.current = restore.autoFit
@@ -116,18 +119,12 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     const box = boundsOf(boxes)
     const span = Math.max(12, box.width * 2, box.height * 2)
     autoFit.current = false
-    size.current = next
     setView({ x: box.x + box.width / 2 - span / 2, y: box.y + box.height / 2 - span / 2, width: span, height: span })
   }, [fitted, focus, geometry, model.nets, restore, scoped, side, onSide, visiblePaths])
   useLayoutEffect(() => {
     const observer = new ResizeObserver(() => {
       const next = currentSize()
-      if (autoFit.current) setView(fitted)
-      else if (size.current.width && size.current.height) {
-        const previous = size.current
-        setView((v) => resizeBoardView(v, previous, next))
-      }
-      size.current = next
+      setCamera(previous => ({ view: autoFit.current ? fitted : resizeBoardView(previous.view, previous.size, next), size: next }))
     })
     if (svg.current) observer.observe(svg.current)
     return () => observer.disconnect()

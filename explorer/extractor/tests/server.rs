@@ -58,7 +58,7 @@ impl Server {
             .arg("--dist")
             .arg(root.join("dist"))
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(std::fs::File::create(root.join("server.log")).unwrap())
             .spawn()
             .unwrap();
         let server = Self { child, root, port };
@@ -86,7 +86,12 @@ impl Server {
         let mut headers = String::new();
         loop {
             let mut line = String::new();
-            reader.read_line(&mut line).unwrap();
+            reader.read_line(&mut line).unwrap_or_else(|error| {
+                panic!(
+                    "HTTP {path}: {error}; server log: {}",
+                    std::fs::read_to_string(self.root.join("server.log")).unwrap_or_default()
+                )
+            });
             if line == "\r\n" {
                 break;
             }

@@ -1,6 +1,6 @@
 use crate::document_registry;
 use crate::document_types::Kind;
-use crate::http_files::{confined_file, percent_decode};
+use crate::http_files::percent_decode;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -66,8 +66,8 @@ fn source(project: &Path, full: &str) -> Result<serde_json::Value, String> {
     if line == 0 || count == 0 || count > 200 {
         return Err("Source requires line >= 1 and count between 1 and 200".into());
     }
-    let file =
-        confined_file(project, relative).ok_or("Source is missing or outside the project")?;
+    let file = document_registry::safe_file(project, relative, "cohdl")
+        .ok_or("Source is missing or not an allowed project-local .cohdl file")?;
     let bytes = document_registry::read_bounded(&file, SOURCE_LIMIT)?;
     let text = std::str::from_utf8(&bytes).map_err(|_| "Source is not UTF-8")?;
     let total = text.lines().count();
@@ -144,14 +144,14 @@ pub type WatchSnapshot = Vec<(String, Option<(std::time::SystemTime, u64)>)>;
 
 pub fn watch_snapshot(project: &Path) -> WatchSnapshot {
     let mut snapshot = Vec::new();
-    let metadata = |relative: &str| {
-        confined_file(project, relative)
+    let metadata = |relative: &str, extension: &str| {
+        document_registry::safe_file(project, relative, extension)
             .and_then(|p| std::fs::metadata(p).ok())
             .and_then(|m| m.modified().ok().map(|time| (time, m.len())))
     };
     snapshot.push((
         "explorer/documents.json".into(),
-        metadata("explorer/documents.json"),
+        metadata("explorer/documents.json", "json"),
     ));
     if let Ok(registry) = document_registry::read(project) {
         for document in registry.documents {
@@ -159,7 +159,16 @@ pub fn watch_snapshot(project: &Path) -> WatchSnapshot {
                 .path
                 .as_deref()
                 .filter(|p| document_registry::safe_relative(p))
-                .and_then(metadata);
+                .and_then(|path| {
+                    metadata(
+                        path,
+                        if document.kind == Kind::Pdf {
+                            "pdf"
+                        } else {
+                            "md"
+                        },
+                    )
+                });
             snapshot.push((document.id, stamp));
         }
     }

@@ -4,17 +4,28 @@ import { join, resolve } from 'node:path'
 import { compiler, extractor } from './bundle.mjs'
 import { atomic, check, confined, load, now, read, save, sha, text } from './io.mjs'
 import { locked } from './lock.mjs'
-import { afterManifest, loadRun, proposalFiles, runPath } from './proposal.mjs'
+import { afterManifest, loadRun, proposalFiles, runPath, validateView } from './proposal.mjs'
 import { fresh } from './snapshot.mjs'
 import { runProcess } from './process.mjs'
 
-async function authoritativeModel(run, directory, prefix, signal) {
-  const output = join(directory, 'assist-baseline-model.json')
+async function extractedModel(run, directory, prefix, signal) {
+  const output = join(directory, 'assist-checked-model.json')
   const result = await runProcess([extractor(), directory, '-o', output], { cwd: directory, signal })
   atomic(run.root, `${run.path}/${prefix}compiler.stdout.log`, result.stdout)
   atomic(run.root, `${run.path}/${prefix}compiler.stderr.log`, result.stderr)
   check(result.evidence.exit_code === 0 && result.evidence.error === null && result.evidence.signal === null, `Actual baseline extractor failed: ${result.evidence.error ?? result.evidence.exit_code}`)
-  check(JSON.stringify(JSON.parse(read(directory, 'assist-baseline-model.json'))) === JSON.stringify(run.bundle.model), 'Archived model differs from actual extracted source authority')
+  return JSON.parse(read(directory, 'assist-checked-model.json'))
+}
+
+function validateResultTargets(run, directory, model) {
+  const view = read(directory, `views/${run.bundle.design}.view.json`, undefined, true)
+  if (view !== null) validateView(view, { ...run.bundle, model })
+  const identities = new Set(model.instances.map(instance => instance.path))
+  const applications = (run.bundle.registry?.documents ?? []).flatMap(document => document.applicability ?? [])
+  for (const item of [...applications, ...(run.bundle.registry?.constraints ?? [])]) {
+    check(view !== null || !(item.groups?.length), 'Document or constraint group applicability requires a native view')
+    for (const instance of item.instances ?? []) check(identities.has(instance), `Document or constraint applicability target no longer exists: ${instance}`)
+  }
 }
 
 export async function compilerCheck(run, files, prefix, signal) {
@@ -26,8 +37,11 @@ export async function compilerCheck(run, files, prefix, signal) {
       check(sha(bytes) === entry.sha256, 'Source changed while copying compiler inputs')
       atomic(directory, entry.path, bytes)
     }
-    await authoritativeModel(run, directory, prefix, signal)
+    const baseline = await extractedModel(run, directory, prefix, signal)
+    check(JSON.stringify(baseline) === JSON.stringify(run.bundle.model), 'Archived model differs from actual extracted source authority')
     for (const file of files) atomic(directory, file.path, file.after)
+    const proposed = await extractedModel(run, directory, prefix, signal)
+    validateResultTargets(run, directory, proposed)
     const result = await runProcess([compiler(), 'check', directory, '--json'], { cwd: directory, signal })
     atomic(run.root, `${run.path}/${prefix}compiler.stdout.log`, result.stdout)
     atomic(run.root, `${run.path}/${prefix}compiler.stderr.log`, result.stderr)

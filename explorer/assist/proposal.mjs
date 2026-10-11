@@ -38,7 +38,7 @@ function aggregateRules(model) {
   return rules
 }
 
-function validateView(bytes, bundle) {
+export function validateView(bytes, bundle) {
   const value = JSON.parse(bytes)
   check(value.schema_version === 1 && value.design === bundle.design && Array.isArray(value.views) && value.views.length >= 1 && value.views.length <= 128, 'Invalid native view schema/design')
   const names = new Set()

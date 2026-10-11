@@ -155,3 +155,19 @@ test('registered documents outside explorer stay out of isolated compiler input 
     assert.equal(validate(project, p).decision, 'PASS')
   } finally { rmSync(project, { recursive: true, force: true }) }
 })
+
+for (const target of ['view', 'document']) test(`source edits cannot leave dangling ${target} identities after actual compilation`, () => {
+  const project = fixture()
+  try {
+    if (target === 'document') {
+      const path = join(project, 'views/Board.view.json')
+      const view = json(path)
+      view.views[0].regions[0].members = ['path:Board::a']
+      put(path, view)
+    }
+    const next = source.replace('    inst b: R10K\n', '').replace(', b.A', '').replace(', b.B', '')
+    const p = seed(project, { change: { path: 'src/main.cohdl', before_sha256: sha(source), old: source, new: next } })
+    assert.match(validate(project, p, 1).error, /member|instance|applicability|target/i)
+    assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), source)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})

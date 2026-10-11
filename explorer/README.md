@@ -32,6 +32,47 @@ within ~500 ms; a source that fails to compile keeps the last good view and
 reports the diagnostics inline. Add `?mode=sch` for the dark pin-level
 schematic view.
 
+The CLI supports `--help`/`-h` and `--version`. Extract a model with
+`cohdl-explorer PROJECT [-o FILE]` (`--out FILE` is equivalent); omit the output
+option to write JSON to stdout. Serve with
+`cohdl-explorer PROJECT --serve [--port N] [--dist DIR]`. Ports must be integers
+from 1 through 65535; the default is 5199. Unknown/repeated options, missing
+values, multiple project paths and incompatible options exit 2 with an error.
+`--port` and `--dist` require `--serve`; `--out` is extraction-only. Use `--`
+before a project path beginning with a dash. App-bundle launch with no arguments
+still opens the macOS folder picker.
+
+## Project Views And HTTP
+
+`GET /views/<Design>.view.json` first reads the project's
+`views/<Design>.view.json`, then falls back to the bundled
+`<dist>/views/<Design>.view.json` when no project override exists. A malformed
+project override is reported directly. The JSON requires `schema_version: 1`,
+a `design` matching the filename, and a nonempty `views` array. Every view has
+a unique, nonempty, trimmed name and a `regions` array; each region has a
+unique, nonempty, trimmed name within its view and a `members` string array.
+`Other` (case-insensitive) is reserved for unmatched parts. Member rules are
+trimmed nonempty designators, `path:<instance path>`, `agg:host:<IC path>`, or
+`agg:<rail combination key>`; prefix rules require a nonempty suffix. The first
+matching region wins. Empty regions/member arrays are permitted.
+
+Missing configs return HTTP 404 JSON; invalid JSON/schema returns HTTP 422
+JSON with an `error` message. Config additions, content changes and deletions
+in project and bundled `views/` directories notify `GET /api/events` through
+the existing SSE version events. View-only edits preserve `/api/model` bytes
+and never change source, pins or nets. Source edits still re-extract the model;
+the watcher does not follow symlink directories.
+
+`GET /api/model` returns the checked model; `GET /api/events` holds the live
+SSE stream. `GET /api/photo?mpn=...` serves project photos, and
+`GET /api/file?p=<encoded absolute path>` serves supported documents/images
+inside the project or the configured CoHDL library checkout. Static paths are
+served from `--dist`; only `/` maps to `index.html`. Unknown API/config/static
+paths return 404 rather than HTML. Percent-encoded UTF-8 paths are supported;
+invalid encoding, traversal and symlinks escaping the declared file root are
+rejected. Ordinary HTTP responses use `Cache-Control: no-store` so reloaded
+configs cannot retain stale content.
+
 ## Subdesigns
 
 RFC-032 subdesign use sites appear as logical blocks with their declared

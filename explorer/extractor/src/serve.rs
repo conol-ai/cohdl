@@ -6,12 +6,14 @@
 //! Invalid edit states keep the last-known-good model; the error rides a
 //! separate field so the frontend can overlay diagnostics.
 
-use std::io::{BufRead, BufReader, Read, Write};
+use crate::http_files::{confined_file, content_type, percent_decode, view_file};
+use crate::watch::{scan_mtime, scan_views};
+use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant};
 
 struct State {
     /// Last-known-good ExplorerModel JSON.
@@ -71,8 +73,7 @@ fn photo_for(project: &Path, mpn: &str) -> Option<std::path::PathBuf> {
         return None;
     }
     for ext in ["jpg", "png", "jpeg", "webp"] {
-        let p = project.join("docs/photos").join(format!("{mpn}.{ext}"));
-        if p.is_file() {
+        if let Some(p) = confined_file(project, &format!("docs/photos/{mpn}.{ext}")) {
             return Some(p);
         }
     }
@@ -96,29 +97,35 @@ pub fn serve(
         let state = Arc::clone(&state);
         let version = Arc::clone(&version);
         let project = project.to_path_buf();
-        std::thread::spawn(move || {
-            let mut last = scan_mtime(&project);
-            loop {
-                std::thread::sleep(Duration::from_millis(500));
-                let now = scan_mtime(&project);
-                if now != last {
-                    last = now;
-                    match crate::project_model::extract(&project) {
-                        Ok(m) => {
-                            let mut st = state.lock().unwrap();
-                            st.model = serde_json::to_string(&m).unwrap();
-                            st.error = None;
-                        }
-                        Err(e) => {
-                            state.lock().unwrap().error = Some(e);
-                        }
+        let dist = dist.to_path_buf();
+        let mut last = scan_mtime(&project);
+        let mut views = scan_views(&project, &dist);
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_millis(500));
+            let now = scan_mtime(&project);
+            let source_changed = now != last;
+            if source_changed {
+                last = now;
+                match crate::project_model::extract(&project) {
+                    Ok(m) => {
+                        let mut st = state.lock().unwrap();
+                        st.model = serde_json::to_string(&m).unwrap();
+                        st.error = None;
                     }
-                    version.fetch_add(1, Ordering::SeqCst);
-                    eprintln!(
-                        "[watch] change detected -> version {}",
-                        version.load(Ordering::SeqCst)
-                    );
+                    Err(e) => {
+                        state.lock().unwrap().error = Some(e);
+                    }
                 }
+            }
+            let current_views = scan_views(&project, &dist);
+            let views_changed = current_views != views;
+            views = current_views;
+            if source_changed || views_changed {
+                version.fetch_add(1, Ordering::SeqCst);
+                eprintln!(
+                    "[watch] change detected -> version {}",
+                    version.load(Ordering::SeqCst)
+                );
             }
         });
     }
@@ -174,33 +181,6 @@ pub fn serve(
     Ok(())
 }
 
-fn scan_mtime(project: &Path) -> Vec<(PathBuf, SystemTime)> {
-    let mut out = Vec::new();
-    let mut stack = vec![project.to_path_buf()];
-    while let Some(d) = stack.pop() {
-        if let Ok(rd) = std::fs::read_dir(&d) {
-            for e in rd.flatten() {
-                let p = e.path();
-                if p.is_dir() {
-                    if p.file_name().is_some_and(|n| n != "out" && n != "target") {
-                        stack.push(p);
-                    }
-                } else if p
-                    .extension()
-                    .is_some_and(|x| x == "cohdl" || x.eq_ignore_ascii_case("dxf"))
-                    || p.file_name().is_some_and(|n| n == "cohdl.toml")
-                {
-                    if let Ok(md) = p.metadata() {
-                        out.push((p, md.modified().unwrap_or(SystemTime::UNIX_EPOCH)));
-                    }
-                }
-            }
-        }
-    }
-    out.sort();
-    out
-}
-
 fn handle(
     mut conn: TcpStream,
     state: &Mutex<State>,
@@ -222,11 +202,16 @@ fn handle(
         }
     }
     let full = path.clone();
-    let path = path.split('?').next().unwrap_or("/");
+    let Some(path) = percent_decode(path.split('?').next().unwrap_or("/"), false) else {
+        return respond(&mut conn, 404, "text/plain", b"not found");
+    };
+    let path = path.as_str();
 
     // /api/photo?mpn=<mpn>: part photo from <project>/docs/photos/<mpn>.<ext>
     if path == "/api/photo" {
-        let mpn = percent_decode(full.split_once("?mpn=").map_or("", |x| x.1));
+        let Some(mpn) = percent_decode(full.split_once("?mpn=").map_or("", |x| x.1), true) else {
+            return respond(&mut conn, 404, "text/plain", b"no photo");
+        };
         return match photo_for(project, &mpn).and_then(|p| std::fs::read(&p).ok().map(|b| (p, b))) {
             Some((p, bytes)) => {
                 let ct = match p.extension().and_then(|x| x.to_str()) {
@@ -244,7 +229,9 @@ fn handle(
     // allow-listed roots only (project dir + the cohdl checkout).
     if path == "/api/file" {
         let q = full.split_once("?p=").map_or("", |x| x.1).to_string();
-        let decoded: String = percent_decode(&q);
+        let Some(decoded) = percent_decode(&q, true) else {
+            return respond(&mut conn, 404, "text/plain", b"not found");
+        };
         let ok_ext = decoded.rsplit('.').next().is_some_and(|e| {
             matches!(
                 e.to_ascii_lowercase().as_str(),
@@ -260,25 +247,14 @@ fn handle(
         }
         let f = canon.unwrap();
         return match std::fs::read(&f) {
-            Ok(bytes) => {
-                let ct = match f
-                    .extension()
-                    .and_then(|x| x.to_str())
-                    .map(|e| e.to_ascii_lowercase())
-                {
-                    Some(e) if e == "pdf" => "application/pdf",
-                    Some(e) if e == "png" => "image/png",
-                    Some(e) if e == "jpg" || e == "jpeg" => "image/jpeg",
-                    Some(e) if e == "webp" => "image/webp",
-                    Some(e) if e == "gif" => "image/gif",
-                    _ => "application/octet-stream",
-                };
-                respond(&mut conn, 200, ct, &bytes)
-            }
+            Ok(bytes) => respond(&mut conn, 200, content_type(&f), &bytes),
             Err(_) => respond(&mut conn, 404, "text/plain", b"not found"),
         };
     }
 
+    if path.starts_with("/views/") {
+        return serve_view(&mut conn, project, dist, &path[1..]);
+    }
     match path {
         "/api/model" => {
             let st = state.lock().unwrap();
@@ -317,72 +293,77 @@ fn handle(
             }
         }
         _ => {
-            // static files from dist/
+            if path.starts_with("/api/") {
+                return respond(
+                    &mut conn,
+                    404,
+                    "application/json",
+                    b"{\"error\":\"unknown API endpoint\"}",
+                );
+            }
             let rel = if path == "/" {
                 "index.html"
             } else {
-                &path[1..]
+                path.strip_prefix('/').unwrap_or("")
             };
-            let f = dist.join(rel);
-            let f = if f.is_file() {
-                f
-            } else {
-                dist.join("index.html")
+            let Some(f) = confined_file(dist, rel) else {
+                return respond(&mut conn, 404, "text/plain", b"not found");
             };
             match std::fs::read(&f) {
-                Ok(bytes) => {
-                    let ct = match f.extension().and_then(|x| x.to_str()) {
-                        Some("html") => "text/html; charset=utf-8",
-                        Some("js") => "application/javascript",
-                        Some("css") => "text/css",
-                        Some("json") => "application/json",
-                        Some("svg") => "image/svg+xml",
-                        _ => "application/octet-stream",
-                    };
-                    respond(&mut conn, 200, ct, &bytes)
-                }
+                Ok(bytes) => respond(&mut conn, 200, content_type(&f), &bytes),
                 Err(_) => respond(&mut conn, 404, "text/plain", b"not found"),
             }
         }
     }
 }
 
+fn serve_view(
+    conn: &mut TcpStream,
+    project: &Path,
+    dist: &Path,
+    relative: &str,
+) -> std::io::Result<()> {
+    let design = relative
+        .strip_prefix("views/")
+        .and_then(|p| p.strip_suffix(".view.json"))
+        .filter(|d| !d.is_empty() && !d.contains(['/', '\\']));
+    let Some((design, file)) =
+        design.and_then(|d| view_file(project, dist, relative).map(|p| (d, p)))
+    else {
+        return respond(
+            conn,
+            404,
+            "application/json",
+            b"{\"error\":\"view config not found\"}",
+        );
+    };
+    let Ok(bytes) = std::fs::read(file) else {
+        return respond(
+            conn,
+            404,
+            "application/json",
+            b"{\"error\":\"view config not readable\"}",
+        );
+    };
+    if let Err(error) = crate::view_config::validate(&bytes, design) {
+        let body = serde_json::json!({"error": error}).to_string();
+        return respond(conn, 422, "application/json", body.as_bytes());
+    }
+    respond(conn, 200, "application/json", &bytes)
+}
+
 fn respond(conn: &mut TcpStream, code: u16, ct: &str, body: &[u8]) -> std::io::Result<()> {
-    let status = if code == 200 {
-        "200 OK"
-    } else {
-        "404 Not Found"
+    let status = match code {
+        200 => "200 OK",
+        422 => "422 Unprocessable Content",
+        _ => "404 Not Found",
     };
     conn.write_all(
         format!(
-            "HTTP/1.1 {status}\r\nContent-Type: {ct}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
+            "HTTP/1.1 {status}\r\nContent-Type: {ct}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n",
             body.len()
         )
         .as_bytes(),
     )?;
     conn.write_all(body)
-}
-
-fn percent_decode(s: &str) -> String {
-    let b = s.as_bytes();
-    let mut out = Vec::new();
-    let mut i = 0;
-    while i < b.len() {
-        if b[i] == b'%' && i + 2 < b.len() {
-            if let Ok(v) = u8::from_str_radix(&s[i + 1..i + 3], 16) {
-                out.push(v);
-                i += 3;
-                continue;
-            }
-        }
-        out.push(if b[i] == b'+' { b' ' } else { b[i] });
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).to_string()
-}
-
-// keep Read import used on all platforms
-#[allow(dead_code)]
-fn _t(r: &mut dyn Read) {
-    let _ = r;
 }

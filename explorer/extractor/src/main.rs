@@ -9,50 +9,51 @@
 
 #[cfg(target_os = "macos")]
 mod app;
+mod cli;
+mod http_files;
 mod model;
 mod project_model;
 mod serve;
+mod view_config;
+mod watch;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    let mut args = std::env::args().skip(1);
-    let mut dir: Option<PathBuf> = None;
-    let mut out: Option<PathBuf> = None;
-    let mut do_serve = false;
-    let mut port: u16 = 5199;
-    let mut dist: Option<PathBuf> = None;
-    while let Some(a) = args.next() {
-        match a.as_str() {
-            "-o" | "--out" => out = args.next().map(PathBuf::from),
-            "--serve" => do_serve = true,
-            "--port" => port = args.next().and_then(|p| p.parse().ok()).unwrap_or(5199),
-            "--dist" => dist = args.next().map(PathBuf::from),
-            _ => dir = Some(PathBuf::from(a)),
-        }
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    // Finder launches the bundle's binary with no argv: that IS the app.
+    #[cfg(target_os = "macos")]
+    if args.is_empty() && app::running_from_bundle() {
+        return match app::run() {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                eprintln!("error: {e}");
+                ExitCode::from(1)
+            }
+        };
     }
-    let Some(dir) = dir else {
-        // Finder launches the bundle's binary with no argv: that IS the app.
-        #[cfg(target_os = "macos")]
-        if app::running_from_bundle() {
-            return match app::run() {
-                Ok(()) => ExitCode::SUCCESS,
-                Err(e) => {
-                    eprintln!("error: {e}");
-                    ExitCode::from(1)
-                }
-            };
+    let options = match cli::parse(args) {
+        Ok(cli::Command::Help) => {
+            print!("{}", cli::HELP);
+            return ExitCode::SUCCESS;
         }
-        eprintln!(
-            "usage: cohdl-explorer <project-dir> [-o out.json] [--serve [--port N] [--dist DIR]]"
-        );
-        return ExitCode::from(2);
+        Ok(cli::Command::Version) => {
+            println!("cohdl-explorer {}", env!("CARGO_PKG_VERSION"));
+            return ExitCode::SUCCESS;
+        }
+        Ok(cli::Command::Run(options)) => options,
+        Err(e) => {
+            eprintln!("error: {e}\n\n{}", cli::HELP);
+            return ExitCode::from(2);
+        }
     };
-    if do_serve {
-        let dist =
-            dist.unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web/dist"));
-        return match serve::serve(&dir, &dist, port, None) {
+    let dir = options.project;
+    if options.serve {
+        let dist = options
+            .dist
+            .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../web/dist"));
+        return match serve::serve(&dir, &dist, options.port, None) {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("error: {e}");
@@ -63,7 +64,7 @@ fn main() -> ExitCode {
     match project_model::extract(&dir) {
         Ok(model) => {
             let json = serde_json::to_string_pretty(&model).expect("serialize");
-            match out {
+            match options.out {
                 Some(p) => {
                     if let Err(e) = std::fs::write(&p, json) {
                         eprintln!("write {}: {e}", p.display());

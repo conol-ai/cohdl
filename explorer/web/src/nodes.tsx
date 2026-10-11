@@ -403,10 +403,10 @@ export function DetailedNode(props: NodeProps) {
     <div style={{ width, height, background: data.dim ? '#1a1d24' : nodeHl ? '#12303a' : '#22262e', opacity: data.dim ? 0.18 : 1, border: `${nodeHl ? 2.5 : 1.5}px solid ${selected ? '#f59e0b' : nodeHl ? '#22d3ee' : '#3b4252'}`, boxShadow: nodeHl ? '0 0 0 3px #22d3ee44, 0 0 18px #22d3ee66' : undefined, borderRadius: 6, position: 'relative', boxSizing: 'border-box' }}>
       <Mark marked={data.marked} />
       {!!data.neutral && <CenterHandles />}
-      <div style={{ background: '#161a20', borderRadius: '6px 6px 0 0', padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'baseline' }}>
+      <div className="detailed-heading" style={{ background: '#161a20', borderRadius: '6px 6px 0 0', padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'baseline', whiteSpace: 'nowrap', overflow: 'hidden' }}>
         <span style={{ color: '#60a5fa', fontWeight: 700, fontSize: 12 }}>{n.inst.designator}</span>
         <span style={{ color: '#f3f4f6', fontWeight: 700, fontSize: 12 }}>{partPresentation(n.inst).category}</span>
-        <span style={{ color: '#6b7280', fontSize: 10 }}>{n.inst.part?.mpn}</span>
+        <span title={n.sub} style={{ color: '#9ca3af', fontSize: 10, minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.sub}</span>
       </div>
       {left.map((p, i) => pinRow(p, i, 'l'))}
       {right.map((p, i) => pinRow(p, i, 'r'))}

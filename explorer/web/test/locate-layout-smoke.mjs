@@ -47,7 +47,12 @@ export async function runLocateLayoutSmoke(page, { url, output, clickText }) {
       await page.goForward(); await ready(); await new Promise((resolve) => setTimeout(resolve, 250))
       await page.select('select[aria-label="Component side"]', 'top'); await new Promise((resolve) => setTimeout(resolve, 250))
       assert.equal((await snapshot()).side, 'top', 'Consumed net visit must preserve later manual side choice')
-      records.push({ label, before, focused, restored })
+      await page.click(`.board-layout__component[data-instance="${members[0].instance_path}"]`)
+      await page.waitForSelector('.part-details')
+      const pinState = await page.$eval(`.part-details tr[data-pin="${members[0].logical_pin}"]`, row => ({ state: row.cells[3].textContent, tooltip: row.cells[3].title }))
+      assert.equal(pinState.state, 'outside range', 'Pin details use actual side-filtered Layout visibility')
+      assert.equal(pinState.tooltip, `${members.length} full endpoints · ${members.length - 1} outside range`)
+      records.push({ label, before, focused, restored, pinState })
     }
     writeFileSync(resolve(output, 'locate-layout-inspection.json'), JSON.stringify({ result: 'PASS', fixture: 'Only this browser fixture supplies two explicit opposite-side placements; real PDFExact has no placements', records }, null, 2))
   } finally {

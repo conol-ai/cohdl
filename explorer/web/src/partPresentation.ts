@@ -11,7 +11,7 @@ export function partPresentation(instance: Instance, sourceValue = '') {
   const value = instance.specs.find(s => s.name === declared?.[0])?.value ?? instance.specs.find(s => s.name === 'value')?.value ?? sourceValue
   const reference = instance.designator ?? 'Component'
   const mpn = instance.part?.mpn ?? ''
-  return { reference, category, value, mpn, title: `${reference} ${category}`, subtitle: [value, mpn].filter(Boolean).join(' · ') }
+  return { reference, category, value, mpn, title: `${reference} ${category}`, subtitle: [...new Set([value, mpn].filter(Boolean))].join(' · ') }
 }
 
 export function sourcePartValues(registry: DocumentRegistry | null): Map<string, string> {

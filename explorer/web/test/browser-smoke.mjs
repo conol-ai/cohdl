@@ -6,16 +6,18 @@ import puppeteer from 'puppeteer-core'
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
 const stage = value('--stage', 'groups')
-assert.ok(['groups', 'union', 'navigation', 'locate', 'documents', 'proposals', 'readability'].includes(stage), `Unknown browser stage: ${stage}`)
+assert.ok(['groups', 'union', 'navigation', 'locate', 'documents', 'proposals', 'readability', 'storage'].includes(stage), `Unknown browser stage: ${stage}`)
 const output = resolve(value('--output', '/tmp/cohdl-explorer-browser'))
 mkdirSync(output, { recursive: true })
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
 const errors = []
 const consoleProblems = []
+const failedResponses = []
 try {
   const page = await browser.newPage()
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', message => { if (['warn', 'error'].includes(message.type())) consoleProblems.push(message.text()) })
+  page.on('response', response => { if (response.status() >= 400) failedResponses.push({ url: response.url(), status: response.status() }) })
   await page.setViewport({ width: 1280, height: 800 })
   await page.goto(url, { waitUntil: 'domcontentloaded' })
   const ready = async () => {
@@ -51,11 +53,16 @@ try {
     console.log(JSON.stringify({ label, canvas: result.canvas, nodeCount: result.nodes.length, overflow: result.overflow }))
   }
   await ready()
-  if (stage === 'readability') {
+  if (stage === 'storage') {
+    const { runImportantStorageSmoke } = await import('./important-storage-smoke.mjs')
+    await runImportantStorageSmoke(page, { url, output, ready, clickText })
+    assert.deepEqual(errors, [], 'Browser runtime errors')
+    console.log(JSON.stringify({ result: 'PASS', stage, output }))
+  } else if (stage === 'readability') {
     const { runReadabilitySmoke } = await import('./readability-smoke.mjs')
     await runReadabilitySmoke(page, { url, output, ready, clickText })
     assert.deepEqual(errors, [], 'Browser runtime errors')
-    writeFileSync(resolve(output, 'readability-console.json'), JSON.stringify({ errors, consoleProblems }, null, 2))
+    writeFileSync(resolve(output, 'readability-console.json'), JSON.stringify({ errors, consoleProblems, failedResponses }, null, 2))
     assert.deepEqual(consoleProblems.filter(message => /Couldn.t create edge|React Flow|Warning:|Error #/.test(message)), [], 'Canvas warnings')
     console.log(JSON.stringify({ result: 'PASS', stage, output }))
   } else if (stage === 'proposals') {

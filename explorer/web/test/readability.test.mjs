@@ -23,6 +23,8 @@ const { marksKey, readMarks, writeMarks } = require(resolve(out, 'important.js')
 const { pinConnection } = require(resolve(out, 'pinConnection.js'))
 const { PinTarget } = require(resolve(out, 'PinTarget.js'))
 const { PartDetails } = require(resolve(out, 'PartDetails.js'))
+const { DetailedNode } = require(resolve(out, 'nodes.js'))
+const { ReactFlowProvider } = require('@xyflow/react')
 const part = { path: 'Board::SRC7', designator: 'SRC7', device_fq: 'source::DEVICE_7', impl_traits: ['source::SourceComponent'], specs: [], part: { fq: 'source::part', mpn: '' }, pins: [], docs: [], span: { file: 'src/main.cohdl', line: 1, col: 1 } }
 test('identity uses declared electrical facts and never designator prefixes or internal device names', () => {
   assert.deepEqual(partPresentation(part), { reference: 'SRC7', category: 'Component', value: '', mpn: '', title: 'SRC7 Component', subtitle: '' })
@@ -60,6 +62,15 @@ test('all pin connection explanations use full actual membership and distinguish
   assert.equal(pinConnection({ ...model, nets: [{ ...net, members: net.members.slice(0, 1) }] }, part.path, pin, new Set(), '').state, 'single endpoint')
   assert.equal(pinConnection(model, part.path, { ...pin, logical: 'NC', connected: false, nc: true }, new Set(), '').state, 'NC')
   assert.equal(pinConnection(model, part.path, { ...pin, logical: 'OPEN', connected: false }, new Set(), '').state, 'open')
+  const internal = { ...model, nets: [{ ...net, members: [net.members[0], { ...net.members[1], instance_path: part.path }] }] }
+  assert.equal(pinConnection(internal, part.path, pin, new Set([part.path]), '').state, 'internal connection')
+  assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '', new Map([[part.path, 'group:one'], ['Board::other', 'group:one']])).state, 'internal connection')
+})
+
+test('SCH detailed heading uses the prepared source-backed subtitle when actual MPN is empty', () => {
+  const node = { id: part.path, kind: 'ic', title: 'SRC7 Component', sub: 'SF32LB525UC6', inst: part, pinNets: {}, railTags: [], width: 300, height: 50, pinsTotal: 0, pinsConnected: 0 }
+  const html = renderToStaticMarkup(React.createElement(ReactFlowProvider, null, React.createElement(DetailedNode, { id: part.path, data: { g: node, onPin() {} }, selected: false })))
+  assert.match(html, /SF32LB525UC6/)
 })
 
 test('pin target pointer and keyboard activation retain independent exact half-row identity', () => {

@@ -97,12 +97,21 @@ export async function runLocateSmoke(page, { url, output, ready, clickText, netO
     await search('CAM_HREF')
     assert.equal((await context()).net, 'CAM_HREF')
     const netCamera = await camera()
-    const netBounds = await page.evaluate((paths) => {
+    const netBounds = await page.evaluate((members) => {
       const c = document.querySelector('.explorer-canvas').getBoundingClientRect()
-      return [...document.querySelectorAll('.react-flow__node')].filter((n) => paths.includes(n.dataset.id)).map((n) => {
+      const inspection = JSON.parse(new URL(location.href).searchParams.get('inspect'))
+      const rows = [...document.querySelectorAll('tr[data-endpoint]')]
+      const ids = members.map(member => {
+        const group = rows.find(row => row.dataset.endpoint === member.instance_path)?.dataset.group
+        return inspection.collapsed.includes(group) ? `group:${encodeURIComponent(JSON.stringify([inspection.view, group]))}` : member.instance_path
+      })
+      return [...new Set(ids)].map(id => {
+        const n = [...document.querySelectorAll('.react-flow__node')].find(node => node.dataset.id === id)
+        if (!n) return { id, visible: false }
         const r = n.getBoundingClientRect(); return { id: n.dataset.id, visible: r.x >= c.x - 1 && r.right <= c.right + 1 && r.y >= c.y - 1 && r.bottom <= c.bottom + 1 }
       })
-    }, model.nets.find((n) => n.name === 'CAM_HREF').members.map((m) => m.instance_path))
+    }, model.nets.find((n) => n.name === 'CAM_HREF').members)
+    assert.equal(await page.$$eval('tr[data-endpoint]', rows => rows.length), model.nets.find(n => n.name === 'CAM_HREF').members.length, 'Full actual membership remains inspectable behind collapsed representations')
     assert.ok(netBounds.length >= 2 && netBounds.every((n) => n.visible), `Net locator must bring actual endpoints into view from offscreen camera: ${JSON.stringify(netBounds)}`)
     const row = await page.evaluateHandle((path) => [...document.querySelectorAll('tr[data-endpoint]')].find((el) => el.dataset.endpoint === path)?.querySelector('button'), u1.path)
     assert.ok(row.asElement(), 'Actual net must expose U1 endpoint')

@@ -530,16 +530,18 @@ export default function App() {
     )
   }, [sel, selNet, selectedPin, graph])
 
-  const onSelectionChange = useCallback(({ nodes: sn }: { nodes: Node[] }) => {
-    setSel((current) => current.length === sn.length && current.every((p) => sn.some((n) => n.id === (graph?.location.get(p) ?? p))) ? current : sn.map((n) => n.id))
-  }, [graph])
-
   // Controlled flow (React Flow v12): change handlers are mandatory, or
   // clicks/selection/measurements are silently dropped.
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     if (changes.some((c) => c.type === 'position')) setMoved(true)
+    const selected = changes.filter(change => change.type === 'select')
+    if (selected.length) setSel(current => {
+      const next = current.filter(path => !selected.some(change => !change.selected && change.id === (graph?.location.get(path) ?? path)))
+      for (const change of selected) if (change.selected && !next.some(path => (graph?.location.get(path) ?? path) === change.id)) next.push(change.id)
+      return next
+    })
     setNodes((ns) => applyNodeChanges(changes, ns))
-  }, [])
+  }, [graph])
 
   /** One-click undo of any manual dragging: positions back to the computed
    *  layout, selection cleared, viewport re-fitted. */
@@ -592,11 +594,11 @@ export default function App() {
     () => (selNet ? allNets.find((n) => n.name === selNet) : undefined),
     [selNet, allNets],
   )
+  const visibleParts = useMemo(() => mode === 'layout' ? new Set(physicalPlacements.map(p => p.instance)) : projection?.represented ?? new Set<string>(), [mode, physicalPlacements, projection])
   const endpoints = useMemo(() => {
     if (!model || !selNetObj || !fullView) return []
-    const visible = mode === 'layout' ? new Set(physicalPlacements.map((p) => p.instance)) : projection?.represented ?? new Set<string>()
-    return netEndpoints(model, selNetObj, fullView, visible)
-  }, [model, selNetObj, fullView, mode, physicalPlacements, projection])
+    return netEndpoints(model, selNetObj, fullView, visibleParts)
+  }, [model, selNetObj, fullView, visibleParts])
   const followEndpoint = (path: string) => {
     locateTarget({ kind: 'part', id: path, label: path, sub: path, net: selNet })
   }
@@ -613,7 +615,8 @@ export default function App() {
     if (hit.kind === 'subdesign') { navigateScope(hit.id); return }
     if (hit.kind === 'net') {
       const net = allNets.find((n) => n.name === hit.id)
-      const visible = net?.members.some((m) => projection?.represented.has(m.instance_path) && !collapsedGroups.includes(fullView?.instanceRegions.get(m.instance_path) ?? 'Other'))
+      const visible = net?.members.some((m) => mode === 'layout' ? physicalPlacements.some(placement => placement.instance === m.instance_path)
+        : projection?.represented.has(m.instance_path) && !collapsedGroups.includes(fullView?.instanceRegions.get(m.instance_path) ?? 'Other'))
       const member = net?.members[0]
       const group = member && fullView?.instanceRegions.get(member.instance_path)
       navigation.navigate({ selection: [], pin: '', net: hit.id, tab: 'circuit', viewport: null, boardViewport: null,
@@ -863,7 +866,6 @@ export default function App() {
           onMoveEnd={navigation.sync}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onSelectionChange={onSelectionChange}
           onNodeClick={(_, node) => { if (node.id.startsWith('bundle:')) { openBundle(node.id); return }; setSelNet(''); setSelectedPin(''); setBundleId('') }}
           onNodeDoubleClick={(_, n) => {
             const subdesign = (n.data.g as GNode | undefined)?.subdesign
@@ -1007,7 +1009,7 @@ export default function App() {
             </>
           )}
           {selInst && <PartDetails model={model} instance={selInst} dark={dark} resource={documents} view={activeView} groups={selectedGroups}
-            visible={projection?.represented ?? new Set()} selectedPin={selectedPin} selectedNet={selNet} marked={important.marks.has(selInst.path)}
+            visible={visibleParts} locations={mode === 'layout' ? undefined : projection?.graph.location} selectedPin={selectedPin} selectedNet={selNet} marked={important.marks.has(selInst.path)}
             onMark={() => important.toggle(selInst.path)} onPin={activatePin} placement={<div className="part-placement">
               <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
               {selectedPlacement ? <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm · {selectedPlacement.rotate}° · {selectedPlacement.side}</div> : <div>No resolved placement</div>}

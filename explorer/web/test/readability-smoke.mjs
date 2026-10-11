@@ -98,6 +98,15 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
     assert.ok((await page.$eval('.part-facts', el => el.textContent)).includes('Unspecified'))
     const u4 = model.instances.find(instance => instance.designator === 'U4')
     assert.ok((await page.$eval(`.react-flow__node[data-id="${u4.path}"]`, el => el.textContent)).includes('SF32LB525UC6'), 'Canvas shares the literal source value')
+    await clickText('SCH view'); await settle(); await search('U4')
+    const heading = await page.$eval(`.react-flow__node[data-id="${u4.path}"] .detailed-heading`, el => {
+      const r = el.getBoundingClientRect(), parent = el.parentElement.getBoundingClientRect()
+      return { text: el.textContent, title: el.querySelector('[title]')?.title, width: r.width, height: r.height, contained: r.left >= parent.left - 1 && r.right <= parent.right + 1 && r.top >= parent.top - 1 && r.bottom <= parent.bottom + 1 }
+    })
+    assert.ok(heading.text.includes('SF32LB525UC6')); assert.equal(heading.title, 'SF32LB525UC6')
+    assert.ok(heading.width > 0 && heading.height > 0 && heading.contained, `SCH source heading stays inside component: ${JSON.stringify(heading)}`)
+    await shot(`${label}-u4-sch-source-value`)
+    records.push({ label: `${label}-u4-sch-heading`, heading })
   }
   const { runImportantStorageSmoke } = await import('./important-storage-smoke.mjs')
   await runImportantStorageSmoke(page, { url, output, ready, clickText })

@@ -8,9 +8,9 @@ import { ProvenanceInspector } from './ProvenanceInspector'
 import { SourceExcerpt } from './SourceExcerpt'
 import type { PinIdentity } from './PinTarget'
 
-export function PartDetails({ model, instance, dark, resource, view, groups, visible, selectedPin, selectedNet, marked, onMark, onPin, placement }: {
+export function PartDetails({ model, instance, dark, resource, view, groups, visible, locations, selectedPin, selectedNet, marked, onMark, onPin, placement }: {
   model: ExplorerModel; instance: Instance; dark: boolean; resource: DocumentResource; view: string; groups: string[]
-  visible: ReadonlySet<string>; selectedPin: string; selectedNet: string; marked: boolean; onMark: () => void
+  visible: ReadonlySet<string>; locations?: ReadonlyMap<string, string>; selectedPin: string; selectedNet: string; marked: boolean; onMark: () => void
   onPin: (pin: PinIdentity) => void; placement?: React.ReactNode
 }) {
   const identity = partPresentation(instance, sourcePartValues(resource.registry).get(instance.path))
@@ -23,7 +23,7 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
     <h4>Connections</h4>
     <table className="pin-table"><thead><tr><th>Pin</th><th>#</th><th>Network</th><th>State</th></tr></thead><tbody>
       {instance.pins.map(pin => {
-        const connection = pinConnection(model, instance.path, pin, visible, selectedNet)
+        const connection = pinConnection(model, instance.path, pin, visible, selectedNet, locations)
         const activate = () => onPin({ instance: instance.path, pin: pin.logical, net: connection.net?.name ?? '' })
         return <tr key={pin.logical} className="pin-target" role="button" tabIndex={0} data-pin={pin.logical} data-selected={selectedPin === pin.logical}
           aria-label={`${pin.logical} · ${connection.net?.name ?? connection.state}`} aria-pressed={selectedPin === pin.logical}

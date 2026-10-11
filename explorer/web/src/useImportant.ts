@@ -26,7 +26,7 @@ export function useImportant(model: ExplorerModel | null) {
       knownKey.current = nextKey
       key.current = nextKey
       setMarks(current => {
-        const next = previousKey === nextKey ? new Set([...saved, ...current]) : saved
+        const next = previousKey === nextKey ? new Set(current) : saved
         for (const [path, marked] of edits.current) { if (marked) next.add(path); else next.delete(path) }
         edits.current.clear()
         try { writeMarks(localStorage, nextKey, next) } catch { /* Storage can be unavailable. */ }

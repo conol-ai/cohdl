@@ -101,6 +101,7 @@ pub fn serve(
         let mut last = scan_mtime(&project);
         let mut views = scan_views(&project, &dist);
         let mut documents = crate::document_api::watch_snapshot(&project);
+        let mut proposals = crate::proposal_files::watch_snapshot(&project);
         std::thread::spawn(move || loop {
             std::thread::sleep(Duration::from_millis(500));
             let now = scan_mtime(&project);
@@ -124,7 +125,10 @@ pub fn serve(
             let current_documents = crate::document_api::watch_snapshot(&project);
             let documents_changed = current_documents != documents;
             documents = current_documents;
-            if source_changed || views_changed || documents_changed {
+            let current_proposals = crate::proposal_files::watch_snapshot(&project);
+            let proposals_changed = current_proposals != proposals;
+            proposals = current_proposals;
+            if source_changed || views_changed || documents_changed || proposals_changed {
                 version.fetch_add(1, Ordering::SeqCst);
                 eprintln!(
                     "[watch] change detected -> version {}",
@@ -197,6 +201,7 @@ fn handle(
     let mut reader = BufReader::new(conn.try_clone()?);
     let mut line = String::new();
     reader.read_line(&mut line)?;
+    let method = line.split_whitespace().next().unwrap_or("").to_owned();
     let path = line.split_whitespace().nth(1).unwrap_or("/").to_string();
     // drain headers
     loop {
@@ -210,6 +215,23 @@ fn handle(
         return respond(&mut conn, 404, "text/plain", b"not found");
     };
     let path = path.as_str();
+
+    if (path == "/api/proposals" || path.starts_with("/api/proposals/")) && method != "GET" {
+        return respond(
+            &mut conn,
+            404,
+            "application/json",
+            b"{\"error\":\"Read-only proposal endpoint\"}",
+        );
+    }
+    if let Some(response) = crate::proposal_api::handle(path, project) {
+        return respond(
+            &mut conn,
+            response.code,
+            response.content_type,
+            &response.body,
+        );
+    }
 
     if path == "/api/source" || path == "/api/documents" || path.starts_with("/api/documents/") {
         let model = state.lock().unwrap().model.clone();

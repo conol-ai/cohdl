@@ -18,7 +18,7 @@ export interface InspectionContext {
   layoutSide: LayoutSide
   collapsed: string[]
   pin: string
-  tab: 'circuit' | 'bom' | 'issues'
+  tab: 'circuit' | 'bom' | 'issues' | 'proposals'
 }
 
 export function netEndpoints(model: ExplorerModel, net: Net, full: ViewGraph, visible: ViewGraph['graph'] | ReadonlySet<string>) {

@@ -152,3 +152,9 @@ test('URL validation prunes removed source identities and rejects malformed or u
   }
   assert.deepEqual(parseInspectionUrl(new URL('http://localhost/?inspect=%7Bbroken'), m, config), base)
 })
+
+test('Proposals tab round trips without changing circuit selection or cameras', () => {
+  const m = model()
+  const context = { ...parseInspectionUrl(new URL('http://localhost/'), m, config), tab: 'proposals', selection: ['Board::a'], net: 'BUS' }
+  assert.deepEqual(parseInspectionUrl(inspectionUrl(new URL('http://localhost/'), context), m, config), context)
+})

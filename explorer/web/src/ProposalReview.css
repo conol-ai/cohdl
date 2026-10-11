@@ -1,0 +1,25 @@
+.proposal-review { min-width: 0; overflow-wrap: anywhere; }
+.proposal-heading, .proposal-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.proposal-heading > div { display: flex; gap: 4px; flex: none; }
+.proposal-review h3 { margin: 0 0 8px; font-size: 14px; }
+.proposal-review h4 { margin: 6px 0; font-size: 12px; }
+.proposal-review h5 { margin: 6px 0 2px; font-size: 11px; }
+.proposal-review p { margin: 6px 0; }
+.proposal-picker { display: grid; gap: 4px; margin: 8px 0; }
+.proposal-picker select { width: 100%; min-width: 0; max-width: 100%; font: inherit; color: inherit; background: transparent; padding: 6px 3px; }
+.proposal-state { display: flex; gap: 10px; align-items: center; padding: 8px 0; }
+.proposal-state strong { color: #118579; }
+.proposal-state[data-status="failed"] strong, .proposal-state[data-status="rejected"] strong { color: #d34a54; }
+.proposal-state[data-status="interrupted"] strong, .proposal-state[data-status="pending"] strong, .proposal-state[data-freshness="stale"] span { color: #b47b16; }
+.proposal-id { font: 11px monospace; margin-bottom: 8px; }
+.proposal-issue { color: #d34a54; }
+.proposal-section { padding: 8px 0; border-top: 1px solid #9ca3af55; }
+.proposal-section summary { cursor: pointer; }
+.proposal-fields { display: grid; grid-template-columns: minmax(65px, 1fr) minmax(0, 2fr); gap: 4px 8px; margin: 6px 0; }
+.proposal-fields dt { color: #888b93; }
+.proposal-fields dd { margin: 0; min-width: 0; }
+.proposal-review pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; max-height: 260px; overflow: auto; font: 11px monospace; padding: 8px; margin: 4px 0; background: #888b9314; }
+.proposal-review [data-diff="old"] { border-left: 2px solid #d34a54; }
+.proposal-review [data-diff="new"] { border-left: 2px solid #118579; }
+.proposal-review a { display: flex; align-items: baseline; gap: 4px; color: #1596c5; padding: 4px 0; }
+.proposal-citation, .proposal-change, .proposal-operation { margin: 6px 0; }

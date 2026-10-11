@@ -44,6 +44,8 @@ import { InspectionLists } from './InspectionLists'
 import { useDocuments } from './useDocuments'
 import { ProvenanceInspector } from './ProvenanceInspector'
 import { SourceExcerpt } from './SourceExcerpt'
+import { useProposals } from './useProposals'
+import { ProposalReview } from './ProposalReview'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -73,6 +75,7 @@ export default function App() {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([])
   const [selectedPin, setSelectedPin] = useState('')
   const [tab, setTab] = useState<InspectionContext['tab']>('circuit')
+  const proposals = useProposals(model, tab === 'proposals')
   const [shareError, setShareError] = useState('')
   const [issueFocus, setIssueFocus] = useState('')
   const issueFocusRef = useRef<HTMLDivElement>(null)
@@ -792,7 +795,7 @@ export default function App() {
           </div>
           {shareError && <input aria-label="Inspection link" readOnly value={shareError} onFocus={(e) => e.target.select()} style={{ width: '100%' }} />}
           <div className="inspection-tabs" role="tablist" aria-label="Inspection views">
-            {(['circuit', 'bom', 'issues'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
+            {(['circuit', 'bom', 'issues', 'proposals'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
               onClick={() => navigation.navigate({ tab: value })} onKeyDown={(e) => {
                 const offset = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
                 if (offset || e.key === 'Home' || e.key === 'End') {
@@ -801,7 +804,7 @@ export default function App() {
                   navigation.navigate({ tab: tabs[target] })
                   e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[target].focus()
                 }
-              }}>{value === 'bom' ? 'BOM' : value === 'issues' ? 'Issues' : 'Circuit'}</button>)}
+              }}>{value === 'bom' ? 'BOM' : value === 'issues' ? 'Issues' : value === 'proposals' ? 'Proposals' : 'Circuit'}</button>)}
           </div>
           {!!model.subdesigns?.length && (
             <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -893,7 +896,7 @@ export default function App() {
             color: panelFg,
           }}
         >
-          {tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
+          {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
             const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
             if (target) locateTarget({ kind: 'part', id: target.path, label: target.designator ?? target.path, sub: target.path })
             else {

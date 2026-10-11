@@ -358,3 +358,6 @@ fn view_add_change_delete_emit_sse_without_changing_model() {
 
 #[path = "server/documents.rs"]
 mod document_tests;
+
+#[path = "server/proposals.rs"]
+mod proposal_tests;

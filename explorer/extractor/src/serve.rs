@@ -22,6 +22,42 @@ struct State {
     error: Option<String>,
 }
 
+impl State {
+    fn update(&mut self, extraction: Result<crate::model::ExplorerModel, String>) {
+        let model = match extraction {
+            Ok(model) => model,
+            Err(error) => {
+                self.error = Some(error);
+                return;
+            }
+        };
+        let previous: serde_json::Value = serde_json::from_str(&self.model).unwrap();
+        if model.verdict != "pass" && previous["verdict"] == "pass" {
+            self.error = Some(live_diagnostics(&model));
+            return;
+        }
+        self.model = serde_json::to_string(&model).unwrap();
+        self.error = None;
+    }
+}
+
+fn live_diagnostics(model: &crate::model::ExplorerModel) -> String {
+    model
+        .diagnostics
+        .iter()
+        .map(|diagnostic| {
+            let location = diagnostic.span.as_ref().map_or_else(String::new, |span| {
+                format!("{}:{}:{}: ", span.file, span.line, span.col)
+            });
+            format!(
+                "{}[{}] {location}{}",
+                diagnostic.severity, diagnostic.code, diagnostic.message
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// Live-viewer accounting for the app bundle's idle exit: an open tab holds
 /// its SSE stream, and a closed one drops it within a keepalive tick, so
 /// "no active streams" is a faithful "no tabs".
@@ -108,16 +144,8 @@ pub fn serve(
             let source_changed = now != last;
             if source_changed {
                 last = now;
-                match crate::project_model::extract(&project) {
-                    Ok(m) => {
-                        let mut st = state.lock().unwrap();
-                        st.model = serde_json::to_string(&m).unwrap();
-                        st.error = None;
-                    }
-                    Err(e) => {
-                        state.lock().unwrap().error = Some(e);
-                    }
-                }
+                let extraction = crate::project_model::extract(&project);
+                state.lock().unwrap().update(extraction);
             }
             let current_views = scan_views(&project, &dist);
             let views_changed = current_views != views;

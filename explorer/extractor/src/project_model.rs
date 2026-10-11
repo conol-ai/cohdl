@@ -65,10 +65,14 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
     let mut checked = checked;
     let world = &checked.world;
     let sm = &checked.sm;
-    let mut ir = checked
-        .ir
-        .take()
-        .ok_or("no design IR (check did not reach expansion; run `cohdl check` for details)")?;
+    let mut ir = checked.ir.take().ok_or_else(|| {
+        let diagnostics = checked.diags.render(sm);
+        if diagnostics.is_empty() {
+            "no design IR (check did not reach expansion; run `cohdl check` for details)".into()
+        } else {
+            diagnostics
+        }
+    })?;
 
     // Designator assignment (RFC-005), read-only against the project's
     // design.lock: prior state is honoured but never rewritten here.

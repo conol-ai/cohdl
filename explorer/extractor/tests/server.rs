@@ -26,6 +26,10 @@ impl Drop for Server {
 
 impl Server {
     fn start() -> Self {
+        Self::start_with_source(include_str!("fixtures/parameterized/src/main.cohdl"))
+    }
+
+    fn start_with_source(source: &str) -> Self {
         let _startup = SERVER_STARTUP.lock().unwrap();
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -42,11 +46,7 @@ impl Server {
             include_str!("fixtures/parameterized/cohdl.toml"),
         )
         .unwrap();
-        std::fs::write(
-            root.join("project/src/main.cohdl"),
-            include_str!("fixtures/parameterized/src/main.cohdl"),
-        )
-        .unwrap();
+        std::fs::write(root.join("project/src/main.cohdl"), source).unwrap();
         std::fs::write(root.join("dist/index.html"), "<html>Explorer</html>").unwrap();
         std::fs::write(root.join("dist/assets/中文.js"), "unicode asset").unwrap();
         std::fs::write(root.join("secret.json"), "private").unwrap();
@@ -395,3 +395,6 @@ mod document_tests;
 
 #[path = "server/proposals.rs"]
 mod proposal_tests;
+
+#[path = "server/recovery.rs"]
+mod recovery_tests;

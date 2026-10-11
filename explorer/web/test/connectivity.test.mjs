@@ -14,7 +14,7 @@ const program = ts.createProgram(['src/connectivity.ts', 'src/layout.ts', 'src/e
 assert.deepEqual(ts.getPreEmitDiagnostics(program).map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n')), [])
 program.emit()
 const require = createRequire(import.meta.url)
-const { bundleConnections } = require(resolve(outDir, 'connectivity.js'))
+const { bundleConnections, bundleLabelSize } = require(resolve(outDir, 'connectivity.js'))
 const { layout } = require(resolve(outDir, 'layout.js'))
 const { LaneEdge } = require(resolve(outDir, 'edges.js'))
 const { createElement } = require('react')
@@ -28,6 +28,10 @@ const net = (name, paths) => ({ name, is_gnd: name === 'GND', span,
 const model = (nets, subdesigns = []) => ({ nets, subdesigns })
 const graph = (ids, edges = []) => ({ nodes: ids.map((id) => node(id)), edges,
   location: new Map(ids.map((id) => [id, id])), railSet: new Set(['GND']) })
+
+test('count labels reserve the same readable geometry used by their renderer', () => {
+  assert.deepEqual(bundleLabelSize('1 net'), { width: 76, height: 32, fontSize: 20 })
+})
 
 test('neutral pairs count distinct nets, deduplicate pins and preserve full hidden membership', () => {
   const g = graph(['A', 'B', 'net:old'])
@@ -54,6 +58,9 @@ test('multi-object nets share only identical membership buses, never an inferred
   assert.equal(buses.length, 2)
   assert.equal(result.graph.edges.length, 6)
   for (const bus of buses) {
+    const size = bundleLabelSize(bus.title)
+    assert.equal(bus.width, size.width)
+    assert.equal(bus.height, size.height)
     const detail = result.bundles.get(bus.id)
     const spokes = result.graph.edges.filter((e) => e.target === bus.id)
     assert.equal(spokes.length, 3)
@@ -105,9 +112,9 @@ function checkGeometry(g, positioned, regions) {
       }
     }
     if (edge.label) for (const box of boxes) {
-      const half = (edge.label.length * 7 + 12) / 2
+      const size = bundleLabelSize(edge.label), half = size.width / 2
       assert.equal(route.label.x + half > box.x && route.label.x - half < box.x + box.width
-        && route.label.y + 10 > box.y && route.label.y - 10 < box.y + box.height, false, `label crosses ${box.id}`)
+        && route.label.y + size.height / 2 > box.y && route.label.y - size.height / 2 < box.y + box.height, false, `label crosses ${box.id}`)
     }
     const source = boxes.find((n) => n.id === edge.source)
     const target = boxes.find((n) => n.id === edge.target)
@@ -124,6 +131,13 @@ test('real ELK retains orthogonal routes and label geometry for pair/bus topolog
   checkGeometry(g, await layout(g))
 })
 
+test('compact exact-trace graphs retain ELK section routing instead of neutral bundle gutters', async () => {
+  const g = graph(['group:A', 'group:B'], [{ id: 'exact', source: 'group:A', target: 'group:B', net: 'X', nets: ['X'], label: '' }])
+  const p = await layout(g, undefined, { compact: true })
+  assert.ok(p.positions.get('group:A').x < 48, 'actual ELK root padding, not fixed neutral cell margin')
+  checkGeometry(g, p)
+})
+
 test('compound ELK sections translate their actual container offsets to absolute graph coordinates', async () => {
   const { graph: g } = bundleConnections(graph(['A', 'B', 'C', 'D']), model([
     net('LOCAL', ['A', 'B']), net('CROSS', ['B', 'C']), net('OTHER', ['C', 'D']),
@@ -138,15 +152,16 @@ test('complete compact overview bounds arbitrary pair chains without body or cou
   nets.push(net('SHARED', ids.slice(0, 5)))
   const { graph: g } = bundleConnections(graph(ids), model(nets))
   for (const aspectRatio of [1.6, 0.65]) {
-    const p = await layout(g, undefined, { compact: true, aspectRatio })
+    const p = await layout(g, undefined, { compact: true, aspectRatio, columns: aspectRatio < 1 ? 2 : undefined })
     checkGeometry(g, p)
     const bounds = g.nodes.map((n) => ({ ...p.positions.get(n.id), width: n.width, height: n.height }))
     assert.ok(Math.max(...bounds.map((n) => n.x + n.width)) < 2000, 'compact chain width')
-    assert.ok(Math.max(...bounds.map((n) => n.y + n.height)) < 1800, 'compact chain height')
-    const labels = g.edges.filter((e) => e.label).map((e) => ({ ...p.edgeRoutes.get(e.id).label, width: e.label.length * 7 + 12 }))
+    assert.ok(Math.max(...bounds.map((n) => n.y + n.height)) < 2500, 'bounded compact chain height')
+    if (aspectRatio < 1) assert.equal(new Set(bounds.map((n) => n.x + n.width / 2)).size, 2, 'readable mobile two columns')
+    const labels = g.edges.filter((e) => e.label).map((e) => ({ ...p.edgeRoutes.get(e.id).label, ...bundleLabelSize(e.label) }))
     for (let i = 0; i < labels.length; i++) for (const b of labels.slice(i + 1)) {
       const a = labels[i]
-      assert.equal(Math.abs(a.x - b.x) < (a.width + b.width) / 2 && Math.abs(a.y - b.y) < 20, false, 'count-label overlap')
+      assert.equal(Math.abs(a.x - b.x) < (a.width + b.width) / 2 && Math.abs(a.y - b.y) < (a.height + b.height) / 2, false, 'count-label overlap')
     }
   }
 })

@@ -8,6 +8,8 @@ export interface ConnectionBundle {
   nets: Net[]
 }
 
+export const bundleLabelSize = (label: string) => ({ width: label.length * 12 + 16, height: 32, fontSize: 20 })
+
 /** Neutral display projection; the input graph remains the exact trace authority. */
 export function bundleConnections(graph: Graph, model: ExplorerModel): {
   graph: Graph
@@ -40,7 +42,7 @@ export function bundleConnections(graph: Graph, model: ExplorerModel): {
     }
     nodes.push({
       id, kind: 'net', title: label, sub: '', railTags: [], netLabels: [], decors: [],
-      pinsConnected: 0, pinsTotal: 0, pinNets: {}, width: 76, height: 30,
+      pinsConnected: 0, pinsTotal: 0, pinNets: {}, width: bundleLabelSize(label).width, height: bundleLabelSize(label).height,
     })
     for (const [index, object] of objects.entries()) {
       const spoke = `${id}:${index}`

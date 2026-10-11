@@ -3,6 +3,7 @@
 
 import { BaseEdge, EdgeLabelRenderer, Position, type EdgeProps } from '@xyflow/react'
 import type { EdgeRoute } from './layout'
+import { bundleLabelSize } from './connectivity'
 
 /** Orthogonal polyline with rounded corners, collinear points dropped. */
 function roundedPath(pts: { x: number; y: number }[], radius = 6): string {
@@ -33,6 +34,7 @@ function BundleEdge({ id, style, label, labelStyle, data }: Pick<EdgeProps, 'id'
   const onBundle = data?.onBundle as ((id: string) => void) | undefined
   const activate = () => onBundle?.(bundleId)
   const description = `${typeof label === 'string' && label ? `${label}: ` : ''}Open connected networks`
+  const labelSize = bundleLabelSize(typeof label === 'string' ? label : '')
   return (
     <>
       <g role="button" tabIndex={0} aria-label={description}
@@ -51,10 +53,10 @@ function BundleEdge({ id, style, label, labelStyle, data }: Pick<EdgeProps, 'id'
           onClick={(event) => { event.stopPropagation(); activate() }}
           style={{
             position: 'absolute', transform: `translate(-50%, -50%) translate(${route.label.x}px, ${route.label.y}px)`,
-            pointerEvents: 'all', width: typeof label === 'string' ? label.length * 7 + 12 : undefined,
-            height: 20, boxSizing: 'border-box', padding: '0 6px', border: '1px solid #cbd5e1', borderRadius: 3,
+            pointerEvents: 'all', width: labelSize.width,
+            height: labelSize.height, boxSizing: 'border-box', padding: '0 6px', border: '1px solid #cbd5e1', borderRadius: 3,
             background: (data?.labelBg as string) ?? '#ffffff',
-            color: (labelStyle as { fill?: string } | undefined)?.fill ?? '#475569', fontSize: 11, lineHeight: '18px', cursor: 'pointer',
+            color: (labelStyle as { fill?: string } | undefined)?.fill ?? '#475569', fontSize: labelSize.fontSize, lineHeight: '30px', cursor: 'pointer',
           }}>{label}</button>
       </EdgeLabelRenderer> : null}
     </>

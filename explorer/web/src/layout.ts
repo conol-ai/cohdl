@@ -3,6 +3,7 @@ import type { ElkNode, ElkExtendedEdge } from 'elkjs/lib/elk-api'
 import type { Graph, GNode, GEdge } from './transform'
 import type { RegionAssign } from './views'
 import { compactOverview } from './compactLayout'
+import { bundleLabelSize } from './connectivity'
 
 const elk = new ELK()
 type Point = { x: number; y: number }
@@ -42,15 +43,17 @@ function elkNode(node: GNode): ElkNode {
   }
 }
 function elkEdge(edge: GEdge): ElkExtendedEdge {
+  const size = edge.id.startsWith('bundle:') ? bundleLabelSize(edge.label) : { width: edge.label.length * 7 + 12, height: 20 }
   return {
     id: edge.id, sources: [portId(edge.source, 'out')], targets: [portId(edge.target, 'in')],
-    labels: edge.label ? [{ text: edge.label, width: edge.label.length * 7 + 12, height: 20 }] : [],
+    labels: edge.label ? [{ text: edge.label, width: size.width, height: size.height }] : [],
   }
 }
 
-export async function layout(g: Graph, regions?: RegionAssign, opts?: { compact?: boolean; aspectRatio?: number }): Promise<Positioned> {
-  if (opts?.compact && !regions && g.nodes.every((node) => node.kind === 'net' || node.id.startsWith('group:')))
-    return compactOverview(g, opts.aspectRatio ?? 1.6)
+export async function layout(g: Graph, regions?: RegionAssign, opts?: { compact?: boolean; aspectRatio?: number; columns?: number }): Promise<Positioned> {
+  if (opts?.compact && !regions && g.nodes.every((node) => node.kind === 'net' || node.id.startsWith('group:'))
+    && g.edges.every((edge) => edge.nets.length === 0 || edge.id.startsWith('bundle:')))
+    return compactOverview(g, opts.aspectRatio ?? 1.6, opts.columns)
   const spacing = opts?.compact ? {
     ...BASE, 'elk.spacing.nodeNode': '30', 'elk.layered.spacing.nodeNodeBetweenLayers': '80',
     'elk.spacing.edgeNode': '20', 'elk.spacing.edgeEdge': '12',

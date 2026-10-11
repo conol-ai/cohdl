@@ -1,14 +1,15 @@
 import type { Graph, GEdge } from './transform'
 import type { Positioned, EdgeRoute } from './layout'
+import { bundleLabelSize } from './connectivity'
 
 type Point = { x: number; y: number }
 type LabelBox = Point & { width: number }
 const COLUMN_GAP = 96
-const ROW_GAP = 76
-const LABEL_TRACK = 22
+const ROW_GAP = 112
+const LABEL_TRACK = 36
 
 /** Folded modules occupy fixed cells; all wire turns stay in reserved gutters. */
-export function compactOverview(graph: Graph, aspectRatio: number): Positioned {
+export function compactOverview(graph: Graph, aspectRatio: number, requestedColumns?: number): Positioned {
   const positions: Positioned['positions'] = new Map()
   const regionBoxes: Positioned['regionBoxes'] = new Map()
   const edgeRoutes: Positioned['edgeRoutes'] = new Map()
@@ -16,7 +17,8 @@ export function compactOverview(graph: Graph, aspectRatio: number): Positioned {
   const width = Math.max(...graph.nodes.map((node) => node.width))
   const height = Math.max(...graph.nodes.map((node) => node.height))
   const ratio = Number.isFinite(aspectRatio) && aspectRatio > 0 ? Math.min(4, Math.max(0.25, aspectRatio)) : 1.6
-  const columns = Math.min(graph.nodes.length, Math.ceil(Math.sqrt(graph.nodes.length * ratio * (height + ROW_GAP) / (width + COLUMN_GAP))))
+  const automaticColumns = Math.ceil(Math.sqrt(graph.nodes.length * ratio * (height + ROW_GAP) / (width + COLUMN_GAP)))
+  const columns = Math.min(graph.nodes.length, typeof requestedColumns === 'number' && Number.isInteger(requestedColumns) && requestedColumns > 0 ? requestedColumns : automaticColumns)
   const rows = Math.ceil(graph.nodes.length / columns)
   const cells = new Map<string, { column: number; row: number }>()
   graph.nodes.forEach((node, index) => {
@@ -50,7 +52,7 @@ export function compactOverview(graph: Graph, aspectRatio: number): Positioned {
 function gutterLabel(edge: GEdge, right: number, left: number, preferredRow: number, rows: number, height: number, occupied: LabelBox[]): Point {
   const rowIndices = Array.from({ length: Math.max(1, rows - 1) }, (_, index) => rows > 1 ? index + 1 : 0)
     .sort((a, b) => Math.abs(a - preferredRow) - Math.abs(b - preferredRow))
-  const width = edge.label.length * 7 + 12
+  const { width } = bundleLabelSize(edge.label)
   const middle = (left + right) / 2
   const candidates = [middle]
   for (let offset = width + 8; offset <= Math.abs(left - right) / 2; offset += width + 8) candidates.push(middle - offset, middle + offset)

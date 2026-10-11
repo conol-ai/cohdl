@@ -18,7 +18,7 @@ import { shortName } from './model'
 import { explorerNets, ownerScope } from './hierarchy'
 import { buildGraph, focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
-import { assignRegions, type ViewConfig } from './views'
+import { assignRegions, parseViewConfig, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
@@ -34,6 +34,10 @@ import { toPng } from 'html-to-image'
 import { BoardLayout } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope } from './boardGeometry'
+import { Download, Maximize, RotateCcw } from 'lucide-react'
+import { useCanvasFit } from './useCanvasFit'
+import { boundsOfRects } from './viewport'
+import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
 const edgeTypes = { lane: LaneEdge }
@@ -48,6 +52,12 @@ export default function App() {
   const [selNet, setSelNet] = useState<string>('')
   const [err, setErr] = useState<string>('')
   const [viewCfg, setViewCfg] = useState<ViewConfig | null>(null)
+  const [viewError, setViewError] = useState('')
+  const [viewsLoading, setViewsLoading] = useState(false)
+  const [layoutBusy, setLayoutBusy] = useState(false)
+  const loadedViewDesign = useRef<string | null>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const rf = useRef<ReactFlowInstance | null>(null)
   const [activeView, setActiveView] = useState<string>('')
   const [regionFocus, setRegionFocus] = useState<string>('')
   const [photoUrl, setPhotoUrl] = useState<string>('')
@@ -84,6 +94,7 @@ export default function App() {
     return value === 'sch' || value === 'layout' ? value : 'overview'
   })
   const dark = mode !== 'overview'
+  const { fit, setBounds } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
@@ -123,20 +134,33 @@ export default function App() {
   useEffect(() => {
     if (!model) return
     let cancelled = false
-    fetch(`/views/${model.design}.view.json`)
-      .then((r) => (r.ok ? r.json() : null))
+    setViewsLoading(true)
+    fetch(`/views/${encodeURIComponent(model.design)}.view.json`)
+      .then(async (r) => {
+        if (r.status === 404) throw new Error(`No group configuration for ${model.design}`)
+        const body: unknown = await r.json()
+        if (!r.ok) throw new Error(typeof body === 'object' && body !== null && 'error' in body ? String(body.error) : `View request failed (${r.status})`)
+        return parseViewConfig(body, model.design)
+      })
       .then((c) => {
         if (cancelled) return
+        setViewError('')
         setViewCfg(c)
-        const pv = params.get('view')
-        if (c && pv && c.views.some((v: any) => v.name === pv)) {
-          setActiveView(pv)
-          setScope(null)
+        if (loadedViewDesign.current !== model.design) {
+          const pv = params.get('view')
+          setActiveView(pv !== null ? c.views.find((v) => v.name === pv)?.name ?? '' : c.views[0].name)
+          if (!params.has('scope')) setScope(null)
+          loadedViewDesign.current = model.design
+        } else {
+          setActiveView((v) => !v || c.views.some((view) => view.name === v) ? v : c.views[0].name)
         }
       })
-      .catch(() => { if (!cancelled) setViewCfg(null) })
+      .catch((e) => {
+        if (!cancelled) { setViewCfg(null); setViewError(String(e instanceof Error ? e.message : e)) }
+      })
+      .finally(() => { if (!cancelled) setViewsLoading(false) })
     return () => { cancelled = true }
-  }, [model?.design])
+  }, [model])
 
   // rail/net chip clicks from inside custom nodes
   useEffect(() => {
@@ -170,12 +194,15 @@ export default function App() {
   useEffect(() => {
     if (!model) return
     if (mode === 'layout') {
+      setLayoutBusy(false)
       setGraph(null)
       if (jump?.id) setSel([jump.id])
       if (jump?.net) setSelNet(jump.net)
       return
     }
     let cancelled = false
+    setLayoutBusy(true)
+    setErr('')
     const g = buildGraph(model, scope)
     if (mode === 'sch')
       for (const n of g.nodes) {
@@ -380,20 +407,13 @@ export default function App() {
         return { x: p.x + (region?.x ?? 0), y: p.y + (region?.y ?? 0), width: n.width, height: n.height }
       })
       boxes.push(...regionBoxes.values())
-      if (boxes.length) {
-        const x = Math.min(...boxes.map((b) => b.x))
-        const y = Math.min(...boxes.map((b) => b.y))
-        const width = Math.max(...boxes.map((b) => b.x + b.width)) - x
-        const height = Math.max(...boxes.map((b) => b.y + b.height)) - y
-        requestAnimationFrame(() => {
-          if (!cancelled) rf.current?.fitBounds({ x, y, width, height }, { duration: 250, padding: 0.2 })
-        })
-      }
+      setBounds(boundsOfRects(boxes))
+      setLayoutBusy(false)
     }).catch((e) => {
-      if (!cancelled) setErr(`Layout: ${String(e)}`)
+      if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, viewCfg, activeView, mode, regionFocus, scope, jump])
+  }, [model, viewCfg, activeView, mode, regionFocus, scope, jump, setBounds])
 
   // Focus paths (multi-select) + net highlight
   useEffect(() => {
@@ -532,7 +552,6 @@ export default function App() {
   }, [selInst, model])
 
   // ---- search: designator / device / MPN / net -> select + fly to it
-  const rf = useRef<ReactFlowInstance | null>(null)
   const nodeCenter = useCallback(
     (id: string) => {
       const n = nodes.find((x) => x.id === id)
@@ -621,7 +640,7 @@ export default function App() {
       style={{
         fontSize: 11,
         padding: '2px 10px',
-        borderRadius: 12,
+        borderRadius: 4,
         border: `1px solid ${on ? color : '#d1d5db'}`,
         background: on ? color : dark ? '#22262e' : '#fff',
         color: on ? '#fff' : dark ? '#c9d1d9' : '#374151',
@@ -632,24 +651,22 @@ export default function App() {
     </button>
   )
 
-  if (err) return <div style={{ padding: 20, color: '#b91c1c' }}>Failed to load: {err}</div>
+  if (err && !model) return <div role="alert" style={{ padding: 20, color: '#b91c1c' }}>Failed to load: {err}</div>
   if (!model) return <div style={{ padding: 20 }}>Loading…</div>
 
   const panelBg = dark ? '#181c22' : '#fff'
   const panelFg = dark ? '#e5e7eb' : '#111827'
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'system-ui', background: dark ? '#111318' : '#fff' }}>
-      <div style={{ flex: 1, position: 'relative' }}>
+    <div className={`explorer-app${dark ? ' dark' : ''}`}>
+      <main className="explorer-main">
         <div
+          className="explorer-toolbar"
           style={{
-            position: 'absolute',
             zIndex: 10,
             background: dark ? '#181c22ee' : '#ffffffee',
             color: panelFg,
             padding: '6px 12px',
-            borderRadius: 8,
-            margin: 8,
             fontSize: 12,
             border: `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}`,
           }}
@@ -679,7 +696,6 @@ export default function App() {
             })()}
           {sel.length >= 2 && <span style={{ color: '#f43f5e' }}> · {mode === 'layout' ? 'selected' : 'trace'}: {sel.length} parts</span>}
           {selNet && <span style={{ color: '#0ea5e9' }}> · net: {selNet}</span>}
-          <span style={{ color: '#9ca3af' }}> {mode === 'layout' ? '(select a part to inspect its placement)' : '(drag/⌘-click parts to trace, Esc to reset)'}</span>
           <div style={{ marginTop: 5, position: 'relative' }}>
             <input
               value={query}
@@ -691,9 +707,10 @@ export default function App() {
                   setQuery('')
                 } else if (e.key === 'Escape') setQuery('')
               }}
+              aria-label="Search circuit"
               placeholder="Search parts, paths, subdesigns or nets…"
               style={{
-                width: 300, fontSize: 11, padding: '4px 8px', borderRadius: 6,
+                width: 'min(300px, 100%)', boxSizing: 'border-box', fontSize: 12, padding: '6px 8px', borderRadius: 4,
                 border: `1px solid ${dark ? '#2a2f3a' : '#d1d5db'}`,
                 background: dark ? '#22262e' : '#fff', color: panelFg, outline: 'none',
               }}
@@ -709,7 +726,8 @@ export default function App() {
                 }}
               >
                 {hits.map((h) => (
-                  <div
+                  <button
+                    type="button"
                     key={h.kind + h.id}
                     onClick={() => {
                       h.kind === 'net' ? locateNet(h.id)
@@ -719,6 +737,7 @@ export default function App() {
                     style={{
                       padding: '4px 8px', cursor: 'pointer', display: 'flex',
                       justifyContent: 'space-between', gap: 8, fontSize: 11,
+                      width: '100%', border: 0, background: 'transparent', textAlign: 'left',
                       borderBottom: `1px solid ${dark ? '#22262e' : '#f3f4f6'}`,
                     }}
                   >
@@ -727,13 +746,16 @@ export default function App() {
                       {h.label}
                     </span>
                     <span style={{ color: '#6b7280' }}>{h.sub}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
           <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button
+              className="icon-tool"
+              title="Export PNG"
+              aria-label="Export PNG"
               onClick={() => {
                 const el = document.querySelector(mode === 'layout' ? '.board-layout' : '.react-flow') as HTMLElement
                 if (!el) return
@@ -747,21 +769,18 @@ export default function App() {
                   a.click()
                 })
               }}
-              style={{ fontSize: 11, padding: '2px 10px', borderRadius: 12, border: '1px solid #059669', background: dark ? '#22262e' : '#fff', color: '#10b981', cursor: 'pointer' }}
             >
-              Export PNG
+              <Download size={16} />
             </button>
+            {mode !== 'layout' && <button className="icon-tool" onClick={fit} title="Fit circuit" aria-label="Fit circuit"><Maximize size={16} /></button>}
             {mode !== 'layout' && <button
+              className="icon-tool"
               onClick={resetLayout}
-              title="Undo any manual moves: restore the computed layout and refit the view (R)"
-              style={{
-                fontSize: 11, padding: '2px 10px', borderRadius: 12, cursor: 'pointer',
-                border: `1px solid ${moved ? '#f59e0b' : dark ? '#2a2f3a' : '#d1d5db'}`,
-                background: moved ? '#f59e0b' : dark ? '#22262e' : '#fff',
-                color: moved ? '#fff' : dark ? '#c9d1d9' : '#374151',
-              }}
+              title="Reset layout"
+              aria-label="Reset layout"
+              style={{ color: moved ? '#d97706' : undefined }}
             >
-              ⟲ Reset layout
+              <RotateCcw size={16} />
             </button>}
             {chip('Overview', mode === 'overview', () => setMode('overview'))}
             {chip('SCH view', mode === 'sch', () => setMode('sch'))}
@@ -784,7 +803,7 @@ export default function App() {
               {(model.subdesigns ?? []).filter((s) => scope === s.path || scope?.startsWith(`${s.path}::`)).map((s) => (
                 chip(shortName(s.path), scope === s.path, () => navigateScope(s.path), '#7c3aed')
               ))}
-              <span style={{ color: '#9ca3af', fontSize: 10 }}>{mode === 'layout' ? localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates' : 'Double-click a subdesign to open'}</span>
+              {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 10 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
             </div>
           )}
           {viewDef && (
@@ -796,7 +815,10 @@ export default function App() {
               )}
             </div>
           )}
+          {viewsLoading && <div role="status">Loading groups...</div>}
+          {viewError && <div role="alert">{viewError}</div>}
         </div>
+        <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy}>
         {mode === 'layout' ? <BoardLayout model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump}
           onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
           onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
@@ -804,7 +826,7 @@ export default function App() {
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          onInit={(i) => (rf.current = i)}
+          onInit={(i) => { rf.current = i; fit() }}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
@@ -821,8 +843,7 @@ export default function App() {
           onPaneClick={() => {
             setSelNet('')
           }}
-          minZoom={0.08}
-          fitView
+          minZoom={0.002}
           selectionOnDrag
           panOnDrag={[1, 2]}
           panOnScroll
@@ -834,11 +855,13 @@ export default function App() {
           <Background color={dark ? '#2a2f3a' : undefined} />
           <Controls />
         </ReactFlow>}
-      </div>
+        {mode !== 'layout' && (layoutBusy || err || !graph?.nodes.length) && <div className="canvas-state" role={err ? 'alert' : 'status'}>{err || (layoutBusy ? 'Arranging circuit...' : 'No parts in this selection')}</div>}
+        </div>
+      </main>
       {(selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
         <div
+          className="explorer-inspector"
           style={{
-            width: 330,
             borderLeft: `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}`,
             padding: 14,
             overflow: 'auto',

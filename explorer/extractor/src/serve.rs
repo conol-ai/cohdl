@@ -58,9 +58,10 @@ fn live_diagnostics(model: &crate::model::ExplorerModel) -> String {
         .join("\n")
 }
 
-/// Live-viewer accounting for the app bundle's idle exit: an open tab holds
-/// its SSE stream, and a closed one drops it within a keepalive tick, so
-/// "no active streams" is a faithful "no tabs".
+const MAX_PERSISTENT_VIEWERS: i64 = 5;
+
+/// Persistent SSE reservations also keep the app bundle alive. Overflow
+/// clients reconnect with short responses until a reservation becomes free.
 #[derive(Default)]
 struct Viewers {
     active: AtomicI64,
@@ -71,10 +72,14 @@ struct Viewers {
 struct ViewerGuard(Arc<Viewers>);
 
 impl ViewerGuard {
-    fn new(v: &Arc<Viewers>) -> Self {
+    fn new(v: &Arc<Viewers>) -> Option<Self> {
+        v.active
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |active| {
+                (active < MAX_PERSISTENT_VIEWERS).then(|| active + 1)
+            })
+            .ok()?;
         v.ever.store(true, Ordering::SeqCst);
-        v.active.fetch_add(1, Ordering::SeqCst);
-        Self(Arc::clone(v))
+        Some(Self(Arc::clone(v)))
     }
 }
 
@@ -364,7 +369,11 @@ fn handle(
             respond(&mut conn, 200, "application/json", body.as_bytes())
         }
         "/api/events" => {
-            let _viewer = ViewerGuard::new(viewers);
+            let Some(_viewer) = ViewerGuard::new(viewers) else {
+                let version = version.load(Ordering::SeqCst);
+                let body = format!("retry: 1000\ndata: {{\"version\":{version}}}\n\n");
+                return respond(&mut conn, 200, "text/event-stream", body.as_bytes());
+            };
             conn.write_all(
                 b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nAccess-Control-Allow-Origin: *\r\nConnection: keep-alive\r\n\r\n",
             )?;
@@ -461,3 +470,7 @@ fn respond(conn: &mut TcpStream, code: u16, ct: &str, body: &[u8]) -> std::io::R
     )?;
     conn.write_all(body)
 }
+
+#[cfg(test)]
+#[path = "serve_tests.rs"]
+mod tests;

@@ -60,6 +60,10 @@ pub fn extract(dir: &Path) -> Result<ExplorerModel, String> {
     )?;
 
     if let Some(sel) = &checked.selection_error {
+        let diagnostics = checked.diags.render(&checked.sm);
+        if !diagnostics.is_empty() {
+            return Err(format!("{diagnostics}\ndesign selection failed: {sel}"));
+        }
         return Err(format!("design selection failed: {sel}"));
     }
     let mut checked = checked;

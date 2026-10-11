@@ -30,6 +30,10 @@ impl Server {
     }
 
     fn start_with_source(source: &str) -> Self {
+        Self::start_with_manifest(source, include_str!("fixtures/parameterized/cohdl.toml"))
+    }
+
+    fn start_with_manifest(source: &str, manifest: &str) -> Self {
         let _startup = SERVER_STARTUP.lock().unwrap();
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -41,11 +45,7 @@ impl Server {
         for dir in ["project/src", "project/views", "dist/views", "dist/assets"] {
             std::fs::create_dir_all(root.join(dir)).unwrap();
         }
-        std::fs::write(
-            root.join("project/cohdl.toml"),
-            include_str!("fixtures/parameterized/cohdl.toml"),
-        )
-        .unwrap();
+        std::fs::write(root.join("project/cohdl.toml"), manifest).unwrap();
         std::fs::write(root.join("project/src/main.cohdl"), source).unwrap();
         std::fs::write(root.join("dist/index.html"), "<html>Explorer</html>").unwrap();
         std::fs::write(root.join("dist/assets/中文.js"), "unicode asset").unwrap();
@@ -398,3 +398,6 @@ mod proposal_tests;
 
 #[path = "server/recovery.rs"]
 mod recovery_tests;
+
+#[path = "server/multitab.rs"]
+mod multitab_tests;

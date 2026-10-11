@@ -93,6 +93,46 @@ fn parse_failure_reports_real_diagnostics_on_retained_circuit() {
 }
 
 #[test]
+fn explicit_top_parse_failure_preserves_diagnostics_and_selection_errors() {
+    let configured = "[package]\nname = \"parameterized\"\nversion = \"0.1.0\"\n[design]\ntop = \"Board\"\n[dependencies]\n";
+    let server = Server::start_with_manifest(SOURCE, configured);
+    let manifest = server.root.join("project/cohdl.toml");
+    let original = model(&server);
+    let mut events = server.events();
+    let mut version = next_version(&mut events);
+    std::thread::sleep(Duration::from_millis(600));
+    edit(&server, &mut events, &mut version, "@\n");
+    let standalone = extract(&server);
+    assert!(!standalone.status.success());
+    assert!(standalone.stdout.is_empty());
+    let stderr = String::from_utf8(standalone.stderr).unwrap();
+    assert!(
+        stderr.contains("E001"),
+        "Parser diagnostic hidden: {stderr}"
+    );
+    assert!(stderr.contains("main.cohdl:1:1"));
+    assert!(stderr.contains("design selection failed"));
+    let mut live = model(&server);
+    let error = live.as_object_mut().unwrap().remove("live_error").unwrap();
+    let error = error.as_str().unwrap();
+    assert!(error.contains("E001"));
+    assert!(error.contains("main.cohdl:1:1"));
+    assert_eq!(live, original);
+    edit(&server, &mut events, &mut version, SOURCE);
+    assert_eq!(model(&server), original);
+    std::fs::write(&manifest, configured.replace("Board", "Missing")).unwrap();
+    let selection = extract(&server);
+    assert!(!selection.status.success());
+    let error = String::from_utf8(selection.stderr).unwrap();
+    assert!(error.contains("design selection failed"));
+    assert!(error.contains("no design named `Missing`"));
+    assert!(
+        !error.contains("error["),
+        "Selection-only behavior changed: {error}"
+    );
+}
+
+#[test]
 fn initial_semantic_failure_stays_visible_until_passing_edit() {
     let server = Server::start_with_source(&semantic_failure());
     let failed = model(&server);

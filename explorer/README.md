@@ -176,7 +176,10 @@ nets stay inside the group. No placement or circuit connection is synthesized.
 
 Search includes logical pins and physical numbers, including alphanumeric pads
 and qualified queries such as `U1.1` or `U1.A1`. A located part/pin reveals its
-group and expands its block. NC/open pins retain their state without an invented
+group and expands its block. Explicit part/pin/BOM/endpoint visits focus the completed native target;
+net visits frame actual represented endpoint bounds, including native placed
+footprints in Layout. Located cameras remain stable through resize, reload and
+history; explicit Fit returns to whole-circuit fitting. NC/open pins retain their state without an invented
 net. Circuit, BOM and Issues tabs share the same locate path; Issues includes
 the original live-source error even when the last good model has no diagnostics.
 An authored diagnostic span locates a matching part/net/subdesign; other source

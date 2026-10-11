@@ -48,7 +48,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   onScope: (path: string) => void
   selected: string[]
   selectedNet: string
-  focus: { id?: string; net?: string } | null
+  focus: { id?: string; net?: string; locate?: boolean } | null
   onSelect: (paths: string[]) => void
   onNet: (name: string) => void
   cameraRef?: Ref<BoardLayoutHandle>
@@ -102,23 +102,22 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
       setView(restore.autoFit ? fitted : resizeBoardView(restore.view, restore.size, next))
       return
     }
-    const target = focus !== focused.current ? scoped.placements.find((p) => p.instance === focus?.id) : undefined
+    const paths = new Set(focus?.id ? [focus.id] : focus?.locate && focus.net ? model.nets.find((n) => n.name === focus.net)?.members.map((m) => m.instance_path) : [])
+    const targets = focus !== focused.current ? scoped.placements.filter((p) => paths.has(p.instance) && (!visiblePaths || visiblePaths.has(p.instance))) : []
     // Reveal only a new navigation intent; a later side-filter choice takes priority.
-    if (target && side !== 'both' && target.side !== side) { onSide('both'); return }
-    const p = target ? placements.find((p) => p.instance === target.instance) : undefined
-    if (!p) {
+    if (side !== 'both' && targets.some((p) => p.side !== side)) { onSide('both'); return }
+    const boxes = targets.flatMap((p) => { const value = geometry.get(p.instance); return value ? corners(value.box) : [] })
+    if (!boxes.length) {
       if (!focus?.id) focused.current = focus
       if (autoFit.current) setView(fitted)
       return
     }
     focused.current = focus
-    const inst = byPath.get(p.instance)
-    const fp = inst?.part?.footprint ? model.footprints[inst.part.footprint] : undefined
-    const box = placedBounds(p, fp)
+    const box = boundsOf(boxes)
     const span = Math.max(12, box.width * 2, box.height * 2)
     autoFit.current = false
     setView({ x: box.x + box.width / 2 - span / 2, y: box.y + box.height / 2 - span / 2, width: span, height: span })
-  }, [fitted, focus, placements, byPath, model.footprints, restore, scoped, side, onSide])
+  }, [fitted, focus, geometry, model.nets, restore, scoped, side, onSide, visiblePaths])
   useLayoutEffect(() => {
     const observer = new ResizeObserver(() => {
       const next = currentSize()

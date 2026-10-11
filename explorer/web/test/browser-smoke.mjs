@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer-core'
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
 const stage = value('--stage', 'groups')
-assert.ok(['groups', 'union', 'navigation'].includes(stage), `Unknown browser stage: ${stage}`)
+assert.ok(['groups', 'union', 'navigation', 'locate'].includes(stage), `Unknown browser stage: ${stage}`)
 const output = resolve(value('--output', '/tmp/cohdl-explorer-browser'))
 mkdirSync(output, { recursive: true })
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
@@ -56,9 +56,15 @@ try {
     await runLayoutInspectionSmoke(page, { url, output, ready, clickText })
     assert.deepEqual(errors, [], 'Browser runtime errors')
     console.log(JSON.stringify({ result: 'PASS', stage, output }))
-  } else if (stage === 'navigation') {
+  } else if (stage === 'navigation' || stage === 'locate') {
+    const { runLocateSmoke } = await import('./locate-smoke.mjs')
+    if (!process.argv.includes('--layout-only')) await runLocateSmoke(page, { url, output, ready, clickText, netOnly: process.argv.includes('--net-only') })
+    const { runLocateLayoutSmoke } = await import('./locate-layout-smoke.mjs')
+    await runLocateLayoutSmoke(page, { url, output, clickText })
+    if (stage === 'navigation') {
     const { runNavigationSmoke } = await import('./navigation-smoke.mjs')
     await runNavigationSmoke(page, { url, output, ready, clickText, geometry })
+    }
     assert.deepEqual(errors, [], 'Browser runtime errors')
     console.log(JSON.stringify({ result: 'PASS', stage, output }))
   } else {

@@ -82,7 +82,7 @@ export default function App() {
     const value = new URLSearchParams(location.search).get('scope')
     return value === 'all' ? null : value ?? ''
   })
-  const [jump, setJump] = useState<{ id?: string; net?: string; selection?: string[] } | null>(null)
+  const [jump, setJump] = useState<{ id?: string; net?: string; selection?: string[]; locate?: boolean } | null>(null)
   const handledJump = useRef<typeof jump>(null)
   const selection = useRef({ parts: sel, net: selNet })
   selection.current = { parts: sel, net: selNet }
@@ -429,8 +429,10 @@ export default function App() {
           : undefined
         return { x: p.x + (region?.x ?? 0), y: p.y + (region?.y ?? 0), width: n.width, height: n.height }
       })
+      const targets = new Set(intent?.locate ? (intent.id ? [intent.id] : allNets.find((n) => n.name === intent.net)?.members.map((m) => m.instance_path) ?? []).map((p) => gg.location.get(p) ?? p) : [])
+      const targetBounds = boundsOfRects(boxes.filter((_, index) => targets.has(gg.nodes[index].id)))
       boxes.push(...regionBoxes.values())
-      setBounds(boundsOfRects(boxes), cameraGeneration)
+      setBounds(boundsOfRects(boxes), cameraGeneration, targetBounds)
       setLayoutBusy(false)
     }).catch((e) => {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
@@ -597,8 +599,9 @@ export default function App() {
       const visible = net?.members.some((m) => projection?.represented.has(m.instance_path) && !collapsedGroups.includes(fullView?.instanceRegions.get(m.instance_path) ?? 'Other'))
       const member = net?.members[0]
       const group = member && fullView?.instanceRegions.get(member.instance_path)
-      navigation.navigate({ selection: [], pin: '', net: hit.id, tab: 'circuit',
-        ...(!visible && member ? { scope: viewDef ? null : ownerScope(model, member.instance_path), groups: viewDef ? [group ?? 'Other'] : [], collapsed: collapsedGroups.filter((g) => g !== group), viewport: null, boardViewport: null } : {}) })
+      navigation.navigate({ selection: [], pin: '', net: hit.id, tab: 'circuit', viewport: null, boardViewport: null,
+        ...(!visible && member ? { scope: viewDef ? null : ownerScope(model, member.instance_path), groups: viewDef ? [group ?? 'Other'] : [], collapsed: collapsedGroups.filter((g) => g !== group) } : {}) })
+      setJump({ net: hit.id, locate: true })
       return
     }
     const group = fullView?.instanceRegions.get(hit.id) ?? 'Other'
@@ -608,7 +611,7 @@ export default function App() {
       groups: hidden && viewDef ? [group] : selectedGroups, collapsed: collapsedGroups.filter((g) => g !== group),
       selection: [hit.id], pin: hit.pin ?? '', net: hit.net ?? '', tab: 'circuit', viewport: null, boardViewport: null,
       layoutSide: mode === 'layout' && placement && layoutSide !== 'both' && placement.side !== layoutSide ? 'both' : layoutSide })
-    if (mode === 'layout') setJump({ id: hit.id, net: hit.net ?? '' })
+    setJump({ id: hit.id, net: hit.net ?? '', locate: true })
   }
   const locateNet = (name: string) => locateTarget({ kind: 'net', id: name, label: name, sub: name })
   const hits = useMemo(() => model ? searchCircuit(model, query).slice(0, 30) : [], [query, model])

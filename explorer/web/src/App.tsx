@@ -33,7 +33,7 @@ import { LaneEdge } from './edges'
 import { toPng } from 'html-to-image'
 import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
-import { layoutScope } from './boardGeometry'
+import { layoutScope, type LayoutSide } from './boardGeometry'
 import { ArrowLeft, Download, FilterX, Maximize, RotateCcw } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
@@ -68,6 +68,7 @@ export default function App() {
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
   const [layoutFrame, setLayoutFrame] = useState<'board' | 'local'>('local')
+  const [layoutSide, setLayoutSide] = useState<LayoutSide>('both')
   const [scope, setScope] = useState<string | null>(() => {
     const value = new URLSearchParams(location.search).get('scope')
     return value === 'all' ? null : value ?? ''
@@ -514,6 +515,9 @@ export default function App() {
   const selInst: Instance | undefined = mode === 'layout'
     ? model?.instances.find((i) => sel.length === 1 && i.path === sel[0]) : selNode?.inst
   const physicalScope = useMemo(() => model ? layoutScope(model, scope, layoutFrame) : undefined, [model, scope, layoutFrame])
+  const physicalPlacements = useMemo(() => physicalScope?.placements.filter((p) =>
+    (!selectedGroups.length || projection?.represented.has(p.instance)) && (layoutSide === 'both' || p.side === layoutSide)) ?? [],
+  [physicalScope, selectedGroups, projection, layoutSide])
   const selectedBoardPlacement = model?.layout?.placements.find((p) => p.instance === selInst?.path)
   const selectedPlacement = mode === 'layout' ? physicalScope?.placements.find((p) => p.instance === selInst?.path) : selectedBoardPlacement
   const localPlacementView = mode === 'layout' && physicalScope?.frame === 'local'
@@ -547,22 +551,20 @@ export default function App() {
   )
   const endpoints = useMemo(() => {
     if (!model || !selNetObj || !fullView) return []
-    const placed = physicalScope?.placements.filter((p) => !selectedGroups.length || projection?.represented.has(p.instance)) ?? []
-    const visible = mode === 'layout' ? new Set(placed.map((p) => p.instance)) : projection?.represented ?? new Set<string>()
+    const visible = mode === 'layout' ? new Set(physicalPlacements.map((p) => p.instance)) : projection?.represented ?? new Set<string>()
     return netEndpoints(model, selNetObj, fullView, visible)
-  }, [model, selNetObj, fullView, mode, physicalScope, projection, selectedGroups])
+  }, [model, selNetObj, fullView, mode, physicalPlacements, projection])
   const followEndpoint = (path: string) => {
     if (!model) return
     const context: InspectionContext = {
-      mode, scope, view: activeView, groups: [...selectedGroups], selection: [...sel], net: selNet, layoutFrame,
+      mode, scope, view: activeView, groups: [...selectedGroups], selection: [...sel], net: selNet, layoutFrame, layoutSide,
       viewport: mode === 'layout' ? null : capture(),
       boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null,
     }
     setBackStack((stack) => [...stack.slice(-63), context])
-    const visible = endpoints.some((e) => e.instance_path === path && e.visible)
     setBoardRestore(null)
     prepare()
-    if (!visible) {
+    if (!projection?.represented.has(path)) {
       setScope(viewDef ? null : ownerScope(model, path))
       setSelectedGroups(viewDef ? [fullView?.instanceRegions.get(path) ?? 'Other'] : [])
     }
@@ -576,6 +578,7 @@ export default function App() {
     prepare(previous.viewport)
     setBoardRestore(previous.boardViewport)
     setLayoutFrame(previous.layoutFrame)
+    setLayoutSide(previous.layoutSide)
     setMode(previous.mode)
     setScope(previous.scope)
     setActiveView(previous.view)
@@ -594,6 +597,7 @@ export default function App() {
     setJump(null)
     setBackStack([])
     setBoardRestore(null)
+    setLayoutSide('both')
   }
   const toggleGroup = (name: string) => {
     prepare()
@@ -882,7 +886,7 @@ export default function App() {
           {viewError && <div role="alert">{viewError}</div>}
         </div>
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy}>
-        {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined}
+        {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide}
           onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
           onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
           nodes={nodes}

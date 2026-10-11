@@ -3,6 +3,7 @@ import type { ViewGraph } from './views'
 import { representedInstances } from './views'
 import type { ViewportSnapshot } from './useCanvasFit'
 import type { BoardViewportSnapshot } from './viewport'
+import type { LayoutSide } from './boardGeometry'
 
 export interface InspectionContext {
   mode: 'overview' | 'sch' | 'layout'
@@ -14,6 +15,7 @@ export interface InspectionContext {
   viewport: ViewportSnapshot | null
   boardViewport: BoardViewportSnapshot | null
   layoutFrame: 'board' | 'local'
+  layoutSide: LayoutSide
 }
 
 export function netEndpoints(model: ExplorerModel, net: Net, full: ViewGraph, visible: ViewGraph['graph'] | ReadonlySet<string>) {

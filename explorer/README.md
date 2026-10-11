@@ -161,6 +161,8 @@ after layout completes. Pan and zoom (including zoom buttons) preserve the
 camera on resize; Fit resumes automatic fitting. The physical Layout uses its
 own millimetre camera for the same Back behavior. Clear filters restores the
 complete circuit, including from an empty group.
+Physical endpoint visibility also follows the Components side filter. Following
+a hidden endpoint reveals its side; Back restores the preceding side and camera.
 
 Run the desktop/mobile union, endpoint, camera and empty-recovery regression:
 
@@ -168,7 +170,7 @@ Run the desktop/mobile union, endpoint, camera and empty-recovery regression:
 node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage union
 ```
 
-The browser camera regression explicitly supplies two test-only placements
+The browser camera regression explicitly supplies two test-only placements on opposite sides
 because the PDFExact snapshot contains no placement facts. It does not write
 those coordinates to the model service or circuit source.
 

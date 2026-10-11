@@ -1,5 +1,7 @@
 import type { BoardOutline, ExplorerModel, FootprintGeo, FpShape, Matrix, Placement } from './model'
 
+export type LayoutSide = 'both' | Placement['side']
+
 export type Point = [number, number]
 export interface Bounds { x: number; y: number; width: number; height: number }
 export const identity: Matrix = [1, 0, 0, 1]

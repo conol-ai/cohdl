@@ -1,7 +1,7 @@
 import { useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type Ref } from 'react'
-import type { ExplorerModel, FpPad, FpShape } from './model'
+import type { ExplorerModel, FpPad, FpShape, Placement } from './model'
 import { shortName } from './model'
-import { boundsOf, corners, footprintBounds, gridStep, identity, layoutScope, outlineBounds, outlinePath, placedBounds, svgMatrix, type Bounds, type Point } from './boardGeometry'
+import { boundsOf, corners, footprintBounds, gridStep, identity, layoutScope, outlineBounds, outlinePath, placedBounds, svgMatrix, type Bounds, type Point, type LayoutSide } from './boardGeometry'
 import './BoardLayout.css'
 import { resizeBoardView, type BoardViewportSnapshot, type CanvasSize } from './viewport'
 
@@ -40,7 +40,7 @@ function Perimeter({ shape, color }: { shape: FpShape; color: string }) {
   </g>
 }
 
-export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet, cameraRef, restore, visiblePaths }: {
+export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet, cameraRef, restore, visiblePaths, placements, side, onSide }: {
   model: ExplorerModel
   scope: string | null
   frame: 'board' | 'local'
@@ -54,8 +54,10 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   cameraRef?: Ref<BoardLayoutHandle>
   restore?: BoardViewportSnapshot | null
   visiblePaths?: ReadonlySet<string>
+  placements: readonly Placement[]
+  side: LayoutSide
+  onSide: (side: LayoutSide) => void
 }) {
-  const [side, setSide] = useState<'both' | 'top' | 'bottom'>('both')
   const [labels, setLabels] = useState(true)
   const [padNumbers, setPadNumbers] = useState(false)
   const scoped = useMemo(() => layoutScope(model, scope, frame), [model, scope, frame])
@@ -63,7 +65,6 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   const subdesign = model.subdesigns?.find((s) => s.path === scope)
   const localLayouts = model.subdesigns?.filter((s) => s.local_placements?.length && (!scope || s.path === scope || s.path.startsWith(`${scope}::`))) ?? []
   const byPath = useMemo(() => new Map(scoped.instances.map((i) => [i.path, i])), [scoped])
-  const placements = useMemo(() => scoped.placements.filter((p) => (!visiblePaths || visiblePaths.has(p.instance)) && (side === 'both' || p.side === side)), [scoped, side, visiblePaths])
   const unplaced = scoped.unplaced.filter((i) => !visiblePaths || visiblePaths.has(i.path))
   const geometry = useMemo(() => new Map(placements.map((p) => {
     const i = byPath.get(p.instance)!
@@ -89,11 +90,6 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
   }
   useImperativeHandle(cameraRef, () => ({ capture: () => ({ view: { ...view }, size: currentSize(), autoFit: autoFit.current }) }), [view])
-  // Global search can reveal a component even if its side was filtered out.
-  useEffect(() => {
-    const p = scoped.placements.find((p) => p.instance === focus?.id)
-    if (p) setSide((current) => current !== 'both' && current !== p.side ? 'both' : current)
-  }, [focus, scoped])
   useLayoutEffect(() => {
     const next = currentSize()
     size.current = next
@@ -104,16 +100,23 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
       setView(restore.autoFit ? fitted : resizeBoardView(restore.view, restore.size, next))
       return
     }
-    const p = focus !== focused.current ? placements.find((p) => p.instance === focus?.id) : undefined
+    const target = focus !== focused.current ? scoped.placements.find((p) => p.instance === focus?.id) : undefined
+    // Reveal only a new navigation intent; a later side-filter choice takes priority.
+    if (target && side !== 'both' && target.side !== side) { onSide('both'); return }
+    const p = target ? placements.find((p) => p.instance === target.instance) : undefined
+    if (!p) {
+      if (!focus?.id) focused.current = focus
+      if (autoFit.current) setView(fitted)
+      return
+    }
     focused.current = focus
-    if (!p) { if (autoFit.current) setView(fitted); return }
     const inst = byPath.get(p.instance)
     const fp = inst?.part?.footprint ? model.footprints[inst.part.footprint] : undefined
     const box = placedBounds(p, fp)
     const span = Math.max(12, box.width * 2, box.height * 2)
     autoFit.current = false
     setView({ x: box.x + box.width / 2 - span / 2, y: box.y + box.height / 2 - span / 2, width: span, height: span })
-  }, [fitted, focus, placements, byPath, model.footprints, restore])
+  }, [fitted, focus, placements, byPath, model.footprints, restore, scoped, side, onSide])
   useLayoutEffect(() => {
     const observer = new ResizeObserver(() => {
       const next = currentSize()
@@ -170,7 +173,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
       {subdesign?.local_placements !== undefined && <label>Coordinates <select aria-label="Layout coordinates" value={scoped.frame} onChange={(e) => onFrame(e.target.value as 'board' | 'local')}>
         <option value="local">Subdesign local</option><option value="board">Board coordinates</option>
       </select></label>}
-      <label>Components <select aria-label="Component side" value={side} onChange={(e) => setSide(e.target.value as typeof side)}>
+      <label>Components <select aria-label="Component side" value={side} onChange={(e) => onSide(e.target.value as LayoutSide)}>
         <option value="both">Both sides</option><option value="top">Top</option><option value="bottom">Bottom</option>
       </select></label>
       <label><input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} /> Labels</label>

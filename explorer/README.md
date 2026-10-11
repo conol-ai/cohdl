@@ -32,6 +32,13 @@ within ~500 ms; a source that fails to compile keeps the last good view and
 reports the diagnostics inline. Add `?mode=sch` for the dark pin-level
 schematic view.
 
+Live updates accept a replacement circuit only after a passing check. Both
+extraction errors and a returned IR with semantic errors keep the last passing
+model and expose current diagnostics in `live_error`. A later valid edit clears
+the error and publishes its new circuit. With no previous passing model, an
+initial failed IR remains inspectable; an initial extraction error still refuses
+startup. Standalone extraction keeps its own result and exit semantics.
+
 The CLI supports `--help`/`-h` and `--version`. Extract a model with
 `cohdl-explorer PROJECT [-o FILE]` (`--out FILE` is equivalent); omit the output
 option to write JSON to stdout. Serve with
@@ -211,6 +218,9 @@ whole circuit. Choosing a functional group opens the flattened part view,
 so components inside subdesigns retain their actual group identity. Rail
 aggregates split at group boundaries. Shown counts use represented source
 instances and unique incident model nets, including rails.
+Changing groups, view or hierarchy starts a fresh fitted inspection and clears
+temporary part/pin/net selection, search and details. Back explicitly restores
+the preceding inspection. Important marks persist independently of selection.
 
 The net inspector lists every logical endpoint and all its physical numbers,
 including endpoints outside the current groups. Following an endpoint keeps
@@ -224,13 +234,25 @@ a hidden endpoint reveals its side; Back restores the preceding side and camera.
 
 Group disclosures collapse real members into logical boundary blocks. Bulk
 collapse/expand commands keep the represented part/net counts unchanged.
-Fully collapsed Overview uses ELK rectangle packing for native region containers
-so whole-system Fit keeps group titles legible. Detailed and SCH layouts retain
-their native layered placement; every boundary edge and physical endpoint remains
-available for tracing and inspection.
+Fully collapsed Overview uses compact module packing with bounded orthogonal
+corridors. Phone overview fits two columns and pans vertically. Detailed and SCH
+layouts retain native layered placement; exact endpoints remain inspectable.
 Overview uses compact boundary blocks; SCH and the selected block inspector
 retain each boundary's actual net, logical pin and physical numbers. Internal
 nets stay inside the group. No placement or circuit connection is synthesized.
+
+Neutral connections bundle distinct real nets between the same displayed
+objects. Multi-object networks use a shared bus with spokes, preserving their
+full memberships. Click the path or count to inspect the network list, then
+choose a net for its exact trace. Rails, hidden or internal members, single-ended
+nets, NC and open pins retain separate explanations. Whole left/right pin rows
+and inspector rows support pointer, Enter and Space activation.
+
+Component details show source-backed identity, footprint and connections before
+supporting datasheets; an unspecified MPN remains unspecified. Important marks
+use bounded local browser storage scoped to canonical project identity and design.
+Storage failure leaves session marks usable. Locate and unmark are available
+from the Important list, and marking does not dim the other components.
 
 Search includes logical pins and physical numbers, including alphanumeric pads
 and qualified queries such as `U1.1` or `U1.A1`. A located part/pin reveals its
@@ -256,6 +278,15 @@ camera and live-refresh regression:
 ```sh
 node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage navigation
 ```
+
+Run every browser stage in a separate browser/storage context:
+
+```sh
+node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage all
+```
+
+The aggregate stops on a failing stage and retains each stage's command, time,
+exit, logs and screenshots under the supplied `--output` directory.
 
 The navigation regression first exercises the real served circuit, then uses
 declared synthetic hierarchy/diagnostic/placement fixtures for states absent

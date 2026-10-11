@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fixture, json, put, run, seed, sha, source } from './helpers.mjs'
 
@@ -109,5 +109,49 @@ test('document citation metadata cannot be promoted by tampering with the archiv
     metadata.bundle_sha256 = sha(readFileSync(bundlePath))
     put(join(proposal.directory, 'run.json'), metadata)
     assert.match(validate(project, proposal, 1).error, /document|registry|bound|metadata/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('actual extracted source authority rejects nonexistent members in a forged archived model', () => {
+  const project = fixture()
+  try {
+    const path = 'views/Board.view.json'
+    const before = readFileSync(join(project, path), 'utf8')
+    const view = JSON.parse(before)
+    view.views[0].regions.push({ name: 'Ghost', members: ['path:Board::ghost'] })
+    const p = seed(project, { kind: 'group', change: { path, before_sha256: sha(before), old: before, new: JSON.stringify(view) } })
+    const bundlePath = join(p.directory, 'bundle.json')
+    const bundle = json(bundlePath)
+    bundle.model.instances.push({ ...bundle.model.instances[0], path: 'Board::ghost', designator: 'GHOST' })
+    put(bundlePath, bundle)
+    const metadata = json(join(p.directory, 'run.json'))
+    metadata.bundle_sha256 = sha(readFileSync(bundlePath))
+    put(join(p.directory, 'run.json'), metadata)
+    assert.match(validate(project, p, 1).error, /model|authorit|extract/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('literal dollar replacement tokens remain exact provider bytes in compiled output', () => {
+  const project = fixture()
+  try {
+    const replacement = 'net N: b.A, a.A // literal $& $` $\' $$'
+    const p = seed(project, { change: { path: 'src/main.cohdl', before_sha256: sha(source), old: 'net N: a.A, b.A', new: replacement } })
+    const result = validate(project, p)
+    assert.equal(result.after.find(f => f.path === 'src/main.cohdl').sha256, sha(source.replace('net N: a.A, b.A', () => replacement)))
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('registered documents outside explorer stay out of isolated compiler input regardless of valid document size', () => {
+  const project = fixture()
+  try {
+    mkdirSync(join(project, 'docs'))
+    const bytes = Buffer.alloc(9 * 1024 * 1024, 0x20)
+    writeFileSync(join(project, 'docs/large.pdf'), bytes)
+    const registryPath = join(project, 'explorer/documents.json')
+    const registry = json(registryPath)
+    registry.documents.push({ ...registry.documents[0], id: 'large', kind: 'pdf', path: 'docs/large.pdf', sha256: sha(bytes), applicability: [] })
+    put(registryPath, registry)
+    const p = seed(project, { kind: 'plan' })
+    assert.equal(validate(project, p).decision, 'PASS')
   } finally { rmSync(project, { recursive: true, force: true }) }
 })

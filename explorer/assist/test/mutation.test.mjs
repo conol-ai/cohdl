@@ -158,3 +158,16 @@ test('interrupted write-ahead receipt recovers exact before bytes without claimi
     assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), source)
   } finally { rmSync(project, { recursive: true, force: true }) }
 })
+
+test('lock recovery guard prevents a second CLI from deleting an ownership incarnation being reclaimed', () => {
+  const project = fixture()
+  try {
+    const p = seed(project)
+    const directory = join(project, 'explorer/proposals')
+    put(join(directory, '.mutation.guard'), { pid: process.pid, token: 'active-reclamation-fixture' })
+    put(join(directory, '.mutation.lock'), { pid: process.pid, token: 'new-live-owner-fixture' })
+    assert.match(run(['validate', project, p.directory, '--out', p.validation], 1).error, /recovery|guard|reclamation/i)
+    assert.equal(json(join(directory, '.mutation.lock')).token, 'new-live-owner-fixture')
+    assert.equal(json(join(directory, '.mutation.guard')).token, 'active-reclamation-fixture')
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})

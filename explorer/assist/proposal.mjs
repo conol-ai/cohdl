@@ -92,7 +92,7 @@ export function proposalFiles(run) {
       after = change.new
     } else {
       check(hash(change.before_sha256) && change.old.length > 0 && before.split(change.old).length === 2, 'Existing replacement must match exactly once')
-      after = before.replace(change.old, change.new)
+      after = before.replace(change.old, () => change.new)
     }
     check(after !== before && Buffer.byteLength(after) <= 8 * 1024 * 1024, 'Change is empty or exceeds output budget')
     if (proposal.kind === 'group') validateView(after, bundle)

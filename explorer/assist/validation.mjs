@@ -1,22 +1,32 @@
 import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { compiler } from './bundle.mjs'
+import { compiler, extractor } from './bundle.mjs'
 import { atomic, check, confined, load, now, read, save, sha, text } from './io.mjs'
 import { locked } from './lock.mjs'
 import { afterManifest, loadRun, proposalFiles, runPath } from './proposal.mjs'
 import { fresh } from './snapshot.mjs'
 import { runProcess } from './process.mjs'
 
+async function authoritativeModel(run, directory, prefix, signal) {
+  const output = join(directory, 'assist-baseline-model.json')
+  const result = await runProcess([extractor(), directory, '-o', output], { cwd: directory, signal })
+  atomic(run.root, `${run.path}/${prefix}compiler.stdout.log`, result.stdout)
+  atomic(run.root, `${run.path}/${prefix}compiler.stderr.log`, result.stderr)
+  check(result.evidence.exit_code === 0 && result.evidence.error === null && result.evidence.signal === null, `Actual baseline extractor failed: ${result.evidence.error ?? result.evidence.exit_code}`)
+  check(JSON.stringify(JSON.parse(read(directory, 'assist-baseline-model.json'))) === JSON.stringify(run.bundle.model), 'Archived model differs from actual extracted source authority')
+}
+
 export async function compilerCheck(run, files, prefix, signal) {
   const directory = mkdtempSync(join(tmpdir(), 'cohdl-assist-check-'))
   try {
-    for (const entry of run.bundle.snapshot) {
-      if (entry.sha256 === null || entry.path.startsWith('explorer/')) continue
+    for (const entry of run.bundle.sources) {
+      if (entry.path === 'explorer/documents.json') continue
       const bytes = read(run.root, entry.path)
       check(sha(bytes) === entry.sha256, 'Source changed while copying compiler inputs')
       atomic(directory, entry.path, bytes)
     }
+    await authoritativeModel(run, directory, prefix, signal)
     for (const file of files) atomic(directory, file.path, file.after)
     const result = await runProcess([compiler(), 'check', directory, '--json'], { cwd: directory, signal })
     atomic(run.root, `${run.path}/${prefix}compiler.stdout.log`, result.stdout)

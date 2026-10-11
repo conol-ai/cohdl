@@ -44,7 +44,7 @@ export function fixture() {
 }
 
 export function run(args, expected = 0, options = {}) {
-  const result = spawnSync(process.execPath, [cli, ...args], { cwd: code, encoding: 'utf8', timeout: 30000, env: { ...process.env, COHDL_LIB: join(code, 'lib') }, ...options })
+  const result = spawnSync(process.execPath, [cli, ...args], { cwd: code, encoding: 'utf8', timeout: 30000, ...options, env: { ...process.env, COHDL_LIB: join(code, 'lib'), ...options.env } })
   assert.equal(result.status, expected, result.stderr + result.stdout)
   return JSON.parse(result.stdout)
 }

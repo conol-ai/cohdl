@@ -33,7 +33,8 @@ export function fixture() {
   const project = realpathSync(mkdtempSync(join(tmpdir(), 'cohdl-assist-test-')))
   for (const directory of ['src', 'views', 'explorer/documents']) mkdirSync(join(project, directory), { recursive: true })
   writeFileSync(join(project, 'src/main.cohdl'), source)
-  writeFileSync(join(project, 'cohdl.toml'), '[package]\nname = "assist-fixture"\nversion = "0.1.0"\n\n[dependencies]\n')
+  writeFileSync(join(project, 'cohdl.toml'), '[package]\nname = "assist-fixture"\nversion = "0.1.0"\n\n[dependencies]\nstd = "0.3.0"\n')
+  cpSync(join(code, 'lib/soic/cohdl.lock'), join(project, 'cohdl.lock'))
   put(join(project, 'views/Board.view.json'), { schema_version: 1, design: 'Board', views: [{ name: 'Functional', regions: [{ name: 'Pair', members: ['path:Board::a', 'path:Board::b'] }] }] })
   const text = '# Fixture evidence\nBoth passive resistors are connected in parallel.\n'
   writeFileSync(join(project, 'explorer/documents/evidence.md'), text)
@@ -64,6 +65,6 @@ export function seed(project, { kind = 'connect', change, citations } = {}) {
   const proposal = { schema: 1, kind, title: 'Explicit fixture proposal', rationale: 'Validation fixture, not an AI execution.', uncertainty: 'Test only; no electrical qualification.', citations: citations ?? [{ document: null, page: null, section: null, source: { path: 'src/main.cohdl', line: 14, sha256: sha(source) } }], changes: kind === 'plan' ? [] : [change ?? { path: 'src/main.cohdl', before_sha256: sha(source), old: 'net N: a.A, b.A', new: 'net N: b.A, a.A' }] }
   put(join(directory, 'proposal.json'), proposal)
   writeFileSync(join(directory, 'request.txt'), 'Explicit persisted test fixture')
-  put(join(directory, 'run.json'), { schema: 1, id, kind, created_at: new Date().toISOString(), bundle_sha256: sha(readFileSync(path)), proposal_sha256: sha(readFileSync(join(directory, 'proposal.json'))), provider: { engine: 'codex', command: ['explicit-persisted-test-fixture'], started_at: new Date().toISOString(), finished_at: new Date().toISOString(), exit_code: 0, signal: null, error: null } })
+  put(join(directory, 'run.json'), { schema: 1, id, kind, created_at: new Date().toISOString(), bundle_sha256: sha(readFileSync(path)), proposal_sha256: sha(readFileSync(join(directory, 'proposal.json'))), provider: { engine: 'codex', command: ['explicit-persisted-test-fixture'], cwd: project, heartbeat_at: null, started_at: new Date().toISOString(), finished_at: new Date().toISOString(), exit_code: 0, signal: null, error: null } })
   return { directory, bundle, proposal, validation: join(directory, 'validation.json'), receipt: join(directory, 'receipt.json') }
 }

@@ -1,0 +1,94 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fixture, json, put, run, seed, sha, source } from './helpers.mjs'
+
+function validate(project, proposal, expected = 0) {
+  return run(['validate', project, proposal.directory, '--out', proposal.validation], expected)
+}
+
+test('validate compiles exact proposed CoHDL in isolated copy without source mutation', () => {
+  const project = fixture()
+  try {
+    const proposal = seed(project)
+    const result = validate(project, proposal)
+    assert.equal(result.decision, 'PASS')
+    const saved = json(proposal.validation)
+    assert.equal(saved.compiler.exit_code, 0)
+    assert.equal(saved.compiler.result.verdict, 'pass')
+    assert.notEqual(saved.compiler.cwd, project)
+    assert.equal(saved.before.find((f) => f.path === 'src/main.cohdl').sha256, sha(source))
+    assert.equal(saved.after.find((f) => f.path === 'src/main.cohdl').sha256, sha(source.replace('net N: a.A, b.A', 'net N: b.A, a.A')))
+    assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), source)
+    assert.equal(existsSync(saved.compiler.cwd), false, 'compiler scratch removed')
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+for (const mutation of ['source', 'document', 'new-source']) test(`validate rejects stale ${mutation} with persisted failure evidence`, () => {
+  const project = fixture()
+  try {
+    const proposal = seed(project)
+    const file = mutation === 'source' ? 'src/main.cohdl' : mutation === 'document' ? 'explorer/documents/evidence.md' : 'src/added.cohdl'
+    writeFileSync(join(project, file), mutation === 'source' ? source + '\n' : 'changed fixture')
+    const result = validate(project, proposal, 1)
+    assert.match(result.error, /stale/i)
+    assert.equal(json(proposal.validation).decision, 'FAIL')
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('validate retains real compiler failure diagnostics', () => {
+  const project = fixture()
+  try {
+    const proposal = seed(project, { change: { path: 'src/main.cohdl', before_sha256: sha(source), old: 'net N: a.A, b.A', new: 'net N: a.UNKNOWN, b.A' } })
+    validate(project, proposal, 1)
+    const result = json(proposal.validation)
+    assert.equal(result.decision, 'FAIL')
+    assert.equal(result.compiler.result.verdict, 'fail')
+    assert.ok(result.compiler.result.diagnostics.some((d) => d.severity === 'error'))
+    assert.ok(readFileSync(join(proposal.directory, 'compiler.stdout.log'), 'utf8').includes('UNKNOWN'))
+    assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), source)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('validate rejects changed provider bytes even when JSON remains valid', () => {
+  const project = fixture()
+  try {
+    const proposal = seed(project)
+    writeFileSync(join(proposal.directory, 'proposal.json'), readFileSync(join(proposal.directory, 'proposal.json'), 'utf8') + ' ')
+    assert.match(validate(project, proposal, 1).error, /hash|bytes/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+for (const invalid of ['path', 'line', 'hash', 'document', 'page']) test(`validate rejects unsupported citation ${invalid}`, () => {
+  const project = fixture()
+  try {
+    let citation = { document: null, page: null, section: null, source: { path: 'src/main.cohdl', line: 14, sha256: sha(source) } }
+    if (invalid === 'path') citation.source.path = '../outside.cohdl'
+    if (invalid === 'line') citation.source.line = 0
+    if (invalid === 'hash') citation.source.sha256 = '0'.repeat(64)
+    if (invalid === 'document') citation = { document: 'missing', page: null, section: null, source: null }
+    if (invalid === 'page') citation.page = 1
+    const proposal = seed(project, { citations: [citation] })
+    assert.match(validate(project, proposal, 1).error, /citation|source|document|page|path/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('native group proposal validates actual member rules and preserves registry targets', () => {
+  const project = fixture()
+  try {
+    const path = 'views/Board.view.json'
+    const before = readFileSync(join(project, path), 'utf8')
+    const next = json(join(project, path))
+    next.views.push({ name: 'Resistors', regions: [{ name: 'Pair', members: ['path:Board::a', 'path:Board::b'] }] })
+    const proposal = seed(project, { kind: 'group', change: { path, before_sha256: sha(before), old: before, new: JSON.stringify(next) } })
+    assert.equal(validate(project, proposal).decision, 'PASS')
+    next.views[0].regions[0].name = 'Removed old identity'
+    proposal.proposal.changes[0].new = JSON.stringify(next)
+    put(join(proposal.directory, 'proposal.json'), proposal.proposal)
+    const metadata = json(join(proposal.directory, 'run.json'))
+    metadata.proposal_sha256 = sha(readFileSync(join(proposal.directory, 'proposal.json')))
+    put(join(proposal.directory, 'run.json'), metadata)
+    assert.match(validate(project, proposal, 1).error, /group|applicability/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})

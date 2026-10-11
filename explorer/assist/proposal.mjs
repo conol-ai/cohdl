@@ -2,7 +2,7 @@ import { realpathSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { check, hash, load, object, read, relativePath, sha, text } from './io.mjs'
 import { validateCitations } from './citations.mjs'
-import { validateSelection } from './bundle.mjs'
+import { validateBundle } from './bundle.mjs'
 
 export function runPath(project, directory) {
   const root = realpathSync(project)
@@ -22,12 +22,7 @@ export function loadRun(project, directory) {
   check(metadata.provider?.engine === 'codex' && metadata.provider.finished_at && metadata.provider.exit_code === 0 && metadata.provider.error === null && metadata.provider.signal === null, 'Provider execution is not successful')
   const bundle = JSON.parse(text(bundleBytes))
   const proposal = JSON.parse(text(proposalBytes))
-  check(bundle.schema === 1 && bundle.project === location.root && bundle.model?.verdict === 'pass' && bundle.model.design === bundle.design && Array.isArray(bundle.sources), 'Invalid bound bundle')
-  validateSelection(bundle.selection, bundle.model, bundle.views)
-  for (const source of bundle.sources) {
-    check(typeof source.text === 'string' && sha(source.text) === source.sha256 && bundle.snapshot.some((s) => s.path === source.path && s.sha256 === source.sha256), 'Bundle source text/hash mismatch')
-    relativePath(source.path)
-  }
+  validateBundle(bundle, location.root)
   return { ...location, metadata, bundle, proposal }
 }
 

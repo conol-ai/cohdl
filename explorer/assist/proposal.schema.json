@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "kind", "title", "rationale", "uncertainty", "citations", "changes"],
+  "properties": {
+    "schema": {"type": "integer", "enum": [1]},
+    "kind": {"type": "string", "enum": ["group", "plan", "connect"]},
+    "title": {"type": "string"},
+    "rationale": {"type": "string"},
+    "uncertainty": {"type": "string"},
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["document", "page", "section", "source"],
+        "properties": {
+          "document": {"type": ["string", "null"]},
+          "page": {"type": ["integer", "null"]},
+          "section": {"type": ["string", "null"]},
+          "source": {
+            "anyOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "line", "sha256"],
+                "properties": {
+                  "path": {"type": "string"},
+                  "line": {"type": "integer"},
+                  "sha256": {"type": "string"}
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "before_sha256", "old", "new"],
+        "properties": {
+          "path": {"type": "string"},
+          "before_sha256": {"type": ["string", "null"]},
+          "old": {"type": "string"},
+          "new": {"type": "string"}
+        }
+      }
+    }
+  }
+}

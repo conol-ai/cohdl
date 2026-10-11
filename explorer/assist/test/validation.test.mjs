@@ -92,3 +92,22 @@ test('native group proposal validates actual member rules and preserves registry
     assert.match(validate(project, proposal, 1).error, /group|applicability/i)
   } finally { rmSync(project, { recursive: true, force: true }) }
 })
+
+test('document citation metadata cannot be promoted by tampering with the archived bundle', () => {
+  const project = fixture()
+  try {
+    const registryPath = join(project, 'explorer/documents.json')
+    const registry = json(registryPath)
+    registry.documents[0].review = 'unreviewed'
+    put(registryPath, registry)
+    const proposal = seed(project, { kind: 'plan', citations: [{ document: 'evidence', page: null, section: 'Fixture evidence', source: null }] })
+    const bundlePath = join(proposal.directory, 'bundle.json')
+    const bundle = json(bundlePath)
+    bundle.documents[0].review = 'reviewed'
+    put(bundlePath, bundle)
+    const metadata = json(join(proposal.directory, 'run.json'))
+    metadata.bundle_sha256 = sha(readFileSync(bundlePath))
+    put(join(proposal.directory, 'run.json'), metadata)
+    assert.match(validate(project, proposal, 1).error, /document|registry|bound|metadata/i)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})

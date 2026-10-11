@@ -1,4 +1,4 @@
-import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { createHash, randomUUID } from 'node:crypto'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
@@ -43,9 +43,16 @@ export function read(root, path, limit = JSON_LIMIT, missing = false) {
     fd = openSync(file, constants.O_RDONLY | constants.O_NOFOLLOW)
     const stat = fstatSync(fd)
     check(stat.isFile() && stat.size <= limit, `Input is not a bounded regular file: ${path}`)
-    const bytes = readFileSync(fd)
-    check(bytes.length <= limit, `Input grew beyond byte limit: ${path}`)
-    return bytes
+    const chunks = []
+    let size = 0
+    while (size <= limit) {
+      const chunk = Buffer.alloc(Math.min(65536, limit + 1 - size))
+      const count = readSync(fd, chunk, 0, chunk.length, null)
+      if (count === 0) return Buffer.concat(chunks, size)
+      size += count
+      check(size <= limit, `Input grew beyond byte limit: ${path}`)
+      chunks.push(chunk.subarray(0, count))
+    }
   } catch (error) {
     if (missing && error.code === 'ENOENT') return null
     throw error

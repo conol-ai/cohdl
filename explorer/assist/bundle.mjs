@@ -35,22 +35,54 @@ async function excerpts(project, document, applications, omissions, signal) {
   return JSON.parse(text(result.stdout))
 }
 
+function documentMetadata(source, applications, manifest) {
+  const actual = source.path === null ? null : manifest.find((s) => s.path === source.path)?.sha256 ?? null
+  const issues = []
+  if (source.review !== 'reviewed') issues.push(`Evidence is ${source.review}`)
+  if (applications.some((a) => a.relation !== 'exact')) issues.push('Related applicability is not exact proof')
+  if (!hash(source.sha256)) issues.push('Expected document hash is unknown')
+  const status = actual === null ? 'missing' : !hash(source.sha256) || source.sha256 !== actual ? 'changed' : 'ready'
+  return { id: source.id, title: source.title, kind: source.kind, path: source.path, revision: source.revision ?? null, sha256: source.sha256 ?? null, actual_sha256: actual, pages: source.pages ?? null, review: source.review, uncertainty: source.uncertainty ?? null, applicability: applications, status, issues }
+}
+
 async function documentContext(project, raw, selection, manifest, omissions, signal) {
   const documents = []
   for (const source of raw?.documents ?? []) {
     const applications = applicable(source.applicability ?? [], selection)
     if (!applications.length) continue
-    const actual = source.path === null ? null : manifest.find((s) => s.path === source.path)?.sha256 ?? null
-    const issues = []
-    if (source.review !== 'reviewed') issues.push(`Evidence is ${source.review}`)
-    if (applications.some((a) => a.relation !== 'exact')) issues.push('Related applicability is not exact proof')
-    if (!hash(source.sha256)) issues.push('Expected document hash is unknown')
-    const status = actual === null ? 'missing' : !hash(source.sha256) || source.sha256 !== actual ? 'changed' : 'ready'
-    const document = { id: source.id, title: source.title, kind: source.kind, path: source.path, revision: source.revision ?? null, sha256: source.sha256 ?? null, actual_sha256: actual, pages: source.pages ?? null, review: source.review, uncertainty: source.uncertainty ?? null, applicability: applications, status, issues, excerpts: [] }
-    if (status === 'ready') document.excerpts = await excerpts(project, document, applications, omissions, signal)
+    const document = { ...documentMetadata(source, applications, manifest), excerpts: [] }
+    if (document.status === 'ready') document.excerpts = await excerpts(project, document, applications, omissions, signal)
     documents.push(document)
   }
   return documents
+}
+
+export function validateBundle(bundle, root) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  check(object(bundle) && bundle.schema === 1 && bundle.project === root && bundle.model?.verdict === 'pass' && bundle.model.design === bundle.design, 'Invalid bound bundle')
+  validateSelection(bundle.selection, bundle.model, bundle.views)
+  check(Array.isArray(bundle.snapshot) && bundle.snapshot.length <= 2048 && Array.isArray(bundle.sources) && bundle.sources.length <= 2048, 'Invalid bounded bundle file sets')
+  const names = new Set()
+  for (const source of bundle.sources) {
+    check(!names.has(source.path) && typeof source.text === 'string' && sha(source.text) === source.sha256 && bundle.snapshot.some(s => s.path === source.path && s.sha256 === source.sha256), 'Bundle source text/hash mismatch')
+    names.add(source.path)
+  }
+  const parsed = path => {
+    const source = bundle.sources.find(s => s.path === path)
+    return source ? JSON.parse(source.text) : null
+  }
+  check(same(bundle.registry, parsed('explorer/documents.json')) && same(bundle.views, parsed(`views/${bundle.design}.view.json`)), 'Bundle registry/view metadata is not bound to exact source bytes')
+  const assets = new Set(bundle.registry?.documents.flatMap(d => d.path === null ? [] : [d.path]) ?? [])
+  const expected = bundle.snapshot.filter(s => s.sha256 !== null && !assets.has(s.path)).map(s => s.path).sort()
+  check(same([...names].sort(), expected), 'Bundle source set is incomplete')
+  const documents = []
+  for (const source of bundle.registry?.documents ?? []) {
+    const applications = applicable(source.applicability ?? [], bundle.selection)
+    if (applications.length) documents.push(documentMetadata(source, applications, bundle.snapshot))
+  }
+  check(Array.isArray(bundle.documents) && same(bundle.documents.map(({ excerpts, ...metadata }) => metadata), documents), 'Bundle document metadata differs from bound registry')
+  const constraints = (bundle.registry?.constraints ?? []).filter(c => applicable([{ instances: c.instances, groups: c.groups }], bundle.selection).length)
+  check(same(bundle.constraints, constraints), 'Bundle constraints differ from bound registry')
 }
 
 export async function prepare(project, selectionFile, outputFile, signal) {

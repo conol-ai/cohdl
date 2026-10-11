@@ -74,13 +74,17 @@ impl Server {
     }
 
     fn request(&self, path: &str) -> (u16, String, String) {
+        self.request_method("GET", path)
+    }
+
+    fn request_method(&self, method: &str, path: &str) -> (u16, String, String) {
         let mut stream = TcpStream::connect(("127.0.0.1", self.port)).unwrap();
         stream
             .set_read_timeout(Some(Duration::from_secs(3)))
             .unwrap();
         stream
             .write_all(
-                format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+                format!("{method} {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
                     .as_bytes(),
             )
             .unwrap();
@@ -145,6 +149,33 @@ impl Server {
 
 fn config(name: &str) -> Value {
     json!({"schema_version":1,"design":"Board","views":[{"name":name,"regions":[{"name":"Core","members":["R1","path:Board::source","agg:GND + V3V3","agg:host:Board::source"]}]}]})
+}
+
+#[test]
+fn native_project_identity_is_stable_private_and_separates_same_name_projects() {
+    let first = Server::start();
+    let second = Server::start();
+    let baseline = first.request("/api/model").2;
+    let response = first.request("/api/project");
+    assert_eq!(response.0, 200);
+    let identity: Value = serde_json::from_str(&response.2).unwrap();
+    let other: Value = serde_json::from_str(&second.request("/api/project").2).unwrap();
+    assert_eq!(identity["schema"], 1);
+    assert_eq!(identity["design"], "Board");
+    assert_eq!(identity["design"], other["design"]);
+    let canonical = first.root.join("project").canonicalize().unwrap();
+    assert_eq!(
+        identity["id"],
+        cohdl::hash::sha256_hex(canonical.as_os_str().as_encoded_bytes())
+    );
+    assert_ne!(identity["id"], other["id"]);
+    assert_eq!(response.2, first.request("/api/project").2);
+    assert_eq!(identity.as_object().unwrap().len(), 3);
+    assert!(!response.2.contains(first.root.to_str().unwrap()));
+    for method in ["POST", "PUT", "DELETE"] {
+        assert_eq!(first.request_method(method, "/api/project").0, 404);
+    }
+    assert_eq!(baseline, first.request("/api/model").2);
 }
 
 fn next_version(reader: &mut impl BufRead) -> u64 {

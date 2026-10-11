@@ -297,6 +297,31 @@ fn handle(
         return serve_view(&mut conn, project, dist, &path[1..]);
     }
     match path {
+        "/api/project" if method == "GET" => {
+            let Ok(root) = project.canonicalize() else {
+                return respond(
+                    &mut conn,
+                    404,
+                    "application/json",
+                    b"{\"error\":\"Project identity unavailable\"}",
+                );
+            };
+            let model: serde_json::Value =
+                serde_json::from_str(&state.lock().unwrap().model).unwrap();
+            let body = serde_json::json!({
+                "schema": 1,
+                "id": cohdl::hash::sha256_hex(root.as_os_str().as_encoded_bytes()),
+                "design": model["design"],
+            })
+            .to_string();
+            respond(&mut conn, 200, "application/json", body.as_bytes())
+        }
+        "/api/project" => respond(
+            &mut conn,
+            404,
+            "application/json",
+            b"{\"error\":\"Read-only project endpoint\"}",
+        ),
         "/api/model" => {
             let st = state.lock().unwrap();
             let body = match &st.error {

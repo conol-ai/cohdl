@@ -4,6 +4,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, wr
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fixture, json, put, run, seed, sha, source } from './helpers.mjs'
+import { JSON_LIMIT } from '../io.mjs'
 
 function validated(project, options) {
   const proposal = seed(project, options)
@@ -185,4 +186,27 @@ test('oversized reversible receipt is refused before source writes even when the
     assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), large)
     assert.equal(existsSync(p.receipt), false)
   } finally { rmSync(project, { recursive: true, force: true }) }
+})
+
+test('revert can consume the operation reserve already allocated before a boundary-sized apply', () => {
+  const baseline = fixture()
+  const project = fixture()
+  try {
+    const small = validated(baseline)
+    apply(baseline, small)
+    const padding = Math.floor((JSON_LIMIT - 65536 - readFileSync(small.receipt).length) / 2) + 5
+    const large = source + '// ' + 'x'.repeat(padding - 4) + '\n'
+    writeFileSync(join(project, 'src/main.cohdl'), large)
+    const p = validated(project, {
+      change: { path: 'src/main.cohdl', before_sha256: sha(large), old: 'net N: a.A, b.A', new: 'net N: b.A, a.A' },
+      citations: [{ document: null, page: null, section: null, source: { path: 'src/main.cohdl', line: 14, sha256: sha(large) } }],
+    })
+    apply(project, p)
+    assert.ok(readFileSync(p.receipt).length > JSON_LIMIT - 65536)
+    assert.equal(run(['revert', project, p.receipt]).revert.outcome, 'reverted')
+    assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), large)
+  } finally {
+    rmSync(baseline, { recursive: true, force: true })
+    rmSync(project, { recursive: true, force: true })
+  }
 })

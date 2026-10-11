@@ -104,7 +104,6 @@ export async function revert(project, receiptFile, signal) {
     })
     let expected = afterManifest(receipt.before, outstanding)
     fresh(project, run.bundle, expected)
-    receiptBudget(receipt)
     receipt.revert = { started_at: receipt.revert?.started_at ?? now(), finished_at: null, outcome: 'reverting', error: null }
     save(run.root, `${run.path}/receipt.json`, receipt)
     try {

@@ -23,7 +23,6 @@ import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
   BoundaryNode,
-  FootprintPreview,
   PartNode,
   RegionNode,
   detailedPins,
@@ -34,7 +33,7 @@ import { toPng } from 'html-to-image'
 import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope, type LayoutSide } from './boardGeometry'
-import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronDown, ChevronRight, FoldVertical, UnfoldVertical, X } from 'lucide-react'
+import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronDown, ChevronRight, FoldVertical, UnfoldVertical, Star, X } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
 import { netEndpoints, type InspectionContext } from './inspection'
@@ -43,7 +42,11 @@ import { useInspectionNavigation } from './useInspectionNavigation'
 import { InspectionLists } from './InspectionLists'
 import { useDocuments } from './useDocuments'
 import { ProvenanceInspector } from './ProvenanceInspector'
-import { SourceExcerpt } from './SourceExcerpt'
+import { PartDetails } from './PartDetails'
+import { useImportant } from './useImportant'
+import { partPresentation, sourcePartValues } from './partPresentation'
+import { bundleConnections } from './connectivity'
+import type { PinIdentity } from './PinTarget'
 import { useProposals } from './useProposals'
 import { ProposalReview } from './ProposalReview'
 import './App.css'
@@ -55,6 +58,10 @@ const edgeTypes = { lane: LaneEdge }
 export default function App() {
   const [model, setModel] = useState<ExplorerModel | null>(null)
   const documents = useDocuments(model)
+  const sourceValues = useMemo(() => sourcePartValues(documents.registry), [documents.registry])
+  const important = useImportant(model)
+  const [showImportant, setShowImportant] = useState(false)
+  const [bundleId, setBundleId] = useState('')
   const [graph, setGraph] = useState<Graph | null>(null)
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
@@ -80,7 +87,6 @@ export default function App() {
   const [issueFocus, setIssueFocus] = useState('')
   const issueFocusRef = useRef<HTMLDivElement>(null)
   useEffect(() => { if (issueFocus) issueFocusRef.current?.focus() }, [issueFocus])
-  const [photoUrl, setPhotoUrl] = useState<string>('')
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
   const [layoutFrame, setLayoutFrame] = useState<'board' | 'local'>('local')
@@ -118,10 +124,15 @@ export default function App() {
       setSel(context.selection); setSelectedPin(context.pin); setSelNet(context.net); setTab(context.tab)
       setLayoutFrame(context.layoutFrame); setLayoutSide(context.layoutSide)
       setJump({ selection: context.selection, net: context.net })
-      setQuery('')
+      setQuery(''); setBundleId('')
     } })
-  const navigateScope = (path: string | null, target?: { id?: string; net?: string }) => navigation.navigate({ scope: path,
-    ...(target ? { selection: target.id ? [target.id] : [], net: target.net ?? '', pin: '', viewport: null, boardViewport: null } : {}) })
+  const freshRange = (patch: Partial<InspectionContext>) => { setShowImportant(false); navigation.navigate({ ...patch, selection: [], pin: '', net: '', tab: 'circuit', viewport: null, boardViewport: null }) }
+  const navigateScope = (path: string | null, target?: { id?: string; net?: string }) => target
+    ? navigation.navigate({ scope: path, selection: target.id ? [target.id] : [], net: target.net ?? '', pin: '', viewport: null, boardViewport: null })
+    : freshRange({ scope: path })
+  const activatePin = useCallback((pin: PinIdentity) => {
+    setSel([pin.instance]); setSelectedPin(pin.pin); setSelNet(pin.net); setBundleId('')
+  }, [])
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
@@ -190,6 +201,7 @@ export default function App() {
   useEffect(() => {
     const h = (e: Event) => {
       setSel([])
+      setSelectedPin(''); setBundleId('')
       setSelNet((e as CustomEvent).detail as string)
     }
     window.addEventListener('explorer-select-net', h)
@@ -220,6 +232,9 @@ export default function App() {
     const union = projectGroupUnion(model, scope, scopedView, selectedGroups)
     return mode === 'layout' ? union : collapseGroups(model, union, fullView, collapsedGroups)
   }, [model, scope, scopedView, selectedGroups, fullView, collapsedGroups, mode])
+  const bundled = useMemo(() => model && projection ? bundleConnections(projection.graph, model) : null, [model, projection])
+  const displayGraph = selNet ? projection?.graph : bundled?.graph
+  const openBundle = useCallback((id: string) => { setBundleId(id); setSel([]); setSelectedPin('') }, [])
   useEffect(() => {
     const names = fullView?.regions?.regions ?? []
     setSelectedGroups((groups) => {
@@ -229,7 +244,7 @@ export default function App() {
   }, [fullView])
 
   useEffect(() => {
-    if (!model || !projection) return
+    if (!model || !projection || !displayGraph) return
     if (mode === 'layout') {
       setLayoutBusy(false)
       setGraph(null)
@@ -240,7 +255,13 @@ export default function App() {
     let cancelled = false
     setLayoutBusy(true)
     setErr('')
-    const gg = { ...projection.graph, nodes: projection.graph.nodes.map((n) => ({ ...n })) }
+    const neutral = !selNet
+    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })), edges: neutral ? displayGraph.edges : displayGraph.edges.filter(edge => edge.net === selNet || edge.nets.includes(selNet)) }
+    for (const node of gg.nodes) if (node.inst) {
+      const identity = partPresentation(node.inst, sourceValues.get(node.inst.path))
+      node.title = node.kind === 'passive' ? `${identity.reference} ${identity.value || identity.category}` : identity.title
+      node.sub = node.kind === 'passive' ? '' : identity.subtitle
+    }
     if (mode === 'sch')
       for (const n of gg.nodes) {
         const sz = detailedSize(n)
@@ -251,8 +272,10 @@ export default function App() {
       if (n.id.startsWith('group:')) { n.width = 240; n.height = 94 }
     }
     setGraph(gg)
-    const layoutRegions = projection.regions
-    layout(gg, layoutRegions, { compact: mode === 'overview' }).then(({ positions, regionBoxes }) => {
+    const layoutRegions = mode === 'overview' && gg.nodes.every(n => n.id.startsWith('group:') || n.kind === 'net') ? undefined : projection.regions
+    const canvas = canvasRef.current?.getBoundingClientRect()
+    const mobileOverview = mode === 'overview' && !layoutRegions && gg.nodes.length > 8 && !!canvas && canvas.width < 640
+    layout(gg, layoutRegions, { compact: mode === 'overview', aspectRatio: canvas?.height ? canvas.width / canvas.height : 1.6, columns: mobileOverview ? 2 : undefined }).then(({ positions, regionBoxes, edgeRoutes }) => {
       if (cancelled) return
       const intent = jump !== handledJump.current ? jump : null
       const target = intent?.id
@@ -341,7 +364,7 @@ export default function App() {
           ...(n.ports || (mode === 'sch' && n.kind === 'ic')
             ? {}
             : {
-                handles: n.kind === 'passive' ? passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => ({
+                handles: !neutral && n.kind === 'passive' ? passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => ({
                   id: p.id, type, position: p.side === 'left' ? Position.Left : Position.Right,
                   x: p.x, y: p.y, width: 4, height: 4,
                 }))) : [
@@ -350,10 +373,11 @@ export default function App() {
                 ],
               }),
           position: positions.get(n.id) ?? { x: 0, y: 0 },
+          draggable: !neutral,
           ...(layoutRegions
             ? { parentId: `region:${layoutRegions.byNode.get(n.id) ?? 'Other'}`, extent: 'parent' as const }
             : {}),
-          data: { g: n, dim: false, hl: false, dark, compact: mode === 'overview' && n.id.startsWith('group:'), pinOrder: orderByNode[n.id] },
+          data: { g: n, dim: false, hl: false, dark, neutral, traceNet: selNet, compact: mode === 'overview' && n.id.startsWith('group:'), pinOrder: orderByNode[n.id], onPin: activatePin, onBundle: openBundle, marked: important.marks.has(n.id) || !!n.aggMembers?.some(p => important.marks.has(p)) },
           selected: preset.some((p) => (gg.location.get(p) ?? p) === n.id),
         })),
       ])
@@ -396,12 +420,12 @@ export default function App() {
       )
       setEdges(
         gg.edges.map((e, i) => {
-          const wire = e.dashed ? (dark ? '#4b5563' : '#94a3b8') : netWireColor(e.net, dark)
+          const wire = neutral ? (dark ? '#9ca3af' : '#94a3b8') : e.dashed ? (dark ? '#4b5563' : '#94a3b8') : netWireColor(e.net, dark)
           return {
             id: e.id,
             source: e.source,
             target: e.target,
-            ...wireHandles(e, nodesById, mode === 'sch'),
+            ...(!neutral ? wireHandles(e, nodesById, mode === 'sch') : {}),
             label: e.label,
             type: 'lane',
             data: {
@@ -415,6 +439,7 @@ export default function App() {
               sBot: bottomOf.get(e.source),
               tBot: bottomOf.get(e.target),
               labelBg: dark ? '#111318d9' : '#ffffffd9',
+              ...(neutral && bundled?.bundles.has(e.id) ? { bundleId: e.id, onBundle: openBundle, route: edgeRoutes.get(e.id) } : {}),
             },
             style: {
               stroke: wire,
@@ -437,15 +462,20 @@ export default function App() {
         return { x: p.x + (region?.x ?? 0), y: p.y + (region?.y ?? 0), width: n.width, height: n.height }
       })
       const targets = new Set(intent?.locate ? (intent.id ? [intent.id] : allNets.find((n) => n.name === intent.net)?.members.map((m) => m.instance_path) ?? []).map((p) => gg.location.get(p) ?? p) : [])
+      if (intent?.locate && intent.net && !intent.id) for (const edge of gg.edges) { targets.add(edge.source); targets.add(edge.target) }
       const targetBounds = boundsOfRects(boxes.filter((_, index) => targets.has(gg.nodes[index].id)))
       boxes.push(...regionBoxes.values())
-      setBounds(boundsOfRects(boxes), cameraGeneration, targetBounds)
+      setBounds(boundsOfRects(boxes), cameraGeneration, targetBounds, mobileOverview && !targetBounds)
       setLayoutBusy(false)
     }).catch((e) => {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, projection, mode, jump, setBounds, allNets, cameraGeneration])
+  }, [model, projection, displayGraph, selNet, mode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues])
+
+  useEffect(() => {
+    setNodes(current => current.map(node => ({ ...node, data: { ...node.data, marked: important.marks.has(node.id) || !!(node.data.g as GNode | undefined)?.aggMembers?.some(p => important.marks.has(p)) } })))
+  }, [important.marks])
 
   // Focus paths (multi-select) + net highlight
   useEffect(() => {
@@ -466,6 +496,7 @@ export default function App() {
     setNodes((ns) =>
       ns.map((n) => ({
         ...n,
+        selected: sel.some(path => (graph.location.get(path) ?? path) === n.id),
         data: {
           ...n.data,
           // A selected net dims everything off it, so its members pop.
@@ -523,6 +554,7 @@ export default function App() {
     )
     setSel([])
     setSelNet('')
+    setSelectedPin(''); setBundleId('')
     setQuery('')
     setMoved(false)
     fit()
@@ -555,20 +587,6 @@ export default function App() {
     return selNode.aggMembers.map((p) => byPath.get(p)).filter((i): i is Instance => !!i)
   }, [selNode, model])
 
-  // Probe part photo quietly (fetch 404s don't spam the console like <img> does).
-  useEffect(() => {
-    setPhotoUrl('')
-    const mpn = selInst?.part?.mpn
-    if (!mpn) return
-    let alive = true
-    const url = `/api/photo?mpn=${encodeURIComponent(mpn)}`
-    fetch(url).then((r) => {
-      if (alive && r.ok) setPhotoUrl(url)
-    }).catch(() => {})
-    return () => {
-      alive = false
-    }
-  }, [selInst])
 
   const selNetObj: Net | undefined = useMemo(
     () => (selNet ? allNets.find((n) => n.name === selNet) : undefined),
@@ -586,18 +604,9 @@ export default function App() {
     navigation.navigate({ scope: null, groups: [], collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null, layoutSide: 'both' })
   }
   const toggleGroup = (name: string) => {
-    navigation.navigate({ scope: null, groups: selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name], viewport: null, boardViewport: null })
+    const groups = selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name]
+    freshRange({ scope: null, groups, collapsed: groups.length ? collapsedGroups.filter(g => !groups.includes(g)) : fullView?.regions?.regions ?? [] })
   }
-
-  /** Selected instance's logical pin -> net, for the clickable pin table. */
-  const pinNetOf = useMemo(() => {
-    const m = new Map<string, string>()
-    if (!selInst || !model) return m
-    for (const n of model.nets)
-      for (const mem of n.members)
-        if (mem.instance_path === selInst.path) m.set(mem.logical_pin, n.name)
-    return m
-  }, [selInst, model])
 
   const locateTarget = (hit: SearchHit) => {
     if (!model) return
@@ -785,14 +794,16 @@ export default function App() {
             >
               <RotateCcw size={16} />
             </button>}
-            {chip('Overview', mode === 'overview', () => navigation.navigate({ mode: 'overview' }))}
-            {chip('SCH view', mode === 'sch', () => navigation.navigate({ mode: 'sch' }))}
-            {chip('Layout', mode === 'layout', () => navigation.navigate({ mode: 'layout' }), '#047857')}
+            {chip('Overview', mode === 'overview', () => freshRange({ mode: 'overview' }))}
+            {chip('SCH view', mode === 'sch', () => freshRange({ mode: 'sch' }))}
+            {chip('Layout', mode === 'layout', () => freshRange({ mode: 'layout' }), '#047857')}
             {viewCfg && mode !== 'layout' &&
-              ['', ...viewCfg.views.map((v) => v.name)].map((v) =>
-                chip(v || 'No regions', activeView === v, () => navigation.navigate({ view: v }), '#0e7490'),
+              ['', ...viewCfg.views.filter(v => v.name !== 'Source pages').map((v) => v.name)].map((v) =>
+                chip(v || 'No regions', activeView === v, () => freshRange({ view: v, groups: [], collapsed: mode === 'overview' ? viewCfg.views.find(view => view.name === v)?.regions.map(r => r.name) ?? [] : [] }), '#0e7490'),
               )}
           </div>
+          <button className="context-command" aria-pressed={showImportant} onClick={() => setShowImportant(v => !v)}><Star size={14} />Important ({important.marks.size})</button>
+          {selNet && <button className="context-command" onClick={() => { setSelNet(''); setSelectedPin(''); setBundleId('') }}><X size={14} />Clear trace</button>}
           {shareError && <input aria-label="Inspection link" readOnly value={shareError} onFocus={(e) => e.target.select()} style={{ width: '100%' }} />}
           <div className="inspection-tabs" role="tablist" aria-label="Inspection views">
             {(['circuit', 'bom', 'issues', 'proposals'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
@@ -825,14 +836,14 @@ export default function App() {
           {viewDef && <fieldset className="group-selector">
             <legend>Groups {mode !== 'layout' && <span className="group-bulk-tools">
               <button className="collapse-tool" title="Collapse all groups" aria-label="Collapse all groups" disabled={fullView?.regions?.regions.every((g) => collapsedGroups.includes(g))}
-                onClick={() => navigation.navigate({ collapsed: fullView?.regions?.regions ?? [], viewport: null })}><FoldVertical size={14} /></button>
+                onClick={() => freshRange({ collapsed: fullView?.regions?.regions ?? [] })}><FoldVertical size={14} /></button>
               <button className="collapse-tool" title="Expand all groups" aria-label="Expand all groups" disabled={!collapsedGroups.length}
-                onClick={() => navigation.navigate({ collapsed: [], viewport: null })}><UnfoldVertical size={14} /></button>
+                onClick={() => freshRange({ collapsed: [] })}><UnfoldVertical size={14} /></button>
             </span>}</legend>
             {(fullView?.regions?.regions ?? []).map((name) => <span className="group-control" key={name}><label>
               <input type="checkbox" checked={selectedGroups.includes(name)} onChange={() => toggleGroup(name)} />{name}
             </label>{mode !== 'layout' && <button className="collapse-tool" aria-label={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} title={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} aria-expanded={!collapsedGroups.includes(name)}
-              onClick={() => navigation.navigate({ collapsed: collapsedGroups.includes(name) ? collapsedGroups.filter((g) => g !== name) : [...collapsedGroups, name], viewport: null })}>
+              onClick={() => freshRange({ collapsed: collapsedGroups.includes(name) ? collapsedGroups.filter((g) => g !== name) : [...collapsedGroups, name] })}>
               {collapsedGroups.includes(name) ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>}</span>)}
           </fieldset>}
           <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
@@ -853,12 +864,13 @@ export default function App() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
-          onNodeClick={() => { setSelNet(''); setSelectedPin('') }}
+          onNodeClick={(_, node) => { if (node.id.startsWith('bundle:')) { openBundle(node.id); return }; setSelNet(''); setSelectedPin(''); setBundleId('') }}
           onNodeDoubleClick={(_, n) => {
             const subdesign = (n.data.g as GNode | undefined)?.subdesign
             if (subdesign) navigateScope(subdesign.path)
           }}
           onEdgeClick={(_, e) => {
+            if (e.data?.bundleId) { openBundle(String(e.data.bundleId)); return }
             if (!(e.data?.dashed as boolean)) {
               setSel([])
               setSelNet((e.data?.net as string) ?? '')
@@ -884,7 +896,7 @@ export default function App() {
         </div>}
         </div>
       </main>
-      {(tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign || evidenceGroups.length > 0) && (
+      {(showImportant || bundleId || tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
         <div
           className="explorer-inspector"
           style={{
@@ -896,6 +908,13 @@ export default function App() {
             color: panelFg,
           }}
         >
+          {showImportant && <section className="important-list" aria-label="Important parts"><div className="part-heading"><h3>Important</h3><button className="icon-tool" aria-label="Close important parts" onClick={() => setShowImportant(false)}><X size={16} /></button></div>
+            {!important.marks.size && <p>No important parts</p>}
+            {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); return instance && <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: partPresentation(instance).title, sub: path })}>{partPresentation(instance).title}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}
+          </section>}
+          {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
+            {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { navigation.navigate({ selection: [], pin: '', net: net.name, viewport: null, boardViewport: null }); setJump({ net: net.name, locate: true }) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
+          </section>}
           {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
             const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
             if (target) locateTarget({ kind: 'part', id: target.path, label: target.designator ?? target.path, sub: target.path })
@@ -907,7 +926,7 @@ export default function App() {
               else setIssueFocus(`${issue.span?.file}:${issue.span?.line}:${issue.span?.col} · ${issue.message} · No component is declared at this source location`)
             }
           }} /></> : <>
-          {!selInst && evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
+          {selNode && !selInst && evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
           {inspectedSubdesign && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
@@ -987,151 +1006,16 @@ export default function App() {
               </div>
             </>
           )}
-          {selInst && (
-            <>
-              {photoUrl && (
-                <img src={photoUrl} style={{ width: '100%', borderRadius: 8, marginBottom: 8 }} />
-              )}
-              <h3 style={{ margin: '0 0 4px' }}>
-                {selInst.designator} {shortName(selInst.device_fq)}
-              </h3>
-              <div style={{ color: '#6b7280' }}>{selInst.device_fq}</div>
-              <div style={{ margin: '4px 0', overflowWrap: 'anywhere' }}>{selInst.path}</div>
-              <SourceExcerpt key={selInst.path} span={selInst.span} />
-              <ProvenanceInspector resource={documents} instance={selInst.path} view={activeView} groups={selectedGroups} />
-              <div style={{ margin: '8px 0', padding: 8, borderRadius: 6, background: dark ? '#102c29' : '#ecfdf5' }}>
-                <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
-                {selectedPlacement ? <>
-                  <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm</div>
-                  <div>{selectedPlacement.rotate}° · {selectedPlacement.side} side</div>
-                </> : <div>{localPlacementView ? 'No placement in this local frame' : model.layout === undefined ? 'Layout data unavailable in this snapshot' : 'No resolved board placement'}</div>}
-                {localPlacementView && <div style={{ marginTop: 4, color: '#9ca3af' }}>{selectedBoardPlacement ? 'Board placement available in Board coordinates' : 'Not yet placed on the board'}</div>}
-                {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
-                  navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
-                  setJump({ id: selInst.path, net: selNet })
-                }}>Show in layout</button>}
-              </div>
-              {ownerScope(model, selInst.path) && <button onClick={() => navigateScope(ownerScope(model, selInst.path), { id: selInst.path })}>Open containing subdesign</button>}
-              {selInst.part && (
-                <div style={{ margin: '6px 0' }}>
-                  <b>{selInst.part.mfr || 'Manufacturer unspecified'}</b> {selInst.part.mpn || 'MPN unspecified'}
-                  {selInst.part.footprint && (
-                    <div style={{ color: '#6b7280' }}>{shortName(selInst.part.footprint)}</div>
-                  )}
-                  {selInst.part.footprint && model.footprints?.[selInst.part.footprint] && (
-                    <>
-                      <FootprintPreview geo={model.footprints[selInst.part.footprint]} dark={dark} />
-                      <div style={{ color: '#6b7280', fontSize: 10 }}>
-                        {model.footprints[selInst.part.footprint].pads.length} pads
-                        {(() => {
-                          const c = model.footprints[selInst.part.footprint].courtyard
-                          return c && c.size.length >= 2 ? ` · courtyard ${c.size[0]} × ${c.size[1]} mm` : ''
-                        })()}
-                        {model.footprints[selInst.part.footprint].pads.some((p) => p.pth)
-                          ? ' · through-hole'
-                          : ' · SMD'}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-              {selInst.impl_traits.length > 0 && (
-                <div style={{ color: '#6b7280', fontSize: 11 }}>
-                  {selInst.impl_traits.map(shortName).join(' · ')}
-                </div>
-              )}
-              {selInst.specs.length > 0 && (
-                <div style={{ marginTop: 4 }}>
-                  {selInst.specs.map((s) => `${s.name} = ${s.value}`).join(' · ')}
-                </div>
-              )}
-              {selInst.placement_hint && (
-                <div style={{ marginTop: 4, color: '#0e7490' }}>📍 {selInst.placement_hint}</div>
-              )}
-              <div style={{ color: '#6b7280', margin: '6px 0' }}>
-                source {selInst.span.file}:{selInst.span.line}
-              </div>
-              {selInst.docs
-                .filter((d) => /\.(png|jpe?g|webp|gif)$/i.test(d.name))
-                .map((d) => (
-                  <img
-                    key={d.name}
-                    src={`/api/file?p=${encodeURIComponent(d.abs)}`}
-                    style={{ width: '100%', borderRadius: 8, margin: '6px 0' }}
-                  />
-                ))}
-              {selInst.docs
-                .filter((d) => /\.pdf$/i.test(d.name))
-                .map((d) => (
-                  <div key={d.name}>
-                    <a
-                      href={`/api/file?p=${encodeURIComponent(d.abs)}`}
-                      target="_blank"
-                      style={{ color: '#2563eb' }}
-                    >
-                      📄 {d.name.split('/').pop()} ↗
-                    </a>
-                  </div>
-                ))}
-              {selInst.part?.mpn && (
-                <div style={{ margin: '6px 0', display: 'flex', gap: 10 }}>
-                  <a
-                    href={`https://www.google.com/search?q=${encodeURIComponent(selInst.part.mpn + ' datasheet')}`}
-                    target="_blank"
-                    style={{ color: '#0ea5e9' }}
-                  >
-                    Datasheet ↗
-                  </a>
-                  <a
-                    href={`https://octopart.com/search?q=${encodeURIComponent(selInst.part.mpn)}`}
-                    target="_blank"
-                    style={{ color: '#0ea5e9' }}
-                  >
-                    Octopart ↗
-                  </a>
-                </div>
-              )}
-              <table style={{ borderCollapse: 'collapse', marginTop: 2, width: '100%' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th>pin</th>
-                    <th>#</th>
-                    <th>net</th>
-                    <th>state</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selInst.pins.map((p) => {
-                    const net = pinNetOf.get(p.logical)
-                    const on = !!net && net === selNet
-                    return (
-                      <tr
-                        key={p.logical}
-                        data-pin={p.logical}
-                        data-selected={selectedPin === p.logical}
-                        style={{
-                          borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}`,
-                          cursor: net ? 'pointer' : 'default',
-                          background: on || selectedPin === p.logical ? '#22d3ee22' : undefined,
-                          color: on ? '#22d3ee' : undefined,
-                          fontWeight: on ? 700 : 400,
-                        }}
-                      >
-                        <td><button className="locate-link" aria-pressed={selectedPin === p.logical} onClick={() => { setSelectedPin(p.logical); setSelNet(net && !on ? net : '') }}>{p.logical}</button></td>
-                        <td>{p.numbers.join(',')}</td>
-                        <td style={{ color: on ? '#22d3ee' : net ? netWireColor(net, dark) : '#6b7280' }}>
-                          {net ?? '—'}
-                        </td>
-                        <td style={{ color: on ? '#22d3ee' : p.connected ? '#10b981' : p.nc ? '#9ca3af' : '#d97706' }}>
-                          {p.connected ? 'wired' : p.nc ? 'nc' : 'unused'}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </>
-          )}
+          {selInst && <PartDetails model={model} instance={selInst} dark={dark} resource={documents} view={activeView} groups={selectedGroups}
+            visible={projection?.represented ?? new Set()} selectedPin={selectedPin} selectedNet={selNet} marked={important.marks.has(selInst.path)}
+            onMark={() => important.toggle(selInst.path)} onPin={activatePin} placement={<div className="part-placement">
+              <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
+              {selectedPlacement ? <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm · {selectedPlacement.rotate}° · {selectedPlacement.side}</div> : <div>No resolved placement</div>}
+              {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
+                navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
+                setJump({ id: selInst.path, net: selNet })
+              }}>Show in layout</button>}
+            </div>} />}
           {selNetObj && (
             <>
               <h3
@@ -1165,7 +1049,7 @@ export default function App() {
                         <td>
                           <button disabled={layoutBusy} onClick={() => followEndpoint(m.instance_path)} title={m.instance_path} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', fontWeight: 700 }}>{inst?.designator ?? shortName(m.instance_path)}</button>{' '}
                           <span style={{ color: '#6b7280' }}>
-                            {inst ? shortName(inst.device_fq) : ''}
+                            {inst ? partPresentation(inst, sourceValues.get(inst.path)).value || partPresentation(inst).category : ''}
                           </span>
                         </td>
                         <td>{m.logical_pin}</td>

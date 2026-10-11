@@ -32,7 +32,8 @@ function Evidence({ document, applicability }: { document: DocumentRecord; appli
 
 export function ProvenanceInspector({ resource, instance, view, groups }: { resource: DocumentResource; instance?: string; view: string; groups: string[] }) {
   const matches = (instances: string[], targets: { view: string; region: string }[]) => applies(instances, targets, instance, view, groups)
-  const documents = resource.registry?.documents.map(document => ({ document, applicability: document.applicability.filter(a => matches(a.instances, a.groups)) })).filter(d => d.applicability.length) ?? []
+  const originals = new Set(['original-schematic', 'original-pcb'])
+  const documents = resource.registry?.documents.filter(document => !originals.has(document.id)).map(document => ({ document, applicability: document.applicability.filter(a => matches(a.instances, a.groups)) })).filter(d => d.applicability.length) ?? []
   const constraints = resource.registry?.constraints.filter(c => matches(c.instances, c.groups)) ?? []
   return <section className="provenance-inspector" aria-label="Source evidence" aria-busy={resource.loading}>
     <div className="provenance-heading"><h3>Source evidence</h3><button type="button" className="icon-tool" aria-label="Refresh source evidence" title="Refresh source evidence" onClick={resource.refresh}><RefreshCw size={14} /></button></div>
@@ -44,7 +45,7 @@ export function ProvenanceInspector({ resource, instance, view, groups }: { reso
         <p>{constraint.text}</p>
         {constraint.uncertainty && <p className="document-uncertainty">{constraint.uncertainty}</p>}
         {constraint.issues.map((issue, i) => <div key={i} className="document-issue">{issue}</div>)}
-        {constraint.citations.map((citation, i) => <CitationLink key={i} document={resource.registry?.documents.find(d => d.id === citation.document)} citation={citation} />)}
+        {constraint.citations.filter(citation => !originals.has(citation.document)).map((citation, i) => <CitationLink key={i} document={resource.registry?.documents.find(d => d.id === citation.document)} citation={citation} />)}
       </div>)}
     </>}
   </section>

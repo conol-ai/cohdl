@@ -10,6 +10,7 @@
 import type { ExplorerModel, Instance, Net, Subdesign, SubdesignPort } from './model'
 import { shortName } from './model'
 import { projectScope } from './hierarchy'
+import { partPresentation } from './partPresentation'
 
 export interface GNode {
   id: string
@@ -104,14 +105,8 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', 
     const nets = instNets.get(i.path) ?? []
     const rails = nets.filter((n) => railSet.has(n))
     const connected = i.pins.filter((p) => p.connected).length
-    const val = spec(i, 'resistance') ?? spec(i, 'capacitance') ?? spec(i, 'inductance')
-    // Minis show "R16 100kohm" — one uniform compact style for every
-    // passive; the full device/MPN lives in the sidebar.
-    const title =
-      kind === 'passive'
-        ? `${i.designator ?? ''} ${val ?? shortName(i.device_fq)}`.trim()
-        : `${i.designator ?? ''} ${shortName(i.device_fq)}`.trim()
-    const subBits = kind === 'passive' ? [] : [i.part?.mpn, val].filter(Boolean)
+    const identity = partPresentation(i)
+    const title = kind === 'passive' ? `${identity.reference} ${identity.value || identity.category}` : identity.title
     const h = kind === 'ic' ? Math.max(54, 38 + Math.min(connected, 12) * 5) : kind === 'passive' ? 26 : 42
     const w =
       kind === 'ic'
@@ -123,7 +118,7 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', 
       id: i.path,
       kind,
       title,
-      sub: subBits.join(' · '),
+      sub: kind === 'passive' ? '' : identity.subtitle,
       railTags: rails,
       netLabels: [],
       decors: [],

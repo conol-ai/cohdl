@@ -31,6 +31,32 @@ html, body, #root { margin: 0; width: 100%; height: 100%; }
 .explorer-inspector table { table-layout: fixed; }
 .explorer-inspector td, .explorer-inspector th { overflow-wrap: anywhere; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #0891b2; outline-offset: 2px; }
+.pin-target { cursor: pointer; }
+.pin-target:hover, .pin-target:focus-visible { outline: 1px solid #0891b2; outline-offset: -1px; background: #0891b222; }
+.pin-target[data-selected=true] { background: #0891b222; }
+.node-important { position: absolute; top: 3px; right: 3px; color: #ca8a04; pointer-events: none; }
+.part-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.part-heading h3 { margin: 0 0 6px; font-size: 16px; }
+.explorer-inspector .icon-tool { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+.important-toggle[aria-pressed=true], .important-item .icon-tool { color: #a16207; }
+.part-footprint { margin: 6px 0 10px; color: #6b7280; font-size: 10px; }
+.part-footprint svg { display: block; width: 100%; height: 120px; }
+.part-value { font-size: 15px; font-weight: 600; margin: 6px 0; }
+.part-facts { margin: 6px 0; }
+.part-facts div { display: flex; gap: 10px; }
+.part-facts dt { color: #6b7280; }
+.part-facts dd { margin: 0; }
+.part-details h4 { margin: 12px 0 5px; font-size: 12px; }
+.pin-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+.pin-table th { text-align: left; color: #6b7280; }
+.pin-table td { border-top: 1px solid #9ca3af33; padding: 5px 2px; }
+.pin-table th:nth-child(1) { width: 22%; }.pin-table th:nth-child(2) { width: 12%; }.pin-table th:nth-child(3) { width: 34%; }.pin-table th:nth-child(4) { width: 32%; }
+.part-technical, .part-datasheets { margin-top: 12px; }
+.part-technical > div { margin-top: 5px; }
+.important-list, .bundle-inspector { border-bottom: 1px solid #9ca3af55; padding-bottom: 10px; margin-bottom: 12px; }
+.important-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 5px 0; }
+.bundle-network { display: block; text-align: left; width: 100%; border: 0; border-bottom: 1px solid #9ca3af44; padding: 8px 0; background: transparent; color: inherit; cursor: pointer; }
+.bundle-network span { display: block; color: #6b7280; font-size: 10px; margin-top: 3px; }
 @media (max-width: 680px) {
   .explorer-app { flex-direction: column; }
   .explorer-toolbar { max-height: 34dvh; padding: 6px 8px; }

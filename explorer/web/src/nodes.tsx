@@ -9,6 +9,12 @@ import type { GNode } from './transform'
 import { netWireColor, railColor, selectNet } from './palette'
 import { passiveTerminals } from './handles'
 import { transformPoint, svgMatrix } from './boardGeometry'
+import { PinTarget, type PinIdentity } from './PinTarget'
+import { partPresentation } from './partPresentation'
+import { Star } from 'lucide-react'
+
+function Mark({ marked }: { marked: unknown }) { return marked ? <Star className="node-important" size={13} fill="currentColor" aria-label="Important" /> : null }
+function CenterHandles() { return <><Handle type="target" position={Position.Left} style={{ opacity: 0 }} /><Handle type="source" position={Position.Right} style={{ opacity: 0 }} /></> }
 
 /** Logical boundaries have named Pin ports and no physical pin numbers. */
 export function BoundaryNode({ id, data, selected }: NodeProps) {
@@ -20,17 +26,20 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
   const compact = !!data.compact
   return (
     <div style={{
+      position: 'relative',
       width: n.width, height: n.height, boxSizing: 'border-box',
-      border: `2px ${n.kind === 'port' ? 'dashed' : 'solid'} ${selected ? '#f59e0b' : data.hl ? '#22d3ee' : '#8b5cf6'}`,
-      borderRadius: 8, background: dark ? '#22202f' : '#f5f3ff',
-      color: dark ? '#ede9fe' : '#4c1d95', opacity: data.dim ? 0.18 : 1,
+      border: `2px ${n.kind === 'port' ? 'dashed' : 'solid'} ${selected ? '#f59e0b' : data.hl ? '#22d3ee' : '#64748b'}`,
+      borderRadius: 6, background: dark ? '#22262e' : '#ffffff',
+      color: dark ? '#e5e7eb' : '#1f2937', opacity: data.dim ? 0.18 : 1,
     }}>
-      <div title={n.title} style={{ padding: '6px 10px', fontSize: compact ? 20 : 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <Mark marked={data.marked} />
+      {!!data.neutral && <CenterHandles />}
+      <div title={n.title} style={{ padding: compact ? '4px 10px' : '6px 10px', fontSize: compact ? 22 : 12, lineHeight: compact ? '22px' : undefined, fontWeight: 700, overflow: 'hidden', overflowWrap: 'anywhere', whiteSpace: compact ? 'normal' : 'nowrap' }}>
         {n.title}{n.kind === 'subdesign' && ' ↗'}
-        <div style={{ fontSize: compact ? 14 : 10, fontWeight: 400, color: dark ? '#c4b5fd' : '#7c3aed' }}>{n.sub}</div>
+        <div style={{ fontSize: compact ? 14 : 10, lineHeight: compact ? '16px' : undefined, fontWeight: 400, color: dark ? '#9ca3af' : '#6b7280' }}>{n.sub}</div>
       </div>
-      {compact && <div style={{ padding: '0 10px', fontSize: 13 }}>{new Set(n.ports?.map((p) => p.net)).size} boundary nets · {n.ports?.length ?? 0} logical pins</div>}
-      {(n.ports ?? []).map((p, index) => (
+      {compact && <div style={{ padding: '0 10px', fontSize: 12, lineHeight: '14px' }}>{new Set(n.ports?.map((p) => p.net)).size} networks</div>}
+      {(compact ? data.neutral ? [] : (n.ports ?? []).filter(p => p.net === data.traceNet) : n.ports ?? []).map((p, index) => (
         <div key={p.name} role={!compact && p.net ? 'button' : undefined} tabIndex={!compact && p.net ? 0 : undefined} title={p.member ? `${p.member.instance_path}.${p.member.logical_pin} (${p.member.numbers.join(', ')}) · ${p.net}` : p.name}
           onKeyDown={(e) => { if (p.net && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectNet(p.net) } }} onClick={() => p.net && selectNet(p.net)} style={{
           position: 'absolute', top: compact ? 56 + (index + 0.5) * 28 / (n.ports?.length || 1) : 46 + index * 18, left: 0, right: 0,
@@ -39,12 +48,12 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
           cursor: p.net ? 'pointer' : 'default',
           display: 'flex', justifyContent: 'space-between', gap: 12,
         }}>
-          <Handle id={`p:${p.name}`} type="target" position={Position.Left} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
+          {!data.neutral && <Handle id={`p:${p.name}`} type="target" position={Position.Left} style={{ width: 5, height: 5, background: '#8b5cf6' }} />}
           {!compact && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.member ? `${shortName(p.member.instance_path)}.${p.member.logical_pin} (${p.member.numbers.join(', ')})` : p.name}{p.obligation === 'required' ? ' *' : ''}</span>}
           {!compact && <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {p.net ?? 'open'}
           </span>}
-          <Handle id={`p:${p.name}`} type="source" position={Position.Right} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
+          {!data.neutral && <Handle id={`p:${p.name}`} type="source" position={Position.Right} style={{ width: 5, height: 5, background: '#8b5cf6' }} />}
         </div>
       ))}
     </div>
@@ -57,16 +66,18 @@ export function PartNode({ id, data, selected }: NodeProps) {
   useLayoutEffect(() => { updateInternals(id) }, [id, n, updateInternals])
   const dark = data.dark as boolean
   if (n.kind === 'net') {
-    const c = netWireColor(n.title, dark)
+    const c = data.neutral ? (dark ? '#9ca3af' : '#64748b') : netWireColor(n.title, dark)
     return (
       <div
-        onClick={() => selectNet(n.title)}
+        role="button" tabIndex={0} aria-label={n.id.startsWith('bundle:') ? `Open ${n.title} bundle` : n.title}
+        onClick={(e) => { e.stopPropagation(); n.id.startsWith('bundle:') ? (data.onBundle as (id: string) => void)?.(n.id) : selectNet(n.title) }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); n.id.startsWith('bundle:') ? (data.onBundle as (id: string) => void)?.(n.id) : selectNet(n.title) } }}
         style={{
           width: n.width, height: n.height, borderRadius: 11,
           border: `1.5px solid ${c}`, color: c, cursor: 'pointer',
           background: dark ? '#181c22' : '#fff',
           opacity: data.dim ? 0.25 : 1,
-          fontSize: 9.5, fontWeight: 700, display: 'flex',
+          fontSize: data.neutral ? 20 : 9.5, fontWeight: 700, display: 'flex',
           alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
         }}
       >
@@ -87,6 +98,7 @@ export function PartNode({ id, data, selected }: NodeProps) {
       <div
         style={{
           width: n.width, height: n.height, boxSizing: 'border-box',
+          position: 'relative',
           border: `${hl ? 2 : 1.5}px solid ${selected ? '#f59e0b' : hl ? '#22d3ee' : border}`,
           borderRadius: 5, background: hl ? (dark ? '#0e3a44' : '#ecfeff') : bg,
           color: hl ? (dark ? '#a5f3fc' : '#0e7490') : fg,
@@ -96,7 +108,9 @@ export function PartNode({ id, data, selected }: NodeProps) {
           gap: 4, fontSize: 9, fontWeight: 600, padding: '0 4px',
         }}
       >
-        {passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => (
+        <Mark marked={data.marked} />
+        {!!data.neutral && <CenterHandles />}
+        {!data.neutral && passiveTerminals(n).flatMap((p) => (['source', 'target'] as const).map((type) => (
           <Handle key={p.id + type} id={p.id} type={type}
             position={p.side === 'left' ? Position.Left : Position.Right}
             title={p.label} aria-label={p.label}
@@ -128,6 +142,7 @@ export function PartNode({ id, data, selected }: NodeProps) {
     <div
       style={{
         width: n.width,
+        position: 'relative',
         minHeight: n.height,
         border: `${hl ? 2.5 : 2}px solid ${selected ? '#f59e0b' : hl ? '#22d3ee' : border}`,
         borderRadius: 7,
@@ -140,6 +155,7 @@ export function PartNode({ id, data, selected }: NodeProps) {
         color: fg,
       }}
     >
+      <Mark marked={data.marked} />
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
       <div title={n.title} style={{ fontWeight: 700, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -258,7 +274,7 @@ export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boole
   // 1mm scale bar, bottom-left
   const barMm = w > 12 ? 5 : 1
   return (
-    <svg width={W} height={H + 16} style={{ display: 'block', margin: '6px 0 2px' }}>
+    <svg width={W} height={H + 16} viewBox={`0 0 ${W} ${H + 16}`} style={{ display: 'block', margin: '6px 0 2px' }}>
       {geo.courtyard && shapeEl(geo.courtyard, court, '4 3')}
       {geo.window && shapeEl(geo.window, dark ? '#64748b' : '#94a3b8', '2 2')}
       {geo.pads.map((p, i) => {
@@ -320,11 +336,10 @@ export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boole
 const pinNetColor = (net: string) =>
   net.startsWith('GND') ? '#9ca3af' : /^V|VBUS|VSYS/.test(net) ? '#ef4444' : '#34d399'
 
-export function detailedPins(n: GNode): { name: string; num: string; net: string }[] {
+export function detailedPins(n: GNode): { name: string; num: string; net: string; state: string }[] {
   if (!n.inst) return []
   const pins = n.inst.pins
-    .filter((p) => p.connected)
-    .map((p) => ({ name: p.logical, num: p.numbers.join(','), net: n.pinNets[p.logical] ?? '', role: p.role }))
+    .map((p) => ({ name: p.logical, num: p.numbers.join(','), net: n.pinNets[p.logical] ?? '', role: p.role, state: p.nc ? 'NC' : p.connected ? 'wired' : 'open' }))
   const rank = (r: string) => (r.startsWith('power') ? 0 : 1)
   pins.sort((a, b) => rank(a.role) - rank(b.role) || a.name.localeCompare(b.name))
   return pins
@@ -358,25 +373,21 @@ export function DetailedNode(props: NodeProps) {
   const { width, height } = detailedSize(n)
   const hlPins = new Set((data.hlPins as string[] | undefined) ?? [])
   const nodeHl = data.hl as boolean
-  const pinRow = (p: { name: string; num: string; net: string }, i: number, side: 'l' | 'r') => {
+  const pinRow = (p: { name: string; num: string; net: string; state: string }, i: number, side: 'l' | 'r') => {
     const y = 40 + i * ROW + ROW / 2
     const on = hlPins.has(p.name)
     const c = on ? '#22d3ee' : pinNetColor(p.net)
     return (
-      <div key={side + p.name} style={{ position: 'absolute', top: y - 8, [side === 'l' ? 'left' : 'right']: 6, width: 138, display: 'flex', flexDirection: side === 'l' ? 'row' : 'row-reverse', gap: 4, fontSize: 9, alignItems: 'center', background: on ? '#22d3ee22' : undefined, borderRadius: 3 }}>
+      <PinTarget key={side + p.name} identity={{ instance: n.id, pin: p.name, net: p.net }} selected={on} onActivate={data.onPin as (pin: PinIdentity) => void} style={{ position: 'absolute', top: y - 9, height: 18, [side === 'l' ? 'left' : 'right']: 2, width: 146, display: 'flex', flexDirection: side === 'l' ? 'row' : 'row-reverse', gap: 4, padding: '0 4px', fontSize: 9, alignItems: 'center', background: on ? '#22d3ee22' : undefined, borderRadius: 3 }}>
         <span style={{ color: on ? '#67e8f9' : '#6b7280', minWidth: 14, textAlign: side === 'l' ? 'left' : 'right' }}>{p.num}</span>
         <span style={{ color: on ? '#a5f3fc' : '#e5e7eb', fontWeight: on ? 800 : 600, fontSize: 10 }}>{p.name}</span>
         <span
-          onClick={(e) => {
-            e.stopPropagation()
-            selectNet(p.net)
-          }}
           style={{ color: c, fontWeight: on ? 800 : 400, cursor: 'pointer', marginLeft: side === 'l' ? 'auto' : 0, marginRight: side === 'r' ? 'auto' : 0, maxWidth: 62, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         >
-          {p.net}
+          {p.net || p.state}
         </span>
-        <Handle id={'p:' + p.name} type="source" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />
-        <Handle id={'p:' + p.name} type="target" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />
+        {!data.neutral && <Handle id={'p:' + p.name} type="source" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />}
+        {!data.neutral && <Handle id={'p:' + p.name} type="target" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />}
         <span
           style={{
             position: 'absolute', [side === 'l' ? 'left' : 'right']: on ? -7 : -5,
@@ -385,21 +396,20 @@ export function DetailedNode(props: NodeProps) {
             boxShadow: on ? '0 0 8px #22d3ee' : undefined,
           }}
         />
-      </div>
+      </PinTarget>
     )
   }
   return (
     <div style={{ width, height, background: data.dim ? '#1a1d24' : nodeHl ? '#12303a' : '#22262e', opacity: data.dim ? 0.18 : 1, border: `${nodeHl ? 2.5 : 1.5}px solid ${selected ? '#f59e0b' : nodeHl ? '#22d3ee' : '#3b4252'}`, boxShadow: nodeHl ? '0 0 0 3px #22d3ee44, 0 0 18px #22d3ee66' : undefined, borderRadius: 6, position: 'relative', boxSizing: 'border-box' }}>
+      <Mark marked={data.marked} />
+      {!!data.neutral && <CenterHandles />}
       <div style={{ background: '#161a20', borderRadius: '6px 6px 0 0', padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'baseline' }}>
         <span style={{ color: '#60a5fa', fontWeight: 700, fontSize: 12 }}>{n.inst.designator}</span>
-        <span style={{ color: '#f3f4f6', fontWeight: 700, fontSize: 12 }}>{shortName(n.inst.device_fq)}</span>
+        <span style={{ color: '#f3f4f6', fontWeight: 700, fontSize: 12 }}>{partPresentation(n.inst).category}</span>
         <span style={{ color: '#6b7280', fontSize: 10 }}>{n.inst.part?.mpn}</span>
       </div>
       {left.map((p, i) => pinRow(p, i, 'l'))}
       {right.map((p, i) => pinRow(p, i, 'r'))}
-      {n.pinsTotal > n.pinsConnected && (
-        <div style={{ position: 'absolute', bottom: 2, left: 10, color: '#4b5563', fontSize: 8 }}>+{n.pinsTotal - n.pinsConnected} unused</div>
-      )}
     </div>
   )
 }

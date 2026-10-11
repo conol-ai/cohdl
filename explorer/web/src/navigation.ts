@@ -19,7 +19,8 @@ const boardSnapshot = (value: unknown): BoardViewportSnapshot | null => {
 
 export function normalizeContext(value: unknown, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const input = record(value) ? value : {}
-  const view = typeof input.view === 'string' && (!input.view || config?.views.some((v) => v.name === input.view)) ? input.view : config?.views[0]?.name ?? ''
+  const views = config?.views.filter(v => v.name !== 'Source pages') ?? []
+  const view = typeof input.view === 'string' && (!input.view || views.some((v) => v.name === input.view)) ? input.view : views[0]?.name ?? ''
   const definition = config?.views.find((v) => v.name === view)
   const flat = buildViewGraph(model, null, definition)
   const names = flat.regions?.regions ?? []
@@ -41,11 +42,12 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
 
 export function parseInspectionUrl(url: URL, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const params = url.searchParams
+  const collapsed = config?.views.find(v => v.name !== 'Source pages')?.regions.map(r => r.name)
   if (params.has('inspect')) {
-    try { return normalizeContext(JSON.parse(params.get('inspect')!), model, config) } catch { return normalizeContext(null, model, config) }
+    try { return normalizeContext(JSON.parse(params.get('inspect')!), model, config) } catch { return normalizeContext({ collapsed }, model, config) }
   }
   return normalizeContext({ mode: params.get('mode'), scope: params.has('scope') ? params.get('scope') === 'all' ? null : params.get('scope') : null,
-    view: params.has('view') ? params.get('view') : undefined, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }, model, config)
+    view: params.has('view') ? params.get('view') : undefined, collapsed, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }, model, config)
 }
 
 export function inspectionUrl(url: URL, context: InspectionContext): URL {

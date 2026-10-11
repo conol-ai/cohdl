@@ -11,6 +11,7 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
   const pending = useRef<ViewportSnapshot | null | undefined>(undefined)
   const resizeSource = useRef<ViewportSnapshot | null>(null)
   const focus = useRef<LayoutRect | null>(null)
+  const widthFit = useRef(false)
   const generation = useRef(0)
   const size = useRef<CanvasSize>({ width: 0, height: 0 })
   const currentSize = useCallback(() => {
@@ -37,12 +38,17 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
       resizeSource.current = null
       focus.current = null
       pending.current = undefined
-      if (autoFit.current)
-        void flow.current?.fitBounds(bounds.current, { duration: 0, padding: 0.16 })
+      if (autoFit.current) {
+        if (widthFit.current) {
+          const zoom = Math.min(2, next.width * 0.9 / bounds.current.width)
+          void flow.current.setViewport({ x: (next.width - bounds.current.width * zoom) / 2 - bounds.current.x * zoom,
+            y: 16 - bounds.current.y * zoom, zoom }, { duration: 0 })
+        } else void flow.current.fitBounds(bounds.current, { duration: 0, padding: 0.16 })
+      }
       size.current = next
     })
   }, [canvas, flow, currentSize])
-  const fit = useCallback(() => { autoFit.current = true; pending.current = undefined; resizeSource.current = null; focus.current = null; apply() }, [apply])
+  const fit = useCallback(() => { autoFit.current = true; widthFit.current = false; pending.current = undefined; resizeSource.current = null; focus.current = null; apply() }, [apply])
   const prepare = useCallback((saved?: ViewportSnapshot | null) => {
     cancelAnimationFrame(frame.current)
     generation.current++
@@ -60,9 +66,9 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
   const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
     if (event) manual()
   }, [manual])
-  const setBounds = useCallback((value: LayoutRect | null, expected: number, target: LayoutRect | null = null) => {
+  const setBounds = useCallback((value: LayoutRect | null, expected: number, target: LayoutRect | null = null, fitWidth = false) => {
     if (expected !== generation.current) return
-    bounds.current = value; focus.current = autoFit.current ? target : null; apply()
+    bounds.current = value; focus.current = autoFit.current ? target : null; widthFit.current = fitWidth; apply()
   }, [apply])
   useEffect(() => {
     if (!active) return

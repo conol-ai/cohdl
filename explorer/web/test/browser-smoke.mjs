@@ -6,12 +6,13 @@ import puppeteer from 'puppeteer-core'
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
 const stage = value('--stage', 'groups')
+assert.ok(['groups', 'union', 'navigation'].includes(stage), `Unknown browser stage: ${stage}`)
 const output = resolve(value('--output', '/tmp/cohdl-explorer-browser'))
 mkdirSync(output, { recursive: true })
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const errors = []
 try {
   const page = await browser.newPage()
-  const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewport({ width: 1280, height: 800 })
   await page.goto(url, { waitUntil: 'domcontentloaded' })
@@ -55,6 +56,11 @@ try {
     await runLayoutInspectionSmoke(page, { url, output, ready, clickText })
     assert.deepEqual(errors, [], 'Browser runtime errors')
     console.log(JSON.stringify({ result: 'PASS', stage, output }))
+  } else if (stage === 'navigation') {
+    const { runNavigationSmoke } = await import('./navigation-smoke.mjs')
+    await runNavigationSmoke(page, { url, output, ready, clickText, geometry })
+    assert.deepEqual(errors, [], 'Browser runtime errors')
+    console.log(JSON.stringify({ result: 'PASS', stage, output }))
   } else {
   assert.ok(await page.$('.react-flow__node-region'), 'Native group nodes missing')
   await geometry('desktop-all')
@@ -72,4 +78,13 @@ try {
   assert.deepEqual(errors, [], 'Browser runtime errors')
   console.log(JSON.stringify({ result: 'PASS', stage, output }))
   }
+} catch (error) {
+  const pages = await browser.pages()
+  const page = pages.at(-1)
+  if (page) {
+    await page.screenshot({ path: resolve(output, `${stage}-failure.png`) })
+    const state = await page.evaluate(() => ({ url: location.href, text: document.body.innerText, nodes: [...document.querySelectorAll('.react-flow__node')].map((n) => ({ id: n.dataset.id, style: n.getAttribute('style') })) }))
+    writeFileSync(resolve(output, `${stage}-failure.json`), JSON.stringify({ error: String(error), errors, state }, null, 2))
+  }
+  throw error
 } finally { await browser.close() }

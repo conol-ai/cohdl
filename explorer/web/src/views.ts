@@ -137,3 +137,52 @@ export function projectGroupUnion(model: ExplorerModel, scope: string | null, fu
   }
   return { graph, regions, counts, represented }
 }
+
+export const groupNodeId = (view: string, group: string) => `group:${encodeURIComponent(JSON.stringify([view, group]))}`
+
+/** Fold display members only; the original model remains the boundary-net authority. */
+export function collapseGroups(model: ExplorerModel, union: ReturnType<typeof projectGroupUnion>, full: ViewGraph, collapsed: readonly string[]) {
+  if (!collapsed.length || !full.view || !union.regions) return union
+  // A hierarchy block may span groups. Expand only its represented members
+  // before folding, so each real part has exactly one displayed authority.
+  if (union.graph.nodes.some((n) => n.subdesign)) {
+    const flat = buildViewGraph({ ...model, instances: model.instances.filter((i) => union.represented.has(i.path)),
+      derived: { ...model.derived, two_terminal: model.derived.two_terminal.filter((p) => union.represented.has(p)) } }, null, full.view)
+    const nodes = flat.graph.nodes.filter((n) => (n.inst ? [n.inst.path] : n.aggMembers ?? []).some((p) => union.represented.has(p)))
+    const ids = new Set(nodes.map((n) => n.id))
+    const graph = reconnectGraph({ ...flat.graph, nodes, location: new Map([...flat.graph.location].filter(([path, id]) => union.represented.has(path) && ids.has(id))) }, model.nets)
+    return collapseGroups(model, { ...union, graph, regions: flat.regions }, flat, collapsed)
+  }
+  const groups = new Map<string, string[]>()
+  for (const path of union.represented) {
+    const name = full.instanceRegions.get(path) ?? 'Other'
+    if (collapsed.includes(name)) groups.set(name, [...(groups.get(name) ?? []), path])
+  }
+  const removed = new Set(union.graph.nodes.filter((n) => groups.has(union.regions!.byNode.get(n.id) ?? 'Other')).map((n) => n.id))
+  const nodes = union.graph.nodes.filter((n) => !removed.has(n.id))
+  const location = new Map([...union.graph.location].filter(([, id]) => !removed.has(id)))
+  const regions = { ...union.regions, byNode: new Map(union.regions.byNode) }
+  for (const [name, members] of groups) {
+    const contained = new Set(members)
+    const ports: NonNullable<GNode['ports']> = model.nets.flatMap((net) => net.members.some((m) => !contained.has(m.instance_path))
+      ? net.members.filter((m) => contained.has(m.instance_path)).map((member) => ({
+        name: encodeURIComponent(JSON.stringify([member.instance_path, member.logical_pin])), net: net.name,
+        connected: true, obligation: 'required', member,
+      })) : [])
+    const id = groupNodeId(full.view.name, name)
+    nodes.push({ id, kind: 'agg', title: name, sub: `${members.length} parts`, aggMembers: members, ports,
+      railTags: [...new Set(ports.flatMap((p) => p.net && union.graph.railSet.has(p.net) ? [p.net] : []))],
+      pinNets: Object.fromEntries(ports.map((p) => [p.name, p.net!])), netLabels: [], decors: [],
+      pinsConnected: ports.length, pinsTotal: ports.length, width: 320, height: Math.max(68, 54 + ports.length * 18),
+    })
+    members.forEach((path) => location.set(path, id))
+    regions.byNode.set(id, name)
+  }
+  const graph = reconnectGraph({ ...union.graph, nodes, location }, model.nets)
+  for (const node of graph.nodes.filter((n) => n.kind === 'net')) {
+    const edge = graph.edges.find((e) => e.source === node.id || e.target === node.id)
+    const endpoint = edge && (edge.source === node.id ? edge.target : edge.source)
+    if (endpoint) regions.byNode.set(node.id, regions.byNode.get(endpoint) ?? 'Other')
+  }
+  return { ...union, graph, regions }
+}

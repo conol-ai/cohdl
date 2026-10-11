@@ -17,6 +17,7 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
   useLayoutEffect(() => { updateInternals(id) }, [id, n, updateInternals])
   const dark = data.dark as boolean
   const hlPins = (data.hlPins ?? []) as string[]
+  const compact = !!data.compact
   return (
     <div style={{
       width: n.width, height: n.height, boxSizing: 'border-box',
@@ -24,23 +25,25 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
       borderRadius: 8, background: dark ? '#22202f' : '#f5f3ff',
       color: dark ? '#ede9fe' : '#4c1d95', opacity: data.dim ? 0.18 : 1,
     }}>
-      <div style={{ padding: '6px 10px', fontSize: 12, fontWeight: 700 }}>
+      <div title={n.title} style={{ padding: '6px 10px', fontSize: compact ? 20 : 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {n.title}{n.kind === 'subdesign' && ' ↗'}
-        <div style={{ fontSize: 10, fontWeight: 400, color: dark ? '#c4b5fd' : '#7c3aed' }}>{n.sub}</div>
+        <div style={{ fontSize: compact ? 14 : 10, fontWeight: 400, color: dark ? '#c4b5fd' : '#7c3aed' }}>{n.sub}</div>
       </div>
+      {compact && <div style={{ padding: '0 10px', fontSize: 13 }}>{new Set(n.ports?.map((p) => p.net)).size} boundary nets · {n.ports?.length ?? 0} logical pins</div>}
       {(n.ports ?? []).map((p, index) => (
-        <div key={p.name} onClick={() => p.net && selectNet(p.net)} style={{
-          position: 'absolute', top: 46 + index * 18, left: 0, right: 0,
-          height: 18, padding: '0 10px', fontSize: 10,
+        <div key={p.name} role={!compact && p.net ? 'button' : undefined} tabIndex={!compact && p.net ? 0 : undefined} title={p.member ? `${p.member.instance_path}.${p.member.logical_pin} (${p.member.numbers.join(', ')}) · ${p.net}` : p.name}
+          onKeyDown={(e) => { if (p.net && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectNet(p.net) } }} onClick={() => p.net && selectNet(p.net)} style={{
+          position: 'absolute', top: compact ? 56 + (index + 0.5) * 28 / (n.ports?.length || 1) : 46 + index * 18, left: 0, right: 0,
+          height: compact ? 0 : 18, padding: compact ? 0 : '0 10px', fontSize: 10,
           color: hlPins.includes(p.name) ? '#06b6d4' : undefined,
           cursor: p.net ? 'pointer' : 'default',
           display: 'flex', justifyContent: 'space-between', gap: 12,
         }}>
           <Handle id={`p:${p.name}`} type="target" position={Position.Left} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
-          <span>{p.name}{p.obligation === 'required' ? ' *' : ''}</span>
-          <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {!compact && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.member ? `${shortName(p.member.instance_path)}.${p.member.logical_pin} (${p.member.numbers.join(', ')})` : p.name}{p.obligation === 'required' ? ' *' : ''}</span>}
+          {!compact && <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {p.net ?? 'open'}
-          </span>
+          </span>}
           <Handle id={`p:${p.name}`} type="source" position={Position.Right} style={{ width: 5, height: 5, background: '#8b5cf6' }} />
         </div>
       ))}
@@ -139,13 +142,13 @@ export function PartNode({ id, data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
-      <div style={{ fontWeight: 700, fontSize: 11 }}>
+      <div title={n.title} style={{ fontWeight: 700, fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {n.title}
         {n.inst && n.pinsConnected === 0 && (
           <span style={{ color: '#ef4444', marginLeft: 5 }}>✕ unwired</span>
         )}
       </div>
-      {n.sub && <div style={{ color: dark ? '#9ca3af' : '#6b7280', fontSize: 9 }}>{n.sub}</div>}
+      {n.sub && <div title={n.sub} style={{ color: dark ? '#9ca3af' : '#6b7280', fontSize: 9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.sub}</div>}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 2 }}>
         {n.railTags.map((r) => (
           <span
@@ -189,7 +192,7 @@ export function PartNode({ id, data, selected }: NodeProps) {
       {n.decors.length > 0 && (
         <div style={{ marginTop: 2, color: dark ? '#9ca3af' : '#374151', fontSize: 8.5 }}>
           {n.decors.slice(0, 5).map((d) => (
-            <div key={d}>{d}</div>
+            <div key={d} title={d} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d}</div>
           ))}
           {n.decors.length > 5 && <div>… +{n.decors.length - 5}</div>}
         </div>
@@ -414,7 +417,7 @@ export function RegionNode({ data }: NodeProps) {
         boxSizing: 'border-box',
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: 13, color: dark ? '#94a3b8' : '#475569', padding: '9px 13px' }}>
+      <div title={data.label as string} style={{ fontWeight: 700, fontSize: 13, color: dark ? '#94a3b8' : '#475569', padding: '9px 13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {data.label as string}
       </div>
     </div>

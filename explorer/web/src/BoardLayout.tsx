@@ -40,7 +40,7 @@ function Perimeter({ shape, color }: { shape: FpShape; color: string }) {
   </g>
 }
 
-export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet, cameraRef, restore, visiblePaths, placements, side, onSide }: {
+export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet, cameraRef, restore, visiblePaths, placements, side, onSide, onCamera }: {
   model: ExplorerModel
   scope: string | null
   frame: 'board' | 'local'
@@ -57,6 +57,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   placements: readonly Placement[]
   side: LayoutSide
   onSide: (side: LayoutSide) => void
+  onCamera?: () => void
 }) {
   const [labels, setLabels] = useState(true)
   const [padNumbers, setPadNumbers] = useState(false)
@@ -90,6 +91,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
   }
   useImperativeHandle(cameraRef, () => ({ capture: () => ({ view: { ...view }, size: currentSize(), autoFit: autoFit.current }) }), [view])
+  useEffect(() => { onCamera?.() }, [view, onCamera])
   useLayoutEffect(() => {
     const next = currentSize()
     size.current = next

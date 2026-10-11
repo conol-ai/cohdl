@@ -16,6 +16,9 @@ export interface InspectionContext {
   boardViewport: BoardViewportSnapshot | null
   layoutFrame: 'board' | 'local'
   layoutSide: LayoutSide
+  collapsed: string[]
+  pin: string
+  tab: 'circuit' | 'bom' | 'issues'
 }
 
 export function netEndpoints(model: ExplorerModel, net: Net, full: ViewGraph, visible: ViewGraph['graph'] | ReadonlySet<string>) {

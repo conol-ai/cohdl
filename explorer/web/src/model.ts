@@ -19,6 +19,8 @@ export interface ExplorerModel {
   footprints: Record<string, FootprintGeo>
   /** Absent on old snapshots; null when no layout facts were declared. */
   layout?: DesignLayout | null
+  /** Native watch error overlaid on the retained last-good model. */
+  live_error?: string
 }
 
 export type Matrix = [number, number, number, number]

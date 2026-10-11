@@ -164,6 +164,43 @@ complete circuit, including from an empty group.
 Physical endpoint visibility also follows the Components side filter. Following
 a hidden endpoint reveals its side; Back restores the preceding side and camera.
 
+Group disclosures collapse real members into logical boundary blocks. Bulk
+collapse/expand commands keep the represented part/net counts unchanged.
+Fully collapsed Overview uses ELK rectangle packing for native region containers
+so whole-system Fit keeps group titles legible. Detailed and SCH layouts retain
+their native layered placement; every boundary edge and physical endpoint remains
+available for tracing and inspection.
+Overview uses compact boundary blocks; SCH and the selected block inspector
+retain each boundary's actual net, logical pin and physical numbers. Internal
+nets stay inside the group. No placement or circuit connection is synthesized.
+
+Search includes logical pins and physical numbers, including alphanumeric pads
+and qualified queries such as `U1.1` or `U1.A1`. A located part/pin reveals its
+group and expands its block. NC/open pins retain their state without an invented
+net. Circuit, BOM and Issues tabs share the same locate path; Issues includes
+the original live-source error even when the last good model has no diagnostics.
+An authored diagnostic span locates a matching part/net/subdesign; other source
+locations remain explicit and focused, without selecting an unrelated part.
+
+Inspection links encode validated context in the `inspect` query parameter.
+Mode, hierarchy scope (root and flattened are distinct), view, groups, collapsed
+blocks, selection, pin, net, tab, coordinate frame, side and native camera are
+restored on reload and browser Back/Forward. Each mode/scope/view keeps a separate
+session snapshot. Manual cameras take precedence over automatic fitting;
+obsolete asynchronous layouts cannot restore another context's camera.
+
+Run the desktop/mobile collapse, unified search, BOM/Issues, URL/history, native
+camera and live-refresh regression:
+
+```sh
+node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage navigation
+```
+
+The navigation regression first exercises the real served circuit, then uses
+declared synthetic hierarchy/diagnostic/placement fixtures for states absent
+from PDFExact. A temporary local HTTP/SSE fixture uses the production frontend
+and real EventSource requests to test model refresh; it closes after the check.
+
 Run the desktop/mobile union, endpoint, camera and empty-recovery regression:
 
 ```sh

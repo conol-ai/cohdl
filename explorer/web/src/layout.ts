@@ -29,7 +29,12 @@ export async function layout(
   regions?: RegionAssign,
   opts?: { compact?: boolean },
 ): Promise<Positioned> {
-  const SP = opts?.compact
+  // Fully folded overviews pack native regions; per-pin routing must not
+  // stretch their summary blocks into a nearly unreadable vertical graph.
+  const packed = opts?.compact && g.nodes.some((n) => n.id.startsWith('group:')) && g.nodes.every((n) => n.kind === 'net' || n.id.startsWith('group:'))
+  const SP = packed
+    ? { ...BASE, 'elk.algorithm': 'rectpacking', 'elk.aspectRatio': '2.2', 'elk.spacing.nodeNode': '16' }
+    : opts?.compact
     ? {
         ...BASE,
         'elk.spacing.nodeNode': '30',
@@ -65,7 +70,8 @@ export async function layout(
       id: `region:${r}`,
       layoutOptions: {
         ...SP,
-        'elk.padding': '[top=40,left=14,bottom=14,right=14]',
+        ...(packed ? { 'elk.algorithm': 'box', 'elk.spacing.nodeNode': '10' } : {}),
+        'elk.padding': packed ? '[top=32,left=10,bottom=10,right=10]' : '[top=40,left=14,bottom=14,right=14]',
       },
       children: ns.map((n) => ({ id: n.id, width: n.width, height: n.height })),
     })),

@@ -25,7 +25,7 @@ export interface GNode {
   pinNets: Record<string, string>
   inst?: Instance
   subdesign?: Subdesign
-  ports?: SubdesignPort[]
+  ports?: (SubdesignPort & { member?: Net['members'][number] })[]
   aggMembers?: string[]
   width: number
   height: number
@@ -227,7 +227,9 @@ export function reconnectGraph(graph: Graph, nets: readonly Net[]): Graph {
     for (const mem of n.members) {
       const loc = location.get(mem.instance_path)
       if (!loc || loc === '(edge)') continue
-      const ep = { id: loc, pin: byId.get(loc)?.pinNets[mem.logical_pin] === n.name ? mem.logical_pin : undefined }
+      const node = byId.get(loc)
+      const pin = node?.ports?.find((p) => p.member?.instance_path === mem.instance_path && p.member.logical_pin === mem.logical_pin)?.name ?? mem.logical_pin
+      const ep = { id: loc, pin: node?.pinNets[pin] === n.name ? pin : undefined }
       endpoints.set(endpointKey(ep), ep)
     }
     const eps = [...endpoints.values()]

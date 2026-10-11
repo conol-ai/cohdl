@@ -18,7 +18,7 @@ import { shortName } from './model'
 import { explorerNets, ownerScope } from './hierarchy'
 import { focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
-import { buildViewGraph, projectGroupUnion, parseViewConfig, type ViewConfig } from './views'
+import { buildViewGraph, projectGroupUnion, collapseGroups, parseViewConfig, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
@@ -34,10 +34,13 @@ import { toPng } from 'html-to-image'
 import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope, type LayoutSide } from './boardGeometry'
-import { ArrowLeft, Download, FilterX, Maximize, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronDown, ChevronRight, FoldVertical, UnfoldVertical, X } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
 import { netEndpoints, type InspectionContext } from './inspection'
+import { searchCircuit, type SearchHit } from './search'
+import { useInspectionNavigation } from './useInspectionNavigation'
+import { InspectionLists } from './InspectionLists'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -63,7 +66,13 @@ export default function App() {
   const [boardRestore, setBoardRestore] = useState<BoardViewportSnapshot | null>(null)
   const [activeView, setActiveView] = useState<string>('')
   const [selectedGroups, setSelectedGroups] = useState<string[]>([])
-  const [backStack, setBackStack] = useState<InspectionContext[]>([])
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([])
+  const [selectedPin, setSelectedPin] = useState('')
+  const [tab, setTab] = useState<InspectionContext['tab']>('circuit')
+  const [shareError, setShareError] = useState('')
+  const [issueFocus, setIssueFocus] = useState('')
+  const issueFocusRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (issueFocus) issueFocusRef.current?.focus() }, [issueFocus])
   const [photoUrl, setPhotoUrl] = useState<string>('')
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
@@ -88,39 +97,46 @@ export default function App() {
     return value === 'sch' || value === 'layout' ? value : 'overview'
   })
   const dark = mode !== 'overview'
-  const { fit, setBounds, prepare, capture, manual, onMoveStart, onReady } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
-  const navigateScope = useCallback((path: string | null, target?: { id?: string; net?: string }) => {
-    prepare()
-    setBoardRestore(null)
-    setScope(path)
-    setActiveView('')
-    setSelectedGroups([])
-    setSel([])
-    setSelNet(target?.net ?? '')
-    setQuery('')
-    setJump(target ?? null)
-  }, [prepare])
-
-  useEffect(() => {
-    if (model && scope && !model.subdesigns?.some((s) => s.path === scope)) navigateScope('')
-  }, [model, scope, navigateScope])
+  const { fit, setBounds, prepare, capture, manual, onMoveStart, onReady, generation: cameraGeneration } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
+  const readContext = (): InspectionContext => ({ mode, scope, view: activeView, groups: selectedGroups, collapsed: collapsedGroups,
+    selection: sel, pin: selectedPin, net: selNet, tab, layoutFrame, layoutSide,
+    viewport: mode === 'layout' ? null : capture(), boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null })
+  const navigation = useInspectionNavigation({ model, config: viewCfg, ready: !!model && !viewsLoading && loadedViewDesign.current === model.design, busy: layoutBusy,
+    signature: JSON.stringify([mode, scope, activeView, selectedGroups, collapsedGroups, sel, selectedPin, selNet, tab, layoutFrame, layoutSide]), read: readContext,
+    apply: (context) => {
+      prepare(context.viewport)
+      setBoardRestore(context.boardViewport)
+      setMode(context.mode); setScope(context.scope); setActiveView(context.view)
+      setSelectedGroups(context.groups); setCollapsedGroups(context.collapsed)
+      setSel(context.selection); setSelectedPin(context.pin); setSelNet(context.net); setTab(context.tab)
+      setLayoutFrame(context.layoutFrame); setLayoutSide(context.layoutSide)
+      setJump({ selection: context.selection, net: context.net })
+      setQuery('')
+    } })
+  const navigateScope = (path: string | null, target?: { id?: string; net?: string }) => navigation.navigate({ scope: path,
+    ...(target ? { selection: target.id ? [target.id] : [], net: target.net ?? '', pin: '', viewport: null, boardViewport: null } : {}) })
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
+  useEffect(() => { setIssueFocus('') }, [model, mode, scope, activeView, selectedGroups, collapsedGroups, sel, selectedPin, selNet, tab])
 
   // Live: prefer /api/model + SSE unless ?model= is explicit; ?nolive=1 for headless shots.
   useEffect(() => {
     let es: EventSource | null = null
+    let cancelled = false
+    let generation = 0
     const nolive = params.has('nolive')
     const explicitModel = params.has('model')
-    const loadApi = () =>
-      fetch('/api/model')
+    const loadApi = () => {
+      const request = ++generation
+      return fetch('/api/model')
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error('no api'))))
-        .then(setModel)
+        .then((next) => { if (!cancelled && request === generation) setModel(next) })
+    }
     const start = explicitModel ? Promise.reject(new Error('static')) : loadApi()
     start
       .then(() => {
-        if (nolive) return
+        if (nolive || cancelled) return
         es = new EventSource('/api/events')
         let last = 0
         es.onmessage = (ev) => {
@@ -134,10 +150,10 @@ export default function App() {
       .catch(() =>
         fetch(src)
           .then((r) => r.json())
-          .then(setModel)
-          .catch((e) => setErr(String(e))),
+          .then((next) => { if (!cancelled) setModel(next) })
+          .catch((e) => { if (!cancelled) setErr(String(e)) }),
       )
-    return () => es?.close()
+    return () => { cancelled = true; es?.close() }
   }, [src])
 
   useEffect(() => {
@@ -155,19 +171,11 @@ export default function App() {
         if (cancelled) return
         setViewError('')
         setViewCfg(c)
-        if (loadedViewDesign.current !== model.design) {
-          const pv = params.get('view')
-          setActiveView(pv !== null ? c.views.find((v) => v.name === pv)?.name ?? '' : c.views[0].name)
-          if (!params.has('scope')) setScope(null)
-          loadedViewDesign.current = model.design
-        } else {
-          setActiveView((v) => !v || c.views.some((view) => view.name === v) ? v : c.views[0].name)
-        }
       })
       .catch((e) => {
         if (!cancelled) { setViewCfg(null); setViewError(String(e instanceof Error ? e.message : e)) }
       })
-      .finally(() => { if (!cancelled) setViewsLoading(false) })
+      .finally(() => { if (!cancelled) { loadedViewDesign.current = model.design; setViewsLoading(false) } })
     return () => { cancelled = true }
   }, [model])
 
@@ -185,10 +193,11 @@ export default function App() {
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return
+      if (el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable)) return
       if (e.key === 'Escape') {
         setSel([])
         setSelNet('')
+        setSelectedPin('')
         setNodes((ns) => ns.map((n) => ({ ...n, selected: false })))
       } else if (e.key === 'r' || e.key === 'R') resetLayoutRef.current?.()
     }
@@ -199,7 +208,11 @@ export default function App() {
   const viewDef = viewCfg?.views.find((v) => v.name === activeView)
   const fullView = useMemo(() => model ? buildViewGraph(model, null, viewDef) : null, [model, viewDef])
   const scopedView = useMemo(() => model ? (scope === null ? fullView : buildViewGraph(model, scope, viewDef)) : null, [model, scope, viewDef, fullView])
-  const projection = useMemo(() => model && scopedView ? projectGroupUnion(model, scope, scopedView, selectedGroups) : null, [model, scope, scopedView, selectedGroups])
+  const projection = useMemo(() => {
+    if (!model || !scopedView || !fullView) return null
+    const union = projectGroupUnion(model, scope, scopedView, selectedGroups)
+    return mode === 'layout' ? union : collapseGroups(model, union, fullView, collapsedGroups)
+  }, [model, scope, scopedView, selectedGroups, fullView, collapsedGroups, mode])
   useEffect(() => {
     const names = fullView?.regions?.regions ?? []
     setSelectedGroups((groups) => {
@@ -227,12 +240,15 @@ export default function App() {
         n.width = sz.width
         n.height = sz.height
       }
+    if (mode === 'overview') for (const n of gg.nodes) {
+      if (n.id.startsWith('group:')) { n.width = 240; n.height = 94 }
+    }
     setGraph(gg)
     const layoutRegions = projection.regions
     layout(gg, layoutRegions, { compact: mode === 'overview' }).then(({ positions, regionBoxes }) => {
       if (cancelled) return
       const intent = jump !== handledJump.current ? jump : null
-      const target = intent?.id ? gg.location.get(intent.id) ?? intent.id : undefined
+      const target = intent?.id
       const preset = target ? [target] : intent?.selection ?? selection.current.parts
       const trace = intent?.net ?? selection.current.net
       setSelNet(allNets.some((n) => n.name === trace) ? trace : '')
@@ -285,7 +301,7 @@ export default function App() {
           orderByNode[n.id] = { l: byCy(lefts), r: byCy(rights) }
         }
       }
-      setSel(preset.filter((p) => gg.nodes.some((n) => n.id === p)))
+      setSel(preset.filter((p) => gg.nodes.some((n) => n.id === (gg.location.get(p) ?? p))))
       const regionNodes: Node[] = [...regionBoxes.entries()].map(([id, b]) => ({
         id,
         type: 'region',
@@ -330,8 +346,8 @@ export default function App() {
           ...(layoutRegions
             ? { parentId: `region:${layoutRegions.byNode.get(n.id) ?? 'Other'}`, extent: 'parent' as const }
             : {}),
-          data: { g: n, dim: false, hl: false, dark, pinOrder: orderByNode[n.id] },
-          selected: preset.includes(n.id),
+          data: { g: n, dim: false, hl: false, dark, compact: mode === 'overview' && n.id.startsWith('group:'), pinOrder: orderByNode[n.id] },
+          selected: preset.some((p) => (gg.location.get(p) ?? p) === n.id),
         })),
       ])
       // Lane allocation: edges sharing a corridor (same node pair) spread
@@ -414,18 +430,18 @@ export default function App() {
         return { x: p.x + (region?.x ?? 0), y: p.y + (region?.y ?? 0), width: n.width, height: n.height }
       })
       boxes.push(...regionBoxes.values())
-      setBounds(boundsOfRects(boxes))
+      setBounds(boundsOfRects(boxes), cameraGeneration)
       setLayoutBusy(false)
     }).catch((e) => {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, projection, mode, jump, setBounds, allNets])
+  }, [model, projection, mode, jump, setBounds, allNets, cameraGeneration])
 
   // Focus paths (multi-select) + net highlight
   useEffect(() => {
     if (!graph) return
-    const keep = focusSubset(graph, sel)
+    const keep = focusSubset(graph, sel.map((p) => graph.location.get(p) ?? p))
     const active = keep.size > 0
     const netNodes = new Set<string>()
     const netPins = new Map<string, string[]>()
@@ -446,7 +462,7 @@ export default function App() {
           // A selected net dims everything off it, so its members pop.
           dim: (active && !keep.has(n.id)) || (!!selNet && !netNodes.has(n.id)),
           hl: netNodes.has(n.id),
-          hlPins: netPins.get(n.id),
+          hlPins: selectedPin && sel.length === 1 && (graph.location.get(sel[0]) ?? sel[0]) === n.id ? [...(netPins.get(n.id) ?? []), selectedPin] : netPins.get(n.id),
         },
       })),
     )
@@ -472,11 +488,11 @@ export default function App() {
         }
       }),
     )
-  }, [sel, selNet, graph])
+  }, [sel, selNet, selectedPin, graph])
 
   const onSelectionChange = useCallback(({ nodes: sn }: { nodes: Node[] }) => {
-    setSel(sn.map((n) => n.id))
-  }, [])
+    setSel((current) => current.length === sn.length && current.every((p) => sn.some((n) => n.id === (graph?.location.get(p) ?? p))) ? current : sn.map((n) => n.id))
+  }, [graph])
 
   // Controlled flow (React Flow v12): change handlers are mandatory, or
   // clicks/selection/measurements are silently dropped.
@@ -509,11 +525,10 @@ export default function App() {
   )
 
   const selNode: GNode | undefined = useMemo(
-    () => (sel.length === 1 && graph ? graph.nodes.find((n) => n.id === sel[0]) : undefined),
+    () => (sel.length === 1 && graph ? graph.nodes.find((n) => n.id === (graph.location.get(sel[0]) ?? sel[0])) : undefined),
     [sel, graph],
   )
-  const selInst: Instance | undefined = mode === 'layout'
-    ? model?.instances.find((i) => sel.length === 1 && i.path === sel[0]) : selNode?.inst
+  const selInst: Instance | undefined = model?.instances.find((i) => sel.length === 1 && i.path === sel[0]) ?? selNode?.inst
   const physicalScope = useMemo(() => model ? layoutScope(model, scope, layoutFrame) : undefined, [model, scope, layoutFrame])
   const physicalPlacements = useMemo(() => physicalScope?.placements.filter((p) =>
     (!selectedGroups.length || projection?.represented.has(p.instance)) && (layoutSide === 'both' || p.side === layoutSide)) ?? [],
@@ -555,55 +570,13 @@ export default function App() {
     return netEndpoints(model, selNetObj, fullView, visible)
   }, [model, selNetObj, fullView, mode, physicalPlacements, projection])
   const followEndpoint = (path: string) => {
-    if (!model) return
-    const context: InspectionContext = {
-      mode, scope, view: activeView, groups: [...selectedGroups], selection: [...sel], net: selNet, layoutFrame, layoutSide,
-      viewport: mode === 'layout' ? null : capture(),
-      boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null,
-    }
-    setBackStack((stack) => [...stack.slice(-63), context])
-    setBoardRestore(null)
-    prepare()
-    if (!projection?.represented.has(path)) {
-      setScope(viewDef ? null : ownerScope(model, path))
-      setSelectedGroups(viewDef ? [fullView?.instanceRegions.get(path) ?? 'Other'] : [])
-    }
-    setJump({ id: path, net: selNet })
-    setQuery('')
-  }
-  const goBack = () => {
-    const previous = backStack.at(-1)
-    if (!previous) return
-    setBackStack((stack) => stack.slice(0, -1))
-    prepare(previous.viewport)
-    setBoardRestore(previous.boardViewport)
-    setLayoutFrame(previous.layoutFrame)
-    setLayoutSide(previous.layoutSide)
-    setMode(previous.mode)
-    setScope(previous.scope)
-    setActiveView(previous.view)
-    setSelectedGroups(previous.groups)
-    setSel(previous.selection)
-    setSelNet(previous.net)
-    setJump({ selection: previous.selection, net: previous.net })
+    locateTarget({ kind: 'part', id: path, label: path, sub: path, net: selNet })
   }
   const clearFilters = () => {
-    prepare()
-    setScope(null)
-    setSelectedGroups([])
-    setSel([])
-    setSelNet('')
-    setQuery('')
-    setJump(null)
-    setBackStack([])
-    setBoardRestore(null)
-    setLayoutSide('both')
+    navigation.navigate({ scope: null, groups: [], collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null, layoutSide: 'both' })
   }
   const toggleGroup = (name: string) => {
-    prepare()
-    setScope(null)
-    setJump(null)
-    setSelectedGroups((groups) => groups.includes(name) ? groups.filter((g) => g !== name) : [...groups, name])
+    navigation.navigate({ scope: null, groups: selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name], viewport: null, boardViewport: null })
   }
 
   /** Selected instance's logical pin -> net, for the clickable pin table. */
@@ -616,91 +589,34 @@ export default function App() {
     return m
   }, [selInst, model])
 
-  // ---- search: designator / device / MPN / net -> select + fly to it
-  const nodeCenter = useCallback(
-    (id: string) => {
-      const n = nodes.find((x) => x.id === id)
-      if (!n) return null
-      const parent = n.parentId ? nodes.find((x) => x.id === n.parentId) : undefined
-      const w = (n.width as number) ?? (n.measured?.width ?? 150)
-      const h = (n.height as number) ?? (n.measured?.height ?? 60)
-      return {
-        x: (parent?.position.x ?? 0) + n.position.x + w / 2,
-        y: (parent?.position.y ?? 0) + n.position.y + h / 2,
-      }
-    },
-    [nodes],
-  )
-  const flyTo = useCallback(
-    (id: string) => {
-      const c = nodeCenter(id)
-      if (c) rf.current?.setCenter(c.x, c.y, { zoom: 1.15, duration: 600 })
-    },
-    [nodeCenter],
-  )
-  const locateNode = useCallback(
-    (id: string) => {
-      if (mode === 'layout') {
-        if (model && scope && !id.startsWith(`${scope}::`)) navigateScope(ownerScope(model, id), { id })
-        else { setSel([id]); setSelNet(''); setJump({ id }) }
-        return
-      }
-      const loc = graph?.location.get(id) ?? id
-      if (!nodes.some((n) => n.id === loc) && model) {
-        navigateScope(ownerScope(model, id), { id })
-        return
-      }
-      setSelNet('')
-      setSel([loc])
-      setNodes((ns) => ns.map((n) => ({ ...n, selected: n.id === loc })))
-      flyTo(loc)
-    },
-    [flyTo, nodes, graph, model, navigateScope, mode, scope],
-  )
-  const locateNet = useCallback(
-    (name: string) => {
-      if (mode === 'layout') {
-        setSel([])
-        setSelNet(name)
-        setJump(null)
-        return
-      }
-      const first = graph?.nodes.find((n) => Object.values(n.pinNets).includes(name) || n.railTags.includes(name))
-      if (!first && model) {
-        const member = allNets.find((n) => n.name === name)?.members[0]
-        const owner = member ? ownerScope(model, member.instance_path)
-          : model.subdesigns?.find((s) => s.ports.some((p) => p.net === name))?.path ?? ''
-        navigateScope(owner, { net: name })
-        return
-      }
-      setSel([])
-      setNodes((ns) => ns.map((n) => ({ ...n, selected: false })))
-      setSelNet(name)
-      if (first) flyTo(first.id)
-    },
-    [model, allNets, graph, flyTo, navigateScope, mode],
-  )
-
-  const hits = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q || !model) return [] as { id: string; kind: 'part' | 'net' | 'subdesign'; label: string; sub: string }[]
-    const out: { id: string; kind: 'part' | 'net' | 'subdesign'; label: string; sub: string }[] = []
-    for (const s of model.subdesigns ?? [])
-      if ([s.path, s.definition, ...s.ports.map((p) => p.name)].join(' ').toLowerCase().includes(q))
-        out.push({ id: s.path, kind: 'subdesign', label: s.path, sub: shortName(s.definition) })
-    for (const i of model.instances)
-      if ([i.path, i.designator, i.device_fq, i.part?.mpn].join(' ').toLowerCase().includes(q))
-        out.push({ id: i.path, kind: 'part', label: `${i.designator ?? ''} ${shortName(i.device_fq)}`.trim(), sub: i.path })
-    for (const n of allNets)
-      if (n.name.toLowerCase().includes(q))
-        out.push({ id: n.name, kind: 'net', label: n.name, sub: `${n.members.length} pins` })
-    const rank = (h: { label: string }) => (h.label.toLowerCase().startsWith(q) ? 0 : 1)
-    return out.sort((a, b) => rank(a) - rank(b)).slice(0, 12)
-  }, [query, model, allNets])
+  const locateTarget = (hit: SearchHit) => {
+    if (!model) return
+    if (hit.kind === 'subdesign') { navigateScope(hit.id); return }
+    if (hit.kind === 'net') {
+      const net = allNets.find((n) => n.name === hit.id)
+      const visible = net?.members.some((m) => projection?.represented.has(m.instance_path) && !collapsedGroups.includes(fullView?.instanceRegions.get(m.instance_path) ?? 'Other'))
+      const member = net?.members[0]
+      const group = member && fullView?.instanceRegions.get(member.instance_path)
+      navigation.navigate({ selection: [], pin: '', net: hit.id, tab: 'circuit',
+        ...(!visible && member ? { scope: viewDef ? null : ownerScope(model, member.instance_path), groups: viewDef ? [group ?? 'Other'] : [], collapsed: collapsedGroups.filter((g) => g !== group), viewport: null, boardViewport: null } : {}) })
+      return
+    }
+    const group = fullView?.instanceRegions.get(hit.id) ?? 'Other'
+    const hidden = !projection?.represented.has(hit.id)
+    const placement = physicalScope?.placements.find((p) => p.instance === hit.id)
+    navigation.navigate({ scope: viewDef ? null : ownerScope(model, hit.id),
+      groups: hidden && viewDef ? [group] : selectedGroups, collapsed: collapsedGroups.filter((g) => g !== group),
+      selection: [hit.id], pin: hit.pin ?? '', net: hit.net ?? '', tab: 'circuit', viewport: null, boardViewport: null,
+      layoutSide: mode === 'layout' && placement && layoutSide !== 'both' && placement.side !== layoutSide ? 'both' : layoutSide })
+    if (mode === 'layout') setJump({ id: hit.id, net: hit.net ?? '' })
+  }
+  const locateNet = (name: string) => locateTarget({ kind: 'net', id: name, label: name, sub: name })
+  const hits = useMemo(() => model ? searchCircuit(model, query).slice(0, 30) : [], [query, model])
 
   const chip = (label: string, on: boolean, onClick: () => void, color = '#2563eb') => (
     <button
       key={label}
+      aria-pressed={on}
       onClick={onClick}
       style={{
         fontSize: 11,
@@ -741,7 +657,7 @@ export default function App() {
           </span> ·{' '}
           {model.verdict}
           {!!model.subdesigns?.length && <span> · {model.subdesigns.length} subdesigns</span>}
-          {(model as any).live_error && (
+          {model.live_error && (
             <div style={{ color: '#f87171', maxWidth: 480 }}>
               ⚠ source currently fails to compile (showing last good state)
             </div>
@@ -769,23 +685,23 @@ export default function App() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && hits[0]) {
-                  hits[0].kind === 'net' ? locateNet(hits[0].id)
-                    : hits[0].kind === 'subdesign' ? navigateScope(hits[0].id) : locateNode(hits[0].id)
+                  locateTarget(hits[0])
                   setQuery('')
                 } else if (e.key === 'Escape') setQuery('')
               }}
               aria-label="Search circuit"
-              placeholder="Search parts, paths, subdesigns or nets…"
+              placeholder="Search parts, pins or nets"
               style={{
                 width: 'min(300px, 100%)', boxSizing: 'border-box', fontSize: 12, padding: '6px 8px', borderRadius: 4,
                 border: `1px solid ${dark ? '#2a2f3a' : '#d1d5db'}`,
                 background: dark ? '#22262e' : '#fff', color: panelFg, outline: 'none',
               }}
             />
+            {query && <button className="icon-tool" title="Clear search" aria-label="Clear search" onClick={(e) => { setQuery(''); e.currentTarget.parentElement?.querySelector('input')?.focus() }}><X size={14} /></button>}
             {hits.length > 0 && (
               <div
                 style={{
-                  position: 'absolute', top: 28, left: 0, width: 300, maxHeight: 260,
+                  width: 'min(100%, 500px)', maxHeight: 200,
                   overflow: 'auto', zIndex: 20, borderRadius: 6,
                   border: `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}`,
                   background: dark ? '#181c22' : '#fff',
@@ -795,10 +711,11 @@ export default function App() {
                 {hits.map((h) => (
                   <button
                     type="button"
-                    key={h.kind + h.id}
+                    key={h.kind + h.id + (h.pin ?? '')}
+                    data-search-kind={h.kind}
+                    data-search-pin={h.pin}
                     onClick={() => {
-                      h.kind === 'net' ? locateNet(h.id)
-                        : h.kind === 'subdesign' ? navigateScope(h.id) : locateNode(h.id)
+                      locateTarget(h)
                       setQuery('')
                     }}
                     style={{
@@ -817,6 +734,7 @@ export default function App() {
                 ))}
               </div>
             )}
+            {query.trim() && !hits.length && <div role="status">No results</div>}
           </div>
           <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button
@@ -841,7 +759,12 @@ export default function App() {
             </button>
             {mode !== 'layout' && <button className="icon-tool" onClick={fit} title="Fit circuit" aria-label="Fit circuit"><Maximize size={16} /></button>}
             <button className="context-command" onClick={clearFilters} title="Clear filters"><FilterX size={14} />Clear filters</button>
-            <button className="context-command" onClick={goBack} disabled={!backStack.length} title="Back to previous inspection"><ArrowLeft size={14} />Back</button>
+            <button className="context-command" onClick={navigation.back} disabled={!navigation.canBack} title="Back to previous inspection"><ArrowLeft size={14} />Back</button>
+            <button className="icon-tool" title="Copy inspection link" aria-label="Copy inspection link" onClick={() => {
+              navigation.sync()
+              if (!navigator.clipboard) { setShareError(location.href); return }
+              navigator.clipboard.writeText(location.href).then(() => setShareError(''), () => setShareError(location.href))
+            }}><Share2 size={16} /></button>
             {mode !== 'layout' && <button
               className="icon-tool"
               onClick={resetLayout}
@@ -851,13 +774,26 @@ export default function App() {
             >
               <RotateCcw size={16} />
             </button>}
-            {chip('Overview', mode === 'overview', () => { prepare(); setMode('overview') })}
-            {chip('SCH view', mode === 'sch', () => { prepare(); setMode('sch') })}
-            {chip('Layout', mode === 'layout', () => { prepare(); setBoardRestore(null); setMode('layout') }, '#047857')}
+            {chip('Overview', mode === 'overview', () => navigation.navigate({ mode: 'overview' }))}
+            {chip('SCH view', mode === 'sch', () => navigation.navigate({ mode: 'sch' }))}
+            {chip('Layout', mode === 'layout', () => navigation.navigate({ mode: 'layout' }), '#047857')}
             {viewCfg && mode !== 'layout' &&
               ['', ...viewCfg.views.map((v) => v.name)].map((v) =>
-                chip(v || 'No regions', activeView === v, () => { prepare(); setActiveView(v); setSelectedGroups([]); setScope(null); setJump(null) }, '#0e7490'),
+                chip(v || 'No regions', activeView === v, () => navigation.navigate({ view: v }), '#0e7490'),
               )}
+          </div>
+          {shareError && <input aria-label="Inspection link" readOnly value={shareError} onFocus={(e) => e.target.select()} style={{ width: '100%' }} />}
+          <div className="inspection-tabs" role="tablist" aria-label="Inspection views">
+            {(['circuit', 'bom', 'issues'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
+              onClick={() => navigation.navigate({ tab: value })} onKeyDown={(e) => {
+                const offset = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
+                if (offset || e.key === 'Home' || e.key === 'End') {
+                  e.preventDefault()
+                  const target = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (index + offset + tabs.length) % tabs.length
+                  navigation.navigate({ tab: tabs[target] })
+                  e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[target].focus()
+                }
+              }}>{value === 'bom' ? 'BOM' : value === 'issues' ? 'Issues' : 'Circuit'}</button>)}
           </div>
           {!!model.subdesigns?.length && (
             <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -876,17 +812,24 @@ export default function App() {
             </div>
           )}
           {viewDef && <fieldset className="group-selector">
-            <legend>Groups</legend>
-            {(fullView?.regions?.regions ?? []).map((name) => <label key={name}>
+            <legend>Groups {mode !== 'layout' && <span className="group-bulk-tools">
+              <button className="collapse-tool" title="Collapse all groups" aria-label="Collapse all groups" disabled={fullView?.regions?.regions.every((g) => collapsedGroups.includes(g))}
+                onClick={() => navigation.navigate({ collapsed: fullView?.regions?.regions ?? [], viewport: null })}><FoldVertical size={14} /></button>
+              <button className="collapse-tool" title="Expand all groups" aria-label="Expand all groups" disabled={!collapsedGroups.length}
+                onClick={() => navigation.navigate({ collapsed: [], viewport: null })}><UnfoldVertical size={14} /></button>
+            </span>}</legend>
+            {(fullView?.regions?.regions ?? []).map((name) => <span className="group-control" key={name}><label>
               <input type="checkbox" checked={selectedGroups.includes(name)} onChange={() => toggleGroup(name)} />{name}
-            </label>)}
+            </label>{mode !== 'layout' && <button className="collapse-tool" aria-label={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} title={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} aria-expanded={!collapsedGroups.includes(name)}
+              onClick={() => navigation.navigate({ collapsed: collapsedGroups.includes(name) ? collapsedGroups.filter((g) => g !== name) : [...collapsedGroups, name], viewport: null })}>
+              {collapsedGroups.includes(name) ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>}</span>)}
           </fieldset>}
           <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
           {viewsLoading && <div role="status">Loading groups...</div>}
           {viewError && <div role="alert">{viewError}</div>}
         </div>
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy}>
-        {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide}
+        {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={(frame) => navigation.navigate({ layoutFrame: frame, boardViewport: null })} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide} onCamera={navigation.sync}
           onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
           onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
           nodes={nodes}
@@ -895,10 +838,11 @@ export default function App() {
           edgeTypes={edgeTypes}
           onInit={(i) => { rf.current = i; onReady() }}
           onMoveStart={onMoveStart}
+          onMoveEnd={navigation.sync}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
-          onNodeClick={() => setSelNet('')}
+          onNodeClick={() => { setSelNet(''); setSelectedPin('') }}
           onNodeDoubleClick={(_, n) => {
             const subdesign = (n.data.g as GNode | undefined)?.subdesign
             if (subdesign) navigateScope(subdesign.path)
@@ -929,7 +873,7 @@ export default function App() {
         </div>}
         </div>
       </main>
-      {(selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
+      {(tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
         <div
           className="explorer-inspector"
           style={{
@@ -941,6 +885,17 @@ export default function App() {
             color: panelFg,
           }}
         >
+          {tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
+            const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
+            if (target) locateTarget({ kind: 'part', id: target.path, label: target.designator ?? target.path, sub: target.path })
+            else {
+              const net = issue.span && allNets.find((n) => n.span?.file === issue.span!.file && n.span.line === issue.span!.line && n.span.col === issue.span!.col)
+              if (net) { locateNet(net.name); return }
+              const subdesign = issue.span && model.subdesigns?.find((s) => s.span.file === issue.span!.file && s.span.line === issue.span!.line && s.span.col === issue.span!.col)
+              if (subdesign) navigateScope(subdesign.path)
+              else setIssueFocus(`${issue.span?.file}:${issue.span?.line}:${issue.span?.col} · ${issue.message} · No component is declared at this source location`)
+            }
+          }} /></> : <>
           {inspectedSubdesign && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
@@ -975,11 +930,15 @@ export default function App() {
           {aggInsts.length > 0 && selNode && (
             <>
               <h3 style={{ margin: '0 0 2px' }}>{selNode.title}</h3>
-              <div style={{ color: '#6b7280', marginBottom: 6 }}>
-                {selNode.title.includes('decoupling')
-                  ? 'Decoupling group — capacitors bridging power rails at this IC. Grouped because both ends sit on rails, so there is no signal wire to draw; the dashed line marks the host.'
-                  : 'Rail-to-rail group — bypass/pull parts across the same rail pair.'}
-              </div>
+              <div style={{ color: '#6b7280', marginBottom: 6 }}>{aggInsts.length} represented parts</div>
+              {!!selNode.ports?.length && <table className="boundary-pin-list" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10 }}>
+                <thead><tr><th>Part / pin</th><th>#</th><th>Boundary net</th></tr></thead>
+                <tbody>{selNode.ports.map((port) => <tr key={port.name} data-boundary-port={port.name}>
+                  <td>{port.member && <button className="locate-link" title={port.member.instance_path} onClick={() => locateTarget({ kind: 'pin', id: port.member!.instance_path, pin: port.member!.logical_pin, net: port.net, label: port.member!.logical_pin, sub: port.member!.instance_path })}>
+                    {model.instances.find((i) => i.path === port.member!.instance_path)?.designator ?? shortName(port.member.instance_path)}.{port.member.logical_pin}</button>}</td>
+                  <td>{port.member?.numbers.join(', ')}</td><td><button className="locate-link" onClick={() => port.net && locateNet(port.net)}>{port.net}</button></td>
+                </tr>)}</tbody>
+              </table>}
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
                 {selNode.railTags.map((r) => (
                   <span
@@ -1003,7 +962,7 @@ export default function App() {
                   {aggInsts.map((i) => (
                     <tr key={i.path} style={{ borderTop: `1px solid ${dark ? '#22262e' : '#f3f4f6'}` }}>
                       <td>
-                        <b>{i.designator}</b>
+                        <button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: i.path, label: i.designator ?? i.path, sub: i.path })}>{i.designator}</button>
                       </td>
                       <td>{i.specs.map((s) => s.value).join(' ')}</td>
                       <td style={{ color: '#6b7280' }}>{i.part?.mpn}</td>
@@ -1034,9 +993,8 @@ export default function App() {
                 </> : <div>{localPlacementView ? 'No placement in this local frame' : model.layout === undefined ? 'Layout data unavailable in this snapshot' : 'No resolved board placement'}</div>}
                 {localPlacementView && <div style={{ marginTop: 4, color: '#9ca3af' }}>{selectedBoardPlacement ? 'Board placement available in Board coordinates' : 'Not yet placed on the board'}</div>}
                 {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
-                  setLayoutFrame(selectedBoardPlacement ? 'board' : 'local')
-                  setMode('layout')
-                  navigateScope(localPlacementScope?.path ?? scope, { id: selInst.path })
+                  navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
+                  setJump({ id: selInst.path, net: selNet })
                 }}>Show in layout</button>}
               </div>
               {ownerScope(model, selInst.path) && <button onClick={() => navigateScope(ownerScope(model, selInst.path), { id: selInst.path })}>Open containing subdesign</button>}
@@ -1119,9 +1077,6 @@ export default function App() {
                   </a>
                 </div>
               )}
-              <div style={{ color: '#6b7280', marginTop: 8, fontSize: 11 }}>
-                click a pin to light its net on the board
-              </div>
               <table style={{ borderCollapse: 'collapse', marginTop: 2, width: '100%' }}>
                 <thead>
                   <tr style={{ textAlign: 'left', color: '#6b7280' }}>
@@ -1138,16 +1093,17 @@ export default function App() {
                     return (
                       <tr
                         key={p.logical}
-                        onClick={() => net && setSelNet(on ? '' : net)}
+                        data-pin={p.logical}
+                        data-selected={selectedPin === p.logical}
                         style={{
                           borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}`,
                           cursor: net ? 'pointer' : 'default',
-                          background: on ? '#22d3ee22' : undefined,
+                          background: on || selectedPin === p.logical ? '#22d3ee22' : undefined,
                           color: on ? '#22d3ee' : undefined,
                           fontWeight: on ? 700 : 400,
                         }}
                       >
-                        <td>{p.logical}</td>
+                        <td><button className="locate-link" aria-pressed={selectedPin === p.logical} onClick={() => { setSelectedPin(p.logical); setSelNet(net && !on ? net : '') }}>{p.logical}</button></td>
                         <td>{p.numbers.join(',')}</td>
                         <td style={{ color: on ? '#22d3ee' : net ? netWireColor(net, dark) : '#6b7280' }}>
                           {net ?? '—'}
@@ -1214,6 +1170,7 @@ export default function App() {
               ))}
             </>
           )}
+          </>}
         </div>
       )}
     </div>

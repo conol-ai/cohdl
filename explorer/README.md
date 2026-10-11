@@ -148,6 +148,30 @@ tooling metadata and never enter board outputs or designator allocation.
 
 ## Develop (frontend hot-reload)
 
+Project group checkboxes display their union; no checked groups means the
+whole circuit. Choosing a functional group opens the flattened part view,
+so components inside subdesigns retain their actual group identity. Rail
+aggregates split at group boundaries. Shown counts use represented source
+instances and unique incident model nets, including rails.
+
+The net inspector lists every logical endpoint and all its physical numbers,
+including endpoints outside the current groups. Following an endpoint keeps
+the net selected; Back restores the preceding group, selection and camera
+after layout completes. Pan and zoom (including zoom buttons) preserve the
+camera on resize; Fit resumes automatic fitting. The physical Layout uses its
+own millimetre camera for the same Back behavior. Clear filters restores the
+complete circuit, including from an empty group.
+
+Run the desktop/mobile union, endpoint, camera and empty-recovery regression:
+
+```sh
+node explorer/web/test/browser-smoke.mjs --url http://127.0.0.1:5210 --stage union
+```
+
+The browser camera regression explicitly supplies two test-only placements
+because the PDFExact snapshot contains no placement facts. It does not write
+those coordinates to the model service or circuit source.
+
 For work on the frontend itself, run Vite's dev server alongside the
 extractor instead of rebuilding `dist`:
 

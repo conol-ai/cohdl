@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type Ref } from 'react'
 import type { ExplorerModel, FpPad, FpShape } from './model'
 import { shortName } from './model'
 import { boundsOf, corners, footprintBounds, gridStep, identity, layoutScope, outlineBounds, outlinePath, placedBounds, svgMatrix, type Bounds, type Point } from './boardGeometry'
 import './BoardLayout.css'
+import { resizeBoardView, type BoardViewportSnapshot, type CanvasSize } from './viewport'
+
+export interface BoardLayoutHandle { capture: () => BoardViewportSnapshot }
 
 const topColor = '#f59e0b'
 const bottomColor = '#60a5fa'
@@ -37,7 +40,7 @@ function Perimeter({ shape, color }: { shape: FpShape; color: string }) {
   </g>
 }
 
-export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet }: {
+export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, selectedNet, focus, onSelect, onNet, cameraRef, restore, visiblePaths }: {
   model: ExplorerModel
   scope: string | null
   frame: 'board' | 'local'
@@ -48,6 +51,9 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   focus: { id?: string; net?: string } | null
   onSelect: (paths: string[]) => void
   onNet: (name: string) => void
+  cameraRef?: Ref<BoardLayoutHandle>
+  restore?: BoardViewportSnapshot | null
+  visiblePaths?: ReadonlySet<string>
 }) {
   const [side, setSide] = useState<'both' | 'top' | 'bottom'>('both')
   const [labels, setLabels] = useState(true)
@@ -57,7 +63,8 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   const subdesign = model.subdesigns?.find((s) => s.path === scope)
   const localLayouts = model.subdesigns?.filter((s) => s.local_placements?.length && (!scope || s.path === scope || s.path.startsWith(`${scope}::`))) ?? []
   const byPath = useMemo(() => new Map(scoped.instances.map((i) => [i.path, i])), [scoped])
-  const placements = useMemo(() => scoped.placements.filter((p) => side === 'both' || p.side === side), [scoped, side])
+  const placements = useMemo(() => scoped.placements.filter((p) => (!visiblePaths || visiblePaths.has(p.instance)) && (side === 'both' || p.side === side)), [scoped, side, visiblePaths])
+  const unplaced = scoped.unplaced.filter((i) => !visiblePaths || visiblePaths.has(i.path))
   const geometry = useMemo(() => new Map(placements.map((p) => {
     const i = byPath.get(p.instance)!
     const fp = i.part?.footprint ? model.footprints[i.part.footprint] : undefined
@@ -72,22 +79,54 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
     return { x: b.x - pad, y: b.y - pad, width: b.width + pad * 2, height: b.height + pad * 2 }
   }, [geometry, scoped.outline])
   const [view, setView] = useState<Bounds>(fitted)
-  useEffect(() => { setView(fitted) }, [fitted])
+  const svg = useRef<SVGSVGElement>(null)
+  const autoFit = useRef(true)
+  const restored = useRef<typeof restore>(undefined)
+  const focused = useRef<typeof focus>(null)
+  const size = useRef<CanvasSize>({ width: 0, height: 0 })
+  const currentSize = () => {
+    const rect = svg.current?.getBoundingClientRect()
+    return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
+  }
+  useImperativeHandle(cameraRef, () => ({ capture: () => ({ view: { ...view }, size: currentSize(), autoFit: autoFit.current }) }), [view])
   // Global search can reveal a component even if its side was filtered out.
   useEffect(() => {
     const p = scoped.placements.find((p) => p.instance === focus?.id)
     if (p) setSide((current) => current !== 'both' && current !== p.side ? 'both' : current)
   }, [focus, scoped])
-  useEffect(() => {
-    const p = placements.find((p) => p.instance === focus?.id)
-    if (!p) return
+  useLayoutEffect(() => {
+    const next = currentSize()
+    size.current = next
+    if (restore && restore !== restored.current) {
+      restored.current = restore
+      focused.current = focus
+      autoFit.current = restore.autoFit
+      setView(restore.autoFit ? fitted : resizeBoardView(restore.view, restore.size, next))
+      return
+    }
+    const p = focus !== focused.current ? placements.find((p) => p.instance === focus?.id) : undefined
+    focused.current = focus
+    if (!p) { if (autoFit.current) setView(fitted); return }
     const inst = byPath.get(p.instance)
     const fp = inst?.part?.footprint ? model.footprints[inst.part.footprint] : undefined
     const box = placedBounds(p, fp)
     const span = Math.max(12, box.width * 2, box.height * 2)
+    autoFit.current = false
     setView({ x: box.x + box.width / 2 - span / 2, y: box.y + box.height / 2 - span / 2, width: span, height: span })
-  }, [fitted, focus, placements, byPath, model.footprints])
-  const svg = useRef<SVGSVGElement>(null)
+  }, [fitted, focus, placements, byPath, model.footprints, restore])
+  useLayoutEffect(() => {
+    const observer = new ResizeObserver(() => {
+      const next = currentSize()
+      if (autoFit.current) setView(fitted)
+      else if (size.current.width && size.current.height) {
+        const previous = size.current
+        setView((v) => resizeBoardView(v, previous, next))
+      }
+      size.current = next
+    })
+    if (svg.current) observer.observe(svg.current)
+    return () => observer.disconnect()
+  }, [fitted])
   const drag = useRef<{ x: number; y: number; view: Bounds; scale: number; moved: boolean } | null>(null)
   const screenPoint = (x: number, y: number): Point => {
     const matrix = svg.current?.getScreenCTM()
@@ -97,6 +136,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   }
   const zoom = (factor: number, center: Point = [view.x + view.width / 2, view.y + view.height / 2]) => {
     if (view.width * factor < 0.1 || view.width * factor > Math.max(fitted.width * 20, 1000)) return
+    autoFit.current = false
     setView({ x: center[0] + (view.x - center[0]) * factor, y: center[1] + (view.y - center[1]) * factor, width: view.width * factor, height: view.height * factor })
   }
   // React delegates wheel listeners passively; this canvas owns wheel zoom.
@@ -124,8 +164,8 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
   const constraintButton = (name: string) => <button key={name} onClick={() => onNet(name)} style={{ border: 0, background: 'none', color: '#67e8f9', cursor: 'pointer', padding: '2px 3px' }}>{name}</button>
   const panel = { background: '#181c22ed', color: '#d1d5db', border: '1px solid #374151', borderRadius: 6, padding: '6px 10px', fontSize: 11 }
 
-  return <div className="board-layout" style={{ height: '100%', background: '#111820', color: '#e5e7eb' }}>
-    <div style={{ position: 'absolute', top: 132, left: 12, right: 12, zIndex: 4, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...panel }}>
+  return <div className="board-layout" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#111820', color: '#e5e7eb' }}>
+    <div style={{ flex: '0 0 auto', maxHeight: 72, overflow: 'auto', zIndex: 4, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', ...panel }}>
       <b>{local ? 'Local layout' : 'Board layout'} · mm</b>
       {subdesign?.local_placements !== undefined && <label>Coordinates <select aria-label="Layout coordinates" value={scoped.frame} onChange={(e) => onFrame(e.target.value as 'board' | 'local')}>
         <option value="local">Subdesign local</option><option value="board">Board coordinates</option>
@@ -136,10 +176,10 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
       <label><input type="checkbox" checked={labels} onChange={(e) => setLabels(e.target.checked)} /> Labels</label>
       <label><input type="checkbox" checked={padNumbers} onChange={(e) => setPadNumbers(e.target.checked)} /> Pad numbers</label>
       <span><span style={{ color: topColor }}>● top</span> · <span style={{ color: bottomColor }}>● bottom</span></span>
-      <span>{placements.length} {local ? 'locally placed' : 'placed'} · {scoped.unplaced.length} without placement</span>
+      <span>{placements.length} {local ? 'locally placed' : 'placed'} · {unplaced.length} without placement</span>
     </div>
     <svg ref={svg} role="group" aria-label="Physical component layout in millimetres" viewBox={`${view.x} ${view.y} ${view.width} ${view.height}`}
-      style={{ position: 'absolute', left: 0, top: 178, width: '100%', height: 'calc(100% - 224px)', touchAction: 'none', cursor: 'grab' }}
+      style={{ flex: 1, minHeight: 0, width: '100%', touchAction: 'none', cursor: 'grab' }}
       onPointerDown={(e) => {
         if ((e.target as Element).closest('[data-instance]')) return
         drag.current = { x: e.clientX, y: e.clientY, view, scale: svg.current?.getScreenCTM()?.a ?? 1, moved: false }
@@ -150,6 +190,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
         if (!d) return
         const dx = e.clientX - d.x, dy = e.clientY - d.y
         if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true
+        autoFit.current = false
         setView({ ...d.view, x: d.view.x - dx / d.scale, y: d.view.y - dy / d.scale })
       }}
       onPointerUp={() => { if (drag.current && !drag.current.moved) onSelect([]); drag.current = null }}
@@ -195,7 +236,7 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
         </g>
       })}
     </svg>
-    <div style={{ position: 'absolute', top: 180, right: 12, zIndex: 3, maxWidth: 300, maxHeight: '45%', overflow: 'auto', ...panel }}>
+    <div style={{ position: 'absolute', top: 76, right: 12, zIndex: 3, maxWidth: 'min(300px, 90%)', maxHeight: '30%', overflow: 'auto', ...panel }}>
       {local && <div style={{ marginBottom: 6 }}>Local defaults for <b>{shortName(scope ?? '')}</b>. Board coordinates include the parent placement and any outer overrides.</div>}
       {!local && model.layout?.outline_error && <div style={{ color: '#fbbf24', marginBottom: 6 }}>Outline unavailable: {model.layout.outline_error}</div>}
       {!local && !model.layout && <div>{model.layout === undefined ? 'This snapshot has no layout data. Re-extract the project to view placements.' : 'No board layout facts declared.'}</div>}
@@ -204,9 +245,9 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
         <div>Local layouts are available:</div>
         {localLayouts.map((s) => <button key={s.path} onClick={() => onScope(s.path)} style={{ margin: 2 }}>{shortName(s.path)} · {s.local_placements!.length} parts</button>)}
       </div>}
-      <details><summary style={{ cursor: 'pointer' }}>Without {local ? 'local' : 'board'} placement ({scoped.unplaced.length})</summary>
+      <details><summary style={{ cursor: 'pointer' }}>Without {local ? 'local' : 'board'} placement ({unplaced.length})</summary>
         <p>{local ? 'These parts have no placement relative to this subdesign. A nested subdesign may have its own local layout.' : 'These parts have no resolved board coordinate. Open a subdesign to inspect its local defaults.'}</p>
-        {scoped.unplaced.map((i) => <div key={i.path}><button onClick={() => onSelect([i.path])} title={i.path} style={{ border: 0, background: 'none', color: '#93c5fd', cursor: 'pointer', padding: 3 }}>{i.designator} {shortName(i.path)}</button>{i.placement_hint && <small> · {i.placement_hint}</small>}</div>)}
+        {unplaced.map((i) => <div key={i.path}><button onClick={() => onSelect([i.path])} title={i.path} style={{ border: 0, background: 'none', color: '#93c5fd', cursor: 'pointer', padding: 3 }}>{i.designator} {shortName(i.path)}</button>{i.placement_hint && <small> · {i.placement_hint}</small>}</div>)}
       </details>
       <details style={{ marginTop: 5 }}><summary style={{ cursor: 'pointer' }}>Layout constraints</summary>
         {!model.layout?.net_classes.length && !model.layout?.diff_pairs.length && !model.layout?.length_matches.length && <p>No net constraints declared</p>}
@@ -215,8 +256,8 @@ export function BoardLayout({ model, scope, frame, onFrame, onScope, selected, s
         {model.layout?.length_matches.map((l, index) => <div key={index}>Length match: {l.nets.map(constraintButton)} {l.tolerance && `± ${l.tolerance}`}</div>)}
       </details>
     </div>
-    <div style={{ position: 'absolute', bottom: 10, left: 12, right: 12, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', ...panel }}>
-      <button onClick={() => setView(fitted)}>{local ? 'Fit local layout' : 'Fit board'}</button><button aria-label="Zoom into layout" onClick={() => zoom(0.8)}>+</button><button aria-label="Zoom out of layout" onClick={() => zoom(1.25)}>−</button>
+    <div style={{ flex: '0 0 auto', maxHeight: 44, overflow: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', ...panel }}>
+      <button onClick={() => { autoFit.current = true; setView(fitted) }}>{local ? 'Fit local layout' : 'Fit board'}</button><button aria-label="Zoom into layout" onClick={() => zoom(0.8)}>+</button><button aria-label="Zoom out of layout" onClick={() => zoom(1.25)}>−</button>
       <span>Grid {mm(step)} mm · X → Y ↓ · viewed from top</span>
       <span style={{ color: '#9ca3af' }}>Pan to inspect · ⌘/Ctrl-click two parts to measure origins</span>
       {selectedPlacements.length === 2 && (() => {

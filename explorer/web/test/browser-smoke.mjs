@@ -21,7 +21,8 @@ try {
     await new Promise((r) => setTimeout(r, 180))
   }
   const clickText = async (text) => {
-    const button = await page.evaluateHandle((label) => [...document.querySelectorAll('button')].find((el) => el.textContent.trim() === label), text)
+    const button = await page.evaluateHandle((label) => [...document.querySelectorAll('button')].find((el) => el.textContent.trim() === label || el.getAttribute('aria-label') === label)
+      ?? [...document.querySelectorAll('.group-selector label')].find((el) => el.textContent.trim() === label)?.querySelector('input'), text)
     assert.ok(await button.asElement(), `Missing control ${text}`)
     await button.asElement().click()
     await button.dispose()
@@ -47,6 +48,14 @@ try {
     console.log(JSON.stringify({ label, canvas: result.canvas, nodeCount: result.nodes.length, overflow: result.overflow }))
   }
   await ready()
+  if (stage === 'union') {
+    const { runUnionSmoke } = await import('./union-smoke.mjs')
+    await runUnionSmoke(page, { url, output, ready, clickText, geometry })
+    const { runLayoutInspectionSmoke } = await import('./layout-inspection-smoke.mjs')
+    await runLayoutInspectionSmoke(page, { url, output, ready, clickText })
+    assert.deepEqual(errors, [], 'Browser runtime errors')
+    console.log(JSON.stringify({ result: 'PASS', stage, output }))
+  } else {
   assert.ok(await page.$('.react-flow__node-region'), 'Native group nodes missing')
   await geometry('desktop-all')
   await clickText('Camera')
@@ -62,4 +71,5 @@ try {
   await geometry('mobile-camera')
   assert.deepEqual(errors, [], 'Browser runtime errors')
   console.log(JSON.stringify({ result: 'PASS', stage, output }))
+  }
 } finally { await browser.close() }

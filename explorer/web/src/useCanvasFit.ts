@@ -1,23 +1,63 @@
 import { useCallback, useEffect, useRef, type RefObject, type MutableRefObject } from 'react'
 import type { ReactFlowInstance } from '@xyflow/react'
-import type { LayoutRect } from './viewport'
+import { resizeViewport, validViewport, type CanvasSize, type CircuitViewport, type LayoutRect } from './viewport'
+
+export interface ViewportSnapshot { viewport: CircuitViewport; size: CanvasSize; autoFit: boolean }
 
 export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRefObject<ReactFlowInstance | null>, active: boolean) {
   const bounds = useRef<LayoutRect | null>(null)
   const frame = useRef<number>(0)
-  const fit = useCallback(() => {
+  const autoFit = useRef(true)
+  const pending = useRef<ViewportSnapshot | null | undefined>(undefined)
+  const size = useRef<CanvasSize>({ width: 0, height: 0 })
+  const currentSize = useCallback(() => {
+    const rect = canvas.current?.getBoundingClientRect()
+    return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
+  }, [canvas])
+  const apply = useCallback(() => {
     cancelAnimationFrame(frame.current)
     frame.current = requestAnimationFrame(() => {
-      if (bounds.current && canvas.current?.clientWidth && canvas.current.clientHeight)
+      if (!bounds.current || !flow.current || !canvas.current?.clientWidth || !canvas.current.clientHeight) return
+      const next = currentSize()
+      if (pending.current) {
+        const saved = pending.current
+        autoFit.current = saved.autoFit
+        if (!saved.autoFit && validViewport(saved.viewport))
+          void flow.current.setViewport(resizeViewport(saved.viewport, saved.size, next), { duration: 0 })
+      }
+      pending.current = undefined
+      if (autoFit.current)
         void flow.current?.fitBounds(bounds.current, { duration: 0, padding: 0.16 })
+      size.current = next
     })
-  }, [canvas, flow])
-  const setBounds = useCallback((value: LayoutRect | null) => { bounds.current = value; fit() }, [fit])
+  }, [canvas, flow, currentSize])
+  const fit = useCallback(() => { autoFit.current = true; pending.current = undefined; apply() }, [apply])
+  const prepare = useCallback((saved?: ViewportSnapshot | null) => {
+    cancelAnimationFrame(frame.current)
+    pending.current = saved ?? null
+    autoFit.current = saved?.autoFit ?? true
+    bounds.current = null
+  }, [])
+  const capture = useCallback((): ViewportSnapshot | null => {
+    const viewport = flow.current?.getViewport()
+    return viewport && validViewport(viewport) ? { viewport: { ...viewport }, size: currentSize(), autoFit: autoFit.current } : null
+  }, [flow, currentSize])
+  const manual = useCallback(() => { autoFit.current = false; cancelAnimationFrame(frame.current) }, [])
+  const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
+    if (event) manual()
+  }, [manual])
+  const setBounds = useCallback((value: LayoutRect | null) => { bounds.current = value; apply() }, [apply])
   useEffect(() => {
     if (!active) return
-    const observer = new ResizeObserver(fit)
+    const observer = new ResizeObserver(() => {
+      const next = currentSize()
+      if (pending.current !== undefined || autoFit.current) { if (bounds.current) apply(); return }
+      if (flow.current && size.current.width && size.current.height)
+        void flow.current.setViewport(resizeViewport(flow.current.getViewport(), size.current, next), { duration: 0 })
+      size.current = next
+    })
     if (canvas.current) observer.observe(canvas.current)
     return () => { observer.disconnect(); cancelAnimationFrame(frame.current) }
-  }, [canvas, fit, active])
-  return { fit, setBounds }
+  }, [canvas, flow, apply, active, currentSize])
+  return { fit, setBounds, prepare, capture, manual, onMoveStart, onReady: apply }
 }

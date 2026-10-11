@@ -7,7 +7,7 @@
 // R3  Non-rail nets with >3 endpoints render as net-label badges, not wires.
 // R4  Only connected pins count toward node size; unused pins collapse.
 
-import type { ExplorerModel, Instance, Subdesign, SubdesignPort } from './model'
+import type { ExplorerModel, Instance, Net, Subdesign, SubdesignPort } from './model'
 import { shortName } from './model'
 import { projectScope } from './hierarchy'
 
@@ -56,7 +56,7 @@ export interface Graph {
 const spec = (i: Instance, name: string): string | undefined =>
   i.specs.find((s) => s.name === name)?.value
 
-export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''): Graph {
+export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', groupByInstance?: ReadonlyMap<string, string>): Graph {
   const { model: m, boundaries } = projectScope(fullModel, scope)
   const railSet = new Set(m.derived.rails)
   const twoT = new Set(m.derived.two_terminal)
@@ -78,7 +78,7 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
   const nodes: GNode[] = []
   const edges: GEdge[] = []
   const location = new Map<string, string>()
-  const aggs = new Map<string, string[]>() // group key -> member paths
+  const aggs = new Map<string, { key: string; members: string[] }>()
   const bypassOf = new Map(m.derived.bypasses.filter((b) => inst.has(b.target)).map((b) => [b.cap, b.target]))
 
   // ---- classify two-terminal instances (R1, unified): every 2T part with a
@@ -94,7 +94,8 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
       const key = bypassOf.has(p)
         ? `host:${bypassOf.get(p)}`
         : [...nets].sort().join(' + ')
-      aggs.set(key, [...(aggs.get(key) ?? []), p])
+      const id = `agg:${key}${groupByInstance ? `:group:${encodeURIComponent(groupByInstance.get(p) ?? 'Other')}` : ''}`
+      aggs.set(id, { key, members: [...(aggs.get(id)?.members ?? []), p] })
     }
   }
 
@@ -136,7 +137,7 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
   }
 
   for (const i of m.instances) {
-    const aggKey = [...aggs].find(([, mem]) => mem.includes(i.path))?.[0]
+    const aggKey = [...aggs].find(([, group]) => group.members.includes(i.path))?.[0]
     if (aggKey) continue // represented by the aggregate node
     const kind: GNode['kind'] = twoT.has(i.path) ? 'passive' : 'ic'
     const n = mkNode(i, kind)
@@ -144,8 +145,7 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
     location.set(i.path, n.id)
   }
   const hostEdges: { agg: string; host: string }[] = []
-  for (const [key, members] of aggs) {
-    const id = `agg:${key}`
+  for (const [id, { key, members }] of aggs) {
     const labels = members.map((p) => {
       const i = inst.get(p)!
       const v = spec(i, 'capacitance') ?? spec(i, 'resistance') ?? ''
@@ -192,36 +192,47 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
     })
     location.set(b.path, b.path)
   }
-  const nodeIds = new Set(nodes.map((n) => n.id))
-  const edgeSeen = new Set<string>()
-  const pinFor = (nodeId: string, netName: string): string | undefined => {
-    const node = nodes.find((x) => x.id === nodeId)
-    if (!node) return undefined
-    for (const [p, nn] of Object.entries(node.pinNets)) if (nn === netName) return p
-    return undefined
+  for (const { agg, host } of hostEdges) {
+    const hostNode = location.get(host)
+    if (hostNode && hostNode !== '(edge)')
+      edges.push({ id: `bypass:${agg}`, source: agg, target: hostNode, net: `bypass:${host}`, nets: [], label: '', dashed: true })
   }
-  const pushEdge = (a: string, b: string, net: string, label: string, relay?: string) => {
-    if (!nodeIds.has(a) || !nodeIds.has(b) || a === b) return
-    const key = `${[a, b].sort().join('|')}|${net}`
+  return reconnectGraph({ nodes, edges, railSet, location }, m.nets)
+}
+
+/** Rebuild wires from checked memberships after any display-only projection. */
+export function reconnectGraph(graph: Graph, nets: readonly Net[]): Graph {
+  const nodes = graph.nodes.filter((n) => n.kind !== 'net')
+  const { location, railSet } = graph
+  const nodeIds = new Set(nodes.map((n) => n.id))
+  const edges = graph.edges.filter((e) => e.dashed && nodeIds.has(e.source) && nodeIds.has(e.target))
+  const edgeSeen = new Set<string>()
+  type Endpoint = { id: string; pin?: string }
+  const endpointKey = (ep: Endpoint) => JSON.stringify([ep.id, ep.pin])
+  const byId = new Map(nodes.map((n) => [n.id, n]))
+  const pushEdge = (a: Endpoint, b: Endpoint, net: string, label: string) => {
+    if (!nodeIds.has(a.id) || !nodeIds.has(b.id) || a.id === b.id) return
+    const key = JSON.stringify([[endpointKey(a), endpointKey(b)].sort(), net])
     if (edgeSeen.has(key)) return
     edgeSeen.add(key)
-    const netA = net.includes('\u21c4') ? net.split('\u21c4')[0] : net
-    const netB = net.includes('\u21c4') ? net.split('\u21c4')[1] : net
     edges.push({
-      id: `e${edges.length}`, source: a, target: b, net, nets: [net], label, relay,
-      sourcePin: pinFor(a, netA), targetPin: pinFor(b, netB),
+      id: `e${edges.length}`, source: a.id, target: b.id, net, nets: [net], label,
+      sourcePin: a.pin, targetPin: b.pin,
     })
   }
 
-  for (const n of m.nets) {
+  for (const n of nets) {
     if (railSet.has(n.name)) continue
-    const eps: string[] = []
+    const endpoints = new Map<string, Endpoint>()
     for (const mem of n.members) {
       const loc = location.get(mem.instance_path)
-      if (loc && loc !== '(edge)' && !eps.includes(loc)) eps.push(loc)
+      if (!loc || loc === '(edge)') continue
+      const ep = { id: loc, pin: byId.get(loc)?.pinNets[mem.logical_pin] === n.name ? mem.logical_pin : undefined }
+      endpoints.set(endpointKey(ep), ep)
     }
+    const eps = [...endpoints.values()]
     if (eps.length <= 1) continue
-    if (eps.length > 3) {
+    if (eps.length > 3 || new Set(eps.map((ep) => ep.id)).size < eps.length) {
       // R3: star junction — a small net node every endpoint wires to, so
       // every part shows a real connection (EDA net-tie convention).
       const jid = `net:${n.name}`
@@ -233,25 +244,12 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = ''):
         })
         nodeIds.add(jid)
       }
-      for (const id of eps) pushEdge(id, jid, n.name, '')
+      for (const ep of eps) pushEdge(ep, { id: jid }, n.name, '')
       continue
     }
     for (let k = 0; k + 1 < eps.length; k++) pushEdge(eps[k], eps[k + 1], n.name, n.name)
   }
 
-  for (const { agg, host } of hostEdges) {
-    const hostNode = location.get(host)
-    if (hostNode && hostNode !== '(edge)')
-      edges.push({
-        id: `e${edges.length}`,
-        source: agg,
-        target: hostNode,
-        net: `bypass:${host}`,
-        nets: [],
-        label: '',
-        dashed: true,
-      })
-  }
   return { nodes, edges, railSet, location }
 }
 

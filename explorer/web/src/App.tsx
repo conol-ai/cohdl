@@ -16,9 +16,9 @@ import '@xyflow/react/dist/style.css'
 import type { ExplorerModel, Instance, Net } from './model'
 import { shortName } from './model'
 import { explorerNets, ownerScope } from './hierarchy'
-import { buildGraph, focusSubset, type GNode, type Graph } from './transform'
+import { focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
-import { assignRegions, parseViewConfig, type ViewConfig } from './views'
+import { buildViewGraph, projectGroupUnion, parseViewConfig, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
@@ -31,12 +31,13 @@ import {
 } from './nodes'
 import { LaneEdge } from './edges'
 import { toPng } from 'html-to-image'
-import { BoardLayout } from './BoardLayout'
+import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope } from './boardGeometry'
-import { Download, Maximize, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Download, FilterX, Maximize, RotateCcw } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
-import { boundsOfRects } from './viewport'
+import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
+import { netEndpoints, type InspectionContext } from './inspection'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -48,7 +49,7 @@ export default function App() {
   const [graph, setGraph] = useState<Graph | null>(null)
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
-  const [sel, setSel] = useState<string[]>([])
+  const [sel, setSel] = useState<string[]>(() => new URLSearchParams(location.search).get('select')?.split(',') ?? [])
   const [selNet, setSelNet] = useState<string>('')
   const [err, setErr] = useState<string>('')
   const [viewCfg, setViewCfg] = useState<ViewConfig | null>(null)
@@ -58,8 +59,11 @@ export default function App() {
   const loadedViewDesign = useRef<string | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const rf = useRef<ReactFlowInstance | null>(null)
+  const boardCamera = useRef<BoardLayoutHandle | null>(null)
+  const [boardRestore, setBoardRestore] = useState<BoardViewportSnapshot | null>(null)
   const [activeView, setActiveView] = useState<string>('')
-  const [regionFocus, setRegionFocus] = useState<string>('')
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([])
+  const [backStack, setBackStack] = useState<InspectionContext[]>([])
   const [photoUrl, setPhotoUrl] = useState<string>('')
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
@@ -68,23 +72,12 @@ export default function App() {
     const value = new URLSearchParams(location.search).get('scope')
     return value === 'all' ? null : value ?? ''
   })
-  const [jump, setJump] = useState<{ id?: string; net?: string } | null>(null)
+  const [jump, setJump] = useState<{ id?: string; net?: string; selection?: string[] } | null>(null)
+  const handledJump = useRef<typeof jump>(null)
+  const selection = useRef({ parts: sel, net: selNet })
+  selection.current = { parts: sel, net: selNet }
   const allNets = useMemo(() => model ? explorerNets(model) : [], [model])
   const currentSubdesign = model?.subdesigns?.find((s) => s.path === scope)
-  const navigateScope = useCallback((path: string | null, target?: { id?: string; net?: string }) => {
-    setScope(path)
-    setActiveView('')
-    setRegionFocus('')
-    setSel([])
-    setSelNet('')
-    setQuery('')
-    setJump(target ?? null)
-  }, [])
-
-  // A live edit can remove or rename the open use site.
-  useEffect(() => {
-    if (model && scope && !model.subdesigns?.some((s) => s.path === scope)) navigateScope('')
-  }, [model, scope, navigateScope])
   /** Node id -> position produced by the layout engine (reset target). */
   const pristine = useRef<Map<string, { x: number; y: number }>>(new Map())
   /** Latest resetLayout, so the key handler binds once. */
@@ -94,7 +87,22 @@ export default function App() {
     return value === 'sch' || value === 'layout' ? value : 'overview'
   })
   const dark = mode !== 'overview'
-  const { fit, setBounds } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
+  const { fit, setBounds, prepare, capture, manual, onMoveStart, onReady } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
+  const navigateScope = useCallback((path: string | null, target?: { id?: string; net?: string }) => {
+    prepare()
+    setBoardRestore(null)
+    setScope(path)
+    setActiveView('')
+    setSelectedGroups([])
+    setSel([])
+    setSelNet(target?.net ?? '')
+    setQuery('')
+    setJump(target ?? null)
+  }, [prepare])
+
+  useEffect(() => {
+    if (model && scope && !model.subdesigns?.some((s) => s.path === scope)) navigateScope('')
+  }, [model, scope, navigateScope])
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
@@ -188,11 +196,19 @@ export default function App() {
   }, [])
 
   const viewDef = viewCfg?.views.find((v) => v.name === activeView)
-
-  useEffect(() => setRegionFocus(''), [activeView, mode])
+  const fullView = useMemo(() => model ? buildViewGraph(model, null, viewDef) : null, [model, viewDef])
+  const scopedView = useMemo(() => model ? (scope === null ? fullView : buildViewGraph(model, scope, viewDef)) : null, [model, scope, viewDef, fullView])
+  const projection = useMemo(() => model && scopedView ? projectGroupUnion(model, scope, scopedView, selectedGroups) : null, [model, scope, scopedView, selectedGroups])
+  useEffect(() => {
+    const names = fullView?.regions?.regions ?? []
+    setSelectedGroups((groups) => {
+      const next = groups.filter((g) => names.includes(g))
+      return next.length === groups.length ? groups : next
+    })
+  }, [fullView])
 
   useEffect(() => {
-    if (!model) return
+    if (!model || !projection) return
     if (mode === 'layout') {
       setLayoutBusy(false)
       setGraph(null)
@@ -203,33 +219,23 @@ export default function App() {
     let cancelled = false
     setLayoutBusy(true)
     setErr('')
-    const g = buildGraph(model, scope)
+    const gg = { ...projection.graph, nodes: projection.graph.nodes.map((n) => ({ ...n })) }
     if (mode === 'sch')
-      for (const n of g.nodes) {
+      for (const n of gg.nodes) {
         const sz = detailedSize(n)
         n.width = sz.width
         n.height = sz.height
       }
-    const regions = viewDef ? assignRegions(g, viewDef) : undefined
-    // Single-region focus: keep only that region's nodes (Split view).
-    let gg = g
-    if (regions && regionFocus) {
-      const keep = new Set(
-        g.nodes.filter((n) => regions.byNode.get(n.id) === regionFocus).map((n) => n.id),
-      )
-      gg = {
-        ...g,
-        nodes: g.nodes.filter((n) => keep.has(n.id)),
-        edges: g.edges.filter((e) => keep.has(e.source) && keep.has(e.target)),
-      }
-    }
     setGraph(gg)
-    const layoutRegions = regionFocus ? undefined : regions
+    const layoutRegions = projection.regions
     layout(gg, layoutRegions, { compact: mode === 'overview' }).then(({ positions, regionBoxes }) => {
       if (cancelled) return
-      const target = jump?.id ? gg.location.get(jump.id) ?? jump.id : undefined
-      const preset = target ? [target] : params.get('select')?.split(',') ?? []
-      setSelNet(jump?.net ?? '')
+      const intent = jump !== handledJump.current ? jump : null
+      const target = intent?.id ? gg.location.get(intent.id) ?? intent.id : undefined
+      const preset = target ? [target] : intent?.selection ?? selection.current.parts
+      const trace = intent?.net ?? selection.current.net
+      setSelNet(allNets.some((n) => n.name === trace) ? trace : '')
+      handledJump.current = jump
       // SCH mode: each connected pin picks the side facing its counterpart
       // node (capped at the row count so node height stays fixed), then rows
       // within a side sort by the counterpart's y so wires run near-straight.
@@ -413,7 +419,7 @@ export default function App() {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, viewCfg, activeView, mode, regionFocus, scope, jump, setBounds])
+  }, [model, projection, mode, jump, setBounds, allNets])
 
   // Focus paths (multi-select) + net highlight
   useEffect(() => {
@@ -469,7 +475,6 @@ export default function App() {
 
   const onSelectionChange = useCallback(({ nodes: sn }: { nodes: Node[] }) => {
     setSel(sn.map((n) => n.id))
-    if (sn.length > 0) setSelNet('')
   }, [])
 
   // Controlled flow (React Flow v12): change handlers are mandatory, or
@@ -494,8 +499,8 @@ export default function App() {
     setSelNet('')
     setQuery('')
     setMoved(false)
-    setTimeout(() => rf.current?.fitView({ duration: 600, padding: 0.1 }), 30)
-  }, [])
+    fit()
+  }, [fit])
   resetLayoutRef.current = resetLayout
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((es) => applyEdgeChanges(changes, es)),
@@ -540,6 +545,62 @@ export default function App() {
     () => (selNet ? allNets.find((n) => n.name === selNet) : undefined),
     [selNet, allNets],
   )
+  const endpoints = useMemo(() => {
+    if (!model || !selNetObj || !fullView) return []
+    const placed = physicalScope?.placements.filter((p) => !selectedGroups.length || projection?.represented.has(p.instance)) ?? []
+    const visible = mode === 'layout' ? new Set(placed.map((p) => p.instance)) : projection?.represented ?? new Set<string>()
+    return netEndpoints(model, selNetObj, fullView, visible)
+  }, [model, selNetObj, fullView, mode, physicalScope, projection, selectedGroups])
+  const followEndpoint = (path: string) => {
+    if (!model) return
+    const context: InspectionContext = {
+      mode, scope, view: activeView, groups: [...selectedGroups], selection: [...sel], net: selNet, layoutFrame,
+      viewport: mode === 'layout' ? null : capture(),
+      boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null,
+    }
+    setBackStack((stack) => [...stack.slice(-63), context])
+    const visible = endpoints.some((e) => e.instance_path === path && e.visible)
+    setBoardRestore(null)
+    prepare()
+    if (!visible) {
+      setScope(viewDef ? null : ownerScope(model, path))
+      setSelectedGroups(viewDef ? [fullView?.instanceRegions.get(path) ?? 'Other'] : [])
+    }
+    setJump({ id: path, net: selNet })
+    setQuery('')
+  }
+  const goBack = () => {
+    const previous = backStack.at(-1)
+    if (!previous) return
+    setBackStack((stack) => stack.slice(0, -1))
+    prepare(previous.viewport)
+    setBoardRestore(previous.boardViewport)
+    setLayoutFrame(previous.layoutFrame)
+    setMode(previous.mode)
+    setScope(previous.scope)
+    setActiveView(previous.view)
+    setSelectedGroups(previous.groups)
+    setSel(previous.selection)
+    setSelNet(previous.net)
+    setJump({ selection: previous.selection, net: previous.net })
+  }
+  const clearFilters = () => {
+    prepare()
+    setScope(null)
+    setSelectedGroups([])
+    setSel([])
+    setSelNet('')
+    setQuery('')
+    setJump(null)
+    setBackStack([])
+    setBoardRestore(null)
+  }
+  const toggleGroup = (name: string) => {
+    prepare()
+    setScope(null)
+    setJump(null)
+    setSelectedGroups((groups) => groups.includes(name) ? groups.filter((g) => g !== name) : [...groups, name])
+  }
 
   /** Selected instance's logical pin -> net, for the clickable pin table. */
   const pinNetOf = useMemo(() => {
@@ -671,7 +732,9 @@ export default function App() {
             border: `1px solid ${dark ? '#2a2f3a' : '#e5e7eb'}`,
           }}
         >
-          <b>{model.design}</b> · {model.instances.length} parts · {model.nets.length} nets ·{' '}
+          <b>{model.design}</b> · <span className="inspection-counts" data-parts={projection?.counts.parts ?? model.instances.length} data-total-parts={model.instances.length} data-nets={projection?.counts.nets ?? model.nets.length} data-total-nets={projection?.counts.totalNets ?? model.nets.length}>
+            {projection?.counts.parts ?? model.instances.length}/{model.instances.length} parts · {projection?.counts.nets ?? model.nets.length}/{projection?.counts.totalNets ?? model.nets.length} nets
+          </span> ·{' '}
           {model.verdict}
           {!!model.subdesigns?.length && <span> · {model.subdesigns.length} subdesigns</span>}
           {(model as any).live_error && (
@@ -764,7 +827,7 @@ export default function App() {
                   pixelRatio: 2,
                 }).then((url) => {
                   const a = document.createElement('a')
-                  a.download = `${model.design}-${mode}${activeView ? '-' + activeView : ''}${regionFocus ? '-' + regionFocus : ''}.png`
+                  a.download = `${model.design}-${mode}${activeView ? '-' + activeView : ''}${selectedGroups.length ? '-' + selectedGroups.join('-') : ''}.png`
                   a.href = url
                   a.click()
                 })
@@ -773,6 +836,8 @@ export default function App() {
               <Download size={16} />
             </button>
             {mode !== 'layout' && <button className="icon-tool" onClick={fit} title="Fit circuit" aria-label="Fit circuit"><Maximize size={16} /></button>}
+            <button className="context-command" onClick={clearFilters} title="Clear filters"><FilterX size={14} />Clear filters</button>
+            <button className="context-command" onClick={goBack} disabled={!backStack.length} title="Back to previous inspection"><ArrowLeft size={14} />Back</button>
             {mode !== 'layout' && <button
               className="icon-tool"
               onClick={resetLayout}
@@ -782,12 +847,12 @@ export default function App() {
             >
               <RotateCcw size={16} />
             </button>}
-            {chip('Overview', mode === 'overview', () => setMode('overview'))}
-            {chip('SCH view', mode === 'sch', () => setMode('sch'))}
-            {chip('Layout', mode === 'layout', () => { setMode('layout'); setActiveView(''); setRegionFocus('') }, '#047857')}
+            {chip('Overview', mode === 'overview', () => { prepare(); setMode('overview') })}
+            {chip('SCH view', mode === 'sch', () => { prepare(); setMode('sch') })}
+            {chip('Layout', mode === 'layout', () => { prepare(); setBoardRestore(null); setMode('layout') }, '#047857')}
             {viewCfg && mode !== 'layout' &&
               ['', ...viewCfg.views.map((v) => v.name)].map((v) =>
-                chip(v || 'No regions', activeView === v, () => { setActiveView(v); setScope(null); setJump(null) }, '#0e7490'),
+                chip(v || 'No regions', activeView === v, () => { prepare(); setActiveView(v); setSelectedGroups([]); setScope(null); setJump(null) }, '#0e7490'),
               )}
           </div>
           {!!model.subdesigns?.length && (
@@ -806,30 +871,30 @@ export default function App() {
               {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 10 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
             </div>
           )}
-          {viewDef && (
-            <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ color: '#9ca3af', fontSize: 10 }}>regions:</span>
-              {chip('Combined', regionFocus === '', () => setRegionFocus(''), '#475569')}
-              {viewDef.regions.map((r) =>
-                chip(r.name, regionFocus === r.name, () => setRegionFocus(r.name), '#475569'),
-              )}
-            </div>
-          )}
+          {viewDef && <fieldset className="group-selector">
+            <legend>Groups</legend>
+            {(fullView?.regions?.regions ?? []).map((name) => <label key={name}>
+              <input type="checkbox" checked={selectedGroups.includes(name)} onChange={() => toggleGroup(name)} />{name}
+            </label>)}
+          </fieldset>}
+          <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
           {viewsLoading && <div role="status">Loading groups...</div>}
           {viewError && <div role="alert">{viewError}</div>}
         </div>
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy}>
-        {mode === 'layout' ? <BoardLayout model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump}
+        {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={setLayoutFrame} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined}
           onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
           onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          onInit={(i) => { rf.current = i; fit() }}
+          onInit={(i) => { rf.current = i; onReady() }}
+          onMoveStart={onMoveStart}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onSelectionChange={onSelectionChange}
+          onNodeClick={() => setSelNet('')}
           onNodeDoubleClick={(_, n) => {
             const subdesign = (n.data.g as GNode | undefined)?.subdesign
             if (subdesign) navigateScope(subdesign.path)
@@ -853,9 +918,11 @@ export default function App() {
           proOptions={{ hideAttribution: true }}
         >
           <Background color={dark ? '#2a2f3a' : undefined} />
-          <Controls />
+          <Controls onZoomIn={manual} onZoomOut={manual} onFitView={fit} />
         </ReactFlow>}
-        {mode !== 'layout' && (layoutBusy || err || !graph?.nodes.length) && <div className="canvas-state" role={err ? 'alert' : 'status'}>{err || (layoutBusy ? 'Arranging circuit...' : 'No parts in this selection')}</div>}
+        {mode !== 'layout' && (layoutBusy || err || !graph?.nodes.length) && <div className="canvas-state" role={err ? 'alert' : 'status'}>{err || (layoutBusy ? 'Arranging circuit...' : 'No parts in this selection')}
+          {!layoutBusy && !err && !graph?.nodes.length && <button className="empty-recovery" onClick={clearFilters}>Clear filters</button>}
+        </div>}
         </div>
       </main>
       {(selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
@@ -1113,21 +1180,23 @@ export default function App() {
                     <th>part</th>
                     <th>pin</th>
                     <th>#</th>
+                    <th>group</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {selNetObj.members.map((m, i) => {
+                  {endpoints.map((m, i) => {
                     const inst = model.instances.find((x) => x.path === m.instance_path)
                     return (
-                      <tr key={i} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}` }}>
+                      <tr key={i} data-endpoint={m.instance_path} data-visible={m.visible} data-group={m.group} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}` }}>
                         <td>
-                          <button onClick={() => locateNode(m.instance_path)} title={m.instance_path} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', fontWeight: 700 }}>{inst?.designator ?? shortName(m.instance_path)}</button>{' '}
+                          <button disabled={layoutBusy} onClick={() => followEndpoint(m.instance_path)} title={m.instance_path} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', fontWeight: 700 }}>{inst?.designator ?? shortName(m.instance_path)}</button>{' '}
                           <span style={{ color: '#6b7280' }}>
                             {inst ? shortName(inst.device_fq) : ''}
                           </span>
                         </td>
                         <td>{m.logical_pin}</td>
                         <td>{m.numbers.join(',')}</td>
+                        <td>{m.group}<br /><span className="endpoint-visibility">{m.visible ? 'visible' : 'hidden'}</span></td>
                       </tr>
                     )
                   })}

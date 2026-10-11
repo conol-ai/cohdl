@@ -1,6 +1,6 @@
 import { existsSync, rmSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { atomic, check, confined, load, now, read, save, sha } from './io.mjs'
+import { atomic, check, confined, JSON_LIMIT, load, now, read, save, sha } from './io.mjs'
 import { locked } from './lock.mjs'
 import { afterManifest, loadRun, proposalFiles, runPath } from './proposal.mjs'
 import { fresh } from './snapshot.mjs'
@@ -8,6 +8,11 @@ import { inspectValidation } from './validation.mjs'
 
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right)
 const currentHash = (root, path) => { const bytes = read(root, path, undefined, true); return bytes === null ? null : sha(bytes) }
+const RECEIPT_OPERATION_RESERVE = 65536
+
+function receiptBudget(receipt) {
+  check(Buffer.byteLength(JSON.stringify(receipt, null, 2) + '\n') <= JSON_LIMIT - RECEIPT_OPERATION_RESERVE, 'Receipt exceeds reversible JSON byte budget')
+}
 
 function manifestsMatch(report, run, files) {
   check(report.schema === 1 && report.id === run.id && report.decision === 'PASS' && report.proposal_sha256 === run.metadata.proposal_sha256 && report.bundle_sha256 === run.metadata.bundle_sha256, 'Saved validation identity or verdict mismatch')
@@ -41,10 +46,12 @@ export async function apply(project, directory, validationFile, receiptFile, sig
     manifestsMatch(saved, run, files)
     fresh(project, run.bundle)
     const receipt = { schema: 1, id: run.id, proposal_sha256: run.metadata.proposal_sha256, bundle_sha256: run.metadata.bundle_sha256, validation_sha256: sha(read(run.root, `${run.path}/validation.json`)), apply_validation: null, before: saved.before, after: saved.after, files, apply: { started_at: now(), finished_at: null, outcome: 'applying', error: null }, revert: null }
+    receiptBudget(receipt)
     save(run.root, `${run.path}/receipt.json`, receipt)
     const completed = []
     try {
       receipt.apply_validation = await inspectValidation(project, directory, 'apply-', signal)
+      receiptBudget(receipt)
       save(run.root, `${run.path}/receipt.json`, receipt)
       check(receipt.apply_validation.decision === 'PASS', receipt.apply_validation.issues.join('; '))
       manifestsMatch(receipt.apply_validation, run, files)
@@ -97,6 +104,7 @@ export async function revert(project, receiptFile, signal) {
     })
     let expected = afterManifest(receipt.before, outstanding)
     fresh(project, run.bundle, expected)
+    receiptBudget(receipt)
     receipt.revert = { started_at: receipt.revert?.started_at ?? now(), finished_at: null, outcome: 'reverting', error: null }
     save(run.root, `${run.path}/receipt.json`, receipt)
     try {

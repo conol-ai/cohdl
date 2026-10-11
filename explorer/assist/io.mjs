@@ -89,7 +89,11 @@ export function atomic(root, path, bytes) {
   }
 }
 
-export const save = (root, path, value) => atomic(root, path, JSON.stringify(value, null, 2) + '\n')
+export function save(root, path, value) {
+  const bytes = JSON.stringify(value, null, 2) + '\n'
+  check(Buffer.byteLength(bytes) <= JSON_LIMIT, `JSON byte limit exceeded: ${path}`)
+  atomic(root, path, bytes)
+}
 
 export function output(path, bytes) {
   const absolute = resolve(path)

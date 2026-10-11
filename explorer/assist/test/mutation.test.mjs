@@ -171,3 +171,18 @@ test('lock recovery guard prevents a second CLI from deleting an ownership incar
     assert.equal(json(join(directory, '.mutation.guard')).token, 'active-reclamation-fixture')
   } finally { rmSync(project, { recursive: true, force: true }) }
 })
+
+test('oversized reversible receipt is refused before source writes even when the small edit and bundle fit', () => {
+  const project = fixture()
+  try {
+    const large = source + '// ' + 'x'.repeat(5 * 1024 * 1024) + '\n'
+    writeFileSync(join(project, 'src/main.cohdl'), large)
+    const p = validated(project, {
+      change: { path: 'src/main.cohdl', before_sha256: sha(large), old: 'net N: a.A, b.A', new: 'net N: b.A, a.A' },
+      citations: [{ document: null, page: null, section: null, source: { path: 'src/main.cohdl', line: 14, sha256: sha(large) } }],
+    })
+    assert.match(apply(project, p, 1).error, /JSON|receipt|byte|limit/i)
+    assert.equal(readFileSync(join(project, 'src/main.cohdl'), 'utf8'), large)
+    assert.equal(existsSync(p.receipt), false)
+  } finally { rmSync(project, { recursive: true, force: true }) }
+})

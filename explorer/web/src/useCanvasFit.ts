@@ -56,13 +56,13 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
     const viewport = flow.current?.getViewport()
     return viewport && validViewport(viewport) ? { viewport: { ...viewport }, size: currentSize(), autoFit: autoFit.current } : null
   }, [flow, currentSize])
-  const manual = useCallback(() => { autoFit.current = false; resizeSource.current = null; focus.current = null; size.current = currentSize(); cancelAnimationFrame(frame.current) }, [currentSize])
+  const manual = useCallback(() => { autoFit.current = false; pending.current = undefined; resizeSource.current = null; focus.current = null; size.current = currentSize(); cancelAnimationFrame(frame.current) }, [currentSize])
   const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
     if (event) manual()
   }, [manual])
   const setBounds = useCallback((value: LayoutRect | null, expected: number, target: LayoutRect | null = null) => {
     if (expected !== generation.current) return
-    bounds.current = value; focus.current = target; apply()
+    bounds.current = value; focus.current = autoFit.current ? target : null; apply()
   }, [apply])
   useEffect(() => {
     if (!active) return

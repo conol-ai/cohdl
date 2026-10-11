@@ -2,19 +2,39 @@ import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { fileURLToPath } from 'node:url'
 
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
 const stage = value('--stage', 'groups')
-assert.ok(['groups', 'union', 'navigation', 'locate', 'documents', 'proposals', 'readability', 'storage'].includes(stage), `Unknown browser stage: ${stage}`)
+assert.ok(['all', 'groups', 'union', 'navigation', 'locate', 'documents', 'proposals', 'readability', 'storage'].includes(stage), `Unknown browser stage: ${stage}`)
 const output = resolve(value('--output', '/tmp/cohdl-explorer-browser'))
 mkdirSync(output, { recursive: true })
+if (stage === 'all') {
+  const { runAllBrowserSmoke } = await import('./browser-all-smoke.mjs')
+  await runAllBrowserSmoke({ script: fileURLToPath(import.meta.url), url, output, args: process.argv })
+} else {
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
 const errors = []
 const consoleProblems = []
 const failedResponses = []
 try {
   const page = await browser.newPage()
+  if (process.env.COHLD_SMOKE_TRACE === '1') await page.evaluateOnNewDocument(() => {
+    window.__smokeNavigationTrace = []
+    const record = event => {
+      const inspect = new URL(location.href).searchParams.get('inspect')
+      let context = inspect
+      try { context = inspect && JSON.parse(inspect) } catch { /* Preserve malformed input for diagnostics. */ }
+      window.__smokeNavigationTrace.push({ event, at: performance.now(), inspect: context, busy: document.querySelector('.explorer-canvas')?.getAttribute('aria-busy'), transform: document.querySelector('.react-flow__viewport') && getComputedStyle(document.querySelector('.react-flow__viewport')).transform })
+      window.__smokeNavigationTrace = window.__smokeNavigationTrace.slice(-128)
+    }
+    record('initial')
+    for (const name of ['pushState', 'replaceState']) {
+      const original = history[name]
+      history[name] = function (...args) { const result = original.apply(this, args); record(name); return result }
+    }
+  })
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', message => { if (['warn', 'error'].includes(message.type())) consoleProblems.push(message.text()) })
   page.on('response', response => { if (response.status() >= 400) failedResponses.push({ url: response.url(), status: response.status() }) })
@@ -32,7 +52,8 @@ try {
     await button.asElement().click()
     await button.dispose()
   }
-  const geometry = async (label) => {
+  const geometry = async (label, { verticalFit = true } = {}) => {
+    assert.equal(await page.$$eval('.canvas-state[role="alert"]', alerts => alerts.map(el => el.textContent).join('')), '', `${label} has no canvas error`)
     const result = await page.evaluate(() => {
       const rect = (el) => { const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height, right: b.right, bottom: b.bottom } }
       const canvas = rect(document.querySelector('.explorer-canvas'))
@@ -46,7 +67,7 @@ try {
     assert.equal(result.overflow, false, 'Page overflows viewport')
     for (const node of result.nodes) {
       assert.ok(node.x >= result.canvas.x - 2 && node.right <= result.canvas.right + 2, `Horizontal fit: ${JSON.stringify(node)}`)
-      assert.ok(node.y >= result.canvas.y - 2 && node.bottom <= result.canvas.bottom + 2, `Vertical fit: ${JSON.stringify(node)}`)
+      if (verticalFit) assert.ok(node.y >= result.canvas.y - 2 && node.bottom <= result.canvas.bottom + 2, `Vertical fit: ${JSON.stringify(node)}`)
     }
     await page.screenshot({ path: resolve(output, `${stage}-${label}.png`) })
     writeFileSync(resolve(output, `${stage}-${label}.json`), JSON.stringify(result, null, 2))
@@ -94,19 +115,8 @@ try {
     assert.deepEqual(errors, [], 'Browser runtime errors')
     console.log(JSON.stringify({ result: 'PASS', stage, output }))
   } else {
-  assert.ok(await page.$('.react-flow__node-region'), 'Native group nodes missing')
-  await geometry('desktop-all')
-  await clickText('Camera')
-  await ready()
-  await geometry('desktop-camera')
-  await page.reload({ waitUntil: 'domcontentloaded' })
-  await ready()
-  await page.setViewport({ width: 390, height: 844 })
-  await ready()
-  await geometry('mobile-all')
-  await clickText('Camera')
-  await ready()
-  await geometry('mobile-camera')
+  const { runGroupsSmoke } = await import('./browser-groups-smoke.mjs')
+  await runGroupsSmoke(page, { url, output, ready, clickText, geometry })
   assert.deepEqual(errors, [], 'Browser runtime errors')
   console.log(JSON.stringify({ result: 'PASS', stage, output }))
   }
@@ -116,7 +126,10 @@ try {
   if (page) {
     await page.screenshot({ path: resolve(output, `${stage}-failure.png`) })
     const state = await page.evaluate(() => ({ url: location.href, text: document.body.innerText, nodes: [...document.querySelectorAll('.react-flow__node')].map((n) => ({ id: n.dataset.id, style: n.getAttribute('style') })) }))
-    writeFileSync(resolve(output, `${stage}-failure.json`), JSON.stringify({ error: String(error), errors, state }, null, 2))
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    const settled = await page.evaluate(() => ({ url: location.href, busy: document.querySelector('.explorer-canvas')?.getAttribute('aria-busy'), transform: document.querySelector('.react-flow__viewport') && getComputedStyle(document.querySelector('.react-flow__viewport')).transform, navigation: window.__smokeNavigationTrace }))
+    writeFileSync(resolve(output, `${stage}-failure.json`), JSON.stringify({ error: String(error), errors, state, settled }, null, 2))
   }
   throw error
 } finally { await browser.close() }
+}

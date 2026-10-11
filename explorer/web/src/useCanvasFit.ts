@@ -59,8 +59,11 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
     bounds.current = null
   }, [])
   const capture = useCallback((): ViewportSnapshot | null => {
+    const queued = pending.current ?? resizeSource.current
+    if (queued) return { viewport: { ...queued.viewport }, size: { ...queued.size }, autoFit: queued.autoFit }
     const viewport = flow.current?.getViewport()
-    return viewport && validViewport(viewport) ? { viewport: { ...viewport }, size: currentSize(), autoFit: autoFit.current } : null
+    const appliedSize = size.current.width && size.current.height ? size.current : currentSize()
+    return viewport && validViewport(viewport) ? { viewport: { ...viewport }, size: { ...appliedSize }, autoFit: autoFit.current } : null
   }, [flow, currentSize])
   const manual = useCallback(() => { autoFit.current = false; pending.current = undefined; resizeSource.current = null; focus.current = null; size.current = currentSize(); cancelAnimationFrame(frame.current) }, [currentSize])
   const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {

@@ -142,9 +142,6 @@ fn lifecycle(
         return Status::Rejected;
     }
     if !receipt.is_null() {
-        if !completed(&receipt["apply"], "applied") {
-            return Status::Interrupted;
-        }
         if !receipt["revert"].is_null() {
             return if completed(&receipt["revert"], "reverted") {
                 Status::Reverted
@@ -152,7 +149,11 @@ fn lifecycle(
                 Status::Interrupted
             };
         }
-        return Status::Applied;
+        return if completed(&receipt["apply"], "applied") {
+            Status::Applied
+        } else {
+            Status::Interrupted
+        };
     }
     if validation.is_null() {
         Status::Proposed
@@ -215,7 +216,28 @@ fn artifacts(project: &Path, id: &str) -> Vec<Value> {
         .collect()
 }
 
-fn detail(project: &Path, id: &str, cache: &mut Snapshots) -> Value {
+fn actual_model_matches(
+    project: &Path,
+    bundle: &Value,
+    actual: &Value,
+    cache: &mut Snapshots,
+) -> bool {
+    let Some(design) = bundle["design"].as_str() else {
+        return false;
+    };
+    let baseline = files::manifest(&bundle["snapshot"]);
+    let current = cache
+        .entry(design.into())
+        .or_insert_with(|| files::snapshot(project, design));
+    match (current, baseline) {
+        (Ok(current), Ok(baseline)) if current == &baseline => {
+            schema::model_equal(&bundle["model"], actual)
+        }
+        _ => true,
+    }
+}
+
+fn detail(project: &Path, id: &str, actual: &Value, cache: &mut Snapshots) -> Value {
     let mut issues = Vec::new();
     let raw = record(project, id, "run.json", None, &mut issues);
     let run = checked(raw, |v| schema::run(v, id), "run.json", &mut issues)
@@ -230,6 +252,11 @@ fn detail(project: &Path, id: &str, cache: &mut Snapshots) -> Value {
         issues.push("Immutable bundle is missing or invalid".into());
     } else if let Err(error) = evidence::bundle(&bundle, project) {
         issues.push(error);
+        bundle = Value::Null;
+    } else if !actual_model_matches(project, &bundle, actual, cache) {
+        issues.push(
+            "Bundle model differs from the actual extracted model for the current baseline".into(),
+        );
         bundle = Value::Null;
     }
     let expected =
@@ -322,7 +349,8 @@ fn detail(project: &Path, id: &str, cache: &mut Snapshots) -> Value {
     json!({"schema":1,"run":hydrated,"status":status,"freshness":freshness,"issues":issues,"artifacts":artifacts(project,id)})
 }
 
-pub fn handle(path: &str, project: &Path) -> Option<Response> {
+pub fn handle(path: &str, project: &Path, model: &str) -> Option<Response> {
+    let actual: Value = serde_json::from_str(model).unwrap_or(Value::Null);
     if path == "/api/proposals" {
         let ids = match files::run_ids(project) {
             Ok(ids) => ids,
@@ -330,7 +358,7 @@ pub fn handle(path: &str, project: &Path) -> Option<Response> {
         };
         let mut cache = Snapshots::new();
         let runs: Vec<_> = ids.iter().map(|id| {
-            let detail = detail(project, id, &mut cache);
+                let detail = detail(project, id, &actual, &mut cache);
             json!({"id":id,"title":detail["run"]["proposal"]["title"].as_str().unwrap_or(id),"kind":detail["run"]["kind"],"status":detail["status"],"freshness":detail["freshness"],"issues":detail["issues"]})
         }).collect();
         return Some(json(200, json!({"schema":1,"runs":runs})));
@@ -346,7 +374,10 @@ pub fn handle(path: &str, project: &Path) -> Option<Response> {
         return Some(json(404, json!({"error":"Proposal not found"})));
     }
     if segments.len() == 1 {
-        return Some(json(200, detail(project, id, &mut Snapshots::new())));
+        return Some(json(
+            200,
+            detail(project, id, &actual, &mut Snapshots::new()),
+        ));
     }
     if segments.len() == 3 && segments[1] == "artifacts" && files::LOG_NAMES.contains(&segments[2])
     {

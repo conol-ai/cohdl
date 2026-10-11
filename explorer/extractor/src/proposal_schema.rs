@@ -1,6 +1,36 @@
 use crate::proposal_files::{hash, manifest, relative};
 use serde_json::Value;
 
+fn exact_integer(value: &serde_json::Number) -> Option<i128> {
+    value
+        .as_i64()
+        .map(i128::from)
+        .or_else(|| value.as_u64().map(i128::from))
+        .or_else(|| {
+            value
+                .as_f64()
+                .filter(|n| n.fract() == 0.0 && *n >= i64::MIN as f64 && *n <= u64::MAX as f64)
+                .map(|n| n as i128)
+        })
+}
+
+pub fn model_equal(left: &Value, right: &Value) -> bool {
+    match (left, right) {
+        (Value::Number(a), Value::Number(b)) => {
+            a == b || exact_integer(a).is_some_and(|n| Some(n) == exact_integer(b))
+        }
+        (Value::Array(a), Value::Array(b)) => {
+            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| model_equal(a, b))
+        }
+        (Value::Object(a), Value::Object(b)) => {
+            a.len() == b.len()
+                && a.iter()
+                    .all(|(key, a)| b.get(key).is_some_and(|b| model_equal(a, b)))
+        }
+        _ => left == right,
+    }
+}
+
 pub fn object(value: &Value, keys: &[&str]) -> bool {
     value
         .as_object()
@@ -285,4 +315,22 @@ pub fn receipt(value: &Value, run: &Value) -> bool {
                         && f["after"].is_string()
                 })
         })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::model_equal;
+    use serde_json::json;
+
+    #[test]
+    fn numeric_equality_is_exact_without_large_integer_rounding() {
+        assert!(model_equal(&json!(1), &json!(1.0)));
+        assert!(!model_equal(&json!(1), &json!(1.01)));
+        assert!(!model_equal(
+            &json!(9_007_199_254_740_993u64),
+            &json!(9_007_199_254_740_992.0f64)
+        ));
+        assert!(!model_equal(&json!(u64::MAX), &json!(u64::MAX as f64)));
+        assert!(model_equal(&json!(i64::MIN), &json!(i64::MIN as f64)));
+    }
 }

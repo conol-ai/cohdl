@@ -66,7 +66,7 @@ export function ProposalReview({ resource, documents, onBack }: { resource: Prop
             {citation.document && (href ? <a href={href} target="_blank" rel="noreferrer">{document.title}{citation.page && ` · PDF page ${citation.page}`} <ExternalLink size={13} /></a>
               : <div>{document?.title ?? citation.document} · Document unavailable{citation.page && ` · PDF page ${citation.page}`}</div>)}
             {citation.section && <div>{citation.section}</div>}
-            {citation.source && <><SourceExcerpt span={{ file: citation.source.path, line: citation.source.line, col: 1 }} /><div className="document-hash">Cited SHA-256 {citation.source.sha256}</div></>}
+            {citation.source && <><SourceExcerpt span={{ file: citation.source.path, line: citation.source.line, col: 1 }} expectedHash={citation.source.sha256} /><div className="document-hash">Cited SHA-256 {citation.source.sha256}</div></>}
           </div>
         })}</section>
         <section className="proposal-section" aria-label="Proposal changes"><h4>Changes ({proposal.changes.length})</h4>

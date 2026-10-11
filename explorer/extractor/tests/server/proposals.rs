@@ -231,6 +231,15 @@ fn proposal_receipt_reports_guarded_apply_revert_and_incomplete_history() {
     let body = detail(&server, "receipt");
     assert_eq!(body["status"], "reverted", "{body}");
     assert_eq!(body["freshness"], "fresh");
+    for outcome in ["applying", "interrupted"] {
+        receipt["apply"]["outcome"] = json!(outcome);
+        receipt["apply"]["finished_at"] = Value::Null;
+        save(&directory, "receipt.json", &receipt);
+        let body = detail(&server, "receipt");
+        assert_eq!(body["status"], "reverted", "{body}");
+        assert_eq!(body["freshness"], "fresh");
+        assert!(body["run"]["receipt"]["apply"]["finished_at"].is_null());
+    }
     receipt["files"][0]["after"] = json!("tampered");
     save(&directory, "receipt.json", &receipt);
     assert_eq!(detail(&server, "receipt")["status"], "rejected");
@@ -361,4 +370,47 @@ fn proposal_document_citations_bind_registry_bytes_and_current_document_hash() {
     let body = detail(&server, "documents");
     assert_eq!(body["status"], "rejected");
     assert_eq!(body["run"]["bundle"], Value::Null);
+}
+
+#[test]
+fn proposal_bundle_cannot_forge_checked_model_identities() {
+    let server = Server::start();
+    let (directory, mut run, mut bundle, mut proposal, _) = retained_run(&server, "forged-model");
+    bundle["model"]["instances"][0]["path"] = json!("Board::invented");
+    proposal["kind"] = json!("group");
+    proposal["changes"] = json!([{"path":"views/Board.view.json","before_sha256":null,"old":"","new":json!({"schema_version":1,"design":"Board","views":[{"name":"Invented","regions":[{"name":"Ghost","members":["path:Board::invented"]}]}]}).to_string()}]);
+    run["kind"] = json!("group");
+    run["bundle_sha256"] = json!(save(&directory, "bundle.json", &bundle));
+    run["proposal_sha256"] = json!(save(&directory, "proposal.json", &proposal));
+    save(&directory, "run.json", &run);
+    let body = detail(&server, "forged-model");
+    assert_eq!(body["status"], "rejected", "{body}");
+    assert!(body["issues"]
+        .to_string()
+        .contains("actual extracted model"));
+}
+
+#[test]
+fn proposal_model_equality_accepts_equivalent_integral_json_numbers() {
+    fn normalize(value: &mut Value) {
+        match value {
+            Value::Number(number)
+                if number.is_f64()
+                    && number
+                        .as_f64()
+                        .is_some_and(|n| n.fract() == 0.0 && n.abs() < 1_000_000.0) =>
+            {
+                *value = json!(number.as_f64().unwrap() as i64)
+            }
+            Value::Array(values) => values.iter_mut().for_each(normalize),
+            Value::Object(values) => values.values_mut().for_each(normalize),
+            _ => (),
+        }
+    }
+    let server = Server::start();
+    let (directory, mut run, mut bundle, _, _) = retained_run(&server, "numeric-model");
+    normalize(&mut bundle["model"]);
+    run["bundle_sha256"] = json!(save(&directory, "bundle.json", &bundle));
+    save(&directory, "run.json", &run);
+    assert_eq!(detail(&server, "numeric-model")["status"], "proposed");
 }

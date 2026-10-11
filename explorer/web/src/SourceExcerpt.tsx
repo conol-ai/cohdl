@@ -5,7 +5,7 @@ import { sourceUrl } from './documents'
 
 interface Excerpt { path: string; line: number; text: string; sha256: string }
 
-export function SourceExcerpt({ span }: { span: SrcSpan }) {
+export function SourceExcerpt({ span, expectedHash }: { span: SrcSpan; expectedHash?: string }) {
   const [open, setOpen] = useState(false)
   const [excerpt, setExcerpt] = useState<Excerpt | null>(null)
   const [error, setError] = useState('')
@@ -24,7 +24,8 @@ export function SourceExcerpt({ span }: { span: SrcSpan }) {
   return <details className="source-excerpt" onToggle={event => setOpen(event.currentTarget.open)}>
     <summary><Code size={14} /> Source {span.file}:{span.line}:{span.col}</summary>
     {open && (error ? <p role="alert">{error}</p> : excerpt ? <>
-      <div className="document-hash">SHA-256 {excerpt.sha256}</div>
+      <div className="document-hash">{expectedHash ? 'Current SHA-256' : 'SHA-256'} {excerpt.sha256}</div>
+      {expectedHash && expectedHash !== excerpt.sha256 && <p role="alert">Current source differs from cited SHA-256. The excerpt shows current bytes.</p>}
       <pre aria-label="CoHDL source excerpt">{excerpt.text.split('\n').map((line, index) => <div key={index} data-source-line={excerpt.line + index} data-current={excerpt.line + index === span.line}><span>{excerpt.line + index}</span> {line || ' '}</div>)}</pre>
     </> : <p role="status">Loading source...</p>)}
   </details>

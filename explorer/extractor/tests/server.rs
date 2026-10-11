@@ -4,9 +4,11 @@ use std::net::{Shutdown, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Mutex;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 static NEXT_SERVER: AtomicU64 = AtomicU64::new(0);
+static SERVER_STARTUP: Mutex<()> = Mutex::new(());
 
 struct Server {
     child: Child,
@@ -24,6 +26,7 @@ impl Drop for Server {
 
 impl Server {
     fn start() -> Self {
+        let _startup = SERVER_STARTUP.lock().unwrap();
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()

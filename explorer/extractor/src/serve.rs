@@ -224,13 +224,16 @@ fn handle(
             b"{\"error\":\"Read-only proposal endpoint\"}",
         );
     }
-    if let Some(response) = crate::proposal_api::handle(path, project) {
-        return respond(
-            &mut conn,
-            response.code,
-            response.content_type,
-            &response.body,
-        );
+    if path == "/api/proposals" || path.starts_with("/api/proposals/") {
+        let model = state.lock().unwrap().model.clone();
+        if let Some(response) = crate::proposal_api::handle(path, project, &model) {
+            return respond(
+                &mut conn,
+                response.code,
+                response.content_type,
+                &response.body,
+            );
+        }
     }
 
     if path == "/api/source" || path == "/api/documents" || path.starts_with("/api/documents/") {

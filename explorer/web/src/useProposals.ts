@@ -33,13 +33,13 @@ export function useProposals(model: ExplorerModel | null, enabled: boolean): Pro
   }, [model, enabled, revision])
   useEffect(() => {
     if (!enabled) return
-    setDetail(null); setDetailError('')
+    setDetail(previous => previous?.run.id === selected ? previous : null); setDetailError('')
     if (!selected) { setDetailLoading(false); return }
     const controller = new AbortController()
     setDetailLoading(true)
     response(proposalUrl(selected), controller.signal).then(parseProposalDetail).then(next => {
       if (!controller.signal.aborted) { if (next.run.id !== selected) throw new Error('Proposal detail ID mismatch'); setDetail(next) }
-    }).catch(reason => { if (!controller.signal.aborted) setDetailError(message(reason)) })
+    }).catch(reason => { if (!controller.signal.aborted) { setDetail(null); setDetailError(message(reason)) } })
       .finally(() => { if (!controller.signal.aborted) setDetailLoading(false) })
     return () => controller.abort()
   }, [model, enabled, selected, revision])

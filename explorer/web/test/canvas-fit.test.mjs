@@ -48,6 +48,16 @@ test('camera capture retains applied geometry while a resize and restore happen 
     await page.evaluate(snapshot => window.queueCameraRestore(snapshot, true), manual)
     await page.waitForFunction(() => Math.abs(window.captureCamera().viewport.y + 80) < .001)
     assert.deepEqual(await page.evaluate(() => window.captureCamera()), manual, 'A same-size explicit restore preserves a valid manual camera even if the user panned its header away')
+    const desktop = await page.evaluate(() => window.selectTallCamera(1060))
+    await page.evaluate(() => window.resizeCanvas(700, 730))
+    await page.waitForFunction(() => window.captureCamera().size.width === 730)
+    const desktopDetails = await page.evaluate(() => window.captureCamera())
+    assert.equal(desktopDetails.viewport.zoom, desktop.viewport.zoom)
+    assert.ok(desktopDetails.viewport.x >= 16, 'Opening desktop details must retain the selected header left edge even while its right half still intersects')
+    const horizontalManual = { ...desktopDetails, viewport: { ...desktopDetails.viewport, x: -80 } }
+    await page.evaluate(snapshot => window.queueCameraRestore(snapshot, true), horizontalManual)
+    await page.waitForFunction(() => Math.abs(window.captureCamera().viewport.x + 80) < .001)
+    assert.deepEqual(await page.evaluate(() => window.captureCamera()), horizontalManual)
     assert.deepEqual(errors, [])
   } finally {
     await browser?.close()

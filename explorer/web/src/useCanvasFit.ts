@@ -47,6 +47,9 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
           // A tall card can intersect the canvas while its identity is offscreen.
           // Only actual resizes recover the header; same-size history stays exact.
           if (saved.size.width !== next.width || saved.size.height !== next.height) {
+            const left = target.x * viewport.zoom + viewport.x
+            const rightLimit = Math.max(16, next.width - 16 - target.width * viewport.zoom)
+            viewport.x += Math.max(16, Math.min(left, rightLimit)) - left
             const headerHeight = Math.min(target.height, DETAILED_HEADER) * viewport.zoom
             const top = target.y * viewport.zoom + viewport.y
             const bottomLimit = Math.max(16, next.height - 16 - headerHeight)

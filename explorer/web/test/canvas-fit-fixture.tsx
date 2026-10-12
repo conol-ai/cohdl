@@ -17,15 +17,15 @@ function Fixture() {
   useEffect(() => { fit.setBounds(bounds, fit.generation) }, [revision, fit.setBounds, fit.generation])
   Object.assign(window, {
     captureCamera: fit.capture,
-    async selectTallCamera() {
-      flushSync(() => { setWidth(390); setHeight(700) })
+    async selectTallCamera(nextWidth = 390) {
+      flushSync(() => { setWidth(nextWidth); setHeight(700) })
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
       await flow.current!.setViewport({ x: 16, y: 24, zoom: .9 }, { duration: 0 })
       fit.manual()
       fit.setSelectionTarget({ x: 0, y: 0, width: 360, height: 1000 })
       return fit.capture()
     },
-    resizeCanvas(nextHeight: number) { flushSync(() => setHeight(nextHeight)) },
+    resizeCanvas(nextHeight: number, nextWidth?: number) { flushSync(() => { setHeight(nextHeight); if (nextWidth !== undefined) setWidth(nextWidth) }) },
     async setManualCamera() { await flow.current!.setViewport({ x: 273, y: -246, zoom: 2 }, { duration: 0 }); fit.manual(); return fit.capture() },
     queueCameraRestore(snapshot: ReturnType<typeof fit.capture>, selected = false) {
       fit.prepare(snapshot)

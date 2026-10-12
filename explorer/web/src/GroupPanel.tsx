@@ -36,7 +36,10 @@ export function GroupPanel({ names, selected, collapsed, onToggle, onAll, onColl
   return <aside ref={panel} id="group-panel" className={`group-panel${open ? ' is-open' : ''}`} aria-label="Groups" role={open ? 'dialog' : undefined} aria-modal={open || undefined} onKeyDown={event => {
     if (event.key === 'Escape' && open) onClose()
     if (event.key !== 'Tab' || !open) return
-    const elements = [...panel.current!.querySelectorAll<HTMLElement>('button:not(:disabled), input')]
+    const elements = [...panel.current!.querySelectorAll<HTMLElement>('button, input, textarea, select, a[href], summary, [tabindex]')]
+      .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && !element.closest('[hidden], [inert]')
+        && element.getClientRects().length > 0 && !['hidden', 'collapse'].includes(getComputedStyle(element).visibility))
+      .sort((a, b) => Number(a.tabIndex === 0) - Number(b.tabIndex === 0) || a.tabIndex - b.tabIndex)
     const first = elements[0], last = elements[elements.length - 1]
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
     if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }

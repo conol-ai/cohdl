@@ -119,7 +119,7 @@ export default function App() {
   const readContext = (): InspectionContext => ({ mode, connectionMode, scope, view: activeView, groups: selectedGroups, collapsed: collapsedGroups,
     selection: sel, pin: selectedPin, net: selNet, tab, layoutFrame, layoutSide,
     viewport: mode === 'layout' ? null : capture(), boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null })
-  const navigation = useInspectionNavigation({ model, config: viewCfg, ready: !!model && !viewsLoading && loadedViewDesign.current === model.design, busy: layoutBusy,
+  const navigation = useInspectionNavigation({ model, config: viewCfg, ready: !!model && !documents.loading && !viewsLoading && loadedViewDesign.current === model.design, busy: layoutBusy,
     signature: JSON.stringify([mode, connectionMode, scope, activeView, selectedGroups, collapsedGroups, sel, selectedPin, selNet, tab, layoutFrame, layoutSide]), read: readContext,
     apply: (context) => {
       prepare(context.viewport)
@@ -243,7 +243,7 @@ export default function App() {
   const openBundle = useCallback((id: string) => { setBundleId(id); setSel([]); setSelectedPin('') }, [])
 
   useEffect(() => {
-    if (!model || !projection || !displayGraph) return
+    if (!model || documents.loading || !projection || !displayGraph) return
     if (mode === 'layout') {
       setLayoutBusy(false)
       setGraph(null)
@@ -477,7 +477,7 @@ export default function App() {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, projection, displayGraph, selNet, mode, connectionMode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues, candidates, important.marks])
+  }, [model, documents.loading, projection, displayGraph, selNet, mode, connectionMode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues, candidates, important.marks])
 
   useEffect(() => {
     setNodes(current => current.map(node => ({ ...node, data: { ...node.data, marked: important.marks.has(node.id) || !!(node.data.g as GNode | undefined)?.aggMembers?.some(p => important.marks.has(p)) } })))
@@ -856,7 +856,7 @@ export default function App() {
         <div className="explorer-workspace">
         {viewDef && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ groups: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} />}
         {groupsOpen && <button className="group-drawer-backdrop" aria-label="Close groups overlay" onClick={() => setGroupsOpen(false)} />}
-        <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy}>
+        <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy || documents.loading}>
         {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={(frame) => navigation.navigate({ layoutFrame: frame, boardViewport: null })} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide} onCamera={navigation.sync}
           onScope={(path) => { setLayoutFrame('local'); navigateScope(path) }}
           onSelect={(paths) => { setSel(paths); setSelNet(''); setJump(null) }} onNet={locateNet} /> : <ReactFlow
@@ -900,8 +900,8 @@ export default function App() {
           <Background color={dark ? '#2a2f3a' : undefined} />
           <Controls onZoomIn={manual} onZoomOut={manual} onFitView={fit} />
         </ReactFlow>}
-        {mode !== 'layout' && (layoutBusy || err || !graph?.nodes.length) && <div className="canvas-state" role={err ? 'alert' : 'status'}>{err || (layoutBusy ? 'Arranging circuit...' : 'No parts in this selection')}
-          {!layoutBusy && !err && !graph?.nodes.length && <button className="empty-recovery" onClick={clearFilters}>Clear filters</button>}
+        {mode !== 'layout' && (layoutBusy || documents.loading || err || !graph?.nodes.length) && <div className="canvas-state" role={err ? 'alert' : 'status'}>{err || (documents.loading ? 'Loading component information...' : layoutBusy ? 'Arranging circuit...' : 'No parts in this selection')}
+          {!layoutBusy && !documents.loading && !err && !graph?.nodes.length && <button className="empty-recovery" onClick={clearFilters}>Clear filters</button>}
         </div>}
         </div>
         </div>

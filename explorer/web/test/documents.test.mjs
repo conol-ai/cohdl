@@ -10,7 +10,7 @@ import ts from 'typescript'
 const out = mkdtempSync(resolve('test/.documents-render-'))
 process.once('exit', () => rmSync(out, { recursive: true, force: true }))
 writeFileSync(resolve(out, 'package.json'), JSON.stringify({ type: 'commonjs' }))
-const program = ts.createProgram(['src/documents.ts', 'src/ProvenanceInspector.tsx'], {
+const program = ts.createProgram(['src/documents.ts', 'src/ProvenanceInspector.tsx', 'src/useDocuments.ts'], {
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS,
   jsx: ts.JsxEmit.ReactJSX, outDir: out, strict: true, skipLibCheck: true,
 })
@@ -21,6 +21,16 @@ if (existsSync('src/ProvenanceInspector.css')) cpSync('src/ProvenanceInspector.c
 require.extensions['.css'] = () => {}
 const { applies, documentHref, parseDocumentRegistry, sourceUrl } = require(resolve(out, 'documents.js'))
 const { ProvenanceInspector } = require(resolve(out, 'ProvenanceInspector.js'))
+const { useDocuments } = require(resolve(out, 'useDocuments.js'))
+
+test('source presentation is pending on the first model render before fetch effects run', () => {
+  let resource
+  function Probe({ model }) { resource = useDocuments(model); return null }
+  renderToStaticMarkup(React.createElement(Probe, { model: null }))
+  assert.equal(resource.loading, false)
+  renderToStaticMarkup(React.createElement(Probe, { model: { design: 'Board' } }))
+  assert.equal(resource.loading, true, 'Initial source identities must settle before camera readiness')
+})
 
 const target = { instances: ['Board::one'], groups: [{ view: 'Functional', region: 'Camera' }], relation: 'exact', page: 76, facts: { mpn: '', value: 'Authored source value' } }
 const document = {

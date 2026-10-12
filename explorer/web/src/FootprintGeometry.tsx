@@ -57,10 +57,11 @@ export const FootprintPreview = memo(function FootprintPreview({ geo, dark, widt
     <title>Actual local footprint; not board placement</title>
     {prepared.geo.courtyard && perimeter(prepared.geo.courtyard, dark ? '#2dd4bf' : '#0d9488')}
     {prepared.geo.window && perimeter(prepared.geo.window, '#94a3b8')}
-    {prepared.geo.pads.map((p, index) => <g key={index} transform={svgMatrix(p.matrix!, [p.x, p.y])} fill="#c9973f">
-      <title>{`Pad ${p.number}`}</title><Land {...p} />
+    {prepared.geo.pads.map((p, index) => <g key={index} fill="#c9973f">
+      <title>{`Pad ${p.number}`}</title><g transform={svgMatrix(p.matrix!, [p.x, p.y])}><Land {...p} />
       {!!p.drill?.length && <g fill={background}><Land shape={p.drill.length === 1 ? 'circle' : 'oval'} size={p.drill} /></g>}
-      {(p.size[0] ?? 0) > 0 && <text fill={dark ? '#111' : '#fff'} fontSize={(p.size[0] ?? 0) * 0.4} textAnchor="middle" dominantBaseline="central">{p.number}</text>}
+      </g>
+      {(p.size[0] ?? 0) > 0 && <text x={p.x} y={p.y} fill={dark ? '#111' : '#fff'} fontSize={(p.size[0] ?? 0) * 0.4} textAnchor="middle" dominantBaseline="central">{p.number}</text>}
     </g>)}
     {prepared.geo.mount_holes.map((h, index) => <g key={index} transform={`translate(${h.x} ${h.y})`} fill={background} stroke={h.plated ? '#c9973f' : '#94a3b8'} strokeWidth={0.08} data-plating={h.plated === null ? 'source_unspecified' : h.plated ? 'plated' : 'non_plated'}>
       <title>{h.plated === null ? 'Hole plating: source unspecified' : h.plated ? 'Plated hole' : 'Non-plated hole'}</title><Land shape={h.shape as FpPad['shape']} size={h.size} />

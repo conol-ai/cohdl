@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createElement } from 'react'
 import { after, test } from 'node:test'
 import { mkdtempSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -34,7 +35,7 @@ test('polygon bounds use ordered source vertices and compiler rotation rather th
 })
 
 test('polygon preview labels stay at the pad center and legacy rotation agrees with compiler matrices', () => {
-  const render = (p) => renderToStaticMarkup(FootprintPreview({ geo: { pads: [p], mount_holes: [] }, dark: false }))
+  const render = (p) => renderToStaticMarkup(createElement(FootprintPreview, { geo: { pads: [p], mount_holes: [] }, dark: false }))
   const rotations = [[0, [1, 0, 0, 1]], [90, [0, -1, 1, 0]], [180, [-1, 0, 0, -1]], [270, [0, 1, -1, 0]]]
   for (const [rotate, matrix] of rotations) {
     const pad = { number: '2', shape: 'polygon', x: 4, y: 5, size: [2, 2], vertices: [[-1, -1], [1, -1], [1, 1], [-1, 1]], rotate, matrix, layer: 'top_copper', pth: false }

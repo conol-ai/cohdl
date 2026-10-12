@@ -652,7 +652,7 @@ export default function App() {
       aria-pressed={on}
       onClick={onClick}
       style={{
-        fontSize: 11,
+        fontSize: 12,
         padding: '2px 10px',
         borderRadius: 4,
         border: `1px solid ${on ? color : '#d1d5db'}`,
@@ -753,7 +753,7 @@ export default function App() {
                     }}
                     style={{
                       padding: '4px 8px', cursor: 'pointer', display: 'flex',
-                      justifyContent: 'space-between', gap: 8, fontSize: 11,
+                      justifyContent: 'space-between', gap: 8, fontSize: 12,
                       width: '100%', border: 0, background: 'transparent', textAlign: 'left',
                       borderBottom: `1px solid ${dark ? '#22262e' : '#f3f4f6'}`,
                     }}
@@ -836,7 +836,7 @@ export default function App() {
             <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
               <label htmlFor="hierarchy-scope">Hierarchy</label>
               <select id="hierarchy-scope" value={scope ?? 'all'} onChange={(e) => navigateScope(e.target.value === 'all' ? null : e.target.value)}
-                style={{ maxWidth: 300, fontSize: 11, background: panelBg, color: panelFg }}>
+                style={{ maxWidth: 300, fontSize: 12, background: panelBg, color: panelFg }}>
                 <option value="">{model.design}</option>
                 {model.subdesigns.map((s) => <option key={s.path} value={s.path}>{s.path}</option>)}
                 <option value="all">All parts (flattened)</option>
@@ -845,7 +845,7 @@ export default function App() {
               {(model.subdesigns ?? []).filter((s) => scope === s.path || scope?.startsWith(`${s.path}::`)).map((s) => (
                 chip(shortName(s.path), scope === s.path, () => navigateScope(s.path), '#7c3aed')
               ))}
-              {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 10 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
+              {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 12 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
             </div>
           )}
           <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
@@ -987,7 +987,7 @@ export default function App() {
                   <span
                     key={r}
                     onClick={() => locateNet(r)}
-                    style={{ background: railColor(r), color: '#fff', borderRadius: 3, padding: '1px 5px', fontSize: 10, cursor: 'pointer' }}
+                    style={{ background: railColor(r), color: '#fff', borderRadius: 3, padding: '1px 5px', fontSize: 12, cursor: 'pointer' }}
                   >
                     {r}
                   </span>
@@ -999,7 +999,7 @@ export default function App() {
                 <button className="icon-tool" title={important.marks.has(i.path) ? 'Unmark important' : 'Mark important'} aria-label={`${important.marks.has(i.path) ? 'Unmark' : 'Mark'} ${identity.reference} important`} onClick={() => important.toggle(i.path)}><Star size={14} fill={important.marks.has(i.path) ? 'currentColor' : 'none'} /></button>
               </div> })}</div>
               {evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
-              <div style={{ color: '#6b7280', marginTop: 8, fontSize: 11 }}>
+              <div style={{ color: '#6b7280', marginTop: 8, fontSize: 12 }}>
                 source {aggInsts[0].span.file}:{aggInsts[0].span.line}
               </div>
             </>

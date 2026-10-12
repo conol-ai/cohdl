@@ -29,7 +29,7 @@ html, body, #root { margin: 0; width: 100%; height: 100%; }
 .explorer-inspector h3 { font-size: 16px; }
 .view-inside { margin: 4px 0 12px; min-height: 32px; }
 .module-member { position: relative; padding: 9px 36px 9px 0; border-top: 1px solid #9ca3af44; font-size: 12px; }
-.module-member > span, .module-member > small, .core-candidate > small { display: block; font-size: 11px; margin-top: 4px; overflow-wrap: anywhere; }
+.module-member > span, .module-member > small, .core-candidate > small { display: block; font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
 .module-member > .icon-tool { position: absolute; right: 0; top: 8px; }
 .core-candidate { border-top: 1px solid #9ca3af44; padding: 8px 0; }
 .core-candidate .context-command { margin-top: 5px; }
@@ -38,7 +38,7 @@ html, body, #root { margin: 0; width: 100%; height: 100%; }
 .explorer-toolbar button, .explorer-toolbar select { min-height: 28px; max-width: 100%; }
 .explorer-toolbar select { border-radius: 4px; }
 .group-selector { display: flex; flex-wrap: wrap; gap: 4px 12px; min-width: 0; margin: 6px 0 0; padding: 4px 0; border: 0; }
-.group-selector legend { padding: 0; color: #6b7280; font-size: 11px; }
+.group-selector legend { padding: 0; color: #6b7280; font-size: 12px; }
 .group-selector label { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; overflow-wrap: anywhere; cursor: pointer; min-height: 28px; }
 .group-selector input { flex: 0 0 auto; margin: 0; accent-color: #0e7490; }
 .group-control { display: inline-flex; align-items: center; max-width: 100%; min-width: 0; }
@@ -52,7 +52,7 @@ html, body, #root { margin: 0; width: 100%; height: 100%; }
 .inspection-range { margin-top: 4px; overflow-wrap: anywhere; color: #0e7490; }
 .context-command { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #cbd5e1; border-radius: 4px; background: transparent; color: inherit; font-size: 12px; padding: 2px 6px; cursor: pointer; }
 .context-command:disabled { opacity: 0.5; cursor: default; }
-.endpoint-visibility { color: #6b7280; font-size: 10px; }
+.endpoint-visibility { color: #6b7280; font-size: 12px; }
 .empty-recovery { display: block; margin: 6px auto 0; pointer-events: auto; cursor: pointer; }
 .explorer-toolbar .icon-tool { display: inline-flex; justify-content: center; align-items: center; flex: 0 0 28px; width: 28px; height: 28px; padding: 0; border-radius: 4px; border: 1px solid #cbd5e1; background: transparent; color: inherit; cursor: pointer; }
 .dark .explorer-toolbar .icon-tool { border-color: #4b5563; }
@@ -70,7 +70,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .part-heading h3 { margin: 0 0 6px; font-size: 16px; }
 .explorer-inspector .icon-tool { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
 .important-toggle[aria-pressed=true], .important-item .icon-tool { color: #a16207; }
-.part-footprint { margin: 6px 0 10px; color: #6b7280; font-size: 10px; }
+.part-footprint { margin: 6px 0 10px; color: #6b7280; font-size: 12px; }
 .part-footprint svg { display: block; width: 100%; height: 120px; }
 .part-value { font-size: 15px; font-weight: 600; margin: 6px 0; }
 .part-facts { margin: 6px 0; }
@@ -87,7 +87,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .important-list, .bundle-inspector { border-bottom: 1px solid #9ca3af55; padding-bottom: 10px; margin-bottom: 12px; }
 .important-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 5px 0; }
 .bundle-network { display: block; text-align: left; width: 100%; border: 0; border-bottom: 1px solid #9ca3af44; padding: 8px 0; background: transparent; color: inherit; cursor: pointer; }
-.bundle-network span { display: block; color: #6b7280; font-size: 10px; margin-top: 3px; }
+.bundle-network span { display: block; color: #6b7280; font-size: 12px; margin-top: 3px; }
 @media (max-width: 680px) {
   .explorer-app { flex-direction: column; }
   .explorer-toolbar { max-height: 26dvh; padding: 6px 8px; }

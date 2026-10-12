@@ -67,12 +67,48 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
     const identity = await pin.evaluate(el => ({ instance: el.dataset.instance, pin: el.dataset.pin }))
     await pin.focus(); await page.keyboard.press(' '); await settle()
     assert.deepEqual((await context()).selection, [identity.instance]); assert.equal((await context()).pin, identity.pin)
-    for (const side of ['left', 'right']) {
-      const target = await page.evaluateHandle(({ selector, side }) => [...document.querySelectorAll(`${selector} .pin-target`)].find(el => el.style[side] !== ''), { selector: u6Selector, side })
-      const wanted = await target.evaluate(el => ({ instance: el.dataset.instance, pin: el.dataset.pin }))
-      await target.asElement().click(); await settle()
-      assert.deepEqual((await context()).selection, [wanted.instance]); assert.equal((await context()).pin, wanted.pin)
+    const assertSelectedVisible = async () => {
+      const visible = await page.$eval(u6Selector, node => {
+        const rect = node.getBoundingClientRect(), canvas = document.querySelector('.explorer-canvas').getBoundingClientRect()
+        return rect.right > canvas.left && rect.left < canvas.right && rect.bottom > canvas.top && rect.top < canvas.bottom
+      })
+      assert.ok(visible, 'Pin trace keeps the selected actual device on the canvas')
     }
+    await assertSelectedVisible()
+    await shot(`${label}-keyboard-pin-trace`)
+    const pointerPin = async side => {
+      const target = await page.evaluateHandle(({ selector, side }) => [...document.querySelectorAll(`${selector} .pin-target`)].find(el => el.style[side] !== ''), { selector: u6Selector, side })
+      assert.ok(target.asElement(), `Actual ${side} pin row exists`)
+      const wanted = await target.evaluate(el => ({ instance: el.dataset.instance, pin: el.dataset.pin }))
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const point = await target.evaluate(el => {
+          const rect = el.getBoundingClientRect(), canvas = document.querySelector('.explorer-canvas').getBoundingClientRect()
+          const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2
+          return { x, y, cx: canvas.left + canvas.width / 2, cy: canvas.top + canvas.height / 2,
+            visible: x > canvas.left && x < canvas.right && y > canvas.top && y < canvas.bottom }
+        })
+        if (point.visible) break
+        await page.mouse.move(point.cx, point.cy)
+        await page.mouse.wheel({ deltaX: point.x - point.cx, deltaY: point.y - point.cy })
+        await settle()
+      }
+      const point = await target.evaluate(el => {
+        const rect = el.getBoundingClientRect(), x = rect.left + rect.width / 2, y = rect.top + rect.height / 2
+        return { x, y, hit: document.elementFromPoint(x, y)?.closest('.pin-target') === el }
+      })
+      assert.ok(point.hit, `${side} actual pointer target is visible and unobstructed`)
+      await page.mouse.click(point.x, point.y); await settle()
+      assert.deepEqual((await context()).selection, [wanted.instance]); assert.equal((await context()).pin, wanted.pin)
+      await target.dispose()
+      await assertSelectedVisible()
+    }
+    for (const side of ['left', 'right']) {
+      await pointerPin(side)
+    }
+    await clickText('Clear trace'); await settle()
+    await clickText('Bundled'); await settle()
+    await pointerPin('left')
+    await shot(`${label}-bundled-pin-trace`)
     const row = await page.$('.part-details tr[data-pin]')
     const rowPin = await row.evaluate(el => el.dataset.pin)
     await row.focus(); await page.keyboard.press('Enter'); await settle(); assert.equal((await context()).pin, rowPin)
@@ -105,9 +141,9 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
     await clickText('SCH view'); await settle(); await search('U4')
     const heading = await page.$eval(`.react-flow__node[data-id="${u4.path}"] .detailed-heading`, el => {
       const r = el.getBoundingClientRect(), parent = el.parentElement.getBoundingClientRect()
-      return { text: el.textContent, title: el.querySelector('[title]')?.title, width: r.width, height: r.height, contained: r.left >= parent.left - 1 && r.right <= parent.right + 1 && r.top >= parent.top - 1 && r.bottom <= parent.bottom + 1 }
+      return { text: el.textContent, title: el.title, width: r.width, height: r.height, contained: r.left >= parent.left - 1 && r.right <= parent.right + 1 && r.top >= parent.top - 1 && r.bottom <= parent.bottom + 1 }
     })
-    assert.ok(heading.text.includes('SF32LB525UC6')); assert.equal(heading.title, 'SF32LB525UC6')
+    assert.ok(heading.text.includes('SF32LB525UC6')); assert.ok(heading.title.includes('SF32LB525UC6'))
     assert.ok(heading.width > 0 && heading.height > 0 && heading.contained, `SCH source heading stays inside component: ${JSON.stringify(heading)}`)
     await shot(`${label}-u4-sch-source-value`)
     records.push({ label: `${label}-u4-sch-heading`, heading })

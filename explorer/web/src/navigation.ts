@@ -20,7 +20,7 @@ const boardSnapshot = (value: unknown): BoardViewportSnapshot | null => {
 export function normalizeContext(value: unknown, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const input = record(value) ? value : {}
   const views = config?.views.filter(v => v.name !== 'Source pages') ?? []
-  const view = typeof input.view === 'string' && (!input.view || views.some((v) => v.name === input.view)) ? input.view : views[0]?.name ?? ''
+  const view = typeof input.view === 'string' && (!input.view || views.some((v) => v.name === input.view)) ? input.view : views.find(v => v.name === 'Functional')?.name ?? views[0]?.name ?? ''
   const definition = config?.views.find((v) => v.name === view)
   const flat = buildViewGraph(model, null, definition)
   const names = flat.regions?.regions ?? []
@@ -30,7 +30,8 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
   const selection = strings(input.selection).filter((id) => parts.has(id))
   const pin = typeof input.pin === 'string' && selection.length === 1 && model.instances.find((i) => i.path === selection[0])?.pins.some((p) => p.logical === input.pin) ? input.pin : ''
   return {
-    mode: input.mode === 'sch' || input.mode === 'layout' ? input.mode : 'overview',
+    mode: input.mode === 'overview' || input.mode === 'layout' ? input.mode : 'sch',
+    connectionMode: input.connectionMode === 'bundled' ? 'bundled' : 'individual',
     scope,
     view, groups: strings(input.groups).filter((g) => names.includes(g)), collapsed: strings(input.collapsed).filter((g) => names.includes(g)),
     selection, pin, net: typeof input.net === 'string' && explorerNets(model).some((n) => n.name === input.net) ? input.net : '',
@@ -42,18 +43,22 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
 
 export function parseInspectionUrl(url: URL, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const params = url.searchParams
-  const collapsed = config?.views.find(v => v.name !== 'Source pages')?.regions.map(r => r.name)
   if (params.has('inspect')) {
-    try { return normalizeContext(JSON.parse(params.get('inspect')!), model, config) } catch { return normalizeContext({ collapsed }, model, config) }
+    try {
+      const input = JSON.parse(params.get('inspect')!)
+      const migrated = record(input) && input.version !== 2 && input.mode === 'overview'
+        ? { ...input, mode: 'sch', connectionMode: 'individual', collapsed: [], viewport: null } : input
+      return normalizeContext(migrated, model, config)
+    } catch { return normalizeContext({}, model, config) }
   }
   return normalizeContext({ mode: params.get('mode'), scope: params.has('scope') ? params.get('scope') === 'all' ? null : params.get('scope') : null,
-    view: params.has('view') ? params.get('view') : undefined, collapsed, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }, model, config)
+    view: params.has('view') ? params.get('view') : undefined, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }, model, config)
 }
 
 export function inspectionUrl(url: URL, context: InspectionContext): URL {
   const next = new URL(url)
   for (const name of ['mode', 'scope', 'view', 'select', 'net']) next.searchParams.delete(name)
-  next.searchParams.set('inspect', JSON.stringify(context))
+  next.searchParams.set('inspect', JSON.stringify({ ...context, version: 2 }))
   return next
 }
 

@@ -7,6 +7,7 @@ import type { LayoutSide } from './boardGeometry'
 
 export interface InspectionContext {
   mode: 'overview' | 'sch' | 'layout'
+  connectionMode: 'individual' | 'bundled'
   scope: string | null
   view: string
   groups: string[]

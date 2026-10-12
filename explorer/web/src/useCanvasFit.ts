@@ -67,7 +67,7 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
             y: 16 - bounds.current.y * zoom, zoom }, { duration: 0 })
         } else {
           const b = bounds.current
-          const zoom = Math.min(2, Math.max(content.current.length <= 14 ? 1 : 0.72, Math.min(next.width / (b.width * 1.32), next.height / (b.height * 1.32))))
+          const zoom = Math.min(2, Math.max(content.current.length <= 14 ? 1 : 0.9, Math.min(next.width / (b.width * 1.32), next.height / (b.height * 1.32))))
           const target = selectedTarget.current ?? primary.current ?? b
           const fits = b.width * zoom <= next.width && b.height * zoom <= next.height
           void flow.current.setViewport({ x: fits ? (next.width - b.width * zoom) / 2 - b.x * zoom : 24 - target.x * zoom, y: fits ? (next.height - b.height * zoom) / 2 - b.y * zoom : 20 - target.y * zoom, zoom }, { duration: 0 })

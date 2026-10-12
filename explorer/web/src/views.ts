@@ -88,26 +88,27 @@ export interface ViewGraph {
   regions?: RegionAssign
   instanceRegions: Map<string, string>
   view?: ViewDef
+  individual?: boolean
 }
 
 /** Classify real instances before aggregation so groups cannot swallow each other. */
-export function buildViewGraph(model: ExplorerModel, scope: string | null, view?: ViewDef): ViewGraph {
+export function buildViewGraph(model: ExplorerModel, scope: string | null, view?: ViewDef, options: { individual?: boolean } = {}): ViewGraph {
   const original = buildGraph(model, null)
   const instanceRegions = new Map<string, string>()
-  if (!view) return { graph: scope === null ? original : buildGraph(model, scope), instanceRegions }
+  if (!view) return { graph: buildGraph(model, scope, undefined, options), instanceRegions, individual: options.individual }
   const matches = (instance: Instance, rule: string) => rule.startsWith('path:')
     ? instance.path === rule.slice(5)
     : rule.startsWith('agg:') ? original.location.get(instance.path) === rule : instance.designator === rule
   for (const instance of model.instances)
     instanceRegions.set(instance.path, view.regions.find((r) => r.members.some((rule) => matches(instance, rule)))?.name ?? 'Other')
-  const graph = buildGraph(model, scope, instanceRegions)
+  const graph = buildGraph(model, scope, instanceRegions, options)
   const regions = assignRegions(graph, view)
   for (const node of graph.nodes) {
     const member = node.inst?.path ?? node.aggMembers?.[0]
     if (member) regions.byNode.set(node.id, instanceRegions.get(member) ?? 'Other')
   }
   regions.regions = [...view.regions.map((r) => r.name), ...([...regions.byNode.values()].includes('Other') ? ['Other'] : [])]
-  return { graph, regions, instanceRegions, view }
+  return { graph, regions, instanceRegions, view, individual: options.individual }
 }
 
 /** Real instance paths represented by a component, aggregate or hierarchy block. */
@@ -118,7 +119,7 @@ export function representedInstances(model: ExplorerModel, graph: Graph): Set<st
 
 export function projectGroupUnion(model: ExplorerModel, scope: string | null, full: ViewGraph, selected: readonly string[]) {
   // Functional groups represent physical members across hierarchy boundaries.
-  if (selected.length && scope !== null) return projectGroupUnion(model, null, buildViewGraph(model, null, full.view), selected)
+  if (selected.length && scope !== null) return projectGroupUnion(model, null, buildViewGraph(model, null, full.view, { individual: full.individual }), selected)
   const keep = new Set(full.graph.nodes.filter((n) => !selected.length || selected.includes(full.regions?.byNode.get(n.id) ?? 'Other')).map((n) => n.id))
   const location = new Map([...full.graph.location].filter(([, id]) => keep.has(id)))
   const graph = reconnectGraph({ ...full.graph, nodes: full.graph.nodes.filter((n) => keep.has(n.id)), location }, projectScope(model, scope).model.nets)
@@ -147,7 +148,7 @@ export function collapseGroups(model: ExplorerModel, union: ReturnType<typeof pr
   // before folding, so each real part has exactly one displayed authority.
   if (union.graph.nodes.some((n) => n.subdesign)) {
     const flat = buildViewGraph({ ...model, instances: model.instances.filter((i) => union.represented.has(i.path)),
-      derived: { ...model.derived, two_terminal: model.derived.two_terminal.filter((p) => union.represented.has(p)) } }, null, full.view)
+      derived: { ...model.derived, two_terminal: model.derived.two_terminal.filter((p) => union.represented.has(p)) } }, null, full.view, { individual: full.individual })
     const nodes = flat.graph.nodes.filter((n) => (n.inst ? [n.inst.path] : n.aggMembers ?? []).some((p) => union.represented.has(p)))
     const ids = new Set(nodes.map((n) => n.id))
     const graph = reconnectGraph({ ...flat.graph, nodes, location: new Map([...flat.graph.location].filter(([path, id]) => union.represented.has(path) && ids.has(id))) }, model.nets)

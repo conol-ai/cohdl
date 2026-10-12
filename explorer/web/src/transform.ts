@@ -57,7 +57,7 @@ export interface Graph {
 const spec = (i: Instance, name: string): string | undefined =>
   i.specs.find((s) => s.name === name)?.value
 
-export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', groupByInstance?: ReadonlyMap<string, string>): Graph {
+export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', groupByInstance?: ReadonlyMap<string, string>, options: { individual?: boolean } = {}): Graph {
   const { model: m, boundaries } = projectScope(fullModel, scope)
   const railSet = new Set(m.derived.rails)
   const twoT = new Set(m.derived.two_terminal)
@@ -89,7 +89,7 @@ export function buildGraph(fullModel: ExplorerModel, scope: string | null = '', 
   for (const p of twoT) {
     const nets = instNets.get(p) ?? []
     const nonRail = nets.filter((n) => !railSet.has(n))
-    if (nonRail.length === 0 && nets.length > 0) {
+    if (!options.individual && nonRail.length === 0 && nets.length > 0) {
       // Host-anchored group when a #[bypass] fact names the target IC;
       // otherwise fall back to the rail-combination bucket.
       const key = bypassOf.has(p)

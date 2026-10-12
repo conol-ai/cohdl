@@ -31,6 +31,37 @@ const view = { name: '功能 / & boundaries', regions: [{ name: 'Left / & 空间
 const config = { schema_version: 1, design: 'Board', views: [view] }
 const freeze = (v) => { Object.freeze(v); for (const c of Object.values(v)) if (c && typeof c === 'object') freeze(c); return v }
 
+test('device browsing defaults expanded SCH and migrates legacy overview exactly once', () => {
+  const m = model()
+  const clean = parseInspectionUrl(new URL('http://localhost/'), m, config)
+  assert.equal(clean.mode, 'sch')
+  assert.equal(clean.connectionMode, 'individual')
+  assert.deepEqual(clean.collapsed, [])
+  const legacy = { ...clean, mode: 'overview', groups: ['Right'], collapsed: ['Right'], selection: ['Board::b'], viewport: { viewport: { x: 5, y: 5, zoom: 1 }, size: { width: 400, height: 400 }, autoFit: false } }
+  const oldUrl = new URL('http://localhost/')
+  oldUrl.searchParams.set('inspect', JSON.stringify(legacy))
+  const migrated = parseInspectionUrl(oldUrl, m, config)
+  assert.equal(migrated.mode, 'sch')
+  assert.deepEqual(migrated.groups, ['Right'])
+  assert.deepEqual(migrated.selection, ['Board::b'])
+  assert.deepEqual(migrated.collapsed, [])
+  assert.equal(migrated.viewport, null)
+  const manual = { ...legacy, connectionMode: 'bundled' }
+  assert.deepEqual(parseInspectionUrl(inspectionUrl(oldUrl, manual), m, config), manual)
+  assert.equal(parseInspectionUrl(new URL('http://localhost/?mode=overview'), m, config).mode, 'overview')
+})
+
+test('device projection represents rail-only components individually through group union', () => {
+  const m = model()
+  m.derived.two_terminal = ['Board::b', 'Board::c']
+  m.derived.rails = ['BUS', 'GND']
+  const full = buildViewGraph(m, null, view, { individual: true })
+  const union = projectGroupUnion(m, '', full, ['Right'])
+  assert.equal(union.graph.location.get('Board::b'), 'Board::b')
+  assert.equal(union.graph.nodes.filter(n => n.inst?.path === 'Board::b').length, 1)
+  assert.ok(!full.graph.nodes.some(n => n.aggMembers))
+})
+
 test('collapsed boundaries retain actual logical/physical endpoints and never inflate represented counts', () => {
   const m = freeze(model()), before = JSON.stringify(m)
   const full = buildViewGraph(m, null, view)

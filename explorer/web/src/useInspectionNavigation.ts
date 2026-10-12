@@ -8,8 +8,8 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
   model: ExplorerModel | null; config: ViewConfig | null; ready: boolean; busy: boolean; signature: string
   read: () => InspectionContext; apply: (context: InspectionContext) => void
 }) {
-  const latest = useRef({ model, config, read, apply })
-  latest.current = { model, config, read, apply }
+  const latest = useRef({ model, config, read, apply, ready, busy })
+  latest.current = { model, config, read, apply, ready, busy }
   const contexts = useRef(new Map<string, InspectionContext>())
   const pending = useRef<InspectionContext | null>(null)
   const initialized = useRef(false)
@@ -23,7 +23,7 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
     setRevision((v) => v + 1)
   }, [])
   const sync = useCallback(() => {
-    if (!initialized.current || pending.current) return
+    if (!initialized.current || pending.current || !latest.current.ready || latest.current.busy) return
     const context = latest.current.read()
     contexts.current.set(contextKey(context), context)
     const next = inspectionUrl(new URL(location.href), context).href
@@ -31,7 +31,7 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
   }, [])
   const navigate = useCallback((patch: Partial<InspectionContext>) => {
     const { model: currentModel, config: currentConfig } = latest.current
-    if (!currentModel || !initialized.current) return
+    if (!currentModel || !initialized.current || !latest.current.ready) return
     const current = latest.current.read()
     const source = pending.current ? { ...pending.current,
       layoutSide: contextKey(current) === contextKey(pending.current) ? current.layoutSide : pending.current.layoutSide } : current
@@ -65,16 +65,16 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
     return () => removeEventListener('popstate', pop)
   }, [restore])
   useEffect(() => {
-    if (!initialized.current || busy) return
+    if (!initialized.current || busy || !ready) return
     const currentGeneration = generation.current
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {
-        if (currentGeneration !== generation.current) return
+        if (currentGeneration !== generation.current || !latest.current.ready || latest.current.busy) return
         pending.current = null
         sync()
       })
     })
     return () => cancelAnimationFrame(frame)
-  }, [busy, signature, revision, sync])
+  }, [busy, ready, signature, revision, sync])
   return { navigate, sync, canBack, back: () => history.back() }
 }

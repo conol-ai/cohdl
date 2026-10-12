@@ -42,16 +42,27 @@ try {
   await page.goto(url, { waitUntil: 'domcontentloaded' })
   const ready = async () => {
     await page.waitForSelector('.react-flow__node:not(.react-flow__node-region)', { visible: true })
-    await page.waitForFunction(() => document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false')
+    await page.waitForFunction(() => {
+      const inspection = JSON.parse(new URL(location.href).searchParams.get('inspect') ?? '{}')
+      return document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false'
+        && inspection.version === 2 && (inspection.mode === 'layout' || inspection.viewport)
+        && document.querySelector('.inspection-range')?.textContent === (inspection.groups?.length ? inspection.groups.join(' + ') : 'All groups')
+    })
     await new Promise((r) => setTimeout(r, 180))
   }
   const clickText = async (text) => {
+    const isGroup = await page.evaluate(label => [...document.querySelectorAll('.group-selector label')].some(el => el.textContent.trim() === label)
+      || [...document.querySelectorAll('.group-panel button')].some(el => el.textContent.trim() === label || el.getAttribute('aria-label') === label), text)
+    const openGroups = await page.$('button[aria-label="Open groups"]')
+    if (isGroup && openGroups && await openGroups.isVisible()) await openGroups.click()
     const button = await page.evaluateHandle((label) => [...document.querySelectorAll('button')].find((el) => el.textContent.trim() === label || el.getAttribute('aria-label') === label)
       ?? [...document.querySelectorAll('.group-selector label')].find((el) => el.textContent.trim() === label)?.querySelector('input'), text)
     assert.ok(await button.asElement(), `Missing control ${text}`)
     await button.asElement().evaluate(el => { const details = el.closest('.groups-disclosure'); if (details) details.open = true })
     await button.asElement().click()
     await button.dispose()
+    const closeGroups = await page.$('button[aria-label="Close groups"]')
+    if (isGroup && closeGroups && await closeGroups.isVisible()) await closeGroups.click()
   }
   const geometry = async (label, { verticalFit = true } = {}) => {
     // Legacy complete-fit geometry is now an explicit user action; entry keeps readable scale.

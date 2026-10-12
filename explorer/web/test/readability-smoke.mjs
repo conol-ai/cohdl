@@ -34,13 +34,17 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
   }
   for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     await page.setViewport(viewport); await page.goto(url, { waitUntil: 'domcontentloaded' }); await settle()
+    assert.equal((await context()).mode, 'sch')
+    await clickText('Overview'); await settle()
+    await clickText('Collapse all groups'); await settle()
+    await clickText('Bundled'); await settle()
     const model = await page.evaluate(async () => (await fetch('/api/model')).json())
     assert.equal(model.instances.length, 233)
     assert.equal(await page.evaluate(() => [...document.querySelectorAll('button')].some(el => el.textContent.trim() === 'Source pages')), false)
     assert.ok((await context()).collapsed.length >= 26)
     await shot(`${label}-overview`)
     const bundle = await page.$('.react-flow__edgelabel-renderer button')
-    assert.ok(bundle, 'Default overview has real net bundles')
+    assert.ok(bundle, 'Optional bundled overview has real net bundles')
     await bundle.focus(); await page.keyboard.press('Enter'); await settle()
     assert.ok(await page.$('.bundle-inspector .bundle-network'))
     await shot(`${label}-bundle`)

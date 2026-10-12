@@ -37,6 +37,9 @@ export async function runNavigationSmoke(page, { url, output, ready, clickText, 
   for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     await page.setViewport(viewport)
     await page.goto(url, { waitUntil: 'domcontentloaded' }); await settle()
+    assert.equal((await context()).mode, 'sch')
+    await clickText('Overview'); await settle()
+    await clickText('Collapse all groups'); await settle()
     const allCounts = await page.$eval('.inspection-counts', (el) => ({ ...el.dataset }))
     assert.ok((await context()).collapsed.length, 'Native overview starts with compact groups')
     assert.deepEqual(await page.$eval('.inspection-counts', (el) => ({ ...el.dataset })), allCounts)

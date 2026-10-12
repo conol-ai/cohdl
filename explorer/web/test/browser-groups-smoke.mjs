@@ -8,6 +8,10 @@ export async function runGroupsSmoke(page, { url, output, ready, clickText, geom
   for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     await page.setViewport(viewport)
     await page.goto(url, { waitUntil: 'domcontentloaded' }); await ready()
+    assert.equal((await context()).mode, 'sch', 'Native entry starts with device schematic')
+    assert.deepEqual((await context()).collapsed, [], 'Native schematic starts expanded')
+    await clickText('Overview'); await ready()
+    await clickText('Collapse all groups'); await ready()
     const model = await page.evaluate(async () => (await fetch('/api/model')).json())
     const view = await page.evaluate(async design => {
       const config = await (await fetch(`/views/${encodeURIComponent(design)}.view.json`)).json()
@@ -15,7 +19,7 @@ export async function runGroupsSmoke(page, { url, output, ready, clickText, geom
       return config.views.find(view => view.name === inspection.view)
     }, model.design)
     const groups = await page.$$eval('.react-flow__node', nodes => nodes.filter(node => node.dataset.id.startsWith('group:')).map(node => JSON.parse(decodeURIComponent(node.dataset.id.slice(6)))[1]))
-    assert.deepEqual([...groups].sort(), view.regions.map(region => region.name).sort(), 'Default overview represents actual native view modules')
+    assert.deepEqual([...groups].sort(), view.regions.map(region => region.name).sort(), 'Optional overview represents actual native view modules')
     assert.equal(Number(await page.$eval('.inspection-counts', el => el.dataset.parts)), model.instances.length)
     const overview = await context()
     assert.deepEqual(overview.groups, [])

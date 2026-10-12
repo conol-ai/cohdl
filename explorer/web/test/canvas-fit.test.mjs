@@ -35,6 +35,8 @@ test('camera capture retains applied geometry while a resize and restore happen 
     assert.equal((final.size.height / 2 - final.viewport.y) / final.viewport.zoom, (queued.size.height / 2 - queued.viewport.y) / queued.viewport.zoom)
     await page.evaluate(() => window.queueCameraRestore({ viewport: { x: -100000, y: -100000, zoom: .5 }, size: { width: 950, height: 520 }, autoFit: false }))
     await page.waitForFunction(() => window.captureCamera().viewport.x > -10000, { timeout: 2000 })
+    await page.evaluate(() => window.queueCameraRestore({ viewport: { x: -100000, y: -100000, zoom: .002 }, size: { width: 950, height: 520 }, autoFit: false }, true))
+    await page.waitForFunction(() => window.captureCamera().viewport.zoom > .01, { timeout: 2000 })
     assert.deepEqual(errors, [])
   } finally {
     await browser?.close()

@@ -17,10 +17,11 @@ function Fixture() {
   Object.assign(window, {
     captureCamera: fit.capture,
     async setManualCamera() { await flow.current!.setViewport({ x: 273, y: -246, zoom: 2 }, { duration: 0 }); fit.manual(); return fit.capture() },
-    queueCameraRestore(snapshot: ReturnType<typeof fit.capture>) {
+    queueCameraRestore(snapshot: ReturnType<typeof fit.capture>, selected = false) {
       fit.prepare(snapshot)
       const captured = fit.capture()
       flushSync(() => setRevision(value => value + 1))
+      if (selected) fit.setSelectionTarget(bounds)
       return captured
     },
     resizeAndRestore(nextHeight = 496) {

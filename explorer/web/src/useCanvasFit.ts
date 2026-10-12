@@ -36,14 +36,14 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
         const viewport = resizeViewport(saved.viewport, saved.size, next)
         const visible = content.current.some(rect => intersects(rect, viewport, next))
         const target = selectedTarget.current
-        if (target && !intersects(target, viewport, next)) {
+        if (visible && target && !intersects(target, viewport, next)) {
           if ((target.x + target.width) * viewport.zoom + viewport.x <= 0) viewport.x = 16 - target.x * viewport.zoom
           else if (target.x * viewport.zoom + viewport.x >= next.width) viewport.x = next.width - 16 - (target.x + target.width) * viewport.zoom
           if ((target.y + target.height) * viewport.zoom + viewport.y <= 0) viewport.y = 16 - target.y * viewport.zoom
           else if (target.y * viewport.zoom + viewport.y >= next.height) viewport.y = next.height - 16 - (target.y + target.height) * viewport.zoom
           void flow.current!.setViewport(viewport, { duration: 0 })
         } else if (visible || !content.current.length) void flow.current!.setViewport(viewport, { duration: 0 })
-        else { autoFit.current = true; focus.current = primary.current }
+        else { autoFit.current = true; focus.current = selectedTarget.current ?? primary.current }
       }
       if (pending.current) {
         const saved = pending.current

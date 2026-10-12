@@ -24,6 +24,8 @@ try {
     url.searchParams.set('inspect', JSON.stringify(requested))
     await page.goto(url.href, { waitUntil: 'networkidle2' })
     await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'Retry groups'))
+    await page.waitForFunction(() => document.querySelector('.inspection-range')?.textContent === 'Camera'
+      && document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false')
     assert.equal(await page.url(), url.href, `${failure}: failed config must not overwrite the requested URL`)
     assert.equal(await page.$eval('.inspection-range', element => element.textContent), 'Camera')
     recovered = true

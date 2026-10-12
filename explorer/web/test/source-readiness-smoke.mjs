@@ -3,6 +3,8 @@ import puppeteer from 'puppeteer-core'
 
 const index = process.argv.indexOf('--url')
 const base = index < 0 ? 'http://127.0.0.1:5210' : process.argv[index + 1]
+const target = new URL(base)
+target.searchParams.set('nolive', '1')
 const response = await fetch(`${base}/api/documents`)
 assert.ok(response.ok, 'Native actual source registry is available')
 const registry = await response.text()
@@ -26,7 +28,7 @@ try {
     return { x: transform.e, y: transform.f, zoom: transform.a }
   })
   let held = heldRequest()
-  await page.goto(base, { waitUntil: 'domcontentloaded' })
+  await page.goto(target.href, { waitUntil: 'domcontentloaded' })
   await held
   await page.waitForFunction(() => document.body.textContent.includes('Loading component information...'))
   assert.equal(await page.$eval('.explorer-canvas', element => element.getAttribute('aria-busy')), 'true')
@@ -55,7 +57,7 @@ try {
   console.log('PASS delayed actual source identity: pending readiness and exact manual-camera reload')
   rejectRegistry = true
   held = heldRequest()
-  await page.goto(base, { waitUntil: 'domcontentloaded' })
+  await page.goto(target.href, { waitUntil: 'domcontentloaded' })
   await held
   await page.waitForFunction(() => document.body.textContent.includes('Loading component information...'))
   await release()

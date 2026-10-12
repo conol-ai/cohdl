@@ -4,12 +4,13 @@ import type { InspectionContext } from './inspection'
 import type { ViewConfig } from './views'
 import { contextKey, inspectionUrl, normalizeContext, parseInspectionUrl } from './navigation'
 
-export function useInspectionNavigation({ model, config, ready, busy, signature, read, apply }: {
+export function useInspectionNavigation({ model, config, ready, busy, signature, read, apply, sourceValues }: {
   model: ExplorerModel | null; config: ViewConfig | null; ready: boolean; busy: boolean; signature: string
   read: () => InspectionContext; apply: (context: InspectionContext) => void
+  sourceValues?: ReadonlyMap<string, string>
 }) {
-  const latest = useRef({ model, config, read, apply, ready, busy })
-  latest.current = { model, config, read, apply, ready, busy }
+  const latest = useRef({ model, config, read, apply, ready, busy, sourceValues })
+  latest.current = { model, config, read, apply, ready, busy, sourceValues }
   const contexts = useRef(new Map<string, InspectionContext>())
   const pending = useRef<InspectionContext | null>(null)
   const initialized = useRef(false)
@@ -46,7 +47,7 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
   }, [restore])
   useEffect(() => {
     if (!ready || !model) return
-    const current = initialized.current ? pending.current ?? latest.current.read() : parseInspectionUrl(new URL(location.href), model, config)
+    const current = initialized.current ? pending.current ?? latest.current.read() : parseInspectionUrl(new URL(location.href), model, config, latest.current.sourceValues)
     initialized.current = true
     restore(normalizeContext(current, model, config))
   }, [ready, model, config, restore])
@@ -59,7 +60,7 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
         const current = latest.current.read()
         contexts.current.set(contextKey(current), current)
       }
-      restore(parseInspectionUrl(new URL(location.href), currentModel, currentConfig))
+      restore(parseInspectionUrl(new URL(location.href), currentModel, currentConfig, latest.current.sourceValues))
     }
     addEventListener('popstate', pop)
     return () => removeEventListener('popstate', pop)

@@ -20,7 +20,7 @@ export function searchCircuit(model: ExplorerModel, query: string, sourceValues:
   for (const instance of model.instances) {
     const identity = identityOf(instance)
     const presentation = partPresentation(instance, sourceValues.get(instance.path))
-    if (!qualified && matches(identity)) hits.push({ kind: 'part', id: instance.path, label: `${presentation.reference} ${presentation.subtitle || presentation.category}`, sub: instance.path })
+    if (!qualified && matches(identity)) hits.push({ kind: 'part', id: instance.path, label: `${presentation.reference} ${presentation.subtitle || presentation.category}`, sub: presentation.subtitle ? presentation.category : '' })
     for (const pin of instance.pins) {
       if (qualified) {
         const target = terms.at(-1)!
@@ -28,7 +28,7 @@ export function searchCircuit(model: ExplorerModel, query: string, sourceValues:
       } else if (!matches(`${identity} ${pin.logical} ${pin.numbers.join(' ')}`)) continue
       const net = model.nets.find((n) => n.members.some((m) => m.instance_path === instance.path && m.logical_pin === pin.logical))?.name
       hits.push({ kind: 'pin', id: instance.path, pin: pin.logical, net,
-        label: `${instance.designator ?? shortName(instance.path)}.${pin.logical} (${pin.numbers.join(', ')})`, sub: net ?? (pin.nc ? 'NC' : 'Unconnected') })
+        label: `${presentation.reference}.${pin.logical} (${pin.numbers.join(', ')})`, sub: net ?? (pin.nc ? 'NC' : 'Unconnected') })
     }
   }
   for (const net of explorerNets(model)) if (matches(net.name)) hits.push({ kind: 'net', id: net.name, net: net.name, label: net.name, sub: `${net.members.length} pins` })

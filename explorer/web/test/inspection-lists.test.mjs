@@ -23,9 +23,9 @@ const { InspectionLists } = require(resolve(out, 'InspectionLists.js'))
 const span = { file: 'src/main.cohdl', line: 42, col: 5 }
 const model = {
   instances: [
-    { path: 'Board::empty', designator: 'U4', device_fq: 'source::Device', part: { mpn: '', footprint: 'source::FP' }, specs: [], span },
-    { path: 'Board::unknown', device_fq: 'source::Unknown', specs: [{ name: 'resistance', value: '10kohm' }], span },
-    { path: 'Board::empty-reference', designator: '', device_fq: 'source::Device', specs: [], span },
+    { path: 'Board::empty', designator: 'U4', device_fq: 'source::Device', impl_traits: [], part: { mpn: '', footprint: 'source::FP' }, specs: [], span },
+    { path: 'Board::unknown', device_fq: 'source::Unknown', impl_traits: [], specs: [{ name: 'resistance', value: '10kohm' }], span },
+    { path: 'Board::empty-reference', designator: '', device_fq: 'source::Device', impl_traits: [], specs: [], span },
   ],
   diagnostics: [
     { code: 'E42', severity: 'error', message: 'Pin conflict', span },
@@ -48,13 +48,13 @@ test('BOM retains empty versus absent fields and locates exact real instance ide
   assert.match(html, /Not specified/)
   assert.match(html, /Unknown/)
   assert.match(html, /10kohm/)
-  assert.match(html, /Board::unknown/)
-  assert.match(html, /Locate Board::empty-reference/)
+  assert.doesNotMatch(html, />Board::unknown</)
+  assert.doesNotMatch(html, /Locate Board::empty-reference/)
   assert.match(html, /Reference not specified/)
   const targets = buttons(element)
   assert.equal(targets.length, model.instances.length)
   targets[0].props.onClick()
-  assert.deepEqual(locations, [{ kind: 'part', id: 'Board::empty', label: 'U4', sub: 'Board::empty' }])
+  assert.deepEqual(locations, [{ kind: 'part', id: 'Board::empty', label: 'U4', sub: '' }])
 })
 
 test('Issues expose last-good live errors, retain unlocated diagnostics and locate authored spans', () => {

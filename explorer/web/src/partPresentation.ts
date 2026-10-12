@@ -21,7 +21,7 @@ export function partPresentation(instance: Instance, sourceValue = '') {
   const declaredCategory = instance.impl_traits.map(t => t.split('::').at(-1)).find(t => ['IC', 'Microcontroller', 'Memory', 'MotorDriver', 'Amplifier', 'Diode', 'MOSFET', 'Transistor', 'Connector', 'Crystal'].includes(t ?? ''))
   const category = declared?.[1] ?? trait?.[1] ?? declaredCategory ?? identityCategory(instance.part?.mpn ?? '') ?? identityCategory(sourceValue) ?? 'Component'
   const value = instance.specs.find(s => s.name === declared?.[0])?.value ?? instance.specs.find(s => s.name === 'value')?.value ?? sourceValue
-  const reference = instance.designator ?? 'Component'
+  const reference = instance.designator?.trim() && !/^component_\d+$/i.test(instance.designator) ? instance.designator : 'Component'
   const mpn = instance.part?.mpn ?? ''
   return { reference, category, value, mpn, title: `${reference} ${category}`, subtitle: [...new Set([value, mpn].filter(Boolean))].join(' · ') }
 }

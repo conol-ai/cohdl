@@ -1,7 +1,8 @@
 import type { ExplorerModel } from './model'
 import { explorerNets } from './hierarchy'
 import type { InspectionContext } from './inspection'
-import { buildViewGraph, groupNodeId, type ViewConfig } from './views'
+import { buildViewGraph, groupNodeId, type ViewConfig, type ViewDef } from './views'
+import { coreCandidates } from './partPresentation'
 import { validViewport, type CanvasSize, type BoardViewportSnapshot } from './viewport'
 import type { ViewportSnapshot } from './useCanvasFit'
 
@@ -42,22 +43,27 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
   }
 }
 
-export function parseInspectionUrl(url: URL, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
+export function defaultInsideGroups(model: ExplorerModel, definition?: ViewDef, sourceValues: ReadonlyMap<string, string> = new Map()): string[] {
+  const graph = buildViewGraph(model, null, definition)
+  const nonempty = graph.regions?.regions.filter(name => [...graph.instanceRegions.values()].includes(name)) ?? []
+  const core = coreCandidates(model, sourceValues).find(candidate => nonempty.includes(graph.instanceRegions.get(candidate.instance.path) ?? ''))
+  const preferred = core ? graph.instanceRegions.get(core.instance.path) : nonempty[0]
+  return preferred ? [preferred] : []
+}
+
+export function parseInspectionUrl(url: URL, model: ExplorerModel, config: ViewConfig | null, sourceValues: ReadonlyMap<string, string> = new Map()): InspectionContext {
   const params = url.searchParams
   const index = (input: Record<string, unknown>) => {
-    const context = normalizeContext({ ...input, mode: 'overview' }, model, config)
+    const context = normalizeContext({ ...input, mode: 'sch' }, model, config)
     const definition = config?.views.find(view => view.name === context.view)
     return { ...context, scope: !definition && model.subdesigns?.length ? '' : context.scope,
-      collapsed: buildViewGraph(model, null, definition).regions?.regions ?? [] }
+      groups: defaultInsideGroups(model, definition, sourceValues), collapsed: [] }
   }
   if (params.has('inspect')) {
     try {
       const input = JSON.parse(params.get('inspect')!)
-      if (record(input) && input.version !== 2 && input.mode === 'overview' && !strings(input.groups).length && !strings(input.selection).length)
-        return index({ ...input, viewport: null })
-      const migrated = record(input) && input.version !== 2 && input.mode === 'overview'
-        ? { ...input, mode: 'sch', connectionMode: 'individual', collapsed: [], viewport: null } : input
-      return normalizeContext(migrated, model, config)
+      if (record(input) && typeof input.view === 'string' && input.view && config && !config.views.some(view => view.name === input.view)) return index({})
+      return normalizeContext(input, model, config)
     } catch { return index({}) }
   }
   const input = { mode: params.get('mode'), scope: params.has('scope') ? params.get('scope') === 'all' ? null : params.get('scope') : null,

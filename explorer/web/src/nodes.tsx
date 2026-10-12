@@ -4,7 +4,6 @@
 import { useLayoutEffect } from 'react'
 import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react'
 import type { FootprintGeo } from './model'
-import { shortName } from './model'
 import type { GNode } from './transform'
 import { netWireColor, railColor, selectNet } from './palette'
 import { passiveTerminals } from './handles'
@@ -48,7 +47,7 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
       </div>
       {compact && <div style={{ padding: '0 10px', fontSize: 12, lineHeight: '14px' }}>{new Set(n.ports?.map((p) => p.net)).size} networks</div>}
       {(compact ? data.neutral ? [] : (n.ports ?? []).filter(p => p.net === data.traceNet) : n.ports ?? []).map((p, index) => (
-        <div key={p.name} role={!compact && p.net ? 'button' : undefined} tabIndex={!compact && p.net ? 0 : undefined} title={p.member ? `${p.member.instance_path}.${p.member.logical_pin} (${p.member.numbers.join(', ')}) · ${p.net}` : p.name}
+        <div key={p.name} role={!compact && p.net ? 'button' : undefined} tabIndex={!compact && p.net ? 0 : undefined} title={p.displayName ?? p.name}
           onKeyDown={(e) => { if (p.net && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectNet(p.net) } }} onClick={() => p.net && selectNet(p.net)} style={{
           position: 'absolute', top: compact ? 56 + (index + 0.5) * 28 / (n.ports?.length || 1) : 46 + index * 18, left: 0, right: 0,
           height: compact ? 0 : 18, padding: compact ? 0 : '0 10px', fontSize: 10,
@@ -57,7 +56,7 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
           display: 'flex', justifyContent: 'space-between', gap: 12,
         }}>
           {!data.neutral && <Handle id={`p:${p.name}`} type="target" position={Position.Left} style={{ width: 5, height: 5, background: '#8b5cf6' }} />}
-          {!compact && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.member ? `${shortName(p.member.instance_path)}.${p.member.logical_pin} (${p.member.numbers.join(', ')})` : p.name}{p.obligation === 'required' ? ' *' : ''}</span>}
+          {!compact && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.displayName ?? p.name}{p.obligation === 'required' ? ' *' : ''}</span>}
           {!compact && <span style={{ opacity: 0.75, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {p.net ?? 'open'}
           </span>}

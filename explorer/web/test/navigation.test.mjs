@@ -31,21 +31,22 @@ const view = { name: '功能 / & boundaries', regions: [{ name: 'Left / & 空间
 const config = { schema_version: 1, design: 'Board', views: [view] }
 const freeze = (v) => { Object.freeze(v); for (const c of Object.values(v)) if (c && typeof c === 'object') freeze(c); return v }
 
-test('clean entry indexes groups while v2 manual contexts remain authoritative', () => {
+test('clean entry expands a real Group while legacy and manual contexts remain authoritative', () => {
   const m = model()
   const clean = parseInspectionUrl(new URL('http://localhost/'), m, config)
-  assert.equal(clean.mode, 'overview')
+  assert.equal(clean.mode, 'sch')
   assert.equal(clean.connectionMode, 'individual')
-  assert.deepEqual(clean.collapsed, [view.regions[0].name, 'Right', 'Other'])
+  assert.deepEqual(clean.groups, [view.regions[0].name])
+  assert.deepEqual(clean.collapsed, [])
   const legacy = { ...clean, mode: 'overview', groups: ['Right'], collapsed: ['Right'], selection: ['Board::b'], viewport: { viewport: { x: 5, y: 5, zoom: 1 }, size: { width: 400, height: 400 }, autoFit: false } }
   const oldUrl = new URL('http://localhost/')
   oldUrl.searchParams.set('inspect', JSON.stringify(legacy))
   const migrated = parseInspectionUrl(oldUrl, m, config)
-  assert.equal(migrated.mode, 'sch')
+  assert.equal(migrated.mode, 'overview')
   assert.deepEqual(migrated.groups, ['Right'])
   assert.deepEqual(migrated.selection, ['Board::b'])
-  assert.deepEqual(migrated.collapsed, [])
-  assert.equal(migrated.viewport, null)
+  assert.deepEqual(migrated.collapsed, ['Right'])
+  assert.deepEqual(migrated.viewport, legacy.viewport)
   const manual = { ...legacy, connectionMode: 'bundled' }
   assert.deepEqual(parseInspectionUrl(inspectionUrl(oldUrl, manual), m, config), manual)
   assert.equal(parseInspectionUrl(new URL('http://localhost/?mode=overview'), m, config).mode, 'overview')
@@ -62,12 +63,22 @@ test('device projection represents rail-only components individually through gro
   assert.ok(!full.graph.nodes.some(n => n.aggMembers))
 })
 
-test('missing Functional configuration indexes native hierarchy and flat projects honestly', () => {
+test('default group follows actual source-backed core rather than a group name', () => {
+  const m = model()
+  const cfg = { ...config, views: [{ name: 'Functional', regions: [{ name: 'SF32 misleading label', members: ['U1'] }, { name: 'Actual processor', members: ['U2'] }] }] }
+  const result = parseInspectionUrl(new URL('http://localhost/'), m, cfg, new Map([['Board::b', 'SF32LB525UC6']]))
+  assert.deepEqual(result.groups, ['Actual processor'])
+  const expired = new URL('http://localhost/')
+  expired.searchParams.set('inspect', JSON.stringify({ version: 2, mode: 'sch', view: 'Unsaved proposal', groups: ['Temporary group'] }))
+  assert.deepEqual(parseInspectionUrl(expired, m, cfg, new Map([['Board::b', 'SF32LB525UC6']])).groups, ['Actual processor'])
+})
+
+test('missing Functional configuration opens native hierarchy and flat projects honestly', () => {
   const m = model()
   m.subdesigns = [{ path: 'Board::child', definition: 'fixture::Child', span, ports: [], docs: [] }]
   m.instances[0].path = 'Board::child::a'
   const native = parseInspectionUrl(new URL('http://localhost/'), m, null)
-  assert.equal(native.mode, 'overview')
+  assert.equal(native.mode, 'sch')
   assert.equal(native.scope, '')
   assert.deepEqual(native.groups, [])
   assert.ok(buildViewGraph(m, native.scope).graph.nodes.some(n => n.subdesign?.path === 'Board::child'))

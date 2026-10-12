@@ -18,7 +18,7 @@ import { shortName } from './model'
 import { explorerNets, ownerScope } from './hierarchy'
 import { focusSubset, type GNode, type Graph } from './transform'
 import { layout } from './layout'
-import { buildViewGraph, projectGroupUnion, collapseGroups, groupNodeId, parseViewConfig, type ViewConfig } from './views'
+import { buildViewGraph, projectGroupUnion, collapseGroups, groupNodeId, parseViewConfig, groupMemberPaths, type ViewConfig } from './views'
 import { netWireColor, railColor } from './palette'
 import {
   DetailedNode,
@@ -33,7 +33,7 @@ import { toPng } from 'html-to-image'
 import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope, type LayoutSide } from './boardGeometry'
-import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronRight, Star, X } from 'lucide-react'
+import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronRight, Star, X, PanelLeft, PanelTop, MoreHorizontal } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
 import { GroupPanel } from './GroupPanel'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
@@ -52,6 +52,8 @@ import { useProposals } from './useProposals'
 import { ProposalReview } from './ProposalReview'
 import { groupIndex } from './groupIndex'
 import { OutsideDestinations } from './OutsideDestinations'
+import { GroupIntentPanel } from './GroupIntentPanel'
+import { defaultInsideGroups } from './navigation'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -73,6 +75,12 @@ export default function App() {
   const [selNet, setSelNet] = useState<string>('')
   const [err, setErr] = useState<string>('')
   const [viewCfg, setViewCfg] = useState<ViewConfig | null>(null)
+  const [candidateConfig, setCandidateConfig] = useState<ViewConfig | null>(null)
+  const resolvedConfig = candidateConfig ?? viewCfg
+  const candidateOrigin = useRef<InspectionContext | null>(null)
+  const candidateTarget = useRef<Partial<InspectionContext> | null>(null)
+  const sourceSignature = useMemo(() => JSON.stringify([model, viewCfg, documents.registry]), [model, viewCfg, documents.registry])
+  const initialRequestedView = useRef((() => { try { return JSON.parse(new URLSearchParams(location.search).get('inspect') ?? '{}').view as string | undefined } catch { return undefined } })())
   const [viewError, setViewError] = useState('')
   const [viewsLoading, setViewsLoading] = useState(false)
   const [viewRetry, setViewRetry] = useState(0)
@@ -86,6 +94,9 @@ export default function App() {
   const [selectedGroups, setSelectedGroups] = useState<string[]>([])
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([])
   const [groupsOpen, setGroupsOpen] = useState(false)
+  const [groupsVisible, setGroupsVisible] = useState(true)
+  const [toolbarVisible, setToolbarVisible] = useState(true)
+  const [bomQuery, setBomQuery] = useState('')
   const [connectionMode, setConnectionMode] = useState<InspectionContext['connectionMode']>('individual')
   const [selectedPin, setSelectedPin] = useState('')
   const [tab, setTab] = useState<InspectionContext['tab']>('circuit')
@@ -121,7 +132,7 @@ export default function App() {
   const readContext = (): InspectionContext => ({ mode, connectionMode, scope, view: activeView, groups: selectedGroups, collapsed: collapsedGroups,
     selection: sel, pin: selectedPin, net: selNet, tab, layoutFrame, layoutSide,
     viewport: mode === 'layout' ? null : capture(), boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null })
-  const navigation = useInspectionNavigation({ model, config: viewCfg, ready: !!model && !documents.loading && !viewsLoading && loadedViewDesign.current === model.design, busy: layoutBusy,
+  const navigation = useInspectionNavigation({ model, config: resolvedConfig, sourceValues, ready: !!model && !documents.loading && !viewsLoading && loadedViewDesign.current === model.design, busy: layoutBusy,
     signature: JSON.stringify([mode, connectionMode, scope, activeView, selectedGroups, collapsedGroups, sel, selectedPin, selNet, tab, layoutFrame, layoutSide]), read: readContext,
     apply: (context) => {
       prepare(context.viewport)
@@ -134,6 +145,26 @@ export default function App() {
       setJump({ selection: context.selection, net: context.net })
       setQuery(''); setBundleId('')
     } })
+  useEffect(() => {
+    if (!candidateTarget.current || viewsLoading || documents.loading || !model || loadedViewDesign.current !== model.design) return
+    const target = candidateTarget.current
+    candidateTarget.current = null
+    navigation.navigate(target)
+  }, [resolvedConfig, navigation.navigate, viewsLoading, documents.loading, model])
+  useEffect(() => {
+    if (candidateConfig && candidateOrigin.current) {
+      setViewError(error => error || 'Temporary focus expired; review proposal again')
+      candidateTarget.current = { ...candidateOrigin.current, viewport: null, boardViewport: null }
+      candidateOrigin.current = null
+    }
+    setCandidateConfig(null)
+  }, [sourceSignature])
+  useEffect(() => {
+    const requested = initialRequestedView.current
+    if (!viewCfg || !requested) return
+    if (!viewCfg.views.some(view => view.name === requested)) setViewError('Requested view is unavailable or temporary; showing a saved group inside. Review the proposal again to restore temporary focus.')
+    initialRequestedView.current = undefined
+  }, [viewCfg])
   const freshRange = (patch: Partial<InspectionContext>) => { setShowImportant(false); navigation.navigate({ ...patch, selection: [], pin: '', net: '', tab: 'circuit', viewport: null, boardViewport: null }) }
   const navigateScope = (path: string | null, target?: { id?: string; net?: string }) => target
     ? navigation.navigate({ scope: path, selection: target.id ? [target.id] : [], net: target.net ?? '', pin: '', viewport: null, boardViewport: null })
@@ -141,6 +172,14 @@ export default function App() {
   const activatePin = useCallback((pin: PinIdentity) => {
     setSel([pin.instance]); setSelectedPin(pin.pin); setSelNet(pin.net); setBundleId('')
   }, [])
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const inspector = document.querySelector<HTMLElement>('.explorer-inspector')
+      const network = inspector?.querySelector<HTMLElement>('.part-network')
+      if (inspector) inspector.scrollTop = selectedPin && network ? inspector.scrollTop + network.getBoundingClientRect().top - inspector.getBoundingClientRect().top - 12 : 0
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [sel[0], selectedPin])
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
@@ -195,8 +234,9 @@ export default function App() {
       })
       .then((c) => {
         if (cancelled) return
-        setViewError('')
+        setViewError(error => error.startsWith('Requested view') || error.startsWith('Temporary focus') ? error : '')
         setViewCfg(c)
+        setCandidateConfig(current => JSON.stringify(c) === JSON.stringify(viewCfg) ? current : null)
       })
       .catch((e) => {
         if (!cancelled) { setViewCfg(null); setViewError(String(e instanceof Error ? e.message : e)) }
@@ -232,7 +272,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', h)
   }, [])
 
-  const viewDef = viewCfg?.views.find((v) => v.name === activeView)
+  const viewDef = resolvedConfig?.views.find((v) => v.name === activeView)
+  const groupMembers = useMemo(() => model ? groupMemberPaths(model, viewDef) : new Map<string, Set<string>>(), [model, viewDef])
   const fullView = useMemo(() => model ? buildViewGraph(model, null, viewDef, { individual: mode === 'sch' }) : null, [model, viewDef, mode])
   const scopedView = useMemo(() => model ? (scope === null ? fullView : buildViewGraph(model, scope, viewDef, { individual: mode === 'sch' })) : null, [model, scope, viewDef, fullView, mode])
   const indexEntries = useMemo(() => model && fullView ? groupIndex(model, fullView.instanceRegions, sourceValues) : new Map(), [model, fullView, sourceValues])
@@ -603,7 +644,6 @@ export default function App() {
   const selectedBoardPlacement = model?.layout?.placements.find((p) => p.instance === selInst?.path)
   const selectedPlacement = mode === 'layout' ? physicalScope?.placements.find((p) => p.instance === selInst?.path) : selectedBoardPlacement
   const localPlacementView = mode === 'layout' && physicalScope?.frame === 'local'
-  const localPlacementScope = model && selInst ? model.subdesigns?.find((s) => s.path === ownerScope(model, selInst.path) && s.local_placements?.some((p) => p.instance === selInst.path)) : undefined
   const inspectedSubdesign = selNode?.subdesign ?? currentSubdesign
   /** Members of a selected decoupling/pull aggregate, resolved to instances. */
   const aggInsts: Instance[] = useMemo(() => {
@@ -619,20 +659,18 @@ export default function App() {
   )
   const visibleParts = useMemo(() => mode === 'layout' ? new Set(physicalPlacements.map(p => p.instance)) : projection?.represented ?? new Set<string>(), [mode, physicalPlacements, projection])
   const followEndpoint = (path: string, pin: string, net: string) => {
-    locateTarget({ kind: 'pin', id: path, pin, label: path, sub: path, net })
+    locateTarget({ kind: 'pin', id: path, pin, label: path, sub: path, net }, tab === 'bom' ? 'bom' : 'circuit')
   }
-  const indexScope = !viewDef && model?.subdesigns?.length ? '' : null
-  const showIndex = () => freshRange({ mode: mode === 'layout' ? 'layout' : 'overview', scope: indexScope, groups: [], collapsed: fullView?.regions?.regions ?? [] })
+  const insideScope = !viewDef && model?.subdesigns?.length ? '' : null
   const clearFilters = () => {
-    freshRange({ mode: 'overview', scope: indexScope, groups: [], collapsed: fullView?.regions?.regions ?? [], layoutSide: 'both' })
+    freshRange({ mode: 'sch', scope: insideScope, groups: model ? defaultInsideGroups(model, viewDef, sourceValues) : [], collapsed: [], layoutSide: 'both' })
   }
   const toggleGroup = (name: string) => {
     const groups = selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name]
-    if (!groups.length) { showIndex(); return }
     freshRange({ mode: mode === 'layout' ? 'layout' : 'sch', scope: null, groups, collapsed: [] })
   }
 
-  const locateTarget = (hit: SearchHit) => {
+  const locateTarget = (hit: SearchHit, targetTab: InspectionContext['tab'] = 'circuit') => {
     if (!model) return
     if (hit.kind === 'subdesign') { navigateScope(hit.id); return }
     if (hit.kind === 'net') {
@@ -651,7 +689,7 @@ export default function App() {
     const placement = physicalScope?.placements.find((p) => p.instance === hit.id)
     navigation.navigate({ mode: mode === 'layout' ? 'layout' : 'sch', scope: viewDef ? null : ownerScope(model, hit.id),
       groups: hidden && viewDef ? [group] : selectedGroups, collapsed: collapsedGroups.filter((g) => g !== group),
-      selection: [hit.id], pin: hit.pin ?? '', net: hit.net ?? '', tab: 'circuit', viewport: null, boardViewport: null,
+      selection: [hit.id], pin: hit.pin ?? '', net: hit.net ?? '', tab: targetTab, viewport: null, boardViewport: null,
       layoutSide: mode === 'layout' && placement && layoutSide !== 'both' && placement.side !== layoutSide ? 'both' : layoutSide })
     setJump({ id: hit.id, net: hit.net ?? '', locate: true })
   }
@@ -682,12 +720,32 @@ export default function App() {
 
   const panelBg = dark ? '#181c22' : '#fff'
   const panelFg = dark ? '#e5e7eb' : '#111827'
+  const groupsShown = matchMedia('(max-width: 680px)').matches ? groupsOpen : groupsVisible
 
   return (
-    <div className={`explorer-app${dark ? ' dark' : ''}`}>
+    <div className={`explorer-app${dark ? ' dark' : ''}${groupsVisible ? '' : ' groups-hidden'}${tab === 'bom' ? ' has-bom' : ''}`}>
       <main className="explorer-main">
+        <div className="panel-rail" aria-label="Panels">
+          {viewDef && <button className="icon-tool" title={groupsShown ? 'Hide Groups' : 'Show Groups'} aria-label={groupsShown ? 'Hide Groups' : 'Show Groups'} aria-pressed={groupsShown} onClick={() => { const mobile = matchMedia('(max-width: 680px)').matches; setGroupsVisible(mobile ? true : !groupsVisible); setGroupsOpen(mobile ? !groupsOpen : false); if (mobile || !groupsVisible) requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.group-panel .group-search')?.focus()) }}><PanelLeft size={18} /></button>}
+          <button className="icon-tool" title={toolbarVisible ? 'Hide toolbar' : 'Show toolbar'} aria-label={toolbarVisible ? 'Hide toolbar' : 'Show toolbar'} aria-pressed={toolbarVisible} onClick={() => { setToolbarVisible(value => !value); if (!toolbarVisible) requestAnimationFrame(() => document.querySelector<HTMLInputElement>('[aria-label="Search circuit"]')?.focus()) }}><PanelTop size={18} /></button>
+          <div className="inspection-tabs" role="tablist" aria-label="Inspection views">
+            {(['circuit', 'bom'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
+              onClick={() => navigation.navigate({ tab: value })} onKeyDown={event => {
+                const offset = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+                if (offset || event.key === 'Home' || event.key === 'End') {
+                  event.preventDefault()
+                  const target = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + offset + tabs.length) % tabs.length
+                  navigation.navigate({ tab: tabs[target] })
+                  event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[target].focus()
+                }
+              }}>{value === 'bom' ? 'BOM' : 'Circuit'}</button>)}
+          </div>
+          <details className="inspection-more"><summary aria-label="More inspection views" title="More inspection views"><MoreHorizontal size={18} /></summary><button onClick={() => navigation.navigate({ tab: 'issues' })}>Issues</button><button onClick={() => navigation.navigate({ tab: 'proposals' })}>Proposals</button></details>
+          {(mode === 'overview' || collapsedGroups.length > 0) && <button className="context-command view-inside" onClick={() => { const groups = selectedGroups.length ? selectedGroups : defaultInsideGroups(model, viewDef, sourceValues); navigation.navigate({ mode: 'sch', scope, groups, collapsed: [], viewport: null, boardViewport: null }) }}><ChevronRight size={16} />View inside</button>}
+        </div>
         <div
           className="explorer-toolbar"
+          hidden={!toolbarVisible}
           style={{
             zIndex: 10,
             background: dark ? '#181c22ee' : '#ffffffee',
@@ -821,29 +879,15 @@ export default function App() {
             </button>}
             {chip('Overview', mode === 'overview', () => freshRange({ mode: 'overview', scope, groups: selectedGroups, collapsed: collapsedGroups }))}
             {chip('SCH view', mode === 'sch', () => freshRange({ mode: 'sch', scope, groups: selectedGroups, collapsed: collapsedGroups }))}
-            {chip('Layout', mode === 'layout', () => freshRange({ mode: 'layout', scope, groups: selectedGroups, collapsed: collapsedGroups }), '#047857')}
-            {viewDef && <button className="context-command group-drawer-toggle" aria-label="Open groups" aria-expanded={groupsOpen} aria-controls="group-panel" onClick={() => setGroupsOpen(true)}>Groups · {selectedGroups.length || 'All'}</button>}
             {mode !== 'layout' && <span className="connection-mode" role="group" aria-label="Wire mode">{(['individual', 'bundled'] as const).map(value => <button key={value} aria-pressed={connectionMode === value} onClick={() => navigation.navigate({ connectionMode: value, viewport: null })}>{value === 'individual' ? 'Individual' : 'Bundled'}</button>)}</span>}
-            {viewCfg && mode !== 'layout' &&
-              ['', ...viewCfg.views.filter(v => v.name !== 'Source pages').map((v) => v.name)].map((v) =>
-                chip(v || 'No regions', activeView === v, () => freshRange({ view: v, groups: [], collapsed: mode === 'overview' ? viewCfg.views.find(view => view.name === v)?.regions.map(r => r.name) ?? [] : [] }), '#0e7490'),
+            {resolvedConfig && mode !== 'layout' &&
+              ['', ...resolvedConfig.views.filter(v => v.name !== 'Source pages').map((v) => v.name)].map((v) =>
+                chip(v || 'No regions', activeView === v, () => freshRange({ view: v, groups: [], collapsed: mode === 'overview' ? resolvedConfig.views.find(view => view.name === v)?.regions.map(r => r.name) ?? [] : [] }), '#0e7490'),
               )}
           </div>
           <button className="context-command" aria-pressed={showImportant} onClick={() => setShowImportant(v => !v)}><Star size={14} />Important ({important.marks.size})</button>
           {selNet && <button className="context-command" onClick={() => { setSelNet(''); setSelectedPin(''); setBundleId('') }}><X size={14} />Clear trace</button>}
           {shareError && <input aria-label="Inspection link" readOnly value={shareError} onFocus={(e) => e.target.select()} style={{ width: '100%' }} />}
-          <div className="inspection-tabs" role="tablist" aria-label="Inspection views">
-            {(['circuit', 'bom', 'issues', 'proposals'] as const).map((value, index, tabs) => <button key={value} role="tab" aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
-              onClick={() => navigation.navigate({ tab: value })} onKeyDown={(e) => {
-                const offset = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-                if (offset || e.key === 'Home' || e.key === 'End') {
-                  e.preventDefault()
-                  const target = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (index + offset + tabs.length) % tabs.length
-                  navigation.navigate({ tab: tabs[target] })
-                  e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[target].focus()
-                }
-              }}>{value === 'bom' ? 'BOM' : value === 'issues' ? 'Issues' : value === 'proposals' ? 'Proposals' : 'Circuit'}</button>)}
-          </div>
           {!!model.subdesigns?.length && (
             <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
               <label htmlFor="hierarchy-scope">Hierarchy</label>
@@ -865,7 +909,19 @@ export default function App() {
           {viewError && <div role="alert">{viewError} <button className="context-command" onClick={() => setViewRetry(value => value + 1)}>Retry groups</button></div>}
         </div>
         <div className="explorer-workspace">
-        {viewDef && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={showIndex} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} />}
+        {(viewDef || viewCfg?.views.length) && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ mode: 'sch', scope: null, groups: [], collapsed: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} navigation={viewDef?.navigation} groupMembers={groupMembers} onSelection={groups => freshRange({ mode: 'sch', scope: null, groups, collapsed: [] })}>
+          <GroupIntentPanel model={model} config={viewCfg} selection={{ schema: 1, instances: candidateConfig ? [...projection?.represented ?? []] : sel.filter(path => model.instances.some(instance => instance.path === path)), groups: selectedGroups.filter(region => viewCfg?.views.some(view => view.name === activeView && view.regions.some(group => group.name === region))).map(region => ({ view: activeView, region })) }}
+            onFocus={(config, view, groups) => { setViewError(''); candidateOrigin.current ??= readContext(); candidateTarget.current = { mode: 'sch', scope: null, view, groups, collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null }; setCandidateConfig(config) }}
+            onCancel={() => { candidateTarget.current = candidateOrigin.current; candidateOrigin.current = null; setCandidateConfig(null) }}
+            onSaved={operation => {
+              if (operation === 'undo') {
+                const definition = viewCfg?.views.find(view => view.name === 'Functional') ?? viewCfg?.views[0]
+                candidateTarget.current = candidateOrigin.current ? { ...candidateOrigin.current, viewport: null, boardViewport: null } : { mode: 'sch', scope: null, view: definition?.name ?? '', groups: defaultInsideGroups(model, definition, sourceValues), collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null }
+                candidateOrigin.current = null
+              }
+              setViewRetry(value => value + 1)
+            }} />
+        </GroupPanel>}
         {groupsOpen && <button className="group-drawer-backdrop" aria-label="Close groups overlay" onClick={() => setGroupsOpen(false)} />}
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy || documents.loading}>
         {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={(frame) => navigation.navigate({ layoutFrame: frame, boardViewport: null })} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide} onCamera={navigation.sync}
@@ -917,6 +973,7 @@ export default function App() {
         </div>
         </div>
       </main>
+      {tab === 'bom' && <div className="bom-panel"><InspectionLists model={model} tab="bom" query={bomQuery} onQuery={setBomQuery} selected={selInst?.path} sourceValues={sourceValues} onLocate={hit => locateTarget(hit, 'bom')} onIssue={() => {}} /></div>}
       {(showImportant || bundleId || tab !== 'circuit' || selInst || selNetObj || aggInsts.length > 0 || inspectedSubdesign) && (
         <div
           className="explorer-inspector"
@@ -929,7 +986,7 @@ export default function App() {
             color: panelFg,
           }}
         >
-          {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSelectionTarget(null); setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); setTab('circuit') }}><X size={16} /></button>}
+          {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSelectionTarget(null); setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); if (tab !== 'bom') setTab('circuit') }}><X size={16} /></button>}
           {showImportant && <section className="important-list" aria-label="Important parts"><div className="part-heading"><h3>Important</h3><button className="icon-tool" aria-label="Close important parts" onClick={() => setShowImportant(false)}><X size={16} /></button></div>
             {!important.marks.size && <p>No important parts</p>}
             {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); if (!instance) return null; const identity = partPresentation(instance, sourceValues.get(path)); return <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: identity.title, sub: path })}>{identity.title}{identity.subtitle && ` · ${identity.subtitle}`}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}
@@ -939,7 +996,7 @@ export default function App() {
           {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
             {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { setSel([]); setSelectedPin(''); setSelNet(net.name) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
           </section>}
-          {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
+          {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab === 'issues' ? <>{issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
             const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
             if (target) locateTarget({ kind: 'part', id: target.path, label: target.designator ?? target.path, sub: target.path })
             else {
@@ -989,8 +1046,8 @@ export default function App() {
               {!!selNode.ports?.length && <table className="boundary-pin-list" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10 }}>
                 <thead><tr><th>Part / pin</th><th>#</th><th>Boundary net</th></tr></thead>
                 <tbody>{selNode.ports.map((port) => <tr key={port.name} data-boundary-port={port.name}>
-                  <td>{port.member && <button className="locate-link" title={port.member.instance_path} onClick={() => locateTarget({ kind: 'pin', id: port.member!.instance_path, pin: port.member!.logical_pin, net: port.net, label: port.member!.logical_pin, sub: port.member!.instance_path })}>
-                    {model.instances.find((i) => i.path === port.member!.instance_path)?.designator ?? shortName(port.member.instance_path)}.{port.member.logical_pin}</button>}</td>
+                  <td>{port.member && <button className="locate-link" title={port.displayName ?? port.member.logical_pin} onClick={() => locateTarget({ kind: 'pin', id: port.member!.instance_path, pin: port.member!.logical_pin, net: port.net, label: port.member!.logical_pin, sub: '' })}>
+                    {port.displayName ?? `${model.instances.find((i) => i.path === port.member!.instance_path)?.designator || 'Component'}.${port.member.logical_pin}`}</button>}</td>
                   <td>{port.member?.numbers.join(', ')}</td><td><button className="locate-link" onClick={() => port.net && locateNet(port.net)}>{port.net}</button></td>
                 </tr>)}</tbody>
               </table>}
@@ -1006,7 +1063,7 @@ export default function App() {
                 ))}
               </div>
               <div className="module-members">{aggInsts.map(i => { const identity = partPresentation(i, sourceValues.get(i.path)); const candidate = candidates.find(c => c.instance.path === i.path); return <div className="module-member" key={i.path}>
-                <button className="locate-link" title={i.path} onClick={() => locateTarget({ kind: 'part', id: i.path, label: identity.title, sub: i.path })}>{identity.title}</button><span>{identity.subtitle || 'MPN unspecified'}</span>
+                <button className="locate-link" title={identity.title} onClick={() => locateTarget({ kind: 'part', id: i.path, label: identity.title, sub: identity.subtitle })}>{identity.title}</button><span>{identity.subtitle || 'MPN unspecified'}</span>
                 {candidate && <small>{important.marks.has(i.path) ? 'Confirmed important' : 'Heuristic core suggestion'} · {candidate.evidence}</small>}
                 <button className="icon-tool" title={important.marks.has(i.path) ? 'Unmark important' : 'Mark important'} aria-label={`${important.marks.has(i.path) ? 'Unmark' : 'Mark'} ${identity.reference} important`} onClick={() => important.toggle(i.path)}><Star size={14} fill={important.marks.has(i.path) ? 'currentColor' : 'none'} /></button>
               </div> })}</div>
@@ -1018,15 +1075,12 @@ export default function App() {
           )}
           {selInst && <PartDetails model={model} instance={selInst} dark={dark} resource={documents} view={activeView} groups={selectedGroups} connectionMode={mode === 'layout' ? 'individual' : connectionMode}
             visible={visibleParts} locations={mode === 'layout' ? undefined : projection?.graph.location} selectedPin={selectedPin} selectedNet={selNet} marked={important.marks.has(selInst.path)}
+            instanceRegions={fullView?.instanceRegions} onGroup={group => navigation.navigate({ mode: 'sch', scope: null, groups: [group], collapsed: [], selection: [], pin: '', net: selNet, tab, viewport: null, boardViewport: null })} onEndpoint={followEndpoint}
             onMark={() => important.toggle(selInst.path)} onPin={activatePin} placement={<div className="part-placement">
               <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
               {selectedPlacement ? <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm · {selectedPlacement.rotate}° · {selectedPlacement.side}</div> : <div>No resolved placement</div>}
-              {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
-                navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, groups: selectedGroups, collapsed: collapsedGroups, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
-                setJump({ id: selInst.path, net: selNet })
-              }}>Show in layout</button>}
             </div>} />}
-          {selNetObj && (
+          {selNetObj && !selInst && (
             <>
               <h3
                 style={{

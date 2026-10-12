@@ -1,5 +1,4 @@
 import type { ExplorerModel, Net } from './model'
-import { shortName } from './model'
 import { partPresentation } from './partPresentation'
 import './OutsideDestinations.css'
 
@@ -13,7 +12,7 @@ export function destinationGroups(model: ExplorerModel, net: Net, instanceRegion
     const entry = groups.get(key) ?? { group, local, navigable: instanceRegions.has(member.instance_path), endpoints: [] }
     const instance = instances.get(member.instance_path)
     const identity = instance && partPresentation(instance, sourceValues.get(member.instance_path))
-    entry.endpoints.push({ member, reference: identity?.reference ?? shortName(member.instance_path), identity: identity?.subtitle ?? '' })
+    entry.endpoints.push({ member, reference: identity?.reference ?? 'Unreferenced component', identity: identity?.subtitle ?? '' })
     groups.set(key, entry)
   }
   return [...groups.values()].sort((a, b) => Number(b.local) - Number(a.local) || a.group.localeCompare(b.group))
@@ -34,7 +33,7 @@ export function OutsideDestinations({ model, net, instanceRegions, visible, sour
         <summary><strong>{group.group}</strong><span>{group.local ? 'Local' : 'Outside'} · {group.endpoints.length} endpoints</span></summary>
         {!group.local && group.navigable && <button className="destination-group-command" aria-label={`Open ${group.group} group`} onClick={() => onGroup(group.group)}>Open {group.group} group</button>}
         <ul>{group.endpoints.map((endpoint, index) => <li key={index} data-endpoint={endpoint.member.instance_path} data-visible={group.local} data-instance={endpoint.member.instance_path} data-pin={endpoint.member.logical_pin} data-physical={JSON.stringify(endpoint.member.numbers)}>
-          <button className="destination-endpoint" title={`${endpoint.member.instance_path}.${endpoint.member.logical_pin} (${endpoint.member.numbers.join(', ')})`} onClick={() => onEndpoint(endpoint.member.instance_path, endpoint.member.logical_pin, net.name)}>
+          <button className="destination-endpoint" title={`${endpoint.reference}.${endpoint.member.logical_pin} (${endpoint.member.numbers.join(', ')})`} onClick={() => onEndpoint(endpoint.member.instance_path, endpoint.member.logical_pin, net.name)}>
             <span>{endpoint.reference}.{endpoint.member.logical_pin}</span><span className="destination-physical">{endpoint.member.numbers.join(', ') || 'Unspecified'}</span>
           </button>
           {endpoint.identity && <div className="destination-identity">{endpoint.identity}</div>}

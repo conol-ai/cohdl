@@ -22,7 +22,7 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       net: [...document.querySelectorAll('.explorer-inspector h3')].map((el) => el.textContent).find((text) => text.startsWith('net ')),
       size: { width: rect.width, height: rect.height }, selected: selected.map((el) => el.dataset.instance),
       rendered: selected.map((el) => { const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height } }),
-      endpoints: [...document.querySelectorAll('tr[data-endpoint]')].map((r) => ({ path: r.dataset.endpoint, group: r.dataset.group, visible: r.dataset.visible })),
+      endpoints: [...document.querySelectorAll('[data-endpoint]')].map((r) => ({ path: r.dataset.endpoint, group: r.closest('.destination-group').dataset.group, visible: r.dataset.visible })),
       overflow: document.documentElement.scrollWidth > innerWidth }
   })
   const records = []
@@ -31,7 +31,14 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
     await page.keyboard.press('Backspace')
     await page.type('input[aria-label="Search circuit"]', 'CAM_HREF')
     await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('CAM_HREF') && b.textContent.includes('pins')).click())
-    await page.waitForSelector('tr[data-endpoint]')
+    await page.waitForSelector('[data-endpoint]')
+  }
+  const clickEndpoint = async (visible) => {
+    const button = await page.$(`[data-endpoint][data-visible="${visible}"] button`)
+    assert.ok(button, `Missing ${visible ? 'local' : 'outside'} endpoint`)
+    await button.evaluate(element => { element.closest('.destination-group').open = true })
+    await button.click()
+    await button.dispose()
   }
   try {
     for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
@@ -49,8 +56,8 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       await clickText('Camera')
       assert.equal((await snapshot()).net, undefined, 'User group changes clear the old trace')
       await trace()
-      await page.waitForSelector('tr[data-endpoint][data-visible="false"] button')
-      await (await page.$('tr[data-endpoint][data-visible="true"] button')).click()
+      await page.waitForSelector('[data-endpoint][data-visible="false"] button')
+      await clickEndpoint(true)
       await page.waitForSelector('svg[aria-label="Physical component layout in millimetres"]')
       await page.click('button[aria-label="Zoom into layout"]')
       await new Promise((r) => setTimeout(r, 200))
@@ -62,7 +69,7 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       assert.ok(before.selected.length)
       assert.equal(before.side, 'top')
       assert.ok((await page.$eval('.board-layout', (el) => el.textContent)).includes('9 without placement'), 'Layout unplaced list must respect the selected group')
-      await (await page.$('tr[data-endpoint][data-visible="false"] button')).click()
+      await clickEndpoint(false)
       await new Promise((r) => setTimeout(r, 200))
       const destination = await snapshot()
       assert.ok(destination.endpoints.some((e) => e.group === 'ESP32 core' && e.visible === 'true'))
@@ -91,7 +98,8 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       const bottom = await snapshot()
       assert.deepEqual(bottom.paths, [members[1].instance_path])
       assert.equal(bottom.endpoints.find((e) => e.path === members[0].instance_path).visible, 'false', 'Top endpoint must be hidden by Bottom filter')
-      await (await page.$('tr[data-endpoint][data-visible="true"] button')).click()
+      await clickEndpoint(true)
+      assert.deepEqual((await snapshot()).groups, [], 'Locating a local bottom endpoint retains the all-group union despite SCH collapse state')
       await page.click('button[aria-label="Zoom into layout"]')
       await new Promise((r) => setTimeout(r, 200))
       const bottomBefore = await snapshot()
@@ -102,7 +110,7 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       assert.deepEqual(afterNavigationFilter.paths, [members[0].instance_path])
       await page.select('select[aria-label="Component side"]', 'bottom')
       await page.waitForFunction(() => document.querySelectorAll('.board-layout__component').length === 1)
-      await (await page.$('tr[data-endpoint][data-visible="false"] button')).click()
+      await clickEndpoint(false)
       await new Promise((r) => setTimeout(r, 200))
       const bottomDestination = await snapshot()
       assert.equal(bottomDestination.side, 'both')
@@ -119,7 +127,8 @@ export async function runLayoutInspectionSmoke(page, { url, output, ready, click
       assert.ok(Math.abs(bottomRestored.scale - bottomBefore.scale) < 0.001)
       await page.screenshot({ path: resolve(output, `union-${label}-layout-sides-fixture.png`) })
       await clickText('Clear filters')
-      assert.equal((await snapshot()).side, 'both', 'Clear filters must restore both physical sides')
+      await ready()
+      assert.equal(await page.evaluate(() => JSON.parse(new URL(location.href).searchParams.get('inspect')).layoutSide), 'both', 'Clear filters must restore both physical sides when returning to the system index')
       records.push({ label, top, before, destination, restored, resized, bottom, bottomBefore, afterNavigationFilter, bottomDestination, bottomRestored })
     }
   } finally {

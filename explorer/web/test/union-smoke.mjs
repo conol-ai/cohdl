@@ -126,6 +126,16 @@ export async function runUnionSmoke(page, { url, output, ready, clickText, geome
     await ready()
     await clickText('SCH view'); await ready()
     await assertUnion([])
+    for (const mode of ['Layout', 'Overview', 'SCH view']) {
+      await clickText(mode)
+      if (mode === 'Layout') await page.waitForFunction(() => JSON.parse(new URL(location.href).searchParams.get('inspect')).mode === 'layout')
+      else await ready()
+      const current = await page.evaluate(() => JSON.parse(new URL(location.href).searchParams.get('inspect')))
+      assert.deepEqual(current.groups, [], `${mode} must retain current cleared range rather than a cached filter`)
+      assert.deepEqual(current.collapsed, [], `${mode} retains current expansion`)
+      assert.equal(current.scope, null)
+    }
+    await assertUnion([])
     await clickText('Other')
     await page.waitForFunction(() => document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false')
     assert.equal(Number((await inspect()).counts.parts), 0)

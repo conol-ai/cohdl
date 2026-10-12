@@ -647,7 +647,7 @@ export default function App() {
       return
     }
     const group = fullView?.instanceRegions.get(hit.id) ?? 'Other'
-    const hidden = !projection?.represented.has(hit.id) || collapsedGroups.includes(group)
+    const hidden = !projection?.represented.has(hit.id) || (mode !== 'layout' && collapsedGroups.includes(group))
     const placement = physicalScope?.placements.find((p) => p.instance === hit.id)
     navigation.navigate({ mode: mode === 'layout' ? 'layout' : 'sch', scope: viewDef ? null : ownerScope(model, hit.id),
       groups: hidden && viewDef ? [group] : selectedGroups, collapsed: collapsedGroups.filter((g) => g !== group),
@@ -819,9 +819,9 @@ export default function App() {
             >
               <RotateCcw size={16} />
             </button>}
-            {chip('Overview', mode === 'overview', () => freshRange({ mode: 'overview' }))}
-            {chip('SCH view', mode === 'sch', () => freshRange({ mode: 'sch' }))}
-            {chip('Layout', mode === 'layout', () => freshRange({ mode: 'layout' }), '#047857')}
+            {chip('Overview', mode === 'overview', () => freshRange({ mode: 'overview', scope, groups: selectedGroups, collapsed: collapsedGroups }))}
+            {chip('SCH view', mode === 'sch', () => freshRange({ mode: 'sch', scope, groups: selectedGroups, collapsed: collapsedGroups }))}
+            {chip('Layout', mode === 'layout', () => freshRange({ mode: 'layout', scope, groups: selectedGroups, collapsed: collapsedGroups }), '#047857')}
             {viewDef && <button className="context-command group-drawer-toggle" aria-label="Open groups" aria-expanded={groupsOpen} aria-controls="group-panel" onClick={() => setGroupsOpen(true)}>Groups · {selectedGroups.length || 'All'}</button>}
             {mode !== 'layout' && <span className="connection-mode" role="group" aria-label="Wire mode">{(['individual', 'bundled'] as const).map(value => <button key={value} aria-pressed={connectionMode === value} onClick={() => navigation.navigate({ connectionMode: value, viewport: null })}>{value === 'individual' ? 'Individual' : 'Bundled'}</button>)}</span>}
             {viewCfg && mode !== 'layout' &&
@@ -932,9 +932,9 @@ export default function App() {
           {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSelectionTarget(null); setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); setTab('circuit') }}><X size={16} /></button>}
           {showImportant && <section className="important-list" aria-label="Important parts"><div className="part-heading"><h3>Important</h3><button className="icon-tool" aria-label="Close important parts" onClick={() => setShowImportant(false)}><X size={16} /></button></div>
             {!important.marks.size && <p>No important parts</p>}
-            {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); return instance && <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: partPresentation(instance).title, sub: path })}>{partPresentation(instance).title}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}
+            {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); if (!instance) return null; const identity = partPresentation(instance, sourceValues.get(path)); return <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: identity.title, sub: path })}>{identity.title}{identity.subtitle && ` · ${identity.subtitle}`}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}
             <h4>Suggested core components</h4>
-            {candidates.filter(c => !important.marks.has(c.instance.path)).map(c => <div className="core-candidate" key={c.instance.path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: c.instance.path, label: c.instance.designator ?? c.instance.path, sub: c.instance.path })}>{partPresentation(c.instance).title}</button><small>Heuristic suggestion · {c.evidence}</small><button className="context-command" onClick={() => important.toggle(c.instance.path)}><Star size={14} />Confirm important</button></div>)}
+            {candidates.filter(c => !important.marks.has(c.instance.path)).map(c => { const identity = partPresentation(c.instance, sourceValues.get(c.instance.path)); return <div className="core-candidate" key={c.instance.path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: c.instance.path, label: identity.title, sub: c.instance.path })}>{identity.title}{identity.subtitle && ` · ${identity.subtitle}`}</button><small>Heuristic suggestion · {c.evidence}</small><button className="context-command" onClick={() => important.toggle(c.instance.path)}><Star size={14} />Confirm important</button></div> })}
           </section>}
           {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
             {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { setSel([]); setSelectedPin(''); setSelNet(net.name) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
@@ -1022,7 +1022,7 @@ export default function App() {
               <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>
               {selectedPlacement ? <div>X {selectedPlacement.at_mm[0]} mm · Y {selectedPlacement.at_mm[1]} mm · {selectedPlacement.rotate}° · {selectedPlacement.side}</div> : <div>No resolved placement</div>}
               {mode !== 'layout' && (selectedBoardPlacement || localPlacementScope) && <button onClick={() => {
-                navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
+                navigation.navigate({ mode: 'layout', scope: localPlacementScope?.path ?? scope, groups: selectedGroups, collapsed: collapsedGroups, layoutFrame: selectedBoardPlacement ? 'board' : 'local', selection: [selInst.path], pin: selectedPin, net: selNet, boardViewport: null })
                 setJump({ id: selInst.path, net: selNet })
               }}>Show in layout</button>}
             </div>} />}

@@ -1,0 +1,8 @@
+.group-panel .group-parent { padding-left: 0; align-items: center; font-weight: 600; }
+.group-panel .group-child { padding-left: 21px; }
+.group-panel .group-tree-toggle { flex: 0 0 23px; padding: 3px 0; }
+.group-panel .group-control label { align-items: flex-start; }
+.group-panel .group-control label > span:first-of-type { flex: 1; }
+.group-panel .group-member-count { flex: 0 0 auto; color: #647067; font-size: 11px; font-variant-numeric: tabular-nums; }
+.dark .group-panel .group-member-count { color: #b4c1ba; }
+.group-panel .group-branch { margin: 0 0 5px; }

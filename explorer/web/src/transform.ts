@@ -26,7 +26,7 @@ export interface GNode {
   pinNets: Record<string, string>
   inst?: Instance
   subdesign?: Subdesign
-  ports?: (SubdesignPort & { member?: Net['members'][number] })[]
+  ports?: (SubdesignPort & { member?: Net['members'][number]; displayName?: string })[]
   aggMembers?: string[]
   width: number
   height: number

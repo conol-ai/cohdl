@@ -12,6 +12,14 @@ struct ViewConfig {
 struct View {
     name: String,
     regions: Vec<Region>,
+    #[serde(default)]
+    navigation: Vec<Navigation>,
+}
+
+#[derive(Deserialize)]
+struct Navigation {
+    name: String,
+    groups: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -68,6 +76,46 @@ pub fn validate(bytes: &[u8], design: &str) -> Result<(), String> {
                 return Err(format!("invalid member rule: {member}"));
             }
         }
+        let mut parents = BTreeSet::new();
+        for parent in &view.navigation {
+            name(&parent.name, &mut parents)?;
+            if parent.groups.is_empty() {
+                return Err("navigation groups must be a nonempty array".into());
+            }
+            let mut children = BTreeSet::new();
+            for child in &parent.groups {
+                name(child, &mut children)?;
+                if !regions.contains(child.as_str()) {
+                    return Err(format!("navigation references unknown group: {child}"));
+                }
+            }
+        }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate;
+    use serde_json::json;
+
+    #[test]
+    fn navigation_references_canonical_regions_and_permits_shared_paths() {
+        let value = json!({"schema_version":1,"design":"Board","views":[{"name":"Functional",
+            "regions":[{"name":"USB","members":["U1"]}],
+            "navigation":[{"name":"Host","groups":["USB"]},{"name":"Shared","groups":["USB"]}]}]});
+        assert!(validate(value.to_string().as_bytes(), "Board").is_ok());
+    }
+
+    #[test]
+    fn navigation_rejects_unknown_duplicate_empty_and_malformed_paths() {
+        for navigation in [json!(null), json!({}), json!([{"name":"Host","groups":[]}]),
+            json!([{"name":"Host","groups":["Unknown"]}]),
+            json!([{"name":"Host","groups":["USB","USB"]}]),
+            json!([{"name":"Host","groups":["USB"]},{"name":"Host","groups":["USB"]}])] {
+            let value = json!({"schema_version":1,"design":"Board","views":[{"name":"Functional",
+                "regions":[{"name":"USB","members":["U1"]}],"navigation":navigation}]});
+            assert!(validate(value.to_string().as_bytes(), "Board").is_err(), "{value}");
+        }
+    }
 }

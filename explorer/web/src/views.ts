@@ -6,10 +6,12 @@
 import { buildGraph, reconnectGraph, type Graph, type GNode } from './transform'
 import type { ExplorerModel, Instance } from './model'
 import { projectScope } from './hierarchy'
+import { partPresentation } from './partPresentation'
 
 export interface ViewDef {
   name: string
   regions: { name: string; members: string[] }[]
+  navigation?: { name: string; groups: string[] }[]
 }
 
 export interface ViewConfig {
@@ -45,7 +47,7 @@ export function parseViewConfig(value: unknown, design: string): ViewConfig {
     const name = checkedName(view.name, 'view', names)
     if (!Array.isArray(view.regions)) return fail(`view ${name} regions must be an array`)
     const regions = new Set<string>()
-    return { name, regions: view.regions.map((region) => {
+    const parsed: ViewDef = { name, regions: view.regions.map((region) => {
       if (!record(region)) return fail(`region in ${name} must be an object`)
       const regionName = checkedName(region.name, 'region', regions)
       if (regionName.toLowerCase() === 'other') return fail('Other is reserved for unmatched members')
@@ -59,6 +61,23 @@ export function parseViewConfig(value: unknown, design: string): ViewConfig {
       })
       return { name: regionName, members }
     }) }
+    if (view.navigation !== undefined) {
+      if (!Array.isArray(view.navigation)) return fail(`view ${name} navigation must be an array`)
+      const parents = new Set<string>()
+      parsed.navigation = view.navigation.map(parent => {
+        if (!record(parent)) return fail(`navigation in ${name} must be an object`)
+        const parentName = checkedName(parent.name, 'navigation parent', parents)
+        if (!Array.isArray(parent.groups) || !parent.groups.length) return fail(`navigation ${parentName} groups must be a nonempty array`)
+        const children = new Set<string>()
+        const groups = parent.groups.map(group => {
+          const child = checkedName(group, 'navigation group', children)
+          if (!regions.has(child)) return fail(`navigation ${parentName} references unknown group ${child}`)
+          return child
+        })
+        return { name: parentName, groups }
+      })
+    }
+    return parsed
   })
   return { schema_version: 1, design, views }
 }
@@ -91,6 +110,19 @@ export interface ViewGraph {
   individual?: boolean
 }
 
+/** Navigation references canonical regions; membership remains derived from their rules. */
+export function groupMemberPaths(model: ExplorerModel, view?: ViewDef): Map<string, Set<string>> {
+  const result = new Map<string, Set<string>>(view?.regions.map(region => [region.name, new Set<string>()]) ?? [])
+  const original = view?.regions.some(region => region.members.some(rule => rule.startsWith('agg:'))) ? buildGraph(model, null) : undefined
+  for (const instance of model.instances) {
+    const matches = view?.regions.filter(region => region.members.some(rule => rule.startsWith('path:')
+      ? instance.path === rule.slice(5) : rule.startsWith('agg:') ? original?.location.get(instance.path) === rule : instance.designator === rule)) ?? []
+    if (!matches.length && !result.has('Other')) result.set('Other', new Set())
+    for (const name of matches.length ? matches.map(region => region.name) : ['Other']) result.get(name)!.add(instance.path)
+  }
+  return result
+}
+
 /** Classify real instances before aggregation so groups cannot swallow each other. */
 export function buildViewGraph(model: ExplorerModel, scope: string | null, view?: ViewDef, options: { individual?: boolean } = {}): ViewGraph {
   const original = buildGraph(model, null)
@@ -120,10 +152,20 @@ export function representedInstances(model: ExplorerModel, graph: Graph): Set<st
 export function projectGroupUnion(model: ExplorerModel, scope: string | null, full: ViewGraph, selected: readonly string[]) {
   // Functional groups represent physical members across hierarchy boundaries.
   if (selected.length && scope !== null) return projectGroupUnion(model, null, buildViewGraph(model, null, full.view, { individual: full.individual }), selected)
-  const keep = new Set(full.graph.nodes.filter((n) => !selected.length || selected.includes(full.regions?.byNode.get(n.id) ?? 'Other')).map((n) => n.id))
-  const location = new Map([...full.graph.location].filter(([, id]) => keep.has(id)))
-  const graph = reconnectGraph({ ...full.graph, nodes: full.graph.nodes.filter((n) => keep.has(n.id)), location }, projectScope(model, scope).model.nets)
+  const memberships = selected.length && full.view ? groupMemberPaths(model, full.view) : undefined
+  const selectedPaths = memberships ? new Set(selected.flatMap(name => [...memberships.get(name) ?? []])) : undefined
+  // Rebuild a selected physical union before aggregation. A shared group's member
+  // may be only part of an existing aggregate owned by another placement region.
+  const source = selectedPaths ? buildGraph({ ...model, instances: model.instances.filter(instance => selectedPaths.has(instance.path)),
+    derived: { ...model.derived, two_terminal: model.derived.two_terminal.filter(path => selectedPaths.has(path)) } }, null, full.instanceRegions, { individual: full.individual }) : full.graph
+  const keep = new Set(source.nodes.filter((n) => selectedPaths || !selected.length || selected.includes(full.regions?.byNode.get(n.id) ?? 'Other')).map((n) => n.id))
+  const location = new Map([...source.location].filter(([, id]) => keep.has(id)))
+  const graph = reconnectGraph({ ...source, nodes: source.nodes.filter((n) => keep.has(n.id)), location }, projectScope(model, scope).model.nets)
   const regions = full.regions ? { ...full.regions, byNode: new Map(full.regions.byNode) } : undefined
+  for (const node of graph.nodes) {
+    const path = node.inst?.path ?? node.aggMembers?.[0]
+    if (path && regions) regions.byNode.set(node.id, full.instanceRegions.get(path) ?? 'Other')
+  }
   // Junctions are routing infrastructure; attach them to a represented endpoint's group.
   for (const node of graph.nodes.filter((n) => n.kind === 'net')) {
     const edge = graph.edges.find((e) => e.source === node.id || e.target === node.id)
@@ -163,12 +205,14 @@ export function collapseGroups(model: ExplorerModel, union: ReturnType<typeof pr
   const nodes = union.graph.nodes.filter((n) => !removed.has(n.id))
   const location = new Map([...union.graph.location].filter(([, id]) => !removed.has(id)))
   const regions = { ...union.regions, byNode: new Map(union.regions.byNode) }
+  const instances = new Map(model.instances.map(instance => [instance.path, instance]))
   for (const [name, members] of groups) {
     const contained = new Set(members)
     const ports: NonNullable<GNode['ports']> = model.nets.flatMap((net) => net.members.some((m) => !contained.has(m.instance_path))
       ? net.members.filter((m) => contained.has(m.instance_path)).map((member) => ({
         name: encodeURIComponent(JSON.stringify([member.instance_path, member.logical_pin])), net: net.name,
         connected: true, obligation: 'required', member,
+        displayName: `${instances.has(member.instance_path) ? partPresentation(instances.get(member.instance_path)!).reference : 'Component'}.${member.logical_pin} (${member.numbers.join(', ')})`,
       })) : [])
     const id = groupNodeId(full.view.name, name)
     nodes.push({ id, kind: 'agg', title: name, sub: `${members.length} parts`, aggMembers: members, ports,

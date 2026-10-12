@@ -14,7 +14,7 @@ const program = ts.createProgram(['src/views.ts', 'src/inspection.ts', 'src/view
 assert.deepEqual(ts.getPreEmitDiagnostics(program).map((d) => ts.flattenDiagnosticMessageText(d.messageText, '\n')), [])
 program.emit()
 const require = createRequire(import.meta.url)
-const { buildViewGraph, projectGroupUnion } = require(resolve(outDir, 'views.js'))
+const { buildViewGraph, projectGroupUnion, groupMemberPaths } = require(resolve(outDir, 'views.js'))
 const { resizeViewport, validViewport, resizeBoardView } = require(resolve(outDir, 'viewport.js'))
 const { netEndpoints } = require(resolve(outDir, 'inspection.js'))
 const { wireHandles, passiveTerminals } = require(resolve(outDir, 'handles.js'))
@@ -64,6 +64,35 @@ test('empty selection restores all, Other is selectable and empty groups recover
   assert.equal(empty.graph.nodes.length, 0)
   assert.equal(empty.graph.location.size, 0)
   assert.deepEqual(empty.counts, { parts: 0, totalParts: 5, nets: 0, totalNets: 3 })
+})
+
+test('overlapping regions select every matching member once, independent of first placement', () => {
+  const m = freeze(model())
+  const v = view()
+  v.regions.push({ name: 'Shared', members: ['R1', 'R2', 'R2'] })
+  const full = buildViewGraph(m, null, v, { individual: true })
+  assert.equal(full.instanceRegions.get('Board::p1'), 'Left')
+  const members = groupMemberPaths(m, v)
+  assert.deepEqual([...members.get('Shared')], ['Board::p1', 'Board::p2'])
+  for (const groups of [['Shared'], ['Shared', 'Middle'], ['Shared', 'Left']]) {
+    const union = projectGroupUnion(m, null, full, groups)
+    const expected = new Set(groups.flatMap(name => [...members.get(name)]))
+    assert.deepEqual(union.represented, expected)
+    assert.equal(union.counts.parts, expected.size)
+    assert.equal(new Set(union.graph.nodes.map(n => n.id)).size, union.graph.nodes.length)
+  }
+})
+
+test('selecting overlapping rail members splits a preexisting aggregate without extra parts', () => {
+  const m = model()
+  m.nets = [net('VCC', [[1, 'A'], [2, 'A'], [3, 'A']]), net('GND', [[1, 'B'], [2, 'B'], [3, 'B']], true)]
+  m.derived = { ...m.derived, two_terminal: ['Board::p1', 'Board::p2', 'Board::p3'], rails: ['VCC', 'GND'] }
+  const v = { name: 'Blocks', regions: [{ name: 'Capacitors', members: ['R1', 'R2', 'R3'] }, { name: 'Shared', members: ['R2'] }] }
+  const full = buildViewGraph(m, null, v)
+  const union = projectGroupUnion(m, null, full, ['Shared'])
+  assert.deepEqual([...union.represented], ['Board::p2'])
+  assert.equal(union.counts.parts, 1)
+  assert.deepEqual(union.graph.nodes.flatMap(n => n.aggMembers ?? []), ['Board::p2'])
 })
 
 test('cross-group rail aggregates split by actual member ownership and preserve explicit aggregate rules', () => {

@@ -54,6 +54,18 @@ test('valid overlapping rules keep first match and implicit Other without model 
   assert.equal(JSON.stringify(g), before)
 })
 
+test('navigation indexes reference canonical groups and permit shared children', () => {
+  const c = config()
+  c.views[0].navigation = [{ name: 'Host', groups: ['Camera'] }, { name: 'Shared', groups: ['Camera'] }]
+  assert.deepEqual(parseViewConfig(c, 'Board'), c)
+  for (const navigation of [null, {}, [{ name: 'Host', groups: ['Unknown'] }],
+    [{ name: 'Host', groups: [] }], [{ name: 'Host', groups: ['Camera', 'Camera'] }],
+    [{ name: ' Host ', groups: ['Camera'] }], [{ name: 'Host', groups: ['Camera'] }, { name: 'Host', groups: ['Camera'] }]]) {
+    c.views[0].navigation = navigation
+    assert.throws(() => parseViewConfig(c, 'Board'), /Invalid view config:/)
+  }
+})
+
 test('fit bounds include relative children and region extents, with empty/invalid guards', () => {
   assert.equal(boundsOfRects([]), null)
   assert.deepEqual(boundsOfRects([

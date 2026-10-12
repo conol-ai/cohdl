@@ -27,7 +27,7 @@ export function wireHandles(e: GEdge, nodes: ReadonlyMap<string, GNode>, detaile
   const handle = (id: string, pin?: string) => {
     const n = nodes.get(id)
     if (!n || !pin) return undefined
-    if (n.ports || (detailed && n.kind === 'ic')) return pinHandleId(pin)
+    if (n.ports || (detailed && n.inst)) return pinHandleId(pin)
     return passiveTerminals(n).find((p) => p.pin === pin)?.id
   }
   return { sourceHandle: handle(e.source, e.sourcePin), targetHandle: handle(e.target, e.targetPin) }

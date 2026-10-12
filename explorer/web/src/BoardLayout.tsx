@@ -3,6 +3,7 @@ import type { ExplorerModel, FpPad, FpShape, Placement } from './model'
 import { shortName } from './model'
 import { boundsOf, corners, footprintBounds, gridStep, identity, layoutScope, outlineBounds, outlinePath, placedBounds, svgMatrix, type Bounds, type Point, type LayoutSide } from './boardGeometry'
 import './BoardLayout.css'
+import { Land } from './FootprintGeometry'
 import { resizeBoardView, type BoardViewportSnapshot, type CanvasSize } from './viewport'
 
 export interface BoardLayoutHandle { capture: () => BoardViewportSnapshot }
@@ -10,28 +11,6 @@ export interface BoardLayoutHandle { capture: () => BoardViewportSnapshot }
 const topColor = '#f59e0b'
 const bottomColor = '#60a5fa'
 const mm = (n: number) => Number(n.toFixed(4)).toString()
-
-/** Shape coordinates are local mm; SVG transforms preserve their handedness. */
-function Land({ shape, size, vertices, corner_radius, chamfer }: Pick<FpPad, 'shape' | 'size' | 'vertices' | 'corner_radius' | 'chamfer'>) {
-  if (shape === 'polygon') return <polygon points={(vertices ?? []).map((p) => p.join(',')).join(' ')} />
-  const w = size[0] ?? 0, h = size[1] ?? w
-  if (shape === 'circle') return <circle r={w / 2} />
-  if (shape === 'annulus') {
-    const r = w / 2, inner = h / 2
-    return <path fillRule="evenodd" d={`M ${-r} 0 A ${r} ${r} 0 1 0 ${r} 0 A ${r} ${r} 0 1 0 ${-r} 0 Z M ${-inner} 0 A ${inner} ${inner} 0 1 0 ${inner} 0 A ${inner} ${inner} 0 1 0 ${-inner} 0 Z`} />
-  }
-  if (chamfer) {
-    const x = w / 2, y = h / 2, cut = chamfer.cut
-    const points = [
-      ...(chamfer.corner === 'top_left' ? [[-x, -y + cut], [-x + cut, -y]] : [[-x, -y]]),
-      ...(chamfer.corner === 'top_right' ? [[x - cut, -y], [x, -y + cut]] : [[x, -y]]),
-      ...(chamfer.corner === 'bottom_right' ? [[x, y - cut], [x - cut, y]] : [[x, y]]),
-      ...(chamfer.corner === 'bottom_left' ? [[-x + cut, y], [-x, y - cut]] : [[-x, y]]),
-    ]
-    return <polygon points={points.map((p) => p.join(',')).join(' ')} />
-  }
-  return <rect x={-w / 2} y={-h / 2} width={w} height={h} rx={shape === 'oval' ? Math.min(w, h) / 2 : corner_radius ?? 0} />
-}
 
 function Perimeter({ shape, color }: { shape: FpShape; color: string }) {
   return <g transform={`translate(${shape.x} ${shape.y})`} fill="none" stroke={color} strokeWidth={0.08}>

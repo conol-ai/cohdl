@@ -8,7 +8,9 @@ import { shortName } from './model'
 import type { GNode } from './transform'
 import { netWireColor, railColor, selectNet } from './palette'
 import { passiveTerminals } from './handles'
-import { transformPoint, svgMatrix } from './boardGeometry'
+import { FootprintPreview } from './FootprintGeometry'
+import { DETAILED_WIDTH, DETAILED_HEADER, DETAILED_ROW, detailedPinY } from './deviceGeometry'
+export { DETAILED_WIDTH, DETAILED_HEADER, DETAILED_ROW, detailedPinY } from './deviceGeometry'
 import { PinTarget, type PinIdentity } from './PinTarget'
 import { partPresentation } from './partPresentation'
 import { Star } from 'lucide-react'
@@ -221,117 +223,7 @@ export function PartNode({ id, data, selected }: NodeProps) {
     </div>
   )
 }
-
-// ---------- footprint preview (sidebar) ----------
-// Renders the RFC-018 pad geometry to scale: courtyard dashed, copper pads,
-// PTH drills, mount holes. CoHDL authors +y-down — same frame as SVG.
-export function FootprintPreview({ geo, dark }: { geo: FootprintGeo; dark: boolean }) {
-  const rad = (d: number) => (d * Math.PI) / 180
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-  const grow = (x: number, y: number, hw: number, hh: number) => {
-    minX = Math.min(minX, x - hw); maxX = Math.max(maxX, x + hw)
-    minY = Math.min(minY, y - hh); maxY = Math.max(maxY, y + hh)
-  }
-  for (const p of geo.pads) {
-    if (p.shape === 'polygon') {
-      const c = Math.cos(rad(p.rotate)), s = -Math.sin(rad(p.rotate))
-      for (const pt of p.vertices ?? []) {
-        const [x, y] = transformPoint(pt, p.matrix ?? [c, s, -s, c], [p.x, p.y])
-        grow(x, y, 0, 0)
-      }
-      continue
-    }
-    const [a, b] = p.shape === 'circle' || p.shape === 'annulus' ? [p.size[0] ?? 0, p.size[0] ?? 0] : [p.size[0] ?? 0, p.size[1] ?? 0]
-    const c = Math.abs(Math.cos(rad(p.rotate))), s = Math.abs(Math.sin(rad(p.rotate)))
-    grow(p.x, p.y, (a * c + b * s) / 2, (a * s + b * c) / 2)
-  }
-  for (const h of geo.mount_holes) {
-    const [a, b] = h.size.length === 1 ? [h.size[0], h.size[0]] : [h.size[0], h.size[1] ?? h.size[0]]
-    grow(h.x, h.y, a / 2, b / 2)
-  }
-  for (const sh of [geo.courtyard, geo.window]) {
-    if (!sh) continue
-    const [a, b] = sh.size.length === 1 ? [sh.size[0], sh.size[0]] : [sh.size[0], sh.size[1] ?? sh.size[0]]
-    grow(sh.x, sh.y, a / 2, b / 2)
-  }
-  if (!isFinite(minX)) return null
-  const pad = 0.4
-  minX -= pad; minY -= pad; maxX += pad; maxY += pad
-  const w = maxX - minX, h = maxY - minY
-  const scale = Math.min(300 / w, 200 / h)
-  const W = w * scale, H = h * scale
-  const X = (x: number) => (x - minX) * scale
-  const Y = (y: number) => (y - minY) * scale
-  const copper = '#c9973f'
-  const court = dark ? '#2dd4bf' : '#0d9488'
-  const fontPx = (p: { size: number[] }) => Math.min(10, Math.max(0, (p.size[0] ?? 0) * scale * 0.42))
-  const shapeEl = (sh: NonNullable<typeof geo.courtyard>, color: string, dash: string) =>
-    sh.shape === 'circle' ? (
-      <circle cx={X(sh.x)} cy={Y(sh.y)} r={((sh.size[0] ?? 0) / 2) * scale} fill="none" stroke={color} strokeDasharray={dash} strokeWidth={1} />
-    ) : (
-      <rect x={X(sh.x - (sh.size[0] ?? 0) / 2)} y={Y(sh.y - (sh.size[1] ?? 0) / 2)} width={(sh.size[0] ?? 0) * scale} height={(sh.size[1] ?? 0) * scale} fill="none" stroke={color} strokeDasharray={dash} strokeWidth={1} />
-    )
-  // 1mm scale bar, bottom-left
-  const barMm = w > 12 ? 5 : 1
-  return (
-    <svg width={W} height={H + 16} viewBox={`0 0 ${W} ${H + 16}`} style={{ display: 'block', margin: '6px 0 2px' }}>
-      {geo.courtyard && shapeEl(geo.courtyard, court, '4 3')}
-      {geo.window && shapeEl(geo.window, dark ? '#64748b' : '#94a3b8', '2 2')}
-      {geo.pads.map((p, i) => {
-        const num = fontPx(p) >= 5 && (
-          <text x={X(p.x)} y={Y(p.y)} fill={dark ? '#111' : '#fff'} fontSize={fontPx(p)} textAnchor="middle" dominantBaseline="central" fontWeight={700}>
-            {p.number}
-          </text>
-        )
-        if (p.shape === 'circle' || p.shape === 'annulus') {
-          return (
-            <g key={i}>
-              <circle cx={X(p.x)} cy={Y(p.y)} r={((p.size[0] ?? 0) / 2) * scale} fill={copper} />
-              {p.shape === 'annulus' && (
-                <circle cx={X(p.x)} cy={Y(p.y)} r={((p.size[1] ?? 0) / 2) * scale} fill={dark ? '#181c22' : '#fff'} />
-              )}
-              {p.drill && p.drill.length > 0 && (
-                <circle cx={X(p.x)} cy={Y(p.y)} r={(p.drill[0] / 2) * scale} fill={dark ? '#181c22' : '#fff'} />
-              )}
-              {num}
-            </g>
-          )
-        }
-        if (p.shape === 'polygon') {
-          const c = Math.cos(rad(p.rotate)), s = -Math.sin(rad(p.rotate))
-          return <g key={i}>
-            <g transform={svgMatrix(p.matrix ?? [c, s, -s, c], [X(p.x), Y(p.y)])}>
-              <polygon points={(p.vertices ?? []).map(([x, y]) => `${x * scale},${y * scale}`).join(' ')} fill={copper} />
-            </g>
-            {p.drill && p.drill.length > 0 && <circle cx={X(p.x)} cy={Y(p.y)} r={(p.drill[0] / 2) * scale} fill={dark ? '#181c22' : '#fff'} />}
-            {num}
-          </g>
-        }
-        const pw = (p.size[0] ?? 0) * scale, ph = (p.size[1] ?? 0) * scale
-        return (
-          <g key={i} transform={p.rotate ? `rotate(${p.rotate} ${X(p.x)} ${Y(p.y)})` : undefined}>
-            <rect x={X(p.x) - pw / 2} y={Y(p.y) - ph / 2} width={pw} height={ph} rx={p.shape === 'oval' ? Math.min(pw, ph) / 2 : 0.5} fill={copper} />
-            {p.drill && p.drill.length > 0 && (
-              <circle cx={X(p.x)} cy={Y(p.y)} r={(p.drill[0] / 2) * scale} fill={dark ? '#181c22' : '#fff'} />
-            )}
-            {num}
-          </g>
-        )
-      })}
-      {geo.mount_holes.map((mh, i) => (
-        <g key={'mh' + i} data-plating={mh.plated === null ? 'source_unspecified' : mh.plated ? 'plated' : 'non_plated'}>
-          <title>{mh.plated === null ? 'Hole plating: source unspecified' : mh.plated ? 'Plated hole' : 'Non-plated hole'}</title>
-          <circle cx={X(mh.x)} cy={Y(mh.y)} r={((mh.size[0] ?? 0) / 2) * scale} fill="none" stroke={dark ? '#6b7280' : '#9ca3af'} strokeWidth={1.5} />
-          <circle cx={X(mh.x)} cy={Y(mh.y)} r={((mh.size[0] ?? 0) / 2) * scale * 0.7} fill={dark ? '#181c22' : '#fff'} stroke="none" />
-        </g>
-      ))}
-      <line x1={2} y1={H + 8} x2={2 + barMm * scale} y2={H + 8} stroke={dark ? '#9ca3af' : '#6b7280'} strokeWidth={2} />
-      <text x={2 + barMm * scale + 4} y={H + 11} fill={dark ? '#9ca3af' : '#6b7280'} fontSize={9}>
-        {barMm}mm
-      </text>
-    </svg>
-  )
-}
+export { FootprintPreview } from './FootprintGeometry'
 
 const pinNetColor = (net: string) =>
   net.startsWith('GND') ? '#9ca3af' : /^V|VBUS|VSYS/.test(net) ? '#ef4444' : '#34d399'
@@ -345,11 +237,10 @@ export function detailedPins(n: GNode): { name: string; num: string; net: string
   return pins
 }
 
-const ROW = 18
 export function detailedSize(n: GNode): { width: number; height: number } {
-  if (n.kind !== 'ic' || !n.inst) return { width: n.width, height: n.height }
+  if (!n.inst) return { width: n.width, height: n.height }
   const rows = Math.ceil(detailedPins(n).length / 2)
-  return { width: 300, height: 40 + rows * ROW + 10 }
+  return { width: DETAILED_WIDTH, height: DETAILED_HEADER + rows * DETAILED_ROW + 10 }
 }
 
 export function DetailedNode(props: NodeProps) {
@@ -357,7 +248,7 @@ export function DetailedNode(props: NodeProps) {
   const n = data.g as GNode
   const updateInternals = useUpdateNodeInternals()
   useLayoutEffect(() => { updateInternals(props.id) }, [props.id, n, data.pinOrder, updateInternals])
-  if (n.kind !== 'ic' || !n.inst) return <PartNode {...props} />
+  if (!n.inst) return <PartNode {...props} />
   const pins = detailedPins(n)
   const rows = Math.ceil(pins.length / 2)
   // Layout-aware pin placement (side + row order face the counterpart node)
@@ -373,21 +264,24 @@ export function DetailedNode(props: NodeProps) {
   const { width, height } = detailedSize(n)
   const hlPins = new Set((data.hlPins as string[] | undefined) ?? [])
   const nodeHl = data.hl as boolean
+  const dark = !!data.dark
+  const presentation = partPresentation(n.inst, data.sourceValue as string | undefined)
+  const subtitle = presentation.subtitle || n.sub
   const pinRow = (p: { name: string; num: string; net: string; state: string }, i: number, side: 'l' | 'r') => {
-    const y = 40 + i * ROW + ROW / 2
+    const y = detailedPinY(i)
     const on = hlPins.has(p.name)
     const c = on ? '#22d3ee' : pinNetColor(p.net)
     return (
-      <PinTarget key={side + p.name} identity={{ instance: n.id, pin: p.name, net: p.net }} selected={on} onActivate={data.onPin as (pin: PinIdentity) => void} style={{ position: 'absolute', top: y - 9, height: 18, [side === 'l' ? 'left' : 'right']: 2, width: 146, display: 'flex', flexDirection: side === 'l' ? 'row' : 'row-reverse', gap: 4, padding: '0 4px', fontSize: 9, alignItems: 'center', background: on ? '#22d3ee22' : undefined, borderRadius: 3 }}>
+      <PinTarget key={side + p.name} identity={{ instance: n.id, pin: p.name, net: p.net }} selected={on} onActivate={(data.onPin as ((pin: PinIdentity) => void) | undefined) ?? (() => {})} className="device-pin-row" style={{ position: 'absolute', top: y - DETAILED_ROW / 2, height: DETAILED_ROW, [side === 'l' ? 'left' : 'right']: 2, width: DETAILED_WIDTH / 2 - 4, boxSizing: 'border-box', display: 'flex', flexDirection: side === 'l' ? 'row' : 'row-reverse', gap: 4, padding: '0 4px', fontSize: 12, alignItems: 'center', background: on ? '#22d3ee22' : undefined, borderRadius: 3 }}>
         <span style={{ color: on ? '#67e8f9' : '#6b7280', minWidth: 14, textAlign: side === 'l' ? 'left' : 'right' }}>{p.num}</span>
-        <span style={{ color: on ? '#a5f3fc' : '#e5e7eb', fontWeight: on ? 800 : 600, fontSize: 10 }}>{p.name}</span>
+        <span title={p.name} style={{ color: on ? '#a5f3fc' : dark ? '#e5e7eb' : '#17212e', fontWeight: on ? 800 : 600, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{p.name}</span>
         <span
-          style={{ color: c, fontWeight: on ? 800 : 400, cursor: 'pointer', marginLeft: side === 'l' ? 'auto' : 0, marginRight: side === 'r' ? 'auto' : 0, maxWidth: 62, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          title={`${p.name} (${p.num}): ${p.net || p.state}`} style={{ color: c, fontWeight: on ? 800 : 400, cursor: 'pointer', marginLeft: side === 'l' ? 'auto' : 0, marginRight: side === 'r' ? 'auto' : 0, maxWidth: 82, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         >
           {p.net || p.state}
         </span>
-        {!data.neutral && <Handle id={'p:' + p.name} type="source" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />}
-        {!data.neutral && <Handle id={'p:' + p.name} type="target" position={side === 'l' ? Position.Left : Position.Right} style={{ top: 8, opacity: 0, [side === 'l' ? 'left' : 'right']: -8 }} />}
+        {!data.neutral && <Handle id={'p:' + p.name} type="source" position={side === 'l' ? Position.Left : Position.Right} style={{ top: DETAILED_ROW / 2, opacity: 0, [side === 'l' ? 'left' : 'right']: -2 }} />}
+        {!data.neutral && <Handle id={'p:' + p.name} type="target" position={side === 'l' ? Position.Left : Position.Right} style={{ top: DETAILED_ROW / 2, opacity: 0, [side === 'l' ? 'left' : 'right']: -2 }} />}
         <span
           style={{
             position: 'absolute', [side === 'l' ? 'left' : 'right']: on ? -7 : -5,
@@ -400,13 +294,15 @@ export function DetailedNode(props: NodeProps) {
     )
   }
   return (
-    <div style={{ width, height, background: data.dim ? '#1a1d24' : nodeHl ? '#12303a' : '#22262e', opacity: data.dim ? 0.18 : 1, border: `${nodeHl ? 2.5 : 1.5}px solid ${selected ? '#f59e0b' : nodeHl ? '#22d3ee' : '#3b4252'}`, boxShadow: nodeHl ? '0 0 0 3px #22d3ee44, 0 0 18px #22d3ee66' : undefined, borderRadius: 6, position: 'relative', boxSizing: 'border-box' }}>
+    <div className="device-card" data-instance={n.id} style={{ width, height, background: dark ? '#22262e' : '#fff', opacity: data.dim ? 0.18 : 1, border: `${nodeHl ? 2.5 : 1.5}px solid ${selected ? '#f59e0b' : nodeHl ? '#22d3ee' : '#596475'}`, boxShadow: nodeHl ? '0 0 0 3px #22d3ee44' : undefined, borderRadius: 6, position: 'relative', boxSizing: 'border-box' }}>
       <Mark marked={data.marked} />
       {!!data.neutral && <CenterHandles />}
-      <div className="detailed-heading" style={{ background: '#161a20', borderRadius: '6px 6px 0 0', padding: '6px 10px', display: 'flex', gap: 8, alignItems: 'baseline', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-        <span style={{ color: '#60a5fa', fontWeight: 700, fontSize: 12 }}>{n.inst.designator}</span>
-        <span style={{ color: '#f3f4f6', fontWeight: 700, fontSize: 12 }}>{partPresentation(n.inst).category}</span>
-        <span title={n.sub} style={{ color: '#9ca3af', fontSize: 10, minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.sub}</span>
+      <div className="detailed-heading device-header" title={`${presentation.title} ${subtitle}`} style={{ height: DETAILED_HEADER, boxSizing: 'border-box', background: dark ? '#161a20' : '#f1f5f9', borderRadius: '6px 6px 0 0', padding: '8px 10px', overflow: 'hidden' }}>
+        <div style={{ color: dark ? '#f3f4f6' : '#17212e', fontWeight: 700, fontSize: 16, lineHeight: '22px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{presentation.title}</div>
+        <div style={{ display: 'flex', gap: 10, marginTop: 5 }}>
+          <div className="device-footprint" style={{ width: 88, flexShrink: 0 }}><FootprintPreview geo={data.geo as FootprintGeo | undefined} dark={dark} width={88} height={64} /><div style={{ fontSize: 10, color: dark ? '#aeb6c2' : '#536170', textAlign: 'center' }}>Local footprint</div></div>
+          <div style={{ minWidth: 0, color: dark ? '#c6cdd7' : '#374151', fontSize: 13, lineHeight: '18px', overflowWrap: 'anywhere', maxHeight: 76, overflow: 'hidden' }}><span>{subtitle || 'Identity unspecified'}</span>{!!data.suggested && <div style={{ color: dark ? '#7dd3fc' : '#0369a1', fontSize: 12 }}>Core suggestion</div>}</div>
+        </div>
       </div>
       {left.map((p, i) => pinRow(p, i, 'l'))}
       {right.map((p, i) => pinRow(p, i, 'r'))}

@@ -99,7 +99,7 @@ test('concise part details show source value and honest empty MPN, pins before s
   const registry = { schema: 1, documents: [{ id: 'original-schematic', title: 'Original schematic', status: 'missing', applicability: [{ relation: 'exact', instances: [part.path], groups: [], facts: { value: 'SF32LB525UC6', mpn: '' } }] }], constraints: [] }
   const html = renderToStaticMarkup(React.createElement(PartDetails, { model: { instances: [instance], nets: [], footprints: {}, derived: { rails: [] } }, instance, dark: false,
     resource: { registry, loading: false, error: '', refresh() {} }, view: '', groups: [], visible: new Set(), selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {} }))
-  assert.match(html, /SRC7 Component/); assert.match(html, /SF32LB525UC6/); assert.match(html, /Unspecified/)
+  assert.match(html, /SRC7 Microcontroller/); assert.match(html, /SF32LB525UC6/); assert.match(html, /Unspecified/)
   assert.doesNotMatch(html, /No applicable document records|Source evidence/)
   assert.doesNotMatch(html, /Original schematic/); assert.match(html, /open/)
   assert.ok(html.indexOf('DEVICE_7') > html.indexOf('Technical details'))

@@ -25,7 +25,7 @@ const settle = async () => {
     return document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false'
       && document.querySelector('.react-flow__node:not(.react-flow__node-region)')
       && inspect.version === 2 && inspect.viewport !== null
-      && range === (inspect.groups?.length ? inspect.groups.join(' + ') : 'All groups')
+      && range === (inspect.groups?.length ? `${inspect.groups.join(' + ')} · ${document.querySelector('.inspection-counts')?.dataset.parts} parts` : inspect.mode === 'overview' ? 'System index' : 'All groups')
       && (!expanded || document.querySelectorAll('.device-card').length === Number(document.querySelector('.inspection-counts')?.dataset.parts))
       && !document.body.innerText.includes('Loading groups...')
   })
@@ -96,8 +96,8 @@ try {
   await page.setViewport({ width: 1280, height: 800 })
   await visit()
   const initial = await context()
-  assert.equal(initial.mode, 'sch', 'Clean URL defaults to device SCH')
-  assert.deepEqual(initial.collapsed, [], 'Clean URL groups expanded')
+  assert.equal(initial.mode, 'overview', 'Clean URL defaults to system index')
+  assert.ok(initial.collapsed.length, 'Clean URL groups indexed')
   assert.equal(initial.view, 'Functional', 'Functional default')
   await capture('clean-1280')
 
@@ -203,8 +203,8 @@ try {
       button.textContent.includes(name) && button.textContent.includes('pins')), netName)
     assert.ok(target.asElement(), `Actual network search ${netName}`)
     await target.asElement().click(); await target.dispose(); await settle()
-    await page.waitForSelector('tr[data-endpoint]')
-    const actual = await page.$$eval('tr[data-endpoint]', rows => rows.map(row => row.dataset.endpoint).sort())
+    await page.waitForSelector('[data-endpoint]')
+    const actual = await page.$$eval('[data-endpoint]', rows => rows.map(row => row.dataset.endpoint).sort())
     assert.deepEqual(actual, model.nets.find(net => net.name === netName).members.map(member => member.instance_path).sort(), 'Signal/rail trace shows complete actual endpoints')
     await capture(`trace-${netName}`)
   }

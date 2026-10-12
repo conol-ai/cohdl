@@ -62,7 +62,9 @@ export async function runLocateSmoke(page, { url, output, ready, clickText, netO
   }
   for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     await page.setViewport(viewport)
-    await page.goto(url, { waitUntil: 'domcontentloaded' }); await ready()
+    const allScope = new URL(url)
+    allScope.searchParams.delete('inspect'); allScope.searchParams.set('mode', 'sch'); allScope.searchParams.set('scope', 'all')
+    await page.goto(allScope.href, { waitUntil: 'domcontentloaded' }); await ready()
     const model = await page.evaluate(async () => (await fetch('/api/model')).json())
     const u1 = model.instances.find((i) => i.designator === 'U1')
     const pin = u1.pins.find((p) => p.numbers.includes('1'))
@@ -100,9 +102,9 @@ export async function runLocateSmoke(page, { url, output, ready, clickText, netO
     const netBounds = await page.evaluate((members) => {
       const c = document.querySelector('.explorer-canvas').getBoundingClientRect()
       const inspection = JSON.parse(new URL(location.href).searchParams.get('inspect'))
-      const rows = [...document.querySelectorAll('tr[data-endpoint]')]
+      const rows = [...document.querySelectorAll('[data-endpoint]')]
       const ids = members.map(member => {
-        const group = rows.find(row => row.dataset.endpoint === member.instance_path)?.dataset.group
+        const group = rows.find(row => row.dataset.endpoint === member.instance_path)?.closest('.destination-group').dataset.group
         return inspection.collapsed.includes(group) ? `group:${encodeURIComponent(JSON.stringify([inspection.view, group]))}` : member.instance_path
       })
       return [...new Set(ids)].map(id => {
@@ -111,9 +113,10 @@ export async function runLocateSmoke(page, { url, output, ready, clickText, netO
         const r = n.getBoundingClientRect(); return { id: n.dataset.id, visible: r.x >= c.x - 1 && r.right <= c.right + 1 && r.y >= c.y - 1 && r.bottom <= c.bottom + 1 }
       })
     }, model.nets.find((n) => n.name === 'CAM_HREF').members)
-    assert.equal(await page.$$eval('tr[data-endpoint]', rows => rows.length), model.nets.find(n => n.name === 'CAM_HREF').members.length, 'Full actual membership remains inspectable behind collapsed representations')
+    assert.equal(await page.$$eval('[data-endpoint]', rows => rows.length), model.nets.find(n => n.name === 'CAM_HREF').members.length, 'Full actual membership remains inspectable behind collapsed representations')
     assert.ok(netBounds.length >= 2 && netBounds.every((n) => n.visible), `Net locator must bring actual endpoints into view from offscreen camera: ${JSON.stringify(netBounds)}`)
-    const row = await page.evaluateHandle((path) => [...document.querySelectorAll('tr[data-endpoint]')].find((el) => el.dataset.endpoint === path)?.querySelector('button'), u1.path)
+    await page.$$eval('.destination-group', groups => groups.forEach(group => { group.open = true }))
+    const row = await page.evaluateHandle((path) => [...document.querySelectorAll('[data-endpoint]')].find((el) => el.dataset.endpoint === path)?.querySelector('button'), u1.path)
     assert.ok(row.asElement(), 'Actual net must expose U1 endpoint')
     await row.asElement().click(); await row.dispose(); await ready()
     const endpoint = await visibleTarget(u1.path, `${label}-global-endpoint`)

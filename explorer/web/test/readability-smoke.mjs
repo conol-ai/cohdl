@@ -34,9 +34,7 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
   }
   for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
     await page.setViewport(viewport); await page.goto(url, { waitUntil: 'domcontentloaded' }); await settle()
-    assert.equal((await context()).mode, 'sch')
-    await clickText('Overview'); await settle()
-    await clickText('Collapse all groups'); await settle()
+    assert.equal((await context()).mode, 'overview')
     await clickText('Bundled'); await settle()
     const model = await page.evaluate(async () => (await fetch('/api/model')).json())
     assert.equal(model.instances.length, 233)
@@ -51,7 +49,7 @@ export async function runReadabilitySmoke(page, { url, output, ready, clickText 
     const expectedNet = await page.$eval('.bundle-network strong', el => el.textContent)
     await page.click('.bundle-network'); await settle(); assert.equal((await context()).net, expectedNet)
     const traceEdges = await page.$$eval('.react-flow__edge', edges => edges.map(edge => ({ id: edge.dataset.id, d: edge.querySelector('.react-flow__edge-path')?.getAttribute('d'), stroke: edge.querySelector('.react-flow__edge-path')?.style.stroke })))
-    assert.ok(traceEdges.some(edge => !edge.id?.startsWith('bundle:') && edge.d && edge.stroke === 'rgb(34, 211, 238)'), `Exact trace renders a selected original SVG edge: ${JSON.stringify(traceEdges)}`)
+    assert.ok(traceEdges.some(edge => edge.id?.startsWith('bundle:') && edge.d && edge.stroke === 'rgb(34, 211, 238)'), `Bundled trace highlights an existing original-net bundle: ${JSON.stringify(traceEdges)}`)
     await shot(`${label}-trace`)
     await clickText('Clear trace'); await settle()
     await clickText('Display and touch'); await settle(); await empty(`${label}-group`)

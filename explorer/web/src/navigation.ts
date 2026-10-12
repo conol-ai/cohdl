@@ -44,16 +44,25 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
 
 export function parseInspectionUrl(url: URL, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const params = url.searchParams
+  const index = (input: Record<string, unknown>) => {
+    const context = normalizeContext({ ...input, mode: 'overview' }, model, config)
+    const definition = config?.views.find(view => view.name === context.view)
+    return { ...context, scope: !definition && model.subdesigns?.length ? '' : context.scope,
+      collapsed: buildViewGraph(model, null, definition).regions?.regions ?? [] }
+  }
   if (params.has('inspect')) {
     try {
       const input = JSON.parse(params.get('inspect')!)
+      if (record(input) && input.version !== 2 && input.mode === 'overview' && !strings(input.groups).length && !strings(input.selection).length)
+        return index({ ...input, viewport: null })
       const migrated = record(input) && input.version !== 2 && input.mode === 'overview'
         ? { ...input, mode: 'sch', connectionMode: 'individual', collapsed: [], viewport: null } : input
       return normalizeContext(migrated, model, config)
-    } catch { return normalizeContext({}, model, config) }
+    } catch { return index({}) }
   }
-  return normalizeContext({ mode: params.get('mode'), scope: params.has('scope') ? params.get('scope') === 'all' ? null : params.get('scope') : null,
-    view: params.has('view') ? params.get('view') : undefined, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }, model, config)
+  const input = { mode: params.get('mode'), scope: params.has('scope') ? params.get('scope') === 'all' ? null : params.get('scope') : null,
+    view: params.has('view') ? params.get('view') : undefined, selection: params.get('select')?.split(',') ?? [], net: params.get('net') }
+  return !params.has('mode') && !params.has('select') && !params.has('net') && !params.has('scope') ? index(input) : normalizeContext(input, model, config)
 }
 
 export function inspectionUrl(url: URL, context: InspectionContext): URL {

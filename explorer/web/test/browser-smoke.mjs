@@ -46,7 +46,7 @@ try {
       const inspection = JSON.parse(new URL(location.href).searchParams.get('inspect') ?? '{}')
       return document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false'
         && inspection.version === 2 && (inspection.mode === 'layout' || inspection.viewport)
-        && document.querySelector('.inspection-range')?.textContent === (inspection.groups?.length ? inspection.groups.join(' + ') : 'All groups')
+        && document.querySelector('.inspection-range')?.textContent === (inspection.groups?.length ? `${inspection.groups.join(' + ')} · ${document.querySelector('.inspection-counts')?.dataset.parts} parts` : inspection.mode === 'overview' ? 'System index' : 'All groups')
     })
     await new Promise((r) => setTimeout(r, 180))
   }

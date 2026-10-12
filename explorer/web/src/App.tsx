@@ -37,7 +37,7 @@ import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronRight
 import { useCanvasFit } from './useCanvasFit'
 import { GroupPanel } from './GroupPanel'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
-import { netEndpoints, type InspectionContext } from './inspection'
+import type { InspectionContext } from './inspection'
 import { searchCircuit, type SearchHit } from './search'
 import { useInspectionNavigation } from './useInspectionNavigation'
 import { InspectionLists } from './InspectionLists'
@@ -50,6 +50,8 @@ import { bundleConnections } from './connectivity'
 import type { PinIdentity } from './PinTarget'
 import { useProposals } from './useProposals'
 import { ProposalReview } from './ProposalReview'
+import { groupIndex } from './groupIndex'
+import { OutsideDestinations } from './OutsideDestinations'
 import './App.css'
 
 const nodeTypes = { part: PartNode, region: RegionNode, detailed: DetailedNode, boundary: BoundaryNode }
@@ -112,7 +114,7 @@ export default function App() {
   const resetLayoutRef = useRef<(() => void) | null>(null)
   const [mode, setMode] = useState<'overview' | 'sch' | 'layout'>(() => {
     const value = new URLSearchParams(location.search).get('mode')
-    return value === 'overview' || value === 'layout' ? value : 'sch'
+    return value === 'sch' || value === 'layout' ? value : 'overview'
   })
   const dark = mode !== 'overview'
   const { fit, setBounds, setSelectionTarget, prepare, capture, manual, onMoveStart, onReady, generation: cameraGeneration } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
@@ -233,13 +235,17 @@ export default function App() {
   const viewDef = viewCfg?.views.find((v) => v.name === activeView)
   const fullView = useMemo(() => model ? buildViewGraph(model, null, viewDef, { individual: mode === 'sch' }) : null, [model, viewDef, mode])
   const scopedView = useMemo(() => model ? (scope === null ? fullView : buildViewGraph(model, scope, viewDef, { individual: mode === 'sch' })) : null, [model, scope, viewDef, fullView, mode])
+  const indexEntries = useMemo(() => model && fullView ? groupIndex(model, fullView.instanceRegions, sourceValues) : new Map(), [model, fullView, sourceValues])
+  const enterGroup = useCallback((name: string) => {
+    navigation.navigate({ mode: 'sch', scope: null, groups: [name], collapsed: [], selection: [], pin: '', net: '', tab: 'circuit', viewport: null, boardViewport: null })
+  }, [navigation.navigate])
   const projection = useMemo(() => {
     if (!model || !scopedView || !fullView) return null
     const union = projectGroupUnion(model, scope, scopedView, selectedGroups)
     return mode === 'layout' ? union : collapseGroups(model, union, fullView, collapsedGroups)
   }, [model, scope, scopedView, selectedGroups, fullView, collapsedGroups, mode])
   const bundled = useMemo(() => model && projection ? bundleConnections(projection.graph, model) : null, [model, projection])
-  const displayGraph = selNet || connectionMode === 'individual' ? projection?.graph : bundled?.graph
+  const displayGraph = connectionMode === 'individual' ? projection?.graph : bundled?.graph
   const openBundle = useCallback((id: string) => { setBundleId(id); setSel([]); setSelectedPin('') }, [])
 
   useEffect(() => {
@@ -254,13 +260,14 @@ export default function App() {
     let cancelled = false
     setLayoutBusy(true)
     setErr('')
-    const neutral = connectionMode === 'bundled' && !selNet
+    const neutral = connectionMode === 'bundled'
     const rank = (id: string) => {
       if (important.marks.has(id)) return -1
       const index = candidates.findIndex(c => c.instance.path === id)
       return index < 0 ? candidates.length : index
     }
-    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })).sort((a, b) => rank(a.id) - rank(b.id)), edges: displayGraph.edges }
+    const nodeRank = (node: GNode) => Math.min(rank(node.id), ...(node.aggMembers ?? []).map(rank))
+    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })).sort((a, b) => nodeRank(a) - nodeRank(b)), edges: displayGraph.edges }
     for (const node of gg.nodes) if (node.inst) {
       const identity = partPresentation(node.inst, sourceValues.get(node.inst.path))
       node.title = node.kind === 'passive' ? `${identity.reference} ${identity.value || identity.category}` : identity.title
@@ -273,18 +280,17 @@ export default function App() {
         n.height = sz.height
       }
     if (mode === 'overview') for (const n of gg.nodes) {
-      if (n.id.startsWith('group:')) { n.width = 240; n.height = 94 }
+      if (n.id.startsWith('group:')) { n.width = 300; n.height = 144 }
     }
-    setGraph(gg)
     const layoutRegions = mode === 'overview' && (gg.nodes.length <= 14 || gg.nodes.every(n => n.id.startsWith('group:') || n.kind === 'net')) ? undefined : projection.regions
     const canvas = canvasRef.current?.getBoundingClientRect()
     const mobileOverview = mode === 'overview' && !layoutRegions && gg.nodes.length > 8 && !!canvas && canvas.width < 640
     layout(gg, layoutRegions, { compact: mode === 'overview', aspectRatio: canvas?.height ? canvas.width / canvas.height : 1.6, columns: mobileOverview ? 2 : undefined }).then(({ positions, regionBoxes, edgeRoutes }) => {
       if (cancelled) return
+      setGraph(gg)
       const intent = jump !== handledJump.current ? jump : null
-      const target = intent?.id
-      const preset = target ? [target] : intent?.selection ?? selection.current.parts
-      const trace = intent?.net ?? selection.current.net
+      const preset = selection.current.parts
+      const trace = selection.current.net
       setSelNet(allNets.some((n) => n.name === trace) ? trace : '')
       handledJump.current = jump
       // SCH mode: each connected pin picks the side facing its counterpart
@@ -381,7 +387,7 @@ export default function App() {
           ...(layoutRegions
             ? { parentId: `region:${layoutRegions.byNode.get(n.id) ?? 'Other'}`, extent: 'parent' as const }
             : {}),
-          data: { g: n, dim: false, hl: false, dark, neutral, traceNet: selNet, compact: mode === 'overview' && n.id.startsWith('group:'), pinOrder: orderByNode[n.id], onPin: activatePin, onBundle: openBundle, geo: n.inst?.part?.footprint ? model.footprints[n.inst.part.footprint] : undefined, sourceValue: n.inst ? sourceValues.get(n.inst.path) : undefined, suggested: candidates.some(candidate => candidate.instance.path === n.id), marked: important.marks.has(n.id) || !!n.aggMembers?.some(p => important.marks.has(p)) },
+          data: { g: n, dim: false, hl: false, dark, neutral, compact: mode === 'overview' && n.id.startsWith('group:'), index: indexEntries.get(n.title), onGroup: enterGroup, pinOrder: orderByNode[n.id], onPin: activatePin, onBundle: openBundle, geo: n.inst?.part?.footprint ? model.footprints[n.inst.part.footprint] : undefined, sourceValue: n.inst ? sourceValues.get(n.inst.path) : undefined, suggested: candidates.some(candidate => candidate.instance.path === n.id), marked: important.marks.has(n.id) || !!n.aggMembers?.some(p => important.marks.has(p)) },
           selected: preset.some((p) => (gg.location.get(p) ?? p) === n.id),
         })),
       ])
@@ -429,12 +435,13 @@ export default function App() {
             id: e.id,
             source: e.source,
             target: e.target,
-            ...(!neutral ? wireHandles(e, nodesById, mode === 'sch') : {}),
+            ...(!neutral && !(mode === 'overview' && (e.source.startsWith('group:') || e.target.startsWith('group:'))) ? wireHandles(e, nodesById, mode === 'sch') : {}),
             label: e.label,
             type: 'lane',
             data: {
               wire,
               net: e.net,
+              nets: e.nets,
               dashed: e.dashed,
               lane: lanes[i],
               // Detour corridor track: 14 distinct lanes so wires sharing the
@@ -468,7 +475,7 @@ export default function App() {
       const targets = new Set(intent?.locate ? (intent.id ? [intent.id] : allNets.find((n) => n.name === intent.net)?.members.map((m) => m.instance_path) ?? []).map((p) => gg.location.get(p) ?? p) : [])
       if (intent?.locate && intent.net && !intent.id) for (const edge of gg.edges) { targets.add(edge.source); targets.add(edge.target) }
       const targetBounds = boundsOfRects(boxes.filter((_, index) => targets.has(gg.nodes[index].id)))
-      const primaryIndex = gg.nodes.findIndex(n => important.marks.has(n.id) || candidates.some(c => c.instance.path === n.id))
+      const primaryIndex = gg.nodes.findIndex(n => nodeRank(n) < candidates.length)
       const primaryBox = boxes[primaryIndex < 0 ? 0 : primaryIndex] ?? null
       const selectedIndex = gg.nodes.findIndex(n => preset.some(path => (gg.location.get(path) ?? path) === n.id))
       setBounds(boundsOfRects([...boxes, ...regionBoxes.values()]), cameraGeneration, targetBounds, false, boxes, primaryBox, boxes[selectedIndex] ?? null)
@@ -477,7 +484,7 @@ export default function App() {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, documents.loading, projection, displayGraph, selNet, mode, connectionMode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues, candidates, important.marks])
+  }, [model, documents.loading, projection, displayGraph, mode, connectionMode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues, candidates, important.marks, indexEntries, enterGroup])
 
   useEffect(() => {
     setNodes(current => current.map(node => ({ ...node, data: { ...node.data, marked: important.marks.has(node.id) || !!(node.data.g as GNode | undefined)?.aggMembers?.some(p => important.marks.has(p)) } })))
@@ -498,6 +505,10 @@ export default function App() {
           netPins.set(n.id, pins)
         }
       }
+      for (const edge of graph.edges) if (edge.nets.includes(selNet)) {
+        netNodes.add(edge.source)
+        netNodes.add(edge.target)
+      }
     }
     setNodes((ns) =>
       ns.map((n) => ({
@@ -505,6 +516,7 @@ export default function App() {
         selected: sel.some(path => (graph.location.get(path) ?? path) === n.id),
         data: {
           ...n.data,
+          traceNet: selNet,
           // A selected net dims everything off it, so its members pop.
           dim: (active && !keep.has(n.id)) || (!!selNet && !netNodes.has(n.id)),
           hl: netNodes.has(n.id),
@@ -515,7 +527,7 @@ export default function App() {
     setEdges((es) =>
       es.map((e) => {
         const onPath = !active || (keep.has(e.source) && keep.has(e.target))
-        const isNet = selNet && (e.data?.net as string) === selNet
+        const isNet = !!selNet && ((e.data?.net as string) === selNet || (e.data?.nets as string[] | undefined)?.includes(selNet))
         const wire = (e.data?.wire as string) ?? '#2563eb'
         return {
           ...e,
@@ -606,19 +618,18 @@ export default function App() {
     [selNet, allNets],
   )
   const visibleParts = useMemo(() => mode === 'layout' ? new Set(physicalPlacements.map(p => p.instance)) : projection?.represented ?? new Set<string>(), [mode, physicalPlacements, projection])
-  const endpoints = useMemo(() => {
-    if (!model || !selNetObj || !fullView) return []
-    return netEndpoints(model, selNetObj, fullView, visibleParts)
-  }, [model, selNetObj, fullView, visibleParts])
-  const followEndpoint = (path: string) => {
-    locateTarget({ kind: 'part', id: path, label: path, sub: path, net: selNet })
+  const followEndpoint = (path: string, pin: string, net: string) => {
+    locateTarget({ kind: 'pin', id: path, pin, label: path, sub: path, net })
   }
+  const indexScope = !viewDef && model?.subdesigns?.length ? '' : null
+  const showIndex = () => freshRange({ mode: mode === 'layout' ? 'layout' : 'overview', scope: indexScope, groups: [], collapsed: fullView?.regions?.regions ?? [] })
   const clearFilters = () => {
-    navigation.navigate({ scope: null, groups: [], collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null, layoutSide: 'both' })
+    freshRange({ mode: 'overview', scope: indexScope, groups: [], collapsed: fullView?.regions?.regions ?? [], layoutSide: 'both' })
   }
   const toggleGroup = (name: string) => {
     const groups = selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name]
-    freshRange({ scope: null, groups, collapsed: groups.length ? collapsedGroups.filter(g => !groups.includes(g)) : collapsedGroups })
+    if (!groups.length) { showIndex(); return }
+    freshRange({ mode: mode === 'layout' ? 'layout' : 'sch', scope: null, groups, collapsed: [] })
   }
 
   const locateTarget = (hit: SearchHit) => {
@@ -636,16 +647,16 @@ export default function App() {
       return
     }
     const group = fullView?.instanceRegions.get(hit.id) ?? 'Other'
-    const hidden = !projection?.represented.has(hit.id)
+    const hidden = !projection?.represented.has(hit.id) || collapsedGroups.includes(group)
     const placement = physicalScope?.placements.find((p) => p.instance === hit.id)
-    navigation.navigate({ scope: viewDef ? null : ownerScope(model, hit.id),
+    navigation.navigate({ mode: mode === 'layout' ? 'layout' : 'sch', scope: viewDef ? null : ownerScope(model, hit.id),
       groups: hidden && viewDef ? [group] : selectedGroups, collapsed: collapsedGroups.filter((g) => g !== group),
       selection: [hit.id], pin: hit.pin ?? '', net: hit.net ?? '', tab: 'circuit', viewport: null, boardViewport: null,
       layoutSide: mode === 'layout' && placement && layoutSide !== 'both' && placement.side !== layoutSide ? 'both' : layoutSide })
     setJump({ id: hit.id, net: hit.net ?? '', locate: true })
   }
   const locateNet = (name: string) => locateTarget({ kind: 'net', id: name, label: name, sub: name })
-  const hits = useMemo(() => model ? searchCircuit(model, query).slice(0, 30) : [], [query, model])
+  const hits = useMemo(() => model ? searchCircuit(model, query, sourceValues).slice(0, 30) : [], [query, model, sourceValues])
 
   const chip = (label: string, on: boolean, onClick: () => void, color = '#2563eb') => (
     <button
@@ -849,12 +860,12 @@ export default function App() {
               {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 12 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
             </div>
           )}
-          <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
+          <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? `${selectedGroups.join(' + ')} · ${projection?.represented.size ?? 0} parts` : mode === 'overview' ? 'System index' : 'All groups'}</div>
           {viewsLoading && <div role="status">Loading groups...</div>}
           {viewError && <div role="alert">{viewError} <button className="context-command" onClick={() => setViewRetry(value => value + 1)}>Retry groups</button></div>}
         </div>
         <div className="explorer-workspace">
-        {viewDef && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ groups: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} />}
+        {viewDef && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={showIndex} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} />}
         {groupsOpen && <button className="group-drawer-backdrop" aria-label="Close groups overlay" onClick={() => setGroupsOpen(false)} />}
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy || documents.loading}>
         {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={(frame) => navigation.navigate({ layoutFrame: frame, boardViewport: null })} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide} onCamera={navigation.sync}
@@ -926,7 +937,7 @@ export default function App() {
             {candidates.filter(c => !important.marks.has(c.instance.path)).map(c => <div className="core-candidate" key={c.instance.path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: c.instance.path, label: c.instance.designator ?? c.instance.path, sub: c.instance.path })}>{partPresentation(c.instance).title}</button><small>Heuristic suggestion · {c.evidence}</small><button className="context-command" onClick={() => important.toggle(c.instance.path)}><Star size={14} />Confirm important</button></div>)}
           </section>}
           {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
-            {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { navigation.navigate({ selection: [], pin: '', net: net.name, viewport: null, boardViewport: null }); setJump({ net: net.name, locate: true }) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
+            {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { setSel([]); setSelectedPin(''); setSelNet(net.name) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
           </section>}
           {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab !== 'circuit' ? <>{tab === 'issues' && issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
             const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
@@ -1031,34 +1042,8 @@ export default function App() {
                 {selNetObj.is_gnd ? 'ground' : selNetObj.voltage ? `rail ${selNetObj.voltage}` : 'signal'} ·{' '}
                 {selNetObj.members.length} pins
               </div>
-              <table style={{ borderCollapse: 'collapse', marginTop: 8, width: '100%' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#6b7280' }}>
-                    <th>part</th>
-                    <th>pin</th>
-                    <th>#</th>
-                    <th>group</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {endpoints.map((m, i) => {
-                    const inst = model.instances.find((x) => x.path === m.instance_path)
-                    return (
-                      <tr key={i} data-endpoint={m.instance_path} data-visible={m.visible} data-group={m.group} style={{ borderTop: `1px solid ${dark ? '#2a2f3a' : '#f3f4f6'}` }}>
-                        <td>
-                          <button disabled={layoutBusy} onClick={() => followEndpoint(m.instance_path)} title={m.instance_path} style={{ border: 0, padding: 0, background: 'none', color: '#0891b2', cursor: 'pointer', fontWeight: 700 }}>{inst?.designator ?? shortName(m.instance_path)}</button>{' '}
-                          <span style={{ color: '#6b7280' }}>
-                            {inst ? partPresentation(inst, sourceValues.get(inst.path)).value || partPresentation(inst).category : ''}
-                          </span>
-                        </td>
-                        <td>{m.logical_pin}</td>
-                        <td>{m.numbers.join(',')}</td>
-                        <td>{m.group}<br /><span className="endpoint-visibility">{m.visible ? 'visible' : 'hidden'}</span></td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <OutsideDestinations model={model} net={selNetObj} instanceRegions={fullView?.instanceRegions ?? new Map()} visible={visibleParts} sourceValues={sourceValues}
+                onGroup={group => navigation.navigate({ mode: 'sch', scope: null, groups: [group], collapsed: [], selection: [], pin: '', net: selNetObj.name, viewport: null, boardViewport: null })} onEndpoint={followEndpoint} />
               {(model.subdesigns ?? []).filter((s) => s.ports.some((p) => p.net === selNet)).map((s) => (
                 <div key={s.path} style={{ marginTop: 6 }}>
                   <button onClick={() => navigateScope(s.path, { net: selNet })}>{s.path} ↗</button>

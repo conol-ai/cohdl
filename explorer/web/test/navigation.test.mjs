@@ -31,12 +31,12 @@ const view = { name: '功能 / & boundaries', regions: [{ name: 'Left / & 空间
 const config = { schema_version: 1, design: 'Board', views: [view] }
 const freeze = (v) => { Object.freeze(v); for (const c of Object.values(v)) if (c && typeof c === 'object') freeze(c); return v }
 
-test('device browsing defaults expanded SCH and migrates legacy overview exactly once', () => {
+test('clean entry indexes groups while v2 manual contexts remain authoritative', () => {
   const m = model()
   const clean = parseInspectionUrl(new URL('http://localhost/'), m, config)
-  assert.equal(clean.mode, 'sch')
+  assert.equal(clean.mode, 'overview')
   assert.equal(clean.connectionMode, 'individual')
-  assert.deepEqual(clean.collapsed, [])
+  assert.deepEqual(clean.collapsed, [view.regions[0].name, 'Right', 'Other'])
   const legacy = { ...clean, mode: 'overview', groups: ['Right'], collapsed: ['Right'], selection: ['Board::b'], viewport: { viewport: { x: 5, y: 5, zoom: 1 }, size: { width: 400, height: 400 }, autoFit: false } }
   const oldUrl = new URL('http://localhost/')
   oldUrl.searchParams.set('inspect', JSON.stringify(legacy))
@@ -60,6 +60,22 @@ test('device projection represents rail-only components individually through gro
   assert.equal(union.graph.location.get('Board::b'), 'Board::b')
   assert.equal(union.graph.nodes.filter(n => n.inst?.path === 'Board::b').length, 1)
   assert.ok(!full.graph.nodes.some(n => n.aggMembers))
+})
+
+test('missing Functional configuration indexes native hierarchy and flat projects honestly', () => {
+  const m = model()
+  m.subdesigns = [{ path: 'Board::child', definition: 'fixture::Child', span, ports: [], docs: [] }]
+  m.instances[0].path = 'Board::child::a'
+  const native = parseInspectionUrl(new URL('http://localhost/'), m, null)
+  assert.equal(native.mode, 'overview')
+  assert.equal(native.scope, '')
+  assert.deepEqual(native.groups, [])
+  assert.ok(buildViewGraph(m, native.scope).graph.nodes.some(n => n.subdesign?.path === 'Board::child'))
+  m.subdesigns = []
+  const flat = parseInspectionUrl(new URL('http://localhost/'), m, null)
+  assert.equal(flat.scope, null)
+  assert.deepEqual(flat.collapsed, [])
+  assert.equal(buildViewGraph(m, flat.scope).graph.location.size, m.instances.length)
 })
 
 test('unavailable config preserves requested view and groups until authoritative recovery', () => {

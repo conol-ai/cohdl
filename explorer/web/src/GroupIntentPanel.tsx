@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Eye, Save, Undo2, X, WandSparkles, Pencil, Trash2 } from 'lucide-react'
 import type { ExplorerModel } from './model'
 import { parseViewConfig, type ViewConfig } from './views'
+import { parseProposalDetail } from './proposals'
 import './GroupIntentPanel.css'
 
 interface FocusGroup { view: string; name: string; instances: string[]; nets: { name: string; inside: unknown[]; outside: unknown[] }[] }
@@ -28,7 +29,7 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
   const [focus, setFocus] = useState<Focus | null>(null)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
+  const [operation, setOperation] = useState<'draft' | 'saved' | 'undone'>('draft')
   const [target, setTarget] = useState('')
   const [activeView, setActiveView] = useState('')
   const inspect = async (id: string) => {
@@ -46,7 +47,7 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
     finally { setBusy('') }
   }
   const generate = (prefix = '') => perform('Generating group proposal', async () => {
-    onCancel(); setFocus(null); setSaved(false)
+    onCancel(); setFocus(null); setOperation('draft')
     const result = await action({ action: 'propose', intent: `${prefix}${intent}`, selection })
     setRun(result.id)
     await inspect(result.id)
@@ -60,8 +61,19 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
       <button type="button" title="Propose edits to selected group" aria-label="Propose group edit" disabled={!!busy || !target || !intent.trim()} onClick={() => void generate(`Edit canonical group ${target}. Requested change: `)}><Pencil size={14} /></button>
       <button type="button" title="Propose deletion of selected group" aria-label="Propose group deletion" disabled={!!busy || !target} onClick={() => void generate(`Delete canonical group ${target}, updating navigation references and preserving registry applicability. Additional context: `)}><Trash2 size={14} /></button>
     </div>}
-    <label>Proposal run<input aria-label="Group proposal run" value={run} onChange={e => { setRun(e.target.value); setFocus(null); setSaved(false) }} /></label>
-    <button type="button" disabled={!!busy || !run} onClick={() => void perform('Reviewing group', async () => { await inspect(run) })}><Eye size={14} />Review</button>
+    <label>Proposal run<input aria-label="Group proposal run" value={run} onChange={e => { setRun(e.target.value); setFocus(null); setOperation('draft') }} /></label>
+    <button type="button" disabled={!!busy || !run} onClick={() => void perform('Reviewing group', async () => {
+      if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(run)) throw new Error('Invalid group run ID')
+      const response = await fetch(`/api/proposals/${run}`)
+      if (!response.ok) throw new Error('Group proposal unavailable')
+      const detail = parseProposalDetail(await response.json())
+      if (detail.run.kind !== 'group') throw new Error('Display actions require a group proposal')
+      if (detail.status === 'applied') { setOperation('saved'); setFocus(null); return }
+      setOperation(detail.status === 'reverted' ? 'undone' : 'draft')
+      await inspect(run)
+    })}><Eye size={14} />Review</button>
+    <button type="button" title="Undo saved group change" aria-label="Undo saved group change" disabled={!!busy || operation !== 'saved'} onClick={() => void perform('Undoing group', async () => { await action({ action: 'undo', run }); setOperation('undone'); setFocus(null); onSaved() })}><Undo2 size={14} /></button>
+    {operation !== 'draft' && <p role="status">{operation === 'saved' ? 'Group changes saved' : 'Group changes undone'}</p>}
     {busy && <p role="status">{busy}...</p>}{error && <p role="alert">{error}</p>}
     {focus && <section aria-label="Group proposal preview">
       <p>{focus.rationale}</p><p className="group-uncertainty">{focus.uncertainty}</p>
@@ -73,10 +85,9 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
         <ul>{g.nets.map(n => <li key={n.name}>{n.name} · {n.inside.length} inside / {n.outside.length} outside</li>)}</ul>
       </details>)}
       <details><summary>View changes</summary><pre>{JSON.stringify(focus.config, null, 2)}</pre></details>
-      <div className="group-intent-actions"><button type="button" disabled={!!busy || saved || !groups.some(g => g.instances.length)} onClick={() => void perform('Focusing group', async () => { const latest = await inspect(run); const selected = latest.groups.filter(g => g.view === activeView); onFocus(latest.config, activeView, selected.map(g => g.name)) })}><Eye size={14} />Focus</button>
+      <div className="group-intent-actions"><button type="button" disabled={!!busy || operation === 'saved' || !groups.some(g => g.instances.length)} onClick={() => void perform('Focusing group', async () => { const latest = await inspect(run); const selected = latest.groups.filter(g => g.view === activeView); onFocus(latest.config, activeView, selected.map(g => g.name)) })}><Eye size={14} />Focus</button>
         <button type="button" title="Cancel temporary focus" aria-label="Cancel temporary focus" onClick={onCancel}><X size={14} /></button>
-        <button type="button" disabled={!!busy || saved} onClick={() => void perform('Saving group', async () => { await action({ action: 'save', run }); setSaved(true); onSaved() })}><Save size={14} />Save</button>
-        <button type="button" title="Undo saved group change" aria-label="Undo saved group change" disabled={!!busy || !saved} onClick={() => void perform('Undoing group', async () => { await action({ action: 'undo', run }); setSaved(false); setFocus(null); onSaved() })}><Undo2 size={14} /></button>
+        <button type="button" disabled={!!busy || operation !== 'draft'} onClick={() => void perform('Saving group', async () => { await action({ action: 'save', run }); setOperation('saved'); onSaved() })}><Save size={14} />Save</button>
       </div>
     </section>}
   </details>

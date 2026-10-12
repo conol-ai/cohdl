@@ -34,15 +34,15 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
     {footprint ? <div className="part-footprint"><FootprintPreview geo={footprint} dark={dark} /><div>{footprint.pads.length} pads · {instance.part?.footprint?.split('::').at(-1)}</div></div> : <div className="part-footprint-unavailable">Footprint unavailable</div>}
     {identity.value && identity.value !== identity.mpn && <div className="part-value">{identity.value}</div>}
     <dl className="part-facts"><div><dt>MPN</dt><dd>{identity.mpn || 'Unspecified'}</dd></div>{instance.part?.mfr && <div><dt>Manufacturer</dt><dd>{instance.part.mfr}</dd></div>}</dl>
-    {(pin || network) && <section className="part-network" aria-label="Selected network" data-state={network ? 'connected' : connection?.state} data-net={network?.name ?? ''}>
+    <section className="part-network" aria-label="Selected network" tabIndex={0} data-state={network ? 'connected' : connection?.state} data-net={network?.name ?? ''}>
       <h4>Selected network</h4>
-      <strong>{network?.name ?? connection?.state}</strong>
+      <strong>{network?.name ?? connection?.state ?? 'No network selected'}</strong>
       {pin && <div className="network-selected-pin">Selected pin: {identity.reference}.{pin.logical} ({pin.numbers.join(', ') || 'Unspecified'})</div>}
       {network ? <>
         <div>{network.members.length} endpoints · {local} local · {network.members.length - local} outside range</div>
         {instanceRegions && onGroup && onEndpoint && <OutsideDestinations model={model} net={network} instanceRegions={instanceRegions} visible={visible} sourceValues={sourceValues} onGroup={onGroup} onEndpoint={onEndpoint} />}
-      </> : <div>{pin?.nc ? 'Explicitly not connected' : pin?.connected ? 'Network membership unavailable' : 'No network connection'}</div>}
-    </section>}
+      </> : pin && <div>{pin.nc ? 'Explicitly not connected' : pin.connected ? 'Network membership unavailable' : 'No network connection'}</div>}
+    </section>
     <h4>Connections</h4>
     <table className="pin-table"><thead><tr><th>Pin</th><th>#</th><th>Network</th><th>State</th></tr></thead><tbody>
       {instance.pins.map(pin => {

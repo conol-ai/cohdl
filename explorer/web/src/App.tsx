@@ -176,6 +176,7 @@ export default function App() {
     const frame = requestAnimationFrame(() => {
       const inspector = document.querySelector<HTMLElement>('.explorer-inspector')
       const network = inspector?.querySelector<HTMLElement>('.part-network')
+      if (inspector?.contains(document.activeElement) && document.activeElement?.closest('.pin-target')) return
       if (inspector) inspector.scrollTop = selectedPin && network ? inspector.scrollTop + network.getBoundingClientRect().top - inspector.getBoundingClientRect().top - 12 : 0
     })
     return () => cancelAnimationFrame(frame)
@@ -780,8 +781,10 @@ export default function App() {
                 </div>
               ) : null
             })()}
-          {sel.length >= 2 && <span style={{ color: '#f43f5e' }}> · {mode === 'layout' ? 'selected' : 'trace'}: {sel.length} parts</span>}
-          {selNet && <span style={{ color: '#0ea5e9' }}> · net: {selNet}</span>}
+          <div className="inspection-trace-summary" title={selNet ? `net: ${selNet}` : undefined}>
+            {sel.length >= 2 && <span style={{ color: '#f43f5e' }}>{mode === 'layout' ? 'selected' : 'trace'}: {sel.length} parts · </span>}
+            {selNet && <span style={{ color: '#0ea5e9' }}>net: {selNet}</span>}
+          </div>
           <div style={{ marginTop: 5, position: 'relative' }}>
             <input
               value={query}

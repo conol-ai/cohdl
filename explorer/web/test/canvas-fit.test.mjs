@@ -16,6 +16,15 @@ test('camera capture retains applied geometry while a resize and restore happen 
     await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/test/canvas-fit-fixture.html`)
     await page.waitForFunction(() => window.captureCamera?.()?.size.height === 520)
     const before = await page.evaluate(() => window.setManualCamera())
+    await page.evaluate(() => window.relocateSelectedCamera())
+    await page.waitForFunction(() => {
+      const camera = window.captureCamera().viewport
+      return 4000 * camera.zoom + camera.x >= 0 && 4000 * camera.zoom + camera.x < 950
+        && 5000 * camera.zoom + camera.y >= 0 && (5000 + 136) * camera.zoom + camera.y <= 520
+    }, { timeout: 2000 })
+    assert.equal((await page.evaluate(() => window.captureCamera())).viewport.zoom, before.viewport.zoom, 'Relayout recovery keeps manual readable scale')
+    await page.evaluate(() => window.resetCameraBounds())
+    await page.evaluate(() => window.setManualCamera())
     const during = await page.evaluate(() => window.resizeAndRestore())
     assert.equal(during.size.height, before.size.height, 'The previous camera must keep its applied size until resize is committed')
     await page.waitForFunction(() => window.captureCamera?.()?.size.height === 496 && Math.abs(window.captureCamera().viewport.y + 258) < .001)

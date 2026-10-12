@@ -17,6 +17,14 @@ function Fixture() {
   useEffect(() => { fit.setBounds(bounds, fit.generation) }, [revision, fit.setBounds, fit.generation])
   Object.assign(window, {
     captureCamera: fit.capture,
+    relocateSelectedCamera() {
+      const moved = { x: 4000, y: 5000, width: 360, height: 1000 }
+      fit.setBounds(moved, fit.generation, null, false, [moved], moved, moved)
+    },
+    async resetCameraBounds() {
+      fit.setBounds(bounds, fit.generation)
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    },
     async selectTallCamera(nextWidth = 390) {
       flushSync(() => { setWidth(nextWidth); setHeight(700) })
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))

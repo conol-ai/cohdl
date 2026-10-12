@@ -260,7 +260,7 @@ export default function App() {
       const index = candidates.findIndex(c => c.instance.path === id)
       return index < 0 ? candidates.length : index
     }
-    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })).sort((a, b) => rank(a.id) - rank(b.id)), edges: !selNet ? displayGraph.edges : displayGraph.edges.filter(edge => edge.net === selNet || edge.nets.includes(selNet)) }
+    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })).sort((a, b) => rank(a.id) - rank(b.id)), edges: displayGraph.edges }
     for (const node of gg.nodes) if (node.inst) {
       const identity = partPresentation(node.inst, sourceValues.get(node.inst.path))
       node.title = node.kind === 'passive' ? `${identity.reference} ${identity.value || identity.category}` : identity.title

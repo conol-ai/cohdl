@@ -13,7 +13,7 @@ interface Props {
   selection: { schema: 1; instances: string[]; groups: { view: string; region: string }[] }
   onFocus: (config: ViewConfig, view: string, groups: string[]) => void
   onCancel: () => void
-  onSaved: () => void
+  onSaved: (operation: 'save' | 'undo') => void
 }
 
 async function action(request: Record<string, unknown>) {
@@ -61,18 +61,18 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
       <button type="button" title="Propose edits to selected group" aria-label="Propose group edit" disabled={!!busy || !target || !intent.trim()} onClick={() => void generate(`Edit canonical group ${target}. Requested change: `)}><Pencil size={14} /></button>
       <button type="button" title="Propose deletion of selected group" aria-label="Propose group deletion" disabled={!!busy || !target} onClick={() => void generate(`Delete canonical group ${target}, updating navigation references and preserving registry applicability. Additional context: `)}><Trash2 size={14} /></button>
     </div>}
-    <label>Proposal run<input aria-label="Group proposal run" value={run} onChange={e => { setRun(e.target.value); setFocus(null); setOperation('draft') }} /></label>
+    <label>Proposal run<input aria-label="Group proposal run" value={run} onChange={e => { onCancel(); setRun(e.target.value); setFocus(null); setOperation('draft') }} /></label>
     <button type="button" disabled={!!busy || !run} onClick={() => void perform('Reviewing group', async () => {
       if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(run)) throw new Error('Invalid group run ID')
       const response = await fetch(`/api/proposals/${run}`)
       if (!response.ok) throw new Error('Group proposal unavailable')
       const detail = parseProposalDetail(await response.json())
       if (detail.run.kind !== 'group') throw new Error('Display actions require a group proposal')
-      if (detail.status === 'applied') { setOperation('saved'); setFocus(null); return }
+      if (detail.status === 'applied') { onCancel(); setOperation('saved'); setFocus(null); return }
       setOperation(detail.status === 'reverted' ? 'undone' : 'draft')
       await inspect(run)
     })}><Eye size={14} />Review</button>
-    <button type="button" title="Undo saved group change" aria-label="Undo saved group change" disabled={!!busy || operation !== 'saved'} onClick={() => void perform('Undoing group', async () => { await action({ action: 'undo', run }); setOperation('undone'); setFocus(null); onSaved() })}><Undo2 size={14} /></button>
+    <button type="button" title="Undo saved group change" aria-label="Undo saved group change" disabled={!!busy || operation !== 'saved'} onClick={() => void perform('Undoing group', async () => { await action({ action: 'undo', run }); setOperation('undone'); setFocus(null); onSaved('undo') })}><Undo2 size={14} /></button>
     {operation !== 'draft' && <p role="status">{operation === 'saved' ? 'Group changes saved' : 'Group changes undone'}</p>}
     {busy && <p role="status">{busy}...</p>}{error && <p role="alert">{error}</p>}
     {focus && <section aria-label="Group proposal preview">
@@ -87,7 +87,7 @@ export function GroupIntentPanel({ model, config, selection, onFocus, onCancel, 
       <details><summary>View changes</summary><pre>{JSON.stringify(focus.config, null, 2)}</pre></details>
       <div className="group-intent-actions"><button type="button" disabled={!!busy || operation === 'saved' || !groups.some(g => g.instances.length)} onClick={() => void perform('Focusing group', async () => { const latest = await inspect(run); const selected = latest.groups.filter(g => g.view === activeView); onFocus(latest.config, activeView, selected.map(g => g.name)) })}><Eye size={14} />Focus</button>
         <button type="button" title="Cancel temporary focus" aria-label="Cancel temporary focus" onClick={onCancel}><X size={14} /></button>
-        <button type="button" disabled={!!busy || operation !== 'draft'} onClick={() => void perform('Saving group', async () => { await action({ action: 'save', run }); setOperation('saved'); onSaved() })}><Save size={14} />Save</button>
+        <button type="button" disabled={!!busy || operation !== 'draft'} onClick={() => void perform('Saving group', async () => { await action({ action: 'save', run }); setOperation('saved'); onSaved('save') })}><Save size={14} />Save</button>
       </div>
     </section>}
   </details>

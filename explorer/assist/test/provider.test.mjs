@@ -7,13 +7,17 @@ import { runProcess } from '../process.mjs'
 import { providerContext, providerSchema } from '../provider.mjs'
 
 test('provider schema binds source citations to actual CoHDL paths and source-only null metadata', () => {
-  const schema = providerSchema({ sources: [{ path: 'src/main.cohdl' }, { path: 'views/Board.view.json' }], documents: [] }, 'group')
+  const schema = providerSchema({ design: 'Board', snapshot: [{ path: 'views/Board.view.json', sha256: 'a'.repeat(64) }], sources: [{ path: 'src/main.cohdl' }, { path: 'views/Board.view.json', text: '{"views":[]}' }], documents: [] }, 'group')
   const citation = schema.properties.citations.items.anyOf[0]
   assert.deepEqual(citation.properties.source.properties.path.enum, ['src/main.cohdl'])
   assert.deepEqual(citation.properties.document, { type: 'null' })
   assert.deepEqual(citation.properties.section, { type: 'null' })
   assert.deepEqual(citation.properties.page, { type: 'null' })
   assert.deepEqual(schema.properties.kind.enum, ['group'])
+  assert.deepEqual(schema.properties.changes.items.properties.path.enum, ['views/Board.view.json'])
+  assert.deepEqual(schema.properties.changes.items.properties.before_sha256.enum, ['a'.repeat(64)])
+  assert.equal(schema.properties.changes.items.properties.old.type, 'string')
+  assert.match(schema.properties.changes.items.properties.old.description, /complete exact original/)
 })
 
 test('provider projection retains exact sources and topology while declaring redundant context omissions', () => {

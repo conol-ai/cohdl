@@ -20,6 +20,14 @@ function boundBundle(bytes) {
 export function providerSchema(bundle, kind) {
   const schema = JSON.parse(text(input(join(dirname(fileURLToPath(import.meta.url)), 'proposal.schema.json'))))
   schema.properties.kind.enum = [kind]
+  if (kind === 'group') {
+    const path = `views/${bundle.design}.view.json`
+    const before = bundle.snapshot.find(entry => entry.path === path)?.sha256 ?? null
+    schema.properties.changes.items.properties.path = { type: 'string', enum: [path] }
+    schema.properties.changes.items.properties.before_sha256 = before === null ? { type: 'null' } : { type: 'string', enum: [before] }
+    schema.properties.changes.items.properties.old = { type: 'string', description: 'Copy the complete exact original view file text from sources, or empty string if the file is absent. This is literal file content, not a summary or JSON substring.' }
+    schema.properties.changes.items.properties.new = { type: 'string', description: 'Complete final native view configuration JSON, replacing the complete old file. Preserve existing views and registry targets unless an explicit requested edit or deletion permits otherwise.' }
+  }
   const citation = schema.properties.citations.items
   const source = citation.properties.source.anyOf.find(item => item.type === 'object')
   source.properties.path.enum = bundle.sources.filter(item => item.path.endsWith('.cohdl')).map(item => item.path)

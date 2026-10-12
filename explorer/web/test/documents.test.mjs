@@ -114,10 +114,10 @@ test('constraints retain missing citation limitations and qualified group select
 test('loading error empty and accessible refresh remain usable', () => {
   assert.match(render({ resource: { ...resource(), loading: true } }), /role="status"/)
   assert.match(render({ resource: { ...resource(), error: 'Malformed document registry' } }), /role="alert">Malformed document registry/)
-  assert.match(render({ resource: resource({ schema: 1, documents: [], constraints: [] }) }), /No applicable document records/)
+  assert.equal(render({ resource: resource({ schema: 1, documents: [], constraints: [] }) }), '')
   const calls = []
   const element = ProvenanceInspector({ resource: { ...resource(), refresh: () => calls.push('refresh') }, instance: 'Board::one', view: 'Functional', groups: [] })
-  const heading = React.Children.toArray(element.props.children)[0]
+  const heading = React.Children.toArray(element.props.children)[1]
   const refresh = React.Children.toArray(heading.props.children).find((child) => child.type === 'button')
   assert.equal(refresh.props['aria-label'], 'Refresh source evidence')
   assert.equal(refresh.props.title, 'Refresh source evidence')

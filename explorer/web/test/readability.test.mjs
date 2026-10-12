@@ -18,7 +18,7 @@ program.emit()
 const require = createRequire(import.meta.url)
 cpSync('src/ProvenanceInspector.css', resolve(out, 'ProvenanceInspector.css'))
 require.extensions['.css'] = () => {}
-const { partPresentation } = require(resolve(out, 'partPresentation.js'))
+const { partPresentation, coreCandidates } = require(resolve(out, 'partPresentation.js'))
 const { marksKey, readMarks, writeMarks } = require(resolve(out, 'important.js'))
 const { pinConnection } = require(resolve(out, 'pinConnection.js'))
 const { PinTarget } = require(resolve(out, 'PinTarget.js'))
@@ -26,6 +26,16 @@ const { PartDetails } = require(resolve(out, 'PartDetails.js'))
 const { DetailedNode } = require(resolve(out, 'nodes.js'))
 const { ReactFlowProvider } = require('@xyflow/react')
 const part = { path: 'Board::SRC7', designator: 'SRC7', device_fq: 'source::DEVICE_7', impl_traits: ['source::SourceComponent'], specs: [], part: { fq: 'source::part', mpn: '' }, pins: [], docs: [], span: { file: 'src/main.cohdl', line: 1, col: 1 } }
+test('core suggestions require real identity/category and rank nonrail connectivity without confirming marks', () => {
+  const ic = { ...part, path: 'ic', part: { mpn: 'STM32F405RGT6' } }
+  const unknown = { ...part, path: 'unknown', device_fq: 'DEVICE_STM32' }
+  const passive = { ...part, path: 'r', impl_traits: ['std::Resistor'] }
+  const model = { instances: [unknown, passive, ic], nets: [{ name: 'VCC', is_gnd: false, members: [{ instance_path: 'ic' }] }, { name: 'SDA', members: [{ instance_path: 'ic' }, { instance_path: 'r' }] }], derived: { rails: ['VCC'] } }
+  const candidates = coreCandidates(model)
+  assert.deepEqual(candidates.map(c => c.instance.path), ['ic'])
+  assert.match(candidates[0].evidence, /STM32.*1 signal/)
+  assert.equal(coreCandidates({ ...model, instances: [{ ...ic, specs: [{ name: 'resistance', value: '1ohm' }] }] }).length, 0)
+})
 test('identity uses declared electrical facts and never designator prefixes or internal device names', () => {
   assert.deepEqual(partPresentation(part), { reference: 'SRC7', category: 'Component', value: '', mpn: '', title: 'SRC7 Component', subtitle: '' })
   const resistor = partPresentation({ ...part, designator: 'C99', specs: [{ name: 'resistance', value: '0ohm' }] })
@@ -90,7 +100,7 @@ test('concise part details show source value and honest empty MPN, pins before s
   const html = renderToStaticMarkup(React.createElement(PartDetails, { model: { instances: [instance], nets: [], footprints: {}, derived: { rails: [] } }, instance, dark: false,
     resource: { registry, loading: false, error: '', refresh() {} }, view: '', groups: [], visible: new Set(), selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {} }))
   assert.match(html, /SRC7 Component/); assert.match(html, /SF32LB525UC6/); assert.match(html, /Unspecified/)
-  assert.ok(html.indexOf('Connections') < html.indexOf('Source evidence'))
+  assert.doesNotMatch(html, /No applicable document records|Source evidence/)
   assert.doesNotMatch(html, /Original schematic/); assert.match(html, /open/)
   assert.ok(html.indexOf('DEVICE_7') > html.indexOf('Technical details'))
 })

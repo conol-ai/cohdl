@@ -44,7 +44,7 @@ import { useDocuments } from './useDocuments'
 import { ProvenanceInspector } from './ProvenanceInspector'
 import { PartDetails } from './PartDetails'
 import { useImportant } from './useImportant'
-import { partPresentation, sourcePartValues } from './partPresentation'
+import { coreCandidates, partPresentation, sourcePartValues } from './partPresentation'
 import { bundleConnections } from './connectivity'
 import type { PinIdentity } from './PinTarget'
 import { useProposals } from './useProposals'
@@ -60,6 +60,7 @@ export default function App() {
   const documents = useDocuments(model)
   const sourceValues = useMemo(() => sourcePartValues(documents.registry), [documents.registry])
   const important = useImportant(model)
+  const candidates = useMemo(() => model ? coreCandidates(model) : [], [model])
   const [showImportant, setShowImportant] = useState(false)
   const [bundleId, setBundleId] = useState('')
   const [graph, setGraph] = useState<Graph | null>(null)
@@ -256,7 +257,12 @@ export default function App() {
     setLayoutBusy(true)
     setErr('')
     const neutral = !selNet
-    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })), edges: neutral ? displayGraph.edges : displayGraph.edges.filter(edge => edge.net === selNet || edge.nets.includes(selNet)) }
+    const rank = (id: string) => {
+      if (important.marks.has(id)) return -1
+      const index = candidates.findIndex(c => c.instance.path === id)
+      return index < 0 ? candidates.length : index
+    }
+    const gg = { ...displayGraph, nodes: displayGraph.nodes.map((n) => ({ ...n })).sort((a, b) => rank(a.id) - rank(b.id)), edges: neutral ? displayGraph.edges : displayGraph.edges.filter(edge => edge.net === selNet || edge.nets.includes(selNet)) }
     for (const node of gg.nodes) if (node.inst) {
       const identity = partPresentation(node.inst, sourceValues.get(node.inst.path))
       node.title = node.kind === 'passive' ? `${identity.reference} ${identity.value || identity.category}` : identity.title
@@ -272,7 +278,7 @@ export default function App() {
       if (n.id.startsWith('group:')) { n.width = 240; n.height = 94 }
     }
     setGraph(gg)
-    const layoutRegions = mode === 'overview' && gg.nodes.every(n => n.id.startsWith('group:') || n.kind === 'net') ? undefined : projection.regions
+    const layoutRegions = mode === 'overview' && (gg.nodes.length <= 14 || gg.nodes.every(n => n.id.startsWith('group:') || n.kind === 'net')) ? undefined : projection.regions
     const canvas = canvasRef.current?.getBoundingClientRect()
     const mobileOverview = mode === 'overview' && !layoutRegions && gg.nodes.length > 8 && !!canvas && canvas.width < 640
     layout(gg, layoutRegions, { compact: mode === 'overview', aspectRatio: canvas?.height ? canvas.width / canvas.height : 1.6, columns: mobileOverview ? 2 : undefined }).then(({ positions, regionBoxes, edgeRoutes }) => {
@@ -464,14 +470,15 @@ export default function App() {
       const targets = new Set(intent?.locate ? (intent.id ? [intent.id] : allNets.find((n) => n.name === intent.net)?.members.map((m) => m.instance_path) ?? []).map((p) => gg.location.get(p) ?? p) : [])
       if (intent?.locate && intent.net && !intent.id) for (const edge of gg.edges) { targets.add(edge.source); targets.add(edge.target) }
       const targetBounds = boundsOfRects(boxes.filter((_, index) => targets.has(gg.nodes[index].id)))
-      boxes.push(...regionBoxes.values())
-      setBounds(boundsOfRects(boxes), cameraGeneration, targetBounds, mobileOverview && !targetBounds)
+      const primaryIndex = gg.nodes.findIndex(n => important.marks.has(n.id) || candidates.some(c => c.instance.path === n.id))
+      const primaryBox = boxes[primaryIndex < 0 ? 0 : primaryIndex] ?? null
+      setBounds(boundsOfRects([...boxes, ...regionBoxes.values()]), cameraGeneration, targetBounds, false, boxes, primaryBox)
       setLayoutBusy(false)
     }).catch((e) => {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
     })
     return () => { cancelled = true }
-  }, [model, projection, displayGraph, selNet, mode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues])
+  }, [model, projection, displayGraph, selNet, mode, jump, setBounds, allNets, cameraGeneration, activatePin, openBundle, sourceValues, candidates, important.marks])
 
   useEffect(() => {
     setNodes(current => current.map(node => ({ ...node, data: { ...node.data, marked: important.marks.has(node.id) || !!(node.data.g as GNode | undefined)?.aggMembers?.some(p => important.marks.has(p)) } })))
@@ -836,7 +843,7 @@ export default function App() {
               {mode === 'layout' && <span style={{ color: '#9ca3af', fontSize: 10 }}>{localPlacementView ? `${shortName(scope ?? '')} local coordinates` : 'Resolved board coordinates'}</span>}
             </div>
           )}
-          {viewDef && <fieldset className="group-selector">
+          {viewDef && <details className="groups-disclosure"><summary>Groups · {selectedGroups.length ? `${selectedGroups.length} selected` : 'All'}</summary><fieldset className="group-selector">
             <legend>Groups {mode !== 'layout' && <span className="group-bulk-tools">
               <button className="collapse-tool" title="Collapse all groups" aria-label="Collapse all groups" disabled={fullView?.regions?.regions.every((g) => collapsedGroups.includes(g))}
                 onClick={() => freshRange({ collapsed: fullView?.regions?.regions ?? [] })}><FoldVertical size={14} /></button>
@@ -848,7 +855,7 @@ export default function App() {
             </label>{mode !== 'layout' && <button className="collapse-tool" aria-label={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} title={`${collapsedGroups.includes(name) ? 'Expand' : 'Collapse'} ${name}`} aria-expanded={!collapsedGroups.includes(name)}
               onClick={() => freshRange({ collapsed: collapsedGroups.includes(name) ? collapsedGroups.filter((g) => g !== name) : [...collapsedGroups, name] })}>
               {collapsedGroups.includes(name) ? <ChevronRight size={14} /> : <ChevronDown size={14} />}</button>}</span>)}
-          </fieldset>}
+          </fieldset></details>}
           <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
           {viewsLoading && <div role="status">Loading groups...</div>}
           {viewError && <div role="alert">{viewError}</div>}
@@ -910,9 +917,12 @@ export default function App() {
             color: panelFg,
           }}
         >
+          {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); setTab('circuit') }}><X size={16} /></button>}
           {showImportant && <section className="important-list" aria-label="Important parts"><div className="part-heading"><h3>Important</h3><button className="icon-tool" aria-label="Close important parts" onClick={() => setShowImportant(false)}><X size={16} /></button></div>
             {!important.marks.size && <p>No important parts</p>}
             {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); return instance && <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: partPresentation(instance).title, sub: path })}>{partPresentation(instance).title}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}
+            <h4>Suggested core components</h4>
+            {candidates.filter(c => !important.marks.has(c.instance.path)).map(c => <div className="core-candidate" key={c.instance.path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: c.instance.path, label: c.instance.designator ?? c.instance.path, sub: c.instance.path })}>{partPresentation(c.instance).title}</button><small>Heuristic suggestion · {c.evidence}</small><button className="context-command" onClick={() => important.toggle(c.instance.path)}><Star size={14} />Confirm important</button></div>)}
           </section>}
           {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
             {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { navigation.navigate({ selection: [], pin: '', net: net.name, viewport: null, boardViewport: null }); setJump({ net: net.name, locate: true }) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
@@ -928,7 +938,6 @@ export default function App() {
               else setIssueFocus(`${issue.span?.file}:${issue.span?.line}:${issue.span?.col} · ${issue.message} · No component is declared at this source location`)
             }
           }} /></> : <>
-          {selNode && !selInst && evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
           {inspectedSubdesign && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
@@ -964,6 +973,7 @@ export default function App() {
             <>
               <h3 style={{ margin: '0 0 2px' }}>{selNode.title}</h3>
               <div style={{ color: '#6b7280', marginBottom: 6 }}>{aggInsts.length} represented parts</div>
+              {evidenceGroups.length > 0 && <button className="context-command view-inside" onClick={() => freshRange({ mode: 'overview', scope: null, groups: evidenceGroups, collapsed: collapsedGroups.filter(g => !evidenceGroups.includes(g)) })}><ChevronRight size={16} />View inside</button>}
               {!!selNode.ports?.length && <table className="boundary-pin-list" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10 }}>
                 <thead><tr><th>Part / pin</th><th>#</th><th>Boundary net</th></tr></thead>
                 <tbody>{selNode.ports.map((port) => <tr key={port.name} data-boundary-port={port.name}>
@@ -983,26 +993,12 @@ export default function App() {
                   </span>
                 ))}
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ color: '#6b7280', textAlign: 'left' }}>
-                    <th>part</th>
-                    <th>value</th>
-                    <th>MPN</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aggInsts.map((i) => (
-                    <tr key={i.path} style={{ borderTop: `1px solid ${dark ? '#22262e' : '#f3f4f6'}` }}>
-                      <td>
-                        <button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: i.path, label: i.designator ?? i.path, sub: i.path })}>{i.designator}</button>
-                      </td>
-                      <td>{i.specs.map((s) => s.value).join(' ')}</td>
-                      <td style={{ color: '#6b7280' }}>{i.part?.mpn}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="module-members">{aggInsts.map(i => { const identity = partPresentation(i, sourceValues.get(i.path)); const candidate = candidates.find(c => c.instance.path === i.path); return <div className="module-member" key={i.path}>
+                <button className="locate-link" title={i.path} onClick={() => locateTarget({ kind: 'part', id: i.path, label: identity.title, sub: i.path })}>{identity.title}</button><span>{identity.subtitle || 'MPN unspecified'}</span>
+                {candidate && <small>{important.marks.has(i.path) ? 'Confirmed important' : 'Heuristic core suggestion'} · {candidate.evidence}</small>}
+                <button className="icon-tool" title={important.marks.has(i.path) ? 'Unmark important' : 'Mark important'} aria-label={`${important.marks.has(i.path) ? 'Unmark' : 'Mark'} ${identity.reference} important`} onClick={() => important.toggle(i.path)}><Star size={14} fill={important.marks.has(i.path) ? 'currentColor' : 'none'} /></button>
+              </div> })}</div>
+              {evidenceGroups.length > 0 && <ProvenanceInspector resource={documents} view={activeView} groups={evidenceGroups} />}
               <div style={{ color: '#6b7280', marginTop: 8, fontSize: 11 }}>
                 source {aggInsts[0].span.file}:{aggInsts[0].span.line}
               </div>

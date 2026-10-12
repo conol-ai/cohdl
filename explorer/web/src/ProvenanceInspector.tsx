@@ -35,10 +35,10 @@ export function ProvenanceInspector({ resource, instance, view, groups }: { reso
   const originals = new Set(['original-schematic', 'original-pcb'])
   const documents = resource.registry?.documents.filter(document => !originals.has(document.id)).map(document => ({ document, applicability: document.applicability.filter(a => matches(a.instances, a.groups)) })).filter(d => d.applicability.length) ?? []
   const constraints = resource.registry?.constraints.filter(c => matches(c.instances, c.groups)) ?? []
-  return <section className="provenance-inspector" aria-label="Source evidence" aria-busy={resource.loading}>
+  if (!documents.length && !constraints.length && !resource.error) return null
+  return <details className="provenance-inspector" aria-label="Source evidence" aria-busy={resource.loading}><summary>Documents and constraints ({documents.length + constraints.length})</summary>
     <div className="provenance-heading"><h3>Source evidence</h3><button type="button" className="icon-tool" aria-label="Refresh source evidence" title="Refresh source evidence" onClick={resource.refresh}><RefreshCw size={14} /></button></div>
     {resource.loading ? <p role="status">Checking documents...</p> : resource.error ? <p role="alert">{resource.error}</p> : <>
-      {!documents.length && <p>No applicable document records</p>}
       {documents.map(({ document, applicability }) => <Evidence key={document.id} document={document} applicability={applicability} />)}
       {!!constraints.length && <h4>Recorded constraints</h4>}
       {constraints.map((constraint, index) => <div className="document-constraint" key={index}>
@@ -48,5 +48,5 @@ export function ProvenanceInspector({ resource, instance, view, groups }: { reso
         {constraint.citations.filter(citation => !originals.has(citation.document)).map((citation, i) => <CitationLink key={i} document={resource.registry?.documents.find(d => d.id === citation.document)} citation={citation} />)}
       </div>)}
     </>}
-  </section>
+  </details>
 }

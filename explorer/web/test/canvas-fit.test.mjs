@@ -18,7 +18,7 @@ test('camera capture retains applied geometry while a resize and restore happen 
     const before = await page.evaluate(() => window.setManualCamera())
     const during = await page.evaluate(() => window.resizeAndRestore())
     assert.equal(during.size.height, before.size.height, 'The previous camera must keep its applied size until resize is committed')
-    await page.waitForFunction(() => window.captureCamera?.()?.size.height === 496 && Math.abs(window.captureCamera().viewport.y + 858) < .001)
+    await page.waitForFunction(() => window.captureCamera?.()?.size.height === 496 && Math.abs(window.captureCamera().viewport.y + 258) < .001)
     const after = await page.evaluate(() => window.captureCamera())
     assert.equal(after.viewport.zoom, before.viewport.zoom)
     assert.equal((after.size.height / 2 - after.viewport.y) / after.viewport.zoom, (before.size.height / 2 - before.viewport.y) / before.viewport.zoom)
@@ -33,6 +33,8 @@ test('camera capture retains applied geometry while a resize and restore happen 
     const final = await page.evaluate(() => window.captureCamera())
     assert.equal(final.viewport.zoom, queued.viewport.zoom)
     assert.equal((final.size.height / 2 - final.viewport.y) / final.viewport.zoom, (queued.size.height / 2 - queued.viewport.y) / queued.viewport.zoom)
+    await page.evaluate(() => window.queueCameraRestore({ viewport: { x: -100000, y: -100000, zoom: .5 }, size: { width: 950, height: 520 }, autoFit: false }))
+    await page.waitForFunction(() => window.captureCamera().viewport.x > -10000, { timeout: 2000 })
     assert.deepEqual(errors, [])
   } finally {
     await browser?.close()

@@ -49,10 +49,13 @@ try {
     const button = await page.evaluateHandle((label) => [...document.querySelectorAll('button')].find((el) => el.textContent.trim() === label || el.getAttribute('aria-label') === label)
       ?? [...document.querySelectorAll('.group-selector label')].find((el) => el.textContent.trim() === label)?.querySelector('input'), text)
     assert.ok(await button.asElement(), `Missing control ${text}`)
+    await button.asElement().evaluate(el => { const details = el.closest('.groups-disclosure'); if (details) details.open = true })
     await button.asElement().click()
     await button.dispose()
   }
   const geometry = async (label, { verticalFit = true } = {}) => {
+    // Legacy complete-fit geometry is now an explicit user action; entry keeps readable scale.
+    await clickText('Fit circuit'); await ready()
     assert.equal(await page.$$eval('.canvas-state[role="alert"]', alerts => alerts.map(el => el.textContent).join('')), '', `${label} has no canvas error`)
     const result = await page.evaluate(() => {
       const rect = (el) => { const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height, right: b.right, bottom: b.bottom } }

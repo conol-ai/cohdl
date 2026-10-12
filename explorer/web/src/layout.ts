@@ -51,7 +51,7 @@ function elkEdge(edge: GEdge): ElkExtendedEdge {
 }
 
 export async function layout(g: Graph, regions?: RegionAssign, opts?: { compact?: boolean; aspectRatio?: number; columns?: number }): Promise<Positioned> {
-  if (opts?.compact && !regions && g.nodes.every((node) => node.kind === 'net' || node.id.startsWith('group:'))
+  if (opts?.compact && !regions && (g.nodes.length <= 14 || g.nodes.every((node) => node.kind === 'net' || node.id.startsWith('group:')))
     && g.edges.every((edge) => edge.nets.length === 0 || edge.id.startsWith('bundle:')))
     return compactOverview(g, opts.aspectRatio ?? 1.6, opts.columns)
   const spacing = opts?.compact ? {

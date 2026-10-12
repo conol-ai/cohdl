@@ -3,7 +3,20 @@ html, body, #root { margin: 0; width: 100%; height: 100%; }
 .explorer-app { display: flex; height: 100dvh; width: 100%; overflow: hidden; font-family: system-ui, sans-serif; background: #fff; color: #111827; }
 .explorer-app.dark { background: #111318; color: #e5e7eb; }
 .explorer-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.explorer-toolbar { flex: 0 0 auto; max-height: 38dvh; overflow: auto; padding: 8px 12px; overflow-wrap: anywhere; }
+.explorer-toolbar { flex: 0 0 auto; max-height: 30dvh; overflow: auto; padding: 8px 12px; overflow-wrap: anywhere; }
+.groups-disclosure { margin-top: 4px; }
+.groups-disclosure > summary { cursor: pointer; font-weight: 600; min-height: 26px; }
+.group-selector { max-height: 110px; overflow: auto; }
+.inspector-close { float: right; margin: 0 0 6px 8px; }
+.explorer-inspector h3 { font-size: 16px; }
+.view-inside { margin: 4px 0 12px; min-height: 32px; }
+.module-member { position: relative; padding: 9px 36px 9px 0; border-top: 1px solid #9ca3af44; font-size: 12px; }
+.module-member > span, .module-member > small, .core-candidate > small { display: block; font-size: 11px; margin-top: 4px; overflow-wrap: anywhere; }
+.module-member > .icon-tool { position: absolute; right: 0; top: 8px; }
+.core-candidate { border-top: 1px solid #9ca3af44; padding: 8px 0; }
+.core-candidate .context-command { margin-top: 5px; }
+.explorer-inspector .locate-link { color: #0e7490; background: transparent; border: 0; padding: 0; text-align: left; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.dark .explorer-inspector .locate-link { color: #67e8f9; }
 .explorer-toolbar button, .explorer-toolbar select { min-height: 28px; max-width: 100%; }
 .explorer-toolbar select { border-radius: 4px; }
 .group-selector { display: flex; flex-wrap: wrap; gap: 4px 12px; min-width: 0; margin: 6px 0 0; padding: 4px 0; border: 0; }
@@ -59,6 +72,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .bundle-network span { display: block; color: #6b7280; font-size: 10px; margin-top: 3px; }
 @media (max-width: 680px) {
   .explorer-app { flex-direction: column; }
-  .explorer-toolbar { max-height: 34dvh; padding: 6px 8px; }
-  .explorer-inspector { flex: 0 1 34dvh; width: 100%; min-width: 0; max-width: none; max-height: 34dvh; border-top: 1px solid #9ca3af; }
+  .explorer-toolbar { max-height: 26dvh; padding: 6px 8px; }
+  .explorer-inspector { flex: 0 1 30dvh; width: 100%; min-width: 0; max-width: none; max-height: 30dvh; border-top: 1px solid #9ca3af; }
 }

@@ -16,7 +16,7 @@ function Fixture() {
   useEffect(() => { fit.setBounds(bounds, fit.generation) }, [revision, fit.setBounds, fit.generation])
   Object.assign(window, {
     captureCamera: fit.capture,
-    async setManualCamera() { await flow.current!.setViewport({ x: 273, y: -846, zoom: 2 }, { duration: 0 }); fit.manual(); return fit.capture() },
+    async setManualCamera() { await flow.current!.setViewport({ x: 273, y: -246, zoom: 2 }, { duration: 0 }); fit.manual(); return fit.capture() },
     queueCameraRestore(snapshot: ReturnType<typeof fit.capture>) {
       fit.prepare(snapshot)
       const captured = fit.capture()

@@ -1,4 +1,4 @@
-import type { Instance } from './model'
+import type { ExplorerModel, Instance } from './model'
 import type { DocumentRegistry } from './documents'
 
 export function partPresentation(instance: Instance, sourceValue = '') {
@@ -24,4 +24,18 @@ export function sourcePartValues(registry: DocumentRegistry | null): Map<string,
     }
   }
   return values
+}
+
+/** Suggestions are derived evidence; Important remains the only confirmed authority. */
+export function coreCandidates(model: ExplorerModel) {
+  const rails = new Set(model.derived.rails)
+  return model.instances.flatMap(instance => {
+    if (partPresentation(instance).category !== 'Component') return []
+    const mpn = instance.part?.mpn ?? ''
+    const family = mpn.match(/^(STM32|SF32|ESP32|RP20|RP23|W25Q|GD25|DRV|TAS|TLV|TPS|RT61|CH32|CH34|BMI|ICM|MAX)/i)?.[1]
+    const category = instance.impl_traits.find(t => ['IC', 'Microcontroller', 'Memory', 'MotorDriver', 'Amplifier'].includes(t.split('::').at(-1) ?? ''))?.split('::').at(-1)
+    if (!family && !category) return []
+    const signals = model.nets.filter(n => !n.is_gnd && !rails.has(n.name) && n.members.some(m => m.instance_path === instance.path)).length
+    return [{ instance, signals, evidence: `${family ? `MPN ${mpn}` : `Declared ${category}`} · ${signals} signal networks` }]
+  }).sort((a, b) => b.signals - a.signals || a.instance.path.localeCompare(b.instance.path))
 }

@@ -39,6 +39,7 @@ export async function runNavigationFixtureSmoke(page, { url, output, ready, clic
     for (const [label, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
       await page.setViewport(viewport)
       await page.goto(`${url}?model=/__navigation_fixture.json&nolive=1`, { waitUntil: 'domcontentloaded' }); await ready()
+      await clickText('Collapse all groups'); await ready()
       const flat = await context(); assert.equal(flat.scope, null)
       await clickText(`Expand ${long}`); await ready()
       await clickText(`Collapse ${long}`); await ready()

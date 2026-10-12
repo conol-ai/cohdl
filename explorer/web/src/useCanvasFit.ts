@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, type RefObject, type MutableRefObject } from 'react'
 import type { ReactFlowInstance } from '@xyflow/react'
 import { resizeViewport, validViewport, type CanvasSize, type CircuitViewport, type LayoutRect } from './viewport'
+import { DETAILED_HEADER } from './deviceGeometry'
 
 function intersects(rect: LayoutRect, viewport: CircuitViewport, size: CanvasSize) {
   return rect.x * viewport.zoom + viewport.x < size.width && (rect.x + rect.width) * viewport.zoom + viewport.x > 0
@@ -36,11 +37,21 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
         const viewport = resizeViewport(saved.viewport, saved.size, next)
         const visible = content.current.some(rect => intersects(rect, viewport, next))
         const target = selectedTarget.current
-        if (visible && target && !intersects(target, viewport, next)) {
-          if ((target.x + target.width) * viewport.zoom + viewport.x <= 0) viewport.x = 16 - target.x * viewport.zoom
-          else if (target.x * viewport.zoom + viewport.x >= next.width) viewport.x = next.width - 16 - (target.x + target.width) * viewport.zoom
-          if ((target.y + target.height) * viewport.zoom + viewport.y <= 0) viewport.y = 16 - target.y * viewport.zoom
-          else if (target.y * viewport.zoom + viewport.y >= next.height) viewport.y = next.height - 16 - (target.y + target.height) * viewport.zoom
+        if (visible && target) {
+          if (!intersects(target, viewport, next)) {
+            if ((target.x + target.width) * viewport.zoom + viewport.x <= 0) viewport.x = 16 - target.x * viewport.zoom
+            else if (target.x * viewport.zoom + viewport.x >= next.width) viewport.x = next.width - 16 - (target.x + target.width) * viewport.zoom
+            if ((target.y + target.height) * viewport.zoom + viewport.y <= 0) viewport.y = 16 - target.y * viewport.zoom
+            else if (target.y * viewport.zoom + viewport.y >= next.height) viewport.y = next.height - 16 - (target.y + target.height) * viewport.zoom
+          }
+          // A tall card can intersect the canvas while its identity is offscreen.
+          // Only actual resizes recover the header; same-size history stays exact.
+          if (saved.size.width !== next.width || saved.size.height !== next.height) {
+            const headerHeight = Math.min(target.height, DETAILED_HEADER) * viewport.zoom
+            const top = target.y * viewport.zoom + viewport.y
+            const bottomLimit = Math.max(16, next.height - 16 - headerHeight)
+            viewport.y += Math.max(16, Math.min(top, bottomLimit)) - top
+          }
           void flow.current!.setViewport(viewport, { duration: 0 })
         } else if (visible || !content.current.length) void flow.current!.setViewport(viewport, { duration: 0 })
         else { autoFit.current = true; focus.current = selectedTarget.current ?? primary.current }

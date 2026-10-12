@@ -37,6 +37,17 @@ test('camera capture retains applied geometry while a resize and restore happen 
     await page.waitForFunction(() => window.captureCamera().viewport.x > -10000, { timeout: 2000 })
     await page.evaluate(() => window.queueCameraRestore({ viewport: { x: -100000, y: -100000, zoom: .002 }, size: { width: 950, height: 520 }, autoFit: false }, true))
     await page.waitForFunction(() => window.captureCamera().viewport.zoom > .01, { timeout: 2000 })
+    const tall = await page.evaluate(() => window.selectTallCamera())
+    assert.equal(tall.viewport.y, 24)
+    await page.evaluate(() => window.resizeCanvas(447))
+    await page.waitForFunction(() => window.captureCamera().size.height === 447)
+    const withDetails = await page.evaluate(() => window.captureCamera())
+    assert.equal(withDetails.viewport.zoom, tall.viewport.zoom)
+    assert.ok(withDetails.viewport.y >= 16, 'Shrinking a mobile canvas must retain the selected tall card header, not merely its lower rows')
+    const manual = { ...withDetails, viewport: { ...withDetails.viewport, y: -80 } }
+    await page.evaluate(snapshot => window.queueCameraRestore(snapshot, true), manual)
+    await page.waitForFunction(() => Math.abs(window.captureCamera().viewport.y + 80) < .001)
+    assert.deepEqual(await page.evaluate(() => window.captureCamera()), manual, 'A same-size explicit restore preserves a valid manual camera even if the user panned its header away')
     assert.deepEqual(errors, [])
   } finally {
     await browser?.close()

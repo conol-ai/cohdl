@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, type RefObject, type MutableRefObject }
 import type { ReactFlowInstance } from '@xyflow/react'
 import { resizeViewport, validViewport, type CanvasSize, type CircuitViewport, type LayoutRect } from './viewport'
 
+function intersects(rect: LayoutRect, viewport: CircuitViewport, size: CanvasSize) {
+  return rect.x * viewport.zoom + viewport.x < size.width && (rect.x + rect.width) * viewport.zoom + viewport.x > 0
+    && rect.y * viewport.zoom + viewport.y < size.height && (rect.y + rect.height) * viewport.zoom + viewport.y > 0
+}
+
 export interface ViewportSnapshot { viewport: CircuitViewport; size: CanvasSize; autoFit: boolean }
 
 export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRefObject<ReactFlowInstance | null>, active: boolean) {
@@ -14,6 +19,8 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
   const widthFit = useRef(false)
   const primary = useRef<LayoutRect | null>(null)
   const content = useRef<LayoutRect[]>([])
+  const selectedTarget = useRef<LayoutRect | null>(null)
+  const setSelectionTarget = useCallback((rect: LayoutRect | null) => { selectedTarget.current = rect }, [])
   const generation = useRef(0)
   const size = useRef<CanvasSize>({ width: 0, height: 0 })
   const currentSize = useCallback(() => {
@@ -27,8 +34,15 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
       const next = currentSize()
       const restore = (saved: ViewportSnapshot) => {
         const viewport = resizeViewport(saved.viewport, saved.size, next)
-        const visible = content.current.some(rect => rect.x * viewport.zoom + viewport.x < next.width && (rect.x + rect.width) * viewport.zoom + viewport.x > 0 && rect.y * viewport.zoom + viewport.y < next.height && (rect.y + rect.height) * viewport.zoom + viewport.y > 0)
-        if (visible || !content.current.length) void flow.current!.setViewport(viewport, { duration: 0 })
+        const visible = content.current.some(rect => intersects(rect, viewport, next))
+        const target = selectedTarget.current
+        if (target && !intersects(target, viewport, next)) {
+          if ((target.x + target.width) * viewport.zoom + viewport.x <= 0) viewport.x = 16 - target.x * viewport.zoom
+          else if (target.x * viewport.zoom + viewport.x >= next.width) viewport.x = next.width - 16 - (target.x + target.width) * viewport.zoom
+          if ((target.y + target.height) * viewport.zoom + viewport.y <= 0) viewport.y = 16 - target.y * viewport.zoom
+          else if (target.y * viewport.zoom + viewport.y >= next.height) viewport.y = next.height - 16 - (target.y + target.height) * viewport.zoom
+          void flow.current!.setViewport(viewport, { duration: 0 })
+        } else if (visible || !content.current.length) void flow.current!.setViewport(viewport, { duration: 0 })
         else { autoFit.current = true; focus.current = primary.current }
       }
       if (pending.current) {
@@ -54,7 +68,7 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
         } else {
           const b = bounds.current
           const zoom = Math.min(2, Math.max(content.current.length <= 14 ? 1 : 0.72, Math.min(next.width / (b.width * 1.32), next.height / (b.height * 1.32))))
-          const target = primary.current ?? b
+          const target = selectedTarget.current ?? primary.current ?? b
           const fits = b.width * zoom <= next.width && b.height * zoom <= next.height
           void flow.current.setViewport({ x: fits ? (next.width - b.width * zoom) / 2 - b.x * zoom : 24 - target.x * zoom, y: fits ? (next.height - b.height * zoom) / 2 - b.y * zoom : 20 - target.y * zoom, zoom }, { duration: 0 })
         }
@@ -69,6 +83,7 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
     generation.current++
     resizeSource.current = null
     focus.current = null
+    selectedTarget.current = null
     pending.current = saved ?? null
     autoFit.current = saved?.autoFit ?? true
     bounds.current = null
@@ -84,9 +99,9 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
   const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
     if (event) manual()
   }, [manual])
-  const setBounds = useCallback((value: LayoutRect | null, expected: number, target: LayoutRect | null = null, fitWidth = false, rects: LayoutRect[] = [], primaryTarget: LayoutRect | null = null) => {
+  const setBounds = useCallback((value: LayoutRect | null, expected: number, target: LayoutRect | null = null, fitWidth = false, rects: LayoutRect[] = [], primaryTarget: LayoutRect | null = null, selected: LayoutRect | null = null) => {
     if (expected !== generation.current) return
-    bounds.current = value; content.current = rects.length ? rects : value ? [value] : []; primary.current = primaryTarget; focus.current = autoFit.current ? target : null; widthFit.current = fitWidth; apply()
+    bounds.current = value; content.current = rects.length ? rects : value ? [value] : []; primary.current = primaryTarget; selectedTarget.current = selected; focus.current = autoFit.current ? target : null; widthFit.current = fitWidth; apply()
   }, [apply])
   useEffect(() => {
     if (!active) return
@@ -101,5 +116,5 @@ export function useCanvasFit(canvas: RefObject<HTMLDivElement>, flow: MutableRef
     if (canvas.current) observer.observe(canvas.current)
     return () => { observer.disconnect(); cancelAnimationFrame(frame.current) }
   }, [canvas, flow, apply, active, currentSize])
-  return { fit, setBounds, prepare, capture, manual, onMoveStart, onReady: apply, generation: generation.current }
+  return { fit, setBounds, setSelectionTarget, prepare, capture, manual, onMoveStart, onReady: apply, generation: generation.current }
 }

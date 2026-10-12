@@ -42,6 +42,13 @@ try {
     await page.evaluate(() => { for (const key of Object.keys(localStorage)) if (key.startsWith('cohdl:important:')) localStorage.removeItem(key) }); await page.goto(url); await ready()
     assert.equal(await page.$eval('.inspection-counts', e => e.dataset.totalParts), '233')
     await shot(`${name}-overview`)
+    if (name === 'desktop') {
+      const right = await page.evaluateHandle(() => [...document.querySelectorAll('.react-flow__node')].find(e => e.textContent.includes('SF32 analog interface')))
+      assert.ok(right.asElement()); await right.asElement().click(); await ready()
+      const selectedVisible = await right.asElement().evaluate(e => { const r = e.getBoundingClientRect(), c = document.querySelector('.explorer-canvas').getBoundingClientRect(); return r.right > c.x && r.x < c.right && r.bottom > c.y && r.y < c.bottom })
+      assert.ok(selectedVisible, 'Right-edge selected module stays visible when details opens')
+      await shot(`${name}-right-edge-details`); await click('Close details')
+    }
     await click('Fit circuit')
     const module = await page.evaluateHandle(() => [...document.querySelectorAll('.react-flow__node')].find(e => e.textContent.includes('Motor drive')))
     const moduleBox = await module.asElement().boundingBox(), canvasBox = await (await page.$('.explorer-canvas')).boundingBox()
@@ -55,6 +62,18 @@ try {
     await click('View inside'); assert.deepEqual((await context()).groups, ['Motor drive']); await shot(`${name}-inside`)
     await click('Back'); assert.deepEqual((await context()).groups, []); assert.ok((await context()).collapsed.includes('Motor drive')); assert.ok(await page.$('.view-inside')); await shot(`${name}-back-to-module`)
     await click('View inside')
+    const component = await page.evaluateHandle(() => {
+      const c = document.querySelector('.explorer-canvas').getBoundingClientRect()
+      return [...document.querySelectorAll('.react-flow__node-part')].filter(e => { const r = e.getBoundingClientRect(); return !e.dataset.id.startsWith('bundle:') && r.x >= c.x && r.right <= c.right && r.y >= c.y && r.bottom <= c.bottom })
+        .sort((a, b) => innerWidth < 680 ? b.getBoundingClientRect().bottom - a.getBoundingClientRect().bottom : b.getBoundingClientRect().right - a.getBoundingClientRect().right)[0]
+    })
+    assert.ok(component.asElement())
+    const componentCanvas = await (await page.$('.explorer-canvas')).boundingBox(); await page.mouse.move(componentCanvas.x + componentCanvas.width / 2, componentCanvas.y + componentCanvas.height / 2); await page.mouse.wheel({ deltaY: 1 }); await ready()
+    const componentZoom = await page.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform).a)
+    await component.asElement().click(); await ready()
+    assert.ok(await component.asElement().evaluate(e => { const r = e.getBoundingClientRect(), c = document.querySelector('.explorer-canvas').getBoundingClientRect(); return r.right > c.x && r.x < c.right && r.bottom > c.y && r.y < c.bottom }), 'Selected ordinary component remains visible after sidebar resize')
+    assert.equal(await page.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform).a), componentZoom, 'Selected target reveal preserves manual zoom')
+    await shot(`${name}-selected-component-resize`); await click('Close details')
     const titleSize = await page.evaluate(() => { const node = [...document.querySelectorAll('.react-flow__node-part')].find(e => !e.dataset.id.startsWith('bundle:')); const title = node.querySelector('[title]'); return Number.parseFloat(getComputedStyle(title).fontSize) * new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform).a })
     assert.ok(titleSize >= 10, `Small-group title readable ${titleSize}`)
     const bundle = await page.$('.react-flow__edgelabel-renderer button, .react-flow__node[data-id^="bundle:"]')

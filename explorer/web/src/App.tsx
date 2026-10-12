@@ -111,7 +111,7 @@ export default function App() {
     return value === 'sch' || value === 'layout' ? value : 'overview'
   })
   const dark = mode !== 'overview'
-  const { fit, setBounds, prepare, capture, manual, onMoveStart, onReady, generation: cameraGeneration } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
+  const { fit, setBounds, setSelectionTarget, prepare, capture, manual, onMoveStart, onReady, generation: cameraGeneration } = useCanvasFit(canvasRef, rf, !!model && mode !== 'layout')
   const readContext = (): InspectionContext => ({ mode, scope, view: activeView, groups: selectedGroups, collapsed: collapsedGroups,
     selection: sel, pin: selectedPin, net: selNet, tab, layoutFrame, layoutSide,
     viewport: mode === 'layout' ? null : capture(), boardViewport: mode === 'layout' ? boardCamera.current?.capture() ?? null : null })
@@ -472,7 +472,8 @@ export default function App() {
       const targetBounds = boundsOfRects(boxes.filter((_, index) => targets.has(gg.nodes[index].id)))
       const primaryIndex = gg.nodes.findIndex(n => important.marks.has(n.id) || candidates.some(c => c.instance.path === n.id))
       const primaryBox = boxes[primaryIndex < 0 ? 0 : primaryIndex] ?? null
-      setBounds(boundsOfRects([...boxes, ...regionBoxes.values()]), cameraGeneration, targetBounds, false, boxes, primaryBox)
+      const selectedIndex = gg.nodes.findIndex(n => preset.some(path => (gg.location.get(path) ?? path) === n.id))
+      setBounds(boundsOfRects([...boxes, ...regionBoxes.values()]), cameraGeneration, targetBounds, false, boxes, primaryBox, boxes[selectedIndex] ?? null)
       setLayoutBusy(false)
     }).catch((e) => {
       if (!cancelled) { setErr(`Layout: ${String(e)}`); setLayoutBusy(false) }
@@ -542,13 +543,18 @@ export default function App() {
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     if (changes.some((c) => c.type === 'position')) setMoved(true)
     const selected = changes.filter(change => change.type === 'select')
+    if (selected.length) {
+      const id = selected.find(change => change.selected)?.id
+      const internal = id && !id.startsWith('bundle:') ? rf.current?.getInternalNode(id) : null
+      setSelectionTarget(internal ? { ...internal.internals.positionAbsolute, width: internal.width ?? internal.measured.width ?? 0, height: internal.height ?? internal.measured.height ?? 0 } : null)
+    }
     if (selected.length) setSel(current => {
       const next = current.filter(path => !selected.some(change => !change.selected && change.id === (graph?.location.get(path) ?? path)))
       for (const change of selected) if (change.selected && !next.some(path => (graph?.location.get(path) ?? path) === change.id)) next.push(change.id)
       return next
     })
     setNodes((ns) => applyNodeChanges(changes, ns))
-  }, [graph])
+  }, [graph, setSelectionTarget])
 
   /** One-click undo of any manual dragging: positions back to the computed
    *  layout, selection cleared, viewport re-fitted. */
@@ -873,7 +879,10 @@ export default function App() {
           onMoveEnd={navigation.sync}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={(_, node) => { if (node.id.startsWith('bundle:')) { openBundle(node.id); return }; setSelNet(''); setSelectedPin(''); setBundleId('') }}
+          onNodeClick={(_, node) => {
+            if (node.id.startsWith('bundle:')) { setSelectionTarget(null); openBundle(node.id); return }
+            setSelNet(''); setSelectedPin(''); setBundleId('')
+          }}
           onNodeDoubleClick={(_, n) => {
             const subdesign = (n.data.g as GNode | undefined)?.subdesign
             if (subdesign) navigateScope(subdesign.path)
@@ -886,6 +895,7 @@ export default function App() {
             }
           }}
           onPaneClick={() => {
+            setSelectionTarget(null)
             setSelNet('')
           }}
           minZoom={0.002}
@@ -917,7 +927,7 @@ export default function App() {
             color: panelFg,
           }}
         >
-          {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); setTab('circuit') }}><X size={16} /></button>}
+          {!showImportant && !bundleId && <button className="icon-tool inspector-close" aria-label="Close details" title="Close details" onClick={() => { setSelectionTarget(null); setSel([]); setSelNet(''); setBundleId(''); setShowImportant(false); setTab('circuit') }}><X size={16} /></button>}
           {showImportant && <section className="important-list" aria-label="Important parts"><div className="part-heading"><h3>Important</h3><button className="icon-tool" aria-label="Close important parts" onClick={() => setShowImportant(false)}><X size={16} /></button></div>
             {!important.marks.size && <p>No important parts</p>}
             {[...important.marks].map(path => { const instance = model.instances.find(i => i.path === path); return instance && <div className="important-item" key={path}><button className="locate-link" onClick={() => locateTarget({ kind: 'part', id: path, label: partPresentation(instance).title, sub: path })}>{partPresentation(instance).title}</button><button className="icon-tool" aria-label={`Unmark ${instance.designator ?? 'component'}`} onClick={() => important.toggle(path)}><Star size={14} fill="currentColor" /></button></div> })}

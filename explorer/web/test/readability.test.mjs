@@ -16,7 +16,9 @@ const program = ts.createProgram(['src/partPresentation.ts', 'src/important.ts',
 assert.deepEqual(ts.getPreEmitDiagnostics(program).map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n')), [])
 program.emit()
 const require = createRequire(import.meta.url)
-cpSync('src/ProvenanceInspector.css', resolve(out, 'ProvenanceInspector.css'))
+for (const file of ['ProvenanceInspector.css', 'OutsideDestinations.css', 'PartDetails.css']) {
+  cpSync(`src/${file}`, resolve(out, file))
+}
 require.extensions['.css'] = () => {}
 const { partPresentation, coreCandidates } = require(resolve(out, 'partPresentation.js'))
 const { marksKey, readMarks, writeMarks } = require(resolve(out, 'important.js'))
@@ -68,8 +70,8 @@ test('all pin connection explanations use full actual membership and distinguish
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path]), '').state, 'outside range')
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '').state, 'bundled connection')
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '', undefined, 'individual').state, 'individual connection')
-  assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), 'SDA', undefined, 'individual').state, 'exact trace')
-  assert.equal(pinConnection(model, part.path, pin, new Set([part.path]), 'SDA').state, 'exact trace')
+  assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), 'SDA', undefined, 'individual').state, 'individual connection')
+  assert.equal(pinConnection(model, part.path, pin, new Set([part.path]), 'SDA').state, 'outside range')
   assert.equal(pinConnection({ ...model, derived: { rails: ['SDA'] } }, part.path, pin, new Set(), '').state, 'simplified rail')
   assert.equal(pinConnection({ ...model, nets: [{ ...net, members: net.members.slice(0, 1) }] }, part.path, pin, new Set(), '').state, 'single endpoint')
   assert.equal(pinConnection(model, part.path, { ...pin, logical: 'NC', connected: false, nc: true }, new Set(), '').state, 'NC')
@@ -116,4 +118,41 @@ test('concise part details show source value and honest empty MPN, pins before s
   assert.doesNotMatch(html, /No applicable document records|Source evidence/)
   assert.doesNotMatch(html, /Original schematic/); assert.match(html, /open/)
   assert.ok(html.indexOf('DEVICE_7') > html.indexOf('Technical details'))
+})
+
+test('selected network precedes connections, keeps exact pin distinct and directly exposes truthful documents', () => {
+  const pins = ['P53', 'P56'].map(logical => ({ logical, numbers: [logical.slice(1)], connected: true, nc: false }))
+  const instance = { ...part, pins }
+  const net = { name: 'GND', members: [...pins.map(pin => ({ instance_path: part.path, logical_pin: pin.logical, numbers: pin.numbers })), { instance_path: 'outside', logical_pin: 'GND', numbers: ['2'] }] }
+  const document = { id: 'chip-sheet', title: 'Chip datasheet', kind: 'pdf', status: 'ready', open_url: '/api/documents/chip-sheet', pages: 4, review: 'unreviewed', issues: [], applicability: [{ relation: 'exact', instances: [part.path], groups: [], page: 2 }] }
+  const props = { model: { instances: [instance], nets: [net], footprints: {}, derived: { rails: ['GND'] } }, instance, dark: false, resource: { registry: { documents: [document], constraints: [] }, loading: false, error: '', refresh() {} }, view: '', groups: [], visible: new Set([part.path]), instanceRegions: new Map([[part.path, 'Core'], ['outside', 'Power']]), selectedPin: 'P56', selectedNet: 'GND', marked: false, onMark() {}, onPin() {}, onGroup() {}, onEndpoint() {} }
+  const html = renderToStaticMarkup(React.createElement(PartDetails, props))
+  assert.ok(html.indexOf('Selected network') < html.indexOf('<h4>Connections'))
+  assert.match(html, /3 endpoints.*2 local.*1 outside/)
+  assert.match(html, /data-pin="P53" data-selected="false" data-traced="true"/)
+  assert.match(html, /data-pin="P56" data-selected="true" data-traced="true"/)
+  assert.doesNotMatch(html, /exact trace/)
+  assert.ok(html.indexOf('Documents / Datasheet') > html.indexOf('</table>'))
+  assert.match(html, /href="\/api\/documents\/chip-sheet#page=2"/)
+  const clear = renderToStaticMarkup(React.createElement(PartDetails, { ...props, selectedPin: '', selectedNet: '' }))
+  assert.equal((html.match(/simplified rail/g) ?? []).length, (clear.match(/simplified rail/g) ?? []).length)
+  const missing = renderToStaticMarkup(React.createElement(PartDetails, { ...props, resource: { ...props.resource, registry: null } }))
+  assert.match(missing, /No associated documents/)
+  assert.doesNotMatch(missing, /href="\/api\/documents\//)
+  for (const [status, label] of [['missing', 'Missing local document'], ['invalid', 'Unavailable']]) {
+    const unavailable = { ...document, status, open_url: '/api/documents/chip-sheet', applicability: [{ ...document.applicability[0], relation: 'related' }] }
+    const html = renderToStaticMarkup(React.createElement(PartDetails, { ...props, resource: { ...props.resource, registry: { documents: [unavailable], constraints: [] } } }))
+    assert.match(html, new RegExp(label))
+    assert.match(html, /Related evidence/)
+    assert.doesNotMatch(html, /href="\/api\/documents\//)
+  }
+  for (const [state, label] of [[{ loading: true }, 'Checking documents'], [{ error: 'offline' }, 'Documents unavailable: offline']]) {
+    const html = renderToStaticMarkup(React.createElement(PartDetails, { ...props, resource: { ...props.resource, ...state } }))
+    assert.match(html, new RegExp(label))
+  }
+  for (const [logical, nc, label] of [['NC', true, 'NC'], ['OPEN', false, 'open']]) {
+    const openPart = { ...instance, pins: [{ logical, numbers: ['9'], connected: false, nc }] }
+    const openHtml = renderToStaticMarkup(React.createElement(PartDetails, { ...props, instance: openPart, selectedPin: logical, selectedNet: '' }))
+    assert.match(openHtml, new RegExp(`data-state="${label}"`))
+  }
 })

@@ -1,0 +1,9 @@
+.part-network, .part-documents { margin-block: 14px; padding-block: 10px; border-top: 1px solid var(--line, #7775); overflow-wrap: anywhere; }
+.part-network h4, .part-document-heading h4 { margin: 0 0 8px; }
+.part-document-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.part-documents ul { padding-left: 18px; margin-block: 8px; }
+.part-documents li { margin-block: 8px; }
+.part-documents small { display: block; opacity: .75; }
+.part-documents a { display: inline-flex; align-items: center; gap: 4px; }
+.part-details .pin-target[data-traced="true"] { background: color-mix(in srgb, var(--accent, #2c9b78) 12%, transparent); }
+.part-details .pin-target[data-selected="true"] { background: color-mix(in srgb, var(--accent, #2c9b78) 26%, transparent); outline: 1px solid var(--accent, #2c9b78); outline-offset: -1px; }

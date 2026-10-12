@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs'
 
 const help = { schema: 1, command: 'node explorer/assist/cli.mjs', operations: ['prepare PROJECT --selection FILE --out BUNDLE', 'propose BUNDLE --kind group|plan|connect --engine codex --request FILE --out RUN_DIR', 'validate PROJECT RUN_DIR --out RUN_DIR/validation.json', 'apply PROJECT RUN_DIR --validation RUN_DIR/validation.json --out RUN_DIR/receipt.json', 'revert PROJECT RUN_DIR/receipt.json'] }
 const abort = new AbortController()
+help.operations.push('group PROJECT --request JSON_FILE (or - for stdin): propose|focus|save|undo display groups')
 process.once('SIGINT', () => abort.abort())
 process.once('SIGTERM', () => abort.abort())
 

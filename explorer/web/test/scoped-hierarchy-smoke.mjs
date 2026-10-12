@@ -60,6 +60,11 @@ const capture = async name => {
       count: Number(document.querySelector('.inspection-counts')?.dataset.parts),
       range: document.querySelector('.inspection-range')?.textContent,
       index: [...document.querySelectorAll('.group-index-identity')].map(element => element.textContent),
+      indexCards: [...document.querySelectorAll('.group-index-identity')].map(element => ({
+        group: element.dataset.group, rect: rect(element),
+        core: element.querySelector('.group-index-cores')?.textContent,
+        interfaces: element.querySelector('.group-index-interfaces')?.textContent,
+      })),
       cards: [...document.querySelectorAll('.device-card')].map(card => {
         const header = card.querySelector('.device-header'), pin = card.querySelector('.device-pin-row')
         return { id: card.dataset.instance, text: card.textContent, header: rect(header),
@@ -126,6 +131,10 @@ try {
     assert.equal(index.cards.length, 0, 'System index does not expand all233 devices')
     assert.ok(index.index.some(text => text.includes('SF32LB525UC6')), 'Index includes real source-backed core identity')
     assert.ok(index.index.some(text => text.includes('ESP32')), 'Index includes real ESP32 identity')
+    assert.ok(index.indexCards.some(card => /SF32LB525UC6|ESP32/.test(card.core)
+      && card.rect.right > index.canvas.x && card.rect.x < index.canvas.right
+      && card.rect.y >= index.canvas.y && card.rect.bottom <= index.canvas.bottom),
+    'Clean first viewport visibly locates a real core identity and its Group')
     const entry = await page.$('.group-index-identity[data-group="Camera"] .group-entry')
     assert.ok(entry, 'System index has a direct Camera entry')
     await entry.focus()
@@ -196,6 +205,24 @@ try {
     await page.reload({ waitUntil: 'networkidle2' }); await settle()
     assert.deepEqual((await context()).groups, before.groups)
     assert.equal((await context()).mode, 'sch', 'Manual v2 Group detail remains after reload')
+    const endpointBefore = await context()
+    await page.$eval('.outside-destinations details[data-group="Camera"][data-local="false"] summary', element => element.click())
+    const endpoint = await page.$('.outside-destinations details[data-group="Camera"][data-local="false"] .destination-endpoint')
+    assert.ok(endpoint, 'Camera has a real outside endpoint entry')
+    await endpoint.evaluate(element => element.scrollIntoView({ block: 'nearest' }))
+    await capture(`${viewport.width}-outside-expanded-GND`)
+    const target = await endpoint.evaluate(element => ({ path: element.parentElement.dataset.instance, pin: element.parentElement.dataset.pin }))
+    await endpoint.focus(); await page.keyboard.press('Enter'); await settle()
+    const located = await context()
+    assert.deepEqual(located.groups, ['Camera'])
+    assert.deepEqual(located.selection, [target.path]); assert.equal(located.pin, target.pin); assert.equal(located.net, 'GND')
+    await capture(`${viewport.width}-outside-exact-endpoint`)
+    await command('Back')
+    const endpointRestored = await context()
+    assert.deepEqual(endpointRestored.groups, endpointBefore.groups)
+    assert.deepEqual(endpointRestored.selection, endpointBefore.selection)
+    assert.equal(endpointRestored.pin, endpointBefore.pin); assert.equal(endpointRestored.net, endpointBefore.net)
+    assert.deepEqual(endpointRestored.viewport.viewport, endpointBefore.viewport.viewport, 'Exact endpoint Back restores camera')
   }
   assert.deepEqual(errors, [])
   writeFileSync(resolve(output, 'summary.json'), JSON.stringify({ result: 'PASS', records, errors }, null, 2))

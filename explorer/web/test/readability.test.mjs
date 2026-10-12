@@ -67,6 +67,8 @@ test('all pin connection explanations use full actual membership and distinguish
   const model = { instances: [part], nets: [net], derived: { rails: [] } }
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path]), '').state, 'outside range')
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '').state, 'bundled connection')
+  assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '', undefined, 'individual').state, 'individual connection')
+  assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), 'SDA', undefined, 'individual').state, 'exact trace')
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path]), 'SDA').state, 'exact trace')
   assert.equal(pinConnection({ ...model, derived: { rails: ['SDA'] } }, part.path, pin, new Set(), '').state, 'simplified rail')
   assert.equal(pinConnection({ ...model, nets: [{ ...net, members: net.members.slice(0, 1) }] }, part.path, pin, new Set(), '').state, 'single endpoint')
@@ -75,6 +77,17 @@ test('all pin connection explanations use full actual membership and distinguish
   const internal = { ...model, nets: [{ ...net, members: [net.members[0], { ...net.members[1], instance_path: part.path }] }] }
   assert.equal(pinConnection(internal, part.path, pin, new Set([part.path]), '').state, 'internal connection')
   assert.equal(pinConnection(model, part.path, pin, new Set([part.path, 'Board::other']), '', new Map([[part.path, 'group:one'], ['Board::other', 'group:one']])).state, 'internal connection')
+})
+
+test('part details connection states follow the explicit wire mode', () => {
+  const pin = { logical: 'SDA', numbers: ['1'], connected: true, nc: false, role: 'io', obligation: 'optional' }
+  const instance = { ...part, pins: [pin] }
+  const net = { name: 'SDA', members: [{ instance_path: part.path, logical_pin: 'SDA', numbers: ['1'] }, { instance_path: 'other', logical_pin: 'IN', numbers: ['2'] }] }
+  const props = { model: { instances: [instance], nets: [net], footprints: {}, derived: { rails: [] } }, instance, dark: false, resource: { registry: null, loading: false, error: '', refresh() {} }, view: '', groups: [], visible: new Set([part.path, 'other']), selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {} }
+  const render = connectionMode => renderToStaticMarkup(React.createElement(PartDetails, { ...props, connectionMode }))
+  assert.match(render('individual'), /individual connection/)
+  assert.doesNotMatch(render('individual'), /bundled connection/)
+  assert.match(render('bundled'), /bundled connection/)
 })
 
 test('SCH detailed heading uses the prepared source-backed subtitle when actual MPN is empty', () => {

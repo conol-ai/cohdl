@@ -70,8 +70,27 @@ a unique, nonempty, trimmed name and a `regions` array; each region has a
 unique, nonempty, trimmed name within its view and a `members` string array.
 `Other` (case-insensitive) is reserved for unmatched parts. Member rules are
 trimmed nonempty designators, `path:<instance path>`, `agg:host:<IC path>`, or
-`agg:<rail combination key>`; prefix rules require a nonempty suffix. The first
-matching region wins. Empty regions/member arrays are permitted.
+`agg:<rail combination key>`; prefix rules require a nonempty suffix. Every
+matching region contributes membership; the first match controls placement only.
+Empty regions/member arrays are permitted. Optional per-view
+`navigation: [{"name":"Subsystem","groups":["Core","Interface"]}]` provides a
+two-level index referencing existing region names. Shared leaves can appear under
+multiple parents; overlapping selections count each actual instance once.
+
+Fresh sessions open a nonempty source-backed core Group in SCH view. Existing
+inspection URLs and Back restore valid choices; legacy overviews offer View
+inside. The persistent rail hides/restores Groups and the toolbar and switches
+Circuit/BOM. BOM keeps its own search and scroll while consecutive part selections
+open matching details. Issues and Proposals are in the secondary menu. Selected
+network details precede Connections; Documents/Datasheet follows it. Connection
+State describes the original model, independent of temporary tracing.
+
+AI Groups in the official Groups panel reuse [Explorer Assist](assist/README.md).
+Review shows actual members and original nets; Focus is temporary, Cancel restores
+the preceding range, Save persists a validated display view, and Undo uses the
+retained guarded receipt, including after reopening a saved proposal. Editing or
+deleting a Group produces another reviewed proposal. Circuit source and BOM are
+never modified by display-group actions.
 
 Missing configs return HTTP 404 JSON; invalid JSON/schema returns HTTP 422
 JSON with an `error` message. Config additions, content changes and deletions

@@ -10,11 +10,13 @@ const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH
 try {
   const page = await browser.newPage()
   await page.setViewport({ width: 1280, height: 800 })
-  let release, rejectRegistry = false
+  let release, onHeld, rejectRegistry = false
+  const heldRequest = () => new Promise(resolve => { onHeld = resolve })
   await page.setRequestInterception(true)
   page.on('request', request => {
     if (!request.url().includes('/api/documents') || request.url().includes('/api/documents/')) return request.continue()
     release = () => request.respond({ status: rejectRegistry ? 404 : 200, contentType: 'application/json', body: rejectRegistry ? '{}' : registry })
+    onHeld?.()
   })
   const ready = () => page.waitForFunction(() => document.querySelector('.explorer-canvas')?.getAttribute('aria-busy') === 'false'
     && JSON.parse(new URL(location.href).searchParams.get('inspect') ?? '{}').viewport !== undefined
@@ -23,7 +25,9 @@ try {
     const transform = new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform)
     return { x: transform.e, y: transform.f, zoom: transform.a }
   })
+  let held = heldRequest()
   await page.goto(base, { waitUntil: 'domcontentloaded' })
+  await held
   await page.waitForFunction(() => document.body.textContent.includes('Loading component information...'))
   assert.equal(await page.$eval('.explorer-canvas', element => element.getAttribute('aria-busy')), 'true')
   assert.equal(new URL(page.url()).searchParams.has('inspect'), false, 'Pending source identities must not publish an intermediate camera')
@@ -38,7 +42,9 @@ try {
   })
   const before = await capture(), saved = page.url()
   release = null
+  held = heldRequest()
   await page.reload({ waitUntil: 'domcontentloaded' })
+  await held
   await page.waitForFunction(() => document.body.textContent.includes('Loading component information...'))
   assert.equal(page.url(), saved, 'Reload keeps pending authoritative camera')
   assert.ok(release)
@@ -48,7 +54,9 @@ try {
   for (const name of ['x', 'y', 'zoom']) assert.ok(Math.abs(before[name] - after[name]) < .02, `Reload ${name} stays deterministic: ${JSON.stringify({ before, after })}`)
   console.log('PASS delayed actual source identity: pending readiness and exact manual-camera reload')
   rejectRegistry = true
+  held = heldRequest()
   await page.goto(base, { waitUntil: 'domcontentloaded' })
+  await held
   await page.waitForFunction(() => document.body.textContent.includes('Loading component information...'))
   await release()
   await ready()

@@ -17,12 +17,14 @@ export async function runUnionSmoke(page, { url, output, ready, clickText, geome
     const counts = document.querySelector('.inspection-counts').dataset
     const canvas = document.querySelector('.explorer-canvas').getBoundingClientRect()
     const transform = new DOMMatrixReadOnly(getComputedStyle(document.querySelector('.react-flow__viewport')).transform)
+    const header = document.querySelector('.react-flow__node.selected .device-header')?.getBoundingClientRect()
     return {
       parts: [...document.querySelectorAll('.react-flow__node')].map((n) => n.dataset.id).filter((id) => !id.startsWith('region:') && !id.startsWith('net:') && !id.startsWith('bundle:') && !id.startsWith('group:')).sort(),
       selected: [...document.querySelectorAll('.react-flow__node.selected')].map((n) => n.dataset.id).sort(),
       groups: [...document.querySelectorAll('.group-selector input:checked')].map((i) => i.parentElement.textContent.trim()).sort(),
       net: [...document.querySelectorAll('.explorer-inspector h3')].map((h) => h.textContent).find((h) => h.startsWith('net ')),
       counts: { ...counts }, viewport: { x: transform.e, y: transform.f, zoom: transform.a, width: canvas.width, height: canvas.height },
+      identity: header && { x: header.x - canvas.x, y: header.y - canvas.y, width: header.width, height: header.height },
     }
   })
   const assertUnion = async (names) => {
@@ -101,7 +103,15 @@ export async function runUnionSmoke(page, { url, output, ready, clickText, geome
     const resized = await inspect()
     for (const [dimension, coordinate] of [['width', 'x'], ['height', 'y']]) {
       const center = (v) => (v[dimension] / 2 - v[coordinate]) / v.zoom
-      assert.ok(Math.abs(center(resized.viewport) - center(before.viewport)) < 0.01, `Resize lost logical ${coordinate} center: ${JSON.stringify({ before: before.viewport, resized: resized.viewport })}`)
+      const identity = before.identity
+      const projectedStart = identity && identity[coordinate] + (resized.viewport[dimension] - before.viewport[dimension]) / 2
+      const fitsCentered = !identity || projectedStart >= 16 && projectedStart + identity[dimension] <= resized.viewport[dimension] - 16
+      if (fitsCentered) assert.ok(Math.abs(center(resized.viewport) - center(before.viewport)) < 0.01, `Resize lost logical ${coordinate} center with visible identity`)
+      else {
+        assert.ok(resized.identity[coordinate] >= 15, 'Resize recovers selected identity instead of retaining a clipped header')
+        if (resized.identity[dimension] <= resized.viewport[dimension] - 32)
+          assert.ok(resized.identity[coordinate] + resized.identity[dimension] <= resized.viewport[dimension] - 15, 'Recovered identity stays within canvas')
+      }
     }
     assert.equal(resized.viewport.zoom, before.viewport.zoom)
     await clickText('Fit circuit')

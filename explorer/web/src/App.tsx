@@ -1005,7 +1005,7 @@ export default function App() {
               </div>
             </>
           )}
-          {selInst && <PartDetails model={model} instance={selInst} dark={dark} resource={documents} view={activeView} groups={selectedGroups}
+          {selInst && <PartDetails model={model} instance={selInst} dark={dark} resource={documents} view={activeView} groups={selectedGroups} connectionMode={mode === 'layout' ? 'individual' : connectionMode}
             visible={visibleParts} locations={mode === 'layout' ? undefined : projection?.graph.location} selectedPin={selectedPin} selectedNet={selNet} marked={important.marks.has(selInst.path)}
             onMark={() => important.toggle(selInst.path)} onPin={activatePin} placement={<div className="part-placement">
               <b>{localPlacementView ? 'Local placement' : 'Board placement'}</b>

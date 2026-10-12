@@ -65,7 +65,7 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
     return () => removeEventListener('popstate', pop)
   }, [restore])
   useEffect(() => {
-    if (!initialized.current || busy || !ready) return
+    if (!initialized.current || busy || !ready || (!config && pending.current?.view)) return
     const currentGeneration = generation.current
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {
@@ -75,6 +75,6 @@ export function useInspectionNavigation({ model, config, ready, busy, signature,
       })
     })
     return () => cancelAnimationFrame(frame)
-  }, [busy, ready, signature, revision, sync])
+  }, [busy, ready, config, signature, revision, sync])
   return { navigate, sync, canBack, back: () => history.back() }
 }

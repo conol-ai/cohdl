@@ -73,6 +73,7 @@ export default function App() {
   const [viewCfg, setViewCfg] = useState<ViewConfig | null>(null)
   const [viewError, setViewError] = useState('')
   const [viewsLoading, setViewsLoading] = useState(false)
+  const [viewRetry, setViewRetry] = useState(0)
   const [layoutBusy, setLayoutBusy] = useState(false)
   const loadedViewDesign = useRef<string | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -200,7 +201,7 @@ export default function App() {
       })
       .finally(() => { if (!cancelled) { loadedViewDesign.current = model.design; setViewsLoading(false) } })
     return () => { cancelled = true }
-  }, [model])
+  }, [model, viewRetry])
 
   // rail/net chip clicks from inside custom nodes
   useEffect(() => {
@@ -617,7 +618,7 @@ export default function App() {
   }
   const toggleGroup = (name: string) => {
     const groups = selectedGroups.includes(name) ? selectedGroups.filter((g) => g !== name) : [...selectedGroups, name]
-    freshRange({ scope: null, groups, collapsed: groups.length ? collapsedGroups.filter(g => !groups.includes(g)) : fullView?.regions?.regions ?? [] })
+    freshRange({ scope: null, groups, collapsed: groups.length ? collapsedGroups.filter(g => !groups.includes(g)) : collapsedGroups })
   }
 
   const locateTarget = (hit: SearchHit) => {
@@ -850,7 +851,7 @@ export default function App() {
           )}
           <div className="inspection-range" aria-label="Inspection range">{selectedGroups.length ? selectedGroups.join(' + ') : 'All groups'}</div>
           {viewsLoading && <div role="status">Loading groups...</div>}
-          {viewError && <div role="alert">{viewError}</div>}
+          {viewError && <div role="alert">{viewError} <button className="context-command" onClick={() => setViewRetry(value => value + 1)}>Retry groups</button></div>}
         </div>
         <div className="explorer-workspace">
         {viewDef && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ groups: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} />}

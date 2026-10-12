@@ -14,7 +14,7 @@ program.emit()
 const require = createRequire(import.meta.url)
 const { buildViewGraph, projectGroupUnion, collapseGroups, groupNodeId } = require(resolve(outDir, 'views.js'))
 const { searchCircuit, inspectionIssues } = require(resolve(outDir, 'search.js'))
-const { parseInspectionUrl, inspectionUrl, contextKey } = require(resolve(outDir, 'navigation.js'))
+const { parseInspectionUrl, inspectionUrl, contextKey, normalizeContext } = require(resolve(outDir, 'navigation.js'))
 const { wireHandles } = require(resolve(outDir, 'handles.js'))
 const span = { file: 'src/main.cohdl', line: 5, col: 2 }
 const part = (path, designator) => ({ path, designator, device_fq: 'fixture::Device', impl_traits: [], specs: [], docs: [], span, pins: [
@@ -60,6 +60,22 @@ test('device projection represents rail-only components individually through gro
   assert.equal(union.graph.location.get('Board::b'), 'Board::b')
   assert.equal(union.graph.nodes.filter(n => n.inst?.path === 'Board::b').length, 1)
   assert.ok(!full.graph.nodes.some(n => n.aggMembers))
+})
+
+test('unavailable config preserves requested view and groups until authoritative recovery', () => {
+  const m = model()
+  const requested = { ...parseInspectionUrl(new URL('http://localhost/'), m, config), groups: ['Right'], collapsed: ['Right'], selection: [groupNodeId(view.name, 'Right')] }
+  const url = inspectionUrl(new URL('http://localhost/'), requested)
+  const pending = parseInspectionUrl(url, m, null)
+  assert.equal(pending.view, view.name)
+  assert.deepEqual(pending.groups, ['Right'])
+  assert.deepEqual(pending.collapsed, ['Right'])
+  assert.deepEqual(pending.selection, requested.selection)
+  assert.deepEqual(normalizeContext(pending, m, config), requested)
+  assert.deepEqual(normalizeContext({ ...pending, groups: ['removed'] }, m, config).groups, [])
+  const noRegions = parseInspectionUrl(new URL('http://localhost/'), m, null)
+  assert.equal(noRegions.view, '')
+  assert.deepEqual(noRegions.groups, [])
 })
 
 test('collapsed boundaries retain actual logical/physical endpoints and never inflate represented counts', () => {

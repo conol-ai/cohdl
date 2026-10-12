@@ -20,20 +20,21 @@ const boardSnapshot = (value: unknown): BoardViewportSnapshot | null => {
 export function normalizeContext(value: unknown, model: ExplorerModel, config: ViewConfig | null): InspectionContext {
   const input = record(value) ? value : {}
   const views = config?.views.filter(v => v.name !== 'Source pages') ?? []
-  const view = typeof input.view === 'string' && (!input.view || views.some((v) => v.name === input.view)) ? input.view : views.find(v => v.name === 'Functional')?.name ?? views[0]?.name ?? ''
+  const view = typeof input.view === 'string' && input.view !== 'Source pages' && (!config || !input.view || views.some((v) => v.name === input.view)) ? input.view : views.find(v => v.name === 'Functional')?.name ?? views[0]?.name ?? ''
   const definition = config?.views.find((v) => v.name === view)
   const flat = buildViewGraph(model, null, definition)
   const names = flat.regions?.regions ?? []
   const scope = input.scope === '' || (typeof input.scope === 'string' && model.subdesigns?.some((s) => s.path === input.scope)) ? input.scope : null
   const scoped = scope === null ? flat : buildViewGraph(model, scope, definition)
   const parts = new Set([...model.instances.map((i) => i.path), ...scoped.graph.nodes.map((n) => n.id), ...flat.graph.nodes.map((n) => n.id), ...(model.subdesigns ?? []).map((s) => s.path), ...names.map((n) => groupNodeId(view, n))])
+  if (!config) for (const group of [...strings(input.groups), ...strings(input.collapsed)]) parts.add(groupNodeId(view, group))
   const selection = strings(input.selection).filter((id) => parts.has(id))
   const pin = typeof input.pin === 'string' && selection.length === 1 && model.instances.find((i) => i.path === selection[0])?.pins.some((p) => p.logical === input.pin) ? input.pin : ''
   return {
     mode: input.mode === 'overview' || input.mode === 'layout' ? input.mode : 'sch',
     connectionMode: input.connectionMode === 'bundled' ? 'bundled' : 'individual',
     scope,
-    view, groups: strings(input.groups).filter((g) => names.includes(g)), collapsed: strings(input.collapsed).filter((g) => names.includes(g)),
+    view, groups: strings(input.groups).filter((g) => !config || names.includes(g)), collapsed: strings(input.collapsed).filter((g) => !config || names.includes(g)),
     selection, pin, net: typeof input.net === 'string' && explorerNets(model).some((n) => n.name === input.net) ? input.net : '',
     viewport: canvasSnapshot(input.viewport), boardViewport: boardSnapshot(input.boardViewport),
     layoutFrame: input.layoutFrame === 'board' ? 'board' : 'local', layoutSide: input.layoutSide === 'top' || input.layoutSide === 'bottom' ? input.layoutSide : 'both',

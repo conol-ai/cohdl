@@ -14,6 +14,8 @@ export { DETAILED_WIDTH, DETAILED_HEADER, DETAILED_ROW, detailedPinY } from './d
 import { PinTarget, type PinIdentity } from './PinTarget'
 import { partPresentation } from './partPresentation'
 import { Star } from 'lucide-react'
+import { GroupIndexContent } from './GroupIndexContent'
+import type { GroupIndexEntry } from './groupIndex'
 
 function Mark({ marked }: { marked: unknown }) { return marked ? <Star className="node-important" size={13} fill="currentColor" aria-label="Important" /> : null }
 function CenterHandles() { return <><Handle type="target" position={Position.Left} style={{ opacity: 0 }} /><Handle type="source" position={Position.Right} style={{ opacity: 0 }} /></> }
@@ -26,6 +28,10 @@ export function BoundaryNode({ id, data, selected }: NodeProps) {
   const dark = data.dark as boolean
   const hlPins = (data.hlPins ?? []) as string[]
   const compact = !!data.compact
+  if (compact && data.index) return <div className="system-group-node" style={{ position: 'relative', width: n.width, height: n.height, boxSizing: 'border-box', border: `2px solid ${selected ? '#f59e0b' : data.hl ? '#22d3ee' : '#64748b'}`, borderRadius: 6, background: dark ? '#22262e' : '#fff', color: dark ? '#e5e7eb' : '#1f2937', opacity: data.dim ? .18 : 1 }}>
+    <Mark marked={data.marked} /><CenterHandles />
+    <GroupIndexContent entry={data.index as GroupIndexEntry} onOpen={data.onGroup as (group: string) => void} />
+  </div>
   return (
     <div style={{
       position: 'relative',

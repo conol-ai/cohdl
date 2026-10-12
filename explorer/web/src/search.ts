@@ -1,14 +1,15 @@
 import type { Diag, ExplorerModel } from './model'
 import { shortName } from './model'
 import { explorerNets } from './hierarchy'
+import { partPresentation } from './partPresentation'
 
 export interface SearchHit { kind: 'part' | 'net' | 'pin' | 'subdesign'; id: string; label: string; sub: string; pin?: string; net?: string }
 
-export function searchCircuit(model: ExplorerModel, query: string): SearchHit[] {
+export function searchCircuit(model: ExplorerModel, query: string, sourceValues: ReadonlyMap<string, string> = new Map()): SearchHit[] {
   const terms = query.trim().toLowerCase().split(/[\s.]+/).filter(Boolean)
   if (!terms.length) return []
   const matches = (text: string) => terms.every((term) => text.toLowerCase().includes(term))
-  const identityOf = (instance: ExplorerModel['instances'][number]) => `${instance.designator ?? ''} ${instance.path} ${instance.device_fq} ${instance.part?.mpn ?? ''}`.toLowerCase()
+  const identityOf = (instance: ExplorerModel['instances'][number]) => `${instance.designator ?? ''} ${instance.path} ${instance.device_fq} ${partPresentation(instance, sourceValues.get(instance.path)).subtitle}`.toLowerCase()
   const target = terms.at(-1) ?? ''
   const prefix = terms.slice(0, -1)
   const qualified = terms.length > 1 && model.instances.some((i) => prefix.every((t) => identityOf(i).includes(t)) &&
@@ -18,7 +19,8 @@ export function searchCircuit(model: ExplorerModel, query: string): SearchHit[] 
     if (matches(`${sub.path} ${sub.definition}`)) hits.push({ kind: 'subdesign', id: sub.path, label: shortName(sub.path), sub: sub.path })
   for (const instance of model.instances) {
     const identity = identityOf(instance)
-    if (!qualified && matches(identity)) hits.push({ kind: 'part', id: instance.path, label: `${instance.designator ?? ''} ${shortName(instance.device_fq)}`, sub: instance.path })
+    const presentation = partPresentation(instance, sourceValues.get(instance.path))
+    if (!qualified && matches(identity)) hits.push({ kind: 'part', id: instance.path, label: `${presentation.reference} ${presentation.subtitle || presentation.category}`, sub: instance.path })
     for (const pin of instance.pins) {
       if (qualified) {
         const target = terms.at(-1)!

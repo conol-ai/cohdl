@@ -1,0 +1,14 @@
+.outside-destinations { margin-top: 12px; min-width: 0; font-size: 12px; }
+.outside-destinations h4 { margin: 0 0 4px; font-size: 13px; }
+.destination-counts { margin-bottom: 6px; opacity: .8; }
+.outside-destination-list { max-height: 256px; overflow-y: auto; overflow-x: hidden; border-top: 1px solid #64748b55; }
+.destination-group { border-bottom: 1px solid #64748b55; }
+.destination-group summary { cursor: pointer; padding: 8px 0; overflow-wrap: anywhere; }
+.destination-group summary span { display: block; padding-left: 14px; opacity: .8; }
+.destination-group ul { list-style: none; padding: 0; margin: 4px 0 8px; }
+.destination-group li { padding: 4px 0; border-top: 1px solid #64748b33; overflow-wrap: anywhere; }
+.destination-endpoint, .destination-group-command { font: inherit; color: inherit; background: transparent; border: 0; text-align: left; cursor: pointer; padding: 4px; text-decoration: underline; overflow-wrap: anywhere; }
+.destination-endpoint { display: flex; gap: 12px; justify-content: space-between; width: 100%; box-sizing: border-box; }
+.destination-endpoint > span { min-width: 0; overflow-wrap: anywhere; }
+.destination-physical { max-width: 45%; }
+.destination-identity { padding: 0 4px; opacity: .8; font-size: 12px; }

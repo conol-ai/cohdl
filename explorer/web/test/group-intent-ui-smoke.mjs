@@ -48,15 +48,25 @@ const capture = async name => {
   await page.screenshot({ path: resolve(output, `${name}.png`) })
   return view
 }
+const review = async id => {
+  if (mobile && await page.$eval('.group-panel', element => getComputedStyle(element).display === 'none')) { await page.click('[aria-label="Show Groups"]'); await settle() }
+  await page.$eval('.group-intent', element => { element.open = true })
+  await page.$eval('[aria-label="Group proposal run"]', element => { element.focus(); element.select() })
+  await page.keyboard.press('Backspace')
+  await page.type('[aria-label="Group proposal run"]', id)
+  await click('Review')
+}
+const assertBaseline = async reason => {
+  const current = await context()
+  for (const key of ['mode', 'view', 'groups', 'scope', 'selection', 'pin', 'net']) assert.deepEqual(current[key], baseline[key], `${reason}: ${key}`)
+}
+let baseline
 try {
   await page.setViewport(mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 })
   await page.goto(base, { waitUntil: 'networkidle2' })
   await settle()
-  const baseline = await context()
-  if (mobile) { await page.click('[aria-label="Show Groups"]'); await settle() }
-  await page.$eval('.group-intent', element => { element.open = true })
-  await page.type('[aria-label="Group proposal run"]', run)
-  await click('Review')
+  baseline = await context()
+  await review(run)
   await capture('review')
   await click('Focus')
   const focused = await context()
@@ -76,9 +86,16 @@ try {
   assert.ok(refreshed.groups.length)
   await refresh.screenshot({ path: resolve(output, 'unsaved-refresh.png') })
   await refresh.close()
+  if (mobile) { await page.click('[aria-label="Show Groups"]'); await settle() }
+  await page.type('[aria-label="Group proposal run"]', '_edited')
+  await settle()
+  await assertBaseline('Editing the run cancels its temporary focus')
+  assert.equal(await page.$('[aria-label="Group proposal preview"]'), null)
+  assert.equal(await capture('edited-run-restored'), originalView)
+  await review(run)
+  await click('Focus')
   await click('Cancel temporary focus')
-  const cancelled = await context()
-  for (const key of ['mode', 'view', 'groups', 'scope', 'selection', 'pin', 'net']) assert.deepEqual(cancelled[key], baseline[key])
+  await assertBaseline('Cancel restores original baseline')
   assert.equal(await capture('cancelled'), originalView)
   await click('Focus')
   assert.equal((await context()).view, 'Intent ESP32 Camera')
@@ -88,10 +105,17 @@ try {
     assert.notEqual(saved, originalView)
     assert.equal((await context()).view, 'Intent ESP32 Camera')
     assert.ok(JSON.parse(saved).views.some(view => view.name === 'Intent ESP32 Camera'))
+    await page.reload({ waitUntil: 'networkidle2' })
+    await settle()
+    await review(run)
+    assert.ok(await page.$eval('.group-intent', element => element.innerText.includes('Group changes saved')))
+    assert.equal(await capture('saved-reloaded-reviewed'), saved)
     await click('Undo saved group change')
     assert.equal(await capture('undone'), originalView)
     assert.equal((await context()).mode, 'sch')
     assert.ok((await context()).groups.length, 'Undo restores a bounded saved Group')
+    const undoneParts = Number(await page.$eval('.inspection-counts', element => element.dataset.parts))
+    assert.ok(undoneParts > 0 && undoneParts < model.instances.length, 'Reloaded Undo fallback is bounded rather than all components')
   } else {
     await click('Cancel temporary focus')
   }

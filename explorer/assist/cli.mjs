@@ -4,6 +4,8 @@ import { check } from './io.mjs'
 import { validate } from './validation.mjs'
 import { apply, revert } from './mutation.mjs'
 import { propose } from './provider.mjs'
+import { groupAction } from './focus.mjs'
+import { readFileSync } from 'node:fs'
 
 const help = { schema: 1, command: 'node explorer/assist/cli.mjs', operations: ['prepare PROJECT --selection FILE --out BUNDLE', 'propose BUNDLE --kind group|plan|connect --engine codex --request FILE --out RUN_DIR', 'validate PROJECT RUN_DIR --out RUN_DIR/validation.json', 'apply PROJECT RUN_DIR --validation RUN_DIR/validation.json --out RUN_DIR/receipt.json', 'revert PROJECT RUN_DIR/receipt.json'] }
 const abort = new AbortController()
@@ -28,7 +30,12 @@ try {
   if (operation === '--help' || operation === 'help') console.log(JSON.stringify(help))
   else {
     const { positional, flags } = argumentsFor(args)
-    if (operation === 'prepare') {
+    if (operation === 'group') {
+      check(positional.length === 1 && flags['--request'] && Object.keys(flags).length === 1, 'group requires PROJECT --request JSON_FILE (or - for stdin)')
+      const request = readFileSync(flags['--request'] === '-' ? 0 : flags['--request'], 'utf8')
+      check(Buffer.byteLength(request) <= 65536, 'Group request exceeds byte limit')
+      console.log(JSON.stringify(await groupAction(positional[0], JSON.parse(request), abort.signal)))
+    } else if (operation === 'prepare') {
       check(positional.length === 1 && flags['--selection'] && flags['--out'] && Object.keys(flags).length === 2, 'prepare requires PROJECT --selection FILE --out BUNDLE')
       console.log(JSON.stringify(await prepare(positional[0], flags['--selection'], flags['--out'], abort.signal)))
     } else if (operation === 'propose') {

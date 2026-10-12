@@ -1,0 +1,13 @@
+.group-intent { border-top: 1px solid var(--border, #424242); padding: 8px; font-size: 12px; }
+.group-intent summary { cursor: pointer; padding: 4px 0; }
+.group-intent label { display: grid; gap: 4px; margin: 8px 0; min-width: 0; }
+.group-intent textarea, .group-intent input, .group-intent select { width: 100%; min-width: 0; box-sizing: border-box; color: inherit; background: var(--bg, #202020); border: 1px solid var(--border, #555); border-radius: 4px; padding: 6px; font: inherit; }
+.group-intent button { display: inline-flex; align-items: center; gap: 4px; padding: 5px; }
+.group-intent-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.group-intent p, .group-intent li { overflow-wrap: anywhere; }
+.group-intent ul { padding-left: 15px; max-height: 180px; overflow: auto; }
+.group-intent code { display: block; font-size: 10px; opacity: .65; }
+.group-intent pre { max-height: 160px; overflow: auto; font-size: 10px; }
+.group-edit-target { display: flex; gap: 3px; align-items: center; }
+.group-edit-target label { flex: 1; }
+.group-uncertainty { color: #d8b986; }

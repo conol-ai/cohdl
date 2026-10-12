@@ -56,6 +56,15 @@ export function validateView(bytes, bundle) {
       targets.add(JSON.stringify([view.name, region.name]))
       check(Array.isArray(region.members) && region.members.length <= 2048 && region.members.every((m) => identities.has(m)), 'Unknown native group member')
     }
+    if (view.navigation !== undefined) {
+      check(Array.isArray(view.navigation) && view.navigation.length <= 512, 'Invalid native group navigation')
+      const parents = new Set()
+      for (const parent of view.navigation) {
+        check(object(parent) && typeof parent.name === 'string' && parent.name.trim() === parent.name && parent.name.length > 0 && !parents.has(parent.name), 'Invalid or duplicate navigation parent')
+        parents.add(parent.name)
+        check(Array.isArray(parent.groups) && parent.groups.length > 0 && parent.groups.length <= 512 && new Set(parent.groups).size === parent.groups.length && parent.groups.every(g => regions.has(g)), 'Unknown or duplicate navigation group reference')
+      }
+    }
   }
   for (const document of bundle.registry?.documents ?? []) {
     for (const application of document.applicability ?? []) {

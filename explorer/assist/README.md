@@ -50,7 +50,25 @@ new run to propose another operation. Interrupted operations remain explicit.
 
 Serve the same project with the official `cohdl-explorer --serve`; the native
 Proposals inspector displays retained runs, citations, exact changes, compiler
-diagnostics, operation receipts and raw logs. Its API is read-only.
+diagnostics, operation receipts and raw logs. Proposal evidence endpoints remain
+read-only. Display-group actions reuse this pipeline through the local CLI/API:
+
+```sh
+node explorer/assist/cli.mjs group PROJECT --request request.json
+```
+
+The JSON request has `action: propose|focus|save|undo`. Propose takes `intent`
+and optional existing selection; other actions take an exact `run` ID. Focus
+returns the candidate native configuration, changed groups, actual instance paths,
+original inside/outside nets, rationale, uncertainty and electrical model hash;
+it writes no view configuration. Save validates and applies with the existing
+receipt; Undo invokes guarded revert. Edit/delete are explicit intents using
+the same group proposal path and preserve document applicability references.
+The official local server exposes `POST /api/group-actions` with JSON and
+`X-CoHDL-Group-Action: 1`; cross-origin requests are rejected. The Groups panel
+reviews candidates and applies temporary focus; explicit Save persists changes.
+Cancel restores the prior inspection without saving. Changed source/document
+snapshots reject stale candidates, including missing members.
 
 Executables can be configured with `COHDL_CODEX`, `COHDL_COMPILER`,
 `COHDL_EXTRACTOR` and `COHDL_PDF_PYTHON`. Commands return JSON and nonzero on

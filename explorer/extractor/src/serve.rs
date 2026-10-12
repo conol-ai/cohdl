@@ -8,7 +8,7 @@
 
 use crate::http_files::{confined_file, content_type, percent_decode, view_file};
 use crate::watch::{scan_mtime, scan_views};
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering};
@@ -236,11 +236,19 @@ fn handle(
     reader.read_line(&mut line)?;
     let method = line.split_whitespace().next().unwrap_or("").to_owned();
     let path = line.split_whitespace().nth(1).unwrap_or("/").to_string();
-    // drain headers
+    let mut headers = std::collections::BTreeMap::new();
+    let mut header_bytes: usize = 0;
     loop {
         let mut h = String::new();
         if reader.read_line(&mut h)? == 0 || h == "\r\n" || h == "\n" {
             break;
+        }
+        header_bytes = header_bytes.saturating_add(h.len());
+        if header_bytes > 32768 {
+            return respond(&mut conn, 422, "text/plain", b"Headers too large");
+        }
+        if let Some((key, value)) = h.split_once(':') {
+            headers.insert(key.to_ascii_lowercase(), value.trim().to_owned());
         }
     }
     let full = path.clone();
@@ -248,6 +256,50 @@ fn handle(
         return respond(&mut conn, 404, "text/plain", b"not found");
     };
     let path = path.as_str();
+
+    if path == "/api/group-actions" {
+        let host = headers.get("host").map(String::as_str).unwrap_or("");
+        let port = conn.local_addr()?.port();
+        let allowed_host =
+            host == format!("127.0.0.1:{port}") || host == format!("localhost:{port}");
+        let same_origin = headers
+            .get("origin")
+            .is_none_or(|origin| origin == &format!("http://{host}"));
+        let content_type = headers
+            .get("content-type")
+            .map(String::as_str)
+            .unwrap_or("");
+        if method != "POST"
+            || !allowed_host
+            || !same_origin
+            || content_type != "application/json"
+            || headers.get("x-cohdl-group-action").map(String::as_str) != Some("1")
+            || headers.contains_key("transfer-encoding")
+        {
+            return respond(
+                &mut conn,
+                422,
+                "application/json",
+                b"{\"error\":\"Same-origin JSON group action required\"}",
+            );
+        }
+        let length = headers
+            .get("content-length")
+            .and_then(|n| n.parse::<usize>().ok());
+        let Some(length) = length.filter(|n| *n > 0 && *n <= 65536) else {
+            return respond(
+                &mut conn,
+                422,
+                "application/json",
+                b"{\"error\":\"Group request byte limit\"}",
+            );
+        };
+        conn.set_read_timeout(Some(Duration::from_secs(15)))?;
+        let mut bytes = vec![0; length];
+        reader.read_exact(&mut bytes)?;
+        let (code, body) = crate::group_actions::response(project, &bytes);
+        return respond(&mut conn, code, "application/json", &body);
+    }
 
     if (path == "/api/proposals" || path.starts_with("/api/proposals/")) && method != "GET" {
         return respond(

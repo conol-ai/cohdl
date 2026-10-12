@@ -401,3 +401,6 @@ mod recovery_tests;
 
 #[path = "server/multitab.rs"]
 mod multitab_tests;
+
+#[path = "server/group_actions.rs"]
+mod group_action_tests;

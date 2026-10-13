@@ -42,6 +42,20 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
     {footprint ? <div className="part-footprint"><FootprintPreview geo={footprint} dark={dark} /><div>{footprint.pads.length} pads · {instance.part?.footprint?.split('::').at(-1)}</div></div> : <div className="part-footprint-unavailable">Footprint unavailable</div>}
     {identity.value && identity.value !== identity.mpn && <div className="part-value">{identity.value}</div>}
     <dl className="part-facts"><div><dt>MPN</dt><dd>{identity.mpn || 'Unspecified'}</dd></div>{instance.part?.mfr && <div><dt>Manufacturer</dt><dd>{instance.part.mfr}</dd></div>}</dl>
+    <section className="part-documents" aria-label="Documents / Datasheet" aria-busy={resource.loading}>
+      <div className="part-document-heading"><h4>Documents / Datasheet</h4><button className="icon-tool" aria-label="Refresh documents" title="Refresh documents" onClick={resource.refresh}><RefreshCw size={14} /></button></div>
+      {resource.loading ? <p role="status">Checking documents...</p> : resource.error ? <p role="alert">Documents unavailable: {resource.error}</p> : documents.length ? <ul>
+        {documents.map(({ document, associations }) => <li key={document.id} data-document-id={document.id}>
+          {associations.map((association, index) => {
+            const href = documentHref(document, association.page)
+            return <div key={index}>{href ? <a href={href} target="_blank" rel="noreferrer">{document.title}{association.page ? ` · page ${association.page}` : ''}<ExternalLink size={12} /></a> : <span>{document.title} · {document.status === 'missing' ? 'Missing local document' : 'Unavailable'}</span>}
+              <small>{association.relation === 'exact' ? 'Exact association' : 'Related evidence'} · {document.review}{association.uncertainty ? ` · ${association.uncertainty}` : ''}</small>
+            </div>
+          })}
+        </li>)}
+      </ul> : <p>No associated documents</p>}
+      {searchIdentity && <a className="part-datasheets" href={`https://www.google.com/search?q=${encodeURIComponent(searchIdentity + ' datasheet')}`} target="_blank" rel="noreferrer">Datasheet search: {searchIdentity}<ExternalLink size={12} /></a>}
+    </section>
     {(network || (pin && (connection?.state === 'NC' || connection?.state === 'open'))) && <section className="part-network" aria-label={network ? 'Selected network' : 'Pin state'} tabIndex={0} data-state={network ? 'connected' : connection?.state} data-net={network?.name ?? ''}>
       <h4>{network ? 'Selected network' : 'Pin state'}</h4>
       <strong>{network?.name ?? connection?.state}</strong>
@@ -63,20 +77,6 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
         </tr>
       })}
     </tbody></table>
-    <section className="part-documents" aria-label="Documents / Datasheet" aria-busy={resource.loading}>
-      <div className="part-document-heading"><h4>Documents / Datasheet</h4><button className="icon-tool" aria-label="Refresh documents" title="Refresh documents" onClick={resource.refresh}><RefreshCw size={14} /></button></div>
-      {resource.loading ? <p role="status">Checking documents...</p> : resource.error ? <p role="alert">Documents unavailable: {resource.error}</p> : documents.length ? <ul>
-        {documents.map(({ document, associations }) => <li key={document.id} data-document-id={document.id}>
-          {associations.map((association, index) => {
-            const href = documentHref(document, association.page)
-            return <div key={index}>{href ? <a href={href} target="_blank" rel="noreferrer">{document.title}{association.page ? ` · page ${association.page}` : ''}<ExternalLink size={12} /></a> : <span>{document.title} · {document.status === 'missing' ? 'Missing local document' : 'Unavailable'}</span>}
-              <small>{association.relation === 'exact' ? 'Exact association' : 'Related evidence'} · {document.review}{association.uncertainty ? ` · ${association.uncertainty}` : ''}</small>
-            </div>
-          })}
-        </li>)}
-      </ul> : <p>No associated documents</p>}
-      {searchIdentity && <a className="part-datasheets" href={`https://www.google.com/search?q=${encodeURIComponent(searchIdentity + ' datasheet')}`} target="_blank" rel="noreferrer">Datasheet search: {searchIdentity}<ExternalLink size={12} /></a>}
-    </section>
     <ProvenanceInspector resource={resource} instance={instance.path} view={view} groups={groups} />
     {!!technicalFields.length && <details className="part-technical"><summary>Technical details</summary>{technicalFields.map((field, index) => <div key={index}>{field}</div>)}
       <SourceExcerpt key={instance.path} span={instance.span} />{placement}

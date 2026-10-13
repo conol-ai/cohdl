@@ -132,7 +132,7 @@ test('selected network precedes connections, keeps exact pin distinct and direct
   assert.match(html, /data-pin="P53" data-selected="false" data-traced="true"/)
   assert.match(html, /data-pin="P56" data-selected="true" data-traced="true"/)
   assert.doesNotMatch(html, /exact trace/)
-  assert.ok(html.indexOf('Documents / Datasheet') > html.indexOf('</table>'))
+  assert.ok(html.indexOf('Documents / Datasheet') < html.indexOf('<h4>Connections'))
   assert.match(html, /href="\/api\/documents\/chip-sheet#page=2"/)
   const clear = renderToStaticMarkup(React.createElement(PartDetails, { ...props, selectedPin: '', selectedNet: '' }))
   assert.equal((html.match(/simplified rail/g) ?? []).length, (clear.match(/simplified rail/g) ?? []).length)
@@ -165,7 +165,7 @@ test('unselected parts keep connections directly below identity without an empty
     selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {},
   }))
   assert.doesNotMatch(html, /Selected network|No network selected/)
-  assert.ok(html.indexOf('Connections') < html.indexOf('Documents / Datasheet'))
+  assert.ok(html.indexOf('Documents / Datasheet') < html.indexOf('Connections'))
 })
 
 test('datasheet cards deduplicate stable ids and hashes while evidence stays collapsed', () => {

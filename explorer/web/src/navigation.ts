@@ -39,7 +39,8 @@ export function normalizeContext(value: unknown, model: ExplorerModel, config: V
     selection, pin, net: typeof input.net === 'string' && explorerNets(model).some((n) => n.name === input.net) ? input.net : '',
     viewport: canvasSnapshot(input.viewport), boardViewport: boardSnapshot(input.boardViewport),
     layoutFrame: input.layoutFrame === 'board' ? 'board' : 'local', layoutSide: input.layoutSide === 'top' || input.layoutSide === 'bottom' ? input.layoutSide : 'both',
-    tab: input.tab === 'bom' || input.tab === 'issues' || input.tab === 'proposals' ? input.tab : 'circuit',
+    // Legacy issue/proposal URLs intentionally fall back to the core circuit view.
+    tab: input.tab === 'bom' ? 'bom' : 'circuit',
   }
 }
 

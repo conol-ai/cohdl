@@ -27,22 +27,29 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
   const local = network?.members.filter(member => visible.has(member.instance_path)).length ?? 0
   const documents = resource.registry?.documents.filter(document => !['original-schematic', 'original-pcb'].includes(document.id))
     .map(document => ({ document, associations: document.applicability.filter(association => association.instances.includes(instance.path)) }))
-    .filter(record => record.associations.length) ?? []
+    .filter(record => record.associations.length)
+    .filter((record, index, records) => records.findIndex(other => other.document.id === record.document.id || (record.document.sha256 && other.document.sha256 === record.document.sha256)) === index) ?? []
   const searchIdentity = identity.mpn || identity.value
+  const technicalFields = [
+    instance.device_fq,
+    instance.path,
+    instance.impl_traits.join(' · '),
+    instance.specs.filter(spec => !['value', 'resistance', 'capacitance', 'inductance'].includes(spec.name)).map(spec => `${spec.name} = ${spec.value}`).join(' · '),
+    instance.span ? `${instance.span.file}:${instance.span.line}` : '',
+  ].filter(Boolean)
   return <section className="part-details" aria-label="Component details" data-instance={instance.path}>
     <div className="part-heading"><h3>{identity.title}</h3><button className="icon-tool important-toggle" aria-label={marked ? 'Unmark important' : 'Mark important'} aria-pressed={marked} title={marked ? 'Unmark important' : 'Mark important'} onClick={onMark}><Star size={18} fill={marked ? 'currentColor' : 'none'} /></button></div>
     {footprint ? <div className="part-footprint"><FootprintPreview geo={footprint} dark={dark} /><div>{footprint.pads.length} pads · {instance.part?.footprint?.split('::').at(-1)}</div></div> : <div className="part-footprint-unavailable">Footprint unavailable</div>}
     {identity.value && identity.value !== identity.mpn && <div className="part-value">{identity.value}</div>}
     <dl className="part-facts"><div><dt>MPN</dt><dd>{identity.mpn || 'Unspecified'}</dd></div>{instance.part?.mfr && <div><dt>Manufacturer</dt><dd>{instance.part.mfr}</dd></div>}</dl>
-    <section className="part-network" aria-label="Selected network" tabIndex={0} data-state={network ? 'connected' : connection?.state} data-net={network?.name ?? ''}>
-      <h4>Selected network</h4>
-      <strong>{network?.name ?? connection?.state ?? 'No network selected'}</strong>
+    {(network || (pin && (connection?.state === 'NC' || connection?.state === 'open'))) && <section className="part-network" aria-label={network ? 'Selected network' : 'Pin state'} tabIndex={0} data-state={network ? 'connected' : connection?.state} data-net={network?.name ?? ''}>
+      <h4>{network ? 'Selected network' : 'Pin state'}</h4>
+      <strong>{network?.name ?? connection?.state}</strong>
       {pin && <div className="network-selected-pin">Selected pin: {identity.reference}.{pin.logical} ({pin.numbers.join(', ') || 'Unspecified'})</div>}
-      {network ? <>
-        <div>{network.members.length} endpoints · {local} local · {network.members.length - local} outside range</div>
+      {network && <><div>{network.members.length} endpoints · {local} local · {network.members.length - local} outside range</div>
         {instanceRegions && onGroup && onEndpoint && <OutsideDestinations model={model} net={network} instanceRegions={instanceRegions} visible={visible} sourceValues={sourceValues} onGroup={onGroup} onEndpoint={onEndpoint} />}
-      </> : pin && <div>{pin.nc ? 'Explicitly not connected' : pin.connected ? 'Network membership unavailable' : 'No network connection'}</div>}
-    </section>
+      </>}
+    </section>}
     <h4>Connections</h4>
     <table className="pin-table"><thead><tr><th>Pin</th><th>#</th><th>Network</th><th>State</th></tr></thead><tbody>
       {instance.pins.map(pin => {
@@ -71,9 +78,8 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
       {searchIdentity && <a className="part-datasheets" href={`https://www.google.com/search?q=${encodeURIComponent(searchIdentity + ' datasheet')}`} target="_blank" rel="noreferrer">Datasheet search: {searchIdentity}<ExternalLink size={12} /></a>}
     </section>
     <ProvenanceInspector resource={resource} instance={instance.path} view={view} groups={groups} />
-    <details className="part-technical"><summary>Technical details</summary><div>{instance.device_fq}</div><div>{instance.path}</div>
-      <div>{instance.impl_traits.join(' · ')}</div><div>{instance.specs.map(s => `${s.name} = ${s.value}`).join(' · ')}</div>
+    {!!technicalFields.length && <details className="part-technical"><summary>Technical details</summary>{technicalFields.map((field, index) => <div key={index}>{field}</div>)}
       <SourceExcerpt key={instance.path} span={instance.span} />{placement}
-    </details>
+    </details>}
   </section>
 }

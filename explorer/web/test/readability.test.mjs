@@ -156,3 +156,30 @@ test('selected network precedes connections, keeps exact pin distinct and direct
     assert.match(openHtml, new RegExp(`data-state="${label}"`))
   }
 })
+
+test('unselected parts keep connections directly below identity without an empty network slot', () => {
+  const instance = { ...part, pins: [{ logical: 'P1', numbers: ['1'], connected: true, nc: false }] }
+  const html = renderToStaticMarkup(React.createElement(PartDetails, {
+    model: { instances: [instance], nets: [], footprints: {}, derived: { rails: [] } }, instance, dark: false,
+    resource: { registry: null, loading: false, error: '', refresh() {} }, view: '', groups: [], visible: new Set([part.path]),
+    selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {},
+  }))
+  assert.doesNotMatch(html, /Selected network|No network selected/)
+  assert.ok(html.indexOf('Connections') < html.indexOf('Documents / Datasheet'))
+})
+
+test('datasheet cards deduplicate stable ids and hashes while evidence stays collapsed', () => {
+  const instance = { ...part, pins: [] }
+  const applicability = [{ relation: 'exact', instances: [part.path], groups: [], page: 1 }]
+  const first = { id: 'sheet-a', title: 'Family datasheet', kind: 'pdf', status: 'ready', open_url: '/api/documents/sheet-a', pages: 2, review: 'reviewed', issues: [], applicability, sha256: 'a'.repeat(64) }
+  const duplicateHash = { ...first, id: 'sheet-b', open_url: '/api/documents/sheet-b' }
+  const html = renderToStaticMarkup(React.createElement(PartDetails, {
+    model: { instances: [instance], nets: [], footprints: {}, derived: { rails: [] } }, instance, dark: false,
+    resource: { registry: { schema: 1, documents: [first, duplicateHash], constraints: [] }, loading: false, error: '', refresh() {} },
+    view: '', groups: [], visible: new Set([part.path]), selectedPin: '', selectedNet: '', marked: false, onMark() {}, onPin() {},
+  }))
+  assert.equal((html.match(/data-document-id="sheet-a"/g) ?? []).length, 1)
+  assert.doesNotMatch(html, /data-document-id="sheet-b"/)
+  assert.match(html, /<details class="provenance-inspector"/)
+  assert.doesNotMatch(html, /<details class="provenance-inspector"[^>]* open/)
+})

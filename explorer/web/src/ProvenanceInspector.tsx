@@ -9,8 +9,8 @@ function CitationLink({ document, citation }: { document: DocumentRecord | undef
 }
 
 function Evidence({ document, applicability }: { document: DocumentRecord; applicability: Applicability[] }) {
-  return <details className="document-evidence" data-document-id={document.id} open>
-    <summary>{document.title}</summary>
+  return <details className="document-evidence" data-evidence-id={document.id}>
+    <summary>Evidence · {document.id}</summary>
     <div className="document-status">{document.kind === 'markdown' ? 'Local supporting Markdown' : 'Original PDF'} · {document.status === 'ready' ? 'Local hash verified' : document.status === 'missing' ? 'No local original' : 'Invalid local evidence'} · {document.review}</div>
     <div>Revision: {document.revision ?? 'Unknown'} · {document.kind === 'pdf' ? `PDF pages: ${document.pages ?? 'Unknown'}` : 'Section citations'}</div>
     {document.uncertainty && <p className="document-uncertainty">{document.uncertainty}</p>}
@@ -36,7 +36,7 @@ export function ProvenanceInspector({ resource, instance, view, groups }: { reso
   const documents = resource.registry?.documents.filter(document => !originals.has(document.id)).map(document => ({ document, applicability: document.applicability.filter(a => matches(a.instances, a.groups)) })).filter(d => d.applicability.length) ?? []
   const constraints = resource.registry?.constraints.filter(c => matches(c.instances, c.groups)) ?? []
   if (!documents.length && !constraints.length && !resource.error) return null
-  return <details className="provenance-inspector" aria-label="Source evidence" aria-busy={resource.loading}><summary>Documents and constraints ({documents.length + constraints.length})</summary>
+  return <details className="provenance-inspector" aria-label="Source evidence" aria-busy={resource.loading}><summary>Evidence and constraints ({documents.length + constraints.length})</summary>
     <div className="provenance-heading"><h3>Source evidence</h3><button type="button" className="icon-tool" aria-label="Refresh source evidence" title="Refresh source evidence" onClick={resource.refresh}><RefreshCw size={14} /></button></div>
     {resource.loading ? <p role="status">Checking documents...</p> : resource.error ? <p role="alert">{resource.error}</p> : <>
       {documents.map(({ document, applicability }) => <Evidence key={document.id} document={document} applicability={applicability} />)}

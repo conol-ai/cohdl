@@ -33,7 +33,7 @@ import { toPng } from 'html-to-image'
 import { BoardLayout, type BoardLayoutHandle } from './BoardLayout'
 import { passiveTerminals, wireHandles } from './handles'
 import { layoutScope, type LayoutSide } from './boardGeometry'
-import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronRight, Star, X, PanelLeft, PanelTop, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Download, FilterX, Maximize, RotateCcw, Share2, ChevronRight, Star, X, PanelLeft, PanelTop } from 'lucide-react'
 import { useCanvasFit } from './useCanvasFit'
 import { GroupPanel } from './GroupPanel'
 import { boundsOfRects, type BoardViewportSnapshot } from './viewport'
@@ -48,11 +48,8 @@ import { useImportant } from './useImportant'
 import { coreCandidates, partPresentation, sourcePartValues } from './partPresentation'
 import { bundleConnections } from './connectivity'
 import type { PinIdentity } from './PinTarget'
-import { useProposals } from './useProposals'
-import { ProposalReview } from './ProposalReview'
 import { groupIndex } from './groupIndex'
 import { OutsideDestinations } from './OutsideDestinations'
-import { GroupIntentPanel } from './GroupIntentPanel'
 import { defaultInsideGroups } from './navigation'
 import './App.css'
 
@@ -100,11 +97,7 @@ export default function App() {
   const [connectionMode, setConnectionMode] = useState<InspectionContext['connectionMode']>('individual')
   const [selectedPin, setSelectedPin] = useState('')
   const [tab, setTab] = useState<InspectionContext['tab']>('circuit')
-  const proposals = useProposals(model, tab === 'proposals')
   const [shareError, setShareError] = useState('')
-  const [issueFocus, setIssueFocus] = useState('')
-  const issueFocusRef = useRef<HTMLDivElement>(null)
-  useEffect(() => { if (issueFocus) issueFocusRef.current?.focus() }, [issueFocus])
   const [query, setQuery] = useState<string>('')
   const [moved, setMoved] = useState(false)
   const [layoutFrame, setLayoutFrame] = useState<'board' | 'local'>('local')
@@ -184,8 +177,6 @@ export default function App() {
 
   const params = new URLSearchParams(location.search)
   const src = params.get('model') ?? '/rpi-pico2.json'
-  useEffect(() => { setIssueFocus('') }, [model, mode, scope, activeView, selectedGroups, collapsedGroups, sel, selectedPin, selNet, tab])
-
   // Live: prefer /api/model + SSE unless ?model= is explicit; ?nolive=1 for headless shots.
   useEffect(() => {
     let es: EventSource | null = null
@@ -741,7 +732,6 @@ export default function App() {
                 }
               }}>{value === 'bom' ? 'BOM' : 'Circuit'}</button>)}
           </div>
-          <details className="inspection-more"><summary aria-label="More inspection views" title="More inspection views"><MoreHorizontal size={18} /></summary><button onClick={() => navigation.navigate({ tab: 'issues' })}>Issues</button><button onClick={() => navigation.navigate({ tab: 'proposals' })}>Proposals</button></details>
           {(mode === 'overview' || collapsedGroups.length > 0) && <button className="context-command view-inside" onClick={() => { const groups = selectedGroups.length ? selectedGroups : defaultInsideGroups(model, viewDef, sourceValues); navigation.navigate({ mode: 'sch', scope, groups, collapsed: [], viewport: null, boardViewport: null }) }}><ChevronRight size={16} />View inside</button>}
         </div>
         <div
@@ -761,26 +751,6 @@ export default function App() {
           </span> ·{' '}
           {model.verdict}
           {!!model.subdesigns?.length && <span> · {model.subdesigns.length} subdesigns</span>}
-          {model.live_error && (
-            <div style={{ color: '#f87171', maxWidth: 480 }}>
-              ⚠ source currently fails to compile (showing last good state)
-            </div>
-          )}
-          {model.verdict !== 'pass' &&
-            (() => {
-              const errs = model.diagnostics.filter((d) => d.severity === 'error')
-              const e0 = errs[0]
-              return e0 ? (
-                <div style={{ color: '#f87171', maxWidth: 480, marginTop: 3 }}>
-                  ⚠ {errs.length} error{errs.length > 1 ? 's' : ''} — {e0.code}: {e0.message.slice(0, 90)}
-                  {e0.span && (
-                    <span style={{ color: '#9ca3af' }}>
-                      {' '}({e0.span.file.split('/').pop()}:{e0.span.line})
-                    </span>
-                  )}
-                </div>
-              ) : null
-            })()}
           <div className="inspection-trace-summary" title={selNet ? `net: ${selNet}` : undefined}>
             {sel.length >= 2 && <span style={{ color: '#f43f5e' }}>{mode === 'layout' ? 'selected' : 'trace'}: {sel.length} parts · </span>}
             {selNet && <span style={{ color: '#0ea5e9' }}>net: {selNet}</span>}
@@ -912,19 +882,7 @@ export default function App() {
           {viewError && <div role="alert">{viewError} <button className="context-command" onClick={() => setViewRetry(value => value + 1)}>Retry groups</button></div>}
         </div>
         <div className="explorer-workspace">
-        {(viewDef || viewCfg?.views.length) && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ mode: 'sch', scope: null, groups: [], collapsed: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} navigation={viewDef?.navigation} groupMembers={groupMembers} onSelection={groups => freshRange({ mode: 'sch', scope: null, groups, collapsed: [] })}>
-          <GroupIntentPanel model={model} config={viewCfg} selection={{ schema: 1, instances: candidateConfig ? [...projection?.represented ?? []] : sel.filter(path => model.instances.some(instance => instance.path === path)), groups: selectedGroups.filter(region => viewCfg?.views.some(view => view.name === activeView && view.regions.some(group => group.name === region))).map(region => ({ view: activeView, region })) }}
-            onFocus={(config, view, groups) => { setViewError(''); candidateOrigin.current ??= readContext(); candidateTarget.current = { mode: 'sch', scope: null, view, groups, collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null }; setCandidateConfig(config) }}
-            onCancel={() => { candidateTarget.current = candidateOrigin.current; candidateOrigin.current = null; setCandidateConfig(null) }}
-            onSaved={operation => {
-              if (operation === 'undo') {
-                const definition = viewCfg?.views.find(view => view.name === 'Functional') ?? viewCfg?.views[0]
-                candidateTarget.current = candidateOrigin.current ? { ...candidateOrigin.current, viewport: null, boardViewport: null } : { mode: 'sch', scope: null, view: definition?.name ?? '', groups: defaultInsideGroups(model, definition, sourceValues), collapsed: [], selection: [], pin: '', net: '', viewport: null, boardViewport: null }
-                candidateOrigin.current = null
-              }
-              setViewRetry(value => value + 1)
-            }} />
-        </GroupPanel>}
+        {(viewDef || viewCfg?.views.length) && <GroupPanel names={fullView?.regions?.regions ?? []} selected={selectedGroups} collapsed={collapsedGroups} onToggle={toggleGroup} onAll={() => freshRange({ mode: 'sch', scope: null, groups: [], collapsed: [] })} onCollapsed={collapsed => freshRange({ collapsed })} layout={mode === 'layout'} open={groupsOpen} onClose={() => setGroupsOpen(false)} navigation={viewDef?.navigation} groupMembers={groupMembers} onSelection={groups => freshRange({ mode: 'sch', scope: null, groups, collapsed: [] })} />}
         {groupsOpen && <button className="group-drawer-backdrop" aria-label="Close groups overlay" onClick={() => setGroupsOpen(false)} />}
         <div className="explorer-canvas" ref={canvasRef} aria-busy={layoutBusy || documents.loading}>
         {mode === 'layout' ? <BoardLayout key={JSON.stringify([scope, layoutFrame, selectedGroups])} model={model} scope={scope} frame={layoutFrame} onFrame={(frame) => navigation.navigate({ layoutFrame: frame, boardViewport: null })} selected={sel} selectedNet={selNet} focus={jump} cameraRef={boardCamera} restore={boardRestore} visiblePaths={selectedGroups.length ? projection?.represented : undefined} placements={physicalPlacements} side={layoutSide} onSide={setLayoutSide} onCamera={navigation.sync}
@@ -999,17 +957,7 @@ export default function App() {
           {bundleId && bundled?.bundles.get(bundleId) && <section className="bundle-inspector" aria-label="Connection bundle"><div className="part-heading"><h3>{bundled.bundles.get(bundleId)!.nets.length} {bundled.bundles.get(bundleId)!.nets.length === 1 ? 'network' : 'networks'}</h3><button className="icon-tool" aria-label="Close connection bundle" onClick={() => setBundleId('')}><X size={16} /></button></div>
             {bundled.bundles.get(bundleId)!.nets.map(net => <button key={net.name} className="bundle-network" onClick={() => { setSel([]); setSelectedPin(''); setSelNet(net.name) }}><strong>{net.name}</strong><span>{net.members.length} physical endpoints · {net.members.filter(m => !projection?.represented.has(m.instance_path)).length} outside range</span></button>)}
           </section>}
-          {tab === 'proposals' ? <ProposalReview resource={proposals} documents={documents} onBack={() => navigation.navigate({ tab: 'circuit' })} /> : tab === 'issues' ? <>{issueFocus && <div role="status" ref={issueFocusRef} className="issue-source-focus" tabIndex={-1}>{issueFocus}</div>}<InspectionLists model={model} tab={tab} onLocate={locateTarget} onIssue={(issue) => {
-            const target = issue.span && model.instances.find((i) => i.span.file === issue.span!.file && i.span.line === issue.span!.line && i.span.col === issue.span!.col)
-            if (target) locateTarget({ kind: 'part', id: target.path, label: target.designator ?? target.path, sub: target.path })
-            else {
-              const net = issue.span && allNets.find((n) => n.span?.file === issue.span!.file && n.span.line === issue.span!.line && n.span.col === issue.span!.col)
-              if (net) { locateNet(net.name); return }
-              const subdesign = issue.span && model.subdesigns?.find((s) => s.span.file === issue.span!.file && s.span.line === issue.span!.line && s.span.col === issue.span!.col)
-              if (subdesign) navigateScope(subdesign.path)
-              else setIssueFocus(`${issue.span?.file}:${issue.span?.line}:${issue.span?.col} · ${issue.message} · No component is declared at this source location`)
-            }
-          }} /></> : <>
+          <>
           {inspectedSubdesign && (
             <div style={{ marginBottom: 16 }}>
               <h3 style={{ margin: '0 0 4px', color: '#8b5cf6' }}>{shortName(inspectedSubdesign.path)}</h3>
@@ -1109,7 +1057,7 @@ export default function App() {
               ))}
             </>
           )}
-          </>}
+          </>
         </div>
       )}
     </div>

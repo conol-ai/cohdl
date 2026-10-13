@@ -1,5 +1,5 @@
 .part-network, .part-documents { margin-block: 14px; padding-block: 10px; border-top: 1px solid var(--line, #7775); overflow-wrap: anywhere; }
-.part-network { block-size: 240px; box-sizing: border-box; overflow-y: auto; scrollbar-gutter: stable; overflow-anchor: none; }
+.part-network { max-block-size: 240px; box-sizing: border-box; overflow-y: auto; scrollbar-gutter: stable; overflow-anchor: none; }
 .part-network .outside-destination-list { max-height: none; overflow: visible; }
 .part-network h4, .part-document-heading h4 { margin: 0 0 8px; }
 .part-document-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

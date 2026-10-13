@@ -129,6 +129,8 @@ test('selected network precedes connections, keeps exact pin distinct and direct
   const html = renderToStaticMarkup(React.createElement(PartDetails, props))
   assert.ok(html.indexOf('Selected network') < html.indexOf('<h4>Connections'))
   assert.match(html, /3 endpoints.*2 local.*1 outside/)
+  assert.match(html, /1 outside · Power/)
+  assert.match(html, /Open Power/)
   assert.match(html, /data-pin="P53" data-selected="false" data-traced="true"/)
   assert.match(html, /data-pin="P56" data-selected="true" data-traced="true"/)
   assert.doesNotMatch(html, /exact trace/)

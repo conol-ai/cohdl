@@ -68,12 +68,18 @@ export function PartDetails({ model, instance, dark, resource, view, groups, vis
     <table className="pin-table"><thead><tr><th>Pin</th><th>#</th><th>Network</th><th>State</th></tr></thead><tbody>
       {instance.pins.map(pin => {
         const connection = pinConnection(model, instance.path, pin, visible, selectedNet, locations, connectionMode)
+        const outsideGroups = connection.net ? [...new Set(connection.net.members.filter(member => !visible.has(member.instance_path)).map(member => instanceRegions?.get(member.instance_path) ?? 'Ungrouped'))] : []
+        const targetGroup = outsideGroups.find(group => instanceRegions?.has([...connection.net?.members ?? []].find(member => !visible.has(member.instance_path) && (instanceRegions?.get(member.instance_path) ?? 'Ungrouped') === group)?.instance_path ?? ''))
         const activate = () => onPin({ instance: instance.path, pin: pin.logical, net: connection.net?.name ?? '' })
         return <tr key={pin.logical} className="pin-target" role="button" tabIndex={0} data-pin={pin.logical} data-selected={selectedPin === pin.logical} data-traced={!!selectedNet && connection.net?.name === selectedNet}
           aria-label={`${pin.logical} · ${connection.net?.name ?? connection.state}`} aria-pressed={selectedPin === pin.logical}
           onClick={activate} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate() } }}>
           <td>{pin.logical}</td><td>{pin.numbers.join(', ')}</td><td>{connection.net?.name ?? '—'}</td>
-          <td title={connection.net ? `${connection.net.members.length} full endpoints · ${connection.hidden} outside range` : undefined}>{connection.state}</td>
+          <td title={connection.net ? `${connection.net.members.length} full endpoints · ${connection.hidden} outside range` : undefined}>
+            <span>{connection.state}</span>
+            {!!connection.hidden && <small className="pin-boundary-summary">{connection.hidden} outside · {outsideGroups.join(', ')}</small>}
+            {targetGroup && onGroup && <button className="pin-boundary-link" type="button" onClick={event => { event.stopPropagation(); onGroup(targetGroup) }}>Open {targetGroup}</button>}
+          </td>
         </tr>
       })}
     </tbody></table>

@@ -9,3 +9,5 @@
 .part-documents a { display: inline-flex; align-items: center; gap: 4px; }
 .part-details .pin-target[data-traced="true"] { background: color-mix(in srgb, var(--accent, #2c9b78) 12%, transparent); }
 .part-details .pin-target[data-selected="true"] { background: color-mix(in srgb, var(--accent, #2c9b78) 26%, transparent); outline: 1px solid var(--accent, #2c9b78); outline-offset: -1px; }
+.pin-boundary-summary, .pin-boundary-link { display: block; font-size: 10px; opacity: .8; overflow-wrap: anywhere; }
+.pin-boundary-link { border: 0; padding: 1px 0; color: var(--accent, #2c9b78); background: transparent; cursor: pointer; text-decoration: underline; }

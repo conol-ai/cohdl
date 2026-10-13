@@ -109,13 +109,20 @@ mod tests {
 
     #[test]
     fn navigation_rejects_unknown_duplicate_empty_and_malformed_paths() {
-        for navigation in [json!(null), json!({}), json!([{"name":"Host","groups":[]}]),
+        for navigation in [
+            json!(null),
+            json!({}),
+            json!([{"name":"Host","groups":[]}]),
             json!([{"name":"Host","groups":["Unknown"]}]),
             json!([{"name":"Host","groups":["USB","USB"]}]),
-            json!([{"name":"Host","groups":["USB"]},{"name":"Host","groups":["USB"]}])] {
+            json!([{"name":"Host","groups":["USB"]},{"name":"Host","groups":["USB"]}]),
+        ] {
             let value = json!({"schema_version":1,"design":"Board","views":[{"name":"Functional",
                 "regions":[{"name":"USB","members":["U1"]}],"navigation":navigation}]});
-            assert!(validate(value.to_string().as_bytes(), "Board").is_err(), "{value}");
+            assert!(
+                validate(value.to_string().as_bytes(), "Board").is_err(),
+                "{value}"
+            );
         }
     }
 }

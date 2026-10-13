@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createServer } from 'vite'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 test('camera capture retains applied geometry while a resize and restore happen in one commit', async () => {
   const server = await createServer({ server: { host: '127.0.0.1', port: 0 }, logLevel: 'error' })
   let browser
   try {
     await server.listen()
-    browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+    browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
     const page = await browser.newPage()
     await page.setViewport({ width: 1280, height: 800 })
     const errors = []

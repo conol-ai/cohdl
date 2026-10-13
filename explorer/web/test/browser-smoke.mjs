@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
 import { fileURLToPath } from 'node:url'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const value = (name, fallback) => { const index = process.argv.indexOf(name); return index < 0 ? fallback : process.argv[index + 1] ?? fallback }
 const url = value('--url', 'http://127.0.0.1:5210')
@@ -14,7 +15,7 @@ if (stage === 'all') {
   const { runAllBrowserSmoke } = await import('./browser-all-smoke.mjs')
   await runAllBrowserSmoke({ script: fileURLToPath(import.meta.url), url, output, args: process.argv })
 } else {
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const errors = []
 const consoleProblems = []
 const failedResponses = []

@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const option = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback
 const base = option('--url', 'http://127.0.0.1:5210')
@@ -19,7 +20,7 @@ const viewUrl = `${base}/views/${encodeURIComponent(model.design)}.view.json`
 const originalView = await (await fetch(viewUrl)).text()
 writeFileSync(resolve(output, 'original-model.json'), originalModel)
 writeFileSync(resolve(output, 'original-view.json'), originalView)
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const page = await browser.newPage()
 const records = [], errors = []
 page.on('pageerror', error => errors.push(String(error)))

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const option = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback
 const base = option('--url', 'http://127.0.0.1:5210')
@@ -10,7 +11,7 @@ mkdirSync(output, { recursive: true })
 const model = await (await fetch(`${base}/api/model`)).json()
 const registry = await (await fetch(`${base}/api/documents`)).json()
 const config = await (await fetch(`${base}/views/${encodeURIComponent(model.design)}.view.json`)).json()
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const results = [], errors = []
 let page
 const context = () => page.evaluate(() => JSON.parse(new URL(location.href).searchParams.get('inspect') ?? '{}'))

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { build } from 'esbuild'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 test('mobile Group drawer cycles actual visible AI controls and restores opener focus', async () => {
   const bundle = await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
@@ -27,7 +28,7 @@ test('mobile Group drawer cycles actual visible AI controls and restores opener 
     }
     createRoot(document.getElementById('root')).render(<Fixture />);
   ` }, bundle: true, write: false, format: 'iife', jsx: 'automatic', loader: { '.css': 'empty' }, logLevel: 'silent' })
-  const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+  const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
   try {
     const page = await browser.newPage()
     await page.setViewport({ width: 390, height: 844 })

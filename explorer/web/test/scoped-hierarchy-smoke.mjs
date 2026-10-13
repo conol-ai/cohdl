@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const argument = (name, fallback) => {
   const index = process.argv.indexOf(name)
@@ -17,7 +18,7 @@ assert.ok(functional)
 const groupFor = instance => functional.regions.find(region => region.members.some(member =>
   member === instance.designator || member === `path:${instance.path}`))?.name ?? 'Other'
 const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true,
+  executablePath: resolveChromeExecutablePath(), headless: true,
 })
 const records = [], errors = []
 let page

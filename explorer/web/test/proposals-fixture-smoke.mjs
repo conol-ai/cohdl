@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import { spawn } from 'node:child_process'
 import puppeteer from 'puppeteer-core'
 import { runProposalRecoverySmoke } from './proposals-smoke.mjs'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const root = mkdtempSync(resolve(tmpdir(), 'cohdl-proposal-browser-fixture-'))
 const output = resolve(process.argv[2] ?? '/tmp/cohdl-proposals-fixtures')
@@ -19,7 +20,7 @@ const server = spawn(resolve('../extractor/target/debug/cohdl-explorer'), [resol
 let serverLog = ''
 server.stderr.on('data', chunk => { serverLog += chunk.toString() })
 const url = `http://127.0.0.1:${port}`
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const errors = []
 try {
   const deadline = Date.now() + 10000

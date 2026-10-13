@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const argument = process.argv.indexOf('--url')
 const base = argument < 0 ? 'http://127.0.0.1:5210' : process.argv[argument + 1]
 const model = await (await fetch(`${base}/api/model`)).json()
 const config = await (await fetch(`${base}/views/${encodeURIComponent(model.design)}.view.json`)).json()
 assert.ok(config.views.find(view => view.name === 'Functional')?.regions.some(region => region.name === 'Camera'))
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const errors = []
 try {
   for (const failure of ['500', 'malformed', '404']) {

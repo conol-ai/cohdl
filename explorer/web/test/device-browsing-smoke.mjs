@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const argument = (name, fallback) => {
   const index = process.argv.indexOf(name)
@@ -11,7 +12,7 @@ const base = argument('--url', 'http://127.0.0.1:5210')
 const output = resolve(argument('--output', '/tmp/cohdl-device-browsing'))
 mkdirSync(output, { recursive: true })
 const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true,
+  executablePath: resolveChromeExecutablePath(), headless: true,
 })
 const results = []
 const errors = []

@@ -6,6 +6,7 @@ import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { basename, join, relative } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 export const sha = bytes => createHash('sha256').update(bytes).digest('hex')
 export const pause = ms => new Promise(done => setTimeout(done, ms))
@@ -77,7 +78,7 @@ export function runtime({ code, sourceProject, output, report }) {
       try { const response = await fetch(`${owned.url}/api/model`, { signal: AbortSignal.timeout(1000) }); return response.ok }
       catch { return false }
     }, 'Native HTTP readiness', bounds.startup_ms)
-    launch = puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, timeout: bounds.startup_ms }).then(value => {
+    launch = puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true, timeout: bounds.startup_ms }).then(value => {
       browser = value; owned.browser = value
       report.browser_pid = value.process().pid
       return value

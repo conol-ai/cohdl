@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const index = process.argv.indexOf('--url')
 const base = index < 0 ? 'http://127.0.0.1:5210' : process.argv[index + 1]
@@ -8,7 +9,7 @@ target.searchParams.set('nolive', '1')
 const response = await fetch(`${base}/api/documents`)
 assert.ok(response.ok, 'Native actual source registry is available')
 const registry = await response.text()
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 try {
   const page = await browser.newPage()
   await page.setViewport({ width: 1280, height: 800 })

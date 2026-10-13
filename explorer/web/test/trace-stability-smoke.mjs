@@ -3,13 +3,14 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { resolveChromeExecutablePath } from './browser-launch.mjs'
 
 const args = process.argv.slice(2)
 const url = args[args.indexOf('--url') + 1] || 'http://127.0.0.1:5210'
 const output = resolve(process.env.COHDL_TRACE_OUTPUT || '/tmp/cohdl-trace-stability')
 const light = process.env.COHDL_TRACE_LIGHT === '1'
 mkdirSync(output, { recursive: true })
-const browser = await puppeteer.launch({ executablePath: process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true })
+const browser = await puppeteer.launch({ executablePath: resolveChromeExecutablePath(), headless: true })
 const records = [], bindings = []
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
 try {

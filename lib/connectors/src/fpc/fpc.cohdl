@@ -231,11 +231,13 @@ pub pad P_DEBUG_4P_PAD {
     plating: smd
 }
 
-// Speaker terminal land: slightly larger than the battery land for solder
-// strain relief on the speaker wire.
+// Speaker terminal land on the part's 1.25mm pitch: 0.7mm wide so the two
+// pads keep a 0.55mm gap (1.4mm-wide pads at this pitch overlapped and
+// shorted the speaker's two terminals), 1.6mm long for solder strain
+// relief on the speaker wire.
 pub pad P_SPK_2P_PAD {
     shape: rect
-    size: (1.4mm, 1.6mm)
+    size: (0.7mm, 1.6mm)
     layer: top_copper
     plating: smd
 }

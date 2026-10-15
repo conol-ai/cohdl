@@ -9,7 +9,7 @@ top = "Pico2"
 [dependencies]
 "@raspberrypi/mcu" = "0.1.2"
 "@richtek/dcdc" = "0.1.2"
-connectors = "0.1.6"
+connectors = "0.1.7"
 diode = "0.1.0"
 esd = "0.1.1"
 flash = "0.1.4"

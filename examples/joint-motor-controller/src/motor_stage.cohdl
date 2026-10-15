@@ -43,7 +43,7 @@ subdesign MotorStage {
 
     layout {
         place drv at (0mm, 0mm)
-        place c_vm_hf at (-4mm, -1mm) rotate 90
-        place c_vm_bulk_a at (-4mm, 1.5mm) rotate 90
+        place c_vm_hf at (-4.75mm, -1mm) rotate 90
+        place c_vm_bulk_a at (-4.75mm, 1.5mm) rotate 90
     }
 }

@@ -783,6 +783,94 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
             footprint_diags.render(&checked.sm)
         );
 
+        // Copper that shorts two distinct pins is a fabrication defect in
+        // every shipped package, not only the contrib tier audited below:
+        // issue #47 (DRV8231A lead pads over the thermal land) shipped from
+        // a bare official package that the contrib-only gate never saw.
+        // Pads sharing one logical pin (USB-C's doubled GND, micro-B's
+        // shield tabs) may overlap by design; distinct pins never may.
+        for (part_name, part) in checked.world.parts.iter().filter(|(name, _)| {
+            name.starts_with(&own_prefix)
+                && checked
+                    .world
+                    .symbols
+                    .get(*name)
+                    .is_some_and(|symbol| symbol.is_pub)
+        }) {
+            let variant = part
+                .device
+                .variant
+                .as_ref()
+                .map(|variant| variant.name.as_str());
+            let pin_of: std::collections::BTreeMap<&str, &str> = checked.world.devices
+                [&part.device.name.name]
+                .pins_for(variant)
+                .iter()
+                .flat_map(|pin| {
+                    pin.numbers
+                        .iter()
+                        .map(move |number| (number.text.as_str(), pin.name.name.as_str()))
+                })
+                .collect();
+            for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+                let Some(fp_ref) = entry.footprint.as_ref().or(part.primary.footprint.as_ref())
+                else {
+                    continue;
+                };
+                let fp = &checked.world.footprints[&fp_ref.name];
+                let mut copper = Vec::new();
+                for place in &fp.pads {
+                    let pad = &checked.world.pads[&place.pad.name];
+                    let (mut width, mut height) = match pad.size.as_slice() {
+                        [diameter] => (diameter.femto, diameter.femto),
+                        [width, height] => (width.femto, height.femto),
+                        _ => continue,
+                    };
+                    match place.rotate {
+                        0 | 180 => {}
+                        90 | 270 => std::mem::swap(&mut width, &mut height),
+                        // An arbitrary angle has no exact axis-aligned box.
+                        _ => continue,
+                    }
+                    let Some((layer, _)) = pad.layer else {
+                        continue;
+                    };
+                    let pin = pin_of
+                        .get(place.number.text.as_str())
+                        .copied()
+                        .unwrap_or(place.number.text.as_str());
+                    copper.push((
+                        place.number.text.as_str(),
+                        pin,
+                        layer,
+                        (
+                            2 * place.x.femto - width,
+                            2 * place.x.femto + width,
+                            2 * place.y.femto - height,
+                            2 * place.y.femto + height,
+                        ),
+                    ));
+                }
+                for left in 0..copper.len() {
+                    for right in (left + 1)..copper.len() {
+                        let (left_number, left_pin, left_layer, a) = copper[left];
+                        let (right_number, right_pin, right_layer, b) = copper[right];
+                        let shares_layer = left_layer == right_layer
+                            || left_layer == cohdl::ast::PadLayer::ThroughAll
+                            || right_layer == cohdl::ast::PadLayer::ThroughAll;
+                        let bounding_boxes_overlap =
+                            a.0 < b.1 && b.0 < a.1 && a.2 < b.3 && b.2 < a.3;
+                        assert!(
+                            left_pin == right_pin || !shares_layer || !bounding_boxes_overlap,
+                            "`{}` part `{part_name}` footprint `{}` pads `{left_number}` ({left_pin}) and `{right_number}` ({right_pin}) short distinct pins with overlapping copper",
+                            project.name,
+                            fp_ref.name
+                        );
+                    }
+                }
+            }
+        }
+
         // Contrib parts are fabrication-facing data, so internal pin/pad-set
         // equality is not enough: their emitted copper must fit inside the
         // authored courtyard and distinct electrical pads must not overlap.

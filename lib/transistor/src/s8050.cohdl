@@ -33,9 +33,12 @@ pub pad P_JSCJ_SOT23 {
     plating: smd
 }
 
+// Standard SOT-23 top view rotated 180 degrees (collector at the bottom):
+// counter-clockwise 1-2-3 numbering puts the base at top-right. The
+// mirrored arrangement swaps base and emitter on the board.
 pub footprint FP_JSCJ_SOT23 {
-    pad 1: P_JSCJ_SOT23 at (-0.95mm, -1.01mm)
-    pad 2: P_JSCJ_SOT23 at (0.95mm, -1.01mm)
+    pad 1: P_JSCJ_SOT23 at (0.95mm, -1.01mm)
+    pad 2: P_JSCJ_SOT23 at (-0.95mm, -1.01mm)
     pad 3: P_JSCJ_SOT23 at (0mm, 1.01mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot

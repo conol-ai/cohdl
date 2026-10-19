@@ -1,0 +1,42 @@
+use usb::pd::st_qfn24::ST_QFN24_EP_4X4;
+
+// Manufacturer pin table; EP is represented by library pad number 25.
+#[doc("docs/stusb4500-application.md")]
+#[doc("docs/st-stusb4500-rev7.pdf")]
+pub device STUSB4500_QFN24 {
+    pins {
+        required CC1DB: 1 [bidirectional]
+        required CC1: 2 [bidirectional]
+        optional NC: 3 [passive]
+        required CC2: 4 [bidirectional]
+        required CC2DB: 5 [bidirectional]
+        required RESET: 6 [input]
+        required SCL: 7 [input]
+        required SDA: 8 [bidirectional]
+        optional DISCH: 9 [bidirectional]
+        required GND: 10, 25 [power_in]
+        optional ATTACH: 11 [output]
+        required ADDR0: 12 [input]
+        required ADDR1: 13 [input]
+        optional POWER_OK3: 14 [output]
+        optional GPIO: 15 [output]
+        optional VBUS_EN_SNK: 16 [output]
+        optional A_B_SIDE: 17 [output]
+        required VBUS_VS_DISCH: 18 [bidirectional]
+        optional ALERT: 19 [output]
+        optional POWER_OK2: 20 [output]
+        required VREG_1V2: 21 [power_out]
+        required VSYS: 22 [power_in]
+        required VREG_2V7: 23 [power_out]
+        required VDD: 24 [power_in]
+    }
+}
+
+impl IC for STUSB4500_QFN24 {}
+
+#[intent("Autonomous USB PD 2.0 sink up to 20V 5A; PD 3.0 interoperable; negotiates power, not a passive sniffer")]
+#[doc("docs/stusb4500-application.md")]
+#[doc("docs/st-stusb4500-rev7.pdf")]
+pub part SINK_STUSB4500QTR: STUSB4500_QFN24 {
+    primary { mfr: "STMicroelectronics", mpn: "STUSB4500QTR", footprint: ST_QFN24_EP_4X4 }
+}

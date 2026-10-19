@@ -3,6 +3,7 @@
 // RevC.1). Pin definition p1 (vision-verified); package outlines p10-11.
 // SOT363(SC70-6) and SOT23-6 share the same pin numbering.
 
+#[doc("docs/rs2257-application.md")]
 #[doc("docs/rs2257.pdf")]
 pub device RS2257 {
     pins {
@@ -17,11 +18,13 @@ pub device RS2257 {
 
 impl IC for RS2257 {}
 
+#[doc("docs/rs2257-application.md")]
 #[doc("docs/rs2257.pdf")]
 pub part SW_RS2257XH: RS2257 {
     primary { mfr: "Run-IC", mpn: "RS2257XH", footprint: SOT6P95X290X160N }
 }
 
+#[doc("docs/rs2257-application.md")]
 #[doc("docs/rs2257.pdf")]
 pub part SW_RS2257XC6: RS2257 {
     primary { mfr: "Run-IC", mpn: "RS2257XC6", footprint: SOT6P65X210X125N }

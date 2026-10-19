@@ -61,8 +61,22 @@ fn rpi_pico2_model() {
         .expect("mcu");
     assert_eq!(mcu["part"]["mpn"], "RP2350A");
     assert_eq!(mcu["pins"].as_array().unwrap().len(), 54);
-    assert!(mcu["docs"][0]["name"].as_str().unwrap().ends_with(".pdf"));
-    assert!(mcu["docs"][0]["abs"].as_str().unwrap().starts_with("/"));
+    let docs = mcu["docs"].as_array().unwrap();
+    for expected in [
+        "rp2350-application.md",
+        "rp2350-datasheet.pdf",
+        "rp2350-hardware-design.pdf",
+    ] {
+        let doc = docs
+            .iter()
+            .find(|doc| {
+                doc["name"]
+                    .as_str()
+                    .is_some_and(|name| name.ends_with(expected))
+            })
+            .unwrap_or_else(|| panic!("missing MCU document {expected}"));
+        assert!(doc["abs"].as_str().unwrap().starts_with('/'));
+    }
     // fn expansion produces grouping seeds.
     assert!(!v["derived"]["fn_groups"].as_array().unwrap().is_empty());
     // Footprint geometry rides along for sidebar previews: the SWD

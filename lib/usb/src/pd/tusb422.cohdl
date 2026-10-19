@@ -1,0 +1,56 @@
+#[doc("docs/tusb422-application.md")]
+#[doc("docs/ti-tusb422.pdf")]
+pub device TUSB422_YFP9 {
+    pins {
+        required CC2: A1 [bidirectional]
+        required VBUSIN: A2 [power_in]
+        required VDD: A3 [power_in]
+        optional VCONN: B1 [power_in]
+        optional INT_N: B2 [output]
+        required SCL: B3 [bidirectional]
+        required CC1: C1 [bidirectional]
+        required GND: C2 [power_in]
+        required SDA: C3 [bidirectional]
+    }
+}
+impl IC for TUSB422_YFP9 {}
+
+#[intent("USB PD TCPC with external TCPM; automatic GoodCRC and unpowered Rd; PD 3.0 Get Source Capabilities Extended unsupported; not a passive monitor")]
+#[doc("docs/tusb422-application.md")]
+#[doc("docs/ti-tusb422.pdf")]
+pub part TCPC_TUSB422IYFPR: TUSB422_YFP9 {
+    primary { mfr: "Texas Instruments", mpn: "TUSB422IYFPR", footprint: DSBGA9_YFP0009_C01 }
+}
+
+#[intent("USB PD TCPC with external TCPM; automatic GoodCRC and unpowered Rd; PD 3.0 Get Source Capabilities Extended unsupported; not a passive monitor")]
+#[doc("docs/tusb422-application.md")]
+#[doc("docs/ti-tusb422.pdf")]
+pub part TCPC_TUSB422IYFPT: TUSB422_YFP9 {
+    primary { mfr: "Texas Instruments", mpn: "TUSB422IYFPT", footprint: DSBGA9_YFP0009_C01 }
+}
+
+// TI 4223654/A pp68-69: NSMD copper, not the solder-mask opening.
+pub pad P_YFP0009_LAND {
+    shape: circle
+    size: (0.23mm)
+    layer: top_copper
+    plating: smd
+}
+#[doc("docs/tusb422-application.md")]
+#[doc("docs/ti-tusb422.pdf")]
+pub footprint DSBGA9_YFP0009_C01 {
+    pad A1: P_YFP0009_LAND at (-0.4mm, -0.4mm)
+    pad A2: P_YFP0009_LAND at (0mm, -0.4mm)
+    pad A3: P_YFP0009_LAND at (0.4mm, -0.4mm)
+    pad B1: P_YFP0009_LAND at (-0.4mm, 0mm)
+    pad B2: P_YFP0009_LAND at (0mm, 0mm)
+    pad B3: P_YFP0009_LAND at (0.4mm, 0mm)
+    pad C1: P_YFP0009_LAND at (-0.4mm, 0.4mm)
+    pad C2: P_YFP0009_LAND at (0mm, 0.4mm)
+    pad C3: P_YFP0009_LAND at (0.4mm, 0.4mm)
+    silkscreen {
+        circle at (-0.95mm, -0.95mm) radius 0.1mm width 0.05mm fill solid
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.7mm, 2.7mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
+}

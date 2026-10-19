@@ -1,6 +1,6 @@
 [package]
 name = "soic"
-version = "0.2.0"
+version = "0.2.1"
 license = "MIT AND CC-BY-SA-4.0"
 description = "Audited SOIC/TSSOP land patterns, including pinned KiCad-derived STM32 footprints."
 repository = "https://github.com/conol-ai/cohdl"

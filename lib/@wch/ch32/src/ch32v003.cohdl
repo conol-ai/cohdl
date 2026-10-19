@@ -1,0 +1,36 @@
+// WCH CH32V003DS0 V1.8, section 2.1 and Table 2-1 (printed pp10-12).
+// The TSSOP20 has no exposed pad. QFN20 and SOP variants have other pinouts.
+#[doc("docs/ch32v003.md")]
+#[intent("CH32V003F4 QingKe RISC-V V2A 48MHz, 16KB flash, 2KB SRAM; TSSOP20; no USB. Single-wire SDI debug is PD1, pin18.")]
+pub device CH32V003F4_TSSOP20 {
+    pins {
+        optional PD4: 1 [bidirectional]
+        optional PD5: 2 [bidirectional] // USART TX
+        optional PD6: 3 [bidirectional] // USART RX
+        optional PD7: 4 [bidirectional] // NRST is a multiplexed function
+        optional PA1: 5 [bidirectional] // OSCI
+        optional PA2: 6 [bidirectional] // OSCO
+        required VSS: 7 [power_in]
+        optional PD0: 8 [bidirectional]
+        required VDD: 9 [power_in]
+        optional PC0: 10 [bidirectional]
+        optional PC1: 11 [bidirectional] // I2C SDA
+        optional PC2: 12 [bidirectional] // I2C SCL
+        optional PC3: 13 [bidirectional]
+        optional PC4: 14 [bidirectional]
+        optional PC5: 15 [bidirectional] // SPI SCK
+        optional PC6: 16 [bidirectional] // SPI MOSI
+        optional PC7: 17 [bidirectional] // SPI MISO
+        optional PD1: 18 [bidirectional] // SWIO, WCH single-wire SDI
+        optional PD2: 19 [bidirectional]
+        optional PD3: 20 [bidirectional]
+    }
+}
+
+impl IC for CH32V003F4_TSSOP20 {}
+
+#[doc("docs/ch32v003.md")]
+#[intent("WCH CH32V003F4P6 TSSOP20. Generic KiCad land checked against nominal package dimensions only; WCH tolerance and assembly-process review remain required.")]
+pub part MCU_CH32V003F4P6: CH32V003F4_TSSOP20 {
+    primary { mfr: "WCH", mpn: "CH32V003F4P6", footprint: soic::KICAD_TSSOP_20_4_4X6_5MM_P0_65MM }
+}

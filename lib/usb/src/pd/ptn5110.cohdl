@@ -1,0 +1,117 @@
+// NXP PTN5110 Rev. 1.6: Tables 1-4, pp5-9. EP uses library pad number 17.
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub device PTN5110_HX2QFN16 {
+    pins {
+        optional FRS_EN: 1 [output]
+        optional EN_SNK1: 2 [output]
+        required VDD: 3 [power_in]
+        required BYPASS: 4 [power_out]
+        optional SLV_ADDR: 5 [input]
+        optional ILIM_5V_VBUS: 6 [bidirectional]
+        required I2C_SDA: 7 [bidirectional]
+        required I2C_SCL: 8 [input]
+        optional DBG_ACC: 9 [output]
+        optional ALERT_N: 10 [output]
+        required FAULT_N: 11 [input]
+        required VCONN_IN: 12 [power_in]
+        required CC1: 13 [bidirectional]
+        required CC2: 14 [bidirectional]
+        required VBUS: 15 [power_in]
+        optional EN_SRC: 16 [output]
+        required GND: 17 [power_in]
+    }
+}
+
+impl IC for PTN5110_HX2QFN16 {}
+
+#[intent("USB PD TCPC 1.0 v1.1; POR role DRP, starts as sink; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110HQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110HQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+#[intent("USB PD TCPC 1.0 v1.1; POR role sink; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110DHQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110DHQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+#[intent("USB PD TCPC 1.0 v1.1; POR role source; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110THQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110THQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+#[intent("USB PD TCPC 2.0 v1.0; POR role DRP, starts as sink; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110NHQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110NHQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+#[intent("USB PD TCPC 2.0 v1.0; POR role sink; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110NDHQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110NDHQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+#[intent("USB PD TCPC 2.0 v1.0; POR role source; requires external TCPM; not a proven passive sniffer; source land drawing UNRELEASED")]
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub part TCPC_PTN5110NTHQZ: PTN5110_HX2QFN16 {
+    primary { mfr: "NXP", mpn: "PTN5110NTHQZ", footprint: HX2QFN16_SOT1883_1 }
+}
+
+pub pad P_SOT1883_H {
+    shape: rect
+    size: (0.9mm, 0.24mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SOT1883_V {
+    shape: rect
+    size: (0.24mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SOT1883_EP {
+    shape: rect
+    size: (1.1mm, 1mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Fig. 21 p54: copper only; source drawing is marked UNRELEASED.
+#[doc("docs/ptn5110-application.md")]
+#[doc("docs/nxp-ptn5110.pdf")]
+pub footprint HX2QFN16_SOT1883_1 {
+    pad 1: P_SOT1883_H at (-1.35mm, -0.8mm)
+    pad 2: P_SOT1883_H at (-1.35mm, -0.4mm)
+    pad 3: P_SOT1883_H at (-1.35mm, 0mm)
+    pad 4: P_SOT1883_H at (-1.35mm, 0.4mm)
+    pad 5: P_SOT1883_H at (-1.35mm, 0.8mm)
+    pad 6: P_SOT1883_V at (-0.4mm, 1.35mm)
+    pad 7: P_SOT1883_V at (0mm, 1.35mm)
+    pad 8: P_SOT1883_V at (0.4mm, 1.35mm)
+    pad 9: P_SOT1883_H at (1.35mm, 0.8mm)
+    pad 10: P_SOT1883_H at (1.35mm, 0.4mm)
+    pad 11: P_SOT1883_H at (1.35mm, 0mm)
+    pad 12: P_SOT1883_H at (1.35mm, -0.4mm)
+    pad 13: P_SOT1883_H at (1.35mm, -0.8mm)
+    pad 14: P_SOT1883_V at (0.4mm, -1.35mm)
+    pad 15: P_SOT1883_V at (0mm, -1.35mm)
+    pad 16: P_SOT1883_V at (-0.4mm, -1.35mm)
+    pad 17: P_SOT1883_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 4.1mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}

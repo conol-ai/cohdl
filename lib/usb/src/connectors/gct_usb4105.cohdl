@@ -1,0 +1,96 @@
+// GCT USB4105-GF-A: USB 2.0 Type-C receptacle, gold-flash contacts,
+// tape/reel and 0.95 mm shell stakes. Drawing B4 (2023-12-18), sheet 1.
+// Coordinates are component-side, x right/y toward mating face; PCB edge y=0.
+// Power pins are passive: a connector does not itself source a rail.
+
+#[doc("docs/gct-usb4105-application.md")]
+pub device GCT_USB4105_2_0 {
+    pins {
+        required GND: A1, A12, B1, B12 [passive]
+        required VBUS: A4, A9, B4, B9 [passive]
+        required CC1: A5 [passive]
+        required CC2: B5 [passive]
+        required DP: A6, B6 [bidirectional]
+        required DN: A7, B7 [bidirectional]
+        optional SBU1: A8 [passive]
+        optional SBU2: B8 [passive]
+        required SHIELD: SH1, SH2, SH3, SH4 [passive]
+    }
+}
+
+impl Connector for GCT_USB4105_2_0 {}
+
+#[intent("GCT USB4105-GF-A USB 2.0 Type-C receptacle; 5 A aggregate VBUS and 48 V connector rating; 0.95 mm stakes; not a USB-PD controller, cable qualification or assembly-stock claim")]
+#[doc("docs/gct-usb4105-application.md")]
+pub part USB_C_GCT_USB4105_GF_A: GCT_USB4105_2_0 {
+    primary { mfr: "GCT", mpn: "USB4105-GF-A", footprint: FP_USB_C_GCT_USB4105 }
+}
+
+pub pad GCT4105_POWER_LAND {
+    shape: rect
+    size: (0.6mm, 1.15mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad GCT4105_SIGNAL_LAND {
+    shape: rect
+    size: (0.3mm, 1.15mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad GCT4105_REAR_SHELL {
+    shape: oval
+    size: (1mm, 2.1mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: (0.6mm, 1.7mm)
+}
+
+pub pad GCT4105_FRONT_SHELL {
+    shape: oval
+    size: (1mm, 1.8mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: (0.6mm, 1.4mm)
+}
+
+// Four shared power lands retain both contact identities as coincident pads.
+// All contacts within each shared land belong to the same logical power pin.
+// Origin y=0 is the recommended PCB edge / mating-face plane:
+// front shell=-2.60; rear shell=-2.60-4.18=-6.78;
+// contact centers=-6.78-1.15/2=-7.355; pegs=-2.60-3.68=-6.28.
+// Courtyard is library-authored 0.25 mm clearance around copper/body and
+// the explicit pin-1 dot. It is not a plug insertion keepout.
+#[doc("docs/gct-usb4105-application.md")]
+pub footprint FP_USB_C_GCT_USB4105 {
+    pad A1: GCT4105_POWER_LAND at (-3.2mm, -7.355mm)
+    pad B12: GCT4105_POWER_LAND at (-3.2mm, -7.355mm)
+    pad A4: GCT4105_POWER_LAND at (-2.4mm, -7.355mm)
+    pad B9: GCT4105_POWER_LAND at (-2.4mm, -7.355mm)
+    pad B8: GCT4105_SIGNAL_LAND at (-1.75mm, -7.355mm)
+    pad A5: GCT4105_SIGNAL_LAND at (-1.25mm, -7.355mm)
+    pad B7: GCT4105_SIGNAL_LAND at (-0.75mm, -7.355mm)
+    pad A6: GCT4105_SIGNAL_LAND at (-0.25mm, -7.355mm)
+    pad A7: GCT4105_SIGNAL_LAND at (0.25mm, -7.355mm)
+    pad B6: GCT4105_SIGNAL_LAND at (0.75mm, -7.355mm)
+    pad A8: GCT4105_SIGNAL_LAND at (1.25mm, -7.355mm)
+    pad B5: GCT4105_SIGNAL_LAND at (1.75mm, -7.355mm)
+    pad B4: GCT4105_POWER_LAND at (2.4mm, -7.355mm)
+    pad A9: GCT4105_POWER_LAND at (2.4mm, -7.355mm)
+    pad B1: GCT4105_POWER_LAND at (3.2mm, -7.355mm)
+    pad A12: GCT4105_POWER_LAND at (3.2mm, -7.355mm)
+    pad SH1: GCT4105_REAR_SHELL at (-4.32mm, -6.78mm)
+    pad SH2: GCT4105_REAR_SHELL at (4.32mm, -6.78mm)
+    pad SH3: GCT4105_FRONT_SHELL at (-4.32mm, -2.6mm)
+    pad SH4: GCT4105_FRONT_SHELL at (4.32mm, -2.6mm)
+    mount_hole 1: non_plated at (-2.89mm, -6.28mm) diameter 0.65mm
+    mount_hole 2: non_plated at (2.89mm, -6.28mm) diameter 0.65mm
+    silkscreen {
+        circle at (-3.2mm, -8.43mm) radius 0.2mm width 0.1mm fill solid
+    }
+    // The automatic left-of-A1 marker would overlap the rear shell land.
+    courtyard { shape: rect, at: (0mm, -4.34mm), size: (10.14mm, 9.18mm) }
+    silkscreen_ref { at: (0mm, 1mm) }
+}

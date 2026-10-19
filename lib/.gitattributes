@@ -1,0 +1,2 @@
+# Preserve manufacturer PDF bytes and their recorded SHA-256 hashes.
+*.pdf binary

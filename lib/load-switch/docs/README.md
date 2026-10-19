@@ -38,3 +38,7 @@ b51be4566fc3e85022bbafd41874b29949e2bc4eada688ae912d361a19149ec8  mt9700.pdf (up
 Note: datasheet states supply input 2.2-5.5V; `sgm2554.md` previously said
 1.0-5.5V. The cohdl part was not changed — verify the EN/input threshold
 against the datasheet before tape-out.
+
+TPS22918 application boundaries updated 2026-10-17 against the same hashed
+manufacturer PDF: output discharge does not establish reverse-current
+blocking; see the attached evidence record for the specific sections.

@@ -1,0 +1,59 @@
+// Shared only by the audited STUSB1602AQTR and STUSB4500QTR packages.
+// DS11254 Rev5 Fig10 p30 / DS12499 Rev7 Fig12 p32: 4.4mm outer span, 0.6x0.25mm leads.
+pub pad P_ST_QFN24_H {
+    shape: rect
+    size: (0.6mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ST_QFN24_V {
+    shape: rect
+    size: (0.25mm, 0.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_ST_QFN24_EP {
+    shape: rect
+    size: (2.7mm, 2.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+#[doc("docs/stusb1602-application.md")]
+#[doc("docs/st-stusb1602-rev5.pdf")]
+#[doc("docs/stusb4500-application.md")]
+#[doc("docs/st-stusb4500-rev7.pdf")]
+pub footprint ST_QFN24_EP_4X4 {
+    pad 1: P_ST_QFN24_H at (-1.9mm, -1.25mm)
+    pad 2: P_ST_QFN24_H at (-1.9mm, -0.75mm)
+    pad 3: P_ST_QFN24_H at (-1.9mm, -0.25mm)
+    pad 4: P_ST_QFN24_H at (-1.9mm, 0.25mm)
+    pad 5: P_ST_QFN24_H at (-1.9mm, 0.75mm)
+    pad 6: P_ST_QFN24_H at (-1.9mm, 1.25mm)
+    pad 7: P_ST_QFN24_V at (-1.25mm, 1.9mm)
+    pad 8: P_ST_QFN24_V at (-0.75mm, 1.9mm)
+    pad 9: P_ST_QFN24_V at (-0.25mm, 1.9mm)
+    pad 10: P_ST_QFN24_V at (0.25mm, 1.9mm)
+    pad 11: P_ST_QFN24_V at (0.75mm, 1.9mm)
+    pad 12: P_ST_QFN24_V at (1.25mm, 1.9mm)
+    pad 13: P_ST_QFN24_H at (1.9mm, 1.25mm)
+    pad 14: P_ST_QFN24_H at (1.9mm, 0.75mm)
+    pad 15: P_ST_QFN24_H at (1.9mm, 0.25mm)
+    pad 16: P_ST_QFN24_H at (1.9mm, -0.25mm)
+    pad 17: P_ST_QFN24_H at (1.9mm, -0.75mm)
+    pad 18: P_ST_QFN24_H at (1.9mm, -1.25mm)
+    pad 19: P_ST_QFN24_V at (1.25mm, -1.9mm)
+    pad 20: P_ST_QFN24_V at (0.75mm, -1.9mm)
+    pad 21: P_ST_QFN24_V at (0.25mm, -1.9mm)
+    pad 22: P_ST_QFN24_V at (-0.25mm, -1.9mm)
+    pad 23: P_ST_QFN24_V at (-0.75mm, -1.9mm)
+    pad 24: P_ST_QFN24_V at (-1.25mm, -1.9mm)
+    pad 25: P_ST_QFN24_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.9mm, 4.9mm) }
+    silkscreen_ref { at: (0mm, -2.9mm) }
+}

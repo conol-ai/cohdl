@@ -1,7 +1,9 @@
 // RP2350A: Raspberry Pi microcontroller in QFN-60, with pin 61 as the center
 // GND pad. Pinout checked against the RP2350 datasheet build 2025-07-29,
-// Figure 148 and Tables 1427-1432.
+// Figure 148 (pin 1 is IOVDD; Table 1432 has an inconsistent IOVDD row).
+#[doc("docs/rp2350-application.md")]
 #[doc("docs/rp2350-datasheet.pdf")]
+#[doc("docs/rp2350-hardware-design.pdf")]
 pub device RP2350A {
     pins {
         // Digital / IO supplies (3V3) and core supply (1V1), as pin buses.
@@ -78,7 +80,9 @@ pub device RP2350A {
 
 impl IC for RP2350A {}
 
+#[doc("docs/rp2350-application.md")]
 #[doc("docs/rp2350-datasheet.pdf")]
+#[doc("docs/rp2350-hardware-design.pdf")]
 pub part RP2350A_QFN60: RP2350A {
     primary { mfr: "Raspberry Pi", mpn: "RP2350A", footprint: qfn::QFN60N40P700X700_1EP340X340 }
 }

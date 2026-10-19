@@ -1,0 +1,49 @@
+// Hand-authored exact inductor; not a generated resistor/MLCC catalog file.
+// Pad numbers are library conventions: 1 is the white-dot terminal, 2 the
+// opposite terminal. The manufacturer drawing does not assign pin numbers.
+#[doc("docs/abracon-aota-application.md")]
+#[doc("docs/abracon-aota-b201610s3r3-101-t.pdf")]
+pub device AOTA_B201610S3R3 {
+    pins {
+        required DOT: 1 [passive]
+        required UNDOTTED: 2 [passive]
+    }
+    spec {
+        inductance: 3.3uH
+    }
+}
+
+impl Inductor for AOTA_B201610S3R3 {}
+
+#[intent("Abracon AOTA-B201610S3R3-101-T: exact orientation-marked 3.3uH RP2350 regulator inductor. DOT is the white-dot terminal; in the cited RP2350 reference circuit DOT connects to DVDD and UNDOTTED to VREG_LX. Preserve the manufacturer layout and winding orientation; ordinary 2016 inductors are not interchangeable.")]
+#[doc("docs/abracon-aota-application.md")]
+#[doc("docs/abracon-aota-b201610s3r3-101-t.pdf")]
+#[doc("docs/rp2350-hardware-design.pdf")]
+pub part IND_3U3_AOTA_B201610S3R3_101_T: AOTA_B201610S3R3 {
+    primary { mfr: "Abracon", mpn: "AOTA-B201610S3R3-101-T", footprint: FP_AOTA_B201610S3R3 }
+}
+
+#[doc("docs/abracon-aota-application.md")]
+#[doc("docs/abracon-aota-b201610s3r3-101-t.pdf")]
+pub pad P_AOTA_B201610S3R3 {
+    shape: rect
+    size: (1mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+#[doc("docs/abracon-aota-application.md")]
+#[doc("docs/abracon-aota-b201610s3r3-101-t.pdf")]
+pub footprint FP_AOTA_B201610S3R3 {
+    // Abracon Rev A, PDF p4 top view: dot on upper-right terminal.
+    // Two 1.00 x 1.60 mm lands, 1.00 mm inner gap, 3.00 mm outer span.
+    pad 1: P_AOTA_B201610S3R3 at (1mm, 0mm)
+    pad 2: P_AOTA_B201610S3R3 at (-1mm, 0mm)
+    silkscreen {
+        circle at (1mm, -1.2mm) radius 0.1mm width 0.05mm fill solid
+    }
+    // Library-authored enclosure of maximum body, copper and dot with
+    // >=0.25 mm clearance. Mask/paste and assembly remain process choices.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.5mm, 3.2mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}

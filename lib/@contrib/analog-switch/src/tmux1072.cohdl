@@ -1,0 +1,115 @@
+// TI SCDS382C (Aug 2019), pin table p3 and order table p21.
+// Separate devices preserve the physical differences: DGS has no OE/FLT.
+// Signal pins are passive; compiler connectivity does not simulate switches.
+
+#[doc("docs/tmux1072-application.md")]
+#[doc("docs/ti-tmux1072-scds382c.pdf")]
+pub device TMUX1072_DGS {
+    pins {
+        required SEL1: 1 [input]
+        required NO1: 2 [passive]
+        required GND: 3 [power_in]
+        required NO2: 4 [passive]
+        required SEL2: 5 [input]
+        required COM2: 6 [passive]
+        required NC2: 7 [passive]
+        required VCC: 8 [power_in]
+        required NC1: 9 [passive]
+        required COM1: 10 [passive]
+    }
+}
+
+impl IC for TMUX1072_DGS {}
+
+#[doc("docs/tmux1072-application.md")]
+#[doc("docs/ti-tmux1072-scds382c.pdf")]
+pub part SW_TMUX1072DGSR: TMUX1072_DGS {
+    primary { mfr: "Texas Instruments", mpn: "TMUX1072DGSR", footprint: FP_TI_DGS0010A }
+}
+
+#[doc("docs/tmux1072-application.md")]
+#[doc("docs/ti-tmux1072-scds382c.pdf")]
+pub device TMUX1072_RUT {
+    pins {
+        required SEL1: 1 [input]
+        required NO1: 2 [passive]
+        required GND: 3 [power_in]
+        required NO2: 4 [passive]
+        required SEL2: 5 [input]
+        required OE_N: 6 [input]
+        required COM2: 7 [passive]
+        required NC2: 8 [passive]
+        required VCC: 9 [power_in]
+        required NC1: 10 [passive]
+        required COM1: 11 [passive]
+        optional FLT_N: 12 [output]
+    }
+}
+
+impl IC for TMUX1072_RUT {}
+
+#[doc("docs/tmux1072-application.md")]
+#[doc("docs/ti-tmux1072-scds382c.pdf")]
+pub part SW_TMUX1072RUTR: TMUX1072_RUT {
+    primary { mfr: "Texas Instruments", mpn: "TMUX1072RUTR", footprint: FP_TI_RUT0012A }
+}
+
+// DGS0010A drawing 4221984/A (May 2015), source PDF p25.
+// Copper 1.45 x 0.30 mm, pitch 0.50 mm, row-center spacing 4.40 mm.
+pub pad P_TI_DGS0010A_LEAD {
+    shape: rect
+    size: (1.45mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint FP_TI_DGS0010A {
+    pad 1: P_TI_DGS0010A_LEAD at (-2.2mm, -1mm)
+    pad 2: P_TI_DGS0010A_LEAD at (-2.2mm, -0.5mm)
+    pad 3: P_TI_DGS0010A_LEAD at (-2.2mm, 0mm)
+    pad 4: P_TI_DGS0010A_LEAD at (-2.2mm, 0.5mm)
+    pad 5: P_TI_DGS0010A_LEAD at (-2.2mm, 1mm)
+    pad 6: P_TI_DGS0010A_LEAD at (2.2mm, 1mm)
+    pad 7: P_TI_DGS0010A_LEAD at (2.2mm, 0.5mm)
+    pad 8: P_TI_DGS0010A_LEAD at (2.2mm, 0mm)
+    pad 9: P_TI_DGS0010A_LEAD at (2.2mm, -0.5mm)
+    pad 10: P_TI_DGS0010A_LEAD at (2.2mm, -1mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.85mm, 3.6mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}
+// RUT0012A drawing 4220310/A (Nov 2016), source PDF p28.
+// Copper 0.70 x 0.20 mm; side rows at +/-0.70 mm, 0.40 mm pitch.
+// End terminals 6/12 at y=+/-0.85 mm. No exposed pad exists.
+pub pad P_TI_RUT0012A_SIDE {
+    shape: rect
+    size: (0.7mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+pub pad P_TI_RUT0012A_END {
+    shape: rect
+    size: (0.2mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint FP_TI_RUT0012A {
+    pad 1: P_TI_RUT0012A_SIDE at (-0.7mm, -0.8mm)
+    pad 2: P_TI_RUT0012A_SIDE at (-0.7mm, -0.4mm)
+    pad 3: P_TI_RUT0012A_SIDE at (-0.7mm, 0mm)
+    pad 4: P_TI_RUT0012A_SIDE at (-0.7mm, 0.4mm)
+    pad 5: P_TI_RUT0012A_SIDE at (-0.7mm, 0.8mm)
+    pad 6: P_TI_RUT0012A_END at (0mm, 0.85mm)
+    pad 7: P_TI_RUT0012A_SIDE at (0.7mm, 0.8mm)
+    pad 8: P_TI_RUT0012A_SIDE at (0.7mm, 0.4mm)
+    pad 9: P_TI_RUT0012A_SIDE at (0.7mm, 0mm)
+    pad 10: P_TI_RUT0012A_SIDE at (0.7mm, -0.4mm)
+    pad 11: P_TI_RUT0012A_SIDE at (0.7mm, -0.8mm)
+    pad 12: P_TI_RUT0012A_END at (0mm, -0.85mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.6mm, 3.8mm) }
+    silkscreen_ref { at: (0mm, -1.85mm) }
+}

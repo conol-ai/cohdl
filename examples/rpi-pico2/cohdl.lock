@@ -2,8 +2,8 @@
 
 [[package]]
 name = "@raspberrypi/mcu"
-version = "0.1.2"
-hash = "sha256:00265f667f6c70051a3e423a94a19811add05eeb2e34387a6d52074686271543"
+version = "0.1.3"
+hash = "sha256:09ac9def2b84cdb545e159682361b5b942d2955c7fb6c0b478ee0322e261061d"
 
 [[package]]
 name = "@richtek/dcdc"
@@ -27,8 +27,8 @@ hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
 
 [[package]]
 name = "flash"
-version = "0.1.4"
-hash = "sha256:0d70b8d15ffbb1f1bc69253218f6f7d4c4281635caa296b43eccb4caca301709"
+version = "0.1.5"
+hash = "sha256:571204b7a72e470d56d0b2ca5c331d1723636fbd6ca4936bc2f7b910a189f40f"
 
 [[package]]
 name = "led"
@@ -47,8 +47,8 @@ hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
 
 [[package]]
 name = "passive"
-version = "0.2.2"
-hash = "sha256:d5ae92b0190fffa84253edd6509bff5fa3e4c478e87d0b64110e4cbb1f3ba819"
+version = "0.2.3"
+hash = "sha256:0f0fe09d35ddffad61baea742fbb43d3caec28a4dad3088fc1fea3adda8219f9"
 
 [[package]]
 name = "qfn"
@@ -57,8 +57,8 @@ hash = "sha256:35f00df7f09e3dd9b4bf6cc686277d1a99ca9f86a4a95742278abace3786c44d"
 
 [[package]]
 name = "soic"
-version = "0.2.0"
-hash = "sha256:bab763d35a5aaa8c29628e49b3ed1bdecb8f2a74a24a44308c8cce5d0f0e096a"
+version = "0.2.1"
+hash = "sha256:f6d9e27f8b599b1a094b7de923fcff154f2135a54c71caf4f0dfdd36caeda40f"
 
 [[package]]
 name = "std"
@@ -67,5 +67,5 @@ hash = "sha256:5b5fc2d184722d4a4fd32f531656c32f2de2f0920c94d7a8e5f2d2203527fbca"
 
 [[package]]
 name = "usb"
-version = "0.1.1"
-hash = "sha256:46a3a8a7bd04c703067abea60b96063bb8194cec27813651fad765337e27d87c"
+version = "0.1.5"
+hash = "sha256:dc0e5b5d2e1a5b4e97ad0ad754fc8b68e5022a72cceb5f2c87d1789cb0ecb482"

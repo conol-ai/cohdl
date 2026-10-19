@@ -1,0 +1,64 @@
+// WCH CH32V203DS0 V3.0, section 3.1 and Table 3-1-1 (printed pp19,21-24).
+// VDD_IO_1/3 are distinct from VDD_2; never collapse these into one pin bus.
+#[doc("docs/ch32v203.md")]
+#[intent("CH32V203C8 QingKe RISC-V V4B 144MHz, 64KB flash, 20KB SRAM; LQFP48; USB and CAN. WCH debug protocol; not an STM32/GD32 alternate.")]
+pub device CH32V203C8_LQFP48 {
+    pins {
+        required VBAT: 1 [power_in]
+        optional PC13: 2 [bidirectional]
+        optional PC14: 3 [bidirectional] // OSC32_IN
+        optional PC15: 4 [bidirectional] // OSC32_OUT
+        optional PD0: 5 [bidirectional] // OSC_IN at reset; GPIO requires remap
+        optional PD1: 6 [bidirectional] // OSC_OUT at reset; GPIO requires remap
+        optional NRST: 7 [input]
+        required VSSA: 8 [power_in]
+        required VDDA: 9 [power_in]
+        optional PA0: 10 [bidirectional]
+        optional PA1: 11 [bidirectional]
+        optional PA2: 12 [bidirectional]
+        optional PA3: 13 [bidirectional]
+        optional PA4: 14 [bidirectional]
+        optional PA5: 15 [bidirectional]
+        optional PA6: 16 [bidirectional]
+        optional PA7: 17 [bidirectional]
+        optional PB0: 18 [bidirectional]
+        optional PB1: 19 [bidirectional]
+        optional PB2: 20 [bidirectional] // BOOT1
+        optional PB10: 21 [bidirectional]
+        optional PB11: 22 [bidirectional]
+        required VSS_1: 23 [power_in]
+        required VDD_IO_1: 24 [power_in]
+        optional PB12: 25 [bidirectional]
+        optional PB13: 26 [bidirectional]
+        optional PB14: 27 [bidirectional]
+        optional PB15: 28 [bidirectional]
+        optional PA8: 29 [bidirectional]
+        optional PA9: 30 [bidirectional]
+        optional PA10: 31 [bidirectional]
+        optional PA11: 32 [bidirectional] // USBDM / CAN1_RX
+        optional PA12: 33 [bidirectional] // USBDP / CAN1_TX
+        optional PA13: 34 [bidirectional] // SWDIO (WCH debug)
+        required VSS_2: 35 [power_in]
+        required VDD_2: 36 [power_in]
+        optional PA14: 37 [bidirectional] // SWCLK (WCH debug)
+        optional PA15: 38 [bidirectional]
+        optional PB3: 39 [bidirectional]
+        optional PB4: 40 [bidirectional]
+        optional PB5: 41 [bidirectional]
+        optional PB6: 42 [bidirectional] // USBFS_DM / I2C1_SCL
+        optional PB7: 43 [bidirectional] // USBFS_DP / I2C1_SDA
+        required BOOT0: 44 [input]
+        optional PB8: 45 [bidirectional]
+        optional PB9: 46 [bidirectional]
+        required VSS_3: 47 [power_in]
+        required VDD_IO_3: 48 [power_in]
+    }
+}
+
+impl IC for CH32V203C8_LQFP48 {}
+
+#[doc("docs/ch32v203.md")]
+#[intent("WCH CH32V203C8T6 LQFP48. Generic KiCad land checked against nominal package dimensions only; WCH tolerance and assembly-process review remain required.")]
+pub part MCU_CH32V203C8T6: CH32V203C8_LQFP48 {
+    primary { mfr: "WCH", mpn: "CH32V203C8T6", footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM }
+}

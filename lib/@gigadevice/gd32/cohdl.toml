@@ -1,0 +1,11 @@
+[package]
+name = "@gigadevice/gd32"
+version = "0.1.0"
+license = "MIT"
+description = "GigaDevice GD32E230 and GD32F303 package-specific MCU models and exact parts."
+repository = "https://github.com/conol-ai/cohdl"
+
+[dependencies]
+qfp = "0.2.0"
+soic = "0.2.1"
+std = "0.3.0"

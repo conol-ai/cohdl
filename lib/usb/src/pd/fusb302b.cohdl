@@ -1,0 +1,93 @@
+// onsemi FUSB302B/D Rev. 5, Figure 5/Table 3 p5; case 510BR p31.
+// Package documentation distinguishes functional limits from stress ratings.
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub device FUSB302B_MLP {
+    pins {
+        required CC2: 1, 14 [bidirectional]
+        required VBUS: 2 [input]
+        required VDD: 3, 4 [power_in]
+        required INT_N: 5 [output]
+        required SCL: 6 [input]
+        required SDA: 7 [bidirectional]
+        required GND: 8, 9, 15 [power_in]
+        required CC1: 10, 11 [bidirectional]
+        required VCONN: 12, 13 [power_in]
+    }
+}
+
+impl IC for FUSB302B_MLP {}
+
+#[intent("USB Type-C PD PHY, 0x22 7-bit I2C; reset enables CC pulldowns, see application contract")]
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub part PHY_FUSB302BMPX: FUSB302B_MLP {
+    primary { mfr: "onsemi", mpn: "FUSB302BMPX", footprint: QFN14N50P250X250_1EP145X145 }
+}
+
+#[intent("USB Type-C PD PHY, 0x23 7-bit I2C; reset enables CC pulldowns, see application contract")]
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub part PHY_FUSB302B01MPX: FUSB302B_MLP {
+    primary { mfr: "onsemi", mpn: "FUSB302B01MPX", footprint: QFN14N50P250X250_1EP145X145 }
+}
+
+#[intent("USB Type-C PD PHY, 0x24 7-bit I2C; reset enables CC pulldowns, see application contract")]
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub part PHY_FUSB302B10MPX: FUSB302B_MLP {
+    primary { mfr: "onsemi", mpn: "FUSB302B10MPX", footprint: QFN14N50P250X250_1EP145X145 }
+}
+
+#[intent("USB Type-C PD PHY, 0x25 7-bit I2C; reset enables CC pulldowns, see application contract")]
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub part PHY_FUSB302B11MPX: FUSB302B_MLP {
+    primary { mfr: "onsemi", mpn: "FUSB302B11MPX", footprint: QFN14N50P250X250_1EP145X145 }
+}
+
+pub pad P_510BR_H {
+    shape: rect
+    size: (0.58mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_510BR_V {
+    shape: rect
+    size: (0.3mm, 0.58mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_510BR_EP {
+    shape: rect
+    size: (1.45mm, 1.45mm)
+    layer: top_copper
+    plating: smd
+}
+
+#[doc("docs/fusb302b-application.md")]
+#[doc("docs/onsemi-fusb302b-d.pdf")]
+pub footprint QFN14N50P250X250_1EP145X145 {
+    pad 1: P_510BR_H at (-1.215mm, -0.5mm)
+    pad 2: P_510BR_H at (-1.215mm, 0mm)
+    pad 3: P_510BR_H at (-1.215mm, 0.5mm)
+    pad 4: P_510BR_V at (-0.75mm, 1.215mm)
+    pad 5: P_510BR_V at (-0.25mm, 1.215mm)
+    pad 6: P_510BR_V at (0.25mm, 1.215mm)
+    pad 7: P_510BR_V at (0.75mm, 1.215mm)
+    pad 8: P_510BR_H at (1.215mm, 0.5mm)
+    pad 9: P_510BR_H at (1.215mm, 0mm)
+    pad 10: P_510BR_H at (1.215mm, -0.5mm)
+    pad 11: P_510BR_V at (0.75mm, -1.215mm)
+    pad 12: P_510BR_V at (0.25mm, -1.215mm)
+    pad 13: P_510BR_V at (-0.25mm, -1.215mm)
+    pad 14: P_510BR_V at (-0.75mm, -1.215mm)
+    pad 15: P_510BR_EP at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.51mm, 3.51mm) }
+    silkscreen_ref { at: (0mm, -2.2mm) }
+}

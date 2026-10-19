@@ -1,0 +1,45 @@
+#[doc("docs/tlv90x2-application.md")]
+#[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+pub device TLV9022_D8 {
+    pins {
+        optional OUT1: 1 [output]
+        required IN1_N: 2 [input]
+        required IN1_P: 3 [input]
+        required V_MINUS: 4 [power_in]
+        required IN2_P: 5 [input]
+        required IN2_N: 6 [input]
+        optional OUT2: 7 [output]
+        required V_PLUS: 8 [power_in]
+    }
+}
+impl IC for TLV9022_D8 {}
+
+#[intent("Dual comparator, open-drain output; external pullups required; fault-tolerant inputs while unpowered; timing and input-bias figures are typical; not a USB PD protocol controller")]
+#[doc("docs/tlv90x2-application.md")]
+#[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+pub part COMP_TLV9022DR: TLV9022_D8 {
+    primary { mfr: "Texas Instruments", mpn: "TLV9022DR", footprint: soic::TI_D0008A_4214825C }
+}
+
+#[doc("docs/tlv90x2-application.md")]
+#[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+pub device TLV9032_D8 {
+    pins {
+        optional OUT1: 1 [output]
+        required IN1_N: 2 [input]
+        required IN1_P: 3 [input]
+        required V_MINUS: 4 [power_in]
+        required IN2_P: 5 [input]
+        required IN2_N: 6 [input]
+        optional OUT2: 7 [output]
+        required V_PLUS: 8 [power_in]
+    }
+}
+impl IC for TLV9032_D8 {}
+
+#[intent("Dual comparator, push-pull output; fault-tolerant inputs while unpowered; timing and input-bias figures are typical; not a USB PD protocol controller")]
+#[doc("docs/tlv90x2-application.md")]
+#[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+pub part COMP_TLV9032DR: TLV9032_D8 {
+    primary { mfr: "Texas Instruments", mpn: "TLV9032DR", footprint: soic::TI_D0008A_4214825C }
+}

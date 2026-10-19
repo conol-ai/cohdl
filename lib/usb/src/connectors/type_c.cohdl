@@ -10,8 +10,8 @@
 #[doc("docs/hro-type-c-31-m-12-family-drawing.pdf")]
 pub device USB_C_Receptacle_2_0 {
     pins {
-        required GND: A1, A12, B1, B12 [power_in]
-        required VBUS: A4, A9, B4, B9 [power_out] // the upstream source drives VBUS
+        required GND: A1, A12, B1, B12 [passive]
+        required VBUS: A4, A9, B4, B9 [passive] // direction belongs to the connected circuit
         required CC1: A5 [passive]
         required CC2: B5 [passive]
         required DP: A6, B6 [bidirectional]

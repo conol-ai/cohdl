@@ -1,0 +1,64 @@
+// GD32F303xB Rev 1.1, Figure 2-4 and Table 2-5 (printed pp11,29-31).
+// Supplies remain individual physical pins for per-pin decoupling.
+#[doc("docs/gd32f303.md")]
+#[intent("GD32F303CB Cortex-M4 120MHz, 128KB flash, 32KB SRAM; LQFP48; USB FS and CAN. Not an STM32 alternate.")]
+pub device GD32F303CB_LQFP48 {
+    pins {
+        required VBAT: 1 [power_in]
+        optional PC13: 2 [bidirectional]
+        optional PC14: 3 [bidirectional] // OSC32IN
+        optional PC15: 4 [bidirectional] // OSC32OUT
+        optional PD0: 5 [bidirectional] // OSCIN at reset; GPIO requires remap
+        optional PD1: 6 [bidirectional] // OSCOUT at reset; GPIO requires remap
+        optional NRST: 7 [bidirectional]
+        required VSSA: 8 [power_in]
+        required VDDA: 9 [power_in]
+        optional PA0: 10 [bidirectional]
+        optional PA1: 11 [bidirectional]
+        optional PA2: 12 [bidirectional]
+        optional PA3: 13 [bidirectional]
+        optional PA4: 14 [bidirectional]
+        optional PA5: 15 [bidirectional]
+        optional PA6: 16 [bidirectional]
+        optional PA7: 17 [bidirectional]
+        optional PB0: 18 [bidirectional]
+        optional PB1: 19 [bidirectional]
+        optional PB2: 20 [bidirectional] // BOOT1
+        optional PB10: 21 [bidirectional]
+        optional PB11: 22 [bidirectional]
+        required VSS_1: 23 [power_in]
+        required VDD_1: 24 [power_in]
+        optional PB12: 25 [bidirectional]
+        optional PB13: 26 [bidirectional]
+        optional PB14: 27 [bidirectional]
+        optional PB15: 28 [bidirectional]
+        optional PA8: 29 [bidirectional]
+        optional PA9: 30 [bidirectional]
+        optional PA10: 31 [bidirectional]
+        optional PA11: 32 [bidirectional] // USBDM / CAN0_RX
+        optional PA12: 33 [bidirectional] // USBDP / CAN0_TX
+        optional PA13: 34 [bidirectional] // SWDIO / JTMS
+        required VSS_2: 35 [power_in]
+        required VDD_2: 36 [power_in]
+        optional PA14: 37 [bidirectional] // SWCLK / JTCK
+        optional PA15: 38 [bidirectional]
+        optional PB3: 39 [bidirectional]
+        optional PB4: 40 [bidirectional]
+        optional PB5: 41 [bidirectional]
+        optional PB6: 42 [bidirectional]
+        optional PB7: 43 [bidirectional]
+        required BOOT0: 44 [input]
+        optional PB8: 45 [bidirectional]
+        optional PB9: 46 [bidirectional]
+        required VSS_3: 47 [power_in]
+        required VDD_3: 48 [power_in]
+    }
+}
+
+impl IC for GD32F303CB_LQFP48 {}
+
+#[doc("docs/gd32f303.md")]
+#[intent("GigaDevice GD32F303CBT6 LQFP48. Shared QFP land matches GD32F303xB Rev1.1 Figure5-6: 1.20x0.30mm pads, 0.50mm pitch, 9.70mm outside span.")]
+pub part MCU_GD32F303CBT6: GD32F303CB_LQFP48 {
+    primary { mfr: "GigaDevice", mpn: "GD32F303CBT6", footprint: qfp::QFP50P900X900X160_48N }
+}

@@ -31,3 +31,30 @@ Retrieved and revalidated on 2026-07-30.
   8/16 or 10/16 vias remain PCB-layout decisions rather than footprint
   primitives.
 
+
+## FUSB302B MLP family — added 2026-10-16
+
+Four address-specific MPX parts use the manufacturer case 510BR land.
+Read [the application contract](fusb302b-application.md) for exact pins,
+operating limits, register/reset constraints and unresolved sniffer concerns.
+Source: [onsemi](https://www.onsemi.com/pdf/datasheet/fusb302b-d.pdf),
+`onsemi-fusb302b-d.pdf`, Rev. 5, August 2021; SHA-256 `712b6db97692f283b450b1f15d9018da0a3f83af35b1bdff792c0ef4ca81812f`.
+The PDF was retrieved unchanged on 2026-10-16; pin and land drawings were
+visually checked on pages 5 and 31. This does not qualify a complete board.
+
+## Additional USB PD controllers (usb 0.1.3)
+
+- `ptn5110-application.md` and `nxp-ptn5110.pdf`: six exact NXP TCPC order codes, startup differences, host/supply requirements and the explicitly unreleased SOT1883-1 source land drawing.
+- `stusb1602-application.md` and `st-stusb1602-rev5.pdf`: STUSB1602AQTR BMC transceiver, chip-relative SPI directions, required external MCU, power/termination limitations.
+- `stusb4500-application.md` and `st-stusb4500-rev7.pdf`: STUSB4500QTR autonomous sink. The note records the newer Rev. 8 I2C power-loss warning and the bundled Rev. 7 provenance.
+
+These are controller definitions, not passive-sniffer reference designs. Searchable part intents distinguish roles. Each note cites the manufacturer document and exact captured PDF hash; mirrored PDFs retain the original manufacturer content. PDF copyrights remain with their manufacturers.
+
+## More USB PD controllers (usb 0.1.5)
+
+| Family | Exact order codes added | Application information |
+|---|---|---|
+| TI TUSB422 | TUSB422IYFPR, TUSB422IYFPT | [Host-controlled TCPC, supply/clockless interface, startup and PD-message limitations](tusb422-application.md) |
+| onsemi FUSB307B | FUSB307BMPX, FUSB307BVMPX | [Legacy/discontinued TCPC, address straps, LDO/dead-battery behavior and automatic replies](fusb307b-application.md) |
+
+Each part, device and footprint links its application note and unmodified manufacturer PDF through `#[doc]`. The notes record exact source URLs, versions, hashes and page references. New definitions were checked against both pin tables and rendered land drawings. TUSB422's YFP land has nine 0.23 mm copper circles at 0.4 mm pitch; FUSB307B uses the 510BS land and a grounded exposed pad. These are controller models, not qualified passive-sniffer circuits. FUSB307B is explicitly marked for legacy use because its current manufacturer document is discontinued.

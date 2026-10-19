@@ -30,3 +30,9 @@ orientation, and land dimensions.
 
 BP pin requires 22nF (or larger) noise-bypass cap per DS9193 p2; OUT needs
 1uF per p3 test conditions. Suffix PB = auto discharge + TSOT-23-5.
+
+## Application contract — added 2026-10-16
+
+[AP2112K-3.3TRG1 application contract](ap2112-application.md) summarizes the
+pinned source's limits, capacitors, enable/discharge behavior and power-isolation
+limitations. It is attached to the part and device for exact registry lookup.

@@ -17,7 +17,7 @@ thousands of hand-edited declarations.
 | Yageo CC MLCC primaries | 1,225 | The NP0/C0G, X5R, and X7R family documents below; every emitted MPN was accepted by Yageo's official specsheet endpoint. |
 | Samsung CL MLCC alternates | 716 | `samsung_mlcc_catalog_2025-12.pdf` plus the exact-MPN product-database snapshot in `tools/passive_data/samsung_cl.json`. |
 | Murata GRM MLCC alternates | 2 | One part-specific reference sheet for each exact base MPN; the packaged `D` ordering suffix is listed in each sheet. |
-| Power/RF inductors | 5 | One official detailed specification or evidence record per series (Murata, Sunlord and Coilcraft). |
+| Power/RF inductors | 6 | One official detailed specification or evidence record per series (Murata, Sunlord, Coilcraft and Abracon). |
 | Ferrite beads | 1 | Murata exact BLM15PD121SN1D reference specification and recommended land. |
 
 The exact-MPN validation snapshots are dated 2026-07-25. The Samsung snapshot
@@ -97,3 +97,8 @@ polarity mark.
 `FP_COILCRAFT_0402DC` transcribes Coilcraft Document 1153 directly: two
 0.36 x 0.66 mm lands separated by a 0.61 mm inner gap, with centres at
 x = ±0.485 mm. The exact 2.0 nH and 3.0 nH parts both exercise this footprint.
+
+
+## RP2350 orientation-marked inductor (passive 0.2.3)
+
+`IND_3U3_AOTA_B201610S3R3_101_T` uses its own exact manufacturer land and named DOT/UNDOTTED pins. Read [the application note](abracon-aota-application.md) for source hashes, electrical-table caveats, the explicit pad-number convention and RP2350 reference orientation. Original Abracon and Raspberry Pi PDFs are bundled unchanged. Existing generated resistor/MLCC declarations and other inductor definitions are unchanged.

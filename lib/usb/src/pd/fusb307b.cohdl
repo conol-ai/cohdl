@@ -1,0 +1,87 @@
+#[doc("docs/fusb307b-application.md")]
+#[doc("docs/onsemi-fusb307b-d.pdf")]
+pub device FUSB307B_QFN16 {
+    pins {
+        required CC1: 1 [bidirectional]
+        required VCONN: 2 [power_in]
+        required CC2: 3 [bidirectional]
+        required ORIENT_I2C_ADDR: 4 [bidirectional]
+        required LDO: 5 [power_out]
+        required VBUS: 6 [power_in]
+        required VDD: 7 [power_in]
+        optional DBG_N: 8 [bidirectional]
+        optional GPIO2: 9 [bidirectional]
+        optional INT_N: 10 [output]
+        required SCL1_SDA2: 11 [bidirectional]
+        required SDA1_SCL2: 12 [bidirectional]
+        optional SRC: 13 [output]
+        optional SNK: 14 [output]
+        required GND: 15, 17 [power_in]
+        optional GPIO1: 16 [bidirectional]
+    }
+}
+impl IC for FUSB307B_QFN16 {}
+
+#[intent("Legacy USB PD 3.0 TCPC; manufacturer document discontinued May 2026; -40 to 85 C; external TCPM, automatic GoodCRC, unpowered Rd; not passive")]
+#[doc("docs/fusb307b-application.md")]
+#[doc("docs/onsemi-fusb307b-d.pdf")]
+pub part TCPC_FUSB307BMPX: FUSB307B_QFN16 {
+    primary { mfr: "onsemi", mpn: "FUSB307BMPX", footprint: WQFN16_510BS }
+}
+
+#[intent("Legacy USB PD 3.0 TCPC; manufacturer document discontinued May 2026; automotive -40 to 105 C; external TCPM, automatic GoodCRC, unpowered Rd; not passive")]
+#[doc("docs/fusb307b-application.md")]
+#[doc("docs/onsemi-fusb307b-d.pdf")]
+pub part TCPC_FUSB307BVMPX: FUSB307B_QFN16 {
+    primary { mfr: "onsemi", mpn: "FUSB307BVMPX", footprint: WQFN16_510BS }
+}
+
+pub pad P_510BS_H {
+    shape: rect
+    size: (0.57mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_510BS_V {
+    shape: rect
+    size: (0.3mm, 0.57mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_510BS_EP {
+    shape: rect
+    size: (1.75mm, 1.75mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Case 510BS recommended land; top-view orientation matches datasheet p1.
+// Fig 4 p4 shows the same top view rotated 180 degrees. EP is library pad 17.
+#[doc("docs/fusb307b-application.md")]
+#[doc("docs/onsemi-fusb307b-d.pdf")]
+pub footprint WQFN16_510BS {
+    pad 1: P_510BS_H at (-1.365mm, -0.75mm)
+    pad 2: P_510BS_H at (-1.365mm, -0.25mm)
+    pad 3: P_510BS_H at (-1.365mm, 0.25mm)
+    pad 4: P_510BS_H at (-1.365mm, 0.75mm)
+    pad 5: P_510BS_V at (-0.75mm, 1.365mm)
+    pad 6: P_510BS_V at (-0.25mm, 1.365mm)
+    pad 7: P_510BS_V at (0.25mm, 1.365mm)
+    pad 8: P_510BS_V at (0.75mm, 1.365mm)
+    pad 9: P_510BS_H at (1.365mm, 0.75mm)
+    pad 10: P_510BS_H at (1.365mm, 0.25mm)
+    pad 11: P_510BS_H at (1.365mm, -0.25mm)
+    pad 12: P_510BS_H at (1.365mm, -0.75mm)
+    pad 13: P_510BS_V at (0.75mm, -1.365mm)
+    pad 14: P_510BS_V at (0.25mm, -1.365mm)
+    pad 15: P_510BS_V at (-0.25mm, -1.365mm)
+    pad 16: P_510BS_V at (-0.75mm, -1.365mm)
+    pad 17: P_510BS_EP at (0mm, 0mm)
+    silkscreen {
+        circle at (-1.8mm, -1.8mm) radius 0.1mm width 0.1mm fill solid
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.4mm, 4.4mm) }
+    silkscreen_ref { at: (0mm, -2.6mm) }
+}

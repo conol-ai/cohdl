@@ -1,0 +1,37 @@
+// GD32E230xx Rev 3.1, Figure 2-8 and Table 2-11 (printed pp14,34-35).
+// This is the F8 TSSOP20 pinout, not the QFN/LGA pinout.
+#[doc("docs/gd32e230.md")]
+#[intent("GD32E230F8 Cortex-M23 72MHz, 64KB flash, 8KB SRAM; TSSOP20; no USB. PA9/PA10 share pads with remapped PA11/PA12.")]
+pub device GD32E230F8_TSSOP20 {
+    pins {
+        required BOOT0: 1 [input]
+        optional PF0: 2 [bidirectional] // OSCIN / I2C0_SDA
+        optional PF1: 3 [bidirectional] // OSCOUT / I2C0_SCL
+        optional NRST: 4 [bidirectional]
+        required VDDA: 5 [power_in]
+        optional PA0: 6 [bidirectional]
+        optional PA1: 7 [bidirectional]
+        optional PA2: 8 [bidirectional]
+        optional PA3: 9 [bidirectional]
+        optional PA4: 10 [bidirectional]
+        optional PA5: 11 [bidirectional]
+        optional PA6: 12 [bidirectional]
+        optional PA7: 13 [bidirectional]
+        optional PB1: 14 [bidirectional]
+        required VSS: 15 [power_in]
+        required VDD: 16 [power_in]
+        optional PA9: 17 [bidirectional] // PA11 remap uses this same physical pad
+        optional PA10: 18 [bidirectional] // PA12 remap uses this same physical pad
+        optional PA13: 19 [bidirectional] // SWDIO
+        optional PA14: 20 [bidirectional] // SWCLK
+    }
+}
+
+impl IC for GD32E230F8_TSSOP20 {}
+
+#[doc("docs/gd32e230.md")]
+#[intent("GigaDevice GD32E230F8P6TR, TSSOP20; generic KiCad land, not the GigaDevice recommended land. See package qualification notes.")]
+pub part MCU_GD32E230F8P6TR: GD32E230F8_TSSOP20 {
+    primary { mfr: "GigaDevice", mpn: "GD32E230F8P6TR",
+              footprint: soic::KICAD_TSSOP_20_4_4X6_5MM_P0_65MM }
+}

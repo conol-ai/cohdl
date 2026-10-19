@@ -52,6 +52,8 @@ footprints live in focused packages:
 | `@contrib/fuel-gauge` | `contrib_fuel_gauge::FGAUGE_CW2015CHBD` | community-contributed battery fuel-gauge devices and audited public part bindings |
 | `@sifli/sf32` | `sifli_sf32::MCU_SF32LB52EUB6`, `sifli_sf32::MCU_SF32LB52GUC6` | SiFli SF32LB52X device and qualified EUB6/GUC6 package bindings |
 | `@contrib/io-expander` | `contrib_io_expander::IOEXP_XL9555` | community-contributed I2C/SMBus I/O expander variants and a public TSSOP24 binding with an independently derived land pattern |
+| `@gigadevice/gd32` | `gigadevice_gd32::MCU_GD32E230F8P6TR`, `gigadevice_gd32::MCU_GD32F303CBT6` | GigaDevice package-specific MCU models and exact TSSOP20/LQFP48 parts; source and land qualification in package docs |
+| `@wch/ch32` | `wch_ch32::MCU_CH32V003F4P6`, `wch_ch32::MCU_CH32V203C8T6` | WCH RISC-V MCU models and exact TSSOP20/LQFP48 parts with nominal generic lands; assembly qualification documented |
 | `@raspberrypi/mcu` | `raspberrypi_mcu::RP2350A_QFN60` | Raspberry Pi microcontrollers |
 | `@richtek/dcdc` | `richtek_dcdc::buck_boost::rt6150b::BUCKBOOST_RT6150B` | Richtek DC/DC converters |
 
@@ -84,6 +86,7 @@ Additional community-contributed packages:
 |---|---|---|
 | `@contrib/haptic` | `contrib_haptic::HAPTIC_AW86224` | community-contributed haptic / vibration driver devices and parts |
 | `@contrib/analog-switch` | `contrib_analog_switch::SW_RS2257XH` | community-contributed analog switch / multiplexer devices and parts |
+| `@contrib/comparator` | `contrib_comparator::COMP_TLV9022DR`, `contrib_comparator::COMP_TLV9032DR` | community-contributed dual comparators with exact SOIC-8 parts and manufacturer land patterns |
 | `@contrib/led-driver` | `contrib_led_driver::LEDDRV_AW21009` | community-contributed LED driver devices and parts |
 | `@contrib/keyscan` | `contrib_keyscan::KEYSCAN_TCA8418` | community-contributed keypad / keyboard scanner devices and parts |
 | `@contrib/rtc` | `contrib_rtc::RTC_PCF85063AT` | community-contributed real-time clock devices and parts |

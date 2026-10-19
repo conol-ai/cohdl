@@ -1,0 +1,27 @@
+// TI D0008A, drawing 4214825/C (02/2019), example board layout.
+// Inch dimensions converted exactly to mm; see the source note.
+pub pad P_TI_D0008A_4214825C {
+    shape: rect
+    size: (1.5494mm, 0.6096mm)
+    corner_radius: 0.0508mm
+    layer: top_copper
+    plating: smd
+}
+
+#[doc("docs/ti-d0008a.md")]
+#[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+pub footprint TI_D0008A_4214825C {
+    pad 1: P_TI_D0008A_4214825C at (-2.7051mm, -1.905mm)
+    pad 2: P_TI_D0008A_4214825C at (-2.7051mm, -0.635mm)
+    pad 3: P_TI_D0008A_4214825C at (-2.7051mm, 0.635mm)
+    pad 4: P_TI_D0008A_4214825C at (-2.7051mm, 1.905mm)
+    pad 5: P_TI_D0008A_4214825C at (2.7051mm, 1.905mm)
+    pad 6: P_TI_D0008A_4214825C at (2.7051mm, 0.635mm)
+    pad 7: P_TI_D0008A_4214825C at (2.7051mm, -0.635mm)
+    pad 8: P_TI_D0008A_4214825C at (2.7051mm, -1.905mm)
+    silkscreen {
+        circle at (-2.7051mm, -2.6mm) radius 0.1mm width 0.05mm fill solid
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4596mm, 6mm) }
+    silkscreen_ref { at: (0mm, -3.5mm) }
+}

@@ -1,0 +1,42 @@
+use usb::pd::st_qfn24::ST_QFN24_EP_4X4;
+
+// Manufacturer pin table; EP is represented by library pad number 25.
+#[doc("docs/stusb1602-application.md")]
+#[doc("docs/st-stusb1602-rev5.pdf")]
+pub device STUSB1602A_QFN24 {
+    pins {
+        required CC1DB: 1 [bidirectional]
+        required CC1: 2 [bidirectional]
+        optional VCONN: 3 [power_in]
+        required CC2: 4 [bidirectional]
+        required CC2DB: 5 [bidirectional]
+        required RESET: 6 [input]
+        required SCL: 7 [input]
+        required SDA: 8 [bidirectional]
+        optional ALERT_N: 9 [output]
+        required GND: 10, 25 [power_in]
+        required MOSI: 11 [output]
+        required NSS: 12 [output]
+        required ADDR0: 13 [input]
+        required MISO: 14 [input]
+        required TX_EN: 15 [input]
+        required SCLK: 16 [output]
+        optional A_B_SIDE: 17 [output]
+        required VBUS_SENSE: 18 [bidirectional]
+        optional VBUS_EN_SNK: 19 [bidirectional]
+        optional VBUS_EN_SRC: 20 [bidirectional]
+        required VREG_1V2: 21 [power_out]
+        required VSYS: 22 [power_in]
+        required VREG_2V7: 23 [power_out]
+        required VDD: 24 [power_in]
+    }
+}
+
+impl IC for STUSB1602A_QFN24 {}
+
+#[intent("USB PD 3.0 BMC transceiver; I2C control and SPI master to external MCU; autonomous Type-C attach, not proven passive")]
+#[doc("docs/stusb1602-application.md")]
+#[doc("docs/st-stusb1602-rev5.pdf")]
+pub part PHY_STUSB1602AQTR: STUSB1602A_QFN24 {
+    primary { mfr: "STMicroelectronics", mpn: "STUSB1602AQTR", footprint: ST_QFN24_EP_4X4 }
+}

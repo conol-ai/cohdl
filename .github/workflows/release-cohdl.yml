@@ -24,6 +24,17 @@ on:
   push:
     tags:
       - "v[0-9]*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing compiler tag to release (vX.Y.Z)"
+        required: true
+        type: string
+
+# A manual retry and a delayed tag event must not publish concurrently.
+concurrency:
+  group: release-cohdl-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 # Needed only to create the GitHub release that carries the artifacts.
 permissions:
@@ -31,6 +42,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   # The tagged tree passes the same gate as CI's test job — fmt, clippy,
@@ -40,21 +52,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
       - name: Check tag is an exact vX.Y.Z matching Cargo.toml
         run: |
-          tag_version="${GITHUB_REF_NAME#v}"
+          tag_version="${RELEASE_TAG#v}"
           # The trigger glob is loose (globs cannot express "exact triple");
           # this guard is the real filter. A pre-release-shaped tag
           # (v0.2.0-rc1) must never publish: install.sh and self-update
           # select by RFC-029 exact triples, so its artifacts would be
           # invisible to self-update yet mislead anyone browsing releases.
-          if ! echo "$tag_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::tag $GITHUB_REF_NAME is not an exact vX.Y.Z compiler release tag"
+          if ! echo "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::tag $RELEASE_TAG is not an exact vX.Y.Z compiler release tag"
             exit 1
           fi
           cargo_version="$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)"
           if [ "$tag_version" != "$cargo_version" ]; then
-            echo "::error::tag $GITHUB_REF_NAME implies version $tag_version, but Cargo.toml says $cargo_version"
+            echo "::error::tag $RELEASE_TAG implies version $tag_version, but Cargo.toml says $cargo_version"
             exit 1
           fi
       - uses: dtolnay/rust-toolchain@master
@@ -90,6 +104,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.92.0
@@ -163,14 +179,14 @@ jobs:
         run: |
           mkdir stage
           cp "target/${{ matrix.target }}/dist/cohdl" stage/
-          tar -C stage -czf "cohdl-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz" cohdl
+          tar -C stage -czf "cohdl-${RELEASE_TAG}-${{ matrix.target }}.tar.gz" cohdl
       - name: Package (windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory stage | Out-Null
           Copy-Item "target/${{ matrix.target }}/dist/cohdl.exe" stage/
-          tar -C stage -czf "cohdl-$env:GITHUB_REF_NAME-${{ matrix.target }}.tar.gz" cohdl.exe
+          tar -C stage -czf "cohdl-$env:RELEASE_TAG-${{ matrix.target }}.tar.gz" cohdl.exe
       # overwrite: v4 artifacts are immutable per RUN (not per attempt), so
       # without it a "re-run all jobs" 409s on the second upload and the
       # release job's re-run tolerance below could never be reached.
@@ -186,6 +202,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -201,12 +219,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
           else
-            gh release create "$GITHUB_REF_NAME" dist/* \
+            gh release create "$RELEASE_TAG" dist/* \
               --verify-tag \
               --latest \
-              --title "cohdl $GITHUB_REF_NAME" \
+              --title "cohdl $RELEASE_TAG" \
               --notes "Install: \`curl -fsSL https://raw.githubusercontent.com/conol-ai/cohdl/main/install.sh | sh\` — or download the archive for your platform below and put \`cohdl\` on PATH. An installed binary updates itself with \`cohdl self-update\`."
           fi

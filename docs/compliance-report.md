@@ -3827,6 +3827,19 @@ paste outside copper, and geometry beyond the 100 mm / 512-segment /
 520-vertex hard bounds. This closes the TDK/InvenSense T3902 manufacturer-land
 gap without adding a general polygon API.
 
+**KiCad anchor correction (2026-10-21).** An ICS-43434 audit reproduced a
+hole-clearance error and a solder-mask bridge from `mic@0.1.1`'s old solid
+disk/NPTH workaround. `mic@0.1.2` uses the manufacturer annulus, 0.5mm sound
+hole, and Figure 14 paste pattern. The audit also exposed the original
+annulus emitter's zero-sized anchors: KiCad 10.0.4 clamps them into dots at
+the sound-port centre, adding invalid disconnected pad shapes. Both KiCad
+dialects now share nonzero anchors contained within the ring/paste sectors;
+the primitives are translated back so their physical geometry is unchanged.
+Anchor placement rotation uses `trig.rs`, including bottom-side composition.
+The isolated ICS-43434 board passes KiCad DRC with default constraints;
+IPC-2581's existing cutout representation is unchanged. Older compiler
+binaries need the emitter fix as well as the package update.
+
 ## openmicro-kbd → openmicro2: SF32 wireless redesign (2026-08-07)
 
 Directed by the user: the `openmicro-kbd` example is renamed `openmicro2`

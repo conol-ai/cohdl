@@ -176,6 +176,82 @@ fn assert_zero_ohm_part(
 }
 
 #[test]
+fn ics43434_acoustic_port_matches_manufacturer_land_and_stencil() {
+    // DS-000069 rev 1.2, p17 Figures 13/14: the 1.025mm copper opening
+    // and the >=0.5mm PCB sound hole are separate dimensions. A solid SMD
+    // disk over a coincident drill is not an annular land in fabrication CAD.
+    let (mut checked, rendered) = check(
+        "mic",
+        &[
+            (
+                "src/microphone.cohdl",
+                include_str!("../lib/mic/src/microphone.cohdl"),
+            ),
+            (
+                "src/ics43434.cohdl",
+                include_str!("../lib/mic/src/ics43434.cohdl"),
+            ),
+            (
+                "src/main.cohdl",
+                "design MicAudit { inst mic: MIC_ICS43434
+                 nc: mic.WS, mic.LR, mic.GND, mic.SCK, mic.VDD, mic.SD }",
+            ),
+        ],
+    );
+    assert!(!checked.diags.has_errors(), "{rendered}");
+    let ground = &checked.world.pads["mic::P_ICS43434_Ground_Ring"];
+    assert_eq!(ground.shape.unwrap().0, cohdl::ast::PadShape::Annulus);
+    let dimensions =
+        |values: &[cohdl::units::UnitValue]| values.iter().map(|v| v.femto).collect::<Vec<_>>();
+    assert_eq!(
+        dimensions(&ground.size),
+        [1_625_000_000_000_000, 1_025_000_000_000_000]
+    );
+    let Some((cohdl::ast::PadPaste::SegmentedAnnulus(paste), _)) = &ground.paste else {
+        panic!("ICS-43434 needs four stencil sectors around the sound port")
+    };
+    assert_eq!(
+        dimensions(paste.as_slice()),
+        [
+            1_625_000_000_000_000,
+            1_125_000_000_000_000,
+            100_000_000_000_000
+        ]
+    );
+    let signal = &checked.world.pads["mic::P_ICS43434_Signal"];
+    let Some((cohdl::ast::PadPaste::Rect(w, h), _)) = &signal.paste else {
+        panic!("ICS-43434 needs the reduced rectangular stencil apertures")
+    };
+    assert_eq!(
+        (w.femto, h.femto),
+        (500_000_000_000_000, 422_000_000_000_000)
+    );
+
+    let artifacts = build_artifacts(&mut checked, &LockState::default()).unwrap();
+    assert!(artifacts.bom.contains("ICS-43434"));
+    let ir = checked.ir.as_ref().unwrap();
+    let mods = cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap();
+    assert_eq!(mods.len(), 1);
+    let module = &mods[0].2;
+    assert!(module.contains("(pad \"3\" smd custom (at 0.6625 -0.71) (size 0.15 0.15)"));
+    assert!(module.contains("(gr_circle (center -0.6625 0) (end 0 0) (width 0.3) (fill none))"));
+    assert!(module.contains("(at 0 -0.71) (size 0.5 0.5) (drill 0.5)"));
+    // Five rectangles plus four annular sectors; no solid paste over the port.
+    assert_eq!(module.matches("(layers \"F.Paste\")").count(), 9);
+    let board = cohdl::emit::kicad_pcb::emit_kicad_pcb(&checked.world, ir, "mic").unwrap();
+    assert!(board.contains("(pad \"3\" smd custom"));
+    assert!(board.contains("(center -0.6625 0)"));
+    assert!(board.contains("(width 0.3)"));
+    assert!(!board.contains("(size 0 0)"));
+    assert!(board.contains("(drill 0.5)"));
+    assert_eq!(board.matches("(layers \"F.Paste\")").count(), 9);
+    let xml = cohdl::emit::ipc2581::emit_ipc2581(&checked.world, ir, "mic").unwrap();
+    assert!(xml.contains("<Cutout>"));
+    assert!(xml.contains("platingStatus=\"NONPLATED\""));
+    assert!(xml.contains("diameter=\"0.5\""));
+}
+
+#[test]
 fn t3902_public_part_matches_manufacturer_geometry() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let mic = std::fs::read_to_string(root.join("lib/@contrib/mic/src/t3902.cohdl")).unwrap();

@@ -28,18 +28,18 @@ pub pad P_ICS43434_Signal {
     size: (0.6mm, 0.522mm)
     layer: top_copper
     plating: smd
+    paste: (0.5mm, 0.422mm)
 }
 
-// Ground/acoustic-port annulus, outer diameter 1.625mm. CoHDL's current pad
-// model has no annular SMD primitive, so the coincident 1.025mm NPTH below
-// removes the centre and also provides a sound aperture larger than the
-// datasheet's 0.5mm minimum. CoHDL also cannot encode the segmented paste
-// stencil in Figure 14; fabrication output therefore needs a stencil review.
+// Figure 13: one electrical ground annulus, independent of the PCB sound
+// hole. Figure 14: four paste sectors with 0.1mm gaps and a larger opening
+// to keep solder paste out of the acoustic path.
 pub pad P_ICS43434_Ground_Ring {
-    shape: circle
-    size: (1.625mm)
+    shape: annulus
+    size: (1.625mm, 1.025mm)
     layer: top_copper
     plating: smd
+    paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm)
 }
 
 // TDK Figure 13 land pattern rotated 90 degrees: 0.900mm column pitch,
@@ -51,7 +51,7 @@ pub footprint FP_InvenSense_ICS_43434_6_3_5x2_65mm {
     pad 4: P_ICS43434_Signal at (-0.9mm, 0.542mm)
     pad 5: P_ICS43434_Signal at (-0.9mm, 1.364mm)
     pad 6: P_ICS43434_Signal at (0mm, 1.364mm)
-    mount_hole 1: non_plated at (0mm, -0.71mm) diameter 1.025mm
+    mount_hole 1: non_plated at (0mm, -0.71mm) diameter 0.5mm
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }

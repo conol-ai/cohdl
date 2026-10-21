@@ -590,8 +590,8 @@ fn pad(
                 "\t\t\t(options\n\t\t\t\t(clearance outline)\n\t\t\t\t(anchor circle)\n\t\t\t)\n",
             );
             s.push_str("\t\t\t(primitives\n\t\t\t\t(gr_circle\n");
-            s.push_str("\t\t\t\t\t(center 0 0)\n");
-            let _ = writeln!(s, "\t\t\t\t\t(end {} 0)", geom::mm_femto(*mid_radius));
+            let _ = writeln!(s, "\t\t\t\t\t(center {} 0)", geom::mm_femto(-*mid_radius));
+            s.push_str("\t\t\t\t\t(end 0 0)\n");
             let _ = writeln!(s, "\t\t\t\t\t(width {})", geom::mm_femto(*stroke));
             s.push_str("\t\t\t\t\t(fill no)\n\t\t\t\t)\n\t\t\t)\n");
         }

@@ -5,19 +5,37 @@ fn action_request(server: &Server, extra: &str, body: &str) -> String {
     stream
         .set_read_timeout(Some(Duration::from_secs(5)))
         .unwrap();
-    write!(
-        stream,
+    let request = format!(
         "POST /api/group-actions HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nContent-Length: {}\r\n{}\r\n{}",
         server.port,
         body.len(),
         extra,
         body
-    )
-    .unwrap();
+    );
+    stream.write_all(request.as_bytes()).unwrap();
     stream.shutdown(Shutdown::Write).unwrap();
-    let mut result = String::new();
-    stream.read_to_string(&mut result).unwrap();
-    result
+    // A rejected request can close with unread request bytes and reset the
+    // socket on Linux. Read the complete framed response, not through EOF.
+    let mut reader = BufReader::new(stream);
+    let mut headers = String::new();
+    loop {
+        let mut line = String::new();
+        reader.read_line(&mut line).unwrap();
+        if line == "\r\n" {
+            break;
+        }
+        assert!(!line.is_empty(), "Incomplete response headers");
+        headers.push_str(&line);
+    }
+    let length = headers
+        .lines()
+        .find_map(|line| line.strip_prefix("Content-Length: "))
+        .unwrap()
+        .parse()
+        .unwrap();
+    let mut body = vec![0; length];
+    reader.read_exact(&mut body).unwrap();
+    format!("{headers}\r\n{}", String::from_utf8(body).unwrap())
 }
 
 #[test]

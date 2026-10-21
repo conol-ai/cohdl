@@ -296,7 +296,8 @@ pub(crate) enum DrillPlan {
 pub(crate) enum PlanBody {
     /// An ordinary land — no `options`/`primitives`.
     Flat,
-    /// RFC-018 annulus: anchor circle + an unfilled ring stroke.
+    /// RFC-018 annulus: the anchor lies on the ring's +x midline, so the
+    /// circle centre is (-mid_radius, 0) relative to that anchor.
     AnnulusRing { mid_radius: i128, stroke: i128 },
     /// Oversize chamfer as the exact five-vertex polygon; points are stored
     /// at TWICE their femto value (render via [`geom::half_mm_femto`]).
@@ -401,6 +402,41 @@ fn segmented_annulus_points(
         .collect()
 }
 
+/// Put a nonzero custom-pad anchor wholly inside one central tessellation
+/// cell. KiCad unions the anchor with the primitives; a zero-sized anchor
+/// at the sound-port centre is clamped on import, adding a disconnected dot.
+/// The cell is convex even though the complete annular sector is not.
+fn sector_anchor(points: &[(i128, i128)]) -> ((i128, i128), i128) {
+    let n = points.len() / 2;
+    let k = (n - 1) / 2;
+    let cell = [
+        points[k],
+        points[k + 1],
+        points[2 * n - 2 - k],
+        points[2 * n - 1 - k],
+    ];
+    let anchor = (
+        cell.iter().map(|p| p.0).sum::<i128>() / 4,
+        cell.iter().map(|p| p.1).sum::<i128>() / 4,
+    );
+    // |cross| / (|dx| + |dy|) is a conservative distance to each edge.
+    // Use it as the DIAMETER, leaving another factor of two of margin.
+    // Annulus geometry is bounded to 100mm, so these products fit i128.
+    let diameter = (0..4)
+        .map(|i| {
+            let a = cell[i];
+            let b = cell[(i + 1) % 4];
+            let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+            (dx * (anchor.1 - a.1) - dy * (anchor.0 - a.0))
+                .abs()
+                .checked_div(dx.abs() + dy.abs())
+                .unwrap_or(0)
+        })
+        .min()
+        .unwrap();
+    (anchor, diameter)
+}
+
 /// Every KiCad pad a footprint emits, in the shared order: each electrical
 /// pad in source placement order (immediately followed by its paste-override
 /// aperture pads, RFC-018), then RFC-022/023 mount holes.
@@ -489,23 +525,26 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
             let [outer, inner] = pad.size.as_slice() else {
                 continue;
             };
+            let mid_radius = (outer.femto + inner.femto) / 4;
+            let stroke = (outer.femto - inner.femto) / 2;
+            // Keep the authored ring centre fixed while moving KiCad's
+            // connection anchor onto copper. KiCad's +y-down rotation is
+            // the inverse of trig::rotate's +y-up convention.
+            let (dx, dy) = crate::trig::rotate(mid_radius, 0, (360 - place.rotate) % 360);
             out.push(PadPlan {
                 number: place.number.text.clone(),
                 kind: "smd",
                 kshape: "custom",
-                x: place.x.femto,
-                y: place.y.femto,
+                x: place.x.femto + dx,
+                y: place.y.femto + dy,
                 rotate: place.rotate,
-                size: (0, 0),
+                size: (stroke / 2, stroke / 2),
                 drill: None,
                 layers,
                 chamfer: None,
                 corner_radius: None,
                 mask_expansion,
-                body: PlanBody::AnnulusRing {
-                    mid_radius: (outer.femto + inner.femto) / 4,
-                    stroke: (outer.femto - inner.femto) / 2,
-                },
+                body: PlanBody::AnnulusRing { mid_radius, stroke },
             });
         } else if custom_chamfer {
             // The anchor is a centred square wholly contained by the authored
@@ -595,21 +634,27 @@ pub(crate) fn pad_plans(world: &World, fp: &crate::ast::FootprintDef) -> Vec<Pad
                 continue;
             };
             for sector in plan.sectors {
+                let points = segmented_annulus_points(outer.femto, inner.femto, sector);
+                let (anchor, diameter) = sector_anchor(&points);
+                let (dx, dy) = crate::trig::rotate(anchor.0, anchor.1, (360 - place.rotate) % 360);
                 out.push(PadPlan {
                     number: String::new(),
                     kind: "smd",
                     kshape: "custom",
-                    x: place.x.femto,
-                    y: place.y.femto,
+                    x: place.x.femto + dx,
+                    y: place.y.femto + dy,
                     rotate: place.rotate,
-                    size: (0, 0),
+                    size: (diameter, diameter),
                     drill: None,
                     layers: paste_layer,
                     chamfer: None,
                     corner_radius: None,
                     mask_expansion: None,
                     body: PlanBody::ExactPoly {
-                        points: segmented_annulus_points(outer.femto, inner.femto, sector),
+                        points: points
+                            .into_iter()
+                            .map(|(x, y)| (x - anchor.0, y - anchor.1))
+                            .collect(),
                     },
                 });
             }
@@ -868,14 +913,16 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
             PlanBody::AnnulusRing { mid_radius, stroke } => {
                 let _ = writeln!(
                     s,
-                    "  (pad \"{}\" smd custom (at {} {}{}) (size 0 0) (layers {}){} (options (clearance outline) (anchor circle)) (primitives (gr_circle (center 0 0) (end {} 0) (width {}) (fill none))))",
+                    "  (pad \"{}\" smd custom (at {} {}{}) (size {} {}) (layers {}){} (options (clearance outline) (anchor circle)) (primitives (gr_circle (center {} 0) (end 0 0) (width {}) (fill none))))",
                     p.number,
                     geom::mm_femto(p.x),
                     geom::mm_femto(p.y),
                     angle,
+                    geom::mm_femto(p.size.0),
+                    geom::mm_femto(p.size.1),
                     mod_layers(p.layers),
                     mask_expansion,
-                    geom::mm_femto(*mid_radius),
+                    geom::mm_femto(-*mid_radius),
                     geom::mm_femto(*stroke)
                 );
             }

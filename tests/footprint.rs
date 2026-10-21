@@ -2433,9 +2433,10 @@ design B { inst mic: MIC nc: mic.GND }
     assert!(artifacts.is_some(), "{}", checked.diags.render(&checked.sm));
     let ir = checked.ir.as_ref().unwrap();
     let kicad = &cohdl::emit::kicad_mod::emit_kicad_mods(&checked.world, ir).unwrap()[0].2;
-    assert!(kicad.contains("(gr_circle (center 0 0)"), "{kicad}");
+    assert!(kicad.contains("(gr_circle (center -0.6625 0)"), "{kicad}");
     assert_eq!(kicad.matches("(layers \"F.Paste\")").count(), 4, "{kicad}");
-    assert!(kicad.contains("(at 0 0 90)"), "{kicad}");
+    assert!(kicad.contains("(at 0 -0.6625 90)"), "{kicad}");
+    assert!(!kicad.contains("(size 0 0)"), "{kicad}");
     assert!(
         kicad.contains("np_thru_hole") && kicad.contains("(drill 0.5)"),
         "{kicad}"

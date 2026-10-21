@@ -27,11 +27,12 @@ Both URLs are recorded for reproducibility.
   0.900 mm column pitch, 0.822 mm row pitch, and a ground annulus with
   1.625 mm outer and 1.025 mm inner diameters.
 - Page 17 recommends a PCB sound hole of at least 0.5 mm. The footprint uses
-  the annulus's 1.025 mm inner diameter as a coincident non-plated aperture,
-  which exceeds that minimum and is representable in CoHDL.
-- CoHDL cannot currently express Figure 14's separately segmented solder-paste
-  stencil for the ground annulus. The emitted footprint therefore needs a
-  fabrication-level stencil review to keep paste out of the acoustic path.
+  a separate, concentric 0.5 mm non-plated aperture, leaving 0.2625 mm between
+  the hole edge and the copper annulus's inner edge.
+- Figure 14 supplies the solder-paste apertures: five 0.500 x 0.422 mm
+  rectangles and a four-segment annulus with 1.625 mm outer / 1.125 mm inner
+  diameters and 0.100 mm gaps. The footprint encodes both independently of
+  copper using `paste:` overrides.
 - Page 19 supplies the 3.50 x 2.65 mm package outline and pin-1 corner.
 - No separate manufacturer CAD file was used; the footprint is derived from
   the dimensioned manufacturer land-pattern and package drawings.
@@ -39,3 +40,22 @@ Both URLs are recorded for reproducibility.
 The PDF passed `pdfinfo`, Poppler text extraction, and full-page rendering.
 Pages 10, 17, and 19 were visually inspected for identity, pin map, package
 orientation, sound aperture, and land dimensions.
+
+## ICS-43434 footprint correction in 0.1.2
+
+Re-audited page 17 on 2026-10-21 following a reported PCB DRC blocker.
+Earlier versions modeled pin 3 as a solid 1.625 mm SMD disk over a 1.025 mm
+NPTH. A coincident drill does not subtract copper from the SMD pad in CAD:
+KiCad 10.0.4 reports zero hole-to-copper clearance and a solder-mask bridge.
+The 1.025 mm dimension is the copper opening; the datasheet specifies the
+PCB sound-hole minimum separately. The corrected footprint uses CoHDL's
+annulus and segmented-paste support, with the 0.5 mm sound hole above.
+The device pin map, part identity, footprint name, and pad positions are
+unchanged.
+
+KiCad export also requires the compiler's accompanying custom-pad anchor
+fix: earlier emitters placed zero-sized anchors at the acoustic centre,
+which KiCad clamps into disconnected copper/paste dots. The corrected
+emitters put nonzero anchors inside the ring and each paste sector while
+preserving the authored geometry. Updating only the package does not fix
+an older KiCad emitter. IPC-2581 already represents the ring with a cutout.

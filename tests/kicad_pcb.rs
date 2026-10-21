@@ -105,6 +105,58 @@ fn board_is_deterministic_with_a_fixed_format_stamp() {
 }
 
 #[test]
+fn annulus_anchor_preserves_rotated_geometry_on_both_board_sides() {
+    let src = r#"
+pub trait Ic { designator_prefix: "U" }
+pub pad Ring {
+    shape: annulus, size: (1.625mm, 1.025mm), layer: top_copper, plating: smd
+    paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm)
+}
+pub footprint FP {
+    pad 3: Ring at (1mm, 2mm) rotate 90
+    mount_hole 1: non_plated at (1mm, 2mm) diameter 0.5mm
+}
+pub device D { pins { GND: 3 [power_in] } }
+impl Ic for D {}
+pub part P: D { primary { mfr: "m", mpn: "ring", footprint: FP } }
+design B {
+    inst top: P
+    inst bottom: P
+    net GND: top.GND, bottom.GND
+    layout {
+        place top at (5mm, 0mm) rotate 37
+        place bottom at (-5mm, 0mm) rotate 37 side bottom
+    }
+}
+"#;
+    let board = emit(src, None);
+    assert_eq!(board, emit(src, None));
+    // The authored centre remains (1, 2); only the connection anchor moves
+    // 0.6625mm up after the pad's local 90-degree rotation. The ring primitive
+    // shifts by the opposite amount. Bottom-side encoding negates local y.
+    for (side, y) in [("F", "1.3375"), ("B", "-1.3375")] {
+        let footprint = board
+            .split("\n\t(footprint ")
+            .find(|fp| fp.contains(&format!("(layer \"{side}.Cu\")")))
+            .unwrap();
+        assert!(
+            footprint.contains(&format!("(at 1 {y} 127)")),
+            "{footprint}"
+        );
+        assert!(footprint.contains("(center -0.6625 0)"), "{footprint}");
+        assert!(footprint.contains("(size 0.15 0.15)"), "{footprint}");
+        assert!(footprint.contains("(net \"GND\")"), "{footprint}");
+        assert_eq!(
+            footprint
+                .matches(&format!("(layers \"{side}.Paste\")"))
+                .count(),
+            4
+        );
+        assert!(!footprint.contains("(size 0 0)"), "{footprint}");
+    }
+}
+
+#[test]
 fn circular_paste_aperture_is_independent_on_both_board_sides() {
     let src = r#"
 pub trait Ic { designator_prefix: "U" }

@@ -85,7 +85,7 @@ Rules:
 - **Syntax reuse.** `at (…)` and `rotate …` are the existing placement clauses, reused with the meaning defined in §2. `supplier` is recognized only at the start of an item inside an AVL entry, where it is followed by an identifier and a string, never by `:`. So it is a contextual word, not a new reserved keyword; an existing identifier named `supplier` keeps working everywhere else.
 - **Uniqueness:**
   - One entry may not name the same supplier twice.
-  - Across the whole compiled package set (every `part`, primary and alternates, as the existing cross-part `(mfr, mpn)` identity check in `src/check/generics.rs` already scans), the same (supplier, part number) may not appear on two entries whose (`mfr`, `mpn`) differ, because a supplier part number orders one item. An empty, source-unspecified `mpn` counts as differing from every non-empty one: sharing a part number with another entry would silently assert the unknown MPN.
+  - Across the whole compiled package set (every `part`, primary and alternates, as the existing cross-part `(mfr, mpn)` identity check in `src/check/generics.rs` already scans), the same (supplier, part number), with the part number compared exactly as written (no trimming or case folding), may not appear on two entries whose (`mfr`, `mpn`) differ, because a supplier part number orders one item. An empty, source-unspecified `mpn` counts as differing from every non-empty one: sharing a part number with another entry would silently assert the unknown MPN.
   - Both are **E813**.
 - **Limit.** At most 16 supplier clauses per AVL entry (E813). The registry index applies the same bound.
 - **Unknown MPN.** A primary entry whose `mpn` or `mfr` is explicitly empty under `#[source_unspecified]` may carry supplier clauses like any other entry. For such a part the supplier part number may be the only orderable identity, and the binding records it without guessing the MPN. The marker's own rules are unchanged; a supplier clause never satisfies or replaces it.
@@ -150,14 +150,15 @@ Designator,Mid X,Mid Y,Layer,Rotation
   - A way to mark an instance as bought but not assembled is out of scope for this RFC.
   - Conformance tests cover an SMD part, a connector with both SMD and through-hole pads, a test point, and a bare-copper part.
 - **Origin:** when the design declares an RFC-020 board outline, the lower-left corner of the outline's bounding box, with Y positive upward. This is the origin `tools/smt_pos.py` already uses. Without an outline, the authoring origin, with y negated.
-- **Position:** `Mid X`/`Mid Y` are the **footprint origin** in millimetres, written with an `mm` suffix. They are not a pad centroid: the mapping in §2 is defined between footprint origins.
+- **Position:** `Mid X`/`Mid Y` are the **footprint origin** in millimetres, written with exactly four decimal places, rounded half away from zero, and an `mm` suffix (`12.3450mm`). They are not a pad centroid: the mapping in §2 is defined between footprint origins.
 - **Layer:** `Top` or `Bottom`.
 - **Rotation**, in `0..=359`:
   - Top side: the `place` rotation.
   - Bottom side: the footprint angle KiCad uses for that part, `(R + 180) mod 360` for `place … rotate R side bottom`. This is the value `--emit kicad_pcb` writes and the value a position export from that board reports. One convention keeps the compiler's CPL and a CPL derived from the board identical. Conformance tests pin it against `tools/smt_pos.py` output on the emitted board, top and bottom.
 - **Unplaced instances:** machine-placed instances with no placement are left out, and the build reports **one E815** warning that gives their count and lists their designators. A partly placed design, which is common, gets one line, not one per part. A position the compiler only staged (as `--emit kicad_pcb` does for unplaced parts) is never reported.
 - **Ordering:** rows are in designator natural order, and the output is byte-stable.
-- A design with no `place` statement gets no CPL file and no warning.
+- A design with no `place` statement gets no CPL file and no warning. A design that places at least one instance gets the file even when it has no rows (header only), for example when every placed instance is through-hole.
+- **Unplaced** means the instance has no position in the design's own layout (`place`, including placements composed through `subdesign`). Staging positions an emitter invents are not placements.
 
 When final placement happens outside CoHDL, the CPL comes from the laid-out board instead. `tools/smt_pos.py` gains `--neutral`, which writes exactly these columns with this origin, position and rotation convention. Its existing default output, the 11-column file with a pad-centroid `Mid X/Y` and `T`/`B` layers, is unchanged for current users.
 
@@ -174,7 +175,7 @@ When final placement happens outside CoHDL, the CPL comes from the laid-out boar
 The neutral `-cpl.csv` is still written alongside; `--supplier` adds files and never replaces one. `--supplier` combines with `--logical-only` (it is not an `--emit` value) and then writes the BOM and map files only.
 
 **Map file.** The map identifies the footprint frame each mapping was written against, so a tool applying it to a laid-out board can tell whether that board still uses that frame.
-- `footprints`: one entry per footprint used, keyed by its fully-qualified name. Each entry holds:
+- `footprints`: one entry per footprint of an instance listed in `designators`, keyed by its fully-qualified name. Each entry holds:
   - the owning package and version;
   - `pads`: the footprint's **KiCad pad projection**, as `[number, x, y]` per pad, canonical mm strings, sorted by number, then x, then y. The order is for canonical serialization and the `frame` hash only; the frame check below does not pair pads by it;
   - `frame`: the SHA-256 of that `pads` list in its canonical JSON form.
@@ -203,10 +204,10 @@ How the entry and rows are chosen:
   - Unbound instances are merged by the plain BOM's key instead: primary MPN and manufacturer, plus the bound part declaration when the MPN is empty.
   - The plain `-bom.csv` keeps its existing grouping.
 - **The map and supplier CPL are per designator** and always carry that instance's own selection and mapping.
-- **Unbound instances** get an empty part-number cell, identity mapping in the supplier CPL, and one **E814** warning per unbound part declaration, naming the part and its designators. It appears only when `--supplier` is given, in human and RFC-010 `--json` output alike. An unbound part is still a correct design, so E814 never fails a build. If no entry in the design binds `ID` at all, which is usually a misspelled ID, the per-group warnings are replaced by one E814 that says so and lists the supplier IDs the design does bind.
+- **Unbound instances** get an empty part-number cell, identity mapping in the supplier CPL, and one **E814** warning per unbound part declaration, naming the part and its designators. Only parts the design instantiates are considered; a declared but unused part never produces E814. It appears only when `--supplier` is given, in human and RFC-010 `--json` output alike. An unbound part is still a correct design, so E814 never fails a build. If no entry of any part the design instantiates binds `ID`, which is usually a misspelled ID, the per-group warnings are replaced by one E814 that says so and lists the supplier IDs the design does bind.
 - **Ordering:** BOM rows are sorted by part number, then MPN, with designators in natural order. Output is byte-stable.
 
-**Laid-out boards.** `tools/smt_pos.py` gains `--map out/<name>-<ID>-map.json`. With a map, it applies §2 to each footprint of the laid-out board and writes the supplier CPL in the neutral column set. `--neutral` without a map writes the neutral file. Before writing anything, it checks the board against the map and fails closed:
+**Laid-out boards.** `tools/smt_pos.py` gains `--map out/<name>-<ID>-map.json`. With a map, it applies §2 to each footprint of the laid-out board and writes the supplier CPL in the neutral column set. `--neutral` without a map writes the neutral file. `--map` implies the neutral columns. `--all` cannot be combined with `--neutral` or `--map` (usage error, exit 2). A board with no outline uses the board origin with y negated, which for a board written by `--emit kicad_pcb` is the authoring origin of §3.1. Before writing anything, it checks the board against the map and fails closed:
 - **Frame check.** For each footprint, it applies the same filter as the projection: numbered pads only, so paste apertures and holes drop out. It then recovers each pad's anchor in the footprint's front-side local frame:
   - subtract the footprint position and undo the footprint orientation, which gives the pad's footprint-relative position as the board stores it;
   - on the bottom side, negate local y. This inverts the bottom-side encoding `--emit kicad_pcb` writes, which is also how pcbnew stores a footprint flipped in either flip direction (the direction only changes the footprint angle).
@@ -231,7 +232,7 @@ How the entry and rows are chosen:
   - Unbound instances and builds without `--supplier` are unchanged.
   - With several `--supplier` values, the first one given is used.
   - A test with only an alternate bound (the C_100n_16V_X7R_0402 example in §1) pins the BOM, map and `.enet` to the same selected entry.
-- API docs (`cohdl docs`): each AVL entry gains an additive `suppliers` array, `[{ supplier, pn, at: [x, y], rotate }]` with canonical mm strings. `schema_version` is not bumped: the key is additive under both version 1 and version 2 (the RFC-033 shape), and existing keys are unchanged.
+- API docs (`cohdl docs`): each AVL entry gains an additive `suppliers` array, `[{ supplier, pn, at: [x, y], rotate }]` with canonical mm strings, in declaration order. Every key is always present; defaults are written out (`["0mm", "0mm"]`, `0`). `schema_version` is not bumped: the key is additive under both version 1 and version 2 (the RFC-033 shape), and existing keys are unchanged.
 
 ### 4. Registry
 
@@ -241,6 +242,8 @@ How the entry and rows are chosen:
 - the class vocabulary the supplier's catalog uses, if any.
 
 It is maintained by official accounts. A binding to an unlisted supplier is shown without links.
+
+**Manufacturer aliases.** A table `manufacturer_aliases` (same migration) maps an alias to a canonical manufacturer name. Official accounts maintain it through the admin API. §5 compares manufacturer names after Unicode case folding, collapsing runs of whitespace, and mapping both sides through this table.
 
 **Catalog table.** A new table `supplier_catalog` is keyed by `(supplier, pn)`. Its columns are `mpn`, `manufacturer`, `package`, `class`, `stock`, extra `links` (label + URL, for supplier pages that cannot be derived from the template), and `fetched_at`.
 - It is replaced per supplier from a snapshot uploaded through an admin endpoint. The Worker does not fetch supplier sites.
@@ -262,7 +265,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
 
 ### 5. `cohdl suppliers`: online audit and suggestions
 
-`cohdl suppliers <dir> [--supplier ID]... [--json]` resolves the project offline exactly as `check` does, then queries the registry.
+`cohdl suppliers <dir> [--supplier ID]... [--json]` resolves the project offline exactly as `check` does, then queries the registry. A project that fails `check` exits 1 before any query, like `check`.
 
 - **For each binding** (optionally limited to the given suppliers), it reports one of:
   - `ok`

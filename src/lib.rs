@@ -18,6 +18,7 @@ pub mod lock;
 pub mod lsp;
 pub mod parse;
 pub mod pipeline;
+pub mod placement;
 mod polygon;
 pub mod project;
 pub mod registry;

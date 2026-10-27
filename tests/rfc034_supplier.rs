@@ -1,5 +1,5 @@
 //! RFC-034 1a: supplier-clause syntax, AST retention and canonical formatting.
-//! E813 semantic validation is intentionally outside this card.
+//! Cards 1a/1b: supplier-clause syntax, formatting and E813 semantics.
 
 use cohdl::ast::{ItemKind, PartDef, SourceFile};
 use cohdl::fmt::format_source;
@@ -41,6 +41,36 @@ fn diagnostics(src: &str) -> String {
     .expect("design selection");
     checked.diags.sort(&checked.sm);
     checked.diags.render(&checked.sm)
+}
+
+fn checked(src: &str) -> cohdl::pipeline::Checked {
+    let mut checked = check_files_in(
+        "board",
+        &[("src/main.cohdl".to_string(), src.to_string())],
+        None,
+    )
+    .expect("design selection");
+    checked.diags.sort(&checked.sm);
+    checked
+}
+
+fn entry_source(clause: &str) -> String {
+    format!(
+        "{LIB}\npub part P: D {{ primary {{ mfr: \"M\", mpn: \"N\", footprint: FP, {clause} }} }}\n"
+    )
+}
+
+fn e813s(clause: &str) -> Vec<cohdl::diag::Diagnostic> {
+    let checked = checked(&entry_source(clause));
+    let rendered = checked.diags.render(&checked.sm);
+    let diagnostics: Vec<_> = checked
+        .diags
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "E813")
+        .cloned()
+        .collect();
+    assert_eq!(diagnostics.len(), 1, "`{clause}`:\n{rendered}");
+    diagnostics
 }
 
 #[test]
@@ -305,4 +335,285 @@ fn semantic_edge_literals_survive_parse_and_format_without_e813() {
         );
         assert_eq!(format_source("src/main.cohdl", &once).unwrap(), once);
     }
+}
+
+#[test]
+fn supplier_ids_must_have_the_bounded_lowercase_shape() {
+    for id in ["_acme", "Acme"] {
+        let rendered = diagnostics(&entry_source(&format!("supplier {id} \"PN\"")));
+        assert!(rendered.contains("E813"), "`{id}`:\n{rendered}");
+        assert!(
+            rendered.contains("invalid supplier identifier"),
+            "{rendered}"
+        );
+    }
+    let rendered = diagnostics(&entry_source("supplier acme-supply \"PN\""));
+    assert!(
+        rendered.contains("E010"),
+        "malformed ID remains E010: {rendered}"
+    );
+    assert!(!rendered.contains("E813"), "{rendered}");
+    let rendered = diagnostics(&entry_source("supplier 1acme \"PN\""));
+    assert!(
+        rendered.contains("E010") && rendered.contains("E103"),
+        "{rendered}"
+    );
+    assert!(!rendered.contains("E813"), "{rendered}");
+    let id_33 = format!("a{}", "b".repeat(32));
+    let rendered = diagnostics(&entry_source(&format!("supplier {id_33} \"PN\"")));
+    assert!(rendered.contains("at most 32 bytes"), "{rendered}");
+
+    let id_32 = format!("a{}", "b".repeat(31));
+    assert!(diagnostics(&entry_source(&format!("supplier {id_32} \"PN\""))).is_empty());
+}
+
+#[test]
+fn supplier_part_numbers_check_trimmed_emptiness_utf8_bytes_and_controls() {
+    for pn in ["", " \t "] {
+        let errors = e813s(&format!("supplier acme \"{pn}\""));
+        assert!(errors[0].message.contains("empty after trimming"));
+        assert_eq!(
+            checked(&entry_source(&format!("supplier acme \"{pn}\"")))
+                .world
+                .parts
+                .values()
+                .next()
+                .unwrap()
+                .primary
+                .suppliers[0]
+                .part_number,
+            pn
+        );
+    }
+
+    let pn_129 = "p".repeat(129);
+    let errors = e813s(&format!("supplier acme \"{pn_129}\""));
+    assert!(errors[0].message.contains("129 UTF-8 bytes"));
+    let multibyte_130 = "é".repeat(65);
+    assert!(
+        diagnostics(&entry_source(&format!("supplier acme \"{multibyte_130}\"")))
+            .contains("130 UTF-8 bytes")
+    );
+
+    for pn in ["P\u{7}N", "P\rN", "P\u{1b}N"] {
+        let errors = e813s(&format!("supplier acme \"{pn}\""));
+        assert!(errors[0].message.contains("control character"));
+    }
+    assert!(diagnostics(&entry_source(&format!(
+        "supplier acme \"{}\"",
+        "p".repeat(128)
+    )))
+    .is_empty());
+}
+
+#[test]
+fn an_entry_allows_sixteen_suppliers_and_rejects_seventeen() {
+    let clauses = |count| {
+        (0..count)
+            .map(|i| format!("supplier seller_{i} \"PN-{i}\""))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    assert!(diagnostics(&entry_source(&clauses(16))).is_empty());
+    let errors = e813s(&clauses(17));
+    assert!(errors[0].message.contains("at most 16"));
+    assert!(errors[0].message.contains("17 supplier clauses"));
+}
+
+#[test]
+fn duplicate_suppliers_are_rejected_per_entry_only() {
+    let errors = e813s("supplier acme \"PN-1\", supplier acme \"PN-2\"");
+    assert!(errors[0].message.contains("duplicate supplier `acme`"));
+    assert_eq!(errors[0].secondary.len(), 1);
+
+    let src = format!(
+        r#"{LIB}
+pub part P: D {{
+    primary {{ mfr: "M", mpn: "N", footprint: FP, supplier acme "PN" }}
+    alt {{ mfr: "M", mpn: "N", supplier acme "PN" }}
+}}
+"#
+    );
+    assert!(diagnostics(&src).is_empty());
+}
+
+#[test]
+fn a_primary_alt_conflict_reports_both_exact_clause_spans() {
+    let src = format!(
+        r#"{LIB}
+pub part P: D {{
+    primary {{ mfr: "M", mpn: "N", footprint: FP, supplier acme "PN" }}
+    alt {{ mfr: "M", mpn: "OTHER", supplier acme "PN" }}
+}}
+"#
+    );
+    let checked = checked(&src);
+    let part = checked.world.parts.values().next().unwrap();
+    let diagnostics: Vec<_> = checked
+        .diags
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "E813")
+        .collect();
+    assert_eq!(
+        diagnostics.len(),
+        1,
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    assert_eq!(diagnostics[0].primary.span, part.alts[0].suppliers[0].span);
+    assert_eq!(diagnostics[0].secondary.len(), 1);
+    assert_eq!(
+        diagnostics[0].secondary[0].span,
+        part.primary.suppliers[0].span
+    );
+    assert_eq!(
+        checked.sm.snippet(diagnostics[0].primary.span),
+        "supplier acme \"PN\""
+    );
+    assert_eq!(
+        checked.sm.snippet(diagnostics[0].secondary[0].span),
+        "supplier acme \"PN\""
+    );
+}
+
+#[test]
+fn cross_part_conflicts_include_primary_and_alternate_entries() {
+    let src = format!(
+        r#"{LIB}
+pub part A: D {{ primary {{ mfr: "M", mpn: "A", footprint: FP, supplier acme "PN" }} }}
+pub part B: D {{
+    primary {{ mfr: "M", mpn: "B", footprint: FP }}
+    alt {{ mfr: "Other", mpn: "C", supplier acme "PN" }}
+}}
+"#
+    );
+    let rendered = diagnostics(&src);
+    assert_eq!(rendered.matches("error[E813]").count(), 1, "{rendered}");
+    assert!(
+        rendered.contains("part `B` alt 1 entry conflicts with part `A` primary entry"),
+        "{rendered}"
+    );
+    assert!(rendered.contains("first bound here"));
+}
+
+#[test]
+fn empty_mpns_never_become_one_supplier_identity() {
+    let src = format!(
+        r#"{LIB}
+#[source_unspecified("mpn")]
+pub part A: D {{ primary {{ mfr: "M", mpn: "", footprint: FP, supplier acme "PN" }} }}
+#[source_unspecified("mpn")]
+pub part B: D {{ primary {{ mfr: "Other", mpn: "", footprint: FP, supplier acme "PN" }} }}
+#[source_unspecified("mpn")]
+pub part C: D {{ primary {{ mfr: "M", mpn: "", footprint: FP, supplier bolt "PN" }} }}
+"#
+    );
+    let rendered = diagnostics(&src);
+    assert_eq!(
+        rendered.matches("error[E813]").count(),
+        1,
+        "world parts: {}\n{rendered}",
+        checked(&src).world.parts.len()
+    );
+}
+
+#[test]
+fn supplier_pn_and_identity_comparison_is_exactly_as_written() {
+    let src = format!(
+        r#"{LIB}
+pub part A: D {{ primary {{ mfr: "M", mpn: "A", footprint: FP, supplier acme "PN" }} }}
+pub part B: D {{ primary {{ mfr: "M", mpn: "B", footprint: FP, supplier acme "pn" }} }}
+pub part C: D {{ primary {{ mfr: "M", mpn: "C", footprint: FP, supplier acme " PN" }} }}
+pub part E: D {{ primary {{ mfr: "M", mpn: "A", footprint: FP, supplier acme "PN" }} }}
+"#
+    );
+    assert!(diagnostics(&src).is_empty(), "{}", diagnostics(&src));
+
+    let case_conflict = src.replace(
+        "mpn: \"B\", footprint: FP, supplier acme \"pn\"",
+        "mpn: \"B\", footprint: FP, supplier acme \"PN\"",
+    );
+    assert!(diagnostics(&case_conflict).contains("E813"));
+    let whitespace_conflict = src.replace(
+        "mpn: \"C\", footprint: FP, supplier acme \" PN\"",
+        "mpn: \"C\", footprint: FP, supplier acme \"PN\"",
+    );
+    assert!(diagnostics(&whitespace_conflict).contains("E813"));
+}
+
+#[test]
+fn offsets_require_length_units_and_accept_negative_lengths() {
+    for offset in ["1", "-1.5"] {
+        let errors = e813s(&format!("supplier acme \"PN\" at ({offset}, 0mm)"));
+        assert!(errors[0].message.contains("bare number"));
+    }
+    let errors = e813s("supplier acme \"PN\" at (0mm, 1V)");
+    assert!(errors[0].message.contains("expected Length (`mm`)"));
+    assert!(errors[0].message.contains("Voltage"));
+    assert!(diagnostics(&entry_source(
+        "supplier acme \"PN\" at (-1.5mm, 2mm) rotate 0"
+    ))
+    .is_empty());
+}
+
+#[test]
+fn rotations_are_bounded_whole_degrees() {
+    for angle in ["360", "-1", "90.5", "999999999999999999999999999"] {
+        let errors = e813s(&format!("supplier acme \"PN\" rotate {angle}"));
+        if angle == "90.5" || angle.len() > 10 {
+            assert!(errors[0].message.contains("whole number"));
+        } else {
+            assert!(errors[0].message.contains("0..=359"));
+        }
+    }
+    for angle in ["0", "1", "359"] {
+        assert!(diagnostics(&entry_source(&format!(
+            "supplier acme \"PN\" rotate {angle}"
+        )))
+        .is_empty());
+    }
+}
+
+#[test]
+fn supplier_conflicts_span_the_whole_compiled_package_set() {
+    use cohdl::check::check_declarations_in;
+    use cohdl::diag::Diagnostics;
+    use cohdl::resolve::ModuleInfo;
+
+    let mut sm = SourceMap::new();
+    let mut diags = Diagnostics::new();
+    let sources = [
+        (
+            "vendor_a/src/lib.cohdl",
+            format!("{LIB}\npub part A: D {{ primary {{ mfr: \"M\", mpn: \"A\", footprint: FP, supplier acme \"PN\" }} }}"),
+        ),
+        (
+            "vendor_b/src/lib.cohdl",
+            format!("{LIB}\npub part B: D {{ primary {{ mfr: \"M\", mpn: \"B\", footprint: FP, supplier acme \"PN\" }} }}"),
+        ),
+    ];
+    let parsed = sources
+        .iter()
+        .map(|(name, source)| {
+            let file = sm.add_file(*name, source.clone());
+            cohdl::parse::parse(cohdl::lex::lex(file, sm.text(file), &mut diags), &mut diags)
+        })
+        .collect();
+    let modules = [
+        ModuleInfo {
+            package: "vendor_a".to_string(),
+            module: "vendor_a".to_string(),
+        },
+        ModuleInfo {
+            package: "vendor_b".to_string(),
+            module: "vendor_b".to_string(),
+        },
+    ];
+    let world = check_declarations_in(parsed, &modules, &mut diags);
+    assert_eq!(world.parts.len(), 2);
+    diags.sort(&sm);
+    let rendered = diags.render(&sm);
+    assert_eq!(rendered.matches("error[E813]").count(), 1, "{rendered}");
+    assert!(rendered.contains("vendor_a/src/lib.cohdl"), "{rendered}");
+    assert!(rendered.contains("vendor_b/src/lib.cohdl"), "{rendered}");
 }

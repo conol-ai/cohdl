@@ -154,6 +154,7 @@ fn insert_emitter_witnesses(
                 },
                 primary: AvlEntry {
                     fields: Vec::new(),
+                    suppliers: Vec::new(),
                     footprint: Some(ident(footprint)),
                     span,
                 },

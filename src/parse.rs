@@ -3685,6 +3685,141 @@ impl<'a> Parser<'a> {
 
     // -- parts ---------------------------------------------------------------
 
+    /// `supplier ID "PN" [at (x, y)] [rotate N]` (RFC-034).
+    /// Structural errors are E010. Invalid semantic values remain in the AST
+    /// so card 1b can diagnose them without losing their original spelling.
+    fn supplier_binding(&mut self) -> Option<SupplierBinding> {
+        let start = self.span();
+        self.bump(); // supplier
+        let supplier = self.ident("as the supplier identifier after `supplier`")?;
+        let (part_number, part_number_span) = match self.peek() {
+            TokenKind::Str(_) => {
+                let t = self.bump();
+                let TokenKind::Str(value) = t.kind else {
+                    unreachable!()
+                };
+                (value, t.span)
+            }
+            other => {
+                self.error_here(format!(
+                    "expected a part-number string after supplier `{}`, found {}",
+                    supplier.name,
+                    other.describe()
+                ));
+                return None;
+            }
+        };
+        let at = if self.eat_ident("at") {
+            if !self.expect(&TokenKind::LParen, "to open the supplier offset") {
+                return None;
+            }
+            let x = self.supplier_mapping_number("x")?;
+            self.expect(&TokenKind::Comma, "between the supplier coordinates");
+            let y = self.supplier_mapping_number("y")?;
+            self.expect(&TokenKind::RParen, "to close the supplier offset");
+            Some((x, y))
+        } else {
+            None
+        };
+        let rotate = if self.eat_ident("rotate") {
+            let start = self.span();
+            let negative =
+                self.at(&TokenKind::Minus) && matches!(self.peek_ahead(1), TokenKind::Number(_));
+            if negative {
+                self.bump();
+            }
+            let text = match self.peek() {
+                TokenKind::Number(_) => {
+                    let t = self.bump();
+                    let TokenKind::Number(text) = t.kind else {
+                        unreachable!()
+                    };
+                    if negative {
+                        format!("-{text}")
+                    } else {
+                        text
+                    }
+                }
+                other => {
+                    self.error_here(format!(
+                        "expected a rotation angle after `rotate`, found {}",
+                        other.describe()
+                    ));
+                    return None;
+                }
+            };
+            Some((text, start.to(self.prev_span())))
+        } else {
+            None
+        };
+        Some(SupplierBinding {
+            supplier,
+            part_number,
+            part_number_span,
+            at,
+            rotate,
+            span: start.to(self.prev_span()),
+        })
+    }
+
+    /// A supplier mapping coordinate is syntactically a unit literal. Bare
+    /// numbers are retained without a unit so 1b can issue E813 rather than
+    /// losing the value to an early syntax error; other unit types are
+    /// likewise diagnosed by the semantic pass.
+    fn supplier_mapping_number(&mut self, axis: &str) -> Option<SupplierCoordinate> {
+        let start = self.span();
+        let negative = self.at(&TokenKind::Minus)
+            && matches!(
+                self.peek_ahead(1),
+                TokenKind::Number(_) | TokenKind::Unit(_)
+            );
+        if negative {
+            self.bump();
+        }
+        match self.peek() {
+            TokenKind::Number(_) => {
+                let t = self.bump();
+                let TokenKind::Number(text) = t.kind else {
+                    unreachable!()
+                };
+                let text = if negative { format!("-{text}") } else { text };
+                Some(SupplierCoordinate {
+                    text,
+                    value: None,
+                    span: start.to(t.span),
+                })
+            }
+            TokenKind::Unit(_) if !negative => {
+                let (value, span) = self.unit_literal_with_span("as the offset")?;
+                let text = value.text.clone();
+                Some(SupplierCoordinate {
+                    text,
+                    value: Some(value),
+                    span,
+                })
+            }
+            TokenKind::Unit(_) => {
+                // Restore the shared signed-unit handling, including its
+                // precise E105 rule for unit types that cannot be negative.
+                self.pos -= 1;
+                let (value, span) = self.signed_unit_literal()?;
+                let text = value.text.clone();
+                Some(SupplierCoordinate {
+                    text,
+                    value: Some(value),
+                    span,
+                })
+            }
+            other => {
+                self.error_here(format!(
+                    "expected a unit literal as the {axis} supplier offset, found {}",
+                    other.describe()
+                ));
+                None
+            }
+        }
+    }
+
     fn part_def(&mut self) -> Option<PartDef> {
         let start = self.span();
         self.bump(); // part
@@ -3713,8 +3848,19 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::LBrace, "to open the AVL entry");
             let mut fields = Vec::new();
             let mut footprint: Option<Ident> = None;
+            let mut suppliers = Vec::new();
             let mut progress = Progress::default();
             while self.block_continues(&mut progress) {
+                // RFC-034: contextual `supplier`; `supplier: "..."` remains
+                // an ordinary AVL field and retains its E802 validation.
+                if self.at_ident("supplier") && !matches!(self.peek_ahead(1), TokenKind::Colon) {
+                    match self.supplier_binding() {
+                        Some(binding) => suppliers.push(binding),
+                        None => self.sync_in_block(),
+                    }
+                    self.eat(&TokenKind::Comma);
+                    continue;
+                }
                 // A broken field skips to its own `,`/`}` and the entry
                 // continues — `break` left the rest of the entry to the
                 // part-body loop, one "expected `primary`" error per field.
@@ -3798,6 +3944,7 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::RBrace, "to close the AVL entry");
             let entry = AvlEntry {
                 fields,
+                suppliers,
                 footprint,
                 span: entry_start.to(self.prev_span()),
             };

@@ -1645,10 +1645,34 @@ impl PartDef {
 #[derive(Debug, Clone)]
 pub struct AvlEntry {
     pub fields: Vec<AvlField>,
+    /// RFC-034 supplier bindings, in declaration order.
+    pub suppliers: Vec<SupplierBinding>,
     /// RFC-017: `footprint:` holds a SYMBOL reference (resolved via
     /// RFC-016), never a string. The Ident's name is the fq path after
     /// resolution.
     pub footprint: Option<Ident>,
+    pub span: Span,
+}
+
+/// One `supplier ID "PN" [at (x, y)] [rotate N]` clause (RFC-034).
+/// Original literal spellings are retained for canonical formatting and the
+/// subsequent semantic checks; this AST does not prematurely validate E813.
+#[derive(Debug, Clone)]
+pub struct SupplierBinding {
+    pub supplier: Ident,
+    pub part_number: String,
+    pub part_number_span: Span,
+    pub at: Option<(SupplierCoordinate, SupplierCoordinate)>,
+    pub rotate: Option<(String, Span)>,
+    pub span: Span,
+}
+
+/// A supplier mapping coordinate. `value` is absent for a bare number, whose
+/// unit error belongs to E813; `text` retains its exact source spelling.
+#[derive(Debug, Clone)]
+pub struct SupplierCoordinate {
+    pub text: String,
+    pub value: Option<UnitValue>,
     pub span: Span,
 }
 

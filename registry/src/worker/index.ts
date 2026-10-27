@@ -38,6 +38,7 @@ import { metadataRejection, parsePackageManifest } from "./manifest";
 import { nameTier, publishRejection } from "./namespace";
 import { recaptchaOk } from "./recaptcha";
 import { searchApi } from "./search";
+import { supplierAdminApi } from "./suppliers";
 import { readTar } from "./tar";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -189,6 +190,13 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
       pathname.startsWith("/api/admin/component-requests/")
     ) {
       return await adminComponentRequestApi(env, request, url);
+    }
+    if (
+      (pathname.startsWith("/api/admin/suppliers/") &&
+        pathname.endsWith("/snapshot")) ||
+      pathname.startsWith("/api/admin/manufacturer-aliases/")
+    ) {
+      return await supplierAdminApi(env, request, url);
     }
     if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
       return await adminApi(env, request, url);

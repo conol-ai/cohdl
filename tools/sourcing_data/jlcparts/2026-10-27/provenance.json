@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "source": "jlcparts",
+  "source_manifest_url": "https://yaqwsx.github.io/jlcparts/data/manifest.json",
+  "source_snapshot_created": "2026-10-27T00:01:42+00:00",
+  "snapshot_timestamp_evidence": "run.log",
+  "status": "candidates_pending_partdetail_confirmation",
+  "data_file": "basic_preferred.json",
+  "row_format": [
+    "supplier_part_number",
+    "mpn"
+  ],
+  "counts": {
+    "Basic": 350,
+    "Preferred": 984,
+    "total": 1334
+  },
+  "collection": {
+    "component_shards": 1089,
+    "failed_shards": 0,
+    "evidence": "run.log"
+  },
+  "sha256": {
+    "basic_preferred.json": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
+    "run.log": "31d3c4e2bba59afd6c5b013cf71be8696207a1217c8dcf084b85d5e535dfdc71"
+  },
+  "validation": {
+    "unique_part_numbers": 1334,
+    "nonempty_mpns": true,
+    "partdetail_confirmation_performed_during_archival": false
+  },
+  "limitations": [
+    "Classes and identities are assertions from the jlcparts snapshot, pending confirmation on each canonical JLCPCB partdetail page.",
+    "This candidate list is not the verified W1 catalog baseline and does not establish complete Basic or Preferred coverage.",
+    "The earlier 2026-10-06 website counts (351 Basic, 1235 Preferred) are from a different date; the cause of the difference is unresolved.",
+    "The original candidate file and run log are preserved byte for byte; the raw component shards and source manifest are not included."
+  ]
+}

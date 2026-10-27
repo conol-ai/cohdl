@@ -25,6 +25,8 @@ pub const SCHEMA_VERSION: u32 = 1;
 pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
+    /// RFC-034 neutral CPL path, present only for a physical placed design.
+    pub cpl: Option<String>,
     /// RFC-013 `layout.json` path, present only when the design emits one.
     pub layout: Option<String>,
     /// RFC-015 IPC-2581 document path, present only when `--emit ipc2581`
@@ -145,6 +147,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
             vec![("netlist", b.netlist.as_str()), ("bom", b.bom.as_str())];
         if let Some(path) = &b.layout {
             entries.push(("layout", path));
+        }
+        if let Some(path) = &b.cpl {
+            entries.push(("cpl", path));
         }
         if let Some(path) = &b.ipc2581 {
             entries.push(("ipc2581", path));

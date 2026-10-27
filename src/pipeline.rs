@@ -290,6 +290,8 @@ pub fn check_files_in_with_deps(
 pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
+    /// RFC-034 neutral CPL; the CLI writes it only for physical builds.
+    pub cpl: Option<crate::emit::cpl::NeutralCpl>,
     pub lock: LockState,
     /// RFC-013 `layout.json`, present only when the design carries layout
     /// metadata (constraints or `#[placement_hint]`). Never affects the
@@ -332,6 +334,7 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
+        cpl: crate::emit::cpl::emit_neutral_cpl(&checked.world, ir),
         lock,
         layout: crate::emit::layout::emit_layout_json(ir),
         quilter: crate::emit::quilter::emit_quilter_csvs(ir),

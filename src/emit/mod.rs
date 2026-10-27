@@ -4,6 +4,7 @@
 //! explicit sort; nothing iterates a hash map.
 
 pub mod bom;
+pub mod cpl;
 pub mod docsjson;
 pub mod easyeda;
 pub mod geom;

@@ -852,6 +852,7 @@ fn emitter_witness(world: &mut cohdl::resolve::World, footprint: &str, index: us
                         span,
                     },
                 ],
+                suppliers: Vec::new(),
                 footprint: Some(ident(footprint, span)),
                 span,
             },

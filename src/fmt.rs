@@ -1613,7 +1613,19 @@ impl Formatter<'_> {
                 cells.push((fp.span.start, format!("footprint: {}", fp.name)));
             }
             cells.sort_by_key(|(s, _)| *s);
-            let fields: Vec<String> = cells.into_iter().map(|(_, t)| t).collect();
+            let mut fields: Vec<String> = cells.into_iter().map(|(_, t)| t).collect();
+            // RFC-034: supplier clauses follow all ordinary fields, while
+            // retaining declaration order and explicit default-valued items.
+            fields.extend(entry.suppliers.iter().map(|s| {
+                let mut text = format!("supplier {} {}", s.supplier.name, str_lit(&s.part_number));
+                if let Some((x, y)) = &s.at {
+                    text.push_str(&format!(" at ({}, {})", x.text, y.text));
+                }
+                if let Some((rotate, _)) = &s.rotate {
+                    text.push_str(&format!(" rotate {rotate}"));
+                }
+                text
+            }));
             // AVL entries wrap like other long argument lists (RFC-009).
             self.wrapped(1, &format!("{} {{ ", kw), &fields, " }");
             self.finish_construct(self.line_start(entry.span), self.line_end(entry.span), 1);

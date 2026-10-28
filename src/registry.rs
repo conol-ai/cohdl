@@ -399,6 +399,33 @@ pub struct PartSearchHit {
     pub manufacturer: Option<String>,
     pub mpn: Option<String>,
     pub primary: bool,
+    /// Additive in RFC-034. Absent means a pre-supplier registry response;
+    /// retain that distinction so legacy `--json` output stays unchanged.
+    pub suppliers: Option<Vec<PartSupplier>>,
+}
+
+/// One supplier binding on a public part search result (RFC-034 §4).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartSupplier {
+    pub supplier: String,
+    pub pn: String,
+    pub at: [String; 2],
+    pub rotate: u16,
+    pub links: Vec<SupplierLink>,
+    pub catalog: Option<SupplierCatalog>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierLink {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierCatalog {
+    pub class: String,
+    pub stock: u64,
+    pub snapshot_date: String,
 }
 
 /// The complete, grouped search response. Package and part ordering is the
@@ -421,7 +448,7 @@ pub struct SearchResults {
 enum JsonValue {
     Null,
     Bool(bool),
-    Number,
+    Number(String),
     String(String),
     Array(Vec<JsonValue>),
     Object(Vec<(String, JsonValue)>),
@@ -493,8 +520,13 @@ impl<'a> JsonParser<'a> {
             Some(b'[') => self.array(depth),
             Some(b'{') => self.object(depth),
             Some(b'-' | b'0'..=b'9') => {
+                let start = self.pos;
                 self.number()?;
-                Ok(JsonValue::Number)
+                Ok(JsonValue::Number(
+                    std::str::from_utf8(&self.input[start..self.pos])
+                        .expect("JSON was checked as UTF-8")
+                        .to_string(),
+                ))
             }
             Some(other) => Err(format!(
                 "unexpected byte 0x{other:02x} at byte {}",
@@ -804,6 +836,74 @@ fn required_array<'a>(
     }
 }
 
+fn required_number<T>(fields: &[(String, JsonValue)], key: &str) -> Result<T, String>
+where
+    T: std::str::FromStr,
+{
+    match json_field(fields, key)? {
+        JsonValue::Number(value) => value
+            .parse()
+            .map_err(|_| format!("`{key}` must be a non-negative integer in range")),
+        _ => Err(format!("`{key}` must be a number")),
+    }
+}
+
+fn parse_suppliers(value: &JsonValue, path: &str) -> Result<Vec<PartSupplier>, String> {
+    let JsonValue::Array(values) = value else {
+        return Err("must be an array".to_string());
+    };
+    values
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let path = format!("{path}[{index}]");
+            let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+            let field = |key: &str| required_string(row, key).map_err(|e| format!("{path}: {e}"));
+            let at = required_array(row, "at").map_err(|e| format!("{path}: {e}"))?;
+            let [x, y] = at else {
+                return Err(format!("{path}: `at` must contain exactly two strings"));
+            };
+            let (JsonValue::String(x), JsonValue::String(y)) = (x, y) else {
+                return Err(format!("{path}: `at` must contain exactly two strings"));
+            };
+            let link_values = required_array(row, "links").map_err(|e| format!("{path}: {e}"))?;
+            let mut links = Vec::new();
+            for (link_index, value) in link_values.iter().enumerate() {
+                let link_path = format!("{path}.links[{link_index}]");
+                let link = json_object(value).map_err(|e| format!("{link_path}: {e}"))?;
+                links.push(SupplierLink {
+                    label: required_string(link, "label")
+                        .map_err(|e| format!("{link_path}: {e}"))?,
+                    url: required_string(link, "url").map_err(|e| format!("{link_path}: {e}"))?,
+                });
+            }
+            let catalog_path = format!("{path}.catalog");
+            let catalog = match json_field(row, "catalog").map_err(|e| format!("{path}: {e}"))? {
+                JsonValue::Null => None,
+                value => {
+                    let catalog = json_object(value).map_err(|e| format!("{catalog_path}: {e}"))?;
+                    Some(SupplierCatalog {
+                        class: required_string(catalog, "class")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                        stock: required_number(catalog, "stock")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                        snapshot_date: required_string(catalog, "snapshot_date")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                    })
+                }
+            };
+            Ok(PartSupplier {
+                supplier: field("supplier")?,
+                pn: field("pn")?,
+                at: [x.clone(), y.clone()],
+                rotate: required_number(row, "rotate").map_err(|e| format!("{path}: {e}"))?,
+                links,
+                catalog,
+            })
+        })
+        .collect()
+}
+
 fn parse_search_response(body: &[u8], expected_query: &str) -> Result<SearchResults, String> {
     // The endpoint itself is bounded, but refuse an unexpectedly huge body
     // before allocating a tree if a proxy or broken server violates that
@@ -871,6 +971,14 @@ fn parse_search_response(body: &[u8], expected_query: &str) -> Result<SearchResu
             mpn: optional_string(row, "mpn").map_err(|e| format!("parts.results[{index}]: {e}"))?,
             primary: required_bool(row, "primary")
                 .map_err(|e| format!("parts.results[{index}]: {e}"))?,
+            suppliers: match json_field(row, "suppliers") {
+                Ok(value) => Some(
+                    parse_suppliers(value, &format!("parts.results[{index}].suppliers"))
+                        .map_err(|e| format!("parts.results[{index}]: {e}"))?,
+                ),
+                Err(error) if error == "missing `suppliers`" => None,
+                Err(error) => return Err(format!("parts.results[{index}]: {error}")),
+            },
         });
     }
     let parts_has_more =
@@ -1019,9 +1127,18 @@ fn search_e1204(detail: String) -> PackageDiag {
 
 /// Search the hosted registry's package metadata and indexed public parts.
 /// This is a read-only operation: it needs neither credentials nor a project.
-pub fn search(query: &str) -> Result<SearchResults, PackageDiag> {
+pub fn search(
+    query: &str,
+    supplier: Option<&str>,
+    classes: &[String],
+) -> Result<SearchResults, PackageDiag> {
     let url = format!("{}/search", registry_url().trim_end_matches('/'));
-    let resp = http_get_query(&url, &[("q", query)]).map_err(search_e1204)?;
+    let mut params = vec![("q", query)];
+    if let Some(supplier) = supplier {
+        params.push(("supplier", supplier));
+    }
+    params.extend(classes.iter().map(|class| ("class", class.as_str())));
+    let resp = http_get_query(&url, &params).map_err(search_e1204)?;
     if resp.status != 200 {
         return Err(search_e1204(format!("GET {url} returned {}", resp.status)));
     }
@@ -1100,9 +1217,77 @@ pub fn render_search_json(search: &SearchResults) -> String {
             let _ = writeln!(out, "        \"mpn\": {},", nullable(&part.mpn));
             let _ = writeln!(
                 out,
-                "        \"primary\": {}",
-                if part.primary { "true" } else { "false" }
+                "        \"primary\": {}{}",
+                if part.primary { "true" } else { "false" },
+                if part.suppliers.is_some() { "," } else { "" }
             );
+            if let Some(suppliers) = &part.suppliers {
+                if suppliers.is_empty() {
+                    out.push_str("        \"suppliers\": []\n");
+                } else {
+                    out.push_str("        \"suppliers\": [\n");
+                    for (supplier_index, supplier) in suppliers.iter().enumerate() {
+                        out.push_str("          {\n");
+                        let _ = writeln!(
+                            out,
+                            "            \"supplier\": {},",
+                            string(&supplier.supplier)
+                        );
+                        let _ = writeln!(out, "            \"pn\": {},", string(&supplier.pn));
+                        let _ = writeln!(
+                            out,
+                            "            \"at\": [{}, {}],",
+                            string(&supplier.at[0]),
+                            string(&supplier.at[1])
+                        );
+                        let _ = writeln!(out, "            \"rotate\": {},", supplier.rotate);
+                        if supplier.links.is_empty() {
+                            out.push_str("            \"links\": [],\n");
+                        } else {
+                            out.push_str("            \"links\": [\n");
+                            for (link_index, link) in supplier.links.iter().enumerate() {
+                                out.push_str("              {\n");
+                                let _ = writeln!(
+                                    out,
+                                    "                \"label\": {},",
+                                    string(&link.label)
+                                );
+                                let _ =
+                                    writeln!(out, "                \"url\": {}", string(&link.url));
+                                out.push_str(if link_index + 1 < supplier.links.len() {
+                                    "              },\n"
+                                } else {
+                                    "              }\n"
+                                });
+                            }
+                            out.push_str("            ],\n");
+                        }
+                        if let Some(catalog) = &supplier.catalog {
+                            out.push_str("            \"catalog\": {\n");
+                            let _ = writeln!(
+                                out,
+                                "              \"class\": {},",
+                                string(&catalog.class)
+                            );
+                            let _ = writeln!(out, "              \"stock\": {},", catalog.stock);
+                            let _ = writeln!(
+                                out,
+                                "              \"snapshot_date\": {}",
+                                string(&catalog.snapshot_date)
+                            );
+                            out.push_str("            }\n");
+                        } else {
+                            out.push_str("            \"catalog\": null\n");
+                        }
+                        out.push_str(if supplier_index + 1 < suppliers.len() {
+                            "          },\n"
+                        } else {
+                            "          }\n"
+                        });
+                    }
+                    out.push_str("        ]\n");
+                }
+            }
             out.push_str(if index + 1 < search.parts.len() {
                 "      },\n"
             } else {

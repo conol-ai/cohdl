@@ -425,4 +425,6 @@ Implementation may proceed in stages before acceptance:
 - The map, the CPLs and the `smt_pos.py` options follow this revision's pad-projection rule.
 - Official library bindings and footprint alignment ship only with each part number's confirmation and frame evidence (the library program's rules).
 
+Implementation status, 2026-10-28: every stage is implemented on the local branch `feat/rfc-034` and passes the compiler, registry and tool test suites. Rulings made during implementation are folded into §1, §4 and §5 above. Two projection tests need pcbnew and are carried as a manual checklist (open-and-save, and a hand flip in each direction); they are part of acceptance. LSP completion and offline hover are implemented; hover with the registry's supplier display name and link waits for a local cache of the supplier table.
+
 Acceptance still requires central allocation of the RFC number and error codes, and the bottom-side test board and assembler preview in Open questions. Until then this text is not frozen. This file is a working copy in the repository snapshot. The canonical RFC belongs in the conol.ai design repository, where its number and error codes are allocated.

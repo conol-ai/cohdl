@@ -15,7 +15,8 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only] [--json]
+                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only]
+                 [--supplier ID]... [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
@@ -74,6 +75,8 @@ defaults to the current directory.
              not already in canonical form
              self-update: report whether a newer release exists, install nothing
     --logical-only  build: emit logical artifacts without footprints or manufacturing output
+    --supplier ID  build: select this supplier for each instance (repeatable;
+             first-occurrence order is kept and duplicates are ignored)
     --dep    update: re-resolve only the named dependency
     --out    docs: write the JSON to FILE instead of stdout
     --publish
@@ -103,6 +106,8 @@ struct Args {
     /// with fmt", not suggest a format that would then be rejected anyway.
     emit: Vec<String>,
     logical_only: bool,
+    /// RFC-034: build-only, repeatable supplier IDs in request order.
+    suppliers: Vec<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
     /// RFC-030: the NAME positional of add/remove/update (`name` or
@@ -130,6 +135,9 @@ impl Args {
         };
         if self.logical_only && self.command != "build" {
             return bad("--logical-only");
+        }
+        if !self.suppliers.is_empty() && self.command != "build" {
+            return bad("--supplier");
         }
         if self.logical_only && !self.emit.is_empty() {
             return Err(
@@ -258,6 +266,14 @@ impl Args {
                         ));
                     }
                 }
+                for supplier in &self.suppliers {
+                    if !cohdl::supplier::valid_supplier_id(supplier) {
+                        return Err(format!(
+                            "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
+                            supplier, USAGE
+                        ));
+                    }
+                }
             }
             "fmt" => {
                 if self.json {
@@ -344,6 +360,7 @@ fn parse_args() -> Result<Args, String> {
         fmt_check: false,
         emit: Vec::new(),
         logical_only: false,
+        suppliers: Vec::new(),
         dep: None,
         name: None,
         query: None,
@@ -362,6 +379,10 @@ fn parse_args() -> Result<Args, String> {
             "--no-std" => args.no_std = true,
             "--json" => args.json = true,
             "--logical-only" => args.logical_only = true,
+            "--supplier" => {
+                args.suppliers
+                    .push(argv.next().ok_or("--supplier needs a value")?);
+            }
             "--check" => args.fmt_check = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
@@ -771,7 +792,8 @@ fn run(args: &Args) -> Result<bool, String> {
         std::fs::read_to_string(proj_dir.join(path)).map_err(|e| e.to_string())
     });
 
-    let artifacts = pipeline::build_artifacts(&mut checked, &prior_lock);
+    let artifacts =
+        pipeline::build_artifacts_with_suppliers(&mut checked, &prior_lock, &args.suppliers);
     let Some(artifacts) = artifacts else {
         if args.json {
             print!("{}", emit::json::render(&checked, None));

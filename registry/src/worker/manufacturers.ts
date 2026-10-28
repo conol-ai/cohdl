@@ -39,7 +39,7 @@ function json(status: number, body: unknown, headers: Record<string, string> = {
 
 function validValue(value: string, normalize: (value: string) => string): boolean {
   return value.length > 0 && new TextEncoder().encode(value).length <= MAX_VALUE_BYTES &&
-    !/[\p{Cc}\p{Cf}]/u.test(value) && normalize(value).length > 0;
+    !/\p{Cc}/u.test(value) && normalize(value).length > 0;
 }
 
 export interface ManufacturerNormalizeDependencies { store: ManufacturerKeyStore }

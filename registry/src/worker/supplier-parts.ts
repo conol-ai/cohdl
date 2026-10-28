@@ -36,11 +36,10 @@ function json(status: number, body: unknown, headers: Record<string, string> = {
 }
 function supplierId(value: string): boolean { return /^[a-z][a-z0-9_]{0,31}$/.test(value); }
 function decode(value: string): string | null { try { return decodeURIComponent(value); } catch { return null; } }
-function validValue(value: string, kind: "pn" | "mpn"): boolean {
+function validValue(value: string): boolean {
   return value.length > 0 && value.length <= MAX_VALUE_BYTES &&
     new TextEncoder().encode(value).length <= MAX_VALUE_BYTES &&
-    !/[\p{Cc}\p{Cf}]/u.test(value) &&
-    (kind === "mpn" || (value.normalize("NFC") === value && value.trim() === value));
+    !/\p{Cc}/u.test(value);
 }
 function parseQuery(url: URL): { ok: true; value: Query } | { ok: false; error: string } {
   const keys = [...new Set(url.searchParams.keys())];
@@ -53,12 +52,12 @@ function parseQuery(url: URL): { ok: true; value: Query } | { ok: false; error: 
   if (raw.length > 100 * (MAX_VALUE_BYTES + 1)) return { ok: false, error: "too many query values" };
   const values = raw.split(",");
   if (values.length > MAX_VALUES) return { ok: false, error: "at most 100 values are allowed" };
-  if (values.some((value) => !validValue(value, kind))) {
+  if (values.some((value) => !validValue(value))) {
     return { ok: false, error: "values must be non-empty, bounded, and free of control characters" };
   }
   const normalized = kind === "mpn" ? values.map(normalizeMpn) : values;
-  if (normalized.some((value) => value.length === 0) || new Set(normalized).size !== values.length) {
-    return { ok: false, error: "values must be non-empty and unique" };
+  if (normalized.some((value) => value.length === 0)) {
+    return { ok: false, error: "values must be non-empty" };
   }
   return { ok: true, value: { kind, values } };
 }

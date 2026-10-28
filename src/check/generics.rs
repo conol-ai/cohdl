@@ -945,6 +945,15 @@ fn check_supplier_bindings(
                 ),
             ));
         }
+        if matches!(supplier, "mpn" | "mfr") {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.supplier.span,
+                format!(
+                    "invalid supplier identifier `{supplier}` in {context}: reserved: its upper-case form collides with the MPN/MFR netlist field"
+                ),
+            ));
+        }
 
         if binding.part_number.trim().is_empty() {
             diags.push(Diagnostic::error(

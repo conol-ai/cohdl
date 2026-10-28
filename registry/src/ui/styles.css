@@ -1329,6 +1329,94 @@ button:disabled {
   margin-right: 4px;
 }
 
+.catalogue-kind {
+  margin-top: 14px;
+}
+
+.supplier-filters {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.6fr) minmax(200px, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.supplier-filters label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.supplier-filters input {
+  min-width: 0;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  padding: 9px 11px;
+  color: var(--text-primary);
+}
+
+.supplier-filter-help {
+  grid-column: 1 / -1;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.part-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.part-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  padding: 18px;
+}
+
+.part-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.part-card-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.part-card-identity,
+.part-card-link,
+.supplier-empty {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.supplier-table-wrap {
+  margin-top: 14px;
+}
+
+.supplier-table {
+  min-width: 850px;
+}
+
+.supplier-table td {
+  vertical-align: top;
+}
+
+.supplier-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+@media (max-width: 640px) {
+  .supplier-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
 .catalogue-controls {
   display: flex;
   align-items: center;

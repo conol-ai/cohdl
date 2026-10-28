@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "components": {
+    "gge1": {
+      "props": {
+        "Add into BOM": "yes",
+        "Convert to PCB": "yes",
+        "Designator": "U1",
+        "DeviceName": "D",
+        "FootprintName": "board::FP",
+        "Manufacturer": "",
+        "Manufacturer Part": "",
+        "Name": "D",
+        "Unique ID": "gge1"
+      },
+      "pinInfoMap": {}
+    }
+  },
+  "designRule": {
+    "trackPhysics": {},
+    "netRule": {}
+  },
+  "differentialPair": {},
+  "netClass": {},
+  "equalLengthNetGroup": {}
+}

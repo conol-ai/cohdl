@@ -49,12 +49,34 @@ pub part C_100n_16V_X7R_0402: MLCC {
 }
 design Board { inst c: C_100n_16V_X7R_0402 nc: c.A }
 "#;
-    let (_, artifacts) = build(src, &["acme"]);
+    let (checked, artifacts) = build(src, &["acme"]);
     assert_eq!(
         artifacts.supplier_boms[0].csv,
         "Comment,Designator,Footprint,ACME Part #\n\
          \"CL05B104KO5NNNC\",\"U1\",\"CHIP_0402\",\"A-200157\"\n"
     );
+    let enet = cohdl::emit::easyeda::emit_enet_with_supplier(
+        &checked.world,
+        checked.ir.as_ref().unwrap(),
+        artifacts.suppliers.selections.first(),
+    );
+    let component = enet
+        .split("\"components\": {")
+        .nth(1)
+        .unwrap()
+        .split("\"designRule\"")
+        .next()
+        .unwrap();
+    for property in [
+        "\"Manufacturer\": \"Samsung\"",
+        "\"Manufacturer Part\": \"CL05B104KO5NNNC\"",
+        "\"Supplier\": \"ACME\"",
+        "\"Supplier Part\": \"A-200157\"",
+    ] {
+        assert!(component.contains(property), "missing {property}");
+    }
+    assert!(!component.contains("Yageo"));
+    assert!(!component.contains("CC0402KRX7R7BB104"));
 }
 
 #[test]

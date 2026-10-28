@@ -974,7 +974,11 @@ fn run(args: &Args) -> Result<bool, String> {
     // The LCEDA Pro netlist, only when `--emit easyeda` (docs/easyeda.md).
     if args.emit_easyeda() {
         let ir = checked.ir.as_ref().unwrap();
-        let doc = emit::easyeda::emit_enet(&checked.world, ir);
+        let doc = emit::easyeda::emit_enet_with_supplier(
+            &checked.world,
+            ir,
+            artifacts.suppliers.selections.first(),
+        );
         write_artifact(&enet_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
         written.push(enet_path.clone());
     }

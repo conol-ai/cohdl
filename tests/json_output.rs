@@ -370,6 +370,14 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
         Some(&json::BuildArtifacts {
             netlist: "out/x.net".into(),
             bom: "out/x-bom.csv".into(),
+            suppliers: [(
+                "acme".into(),
+                json::SupplierBuildArtifacts {
+                    bom: "out/x-acme-bom.csv".into(),
+                },
+            )]
+            .into_iter()
+            .collect(),
             cpl: Some("out/x-cpl.csv".into()),
             layout: Some("out/x-layout.json".into()),
             ipc2581: Some("out/x.xml".into()),
@@ -381,6 +389,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     );
     let parsed = parse_json(&with);
     let build = parsed.get("build").unwrap();
+    assert_eq!(build.get("schema_version"), None);
     assert_eq!(build.get("netlist").unwrap().as_str(), "out/x.net");
     assert_eq!(build.get("bom").unwrap().as_str(), "out/x-bom.csv");
     assert_eq!(build.get("cpl").unwrap().as_str(), "out/x-cpl.csv");
@@ -391,12 +400,24 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     // RFC-018: kicad_mod is an array, present only when non-empty.
     let mods = parsed.get("build").unwrap().get("kicad_mod").unwrap();
     assert_eq!(mods.as_arr().len(), 1);
+    assert_eq!(
+        build
+            .get("suppliers")
+            .unwrap()
+            .get("acme")
+            .unwrap()
+            .get("bom")
+            .unwrap()
+            .as_str(),
+        "out/x-acme-bom.csv"
+    );
 
     let without = json::render(
         &checked,
         Some(&json::BuildArtifacts {
             netlist: "out/x.net".into(),
             bom: "out/x-bom.csv".into(),
+            suppliers: Default::default(),
             cpl: None,
             layout: None,
             ipc2581: None,
@@ -412,6 +433,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
     assert!(parsed.get("build").unwrap().get("ipc2581").is_none());
     assert!(parsed.get("build").unwrap().get("kicad_pcb").is_none());
     assert!(parsed.get("build").unwrap().get("easyeda").is_none());
+    assert!(parsed.get("build").unwrap().get("suppliers").is_none());
 
     // RFC-015 without layout: ipc2581 is then the LAST key (comma handling).
     let ipc_only = json::render(
@@ -419,6 +441,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
         Some(&json::BuildArtifacts {
             netlist: "out/x.net".into(),
             bom: "out/x-bom.csv".into(),
+            suppliers: Default::default(),
             cpl: None,
             layout: None,
             ipc2581: Some("out/x.xml".into()),

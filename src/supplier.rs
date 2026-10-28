@@ -113,20 +113,20 @@ fn resolved_footprint_identity<'a>(world: &'a World, reference: &Ident) -> Optio
         .map(|(identity, _)| identity.as_str())
 }
 
-/// RFC-034 §3.2 eligibility, shared by selection and its E814 explanation.
+/// RFC-034 §3.2 alt eligibility, shared by selection and its E814 explanation.
+/// Missing primary and effective alt footprints compare equal, preserving the
+/// language's `None == None` inheritance semantics. The primary itself is not
+/// subject to this comparison: a requested primary binding is always chosen.
 fn same_primary_footprint(world: &World, part: &PartDef, entry: &AvlEntry) -> bool {
-    let Some(primary) = part
+    let primary = part
         .primary
         .footprint
         .as_ref()
-        .and_then(|reference| resolved_footprint_identity(world, reference))
-    else {
-        return false;
-    };
+        .and_then(|reference| resolved_footprint_identity(world, reference));
     entry
         .effective_footprint(&part.primary)
         .and_then(|reference| resolved_footprint_identity(world, reference))
-        == Some(primary)
+        == primary
 }
 
 fn selected_entry<'a>(
@@ -134,19 +134,16 @@ fn selected_entry<'a>(
     part: &'a PartDef,
     supplier: &str,
 ) -> Option<(AvlEntryIndex, &'a AvlEntry, &'a SupplierBinding)> {
-    let eligible = |entry: &AvlEntry| same_primary_footprint(world, part, entry);
-    if eligible(&part.primary) {
-        if let Some(binding) = part
-            .primary
-            .suppliers
-            .iter()
-            .find(|binding| binding.supplier.name == supplier)
-        {
-            return Some((AvlEntryIndex::Primary, &part.primary, binding));
-        }
+    if let Some(binding) = part
+        .primary
+        .suppliers
+        .iter()
+        .find(|binding| binding.supplier.name == supplier)
+    {
+        return Some((AvlEntryIndex::Primary, &part.primary, binding));
     }
     part.alts.iter().enumerate().find_map(|(index, alt)| {
-        if !eligible(alt) {
+        if !same_primary_footprint(world, part, alt) {
             return None;
         }
         alt.suppliers

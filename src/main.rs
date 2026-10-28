@@ -729,6 +729,43 @@ fn run(args: &Args) -> Result<bool, String> {
         args.design.as_deref().or(proj.top.as_deref()),
     )?;
 
+    // RFC-034: a logical-only supplier build admits a part whose primary has
+    // no footprint when its primary or an inheriting alt supplies the
+    // requested binding. Keep this invocation-specific waiver narrow:
+    // ordinary/physical builds and other missing-footprint declarations retain
+    // the existing E802.
+    if args.logical_only && !args.suppliers.is_empty() {
+        let waived: Vec<_> = checked
+            .world
+            .parts
+            .values()
+            .filter(|part| {
+                part.primary.footprint.is_none()
+                    && std::iter::once(&part.primary)
+                        .chain(part.alts.iter())
+                        .any(|entry| {
+                            entry.footprint.is_none()
+                                && entry
+                                    .suppliers
+                                    .iter()
+                                    .any(|binding| args.suppliers.contains(&binding.supplier.name))
+                        })
+            })
+            .map(|part| part.primary.span)
+            .collect();
+        if !waived.is_empty() {
+            checked.diags = checked
+                .diags
+                .drain_batch()
+                .filter(|diagnostic| {
+                    !(diagnostic.code == "E802"
+                        && waived.contains(&diagnostic.primary.span)
+                        && diagnostic.message.contains("missing `footprint`"))
+                })
+                .collect();
+        }
+    }
+
     // A design-selection failure is an invocation-level error (exit 2), but
     // the source diagnostics collected before it are NEVER discarded — they
     // render to stderr first, in both plain and --json modes.

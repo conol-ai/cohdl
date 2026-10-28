@@ -222,6 +222,41 @@ design Board {{
     );
 }
 
+const NO_FOOTPRINT_SUPPLIER_PARTS: &str = r#"
+pub device D { pins { A: 1 [passive] } }
+pub part PRIMARY: D {
+    primary { mfr: "M", mpn: "P", supplier acme "PRIMARY-PN" }
+}
+pub part ALT: D {
+    primary { mfr: "M", mpn: "ALT-P" }
+    alt { mfr: "A", mpn: "ALT-A", supplier acme "ALT-PN" }
+}
+design Board {
+    inst primary: PRIMARY
+    inst alt: ALT
+    nc: primary.A
+    nc: alt.A
+}
+"#;
+
+#[test]
+fn no_footprint_primary_and_inheriting_alt_have_selected_entries() {
+    let checked = checked(NO_FOOTPRINT_SUPPLIER_PARTS);
+    let ir = checked.ir.as_ref().unwrap();
+    let mut diags = cohdl::diag::Diagnostics::new();
+    let selections = cohdl::supplier::select(&checked.world, ir, &["acme".to_string()], &mut diags);
+    let selection = &selections.selections[0];
+    for (path, entry, part_number) in [
+        ("Board::primary", AvlEntryIndex::Primary, "PRIMARY-PN"),
+        ("Board::alt", AvlEntryIndex::Alt(0), "ALT-PN"),
+    ] {
+        let selected = selection.get(path).unwrap().selected.as_ref().unwrap();
+        assert_eq!(selected.entry, entry);
+        assert_eq!(selected.part_number, part_number);
+    }
+    assert!(!diags.render(&checked.sm).contains("E814"));
+}
+
 #[test]
 fn e814_is_per_instantiated_part_with_natural_designators_and_fp_reason() {
     let src = format!(
@@ -430,6 +465,36 @@ design Board {{
     assert!(!String::from_utf8(no_supplier.stdout)
         .unwrap()
         .contains("E814"));
+    let _ = std::fs::remove_dir_all(&tmp);
+}
+
+#[test]
+fn real_cli_logical_only_supplier_selects_no_footprint_primary_and_alt() {
+    let tmp = std::env::temp_dir().join(format!("cohdl-rfc034-select-nofp-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&tmp);
+    make_project(&tmp, NO_FOOTPRINT_SUPPLIER_PARTS);
+    for args in [
+        &["build", "--logical-only", "--supplier", "acme"][..],
+        &["build", "--logical-only", "--supplier", "acme", "--json"][..],
+    ] {
+        let output = run(&tmp, args);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(output.status.success(), "{args:?}: {stdout}{stderr}");
+        assert!(!stdout.contains("E802"), "{args:?}: {stdout}");
+        assert!(!stdout.contains("E814"), "{args:?}: {stdout}");
+        assert!(!stderr.contains("E802"), "{args:?}: {stderr}");
+        assert!(!stderr.contains("E814"), "{args:?}: {stderr}");
+        if args.contains(&"--json") {
+            assert!(stdout.contains("\"verdict\": \"pass\""), "{stdout}");
+            assert!(stdout.contains("\"bom\": "), "{stdout}");
+        }
+        assert!(tmp.join("out/t-bom.csv").exists());
+    }
+
+    let ordinary = run(&tmp, &["build", "--logical-only"]);
+    assert!(!ordinary.status.success());
+    assert!(String::from_utf8_lossy(&ordinary.stderr).contains("E802"));
     let _ = std::fs::remove_dir_all(&tmp);
 }
 

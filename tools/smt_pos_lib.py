@@ -10,6 +10,7 @@ and filter heuristics.  Neutral coordinates stay in integer nanometres until
 fixed-point formatting, so ties round half away from zero without float error.
 """
 
+import math
 import re
 
 
@@ -31,6 +32,113 @@ def neutral_origin(outline_bounds_nm):
     if outline_bounds_nm is None:
         return 0, 0
     return outline_bounds_nm[0], outline_bounds_nm[3]
+
+
+def _include_point(bounds, point):
+    x, y = point
+    if bounds is None:
+        return [x, y, x, y]
+    bounds[0] = min(bounds[0], x)
+    bounds[1] = min(bounds[1], y)
+    bounds[2] = max(bounds[2], x)
+    bounds[3] = max(bounds[3], y)
+    return bounds
+
+
+def _arc_delta(start, end, clockwise):
+    return (start - end if clockwise else end - start) % (2 * math.pi)
+
+
+def _arc_bounds(start, mid, end, center):
+    """Bounds of the circular centreline through start/mid/end.
+
+    KiCad's mid point disambiguates the arc and its direction. Cardinal
+    extrema are included only when the directed arc actually crosses them.
+    """
+    a = math.atan2(start[1] - center[1], start[0] - center[0])
+    b = math.atan2(mid[1] - center[1], mid[0] - center[0])
+    c = math.atan2(end[1] - center[1], end[0] - center[0])
+    first = _arc_delta(a, b, clockwise=True)
+    second = _arc_delta(b, c, clockwise=True)
+    clockwise = first + second < 2 * math.pi
+    sweep = _arc_delta(a, c, clockwise)
+    # KiCad stores integer nm; round only a newly computed cardinal extremum.
+    radius = round(math.hypot(start[0] - center[0], start[1] - center[1]))
+    bounds = None
+    for point in (start, end):
+        bounds = _include_point(bounds, point)
+    for angle, point in (
+        (0.0, (center[0] + radius, center[1])),
+        (math.pi / 2, (center[0], center[1] + radius)),
+        (math.pi, (center[0] - radius, center[1])),
+        (3 * math.pi / 2, (center[0], center[1] - radius)),
+    ):
+        travelled = (a - angle if clockwise else angle - a) % (2 * math.pi)
+        if travelled <= sweep:
+            bounds = _include_point(bounds, point)
+    return bounds
+
+
+def shape_geometry_bounds(shape):
+    """Return one neutral outline shape's bounds without its stroke width."""
+    kind = shape["shape"]
+    if kind == "arc":
+        return _arc_bounds(
+            shape["start"], shape["mid"], shape["end"], shape["center"]
+        )
+    if kind == "segment":
+        bounds = _include_point(None, shape["start"])
+        return _include_point(bounds, shape["end"])
+    if kind == "rect":
+        start, end = shape["start"], shape["end"]
+        return [
+            min(start[0], end[0]),
+            min(start[1], end[1]),
+            max(start[0], end[0]),
+            max(start[1], end[1]),
+        ]
+    if kind == "circle":
+        center, end = shape["center"], shape["end"]
+        radius = math.hypot(end[0] - center[0], end[1] - center[1])
+        return [
+            math.floor(center[0] - radius),
+            math.floor(center[1] - radius),
+            math.ceil(center[0] + radius),
+            math.ceil(center[1] + radius),
+        ]
+    if kind == "poly":
+        bounds = None
+        for point in shape["points"]:
+            bounds = _include_point(bounds, point)
+        if bounds is not None:
+            return bounds
+    # Compatibility fallback for other PCB_SHAPE types: undo KiCad's
+    # half-width inflation on this shape only, never on the whole board.
+    left, top, right, bottom = shape["bbox"]
+    half_width = shape["width"] / 2
+    return [
+        math.ceil(left + half_width),
+        math.ceil(top + half_width),
+        math.floor(right - half_width),
+        math.floor(bottom - half_width),
+    ]
+
+
+def outline_geometry_bounds(shapes):
+    """Combine exact centreline bounds; ``None`` means no Edge.Cuts shape."""
+    bounds = None
+    for shape in shapes:
+        current = shape_geometry_bounds(shape)
+        if bounds is None:
+            bounds = current
+        else:
+            bounds = [
+                min(bounds[0], current[0]),
+                min(bounds[1], current[1]),
+                max(bounds[2], current[2]),
+                max(bounds[3], current[3]),
+            ]
+    return bounds
 
 
 def legacy_project(x_mm, y_mm, origin_mm):

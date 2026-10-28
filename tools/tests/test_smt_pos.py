@@ -25,6 +25,7 @@ from smt_pos_lib import (  # noqa: E402
     neutral_origin,
     neutral_rows,
     normalize_rotation,
+    outline_geometry_bounds,
 )
 
 
@@ -72,6 +73,29 @@ class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+
+def rectangle_drawings(width_nm):
+    corners = [(0, 0), (50 * NM, 0), (50 * NM, 30 * NM), (0, 30 * NM)]
+    half_width = width_nm // 2
+    records = []
+    for index, start in enumerate(corners):
+        end = corners[(index + 1) % len(corners)]
+        records.append(
+            {
+                "shape": "segment",
+                "start": start,
+                "end": end,
+                "width": width_nm,
+                "bbox": (
+                    min(start[0], end[0]) - half_width,
+                    min(start[1], end[1]) - half_width,
+                    max(start[0], end[0]) + half_width,
+                    max(start[1], end[1]) + half_width,
+                ),
+            }
+        )
+    return records
 
 
 class FakePad:
@@ -138,23 +162,63 @@ class FakeBox:
 
 
 class FakeDrawing:
-    def __init__(self, layer):
+    def __init__(self, layer, record=None):
         self.layer = layer
+        self.record = record or {
+            "shape": "segment",
+            "start": (-15 * NM, -10 * NM),
+            "end": (15 * NM, 10 * NM),
+            "width": 0,
+            "bbox": (-15 * NM, -10 * NM, 15 * NM, 10 * NM),
+        }
 
     def GetLayer(self):
         return self.layer
 
+    def GetShape(self):
+        return getattr(FakePcbnew, "SHAPE_T_" + self.record["shape"].upper())
+
+    def GetStart(self):
+        return Point(*self.record["start"])
+
+    def GetEnd(self):
+        return Point(*self.record["end"])
+
+    def GetWidth(self):
+        return self.record["width"]
+
+    def GetBoundingBox(self):
+        return FakeBox(self.record["bbox"])
+
+    def GetArcMid(self):
+        return Point(*self.record["mid"])
+
+    def GetCenter(self):
+        return Point(*self.record["center"])
+
+    def GetPolyPoints(self):
+        return [Point(*point) for point in self.record["points"]]
+
 
 class FakeBoard:
-    def __init__(self, records, bounds=(-15 * NM, -10 * NM, 15 * NM, 10 * NM), outline=True):
+    def __init__(
+        self,
+        records,
+        bounds=(-15 * NM, -10 * NM, 15 * NM, 10 * NM),
+        outline=True,
+        drawings=None,
+    ):
         self.records = records
         self.bounds = bounds
         self.outline = outline
+        self.drawings = drawings
 
     def GetBoardEdgesBoundingBox(self):
         return FakeBox(self.bounds)
 
     def GetDrawings(self):
+        if self.drawings is not None:
+            return [FakeDrawing(FakePcbnew.Edge_Cuts, record) for record in self.drawings]
         return [FakeDrawing(FakePcbnew.Edge_Cuts)] if self.outline else []
 
     def GetFootprints(self):
@@ -165,6 +229,11 @@ class FakePcbnew(types.SimpleNamespace):
     PAD_ATTRIB_SMD = 0
     PAD_ATTRIB_PTH = 1
     PAD_ATTRIB_NPTH = 2
+    SHAPE_T_SEGMENT = 0
+    SHAPE_T_RECT = 1
+    SHAPE_T_ARC = 2
+    SHAPE_T_CIRCLE = 3
+    SHAPE_T_POLY = 4
     Edge_Cuts = 44
 
     def __init__(self, board):
@@ -172,6 +241,11 @@ class FakePcbnew(types.SimpleNamespace):
             PAD_ATTRIB_SMD=self.PAD_ATTRIB_SMD,
             PAD_ATTRIB_PTH=self.PAD_ATTRIB_PTH,
             PAD_ATTRIB_NPTH=self.PAD_ATTRIB_NPTH,
+            SHAPE_T_SEGMENT=self.SHAPE_T_SEGMENT,
+            SHAPE_T_RECT=self.SHAPE_T_RECT,
+            SHAPE_T_ARC=self.SHAPE_T_ARC,
+            SHAPE_T_CIRCLE=self.SHAPE_T_CIRCLE,
+            SHAPE_T_POLY=self.SHAPE_T_POLY,
             Edge_Cuts=self.Edge_Cuts,
             ToMM=to_mm,
             LoadBoard=lambda _path: board,
@@ -362,6 +436,51 @@ class CliTests(unittest.TestCase):
                 output.read_text(),
                 HEADER + "U1,10.0000mm,-5.0000mm,Top,0\n",
             )
+
+    def test_neutral_ignores_outline_stroke_but_legacy_keeps_inflated_bbox(self):
+        records = [footprint("U1", 10, 10)]
+        with tempfile.TemporaryDirectory() as directory:
+            board_path = Path(directory) / "board.kicad_pcb"
+            outputs = []
+            for width_nm in (0, 100_000):
+                drawings = rectangle_drawings(width_nm)
+                half_width = width_nm // 2
+                board = FakeBoard(
+                    records,
+                    bounds=(-half_width, -half_width, 50 * NM + half_width, 30 * NM + half_width),
+                    drawings=drawings,
+                )
+                neutral_output = Path(directory) / f"neutral-{width_nm}.csv"
+                legacy_output = Path(directory) / f"legacy-{width_nm}.csv"
+                self.run_main(board, ["--neutral", str(board_path), str(neutral_output)])
+                self.run_main(board, [str(board_path), str(legacy_output)])
+                outputs.append(neutral_output.read_text())
+                self.assertEqual(
+                    legacy_output.read_text().splitlines()[1].split(",")[2:4],
+                    ["10mm", "20mm"] if width_nm == 0 else ["10.05mm", "20.05mm"],
+                )
+            self.assertEqual(outputs[0], outputs[1])
+            self.assertEqual(outputs[0], HEADER + "U1,10.0000mm,20.0000mm,Top,0\n")
+
+    def test_arc_bounds_include_extrema_beyond_endpoints(self):
+        # Clockwise in KiCad's +y-down frame: right -> bottom -> left.
+        arc = {
+            "shape": "arc",
+            "start": (10 * NM, 0),
+            "mid": (0, 10 * NM),
+            "end": (-10 * NM, 0),
+            "center": (0, 0),
+        }
+        self.assertEqual(
+            outline_geometry_bounds([arc]),
+            [-10 * NM, 0, 10 * NM, 10 * NM],
+        )
+        # The other direction through the same mid point is also a half turn.
+        arc["start"], arc["end"] = arc["end"], arc["start"]
+        self.assertEqual(
+            outline_geometry_bounds([arc]),
+            [-10 * NM, 0, 10 * NM, 10 * NM],
+        )
 
     def test_all_and_neutral_are_usage_errors_without_kicad(self):
         for arguments in (

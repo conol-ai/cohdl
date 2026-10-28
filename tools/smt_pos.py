@@ -45,6 +45,7 @@ from smt_pos_lib import (
     neutral_csv,
     neutral_origin,
     neutral_rows,
+    outline_geometry_bounds,
 )
 
 
@@ -84,20 +85,47 @@ def main():
     # The legacy origin intentionally retains the old empty-outline behavior.
     bb = board.GetBoardEdgesBoundingBox()
     old_origin = legacy_origin(mm(bb.GetLeft()), mm(bb.GetBottom()))
-    # A zero-sized default bounding box is not an RFC-020 outline. Detect an
-    # actual Edge.Cuts drawing so --neutral can use the authoring origin.
-    outline_bounds = None
-    if any(
-        drawing.GetLayer() == pcbnew.Edge_Cuts
-        for drawing in board.GetDrawings()
-    ):
-        outline_bounds = (
-            bb.GetLeft(),
-            bb.GetTop(),
-            bb.GetRight(),
-            bb.GetBottom(),
-        )
-    new_origin = neutral_origin(outline_bounds)
+    # KiCad inflates each shape's bbox by half its stroke width. Neutral mode
+    # needs the authoring geometry instead; legacy deliberately keeps ``bb``.
+    new_origin = (0, 0)
+    if args.neutral:
+        shapes = []
+        for drawing in board.GetDrawings():
+            if drawing.GetLayer() != pcbnew.Edge_Cuts:
+                continue
+            shape = drawing.GetShape()
+            kinds = {
+                pcbnew.SHAPE_T_SEGMENT: "segment",
+                pcbnew.SHAPE_T_ARC: "arc",
+                pcbnew.SHAPE_T_RECT: "rect",
+                pcbnew.SHAPE_T_CIRCLE: "circle",
+                pcbnew.SHAPE_T_POLY: "poly",
+            }
+
+            def point(value):
+                return value.x, value.y
+
+            record = {
+                "shape": kinds.get(shape),
+                "start": point(drawing.GetStart()),
+                "end": point(drawing.GetEnd()),
+                "width": drawing.GetWidth(),
+                "bbox": (
+                    drawing.GetBoundingBox().GetLeft(),
+                    drawing.GetBoundingBox().GetTop(),
+                    drawing.GetBoundingBox().GetRight(),
+                    drawing.GetBoundingBox().GetBottom(),
+                ),
+            }
+            if record["shape"] == "arc":
+                record["mid"] = point(drawing.GetArcMid())
+                record["center"] = point(drawing.GetCenter())
+            elif record["shape"] == "circle":
+                record["center"] = point(drawing.GetCenter())
+            elif record["shape"] == "poly":
+                record["points"] = [point(p) for p in drawing.GetPolyPoints()]
+            shapes.append(record)
+        new_origin = neutral_origin(outline_geometry_bounds(shapes))
 
     # Adapt pcbnew once. All subsequent filtering, geometry and CSV generation
     # operates on plain records in the standard-library-only module.

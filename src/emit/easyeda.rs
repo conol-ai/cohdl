@@ -20,12 +20,23 @@
 
 use crate::ir::DesignIr;
 use crate::resolve::World;
+use crate::supplier::{SelectedSupplierEntry, SupplierSelection};
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
 use super::json::json_str;
 
 pub fn emit_enet(world: &World, ir: &DesignIr) -> String {
+    emit_enet_with_supplier(world, ir, None)
+}
+
+/// Emit with the first shared RFC-034 supplier selection. The legacy wrapper
+/// above passes `None`, preserving the no-supplier document byte for byte.
+pub fn emit_enet_with_supplier(
+    world: &World,
+    ir: &DesignIr,
+    supplier: Option<&SupplierSelection>,
+) -> String {
     // (instance path, logical pin) → net name. Merged nets are disjoint, so
     // a pin resolves to at most one name.
     let mut pin_net: BTreeMap<(&str, &str), &str> = BTreeMap::new();
@@ -43,7 +54,13 @@ pub fn emit_enet(world: &World, ir: &DesignIr) -> String {
     let mut components: BTreeMap<String, String> = BTreeMap::new();
     for (idx, inst) in insts.iter().enumerate() {
         let unique_id = format!("gge{}", idx + 1);
-        let body = component(world, inst, &unique_id, &pin_net);
+        let selected = supplier.and_then(|selection| {
+            selection
+                .get(&inst.path)
+                .and_then(|instance| instance.selected.as_ref())
+                .map(|entry| (selection.supplier.as_str(), entry))
+        });
+        let body = component(world, inst, &unique_id, &pin_net, selected);
         components.insert(unique_id, body);
     }
 
@@ -101,6 +118,7 @@ fn component(
     inst: &crate::ir::IrInstance,
     unique_id: &str,
     pin_net: &BTreeMap<(&str, &str), &str>,
+    selected: Option<(&str, &SelectedSupplierEntry)>,
 ) -> String {
     let part = inst.part.as_ref().and_then(|p| world.parts.get(p));
     let footprint = part
@@ -122,14 +140,27 @@ fn component(
         crate::resolve::short(&inst.device).to_string(),
     );
     props.insert("FootprintName", footprint.to_string());
-    if let Some(mfr) = part.and_then(|p| p.primary.field("mfr")) {
-        props.insert("Manufacturer", mfr.value.clone());
-    }
-    if let Some(mpn) = part.and_then(|p| p.primary.field("mpn")) {
-        props.insert("Manufacturer Part", mpn.value.clone());
+    if let Some((_, entry)) = selected {
+        if !entry.mfr.is_empty() {
+            props.insert("Manufacturer", entry.mfr.clone());
+        }
+        if !entry.mpn.is_empty() {
+            props.insert("Manufacturer Part", entry.mpn.clone());
+        }
+    } else {
+        if let Some(mfr) = part.and_then(|p| p.primary.field("mfr")) {
+            props.insert("Manufacturer", mfr.value.clone());
+        }
+        if let Some(mpn) = part.and_then(|p| p.primary.field("mpn")) {
+            props.insert("Manufacturer Part", mpn.value.clone());
+        }
     }
     props.insert("Name", super::kicad::principal_value(world, inst));
     props.insert("Unique ID", unique_id.to_string());
+    if let Some((supplier, entry)) = selected {
+        props.insert("Supplier", supplier.to_uppercase());
+        props.insert("Supplier Part", entry.part_number.clone());
+    }
 
     // pinInfoMap: one row per physical pad of each connected logical pin,
     // keyed by pad number (string-sorted, like everything else).

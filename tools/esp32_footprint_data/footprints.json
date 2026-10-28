@@ -46,6 +46,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-8.3"
+            ],
+            [
+              "6.6",
+              "-8.3"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -1245,6 +1280,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -2463,6 +2499,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-7"
+            ],
+            [
+              "-9",
+              "-7"
+            ],
+            [
+              "-9",
+              "-13"
+            ],
+            [
+              "9",
+              "-13"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -3012,6 +3083,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -3579,6 +3651,72 @@
             "-13.6"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-13.6"
+            ],
+            [
+              "7.7",
+              "-13.6"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "F.Cu",
+            "B.Cu",
+            "In1.Cu",
+            "In2.Cu",
+            "In3.Cu",
+            "In4.Cu",
+            "In5.Cu",
+            "In6.Cu",
+            "In7.Cu",
+            "In8.Cu",
+            "In9.Cu",
+            "In10.Cu",
+            "In11.Cu",
+            "In12.Cu",
+            "In13.Cu",
+            "In14.Cu",
+            "In15.Cu",
+            "In16.Cu",
+            "In17.Cu",
+            "In18.Cu",
+            "In19.Cu",
+            "In20.Cu",
+            "In21.Cu",
+            "In22.Cu",
+            "In23.Cu",
+            "In24.Cu",
+            "In25.Cu",
+            "In26.Cu",
+            "In27.Cu",
+            "In28.Cu",
+            "In29.Cu",
+            "In30.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -5026,6 +5164,72 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9.25",
+              "-7.25"
+            ],
+            [
+              "-8.75",
+              "-7.25"
+            ],
+            [
+              "-8.75",
+              "-13.75"
+            ],
+            [
+              "9.25",
+              "-13.75"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "F.Cu",
+            "B.Cu",
+            "In1.Cu",
+            "In2.Cu",
+            "In3.Cu",
+            "In4.Cu",
+            "In5.Cu",
+            "In6.Cu",
+            "In7.Cu",
+            "In8.Cu",
+            "In9.Cu",
+            "In10.Cu",
+            "In11.Cu",
+            "In12.Cu",
+            "In13.Cu",
+            "In14.Cu",
+            "In15.Cu",
+            "In16.Cu",
+            "In17.Cu",
+            "In18.Cu",
+            "In19.Cu",
+            "In20.Cu",
+            "In21.Cu",
+            "In22.Cu",
+            "In23.Cu",
+            "In24.Cu",
+            "In25.Cu",
+            "In26.Cu",
+            "In27.Cu",
+            "In28.Cu",
+            "In29.Cu",
+            "In30.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -5765,6 +5969,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -6579,6 +6784,41 @@
             "-8.3"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-8.3"
+            ],
+            [
+              "6.6",
+              "-8.3"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -7779,6 +8019,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -8997,6 +9238,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-9.75"
+            ],
+            [
+              "-9",
+              "-9.75"
+            ],
+            [
+              "-9",
+              "-15.75"
+            ],
+            [
+              "9",
+              "-15.75"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -9736,6 +10012,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -10493,6 +10770,41 @@
             "-8.3"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-2.9"
+            ],
+            [
+              "-6.6",
+              "-8.3"
+            ],
+            [
+              "6.6",
+              "-8.3"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -11693,6 +12005,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -12910,6 +13223,41 @@
             "-12.2"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "6.6",
+              "-6.8"
+            ],
+            [
+              "-6.6",
+              "-6.8"
+            ],
+            [
+              "-6.6",
+              "-12.2"
+            ],
+            [
+              "6.6",
+              "-12.2"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -14148,6 +14496,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -15382,6 +15731,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48_0P5_7",
         "identical_duplicate_pads_removed": 0,
@@ -16795,6 +17145,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "-6.6",
+              "-5.6"
+            ],
+            [
+              "-6.6",
+              "-11"
+            ],
+            [
+              "6.6",
+              "-11"
+            ],
+            [
+              "6.6",
+              "-5.6"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -17994,6 +18379,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -19190,6 +19576,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48_0P5_7",
         "identical_duplicate_pads_removed": 0,
@@ -20581,6 +20968,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48_0P5_7",
         "identical_duplicate_pads_removed": 0,
@@ -21993,6 +22381,41 @@
             "-12.3"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-12.3"
+            ],
+            [
+              "7.7",
+              "-12.3"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -23421,6 +23844,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -24867,6 +25291,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "-9",
+              "-9.8"
+            ],
+            [
+              "-9",
+              "-15.75"
+            ],
+            [
+              "9",
+              "-15.75"
+            ],
+            [
+              "9",
+              "-9.8"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -25834,6 +26293,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -26819,6 +27279,41 @@
             "-12.35"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "-9",
+              "-12.35"
+            ],
+            [
+              "-9",
+              "-18.65"
+            ],
+            [
+              "9",
+              "-18.65"
+            ],
+            [
+              "9",
+              "-12.35"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -27844,6 +28339,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-12.35"
+            ],
+            [
+              "-9",
+              "-12.35"
+            ],
+            [
+              "-9",
+              "-18.65"
+            ],
+            [
+              "9",
+              "-18.65"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 4,
         "unnumbered_source_pads": 0
@@ -28867,6 +29397,43 @@
             "-18"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "11",
+              "-12"
+            ],
+            [
+              "-11",
+              "-12"
+            ],
+            [
+              "-11",
+              "-18"
+            ],
+            [
+              "11",
+              "-18"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "F.Cu",
+            "B.Cu",
+            "In1.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -30960,6 +31527,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-7.7"
+            ],
+            [
+              "-7.7",
+              "-12.8"
+            ],
+            [
+              "7.7",
+              "-12.8"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -32387,6 +32989,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -33811,6 +34414,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN56_0P4_7B",
         "identical_duplicate_pads_removed": 0,
@@ -35265,6 +35869,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -36250,6 +36855,41 @@
             "-15.75"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-9.75"
+            ],
+            [
+              "-9",
+              "-9.75"
+            ],
+            [
+              "-9",
+              "-15.75"
+            ],
+            [
+              "9",
+              "-15.75"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 2,
@@ -37237,6 +37877,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-8.55"
+            ],
+            [
+              "-9",
+              "-8.55"
+            ],
+            [
+              "-9",
+              "-14.5"
+            ],
+            [
+              "9",
+              "-14.5"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 3,
         "unnumbered_source_pads": 0
@@ -38166,6 +38841,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -39113,6 +39789,41 @@
             "-23.37"
           ]
         ]
+      ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "17.8",
+              "-7.67"
+            ],
+            [
+              "-17.75",
+              "-7.67"
+            ],
+            [
+              "-17.75",
+              "-23.37"
+            ],
+            [
+              "17.8",
+              "-23.37"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
       ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
@@ -40100,6 +40811,41 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9",
+              "-9.395"
+            ],
+            [
+              "-9",
+              "-9.395"
+            ],
+            [
+              "-9",
+              "-15.695"
+            ],
+            [
+              "9",
+              "-15.695"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "*.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -41048,6 +41794,72 @@
           ]
         ]
       ],
+      "keepouts": [
+        {
+          "layers": [
+            "*.Cu"
+          ],
+          "points": [
+            [
+              "9.47",
+              "-4.425"
+            ],
+            [
+              "-8.53",
+              "-4.425"
+            ],
+            [
+              "-8.53",
+              "-10.425"
+            ],
+            [
+              "9.47",
+              "-10.425"
+            ]
+          ],
+          "prohibits": [
+            "tracks",
+            "vias",
+            "pads",
+            "copperpour",
+            "footprints"
+          ],
+          "source_layers": [
+            "F.Cu",
+            "B.Cu",
+            "In1.Cu",
+            "In2.Cu",
+            "In3.Cu",
+            "In4.Cu",
+            "In5.Cu",
+            "In6.Cu",
+            "In7.Cu",
+            "In8.Cu",
+            "In9.Cu",
+            "In10.Cu",
+            "In11.Cu",
+            "In12.Cu",
+            "In13.Cu",
+            "In14.Cu",
+            "In15.Cu",
+            "In16.Cu",
+            "In17.Cu",
+            "In18.Cu",
+            "In19.Cu",
+            "In20.Cu",
+            "In21.Cu",
+            "In22.Cu",
+            "In23.Cu",
+            "In24.Cu",
+            "In25.Cu",
+            "In26.Cu",
+            "In27.Cu",
+            "In28.Cu",
+            "In29.Cu",
+            "In30.Cu"
+          ]
+        }
+      ],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -41464,6 +42276,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -41880,6 +42693,7 @@
         }
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 9
@@ -42326,6 +43140,7 @@
         "source_primitives": {}
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "identical_duplicate_pads_removed": 0,
         "unnumbered_source_pads": 0
@@ -42949,6 +43764,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN104_0P35_10_E7P5_A",
         "identical_duplicate_pads_removed": 0,
@@ -45024,6 +45840,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN104_0P35_10_E7P5_B",
         "identical_duplicate_pads_removed": 1,
@@ -47225,6 +48042,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN24_0P5_4_E2P8",
         "identical_duplicate_pads_removed": 1,
@@ -47950,6 +48768,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN28_0P4_4",
         "identical_duplicate_pads_removed": 0,
@@ -48753,6 +49572,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN32_0P4_4_E2P8",
         "identical_duplicate_pads_removed": 0,
@@ -49622,6 +50442,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN32_0P5_5",
         "identical_duplicate_pads_removed": 0,
@@ -50721,6 +51542,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN32_0P5_5_E3P7X3P2",
         "identical_duplicate_pads_removed": 0,
@@ -51821,6 +52643,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN36_0P35_4_E2P8",
         "identical_duplicate_pads_removed": 0,
@@ -52771,6 +53594,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN40_0P4_5_E3P3",
         "identical_duplicate_pads_removed": 0,
@@ -54055,6 +54879,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48EB_0P35_5",
         "identical_duplicate_pads_removed": 0,
@@ -55442,6 +56267,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48E_0P4_6",
         "identical_duplicate_pads_removed": 0,
@@ -56829,6 +57655,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN48_0P4_6_E4P7",
         "identical_duplicate_pads_removed": 0,
@@ -58504,6 +59331,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN56_0P35_6_E4P7",
         "identical_duplicate_pads_removed": 0,
@@ -60044,6 +60872,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN56_0P4_7B",
         "identical_duplicate_pads_removed": 0,
@@ -61495,6 +62324,7 @@
         ]
       },
       "keepout_guides": [],
+      "keepouts": [],
       "normalization": {
         "decal_name": "QFN80_0P35_8_E6P5_A",
         "identical_duplicate_pads_removed": 1,
@@ -63258,7 +64088,7 @@
     "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle.",
     "mask": "Native pad mask is retained. PADS levels 121/128 are explicitly Solder Mask Top/Bottom; their arbitrary polygons are counted separately but not projected because CoHDL supports expansion, not independent mask polygons.",
     "paste": "Native module paste follows copper. Direct PADS level 123 (Paste Mask Top) polygons would be containment-proved same-number overlays; the pinned current sources contain none, so paste follows the exact copper islands or continuous EP.",
-    "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout polygons are disclosed as exact silkscreen outlines; source body/fabrication graphics are omitted.",
+    "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout outlines remain visible alongside enforced all-copper keepout rectangles; source body/fabrication graphics are omitted.",
     "unnumbered": "KiCad unnumbered copper lands receive stable MP1..MPn physical identifiers so CoHDL can retain them and device declarations can model them explicitly."
   },
   "schema_version": 1,

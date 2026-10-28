@@ -56,10 +56,11 @@ pub pad P_ESP32_S3_WROOM_EP_VIA {
 // Espressif's DXF uses Cartesian +Y-up coordinates; Y is negated here for
 // CoHDL/KiCad's +Y-down board coordinates. The centre of the official 3x3
 // pad-41 array is therefore (-1.50, +2.46).
-// CoHDL has no footprint-level copper/component keepout primitive, so the
-// antenna rectangle below is a silkscreen guide; enforce Espressif's antenna
-// keepout in the board layout.
+// The antenna rectangle is enforced on all copper layers; the silkscreen
+// repeats its boundary for visibility. Board-edge placement and additional
+// RF clearance still follow the module's hardware design guidelines.
 pub footprint FP_ESP32_S3_WROOM_1 {
+    keepout { shape: rect, at: (0mm, -9.75mm), size: (18mm, 6mm) }
     pad 1: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -5.26mm)
     pad 2: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -3.99mm)
     pad 3: P_ESP32_S3_WROOM_SIDE at (-8.75mm, -2.72mm)

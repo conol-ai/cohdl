@@ -656,6 +656,7 @@ impl<'a> Parser<'a> {
         let mut pads = Vec::new();
         let mut mount_holes = Vec::new();
         let mut courtyard: Option<Courtyard> = None;
+        let mut keepouts = Vec::new();
         let mut window: Option<Box<Courtyard>> = None;
         let mut silkscreen: Option<Box<SilkscreenBlock>> = None;
         let mut silkscreen_ref: Option<(UnitValue, UnitValue, Span)> = None;
@@ -688,6 +689,10 @@ impl<'a> Parser<'a> {
                     mount_holes.push(m);
                 } else {
                     self.sync_footprint_body();
+                }
+            } else if self.at_ident("keepout") {
+                if let Some(region) = self.shape_block("keepout") {
+                    keepouts.push(region);
                 }
             } else if self.at_ident("courtyard") {
                 let c = self.shape_block("courtyard");
@@ -778,7 +783,7 @@ impl<'a> Parser<'a> {
                     "E806",
                     self.span(),
                     format!(
-                        "a footprint body contains `pad N: Symbol at (x, y)` placements, `mount_hole N: PLATING [shape: SHAPE] at (x, y) [diameter D | size: (w, h)]` holes, an optional `courtyard`, and an optional `silkscreen_ref` — found {}",
+                        "a footprint body contains `pad N: Symbol at (x, y)` placements, `mount_hole N: PLATING [shape: SHAPE] at (x, y) [diameter D | size: (w, h)]` holes, `keepout` regions, and optional `courtyard`, `window`, `silkscreen`, or `silkscreen_ref` blocks — found {}",
                         self.peek().describe()
                     ),
                 ));
@@ -793,6 +798,7 @@ impl<'a> Parser<'a> {
             pads,
             mount_holes,
             courtyard,
+            keepouts,
             window,
             silkscreen,
             silkscreen_ref,
@@ -1287,8 +1293,8 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// The shared `{ shape, at, size }` block body — `courtyard` and `window`
-    /// differ only in the keyword they report in diagnostics.
+    /// Shared `{ shape, at, size }` body for courtyard, window, and keepout.
+    /// Keepout also rejects duplicate fields; resolution restricts it to rect.
     fn shape_block(&mut self, kw: &str) -> Option<Courtyard> {
         let start = self.span();
         self.bump(); // the keyword
@@ -1306,6 +1312,7 @@ impl<'a> Parser<'a> {
             if self.at_ident("pad")
                 || self.at_ident("courtyard")
                 || self.at_ident("window")
+                || self.at_ident("keepout")
                 || self.at_ident("silkscreen")
                 || self.at_ident("silkscreen_ref")
                 || self.at_decl_keyword()
@@ -1328,6 +1335,20 @@ impl<'a> Parser<'a> {
                 continue;
             };
             self.expect(&TokenKind::Colon, "after the field name");
+            if kw == "keepout"
+                && match field.name.as_str() {
+                    "shape" => shape.is_some(),
+                    "at" => at.is_some(),
+                    "size" => size.is_some(),
+                    _ => false,
+                }
+            {
+                self.report(Diagnostic::error(
+                    "E806",
+                    field.span,
+                    format!("duplicate keepout field `{}`", field.name),
+                ));
+            }
             match field.name.as_str() {
                 "shape" => match self.ident("as the shape") {
                     Some(v) => match PadShape::from_name(&v.name) {
@@ -4188,6 +4209,7 @@ impl<'a> Parser<'a> {
                 && paren == 0
                 && (self.at_ident("pad")
                     || self.at_ident("courtyard")
+                    || self.at_ident("keepout")
                     || self.at_ident("silkscreen_ref")
                     || self.at_decl_keyword())
             {

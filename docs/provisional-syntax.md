@@ -340,7 +340,40 @@ per-component cutout would have to be transformed into board coordinates and
 subtracted from the `Profile`, which is a larger change than the KiCad
 projection and wants the RFC first. The layout artifact is unaffected.
 
-## 12. What the MVP deliberately leaves out (beyond the MVP cut list)
+## 12. Antenna keepouts on footprints (2026-10-28)
+
+User-directed provisional extension for ESP32 module antenna exclusions:
+
+```cohdl
+pub footprint AntennaModule {
+    keepout { shape: rect, at: (0mm, -9.75mm), size: (18mm, 6mm) }
+}
+```
+
+`keepout` is repeatable. Its required fields are `shape: rect`, a two-coordinate
+`at`, and two positive `size` extents, all in-range `Length` literals. Unknown,
+duplicate, missing, non-rectangular, or invalid geometry fields are E806,
+including in unused declarations. A keepout-only body is not a placeholder.
+Formatting preserves region order and uses the courtyard block's canonical
+field order. This is not an Accepted RFC or a new residual DRC rule.
+
+Every region prohibits tracks, vias, pads, copper pours, and other footprints
+on **all copper layers**. There are no optional layer/restriction flags or
+arbitrary polygons in this scoped extension. `.kicad_mod` and `.kicad_pcb`
+share one zone writer. Embedded board zone vertices are absolute coordinates:
+mirror local x for bottom placement, rotate using deterministic fixed-point
+geometry, then translate. `*.Cu` also covers inner layers added in KiCad.
+
+IPC-2581 export rejects instantiated footprints with keepouts because its
+current projection cannot preserve the full exclusion contract, including
+components. Use `--emit kicad_pcb`. API docs carry structured keepout geometry
+and restrictions. Compiler v0.8.1 does not support this syntax; packages using
+it require a compiler built with this extension.
+
+Footprint antenna regions do not replace the module datasheet's board-edge,
+cutout, housing, or additional RF clearance requirements.
+
+## 13. What the MVP deliberately leaves out (beyond the MVP cut list)
 
 No `module`/`use`, no `type` aliases, no inline AVL on `inst`, no
 `footprint_alias`/`footprint_override`/`no_footprint`, no `rule` blocks in

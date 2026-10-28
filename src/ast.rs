@@ -515,6 +515,9 @@ pub struct FootprintDef {
     /// RFC-022 mechanical locating holes — numbered disjoint from `pads`.
     pub mount_holes: Vec<MountHole>,
     pub courtyard: Option<Courtyard>,
+    /// Provisional antenna keepouts: rectangles excluding tracks, vias, pads,
+    /// copper pours and components on ALL copper layers. Source order is stable.
+    pub keepouts: Vec<Courtyard>,
     /// A board cutout this part needs: the light window a reverse-mount LED
     /// fires through. Deliberately NOT a `mount_hole` — that is a drilled
     /// hole, this is routed board edge (KiCad's `Edge.Cuts`), and conflating

@@ -1481,6 +1481,18 @@ fn esp32_s3_wroom_uses_exact_segmented_ep_and_distinct_memory_parts() {
     );
 
     let footprint = &checked.world.footprints["espressif_esp32::FP_ESP32_S3_WROOM_1"];
+    assert_eq!(footprint.keepouts.len(), 1);
+    let antenna = &footprint.keepouts[0];
+    assert_eq!(antenna.at.0.text, "0mm");
+    assert_eq!(antenna.at.1.text, "-9.75mm");
+    assert_eq!(
+        antenna
+            .size
+            .iter()
+            .map(|v| v.text.as_str())
+            .collect::<Vec<_>>(),
+        ["18mm", "6mm"]
+    );
     let pad_41: Vec<_> = footprint
         .pads
         .iter()

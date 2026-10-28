@@ -47,8 +47,44 @@
   </url>
   <url>
     <loc>https://cohdl.org/blog/</loc>
+    <lastmod>2026-10-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-9-0/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-8-1/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-8-0/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-7-1/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-7-0/</loc>
+    <lastmod>2026-09-08</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-6-0/</loc>
+    <lastmod>2026-09-01</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cohdl.org/blog/cohdl-0-5-0/</loc>
+    <lastmod>2026-08-27</lastmod>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://cohdl.org/blog/ai-native-programming-language-for-hardware/</loc>

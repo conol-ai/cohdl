@@ -76,8 +76,8 @@ alternate binding and writes `out/<name>-<ID>-bom.csv`,
 `out/<name>-<ID>-cpl.csv`. The map preserves the selected entry identity and
 placement transform; `tools/smt_pos.py --map` can apply it to the emitted
 KiCad board. `--logical-only` remains a logical-artifact boundary: it emits
-no neutral or supplier CPL/map, even when `--supplier` is present. Supplier
-BOM and map remain available in that mode.
+no neutral or supplier CPL, even when `--supplier` is present. Supplier BOM
+and map remain available in that mode.
 
 `cohdl search QUERY [--json]` is read-only discovery: it needs no project and
 no registry login. Queries are trimmed, must contain at least three Unicode

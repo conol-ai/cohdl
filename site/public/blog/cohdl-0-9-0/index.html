@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>CoHDL 0.9.0: Enforced Antenna Keepouts</title>
+    <meta
+      name="description"
+      content="ESP32 antenna areas become real KiCad rule areas, excluding copper and components on every copper layer. CoHDL 0.9.0 supports the published ESP32 library 0.3.0."
+    />
+    <link
+      rel="canonical"
+      href="https://cohdl.org/blog/cohdl-0-9-0/"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta
+      property="og:title"
+      content="CoHDL 0.9.0: Enforced Antenna Keepouts"
+    />
+    <meta
+      property="og:description"
+      content="ESP32 antenna areas become real KiCad rule areas, excluding copper and components on every copper layer. CoHDL 0.9.0 supports the published ESP32 library 0.3.0."
+    />
+    <meta property="og:url" content="https://cohdl.org/blog/cohdl-0-9-0/" />
+    <meta property="og:image" content="https://cohdl.org/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="article:published_time" content="2026-10-28T03:37:15Z" />
+    <meta property="article:modified_time" content="2026-10-28T03:37:15Z" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+    <link rel="alternate" type="application/atom+xml" title="CoHDL blog" href="/blog/feed.xml" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/">Docs</a>
+          <a class="site-nav-link" href="/blog/" aria-current="page">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/blog/">Blog</a></li>
+            <li aria-current="page">CoHDL 0.9.0</li>
+          </ol>
+          <h1 class="page-title">CoHDL 0.9.0: Enforced<br /><em>Antenna Keepouts</em></h1>
+          <p class="page-lede">ESP32 antenna areas now reach KiCad as enforceable rule areas. The compiler preserves their copper and component exclusions through rotation, bottom-side placement, and export.</p>
+          <p class="post-meta">
+            Tony Huang <span class="sep">·</span>
+            Published <time datetime="2026-10-28">October 28, 2026</time>
+          </p>
+        </div>
+
+        <article class="prose">
+          <p>
+            Compiler <a href="https://github.com/conol-ai/cohdl/releases/tag/v0.9.0">v0.9.0</a>
+            was released on <time datetime="2026-10-28">October 28, 2026</time>.
+            It is available for all five supported platforms.
+          </p>
+          <p>
+            An antenna outline on silkscreen is useful to a board designer, but
+            it does not stop routing or placement. Earlier ESP32 footprints
+            carried those visible outlines without the corresponding rule areas.
+            CoHDL 0.9.0 adds the compiler support needed to preserve them as
+            actual constraints in KiCad.
+          </p>
+          <h2>A keepout travels with the module</h2>
+          <p>
+            A footprint can now contain a rectangular <code>keepout</code> block.
+            This is the antenna region in the hand-audited ESP32-S3-WROOM-1
+            footprint, alongside its existing pads and graphics:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">A region inside FP_ESP32_S3_WROOM_1</figcaption>
+            <pre><code><span class="c-kw">keepout</span> {
+    shape: rect,
+    <span class="c-kw">at</span>: (<span class="c-unit">0mm</span>, -<span class="c-unit">9.75mm</span>),
+    size: (<span class="c-unit">18mm</span>, <span class="c-unit">6mm</span>)
+}</code></pre>
+          </figure>
+          <p>
+            Both <code>.kicad_mod</code> and <code>.kicad_pcb</code> output prohibit
+            tracks, vias, pads, copper pours, and other footprints in that region
+            on every copper layer. Inner layers remain covered when the board's
+            stackup changes. The region follows the module when it rotates or
+            moves to the bottom of the board. Formatting, validation, and API
+            documentation also preserve the new declaration.
+          </p>
+          <h2>Update the compiler and the ESP32 package</h2>
+          <p>
+            The published <a href="https://registry.cohdl.org/package/@espressif/esp32?version=0.3.0"
+              ><code>@espressif/esp32@0.3.0</code></a> package adds keepouts to
+            twenty generated footprints and the hand-audited S3-WROOM-1
+            footprint. Pin mappings and pad geometry stay unchanged. Modules
+            with an external antenna and no source antenna region do not gain
+            an invented exclusion.
+          </p>
+          <pre><code>cohdl self-update
+cohdl update ./board --dep @espressif/esp32
+cohdl build ./board --emit kicad_pcb</code></pre>
+          <p>
+            Compiler 0.8.1 cannot parse the new keepout syntax. Use compiler
+            0.9.0 or later with ESP32 package 0.3.0. The compiler and package
+            are versioned separately, so update both before rebuilding a project.
+          </p>
+          <h2>What the footprint can guarantee</h2>
+          <p>
+            The source antenna rectangles are retained. The pinned S31-WROOM-3
+            source listed front, back, and one inner copper layer; the library
+            conservatively extends its rectangle to all copper layers and
+            records the original list. Additional RF clearance, board-edge
+            placement, cutouts, and housing constraints still come from the
+            particular module's datasheet.
+          </p>
+          <p>
+            IPC-2581 export currently fails explicitly for used footprints with
+            keepouts, because that exporter cannot preserve the full copper and
+            component exclusion contract. Use <code>--emit kicad_pcb</code> for
+            these designs. The rectangular syntax is a documented provisional
+            extension; this release does not declare a new Accepted RFC.
+          </p>
+          <h2>Checked in KiCad</h2>
+          <p>
+            A fresh registry install built all 70 exact module parts that use
+            the affected footprints. KiCad 10.0.4 loaded every instance with its
+            rule area. A separate four-layer test exercised five rotations on
+            both board sides: DRC rejected all 70 deliberate track, via, pad,
+            and component intrusions while allowing all 40 outside control
+            tracks. Imported footprints and native board output agreed on the
+            transformed geometry.
+          </p>
+
+          <h2>Get the update</h2>
+          <p>Install the latest compiler, which includes these changes:</p>
+          <pre><code>cohdl self-update</code></pre>
+          <p>
+            For a new installation, follow the <a href="/docs/getting-started/">getting-started guide</a>.
+            The <a href="https://github.com/conol-ai/cohdl/releases/tag/v0.9.0">v0.9.0 release page</a>
+            has this version's platform archives and checksums; the
+            <a href="https://github.com/conol-ai/cohdl/compare/v0.8.1...v0.9.0">full comparison</a>
+            records the source changes.
+          </p>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a
+            href="https://discord.gg/x7DXPvK66"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Join on Discord (opens in a new tab)"
+          >Join on Discord <span aria-hidden="true">↗</span></a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -428,6 +428,54 @@ pub struct SupplierCatalog {
     pub snapshot_date: String,
 }
 
+/// One catalog row returned by `GET /suppliers/{id}/parts` (RFC-034 §5).
+/// Normalized keys are supplied by the registry: the CLI deliberately does
+/// not implement a second Unicode or manufacturer-alias normalizer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuditCatalogRow {
+    pub pn: String,
+    pub mpn: String,
+    pub mpn_key: String,
+    pub manufacturer: String,
+    pub manufacturer_key: String,
+    pub package: String,
+    pub class: String,
+    pub stock: u64,
+    pub links: Vec<SupplierLink>,
+    pub fetched_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SupplierPartResult {
+    Known(AuditCatalogRow),
+    Unknown,
+    Suggestions(Vec<AuditCatalogRow>),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierPart {
+    pub requested: String,
+    pub result: SupplierPartResult,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierParts {
+    pub snapshot_date: Option<String>,
+    pub parts: Vec<SupplierPart>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SupplierPartsResponse {
+    Parts(SupplierParts),
+    Unlisted,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NormalizedFields {
+    pub mfr: Vec<(String, String)>,
+    pub mpn: Vec<(String, String)>,
+}
+
 /// The complete, grouped search response. Package and part ordering is the
 /// registry's relevance ordering and is preserved byte-for-byte by the CLI's
 /// deterministic JSON re-render.
@@ -848,6 +896,159 @@ where
     }
 }
 
+fn required_links(fields: &[(String, JsonValue)], path: &str) -> Result<Vec<SupplierLink>, String> {
+    required_array(fields, "links")?
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let path = format!("{path}.links[{index}]");
+            let fields = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+            Ok(SupplierLink {
+                label: required_string(fields, "label").map_err(|e| format!("{path}: {e}"))?,
+                url: required_string(fields, "url").map_err(|e| format!("{path}: {e}"))?,
+            })
+        })
+        .collect()
+}
+
+fn parse_audit_catalog(value: &JsonValue, path: &str) -> Result<AuditCatalogRow, String> {
+    let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+    let string = |key: &str| required_string(row, key).map_err(|e| format!("{path}: {e}"));
+    Ok(AuditCatalogRow {
+        pn: string("pn")?,
+        mpn: string("mpn")?,
+        mpn_key: string("mpn_key")?,
+        manufacturer: string("manufacturer")?,
+        manufacturer_key: string("manufacturer_key")?,
+        package: string("package")?,
+        class: string("class")?,
+        stock: required_number(row, "stock").map_err(|e| format!("{path}: {e}"))?,
+        links: required_links(row, path)?,
+        fetched_at: string("fetched_at")?,
+    })
+}
+
+fn parse_supplier_parts_response(
+    body: &[u8],
+    expected_supplier: &str,
+    kind: &str,
+    expected: &[String],
+) -> Result<SupplierParts, String> {
+    let json = JsonParser::new(body)?.parse()?;
+    let root = json_object(&json)?;
+    if required_string(root, "supplier")? != expected_supplier {
+        return Err("`supplier` does not match the request".to_string());
+    }
+    let snapshot_date = optional_string(root, "snapshot_date")?;
+    let parts = required_array(root, "parts")?;
+    if parts.len() != expected.len() {
+        return Err(format!(
+            "`parts` has {} rows, expected {}",
+            parts.len(),
+            expected.len()
+        ));
+    }
+    let mut result = Vec::with_capacity(parts.len());
+    for (index, (value, requested)) in parts.iter().zip(expected).enumerate() {
+        let path = format!("parts[{index}]");
+        let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+        if required_string(row, kind).map_err(|e| format!("{path}: {e}"))? != *requested {
+            return Err(format!("{path}: `{kind}` does not match the request order"));
+        }
+        let catalog_path = format!("{path}.catalog");
+        let catalog = json_field(row, "catalog").map_err(|e| format!("{path}: {e}"))?;
+        let result_value = match (kind, catalog) {
+            ("pn", JsonValue::String(value)) if value == "unknown" => SupplierPartResult::Unknown,
+            ("pn", JsonValue::String(value)) => {
+                return Err(format!("{catalog_path}: unknown catalog status `{value}`"));
+            }
+            ("pn", value) => {
+                let row = parse_audit_catalog(value, &catalog_path)?;
+                if row.pn != *requested {
+                    return Err(format!("{catalog_path}: `pn` does not match the query"));
+                }
+                SupplierPartResult::Known(row)
+            }
+            ("mpn", JsonValue::Array(values)) => SupplierPartResult::Suggestions(
+                values
+                    .iter()
+                    .enumerate()
+                    .map(|(index, value)| {
+                        parse_audit_catalog(value, &format!("{catalog_path}[{index}]"))
+                    })
+                    .collect::<Result<Vec<_>, _>>()?,
+            ),
+            _ => {
+                return Err(format!(
+                    "{catalog_path}: invalid shape for a `{kind}` query"
+                ))
+            }
+        };
+        result.push(SupplierPart {
+            requested: requested.clone(),
+            result: result_value,
+        });
+    }
+    Ok(SupplierParts {
+        snapshot_date,
+        parts: result,
+    })
+}
+
+fn parse_normalize_response(
+    body: &[u8],
+    expected_mfr: &[String],
+    expected_mpn: &[String],
+) -> Result<NormalizedFields, String> {
+    fn side(
+        root: &[(String, JsonValue)],
+        key: &str,
+        expected: &[String],
+    ) -> Result<Vec<(String, String)>, String> {
+        let rows = required_array(root, key)?;
+        if rows.len() != expected.len() {
+            return Err(format!(
+                "`{key}` has {} rows, expected {}",
+                rows.len(),
+                expected.len()
+            ));
+        }
+        rows.iter()
+            .zip(expected)
+            .enumerate()
+            .map(|(index, (value, expected))| {
+                let path = format!("{key}[{index}]");
+                let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+                let original = required_string(row, "value").map_err(|e| format!("{path}: {e}"))?;
+                if original != *expected {
+                    return Err(format!("{path}: `value` does not match the request order"));
+                }
+                Ok((
+                    original,
+                    required_string(row, "key").map_err(|e| format!("{path}: {e}"))?,
+                ))
+            })
+            .collect()
+    }
+    let json = JsonParser::new(body)?.parse()?;
+    let root = json_object(&json)?;
+    Ok(NormalizedFields {
+        mfr: side(root, "mfr", expected_mfr)?,
+        mpn: side(root, "mpn", expected_mpn)?,
+    })
+}
+
+fn is_supplier_not_found(body: &[u8]) -> bool {
+    let Ok(json) = JsonParser::new(body).and_then(JsonParser::parse) else {
+        return false;
+    };
+    let Ok(root) = json_object(&json) else {
+        return false;
+    };
+    root.len() == 1
+        && matches!(json_field(root, "error"), Ok(JsonValue::String(message)) if message == "supplier not found")
+}
+
 fn parse_suppliers(value: &JsonValue, path: &str) -> Result<Vec<PartSupplier>, String> {
     let JsonValue::Array(values) = value else {
         return Err("must be an array".to_string());
@@ -1144,6 +1345,95 @@ pub fn search(
     }
     parse_search_response(&resp.body, query)
         .map_err(|error| search_e1204(format!("malformed response from GET {url}: {error}")))
+}
+
+pub const SUPPLIER_AUDIT_BATCH: usize = 100;
+
+fn audit_e1204(detail: String) -> PackageDiag {
+    PackageDiag::error("E1204", &registry_url(), 0, detail).with_help(
+        "check the network and COHDL_REGISTRY setting, then retry the supplier audit".to_string(),
+    )
+}
+
+fn audit_get(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, PackageDiag> {
+    let response = http_get_query(url, params).map_err(audit_e1204)?;
+    if response.status != 200 {
+        return Err(audit_e1204(format!(
+            "GET {url} returned {}",
+            response.status
+        )));
+    }
+    Ok(response)
+}
+
+fn audit_supplier_parts_get(
+    url: &str,
+    params: &[(&str, &str)],
+) -> Result<Option<HttpResponse>, PackageDiag> {
+    let response = http_get_query(url, params).map_err(audit_e1204)?;
+    if response.status == 404 && is_supplier_not_found(&response.body) {
+        return Ok(None);
+    }
+    if response.status != 200 {
+        return Err(audit_e1204(format!(
+            "GET {url} returned {}",
+            response.status
+        )));
+    }
+    Ok(Some(response))
+}
+
+/// Fetch one PN or MPN batch. Values remain comma-separated here because that
+/// is the supplier-parts contract; manufacturer normalization below instead
+/// uses repeated parameters because manufacturer names can contain commas.
+pub fn supplier_parts(
+    supplier: &str,
+    kind: &str,
+    values: &[String],
+) -> Result<SupplierPartsResponse, PackageDiag> {
+    assert!(matches!(kind, "pn" | "mpn"));
+    assert!(!values.is_empty() && values.len() <= SUPPLIER_AUDIT_BATCH);
+    let encoded_supplier = supplier
+        .as_bytes()
+        .iter()
+        .flat_map(|byte| match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                vec![char::from(*byte)]
+            }
+            _ => format!("%{byte:02X}").chars().collect(),
+        })
+        .collect::<String>();
+    let url = format!(
+        "{}/suppliers/{supplier}/parts",
+        registry_url().trim_end_matches('/'),
+        supplier = encoded_supplier
+    );
+    let Some(response) = audit_supplier_parts_get(&url, &[(kind, &values.join(","))])? else {
+        return Ok(SupplierPartsResponse::Unlisted);
+    };
+    parse_supplier_parts_response(&response.body, supplier, kind, values)
+        .map(SupplierPartsResponse::Parts)
+        .map_err(|error| audit_e1204(format!("malformed response from GET {url}: {error}")))
+}
+
+/// Normalize one nonempty batch on the registry. Empty source fields are
+/// filtered by the caller: sending them is a protocol error (HTTP 400).
+pub fn normalize_supplier_fields(
+    mfr: &[String],
+    mpn: &[String],
+) -> Result<NormalizedFields, PackageDiag> {
+    assert!(!mfr.is_empty() || !mpn.is_empty());
+    assert!(mfr.len() <= SUPPLIER_AUDIT_BATCH && mpn.len() <= SUPPLIER_AUDIT_BATCH);
+    let url = format!(
+        "{}/manufacturers/normalize",
+        registry_url().trim_end_matches('/')
+    );
+    let mut params = Vec::with_capacity(mfr.len() + mpn.len());
+    params.extend(mfr.iter().map(|value| ("mfr", value.as_str())));
+    params.extend(mpn.iter().map(|value| ("mpn", value.as_str())));
+    let response = audit_get(&url, &params)?;
+    parse_normalize_response(&response.body, mfr, mpn)
+        .map_err(|error| audit_e1204(format!("malformed response from GET {url}: {error}")))
 }
 
 /// Stable, byte-deterministic JSON for `cohdl search --json`. The registry is

@@ -242,6 +242,16 @@ published, E1204 unreachable. No new codes.
 | E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |
 | E1206 | client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what cohdl.lock will verify); a hard error on download (corrupted content is never cached) |
 
+### `cohdl suppliers` exit codes
+
+The online audit runs only after the ordinary offline project check passes.
+It uses 0 when no audited binding is `unknown` or `mismatch` (including
+`out-of-stock` and `unbound` reports), 3 when at least one binding is
+`unknown` or `mismatch`, 1 for project-check or E1204 registry/protocol
+failures, and 2 for invalid arguments. Exit code 3 belongs exclusively to
+this command. Its `--json` success report is independent of RFC-010
+diagnostics; an E1204 failure uses the existing diagnostic JSON document.
+
 ## E13xx — typed logical composition (RFC-032 `subdesign`)
 
 A new kind of mistake per RFC-011's organizing principle: the composition

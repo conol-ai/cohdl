@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "pad_projection": 1,
+  "footprints": {
+    "map_integration::FP_A": {
+      "package": "map_integration",
+      "version": "1.0.0",
+      "pads": [["1","-3mm","2mm"],["1","-3mm","5mm"],["2","3mm","4mm"],["3","1mm","1.3375mm"],["4","6mm","7mm"]],
+      "frame": "1d0e779ffc4c76f964186acedcd1e36d701f25893ba1105bc32999dae6d5b031"
+    }
+  },
+  "designators": {
+    "U1": {
+      "part": "map_integration::MAPPED",
+      "footprint": "map_integration::FP_A",
+      "entry": 0,
+      "mfr": "A",
+      "mpn": "MAPPED-A",
+      "pn": "A-1",
+      "at": ["2mm", "1mm"],
+      "rotate": 90
+    },
+    "U2": {
+      "part": "map_integration::MAPPED",
+      "footprint": "map_integration::FP_A",
+      "entry": 0,
+      "mfr": "A",
+      "mpn": "MAPPED-A",
+      "pn": "A-1",
+      "at": ["2mm", "1mm"],
+      "rotate": 90
+    },
+    "U3": {
+      "part": "map_integration::MAPPED",
+      "footprint": "map_integration::FP_A",
+      "entry": 0,
+      "mfr": "A",
+      "mpn": "MAPPED-A",
+      "pn": "A-1",
+      "at": ["2mm", "1mm"],
+      "rotate": 90
+    },
+    "U4": {
+      "part": "map_integration::MAPPED",
+      "footprint": "map_integration::FP_A",
+      "entry": 0,
+      "mfr": "A",
+      "mpn": "MAPPED-A",
+      "pn": "A-1",
+      "at": ["2mm", "1mm"],
+      "rotate": 90
+    },
+    "U5": {
+      "part": "map_integration::UNBOUND",
+      "footprint": "map_integration::FP_A",
+      "entry": "primary",
+      "mfr": "P",
+      "mpn": "UNBOUND",
+      "pn": null,
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    }
+  }
+}

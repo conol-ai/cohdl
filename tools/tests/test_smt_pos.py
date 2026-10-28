@@ -1,7 +1,9 @@
 """Standard-library tests for smt_pos; no KiCad or pytest installation needed."""
 
 import contextlib
+import copy
 import io
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +17,7 @@ TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
 import smt_pos  # noqa: E402
+import smt_pos_map  # noqa: E402
 from smt_pos_lib import (  # noqa: E402
     legacy_csv,
     legacy_origin,
@@ -138,7 +141,7 @@ class FakeFootprint:
         return self.record["flipped"]
 
     def GetFPIDAsString(self):
-        return "library:prefix-" + self.record["footprint"]
+        return "library:" + self.record["footprint"]
 
     def Pads(self):
         return [FakePad(record) for record in self.record["pads"]]
@@ -393,8 +396,97 @@ class CliTests(unittest.TestCase):
     def run_main(self, board, arguments):
         with mock.patch.dict(sys.modules, {"pcbnew": FakePcbnew(board)}):
             with mock.patch.object(sys, "argv", ["smt_pos.py"] + arguments):
-                with contextlib.redirect_stdout(io.StringIO()):
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     smt_pos.main()
+
+    def mapped_fixture(self, directory):
+        document = {
+            "schema_version": 1,
+            "pad_projection": 1,
+            "footprints": {
+                "board::FP": {
+                    "package": "board", "version": "1.0.0",
+                    "pads": [["1", "0mm", "0mm"]],
+                    "frame": "0" * 64,
+                }
+            },
+            "designators": {
+                "U1": {
+                    "part": "board::P", "footprint": "board::FP", "entry": "primary",
+                    "mfr": "M", "mpn": "N", "pn": "A", "at": ["1mm", "2mm"], "rotate": 90,
+                }
+            },
+        }
+        document["footprints"]["board::FP"]["frame"] = smt_pos_map.canonical_frame(
+            document["footprints"]["board::FP"]["pads"]
+        )
+        map_path = Path(directory) / "elsewhere" / "demo-acme-map.json"
+        map_path.parent.mkdir()
+        map_path.write_text(json.dumps(document))
+        board = FakeBoard([footprint("U1", 10, 5, footprint_name="board-FP")])
+        return board, document, map_path
+
+    def test_map_default_name_and_identity_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            board, document, map_path = self.mapped_fixture(directory)
+            board_path = Path(directory) / "demo.kicad_pcb"
+            self.run_main(board, ["--map", str(map_path), str(board_path)])
+            output = board_path.with_name("demo-acme-cpl.csv")
+            self.assertEqual(output.read_text(), HEADER + "U1,26.0000mm,3.0000mm,Top,90\n")
+            document["designators"]["U1"].update(pn=None, at=["9mm", "9mm"], rotate=37)
+            map_path.write_text(json.dumps(document))
+            self.run_main(board, ["--map", str(map_path), str(board_path)])
+            self.assertEqual(output.read_text(), HEADER + "U1,25.0000mm,5.0000mm,Top,0\n")
+
+    def test_map_errors_do_not_create_or_truncate_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            board, document, map_path = self.mapped_fixture(directory)
+            board_path = Path(directory) / "demo.kicad_pcb"
+            output = board_path.with_name("demo-acme-cpl.csv")
+            output.write_text("keep me\n")
+            moved = copy.deepcopy(board)
+            moved.records[0]["pads"][0]["position"] = (20 * NM, 5 * NM)
+            coverage_document = copy.deepcopy(document)
+            coverage_document["designators"]["U9"] = coverage_document["designators"].pop("U1")
+            cases = [
+                (moved, document, "frame mismatch or older pad_projection"),
+                (board, coverage_document, "not in this map"),
+            ]
+            for current_board, current_document, diagnostic in cases:
+                map_path.write_text(json.dumps(current_document))
+                stderr = io.StringIO()
+                with mock.patch.dict(sys.modules, {"pcbnew": FakePcbnew(current_board)}):
+                    with mock.patch.object(sys, "argv", ["smt_pos.py", "--map", str(map_path), str(board_path)]):
+                        with contextlib.redirect_stderr(stderr):
+                            with self.assertRaises(SystemExit) as raised:
+                                smt_pos.main()
+                self.assertEqual(raised.exception.code, 1)
+                self.assertIn(diagnostic, stderr.getvalue())
+                self.assertEqual(output.read_text(), "keep me\n")
+            output.unlink()
+            map_path.write_text("not json")
+            stderr = io.StringIO()
+            with mock.patch.dict(sys.modules, {"pcbnew": FakePcbnew(board)}):
+                with mock.patch.object(sys, "argv", ["smt_pos.py", "--map", str(map_path), str(board_path)]):
+                    with contextlib.redirect_stderr(stderr):
+                        with self.assertRaises(SystemExit) as raised:
+                            smt_pos.main()
+            self.assertEqual(raised.exception.code, 1)
+            self.assertFalse(output.exists())
+
+    def test_map_missing_designator_warns_but_writes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            board, document, map_path = self.mapped_fixture(directory)
+            document["designators"]["U9"] = copy.deepcopy(document["designators"]["U1"])
+            map_path.write_text(json.dumps(document))
+            output = Path(directory) / "out.csv"
+            stderr = io.StringIO()
+            with mock.patch.dict(sys.modules, {"pcbnew": FakePcbnew(board)}):
+                with mock.patch.object(sys, "argv", ["smt_pos.py", "--map", str(map_path), str(Path(directory) / "demo.kicad_pcb"), str(output)]):
+                    with contextlib.redirect_stderr(stderr), contextlib.redirect_stdout(io.StringIO()):
+                        smt_pos.main()
+            self.assertIn("U9: map designator missing from board", stderr.getvalue())
+            self.assertTrue(output.exists())
 
     def test_cli_default_names_and_legacy_golden(self):
         records = [
@@ -486,6 +578,8 @@ class CliTests(unittest.TestCase):
         for arguments in (
             ["--all", "--neutral", "board.kicad_pcb"],
             ["--neutral", "--all", "board.kicad_pcb"],
+            ["--all", "--map", "x-map.json", "board.kicad_pcb"],
+            ["--map", "x-map.json", "--neutral", "board.kicad_pcb"],
         ):
             with self.subTest(arguments=arguments):
                 completed = subprocess.run(

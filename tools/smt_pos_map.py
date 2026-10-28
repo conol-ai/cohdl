@@ -14,6 +14,8 @@ import re
 from collections import deque
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
+from smt_pos_lib import neutral_rows
+
 
 TOLERANCE_NM = 1000
 _NM_PER_MM = 1_000_000
@@ -288,8 +290,14 @@ def canonical_frame(pads):
 
     Canonical serialization uses the original decimal strings, not rounded nm.
     """
-    parsed = parse_map_pads(pads)
-    order = sorted(range(len(pads)), key=lambda i: (parsed[i][0], parsed[i][1]))
+    # Matching uses rounded integer nm, but Rust orders the frame by exact
+    # femto-mm values.  Decimal preserves the original strings for hashing.
+    parse_map_pads(pads)
+    exact = [
+        (_pad_number(pad[0]), Decimal(pad[1][:-2]), Decimal(pad[2][:-2]))
+        for pad in pads
+    ]
+    order = sorted(range(len(pads)), key=lambda i: exact[i])
     canonical = [
         [_pad_number(pads[i][0]), pads[i][1], pads[i][2]] for i in order
     ]
@@ -505,12 +513,15 @@ def check_board(document, board_footprints):
             # Kept as a defensive invariant: validate_map already checks it.
             errors.append(ref + ": footprint frame not in this map: " + str(frame))
             continue
-        if frame not in footprints and frame != row["footprint"]:
+        # kicad_pcb's file_base() is exactly fq.replace("::", "-").
+        board_names = {row["footprint"], row["footprint"].replace("::", "-")}
+        if frame not in footprints and frame not in board_names:
             errors.append(ref + ": footprint frame not in this map: " + str(frame))
             continue
         expected_frame = row["footprint"]
         # A short-name or fully-qualified-name disagreement is not itself a
         # frame mismatch; compare the actual projected pad frames below.
+        bottom = _field(fp, "bottom", _field(fp, "flipped", False))
         anchor = _field(fp, "anchor_xy_nm", None)
         if anchor is None:
             anchor = _field(fp, "anchor", None)
@@ -520,9 +531,43 @@ def check_board(document, board_footprints):
             _field(fp, "pads"),
             anchor,
             _field(fp, "orientation", _field(fp, "rotation", 0)),
-            bottom=_field(fp, "bottom", False),
+            bottom=bottom,
         )
         mismatch = check_frame(ref, recovered, footprints[expected_frame])
         if mismatch:
             errors.append(mismatch)
     return errors, warnings, rows
+
+
+def mapped_neutral_rows(board_footprints, mappings, origin_nm):
+    """Apply validated supplier mappings to board anchors, in integer nm."""
+    by_ref = {row["designator"]: row for row in mappings}
+    rows = []
+    for fp in board_footprints:
+        ref = _field(fp, "ref")
+        if ref not in by_ref or not any(
+            pad["smd"] and pad["number"] for pad in _field(fp, "pads")
+        ):
+            continue
+        row = by_ref[ref]
+        mapping = identity_mapping(row) if row["unbound"] else row
+        dx, dy = mapping["at"]
+        bottom = _field(fp, "flipped")
+        angle = _field(fp, "orientation") - 180 if bottom else _field(fp, "orientation")
+        radians = math.radians(angle)
+        cosine, sine = math.cos(radians), math.sin(radians)
+        if bottom:
+            dx = -dx
+        anchor = _field(fp, "anchor")
+        mapped_fp = dict(
+            fp,
+            anchor=(
+                anchor[0] + round_nm(dx * cosine + dy * sine),
+                anchor[1] + round_nm(dy * cosine - dx * sine),
+            ),
+            orientation=_field(fp, "orientation")
+            + (-mapping["rotate"] if bottom else mapping["rotate"]),
+        )
+        mapped_rows, _ = neutral_rows([mapped_fp], origin_nm)
+        rows.extend(mapped_rows)
+    return rows

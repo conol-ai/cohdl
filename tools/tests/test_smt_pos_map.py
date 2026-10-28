@@ -1,6 +1,8 @@
 import copy
+import itertools
 import math
 from pathlib import Path
+import random
 import sys
 import unittest
 
@@ -22,7 +24,7 @@ def document(pads, designators=None):
                 "package": "acme/demo",
                 "version": "1.0.0",
                 "pads": pads,
-                "frame": "0" * 64,
+                "frame": sm.canonical_frame(pads),
             }
         },
         "designators": {
@@ -44,6 +46,17 @@ def document(pads, designators=None):
 
 def board_pads(pads):
     return [(number, (x, y), i) for i, (number, x, y) in enumerate(pads)]
+
+
+def kicad_rotate_nm(point, angle):
+    """pcbnew RotatePoint: clockwise in the +y-down board frame."""
+    radians = math.radians(angle)
+    cosine, sine = math.cos(radians), math.sin(radians)
+    x, y = point
+    return (
+        sm.round_nm(x * cosine + y * sine),
+        sm.round_nm(y * cosine - x * sine),
+    )
 
 
 class DecimalAndRotationTests(unittest.TestCase):
@@ -89,11 +102,9 @@ class DecimalAndRotationTests(unittest.TestCase):
     def test_projection_one_degree_rotation_rounded_to_nm(self):
         # RFC 3.2: 1-degree board rotation followed by integer-nm recovery.
         local = [(1_000_000, 0), (0, 2_000_000), (-3_000_000, 4_000_000)]
-        radians = math.radians(1)
         board = []
-        for x, y in local:
-            bx = sm.round_nm(x * math.cos(radians) - y * math.sin(radians))
-            by = sm.round_nm(x * math.sin(radians) + y * math.cos(radians))
+        for point in local:
+            bx, by = kicad_rotate_nm(point, 1)
             board.append({"number": "1", "xy_nm": (bx + 100, by + 200)})
         recovered = sm.recover_pads_nm(board, (100, 200), 1)
         mapped = sm.parse_map_pads(
@@ -118,10 +129,35 @@ class MatchingTests(unittest.TestCase):
         self.assertEqual(sm.match_pads(board, mapped), (True, None))
 
     def test_projection_one_degree_fixture_has_actual_inverse_error(self):
-        recovered = sm.recover_local_nm((999_848, 17_452), (0, 0), 1)
+        recovered = sm.recover_local_nm((999_848, -17_452), (0, 0), 1)
         self.assertEqual(recovered, (1_000_000, 0))
-        recovered = sm.recover_local_nm((-34_905, 1_999_695), (0, 0), 1)
+        recovered = sm.recover_local_nm((34_905, 1_999_695), (0, 0), 1)
         self.assertEqual(recovered, (0, 2_000_000))
+
+    def test_kicad_top_rotation_counterexamples(self):
+        local = (1_000_000, 2_000_000)
+        self.assertEqual(
+            sm.recover_local_nm((2_000_000, -1_000_000), (0, 0), 90), local
+        )
+        self.assertEqual(
+            sm.recover_local_nm(kicad_rotate_nm(local, 37), (0, 0), 37), local
+        )
+
+    def test_top_bottom_kicad_rotation_matrix(self):
+        local = (1_000_000, 2_000_000)
+        anchor = (10_000_000, 20_000_000)
+        for bottom in (False, True):
+            for angle in (0, 90, 37, 1, -143, -179):
+                with self.subTest(bottom=bottom, angle=angle):
+                    stored = (local[0], -local[1]) if bottom else local
+                    dx, dy = kicad_rotate_nm(stored, angle)
+                    recovered = sm.recover_local_nm(
+                        (anchor[0] + dx, anchor[1] + dy),
+                        anchor,
+                        angle,
+                        bottom=bottom,
+                    )
+                    self.assertEqual(recovered, local)
 
     def test_perfect_matching_not_greedy(self):
         # First board pad sees both; second sees only the second map pad.
@@ -130,6 +166,54 @@ class MatchingTests(unittest.TestCase):
         mapped = [(0, 0), (0, 2500)]
         self.assertEqual(sm.perfect_matching(board, mapped), [(0, 0), (1, 1)])
         self.assertEqual(sm.perfect_matching(board[::-1], mapped), [(0, 1), (1, 0)])
+
+    def test_shortest_augmenting_path_is_not_blocked_by_wrong_layer(self):
+        # The first phase's deeper DFS used to consume a free right vertex at
+        # the wrong layer, blocking the actual shortest augmenting path.
+        board = [(0, 0), (0, 700), (1400, -700)]
+        mapped = [(700, 0), (-700, 0), (700, 700)]
+        self.assertIsNotNone(sm.perfect_matching(board, mapped))
+
+    def test_random_matching_against_permutation_exhaustion(self):
+        rng = random.Random(0x0344B1)
+        matched_cases = 0
+        for case in range(2000):
+            size = rng.randint(0, 6)
+            board = [
+                (rng.randrange(-1400, 1401), rng.randrange(-1400, 1401))
+                for _ in range(size)
+            ]
+            mapped = [
+                (rng.randrange(-1400, 1401), rng.randrange(-1400, 1401))
+                for _ in range(size)
+            ]
+            expected = any(
+                all(
+                    abs(board[i][0] - mapped[p[i]][0]) <= 1000
+                    and abs(board[i][1] - mapped[p[i]][1]) <= 1000
+                    for i in range(size)
+                )
+                for p in itertools.permutations(range(size))
+            )
+            actual = sm.perfect_matching(board, mapped)
+            with self.subTest(case=case, board=board, mapped=mapped):
+                self.assertEqual(actual is not None, expected)
+                if actual is not None:
+                    self.assertEqual(len(actual), size)
+                    self.assertEqual([i for i, _ in actual], list(range(size)))
+                    self.assertEqual(len({j for _, j in actual}), size)
+                    for i, j in actual:
+                        self.assertLessEqual(
+                            abs(board[i][0] - mapped[j][0]), sm.TOLERANCE_NM
+                        )
+                        self.assertLessEqual(
+                            abs(board[i][1] - mapped[j][1]), sm.TOLERANCE_NM
+                        )
+            matched_cases += expected
+        # Keep the distribution meaningful: both accepting and rejecting cases
+        # participate in the differential test, not just trivial empty graphs.
+        self.assertGreater(matched_cases, 100)
+        self.assertLess(matched_cases, 1900)
 
     def test_long_alternating_path_matching(self):
         board = [(i * 1000, 0) for i in range(20)]
@@ -176,6 +260,16 @@ class MapAndCoverageTests(unittest.TestCase):
         doc["pad_projection"] = 0
         with self.assertRaisesRegex(sm.MapError, "pad_projection"):
             sm.validate_map(doc)
+
+    def test_validation_rejects_frame_hash_mismatch(self):
+        doc = self.valid_map()
+        doc["footprints"][FP]["frame"] = "0" * 64
+        with self.assertRaisesRegex(sm.MapError, "frame mismatch"):
+            sm.validate_map(doc)
+
+    def test_natural_order_matches_rust_designator_sort_key(self):
+        names = ["EP", "C10", "1", "C2", "A", "U1"]
+        self.assertEqual(sorted(names, key=sm.natural_key), ["1", "A", "C2", "C10", "EP", "U1"])
         doc = self.valid_map()
         doc["designators"]["U1"]["footprint"] = "acme::demo::old"
         with self.assertRaisesRegex(sm.MapError, "not in footprints"):
@@ -253,13 +347,7 @@ class MapAndCoverageTests(unittest.TestCase):
         local = (1_000_000, 2_000_000)
         stored = (local[0], -local[1])
         for angle in (30, 210):
-            radians = math.radians(angle)
-            x = sm.round_nm(
-                stored[0] * math.cos(radians) - stored[1] * math.sin(radians)
-            )
-            y = sm.round_nm(
-                stored[0] * math.sin(radians) + stored[1] * math.cos(radians)
-            )
+            x, y = kicad_rotate_nm(stored, angle)
             recovered = sm.recover_local_nm(
                 (10_000_000 + x, 20_000_000 + y),
                 (10_000_000, 20_000_000),
@@ -274,13 +362,7 @@ class MapAndCoverageTests(unittest.TestCase):
                 local = (1_000_000, 2_000_000)
                 stored = (local[0], -local[1])
                 actual_angle = angle if direction == 1 else (angle + 180) % 360
-                actual = math.radians(actual_angle)
-                x = sm.round_nm(
-                    stored[0] * math.cos(actual) - stored[1] * math.sin(actual)
-                )
-                y = sm.round_nm(
-                    stored[0] * math.sin(actual) + stored[1] * math.cos(actual)
-                )
+                x, y = kicad_rotate_nm(stored, actual_angle)
                 self.assertEqual(
                     sm.recover_local_nm(
                         (x, y), (0, 0), actual_angle, bottom=True

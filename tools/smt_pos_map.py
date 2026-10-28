@@ -18,7 +18,6 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 TOLERANCE_NM = 1000
 _NM_PER_MM = 1_000_000
 _MM_RE = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)mm\Z")
-_NATURAL_RE = re.compile(r"([0-9]+)")
 
 
 class MapError(ValueError):
@@ -29,13 +28,14 @@ _MISSING = object()
 
 
 def natural_key(value):
-    """A total, deterministic natural-order key for strings."""
+    """The Rust ``designator_sort_key``: uppercase prefix, then number."""
     value = str(value)
-    return tuple(
-        (1, int(part)) if part.isdigit() else (0, part)
-        for part in _NATURAL_RE.split(value)
-        if part
-    ) + ((2, value),)
+    prefix_len = 0
+    while prefix_len < len(value) and "A" <= value[prefix_len] <= "Z":
+        prefix_len += 1
+    suffix = value[prefix_len:]
+    number = int(suffix) if suffix.isdigit() and suffix.isascii() else 0
+    return value[:prefix_len], number
 
 
 def _field(record, name, default=_MISSING):
@@ -112,7 +112,10 @@ def recover_local_nm(pad_xy_nm, anchor_xy_nm, orientation_degrees, bottom=False)
         raise MapError("footprint orientation must be a finite number")
     if not math.isfinite(orientation_degrees):
         raise MapError("footprint orientation must be a finite number")
-    radians = math.radians(-orientation_degrees)
+    # KiCad RotatePoint in the +y-down frame is
+    # (x*cos+y*sin, y*cos-x*sin).  These formulas are its inverse, with the
+    # footprint's reported (positive) orientation, not a negated angle.
+    radians = math.radians(orientation_degrees)
     cosine, sine = math.cos(radians), math.sin(radians)
     dx, dy = px - ax, py - ay
     x = round_nm(dx * cosine - dy * sine)
@@ -218,6 +221,13 @@ def validate_map(document):
         frame = _require_text(entry.get("frame"), "footprint " + name + " frame")
         if not re.fullmatch(r"[0-9a-f]{64}", frame):
             raise MapError("footprint " + name + " frame must be lowercase SHA-256")
+        expected_frame = canonical_frame(entry["pads"])
+        if frame != expected_frame:
+            raise MapError(
+                "footprint {} frame mismatch: declared={}; canonical={}".format(
+                    name, frame, expected_frame
+                )
+            )
         parsed_footprints[name] = pads
 
     rows = []
@@ -337,12 +347,12 @@ def perfect_matching(board_positions, map_positions, tolerance_nm=TOLERANCE_NM):
         if not augmenting:
             return None
 
-        def augment(i, seen):
+        def augment(i):
             for j in adjacency[i]:
-                if seen[j]:
-                    continue
-                seen[j] = True
                 other = map_match[j]
+                # Only free right vertices at the shortest NIL distance and
+                # matched vertices in the next BFS layer belong to this phase's
+                # layered graph.  Never mark a wrong-layer edge as visited.
                 if other < 0 and distance[i] + 1 == shortest:
                     board_match[i] = j
                     map_match[j] = i
@@ -350,7 +360,7 @@ def perfect_matching(board_positions, map_positions, tolerance_nm=TOLERANCE_NM):
                 if (
                     other >= 0
                     and distance[other] == distance[i] + 1
-                    and augment(other, seen)
+                    and augment(other)
                 ):
                     board_match[i] = j
                     map_match[j] = i
@@ -360,7 +370,7 @@ def perfect_matching(board_positions, map_positions, tolerance_nm=TOLERANCE_NM):
 
         progress = False
         for i, matched in enumerate(board_match):
-            if matched < 0 and augment(i, [False] * n):
+            if matched < 0 and augment(i):
                 progress = True
         if not progress:
             return None

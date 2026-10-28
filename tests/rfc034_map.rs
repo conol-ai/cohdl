@@ -49,6 +49,7 @@ pub footprint FP_A {
 }
 pub footprint FP_B { pad 1: Land at (-0.5mm, 0.25mm) }
 pub footprint FP_UNUSED { pad 1: Land at (99mm, 99mm) }
+pub footprint FP_REPEATED { pad 1: Land at (-1mm, -2mm) pad 1: Land at (-1mm, 3mm) }
 pub device D1 { pins { A: 1 [passive] } }
 pub device D4 { pins { A: 1 [passive], B: 2 [passive], C: 3 [passive], D: 4 [passive] } }
 impl Ref for D1 {}
@@ -106,6 +107,86 @@ design B {{ inst a: P_A inst b: P_B net N: a.A, a.B, a.C, a.D, b.A }}
         6,
         "paste apertures are deliberately absent from map"
     );
+}
+
+#[test]
+fn repeated_pad_numbers_at_one_x_and_distinct_y_both_enter_the_map() {
+    let src = format!(
+        r#"{LIB}
+pub part REPEATED: D1 {{ primary {{ mfr: "M", mpn: "REPEATED", footprint: FP_REPEATED }} }}
+design B {{ inst u: REPEATED nc: u.A }}
+"#
+    );
+    let (_checked, artifacts) = build(&src, &["acme"]);
+    let map = map(&artifacts, "acme");
+    assert!(
+        map.contains("[[\"1\",\"-1mm\",\"-2mm\"],[\"1\",\"-1mm\",\"3mm\"]]"),
+        "{map}"
+    );
+    assert!(map.contains("\"board::FP_REPEATED\""), "{map}");
+}
+
+#[test]
+fn shared_primary_mpn_does_not_mix_selected_alts_between_map_designator_rows() {
+    let src = format!(
+        r#"{LIB}
+pub part LEFT: D1 {{
+    primary {{ mfr: "Shared", mpn: "PRIMARY", footprint: FP_B }}
+    alt {{ mfr: "Left", mpn: "LEFT-A", supplier acme "LEFT-PN" at (1mm, 2mm) rotate 90 }}
+}}
+pub part RIGHT: D1 {{
+    primary {{ mfr: "Shared", mpn: "PRIMARY", footprint: FP_B }}
+    alt {{ mfr: "Right", mpn: "RIGHT-A", supplier acme "RIGHT-PN" at (-3mm, 4mm) rotate 180 }}
+}}
+design B {{
+    #[designator("U1")] inst left: LEFT
+    #[designator("U2")] inst right: RIGHT
+    nc: left.A
+    nc: right.A
+}}
+"#
+    );
+    let (_checked, artifacts) = build(&src, &["acme"]);
+    let map = map(&artifacts, "acme");
+    for (designator, entry, mfr, mpn, pn, at, rotate) in [
+        (
+            "U1",
+            0,
+            "Left",
+            "LEFT-A",
+            "LEFT-PN",
+            "[\"1mm\", \"2mm\"]",
+            90,
+        ),
+        (
+            "U2",
+            0,
+            "Right",
+            "RIGHT-A",
+            "RIGHT-PN",
+            "[\"-3mm\", \"4mm\"]",
+            180,
+        ),
+    ] {
+        let object = map
+            .split(&format!("    \"{designator}\": {{"))
+            .nth(1)
+            .unwrap_or_else(|| panic!("missing {designator} designator row: {map}"));
+        let object = object.split("\n    }").next().expect("row end");
+        for expected in [
+            format!("\"entry\": {entry}"),
+            format!("\"mfr\": \"{mfr}\""),
+            format!("\"mpn\": \"{mpn}\""),
+            format!("\"pn\": \"{pn}\""),
+            format!("\"at\": {at}"),
+            format!("\"rotate\": {rotate}"),
+        ] {
+            assert!(
+                object.contains(&expected),
+                "{designator}: {expected}\n{object}"
+            );
+        }
+    }
 }
 
 #[test]

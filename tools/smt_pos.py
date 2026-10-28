@@ -29,9 +29,22 @@ With --neutral, emit the RFC-034 supplier-neutral five-column CPL instead.
 It uses footprint anchors, numbered-SMD row selection, Top/Bottom layers and
 fixed four-place millimetres. Its default output name is <stem>-cpl.csv.
 
+With --map <name>-<ID>-map.json, emit <name>-<ID>-cpl.csv after applying the
+selected entry's supplier footprint offset and rotation (this implies
+--neutral). Map/frame/coverage validation is fail-closed: any error exits 1
+before creating or truncating the output. Unbound designators explicitly use
+identity mapping and are reported; warnings do not hide validation failures.
+
+Before fabrication, manually verify the board and output in KiCad/the
+assembler preview: board outline and lower-left origin, footprint library
+versions and canonical pad-frame match, every expected designator and SMD/THT
+classification, top/bottom side, supplier part selection, mapped anchor
+offsets, and rotations including bottom-side convention. A successful map
+check cannot prove that the supplier's library or machine setup is current.
+
 Run with KiCad's own python:
   /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/\
-Versions/3.9/bin/python3 tools/smt_pos.py [--all | --neutral] <board.kicad_pcb> [out.csv]
+Versions/3.9/bin/python3 tools/smt_pos.py [--all | --neutral | --map MAP] <board.kicad_pcb> [out.csv]
 """
 
 import argparse

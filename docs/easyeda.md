@@ -62,6 +62,18 @@ net membership.
 under the flag, byte-stable, swept as stale when a later build omits
 `--emit easyeda`. Zero impact on every other artifact and on the verdict.
 
+## Selected supplier properties
+
+With `cohdl build --supplier ID --emit easyeda`, each instance with a selected
+binding also receives `Supplier: "<ID upper-cased>"` and
+`Supplier Part: "<pn>"`. `Manufacturer` and `Manufacturer Part` come from
+that same selected primary or alternate entry, not unconditionally from the
+primary. Selection is per instance: primary first, then the first bound alt
+whose effective footprint equals the primary footprint. With multiple
+`--supplier` flags, the first supplier drives `.enet`; `FootprintName` remains
+the primary footprint. Instances without a selected entry keep their ordinary
+properties. Without `--supplier`, `.enet` output is unchanged.
+
 ## Footprints first: the import workflow
 
 The netlist references footprints by their CoHDL fq names, and the

@@ -369,6 +369,42 @@ fn supplier_ids_must_have_the_bounded_lowercase_shape() {
 }
 
 #[test]
+fn mpn_and_mfr_are_reserved_supplier_ids_at_their_exact_spans() {
+    for id in ["mpn", "mfr"] {
+        let clause = format!("supplier {id} \"PN\"");
+        let checked = checked(&entry_source(&clause));
+        let diagnostics: Vec<_> = checked
+            .diags
+            .iter()
+            .filter(|diagnostic| diagnostic.code == "E813")
+            .collect();
+        assert_eq!(
+            diagnostics.len(),
+            1,
+            "{}",
+            checked.diags.render(&checked.sm)
+        );
+        assert!(diagnostics[0]
+            .message
+            .contains("reserved: its upper-case form collides with the MPN/MFR netlist field"));
+        assert_eq!(checked.sm.snippet(diagnostics[0].primary.span), id);
+    }
+
+    // Case-shape validation and ordinary IDs keep their existing behavior.
+    for id in ["MPN", "MFR"] {
+        let rendered = diagnostics(&entry_source(&format!("supplier {id} \"PN\"")));
+        assert!(
+            rendered.contains("expected a lowercase ASCII letter"),
+            "{rendered}"
+        );
+        assert!(!rendered.contains("reserved:"), "{rendered}");
+    }
+    for id in ["mpn_source", "mfr_source", "acme"] {
+        assert!(diagnostics(&entry_source(&format!("supplier {id} \"PN\""))).is_empty());
+    }
+}
+
+#[test]
 fn supplier_part_numbers_check_trimmed_emptiness_utf8_bytes_and_controls() {
     for pn in ["", " \t "] {
         let errors = e813s(&format!("supplier acme \"{pn}\""));

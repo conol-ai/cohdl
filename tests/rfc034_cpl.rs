@@ -300,7 +300,7 @@ fn rounded_rectangle_keeps_its_original_extrema() {
 
 #[test]
 fn convex_arc_edge_contributes_its_swept_minimum() {
-    // This shallow arc sweeps left of both its x=0 endpoints to set x_min;
+    // This shallow arc sweeps above both its y=0 endpoints to set y_max;
     // its return endpoint at (10,-10) sets y_min independently of the arc.
     outline_golden(DXF_CONVEX_ARC, (5, -1), "U1,5.0000mm,1.5000mm,Top,0\n");
 }

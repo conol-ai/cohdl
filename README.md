@@ -60,12 +60,24 @@ cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-0
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
 cargo run -- build examples/rpi-pico2 --emit kicad_pcb # + a native KiCad 10 board file — no KiCad needed
 cargo run -- build examples/rpi-pico2 --emit easyeda   # + an EasyEDA / LCEDA Pro netlist (.enet)
+cargo run -- build examples/rpi-pico2 --supplier acme   # + supplier BOM/map/CPL (provisional RFC-034)
 cargo run -- fmt lib --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 cargo run -- search TPS59650                     # search registry packages + public parts
 cargo run -- search TPS59650 --json              # the same bounded results as JSON
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
+
+Physical builds of placed designs also write `out/<name>-cpl.csv`, the
+supplier-neutral five-column placement CSV. Under provisional RFC-034,
+repeatable `--supplier ID` selects each instance's own primary or eligible
+alternate binding and writes `out/<name>-<ID>-bom.csv`,
+`out/<name>-<ID>-map.json`, and (for physical builds)
+`out/<name>-<ID>-cpl.csv`. The map preserves the selected entry identity and
+placement transform; `tools/smt_pos.py --map` can apply it to the emitted
+KiCad board. `--logical-only` remains a logical-artifact boundary: it emits
+no neutral or supplier CPL/map, even when `--supplier` is present. Supplier
+BOM and map remain available in that mode.
 
 `cohdl search QUERY [--json]` is read-only discovery: it needs no project and
 no registry login. Queries are trimmed, must contain at least three Unicode

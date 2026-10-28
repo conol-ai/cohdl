@@ -810,6 +810,35 @@ impl Server {
         let world = &analysis.checked.world;
 
         let source = analysis.checked.sm.text(fid).as_bytes();
+        // RFC-034 supplier hover is entirely local: the LSP has no registry
+        // supplier-table cache from which to retrieve display names or URLs.
+        for part in world.parts.values() {
+            for binding in std::iter::once(&part.primary)
+                .chain(part.alts.iter())
+                .flat_map(|entry| entry.suppliers.iter())
+            {
+                if !contains(binding.span, fid, offset) {
+                    continue;
+                }
+                let mut text = format!(
+                    "**supplier** `{}`\n\n- part number: `{}`",
+                    binding.supplier.name, binding.part_number
+                );
+                match &binding.at {
+                    Some((x, y)) => text.push_str(&format!(
+                        "\n- at: `({}, {})`",
+                        supplier_coordinate_text(x),
+                        supplier_coordinate_text(y)
+                    )),
+                    None => text.push_str("\n- at: `(0mm, 0mm)` (default)"),
+                }
+                match &binding.rotate {
+                    Some((angle, _)) => text.push_str(&format!("\n- rotate: `{angle}°`")),
+                    None => text.push_str("\n- rotate: `0°` (default)"),
+                }
+                return Some(hover_markdown(text, span_to_range(&analysis, binding.span)));
+            }
+        }
         let mut start = (offset as usize).min(source.len());
         while start > 0 && (source[start - 1].is_ascii_alphanumeric() || source[start - 1] == b'_')
         {
@@ -1218,6 +1247,32 @@ impl Server {
             .to_string();
 
         let mut items = Vec::new();
+        // `supplier` is contextual: offer it beside AVL fields only, not as
+        // a new keyword elsewhere in a part or elsewhere in the language.
+        let in_avl_entry = self.analyze(&path).ok().is_some_and(|analysis| {
+            let Some(fid) = analysis.fid_for(&path) else {
+                return false;
+            };
+            let Some(offset) = position_to_offset(&analysis, fid, line as u32, character as u32)
+            else {
+                return false;
+            };
+            analysis.checked.world.parts.values().any(|part| {
+                std::iter::once(&part.primary)
+                    .chain(part.alts.iter())
+                    .any(|entry| {
+                        contains(entry.span, fid, offset)
+                            || (entry.span.file == fid && offset == entry.span.end)
+                    })
+            })
+        });
+        if in_avl_entry && (prefix.is_empty() || "supplier".starts_with(&prefix)) {
+            items.push(json!({
+                "label": "supplier",
+                "kind": 14,
+                "detail": "AVL supplier binding",
+            }));
+        }
         // The lexer's hard keywords plus the contextual (positional) grammar
         // words RFC-016..029 added — kept in sync with the parser, not just
         // `lex::is_keyword` (most newer constructs use contextual words).
@@ -1485,6 +1540,13 @@ fn hover_markdown(text: String, range: lt::Range) -> lt::Hover {
         }),
         range: Some(range),
     }
+}
+
+fn supplier_coordinate_text(coordinate: &SupplierCoordinate) -> String {
+    coordinate.value.as_ref().map_or_else(
+        || coordinate.text.clone(),
+        |value| format!("{}mm", crate::emit::geom::mm(value)),
+    )
 }
 
 /// The device-pin hover body — shared between the declaration hover and pin

@@ -35,6 +35,7 @@ import {
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
+import { manufacturerNormalizeApi } from "./manufacturers";
 import { nameTier, publishRejection } from "./namespace";
 import { recaptchaOk } from "./recaptcha";
 import { searchApi } from "./search";
@@ -182,6 +183,9 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     // from `/api/search`, whose package-only shape belongs to the web UI.
     if (pathname === "/search") {
       return await searchApi(env, request, url);
+    }
+    if (pathname === "/manufacturers/normalize") {
+      return await manufacturerNormalizeApi(env, request, url);
     }
     if (pathname.startsWith("/suppliers/") && pathname.endsWith("/parts")) {
       return await supplierPartsApi(env, request, url);

@@ -3,6 +3,8 @@ import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it, vi } from "vitest";
 import type { Account } from "../src/worker/auth";
 import {
+  MAX_CATALOG_ROWS,
+  SUPPLIER_BODY_LIMIT,
   handleSupplierAdmin,
   normalizeManufacturer,
   parseSnapshot,
@@ -136,10 +138,19 @@ describe("snapshot parsing", () => {
     expect(parseSnapshot({ ...snapshot([]), classes: [] }, "acme").ok).toBe(false);
     expect(parseSnapshot(snapshot(), "Bad-ID").ok).toBe(false);
   });
+
+  it("accepts 10000 minimal rows and rejects 10001 within the body limit", () => {
+    const minimal = { ...ROW, pn: "P", mpn: "M", manufacturer: "M", package: "P", class: "c", stock: 0, links: [] };
+    const body = snapshot(Array.from({ length: MAX_CATALOG_ROWS }, (_, index) => ({ ...minimal, pn: String(index) })));
+    body.classes = ["c"];
+    expect(new TextEncoder().encode(JSON.stringify(body)).byteLength).toBeLessThan(SUPPLIER_BODY_LIMIT);
+    expect(parseSnapshot(body, "acme")).toMatchObject({ ok: true, value: { rows: { length: MAX_CATALOG_ROWS } } });
+    expect(parseSnapshot({ ...body, parts: [...body.parts, { ...minimal, pn: "extra" }] }, "acme").ok).toBe(false);
+  });
 });
 
 describe("D1 supplier store", () => {
-  it("replaces each snapshot in one atomic batch, including empty snapshots", async () => {
+  it("chunks multi-row inserts at 99 bindings in one atomic batch, including empty snapshots", async () => {
     const { supplierStore } = await import("../src/worker/suppliers");
     const statements: { sql: string; values: unknown[] }[] = [];
     const batch = vi.fn().mockResolvedValue([]);
@@ -150,15 +161,27 @@ describe("D1 supplier store", () => {
       } }),
       batch,
     } as unknown as D1Database;
-    const parsed = parseSnapshot(snapshot(), "acme");
+    const parsed = parseSnapshot(snapshot(Array.from({ length: 19 }, (_, index) => ({ ...ROW, pn: `P-${index}` }))), "acme");
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     await supplierStore(db).replaceSnapshot(parsed.value);
     expect(batch).toHaveBeenCalledTimes(1);
-    expect(statements.map(({ sql }) => sql)).toHaveLength(3);
+    expect(statements.map(({ sql }) => sql)).toHaveLength(5);
     expect(statements[0].sql).toContain("ON CONFLICT(id) DO UPDATE");
     expect(statements[1]).toEqual({ sql: "DELETE FROM supplier_catalog WHERE supplier = ?", values: ["acme"] });
-    expect(statements[2].values).toContain("P-001");
+    expect(statements.slice(2).map(({ values }) => values.length)).toEqual([99, 99, 11]);
+    expect(statements[2].values).toContain("P-0");
+    expect(statements[2].sql.match(/\?/g)).toHaveLength(99);
+    const maximum = parseSnapshot(snapshot(Array.from({ length: MAX_CATALOG_ROWS }, (_, index) => ({ ...ROW, pn: `P-${index}` }))), "acme");
+    expect(maximum.ok).toBe(true);
+    if (!maximum.ok) return;
+    statements.length = 0;
+    batch.mockClear();
+    await supplierStore(db).replaceSnapshot(maximum.value);
+    expect(batch).toHaveBeenCalledTimes(1);
+    expect(statements).toHaveLength(2 + Math.ceil(MAX_CATALOG_ROWS / 9));
+    expect(statements.slice(2).every(({ values }) => values.length <= 100)).toBe(true);
+    expect(statements.at(-1)?.values).toHaveLength(11);
     statements.length = 0;
     batch.mockClear();
     const empty = parseSnapshot(snapshot([]), "acme");
@@ -187,7 +210,16 @@ describe("official supplier administration", () => {
     expect((await invoke(request("/api/admin/suppliers/acme/snapshot", snapshot(), { contentType: "text/plain" }), h)).response.status).toBe(415);
     expect((await invoke(request("/api/admin/suppliers/acme/snapshot", snapshot(), { method: "POST" }), h)).response.status).toBe(405);
     expect((await invoke(request("/api/admin/suppliers/acme/snapshot", "{"), h)).response.status).toBe(400);
-    const oversized = `"${"x".repeat(512 * 1024)}"`;
+  });
+
+  it("accepts a body at the byte limit and rejects one byte more before mutation", async () => {
+    const h = harness();
+    const exact = JSON.stringify(snapshot([])).padEnd(SUPPLIER_BODY_LIMIT);
+    expect(new TextEncoder().encode(exact).byteLength).toBe(SUPPLIER_BODY_LIMIT);
+    expect((await invoke(request("/api/admin/suppliers/acme/snapshot", exact), h)).response.status).toBe(200);
+    expect(h.store.replaceSnapshot).toHaveBeenCalledTimes(1);
+    h.store.replaceSnapshot.mockClear();
+    const oversized = `${exact} `;
     expect((await invoke(request("/api/admin/suppliers/acme/snapshot", oversized), h)).response.status).toBe(413);
     expect(h.store.replaceSnapshot).not.toHaveBeenCalled();
   });

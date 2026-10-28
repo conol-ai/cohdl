@@ -38,6 +38,7 @@ import { metadataRejection, parsePackageManifest } from "./manifest";
 import { nameTier, publishRejection } from "./namespace";
 import { recaptchaOk } from "./recaptcha";
 import { searchApi } from "./search";
+import { supplierPartsApi } from "./supplier-parts";
 import { supplierAdminApi } from "./suppliers";
 import { readTar } from "./tar";
 
@@ -181,6 +182,9 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     // from `/api/search`, whose package-only shape belongs to the web UI.
     if (pathname === "/search") {
       return await searchApi(env, request, url);
+    }
+    if (pathname.startsWith("/suppliers/") && pathname.endsWith("/parts")) {
+      return await supplierPartsApi(env, request, url);
     }
     if (pathname === "/api/component-requests") {
       return await componentRequestApi(env, request, url);

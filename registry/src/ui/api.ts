@@ -221,6 +221,7 @@ export interface DesignDoc {
 export interface AvlEntryDoc {
   fields: { name: string; value: string }[];
   footprint?: string;
+  suppliers: { supplier: string; pn: string; at: [string, string]; rotate: number }[];
 }
 
 export interface PartDoc {

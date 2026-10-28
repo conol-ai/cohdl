@@ -35,6 +35,7 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
         let mfr = part
             .and_then(|p| p.primary.field("mfr"))
             .map(|f| f.value.as_str());
+        let suppliers = part.map(|p| p.primary.suppliers.as_slice()).unwrap_or(&[]);
 
         let _ = writeln!(
             out,
@@ -48,13 +49,21 @@ pub fn emit_kicad_net(world: &World, ir: &DesignIr) -> String {
             "      (libsource (lib \"cohdl\") (part {}) (description \"\"))",
             quote(crate::resolve::short(&inst.device))
         );
-        if mpn.is_some() || mfr.is_some() {
+        if mpn.is_some() || mfr.is_some() || !suppliers.is_empty() {
             out.push_str("      (fields\n");
             if let Some(mpn) = mpn {
                 let _ = writeln!(out, "        (field (name \"MPN\") {})", quote(mpn));
             }
             if let Some(mfr) = mfr {
                 let _ = writeln!(out, "        (field (name \"MFR\") {})", quote(mfr));
+            }
+            for binding in suppliers {
+                let _ = writeln!(
+                    out,
+                    "        (field (name {}) {})",
+                    quote(&binding.supplier.name.to_ascii_uppercase()),
+                    quote(&binding.part_number)
+                );
             }
             out.push_str("      )\n");
         }

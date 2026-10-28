@@ -340,7 +340,8 @@ const GOLDEN_JSON: &str = r#"{
               "value": "ACME-REG5"
             }
           ],
-          "footprint": "acme::ACME5"
+          "footprint": "acme::ACME5",
+          "suppliers": []
         },
         "alts": [
           {
@@ -349,7 +350,8 @@ const GOLDEN_JSON: &str = r#"{
                 "name": "mpn",
                 "value": "ACME-REG5B"
               }
-            ]
+            ],
+            "suppliers": []
           }
         ]
       }
@@ -466,6 +468,87 @@ fn output_is_deterministic_across_fresh_pipelines() {
     let a = docs_for("acme", "1.2.0", &[("src/lib.cohdl", GOLDEN_SRC)]);
     let b = docs_for("acme", "1.2.0", &[("src/lib.cohdl", GOLDEN_SRC)]);
     assert_eq!(a.json, b.json, "same source → same bytes");
+}
+
+#[test]
+fn supplier_bindings_have_canonical_mappings_defaults_and_declaration_order() {
+    let docs = docs_for(
+        "bindings",
+        "0.1.0",
+        &[(
+            "src/lib.cohdl",
+            r#"pub device D { pins { A: 1 [passive] } }
+pub footprint FP {}
+pub part P: D {
+    primary { mfr: "M", mpn: "N", footprint: FP,
+        supplier acme "A-1" at (-1.2500mm, 0mm) rotate 0,
+        supplier bolt "B-2" at (0.5mm, -2mm) rotate 359 }
+    alt { mfr: "M", mpn: "ALT", supplier globex "G-3" }
+}
+"#,
+        )],
+    );
+    let primary = docs.json.split("\"primary\": ").nth(1).unwrap();
+    let primary = primary
+        .split("\n        \"alts\"")
+        .next()
+        .unwrap()
+        .strip_suffix(',')
+        .unwrap();
+    assert_eq!(
+        primary,
+        r#"{
+          "fields": [
+            {
+              "name": "mfr",
+              "value": "M"
+            },
+            {
+              "name": "mpn",
+              "value": "N"
+            }
+          ],
+          "footprint": "bindings::FP",
+          "suppliers": [
+            {
+              "supplier": "acme",
+              "pn": "A-1",
+              "at": [
+                "-1.25mm",
+                "0mm"
+              ],
+              "rotate": 0
+            },
+            {
+              "supplier": "bolt",
+              "pn": "B-2",
+              "at": [
+                "0.5mm",
+                "-2mm"
+              ],
+              "rotate": 359
+            }
+          ]
+        }"#
+    );
+    assert!(
+        docs.json.contains(
+            r#""suppliers": [
+              {
+                "supplier": "globex",
+                "pn": "G-3",
+                "at": [
+                  "0mm",
+                  "0mm"
+                ],
+                "rotate": 0
+              }
+            ]"#
+        ),
+        "{}",
+        docs.json
+    );
+    assert!(docs.json.starts_with("{\n  \"schema_version\": 1,"));
 }
 
 #[test]

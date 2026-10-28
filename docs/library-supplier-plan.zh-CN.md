@@ -2,7 +2,7 @@
 
 > 中文版，以英文版 [`library-supplier-plan.md`](library-supplier-plan.md) 为准。
 
-状态：计划，2026-10-23；2026-10-27 对照 main `329af05` 修订。这是库建设工作，不是语言设计。它使用 [RFC-034](design/rfc-034-supplier-binding.md) 定义的供应商绑定，并遵循 [`LIBRARY.md`](../LIBRARY.md) 的编写规则。本计划为官方库新增的规则，会在对应工作线落地时并入 `LIBRARY.md`。
+状态：计划，2026-10-23；2026-10-27 对照 main `329af05` 修订。这是库建设工作，不是语言设计。它使用 [RFC-034](design/rfc-034-supplier-binding.md) 定义的供应商绑定，并遵循 [`LIBRARY.md`](../LIBRARY.md) 的编写规则。本计划为官方库新增的规则，会在对应工作线落地时并入 `LIBRARY.md`。工作项、先后顺序和验收方法见[实施计划](library-supplier-impl-plan.zh-CN.md)。
 
 ## 目标
 

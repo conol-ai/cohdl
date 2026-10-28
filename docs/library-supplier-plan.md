@@ -1,6 +1,6 @@
 # Official library supplier program (LCSC / JLCPCB)
 
-Status: plan, 2026-10-23; revised 2026-10-27 against main `329af05`. This is library work, not language design: it uses the supplier binding defined in [RFC-034](design/rfc-034-supplier-binding.md) and the authoring rules in [`LIBRARY.md`](../LIBRARY.md). Where it adds a rule for official libraries, that rule moves into `LIBRARY.md` when the corresponding workstream lands.
+Status: plan, 2026-10-23; revised 2026-10-27 against main `329af05`. This is library work, not language design: it uses the supplier binding defined in [RFC-034](design/rfc-034-supplier-binding.md) and the authoring rules in [`LIBRARY.md`](../LIBRARY.md). Where it adds a rule for official libraries, that rule moves into `LIBRARY.md` when the corresponding workstream lands. The work items, order and acceptance checks are in [`library-supplier-impl-plan.md`](library-supplier-impl-plan.md).
 
 ## Goal
 

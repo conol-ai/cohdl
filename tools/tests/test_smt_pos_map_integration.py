@@ -181,6 +181,8 @@ class CompilerFixtureTests(unittest.TestCase):
         del document["bottom_rotation"]
         self.assertEqual(sm.validate_map(document)["bottom_rotation"], "kicad")
         document["schema_version"] = 2
+        with self.assertRaisesRegex(sm.MapError, "requires bottom_rotation"):
+            sm.validate_map(document)
         for invalid in ("unknown", None, True):
             document["bottom_rotation"] = invalid
             with self.subTest(invalid=invalid), self.assertRaises(sm.MapError):

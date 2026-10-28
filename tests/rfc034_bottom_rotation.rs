@@ -4,6 +4,8 @@ use cohdl::fmt::format_source;
 use cohdl::lock::LockState;
 use cohdl::pipeline::{build_artifacts_with_suppliers, check_files_in};
 use cohdl::span::SourceMap;
+use std::path::Path;
+use std::process::Command;
 
 fn checked(src: &str) -> cohdl::pipeline::Checked {
     let mut checked = check_files_in(
@@ -178,4 +180,82 @@ fn explicit_kicad_and_no_declaration_have_identical_cpl() {
     assert_eq!(without.supplier_maps[0].cpl, with.supplier_maps[0].cpl);
     assert!(!undeclared.diags.iter().any(|d| d.code == "E817"));
     assert!(!declared.diags.iter().any(|d| d.code == "E817"));
+}
+
+fn run_build(root: &Path) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_cohdl"))
+        .args([
+            "build",
+            root.to_str().unwrap(),
+            "--no-std",
+            "--supplier",
+            "acme",
+            "--json",
+        ])
+        .output()
+        .unwrap()
+}
+
+fn make_cli_project(root: &Path, source: &str) {
+    let _ = std::fs::remove_dir_all(root);
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("cohdl.toml"),
+        "[package]\nname = \"t\"\nversion = \"1.0.0\"\n\n[design]\ntop = \"ZTop\"\n",
+    )
+    .unwrap();
+    std::fs::write(root.join("src/main.cohdl"), source).unwrap();
+}
+
+#[test]
+fn e817_only_accompanies_an_actual_supplier_cpl() {
+    let root = std::env::temp_dir().join(format!("cohdl-w9-e817-cpl-{}", std::process::id()));
+    make_cli_project(
+        &root,
+        &format!("{LIB}\ndesign ZTop {{ inst p: P nc: p.A }}\n"),
+    );
+    let unplaced = run_build(&root);
+    assert!(unplaced.status.success());
+    let stdout = String::from_utf8(unplaced.stdout).unwrap();
+    assert!(!stdout.contains("E817"), "{stdout}");
+    assert!(!root.join("out/t-acme-cpl.csv").exists());
+
+    std::fs::write(
+        root.join("src/main.cohdl"),
+        format!("{LIB}\ndesign ZTop {{ inst p: P nc: p.A layout {{ place p at (5mm, 6mm) }} }}\n"),
+    )
+    .unwrap();
+    let placed = run_build(&root);
+    assert!(placed.status.success());
+    let stdout = String::from_utf8(placed.stdout).unwrap();
+    assert_eq!(stdout.matches("\"code\": \"E817\"").count(), 1, "{stdout}");
+    assert!(root.join("out/t-acme-cpl.csv").exists());
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn e817_span_is_the_selected_top_design_not_the_first_design_name() {
+    let root = std::env::temp_dir().join(format!("cohdl-w9-e817-top-{}", std::process::id()));
+    make_cli_project(
+        &root,
+        &format!(
+            "{LIB}\ndesign AFirst {{ inst p: P nc: p.A }}\ndesign ZTop {{ inst p: P nc: p.A layout {{ place p at (5mm, 6mm) }} }}\n"
+        ),
+    );
+    let output = run_build(&root);
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.matches("\"code\": \"E817\"").count(), 1, "{stdout}");
+    let ztop_line = std::fs::read_to_string(root.join("src/main.cohdl"))
+        .unwrap()
+        .lines()
+        .position(|line| line.starts_with("design ZTop"))
+        .unwrap()
+        + 1;
+    assert!(
+        stdout.contains(&format!("\"start_line\": {ztop_line}")),
+        "{stdout}"
+    );
+    assert!(!stdout.contains("\"start_line\": 10"), "{stdout}");
+    let _ = std::fs::remove_dir_all(root);
 }

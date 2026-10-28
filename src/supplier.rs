@@ -148,25 +148,21 @@ pub fn bottom_rotation(world: &World, supplier: &str) -> BottomRotation {
 
 /// E817 is emitted at the physical-output boundary, not during declaration
 /// checking: `--logical-only` has no CPL whose convention needs confirmation.
-pub fn report_undeclared(world: &World, suppliers: &SupplierSelections, diags: &mut Diagnostics) {
-    for selection in &suppliers.selections {
-        if !world.suppliers.contains_key(&selection.supplier) {
-            let span = world
-                .designs
-                .values()
-                .next()
-                .expect("selected design")
-                .name
-                .span;
-            diags.push(Diagnostic::warning(
-                "E817",
-                span,
-                format!(
-                    "supplier `{}` has no declaration; its CPL uses bottom_rotation: kicad",
-                    selection.supplier
-                ),
-            ));
-        }
+pub fn report_undeclared(
+    world: &World,
+    design_name: &str,
+    supplier: &str,
+    diags: &mut Diagnostics,
+) {
+    let span = world.designs[design_name].name.span;
+    if !world.suppliers.contains_key(supplier) {
+        diags.push(Diagnostic::warning(
+            "E817",
+            span,
+            format!(
+                "supplier `{supplier}` has no declaration; its CPL uses bottom_rotation: kicad"
+            ),
+        ));
     }
 }
 

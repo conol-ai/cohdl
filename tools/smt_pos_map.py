@@ -206,7 +206,9 @@ def validate_map(document):
     schema = document.get("schema_version")
     if schema not in (1, 2) or isinstance(schema, bool):
         raise MapError("map schema_version must be 1 or 2")
-    bottom_rotation = document.get("bottom_rotation", "kicad") if schema == 2 else "kicad"
+    if schema == 2 and "bottom_rotation" not in document:
+        raise MapError("schema 2 map requires bottom_rotation")
+    bottom_rotation = document["bottom_rotation"] if schema == 2 else "kicad"
     if bottom_rotation not in ("kicad", "mirrored"):
         raise MapError("map bottom_rotation must be kicad or mirrored")
     if document.get("pad_projection") != 1 or isinstance(

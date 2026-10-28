@@ -307,6 +307,8 @@ pub struct BuildArtifacts {
     /// RFC-034 §3.2 per-instance supplier choices, shared by supplier-aware
     /// emitters. Empty for the legacy no-supplier build wrapper.
     pub suppliers: crate::supplier::SupplierSelections,
+    /// Supplier BOM contents, computed here so both build modes can write them.
+    pub supplier_boms: Vec<crate::emit::supplier_bom::SupplierBom>,
 }
 
 /// The `build` half: designators (RFC-005), part binding, emitters.
@@ -349,6 +351,7 @@ pub fn build_artifacts_with_suppliers(
     let suppliers = crate::supplier::select(&checked.world, ir, suppliers, &mut supplier_diags);
     supplier_diags.sort(&checked.sm);
     checked.diags.extend(supplier_diags);
+    let supplier_boms = crate::emit::supplier_bom::emit_supplier_boms(&checked.world, &suppliers);
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
@@ -358,6 +361,7 @@ pub fn build_artifacts_with_suppliers(
         quilter: crate::emit::quilter::emit_quilter_csvs(ir),
         notes,
         suppliers,
+        supplier_boms,
     })
 }
 

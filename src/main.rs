@@ -876,11 +876,25 @@ fn run(args: &Args) -> Result<bool, String> {
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
     let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
     let enet_path = out_dir.join(format!("{}.enet", proj.name));
+    let mut supplier_paths = std::collections::BTreeMap::new();
 
     write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(net_path.clone());
     write_artifact(&bom_path, &artifacts.bom, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(bom_path.clone());
+    // RFC-034: procurement output is independent of the physical build mode.
+    // Only a successful write contributes its ID to the JSON projection.
+    for supplier_bom in &artifacts.supplier_boms {
+        let path = out_dir.join(format!("{}-{}-bom.csv", proj.name, supplier_bom.supplier));
+        write_artifact(&path, &supplier_bom.csv, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(path.clone());
+        supplier_paths.insert(
+            supplier_bom.supplier.clone(),
+            emit::json::SupplierBuildArtifacts {
+                bom: path.display().to_string(),
+            },
+        );
+    }
     write_artifact(&lock_path, &artifacts.lock.render(), &owned)
         .map_err(|e| diags_then(&checked, e))?;
     written.push(lock_path.clone());
@@ -1009,6 +1023,7 @@ fn run(args: &Args) -> Result<bool, String> {
         let build = emit::json::BuildArtifacts {
             netlist: net_path.display().to_string(),
             bom: bom_path.display().to_string(),
+            suppliers: supplier_paths,
             cpl: artifacts
                 .cpl
                 .as_ref()

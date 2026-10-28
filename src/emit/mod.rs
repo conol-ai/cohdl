@@ -16,6 +16,7 @@ pub mod kicad_pcb;
 pub mod layout;
 pub mod quilter;
 pub mod silk;
+pub mod supplier_bom;
 
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;

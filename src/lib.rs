@@ -26,5 +26,6 @@ pub mod resolve;
 pub mod selfupdate;
 pub mod span;
 pub mod supplier;
+pub mod supplier_audit;
 pub mod trig;
 pub mod units;

@@ -1,4 +1,5 @@
 import type { Env } from "./auth";
+import { manufacturerKeyStore, resolveManufacturerKeys } from "./manufacturers";
 import { normalizeMpn, type CatalogLink } from "./suppliers";
 
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "public, max-age=60" };
@@ -9,7 +10,9 @@ const QUERY_ROWS = 99; // supplier plus at most 99 lookup keys stays within D1's
 export interface PublicCatalogRow {
   pn: string;
   mpn: string;
+  mpn_key: string;
   manufacturer: string;
+  manufacturer_key: string;
   package: string;
   class: string;
   stock: number;
@@ -61,7 +64,8 @@ function parseQuery(url: URL): { ok: true; value: Query } | { ok: false; error: 
 }
 function publicRow(row: D1Row): PublicCatalogRow {
   return {
-    pn: String(row.pn), mpn: String(row.mpn), manufacturer: String(row.manufacturer),
+    pn: String(row.pn), mpn: String(row.mpn), mpn_key: normalizeMpn(String(row.mpn)),
+    manufacturer: String(row.manufacturer), manufacturer_key: "",
     package: String(row.package), class: String(row.class), stock: Number(row.stock),
     links: JSON.parse(String(row.links)) as CatalogLink[], fetched_at: String(row.fetched_at),
   };
@@ -113,7 +117,10 @@ async function lookup(db: D1Database, column: "pn" | "mpn_key", supplier: string
       .bind(supplier, ...chunk).all();
     for (const row of result.results) rows.push(publicRow(row));
   }
-  return rows;
+  const manufacturerKeys = await resolveManufacturerKeys(
+    rows.map((row) => row.manufacturer), manufacturerKeyStore(db),
+  );
+  return rows.map((row, index) => ({ ...row, manufacturer_key: manufacturerKeys[index] }));
 }
 export function supplierPartsStore(db: D1Database): SupplierPartsStore {
   return {

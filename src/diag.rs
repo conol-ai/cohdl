@@ -179,14 +179,6 @@ impl Diagnostics {
     }
 }
 
-impl FromIterator<Diagnostic> for Diagnostics {
-    fn from_iter<T: IntoIterator<Item = Diagnostic>>(iter: T) -> Self {
-        Self {
-            diags: iter.into_iter().collect(),
-        }
-    }
-}
-
 fn render_one(out: &mut String, d: &Diagnostic, sm: &SourceMap) {
     let sev = match d.severity {
         Severity::Error => "error",

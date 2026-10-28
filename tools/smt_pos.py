@@ -35,10 +35,13 @@ Versions/3.9/bin/python3 tools/smt_pos.py [--all | --neutral] <board.kicad_pcb> 
 """
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
+import smt_pos_map
 from smt_pos_lib import (
+    has_numbered_smd,
     legacy_csv,
     legacy_origin,
     legacy_rows,
@@ -58,6 +61,9 @@ def main():
     mode.add_argument(
         "--neutral", action="store_true", help="write the RFC-034 five-column CPL"
     )
+    mode.add_argument(
+        "--map", type=Path, help="apply an RFC-034 supplier map (implies neutral)"
+    )
     parser.add_argument("board", type=Path)
     parser.add_argument("output", nargs="?", type=Path)
     args = parser.parse_args()
@@ -66,7 +72,11 @@ def main():
     # argument validation. This also lets --help and usage errors run anywhere.
     import pcbnew
 
-    if args.neutral:
+    if args.map is not None:
+        if not args.map.name.endswith("-map.json"):
+            parser.error("map filename must end in -map.json")
+        suffix = "-cpl.csv"
+    elif args.neutral:
         suffix = "-cpl.csv"
     elif args.all:
         suffix = "-pos-all.csv"
@@ -75,7 +85,11 @@ def main():
     out_path = (
         args.output
         if args.output is not None
-        else args.board.with_name(args.board.stem + suffix)
+        else args.board.with_name(
+            args.map.name[: -len("-map.json")] + suffix
+            if args.map is not None
+            else args.board.stem + suffix
+        )
     )
     board = pcbnew.LoadBoard(str(args.board))
 
@@ -88,7 +102,7 @@ def main():
     # KiCad inflates each shape's bbox by half its stroke width. Neutral mode
     # needs the authoring geometry instead; legacy deliberately keeps ``bb``.
     new_origin = (0, 0)
-    if args.neutral:
+    if args.neutral or args.map is not None:
         shapes = []
         for drawing in board.GetDrawings():
             if drawing.GetLayer() != pcbnew.Edge_Cuts:
@@ -144,6 +158,7 @@ def main():
                 }
             )
         anchor = fp.GetPosition()
+        board_footprint = fp.GetFPIDAsString().rsplit(":", 1)[-1]
         footprints.append(
             {
                 "ref": fp.GetReference(),
@@ -151,14 +166,49 @@ def main():
                 "anchor": (anchor.x, anchor.y),
                 "orientation": fp.GetOrientationDegrees(),
                 "flipped": fp.IsFlipped(),
-                "footprint": fp.GetFPIDAsString()
-                .split(":")[-1]
-                .split("-")[-1],
+                "footprint": board_footprint.split("-")[-1],
+                "board_footprint": board_footprint,
                 "pads": pads,
             }
         )
 
-    if args.neutral:
+    if args.map is not None:
+        try:
+            with args.map.open(encoding="utf-8") as stream:
+                document = json.load(stream)
+            errors, warnings, mappings = smt_pos_map.check_board(
+                document,
+                (
+                    {
+                        "designator": fp["ref"],
+                        "footprint": fp["board_footprint"],
+                        "anchor_xy_nm": fp["anchor"],
+                        "orientation": fp["orientation"],
+                        "bottom": fp["flipped"],
+                        "machine_placed": has_numbered_smd(fp),
+                        "pads": fp["pads"],
+                    }
+                    for fp in footprints
+                ),
+            )
+            if errors:
+                raise smt_pos_map.MapError("\n".join(errors))
+            rows = smt_pos_map.mapped_neutral_rows(footprints, mappings, new_origin)
+        except (OSError, UnicodeError, json.JSONDecodeError, smt_pos_map.MapError) as exc:
+            print("error: " + str(exc), file=sys.stderr)
+            raise SystemExit(1)
+        out_path.write_text(neutral_csv(rows), encoding="utf-8")
+        for warning in warnings:
+            print("warning: " + warning, file=sys.stderr)
+        board_refs = {fp["ref"] for fp in footprints}
+        for row in mappings:
+            if row["unbound"] and row["designator"] in board_refs:
+                print(
+                    "unbound: {} (identity mapping)".format(row["designator"]),
+                    file=sys.stderr,
+                )
+        what = "SMT components (supplier)"
+    elif args.neutral:
         rows, skipped = neutral_rows(footprints, new_origin)
         out_path.write_text(neutral_csv(rows))
         what = "SMT components (neutral)"
@@ -170,7 +220,7 @@ def main():
         what = "components (all)" if args.all else "SMT components"
 
     print(f"wrote {out_path}  ({len(rows)} {what})")
-    for ref, why in sorted(skipped, key=lambda item: item[0]):
+    for ref, why in sorted(locals().get("skipped", []), key=lambda item: item[0]):
         print(f"  skipped {ref:6s} — {why}")
 
 

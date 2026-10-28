@@ -1,0 +1,10 @@
+design.lock
+generated/footprints/map_integration-FP_A.kicad_mod
+generated/map_integration-acme-bom.csv
+generated/map_integration-acme-cpl.csv
+generated/map_integration-acme-map.json
+generated/map_integration-bom.csv
+generated/map_integration-cpl.csv
+generated/map_integration-layout.json
+generated/map_integration.kicad_pcb
+generated/map_integration.net

@@ -1,5 +1,7 @@
 import copy
+import hashlib
 import itertools
+import json
 import math
 from pathlib import Path
 import random
@@ -254,6 +256,18 @@ class MatchingTests(unittest.TestCase):
 class MapAndCoverageTests(unittest.TestCase):
     def valid_map(self, pads=None):
         return document(pads or [["1", "0mm", "0mm"]])
+
+    def test_canonical_frame_sorts_exact_mm_not_rounded_nm(self):
+        pads = [["1", "0.0000004mm", "1mm"], ["1", "-0.0000004mm", "0mm"]]
+        # Both x coordinates round to zero nm.  Rust still puts -0.4 nm first.
+        canonical = '[["1","-0.0000004mm","0mm"],["1","0.0000004mm","1mm"]]'
+        expected = hashlib.sha256(canonical.encode()).hexdigest()
+        self.assertEqual(sm.canonical_frame(pads), expected)
+        self.assertEqual(sm.canonical_frame(list(reversed(pads))), expected)
+        self.assertNotEqual(
+            sm.canonical_frame(pads),
+            sm.canonical_frame([["1", "0.0000004mm", "0mm"], ["1", "-0.0000004mm", "1mm"]]),
+        )
 
     def test_validation_rejects_bad_projection_and_missing_frame(self):
         doc = self.valid_map()

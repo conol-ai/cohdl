@@ -110,33 +110,97 @@ describe("public supplier parts Worker route", () => {
     });
   });
 
-  it("accepts 100 values with bounded multi-query lookup and rejects 101", async () => {
-    const values = Array.from({ length: 100 }, (_, index) => `PN-${index}`);
-    const ok = await fetchParts(`/suppliers/acme/parts?pn=${values.join(",")}`);
+  it("returns duplicate PN and normalized-duplicate MPN inputs independently in order", async () => {
+    const pn = await fetchParts("/suppliers/acme/parts?pn=P-1,P-1,missing,P-1");
+    expect(pn.response.status).toBe(200);
+    expect(pn.body.parts.map((part: any) => [part.pn, part.catalog === "unknown" ? "unknown" : part.catalog.pn])).toEqual([
+      ["P-1", "P-1"], ["P-1", "P-1"], ["missing", "unknown"], ["P-1", "P-1"],
+    ]);
+
+    const mpn = await fetchParts("/suppliers/acme/parts?mpn=M100,m%20100,M100,M-100");
+    expect(mpn.response.status).toBe(200);
+    expect(mpn.body.parts.map((part: any) => [part.mpn, part.catalog.map((row: any) => row.pn)])).toEqual([
+      ["M100", ["P-4", "P-1", "P-5", "P-2", "P-6"]],
+      ["m 100", ["P-4", "P-1", "P-5", "P-2", "P-6"]],
+      ["M100", ["P-4", "P-1", "P-5", "P-2", "P-6"]],
+      ["M-100", ["P-3"]],
+    ]);
+  });
+
+  it("queries non-NFC, untrimmed, and Cf-containing PNs exactly", async () => {
+    const nonNfc = "P-E\u0301";
+    const untrimmed = " P-1 ";
+    const withCf = "P-\u200f1";
+    const nfc = "P-É";
+    const values = [nonNfc, untrimmed, withCf, nfc];
+    const missing = new URLSearchParams({ pn: values.join(",") });
+    const unknown = await fetchParts(`/suppliers/acme/parts?${missing}`);
+    expect(unknown.response.status).toBe(200);
+    expect(unknown.body.parts).toEqual(values.map((pn) => ({ pn, catalog: "unknown" })));
+
+    await supplierStore(d1).replaceSnapshot(snapshot([
+      catalogRow(nonNfc, "M-nonNfc"),
+      catalogRow(untrimmed, "M-untrimmed"),
+      catalogRow(withCf, "M-cf"),
+      catalogRow(nfc, "M-nfc"),
+    ]));
+    const parameters = new URLSearchParams({ pn: [...values, nonNfc].join(",") });
+    const exact = await fetchParts(`/suppliers/acme/parts?${parameters}`);
+    expect(exact.response.status).toBe(200);
+    expect(exact.body.parts.map((part: any) => [part.pn, part.catalog === "unknown" ? "unknown" : part.catalog.pn])).toEqual([
+      [nonNfc, nonNfc], [untrimmed, untrimmed], [withCf, withCf], [nfc, nfc], [nonNfc, nonNfc],
+    ]);
+  });
+
+  it("normalizes non-NFC, untrimmed, and Cf-containing MPN inputs", async () => {
+    await supplierStore(d1).replaceSnapshot(snapshot([
+      catalogRow("P-unicode", "é100"),
+      catalogRow("P-cf", "é\u200f100"),
+    ]));
+    const mpn = ["e\u0301 100", " E\u0301\u200f100 "];
+    const parameters = new URLSearchParams({ mpn: mpn.join(",") });
+    const { response, body } = await fetchParts(`/suppliers/acme/parts?${parameters}`);
+    expect(response.status).toBe(200);
+    expect(body.parts).toEqual([
+      { mpn: mpn[0], catalog: [expect.objectContaining({ pn: "P-unicode", mpn_key: "é100" })] },
+      { mpn: mpn[1], catalog: [expect.objectContaining({ pn: "P-cf", mpn_key: "é\u200f100" })] },
+    ]);
+  });
+
+  it.each(["pn", "mpn"])("accepts 100 duplicate %s values and rejects 101", async (kind) => {
+    const values = Array.from({ length: 100 }, () => kind === "pn" ? "P-1" : "M100");
+    const ok = await fetchParts(`/suppliers/acme/parts?${kind}=${values.join(",")}`);
     expect(ok.response.status).toBe(200);
     expect(ok.body.parts).toHaveLength(100);
+    expect(ok.body.parts.every((part: any) => part[kind] === values[0])).toBe(true);
     expect(statements.filter(({ sql }) => sql.includes("INSERT")).length).toBe(0);
-    const lookups = statements.filter(({ sql }) => sql.includes("SELECT pn"));
+    const lookups = statements.filter(({ sql }) => sql.includes(kind === "pn" ? "SELECT pn" : "mpn_key IN"));
     expect(lookups.map(({ values }) => values.length)).toEqual([100, 2]);
-    const tooMany = await fetchParts(`/suppliers/acme/parts?pn=${[...values, "extra"].join(",")}`);
+    const tooMany = await fetchParts(`/suppliers/acme/parts?${kind}=${[...values, values[0]].join(",")}`);
     expect(tooMany.response.status).toBe(400);
   });
 
   it.each([
     "/suppliers/acme/parts",
     "/suppliers/acme/parts?pn=P-1&mpn=M100",
-    "/suppliers/acme/parts?pn=P-1&pn=P-2",
     "/suppliers/acme/parts?pn=P-1&extra=x",
-    "/suppliers/acme/parts?pn=P-1,P-1",
     "/suppliers/acme/parts?pn=P-1,",
     "/suppliers/acme/parts?pn=,P-1",
     "/suppliers/acme/parts?pn=P-1%00",
     "/suppliers/acme/parts?pn=P-1%0AP-2",
     "/suppliers/acme/parts?mpn=M100,%20%20",
-    "/suppliers/acme/parts?mpn=M100,m%20100",
-    "/suppliers/acme/parts?pn=%20P-1",
-  ])("rejects duplicate, empty, non-canonical, or ambiguous query %s", async (path) => {
+  ])("rejects empty, control-character, or ambiguous query %s", async (path) => {
     expect((await fetchParts(path)).response.status).toBe(400);
+  });
+
+  it("rejects supplier query values over 256 UTF-8 bytes", async () => {
+    const boundary = "é".repeat(128);
+    for (const kind of ["pn", "mpn"]) {
+      const accepted = await fetchParts(`/suppliers/acme/parts?${new URLSearchParams({ [kind]: boundary })}`);
+      expect(accepted.response.status).toBe(200);
+      expect(accepted.body.parts[0][kind]).toBe(boundary);
+      expect((await fetchParts(`/suppliers/acme/parts?${new URLSearchParams({ [kind]: `${boundary}é` })}`)).response.status).toBe(400);
+    }
   });
 
   it("validates supplier IDs, methods, and unknown suppliers", async () => {
@@ -226,6 +290,29 @@ describe("public manufacturer normalization Worker route", () => {
     expect(statements.filter(({ sql }) => sql.includes("manufacturer_aliases"))).toHaveLength(0);
   });
 
+  it("normalizes duplicate, non-NFC, untrimmed, and Cf-containing values independently", async () => {
+    await supplierStore(d1).putAlias("example semis", "Example Semis", "Éxample, Manufacturing");
+    const mfr = [" EXAMPLE Semis ", " EXAMPLE Semis ", " E\u0301XAMPLE,\u200f MANUFACTURING "];
+    const mpn = [" É 100 ", "e\u0301\u200f100", " É 100 "];
+    const parameters = new URLSearchParams();
+    for (const value of mfr) parameters.append("mfr", value);
+    for (const value of mpn) parameters.append("mpn", value);
+    const { response, body } = await fetchNormalize(parameters);
+    expect(response.status).toBe(200);
+    expect(body).toEqual({
+      mfr: [
+        { value: mfr[0], key: "éxample, manufacturing" },
+        { value: mfr[1], key: "éxample, manufacturing" },
+        { value: mfr[2], key: "éxample,\u200f manufacturing" },
+      ],
+      mpn: [
+        { value: mpn[0], key: "é100" },
+        { value: mpn[1], key: "é\u200f100" },
+        { value: mpn[2], key: "é100" },
+      ],
+    });
+  });
+
   it("enforces the per-side value limit and accepts exactly 256 UTF-8 bytes", async () => {
     const boundary = "é".repeat(128);
     const accepted = await fetchNormalize(new URLSearchParams([["mfr", boundary]]));
@@ -233,9 +320,9 @@ describe("public manufacturer normalization Worker route", () => {
     expect(accepted.body.mfr[0]).toEqual({ value: boundary, key: boundary });
     expect((await fetchNormalize(new URLSearchParams([["mfr", `${boundary}é`]]))).response.status).toBe(400);
     for (const kind of ["mfr", "mpn"]) {
-      const values = Array.from({ length: 100 }, (_, index) => [`${kind}`, `value-${index}`] as [string, string]);
+      const values = Array.from({ length: 100 }, () => [`${kind}`, "duplicate"] as [string, string]);
       expect((await fetchNormalize(new URLSearchParams(values))).response.status).toBe(200);
-      expect((await fetchNormalize(new URLSearchParams([...values, [kind, "extra"]]))).response.status).toBe(400);
+      expect((await fetchNormalize(new URLSearchParams([...values, [kind, "duplicate"]]))).response.status).toBe(400);
     }
   });
 

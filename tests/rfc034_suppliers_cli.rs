@@ -67,25 +67,31 @@ impl Mock {
                     .unwrap_or("")
                     .to_string();
                 let _ = tx.send(target.clone());
-                let path = target.split('?').next().unwrap();
                 let decoded = percent_decode(&target);
-                let decoded_path = decoded.split('?').next().unwrap();
                 let routes = self.routes.lock().unwrap();
+                let (path, query) = decoded.split_once('?').unwrap_or((decoded.as_str(), ""));
+                let kind = query
+                    .split('&')
+                    .next()
+                    .and_then(|part| part.split('=').next());
+                let exact = |key: &String| {
+                    let Some((_, route_query)) = key.split_once('?') else {
+                        return false;
+                    };
+                    route_query != "pn=" && route_query != "mpn="
+                };
                 let reply = routes
                     .get(&target)
-                    .or_else(|| routes.get(&decoded))
+                    .filter(|_| exact(&target))
+                    .or_else(|| routes.get(&decoded).filter(|_| exact(&decoded)))
                     .or_else(|| {
+                        let generic = format!("{path}?{}", kind.unwrap_or(""));
                         routes
-                            .iter()
-                            .find(|(prefix, _)| {
-                                *prefix == path
-                                    || *prefix == decoded_path
-                                    || target.starts_with(prefix.as_str())
-                                    || decoded.starts_with(prefix.as_str())
-                            })
-                            .map(|(_, reply)| reply)
+                            .get(&format!("{generic}="))
+                            .or_else(|| routes.get(path))
                     })
                     .cloned()
+                    .map(|reply| validate_request(&decoded, reply))
                     .unwrap_or(Reply {
                         status: 500,
                         body: "no route".to_string(),
@@ -103,6 +109,39 @@ impl Mock {
             }
         });
         (url, rx)
+    }
+}
+
+fn validate_request(target: &str, reply: Reply) -> Reply {
+    let (path, query) = target.split_once('?').unwrap_or((target, ""));
+    let mut params = Vec::new();
+    for pair in query.split('&').filter(|pair| !pair.is_empty()) {
+        let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
+        params.push((key, value));
+    }
+    let invalid = params
+        .iter()
+        .any(|(_, value)| value.is_empty() || value.chars().any(|ch| ch.is_control()));
+    let over_limit = if path == "/manufacturers/normalize" {
+        ["mfr", "mpn"]
+            .iter()
+            .any(|key| params.iter().filter(|(name, _)| name == key).count() > 100)
+            || params.iter().any(|(_, value)| value.len() > 256)
+    } else if path.starts_with("/suppliers/") && path.ends_with("/parts") {
+        params.len() != 1
+            || !matches!(params[0].0, "pn" | "mpn")
+            || params[0].1.split(',').count() > 100
+            || params[0].1.split(',').any(|value| value.len() > 256)
+    } else {
+        false
+    };
+    if invalid || over_limit {
+        Reply {
+            status: 400,
+            body: r#"{"error":"invalid query"}"#.to_string(),
+        }
+    } else {
+        reply
     }
 }
 
@@ -796,4 +835,229 @@ fn only_instantiated_parts_are_audited_and_human_output_is_sorted() {
     assert!(text.find("acme").unwrap() < text.find("bolt").unwrap());
     assert!(!text.contains("UNUSED"));
     assert_eq!(requests.try_iter().count(), 4);
+}
+
+#[test]
+fn shared_pn_across_parts_is_deduplicated_and_distributed_to_each_entry() {
+    let dir = project_design(
+        "shared-pn",
+        r#"    primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "SHARED" }
+    alt { mfr: "M", mpn: "N", supplier acme "SHARED" }"#,
+        r#"pub part SECOND: D { primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "SHARED" } }"#,
+        "design Board { inst p: P inst second: SECOND nc: p.A nc: second.A }",
+    );
+    let mock = Mock::default();
+    mock.route(
+        "/suppliers/acme/parts?pn=SHARED",
+        pn_response(
+            "acme",
+            &[(
+                "SHARED",
+                Some(catalog_keys("SHARED", "M", "N", 5, "m", "n")),
+            )],
+        ),
+    );
+    mock.route(
+        "/manufacturers/normalize",
+        normalize(
+            &["M", "M", "M"],
+            &["N", "N", "N"],
+            &["m", "m", "m"],
+            &["n", "n", "n"],
+        ),
+    );
+    let (url, requests) = mock.start();
+    let output = run(&dir, &url, &["--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let targets: Vec<String> = requests.try_iter().collect();
+    assert_eq!(targets[0], "/suppliers/acme/parts?pn=SHARED");
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    let entries = json["suppliers"][0]["entries"].as_array().unwrap();
+    assert_eq!(entries.len(), 3);
+    assert!(entries.iter().all(|entry| entry["status"] == "ok"));
+    assert!(entries.iter().all(|entry| entry["pn"] == "SHARED"));
+}
+
+#[test]
+fn unqueryable_values_are_not_sent_and_have_explicit_notes() {
+    let long_mpn = "N".repeat(257);
+    let long_mfr = "M".repeat(257);
+    let entries = format!(
+        r#"    primary {{ mfr: "{long_mfr}", mpn: "LONG-MFR", footprint: FP, supplier acme "GOOD" }}
+    alt {{ mfr: "M", mpn: "{long_mpn}", supplier acme "BAD,PN" }}
+    alt {{ mfr: "M", mpn: "LONG-PN", supplier acme "PN-LONG-FIELD" }}
+    alt {{ mfr: "M", mpn: "BAD,MPN" }}
+    alt {{ mfr: "M", mpn: "{long_mpn}" }}
+    alt {{ mfr: "{long_mfr}", mpn: "LONG-MFR" }}"#
+    );
+    let dir = project("unqueryable", &entries, "");
+    let mock = Mock::default();
+    mock.route(
+        "/suppliers/acme/parts?pn=",
+        pn_response(
+            "acme",
+            &[
+                ("GOOD", Some(catalog("GOOD", "M", "LONG-MFR", 1))),
+                ("PN-LONG-FIELD", None),
+            ],
+        ),
+    );
+    mock.route(
+        "/suppliers/acme/parts?mpn=LONG-MFR",
+        mpn_response("acme", &[("LONG-MFR", Vec::new())]),
+    );
+    mock.route(
+        "/manufacturers/normalize",
+        normalize(
+            &["M", "M", "M", "M"],
+            &["LONG-MFR", "LONG-PN", "BAD,MPN", "LONG-MFR"],
+            &["M", "M", "M", "M"],
+            &["LONG-MFR", "LONG-PN", "BAD,MPN", "LONG-MFR"],
+        ),
+    );
+    let (url, requests) = mock.start();
+    let output = run(&dir, &url, &["--supplier", "acme", "--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(3),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let targets: Vec<String> = requests.try_iter().collect();
+    assert!(targets
+        .iter()
+        .filter(|target| target.starts_with("/suppliers/"))
+        .all(|target| {
+            let decoded = percent_decode(target);
+            !decoded.contains("BAD,PN")
+                && !decoded.contains("BAD,MPN")
+                && !decoded.contains(&"P".repeat(257))
+                && !decoded.contains(&"N".repeat(257))
+        }));
+    assert!(targets
+        .iter()
+        .all(|target| !target.contains("MMMM") && !target.contains("NNNN")));
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    let entries = json["suppliers"][0]["entries"].as_array().unwrap();
+    assert_eq!(entries[0]["status"], "ok");
+    assert_eq!(entries[0]["mismatches"], serde_json::json!([]));
+    assert_eq!(entries[1]["status"], "unknown");
+    assert_eq!(
+        entries[1]["note"],
+        "part number cannot be queried (contains ',')"
+    );
+    assert_eq!(entries[2]["status"], "unknown");
+    assert!(entries[2].get("note").is_none());
+    for index in [3, 4] {
+        assert_eq!(entries[index]["status"], "unbound");
+        assert_eq!(entries[index]["suggestions"], serde_json::json!([]));
+        assert!(entries[index]["note"]
+            .as_str()
+            .unwrap()
+            .contains("cannot be queried"));
+    }
+    assert_eq!(entries[5]["status"], "unbound");
+    assert_eq!(entries[5]["suggestions"], serde_json::json!([]));
+    let normalize_request = targets
+        .iter()
+        .find(|target| target.starts_with("/manufacturers/normalize?"))
+        .unwrap();
+    assert_eq!(normalize_request.matches("mfr=").count(), 4);
+    assert_eq!(normalize_request.matches("mpn=").count(), 4);
+}
+
+#[test]
+fn overlong_pn_fails_offline_before_any_request() {
+    let long_pn = "P".repeat(257);
+    let dir = project(
+        "overlong-pn",
+        &format!(
+            r#"    primary {{ mfr: "M", mpn: "N", footprint: FP, supplier acme "{long_pn}" }}"#
+        ),
+        "",
+    );
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    let output = run(&dir, &url, &[]);
+    assert_eq!(output.status.code(), Some(1));
+    assert!(stderr(&output).contains("E813"));
+    listener.set_nonblocking(true).unwrap();
+    assert!(
+        listener.accept().is_err(),
+        "overlong PN must make zero requests"
+    );
+}
+
+#[test]
+fn unlisted_supplier_has_empty_bindings_and_does_not_change_exit_code() {
+    let dir = project(
+        "unlisted",
+        r#"    primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "P-1" }"#,
+        "",
+    );
+    let mock = Mock::default();
+    mock.route_status(
+        "/suppliers/acme/parts",
+        404,
+        "{ \n  \"error\" : \"supplier not found\" \n}",
+    );
+    let (url, requests) = mock.start();
+    let human = run(&dir, &url, &[]);
+    assert_eq!(
+        human.status.code(),
+        Some(0),
+        "{}{}",
+        stdout(&human),
+        stderr(&human)
+    );
+    assert!(stdout(&human).contains("acme unlisted: registry has no catalog for this supplier"));
+    let output = run(&dir, &url, &["--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    assert_eq!(json["suppliers"][0]["catalog"], "unlisted");
+    assert_eq!(json["suppliers"][0]["bindings"], serde_json::json!([]));
+    assert_eq!(
+        json["suppliers"][0]["note"],
+        "registry has no catalog for this supplier"
+    );
+    assert!(json["suppliers"][0].get("entries").is_none());
+    assert_eq!(requests.try_iter().count(), 2);
+}
+
+#[test]
+fn other_not_found_is_still_e1204_and_readme_documents_exit_three() {
+    let dir = project(
+        "other-404",
+        r#"    primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "P-1" }"#,
+        "",
+    );
+    let mock = Mock::default();
+    mock.route_status("/suppliers/acme/parts", 404, r#"{"error":"not found"}"#);
+    let (url, _) = mock.start();
+    let output = run(&dir, &url, &["--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    assert_eq!(json["diagnostics"][0]["code"], "E1204");
+    let readme =
+        std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/README.md")).unwrap();
+    assert!(readme.contains("`3` = `cohdl suppliers` found an `unknown` or `mismatched`"));
 }

@@ -4,7 +4,9 @@
 use crate::ast::AvlEntry;
 use crate::deps::PackageDiag;
 use crate::ir::DesignIr;
-use crate::registry::{self, AuditCatalogRow, SupplierPartResult, SUPPLIER_AUDIT_BATCH};
+use crate::registry::{
+    self, AuditCatalogRow, SupplierPartResult, SupplierPartsResponse, SUPPLIER_AUDIT_BATCH,
+};
 use crate::resolve::World;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
@@ -54,6 +56,7 @@ struct AuditEntry {
     mismatches: Vec<&'static str>,
     catalog: Option<AuditCatalogRow>,
     suggestions: Vec<AuditSuggestion>,
+    note: Option<String>,
 }
 
 #[derive(Debug)]
@@ -66,6 +69,7 @@ struct AuditSuggestion {
 struct SupplierReport {
     supplier: String,
     snapshot_date: Option<String>,
+    unlisted: bool,
     entries: Vec<AuditEntry>,
 }
 
@@ -140,7 +144,26 @@ impl AuditReport {
                 "      \"snapshot_date\": {},",
                 nullable(supplier.snapshot_date.as_ref())
             );
-            out.push_str("      \"entries\": [");
+            let _ = writeln!(
+                out,
+                "      \"catalog\": {},",
+                string(if supplier.unlisted {
+                    "unlisted"
+                } else {
+                    "listed"
+                })
+            );
+            if supplier.unlisted {
+                let _ = writeln!(
+                    out,
+                    "      \"note\": \"registry has no catalog for this supplier\","
+                );
+            }
+            out.push_str(if supplier.unlisted {
+                "      \"bindings\": ["
+            } else {
+                "      \"entries\": ["
+            });
             if supplier.entries.is_empty() {
                 out.push_str("]\n    }");
             } else {
@@ -161,6 +184,9 @@ impl AuditReport {
                         "          \"status\": {},",
                         string(entry.status.as_str())
                     );
+                    if let Some(note) = &entry.note {
+                        let _ = writeln!(out, "          \"note\": {},", string(note));
+                    }
                     out.push_str("          \"mismatches\": [");
                     for (index, field) in entry.mismatches.iter().enumerate() {
                         if index != 0 {
@@ -232,6 +258,13 @@ impl AuditReport {
                 .collect::<String>()
         };
         for supplier in &self.suppliers {
+            if supplier.unlisted {
+                let _ = writeln!(
+                    out,
+                    "{} unlisted: registry has no catalog for this supplier",
+                    supplier.supplier
+                );
+            }
             for entry in &supplier.entries {
                 let _ = writeln!(
                     out,
@@ -244,6 +277,9 @@ impl AuditReport {
                     text(&entry.mfr),
                     text(&entry.mpn)
                 );
+                if let Some(note) = &entry.note {
+                    let _ = writeln!(out, "  note: {}", text(note));
+                }
                 if !entry.mismatches.is_empty() {
                     let _ = writeln!(out, "  mismatch: {}", entry.mismatches.join(", "));
                 }
@@ -361,27 +397,59 @@ pub fn audit(
             .filter(|(_, entry)| entry.bindings.contains_key(&supplier))
             .map(|(index, _)| index)
             .collect();
-        let pn_values: Vec<String> = bound
+        let queryable_pn = |pn: &str| !pn.contains(',') && pn.len() <= 256;
+        let pn_values: Vec<(usize, String)> = bound
             .iter()
-            .map(|index| entries[*index].bindings[&supplier].clone())
+            .map(|index| (*index, entries[*index].bindings[&supplier].clone()))
+            .filter(|(_, pn)| queryable_pn(pn))
             .collect();
         let mut catalogs = BTreeMap::new();
         let mut snapshot_seen = false;
         let mut snapshot_date = None;
-        for (batch_index, batch) in pn_values.chunks(SUPPLIER_AUDIT_BATCH).enumerate() {
-            let response = registry::supplier_parts(&supplier, "pn", batch)?;
+        let mut supplier_unlisted = false;
+        for batch in pn_values.chunks(SUPPLIER_AUDIT_BATCH) {
+            // A strict registry rejects repeated values in one query. Share a
+            // single exact-PN response across all source entries using that PN.
+            let mut unique_values = Vec::new();
+            let mut seen = BTreeSet::new();
+            for (_, value) in batch {
+                if seen.insert(value.as_str()) {
+                    unique_values.push(value.clone());
+                }
+            }
+            let response = match registry::supplier_parts(&supplier, "pn", &unique_values)? {
+                SupplierPartsResponse::Parts(parts) => parts,
+                SupplierPartsResponse::Unlisted => {
+                    reports.push(SupplierReport {
+                        supplier: supplier.clone(),
+                        snapshot_date: None,
+                        unlisted: true,
+                        entries: Vec::new(),
+                    });
+                    supplier_unlisted = true;
+                    break;
+                }
+            };
             check_snapshot(
                 &mut snapshot_seen,
                 &mut snapshot_date,
                 response.snapshot_date,
             )?;
-            for (index, part) in response.parts.into_iter().enumerate() {
+            let mut rows_by_pn = BTreeMap::new();
+            for part in response.parts {
                 if let SupplierPartResult::Known(row) = part.result {
-                    catalogs.insert(bound[batch_index * SUPPLIER_AUDIT_BATCH + index], row);
+                    rows_by_pn.insert(part.requested, row);
+                }
+            }
+            for (entry_index, value) in batch {
+                if let Some(row) = rows_by_pn.get(value) {
+                    catalogs.insert(*entry_index, row.clone());
                 }
             }
         }
-
+        if supplier_unlisted {
+            continue;
+        }
         // No implicit unbound audit/suggestions without an explicit --supplier.
         // Empty source MPN is still reported unbound, but is never queried.
         let unbound: Vec<usize> = if requested.is_empty() {
@@ -397,24 +465,36 @@ pub fn audit(
         let suggestion_entries: Vec<usize> = unbound
             .iter()
             .copied()
-            .filter(|index| !entries[*index].mpn.is_empty())
+            .filter(|index| !entries[*index].mpn.is_empty() && queryable_pn(&entries[*index].mpn))
             .collect();
-        let suggestion_values: Vec<String> = suggestion_entries
+        let suggestion_values: Vec<(usize, String)> = suggestion_entries
             .iter()
-            .map(|index| entries[*index].mpn.clone())
+            .map(|index| (*index, entries[*index].mpn.clone()))
             .collect();
         let mut suggestions = BTreeMap::new();
-        for (batch_index, batch) in suggestion_values.chunks(SUPPLIER_AUDIT_BATCH).enumerate() {
+        for batch in suggestion_values.chunks(SUPPLIER_AUDIT_BATCH) {
             // The registry requires normalized MPN query values to be unique.
             // Repeated AVL entries share the response for their one query row.
             let mut unique_values = Vec::new();
             let mut seen = BTreeSet::new();
-            for value in batch {
+            for (_, value) in batch {
                 if seen.insert(value.as_str()) {
                     unique_values.push(value.clone());
                 }
             }
-            let response = registry::supplier_parts(&supplier, "mpn", &unique_values)?;
+            let response = match registry::supplier_parts(&supplier, "mpn", &unique_values)? {
+                SupplierPartsResponse::Parts(parts) => parts,
+                SupplierPartsResponse::Unlisted => {
+                    reports.push(SupplierReport {
+                        supplier: supplier.clone(),
+                        snapshot_date: None,
+                        unlisted: true,
+                        entries: Vec::new(),
+                    });
+                    supplier_unlisted = true;
+                    break;
+                }
+            };
             check_snapshot(
                 &mut snapshot_seen,
                 &mut snapshot_date,
@@ -429,12 +509,12 @@ pub fn audit(
                 };
                 rows_by_mpn.insert(part.requested, rows);
             }
-            for (index, value) in batch.iter().enumerate() {
-                suggestions.insert(
-                    suggestion_entries[batch_index * SUPPLIER_AUDIT_BATCH + index],
-                    rows_by_mpn.get(value).cloned().unwrap(),
-                );
+            for (entry_index, value) in batch {
+                suggestions.insert(*entry_index, rows_by_mpn.get(value).cloned().unwrap());
             }
+        }
+        if supplier_unlisted {
+            continue;
         }
 
         // Only source values are normalized here. Catalog rows already carry
@@ -447,11 +527,11 @@ pub fn audit(
         let mut mpn_values = Vec::new();
         for index in audited {
             let entry = &entries[index];
-            if !entry.mfr.is_empty() {
+            if !entry.mfr.is_empty() && entry.mfr.len() <= 256 {
                 mfr_owners.push(index);
                 mfr_values.push(entry.mfr.clone());
             }
-            if !entry.mpn.is_empty() {
+            if !entry.mpn.is_empty() && entry.mpn.len() <= 256 {
                 mpn_owners.push(index);
                 mpn_values.push(entry.mpn.clone());
             }
@@ -511,8 +591,16 @@ pub fn audit(
                         mismatches,
                         catalog: Some(row),
                         suggestions: Vec::new(),
+                        note: None,
                     });
                 } else {
+                    let pn_reason = if pn.contains(',') {
+                        Some("part number cannot be queried (contains ',')".to_string())
+                    } else if pn.len() > 256 {
+                        Some("part number cannot be queried (too long)".to_string())
+                    } else {
+                        None
+                    };
                     report_entries.push(AuditEntry {
                         part: entry.part.clone(),
                         entry: entry.entry.clone(),
@@ -523,6 +611,7 @@ pub fn audit(
                         mismatches: Vec::new(),
                         catalog: None,
                         suggestions: Vec::new(),
+                        note: pn_reason,
                     });
                 }
             } else if !requested.is_empty() {
@@ -551,12 +640,20 @@ pub fn audit(
                     mismatches: Vec::new(),
                     catalog: None,
                     suggestions: entry_suggestions,
+                    note: if entry.mpn.contains(',') {
+                        Some("part number cannot be queried (contains ',')".to_string())
+                    } else if entry.mpn.len() > 256 {
+                        Some("part number cannot be queried (too long)".to_string())
+                    } else {
+                        None
+                    },
                 });
             }
         }
         reports.push(SupplierReport {
             supplier,
             snapshot_date,
+            unlisted: false,
             entries: report_entries,
         });
     }
@@ -564,4 +661,17 @@ pub fn audit(
         design: ir.name.clone(),
         suppliers: reports,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn query_byte_limit_is_checked_before_constructing_a_request() {
+        let long_pn = "P".repeat(257);
+        let queryable = |pn: &str| !pn.contains(',') && pn.len() <= 256;
+        assert!(queryable("ordinary"));
+        assert!(!queryable("with,comma"));
+        assert!(!queryable(&long_pn));
+        assert_eq!(long_pn.len(), 257);
+    }
 }

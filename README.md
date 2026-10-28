@@ -141,7 +141,9 @@ See [`explorer/README.md`](explorer/README.md).
 `0` = clean (warnings and a valid no-match search are allowed); `1` = the
 accepted command failed (source errors, non-canonical `fmt --check`, or an E1204
 search registry/protocol failure); `2` = invocation-level failure (bad flags,
-an invalid search query, missing project, design selection, nothing to build).
+an invalid search query, missing project, design selection, nothing to build);
+`3` = `cohdl suppliers` found an `unknown` or `mismatched` audited binding
+(out-of-stock, unbound, and unlisted suppliers do not change the exit code).
 Human diagnostics use stderr. A successful `search --json` emits its discovery
 document on stdout, and an E1204 failure in that mode emits the existing
 diagnostic JSON there; bad invocations remain prose-only on stderr. See the

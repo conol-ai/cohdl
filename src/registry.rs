@@ -465,6 +465,12 @@ pub struct SupplierParts {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SupplierPartsResponse {
+    Parts(SupplierParts),
+    Unlisted,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NormalizedFields {
     pub mfr: Vec<(String, String)>,
     pub mpn: Vec<(String, String)>,
@@ -1032,6 +1038,17 @@ fn parse_normalize_response(
     })
 }
 
+fn is_supplier_not_found(body: &[u8]) -> bool {
+    let Ok(json) = JsonParser::new(body).and_then(JsonParser::parse) else {
+        return false;
+    };
+    let Ok(root) = json_object(&json) else {
+        return false;
+    };
+    root.len() == 1
+        && matches!(json_field(root, "error"), Ok(JsonValue::String(message)) if message == "supplier not found")
+}
+
 fn parse_suppliers(value: &JsonValue, path: &str) -> Result<Vec<PartSupplier>, String> {
     let JsonValue::Array(values) = value else {
         return Err("must be an array".to_string());
@@ -1349,6 +1366,23 @@ fn audit_get(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, Package
     Ok(response)
 }
 
+fn audit_supplier_parts_get(
+    url: &str,
+    params: &[(&str, &str)],
+) -> Result<Option<HttpResponse>, PackageDiag> {
+    let response = http_get_query(url, params).map_err(audit_e1204)?;
+    if response.status == 404 && is_supplier_not_found(&response.body) {
+        return Ok(None);
+    }
+    if response.status != 200 {
+        return Err(audit_e1204(format!(
+            "GET {url} returned {}",
+            response.status
+        )));
+    }
+    Ok(Some(response))
+}
+
 /// Fetch one PN or MPN batch. Values remain comma-separated here because that
 /// is the supplier-parts contract; manufacturer normalization below instead
 /// uses repeated parameters because manufacturer names can contain commas.
@@ -1356,7 +1390,7 @@ pub fn supplier_parts(
     supplier: &str,
     kind: &str,
     values: &[String],
-) -> Result<SupplierParts, PackageDiag> {
+) -> Result<SupplierPartsResponse, PackageDiag> {
     assert!(matches!(kind, "pn" | "mpn"));
     assert!(!values.is_empty() && values.len() <= SUPPLIER_AUDIT_BATCH);
     let encoded_supplier = supplier
@@ -1374,8 +1408,11 @@ pub fn supplier_parts(
         registry_url().trim_end_matches('/'),
         supplier = encoded_supplier
     );
-    let response = audit_get(&url, &[(kind, &values.join(","))])?;
+    let Some(response) = audit_supplier_parts_get(&url, &[(kind, &values.join(","))])? else {
+        return Ok(SupplierPartsResponse::Unlisted);
+    };
     parse_supplier_parts_response(&response.body, supplier, kind, values)
+        .map(SupplierPartsResponse::Parts)
         .map_err(|error| audit_e1204(format!("malformed response from GET {url}: {error}")))
 }
 

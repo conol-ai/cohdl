@@ -34,7 +34,10 @@ pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
         .board_outline
         .as_ref()
         .and_then(|outline| outline.geom.as_ref())
-        .map(|outline| (outline.bbox.0 .0, outline.bbox.1 .1));
+        .map(|outline| {
+            let extent = outline.extent();
+            (extent.0 .0, extent.1 .1)
+        });
     let mut rows = Vec::new();
     let mut unplaced = Vec::new();
 
@@ -83,7 +86,7 @@ pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
         };
 
         let (x, y) = match origin {
-            Some((left, bottom)) => (placement.at.0.femto - left, bottom - placement.at.1.femto),
+            Some((left, top)) => (placement.at.0.femto - left, top - placement.at.1.femto),
             None => (placement.at.0.femto, -placement.at.1.femto),
         };
         let (layer, rotation) = match placement.side {

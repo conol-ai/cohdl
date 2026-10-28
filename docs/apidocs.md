@@ -380,6 +380,9 @@ smaller or larger.
                      "size": ["2", "1.5"] } ],
   "courtyard": { "shape": "rect", "at": ["0", "0"], "size": ["1.54", "0.94"] },
   "window": { … same shape as courtyard … },
+  "keepouts": [ { "region": { "shape": "rect", "at": ["0", "-9.75"], "size": ["18", "6"] },
+                  "layers": "all_copper",
+                  "prohibits": ["tracks", "vias", "pads", "copper_pours", "components"] } ],
   "silkscreen_ref": { "at": ["0", "-2"] },
   "markers": [ { "kind": "pin_1_marker", "pad": "1", "shape": "dot" } ],
   "silk": [
@@ -397,6 +400,11 @@ smaller or larger.
   resolves inside `items` or `foreign`.
 - `mount_holes`: circle geometry carries `diameter`, rect/oval carry `size`;
   `shape` is always present (default circle applied).
+- `keepouts` is an additive field, omitted when empty. Regions are in source
+  order and use canonical millimetre strings. These are enforced KiCad rule
+  areas, distinct from the optional visible silkscreen guides. Readers may
+  ignore the field for display; physical exporters must preserve its rules or
+  reject the export. The current registry preview still uses the silk guides.
 - `silk` is the **expanded** graphics list from `emit::silk::graphics` — the
   identical expansion the `.kicad_mod` and IPC-2581 emitters consume, so the
   semantic markers' computed geometry (standoffs, dot/triangle/band/arrow)

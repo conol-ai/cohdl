@@ -92,7 +92,7 @@
         {
           "comment": "Body / statement keywords.",
           "name": "keyword.control.cohdl",
-          "match": "\\b(pins|spec|net|nc|inst|ports|variants|layout|required|optional|const|for|in|step|courtyard|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
+          "match": "\\b(pins|spec|net|nc|inst|ports|variants|layout|required|optional|const|for|in|step|courtyard|keepout|silkscreen_ref|primary|alt|at|shape|size|drill|plating|net_class|diff_pair|length_match|tolerance)\\b"
         }
       ]
     },

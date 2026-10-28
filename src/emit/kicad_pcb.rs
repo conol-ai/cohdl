@@ -249,6 +249,22 @@ pub fn emit_kicad_pcb(
         let _ = writeln!(s, "\t\t(attr {})", attr);
         s.push_str("\t\t(duplicate_pad_numbers_are_jumpers no)\n");
         if let Some(fp) = fp {
+            for (i, k) in fp.keepouts.iter().enumerate() {
+                let points = crate::emit::keepout::points(k).map(|(lx, ly)| {
+                    let (dx, dy) = crate::trig::rotate(
+                        if bottom { -lx } else { lx },
+                        ly,
+                        (360 - rot as u16) % 360,
+                    );
+                    (x * 10 + dx, y * 10 + dy)
+                });
+                crate::emit::keepout::zone(
+                    &mut s,
+                    "\t\t",
+                    &points,
+                    Some(&uuid(package_name, refdes, "keepout", i)),
+                );
+            }
             for (i, g) in body_graphics(world, fp).into_iter().enumerate() {
                 graphic(&mut s, package_name, refdes, i, g, bottom);
             }

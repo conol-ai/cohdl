@@ -17,7 +17,7 @@ use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
-const SNAPSHOT_SHA256: &str = "fca1484784d12c8224bdbaefda665a38d1baae89544f76aaabc15d4b123101b1";
+const SNAPSHOT_SHA256: &str = "daa1efcda07bc722f2c97843b9744f151b999997770245baeb210d112e294942";
 
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -465,6 +465,7 @@ fn esp32_generated_footprints_round_trip_every_normalized_pad() {
         let mut row_keys = vec![
             "courtyard",
             "keepout_guides",
+            "keepouts",
             "normalization",
             "owner",
             "pads",
@@ -687,6 +688,43 @@ fn esp32_generated_footprints_round_trip_every_normalized_pad() {
             .as_bool()
             .expect("pin_1_marker boolean");
         let guides = array(field(row, "keepout_guides", &context), &context);
+        let rules = array(field(row, "keepouts", &context), &context);
+        assert_eq!(rules.len(), guides.len());
+        assert_eq!(footprint.keepouts.len(), rules.len());
+        for ((rule, guide), region) in rules.iter().zip(guides).zip(&footprint.keepouts) {
+            assert_keys(
+                rule,
+                &["layers", "source_layers", "prohibits", "points"],
+                &context,
+            );
+            assert_eq!(rule["layers"], serde_json::json!(["*.Cu"]));
+            assert_eq!(
+                rule["prohibits"],
+                serde_json::json!(["tracks", "vias", "pads", "copperpour", "footprints"])
+            );
+            assert_eq!(&rule["points"], guide);
+            let points = array(guide, &context)
+                .iter()
+                .map(|p| pair(p, &context))
+                .collect::<Vec<_>>();
+            let (min_x, max_x) = (
+                points.iter().map(|p| p.0).min().unwrap(),
+                points.iter().map(|p| p.0).max().unwrap(),
+            );
+            let (min_y, max_y) = (
+                points.iter().map(|p| p.1).min().unwrap(),
+                points.iter().map(|p| p.1).max().unwrap(),
+            );
+            assert_eq!(region.shape.0, cohdl::ast::PadShape::Rect);
+            assert_eq!(
+                (region.at.0.femto * 2, region.at.1.femto * 2),
+                (min_x + max_x, min_y + max_y)
+            );
+            assert_eq!(
+                region.size.iter().map(|v| v.femto).collect::<Vec<_>>(),
+                [max_x - min_x, max_y - min_y]
+            );
+        }
         keepout_polygons += guides.len();
         let silk = footprint.silkscreen.as_ref().expect("generated silk block");
         let mut item_index = 0usize;
@@ -923,11 +961,23 @@ fn esp32_representative_geometry_is_consistent_across_all_board_emitters() {
             modules,
             emit::kicad_mod::emit_kicad_mods(&world, &ir).unwrap()
         );
+        let has_keepouts = !world.footprints[*fq].keepouts.is_empty();
+        let ipc_result = emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test");
+        if has_keepouts {
+            assert!(ipc_result
+                .unwrap_err()
+                .to_string()
+                .contains("cannot preserve keepouts"));
+        }
+        // Temporarily remove keepouts for the independent IPC pad-geometry
+        // checks, after proving real export refuses to discard the rules.
+        let keepouts = std::mem::take(&mut world.footprints.get_mut(*fq).unwrap().keepouts);
         let ipc = emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test").unwrap();
         assert_eq!(
             ipc,
             emit::ipc2581::emit_ipc2581(&world, &ir, "esp32-footprint-test").unwrap()
         );
+        world.footprints.get_mut(*fq).unwrap().keepouts = keepouts;
         let board = emit::kicad_pcb::emit_kicad_pcb(&world, &ir, "esp32-footprint-test").unwrap();
         assert_eq!(
             board,
@@ -935,6 +985,11 @@ fn esp32_representative_geometry_is_consistent_across_all_board_emitters() {
         );
 
         let footprint = &world.footprints[*fq];
+        assert_eq!(
+            module.matches("(keepout ").count(),
+            footprint.keepouts.len()
+        );
+        assert_eq!(board.matches("(keepout ").count(), footprint.keepouts.len());
         let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
         for place in &footprint.pads {
             *counts.entry(place.number.text.as_str()).or_default() += 1;

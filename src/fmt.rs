@@ -1416,6 +1416,7 @@ impl Formatter<'_> {
         let has_body = !f.pads.is_empty()
             || !f.mount_holes.is_empty()
             || f.courtyard.is_some()
+            || !f.keepouts.is_empty()
             || f.window.is_some()
             || f.silkscreen.is_some()
             || f.silkscreen_ref.is_some();
@@ -1438,6 +1439,7 @@ impl Formatter<'_> {
             Pad(&'a PadPlace),
             MountHole(&'a MountHole),
             Courtyard(&'a Courtyard),
+            Keepout(&'a Courtyard),
             Window(&'a Courtyard),
             Silkscreen(&'a SilkscreenBlock),
             Silk(&'a (UnitValue, UnitValue, Span)),
@@ -1445,6 +1447,9 @@ impl Formatter<'_> {
         let mut members: Vec<(u32, M)> = f.pads.iter().map(|p| (p.span.start, M::Pad(p))).collect();
         for m in &f.mount_holes {
             members.push((m.span.start, M::MountHole(m)));
+        }
+        for k in &f.keepouts {
+            members.push((k.span.start, M::Keepout(k)));
         }
         if let Some(c) = &f.courtyard {
             members.push((c.span.start, M::Courtyard(c)));
@@ -1508,11 +1513,17 @@ impl Formatter<'_> {
                         ),
                     );
                 }
-                M::Courtyard(c) => {
+                M::Courtyard(c) | M::Keepout(c) => {
+                    let keyword = if matches!(m, M::Keepout(_)) {
+                        "keepout"
+                    } else {
+                        "courtyard"
+                    };
                     self.push(
                         1,
                         format!(
-                            "courtyard {{ shape: {}, at: ({}, {}), size: ({}) }}",
+                            "{} {{ shape: {}, at: ({}, {}), size: ({}) }}",
+                            keyword,
                             c.shape.0.name(),
                             c.at.0.text,
                             c.at.1.text,

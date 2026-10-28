@@ -1,5 +1,23 @@
 # Espressif ESP32 reference documents
 
+Version 0.3.0 fixes antenna keepouts in twenty generated module footprints
+and the hand-audited `FP_ESP32_S3_WROOM_1`. The original antenna rectangles
+now prohibit tracks, vias, pads, copper pours, and components on all copper
+layers in KiCad output. External-antenna variants without a source antenna
+region do not gain an invented exclusion. Pin mappings and pad geometry are
+unchanged.
+
+This version requires a CoHDL compiler built with the antenna-keepout fix
+(after v0.8.1); v0.8.1 rejects the new `keepout` syntax. Use
+`build --emit kicad_pcb`. IPC-2581 export currently rejects these footprints
+explicitly because it cannot preserve the full restrictions. Additional RF
+clearance, board-edge placement, and cutouts remain board-level obligations
+from the particular module's datasheet.
+
+The pinned S31-WROOM-3 source lists only front, back, and one inner copper
+layer. This release conservatively extends its rectangle to all copper
+layers and retains the original layer list in the source snapshot.
+
 The generated catalog uses the local deterministic source index in
 `esp32-part-catalog.md`; it accounts for all 318 exact MPNs in the frozen
 Espressif Product Selector response, including an explicit reason for every

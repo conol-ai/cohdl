@@ -27,6 +27,7 @@ pub fn is_placeholder(fp: &FootprintDef) -> bool {
     fp.pads.is_empty()
         && fp.mount_holes.is_empty()
         && fp.courtyard.is_none()
+        && fp.keepouts.is_empty()
         && fp.silkscreen_ref.is_none()
 }
 

@@ -758,6 +758,9 @@ fn render(world: &World, fq: &str, fp: &crate::ast::FootprintDef) -> String {
     s.push_str("  (generator \"cohdl\")\n");
     s.push_str("  (layer \"F.Cu\")\n");
     let _ = writeln!(s, "  (attr {})", footprint_attr(world, fp));
+    for k in &fp.keepouts {
+        crate::emit::keepout::zone(&mut s, "  ", &crate::emit::keepout::points(k), None);
+    }
     if let Some((x, y, _)) = &fp.silkscreen_ref {
         let _ = writeln!(
             s,

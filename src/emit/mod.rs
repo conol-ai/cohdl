@@ -185,10 +185,8 @@ pub fn bind_parts(
 }
 
 /// Natural designator sort key: `C2` before `C10`, `C9` before `U1`.
-pub(crate) fn designator_sort_key(d: &str) -> (String, u64, String) {
+pub(crate) fn designator_sort_key(d: &str) -> (String, u64) {
     let prefix_len = d.chars().take_while(|c| c.is_ascii_uppercase()).count();
     let num = d[prefix_len..].parse().unwrap_or(0);
-    // Keep distinct spellings ordered even when their numeric values tie
-    // (for example an unusual suffixed designator parsing as zero).
-    (d[..prefix_len].to_string(), num, d.to_string())
+    (d[..prefix_len].to_string(), num)
 }

@@ -3,7 +3,7 @@
 //! Selection is deliberately per IR instance, never per plain-BOM group. It
 //! reads (but never mutates) the part binding established by `bind_parts`.
 
-use crate::ast::{AvlEntry, PartDef, SupplierBinding};
+use crate::ast::{AvlEntry, Ident, PartDef, SupplierBinding};
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::{short, World};
@@ -103,13 +103,38 @@ fn field(entry: &AvlEntry, name: &str) -> String {
         .unwrap_or_default()
 }
 
+/// Return the canonical identity of a resolved footprint reference. Looking
+/// it up in the world is essential: `Ident` equality also compares spans, and
+/// a raw spelling comparison would miss aliases resolved to the same fq key.
+fn resolved_footprint_identity<'a>(world: &'a World, reference: &Ident) -> Option<&'a str> {
+    world
+        .footprints
+        .get_key_value(&reference.name)
+        .map(|(identity, _)| identity.as_str())
+}
+
+/// RFC-034 §3.2 eligibility, shared by selection and its E814 explanation.
+fn same_primary_footprint(world: &World, part: &PartDef, entry: &AvlEntry) -> bool {
+    let Some(primary) = part
+        .primary
+        .footprint
+        .as_ref()
+        .and_then(|reference| resolved_footprint_identity(world, reference))
+    else {
+        return false;
+    };
+    entry
+        .effective_footprint(&part.primary)
+        .and_then(|reference| resolved_footprint_identity(world, reference))
+        == Some(primary)
+}
+
 fn selected_entry<'a>(
+    world: &World,
     part: &'a PartDef,
     supplier: &str,
 ) -> Option<(AvlEntryIndex, &'a AvlEntry, &'a SupplierBinding)> {
-    let eligible = |entry: &AvlEntry| {
-        entry.effective_footprint(&part.primary) == part.primary.footprint.as_ref()
-    };
+    let eligible = |entry: &AvlEntry| same_primary_footprint(world, part, entry);
     if eligible(&part.primary) {
         if let Some(binding) = part
             .primary
@@ -222,7 +247,7 @@ fn report_unbound(
                 designators.join(", ")
             );
             if part.alts.iter().any(|alt| {
-                alt.effective_footprint(&part.primary) != part.primary.footprint.as_ref()
+                !same_primary_footprint(world, part, alt)
                     && alt
                         .suppliers
                         .iter()
@@ -256,15 +281,16 @@ pub fn select(
             let Some(part) = world.parts.get(part_name) else {
                 continue;
             };
-            let selected = selected_entry(part, supplier).map(|(entry_index, entry, binding)| {
-                SelectedSupplierEntry {
-                    entry: entry_index,
-                    mfr: field(entry, "mfr"),
-                    mpn: field(entry, "mpn"),
-                    part_number: binding.part_number.clone(),
-                    mapping: mapping(binding),
-                }
-            });
+            let selected =
+                selected_entry(world, part, supplier).map(|(entry_index, entry, binding)| {
+                    SelectedSupplierEntry {
+                        entry: entry_index,
+                        mfr: field(entry, "mfr"),
+                        mpn: field(entry, "mpn"),
+                        part_number: binding.part_number.clone(),
+                        mapping: mapping(binding),
+                    }
+                });
             instances.insert(
                 path.clone(),
                 InstanceSelection {

@@ -136,6 +136,93 @@ design Board {{
 }
 
 #[test]
+fn explicit_same_footprint_bare_and_qualified_alts_are_eligible() {
+    for footprint in ["FP", "board::FP"] {
+        let src = format!(
+            r#"{LIB}
+pub part P: D {{
+    primary {{ mfr: "Yageo", mpn: "Y1", footprint: FP }}
+    alt {{ mfr: "Samsung", mpn: "S1", footprint: {footprint}, supplier acme "A-200157" }}
+}}
+design Board {{
+    inst p: P
+    nc: p.A
+}}
+"#
+        );
+        let (checked, artifacts) = build(&src, &["acme"]);
+        let selection = &artifacts.suppliers.selections[0];
+        let selected = selection
+            .get("Board::p")
+            .unwrap()
+            .selected
+            .as_ref()
+            .unwrap_or_else(|| panic!("{footprint} was rejected"));
+        assert_eq!(selected.entry, AvlEntryIndex::Alt(0));
+        assert_eq!(selected.part_number, "A-200157");
+        assert_eq!(selected.mfr, "Samsung");
+        assert_eq!(selected.mpn, "S1");
+        assert!(!checked.diags.render(&checked.sm).contains("E814"));
+    }
+
+    let src = format!(
+        r#"{LIB}
+pub part P: D {{
+    primary {{ mfr: "Yageo", mpn: "Y1", footprint: FP }}
+    alt {{ mfr: "Samsung", mpn: "S1", footprint: OTHER, supplier acme "A-200157" }}
+}}
+design Board {{
+    inst p: P
+    nc: p.A
+}}
+"#
+    );
+    let (checked, artifacts) = build(&src, &["acme"]);
+    assert!(artifacts.suppliers.selections[0]
+        .get("Board::p")
+        .unwrap()
+        .selected
+        .is_none());
+    let rendered = checked.diags.render(&checked.sm);
+    assert_eq!(rendered.matches("E814").count(), 1, "{rendered}");
+    assert!(
+        rendered.contains("effective footprint differs"),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn ordinary_bom_retains_stable_path_order_for_equal_natural_sort_keys() {
+    let src = format!(
+        r#"{LIB}
+pub part P: D {{ primary {{ mfr: "M", mpn: "N", footprint: FP }} }}
+design Board {{
+    inst a: P
+    inst b: P
+    nc: a.A
+    nc: b.A
+}}
+"#
+    );
+    let prior = LockState {
+        designators: [
+            ("Board::a".to_string(), "J1B".to_string()),
+            ("Board::b".to_string(), "J1A".to_string()),
+        ]
+        .into_iter()
+        .collect(),
+        tombstones: Default::default(),
+    };
+    let mut checked = checked(&src);
+    let artifacts = build_artifacts(&mut checked, &prior).expect("ordinary build");
+    assert!(artifacts.suppliers.is_empty());
+    assert_eq!(
+        artifacts.bom,
+        "Manufacturer,Comment,Designator,Footprint\n\"M\",\"N\",\"J1B,J1A\",\"FP\"\n"
+    );
+}
+
+#[test]
 fn e814_is_per_instantiated_part_with_natural_designators_and_fp_reason() {
     let src = format!(
         r#"{LIB}

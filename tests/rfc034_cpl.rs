@@ -10,6 +10,8 @@ use std::process::Command;
 const HEADER: &str = "Designator,Mid X,Mid Y,Layer,Rotation\n";
 const DXF_30X20: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n\
     10\n-15\n20\n-10\n10\n15\n20\n-10\n10\n15\n20\n10\n10\n-15\n20\n10\n0\nENDSEC\n";
+const DXF_40X25: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n\
+    10\n0\n20\n0\n10\n40\n20\n0\n10\n40\n20\n25\n10\n0\n20\n25\n0\nENDSEC\n";
 
 const LIB: &str = r#"
 pub trait Ic { designator_prefix: "U" }
@@ -173,8 +175,8 @@ design B {{
     assert_eq!(
         cpl(&artifacts),
         format!(
-            "{HEADER}U1,30.0000mm,20.0000mm,Bottom,217\n\
-U2,0.0000mm,0.0000mm,Top,359\n"
+            "{HEADER}U1,30.0000mm,0.0000mm,Bottom,217\n\
+U2,0.0000mm,20.0000mm,Top,359\n"
         )
     );
     let board = cohdl::emit::kicad_pcb::emit_kicad_pcb(
@@ -204,6 +206,34 @@ design B {{
     assert_eq!(
         cpl(&artifacts),
         format!("{HEADER}U1,7.0000mm,-1.0000mm,Bottom,270\n")
+    );
+}
+
+#[test]
+fn asymmetric_outline_uses_its_lower_left_corner_with_y_positive_upward() {
+    let src = format!(
+        "{LIB}
+design B {{
+    inst chip: SMD
+    net A: chip.A
+    layout {{
+        board_outline: \"mechanical/outline.dxf\"
+        place chip at (10mm, 5mm)
+    }}
+}}
+"
+    );
+    let (_checked, artifacts) = build(&src, Some(DXF_40X25));
+    assert_eq!(
+        cpl(&artifacts),
+        format!("{HEADER}U1,10.0000mm,20.0000mm,Top,0\n")
+    );
+
+    let no_outline = src.replace("        board_outline: \"mechanical/outline.dxf\"\n", "");
+    let (_checked, artifacts) = build(&no_outline, None);
+    assert_eq!(
+        cpl(&artifacts),
+        format!("{HEADER}U1,10.0000mm,-5.0000mm,Top,0\n")
     );
 }
 

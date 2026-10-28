@@ -28,6 +28,14 @@ const MAX_SCANNED_ITEMS = 100_000;
 const MAX_ARGS_PER_PART = 128;
 const MAX_AVL_ENTRIES_PER_PART = 256;
 const MAX_FIELDS_PER_AVL = 64;
+export const MAX_SUPPLIERS_PER_AVL = 16;
+const MAX_SUPPLIER_PN_BYTES = 128;
+// match + supplier + 96 classes + limit + offset = D1's 100 bindings.
+const MAX_SEARCH_CLASSES = 96;
+const MAX_CLASS_BYTES = 128;
+// Each key binds supplier and PN; 49 pairs stay below D1's 100-binding limit.
+const CATALOG_LOOKUP_ROWS = 49;
+const MAX_LINK_BYTES = 2048;
 export const PART_SEARCH_CHUNK_BYTES = 512 * 1024;
 // Four MiB retains the current largest real package (`passive`, 8,972 public
 // parts) while preventing an accepted sidecar from multiplying into
@@ -70,7 +78,8 @@ export interface PartSearchIndexRow {
 
 export interface SearchStore {
   searchPackages(query: string, take: number, offset: number): Promise<PackageSearchRow[]>;
-  searchParts(match: string, take: number, offset: number): Promise<IndexedPartSearchRow[]>;
+  searchParts(match: string, take: number, offset: number, supplier: string | null, classes: string[]): Promise<IndexedPartSearchRow[]>;
+  catalog(keys: readonly IndexedSupplier[]): Promise<Map<string, SupplierCatalogRow>>;
 }
 
 export interface SearchDependencies {
@@ -83,6 +92,8 @@ interface SearchParams {
   kind: SearchKind;
   limit: number;
   offset: number;
+  supplier: string | null;
+  classes: string[];
 }
 
 type SearchParamsResult =
@@ -93,9 +104,28 @@ interface IndexedAvl {
   primary: boolean;
   manufacturer: string | null;
   mpn: string | null;
+  suppliers: IndexedSupplier[];
 }
 
-interface PublicPartSearchRow {
+interface IndexedSupplier {
+  supplier: string;
+  pn: string;
+  at: [string, string];
+  rotate: number;
+}
+
+interface PublicCatalog {
+  class: string;
+  stock: number;
+  snapshot_date: string;
+}
+
+interface PublicSupplier extends IndexedSupplier {
+  links: { label: string; url: string }[];
+  catalog: PublicCatalog | null;
+}
+
+export interface PublicPartSearchRow {
   package: string;
   tier: "official" | "brand" | "contrib";
   version: string;
@@ -106,6 +136,14 @@ interface PublicPartSearchRow {
   manufacturer: string | null;
   mpn: string | null;
   primary: boolean;
+  suppliers: PublicSupplier[];
+}
+
+interface SupplierCatalogRow extends PublicCatalog {
+  supplier: string;
+  pn: string;
+  product_url_template: string | null;
+  links: { label: string; url: string }[];
 }
 
 function searchJson(status: number, body: unknown, headers: Record<string, string> = {}): Response {
@@ -160,7 +198,22 @@ export function parseSearchParams(url: URL): SearchParamsResult {
     return { ok: false, error: "offset must be a canonical integer from 0 to 10000" };
   }
 
-  return { ok: true, value: { query, kind: requestedKind, limit, offset } };
+  const suppliers = url.searchParams.getAll("supplier");
+  if (suppliers.length > 1 || (suppliers.length === 1 && !/^[a-z][a-z0-9_]{0,31}$/.test(suppliers[0]))) {
+    return { ok: false, error: "supplier must be one valid supplier ID" };
+  }
+  const classes = url.searchParams.getAll("class");
+  if (classes.length > 0 && suppliers.length === 0) {
+    return { ok: false, error: "class requires supplier" };
+  }
+  if (classes.length > MAX_SEARCH_CLASSES || classes.some((value) =>
+    value.length === 0 || value.normalize("NFC") !== value || value.trim() !== value ||
+    /[\p{Cc}\p{Cf}]/u.test(value) || new TextEncoder().encode(value).length > MAX_CLASS_BYTES)) {
+    return { ok: false, error: "at most 96 bounded, normalized classes are allowed" };
+  }
+
+  return { ok: true, value: { query, kind: requestedKind, limit, offset,
+    supplier: suppliers[0] ?? null, classes: [...new Set(classes)] } };
 }
 
 /// Turn untrusted user text into one literal FTS phrase. Doubling a quote is
@@ -177,6 +230,38 @@ function emitLog(deps: SearchDependencies, entry: Record<string, unknown>): void
   }
 }
 
+function validSupplier(value: unknown): value is string {
+  return typeof value === "string" && /^[a-z][a-z0-9_]{0,31}$/.test(value);
+}
+
+function validPn(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0 &&
+    !/[\p{Cc}\p{Cf}]/u.test(value) &&
+    new TextEncoder().encode(normalizeUtf8(value)).length <= MAX_SUPPLIER_PN_BYTES;
+}
+
+function validOffset(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= 64 &&
+    /^-?(?:0|[1-9]\d*)(?:\.\d+)?mm$/.test(value);
+}
+
+function parseSuppliers(value: unknown): IndexedSupplier[] {
+  if (!Array.isArray(value)) return [];
+  const suppliers: IndexedSupplier[] = [];
+  const seen = new Set<string>();
+  for (const candidate of value.slice(0, MAX_SUPPLIERS_PER_AVL)) {
+    if (!isRecord(candidate) || !validSupplier(candidate.supplier) || !validPn(candidate.pn) ||
+        seen.has(candidate.supplier) || !Array.isArray(candidate.at) || candidate.at.length !== 2 ||
+        !validOffset(candidate.at[0]) || !validOffset(candidate.at[1]) ||
+        !Number.isSafeInteger(candidate.rotate) || (candidate.rotate as number) < 0 ||
+        (candidate.rotate as number) > 359) continue;
+    seen.add(candidate.supplier);
+    suppliers.push({ supplier: candidate.supplier, pn: normalizeUtf8(candidate.pn),
+      at: [candidate.at[0], candidate.at[1]], rotate: candidate.rotate as number });
+  }
+  return suppliers;
+}
+
 function parseAvl(raw: string): IndexedAvl[] {
   let parsed: unknown;
   try {
@@ -190,12 +275,13 @@ function parseAvl(raw: string): IndexedAvl[] {
     if (!isRecord(value)) continue;
     const manufacturer = boundedString(value.manufacturer, MAX_ID_BYTES);
     const mpn = boundedString(value.mpn, MAX_ID_BYTES);
-    avl.push({ primary: value.primary === true, manufacturer, mpn });
+    avl.push({ primary: value.primary === true, manufacturer, mpn,
+      suppliers: parseSuppliers(value.suppliers) });
   }
   return avl;
 }
 
-function publicPart(row: IndexedPartSearchRow, query: string): PublicPartSearchRow {
+function publicPart(row: IndexedPartSearchRow, query: string): Omit<PublicPartSearchRow, "suppliers"> & { suppliers: IndexedSupplier[] } {
   const avl = parseAvl(row.avl_json);
   const needle = query.toLowerCase();
   const matching = avl.find(
@@ -204,6 +290,13 @@ function publicPart(row: IndexedPartSearchRow, query: string): PublicPartSearchR
       entry.mpn?.toLowerCase().includes(needle) === true,
   );
   const selected = matching ?? avl.find((entry) => entry.primary) ?? avl[0] ?? null;
+  const byIdentity = new Map<string, IndexedSupplier>();
+  for (const entry of avl) {
+    for (const binding of entry.suppliers) {
+      const key = `${binding.supplier}\0${binding.pn}`;
+      if (!byIdentity.has(key)) byIdentity.set(key, binding);
+    }
+  }
   return {
     package: row.package,
     tier: row.tier,
@@ -215,7 +308,55 @@ function publicPart(row: IndexedPartSearchRow, query: string): PublicPartSearchR
     manufacturer: selected?.manufacturer ?? null,
     mpn: selected?.mpn ?? null,
     primary: selected?.primary ?? true,
+    suppliers: [...byIdentity.values()],
   };
+}
+
+function catalogKey(supplier: string, pn: string): string {
+  return JSON.stringify([supplier, pn]);
+}
+
+function safeLinks(value: unknown): { label: string; url: string }[] {
+  if (!Array.isArray(value)) return [];
+  const result: { label: string; url: string }[] = [];
+  const labels = new Set<string>();
+  for (const item of value.slice(0, 16)) {
+    if (!isRecord(item) || typeof item.label !== "string" || item.label.length === 0 ||
+        item.label.length > 128 || item.label.normalize("NFC") !== item.label ||
+        item.label.trim() !== item.label || /[\p{Cc}\p{Cf}]/u.test(item.label) ||
+        labels.has(item.label) || !safeUrl(item.url)) continue;
+    labels.add(item.label);
+    result.push({ label: item.label, url: item.url });
+  }
+  return result;
+}
+
+function safeUrl(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > MAX_LINK_BYTES || /\s/u.test(value) ||
+      new TextEncoder().encode(value).length > MAX_LINK_BYTES) return false;
+  try {
+    const url = new URL(value);
+    return (url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password;
+  } catch { return false; }
+}
+
+function productLink(template: string | null, pn: string): { label: string; url: string }[] {
+  if (template === null || template.length > MAX_LINK_BYTES || /\s/u.test(template) ||
+      (template.match(/\{pn\}/g)?.length ?? 0) !== 1) return [];
+  const url = template.replaceAll("{pn}", encodeURIComponent(pn));
+  return safeUrl(url) ? [{ label: "Product", url }] : [];
+}
+
+function enrichPart(
+  part: Omit<PublicPartSearchRow, "suppliers"> & { suppliers: IndexedSupplier[] },
+  catalog: Map<string, SupplierCatalogRow>,
+): PublicPartSearchRow {
+  return { ...part, suppliers: part.suppliers.map((binding) => {
+    const row = catalog.get(catalogKey(binding.supplier, binding.pn));
+    if (!row) return { ...binding, links: [], catalog: null };
+    return { ...binding, links: [...productLink(row.product_url_template, binding.pn), ...row.links],
+      catalog: { class: row.class, stock: row.stock, snapshot_date: row.snapshot_date } };
+  }) };
 }
 
 export async function handleSearch(
@@ -228,7 +369,7 @@ export async function handleSearch(
   }
   const parsed = parseSearchParams(url);
   if (!parsed.ok) return searchJson(400, { error: parsed.error });
-  const { query, kind, limit, offset } = parsed.value;
+  const { query, kind, limit, offset, supplier, classes } = parsed.value;
   const take = limit + 1;
 
   try {
@@ -236,8 +377,12 @@ export async function handleSearch(
       kind === "part" ? Promise.resolve([]) : deps.store.searchPackages(query, take, offset),
       kind === "package"
         ? Promise.resolve([])
-        : deps.store.searchParts(quoteFtsPhrase(query), take, offset),
+        : deps.store.searchParts(quoteFtsPhrase(query), take, offset, supplier, classes),
     ]);
+    const visibleParts = partRows.slice(0, limit).map((row) => publicPart(row, query));
+    const lookupKeys = [...new Map(visibleParts.flatMap((part) => part.suppliers)
+      .map((binding) => [catalogKey(binding.supplier, binding.pn), binding])).values()];
+    const catalog = await deps.store.catalog(lookupKeys);
     return searchJson(
       200,
       {
@@ -253,7 +398,7 @@ export async function handleSearch(
           has_more: packageRows.length > limit,
         },
         parts: {
-          results: partRows.slice(0, limit).map((row) => publicPart(row, query)),
+          results: visibleParts.map((part) => enrichPart(part, catalog)),
           has_more: partRows.length > limit,
         },
       },
@@ -328,9 +473,14 @@ function fieldsForAvl(value: unknown): { avl: IndexedAvl; searchable: string[] }
     if (name === "mpn") mpn = fieldValue;
   }
   return {
-    avl: { primary: false, manufacturer, mpn },
+    avl: { primary: false, manufacturer, mpn, suppliers: [] },
     searchable,
   };
+}
+
+function supplierProjection(value: unknown): { suppliers: IndexedSupplier[]; pns: string[] } {
+  const suppliers = parseSuppliers(isRecord(value) ? value.suppliers : undefined);
+  return { suppliers, pns: suppliers.map((binding) => binding.pn) };
 }
 
 function packageRoot(packageName: string): string {
@@ -409,13 +559,16 @@ export function extractPartSearchRows(
     if (variant) addSearchable(variant);
     for (const entry of entries) {
       const extracted = fieldsForAvl(entry.value);
+      const projected = supplierProjection(entry.value);
       if (!extracted) continue;
       extracted.avl.primary = entry.primary;
+      extracted.avl.suppliers = projected.suppliers;
       avl.push(extracted.avl);
       for (const value of extracted.searchable) addSearchable(value);
+      for (const pn of projected.pns) addSearchable(pn);
     }
     if (!avl.some((entry) => entry.primary)) {
-      avl.unshift({ primary: true, manufacturer: null, mpn: null });
+      avl.unshift({ primary: true, manufacturer: null, mpn: null, suppliers: [] });
     }
     const avlJson = JSON.stringify(avl);
     if (encoder.encode(avlJson).length > MAX_AVL_JSON_BYTES) continue;
@@ -533,21 +686,42 @@ function d1SearchStore(db: D1Database): SearchStore {
       }));
     },
 
-    async searchParts(match: string, take: number, offset: number) {
+    async searchParts(match: string, take: number, offset: number, supplier: string | null, classes: string[]) {
+      const values: unknown[] = [match];
+      let filter = "";
+      if (supplier !== null) {
+        values.push(supplier);
+        filter += ` AND EXISTS (
+          SELECT 1 FROM json_each(part_search.avl_json) AS avl,
+                        json_each(json_extract(avl.value, '$.suppliers')) AS binding
+           WHERE json_extract(binding.value, '$.supplier') = ?`;
+        if (classes.length > 0) {
+          values.push(...classes);
+          filter += ` AND EXISTS (SELECT 1 FROM supplier_catalog
+             WHERE supplier_catalog.supplier = json_extract(binding.value, '$.supplier')
+               AND supplier_catalog.pn = json_extract(binding.value, '$.pn')
+               AND supplier_catalog.class IN (${classes.map(() => "?").join(", ")}))`;
+        }
+        filter += ")";
+      }
       const rows = await db
         .prepare(
-          `SELECT part_search.package_name, p.tier,
-                  part_search.package_version, part_search.fq,
-                  part_search.name, part_search.device,
-                  part_search.intent, part_search.avl_json
-             FROM part_search
-             JOIN packages p ON p.name = part_search.package_name
-            WHERE part_search MATCH ?
-            ORDER BY bm25(part_search), part_search.package_name ASC,
-                     part_search.fq ASC
+          `WITH filtered_parts AS MATERIALIZED (
+             SELECT part_search.*, bm25(part_search) AS rank
+               FROM part_search
+              WHERE part_search MATCH ?${filter}
+           )
+           SELECT filtered_parts.package_name, p.tier,
+                  filtered_parts.package_version, filtered_parts.fq,
+                  filtered_parts.name, filtered_parts.device,
+                  filtered_parts.intent, filtered_parts.avl_json
+             FROM filtered_parts
+             JOIN packages p ON p.name = filtered_parts.package_name
+            ORDER BY filtered_parts.rank, filtered_parts.package_name ASC,
+                     filtered_parts.fq ASC
             LIMIT ? OFFSET ?`,
         )
-        .bind(match, take, offset)
+        .bind(...values, take, offset)
         .all<{
           package_name: string;
           tier: "official" | "brand" | "contrib";
@@ -568,6 +742,34 @@ function d1SearchStore(db: D1Database): SearchStore {
         intent: row.intent,
         avl_json: row.avl_json,
       }));
+    },
+
+    async catalog(keys: readonly IndexedSupplier[]) {
+      const catalog = new Map<string, SupplierCatalogRow>();
+      for (let offset = 0; offset < keys.length; offset += CATALOG_LOOKUP_ROWS) {
+        const chunk = keys.slice(offset, offset + CATALOG_LOOKUP_ROWS);
+        const result = await db.prepare(`SELECT c.supplier, c.pn, c.class, c.stock,
+              c.links, c.fetched_at, s.product_url_template
+             FROM supplier_catalog c
+             LEFT JOIN suppliers s ON s.id = c.supplier
+            WHERE (c.supplier, c.pn) IN (${chunk.map(() => "(?, ?)").join(", ")})
+            ORDER BY c.supplier ASC, c.pn ASC`)
+          .bind(...chunk.flatMap((binding) => [binding.supplier, binding.pn])).all();
+        for (const row of result.results) {
+          const supplier = String(row.supplier);
+          const pn = String(row.pn);
+          if (!validSupplier(supplier) || !validPn(pn) || typeof row.class !== "string" ||
+              row.class.length > MAX_CLASS_BYTES || !Number.isSafeInteger(Number(row.stock)) ||
+              Number(row.stock) < 0 || typeof row.fetched_at !== "string" || row.fetched_at.length > 64) continue;
+          let links: { label: string; url: string }[] = [];
+          try { links = safeLinks(JSON.parse(String(row.links))); } catch { /* malformed rows expose no links */ }
+          catalog.set(catalogKey(supplier, pn), { supplier, pn, class: row.class,
+            stock: Number(row.stock), snapshot_date: row.fetched_at,
+            product_url_template: typeof row.product_url_template === "string" ? row.product_url_template : null,
+            links });
+        }
+      }
+      return catalog;
     },
   };
 }

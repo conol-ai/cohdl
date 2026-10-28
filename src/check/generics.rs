@@ -1160,9 +1160,7 @@ fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
                     .join(","),
             };
             let effective_fp = entry
-                .footprint
-                .as_ref()
-                .or(part.primary.footprint.as_ref())
+                .effective_footprint(&part.primary)
                 .map(|f| f.name.as_str())
                 .unwrap_or("");
             let sig = format!(

@@ -304,11 +304,25 @@ pub struct BuildArtifacts {
     /// Informational notes for the build output (e.g. ambiguous part
     /// bindings resolved deterministically — provisional §2).
     pub notes: Vec<String>,
+    /// RFC-034 §3.2 per-instance supplier choices, shared by supplier-aware
+    /// emitters. Empty for the legacy no-supplier build wrapper.
+    pub suppliers: crate::supplier::SupplierSelections,
 }
 
 /// The `build` half: designators (RFC-005), part binding, emitters.
 /// Only call when `checked.diags` has no errors and `checked.ir` is Some.
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
+    build_artifacts_with_suppliers(checked, prior_lock, &[])
+}
+
+/// Build with RFC-034 supplier selection after successful part binding. The
+/// caller passes the CLI's validated, repeatable IDs; their first-occurrence
+/// order is retained. No-supplier callers use `build_artifacts` unchanged.
+pub fn build_artifacts_with_suppliers(
+    checked: &mut Checked,
+    prior_lock: &LockState,
+    suppliers: &[String],
+) -> Option<BuildArtifacts> {
     // A design that failed the check phase produces no artifacts: do not
     // assign designators, bind parts, or emit against a design known invalid.
     if checked.diags.has_errors() {
@@ -331,6 +345,10 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         return None;
     }
     let ir = checked.ir.as_ref().unwrap();
+    let mut supplier_diags = Diagnostics::new();
+    let suppliers = crate::supplier::select(&checked.world, ir, suppliers, &mut supplier_diags);
+    supplier_diags.sort(&checked.sm);
+    checked.diags.extend(supplier_diags);
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
@@ -339,6 +357,7 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         layout: crate::emit::layout::emit_layout_json(ir),
         quilter: crate::emit::quilter::emit_quilter_csvs(ir),
         notes,
+        suppliers,
     })
 }
 

@@ -1684,6 +1684,12 @@ pub struct AvlField {
 }
 
 impl AvlEntry {
+    /// The entry's footprint, with an alt inheriting its part's primary
+    /// footprint when it has no explicit reference (RFC-034 §3.2).
+    pub fn effective_footprint<'a>(&'a self, primary: &'a AvlEntry) -> Option<&'a Ident> {
+        self.footprint.as_ref().or(primary.footprint.as_ref())
+    }
+
     pub fn field(&self, name: &str) -> Option<&AvlField> {
         self.fields.iter().find(|f| f.name.name == name)
     }

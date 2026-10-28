@@ -688,8 +688,8 @@ describe("handleApidocsPut", () => {
     expect(indexed).toHaveLength(1);
     expect(indexed[0].fq).toBe("passive::parts::C100N");
     expect(JSON.parse(indexed[0].avl_json)).toEqual([
-      { primary: true, manufacturer: null, mpn: "PRIMARY" },
-      { primary: false, manufacturer: null, mpn: "ALTERNATE" },
+      { primary: true, manufacturer: null, mpn: "PRIMARY", suppliers: [] },
+      { primary: false, manufacturer: null, mpn: "ALTERNATE", suppliers: [] },
     ]);
   });
 

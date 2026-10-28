@@ -97,6 +97,24 @@ Diagnostics:
 - Lexical unit errors (E101, E103, E104) apply as everywhere.
 - Unknown `name:` keys remain E802.
 
+**Supplier declarations.** A package may also declare a fact about a supplier ID that the supplier's outputs depend on:
+
+```cohdl
+supplier acme { bottom_rotation: mirrored }
+```
+
+- It is a top-level declaration, a peer of `part` and `footprint`, with no `pub` and no path. Supplier IDs form one flat namespace, the one clauses use, so a declaration applies wherever its package is in the package set.
+- It has one key today, `bottom_rotation`, with two values:
+  - `kicad`, also what applies when nothing is declared: bottom-side rows of the supplier CPL use the §3.1 angle;
+  - `mirrored`: bottom-side rows of that supplier's CPL use `(180 − θ) mod 360`, where θ is the §3.1 angle of the mapped placement. For `place … rotate R side bottom` with an identity mapping this is `(360 − R) mod 360`, the angle as seen from the bottom.
+
+  Positions, sides, top-side rows, the neutral CPL and the BOMs are unaffected.
+- The package set may declare each supplier ID at most once, the rule that keeps `(supplier, PN)` unambiguous. Two packages that both declare `acme` fail even when they agree, because the declaration has one owner.
+- **E816** (error) owns the declaration: an invalid or reserved ID (the clause rules), an unknown key, an unknown value, a repeated key, and a second declaration of the same ID anywhere in the package set, naming both.
+- Official libraries declare their suppliers in one package that every package with bindings depends on (library program), so a design that uses those parts inherits the declaration.
+
+This is a declaration and not a mapping because the difference depends on the part's own angle. One assembler's preview (Open questions) read bottom-side angles in a convention that agrees with KiCad's at 90° and 270° only, so no constant `rotate` can absorb it. The compiler still attaches no meaning to any supplier name (Alternatives, 5): the knowledge lives in the package that owns the supplier.
+
 ### 2. Meaning of the mapping
 
 A binding's mapping says where the supplier's footprint for that part number sits when drawn in the coordinate frame of the entry's footprint:
@@ -169,8 +187,8 @@ When final placement happens outside CoHDL, the CPL comes from the laid-out boar
 | File | Content |
 |---|---|
 | `out/<name>-<ID>-bom.csv` | `Comment,Designator,Footprint,<ID> Part #`, where the last header is the supplier ID in upper case (for `acme`: `ACME Part #`). One row per selected purchase identity (below). |
-| `out/<name>-<ID>-map.json` | `schema_version: 1`. A `footprints` table and a `designators` table (described after this table). |
-| `out/<name>-<ID>-cpl.csv` | Written when the neutral CPL (§3.1) is, so never under `--logical-only`. Same columns, rows, origin and bottom-side angle convention as the neutral file. Each row's placement is first transformed by §2 using that designator's mapping. |
+| `out/<name>-<ID>-map.json` | `schema_version: 2`. `bottom_rotation` (`"kicad"` or `"mirrored"`, the convention the supplier CPL used, so a tool applying the map writes the same angles), a `footprints` table and a `designators` table (described after this table). |
+| `out/<name>-<ID>-cpl.csv` | Written when the neutral CPL (§3.1) is, so never under `--logical-only`. Same columns, rows and origin as the neutral file. Each row's placement is first transformed by §2 using that designator's mapping; bottom-side rows then follow the supplier's `bottom_rotation` (§1). When the package set declares nothing for `ID`, KiCad's convention applies and the build reports one **E817** warning naming `ID`. |
 
 The neutral `-cpl.csv` is still written alongside; `--supplier` adds files and never replaces one. `--supplier` combines with `--logical-only` (it is not an `--emit` value) and then writes the BOM and map files only.
 
@@ -207,7 +225,7 @@ How the entry and rows are chosen:
 - **Unbound instances** get an empty part-number cell, identity mapping in the supplier CPL, and one **E814** warning per unbound part declaration, naming the part and its designators. Only parts the design instantiates are considered; a declared but unused part never produces E814. It appears only when `--supplier` is given, in human and RFC-010 `--json` output alike. An unbound part is still a correct design, so E814 never fails a build. If no entry of any part the design instantiates binds `ID`, which is usually a misspelled ID, the per-group warnings are replaced by one E814 that says so and lists the supplier IDs the design does bind.
 - **Ordering:** BOM rows are sorted by part number, then MPN, with designators in natural order. Output is byte-stable.
 
-**Laid-out boards.** `tools/smt_pos.py` gains `--map out/<name>-<ID>-map.json`. With a map, it applies §2 to each footprint of the laid-out board and writes the supplier CPL in the neutral column set. `--neutral` without a map writes the neutral file. `--map` implies the neutral columns. `--all` cannot be combined with `--neutral` or `--map` (usage error, exit 2). A board with no outline uses the board origin with y negated, which for a board written by `--emit kicad_pcb` is the authoring origin of §3.1. Before writing anything, it checks the board against the map and fails closed:
+**Laid-out boards.** `tools/smt_pos.py` gains `--map out/<name>-<ID>-map.json`. With a map, it applies §2 to each footprint of the laid-out board and writes the supplier CPL in the neutral column set, with bottom-side rows in the map's `bottom_rotation`. A `schema_version: 1` map has no such field and means `kicad`. `--neutral` without a map writes the neutral file. `--map` implies the neutral columns. `--all` cannot be combined with `--neutral` or `--map` (usage error, exit 2). A board with no outline uses the board origin with y negated, which for a board written by `--emit kicad_pcb` is the authoring origin of §3.1. Before writing anything, it checks the board against the map and fails closed:
 - **Frame check.** For each footprint, it applies the same filter as the projection: numbered pads only, so paste apertures and holes drop out. It then recovers each pad's anchor in the footprint's front-side local frame:
   - subtract the footprint position and undo the footprint orientation, which gives the pad's footprint-relative position as the board stores it;
   - on the bottom side, negate local y. This inverts the bottom-side encoding `--emit kicad_pcb` writes, which is also how pcbnew stores a footprint flipped in either flip direction (the direction only changes the footprint angle).
@@ -326,7 +344,9 @@ Vocabulary:
 |---|---|---|
 | Clause syntax | E010 | parse |
 | Part number well-formed; supplier unique per entry; at most 16 clauses; part number not shared across differing (`mfr`, `mpn`) anywhere in the package set; angle in range; offset has `Length` units | E813 | check |
+| Supplier declaration well-formed; at most one per ID in the package set | E816 | check |
 | Supplier BOM complete | E814 per unbound part declaration, or one E814 when the ID is bound nowhere | build, only with `--supplier` |
+| Supplier CPL convention declared | one E817 per supplier ID with no declaration | build, when a supplier CPL is written |
 | Map applied to the board it was made for | `smt_pos.py --map` frame and coverage checks | tool, before writing |
 | Map pads and board pads come from one projection | shared `pad_plans`; projection fixtures (annulus, paste, holes, repeated numbers, both sides, pcbnew round trip) | test suite |
 | CPL complete | one E815 listing unplaced machine-placed instances | build, when a CPL is written |
@@ -355,7 +375,7 @@ There are two main risks, each with a mitigation:
 
 ## Compatibility
 
-- **Language:** additive. Every existing `.cohdl` file keeps its meaning. E813 (error), E814 and E815 (warnings) are new, with numbers provisional.
+- **Language:** additive. Every existing `.cohdl` file keeps its meaning. E813 and E816 (errors), E814, E815 and E817 (warnings) are new, with numbers provisional. The `supplier ID { … }` declaration is new and uses no new reserved word; `supplier` is recognized by position, as in the clause.
 - **Outputs:**
   - BOM CSV: unchanged.
   - `.net`: changes only for primaries with bindings.
@@ -373,14 +393,14 @@ There are two main risks, each with a mitigation:
 - **Documents updated once Accepted:**
   - Note 10: the supplier clause and mapping rule.
   - `docs/provisional-syntax.md` §2: the AVL item list.
-  - `docs/error-codes.md`: E813, E814, E815.
+  - `docs/error-codes.md`: E813–E817.
   - `docs/apidocs.md`: the `suppliers` array.
   - The `.enet` netlist, BOM and CPL output documentation.
   - `tools/smt_pos.py` docs: `--neutral`, `--map`.
   - `cohdl --help` and the CLI exit-code documentation: exit code 3 of `cohdl suppliers`.
-- **`fmt`:** canonical item form `supplier ID "PN" at (Xmm, Ymm) rotate N`. Written `at`/`rotate` are kept and absent ones stay absent. Supplier clauses always come after every `name:` field and `footprint` (which keep today's source-span order), and in source order among themselves; `fmt` moves a clause written earlier in the entry.
+- **`fmt`:** canonical item form `supplier ID "PN" at (Xmm, Ymm) rotate N`. Written `at`/`rotate` are kept and absent ones stay absent. Supplier clauses always come after every `name:` field and `footprint` (which keep today's source-span order), and in source order among themselves; `fmt` moves a clause written earlier in the entry. A supplier declaration's canonical form is one line, `supplier ID { bottom_rotation: VALUE }`.
 - **LSP:** offers `supplier` as an AVL item completion; hover shows the supplier's display name and link when the registry supplier table is cached.
-- **`check --json` / `build --json`:** carry E813/E814/E815 as ordinary diagnostics; the RFC-010 schema is unchanged.
+- **`check --json` / `build --json`:** carry E813–E817 as ordinary diagnostics; the RFC-010 schema is unchanged.
 - **Zero-dependency rule:** unaffected. Compiler changes are parsing, checking, string emission and fixed-point transforms; all fetching lives in the registry and `tools/`.
 
 ## Teaching cost
@@ -397,7 +417,7 @@ There are two main risks, each with a mitigation:
 - **Map applied to a board with an older footprint frame.** For example, the library moved a footprint (a breaking release), the map was regenerated, but the routed board still holds the old footprint. The frame check fails with the designator and pad, and no CPL is written.
 - **Board exported under an older pad projection.** The footprint frame is unchanged but anchors moved, for example after a change to annulus anchors. The frame check fails rather than guessing; the message names both possible causes, and re-exporting the board's footprints fixes it.
 - **Alternate with its own footprint.** Every emitter draws the primary's footprint, so an alternate whose effective footprint differs is never selected for supplier outputs (§3.2). Otherwise its mapping would describe copper that is not on the board. Among eligible entries, the map file and supplier CPL carry the selected entry's mapping, never the primary's by default.
-- **Bottom-side angle convention.** Assemblers differ in how they read bottom-side rotation. The neutral CPL fixes one convention (KiCad's, §3.1), and the conformance tests pin it against the board. Whether a given assembler needs another convention is supplier knowledge, settled by its placement preview and kept outside the compiler.
+- **Bottom-side angle convention.** Assemblers differ in how they read bottom-side rotation. The neutral CPL fixes one convention (KiCad's, §3.1), and the conformance tests pin it against the board. Whether a given assembler needs another convention is supplier knowledge, settled by its placement preview. The package that owns the supplier declares it (§1), and the compiler applies it without knowing any supplier by name. An undeclared supplier gets E817 rather than a silently assumed convention.
 - **Stale supplier files.** Handled by the ownership manifest: files from an earlier `--supplier` run are removed when not produced again (§3).
 - **Misspelled supplier ID.** One E814 says the ID is bound nowhere in the design and lists the IDs that are.
 - **Neutral CPL sent to a supplier whose frames differ.** Parts come out turned or shifted. The neutral file is named without a supplier ID, and the supplier CPL exists next to it whenever `--supplier` is given.
@@ -410,7 +430,7 @@ There are two main risks, each with a mitigation:
 ## Open questions
 
 - **Mirroring in a mapping.** A mapping is rigid (offset and rotation). A supplier footprint that is the mirror image of ours cannot be expressed. The one known reverse-mount part (a side-view LED validated in production) needs only a rotation, so mirroring is left out until a real case needs it.
-- **Bottom-side convention in practice.** §3.1 follows KiCad's convention, derived from how `--emit kicad_pcb` writes bottom-side angles. Before acceptance, a test board with bottom-side parts should confirm two things: that `tools/smt_pos.py --neutral` and the compiler CPL agree, and that one assembler's preview places them correctly.
+- **Bottom-side convention in practice (resolved 2026-10-29).** §3.1 follows KiCad's convention, derived from how `--emit kicad_pcb` writes bottom-side angles. A test board carried four part types at top 0°, top 37°, bottom 0° and bottom 37°. On it, `tools/smt_pos.py --neutral`, the compiler CPL and KiCad's own position export agree. One assembler's preview placed every position and side correctly but read bottom-side angles as `(180 − θ) mod 360`. Across three runs the bottom copies agreed with that preview only at 90° and 270°, and the 37° copies were off by 74° until that transform was applied. The supplier declaration (§1) carries the convention; the neutral file keeps KiCad's.
 
 ## Migration path
 
@@ -427,4 +447,6 @@ Implementation may proceed in stages before acceptance:
 
 Implementation status, 2026-10-28: every stage is implemented on the local branch `feat/rfc-034` and passes the compiler, registry and tool test suites. Rulings made during implementation are folded into §1, §4 and §5 above. Two projection tests need pcbnew and are carried as a manual checklist (open-and-save, and a hand flip in each direction); they are part of acceptance. LSP completion and offline hover are implemented; hover with the registry's supplier display name and link waits for a local cache of the supplier table.
 
-Acceptance still requires central allocation of the RFC number and error codes, and the bottom-side test board and assembler preview in Open questions. Until then this text is not frozen. This file is a working copy in the repository snapshot. The canonical RFC belongs in the conol.ai design repository, where its number and error codes are allocated.
+Revised 2026-10-29: supplier declarations and `bottom_rotation` (§1, §3.2), from the assembler preview in Open questions. The pcbnew checklist was run on KiCad 10.0.7: open-and-save by pcbnew and by `kicad-cli`, a flip in each direction for top and bottom parts at a cardinal and a 37° angle, and 0.01 mm pad moves. All 19 cases behaved as specified.
+
+Acceptance still requires central allocation of the RFC number and error codes, and a repeat of the assembler preview with the bottom-side convention applied by the compiler from a supplier declaration. Until then this text is not frozen. This file is a working copy in the repository snapshot. The canonical RFC belongs in the conol.ai design repository, where its number and error codes are allocated.

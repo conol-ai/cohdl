@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { SearchRow } from "./api";
+import type { PartSearchRow, SearchRow, SupplierBinding, SupplierLink } from "./api";
 
 export type IconName =
   | "arrow"
@@ -295,5 +295,110 @@ export function PackageCard({ pkg }: { pkg: SearchRow }) {
       </span>
       <Icon name="arrow" className="package-card-arrow" size={19} />
     </Link>
+  );
+}
+
+/// Defense in depth for registry-derived links. The stable API filters these
+/// already; the UI independently rejects credentials and non-http(s) targets.
+export function safeSupplierUrl(value: string): string | null {
+  if (!value || value.length > 2048 || /\s/u.test(value)) return null;
+  try {
+    const url = new URL(value);
+    if ((url.protocol !== "https:" && url.protocol !== "http:") || url.username || url.password) {
+      return null;
+    }
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+function SupplierLinks({ links }: { links: SupplierLink[] | undefined }) {
+  const safe = (Array.isArray(links) ? links : []).flatMap((link) => {
+    const url = safeSupplierUrl(link.url);
+    return url ? [{ label: link.label, url }] : [];
+  });
+  if (safe.length === 0) return <>—</>;
+  return (
+    <span className="supplier-links">
+      {safe.map((link, index) => (
+        <a key={`${link.label}-${index}`} href={link.url} target="_blank" rel="noopener noreferrer">
+          {link.label}
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      ))}
+    </span>
+  );
+}
+
+/// One response supplies the complete table. In particular, this component
+/// never resolves catalog rows or supplier product URLs with follow-up calls.
+export function SupplierBindings({ suppliers }: { suppliers?: SupplierBinding[] }) {
+  const rows = Array.isArray(suppliers) ? suppliers : [];
+  if (rows.length === 0) {
+    return <p className="supplier-empty">No supplier bindings are published for this part.</p>;
+  }
+  return (
+    <div className="table-wrap supplier-table-wrap">
+      <table className="api-table supplier-table">
+        <thead>
+          <tr>
+            <th scope="col">Supplier</th>
+            <th scope="col">Part number</th>
+            <th scope="col">At</th>
+            <th scope="col">Rotate</th>
+            <th scope="col">Links</th>
+            <th scope="col">Class</th>
+            <th scope="col">Snapshot date</th>
+            <th scope="col">Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((binding, index) => (
+            <tr key={`${binding.supplier}-${binding.pn}-${index}`}>
+              <td><code>{binding.supplier}</code></td>
+              <td><code>{binding.pn}</code></td>
+              <td>({binding.at?.[0] ?? "—"}, {binding.at?.[1] ?? "—"})</td>
+              <td>{binding.rotate}°</td>
+              <td><SupplierLinks links={binding.links} /></td>
+              <td>{binding.catalog?.class ?? "—"}</td>
+              <td>
+                {binding.catalog ? (
+                  <time dateTime={binding.catalog.snapshot_date}>{binding.catalog.snapshot_date}</time>
+                ) : "—"}
+              </td>
+              <td>{binding.catalog?.stock ?? "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function PartCard({ part }: { part: PartSearchRow }) {
+  const itemParams = new URLSearchParams({ item: part.fq });
+  if (part.version) itemParams.set("version", part.version);
+  return (
+    <article className="part-card">
+      <div className="part-card-heading">
+        <div>
+          <p className="eyebrow">{part.package} · v{part.version}</p>
+          <h2><code>{part.name}</code></h2>
+        </div>
+        <TierBadge tier={part.tier} />
+      </div>
+      <p className="part-card-identity">
+        {part.manufacturer ?? "Unknown manufacturer"} · {part.mpn ?? "No MPN"}
+        {part.primary ? "" : " · alternate entry"}
+      </p>
+      {part.intent && <p>{part.intent}</p>}
+      <SupplierBindings suppliers={part.suppliers} />
+      <p className="part-card-link">
+        <a href={`/package/${part.package.split("/").map(encodeURIComponent).join("/")}?${itemParams}`}>
+          Open part API documentation
+        </a>
+      </p>
+    </article>
   );
 }

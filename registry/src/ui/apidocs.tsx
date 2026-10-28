@@ -21,8 +21,9 @@ import {
   type InstDoc,
   type PadDoc,
   type SubdesignDoc,
+  type SupplierBinding,
 } from "./api";
-import { Icon, StatePanel } from "./components";
+import { Icon, StatePanel, SupplierBindings } from "./components";
 import {
   asArray,
   avlColumns,
@@ -65,12 +66,14 @@ export function ApiExplorer({
   versionParam,
   query,
   search,
+  suppliers,
 }: {
   name: string;
   version: string;
   versionParam?: string;
   query: UseQueryResult<ApiDocs | null>;
   search: ApiSearchState;
+  suppliers?: SupplierBinding[];
 }) {
   if (query.isError) {
     return (
@@ -113,6 +116,7 @@ export function ApiExplorer({
       versionParam={versionParam}
       doc={query.data}
       search={search}
+      suppliers={suppliers}
     />
   );
 }
@@ -123,12 +127,14 @@ function Explorer({
   versionParam,
   doc,
   search,
+  suppliers,
 }: {
   name: string;
   version: string;
   versionParam?: string;
   doc: ApiDocs;
   search: ApiSearchState;
+  suppliers?: SupplierBinding[];
 }) {
   const navigate = useNavigate();
   const items = useMemo(() => asArray(doc.items), [doc]);
@@ -259,6 +265,7 @@ function Explorer({
             impls={impls}
             name={name}
             version={version}
+            suppliers={suppliers}
             nav={nav}
           />
         ) : search.item ? (
@@ -487,6 +494,7 @@ interface DetailContext {
   pads: Map<string, PadDoc>;
   impls: ApiDocsImpl[];
   name: string;
+  suppliers?: SupplierBinding[];
   version: string;
   nav: ApiNav;
 }
@@ -985,6 +993,17 @@ function PartBody({
   const footprintFq = part.primary?.footprint;
   const footprintItem = footprintFq ? ctx.byFq.get(footprintFq) : undefined;
   const footprint = footprintItem?.kind === "footprint" ? footprintItem.footprint : undefined;
+  const supplierDocs = ctx.suppliers;
+  const localBindings = entries.flatMap(({ label, entry }) =>
+    asArray(entry?.suppliers).map((binding) => ({ ...binding, entry: label })),
+  );
+  const supplierBindings: SupplierBinding[] = supplierDocs
+    ? supplierDocs
+    : localBindings.map(({ entry: _entry, ...binding }) => ({
+        ...binding,
+        links: [],
+        catalog: null,
+      }));
 
   return (
     <>
@@ -1043,6 +1062,16 @@ function PartBody({
           </table>
         </div>
       </Section>
+      {(supplierDocs !== undefined || localBindings.length > 0) && (
+        <Section title="Supplier availability" count={supplierBindings.length}>
+          {supplierDocs === undefined && (
+            <p className="api-fact">
+              Catalog links, snapshot dates, and stock are available in supplier search.
+            </p>
+          )}
+          <SupplierBindings suppliers={supplierBindings} />
+        </Section>
+      )}
       {footprintFq &&
         (footprint ? (
           footprint.placeholder ? (

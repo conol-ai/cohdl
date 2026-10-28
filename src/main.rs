@@ -23,7 +23,7 @@ USAGE:
     cohdl install [PATH]
     cohdl login
     cohdl publish [PATH]
-    cohdl search QUERY [--json]
+    cohdl search QUERY [--supplier ID] [--class C]... [--json]
     cohdl docs   [PATH] [--out FILE] [--publish]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
@@ -77,6 +77,9 @@ defaults to the current directory.
     --logical-only  build: emit logical artifacts without footprints or manufacturing output
     --supplier ID  build: select this supplier for each instance (repeatable;
              first-occurrence order is kept and duplicates are ignored)
+             search: require a binding for this supplier (at most once)
+    --class C  search: require one of these catalog classes (repeatable;
+             requires --supplier)
     --dep    update: re-resolve only the named dependency
     --out    docs: write the JSON to FILE instead of stdout
     --publish
@@ -106,8 +109,10 @@ struct Args {
     /// with fmt", not suggest a format that would then be rejected anyway.
     emit: Vec<String>,
     logical_only: bool,
-    /// RFC-034: build-only, repeatable supplier IDs in request order.
+    /// RFC-034: repeatable on build; search accepts exactly one.
     suppliers: Vec<String>,
+    /// RFC-034: search-only, repeatable supplier catalog classes.
+    classes: Vec<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
     /// RFC-030: the NAME positional of add/remove/update (`name` or
@@ -136,8 +141,11 @@ impl Args {
         if self.logical_only && self.command != "build" {
             return bad("--logical-only");
         }
-        if !self.suppliers.is_empty() && self.command != "build" {
+        if !self.suppliers.is_empty() && !matches!(self.command.as_str(), "build" | "search") {
             return bad("--supplier");
+        }
+        if !self.classes.is_empty() && self.command != "search" {
+            return bad("--class");
         }
         if self.logical_only && !self.emit.is_empty() {
             return Err(
@@ -198,9 +206,17 @@ impl Args {
                 }
             }
             "search" => {
-                // Search is registry-only. `--json` is its sole flag; unlike
-                // every path-taking command it neither discovers nor loads a
-                // project.
+                // Search is registry-only; unlike every path-taking command
+                // it neither discovers nor loads a project.
+                if self.suppliers.len() > 1 {
+                    return Err(format!(
+                        "`search` accepts at most one `--supplier ID`\n\n{}",
+                        USAGE
+                    ));
+                }
+                if !self.classes.is_empty() && self.suppliers.is_empty() {
+                    return Err(format!("`--class` requires `--supplier ID`\n\n{}", USAGE));
+                }
                 if self.fmt_check {
                     return bad("--check");
                 }
@@ -361,6 +377,7 @@ fn parse_args() -> Result<Args, String> {
         emit: Vec::new(),
         logical_only: false,
         suppliers: Vec::new(),
+        classes: Vec::new(),
         dep: None,
         name: None,
         query: None,
@@ -382,6 +399,10 @@ fn parse_args() -> Result<Args, String> {
             "--supplier" => {
                 args.suppliers
                     .push(argv.next().ok_or("--supplier needs a value")?);
+            }
+            "--class" => {
+                args.classes
+                    .push(argv.next().ok_or("--class needs a value")?);
             }
             "--check" => args.fmt_check = true,
             "--out-dir" => {
@@ -1564,7 +1585,11 @@ fn registry_tier_label(tier: &str) -> &'static str {
 /// in a pipe); diagnostics keep the existing registry convention.
 fn search_command(args: &Args) -> Result<bool, String> {
     let query = args.query.as_deref().expect("search query was parsed");
-    let results = match cohdl::registry::search(query) {
+    let results = match cohdl::registry::search(
+        query,
+        args.suppliers.first().map(String::as_str),
+        &args.classes,
+    ) {
         Ok(results) => results,
         Err(diag) => {
             if args.json {
@@ -1651,6 +1676,32 @@ fn search_command(args: &Args) -> Result<bool, String> {
                 let intent = terminal_text(intent);
                 if !intent.is_empty() {
                     println!("    {intent}");
+                }
+            }
+            for supplier in part.suppliers.iter().flatten() {
+                println!(
+                    "    supplier {}: {} · at ({}, {}) · rotate {}",
+                    terminal_text(&supplier.supplier),
+                    terminal_text(&supplier.pn),
+                    terminal_text(&supplier.at[0]),
+                    terminal_text(&supplier.at[1]),
+                    supplier.rotate
+                );
+                match &supplier.catalog {
+                    Some(catalog) => println!(
+                        "      catalog: {} · stock {} · snapshot {}",
+                        terminal_text(&catalog.class),
+                        catalog.stock,
+                        terminal_text(&catalog.snapshot_date)
+                    ),
+                    None => println!("      catalog: unavailable"),
+                }
+                for link in &supplier.links {
+                    println!(
+                        "      {}: {}",
+                        terminal_text(&link.label),
+                        terminal_text(&link.url)
+                    );
                 }
             }
         }

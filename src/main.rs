@@ -796,6 +796,9 @@ fn run(args: &Args) -> Result<bool, String> {
     if !args.logical_only {
         emit::validate_physical_export(&checked.world, checked.ir.as_ref().unwrap())
             .map_err(|e| diags_then(&checked, e.to_string()))?;
+        if let Some(cpl) = &artifacts.cpl {
+            emit::cpl::report_unplaced(&mut checked.diags, cpl);
+        }
     }
 
     // Defence in depth (review F4): the artifact basename is `proj.name`,
@@ -846,6 +849,7 @@ fn run(args: &Args) -> Result<bool, String> {
 
     let net_path = out_dir.join(format!("{}.net", proj.name));
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
+    let cpl_path = out_dir.join(format!("{}-cpl.csv", proj.name));
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
     let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
@@ -858,6 +862,11 @@ fn run(args: &Args) -> Result<bool, String> {
     write_artifact(&lock_path, &artifacts.lock.render(), &owned)
         .map_err(|e| diags_then(&checked, e))?;
     written.push(lock_path.clone());
+
+    if let Some(cpl) = artifacts.cpl.as_ref().filter(|_| !args.logical_only) {
+        write_artifact(&cpl_path, &cpl.csv, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(cpl_path.clone());
+    }
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
     // A design that no longer carries layout metadata leaves it out of the new
@@ -978,6 +987,11 @@ fn run(args: &Args) -> Result<bool, String> {
         let build = emit::json::BuildArtifacts {
             netlist: net_path.display().to_string(),
             bom: bom_path.display().to_string(),
+            cpl: artifacts
+                .cpl
+                .as_ref()
+                .filter(|_| !args.logical_only)
+                .map(|_| cpl_path.display().to_string()),
             layout: artifacts
                 .layout
                 .as_ref()

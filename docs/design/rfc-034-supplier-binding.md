@@ -78,7 +78,7 @@ pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
 
 Rules:
 
-- **`SUPPLIER`** is an identifier: lowercase ASCII letter first, then lowercase letters, digits or `_`, at most 32 bytes. The set is **open**: the compiler attaches no meaning to any particular name. Names in conventional use are recorded in the registry's supplier table (§4), not in the compiler. `acme`, `globex` and their part numbers in this RFC are fictitious placeholders.
+- **`SUPPLIER`** is an identifier: lowercase ASCII letter first, then lowercase letters, digits or `_`, at most 32 bytes. The set is **open**: the compiler attaches no meaning to any particular name. Names in conventional use are recorded in the registry's supplier table (§4), not in the compiler. `acme`, `globex` and their part numbers in this RFC are fictitious placeholders. The IDs `mpn` and `mfr` are reserved (E813): their upper-case forms would collide with the `MPN`/`MFR` fields of the KiCad netlist (§3.3).
 - **`PART_NUMBER`** is a string: non-empty after trimming, at most 128 UTF-8 bytes, no control characters. The compiler checks no supplier-specific format.
 - **`at (X, Y)`** is the mapping offset, two `Length` values (RFC-001; a bare number is the existing unit error). It may be negative. It defaults to `(0mm, 0mm)`.
 - **`rotate ANGLE`** is the mapping rotation, a whole number of degrees in `0..=359`. This is the same range and diagnostic shape as `place … rotate` and pad rotation under the live arbitrary-angle deviation. It defaults to `0`.
@@ -243,7 +243,7 @@ How the entry and rows are chosen:
 
 It is maintained by official accounts. A binding to an unlisted supplier is shown without links.
 
-**Manufacturer aliases.** A table `manufacturer_aliases` (same migration) maps an alias to a canonical manufacturer name. Official accounts maintain it through the admin API. §5 compares manufacturer names after Unicode case folding, collapsing runs of whitespace, and mapping both sides through this table.
+**Manufacturer aliases.** A table `manufacturer_aliases` (same migration) maps an alias to a canonical manufacturer name. Official accounts maintain it through the admin API. §5 compares manufacturer names after Unicode case folding, collapsing runs of whitespace, and mapping both sides through this table. Normalization and alias mapping both happen in the registry, so every client compares the same keys (below).
 
 **Catalog table.** A new table `supplier_catalog` is keyed by `(supplier, pn)`. Its columns are `mpn`, `manufacturer`, `package`, `class`, `stock`, extra `links` (label + URL, for supplier pages that cannot be derived from the template), and `fetched_at`.
 - It is replaced per supplier from a snapshot uploaded through an admin endpoint. The Worker does not fetch supplier sites.
@@ -260,6 +260,9 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
 - New `GET /suppliers/{id}/parts`, with two forms (at most 100 values per request; every response carries the snapshot date):
   - `?pn=P1,P2,…`: each part number's catalog row, or `unknown`.
   - `?mpn=M1,M2,…`: for each MPN, the catalog rows whose MPN matches after normalization (case and whitespace), ranked by class order (as declared in the supplier table), then in stock, then higher stock.
+  - Each catalog row also carries `mpn_key` and `manufacturer_key`: the normalized MPN, and the normalized manufacturer after alias mapping.
+  - Values are matched as given. A value may repeat, and each occurrence gets its own result in input order. A part number is looked up exactly, so one that is not trimmed or not in NFC simply returns `unknown`. Empty values, control characters, values over 256 UTF-8 bytes and more than 100 values are rejected. Because the list is comma-separated, a value containing `,` cannot be queried.
+- New `GET /manufacturers/normalize?mfr=…&mpn=…` (each parameter repeatable, at most 100 of each, same value rules): returns the registry's key for each value, in input order. Clients never normalize names themselves.
 - `cohdl search` prints bindings, gains `--supplier ID` and `--class C` (repeatable), and `--json` passes `suppliers` through.
 - The registry UI part view lists each supplier with its part number, mapping, links, class and snapshot date, and offers supplier and class filters on search.
 
@@ -276,6 +279,10 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
   - Each suggestion shows part number, class, stock and catalog manufacturer, and whether the manufacturer agrees with the entry's `mfr`. Agreeing suggestions rank first.
   - Suggestions never include a mapping: the registry cannot know how the supplier's footprint sits relative to the design's.
   - The command never edits source. `--json` carries suggestions as structured data for a repair loop.
+- **Scope.** The audit covers every AVL entry, primary and alternates, of the parts the design instantiates, as E814 does. Without `--supplier` it audits every supplier ID those entries bind and reports no `unbound`.
+- **Comparison** uses the registry's keys (§4): the catalog row's `mpn_key`/`manufacturer_key` against the keys `/manufacturers/normalize` returns for the entry's `mpn` and `mfr`.
+- **Values the registry cannot be asked about.** A part number containing `,` or longer than 256 bytes is reported `unknown` with that reason, without a query. An `mpn` of that kind is reported `unbound` with no suggestions. An `mfr` or `mpn` over 256 bytes is not compared, like an empty one.
+- **Unlisted supplier.** When the registry has no catalog for a supplier ID (`404 supplier not found`), the report says so at supplier level and lists no per-binding status for it. This does not change the exit code, because §4 allows bindings to unlisted suppliers.
 - **Exit codes:**
   - 0 when every audited binding is `ok`
   - 3 when any is `unknown` or `mismatch`

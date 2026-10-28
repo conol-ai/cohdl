@@ -390,8 +390,9 @@ describe("AVL columns", () => {
           { name: "mfr", value: "Samsung" },
           { name: "mpn", value: "CL05B104KO5NNNC" },
         ],
+        suppliers: [],
       },
-      alts: [{ fields: [{ name: "mpn", value: "GRM155R71C104KA88D" }, { name: "note", value: "x" }] }],
+      alts: [{ fields: [{ name: "mpn", value: "GRM155R71C104KA88D" }, { name: "note", value: "x" }], suppliers: [] }],
     });
     expect(columns).toEqual(["mfr", "mpn", "note"]);
   });
@@ -535,7 +536,7 @@ describe("signals for a footprint", () => {
   const fp = "pkg::fp::F";
   const bound = (device: string, footprint: string): PartDoc => ({
     device,
-    primary: { fields: [], footprint },
+    primary: { fields: [], footprint, suppliers: [] },
   });
 
   it("finds the binding via the primary AVL entry", () => {
@@ -555,8 +556,8 @@ describe("signals for a footprint", () => {
       deviceItem("pkg::dev::MCU", mcu),
       partItem("pkg::parts::P1", {
         device: "pkg::dev::MCU",
-        primary: { fields: [], footprint: "pkg::fp::OTHER" },
-        alts: [{ fields: [], footprint: fp }],
+        primary: { fields: [], footprint: "pkg::fp::OTHER", suppliers: [] },
+        alts: [{ fields: [], footprint: fp, suppliers: [] }],
       }),
     ];
     expect(signalsForFootprint(fp, items, [])?.deviceFq).toBe("pkg::dev::MCU");

@@ -3,6 +3,7 @@
 
 use cohdl::ast::{ItemKind, PartDef, SourceFile};
 use cohdl::fmt::format_source;
+use cohdl::lock::LockState;
 use cohdl::pipeline::check_files_in;
 use cohdl::span::SourceMap;
 use cohdl::units::UnitType;
@@ -572,6 +573,89 @@ fn rotations_are_bounded_whole_degrees() {
         )))
         .is_empty());
     }
+}
+
+fn netlist(src: &str) -> String {
+    let mut checked = checked(src);
+    cohdl::pipeline::build_artifacts(&mut checked, &LockState::default())
+        .unwrap_or_else(|| panic!("build failed:\n{}", checked.diags.render(&checked.sm)))
+        .netlist
+}
+
+#[test]
+fn kicad_net_emits_only_primary_suppliers_in_declaration_order() {
+    let src = r#"
+pub footprint FP {}
+pub device D { pins { A: 1 [passive] } }
+pub part P: D {
+    primary { mfr: "M", mpn: "N", footprint: FP,
+        supplier acme "A-1", supplier bolt "B-2" }
+    alt { mfr: "Other", mpn: "ALT", supplier globex "NOT-PRIMARY" }
+}
+design Board { inst u: P nc: u.A }
+"#;
+    assert_eq!(
+        netlist(src),
+        r#"(export (version D)
+  (components
+    (comp (ref "U1") (value "D")
+      (footprint "board::FP")
+      (libsource (lib "cohdl") (part "D") (description ""))
+      (fields
+        (field (name "MPN") "N")
+        (field (name "MFR") "M")
+        (field (name "ACME") "A-1")
+        (field (name "BOLT") "B-2")
+      )
+      (sheetpath (names "/") (tstamps "/"))
+      (tstamp "00000000")
+    )
+  )
+  (nets
+  )
+)
+"#
+    );
+}
+
+#[test]
+fn kicad_net_supplier_only_entry_still_has_fields_and_old_bytes_are_stable() {
+    let src = r#"
+pub footprint FP {}
+pub device D { pins { A: 1 [passive] } }
+#[source_unspecified("mpn", "mfr")]
+pub part P: D {
+    primary { mfr: "", mpn: "", footprint: FP, supplier acme "A-1" }
+}
+design Board { inst u: P nc: u.A }
+"#;
+    let with_supplier = netlist(src);
+    assert_eq!(
+        with_supplier,
+        r#"(export (version D)
+  (components
+    (comp (ref "U1") (value "D")
+      (footprint "board::FP")
+      (libsource (lib "cohdl") (part "D") (description ""))
+      (fields
+        (field (name "MPN") "")
+        (field (name "MFR") "")
+        (field (name "ACME") "A-1")
+      )
+      (sheetpath (names "/") (tstamps "/"))
+      (tstamp "00000000")
+    )
+  )
+  (nets
+  )
+)
+"#
+    );
+    assert_eq!(
+        with_supplier.replace("        (field (name \"ACME\") \"A-1\")\n", ""),
+        netlist(&src.replace(", supplier acme \"A-1\"", "")),
+        "the rest of a no-supplier netlist remains byte-identical"
+    );
 }
 
 #[test]

@@ -8,6 +8,7 @@ use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::World;
 use crate::span::Span;
+use crate::supplier::SupplierSelection;
 use std::fmt::Write as _;
 
 const FEMTO_PER_TEN_THOUSANDTH_MM: i128 = 100_000_000_000;
@@ -24,7 +25,11 @@ pub struct NeutralCpl {
 
 /// Build the neutral CPL whenever the design itself has at least one real
 /// placement.  In particular, emitter staging positions never enter here.
-pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
+fn emit_cpl(
+    world: &World,
+    ir: &DesignIr,
+    supplier: Option<&SupplierSelection>,
+) -> Option<NeutralCpl> {
     if ir.layout.placements.is_empty() {
         return None;
     }
@@ -85,13 +90,38 @@ pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
             continue;
         };
 
+        let mapped = supplier.map_or_else(
+            || crate::placement::PlaceData {
+                at: (placement.at.0.clone(), placement.at.1.clone()),
+                rotate: placement.rotate,
+                side: placement.side,
+                span: inst.span,
+            },
+            |selection| {
+                let mapping = selection
+                    .get(&inst.path)
+                    .and_then(|instance| instance.selected.as_ref())
+                    .map(|selected| selected.mapping)
+                    .unwrap_or_default();
+                crate::placement::compose_supplier_mapping(
+                    &crate::placement::PlaceData {
+                        at: (placement.at.0.clone(), placement.at.1.clone()),
+                        rotate: placement.rotate,
+                        side: placement.side,
+                        span: inst.span,
+                    },
+                    mapping.at,
+                    mapping.rotate,
+                )
+            },
+        );
         let (x, y) = match origin {
-            Some((left, top)) => (placement.at.0.femto - left, top - placement.at.1.femto),
-            None => (placement.at.0.femto, -placement.at.1.femto),
+            Some((left, lower_y)) => (mapped.at.0.femto - left, lower_y - mapped.at.1.femto),
+            None => (mapped.at.0.femto, -mapped.at.1.femto),
         };
-        let (layer, rotation) = match placement.side {
-            PlacementSide::Top => ("Top", placement.rotate % 360),
-            PlacementSide::Bottom => ("Bottom", (placement.rotate + 180) % 360),
+        let (layer, rotation) = match mapped.side {
+            PlacementSide::Top => ("Top", mapped.rotate % 360),
+            PlacementSide::Bottom => ("Bottom", (mapped.rotate + 180) % 360),
         };
         rows.push((
             crate::emit::designator_sort_key(designator),
@@ -116,6 +146,20 @@ pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
         csv.push_str(&row);
     }
     Some(NeutralCpl { csv, unplaced })
+}
+
+pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
+    emit_cpl(world, ir, None)
+}
+
+/// The supplier file is the neutral row set, origin and angle convention with
+/// exactly one preceding per-instance footprint-frame composition.
+pub(crate) fn emit_supplier_cpl(
+    world: &World,
+    ir: &DesignIr,
+    supplier: &SupplierSelection,
+) -> Option<String> {
+    emit_cpl(world, ir, Some(supplier)).map(|cpl| cpl.csv)
 }
 
 /// E815 belongs to physical build only.  The caller invokes this after the

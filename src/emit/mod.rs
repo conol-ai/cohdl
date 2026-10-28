@@ -17,6 +17,7 @@ pub mod layout;
 pub mod quilter;
 pub mod silk;
 pub mod supplier_bom;
+pub mod supplier_map;
 
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;

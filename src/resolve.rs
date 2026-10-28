@@ -57,6 +57,11 @@ pub fn short(name: &str) -> &str {
 /// `parts` are keyed by FULLY-QUALIFIED path; `designs` by bare name.
 #[derive(Debug, Default)]
 pub struct World {
+    /// Loaded package identities, keyed by their fully-qualified root.
+    /// CLI builds populate these from real manifests; synthetic pipelines
+    /// retain the project-root fallback and an explicitly unknown version.
+    pub package_names: std::collections::BTreeMap<String, String>,
+    pub package_versions: std::collections::BTreeMap<String, String>,
     pub traits: BTreeMap<String, TraitDef>,
     pub devices: BTreeMap<String, DeviceDef>,
     pub fns: BTreeMap<String, FnDef>,

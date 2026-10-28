@@ -728,6 +728,8 @@ fn run(args: &Args) -> Result<bool, String> {
         &proj.files,
         args.design.as_deref().or(proj.top.as_deref()),
     )?;
+    checked.world.package_names = proj.package_names;
+    checked.world.package_versions = proj.package_versions;
 
     // A design-selection failure is an invocation-level error (exit 2), but
     // the source diagnostics collected before it are NEVER discarded — they
@@ -876,7 +878,8 @@ fn run(args: &Args) -> Result<bool, String> {
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
     let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
     let enet_path = out_dir.join(format!("{}.enet", proj.name));
-    let mut supplier_paths = std::collections::BTreeMap::new();
+    let mut supplier_paths: std::collections::BTreeMap<String, emit::json::SupplierBuildArtifacts> =
+        std::collections::BTreeMap::new();
 
     write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(net_path.clone());
@@ -892,8 +895,29 @@ fn run(args: &Args) -> Result<bool, String> {
             supplier_bom.supplier.clone(),
             emit::json::SupplierBuildArtifacts {
                 bom: path.display().to_string(),
+                map: String::new(),
+                cpl: None,
             },
         );
+    }
+    for supplier_map in &artifacts.supplier_maps {
+        let map_path = out_dir.join(format!("{}-{}-map.json", proj.name, supplier_map.supplier));
+        write_artifact(&map_path, &supplier_map.json, &owned)
+            .map_err(|e| diags_then(&checked, e))?;
+        written.push(map_path.clone());
+        let cpl_path = out_dir.join(format!("{}-{}-cpl.csv", proj.name, supplier_map.supplier));
+        let mut cpl = None;
+        if let Some(csv) = supplier_map.cpl.as_ref().filter(|_| !args.logical_only) {
+            write_artifact(&cpl_path, csv, &owned).map_err(|e| diags_then(&checked, e))?;
+            written.push(cpl_path.clone());
+            cpl = Some(cpl_path.display().to_string());
+        }
+        supplier_paths
+            .entry(supplier_map.supplier.clone())
+            .and_modify(|paths| {
+                paths.map = map_path.display().to_string();
+                paths.cpl = cpl.clone();
+            });
     }
     write_artifact(&lock_path, &artifacts.lock.render(), &owned)
         .map_err(|e| diags_then(&checked, e))?;

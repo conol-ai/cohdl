@@ -251,8 +251,8 @@ design Board {{ inst p: P nc: p.A }}
     assert!(stdout.contains("\"bolt\": {"), "{stdout}");
     assert!(stdout.contains("t-acme-bom.csv"), "{stdout}");
     assert!(stdout.contains("t-bolt-bom.csv"), "{stdout}");
-    assert!(!stdout.contains("\"map\""), "{stdout}");
-    assert!(!stdout.contains("t-acme-map.json"), "{stdout}");
+    assert!(stdout.contains("\"map\""), "{stdout}");
+    assert!(stdout.contains("t-acme-map.json"), "{stdout}");
     let manifest = std::fs::read_to_string(tmp.join("out/.cohdl-manifest")).unwrap();
     assert!(manifest.lines().any(|line| line == "out/t-acme-bom.csv"));
     assert!(manifest.lines().any(|line| line == "out/t-bolt-bom.csv"));

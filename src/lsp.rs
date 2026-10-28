@@ -744,6 +744,8 @@ impl Server {
                     top: None,
                     files,
                     abs_paths: abs,
+                    package_names: Default::default(),
+                    package_versions: Default::default(),
                 }
             }
         };

@@ -1,0 +1,14 @@
+[package]
+name = "bottom_preview"
+version = "0.1.0"
+license = "MIT"
+description = "RFC-034 bottom-side convention test board for an assembler preview"
+
+[design]
+top = "BottomPreview"
+
+[dependencies]
+flash = "0.1.5"
+passive = "0.2.3"
+std = "0.3.0"
+transistor = "0.1.1"

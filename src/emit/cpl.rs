@@ -121,7 +121,18 @@ fn emit_cpl(
         };
         let (layer, rotation) = match mapped.side {
             PlacementSide::Top => ("Top", mapped.rotate % 360),
-            PlacementSide::Bottom => ("Bottom", (mapped.rotate + 180) % 360),
+            PlacementSide::Bottom => {
+                let kicad = (mapped.rotate + 180) % 360;
+                let rotation = if supplier.is_some_and(|selection| {
+                    crate::supplier::bottom_rotation(world, &selection.supplier)
+                        == crate::ast::BottomRotation::Mirrored
+                }) {
+                    (540 - kicad) % 360
+                } else {
+                    kicad
+                };
+                ("Bottom", rotation)
+            }
         };
         rows.push((
             crate::emit::designator_sort_key(designator),

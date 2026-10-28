@@ -124,8 +124,10 @@ fn emit_one(world: &World, ir: &DesignIr, selection: &SupplierSelection) -> Supp
             .then_with(|| left.instance.cmp(&right.instance))
     });
 
-    let mut json =
-        String::from("{\n  \"schema_version\": 1,\n  \"pad_projection\": 1,\n  \"footprints\": ");
+    let mut json = format!(
+        "{{\n  \"schema_version\": 2,\n  \"pad_projection\": 1,\n  \"bottom_rotation\": {},\n  \"footprints\": ",
+        json_str(crate::supplier::bottom_rotation(world, &selection.supplier).name()),
+    );
     json.push_str(&render_footprints(world, &footprints));
     json.push_str(",\n  \"designators\": {");
     for instance in designators {

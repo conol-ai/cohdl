@@ -196,16 +196,19 @@ def _require_text(value, label, empty=False):
 def validate_map(document):
     """Validate and normalize the map structures needed by the matcher.
 
-    Returns ``{"footprints": {name: parsed pads}, "designators": rows}``.
+    Returns ``{"footprints": {name: parsed pads}, "designators": rows,
+    "bottom_rotation": "kicad" | "mirrored"}``.
     Rows retain their validated mapping fields.  Package/version and purchase
     identity fields are validated for the future CLI, but are not otherwise
     interpreted by the frame matcher.
     """
     document = _require_mapping(document, "map")
-    if document.get("schema_version") != 1 or isinstance(
-        document.get("schema_version"), bool
-    ):
-        raise MapError("map schema_version must be 1")
+    schema = document.get("schema_version")
+    if schema not in (1, 2) or isinstance(schema, bool):
+        raise MapError("map schema_version must be 1 or 2")
+    bottom_rotation = document.get("bottom_rotation", "kicad") if schema == 2 else "kicad"
+    if bottom_rotation not in ("kicad", "mirrored"):
+        raise MapError("map bottom_rotation must be kicad or mirrored")
     if document.get("pad_projection") != 1 or isinstance(
         document.get("pad_projection"), bool
     ):
@@ -282,7 +285,11 @@ def validate_map(document):
     unused = sorted(set(parsed_footprints) - used_footprints, key=natural_key)
     if unused:
         raise MapError("footprints contains unused footprint: " + unused[0])
-    return {"footprints": parsed_footprints, "designators": rows}
+    return {
+        "footprints": parsed_footprints,
+        "designators": rows,
+        "bottom_rotation": bottom_rotation,
+    }
 
 
 def canonical_frame(pads):
@@ -539,7 +546,7 @@ def check_board(document, board_footprints):
     return errors, warnings, rows
 
 
-def mapped_neutral_rows(board_footprints, mappings, origin_nm):
+def mapped_neutral_rows(board_footprints, mappings, origin_nm, bottom_rotation="kicad"):
     """Apply validated supplier mappings to board anchors, in integer nm."""
     by_ref = {row["designator"]: row for row in mappings}
     rows = []
@@ -569,5 +576,8 @@ def mapped_neutral_rows(board_footprints, mappings, origin_nm):
             + (-mapping["rotate"] if bottom else mapping["rotate"]),
         )
         mapped_rows, _ = neutral_rows([mapped_fp], origin_nm)
+        if bottom and bottom_rotation == "mirrored":
+            ref, x, y, layer, angle = mapped_rows[0]
+            mapped_rows = [(ref, x, y, layer, (180 - angle) % 360)]
         rows.extend(mapped_rows)
     return rows

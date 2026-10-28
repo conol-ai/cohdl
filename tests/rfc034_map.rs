@@ -68,7 +68,7 @@ design B {{ inst a: P_A inst b: P_B net N: a.A, a.B, a.C, a.D, b.A }}
     );
     let (_checked, artifacts) = build(&src, &["acme"]);
     let map = map(&artifacts, "acme");
-    assert!(map.starts_with("{\n  \"schema_version\": 1,\n  \"pad_projection\": 1,\n"));
+    assert!(map.starts_with("{\n  \"schema_version\": 2,\n  \"pad_projection\": 1,\n  \"bottom_rotation\": \"kicad\",\n"));
     assert!(
         map.contains("\"footprints\": {\n    \"board::FP_A\": {"),
         "{map}"

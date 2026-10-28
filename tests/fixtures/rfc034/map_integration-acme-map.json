@@ -1,6 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "pad_projection": 1,
+  "bottom_rotation": "kicad",
   "footprints": {
     "map_integration::FP_A": {
       "package": "map_integration",

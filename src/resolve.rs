@@ -66,6 +66,8 @@ pub struct World {
     pub devices: BTreeMap<String, DeviceDef>,
     pub fns: BTreeMap<String, FnDef>,
     pub parts: BTreeMap<String, PartDef>,
+    /// RFC-034 supplier declarations, in the clause's flat ID namespace.
+    pub suppliers: BTreeMap<String, SupplierDecl>,
     /// RFC-018 reusable pad definitions.
     pub pads: BTreeMap<String, PadDef>,
     /// RFC-017/018 footprints (empty body = stage-one placeholder).
@@ -212,6 +214,32 @@ pub fn build_world_in(
                                 ),
                             )
                             .with_secondary(prev, "earlier declared here as a design".to_string()),
+                        );
+                    }
+                }
+                ItemKind::Supplier(s) => {
+                    // IDs are global across the package set, not module-qualified.
+                    let id = s.supplier.name.clone();
+                    let key = format!("\0supplier:{id}");
+                    if let Some(prev) = symbols.get(&key) {
+                        diags.push(
+                            Diagnostic::error(
+                                "E816",
+                                s.supplier.span,
+                                format!(
+                                    "duplicate declaration of supplier `{id}` in the package set"
+                                ),
+                            )
+                            .with_secondary(prev.span, "first declared here"),
+                        );
+                    } else {
+                        symbols.insert(
+                            key,
+                            Symbol {
+                                kind: "supplier declaration",
+                                is_pub: false,
+                                span: s.supplier.span,
+                            },
                         );
                     }
                 }
@@ -420,6 +448,9 @@ pub fn build_world_in(
                 }
             }
             match item.kind {
+                ItemKind::Supplier(s) => {
+                    world.suppliers.entry(s.supplier.name.clone()).or_insert(s);
+                }
                 ItemKind::Trait(t) => {
                     world
                         .traits
@@ -543,7 +574,7 @@ impl Resolver<'_> {
                         }
                     }
                 }
-                ItemKind::Pad(_) => {}
+                ItemKind::Supplier(_) | ItemKind::Pad(_) => {}
                 ItemKind::Footprint(f) => {
                     // RFC-018: pad symbol references resolve like every
                     // other cross-library name.

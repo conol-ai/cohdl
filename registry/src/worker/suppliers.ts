@@ -4,8 +4,10 @@ import { hasJsonContentType, validWriteOrigin } from "./admin";
 import { readBoundedJson } from "./component-requests";
 
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
-export const SUPPLIER_BODY_LIMIT = 512 * 1024;
+export const SUPPLIER_BODY_LIMIT = 4 * 1024 * 1024;
 export const MAX_CATALOG_ROWS = 10_000;
+// D1 permits 100 bound parameters per statement; catalog rows need 11 each.
+const CATALOG_INSERT_ROWS = Math.floor(100 / 11);
 
 export interface CatalogLink { label: string; url: string }
 export interface CatalogRow {
@@ -48,7 +50,7 @@ function text(value: unknown, maxBytes: number): value is string {
 export function normalizeManufacturer(value: string): string {
   return value.normalize("NFC").toLocaleLowerCase("und").replace(/\s+/gu, " ").trim();
 }
-function normalizeMpn(value: string): string {
+export function normalizeMpn(value: string): string {
   return value.normalize("NFC").toLocaleLowerCase("und").replace(/\s+/gu, "");
 }
 function supplierId(value: string): boolean { return /^[a-z][a-z0-9_]{0,31}$/.test(value); }
@@ -186,10 +188,16 @@ export function supplierStore(db: D1Database): SupplierAdminStore {
           .bind(snapshot.supplier, snapshot.display_name, snapshot.product_url_template, JSON.stringify(snapshot.class_vocabulary)),
         db.prepare("DELETE FROM supplier_catalog WHERE supplier = ?").bind(snapshot.supplier),
       ];
-      for (const row of snapshot.rows) statements.push(db.prepare(`INSERT INTO supplier_catalog
-        (supplier, pn, mpn, mpn_key, manufacturer_key, manufacturer, package, class, stock, links, fetched_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(snapshot.supplier, row.pn, row.mpn, row.mpn_key,
-        row.manufacturer_key, row.manufacturer, row.package, row.class, row.stock, JSON.stringify(row.links), row.fetched_at));
+      const values = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      for (let offset = 0; offset < snapshot.rows.length; offset += CATALOG_INSERT_ROWS) {
+        const rows = snapshot.rows.slice(offset, offset + CATALOG_INSERT_ROWS);
+        const bindings: (string | number)[] = [];
+        for (const row of rows) bindings.push(snapshot.supplier, row.pn, row.mpn, row.mpn_key,
+          row.manufacturer_key, row.manufacturer, row.package, row.class, row.stock, JSON.stringify(row.links), row.fetched_at);
+        statements.push(db.prepare(`INSERT INTO supplier_catalog
+          (supplier, pn, mpn, mpn_key, manufacturer_key, manufacturer, package, class, stock, links, fetched_at)
+          VALUES ${rows.map(() => values).join(", ")}`).bind(...bindings));
+      }
       await db.batch(statements);
     },
     async putAlias(aliasKey, alias, canonical) {

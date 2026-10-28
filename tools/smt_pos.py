@@ -25,116 +25,152 @@ With --all, nothing is excluded: every footprint on the board is emitted
 plate/case CAD cross-checks, not for the pick-and-place machine. Default
 output name becomes <stem>-pos-all.csv.
 
+With --neutral, emit the RFC-034 supplier-neutral five-column CPL instead.
+It uses footprint anchors, numbered-SMD row selection, Top/Bottom layers and
+fixed four-place millimetres. Its default output name is <stem>-cpl.csv.
+
 Run with KiCad's own python:
   /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/\
-Versions/3.9/bin/python3 tools/smt_pos.py [--all] <board.kicad_pcb> [out.csv]
+Versions/3.9/bin/python3 tools/smt_pos.py [--all | --neutral] <board.kicad_pcb> [out.csv]
 """
 
+import argparse
 import sys
 from pathlib import Path
 
-import pcbnew
-
-# Bare-copper "components" that exist only as etched features — never placed.
-BARE_COPPER_VALUES = {"TouchSensor", "TouchPad"}
-
-
-def mm(v):
-    return pcbnew.ToMM(v)
+from smt_pos_lib import (
+    legacy_csv,
+    legacy_origin,
+    legacy_rows,
+    neutral_csv,
+    neutral_origin,
+    neutral_rows,
+    outline_geometry_bounds,
+)
 
 
 def main():
-    argv = [a for a in sys.argv[1:] if a != "--all"]
-    everything = "--all" in sys.argv[1:]
-    board_path = Path(argv[0])
-    suffix = "-pos-all.csv" if everything else "-smt.csv"
-    out_path = (
-        Path(argv[1])
-        if len(argv) > 1
-        else board_path.with_name(board_path.stem + suffix)
+    parser = argparse.ArgumentParser(
+        description="Export legacy or RFC-034 supplier-neutral placement CSV."
     )
-    board = pcbnew.LoadBoard(str(board_path))
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--all", action="store_true", help="include every footprint")
+    mode.add_argument(
+        "--neutral", action="store_true", help="write the RFC-034 five-column CPL"
+    )
+    parser.add_argument("board", type=Path)
+    parser.add_argument("output", nargs="?", type=Path)
+    args = parser.parse_args()
 
-    # Board outline bbox -> lower-left origin, Y-up.
+    # KiCad is needed only by the board adapter, never by the pure library or
+    # argument validation. This also lets --help and usage errors run anywhere.
+    import pcbnew
+
+    if args.neutral:
+        suffix = "-cpl.csv"
+    elif args.all:
+        suffix = "-pos-all.csv"
+    else:
+        suffix = "-smt.csv"
+    out_path = (
+        args.output
+        if args.output is not None
+        else args.board.with_name(args.board.stem + suffix)
+    )
+    board = pcbnew.LoadBoard(str(args.board))
+
+    def mm(value):
+        return pcbnew.ToMM(value)
+
+    # The legacy origin intentionally retains the old empty-outline behavior.
     bb = board.GetBoardEdgesBoundingBox()
-    x0, y_max = mm(bb.GetLeft()), mm(bb.GetBottom())
+    old_origin = legacy_origin(mm(bb.GetLeft()), mm(bb.GetBottom()))
+    # KiCad inflates each shape's bbox by half its stroke width. Neutral mode
+    # needs the authoring geometry instead; legacy deliberately keeps ``bb``.
+    new_origin = (0, 0)
+    if args.neutral:
+        shapes = []
+        for drawing in board.GetDrawings():
+            if drawing.GetLayer() != pcbnew.Edge_Cuts:
+                continue
+            shape = drawing.GetShape()
+            kinds = {
+                pcbnew.SHAPE_T_SEGMENT: "segment",
+                pcbnew.SHAPE_T_ARC: "arc",
+                pcbnew.SHAPE_T_RECT: "rect",
+                pcbnew.SHAPE_T_CIRCLE: "circle",
+                pcbnew.SHAPE_T_POLY: "poly",
+            }
 
-    def X(v):
-        return mm(v) - x0
+            def point(value):
+                return value.x, value.y
 
-    def Y(v):
-        return y_max - mm(v)
+            record = {
+                "shape": kinds.get(shape),
+                "start": point(drawing.GetStart()),
+                "end": point(drawing.GetEnd()),
+                "width": drawing.GetWidth(),
+                "bbox": (
+                    drawing.GetBoundingBox().GetLeft(),
+                    drawing.GetBoundingBox().GetTop(),
+                    drawing.GetBoundingBox().GetRight(),
+                    drawing.GetBoundingBox().GetBottom(),
+                ),
+            }
+            if record["shape"] == "arc":
+                record["mid"] = point(drawing.GetArcMid())
+                record["center"] = point(drawing.GetCenter())
+            elif record["shape"] == "circle":
+                record["center"] = point(drawing.GetCenter())
+            elif record["shape"] == "poly":
+                record["points"] = [point(p) for p in drawing.GetPolyPoints()]
+            shapes.append(record)
+        new_origin = neutral_origin(outline_geometry_bounds(shapes))
 
-    rows = []
-    skipped = []
+    # Adapt pcbnew once. All subsequent filtering, geometry and CSV generation
+    # operates on plain records in the standard-library-only module.
+    footprints = []
     for fp in board.GetFootprints():
-        ref = fp.GetReference()
-        pads = list(fp.Pads())
-        smd = [p for p in pads if p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD]
-        if not everything:
-            if not smd:
-                skipped.append((ref, "no SMD pads (through-hole/mechanical)"))
-                continue
-            if fp.GetValue() in BARE_COPPER_VALUES or ref.startswith("TP"):
-                skipped.append((ref, "bare copper feature, no physical part"))
-                continue
-        anchor = fp.GetPosition()
-        # Mid = centroid of copper pads (SMD + PTH; ignore holes-only).
-        # Anchor fallback covers NPTH-only footprints (--all can hit them).
-        cop = [p for p in pads if p.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH]
-        if cop:
-            cx = sum(p.GetPosition().x for p in cop) / len(cop)
-            cy = sum(p.GetPosition().y for p in cop) / len(cop)
-        else:
-            cx, cy = anchor.x, anchor.y
-        # Pad 1 (numeric-aware; falls back to the first pad, then the anchor).
-        def key(p):
-            n = p.GetPadName()
-            return (0, int(n)) if n.isdigit() else (1, n)
-        named = sorted((p for p in pads if p.GetPadName()), key=key)
-        p1pos = named[0].GetPosition() if named else anchor
-        # FPID = the projected .kicad_mod name: the CoHDL footprint's fq path
-        # with `::` collapsed to `-` (e.g. `rpi_pico2-CHIP_0201`). CoHDL
-        # identifiers can't contain `-`, so everything after the last `-` is
-        # the short name — the exact form the BOM CSV's Footprint column uses.
-        fpid = fp.GetFPIDAsString().split(":")[-1].split("-")[-1]
-        rot = fp.GetOrientationDegrees() % 360
-        rows.append(
-            (
-                ref,
-                fpid,
-                X(cx),
-                Y(cy),
-                X(anchor.x),
-                Y(anchor.y),
-                X(p1pos.x),
-                Y(p1pos.y),
-                "B" if fp.IsFlipped() else "T",
-                rot,
-                fp.GetValue(),
+        pads = []
+        for pad in fp.Pads():
+            attribute = pad.GetAttribute()
+            position = pad.GetPosition()
+            pads.append(
+                {
+                    "number": pad.GetPadName(),
+                    "position": (position.x, position.y),
+                    "smd": attribute == pcbnew.PAD_ATTRIB_SMD,
+                    "copper": attribute != pcbnew.PAD_ATTRIB_NPTH,
+                }
             )
+        anchor = fp.GetPosition()
+        footprints.append(
+            {
+                "ref": fp.GetReference(),
+                "value": fp.GetValue(),
+                "anchor": (anchor.x, anchor.y),
+                "orientation": fp.GetOrientationDegrees(),
+                "flipped": fp.IsFlipped(),
+                "footprint": fp.GetFPIDAsString()
+                .split(":")[-1]
+                .split("-")[-1],
+                "pads": pads,
+            }
         )
 
-    # Sort: refs naturally (C1, C2, ... C10).
-    def refkey(r):
-        import re
-        m = re.match(r"([A-Za-z]+)(\d+)", r[0])
-        return (m.group(1), int(m.group(2))) if m else (r[0], 0)
-    rows.sort(key=refkey)
-
-    def f(v):
-        return f"{v:.4f}".rstrip("0").rstrip(".") + "mm"
-
-    lines = ["Designator,Footprint,Mid X,Mid Y,Ref X,Ref Y,Pad X,Pad Y,Layer,Rotation,Comment"]
-    for r in rows:
-        lines.append(
-            f"{r[0]},{r[1]},{f(r[2])},{f(r[3])},{f(r[4])},{f(r[5])},"
-            f"{f(r[6])},{f(r[7])},{r[8]},{r[9]:g},{r[10]}"
+    if args.neutral:
+        rows, skipped = neutral_rows(footprints, new_origin)
+        out_path.write_text(neutral_csv(rows))
+        what = "SMT components (neutral)"
+    else:
+        rows, skipped = legacy_rows(
+            footprints, old_origin, mm, everything=args.all
         )
-    out_path.write_text("\n".join(lines) + "\n")
-    what = "components (all)" if everything else "SMT components"
+        out_path.write_text(legacy_csv(rows))
+        what = "components (all)" if args.all else "SMT components"
+
     print(f"wrote {out_path}  ({len(rows)} {what})")
-    for ref, why in sorted(skipped, key=lambda s: s[0]):
+    for ref, why in sorted(skipped, key=lambda item: item[0]):
         print(f"  skipped {ref:6s} — {why}")
 
 

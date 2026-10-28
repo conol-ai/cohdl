@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "pad_projection": 1,
+  "footprints": {
+    "t::FP_B": {
+      "package": "t",
+      "version": "1.2.3",
+      "pads": [["1","-0.5mm","0.25mm"]],
+      "frame": "d7e8dae4556e25d954fc0cd263666aeceb90cb0123a5e40152d362a0dfb33ade"
+    }
+  },
+  "designators": {
+    "U1": {
+      "part": "t::P",
+      "footprint": "t::FP_B",
+      "entry": "primary",
+      "mfr": "M",
+      "mpn": "N",
+      "pn": "A",
+      "at": ["1mm", "2mm"],
+      "rotate": 90
+    }
+  }
+}

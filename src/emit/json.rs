@@ -25,6 +25,8 @@ pub const SCHEMA_VERSION: u32 = 1;
 /// Emitted-artifact paths for `build --json`, present only on a passing build.
 pub struct SupplierBuildArtifacts {
     pub bom: String,
+    pub map: String,
+    pub cpl: Option<String>,
 }
 
 pub struct BuildArtifacts {
@@ -212,7 +214,16 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
                     ""
                 };
                 let _ = writeln!(out, "      {}: {{", json_str(supplier));
-                let _ = writeln!(out, "        \"bom\": {}", json_str(&artifacts.bom));
+                let _ = writeln!(out, "        \"bom\": {},", json_str(&artifacts.bom));
+                let _ = writeln!(
+                    out,
+                    "        \"map\": {}{}",
+                    json_str(&artifacts.map),
+                    if artifacts.cpl.is_some() { "," } else { "" }
+                );
+                if let Some(path) = &artifacts.cpl {
+                    let _ = writeln!(out, "        \"cpl\": {}", json_str(path));
+                }
                 let _ = writeln!(out, "      }}{}", comma);
             }
             out.push_str("    }\n");

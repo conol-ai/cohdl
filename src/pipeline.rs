@@ -309,6 +309,9 @@ pub struct BuildArtifacts {
     pub suppliers: crate::supplier::SupplierSelections,
     /// Supplier BOM contents, computed here so both build modes can write them.
     pub supplier_boms: Vec<crate::emit::supplier_bom::SupplierBom>,
+    /// Supplier map JSON in both build modes; its CPL only accompanies a
+    /// physical build's neutral CPL.
+    pub supplier_maps: Vec<crate::emit::supplier_map::SupplierMap>,
 }
 
 /// The `build` half: designators (RFC-005), part binding, emitters.
@@ -352,6 +355,8 @@ pub fn build_artifacts_with_suppliers(
     supplier_diags.sort(&checked.sm);
     checked.diags.extend(supplier_diags);
     let supplier_boms = crate::emit::supplier_bom::emit_supplier_boms(&checked.world, &suppliers);
+    let supplier_maps =
+        crate::emit::supplier_map::emit_supplier_maps(&checked.world, ir, &suppliers);
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
@@ -362,6 +367,7 @@ pub fn build_artifacts_with_suppliers(
         notes,
         suppliers,
         supplier_boms,
+        supplier_maps,
     })
 }
 

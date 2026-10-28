@@ -22,7 +22,7 @@ const DXF_ROUNDED_RECT: &str =
     10\n35\n20\n25\n10\n5\n20\n25\n42\n0.41421356237309503\n\
     10\n0\n20\n20\n10\n0\n20\n5\n42\n0.41421356237309503\n0\nENDSEC\n";
 const DXF_CONVEX_ARC: &str = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n3\n70\n1\n\
-    10\n0\n20\n0\n42\n1\n10\n10\n20\n0\n10\n10\n20\n-10\n0\nENDSEC\n";
+    10\n0\n20\n0\n42\n-0.1\n10\n10\n20\n0\n10\n10\n20\n-10\n0\nENDSEC\n";
 
 const LIB: &str = r#"
 pub trait Ic { designator_prefix: "U" }
@@ -300,10 +300,9 @@ fn rounded_rectangle_keeps_its_original_extrema() {
 
 #[test]
 fn convex_arc_edge_contributes_its_swept_minimum() {
-    // CCW semicircle (0,0) -> (10,0), centre (5,0), radius 5 mm, reaching y=-5.
-    // Python outline_geometry_bounds gives [0, -5, 10, 0] mm after converting
-    // this DXF arc to an integer-nm KiCad shape with midpoint (5,-5) mm.
-    outline_golden(DXF_CONVEX_ARC, (5, -1), "U1,5.0000mm,1.0000mm,Top,0\n");
+    // This shallow arc sweeps left of both its x=0 endpoints to set x_min;
+    // its return endpoint at (10,-10) sets y_min independently of the arc.
+    outline_golden(DXF_CONVEX_ARC, (5, -1), "U1,5.0000mm,1.5000mm,Top,0\n");
 }
 
 #[test]

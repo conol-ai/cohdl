@@ -374,6 +374,8 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
                 "acme".into(),
                 json::SupplierBuildArtifacts {
                     bom: "out/x-acme-bom.csv".into(),
+                    map: "out/x-acme-map.json".into(),
+                    cpl: None,
                 },
             )]
             .into_iter()

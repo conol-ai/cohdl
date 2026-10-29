@@ -111,7 +111,7 @@
 
 - 依据仓库里的 PDF，画出 FH12-24S 和 FH12-10S（参照已审核过的 FH12-26S）、CONMHF4、YZP0048 的真实焊盘。
 - 验收：每个焊盘与 PDF 推荐焊盘的偏差都在 0.01 mm 以内，PR 说明里附逐个焊盘的对照表；A1 的审计通过。
-- **待决定：** `CONN_MIC_2P`/`CONN_SPK_2P` 是去掉 `pub` 隔离，还是保留并改为 `#[source_unspecified("mpn")]` 加 `mpn: ""`。建议保留并改用 `source_unspecified`：没有设计在用它们，改动小，而且如实表示"未知"。
+- **2026-10-29 已决定：** `CONN_MIC_2P`/`CONN_SPK_2P` 保留，改为 `#[source_unspecified("mpn")]` 加 `mpn: ""`。没有设计在用它们，改动小，而且如实表示"未知"。
 
 **A3 · 共用抓取客户端**，约 1 天，不发出任何真实请求
 
@@ -268,7 +268,7 @@ CPL 用 `--bottom-rotation lcsc=mirrored` 导出后，底面各份（包括 37°
 
 ## 7. 待决定事项
 
-1. `CONN_MIC_2P`/`CONN_SPK_2P`：隔离，还是改用 `source_unspecified`（建议后者）。
+1. ~~`CONN_MIC_2P`/`CONN_SPK_2P`：隔离，还是改用 `source_unspecified`。~~ 2026-10-29 已决定：保留，改用 `#[source_unspecified("mpn")]` 加 `mpn: ""`（A2）。
 2. 是否运行 B1/B2，以及在什么时段运行（建议夜间）。
 3. 是否向供应商要 Basic/Preferred 官方清单或 Components API 权限。
 4. 何时执行 A0，以及 RFC-034 何时合入并发版。在那之前阶段 D 无法开始。

@@ -109,7 +109,7 @@ Estimates are implementer time plus review, not time spent waiting for a person.
 
 - Draw the real lands of FH12-24S and FH12-10S (following the reviewed FH12-26S), CONMHF4 and YZP0048 from the PDFs in the repository.
 - Acceptance: every pad within 0.01 mm of the PDF's recommended land, with a pad-by-pad table in the PR description; the A1 audit passes.
-- **Decision needed:** quarantine `CONN_MIC_2P`/`CONN_SPK_2P` by removing `pub`, or keep them with `#[source_unspecified("mpn")]` and `mpn: ""`. Recommended: keep them with `source_unspecified`. No design uses them, the change is small, and it states "unknown" honestly.
+- **Decided 2026-10-29:** keep `CONN_MIC_2P`/`CONN_SPK_2P` with `#[source_unspecified("mpn")]` and `mpn: ""`. No design uses them, the change is small, and it states "unknown" honestly.
 
 **A3 · Shared fetch client.** About 1 day; sends no real request.
 
@@ -262,7 +262,7 @@ Phase A takes about 2.5–3 weeks; the first draft's two weeks held 5.5–6.5 pe
 
 ## 7. Open decisions
 
-1. `CONN_MIC_2P`/`CONN_SPK_2P`: quarantine, or `source_unspecified` (recommended).
+1. ~~`CONN_MIC_2P`/`CONN_SPK_2P`: quarantine, or `source_unspecified`.~~ Decided 2026-10-29: keep them with `#[source_unspecified("mpn")]` and `mpn: ""` (A2).
 2. Whether to run B1/B2, and at what hours (nights recommended).
 3. Whether to ask the supplier for the official Basic/Preferred list or Components API access.
 4. When A0 runs, and when RFC-034 is merged and released. Phase D cannot start before that.

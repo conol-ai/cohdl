@@ -26,6 +26,8 @@ import argparse
 import pathlib
 import sys
 
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from sourcing.bindings import Bindings, avl_entry
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent

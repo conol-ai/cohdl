@@ -107,7 +107,7 @@ def load_manifest(path):
     dependencies = doc.get("dependencies", {"std": "0.3.0"})
     if not isinstance(dependencies, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in dependencies.items()):
         raise BoardError("dependencies must be a package/version string map")
-    return {"name": text(doc.get("name"), "name", "frame_preview"), "rows": rows, "dependencies": dependencies}
+    return {"name": text(doc.get("name"), "name", "frame_preview"), "design": doc.get("design", "FramePreview"), "net_names": doc.get("net_names", ["N0", "N1"]), "outline": doc.get("outline"), "nets": doc.get("nets"), "rows": rows, "dependencies": dependencies}
 
 
 def expand(rows, spacing):
@@ -145,46 +145,48 @@ def expand(rows, spacing):
     return placements, bounds
 
 
-def emit_project(manifest, root, spacing, template=None, supplier="lcsc"):
+def emit_project(manifest, root, spacing, supplier="lcsc"):
     root.mkdir(parents=True, exist_ok=True)
     (root / "src").mkdir(exist_ok=True)
     (root / "mechanical").mkdir(exist_ok=True)
     placements, bounds = expand(manifest["rows"], spacing)
-    source = ""
-    if template:
-        template = Path(template)
-        source = (template / "src/main.cohdl").read_text(encoding="utf-8")
-        source = re.sub(r"\bsupplier\s+acme\s+", "supplier " + supplier + " ", source)
-        source = re.sub(r'"(A-[^"\n]*)"', lambda m: '"C' + m.group(1)[2:] + '"', source)
-        shutil.copyfile(template / "mechanical/outline.dxf", root / "mechanical/outline.dxf")
-        shutil.copyfile(template / "cohdl.toml", root / "cohdl.toml")
+    declarations, instances, nets, layout, nc = [], [], [[], []], [], []
+    for i, p in enumerate(placements):
+        r, ref = p["row"], "%s_%d" % (p["row"]["name"], p["index"])
+        map_ = r["mapping"]
+        bind = 'supplier %s "%s"' % (supplier, r["pn"])
+        if any(map_.values()):
+            bind += " at (%smm, %smm) rotate %d" % (mm(map_["dx_mm"]), mm(map_["dy_mm"]), map_["rotate_deg"])
+        declarations.append('pub part %s: %s {\n    primary { mfr: "%s", mpn: "%s", footprint: %s, %s }\n}\n' %
+                            ("P_" + r["name"], r["part"], r["mfr"], r["mpn"], r["footprint"], bind) if p["index"] == 0 else "")
+        instances.append("    inst %s: P_%s" % (ref, r["name"]))
+        for n, pin in enumerate(r["pins"][:2]):
+            nets[n].append("%s.%s" % (ref, pin))
+        nc.extend("%s.%s" % (ref, pin) for pin in r["pins"][2:])
+        clause = "        place %s at (%smm, %smm)" % (ref, mm(p["x"]), mm(p["y"]))
+        if p["rotate"]:
+            clause += " rotate %s" % mm(p["rotate"])
+        if p["side"] == "bottom":
+            clause += " side bottom"
+        layout.append(clause)
+    design = manifest.get("design", "FramePreview")
+    source = "\n".join(declarations) + "\ndesign %s {\n" % design + "\n".join(instances) + "\n"
+    net_names = manifest.get("net_names", ["N0", "N1"])
+    explicit_nets = manifest.get("nets")
+    if explicit_nets:
+        source += "".join("    net %s: %s\n" % (name, ", ".join(members)) for name, members in explicit_nets.items())
     else:
-        declarations, instances, nets, layout, nc = [], [], [[], []], [], []
-        for i, p in enumerate(placements):
-            r, ref = p["row"], "%s_%d" % (p["row"]["name"], p["index"])
-            map_ = r["mapping"]
-            bind = 'supplier %s "%s"' % (supplier, r["pn"])
-            if any(map_.values()):
-                bind += " at (%smm, %smm) rotate %d" % (mm(map_["dx_mm"]), mm(map_["dy_mm"]), map_["rotate_deg"])
-            declarations.append('pub part %s: %s {\n    primary { mfr: "%s", mpn: "%s", footprint: %s, %s }\n}\n' %
-                                ("P_" + r["name"], r["part"], r["mfr"], r["mpn"], r["footprint"], bind) if p["index"] == 0 else "")
-            instances.append("    inst %s: P_%s" % (ref, r["name"]))
-            for n, pin in enumerate(r["pins"][:2]):
-                nets[n].append("%s.%s" % (ref, pin))
-            nc.extend("%s.%s" % (ref, pin) for pin in r["pins"][2:])
-            clause = "        place %s at (%smm, %smm)" % (ref, mm(p["x"]), mm(p["y"]))
-            if p["rotate"]:
-                clause += " rotate %s" % mm(p["rotate"])
-            if p["side"] == "bottom":
-                clause += " side bottom"
-            layout.append(clause)
-        source = "\n".join(declarations) + "\ndesign FramePreview {\n" + "\n".join(instances) + "\n"
-        source += "    net N0: " + ", ".join(nets[0]) + "\n    net N1: " + ", ".join(nets[1]) + "\n"
-        if nc:
-            source += "    nc: " + ", ".join(nc) + "\n"
-        source += "    layout {\n        board_outline: \"mechanical/outline.dxf\"\n" + "\n".join(layout) + "\n    }\n}\n"
-        dependencies = "\n".join('%s = "%s"' % (k, v) for k, v in sorted(manifest["dependencies"].items()))
-        (root / "cohdl.toml").write_text('[package]\nname = "%s"\nversion = "0.1.0"\nlicense = "MIT"\n\n[design]\ntop = "FramePreview"\n\n[dependencies]\n%s\n' % (manifest["name"], dependencies), encoding="utf-8")
+        source += "    net %s: %s\n    net %s: %s\n" % (net_names[0], ", ".join(nets[0]), net_names[1], ", ".join(nets[1]))
+    if nc:
+        source += "    nc: " + ", ".join(nc) + "\n"
+    source += "    layout {\n        board_outline: \"mechanical/outline.dxf\"\n" + "\n".join(layout) + "\n    }\n}\n"
+    dependencies = "\n".join('%s = "%s"' % (k, v) for k, v in sorted(manifest["dependencies"].items()))
+    (root / "cohdl.toml").write_text('[package]\nname = "%s"\nversion = "0.1.0"\nlicense = "MIT"\n\n[design]\ntop = "%s"\n\n[dependencies]\n%s\n' % (manifest["name"], design, dependencies), encoding="utf-8")
+    if manifest.get("outline"):
+        outline = Path(manifest["outline"])
+        if not outline.is_absolute(): outline = Path(__file__).resolve().parents[1] / outline
+        shutil.copyfile(outline, root / "mechanical/outline.dxf")
+    else:
         x0, y0, x1, y1 = bounds
         dxf = "0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nEdge.Cuts\n90\n4\n70\n1\n"
         for x, y in ((x0,y0),(x1,y0),(x1,y1),(x0,y1)):
@@ -253,20 +255,14 @@ def main(argv=None):
     ap.add_argument("--spacing-mm", type=float, default=5)
     ap.add_argument("--cohdl", default="cohdl")
     ap.add_argument("--kicad-cli", default="kicad-cli")
-    ap.add_argument("--template", type=Path)
     ap.add_argument("--skip-kicad", action="store_true")
     args = ap.parse_args(argv)
     if args.spacing_mm <= 0:
         ap.error("--spacing-mm must be positive")
     try:
         manifest = load_manifest(args.manifest)
-        placements = emit_project(manifest, args.output, args.spacing_mm, args.template)
+        placements = emit_project(manifest, args.output, args.spacing_mm)
         name = manifest["name"]
-        if args.template:
-            match = re.search(r'(?m)^name\s*=\s*"([^"]+)"', (args.template / "cohdl.toml").read_text(encoding="utf-8"))
-            if not match:
-                raise BoardError("template cohdl.toml has no package name")
-            name = match.group(1)
         run([args.cohdl, "build", str(args.output), "--supplier", "lcsc", "--bottom-rotation", "lcsc=mirrored", "--emit", "kicad_pcb"])
         out = args.output / "out"
         board = out / (name + ".kicad_pcb")

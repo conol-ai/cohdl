@@ -1,15 +1,21 @@
-"""Opt-in real compiler acceptance: ``A6_ACCEPTANCE=1 python3 -I ...``."""
-import hashlib
+"""Real compiler acceptance; runs by default when target/debug/cohdl exists."""
 import json
-import os
-from pathlib import Path
+import math
+import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
+from decimal import Decimal
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "tools"
+COHDL = ROOT / "target/debug/cohdl"
+sys.path.insert(0, str(TOOLS))
+from jlc_frame_board import board_sexpr, children
+from smt_pos_map import round_nm
 
 
 def run(argv, cwd=ROOT):
@@ -19,76 +25,175 @@ def run(argv, cwd=ROOT):
     return result.stdout
 
 
-@unittest.skipUnless(os.environ.get("A6_ACCEPTANCE") == "1", "set A6_ACCEPTANCE=1 to run compiler acceptance")
+def nm(value):
+    return int((Decimal(value) * 1_000_000).to_integral_value())
+
+
+def pads(path, footprint=None):
+    board = board_sexpr(path.read_text(encoding="utf-8"))
+    result = {}
+    for fp in children(board, "footprint"):
+        if footprint and fp[1] != footprint.replace("::", "-"):
+            continue
+        ref = next(p[2] for p in children(fp, "property") if p[1] == "Reference")
+        at = next(c for c in children(fp, "at"))
+        anchor = nm(at[1]), nm(at[2])
+        angle = float(at[3]) if len(at) > 3 else 0
+        bottom = next(c for c in children(fp, "layer"))[1] == "B.Cu"
+        cosine, sine = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+        for pad_index, pad in enumerate(children(fp, "pad")):
+            local = next(c for c in children(pad, "at"))
+            x, y = nm(local[1]), nm(local[2])
+            absolute = (anchor[0] + round_nm(x * cosine + y * sine), anchor[1] + round_nm(y * cosine - x * sine))
+            result[(ref, pad[1], pad_index)] = absolute
+    return result
+
+
+def assert_pads_equal(test, actual, expected, tolerance_nm=0):
+    test.assertEqual(actual.keys(), expected.keys())
+    for key in expected:
+        delta = tuple(abs(a - b) for a, b in zip(actual[key], expected[key]))
+        test.assertLessEqual(max(delta), tolerance_nm, "%s moved by %s nm" % (key, delta))
+
+
+def change(tmp, name, footprint):
+    path = tmp / (name + ".json")
+    path.write_text(json.dumps({"changes": [{"footprint": footprint, "dx_mm": 1, "dy_mm": 2, "rotate": 90}]}))
+    return path
+
+
+def realign(project, name, changes, reverse=False):
+    argv = ["python3", "-I", str(TOOLS / "realign_place.py"), str(project), str(changes)]
+    if reverse:
+        argv.append("--reverse")
+    else:
+        argv += ["--layout", str(project / ("out/%s-layout.json" % name)), "--board", str(project / ("out/%s.kicad_pcb" % name))]
+    output = run(argv)
+    match = re.search(r"realigned (\d+) placements", output)
+    if not match:
+        raise AssertionError(output)
+    return int(match.group(1))
+
+
+@unittest.skipUnless(COHDL.exists(), "target/debug/cohdl is not built")
 class CompilerAcceptance(unittest.TestCase):
-    def test_three_examples_round_trip_pads_and_bottom_preview(self):
-        cohdl = ROOT / "target/debug/cohdl"
-        self.assertTrue(cohdl.exists())
+    def test_three_examples_round_trip(self):
+        cases = [
+            ("joint-motor-controller", "connectors::headers::micro_fit_3::FP_Molex_43045_0212", 2),
+            ("rpi-pico2", "passive::CHIP_0201", 2),
+            ("sf32-miniboard", "soic::SOIC8P127X790X216N", 1),
+        ]
         with tempfile.TemporaryDirectory() as td:
             tmp = Path(td)
-            # Three independent examples: two project builds plus one source-only
-            # top/bottom literal design using the existing map fixture's bindings.
-            examples = [ROOT / "tests/fixtures/rfc034/bottom-preview",
-                        ROOT / "tests/fixtures/rfc034/map-integration"]
-            for i, example in enumerate(examples):
-                project = tmp / ("example%d" % i)
-                shutil.copytree(example, project)
-                supplier = "acme"
-                manifest = project / "cohdl.toml"
-                if "std =" not in manifest.read_text():
-                    manifest.write_text(manifest.read_text() + '\n[dependencies]\nstd = "0.3.0"\n')
-                run([str(cohdl), "build", str(project), "--supplier", supplier, "--bottom-rotation", supplier + "=mirrored", "--emit", "kicad_pcb"])
-                name = "bottom_preview" if i == 0 else "map_integration"
-                board = project / ("out/%s.kicad_pcb" % name)
-                original_board = board.read_bytes()
-                original_sources = {p.name: p.read_bytes() for p in (project / "src").glob("*.cohdl")}
-                changes = tmp / ("changes%d.json" % i)
-                changes.write_text(json.dumps({"changes": [{"package": name, "footprint": name + "::FP_A" if i else "transistor::FP_JSCJ_SOT23", "dx_mm": 2, "dy_mm": 1, "rotate": 90}]}))
-                if i == 0:
-                    # Use the two mapped types, not just the first one.
-                    changes.write_text(json.dumps({"changes": [
-                        {"footprint": "transistor::FP_JSCJ_SOT23", "dx_mm": 2, "dy_mm": 1, "rotate": 90},
-                        {"footprint": "soic::SOIC8P127X790X216N", "dx_mm": -1, "dy_mm": 2, "rotate": 270}]}))
-                map_path = project / ("out/%s-%s-map.json" % (name, supplier))
-                run(["python3", "-I", str(TOOLS / "realign_place.py"), str(project), str(changes), "--map", str(map_path)])
-                run([str(cohdl), "build", str(project), "--supplier", supplier, "--bottom-rotation", supplier + "=mirrored", "--emit", "kicad_pcb"])
-                self.assertEqual(board.read_bytes(), original_board, "physical board must be byte-stable")
-                run(["python3", "-I", str(TOOLS / "realign_place.py"), str(project), str(changes), "--map", str(map_path), "--reverse"])
-                for source_name, content in original_sources.items():
-                    self.assertEqual((project / "src" / source_name).read_bytes(), content)
-            # A third, source-only example checks array/mounting forms through the
-            # same realign API used by the CLI, with exact inverse text.
-            import sys
-            sys.path.insert(0, str(TOOLS))
-            import realign_place as rp
-            source = "design D { layout {\n place U[0] at (1mm, 2mm)\n place mounting[0] at (3mm, 4mm) rotate 37 side bottom\n} }\n"
-            changes = {"p::F": (2_000_000, 1_000_000, 90)}
-            edits, errors, _ = rp.realign(source, changes, {"U[0]": "p::F", "mounting[0]": "p::F"})
-            self.assertFalse(errors)
-            forward = source
-            for start, end, text in reversed(edits): forward = forward[:start] + text + forward[end:]
-            edits, errors, _ = rp.realign(forward, changes, {"U[0]": "p::F", "mounting[0]": "p::F"}, True)
-            self.assertFalse(errors)
-            for start, end, text in reversed(edits): forward = forward[:start] + text + forward[end:]
-            self.assertEqual(forward, source)
-            # Explicit-coordinate replay: template keeps the independently
-            # previewed declarations, generator supplies lcsc and the board files.
-            replay = tmp / "replay.json"
-            rows = []
-            for name, fp, pn, x in [("q", "transistor::FP_JSCJ_SOT23", "C2146", -26), ("u", "soic::SOIC8P127X790X216N", "C97521", -8), ("c6", "passive::CHIP_0603", "C107045", 12), ("c8", "passive::CHIP_0805", "C107110", 28)]:
-                rows.append({"name": name, "footprint": fp, "pn": pn, "placements": [{"at_mm": [x, -20]}, {"at_mm": [x, -7], "rotate": 37}, {"at_mm": [x, 7], "side": "bottom"}, {"at_mm": [x, 20], "rotate": 37, "side": "bottom"}]})
-            replay.write_text(json.dumps({"name": "bottom_preview", "rows": rows}))
-            output = tmp / "bottom-preview-replay"
-            run(["python3", "-I", str(TOOLS / "jlc_frame_board.py"), str(replay), "-o", str(output), "--template", str(examples[0]), "--cohdl", str(cohdl), "--skip-kicad"])
-            self.assertEqual((output / "out/bottom_preview.kicad_pcb").read_bytes(), (ROOT / "tests/fixtures/rfc034/bottom_preview.kicad_pcb").read_bytes())
+            for name, footprint, expected in cases:
+                with self.subTest(example=name):
+                    project = tmp / name
+                    shutil.copytree(ROOT / "examples" / name, project)
+                    run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+                    original = {p.relative_to(project): p.read_bytes() for p in (project / "src").glob("*.cohdl")}
+                    changes = change(tmp, name, footprint)
+                    self.assertEqual(realign(project, name, changes), expected)
+                    self.assertTrue(any(p.read_bytes() != original[path] for path, p in ((p.relative_to(project), p) for p in (project / "src").glob("*.cohdl"))))
+                    self.assertEqual(realign(project, name, changes, True), expected)
+                    for path, content in original.items():
+                        self.assertEqual((project / path).read_bytes(), content)
+                    print("A6 round-trip %s: %d placements" % (name, expected))
+
+    def test_vendored_joint_rigid_transform_preserves_pads(self):
+        name = "joint-motor-controller"
+        footprint = "connectors::headers::micro_fit_3::FP_Molex_43045_0212"
+        with tempfile.TemporaryDirectory() as td:
+            project = Path(td) / name
+            shutil.copytree(ROOT / "examples" / name, project)
+            run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+            board = project / ("out/%s.kicad_pcb" % name)
+            before = pads(board, footprint)
+            self.assertEqual(len(before), 8)
+            vendored = project / "deps/connectors"
+            shutil.copytree(ROOT / "lib/connectors", vendored)
+            library = vendored / "src/headers/micro_fit_3.cohdl"
+            source = library.read_text()
+            start = source.index("pub footprint FP_Molex_43045_0212 {")
+            end = source.index("\n}\n", start) + 3
+            moved = (TOOLS / "tests/fixtures/a6/moved_micro_fit_3.cohdl.inc").read_text()
+            library.write_text(source[:start] + moved + source[end:])
+            changes = change(Path(td), name, footprint)
+            self.assertEqual(realign(project, name, changes), 2)
+            (project / "cohdl.lock").unlink(missing_ok=True)
+            run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+            after = pads(board, footprint)
+            self.assertEqual(after, before)
+            print("A6 vendored joint: compared %d pads" % len(before))
+
+    def test_top_bottom_37_rigid_transform_preserves_pads(self):
+        with tempfile.TemporaryDirectory() as td:
+            project = Path(td) / "rigid"
+            shutil.copytree(TOOLS / "tests/fixtures/a6/rigid", project)
+            run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+            board = project / "out/a6_rigid.kicad_pcb"
+            before = pads(board, "a6_rigid::FP")
+            self.assertEqual(len(before), 6)
+            source_path = project / "src/main.cohdl"
+            source = source_path.read_text()
+            start, end = source.index("pub footprint FP {"), source.index("\n}\n", source.index("pub footprint FP {")) + 3
+            source_path.write_text(source[:start] + (project / "moved.inc").read_text() + source[end:])
+            changes = change(Path(td), "rigid", "a6_rigid::FP")
+            self.assertEqual(realign(project, "a6_rigid", changes), 3)
+            run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+            assert_pads_equal(self, pads(board, "a6_rigid::FP"), before, tolerance_nm=1)
+            print("A6 rigid top/bottom/37: compared %d pads" % len(before))
+
+    def test_bottom_preview_generated_source_pads_and_cpl(self):
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "bottom"
+            run(["python3", "-I", str(TOOLS / "jlc_frame_board.py"), str(TOOLS / "tests/fixtures/a6/bottom-preview.json"), "-o", str(output), "--cohdl", str(COHDL), "--skip-kicad"])
+            actual_board = output / "out/bottom_preview.kicad_pcb"
+            expected_board = ROOT / "tests/fixtures/rfc034/bottom_preview.kicad_pcb"
+            before, after = pads(expected_board), pads(actual_board)
+            self.assertEqual(len(after), 60)
+            self.assertEqual(after, before)
             actual_cpl = (output / "out/bottom_preview-lcsc-cpl.csv").read_bytes()
-            expected_cpl = (examples[0] / "handoff/cpl-acme-reference.csv").read_bytes()
+            expected_cpl = (ROOT / "tests/fixtures/rfc034/bottom-preview/handoff/cpl-acme-reference.csv").read_bytes()
+            self.assertEqual(actual_cpl.splitlines(), expected_cpl.splitlines())
             self.assertEqual(actual_cpl, expected_cpl)
-            actual_map = json.loads((output / "out/bottom_preview-lcsc-map.json").read_text())
-            expected_map = json.loads((ROOT / "tests/fixtures/rfc034/bottom_preview-acme-map.json").read_text())
-            for row in actual_map["designators"].values():
-                row["pn"] = "A-" + row["pn"][1:]
-            self.assertEqual(actual_map, expected_map)
+            self.assertNotIn("template", (TOOLS / "jlc_frame_board.py").read_text())
+            print("A6 bottom-preview: compared %d pads and %d CPL rows" % (len(after), len(actual_cpl.splitlines()) - 1))
+
+    def test_unsupported_targets_report_file_and_line(self):
+        with tempfile.TemporaryDirectory() as td:
+            project = Path(td) / "rigid"
+            shutil.copytree(TOOLS / "tests/fixtures/a6/rigid", project)
+            run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+            changes = change(Path(td), "rigid", "a6_rigid::FP")
+            source_path = project / "src/main.cohdl"
+            source_path.write_text(source_path.read_text().replace("place top at (-20mm, 0mm)", "place top at (X, 0mm)"))
+            result = subprocess.run(["python3", "-I", str(TOOLS / "realign_place.py"), str(project), str(changes), "--layout", str(project / "out/a6_rigid-layout.json"), "--board", str(project / "out/a6_rigid.kicad_pcb")], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertRegex(result.stdout, r"main\.cohdl:20:")
+
+    def test_for_subdesign_and_reach_in_diagnostics(self):
+        import realign_place as rp
+        source = '''subdesign S {
+ layout {
+  place inner at (0mm, 0mm)
+ }
+}
+design D {
+ layout {
+  for i in 0..2 {
+   place looped at (1mm, 0mm)
+  }
+  place motor.inner at (2mm, 0mm)
+ }
+}
+'''
+        fps = {"inner": "p::F", "looped": "p::F"}
+        _, errors, _ = rp.realign(source, {"p::F": (1_000_000, 2_000_000, 90)}, fps)
+        self.assertEqual([(line, message) for line, message in errors], [
+            (3, "place inside subdesign is not rewritten"),
+            (9, "place in a for loop is not rewritten"),
+            (11, "subdesign reach-in place is not rewritten"),
+        ])
 
 
 if __name__ == "__main__":

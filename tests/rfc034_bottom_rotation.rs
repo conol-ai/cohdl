@@ -132,6 +132,22 @@ fn withdrawn_top_level_supplier_declaration_is_an_ordinary_syntax_error() {
     let rendered = checked.diags.render(&checked.sm);
     assert!(checked.diags.has_errors());
     assert!(rendered.contains("error[E010]"), "{rendered}");
+    let syntax_errors: Vec<_> = checked
+        .diags
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "E010")
+        .collect();
+    assert_eq!(syntax_errors.len(), 1, "{rendered}");
+    let expected_declarations = syntax_errors[0]
+        .message
+        .split(", found ")
+        .next()
+        .expect("top-level declaration diagnostic");
+    assert!(
+        !expected_declarations.contains("`supplier`"),
+        "{}",
+        syntax_errors[0].message
+    );
     assert!(!rendered.contains("E816"), "{rendered}");
     assert!(!rendered.contains("E817"), "{rendered}");
 }

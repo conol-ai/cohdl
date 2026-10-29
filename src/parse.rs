@@ -377,11 +377,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Design
                 | TokenKind::Hash => return,
                 TokenKind::Ident(n)
-                    if n == "use"
-                        || n == "supplier"
-                        || n == "footprint"
-                        || n == "pad"
-                        || n == "subdesign" =>
+                    if n == "use" || n == "footprint" || n == "pad" || n == "subdesign" =>
                 {
                     return
                 }
@@ -570,7 +566,7 @@ impl<'a> Parser<'a> {
             TokenKind::Design => self.design_def().map(ItemKind::Design),
             other => {
                 self.error_here(format!(
-                    "expected a top-level declaration (`supplier`, `trait`, `device`, `impl`, `fn`, `part`, `design`, `subdesign`, `footprint`, `pad`, or `use`), found {}",
+                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `subdesign`, `footprint`, `pad`, or `use`), found {}",
                     other.describe()
                 ));
                 self.sync_top_level();

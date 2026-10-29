@@ -2,7 +2,7 @@
 
 > 中文版，以英文版 [`library-supplier-plan.md`](library-supplier-plan.md) 为准。
 
-状态：计划，2026-10-23；2026-10-27 对照 main `329af05` 修订。这是库建设工作，不是语言设计。它使用 [RFC-034](design/rfc-034-supplier-binding.md) 定义的供应商绑定，并遵循 [`LIBRARY.md`](../LIBRARY.md) 的编写规则。本计划为官方库新增的规则，会在对应工作线落地时并入 `LIBRARY.md`。
+状态：计划，2026-10-23；2026-10-27 对照 main `329af05` 修订。这是库建设工作，不是语言设计。它使用 [RFC-034](design/rfc-034-supplier-binding.md) 定义的供应商绑定，并遵循 [`LIBRARY.md`](../LIBRARY.md) 的编写规则。本计划为官方库新增的规则，会在对应工作线落地时并入 `LIBRARY.md`。工作项、先后顺序和验收方法见[实施计划](library-supplier-impl-plan.zh-CN.md)。
 
 ## 目标
 
@@ -97,7 +97,7 @@
 
 **证据的单位。** RFC-034 的映射是针对"我们的封装＋供应商某个具体料号的封装"这一对定义的。所以在 F 上验证了一个参考料号，本身并不能说明绑定在 F 上的另一个料号也一样。证据、例外和 CI 检查都按 **（封装, 包版本, 供应商, 料号）** 建立对应关系。
 
-- **范围（按 `329af05` 重新统计）：** 300 个不同的封装（`lib/passive` 之外 285 个，之内 15 个）。大多属于标准封装族：CHIP、SOT、SOD、SOIC/TSSOP、QFP、QFN、BGA。
+- **范围（2026-10-29 复核）：** 全部 304 个已声明的封装，其中 286 个被零件引用，其余大多在只提供封装、给第三方用的包里。大多属于标准封装族：CHIP、SOT、SOD、SOIC/TSSOP、QFP、QFN、BGA。
 - **证据：** `tools/sourcing_data/jlc_frames.json`，供 CI 读取，另生成一份 `docs/jlc-frames.md` 供人阅读。每个（封装, 包版本, 供应商, 料号）一行，包含：
   - 记录的映射（目标为 `(0, 0, 0°)`）；
   - 对齐前测得的映射；

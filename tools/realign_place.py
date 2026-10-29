@@ -1,25 +1,27 @@
 #!/usr/bin/env python3
-"""Move literal CoHDL placements so supplier-mapped copper stays in place.
+"""Realign literal CoHDL placements for a changed supplier footprint frame.
 
-Input is JSON ``{"changes":[{"package":"pkg", "footprint":"FP",
-"dx_mm":2, "dy_mm":1, "rotate":90}]}``, or an RFC-034 compiler map whose
-``designators`` rows supply ``footprint``, ``at`` and ``rotate``.  ``--reverse``
-undoes a previous forward run.  Ordinary ``place name`` and
-``place mounting[0]`` forms are supported, including array indices and either
-``rotate``/``side`` clause order.  Expression coordinates/rotations, layout
-``for`` loops and subdesign declarations are never rewritten: every requested
-unsupported target is reported as ``file:line: reason`` before any write.
+Input JSON is ``{"changes":[{"package":"pkg", "footprint":"pkg::FP",
+"dx_mm":2,"dy_mm":1,"rotate":90}]}``.  ``--layout`` and ``--board`` must be the
+compiler's layout JSON and KiCad PCB from the same build.  Layout
+``placements[].instance`` is the expanded instance path (``x_0`` maps to source
+``x[0]``); its ``at``/``rotate``/``side`` identifies the corresponding PCB
+footprint block.  That block supplies the complete footprint name (PCB base
+names replace ``::`` with ``-``).  Missing/ambiguous matches are errors.  Never
+resolve a source target by refdes or supplier-map designator.
 
-This is the inverse of RFC-034 compose_place.  Translation and KiCad rotation
-use :mod:`smt_pos_map` (including its exact decimal and nm rounding), rather
-than a second geometric convention.  Verify the result by rebuilding and
-comparing compiler-emitted ``.kicad_pcb`` pad coordinates, not Gerbers.
+Only single-line decimal-mm literal placements are changed.  Expressions,
+``for`` loops, subdesign declarations and reach-in paths are diagnosed as
+``file:line: reason``.  Translation uses the exact femto-mm fixed-point
+algorithm and checked-in sine table of ``src/trig.rs``.  Forward runs write an
+undo JSON containing original source bytes; ``--reverse`` restores those bytes
+exactly after checking that the files have not changed since the forward run.
 """
 
 import argparse
 from decimal import Decimal, ROUND_HALF_UP
+import hashlib
 import json
-import math
 import re
 import sys
 from pathlib import Path
@@ -35,213 +37,233 @@ PLACE = re.compile(r"(?m)(?P<indent>^[ \t]*|(?<=[{;])[ \t]*)place[ \t]+(?P<targe
 
 
 def mm_femto(value):
-    if value % (10 ** 15) == 0:
-        return str(value // 10 ** 15)
     sign = "-" if value < 0 else ""
     digits = str(abs(value)).rjust(16, "0")
-    return sign + (digits[:-15] + "." + digits[-15:]).rstrip("0")
+    return sign + (digits[:-15] + "." + digits[-15:]).rstrip("0").rstrip(".")
 
 
-def literal_femto(text):
-    if not re.fullmatch(LIT, text.strip()):
-        raise ValueError("coordinates and rotation must be decimal literals")
-    return int((Decimal(text.strip()[:-2]) * 10 ** 15).to_integral_value(rounding=ROUND_HALF_UP))
+def literal_femto(value):
+    if not re.fullmatch(LIT, value.strip()):
+        raise ValueError("coordinates must be decimal mm literals")
+    return int((Decimal(value.strip()[:-2]) * 10 ** 15).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def compiler_rotate(x, y, degrees):
+    """Exact Python projection of src/trig.rs, including product rounding."""
+    source = (Path(__file__).resolve().parents[1] / "src/trig.rs").read_text(encoding="utf-8")
+    body = source.split("// BEGIN GENERATED TABLE (tools/gen_trig.py)", 1)[1].split("// END GENERATED TABLE", 1)[0]
+    table = [int(v) for v in re.findall(r"^\s*(\d+),\s*//", body, re.M)]
+    if len(table) != 91:
+        raise ValueError("cannot read compiler sine table")
+    d = degrees % 360
+    if d < 90:
+        sine, cosine = table[d], table[90 - d]
+    elif d < 180:
+        sine, cosine = table[180 - d], -table[d - 90]
+    elif d < 270:
+        sine, cosine = -table[d - 180], -table[270 - d]
+    else:
+        sine, cosine = -table[360 - d], table[d - 270]
+    def product(a, b):
+        magnitude = (abs(a) * abs(b) + (1 << 63)) >> 64
+        return -magnitude if (a < 0) != (b < 0) else magnitude
+    return product(x, cosine) - product(y, sine), product(x, sine) + product(y, cosine)
 
 
 def read_changes(path):
     doc = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(doc, dict) and "changes" in doc:
-        rows = doc["changes"]
-    elif isinstance(doc, dict) and "designators" in doc:
-        rows = list(doc["designators"].values())
-    else:
-        raise ValueError("change table must contain changes or compiler-map designators")
+    rows = doc.get("changes") if isinstance(doc, dict) else None
+    if not isinstance(rows, list):
+        raise ValueError("change table must contain a changes array")
     changes = {}
     for i, row in enumerate(rows):
-        if not isinstance(row, dict):
-            raise ValueError("change row %d is not an object" % i)
-        fp = str(row.get("footprint", ""))
+        fp = row.get("footprint", "")
         if not fp:
             raise ValueError("change row %d has no footprint" % i)
-        if "at" in row:
-            dx, dy = sm.parse_mm_nm(row["at"][0]), sm.parse_mm_nm(row["at"][1])
-            rotate = row.get("rotate", 0)
-        else:
-            dx = int(Decimal(str(row.get("dx_mm", 0))) * 10 ** 6)
-            dy = int(Decimal(str(row.get("dy_mm", 0))) * 10 ** 6)
-            rotate = row.get("rotate", row.get("r", 0))
+        dx = int((Decimal(str(row.get("dx_mm", 0))) * 10 ** 6).to_integral_value(rounding=ROUND_HALF_UP))
+        dy = int((Decimal(str(row.get("dy_mm", 0))) * 10 ** 6).to_integral_value(rounding=ROUND_HALF_UP))
+        rotate = row.get("rotate", row.get("r", 0))
         if isinstance(rotate, bool) or not isinstance(rotate, int) or not 0 <= rotate < 360:
-            raise ValueError("change row %d rotate must be an integer in 0..359" % i)
-        if fp in changes and changes[fp] != (dx, dy, rotate):
+            raise ValueError("change row %d rotate must be integer 0..359" % i)
+        value = (dx, dy, rotate)
+        if fp in changes and changes[fp] != value:
             raise ValueError("conflicting mappings for " + fp)
-        changes[fp] = (dx, dy, rotate)
+        changes[fp] = value
     return changes
 
 
-def layout_regions(source):
-    """Return layout and for-loop brace regions, ignoring strings/comments."""
-    regions = []
-    for match in re.finditer(r"\b(layout|for)\b", source):
-        brace = source.find("{", match.end())
-        if brace < 0 or "\n" in source[match.end():brace]:
+def code_only(source):
+    return re.sub(r'//[^\n]*|"(?:\\.|[^"\\])*"', lambda m: "".join("\n" if c == "\n" else " " for c in m.group(0)), source)
+
+
+def regions(source, keyword):
+    clean = code_only(source)
+    found = []
+    pattern = r"\bfor\b" if keyword == "for" else r"(?m)^[ \t]*(?:pub[ \t]+)?subdesign[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]*\{"
+    for match in re.finditer(pattern, clean):
+        brace = clean.find("{", match.end())
+        if brace < 0 or (keyword == "for" and "\n" in clean[match.end():brace]):
             continue
         depth, i = 0, brace
-        while i < len(source):
-            if source[i] == "{": depth += 1
-            elif source[i] == "}":
+        while i < len(clean):
+            if clean[i] == "{": depth += 1
+            elif clean[i] == "}":
                 depth -= 1
                 if depth == 0: break
             i += 1
-        regions.append((match.group(1), match.start(), i))
-    return regions
+        found.append((match.start(), i))
+    return found
 
 
-def subdesign_lines(source):
-    lines = set()
-    # Declarations are top-level; brace matching ignores braces in comments and strings.
-    for match in re.finditer(r"(?m)^[ \t]*(?:pub[ \t]+)?subdesign[ \t]+[A-Za-z_]", source):
-        brace = source.find("{", match.end())
-        if brace < 0:
-            continue
-        depth, i = 0, brace
-        while i < len(source):
-            if source[i] == "{": depth += 1
-            elif source[i] == "}":
-                depth -= 1
-                if depth == 0: break
-            i += 1
-        start = source.count("\n", 0, match.start()) + 1
-        lines.update(range(start, source.count("\n", 0, i) + 2))
-    return lines
-
-
-def parse_statement(match, line, source):
-    target = match.group("target")
-    body = match.group("body")
-    if body.count(",") != 1:
-        raise ValueError("place coordinates must be two decimal mm literals")
-    x_text, y_text = body.split(",")
-    x, y = literal_femto(x_text), literal_femto(y_text)
-    tail = match.group("tail")
-    rotate_matches = list(re.finditer(r"\brotate\s+([^\s]+)(?=\s|$)", tail))
-    if len(rotate_matches) > 1:
-        raise ValueError("duplicate rotate clause")
-    rotate = int(rotate_matches[0].group(1)) if rotate_matches else 0
-    if not 0 <= rotate < 360:
-        raise ValueError("rotation must be a literal integer in 0..359")
-    if re.sub(r"\brotate\s+[^\s]+(?=\s|$)", "", tail).strip() not in ("", "side top", "side bottom"):
-        raise ValueError("unsupported place clauses")
-    bottom = bool(re.search(r"\bside\s+bottom\b", tail))
-    for_start = source.rfind("for ", 0, match.start())
-    layout_start = source.rfind("layout", 0, match.start())
-    if for_start > layout_start and for_start >= 0:
-        raise ValueError("place in a for loop is not rewritten")
-    return {"target": target, "x": x, "y": y, "rotate": rotate, "bottom": bottom}
+def inside(position, spans):
+    return any(start < position < end for start, end in spans)
 
 
 def realign(source, changes, footprints, reverse=False):
     errors, edits, changed = [], [], []
-    unsupported = subdesign_lines(source)
-    regions = layout_regions(source)
-    for match in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source):
+    loops, subdesigns = regions(source, "for"), regions(source, "subdesign")
+    seen = set()
+    for match in re.finditer(r"\bplace\s+([A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\])?)\s+at\b", source):
         target = match.group(1)
-        if target not in footprints:
+        fp = footprints.get(target.rsplit(".", 1)[-1])
+        if fp is None or inside(match.start(), loops):
             continue
         line = source.count("\n", 0, match.start()) + 1
-        if line in unsupported:
+        if "." in target:
+            seen.add(line)
+            errors.append((line, "subdesign reach-in place is not rewritten"))
+        elif inside(match.start(), subdesigns):
+            seen.add(line)
             errors.append((line, "place inside subdesign is not rewritten"))
-            continue
-        if any(kind == "for" and start < match.start() < end for kind, start, end in regions):
-            errors.append((line, "place in a for loop is not rewritten"))
-            continue
-        if not any(start < match.start() < end for kind, start, end in regions if kind == "layout"):
-            continue
-        if not re.match(r"(?P<indent>[ \t]*)place[ \t]+" + TARGET + r"[ \t]+at[ \t]*\((?P<body>[^\n)]*)\)(?P<tail>(?:[ \t]+(?:rotate[ \t]+[^\s]+|side[ \t]+(?:top|bottom))){0,2})(?=[ \t]*(?:\n|$))", source[match.start():]):
+        elif not any(m.start() <= match.start() < m.end() for m in PLACE.finditer(source)):
+            seen.add(line)
             errors.append((line, "only single-line literal place statements are rewritten"))
     for match in PLACE.finditer(source):
-        target = match.group("target")
-        line = source.count("\n", 0, match.start()) + 1
+        target, line = match.group("target"), source.count("\n", 0, match.start()) + 1
         fp = footprints.get(target)
-        if line in unsupported or any(kind == "for" and start < match.start() < end for kind, start, end in regions):
-            continue
-        if fp is None:
+        if fp is None or line in seen or inside(match.start(), loops) or inside(match.start(), subdesigns):
             continue
         try:
-            place = parse_statement(match, line, source)
+            fields = match.group("body").split(",")
+            if len(fields) != 2:
+                raise ValueError("expected two literal coordinates")
+            x, y = literal_femto(fields[0]), literal_femto(fields[1])
+            tail = match.group("tail")
+            angles = re.findall(r"\brotate\s+([^\s]+)(?=\s|$)", tail)
+            if len(angles) > 1:
+                raise ValueError("duplicate rotate clause")
+            old_angle = int(angles[0]) if angles else 0
+            if not 0 <= old_angle < 360:
+                raise ValueError("rotation must be integer 0..359")
+            bottom = bool(re.search(r"\bside\s+bottom\b", tail))
             dx, dy, rotate = changes[fp]
             if reverse:
-                nr = (place["rotate"] - rotate if place["bottom"] else place["rotate"] + rotate) % 360
+                angle = (old_angle - rotate if bottom else old_angle + rotate) % 360
                 sign = 1
-                angle = nr
             else:
-                nr = (place["rotate"] + rotate if place["bottom"] else place["rotate"] - rotate) % 360
+                angle = (old_angle + rotate if bottom else old_angle - rotate) % 360
                 sign = -1
-                angle = place["rotate"]
-            # compose_place(instance, mapping) rotates the local mapping by the
-            # inverse angle in KiCad's +y-down frame. recover_local_nm performs
-            # that same inverse; undo the bottom reflection first.
-            local = (-dx, dy) if place["bottom"] else (dx, dy)
-            rx, ry = sm.recover_local_nm(local, (0, 0), angle)
-            nx, ny = place["x"] + sign * rx * FEMTO_PER_NM, place["y"] + sign * ry * FEMTO_PER_NM
-            tail = match.group("tail")
-            tail = re.sub(r"\brotate\s+" + NUM + r"(?=\s|$)", lambda m: "rotate " + str(nr) if nr else "", tail)
-            if not re.search(r"\brotate\b", tail) and nr:
+            local_x, local_y = dx * FEMTO_PER_NM, dy * FEMTO_PER_NM
+            if bottom: local_x = -local_x
+            rx, ry = compiler_rotate(local_x, local_y, (360 - old_angle if not reverse else 360 - angle) % 360)
+            nx, ny = x + sign * rx, y + sign * ry
+            tail = re.sub(r"\brotate\s+" + NUM + r"(?=\s|$)", lambda m: "rotate " + str(angle) if angle else "", tail)
+            if not re.search(r"\brotate\b", tail) and angle:
                 side = re.search(r"\bside\s+(?:top|bottom)\b", tail)
                 at = side.start() if side else len(tail)
-                tail = tail[:at] + " rotate " + str(nr) + " " + tail[at:].lstrip()
+                tail = tail[:at] + " rotate " + str(angle) + " " + tail[at:].lstrip()
             tail = re.sub(r"[ \t]+", " ", tail).rstrip()
-            head = source[match.start():match.start("body")]
-            replacement = head + mm_femto(nx) + "mm, " + mm_femto(ny) + "mm)" + tail
+            replacement = source[match.start():match.start("body")] + mm_femto(nx) + "mm, " + mm_femto(ny) + "mm)" + tail
             edits.append((match.start(), match.end(), replacement))
             changed.append((target, fp))
         except (ValueError, sm.MapError) as exc:
             errors.append((line, str(exc)))
-    return edits, sorted(errors), changed
+    for start, end in loops:
+        for match in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source[start:end]):
+            if match.group(1) in footprints:
+                errors.append((source.count("\n", 0, start + match.start()) + 1, "place in a for loop is not rewritten"))
+    return edits, sorted(set(errors)), changed
+
+
+def compiler_footprints(layout_path, board_path, targets, changes):
+    from jlc_frame_board import board_sexpr, children
+    layout = json.loads(layout_path.read_text(encoding="utf-8"))
+    board = board_sexpr(board_path.read_text(encoding="utf-8"))
+    full_names = {name.replace("::", "-"): name for name in changes}
+    rows = []
+    for node in children(board, "footprint"):
+        at = next(c for c in children(node, "at"))
+        rows.append((full_names.get(node[1]), [Decimal(at[1]), Decimal(at[2])],
+                     Decimal(at[3]) if len(at) > 3 else Decimal(0),
+                     next(c for c in children(node, "layer"))[1] == "B.Cu"))
+    result = {}
+    for placement in layout.get("placements", []):
+        parts = placement["instance"].split("::", 1)[-1].split("::")
+        if len(parts) != 1:
+            continue
+        target = re.sub(r"_(\d+)$", r"[\1]", parts[0])
+        if target not in targets:
+            continue
+        bottom = placement.get("side") == "bottom"
+        angle = (placement.get("rotate", 0) + (180 if bottom else 0)) % 360
+        matches = [row for row in rows if row[1] == [Decimal(str(v)) for v in placement["at"]]
+                   and row[2] % 360 == angle and row[3] == bottom]
+        if len(matches) != 1:
+            if any(row[0] is not None for row in rows):
+                raise ValueError("compiler layout/PCB match for %s is not unique (%d)" % (target, len(matches)))
+            continue
+        if matches[0][0] is not None:
+            result[target] = matches[0][0]
+    return result
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("project", type=Path, help="CoHDL project directory")
+    ap.add_argument("project", type=Path)
     ap.add_argument("changes", type=Path)
-    ap.add_argument("--map", type=Path, help="compiler supplier map (resolves footprint by designator)")
-    ap.add_argument("--board", type=Path, help="compiler .kicad_pcb (resolves footprint by designator)")
+    ap.add_argument("--layout", type=Path)
+    ap.add_argument("--board", type=Path)
     ap.add_argument("--reverse", action="store_true")
+    ap.add_argument("--undo-log", type=Path)
     args = ap.parse_args(argv)
+    undo = args.undo_log or args.changes.with_suffix(args.changes.suffix + ".undo.json")
     try:
+        if args.reverse:
+            doc = json.loads(undo.read_text(encoding="utf-8"))
+            for item in doc["files"]:
+                path = Path(item["path"])
+                if hashlib.sha256(path.read_bytes()).hexdigest() != item["after_sha256"]:
+                    raise ValueError("refusing reverse after external edit: " + str(path))
+            for item in doc["files"]:
+                Path(item["path"]).write_text(item["source"], encoding="utf-8")
+            print("realigned %d placements" % doc["count"])
+            return 0
+        if not args.layout or not args.board:
+            raise ValueError("forward realignment requires --layout and --board")
         changes = read_changes(args.changes)
-        footprints = {}
-        if args.map:
-            doc = json.loads(args.map.read_text(encoding="utf-8"))
-            for ref, row in doc.get("designators", {}).items():
-                if row.get("footprint") in changes:
-                    footprints[ref] = row["footprint"]
-        if args.board:
-            from jlc_frame_board import board_sexpr, children
-            board = board_sexpr(args.board.read_text(encoding="utf-8"))
-            short_to_full = {}
-            for fp in changes:
-                short_to_full.setdefault(fp.rsplit("::", 1)[-1], []).append(fp)
-            for node in children(board, "footprint"):
-                prop = next(p for p in children(node, "property") if p[1] == "Reference")
-                short = node[1].split("-", 1)[-1]
-                candidates = short_to_full.get(short, [])
-                if len(candidates) == 1:
-                    footprints[prop[2]] = candidates[0]
-        sources = sorted((args.project / "src").glob("*.cohdl"))
-        all_edits, errors = {}, []
-        for path in sources:
-            source = path.read_text(encoding="utf-8")
-            edits, problems, _ = realign(source, changes, footprints, args.reverse)
+        paths = sorted((args.project / "src").glob("*.cohdl"))
+        originals = {p: p.read_text(encoding="utf-8") for p in paths}
+        targets = {m.group(1) for source in originals.values()
+                   for m in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source)}
+        footprints = compiler_footprints(args.layout, args.board, targets, changes)
+        rewritten, errors, undo_files = {}, [], []
+        for path, source in originals.items():
+            edits, problems, _ = realign(source, changes, footprints)
             errors.extend("%s:%d: %s" % (path, line, msg) for line, msg in problems)
-            all_edits[path] = (source, edits)
+            for start, end, replacement in reversed(edits):
+                source = source[:start] + replacement + source[end:]
+            rewritten[path] = source
+            if edits:
+                undo_files.append({"path": str(path), "source": originals[path], "count": len(edits),
+                                   "after_sha256": hashlib.sha256(source.encode()).hexdigest()})
         if errors:
             for error in errors: print(error, file=sys.stderr)
             return 1
-        for path, (source, edits) in all_edits.items():
-            for start, end, replacement in reversed(edits):
-                source = source[:start] + replacement + source[end:]
-            if edits: path.write_text(source, encoding="utf-8")
-        print("realigned %d placements" % sum(len(e) for _, e in all_edits.values()))
+        for path, source in rewritten.items():
+            if source != originals[path]: path.write_text(source, encoding="utf-8")
+        count = sum(item["count"] for item in undo_files)
+        undo.write_text(json.dumps({"count": count, "files": undo_files}, indent=2) + "\n", encoding="utf-8")
+        print("realigned %d placements" % count)
         return 0
     except (ValueError, OSError, KeyError, json.JSONDecodeError, sm.MapError) as exc:
         print("realign_place.py: " + str(exc), file=sys.stderr)

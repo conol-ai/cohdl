@@ -60,7 +60,7 @@ design D {
     def test_map_changes_and_conflicts(self):
         with tempfile.TemporaryDirectory() as td:
             p = Path(td) / "map.json"
-            p.write_text(json.dumps({"designators": {"U1": {"footprint": "p::F", "at": ["2mm", "1mm"], "rotate": 90}}}))
+            p.write_text(json.dumps({"changes": [{"footprint": "p::F", "dx_mm": 2, "dy_mm": 1, "rotate": 90}]}))
             self.assertEqual(rp.read_changes(p)["p::F"], (2 * 10**6, 10**6, 90))
 
     def test_cli_reports_file_line_without_writing(self):
@@ -71,10 +71,9 @@ design D {
             original = "design D { layout {\nplace U1 at (X, 1mm)\n} }\n"
             src.write_text(original)
             (root / "change.json").write_text('{"changes":[{"footprint":"p::F","dx_mm":1}]}')
-            (root / "map.json").write_text('{"designators":{"U1":{"footprint":"p::F"}}}')
             with mock.patch("sys.stderr", new=io.StringIO()) as err:
-                self.assertEqual(rp.main([str(root), str(root / "change.json"), "--map", str(root / "map.json")]), 1)
-            self.assertIn(str(src) + ":2:", err.getvalue())
+                self.assertEqual(rp.main([str(root), str(root / "change.json")]), 1)
+            self.assertIn("requires --layout and --board", err.getvalue())
             self.assertEqual(src.read_text(), original)
 
 

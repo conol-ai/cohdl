@@ -2,4 +2,5 @@ pub device CI_DEVICE { pins { P: 1 [passive] } }
 pub footprint FP_CI_VALID {}
 pub part CI_PART: CI_DEVICE {
     primary { mfr: "Valid Maker", mpn: "VALID-MPN", footprint: FP_CI_VALID, supplier lcsc "C_VALID" }
+    alt { mfr: "Alt Maker", mpn: "ALT-MPN", supplier lcsc "C_VALID_ALT" at (0mm, 0.5mm) rotate 180 }
 }

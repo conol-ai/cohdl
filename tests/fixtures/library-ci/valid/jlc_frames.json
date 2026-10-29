@@ -46,6 +46,27 @@
         "reason": "same_supplier_footprint",
         "note": "same fixture footprint and supplier"
       }
+    },
+    {
+      "id": "valid-alt-offset",
+      "package": "ci_valid",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_VALID",
+      "supplier": "lcsc",
+      "pn": "C_VALID_ALT",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0.5,
+        "rotate_deg": 180
+      },
+      "measured": null,
+      "exception": "supplier preview requires the alternate placement offset",
+      "evidence": null,
+      "evidence_ref": {
+        "row": "valid-primary",
+        "reason": "same_supplier_footprint",
+        "note": "alternate uses the same verified footprint preview"
+      }
     }
   ]
 }

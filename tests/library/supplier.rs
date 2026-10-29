@@ -13,15 +13,19 @@ const FEMTO_PER_MM: f64 = 1e15;
 
 pub struct CheckedPackage<'a> {
     pub name: &'a str,
-    pub version: &'a str,
+    pub package_versions: &'a BTreeMap<String, String>,
     pub world: &'a World,
 }
 
 impl<'a> CheckedPackage<'a> {
-    pub fn new(name: &'a str, version: &'a str, world: &'a World) -> Self {
+    pub fn new(
+        name: &'a str,
+        package_versions: &'a BTreeMap<String, String>,
+        world: &'a World,
+    ) -> Self {
         Self {
             name,
-            version,
+            package_versions,
             world,
         }
     }
@@ -568,9 +572,16 @@ pub fn audit_packages(
             for entry in entries(part) {
                 let mfr = entry.field("mfr").map_or("", |field| field.value.as_str());
                 let mpn = entry.field("mpn").map_or("", |field| field.value.as_str());
-                let footprint = entry
-                    .effective_footprint(&part.primary)
-                    .map_or("<none>", |fp| cohdl::resolve::short(&fp.name));
+                let effective_footprint = entry.effective_footprint(&part.primary);
+                let footprint =
+                    effective_footprint.map_or("<none>", |fp| cohdl::resolve::short(&fp.name));
+                let frame_package = effective_footprint.and_then(|fp| {
+                    let root = fp.name.split("::").next()?;
+                    package.world.package_names.get(root)
+                });
+                let frame_version = frame_package
+                    .and_then(|name| package.package_versions.get(name))
+                    .map(String::as_str);
                 for binding in &entry.suppliers {
                     let supplier = binding.supplier.name.as_str();
                     let pn = binding.part_number.as_str();
@@ -609,8 +620,9 @@ pub fn audit_packages(
                     let exact = frames
                         .iter()
                         .filter(|row| {
-                            row.package == package.name
-                                && row.package_version == package.version
+                            frame_package.is_some_and(|name| row.package == *name)
+                                && frame_version
+                                    .is_some_and(|version| row.package_version == version)
                                 && row.footprint == footprint
                                 && row.supplier == supplier
                                 && row.pn == pn
@@ -620,8 +632,9 @@ pub fn audit_packages(
                         error(
                             &context,
                             format!(
-                                "jlc_frames.json has no exact (package, current package_version `{}`, footprint, supplier, pn) row for lcsc {pn}",
-                                package.version
+                                "jlc_frames.json has no exact (footprint package `{}`, its current package_version `{}`, footprint, supplier, pn) row for lcsc {pn}",
+                                frame_package.map_or("<unresolved>", String::as_str),
+                                frame_version.unwrap_or("<unresolved>")
                             ),
                             &mut errors,
                         );
@@ -663,7 +676,7 @@ mod tests {
 
     struct OwnedPackage {
         name: String,
-        version: String,
+        package_versions: BTreeMap<String, String>,
         world: World,
     }
 
@@ -712,9 +725,11 @@ mod tests {
             dir.display(),
             checked.diags.render(&checked.sm)
         );
+        checked.world.package_names = project.package_names;
+        checked.world.package_versions = project.package_versions.clone();
         OwnedPackage {
-            version: project.package_versions[&project.name].clone(),
             name: project.name,
+            package_versions: project.package_versions,
             world: checked.world,
         }
     }
@@ -722,7 +737,9 @@ mod tests {
     fn borrowed(packages: &[OwnedPackage]) -> Vec<CheckedPackage<'_>> {
         packages
             .iter()
-            .map(|package| CheckedPackage::new(&package.name, &package.version, &package.world))
+            .map(|package| {
+                CheckedPackage::new(&package.name, &package.package_versions, &package.world)
+            })
             .collect()
     }
 
@@ -785,6 +802,81 @@ mod tests {
     #[test]
     fn valid_fixture_passes_with_direct_and_reused_evidence() {
         audit_fixture("valid").unwrap();
+    }
+
+    #[test]
+    fn frames_key_on_the_footprint_owner_not_the_binding_package() {
+        let (root, packages) = fixture("g-footprint-owner");
+        audit_packages(
+            &root,
+            &root.join("lcsc_map.json"),
+            &root.join("jlc_frames.json"),
+            &borrowed(&packages),
+        )
+        .unwrap();
+
+        let message = audit_packages(
+            &root,
+            &root.join("lcsc_map.json"),
+            &root.join("jlc_frames.binding-owner.json"),
+            &borrowed(&packages),
+        )
+        .unwrap_err();
+        for expected in [
+            "package `ci_g`",
+            "FP_SHARED",
+            "lcsc C_G_OWNER",
+            "footprint package `ci_fp`",
+            "current package_version `2.4.6`",
+        ] {
+            assert!(
+                message.contains(expected),
+                "wrong-owner error did not contain `{expected}`:\n{message}"
+            );
+        }
+    }
+
+    #[test]
+    fn every_evidence_rule_has_an_independent_json_counterexample() {
+        let cases = [
+            (
+                "d-chain",
+                "frame `bad` references `indirect`, which does not have its own evidence",
+            ),
+            (
+                "d-missing-record",
+                "evidence record `does-not-exist.txt` does not name an existing repository file",
+            ),
+            (
+                "d-escape-record",
+                "evidence record `../outside.txt` must stay inside the repository",
+            ),
+            (
+                "d-bad-reason",
+                "evidence_ref `reason` must be same_supplier_footprint or same_preview_board",
+            ),
+            ("d-empty-note", "`note` must be a non-empty string"),
+            (
+                "d-missing-exception",
+                "non-zero mapping requires a non-empty `exception`; null is forbidden",
+            ),
+            (
+                "d-zero-exception",
+                "zero mapping requires `exception: null`, got `zero mapping must not carry this`",
+            ),
+            ("d-duplicate-id", "duplicate frame id `direct`"),
+        ];
+        for (case, expected) in cases {
+            let message = audit_fixture(case).unwrap_err();
+            assert!(
+                message.contains(expected),
+                "{case} error did not contain `{expected}`:\n{message}"
+            );
+            assert!(
+                message.contains("C_D_RULE"),
+                "{case} error did not name its supplier part number:\n{message}"
+            );
+        }
     }
 
     #[test]

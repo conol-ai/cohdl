@@ -229,7 +229,6 @@ fn courtyard_excess(courtyard: &Courtyard, shape: Geometry) -> Option<f64> {
     (excess > 0.0).then_some(excess)
 }
 
-
 /// `(package, footprint, version)`: defects this audit exposes and defers to
 /// A1b/A1c. Every reason states the failing check, the pads involved and the
 /// measured excess — this table is the dispatch list for those cards.

@@ -10,6 +10,7 @@ pub mod easyeda;
 pub mod geom;
 pub mod ipc2581;
 pub mod json;
+pub(crate) mod keepout;
 pub mod kicad;
 pub mod kicad_mod;
 pub mod kicad_pcb;
@@ -53,6 +54,14 @@ pub fn validate_physical_export(world: &World, ir: &DesignIr) -> Result<(), Phys
                 .find(|h| h.plating == crate::ast::MountHolePlating::SourceUnspecified)
             {
                 return Err(PhysicalExportError(format!("cannot physically export footprint `{}`: mount_hole `{}` has source-unspecified hole plating; use `build --logical-only` and retain the unknown source fact", fp.name.name, hole.number.text)));
+            }
+            for region in &fp.keepouts {
+                keepout::validate(region).map_err(|cause| {
+                    PhysicalExportError(format!(
+                        "cannot export keepout in footprint `{}`: {cause}",
+                        fp.name.name
+                    ))
+                })?;
             }
             for place in &fp.pads {
                 let Some(pad) = world.pads.get(&place.pad.name) else {

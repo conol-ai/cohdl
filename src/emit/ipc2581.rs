@@ -59,6 +59,25 @@ pub fn emit_ipc2581(
     package_name: &str,
 ) -> Result<String, crate::emit::PhysicalExportError> {
     crate::emit::validate_physical_export(world, ir)?;
+    // The current B1 handoff has no projection for the full copper AND
+    // component exclusion contract. Never silently discard antenna rules.
+    for inst in ir.instances.values() {
+        if let Some(part) = inst.part.as_ref().and_then(|p| world.parts.get(p)) {
+            for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+                if let Some(fp) = entry
+                    .footprint
+                    .as_ref()
+                    .and_then(|f| world.footprints.get(&f.name))
+                {
+                    if !fp.keepouts.is_empty() {
+                        return Err(crate::emit::PhysicalExportError(format!(
+                            "IPC-2581 export cannot preserve keepouts in footprint `{}`; use `--emit kicad_pcb` to retain all-layer copper and component exclusions", fp.name.name,
+                        )));
+                    }
+                }
+            }
+        }
+    }
     let insts = sorted_instances(ir);
     let bom = bom_groups(world, ir);
     let enterprises = enterprise_map(&bom);

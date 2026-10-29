@@ -1568,8 +1568,21 @@ fn validate_footprints(world: &World, diags: &mut Diagnostics) {
         for (kw, c) in [
             ("courtyard", fp.courtyard.as_ref()),
             ("window", fp.window.as_deref()),
-        ] {
+        ]
+        .into_iter()
+        .chain(fp.keepouts.iter().map(|k| ("keepout", Some(k))))
+        {
             let Some(c) = c else { continue };
+            if kw == "keepout" && c.shape.0 != PadShape::Rect {
+                diags.push(Diagnostic::error(
+                    "E806",
+                    c.shape.1,
+                    format!(
+                        "keepout of footprint `{}` requires `shape: rect`",
+                        fp.name.name
+                    ),
+                ));
+            }
             if c.size.len() != c.shape.0.size_arity() {
                 diags.push(Diagnostic::error(
                     "E806",

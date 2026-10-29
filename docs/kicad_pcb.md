@@ -10,7 +10,8 @@ repeatable with distinct values), so the Quilter handoff and the KiCad board
 can come out of one build.
 
 The emitted board is a **layout starting point**: placements, net-bound
-footprints, and the board outline — no routing, no zones, no design rules.
+footprints, and the board outline. It contains footprint keepout rule areas
+when declared; routing, copper pours, and board-wide design rules are not generated.
 KiCad draws the ratsnest from the pad net bindings.
 
 ## What the file contains
@@ -36,6 +37,13 @@ KiCad draws the ratsnest from the pad net bindings.
   paste overrides), courtyard, `window` cutouts, RFC-022/023 mount holes,
   and RFC-031 silkscreen — comes from the same shared derivation the
   `.kicad_mod` emitter renders, so the two projections cannot drift.
+- Provisional rectangular `keepout` regions as native rule-area zones on
+  `*.Cu`, prohibiting tracks, vias, pads, copper fills, and other footprints.
+  Inner layers added to the board remain covered. Unlike pads and graphics,
+  embedded zone polygons use **absolute board coordinates**: mirror local x
+  on the bottom, apply authored rotation, then translate. Their geometry uses
+  the fixed-point rotation path; `.kicad_mod` uses the same zone writer with
+  local vertices. IPC-2581 currently rejects these footprints explicitly.
 - The RFC-020 board outline (when the design declares one) as
   `gr_line`/`gr_arc` on Edge.Cuts at 0.1 mm. Arc midpoints honor the DXF
   winding (correct beyond 180°, unlike the retired script's bisector).
@@ -106,3 +114,8 @@ it compares footprint placements/sides/orientations, every pad copy and net,
 fields, footprint graphics, and Edge.Cuts while ignoring UUID/net-code/order
 noise. An actual KiCad open remains a human checkpoint, as ever — a
 wrong-but-valid orientation is invisible to check/build.
+
+`tools/validate_keepouts.py` is the KiCad integration gate for antenna regions:
+five rotations on both sides, standalone footprint import parity, and DRC
+intrusions on a four-layer board. Run with KiCad's pcbnew Python, passing
+`--cohdl target/debug/cohdl --kicad-cli /path/to/kicad-cli`.

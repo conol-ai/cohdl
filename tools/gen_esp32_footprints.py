@@ -54,7 +54,7 @@ MM_QUANTUM = Decimal("0.000000000000001")
 
 # Updated after the complete normalized geometry has been reviewed.  Import
 # mode deliberately refuses to move this pin implicitly.
-SNAPSHOT_SHA256 = "fca1484784d12c8224bdbaefda665a38d1baae89544f76aaabc15d4b123101b1"
+SNAPSHOT_SHA256 = "daa1efcda07bc722f2c97843b9744f151b999997770245baeb210d112e294942"
 
 
 class ImportFailure(ValueError):
@@ -482,12 +482,36 @@ def courtyard_from_kicad(root: Sexp, context: str, pads: list[dict]) -> dict:
     }
 
 
-def kicad_keepout_guides(root: Sexp, context: str) -> list[list[list[str]]]:
-    guides = []
+KEEP_OUT_ITEMS = ["tracks", "vias", "pads", "copperpour", "footprints"]
+
+
+def keepout_rectangle(points: list[list[str]], context: str) -> tuple[list[str], list[str]]:
+    coords = [(Decimal(x), Decimal(y)) for x, y in points]
+    xs = sorted({x for x, _ in coords}); ys = sorted({y for _, y in coords})
+    if (len(coords) != 4 or len(xs) != 2 or len(ys) != 2
+            or set(coords) != {(x, y) for x in xs for y in ys}
+            or any(a[0] != b[0] and a[1] != b[1] for a, b in zip(coords, coords[1:] + coords[:1]))):
+        raise ImportFailure(f"{context}: keepout must be an exact axis-aligned rectangle")
+    return ([decimal_text((xs[0] + xs[1]) / 2), decimal_text((ys[0] + ys[1]) / 2)],
+            [decimal_text(xs[1] - xs[0]), decimal_text(ys[1] - ys[0])])
+
+
+def kicad_keepouts(root: Sexp, context: str) -> list[dict]:
+    regions = []
     for zone in children(root, "zone"):
         keepout = child(zone, "keepout", context)
         if not keepout:
             continue
+        layers = child(zone, "layers", context, True)
+        all_layers = {"F.Cu", "B.Cu"} | {f"In{i}.Cu" for i in range(1, 31)}
+        # The pinned S31 source lists just one inner layer. Its
+        # PCB antenna needs the same all-copper exclusion as other modules;
+        # retain this source fact and disclose the conservative correction.
+        s31_partial = (context.endswith("ESP32-S31-WROOM-3") or context == "FP_ESP32_S31_WROOM_3") and layers == ["layers", "F.Cu", "B.Cu", "In1.Cu"]
+        if layers != ["layers", "*.Cu"] and set(layers[1:]) != all_layers and not s31_partial:
+            raise ImportFailure(f"{context}: unsupported keepout layers {layers}")
+        if sorted(keepout[1:]) != sorted([[key, "not_allowed"] for key in KEEP_OUT_ITEMS]):
+            raise ImportFailure(f"{context}: unsupported keepout restrictions {keepout}")
         polygon = child(zone, "polygon", context, True)
         pts = child(polygon, "pts", context, True) if polygon else None
         assert pts is not None
@@ -495,8 +519,9 @@ def kicad_keepout_guides(root: Sexp, context: str) -> list[list[list[str]]]:
                   (xy(p, "xy", context) for p in pts[1:] if isinstance(p, list))]
         if len(points) < 3:
             raise ImportFailure(f"{context}: keepout polygon has fewer than three points")
-        guides.append(points)
-    return guides
+        keepout_rectangle(points, context)
+        regions.append({"layers": ["*.Cu"], "source_layers": layers[1:], "prohibits": KEEP_OUT_ITEMS[:], "points": points})
+    return regions
 
 
 def kicad_reference(root: Sexp, courtyard: dict, context: str) -> list[str]:
@@ -530,13 +555,15 @@ def import_module(source_root: pathlib.Path, stem: str) -> dict:
     if not pads:
         raise ImportFailure(f"{context}: no pads")
     courtyard = courtyard_from_kicad(root, context, pads)
+    keepouts = kicad_keepouts(root, context)
     return {
         "owner": "@espressif/esp32", "public_name": public_module_name(stem),
         "source": {"kind": "espressif_kicad", "path": relative.as_posix(),
                    "sha256": sha256_file(path), "name": stem},
         "pads": pads, "courtyard": courtyard,
         "reference_at": kicad_reference(root, courtyard, context),
-        "keepout_guides": kicad_keepout_guides(root, context),
+        "keepout_guides": [k["points"] for k in keepouts],
+        "keepouts": keepouts,
         "pin_1_marker": any(p["number"] == "1" for p in pads),
         "normalization": {"identical_duplicate_pads_removed": deduped,
                           "unnumbered_source_pads": unnamed},
@@ -766,7 +793,7 @@ def import_direct(data: bytes, spec: tuple, archive_sha: str | None) -> dict:
         "owner": owner, "public_name": public_name, "source": source,
         "pads": pads, "courtyard": courtyard,
         "reference_at": [courtyard["at"][0], decimal_text(min_y - Decimal("1"))],
-        "keepout_guides": [], "pin_1_marker": True,
+        "keepout_guides": [], "keepouts": [], "pin_1_marker": True,
         "normalization": {"decal_name": decal_name,
                           "identical_duplicate_pads_removed": duplicates,
                           "source_mask_polygons_not_projected": {
@@ -832,7 +859,7 @@ def import_snapshot(esp_root: pathlib.Path, kicad_root: pathlib.Path, cad_root: 
             "paste": "Native module paste follows copper. Direct PADS level 123 (Paste Mask Top) polygons would be containment-proved same-number overlays; the pinned current sources contain none, so paste follows the exact copper islands or continuous EP.",
             "mask": "Native pad mask is retained. PADS levels 121/128 are explicitly Solder Mask Top/Bottom; their arbitrary polygons are counted separately but not projected because CoHDL supports expansion, not independent mask polygons.",
             "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle.",
-            "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout polygons are disclosed as exact silkscreen outlines; source body/fabrication graphics are omitted.",
+            "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout outlines remain visible alongside enforced all-copper keepout rectangles; source body/fabrication graphics are omitted.",
             "unnumbered": "KiCad unnumbered copper lands receive stable MP1..MPn physical identifiers so CoHDL can retain them and device declarations can model them explicitly.",
         },
         "sources": {
@@ -927,11 +954,18 @@ def generated_source(owner: str, rows: list[dict]) -> str:
         if row["courtyard"]["projection"] != "exact_rect":
             out.append("// Courtyard is the conservative source bounding rectangle.")
         if row["keepout_guides"]:
-            out.append("// Silk outlines below disclose unenforced antenna keepout zones.")
+            out.append("// Antenna keepouts exclude copper and components on every copper layer.")
         out.append(f"pub footprint {row['public_name']} {{")
         for pad in row["pads"]:
             x, y = pad["at"]; rotation = f" rotate {pad['rotation']}" if pad["rotation"] else ""
             out.append(f"    pad {pad['number']}: {pad_names[geometry_key(pad['stack'])]} at ({mm(x)}, {mm(y)}){rotation}")
+        if [k["points"] for k in row["keepouts"]] != row["keepout_guides"]:
+            raise ImportFailure(f"{label}: keepout rules and visible guides differ")
+        for region in row["keepouts"]:
+            if region["layers"] != ["*.Cu"] or region["prohibits"] != KEEP_OUT_ITEMS:
+                raise ImportFailure(f"{label}: unsupported keepout contract")
+            at, size = keepout_rectangle(region["points"], label)
+            out.append(f"    keepout {{ shape: rect, at: ({mm(at[0])}, {mm(at[1])}), size: ({mm(size[0])}, {mm(size[1])}) }}")
         if row["pin_1_marker"] or row["keepout_guides"]:
             out.append("    silkscreen {")
             if row["pin_1_marker"]:
@@ -958,7 +992,7 @@ from the direct Espressif PADS evidence described below."""
     else:
         license_paragraph = """Espressif's pinned KiCad 3.2.1 library is CC-BY-SA-4.0 with the KiCad library
 exception; its notice text is shipped as `LICENSE.kicad.md`."""
-    return f"""# Generated ESP32 footprint geometry
+    text = f"""# Generated ESP32 footprint geometry
 
 This package contains {count} generated ESP32-family land patterns frozen by
 `tools/gen_esp32_footprints.py`.  Ordinary generation is offline.  The
@@ -985,6 +1019,21 @@ PADS integer coordinates use 1/1,500,000 mm database units.  Recurring values
 are rounded half-up once to CoHDL's 10^-15 mm literal grid, so the maximum
 coordinate projection is 0.5 femtometres.
 """
+    # qfn@0.2.0 is an unchanged dependency archive: retain its historical
+    # documentation bytes. The new module release documents the new contract.
+    if owner == "@espressif/esp32":
+        text = text.replace(
+            "CoHDL cannot emit footprint keepout zones.  Exact source antenna keepout\n"
+            "polygons are therefore visible silkscreen guides only and remain unenforced;\n"
+            "apply the module datasheet's RF clearance in board layout.",
+            "Exact source antenna rectangles are enforced as all-copper keepouts in\n"
+            "KiCad footprint and board output: no tracks, vias, pads, copper pours or\n"
+            "components. Silkscreen outlines remain as visible guides. Additional RF\n"
+            "clearance and board-edge placement follow the module datasheet."
+        )
+        text += "\nThe pinned S31-WROOM-3 source lists F.Cu, B.Cu, and only In1.Cu; this\nrelease conservatively extends that rectangle to all copper layers. The\nsource layer list remains recorded in the normalized snapshot.\n"
+        text += "\nThis release requires a CoHDL compiler with `keepout` support (the ESP32\nantenna-keepout fix, after v0.8.1). v0.8.1 rejects this syntax. IPC-2581\nexport rejects these footprints rather than discarding the restrictions;\nuse `build --emit kicad_pcb`. Pin definitions and pad geometry are unchanged.\n"
+    return text
 
 
 def generated_files(snapshot: dict) -> dict[pathlib.Path, bytes]:

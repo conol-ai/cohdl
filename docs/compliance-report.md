@@ -4314,3 +4314,42 @@ record for this implementation.
   tests also passed with this compiler. The earlier 63-package and
   three-example corpus results above remain evidence for their recorded
   revision; this pass adds targeted coverage for the shapes they missed.
+
+
+## ESP32 antenna keepouts (2026-10-28, user-directed provisional extension)
+
+The ESP32 importer preserved antenna polygons only as silkscreen guides.
+Those lines did not prevent tracks, vias, copper fills, pads, or components
+from entering the antenna region. Package `@espressif/esp32@0.3.0` now uses
+repeatable rectangular `keepout { shape, at, size }` blocks for twenty
+generated module footprints and the hand-audited S3-WROOM-1 footprint.
+
+- This is a scoped provisional extension documented in
+  `provisional-syntax.md`, not an Accepted RFC. E806 handles invalid fields
+  and dimensions; the four residual CoHDL DRC rules are unchanged.
+- All five prohibitions apply to all copper layers. A shared writer emits
+  native KiCad rule areas in `.kicad_mod` and `.kicad_pcb`. Embedded zone
+  polygons use absolute board coordinates, unlike local pad geometry;
+  bottom-side mirroring and arbitrary rotation use the existing deterministic
+  fixed-point path. Existing footprints without keepouts retain their bytes.
+- API docs expose structured regions and restrictions. IPC-2581 explicitly
+  rejects used primary/alternate footprints with keepouts rather than losing
+  the exclusion contract. Unused declarations do not block IPC export.
+- Every source polygon is retained exactly. The pinned S31-WROOM-3 source
+  lists only F.Cu, B.Cu, and In1.Cu; its rectangle is conservatively extended
+  to all copper layers, with the original list retained in `source_layers`.
+  All other layer sets already mean all copper layers. Non-rectangular or
+  selective source rules fail import. The 55 original footprint rows and
+  3,237 pad placements are otherwise unchanged; qfn@0.2.0 remains byte-identical.
+- Compiler v0.8.1 cannot parse the new syntax. Package documentation states
+  that 0.3.0 requires a compiler built with this fix. No compiler release is
+  implied by the library version.
+
+Regression coverage includes invalid unused declarations, formatting,
+placeholder classification, deterministic transformed output, API-doc fields,
+alternate footprints, and all twenty generated source rectangles. The
+hand-audited S3-WROOM-1 rectangle is separately pinned. Live KiCad 10.0.4
+validation (`tools/validate_keepouts.py`) compared standalone imports against
+native boards at 0/37/90/180/270 degrees on both sides, then enabled four
+copper layers: all 70 deliberately intruding tracks/vias/pads/components
+were rejected by keepout DRC and all 40 outside control tracks were allowed.

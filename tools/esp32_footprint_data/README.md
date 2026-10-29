@@ -26,3 +26,16 @@ python3 tools/gen_esp32_footprints.py \
 
 Review the complete JSON diff and update the snapshot SHA-256 pin in the
 generator only after accepting every geometry/provenance change.
+
+The 2026-10-28 antenna fix recovers the twenty KiCad module keepout rectangles
+from those same SHA-256-verified source files. Each `keepouts` entry records
+the exact polygon, five prohibited item kinds, original `source_layers`, and
+normalized `layers: ["*.Cu"]`. `keepout_guides` retain the identical polygon
+for visible silkscreen outlines. Non-rectangular or selective restrictions
+fail import rather than being silently weakened.
+
+Source exception: `ESP32-S31-WROOM-3` lists only `F.Cu`, `B.Cu`, and `In1.Cu`.
+Its antenna exclusion is conservatively extended to every copper layer; the
+original list remains recorded in `source_layers`. All other source layer
+sets already mean all copper layers (`*.Cu` or an explicit 32-layer list).
+Pads, holes, courtyards, part bindings, and source hashes are unchanged.

@@ -224,7 +224,7 @@ pad P_ESPRESSIF_0030 {
 // Source: footprints/Espressif.pretty/ESP32-C3-MINI-1.kicad_mod
 // Source file SHA-256: f1899b54ab6c007d50e76334f3fb8f340a827bc1d26f1ba24003333c214a7626
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C3_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-5.9mm, -1.3mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-5.9mm, -0.5mm) rotate 90
@@ -287,6 +287,7 @@ pub footprint FP_ESP32_C3_MINI_1 {
     pad 51: P_ESPRESSIF_0009 at (5.95mm, 7.65mm) rotate 90
     pad 52: P_ESPRESSIF_0009 at (-5.95mm, 7.65mm) rotate 90
     pad 53: P_ESPRESSIF_0009 at (-5.95mm, -2.25mm) rotate 90
+    keepout { shape: rect, at: (0mm, -5.6mm), size: (13.2mm, 5.4mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (6.6mm, -2.9mm) to (-6.6mm, -2.9mm) width 0.12mm
@@ -373,7 +374,7 @@ pub footprint FP_ESP32_C3_MINI_1U {
 // Source: footprints/Espressif.pretty/ESP32-C3-WROOM-02.kicad_mod
 // Source file SHA-256: 99a0cfcf643adc1b05b9993e33807721c42e2f3925d6e3f5630533c0f66aaa9b
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C3_WROOM_02 {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -5.9mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -4.4mm)
@@ -402,6 +403,7 @@ pub footprint FP_ESP32_C3_WROOM_02 {
     pad 19: P_ESPRESSIF_0009 at (2.06mm, -0.8mm) rotate 180
     pad 19: P_ESPRESSIF_0009 at (2.06mm, 0.3mm) rotate 180
     pad 19: P_ESPRESSIF_0009 at (2.06mm, 1.4mm) rotate 180
+    keepout { shape: rect, at: (0mm, -10mm), size: (18mm, 6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -7mm) to (-9mm, -7mm) width 0.12mm
@@ -454,7 +456,7 @@ pub footprint FP_ESP32_C3_WROOM_02U {
 // Source: footprints/Espressif.pretty/ESP32-C5-MINI-1.kicad_mod
 // Source file SHA-256: fc8b959aac6a40713e91239e3ec6d05df728116d3bcc4235a5fc9ef611b9a4a4
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C5_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-7mm, -5.95mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-7mm, -5.1mm) rotate 90
@@ -529,6 +531,7 @@ pub footprint FP_ESP32_C5_MINI_1 {
     pad 63: P_ESPRESSIF_0012 at (-7mm, 7mm) rotate 180
     pad 64: P_ESPRESSIF_0012 at (7mm, 7mm) rotate 180
     pad 65: P_ESPRESSIF_0012 at (7mm, -7mm) rotate 180
+    keepout { shape: rect, at: (0mm, -10.65mm), size: (15.4mm, 5.9mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (7.7mm, -7.7mm) to (-7.7mm, -7.7mm) width 0.12mm
@@ -543,7 +546,7 @@ pub footprint FP_ESP32_C5_MINI_1 {
 // Source: footprints/Espressif.pretty/ESP32-C5-WROOM-1.kicad_mod
 // Source file SHA-256: 50bc1fece1bca11deb6ca8cd8e1b134385f5a8a59fe819ee5200650a30a9b547
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C5_WROOM_1 {
     pad 1: P_ESPRESSIF_0025 at (-8.5mm, -5.76mm)
     pad 2: P_ESPRESSIF_0025 at (-8.5mm, -4.49mm)
@@ -582,6 +585,7 @@ pub footprint FP_ESP32_C5_WROOM_1 {
     pad 29: P_ESPRESSIF_0021 at (2.7798mm, 1.128mm) rotate 180
     pad 29: P_ESPRESSIF_0021 at (2.7798mm, 2.828mm) rotate 180
     pad 29: P_ESPRESSIF_0021 at (2.7798mm, 4.528mm) rotate 180
+    keepout { shape: rect, at: (0.25mm, -10.5mm), size: (18mm, 6.5mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9.25mm, -7.25mm) to (-8.75mm, -7.25mm) width 0.12mm
@@ -647,7 +651,7 @@ pub footprint FP_ESP32_C5_WROOM_1U {
 // Source: footprints/Espressif.pretty/ESP32-C6-MINI-1.kicad_mod
 // Source file SHA-256: adbc103699e2b80dcbe9d583f379f12a85198d56bd4ff1e182d7e4965522e138
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C6_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-5.9mm, -1.3mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-5.9mm, -0.5mm) rotate 90
@@ -710,6 +714,7 @@ pub footprint FP_ESP32_C6_MINI_1 {
     pad 51: P_ESPRESSIF_0009 at (5.95mm, 7.65mm) rotate 90
     pad 52: P_ESPRESSIF_0009 at (-5.95mm, 7.65mm) rotate 90
     pad 53: P_ESPRESSIF_0009 at (-5.95mm, -2.25mm) rotate 90
+    keepout { shape: rect, at: (0mm, -5.6mm), size: (13.2mm, 5.4mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (6.6mm, -2.9mm) to (-6.6mm, -2.9mm) width 0.12mm
@@ -796,7 +801,7 @@ pub footprint FP_ESP32_C6_MINI_1U {
 // Source: footprints/Espressif.pretty/ESP32-C6-WROOM-1.kicad_mod
 // Source file SHA-256: 801e051393f57c7e45523b91de1c1b61f595a923c9a02b8fae846c4af4a926b1
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_C6_WROOM_1 {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -8.26mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -6.99mm)
@@ -835,6 +840,7 @@ pub footprint FP_ESP32_C6_WROOM_1 {
     pad 29: P_ESPRESSIF_0012 at (-0.255mm, -3.79mm) rotate 180
     pad 29: P_ESPRESSIF_0012 at (-0.255mm, -2.54mm) rotate 180
     pad 29: P_ESPRESSIF_0012 at (-0.255mm, -1.29mm) rotate 180
+    keepout { shape: rect, at: (0mm, -12.75mm), size: (18mm, 6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -9.75mm) to (-9mm, -9.75mm) width 0.12mm
@@ -897,7 +903,7 @@ pub footprint FP_ESP32_C6_WROOM_1U {
 // Source: footprints/Espressif.pretty/ESP32-H2-MINI-1.kicad_mod
 // Source file SHA-256: a5df9d16c34f0fc5e70e6cc13cedc005098f7f0663422c5448a5aac83641de5b
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_H2_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-5.9mm, -1.3mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-5.9mm, -0.5mm) rotate 90
@@ -960,6 +966,7 @@ pub footprint FP_ESP32_H2_MINI_1 {
     pad 51: P_ESPRESSIF_0009 at (5.95mm, 7.65mm) rotate 90
     pad 52: P_ESPRESSIF_0009 at (-5.95mm, 7.65mm) rotate 90
     pad 53: P_ESPRESSIF_0009 at (-5.95mm, -2.25mm) rotate 90
+    keepout { shape: rect, at: (0mm, -5.6mm), size: (13.2mm, 5.4mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (6.6mm, -2.9mm) to (-6.6mm, -2.9mm) width 0.12mm
@@ -1046,7 +1053,7 @@ pub footprint FP_ESP32_H2_MINI_1U {
 // Source: footprints/Espressif.pretty/ESP32-MINI-1.kicad_mod
 // Source file SHA-256: 23d304e946fa0d840b5ecaaeee38a87cb4957ecf677bb13b9e8ae83aee30aeda
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-5.9mm, -4.8mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-5.9mm, -4mm) rotate 90
@@ -1111,6 +1118,7 @@ pub footprint FP_ESP32_MINI_1 {
     pad 55: P_ESPRESSIF_0014 at (1.5mm, -1.5mm) rotate 90
     pad 55: P_ESPRESSIF_0014 at (1.5mm, 0mm) rotate 90
     pad 55: P_ESPRESSIF_0014 at (1.5mm, 1.5mm) rotate 90
+    keepout { shape: rect, at: (0mm, -9.5mm), size: (13.2mm, 5.4mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (6.6mm, -6.8mm) to (-6.6mm, -6.8mm) width 0.12mm
@@ -1283,7 +1291,7 @@ pub footprint FP_ESP32_PICO_D4 {
 // Source: footprints/Espressif.pretty/ESP32-PICO-MINI-02.kicad_mod
 // Source file SHA-256: b9e894877c59618b571e9e8ef77f4afe7fb50b2e207a4b6f56221635c109c136
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_PICO_MINI_02 {
     pad 1: P_ESPRESSIF_0005 at (-5.9mm, -4mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-5.9mm, -3.2mm) rotate 90
@@ -1346,6 +1354,7 @@ pub footprint FP_ESP32_PICO_MINI_02 {
     pad 51: P_ESPRESSIF_0009 at (5.95mm, 4.95mm) rotate 90
     pad 52: P_ESPRESSIF_0009 at (-5.95mm, 4.95mm) rotate 90
     pad 53: P_ESPRESSIF_0009 at (-5.95mm, -4.95mm) rotate 90
+    keepout { shape: rect, at: (0mm, -8.3mm), size: (13.2mm, 5.4mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (-6.6mm, -5.6mm) to (-6.6mm, -11mm) width 0.12mm
@@ -1600,7 +1609,7 @@ pub footprint FP_ESP32_PICO_V3_02 {
 // Source: footprints/Espressif.pretty/ESP32-S2-MINI-1.kicad_mod
 // Source file SHA-256: 472f64dd8b8ebd15e34df6731fa196d279c6c2639c96be514c99ad3e1c62d9f7
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S2_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-7mm, -5.95mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-7mm, -5.1mm) rotate 90
@@ -1675,6 +1684,7 @@ pub footprint FP_ESP32_S2_MINI_1 {
     pad 63: P_ESPRESSIF_0012 at (-7mm, 7mm) rotate 180
     pad 64: P_ESPRESSIF_0012 at (7mm, 7mm) rotate 180
     pad 65: P_ESPRESSIF_0012 at (7mm, -7mm) rotate 180
+    keepout { shape: rect, at: (0mm, -10mm), size: (15.4mm, 4.6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (7.7mm, -7.7mm) to (-7.7mm, -7.7mm) width 0.12mm
@@ -1773,7 +1783,7 @@ pub footprint FP_ESP32_S2_MINI_1U {
 // Source: footprints/Espressif.pretty/ESP32-S2-SOLO.kicad_mod
 // Source file SHA-256: db4c067272d190ce7e98a1070f02a0b754453863e0b855af8178e1939b69f1c0
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S2_SOLO {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -8.26mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -6.99mm)
@@ -1824,6 +1834,7 @@ pub footprint FP_ESP32_S2_SOLO {
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, -1.94mm) rotate 180
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, -0.54mm) rotate 180
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, 0.86mm) rotate 180
+    keepout { shape: rect, at: (0mm, -12.775mm), size: (18mm, 5.95mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (-9mm, -9.8mm) to (-9mm, -15.75mm) width 0.12mm
@@ -1898,7 +1909,7 @@ pub footprint FP_ESP32_S2_SOLO_2U {
 // Source: footprints/Espressif.pretty/ESP32-S2-WROOM.kicad_mod
 // Source file SHA-256: 5ab625957dcab1157a1e1b15c612f7ca9a3021dffc850f0e77017f6274bc9a02
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S2_WROOM {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -11.15mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -9.65mm)
@@ -1951,6 +1962,7 @@ pub footprint FP_ESP32_S2_WROOM {
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -4.6mm) rotate 180
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -3.1mm) rotate 180
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -1.6mm) rotate 180
+    keepout { shape: rect, at: (0mm, -15.5mm), size: (18mm, 6.3mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (-9mm, -12.35mm) to (-9mm, -18.65mm) width 0.12mm
@@ -1965,7 +1977,7 @@ pub footprint FP_ESP32_S2_WROOM {
 // Source: footprints/Espressif.pretty/ESP32-S2-WROVER.kicad_mod
 // Source file SHA-256: 6abd530465f914785e29182593dc8fc86edf0235b5f02bb6c82255d4b66bb79c
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S2_WROVER {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -11.15mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -9.65mm)
@@ -2018,6 +2030,7 @@ pub footprint FP_ESP32_S2_WROVER {
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -4.65mm) rotate 180
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -3.1mm) rotate 180
     pad 43: P_ESPRESSIF_0017 at (0.31mm, -1.6mm) rotate 180
+    keepout { shape: rect, at: (0mm, -15.5mm), size: (18mm, 6.3mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -12.35mm) to (-9mm, -12.35mm) width 0.12mm
@@ -2032,7 +2045,7 @@ pub footprint FP_ESP32_S2_WROVER {
 // Source: footprints/Espressif.pretty/ESP32-S31-WROOM-3.kicad_mod
 // Source file SHA-256: ac1bd57cea7aca9c7ea367328fadb7c4d331a28c9acaaaf9d500349b61ac7495
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S31_WROOM_3 {
     pad 1: P_ESPRESSIF_0011 at (-10.3mm, -10.2mm)
     pad 2: P_ESPRESSIF_0011 at (-10.3mm, -9.35mm)
@@ -2141,6 +2154,7 @@ pub footprint FP_ESP32_S31_WROOM_3 {
     pad 97: P_ESPRESSIF_0012 at (10.3mm, 11.3mm)
     pad 98: P_ESPRESSIF_0012 at (10.3mm, -11.3mm)
     pad 99: P_ESPRESSIF_0012 at (-10.3mm, -11.3mm)
+    keepout { shape: rect, at: (0mm, -15mm), size: (22mm, 6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (11mm, -12mm) to (-11mm, -12mm) width 0.12mm
@@ -2155,7 +2169,7 @@ pub footprint FP_ESP32_S31_WROOM_3 {
 // Source: footprints/Espressif.pretty/ESP32-S3-MINI-1.kicad_mod
 // Source file SHA-256: 179195b7d455b37587a9bd62130db9a27ced0125baff04fd0bc2ab0e80013e98
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S3_MINI_1 {
     pad 1: P_ESPRESSIF_0005 at (-7mm, -5.95mm) rotate 90
     pad 2: P_ESPRESSIF_0005 at (-7mm, -5.1mm) rotate 90
@@ -2230,6 +2244,7 @@ pub footprint FP_ESP32_S3_MINI_1 {
     pad 63: P_ESPRESSIF_0012 at (-7mm, 7mm) rotate 180
     pad 64: P_ESPRESSIF_0012 at (7mm, 7mm) rotate 180
     pad 65: P_ESPRESSIF_0012 at (7mm, -7mm) rotate 180
+    keepout { shape: rect, at: (0mm, -10.25mm), size: (15.4mm, 5.1mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (7.7mm, -7.7mm) to (-7.7mm, -7.7mm) width 0.12mm
@@ -2476,7 +2491,7 @@ pub footprint FP_ESP32_S3_WROOM_1U {
 // Source: footprints/Espressif.pretty/ESP32-S3-WROOM-2.kicad_mod
 // Source file SHA-256: 4c925ca2fe411745d3659c95892ef9e20e5e7818cd6e3a7491cdd05a7ecefde6
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_S3_WROOM_2 {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -8.26mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -6.99mm)
@@ -2527,6 +2542,7 @@ pub footprint FP_ESP32_S3_WROOM_2 {
     pad 41: P_ESPRESSIF_0014 at (0.14mm, -4.41mm) rotate 180
     pad 41: P_ESPRESSIF_0014 at (0.14mm, -2.91mm) rotate 180
     pad 41: P_ESPRESSIF_0014 at (0.14mm, -1.41mm) rotate 180
+    keepout { shape: rect, at: (0mm, -12.75mm), size: (18mm, 6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -9.75mm) to (-9mm, -9.75mm) width 0.12mm
@@ -2541,7 +2557,7 @@ pub footprint FP_ESP32_S3_WROOM_2 {
 // Source: footprints/Espressif.pretty/ESP32-WROOM-32E.kicad_mod
 // Source file SHA-256: c0258936cf1b0f2df18b8c84d9b29699ef38f88f37de0d0a00b2a07c7089aaca
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_WROOM_32E {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -7.01mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -5.74mm)
@@ -2590,6 +2606,7 @@ pub footprint FP_ESP32_WROOM_32E {
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, -0.69mm) rotate 180
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, 0.71mm) rotate 180
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, 2.11mm) rotate 180
+    keepout { shape: rect, at: (0mm, -11.525mm), size: (18mm, 5.95mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -8.55mm) to (-9mm, -8.55mm) width 0.12mm
@@ -2662,7 +2679,7 @@ pub footprint FP_ESP32_WROOM_32UE {
 // Source: footprints/Espressif.pretty/ESP32-WROOM-DA.kicad_mod
 // Source file SHA-256: 3e3c29ad96b4b66ca0c12d9c08e27b20c6f4d37c99cb852d766fc9d6feb7059f
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_WROOM_DA {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -7.01mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -5.74mm)
@@ -2713,6 +2730,7 @@ pub footprint FP_ESP32_WROOM_DA {
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, -1.07mm) rotate 180
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, 0.33mm) rotate 180
     pad 41: P_ESPRESSIF_0013 at (-0.1mm, 1.73mm) rotate 180
+    keepout { shape: rect, at: (0.025mm, -15.52mm), size: (35.55mm, 15.7mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (17.8mm, -7.67mm) to (-17.75mm, -7.67mm) width 0.12mm
@@ -2727,7 +2745,7 @@ pub footprint FP_ESP32_WROOM_DA {
 // Source: footprints/Espressif.pretty/ESP32-WROVER-E.kicad_mod
 // Source file SHA-256: 88c8f8d587f92f43165bcc07d0a9780a9b7e4ee2a0a8f4b8c2d7204c44e08d83
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP32_WROVER_E {
     pad 1: P_ESPRESSIF_0025 at (-8.75mm, -8.255mm)
     pad 2: P_ESPRESSIF_0025 at (-8.75mm, -6.985mm)
@@ -2776,6 +2794,7 @@ pub footprint FP_ESP32_WROVER_E {
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, -1.86mm)
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, -0.46mm)
     pad 39: P_ESPRESSIF_0013 at (-0.1mm, 0.94mm)
+    keepout { shape: rect, at: (0mm, -12.545mm), size: (18mm, 6.3mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9mm, -9.395mm) to (-9mm, -9.395mm) width 0.12mm
@@ -2790,7 +2809,7 @@ pub footprint FP_ESP32_WROVER_E {
 // Source: footprints/Espressif.pretty/ESP8684-WROOM-02C.kicad_mod
 // Source file SHA-256: 229eebd111c490f72a5afe85ab4c4da9e1e4303fef57dec1534c4e3aaa477273
 // Courtyard is the conservative source bounding rectangle.
-// Silk outlines below disclose unenforced antenna keepout zones.
+// Antenna keepouts exclude copper and components on every copper layer.
 pub footprint FP_ESP8684_WROOM_02C {
     pad 1: P_ESPRESSIF_0025 at (-8.28mm, -3.325mm)
     pad 2: P_ESPRESSIF_0025 at (-8.28mm, -1.825mm)
@@ -2812,6 +2831,7 @@ pub footprint FP_ESP8684_WROOM_02C {
     pad 18: P_ESPRESSIF_0025 at (9.22mm, -3.325mm) rotate 180
     pad 19: P_ESPRESSIF_0029 at (0mm, 1.575mm) rotate 180
     pad 19: P_ESPRESSIF_0030 at (0mm, 3.3mm) rotate 180
+    keepout { shape: rect, at: (0.47mm, -7.425mm), size: (18mm, 6mm) }
     silkscreen {
         pin_1_marker near pad 1 shape dot
         line from (9.47mm, -4.425mm) to (-8.53mm, -4.425mm) width 0.12mm

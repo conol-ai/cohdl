@@ -9,9 +9,10 @@ Espressif's pinned KiCad 3.2.1 library is CC-BY-SA-4.0 with the KiCad library
 exception; its notice text is shipped as `LICENSE.kicad.md`.  Direct website PADS files are used only as dimensional
 evidence: raw files are not bundled.
 
-CoHDL cannot emit footprint keepout zones.  Exact source antenna keepout
-polygons are therefore visible silkscreen guides only and remain unenforced;
-apply the module datasheet's RF clearance in board layout.  Non-rectangular
+Exact source antenna rectangles are enforced as all-copper keepouts in
+KiCad footprint and board output: no tracks, vias, pads, copper pours or
+components. Silkscreen outlines remain as visible guides. Additional RF
+clearance and board-edge placement follow the module datasheet.  Non-rectangular
 courtyards are conservative bounding rectangles.  Pin 1 uses CoHDL's semantic
 marker, and non-land body/fabrication graphics are omitted.
 
@@ -25,3 +26,12 @@ separately in the snapshot rather than projected as invented paste.
 PADS integer coordinates use 1/1,500,000 mm database units.  Recurring values
 are rounded half-up once to CoHDL's 10^-15 mm literal grid, so the maximum
 coordinate projection is 0.5 femtometres.
+
+The pinned S31-WROOM-3 source lists F.Cu, B.Cu, and only In1.Cu; this
+release conservatively extends that rectangle to all copper layers. The
+source layer list remains recorded in the normalized snapshot.
+
+This release requires a CoHDL compiler with `keepout` support (the ESP32
+antenna-keepout fix, after v0.8.1). v0.8.1 rejects this syntax. IPC-2581
+export rejects these footprints rather than discarding the restrictions;
+use `build --emit kicad_pcb`. Pin definitions and pad geometry are unchanged.

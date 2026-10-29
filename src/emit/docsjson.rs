@@ -803,6 +803,31 @@ fn footprint_payload(world: &World, fp: &ast::FootprintDef) -> Val {
     if let Some(w) = &fp.window {
         fields.push(("window", courtyard_val(w)));
     }
+    if !fp.keepouts.is_empty() {
+        fields.push((
+            "keepouts",
+            Val::Arr(
+                fp.keepouts
+                    .iter()
+                    .map(|k| {
+                        Val::Obj(vec![
+                            ("region", courtyard_val(k)),
+                            ("layers", s("all_copper")),
+                            (
+                                "prohibits",
+                                Val::Arr(
+                                    ["tracks", "vias", "pads", "copper_pours", "components"]
+                                        .into_iter()
+                                        .map(s)
+                                        .collect(),
+                                ),
+                            ),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ));
+    }
     if let Some((x, y, _)) = &fp.silkscreen_ref {
         fields.push(("silkscreen_ref", Val::Obj(vec![("at", mm_pair(x, y))])));
     }

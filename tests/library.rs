@@ -9,6 +9,10 @@ use cohdl::pipeline::{build_artifacts, check_files, check_files_in};
 use cohdl::resolve::ModuleInfo;
 use cohdl::span::SourceMap;
 
+mod library {
+    pub mod geometry;
+}
+
 fn check(pkg: &str, files: &[(&str, &str)]) -> (cohdl::pipeline::Checked, String) {
     let files: Vec<(String, String)> = files
         .iter()
@@ -625,6 +629,98 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
             checked.diags.render(&checked.sm)
         );
 
+        let version = project.package_versions[&project.name].clone();
+        library::geometry::audit_package(&project.name, &version, &checked.world);
+        library::geometry::audit_parts(&project.name, &version, &checked.world);
+
+        let own_prefix = format!("{}::", cohdl::pipeline::package_root(&project.name));
+        if project.name.starts_with("@contrib/") || project.name.starts_with("@sifli/") {
+            const QUARANTINED_SHARED_QFN_LANDS: [&str; 8] = [
+                "qfn::QFN68N35P700X700_1EP549X549",
+                "qfn::QFN24N50P400X400_1EP27X27",
+                "qfn::QFN20N40P300X300_1EP170X170",
+                "qfn::QFN24N50P400X400_1EP245X245",
+                "qfn::QFN16N50P300X300_1EP170X170",
+                "qfn::QFN40N40P600X600_1EP44X44",
+                "qfn::QFN32N50P500X500_1EP34X34",
+                "qfn::QFN14N50P350X350_1EP20X20",
+            ];
+            for (part_name, part) in checked.world.parts.iter().filter(|(name, _)| {
+                name.starts_with(&own_prefix)
+                    && checked
+                        .world
+                        .symbols
+                        .get(*name)
+                        .is_some_and(|symbol| symbol.is_pub)
+            }) {
+                let variant = part
+                    .device
+                    .variant
+                    .as_ref()
+                    .map(|variant| variant.name.as_str());
+                let mut pin_rows: Vec<String> = checked.world.devices[&part.device.name.name]
+                    .pins_for(variant)
+                    .iter()
+                    .map(|pin| {
+                        let mut numbers = pin
+                            .numbers
+                            .iter()
+                            .map(|number| number.text.as_str())
+                            .collect::<Vec<_>>();
+                        numbers.sort_unstable();
+                        format!(
+                            "{}={}:{}:{}",
+                            pin.name.name,
+                            numbers.join(","),
+                            pin.role_or_default().name(),
+                            pin.obligation.keyword()
+                        )
+                    })
+                    .collect();
+                pin_rows.sort_unstable();
+                let pin_hash = cohdl::hash::sha256_hex(pin_rows.join("|").as_bytes());
+                let device_binding =
+                    format!("{}[{}]", part.device.name.name, variant.unwrap_or("-"));
+                for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+                    let fp_ref = entry
+                        .footprint
+                        .as_ref()
+                        .or(part.primary.footprint.as_ref())
+                        .unwrap_or_else(|| {
+                            panic!("public contrib part `{part_name}` has no fabrication footprint")
+                        });
+                    let mpn = entry
+                        .field("mpn")
+                        .expect("a public contrib part must have an exact MPN");
+                    let mfr = entry
+                        .field("mfr")
+                        .filter(|field| !field.value.trim().is_empty())
+                        .expect("a public contrib part must have an exact manufacturer");
+                    qualified_contrib_parts.insert(format!(
+                        "{}::{}|{}|{}|{}|{}|{}",
+                        project.name,
+                        cohdl::resolve::short(part_name),
+                        mfr.value,
+                        mpn.value,
+                        fp_ref.name,
+                        device_binding,
+                        pin_hash
+                    ));
+                    assert!(
+                        !QUARANTINED_SHARED_QFN_LANDS.contains(&fp_ref.name.as_str()),
+                        "public contrib part `{part_name}` uses quarantined generic land `{}`; bind a manufacturer-qualified part-specific footprint",
+                        fp_ref.name
+                    );
+                    let fp = &checked.world.footprints[&fp_ref.name];
+                    assert!(
+                        !cohdl::check::footprints::is_placeholder(fp),
+                        "public contrib part `{part_name}` uses placeholder footprint `{}`",
+                        fp_ref.name
+                    );
+                }
+            }
+        }
+
         match project.name.as_str() {
             "@contrib/usb-uart" => {
                 for (name, number, role) in [
@@ -859,290 +955,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
             footprint_diags.render(&checked.sm)
         );
 
-        // Copper that shorts two distinct pins is a fabrication defect in
-        // every shipped package, not only the contrib tier audited below:
-        // issue #47 (DRV8231A lead pads over the thermal land) shipped from
-        // a bare official package that the contrib-only gate never saw.
-        // Pads sharing one logical pin (USB-C's doubled GND, micro-B's
-        // shield tabs) may overlap by design; distinct pins never may.
-        for (part_name, part) in checked.world.parts.iter().filter(|(name, _)| {
-            name.starts_with(&own_prefix)
-                && checked
-                    .world
-                    .symbols
-                    .get(*name)
-                    .is_some_and(|symbol| symbol.is_pub)
-        }) {
-            let variant = part
-                .device
-                .variant
-                .as_ref()
-                .map(|variant| variant.name.as_str());
-            let pin_of: std::collections::BTreeMap<&str, &str> = checked.world.devices
-                [&part.device.name.name]
-                .pins_for(variant)
-                .iter()
-                .flat_map(|pin| {
-                    pin.numbers
-                        .iter()
-                        .map(move |number| (number.text.as_str(), pin.name.name.as_str()))
-                })
-                .collect();
-            for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
-                let Some(fp_ref) = entry.footprint.as_ref().or(part.primary.footprint.as_ref())
-                else {
-                    continue;
-                };
-                let fp = &checked.world.footprints[&fp_ref.name];
-                let mut copper = Vec::new();
-                for place in &fp.pads {
-                    let pad = &checked.world.pads[&place.pad.name];
-                    let (mut width, mut height) = match pad.size.as_slice() {
-                        [diameter] => (diameter.femto, diameter.femto),
-                        [width, height] => (width.femto, height.femto),
-                        _ => continue,
-                    };
-                    match place.rotate {
-                        0 | 180 => {}
-                        90 | 270 => std::mem::swap(&mut width, &mut height),
-                        // An arbitrary angle has no exact axis-aligned box.
-                        _ => continue,
-                    }
-                    let Some((layer, _)) = pad.layer else {
-                        continue;
-                    };
-                    let pin = pin_of
-                        .get(place.number.text.as_str())
-                        .copied()
-                        .unwrap_or(place.number.text.as_str());
-                    copper.push((
-                        place.number.text.as_str(),
-                        pin,
-                        layer,
-                        (
-                            2 * place.x.femto - width,
-                            2 * place.x.femto + width,
-                            2 * place.y.femto - height,
-                            2 * place.y.femto + height,
-                        ),
-                    ));
-                }
-                for left in 0..copper.len() {
-                    for right in (left + 1)..copper.len() {
-                        let (left_number, left_pin, left_layer, a) = copper[left];
-                        let (right_number, right_pin, right_layer, b) = copper[right];
-                        let shares_layer = left_layer == right_layer
-                            || left_layer == cohdl::ast::PadLayer::ThroughAll
-                            || right_layer == cohdl::ast::PadLayer::ThroughAll;
-                        let bounding_boxes_overlap =
-                            a.0 < b.1 && b.0 < a.1 && a.2 < b.3 && b.2 < a.3;
-                        assert!(
-                            left_pin == right_pin || !shares_layer || !bounding_boxes_overlap,
-                            "`{}` part `{part_name}` footprint `{}` pads `{left_number}` ({left_pin}) and `{right_number}` ({right_pin}) short distinct pins with overlapping copper",
-                            project.name,
-                            fp_ref.name
-                        );
-                    }
-                }
-            }
-        }
-
-        // Contrib parts are fabrication-facing data, so internal pin/pad-set
-        // equality is not enough: their emitted copper must fit inside the
-        // authored courtyard and distinct electrical pads must not overlap.
-        // Keep this source-independent backstop beside the declaration-wide
-        // E807 check so every newly exported contrib part is covered.
-        // @sifli/ graduated out of @contrib and stays under the same audit;
-        // the generated catalogs (@st/stm32, @espressif/esp32) carry their
-        // own pinned-source tests instead.
-        if project.name.starts_with("@contrib/") || project.name.starts_with("@sifli/") {
-            const QUARANTINED_SHARED_QFN_LANDS: [&str; 8] = [
-                "qfn::QFN68N35P700X700_1EP549X549",
-                "qfn::QFN24N50P400X400_1EP27X27",
-                "qfn::QFN20N40P300X300_1EP170X170",
-                "qfn::QFN24N50P400X400_1EP245X245",
-                "qfn::QFN16N50P300X300_1EP170X170",
-                "qfn::QFN40N40P600X600_1EP44X44",
-                "qfn::QFN32N50P500X500_1EP34X34",
-                "qfn::QFN14N50P350X350_1EP20X20",
-            ];
-            for (part_name, part) in checked.world.parts.iter().filter(|(name, _)| {
-                name.starts_with(&own_prefix)
-                    && checked
-                        .world
-                        .symbols
-                        .get(*name)
-                        .is_some_and(|symbol| symbol.is_pub)
-            }) {
-                let device_name = &part.device.name.name;
-                let variant = part
-                    .device
-                    .variant
-                    .as_ref()
-                    .map(|variant| variant.name.as_str());
-                let mut pin_rows = checked.world.devices[device_name]
-                    .pins_for(variant)
-                    .iter()
-                    .map(|pin| {
-                        let mut numbers = pin
-                            .numbers
-                            .iter()
-                            .map(|number| number.text.as_str())
-                            .collect::<Vec<_>>();
-                        numbers.sort_unstable();
-                        format!(
-                            "{}={}:{}:{}",
-                            pin.name.name,
-                            numbers.join(","),
-                            pin.role_or_default().name(),
-                            pin.obligation.keyword()
-                        )
-                    })
-                    .collect::<Vec<_>>();
-                pin_rows.sort_unstable();
-                let pin_hash = cohdl::hash::sha256_hex(pin_rows.join("|").as_bytes());
-                let device_binding = format!("{}[{}]", device_name, variant.unwrap_or("-"));
-                for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
-                    let fp_ref = entry
-                        .footprint
-                        .as_ref()
-                        .or(part.primary.footprint.as_ref())
-                        .unwrap_or_else(|| {
-                            panic!("public contrib part `{part_name}` has no fabrication footprint")
-                        });
-                    let mpn = entry
-                        .field("mpn")
-                        .expect("a public contrib part must have an exact MPN");
-                    let mfr = entry
-                        .field("mfr")
-                        .filter(|field| !field.value.trim().is_empty())
-                        .expect("a public contrib part must have an exact manufacturer");
-                    qualified_contrib_parts.insert(format!(
-                        "{}::{}|{}|{}|{}|{}|{}",
-                        project.name,
-                        cohdl::resolve::short(part_name),
-                        mfr.value,
-                        mpn.value,
-                        fp_ref.name,
-                        device_binding,
-                        pin_hash
-                    ));
-                    assert!(
-                        !QUARANTINED_SHARED_QFN_LANDS.contains(&fp_ref.name.as_str()),
-                        "public contrib part `{part_name}` uses quarantined generic land `{}`; bind a manufacturer-qualified part-specific footprint",
-                        fp_ref.name
-                    );
-                    let fp = &checked.world.footprints[&fp_ref.name];
-                    if cohdl::check::footprints::is_placeholder(fp) {
-                        panic!(
-                            "public contrib part `{part_name}` uses placeholder footprint `{}`",
-                            fp_ref.name
-                        );
-                    }
-                    let courtyard = fp.courtyard.as_ref().unwrap_or_else(|| {
-                        panic!(
-                            "public contrib part `{part_name}` footprint `{}` has no courtyard",
-                            fp_ref.name
-                        )
-                    });
-                    assert_eq!(
-                        courtyard.shape.0,
-                        cohdl::ast::PadShape::Rect,
-                        "public contrib part `{part_name}` footprint `{}` needs a rectangular courtyard for deterministic containment checking",
-                        fp_ref.name
-                    );
-                    let [court_w, court_h] = courtyard.size.as_slice() else {
-                        panic!(
-                            "public contrib part `{part_name}` footprint `{}` has malformed courtyard dimensions",
-                            fp_ref.name
-                        );
-                    };
-                    let court_left = 2 * courtyard.at.0.femto - court_w.femto;
-                    let court_right = 2 * courtyard.at.0.femto + court_w.femto;
-                    let court_top = 2 * courtyard.at.1.femto - court_h.femto;
-                    let court_bottom = 2 * courtyard.at.1.femto + court_h.femto;
-
-                    let mut copper = Vec::new();
-                    for place in &fp.pads {
-                        let pad = &checked.world.pads[&place.pad.name];
-                        let (mut width, mut height) = match pad.size.as_slice() {
-                            [diameter] => (diameter.femto, diameter.femto),
-                            [width, height] => (width.femto, height.femto),
-                            _ => panic!("validated pad geometry has invalid arity"),
-                        };
-                        if matches!(place.rotate, 90 | 270) {
-                            std::mem::swap(&mut width, &mut height);
-                        }
-                        let bounds = (
-                            2 * place.x.femto - width,
-                            2 * place.x.femto + width,
-                            2 * place.y.femto - height,
-                            2 * place.y.femto + height,
-                        );
-                        assert!(
-                            bounds.0 >= court_left
-                                && bounds.1 <= court_right
-                                && bounds.2 >= court_top
-                                && bounds.3 <= court_bottom,
-                            "public contrib part `{part_name}` footprint `{}` pad `{}` escapes its courtyard",
-                            fp_ref.name,
-                            place.number.text
-                        );
-                        let layer = pad
-                            .layer
-                            .map(|(layer, _)| layer)
-                            .expect("validated pad geometry has no copper layer");
-                        copper.push((place.number.text.as_str(), layer, bounds));
-                    }
-                    for hole in &fp.mount_holes {
-                        let (width, height) = match &hole.geom {
-                            cohdl::ast::MountHoleGeom::Diameter(diameter) => {
-                                (diameter.femto, diameter.femto)
-                            }
-                            cohdl::ast::MountHoleGeom::Size(size, _) => {
-                                let [width, height] = size.as_slice() else {
-                                    panic!("validated mount-hole geometry has invalid arity");
-                                };
-                                (width.femto, height.femto)
-                            }
-                        };
-                        let bounds = (
-                            2 * hole.x.femto - width,
-                            2 * hole.x.femto + width,
-                            2 * hole.y.femto - height,
-                            2 * hole.y.femto + height,
-                        );
-                        assert!(
-                            bounds.0 >= court_left
-                                && bounds.1 <= court_right
-                                && bounds.2 >= court_top
-                                && bounds.3 <= court_bottom,
-                            "public contrib part `{part_name}` footprint `{}` mount hole `{}` escapes its courtyard",
-                            fp_ref.name,
-                            hole.number.text
-                        );
-                    }
-                    for left in 0..copper.len() {
-                        for right in (left + 1)..copper.len() {
-                            let (left_number, left_layer, a) = copper[left];
-                            let (right_number, right_layer, b) = copper[right];
-                            let shares_layer = left_layer == right_layer
-                                || left_layer == cohdl::ast::PadLayer::ThroughAll
-                                || right_layer == cohdl::ast::PadLayer::ThroughAll;
-                            let bounding_boxes_overlap =
-                                a.0 < b.1 && b.0 < a.1 && a.2 < b.3 && b.2 < a.3;
-                            assert!(
-                                left_number == right_number
-                                    || !shares_layer
-                                    || !bounding_boxes_overlap,
-                                "public contrib part `{part_name}` footprint `{}` pads `{left_number}` and `{right_number}` have overlapping copper bounds on a shared layer",
-                                fp_ref.name
-                            );
-                        }
-                    }
-                }
-            }
-        }
+        library::geometry::assert_quarantine_is_current();
     }
 
     // This is intentionally an allowlist, not a count assertion: adding a

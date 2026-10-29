@@ -1,42 +1,41 @@
 # A6 repeatable acceptance
 
-Run from the repository root after `cargo build`. All source rewrites occur in
-temporary copies; the test fails with the exact command output on error.
+Run from the repository root after `cargo build`. The compiler tests run by
+default whenever `target/debug/cohdl` exists; otherwise they are skipped. All
+source edits and vendored-library changes happen in temporary directories.
 
 ```sh
-A6_ACCEPTANCE=1 python3 -I tools/tests/test_a6_acceptance.py
+python3 -I tools/tests/test_a6_acceptance.py -v
 cd tools && python3 -I -m unittest discover -s tests
 ```
 
-The first command checks two real CoHDL projects and a third array/mounting
-example: forward/reverse source bytes return exactly, and the compiler-emitted
-`.kicad_pcb` after forward realignment is byte-identical (therefore every pad
-coordinate is unchanged). The non-zero change table is:
+Expected real-compiler results:
 
-| Example | Footprint | dx mm | dy mm | Rotation |
-|---|---|---:|---:|---:|
-| bottom-preview | `transistor::FP_JSCJ_SOT23` | 2 | 1 | 90 |
-| bottom-preview | `soic::SOIC8P127X790X216N` | -1 | 2 | 270 |
-| map-integration | `map_integration::FP_A` | 2 | 1 | 90 |
-| array/mounting | `p::F` | 2 | 1 | 90 |
+- `joint-motor-controller`: 2 forward and 2 reverse placements.
+- `rpi-pico2`: 2 forward and 2 reverse placements.
+- `sf32-miniboard`: 1 forward and 1 reverse placement.
+- Every example's source bytes are identical after reverse.
+- Vendored joint rigid library move: 8 pads compared at 0 nm tolerance.
+- Independent rigid fixture, top/bottom/37 degrees: 6 pads compared at 1 nm
+  tolerance (the 37-degree fixed-point path differs by at most 1 nm).
+- Generated bottom-preview: 60 pads compared at 0 nm and all 16 supplier CPL
+  rows match byte-for-byte. Declarations, instances, nets and layout are all
+  generated from the explicit-coordinate JSON; no source template is read.
+- Expressions, `for`, subdesign declarations and reach-in paths produce
+  file:line diagnostics and no source write.
 
-It also replays bottom-preview and compares `.kicad_pcb`, supplier CPL and map
-against the fixture (only the fixture's acme/C-number namespace is normalized
-for the map; geometry is not normalized). The standalone replay is:
+Standalone bottom-preview replay:
 
 ```sh
-rm -rf /tmp/a6-replay
+rm -rf /tmp/a6-bottom-new
 python3 -I tools/jlc_frame_board.py tools/tests/fixtures/a6/bottom-preview.json \
-  -o /tmp/a6-replay --template tests/fixtures/rfc034/bottom-preview \
-  --cohdl target/debug/cohdl --skip-kicad
-cmp /tmp/a6-replay/out/bottom_preview.kicad_pcb \
-  tests/fixtures/rfc034/bottom_preview.kicad_pcb
-cmp /tmp/a6-replay/out/bottom_preview-lcsc-cpl.csv \
+  -o /tmp/a6-bottom-new --cohdl target/debug/cohdl --skip-kicad
+cmp /tmp/a6-bottom-new/out/bottom_preview-lcsc-cpl.csv \
   tests/fixtures/rfc034/bottom-preview/handoff/cpl-acme-reference.csv
 ```
 
-Grid generation, KiCad Gerbers/drill and hashes (use the installed path on this
-machine, or `--kicad-cli kicad-cli` when it is on PATH):
+Grid generation and real KiCad fabrication export (use `--kicad-cli kicad-cli`
+when it is on PATH):
 
 ```sh
 rm -rf /tmp/a6-grid
@@ -44,7 +43,6 @@ python3 -I tools/jlc_frame_board.py tools/tests/fixtures/a6/grid.json \
   -o /tmp/a6-grid --cohdl target/debug/cohdl \
   --kicad-cli /Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli \
   --spacing-mm 4
-cat /tmp/a6-grid/CHECKLIST.md
 cat /tmp/a6-grid/fabrication/kicad-cli-version.txt
 cat /tmp/a6-grid/fabrication/SHA256SUMS
 shasum -a 256 /Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli

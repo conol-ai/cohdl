@@ -5,7 +5,7 @@ guard makes every non-loopback connection fail, including accidental DNS or
 proxy use.  Rate and backoff waits use an injected clock and never really sleep.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -110,14 +110,36 @@ class FetchClientTests(unittest.TestCase):
         self.clock = FakeClock()
 
     def client(self, server, **kwargs):
+        kwargs.setdefault("snapshot_clock", lambda: datetime(2026, 10, 29, tzinfo=timezone.utc))
         return FetchClient(
             Path(self.tempdir.name) / "cache",
             allowed_hosts=["127.0.0.1"],
             clock=self.clock,
             sleeper=self.clock.sleep,
-            snapshot_clock=lambda: datetime(2026, 10, 29, tzinfo=timezone.utc),
             **kwargs,
         )
+
+    def test_robots_disk_cache_expires_after_24_hours(self):
+        moment = datetime(2026, 10, 29, tzinfo=timezone.utc)
+        with LocalServer() as server:
+            first = self.client(server, snapshot_clock=lambda: moment)
+            first.get(server.url("/one"))
+            second = self.client(server, snapshot_clock=lambda: moment + timedelta(hours=23))
+            second.get(server.url("/two"))
+            self.assertEqual(server.requests.count("/robots.txt"), 1)
+            third = self.client(server, snapshot_clock=lambda: moment + timedelta(hours=25))
+            third.get(server.url("/three"))
+            self.assertEqual(server.requests.count("/robots.txt"), 2)
+
+    def test_expired_robots_unavailable_does_not_use_stale_copy(self):
+        moment = datetime(2026, 10, 29, tzinfo=timezone.utc)
+        with LocalServer() as server:
+            self.client(server, snapshot_clock=lambda: moment).get(server.url("/one"))
+            server.responses["/robots.txt"] = (503, "unavailable")
+            stale = self.client(server, snapshot_clock=lambda: moment + timedelta(hours=25))
+            with self.assertRaises(RobotsError):
+                stale.get(server.url("/two"))
+            self.assertNotIn("/two", server.requests)
 
     def test_rate_limit_uses_injected_clock_and_fixed_user_agent(self):
         with LocalServer() as server:

@@ -1,0 +1,9 @@
+{
+  "name": "bottom_preview",
+  "rows": [
+    {"name":"q", "footprint":"transistor::FP_JSCJ_SOT23", "pn":"C2146", "placements":[{"at_mm":[-26,-20]},{"at_mm":[-26,-7],"rotate":37},{"at_mm":[-26,7],"side":"bottom"},{"at_mm":[-26,20],"rotate":37,"side":"bottom"}]},
+    {"name":"u", "footprint":"soic::SOIC8P127X790X216N", "pn":"C97521", "placements":[{"at_mm":[-8,-20]},{"at_mm":[-8,-7],"rotate":37},{"at_mm":[-8,7],"side":"bottom"},{"at_mm":[-8,20],"rotate":37,"side":"bottom"}]},
+    {"name":"c6", "footprint":"passive::CHIP_0603", "pn":"C107045", "placements":[{"at_mm":[12,-20]},{"at_mm":[12,-7],"rotate":37},{"at_mm":[12,7],"side":"bottom"},{"at_mm":[12,20],"rotate":37,"side":"bottom"}]},
+    {"name":"c8", "footprint":"passive::CHIP_0805", "pn":"C107110", "placements":[{"at_mm":[28,-20]},{"at_mm":[28,-7],"rotate":37},{"at_mm":[28,7],"side":"bottom"},{"at_mm":[28,20],"rotate":37,"side":"bottom"}]}
+  ]
+}

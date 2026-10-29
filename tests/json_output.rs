@@ -376,6 +376,7 @@ fn build_object_decodes_with_and_without_optional_artifacts() {
                     bom: "out/x-acme-bom.csv".into(),
                     map: "out/x-acme-map.json".into(),
                     cpl: None,
+                    bottom_rotation: "kicad".into(),
                 },
             )]
             .into_iter()

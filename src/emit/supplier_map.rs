@@ -7,13 +7,16 @@
 use crate::emit::json::json_str;
 use crate::ir::DesignIr;
 use crate::resolve::World;
-use crate::supplier::{AvlEntryIndex, SupplierSelection, SupplierSelections};
+use crate::supplier::{
+    AvlEntryIndex, BottomRotation, BottomRotations, SupplierSelection, SupplierSelections,
+};
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SupplierMap {
     pub supplier: String,
+    pub bottom_rotation: BottomRotation,
     pub json: String,
     pub cpl: Option<String>,
 }
@@ -93,7 +96,12 @@ fn render_footprints(world: &World, footprints: &BTreeSet<String>) -> String {
     out
 }
 
-fn emit_one(world: &World, ir: &DesignIr, selection: &SupplierSelection) -> SupplierMap {
+fn emit_one(
+    world: &World,
+    ir: &DesignIr,
+    selection: &SupplierSelection,
+    bottom_rotation: BottomRotation,
+) -> SupplierMap {
     let mut footprints = BTreeSet::new();
     let mut designators = Vec::new();
     for instance in selection.instances.values() {
@@ -126,7 +134,7 @@ fn emit_one(world: &World, ir: &DesignIr, selection: &SupplierSelection) -> Supp
 
     let mut json = format!(
         "{{\n  \"schema_version\": 2,\n  \"pad_projection\": 1,\n  \"bottom_rotation\": {},\n  \"footprints\": ",
-        json_str(crate::supplier::bottom_rotation(world, &selection.supplier).name()),
+        json_str(bottom_rotation.name()),
     );
     json.push_str(&render_footprints(world, &footprints));
     json.push_str(",\n  \"designators\": {");
@@ -186,8 +194,9 @@ fn emit_one(world: &World, ir: &DesignIr, selection: &SupplierSelection) -> Supp
     json.push_str("\n  }\n}\n");
     SupplierMap {
         supplier: selection.supplier.clone(),
+        bottom_rotation,
         json,
-        cpl: crate::emit::cpl::emit_supplier_cpl(world, ir, selection),
+        cpl: crate::emit::cpl::emit_supplier_cpl(world, ir, selection, bottom_rotation),
     }
 }
 
@@ -195,10 +204,21 @@ pub fn emit_supplier_maps(
     world: &World,
     ir: &DesignIr,
     selections: &SupplierSelections,
+    bottom_rotations: &BottomRotations,
 ) -> Vec<SupplierMap> {
     selections
         .selections
         .iter()
-        .map(|selection| emit_one(world, ir, selection))
+        .map(|selection| {
+            emit_one(
+                world,
+                ir,
+                selection,
+                bottom_rotations
+                    .get(&selection.supplier)
+                    .copied()
+                    .unwrap_or_default(),
+            )
+        })
         .collect()
 }

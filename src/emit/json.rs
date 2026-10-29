@@ -27,6 +27,7 @@ pub struct SupplierBuildArtifacts {
     pub bom: String,
     pub map: String,
     pub cpl: Option<String>,
+    pub bottom_rotation: String,
 }
 
 pub struct BuildArtifacts {
@@ -214,6 +215,11 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
                     ""
                 };
                 let _ = writeln!(out, "      {}: {{", json_str(supplier));
+                let _ = writeln!(
+                    out,
+                    "        \"bottom_rotation\": {},",
+                    json_str(&artifacts.bottom_rotation)
+                );
                 let _ = writeln!(out, "        \"bom\": {},", json_str(&artifacts.bom));
                 let _ = writeln!(
                     out,

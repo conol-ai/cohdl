@@ -1,11 +1,10 @@
-//! RFC-034 supplier declarations and bottom-side CPL convention.
+//! RFC-034 bottom-side CPL convention as a build option.
 
-use cohdl::fmt::format_source;
 use cohdl::lock::LockState;
 use cohdl::pipeline::{build_artifacts_with_suppliers, check_files_in};
-use cohdl::span::SourceMap;
+use cohdl::supplier::{BottomRotation, BottomRotations};
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Output};
 
 fn checked(src: &str) -> cohdl::pipeline::Checked {
     let mut checked = check_files_in(
@@ -18,103 +17,6 @@ fn checked(src: &str) -> cohdl::pipeline::Checked {
     checked
 }
 
-fn e816(declaration: &str) -> cohdl::diag::Diagnostic {
-    let checked = checked(&format!("{declaration}\ndesign B {{}}\n"));
-    let rendered = checked.diags.render(&checked.sm);
-    let errors: Vec<_> = checked
-        .diags
-        .iter()
-        .filter(|diagnostic| diagnostic.code == "E816")
-        .collect();
-    assert_eq!(errors.len(), 1, "{declaration}:\n{rendered}");
-    errors[0].clone()
-}
-
-#[test]
-fn declaration_formats_to_one_line_and_retains_both_values() {
-    for value in ["kicad", "mirrored"] {
-        let src = format!("supplier acme {{\n bottom_rotation : {value},\n}}\n");
-        let expected = format!("supplier acme {{ bottom_rotation: {value} }}\n");
-        let once = format_source("src/main.cohdl", &src).expect("format declaration");
-        assert_eq!(once, expected);
-        assert_eq!(format_source("src/main.cohdl", &once).unwrap(), once);
-        assert!(!checked(&format!("{expected}design B {{}}\n"))
-            .diags
-            .has_errors());
-    }
-}
-
-#[test]
-fn e816_rejects_each_invalid_declaration_semantic() {
-    let cases = [
-        (
-            "supplier Acme { bottom_rotation: kicad }",
-            "invalid supplier identifier",
-        ),
-        (
-            "supplier a23456789012345678901234567890123 { bottom_rotation: kicad }",
-            "at most 32",
-        ),
-        ("supplier mpn { bottom_rotation: kicad }", "reserved"),
-        ("supplier mfr { bottom_rotation: kicad }", "reserved"),
-        ("supplier acme { other: kicad }", "unknown key"),
-        (
-            "supplier acme { bottom_rotation: other }",
-            "unknown bottom_rotation",
-        ),
-        (
-            "supplier acme { bottom_rotation: kicad, bottom_rotation: mirrored }",
-            "duplicate key",
-        ),
-        ("pub supplier acme { bottom_rotation: kicad }", "`pub`"),
-    ];
-    for (source, expected) in cases {
-        let diagnostic = e816(source);
-        assert!(
-            diagnostic.message.contains(expected),
-            "{source}: {}",
-            diagnostic.message
-        );
-    }
-}
-
-#[test]
-fn duplicate_declaration_spans_two_packages() {
-    use cohdl::check::check_declarations_in;
-    use cohdl::diag::Diagnostics;
-    use cohdl::resolve::ModuleInfo;
-
-    let mut sm = SourceMap::new();
-    let mut diags = Diagnostics::new();
-    let sources = [
-        (
-            "vendor_a/src/lib.cohdl",
-            "supplier acme { bottom_rotation: kicad }",
-        ),
-        (
-            "vendor_b/src/lib.cohdl",
-            "supplier acme { bottom_rotation: mirrored }",
-        ),
-    ];
-    let parsed = sources
-        .iter()
-        .map(|(name, source)| {
-            let file = sm.add_file(*name, *source);
-            cohdl::parse::parse(cohdl::lex::lex(file, sm.text(file), &mut diags), &mut diags)
-        })
-        .collect();
-    let modules = ["vendor_a", "vendor_b"].map(|package| ModuleInfo {
-        package: package.to_string(),
-        module: package.to_string(),
-    });
-    let _world = check_declarations_in(parsed, &modules, &mut diags);
-    diags.sort(&sm);
-    let rendered = diags.render(&sm);
-    assert_eq!(rendered.matches("error[E816]").count(), 1, "{rendered}");
-    assert!(rendered.contains("vendor_a/src/lib.cohdl"), "{rendered}");
-    assert!(rendered.contains("vendor_b/src/lib.cohdl"), "{rendered}");
-}
-
 const LIB: &str = r#"
 pub trait Ref { designator_prefix: "U" }
 pub pad Land { shape: rect, size: (1mm, 0.5mm), layer: top_copper, plating: smd }
@@ -122,36 +24,38 @@ pub footprint FP { pad 1: Land at (0mm, 0mm) }
 pub device D { pins { A: 1 [passive] } }
 impl Ref for D {}
 pub part P: D {
-    primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "A-1" rotate 90 }
+    primary { mfr: "M", mpn: "N", footprint: FP, supplier acme "A-1" rotate 90, supplier bolt "B-1" rotate 90 }
 }
 "#;
 
-fn supplier_cpl(declaration: &str) -> (cohdl::pipeline::Checked, cohdl::pipeline::BuildArtifacts) {
-    let src = format!(
-        r#"{declaration}
-{LIB}
-design B {{
+const DESIGN: &str = r#"
+design B {
     #[designator("U1")] inst top: P
     #[designator("U2")] inst bottom: P
     net N: top.A, bottom.A
-    layout {{
+    layout {
         place top at (10mm, 20mm) rotate 37
         place bottom at (30mm, 20mm) rotate 37 side bottom
-    }}
-}}
-"#
-    );
-    let mut checked = checked(&src);
-    let artifacts =
-        build_artifacts_with_suppliers(&mut checked, &LockState::default(), &["acme".to_string()])
-            .expect("build");
-    checked.diags.sort(&checked.sm);
-    (checked, artifacts)
+    }
+}
+"#;
+
+fn supplier_cpl(rotations: BottomRotations) -> cohdl::pipeline::BuildArtifacts {
+    let mut checked = checked(&format!("{LIB}\n{DESIGN}"));
+    let artifacts = build_artifacts_with_suppliers(
+        &mut checked,
+        &LockState::default(),
+        &["acme".to_string()],
+        &rotations,
+    )
+    .expect("build");
+    assert!(!checked.diags.has_errors());
+    artifacts
 }
 
 #[test]
-fn mirrored_changes_only_bottom_angles_and_map_declares_actual_convention() {
-    let (_checked, artifacts) = supplier_cpl("supplier acme { bottom_rotation: mirrored }");
+fn mirrored_changes_only_bottom_angles_and_map_records_build_option() {
+    let artifacts = supplier_cpl([("acme".to_string(), BottomRotation::Mirrored)].into());
     assert_eq!(
         artifacts.supplier_maps[0].cpl.as_deref(),
         Some(concat!(
@@ -174,88 +78,277 @@ fn mirrored_changes_only_bottom_angles_and_map_declares_actual_convention() {
 }
 
 #[test]
-fn explicit_kicad_and_no_declaration_have_identical_cpl() {
-    let (undeclared, without) = supplier_cpl("");
-    let (declared, with) = supplier_cpl("supplier acme { bottom_rotation: kicad }");
+fn no_mapping_makes_kicad_supplier_and_neutral_cpl_byte_identical() {
+    let src = format!("{LIB}\n{DESIGN}").replace(" rotate 90, supplier bolt", ", supplier bolt");
+    let mut checked = checked(&src);
+    for rotations in [
+        BottomRotations::new(),
+        [("acme".to_string(), BottomRotation::Kicad)].into(),
+    ] {
+        let artifacts = build_artifacts_with_suppliers(
+            &mut checked,
+            &LockState::default(),
+            &["acme".to_string()],
+            &rotations,
+        )
+        .expect("build");
+        assert_eq!(
+            artifacts.supplier_maps[0].cpl.as_deref(),
+            Some(artifacts.cpl.as_ref().unwrap().csv.as_str())
+        );
+    }
+}
+
+#[test]
+fn explicit_kicad_and_default_have_identical_supplier_and_neutral_cpl() {
+    let without = supplier_cpl(BottomRotations::new());
+    let with = supplier_cpl([("acme".to_string(), BottomRotation::Kicad)].into());
     assert_eq!(without.supplier_maps[0].cpl, with.supplier_maps[0].cpl);
-    assert!(!undeclared.diags.iter().any(|d| d.code == "E817"));
-    assert!(!declared.diags.iter().any(|d| d.code == "E817"));
+    for artifacts in [&without, &with] {
+        let supplier = artifacts.supplier_maps[0].cpl.as_deref().unwrap();
+        let neutral = &artifacts.cpl.as_ref().unwrap().csv;
+        assert_eq!(supplier.lines().count(), neutral.lines().count());
+        for (supplier_row, neutral_row) in supplier.lines().zip(neutral.lines()) {
+            let supplier_columns: Vec<_> = supplier_row.split(',').collect();
+            let neutral_columns: Vec<_> = neutral_row.split(',').collect();
+            assert_eq!(supplier_columns[0], neutral_columns[0]);
+            assert_eq!(supplier_columns[3], neutral_columns[3]);
+            if supplier_columns[3] == "Bottom" {
+                let supplier_angle: u16 = supplier_columns[4].parse().unwrap();
+                let neutral_angle: u16 = neutral_columns[4].parse().unwrap();
+                let mapping_rotation = 90;
+                assert_eq!(
+                    supplier_angle,
+                    (neutral_angle + 360 - mapping_rotation) % 360
+                );
+            }
+        }
+    }
 }
 
-fn run_build(root: &Path) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_cohdl"))
-        .args([
-            "build",
-            root.to_str().unwrap(),
-            "--no-std",
-            "--supplier",
-            "acme",
-            "--json",
-        ])
-        .output()
-        .unwrap()
+#[test]
+fn withdrawn_top_level_supplier_declaration_is_an_ordinary_syntax_error() {
+    let checked = checked("supplier acme { bottom_rotation: mirrored }\ndesign B {}\n");
+    let rendered = checked.diags.render(&checked.sm);
+    assert!(checked.diags.has_errors());
+    assert!(rendered.contains("error[E010]"), "{rendered}");
+    let syntax_errors: Vec<_> = checked
+        .diags
+        .iter()
+        .filter(|diagnostic| diagnostic.code == "E010")
+        .collect();
+    assert_eq!(syntax_errors.len(), 1, "{rendered}");
+    let expected_declarations = syntax_errors[0]
+        .message
+        .split(", found ")
+        .next()
+        .expect("top-level declaration diagnostic");
+    assert!(
+        !expected_declarations.contains("`supplier`"),
+        "{}",
+        syntax_errors[0].message
+    );
+    assert!(!rendered.contains("E816"), "{rendered}");
+    assert!(!rendered.contains("E817"), "{rendered}");
 }
 
-fn make_cli_project(root: &Path, source: &str) {
+fn make_cli_project(root: &Path) {
     let _ = std::fs::remove_dir_all(root);
     std::fs::create_dir_all(root.join("src")).unwrap();
     std::fs::write(
         root.join("cohdl.toml"),
-        "[package]\nname = \"t\"\nversion = \"1.0.0\"\n\n[design]\ntop = \"ZTop\"\n",
+        "[package]\nname = \"t\"\nversion = \"1.0.0\"\n\n[design]\ntop = \"B\"\n",
     )
     .unwrap();
-    std::fs::write(root.join("src/main.cohdl"), source).unwrap();
+    std::fs::write(root.join("src/main.cohdl"), format!("{LIB}\n{DESIGN}")).unwrap();
+}
+
+fn run_build(root: &Path, extra: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_cohdl"))
+        .args(["build", root.to_str().unwrap()])
+        .args(extra)
+        .output()
+        .unwrap()
+}
+
+fn run_cli_project(root: &Path, extra: &[&str]) -> Output {
+    let mut args = vec!["--no-std"];
+    args.extend_from_slice(extra);
+    run_build(root, &args)
+}
+
+fn temp_root(label: &str) -> std::path::PathBuf {
+    std::env::temp_dir().join(format!("cohdl-w10-{label}-{}", std::process::id()))
+}
+
+fn assert_json_string(haystack: &str, key: &str, expected: &str) {
+    let needle = format!("\"{key}\": \"{expected}\"");
+    assert!(haystack.contains(&needle), "missing {needle} in {haystack}");
 }
 
 #[test]
-fn e817_only_accompanies_an_actual_supplier_cpl() {
-    let root = std::env::temp_dir().join(format!("cohdl-w9-e817-cpl-{}", std::process::id()));
-    make_cli_project(
-        &root,
-        &format!("{LIB}\ndesign ZTop {{ inst p: P nc: p.A }}\n"),
-    );
-    let unplaced = run_build(&root);
-    assert!(unplaced.status.success());
-    let stdout = String::from_utf8(unplaced.stdout).unwrap();
-    assert!(!stdout.contains("E817"), "{stdout}");
-    assert!(!root.join("out/t-acme-cpl.csv").exists());
-
-    std::fs::write(
-        root.join("src/main.cohdl"),
-        format!("{LIB}\ndesign ZTop {{ inst p: P nc: p.A layout {{ place p at (5mm, 6mm) }} }}\n"),
-    )
-    .unwrap();
-    let placed = run_build(&root);
-    assert!(placed.status.success());
-    let stdout = String::from_utf8(placed.stdout).unwrap();
-    assert_eq!(stdout.matches("\"code\": \"E817\"").count(), 1, "{stdout}");
-    assert!(root.join("out/t-acme-cpl.csv").exists());
+fn invalid_options_exit_two_before_checking_and_write_nothing() {
+    let root = temp_root("usage");
+    make_cli_project(&root);
+    // The invalid source proves option validation precedes dependency loading/checking.
+    std::fs::write(root.join("src/main.cohdl"), "this is not CoHDL\n").unwrap();
+    let cases: &[&[&str]] = &[
+        &["--supplier", "acme", "--bottom-rotation", "acme=other"],
+        &[
+            "--supplier",
+            "acme",
+            "--bottom-rotation",
+            "acme=kicad",
+            "--bottom-rotation",
+            "acme=mirrored",
+        ],
+        &["--supplier", "acme", "--bottom-rotation", "bolt=mirrored"],
+        &["--supplier", "acme", "--bottom-rotation", "acme"],
+    ];
+    for args in cases {
+        let output = run_cli_project(&root, args);
+        assert_eq!(output.status.code(), Some(2), "{args:?}");
+        assert!(!root.join("out").exists(), "{args:?}");
+        assert!(!root.join("design.lock").exists(), "{args:?}");
+        assert!(
+            !String::from_utf8_lossy(&output.stderr).contains("E010"),
+            "{args:?}"
+        );
+    }
     let _ = std::fs::remove_dir_all(root);
 }
 
 #[test]
-fn e817_span_is_the_selected_top_design_not_the_first_design_name() {
-    let root = std::env::temp_dir().join(format!("cohdl-w9-e817-top-{}", std::process::id()));
-    make_cli_project(
+fn logical_only_records_option_without_writing_cpl() {
+    let root = temp_root("logical");
+    make_cli_project(&root);
+    let output = run_cli_project(
         &root,
-        &format!(
-            "{LIB}\ndesign AFirst {{ inst p: P nc: p.A }}\ndesign ZTop {{ inst p: P nc: p.A layout {{ place p at (5mm, 6mm) }} }}\n"
-        ),
+        &[
+            "--supplier",
+            "acme",
+            "--bottom-rotation",
+            "acme=mirrored",
+            "--logical-only",
+            "--json",
+        ],
     );
-    let output = run_build(&root);
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.matches("\"code\": \"E817\"").count(), 1, "{stdout}");
-    let ztop_line = std::fs::read_to_string(root.join("src/main.cohdl"))
-        .unwrap()
-        .lines()
-        .position(|line| line.starts_with("design ZTop"))
-        .unwrap()
-        + 1;
     assert!(
-        stdout.contains(&format!("\"start_line\": {ztop_line}")),
-        "{stdout}"
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
     );
-    assert!(!stdout.contains("\"start_line\": 10"), "{stdout}");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_json_string(&stdout, "bottom_rotation", "mirrored");
+    assert!(!stdout.contains("\"cpl\""), "{stdout}");
+    assert!(!root.join("out/t-cpl.csv").exists());
+    assert!(!root.join("out/t-acme-cpl.csv").exists());
+    assert!(std::fs::read_to_string(root.join("out/t-acme-map.json"))
+        .unwrap()
+        .contains("\"bottom_rotation\": \"mirrored\""));
     let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn two_suppliers_have_independent_cpl_map_and_json_conventions() {
+    let root = temp_root("two");
+    make_cli_project(&root);
+    let output = run_cli_project(
+        &root,
+        &[
+            "--supplier",
+            "acme",
+            "--supplier",
+            "bolt",
+            "--bottom-rotation",
+            "acme=mirrored",
+            "--json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let acme = stdout
+        .split("\"acme\": {")
+        .nth(1)
+        .unwrap()
+        .split("\"bolt\": {")
+        .next()
+        .unwrap();
+    let bolt = stdout.split("\"bolt\": {").nth(1).unwrap();
+    assert!(acme.contains("\"bottom_rotation\": \"mirrored\""), "{acme}");
+    assert!(bolt.contains("\"bottom_rotation\": \"kicad\""), "{bolt}");
+    assert!(std::fs::read_to_string(root.join("out/t-acme-map.json"))
+        .unwrap()
+        .contains("\"bottom_rotation\": \"mirrored\""));
+    assert!(std::fs::read_to_string(root.join("out/t-bolt-map.json"))
+        .unwrap()
+        .contains("\"bottom_rotation\": \"kicad\""));
+    let acme_cpl = std::fs::read_to_string(root.join("out/t-acme-cpl.csv")).unwrap();
+    let bolt_cpl = std::fs::read_to_string(root.join("out/t-bolt-cpl.csv")).unwrap();
+    let neutral = std::fs::read_to_string(root.join("out/t-cpl.csv")).unwrap();
+    assert!(acme_cpl.contains("U2,30.0000mm,-20.0000mm,Bottom,53\n"));
+    assert!(bolt_cpl.contains("U2,30.0000mm,-20.0000mm,Bottom,127\n"));
+    assert!(neutral.contains("U2,30.0000mm,-20.0000mm,Bottom,217\n"));
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn human_output_names_each_written_supplier_cpl_convention() {
+    let root = temp_root("human");
+    make_cli_project(&root);
+    let output = run_cli_project(
+        &root,
+        &[
+            "--supplier",
+            "acme",
+            "--supplier",
+            "bolt",
+            "--bottom-rotation",
+            "acme=mirrored",
+        ],
+    );
+    assert!(output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains("t-acme-cpl.csv (bottom_rotation: mirrored)"),
+        "{stderr}"
+    );
+    assert!(
+        stderr.contains("t-bolt-cpl.csv (bottom_rotation: kicad)"),
+        "{stderr}"
+    );
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn preview_compiler_output_matches_independent_reference_byte_for_byte() {
+    let fixture =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/rfc034/bottom-preview");
+    let out = fixture.join(format!("out-w10-{}", std::process::id()));
+    let output = run_build(
+        &fixture,
+        &[
+            "--supplier",
+            "acme",
+            "--bottom-rotation",
+            "acme=mirrored",
+            "--out-dir",
+            out.to_str().unwrap(),
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let actual = std::fs::read(out.join("bottom_preview-acme-cpl.csv")).unwrap();
+    let reference = std::fs::read(fixture.join("handoff/cpl-acme-reference.csv")).unwrap();
+    assert_eq!(actual, reference);
+    let _ = std::fs::remove_dir_all(out);
+    let _ = std::fs::remove_file(fixture.join("design.lock"));
+    let _ = std::fs::remove_file(fixture.join("cohdl.lock"));
 }

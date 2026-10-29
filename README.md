@@ -77,13 +77,12 @@ alternate binding and writes `out/<name>-<ID>-bom.csv`,
 placement transform; `tools/smt_pos.py --map` can apply it to the emitted
 KiCad board. `--logical-only` remains a logical-artifact boundary: it emits
 no neutral or supplier CPL, even when `--supplier` is present. Supplier BOM
-and map remain available in that mode. A top-level
-`supplier ID { bottom_rotation: kicad | mirrored }` declaration selects the
-bottom-side angle convention for that supplier's CPL. With no declaration,
-`kicad` applies and the physical build warns E817 once per requested ID;
-`--logical-only` writes no CPL and does not warn. Schema-2 maps record the
-convention actually used, and `tools/smt_pos.py --map` applies the same rule
-(schema-1 maps retain `kicad` compatibility).
+and map remain available in that mode. Repeatable build option
+`--bottom-rotation ID=VALUE` selects the bottom-side angle convention (`kicad`
+or `mirrored`) for a supplier CPL; IDs must also be selected by `--supplier`
+and default to `kicad`. Schema-2 maps record the convention actually used,
+including in logical-only builds, and `tools/smt_pos.py --map` applies the same
+rule (schema-1 maps retain `kicad` compatibility).
 
 `cohdl search QUERY [--json]` is read-only discovery: it needs no project and
 no registry login. Queries are trimmed, must contain at least three Unicode

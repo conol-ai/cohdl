@@ -11,7 +11,7 @@ by the first build):
 
 ```sh
 rm -rf tests/fixtures/rfc034/bottom-preview/out
-cargo run -- build tests/fixtures/rfc034/bottom-preview   --supplier acme --emit kicad_pcb
+cargo run -- build tests/fixtures/rfc034/bottom-preview   --supplier acme --bottom-rotation acme=mirrored --emit kicad_pcb
 cmp tests/fixtures/rfc034/bottom-preview/out/bottom_preview-acme-cpl.csv   tests/fixtures/rfc034/bottom-preview/handoff/cpl-acme-reference.csv
 cp tests/fixtures/rfc034/bottom-preview/out/bottom_preview.kicad_pcb   tests/fixtures/rfc034/bottom_preview.kicad_pcb
 cp tests/fixtures/rfc034/bottom-preview/out/bottom_preview-acme-map.json   tests/fixtures/rfc034/bottom_preview-acme-map.json

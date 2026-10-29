@@ -587,19 +587,6 @@ impl Formatter<'_> {
         self.flush_leading(self.line_start(item.decl_span), 0);
         let vis = if item.is_pub { "pub " } else { "" };
         match &item.kind {
-            ItemKind::Supplier(s) => {
-                let value = s
-                    .bottom_rotation
-                    .as_ref()
-                    .map_or("kicad", |(v, _)| v.name.as_str());
-                self.push(
-                    0,
-                    format!(
-                        "supplier {} {{ bottom_rotation: {} }}",
-                        s.supplier.name, value
-                    ),
-                );
-            }
             ItemKind::Trait(t) => self.trait_def(vis, item, t),
             ItemKind::Device(d) => self.device_def(vis, item, d),
             ItemKind::Impl(i) => self.impl_def(i),

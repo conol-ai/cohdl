@@ -139,6 +139,39 @@ class GeneratorBindingTests(unittest.TestCase):
         copy.write_tables([map_row()], [row])
         self.assertNotIn("supplier lcsc", copy.run())
 
+    def test_cross_package_footprint_uses_owner_package_and_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for package, version in (("@espressif/esp32", "0.3.1"), ("qfn", "0.2.1")):
+                manifest = root / "lib" / package / "cohdl.toml"
+                manifest.parent.mkdir(parents=True)
+                manifest.write_text(
+                    f'[package]\nname = "{package}"\nversion = "{version}"\n'
+                )
+            bindings = Bindings(root)
+            bindings._by_identity[("Espressif", "ESP32-D0WDQ6")] = ["C12345"]
+            for package, version, expected in (
+                ("qfn", "0.2.1", 'supplier lcsc "C12345"'),
+                ("@espressif/esp32", "0.3.1", ""),
+                ("qfn", "0.2.0", ""),
+            ):
+                key = (package, version, "ESPRESSIF_QFN48E_0P4_6", "C12345")
+                bindings._frames = {
+                    key: {
+                        "mapping": {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0},
+                        "exception": None,
+                    }
+                }
+                self.assertEqual(
+                    bindings.clause(
+                        root / "lib/@espressif/esp32/cohdl.toml",
+                        "qfn::ESPRESSIF_QFN48E_0P4_6",
+                        "Espressif",
+                        "ESP32-D0WDQ6",
+                    ),
+                    expected,
+                )
+
     def test_stm32_overlay_allows_new_optional_keys(self):
         data = {
             "schema_version": gen_stm32.PARTS_SCHEMA,

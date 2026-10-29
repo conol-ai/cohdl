@@ -146,6 +146,7 @@ class Bindings:
     """The validated subset of the two tables, indexed for generator lookup."""
 
     def __init__(self, root: Path):
+        self._root = root
         self._by_identity: dict[tuple[str, str], list[str]] = {}
         map_rows = _rows(root / "tools" / "sourcing_data" / "lcsc_map.json")
         map_valid = True
@@ -191,9 +192,13 @@ class Bindings:
 
     def clause(self, manifest: Path, footprint: str, mfr: str, mpn: str) -> str:
         """Return one complete ``supplier lcsc`` clause, or an empty string."""
+        owner, _, footprint = footprint.rpartition("::")
+        if not footprint.isidentifier() or (owner and not re.fullmatch(r"[a-z][a-z0-9_]*", owner)):
+            return ""
+        if owner:
+            manifest = self._root / "lib" / owner / "cohdl.toml"
         metadata = package_metadata(manifest)
-        footprint = footprint.rsplit("::", 1)[-1]
-        if metadata is None or not footprint.isidentifier():
+        if metadata is None:
             return ""
         pns = self._by_identity.get((mfr, mpn), [])
         if len(pns) != 1:

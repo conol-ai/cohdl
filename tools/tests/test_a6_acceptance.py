@@ -99,6 +99,43 @@ class CompilerAcceptance(unittest.TestCase):
                         self.assertEqual((project / path).read_bytes(), content)
                     print("A6 round-trip %s: %d placements" % (name, expected))
 
+    def test_three_examples_geometric_inverse(self):
+        # The CLI --reverse restores the forward run's snapshot; this checks
+        # that the geometric inverse alone also returns every source byte.
+        import realign_place as rp
+        cases = [
+            ("joint-motor-controller", "connectors::headers::micro_fit_3::FP_Molex_43045_0212", 2),
+            ("rpi-pico2", "passive::CHIP_0201", 2),
+            ("sf32-miniboard", "soic::SOIC8P127X790X216N", 1),
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            tmp = Path(td)
+            for name, footprint, expected in cases:
+                with self.subTest(example=name):
+                    project = tmp / name
+                    shutil.copytree(ROOT / "examples" / name, project)
+                    run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
+                    changes = rp.read_changes(change(tmp, name, footprint))
+                    sources = {p: p.read_text(encoding="utf-8") for p in (project / "src").glob("*.cohdl")}
+                    targets = {m.group(1) for s in sources.values()
+                               for m in re.finditer(r"\bplace\s+(" + rp.TARGET + r")\s+at\b", s)}
+                    footprints = rp.compiler_footprints(project / ("out/%s-layout.json" % name),
+                                                        project / ("out/%s.kicad_pcb" % name), targets, changes)
+                    count = 0
+                    for path, source in sources.items():
+                        edits, errors, _ = rp.realign(source, changes, footprints)
+                        self.assertFalse(errors)
+                        forward = source
+                        for start, end, text in reversed(edits):
+                            forward = forward[:start] + text + forward[end:]
+                        count += len(edits)
+                        edits, errors, _ = rp.realign(forward, changes, footprints, reverse=True)
+                        self.assertFalse(errors)
+                        for start, end, text in reversed(edits):
+                            forward = forward[:start] + text + forward[end:]
+                        self.assertEqual(forward, source, path)
+                    self.assertEqual(count, expected)
+
     def test_vendored_joint_rigid_transform_preserves_pads(self):
         name = "joint-motor-controller"
         footprint = "connectors::headers::micro_fit_3::FP_Molex_43045_0212"

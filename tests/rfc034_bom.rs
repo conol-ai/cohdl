@@ -26,7 +26,9 @@ fn build_with_lock(src: &str, suppliers: &[&str], lock: &LockState) -> (Checked,
         checked.diags.render(&checked.sm)
     );
     let suppliers: Vec<String> = suppliers.iter().map(|id| (*id).to_string()).collect();
-    let artifacts = build_artifacts_with_suppliers(&mut checked, lock, &suppliers).expect("build");
+    let artifacts =
+        build_artifacts_with_suppliers(&mut checked, lock, &suppliers, &Default::default())
+            .expect("build");
     (checked, artifacts)
 }
 

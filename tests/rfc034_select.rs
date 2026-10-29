@@ -25,8 +25,13 @@ fn build(src: &str, suppliers: &[&str]) -> (Checked, BuildArtifacts) {
         checked.diags.render(&checked.sm)
     );
     let suppliers: Vec<String> = suppliers.iter().map(|id| (*id).to_string()).collect();
-    let artifacts = build_artifacts_with_suppliers(&mut checked, &LockState::default(), &suppliers)
-        .expect("build");
+    let artifacts = build_artifacts_with_suppliers(
+        &mut checked,
+        &LockState::default(),
+        &suppliers,
+        &Default::default(),
+    )
+    .expect("build");
     checked.diags.sort(&checked.sm);
     (checked, artifacts)
 }

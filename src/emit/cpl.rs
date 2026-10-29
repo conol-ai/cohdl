@@ -8,7 +8,7 @@ use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::World;
 use crate::span::Span;
-use crate::supplier::SupplierSelection;
+use crate::supplier::{BottomRotation, SupplierSelection};
 use std::fmt::Write as _;
 
 const FEMTO_PER_TEN_THOUSANDTH_MM: i128 = 100_000_000_000;
@@ -29,6 +29,7 @@ fn emit_cpl(
     world: &World,
     ir: &DesignIr,
     supplier: Option<&SupplierSelection>,
+    bottom_rotation: BottomRotation,
 ) -> Option<NeutralCpl> {
     if ir.layout.placements.is_empty() {
         return None;
@@ -123,10 +124,8 @@ fn emit_cpl(
             PlacementSide::Top => ("Top", mapped.rotate % 360),
             PlacementSide::Bottom => {
                 let kicad = (mapped.rotate + 180) % 360;
-                let rotation = if supplier.is_some_and(|selection| {
-                    crate::supplier::bottom_rotation(world, &selection.supplier)
-                        == crate::ast::BottomRotation::Mirrored
-                }) {
+                let rotation = if supplier.is_some() && bottom_rotation == BottomRotation::Mirrored
+                {
                     (540 - kicad) % 360
                 } else {
                     kicad
@@ -160,7 +159,7 @@ fn emit_cpl(
 }
 
 pub fn emit_neutral_cpl(world: &World, ir: &DesignIr) -> Option<NeutralCpl> {
-    emit_cpl(world, ir, None)
+    emit_cpl(world, ir, None, BottomRotation::Kicad)
 }
 
 /// The supplier file is the neutral row set, origin and angle convention with
@@ -169,8 +168,9 @@ pub(crate) fn emit_supplier_cpl(
     world: &World,
     ir: &DesignIr,
     supplier: &SupplierSelection,
+    bottom_rotation: BottomRotation,
 ) -> Option<String> {
-    emit_cpl(world, ir, Some(supplier)).map(|cpl| cpl.csv)
+    emit_cpl(world, ir, Some(supplier), bottom_rotation).map(|cpl| cpl.csv)
 }
 
 /// E815 belongs to physical build only.  The caller invokes this after the

@@ -16,7 +16,7 @@ USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
                  [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only]
-                 [--supplier ID]... [--json]
+                 [--supplier ID]... [--bottom-rotation ID=VALUE]... [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
@@ -85,6 +85,10 @@ defaults to the current directory.
              search: require a binding for this supplier (at most once)
              suppliers: audit this supplier and report unbound entries
              (repeatable; without it audit every bound supplier)
+    --bottom-rotation ID=VALUE
+             build: set ID's supplier CPL convention to kicad or mirrored
+             (repeatable, once per ID; ID must also be selected by --supplier;
+             default kicad)
     --class C  search: require one of these catalog classes (repeatable;
              requires --supplier)
     --dep    update: re-resolve only the named dependency
@@ -124,6 +128,8 @@ struct Args {
     logical_only: bool,
     /// RFC-034: repeatable on build; search accepts exactly one.
     suppliers: Vec<String>,
+    /// RFC-034: raw repeatable `ID=VALUE` build options, validated before load.
+    bottom_rotations: Vec<String>,
     /// RFC-034: search-only, repeatable supplier catalog classes.
     classes: Vec<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
@@ -158,6 +164,34 @@ impl Args {
             && !matches!(self.command.as_str(), "build" | "search" | "suppliers")
         {
             return bad("--supplier");
+        }
+        if !self.bottom_rotations.is_empty() && self.command != "build" {
+            return bad("--bottom-rotation");
+        }
+        let selected: std::collections::BTreeSet<&str> =
+            self.suppliers.iter().map(String::as_str).collect();
+        let mut configured = std::collections::BTreeSet::new();
+        for option in &self.bottom_rotations {
+            let Some((id, value)) = option.split_once('=') else {
+                return Err(format!(
+                    "`--bottom-rotation` expects ID=VALUE, got `{option}`"
+                ));
+            };
+            if !matches!(value, "kicad" | "mirrored") {
+                return Err(format!(
+                    "unknown bottom rotation `{value}` for `{id}`; expected `kicad` or `mirrored`"
+                ));
+            }
+            if !configured.insert(id) {
+                return Err(format!(
+                    "`--bottom-rotation` for `{id}` given more than once"
+                ));
+            }
+            if !selected.contains(id) {
+                return Err(format!(
+                    "`--bottom-rotation` supplier `{id}` must also be selected by `--supplier`"
+                ));
+            }
         }
         if !self.classes.is_empty() && self.command != "search" {
             return bad("--class");
@@ -392,6 +426,21 @@ impl Args {
     fn emit_easyeda(&self) -> bool {
         self.emit.iter().any(|f| f == "easyeda")
     }
+
+    fn bottom_rotations(&self) -> cohdl::supplier::BottomRotations {
+        self.bottom_rotations
+            .iter()
+            .map(|option| {
+                let (id, value) = option.split_once('=').expect("validated option");
+                let rotation = if value == "mirrored" {
+                    cohdl::supplier::BottomRotation::Mirrored
+                } else {
+                    cohdl::supplier::BottomRotation::Kicad
+                };
+                (id.to_string(), rotation)
+            })
+            .collect()
+    }
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -411,6 +460,7 @@ fn parse_args() -> Result<Args, String> {
         emit: Vec::new(),
         logical_only: false,
         suppliers: Vec::new(),
+        bottom_rotations: Vec::new(),
         classes: Vec::new(),
         dep: None,
         name: None,
@@ -433,6 +483,10 @@ fn parse_args() -> Result<Args, String> {
             "--supplier" => {
                 args.suppliers
                     .push(argv.next().ok_or("--supplier needs a value")?);
+            }
+            "--bottom-rotation" => {
+                args.bottom_rotations
+                    .push(argv.next().ok_or("--bottom-rotation needs a value")?);
             }
             "--class" => {
                 args.classes
@@ -976,8 +1030,12 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
         std::fs::read_to_string(proj_dir.join(path)).map_err(|e| e.to_string())
     });
 
-    let artifacts =
-        pipeline::build_artifacts_with_suppliers(&mut checked, &prior_lock, &args.suppliers);
+    let artifacts = pipeline::build_artifacts_with_suppliers(
+        &mut checked,
+        &prior_lock,
+        &args.suppliers,
+        &args.bottom_rotations(),
+    );
     let Some(artifacts) = artifacts else {
         if args.json {
             print!("{}", emit::json::render(&checked, None));
@@ -1004,16 +1062,6 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
             .map_err(|e| diags_then(&checked, e.to_string()))?;
         if let Some(cpl) = &artifacts.cpl {
             emit::cpl::report_unplaced(&mut checked.diags, cpl);
-        }
-        for supplier_map in &artifacts.supplier_maps {
-            if supplier_map.cpl.is_some() {
-                cohdl::supplier::report_undeclared(
-                    &checked.world,
-                    checked.design_name.as_deref().expect("selected design"),
-                    &supplier_map.supplier,
-                    &mut checked.diags,
-                );
-            }
         }
     }
 
@@ -1089,6 +1137,12 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
                 bom: path.display().to_string(),
                 map: String::new(),
                 cpl: None,
+                bottom_rotation: artifacts
+                    .supplier_maps
+                    .iter()
+                    .find(|map| map.supplier == supplier_bom.supplier)
+                    .map(|map| map.bottom_rotation.name().to_string())
+                    .unwrap_or_else(|| "kicad".to_string()),
             },
         );
     }
@@ -1304,6 +1358,17 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
     }
     for p in &mod_paths {
         eprintln!("  wrote {}", p);
+    }
+    for supplier_map in &artifacts.supplier_maps {
+        if supplier_map.cpl.is_some() && !args.logical_only {
+            eprintln!(
+                "  wrote {} (bottom_rotation: {})",
+                out_dir
+                    .join(format!("{}-{}-cpl.csv", proj.name, supplier_map.supplier))
+                    .display(),
+                supplier_map.bottom_rotation.name()
+            );
+        }
     }
     eprintln!("  wrote {}", lock_path.display());
     Ok(R::success(true))

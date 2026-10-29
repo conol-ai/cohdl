@@ -70,8 +70,13 @@ fn emit_supplier(src: &str, suppliers: &[&str]) -> String {
     let files = vec![("src/main.cohdl".to_string(), src.to_string())];
     let mut checked = check_files_in("board", &files, None).expect("selection");
     let suppliers: Vec<String> = suppliers.iter().map(|id| (*id).to_string()).collect();
-    let artifacts = build_artifacts_with_suppliers(&mut checked, &LockState::default(), &suppliers)
-        .expect("build");
+    let artifacts = build_artifacts_with_suppliers(
+        &mut checked,
+        &LockState::default(),
+        &suppliers,
+        &Default::default(),
+    )
+    .expect("build");
     assert!(
         !checked.diags.has_errors(),
         "fixture must build cleanly:\n{}",

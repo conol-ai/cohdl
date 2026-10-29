@@ -317,7 +317,7 @@ pub struct BuildArtifacts {
 /// The `build` half: designators (RFC-005), part binding, emitters.
 /// Only call when `checked.diags` has no errors and `checked.ir` is Some.
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
-    build_artifacts_with_suppliers(checked, prior_lock, &[])
+    build_artifacts_with_suppliers(checked, prior_lock, &[], &Default::default())
 }
 
 /// Build with RFC-034 supplier selection after successful part binding. The
@@ -327,6 +327,7 @@ pub fn build_artifacts_with_suppliers(
     checked: &mut Checked,
     prior_lock: &LockState,
     suppliers: &[String],
+    bottom_rotations: &crate::supplier::BottomRotations,
 ) -> Option<BuildArtifacts> {
     // A design that failed the check phase produces no artifacts: do not
     // assign designators, bind parts, or emit against a design known invalid.
@@ -355,8 +356,12 @@ pub fn build_artifacts_with_suppliers(
     supplier_diags.sort(&checked.sm);
     checked.diags.extend(supplier_diags);
     let supplier_boms = crate::emit::supplier_bom::emit_supplier_boms(&checked.world, &suppliers);
-    let supplier_maps =
-        crate::emit::supplier_map::emit_supplier_maps(&checked.world, ir, &suppliers);
+    let supplier_maps = crate::emit::supplier_map::emit_supplier_maps(
+        &checked.world,
+        ir,
+        &suppliers,
+        bottom_rotations,
+    );
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),

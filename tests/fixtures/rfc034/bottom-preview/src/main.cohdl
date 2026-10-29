@@ -9,8 +9,6 @@
 // v2 (2026-10-29): mappings from the first assembler preview — the SOT-23 model sat 90° clockwise
 // of our land and the SOIC-8 model 90° counter-clockwise, identically on top and bottom copies.
 
-supplier acme { bottom_rotation: mirrored }
-
 pub part Q_S8050: transistor::NPN_SOT23_BEC {
     primary { mfr: "Jiangsu Changjing Electronics Technology", mpn: "S8050 J3Y(RANGE:200-350)",
               footprint: transistor::FP_JSCJ_SOT23, supplier acme "A-2146" rotate 90 }

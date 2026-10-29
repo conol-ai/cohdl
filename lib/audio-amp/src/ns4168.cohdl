@@ -46,6 +46,6 @@ pub footprint FP_NS4168_ESOP8 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 6.0mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.2mm, 4.86mm) }
     silkscreen_ref { at: (0mm, -3.4mm) }
 }

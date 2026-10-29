@@ -232,50 +232,7 @@ fn courtyard_excess(courtyard: &Courtyard, shape: Geometry) -> Option<f64> {
 /// `(package, footprint, version)`: defects this audit exposes and defers to
 /// A1b/A1c. Every reason states the failing check, the pads involved and the
 /// measured excess — this table is the dispatch list for those cards.
-const QUARANTINE: &[(&str, &str, &str, &str)] = &[
-    (
-        "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_D4",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 (整圈 castellated 焊盘) 角点超出矩形 courtyard 最大 0.680 mm（courtyard 6.05x6.06 mm @ (0.005,0)，焊盘行达 |x|=3.7 mm > 半宽 3.025 mm）",
-    ),
-    (
-        "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_V3",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
-    ),
-    (
-        "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_V3_02",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
-    ),
-    (
-        "audio-amp",
-        "audio_amp::FP_NS4168_ESOP8",
-        "0.1.0",
-        "待 A1c：courtyard overflow — pads 1..8（全部引脚焊盘）角点超出矩形 courtyard 0.150 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN28_0P4_4",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..28（全部引脚焊盘）角点超出矩形 courtyard 0.600 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN48EB_0P35_5",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.650 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN48E_0P4_6",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.600 mm",
-    ),
-];
+const QUARANTINE: &[(&str, &str, &str, &str)] = &[];
 
 /// One pub part entry that binds a footprint: (part, device, variant).
 type Binding<'a> = (&'a str, &'a str, Option<&'a str>);

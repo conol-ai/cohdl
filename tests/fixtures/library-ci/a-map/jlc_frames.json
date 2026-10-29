@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "a-map-primary",
+      "package": "ci_a",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_A",
+      "supplier": "lcsc",
+      "pn": "C_A_MAP",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

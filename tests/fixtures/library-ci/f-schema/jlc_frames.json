@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "f-schema-primary",
+      "package": "ci_f",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_F",
+      "supplier": "lcsc",
+      "pn": "C_F_SCHEMA",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": "zero"
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

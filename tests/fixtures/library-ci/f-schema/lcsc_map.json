@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "supplier": "lcsc",
+  "rows": [
+    {
+      "mfr": "F Maker",
+      "mpn": "F-MPN",
+      "pn": "C_F_SCHEMA",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    }
+  ]
+}

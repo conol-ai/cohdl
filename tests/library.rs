@@ -11,6 +11,7 @@ use cohdl::span::SourceMap;
 
 mod library {
     pub mod geometry;
+    pub mod supplier;
 }
 
 fn check(pkg: &str, files: &[(&str, &str)]) -> (cohdl::pipeline::Checked, String) {

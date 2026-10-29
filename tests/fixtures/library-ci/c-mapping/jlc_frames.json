@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "c-mapping-primary",
+      "package": "ci_c",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_C",
+      "supplier": "lcsc",
+      "pn": "C_C_MAPPING",
+      "mapping": {
+        "dx_mm": 1.25,
+        "dy_mm": -2,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": "fixture mapping offset",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

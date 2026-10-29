@@ -454,13 +454,16 @@ pub fn audit_parts(package: &str, version: &str, world: &World) {
             && world.symbols.get(*name).is_some_and(|symbol| symbol.is_pub)
             && part.primary.footprint.is_some()
     }) {
-        for entry in std::iter::once(&part.primary).chain(part.alts.iter()) {
+        for (entry, is_primary) in std::iter::once((&part.primary, true))
+            .chain(part.alts.iter().map(|entry| (entry, false)))
+        {
             let missing: Vec<_> = ["mpn", "mfr"]
                 .into_iter()
-                .filter(|field| {
-                    entry
-                        .field(field)
-                        .is_none_or(|field| field.value.trim().is_empty())
+                .filter(|field_name| {
+                    entry.field(field_name).is_none_or(|field| {
+                        field.value.trim().is_empty()
+                            && !(is_primary && part.allows_source_empty(field_name))
+                    })
                 })
                 .collect();
             if missing.is_empty() {
@@ -532,6 +535,31 @@ mod tests {
         pub device DEV { pins { required GND: 1, 2 [passive] } }
         pub part P: DEV { primary { mfr: "m", mpn: "p", footprint: FP } }
     "#;
+
+    #[test]
+    fn audit_honours_only_explicit_source_empty_metadata() {
+        let source = r#"
+            pub footprint FP {}
+            pub device DEV { pins { required GND: 1 [passive] } }
+            #[source_unspecified("mpn")]
+            pub part P: DEV { primary { mfr: "m", mpn: "", footprint: FP } }
+        "#;
+        let mut world = audit(source);
+        // The checker rejects an empty MPN without the attribute, so the
+        // audit-level negative strips it from an already-checked world.
+        world
+            .parts
+            .get_mut("fixture::P")
+            .expect("fixture part")
+            .source_unspecified = None;
+        let message = std::panic::catch_unwind(|| audit_parts("fixture", "1.0.0", &world))
+            .expect_err("audit accepted an empty MPN without source_unspecified");
+        let message = message
+            .downcast_ref::<String>()
+            .cloned()
+            .unwrap_or_default();
+        assert!(message.contains("fixture::P: empty mpn"), "{message}");
+    }
 
     #[test]
     fn audit_rejects_rotated_overlap_at_37_and_45_degrees() {

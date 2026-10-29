@@ -17,8 +17,8 @@ hash = "sha256:b4dff8fc27e28e6923bd12cdcd03fd9634c44c8781a5e3d7d989a2343df37a24"
 
 [[package]]
 name = "connectors"
-version = "0.1.7"
-hash = "sha256:79386ff5f5c351486026640f979230d1ea4376949d61556c0b491d1881fbd9cf"
+version = "0.2.0"
+hash = "sha256:aee91cac9b94b0e8f3f1cb0479adaa91c6beffb91fa0e05da2e0e52dbc903fba"
 
 [[package]]
 name = "csp"

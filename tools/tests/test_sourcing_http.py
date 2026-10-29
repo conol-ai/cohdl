@@ -44,9 +44,10 @@ class FakeClock:
 
 
 class LocalServer:
-    def __init__(self, responses=None, robots="User-agent: *\nAllow: /\n"):
+    def __init__(self, responses=None, robots="User-agent: *\nAllow: /\n", extra_headers=None):
         self.responses = responses or {}
         self.robots = robots
+        self.extra_headers = extra_headers or {}
         self.requests = []
         self.headers = []
         outer = self
@@ -55,12 +56,18 @@ class LocalServer:
             def do_GET(self):
                 outer.requests.append(self.path)
                 outer.headers.append(self.headers)
-                status, body = outer.responses.get(
+                entry = outer.responses.get(
                     self.path, (200, outer.robots if self.path == "/robots.txt" else "ok")
+                )
+                status, body, headers = (
+                    entry if len(entry) == 3 else (entry[0], entry[1], {})
                 )
                 payload = body.encode("utf-8")
                 self.send_response(status)
+                for name, value in headers.items():
+                    self.send_header(name, value)
                 self.send_header("Content-Length", str(len(payload)))
+                self.send_header("Connection", "close")
                 self.end_headers()
                 self.wfile.write(payload)
 
@@ -217,6 +224,83 @@ class FetchClientTests(unittest.TestCase):
     def test_unlisted_host_is_refused_without_network(self):
         with self.assertRaises(PolicyError):
             self.client(None).get("https://example.com/part")
+
+    def test_redirect_targets_are_never_requested(self):
+        # The start URL is fetched; the forbidden redirect target never is.
+        easyeda = "https://easyeda.com/part"
+        offsite = "http://example.com/evil"
+        responses = {
+            "/start-api": (302, "moved", {"Location": "/api/secret"}),
+            "/start-private": (302, "moved", {"Location": "/private/x"}),
+            "/start-offsite": (302, "moved", {"Location": offsite}),
+            "/start-easyeda": (302, "moved", {"Location": easyeda}),
+        }
+        robots = "User-agent: *\nDisallow: /private\n"
+        with LocalServer(responses, robots=robots) as server:
+            client = self.client(server)
+            expected = [
+                ("/start-api", RobotsError),
+                ("/start-private", RobotsError),
+                ("/start-offsite", PolicyError),
+                ("/start-easyeda", PolicyError),
+            ]
+            for path, error in expected:
+                with self.subTest(path=path), self.assertRaises(error):
+                    client.get(server.url(path))
+            self.assertEqual(client.request_count, 5)
+            # Every forbidden target arrived with zero requests of its own.
+            for forbidden in ("/api/secret", "/private/x", "/evil", easyeda):
+                self.assertNotIn(forbidden, server.requests)
+            self.assertEqual(
+                [r for r in server.requests if r.startswith("/start")],
+                ["/start-api", "/start-private", "/start-offsite", "/start-easyeda"],
+            )
+
+    def test_each_redirect_hop_is_rate_limited_and_budgeted(self):
+        responses = {
+            "/start": (302, "moved", {"Location": "/middle"}),
+            "/middle": (302, "moved", {"Location": "/end"}),
+            "/end": (200, "done"),
+        }
+        with LocalServer(responses) as server:
+            client = self.client(server, max_requests=4)
+            response = client.get(server.url("/start"))
+            self.assertEqual(response.body, b"done")
+            self.assertEqual(server.requests, ["/robots.txt", "/start", "/middle", "/end"])
+            self.assertEqual(client.request_count, 4)
+            self.assertEqual(self.clock.sleeps, [2.0, 2.0, 2.0])
+            # The chain consumed the whole budget: the next fetch is refused.
+            with self.assertRaises(RequestLimitError):
+                client.get(server.url("/other"))
+            self.assertNotIn("/other", server.requests)
+
+    def test_redirect_loop_stops_at_hop_limit(self):
+        responses = {"/loop": (302, "again", {"Location": "/loop"})}
+        with LocalServer(responses) as server:
+            client = self.client(server)
+            with self.assertRaisesRegex(Exception, "too many redirects"):
+                client.get(server.url("/loop"))
+            self.assertEqual(server.requests.count("/loop"), 6)
+
+    def test_unparseable_retry_after_falls_back_to_default_backoff(self):
+        responses = {"/one": (429, "wait", {"Retry-After": "next tuesday"})}
+        with LocalServer(responses) as server:
+            client = self.client(server, backoff=45)
+            with self.assertRaisesRegex(Exception, "HTTP 429"):
+                client.get(server.url("/one"))
+            self.assertEqual(self.clock.sleeps[-1], 45.0)
+
+    def test_oversized_retry_after_stops_the_run(self):
+        responses = {"/one": (429, "wait", {"Retry-After": "86400"})}
+        with LocalServer(responses) as server:
+            client = self.client(server)
+            with self.assertRaisesRegex(RunStoppedError, "300"):
+                client.get(server.url("/one"))
+            self.assertEqual(self.clock.sleeps, [2.0])
+            count = len(server.requests)
+            with self.assertRaises(RunStoppedError):
+                client.get(server.url("/two"))
+            self.assertEqual(len(server.requests), count)
 
 
 if __name__ == "__main__":

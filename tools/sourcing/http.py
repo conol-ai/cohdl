@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 import email.utils
 import hashlib
 import json
+import math
 from pathlib import Path
 import socket
 import time
@@ -37,6 +38,9 @@ import urllib.robotparser
 USER_AGENT = "cohdl-library-bot/0.1 (+https://github.com/conol-ai/cohdl)"
 DEFAULT_MIN_INTERVAL = 2.0
 DEFAULT_BACKOFF = 60.0
+MAX_REDIRECTS = 5
+MAX_RETRY_AFTER = 300.0
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 
 
 class FetchError(RuntimeError):
@@ -122,57 +126,75 @@ class FetchClient:
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
         self._consecutive_refusals = 0
         self._stopped = False
-        self._opener = urllib.request.build_opener(_NoProxyHandler())
+        self._opener = urllib.request.build_opener(_NoProxyHandler(), _NoRedirectHandler())
 
     def get(self, url: str) -> Response:
-        """Return a cached response or fetch ``url`` under all run policies."""
+        """Return a cached response or fetch ``url`` under all run policies.
+
+        Redirects are followed manually, one hop at a time.  Every hop passes
+        the host allowlist, the EasyEDA and ``/api`` refusals, robots.txt, the
+        per-host interval and the request cap *before* its request is sent.
+        """
         normalized = _normalize_url(url)
-        parts = urllib.parse.urlsplit(normalized)
-        host = _canonical_host(parts.hostname or "")
-        self._check_host(host)
-        self._check_not_api(parts.path)
+        hops = 0
+        while True:
+            parts = urllib.parse.urlsplit(normalized)
+            host = _canonical_host(parts.hostname or "")
+            self._check_host(host)
+            self._check_not_api(parts.path)
 
-        cached = self._read_cache(normalized)
-        if cached is not None:
-            return cached
-        if self._stopped:
-            raise RunStoppedError("run stopped after two consecutive 403/429 responses")
+            cached = self._read_cache(normalized)
+            if cached is not None:
+                return cached
+            if self._stopped:
+                raise RunStoppedError("run stopped after two consecutive 403/429 responses")
 
-        robots = self._robots_for(parts, host)
-        if not robots.can_fetch(USER_AGENT, normalized):
-            raise RobotsError(f"robots.txt disallows {normalized}")
+            robots = self._robots_for(parts, host)
+            if not robots.can_fetch(USER_AGENT, normalized):
+                raise RobotsError(f"robots.txt disallows {normalized}")
+            body, final_url = self._fetch(normalized, host)
+            if final_url is None:
+                snapshot_date = _snapshot_date(self.snapshot_clock())
+                self._write_cache(normalized, body, snapshot_date)
+                self.request_log.append(RequestRecord(normalized, USER_AGENT, snapshot_date))
+                return Response(normalized, body, snapshot_date, False)
+            if hops >= MAX_REDIRECTS:
+                raise FetchError(f"too many redirects for {url} (limit {MAX_REDIRECTS})")
+            hops += 1
+            normalized = _normalize_url(final_url)
+
+    def _fetch(self, url: str, host: str) -> tuple[bytes, str | None]:
+        """Send one request; return ``(body, redirect_target)``.
+
+        The opener never follows redirects; a 3xx surfaces here as an
+        ``HTTPError`` carrying Location.  A 3xx without Location is a failure.
+        A redirect hop is not a success, so it does not reset the 403/429
+        streak; only a final non-redirect response does.
+        """
         self._wait_for_host(host)
         self._consume_budget()
         self._last_request[host] = self.clock()
         request = urllib.request.Request(
-            normalized,
+            url,
             headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"},
             method="GET",
         )
         try:
             with self._opener.open(request, timeout=self.timeout) as response:
                 body = response.read()
-                final_url = _normalize_url(response.geturl())
-                final_parts = urllib.parse.urlsplit(final_url)
-                self._check_host(_canonical_host(final_parts.hostname or ""))
-                self._check_not_api(final_parts.path)
-                if not self._robots_for(final_parts, _canonical_host(final_parts.hostname or "")).can_fetch(
-                    USER_AGENT, final_url
-                ):
-                    raise RobotsError(f"redirect target is disallowed by robots.txt: {final_url}")
         except urllib.error.HTTPError as error:
             if error.code in (403, 429):
-                self._refusal(normalized, error)
-            raise FetchError(f"HTTP {error.code} for {normalized}") from error
+                self._refusal(url, error)
+            if error.code in _REDIRECT_STATUSES:
+                location = error.headers.get("Location") if error.headers else None
+                if location:
+                    return b"", urllib.parse.urljoin(url, location)
+            raise FetchError(f"HTTP {error.code} for {url}") from error
         except (urllib.error.URLError, TimeoutError, socket.timeout) as error:
             self._consecutive_refusals = 0
-            raise FetchError(f"request failed for {normalized}: {error}") from error
-
+            raise FetchError(f"request failed for {url}: {error}") from error
         self._consecutive_refusals = 0
-        snapshot_date = _snapshot_date(self.snapshot_clock())
-        self._write_cache(normalized, body, snapshot_date)
-        self.request_log.append(RequestRecord(normalized, USER_AGENT, snapshot_date))
-        return Response(normalized, body, snapshot_date, False)
+        return body, None
 
     def _check_host(self, host: str) -> None:
         if _is_easyeda(host):
@@ -253,7 +275,13 @@ class FetchClient:
             self._stopped = True
             raise RunStoppedError("two consecutive 403/429 responses; run stopped") from error
         retry_after = error.headers.get("Retry-After") if error.headers else None
-        self.sleeper(_retry_delay(retry_after, self.backoff, self.clock))
+        delay = _retry_delay(retry_after, self.backoff)
+        if delay > MAX_RETRY_AFTER:
+            self._stopped = True
+            raise RunStoppedError(
+                f"Retry-After {delay:g} s exceeds the {MAX_RETRY_AFTER:g} s cap; run stopped"
+            ) from error
+        self.sleeper(delay)
 
     def _cache_paths(self, url: str) -> tuple[Path, Path]:
         digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
@@ -291,6 +319,13 @@ class _NoProxyHandler(urllib.request.ProxyHandler):
 
     def getproxies(self) -> Mapping[str, str]:
         return {}
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Never follow a redirect automatically; let 3xx surface as HTTPError."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
 
 
 def _canonical_host(host: str) -> str:
@@ -332,17 +367,25 @@ def _snapshot_date(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def _retry_delay(value: str | None, default: float, clock: Callable[[], float]) -> float:
+def _retry_delay(value: str | None, default: float) -> float:
+    """Parse a Retry-After value; fall back to ``default`` when unparseable.
+
+    Numeric seconds are used as-is; HTTP-date values are resolved against the
+    wall clock.  A value that cannot be parsed, or is not finite, falls back to
+    the default backoff instead of raising anything.
+    """
     if value:
         try:
-            return max(0.0, float(value))
+            seconds = float(value)
         except ValueError:
-            parsed = email.utils.parsedate_to_datetime(value)
+            try:
+                parsed = email.utils.parsedate_to_datetime(value)
+            except (TypeError, ValueError):
+                return default
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
-            # A wall-clock Retry-After date cannot be compared with monotonic
-            # time; an injected test clock is expected to use the default.
-            if clock is not time.monotonic:
-                return default
-            return max(0.0, parsed.timestamp() - time.time())
+            seconds = parsed.timestamp() - time.time()
+        if not math.isfinite(seconds):
+            return default
+        return max(0.0, seconds)
     return default

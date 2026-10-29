@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -11,6 +12,7 @@ sys.path.insert(0, str(TOOLS))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from jlc_catalog import canonical_url, load_candidates, parse_partdetail, run_catalog  # noqa: E402
+from sourcing.http import RobotsError  # noqa: E402
 from sourcing.sitemap import filter_partdetail_urls  # noqa: E402
 from sourcing_test_support import LocalServer, install_socket_guard, make_client, page  # noqa: E402
 
@@ -86,6 +88,31 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(load_candidates(path)[0]["candidate_category"], "basic")
         with self.assertRaises(ValueError):
             canonical_url("http://127.0.0.1", "/partdetail/C1")
+
+    def test_isolated_help_and_repository_cache_rejection(self):
+        help_run = subprocess.run([sys.executable, "-I", str(TOOLS / "jlc_catalog.py"), "--help"],
+                                  capture_output=True, text=True)
+        self.assertEqual(help_run.returncode, 0, help_run.stderr)
+        rejected = subprocess.run([
+            sys.executable, "-I", str(TOOLS / "jlc_catalog.py"),
+            "--allowed-host", "127.0.0.1", "--cache-dir", str(TOOLS.parent / ".cache"),
+            "--max-requests", "0", "--dry-run",
+        ], capture_output=True, text=True)
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn("outside repository", rejected.stderr)
+
+    def test_robots_error_stops_and_separates_not_fetched(self):
+        candidates, sitemap = self.fixture()
+        with LocalServer({"/robots.txt": (503, "no")}) as server:
+            client = make_client(self.root / "cache")
+            result = run_catalog(candidates, sitemap, origin=server.url(), client=client,
+                                 output_dir=self.root / "snapshot")
+            self.assertTrue(result["run_stopped"])
+            self.assertIn("RobotsError", result["run_stopped_reason"])
+            self.assertEqual(result["not_fetched"], ["C1", "C2"])
+            self.assertNotIn("/partdetail/Second-MPN/C2/C2", server.requests)
+            self.assertEqual(json.loads((self.root / "snapshot/not_fetched.json").read_text()),
+                             ["C1", "C2"])
 
 
 if __name__ == "__main__":

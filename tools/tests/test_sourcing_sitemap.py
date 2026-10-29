@@ -61,6 +61,15 @@ class SitemapTests(unittest.TestCase):
         self.assertEqual(set(result.entries), {"C1", "C2"})
         self.assertEqual(result.report.non_detail, 1)
 
+    def test_unallowlisted_absolute_host_is_non_detail(self):
+        result = filter_partdetail_urls([
+            "https://allowed.example/partdetail/X/C1/C1",
+            "https://other.example/partdetail/X/C2/C2",
+            "/partdetail/Relative/C3/C3",
+        ], allowed_hosts=["allowed.example"])
+        self.assertEqual(set(result.entries), {"C1", "C3"})
+        self.assertEqual(result.report.non_detail, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -90,15 +90,21 @@ def parse_sitemap_xml(data: bytes | str) -> tuple[str, list[str]]:
     return kind, locations
 
 
-def filter_partdetail_urls(urls: Iterable[str]) -> SitemapResult:
+def filter_partdetail_urls(
+    urls: Iterable[str], *, allowed_hosts: Iterable[str] | None = None
+) -> SitemapResult:
     """Apply W1 path, identifier and duplicate rules to absolute or path URLs."""
     entries: dict[str, SitemapEntry] = {}
     ten_digit: dict[str, SitemapEntry] = {}
     counts = {"total": 0, "non_detail": 0, "placeholder": 0, "ten_digit": 0,
               "duplicate": 0, "conflicts": 0}
+    hosts = {host.strip().lower().rstrip(".") for host in allowed_hosts} if allowed_hosts is not None else None
     for url in urls:
         counts["total"] += 1
         parsed = urllib.parse.urlsplit(url)
+        if hosts is not None and parsed.hostname and parsed.hostname.lower().rstrip(".") not in hosts:
+            counts["non_detail"] += 1
+            continue
         match = _PATH.fullmatch(parsed.path)
         if match is None or parsed.query or parsed.fragment:
             counts["non_detail"] += 1
@@ -130,6 +136,7 @@ def load_sitemaps(
     index_url: str,
     *,
     sitemap_urls: Iterable[str] | None = None,
+    allowed_hosts: Iterable[str] | None = None,
 ) -> tuple[SitemapResult, dict]:
     """Fetch an index and its parts sitemaps through the shared HTTP client.
 
@@ -151,8 +158,9 @@ def load_sitemaps(
         if child_kind != "urlset":
             raise ValueError(f"parts sitemap must have a urlset root: {url}")
         all_urls.extend(locations)
-        reports.append({"url": url, **filter_partdetail_urls(locations).report.as_dict()})
-    result = filter_partdetail_urls(all_urls)
+        reports.append({"url": url, **filter_partdetail_urls(
+            locations, allowed_hosts=allowed_hosts).report.as_dict()})
+    result = filter_partdetail_urls(all_urls, allowed_hosts=allowed_hosts)
     metadata = {
         "index_url": index_url,
         "sitemaps": reports,

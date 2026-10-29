@@ -16,9 +16,12 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sys
 import time
 
-from sourcing.http import FetchClient, RequestLimitError
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from sourcing.http import FetchClient, RequestLimitError, RobotsError, RunStoppedError
 from sourcing.sitemap import SitemapResult, entries_from_mapping, filter_partdetail_urls, load_sitemaps
 
 
@@ -142,12 +145,16 @@ def run_catalog(
     output_dir.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     rows, parse_unresolved, failures, budget_exhausted = [], [], [], False
+    run_stopped_reason = None
     processed = set()
     for candidate, url in zip(planned, urls):
         try:
             response = client.get(url)
         except RequestLimitError:
             budget_exhausted = True
+            break
+        except (RunStoppedError, RobotsError) as error:
+            run_stopped_reason = f"{type(error).__name__}: {error}"
             break
         except Exception as error:  # retain unresolved evidence, continue bounded run
             failures.append({"c": candidate["c"], "path": sitemap.entries[candidate["c"]].path,
@@ -169,12 +176,14 @@ def run_catalog(
     rows.sort(key=lambda row: int(row["c"][1:]))
     unresolved.extend(parse_unresolved)
     unresolved.extend(item["c"] for item in failures)
-    unresolved.extend(row["c"] for row in planned if row["c"] not in processed)
+    not_fetched = [row["c"] for row in planned if row["c"] not in processed]
+    unresolved.extend(not_fetched)
     catalog_hash = write_json(output_dir / "catalog.json", rows)
     unresolved_hash = write_json(output_dir / "unresolved.json", sorted(set(unresolved)))
     request_log = [{"url": record.url, "user_agent": record.user_agent,
                     "snapshot_date": record.snapshot_date} for record in client.request_log]
     log_hash = write_json(output_dir / "requests.json", request_log)
+    not_fetched_hash = write_json(output_dir / "not_fetched.json", not_fetched)
     provenance = {
         "schema_version": 1,
         "date": snapshot_date or datetime.now(timezone.utc).date().isoformat(),
@@ -185,9 +194,12 @@ def run_catalog(
         "request_count": client.request_count,
         "elapsed_seconds": round(time.monotonic() - started, 6),
         "budget_exhausted": budget_exhausted,
+        "run_stopped": run_stopped_reason is not None,
+        "run_stopped_reason": run_stopped_reason,
+        "not_fetched": not_fetched,
         "failures": failures,
         "sha256": {"catalog.json": catalog_hash, "unresolved.json": unresolved_hash,
-                   "requests.json": log_hash},
+                   "requests.json": log_hash, "not_fetched.json": not_fetched_hash},
         "sitemap_filter": sitemap.report.as_dict(),
         "parser_status": "provisional_pending_real_partdetail_sample",
     }
@@ -211,15 +223,26 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def validate_cache_dir(path: Path) -> None:
+    resolved = path.expanduser().resolve()
+    if resolved == ROOT or ROOT in resolved.parents:
+        raise ValueError(f"--cache-dir must be outside repository root: {resolved}")
+
+
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.max_requests < 0:
         raise SystemExit("--max-requests must be non-negative")
+    try:
+        validate_cache_dir(args.cache_dir)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     candidates = load_candidates(args.candidates)
     if args.dry_run and args.sitemap_json:
         entries = entries_from_mapping(json.loads(args.sitemap_json.read_text(encoding="utf-8")))
         sitemap = SitemapResult(entries, {}, filter_partdetail_urls(
-            canonical_url(args.origin, entry.path) for entry in entries.values()))
+            (canonical_url(args.origin, entry.path) for entry in entries.values()),
+            allowed_hosts=args.allowed_host))
         result = run_catalog(candidates, sitemap, origin=args.origin, client=None,
                              output_dir=args.output_dir or DEFAULT_OUTPUT / args.date, dry_run=True)
         result["planned_total_requests_including_sitemap"] = result["planned_partdetail_requests"]
@@ -231,13 +254,16 @@ def main(argv=None) -> int:
     if args.sitemap_json:
         entries = entries_from_mapping(json.loads(args.sitemap_json.read_text(encoding="utf-8")))
         sitemap = SitemapResult(entries, {}, filter_partdetail_urls(
-            canonical_url(args.origin, entry.path) for entry in entries.values()))
+            (canonical_url(args.origin, entry.path) for entry in entries.values()),
+            allowed_hosts=args.allowed_host))
         sitemap_meta = {"sitemap_json": str(args.sitemap_json)}
     elif args.dry_run:
         sitemap, sitemap_meta = load_sitemaps(OfflineClient(client), args.sitemap_index,
-                                              sitemap_urls=args.sitemap)
+                                              sitemap_urls=args.sitemap,
+                                              allowed_hosts=args.allowed_host)
     else:
-        sitemap, sitemap_meta = load_sitemaps(client, args.sitemap_index, sitemap_urls=args.sitemap)
+        sitemap, sitemap_meta = load_sitemaps(client, args.sitemap_index, sitemap_urls=args.sitemap,
+                                              allowed_hosts=args.allowed_host)
     output = args.output_dir or DEFAULT_OUTPUT / args.date
     source_metadata = {
         "origin": args.origin,

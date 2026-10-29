@@ -218,8 +218,11 @@ class FetchClient:
         robots_url = f"{origin}/robots.txt"
         robots_cache = self._robots_cache_path(robots_url)
         try:
-            cached_response = robots_cache.read_bytes()
-        except OSError:
+            cached_metadata = json.loads(robots_cache.with_suffix(".json").read_text(encoding="utf-8"))
+            fetched_at = datetime.fromisoformat(cached_metadata["fetched_at"].replace("Z", "+00:00"))
+            age = (self.snapshot_clock().astimezone(timezone.utc) - fetched_at).total_seconds()
+            cached_response = robots_cache.read_bytes() if 0 <= age <= 86400 else None
+        except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
             cached_response = None
         if cached_response is not None:
             parser = self._cached_robots_parser(robots_url, cached_response)
@@ -269,6 +272,10 @@ class FetchClient:
         robots_cache = self._robots_cache_path(robots_url)
         robots_cache.parent.mkdir(parents=True, exist_ok=True)
         robots_cache.write_bytes(text.encode("utf-8"))
+        robots_cache.with_suffix(".json").write_text(json.dumps({
+            "url": robots_url,
+            "fetched_at": _snapshot_date(self.snapshot_clock()),
+        }, sort_keys=True), encoding="utf-8")
         return parser
 
     def _robots_cache_path(self, url: str) -> Path:

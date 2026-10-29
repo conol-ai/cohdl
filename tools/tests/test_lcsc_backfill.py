@@ -4,6 +4,7 @@ from datetime import date
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -14,8 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lcsc_backfill import (  # noqa: E402
     AVLRow, build_index, choose_candidate, extract_avl_rows, load_aliases,
-    manufacturer_match, normalize_mpn, reproducible_sample, run_backfill,
+    confirmation_mpn, manufacturer_match, normalize_mpn, reproducible_sample, run_backfill,
 )
+from sourcing.http import RunStoppedError  # noqa: E402
 from sourcing.sitemap import filter_partdetail_urls  # noqa: E402
 from sourcing_test_support import LocalServer, install_socket_guard, make_client, page  # noqa: E402
 
@@ -76,6 +78,15 @@ class BackfillTests(unittest.TestCase):
                                   snapshot_date="2026-10-30")
         output = json.loads((self.root / "out/lcsc_map.json").read_text())
         validate_schema(output)
+        confirmed_bytes = (self.root / "out/confirmed.json").read_bytes()
+        import hashlib
+        confirmed_hash = hashlib.sha256(confirmed_bytes).hexdigest()
+        self.assertTrue(all(row["snapshot_sha256"] == confirmed_hash for row in output["rows"]))
+        self.assertEqual(result["snapshot_sha256"], confirmed_hash)
+        self.assertEqual(result["sha256"]["confirmed.json"], confirmed_hash)
+        confirmed = json.loads(confirmed_bytes)
+        self.assertEqual(set(confirmed[0]), {"c", "mpn", "mfr", "package", "category", "stock",
+                                             "datasheet", "partdetail", "fetched_date"})
         self.assertEqual([(row["mpn"], row["pn"], row["rule"]) for row in output["rows"]],
                          [("A-1", "C3", "exact"), ("B 2", "C2", "alias")])
         self.assertEqual(result["counts"]["mapped_identities"], 2)
@@ -135,6 +146,41 @@ class BackfillTests(unittest.TestCase):
         self.assertEqual(load_aliases(path), {})
         self.assertIsNone(manufacturer_match("Acme", "Acme Local", {}))
         self.assertEqual(manufacturer_match("Acme", "Acme", {}), "exact")
+
+    def test_confirmation_does_not_erase_punctuation(self):
+        self.assertEqual(normalize_mpn("MP1482DS-LF-Z"), normalize_mpn("MP1482DSLFZ"))
+        self.assertNotEqual(confirmation_mpn("MP1482DS-LF-Z"), confirmation_mpn("MP1482DSLFZ"))
+        self.assertEqual(confirmation_mpn(" mp 1482 ds-lf-z "), confirmation_mpn("MP1482DS-LF-Z"))
+        avl = [AVLRow("x", "primary", "Acme", "MP1482DS-LF-Z")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/MP1482DS-LF-Z/C1/C1"])
+        with LocalServer({"/partdetail/MP1482DS-LF-Z/C1/C1":
+                          (200, page("C1", "MP1482DSLFZ"))}) as server:
+            result = run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                                  client=make_client(self.root / "cache"), output_dir=self.root / "out",
+                                  aliases={}, snapshot_date="2026-10-30")
+        review = json.loads((self.root / "out/review.json").read_text())
+        self.assertEqual(review["rows"][0]["reason"], "no_confirmed_match")
+        self.assertEqual(json.loads((self.root / "out/lcsc_map.json").read_text())["rows"], [])
+
+    def test_run_stopped_is_not_swallowed(self):
+        avl = [AVLRow("x", "primary", "Acme", "X")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1",
+                                          "http://127.0.0.1/partdetail/X/C2/C2"])
+        with LocalServer({"/partdetail/X/C1/C1": (403, "no"),
+                          "/partdetail/X/C2/C2": (403, "no"),
+                          "/robots.txt": (200, "User-agent: *\nAllow: /\n")}) as server:
+            # First refusal retries and stops on the second consecutive 403.
+            result = run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                                  client=make_client(self.root / "cache"), output_dir=self.root / "out",
+                                  aliases={}, snapshot_date="2026-10-30")
+        self.assertTrue(result["run_stopped"])
+        self.assertIn("RunStoppedError", result["run_stopped_reason"])
+        self.assertEqual(result["not_fetched"][0]["reason"], "not_fetched")
+
+    def test_isolated_help(self):
+        result = subprocess.run([sys.executable, "-I", str(TOOLS / "lcsc_backfill.py"), "--help"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

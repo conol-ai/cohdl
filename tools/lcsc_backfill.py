@@ -11,7 +11,7 @@ Partdetail parsing remains provisional pending an approved real sample.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -20,16 +20,20 @@ import random
 import re
 import sys
 import time
+import urllib.parse
 
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from jlc_catalog import (
     DEFAULT_CANDIDATES,
     OfflineClient,
     canonical_url,
     load_candidates,
     parse_partdetail,
+    validate_cache_dir,
     write_json,
 )
-from sourcing.http import FetchClient, RequestLimitError
+from sourcing.http import FetchClient, RequestLimitError, RobotsError, RunStoppedError
 from sourcing.sitemap import SitemapResult, entries_from_mapping, filter_partdetail_urls, load_sitemaps
 
 
@@ -54,6 +58,11 @@ class Candidate:
 
 def normalize_mpn(value: str) -> str:
     return "".join(char for char in value.upper() if char.isascii() and char.isalnum())
+
+
+def confirmation_mpn(value: str) -> str:
+    """W2 confirmation ignores case and whitespace, never punctuation."""
+    return "".join(value.split()).upper()
 
 
 def load_aliases(path: str | Path) -> dict[str, str]:
@@ -153,31 +162,45 @@ def run_backfill(
     output_dir.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     confirmed: dict[str, dict] = {}
+    fetched: set[str] = set()
     failures = []
     exhausted = False
+    run_stopped_reason = None
     for url in urls:
         try:
             response = client.get(url)
         except RequestLimitError:
             exhausted = True
             break
+        except (RunStoppedError, RobotsError) as error:
+            run_stopped_reason = f"{type(error).__name__}: {error}"
+            break
         except Exception as error:
             failures.append({"url": url, "error": type(error).__name__})
+            fetched.add(url)
             continue
+        fetched.add(url)
         try:
             parsed = parse_partdetail(response.body.decode("utf-8"))
         except (UnicodeDecodeError, ValueError):
             parsed = None
         if parsed is not None:
+            parsed["partdetail"] = urllib.parse.urlsplit(url).path
+            parsed["fetched_date"] = response.snapshot_date
             confirmed[url] = parsed
+
+    confirmed_rows = sorted(confirmed.values(), key=lambda row: int(row["c"][1:]))
+    confirmed_hash = write_json(output_dir / "confirmed.json", confirmed_rows)
 
     rows, review = [], []
     for mfr, mpn in unique:
         candidates = index.get(normalize_mpn(mpn), [])
         matches = []
+        candidate_urls = [canonical_url(origin, candidate.path) for candidate in candidates]
+        has_not_fetched = any(url not in fetched for url in candidate_urls)
         for candidate in candidates:
             page = confirmed.get(canonical_url(origin, candidate.path))
-            if page is None or normalize_mpn(page["mpn"]) != normalize_mpn(mpn):
+            if page is None or confirmation_mpn(page["mpn"]) != confirmation_mpn(mpn):
                 continue
             rule = manufacturer_match(mfr, page["mfr"], aliases)
             if rule is not None:
@@ -185,7 +208,14 @@ def run_backfill(
         best, tied = choose_candidate(matches)
         identity = {"mfr": mfr, "mpn": mpn}
         if best is None:
-            reason = "tied_after_priority" if tied else ("no_candidate" if not candidates else "no_confirmed_match")
+            if tied:
+                reason = "tied_after_priority"
+            elif not candidates:
+                reason = "no_candidate"
+            elif has_not_fetched:
+                reason = "not_fetched"
+            else:
+                reason = "no_confirmed_match"
             review.append({**identity, "reason": reason,
                            "candidates": [{"c": row["c"], "category": row["category"],
                                            "stock": row["stock"], "partdetail": row["partdetail"]}
@@ -195,11 +225,8 @@ def run_backfill(
                      "category": best["category"], "snapshot_sha256": "", "date": snapshot_date})
 
     rows.sort(key=lambda row: (row["mfr"], row["mpn"], row["pn"]))
-    factual_hash = hashlib.sha256(json.dumps(
-        [{key: value for key, value in row.items() if key not in ("snapshot_sha256", "date")}
-         for row in rows], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     for row in rows:
-        row["snapshot_sha256"] = factual_hash
+        row["snapshot_sha256"] = confirmed_hash
     review.sort(key=lambda row: (row["mfr"], row["mpn"]))
     map_hash = write_json(output_dir / "lcsc_map.json",
                           {"schema_version": 1, "supplier": "lcsc", "rows": rows})
@@ -209,7 +236,7 @@ def run_backfill(
         {"url": record.url, "user_agent": record.user_agent, "snapshot_date": record.snapshot_date}
         for record in client.request_log])
     result = {
-        "schema_version": 1, "date": snapshot_date, "snapshot_sha256": factual_hash,
+        "schema_version": 1, "date": snapshot_date, "snapshot_sha256": confirmed_hash,
         "sources": source_metadata or {"origin": origin},
         "counts": {"avl_entries": len(avl_rows), "unique_identities": len(unique),
                    "mapped_identities": len(rows), "review_identities": len(review),
@@ -217,10 +244,14 @@ def run_backfill(
                    "requests": client.request_count},
         "request_count": client.request_count, "elapsed_seconds": round(time.monotonic() - started, 6),
         "budget_exhausted": exhausted,
+        "run_stopped": run_stopped_reason is not None,
+        "run_stopped_reason": run_stopped_reason,
+        "not_fetched": [row for row in review if row["reason"] == "not_fetched"],
         "match_rate": {"method": "mapped_identities / unique_identities; unique key is exact (mfr, mpn) after selecting confirmed candidates",
                        "numerator": len(rows), "denominator": len(unique),
                        "value": len(rows) / len(unique) if unique else 0.0},
-        "sha256": {"lcsc_map.json": map_hash, "review.json": review_hash, "requests.json": requests_hash},
+        "sha256": {"confirmed.json": confirmed_hash, "lcsc_map.json": map_hash,
+                   "review.json": review_hash, "requests.json": requests_hash},
         "parser_status": "provisional_pending_real_partdetail_sample",
     }
     write_json(output_dir / "provenance.json", result)
@@ -259,6 +290,10 @@ def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.max_requests < 0:
         raise SystemExit("--max-requests must be non-negative")
+    try:
+        validate_cache_dir(args.cache_dir)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     avl_rows = extract_avl_rows(args.lib_dir)
     if args.sample is not None:
         sample = reproducible_sample(avl_rows, args.sample, args.seed)
@@ -275,7 +310,8 @@ def main(argv=None) -> int:
     if args.dry_run and args.sitemap_json:
         entries = entries_from_mapping(json.loads(args.sitemap_json.read_text(encoding="utf-8")))
         sitemap = SitemapResult(entries, {}, filter_partdetail_urls(
-            canonical_url(args.origin, entry.path) for entry in entries.values()))
+            (canonical_url(args.origin, entry.path) for entry in entries.values()),
+            allowed_hosts=args.allowed_host))
         result = run_backfill(avl_rows, build_index(sitemap, candidates), origin=args.origin,
                               client=None, output_dir=args.output_dir, aliases={},
                               snapshot_date=args.date, dry_run=True)
@@ -285,12 +321,15 @@ def main(argv=None) -> int:
     if args.sitemap_json:
         entries = entries_from_mapping(json.loads(args.sitemap_json.read_text(encoding="utf-8")))
         sitemap = SitemapResult(entries, {}, filter_partdetail_urls(
-            canonical_url(args.origin, entry.path) for entry in entries.values()))
+            (canonical_url(args.origin, entry.path) for entry in entries.values()),
+            allowed_hosts=args.allowed_host))
     elif args.dry_run:
         sitemap, sitemap_meta = load_sitemaps(OfflineClient(client), args.sitemap_index,
-                                              sitemap_urls=args.sitemap)
+                                              sitemap_urls=args.sitemap,
+                                              allowed_hosts=args.allowed_host)
     else:
-        sitemap, sitemap_meta = load_sitemaps(client, args.sitemap_index, sitemap_urls=args.sitemap)
+        sitemap, sitemap_meta = load_sitemaps(client, args.sitemap_index, sitemap_urls=args.sitemap,
+                                              allowed_hosts=args.allowed_host)
     source_metadata = {
         "origin": args.origin, "lib_dir": str(args.lib_dir),
         "candidates": str(args.candidates),

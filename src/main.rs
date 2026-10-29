@@ -1005,6 +1005,16 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
         if let Some(cpl) = &artifacts.cpl {
             emit::cpl::report_unplaced(&mut checked.diags, cpl);
         }
+        for supplier_map in &artifacts.supplier_maps {
+            if supplier_map.cpl.is_some() {
+                cohdl::supplier::report_undeclared(
+                    &checked.world,
+                    checked.design_name.as_deref().expect("selected design"),
+                    &supplier_map.supplier,
+                    &mut checked.diags,
+                );
+            }
+        }
     }
 
     // Defence in depth (review F4): the artifact basename is `proj.name`,

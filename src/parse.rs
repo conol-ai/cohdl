@@ -377,7 +377,11 @@ impl<'a> Parser<'a> {
                 | TokenKind::Design
                 | TokenKind::Hash => return,
                 TokenKind::Ident(n)
-                    if n == "use" || n == "footprint" || n == "pad" || n == "subdesign" =>
+                    if n == "use"
+                        || n == "supplier"
+                        || n == "footprint"
+                        || n == "pad"
+                        || n == "subdesign" =>
                 {
                     return
                 }
@@ -444,6 +448,27 @@ impl<'a> Parser<'a> {
                 is_pub: false,
                 intent: None,
                 docs: Vec::new(),
+                decl_span: decl_start,
+                span: start.to(self.prev_span()),
+                kind,
+            });
+        }
+        // RFC-034: a declaration, distinguished from the AVL clause by `{`.
+        if self.at_ident("supplier") && matches!(self.peek_ahead(1), TokenKind::Ident(_)) {
+            let kind = self.supplier_decl().map(ItemKind::Supplier);
+            if is_pub {
+                self.report(Diagnostic::error(
+                    "E816",
+                    decl_start,
+                    "`pub` is not valid on a supplier declaration".to_string(),
+                ));
+            }
+            self.reject_attrs(&rest);
+            let kind = kind?;
+            return Some(Item {
+                is_pub,
+                intent,
+                docs,
                 decl_span: decl_start,
                 span: start.to(self.prev_span()),
                 kind,
@@ -566,7 +591,7 @@ impl<'a> Parser<'a> {
             TokenKind::Design => self.design_def().map(ItemKind::Design),
             other => {
                 self.error_here(format!(
-                    "expected a top-level declaration (`trait`, `device`, `impl`, `fn`, `part`, `design`, `subdesign`, `footprint`, `pad`, or `use`), found {}",
+                    "expected a top-level declaration (`supplier`, `trait`, `device`, `impl`, `fn`, `part`, `design`, `subdesign`, `footprint`, `pad`, or `use`), found {}",
                     other.describe()
                 ));
                 self.sync_top_level();
@@ -3680,6 +3705,73 @@ impl<'a> Parser<'a> {
             generics,
             params,
             body,
+        })
+    }
+
+    /// `supplier ID { bottom_rotation: kicad | mirrored }` (RFC-034).
+    /// Values are retained as identifiers for E816's closed-set check.
+    fn supplier_decl(&mut self) -> Option<SupplierDecl> {
+        let start = self.span();
+        self.bump(); // supplier
+        let mut supplier = self.ident("as the supplier identifier after `supplier`")?;
+        if self.at(&TokenKind::PathSep) {
+            let span = self.span();
+            self.report(Diagnostic::error(
+                "E816",
+                span,
+                "supplier declarations use one flat ID, not a path".to_string(),
+            ));
+            self.bump();
+            let trailing = self.ident("as the trailing supplier path segment")?;
+            supplier.name.push_str("::");
+            supplier.name.push_str(&trailing.name);
+            supplier.span = supplier.span.to(trailing.span);
+        }
+        if !self.expect(&TokenKind::LBrace, "to open the supplier declaration") {
+            self.sync_top_level();
+            return None;
+        }
+        let mut bottom_rotation = None;
+        let mut other_keys = Vec::new();
+        let mut repeated_keys = Vec::new();
+        let mut seen = std::collections::BTreeSet::new();
+        let mut progress = Progress::default();
+        while self.block_continues(&mut progress) {
+            let before = self.pos;
+            let key = self.ident("as a supplier declaration key")?;
+            if !seen.insert(key.name.clone()) {
+                repeated_keys.push(key.clone());
+            }
+            self.expect(&TokenKind::Colon, "after the supplier declaration key");
+            let value = match self.peek() {
+                TokenKind::Ident(_) => self.ident("as the supplier declaration value")?,
+                _ => {
+                    // Retain an invalid value for E816, just as for an unknown
+                    // identifier, rather than losing it behind an E010.
+                    let token = self.bump();
+                    Ident {
+                        name: token.kind.describe().to_string(),
+                        span: token.span,
+                    }
+                }
+            };
+            if key.name == "bottom_rotation" {
+                bottom_rotation = Some((value, key.span));
+            } else {
+                other_keys.push(key);
+            }
+            self.eat(&TokenKind::Comma);
+            if self.pos == before {
+                self.bump();
+            }
+        }
+        self.expect(&TokenKind::RBrace, "to close the supplier declaration");
+        Some(SupplierDecl {
+            supplier,
+            bottom_rotation,
+            other_keys,
+            repeated_keys,
+            span: start.to(self.prev_span()),
         })
     }
 

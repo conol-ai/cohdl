@@ -536,6 +536,7 @@ pub struct FootprintDef {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum ItemKind {
+    Supplier(SupplierDecl),
     Trait(TraitDef),
     Device(DeviceDef),
     Impl(ImplDef),
@@ -555,6 +556,7 @@ pub enum ItemKind {
 impl ItemKind {
     pub fn name(&self) -> Option<&Ident> {
         match self {
+            ItemKind::Supplier(s) => Some(&s.supplier),
             ItemKind::Trait(t) => Some(&t.name),
             ItemKind::Device(d) => Some(&d.name),
             ItemKind::Fn(f) => Some(&f.name),
@@ -569,6 +571,7 @@ impl ItemKind {
 
     pub fn kind_str(&self) -> &'static str {
         match self {
+            ItemKind::Supplier(_) => "supplier",
             ItemKind::Trait(_) => "trait",
             ItemKind::Device(_) => "device",
             ItemKind::Impl(_) => "impl",
@@ -1651,6 +1654,33 @@ pub struct AvlEntry {
     /// RFC-016), never a string. The Ident's name is the fq path after
     /// resolution.
     pub footprint: Option<Ident>,
+    pub span: Span,
+}
+
+/// A package-wide supplier fact. Unknown or repeated body keys remain in the
+/// AST so E816 can name them without turning semantic mistakes into E010.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BottomRotation {
+    #[default]
+    Kicad,
+    Mirrored,
+}
+
+impl BottomRotation {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Kicad => "kicad",
+            Self::Mirrored => "mirrored",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SupplierDecl {
+    pub supplier: Ident,
+    pub bottom_rotation: Option<(Ident, Span)>,
+    pub other_keys: Vec<Ident>,
+    pub repeated_keys: Vec<Ident>,
     pub span: Span,
 }
 

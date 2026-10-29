@@ -1,0 +1,71 @@
+// RFC-034 open question "bottom-side convention in practice": every part type is
+// placed four times — top 0°, top 37°, bottom 0°, bottom 37° — so an assembler
+// preview can separate a footprint-frame offset (same on both sides; library plan
+// W3) from a bottom-side convention error (bottom copies only).
+//
+// The parts re-declare library parts with an LCSC binding. Device, variant and
+// footprint are identical to the library declaration, as E802 requires; the
+// C numbers come from tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json.
+// v2 (2026-10-29): mappings from the first assembler preview — the SOT-23 model sat 90° clockwise
+// of our land and the SOIC-8 model 90° counter-clockwise, identically on top and bottom copies.
+
+supplier acme { bottom_rotation: mirrored }
+
+pub part Q_S8050: transistor::NPN_SOT23_BEC {
+    primary { mfr: "Jiangsu Changjing Electronics Technology", mpn: "S8050 J3Y(RANGE:200-350)",
+              footprint: transistor::FP_JSCJ_SOT23, supplier acme "A-2146" rotate 90 }
+}
+
+pub part U_W25Q128: flash::W25Q128JV[SOIC8] {
+    primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N,
+              supplier acme "A-97521" rotate 270 }
+}
+
+pub part C_27P_0603: passive::MLCC<27pF, 50V, 5%>[C0603] {
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN270", footprint: passive::CHIP_0603,
+              supplier acme "A-107045" }
+    alt { mfr: "Samsung", mpn: "CL10C270JB81IN" }
+}
+
+pub part C_15P_0805: passive::MLCC<15pF, 50V, 5%>[C0805] {
+    primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN150", footprint: passive::CHIP_0805,
+              supplier acme "A-107110" }
+    alt { mfr: "Samsung", mpn: "CL21C150JB61PN" }
+}
+
+design BottomPreview {
+    inst q: [Q_S8050; 4]
+    inst u: [U_W25Q128; 4]
+    inst c6: [C_27P_0603; 4]
+    inst c8: [C_15P_0805; 4]
+
+    net V3V3 [3.3V]: q[0..=3].C, q[0..=3].B, u[0..=3].VCC, c6[0..=3].A, c8[0..=3].A
+
+    #[ground(primary)]
+    net GND [gnd]: q[0..=3].E, u[0..=3].GND, c6[0..=3].B, c8[0..=3].B
+
+    layout {
+        board_outline: "mechanical/outline.dxf"
+
+        // column x: S8050, W25Q128, 0603, 0805; row y: top 0, top 37, bottom 0, bottom 37
+        place q[0] at (-26mm, -20mm)
+        place q[1] at (-26mm, -7mm) rotate 37
+        place q[2] at (-26mm, 7mm) side bottom
+        place q[3] at (-26mm, 20mm) rotate 37 side bottom
+
+        place u[0] at (-8mm, -20mm)
+        place u[1] at (-8mm, -7mm) rotate 37
+        place u[2] at (-8mm, 7mm) side bottom
+        place u[3] at (-8mm, 20mm) rotate 37 side bottom
+
+        place c6[0] at (12mm, -20mm)
+        place c6[1] at (12mm, -7mm) rotate 37
+        place c6[2] at (12mm, 7mm) side bottom
+        place c6[3] at (12mm, 20mm) rotate 37 side bottom
+
+        place c8[0] at (28mm, -20mm)
+        place c8[1] at (28mm, -7mm) rotate 37
+        place c8[2] at (28mm, 7mm) side bottom
+        place c8[3] at (28mm, 20mm) rotate 37 side bottom
+    }
+}

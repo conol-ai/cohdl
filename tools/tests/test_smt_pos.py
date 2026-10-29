@@ -448,9 +448,15 @@ class CliTests(unittest.TestCase):
             moved.records[0]["pads"][0]["position"] = (20 * NM, 5 * NM)
             coverage_document = copy.deepcopy(document)
             coverage_document["designators"]["U9"] = coverage_document["designators"].pop("U1")
+            unknown_convention = dict(document, schema_version=2, bottom_rotation="other")
+            missing_convention = dict(document, schema_version=2)
+            unknown_schema = dict(document, schema_version=3)
             cases = [
                 (moved, document, "frame mismatch or older pad_projection"),
                 (board, coverage_document, "not in this map"),
+                (board, unknown_convention, "bottom_rotation"),
+                (board, missing_convention, "requires bottom_rotation"),
+                (board, unknown_schema, "schema_version"),
             ]
             for current_board, current_document, diagnostic in cases:
                 map_path.write_text(json.dumps(current_document))

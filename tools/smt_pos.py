@@ -31,7 +31,9 @@ fixed four-place millimetres. Its default output name is <stem>-cpl.csv.
 
 With --map <name>-<ID>-map.json, emit <name>-<ID>-cpl.csv after applying the
 selected entry's supplier footprint offset and rotation (this implies
---neutral). Map/frame/coverage validation is fail-closed: any error exits 1
+--neutral). Schema 2's bottom_rotation controls bottom-side angles; schema 1
+means kicad. Unknown schemas and values are rejected. Map/frame/coverage
+validation is fail-closed: any error exits 1
 before creating or truncating the output. Unbound designators explicitly use
 identity mapping and are reported; warnings do not hide validation failures.
 
@@ -189,6 +191,7 @@ def main():
         try:
             with args.map.open(encoding="utf-8") as stream:
                 document = json.load(stream)
+            validated = smt_pos_map.validate_map(document)
             errors, warnings, mappings = smt_pos_map.check_board(
                 document,
                 (
@@ -206,7 +209,9 @@ def main():
             )
             if errors:
                 raise smt_pos_map.MapError("\n".join(errors))
-            rows = smt_pos_map.mapped_neutral_rows(footprints, mappings, new_origin)
+            rows = smt_pos_map.mapped_neutral_rows(
+                footprints, mappings, new_origin, validated["bottom_rotation"]
+            )
         except (OSError, UnicodeError, json.JSONDecodeError, smt_pos_map.MapError) as exc:
             print("error: " + str(exc), file=sys.stderr)
             raise SystemExit(1)

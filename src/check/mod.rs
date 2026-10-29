@@ -25,6 +25,7 @@ use crate::resolve::{build_world, World};
 fn run_declaration_checks(world: &mut World, diags: &mut Diagnostics) {
     impls::check_impls(world, diags);
     generics::check_parts(world, diags);
+    crate::supplier::check_declarations(world, diags);
     // RFC-033: `const N: Int` is admitted on `fn` and `subdesign` only — a
     // device's pin interface is a structural variant (RFC-008), never a
     // count-parameterized family.

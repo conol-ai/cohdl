@@ -71,7 +71,7 @@ def read_board(path):
     """Read only the compiler-emitted board forms used by this fixture."""
     board = parse_sexpr(path.read_text(encoding="utf-8"))
     shapes = []
-    for segment in children(board, "segment"):
+    for segment in children(board, "segment") + children(board, "gr_line"):
         start, end = point(child(segment, "start")), point(child(segment, "end"))
         shapes.append(
             {
@@ -136,8 +136,13 @@ def mapped_cpl(board_path=BOARD, map_path=MAP):
         }
         for fp in footprints
     ]
+    validated = sm.validate_map(document)
     errors, warnings, mappings = sm.check_board(document, board_records)
-    return errors, warnings, neutral_csv(sm.mapped_neutral_rows(footprints, mappings, origin))
+    return errors, warnings, neutral_csv(
+        sm.mapped_neutral_rows(
+            footprints, mappings, origin, validated["bottom_rotation"]
+        )
+    )
 
 
 class CompilerFixtureTests(unittest.TestCase):
@@ -147,6 +152,7 @@ class CompilerFixtureTests(unittest.TestCase):
         self.assertEqual(warnings, [])
         expected_rows = list(csv.DictReader(io.StringIO(CPL.read_text(encoding="utf-8"))))
         actual_rows = list(csv.DictReader(io.StringIO(actual)))
+        self.assertEqual(actual, CPL.read_text(encoding="utf-8"))
         self.assertEqual(len(actual_rows), len(expected_rows))
         for expected, row in zip(expected_rows, actual_rows):
             self.assertEqual(row["Designator"], expected["Designator"])
@@ -157,6 +163,34 @@ class CompilerFixtureTests(unittest.TestCase):
                     abs(Decimal(row[column][:-2]) - Decimal(expected[column][:-2])),
                     Decimal("0.0001"),
                 )
+
+    def test_mirrored_fixture_matches_independent_reference_byte_for_byte(self):
+        board = FIXTURE / "bottom_preview.kicad_pcb"
+        supplier_map = FIXTURE / "bottom_preview-acme-map.json"
+        reference = FIXTURE / "bottom-preview/handoff/cpl-acme-reference.csv"
+        compiler_cpl = FIXTURE / "bottom_preview-acme-cpl.csv"
+        self.assertEqual(compiler_cpl.read_bytes(), reference.read_bytes())
+        errors, warnings, actual = mapped_cpl(board, supplier_map)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(actual.encode(), reference.read_bytes())
+
+    def test_schema_one_remains_kicad_and_unknown_v2_convention_fails(self):
+        document = json.loads(MAP.read_text(encoding="utf-8"))
+        document["schema_version"] = 1
+        del document["bottom_rotation"]
+        self.assertEqual(sm.validate_map(document)["bottom_rotation"], "kicad")
+        document["schema_version"] = 2
+        with self.assertRaisesRegex(sm.MapError, "requires bottom_rotation"):
+            sm.validate_map(document)
+        for invalid in ("unknown", None, True):
+            document["bottom_rotation"] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(sm.MapError):
+                sm.validate_map(document)
+        document["bottom_rotation"] = "kicad"
+        document["schema_version"] = 3
+        with self.assertRaises(sm.MapError):
+            sm.validate_map(document)
 
     def test_moving_one_pad_by_0_01mm_fails_frame_check(self):
         import tempfile

@@ -3,7 +3,7 @@
 //! Selection is deliberately per IR instance, never per plain-BOM group. It
 //! reads (but never mutates) the part binding established by `bind_parts`.
 
-use crate::ast::{AvlEntry, Ident, PartDef, SupplierBinding};
+use crate::ast::{AvlEntry, BottomRotation, Ident, PartDef, SupplierBinding};
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;
 use crate::resolve::{short, World};
@@ -76,6 +76,93 @@ impl SupplierSelections {
         self.selections
             .iter()
             .find(|selection| selection.supplier == supplier)
+    }
+}
+
+/// E816: validate declarations after resolution has indexed the package set,
+/// from `run_declaration_checks` beside the related `(supplier, PN)` checks.
+pub fn check_declarations(world: &World, diags: &mut Diagnostics) {
+    for (id, declaration) in &world.suppliers {
+        let context = format!("supplier declaration `{id}`");
+        if !valid_supplier_id(id) {
+            diags.push(Diagnostic::error(
+                "E816",
+                declaration.supplier.span,
+                format!("invalid supplier identifier in {context}: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes"),
+            ));
+        }
+        if matches!(id.as_str(), "mpn" | "mfr") {
+            diags.push(Diagnostic::error(
+                "E816",
+                declaration.supplier.span,
+                format!("invalid supplier identifier in {context}: reserved: its upper-case form collides with the MPN/MFR netlist field"),
+            ));
+        }
+        for key in &declaration.other_keys {
+            diags.push(Diagnostic::error(
+                "E816",
+                key.span,
+                format!(
+                    "unknown key `{}` in {context}; expected `bottom_rotation`",
+                    key.name
+                ),
+            ));
+        }
+        for key in &declaration.repeated_keys {
+            diags.push(Diagnostic::error(
+                "E816",
+                key.span,
+                format!("duplicate key `{}` in {context}", key.name),
+            ));
+        }
+        if let Some((value, _)) = &declaration.bottom_rotation {
+            if !matches!(value.name.as_str(), "kicad" | "mirrored") {
+                diags.push(Diagnostic::error(
+                    "E816",
+                    value.span,
+                    format!(
+                        "unknown bottom_rotation `{}` in {context}; expected `kicad` or `mirrored`",
+                        value.name
+                    ),
+                ));
+            }
+        }
+    }
+}
+
+pub fn bottom_rotation(world: &World, supplier: &str) -> BottomRotation {
+    world
+        .suppliers
+        .get(supplier)
+        .map_or(BottomRotation::Kicad, |decl| {
+            match decl
+                .bottom_rotation
+                .as_ref()
+                .map(|(value, _)| value.name.as_str())
+            {
+                Some("mirrored") => BottomRotation::Mirrored,
+                _ => BottomRotation::Kicad,
+            }
+        })
+}
+
+/// E817 is emitted at the physical-output boundary, not during declaration
+/// checking: `--logical-only` has no CPL whose convention needs confirmation.
+pub fn report_undeclared(
+    world: &World,
+    design_name: &str,
+    supplier: &str,
+    diags: &mut Diagnostics,
+) {
+    let span = world.designs[design_name].name.span;
+    if !world.suppliers.contains_key(supplier) {
+        diags.push(Diagnostic::warning(
+            "E817",
+            span,
+            format!(
+                "supplier `{supplier}` has no declaration; its CPL uses bottom_rotation: kicad"
+            ),
+        ));
     }
 }
 

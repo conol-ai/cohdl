@@ -8,7 +8,7 @@ description = "RFC-034 bottom-side convention test board for an assembler previe
 top = "BottomPreview"
 
 [dependencies]
-flash = "0.1.5"
+flash = "0.1.6"
 passive = "0.2.3"
 std = "0.3.0"
 transistor = "0.1.1"

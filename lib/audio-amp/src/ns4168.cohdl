@@ -27,6 +27,8 @@ pub part AMP_NS4168: NS4168 {
 
 // ESOP8 land (SOP-8, 1.27mm pitch, 5.0x4.0mm body, lead-tip span E1 6.0mm,
 // package drawing §11.1 — no exposed pad). Same family as SOIC-8.
+// Courtyard: lands in x, the 5.1mm maximum body length (D) in y, each plus
+// 0.25mm IPC-7351B nominal-density clearance.
 pub pad P_NS4168_ESOP8_LEAD {
     shape: rect
     size: (1.5mm, 0.55mm)
@@ -46,6 +48,6 @@ pub footprint FP_NS4168_ESOP8 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 6.0mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.2mm, 5.6mm) }
     silkscreen_ref { at: (0mm, -3.4mm) }
 }

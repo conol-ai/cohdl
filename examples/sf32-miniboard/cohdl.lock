@@ -22,8 +22,8 @@ hash = "sha256:55cab189e0ab2a990cba75828bde888b14e94428999466241b4632f76f3ceb5a"
 
 [[package]]
 name = "@richtek/dcdc"
-version = "0.1.2"
-hash = "sha256:4285742de741340f632a9137f050fbdb1bc19b04f1ff1f7306ba4e1834e40f0f"
+version = "0.1.3"
+hash = "sha256:87cb83f09c1550f8ed0d13ebf3856deb2349dd7f4d0a3f20617ebc8b072b0705"
 
 [[package]]
 name = "@sifli/sf32"
@@ -42,8 +42,8 @@ hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
 
 [[package]]
 name = "flash"
-version = "0.1.5"
-hash = "sha256:571204b7a72e470d56d0b2ca5c331d1723636fbd6ca4936bc2f7b910a189f40f"
+version = "0.1.6"
+hash = "sha256:abc90ba1d3f44aa9f40b494ab77f39d17090729cfac89690c21766cbecd2938f"
 
 [[package]]
 name = "load-switch"
@@ -67,8 +67,8 @@ hash = "sha256:0f0fe09d35ddffad61baea742fbb43d3caec28a4dad3088fc1fea3adda8219f9"
 
 [[package]]
 name = "qfn"
-version = "0.2.0"
-hash = "sha256:35f00df7f09e3dd9b4bf6cc686277d1a99ca9f86a4a95742278abace3786c44d"
+version = "0.2.1"
+hash = "sha256:78b2d9d64ae67be3ff506db3b0416939534f8f09110ab6e4bde77c491d10464f"
 
 [[package]]
 name = "soic"

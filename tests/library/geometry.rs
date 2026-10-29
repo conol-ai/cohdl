@@ -232,50 +232,86 @@ fn courtyard_excess(courtyard: &Courtyard, shape: Geometry) -> Option<f64> {
 /// `(package, footprint, version)`: defects this audit exposes and defers to
 /// A1b/A1c. Every reason states the failing check, the pads involved and the
 /// measured excess — this table is the dispatch list for those cards.
-const QUARANTINE: &[(&str, &str, &str, &str)] = &[
+const QUARANTINE: &[(&str, &str, &str, &str)] = &[];
+
+/// `(package, footprint, body width, body height, source)` in millimetres:
+/// courtyards that A1b/A1c redrew from the pad envelope. Each must also
+/// contain the package body, centred on the footprint origin, plus the
+/// 0.25 mm IPC-7351B nominal-density clearance. Body sizes are maxima where
+/// the source gives a tolerance.
+const REPAIRED_COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     (
-        "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_D4",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 (整圈 castellated 焊盘) 角点超出矩形 courtyard 最大 0.680 mm（courtyard 6.05x6.06 mm @ (0.005,0)，焊盘行达 |x|=3.7 mm > 半宽 3.025 mm）",
+        "qfn",
+        "ESPRESSIF_QFN28_0P4_4",
+        4.0,
+        4.0,
+        "source decal QFN28_0P4_4",
+    ),
+    (
+        "qfn",
+        "ESPRESSIF_QFN48EB_0P35_5",
+        5.0,
+        5.0,
+        "source decal QFN48EB_0P35_5",
+    ),
+    (
+        "qfn",
+        "ESPRESSIF_QFN48E_0P4_6",
+        6.0,
+        6.0,
+        "source decal QFN48E_0P4_6",
     ),
     (
         "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_V3",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
+        "FP_ESP32_PICO_D4",
+        7.0,
+        7.0,
+        "source decal QFN48_0P5_7",
     ),
     (
         "@espressif/esp32",
-        "espressif_esp32::FP_ESP32_PICO_V3_02",
-        "0.3.0",
-        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
+        "FP_ESP32_PICO_V3",
+        7.0,
+        7.0,
+        "source decal QFN48_0P5_7",
+    ),
+    (
+        "@espressif/esp32",
+        "FP_ESP32_PICO_V3_02",
+        7.0,
+        7.0,
+        "source decal QFN48_0P5_7",
     ),
     (
         "audio-amp",
-        "audio_amp::FP_NS4168_ESOP8",
-        "0.1.0",
-        "待 A1c：courtyard overflow — pads 1..8（全部引脚焊盘）角点超出矩形 courtyard 0.150 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN28_0P4_4",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..28（全部引脚焊盘）角点超出矩形 courtyard 0.600 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN48EB_0P35_5",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.650 mm",
-    ),
-    (
-        "qfn",
-        "qfn::ESPRESSIF_QFN48E_0P4_6",
-        "0.2.0",
-        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.600 mm",
+        "FP_NS4168_ESOP8",
+        4.0,
+        5.1,
+        "NS4168 V1.2 §11.1, E and D max",
     ),
 ];
+
+const COURTYARD_CLEARANCE_MM: f64 = 0.25;
+
+/// The largest distance (femto) by which the body plus clearance escapes the
+/// footprint's courtyard; `None` when it is contained.
+fn body_excess(footprint: &FootprintDef, width_mm: f64, height_mm: f64) -> Option<f64> {
+    let courtyard = footprint.courtyard.as_ref()?;
+    let half_w = (width_mm * 0.5 + COURTYARD_CLEARANCE_MM) * 1e15;
+    let half_h = (height_mm * 0.5 + COURTYARD_CLEARANCE_MM) * 1e15;
+    let body = Geometry {
+        center: Point { x: 0.0, y: 0.0 },
+        bounds: Bounds {
+            left: -half_w,
+            right: half_w,
+            top: -half_h,
+            bottom: half_h,
+        },
+        angle: 0.0,
+        radius: None,
+    };
+    courtyard_excess(courtyard, body)
+}
 
 /// One pub part entry that binds a footprint: (part, device, variant).
 type Binding<'a> = (&'a str, &'a str, Option<&'a str>);
@@ -338,6 +374,18 @@ fn own_declarations<'a>(
 }
 
 pub fn audit_package(package: &str, version: &str, world: &World) {
+    let declared: BTreeSet<_> = own_declarations(world, package)
+        .map(|(name, _)| name.rsplit("::").next().unwrap_or(name))
+        .collect();
+    let stale: Vec<_> = REPAIRED_COURTYARD_BODIES
+        .iter()
+        .filter(|(p, f, ..)| *p == package && !declared.contains(f))
+        .map(|(_, f, ..)| *f)
+        .collect();
+    assert!(
+        stale.is_empty(),
+        "repaired-courtyard entries for `{package}` name no footprint: {stale:?}"
+    );
     let mut unexpected = Vec::new();
     let mut used = BTreeSet::new();
     for (name, footprint) in own_declarations(world, package) {
@@ -355,6 +403,20 @@ pub fn audit_package(package: &str, version: &str, world: &World) {
                         mm(excess)
                     ));
                 }
+            }
+        }
+        let short = name.rsplit("::").next().unwrap_or(name);
+        for (_, _, width, height, source) in REPAIRED_COURTYARD_BODIES
+            .iter()
+            .filter(|(p, f, ..)| *p == package && *f == short)
+        {
+            if footprint.courtyard.is_none() {
+                failures.push(format!("repaired courtyard missing ({source})"));
+            } else if let Some(excess) = body_excess(footprint, *width, *height) {
+                failures.push(format!(
+                    "courtyard does not contain the {width} x {height} mm body ({source}) plus {COURTYARD_CLEARANCE_MM} mm: short by {:.3} mm",
+                    mm(excess)
+                ));
             }
         }
         let mut bindings: Option<Vec<Binding>> = None;
@@ -491,8 +553,12 @@ mod tests {
     use cohdl::pipeline::check_files_in;
 
     fn world(source: &str) -> World {
+        world_in("fixture", source)
+    }
+
+    fn world_in(package: &str, source: &str) -> World {
         let checked = check_files_in(
-            "fixture",
+            package,
             &[("src/lib.cohdl".to_string(), source.to_string())],
             None,
         )
@@ -731,6 +797,37 @@ mod tests {
             .replace("{PAD}", PAD)
             .replace("{PART}", PART)
             .as_str(),
+        );
+    }
+
+    #[test]
+    fn repaired_courtyard_must_contain_the_body() {
+        let source = |height: &str| {
+            format!(
+                r#"
+                pub pad LEAD {{ shape: rect size: (1.5mm, 0.55mm) layer: top_copper plating: smd }}
+                pub footprint FP_NS4168_ESOP8 {{
+                    pad 1: LEAD at (-3.1mm, -1.905mm)
+                    pad 2: LEAD at (3.1mm, 1.905mm)
+                    courtyard {{ shape: rect, at: (0mm, 0mm), size: (8.2mm, {height}) }}
+                }}
+                "#
+            )
+        };
+        let contained = world_in("audio-amp", &source("5.6mm"));
+        audit_package("audio-amp", "1.0.0", &contained);
+        let short = world_in("audio-amp", &source("4.86mm"));
+        let message = std::panic::catch_unwind(|| audit_package("audio-amp", "1.0.0", &short))
+            .expect_err("a courtyard narrower than the body passed");
+        let message = message
+            .downcast_ref::<String>()
+            .cloned()
+            .unwrap_or_default();
+        assert!(
+            message.contains("FP_NS4168_ESOP8")
+                && message.contains("4 x 5.1 mm body")
+                && message.contains("short by 0.370 mm"),
+            "{message}"
         );
     }
 }

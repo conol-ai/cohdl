@@ -15,7 +15,7 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 | W1/W2/W3 tools | `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` and `jlc_frames.json` do not exist |
 | HTTP fetching | No shared client. Existing scripts call `curl` directly, with no User-Agent, rate limit or cache |
 | RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). Not merged or released |
-| Bottom-side convention | A test board with top and bottom copies of four parts, bound to LCSC part numbers, is ready for an assembler preview |
+| Bottom-side convention | Measured 2026-10-29 (C1, three previews): the assembler reads bottom-side angles as `(180 − θ) mod 360`. RFC-034 now exports it with `cohdl build --bottom-rotation lcsc=mirrored`; the language keeps KiCad's convention. One confirming preview of the compiler-generated file is outstanding |
 
 ### W0 findings that size the work
 
@@ -60,7 +60,7 @@ Phase B (network; needs approval)       needs A3
   B1 W1 baseline snapshot
   B2 W2 part-number map
 Phase C (needs a person: assembler previews)   needs A6, B1
-  C1 bottom-side convention + first alignment board (ready)
+  C1 bottom-side convention + first alignment board (measured)
   C2 the 14 footprint families with a known orientation difference
   C3 remaining footprint families
 Phase D (release)                       needs RFC-034 merged and released, B2, C
@@ -163,7 +163,18 @@ Estimates are implementer time plus review, not time spent waiting for a person.
 
 ### Phase C: alignment evidence (assembler previews)
 
-**C1 · Bottom-side convention and the first alignment board.** The test board is ready. It holds four part types (SOT-23, SOIC-8, 0603, 0805), each at top 0°, top 37°, bottom 0° and bottom 37°. Its compiler CPL matches both `smt_pos.py --map` and KiCad's own position export. A top-side error that repeats identically on the bottom copy is a footprint-frame offset (W3). An error on the bottom copies only is a bottom-side convention error (RFC-034).
+**C1 · Bottom-side convention and the first alignment board.** Done 2026-10-29, three previews. The test board holds four part types (SOT-23, SOIC-8, 0603, 0805), each at top 0°, top 37°, bottom 0° and bottom 37°. Its compiler CPL matches both `smt_pos.py --map` and KiCad's own position export. A top-side error that repeats identically on the bottom copy is a footprint-frame offset (W3). An error on the bottom copies only is a bottom-side convention error (RFC-034).
+
+Results, the first entries for `jlc_frames.json`:
+
+| Footprint | Part number | Frame offset |
+|---|---|---|
+| `transistor::FP_JSCJ_SOT23` | C2146 | `rotate 90` |
+| `soic::SOIC8P127X790X216N` | C97521 | `rotate 270` |
+| `passive::CHIP_0603` | C107045 | none |
+| `passive::CHIP_0805` | C107110 | none |
+
+Every bottom copy, including the 37° ones, aligned once the CPL used `--bottom-rotation lcsc=mirrored`. Library supplier CPLs are therefore exported with that flag; A6's board generator and the C2/C3 boards use it.
 
 **C2 · The 14 footprint families with a known orientation difference.**
 
@@ -206,7 +217,7 @@ Every new part arrives with its datasheet, land, alignment and binding, so phase
 
 | Week | Implementation | Review / people |
 |---|---|---|
-| 1 | A1a–c, A2, A3 | Review. Decide on MIC/SPK. Upload the bottom-side test board for a preview |
+| 1 | A1a–c, A2, A3 | Review. Decide on MIC/SPK. Confirming preview of the compiler-generated bottom-side CPL |
 | 2 | A4, A5, A6 | Review. Approve and run B1 |
 | 3 | B2 sample; C2 boards 1–2 | Upload 2 boards. Decide whether to run B2 in full |
 | 4–5 | B2 full run (nights); finish C2; D1 first batch | RFC-034 merged and released. D2 upload signed off |

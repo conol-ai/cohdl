@@ -83,12 +83,27 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
     };
     let _ = std::fs::remove_dir_all(&fixture.root);
     std::fs::create_dir_all(fixture.root.join("tools/passive_data")).unwrap();
+    std::fs::create_dir_all(fixture.root.join("tools/sourcing")).unwrap();
+    std::fs::create_dir_all(fixture.root.join("tools/sourcing_data")).unwrap();
     std::fs::create_dir_all(fixture.root.join("lib/passive/src")).unwrap();
     std::fs::copy(
         root.join("tools/gen_passive.py"),
         fixture.root.join("tools/gen_passive.py"),
     )
     .unwrap();
+    for file in ["__init__.py", "bindings.py"] {
+        std::fs::copy(
+            root.join("tools/sourcing").join(file),
+            fixture.root.join("tools/sourcing").join(file),
+        )
+        .unwrap();
+    }
+    for file in ["lcsc_map.json", "jlc_frames.json"] {
+        let source = root.join("tools/sourcing_data").join(file);
+        if source.is_file() {
+            std::fs::copy(source, fixture.root.join("tools/sourcing_data").join(file)).unwrap();
+        }
+    }
     for entry in std::fs::read_dir(root.join("tools/passive_data")).unwrap() {
         let entry = entry.unwrap();
         if entry.file_type().unwrap().is_file() {

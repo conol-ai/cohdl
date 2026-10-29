@@ -95,7 +95,7 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
 
 **Unit of evidence.** RFC-034 defines a mapping for the pair (our footprint, the supplier's footprint for one part number). So proving one reference part number on F says nothing by itself about another part number bound to F. Evidence, exceptions and CI are therefore keyed by **(footprint, package version, supplier, part number)**.
 
-- **Scope (recounted at `329af05`):** 300 distinct footprints (285 outside `lib/passive`, 15 in it). Most belong to standard families: CHIP, SOT, SOD, SOIC/TSSOP, QFP, QFN, BGA.
+- **Scope (recounted 2026-10-29):** all 304 declared footprints, 286 of them referenced by parts; the rest are mostly in footprint-only packages offered to third parties. Most belong to standard families: CHIP, SOT, SOD, SOIC/TSSOP, QFP, QFN, BGA.
 - **Evidence:** `tools/sourcing_data/jlc_frames.json`, machine-readable for CI, with a generated `docs/jlc-frames.md` view. One row per (footprint, package version, supplier, part number), holding:
   - the recorded mapping (target `(0, 0, 0°)`);
   - the mapping found before alignment;

@@ -1,6 +1,6 @@
 # Library supplier plan: implementation plan
 
-Status: draft, 2026-10-29. This breaks [`library-supplier-plan.md`](library-supplier-plan.md) (the "library plan") into work items that can be assigned one at a time. It gives their order, deliverables and acceptance checks, and marks the steps that need a person. The figures come from a read-only survey of `feat/rfc-034` on 2026-10-29.
+Status: draft, 2026-10-29; revised the same day after a review (A0, footprint counts, `realign_place.py` scope, version cascade, A6 acceptance, timeline). This breaks [`library-supplier-plan.md`](library-supplier-plan.md) (the "library plan") into work items that can be assigned one at a time. It gives their order, deliverables and acceptance checks, and marks the steps that need a person. The figures come from a read-only survey of `feat/rfc-034` on 2026-10-29.
 
 Roles: the **implementer** writes the change; the **reviewer** re-runs the checks independently (section 6) before it merges. "Maintainer" is the library maintainer named in the library plan.
 
@@ -10,11 +10,12 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 |---|---|
 | `supplier` bindings in the official library | 0 |
 | AVL entries | 21,018 distinct MPNs (`passive` 17,431, the rest 3,587), matching the library plan |
-| Footprints | 304 declared; about 285 referenced by parts (the library plan says 300; to be recounted) |
+| Footprints | 304 declared, 286 referenced by parts (recounted 2026-10-29). The 18 unreferenced ones are mostly in footprint-only packages offered to third parties. W3 covers all 304 |
 | Part-number data | Only the 1,334 candidate pairs (350 Basic, 984 Preferred) in `tools/sourcing_data/jlcparts/2026-10-27/`, not yet confirmed one by one |
 | W1/W2/W3 tools | `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` and `jlc_frames.json` do not exist |
 | HTTP fetching | No shared client. Existing scripts call `curl` directly, with no User-Agent, rate limit or cache |
-| RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). Not merged or released |
+| RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). Not merged or released. The branch is not on the remote, and `main` (v0.9.0, `6f092a8`) has 6 commits it lacks. The candidate data in `tools/sourcing_data/jlcparts/2026-10-27/` is committed on this branch with its provenance and hashes |
+| CPL position | The footprint origin, in the compiler and in `smt_pos.py --neutral`/`--map` alike (RFC-034 §3.1). Only `smt_pos.py`'s legacy default output keeps the pad centroid |
 | Bottom-side convention | Measured 2026-10-29 (C1, three previews): the assembler reads bottom-side angles as `(180 − θ) mod 360`. RFC-034 now exports it with `cohdl build --bottom-rotation lcsc=mirrored`; the language keeps KiCad's convention. One confirming preview of the compiler-generated file is outstanding |
 
 ### W0 findings that size the work
@@ -50,6 +51,7 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 
 ```
 Phase A (offline; can start now)
+  A0 branch on the remote (needs approval)
   A1 geometry audit for every package ─┐
   A2 fpc connectors                    ├─→ W0 done
   A3 shared fetch client               │
@@ -80,11 +82,18 @@ Estimates are implementer time plus review, not time spent waiting for a person.
 
 ### Phase A: offline
 
+**A0 · Put the branch on the remote.** About half a day, after approval.
+
+- Bring `feat/rfc-034` up to date with `main` (v0.9.0), push it, and open a draft PR. A4 and A5 write fixtures with `supplier` clauses, which compile only with this branch.
+- The candidate data is already committed with its hashes; the PR description repeats them.
+- Acceptance: the full test suite passes on the updated branch, and the PR's diff against `main` holds only RFC-034 and the plan documents.
+
 **A1 · Geometry audit for every package (most of W0).** About 3–4 days.
 
 - Audit per footprint instead of per part entry: walk every `footprint` each package declares, including footprint-only packages.
-- Make the overlap check handle pads at any angle (separating-axis test for rectangles and rounded rectangles).
-- Courtyards: either accept circles or redraw the three in `lib/misc` as rectangles. The implementer compares both and recommends one; the reviewer decides.
+- Make the overlap check handle pads at any angle (separating-axis test for rectangles and rounded rectangles). Keep the existing pin-aware rule: pads of the same pin, such as split exposed-pad copper islands, may overlap. The generated ESP32 footprints rely on it.
+- Courtyards: accept circles (every pad corner within the radius of the centre). Redrawing the three in `lib/misc` would change their geometry and force a version bump, and two examples pin `misc = "0.1.1"`.
+- Move the checks out of the single long test function into a module such as `tests/library/geometry.rs`, keeping the test name `every_shipped_component_library_has_consistent_part_footprints`, which `LIBRARY.md` cites.
 - Key the allowlist by `(package, footprint, version)`, each entry with a written reason.
 - Fix what the audit exposes. Anything that cannot be fixed goes on the quarantine list with an issue.
 - Acceptance:
@@ -110,9 +119,10 @@ Estimates are implementer time plus review, not time spent waiting for a person.
   - the fixed User-Agent;
   - back off on 403/429, and stop the run after two in a row;
   - refuse robots-disallowed paths, `/api` included, **before** any request is sent;
+  - honour `Crawl-delay` when robots.txt sets one;
   - refuse every EasyEDA host.
 - Store only factual fields; raw pages never enter the repository.
-- Acceptance: unit tests against a local fake server cover rate limiting, caching, the two-strike stop, robots refusal and EasyEDA refusal. No test touches the network.
+- Acceptance: unit tests against a local fake server cover rate limiting, caching, the two-strike stop, robots refusal, `Crawl-delay` and EasyEDA refusal. No test touches the network.
 
 **A4 · Library CI scaffold.** About 1.5 days.
 
@@ -140,10 +150,14 @@ Estimates are implementer time plus review, not time spent waiting for a person.
   - a checklist giving each part's pin-1 direction.
   
   Each part number gets one top 0° copy. A bottom copy is added as a control where the side matters.
-- `tools/realign_place.py`: read the `(dx, dy, r)` delta table and rewrite users' `place` statements with RFC-034 §2's `compose_place`. Rewriting the repository's designs must leave every copper coordinate of the generated boards unchanged.
+- `tools/realign_place.py`: read the `(dx, dy, r)` delta table and rewrite users' `place` statements with RFC-034 §2's `compose_place`.
+  - It rewrites literal `place` statements only, indexed ones such as `place mounting[0] at …` included. A `place` with an expression, one inside a `for` loop, and one inside a `subdesign` are not rewritten: the tool fails closed and lists each for a person.
+  - The repository has 52 `place` statements, all in the three examples; `lib/` has none.
+  - The oracle is the pad coordinates in the compiler's `.kicad_pcb` before and after, using the `tests/kicad_pcb.rs` infrastructure, not Gerber files.
 - Acceptance:
-  - `realign_place.py` applied forward and then inverse to both examples is the identity;
-  - the board generator reproduces the bottom-side test board byte for byte.
+  - `realign_place.py` applied forward and then inverse to the three examples is the identity, and no `.kicad_pcb` pad coordinate changes;
+  - the board generator reproduces the bottom-side test board's CoHDL outputs (`.kicad_pcb`, BOM, CPL) byte for byte. Gerber and drill bytes depend on the KiCad version, so they are recorded as the `kicad-cli` version plus a hash;
+  - Python tests that need `pcbnew` mock it, as the `smt_pos.py` tests do, so they run under a plain Python.
 
 ### Phase B: network (each run approved; supervised)
 
@@ -181,6 +195,7 @@ Every bottom copy, including the 37° ones, aligned once the CPL used `--bottom-
 - The first full alignment board also re-measures the 33 parts compared on 2026-10-06, whose raw data was not kept.
 - Each board carries 30–60 part numbers checked in one preview.
 - Expect 3–5 boards, each needing about 15 minutes from a person: upload, screenshots, report back.
+- Board 1 also carries a footprint whose origin is not at its pad centroid, such as a connector, as a control for the CPL position (RFC-034 §3.1).
 
 **C3 · Remaining footprint families.**
 
@@ -192,12 +207,13 @@ Flow:
 2. A person uploads it and takes screenshots.
 3. The reviewer records the measurements and screenshots in `jlc_frames.json`.
 4. The implementer applies the rigid transform to each footprint that needs it and bumps the package version.
-5. `realign_place.py` rewrites the repository's designs.
-6. The A1 and A4 checks pass.
+5. Every package that depends on it gets a new version as well, and `cohdl update` refreshes each lock (RFC-029 exact versions, immutable registry). A footprint in `soic`, `qfn`, `qfp`, `bga` or `csp` reaches up to 12 packages and the 3 examples.
+6. `realign_place.py` rewrites the repository's designs.
+7. The A1 and A4 checks pass.
 
 ### Phase D: release
 
-- **D1:** Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts.
+- **D1:** Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts. Each family's release carries its cascade list: the footprint package and every dependent that gets a new version. The registry is deployed with RFC-034 before the first package with bindings, because its search reads `suppliers` from the API docs; bindings published earlier would not be visible there.
 - **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends at most 10,000 rows per request; above that, split the upload or change the endpoint first. It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
 
 ### Phase E: W4 new parts
@@ -217,13 +233,14 @@ Every new part arrives with its datasheet, land, alignment and binding, so phase
 
 | Week | Implementation | Review / people |
 |---|---|---|
-| 1 | A1a–c, A2, A3 | Review. Decide on MIC/SPK. Confirming preview of the compiler-generated bottom-side CPL |
-| 2 | A4, A5, A6 | Review. Approve and run B1 |
-| 3 | B2 sample; C2 boards 1–2 | Upload 2 boards. Decide whether to run B2 in full |
-| 4–5 | B2 full run (nights); finish C2; D1 first batch | RFC-034 merged and released. D2 upload signed off |
+| 1 | A0, A1a, A3 | Approve A0. Review. Confirming preview of the compiler-generated bottom-side CPL |
+| 2 | A1b–c, A2 | Review. Decide on MIC/SPK |
+| 3 (into 4) | A4, A5, A6 | Review. Approve and run B1 |
+| 4–5 | B2 sample; C2 boards 1–2 | Upload 2 boards. Decide whether to run B2 in full |
+| 5–6 | B2 full run (nights); finish C2; D1 first batch | RFC-034 merged and released; registry deployed. D2 upload signed off |
 | Later | C3, phase E | 1–3 boards a week |
 
-Phase A takes about two weeks. After that the pace depends on how many previews a person can do and on when RFC-034 is released.
+Phase A takes about 2.5–3 weeks; the first draft's two weeks held 5.5–6.5 person-days each. After that the pace depends on how many previews a person can do and on when RFC-034 is released.
 
 ## 5. Risks
 
@@ -231,7 +248,7 @@ Phase A takes about two weeks. After that the pace depends on how many previews 
 |---|---|
 | Preview throughput (W3 evidence for up to about 17,000 bindings) | Fill every board; share evidence by supplier footprint identifier, with spot checks; common parts first |
 | Supplier pages change or rate-limit | A3 stops after two consecutive 403/429; dated snapshots let a run resume; never change IP or use a proxy |
-| Moving a footprint silently moves users' copper | Breaking version bump, `realign_place.py`, and a "copper does not move" regression test |
+| Moving a footprint silently moves users' copper | Breaking version bump with its dependents (the D1 cascade list), `realign_place.py`, and a "copper does not move" regression test on `.kicad_pcb` pad coordinates |
 | Tests pass because they share the implementation's mistake | Every item names an independent reference: the PDF's recommended land, KiCad's own export, a negative fixture |
 | The allowlist turns into a blanket pass | Every entry keyed by `(package, footprint, version)` with a reason; the reviewer reads each one |
 
@@ -248,5 +265,6 @@ Phase A takes about two weeks. After that the pace depends on how many previews 
 1. `CONN_MIC_2P`/`CONN_SPK_2P`: quarantine, or `source_unspecified` (recommended).
 2. Whether to run B1/B2, and at what hours (nights recommended).
 3. Whether to ask the supplier for the official Basic/Preferred list or Components API access.
-4. When RFC-034 is merged and released. Phase D cannot start before that.
+4. When A0 runs, and when RFC-034 is merged and released. Phase D cannot start before that.
 5. How many preview boards a week someone can check (about 15 minutes each).
+6. Whether `--bottom-rotation` may also take a default from `cohdl.toml`. A command-line flag is not recorded in the source, the manifest or the lock, so a build that omits it writes different bottom-side angles; the map records the value used.

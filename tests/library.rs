@@ -583,7 +583,6 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let std_dir = root.join("lib/std");
     let mut packages = Vec::new();
-    let mut real_keys = std::collections::BTreeSet::new();
     let mut qualified_contrib_parts = std::collections::BTreeSet::new();
     packages_under(&root.join("lib"), &mut packages);
     for package in packages {
@@ -631,7 +630,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         );
 
         let version = project.package_versions[&project.name].clone();
-        library::geometry::audit_package(&project.name, &version, &checked.world, &mut real_keys);
+        library::geometry::audit_package(&project.name, &version, &checked.world);
         library::geometry::audit_parts(&project.name, &version, &checked.world);
 
         let own_prefix = format!("{}::", cohdl::pipeline::package_root(&project.name));
@@ -958,7 +957,6 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
 
         library::geometry::assert_quarantine_is_current();
     }
-    library::geometry::finalize(&real_keys);
 
     // This is intentionally an allowlist, not a count assertion: adding a
     // purchasable contrib part requires a reviewer to record its exact

@@ -2,13 +2,20 @@
 //!
 //! All dimensions are integer femtometres. Rotated rectangles (including
 //! rounded rectangles, conservatively enclosed by their rectangles) use SAT;
-//! circular pads use their exact radius. Oval pads use their enclosing
-//! rectangle, so no real copper can escape the audit. Same-pin copper islands
-//! are deliberately exempt, including when a part has no device pin map.
+//! circular pads use their exact radius, and a circle-versus-rectangle test
+//! also tries the axes from the circle centre to every rectangle corner so a
+//! pad that merely hugs a corner is not reported. Oval pads use their
+//! enclosing rectangle, so no real copper can escape the audit.
+//!
+//! Same-pin copper is exempt two ways: pads sharing one pad number (split EP
+//! islands), and — only when every pub part entry that binds the footprint
+//! maps both numbers to the same device pin — two numbers of one pin
+//! (USB-C's doubled GND, micro-B's shield tabs). A footprint no part
+//! references is held to distinct numbers.
 
 use cohdl::ast::{Courtyard, FootprintDef, PadDef, PadLayer, PadShape};
 use cohdl::resolve::World;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Clone, Copy)]
 struct Point {
@@ -75,19 +82,26 @@ impl Geometry {
                 + (self.bounds.bottom - self.bounds.top) * 0.5 * dot(uy, axis).abs()
         })
     }
+
+    fn face_normals(self) -> [Point; 2] {
+        let (sin, cos) = self.angle.sin_cos();
+        [Point { x: cos, y: sin }, Point { x: -sin, y: cos }]
+    }
 }
 
 fn dot(a: Point, b: Point) -> f64 {
     a.x * b.x + a.y * b.y
 }
 
-fn center_distance(a: Geometry, b: Geometry, axis: Point) -> f64 {
+fn centre_distance(a: Geometry, b: Geometry, axis: Point) -> f64 {
     ((b.center.x - a.center.x) * axis.x + (b.center.y - a.center.y) * axis.y).abs()
 }
 
 /// A positive gap on any candidate axis proves disjointness. Touching is not
-/// overlap. Two circles need only their centre axis; all other combinations
-/// use the four face normals of the two oriented rectangles.
+/// overlap. Two circles need only their centre axis; circle versus rectangle
+/// additionally tries each corner-to-centre axis, which separates a circle
+/// that merely hugs a corner; rectangle versus rectangle uses the four face
+/// normals of the two oriented rectangles.
 fn overlaps(a: Geometry, b: Geometry) -> bool {
     let axes: Vec<Point> = match (a.radius, b.radius) {
         (Some(_), Some(_)) => {
@@ -102,17 +116,39 @@ fn overlaps(a: Geometry, b: Geometry) -> bool {
                 y: dy / length,
             }]
         }
-        _ => [a, b]
-            .into_iter()
-            .flat_map(|shape| {
-                let (sin, cos) = shape.angle.sin_cos();
-                [Point { x: cos, y: sin }, Point { x: -sin, y: cos }]
-            })
-            .collect(),
+        _ => {
+            let mut axes = Vec::with_capacity(6);
+            for shape in [a, b] {
+                axes.extend(shape.face_normals());
+            }
+            if let Some((rect, circle)) = pick_rect_and_circle(a, b) {
+                for corner in rect.corners() {
+                    let dx = circle.center.x - corner.x;
+                    let dy = circle.center.y - corner.y;
+                    let length = dx.hypot(dy);
+                    if length == 0.0 {
+                        return true;
+                    }
+                    axes.push(Point {
+                        x: dx / length,
+                        y: dy / length,
+                    });
+                }
+            }
+            axes
+        }
     };
     !axes.into_iter().any(|axis| {
-        center_distance(a, b, axis) >= a.projection_radius(axis) + b.projection_radius(axis)
+        centre_distance(a, b, axis) >= a.projection_radius(axis) + b.projection_radius(axis)
     })
+}
+
+fn pick_rect_and_circle(a: Geometry, b: Geometry) -> Option<(Geometry, Geometry)> {
+    match (a.radius, b.radius) {
+        (None, Some(_)) => Some((a, b)),
+        (Some(_), None) => Some((b, a)),
+        _ => None,
+    }
 }
 
 fn geometry(place: &cohdl::ast::PadPlace, pad: &PadDef) -> Geometry {
@@ -142,25 +178,31 @@ fn dimensions(pad: &PadDef) -> [i128; 2] {
     }
 }
 
-fn courtyard_contains(courtyard: &Courtyard, shape: Geometry) -> bool {
+fn mm(femto: f64) -> f64 {
+    femto / 1e15
+}
+
+/// The largest distance (femto) by which `shape` escapes `courtyard`; `None`
+/// when the shape is contained. Rectangular courtyards measure each corner's
+/// overshoot along x and y; a circular pad measures centre-plus-radius.
+fn courtyard_excess(courtyard: &Courtyard, shape: Geometry) -> Option<f64> {
     let cx = courtyard.at.0.femto as f64;
     let cy = courtyard.at.1.femto as f64;
-    match courtyard.shape.0 {
+    let excess = match courtyard.shape.0 {
         PadShape::Circle => {
             let [radius] = courtyard.size.as_slice() else {
                 panic!("validated circular courtyard has invalid dimensions");
             };
             let radius = radius.femto as f64 * 0.5;
-            // A circular pad fits iff its own centre is within (radius − r);
-            // any other pad fits iff all four of its rotated corners do.
             match shape.radius {
                 Some(pad_radius) => {
-                    (shape.center.x - cx).hypot(shape.center.y - cy) + pad_radius <= radius
+                    (shape.center.x - cx).hypot(shape.center.y - cy) + pad_radius - radius
                 }
                 None => shape
                     .corners()
                     .into_iter()
-                    .all(|point| (point.x - cx).hypot(point.y - cy) <= radius),
+                    .map(|point| (point.x - cx).hypot(point.y - cy) - radius)
+                    .fold(f64::NEG_INFINITY, f64::max),
             }
         }
         PadShape::Rect => {
@@ -169,338 +211,121 @@ fn courtyard_contains(courtyard: &Courtyard, shape: Geometry) -> bool {
             };
             let half_w = width.femto as f64 * 0.5;
             let half_h = height.femto as f64 * 0.5;
-            // A circular pad fits iff its bounding square does (exact for a
-            // rectangular courtyard); any other pad uses its rotated corners.
             match shape.radius {
                 Some(radius) => {
-                    (shape.center.x - cx).abs() + radius <= half_w
-                        && (shape.center.y - cy).abs() + radius <= half_h
+                    let over_x = (shape.center.x - cx).abs() + radius - half_w;
+                    let over_y = (shape.center.y - cy).abs() + radius - half_h;
+                    over_x.max(over_y)
                 }
                 None => shape
                     .corners()
                     .into_iter()
-                    .all(|point| (point.x - cx).abs() <= half_w && (point.y - cy).abs() <= half_h),
+                    .map(|point| ((point.x - cx).abs() - half_w).max((point.y - cy).abs() - half_h))
+                    .fold(f64::NEG_INFINITY, f64::max),
             }
         }
         shape => panic!("unexpected courtyard shape {shape:?}"),
-    }
+    };
+    (excess > 0.0).then_some(excess)
 }
 
-/// `(package, footprint, version)`: known defects deferred to A1b/A1c.
-/// Keep every entry scoped to one footprint and state the deferred repair.
+
+/// `(package, footprint, version)`: defects this audit exposes and defers to
+/// A1b/A1c. Every reason states the failing check, the pads involved and the
+/// measured excess — this table is the dispatch list for those cards.
 const QUARANTINE: &[(&str, &str, &str, &str)] = &[
     (
         "@espressif/esp32",
         "espressif_esp32::FP_ESP32_PICO_D4",
         "0.3.0",
-        "待 A1b：courtyard 未包住旋转焊盘角点",
+        "待 A1b：courtyard overflow — pads 1..48 (整圈 castellated 焊盘) 角点超出矩形 courtyard 最大 0.680 mm（courtyard 6.05x6.06 mm @ (0.005,0)，焊盘行达 |x|=3.7 mm > 半宽 3.025 mm）",
     ),
     (
         "@espressif/esp32",
         "espressif_esp32::FP_ESP32_PICO_V3",
         "0.3.0",
-        "待 A1b：courtyard 未包住旋转焊盘角点",
+        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
     ),
     (
         "@espressif/esp32",
         "espressif_esp32::FP_ESP32_PICO_V3_02",
         "0.3.0",
-        "待 A1b：courtyard 未包住旋转焊盘角点",
+        "待 A1b：courtyard overflow — pads 1..48 角点超出矩形 courtyard 最大 0.680 mm（同 PICO_D4 几何）",
     ),
     (
         "audio-amp",
         "audio_amp::FP_NS4168_ESOP8",
         "0.1.0",
-        "待 A1c：courtyard 未包住全部焊盘",
+        "待 A1c：courtyard overflow — pads 1..8（全部引脚焊盘）角点超出矩形 courtyard 0.150 mm",
     ),
     (
         "qfn",
         "qfn::ESPRESSIF_QFN28_0P4_4",
         "0.2.0",
-        "待 A1b/A1c：全封装审计发现几何问题",
+        "待 A1b/A1c：courtyard overflow — pads 1..28（全部引脚焊盘）角点超出矩形 courtyard 0.600 mm",
     ),
     (
         "qfn",
         "qfn::ESPRESSIF_QFN48EB_0P35_5",
         "0.2.0",
-        "待 A1b/A1c：全封装审计发现几何问题",
+        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.650 mm",
     ),
     (
         "qfn",
         "qfn::ESPRESSIF_QFN48E_0P4_6",
         "0.2.0",
-        "待 A1b/A1c：全封装审计发现几何问题",
-    ),
-    (
-        "usb",
-        "usb::connectors::gct_usb4105::FP_USB_C_GCT_USB4105",
-        "0.1.5",
-        "待 A1b/A1c：全封装审计发现几何问题",
-    ),
-    (
-        "usb",
-        "usb::connectors::micro_b::FP_USB_Micro_B_SMD",
-        "0.1.5",
-        "待 A1b/A1c：全封装审计发现几何问题",
-    ),
-    (
-        "usb",
-        "usb::connectors::type_c::FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
-        "0.1.5",
-        "待 A1b/A1c：全封装审计发现几何问题",
+        "待 A1b/A1c：courtyard overflow — pads 1..49（引脚+EP）角点超出矩形 courtyard 最大 0.600 mm",
     ),
 ];
 
-/// Keys migrated verbatim from the previous 46-entry per-part allowlist.
-/// Every key must still name a real shipped footprint (staleness gate).
-const LEGACY: &[(&str, &str, &str, &str)] = &[
-    (
-        "@contrib/analog-switch",
-        "contrib_analog_switch::SOT6P65X210X125N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/analog-switch",
-        "contrib_analog_switch::SOT6P95X290X160N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/analog-switch",
-        "contrib_analog_switch::FP_TI_DGS0010A",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/analog-switch",
-        "contrib_analog_switch::FP_TI_RUT0012A",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/audio-amp",
-        "contrib_audio_amp::QFN16N50P300X300_1EP123X123",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/audio-amp",
-        "contrib_audio_amp::SOP8P65X490X110N",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/charger",
-        "contrib_charger::FP_TI_DLH0010A",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/charger",
-        "contrib_charger::BGA9C50P3X3_152X152X60N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "soic",
-        "soic::TI_D0008A_4214825C",
-        "0.2.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/env",
-        "contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/esd",
-        "contrib_esd::FP_SOD323_2P5X1P25mm",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/esd",
-        "contrib_esd::QFN2N65P60X100",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/fuel-gauge",
-        "contrib_fuel_gauge::FP_CellWise_TDFN8_2X3",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/gnss",
-        "contrib_gnss::FP_Quectel_L76K_18LCC_101x97mm",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/gnss",
-        "contrib_gnss::FP_Ublox_MIA_M10Q_MLGA53_45x45mm",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/haptic",
-        "contrib_haptic::QFN9N40P137X137",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/haptic",
-        "contrib_haptic::BGA9C50P3X3_145X145X50N",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/imu",
-        "contrib_imu::LGA44P40_360X410",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/imu",
-        "contrib_imu::LGA14P50_300X250X86N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/imu",
-        "contrib_imu::WLP4C40P2X2_82X82X40N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/io-expander",
-        "contrib_io_expander::SOP24P65X640X120N",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ir-emitter",
-        "contrib_ir_emitter::FP_VSMY14940_3P0X2P51mm",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/keyscan",
-        "contrib_keyscan::QFN24N50P400X400_1EP245X245",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ldo",
-        "contrib_ldo::FP_ETA_SOT89_5",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ldo",
-        "contrib_ldo::FP_Microne_ME6211_SOT23_5",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ldo",
-        "contrib_ldo::SOT5P95X290X160N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ldo",
-        "contrib_ldo::FP_Richtek_ZQFN4L_1X1",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/ldo",
-        "contrib_ldo::SOT3P190X290X160N",
-        "0.1.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/led-driver",
-        "contrib_led_driver::QFN20N40P300X300_1EP170X170",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "soic",
-        "soic::SOP14P65X640X120N",
-        "0.2.1",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/level-shifter",
-        "contrib_level_shifter::QFN12N40P200X170",
-        "0.1.2",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/level-shifter",
-        "contrib_level_shifter::QFN12N40P200X200_1EP120X120",
-        "0.1.2",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/level-shifter",
-        "contrib_level_shifter::QFN14N50P350X350_1EP200X150",
-        "0.1.2",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/lora",
-        "contrib_lora::QFN24N50P400X400_1EP270X270",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/mic",
-        "contrib_mic::FP_TDK_T3902",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/nfc",
-        "contrib_nfc::QFN32N50P500X500_1EP345X345",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/rtc",
-        "contrib_rtc::SOIC8P127X600X175N",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/rtc",
-        "contrib_rtc::FP_NXP_DFN2626_10_SOT1197_1",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/rtc",
-        "contrib_rtc::SOP8P65X490X110N",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@contrib/sd-card",
-        "contrib_sd_card::FP_MicroSD_Wurth_693070010811",
-        "0.1.0",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-    (
-        "@sifli/sf32",
-        "sifli_sf32::FP_SiFli_SF32LB52X_QFN68L_7X7",
-        "0.1.2",
-        "迁移自旧46条按条目白名单；待 A1b/A1c 复核",
-    ),
-];
+/// One pub part entry that binds a footprint: (part, device, variant).
+type Binding<'a> = (&'a str, &'a str, Option<&'a str>);
+
+fn bindings_for<'a>(world: &'a World, fp_name: &str) -> Vec<Binding<'a>> {
+    world
+        .parts
+        .iter()
+        .filter(|(name, _)| world.symbols.get(*name).is_some_and(|symbol| symbol.is_pub))
+        .filter_map(|(name, part)| {
+            let binds = std::iter::once(&part.primary)
+                .chain(part.alts.iter())
+                .any(|entry| {
+                    entry
+                        .footprint
+                        .as_ref()
+                        .is_some_and(|fp| fp.name == fp_name)
+                });
+            binds.then(|| {
+                (
+                    name.as_str(),
+                    part.device.name.name.as_str(),
+                    part.device.variant.as_ref().map(|v| v.name.as_str()),
+                )
+            })
+        })
+        .collect()
+}
+
+/// Two pad numbers share a pin only when every binding of the footprint maps
+/// them to one device pin. Unbound numbers (mount-hole-style pads aside) are
+/// their own pin. With no binding at all, distinct numbers are distinct pins.
+fn same_pin(world: &World, bindings: &[Binding], a: &str, b: &str) -> bool {
+    if bindings.is_empty() {
+        return false;
+    }
+    bindings.iter().all(|(_, device, variant)| {
+        let pin_of: BTreeMap<&str, &str> = world.devices[*device]
+            .pins_for(*variant)
+            .iter()
+            .flat_map(|pin| {
+                pin.numbers
+                    .iter()
+                    .map(move |number| (number.text.as_str(), pin.name.name.as_str()))
+            })
+            .collect();
+        pin_of.get(a).copied().unwrap_or(a) == pin_of.get(b).copied().unwrap_or(b)
+    })
+}
 
 fn own_declarations<'a>(
     world: &'a World,
@@ -513,28 +338,27 @@ fn own_declarations<'a>(
         .filter(move |(name, _)| name.starts_with(&prefix))
 }
 
-pub fn audit_package(
-    package: &str,
-    version: &str,
-    world: &World,
-    real_keys: &mut BTreeSet<String>,
-) {
+pub fn audit_package(package: &str, version: &str, world: &World) {
     let mut unexpected = Vec::new();
     let mut used = BTreeSet::new();
     for (name, footprint) in own_declarations(world, package) {
-        real_keys.insert(footprint_key(package, version, name));
         let mut failures = Vec::new();
         let courtyard = footprint.courtyard.as_ref();
         for place in &footprint.pads {
             let pad = &world.pads[&place.pad.name];
             let shape = geometry(place, pad);
-            if courtyard.is_some_and(|courtyard| !courtyard_contains(courtyard, shape)) {
-                failures.push(format!(
-                    "courtyard overflow: pad {} at {}",
-                    place.number.text, place.span.start
-                ));
+            if let Some(courtyard) = courtyard {
+                if let Some(excess) = courtyard_excess(courtyard, shape) {
+                    failures.push(format!(
+                        "courtyard overflow: pad {} corner exceeds the {} courtyard by {:.3} mm",
+                        place.number.text,
+                        courtyard_shape_name(courtyard),
+                        mm(excess)
+                    ));
+                }
             }
         }
+        let mut bindings: Option<Vec<Binding>> = None;
         for left in 0..footprint.pads.len() {
             for right in (left + 1)..footprint.pads.len() {
                 let a = &footprint.pads[left];
@@ -549,12 +373,22 @@ pub fn audit_package(
                 let shared_layer = a_layer == b_layer
                     || a_layer == Some(PadLayer::ThroughAll)
                     || b_layer == Some(PadLayer::ThroughAll);
-                if shared_layer && overlaps(geometry(a, a_pad), geometry(b, b_pad)) {
-                    failures.push(format!(
-                        "distinct-pad copper overlap: {} and {}",
-                        a.number.text, b.number.text
-                    ));
+                if !shared_layer || !overlaps(geometry(a, a_pad), geometry(b, b_pad)) {
+                    continue;
                 }
+                let bindings = bindings.get_or_insert_with(|| bindings_for(world, name));
+                if same_pin(
+                    world,
+                    bindings,
+                    a.number.text.as_str(),
+                    b.number.text.as_str(),
+                ) {
+                    continue;
+                }
+                failures.push(format!(
+                    "pad overlap: pads {} and {} overlap",
+                    a.number.text, b.number.text
+                ));
             }
         }
         if !failures.is_empty() {
@@ -591,23 +425,11 @@ pub fn audit_package(
     );
 }
 
-/// Every shipped footprint's `(package, footprint, version)` key, gathered by
-/// the caller while auditing, so `finalize` can gate both allowlists against
-/// reality (no silent free pass, no stale entry).
-pub fn footprint_key(package: &str, version: &str, footprint: &str) -> String {
-    format!("{package}|{footprint}|{version}")
-}
-
-/// Staleness gate: every migrated legacy key still names a shipped footprint,
-/// and no migrated legacy key matches the *auditing* package's own footprint
-/// names when that footprint is clean (legacy keys are informational here;
-/// the strict audit is enforced by `audit_package`).
-pub fn finalize(real_keys: &BTreeSet<String>) {
-    for (package, footprint, version, _) in LEGACY {
-        let key = format!("{package}|{footprint}|{version}");
-        if !real_keys.contains(&key) {
-            eprintln!("A1a legacy entry has no audited footprint match: {key}");
-        }
+fn courtyard_shape_name(courtyard: &Courtyard) -> &'static str {
+    match courtyard.shape.0 {
+        PadShape::Circle => "circular",
+        PadShape::Rect => "rectangular",
+        shape => panic!("unexpected courtyard shape {shape:?}"),
     }
 }
 
@@ -623,9 +445,8 @@ pub fn assert_quarantine_is_current() {
     );
 }
 
-/// Audit public part order codes separately. A part defect is associated with
-/// its package footprint key, allowing the same quarantine ledger to describe
-/// the known fabrication-data exception without weakening unrelated parts.
+/// Audit public part order codes: every entry must carry a non-empty MPN and
+/// manufacturer. A defect is charged to the footprint's quarantine key.
 pub fn audit_parts(package: &str, version: &str, world: &World) {
     let prefix = format!("{}::", cohdl::pipeline::package_root(package));
     let mut unexpected = Vec::new();
@@ -687,94 +508,115 @@ mod tests {
 
     fn audit(source: &str) -> World {
         let world = world(source);
-        audit_package("fixture", "1.0.0", &world, &mut BTreeSet::new());
+        audit_package("fixture", "1.0.0", &world);
+        audit_parts("fixture", "1.0.0", &world);
         world
+    }
+
+    fn audit_panics(source: &str) -> String {
+        let result = std::panic::catch_unwind(|| audit(source));
+        match result {
+            Ok(_) => panic!("audit accepted a defective fixture"),
+            Err(payload) => payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| payload.downcast_ref::<&str>().map(|s| s.to_string()))
+                .unwrap_or_default(),
+        }
     }
 
     const PAD: &str = r#"
         pub pad LAND { shape: rect size: (1mm, 2mm) layer: top_copper plating: smd }
     "#;
 
+    const PART: &str = r#"
+        pub device DEV { pins { required GND: 1, 2 [passive] } }
+        pub part P: DEV { primary { mfr: "m", mpn: "p", footprint: FP } }
+    "#;
+
     #[test]
-    fn rotated_rectangles_37_and_45_degrees_overlap() {
+    fn audit_rejects_rotated_overlap_at_37_and_45_degrees() {
         for angle in [37, 45] {
             let source = format!(
                 r#"{PAD}
-                pub footprint BAD {{
+                pub footprint FP {{
                     pad 1: LAND at (0mm, 0mm)
                     pad 2: LAND at (0.8mm, 0.8mm) rotate {angle}
                     courtyard {{ shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }}
                 }}
             "#
             );
-            let world = world(&source);
-            let fp = &world.footprints["fixture::BAD"];
-            let a = geometry(&fp.pads[0], &world.pads[&fp.pads[0].pad.name]);
-            let b = geometry(&fp.pads[1], &world.pads[&fp.pads[1].pad.name]);
-            // Independently derived oracle: at (0.8, 0.8), each rotated
-            // rectangle's projection onto x=y extends to +/-(cos+sin)*0.5
-            // (width 1, height 2 gives half diagonal along either normal).
-            let projection = (angle as f64).to_radians().sin_cos();
-            assert!(0.8 * 2.0_f64.sqrt() < projection.0 + projection.1);
-            assert!(overlaps(a, b), "{angle}-degree rectangles overlap on x=y");
+            let message = audit_panics(&source);
+            // Independent oracle: at (0.8, 0.8) the projection of each pad on
+            // x=y is (cos a + sin a) * 1 >= 1.5 * 0.8*sqrt(2)... explicitly,
+            // 0.8*sqrt(2) = 1.131 < 1.524 (37°) and 1.414 (45°), so the
+            // projections meet on x=y whatever the other axes do.
+            let (sin, cos) = (angle as f64).to_radians().sin_cos();
+            assert!(0.8 * 2.0_f64.sqrt() < (cos + sin) * 1.0);
+            assert!(
+                message.contains("pad overlap") && message.contains("1 and 2"),
+                "audit must name the overlapping pads, got: {message}"
+            );
         }
     }
 
     #[test]
-    fn same_number_ep_copper_islands_may_overlap() {
-        audit(
-            r#"{PAD}
-            pub footprint GOOD {
-                pad 0: LAND at (0mm, 0mm)
-                pad 0: LAND at (0.5mm, 0mm) rotate 37
-                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
-            }
-        "#
-            .replace("{PAD}", PAD)
-            .as_str(),
-        );
-    }
-
-    #[test]
-    fn rectangle_courtyard_rejects_rotated_corner() {
-        let world = world(
+    fn audit_rejects_rectangular_courtyard_overflow() {
+        let message = audit_panics(
             r#"
             pub pad LAND { shape: rect size: (2mm, 1mm) layer: top_copper plating: smd }
-            pub footprint BAD {
+            pub footprint FP {
                 pad 1: LAND at (0mm, 0mm) rotate 45
                 courtyard { shape: rect, at: (0mm, 0mm), size: (2.1mm, 2.1mm) }
             }
         "#,
         );
-        let fp = &world.footprints["fixture::BAD"];
-        let shape = geometry(&fp.pads[0], &world.pads[&fp.pads[0].pad.name]);
         // Independent oracle: a 2x1 rectangle at 45 degrees has half extent
-        // (2+1)/(2*sqrt(2)) = 1.06066mm, outside the 1.05mm half courtyard.
-        assert!(3.0 / (2.0 * 2.0_f64.sqrt()) > 1.05);
-        assert!(!courtyard_contains(fp.courtyard.as_ref().unwrap(), shape));
+        // (2+1)/(2*sqrt(2)) = 1.0607 mm, exceeding the 1.05 mm half courtyard
+        // by 0.011 mm — the message must quote that measured excess.
+        assert!(3.0 / (2.0 * 2.0_f64.sqrt()) - 1.05 > 0.0);
+        assert!(
+            message.contains("courtyard overflow")
+                && message.contains("rectangular")
+                && message.contains("0.011 mm"),
+            "audit must quote the rectangular courtyard excess, got: {message}"
+        );
     }
 
     #[test]
-    fn circle_courtyard_rejects_corner_outside_radius() {
-        let world = world(
+    fn audit_rejects_circular_courtyard_overflow() {
+        let message = audit_panics(
             r#"
             pub pad LAND { shape: rect size: (2mm, 1mm) layer: top_copper plating: smd }
-            pub footprint BAD {
+            pub footprint FP {
                 pad 1: LAND at (0mm, 0mm)
                 courtyard { shape: circle, at: (0mm, 0mm), size: (2.2mm) }
             }
         "#,
         );
-        let fp = &world.footprints["fixture::BAD"];
-        let shape = geometry(&fp.pads[0], &world.pads[&fp.pads[0].pad.name]);
-        // Independent oracle: the corner radius is sqrt(1^2+0.5^2)=1.118mm,
-        // exceeding the authored 1.1mm courtyard radius.
-        assert!(1.25_f64.sqrt() > 1.1);
-        assert!(!courtyard_contains(fp.courtyard.as_ref().unwrap(), shape));
+        // Independent oracle: the corner distance is sqrt(1^2+0.5^2) =
+        // 1.1180 mm against the 1.1 mm courtyard radius: 0.018 mm over.
+        assert!(1.25_f64.sqrt() - 1.1 > 0.0);
+        assert!(
+            message.contains("courtyard overflow")
+                && message.contains("circular")
+                && message.contains("0.018 mm"),
+            "audit must quote the circular courtyard excess, got: {message}"
+        );
     }
 
     #[test]
-    fn footprint_only_package_is_audited() {
+    fn audit_rejects_defects_in_a_footprint_only_package() {
+        let message = audit_panics(
+            r#"
+            pub pad LAND { shape: rect size: (2mm, 2mm) layer: top_copper plating: smd }
+            pub footprint ONLY {
+                pad 1: LAND at (0mm, 0mm)
+                pad 2: LAND at (1mm, 0mm)
+                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
+            }
+        "#,
+        );
         let world = world(
             r#"
             pub pad LAND { shape: rect size: (2mm, 2mm) layer: top_copper plating: smd }
@@ -789,10 +631,107 @@ mod tests {
             world.parts.is_empty(),
             "oracle requires a footprint-only fixture"
         );
-        let fp = &world.footprints["fixture::ONLY"];
-        let a = geometry(&fp.pads[0], &world.pads[&fp.pads[0].pad.name]);
-        let b = geometry(&fp.pads[1], &world.pads[&fp.pads[1].pad.name]);
-        // Two 2mm squares with centres 1mm apart share a 1mm-wide strip.
-        assert!(overlaps(a, b));
+        // Independent oracle: two 2 mm squares whose centres are 1 mm apart
+        // share a 1 mm-wide strip of copper.
+        assert!(
+            message.contains("pad overlap") && message.contains("1 and 2"),
+            "audit must flag a footprint-only package, got: {message}"
+        );
+    }
+
+    #[test]
+    fn audit_allows_same_pin_numbers_to_overlap() {
+        // Device maps both pad numbers to one GND pin — the stacked GND lands
+        // of a USB-C receptacle are the shipped case.
+        audit(
+            r#"
+            pub device DEV { pins { required GND: 1, 2 [passive] } }
+            pub pad LAND { shape: rect size: (2mm, 2mm) layer: top_copper plating: smd }
+            pub footprint FP {
+                pad 1: LAND at (0mm, 0mm)
+                pad 2: LAND at (0.5mm, 0.5mm) rotate 37
+                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
+            }
+            pub part P: DEV { primary { mfr: "m", mpn: "p", footprint: FP } }
+        "#,
+        );
+    }
+
+    #[test]
+    fn audit_rejects_overlap_when_numbers_map_to_distinct_pins() {
+        let message = audit_panics(
+            r#"
+            pub device DEV { pins { required A: 1 [passive], required B: 2 [passive] } }
+            pub pad LAND { shape: rect size: (2mm, 2mm) layer: top_copper plating: smd }
+            pub footprint FP {
+                pad 1: LAND at (0mm, 0mm)
+                pad 2: LAND at (0.5mm, 0.5mm) rotate 37
+                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
+            }
+            pub part P: DEV { primary { mfr: "m", mpn: "p", footprint: FP } }
+        "#,
+        );
+        assert!(
+            message.contains("pad overlap"),
+            "distinct pins must not be bridged by copper, got: {message}"
+        );
+    }
+
+    #[test]
+    fn audit_allows_same_number_ep_copper_islands() {
+        audit(
+            r#"{PAD}
+            pub footprint FP {
+                pad 0: LAND at (0mm, 0mm)
+                pad 0: LAND at (0.5mm, 0mm) rotate 37
+                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
+            }
+        "#
+            .replace("{PAD}", PAD)
+            .as_str(),
+        );
+    }
+
+    #[test]
+    fn circle_hugging_a_rectangle_corner_without_contact_is_separate() {
+        let world = world(
+            r#"
+            pub pad RECT_LAND { shape: rect size: (1mm, 2mm) layer: top_copper plating: smd }
+            pub pad ROUND_LAND { shape: circle size: (1mm) layer: top_copper plating: smd }
+            pub footprint FP {
+                pad 1: RECT_LAND at (0mm, 0mm)
+                pad 2: ROUND_LAND at (0.9mm, 1.4mm)
+                courtyard { shape: rect, at: (0mm, 0mm), size: (10mm, 10mm) }
+            }
+        "#,
+        );
+        let fp = &world.footprints["fixture::FP"];
+        let rect = geometry(&fp.pads[0], &world.pads[&fp.pads[0].pad.name]);
+        let circle = geometry(&fp.pads[1], &world.pads[&fp.pads[1].pad.name]);
+        // Independent oracle: the nearest rectangle corner is (0.5, 1.0);
+        // the circle centre is sqrt(0.4^2 + 0.4^2) = 0.566 mm away against a
+        // 0.5 mm radius — a 0.066 mm gap, no contact. Face normals alone
+        // would wrongly report overlap (0.9 < 0.5 + 0.5 on x).
+        assert!((0.4_f64 * 0.4 + 0.4 * 0.4).sqrt() > 0.5);
+        assert!(!overlaps(rect, circle));
+    }
+
+    #[test]
+    fn audit_accepts_a_clean_footprint_bound_to_a_part() {
+        audit(
+            format!(
+                r#"{PAD}
+                {PART}
+                pub footprint FP {{
+                    pad 1: LAND at (0mm, -0.5mm)
+                    pad 2: LAND at (0mm, 0.5mm)
+                    courtyard {{ shape: rect, at: (0mm, 0mm), size: (4mm, 4mm) }}
+                }}
+            "#
+            )
+            .replace("{PAD}", PAD)
+            .replace("{PART}", PART)
+            .as_str(),
+        );
     }
 }

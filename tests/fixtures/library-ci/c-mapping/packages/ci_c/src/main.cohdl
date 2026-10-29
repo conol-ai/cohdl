@@ -1,0 +1,5 @@
+pub device CI_DEVICE { pins { P: 1 [passive] } }
+pub footprint FP_CI_C {}
+pub part CI_PART: CI_DEVICE {
+    primary { mfr: "C Maker", mpn: "C-MPN", footprint: FP_CI_C, supplier lcsc "C_C_MAPPING" at (1.25mm, -2mm) rotate 90 }
+}

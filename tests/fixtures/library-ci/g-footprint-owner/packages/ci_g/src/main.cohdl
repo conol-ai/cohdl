@@ -1,0 +1,4 @@
+pub device CI_G_DEVICE { pins { P: 1 [passive] } }
+pub part CI_G_PART: CI_G_DEVICE {
+    primary { mfr: "G Maker", mpn: "G-MPN", footprint: ci_fp::FP_SHARED, supplier lcsc "C_G_OWNER" }
+}

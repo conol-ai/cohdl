@@ -157,21 +157,23 @@ def realign(source, changes, footprints, reverse=False):
                 raise ValueError("rotation must be integer 0..359")
             bottom = bool(re.search(r"\bside\s+bottom\b", tail))
             dx, dy, rotate = changes[fp]
+            dx, dy = dx * FEMTO_PER_NM, dy * FEMTO_PER_NM
             if reverse:
-                angle = (old_angle - rotate if bottom else old_angle + rotate) % 360
-                sign = 1
-            else:
-                angle = (old_angle + rotate if bottom else old_angle - rotate) % 360
-                sign = -1
-            local_x, local_y = dx * FEMTO_PER_NM, dy * FEMTO_PER_NM
-            if bottom: local_x = -local_x
-            rx, ry = compiler_rotate(local_x, local_y, (360 - old_angle if not reverse else 360 - angle) % 360)
-            nx, ny = x + sign * rx, y + sign * ry
+                # Inverse child translation: -B(-original_r) * original_d.
+                bx, by = compiler_rotate(dx, dy, rotate)
+                dx, dy = -bx, -by
+                rotate = (360 - rotate) % 360
+            local_x, local_y = (-dx if bottom else dx), dy
+            rx, ry = compiler_rotate(local_x, local_y, (360 - old_angle) % 360)
+            nx, ny = x + rx, y + ry
+            angle = (old_angle - rotate if bottom else old_angle + rotate) % 360
             tail = re.sub(r"\brotate\s+" + NUM + r"(?=\s|$)", lambda m: "rotate " + str(angle) if angle else "", tail)
             if not re.search(r"\brotate\b", tail) and angle:
                 side = re.search(r"\bside\s+(?:top|bottom)\b", tail)
                 at = side.start() if side else len(tail)
                 tail = tail[:at] + " rotate " + str(angle) + " " + tail[at:].lstrip()
+            if angle == 0 and old_angle != 0:
+                tail = re.sub(r"[ \t]+rotate[ \t]+" + NUM + r"(?=\s|$)", "", tail)
             tail = re.sub(r"[ \t]+", " ", tail).rstrip()
             replacement = source[match.start():match.start("body")] + mm_femto(nx) + "mm, " + mm_femto(ny) + "mm)" + tail
             edits.append((match.start(), match.end(), replacement))
@@ -207,7 +209,7 @@ def compiler_footprints(layout_path, board_path, targets, changes):
         bottom = placement.get("side") == "bottom"
         angle = (placement.get("rotate", 0) + (180 if bottom else 0)) % 360
         matches = [row for row in rows if row[1] == [Decimal(str(v)) for v in placement["at"]]
-                   and row[2] % 360 == angle and row[3] == bottom]
+                   and (row[2] + 360) % 360 == angle and row[3] == bottom]
         if len(matches) != 1:
             if any(row[0] is not None for row in rows):
                 raise ValueError("compiler layout/PCB match for %s is not unique (%d)" % (target, len(matches)))

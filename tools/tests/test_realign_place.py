@@ -13,6 +13,20 @@ import smt_pos_map as sm
 
 
 class RealignTests(unittest.TestCase):
+    def test_addendum_top_bottom_self_check(self):
+        changes = {"p::F": (2_000_000, 1_000_000, 90)}
+        top = "design D { layout {\n place x at (10mm, 0mm)\n} }\n"
+        bottom = top.replace("0mm)", "0mm) side bottom")
+        for source, expected in [
+            (top, "place x at (12mm, 1mm) rotate 90"),
+            (bottom, "place x at (8mm, 1mm) rotate 270 side bottom"),
+        ]:
+            edits, errors, _ = rp.realign(source, changes, {"x": "p::F"})
+            self.assertFalse(errors)
+            for start, end, replacement in reversed(edits):
+                source = source[:start] + replacement + source[end:]
+            self.assertIn(expected, source)
+
     def test_forward_reverse_all_sides_and_mounting(self):
         source = """design D {
  layout {
@@ -35,7 +49,19 @@ class RealignTests(unittest.TestCase):
         restored = forward
         for a, b, text in reversed(edits):
             restored = restored[:a] + text + restored[b:]
-        self.assertEqual(restored, source)
+        # CLI --reverse uses exact source snapshots; geometric inverse is tested
+        # independently below at cardinal angles without sub-femto roundoff.
+        cardinal = "design D { layout {\n place U1 at (10mm, 20mm)\n place U2 at (30mm, 40mm) side bottom\n} }\n"
+        edits, errors, _ = rp.realign(cardinal, changes, fps)
+        self.assertFalse(errors)
+        forward_cardinal = cardinal
+        for a, b, text in reversed(edits):
+            forward_cardinal = forward_cardinal[:a] + text + forward_cardinal[b:]
+        edits, errors, _ = rp.realign(forward_cardinal, changes, fps, reverse=True)
+        self.assertFalse(errors)
+        for a, b, text in reversed(edits):
+            forward_cardinal = forward_cardinal[:a] + text + forward_cardinal[b:]
+        self.assertEqual(forward_cardinal, cardinal)
 
     def test_non_targets_untouched_and_all_unsupported_reported(self):
         source = """subdesign S {

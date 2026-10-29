@@ -57,8 +57,11 @@ MM_QUANTUM = Decimal("0.000000000000001")
 SNAPSHOT_SHA256 = "cfbe94649eab891b056d869e824d542df2b9d414d450c51a47584ec497605c1d"
 
 # A1b/A1c: six source courtyards failed to contain their lands. Preserve
-# the imported land geometry verbatim and derive only the courtyard from its
-# pad envelope, with IPC-7351B nominal-density clearance on every side.
+# the imported land geometry verbatim and derive only the courtyard from the
+# union of the pad envelope and the package body, with IPC-7351B
+# nominal-density clearance on every side. The body is the square whose side
+# ends the source decal name (QFN48_0P5_7 is a 7 mm body), centred on the
+# origin.
 IPC_NOMINAL_COURTYARD_CLEARANCE = Decimal("0.25")
 PAD_ENVELOPE_COURTYARDS = {
     "ESPRESSIF_QFN28_0P4_4",
@@ -931,6 +934,9 @@ def apply_courtyard_repairs(snapshot: dict) -> None:
                 width, height = height, width
             xs.extend((px - width / 2, px + width / 2))
             ys.extend((py - height / 2, py + height / 2))
+        body = Decimal(row["normalization"]["decal_name"].rsplit("_", 1)[1])
+        xs.extend((-body / 2, body / 2))
+        ys.extend((-body / 2, body / 2))
         clearance = IPC_NOMINAL_COURTYARD_CLEARANCE
         min_x, max_x = min(xs) - clearance, max(xs) + clearance
         min_y, max_y = min(ys) - clearance, max(ys) + clearance

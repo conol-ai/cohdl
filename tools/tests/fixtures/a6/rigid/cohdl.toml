@@ -1,0 +1,9 @@
+[package]
+name = "a6_rigid"
+version = "0.1.0"
+
+[design]
+top = "Rigid"
+
+[dependencies]
+std = "0.3.0"

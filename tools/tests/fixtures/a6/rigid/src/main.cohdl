@@ -1,0 +1,24 @@
+pub trait U { designator_prefix: "U" }
+pub pad P { shape: rect, size: (0.8mm, 0.3mm), layer: top_copper, plating: smd }
+pub footprint FP {
+    pad 1: P at (1mm, 2mm)
+    pad 2: P at (-1mm, -2mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4mm, 6mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}
+pub device D { pins { A: 1 [passive], B: 2 [passive] } }
+impl U for D {}
+pub part P0: D { primary { mfr: "M", mpn: "P", footprint: FP } }
+design Rigid {
+    inst top: P0
+    inst bottom: P0
+    inst angle: P0
+    net A: top.A, bottom.A, angle.A
+    net B: top.B, bottom.B, angle.B
+    layout {
+        board_outline: "mechanical/outline.dxf"
+        place top at (-20mm, 0mm)
+        place bottom at (0mm, 0mm) side bottom
+        place angle at (20mm, 0mm) rotate 37
+    }
+}

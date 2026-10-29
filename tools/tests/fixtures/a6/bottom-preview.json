@@ -1,0 +1,235 @@
+{
+  "name": "bottom_preview",
+  "design": "BottomPreview",
+  "net_names": [
+    "V3V3",
+    "GND"
+  ],
+  "outline": "tests/fixtures/rfc034/bottom-preview/mechanical/outline.dxf",
+  "dependencies": {
+    "std": "0.3.0",
+    "transistor": "0.1.1",
+    "passive": "0.2.3",
+    "flash": "0.1.6"
+  },
+  "rows": [
+    {
+      "name": "q",
+      "part": "transistor::NPN_SOT23_BEC",
+      "footprint": "transistor::FP_JSCJ_SOT23",
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "S8050 J3Y(RANGE:200-350)",
+      "pn": "C2146",
+      "mapping": {
+        "rotate_deg": 90
+      },
+      "pins": [
+        "C",
+        "B",
+        "E"
+      ],
+      "net_pins": [
+        0,
+        2,
+        1
+      ],
+      "placements": [
+        {
+          "at_mm": [
+            -26,
+            -20
+          ]
+        },
+        {
+          "at_mm": [
+            -26,
+            -7
+          ],
+          "rotate": 37
+        },
+        {
+          "at_mm": [
+            -26,
+            7
+          ],
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            -26,
+            20
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ]
+    },
+    {
+      "name": "u",
+      "part": "flash::W25Q128JV[SOIC8]",
+      "footprint": "soic::SOIC8P127X790X216N",
+      "mfr": "Winbond",
+      "mpn": "W25Q128JVSIQ",
+      "pn": "C97521",
+      "mapping": {
+        "rotate_deg": 270
+      },
+      "pins": [
+        "VCC",
+        "GND"
+      ],
+      "placements": [
+        {
+          "at_mm": [
+            -8,
+            -20
+          ]
+        },
+        {
+          "at_mm": [
+            -8,
+            -7
+          ],
+          "rotate": 37
+        },
+        {
+          "at_mm": [
+            -8,
+            7
+          ],
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            -8,
+            20
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ]
+    },
+    {
+      "name": "c6",
+      "part": "passive::MLCC<27pF, 50V, 5%>[C0603]",
+      "footprint": "passive::CHIP_0603",
+      "mfr": "Yageo",
+      "mpn": "CC0603JRNPO9BN270",
+      "pn": "C107045",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "placements": [
+        {
+          "at_mm": [
+            12,
+            -20
+          ]
+        },
+        {
+          "at_mm": [
+            12,
+            -7
+          ],
+          "rotate": 37
+        },
+        {
+          "at_mm": [
+            12,
+            7
+          ],
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            12,
+            20
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ]
+    },
+    {
+      "name": "c8",
+      "part": "passive::MLCC<15pF, 50V, 5%>[C0805]",
+      "footprint": "passive::CHIP_0805",
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN150",
+      "pn": "C107110",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "placements": [
+        {
+          "at_mm": [
+            28,
+            -20
+          ]
+        },
+        {
+          "at_mm": [
+            28,
+            -7
+          ],
+          "rotate": 37
+        },
+        {
+          "at_mm": [
+            28,
+            7
+          ],
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            28,
+            20
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ]
+    }
+  ],
+  "nets": {
+    "V3V3": [
+      "q_0.C",
+      "q_1.C",
+      "q_2.C",
+      "q_3.C",
+      "u_0.VCC",
+      "u_1.VCC",
+      "u_2.VCC",
+      "u_3.VCC",
+      "c6_0.A",
+      "c6_1.A",
+      "c6_2.A",
+      "c6_3.A",
+      "c8_0.A",
+      "c8_1.A",
+      "c8_2.A",
+      "c8_3.A"
+    ],
+    "GND": [
+      "q_0.B",
+      "q_1.B",
+      "q_2.B",
+      "q_3.B",
+      "u_0.GND",
+      "u_1.GND",
+      "u_2.GND",
+      "u_3.GND",
+      "c6_0.B",
+      "c6_1.B",
+      "c6_2.B",
+      "c6_3.B",
+      "c8_0.B",
+      "c8_1.B",
+      "c8_2.B",
+      "c8_3.B"
+    ]
+  }
+}

@@ -2,7 +2,8 @@
 
 Both sourcing tables are optional during generation. Missing or malformed data
 produces no binding; it never makes an otherwise valid catalog regeneration
-fail. Only primary entries with a local, unambiguous footprint participate.
+fail. Entries participate only with an unambiguous effective footprint; an
+alternate without an explicit footprint inherits its primary's footprint.
 """
 
 from __future__ import annotations
@@ -64,11 +65,12 @@ def _mapping(row: dict[str, Any]) -> tuple[Decimal, Decimal, int] | None:
     if not isinstance(mapping, dict) or set(mapping) != {"dx_mm", "dy_mm", "rotate_deg"}:
         return None
     dx, dy = _number(mapping["dx_mm"]), _number(mapping["dy_mm"])
-    rotate = mapping["rotate_deg"]
-    if dx is None or dy is None or isinstance(rotate, bool) or not isinstance(rotate, int):
+    rotate = _number(mapping["rotate_deg"])
+    if dx is None or dy is None or rotate is None or rotate != rotate.to_integral_value():
         return None
-    if not 0 <= rotate <= 359:
+    if not 0 <= rotate < 360:
         return None
+    rotate = int(rotate)
     nonzero = dx != 0 or dy != 0 or rotate != 0
     exception = row.get("exception")
     if nonzero != (isinstance(exception, str) and bool(exception.strip())):
@@ -220,3 +222,35 @@ class Bindings:
         if rotate != 0:
             clause += f" rotate {rotate}"
         return clause
+
+
+def avl_entry(
+    bindings: Bindings,
+    manifest: Path,
+    kind: str,
+    mfr: str,
+    mpn: str,
+    footprint: str,
+    effective_footprint: str | None = None,
+) -> str:
+    """Render primary/alt entries with identical 100-column wrapping."""
+    explicit_footprint = effective_footprint is None
+    if effective_footprint is None:
+        effective_footprint = footprint
+    fields = [f'mfr: "{mfr}"', f'mpn: "{mpn}"']
+    if explicit_footprint:
+        fields.append(f"footprint: {footprint}")
+    supplier = bindings.clause(manifest, effective_footprint, mfr, mpn)
+    if supplier:
+        fields.append(supplier)
+    entry = f"    {kind} {{ " + ", ".join(fields) + " }"
+    if len(entry) <= 100:
+        return entry + "\n"
+    lines = [f'    {kind} {{ mfr: "{mfr}", mpn: "{mpn}",']
+    continuation = " " * 14
+    if explicit_footprint:
+        lines.append(f"{continuation}footprint: {footprint}" + ("," if supplier else ""))
+    if supplier:
+        lines.append(f"{continuation}{supplier}")
+    lines[-1] += " }"
+    return "\n".join(lines) + "\n"

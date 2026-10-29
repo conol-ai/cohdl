@@ -122,6 +122,25 @@ class GeneratorBindingTests(unittest.TestCase):
             capture_output=True,
         )
 
+    def test_alt_only_mapping_inherits_primary_footprint(self):
+        copy = PassiveCopy(self)
+        mapping = map_row("C54321")
+        mapping.update(mfr="Vishay", mpn="CRCW02011R00FKED")
+        frame = frame_row()
+        frame.update(pn="C54321")
+        copy.write_tables([mapping], [frame])
+        after = copy.run()
+        self.assertEqual(after.count('supplier lcsc "C54321"'), 1)
+        self.assertNotIn('supplier lcsc "C00000"', after)
+        declaration = after[after.index("pub part R_1R_F_0201:"):]
+        declaration = declaration[:declaration.index("\n}\n")]
+        self.assertIn(
+            'alt { mfr: "Vishay", mpn: "CRCW02011R00FKED",\n'
+            '              supplier lcsc "C54321" at (0.1mm, -0.2mm) rotate 90 }',
+            declaration,
+        )
+        self.assertNotIn("supplier lcsc", declaration.split("alt {", 1)[0])
+
     def test_duplicate_pn_and_stale_frame_version_do_not_generate(self):
         for duplicate, stale in ((True, False), (False, True)):
             with self.subTest(duplicate=duplicate, stale=stale):
@@ -138,6 +157,22 @@ class GeneratorBindingTests(unittest.TestCase):
         row["evidence"]["record"] = "missing.txt"
         copy.write_tables([map_row()], [row])
         self.assertNotIn("supplier lcsc", copy.run())
+
+    def test_integral_numeric_rotation_is_canonical_and_invalid_angles_are_silent(self):
+        for rotate in (90, 90.0):
+            with self.subTest(rotate=rotate, valid=True):
+                copy = PassiveCopy(self)
+                frame = frame_row()
+                frame["mapping"]["rotate_deg"] = rotate
+                copy.write_tables([map_row()], [frame])
+                self.assertIn('supplier lcsc "C00000" at (0.1mm, -0.2mm) rotate 90', copy.run())
+        for rotate in (90.5, -1, 360, float("inf"), float("nan"), True):
+            with self.subTest(rotate=rotate, valid=False):
+                copy = PassiveCopy(self)
+                frame = frame_row()
+                frame["mapping"]["rotate_deg"] = rotate
+                copy.write_tables([map_row()], [frame])
+                self.assertNotIn("supplier lcsc", copy.run())
 
     def test_cross_package_footprint_uses_owner_package_and_version(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -195,7 +230,11 @@ class GeneratorBindingTests(unittest.TestCase):
         if not compiler.is_file():
             self.skipTest("target/debug/cohdl is not built")
         copy = PassiveCopy(self)
-        copy.write_tables([map_row()], [frame_row()])
+        mapping = map_row("C54321")
+        mapping.update(mfr="Vishay", mpn="CRCW02011R00FKED")
+        frame = frame_row()
+        frame.update(pn="C54321")
+        copy.write_tables([mapping], [frame])
         generated = copy.run()
         declaration = generated[generated.index("#[doc", generated.index("pub part R_0R_J_0201") - 20):]
         declaration = declaration[:declaration.index("\n}\n") + 3]

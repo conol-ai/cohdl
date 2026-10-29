@@ -26,20 +26,7 @@ import argparse
 import pathlib
 import sys
 
-try:
-    from sourcing.bindings import Bindings
-except ModuleNotFoundError:
-    # The locked-oracle test copies only this script and passive_data.
-    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    try:
-        from sourcing.bindings import Bindings
-    except ModuleNotFoundError:
-        class Bindings:
-            def __init__(self, root):
-                pass
-
-            def clause(self, manifest, footprint, mfr, mpn):
-                return ""
+from sourcing.bindings import Bindings, avl_entry
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "lib" / "passive" / "src"
@@ -366,19 +353,11 @@ def resistor_values(tolerance):
 
 
 def primary_entry(mfr, mpn, footprint, bindings):
-    fields = [f'mfr: "{mfr}"', f'mpn: "{mpn}"', f"footprint: {footprint}"]
-    supplier = bindings.clause(OUT.parent / "cohdl.toml", footprint, mfr, mpn)
-    if supplier:
-        fields.append(supplier)
-    entry = "    primary { " + ", ".join(fields) + " }"
-    if len(entry) <= 100:
-        return entry + "\n"
-    return (
-        f'    primary {{ mfr: "{mfr}", mpn: "{mpn}",\n'
-        f"              footprint: {footprint}"
-        + (f",\n              {supplier}" if supplier else "")
-        + " }\n"
-    )
+    return avl_entry(bindings, OUT.parent / "cohdl.toml", "primary", mfr, mpn, footprint)
+
+
+def alternate_entry(mfr, mpn, footprint, bindings):
+    return avl_entry(bindings, OUT.parent / "cohdl.toml", "alt", mfr, mpn, footprint, footprint)
 
 
 def emit_resistors(size, verified, bindings):
@@ -411,8 +390,12 @@ def emit_resistors(size, verified, bindings):
                 f'#[doc("{R_DOC_YAGEO}")]\n'
                 f"pub part R_{token}_{tol}_{size}: ChipResistor<{literal}, {tol_pct}>[{variant}] {{\n"
                 + primary_entry("Yageo", mpn, f"CHIP_{size}", bindings)
-                + f'    alt {{ mfr: "Vishay", mpn: "CRCW{size}{vishay_code(mantissa, decade)}'
-                + f'{"FKED" if tol == "F" else "JNED"}" }}\n'
+                + alternate_entry(
+                    "Vishay",
+                    f"CRCW{size}{vishay_code(mantissa, decade)}{'FKED' if tol == 'F' else 'JNED'}",
+                    f"CHIP_{size}",
+                    bindings,
+                )
                 + "}\n"
             )
     return "\n".join(body)
@@ -521,7 +504,10 @@ def emit_capacitors(size, available, alternates, samsung, verified, bindings):
             samsung_mpn = samsung.get(f"{size}|{volts:g}|{diel}|{farads:.6g}")
             if samsung_mpn and not any(m == "Samsung" for m, _ in entries):
                 entries.append(("Samsung", samsung_mpn))
-            alts = "".join(f'    alt {{ mfr: "{mfr}", mpn: "{mpn}" }}\n' for mfr, mpn in entries)
+            alts = "".join(
+                alternate_entry(mfr, mpn, f"CHIP_{size}", bindings)
+                for mfr, mpn in entries
+            )
             rows.append(
                 f'#[doc("{C_DOC[diel]}")]\n'
                 f"pub part {part}: MLCC<{farad_literal(farads)}, {volt_literal(volts)}, {tol_spec}>[{variant}] {{\n"

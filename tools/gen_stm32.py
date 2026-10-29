@@ -36,7 +36,7 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-from sourcing.bindings import Bindings
+from sourcing.bindings import Bindings, avl_entry
 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -1466,26 +1466,32 @@ def emit_family(
             lines.extend(
                 f'#[doc("{part_doc}")]' for part_doc in part["docs"]
             )
-            supplier = bindings.clause(
-                PACKAGE_ROOT / "cohdl.toml",
-                part["footprint"],
-                primary["mfr"],
-                primary["mpn"],
-            )
             lines.extend(
                 [
                     f'pub part {part["name"]}: {part["device"]} {{',
-                    f'    primary {{ mfr: "{primary["mfr"]}", mpn: "{primary["mpn"]}",',
-                    f'              footprint: {part["footprint"]}'
-                    + (f",\n              {supplier}" if supplier else "")
-                    + " }",
+                    avl_entry(
+                        bindings,
+                        PACKAGE_ROOT / "cohdl.toml",
+                        "primary",
+                        primary["mfr"],
+                        primary["mpn"],
+                        part["footprint"],
+                    ).rstrip("\n"),
                 ]
             )
             for alt in sorted(
                 part["alts"], key=lambda row: (row["mfr"], row["mpn"])
             ):
                 lines.append(
-                    f'    alt {{ mfr: "{alt["mfr"]}", mpn: "{alt["mpn"]}" }}'
+                    avl_entry(
+                        bindings,
+                        PACKAGE_ROOT / "cohdl.toml",
+                        "alt",
+                        alt["mfr"],
+                        alt["mpn"],
+                        alt.get("footprint", part["footprint"]),
+                        part["footprint"] if "footprint" not in alt else None,
+                    ).rstrip("\n")
                 )
             lines.extend(["}", ""])
     return "\n".join(lines)

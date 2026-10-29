@@ -35,7 +35,7 @@ import subprocess
 import sys
 from typing import Any, Iterable
 
-from sourcing.bindings import Bindings
+from sourcing.bindings import Bindings, avl_entry
 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -881,22 +881,14 @@ def render_parts(selected: list[tuple[dict[str, Any], Rule]], bindings: Bindings
             if rule.symbol == "ESP32-S3-WROOM-1"
             else device_name(rule.symbol)
         )
-        supplier = bindings.clause(
-            PACKAGE_ROOT / "cohdl.toml", rule.footprint_ref, "Espressif", row["mpn"]
-        )
-        fields = f'mfr: "Espressif", mpn: "{row["mpn"]}", footprint: {rule.footprint_ref}'
-        primary = f"    primary {{ {fields}"
-        if supplier:
-            primary += f", {supplier}"
-        primary += " }"
-        primary_lines = [primary]
-        if len(primary) > 100:
-            primary_lines = [
-                f'    primary {{ mfr: "Espressif", mpn: "{row["mpn"]}",',
-                f"              footprint: {rule.footprint_ref}"
-                + (f",\n              {supplier}" if supplier else "")
-                + " }",
-            ]
+        primary_lines = avl_entry(
+            bindings,
+            PACKAGE_ROOT / "cohdl.toml",
+            "primary",
+            "Espressif",
+            row["mpn"],
+            rule.footprint_ref,
+        ).rstrip("\n").splitlines()
         lines.extend(
             [
                 f"// Selector family: {row['name']}; lifecycle: {row['status']}; {rule.note}.",

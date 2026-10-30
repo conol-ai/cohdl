@@ -198,25 +198,35 @@ def compiler_footprints(layout_path, board_path, targets, changes):
         rows.append((full_names.get(node[1]), [Decimal(at[1]), Decimal(at[2])],
                      Decimal(at[3]) if len(at) > 3 else Decimal(0),
                      next(c for c in children(node, "layer"))[1] == "B.Cu"))
-    result = {}
+    result, unmatched = {}, []
     for placement in layout.get("placements", []):
         parts = placement["instance"].split("::", 1)[-1].split("::")
-        if len(parts) != 1:
-            continue
-        target = re.sub(r"_(\d+)$", r"[\1]", parts[0])
-        if target not in targets:
-            continue
+        # An element of `inst x: [D; N]` is laid out as x_0 but placed as x[0];
+        # an ordinary instance may itself be named x_0.  A subdesign member
+        # (a::b) is never a top-level target.
+        name = "::".join(parts)
+        array = re.sub(r"_(\d+)$", r"[\1]", name)
+        target = None if len(parts) != 1 else name if name in targets else array if array in targets else None
         bottom = placement.get("side") == "bottom"
         angle = (placement.get("rotate", 0) + (180 if bottom else 0)) % 360
         matches = [row for row in rows if row[1] == [Decimal(str(v)) for v in placement["at"]]
                    and (row[2] + 360) % 360 == angle and row[3] == bottom]
         if len(matches) != 1:
             if any(row[0] is not None for row in rows):
-                raise ValueError("compiler layout/PCB match for %s is not unique (%d)" % (target, len(matches)))
+                raise ValueError("compiler layout/PCB match for %s is not unique (%d)" % (target or name, len(matches)))
             continue
-        if matches[0][0] is not None:
-            result[target] = matches[0][0]
-    return result
+        if matches[0][0] is None:
+            continue
+        if target is None:
+            # Laid out on a moved footprint, yet no top-level literal `place`
+            # names it (a subdesign member, or a missing statement): skipping
+            # it would silently move its copper.
+            where = "it is placed inside a subdesign, which is not rewritten" if len(parts) != 1 \
+                else "no `place %s at` statement names it" % name
+            unmatched.append("%s uses moved footprint %s but %s" % (name, matches[0][0], where))
+            continue
+        result[target] = matches[0][0]
+    return result, unmatched
 
 
 def main(argv=None):
@@ -247,8 +257,8 @@ def main(argv=None):
         originals = {p: p.read_text(encoding="utf-8") for p in paths}
         targets = {m.group(1) for source in originals.values()
                    for m in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source)}
-        footprints = compiler_footprints(args.layout, args.board, targets, changes)
-        rewritten, errors, undo_files = {}, [], []
+        footprints, unmatched = compiler_footprints(args.layout, args.board, targets, changes)
+        rewritten, errors, undo_files = {}, ["%s: %s" % (args.project, item) for item in unmatched], []
         for path, source in originals.items():
             edits, problems, _ = realign(source, changes, footprints)
             errors.extend("%s:%d: %s" % (path, line, msg) for line, msg in problems)

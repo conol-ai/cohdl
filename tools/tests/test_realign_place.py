@@ -102,6 +102,50 @@ design D {
             self.assertIn("requires --layout and --board", err.getvalue())
             self.assertEqual(src.read_text(), original)
 
+    def _plain_names_project(self, root, source):
+        (root / "src").mkdir()
+        (root / "src/main.cohdl").write_text(source)
+        (root / "change.json").write_text('{"changes":[{"footprint":"p::F","rotate":90}]}')
+        (root / "layout.json").write_text(json.dumps({"placements": [
+            {"instance": "D::u_0", "at": [1, 2], "rotate": 0},
+            {"instance": "D::v_1", "at": [5, 6], "rotate": 0}]}))
+        (root / "board.kicad_pcb").write_text(
+            '(kicad_pcb (footprint "p-F" (layer "F.Cu") (at 1 2)) (footprint "p-F" (layer "F.Cu") (at 5 6)))\n')
+        return ["--layout", str(root / "layout.json"), "--board", str(root / "board.kicad_pcb")]
+
+    def test_plain_instance_named_like_an_array_element(self):
+        # `inst u_0: D` is laid out as u_0 and placed as u_0, not u[0].
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            args = self._plain_names_project(root, "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n")
+            with mock.patch("sys.stdout", new=io.StringIO()) as out:
+                self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 0)
+            self.assertIn("realigned 2 placements", out.getvalue())
+            self.assertIn("place u_0 at (1mm, 2mm) rotate 90\n", (root / "src/main.cohdl").read_text())
+
+    def test_moved_placement_without_a_place_statement_is_an_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 1)
+            self.assertIn("v_1 uses moved footprint p::F", err.getvalue())
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+
+    def test_subdesign_member_on_a_moved_footprint_is_an_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            layout = json.loads((root / "layout.json").read_text())
+            layout["placements"][1]["instance"] = "D::port::xcvr"
+            (root / "layout.json").write_text(json.dumps(layout))
+            with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 1)
+            self.assertIn("port::xcvr uses moved footprint p::F but it is placed inside a subdesign", err.getvalue())
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -44,7 +44,13 @@ def pads(path, footprint=None):
         for pad_index, pad in enumerate(children(fp, "pad")):
             local = next(c for c in children(pad, "at"))
             x, y = nm(local[1]), nm(local[2])
-            absolute = (anchor[0] + round_nm(x * cosine + y * sine), anchor[1] + round_nm(y * cosine - x * sine))
+            # The pad's angle is stored absolute; a rect turned half a turn
+            # is the same copper, so compare it modulo 180, in millidegrees.
+            # A circle has no orientation at all.
+            turn = round((float(local[3]) if len(local) > 3 else 0) % 180 * 1000) % 180000
+            if pad[3] == "circle":
+                turn = 0
+            absolute = (anchor[0] + round_nm(x * cosine + y * sine), anchor[1] + round_nm(y * cosine - x * sine), turn)
             result[(ref, pad[1], pad_index)] = absolute
     return result
 
@@ -119,8 +125,9 @@ class CompilerAcceptance(unittest.TestCase):
                     sources = {p: p.read_text(encoding="utf-8") for p in (project / "src").glob("*.cohdl")}
                     targets = {m.group(1) for s in sources.values()
                                for m in re.finditer(r"\bplace\s+(" + rp.TARGET + r")\s+at\b", s)}
-                    footprints = rp.compiler_footprints(project / ("out/%s-layout.json" % name),
-                                                        project / ("out/%s.kicad_pcb" % name), targets, changes)
+                    footprints, unmatched = rp.compiler_footprints(project / ("out/%s-layout.json" % name),
+                                                                   project / ("out/%s.kicad_pcb" % name), targets, changes)
+                    self.assertEqual(unmatched, [])
                     count = 0
                     for path, source in sources.items():
                         edits, errors, _ = rp.realign(source, changes, footprints)

@@ -1,6 +1,7 @@
 """Loopback-only HTTP fixture shared by sourcing tool tests."""
 
 from datetime import datetime, timezone
+import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import socket
@@ -90,8 +91,34 @@ def make_client(cache_dir, max_requests=100):
                        snapshot_clock=lambda: datetime(2026, 10, 30, tzinfo=timezone.utc))
 
 
-def page(c, mpn, mfr="Acme", category="Basic", stock=10):
-    return (f'<div data-field="c">{c}</div><div data-field="mpn">{mpn}</div>'
-            f'<div data-field="mfr">{mfr}</div><div data-field="package">0603</div>'
-            f'<div data-field="category">{category}</div><div data-field="stock">{stock}</div>'
-            '<a data-field="datasheet" href="https://example.invalid/datasheet.pdf">PDF</a>')
+def page(c, mpn, mfr="Acme", category="Basic", stock=10, related=("C999",), split=7):
+    """A self-written partdetail page in the live shape (sample of 2026-10-30).
+
+    It carries a schema.org Product JSON-LD block and a Next.js flight payload
+    split across several ``self.__next_f.push`` strings.  The flight payload
+    holds the part as two objects (identity/type and stock/datasheet) plus a
+    related part with its own code and stock, which the parser must ignore.
+    """
+    library = {"Basic": "base", "Preferred": "expand", "Extended": "expand"}.get(category, category)
+    preferred = True if category == "Preferred" else "$undefined"
+    product = {"@context": "https://schema.org", "@type": "Product", "name": mpn,
+               "brand": {"@type": "Brand", "name": mfr}, "sku": c, "mpn": mpn}
+    detail = {"componentCode": c, "componentModelEn": mpn, "componentBrandEn": mfr,
+              "componentSpecificationEn": "0603", "componentSpecification": "$undefined",
+              "componentLibraryType": library, "preferredComponentFlag": preferred,
+              "dataManualUrl": "https://example.invalid/datasheet.pdf", "priceList": [1]}
+    offer = {"componentCode": c, "componentModelEn": mpn, "componentBrandEn": mfr,
+             "componentSpecificationEn": "0603", "overseasStockCount": stock,
+             "dataManualUrl": "https://example.invalid/datasheet.pdf", "replaceUrlSuffix": None}
+    others = [{"componentCode": other, "componentModelEn": "OTHER", "componentBrandEn": "Other",
+               "componentLibraryType": "expand", "overseasStockCount": 123456} for other in related]
+    compact = {"separators": (",", ":")}
+    flight = ("0:" + json.dumps({"related": others}, **compact) + "\n1:" + json.dumps(detail, **compact)
+              + "\n2:" + json.dumps(offer, **compact))
+    pushes = "".join(
+        f'<script>self.__next_f.push([1,{json.dumps(flight[i:i + split])}])</script>'
+        for i in range(0, len(flight), split))
+    return ('<html><head><script type="application/ld+json">'
+            '{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[]}</script>'
+            f'<script type="application/ld+json">{json.dumps(product)}</script></head>'
+            f'<body>{pushes}</body></html>')

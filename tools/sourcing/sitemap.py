@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 
 _C = re.compile(r"C[0-9]+")
 _PATH = re.compile(r"^/partdetail/([^/]*)/(C[0-9]+)/(C[0-9]+)/?$")
+_PARTS_SITEMAP = re.compile(r"/parts/[^/]*sitemap[^/]*\.xml(\.gz)?$")
 
 
 class Reader(Protocol):
@@ -141,12 +142,19 @@ def load_sitemaps(
     """Fetch an index and its parts sitemaps through the shared HTTP client.
 
     ``sitemap_urls`` is useful for a bounded offline run or test.  Otherwise
-    every child declared by the index is read.  The returned metadata records
+    every parts sitemap declared by the index is read; the index may be a
+    ``sitemapindex`` or a ``urlset`` of sitemap URLs, and children outside a
+    ``/parts/`` path (per-language page sitemaps) are skipped.  The returned metadata records
     source URLs, per-child filtering reports and aggregate counts, not content.
     """
-    kind, children = parse_sitemap_xml(client.get(index_url).body)
-    if kind != "sitemapindex":
-        raise ValueError("sitemap index must have a sitemapindex root")
+    kind, declared = parse_sitemap_xml(client.get(index_url).body)
+    if kind == "urlset":
+        # The live index (sample of 2026-10-30) lists its child sitemaps as
+        # <url> entries rather than a <sitemapindex>.
+        declared = [url for url in declared if _is_xml(url)]
+    children = [url for url in declared if _PARTS_SITEMAP.search(urllib.parse.urlsplit(url).path)]
+    if not children:
+        raise ValueError("sitemap index declares no parts sitemaps")
     selected = list(children if sitemap_urls is None else sitemap_urls)
     unknown = set(selected) - set(children)
     if unknown:
@@ -163,6 +171,9 @@ def load_sitemaps(
     result = filter_partdetail_urls(all_urls, allowed_hosts=allowed_hosts)
     metadata = {
         "index_url": index_url,
+        "index_root": kind,
+        "declared_children": len(declared),
+        "parts_children": len(children),
         "sitemaps": reports,
         "counts": result.report.as_dict(),
     }
@@ -180,6 +191,10 @@ def entries_from_mapping(rows: Mapping[str, Mapping[str, str] | str]) -> dict[st
             raise ValueError(f"invalid canonical partdetail path for {pn}: {path}")
         result[pn] = SitemapEntry(pn, parsed.path, urllib.parse.unquote(match.group(1)))
     return result
+
+
+def _is_xml(url: str) -> bool:
+    return urllib.parse.urlsplit(url).path.endswith((".xml", ".xml.gz"))
 
 
 def _local(tag: str) -> str:

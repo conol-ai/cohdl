@@ -80,7 +80,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(result["estimated_seconds"], 4)
         self.assertEqual(result["unresolved"], ["C3"])
 
-    def test_provisional_parser_and_candidate_validation(self):
+    def test_parser_and_candidate_validation(self):
         self.assertEqual(parse_partdetail(page("C1", "X"))["stock"], 10)
         self.assertIsNone(parse_partdetail("<html>unknown real page</html>"))
         path = self.root / "candidates.json"
@@ -88,6 +88,31 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(load_candidates(path)[0]["candidate_category"], "basic")
         with self.assertRaises(ValueError):
             canonical_url("http://127.0.0.1", "/partdetail/C1")
+
+    def test_parser_reads_only_the_pages_own_part(self):
+        parsed = parse_partdetail(page("C12", "S8050", mfr="Maker", stock=7, related=("C1", "C120")), "C12")
+        self.assertEqual(parsed, {"c": "C12", "mpn": "S8050", "mfr": "Maker", "package": "0603",
+                                  "category": "basic", "stock": 7,
+                                  "datasheet": "https://example.invalid/datasheet.pdf"})
+        self.assertIsNone(parse_partdetail(page("C12", "S8050"), "C1"))
+        self.assertEqual(parse_partdetail(page("C3", "Y", category="Preferred"))["category"], "preferred")
+        self.assertEqual(parse_partdetail(page("C3", "Y", category="Extended"))["category"], "extended")
+
+    def test_parser_fails_closed(self):
+        # One flight chunk, so the edits below see whole escaped objects.
+        good = page("C5", "Z", stock=3, split=10**6)
+        self.assertEqual(parse_partdetail(good)["stock"], 3)
+        self.assertIsNone(parse_partdetail(page("C5", "Z", category="mystery")))
+        # The JSON-LD mpn disagrees with the flight payload.
+        self.assertIsNone(parse_partdetail(good.replace('"mpn": "Z"', '"mpn": "W"')))
+        # Two objects for the part disagree on the stock.
+        self.assertIsNone(parse_partdetail(good.replace(
+            r'\"componentLibraryType\":\"base\"',
+            r'\"componentLibraryType\":\"base\",\"overseasStockCount\":4')))
+        # The part has no stock; the related part's stock must not stand in.
+        self.assertIsNone(parse_partdetail(good.replace(
+            r'\"overseasStockCount\":3', r'\"otherCount\":3')))
+        self.assertIsNone(parse_partdetail(good.replace("self.__next_f", "self.other")))
 
     def test_isolated_help_and_repository_cache_rejection(self):
         help_run = subprocess.run([sys.executable, "-I", str(TOOLS / "jlc_catalog.py"), "--help"],

@@ -10,7 +10,7 @@ from unittest import mock
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
-from sourcing.sitemap import filter_partdetail_urls, parse_sitemap_xml  # noqa: E402
+from sourcing.sitemap import filter_partdetail_urls, load_sitemaps, parse_sitemap_xml  # noqa: E402
 
 
 class SitemapTests(unittest.TestCase):
@@ -28,6 +28,34 @@ class SitemapTests(unittest.TestCase):
         self.assertEqual(urls, ["https://jlcpcb.com/parts.xml.gz"])
         kind, urls = parse_sitemap_xml('<urlset><url><loc>https://jlcpcb.com/partdetail/X/C1/C1</loc></url></urlset>')
         self.assertEqual((kind, urls[0]), ("urlset", "https://jlcpcb.com/partdetail/X/C1/C1"))
+
+    def test_urlset_index_selects_parts_sitemaps(self):
+        # The live index (sample of 2026-10-30) is a urlset of sitemap URLs.
+        ns = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+        locs = ["https://jlcpcb.com/sitemap-en.xml", "https://jlcpcb.com/en/parts/sitemap1.xml",
+                "https://jlcpcb.com/en/parts/sitemap2.xml", "https://jlcpcb.com/parts/1st/Resistors_1"]
+        index = f'<urlset {ns}>' + "".join(f"<url><loc>{u}</loc></url>" for u in locs) + "</urlset>"
+        child = (f'<urlset {ns}><url><loc>https://jlcpcb.com/partdetail/A-B/C7/C7</loc></url>'
+                 '<url><loc>https://jlcpcb.com/parts/1st/Diodes_4</loc></url></urlset>')
+        bodies = {"https://jlcpcb.com/sitemap-index.xml": index,
+                  "https://jlcpcb.com/en/parts/sitemap1.xml": child,
+                  "https://jlcpcb.com/en/parts/sitemap2.xml": f"<urlset {ns}></urlset>"}
+        read = []
+
+        class Reader:
+            def get(self, url):
+                read.append(url)
+                return mock.Mock(body=bodies[url].encode())
+
+        result, meta = load_sitemaps(Reader(), "https://jlcpcb.com/sitemap-index.xml",
+                                     allowed_hosts=["jlcpcb.com"])
+        self.assertEqual(read, list(bodies))
+        self.assertEqual(sorted(result.entries), ["C7"])
+        self.assertEqual((meta["index_root"], meta["declared_children"], meta["parts_children"]),
+                         ("urlset", 3, 2))
+        with self.assertRaises(ValueError):
+            load_sitemaps(Reader(), "https://jlcpcb.com/sitemap-index.xml",
+                          sitemap_urls=["https://jlcpcb.com/sitemap-en.xml"])
 
     def test_strict_filter_and_counts(self):
         urls = [

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Build a dated W1 catalog from jlcparts candidates and canonical sitemap paths.
 
-``parse_partdetail`` is an independent, deliberately small placeholder parser.
-Its rules are provisional and must be finalized against an approved real sample.
-Only self-written minimal fixture pages are used by this offline implementation.
-No raw HTML is written to catalog snapshots.  Every network read goes through
+``parse_partdetail`` reads the page's JSON-LD and Next.js flight payload, with
+rules taken from the approved real sample of 2026-10-30; tests use small
+self-written pages of the same shape.  No raw HTML is written to catalog snapshots.  Every network read goes through
 ``sourcing.http.FetchClient``; resume uses that client's URL cache.
 """
 
@@ -32,45 +31,87 @@ FIELDS = ("c", "mpn", "mfr", "package", "category", "stock", "datasheet", "partd
 _C = re.compile(r"C[1-9][0-9]*")
 
 
-def parse_partdetail(html: str) -> dict | None:
-    """Extract factual fields from a minimal provisional fixture structure.
+_LD_JSON = re.compile(r'<script type="application/ld\+json">(.*?)</script>', re.DOTALL)
+_FLIGHT = re.compile(r'self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)')
+# The flight payload writes an absent value as this string instead of null.
+_UNDEFINED = "$undefined"
 
-    Parsing rules are pending an approved real partdetail sample.  This parser
-    intentionally recognizes only ``data-field`` elements and returns None if
-    any required identity or category field is absent.
+
+def parse_partdetail(html: str, expected_c: str | None = None) -> dict | None:
+    """Extract factual fields from a partdetail page, or None when unsure.
+
+    Rules from the approved sample of 2026-10-30 (C2146, C97521, C1525):
+
+    - The page's own part is the schema.org ``Product`` JSON-LD ``sku``.
+    - The fields come from the Next.js flight payload (the concatenated
+      ``self.__next_f.push([1, "..."])`` strings).  Several objects there carry
+      ``componentCode``; only those equal to the ``sku`` are read, because the
+      page also lists related parts with their own codes and stock.
+    - ``componentModelEn`` is the MPN and must equal the JSON-LD ``mpn``;
+      ``componentBrandEn`` the manufacturer; ``componentSpecificationEn`` the
+      package; ``overseasStockCount`` the stock; ``dataManualUrl`` the datasheet.
+    - ``componentLibraryType`` ``"base"`` is Basic.  ``preferredComponentFlag``
+      true is Preferred, ``"expand"`` without it is Extended.  The sample holds
+      Basic parts only, so any other value is treated as unknown.
+
+    Any missing or conflicting identity field returns None.
     """
-    values = {}
-    for match in re.finditer(
-        r"<([A-Za-z][\w:-]*)\b[^>]*\bdata-field=[\"']([a-z_]+)[\"'][^>]*>(.*?)</\1\s*>",
-        html,
-        flags=re.IGNORECASE | re.DOTALL,
-    ):
-        values[match.group(2).lower()] = re.sub(r"<[^>]+>", "", match.group(3)).strip()
-    for match in re.finditer(
-        r"<([A-Za-z][\w:-]*)\b([^>]*)\bdata-field=[\"']([a-z_]+)[\"']([^>]*)>", html,
-        flags=re.IGNORECASE,
-    ):
-        key = match.group(3).lower()
-        attrs = match.group(2) + match.group(4)
-        href = re.search(r"\bhref=[\"']([^\"']+)[\"']", attrs, flags=re.IGNORECASE)
-        if href:
-            values[key] = href.group(1).strip()
-    required = ("c", "mpn", "mfr", "category")
-    if any(not values.get(key) for key in required) or not _C.fullmatch(values["c"]):
+    product = None
+    for match in _LD_JSON.finditer(html):
+        try:
+            data = json.loads(match.group(1))
+        except ValueError:
+            continue
+        if isinstance(data, dict) and data.get("@type") == "Product":
+            if product is not None:
+                return None
+            product = data
+    if product is None:
         return None
-    category = values["category"].lower()
-    if category not in ("basic", "preferred", "extended"):
+    c = product.get("sku")
+    if not isinstance(c, str) or not _C.fullmatch(c) or (expected_c and c != expected_c):
         return None
     try:
-        stock = int(values.get("stock", "0"))
+        flight = "".join(json.loads(match.group(1)) for match in _FLIGHT.finditer(html))
     except ValueError:
         return None
-    if stock < 0:
+    fields: dict = {}
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r'\{\s*"componentCode"\s*:\s*"' + c + r'"', flight):
+        try:
+            obj, _ = decoder.raw_decode(flight, match.start())
+        except ValueError:
+            continue
+        for key, value in obj.items():
+            if value is None or value == _UNDEFINED or isinstance(value, (dict, list)):
+                continue
+            if key in fields and fields[key] != value:
+                return None
+            fields[key] = value
+    mpn, mfr = fields.get("componentModelEn"), fields.get("componentBrandEn")
+    if not isinstance(mpn, str) or not mpn or mpn != product.get("mpn"):
         return None
+    if not isinstance(mfr, str) or not mfr:
+        return None
+    library = fields.get("componentLibraryType")
+    if library == "base":
+        category = "basic"
+    elif fields.get("preferredComponentFlag") is True:
+        category = "preferred"
+    elif library == "expand":
+        category = "extended"
+    else:
+        return None
+    stock = fields.get("overseasStockCount")
+    if not isinstance(stock, int) or isinstance(stock, bool) or stock < 0:
+        return None
+    package = fields.get("componentSpecificationEn", "")
+    datasheet = fields.get("dataManualUrl", "")
     return {
-        "c": values["c"], "mpn": values["mpn"], "mfr": values["mfr"],
-        "package": values.get("package", ""), "category": category, "stock": stock,
-        "datasheet": values.get("datasheet", ""),
+        "c": c, "mpn": mpn, "mfr": mfr,
+        "package": package if isinstance(package, str) else "",
+        "category": category, "stock": stock,
+        "datasheet": datasheet if isinstance(datasheet, str) else "",
     }
 
 
@@ -167,7 +208,7 @@ def run_catalog(
         except UnicodeDecodeError:
             parse_unresolved.append(candidate["c"])
             continue
-        parsed = parse_partdetail(html)
+        parsed = parse_partdetail(html, candidate["c"])
         if parsed is None or parsed["c"] != candidate["c"]:
             parse_unresolved.append(candidate["c"])
             continue
@@ -201,7 +242,7 @@ def run_catalog(
         "sha256": {"catalog.json": catalog_hash, "unresolved.json": unresolved_hash,
                    "requests.json": log_hash, "not_fetched.json": not_fetched_hash},
         "sitemap_filter": sitemap.report.as_dict(),
-        "parser_status": "provisional_pending_real_partdetail_sample",
+        "parser_status": "real_sample_2026-10-30",
     }
     write_json(output_dir / "provenance.json", provenance)
     return provenance

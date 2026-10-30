@@ -5,7 +5,7 @@ The offline index combines normalized MPNs from sitemap slugs and jlcparts.
 Candidates are confirmed through the shared HTTP client.  AVL extraction uses a
 small Python lexer for ``primary``/``alt`` blocks rather than requiring a built
 ``target/debug/cohdl``; it reads strings and balanced blocks, not regex-only rows.
-Partdetail parsing remains provisional pending an approved real sample.
+Partdetail pages are parsed by ``jlc_catalog.parse_partdetail``.
 """
 
 from __future__ import annotations
@@ -181,7 +181,8 @@ def run_backfill(
             continue
         fetched.add(url)
         try:
-            parsed = parse_partdetail(response.body.decode("utf-8"))
+            parsed = parse_partdetail(response.body.decode("utf-8"),
+                                      urllib.parse.urlsplit(url).path.rstrip("/").rsplit("/", 1)[-1])
         except (UnicodeDecodeError, ValueError):
             parsed = None
         if parsed is not None:
@@ -252,7 +253,7 @@ def run_backfill(
                        "value": len(rows) / len(unique) if unique else 0.0},
         "sha256": {"confirmed.json": confirmed_hash, "lcsc_map.json": map_hash,
                    "review.json": review_hash, "requests.json": requests_hash},
-        "parser_status": "provisional_pending_real_partdetail_sample",
+        "parser_status": "real_sample_2026-10-30",
     }
     write_json(output_dir / "provenance.json", result)
     return result

@@ -125,7 +125,8 @@ def measure(board_json, top_bmp, bottom_bmp, out):
         pads = [p for p in fp["pads"] if p["num"]]
         reach = max(math.hypot(p["x"] - fp["x"], p["y"] - fp["y"]) for p in pads) + 1.2
         near = [d for d in found[fp["bottom"]] if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) <= reach]
-        pad1 = next((p for p in pads if p["num"] == "1"), None)
+        # Pin 1 is ball A1 on a BGA.
+        pad1 = next((p for p in pads if p["num"] in ("1", "A1")), None)
         row = {"ref": fp["ref"], "side": "bottom" if fp["bottom"] else "top", "kicad_angle": fp["angle"],
                "pad1": [round(pad1["x"] - fp["x"], 3), round(pad1["y"] - fp["y"], 3)] if pad1 else None,
                "dots": [[round(d[0] - fp["x"], 2), round(d[1] - fp["y"], 2)] for d in near]}

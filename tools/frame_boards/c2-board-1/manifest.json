@@ -1,0 +1,1618 @@
+{
+ "name": "c2_frame_board_1",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.3",
+  "led": "0.1.2",
+  "transistor": "0.1.1",
+  "diode": "0.1.0",
+  "flash": "0.1.6",
+  "soic": "0.2.1",
+  "can": "0.1.1",
+  "@contrib/comparator": "0.1.0",
+  "@st/stm32": "0.2.2",
+  "@ti/logic": "0.1.2",
+  "qfp": "0.2.0",
+  "ldo": "0.1.2",
+  "logic": "0.1.0",
+  "esd": "0.1.1",
+  "load-switch": "0.1.2",
+  "osc": "0.1.1",
+  "usb": "0.1.5"
+ },
+ "rows": [
+  {
+   "name": "R0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0402]",
+   "pn": "C25744",
+   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mpn": "0402WGF1002TCE",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      6.126,
+      2.042
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      2.042,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      6.126,
+      6.126
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0402",
+   "category": "basic"
+  },
+  {
+   "name": "C0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<3.9pF, 100V, 5%>[C0402]",
+   "pn": "C1525",
+   "mfr": "Samsung Electro-Mechanics",
+   "mpn": "CL05B104KO5NNNC",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      14.294,
+      2.042
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.21,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      14.294,
+      6.126
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0402",
+   "category": "basic"
+  },
+  {
+   "name": "R0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0603]",
+   "pn": "C25804",
+   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mpn": "0603WAF1002T5E",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "placements": [
+    {
+     "at_mm": [
+      18.986,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      24.287,
+      2.65
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      18.986,
+      7.951
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      24.287,
+      7.951
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0603",
+   "category": "basic"
+  },
+  {
+   "name": "C0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::MLCC<100nF, 16V, 10%>[C0603]",
+   "pn": "C15849",
+   "mfr": "Samsung Electro-Mechanics",
+   "mpn": "CL10A105KB8NNNC",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "placements": [
+    {
+     "at_mm": [
+      29.587,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      34.888,
+      2.65
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      29.587,
+      7.951
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      34.888,
+      7.951
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0603",
+   "category": "basic"
+  },
+  {
+   "name": "LED0603",
+   "footprint": "led::FP_LED_0603_1608Metric",
+   "part": "led::ChipLED",
+   "pn": "C2286",
+   "mfr": "Hubei KENTO Elec",
+   "mpn": "KT-0603R",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 3.13,
+   "height_mm": 3.13,
+   "placements": [
+    {
+     "at_mm": [
+      40.103,
+      2.565
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      45.234,
+      2.565
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.103,
+      7.696
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      45.234,
+      7.696
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "polarity",
+   "jlc_package": "0603",
+   "category": "basic"
+  },
+  {
+   "name": "R0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<0ohm, 5%>[R0805]",
+   "pn": "C17414",
+   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mpn": "0805W8F1002T5E",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "placements": [
+    {
+     "at_mm": [
+      50.729,
+      2.93
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      56.589,
+      2.93
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.729,
+      8.79
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      56.589,
+      8.79
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0805",
+   "category": "basic"
+  },
+  {
+   "name": "C0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::MLCC<10pF, 100V, 5%>[C0805]",
+   "pn": "C15850",
+   "mfr": "Samsung Electro-Mechanics",
+   "mpn": "CL21A106KAYNNNE",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "placements": [
+    {
+     "at_mm": [
+      62.449,
+      2.93
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      68.309,
+      2.93
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      62.449,
+      8.79
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      68.309,
+      8.79
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "0805",
+   "category": "basic"
+  },
+  {
+   "name": "R1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<0ohm, 5%>[R1206]",
+   "pn": "C17927",
+   "mfr": "UNI-ROYAL(Uniroyal Elec)",
+   "mpn": "1206W4F1004T5E",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "placements": [
+    {
+     "at_mm": [
+      74.784,
+      3.545
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      81.873,
+      3.545
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      74.784,
+      10.634
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      81.873,
+      10.634
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "1206",
+   "category": "basic"
+  },
+  {
+   "name": "C1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::MLCC<10pF, 100V, 5%>[C1206]",
+   "pn": "C13585",
+   "mfr": "Samsung Electro-Mechanics",
+   "mpn": "CL31A106KBHNNNE",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "placements": [
+    {
+     "at_mm": [
+      88.962,
+      3.545
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      96.052,
+      3.545
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      88.962,
+      10.634
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      96.052,
+      10.634
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "1206",
+   "category": "basic"
+  },
+  {
+   "name": "SOT23_S8050",
+   "footprint": "transistor::FP_JSCJ_SOT23",
+   "part": "transistor::NPN_SOT23_BEC",
+   "pn": "C2146",
+   "mfr": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "mpn": "S8050 J3Y(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 4.642,
+   "height_mm": 4.642,
+   "placements": [
+    {
+     "at_mm": [
+      3.321,
+      17.5
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      9.964,
+      17.5
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      3.321,
+      24.142
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      9.964,
+      24.142
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "C1 re-measure: rotate 90",
+   "jlc_package": "SOT-23",
+   "category": "basic"
+  },
+  {
+   "name": "SOT23_2N7002",
+   "footprint": "transistor::FP_JSCJ_SOT23",
+   "part": "transistor::NPN_SOT23_BEC",
+   "pn": "C8545",
+   "mfr": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "mpn": "2N7002",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 4.642,
+   "height_mm": 4.642,
+   "placements": [
+    {
+     "at_mm": [
+      16.606,
+      17.5
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      23.249,
+      17.5
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      16.606,
+      24.142
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      23.249,
+      24.142
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "same package, other model",
+   "jlc_package": "SOT-23",
+   "category": "basic"
+  },
+  {
+   "name": "SOT23_MMBT3904",
+   "footprint": "transistor::FP_JSCJ_SOT23",
+   "part": "transistor::NPN_SOT23_BEC",
+   "pn": "C20526",
+   "mfr": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "mpn": "MMBT3904(RANGE:100-300)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 4.642,
+   "height_mm": 4.642,
+   "placements": [
+    {
+     "at_mm": [
+      29.891,
+      17.5
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      36.534,
+      17.5
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      29.891,
+      24.142
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      36.534,
+      24.142
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "same package, other model",
+   "jlc_package": "SOT-23",
+   "category": "basic"
+  },
+  {
+   "name": "SOD123",
+   "footprint": "diode::FP_D_SOD_123",
+   "part": "diode::Diode_1N4148",
+   "pn": "C81598",
+   "mfr": "ST(Semtech)",
+   "mpn": "1N4148W",
+   "pins": [
+    "Cathode",
+    "Anode"
+   ],
+   "width_mm": 5.099,
+   "height_mm": 5.099,
+   "placements": [
+    {
+     "at_mm": [
+      43.404,
+      17.728
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.503,
+      17.728
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      43.404,
+      24.827
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      50.503,
+      24.827
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "polarity",
+   "jlc_package": "SOD-123",
+   "category": "basic"
+  },
+  {
+   "name": "SOIC8_208",
+   "footprint": "soic::SOIC8P127X790X216N",
+   "part": "flash::W25Q128JV[SOIC8]",
+   "pn": "C97521",
+   "mfr": "Winbond Elec",
+   "mpn": "W25Q128JVSIQ",
+   "pins": [
+    "GND",
+    "VCC"
+   ],
+   "width_mm": 10.96,
+   "height_mm": 10.96,
+   "placements": [
+    {
+     "at_mm": [
+      60.533,
+      20.659
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      73.493,
+      20.659
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.533,
+      33.619
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      73.493,
+      33.619
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "C1 re-measure: rotate 270",
+   "jlc_package": "SOIC-8-208mil",
+   "category": "basic"
+  },
+  {
+   "name": "SOIC8_KICAD",
+   "footprint": "soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+   "part": "can::CAN_SN65HVD230",
+   "pn": "C7950",
+   "mfr": "onsemi",
+   "mpn": "LM358DR2G",
+   "pins": [
+    "D",
+    "GND",
+    "VCC",
+    "R",
+    "CANL",
+    "CANH",
+    "RS"
+   ],
+   "width_mm": 9.161,
+   "height_mm": 9.161,
+   "placements": [
+    {
+     "at_mm": [
+      5.58,
+      45.68
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      16.741,
+      45.68
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      5.58,
+      56.841
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      16.741,
+      56.841
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOIC-8",
+   "category": "basic"
+  },
+  {
+   "name": "SOIC8_TI",
+   "footprint": "soic::TI_D0008A_4214825C",
+   "part": "contrib_comparator::TLV9022_D8",
+   "pn": "C7433",
+   "mfr": "Texas Instruments",
+   "mpn": "OP07CDR",
+   "pins": [
+    "IN1_N",
+    "IN1_P",
+    "V_MINUS",
+    "IN2_P",
+    "IN2_N",
+    "V_PLUS"
+   ],
+   "width_mm": 9.573,
+   "height_mm": 9.573,
+   "placements": [
+    {
+     "at_mm": [
+      28.108,
+      45.886
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      39.681,
+      45.886
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      28.108,
+      57.459
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      39.681,
+      57.459
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOIC-8",
+   "category": "basic"
+  },
+  {
+   "name": "TSSOP20",
+   "footprint": "soic::KICAD_TSSOP_20_4_4X6_5MM_P0_65MM",
+   "part": "st_stm32::STM32G030F6Px",
+   "pn": "C52717",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM8S003F3P6TR",
+   "pins": [
+    "VDD_VDDA",
+    "VSS_VSSA"
+   ],
+   "width_mm": 10.406,
+   "height_mm": 10.406,
+   "placements": [
+    {
+     "at_mm": [
+      51.671,
+      46.303
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      64.077,
+      46.303
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      51.671,
+      58.709
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      64.077,
+      58.709
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "TSSOP-20",
+   "category": "preferred"
+  },
+  {
+   "name": "TSSOP24",
+   "footprint": "soic::TSSOP24P65_TI_PW0024A",
+   "part": "ti_logic::SN74LVC8T245",
+   "pn": "C7859",
+   "mfr": "Texas Instruments",
+   "mpn": "SN74LVC4245APWR",
+   "pins": [
+    "VCCA",
+    "DIR",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "A7",
+    "A8",
+    "GND",
+    "B8",
+    "B7",
+    "B6",
+    "B5",
+    "B4",
+    "B3",
+    "B2",
+    "B1",
+    "OE",
+    "VCCB"
+   ],
+   "width_mm": 11.463,
+   "height_mm": 11.463,
+   "placements": [
+    {
+     "at_mm": [
+      77.012,
+      46.831
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.475,
+      46.831
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      77.012,
+      60.294
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      90.475,
+      60.294
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "TSSOP-24",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP48_KICAD",
+   "footprint": "qfp::KICAD_LQFP_48_7X7MM_P0_5MM",
+   "part": "st_stm32::STM32F103C8Tx",
+   "pn": "C8734",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F103C8T6",
+   "pins": [
+    "VBAT",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "VDD",
+    "BOOT0"
+   ],
+   "width_mm": 14.566,
+   "height_mm": 14.566,
+   "placements": [
+    {
+     "at_mm": [
+      8.283,
+      75.309
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      24.85,
+      75.309
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      8.283,
+      91.875
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      24.85,
+      91.875
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP48_IPC",
+   "footprint": "qfp::QFP50P900X900X160_48N",
+   "part": "st_stm32::STM32F072C8Tx",
+   "pn": "C7532",
+   "mfr": "Holtek Semicon",
+   "mpn": "HT1621B",
+   "pins": [
+    "VBAT",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "VDD",
+    "VDDIO2",
+    "BOOT0"
+   ],
+   "width_mm": 14.425,
+   "height_mm": 14.425,
+   "placements": [
+    {
+     "at_mm": [
+      41.345,
+      75.238
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      57.77,
+      75.238
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      41.345,
+      91.663
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      57.77,
+      91.663
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "device supplies pins only",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP32",
+   "footprint": "qfp::KICAD_LQFP_32_7X7MM_P0_8MM",
+   "part": "st_stm32::STM32G431K6Tx",
+   "pn": "C8254",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM8S105K6T6C",
+   "pins": [
+    "VDD",
+    "VSSA",
+    "VDDA",
+    "VSS"
+   ],
+   "width_mm": 14.651,
+   "height_mm": 14.651,
+   "placements": [
+    {
+     "at_mm": [
+      74.308,
+      75.351
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      90.96,
+      75.351
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      74.308,
+      92.002
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      90.96,
+      92.002
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "LQFP-32(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "SOT235_LDO",
+   "footprint": "ldo::SOT5P95X290X145N",
+   "part": "ldo::RT9193[TSOT235]",
+   "pn": "C7972",
+   "mfr": "Texas Instruments",
+   "mpn": "LMV321IDBVR",
+   "pins": [
+    "IN",
+    "GND",
+    "EN",
+    "BP",
+    "OUT"
+   ],
+   "width_mm": 5.326,
+   "height_mm": 5.326,
+   "placements": [
+    {
+     "at_mm": [
+      3.663,
+      103.991
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.99,
+      103.991
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      3.663,
+      111.317
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      10.99,
+      111.317
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOT-23-5",
+   "category": "preferred"
+  },
+  {
+   "name": "SOT235_LOGIC",
+   "footprint": "logic::SOT5P95X300X145N",
+   "part": "logic::SN74AHCT1G125",
+   "pn": "C7722",
+   "mfr": "Texas Instruments",
+   "mpn": "TPS61040DBVR",
+   "pins": [
+    "OE_N",
+    "A",
+    "GND",
+    "Y",
+    "VCC"
+   ],
+   "width_mm": 5.404,
+   "height_mm": 5.404,
+   "placements": [
+    {
+     "at_mm": [
+      18.355,
+      104.03
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      25.758,
+      104.03
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      18.355,
+      111.433
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      25.758,
+      111.433
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOT-23-5",
+   "category": "preferred"
+  },
+  {
+   "name": "SOT236_ESD",
+   "footprint": "esd::FP_SOT_23_6",
+   "part": "esd::USBLC6",
+   "pn": "C85364",
+   "mfr": "ProTek Devices",
+   "mpn": "SRV05-4-P-T7",
+   "pins": [
+    "IO1_A",
+    "GND",
+    "IO2_A",
+    "IO2_B",
+    "VBUS",
+    "IO1_B"
+   ],
+   "width_mm": 5.326,
+   "height_mm": 5.326,
+   "placements": [
+    {
+     "at_mm": [
+      33.123,
+      103.991
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.45,
+      103.991
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      33.123,
+      111.317
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.45,
+      111.317
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOT-23-6",
+   "category": "preferred"
+  },
+  {
+   "name": "SOT236_DBV",
+   "footprint": "load_switch::FP_TI_DBV0006A",
+   "part": "load_switch::TPS22918",
+   "pn": "C12044",
+   "mfr": "TOPPOWER(Nanjing Extension Microelectronics)",
+   "mpn": "TP4057-42-SOT26-R",
+   "pins": [
+    "VIN",
+    "GND",
+    "ON",
+    "VOUT"
+   ],
+   "width_mm": 5.08,
+   "height_mm": 5.08,
+   "placements": [
+    {
+     "at_mm": [
+      47.653,
+      103.868
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      54.733,
+      103.868
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      47.653,
+      110.948
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      54.733,
+      110.948
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SOT-23-6",
+   "category": "preferred"
+  },
+  {
+   "name": "DFN1006",
+   "footprint": "esd::FP_Hongjiacheng_DFN1006_2L",
+   "part": "esd::H5VL10B",
+   "pn": "C7420372",
+   "mfr": "hongjiacheng",
+   "mpn": "H5VL10B",
+   "pins": [
+    "IO1",
+    "IO2"
+   ],
+   "width_mm": 2.025,
+   "height_mm": 2.025,
+   "placements": [
+    {
+     "at_mm": [
+      60.286,
+      102.34
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      64.311,
+      102.34
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      60.286,
+      106.365
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      64.311,
+      106.365
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "polarity",
+   "jlc_package": "DFN1006-2L",
+   "category": "preferred"
+  },
+  {
+   "name": "XTAL3225_A",
+   "footprint": "osc::FP_Crystal_SMD_3225_4Pin_3_2x2_5mm",
+   "part": "osc::Crystal_4pad",
+   "pn": "C13738",
+   "mfr": "YXC Crystal Oscillators",
+   "mpn": "X322516MLB4SI",
+   "pins": [
+    "XIN",
+    "GND",
+    "XOUT"
+   ],
+   "width_mm": 5.263,
+   "height_mm": 5.263,
+   "placements": [
+    {
+     "at_mm": [
+      69.955,
+      103.959
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      77.218,
+      103.959
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      69.955,
+      111.223
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      77.218,
+      111.223
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SMD3225-4P",
+   "category": "basic"
+  },
+  {
+   "name": "XTAL3225_B",
+   "footprint": "osc::FP_Crystal_3225",
+   "part": "osc::Crystal8MHz",
+   "pn": "C9002",
+   "mfr": "YXC Crystal Oscillators",
+   "mpn": "X322512MSB4SI",
+   "pins": [
+    "XIN",
+    "XOUT",
+    "GND"
+   ],
+   "width_mm": 5.263,
+   "height_mm": 5.263,
+   "placements": [
+    {
+     "at_mm": [
+      84.481,
+      103.959
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      91.744,
+      103.959
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      84.481,
+      111.223
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      91.744,
+      111.223
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SMD3225-4P",
+   "category": "basic"
+  },
+  {
+   "name": "XTAL3215",
+   "footprint": "osc::FP_Crystal_SMD_3215_2Pin_ABS07",
+   "part": "osc::Crystal_2pad",
+   "pn": "C32346",
+   "mfr": "Seiko Epson",
+   "mpn": "Q13FC13500004",
+   "pins": [
+    "XIN",
+    "XOUT"
+   ],
+   "width_mm": 4.751,
+   "height_mm": 4.751,
+   "placements": [
+    {
+     "at_mm": [
+      3.375,
+      118.511
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.126,
+      118.511
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      3.375,
+      125.261
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      10.126,
+      125.261
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "SMD3215-2P",
+   "category": "basic"
+  },
+  {
+   "name": "USBC",
+   "footprint": "usb::connectors::type_c::FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
+   "part": "usb::connectors::type_c::USB_C_Receptacle_2_0",
+   "pn": "C165948",
+   "mfr": "Korean Hroparts Elec",
+   "mpn": "TYPE-C-31-M-12",
+   "pins": [
+    "GND",
+    "VBUS",
+    "CC1",
+    "CC2",
+    "DP",
+    "DN",
+    "SBU1",
+    "SBU2",
+    "SHIELD"
+   ],
+   "width_mm": 14.977,
+   "height_mm": 14.977,
+   "placements": [
+    {
+     "at_mm": [
+      21.99,
+      123.624
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      38.967,
+      123.624
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      21.99,
+      140.6
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      38.967,
+      140.6
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "origin control: courtyard centre is off the origin",
+   "jlc_package": "SMD",
+   "category": "extended"
+  }
+ ]
+}

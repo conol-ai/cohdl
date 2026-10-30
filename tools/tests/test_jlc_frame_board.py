@@ -37,7 +37,11 @@ class FrameBoardTests(unittest.TestCase):
             if argv[0] == "cohdl":
                 out = Path(argv[2]) / "out"
                 out.mkdir(exist_ok=True)
-                (out / "demo.kicad_pcb").write_text('(kicad_pcb (footprint "pkg-FP" (layer "F.Cu") (at 1 2 0) (property "Reference" "U1")))\n')
+                # The designator prefix comes from the device, not the row name.
+                (out / "demo.kicad_pcb").write_text('(kicad_pcb (setup (pad_to_mask_clearance 0)) (footprint "pkg-FP" (layer "F.Cu") (at 1 2 0) (property "Reference" "Q7")))\n')
+                (out / "demo-layout.json").write_text(json.dumps({"board_outline": {
+                    "start": [-4, -3], "segments": [{"to": [20, -3]}, {"to": [20, 9.5]}, {"to": [-4, 9.5]}]}}))
+                (Path(argv[2]) / "design.lock").write_text('[designators]\n"FramePreview::u_0" = "Q7"\n')
                 return ""
             if argv[-1] == "--version":
                 return "9.0.0\n"
@@ -50,10 +54,13 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertEqual(jb.main([str(manifest), "-o", str(root / "board"), "--cohdl", "cohdl"]), 0)
             build = next(c for c in calls if c[0] == "cohdl")
             self.assertEqual(build[-5:], ["--supplier", "lcsc", "--bottom-rotation", "lcsc=mirrored", "--emit", "kicad_pcb"][-5:])
-            self.assertIn("C1", (root / "board/CHECKLIST.md").read_text())
+            self.assertIn("| Q7 | C1 | top | 0 |", (root / "board/CHECKLIST.md").read_text())
             self.assertTrue((root / "board/src/main.cohdl").exists())
-            self.assertTrue(any("gerbers" in c for c in calls))
-            self.assertTrue(any("drill" in c for c in calls))
+            # Gerbers, drill files and the CPL share the outline's lower-left corner.
+            self.assertIn("(aux_axis_origin -4 9.5)", (root / "board/out/demo.kicad_pcb").read_text())
+            self.assertIn("--use-drill-file-origin", next(c for c in calls if "gerbers" in c))
+            drill = next(c for c in calls if "drill" in c)
+            self.assertEqual(drill[drill.index("--drill-origin") + 1], "plot")
 
     def test_explicit_replay_preserves_fixture_placement_lines(self):
         rows = []

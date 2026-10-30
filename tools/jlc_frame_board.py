@@ -34,6 +34,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 
@@ -226,14 +227,35 @@ def children(node, name):
     return [n for n in node if isinstance(n, list) and n[0] == name]
 
 
-def checklist(board_path, placements, output):
+def set_place_origin(board_path, layout_path):
+    """Put KiCad's drill/place origin at the outline's lower-left corner.
+
+    The compiler's CPL measures from that corner (RFC-034 section 3.1), so the
+    Gerbers and drill files must use it too, or the assembler's preview shifts
+    every part by the outline's offset.  Returns the origin in board units.
+    """
+    outline = json.loads(layout_path.read_text(encoding="utf-8"))["board_outline"]
+    points = [outline["start"]] + [s["to"] for s in outline["segments"] if "to" in s]
+    origin = (min(x for x, _ in points), max(y for _, y in points))
+    text = board_path.read_text(encoding="utf-8")
+    entry = "(aux_axis_origin %s %s)" % (mm(origin[0]), mm(origin[1]))
+    if "(aux_axis_origin" in text:
+        text = re.sub(r"\(aux_axis_origin [^)]*\)", entry, text, count=1)
+    elif "(setup" in text:
+        text = text.replace("(setup", "(setup\n\t\t" + entry, 1)
+    else:
+        raise BoardError("kicad_pcb has no setup section for the place origin")
+    board_path.write_text(text, encoding="utf-8")
+    return origin
+
+
+def checklist(board_path, lock_path, design, placements, output):
     board = board_sexpr(board_path.read_text(encoding="utf-8"))
-    authored = {}
-    counts = {}
-    for p in placements:
-        prefix = p["row"]["name"][0].upper()
-        counts[prefix] = counts.get(prefix, 0) + 1
-        authored[prefix + str(counts[prefix])] = p
+    # design.lock is the compiler's instance -> designator record; the prefix
+    # comes from the device's trait, not from the row name.
+    designators = tomllib.loads(lock_path.read_text(encoding="utf-8")).get("designators", {})
+    by_instance = {"%s::%s_%d" % (design, p["row"]["name"], p["index"]): p for p in placements}
+    authored = {ref: by_instance[inst] for inst, ref in designators.items() if inst in by_instance}
     lines = ["# JLC frame alignment checklist", "", "Check every row against the JLC preview before ordering. Angles are CoHDL authoring angles; KiCad's bottom encoding is shown separately.", "",
              "| Ref | LCSC PN | Side | Authoring angle | KiCad angle | Expected pin 1 direction |", "|---|---|---|---:|---:|---|"]
     for fp in children(board, "footprint"):
@@ -241,8 +263,9 @@ def checklist(board_path, placements, output):
         bottom = next(c for c in children(fp, "layer"))[1] == "B.Cu"
         angle = next(c for c in children(fp, "at"))
         angle = float(angle[3]) if len(angle) > 3 else 0
-        # Designator allocation follows declaration order within each prefix.
-        place = authored[ref]
+        place = authored.get(ref)
+        if place is None:
+            raise BoardError("design.lock has no frame placement for " + ref)
         lines.append("| %s | %s | %s | %s | %s | verify supplier pad 1 against source footprint |" %
                      (ref, place["row"]["pn"], place["side"], mm(place["rotate"]), mm(angle)))
     output.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -266,14 +289,16 @@ def main(argv=None):
         run([args.cohdl, "build", str(args.output), "--supplier", "lcsc", "--bottom-rotation", "lcsc=mirrored", "--emit", "kicad_pcb"])
         out = args.output / "out"
         board = out / (name + ".kicad_pcb")
-        checklist(board, placements, args.output / "CHECKLIST.md")
+        set_place_origin(board, out / (name + "-layout.json"))
+        checklist(board, args.output / "design.lock", manifest["design"], placements,
+                  args.output / "CHECKLIST.md")
         if not args.skip_kicad:
             fabrication = args.output / "fabrication"
             fabrication.mkdir(exist_ok=True)
             version = run([args.kicad_cli, "--version"]).strip()
             (fabrication / "kicad-cli-version.txt").write_text(version + "\n", encoding="utf-8")
-            run([args.kicad_cli, "pcb", "export", "gerbers", "--output", str(fabrication), str(board)])
-            run([args.kicad_cli, "pcb", "export", "drill", "--output", str(fabrication), "--excellon-zeros-format", "decimal", "--drill-origin", "absolute", str(board)])
+            run([args.kicad_cli, "pcb", "export", "gerbers", "--use-drill-file-origin", "--output", str(fabrication), str(board)])
+            run([args.kicad_cli, "pcb", "export", "drill", "--output", str(fabrication), "--excellon-zeros-format", "decimal", "--drill-origin", "plot", str(board)])
             hashes = []
             for artifact in sorted(fabrication.iterdir()):
                 if artifact.is_file() and artifact.name != "SHA256SUMS":

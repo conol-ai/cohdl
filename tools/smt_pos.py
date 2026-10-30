@@ -54,6 +54,8 @@ import json
 import sys
 from pathlib import Path
 
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import smt_pos_map
 from smt_pos_lib import (
     has_numbered_smd,

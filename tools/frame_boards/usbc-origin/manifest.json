@@ -1,0 +1,178 @@
+{
+ "name": "usbc_origin_check",
+ "dependencies": {
+  "std": "0.3.0",
+  "usb": "0.1.5",
+  "transistor": "0.2.0",
+  "flash": "0.2.0",
+  "soic": "0.3.0"
+ },
+ "rows": [
+  {
+   "name": "USBC",
+   "footprint": "usb::connectors::type_c::FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
+   "part": "usb::connectors::type_c::USB_C_Receptacle_2_0",
+   "pn": "C165948",
+   "mfr": "Korean Hroparts Elec",
+   "mpn": "TYPE-C-31-M-12",
+   "pins": [
+    "GND",
+    "VBUS",
+    "CC1",
+    "CC2",
+    "DP",
+    "DN",
+    "SBU1",
+    "SBU2",
+    "SHIELD"
+   ],
+   "width_mm": 14.977,
+   "height_mm": 14.977,
+   "placements": [
+    {
+     "at_mm": [
+      8.489,
+      8.489
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      25.465,
+      8.489
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      42.443,
+      8.489
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      59.419,
+      8.489
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "origin check: map at (0mm, -1.55mm) from board 1",
+   "jlc_package": "SMD",
+   "category": "extended",
+   "mapping": {
+    "dx_mm": 0,
+    "dy_mm": -1.55,
+    "rotate_deg": 0
+   }
+  },
+  {
+   "name": "SOT23_S8050",
+   "footprint": "transistor::FP_JSCJ_SOT23",
+   "part": "transistor::NPN_SOT23_BEC",
+   "pn": "C2146",
+   "mfr": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "mpn": "S8050 J3Y(RANGE:200-350)",
+   "pins": [
+    "B",
+    "E",
+    "C"
+   ],
+   "width_mm": 4.642,
+   "height_mm": 4.642,
+   "placements": [
+    {
+     "at_mm": [
+      3.321,
+      20.298
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      9.963,
+      20.298
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      16.605,
+      20.298
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      23.247,
+      20.298
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "control: transistor 0.2.0 moved by rotate 90, no map",
+   "jlc_package": "SOT-23",
+   "category": "basic"
+  },
+  {
+   "name": "SOIC8_208",
+   "footprint": "soic::SOIC8P127X790X216N",
+   "part": "flash::W25Q128JV[SOIC8]",
+   "pn": "C97521",
+   "mfr": "Winbond Elec",
+   "mpn": "W25Q128JVSIQ",
+   "pins": [
+    "GND",
+    "VCC"
+   ],
+   "width_mm": 10.96,
+   "height_mm": 10.96,
+   "placements": [
+    {
+     "at_mm": [
+      6.48,
+      30.099
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      19.44,
+      30.099
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      32.4,
+      30.099
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      45.36,
+      30.099
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "control: soic 0.3.0 moved by rotate 270, no map",
+   "jlc_package": "SOIC-8-208mil",
+   "category": "basic"
+  }
+ ]
+}

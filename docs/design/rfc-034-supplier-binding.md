@@ -1,6 +1,6 @@
 # RFC-034: Supplier bindings with placement mapping
 
-> Draft. Number provisional pending central registry allocation; error codes provisional pending central allocation. Baseline: main `329af05` (2026-10-21). Builds on the provisional `part`/AVL syntax (`docs/provisional-syntax.md` §2), RFC-001 (units), RFC-020/025/026 (placement, rotation, back side), RFC-029/030 (versioned packages, registry.cohdl.org) and the registry search amendment to RFC-030/DR-036. Also composes with two repository extensions that have no RFC (commit `f1f7acc`): the `#[source_unspecified("mpn"|"mfr")]` part marker, which lets a primary entry carry an explicitly empty `mpn` or `mfr`, and `cohdl build --logical-only`, which writes logical artifacts and no physical ones.
+> Accepted, 2026-10-30. Number provisional pending central registry allocation; error codes provisional pending central allocation. Baseline: main `329af05` (2026-10-21). Builds on the provisional `part`/AVL syntax (`docs/provisional-syntax.md` §2), RFC-001 (units), RFC-020/025/026 (placement, rotation, back side), RFC-029/030 (versioned packages, registry.cohdl.org) and the registry search amendment to RFC-030/DR-036. Also composes with two repository extensions that have no RFC (commit `f1f7acc`): the `#[source_unspecified("mpn"|"mfr")]` part marker, which lets a primary entry carry an explicitly empty `mpn` or `mfr`, and `cohdl build --logical-only`, which writes logical artifacts and no physical ones.
 
 ## Problem
 
@@ -368,6 +368,7 @@ There are two main risks, each with a mitigation:
 7. **CPL only on request (`--emit cpl`).** It would avoid a new default file and would inherit `--emit`'s exclusion with `--logical-only` for free. Not chosen: a placed design's CPL is as basic an assembly output as its BOM, and the board author asked for it by default. The costs are contained instead: only placed designs get the file, a partly placed design gets one summary E815, and `--logical-only` suppresses it explicitly (§3).
 8. **Pad-centroid position** (`smt_pos.py`'s current `Mid X/Y`). Rejected for the neutral file: the centroid moves when a land is redrawn, and §2's mapping is between footprint origins. The existing script output keeps the centroid for its current users.
 9. **Bottom-side convention as a supplier declaration in the language** (`supplier acme { bottom_rotation: mirrored }`, a revision of 2026-10-29). Rejected: it adds a declaration form and two diagnostics for a fact about an export target, and a design would change meaning with the package set it is built against. A build parameter keeps the language unchanged and the source in one convention.
+10. **A project-file default for the bottom-side convention** (a `cohdl.toml` entry naming `mirrored` for a supplier, so the flag can be left out; raised at acceptance). Not chosen, for the reason of 9: the convention describes the export target, not the design. With a project default, the same source and the same command line would write different CPLs depending on a configuration file, and a package manifest would carry assembler knowledge. A forgotten flag is already visible: the build output names the convention next to each supplier CPL, and the map file records it. A per-user default outside the project can be reconsidered if forgetting the flag proves a real problem.
 
 ## Compatibility
 
@@ -386,7 +387,7 @@ There are two main risks, each with a mitigation:
 
 ## Tooling & operations
 
-- **Documents updated once Accepted:**
+- **Documents updated for acceptance** (note 10 and `docs/provisional-syntax.md` with the acceptance, the rest with the implementation):
   - Note 10: the supplier clause and mapping rule.
   - `docs/provisional-syntax.md` §2: the AVL item list.
   - `docs/error-codes.md`: E813, E814, E815.
@@ -435,7 +436,9 @@ None required. Designs adopt supplier output by adding clauses to their own part
 
 ## Decision
 
-Draft, 2026-10-23; revised 2026-10-27 and 2026-10-28 after four source reviews against `329af05` (the third defined the map's pad projection, the fourth its matching rule). Awaiting review; no decision record yet.
+**Accepted — 2026-10-30.** An AVL entry may carry `supplier ID "PART_NUMBER" [at (X, Y)] [rotate N]` clauses (§1). The supplier set is open and unknown to the compiler, and E813 rejects malformed or conflicting bindings. A binding's mapping places the supplier's footprint in the entry footprint's frame and composes with each instance's placement through the existing `compose_place` (§2). A physical build of a placed design writes a supplier-neutral CPL (§3.1, E815 for unplaced parts). `--supplier ID` adds a per-supplier BOM, map file and CPL with per-instance selection (§3.2, E814), and `--bottom-rotation ID=mirrored` states an assembler's bottom-side convention at export, never in the source. The registry indexes bindings and serves supplier catalogs (§4), and `cohdl suppliers` checks them online (§5). Purely additive: every existing source keeps its meaning and every existing output its bytes. A project-file default for `--bottom-rotation` was considered at acceptance and not adopted (Alternatives, 10). Recorded as DR-039 (see note 7); note 10 gains a "Supplier bindings and placement files" section. The RFC number, the DR number and E813–E815 stay provisional until central allocation.
+
+History: draft, 2026-10-23; revised 2026-10-27 and 2026-10-28 after four source reviews against `329af05` (the third defined the map's pad projection, the fourth its matching rule).
 
 Implementation may proceed in stages before acceptance:
 - The clause syntax, checks, `fmt`, per-instance selection, supplier BOM, registry and API docs do not depend on the map check and may start now.
@@ -446,4 +449,4 @@ Implementation status, 2026-10-28: every stage is implemented on the local branc
 
 Revised 2026-10-29: `--bottom-rotation` and the map's `bottom_rotation` (§3.2), from the assembler preview in Open questions. A first revision carried the convention as a supplier declaration in the language; it was withdrawn the same day (Alternatives, 9). The pcbnew checklist was run on KiCad 10.0.7: open-and-save by pcbnew and by `kicad-cli`, a flip in each direction for top and bottom parts at a cardinal and a 37° angle, and 0.01 mm pad moves. All 19 cases behaved as specified.
 
-Acceptance still requires central allocation of the RFC number and error codes, and a repeat of the assembler preview with the bottom-side convention applied by the compiler from `--bottom-rotation`. Until then this text is not frozen. This file is a working copy in the repository snapshot. The canonical RFC belongs in the conol.ai design repository, where its number and error codes are allocated.
+Acceptance conditions, met by 2026-10-30: the pcbnew checklist (above), and a repeat of the assembler preview with the bottom-side convention applied by the compiler from `--bottom-rotation`. The repeat ran on the four-part test board on 2026-10-29 and on a 30-part alignment board on 2026-10-30; on both, each bottom copy read as the mirror image of its top copy and each 37° copy the same as its 0° copy, as `mirrored` requires. Still open: central allocation of the RFC number, the decision-record number and the error codes. This file is a working copy in the repository snapshot. The canonical RFC belongs in the conol.ai design repository, where its number and error codes are allocated.

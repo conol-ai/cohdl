@@ -11,6 +11,8 @@ with the footprint's own pad 1:
     sips -s format bmp top.jpg --out top.bmp
     # 3. measure, with any Python
     python3 -I measure_preview.py measure board.json top.bmp bottom.bmp out.json
+    # 4. a connector's locating pegs against the board's own holes
+    python3 -I measure_preview.py pegs board.json top.bmp bottom.bmp REF_PREFIX
 
 The bottom screenshot is the preview's view from below, mirrored left to
 right.  `delta_ccw_from_top` is how far the preview's pin 1 sits
@@ -18,6 +20,10 @@ counter-clockwise from ours, seen from the top.  The supplier map's local
 `rotate` that cancels it is `(360 - delta) mod 360` rounded to 90 degrees;
 seen from the top, the bottom side's delta is the mirror image of the top's.
 Two-terminal parts carry polarity signs instead of a dot and are read by eye.
+
+`pegs` compares a connector's peg dots with its non-plated holes as the other
+view shows them through the board.  Both go through the same outline mapping,
+so the comparison does not depend on how well the outline calibrates.
 """
 import json
 import math
@@ -67,8 +73,12 @@ def is_magenta(px):
     return px[2] > 170 and px[0] > 170 and px[1] < 110
 
 
-def dots(path, outline, bottom):
-    """Magenta clusters in board millimetres."""
+def is_hole(px):
+    return max(px[0], px[1], px[2]) < 60
+
+
+def dots(path, outline, bottom, pred=is_magenta, size=(6, None)):
+    """Clusters of `pred` pixels, magenta by default, in board millimetres."""
     x0, y0, x1, y1 = outline
     w, h, bpp, rows = load_bmp(path)
     mid = rows[h // 2]
@@ -77,7 +87,7 @@ def dots(path, outline, bottom):
     left, right, top, low = min(xs), max(xs) + 1, min(ys), max(ys) + 1
     sx, sy = (right - left) / (x1 - x0), (low - top) / (y1 - y0)
     hits = {(x, y) for y in range(top, low) for x in range(left, right)
-            if is_magenta(rows[y][x * bpp:x * bpp + 3])}
+            if pred(rows[y][x * bpp:x * bpp + 3])}
     found, seen = [], set()
     for start in hits:
         if start in seen:
@@ -91,7 +101,7 @@ def dots(path, outline, bottom):
                 if n in hits and n not in seen:
                     seen.add(n)
                     stack.append(n)
-        if len(pts) < 6:
+        if len(pts) < size[0] or (size[1] and len(pts) > size[1](sx)):
             continue
         cx = sum(p[0] for p in pts) / len(pts)
         cy = sum(p[1] for p in pts) / len(pts)
@@ -129,10 +139,32 @@ def measure(board_json, top_bmp, bottom_bmp, out):
         f.write("\n")
 
 
+def pegs(board_json, top_bmp, bottom_bmp, prefix):
+    """Each footprint's peg dots and, from the other view, its holes."""
+    with open(board_json) as f:
+        doc = json.load(f)
+    x0, y0, x1, y1 = doc["bbox"]
+    outline = (x0 + 0.05, y0 + 0.05, x1 - 0.05, y1 - 0.05)
+    hole = (10, lambda sx: int((0.9 * sx) ** 2))  # smaller than a 0.9 mm square
+    views = {bottom: (dots(path, outline, bottom), dots(path, outline, bottom, is_hole, hole))
+             for bottom, path in ((False, top_bmp), (True, bottom_bmp))}
+    for fp in doc["fps"]:
+        if not fp["ref"].startswith(prefix):
+            continue
+        def near(found):
+            return sorted((round(d[0] - fp["x"], 2), round(d[1] - fp["y"], 2)) for d in found
+                          if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) < 6)
+        print(json.dumps({"ref": fp["ref"], "side": "bottom" if fp["bottom"] else "top",
+                          "kicad_angle": fp["angle"], "dots": near(views[fp["bottom"]][0]),
+                          "holes": near(views[not fp["bottom"]][1])}))
+
+
 if __name__ == "__main__":
     if len(sys.argv) == 4 and sys.argv[1] == "board":
         board(sys.argv[2], sys.argv[3])
     elif len(sys.argv) == 6 and sys.argv[1] == "measure":
         measure(*sys.argv[2:])
+    elif len(sys.argv) == 6 and sys.argv[1] == "pegs":
+        pegs(*sys.argv[2:])
     else:
         sys.exit(__doc__)

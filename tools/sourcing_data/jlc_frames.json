@@ -702,7 +702,7 @@
       "evidence_ref": null
     },
     {
-      "id": "c2b1-usbc-c165948",
+      "id": "usbc-origin-c165948",
       "package": "usb",
       "package_version": "0.1.5",
       "footprint": "FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
@@ -715,14 +715,14 @@
       },
       "measured": {
         "dx_mm": 0,
-        "dy_mm": -1.54,
+        "dy_mm": -1.42,
         "rotate_deg": 0
       },
-      "exception": "Supplier model origin sits 1.55 mm from ours along the mating axis (RFC-034 section 3.1 origin control); confirm on a corrected preview before relying on it",
+      "exception": "Supplier model origin sits about 1.5 mm from ours along the mating axis (RFC-034 section 3.1 origin control); confirmed on a preview with this map, pegs within 0.2 mm of our holes",
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-usbc-origin/README.md"
       },
       "evidence_ref": null
     },

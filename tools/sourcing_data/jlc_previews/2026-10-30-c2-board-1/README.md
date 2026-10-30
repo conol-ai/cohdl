@@ -48,7 +48,7 @@ Read by eye from the screenshots:
 
 - **Two-terminal polarised parts.** On C2286 (LED 0603) and C81598 (SOD-123), the preview's `−` sign sits on pad 1, on our cathode bar, on all four copies: rotate 0. C7420372 (DFN1006) is centred on its pads and the preview shows no polarity mark, so its polarity is not confirmed by this preview.
 - **Resistors and capacitors.** C25744, C1525, C25804, C15849, C17414, C15850, C17927 and C13585 sit centred on their pads on all four copies: rotate 0.
-- **USB-C receptacle, C165948.** This is the CPL origin control. The preview marks the model's two locating pegs, 5.80 mm apart (ours are 5.78 mm apart). In our footprint's local frame, on all four copies, they sit at y = −1.00 to −1.13 mm. Our peg holes are at y = −2.60 mm, so the supplier's origin lies at (0, −1.54) in our frame. Along x, the readings are −0.12 and −0.14 mm on the top copies and +0.05 and +0.12 mm on the bottom ones. The sign flips with the mirrored view, so this is screenshot calibration, not an offset. The map value is `at (0mm, -1.55mm)`. A preview with that map applied should confirm it before it is relied on.
+- **USB-C receptacle, C165948.** This is the CPL origin control. The preview marks the model's two locating pegs, 5.80 mm apart (ours are 5.78 mm apart). In our footprint's local frame, on all four copies, they sit at y = −1.00 to −1.13 mm. Our peg holes are at y = −2.60 mm, so the supplier's origin lies at (0, −1.54) in our frame. Along x, the readings are −0.12 and −0.14 mm on the top copies and +0.05 and +0.12 mm on the bottom ones. The sign flips with the mirrored view, so this is screenshot calibration, not an offset. The map value is `at (0mm, -1.55mm)`. A later preview with that map applied confirmed it (`../2026-10-30-usbc-origin/`), and the USB-C row of `jlc_frames.json` now cites that record.
 
 ## What it shows
 
@@ -58,4 +58,4 @@ Read by eye from the screenshots:
 
 ## Footprints moved since (library plan W3)
 
-transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 move the nine footprints of the SOT-23, SOIC-8, TSSOP and LQFP rows onto the assembler's frame by exactly the `rotate` above. Their rows in `jlc_frames.json` now name the new versions with a zero mapping, and `measured` keeps the value found here. The SOT-23-5/6 rows keep their per-part mappings, and the USB-C row keeps its `at`.
+transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 move the nine footprints of the SOT-23, SOIC-8, TSSOP and LQFP rows onto the assembler's frame by exactly the `rotate` above. Their rows in `jlc_frames.json` now name the new versions with a zero mapping, and `measured` keeps the value found here. The SOT-23-5/6 rows keep their per-part mappings. The USB-C row keeps its `at` and moved to the confirming record as `usbc-origin-c165948`.

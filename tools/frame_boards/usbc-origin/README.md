@@ -27,3 +27,7 @@ The manifest's rows copy board 1's, with their own placements and the USB-C map.
 - The USB-C rows of the supplier CPL sit 1.55 mm from the neutral CPL rows, towards the footprint's local −y, at 0° and at 37° on both sides.
 
 Upload for preview only and record the result with the screenshots. Do not order.
+
+## Result
+
+The preview of 2026-10-30 confirmed the map: on all four USB-C copies the peg dots sit within 0.2 mm of our holes, and both controls read rotate 0. The record is `tools/sourcing_data/jlc_previews/2026-10-30-usbc-origin/`.

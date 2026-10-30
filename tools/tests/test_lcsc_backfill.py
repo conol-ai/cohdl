@@ -162,6 +162,16 @@ class BackfillTests(unittest.TestCase):
         self.assertEqual(review["rows"][0]["reason"], "no_confirmed_match")
         self.assertEqual(json.loads((self.root / "out/lcsc_map.json").read_text())["rows"], [])
 
+    def test_preferred_comes_from_the_candidate_list(self):
+        avl = [AVLRow("x", "primary", "Acme", "X")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1"])
+        with LocalServer({"/partdetail/X/C1/C1": (200, page("C1", "X", category="Preferred"))}) as server:
+            run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                         client=make_client(self.root / "cache"), output_dir=self.root / "out",
+                         aliases={}, snapshot_date="2026-10-30", preferred=frozenset({"C1"}))
+        rows = json.loads((self.root / "out/lcsc_map.json").read_text())["rows"]
+        self.assertEqual([(row["pn"], row["category"]) for row in rows], [("C1", "preferred")])
+
     def test_page_for_another_part_is_not_confirmed(self):
         avl = [AVLRow("x", "primary", "Acme", "X")]
         sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1"])

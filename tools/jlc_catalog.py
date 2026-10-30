@@ -50,9 +50,11 @@ def parse_partdetail(html: str, expected_c: str | None = None) -> dict | None:
     - ``componentModelEn`` is the MPN and must equal the JSON-LD ``mpn``;
       ``componentBrandEn`` the manufacturer; ``componentSpecificationEn`` the
       package; ``overseasStockCount`` the stock; ``dataManualUrl`` the datasheet.
-    - ``componentLibraryType`` ``"base"`` is Basic.  ``preferredComponentFlag``
-      true is Preferred, ``"expand"`` without it is Extended.  The sample holds
-      Basic parts only, so any other value is treated as unknown.
+    - ``componentLibraryType`` ``"base"`` is Basic and ``"expand"`` Extended;
+      any other value is unknown.  The page does not mark Preferred parts (two
+      jlcparts Preferred parts, C25725 and C32375, read "Extended" with
+      ``preferredComponentFlag`` undefined), so ``with_preferred`` adds that
+      from the candidate list.
 
     Any missing or conflicting identity field returns None.
     """
@@ -93,14 +95,8 @@ def parse_partdetail(html: str, expected_c: str | None = None) -> dict | None:
         return None
     if not isinstance(mfr, str) or not mfr:
         return None
-    library = fields.get("componentLibraryType")
-    if library == "base":
-        category = "basic"
-    elif fields.get("preferredComponentFlag") is True:
-        category = "preferred"
-    elif library == "expand":
-        category = "extended"
-    else:
+    category = {"base": "basic", "expand": "extended"}.get(fields.get("componentLibraryType"))
+    if category is None:
         return None
     stock = fields.get("overseasStockCount")
     if not isinstance(stock, int) or isinstance(stock, bool) or stock < 0:
@@ -113,6 +109,17 @@ def parse_partdetail(html: str, expected_c: str | None = None) -> dict | None:
         "category": category, "stock": stock,
         "datasheet": datasheet if isinstance(datasheet, str) else "",
     }
+
+
+def with_preferred(parsed: dict, preferred: set[str] | frozenset[str]) -> dict:
+    """Mark an Extended part as Preferred when the candidate list says so.
+
+    The page decides Basic against Extended; a Basic page stays Basic whatever
+    the list says.
+    """
+    if parsed["category"] == "extended" and parsed["c"] in preferred:
+        return {**parsed, "category": "preferred"}
+    return parsed
 
 
 class OfflineClient:
@@ -186,6 +193,7 @@ def run_catalog(
     output_dir.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     rows, parse_unresolved, failures, budget_exhausted = [], [], [], False
+    category_changed = []
     run_stopped_reason = None
     processed = set()
     for candidate, url in zip(planned, urls):
@@ -212,6 +220,11 @@ def run_catalog(
         if parsed is None or parsed["c"] != candidate["c"]:
             parse_unresolved.append(candidate["c"])
             continue
+        if candidate["candidate_category"] == "preferred":
+            parsed = with_preferred(parsed, {candidate["c"]})
+        if parsed["category"] != candidate["candidate_category"]:
+            category_changed.append({"c": candidate["c"], "candidates": candidate["candidate_category"],
+                                     "page": parsed["category"]})
         parsed["partdetail"] = sitemap.entries[candidate["c"]].path
         rows.append({key: parsed[key] for key in FIELDS})
     rows.sort(key=lambda row: int(row["c"][1:]))
@@ -239,6 +252,7 @@ def run_catalog(
         "run_stopped_reason": run_stopped_reason,
         "not_fetched": not_fetched,
         "failures": failures,
+        "category_changed": category_changed,
         "sha256": {"catalog.json": catalog_hash, "unresolved.json": unresolved_hash,
                    "requests.json": log_hash, "not_fetched.json": not_fetched_hash},
         "sitemap_filter": sitemap.report.as_dict(),

@@ -30,6 +30,7 @@ from jlc_catalog import (
     canonical_url,
     load_candidates,
     parse_partdetail,
+    with_preferred,
     validate_cache_dir,
     write_json,
 )
@@ -148,6 +149,7 @@ def run_backfill(
     snapshot_date: str,
     dry_run: bool = False,
     source_metadata: dict | None = None,
+    preferred: frozenset[str] = frozenset(),
 ) -> dict:
     unique = sorted({(row.mfr, row.mpn) for row in avl_rows if row.mpn and normalize_mpn(row.mpn)})
     urls = sorted({canonical_url(origin, candidate.path)
@@ -186,6 +188,7 @@ def run_backfill(
         except (UnicodeDecodeError, ValueError):
             parsed = None
         if parsed is not None:
+            parsed = with_preferred(parsed, preferred)
             parsed["partdetail"] = urllib.parse.urlsplit(url).path
             parsed["fetched_date"] = response.snapshot_date
             confirmed[url] = parsed
@@ -344,7 +347,9 @@ def main(argv=None) -> int:
     result = run_backfill(avl_rows, build_index(sitemap, candidates), origin=args.origin,
                           client=client, output_dir=args.output_dir,
                           aliases=load_aliases(args.aliases), snapshot_date=args.date,
-                          dry_run=args.dry_run, source_metadata=source_metadata)
+                          dry_run=args.dry_run, source_metadata=source_metadata,
+                          preferred=frozenset(row["c"] for row in candidates
+                                              if row["candidate_category"] == "preferred"))
     if args.dry_run:
         sitemap_requests = len(sitemap_meta.get("sitemaps", [])) + (1 if "index_url" in sitemap_meta else 0)
         result["planned_total_requests_including_sitemap"] = sitemap_requests + result["planned_partdetail_requests"]

@@ -16,7 +16,9 @@ Every row has:
 - `mfr`, `mpn`, `pn`: non-empty manufacturer, manufacturer part number, and
   LCSC part number strings. Together they identify one purchasing identity.
 - `rule`: `exact`, `alias`, or `manual`.
-- `category`: `basic`, `preferred`, or `extended`.
+- `category`: `basic`, `preferred`, or `extended`. The partdetail page decides
+  Basic against Extended; an Extended part is `preferred` when the jlcparts
+  candidate list says so, since the page does not show it.
 - `snapshot_sha256`: exactly 64 lowercase hexadecimal characters.
 - `date`: a real calendar date in `YYYY-MM-DD` form.
 
@@ -64,7 +66,9 @@ all rows, including rows not currently selected by a binding.
 
 `lcsc_map.json` 顶层为 `schema_version: 1`、`supplier: "lcsc"` 和 `rows`。
 每行必须有非空的 `mfr`、`mpn`、`pn`；`rule` 为 `exact`、`alias`、`manual`
-之一；`category` 为 `basic`、`preferred`、`extended` 之一；
+之一；`category` 为 `basic`、`preferred`、`extended` 之一（Basic 还是 Extended
+由零件页决定；页面不显示 Preferred，Extended 零件在 jlcparts 候选表中为 Preferred
+时记为 `preferred`）；
 `snapshot_sha256` 为 64 位小写十六进制；`date` 为真实的 `YYYY-MM-DD` 日期。
 绑定的 `(mfr, mpn, pn)` 必须匹配一行，且全库同一 `(supplier, pn)` 只能对应
 一个 `(mfr, mpn)`。

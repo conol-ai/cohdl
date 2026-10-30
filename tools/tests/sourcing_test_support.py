@@ -99,13 +99,13 @@ def page(c, mpn, mfr="Acme", category="Basic", stock=10, related=("C999",), spli
     holds the part as two objects (identity/type and stock/datasheet) plus a
     related part with its own code and stock, which the parser must ignore.
     """
+    # The live page shows Preferred parts as Extended (sample of 2026-10-30).
     library = {"Basic": "base", "Preferred": "expand", "Extended": "expand"}.get(category, category)
-    preferred = True if category == "Preferred" else "$undefined"
     product = {"@context": "https://schema.org", "@type": "Product", "name": mpn,
                "brand": {"@type": "Brand", "name": mfr}, "sku": c, "mpn": mpn}
     detail = {"componentCode": c, "componentModelEn": mpn, "componentBrandEn": mfr,
               "componentSpecificationEn": "0603", "componentSpecification": "$undefined",
-              "componentLibraryType": library, "preferredComponentFlag": preferred,
+              "componentLibraryType": library, "preferredComponentFlag": "$undefined",
               "dataManualUrl": "https://example.invalid/datasheet.pdf", "priceList": [1]}
     offer = {"componentCode": c, "componentModelEn": mpn, "componentBrandEn": mfr,
              "componentSpecificationEn": "0603", "overseasStockCount": stock,

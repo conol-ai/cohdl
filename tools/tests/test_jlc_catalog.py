@@ -11,7 +11,8 @@ TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jlc_catalog import canonical_url, load_candidates, parse_partdetail, run_catalog  # noqa: E402
+from jlc_catalog import (  # noqa: E402
+    canonical_url, load_candidates, parse_partdetail, run_catalog, with_preferred)
 from sourcing.http import RobotsError  # noqa: E402
 from sourcing.sitemap import filter_partdetail_urls  # noqa: E402
 from sourcing_test_support import LocalServer, install_socket_guard, make_client, page  # noqa: E402
@@ -37,8 +38,9 @@ class CatalogTests(unittest.TestCase):
 
     def test_full_paths_snapshot_and_unresolved(self):
         candidates, sitemap = self.fixture()
-        responses = {"/partdetail/First-MPN/C1/C1": (200, page("C1", "First-MPN")),
-                     "/partdetail/Second-MPN/C2/C2": (200, page("C2", "Second-MPN"))}
+        # C1 is a Basic candidate whose page now reads Extended; C2 is Preferred.
+        responses = {"/partdetail/First-MPN/C1/C1": (200, page("C1", "First-MPN", category="Extended")),
+                     "/partdetail/Second-MPN/C2/C2": (200, page("C2", "Second-MPN", category="Preferred"))}
         with LocalServer(responses) as server:
             client = make_client(self.root / "cache")
             result = run_catalog(candidates, sitemap, origin=server.url(), client=client,
@@ -51,6 +53,9 @@ class CatalogTests(unittest.TestCase):
                                             "datasheet", "partdetail"})
             self.assertEqual(json.loads((self.root / "snapshot/unresolved.json").read_text()), ["C3"])
             self.assertEqual(result["counts"]["catalog"], 2)
+            self.assertEqual([row["category"] for row in rows], ["extended", "preferred"])
+            self.assertEqual(result["category_changed"],
+                             [{"c": "C1", "candidates": "basic", "page": "extended"}])
 
     def test_cache_resume_and_budget_do_not_repeat_requests(self):
         candidates, sitemap = self.fixture()
@@ -95,8 +100,11 @@ class CatalogTests(unittest.TestCase):
                                   "category": "basic", "stock": 7,
                                   "datasheet": "https://example.invalid/datasheet.pdf"})
         self.assertIsNone(parse_partdetail(page("C12", "S8050"), "C1"))
-        self.assertEqual(parse_partdetail(page("C3", "Y", category="Preferred"))["category"], "preferred")
-        self.assertEqual(parse_partdetail(page("C3", "Y", category="Extended"))["category"], "extended")
+        # The page shows a Preferred part as Extended; only the candidate list knows.
+        extended = parse_partdetail(page("C3", "Y", category="Extended"))
+        self.assertEqual(extended["category"], "extended")
+        self.assertEqual(with_preferred(extended, {"C3"})["category"], "preferred")
+        self.assertEqual(with_preferred(parsed, {"C12"})["category"], "basic")
 
     def test_parser_fails_closed(self):
         # One flight chunk, so the edits below see whole escaped objects.

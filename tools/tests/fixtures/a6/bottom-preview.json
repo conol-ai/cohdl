@@ -8,9 +8,9 @@
   "outline": "tests/fixtures/rfc034/bottom-preview/mechanical/outline.dxf",
   "dependencies": {
     "std": "0.3.0",
-    "transistor": "0.1.1",
+    "transistor": "0.2.0",
     "passive": "0.2.3",
-    "flash": "0.1.6"
+    "flash": "0.2.0"
   },
   "rows": [
     {
@@ -20,9 +20,6 @@
       "mfr": "Jiangsu Changjing Electronics Technology",
       "mpn": "S8050 J3Y(RANGE:200-350)",
       "pn": "C2146",
-      "mapping": {
-        "rotate_deg": 90
-      },
       "pins": [
         "C",
         "B",
@@ -38,28 +35,30 @@
           "at_mm": [
             -26,
             -20
-          ]
+          ],
+          "rotate": 90
         },
         {
           "at_mm": [
             -26,
             -7
           ],
-          "rotate": 37
+          "rotate": 127
         },
         {
           "at_mm": [
             -26,
             7
           ],
-          "side": "bottom"
+          "side": "bottom",
+          "rotate": 270
         },
         {
           "at_mm": [
             -26,
             20
           ],
-          "rotate": 37,
+          "rotate": 307,
           "side": "bottom"
         }
       ]
@@ -71,9 +70,6 @@
       "mfr": "Winbond",
       "mpn": "W25Q128JVSIQ",
       "pn": "C97521",
-      "mapping": {
-        "rotate_deg": 270
-      },
       "pins": [
         "VCC",
         "GND"
@@ -83,28 +79,30 @@
           "at_mm": [
             -8,
             -20
-          ]
+          ],
+          "rotate": 270
         },
         {
           "at_mm": [
             -8,
             -7
           ],
-          "rotate": 37
+          "rotate": 307
         },
         {
           "at_mm": [
             -8,
             7
           ],
-          "side": "bottom"
+          "side": "bottom",
+          "rotate": 90
         },
         {
           "at_mm": [
             -8,
             20
           ],
-          "rotate": 37,
+          "rotate": 127,
           "side": "bottom"
         }
       ]

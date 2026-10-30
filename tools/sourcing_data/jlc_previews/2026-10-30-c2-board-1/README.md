@@ -55,3 +55,7 @@ Read by eye from the screenshots:
 - **C1 results confirmed.** C2146 needs `rotate 90` and C97521 needs `rotate 270`, as in C1. The two other SOT-23 models need the same `rotate 90`.
 - **Bottom-side convention confirmed.** Each 37° copy reads the same as its 0° copy on both sides, and each bottom reading is the mirror image of the top one. That is what `--bottom-rotation lcsc=mirrored` requires at any angle.
 - **Correction depends on the supplier model, not only on the package.** C7972 and C7722 sit on SOT-23-5 lands with the same pad numbering, but they need 180 and 270. C85364 and C12044, both SOT-23-6, need 180 and 270 as well. A per-part binding (RFC-034 §2) is therefore required.
+
+## Footprints moved since (library plan W3)
+
+transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 move the nine footprints of the SOT-23, SOIC-8, TSSOP and LQFP rows onto the assembler's frame by exactly the `rotate` above. Their rows in `jlc_frames.json` now name the new versions with a zero mapping, and `measured` keeps the value found here. The SOT-23-5/6 rows keep their per-part mappings, and the USB-C row keeps its `at`.

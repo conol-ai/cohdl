@@ -8,20 +8,22 @@ pub pad P_TI_D0008A_4214825C {
     plating: smd
 }
 
+// Turned 90 degrees counter-clockwise onto the assembler's frame (library
+// plan W3): pin 1 at lower left.
 #[doc("docs/ti-d0008a.md")]
 #[doc("docs/ti-tlv90x2-snosda3h.pdf")]
 pub footprint TI_D0008A_4214825C {
-    pad 1: P_TI_D0008A_4214825C at (-2.7051mm, -1.905mm)
-    pad 2: P_TI_D0008A_4214825C at (-2.7051mm, -0.635mm)
-    pad 3: P_TI_D0008A_4214825C at (-2.7051mm, 0.635mm)
-    pad 4: P_TI_D0008A_4214825C at (-2.7051mm, 1.905mm)
-    pad 5: P_TI_D0008A_4214825C at (2.7051mm, 1.905mm)
-    pad 6: P_TI_D0008A_4214825C at (2.7051mm, 0.635mm)
-    pad 7: P_TI_D0008A_4214825C at (2.7051mm, -0.635mm)
-    pad 8: P_TI_D0008A_4214825C at (2.7051mm, -1.905mm)
+    pad 1: P_TI_D0008A_4214825C at (-1.905mm, 2.7051mm) rotate 90
+    pad 2: P_TI_D0008A_4214825C at (-0.635mm, 2.7051mm) rotate 90
+    pad 3: P_TI_D0008A_4214825C at (0.635mm, 2.7051mm) rotate 90
+    pad 4: P_TI_D0008A_4214825C at (1.905mm, 2.7051mm) rotate 90
+    pad 5: P_TI_D0008A_4214825C at (1.905mm, -2.7051mm) rotate 90
+    pad 6: P_TI_D0008A_4214825C at (0.635mm, -2.7051mm) rotate 90
+    pad 7: P_TI_D0008A_4214825C at (-0.635mm, -2.7051mm) rotate 90
+    pad 8: P_TI_D0008A_4214825C at (-1.905mm, -2.7051mm) rotate 90
     silkscreen {
-        circle at (-2.7051mm, -2.6mm) radius 0.1mm width 0.05mm fill solid
+        circle at (-2.6mm, 2.7051mm) radius 0.1mm width 0.05mm fill solid
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4596mm, 6mm) }
-    silkscreen_ref { at: (0mm, -3.5mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6mm, 7.4596mm) }
+    silkscreen_ref { at: (-3.5mm, 0mm) }
 }

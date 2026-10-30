@@ -25,62 +25,62 @@ pub pad P_LQFP48_Lead_V {
 // LQFP-48, 7x7mm body, 0.50mm pitch, 1.60mm maximum height and 9x9mm
 // nominal lead span. The recommended land has a 9.70mm outside span and a
 // 5.80mm tangential row span. Origin is package centre. The source top view is
-// rotated as a whole into qfp's pin-1-at-upper-left convention; chirality is
-// preserved.
+// rotated as a whole, without mirroring, onto the assembler's frame (library
+// plan W3): pin 1 at the left end of the lower row.
 pub footprint QFP50P900X900X160_48N {
-    pad 1: P_LQFP48_Lead_H at (-4.25mm, -2.75mm)
-    pad 2: P_LQFP48_Lead_H at (-4.25mm, -2.25mm)
-    pad 3: P_LQFP48_Lead_H at (-4.25mm, -1.75mm)
-    pad 4: P_LQFP48_Lead_H at (-4.25mm, -1.25mm)
-    pad 5: P_LQFP48_Lead_H at (-4.25mm, -0.75mm)
-    pad 6: P_LQFP48_Lead_H at (-4.25mm, -0.25mm)
-    pad 7: P_LQFP48_Lead_H at (-4.25mm, 0.25mm)
-    pad 8: P_LQFP48_Lead_H at (-4.25mm, 0.75mm)
-    pad 9: P_LQFP48_Lead_H at (-4.25mm, 1.25mm)
-    pad 10: P_LQFP48_Lead_H at (-4.25mm, 1.75mm)
-    pad 11: P_LQFP48_Lead_H at (-4.25mm, 2.25mm)
-    pad 12: P_LQFP48_Lead_H at (-4.25mm, 2.75mm)
-    pad 13: P_LQFP48_Lead_V at (-2.75mm, 4.25mm)
-    pad 14: P_LQFP48_Lead_V at (-2.25mm, 4.25mm)
-    pad 15: P_LQFP48_Lead_V at (-1.75mm, 4.25mm)
-    pad 16: P_LQFP48_Lead_V at (-1.25mm, 4.25mm)
-    pad 17: P_LQFP48_Lead_V at (-0.75mm, 4.25mm)
-    pad 18: P_LQFP48_Lead_V at (-0.25mm, 4.25mm)
-    pad 19: P_LQFP48_Lead_V at (0.25mm, 4.25mm)
-    pad 20: P_LQFP48_Lead_V at (0.75mm, 4.25mm)
-    pad 21: P_LQFP48_Lead_V at (1.25mm, 4.25mm)
-    pad 22: P_LQFP48_Lead_V at (1.75mm, 4.25mm)
-    pad 23: P_LQFP48_Lead_V at (2.25mm, 4.25mm)
-    pad 24: P_LQFP48_Lead_V at (2.75mm, 4.25mm)
-    pad 25: P_LQFP48_Lead_H at (4.25mm, 2.75mm)
-    pad 26: P_LQFP48_Lead_H at (4.25mm, 2.25mm)
-    pad 27: P_LQFP48_Lead_H at (4.25mm, 1.75mm)
-    pad 28: P_LQFP48_Lead_H at (4.25mm, 1.25mm)
-    pad 29: P_LQFP48_Lead_H at (4.25mm, 0.75mm)
-    pad 30: P_LQFP48_Lead_H at (4.25mm, 0.25mm)
-    pad 31: P_LQFP48_Lead_H at (4.25mm, -0.25mm)
-    pad 32: P_LQFP48_Lead_H at (4.25mm, -0.75mm)
-    pad 33: P_LQFP48_Lead_H at (4.25mm, -1.25mm)
-    pad 34: P_LQFP48_Lead_H at (4.25mm, -1.75mm)
-    pad 35: P_LQFP48_Lead_H at (4.25mm, -2.25mm)
-    pad 36: P_LQFP48_Lead_H at (4.25mm, -2.75mm)
-    pad 37: P_LQFP48_Lead_V at (2.75mm, -4.25mm)
-    pad 38: P_LQFP48_Lead_V at (2.25mm, -4.25mm)
-    pad 39: P_LQFP48_Lead_V at (1.75mm, -4.25mm)
-    pad 40: P_LQFP48_Lead_V at (1.25mm, -4.25mm)
-    pad 41: P_LQFP48_Lead_V at (0.75mm, -4.25mm)
-    pad 42: P_LQFP48_Lead_V at (0.25mm, -4.25mm)
-    pad 43: P_LQFP48_Lead_V at (-0.25mm, -4.25mm)
-    pad 44: P_LQFP48_Lead_V at (-0.75mm, -4.25mm)
-    pad 45: P_LQFP48_Lead_V at (-1.25mm, -4.25mm)
-    pad 46: P_LQFP48_Lead_V at (-1.75mm, -4.25mm)
-    pad 47: P_LQFP48_Lead_V at (-2.25mm, -4.25mm)
-    pad 48: P_LQFP48_Lead_V at (-2.75mm, -4.25mm)
+    pad 1: P_LQFP48_Lead_H at (-2.75mm, 4.25mm) rotate 90
+    pad 2: P_LQFP48_Lead_H at (-2.25mm, 4.25mm) rotate 90
+    pad 3: P_LQFP48_Lead_H at (-1.75mm, 4.25mm) rotate 90
+    pad 4: P_LQFP48_Lead_H at (-1.25mm, 4.25mm) rotate 90
+    pad 5: P_LQFP48_Lead_H at (-0.75mm, 4.25mm) rotate 90
+    pad 6: P_LQFP48_Lead_H at (-0.25mm, 4.25mm) rotate 90
+    pad 7: P_LQFP48_Lead_H at (0.25mm, 4.25mm) rotate 90
+    pad 8: P_LQFP48_Lead_H at (0.75mm, 4.25mm) rotate 90
+    pad 9: P_LQFP48_Lead_H at (1.25mm, 4.25mm) rotate 90
+    pad 10: P_LQFP48_Lead_H at (1.75mm, 4.25mm) rotate 90
+    pad 11: P_LQFP48_Lead_H at (2.25mm, 4.25mm) rotate 90
+    pad 12: P_LQFP48_Lead_H at (2.75mm, 4.25mm) rotate 90
+    pad 13: P_LQFP48_Lead_V at (4.25mm, 2.75mm) rotate 90
+    pad 14: P_LQFP48_Lead_V at (4.25mm, 2.25mm) rotate 90
+    pad 15: P_LQFP48_Lead_V at (4.25mm, 1.75mm) rotate 90
+    pad 16: P_LQFP48_Lead_V at (4.25mm, 1.25mm) rotate 90
+    pad 17: P_LQFP48_Lead_V at (4.25mm, 0.75mm) rotate 90
+    pad 18: P_LQFP48_Lead_V at (4.25mm, 0.25mm) rotate 90
+    pad 19: P_LQFP48_Lead_V at (4.25mm, -0.25mm) rotate 90
+    pad 20: P_LQFP48_Lead_V at (4.25mm, -0.75mm) rotate 90
+    pad 21: P_LQFP48_Lead_V at (4.25mm, -1.25mm) rotate 90
+    pad 22: P_LQFP48_Lead_V at (4.25mm, -1.75mm) rotate 90
+    pad 23: P_LQFP48_Lead_V at (4.25mm, -2.25mm) rotate 90
+    pad 24: P_LQFP48_Lead_V at (4.25mm, -2.75mm) rotate 90
+    pad 25: P_LQFP48_Lead_H at (2.75mm, -4.25mm) rotate 90
+    pad 26: P_LQFP48_Lead_H at (2.25mm, -4.25mm) rotate 90
+    pad 27: P_LQFP48_Lead_H at (1.75mm, -4.25mm) rotate 90
+    pad 28: P_LQFP48_Lead_H at (1.25mm, -4.25mm) rotate 90
+    pad 29: P_LQFP48_Lead_H at (0.75mm, -4.25mm) rotate 90
+    pad 30: P_LQFP48_Lead_H at (0.25mm, -4.25mm) rotate 90
+    pad 31: P_LQFP48_Lead_H at (-0.25mm, -4.25mm) rotate 90
+    pad 32: P_LQFP48_Lead_H at (-0.75mm, -4.25mm) rotate 90
+    pad 33: P_LQFP48_Lead_H at (-1.25mm, -4.25mm) rotate 90
+    pad 34: P_LQFP48_Lead_H at (-1.75mm, -4.25mm) rotate 90
+    pad 35: P_LQFP48_Lead_H at (-2.25mm, -4.25mm) rotate 90
+    pad 36: P_LQFP48_Lead_H at (-2.75mm, -4.25mm) rotate 90
+    pad 37: P_LQFP48_Lead_V at (-4.25mm, -2.75mm) rotate 90
+    pad 38: P_LQFP48_Lead_V at (-4.25mm, -2.25mm) rotate 90
+    pad 39: P_LQFP48_Lead_V at (-4.25mm, -1.75mm) rotate 90
+    pad 40: P_LQFP48_Lead_V at (-4.25mm, -1.25mm) rotate 90
+    pad 41: P_LQFP48_Lead_V at (-4.25mm, -0.75mm) rotate 90
+    pad 42: P_LQFP48_Lead_V at (-4.25mm, -0.25mm) rotate 90
+    pad 43: P_LQFP48_Lead_V at (-4.25mm, 0.25mm) rotate 90
+    pad 44: P_LQFP48_Lead_V at (-4.25mm, 0.75mm) rotate 90
+    pad 45: P_LQFP48_Lead_V at (-4.25mm, 1.25mm) rotate 90
+    pad 46: P_LQFP48_Lead_V at (-4.25mm, 1.75mm) rotate 90
+    pad 47: P_LQFP48_Lead_V at (-4.25mm, 2.25mm) rotate 90
+    pad 48: P_LQFP48_Lead_V at (-4.25mm, 2.75mm) rotate 90
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
     courtyard { shape: rect, at: (0mm, 0mm), size: (10.2mm, 10.2mm) }
-    silkscreen_ref { at: (0mm, -5.2mm) }
+    silkscreen_ref { at: (-5.2mm, 0mm) }
 }
 
 // QFP50P1200X1200X160_64N is transcribed from STMicroelectronics DS9826 Rev 6,

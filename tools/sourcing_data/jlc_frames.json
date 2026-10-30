@@ -229,21 +229,21 @@
     {
       "id": "c2b1-sot23_s8050-c2146",
       "package": "transistor",
-      "package_version": "0.1.1",
+      "package_version": "0.2.0",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C2146",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 90
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 90
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -254,21 +254,21 @@
     {
       "id": "c2b1-sot23_2n7002-c8545",
       "package": "transistor",
-      "package_version": "0.1.1",
+      "package_version": "0.2.0",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C8545",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 90
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 90
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -279,21 +279,21 @@
     {
       "id": "c2b1-sot23_mmbt3904-c20526",
       "package": "transistor",
-      "package_version": "0.1.1",
+      "package_version": "0.2.0",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C20526",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 90
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 90
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -329,21 +329,21 @@
     {
       "id": "c2b1-soic8_208-c97521",
       "package": "soic",
-      "package_version": "0.2.1",
+      "package_version": "0.3.0",
       "footprint": "SOIC8P127X790X216N",
       "supplier": "lcsc",
       "pn": "C97521",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -354,21 +354,21 @@
     {
       "id": "c2b1-soic8_kicad-c7950",
       "package": "soic",
-      "package_version": "0.2.1",
+      "package_version": "0.3.0",
       "footprint": "KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
       "supplier": "lcsc",
       "pn": "C7950",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -379,21 +379,21 @@
     {
       "id": "c2b1-soic8_ti-c7433",
       "package": "soic",
-      "package_version": "0.2.1",
+      "package_version": "0.3.0",
       "footprint": "TI_D0008A_4214825C",
       "supplier": "lcsc",
       "pn": "C7433",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -404,21 +404,21 @@
     {
       "id": "c2b1-tssop20-c52717",
       "package": "soic",
-      "package_version": "0.2.1",
+      "package_version": "0.3.0",
       "footprint": "KICAD_TSSOP_20_4_4X6_5MM_P0_65MM",
       "supplier": "lcsc",
       "pn": "C52717",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -429,21 +429,21 @@
     {
       "id": "c2b1-tssop24-c7859",
       "package": "soic",
-      "package_version": "0.2.1",
+      "package_version": "0.3.0",
       "footprint": "TSSOP24P65_TI_PW0024A",
       "supplier": "lcsc",
       "pn": "C7859",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -454,21 +454,21 @@
     {
       "id": "c2b1-lqfp48_kicad-c8734",
       "package": "qfp",
-      "package_version": "0.2.0",
+      "package_version": "0.3.0",
       "footprint": "KICAD_LQFP_48_7X7MM_P0_5MM",
       "supplier": "lcsc",
       "pn": "C8734",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -479,21 +479,21 @@
     {
       "id": "c2b1-lqfp48_ipc-c7532",
       "package": "qfp",
-      "package_version": "0.2.0",
+      "package_version": "0.3.0",
       "footprint": "QFP50P900X900X160_48N",
       "supplier": "lcsc",
       "pn": "C7532",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -504,21 +504,21 @@
     {
       "id": "c2b1-lqfp32-c8254",
       "package": "qfp",
-      "package_version": "0.2.0",
+      "package_version": "0.3.0",
       "footprint": "KICAD_LQFP_32_7X7MM_P0_8MM",
       "supplier": "lcsc",
       "pn": "C8254",
       "mapping": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": null,
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -543,7 +543,7 @@
         "dy_mm": 0,
         "rotate_deg": 180
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": "Per-part mapping: on SOT-23-5/6 lands the supplier's model orientation differs by part (C7972 and C85364 need 180, C7722 and C12044 need 270), so the footprint is not moved until more parts on it are measured",
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -568,7 +568,7 @@
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": "Per-part mapping: on SOT-23-5/6 lands the supplier's model orientation differs by part (C7972 and C85364 need 180, C7722 and C12044 need 270), so the footprint is not moved until more parts on it are measured",
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -593,7 +593,7 @@
         "dy_mm": 0,
         "rotate_deg": 180
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": "Per-part mapping: on SOT-23-5/6 lands the supplier's model orientation differs by part (C7972 and C85364 need 180, C7722 and C12044 need 270), so the footprint is not moved until more parts on it are measured",
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
@@ -618,7 +618,7 @@
         "dy_mm": 0,
         "rotate_deg": 270
       },
-      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "exception": "Per-part mapping: on SOT-23-5/6 lands the supplier's model orientation differs by part (C7972 and C85364 need 180, C7722 and C12044 need 270), so the footprint is not moved until more parts on it are measured",
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",

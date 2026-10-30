@@ -1215,37 +1215,39 @@ fn ti_sn74lvc8t245pwr_uses_exact_pinout_part_and_pw0024a_land() {
             )
         })
         .collect();
+    // TI PW0024A top view (pin 1 upper left) turned onto the assembler's frame
+    // by soic 0.3.0 (library plan W3): datasheet (x, y) becomes (y, -x).
     assert_eq!(
         placements,
         [
-            ("1", "-2.9mm", "-3.575mm"),
-            ("2", "-2.9mm", "-2.925mm"),
-            ("3", "-2.9mm", "-2.275mm"),
-            ("4", "-2.9mm", "-1.625mm"),
-            ("5", "-2.9mm", "-0.975mm"),
-            ("6", "-2.9mm", "-0.325mm"),
-            ("7", "-2.9mm", "0.325mm"),
-            ("8", "-2.9mm", "0.975mm"),
-            ("9", "-2.9mm", "1.625mm"),
-            ("10", "-2.9mm", "2.275mm"),
-            ("11", "-2.9mm", "2.925mm"),
-            ("12", "-2.9mm", "3.575mm"),
-            ("13", "2.9mm", "3.575mm"),
-            ("14", "2.9mm", "2.925mm"),
-            ("15", "2.9mm", "2.275mm"),
-            ("16", "2.9mm", "1.625mm"),
-            ("17", "2.9mm", "0.975mm"),
-            ("18", "2.9mm", "0.325mm"),
-            ("19", "2.9mm", "-0.325mm"),
-            ("20", "2.9mm", "-0.975mm"),
-            ("21", "2.9mm", "-1.625mm"),
-            ("22", "2.9mm", "-2.275mm"),
-            ("23", "2.9mm", "-2.925mm"),
-            ("24", "2.9mm", "-3.575mm"),
+            ("1", "-3.575mm", "2.9mm"),
+            ("2", "-2.925mm", "2.9mm"),
+            ("3", "-2.275mm", "2.9mm"),
+            ("4", "-1.625mm", "2.9mm"),
+            ("5", "-0.975mm", "2.9mm"),
+            ("6", "-0.325mm", "2.9mm"),
+            ("7", "0.325mm", "2.9mm"),
+            ("8", "0.975mm", "2.9mm"),
+            ("9", "1.625mm", "2.9mm"),
+            ("10", "2.275mm", "2.9mm"),
+            ("11", "2.925mm", "2.9mm"),
+            ("12", "3.575mm", "2.9mm"),
+            ("13", "3.575mm", "-2.9mm"),
+            ("14", "2.925mm", "-2.9mm"),
+            ("15", "2.275mm", "-2.9mm"),
+            ("16", "1.625mm", "-2.9mm"),
+            ("17", "0.975mm", "-2.9mm"),
+            ("18", "0.325mm", "-2.9mm"),
+            ("19", "-0.325mm", "-2.9mm"),
+            ("20", "-0.975mm", "-2.9mm"),
+            ("21", "-1.625mm", "-2.9mm"),
+            ("22", "-2.275mm", "-2.9mm"),
+            ("23", "-2.925mm", "-2.9mm"),
+            ("24", "-3.575mm", "-2.9mm"),
         ]
     );
     assert!(footprint.pads.iter().all(|place| {
-        place.pad.name == "soic::P_TSSOP24P65_TI_PW0024A_LEAD" && place.rotate == 0
+        place.pad.name == "soic::P_TSSOP24P65_TI_PW0024A_LEAD" && place.rotate == 90
     }));
 
     let lead = &checked.world.pads["soic::P_TSSOP24P65_TI_PW0024A_LEAD"];
@@ -1278,7 +1280,8 @@ fn ti_sn74lvc8t245pwr_uses_exact_pinout_part_and_pw0024a_land() {
             .iter()
             .map(|value| value.text.as_str())
             .collect::<Vec<_>>(),
-        ["7.8mm", "8.4mm"]
+        ["8.4mm", "7.8mm"],
+        "the 7.8 x 8.4mm courtyard, turned with the pads"
     );
 
     let mut footprint_diags = Diagnostics::new();
@@ -2419,11 +2422,13 @@ fn stm32f072_parts_use_canonical_pins_and_audited_geometry() {
         (
             "qfp::QFP50P900X900X160_48N",
             48,
+            // Turned onto the assembler's frame by qfp 0.3.0 (library plan
+            // W3): the upper-left-pin-1 view's (x, y) becomes (y, -x).
             &[
-                ("1", "-4.25mm", "-2.75mm"),
-                ("13", "-2.75mm", "4.25mm"),
-                ("25", "4.25mm", "2.75mm"),
-                ("37", "2.75mm", "-4.25mm"),
+                ("1", "-2.75mm", "4.25mm"),
+                ("13", "4.25mm", "2.75mm"),
+                ("25", "2.75mm", "-4.25mm"),
+                ("37", "-4.25mm", "-2.75mm"),
             ][..],
         ),
         (

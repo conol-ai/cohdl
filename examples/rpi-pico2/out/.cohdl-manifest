@@ -23,6 +23,7 @@ out/footprints/usb-connectors-type_c-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kica
 out/ground_nets.csv
 out/high_current_nets.csv
 out/rpi-pico2-bom.csv
+out/rpi-pico2-cpl.csv
 out/rpi-pico2-layout.json
 out/rpi-pico2.enet
 out/rpi-pico2.net

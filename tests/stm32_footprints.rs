@@ -6,6 +6,8 @@
 //! courtyards remain exact; 13 stepped QFP/SO outlines become conservative
 //! bounding rectangles. Pin-1 polygon vertices/fill are retained while the
 //! source's 0.12-mm stroke uses CoHDL's documented 0.05-mm polygon hairline.
+//! Footprints listed in `tools/stm32_footprint_data/supplier_frames.json` are
+//! compared after the same rigid move onto the assembler's frame.
 
 use cohdl::ast::{
     AvlEntry, Ident, PadLayer, PadPaste, PadPlating, PadShape, PartDef, SilkFill, SilkGraphic,
@@ -98,6 +100,39 @@ fn pair(value: &Value, context: &str) -> (i128, i128) {
         femto(string(&values[0], context)),
         femto(string(&values[1], context)),
     )
+}
+
+/// Library plan W3: each moved footprint's RFC-034 mapping before the move.
+fn supplier_frames() -> BTreeMap<String, ((i128, i128), u16)> {
+    let path = root().join("tools/stm32_footprint_data/supplier_frames.json");
+    let doc: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(field(&doc, "schema_version", "supplier_frames"), 1);
+    object(field(&doc, "frames", "supplier_frames"), "frames")
+        .iter()
+        .map(|(name, frame)| {
+            let rotate = field(frame, "rotate_deg", name).as_u64().unwrap() as u16;
+            assert_eq!(rotate % 90, 0, "{name}: exact quarter turns only");
+            let dx = femto(str_field(frame, "dx_mm", name));
+            let dy = femto(str_field(frame, "dy_mm", name));
+            (name.clone(), ((dx, dy), rotate))
+        })
+        .collect()
+}
+
+/// p' = Rot(-r)(p - d), in the compiler's rotation sense (KiCad's: counter-
+/// clockwise on screen, +y down), independent of tools/realign_footprint.py.
+fn moved(point: (i128, i128), frame: Option<&((i128, i128), u16)>) -> (i128, i128) {
+    let Some(&((dx, dy), rotate)) = frame else {
+        return point;
+    };
+    let (x, y) = (point.0 - dx, point.1 - dy);
+    match rotate {
+        0 => (x, y),
+        90 => (-y, x),
+        180 => (-x, -y),
+        270 => (y, -x),
+        other => panic!("unsupported frame rotation {other}"),
+    }
 }
 
 fn library_package(kicad_name: &str) -> &'static str {
@@ -296,6 +331,8 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
     let mut exact_courtyards = 0usize;
     let mut projected_courtyards = 0usize;
     let mut documented_silk_projections = 0usize;
+    let frames = supplier_frames();
+    let mut moved_footprints = BTreeSet::new();
 
     for (row_index, row) in rows.iter().enumerate() {
         let context = format!("footprints[{row_index}]");
@@ -352,6 +389,11 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
         let public_name = str_field(row, "public_name", &context);
         assert!(public_name.starts_with("KICAD_"));
         let fq = format!("{package}::{public_name}");
+        let frame = frames.get(public_name);
+        if frame.is_some() {
+            moved_footprints.insert(public_name.to_string());
+        }
+        let quarter = frame.map_or(0, |frame| frame.1);
         let world = &worlds[package];
         let footprint = world
             .footprints
@@ -372,13 +414,20 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
                 placement.number.text,
                 str_field(source_pad, "number", &pad_context)
             );
-            let (x, y) = pair(field(source_pad, "at", &pad_context), &pad_context);
+            let (x, y) = moved(
+                pair(field(source_pad, "at", &pad_context), &pad_context),
+                frame,
+            );
             assert_eq!(placement.x.femto, x, "{pad_context}: x");
             assert_eq!(placement.y.femto, y, "{pad_context}: y");
             let rotation = field(source_pad, "rotation", &pad_context)
                 .as_u64()
                 .expect("whole rotation") as u16;
-            assert_eq!(placement.rotate, rotation, "{pad_context}: rotation");
+            assert_eq!(
+                placement.rotate,
+                (rotation + 360 - quarter) % 360,
+                "{pad_context}: rotation"
+            );
             rotated_count += usize::from(rotation != 0);
 
             let pad = world
@@ -503,13 +552,16 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
         assert_eq!(courtyard.shape.0, PadShape::Rect);
         let rect = field(courtyard_source, "rect", &context);
         assert_keys(rect, &["at", "size"], &format!("{context}.courtyard.rect"));
-        let (cx, cy) = pair(field(rect, "at", &context), &context);
-        let (cw, ch) = pair(field(rect, "size", &context), &context);
+        let (cx, cy) = moved(pair(field(rect, "at", &context), &context), frame);
+        let (mut cw, mut ch) = pair(field(rect, "size", &context), &context);
+        if quarter % 180 == 90 {
+            (cw, ch) = (ch, cw);
+        }
         assert_eq!((courtyard.at.0.femto, courtyard.at.1.femto), (cx, cy));
         assert_eq!(courtyard.size.len(), 2);
         assert_eq!((courtyard.size[0].femto, courtyard.size[1].femto), (cw, ch));
 
-        let reference = pair(field(row, "reference_at", &context), &context);
+        let reference = moved(pair(field(row, "reference_at", &context), &context), frame);
         let parsed_reference = footprint
             .silkscreen_ref
             .as_ref()
@@ -528,7 +580,7 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
         documented_silk_projections += 1;
         let expected_points = array(field(pin_one, "points", &context), &context)
             .iter()
-            .map(|value| pair(value, &context))
+            .map(|value| moved(pair(value, &context), frame))
             .collect::<Vec<_>>();
         let silk = footprint.silkscreen.as_ref().expect("generated pin-1 silk");
         assert_eq!(silk.items.len(), 1);
@@ -547,6 +599,11 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
         }
     }
 
+    assert_eq!(
+        moved_footprints,
+        frames.keys().cloned().collect::<BTreeSet<_>>(),
+        "every supplier frame names a generated footprint"
+    );
     assert_eq!(pad_count, 9147);
     assert_eq!(circle_paste_count, 8045);
     assert_eq!(follow_copper_count, 1102);
@@ -689,14 +746,15 @@ fn stm32_focused_footprints_round_trip_all_normalized_geometry() {
         );
 
         let pin_one = field(row, "pin_1_polygon", &context);
+        let frame = frames.get(str_field(row, "public_name", &context));
         let points = array(field(pin_one, "points", &context), &context)
             .iter()
             .map(|value| {
-                let values = array(value, &context);
+                let (x, y) = moved(pair(value, &context), frame);
                 format!(
                     "(xy {} {})",
-                    string(&values[0], &context),
-                    string(&values[1], &context)
+                    emit::geom::mm_femto(x),
+                    emit::geom::mm_femto(y)
                 )
             })
             .collect::<Vec<_>>()

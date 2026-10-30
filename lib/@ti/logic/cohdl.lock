@@ -2,8 +2,8 @@
 
 [[package]]
 name = "soic"
-version = "0.2.1"
-hash = "sha256:f6d9e27f8b599b1a094b7de923fcff154f2135a54c71caf4f0dfdd36caeda40f"
+version = "0.3.0"
+hash = "sha256:5c7560c58391087d1dac9301fc4025ab4420010d41a50f4aa941cbac3cd8e425"
 
 [[package]]
 name = "std"

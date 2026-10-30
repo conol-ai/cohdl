@@ -36,4 +36,4 @@ The supplier CPL is exported with `--bottom-rotation lcsc=mirrored`. The Gerbers
 
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order.
 
-The preview of 2026-10-30 is recorded in `tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`, and its rows in `jlc_frames.json` start with `c2b1-`.
+The manifest pins the library as previewed, before transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 moved nine of its footprints onto the assembler's frame. The preview of 2026-10-30 is recorded in `tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`, and its rows in `jlc_frames.json` start with `c2b1-`.

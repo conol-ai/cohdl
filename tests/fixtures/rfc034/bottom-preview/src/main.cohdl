@@ -8,15 +8,18 @@
 // C numbers come from tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json.
 // v2 (2026-10-29): mappings from the first assembler preview — the SOT-23 model sat 90° clockwise
 // of our land and the SOIC-8 model 90° counter-clockwise, identically on top and bottom copies.
+// v3 (2026-10-30): transistor 0.2.0 and soic 0.3.0 move both footprints onto the assembler's
+// frame (library plan W3), so those mappings are now zero; tools/realign_place.py composed
+// every placement with them, and the copper and the CPL are unchanged.
 
 pub part Q_S8050: transistor::NPN_SOT23_BEC {
     primary { mfr: "Jiangsu Changjing Electronics Technology", mpn: "S8050 J3Y(RANGE:200-350)",
-              footprint: transistor::FP_JSCJ_SOT23, supplier acme "A-2146" rotate 90 }
+              footprint: transistor::FP_JSCJ_SOT23, supplier acme "A-2146" }
 }
 
 pub part U_W25Q128: flash::W25Q128JV[SOIC8] {
     primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N,
-              supplier acme "A-97521" rotate 270 }
+              supplier acme "A-97521" }
 }
 
 pub part C_27P_0603: passive::MLCC<27pF, 50V, 5%>[C0603] {
@@ -46,15 +49,15 @@ design BottomPreview {
         board_outline: "mechanical/outline.dxf"
 
         // column x: S8050, W25Q128, 0603, 0805; row y: top 0, top 37, bottom 0, bottom 37
-        place q[0] at (-26mm, -20mm)
-        place q[1] at (-26mm, -7mm) rotate 37
-        place q[2] at (-26mm, 7mm) side bottom
-        place q[3] at (-26mm, 20mm) rotate 37 side bottom
+        place q[0] at (-26mm, -20mm) rotate 90
+        place q[1] at (-26mm, -7mm) rotate 127
+        place q[2] at (-26mm, 7mm) rotate 270 side bottom
+        place q[3] at (-26mm, 20mm) rotate 307 side bottom
 
-        place u[0] at (-8mm, -20mm)
-        place u[1] at (-8mm, -7mm) rotate 37
-        place u[2] at (-8mm, 7mm) side bottom
-        place u[3] at (-8mm, 20mm) rotate 37 side bottom
+        place u[0] at (-8mm, -20mm) rotate 270
+        place u[1] at (-8mm, -7mm) rotate 307
+        place u[2] at (-8mm, 7mm) rotate 90 side bottom
+        place u[3] at (-8mm, 20mm) rotate 127 side bottom
 
         place c6[0] at (12mm, -20mm)
         place c6[1] at (12mm, -7mm) rotate 37

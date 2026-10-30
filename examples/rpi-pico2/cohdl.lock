@@ -27,8 +27,8 @@ hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
 
 [[package]]
 name = "flash"
-version = "0.1.6"
-hash = "sha256:abc90ba1d3f44aa9f40b494ab77f39d17090729cfac89690c21766cbecd2938f"
+version = "0.2.0"
+hash = "sha256:bcd72ca46968a663397abc1fe6ba300791482b2709c35383834ddf9b851a6e02"
 
 [[package]]
 name = "led"
@@ -57,8 +57,8 @@ hash = "sha256:78b2d9d64ae67be3ff506db3b0416939534f8f09110ab6e4bde77c491d10464f"
 
 [[package]]
 name = "soic"
-version = "0.2.1"
-hash = "sha256:f6d9e27f8b599b1a094b7de923fcff154f2135a54c71caf4f0dfdd36caeda40f"
+version = "0.3.0"
+hash = "sha256:5c7560c58391087d1dac9301fc4025ab4420010d41a50f4aa941cbac3cd8e425"
 
 [[package]]
 name = "std"

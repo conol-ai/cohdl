@@ -106,11 +106,13 @@ def extract_avl_rows(lib_dir: str | Path) -> list[AVLRow]:
 def build_index(sitemap: SitemapResult, candidates: list[dict[str, str]]) -> dict[str, list[Candidate]]:
     grouped: dict[str, dict[str, Candidate]] = {}
     for entry in sitemap.entries.values():
-        # Slugs sometimes have a manufacturer prefix. Keep both interpretations
-        # as discovery hints; the partdetail page remains authoritative.
+        # Live slugs (sitemap of 2026-10-30) are "<brand or LCSC id>-<MPN>",
+        # with every other "-" and punctuation in the MPN written as "_", so
+        # the first "-" separates the prefix.  The whole slug stays a key for
+        # the few without one; the partdetail page remains authoritative.
         keys = {normalize_mpn(entry.slug)}
-        if "_" in entry.slug:
-            keys.add(normalize_mpn(entry.slug.split("_", 1)[1]))
+        if "-" in entry.slug:
+            keys.add(normalize_mpn(entry.slug.split("-", 1)[1]))
         for key in keys:
             if key:
                 grouped.setdefault(key, {})[entry.pn] = Candidate(entry.pn, entry.path, ("sitemap",))
@@ -351,7 +353,8 @@ def main(argv=None) -> int:
                           preferred=frozenset(row["c"] for row in candidates
                                               if row["candidate_category"] == "preferred"))
     if args.dry_run:
-        sitemap_requests = len(sitemap_meta.get("sitemaps", [])) + (1 if "index_url" in sitemap_meta else 0)
+        # A dry run reads sitemaps only from the cache, so they cost no request.
+        sitemap_requests = 0
         result["planned_total_requests_including_sitemap"] = sitemap_requests + result["planned_partdetail_requests"]
         result["estimated_seconds"] = result["planned_total_requests_including_sitemap"] * 2
     print(json.dumps(result, indent=2, sort_keys=True))

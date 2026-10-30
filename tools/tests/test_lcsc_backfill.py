@@ -56,17 +56,17 @@ class BackfillTests(unittest.TestCase):
         self.assertEqual([(row.kind, row.mpn) for row in avl],
                          [("primary", "A-1"), ("alt", "B 2"), ("alt", "")])
         sitemap = filter_partdetail_urls([
-            "http://127.0.0.1/partdetail/Acme_A-1/C1/C1",
-            "http://127.0.0.1/partdetail/Other_B-2/C2/C2",
-            "http://127.0.0.1/partdetail/Acme_A-1/C3/C3",
+            "http://127.0.0.1/partdetail/Acme-A_1/C1/C1",
+            "http://127.0.0.1/partdetail/Other-B_2/C2/C2",
+            "http://127.0.0.1/partdetail/Acme-A_1/C3/C3",
         ])
         index = build_index(sitemap, [])
         self.assertEqual(normalize_mpn("a- 1"), "A1")
         self.assertEqual([c.c for c in index["A1"]], ["C1", "C3"])
         responses = {
-            "/partdetail/Acme_A-1/C1/C1": (200, page("C1", "A-1", category="Extended", stock=99)),
-            "/partdetail/Other_B-2/C2/C2": (200, page("C2", "B 2", mfr="Other Local")),
-            "/partdetail/Acme_A-1/C3/C3": (200, page("C3", "A-1", category="Basic", stock=0)),
+            "/partdetail/Acme-A_1/C1/C1": (200, page("C1", "A-1", category="Extended", stock=99)),
+            "/partdetail/Other-B_2/C2/C2": (200, page("C2", "B 2", mfr="Other Local")),
+            "/partdetail/Acme-A_1/C3/C3": (200, page("C3", "A-1", category="Basic", stock=0)),
         }
         aliases_path = self.root / "aliases.json"
         aliases_path.write_text(json.dumps({"schema_version": 1,
@@ -152,8 +152,8 @@ class BackfillTests(unittest.TestCase):
         self.assertNotEqual(confirmation_mpn("MP1482DS-LF-Z"), confirmation_mpn("MP1482DSLFZ"))
         self.assertEqual(confirmation_mpn(" mp 1482 ds-lf-z "), confirmation_mpn("MP1482DS-LF-Z"))
         avl = [AVLRow("x", "primary", "Acme", "MP1482DS-LF-Z")]
-        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/MP1482DS-LF-Z/C1/C1"])
-        with LocalServer({"/partdetail/MP1482DS-LF-Z/C1/C1":
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/Acme-MP1482DS_LF_Z/C1/C1"])
+        with LocalServer({"/partdetail/Acme-MP1482DS_LF_Z/C1/C1":
                           (200, page("C1", "MP1482DSLFZ"))}) as server:
             result = run_backfill(avl, build_index(sitemap, []), origin=server.url(),
                                   client=make_client(self.root / "cache"), output_dir=self.root / "out",

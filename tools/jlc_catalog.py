@@ -335,7 +335,8 @@ def main(argv=None) -> int:
                          output_dir=output, dry_run=args.dry_run, snapshot_date=args.date,
                          source_metadata=source_metadata)
     if args.dry_run:
-        sitemap_requests = len(sitemap_meta.get("sitemaps", [])) + (1 if "index_url" in sitemap_meta else 0)
+        # A dry run reads sitemaps only from the cache, so they cost no request.
+        sitemap_requests = 0
         result["planned_total_requests_including_sitemap"] = sitemap_requests + result["planned_partdetail_requests"]
         result["estimated_seconds"] = result["planned_total_requests_including_sitemap"] * 2
         result.pop("urls")

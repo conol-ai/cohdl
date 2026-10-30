@@ -1,0 +1,1519 @@
+{
+  "budget_exhausted": false,
+  "category_changed": [],
+  "counts": {
+    "candidates": 1334,
+    "catalog": 1334,
+    "fetch_failures": 0,
+    "partdetail_urls": 1334,
+    "requests": 1474,
+    "unresolved": 0
+  },
+  "date": "2026-10-30",
+  "elapsed_seconds": 2746.470198,
+  "failures": [],
+  "not_fetched": [],
+  "parser_status": "real_sample_2026-10-30",
+  "request_count": 1474,
+  "run_stopped": false,
+  "run_stopped_reason": null,
+  "schema_version": 1,
+  "sha256": {
+    "catalog.json": "1acd5335e380f3c48a2962ee267af2ec6e29e620030d50f6a041b6c5d32eeb26",
+    "not_fetched.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "requests.json": "d882933207b350e25940a0393c7c8371e23f3a2c863c37dabe64f80e63fb015d",
+    "unresolved.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  },
+  "sitemap_filter": {
+    "conflicts": 0,
+    "duplicate": 1,
+    "non_detail": 184956,
+    "placeholder": 1,
+    "retained": 6853625,
+    "ten_digit": 259172,
+    "total": 7297755
+  },
+  "sources": {
+    "candidates": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
+    "origin": "https://jlcpcb.com",
+    "partdetail_paths": "filtered_jlcpcb_sitemap",
+    "sitemap": {
+      "counts": {
+        "conflicts": 0,
+        "duplicate": 1,
+        "non_detail": 184956,
+        "placeholder": 1,
+        "retained": 6853625,
+        "ten_digit": 259172,
+        "total": 7297755
+      },
+      "declared_children": 154,
+      "index_root": "urlset",
+      "index_url": "https://jlcpcb.com/sitemap-index.xml",
+      "parts_children": 146,
+      "sitemaps": [
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 2551,
+          "placeholder": 0,
+          "retained": 47449,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap1.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 41,
+          "placeholder": 0,
+          "retained": 49959,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap2.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 9,
+          "placeholder": 0,
+          "retained": 49991,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap3.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 26,
+          "placeholder": 0,
+          "retained": 49974,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap4.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 271,
+          "placeholder": 0,
+          "retained": 47257,
+          "ten_digit": 2472,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap5.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 557,
+          "placeholder": 0,
+          "retained": 49427,
+          "ten_digit": 16,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap6.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 121,
+          "placeholder": 0,
+          "retained": 49837,
+          "ten_digit": 42,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap7.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 45,
+          "placeholder": 0,
+          "retained": 48303,
+          "ten_digit": 1652,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap8.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 40,
+          "placeholder": 0,
+          "retained": 48266,
+          "ten_digit": 1694,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap9.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 13755,
+          "placeholder": 0,
+          "retained": 34789,
+          "ten_digit": 1456,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap10.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 36088,
+          "placeholder": 0,
+          "retained": 13912,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap11.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 24287,
+          "placeholder": 0,
+          "retained": 25713,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap12.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1,
+          "placeholder": 0,
+          "retained": 49999,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap13.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 7245,
+          "placeholder": 0,
+          "retained": 42755,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap14.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 13077,
+          "placeholder": 0,
+          "retained": 36923,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap15.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 8822,
+          "placeholder": 0,
+          "retained": 41178,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap16.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 4888,
+          "placeholder": 0,
+          "retained": 45112,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap17.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 243,
+          "placeholder": 0,
+          "retained": 49757,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap18.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 43,
+          "placeholder": 0,
+          "retained": 49957,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap19.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 122,
+          "placeholder": 0,
+          "retained": 45362,
+          "ten_digit": 4516,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap20.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 252,
+          "placeholder": 0,
+          "retained": 34716,
+          "ten_digit": 15032,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap21.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 181,
+          "placeholder": 0,
+          "retained": 49789,
+          "ten_digit": 30,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap22.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 67,
+          "placeholder": 0,
+          "retained": 49405,
+          "ten_digit": 528,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap23.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 0,
+          "placeholder": 0,
+          "retained": 49998,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap24.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1,
+          "placeholder": 0,
+          "retained": 49991,
+          "ten_digit": 8,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap25.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 221,
+          "placeholder": 0,
+          "retained": 39537,
+          "ten_digit": 10242,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap26.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 212,
+          "placeholder": 0,
+          "retained": 46102,
+          "ten_digit": 3686,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap27.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 130,
+          "placeholder": 0,
+          "retained": 49870,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap28.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 422,
+          "placeholder": 0,
+          "retained": 49562,
+          "ten_digit": 16,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap29.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 117,
+          "placeholder": 0,
+          "retained": 49879,
+          "ten_digit": 4,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap30.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 0,
+          "placeholder": 0,
+          "retained": 50000,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap31.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 2,
+          "placeholder": 0,
+          "retained": 49956,
+          "ten_digit": 42,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap32.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 11,
+          "placeholder": 0,
+          "retained": 49871,
+          "ten_digit": 118,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap33.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 0,
+          "placeholder": 0,
+          "retained": 49992,
+          "ten_digit": 8,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap34.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1,
+          "placeholder": 0,
+          "retained": 49995,
+          "ten_digit": 4,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap35.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 7,
+          "placeholder": 0,
+          "retained": 49972,
+          "ten_digit": 21,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap36.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 17,
+          "placeholder": 0,
+          "retained": 49547,
+          "ten_digit": 436,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap37.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 4,
+          "placeholder": 0,
+          "retained": 49991,
+          "ten_digit": 5,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap38.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 2,
+          "placeholder": 0,
+          "retained": 49994,
+          "ten_digit": 4,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap39.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 0,
+          "placeholder": 0,
+          "retained": 49994,
+          "ten_digit": 6,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap40.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 7,
+          "placeholder": 0,
+          "retained": 49813,
+          "ten_digit": 180,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap41.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 9,
+          "placeholder": 0,
+          "retained": 49986,
+          "ten_digit": 5,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap42.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 25,
+          "placeholder": 0,
+          "retained": 49964,
+          "ten_digit": 11,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap43.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 29,
+          "placeholder": 0,
+          "retained": 49970,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap44.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 905,
+          "placeholder": 0,
+          "retained": 49092,
+          "ten_digit": 3,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap45.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 13,
+          "placeholder": 0,
+          "retained": 49985,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap46.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 89,
+          "placeholder": 0,
+          "retained": 49403,
+          "ten_digit": 508,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap47.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 72,
+          "placeholder": 0,
+          "retained": 49928,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap48.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 69,
+          "placeholder": 0,
+          "retained": 49931,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap49.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 109,
+          "placeholder": 0,
+          "retained": 49891,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap50.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 82,
+          "placeholder": 0,
+          "retained": 49918,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap51.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 90,
+          "placeholder": 0,
+          "retained": 49910,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap52.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 100,
+          "placeholder": 0,
+          "retained": 49900,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap53.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 40,
+          "placeholder": 0,
+          "retained": 49960,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap54.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 72,
+          "placeholder": 0,
+          "retained": 49928,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap55.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 167,
+          "placeholder": 0,
+          "retained": 49833,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap56.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 164,
+          "placeholder": 0,
+          "retained": 49836,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap57.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 129,
+          "placeholder": 0,
+          "retained": 49871,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap58.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 98,
+          "placeholder": 0,
+          "retained": 49902,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap59.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 132,
+          "placeholder": 0,
+          "retained": 49868,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap60.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 114,
+          "placeholder": 0,
+          "retained": 49886,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap61.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 84,
+          "placeholder": 0,
+          "retained": 49916,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap62.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 88,
+          "placeholder": 0,
+          "retained": 49912,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap63.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 113,
+          "placeholder": 0,
+          "retained": 49886,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap64.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 78,
+          "placeholder": 0,
+          "retained": 49919,
+          "ten_digit": 3,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap65.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 107,
+          "placeholder": 0,
+          "retained": 49890,
+          "ten_digit": 3,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap66.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 99,
+          "placeholder": 0,
+          "retained": 49899,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap67.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 83,
+          "placeholder": 0,
+          "retained": 49916,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap68.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 109,
+          "placeholder": 0,
+          "retained": 49891,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap69.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 116,
+          "placeholder": 0,
+          "retained": 49883,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap70.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 114,
+          "placeholder": 0,
+          "retained": 49886,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap71.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 93,
+          "placeholder": 0,
+          "retained": 49907,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap72.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 90,
+          "placeholder": 0,
+          "retained": 49909,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap73.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 49,
+          "placeholder": 0,
+          "retained": 49583,
+          "ten_digit": 368,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap74.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 17,
+          "placeholder": 0,
+          "retained": 49896,
+          "ten_digit": 87,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap75.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 66,
+          "placeholder": 0,
+          "retained": 49932,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap76.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 94,
+          "placeholder": 0,
+          "retained": 49902,
+          "ten_digit": 4,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap77.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 86,
+          "placeholder": 0,
+          "retained": 49914,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap78.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 79,
+          "placeholder": 0,
+          "retained": 49912,
+          "ten_digit": 9,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap79.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 59,
+          "placeholder": 0,
+          "retained": 49934,
+          "ten_digit": 7,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap80.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 289,
+          "placeholder": 0,
+          "retained": 42829,
+          "ten_digit": 6882,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap81.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 496,
+          "placeholder": 0,
+          "retained": 27607,
+          "ten_digit": 21897,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap82.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 3576,
+          "placeholder": 0,
+          "retained": 38060,
+          "ten_digit": 8364,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap83.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 4529,
+          "placeholder": 0,
+          "retained": 45457,
+          "ten_digit": 14,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap84.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1474,
+          "placeholder": 0,
+          "retained": 48521,
+          "ten_digit": 5,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap85.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 638,
+          "placeholder": 0,
+          "retained": 49360,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap86.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 260,
+          "placeholder": 0,
+          "retained": 49740,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap87.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 114,
+          "placeholder": 0,
+          "retained": 49885,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap88.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 45,
+          "placeholder": 0,
+          "retained": 49954,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap89.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 153,
+          "placeholder": 0,
+          "retained": 49847,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap90.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1177,
+          "placeholder": 0,
+          "retained": 48822,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap91.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1633,
+          "placeholder": 0,
+          "retained": 48365,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap92.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 83,
+          "placeholder": 0,
+          "retained": 49916,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap93.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 518,
+          "placeholder": 0,
+          "retained": 49480,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap94.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1050,
+          "placeholder": 0,
+          "retained": 48948,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap95.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 339,
+          "placeholder": 0,
+          "retained": 49661,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap96.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 287,
+          "placeholder": 0,
+          "retained": 49712,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap97.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 131,
+          "placeholder": 0,
+          "retained": 49868,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap98.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 154,
+          "placeholder": 0,
+          "retained": 49839,
+          "ten_digit": 7,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap99.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1928,
+          "placeholder": 0,
+          "retained": 48072,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap100.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 12607,
+          "placeholder": 0,
+          "retained": 37383,
+          "ten_digit": 10,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap101.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 3834,
+          "placeholder": 0,
+          "retained": 46145,
+          "ten_digit": 21,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap102.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 5170,
+          "placeholder": 0,
+          "retained": 44830,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap103.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 111,
+          "placeholder": 0,
+          "retained": 49888,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap104.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 222,
+          "placeholder": 0,
+          "retained": 49678,
+          "ten_digit": 100,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap105.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 171,
+          "placeholder": 0,
+          "retained": 49825,
+          "ten_digit": 4,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap106.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 181,
+          "placeholder": 0,
+          "retained": 49817,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap107.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 642,
+          "placeholder": 0,
+          "retained": 49356,
+          "ten_digit": 2,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap108.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 209,
+          "placeholder": 0,
+          "retained": 49791,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap109.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 331,
+          "placeholder": 0,
+          "retained": 49668,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap110.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 700,
+          "placeholder": 0,
+          "retained": 49299,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap111.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 416,
+          "placeholder": 0,
+          "retained": 49584,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap112.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1016,
+          "placeholder": 0,
+          "retained": 48984,
+          "ten_digit": 0,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap113.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1117,
+          "placeholder": 0,
+          "retained": 48882,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap114.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 519,
+          "placeholder": 0,
+          "retained": 48282,
+          "ten_digit": 1199,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap115.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 239,
+          "placeholder": 0,
+          "retained": 44106,
+          "ten_digit": 5655,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap116.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 120,
+          "placeholder": 0,
+          "retained": 45113,
+          "ten_digit": 4767,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap117.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 263,
+          "placeholder": 0,
+          "retained": 48904,
+          "ten_digit": 833,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap118.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 336,
+          "placeholder": 0,
+          "retained": 49560,
+          "ten_digit": 104,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap119.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 367,
+          "placeholder": 0,
+          "retained": 49622,
+          "ten_digit": 11,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap120.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 492,
+          "placeholder": 0,
+          "retained": 48291,
+          "ten_digit": 1217,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap121.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 575,
+          "placeholder": 0,
+          "retained": 46689,
+          "ten_digit": 2736,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap122.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 233,
+          "placeholder": 0,
+          "retained": 49713,
+          "ten_digit": 54,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap123.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 647,
+          "placeholder": 0,
+          "retained": 49347,
+          "ten_digit": 6,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap124.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 378,
+          "placeholder": 0,
+          "retained": 49598,
+          "ten_digit": 24,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap125.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 275,
+          "placeholder": 0,
+          "retained": 49694,
+          "ten_digit": 31,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap126.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 280,
+          "placeholder": 0,
+          "retained": 49719,
+          "ten_digit": 1,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap127.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 2033,
+          "placeholder": 0,
+          "retained": 47959,
+          "ten_digit": 8,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap128.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 958,
+          "placeholder": 0,
+          "retained": 48975,
+          "ten_digit": 67,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap129.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 518,
+          "placeholder": 0,
+          "retained": 49474,
+          "ten_digit": 8,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap130.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 539,
+          "placeholder": 0,
+          "retained": 49453,
+          "ten_digit": 8,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap131.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 543,
+          "placeholder": 0,
+          "retained": 49451,
+          "ten_digit": 6,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap132.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 307,
+          "placeholder": 0,
+          "retained": 49676,
+          "ten_digit": 17,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap133.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 361,
+          "placeholder": 0,
+          "retained": 49622,
+          "ten_digit": 17,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap134.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 485,
+          "placeholder": 0,
+          "retained": 49505,
+          "ten_digit": 10,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap135.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 492,
+          "placeholder": 0,
+          "retained": 49497,
+          "ten_digit": 11,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap136.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 842,
+          "placeholder": 0,
+          "retained": 33484,
+          "ten_digit": 15674,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap137.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 1189,
+          "placeholder": 0,
+          "retained": 19903,
+          "ten_digit": 28908,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap138.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 664,
+          "placeholder": 0,
+          "retained": 37947,
+          "ten_digit": 11389,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap139.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 444,
+          "placeholder": 0,
+          "retained": 36982,
+          "ten_digit": 12574,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap140.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 3982,
+          "placeholder": 0,
+          "retained": 31725,
+          "ten_digit": 14293,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap141.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 449,
+          "placeholder": 0,
+          "retained": 34452,
+          "ten_digit": 15099,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap142.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 501,
+          "placeholder": 0,
+          "retained": 31097,
+          "ten_digit": 18402,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap143.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 903,
+          "placeholder": 0,
+          "retained": 33000,
+          "ten_digit": 16097,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap144.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 681,
+          "placeholder": 0,
+          "retained": 33107,
+          "ten_digit": 16212,
+          "total": 50000,
+          "url": "https://jlcpcb.com/en/parts/sitemap145.xml"
+        },
+        {
+          "conflicts": 0,
+          "duplicate": 0,
+          "non_detail": 722,
+          "placeholder": 1,
+          "retained": 33863,
+          "ten_digit": 13169,
+          "total": 47755,
+          "url": "https://jlcpcb.com/en/parts/sitemap146.xml"
+        }
+      ]
+    }
+  }
+}

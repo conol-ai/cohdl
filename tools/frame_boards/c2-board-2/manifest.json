@@ -1,0 +1,927 @@
+{
+ "name": "c2_frame_board_2",
+ "dependencies": {
+  "std": "0.3.0",
+  "@st/stm32": "0.3.0",
+  "qfp": "0.3.0",
+  "bga": "0.2.0",
+  "@ti/logic": "0.2.0",
+  "soic": "0.3.0",
+  "@contrib/comparator": "0.2.0",
+  "can": "0.2.0"
+ },
+ "rows": [
+  {
+   "name": "LQFP208",
+   "footprint": "qfp::KICAD_LQFP_208_28X28MM_P0_5MM",
+   "part": "st_stm32::STM32F767BITx",
+   "pn": "C129276",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F767BIT6",
+   "pins": [
+    "VBAT",
+    "VSS",
+    "VDD",
+    "VSSA",
+    "VREFP",
+    "VDDA",
+    "VCAP_1",
+    "VDDUSB",
+    "VCAP_2",
+    "VDDSDMMC",
+    "BOOT0"
+   ],
+   "width_mm": 44.35,
+   "height_mm": 44.35,
+   "placements": [
+    {
+     "at_mm": [
+      23.175,
+      23.175
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      69.525,
+      23.175
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      23.175,
+      69.525
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      69.525,
+      69.525
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "LQFP-208(28x28)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP176",
+   "footprint": "qfp::KICAD_LQFP_176_24X24MM_P0_5MM",
+   "part": "st_stm32::STM32F437IITx",
+   "pn": "C5269976",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F437IIT7",
+   "pins": [
+    "VBAT",
+    "VSS",
+    "VDD",
+    "VSSA",
+    "VREFP",
+    "VDDA",
+    "VCAP_1",
+    "VCAP_2",
+    "BOOT0"
+   ],
+   "width_mm": 38.693,
+   "height_mm": 38.693,
+   "placements": [
+    {
+     "at_mm": [
+      113.046,
+      20.346
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      153.739,
+      20.346
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      113.046,
+      61.039
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      153.739,
+      61.039
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "low stock",
+   "jlc_package": "LQFP-176(24x24)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP100_F4",
+   "footprint": "qfp::KICAD_LQFP_100_14X14MM_P0_5MM",
+   "part": "st_stm32::STM32F427VGTx",
+   "pn": "C117815",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F427VGT6",
+   "pins": [
+    "VBAT",
+    "VSS",
+    "VDD",
+    "VSSA",
+    "VREFP",
+    "VDDA",
+    "VCAP_1",
+    "VCAP_2",
+    "BOOT0"
+   ],
+   "width_mm": 24.692,
+   "height_mm": 24.692,
+   "placements": [
+    {
+     "at_mm": [
+      13.346,
+      106.046
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.038,
+      106.046
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      13.346,
+      132.738
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.038,
+      132.738
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "",
+   "jlc_package": "LQFP-100(14x14)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP100_L4",
+   "footprint": "qfp::KICAD_LQFP_100_14X14MM_P0_5MM",
+   "part": "st_stm32::STM32L496VGTx",
+   "pn": "C717701",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L496VGT6",
+   "pins": [
+    "VBAT",
+    "VSS",
+    "VDD",
+    "VSSA",
+    "VREFM",
+    "VREFP",
+    "VDDA",
+    "VDDUSB"
+   ],
+   "width_mm": 24.692,
+   "height_mm": 24.692,
+   "placements": [
+    {
+     "at_mm": [
+      66.73,
+      106.046
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      93.423,
+      106.046
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      66.73,
+      132.738
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      93.423,
+      132.738
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "same package, other model",
+   "jlc_package": "LQFP-100(14x14)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP64",
+   "footprint": "qfp::KICAD_LQFP_64_10X10MM_P0_5MM",
+   "part": "st_stm32::STM32L476RGTx",
+   "pn": "C1337443",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L476RGT3",
+   "pins": [
+    "VBAT",
+    "VSSA_VREFM",
+    "VDDA_VREFP",
+    "VSS",
+    "VDD",
+    "VDDUSB",
+    "BOOT0"
+   ],
+   "width_mm": 18.95,
+   "height_mm": 18.95,
+   "placements": [
+    {
+     "at_mm": [
+      117.244,
+      103.175
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      138.194,
+      103.175
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      117.244,
+      124.125
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      138.194,
+      124.125
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "low stock",
+   "jlc_package": "LQFP-64(10x10)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP32_KICAD",
+   "footprint": "qfp::KICAD_LQFP_32_7X7MM_P0_8MM",
+   "part": "st_stm32::STM32L412K8Tx",
+   "pn": "C529436",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L412K8T6",
+   "pins": [
+    "VDD",
+    "VDDA_VREFP",
+    "VSS"
+   ],
+   "width_mm": 14.651,
+   "height_mm": 14.651,
+   "placements": [
+    {
+     "at_mm": [
+      8.326,
+      154.409
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      24.977,
+      154.409
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      8.326,
+      171.061
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      24.977,
+      171.061
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270; B2 exact match",
+   "jlc_package": "LQFP-32(7x7)",
+   "category": "extended"
+  },
+  {
+   "name": "LQFP48_KICAD",
+   "footprint": "qfp::KICAD_LQFP_48_7X7MM_P0_5MM",
+   "part": "st_stm32::STM32F103C8Tx",
+   "pn": "C8734",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F103C8T6",
+   "pins": [
+    "VBAT",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "VDD",
+    "BOOT0"
+   ],
+   "width_mm": 14.566,
+   "height_mm": 14.566,
+   "placements": [
+    {
+     "at_mm": [
+      41.586,
+      154.367
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      58.152,
+      154.367
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      41.586,
+      170.933
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      58.152,
+      170.933
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP48_IPC",
+   "footprint": "qfp::QFP50P900X900X160_48N",
+   "part": "st_stm32::STM32F072C8Tx",
+   "pn": "C7532",
+   "mfr": "Holtek Semicon",
+   "mpn": "HT1621B",
+   "pins": [
+    "VBAT",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "VDD",
+    "VDDIO2",
+    "BOOT0"
+   ],
+   "width_mm": 14.425,
+   "height_mm": 14.425,
+   "placements": [
+    {
+     "at_mm": [
+      74.648,
+      154.296
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      91.073,
+      154.296
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      74.648,
+      170.721
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      91.073,
+      170.721
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270; device supplies pins only",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "TFBGA100",
+   "footprint": "bga::KICAD_TFBGA_100_8X8MM_LAYOUT10X10_P0_8MM",
+   "part": "st_stm32::STM32H743VIHx",
+   "pn": "C1857444",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32H743VIH6TR",
+   "pins": [
+    "VBAT",
+    "VSS",
+    "VDD",
+    "BOOT0",
+    "VCAP",
+    "VDDLDO",
+    "VDD33_USB",
+    "VSSA",
+    "VDDA"
+   ],
+   "width_mm": 14.142,
+   "height_mm": 14.142,
+   "placements": [
+    {
+     "at_mm": [
+      107.356,
+      154.155
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      123.498,
+      154.155
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      107.356,
+      170.297
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      123.498,
+      170.297
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "ball A1",
+   "jlc_package": "TFBGA-100",
+   "category": "extended"
+  },
+  {
+   "name": "UFBGA100",
+   "footprint": "bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM",
+   "part": "st_stm32::STM32L152VCHx",
+   "pn": "C1338995",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L152VCH6",
+   "pins": [
+    "BOOT0",
+    "VDD",
+    "VSS",
+    "VLCD",
+    "VSSA",
+    "VREFM",
+    "VREFP",
+    "VDDA"
+   ],
+   "width_mm": 12.728,
+   "height_mm": 12.728,
+   "placements": [
+    {
+     "at_mm": [
+      138.933,
+      153.448
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      153.661,
+      153.448
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      138.933,
+      168.176
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      153.661,
+      168.176
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "ball A1",
+   "jlc_package": "UFBGA-100",
+   "category": "extended"
+  },
+  {
+   "name": "TFBGA169_ST",
+   "footprint": "bga::KICAD_ST_TFBGA_169_7X7MM_LAYOUT13X13_P0_5MM",
+   "part": "st_stm32::STM32U595AJHx",
+   "pn": "C24622621",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32U595AJH6",
+   "pins": [
+    "VDD",
+    "VCAP",
+    "VDDIO2",
+    "VSS",
+    "VBAT",
+    "VDDUSB",
+    "VSSA",
+    "VREFP",
+    "VDDA"
+   ],
+   "width_mm": 12.728,
+   "height_mm": 12.728,
+   "placements": [
+    {
+     "at_mm": [
+      7.364,
+      186.75
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      22.092,
+      186.75
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      7.364,
+      201.478
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      22.092,
+      201.478
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "ball A1",
+   "jlc_package": "TFBGA-169",
+   "category": "extended"
+  },
+  {
+   "name": "TSSOP24",
+   "footprint": "soic::TSSOP24P65_TI_PW0024A",
+   "part": "ti_logic::SN74LVC8T245",
+   "pn": "C7859",
+   "mfr": "Texas Instruments",
+   "mpn": "SN74LVC4245APWR",
+   "pins": [
+    "VCCA",
+    "DIR",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "A7",
+    "A8",
+    "GND",
+    "B8",
+    "B7",
+    "B6",
+    "B5",
+    "B4",
+    "B3",
+    "B2",
+    "B1",
+    "OE",
+    "VCCB"
+   ],
+   "width_mm": 11.463,
+   "height_mm": 11.463,
+   "placements": [
+    {
+     "at_mm": [
+      36.187,
+      186.118
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      49.65,
+      186.118
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      36.187,
+      199.581
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      49.65,
+      199.581
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270",
+   "jlc_package": "TSSOP-24",
+   "category": "preferred"
+  },
+  {
+   "name": "TSSOP20",
+   "footprint": "soic::KICAD_TSSOP_20_4_4X6_5MM_P0_65MM",
+   "part": "st_stm32::STM32G030F6Px",
+   "pn": "C52717",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM8S003F3P6TR",
+   "pins": [
+    "VDD_VDDA",
+    "VSS_VSSA"
+   ],
+   "width_mm": 10.406,
+   "height_mm": 10.406,
+   "placements": [
+    {
+     "at_mm": [
+      62.585,
+      185.589
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      74.991,
+      185.589
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      62.585,
+      197.996
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      74.991,
+      197.996
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270",
+   "jlc_package": "TSSOP-20",
+   "category": "preferred"
+  },
+  {
+   "name": "UFBGA64",
+   "footprint": "bga::KICAD_UFBGA_64_5X5MM_LAYOUT8X8_P0_5MM",
+   "part": "st_stm32::STM32G431RBIx",
+   "pn": "C730103",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32G431RBI6",
+   "pins": [
+    "VDD",
+    "VSS",
+    "VBAT",
+    "VSSA",
+    "VREFP",
+    "VDDA"
+   ],
+   "width_mm": 9.899,
+   "height_mm": 9.899,
+   "placements": [
+    {
+     "at_mm": [
+      87.144,
+      185.336
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      99.044,
+      185.336
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      87.144,
+      197.236
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      99.044,
+      197.236
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "ball A1",
+   "jlc_package": "UFBGA-64",
+   "category": "extended"
+  },
+  {
+   "name": "SOIC8_TI",
+   "footprint": "soic::TI_D0008A_4214825C",
+   "part": "contrib_comparator::TLV9022_D8",
+   "pn": "C7433",
+   "mfr": "Texas Instruments",
+   "mpn": "OP07CDR",
+   "pins": [
+    "IN1_N",
+    "IN1_P",
+    "V_MINUS",
+    "IN2_P",
+    "IN2_N",
+    "V_PLUS"
+   ],
+   "width_mm": 9.573,
+   "height_mm": 9.573,
+   "placements": [
+    {
+     "at_mm": [
+      110.78,
+      185.173
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      122.353,
+      185.173
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      110.78,
+      196.746
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      122.353,
+      196.746
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270",
+   "jlc_package": "SOIC-8",
+   "category": "basic"
+  },
+  {
+   "name": "SOIC8_KICAD",
+   "footprint": "soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+   "part": "can::CAN_SN65HVD230",
+   "pn": "C7950",
+   "mfr": "onsemi",
+   "mpn": "LM358DR2G",
+   "pins": [
+    "D",
+    "GND",
+    "VCC",
+    "R",
+    "CANL",
+    "CANH",
+    "RS"
+   ],
+   "width_mm": 9.161,
+   "height_mm": 9.161,
+   "placements": [
+    {
+     "at_mm": [
+      133.72,
+      184.967
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      144.881,
+      184.967
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      133.72,
+      196.127
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      144.881,
+      196.127
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "moved rotate 270",
+   "jlc_package": "SOIC-8",
+   "category": "basic"
+  }
+ ]
+}

@@ -66,6 +66,45 @@ export interface SearchResponse {
   truncated: boolean;
 }
 
+export interface SupplierLink {
+  label: string;
+  url: string;
+}
+
+export interface SupplierCatalog {
+  class: string;
+  stock: number;
+  snapshot_date: string;
+}
+
+export interface SupplierBinding {
+  supplier: string;
+  pn: string;
+  at: [string, string];
+  rotate: number;
+  links: SupplierLink[];
+  catalog: SupplierCatalog | null;
+}
+
+export interface PartSearchRow {
+  package: string;
+  tier: SearchRow["tier"];
+  version: string;
+  fq: string;
+  name: string;
+  device: string;
+  intent: string | null;
+  manufacturer: string | null;
+  mpn: string | null;
+  primary: boolean;
+  suppliers?: SupplierBinding[];
+}
+
+export interface PartSearchResponse {
+  query: string;
+  parts: { results: PartSearchRow[]; has_more: boolean };
+}
+
 export interface RecentRow {
   name: string;
   version: string;
@@ -221,6 +260,7 @@ export interface DesignDoc {
 export interface AvlEntryDoc {
   fields: { name: string; value: string }[];
   footprint?: string;
+  suppliers: { supplier: string; pn: string; at: [string, string]; rotate: number }[];
 }
 
 export interface PartDoc {
@@ -405,17 +445,72 @@ export function docUrl(pkg: string, version: string, path: string): string {
   return `/api/doc?${q.toString()}`;
 }
 
+export function packageSearchUrl(
+  q: string,
+  tier?: SearchRow["tier"],
+  sort: "updated" | "name" = "updated",
+): string {
+  const params = new URLSearchParams({ q });
+  if (tier) params.set("tier", tier);
+  if (sort !== "updated") params.set("sort", sort);
+  return `/api/search?${params.toString()}`;
+}
+
 export function useSearch(
   q: string,
   tier?: SearchRow["tier"],
   sort: "updated" | "name" = "updated",
+  enabled = true,
 ) {
-  const params = new URLSearchParams({ q });
-  if (tier) params.set("tier", tier);
-  if (sort !== "updated") params.set("sort", sort);
   return useQuery({
     queryKey: ["search", q, tier ?? "all", sort],
-    queryFn: () => get<SearchResponse>(`/api/search?${params.toString()}`),
+    queryFn: () => get<SearchResponse>(packageSearchUrl(q, tier, sort)),
+    enabled,
+  });
+}
+
+/// Supplier-filtered discovery is part of the stable, enriched `/search`
+/// contract. Do not substitute the implementation-private package endpoint.
+export function partSearchUrl(q: string, supplier?: string, classes: string[] = []): string {
+  const params = new URLSearchParams({ q, kind: "part" });
+  if (supplier) params.set("supplier", supplier);
+  for (const category of classes) params.append("class", category);
+  return `/search?${params.toString()}`;
+}
+
+export function usePartSearch(
+  q: string,
+  supplier: string | undefined,
+  classes: string[],
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ["part-search", q, supplier ?? "", classes],
+    queryFn: () => get<PartSearchResponse>(partSearchUrl(q, supplier, classes)),
+    enabled,
+  });
+}
+
+/// A part deep link reuses `/search`'s already-enriched row. The query comes
+/// from the document itself and at most one request is made for the selected
+/// part; no supplier or catalog N+1 lookups are introduced here.
+export function useSuppliersForPart(packageName: string, part: ApiDocsItem | undefined) {
+  const fields = part?.kind === "part" && Array.isArray(part.part.primary?.fields)
+    ? part.part.primary.fields
+    : [];
+  const identity = part?.kind === "part" && Array.isArray(part.part.primary?.suppliers)
+    ? part.part.primary.suppliers[0]?.pn
+    : undefined;
+  const query = identity ?? fields.find((field) => field.name === "mpn")?.value
+    ?? fields.find((field) => field.name === "mfr")?.value
+    ?? part?.name
+    ?? "";
+  return useQuery({
+    queryKey: ["part-suppliers", packageName, part?.fq ?? "", query],
+    queryFn: () => get<PartSearchResponse>(partSearchUrl(query)),
+    enabled: part?.kind === "part" && query.length >= 3,
+    select: (response) => response.parts.results.find((row) =>
+      row.package === packageName && row.fq === part?.fq)?.suppliers,
   });
 }
 

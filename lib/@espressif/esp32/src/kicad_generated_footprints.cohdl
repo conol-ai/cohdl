@@ -1206,7 +1206,7 @@ pub footprint FP_ESP32_MINI_1U {
 
 // Source: soc/ESP32-PICO-D4_Footprint.asc
 // Source file SHA-256: a09990da3e9f2e204af79767be55368af256d87d3a11770fa222479ceabdff15
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint FP_ESP32_PICO_D4 {
     pad 1: P_ESPRESSIF_0008 at (-3.3625mm, -2.75mm)
     pad 2: P_ESPRESSIF_0008 at (-3.3625mm, -2.25mm)
@@ -1284,7 +1284,7 @@ pub footprint FP_ESP32_PICO_D4 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0.005mm, 0mm), size: (6.05mm, 6.06mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.9mm, 7.9mm) }
     silkscreen_ref { at: (0.005mm, -4.03mm) }
 }
 
@@ -1440,7 +1440,7 @@ pub footprint FP_ESP32_PICO_MINI_02U {
 
 // Source: soc/ESP32-PICO-V3_Footprint.asc
 // Source file SHA-256: 5164253b83262982cfa3f203ecb10f60679646bd0bc89e962a9be113df743efe
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint FP_ESP32_PICO_V3 {
     pad 1: P_ESPRESSIF_0008 at (-3.3625mm, -2.75mm)
     pad 2: P_ESPRESSIF_0008 at (-3.3625mm, -2.25mm)
@@ -1518,13 +1518,13 @@ pub footprint FP_ESP32_PICO_V3 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0.005mm, 0mm), size: (6.05mm, 6.06mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.9mm, 7.9mm) }
     silkscreen_ref { at: (0.005mm, -4.03mm) }
 }
 
 // Source: soc/ESP32-PICO-V3-02_Footprint.asc
 // Source file SHA-256: 5164253b83262982cfa3f203ecb10f60679646bd0bc89e962a9be113df743efe
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint FP_ESP32_PICO_V3_02 {
     pad 1: P_ESPRESSIF_0008 at (-3.3625mm, -2.75mm)
     pad 2: P_ESPRESSIF_0008 at (-3.3625mm, -2.25mm)
@@ -1602,7 +1602,7 @@ pub footprint FP_ESP32_PICO_V3_02 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0.005mm, 0mm), size: (6.05mm, 6.06mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.9mm, 7.9mm) }
     silkscreen_ref { at: (0.005mm, -4.03mm) }
 }
 

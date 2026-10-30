@@ -20,6 +20,7 @@ out/footprints/soic-KICAD_SOIC_8_3_9X4_9MM_P1_27MM.kicad_mod
 out/ground_nets.csv
 out/high_current_nets.csv
 out/joint-motor-controller-bom.csv
+out/joint-motor-controller-cpl.csv
 out/joint-motor-controller-layout.json
 out/joint-motor-controller.enet
 out/joint-motor-controller.kicad_pcb

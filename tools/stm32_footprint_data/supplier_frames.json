@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "note": "Library plan W3: generated footprints moved onto the assembler's frame. Each value is the RFC-034 mapping the footprint needed before the move; evidence is in tools/sourcing_data/jlc_frames.json.",
+  "frames": {
+    "KICAD_LQFP_32_7X7MM_P0_8MM": {"dx_mm": "0", "dy_mm": "0", "rotate_deg": 270},
+    "KICAD_LQFP_48_7X7MM_P0_5MM": {"dx_mm": "0", "dy_mm": "0", "rotate_deg": 270},
+    "KICAD_SOIC_8_3_9X4_9MM_P1_27MM": {"dx_mm": "0", "dy_mm": "0", "rotate_deg": 270},
+    "KICAD_TSSOP_20_4_4X6_5MM_P0_65MM": {"dx_mm": "0", "dy_mm": "0", "rotate_deg": 270}
+  }
+}

@@ -23,20 +23,21 @@ pad P_KICAD_0002 {
 // KiCad source: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
 // Source file SHA-256: 074ecb2092b24fa4b4b9cdd7c926fc587b0d7d6d21e7341e57935fd42d36894f
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
+// Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
 pub footprint KICAD_SOIC_8_3_9X4_9MM_P1_27MM {
-    pad 1: P_KICAD_0002 at (-2.475mm, -1.905mm)
-    pad 2: P_KICAD_0002 at (-2.475mm, -0.635mm)
-    pad 3: P_KICAD_0002 at (-2.475mm, 0.635mm)
-    pad 4: P_KICAD_0002 at (-2.475mm, 1.905mm)
-    pad 5: P_KICAD_0002 at (2.475mm, 1.905mm)
-    pad 6: P_KICAD_0002 at (2.475mm, 0.635mm)
-    pad 7: P_KICAD_0002 at (2.475mm, -0.635mm)
-    pad 8: P_KICAD_0002 at (2.475mm, -1.905mm)
+    pad 1: P_KICAD_0002 at (-1.905mm, 2.475mm) rotate 90
+    pad 2: P_KICAD_0002 at (-0.635mm, 2.475mm) rotate 90
+    pad 3: P_KICAD_0002 at (0.635mm, 2.475mm) rotate 90
+    pad 4: P_KICAD_0002 at (1.905mm, 2.475mm) rotate 90
+    pad 5: P_KICAD_0002 at (1.905mm, -2.475mm) rotate 90
+    pad 6: P_KICAD_0002 at (0.635mm, -2.475mm) rotate 90
+    pad 7: P_KICAD_0002 at (-0.635mm, -2.475mm) rotate 90
+    pad 8: P_KICAD_0002 at (-1.905mm, -2.475mm) rotate 90
     silkscreen {
-        polygon [(-2.6mm, -2.47mm), (-2.84mm, -2.8mm), (-2.36mm, -2.8mm)]
+        polygon [(-2.47mm, 2.6mm), (-2.8mm, 2.84mm), (-2.8mm, 2.36mm)]
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.4mm, 5.4mm) }
-    silkscreen_ref { at: (0mm, -3.4mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.4mm, 7.4mm) }
+    silkscreen_ref { at: (-3.4mm, 0mm) }
 }
 
 // KiCad source: Package_SO:TSSOP-14_4.4x5mm_P0.65mm
@@ -67,30 +68,31 @@ pub footprint KICAD_TSSOP_14_4_4X5MM_P0_65MM {
 // KiCad source: Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm
 // Source file SHA-256: b7ca3a31dd45c1225609f9b94e8ba1534bd16edd193628c8d67a8ea669b26b72
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
+// Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
 pub footprint KICAD_TSSOP_20_4_4X6_5MM_P0_65MM {
-    pad 1: P_KICAD_0001 at (-2.8625mm, -2.925mm)
-    pad 2: P_KICAD_0001 at (-2.8625mm, -2.275mm)
-    pad 3: P_KICAD_0001 at (-2.8625mm, -1.625mm)
-    pad 4: P_KICAD_0001 at (-2.8625mm, -0.975mm)
-    pad 5: P_KICAD_0001 at (-2.8625mm, -0.325mm)
-    pad 6: P_KICAD_0001 at (-2.8625mm, 0.325mm)
-    pad 7: P_KICAD_0001 at (-2.8625mm, 0.975mm)
-    pad 8: P_KICAD_0001 at (-2.8625mm, 1.625mm)
-    pad 9: P_KICAD_0001 at (-2.8625mm, 2.275mm)
-    pad 10: P_KICAD_0001 at (-2.8625mm, 2.925mm)
-    pad 11: P_KICAD_0001 at (2.8625mm, 2.925mm)
-    pad 12: P_KICAD_0001 at (2.8625mm, 2.275mm)
-    pad 13: P_KICAD_0001 at (2.8625mm, 1.625mm)
-    pad 14: P_KICAD_0001 at (2.8625mm, 0.975mm)
-    pad 15: P_KICAD_0001 at (2.8625mm, 0.325mm)
-    pad 16: P_KICAD_0001 at (2.8625mm, -0.325mm)
-    pad 17: P_KICAD_0001 at (2.8625mm, -0.975mm)
-    pad 18: P_KICAD_0001 at (2.8625mm, -1.625mm)
-    pad 19: P_KICAD_0001 at (2.8625mm, -2.275mm)
-    pad 20: P_KICAD_0001 at (2.8625mm, -2.925mm)
+    pad 1: P_KICAD_0001 at (-2.925mm, 2.8625mm) rotate 90
+    pad 2: P_KICAD_0001 at (-2.275mm, 2.8625mm) rotate 90
+    pad 3: P_KICAD_0001 at (-1.625mm, 2.8625mm) rotate 90
+    pad 4: P_KICAD_0001 at (-0.975mm, 2.8625mm) rotate 90
+    pad 5: P_KICAD_0001 at (-0.325mm, 2.8625mm) rotate 90
+    pad 6: P_KICAD_0001 at (0.325mm, 2.8625mm) rotate 90
+    pad 7: P_KICAD_0001 at (0.975mm, 2.8625mm) rotate 90
+    pad 8: P_KICAD_0001 at (1.625mm, 2.8625mm) rotate 90
+    pad 9: P_KICAD_0001 at (2.275mm, 2.8625mm) rotate 90
+    pad 10: P_KICAD_0001 at (2.925mm, 2.8625mm) rotate 90
+    pad 11: P_KICAD_0001 at (2.925mm, -2.8625mm) rotate 90
+    pad 12: P_KICAD_0001 at (2.275mm, -2.8625mm) rotate 90
+    pad 13: P_KICAD_0001 at (1.625mm, -2.8625mm) rotate 90
+    pad 14: P_KICAD_0001 at (0.975mm, -2.8625mm) rotate 90
+    pad 15: P_KICAD_0001 at (0.325mm, -2.8625mm) rotate 90
+    pad 16: P_KICAD_0001 at (-0.325mm, -2.8625mm) rotate 90
+    pad 17: P_KICAD_0001 at (-0.975mm, -2.8625mm) rotate 90
+    pad 18: P_KICAD_0001 at (-1.625mm, -2.8625mm) rotate 90
+    pad 19: P_KICAD_0001 at (-2.275mm, -2.8625mm) rotate 90
+    pad 20: P_KICAD_0001 at (-2.925mm, -2.8625mm) rotate 90
     silkscreen {
-        polygon [(-3.86mm, -2.93mm), (-4.19mm, -2.69mm), (-4.19mm, -3.17mm)]
+        polygon [(-2.93mm, 3.86mm), (-2.69mm, 4.19mm), (-3.17mm, 4.19mm)]
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.7mm, 7mm) }
-    silkscreen_ref { at: (0mm, -4.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7mm, 7.7mm) }
+    silkscreen_ref { at: (-4.2mm, 0mm) }
 }

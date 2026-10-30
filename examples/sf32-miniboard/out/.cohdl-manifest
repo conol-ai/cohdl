@@ -28,6 +28,7 @@ out/footprints/usb-connectors-type_c-FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12.kica
 out/ground_nets.csv
 out/high_current_nets.csv
 out/sf32-miniboard-bom.csv
+out/sf32-miniboard-cpl.csv
 out/sf32-miniboard-layout.json
 out/sf32-miniboard.enet
 out/sf32-miniboard.kicad_pcb

@@ -30,9 +30,15 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+import realign_footprint  # noqa: E402
+
 MAPPINGS = ROOT / "tools" / "stm32_data" / "kicad_parts.json"
 SNAPSHOT = ROOT / "tools" / "stm32_footprint_data" / "footprints.json"
 LICENSE_NOTICE = ROOT / "tools" / "stm32_footprint_data" / "LICENSE.kicad.md"
+# Footprints moved onto the assembler's frame (library plan W3), applied after
+# projection with tools/realign_footprint.py.
+SUPPLIER_FRAMES = ROOT / "tools" / "stm32_footprint_data" / "supplier_frames.json"
 
 KICAD_REPOSITORY = "https://gitlab.com/kicad/libraries/kicad-footprints.git"
 KICAD_COMMIT = "819223b66f96508feaeaa305301b5e6bb5c1038b"
@@ -755,10 +761,38 @@ def generated_files(snapshot: dict) -> dict[pathlib.Path, bytes]:
     for row in snapshot["footprints"]:
         library = row["kicad_name"].split(":", 1)[0]
         grouped[LIBRARY_TO_PACKAGE[library]].append(row)
-    files = {
-        ROOT / "lib" / package / "src" / "kicad_generated.cohdl": generated_source(package, rows).encode()
-        for package, rows in sorted(grouped.items())
-    }
+    frames = json.loads(SUPPLIER_FRAMES.read_text(encoding="utf-8"))
+    if frames.get("schema_version") != 1:
+        raise ImportFailure(f"{SUPPLIER_FRAMES}: unsupported schema")
+    unused = set(frames["frames"])
+    files = {}
+    for package, rows in sorted(grouped.items()):
+        source = generated_source(package, rows)
+        for row in rows:
+            frame = frames["frames"].get(row["public_name"])
+            if frame is None:
+                continue
+            unused.discard(row["public_name"])
+            header = f"pub footprint {row['public_name']} {{\n"
+            source = source.replace(
+                header,
+                f"// Moved onto the assembler's frame by rotate {frame['rotate_deg']}"
+                " (library plan W3; tools/stm32_footprint_data/supplier_frames.json).\n" + header,
+                1,
+            )
+            try:
+                source = realign_footprint.transform(
+                    source,
+                    row["public_name"],
+                    frame["rotate_deg"],
+                    Decimal(frame["dx_mm"]),
+                    Decimal(frame["dy_mm"]),
+                )
+            except realign_footprint.RealignError as exc:
+                raise ImportFailure(f"{SUPPLIER_FRAMES}: {exc}") from exc
+        files[ROOT / "lib" / package / "src" / "kicad_generated.cohdl"] = source.encode()
+    if unused:
+        raise ImportFailure(f"{SUPPLIER_FRAMES}: no generated footprint named {sorted(unused)}")
     license_bytes = LICENSE_NOTICE.read_bytes()
     if sha256_bytes(license_bytes) != KICAD_LICENSE_SHA256:
         raise ImportFailure(f"{LICENSE_NOTICE}: checksum differs from pinned KiCad license")

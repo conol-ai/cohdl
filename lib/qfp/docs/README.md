@@ -62,6 +62,8 @@ envelope on every side.
 All three source figures are package top views. The declarations rotate each
 view as a whole into `qfp`'s pin-1-at-upper-left convention; they never mirror
 it, so numbering chirality is preserved in CoHDL/KiCad's +Y-down frame.
+`QFP50P900X900X160_48N` is then turned onto the assembler's frame, with pin 1
+at the left end of the lower row (see "Assembler frame" below).
 
 The footprint is reusable package geometry and therefore lives in `qfp`, not
 in the STM32 component package. Device and exact-part datasheets remain with
@@ -97,3 +99,21 @@ The generated subset is attributed to the KiCad project and contributors and
 is redistributed under CC-BY-SA-4.0 with the KiCad library exception; see
 `LICENSE.kicad.md`. Existing hand-authored declarations retain their original
 MIT terms. The package manifest records both licenses for the aggregate.
+
+## Assembler frame (library plan W3)
+
+Version 0.3.0 moves these footprints onto the assembler's frame, measured on the
+preview of 2026-10-30 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`).
+Each delta is the RFC-034 section 2 triple `(dx, dy, r)` from the old frame to the new one:
+
+| Footprint | Delta |
+|---|---|
+| `QFP50P900X900X160_48N` | `(0mm, 0mm, 270)` |
+| `KICAD_LQFP_32_7X7MM_P0_8MM` | `(0mm, 0mm, 270)` |
+| `KICAD_LQFP_48_7X7MM_P0_5MM` | `(0mm, 0mm, 270)` |
+
+Pad numbers, pad symbols and land sizes are unchanged; pads, courtyard and
+silkscreen turn together. This is a breaking change: a design that `place`s
+one of these footprints keeps its copper only after each placement is composed
+with the delta, which `tools/realign_place.py` does. Earlier versions stay
+available unchanged.

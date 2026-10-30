@@ -398,6 +398,39 @@ fn avl_entry_val(entry: &ast::AvlEntry) -> Val {
     if let Some(fp) = &entry.footprint {
         fields.push(("footprint", s(&fp.name)));
     }
+    fields.push((
+        "suppliers",
+        Val::Arr(
+            entry
+                .suppliers
+                .iter()
+                .map(|binding| {
+                    let at = binding
+                        .at
+                        .as_ref()
+                        .and_then(|(x, y)| Some((x.value.as_ref()?, y.value.as_ref()?)))
+                        .map(|(x, y)| {
+                            Val::Arr(vec![
+                                s(format!("{}mm", geom::mm(x))),
+                                s(format!("{}mm", geom::mm(y))),
+                            ])
+                        })
+                        .unwrap_or_else(|| strs(["0mm".to_string(), "0mm".to_string()]));
+                    let rotate = binding
+                        .rotate
+                        .as_ref()
+                        .and_then(|(angle, _)| angle.parse::<i32>().ok())
+                        .unwrap_or(0);
+                    Val::Obj(vec![
+                        ("supplier", s(&binding.supplier.name)),
+                        ("pn", s(&binding.part_number)),
+                        ("at", at),
+                        ("rotate", raw(rotate.to_string())),
+                    ])
+                })
+                .collect(),
+        ),
+    ));
     Val::Obj(fields)
 }
 

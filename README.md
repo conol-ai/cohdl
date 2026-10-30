@@ -60,12 +60,29 @@ cargo run -- check examples/rpi-pico2 --json     # structured diagnostics (RFC-0
 cargo run -- build examples/rpi-pico2 --emit ipc2581  # + IPC-2581 handoff document (RFC-015)
 cargo run -- build examples/rpi-pico2 --emit kicad_pcb # + a native KiCad 10 board file — no KiCad needed
 cargo run -- build examples/rpi-pico2 --emit easyeda   # + an EasyEDA / LCEDA Pro netlist (.enet)
+cargo run -- build examples/rpi-pico2 --supplier acme   # + supplier BOM/map/CPL (RFC-034)
 cargo run -- fmt lib --check                     # canonical-form gate (RFC-009)
 cargo run -- lsp                                 # LSP server on stdio (RFC-014, docs/lsp.md)
 cargo run -- search TPS59650                     # search registry packages + public parts
 cargo run -- search TPS59650 --json              # the same bounded results as JSON
 python3 harness/repair_loop.py                   # the generate → check → repair demo
 ```
+
+Physical builds of placed designs also write `out/<name>-cpl.csv`, the
+supplier-neutral five-column placement CSV. Under RFC-034,
+repeatable `--supplier ID` selects each instance's own primary or eligible
+alternate binding and writes `out/<name>-<ID>-bom.csv`,
+`out/<name>-<ID>-map.json`, and (for physical builds)
+`out/<name>-<ID>-cpl.csv`. The map preserves the selected entry identity and
+placement transform; `tools/smt_pos.py --map` can apply it to the emitted
+KiCad board. `--logical-only` remains a logical-artifact boundary: it emits
+no neutral or supplier CPL, even when `--supplier` is present. Supplier BOM
+and map remain available in that mode. Repeatable build option
+`--bottom-rotation ID=VALUE` selects the bottom-side angle convention (`kicad`
+or `mirrored`) for a supplier CPL; IDs must also be selected by `--supplier`
+and default to `kicad`. Schema-2 maps record the convention actually used,
+including in logical-only builds, and `tools/smt_pos.py --map` applies the same
+rule (schema-1 maps retain `kicad` compatibility).
 
 `cohdl search QUERY [--json]` is read-only discovery: it needs no project and
 no registry login. Queries are trimmed, must contain at least three Unicode
@@ -141,7 +158,9 @@ See [`explorer/README.md`](explorer/README.md).
 `0` = clean (warnings and a valid no-match search are allowed); `1` = the
 accepted command failed (source errors, non-canonical `fmt --check`, or an E1204
 search registry/protocol failure); `2` = invocation-level failure (bad flags,
-an invalid search query, missing project, design selection, nothing to build).
+an invalid search query, missing project, design selection, nothing to build);
+`3` = `cohdl suppliers` found an `unknown` or `mismatched` audited binding
+(out-of-stock, unbound, and unlisted suppliers do not change the exit code).
 Human diagnostics use stderr. A successful `search --json` emits its discovery
 document on stdout, and an E1204 failure in that mode emits the existing
 diagnostic JSON there; bad invocations remain prose-only on stderr. See the

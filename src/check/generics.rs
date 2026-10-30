@@ -773,6 +773,7 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
             std::iter::once((&part.primary, true)).chain(part.alts.iter().map(|a| (a, false)))
         {
             let entry_kind = if is_primary { "`primary`" } else { "`alt`" };
+            check_supplier_bindings(part, entry, entry_kind, diags);
             match entry.field("mpn") {
                 None => diags.push(Diagnostic::error(
                     "E802",
@@ -899,6 +900,214 @@ pub fn check_parts(world: &World, diags: &mut Diagnostics) {
         }
     }
     check_avl_identity_consistency(world, diags);
+    check_supplier_identity_consistency(world, diags);
+}
+
+/// RFC-034 E813: structural validation local to one AVL entry. The parser
+/// deliberately retains invalid semantic values so their original spans and
+/// spellings can be diagnosed here rather than being mistaken for E010.
+fn check_supplier_bindings(
+    part: &PartDef,
+    entry: &AvlEntry,
+    entry_kind: &str,
+    diags: &mut Diagnostics,
+) {
+    if entry.suppliers.len() > 16 {
+        diags.push(Diagnostic::error(
+            "E813",
+            entry.suppliers[16].span,
+            format!(
+                "{} entry of part `{}` has {} supplier clauses; at most 16 are allowed",
+                entry_kind,
+                part.name.name,
+                entry.suppliers.len()
+            ),
+        ));
+    }
+
+    let mut seen: BTreeMap<&str, Span> = BTreeMap::new();
+    for binding in &entry.suppliers {
+        let supplier = binding.supplier.name.as_str();
+        let context = format!(
+            "{} entry of part `{}`, supplier `{}`",
+            entry_kind, part.name.name, supplier
+        );
+        let mut id_chars = supplier.chars();
+        let valid_id = supplier.len() <= 32
+            && matches!(id_chars.next(), Some(c) if c.is_ascii_lowercase())
+            && id_chars.all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_');
+        if !valid_id {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.supplier.span,
+                format!(
+                    "invalid supplier identifier `{supplier}` in {context}: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes"
+                ),
+            ));
+        }
+        if matches!(supplier, "mpn" | "mfr") {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.supplier.span,
+                format!(
+                    "invalid supplier identifier `{supplier}` in {context}: reserved: its upper-case form collides with the MPN/MFR netlist field"
+                ),
+            ));
+        }
+
+        if binding.part_number.trim().is_empty() {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.part_number_span,
+                format!("supplier part number in {context} is empty after trimming"),
+            ));
+        } else if binding.part_number.len() > 128 {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.part_number_span,
+                format!(
+                    "supplier part number in {context} is {} UTF-8 bytes; at most 128 are allowed",
+                    binding.part_number.len()
+                ),
+            ));
+        } else if binding.part_number.chars().any(char::is_control) {
+            diags.push(Diagnostic::error(
+                "E813",
+                binding.part_number_span,
+                format!("supplier part number in {context} contains a control character"),
+            ));
+        }
+
+        if let Some(previous) = seen.insert(supplier, binding.span) {
+            diags.push(
+                Diagnostic::error(
+                    "E813",
+                    binding.span,
+                    format!("duplicate supplier `{supplier}` in {context}"),
+                )
+                .with_secondary(previous, "first supplier clause is here"),
+            );
+        }
+
+        for (axis, coordinate) in binding.at.iter().flat_map(|(x, y)| [("x", x), ("y", y)]) {
+            match &coordinate.value {
+                None => diags.push(Diagnostic::error(
+                    "E813",
+                    coordinate.span,
+                    format!(
+                        "{context} {axis} offset `{}` is a bare number; expected a Length value such as `{}mm`",
+                        coordinate.text, coordinate.text
+                    ),
+                )),
+                Some(value) if value.unit != crate::units::UnitType::Length => {
+                    diags.push(Diagnostic::error(
+                        "E813",
+                        coordinate.span,
+                        format!(
+                            "{context} {axis} offset `{}` has unit {}; expected Length (`mm`)",
+                            coordinate.text,
+                            value.unit.type_name()
+                        ),
+                    ));
+                }
+                Some(_) => {}
+            }
+        }
+
+        if let Some((text, span)) = &binding.rotate {
+            match text.parse::<i32>() {
+                Ok(angle) if (0..=359).contains(&angle) => {}
+                Ok(_) => diags.push(Diagnostic::error(
+                    "E813",
+                    *span,
+                    format!(
+                        "{context} rotation `{text}` is outside `0..=359`; a full turn is written as `0`"
+                    ),
+                )),
+                Err(_) => diags.push(Diagnostic::error(
+                    "E813",
+                    *span,
+                    format!("{context} rotation `{text}` is not a whole number of degrees"),
+                )),
+            }
+        }
+    }
+}
+
+/// RFC-034 E813: one supplier part number orders exactly one `(mfr, mpn)`
+/// identity across the complete resolved package set. Both strings are used
+/// exactly as written; in particular, PN comparison never trims or folds case.
+fn check_supplier_identity_consistency(world: &World, diags: &mut Diagnostics) {
+    struct BindingIdentity {
+        mfr: String,
+        mpn: String,
+        part_name: String,
+        entry_name: String,
+        span: Span,
+    }
+
+    let mut seen: BTreeMap<(String, String), BindingIdentity> = BTreeMap::new();
+    for (part_name, part) in &world.parts {
+        for (entry, entry_name) in std::iter::once((&part.primary, "primary".to_string())).chain(
+            part.alts
+                .iter()
+                .enumerate()
+                .map(|(i, entry)| (entry, format!("alt {}", i + 1))),
+        ) {
+            let Some(mpn) = entry.field("mpn").map(|field| field.value.clone()) else {
+                continue; // A missing MPN already has E802; it is not an identity.
+            };
+            let mfr = entry
+                .field("mfr")
+                .map(|field| field.value.clone())
+                .unwrap_or_default();
+            for binding in &entry.suppliers {
+                let key = (binding.supplier.name.clone(), binding.part_number.clone());
+                match seen.get(&key) {
+                    Some(previous) if previous.mfr != mfr || previous.mpn != mpn => {
+                        diags.push(
+                            Diagnostic::error(
+                                "E813",
+                                binding.span,
+                                format!(
+                                    "supplier `{}` part number `{}` in part `{}` {} entry conflicts with part `{}` {} entry: one supplier part number must name one `(mfr, mpn)` identity",
+                                    binding.supplier.name,
+                                    binding.part_number,
+                                    crate::resolve::short(part_name),
+                                    entry_name,
+                                    crate::resolve::short(&previous.part_name),
+                                    previous.entry_name
+                                ),
+                            )
+                            .with_primary_label(format!(
+                                "conflicting identity: mfr `{mfr}`, mpn `{mpn}`"
+                            ))
+                            .with_secondary(
+                                previous.span,
+                                format!(
+                                    "first bound here for mfr `{}`, mpn `{}`",
+                                    previous.mfr, previous.mpn
+                                ),
+                            ),
+                        );
+                    }
+                    Some(_) => {}
+                    None => {
+                        seen.insert(
+                            key,
+                            BindingIdentity {
+                                mfr: mfr.clone(),
+                                mpn: mpn.clone(),
+                                part_name: part_name.clone(),
+                                entry_name: entry_name.clone(),
+                                span: binding.span,
+                            },
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Review R5-7: a `(manufacturer, MPN)` pair names ONE purchasable
@@ -960,9 +1169,7 @@ fn check_avl_identity_consistency(world: &World, diags: &mut Diagnostics) {
                     .join(","),
             };
             let effective_fp = entry
-                .footprint
-                .as_ref()
-                .or(part.primary.footprint.as_ref())
+                .effective_footprint(&part.primary)
                 .map(|f| f.name.as_str())
                 .unwrap_or("");
             let sig = format!(

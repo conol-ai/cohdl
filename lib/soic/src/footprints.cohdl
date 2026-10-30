@@ -23,20 +23,22 @@ pub pad P_SOIC8P127X790X216N_LEAD {
     plating: smd
 }
 
+// Turned 90 degrees counter-clockwise onto the assembler's frame (library
+// plan W3): pin 1 at lower left.
 pub footprint SOIC8P127X790X216N {
-    pad 1: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, -1.905mm)
-    pad 2: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, -0.635mm)
-    pad 3: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, 0.635mm)
-    pad 4: P_SOIC8P127X790X216N_LEAD at (-3.5875mm, 1.905mm)
-    pad 5: P_SOIC8P127X790X216N_LEAD at (3.5875mm, 1.905mm)
-    pad 6: P_SOIC8P127X790X216N_LEAD at (3.5875mm, 0.635mm)
-    pad 7: P_SOIC8P127X790X216N_LEAD at (3.5875mm, -0.635mm)
-    pad 8: P_SOIC8P127X790X216N_LEAD at (3.5875mm, -1.905mm)
+    pad 1: P_SOIC8P127X790X216N_LEAD at (-1.905mm, 3.5875mm) rotate 90
+    pad 2: P_SOIC8P127X790X216N_LEAD at (-0.635mm, 3.5875mm) rotate 90
+    pad 3: P_SOIC8P127X790X216N_LEAD at (0.635mm, 3.5875mm) rotate 90
+    pad 4: P_SOIC8P127X790X216N_LEAD at (1.905mm, 3.5875mm) rotate 90
+    pad 5: P_SOIC8P127X790X216N_LEAD at (1.905mm, -3.5875mm) rotate 90
+    pad 6: P_SOIC8P127X790X216N_LEAD at (0.635mm, -3.5875mm) rotate 90
+    pad 7: P_SOIC8P127X790X216N_LEAD at (-0.635mm, -3.5875mm) rotate 90
+    pad 8: P_SOIC8P127X790X216N_LEAD at (-1.905mm, -3.5875mm) rotate 90
     silkscreen {
-        circle at (-3.5875mm, -2.65mm) radius 0.2mm width 0.1mm fill solid
+        circle at (-2.65mm, 3.5875mm) radius 0.2mm width 0.1mm fill solid
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (9.3mm, 5.8mm) }
-    silkscreen_ref { at: (0mm, -3.6mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.8mm, 9.3mm) }
+    silkscreen_ref { at: (-3.6mm, 0mm) }
 }
 
 // Run-IC RS0104 Rev A.5 p26 recommended TSSOP-14 land pattern:
@@ -87,36 +89,38 @@ pub pad P_TSSOP24P65_TI_PW0024A_LEAD {
     plating: smd
 }
 
+// Turned 90 degrees counter-clockwise onto the assembler's frame (library
+// plan W3): pin 1 at lower left.
 pub footprint TSSOP24P65_TI_PW0024A {
-    pad 1: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -3.575mm)
-    pad 2: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -2.925mm)
-    pad 3: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -2.275mm)
-    pad 4: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -1.625mm)
-    pad 5: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -0.975mm)
-    pad 6: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, -0.325mm)
-    pad 7: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 0.325mm)
-    pad 8: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 0.975mm)
-    pad 9: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 1.625mm)
-    pad 10: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 2.275mm)
-    pad 11: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 2.925mm)
-    pad 12: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.9mm, 3.575mm)
-    pad 13: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 3.575mm)
-    pad 14: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 2.925mm)
-    pad 15: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 2.275mm)
-    pad 16: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 1.625mm)
-    pad 17: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 0.975mm)
-    pad 18: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, 0.325mm)
-    pad 19: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -0.325mm)
-    pad 20: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -0.975mm)
-    pad 21: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -1.625mm)
-    pad 22: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -2.275mm)
-    pad 23: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -2.925mm)
-    pad 24: P_TSSOP24P65_TI_PW0024A_LEAD at (2.9mm, -3.575mm)
+    pad 1: P_TSSOP24P65_TI_PW0024A_LEAD at (-3.575mm, 2.9mm) rotate 90
+    pad 2: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.925mm, 2.9mm) rotate 90
+    pad 3: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.275mm, 2.9mm) rotate 90
+    pad 4: P_TSSOP24P65_TI_PW0024A_LEAD at (-1.625mm, 2.9mm) rotate 90
+    pad 5: P_TSSOP24P65_TI_PW0024A_LEAD at (-0.975mm, 2.9mm) rotate 90
+    pad 6: P_TSSOP24P65_TI_PW0024A_LEAD at (-0.325mm, 2.9mm) rotate 90
+    pad 7: P_TSSOP24P65_TI_PW0024A_LEAD at (0.325mm, 2.9mm) rotate 90
+    pad 8: P_TSSOP24P65_TI_PW0024A_LEAD at (0.975mm, 2.9mm) rotate 90
+    pad 9: P_TSSOP24P65_TI_PW0024A_LEAD at (1.625mm, 2.9mm) rotate 90
+    pad 10: P_TSSOP24P65_TI_PW0024A_LEAD at (2.275mm, 2.9mm) rotate 90
+    pad 11: P_TSSOP24P65_TI_PW0024A_LEAD at (2.925mm, 2.9mm) rotate 90
+    pad 12: P_TSSOP24P65_TI_PW0024A_LEAD at (3.575mm, 2.9mm) rotate 90
+    pad 13: P_TSSOP24P65_TI_PW0024A_LEAD at (3.575mm, -2.9mm) rotate 90
+    pad 14: P_TSSOP24P65_TI_PW0024A_LEAD at (2.925mm, -2.9mm) rotate 90
+    pad 15: P_TSSOP24P65_TI_PW0024A_LEAD at (2.275mm, -2.9mm) rotate 90
+    pad 16: P_TSSOP24P65_TI_PW0024A_LEAD at (1.625mm, -2.9mm) rotate 90
+    pad 17: P_TSSOP24P65_TI_PW0024A_LEAD at (0.975mm, -2.9mm) rotate 90
+    pad 18: P_TSSOP24P65_TI_PW0024A_LEAD at (0.325mm, -2.9mm) rotate 90
+    pad 19: P_TSSOP24P65_TI_PW0024A_LEAD at (-0.325mm, -2.9mm) rotate 90
+    pad 20: P_TSSOP24P65_TI_PW0024A_LEAD at (-0.975mm, -2.9mm) rotate 90
+    pad 21: P_TSSOP24P65_TI_PW0024A_LEAD at (-1.625mm, -2.9mm) rotate 90
+    pad 22: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.275mm, -2.9mm) rotate 90
+    pad 23: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.925mm, -2.9mm) rotate 90
+    pad 24: P_TSSOP24P65_TI_PW0024A_LEAD at (-3.575mm, -2.9mm) rotate 90
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
     // Contains the official 7.30x7.60mm copper array and the 4.50x7.90mm
     // maximum package body with at least 0.25mm excess on every side.
-    courtyard { shape: rect, at: (0mm, 0mm), size: (7.8mm, 8.4mm) }
-    silkscreen_ref { at: (0mm, -4.7mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.4mm, 7.8mm) }
+    silkscreen_ref { at: (-4.7mm, 0mm) }
 }

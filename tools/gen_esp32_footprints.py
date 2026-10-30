@@ -54,7 +54,23 @@ MM_QUANTUM = Decimal("0.000000000000001")
 
 # Updated after the complete normalized geometry has been reviewed.  Import
 # mode deliberately refuses to move this pin implicitly.
-SNAPSHOT_SHA256 = "daa1efcda07bc722f2c97843b9744f151b999997770245baeb210d112e294942"
+SNAPSHOT_SHA256 = "cfbe94649eab891b056d869e824d542df2b9d414d450c51a47584ec497605c1d"
+
+# A1b/A1c: six source courtyards failed to contain their lands. Preserve
+# the imported land geometry verbatim and derive only the courtyard from the
+# union of the pad envelope and the package body, with IPC-7351B
+# nominal-density clearance on every side. The body is the square whose side
+# ends the source decal name (QFN48_0P5_7 is a 7 mm body), centred on the
+# origin.
+IPC_NOMINAL_COURTYARD_CLEARANCE = Decimal("0.25")
+PAD_ENVELOPE_COURTYARDS = {
+    "ESPRESSIF_QFN28_0P4_4",
+    "ESPRESSIF_QFN48EB_0P35_5",
+    "ESPRESSIF_QFN48E_0P4_6",
+    "FP_ESP32_PICO_D4",
+    "FP_ESP32_PICO_V3",
+    "FP_ESP32_PICO_V3_02",
+}
 
 
 class ImportFailure(ValueError):
@@ -858,7 +874,7 @@ def import_snapshot(esp_root: pathlib.Path, kicad_root: pathlib.Path, cad_root: 
             "coordinates": "PADS integer coordinates use 1/1500000 mm units and are deterministically rounded half-up to CoHDL's 1e-15 mm literal grid (maximum projection error 0.5 fm).",
             "paste": "Native module paste follows copper. Direct PADS level 123 (Paste Mask Top) polygons would be containment-proved same-number overlays; the pinned current sources contain none, so paste follows the exact copper islands or continuous EP.",
             "mask": "Native pad mask is retained. PADS levels 121/128 are explicitly Solder Mask Top/Bottom; their arbitrary polygons are counted separately but not projected because CoHDL supports expansion, not independent mask polygons.",
-            "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle.",
+            "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle. Six defective source courtyards are instead the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.",
             "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout outlines remain visible alongside enforced all-copper keepout rectangles; source body/fabrication graphics are omitted.",
             "unnumbered": "KiCad unnumbered copper lands receive stable MP1..MPn physical identifiers so CoHDL can retain them and device declarations can model them explicitly.",
         },
@@ -902,6 +918,34 @@ def validate_snapshot(snapshot: dict) -> None:
     names = [r["public_name"] for r in snapshot["footprints"]]
     if len(names) != len(set(names)):
         raise ImportFailure(f"{SNAPSHOT}: duplicate public names")
+
+
+def apply_courtyard_repairs(snapshot: dict) -> None:
+    for row in snapshot["footprints"]:
+        if row["public_name"] not in PAD_ENVELOPE_COURTYARDS:
+            continue
+        xs: list[Decimal] = []
+        ys: list[Decimal] = []
+        for pad in row["pads"]:
+            px, py = map(Decimal, pad["at"])
+            size = list(map(Decimal, pad["stack"]["size"]))
+            width, height = (size[0], size[0]) if len(size) == 1 else size
+            if pad["rotation"] in {90, 270}:
+                width, height = height, width
+            xs.extend((px - width / 2, px + width / 2))
+            ys.extend((py - height / 2, py + height / 2))
+        body = Decimal(row["normalization"]["decal_name"].rsplit("_", 1)[1])
+        xs.extend((-body / 2, body / 2))
+        ys.extend((-body / 2, body / 2))
+        clearance = IPC_NOMINAL_COURTYARD_CLEARANCE
+        min_x, max_x = min(xs) - clearance, max(xs) + clearance
+        min_y, max_y = min(ys) - clearance, max(ys) + clearance
+        row["courtyard"] = {
+            "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
+            "at": [decimal_text((min_x + max_x) / 2), decimal_text((min_y + max_y) / 2)],
+            "size": [decimal_text(max_x - min_x), decimal_text(max_y - min_y)],
+            "source_primitives": {},
+        }
 
 
 def geometry_key(stack: dict) -> tuple:
@@ -952,7 +996,10 @@ def generated_source(owner: str, rows: list[dict]) -> str:
         label = source.get("member") or source["path"]
         out.extend([f"// Source: {label}", f"// Source file SHA-256: {source['sha256']}"])
         if row["courtyard"]["projection"] != "exact_rect":
-            out.append("// Courtyard is the conservative source bounding rectangle.")
+            if row["courtyard"]["projection"] == "pad_envelope_ipc7351b_nominal_0p25mm":
+                out.append("// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.")
+            else:
+                out.append("// Courtyard is the conservative source bounding rectangle.")
         if row["keepout_guides"]:
             out.append("// Antenna keepouts exclude copper and components on every copper layer.")
         out.append(f"pub footprint {row['public_name']} {{")
@@ -1078,6 +1125,8 @@ def main() -> int:
         if args.import_sources:
             snapshot = import_snapshot(args.import_sources[0].resolve(), args.import_sources[1].resolve(),
                                        args.direct_cad_root.resolve())
+            encoded = snapshot_bytes(snapshot)
+            apply_courtyard_repairs(snapshot)
             encoded = snapshot_bytes(snapshot); require_snapshot_hash(encoded)
             ok = write_or_check(SNAPSHOT, encoded, args.check)
         else:

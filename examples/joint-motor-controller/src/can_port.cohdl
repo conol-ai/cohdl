@@ -30,7 +30,7 @@ subdesign CanPort {
     net _: GND, xcvr.GND, r_slope.B, c_vcc.B
 
     layout {
-        place xcvr at (0mm, 0mm)
+        place xcvr at (0mm, 0mm) rotate 270
         place c_vcc at (-3.2mm, 0mm) rotate 90
     }
 }

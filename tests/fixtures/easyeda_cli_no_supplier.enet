@@ -1,0 +1,117 @@
+{
+  "version": "2.0.0",
+  "components": {
+    "gge1": {
+      "props": {
+        "Add into BOM": "yes",
+        "Convert to PCB": "yes",
+        "Designator": "H1",
+        "DeviceName": "MH",
+        "FootprintName": "t::FH",
+        "Manufacturer": "m",
+        "Manufacturer Part": "h",
+        "Name": "MH",
+        "Unique ID": "gge1"
+      },
+      "pinInfoMap": {}
+    },
+    "gge2": {
+      "props": {
+        "Add into BOM": "yes",
+        "Convert to PCB": "yes",
+        "Designator": "U1",
+        "DeviceName": "D",
+        "FootprintName": "t::F",
+        "Manufacturer": "m",
+        "Manufacturer Part": "x",
+        "Name": "D",
+        "Unique ID": "gge2"
+      },
+      "pinInfoMap": {
+        "1": {
+          "name": "A",
+          "number": "1",
+          "net": "N",
+          "props": {
+            "Pin Number": "1"
+          }
+        },
+        "2": {
+          "name": "GND",
+          "number": "2",
+          "net": "G",
+          "props": {
+            "Pin Number": "2"
+          }
+        },
+        "3": {
+          "name": "GND",
+          "number": "3",
+          "net": "G",
+          "props": {
+            "Pin Number": "3"
+          }
+        }
+      }
+    },
+    "gge3": {
+      "props": {
+        "Add into BOM": "yes",
+        "Convert to PCB": "yes",
+        "Designator": "U2",
+        "DeviceName": "D",
+        "FootprintName": "t::F",
+        "Manufacturer": "m",
+        "Manufacturer Part": "x",
+        "Name": "D",
+        "Unique ID": "gge3"
+      },
+      "pinInfoMap": {
+        "1": {
+          "name": "A",
+          "number": "1",
+          "net": "N",
+          "props": {
+            "Pin Number": "1"
+          }
+        },
+        "2": {
+          "name": "GND",
+          "number": "2",
+          "net": "G",
+          "props": {
+            "Pin Number": "2"
+          }
+        },
+        "3": {
+          "name": "GND",
+          "number": "3",
+          "net": "G",
+          "props": {
+            "Pin Number": "3"
+          }
+        }
+      }
+    }
+  },
+  "designRule": {
+    "trackPhysics": {},
+    "netRule": {
+      "G": {
+        "net": "G",
+        "ruleMap": {
+          "TrackPhysics": ""
+        }
+      },
+      "N": {
+        "net": "N",
+        "ruleMap": {
+          "TrackPhysics": ""
+        }
+      }
+    }
+  },
+  "differentialPair": {},
+  "netClass": {},
+  "equalLengthNetGroup": {}
+}

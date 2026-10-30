@@ -148,6 +148,9 @@ E1xx (E112/E113), not here — see the organizing principle above.
 | E810 | malformed `mount_hole` (RFC-022, extended by RFC-023) — a footprint's mechanical locating hole is ill-formed: a duplicate `mount_hole` number within one footprint, a non-`Length` (or out-of-range) offset/dimension, a non-positive `diameter`/`size`, a `PLATING` value outside the closed set `{non_plated, plated}`, a `shape:` outside the closed set `{rect, circle, oval}`, a `size:` tuple that is not exactly `(w, h)`, or a geometry field that disagrees with the (explicit or defaulted) shape — `circle` takes `diameter D`, `rect`/`oval` take `size: (w, h)`. When no `shape:` is written the hole defaults to `circle`, and the mismatch diagnostic says so. `mount_hole` numbers are their own namespace, never checked against `pad` numbers or the bound device's pins. |
 | E811 | invalid pad-placement rotation (RFC-025) — `pad N: Sym at (x, y) rotate ANGLE` with `ANGLE` outside `0..=359`, or not a whole number of degrees. Tracks `place`'s own range (see E1007), which since the arbitrary-angle deviation is any whole degree rather than RFC-020's closed `{0, 90, 180, 270}`. A full turn is `0`, so `360` and above is rejected rather than reduced. Checked at declaration, like the rest of the footprint-body checks. |
 | E812 | invalid `silkscreen` graphic (RFC-031) — unknown statement kind, malformed primitive (a `polygon` under three vertices, a non-`Length` or non-positive dimension), an invalid closed-set value (`fill`, marker `shape`), a marker naming a pad number the footprint does not declare, `polarity_marker` on a footprint with fewer than two distinct electrical pad numbers (repeated physical placements of one number are one terminal), or more than one `silkscreen` block |
+| E813 | invalid supplier binding (RFC-034, Accepted 2026-10-30; error-code number provisional) — malformed or over-long supplier ID, reserved ID `mpn` or `mfr` (its upper-case form collides with the `MPN`/`MFR` netlist field; the diagnostic span is the ID), empty/over-long/control-character supplier part number, duplicate supplier in one AVL entry, more than 16 supplier clauses, the same exact `(supplier, part number)` bound to differing `(mfr, mpn)` identities anywhere in the compiled package set (empty MPNs retain their distinct source-unspecified identity), rotation outside `0..=359` or not a whole degree, or a non-`Length`/bare-number mapping offset. Cross-entry conflicts carry both clause spans. |
+| E814 | **[PROVISIONAL]** incomplete supplier selection (RFC-034; error-code number provisional) — a build-only warning, only with `--supplier ID`: one per instantiated part with no eligible binding, naming its designators in natural order, or one per requested ID bound nowhere among instantiated parts, listing the design's actual bound IDs. Declared-but-unused parts never produce E814; an alt whose effective footprint differs from the primary footprint is not eligible. |
+| E815 | **[PROVISIONAL]** incomplete neutral CPL (RFC-034; error-code number provisional) — one physical-build warning when machine-placed instances have no real design placement; reports their count and designators in natural order. Emitter staging is not a placement; `--logical-only` writes no CPL and reports no E815. |
 
 ## E9xx — structural variants (RFC-008)
 
@@ -238,6 +241,16 @@ published, E1204 unreachable. No new codes.
 | E1204 | registry unreachable or response-protocol failure; dependency operations additionally name when no cached copy is available. Explicitly distinct from a hash mismatch (E1103): different kinds of mistakes, per RFC-030's failure modes |
 | E1205 | `cohdl remove` of a name not in `[dependencies]` — the help lists the actual current dependency list, never a silent no-op |
 | E1206 | client/server content-hash disagreement — a warning at publish time (the server's hash is authoritative for what cohdl.lock will verify); a hard error on download (corrupted content is never cached) |
+
+### `cohdl suppliers` exit codes
+
+The online audit runs only after the ordinary offline project check passes.
+It uses 0 when no audited binding is `unknown` or `mismatch` (including
+`out-of-stock` and `unbound` reports), 3 when at least one binding is
+`unknown` or `mismatch`, 1 for project-check or E1204 registry/protocol
+failures, and 2 for invalid arguments. Exit code 3 belongs exclusively to
+this command. Its `--json` success report is independent of RFC-010
+diagnostics; an E1204 failure uses the existing diagnostic JSON document.
 
 ## E13xx — typed logical composition (RFC-032 `subdesign`)
 

@@ -9,7 +9,7 @@
 //! string-sorted object keys).
 
 use cohdl::lock::LockState;
-use cohdl::pipeline::{build_artifacts, check_files_in};
+use cohdl::pipeline::{build_artifacts, build_artifacts_with_suppliers, check_files_in};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -66,6 +66,30 @@ fn emit(src: &str) -> String {
     cohdl::emit::easyeda::emit_enet(&checked.world, ir)
 }
 
+fn emit_supplier(src: &str, suppliers: &[&str]) -> String {
+    let files = vec![("src/main.cohdl".to_string(), src.to_string())];
+    let mut checked = check_files_in("board", &files, None).expect("selection");
+    let suppliers: Vec<String> = suppliers.iter().map(|id| (*id).to_string()).collect();
+    let artifacts = build_artifacts_with_suppliers(
+        &mut checked,
+        &LockState::default(),
+        &suppliers,
+        &Default::default(),
+    )
+    .expect("build");
+    assert!(
+        !checked.diags.has_errors(),
+        "fixture must build cleanly:\n{}",
+        checked.diags.render(&checked.sm)
+    );
+    let ir = checked.ir.as_ref().unwrap();
+    cohdl::emit::easyeda::emit_enet_with_supplier(
+        &checked.world,
+        ir,
+        artifacts.suppliers.selections.first(),
+    )
+}
+
 #[test]
 fn shape_is_the_v1_document() {
     let enet = emit(FIXTURE);
@@ -113,8 +137,8 @@ fn component_block(enet: &str, id: &str) -> String {
         .unwrap_or_else(|| panic!("no component {id}"));
     let rest = &enet[start..];
     let end = rest[1..]
-        .find("\n    \"gge")
-        .map(|i| i + 1)
+        .find("\n    },\n    \"gge")
+        .map(|i| i + 2)
         .unwrap_or_else(|| rest.find("\n  },").expect("components map end"));
     rest[..end].to_string()
 }
@@ -156,6 +180,93 @@ fn agrees_with_the_kicad_netlist() {
 #[test]
 fn emission_is_deterministic() {
     assert_eq!(emit(FIXTURE), emit(FIXTURE), "same source, same bytes");
+}
+
+#[test]
+fn no_supplier_preserves_the_original_bytes_and_no_emit_writes_no_enet() {
+    assert_eq!(
+        emit(FIXTURE),
+        include_str!("fixtures/easyeda_no_supplier.enet")
+    );
+    let source_empty = r#"
+pub device D { pins { A: 1 [passive] } }
+pub footprint FP {}
+#[source_unspecified("mpn", "mfr")]
+pub part P: D { primary { mfr: "", mpn: "", footprint: FP } }
+design Board { inst p: P nc: p.A }
+"#;
+    assert_eq!(
+        emit(source_empty),
+        include_str!("fixtures/easyeda_no_supplier_source_empty.enet")
+    );
+}
+
+const SUPPLIER_FIXTURE: &str = r#"
+pub trait Ref { designator_prefix: "R" }
+pub device D { pins { A: 1 [passive] } }
+impl Ref for D {}
+pub footprint FP {}
+pub footprint OTHER {}
+pub part PRIMARY: D {
+    primary { mfr: "Primary Maker", mpn: "PRIMARY-MPN", footprint: FP, supplier acme "PRIMARY-PN" }
+    alt { mfr: "Wrong Alt", mpn: "WRONG-ALT", supplier acme "WRONG-PN" }
+}
+pub part ALT: D {
+    primary { mfr: "Primary Maker", mpn: "ALT-PRIMARY", footprint: FP }
+    alt { mfr: "Selected Maker", mpn: "ALT-SELECTED", supplier acme "ALT-PN", supplier bolt "BOLT-PN" }
+}
+pub part DIFFERENT_FP: D {
+    primary { mfr: "Primary Maker", mpn: "DIFFERENT-PRIMARY", footprint: FP }
+    alt { mfr: "Wrong Alt", mpn: "WRONG-FP", footprint: OTHER, supplier acme "WRONG-FP-PN" }
+}
+pub part UNBOUND: D { primary { mfr: "Unbound Maker", mpn: "UNBOUND", footprint: FP } }
+#[source_unspecified("mfr")]
+pub part SOURCE_EMPTY: D {
+    primary { mfr: "", mpn: "PRIMARY-EMPTY", footprint: FP }
+    alt { mpn: "ALT-EMPTY", supplier acme "EMPTY-PN" }
+}
+design Board {
+    inst primary: PRIMARY
+    inst alt: ALT
+    inst different_fp: DIFFERENT_FP
+    inst unbound: UNBOUND
+    inst source_empty: SOURCE_EMPTY
+    nc: primary.A, alt.A, different_fp.A, unbound.A, source_empty.A
+}
+"#;
+
+#[test]
+fn selected_supplier_uses_one_entry_and_leaves_unselected_components_unchanged() {
+    let legacy = emit(SUPPLIER_FIXTURE);
+    let enet = emit_supplier(SUPPLIER_FIXTURE, &["bolt", "acme", "acme"]);
+    let primary = component_block(&enet, "gge1");
+    assert!(primary.contains("\"Designator\": \"R1\""));
+    assert!(!primary.contains("\"Manufacturer\": \"Primary Maker\""));
+    assert!(primary.contains("\"Manufacturer\": \"Selected Maker\""));
+    assert!(primary.contains("\"Manufacturer Part\": \"ALT-SELECTED\""));
+    assert!(primary.contains("\"Supplier\": \"BOLT\""));
+    assert!(primary.contains("\"Supplier Part\": \"BOLT-PN\""));
+    assert!(primary.contains("\"FootprintName\": \"board::FP\""));
+    assert!(primary.contains("\"Name\": \"D\""));
+
+    let enet = emit_supplier(SUPPLIER_FIXTURE, &["acme", "bolt", "acme"]);
+    let primary = component_block(&enet, "gge3");
+    assert!(primary.contains("\"Designator\": \"R3\""));
+    assert!(primary.contains("\"Manufacturer\": \"Primary Maker\""));
+    assert!(primary.contains("\"Manufacturer Part\": \"PRIMARY-MPN\""));
+    assert!(primary.contains("\"Supplier\": \"ACME\""));
+    assert!(primary.contains("\"Supplier Part\": \"PRIMARY-PN\""));
+    assert!(!primary.contains("WRONG-PN"));
+
+    for id in ["gge2", "gge5"] {
+        assert_eq!(component_block(&enet, id), component_block(&legacy, id));
+    }
+    let empty = component_block(&enet, "gge4");
+    assert!(empty.contains("\"Designator\": \"R4\""));
+    assert!(!empty.contains("\"Manufacturer\":"));
+    assert!(empty.contains("\"Manufacturer Part\": \"ALT-EMPTY\""));
+    assert!(empty.contains("\"Supplier\": \"ACME\""));
+    assert!(empty.contains("\"Supplier Part\": \"EMPTY-PN\""));
 }
 
 #[test]
@@ -303,6 +414,14 @@ fn cli_enet_only_with_flag_and_zero_impact_on_everything_else() {
     assert_eq!(
         lock,
         std::fs::read_to_string(tmp.join("design.lock")).unwrap()
+    );
+    assert_eq!(enet, include_str!("fixtures/easyeda_cli_no_supplier.enet"));
+
+    run(&["--emit", "easyeda", "--supplier", "acme"]);
+    assert_eq!(
+        std::fs::read_to_string(&enet_path).unwrap(),
+        enet,
+        "no selected entry: the old enet bytes remain"
     );
 
     // Dropping the flag sweeps the stale enet (it is manifest-owned).

@@ -239,7 +239,7 @@ design SF32MiniBoard {
         place mounting[2] at (25mm, 15mm)
         place mounting[3] at (-25mm, 15mm)
         place mcu at (-5mm, 2mm)
-        place flash at (-12mm, 10mm) rotate 90
+        place flash at (-12mm, 10mm)
         place xtal_48m at (-3mm, -5mm)
         place xtal_32k at (-12mm, 2mm) rotate 90
         // The display power chain drops in as one unit: its own default

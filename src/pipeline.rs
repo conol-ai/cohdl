@@ -290,6 +290,8 @@ pub fn check_files_in_with_deps(
 pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
+    /// RFC-034 neutral CPL; the CLI writes it only for physical builds.
+    pub cpl: Option<crate::emit::cpl::NeutralCpl>,
     pub lock: LockState,
     /// RFC-013 `layout.json`, present only when the design carries layout
     /// metadata (constraints or `#[placement_hint]`). Never affects the
@@ -302,11 +304,31 @@ pub struct BuildArtifacts {
     /// Informational notes for the build output (e.g. ambiguous part
     /// bindings resolved deterministically — provisional §2).
     pub notes: Vec<String>,
+    /// RFC-034 §3.2 per-instance supplier choices, shared by supplier-aware
+    /// emitters. Empty for the legacy no-supplier build wrapper.
+    pub suppliers: crate::supplier::SupplierSelections,
+    /// Supplier BOM contents, computed here so both build modes can write them.
+    pub supplier_boms: Vec<crate::emit::supplier_bom::SupplierBom>,
+    /// Supplier map JSON in both build modes; its CPL only accompanies a
+    /// physical build's neutral CPL.
+    pub supplier_maps: Vec<crate::emit::supplier_map::SupplierMap>,
 }
 
 /// The `build` half: designators (RFC-005), part binding, emitters.
 /// Only call when `checked.diags` has no errors and `checked.ir` is Some.
 pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<BuildArtifacts> {
+    build_artifacts_with_suppliers(checked, prior_lock, &[], &Default::default())
+}
+
+/// Build with RFC-034 supplier selection after successful part binding. The
+/// caller passes the CLI's validated, repeatable IDs; their first-occurrence
+/// order is retained. No-supplier callers use `build_artifacts` unchanged.
+pub fn build_artifacts_with_suppliers(
+    checked: &mut Checked,
+    prior_lock: &LockState,
+    suppliers: &[String],
+    bottom_rotations: &crate::supplier::BottomRotations,
+) -> Option<BuildArtifacts> {
     // A design that failed the check phase produces no artifacts: do not
     // assign designators, bind parts, or emit against a design known invalid.
     if checked.diags.has_errors() {
@@ -329,13 +351,28 @@ pub fn build_artifacts(checked: &mut Checked, prior_lock: &LockState) -> Option<
         return None;
     }
     let ir = checked.ir.as_ref().unwrap();
+    let mut supplier_diags = Diagnostics::new();
+    let suppliers = crate::supplier::select(&checked.world, ir, suppliers, &mut supplier_diags);
+    supplier_diags.sort(&checked.sm);
+    checked.diags.extend(supplier_diags);
+    let supplier_boms = crate::emit::supplier_bom::emit_supplier_boms(&checked.world, &suppliers);
+    let supplier_maps = crate::emit::supplier_map::emit_supplier_maps(
+        &checked.world,
+        ir,
+        &suppliers,
+        bottom_rotations,
+    );
     Some(BuildArtifacts {
         netlist: crate::emit::kicad::emit_kicad_net(&checked.world, ir),
         bom: crate::emit::bom::emit_bom_csv(&checked.world, ir),
+        cpl: crate::emit::cpl::emit_neutral_cpl(&checked.world, ir),
         lock,
         layout: crate::emit::layout::emit_layout_json(ir),
         quilter: crate::emit::quilter::emit_quilter_csvs(ir),
         notes,
+        suppliers,
+        supplier_boms,
+        supplier_maps,
     })
 }
 

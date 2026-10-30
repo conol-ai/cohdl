@@ -322,7 +322,9 @@ fn call_site_scanner_finds_known_sites() {
     // Self-check on the scanner: codes constructed in obviously different
     // styles (inline literal, multi-line construction) are all found.
     let sites = call_site_codes();
-    for known in ["E010", "E101", "E701", "E1001", "D003"] {
+    for known in [
+        "E010", "E101", "E701", "E813", "E814", "E815", "E1001", "D003",
+    ] {
         assert!(
             sites.contains(known),
             "scanner failed to find the known call site for {}",

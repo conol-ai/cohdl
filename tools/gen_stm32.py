@@ -36,6 +36,10 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+# `python3 -I` does not put the script's directory on sys.path.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from sourcing.bindings import Bindings, avl_entry
+
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / "tools" / "stm32_data" / "pin_data.json"
@@ -588,10 +592,10 @@ def load_audited_parts(snapshot: dict, portfolio: dict) -> list[dict]:
         )
     data = json.loads(encoded)
     root_keys = {"documents", "package_variants", "parts", "schema_version"}
-    if not isinstance(data, dict) or set(data) != root_keys:
+    if not isinstance(data, dict) or not root_keys <= set(data):
         raise ValueError(
-            "STM32 part overlay must contain exactly "
-            + ", ".join(sorted(root_keys))
+            "STM32 part overlay is missing required keys: "
+            + ", ".join(sorted(root_keys - set(data)))
         )
     if data.get("schema_version") != PARTS_SCHEMA:
         raise ValueError(
@@ -771,10 +775,10 @@ def load_audited_parts(snapshot: dict, portfolio: dict) -> list[dict]:
     avl_keys = {"mfr", "mpn", "order_code_source"}
     source_keys = {"document", "locator"}
     for raw_part in data["parts"]:
-        if not isinstance(raw_part, dict) or set(raw_part) != part_keys:
+        if not isinstance(raw_part, dict) or not part_keys <= set(raw_part):
             raise ValueError(
-                "each STM32 part overlay row must contain exactly "
-                + ", ".join(sorted(part_keys))
+                "each STM32 part overlay row is missing required keys: "
+                + ", ".join(sorted(part_keys - set(raw_part)))
             )
         name = raw_part["name"]
         device = raw_part["device"]
@@ -802,10 +806,10 @@ def load_audited_parts(snapshot: dict, portfolio: dict) -> list[dict]:
 
         primary = raw_part["primary"]
         alts = raw_part["alts"]
-        if not isinstance(primary, dict) or set(primary) != avl_keys:
+        if not isinstance(primary, dict) or not avl_keys <= set(primary):
             raise ValueError(f"invalid primary AVL row for audited STM32 part {name}")
         if not isinstance(alts, list) or any(
-            not isinstance(alt, dict) or set(alt) != avl_keys for alt in alts
+            not isinstance(alt, dict) or not avl_keys <= set(alt) for alt in alts
         ):
             raise ValueError(f"invalid alternate AVL rows for audited STM32 part {name}")
         entries = [primary, *alts]
@@ -1374,6 +1378,7 @@ def emit_family(
     models: list[dict],
     pinouts: dict[str, dict],
     parts: list[dict],
+    bindings: Bindings,
 ) -> str:
     expanded_count = sum(len(expand_ref(row["ref"], row["kind"])) for row in models)
     lines = [
@@ -1466,21 +1471,35 @@ def emit_family(
             lines.extend(
                 [
                     f'pub part {part["name"]}: {part["device"]} {{',
-                    f'    primary {{ mfr: "{primary["mfr"]}", mpn: "{primary["mpn"]}",',
-                    f'              footprint: {part["footprint"]} }}',
+                    avl_entry(
+                        bindings,
+                        PACKAGE_ROOT / "cohdl.toml",
+                        "primary",
+                        primary["mfr"],
+                        primary["mpn"],
+                        part["footprint"],
+                    ).rstrip("\n"),
                 ]
             )
             for alt in sorted(
                 part["alts"], key=lambda row: (row["mfr"], row["mpn"])
             ):
                 lines.append(
-                    f'    alt {{ mfr: "{alt["mfr"]}", mpn: "{alt["mpn"]}" }}'
+                    avl_entry(
+                        bindings,
+                        PACKAGE_ROOT / "cohdl.toml",
+                        "alt",
+                        alt["mfr"],
+                        alt["mpn"],
+                        alt.get("footprint", part["footprint"]),
+                        part["footprint"] if "footprint" not in alt else None,
+                    ).rstrip("\n")
                 )
             lines.extend(["}", ""])
     return "\n".join(lines)
 
 
-def generated_sources(snapshot: dict, catalog: dict) -> dict[str, str]:
+def generated_sources(snapshot: dict, catalog: dict, bindings: Bindings) -> dict[str, str]:
     portfolio = portfolio_matches(snapshot["models"])
     audited_parts = load_audited_parts(snapshot, portfolio)
     exact_parts = load_catalog_parts(snapshot, portfolio, catalog, audited_parts)
@@ -1538,6 +1557,7 @@ def generated_sources(snapshot: dict, catalog: dict) -> dict[str, str]:
             sorted(models, key=lambda row: row["ref"]),
             pinouts,
             sorted(parts_by_family.get(family, []), key=lambda part: part["name"]),
+            bindings,
         )
         for family, models in sorted(by_family.items())
     }
@@ -1677,7 +1697,7 @@ def main() -> None:
         snapshot = load_snapshot()
     catalog = load_kicad_part_catalog()
     write_or_check_catalog_document(catalog, args.check)
-    write_or_check(generated_sources(snapshot, catalog), args.output_root, args.check)
+    write_or_check(generated_sources(snapshot, catalog, Bindings(ROOT)), args.output_root, args.check)
 
 
 if __name__ == "__main__":

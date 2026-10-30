@@ -1,7 +1,7 @@
 # TLV9022DR / TLV9032DR application contract
 
 Exact SOIC-8 parts: TLV9022DR has open-drain outputs; TLV9032DR has push-pull
-outputs. Both use `soic::TI_D0008A_4214825C` from soic 0.2.1.
+outputs. Both use `soic::TI_D0008A_4214825C` from soic 0.3.0.
 They are comparators, not PD decoders, controllers, or qualified sniffer circuits.
 
 ## Bindings and supporting circuit

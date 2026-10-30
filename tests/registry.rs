@@ -496,6 +496,249 @@ fn search_normalizes_unicode_whitespace_and_bom_before_the_request() {
 }
 
 #[test]
+fn search_encodes_one_supplier_and_repeated_classes() {
+    let tmp = tmp_dir("search_supplier_filters");
+    let body = r#"{"query":"resistor","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#;
+    let (url, request) = spawn_search_mock(200, body);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &[
+            "search",
+            "resistor",
+            "--supplier",
+            "acme",
+            "--class",
+            "resistor & ceramic",
+            "--class",
+            "高压/电源",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        request.recv().unwrap().to_ascii_lowercase(),
+        "/search?q=resistor&supplier=acme&class=resistor+%26+ceramic&class=%e9%ab%98%e5%8e%8b%2f%e7%94%b5%e6%ba%90"
+    );
+}
+
+#[test]
+fn search_rejects_class_without_supplier_and_repeated_supplier_locally() {
+    let tmp = tmp_dir("search_filter_usage");
+    let cases = [
+        (
+            vec!["search", "resistor", "--class", "resistor"],
+            "`--class` requires `--supplier ID`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--supplier",
+                "acme",
+            ],
+            "accepts at most one `--supplier ID`",
+        ),
+        (
+            vec!["search", "resistor", "--class"],
+            "--class needs a value",
+        ),
+    ];
+    for (args, expected) in cases {
+        // Validation must win before a connection is attempted.
+        let out = run_output("http://127.0.0.1:9", &tmp.join("home"), &args);
+        assert_eq!(out.status.code(), Some(2), "{args:?}");
+        assert!(out.stdout.is_empty(), "{args:?}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(stderr.contains(expected), "{args:?}: {stderr}");
+    }
+}
+
+const SEARCH_WITH_SUPPLIERS: &str = r#"{
+  "query":"supplier parts",
+  "packages":{"results":[],"has_more":false},
+  "parts":{"results":[{
+    "package":"@contrib/parts","tier":"contrib","version":"1.0.0",
+    "fq":"parts::P","name":"P","device":"parts::D","intent":null,
+    "manufacturer":"M","mpn":"M-1","primary":true,
+    "suppliers":[{
+      "supplier":"acme","pn":"A-1","at":["1mm","-2mm"],"rotate":270,
+      "links":[
+        {"label":"Product","url":"https://example.com/A-1"},
+        {"label":"Datasheet","url":"https://example.com/A-1.pdf?x=1&y=2"}
+      ],
+      "catalog":{"class":"resistor","stock":7,"snapshot_date":"2026-10-28T01:02:03.000Z"}
+    },{
+      "supplier":"acme","pn":"A-2","at":["0mm","0mm"],"rotate":0,
+      "links":[],"catalog":null
+    }]
+  }],"has_more":false}
+}"#;
+
+#[test]
+fn search_human_prints_supplier_mappings_links_and_catalog_availability() {
+    let tmp = tmp_dir("search_supplier_human");
+    let (url, _) = spawn_search_mock(200, SEARCH_WITH_SUPPLIERS);
+    let out = run_output(&url, &tmp.join("home"), &["search", "supplier parts"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        concat!(
+            "Parts\n",
+            "  P — M · M-1 · primary\n",
+            "    @contrib/parts@1.0.0 [Community] · parts::P\n",
+            "    device parts::D\n",
+            "    supplier acme: A-1 · at (1mm, -2mm) · rotate 270\n",
+            "      catalog: resistor · stock 7 · snapshot 2026-10-28T01:02:03.000Z\n",
+            "      Product: https://example.com/A-1\n",
+            "      Datasheet: https://example.com/A-1.pdf?x=1&y=2\n",
+            "    supplier acme: A-2 · at (0mm, 0mm) · rotate 0\n",
+            "      catalog: unavailable\n",
+        )
+    );
+}
+
+#[test]
+fn search_json_passes_through_every_supplier_catalog_and_link_field_exactly() {
+    let tmp = tmp_dir("search_supplier_json");
+    let (url, _) = spawn_search_mock(200, SEARCH_WITH_SUPPLIERS);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &["search", "supplier parts", "--json"],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        r#"{
+  "query": "supplier parts",
+  "packages": {
+    "results": [],
+    "has_more": false
+  },
+  "parts": {
+    "results": [
+      {
+        "package": "@contrib/parts",
+        "tier": "contrib",
+        "version": "1.0.0",
+        "fq": "parts::P",
+        "name": "P",
+        "device": "parts::D",
+        "intent": null,
+        "manufacturer": "M",
+        "mpn": "M-1",
+        "primary": true,
+        "suppliers": [
+          {
+            "supplier": "acme",
+            "pn": "A-1",
+            "at": ["1mm", "-2mm"],
+            "rotate": 270,
+            "links": [
+              {
+                "label": "Product",
+                "url": "https://example.com/A-1"
+              },
+              {
+                "label": "Datasheet",
+                "url": "https://example.com/A-1.pdf?x=1&y=2"
+              }
+            ],
+            "catalog": {
+              "class": "resistor",
+              "stock": 7,
+              "snapshot_date": "2026-10-28T01:02:03.000Z"
+            }
+          },
+          {
+            "supplier": "acme",
+            "pn": "A-2",
+            "at": ["0mm", "0mm"],
+            "rotate": 0,
+            "links": [],
+            "catalog": null
+          }
+        ]
+      }
+    ],
+    "has_more": false
+  }
+}
+"#
+    );
+}
+
+#[test]
+fn search_strictly_rejects_malformed_supplier_bindings() {
+    let tmp = tmp_dir("search_supplier_malformed");
+    let valid = r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":{"class":"resistor","stock":7,"snapshot_date":"today"}}]"#;
+    let cases = [
+        ("null", "must be an array"),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm"],"rotate":0,"links":[],"catalog":null}]"#,
+            "`at` must contain exactly two strings",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":-1,"links":[],"catalog":null}]"#,
+            "`rotate` must be a non-negative integer in range",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[{"label":"x"}],"catalog":null}]"#,
+            "missing `url`",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":[]}]"#,
+            "expected a JSON object",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":{"class":"resistor","stock":"7","snapshot_date":"today"}}]"#,
+            "`stock` must be a number",
+        ),
+    ];
+    for (index, (suppliers, expected)) in cases.iter().enumerate() {
+        let body = format!(
+            r#"{{"query":"bad json","packages":{{"results":[],"has_more":false}},"parts":{{"results":[{{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"mpn":null,"primary":true,"suppliers":{suppliers}}}],"has_more":false}}}}"#
+        );
+        let (url, _) = spawn_search_mock(200, &body);
+        let out = run_output(
+            &url,
+            &tmp.join(format!("home{index}")),
+            &["search", "bad json"],
+        );
+        assert_eq!(out.status.code(), Some(1), "case {index}");
+        assert!(out.stdout.is_empty(), "case {index}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(stderr.contains("E1204"), "case {index}: {stderr}");
+        assert!(stderr.contains(expected), "case {index}: {stderr}");
+    }
+
+    let (url, _) = spawn_search_mock(
+        200,
+        &format!(
+            r#"{{"query":"bad json","packages":{{"results":[],"has_more":false}},"parts":{{"results":[{{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"mpn":null,"primary":true,"suppliers":{valid}}}],"has_more":false}}}}"#
+        ),
+    );
+    let out = run_output(&url, &tmp.join("valid"), &["search", "bad json"]);
+    assert!(out.status.success(), "the malformed-case fixture is valid");
+}
+
+#[test]
 fn search_json_is_deterministic_and_preserves_nullable_fields() {
     let tmp = tmp_dir("search_json");
     let response = r#"{"parts":{"has_more":true,"results":[{"primary":false,"mpn":null,"manufacturer":"Acme","intent":null,"device":"parts::D","name":"P","fq":"parts::P","version":"2.0.0","tier":"contrib","package":"@contrib/parts"}]},"packages":{"has_more":false,"results":[{"updated":"now","description":"Rocket \ud83d\ude80","latest":"2.0.0","tier":"contrib","name":"@contrib/parts"}]},"query":"emoji parts"}"#;

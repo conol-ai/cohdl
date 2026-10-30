@@ -1,0 +1,5 @@
+pub device CI_DEVICE { pins { P: 1 [passive] } }
+pub footprint FP_CI_B {}
+pub part CI_PART: CI_DEVICE {
+    primary { mfr: "B Maker", mpn: "B-MPN", footprint: FP_CI_B, supplier lcsc "C_B_FRAME" }
+}

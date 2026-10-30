@@ -21,7 +21,9 @@
     "db:migrate:0003": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0003-part-search.sql",
     "db:migrate:0003:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0003-part-search.sql",
     "db:migrate:0004": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0004-component-requests.sql",
-    "db:migrate:0004:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0004-component-requests.sql"
+    "db:migrate:0004:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0004-component-requests.sql",
+    "db:migrate:0005": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0005-suppliers.sql",
+    "db:migrate:0005:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0005-suppliers.sql"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
@@ -32,6 +34,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.47.0",
     "@cloudflare/workers-types": "^5.20260722.1",
+    "@types/node": "^26.6.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",

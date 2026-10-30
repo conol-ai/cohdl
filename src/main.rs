@@ -15,14 +15,17 @@ cohdl — the CoHDL v2 compiler
 USAGE:
     cohdl check  [PATH] [--design NAME] [--std DIR | --no-std] [--json]
     cohdl build  [PATH] [--design NAME] [--std DIR | --no-std] [--out-dir DIR]
-                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only] [--json]
+                 [--emit easyeda] [--emit ipc2581] [--emit kicad_pcb] [--logical-only]
+                 [--supplier ID]... [--bottom-rotation ID=VALUE]... [--json]
     cohdl update [NAME] [PATH] [--dep NAME]
     cohdl add    NAME[@X.Y.Z] [PATH]
     cohdl remove NAME [PATH]
     cohdl install [PATH]
     cohdl login
     cohdl publish [PATH]
-    cohdl search QUERY [--json]
+    cohdl search QUERY [--supplier ID] [--class C]... [--json]
+    cohdl suppliers [PATH] [--design NAME] [--std DIR | --no-std]
+                    [--supplier ID]... [--json]
     cohdl docs   [PATH] [--out FILE] [--publish]
     cohdl fmt    [PATH] [--check]
     cohdl lsp
@@ -51,6 +54,8 @@ defaults to the current directory.
              uploads the package's API docs when the package checks cleanly
     search   search published packages and public parts in the registry;
              no project or login is required
+    suppliers audit every primary/alternate entry of instantiated parts
+              against the online supplier catalog; suggests unbound entries
     docs     emit the package API documentation JSON (docs/apidocs.md — the
              registry's API explorer) to stdout, --out FILE, or, with
              --publish, to the registry for the already-published version
@@ -62,7 +67,8 @@ defaults to the current directory.
              its sha256, and replace the running executable
 
     --json   emit one JSON document to stdout instead of human-readable text
-             (RFC-010 diagnostics for check/build; registry results for search)
+             (RFC-010 diagnostics for check/build; registry results for search;
+             an independent structured report for suppliers)
     --emit   build: emit an additional output format (repeatable, distinct
              values). `easyeda` — an LCEDA Pro / EasyEDA Pro netlist
              (<name>.enet, JSON v2.0.0, File → Import → Netlist);
@@ -74,6 +80,17 @@ defaults to the current directory.
              not already in canonical form
              self-update: report whether a newer release exists, install nothing
     --logical-only  build: emit logical artifacts without footprints or manufacturing output
+    --supplier ID  build: select this supplier for each instance (repeatable;
+             first-occurrence order is kept and duplicates are ignored)
+             search: require a binding for this supplier (at most once)
+             suppliers: audit this supplier and report unbound entries
+             (repeatable; without it audit every bound supplier)
+    --bottom-rotation ID=VALUE
+             build: set ID's supplier CPL convention to kicad or mirrored
+             (repeatable, once per ID; ID must also be selected by --supplier;
+             default kicad)
+    --class C  search: require one of these catalog classes (repeatable;
+             requires --supplier)
     --dep    update: re-resolve only the named dependency
     --out    docs: write the JSON to FILE instead of stdout
     --publish
@@ -82,6 +99,12 @@ defaults to the current directory.
              automatically)
     --std    development override: use DIR verbatim as the std package —
              emits the mandatory E1105 warning; the result is not reproducible
+
+EXIT CODES:
+    0  success (suppliers: every audited binding is ok or out-of-stock)
+    1  project/diagnostic or registry failure (E1204 for online failures)
+    2  invalid invocation or arguments
+    3  suppliers only: an audited binding is unknown or mismatched
 ";
 
 struct Args {
@@ -103,6 +126,12 @@ struct Args {
     /// with fmt", not suggest a format that would then be rejected anyway.
     emit: Vec<String>,
     logical_only: bool,
+    /// RFC-034: repeatable on build; search accepts exactly one.
+    suppliers: Vec<String>,
+    /// RFC-034: raw repeatable `ID=VALUE` build options, validated before load.
+    bottom_rotations: Vec<String>,
+    /// RFC-034: search-only, repeatable supplier catalog classes.
+    classes: Vec<String>,
     /// RFC-029: `update --dep NAME` — re-resolve one dependency only.
     dep: Option<String>,
     /// RFC-030: the NAME positional of add/remove/update (`name` or
@@ -130,6 +159,42 @@ impl Args {
         };
         if self.logical_only && self.command != "build" {
             return bad("--logical-only");
+        }
+        if !self.suppliers.is_empty()
+            && !matches!(self.command.as_str(), "build" | "search" | "suppliers")
+        {
+            return bad("--supplier");
+        }
+        if !self.bottom_rotations.is_empty() && self.command != "build" {
+            return bad("--bottom-rotation");
+        }
+        let selected: std::collections::BTreeSet<&str> =
+            self.suppliers.iter().map(String::as_str).collect();
+        let mut configured = std::collections::BTreeSet::new();
+        for option in &self.bottom_rotations {
+            let Some((id, value)) = option.split_once('=') else {
+                return Err(format!(
+                    "`--bottom-rotation` expects ID=VALUE, got `{option}`"
+                ));
+            };
+            if !matches!(value, "kicad" | "mirrored") {
+                return Err(format!(
+                    "unknown bottom rotation `{value}` for `{id}`; expected `kicad` or `mirrored`"
+                ));
+            }
+            if !configured.insert(id) {
+                return Err(format!(
+                    "`--bottom-rotation` for `{id}` given more than once"
+                ));
+            }
+            if !selected.contains(id) {
+                return Err(format!(
+                    "`--bottom-rotation` supplier `{id}` must also be selected by `--supplier`"
+                ));
+            }
+        }
+        if !self.classes.is_empty() && self.command != "search" {
+            return bad("--class");
         }
         if self.logical_only && !self.emit.is_empty() {
             return Err(
@@ -190,9 +255,17 @@ impl Args {
                 }
             }
             "search" => {
-                // Search is registry-only. `--json` is its sole flag; unlike
-                // every path-taking command it neither discovers nor loads a
-                // project.
+                // Search is registry-only; unlike every path-taking command
+                // it neither discovers nor loads a project.
+                if self.suppliers.len() > 1 {
+                    return Err(format!(
+                        "`search` accepts at most one `--supplier ID`\n\n{}",
+                        USAGE
+                    ));
+                }
+                if !self.classes.is_empty() && self.suppliers.is_empty() {
+                    return Err(format!("`--class` requires `--supplier ID`\n\n{}", USAGE));
+                }
                 if self.fmt_check {
                     return bad("--check");
                 }
@@ -255,6 +328,33 @@ impl Args {
                         return Err(format!(
                             "unknown `--emit` format `{}` (valid: easyeda, ipc2581, kicad_pcb)\n\n{}",
                             format, USAGE
+                        ));
+                    }
+                }
+                for supplier in &self.suppliers {
+                    if !cohdl::supplier::valid_supplier_id(supplier) {
+                        return Err(format!(
+                            "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
+                            supplier, USAGE
+                        ));
+                    }
+                }
+            }
+            "suppliers" => {
+                if self.fmt_check {
+                    return bad("--check");
+                }
+                if self.out_dir_given {
+                    return bad("--out-dir");
+                }
+                if !self.emit.is_empty() {
+                    return bad("--emit");
+                }
+                for supplier in &self.suppliers {
+                    if !cohdl::supplier::valid_supplier_id(supplier) {
+                        return Err(format!(
+                            "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
+                            supplier, USAGE
                         ));
                     }
                 }
@@ -326,6 +426,21 @@ impl Args {
     fn emit_easyeda(&self) -> bool {
         self.emit.iter().any(|f| f == "easyeda")
     }
+
+    fn bottom_rotations(&self) -> cohdl::supplier::BottomRotations {
+        self.bottom_rotations
+            .iter()
+            .map(|option| {
+                let (id, value) = option.split_once('=').expect("validated option");
+                let rotation = if value == "mirrored" {
+                    cohdl::supplier::BottomRotation::Mirrored
+                } else {
+                    cohdl::supplier::BottomRotation::Kicad
+                };
+                (id.to_string(), rotation)
+            })
+            .collect()
+    }
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -344,6 +459,9 @@ fn parse_args() -> Result<Args, String> {
         fmt_check: false,
         emit: Vec::new(),
         logical_only: false,
+        suppliers: Vec::new(),
+        bottom_rotations: Vec::new(),
+        classes: Vec::new(),
         dep: None,
         name: None,
         query: None,
@@ -362,6 +480,18 @@ fn parse_args() -> Result<Args, String> {
             "--no-std" => args.no_std = true,
             "--json" => args.json = true,
             "--logical-only" => args.logical_only = true,
+            "--supplier" => {
+                args.suppliers
+                    .push(argv.next().ok_or("--supplier needs a value")?);
+            }
+            "--bottom-rotation" => {
+                args.bottom_rotations
+                    .push(argv.next().ok_or("--bottom-rotation needs a value")?);
+            }
+            "--class" => {
+                args.classes
+                    .push(argv.next().ok_or("--class needs a value")?);
+            }
             "--check" => args.fmt_check = true,
             "--out-dir" => {
                 args.out_dir = PathBuf::from(argv.next().ok_or("--out-dir needs a value")?);
@@ -611,6 +741,9 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
+    if args.command == "suppliers" {
+        return suppliers_main(&args);
+    }
     match run(&args) {
         Ok(clean) => {
             if clean {
@@ -626,29 +759,113 @@ fn main() -> ExitCode {
     }
 }
 
+trait CommandRunner {
+    type Output;
+    fn success(clean: bool) -> Self::Output;
+    fn binding_problem() -> Self::Output;
+}
+
+struct StandardCommand;
+struct AuditCommand;
+
+impl CommandRunner for StandardCommand {
+    type Output = bool;
+
+    fn success(clean: bool) -> bool {
+        clean
+    }
+
+    fn binding_problem() -> bool {
+        unreachable!("only the supplier audit has a third outcome")
+    }
+}
+
+impl CommandRunner for AuditCommand {
+    type Output = AuditExit;
+
+    fn success(clean: bool) -> AuditExit {
+        if clean {
+            AuditExit::Clean
+        } else {
+            AuditExit::Failure
+        }
+    }
+
+    fn binding_problem() -> AuditExit {
+        AuditExit::BindingProblem
+    }
+}
+
+/// RFC-034 §5 has one extra outcome. Keep it outside the existing bool-based
+/// command runner so no other command's exit behavior changes.
+enum AuditExit {
+    Clean,
+    Failure,
+    Invocation,
+    BindingProblem,
+}
+
+impl From<AuditExit> for ExitCode {
+    fn from(exit: AuditExit) -> Self {
+        match exit {
+            AuditExit::Clean => Self::SUCCESS,
+            AuditExit::Failure => Self::FAILURE,
+            AuditExit::Invocation => Self::from(2),
+            AuditExit::BindingProblem => Self::from(3),
+        }
+    }
+}
+
+fn suppliers_main(args: &Args) -> ExitCode {
+    if let Err(message) = args.validate() {
+        eprintln!("{message}");
+        return AuditExit::Invocation.into();
+    }
+    match run_audit(args) {
+        Ok(exit) => exit,
+        Err(message) => {
+            eprintln!("error: {message}");
+            AuditExit::Invocation
+        }
+    }
+    .into()
+}
+
 fn run(args: &Args) -> Result<bool, String> {
+    dispatch(StandardCommand, args)
+}
+
+fn run_audit(args: &Args) -> Result<AuditExit, String> {
+    dispatch(AuditCommand, args)
+}
+
+fn dispatch<R: CommandRunner>(runner: R, args: &Args) -> Result<R::Output, String> {
+    run_with(args, &runner)
+}
+
+fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, String> {
     // Per-command flag validation (E000-class invocation errors).
     args.validate()?;
     match args.command.as_str() {
-        "check" | "build" => {}
-        "update" => return update_command(args),
-        "self-update" => return cohdl::selfupdate::run(args.fmt_check),
-        "add" => return add_command(args),
-        "remove" => return remove_command(args),
-        "install" => return install_command(args),
-        "login" => return login_command(),
-        "publish" => return publish_command(args),
-        "search" => return search_command(args),
-        "docs" => return docs_command(args),
-        "fmt" => return fmt_command(args),
+        "check" | "build" | "suppliers" => {}
+        "update" => return update_command(args).map(R::success),
+        "self-update" => return cohdl::selfupdate::run(args.fmt_check).map(R::success),
+        "add" => return add_command(args).map(R::success),
+        "remove" => return remove_command(args).map(R::success),
+        "install" => return install_command(args).map(R::success),
+        "login" => return login_command().map(R::success),
+        "publish" => return publish_command(args).map(R::success),
+        "search" => return search_command(args).map(R::success),
+        "docs" => return docs_command(args).map(R::success),
+        "fmt" => return fmt_command(args).map(R::success),
         "lsp" => {
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
             // shutdown (per the spec); 2 for transport/I/O failures.
             return match cohdl::lsp::run_stdio()? {
-                cohdl::lsp::LspExit::Clean => Ok(true),
+                cohdl::lsp::LspExit::Clean => Ok(R::success(true)),
                 cohdl::lsp::LspExit::WithoutShutdown => {
                     eprintln!("lsp: `exit` received before `shutdown`");
-                    Ok(false)
+                    Ok(R::success(false))
                 }
             };
         }
@@ -669,7 +886,7 @@ fn run(args: &Args) -> Result<bool, String> {
                 } else {
                     eprint!("{}", cohdl::deps::render_human(&diags));
                 }
-                return Ok(false);
+                return Ok(R::success(false));
             }
         };
         let names: Vec<String> = deps_list.iter().map(|(n, _)| n.clone()).collect();
@@ -707,6 +924,8 @@ fn run(args: &Args) -> Result<bool, String> {
         &proj.files,
         args.design.as_deref().or(proj.top.as_deref()),
     )?;
+    checked.world.package_names = proj.package_names;
+    checked.world.package_versions = proj.package_versions;
 
     // A design-selection failure is an invocation-level error (exit 2), but
     // the source diagnostics collected before it are NEVER discarded — they
@@ -719,17 +938,57 @@ fn run(args: &Args) -> Result<bool, String> {
     if args.command == "check" {
         if args.json {
             print!("{}", emit::json::render(&checked, None));
-            return Ok(!checked.diags.has_errors());
+            return Ok(R::success(!checked.diags.has_errors()));
         }
         eprint!("{}", checked.diags.render(&checked.sm));
         if checked.diags.has_errors() {
-            return Ok(false);
+            return Ok(R::success(false));
         }
         if checked.design_name.is_none() {
             eprintln!("note: no `design` in this project — declarations checked only");
         }
         eprintln!("  No errors found.");
-        return Ok(true);
+        return Ok(R::success(true));
+    }
+
+    if args.command == "suppliers" {
+        if checked.diags.has_errors() {
+            if args.json {
+                print!("{}", emit::json::render(&checked, None));
+            } else {
+                eprint!("{}", checked.diags.render(&checked.sm));
+            }
+            return Ok(R::success(false));
+        }
+        let Some(ir) = checked.ir.as_ref() else {
+            eprint!("{}", checked.diags.render(&checked.sm));
+            return Err("nothing to audit: the project declares no `design`".to_string());
+        };
+        // No HTTP request of any kind precedes this successful offline check.
+        let report = match cohdl::supplier_audit::audit(&checked.world, ir, &args.suppliers) {
+            Ok(report) => report,
+            Err(error) => {
+                if args.json {
+                    print!("{}", emit::json::render_package_failure(&[error]));
+                } else {
+                    eprint!("{}", render_diag(&error));
+                }
+                return Ok(R::success(false));
+            }
+        };
+        let clean = !report.has_binding_problems();
+        if args.json {
+            print!("{}", report.render_json());
+        } else {
+            eprint!("{}", checked.diags.render(&checked.sm));
+            print!("{}", report.render_human());
+        }
+        if clean {
+            return Ok(R::success(true));
+        }
+        // The sole audit-specific exit-3 path. out-of-stock and unbound do not
+        // reach it; registry/protocol failures returned above remain E1204/1.
+        return Ok(R::binding_problem());
     }
 
     // ---- build ----
@@ -739,7 +998,7 @@ fn run(args: &Args) -> Result<bool, String> {
         } else {
             eprint!("{}", checked.diags.render(&checked.sm));
         }
-        return Ok(false);
+        return Ok(R::success(false));
     }
     if checked.ir.is_none() {
         // Same rule: never discard collected diagnostics (warnings) on an
@@ -771,14 +1030,19 @@ fn run(args: &Args) -> Result<bool, String> {
         std::fs::read_to_string(proj_dir.join(path)).map_err(|e| e.to_string())
     });
 
-    let artifacts = pipeline::build_artifacts(&mut checked, &prior_lock);
+    let artifacts = pipeline::build_artifacts_with_suppliers(
+        &mut checked,
+        &prior_lock,
+        &args.suppliers,
+        &args.bottom_rotations(),
+    );
     let Some(artifacts) = artifacts else {
         if args.json {
             print!("{}", emit::json::render(&checked, None));
         } else {
             eprint!("{}", checked.diags.render(&checked.sm));
         }
-        return Ok(false);
+        return Ok(R::success(false));
     };
     if checked.diags.has_errors() {
         if args.json {
@@ -789,13 +1053,16 @@ fn run(args: &Args) -> Result<bool, String> {
                 eprintln!("note: {}", note);
             }
         }
-        return Ok(false);
+        return Ok(R::success(false));
     }
 
     // Reject unsupported physical facts before creating or changing artifacts.
     if !args.logical_only {
         emit::validate_physical_export(&checked.world, checked.ir.as_ref().unwrap())
             .map_err(|e| diags_then(&checked, e.to_string()))?;
+        if let Some(cpl) = &artifacts.cpl {
+            emit::cpl::report_unplaced(&mut checked.diags, cpl);
+        }
     }
 
     // Defence in depth (review F4): the artifact basename is `proj.name`,
@@ -846,18 +1113,66 @@ fn run(args: &Args) -> Result<bool, String> {
 
     let net_path = out_dir.join(format!("{}.net", proj.name));
     let bom_path = out_dir.join(format!("{}-bom.csv", proj.name));
+    let cpl_path = out_dir.join(format!("{}-cpl.csv", proj.name));
     let layout_path = out_dir.join(format!("{}-layout.json", proj.name));
     let ipc_path = out_dir.join(format!("{}.xml", proj.name));
     let pcb_path = out_dir.join(format!("{}.kicad_pcb", proj.name));
     let enet_path = out_dir.join(format!("{}.enet", proj.name));
+    let mut supplier_paths: std::collections::BTreeMap<String, emit::json::SupplierBuildArtifacts> =
+        std::collections::BTreeMap::new();
 
     write_artifact(&net_path, &artifacts.netlist, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(net_path.clone());
     write_artifact(&bom_path, &artifacts.bom, &owned).map_err(|e| diags_then(&checked, e))?;
     written.push(bom_path.clone());
+    // RFC-034: procurement output is independent of the physical build mode.
+    // Only a successful write contributes its ID to the JSON projection.
+    for supplier_bom in &artifacts.supplier_boms {
+        let path = out_dir.join(format!("{}-{}-bom.csv", proj.name, supplier_bom.supplier));
+        write_artifact(&path, &supplier_bom.csv, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(path.clone());
+        supplier_paths.insert(
+            supplier_bom.supplier.clone(),
+            emit::json::SupplierBuildArtifacts {
+                bom: path.display().to_string(),
+                map: String::new(),
+                cpl: None,
+                bottom_rotation: artifacts
+                    .supplier_maps
+                    .iter()
+                    .find(|map| map.supplier == supplier_bom.supplier)
+                    .map(|map| map.bottom_rotation.name().to_string())
+                    .unwrap_or_else(|| "kicad".to_string()),
+            },
+        );
+    }
+    for supplier_map in &artifacts.supplier_maps {
+        let map_path = out_dir.join(format!("{}-{}-map.json", proj.name, supplier_map.supplier));
+        write_artifact(&map_path, &supplier_map.json, &owned)
+            .map_err(|e| diags_then(&checked, e))?;
+        written.push(map_path.clone());
+        let cpl_path = out_dir.join(format!("{}-{}-cpl.csv", proj.name, supplier_map.supplier));
+        let mut cpl = None;
+        if let Some(csv) = supplier_map.cpl.as_ref().filter(|_| !args.logical_only) {
+            write_artifact(&cpl_path, csv, &owned).map_err(|e| diags_then(&checked, e))?;
+            written.push(cpl_path.clone());
+            cpl = Some(cpl_path.display().to_string());
+        }
+        supplier_paths
+            .entry(supplier_map.supplier.clone())
+            .and_modify(|paths| {
+                paths.map = map_path.display().to_string();
+                paths.cpl = cpl.clone();
+            });
+    }
     write_artifact(&lock_path, &artifacts.lock.render(), &owned)
         .map_err(|e| diags_then(&checked, e))?;
     written.push(lock_path.clone());
+
+    if let Some(cpl) = artifacts.cpl.as_ref().filter(|_| !args.logical_only) {
+        write_artifact(&cpl_path, &cpl.csv, &owned).map_err(|e| diags_then(&checked, e))?;
+        written.push(cpl_path.clone());
+    }
 
     // RFC-013: the layout-constraint artifact, only when there is layout data.
     // A design that no longer carries layout metadata leaves it out of the new
@@ -929,7 +1244,11 @@ fn run(args: &Args) -> Result<bool, String> {
     // The LCEDA Pro netlist, only when `--emit easyeda` (docs/easyeda.md).
     if args.emit_easyeda() {
         let ir = checked.ir.as_ref().unwrap();
-        let doc = emit::easyeda::emit_enet(&checked.world, ir);
+        let doc = emit::easyeda::emit_enet_with_supplier(
+            &checked.world,
+            ir,
+            artifacts.suppliers.selections.first(),
+        );
         write_artifact(&enet_path, &doc, &owned).map_err(|e| diags_then(&checked, e))?;
         written.push(enet_path.clone());
     }
@@ -978,6 +1297,12 @@ fn run(args: &Args) -> Result<bool, String> {
         let build = emit::json::BuildArtifacts {
             netlist: net_path.display().to_string(),
             bom: bom_path.display().to_string(),
+            suppliers: supplier_paths,
+            cpl: artifacts
+                .cpl
+                .as_ref()
+                .filter(|_| !args.logical_only)
+                .map(|_| cpl_path.display().to_string()),
             layout: artifacts
                 .layout
                 .as_ref()
@@ -1000,7 +1325,7 @@ fn run(args: &Args) -> Result<bool, String> {
                 }),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
-        return Ok(true);
+        return Ok(R::success(true));
     }
 
     // Non-JSON: a successful build still renders its diagnostics (warnings —
@@ -1034,8 +1359,19 @@ fn run(args: &Args) -> Result<bool, String> {
     for p in &mod_paths {
         eprintln!("  wrote {}", p);
     }
+    for supplier_map in &artifacts.supplier_maps {
+        if supplier_map.cpl.is_some() && !args.logical_only {
+            eprintln!(
+                "  wrote {} (bottom_rotation: {})",
+                out_dir
+                    .join(format!("{}-{}-cpl.csv", proj.name, supplier_map.supplier))
+                    .display(),
+                supplier_map.bottom_rotation.name()
+            );
+        }
+    }
     eprintln!("  wrote {}", lock_path.display());
-    Ok(true)
+    Ok(R::success(true))
 }
 
 /// How RFC-029 dependency resolution fails: structured E11xx diagnostics
@@ -1513,7 +1849,11 @@ fn registry_tier_label(tier: &str) -> &'static str {
 /// in a pipe); diagnostics keep the existing registry convention.
 fn search_command(args: &Args) -> Result<bool, String> {
     let query = args.query.as_deref().expect("search query was parsed");
-    let results = match cohdl::registry::search(query) {
+    let results = match cohdl::registry::search(
+        query,
+        args.suppliers.first().map(String::as_str),
+        &args.classes,
+    ) {
         Ok(results) => results,
         Err(diag) => {
             if args.json {
@@ -1600,6 +1940,32 @@ fn search_command(args: &Args) -> Result<bool, String> {
                 let intent = terminal_text(intent);
                 if !intent.is_empty() {
                     println!("    {intent}");
+                }
+            }
+            for supplier in part.suppliers.iter().flatten() {
+                println!(
+                    "    supplier {}: {} · at ({}, {}) · rotate {}",
+                    terminal_text(&supplier.supplier),
+                    terminal_text(&supplier.pn),
+                    terminal_text(&supplier.at[0]),
+                    terminal_text(&supplier.at[1]),
+                    supplier.rotate
+                );
+                match &supplier.catalog {
+                    Some(catalog) => println!(
+                        "      catalog: {} · stock {} · snapshot {}",
+                        terminal_text(&catalog.class),
+                        catalog.stock,
+                        terminal_text(&catalog.snapshot_date)
+                    ),
+                    None => println!("      catalog: unavailable"),
+                }
+                for link in &supplier.links {
+                    println!(
+                        "      {}: {}",
+                        terminal_text(&link.label),
+                        terminal_text(&link.url)
+                    );
                 }
             }
         }

@@ -1,0 +1,194 @@
+[
+ {
+  "ref": "J1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": null,
+  "dots": [
+   [
+    2.73,
+    -2.86
+   ],
+   [
+    -3.11,
+    -2.86
+   ]
+  ]
+ },
+ {
+  "ref": "J2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": null,
+  "dots": [
+   [
+    0.58,
+    -4.05
+   ],
+   [
+    -4.08,
+    -0.54
+   ]
+  ]
+ },
+ {
+  "ref": "J3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": null,
+  "dots": [
+   [
+    -2.85,
+    -2.86
+   ],
+   [
+    3.0,
+    -2.86
+   ]
+  ]
+ },
+ {
+  "ref": "J4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": null,
+  "dots": [
+   [
+    0.86,
+    -4.05
+   ],
+   [
+    -3.81,
+    -0.54
+   ]
+  ]
+ },
+ {
+  "ref": "Q1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   1.01,
+   0.95
+  ],
+  "dots": [
+   [
+    1.4,
+    0.96
+   ]
+  ],
+  "delta_ccw_from_top": 8.8
+ },
+ {
+  "ref": "Q2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   1.378,
+   0.151
+  ],
+  "dots": [
+   [
+    1.69,
+    -0.24
+   ]
+  ],
+  "delta_ccw_from_top": 14.3
+ },
+ {
+  "ref": "Q3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   -1.01,
+   0.95
+  ],
+  "dots": [
+   [
+    -1.79,
+    0.95
+   ]
+  ],
+  "delta_ccw_from_top": 344.8
+ },
+ {
+  "ref": "Q4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   -0.235,
+   1.367
+  ],
+  "dots": [
+   [
+    -0.82,
+    1.76
+   ]
+  ],
+  "delta_ccw_from_top": 344.8
+ },
+ {
+  "ref": "U1",
+  "side": "top",
+  "kicad_angle": 0.0,
+  "pad1": [
+   -1.905,
+   3.588
+  ],
+  "dots": [
+   [
+    -2.32,
+    4.55
+   ]
+  ],
+  "delta_ccw_from_top": 0.9
+ },
+ {
+  "ref": "U2",
+  "side": "top",
+  "kicad_angle": 37.0,
+  "pad1": [
+   0.638,
+   4.012
+  ],
+  "dots": [
+   [
+    0.89,
+    4.81
+   ]
+  ],
+  "delta_ccw_from_top": 1.5
+ },
+ {
+  "ref": "U3",
+  "side": "bottom",
+  "kicad_angle": 180.0,
+  "pad1": [
+   1.905,
+   3.588
+  ],
+  "dots": [
+   [
+    1.93,
+    4.54
+   ]
+  ],
+  "delta_ccw_from_top": 355.0
+ },
+ {
+  "ref": "U4",
+  "side": "bottom",
+  "kicad_angle": -143.0,
+  "pad1": [
+   3.68,
+   1.719
+  ],
+  "dots": [
+   [
+    4.37,
+    2.49
+   ]
+  ],
+  "delta_ccw_from_top": 355.3
+ }
+]

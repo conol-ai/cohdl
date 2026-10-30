@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "direct",
+      "package": "ci_g",
+      "package_version": "9.9.9",
+      "footprint": "FP_SHARED",
+      "supplier": "lcsc",
+      "pn": "C_UNUSED_DIRECT",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "bad",
+      "package": "ci_g",
+      "package_version": "9.9.9",
+      "footprint": "FP_SHARED",
+      "supplier": "lcsc",
+      "pn": "C_D_RULE",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "../outside.txt"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

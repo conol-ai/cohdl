@@ -26,6 +26,8 @@ import {
   usePackage,
   useRecent,
   useSearch,
+  usePartSearch,
+  useSuppliersForPart,
   type AdminAccount,
   type Me,
   type SearchRow,
@@ -39,11 +41,18 @@ import {
   Icon,
   LoadingRows,
   PackageCard,
+  PartCard,
   StatePanel,
   TierBadge,
   formatDate,
   formatSize,
 } from "./components";
+import {
+  parseCatalogueSearch,
+  parseClassInput,
+  type CatalogueSearchState,
+  type CatalogueSort,
+} from "./catalogue-model";
 import { Markdown } from "./markdown";
 import { recaptchaToken } from "./recaptcha";
 import {
@@ -474,7 +483,6 @@ const requestRoute = createRoute({
 // ---------------------------------------------------------------------------
 
 type TierFilter = "all" | SearchRow["tier"];
-type CatalogueSort = "updated" | "name";
 
 function Catalogue() {
   const searchState = catalogRoute.useSearch();
@@ -482,28 +490,46 @@ function Catalogue() {
   const query = searchState.q ?? "";
   const tier = searchState.tier ?? "all";
   const sort = searchState.sort ?? "updated";
+  const partMode = searchState.kind === "part" || !!searchState.supplier;
+  const supplier = searchState.supplier ?? "";
+  const classes = searchState.class ?? [];
   const [input, setInput] = useState(query);
-  const packages = useSearch(query, tier === "all" ? undefined : tier, sort);
+  const [supplierInput, setSupplierInput] = useState(supplier);
+  const [classInput, setClassInput] = useState(classes.join(", "));
+  const packages = useSearch(query, tier === "all" ? undefined : tier, sort, !partMode);
+  const parts = usePartSearch(query, searchState.supplier, classes, partMode);
   usePageTitle(query ? `Search: ${query}` : "Packages");
 
   useEffect(() => setInput(query), [query]);
+  useEffect(() => setSupplierInput(supplier), [supplier]);
+  useEffect(() => setClassInput(classes.join(", ")), [classes]);
 
   const visible = packages.data?.results ?? [];
+  const visibleParts = parts.data?.parts.results ?? [];
 
   const updateSearch = (next: {
     q?: string | null;
     tier?: TierFilter;
     sort?: CatalogueSort;
+    kind?: "part" | null;
+    supplier?: string | null;
+    class?: string[];
   }) => {
     const nextTier = next.tier ?? tier;
     const nextSort = next.sort ?? sort;
+    const nextSupplier = next.supplier === null ? undefined : (next.supplier ?? searchState.supplier);
+    const nextClasses = nextSupplier ? (next.class ?? classes) : [];
+    const nextKind = next.kind === null ? undefined : (next.kind ?? searchState.kind);
     return navigate({
       to: "/packages",
       search: {
         q: next.q === null ? undefined : (next.q ?? (input.trim() || undefined)),
         tier: nextTier === "all" ? undefined : nextTier,
         sort: nextSort === "updated" ? undefined : nextSort,
-      },
+        kind: nextSupplier || nextClasses.length > 0 ? "part" : nextKind,
+        supplier: nextSupplier,
+        class: nextClasses.length > 0 ? nextClasses : undefined,
+      } satisfies CatalogueSearchState,
     });
   };
 
@@ -530,7 +556,13 @@ function Catalogue() {
           aria-label="Package catalogue search"
           onSubmit={(event) => {
             event.preventDefault();
-            updateSearch({ q: input.trim() || null });
+            const nextSupplier = partMode ? supplierInput.trim() || null : null;
+            updateSearch({
+              q: input.trim() || null,
+              kind: partMode ? "part" : null,
+              supplier: nextSupplier,
+              class: partMode ? parseClassInput(classInput) : [],
+            });
           }}
         >
           <Icon name="search" size={18} />
@@ -546,6 +578,8 @@ function Catalogue() {
               className="clear-search"
               onClick={() => {
                 setInput("");
+                setSupplierInput("");
+                setClassInput("");
                 updateSearch({ q: null });
               }}
             >
@@ -556,7 +590,31 @@ function Catalogue() {
             Search
           </button>
         </form>
-        <div className="catalogue-controls">
+        <div className="filter-pills catalogue-kind" aria-label="Search result type">
+          <button type="button" aria-pressed={!partMode}
+            onClick={() => updateSearch({ kind: null, supplier: null, class: [] })}>
+            Packages
+          </button>
+          <button type="button" aria-pressed={partMode} onClick={() => updateSearch({ kind: "part" })}>
+            Parts
+          </button>
+        </div>
+        {partMode && (
+          <div className="supplier-filters">
+            <label>
+              <span>Supplier ID</span>
+              <input value={supplierInput} onChange={(event) => setSupplierInput(event.target.value)}
+                placeholder="acme" pattern="[a-z][a-z0-9_]{0,31}" />
+            </label>
+            <label>
+              <span>Catalog classes</span>
+              <input value={classInput} onChange={(event) => setClassInput(event.target.value)}
+                placeholder="resistor, capacitor" />
+            </label>
+            <span className="supplier-filter-help">Comma-separated classes use repeatable URL filters.</span>
+          </div>
+        )}
+        {!partMode && <div className="catalogue-controls">
           <div className="filter-pills" aria-label="Filter by trust tier">
             {(
               [
@@ -586,22 +644,52 @@ function Catalogue() {
               <option value="name">Name</option>
             </select>
           </label>
-        </div>
+        </div>}
       </div>
 
-      {packages.isPending ? (
+      {partMode && [...query.trim()].length < 3 ? (
+        <StatePanel title="Search published parts" icon="search">
+          Enter at least 3 characters to search by part, manufacturer, MPN, or supplier PN.
+        </StatePanel>
+      ) : partMode ? parts.isPending ? (
         <LoadingRows count={5} />
-      ) : packages.isError ? (
+      ) : parts.isError ? (
         <StatePanel
           tone="error"
-          title="Package search is unavailable"
+          title="Part search is unavailable"
           icon="search"
           action={
-            <button className="button button-secondary" onClick={() => packages.refetch()}>
+            <button className="button button-secondary" onClick={() => parts.refetch()}>
               Try again
             </button>
           }
         >
+          {(parts.error as Error).message}
+        </StatePanel>
+      ) : visibleParts.length === 0 ? (
+        <StatePanel title="No parts match this search" icon="search"
+          action={<button className="button button-secondary" onClick={() => {
+            setInput(""); setSupplierInput(""); setClassInput("");
+            navigate({ to: "/packages", search: { kind: "part" } });
+          }}>Clear filters</button>}>
+          Try a manufacturer, MPN, supplier PN, or another catalog filter.
+        </StatePanel>
+      ) : (
+        <>
+          <div className="results-summary" aria-live="polite">
+            Showing {visibleParts.length} part{visibleParts.length === 1 ? "" : "s"}
+            {supplier ? ` supplied by ${supplier}` : ""}
+          </div>
+          <div className="part-stack">
+            {visibleParts.map((part) => <PartCard key={`${part.package}-${part.version}-${part.fq}`} part={part} />)}
+          </div>
+          {parts.data?.parts.has_more && <p className="results-note">Refine the search to see more matching parts.</p>}
+        </>
+      ) : packages.isPending ? (
+        <LoadingRows count={5} />
+      ) : packages.isError ? (
+        <StatePanel tone="error" title="Package search is unavailable" icon="search"
+          action={<button className="button button-secondary" onClick={() => packages.refetch()}>Try again</button>}>
           The registry could not complete this search.
         </StatePanel>
       ) : visible.length === 0 ? (
@@ -662,17 +750,7 @@ function Catalogue() {
 const catalogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/packages",
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { q?: string; tier?: SearchRow["tier"]; sort?: CatalogueSort } => {
-    const q = typeof search.q === "string" && search.q.trim() ? search.q.trim() : undefined;
-    const tier =
-      search.tier === "official" || search.tier === "brand" || search.tier === "contrib"
-        ? search.tier
-        : undefined;
-    const sort = search.sort === "name" ? "name" : undefined;
-    return { q, tier, sort };
-  },
+  validateSearch: parseCatalogueSearch,
   component: Catalogue,
 });
 
@@ -852,6 +930,10 @@ function PackagePage() {
     name,
     apiSelected && version && version.api_docs !== false ? version.version : undefined,
   );
+  const selectedPart = search.item
+    ? apiDocs.data?.items?.find((item) => item?.fq === search.item && item.kind === "part")
+    : undefined;
+  const partSuppliers = useSuppliersForPart(name, selectedPart);
 
   useEffect(() => {
     if (
@@ -1099,6 +1181,7 @@ function PackagePage() {
                 versionParam={isLatest ? undefined : version.version}
                 query={apiDocs}
                 search={{ item: search.item, q: search.q, kind: search.kind }}
+                suppliers={partSuppliers.data}
               />
             </section>
           ) : (

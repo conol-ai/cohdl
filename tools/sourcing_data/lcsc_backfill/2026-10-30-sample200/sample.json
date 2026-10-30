@@ -1,0 +1,809 @@
+{
+  "method": "random.Random(seed).sample over sorted unique nonempty (mfr, mpn), then sorted",
+  "population": 21015,
+  "requested_size": 200,
+  "rows": [
+    {
+      "mfr": "GigaDevice",
+      "mpn": "GD32E230F8P6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F072RBT6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F302R8T6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F302VEH6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F427VGT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F437IIT7"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F446RET7TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F469BET6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F723ZCI6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F756ZGY6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F765BIT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F767BIT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F769BIT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G031C8T3TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G031J6M3"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G081EBY3TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G431RBI6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H563ZGT6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H743AGI6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H743VIH6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H7S3V8H6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L011D3P6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L041K6T7"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L151V8T6A"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L152RBH6A"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L152VCH6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L412K8T6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L422CBT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L443VCT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L451RCT3TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L476RGT3"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L486VGT7"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L496VGT6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L4S9ZIY6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VEI3"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VET6"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VET6TR"
+    },
+    {
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U595AJH6"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL03C120JA31IN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL10A225KQ5LNN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL10C680JB81IN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL21C102JE91PN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL31C104JAHNNN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL31C222JBCNNN"
+    },
+    {
+      "mfr": "Samsung",
+      "mpn": "CL31C473JAHNNN"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW020112R1FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW020113R0FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0201162KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0201261KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0201280KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW02012M55FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW02013R00JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW020146R4FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW02014K53FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0201560RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0201619RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW02019R76FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW040213R3FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW04021K58FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW04022R10FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW04022R80FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW04024M70JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW04025R60JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW040266K5FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0402820KJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0402820RJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW060314K0FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW06031R80FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0603200KJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW06032K00FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW06032K80FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0603475RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW06037K68FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0805107KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0805154KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0805158RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08052M00FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW080537K4FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08054R12FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08054R70JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW080551R1FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08055M62FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW080575R0JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08057K15FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW0805845RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW08059K10FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW1206115KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW1206180RJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12061M30JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12062R15FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW120638R3FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12063K92FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12063M00FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW1206402RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12064M30FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW120651K0JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW120652K3FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW1206590KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW120668K1FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW121017K8FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW1210196RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12101K60FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12101R96FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW121026K7FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW121027K0JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW121027R4FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12102M67FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12102R05FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12102R20FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12103M00JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12104K02FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW121068R1FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW12106R19FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW20101M27FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW2010240KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW20102K10FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW2010300RJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW20103K16FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW20104R02FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW2010750RJNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW20109R10FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW251212R4FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW25122R20FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW2512383RFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW2512590KFKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW251262R0JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW25126R20JNED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW251280R6FKED"
+    },
+    {
+      "mfr": "Vishay",
+      "mpn": "CRCW251282K5FKED"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX5R7BB102"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX7R7BB331"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX7R9BB681"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0402JRNPO9BN820"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0402KRX5R6BB105"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0402KRX7R5BB332"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO0BN391"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN120"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPOYBN221"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "CC0805KRX7RABB332"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-0720R5L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07221RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07232RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-072M37L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07324RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07680KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0201JR-0782RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-07200KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-0747KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-078M66L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-07910KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0402JR-07820RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0715R8L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0716RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0720KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-073R4L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-074R12L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-075M36L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-076K49L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07115RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07124RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07137RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07178KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-071R47L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-0757R6L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07649KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07910KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805JR-07510KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC0805JR-079K1L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-07133RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-0745R3L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-074M75L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-075R49L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-0782K5L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1206JR-0712KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07169KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-0722R6L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-0725R5L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07510RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-075K1L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-075R49L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07732KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC1210JR-07510KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-071K69L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-07200KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-0728KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-072M8L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2010JK-07130RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-0713KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07143KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-0714R7L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07178KL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07191RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-071M2L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-071R78L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-073M32L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-074R7L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07681RL"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-076K19L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-078M66L"
+    },
+    {
+      "mfr": "Yageo",
+      "mpn": "RC2512JK-074M7L"
+    }
+  ],
+  "schema_version": 1,
+  "seed": 20261030
+}

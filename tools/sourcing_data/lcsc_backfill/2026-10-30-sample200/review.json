@@ -1,0 +1,1678 @@
+{
+  "fetch_failures": [],
+  "rows": [
+    {
+      "candidates": [
+        {
+          "c": "C380785",
+          "category": "extended",
+          "mfr": "GigaDevice Semicon Beijing",
+          "partdetail": "/partdetail/352997-GD32E230F8P6TR/C380785/C380785",
+          "stock": 10186
+        }
+      ],
+      "mfr": "GigaDevice",
+      "mpn": "GD32E230F8P6TR",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F723ZCI6",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G031J6M3",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G081EBY3TR",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H563ZGT6TR",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H7S3V8H6",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L451RCT3TR",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L486VGT7",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VEI3",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VET6TR",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL03C120JA31IN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL10A225KQ5LNN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL10C680JB81IN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL21C102JE91PN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL31C104JAHNNN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL31C222JBCNNN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Samsung",
+      "mpn": "CL31C473JAHNNN",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW020112R1FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW020113R0FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2114977",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0201162KFKED/C2114977/C2114977",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0201162KFKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2114736",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0201261KFKED/C2114736/C2114736",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0201261KFKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C4018219",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0201280KFKED/C4018219/C4018219",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0201280KFKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW02012M55FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW02013R00JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW020146R4FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2115376",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW02014K53FKED/C2115376/C2115376",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW02014K53FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2116893",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0201560RFKED/C2116893/C2116893",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0201560RFKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C4245720",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0201619RFKED/C4245720/C4245720",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0201619RFKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW02019R76FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C3990886",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW040213R3FKED/C3990886/C3990886",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW040213R3FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C3009257",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW04021K58FKED/C3009257/C3009257",
+          "stock": 10050
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW04021K58FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2085212",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW04022R10FKED/C2085212/C2085212",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW04022R10FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C4031839",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW04022R80FKED/C4031839/C4031839",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW04022R80FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482284",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW04024M70JNED/C482284/C482284",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW04024M70JNED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C4045510",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW04025R60JNED/C4045510/C4045510",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW04025R60JNED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C2091530",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW040266K5FKED/C2091530/C2091530",
+          "stock": 3
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW040266K5FKED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482301",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0402820KJNED/C482301/C482301",
+          "stock": 0
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0402820KJNED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482239",
+          "category": "extended",
+          "mfr": "Vishay Intertech",
+          "partdetail": "/partdetail/VishayIntertech-CRCW0402820RJNED/C482239/C482239",
+          "stock": 544
+        }
+      ],
+      "mfr": "Vishay",
+      "mpn": "CRCW0402820RJNED",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW060314K0FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW06031R80FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0603200KJNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW06032K00FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW06032K80FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0603475RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW06037K68FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0805107KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0805154KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0805158RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08052M00FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW080537K4FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08054R12FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08054R70JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW080551R1FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08055M62FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW080575R0JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08057K15FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW0805845RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW08059K10FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW1206115KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW1206180RJNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12061M30JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12062R15FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW120638R3FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12063K92FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12063M00FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW1206402RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12064M30FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW120651K0JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW120652K3FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW1206590KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW120668K1FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW121017K8FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW1210196RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12101K60FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12101R96FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW121026K7FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW121027K0JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW121027R4FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12102M67FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12102R05FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12102R20FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12103M00JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12104K02FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW121068R1FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW12106R19FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW20101M27FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW2010240KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW20102K10FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW2010300RJNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW20103K16FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW20104R02FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW2010750RJNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW20109R10FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW251212R4FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW25122R20FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW2512383RFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW2512590KFKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW251262R0JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW25126R20JNED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW251280R6FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Vishay",
+      "mpn": "CRCW251282K5FKED",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX5R7BB102",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C541229",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0201KRX7R7BB331/C541229/C541229",
+          "stock": 85
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX7R7BB331",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C718246",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0201KRX7R9BB681/C718246/C718246",
+          "stock": 1198
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0201KRX7R9BB681",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C107011",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0402JRNPO9BN820/C107011/C107011",
+          "stock": 200799
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0402JRNPO9BN820",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C106254",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0402KRX5R6BB105/C106254/C106254",
+          "stock": 271561
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0402KRX5R6BB105",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "CC0402KRX7R5BB332",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C527206",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0805JRNPO0BN391/C527206/C527206",
+          "stock": 20587
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO0BN391",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C107108",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0805JRNPO9BN120/C107108/C107108",
+          "stock": 162799
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN120",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C576985",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0805JRNPOYBN221/C576985/C576985",
+          "stock": 583
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPOYBN221",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C527232",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-CC0805KRX7RABB332/C527232/C527232",
+          "stock": 2206
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "CC0805KRX7RABB332",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-0720R5L",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C138161",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0201FR07221RL/C138161/C138161",
+          "stock": 75
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07221RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07232RL",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C5716557",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0201FR072M37L/C5716557/C5716557",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-072M37L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C474681",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0201FR07324RL/C474681/C474681",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07324RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C273318",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0201FR07680KL/C273318/C273318",
+          "stock": 19
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0201FR-07680KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C138084",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0201JR0782RL/C138084/C138084",
+          "stock": 19
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0201JR-0782RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C114763",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0402FR07200KL/C114763/C114763",
+          "stock": 3137833
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-07200KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C93943",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0402FR0747KL/C93943/C93943",
+          "stock": 5515609
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-0747KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C477801",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0402FR078M66L/C477801/C477801",
+          "stock": 1476
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-078M66L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137927",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0402FR07910KL/C137927/C137927",
+          "stock": 2177
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0402FR-07910KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137837",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0402JR07820RL/C137837/C137837",
+          "stock": 4376
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0402JR-07820RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C163429",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR0715R8L/C163429/C163429",
+          "stock": 33
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0715R8L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137787",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR0716RL/C137787/C137787",
+          "stock": 3
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0716RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C105575",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR0720KL/C105575/C105575",
+          "stock": 3538173
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-0720KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482832",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR073R4L/C482832/C482832",
+          "stock": 5
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-073R4L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C309563",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR074R12L/C309563/C309563",
+          "stock": 13
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-074R12L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482876",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR075M36L/C482876/C482876",
+          "stock": 4563
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-075M36L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C163421",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0603FR076K49L/C163421/C163421",
+          "stock": 81460
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0603FR-076K49L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C483001",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07115RL/C483001/C483001",
+          "stock": 30
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07115RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C273816",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07124RL/C273816/C273816",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07124RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C163411",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07137RL/C163411/C163411",
+          "stock": 19
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07137RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C273815",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07178KL/C273815/C273815",
+          "stock": 15
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07178KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C482966",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR071R47L/C482966/C482966",
+          "stock": 1540
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-071R47L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C483188",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR0757R6L/C483188/C483188",
+          "stock": 73
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-0757R6L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C274369",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07649KL/C274369/C274369",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07649KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C141703",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805FR07910KL/C141703/C141703",
+          "stock": 13848
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805FR-07910KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137422",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805JR07510KL/C137422/C137422",
+          "stock": 4190
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805JR-07510KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C185267",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC0805JR079K1L/C185267/C185267",
+          "stock": 1
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC0805JR-079K1L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C274074",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206FR07133RL/C274074/C274074",
+          "stock": 2
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-07133RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C274047",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206FR0745R3L/C274047/C274047",
+          "stock": 19
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-0745R3L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C488841",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206FR074M75L/C488841/C488841",
+          "stock": 4
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-074M75L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C488876",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206FR075R49L/C488876/C488876",
+          "stock": 926
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-075R49L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C488985",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206FR0782K5L/C488985/C488985",
+          "stock": 4286
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206FR-0782K5L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137203",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1206JR0712KL/C137203/C137203",
+          "stock": 104
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1206JR-0712KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C874738",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR07169KL/C874738/C874738",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07169KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C874837",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR0722R6L/C874837/C874837",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-0722R6L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C874860",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR0725R5L/C874860/C874860",
+          "stock": 30
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-0725R5L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C309589",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR07510RL/C309589/C309589",
+          "stock": 3474
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07510RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C728389",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR075K1L/C728389/C728389",
+          "stock": 5
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-075K1L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C875076",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR075R49L/C875076/C875076",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-075R49L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C875124",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210FR07732KL/C875124/C875124",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210FR-07732KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C875242",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC1210JR07510KL/C875242/C875242",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC1210JR-07510KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877191",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2010FK071K69L/C877191/C877191",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-071K69L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877226",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2010FK07200KL/C877226/C877226",
+          "stock": 4578
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-07200KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877294",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2010FK0728KL/C877294/C877294",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-0728KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "RC2010FK-072M8L",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C137046",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2010JK07130RL/C137046/C137046",
+          "stock": 14
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2010JK-07130RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877726",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK0713KL/C877726/C877726",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-0713KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877732",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK07143KL/C877732/C877732",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07143KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877740",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK0714R7L/C877740/C877740",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-0714R7L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877770",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK07178KL/C877770/C877770",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07178KL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877787",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK07191RL/C877787/C877787",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07191RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C877827",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK071M2L/C877827/C877827",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-071M2L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C6757826",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK071R78L/C6757826/C6757826",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-071R78L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-073M32L",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C878096",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK074R7L/C878096/C878096",
+          "stock": 252
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-074R7L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C878167",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK07681RL/C878167/C878167",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-07681RL",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C878177",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512FK076K19L/C878177/C878177",
+          "stock": 0
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-076K19L",
+      "reason": "manufacturer_not_matched"
+    },
+    {
+      "candidates": [],
+      "mfr": "Yageo",
+      "mpn": "RC2512FK-078M66L",
+      "reason": "no_candidate"
+    },
+    {
+      "candidates": [
+        {
+          "c": "C878293",
+          "category": "extended",
+          "mfr": "YAGEO",
+          "partdetail": "/partdetail/YAGEO-RC2512JK074M7L/C878293/C878293",
+          "stock": 1616
+        }
+      ],
+      "mfr": "Yageo",
+      "mpn": "RC2512JK-074M7L",
+      "reason": "manufacturer_not_matched"
+    }
+  ],
+  "schema_version": 1
+}

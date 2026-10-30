@@ -198,10 +198,10 @@ def run_backfill(
     confirmed_rows = sorted(confirmed.values(), key=lambda row: int(row["c"][1:]))
     confirmed_hash = write_json(output_dir / "confirmed.json", confirmed_rows)
 
-    rows, review = [], []
+    rows, review, proposals = [], [], {}
     for mfr, mpn in unique:
         candidates = index.get(normalize_mpn(mpn), [])
-        matches = []
+        matches, other_mfr = [], []
         candidate_urls = [canonical_url(origin, candidate.path) for candidate in candidates]
         has_not_fetched = any(url not in fetched for url in candidate_urls)
         for candidate in candidates:
@@ -211,6 +211,8 @@ def run_backfill(
             rule = manufacturer_match(mfr, page["mfr"], aliases)
             if rule is not None:
                 matches.append({**page, "partdetail": candidate.path, "rule": rule})
+            else:
+                other_mfr.append({**page, "partdetail": candidate.path})
         best, tied = choose_candidate(matches)
         identity = {"mfr": mfr, "mpn": mpn}
         if best is None:
@@ -220,12 +222,23 @@ def run_backfill(
                 reason = "no_candidate"
             elif has_not_fetched:
                 reason = "not_fetched"
+            elif other_mfr:
+                # The MPN is confirmed but the manufacturer name differs: an
+                # alias for a human to review, never applied automatically.
+                reason = "manufacturer_not_matched"
+                for row in other_mfr:
+                    proposal = proposals.setdefault((row["mfr"], mfr), {
+                        "supplier": row["mfr"], "official": mfr, "identities": 0, "examples": []})
+                    proposal["identities"] += 1
+                    if len(proposal["examples"]) < 3:
+                        proposal["examples"].append({"mpn": mpn, "c": row["c"]})
             else:
                 reason = "no_confirmed_match"
             review.append({**identity, "reason": reason,
                            "candidates": [{"c": row["c"], "category": row["category"],
-                                           "stock": row["stock"], "partdetail": row["partdetail"]}
-                                          for row in matches]})
+                                           "stock": row["stock"], "partdetail": row["partdetail"],
+                                           **({"mfr": row["mfr"]} if reason == "manufacturer_not_matched" else {})}
+                                          for row in (matches or other_mfr)]})
             continue
         rows.append({"mfr": mfr, "mpn": mpn, "pn": best["c"], "rule": best["rule"],
                      "category": best["category"], "snapshot_sha256": "", "date": snapshot_date})
@@ -238,6 +251,10 @@ def run_backfill(
                           {"schema_version": 1, "supplier": "lcsc", "rows": rows})
     review_hash = write_json(output_dir / "review.json",
                              {"schema_version": 1, "rows": review, "fetch_failures": failures})
+    proposals_hash = write_json(output_dir / "alias_proposals.json", {
+        "schema_version": 1,
+        "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
+        "rows": sorted(proposals.values(), key=lambda row: (-row["identities"], row["supplier"]))})
     requests_hash = write_json(output_dir / "requests.json", [
         {"url": record.url, "user_agent": record.user_agent, "snapshot_date": record.snapshot_date}
         for record in client.request_log])
@@ -257,7 +274,8 @@ def run_backfill(
                        "numerator": len(rows), "denominator": len(unique),
                        "value": len(rows) / len(unique) if unique else 0.0},
         "sha256": {"confirmed.json": confirmed_hash, "lcsc_map.json": map_hash,
-                   "review.json": review_hash, "requests.json": requests_hash},
+                   "review.json": review_hash, "requests.json": requests_hash,
+                   "alias_proposals.json": proposals_hash},
         "parser_status": "real_sample_2026-10-30",
     }
     write_json(output_dir / "provenance.json", result)

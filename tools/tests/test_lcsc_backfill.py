@@ -172,6 +172,24 @@ class BackfillTests(unittest.TestCase):
         rows = json.loads((self.root / "out/lcsc_map.json").read_text())["rows"]
         self.assertEqual([(row["pn"], row["category"]) for row in rows], [("C1", "preferred")])
 
+    def test_manufacturer_mismatch_is_proposed_not_applied(self):
+        avl = [AVLRow("x", "primary", "Yageo", "RC0402"), AVLRow("y", "primary", "Yageo", "RC0603")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/YAGEO-RC0402/C1/C1",
+                                          "http://127.0.0.1/partdetail/YAGEO-RC0603/C2/C2"])
+        with LocalServer({"/partdetail/YAGEO-RC0402/C1/C1": (200, page("C1", "RC0402", mfr="YAGEO")),
+                          "/partdetail/YAGEO-RC0603/C2/C2": (200, page("C2", "RC0603", mfr="YAGEO"))}) as server:
+            run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                         client=make_client(self.root / "cache"), output_dir=self.root / "out",
+                         aliases={}, snapshot_date="2026-10-30")
+        out = self.root / "out"
+        self.assertEqual(json.loads((out / "lcsc_map.json").read_text())["rows"], [])
+        review = json.loads((out / "review.json").read_text())["rows"]
+        self.assertEqual({row["reason"] for row in review}, {"manufacturer_not_matched"})
+        self.assertEqual(review[0]["candidates"][0]["mfr"], "YAGEO")
+        proposals = json.loads((out / "alias_proposals.json").read_text())["rows"]
+        self.assertEqual([(row["supplier"], row["official"], row["identities"]) for row in proposals],
+                         [("YAGEO", "Yageo", 2)])
+
     def test_page_for_another_part_is_not_confirmed(self):
         avl = [AVLRow("x", "primary", "Acme", "X")]
         sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1"])

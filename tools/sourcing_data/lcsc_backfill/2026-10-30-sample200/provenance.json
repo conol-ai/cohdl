@@ -1,0 +1,42 @@
+{
+  "budget_exhausted": false,
+  "counts": {
+    "avl_entries": 200,
+    "confirmed_pages": 108,
+    "mapped_identities": 28,
+    "partdetail_urls": 108,
+    "requests": 0,
+    "review_identities": 172,
+    "unique_identities": 200
+  },
+  "date": "2026-10-30",
+  "elapsed_seconds": 0.983767,
+  "match_rate": {
+    "denominator": 200,
+    "method": "mapped_identities / unique_identities; unique key is exact (mfr, mpn) after selecting confirmed candidates",
+    "numerator": 28,
+    "value": 0.14
+  },
+  "not_fetched": [],
+  "parser_status": "real_sample_2026-10-30",
+  "request_count": 0,
+  "run_stopped": false,
+  "run_stopped_reason": null,
+  "schema_version": 1,
+  "sha256": {
+    "alias_proposals.json": "f954bf25c5372afb7d037c28d8f701c3894baab393814d9022d9282bd81dd85e",
+    "confirmed.json": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb",
+    "lcsc_map.json": "59bb8cf9f4fc14c715127c37e99f6a2268019ed7cc68c1df159080345bea1050",
+    "requests.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "review.json": "99081a967e751983940d455f99f62cac9b9e29903682e8515cd5e6ff29ee1ece"
+  },
+  "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb",
+  "sources": {
+    "aliases": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/mfr_aliases.json",
+    "aliases_sha256": "8ef312748333778b3915fbf781b3b7b22e2923eb9411cabc9299fcf2237649c0",
+    "candidates": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
+    "lib_dir": "/Users/zhangalex/Work/cohdl/cohdl/lib",
+    "origin": "https://jlcpcb.com"
+  }
+}

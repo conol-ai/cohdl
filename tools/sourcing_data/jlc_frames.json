@@ -1,4 +1,780 @@
 {
   "schema_version": 1,
-  "rows": []
+  "rows": [
+    {
+      "id": "c2b1-r0402-c25744",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C25744",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-c0402-c1525",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C1525",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-r0603-c25804",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C25804",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-c0603-c15849",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C15849",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-r0805-c17414",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C17414",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-c0805-c15850",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C15850",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-r1206-c17927",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C17927",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-c1206-c13585",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C13585",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-led0603-c2286",
+      "package": "led",
+      "package_version": "0.1.2",
+      "footprint": "FP_LED_0603_1608Metric",
+      "supplier": "lcsc",
+      "pn": "C2286",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot23_s8050-c2146",
+      "package": "transistor",
+      "package_version": "0.1.1",
+      "footprint": "FP_JSCJ_SOT23",
+      "supplier": "lcsc",
+      "pn": "C2146",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot23_2n7002-c8545",
+      "package": "transistor",
+      "package_version": "0.1.1",
+      "footprint": "FP_JSCJ_SOT23",
+      "supplier": "lcsc",
+      "pn": "C8545",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot23_mmbt3904-c20526",
+      "package": "transistor",
+      "package_version": "0.1.1",
+      "footprint": "FP_JSCJ_SOT23",
+      "supplier": "lcsc",
+      "pn": "C20526",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 90
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sod123-c81598",
+      "package": "diode",
+      "package_version": "0.1.0",
+      "footprint": "FP_D_SOD_123",
+      "supplier": "lcsc",
+      "pn": "C81598",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-soic8_208-c97521",
+      "package": "soic",
+      "package_version": "0.2.1",
+      "footprint": "SOIC8P127X790X216N",
+      "supplier": "lcsc",
+      "pn": "C97521",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-soic8_kicad-c7950",
+      "package": "soic",
+      "package_version": "0.2.1",
+      "footprint": "KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+      "supplier": "lcsc",
+      "pn": "C7950",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-soic8_ti-c7433",
+      "package": "soic",
+      "package_version": "0.2.1",
+      "footprint": "TI_D0008A_4214825C",
+      "supplier": "lcsc",
+      "pn": "C7433",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-tssop20-c52717",
+      "package": "soic",
+      "package_version": "0.2.1",
+      "footprint": "KICAD_TSSOP_20_4_4X6_5MM_P0_65MM",
+      "supplier": "lcsc",
+      "pn": "C52717",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-tssop24-c7859",
+      "package": "soic",
+      "package_version": "0.2.1",
+      "footprint": "TSSOP24P65_TI_PW0024A",
+      "supplier": "lcsc",
+      "pn": "C7859",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-lqfp48_kicad-c8734",
+      "package": "qfp",
+      "package_version": "0.2.0",
+      "footprint": "KICAD_LQFP_48_7X7MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C8734",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-lqfp48_ipc-c7532",
+      "package": "qfp",
+      "package_version": "0.2.0",
+      "footprint": "QFP50P900X900X160_48N",
+      "supplier": "lcsc",
+      "pn": "C7532",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-lqfp32-c8254",
+      "package": "qfp",
+      "package_version": "0.2.0",
+      "footprint": "KICAD_LQFP_32_7X7MM_P0_8MM",
+      "supplier": "lcsc",
+      "pn": "C8254",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot235_ldo-c7972",
+      "package": "ldo",
+      "package_version": "0.1.2",
+      "footprint": "SOT5P95X290X145N",
+      "supplier": "lcsc",
+      "pn": "C7972",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot235_logic-c7722",
+      "package": "logic",
+      "package_version": "0.1.0",
+      "footprint": "SOT5P95X300X145N",
+      "supplier": "lcsc",
+      "pn": "C7722",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot236_esd-c85364",
+      "package": "esd",
+      "package_version": "0.1.1",
+      "footprint": "FP_SOT_23_6",
+      "supplier": "lcsc",
+      "pn": "C85364",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-sot236_dbv-c12044",
+      "package": "load-switch",
+      "package_version": "0.1.2",
+      "footprint": "FP_TI_DBV0006A",
+      "supplier": "lcsc",
+      "pn": "C12044",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "W3: the supplier's footprint frame differs from ours; remove by a rigid transform of the footprint (library plan C, step 4)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-dfn1006-c7420372",
+      "package": "esd",
+      "package_version": "0.1.1",
+      "footprint": "FP_Hongjiacheng_DFN1006_2L",
+      "supplier": "lcsc",
+      "pn": "C7420372",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-xtal3225_a-c13738",
+      "package": "osc",
+      "package_version": "0.1.1",
+      "footprint": "FP_Crystal_SMD_3225_4Pin_3_2x2_5mm",
+      "supplier": "lcsc",
+      "pn": "C13738",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-xtal3225_b-c9002",
+      "package": "osc",
+      "package_version": "0.1.1",
+      "footprint": "FP_Crystal_3225",
+      "supplier": "lcsc",
+      "pn": "C9002",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b1-usbc-c165948",
+      "package": "usb",
+      "package_version": "0.1.5",
+      "footprint": "FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
+      "supplier": "lcsc",
+      "pn": "C165948",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": -1.55,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": -1.54,
+        "rotate_deg": 0
+      },
+      "exception": "Supplier model origin sits 1.55 mm from ours along the mating axis (RFC-034 section 3.1 origin control); confirm on a corrected preview before relying on it",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c1-chip0603-c107045",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C107045",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-29",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-29-c1-bottom-preview/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c1-chip0805-c107110",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C107110",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-29",
+        "record": "tools/sourcing_data/jlc_previews/2026-10-29-c1-bottom-preview/README.md"
+      },
+      "evidence_ref": null
+    }
+  ]
 }

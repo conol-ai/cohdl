@@ -35,3 +35,5 @@ The supplier CPL is exported with `--bottom-rotation lcsc=mirrored`. The Gerbers
 - With the drill/place origin, it also equals KiCad's own position export in position, side and top-side angle: 120 of 120 rows match.
 
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order.
+
+The preview of 2026-10-30 is recorded in `tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`, and its rows in `jlc_frames.json` start with `c2b1-`.

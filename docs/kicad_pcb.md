@@ -47,6 +47,15 @@ KiCad draws the ratsnest from the pad net bindings.
 - The RFC-020 board outline (when the design declares one) as
   `gr_line`/`gr_arc` on Edge.Cuts at 0.1 mm. Arc midpoints honor the DXF
   winding (correct beyond 180°, unlike the retired script's bisector).
+- With an outline, the drill/place origin `(aux_axis_origin X Y)` at the
+  outline's lower-left corner (least x, greatest +y-down y, arcs included),
+  the point the RFC-034 CPL measures from, written after `(filling no)` where
+  pcbnew writes it, and `(useauxorigin yes)` in the plot parameters. Gerbers
+  plotted from KiCad's plot dialog, or with `kicad-cli pcb export gerbers
+  --board-plot-params`, then share the CPL's frame. Plain `kicad-cli` ignores
+  the board's plot parameters and needs `--use-drill-file-origin`; drill
+  files need `--drill-origin plot` either way. Without an outline neither
+  line changes and the CPL uses the authoring origin.
 - Deterministic RFC-4122-shaped uuids derived from stable identity
   (package/refdes/element), never random — same design, same bytes.
 

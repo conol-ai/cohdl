@@ -161,7 +161,26 @@ pub fn emit_kicad_pcb(
     let nets = net_map(world, ir);
 
     let mut s = String::new();
-    s.push_str(HEADER);
+    match crate::emit::cpl::place_origin(ir) {
+        // RFC-034 §3.1: the CPL measures from the outline's lower-left corner.
+        // Make that corner KiCad's drill/place origin, where pcbnew itself
+        // writes it, and default the Gerber plot to it, so fabrication files
+        // plotted from this board share the CPL's frame.
+        Some((x, y)) => s.push_str(
+            &HEADER
+                .replacen(
+                    "\t\t(pcbplotparams\n",
+                    &format!(
+                        "\t\t(aux_axis_origin {} {})\n\t\t(pcbplotparams\n",
+                        geom::mm_femto(x),
+                        geom::mm_femto(y)
+                    ),
+                    1,
+                )
+                .replacen("(useauxorigin no)", "(useauxorigin yes)", 1),
+        ),
+        None => s.push_str(HEADER),
+    }
     for inst in &insts {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let fq = crate::emit::ipc2581::part_fields(world, inst).2;

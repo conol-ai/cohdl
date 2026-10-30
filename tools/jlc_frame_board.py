@@ -227,26 +227,16 @@ def children(node, name):
     return [n for n in node if isinstance(n, list) and n[0] == name]
 
 
-def set_place_origin(board_path, layout_path):
-    """Put KiCad's drill/place origin at the outline's lower-left corner.
+def require_place_origin(board_path):
+    """Refuse a board without KiCad's drill/place origin.
 
-    The compiler's CPL measures from that corner (RFC-034 section 3.1), so the
-    Gerbers and drill files must use it too, or the assembler's preview shifts
-    every part by the outline's offset.  Returns the origin in board units.
+    The compiler writes it at the outline's lower-left corner, where its CPL
+    measures from (RFC-034 section 3.1), and the Gerbers and drill files are
+    plotted from it.  Without it the assembler's preview shifts every part by
+    the outline's offset, so a board from an older compiler is an error.
     """
-    outline = json.loads(layout_path.read_text(encoding="utf-8"))["board_outline"]
-    points = [outline["start"]] + [s["to"] for s in outline["segments"] if "to" in s]
-    origin = (min(x for x, _ in points), max(y for _, y in points))
-    text = board_path.read_text(encoding="utf-8")
-    entry = "(aux_axis_origin %s %s)" % (mm(origin[0]), mm(origin[1]))
-    if "(aux_axis_origin" in text:
-        text = re.sub(r"\(aux_axis_origin [^)]*\)", entry, text, count=1)
-    elif "(setup" in text:
-        text = text.replace("(setup", "(setup\n\t\t" + entry, 1)
-    else:
-        raise BoardError("kicad_pcb has no setup section for the place origin")
-    board_path.write_text(text, encoding="utf-8")
-    return origin
+    if "(aux_axis_origin " not in board_path.read_text(encoding="utf-8"):
+        raise BoardError("%s has no drill/place origin; rebuild with a compiler that writes aux_axis_origin" % board_path)
 
 
 def checklist(board_path, lock_path, design, placements, output):
@@ -289,7 +279,7 @@ def main(argv=None):
         run([args.cohdl, "build", str(args.output), "--supplier", "lcsc", "--bottom-rotation", "lcsc=mirrored", "--emit", "kicad_pcb"])
         out = args.output / "out"
         board = out / (name + ".kicad_pcb")
-        set_place_origin(board, out / (name + "-layout.json"))
+        require_place_origin(board)
         checklist(board, args.output / "design.lock", manifest["design"], placements,
                   args.output / "CHECKLIST.md")
         if not args.skip_kicad:

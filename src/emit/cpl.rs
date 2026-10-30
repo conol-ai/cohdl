@@ -23,6 +23,21 @@ pub struct NeutralCpl {
     pub unplaced: Vec<UnplacedInstance>,
 }
 
+/// The CPL origin: the board outline's lower-left corner (least x, greatest
+/// authoring y, since the authoring frame is +y down), in femto-mm.  The
+/// `.kicad_pcb` emitter writes the same point as KiCad's drill/place origin
+/// so Gerbers and drill files plotted from it line up with the CPL.
+pub fn place_origin(ir: &DesignIr) -> Option<(i128, i128)> {
+    ir.layout
+        .board_outline
+        .as_ref()
+        .and_then(|outline| outline.geom.as_ref())
+        .map(|outline| {
+            let extent = outline.extent();
+            (extent.0 .0, extent.1 .1)
+        })
+}
+
 /// Build the neutral CPL whenever the design itself has at least one real
 /// placement.  In particular, emitter staging positions never enter here.
 fn emit_cpl(
@@ -35,15 +50,7 @@ fn emit_cpl(
         return None;
     }
 
-    let origin = ir
-        .layout
-        .board_outline
-        .as_ref()
-        .and_then(|outline| outline.geom.as_ref())
-        .map(|outline| {
-            let extent = outline.extent();
-            (extent.0 .0, extent.1 .1)
-        });
+    let origin = place_origin(ir);
     let mut rows = Vec::new();
     let mut unplaced = Vec::new();
 

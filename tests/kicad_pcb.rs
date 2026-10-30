@@ -395,6 +395,31 @@ fn outline_draws_edge_cuts_lines() {
     assert!(!bare.contains("(gr_line"), "no invented outline");
 }
 
+#[test]
+fn place_origin_is_the_outlines_lower_left_corner() {
+    // RFC-034 §3.1: the CPL measures from the outline's lower-left corner
+    // (least x, greatest +y-down y). The board names the same point as its
+    // drill/place origin, where pcbnew writes it, and plots Gerbers from it.
+    let board = emit(&format!("{LIB}{BODY}"), Some(DXF_30X20));
+    assert!(
+        board.contains("\t\t(filling no)\n\t\t(aux_axis_origin -15 10)\n\t\t(pcbplotparams\n"),
+        "{board}"
+    );
+    assert_eq!(board.matches("(aux_axis_origin ").count(), 1);
+    assert!(board.contains("\t\t\t(useauxorigin yes)\n"));
+    assert!(!board.contains("(useauxorigin no)"));
+
+    // No outline → no origin to share; KiCad's defaults stand.
+    let bare = emit(
+        &format!(
+            "{LIB}\ndesign B {{\n    inst u1: PART_A\n    inst u2: PART_A\n    net N: u1.A, u2.A\n    net M: u1.B, u2.B\n}}\n"
+        ),
+        None,
+    );
+    assert!(!bare.contains("(aux_axis_origin"));
+    assert!(bare.contains("\t\t\t(useauxorigin no)\n"));
+}
+
 // ---------------------------------------------------------------------------
 // Example boards: real designs emit loadable, deterministic boards
 // ---------------------------------------------------------------------------

@@ -149,7 +149,7 @@ Designator,Mid X,Mid Y,Layer,Rotation
   - `tools/smt_pos.py`'s existing default output also drops `TouchSensor`/`TouchPad` values and `TP…` designators, by heuristic. Only that legacy output keeps those exclusions; `--neutral` applies this rule exactly.
   - A way to mark an instance as bought but not assembled is out of scope for this RFC.
   - Conformance tests cover an SMD part, a connector with both SMD and through-hole pads, a test point, and a bare-copper part.
-- **Origin:** when the design declares an RFC-020 board outline, the lower-left corner of the outline's bounding box, with Y positive upward. This is the origin `tools/smt_pos.py` already uses. Without an outline, the authoring origin, with y negated.
+- **Origin:** when the design declares an RFC-020 board outline, the lower-left corner of the outline's bounding box, with Y positive upward. This is the origin `tools/smt_pos.py` already uses. `--emit kicad_pcb` writes the same point as the board's drill/place origin and plots Gerbers from it by default, so fabrication files plotted from that board share the CPL's frame (drill files need the plot origin selected). Without an outline, the authoring origin, with y negated.
 - **Position:** `Mid X`/`Mid Y` are the **footprint origin** in millimetres, written with exactly four decimal places, rounded half away from zero, and an `mm` suffix (`12.3450mm`). They are not a pad centroid: the mapping in §2 is defined between footprint origins.
 - **Layer:** `Top` or `Bottom`.
 - **Rotation**, in `0..=359`:

@@ -9,7 +9,7 @@ The previous implementation lives on the [`legacy`](https://github.com/conol-ai/
 ## Design repository
 
 The source of truth for the language design is the Coherent Design Repository on conol.ai:
-<https://conol.ai/share/note/od34sne4sa5ujuohyhldr21r>
+<https://conol.ai/share/note/tqrnb5h4l0dv8c14dkd17h4l>
 
 A snapshot (taken 2026-07-13) is committed under [`docs/design/`](docs/design/). Key documents:
 

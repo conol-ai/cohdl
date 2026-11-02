@@ -1,6 +1,6 @@
 # C2 frame board 1: assembler preview, 2026-10-30
 
-The assembler's placement preview of C2 frame board 1 (`tools/frame_boards/c2-board-1/`, generated at commit `418972f`). It was uploaded for preview only, with no order. The rows of `jlc_frames.json` whose ids start with `c2b1-` cite this record.
+The assembler's placement preview of C2 frame board 1 (`tools/frame_boards/c2-board-1/`, generated at commit `418972f`). It was uploaded for preview only, with no order. The rows of `jlc_frames.json` whose ids start with `c2b1-` cite this record; rows that a later preview confirmed cite that one instead.
 
 ## What was uploaded
 
@@ -58,4 +58,4 @@ Read by eye from the screenshots:
 
 ## Footprints moved since (library plan W3)
 
-transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 move the nine footprints of the SOT-23, SOIC-8, TSSOP and LQFP rows onto the assembler's frame by exactly the `rotate` above. Their rows in `jlc_frames.json` now name the new versions with a zero mapping, and `measured` keeps the value found here. The SOT-23-5/6 rows keep their per-part mappings. The USB-C row keeps its `at` and moved to the confirming record as `usbc-origin-c165948`.
+transistor 0.2.0, soic 0.3.0 and qfp 0.3.0 move the nine footprints of the SOT-23, SOIC-8, TSSOP and LQFP rows onto the assembler's frame by exactly the `rotate` above. Their rows in `jlc_frames.json` now name the new versions with a zero mapping, and `measured` keeps the value found here. The SOT-23-5/6 rows keep their per-part mappings. The USB-C row keeps its `at` and moved to the confirming record as `usbc-origin-c165948`. C2 frame board 2 confirmed six of the moved footprints at rotate 0 (`../2026-11-02-c2-board-2/`), and their rows now cite that record under `c2b2-` ids.

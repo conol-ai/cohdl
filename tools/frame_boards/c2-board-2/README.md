@@ -51,3 +51,7 @@ The supplier CPL is exported with `--bottom-rotation lcsc=mirrored`. The Gerbers
 - It also equals KiCad's own position export with the drill/place origin in position, side and top-side angle: 64 of 64 rows match.
 
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order.
+
+## Result
+
+The preview of 2026-11-02 placed 12 of the 16 parts; the assembler would not select LQFP64, LQFP176, TFBGA169 or UFBGA100 for stock. The seven moved footprints read rotate 0 with no map. LQFP100 and LQFP208 read rotate 270, like the smaller KiCad LQFPs before the move. TFBGA100 and UFBGA64 read rotate 0. The record is `tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/`.

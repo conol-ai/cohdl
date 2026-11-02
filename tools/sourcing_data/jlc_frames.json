@@ -352,7 +352,7 @@
       "evidence_ref": null
     },
     {
-      "id": "c2b1-soic8_kicad-c7950",
+      "id": "c2b2-soic8_kicad-c7950",
       "package": "soic",
       "package_version": "0.3.0",
       "footprint": "KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
@@ -366,18 +366,18 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
     {
-      "id": "c2b1-soic8_ti-c7433",
+      "id": "c2b2-soic8_ti-c7433",
       "package": "soic",
       "package_version": "0.3.0",
       "footprint": "TI_D0008A_4214825C",
@@ -391,18 +391,18 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
     {
-      "id": "c2b1-tssop20-c52717",
+      "id": "c2b2-tssop20-c52717",
       "package": "soic",
       "package_version": "0.3.0",
       "footprint": "KICAD_TSSOP_20_4_4X6_5MM_P0_65MM",
@@ -416,18 +416,18 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
     {
-      "id": "c2b1-tssop24-c7859",
+      "id": "c2b2-tssop24-c7859",
       "package": "soic",
       "package_version": "0.3.0",
       "footprint": "TSSOP24P65_TI_PW0024A",
@@ -441,18 +441,18 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
     {
-      "id": "c2b1-lqfp48_kicad-c8734",
+      "id": "c2b2-lqfp48_kicad-c8734",
       "package": "qfp",
       "package_version": "0.3.0",
       "footprint": "KICAD_LQFP_48_7X7MM_P0_5MM",
@@ -466,18 +466,18 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
     {
-      "id": "c2b1-lqfp48_ipc-c7532",
+      "id": "c2b2-lqfp48_ipc-c7532",
       "package": "qfp",
       "package_version": "0.3.0",
       "footprint": "QFP50P900X900X160_48N",
@@ -491,13 +491,13 @@
       "measured": {
         "dx_mm": 0,
         "dy_mm": 0,
-        "rotate_deg": 270
+        "rotate_deg": 0
       },
       "exception": null,
       "evidence": {
         "method": "preview",
-        "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },
@@ -698,6 +698,156 @@
         "method": "preview",
         "date": "2026-10-30",
         "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-lqfp32_kicad-c529436",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_32_7X7MM_P0_8MM",
+      "supplier": "lcsc",
+      "pn": "C529436",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-lqfp100_f4-c117815",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_100_14X14MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C117815",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "KiCad LQFP footprint sits a quarter turn from the supplier model, as the smaller KiCad LQFPs did before the W3 move",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-lqfp100_l4-c717701",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_100_14X14MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C717701",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "KiCad LQFP footprint sits a quarter turn from the supplier model, as the smaller KiCad LQFPs did before the W3 move",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-lqfp208-c129276",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_208_28X28MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C129276",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "KiCad LQFP footprint sits a quarter turn from the supplier model, as the smaller KiCad LQFPs did before the W3 move",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-tfbga100-c1857444",
+      "package": "bga",
+      "package_version": "0.2.0",
+      "footprint": "KICAD_TFBGA_100_8X8MM_LAYOUT10X10_P0_8MM",
+      "supplier": "lcsc",
+      "pn": "C1857444",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b2-ufbga64-c730103",
+      "package": "bga",
+      "package_version": "0.2.0",
+      "footprint": "KICAD_UFBGA_64_5X5MM_LAYOUT8X8_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C730103",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-02",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/README.md"
       },
       "evidence_ref": null
     },

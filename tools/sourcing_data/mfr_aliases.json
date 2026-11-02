@@ -1,4 +1,8 @@
 {
   "schema_version": 1,
-  "aliases": {}
+  "aliases": {
+    "GigaDevice Semicon Beijing": "GigaDevice",
+    "Vishay Intertech": "Vishay",
+    "YAGEO": "Yageo"
+  }
 }

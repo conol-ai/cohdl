@@ -1,55 +1,104 @@
 #!/usr/bin/env python3
 """Extract markdown content from conol.ai share pages (Next.js RSC payload)."""
-import re, json, sys, subprocess, os
+import re, json, sys, subprocess, os, tempfile, shutil
 
-BASE = "https://conol.ai/share/note/od34sne4sa5ujuohyhldr21r"
+BASE = "https://conol.ai/share/note/tqrnb5h4l0dv8c14dkd17h4l"
 
 PAGES = [
     ("", "00-root"),
-    ("ql0w2zjodetyo7ikpu3azf3p", "01-product-constitution"),
-    ("ejj7ue2zfoxizrdrs8u60v2b", "02-conceptual-model"),
-    ("j9jy264k9rl2vd09gyqyp7pi", "03-capability-architecture"),
-    ("mao945pcievy1753aphfbuoo", "04-principle-constraint-mapping"),
-    ("u0g46pbhldab2v9rfx0bosrk", "05-coherence-matrix"),
-    ("rpwb5os1m5hykf6j110qo408", "06-rfc-process"),
-    ("falh4cffau5igrvl3vbs0wag", "rfc-001-units-as-types"),
-    ("fnj4xqj77qxvoz54k4amox0j", "rfc-002-pin-connection-obligation"),
-    ("dlt28nf62009b3rcu9atytef", "rfc-003-trait-satisfaction"),
-    ("m8uh7d5o5kq1lrw6y488osi1", "rfc-004-drc-reclassification"),
-    ("b1jxsdyp7yoix4dx0e4xwm1s", "rfc-005-designator-allocation"),
-    ("tgl56zp1fp4dcekn39592yj3", "rfc-006-nested-fn-calls"),
-    ("sdvm1pmfs8s2y3ovje4e9td2", "rfc-007-generics-over-specs"),
-    ("z3vpfowxnku0w0phczzb977q", "rfc-008-pattern-matching"),
-    ("ke8hndl2xb8f5u11shrvwxib", "rfc-009-fmt"),
-    ("gh5vfukafa549owcr8uz15ra", "rfc-010-check-json"),
-    ("r8oj9xfx4g7657dptne3p2uz", "rfc-011-error-registry"),
-    ("xd3mrnbompcglnwl1ygn34cu", "rfc-012-intent-annotations"),
-    ("mss6eauuemfswvbjflarwrvp", "rfc-013-layout-constraint"),
-    ("f0prtp9282z9jtvcfmj3d77k", "rfc-014-lsp"),
-    ("me94vtlxl1thydpcfiexokbw", "rfc-015-ipc2581"),
-    ("dodhepqawslco0d6vcdo2is3", "rfc-016-modules"),
-    ("m3lwb8usadcz42qlew56j7ma", "rfc-017-library-registry"),
-    ("ddmxe9f1y4wbsdko8rqmh748", "rfc-018-footprint-format"),
-    ("grrt5g3cxqe3x3at6phzjth9", "rfc-019-vscode-extension"),
-    ("csvj6pthmnevabbg3ye8tzmz", "rfc-020-board-outline-dxf"),
-    ("bjk6d8reeqdx5c2i3ownr63v", "rfc-021-ipc7351-footprint-naming"),
-    ("puf765vik4nh9p7eng7s3k5k", "rfc-022-mount-hole"),
-    ("ehjiakvynf529jn3j6xl377g", "rfc-023-non-circular-mount-hole"),
-    ("n5yl5oeutwhtti65nr7zi671", "rfc-024-instance-arrays"),
-    ("kc64axadqas5u7jr2ay6ef2t", "rfc-025-rotated-pad-placements"),
-    ("yzxf6p1ou0el1ruz6ilq1wai", "rfc-026-back-side-placement"),
-    ("r57i101hxidan0eqhb6cp5q5", "rfc-027-quilter-physics-constraints"),
-    ("elng3gz57cktk2jxei0a48bw", "rfc-028-phys-attrs-on-fn-pin-params"),
-    ("aa6vrcv1vjfryojsi1czdqdx", "rfc-029-package-dependency-versioning"),
-    ("bmxizx2mggn0pdfccutph36s", "rfc-030-registry-service"),
-    ("o7im9xeabkm52521x6kcwcbh", "rfc-031-silkscreen-graphics"),
-    ("j9398kl7u3hkgfekzm0pr7wq", "rfc-032-subdesign"),
-    ("a7zrlrt7a910k2x10ja6fdhd", "gc-002-amended-layout-door"),
-    ("eaalgfqdqqp9wb9xtu80u11p", "07-decision-records"),
-    ("g4mua3obv1qd14po8pgzjrfn", "08-evolution-governance"),
-    ("rca8yxw24xn3o25c2rh7ovt6", "09-mvp-definition"),
-    ("j49jyieotm07l3svn79se08y", "10-language-specification"),
+    ("nssd0qpz0osiovfv203fn49t", "01-product-constitution"),
+    ("lb94ql8w3qz3n6rs5ia28qyz", "02-conceptual-model"),
+    ("zc04ruzizp1c3q8ha6xlht9k", "03-capability-architecture"),
+    ("nxoipg3asjsp175ozyy5d1oy", "04-principle-constraint-mapping"),
+    ("bppud8dqcjj98ra1c0mxk49k", "05-coherence-matrix"),
+    ("x7ywj3w893y1946u7wv3yxxz", "06-rfc-process"),
+    ("a5wwanan8ivgee7046cam8c3", "rfc-001-units-as-types"),
+    ("vgd1lixpvf3v9hwgwzdzyyzw", "rfc-002-pin-connection-obligation"),
+    ("n68etihsg24y3bn05j44sn9s", "rfc-003-trait-satisfaction"),
+    ("v1ojvdn3z6g1s8zskrwsn5t0", "rfc-004-drc-reclassification"),
+    ("d8sji1bc2t68w5gmu4lgs0op", "rfc-005-designator-allocation"),
+    ("qwruqt4u7x5kk825l4462puz", "rfc-006-nested-fn-calls"),
+    ("t3fyqa0jtybwxan1gmxpu9hf", "rfc-007-generics-over-specs"),
+    ("ia8zki87haqo3gkuu8wu8uct", "rfc-008-pattern-matching"),
+    ("e2nobir31c40nj0enpz8vs8d", "rfc-009-fmt"),
+    ("oxda94xa4fqex2047ptae5cl", "rfc-010-check-json"),
+    ("or92tinn1xe2e1ywre7e0ie3", "rfc-011-error-registry"),
+    ("dpbn9l3f6lnigukmcs2uj9f0", "rfc-012-intent-annotations"),
+    ("s37zw59ns3ie446giyd1m5c8", "rfc-013-layout-constraint"),
+    ("k3b7n8le98xxe1qkvr1kwkrl", "rfc-014-lsp"),
+    ("fbt1zl961m0gki2vegoucxiz", "rfc-015-ipc2581"),
+    ("cdbgc70jo99mkek3szjdbecf", "rfc-016-modules"),
+    ("e0avobmaiqrc4proh2og13r7", "rfc-017-library-registry"),
+    ("um9yd84duu5ocdyyiie495wg", "rfc-018-footprint-format"),
+    ("kvm12spp9cb0uq6x2fjvjmxo", "rfc-019-vscode-extension"),
+    ("g3belxvx8z757g3hjr0uidvy", "rfc-020-board-outline-dxf"),
+    ("nvrah0x566grszfdooa8ochf", "rfc-021-ipc7351-footprint-naming"),
+    ("zuigdl4orqjy0mwqlxapdw0t", "rfc-022-mount-hole"),
+    ("y6d3jnomfzqvtdla8bjbqv7r", "rfc-023-non-circular-mount-hole"),
+    ("kkyfcl5asidwwkhajemg5ut9", "rfc-024-instance-arrays"),
+    ("p4xsc5dfk1sr1gwno4p24mzh", "rfc-025-rotated-pad-placements"),
+    ("ayndt05z51domjge37i5efxd", "rfc-026-back-side-placement"),
+    ("w67wqi1pciql0arfd4frmcop", "rfc-027-quilter-physics-constraints"),
+    ("zy4qcr7km8llb2eqtgrerlio", "rfc-028-phys-attrs-on-fn-pin-params"),
+    ("amxp6mluwr78owoi2s8mldyf", "rfc-029-package-dependency-versioning"),
+    ("dgwea9n35gjgijtpuo6o7b0l", "rfc-030-registry-service"),
+    ("odwihsmzb8bn4yohjjoflq82", "rfc-031-silkscreen-graphics"),
+    ("e2l63rezqlv4293ogmoeqvww", "rfc-032-subdesign"),
+    ("qsgtxir405qq6g41cpewm8ox", "gc-002-amended-layout-door"),
+    ("z88w8x6zxiorid9r9lktcroz", "07-decision-records"),
+    ("lw67cajqh8ym8fonk8j9kljg", "08-evolution-governance"),
+    ("z6zk0qws34whx1tpnvbopm06", "09-mvp-definition"),
+    ("lkhejpgivnaw42iq2kwh16it", "10-language-specification"),
 ]
+
+
+# Reject a share landing page or the wrong note even if it has a valid heading.
+EXPECTED_TITLES = {
+    "00-root": "# cohdl.dev — Coherent Design Repository",
+    "01-product-constitution": "# 1. Product Constitution",
+    "02-conceptual-model": "# 2. Conceptual Model",
+    "03-capability-architecture": "# 3. Capability Architecture",
+    "04-principle-constraint-mapping": "# 4. Principle → Constraint Mapping",
+    "05-coherence-matrix": "# 5. Coherence Matrix",
+    "06-rfc-process": "# 6. Feature Proposal Process (RFC)",
+    "rfc-001-units-as-types": "# RFC-001: Units-as-types",
+    "rfc-002-pin-connection-obligation": "# RFC-002: Pin connection-obligation typing",
+    "rfc-003-trait-satisfaction": "# RFC-003: Trait-satisfaction-at-impl-time checking",
+    "rfc-004-drc-reclassification": "# RFC-004: DRC/type-system reclassification pass",
+    "rfc-005-designator-allocation": "# RFC-005: Collision-free designator allocation",
+    "rfc-006-nested-fn-calls": "# RFC-006: Nested fn call semantics",
+    "rfc-007-generics-over-specs": "# RFC-007: Generics-over-specs and generic trait bounds",
+    "rfc-008-pattern-matching": "# RFC-008: Exhaustive pattern-matching over structural variants",
+    "rfc-009-fmt": "# RFC-009: cohdl fmt canonical form",
+    "rfc-010-check-json": "# RFC-010: cohdl check --json schema",
+    "rfc-011-error-registry": "# RFC-011: Error-code registry (formal v2 baseline)",
+    "rfc-012-intent-annotations": "# RFC-012: #[intent(...)] annotations (pure metadata)",
+    "rfc-013-layout-constraint": "# RFC-013: Layout-constraint concept (the door)",
+    "rfc-014-lsp": "# RFC-014: Language Server Protocol support",
+    "rfc-015-ipc2581": "# RFC-015: IPC-2581 codegen backend (Quilter handoff)",
+    "rfc-016-modules": "# RFC-016: Module system (package::module::submodule::name)",
+    "rfc-017-library-registry": "# RFC-017: Library registry (cohdl source + docs + footprint symbols)",
+    "rfc-018-footprint-format": "# RFC-018: Footprint format — pad/footprint, Cadence-style pad/footprint split",
+    "rfc-019-vscode-extension": "# RFC-019: VS Code extension for CoHDL",
+    "rfc-020-board-outline-dxf": "# RFC-020: Board outline (scoped DXF profile extraction) + oriented placement",
+    "rfc-021-ipc7351-footprint-naming": "# RFC-021: IPC-7351 as the canonical footprint naming practice",
+    "rfc-022-mount-hole": "# RFC-022: Mechanical locating holes in footprints (mount_hole)",
+    "rfc-023-non-circular-mount-hole": "# RFC-023: Non-circular locating holes (mount_hole shape/size)",
+    "rfc-024-instance-arrays": "# RFC-024: Array-typed instances and indexed references",
+    "rfc-025-rotated-pad-placements": "# RFC-025: Rotated pad placements in footprints",
+    "rfc-026-back-side-placement": "# RFC-026: Component placement on the board's back side",
+    "rfc-027-quilter-physics-constraints": "# RFC-027: Quilter physics-constraint hints and CSV export",
+    "rfc-028-phys-attrs-on-fn-pin-params": "# RFC-028: Physics-constraint attributes on fn Pin parameters",
+    "rfc-029-package-dependency-versioning": "# RFC-029: Package dependency versioning — std becomes a versioned registry library",
+    "rfc-030-registry-service": "# RFC-030: registry.cohdl.org — the package registry service",
+    "rfc-031-silkscreen-graphics": "# RFC-031: Silkscreen graphics for footprints (pin-1 markers, polarity/direction indicators)",
+    "rfc-032-subdesign": "# RFC-032: Typed logical composition (subdesign)",
+    "gc-002-amended-layout-door": "# GC-002 (amended): Admit layout constraints into the conceptual model",
+    "07-decision-records": "# 7. Decision Records",
+    "08-evolution-governance": "# 8. Evolution Governance & Design Regression",
+    "09-mvp-definition": "# 9. MVP Definition",
+    "10-language-specification": "# 10. Language Specification",
+}
 
 
 def get_payload(html):
@@ -361,7 +410,7 @@ def block_md(node, records, indent=0, ordered=False, out=None):
 
 
 def extract_page(url):
-    html = subprocess.run(['curl', '-sL', url], capture_output=True, text=True, check=True).stdout
+    html = subprocess.run(['curl', '-fsSL', url], capture_output=True, text=True, check=True).stdout
     payload = get_payload(html)
     records = parse_flight(payload)
     # collect ALL viewer elements + the page h1 title
@@ -400,19 +449,35 @@ def extract_page(url):
 
 def main():
     outdir = sys.argv[1] if len(sys.argv) > 1 else 'design-repo'
-    os.makedirs(outdir, exist_ok=True)
-    for slug, name in PAGES:
-        url = BASE + ('/' + slug if slug else '')
-        try:
-            md = extract_page(url)
-        except Exception as e:
-            print(f'FAIL {name}: {e}')
-            continue
-        path = os.path.join(outdir, name + '.md')
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(md)
-        print(f'OK   {name}: {len(md)} chars')
+    with tempfile.TemporaryDirectory(prefix='cohdl-design-') as staging:
+        extracted = []
+        failures = 0
+        for slug, name in PAGES:
+            url = BASE + ('/' + slug if slug else '')
+            try:
+                md = extract_page(url)
+                title, _, body = md.partition('\n')
+                if title != EXPECTED_TITLES[name]:
+                    raise ValueError(f'expected {EXPECTED_TITLES[name]!r}, got {title!r}')
+                if not body.strip():
+                    raise ValueError('empty document body')
+                with open(os.path.join(staging, name + '.md'), 'w', encoding='utf-8') as f:
+                    f.write(md)
+                extracted.append((name, len(md)))
+            except Exception as e:
+                print(f'FAIL {name} (page {slug or "<root>"}): {e}', file=sys.stderr)
+                failures += 1
+        if failures:
+            print(f'Snapshot unchanged: {failures} page(s) failed.', file=sys.stderr)
+            return 1
+
+        os.makedirs(outdir, exist_ok=True)
+        for name, _ in extracted:
+            shutil.move(os.path.join(staging, name + '.md'), os.path.join(outdir, name + '.md'))
+        for name, count in extracted:
+            print(f'OK   {name}: {count} chars')
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

@@ -1,7 +1,7 @@
 # Design repository snapshot
 
 Snapshot of the CoHDL Coherent Design Repository, extracted 2026-07-13 from
-<https://conol.ai/share/note/od34sne4sa5ujuohyhldr21r>.
+<https://conol.ai/share/note/tqrnb5h4l0dv8c14dkd17h4l>.
 
 The conol.ai note tree is the **source of truth**; this snapshot exists so the
 implementation can reference the design offline and so changes to the design

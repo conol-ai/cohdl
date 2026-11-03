@@ -83,7 +83,10 @@ def main():
     )
     parser.add_argument("board", type=Path)
     parser.add_argument("output", nargs="?", type=Path)
-    args = parser.parse_args()
+    # Intermixed, so `board --neutral output` parses on every Python: before
+    # 3.13 plain parse_args consumes both positionals in one pass and then
+    # refuses an output given after an option.
+    args = parser.parse_intermixed_args()
 
     # KiCad is needed only by the board adapter, never by the pure library or
     # argument validation. This also lets --help and usage errors run anywhere.

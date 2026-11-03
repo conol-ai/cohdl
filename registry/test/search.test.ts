@@ -6,6 +6,7 @@ import worker from "../src/worker/index";
 import {
   MAX_CATALOG_LOOKUP_KEYS,
   MAX_PART_SEARCH_INDEX_BYTES,
+  MAX_SEARCH_LINKS_PER_BINDING,
   MAX_SUPPLIER_BINDINGS_PER_PART,
   MAX_PART_SEARCH_CHUNKS,
   PART_SEARCH_CHUNK_BYTES,
@@ -276,6 +277,56 @@ describe("supplier bindings in stable part search", () => {
           { fields: [], suppliers: Array.from({ length: 16 }, (_, i) => binding(17 + i)) },
           { fields: [], suppliers: [binding(0), binding(97)] }] } }] }, "p", "1.0.0")[0];
     expect(JSON.parse(repeated.avl_json)[3].suppliers.map((b: any) => b.pn)).toEqual(["PN-0"]);
+  });
+
+  it("keeps the largest default response within the bounds `cohdl search` accepts", async () => {
+    // Mirrors src/registry.rs: MAX_SEARCH_RESPONSE and JsonLimits::SEARCH.
+    // tests/registry.rs parses a response of this same shape.
+    const CLI_MAX_BYTES = 16 * 1024 * 1024;
+    const CLI_MAX_NODES = 32_768;
+    const CLI_MAX_ARRAY_ITEMS = 256;
+    // Every string at its bound, and `"` doubles under JSON escaping.
+    const text = (bytes: number) => '"'.repeat(bytes);
+    const pn = (p: number, i: number) => `${p}-${i}-` + '"'.repeat(120);
+    const parts = Array.from({ length: 21 }, (_, p) => ({
+      package: text(64), tier: "contrib" as const, version: "999999.999999.999999",
+      fq: text(512), name: text(512), device: text(512), intent: text(2048),
+      avl_json: JSON.stringify(Array.from({ length: 2 }, (_, a) => ({
+        primary: a === 0, manufacturer: text(512), mpn: text(512),
+        suppliers: Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}_`.padEnd(32, "x"),
+          pn: pn(p, a * 16 + i), at: ["-" + "9".repeat(61) + "mm", "-" + "9".repeat(61) + "mm"], rotate: 359 })),
+      }))),
+    }));
+    const packages = Array.from({ length: 21 }, (_, i) => ({ ...packageRow(i), name: text(64),
+      description: text(4096) }));
+    const h = harness(packages, parts);
+    const url = (n: number) => "https://example.com/" + '"'.repeat(2048 - 20 - String(n).length) + n;
+    h.store.catalog.mockImplementation(async (keys) => new Map(keys.map((key) => [
+      JSON.stringify([key.supplier, key.pn]), { supplier: key.supplier, pn: key.pn, class: text(128),
+        stock: Number.MAX_SAFE_INTEGER, snapshot_date: "x".repeat(64), product_url_template: null,
+        links: Array.from({ length: 16 }, (_, i) => ({ label: `L${i}` + '"'.repeat(120), url: url(i) })) }])));
+    const req = request("/search?q=resistor");
+    const response = await handleSearch(req, new URL(req.url), h.deps);
+    const bytes = new Uint8Array(await response.clone().arrayBuffer()).length;
+    const body = await response.json() as any;
+    expect(body.parts.results).toHaveLength(20);
+    for (const part of body.parts.results) {
+      expect(part.suppliers).toHaveLength(MAX_SUPPLIER_BINDINGS_PER_PART);
+      for (const binding of part.suppliers) expect(binding.links).toHaveLength(MAX_SEARCH_LINKS_PER_BINDING);
+    }
+    let nodes = 0;
+    let widest = 0;
+    const walk = (value: unknown) => {
+      nodes += 1;
+      if (Array.isArray(value)) { widest = Math.max(widest, value.length); value.forEach(walk); }
+      else if (value !== null && typeof value === "object") Object.values(value).forEach(walk);
+    };
+    walk(body);
+    expect(bytes).toBeLessThanOrEqual(CLI_MAX_BYTES);
+    expect(nodes).toBeLessThanOrEqual(CLI_MAX_NODES);
+    expect(widest).toBeLessThanOrEqual(CLI_MAX_ARRAY_ITEMS);
+    // About 12.0 MB and 15,700 values at these bounds.
+    expect(bytes).toBeGreaterThan(11_000_000);
   });
 
   it("bounds catalog lookups for a page of parts with many distinct PNs to one batch", async () => {

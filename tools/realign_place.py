@@ -28,6 +28,7 @@ import argparse
 from decimal import Decimal, ROUND_HALF_UP
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -298,7 +299,11 @@ def main(argv=None):
                 raise ValueError("change table %s differs from the one the forward run used" % args.changes)
             for item in doc["files"]:
                 path = Path(item["path"])
-                if hashlib.sha256(path.read_bytes()).hexdigest() != item["after_sha256"]:
+                content = path.read_bytes()
+                # A file already back at its original source is from an earlier
+                # reverse that stopped part way; reversing again resumes it.
+                if hashlib.sha256(content).hexdigest() != item["after_sha256"] and \
+                        content != item["source"].encode("utf-8"):
                     raise ValueError("refusing reverse after external edit: " + str(path))
             for item in doc["files"]:
                 Path(item["path"]).write_text(item["source"], encoding="utf-8")
@@ -338,12 +343,30 @@ def main(argv=None):
         if errors:
             for error in errors: print(error, file=sys.stderr)
             return 1
-        for path, source in rewritten.items():
-            if source != originals[path]: path.write_text(source, encoding="utf-8")
         count = sum(item["count"] for item in undo_files)
-        undo.write_text(json.dumps({"project": project, "count": count,
-                                    "changes_sha256": hashlib.sha256(args.changes.read_bytes()).hexdigest(),
-                                    "files": undo_files}, indent=2) + "\n", encoding="utf-8")
+        # The undo log is complete on disk before any source changes: a log that
+        # cannot be written (missing or read-only directory) leaves the sources
+        # untouched, and a failed source write restores the ones already written.
+        partial = undo.with_name(undo.name + ".partial")
+        try:
+            partial.write_text(json.dumps({"project": project, "count": count,
+                                           "changes_sha256": hashlib.sha256(args.changes.read_bytes()).hexdigest(),
+                                           "files": undo_files}, indent=2) + "\n", encoding="utf-8")
+            os.replace(partial, undo)
+        except OSError:
+            partial.unlink(missing_ok=True)
+            raise
+        written = []
+        try:
+            for path, source in rewritten.items():
+                if source != originals[path]:
+                    written.append(path)
+                    path.write_text(source, encoding="utf-8")
+        except OSError:
+            for path in written:
+                path.write_text(originals[path], encoding="utf-8")
+            undo.unlink()
+            raise
         print("realigned %d placements" % count)
         return 0
     except (ValueError, OSError, KeyError, json.JSONDecodeError, sm.MapError) as exc:

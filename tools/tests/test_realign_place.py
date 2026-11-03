@@ -2,6 +2,7 @@ import copy
 from decimal import Decimal
 import io
 import json
+import os
 import re
 import sys
 import tempfile
@@ -292,6 +293,67 @@ design D {
             with mock.patch("sys.stderr", new=io.StringIO()) as err:
                 self.assertEqual(rp.main([str(other), str(root / "change.json"), "--reverse"]), 1)
             self.assertIn("belongs to project", err.getvalue())
+            with mock.patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(rp.main(cli + ["--reverse"]), 0)
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+            self.assertFalse((root / "change.json.undo.json").exists())
+
+    def test_an_unwritable_undo_log_leaves_the_sources_untouched(self):
+        for case in ("missing", "read-only"):
+            with self.subTest(case), tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+                args = self._plain_names_project(root, original)
+                logs = root / "logs"
+                if case == "read-only":
+                    logs.mkdir()
+                    logs.chmod(0o500)
+                    if os.access(logs, os.W_OK):
+                        self.skipTest("running with write access to read-only directories")
+                undo = logs / "undo.json"
+                try:
+                    with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                        self.assertEqual(rp.main([str(root), str(root / "change.json"), *args,
+                                                  "--undo-log", str(undo)]), 1)
+                finally:
+                    if logs.exists():
+                        logs.chmod(0o700)
+                self.assertIn("realign_place.py:", err.getvalue())
+                self.assertEqual((root / "src/main.cohdl").read_text(), original)
+                self.assertEqual(list(logs.glob("*")) if logs.exists() else [], [])
+
+    def test_a_failed_source_write_restores_sources_and_drops_the_log(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            real, failed = Path.write_text, []
+
+            def write_text(path, *a, **k):
+                if path.suffix == ".cohdl" and not failed:
+                    failed.append(path)
+                    real(path, "partial", **k)
+                    raise OSError("disk full")
+                return real(path, *a, **k)
+
+            with mock.patch.object(Path, "write_text", write_text), \
+                    mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 1)
+            self.assertIn("disk full", err.getvalue())
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+            self.assertFalse((root / "change.json.undo.json").exists())
+            self.assertFalse((root / "change.json.undo.json.partial").exists())
+
+    def test_a_reverse_that_stopped_part_way_can_be_resumed(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            cli = [str(root), str(root / "change.json")]
+            with mock.patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(rp.main(cli + args), 0)
+            # The file is back at its original source but the log remains.
+            (root / "src/main.cohdl").write_text(original)
             with mock.patch("sys.stdout", new=io.StringIO()):
                 self.assertEqual(rp.main(cli + ["--reverse"]), 0)
             self.assertEqual((root / "src/main.cohdl").read_text(), original)

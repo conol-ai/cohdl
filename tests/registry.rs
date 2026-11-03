@@ -942,11 +942,73 @@ fn search_decoder_enforces_default_result_and_transport_bounds() {
     assert_eq!(out.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&out.stderr).contains("exceeds the default limit of 20"));
 
-    let oversized = " ".repeat(1024 * 1024 + 1);
+    let oversized = " ".repeat(16 * 1024 * 1024 + 1);
     let (url, _) = spawn_search_mock(200, &oversized);
     let out = run_output(&url, &tmp.join("home2"), &["search", "too large"]);
     assert_eq!(out.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&out.stderr).contains("E1204"));
+}
+
+/// The registry's largest default response (registry/test/search.test.ts,
+/// "largest default response"): 20 packages and 20 parts, every part with 32
+/// supplier bindings of 4 links, every string at its bound and doubled by
+/// JSON escaping. The CLI must accept it.
+#[test]
+fn search_accepts_the_registrys_largest_default_response() {
+    let tmp = tmp_dir("search_largest_response");
+    let text = |bytes: usize| "\"".repeat(bytes);
+    let packages: Vec<serde_json::Value> = (0..20)
+        .map(|i| {
+            serde_json::json!({"name": format!("@contrib/p{i}"), "tier": "contrib",
+                "latest": "999999.999999.999999", "description": text(4096), "updated": "x".repeat(64)})
+        })
+        .collect();
+    let link_url = |n: usize| {
+        format!(
+            "https://example.com/{}{n}",
+            "\"".repeat(2048 - 20 - n.to_string().len())
+        )
+    };
+    let parts: Vec<serde_json::Value> = (0..20)
+        .map(|p| {
+            let suppliers: Vec<serde_json::Value> = (0..32)
+                .map(|i| {
+                    serde_json::json!({
+                        "supplier": format!("{:x<32}", format!("s{i}_")),
+                        "pn": format!("{p}-{i}-{}", "\"".repeat(120)),
+                        "at": [format!("-{}mm", "9".repeat(61)), format!("-{}mm", "9".repeat(61))],
+                        "rotate": 359,
+                        "links": (0..4).map(|l| serde_json::json!({
+                            "label": format!("L{l}{}", "\"".repeat(120)), "url": link_url(l)})).collect::<Vec<_>>(),
+                        "catalog": {"class": text(128), "stock": 9007199254740991_u64,
+                            "snapshot_date": "x".repeat(64)},
+                    })
+                })
+                .collect();
+            serde_json::json!({"package": "@contrib/p", "tier": "contrib",
+                "version": "999999.999999.999999", "fq": text(512), "name": text(512),
+                "device": text(512), "intent": text(2048), "manufacturer": text(512),
+                "mpn": text(512), "primary": true, "suppliers": suppliers})
+        })
+        .collect();
+    let body = serde_json::json!({"query": "largest",
+        "packages": {"results": packages, "has_more": true},
+        "parts": {"results": parts, "has_more": true}})
+    .to_string();
+    assert!(body.len() > 11_000_000, "{}", body.len());
+    let (url, _) = spawn_search_mock(200, &body);
+    let out = run_output(&url, &tmp.join("home"), &["search", "largest", "--json"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(json["parts"]["results"].as_array().unwrap().len(), 20);
+    assert_eq!(
+        json["parts"]["results"][19]["suppliers"][31]["links"][3]["url"],
+        link_url(3)
+    );
 }
 
 #[test]

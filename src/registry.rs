@@ -13,7 +13,9 @@ use crate::deps::{PackageDiag, Version};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const MAX_SEARCH_RESPONSE: usize = 1024 * 1024;
+/// The largest default `/search` response the registry can send is about
+/// 12 MB (registry/test/search.test.ts, "largest default response").
+const MAX_SEARCH_RESPONSE: usize = 16 * 1024 * 1024;
 /// Audit responses carry whole catalog rows (up to 16 links of 2 KB each), so
 /// they get a larger bound; an MPN batch that exceeds it is re-asked one MPN
 /// at a time.
@@ -534,9 +536,11 @@ struct JsonLimits {
 }
 
 impl JsonLimits {
-    /// `/search` and the package endpoints: 1 MiB bodies of small rows.
+    /// `/search` and the package endpoints. A default search response holds
+    /// at most about 16,000 values: 20 parts, each with 32 supplier bindings
+    /// of 4 links (registry/test/search.test.ts, "largest default response").
     const SEARCH: Self = Self {
-        nodes: 4_096,
+        nodes: 32_768,
         array_items: 256,
     };
     /// Supplier audit endpoints: up to 100 values per batch, each with an

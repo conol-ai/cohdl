@@ -41,6 +41,10 @@ const CATALOG_LOOKUP_ROWS = 49;
 // One page of parts can need at most this many catalog keys. The lookups run
 // as one `db.batch()`, which D1 counts as a single query per invocation.
 export const MAX_CATALOG_LOOKUP_KEYS = MAX_LIMIT * MAX_SUPPLIER_BINDINGS_PER_PART;
+// Links per binding in a search row: the product link first, then catalog
+// links. The full list is on /suppliers/{id}/parts. With the bounds above this
+// keeps a default (20-row) response within what `cohdl search` accepts.
+export const MAX_SEARCH_LINKS_PER_BINDING = 4;
 const MAX_LINK_BYTES = 2048;
 export const PART_SEARCH_CHUNK_BYTES = 512 * 1024;
 // Four MiB retains the current largest real package (`passive`, 8,972 public
@@ -363,7 +367,8 @@ function enrichPart(
   return { ...part, suppliers: part.suppliers.map((binding) => {
     const row = catalog.get(catalogKey(binding.supplier, binding.pn));
     if (!row) return { ...binding, links: [], catalog: null };
-    return { ...binding, links: [...productLink(row.product_url_template, binding.pn), ...row.links],
+    return { ...binding,
+      links: [...productLink(row.product_url_template, binding.pn), ...row.links].slice(0, MAX_SEARCH_LINKS_PER_BINDING),
       catalog: { class: row.class, stock: row.stock, snapshot_date: row.snapshot_date } };
   }) };
 }

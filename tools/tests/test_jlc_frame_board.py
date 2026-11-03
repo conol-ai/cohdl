@@ -1,4 +1,5 @@
 import json
+import math
 import sys
 import tempfile
 import unittest
@@ -29,6 +30,42 @@ class FrameBoardTests(unittest.TestCase):
         doc["rows"][1]["placements"] = [{"at_mm": [0, 0]}]
         with self.assertRaisesRegex(jb.BoardError, "overlap"):
             jb.expand(doc["rows"], 5)
+
+    def test_turned_boxes_set_spacing_overlap_and_outline(self):
+        # A long, thin part: at 37 degrees its pads reach far past its
+        # unrotated height.
+        row = {"name": "long", "footprint": "pkg::L", "pn": "C3", "bottom": True,
+               "width_mm": 40, "height_mm": 2}
+        places, bounds = jb.expand([row], 5)
+        boxes = []
+        for p in places:
+            a = math.radians(p["rotate"])
+            corners = [(p["x"] + dx * math.cos(a) - dy * math.sin(a), p["y"] + dx * math.sin(a) + dy * math.cos(a))
+                       for dx in (-20, 20) for dy in (-1, 1)]
+            xs, ys = [c[0] for c in corners], [c[1] for c in corners]
+            boxes.append((min(xs), min(ys), max(xs), max(ys)))
+            for x, y in corners:
+                self.assertTrue(bounds[0] < x < bounds[2] and bounds[1] < y < bounds[3], (p["rotate"], x, y, bounds))
+        # The turned boxes keep the full spacing between rows.
+        for upper, lower in zip(boxes, boxes[1:]):
+            self.assertGreaterEqual(lower[1] - upper[3], 5 - 1e-9)
+
+        # An explicit pair that overlaps only once turned is refused...
+        explicit = dict(row, bottom=False, placements=[{"at_mm": [0, 0]}, {"at_mm": [0, 8], "rotate": 37}])
+        with self.assertRaisesRegex(jb.BoardError, "overlap"):
+            jb.expand([explicit], 5)
+        # ...unless the rectangle is declared to cover every rotation.
+        square = dict(explicit, width_mm=7, height_mm=7, covers_rotation=True)
+        jb.expand([square], 5)
+
+    def test_committed_frame_boards_mark_their_boxes_as_covering_rotation(self):
+        # Their generators size each box from the courtyard's reach, so turning
+        # it again would move the outline of boards already uploaded.
+        for manifest in sorted((Path(__file__).resolve().parents[1] / "frame_boards").glob("*/manifest.json")):
+            with self.subTest(manifest.parent.name):
+                rows = json.loads(manifest.read_text(encoding="utf-8"))["rows"]
+                self.assertTrue(all(r.get("covers_rotation") is True for r in rows))
+                jb.expand(jb.load_manifest(manifest)["rows"], 5)
 
     def test_mocked_toolchain_writes_project_and_fabrication(self):
         calls = []

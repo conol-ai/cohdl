@@ -297,16 +297,24 @@ def main(argv=None):
                 raise ValueError("undo log %s belongs to project %s, not %s" % (undo, doc.get("project"), project))
             if doc.get("changes_sha256") != hashlib.sha256(args.changes.read_bytes()).hexdigest():
                 raise ValueError("change table %s differs from the one the forward run used" % args.changes)
+            # A logged path is a file name in the logged project's src/, never
+            # a path from the working directory the forward run happened in.
+            src = Path(project) / "src"
+            paths = []
             for item in doc["files"]:
-                path = Path(item["path"])
+                if not isinstance(item["path"], str) or not item["path"].endswith(".cohdl") or \
+                        Path(item["path"]).name != item["path"]:
+                    raise ValueError("undo log %s names %r, which is not a source file of %s" % (undo, item["path"], project))
+                paths.append(src / item["path"])
+            for item, path in zip(doc["files"], paths):
                 content = path.read_bytes()
                 # A file already back at its original source is from an earlier
                 # reverse that stopped part way; reversing again resumes it.
                 if hashlib.sha256(content).hexdigest() != item["after_sha256"] and \
                         content != item["source"].encode("utf-8"):
                     raise ValueError("refusing reverse after external edit: " + str(path))
-            for item in doc["files"]:
-                Path(item["path"]).write_text(item["source"], encoding="utf-8")
+            for item, path in zip(doc["files"], paths):
+                path.write_text(item["source"], encoding="utf-8")
             undo.unlink()
             print("realigned %d placements" % doc["count"])
             return 0
@@ -334,7 +342,7 @@ def main(argv=None):
                 source = source[:start] + replacement + source[end:]
             rewritten[path] = source
             if edits:
-                undo_files.append({"path": str(path), "source": originals[path], "count": len(edits),
+                undo_files.append({"path": path.name, "source": originals[path], "count": len(edits),
                                    "after_sha256": hashlib.sha256(source.encode()).hexdigest()})
         # Every laid-out target on a moved footprint must have been rewritten:
         # one skipped without a diagnostic would silently move its copper.

@@ -5,13 +5,19 @@ The input is a JSON object with ``rows``.  Each row needs ``footprint`` (the
 CoHDL ``package::FOOTPRINT`` name) and ``pn`` (the LCSC part number).  Optional
 Top-level ``dependencies`` is the exact CoHDL package/version map required to
 resolve the rows' parts. Optional row fields are ``name``, ``part`` (a CoHDL
-part type), ``mfr``, ``mpn``, ``bottom``, ``width_mm``, ``height_mm``, ``pins`` (the
-CoHDL pin names used to make two nets), ``mapping`` (``dx_mm``, ``dy_mm`` and
-``rotate_deg``), and ``placements`` (an explicit list of ``at_mm``, ``rotate``
-and ``side`` objects).  ``bottom: true`` adds bottom 0 and 37 degree copies;
-top 0 is always generated.  Explicit coordinates replay an independently
-reviewed board.  Default grid coordinates are conservative rectangles and
-``--spacing-mm`` controls their clearance.  Example::
+part type), ``mfr``, ``mpn``, ``bottom``, ``width_mm``, ``height_mm``,
+``covers_rotation``, ``pins`` (the CoHDL pin names used to make two nets),
+``mapping`` (``dx_mm``, ``dy_mm`` and ``rotate_deg``), and ``placements`` (an
+explicit list of ``at_mm``, ``rotate`` and ``side`` objects).  ``bottom: true``
+adds bottom 0 and 37 degree copies; top 0 is always generated.  Explicit
+coordinates replay an independently reviewed board.  ``width_mm`` and
+``height_mm`` give a conservative rectangle about the footprint origin at
+rotate 0; each placement's box is that rectangle turned by its rotation, and
+the default grid spacing, the overlap check and the generated outline all use
+the turned box.  ``covers_rotation: true`` says the rectangle already holds the
+courtyard at every angle (the C2 board generators size it from the courtyard's
+reach about the origin), so it is not turned.  ``--spacing-mm`` controls the
+clearance between boxes.  Example::
 
   {"name":"frame_preview", "rows":[
     {"footprint":"demo::SOIC", "part":"demo::U", "pn":"C1",
@@ -87,6 +93,8 @@ def load_manifest(path):
                     bottom=raw.get("bottom", False))
         if not isinstance(item["bottom"], bool):
             raise BoardError(name + ".bottom must be boolean")
+        if not isinstance(raw.get("covers_rotation", False), bool):
+            raise BoardError(name + ".covers_rotation must be boolean")
         for key in ("width_mm", "height_mm"):
             if number(raw.get(key), name + "." + key, 10) <= 0:
                 raise BoardError(name + "." + key + " must be positive")
@@ -111,16 +119,36 @@ def load_manifest(path):
     return {"name": text(doc.get("name"), "name", "frame_preview"), "design": doc.get("design", "FramePreview"), "net_names": doc.get("net_names", ["N0", "N1"]), "outline": doc.get("outline"), "nets": doc.get("nets"), "rows": rows, "dependencies": dependencies}
 
 
+def extent(row, rotate):
+    """Width and height of the row's box turned by ``rotate`` degrees.
+
+    The rectangle is centred on the footprint origin, so a bottom-side mirror
+    leaves it unchanged and only the rotation matters.
+    """
+    width = number(row.get("width_mm"), "width_mm", 10)
+    height = number(row.get("height_mm"), "height_mm", 10)
+    if row.get("covers_rotation", False) or rotate % 180 == 0:
+        return width, height
+    if rotate % 90 == 0:
+        return height, width
+    c, s = abs(math.cos(math.radians(rotate))), abs(math.sin(math.radians(rotate)))
+    return width * c + height * s, width * s + height * c
+
+
 def expand(rows, spacing):
     placements = []
+    # The default grid has a top-0 row, then bottom-0 and bottom-37 rows for
+    # rows marked bottom; columns and rows are sized from the turned boxes.
+    columns = [max(extent(r, a)[0] for a in ((0, 37) if r.get("bottom", False) else (0,))) for r in rows]
+    flat = max(extent(r, 0)[1] for r in rows)
+    turned = max([extent(r, 37)[1] for r in rows if r.get("bottom", False)] or [0])
     for column, row in enumerate(rows):
         if row.get("placements") is None:
-            x = sum(number(r.get("width_mm"), "width_mm", 10) for r in rows[:column]) + spacing * column + number(row.get("width_mm"), "width_mm", 10) / 2
+            x = sum(columns[:column]) + spacing * column + columns[column] / 2
             local = [{"at_mm": [x, 5], "rotate": 0, "side": "top"}]
             if row.get("bottom", False):
-                height = max(number(r.get("height_mm"), "height_mm", 10) for r in rows)
-                local += [{"at_mm": [x, 5 + height + spacing], "rotate": 0, "side": "bottom"},
-                          {"at_mm": [x, 5 + 2 * (height + spacing)], "rotate": 37, "side": "bottom"}]
+                local += [{"at_mm": [x, 5 + flat + spacing], "rotate": 0, "side": "bottom"},
+                          {"at_mm": [x, 5 + 1.5 * flat + 2 * spacing + turned / 2], "rotate": 37, "side": "bottom"}]
         else:
             local = row["placements"]
         for index, place in enumerate(local):
@@ -132,10 +160,10 @@ def expand(rows, spacing):
             placements.append(dict(row=row, index=index, x=number(place["at_mm"][0], "x"),
                                    y=number(place["at_mm"][1], "y"),
                                    rotate=number(place.get("rotate"), "rotate", 0), side=side))
-    boxes = [(p["x"] - number(p["row"].get("width_mm"), "width", 10) / 2,
-              p["y"] - number(p["row"].get("height_mm"), "height", 10) / 2,
-              p["x"] + number(p["row"].get("width_mm"), "width", 10) / 2,
-              p["y"] + number(p["row"].get("height_mm"), "height", 10) / 2) for p in placements]
+    boxes = []
+    for p in placements:
+        width, height = extent(p["row"], p["rotate"])
+        boxes.append((p["x"] - width / 2, p["y"] - height / 2, p["x"] + width / 2, p["y"] + height / 2))
     for i, a in enumerate(boxes):
         for b in boxes[i + 1:]:
             if a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]:

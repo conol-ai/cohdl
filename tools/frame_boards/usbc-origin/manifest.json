@@ -28,6 +28,7 @@
    ],
    "width_mm": 14.977,
    "height_mm": 14.977,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -85,6 +86,7 @@
    ],
    "width_mm": 4.642,
    "height_mm": 4.642,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -136,6 +138,7 @@
    ],
    "width_mm": 10.96,
    "height_mm": 10.96,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [

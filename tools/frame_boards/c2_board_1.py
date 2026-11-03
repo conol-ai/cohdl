@@ -89,7 +89,7 @@ for name, fp, ptype, c, note in SEL:
     module = MODULE.get(fp, "")
     rows.append({"name": name, "footprint": ident(fp_pkg) + "::" + module + fp_name, "part": ident(pkg) + "::" + module + t, "pn": c,
                  "mfr": part["mfr"], "mpn": part["mpn"], "pins": pins,
-                 "width_mm": round(side, 3), "height_mm": round(side, 3), "placements": places,
+                 "width_mm": round(side, 3), "height_mm": round(side, 3), "covers_rotation": True, "placements": places,
                  "note": note, "jlc_package": part["package"], "category": part["category"]})
 json.dump({"name": "c2_frame_board_1", "dependencies": deps, "rows": rows}, open(sys.argv[2], "w"), indent=1, ensure_ascii=False)
 print(len(rows), "rows,", 4 * len(rows), "placements, board ~", WIDTH, "x", round(y + shelf, 1), "mm")

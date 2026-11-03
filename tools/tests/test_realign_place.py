@@ -359,6 +359,53 @@ design D {
             self.assertEqual((root / "src/main.cohdl").read_text(), original)
             self.assertFalse((root / "change.json.undo.json").exists())
 
+    def test_a_reverse_from_another_directory_restores_the_logged_project(self):
+        with tempfile.TemporaryDirectory() as td:
+            first, second = Path(td) / "first", Path(td) / "second"
+            (first / "a").mkdir(parents=True)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(first / "a", original)
+            cwd = os.getcwd()
+            try:
+                # Forward with paths relative to `first`.
+                os.chdir(first)
+                with mock.patch("sys.stdout", new=io.StringIO()):
+                    self.assertEqual(rp.main(["a", "a/change.json"] + args), 0)
+                moved = (first / "a/src/main.cohdl").read_text()
+                self.assertNotEqual(moved, original)
+                # A copy of the moved project under the same relative name.
+                (second / "a/src").mkdir(parents=True)
+                (second / "a/src/main.cohdl").write_text(moved)
+                os.chdir(second)
+                with mock.patch("sys.stdout", new=io.StringIO()):
+                    self.assertEqual(rp.main([str(first / "a"), str(first / "a/change.json"), "--reverse"]), 0)
+            finally:
+                os.chdir(cwd)
+            self.assertEqual((first / "a/src/main.cohdl").read_text(), original)
+            self.assertEqual((second / "a/src/main.cohdl").read_text(), moved)
+            self.assertFalse((first / "a/change.json.undo.json").exists())
+
+    def test_an_undo_log_naming_a_file_outside_src_is_refused(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            cli = [str(root), str(root / "change.json")]
+            with mock.patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(rp.main(cli + args), 0)
+            moved = (root / "src/main.cohdl").read_text()
+            undo = root / "change.json.undo.json"
+            for name in ("../main.cohdl", str(root / "src/main.cohdl"), "main.txt"):
+                with self.subTest(name):
+                    doc = json.loads(undo.read_text())
+                    doc["files"][0]["path"] = name
+                    undo.write_text(json.dumps(doc))
+                    with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                        self.assertEqual(rp.main(cli + ["--reverse"]), 1)
+                    self.assertIn("not a source file of", err.getvalue())
+                    self.assertEqual((root / "src/main.cohdl").read_text(), moved)
+                    self.assertTrue(undo.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

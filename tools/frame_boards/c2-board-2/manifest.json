@@ -33,6 +33,7 @@
    ],
    "width_mm": 44.35,
    "height_mm": 44.35,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -91,6 +92,7 @@
    ],
    "width_mm": 38.693,
    "height_mm": 38.693,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -149,6 +151,7 @@
    ],
    "width_mm": 24.692,
    "height_mm": 24.692,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -206,6 +209,7 @@
    ],
    "width_mm": 24.692,
    "height_mm": 24.692,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -262,6 +266,7 @@
    ],
    "width_mm": 18.95,
    "height_mm": 18.95,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -314,6 +319,7 @@
    ],
    "width_mm": 14.651,
    "height_mm": 14.651,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -369,6 +375,7 @@
    ],
    "width_mm": 14.566,
    "height_mm": 14.566,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -425,6 +432,7 @@
    ],
    "width_mm": 14.425,
    "height_mm": 14.425,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -483,6 +491,7 @@
    ],
    "width_mm": 14.142,
    "height_mm": 14.142,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -540,6 +549,7 @@
    ],
    "width_mm": 12.728,
    "height_mm": 12.728,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -598,6 +608,7 @@
    ],
    "width_mm": 12.728,
    "height_mm": 12.728,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -668,6 +679,7 @@
    ],
    "width_mm": 11.463,
    "height_mm": 11.463,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -719,6 +731,7 @@
    ],
    "width_mm": 10.406,
    "height_mm": 10.406,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -774,6 +787,7 @@
    ],
    "width_mm": 9.899,
    "height_mm": 9.899,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -829,6 +843,7 @@
    ],
    "width_mm": 9.573,
    "height_mm": 9.573,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [
@@ -885,6 +900,7 @@
    ],
    "width_mm": 9.161,
    "height_mm": 9.161,
+   "covers_rotation": true,
    "placements": [
     {
      "at_mm": [

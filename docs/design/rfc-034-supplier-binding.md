@@ -267,7 +267,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
 
 **Public surface** (additive; all read-only and login-free like `/search`):
 
-- `GET /search` part rows gain `suppliers: [{ supplier, pn, at, rotate, links, catalog|null }]`.
+- `GET /search` part rows gain `suppliers: [{ supplier, pn, at, rotate, links, catalog|null }]`, with at most 4 `links` per binding (the product link first); `/suppliers/{id}/parts` carries the full list.
   - `catalog` carries `class`, `stock` and the snapshot date.
   - New optional parameters: `supplier=ID`, and `class=…` (repeatable, requires `supplier`).
   - A part matches when it has a binding for that supplier whose catalog row has one of the classes. Without these parameters, results are unchanged.

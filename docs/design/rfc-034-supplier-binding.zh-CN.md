@@ -271,7 +271,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
 
 **对外接口**（全部为新增；和 `/search` 一样只读、无需登录）：
 
-- `GET /search` 的零件结果新增 `suppliers: [{ supplier, pn, at, rotate, links, catalog|null }]`。
+- `GET /search` 的零件结果新增 `suppliers: [{ supplier, pn, at, rotate, links, catalog|null }]`，每个绑定最多 4 个 `links`（商品链接在前）；完整列表见 `/suppliers/{id}/parts`。
   - `catalog` 包含 `class`、`stock` 和快照日期。
   - 新增可选参数：`supplier=ID`，以及 `class=…`（可重复，必须同时带 `supplier`）。
   - 零件匹配的条件是：它有该供应商的绑定，且该绑定的目录行属于所列分类之一。不带这些参数时，结果不变。

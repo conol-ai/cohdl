@@ -35,3 +35,6 @@ examples/*/out/.history/
 !.dev.vars.example
 .env*
 !.env.example
+
+# Python bytecode from running tools/
+__pycache__/

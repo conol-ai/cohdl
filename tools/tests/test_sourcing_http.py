@@ -379,6 +379,31 @@ class FetchClientTests(unittest.TestCase):
         self.assertFalse(own.can_fetch("https://h.example/mine/x"))
         self.assertEqual(own.crawl_delay, 9.0)
 
+    def test_robots_rules_and_requests_compare_in_one_encoding(self):
+        # RFC 9309 section 2.2.2: encoded unreserved octets equal their
+        # characters, encoded reserved ones stay distinct; section 2.2.3: an
+        # encoded `$` or `*` is a literal character, never an operator.
+        robots = ("User-agent: *\nDisallow: /private?next=https%3A%2F%2Fexample.com\n"
+                  "Disallow: /private%24\nDisallow: /tilde/%7Euser\nDisallow: /jp/\u30c4\nDisallow: /star%2A\n")
+        policy = RobotsPolicy.parse(robots)
+        for path, allowed in (
+            ("/private?next=https%3A%2F%2Fexample.com", False),
+            ("/private?next=https%3a%2f%2fexample.com", False),
+            ("/private?next=https://example.com", True),
+            ("/private%24", False), ("/private$", False), ("/private", True), ("/privateX", True),
+            ("/tilde/~user", False), ("/tilde/%7euser", False),
+            ("/jp/%E3%83%84", False),
+            ("/star*", False), ("/star%2a", False), ("/starX", True),
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(policy.can_fetch("https://h.example" + path), allowed)
+        with LocalServer(robots=robots) as server:
+            client = self.client(server)
+            for path in ("/private?next=https%3A%2F%2Fexample.com", "/private%24"):
+                with self.subTest(path=path), self.assertRaises(RobotsError):
+                    client.get(server.url(path))
+            self.assertEqual(server.requests, ["/robots.txt"])
+
     def test_robots_429_refuses_the_site_and_is_neither_cached_nor_forgiven(self):
         responses = {"/robots.txt": (429, "slow down")}
         with LocalServer(responses) as server:

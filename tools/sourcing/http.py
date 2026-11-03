@@ -420,26 +420,45 @@ class RobotsPolicy:
 
     def can_fetch(self, url: str) -> bool:
         parts = urllib.parse.urlsplit(url)
-        target = _robots_path(parts.path or "/") + ("?" + parts.query if parts.query else "")
+        target = _robots_octets((parts.path or "/") + ("?" + parts.query if parts.query else ""))
         best: tuple[int, bool] | None = None
         for allow, pattern in self.rules:
-            if _robots_match(_robots_path(pattern), target):
-                key = (len(pattern), allow)
+            anchored = pattern.endswith("$")
+            pieces = [_robots_octets(piece) for piece in (pattern[:-1] if anchored else pattern).split("*")]
+            regex = ".*".join(re.escape(piece) for piece in pieces) + (r"\Z" if anchored else "")
+            if re.match(regex, target, re.DOTALL) is not None:
+                key = (sum(map(len, pieces)) + len(pieces) - 1 + anchored, allow)
                 if best is None or key > best:
                     best = key
         return best is None or best[1]
 
 
-def _robots_path(value: str) -> str:
-    # Compare percent-decoded forms, so `%7E` and `~` are the same octets.
-    return urllib.parse.unquote(value)
+_UNRESERVED = frozenset(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+# RFC 3986 reserved characters other than robots.txt's own `$` and `*`, which
+# compare only in encoded form (RFC 9309 section 2.2.3).
+_LITERAL_RESERVED = frozenset(b":/?#[]@!&'()+,;=")
+_HEX = frozenset(b"0123456789ABCDEFabcdef")
 
 
-def _robots_match(pattern: str, path: str) -> bool:
-    anchored = pattern.endswith("$")
-    body = pattern[:-1] if anchored else pattern
-    regex = ".*".join(re.escape(piece) for piece in body.split("*"))
-    return re.match(regex + (r"\Z" if anchored else ""), path, re.DOTALL) is not None
+def _robots_octets(value: str) -> str:
+    """The comparison form of a rule or request path (RFC 9309 section 2.2.2).
+
+    An encoded unreserved octet is decoded, so `%7E` and `~` are the same; an
+    encoded reserved octet stays encoded, so `%3A` and `:` differ, as RFC 3986
+    says.  Literal `$` and `*` are encoded, so a rule's `%24` names a literal
+    `$` and never anchors.  Other octets, including non-ASCII ones, are
+    encoded with upper-case hex.  Rules and requests both pass through here.
+    """
+    data, out, i = value.encode("utf-8"), [], 0
+    while i < len(data):
+        octet = data[i]
+        if octet == 0x25 and i + 2 < len(data) and data[i + 1] in _HEX and data[i + 2] in _HEX:
+            octet, i = int(data[i + 1:i + 3], 16), i + 3
+            out.append(chr(octet) if octet in _UNRESERVED else "%%%02X" % octet)
+            continue
+        out.append(chr(octet) if octet in _UNRESERVED or octet in _LITERAL_RESERVED else "%%%02X" % octet)
+        i += 1
+    return "".join(out)
 
 
 class _NoProxyHandler(urllib.request.ProxyHandler):

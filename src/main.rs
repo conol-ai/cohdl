@@ -147,6 +147,21 @@ struct Args {
 }
 
 impl Args {
+    /// Every `--supplier ID` must satisfy E813's declaration grammar.
+    fn validate_suppliers(&self) -> Result<(), String> {
+        match self
+            .suppliers
+            .iter()
+            .find(|supplier| !cohdl::supplier::valid_supplier_id(supplier))
+        {
+            Some(supplier) => Err(format!(
+                "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
+                supplier, USAGE
+            )),
+            None => Ok(()),
+        }
+    }
+
     /// The E000-class option matrix: every flag is validated against the
     /// command (review finding: global parsing silently ignored invalid
     /// combinations, e.g. `lsp --design`, `fmt --out-dir`).
@@ -266,6 +281,24 @@ impl Args {
                 if !self.classes.is_empty() && self.suppliers.is_empty() {
                     return Err(format!("`--class` requires `--supplier ID`\n\n{}", USAGE));
                 }
+                self.validate_suppliers()?;
+                if self.classes.len() > cohdl::supplier::MAX_SEARCH_CLASSES {
+                    return Err(format!(
+                        "`search` accepts at most {} `--class` values\n\n{}",
+                        cohdl::supplier::MAX_SEARCH_CLASSES,
+                        USAGE
+                    ));
+                }
+                if let Some(class) = self
+                    .classes
+                    .iter()
+                    .find(|class| !cohdl::supplier::valid_search_class(class))
+                {
+                    return Err(format!(
+                        "invalid class `{}`: expected 1 to 128 bytes with no surrounding whitespace or control characters\n\n{}",
+                        class, USAGE
+                    ));
+                }
                 if self.fmt_check {
                     return bad("--check");
                 }
@@ -331,14 +364,7 @@ impl Args {
                         ));
                     }
                 }
-                for supplier in &self.suppliers {
-                    if !cohdl::supplier::valid_supplier_id(supplier) {
-                        return Err(format!(
-                            "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
-                            supplier, USAGE
-                        ));
-                    }
-                }
+                self.validate_suppliers()?;
             }
             "suppliers" => {
                 if self.fmt_check {
@@ -350,14 +376,7 @@ impl Args {
                 if !self.emit.is_empty() {
                     return bad("--emit");
                 }
-                for supplier in &self.suppliers {
-                    if !cohdl::supplier::valid_supplier_id(supplier) {
-                        return Err(format!(
-                            "invalid supplier ID `{}`: expected a lowercase ASCII letter followed by lowercase letters, digits, or `_`, at most 32 bytes\n\n{}",
-                            supplier, USAGE
-                        ));
-                    }
-                }
+                self.validate_suppliers()?;
             }
             "fmt" => {
                 if self.json {
@@ -741,17 +760,10 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    if args.command == "suppliers" {
-        return suppliers_main(&args);
-    }
     match run(&args) {
-        Ok(clean) => {
-            if clean {
-                ExitCode::SUCCESS
-            } else {
-                ExitCode::FAILURE
-            }
-        }
+        Ok(Outcome::Clean) => ExitCode::SUCCESS,
+        Ok(Outcome::Failure) => ExitCode::FAILURE,
+        Ok(Outcome::BindingProblem) => ExitCode::from(3),
         Err(msg) => {
             eprintln!("error: {}", msg);
             ExitCode::from(2)
@@ -759,113 +771,47 @@ fn main() -> ExitCode {
     }
 }
 
-trait CommandRunner {
-    type Output;
-    fn success(clean: bool) -> Self::Output;
-    fn binding_problem() -> Self::Output;
-}
-
-struct StandardCommand;
-struct AuditCommand;
-
-impl CommandRunner for StandardCommand {
-    type Output = bool;
-
-    fn success(clean: bool) -> bool {
-        clean
-    }
-
-    fn binding_problem() -> bool {
-        unreachable!("only the supplier audit has a third outcome")
-    }
-}
-
-impl CommandRunner for AuditCommand {
-    type Output = AuditExit;
-
-    fn success(clean: bool) -> AuditExit {
-        if clean {
-            AuditExit::Clean
-        } else {
-            AuditExit::Failure
-        }
-    }
-
-    fn binding_problem() -> AuditExit {
-        AuditExit::BindingProblem
-    }
-}
-
-/// RFC-034 §5 has one extra outcome. Keep it outside the existing bool-based
-/// command runner so no other command's exit behavior changes.
-enum AuditExit {
+/// A command's result. Only the supplier audit (RFC-034 §5) has the third
+/// outcome, exit 3; every other command exits 0, 1 or 2 as before.
+enum Outcome {
     Clean,
     Failure,
-    Invocation,
     BindingProblem,
 }
 
-impl From<AuditExit> for ExitCode {
-    fn from(exit: AuditExit) -> Self {
-        match exit {
-            AuditExit::Clean => Self::SUCCESS,
-            AuditExit::Failure => Self::FAILURE,
-            AuditExit::Invocation => Self::from(2),
-            AuditExit::BindingProblem => Self::from(3),
+impl Outcome {
+    fn success(clean: bool) -> Self {
+        if clean {
+            Outcome::Clean
+        } else {
+            Outcome::Failure
         }
     }
 }
 
-fn suppliers_main(args: &Args) -> ExitCode {
-    if let Err(message) = args.validate() {
-        eprintln!("{message}");
-        return AuditExit::Invocation.into();
-    }
-    match run_audit(args) {
-        Ok(exit) => exit,
-        Err(message) => {
-            eprintln!("error: {message}");
-            AuditExit::Invocation
-        }
-    }
-    .into()
-}
-
-fn run(args: &Args) -> Result<bool, String> {
-    dispatch(StandardCommand, args)
-}
-
-fn run_audit(args: &Args) -> Result<AuditExit, String> {
-    dispatch(AuditCommand, args)
-}
-
-fn dispatch<R: CommandRunner>(runner: R, args: &Args) -> Result<R::Output, String> {
-    run_with(args, &runner)
-}
-
-fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, String> {
+fn run(args: &Args) -> Result<Outcome, String> {
     // Per-command flag validation (E000-class invocation errors).
     args.validate()?;
     match args.command.as_str() {
         "check" | "build" | "suppliers" => {}
-        "update" => return update_command(args).map(R::success),
-        "self-update" => return cohdl::selfupdate::run(args.fmt_check).map(R::success),
-        "add" => return add_command(args).map(R::success),
-        "remove" => return remove_command(args).map(R::success),
-        "install" => return install_command(args).map(R::success),
-        "login" => return login_command().map(R::success),
-        "publish" => return publish_command(args).map(R::success),
-        "search" => return search_command(args).map(R::success),
-        "docs" => return docs_command(args).map(R::success),
-        "fmt" => return fmt_command(args).map(R::success),
+        "update" => return update_command(args).map(Outcome::success),
+        "self-update" => return cohdl::selfupdate::run(args.fmt_check).map(Outcome::success),
+        "add" => return add_command(args).map(Outcome::success),
+        "remove" => return remove_command(args).map(Outcome::success),
+        "install" => return install_command(args).map(Outcome::success),
+        "login" => return login_command().map(Outcome::success),
+        "publish" => return publish_command(args).map(Outcome::success),
+        "search" => return search_command(args).map(Outcome::success),
+        "docs" => return docs_command(args).map(Outcome::success),
+        "fmt" => return fmt_command(args).map(Outcome::success),
         "lsp" => {
             // LSP exit codes: 0 after shutdown+exit; 1 for exit without
             // shutdown (per the spec); 2 for transport/I/O failures.
             return match cohdl::lsp::run_stdio()? {
-                cohdl::lsp::LspExit::Clean => Ok(R::success(true)),
+                cohdl::lsp::LspExit::Clean => Ok(Outcome::success(true)),
                 cohdl::lsp::LspExit::WithoutShutdown => {
                     eprintln!("lsp: `exit` received before `shutdown`");
-                    Ok(R::success(false))
+                    Ok(Outcome::success(false))
                 }
             };
         }
@@ -886,7 +832,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
                 } else {
                     eprint!("{}", cohdl::deps::render_human(&diags));
                 }
-                return Ok(R::success(false));
+                return Ok(Outcome::success(false));
             }
         };
         let names: Vec<String> = deps_list.iter().map(|(n, _)| n.clone()).collect();
@@ -938,17 +884,17 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
     if args.command == "check" {
         if args.json {
             print!("{}", emit::json::render(&checked, None));
-            return Ok(R::success(!checked.diags.has_errors()));
+            return Ok(Outcome::success(!checked.diags.has_errors()));
         }
         eprint!("{}", checked.diags.render(&checked.sm));
         if checked.diags.has_errors() {
-            return Ok(R::success(false));
+            return Ok(Outcome::success(false));
         }
         if checked.design_name.is_none() {
             eprintln!("note: no `design` in this project — declarations checked only");
         }
         eprintln!("  No errors found.");
-        return Ok(R::success(true));
+        return Ok(Outcome::success(true));
     }
 
     if args.command == "suppliers" {
@@ -958,12 +904,33 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
             } else {
                 eprint!("{}", checked.diags.render(&checked.sm));
             }
-            return Ok(R::success(false));
+            return Ok(Outcome::success(false));
         }
-        let Some(ir) = checked.ir.as_ref() else {
+        let Some(ir) = checked.ir.as_mut() else {
             eprint!("{}", checked.diags.render(&checked.sm));
             return Err("nothing to audit: the project declares no `design`".to_string());
         };
+        // Bind device-typed instances exactly as a build does, so the audit
+        // sees every instantiated part, not only those named by part.
+        let mut bind_diags = cohdl::diag::Diagnostics::new();
+        let mut notes = Vec::new();
+        emit::bind_parts(&checked.world, ir, &mut bind_diags, &mut notes);
+        bind_diags.sort(&checked.sm);
+        checked.diags.extend(bind_diags);
+        if checked.diags.has_errors() {
+            if args.json {
+                print!("{}", emit::json::render(&checked, None));
+            } else {
+                eprint!("{}", checked.diags.render(&checked.sm));
+            }
+            return Ok(Outcome::success(false));
+        }
+        if !args.json {
+            for note in &notes {
+                eprintln!("note: {}", note);
+            }
+        }
+        let ir = checked.ir.as_ref().expect("checked above");
         // No HTTP request of any kind precedes this successful offline check.
         let report = match cohdl::supplier_audit::audit(&checked.world, ir, &args.suppliers) {
             Ok(report) => report,
@@ -973,7 +940,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
                 } else {
                     eprint!("{}", render_diag(&error));
                 }
-                return Ok(R::success(false));
+                return Ok(Outcome::success(false));
             }
         };
         let clean = !report.has_binding_problems();
@@ -984,11 +951,11 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
             print!("{}", report.render_human());
         }
         if clean {
-            return Ok(R::success(true));
+            return Ok(Outcome::success(true));
         }
         // The sole audit-specific exit-3 path. out-of-stock and unbound do not
         // reach it; registry/protocol failures returned above remain E1204/1.
-        return Ok(R::binding_problem());
+        return Ok(Outcome::BindingProblem);
     }
 
     // ---- build ----
@@ -998,7 +965,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
         } else {
             eprint!("{}", checked.diags.render(&checked.sm));
         }
-        return Ok(R::success(false));
+        return Ok(Outcome::success(false));
     }
     if checked.ir.is_none() {
         // Same rule: never discard collected diagnostics (warnings) on an
@@ -1042,7 +1009,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
         } else {
             eprint!("{}", checked.diags.render(&checked.sm));
         }
-        return Ok(R::success(false));
+        return Ok(Outcome::success(false));
     };
     if checked.diags.has_errors() {
         if args.json {
@@ -1053,7 +1020,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
                 eprintln!("note: {}", note);
             }
         }
-        return Ok(R::success(false));
+        return Ok(Outcome::success(false));
     }
 
     // Reject unsupported physical facts before creating or changing artifacts.
@@ -1325,7 +1292,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
                 }),
         };
         print!("{}", emit::json::render(&checked, Some(&build)));
-        return Ok(R::success(true));
+        return Ok(Outcome::success(true));
     }
 
     // Non-JSON: a successful build still renders its diagnostics (warnings —
@@ -1371,7 +1338,7 @@ fn run_with<R: CommandRunner>(args: &Args, _runner: &R) -> Result<R::Output, Str
         }
     }
     eprintln!("  wrote {}", lock_path.display());
-    Ok(R::success(true))
+    Ok(Outcome::success(true))
 }
 
 /// How RFC-029 dependency resolution fails: structured E11xx diagnostics

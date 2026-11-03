@@ -14,6 +14,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const MAX_SEARCH_RESPONSE: usize = 1024 * 1024;
+/// Audit responses carry whole catalog rows (up to 16 links of 2 KB each), so
+/// they get a larger bound; an MPN batch that exceeds it is re-asked one MPN
+/// at a time.
+const MAX_AUDIT_RESPONSE: usize = 16 * 1024 * 1024;
 /// Application-side API-doc upload ceiling. Kept byte-for-byte aligned with
 /// `registry/src/worker/apidocs.ts` and docs/apidocs.md.
 pub const API_DOCS_MAX_BYTES: usize = 200_000_000;
@@ -144,8 +148,12 @@ pub struct HttpResponse {
 }
 
 fn run_curl_with_timeout(args: &[String], max_time_seconds: u32) -> Result<HttpResponse, String> {
+    curl_response(curl_output(args, max_time_seconds)?)
+}
+
+fn curl_output(args: &[String], max_time_seconds: u32) -> Result<std::process::Output, String> {
     let max_time = max_time_seconds.to_string();
-    let out = Command::new("curl")
+    Command::new("curl")
         .args([
             "-sS",
             "-w",
@@ -155,9 +163,10 @@ fn run_curl_with_timeout(args: &[String], max_time_seconds: u32) -> Result<HttpR
         ])
         .args(args)
         .output()
-        .map_err(|e| {
-            format!("cannot run `curl`: {e} (the registry client uses the system curl)")
-        })?;
+        .map_err(|e| format!("cannot run `curl`: {e} (the registry client uses the system curl)"))
+}
+
+fn curl_response(out: std::process::Output) -> Result<HttpResponse, String> {
     if !out.status.success() {
         let detail = String::from_utf8_lossy(&out.stderr).trim().to_string();
         return Err(if detail.is_empty() {
@@ -193,18 +202,29 @@ pub fn http_get(url: &str) -> Result<HttpResponse, String> {
 /// GET with query parameters encoded by curl itself. Values are passed as
 /// argv entries, never through a shell; `--data-urlencode` is what keeps a
 /// search for spaces, `&`, Unicode, or `#` from changing the request's shape.
-fn http_get_query(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, String> {
+/// `Ok(None)` means the response was larger than `max_bytes`.
+fn http_get_query(
+    url: &str,
+    params: &[(&str, &str)],
+    max_bytes: usize,
+) -> Result<Option<HttpResponse>, String> {
     let mut args = vec![
         "-G".to_string(),
         "--max-filesize".to_string(),
-        MAX_SEARCH_RESPONSE.to_string(),
+        max_bytes.to_string(),
     ];
     for (key, value) in params {
         args.push("--data-urlencode".to_string());
         args.push(format!("{key}={value}"));
     }
     args.push(url.to_string());
-    run_curl(&args)
+    let out = curl_output(&args, 60)?;
+    // curl's exit 63: the transfer exceeded --max-filesize.
+    if out.status.code() == Some(63) {
+        return Ok(None);
+    }
+    let response = curl_response(out)?;
+    Ok((response.body.len() <= max_bytes).then_some(response))
 }
 
 /// GET following redirects, with a longer deadline (a repeated `--max-time`
@@ -468,6 +488,8 @@ pub struct SupplierParts {
 pub enum SupplierPartsResponse {
     Parts(SupplierParts),
     Unlisted,
+    /// The batch's response exceeded the audit bound; ask fewer values.
+    TooLarge,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -837,11 +859,14 @@ fn json_object(value: &JsonValue) -> Result<&[(String, JsonValue)], String> {
 }
 
 fn json_field<'a>(fields: &'a [(String, JsonValue)], key: &str) -> Result<&'a JsonValue, String> {
+    json_field_opt(fields, key).ok_or_else(|| format!("missing `{key}`"))
+}
+
+fn json_field_opt<'a>(fields: &'a [(String, JsonValue)], key: &str) -> Option<&'a JsonValue> {
     fields
         .iter()
         .find(|(name, _)| name == key)
         .map(|(_, value)| value)
-        .ok_or_else(|| format!("missing `{key}`"))
 }
 
 fn required_string(fields: &[(String, JsonValue)], key: &str) -> Result<String, String> {
@@ -1172,13 +1197,13 @@ fn parse_search_response(body: &[u8], expected_query: &str) -> Result<SearchResu
             mpn: optional_string(row, "mpn").map_err(|e| format!("parts.results[{index}]: {e}"))?,
             primary: required_bool(row, "primary")
                 .map_err(|e| format!("parts.results[{index}]: {e}"))?,
-            suppliers: match json_field(row, "suppliers") {
-                Ok(value) => Some(
+            // A registry from before RFC-034 omits the field entirely.
+            suppliers: match json_field_opt(row, "suppliers") {
+                Some(value) => Some(
                     parse_suppliers(value, &format!("parts.results[{index}].suppliers"))
                         .map_err(|e| format!("parts.results[{index}]: {e}"))?,
                 ),
-                Err(error) if error == "missing `suppliers`" => None,
-                Err(error) => return Err(format!("parts.results[{index}]: {error}")),
+                None => None,
             },
         });
     }
@@ -1339,7 +1364,13 @@ pub fn search(
         params.push(("supplier", supplier));
     }
     params.extend(classes.iter().map(|class| ("class", class.as_str())));
-    let resp = http_get_query(&url, &params).map_err(search_e1204)?;
+    let resp = http_get_query(&url, &params, MAX_SEARCH_RESPONSE)
+        .map_err(search_e1204)?
+        .ok_or_else(|| {
+            search_e1204(format!(
+                "response from GET {url} exceeds {MAX_SEARCH_RESPONSE} bytes"
+            ))
+        })?;
     if resp.status != 200 {
         return Err(search_e1204(format!("GET {url} returned {}", resp.status)));
     }
@@ -1349,14 +1380,20 @@ pub fn search(
 
 pub const SUPPLIER_AUDIT_BATCH: usize = 100;
 
-fn audit_e1204(detail: String) -> PackageDiag {
+pub(crate) fn audit_e1204(detail: String) -> PackageDiag {
     PackageDiag::error("E1204", &registry_url(), 0, detail).with_help(
         "check the network and COHDL_REGISTRY setting, then retry the supplier audit".to_string(),
     )
 }
 
 fn audit_get(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, PackageDiag> {
-    let response = http_get_query(url, params).map_err(audit_e1204)?;
+    let response = http_get_query(url, params, MAX_AUDIT_RESPONSE)
+        .map_err(audit_e1204)?
+        .ok_or_else(|| {
+            audit_e1204(format!(
+                "response from GET {url} exceeds {MAX_AUDIT_RESPONSE} bytes"
+            ))
+        })?;
     if response.status != 200 {
         return Err(audit_e1204(format!(
             "GET {url} returned {}",
@@ -1366,13 +1403,19 @@ fn audit_get(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, Package
     Ok(response)
 }
 
-fn audit_supplier_parts_get(
-    url: &str,
-    params: &[(&str, &str)],
-) -> Result<Option<HttpResponse>, PackageDiag> {
-    let response = http_get_query(url, params).map_err(audit_e1204)?;
+enum PartsGet {
+    Body(HttpResponse),
+    Unlisted,
+    TooLarge,
+}
+
+fn audit_supplier_parts_get(url: &str, params: &[(&str, &str)]) -> Result<PartsGet, PackageDiag> {
+    let Some(response) = http_get_query(url, params, MAX_AUDIT_RESPONSE).map_err(audit_e1204)?
+    else {
+        return Ok(PartsGet::TooLarge);
+    };
     if response.status == 404 && is_supplier_not_found(&response.body) {
-        return Ok(None);
+        return Ok(PartsGet::Unlisted);
     }
     if response.status != 200 {
         return Err(audit_e1204(format!(
@@ -1380,7 +1423,7 @@ fn audit_supplier_parts_get(
             response.status
         )));
     }
-    Ok(Some(response))
+    Ok(PartsGet::Body(response))
 }
 
 /// Fetch one PN or MPN batch. Values remain comma-separated here because that
@@ -1408,8 +1451,10 @@ pub fn supplier_parts(
         registry_url().trim_end_matches('/'),
         supplier = encoded_supplier
     );
-    let Some(response) = audit_supplier_parts_get(&url, &[(kind, &values.join(","))])? else {
-        return Ok(SupplierPartsResponse::Unlisted);
+    let response = match audit_supplier_parts_get(&url, &[(kind, &values.join(","))])? {
+        PartsGet::Body(response) => response,
+        PartsGet::Unlisted => return Ok(SupplierPartsResponse::Unlisted),
+        PartsGet::TooLarge => return Ok(SupplierPartsResponse::TooLarge),
     };
     parse_supplier_parts_response(&response.body, supplier, kind, values)
         .map(SupplierPartsResponse::Parts)

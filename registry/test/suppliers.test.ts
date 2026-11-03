@@ -139,7 +139,8 @@ describe("snapshot parsing", () => {
     expect(parseSnapshot(snapshot(), "Bad-ID").ok).toBe(false);
   });
 
-  it("accepts 10000 minimal rows and rejects 10001 within the body limit", () => {
+  it("accepts 8982 minimal rows and rejects 8983 within the body limit", () => {
+    expect(MAX_CATALOG_ROWS).toBe(8982);
     const minimal = { ...ROW, pn: "P", mpn: "M", manufacturer: "M", package: "P", class: "c", stock: 0, links: [] };
     const body = snapshot(Array.from({ length: MAX_CATALOG_ROWS }, (_, index) => ({ ...minimal, pn: String(index) })));
     body.classes = ["c"];
@@ -180,8 +181,10 @@ describe("D1 supplier store", () => {
     await supplierStore(db).replaceSnapshot(maximum.value);
     expect(batch).toHaveBeenCalledTimes(1);
     expect(statements).toHaveLength(2 + Math.ceil(MAX_CATALOG_ROWS / 9));
+    // D1's per-invocation statement limit, stated independently of the code.
+    expect(statements.length).toBeLessThanOrEqual(1000);
     expect(statements.slice(2).every(({ values }) => values.length <= 100)).toBe(true);
-    expect(statements.at(-1)?.values).toHaveLength(11);
+    expect(statements.at(-1)?.values).toHaveLength(99);
     statements.length = 0;
     batch.mockClear();
     const empty = parseSnapshot(snapshot([]), "acme");

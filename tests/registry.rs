@@ -548,7 +548,41 @@ fn search_rejects_class_without_supplier_and_repeated_supplier_locally() {
             vec!["search", "resistor", "--class"],
             "--class needs a value",
         ),
+        (
+            vec!["search", "resistor", "--supplier", "LCSC"],
+            "invalid supplier ID `LCSC`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--class",
+                " resistor",
+            ],
+            "invalid class ` resistor`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--class",
+                "a\u{200B}b",
+            ],
+            "invalid class",
+        ),
     ];
+    let many: Vec<String> = (0..97).map(|i| format!("c{i}")).collect();
+    let mut too_many = vec!["search", "resistor", "--supplier", "acme"];
+    for class in &many {
+        too_many.extend(["--class", class.as_str()]);
+    }
+    let cases = cases
+        .into_iter()
+        .chain([(too_many, "at most 96 `--class` values")]);
     for (args, expected) in cases {
         // Validation must win before a connection is attempted.
         let out = run_output("http://127.0.0.1:9", &tmp.join("home"), &args);

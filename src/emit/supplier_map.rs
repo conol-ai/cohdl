@@ -104,23 +104,9 @@ fn emit_one(
 ) -> SupplierMap {
     let mut footprints = BTreeSet::new();
     let mut designators = Vec::new();
+    let mut machine_placed = crate::emit::cpl::MachinePlaced::new(world);
     for instance in selection.instances.values() {
-        let Some(footprint) = world.footprints.get(&instance.footprint) else {
-            continue;
-        };
-        if footprint
-            .mount_holes
-            .iter()
-            .any(|hole| hole.plating == crate::ast::MountHolePlating::SourceUnspecified)
-        {
-            // A physical-only unknown is retained by --logical-only without
-            // invoking its checked physical projection invariant.
-            continue;
-        }
-        if !crate::emit::kicad_mod::pad_plans(world, footprint)
-            .iter()
-            .any(|pad| !pad.number.is_empty() && pad.kind == "smd")
-        {
+        if !machine_placed.check(&instance.footprint) {
             continue;
         }
         footprints.insert(instance.footprint.clone());

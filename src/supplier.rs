@@ -115,13 +115,6 @@ fn mapping(binding: &SupplierBinding) -> SupplierMapping {
     SupplierMapping { at, rotate }
 }
 
-fn field(entry: &AvlEntry, name: &str) -> String {
-    entry
-        .field(name)
-        .map(|field| field.value.clone())
-        .unwrap_or_default()
-}
-
 /// Return the canonical identity of a resolved footprint reference. Looking
 /// it up in the world is essential: `Ident` equality also compares spans, and
 /// a raw spelling comparison would miss aliases resolved to the same fq key.
@@ -179,6 +172,27 @@ pub fn valid_supplier_id(id: &str) -> bool {
     id.len() <= 32
         && bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
         && bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+}
+
+/// The registry's `/search` bounds on `class` values, checked before any
+/// request so a bad value is an invocation error. NFC normalization stays a
+/// server-side check: the crate carries no Unicode tables.
+pub const MAX_SEARCH_CLASSES: usize = 96;
+
+pub fn valid_search_class(class: &str) -> bool {
+    !class.is_empty()
+        && class.len() <= 128
+        && class.trim() == class
+        && !class.chars().any(|c| c.is_control() || is_format_char(c))
+}
+
+/// Unicode general category Cf, which the registry refuses with Cc.
+fn is_format_char(c: char) -> bool {
+    matches!(c as u32,
+        0x00AD | 0x0600..=0x0605 | 0x061C | 0x06DD | 0x070F | 0x0890..=0x0891 | 0x08E2
+        | 0x180E | 0x200B..=0x200F | 0x202A..=0x202E | 0x2060..=0x2064 | 0x2066..=0x206F
+        | 0xFEFF | 0xFFF9..=0xFFFB | 0x110BD | 0x110CD | 0x13430..=0x1343F
+        | 0x1BCA0..=0x1BCA3 | 0x1D173..=0x1D17A | 0xE0001 | 0xE0020..=0xE007F)
 }
 
 /// Deduplicate requested IDs without sorting away their first-occurrence order.
@@ -301,8 +315,8 @@ pub fn select(
                 selected_entry(world, part, supplier).map(|(entry_index, entry, binding)| {
                     SelectedSupplierEntry {
                         entry: entry_index,
-                        mfr: field(entry, "mfr"),
-                        mpn: field(entry, "mpn"),
+                        mfr: entry.field_value("mfr"),
+                        mpn: entry.field_value("mpn"),
                         part_number: binding.part_number.clone(),
                         mapping: mapping(binding),
                     }

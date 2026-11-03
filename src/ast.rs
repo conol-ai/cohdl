@@ -1696,6 +1696,13 @@ impl AvlEntry {
     pub fn field(&self, name: &str) -> Option<&AvlField> {
         self.fields.iter().find(|f| f.name.name == name)
     }
+
+    /// A field's value, or empty when the entry does not carry it.
+    pub fn field_value(&self, name: &str) -> String {
+        self.field(name)
+            .map(|field| field.value.clone())
+            .unwrap_or_default()
+    }
 }
 
 // ---------------------------------------------------------------------------

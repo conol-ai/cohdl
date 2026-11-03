@@ -1,7 +1,6 @@
 //! RFC-034 §5 online supplier audit. Never called by `check` or `build`: the
 //! CLI enters this module only after the ordinary offline check has passed.
 
-use crate::ast::AvlEntry;
 use crate::deps::PackageDiag;
 use crate::ir::DesignIr;
 use crate::registry::{
@@ -316,13 +315,6 @@ impl AuditReport {
     }
 }
 
-fn field(entry: &AvlEntry, name: &str) -> String {
-    entry
-        .field(name)
-        .map(|field| field.value.clone())
-        .unwrap_or_default()
-}
-
 /// E814's scope: actual instantiated parts only, but every primary/alternate
 /// entry of each such part (not merely the entry a build would select).
 fn source_entries(world: &World, ir: &DesignIr) -> Vec<SourceEntry> {
@@ -347,8 +339,8 @@ fn source_entries(world: &World, ir: &DesignIr) -> Vec<SourceEntry> {
                 } else {
                     format!("alt[{}]", index - 1)
                 },
-                mfr: field(entry, "mfr"),
-                mpn: field(entry, "mpn"),
+                mfr: entry.field_value("mfr"),
+                mpn: entry.field_value("mpn"),
                 bindings: entry
                     .suppliers
                     .iter()
@@ -375,21 +367,37 @@ fn check_snapshot(
     Ok(())
 }
 
+fn too_large(supplier: &str, what: &str) -> PackageDiag {
+    registry::audit_e1204(format!(
+        "the registry's `{supplier}` response for {what} exceeds the audit's response bound"
+    ))
+}
+
+/// The one PN sent when an audit has nothing else to ask a supplier: its
+/// answer says only whether the supplier is listed, and its snapshot date.
+const SUPPLIER_PROBE_PN: &str = "cohdl-supplier-probe";
+
 pub fn audit(
     world: &World,
     ir: &DesignIr,
     requested: &[String],
 ) -> Result<AuditReport, PackageDiag> {
     let entries = source_entries(world, ir);
-    let suppliers: BTreeSet<String> = if requested.is_empty() {
+    // Requested suppliers keep their command-line order, as `build` does;
+    // otherwise every bound supplier is audited in ID order.
+    let suppliers: Vec<String> = if requested.is_empty() {
         entries
             .iter()
             .flat_map(|entry| entry.bindings.keys().cloned())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
             .collect()
     } else {
-        requested.iter().cloned().collect()
+        crate::supplier::requested_suppliers(requested)
     };
     let mut reports = Vec::new();
+    let mut mfr_cache: BTreeMap<String, String> = BTreeMap::new();
+    let mut mpn_cache: BTreeMap<String, String> = BTreeMap::new();
     for supplier in suppliers {
         let bound: Vec<usize> = entries
             .iter()
@@ -419,6 +427,7 @@ pub fn audit(
             }
             let response = match registry::supplier_parts(&supplier, "pn", &unique_values)? {
                 SupplierPartsResponse::Parts(parts) => parts,
+                SupplierPartsResponse::TooLarge => return Err(too_large(&supplier, "PN")),
                 SupplierPartsResponse::Unlisted => {
                     reports.push(SupplierReport {
                         supplier: supplier.clone(),
@@ -482,8 +491,27 @@ pub fn audit(
                     unique_values.push(value.clone());
                 }
             }
-            let response = match registry::supplier_parts(&supplier, "mpn", &unique_values)? {
-                SupplierPartsResponse::Parts(parts) => parts,
+            let responses = match registry::supplier_parts(&supplier, "mpn", &unique_values)? {
+                SupplierPartsResponse::Parts(parts) => vec![parts],
+                // Suggestions are whole catalog rows with no count bound, so an
+                // oversized batch is re-asked one MPN at a time.
+                SupplierPartsResponse::TooLarge if unique_values.len() > 1 => {
+                    let mut each = Vec::new();
+                    for value in &unique_values {
+                        match registry::supplier_parts(
+                            &supplier,
+                            "mpn",
+                            std::slice::from_ref(value),
+                        )? {
+                            SupplierPartsResponse::Parts(parts) => each.push(parts),
+                            _ => return Err(too_large(&supplier, &format!("MPN `{value}`"))),
+                        }
+                    }
+                    each
+                }
+                SupplierPartsResponse::TooLarge => {
+                    return Err(too_large(&supplier, &format!("MPN `{}`", unique_values[0])))
+                }
                 SupplierPartsResponse::Unlisted => {
                     reports.push(SupplierReport {
                         supplier: supplier.clone(),
@@ -495,22 +523,44 @@ pub fn audit(
                     break;
                 }
             };
-            check_snapshot(
-                &mut snapshot_seen,
-                &mut snapshot_date,
-                response.snapshot_date,
-            )?;
             let mut rows_by_mpn = BTreeMap::new();
-            for part in response.parts {
-                let SupplierPartResult::Suggestions(rows) = part.result else {
-                    return Err(registry::unreachable(
-                        "supplier audit MPN response was not a suggestion array".to_string(),
-                    ));
-                };
-                rows_by_mpn.insert(part.requested, rows);
+            for response in responses {
+                check_snapshot(
+                    &mut snapshot_seen,
+                    &mut snapshot_date,
+                    response.snapshot_date,
+                )?;
+                for part in response.parts {
+                    let SupplierPartResult::Suggestions(rows) = part.result else {
+                        return Err(registry::unreachable(
+                            "supplier audit MPN response was not a suggestion array".to_string(),
+                        ));
+                    };
+                    rows_by_mpn.insert(part.requested, rows);
+                }
             }
             for (entry_index, value) in batch {
                 suggestions.insert(*entry_index, rows_by_mpn.get(value).cloned().unwrap());
+            }
+        }
+        if !supplier_unlisted && pn_values.is_empty() && suggestion_values.is_empty() {
+            // Nothing above needed a query, but the supplier itself must still
+            // be checked: a mistyped `--supplier` would otherwise report as a
+            // listed catalog with no snapshot.
+            match registry::supplier_parts(&supplier, "pn", &[SUPPLIER_PROBE_PN.to_string()])? {
+                SupplierPartsResponse::Parts(parts) => {
+                    check_snapshot(&mut snapshot_seen, &mut snapshot_date, parts.snapshot_date)?
+                }
+                SupplierPartsResponse::Unlisted => {
+                    reports.push(SupplierReport {
+                        supplier: supplier.clone(),
+                        snapshot_date: None,
+                        unlisted: true,
+                        entries: Vec::new(),
+                    });
+                    supplier_unlisted = true;
+                }
+                SupplierPartsResponse::TooLarge => return Err(too_large(&supplier, "probe")),
             }
         }
         if supplier_unlisted {
@@ -520,24 +570,23 @@ pub fn audit(
         // Only source values are normalized here. Catalog rows already carry
         // both registry-normalized keys. Empty fields are neither compared nor
         // sent (the normalize endpoint rejects them with HTTP 400).
+        // Keys do not depend on the supplier, so each distinct value is
+        // normalized once per audit and shared by every supplier after it.
         let audited: BTreeSet<usize> = bound.iter().chain(&unbound).copied().collect();
-        let mut mfr_owners = Vec::new();
-        let mut mpn_owners = Vec::new();
-        let mut mfr_values = Vec::new();
-        let mut mpn_values = Vec::new();
-        for index in audited {
-            let entry = &entries[index];
-            if !entry.mfr.is_empty() && entry.mfr.len() <= 256 {
-                mfr_owners.push(index);
-                mfr_values.push(entry.mfr.clone());
+        let comparable = |value: &str| !value.is_empty() && value.len() <= 256;
+        let mut mfr_values = BTreeSet::new();
+        let mut mpn_values = BTreeSet::new();
+        for index in &audited {
+            let entry = &entries[*index];
+            if comparable(&entry.mfr) && !mfr_cache.contains_key(&entry.mfr) {
+                mfr_values.insert(entry.mfr.clone());
             }
-            if !entry.mpn.is_empty() && entry.mpn.len() <= 256 {
-                mpn_owners.push(index);
-                mpn_values.push(entry.mpn.clone());
+            if comparable(&entry.mpn) && !mpn_cache.contains_key(&entry.mpn) {
+                mpn_values.insert(entry.mpn.clone());
             }
         }
-        let mut mfr_keys = Vec::new();
-        let mut mpn_keys = Vec::new();
+        let mfr_values: Vec<String> = mfr_values.into_iter().collect();
+        let mpn_values: Vec<String> = mpn_values.into_iter().collect();
         let mut mfr_offset = 0;
         let mut mpn_offset = 0;
         while mfr_offset < mfr_values.len() || mpn_offset < mpn_values.len() {
@@ -547,13 +596,26 @@ pub fn audit(
                 &mfr_values[mfr_offset..mfr_end],
                 &mpn_values[mpn_offset..mpn_end],
             )?;
-            mfr_keys.extend(response.mfr.into_iter().map(|(_, key)| key));
-            mpn_keys.extend(response.mpn.into_iter().map(|(_, key)| key));
+            for (value, key) in mfr_values[mfr_offset..mfr_end].iter().zip(response.mfr) {
+                mfr_cache.insert(value.clone(), key.1);
+            }
+            for (value, key) in mpn_values[mpn_offset..mpn_end].iter().zip(response.mpn) {
+                mpn_cache.insert(value.clone(), key.1);
+            }
             mfr_offset = mfr_end;
             mpn_offset = mpn_end;
         }
-        let source_mfr: BTreeMap<usize, String> = mfr_owners.into_iter().zip(mfr_keys).collect();
-        let source_mpn: BTreeMap<usize, String> = mpn_owners.into_iter().zip(mpn_keys).collect();
+        let source_keys = |cache: &BTreeMap<String, String>, field: fn(&SourceEntry) -> &String| {
+            audited
+                .iter()
+                .filter_map(|index| {
+                    let value = field(&entries[*index]);
+                    comparable(value).then(|| (*index, cache[value].clone()))
+                })
+                .collect::<BTreeMap<usize, String>>()
+        };
+        let source_mfr = source_keys(&mfr_cache, |entry| &entry.mfr);
+        let source_mpn = source_keys(&mpn_cache, |entry| &entry.mpn);
 
         let mut report_entries = Vec::new();
         for (index, entry) in entries.iter().enumerate() {

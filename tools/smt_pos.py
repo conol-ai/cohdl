@@ -189,6 +189,8 @@ def main():
             }
         )
 
+    # The supplier map reports unbound parts itself and skips none.
+    skipped = []
     if args.map is not None:
         try:
             with args.map.open(encoding="utf-8") as stream:
@@ -240,7 +242,7 @@ def main():
         what = "components (all)" if args.all else "SMT components"
 
     print(f"wrote {out_path}  ({len(rows)} {what})")
-    for ref, why in sorted(locals().get("skipped", []), key=lambda item: item[0]):
+    for ref, why in sorted(skipped, key=lambda item: item[0]):
         print(f"  skipped {ref:6s} — {why}")
 
 

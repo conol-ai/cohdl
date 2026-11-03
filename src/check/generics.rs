@@ -932,11 +932,7 @@ fn check_supplier_bindings(
             "{} entry of part `{}`, supplier `{}`",
             entry_kind, part.name.name, supplier
         );
-        let mut id_chars = supplier.chars();
-        let valid_id = supplier.len() <= 32
-            && matches!(id_chars.next(), Some(c) if c.is_ascii_lowercase())
-            && id_chars.all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_');
-        if !valid_id {
+        if !crate::supplier::valid_supplier_id(supplier) {
             diags.push(Diagnostic::error(
                 "E813",
                 binding.supplier.span,

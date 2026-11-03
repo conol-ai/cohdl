@@ -5,9 +5,12 @@ import { readBoundedJson } from "./component-requests";
 
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 export const SUPPLIER_BODY_LIMIT = 4 * 1024 * 1024;
-export const MAX_CATALOG_ROWS = 10_000;
 // D1 permits 100 bound parameters per statement; catalog rows need 11 each.
 const CATALOG_INSERT_ROWS = Math.floor(100 / 11);
+// A replacement is one atomic batch, and D1 runs at most 1,000 statements per
+// Worker invocation: the supplier upsert and the delete, then the inserts.
+export const MAX_BATCH_STATEMENTS = 1_000;
+export const MAX_CATALOG_ROWS = (MAX_BATCH_STATEMENTS - 2) * CATALOG_INSERT_ROWS;
 
 export interface CatalogLink { label: string; url: string }
 export interface CatalogRow {

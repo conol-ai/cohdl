@@ -52,8 +52,7 @@ fn csv_quote(value: &str) -> String {
 }
 
 fn field(part: Option<&crate::ast::PartDef>, name: &str) -> String {
-    part.and_then(|part| part.primary.field(name))
-        .map(|field| field.value.clone())
+    part.map(|part| part.primary.field_value(name))
         .unwrap_or_default()
 }
 

@@ -43,7 +43,7 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 - E813 checks `(supplier, PN)` uniqueness only within one compile closure. The library test compiles each package separately, so a conflict between two packages in `lib/` goes unseen.
 - The registry has `PUT /api/admin/suppliers/{id}/snapshot`:
   - it replaces the whole catalog;
-  - one request takes at most 10,000 rows or 4 MiB;
+  - one request takes at most 8,982 rows or 4 MiB (the replacement is one atomic D1 batch, which runs at most 1,000 statements);
   - it needs an official account's session;
   - no client calls it yet.
 
@@ -214,7 +214,7 @@ Flow:
 ### Phase D: release
 
 - **D1:** Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts. Each family's release carries its cascade list: the footprint package and every dependent that gets a new version. The registry is deployed with RFC-034 before the first package with bindings, because its search reads `suppliers` from the API docs; bindings published earlier would not be visible there.
-- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends at most 10,000 rows per request; above that, split the upload or change the endpoint first. It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
+- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends at most 8,982 rows per request. A replacement covers the supplier's whole catalog, so a larger catalog needs the endpoint changed first (for example a staged upload that swaps in one step). It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
 
 ### Phase E: W4 new parts
 

@@ -9,6 +9,7 @@ use crate::ir::DesignIr;
 use crate::resolve::World;
 use crate::span::Span;
 use crate::supplier::{BottomRotation, SupplierSelection};
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
 const FEMTO_PER_TEN_THOUSANDTH_MM: i128 = 100_000_000_000;
@@ -38,6 +39,43 @@ pub fn place_origin(ir: &DesignIr) -> Option<(i128, i128)> {
         })
 }
 
+/// Whether an assembler places a footprint: it has a numbered SMD pad (paste
+/// apertures are SMD pad plans too, but their empty number excludes them)
+/// and no source-unspecified mount hole.  `build_artifacts` also serves
+/// --logical-only; such a footprint is rejected later by the physical
+/// preflight, but must not reach the pad projection's source-unspecified-hole
+/// invariant here.  The CPL rows and the supplier map's designators share
+/// this one predicate, memoized per footprint.
+pub(crate) struct MachinePlaced<'w> {
+    world: &'w World,
+    memo: BTreeMap<String, bool>,
+}
+
+impl<'w> MachinePlaced<'w> {
+    pub(crate) fn new(world: &'w World) -> Self {
+        MachinePlaced {
+            world,
+            memo: BTreeMap::new(),
+        }
+    }
+
+    pub(crate) fn check(&mut self, footprint: &str) -> bool {
+        if let Some(known) = self.memo.get(footprint) {
+            return *known;
+        }
+        let placed = self.world.footprints.get(footprint).is_some_and(|def| {
+            !def.mount_holes
+                .iter()
+                .any(|hole| hole.plating == crate::ast::MountHolePlating::SourceUnspecified)
+                && crate::emit::kicad_mod::pad_plans(self.world, def)
+                    .iter()
+                    .any(|pad| !pad.number.is_empty() && pad.kind == "smd")
+        });
+        self.memo.insert(footprint.to_string(), placed);
+        placed
+    }
+}
+
 /// Build the neutral CPL whenever the design itself has at least one real
 /// placement.  In particular, emitter staging positions never enter here.
 fn emit_cpl(
@@ -53,44 +91,27 @@ fn emit_cpl(
     let origin = place_origin(ir);
     let mut rows = Vec::new();
     let mut unplaced = Vec::new();
+    let mut machine_placed = MachinePlaced::new(world);
+    let placements: BTreeMap<&str, _> = ir
+        .layout
+        .placements
+        .iter()
+        .map(|placement| (placement.path.as_str(), placement))
+        .collect();
 
     for inst in ir.instances.values() {
         let Some(part) = inst.part.as_ref().and_then(|name| world.parts.get(name)) else {
             continue;
         };
-        let Some(footprint) = part
-            .primary
-            .footprint
-            .as_ref()
-            .and_then(|fp| world.footprints.get(&fp.name))
-        else {
+        // Use this instance's own bound footprint.
+        let Some(footprint) = part.primary.footprint.as_ref().map(|fp| fp.name.as_str()) else {
             continue;
         };
-        // `build_artifacts` also serves --logical-only.  Such a footprint is
-        // rejected later by the physical preflight, but must not reach the
-        // physical pad projection's source-unspecified-hole invariant here.
-        if footprint
-            .mount_holes
-            .iter()
-            .any(|hole| hole.plating == crate::ast::MountHolePlating::SourceUnspecified)
-        {
-            continue;
-        }
-        // Use this instance's own bound footprint.  Paste apertures are SMD
-        // pad plans too, but their empty number correctly excludes them.
-        if !crate::emit::kicad_mod::pad_plans(world, footprint)
-            .iter()
-            .any(|pad| !pad.number.is_empty() && pad.kind == "smd")
-        {
+        if !machine_placed.check(footprint) {
             continue;
         }
         let designator = inst.designator.as_deref().unwrap_or("?");
-        let Some(placement) = ir
-            .layout
-            .placements
-            .iter()
-            .find(|placement| placement.path == inst.path)
-        else {
+        let Some(placement) = placements.get(inst.path.as_str()) else {
             unplaced.push(UnplacedInstance {
                 designator: designator.to_string(),
                 span: inst.span,

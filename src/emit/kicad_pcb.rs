@@ -45,8 +45,10 @@ const FEMTO_MM: i128 = 1_000_000_000_000_000;
 
 /// File header through the end of `(setup …)`: the block KiCad 10 writes for
 /// a board of ours, verbatim (generator identity aside). `generator_version`
-/// declares the format generation targeted, fixed for byte stability.
-const HEADER: &str = r#"(kicad_pcb
+/// declares the format generation targeted, fixed for byte stability. It is
+/// split where the CPL origin goes, so [`header`] writes the origin into
+/// fixed positions instead of patching text.
+const HEADER_SETUP: &str = r#"(kicad_pcb
 	(version 20260206)
 	(generator "cohdl")
 	(generator_version "10.0")
@@ -98,7 +100,9 @@ const HEADER: &str = r#"(kicad_pcb
 		)
 		(capping no)
 		(filling no)
-		(pcbplotparams
+"#;
+
+const HEADER_PLOT: &str = r#"		(pcbplotparams
 			(layerselection 0x00000000_00000000_55555555_5755f5ff)
 			(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)
 			(disableapertmacros no)
@@ -111,8 +115,9 @@ const HEADER: &str = r#"(kicad_pcb
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
-			(useauxorigin no)
-			(pdf_front_fp_property_popups yes)
+"#;
+
+const HEADER_PLOT_END: &str = r#"			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
 			(pdf_single_document no)
@@ -137,6 +142,30 @@ const HEADER: &str = r#"(kicad_pcb
 	)
 "#;
 
+/// RFC-034 §3.1: the CPL measures from the outline's lower-left corner.
+/// Make that corner KiCad's drill/place origin, where pcbnew itself writes it,
+/// and default the Gerber plot to it, so fabrication files plotted from this
+/// board share the CPL's frame.
+fn header(origin: Option<(i128, i128)>) -> String {
+    let mut s = String::from(HEADER_SETUP);
+    if let Some((x, y)) = origin {
+        let _ = writeln!(
+            s,
+            "\t\t(aux_axis_origin {} {})",
+            geom::mm_femto(x),
+            geom::mm_femto(y)
+        );
+    }
+    s.push_str(HEADER_PLOT);
+    let _ = writeln!(
+        s,
+        "\t\t\t(useauxorigin {})",
+        if origin.is_some() { "yes" } else { "no" }
+    );
+    s.push_str(HEADER_PLOT_END);
+    s
+}
+
 pub fn emit_kicad_pcb(
     world: &World,
     ir: &DesignIr,
@@ -160,27 +189,7 @@ pub fn emit_kicad_pcb(
         .collect();
     let nets = net_map(world, ir);
 
-    let mut s = String::new();
-    match crate::emit::cpl::place_origin(ir) {
-        // RFC-034 §3.1: the CPL measures from the outline's lower-left corner.
-        // Make that corner KiCad's drill/place origin, where pcbnew itself
-        // writes it, and default the Gerber plot to it, so fabrication files
-        // plotted from this board share the CPL's frame.
-        Some((x, y)) => s.push_str(
-            &HEADER
-                .replacen(
-                    "\t\t(pcbplotparams\n",
-                    &format!(
-                        "\t\t(aux_axis_origin {} {})\n\t\t(pcbplotparams\n",
-                        geom::mm_femto(x),
-                        geom::mm_femto(y)
-                    ),
-                    1,
-                )
-                .replacen("(useauxorigin no)", "(useauxorigin yes)", 1),
-        ),
-        None => s.push_str(HEADER),
-    }
+    let mut s = header(crate::emit::cpl::place_origin(ir));
     for inst in &insts {
         let refdes = inst.designator.as_deref().unwrap_or("?");
         let fq = crate::emit::ipc2581::part_fields(world, inst).2;

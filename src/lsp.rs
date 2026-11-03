@@ -1249,11 +1249,13 @@ impl Server {
         let mut items = Vec::new();
         // `supplier` is contextual: offer it beside AVL fields only, not as
         // a new keyword elsewhere in a part or elsewhere in the language.
-        let in_avl_entry = self.analyze(&path).ok().is_some_and(|analysis| {
+        // One analysis serves both the AVL context and the local symbols.
+        let analysis = self.analyze(&path).ok();
+        let in_avl_entry = analysis.as_ref().is_some_and(|analysis| {
             let Some(fid) = analysis.fid_for(&path) else {
                 return false;
             };
-            let Some(offset) = position_to_offset(&analysis, fid, line as u32, character as u32)
+            let Some(offset) = position_to_offset(analysis, fid, line as u32, character as u32)
             else {
                 return false;
             };
@@ -1384,7 +1386,7 @@ impl Server {
         // Constant), loop labels and loop binders. The visible set is the
         // enclosing design/fn body's consts plus, per enclosing loop, its
         // label and binder.
-        if let Ok(analysis) = self.analyze(&path) {
+        if let Some(analysis) = analysis {
             let world = &analysis.checked.world;
             let fid = analysis.fid_for(&path);
             let offset =

@@ -209,6 +209,7 @@ def run_backfill(
         candidate_urls = [canonical_url(origin, candidate.path) for candidate in candidates]
         has_failed = any(url in failed for url in candidate_urls)
         has_not_fetched = any(url not in fetched and url not in failed for url in candidate_urls)
+        has_unparsed = any(url in fetched and url not in confirmed for url in candidate_urls)
         for candidate in candidates:
             page = confirmed.get(canonical_url(origin, candidate.path))
             if page is None or confirmation_mpn(page["mpn"]) != confirmation_mpn(mpn):
@@ -220,15 +221,22 @@ def run_backfill(
                 other_mfr.append({**page, "partdetail": candidate.path})
         best, tied = choose_candidate(matches)
         identity = {"mfr": mfr, "mpn": mpn}
-        if best is None:
-            if tied:
-                reason = "tied_after_priority"
-            elif not candidates:
-                reason = "no_candidate"
-            elif has_not_fetched:
+        # A choice is made only over every candidate page. With one missing
+        # (request budget, a failed fetch, an unreadable page) the confirmed
+        # ones could still lose to it or tie with it, so the identity waits
+        # for review even when a best candidate exists.
+        incomplete = has_not_fetched or has_failed or has_unparsed
+        if best is None or incomplete:
+            if has_not_fetched:
                 reason = "not_fetched"
             elif has_failed:
                 reason = "fetch_failed"
+            elif has_unparsed:
+                reason = "page_unparsed"
+            elif tied:
+                reason = "tied_after_priority"
+            elif not candidates:
+                reason = "no_candidate"
             elif other_mfr:
                 # The MPN is confirmed but the manufacturer name differs: an
                 # alias for a human to review, never applied automatically.

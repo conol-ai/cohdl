@@ -122,6 +122,9 @@ class BackfillTests(unittest.TestCase):
             first = run_backfill(avl, index, origin=server.url(), client=limited,
                                  output_dir=self.root / "one", aliases={}, snapshot_date="2026-10-30")
             self.assertTrue(first["budget_exhausted"])
+            # Only C1 was confirmed, and C2 would have tied it: no choice yet.
+            self.assertEqual(json.loads((self.root / "one/lcsc_map.json").read_text())["rows"], [])
+            self.assertEqual([row["reason"] for row in first["not_fetched"]], ["not_fetched"])
             before = len(server.requests)
             resumed = make_client(self.root / "cache", max_requests=10)
             result = run_backfill(avl, index, origin=server.url(), client=resumed,
@@ -228,6 +231,23 @@ class BackfillTests(unittest.TestCase):
         self.assertEqual(result["counts"]["fetch_failures"], 1)
         self.assertEqual([row["mpn"] for row in result["fetch_failed"]], ["X"])
         self.assertEqual(result["max_requests"], make_client(self.root / "cache2").max_requests)
+
+    def test_a_failed_or_unreadable_candidate_page_holds_the_identity_for_review(self):
+        avl = [AVLRow("x", "primary", "Acme", "X")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1",
+                                          "http://127.0.0.1/partdetail/X/C2/C2"])
+        for second, reason in [((503, "busy"), "fetch_failed"), ((200, "<html></html>"), "page_unparsed")]:
+            out = self.root / reason
+            with LocalServer({"/partdetail/X/C1/C1": (200, page("C1", "X", stock=5)),
+                              "/partdetail/X/C2/C2": second,
+                              "/robots.txt": (200, "User-agent: *\nAllow: /\n")}) as server:
+                run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                             client=make_client(self.root / f"cache-{reason}"), output_dir=out,
+                             aliases={}, snapshot_date="2026-10-30")
+            self.assertEqual(json.loads((out / "lcsc_map.json").read_text())["rows"], [], reason)
+            review = json.loads((out / "review.json").read_text())
+            self.assertEqual([row["reason"] for row in review["rows"]], [reason])
+            self.assertEqual([row["c"] for row in review["rows"][0]["candidates"]], ["C1"])
 
     def test_cache_hits_are_logged_in_requests_json(self):
         avl = [AVLRow("x", "primary", "Acme", "X")]

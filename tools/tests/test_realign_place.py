@@ -178,6 +178,42 @@ design D {
         self.assertEqual(len(edits), 1)
         self.assertEqual(source.count("\n", 0, edits[0][0]) + 1, 8)
 
+    def test_design_body_spans_past_an_earlier_subdesign_use_site_block(self):
+        # The design header's own `{` opens its body; the use site's block is
+        # nested in it and must not end the design's region early.
+        source = """design D {
+ subdesign port: CanPort { a: n1 }
+ layout {
+  place U1 at (5mm, 6mm)
+ }
+}
+"""
+        notes = []
+        edits, errors, changed = rp.realign(
+            source, {"p::F": (0, 0, 90)}, {"U1": "p::F"}, design="D", notes=notes)
+        self.assertFalse(errors)
+        self.assertFalse(notes)
+        self.assertEqual(changed, [("U1", "p::F")])
+        self.assertIn("rotate 90", source[:edits[0][0]] + edits[0][2])
+
+    def test_a_laid_out_target_left_unrewritten_fails_the_run(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            real = rp.realign
+
+            def drop_v_1(*a, **k):
+                edits, errors, changed = real(*a, **k)
+                keep = [i for i, (target, _) in enumerate(changed) if target != "v_1"]
+                return [edits[i] for i in keep], errors, [changed[i] for i in keep]
+
+            with mock.patch.object(rp, "realign", drop_v_1), \
+                    mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 1)
+            self.assertIn("v_1 uses moved footprint p::F but was not rewritten", err.getvalue())
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+
     def test_same_named_place_in_another_design_is_left_alone(self):
         source = """design Other {
  layout {

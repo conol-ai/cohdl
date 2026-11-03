@@ -126,7 +126,9 @@ def regions(source, keyword, name=None):
         pattern = r"(?m)(?:^|(?<=[;}]))[ \t]*(?:pub[ \t]+)?design[ \t]+" + (
             re.escape(name) if name else r"[A-Za-z_][A-Za-z0-9_]*") + r"[ \t]*\{"
     for match in re.finditer(pattern, clean):
-        brace = clean.find("{", match.end())
+        # A declaration pattern ends on its own `{`; searching on from there
+        # would take the first nested block (a use site, `layout`) as the body.
+        brace = match.end() - 1 if keyword != "for" else clean.find("{", match.end())
         if brace < 0 or (keyword == "for" and "\n" in clean[match.end():brace]):
             continue
         depth, i = 0, brace
@@ -315,9 +317,11 @@ def main(argv=None):
                    for m in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source)}
         footprints, unmatched, placed, design = compiler_footprints(args.layout, args.board, targets, changes)
         rewritten, errors, undo_files = {}, ["%s: %s" % (args.project, item) for item in unmatched], []
+        done = set()
         for path, source in originals.items():
             notes = []
-            edits, problems, _ = realign(source, changes, footprints, design=design, placed=placed, notes=notes)
+            edits, problems, changed = realign(source, changes, footprints, design=design, placed=placed, notes=notes)
+            done.update(target for target, _ in changed)
             errors.extend("%s:%d: %s" % (path, line, msg) for line, msg in problems)
             for line, msg in notes:
                 print("%s:%d: note: %s" % (path, line, msg), file=sys.stderr)
@@ -327,6 +331,10 @@ def main(argv=None):
             if edits:
                 undo_files.append({"path": str(path), "source": originals[path], "count": len(edits),
                                    "after_sha256": hashlib.sha256(source.encode()).hexdigest()})
+        # Every laid-out target on a moved footprint must have been rewritten:
+        # one skipped without a diagnostic would silently move its copper.
+        errors.extend("%s: %s uses moved footprint %s but was not rewritten" % (args.project, target, footprints[target])
+                      for target in sorted(set(footprints) - done))
         if errors:
             for error in errors: print(error, file=sys.stderr)
             return 1

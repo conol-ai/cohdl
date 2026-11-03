@@ -20,7 +20,7 @@
 
 use crate::ir::DesignIr;
 use crate::resolve::World;
-use crate::supplier::{SelectedSupplierEntry, SupplierSelection};
+use crate::supplier::{AvlEntryIndex, SelectedSupplierEntry, SupplierSelection};
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
@@ -140,20 +140,17 @@ fn component(
         crate::resolve::short(&inst.device).to_string(),
     );
     props.insert("FootprintName", footprint.to_string());
-    if let Some((_, entry)) = selected {
-        if !entry.mfr.is_empty() {
-            props.insert("Manufacturer", entry.mfr.clone());
-        }
-        if !entry.mpn.is_empty() {
-            props.insert("Manufacturer Part", entry.mpn.clone());
-        }
-    } else {
-        if let Some(mfr) = part.and_then(|p| p.primary.field("mfr")) {
-            props.insert("Manufacturer", mfr.value.clone());
-        }
-        if let Some(mpn) = part.and_then(|p| p.primary.field("mpn")) {
-            props.insert("Manufacturer Part", mpn.value.clone());
-        }
+    // Under `--supplier` the identity is the selected entry's, with the same
+    // present-even-if-empty rule as the primary's in a plain build.
+    let identity = part.map(|p| match selected.map(|(_, entry)| entry.entry) {
+        Some(AvlEntryIndex::Alt(index)) => &p.alts[index],
+        Some(AvlEntryIndex::Primary) | None => &p.primary,
+    });
+    if let Some(mfr) = identity.and_then(|entry| entry.field("mfr")) {
+        props.insert("Manufacturer", mfr.value.clone());
+    }
+    if let Some(mpn) = identity.and_then(|entry| entry.field("mpn")) {
+        props.insert("Manufacturer Part", mpn.value.clone());
     }
     props.insert("Name", super::kicad::principal_value(world, inst));
     props.insert("Unique ID", unique_id.to_string());

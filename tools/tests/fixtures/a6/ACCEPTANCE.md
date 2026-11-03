@@ -16,7 +16,7 @@ Expected real-compiler results:
 - `sf32-miniboard`: 1 forward and 1 reverse placement.
 - Every example's source bytes are identical after reverse.
 - Vendored joint rigid library move: 8 pads compared at 0 nm tolerance.
-- Independent rigid fixture, top/bottom/37 degrees: 6 pads compared at 1 nm
+- Independent rigid fixture, top/bottom/37 degrees and bottom at 37 degrees: 8 pads compared at 1 nm
   tolerance (the 37-degree fixed-point path differs by at most 1 nm).
 - Generated bottom-preview: 60 pads compared at 0 nm and all 16 supplier CPL
   rows match byte-for-byte. Declarations, instances, nets and layout are all

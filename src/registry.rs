@@ -524,28 +524,69 @@ enum JsonValue {
     Object(Vec<(String, JsonValue)>),
 }
 
+/// Value and array-length bounds for one response. Object fields keep a fixed
+/// 256 bound: no response object has that many keys, and duplicate-key
+/// detection is quadratic in it.
+#[derive(Clone, Copy)]
+struct JsonLimits {
+    nodes: usize,
+    array_items: usize,
+}
+
+impl JsonLimits {
+    /// `/search` and the package endpoints: 1 MiB bodies of small rows.
+    const SEARCH: Self = Self {
+        nodes: 4_096,
+        array_items: 256,
+    };
+    /// Supplier audit endpoints: up to 100 values per batch, each with an
+    /// unbounded number of catalog rows, within `MAX_AUDIT_RESPONSE`.
+    const AUDIT: Self = Self {
+        nodes: 1 << 20,
+        array_items: 1 << 16,
+    };
+}
+
 struct JsonParser<'a> {
     input: &'a [u8],
     pos: usize,
     nodes: usize,
+    limits: JsonLimits,
+    limit_exceeded: bool,
 }
 
 impl<'a> JsonParser<'a> {
     const MAX_DEPTH: usize = 128;
-    const MAX_NODES: usize = 4_096;
-    const MAX_CONTAINER_ITEMS: usize = 256;
+    const MAX_OBJECT_FIELDS: usize = 256;
     const MAX_STRING_BYTES: usize = 64 * 1024;
 
     fn new(input: &'a [u8]) -> Result<Self, String> {
+        Self::with_limits(input, JsonLimits::SEARCH)
+    }
+
+    fn with_limits(input: &'a [u8], limits: JsonLimits) -> Result<Self, String> {
         std::str::from_utf8(input).map_err(|_| "response is not valid UTF-8".to_string())?;
         Ok(Self {
             input,
             pos: 0,
             nodes: 0,
+            limits,
+            limit_exceeded: false,
         })
     }
 
     fn parse(mut self) -> Result<JsonValue, String> {
+        self.document()
+    }
+
+    /// Like `parse`, but tells a size bound apart from a malformed body: the
+    /// supplier audit answers the first by asking for less.
+    fn parse_bounded(mut self) -> Result<JsonValue, (bool, String)> {
+        self.document()
+            .map_err(|error| (self.limit_exceeded, error))
+    }
+
+    fn document(&mut self) -> Result<JsonValue, String> {
         let value = self.value(0)?;
         self.ws();
         if self.pos != self.input.len() {
@@ -569,8 +610,12 @@ impl<'a> JsonParser<'a> {
             return Err("JSON nesting exceeds 128 levels".to_string());
         }
         self.nodes += 1;
-        if self.nodes > Self::MAX_NODES {
-            return Err("JSON response exceeds 4096 values".to_string());
+        if self.nodes > self.limits.nodes {
+            self.limit_exceeded = true;
+            return Err(format!(
+                "JSON response exceeds {} values",
+                self.limits.nodes
+            ));
         }
         self.ws();
         match self.input.get(self.pos).copied() {
@@ -624,8 +669,12 @@ impl<'a> JsonParser<'a> {
             return Ok(JsonValue::Array(values));
         }
         loop {
-            if values.len() >= Self::MAX_CONTAINER_ITEMS {
-                return Err("JSON array exceeds 256 items".to_string());
+            if values.len() >= self.limits.array_items {
+                self.limit_exceeded = true;
+                return Err(format!(
+                    "JSON array exceeds {} items",
+                    self.limits.array_items
+                ));
             }
             values.push(self.value(depth + 1)?);
             self.ws();
@@ -652,7 +701,7 @@ impl<'a> JsonParser<'a> {
             return Ok(JsonValue::Object(fields));
         }
         loop {
-            if fields.len() >= Self::MAX_CONTAINER_ITEMS {
+            if fields.len() >= Self::MAX_OBJECT_FIELDS {
                 return Err("JSON object exceeds 256 fields".to_string());
             }
             if self.input.get(self.pos) != Some(&b'"') {
@@ -954,13 +1003,12 @@ fn parse_audit_catalog(value: &JsonValue, path: &str) -> Result<AuditCatalogRow,
 }
 
 fn parse_supplier_parts_response(
-    body: &[u8],
+    json: &JsonValue,
     expected_supplier: &str,
     kind: &str,
     expected: &[String],
 ) -> Result<SupplierParts, String> {
-    let json = JsonParser::new(body)?.parse()?;
-    let root = json_object(&json)?;
+    let root = json_object(json)?;
     if required_string(root, "supplier")? != expected_supplier {
         return Err("`supplier` does not match the request".to_string());
     }
@@ -984,8 +1032,10 @@ fn parse_supplier_parts_response(
         let catalog = json_field(row, "catalog").map_err(|e| format!("{path}: {e}"))?;
         let result_value = match (kind, catalog) {
             ("pn", JsonValue::String(value)) if value == "unknown" => SupplierPartResult::Unknown,
-            ("pn", JsonValue::String(value)) => {
-                return Err(format!("{catalog_path}: unknown catalog status `{value}`"));
+            // The value is not echoed: it is registry-controlled text, and a
+            // diagnostic reaches the terminal unfiltered.
+            ("pn", JsonValue::String(_)) => {
+                return Err(format!("{catalog_path}: unknown catalog status"));
             }
             ("pn", value) => {
                 let row = parse_audit_catalog(value, &catalog_path)?;
@@ -1055,7 +1105,7 @@ fn parse_normalize_response(
             })
             .collect()
     }
-    let json = JsonParser::new(body)?.parse()?;
+    let json = JsonParser::with_limits(body, JsonLimits::AUDIT)?.parse()?;
     let root = json_object(&json)?;
     Ok(NormalizedFields {
         mfr: side(root, "mfr", expected_mfr)?,
@@ -1456,9 +1506,21 @@ pub fn supplier_parts(
         PartsGet::Unlisted => return Ok(SupplierPartsResponse::Unlisted),
         PartsGet::TooLarge => return Ok(SupplierPartsResponse::TooLarge),
     };
-    parse_supplier_parts_response(&response.body, supplier, kind, values)
+    let malformed =
+        |error: String| audit_e1204(format!("malformed response from GET {url}: {error}"));
+    // A body within the byte bound can still exceed the parser's value or
+    // array bound. Both mean the same thing to the caller: ask for less.
+    let json = match JsonParser::with_limits(&response.body, JsonLimits::AUDIT)
+        .map_err(&malformed)?
+        .parse_bounded()
+    {
+        Ok(json) => json,
+        Err((true, _)) => return Ok(SupplierPartsResponse::TooLarge),
+        Err((false, error)) => return Err(malformed(error)),
+    };
+    parse_supplier_parts_response(&json, supplier, kind, values)
         .map(SupplierPartsResponse::Parts)
-        .map_err(|error| audit_e1204(format!("malformed response from GET {url}: {error}")))
+        .map_err(malformed)
 }
 
 /// Normalize one nonempty batch on the registry. Empty source fields are

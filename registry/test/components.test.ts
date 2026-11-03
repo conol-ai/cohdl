@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PartCard, SupplierBindings, formatDate, formatSize, safeSupplierUrl } from "../src/ui/components";
-import { packageSearchUrl, partSearchUrl, type SupplierBinding } from "../src/ui/api";
-import { parseCatalogueSearch, parseCatalogueUrlSearch, parseClassInput, stringifyCatalogueSearch } from "../src/ui/catalogue-model";
+import {
+  ApiError, packageSearchUrl, partSearchUrl, retryUnlessClientError, searchableQuery, type SupplierBinding,
+} from "../src/ui/api";
+import {
+  nextCatalogueSearch, parseCatalogueSearch, parseCatalogueUrlSearch, parseClassInput, stringifyCatalogueSearch,
+} from "../src/ui/catalogue-model";
 
 describe("registry UI formatting", () => {
   it("formats artifact sizes for compact metadata", () => {
@@ -35,13 +39,23 @@ describe("supplier part views", () => {
   it("renders PN, placement mapping, links, class, snapshot date and zero stock", () => {
     const html = renderToStaticMarkup(React.createElement(SupplierBindings, { suppliers: [binding()] }));
     for (const text of ["acme&lt;script&gt;", "A-1&lt;&quot;&amp;&gt;", "(1mm, -2mm)", "180°",
-      "resistor&lt;0402&gt;", "2026-10-28T01:02:03.000Z", ">0</td>"]) {
+      "resistor&lt;0402&gt;", 'dateTime="2026-10-28T01:02:03.000Z"', ">Oct 28, 2026</time>", ">0</td>"]) {
       expect(html).toContain(text);
     }
     expect(html).toContain('href="https://example.com/A-1?q=1&amp;x=2"');
     expect(html).toContain('rel="noopener noreferrer"');
     expect(html).toContain('target="_blank"');
     expect(html).not.toContain("<script>");
+  });
+
+  it("shows the snapshot's UTC day and a dash for an unclassified catalog row", () => {
+    // Both ends of the UTC day render as that day in any viewer time zone.
+    for (const snapshotDate of ["2026-10-28T00:00:01Z", "2026-10-28T23:59:59Z"]) {
+      const html = renderToStaticMarkup(React.createElement(SupplierBindings, { suppliers: [binding({
+        catalog: { class: "", stock: 3, snapshot_date: snapshotDate } })] }));
+      expect(html).toContain(">Oct 28, 2026</time>");
+      expect(html).toContain("<td>—</td>");
+    }
   });
 
   it("renders null catalog and missing suppliers without confusing them with zero stock", () => {
@@ -102,6 +116,44 @@ describe("catalogue supplier filters", () => {
       .toBe("?view=api&item=p%3A%3AP&version=1.0.0");
     expect(parseCatalogueSearch(parseCatalogueUrlSearch("?kind=part&supplier=acme&class=0402&class=true")))
       .toMatchObject({ class: ["0402", "true"] });
+  });
+
+  it("encodes search state without URLSearchParams.size, which baseline browsers lack", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(URLSearchParams.prototype, "size");
+    Object.defineProperty(URLSearchParams.prototype, "size", { configurable: true, get: () => undefined });
+    try {
+      expect(stringifyCatalogueSearch({ q: "usb", kind: "part", supplier: "acme", class: ["resistor"] }))
+        .toBe("?q=usb&kind=part&supplier=acme&class=resistor");
+      expect(stringifyCatalogueSearch({})).toBe("");
+    } finally {
+      if (descriptor) Object.defineProperty(URLSearchParams.prototype, "size", descriptor);
+    }
+  });
+
+  it("clears classes on an emptied field and clears every filter on Clear", () => {
+    const current = { q: "res", kind: "part" as const, supplier: "acme", class: ["resistor"] };
+    // Submitting the form with the class field emptied.
+    expect(nextCatalogueSearch(current, "res", { q: "res", kind: "part", supplier: "acme",
+      class: parseClassInput("") ?? [] })).toEqual({ q: "res", kind: "part", supplier: "acme" });
+    // A control that does not name the class keeps it.
+    expect(nextCatalogueSearch(current, "res", { sort: "name" }))
+      .toMatchObject({ supplier: "acme", class: ["resistor"], sort: "name" });
+    // The toolbar Clear button.
+    expect(nextCatalogueSearch(current, "res", { q: null, supplier: null, class: [] }))
+      .toEqual({ kind: "part" });
+    // Classes require a supplier.
+    expect(nextCatalogueSearch(current, "res", { supplier: null }).class).toBeUndefined();
+  });
+
+  it("never sends a part search the Worker must reject and never retries a 4xx", () => {
+    expect(searchableQuery("  ab ")).toBe(false);
+    expect(searchableQuery("abc")).toBe(true);
+    expect(searchableQuery("电阻器")).toBe(true);
+    expect(retryUnlessClientError(0, new ApiError("bad", 400))).toBe(false);
+    expect(retryUnlessClientError(0, new ApiError("missing", 404))).toBe(false);
+    expect(retryUnlessClientError(0, new ApiError("down", 503))).toBe(true);
+    expect(retryUnlessClientError(0, new TypeError("network"))).toBe(true);
+    expect(retryUnlessClientError(3, new ApiError("down", 503))).toBe(false);
   });
 
   it("uses stable kind=part search while package search keeps its original endpoint", () => {

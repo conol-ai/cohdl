@@ -104,6 +104,19 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
             std::fs::copy(source, fixture.root.join("tools/sourcing_data").join(file)).unwrap();
         }
     }
+    // A binding needs the owning manifest and its frame row's evidence record;
+    // without them the fixture would silently generate no clause and drift
+    // from the committed sources as soon as a real binding lands.
+    std::fs::copy(
+        root.join("lib/passive/cohdl.toml"),
+        fixture.root.join("lib/passive/cohdl.toml"),
+    )
+    .unwrap();
+    for record in frame_evidence_records(root) {
+        let target = fixture.root.join(&record);
+        std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+        std::fs::copy(root.join(&record), target).unwrap();
+    }
     for entry in std::fs::read_dir(root.join("tools/passive_data")).unwrap() {
         let entry = entry.unwrap();
         if entry.file_type().unwrap().is_file() {
@@ -128,6 +141,24 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
         String::from_utf8_lossy(&output.stderr)
     );
     fixture
+}
+
+/// Every evidence record cited by `tools/sourcing_data/jlc_frames.json`.
+fn frame_evidence_records(root: &std::path::Path) -> Vec<String> {
+    let Ok(text) = std::fs::read_to_string(root.join("tools/sourcing_data/jlc_frames.json")) else {
+        return Vec::new();
+    };
+    let frames: serde_json::Value = serde_json::from_str(&text).unwrap();
+    let mut records: Vec<String> = frames["rows"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|row| row["evidence"]["record"].as_str())
+        .map(str::to_string)
+        .collect();
+    records.sort();
+    records.dedup();
+    records
 }
 
 fn resistor_sizes(dir: &std::path::Path) -> Vec<String> {

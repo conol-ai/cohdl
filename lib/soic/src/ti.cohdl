@@ -12,6 +12,7 @@ pub pad P_TI_D0008A_4214825C {
 // plan W3): pin 1 at lower left.
 #[doc("docs/ti-d0008a.md")]
 #[doc("docs/ti-tlv90x2-snosda3h.pdf")]
+#[doc("docs/README.md")]
 pub footprint TI_D0008A_4214825C {
     pad 1: P_TI_D0008A_4214825C at (-1.905mm, 2.7051mm) rotate 90
     pad 2: P_TI_D0008A_4214825C at (-0.635mm, 2.7051mm) rotate 90

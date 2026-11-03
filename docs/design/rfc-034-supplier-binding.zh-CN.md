@@ -84,7 +84,7 @@ pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
 
 - **`SUPPLIER`** 是一个标识符：以小写 ASCII 字母开头，后面跟小写字母、数字或 `_`，最长 32 字节。这个集合是**开放的**：编译器不赋予任何具体名字含义。约定俗成的名字记录在 registry 的供应商表里（§4），不在编译器里。本 RFC 中的 `acme`、`globex` 及其料号均为虚构的占位示例。`mpn` 和 `mfr` 两个 ID 保留不用（E813）：它们的大写形式会和 KiCad 网表里的 `MPN`/`MFR` 字段重名（§3.3）。
 - **`PART_NUMBER`** 是一个字符串：去掉首尾空白后不能为空，最长 128 个 UTF-8 字节，不含控制字符。编译器不做任何供应商特有的格式检查。
-- **`at (X, Y)`** 是映射偏移，由两个 `Length` 值组成（RFC-001；写裸数字会报现有的单位错误）。可以为负数，默认为 `(0mm, 0mm)`。
+- **`at (X, Y)`** 是映射偏移，由两个 `Length` 值组成（RFC-001；写裸数字报 E813，见下文）。可以为负数，默认为 `(0mm, 0mm)`。
 - **`rotate ANGLE`** 是映射旋转，为 `0..=359` 范围内的整数度。取值范围和诊断形式与 `place … rotate` 以及（现行任意角度偏离规则下的）焊盘旋转相同。默认为 `0`。
 - **复用现有语法。** `at (…)` 和 `rotate …` 是现有的放置子句，按 §2 定义的含义复用。`supplier` 只在 AVL 条目内一项的开头被识别：其后紧跟一个标识符和一个字符串，而不是 `:`。所以它是上下文关键字，不新增保留字；在其他任何地方，名为 `supplier` 的现有标识符照常可用。
 - **唯一性：**
@@ -97,7 +97,7 @@ pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
 
 诊断：
 - **语法错误**（缺少供应商标识符或料号字符串、多余的记号）由解析器报 **E010**，和其他所有语法错误一样。
-- **E813** 负责子句的语义，并指明零件、条目和供应商：料号为空、超长或含控制字符，供应商标识符超长，供应商重复，料号冲突，子句超过 16 个，角度越界，以及 `at` 中的值不是 `Length`（裸数字或其他单位）。现有各结构都自己负责单位错误（焊盘是 E805/E806，`place` 是 E1007），这里同样由 E813 负责。
+- **E813** 负责子句的语义，并指明零件、条目和供应商：供应商标识符不符合上述语法或是保留 ID，料号为空、超长或含控制字符，供应商标识符超长，供应商重复，料号冲突，子句超过 16 个，角度越界，以及 `at` 中的值不是 `Length`（裸数字或其他单位）。现有各结构都自己负责单位错误（焊盘是 E805/E806，`place` 是 E1007），这里同样由 E813 负责。
 - 词法层面的单位错误（E101、E103、E104）照常适用。
 - 未知的 `name:` 键仍然报 E802。
 
@@ -267,7 +267,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
 - 按供应商整体替换，数据来自通过管理端接口上传的快照。Worker 不访问供应商网站。
 - 快照包含什么、如何采集，不在本 RFC 范围内。
 
-**索引。** `registry/src/worker/search.ts` 把 API 文档中的 `suppliers` 数组读入零件索引，与 `mfr`/`mpn` 并列，并和其他投影一样设上限（新增 `MAX_SUPPLIERS_PER_AVL = 16`，与 `MAX_AVL_ENTRIES_PER_PART` 并列）。料号也加入可搜索文本，所以搜料号就能找到对应零件。
+**索引。** `registry/src/worker/search.ts` 把 API 文档中的 `suppliers` 数组读入零件索引，与 `mfr`/`mpn` 并列，并和其他投影一样设上限（新增 `MAX_SUPPLIERS_PER_AVL = 16`，与 `MAX_AVL_ENTRIES_PER_PART` 并列；每个零件最多 `MAX_SUPPLIER_BINDINGS_PER_PART = 32` 个不同的 `(supplier, pn)`，所以一页搜索结果需要的目录查询有上限，并作为一个 D1 batch 发出）。料号也加入可搜索文本，所以搜料号就能找到对应零件。
 
 **对外接口**（全部为新增；和 `/search` 一样只读、无需登录）：
 
@@ -286,7 +286,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
 
 ### 5. `cohdl suppliers`：在线核对与推荐
 
-`cohdl suppliers <dir> [--supplier ID]... [--json]` 先像 `check` 一样离线解析项目，再查询 registry。项目未通过 `check` 时，和 `check` 一样以退出码 1 结束，不发任何查询。
+`cohdl suppliers <dir> [--supplier ID]... [--json]` 先像 `check` 一样离线解析项目，并像 `build` 一样把每个实例绑定到零件，再查询 registry。项目未通过 `check`，或有实例绑定不到零件（E801，同 `build`）时，以退出码 1 结束，不发任何查询。
 
 - **对每个绑定**（可限定为指定供应商），报告以下状态之一：
   - `ok`
@@ -299,7 +299,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
   - 该命令从不修改源码。`--json` 以结构化数据给出推荐，供修复流程使用。
 - **范围。** 和 E814 一样，核对设计实际实例化的零件的全部 AVL 条目（主料和替代料）。不给 `--supplier` 时，核对这些条目绑定的所有供应商 ID，不报 `unbound`。
 - **比较**使用 registry 算出的 key（§4）：目录行的 `mpn_key`/`manufacturer_key`，对比 `/manufacturers/normalize` 为条目的 `mpn` 和 `mfr` 返回的 key。
-- **无法向 registry 查询的值。** 料号含 `,` 或超过 256 字节时，不发查询，直接报 `unknown` 并注明原因。这样的 `mpn` 报 `unbound` 且不给推荐。超过 256 字节的 `mfr` 或 `mpn` 不参与比较，和留空一样处理。
+- **无法向 registry 查询的值。** 料号含 `,` 或控制字符，或超过 256 字节时，不发查询，直接报 `unknown` 并注明原因。这样的 `mpn` 报 `unbound` 且不给推荐。超过 256 字节或含控制字符的 `mfr` 或 `mpn` 不参与比较，和留空一样处理。
 - **未登记的供应商。** registry 没有某个供应商 ID 的目录（`404 supplier not found`）时，报告在供应商一级说明这一点，不逐条列出它的绑定状态。这不影响退出码，因为 §4 允许绑定到未登记的供应商。
 - **退出码：**
   - 所有被核对的绑定都是 `ok` 时为 0
@@ -309,7 +309,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
   - `out-of-stock` 和 `unbound` 只报告，不影响退出码。
   - 退出码 3 是命令行新增的（现有命令只用 0/1/2），要写进 `cohdl --help` 和命令行退出码文档，其他命令不使用它。
 - **它永远不在 `check` 或 `build` 中运行。** 相同的源码和锁文件必须得到相同的判定结果和输出字节，每天都在变的事实不能进入其中。需要这道关卡的 CI，单独加一步运行 `cohdl suppliers`。
-- `--json` 是它自己的报告格式，和 `cohdl search --json` 一样，不是 RFC-010 诊断格式。
+- `--json` 是它自己的报告格式，和 `cohdl search --json` 一样，不是 RFC-010 诊断格式：`schema_version`、`design`，以及 `suppliers`，每个被核对的供应商一个对象，含 `supplier`、`snapshot_date`、`catalog`（`listed` 或 `unlisted`）、可选的 `note` 和 `entries`。每个条目含 `part`、`entry`（`primary` 或 `alt[N]`，从 0 开始）、`mfr`、`mpn`、`pn`（未绑定时为 null）、`status`、可选的 `note`、`mismatches`、`catalog`（匹配到的目录行或 null）和 `suggestions`（每项含一个 `catalog` 行和 `manufacturer_match`，取 true、false 或 null）。未上架的供应商 `entries` 为空。
 
 ## 类型系统优先检验
 
@@ -335,7 +335,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
   - `cohdl suppliers`（联网运行，不影响判定结果）；
   - registry 中带日期的目录状态；
   - 对官方库，由库计划里的库 CI 和贴片厂预览把关。
-- **网表（中）：** 只有主料带绑定的实例，`.net` 字节才会变化。中性 CPL 是新文件，只为有放置信息的设计写出。供应商输出和 `.enet` 的供应商属性只在给出 `--supplier` 时出现。所有现有输出文件的字节都不变。
+- **网表（中）：** 只有主料带绑定的实例，`.net` 字节才会变化。中性 CPL 是新文件，只为有放置信息的设计写出。供应商输出和 `.enet` 的供应商属性只在给出 `--supplier` 时出现。有板框的设计，`.kicad_pcb` 会多出辅助原点（见“兼容性”）；其他现有输出文件的字节都不变。
 - **可信度（中）：** 料号和映射是作者的声明，和现在的 MPN 一样。每天变化的信息都留在 registry 里，并标注日期。
 
 ## 可判定性
@@ -381,13 +381,14 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
   - BOM CSV：不变。
   - `.net`：只有主料带绑定时才变化。
   - `.enet`：只有给出 `--supplier` 时才变化。
-  - `-cpl.csv`：新的默认输出，只在对含有 `place` 的设计做物理构建时写出；所有现有输出文件的字节不变。`--logical-only` 构建写出的文件与现在完全相同。
+  - `-cpl.csv`：新的默认输出，只在对含有 `place` 的设计做物理构建时写出。`--logical-only` 构建写出的文件与现在完全相同。
+  - `.kicad_pcb`：有板框的设计在 `(setup)` 中多出位于 CPL 原点的 `(aux_axis_origin X Y)` 和 `(useauxorigin yes)`（§3.1），使 KiCad 自己导出的坐标与 CPL 一致。没有板框的设计字节不变。
   - `tools/smt_pos.py`：默认输出不变；`--neutral` 和 `--map` 为新增。
   - `build --json`：新增 `cpl` 和 `suppliers` 键。
   - `-<ID>-bom.csv`、`-<ID>-map.json`、`-<ID>-cpl.csv`：新增，仅在给出 `--supplier` 时输出（CPL 只在物理构建中输出）。
   - API 文档：新增字段。
 - **Registry 和命令行：** 纯新增（零件结果中的 `suppliers`、`supplier=`/`class=` 筛选、`/suppliers/{id}/parts`、`cohdl suppliers`）。
-- **库：** 本 RFC 不要求库做任何改动。
+- **库：** 本 RFC 不要求库做任何改动。把库封装对齐到贴片厂的坐标系是破坏性的包变更（见“迁移路径”）。
 
 ## 工具与运维
 
@@ -401,7 +402,7 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
   - `tools/smt_pos.py` 的文档：`--neutral`、`--map`。
   - `cohdl --help` 和命令行退出码文档：`cohdl suppliers` 的退出码 3。
 - **`fmt`：** 规范写法为 `supplier ID "PN" at (Xmm, Ymm) rotate N`。写了的 `at`/`rotate` 保留，没写的不补。供应商子句总是排在所有 `name:` 字段和 `footprint` 之后（这些项保持现在按源码位置排序的方式），供应商子句之间保持源码顺序；写在前面的子句会被 `fmt` 移到后面。
-- **LSP：** 在 AVL 条目内提供 `supplier` 补全；缓存了 registry 供应商表时，悬停显示供应商显示名称和链接。
+- **LSP：** 在 AVL 条目内提供 `supplier` 补全，悬停在绑定上显示供应商、料号和映射。从缓存的 registry 供应商表显示供应商名称和链接的悬停暂缓实现（见“决定”中的实现状态）。
 - **`check --json` / `build --json`：** E813/E814/E815 作为普通诊断输出，RFC-010 的格式不变。
 - **零依赖规则：** 不受影响。编译器的改动只有解析、检查、字符串输出和定点数变换；所有联网访问都在 registry 和 `tools/` 中。
 
@@ -436,11 +437,19 @@ cohdl build --supplier acme --bottom-rotation acme=mirrored
 
 ## 迁移路径
 
-无需迁移。设计可以给自己的零件加上子句来使用供应商输出，也可以更新到带有绑定的库版本。
+语言层面无需迁移。设计可以给自己的零件加上子句来使用供应商输出，也可以更新到带有绑定的库版本。
+
+库封装对齐则需要迁移。把封装移到贴片厂的坐标系上（这样它的绑定就不需要映射），会在封装自身坐标系里转动或平移铜皮，以破坏性的包版本发布。放置了该封装的设计仍能通过 `check` 和 `build`，但放置后的铜皮会随焊盘一起转动，而 `cohdl update` 只报告版本变化。因此：
+
+- 每个移动了封装的包，在 README 中以迁移说明列出每个被移动的封装及其变化量。
+- `tools/realign_place.py` 在更新前按反向变化量改写项目中的字面 `place` 语句，使放置后的铜皮保持不动。它无法改写的情况（非字面放置、subdesign 布局）会报出，而不是猜测。
+- 在 CoHDL 之外布线的板子，先在其自身工具中补偿，再重新导出封装。
 
 ## 决定
 
-**已通过——2026-10-30。** AVL 条目可以带 `supplier ID "PART_NUMBER" [at (X, Y)] [rotate N]` 子句（§1）。供应商集合是开放的，编译器不认识任何具体供应商；格式错误或互相冲突的绑定由 E813 拒绝。绑定的映射给出供应商封装在条目封装坐标系中的位置，并通过现有的 `compose_place` 与每个实例的放置组合（§2）。有放置信息的设计做物理构建时，写出与供应商无关的中性 CPL（§3.1，未放置的零件报 E815）。`--supplier ID` 另外写出该供应商的 BOM、映射文件和 CPL，逐实例选料（§3.2，E814）；`--bottom-rotation ID=mirrored` 在导出时声明贴片厂的底面约定，从不写进源码。Registry 为绑定建索引并提供供应商目录（§4），`cohdl suppliers` 在线核对绑定（§5）。纯增量：所有现有源码含义不变，所有现有输出逐字节不变。正式通过时讨论过为 `--bottom-rotation` 设项目级默认值，未采用（见"备选方案"第 10 条）。决策记录为 DR-039（见第 7 篇）；第 10 篇新增"供应商绑定与贴片坐标文件"一节。RFC 编号、DR 编号和 E813–E815 在中央分配之前仍为临时编号。
+**已通过——2026-10-30。** AVL 条目可以带 `supplier ID "PART_NUMBER" [at (X, Y)] [rotate N]` 子句（§1）。供应商集合是开放的，编译器不认识任何具体供应商；格式错误或互相冲突的绑定由 E813 拒绝。绑定的映射给出供应商封装在条目封装坐标系中的位置，并通过现有的 `compose_place` 与每个实例的放置组合（§2）。有放置信息的设计做物理构建时，写出与供应商无关的中性 CPL（§3.1，未放置的零件报 E815）。`--supplier ID` 另外写出该供应商的 BOM、映射文件和 CPL，逐实例选料（§3.2，E814）；`--bottom-rotation ID=mirrored` 在导出时声明贴片厂的底面约定，从不写进源码。Registry 为绑定建索引并提供供应商目录（§4），`cohdl suppliers` 在线核对绑定（§5）。增量变更：所有现有源码含义不变，除 `.kicad_pcb` 的辅助原点外（见“兼容性”），所有现有输出逐字节不变。正式通过时讨论过为 `--bottom-rotation` 设项目级默认值，未采用（见"备选方案"第 10 条）。决策记录为 DR-039（见第 7 篇）；第 10 篇新增"供应商绑定与贴片坐标文件"一节。RFC 编号、DR 编号和 E813–E815 在中央分配之前仍为临时编号。
+
+2026-11-03 根据源码审查更正：`.kicad_pcb` 辅助原点列入“兼容性”，库封装对齐有了迁移路径，§5 写明 E801 关卡、控制字符规则和 `--json` 格式。决定本身不变。
 
 历史：草案，2026-10-23；2026-10-27 和 2026-10-28 根据四轮对 `329af05` 源码的审查修订（第三轮定义了映射文件的焊盘投影，第四轮定义了它的匹配规则）。
 

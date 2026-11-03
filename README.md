@@ -176,5 +176,11 @@ under `lib/`, the reference designs in `examples/`, the registry
 server in `registry/`, the VS Code extension in `editors/vscode/`, and the
 tooling in `tools/` and `harness/`.
 
+Third-party material is not covered by that grant: the manufacturer documents
+under `lib/*/docs/` keep their owners' terms, KiCad-derived footprints are
+CC-BY-SA-4.0 as each such package records in its manifest and license files, and the supplier
+catalog facts and assembly-preview captures under `tools/sourcing_data/` are
+described in [`tools/sourcing_data/NOTICE.md`](tools/sourcing_data/NOTICE.md).
+
 Every package published to registry.cohdl.org must declare its own
 `[package] license`; every package shipped under `lib/` declares `MIT`.

@@ -1123,6 +1123,92 @@ fn an_oversized_mpn_batch_is_reasked_one_mpn_at_a_time() {
 }
 
 #[test]
+fn a_batch_over_the_parser_bounds_is_reasked_one_mpn_at_a_time() {
+    let dir = project(
+        "parser-bound",
+        r#"    primary { mfr: "M", mpn: "N1", footprint: FP }
+    alt { mfr: "M", mpn: "N2" }"#,
+        "",
+    );
+    let mock = Mock::default();
+    // Well within the byte bound, but one array is longer than the audit
+    // parser accepts.
+    let items = vec!["0"; (1 << 16) + 1].join(",");
+    mock.route(
+        "/suppliers/acme/parts?mpn=N1,N2",
+        format!(
+            "{{\"supplier\":\"acme\",\"snapshot_date\":null,\"parts\":[{{\"mpn\":\"N1\",\"suggestions\":[{items}]}}]}}"
+        ),
+    );
+    for mpn in ["N1", "N2"] {
+        let pn = format!("S-{mpn}");
+        mock.route(
+            &format!("/suppliers/acme/parts?mpn={mpn}"),
+            mpn_response("acme", &[(mpn, vec![catalog(&pn, "M", mpn, 1)])]),
+        );
+    }
+    mock.route(
+        "/manufacturers/normalize",
+        normalize(&["M"], &["N1", "N2"], &["m"], &["n1", "n2"]),
+    );
+    let (url, requests) = mock.start();
+    let output = run(&dir, &url, &["--supplier", "acme", "--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    let entries = json["suppliers"][0]["entries"].as_array().unwrap();
+    assert_eq!(entries[0]["suggestions"][0]["catalog"]["pn"], "S-N1");
+    assert_eq!(entries[1]["suggestions"][0]["catalog"]["pn"], "S-N2");
+    let parts = requests
+        .try_iter()
+        .filter(|target| target.starts_with("/suppliers/"))
+        .count();
+    assert_eq!(parts, 3);
+}
+
+#[test]
+fn a_control_character_in_a_source_value_is_a_note_not_an_abort() {
+    let dir = project(
+        "control",
+        "    primary { mfr: \"M\", mpn: \"N\tX\", footprint: FP }",
+        "",
+    );
+    let mock = Mock::default();
+    // Nothing is queryable or comparable, so the audit only probes the
+    // supplier; the tab is never sent.
+    mock.route(
+        "/suppliers/acme/parts?pn=cohdl-supplier-probe",
+        pn_response("acme", &[("cohdl-supplier-probe", None)]),
+    );
+    mock.route(
+        "/manufacturers/normalize",
+        normalize(&["M"], &[], &["m"], &[]),
+    );
+    let (url, requests) = mock.start();
+    let output = run(&dir, &url, &["--supplier", "acme", "--json"]);
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "{}{}",
+        stdout(&output),
+        stderr(&output)
+    );
+    let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    let entry = &json["suppliers"][0]["entries"][0];
+    assert_eq!(entry["status"], "unbound");
+    assert_eq!(
+        entry["note"],
+        "part number cannot be queried (contains a control character)"
+    );
+    assert!(requests.try_iter().all(|target| !target.contains("%09")));
+}
+
+#[test]
 fn unlisted_supplier_has_empty_bindings_and_does_not_change_exit_code() {
     let dir = project(
         "unlisted",
@@ -1155,12 +1241,14 @@ fn unlisted_supplier_has_empty_bindings_and_does_not_change_exit_code() {
     );
     let json: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
     assert_eq!(json["suppliers"][0]["catalog"], "unlisted");
-    assert_eq!(json["suppliers"][0]["bindings"], serde_json::json!([]));
+    // One list key whatever the catalog state, so a consumer reads
+    // `entries` without first checking `catalog`.
+    assert_eq!(json["suppliers"][0]["entries"], serde_json::json!([]));
     assert_eq!(
         json["suppliers"][0]["note"],
         "registry has no catalog for this supplier"
     );
-    assert!(json["suppliers"][0].get("entries").is_none());
+    assert!(json["suppliers"][0].get("bindings").is_none());
     assert_eq!(requests.try_iter().count(), 2);
 }
 

@@ -777,7 +777,9 @@ def generated_files(snapshot: dict) -> dict[pathlib.Path, bytes]:
             source = source.replace(
                 header,
                 f"// Moved onto the assembler's frame by rotate {frame['rotate_deg']}"
-                " (library plan W3; tools/stm32_footprint_data/supplier_frames.json).\n" + header,
+                " (library plan W3; tools/stm32_footprint_data/supplier_frames.json).\n"
+                # The package README's migration note travels with the land.
+                '#[doc("docs/README.md")]\n' + header,
                 1,
             )
             try:

@@ -61,3 +61,12 @@ perimeter copper and courtyard follow KiCad 9's generated generic
 `WSON-8-1EP_6x5mm_P1.27mm_EP3.4x4.3mm`; the center metal dimensions come
 directly from Winbond page 69. This secondary land-pattern choice still
 requires assembly validation.
+
+## Footprint frame change in 0.2.0
+
+Version 0.2.0 follows soic 0.3.0, which turned `soic::SOIC8P127X790X216N` by a quarter turn (270) onto the
+assembler's frame (library plan W3). Pad numbers and lands are unchanged, but
+a design that places a part on one of these lands sees its copper turn after
+`cohdl update`, with `check` and `build` still passing. Migrate the design's
+`place` statements first, as the land package's README describes, with
+`tools/realign_place.py`.

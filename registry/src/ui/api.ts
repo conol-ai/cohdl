@@ -36,6 +36,19 @@ async function write<T>(method: "POST" | "PUT" | "DELETE", url: string, body: un
   return data as T;
 }
 
+/// TanStack Query's default retries three times. A 4xx answer is the
+/// request's own fault and will not change on retry, so only other failures
+/// (network, 5xx) are retried.
+export function retryUnlessClientError(failureCount: number, error: unknown): boolean {
+  return !(error instanceof ApiError && error.status >= 400 && error.status < 500) && failureCount < 3;
+}
+
+/// The Worker's `/search` minimum, counted the same way (Unicode scalars of
+/// the trimmed query). Shorter queries are never sent: they can only be 400.
+export function searchableQuery(q: string): boolean {
+  return [...q.trim()].length >= 3;
+}
+
 export function isUnauthorized(error: unknown): boolean {
   return error instanceof ApiError && error.status === 401;
 }
@@ -487,14 +500,19 @@ export function usePartSearch(
   return useQuery({
     queryKey: ["part-search", q, supplier ?? "", classes],
     queryFn: () => get<PartSearchResponse>(partSearchUrl(q, supplier, classes)),
-    enabled,
+    enabled: enabled && searchableQuery(q),
   });
 }
 
 /// A part deep link reuses `/search`'s already-enriched row. The query comes
 /// from the document itself and at most one request is made for the selected
-/// part; no supplier or catalog N+1 lookups are introduced here.
-export function useSuppliersForPart(packageName: string, part: ApiDocsItem | undefined) {
+/// part; no supplier or catalog N+1 lookups are introduced here. The index
+/// holds only the latest release, so a row for another version is ignored.
+export function useSuppliersForPart(
+  packageName: string,
+  version: string | undefined,
+  part: ApiDocsItem | undefined,
+) {
   const fields = part?.kind === "part" && Array.isArray(part.part.primary?.fields)
     ? part.part.primary.fields
     : [];
@@ -506,11 +524,11 @@ export function useSuppliersForPart(packageName: string, part: ApiDocsItem | und
     ?? part?.name
     ?? "";
   return useQuery({
-    queryKey: ["part-suppliers", packageName, part?.fq ?? "", query],
+    queryKey: ["part-suppliers", packageName, version ?? "", part?.fq ?? "", query],
     queryFn: () => get<PartSearchResponse>(partSearchUrl(query)),
-    enabled: part?.kind === "part" && query.length >= 3,
+    enabled: part?.kind === "part" && version !== undefined && searchableQuery(query),
     select: (response) => response.parts.results.find((row) =>
-      row.package === packageName && row.fq === part?.fq)?.suppliers,
+      row.package === packageName && row.version === version && row.fq === part?.fq)?.suppliers,
   });
 }
 

@@ -12,11 +12,11 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 | AVL entries | 21,018 distinct MPNs (`passive` 17,431, the rest 3,587), matching the library plan |
 | Footprints | 304 declared, 286 referenced by parts (recounted 2026-10-29). The 18 unreferenced ones are mostly in footprint-only packages offered to third parties. W3 covers all 304 |
 | Part-number data | Only the 1,334 candidate pairs (350 Basic, 984 Preferred) in `tools/sourcing_data/jlcparts/2026-10-27/`, not yet confirmed one by one |
-| W1/W2/W3 tools | `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` and `jlc_frames.json` do not exist |
+| W1/W2/W3 tools | Did not exist on 2026-10-29. Since then `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` (still empty) and `jlc_frames.json` (37 rows on 2026-11-03) are on `feat/rfc-034` |
 | HTTP fetching | No shared client. Existing scripts call `curl` directly, with no User-Agent, rate limit or cache |
-| RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). Not merged or released. The branch is not on the remote, and `main` (v0.9.0, `6f092a8`) has 6 commits it lacks. The candidate data in `tools/sourcing_data/jlcparts/2026-10-27/` is committed on this branch with its provenance and hashes |
+| RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). RFC-034 was Accepted on 2026-10-30. The branch is pushed and open for review as PR #58, not yet merged or released. The candidate data in `tools/sourcing_data/jlcparts/2026-10-27/` is committed on this branch with its provenance and hashes |
 | CPL position | The footprint origin, in the compiler and in `smt_pos.py --neutral`/`--map` alike (RFC-034 §3.1). Only `smt_pos.py`'s legacy default output keeps the pad centroid |
-| Bottom-side convention | Measured 2026-10-29 (C1, three previews): the assembler reads bottom-side angles as `(180 − θ) mod 360`. RFC-034 now exports it with `cohdl build --bottom-rotation lcsc=mirrored`; the language keeps KiCad's convention. One confirming preview of the compiler-generated file is outstanding |
+| Bottom-side convention | Measured 2026-10-29 (C1, three previews): the assembler reads bottom-side angles as `(180 − θ) mod 360`. RFC-034 now exports it with `cohdl build --bottom-rotation lcsc=mirrored`; the language keeps KiCad's convention. The confirming preview of the compiler-generated file ran on 2026-10-29 and 2026-10-30 (RFC-034 acceptance) |
 
 ### W0 findings that size the work
 
@@ -43,7 +43,7 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 - E813 checks `(supplier, PN)` uniqueness only within one compile closure. The library test compiles each package separately, so a conflict between two packages in `lib/` goes unseen.
 - The registry has `PUT /api/admin/suppliers/{id}/snapshot`:
   - it replaces the whole catalog;
-  - one request takes at most 8,982 rows or 4 MiB (the replacement is one atomic D1 batch, which runs at most 1,000 statements);
+  - one request takes at most 10,000 rows or 4 MiB;
   - it needs an official account's session;
   - no client calls it yet.
 
@@ -213,8 +213,14 @@ Flow:
 
 ### Phase D: release
 
+- **D0: landing RFC-034 (owner: the PR's merger, in this order).**
+  1. Apply D1 migration 0005 to the production registry before merging, because Workers Builds may deploy the merged Worker on its own (`registry/README.md`).
+  2. Deploy the registry before the compiler release. An older registry ignores `search --supplier`/`--class` and returns unfiltered rows.
+  3. Drift-check, then publish the library versions this branch bumps, dependencies first (the W3 cascade: `transistor`, `soic`, `qfp`, then `can`, `flash`, `@ti/logic`, `@contrib/comparator`, `@contrib/level-shifter`, `@st/stm32`, `@wch/ch32`, `@gigadevice/gd32`, and the other bumped packages in dependency order). Until they are published, an installed cohdl building an example outside the repository fails with E1102/E1203.
+  4. Compensate external designs that place a moved land before they run `cohdl update` (each moved package's README, Migration).
+  5. Release the compiler, then run the `cohdl docs --publish` backfill for already-published versions.
 - **D1:** Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts. Each family's release carries its cascade list: the footprint package and every dependent that gets a new version. The registry is deployed with RFC-034 before the first package with bindings, because its search reads `suppliers` from the API docs; bindings published earlier would not be visible there.
-- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends at most 8,982 rows per request. A replacement covers the supplier's whole catalog, so a larger catalog needs the endpoint changed first (for example a staged upload that swaps in one step). It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
+- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends it in one request of at most 10,000 rows. A request replaces the supplier's whole catalog, so the snapshot cannot be split across requests; the committed JLC catalog is 1,334 rows. It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
 
 ### Phase E: W4 new parts
 
@@ -267,4 +273,4 @@ Phase A takes about 2.5–3 weeks; the first draft's two weeks held 5.5–6.5 pe
 3. Whether to ask the supplier for the official Basic/Preferred list or Components API access.
 4. When A0 runs, and when RFC-034 is merged and released. Phase D cannot start before that.
 5. How many preview boards a week someone can check (about 15 minutes each).
-6. Whether `--bottom-rotation` may also take a default from `cohdl.toml`. A command-line flag is not recorded in the source, the manifest or the lock, so a build that omits it writes different bottom-side angles; the map records the value used.
+6. ~~Whether `--bottom-rotation` may also take a default from `cohdl.toml`.~~ Decided at acceptance, 2026-10-30: not adopted (RFC-034 Alternatives, 10; DR-039). A command-line flag is not recorded in the source, the manifest or the lock, so a build that omits it writes different bottom-side angles; the map records the value used.

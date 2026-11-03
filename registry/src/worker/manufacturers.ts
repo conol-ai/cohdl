@@ -1,7 +1,10 @@
 import type { Env } from "./auth";
 import { normalizeManufacturer, normalizeMpn } from "./suppliers";
 
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "public, max-age=60" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+// Only a successful answer is cacheable; errors (including "supplier not
+// found" before a first snapshot) must not outlive their cause.
+const CACHEABLE = { "Cache-Control": "public, max-age=60" };
 const MAX_VALUES = 100;
 const MAX_VALUE_BYTES = 256;
 
@@ -67,7 +70,7 @@ export async function handleManufacturerNormalize(
     return json(200, {
       mfr: mfr.map((value, index) => ({ value, key: manufacturerKeys[index] })),
       mpn: mpn.map((value) => ({ value, key: normalizeMpn(value) })),
-    });
+    }, CACHEABLE);
   } catch {
     return json(500, { error: "internal error" });
   }

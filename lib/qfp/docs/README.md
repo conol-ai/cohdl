@@ -117,3 +117,26 @@ silkscreen turn together. This is a breaking change: a design that `place`s
 one of these footprints keeps its copper only after each placement is composed
 with the delta, which `tools/realign_place.py` does. Earlier versions stay
 available unchanged.
+
+The other ten footprints in this package are still in their source frame.
+The preview of 2026-11-02 (`tools/sourcing_data/jlc_previews/2026-11-02-c2-board-2/`)
+measured `KICAD_LQFP_100_14X14MM_P0_5MM` and `KICAD_LQFP_208_28X28MM_P0_5MM` a
+quarter turn (270) off the assembler's frame; their supplier bindings carry
+that as a mapping until a later breaking version moves them. The rest are not
+measured yet.
+
+### Migrating a design
+
+`cohdl update` reports only the version change, and `check` and `build` stay
+green, so the turn is easy to miss. Before updating a design that places one of
+these footprints:
+
+1. Run `python3 tools/realign_place.py` on the project with the delta table,
+   before `cohdl update`. It rewrites each literal `place` of an instance on a
+   moved footprint by the inverse delta, keeps an undo log for `--reverse`,
+   refuses a second run over already-migrated placements, and reports what it
+   cannot rewrite (non-literal placements, subdesign layouts) instead of
+   guessing.
+2. Compensate a board routed outside CoHDL in its own tool before re-exporting
+   its footprints.
+3. Rebuild and compare the copper with the previous build.

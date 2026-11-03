@@ -136,7 +136,7 @@ E1xx (E112/E113), not here — see the organizing principle above.
 
 | Code | Meaning |
 |---|---|
-| E801 | instance not part-bound at `build` (netlist/BOM would lie) |
+| E801 | instance not part-bound at `build` (netlist/BOM would lie); also gates `cohdl suppliers` before any query |
 | E802 | invalid `part` declaration (missing `mpn`/`footprint` on `primary`, missing `mpn` on `alt`, non-concrete device) |
 | E803 | `#[designator]` override collision |
 | E804 | invalid designator format (must be PREFIX + number, e.g. `U7`) |
@@ -244,13 +244,19 @@ published, E1204 unreachable. No new codes.
 
 ### `cohdl suppliers` exit codes
 
-The online audit runs only after the ordinary offline project check passes.
+The online audit runs only after the ordinary offline project check passes
+and every instance binds to a part as at `build` (otherwise E801, exit 1).
 It uses 0 when no audited binding is `unknown` or `mismatch` (including
 `out-of-stock` and `unbound` reports), 3 when at least one binding is
 `unknown` or `mismatch`, 1 for project-check or E1204 registry/protocol
 failures, and 2 for invalid arguments. Exit code 3 belongs exclusively to
 this command. Its `--json` success report is independent of RFC-010
 diagnostics; an E1204 failure uses the existing diagnostic JSON document.
+The report's shape (`schema_version: 1`) is specified in RFC-034 §5: one
+object per supplier with `catalog` `listed` or `unlisted` and an `entries`
+list, which is empty for an unlisted supplier. A value the registry cannot
+be asked about (a `,` or control character, or over 256 bytes) is reported
+per entry with a `note`, never as an E1204.
 
 ## E13xx — typed logical composition (RFC-032 `subdesign`)
 

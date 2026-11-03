@@ -5,17 +5,18 @@ import { readBoundedJson } from "./component-requests";
 
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 export const SUPPLIER_BODY_LIMIT = 4 * 1024 * 1024;
+// One `db.batch()` counts as a single query against D1's per-invocation
+// limit, so the row cap is set by the 4 MiB body, not by statement count.
+export const MAX_CATALOG_ROWS = 10_000;
 // D1 permits 100 bound parameters per statement; catalog rows need 11 each.
 const CATALOG_INSERT_ROWS = Math.floor(100 / 11);
-// A replacement is one atomic batch, and D1 runs at most 1,000 statements per
-// Worker invocation: the supplier upsert and the delete, then the inserts.
-export const MAX_BATCH_STATEMENTS = 1_000;
-export const MAX_CATALOG_ROWS = (MAX_BATCH_STATEMENTS - 2) * CATALOG_INSERT_ROWS;
 
 export interface CatalogLink { label: string; url: string }
 export interface CatalogRow {
   pn: string; mpn: string; mpn_key: string; manufacturer_key: string;
-  manufacturer: string; package: string; class: string;
+  manufacturer: string; package: string;
+  /// "" when the supplier's catalog has no classes or the row has none.
+  class: string;
   stock: number; links: CatalogLink[]; fetched_at: string;
 }
 export interface Snapshot {
@@ -71,8 +72,9 @@ function timestamp(value: unknown): value is string {
   return !Number.isNaN(parsed.getTime()) && (value.length === 20
     ? parsed.toISOString() === `${value.slice(0, -1)}.000Z` : parsed.toISOString() === value);
 }
+// RFC-034 §4: "the class vocabulary the supplier's catalog uses, if any".
 function vocabulary(value: unknown): value is string[] {
-  return Array.isArray(value) && value.length > 0 && value.length <= 256 &&
+  return Array.isArray(value) && value.length <= 256 &&
     value.every((item) => text(item, 128)) && new Set(value).size === value.length;
 }
 function links(value: unknown): Parsed<CatalogLink[]> {
@@ -101,12 +103,15 @@ export function parseSnapshot(value: unknown, supplier: string): Parsed<Snapshot
   }
   const pns = new Set<string>();
   const rows: CatalogRow[] = [];
-  const fields = ["pn", "mpn", "manufacturer", "package", "class", "stock", "links", "fetched_at"];
+  const fields = ["pn", "mpn", "manufacturer", "package", "stock", "links", "fetched_at"];
   for (let index = 0; index < value.parts.length; index++) {
     const item = value.parts[index];
-    if (!exact(item, fields) || !text(item.pn, 256) || !text(item.mpn, 256) ||
+    // `class` is optional: a row may be unclassified, but a given class must
+    // come from the supplier's vocabulary.
+    const classified = object(item) && Object.hasOwn(item, "class");
+    if (!exact(item, classified ? [...fields, "class"] : fields) || !text(item.pn, 256) || !text(item.mpn, 256) ||
         !text(item.manufacturer, 256) || !text(item.package, 256) ||
-        !text(item.class, 128) || !value.classes.includes(item.class)) {
+        (classified && (!text(item.class, 128) || !value.classes.includes(item.class)))) {
       return { ok: false, error: `parts[${index}] has invalid or unknown fields` };
     }
     if (pns.has(item.pn)) return { ok: false, error: `parts[${index}] duplicates PN ${item.pn}` };
@@ -119,7 +124,7 @@ export function parseSnapshot(value: unknown, supplier: string): Parsed<Snapshot
     pns.add(item.pn);
     rows.push({ pn: item.pn, mpn: item.mpn, mpn_key: normalizeMpn(item.mpn),
       manufacturer_key: normalizeManufacturer(item.manufacturer), manufacturer: item.manufacturer,
-      package: item.package, class: item.class, stock: item.stock as number,
+      package: item.package, class: classified ? item.class as string : "", stock: item.stock as number,
       links: parsedLinks.value, fetched_at: item.fetched_at });
   }
   return { ok: true, value: { supplier, display_name: value.display_name,

@@ -25,6 +25,7 @@ pub pad P_SOIC8P127X790X216N_LEAD {
 
 // Turned 90 degrees counter-clockwise onto the assembler's frame (library
 // plan W3): pin 1 at lower left.
+#[doc("docs/README.md")]
 pub footprint SOIC8P127X790X216N {
     pad 1: P_SOIC8P127X790X216N_LEAD at (-1.905mm, 3.5875mm) rotate 90
     pad 2: P_SOIC8P127X790X216N_LEAD at (-0.635mm, 3.5875mm) rotate 90
@@ -91,6 +92,7 @@ pub pad P_TSSOP24P65_TI_PW0024A_LEAD {
 
 // Turned 90 degrees counter-clockwise onto the assembler's frame (library
 // plan W3): pin 1 at lower left.
+#[doc("docs/README.md")]
 pub footprint TSSOP24P65_TI_PW0024A {
     pad 1: P_TSSOP24P65_TI_PW0024A_LEAD at (-3.575mm, 2.9mm) rotate 90
     pad 2: P_TSSOP24P65_TI_PW0024A_LEAD at (-2.925mm, 2.9mm) rotate 90

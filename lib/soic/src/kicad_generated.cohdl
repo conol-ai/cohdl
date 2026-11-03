@@ -24,6 +24,7 @@ pad P_KICAD_0002 {
 // Source file SHA-256: 074ecb2092b24fa4b4b9cdd7c926fc587b0d7d6d21e7341e57935fd42d36894f
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
 // Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
+#[doc("docs/README.md")]
 pub footprint KICAD_SOIC_8_3_9X4_9MM_P1_27MM {
     pad 1: P_KICAD_0002 at (-1.905mm, 2.475mm) rotate 90
     pad 2: P_KICAD_0002 at (-0.635mm, 2.475mm) rotate 90
@@ -69,6 +70,7 @@ pub footprint KICAD_TSSOP_14_4_4X5MM_P0_65MM {
 // Source file SHA-256: b7ca3a31dd45c1225609f9b94e8ba1534bd16edd193628c8d67a8ea669b26b72
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
 // Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
+#[doc("docs/README.md")]
 pub footprint KICAD_TSSOP_20_4_4X6_5MM_P0_65MM {
     pad 1: P_KICAD_0001 at (-2.925mm, 2.8625mm) rotate 90
     pad 2: P_KICAD_0001 at (-2.275mm, 2.8625mm) rotate 90

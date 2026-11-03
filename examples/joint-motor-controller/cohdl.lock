@@ -3,7 +3,7 @@
 [[package]]
 name = "@st/stm32"
 version = "0.3.0"
-hash = "sha256:e52521936ec163076d858d6cf8e59aaa32e3f3a7f95aa4093ac6a1e550f50926"
+hash = "sha256:3843338ea8ae1811bd8fa930f506c32bc957b93cff8e06f457d668d22bda43d7"
 
 [[package]]
 name = "bga"
@@ -13,7 +13,7 @@ hash = "sha256:997b238b4ea7097e976b03c3ceebbf59100febd12be15e3fe7c5ed407d99da76"
 [[package]]
 name = "can"
 version = "0.2.0"
-hash = "sha256:8977e18e90191ccc25cb0c59c2447bae7338dc78132cac047b722e49c43e9b05"
+hash = "sha256:dadb01a153ae34eefc29cbfe9cee661bc1354bfa5da8b0a00d017faab11de598"
 
 [[package]]
 name = "connectors"
@@ -58,12 +58,12 @@ hash = "sha256:0f0fe09d35ddffad61baea742fbb43d3caec28a4dad3088fc1fea3adda8219f9"
 [[package]]
 name = "qfp"
 version = "0.3.0"
-hash = "sha256:6123871a938013bfb110dffd84f21e19083ed1ed735e1a0a2447e121d6db47e1"
+hash = "sha256:bef5c7b4389f4eb639b7a027db82596cf4a0c33029b805383232b1231fde3e02"
 
 [[package]]
 name = "soic"
 version = "0.3.0"
-hash = "sha256:5c7560c58391087d1dac9301fc4025ab4420010d41a50f4aa941cbac3cd8e425"
+hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
 
 [[package]]
 name = "std"

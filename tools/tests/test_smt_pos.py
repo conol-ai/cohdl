@@ -167,6 +167,7 @@ class FakeBox:
 class FakeDrawing:
     def __init__(self, layer, record=None):
         self.layer = layer
+        self.kind = FakePcbnew.PCB_SHAPE_T
         self.record = record or {
             "shape": "segment",
             "start": (-15 * NM, -10 * NM),
@@ -177,6 +178,9 @@ class FakeDrawing:
 
     def GetLayer(self):
         return self.layer
+
+    def Type(self):
+        return self.kind
 
     def GetShape(self):
         return getattr(FakePcbnew, "SHAPE_T_" + self.record["shape"].upper())
@@ -215,14 +219,15 @@ class FakeBoard:
         self.bounds = bounds
         self.outline = outline
         self.drawings = drawings
+        self.extras = []
 
     def GetBoardEdgesBoundingBox(self):
         return FakeBox(self.bounds)
 
     def GetDrawings(self):
         if self.drawings is not None:
-            return [FakeDrawing(FakePcbnew.Edge_Cuts, record) for record in self.drawings]
-        return [FakeDrawing(FakePcbnew.Edge_Cuts)] if self.outline else []
+            return [FakeDrawing(FakePcbnew.Edge_Cuts, record) for record in self.drawings] + self.extras
+        return ([FakeDrawing(FakePcbnew.Edge_Cuts)] if self.outline else []) + self.extras
 
     def GetFootprints(self):
         return [FakeFootprint(record) for record in self.records]
@@ -237,6 +242,8 @@ class FakePcbnew(types.SimpleNamespace):
     SHAPE_T_ARC = 2
     SHAPE_T_CIRCLE = 3
     SHAPE_T_POLY = 4
+    PCB_SHAPE_T = 7
+    PCB_TEXT_T = 8
     Edge_Cuts = 44
 
     def __init__(self, board):
@@ -249,6 +256,7 @@ class FakePcbnew(types.SimpleNamespace):
             SHAPE_T_ARC=self.SHAPE_T_ARC,
             SHAPE_T_CIRCLE=self.SHAPE_T_CIRCLE,
             SHAPE_T_POLY=self.SHAPE_T_POLY,
+            PCB_SHAPE_T=self.PCB_SHAPE_T,
             Edge_Cuts=self.Edge_Cuts,
             ToMM=to_mm,
             LoadBoard=lambda _path: board,
@@ -559,6 +567,27 @@ class CliTests(unittest.TestCase):
                 )
             self.assertEqual(outputs[0], outputs[1])
             self.assertEqual(outputs[0], HEADER + "U1,10.0000mm,20.0000mm,Top,0\n")
+
+    def test_non_shape_edge_cuts_items_are_not_outline(self):
+        class EdgeText:
+            """A PCB_TEXT on Edge.Cuts: no GetShape/GetStart at all."""
+
+            def GetLayer(self):
+                return FakePcbnew.Edge_Cuts
+
+            def Type(self):
+                return FakePcbnew.PCB_TEXT_T
+
+        records = [footprint("U1", 10, 10)]
+        with tempfile.TemporaryDirectory() as directory:
+            board_path = Path(directory) / "board.kicad_pcb"
+            board = FakeBoard(records, drawings=rectangle_drawings(0))
+            plain = Path(directory) / "plain.csv"
+            self.run_main(board, ["--neutral", str(board_path), str(plain)])
+            board.extras = [EdgeText()]
+            texted = Path(directory) / "texted.csv"
+            self.run_main(board, ["--neutral", str(board_path), str(texted)])
+            self.assertEqual(texted.read_text(), plain.read_text())
 
     def test_arc_bounds_include_extrema_beyond_endpoints(self):
         # Clockwise in KiCad's +y-down frame: right -> bottom -> left.

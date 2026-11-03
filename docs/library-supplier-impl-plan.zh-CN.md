@@ -14,11 +14,11 @@
 | AVL 条目 | 21,018 个不同 MPN（`passive` 17,431，其他 3,587），与库计划一致 |
 | 封装 | 声明 304 个，被零件引用 286 个（2026-10-29 复核）。未被引用的 18 个大多在只提供封装、给第三方用的包里。W3 覆盖全部 304 个 |
 | 料号数据 | 只有 `tools/sourcing_data/jlcparts/2026-10-27/` 里的 1,334 对候选（350 Basic、984 Preferred），尚未逐个确认 |
-| W1/W2/W3 工具 | `jlc_catalog.py`、`lcsc_backfill.py`、`realign_place.py`、`lcsc_map.json`、`jlc_frames.json` 都不存在 |
+| W1/W2/W3 工具 | 2026-10-29 时都不存在。此后 `jlc_catalog.py`、`lcsc_backfill.py`、`realign_place.py`、`lcsc_map.json`（仍为空）和 `jlc_frames.json`（2026-11-03 为 37 行）已在 `feat/rfc-034` 上 |
 | HTTP 抓取 | 没有共用客户端；现有脚本直接调 `curl`，没有 User-Agent、限速和缓存 |
-| 编译器的 RFC-034 | 已在本地分支 `feat/rfc-034` 实现，包括 pcbnew 投影测试（打开再存盘、两个方向各手工翻面一次）。尚未合入或发版。该分支不在远端，`main`（v0.9.0，`6f092a8`）上有 6 个提交它还没有。`tools/sourcing_data/jlcparts/2026-10-27/` 的候选数据已在该分支提交，附出处和哈希 |
+| 编译器的 RFC-034 | 已在本地分支 `feat/rfc-034` 实现，包括 pcbnew 投影测试（打开再存盘、两个方向各手工翻面一次）。RFC-034 已于 2026-10-30 通过。该分支已推送，作为 PR #58 在审查中，尚未合入或发版。`tools/sourcing_data/jlcparts/2026-10-27/` 的候选数据已在该分支提交，附出处和哈希 |
 | CPL 位置 | 封装原点。编译器和 `smt_pos.py --neutral`/`--map` 一致（RFC-034 §3.1）；只有 `smt_pos.py` 旧的默认输出保留焊盘几何中心 |
-| 底面约定 | 2026-10-29 已实测（C1，三轮预览）：贴片厂把底面角度读作 `(180 − θ) mod 360`。RFC-034 改为导出时用 `cohdl build --bottom-rotation lcsc=mirrored` 换算，语言保持 KiCad 约定。还差一次用编译器直接生成的文件做确认预览 |
+| 底面约定 | 2026-10-29 已实测（C1，三轮预览）：贴片厂把底面角度读作 `(180 − θ) mod 360`。RFC-034 改为导出时用 `cohdl build --bottom-rotation lcsc=mirrored` 换算，语言保持 KiCad 约定。用编译器直接生成的文件做的确认预览已于 2026-10-29 和 2026-10-30 完成（RFC-034 通过条件） |
 
 ### 决定 W0 工作量的调研结果
 
@@ -45,7 +45,7 @@
 - E813 只在一次编译的依赖闭包内检查 `(supplier, PN)` 的唯一性。库测试按包分别编译，所以 `lib/` 里两个包之间的冲突发现不了。
 - registry 已有 `PUT /api/admin/suppliers/{id}/snapshot`：
   - 整个目录整表替换；
-  - 单次最多 8,982 行或 4 MiB（整表替换是一个原子的 D1 batch，最多执行 1,000 条语句）；
+  - 单次最多 10,000 行或 4 MiB；
   - 需要官方账号的会话；
   - 目前没有任何客户端调用它。
 
@@ -215,10 +215,16 @@ CPL 用 `--bottom-rotation lcsc=mirrored` 导出后，底面各份（包括 37°
 
 ### 阶段 D：发布
 
+- **D0：RFC-034 落地（由合并 PR 的人负责，按此顺序）。**
+  1. 合并前先在生产 registry 上执行 D1 迁移 0005，因为 Workers Builds 可能在合并后自动部署 Worker（见 `registry/README.md`）。
+  2. 先部署 registry，再发布编译器。旧 registry 会忽略 `search --supplier`/`--class`，返回未经筛选的结果。
+  3. 检查漂移后，按依赖顺序先发布本分支升版的库版本（W3 级联：`transistor`、`soic`、`qfp`，然后 `can`、`flash`、`@ti/logic`、`@contrib/comparator`、`@contrib/level-shifter`、`@st/stm32`、`@wch/ch32`、`@gigadevice/gd32`，其余升版包按依赖顺序）。发布之前，在仓库外用已安装的 cohdl 构建示例会报 E1102/E1203。
+  4. 放置了被移动焊盘的外部设计，在 `cohdl update` 之前先补偿（见各移动包 README 的迁移说明）。
+  5. 发布编译器，然后对已发布的版本执行 `cohdl docs --publish` 回填。
 - **D1：** 一个包一个包地发布。只有映射已确认、对齐证据齐全、CI 通过的包才发。顺序按库计划：先 14 个封装族，再常用件。每个封装族发布时附一份级联清单：封装所在的包，以及所有因此发新版本的依赖包。registry 要先部署 RFC-034 版本，再发第一个带绑定的包：它的搜索从 API docs 读 `suppliers`，更早发布的绑定在 registry 上看不到。
 - **D2：**
   - 新增 `lcsc` 供应商这一行。
-  - 新增 `tools/upload_supplier_snapshot.py`：读取快照，每次请求最多发 8,982 行。一次替换覆盖该供应商的整个目录，所以目录更大时要先改接口（比如分段上传、最后一步切换）。用官方账号认证。
+  - 新增 `tools/upload_supplier_snapshot.py`：读取快照，用一次请求发出，最多 10,000 行。一次请求替换该供应商的整个目录，所以快照不能拆成多次上传；已提交的 JLC 目录是 1,334 行。用官方账号认证。
   - 上传别名表。
   - 每次上传到正式 registry，都要有人明确签字确认。
 
@@ -273,4 +279,4 @@ CPL 用 `--bottom-rotation lcsc=mirrored` 导出后，底面各份（包括 37°
 3. 是否向供应商要 Basic/Preferred 官方清单或 Components API 权限。
 4. 何时执行 A0，以及 RFC-034 何时合入并发版。在那之前阶段 D 无法开始。
 5. 每周能安排人核对几块预览板（每块约 15 分钟）。
-6. `--bottom-rotation` 是否也允许在 `cohdl.toml` 里写默认值。命令行参数不记录在源码、清单或 lock 里，少传一次底面角度就不同；map 会记录实际所用的值。
+6. ~~`--bottom-rotation` 是否也允许在 `cohdl.toml` 里写默认值。~~ 已在 2026-10-30 正式通过时决定：不采用（RFC-034 备选方案第 10 条；DR-039）。命令行参数不记录在源码、清单或 lock 里，少传一次底面角度就不同；map 会记录实际所用的值。

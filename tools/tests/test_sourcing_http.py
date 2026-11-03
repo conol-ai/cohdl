@@ -20,14 +20,31 @@ from unittest import mock
 TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 
+import sourcing.http as http_module  # noqa: E402
 from sourcing.http import (  # noqa: E402
     USER_AGENT,
     FetchClient,
+    FetchError,
     PolicyError,
     RequestLimitError,
     RobotsError,
+    RobotsPolicy,
     RunStoppedError,
 )
+
+# The layout of jlcpcb.com's robots.txt (2026-10): a blank line between
+# `User-agent` and its rules, which the standard library parser reads as an
+# empty group, and wildcard rules it never matches.
+JLC_ROBOTS = """User-agent: *
+
+Disallow: /*?from=
+Disallow: /lcsvg/
+Disallow: /user-center/
+Disallow: /api
+Disallow: /_nuxt
+
+Sitemap: https://jlcpcb.com/sitemap-index.xml
+"""
 
 
 class FakeClock:
@@ -323,6 +340,92 @@ class FetchClientTests(unittest.TestCase):
             with self.assertRaises(RunStoppedError):
                 client.get(server.url("/two"))
             self.assertEqual(len(server.requests), count)
+
+    def test_jlc_layout_robots_rules_apply_across_a_blank_line(self):
+        policy = RobotsPolicy.parse(JLC_ROBOTS)
+        for path, allowed in (
+            ("/partdetail/Yageo-RC0402JR_070RL/C25744", True),
+            ("/sitemap-index.xml", True),
+            ("/_nuxt/app.js", False),
+            ("/user-center/orders", False),
+            ("/parts?from=home", False),
+            ("/partdetail/C1?from=search", False),
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(policy.can_fetch("https://jlcpcb.com" + path), allowed)
+        with LocalServer(robots=JLC_ROBOTS) as server:
+            client = self.client(server)
+            with self.assertRaises(RobotsError):
+                client.get(server.url("/_nuxt/app.js"))
+            self.assertNotIn("/_nuxt/app.js", server.requests)
+            self.assertEqual(client.get(server.url("/partdetail/C1")).body, b"ok")
+
+    def test_robots_longest_match_allow_ties_wildcards_and_own_group(self):
+        policy = RobotsPolicy.parse(
+            "User-agent: *\nDisallow: /a\nAllow: /a/b\nAllow: /tie\nDisallow: /tie\n"
+            "Disallow: /*.pdf$\nDisallow: /x*y\n"
+        )
+        for path, allowed in (
+            ("/a/c", False), ("/a/b/c", True), ("/tie", True), ("/doc.pdf", False),
+            ("/doc.pdf?page=2", True), ("/doc.pdfx", True), ("/x-and-y", False), ("/y", True),
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(policy.can_fetch("https://h.example" + path), allowed)
+        own = RobotsPolicy.parse(
+            "User-agent: Cohdl-Library-Bot\nDisallow: /mine\nCrawl-delay: 9\n\n"
+            "User-agent: *\nDisallow: /\n"
+        )
+        self.assertTrue(own.can_fetch("https://h.example/other"))
+        self.assertFalse(own.can_fetch("https://h.example/mine/x"))
+        self.assertEqual(own.crawl_delay, 9.0)
+
+    def test_robots_429_refuses_the_site_and_is_neither_cached_nor_forgiven(self):
+        responses = {"/robots.txt": (429, "slow down")}
+        with LocalServer(responses) as server:
+            client = self.client(server)
+            with self.assertRaisesRegex(RobotsError, "429"):
+                client.get(server.url("/one"))
+            self.assertNotIn("/one", server.requests)
+            self.assertEqual(list((Path(self.tempdir.name) / "cache").glob(".robots/*")), [])
+            # Not cached as allow-all: the next page asks again, and that
+            # second consecutive 429 stops the run.
+            with self.assertRaises(RunStoppedError):
+                client.get(server.url("/two"))
+            self.assertEqual(server.requests, ["/robots.txt", "/robots.txt"])
+
+    def test_robots_redirect_is_named(self):
+        responses = {"/robots.txt": (301, "moved", {"Location": "https://elsewhere.example/robots.txt"})}
+        with LocalServer(responses) as server:
+            with self.assertRaisesRegex(RobotsError, "redirects .*301.*elsewhere"):
+                self.client(server).get(server.url("/one"))
+            self.assertNotIn("/one", server.requests)
+
+    def test_network_error_does_not_reset_the_refusal_streak(self):
+        dead = socket.socket()
+        dead.bind(("127.0.0.1", 0))
+        port = dead.getsockname()[1]
+        dead.close()
+        responses = {"/one": (429, "wait"), "/two": (429, "no")}
+        with LocalServer(responses) as server:
+            client = self.client(server)
+            with self.assertRaisesRegex(FetchError, "HTTP 429"):
+                client.get(server.url("/one"))
+            with self.assertRaises(RobotsError):
+                client.get(f"http://127.0.0.1:{port}/down")
+            with self.assertRaises(RunStoppedError):
+                client.get(server.url("/two"))
+
+    def test_encoded_and_oversized_bodies_are_refused_and_not_cached(self):
+        responses = {"/gz": (200, "\x1f\x8b", {"Content-Encoding": "gzip"}), "/big": (200, "x" * 64)}
+        with LocalServer(responses) as server:
+            client = self.client(server)
+            with self.assertRaisesRegex(FetchError, "Content-Encoding 'gzip'"):
+                client.get(server.url("/gz"))
+            with mock.patch.object(http_module, "MAX_BODY_BYTES", 32):
+                with self.assertRaisesRegex(FetchError, "exceeds 32 bytes"):
+                    client.get(server.url("/big"))
+            self.assertFalse(client.is_cached(server.url("/gz")))
+            self.assertFalse(client.is_cached(server.url("/big")))
 
 
 if __name__ == "__main__":

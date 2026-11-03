@@ -137,6 +137,13 @@ def package_metadata(manifest: Path) -> tuple[str, str] | None:
         return None
 
 
+def package_root(name: str) -> str:
+    """The module root of a package name, as ``src/pipeline.rs`` derives it."""
+    name = name[1:] if name.startswith("@") else name
+    root = "".join(c if (c.isascii() and c.isalnum()) or c == "_" else "_" for c in name)
+    return "_" + root if not root or root[0].isdigit() else root
+
+
 def _number_text(value: Decimal) -> str:
     if value == 0:
         return "0"
@@ -149,6 +156,7 @@ class Bindings:
 
     def __init__(self, root: Path):
         self._root = root
+        self._manifests: dict[str, Path] | None = None
         self._by_identity: dict[tuple[str, str], list[str]] = {}
         map_rows = _rows(root / "tools" / "sourcing_data" / "lcsc_map.json")
         map_valid = True
@@ -192,13 +200,32 @@ class Bindings:
             else:
                 self._frames[key] = row
 
+    def _package_manifests(self) -> dict[str, Path]:
+        """Map each library package's module root to its manifest, as
+        ``pipeline::package_root`` spells it (``@espressif/esp32`` is
+        ``espressif_esp32``, ``load-switch`` is ``load_switch``)."""
+        if self._manifests is None:
+            self._manifests = {}
+            lib = self._root / "lib"
+            for manifest in sorted([*lib.glob("*/cohdl.toml"), *lib.glob("@*/*/cohdl.toml")]):
+                metadata = package_metadata(manifest)
+                if metadata is not None:
+                    self._manifests.setdefault(package_root(metadata[0]), manifest)
+        return self._manifests
+
     def clause(self, manifest: Path, footprint: str, mfr: str, mpn: str) -> str:
-        """Return one complete ``supplier lcsc`` clause, or an empty string."""
-        owner, _, footprint = footprint.rpartition("::")
-        if not footprint.isidentifier() or (owner and not re.fullmatch(r"[a-z][a-z0-9_]*", owner)):
+        """Return one complete ``supplier lcsc`` clause, or an empty string.
+
+        A footprint path whose first segment is a library package's module
+        root is owned by that package; any other path (bare, or through a
+        local module) is owned by ``manifest``'s own package.
+        """
+        segments = footprint.split("::")
+        footprint = segments[-1]
+        if not all(segment.isidentifier() for segment in segments):
             return ""
-        if owner:
-            manifest = self._root / "lib" / owner / "cohdl.toml"
+        if len(segments) > 1 and segments[0] in self._package_manifests():
+            manifest = self._package_manifests()[segments[0]]
         metadata = package_metadata(manifest)
         if metadata is None:
             return ""
@@ -233,7 +260,12 @@ def avl_entry(
     footprint: str,
     effective_footprint: str | None = None,
 ) -> str:
-    """Render primary/alt entries with identical 100-column wrapping."""
+    """Render one AVL entry exactly as ``cohdl fmt`` lays it out.
+
+    Mirrors ``Formatter::wrapped`` in src/fmt.rs: one line when it fits in 100
+    columns, otherwise members packed greedily, each continuation aligned under
+    the first member (column 14 for ``primary``, 10 for ``alt``).
+    """
     explicit_footprint = effective_footprint is None
     if effective_footprint is None:
         effective_footprint = footprint
@@ -243,14 +275,26 @@ def avl_entry(
     supplier = bindings.clause(manifest, effective_footprint, mfr, mpn)
     if supplier:
         fields.append(supplier)
-    entry = f"    {kind} {{ " + ", ".join(fields) + " }"
-    if len(entry) <= 100:
-        return entry + "\n"
-    lines = [f'    {kind} {{ mfr: "{mfr}", mpn: "{mpn}",']
-    continuation = " " * 14
-    if explicit_footprint:
-        lines.append(f"{continuation}footprint: {footprint}" + ("," if supplier else ""))
-    if supplier:
-        lines.append(f"{continuation}{supplier}")
-    lines[-1] += " }"
-    return "\n".join(lines) + "\n"
+    return "\n".join(wrapped(f"{kind} {{ ", fields, " }")) + "\n"
+
+
+WIDTH = 100
+INDENT = "    "
+
+
+def wrapped(prefix: str, members: list[str], suffix: str) -> list[str]:
+    """``Formatter::wrapped`` at indent level 1, returning indented lines."""
+    oneline = prefix + ", ".join(members) + suffix
+    if len(INDENT) + len(oneline) <= WIDTH or len(members) <= 1:
+        return [INDENT + oneline]
+    lines: list[str] = []
+    line, first = prefix, True
+    for index, member in enumerate(members):
+        piece = member + ("," if index + 1 < len(members) else suffix)
+        if not first and len(INDENT) + len(line) + 1 + len(piece) > WIDTH:
+            lines.append(INDENT + line)
+            line, first = " " * len(prefix), True
+        line += piece if first else " " + piece
+        first = False
+    lines.append(INDENT + line)
+    return lines

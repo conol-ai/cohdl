@@ -95,11 +95,17 @@ class DecimalAndRotationTests(unittest.TestCase):
     def test_projection_opposite_sign_subtolerance_x_errors(self):
         # RFC 3.2: equal x coordinates can exchange order when rounded.  A
         # sort/zip matcher would pair these with the wrong 2mm y coordinates.
+        # The map's x values round to -1 nm and +1 nm, so sorting by x puts
+        # the 2 um pad first on the map side but last on the board side.
         mapped = sm.parse_map_pads(
-            [["1", "0.0000004mm", "0mm"], ["1", "0.0000004mm", "0.002mm"]]
+            [["1", "-0.0000005mm", "0.002mm"], ["1", "0.0000005mm", "0mm"]]
         )
+        self.assertEqual(sorted(xy for _, xy, _ in mapped), [(-1, 2000), (1, 0)])
         board = board_pads([("1", 0, 2000), ("1", 0, 0)])
         self.assertEqual(sm.match_pads(board, mapped), (True, None))
+        # A sort-then-zip pairing would see a 2 um error here.
+        zipped = zip(sorted(xy for _, xy, _ in board), sorted(xy for _, xy, _ in mapped))
+        self.assertTrue(any(abs(b[1] - m[1]) > 1000 for b, m in zipped))
 
     def test_projection_one_degree_rotation_rounded_to_nm(self):
         # RFC 3.2: 1-degree board rotation followed by integer-nm recovery.
@@ -333,6 +339,38 @@ class MapAndCoverageTests(unittest.TestCase):
         self.assertIn("U1", errors[0])
         self.assertIn("pad 1", errors[0])
         self.assertIn("pad_projection", errors[0])
+
+    def test_map_designator_without_numbered_smd_on_board_is_an_error(self):
+        doc = self.valid_map()
+        board = [{
+            "designator": "U1",
+            "footprint": FP,
+            "anchor_xy_nm": (0, 0),
+            "orientation": 0,
+            "machine_placed": False,
+            "pads": [],
+        }]
+        errors, _, _ = sm.check_board(doc, board)
+        self.assertEqual(errors, ["U1: in this map but has no numbered SMD pad on the board"])
+
+    def test_renamed_footprint_with_identical_pads_passes_with_a_warning(self):
+        doc = self.valid_map()
+        frame = sm.validate_map(doc)["footprints"][FP]
+        board = [{
+            "designator": "U1",
+            "footprint": "contrib_old-RENAMED",
+            "anchor_xy_nm": (0, 0),
+            "orientation": 0,
+            "pads": [{"number": number, "xy_nm": xy} for number, xy, _ in frame],
+        }]
+        errors, warnings, _ = sm.check_board(doc, board)
+        self.assertEqual(errors, [])
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("contrib_old-RENAMED", warnings[0])
+        board[0]["pads"][0] = {"number": frame[0][0], "xy_nm": (frame[0][1][0] + 10_000, frame[0][1][1])}
+        errors, _, _ = sm.check_board(doc, board)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("pad", errors[0])
 
     def test_coverage_missing_and_extra(self):
         doc = self.valid_map()

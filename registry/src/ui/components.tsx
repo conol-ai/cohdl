@@ -134,13 +134,14 @@ export function TierBadge({ tier }: { tier: string }) {
   );
 }
 
-export function formatDate(value: string): string {
+export function formatDate(value: string, timeZone?: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("en", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone,
   }).format(date);
 }
 
@@ -361,10 +362,13 @@ export function SupplierBindings({ suppliers }: { suppliers?: SupplierBinding[] 
               <td>({binding.at?.[0] ?? "—"}, {binding.at?.[1] ?? "—"})</td>
               <td>{binding.rotate}°</td>
               <td><SupplierLinks links={binding.links} /></td>
-              <td>{binding.catalog?.class ?? "—"}</td>
+              <td>{binding.catalog?.class || "—"}</td>
               <td>
                 {binding.catalog ? (
-                  <time dateTime={binding.catalog.snapshot_date}>{binding.catalog.snapshot_date}</time>
+                  // A snapshot date is a UTC day; the viewer's zone must not shift it.
+                  <time dateTime={binding.catalog.snapshot_date}>
+                    {formatDate(binding.catalog.snapshot_date, "UTC")}
+                  </time>
                 ) : "—"}
               </td>
               <td>{binding.catalog?.stock ?? "—"}</td>

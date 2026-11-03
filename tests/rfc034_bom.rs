@@ -82,6 +82,37 @@ design Board { inst c: C_100n_16V_X7R_0402 nc: c.A }
 }
 
 #[test]
+fn enet_keeps_an_explicitly_empty_identity_field_under_supplier() {
+    let src = format!(
+        r#"{LIB}
+#[source_unspecified("mpn")]
+pub part UNKNOWN: D {{
+    primary {{ mfr: "Unknown", mpn: "", footprint: FP, supplier acme "EMPTY" }}
+}}
+design Board {{ inst u: UNKNOWN nc: u.A }}
+"#
+    );
+    let component = |suppliers: &[&str]| {
+        let (checked, artifacts) = build(&src, suppliers);
+        let enet = cohdl::emit::easyeda::emit_enet_with_supplier(
+            &checked.world,
+            checked.ir.as_ref().unwrap(),
+            artifacts.suppliers.selections.first(),
+        );
+        enet.split("\"components\": {").nth(1).unwrap().to_string()
+    };
+    // The plain build writes the present-but-empty MPN; the supplier build
+    // writes it from the same selected entry rather than dropping it.
+    for component in [component(&[]), component(&["acme"])] {
+        assert!(
+            component.contains("\"Manufacturer Part\": \"\""),
+            "{component}"
+        );
+        assert!(component.contains("\"Manufacturer\": \"Unknown\""));
+    }
+}
+
+#[test]
 fn grouping_sorting_escaping_and_plain_bom_are_deterministic() {
     let src = format!(
         r#"{LIB}

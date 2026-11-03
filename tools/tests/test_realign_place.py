@@ -1,6 +1,8 @@
 import copy
+from decimal import Decimal
 import io
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -49,6 +51,19 @@ class RealignTests(unittest.TestCase):
         restored = forward
         for a, b, text in reversed(edits):
             restored = restored[:a] + text + restored[b:]
+        # At 37 degrees the inverse carries fixed-point roundoff; every
+        # coordinate (bottom included) must return within 1 nm and every
+        # angle and side exactly.
+        number = r"(-?[0-9.]+)mm"
+        statement = r"place (\S+) at \(" + number + ", " + number + r"\)(.*)"
+        expected = re.findall(statement, source)
+        actual = re.findall(statement, restored)
+        self.assertEqual(len(actual), 3)
+        for (name, x, y, tail), (name2, x2, y2, tail2) in zip(expected, actual):
+            self.assertEqual((name, tail), (name2, tail2))
+            self.assertLessEqual(abs(Decimal(x) - Decimal(x2)), Decimal("0.000001"), name)
+            self.assertLessEqual(abs(Decimal(y) - Decimal(y2)), Decimal("0.000001"), name)
+        self.assertIn("rotate 37 side bottom", restored)
         # CLI --reverse uses exact source snapshots; geometric inverse is tested
         # independently below at cardinal angles without sub-femto roundoff.
         cardinal = "design D { layout {\n place U1 at (10mm, 20mm)\n place U2 at (30mm, 40mm) side bottom\n} }\n"
@@ -145,6 +160,106 @@ design D {
                 self.assertEqual(rp.main([str(root), str(root / "change.json")] + args), 1)
             self.assertIn("port::xcvr uses moved footprint p::F but it is placed inside a subdesign", err.getvalue())
             self.assertEqual((root / "src/main.cohdl").read_text(), original)
+
+    def test_generic_subdesign_place_is_diagnosed_not_rewritten(self):
+        source = """subdesign Vreg<Cin: Capacitance> {
+ layout {
+  place U1 at (1mm, 2mm)
+ }
+}
+design D {
+ layout {
+  place U1 at (5mm, 6mm)
+ }
+}
+"""
+        edits, errors, _ = rp.realign(source, {"p::F": (0, 0, 90)}, {"U1": "p::F"}, design="D")
+        self.assertEqual(errors, [(3, "place inside subdesign is not rewritten")])
+        self.assertEqual(len(edits), 1)
+        self.assertEqual(source.count("\n", 0, edits[0][0]) + 1, 8)
+
+    def test_same_named_place_in_another_design_is_left_alone(self):
+        source = """design Other {
+ layout {
+  place U1 at (1mm, 2mm)
+ }
+}
+design D {
+ layout {
+  place U1 at (5mm, 6mm)
+ }
+}
+"""
+        notes = []
+        edits, errors, _ = rp.realign(source, {"p::F": (0, 0, 90)}, {"U1": "p::F"}, design="D", notes=notes)
+        self.assertFalse(errors)
+        self.assertEqual([line for line, _ in notes], [3])
+        self.assertEqual(len(edits), 1)
+        self.assertIn("(5mm, 6mm)", source[edits[0][0]:edits[0][1]])
+
+    def test_comments_neither_abort_nor_get_rewritten(self):
+        source = """design D {
+ layout {
+  // place U1 at (9mm, 9mm)
+  place U1 at (1mm, 2mm) // locked by the enclosure
+ }
+}
+"""
+        edits, errors, _ = rp.realign(source, {"p::F": (0, 0, 90)}, {"U1": "p::F"}, design="D")
+        self.assertFalse(errors)
+        self.assertEqual(len(edits), 1)
+        out = source
+        for start, end, text in reversed(edits):
+            out = out[:start] + text + out[end:]
+        self.assertIn("  // place U1 at (9mm, 9mm)\n", out)
+        self.assertIn("  place U1 at (1mm, 2mm) rotate 90 // locked by the enclosure\n", out)
+
+    def test_placement_that_no_longer_matches_the_layout_is_refused(self):
+        source = "design D { layout {\nplace U1 at (1mm, 2mm) rotate 90\n} }\n"
+        placed = {"U1": (10**15, 2 * 10**15, 0, False)}
+        edits, errors, _ = rp.realign(source, {"p::F": (0, 0, 90)}, {"U1": "p::F"}, design="D", placed=placed)
+        self.assertEqual(edits, [])
+        self.assertIn("no longer matches the build's layout", errors[0][1])
+
+    def test_unknown_change_keys_are_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "map.json"
+            p.write_text(json.dumps({"changes": [{"footprint": "p::F", "rotate_deg": 90}]}))
+            with self.assertRaisesRegex(ValueError, "unknown key.*rotate_deg"):
+                rp.read_changes(p)
+
+    def test_second_forward_run_and_foreign_reverse_are_refused(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "a"
+            root.mkdir()
+            original = "design D { layout {\nplace u_0 at (1mm, 2mm)\nplace v_1 at (5mm, 6mm)\n} }\n"
+            args = self._plain_names_project(root, original)
+            cli = [str(root), str(root / "change.json")]
+            with mock.patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(rp.main(cli + args), 0)
+            once = (root / "src/main.cohdl").read_text()
+            self.assertNotEqual(once, original)
+            # Same table again: the undo log is not overwritten.
+            with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main(cli + args), 1)
+            self.assertIn("already exists", err.getvalue())
+            # A fresh undo log does not help: the source no longer equals the
+            # stale layout, so the delta is never composed twice.
+            with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main(cli + args + ["--undo-log", str(root / "second.json")]), 1)
+            self.assertIn("no longer matches the build's layout", err.getvalue())
+            self.assertEqual((root / "src/main.cohdl").read_text(), once)
+            # The undo log belongs to project `a`; reversing project `b` fails.
+            other = Path(td) / "b"
+            (other / "src").mkdir(parents=True)
+            (other / "src/main.cohdl").write_text(once)
+            with mock.patch("sys.stderr", new=io.StringIO()) as err:
+                self.assertEqual(rp.main([str(other), str(root / "change.json"), "--reverse"]), 1)
+            self.assertIn("belongs to project", err.getvalue())
+            with mock.patch("sys.stdout", new=io.StringIO()):
+                self.assertEqual(rp.main(cli + ["--reverse"]), 0)
+            self.assertEqual((root / "src/main.cohdl").read_text(), original)
+            self.assertFalse((root / "change.json.undo.json").exists())
 
 
 if __name__ == "__main__":

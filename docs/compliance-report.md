@@ -4012,7 +4012,10 @@ docs/kicad_pcb.md. Decisions of note:
 - **Format target = what pcbnew 10 itself writes.** `(version 20260206)`,
   pad nets BY NAME with no board-level net table, TAB indentation, the
   stock 2-copper-layer `(layers)`/`(setup)` blocks verbatim (the 2-layer
-  default is the pcbnew flow's status quo, consciously inherited). The
+  default is the pcbnew flow's status quo, consciously inherited). Since
+  RFC-034 §3.1, a design with an outline also gets `(aux_axis_origin X Y)`
+  at the CPL origin and `(useauxorigin yes)` in `(setup)`; see the RFC-034
+  section below. The
   grammar was pinned from three pcbnew-written boards, not from
   documentation.
 - **The frame is the authoring frame.** CoHDL authors +y-down = KiCad's
@@ -4091,9 +4094,11 @@ docs/easyeda.md. Decisions of note:
   its byte shape is what v2 pins (top-level struct order, string-sorted
   object keys — the v1 serde_json BTreeMap bytes — `gge<n>` Unique IDs).
   Reference for the FORMAT only; no code ported (the rebuild rule).
-  v1 fields with no v2 equivalent (`Supplier`/`Supplier Part` from LCSC
-  generic substitutions) are omitted, never invented; `Manufacturer` is
-  emitted alongside `Manufacturer Part` since v2 parts carry `mfr`.
+  v1's `Supplier`/`Supplier Part` (from LCSC generic substitutions) are
+  never invented from a catalog. Since RFC-034 they are written only under
+  `build --supplier ID`, from the selected entry's source binding (§3.3);
+  a plain build omits them as before. `Manufacturer` is emitted alongside
+  `Manufacturer Part` since v2 parts carry `mfr`.
 - **A netlist, not a board.** Placement, outline, and footprint geometry
   stay with `--emit kicad_pcb` / `--emit ipc2581`; the three compose in
   one build. EasyEDA's own footprint binding goes through `FootprintName`
@@ -4353,3 +4358,29 @@ validation (`tools/validate_keepouts.py`) compared standalone imports against
 native boards at 0/37/90/180/270 degrees on both sides, then enabled four
 copper layers: all 70 deliberately intruding tracks/vias/pads/components
 were rejected by keepout DRC and all 40 outside control tracks were allowed.
+
+## RFC-034 — supplier bindings with placement mapping (2026-11-03)
+
+RFC-034 is Accepted (2026-10-30, DR-039). Implementation judgments and
+known gaps, recorded after the PR #58 source review:
+
+- **`.kicad_pcb` auxiliary origin.** §3.1 makes the board's drill/place
+  origin the CPL origin. So every outlined design's board file gains
+  `(aux_axis_origin X Y)` and `(useauxorigin yes)`. The RFC's Compatibility
+  section and note 10 were corrected on 2026-11-03 to say so.
+- **`.enet` identity fields.** Under `--supplier`, `Manufacturer` and
+  `Manufacturer Part` come from the selected entry with the plain build's
+  rule: written whenever the field is present, even if explicitly empty.
+- **`cohdl suppliers` binds parts first.** The audit runs the build-stage
+  part binding, so an instance bound to no part fails with E801 before any
+  query, like `build`. RFC-034 §5 states this since 2026-11-03.
+- **LSP supplier hover is local-only.** Hover shows the binding's supplier,
+  part number and mapping. The registry display name and link (RFC Tooling)
+  wait for a local cache of the supplier table.
+- **Library footprint alignment** (the library program, not the RFC) turns
+  footprints under breaking package versions. Each moved package's README
+  lists the moved footprints and their delta, and `tools/realign_place.py`
+  migrates literal `place` statements; RFC-034's Migration path describes it.
+- **Snapshot size.** A supplier snapshot upload is one replace-all D1 batch
+  of at most 10,000 catalog rows. A `db.batch()` counts as one query against
+  the per-invocation limit.

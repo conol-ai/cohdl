@@ -6,8 +6,12 @@ import io
 import json
 import math
 from pathlib import Path
+import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
 
 TOOLS = Path(__file__).resolve().parents[1]
@@ -163,6 +167,24 @@ class CompilerFixtureTests(unittest.TestCase):
                     abs(Decimal(row[column][:-2]) - Decimal(expected[column][:-2])),
                     Decimal("0.0001"),
                 )
+
+    def test_mapped_coordinates_are_rounded_once_like_the_compiler(self):
+        compiler = ROOT / "target/debug/cohdl"
+        if not compiler.is_file():
+            if os.environ.get("COHDL_REQUIRE_BINARY") == "1":
+                self.fail("target/debug/cohdl is not built")
+            self.skipTest("target/debug/cohdl is not built")
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory) / "round_once"
+            shutil.copytree(TOOLS / "tests/fixtures/round_once", project)
+            subprocess.run([str(compiler), "build", str(project), "--emit", "kicad_pcb", "--supplier", "lcsc"],
+                           check=True, capture_output=True)
+            out = project / "out"
+            errors, warnings, actual = mapped_cpl(out / "round_once.kicad_pcb", out / "round_once-lcsc-map.json")
+            expected = (out / "round_once-lcsc-cpl.csv").read_text(encoding="utf-8")
+        self.assertEqual((errors, warnings), ([], []))
+        self.assertIn("U1,40.0621mm,", expected)
+        self.assertEqual(actual, expected)
 
     def test_mirrored_fixture_matches_independent_reference_byte_for_byte(self):
         board = FIXTURE / "bottom_preview.kicad_pcb"

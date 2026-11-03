@@ -44,7 +44,11 @@ The top level contains `schema_version: 1` and `rows`. Every row has:
 - `mapping`: the binding's required `dx_mm`, `dy_mm`, and `rotate_deg` numeric
   values. Omitted source `at`/`rotate` values mean zero. Rotation is an integer
   in the RFC-034 range `0..360` (0 inclusive, 360 exclusive).
-- `measured`: an object with the same three numeric fields, or `null`.
+- `measured`: an object with the same three numeric fields, or `null`. It is
+  the mapping read on the cited preview, before any footprint alignment. For a
+  footprint since moved onto the supplier's frame, `package_version` names the
+  moved version and `mapping` is zero while `measured` keeps the earlier
+  reading; the cited record explains the move.
 - `exception`: a non-empty reason string exactly when `mapping` is non-zero;
   it must be `null` for an all-zero mapping.
 - `evidence` and `evidence_ref`: exactly one must be non-null. `evidence` has
@@ -80,7 +84,7 @@ all rows, including rows not currently selected by a binding.
 `footprint`、非空 `supplier` 与 `pn`。仅绑定所在包自身升版不会使行失效。
 `mapping` 的 `dx_mm`、`dy_mm`、
 `rotate_deg` 均为数值，分别对应绑定的 `at` 和 `rotate`（未写即零）；角度
-为 RFC-034 的 `0..360` 整数。`measured` 为同结构对象或 `null`。非零映射
+为 RFC-034 的 `0..360` 整数。`measured` 为同结构对象或 `null`，是在所引预览上读到的映射，即封装对齐之前的值。封装之后已移到供应商坐标系时，`package_version` 写移动后的版本、`mapping` 为零，`measured` 保留先前读数，由所引记录说明这次移动。非零映射
 必须有非空 `exception` 理由，零映射的 `exception` 必须为 `null`。
 
 `evidence` 与 `evidence_ref` 恰好一个非空。前者含 `method`

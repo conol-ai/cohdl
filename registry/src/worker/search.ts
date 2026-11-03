@@ -29,12 +29,18 @@ const MAX_ARGS_PER_PART = 128;
 const MAX_AVL_ENTRIES_PER_PART = 256;
 const MAX_FIELDS_PER_AVL = 64;
 export const MAX_SUPPLIERS_PER_AVL = 16;
+// Distinct (supplier, PN) identities kept per part, across all its AVL
+// entries. Each costs a catalog lookup key, so this bounds search enrichment.
+export const MAX_SUPPLIER_BINDINGS_PER_PART = 32;
 const MAX_SUPPLIER_PN_BYTES = 128;
 // match + supplier + 96 classes + limit + offset = D1's 100 bindings.
 const MAX_SEARCH_CLASSES = 96;
 const MAX_CLASS_BYTES = 128;
 // Each key binds supplier and PN; 49 pairs stay below D1's 100-binding limit.
 const CATALOG_LOOKUP_ROWS = 49;
+// One page of parts can need at most this many catalog keys. The lookups run
+// as one `db.batch()`, which D1 counts as a single query per invocation.
+export const MAX_CATALOG_LOOKUP_KEYS = MAX_LIMIT * MAX_SUPPLIER_BINDINGS_PER_PART;
 const MAX_LINK_BYTES = 2048;
 export const PART_SEARCH_CHUNK_BYTES = 512 * 1024;
 // Four MiB retains the current largest real package (`passive`, 8,972 public
@@ -293,8 +299,11 @@ function publicPart(row: IndexedPartSearchRow, query: string): Omit<PublicPartSe
   const byIdentity = new Map<string, IndexedSupplier>();
   for (const entry of avl) {
     for (const binding of entry.suppliers) {
-      const key = `${binding.supplier}\0${binding.pn}`;
-      if (!byIdentity.has(key)) byIdentity.set(key, binding);
+      const key = catalogKey(binding.supplier, binding.pn);
+      // Rows indexed before the per-part cap existed are bounded here too.
+      if (!byIdentity.has(key) && byIdentity.size < MAX_SUPPLIER_BINDINGS_PER_PART) {
+        byIdentity.set(key, binding);
+      }
     }
   }
   return {
@@ -381,7 +390,8 @@ export async function handleSearch(
     ]);
     const visibleParts = partRows.slice(0, limit).map((row) => publicPart(row, query));
     const lookupKeys = [...new Map(visibleParts.flatMap((part) => part.suppliers)
-      .map((binding) => [catalogKey(binding.supplier, binding.pn), binding])).values()];
+      .map((binding) => [catalogKey(binding.supplier, binding.pn), binding])).values()]
+      .slice(0, MAX_CATALOG_LOOKUP_KEYS);
     const catalog = await deps.store.catalog(lookupKeys);
     return searchJson(
       200,
@@ -478,8 +488,19 @@ function fieldsForAvl(value: unknown): { avl: IndexedAvl; searchable: string[] }
   };
 }
 
-function supplierProjection(value: unknown): { suppliers: IndexedSupplier[]; pns: string[] } {
-  const suppliers = parseSuppliers(isRecord(value) ? value.suppliers : undefined);
+/// `identities` is shared across one part's entries: a binding that would add
+/// a distinct identity past MAX_SUPPLIER_BINDINGS_PER_PART is not indexed.
+function supplierProjection(
+  value: unknown,
+  identities: Set<string>,
+): { suppliers: IndexedSupplier[]; pns: string[] } {
+  const suppliers = parseSuppliers(isRecord(value) ? value.suppliers : undefined).filter((binding) => {
+    const key = catalogKey(binding.supplier, binding.pn);
+    if (identities.has(key)) return true;
+    if (identities.size >= MAX_SUPPLIER_BINDINGS_PER_PART) return false;
+    identities.add(key);
+    return true;
+  });
   return { suppliers, pns: suppliers.map((binding) => binding.pn) };
 }
 
@@ -557,10 +578,11 @@ export function extractPartSearchRows(
     }
     const variant = boundedString(item.part.variant, MAX_ID_BYTES);
     if (variant) addSearchable(variant);
+    const identities = new Set<string>();
     for (const entry of entries) {
       const extracted = fieldsForAvl(entry.value);
-      const projected = supplierProjection(entry.value);
       if (!extracted) continue;
+      const projected = supplierProjection(entry.value, identities);
       extracted.avl.primary = entry.primary;
       extracted.avl.suppliers = projected.suppliers;
       avl.push(extracted.avl);
@@ -746,28 +768,30 @@ function d1SearchStore(db: D1Database): SearchStore {
 
     async catalog(keys: readonly IndexedSupplier[]) {
       const catalog = new Map<string, SupplierCatalogRow>();
+      const statements: D1PreparedStatement[] = [];
       for (let offset = 0; offset < keys.length; offset += CATALOG_LOOKUP_ROWS) {
         const chunk = keys.slice(offset, offset + CATALOG_LOOKUP_ROWS);
-        const result = await db.prepare(`SELECT c.supplier, c.pn, c.class, c.stock,
+        statements.push(db.prepare(`SELECT c.supplier, c.pn, c.class, c.stock,
               c.links, c.fetched_at, s.product_url_template
              FROM supplier_catalog c
              LEFT JOIN suppliers s ON s.id = c.supplier
             WHERE (c.supplier, c.pn) IN (${chunk.map(() => "(?, ?)").join(", ")})
             ORDER BY c.supplier ASC, c.pn ASC`)
-          .bind(...chunk.flatMap((binding) => [binding.supplier, binding.pn])).all();
-        for (const row of result.results) {
-          const supplier = String(row.supplier);
-          const pn = String(row.pn);
-          if (!validSupplier(supplier) || !validPn(pn) || typeof row.class !== "string" ||
-              row.class.length > MAX_CLASS_BYTES || !Number.isSafeInteger(Number(row.stock)) ||
-              Number(row.stock) < 0 || typeof row.fetched_at !== "string" || row.fetched_at.length > 64) continue;
-          let links: { label: string; url: string }[] = [];
-          try { links = safeLinks(JSON.parse(String(row.links))); } catch { /* malformed rows expose no links */ }
-          catalog.set(catalogKey(supplier, pn), { supplier, pn, class: row.class,
-            stock: Number(row.stock), snapshot_date: row.fetched_at,
-            product_url_template: typeof row.product_url_template === "string" ? row.product_url_template : null,
-            links });
-        }
+          .bind(...chunk.flatMap((binding) => [binding.supplier, binding.pn])));
+      }
+      const results = statements.length === 0 ? [] : await db.batch(statements);
+      for (const row of results.flatMap((result) => result.results as Record<string, unknown>[])) {
+        const supplier = String(row.supplier);
+        const pn = String(row.pn);
+        if (!validSupplier(supplier) || !validPn(pn) || typeof row.class !== "string" ||
+            row.class.length > MAX_CLASS_BYTES || !Number.isSafeInteger(Number(row.stock)) ||
+            Number(row.stock) < 0 || typeof row.fetched_at !== "string" || row.fetched_at.length > 64) continue;
+        let links: { label: string; url: string }[] = [];
+        try { links = safeLinks(JSON.parse(String(row.links))); } catch { /* malformed rows expose no links */ }
+        catalog.set(catalogKey(supplier, pn), { supplier, pn, class: row.class,
+          stock: Number(row.stock), snapshot_date: row.fetched_at,
+          product_url_template: typeof row.product_url_template === "string" ? row.product_url_template : null,
+          links });
       }
       return catalog;
     },

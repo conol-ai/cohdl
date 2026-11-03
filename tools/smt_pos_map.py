@@ -514,7 +514,12 @@ def check_board(document, board_footprints):
     )
     for ref in sorted(board, key=natural_key):
         fp = board[ref]
-        if ref not in by_ref or not _field(fp, "machine_placed", True):
+        if ref not in by_ref:
+            continue
+        if not _field(fp, "machine_placed", True):
+            # The map lists machine-placed instances only, so the board's pad
+            # set disagrees with the build: a frame change, never a skip.
+            errors.append(ref + ": in this map but has no numbered SMD pad on the board")
             continue
         row = by_ref[ref]
         frame = _field(fp, "footprint")
@@ -524,12 +529,13 @@ def check_board(document, board_footprints):
             continue
         # kicad_pcb's file_base() is exactly fq.replace("::", "-").
         board_names = {row["footprint"], row["footprint"].replace("::", "-")}
-        if frame not in footprints and frame not in board_names:
-            errors.append(ref + ": footprint frame not in this map: " + str(frame))
-            continue
         expected_frame = row["footprint"]
-        # A short-name or fully-qualified-name disagreement is not itself a
-        # frame mismatch; compare the actual projected pad frames below.
+        if frame not in board_names:
+            # RFC-034 §3.2 defines the frame check on pads alone, so a renamed
+            # package or footprint with identical pads still passes; the name
+            # difference is reported, and the pads decide.
+            warnings.append(ref + ": board footprint " + str(frame) + " is named "
+                            + expected_frame + " in this map; its pads are compared")
         bottom = _field(fp, "bottom", _field(fp, "flipped", False))
         anchor = _field(fp, "anchor_xy_nm", None)
         if anchor is None:
@@ -568,11 +574,13 @@ def mapped_neutral_rows(board_footprints, mappings, origin_nm, bottom_rotation="
         if bottom:
             dx = -dx
         anchor = _field(fp, "anchor")
+        # The offset stays unrounded: the CSV rounds once, at 0.1 um, as the
+        # compiler does. Rounding it to nm first would differ in the last digit.
         mapped_fp = dict(
             fp,
             anchor=(
-                anchor[0] + round_nm(dx * cosine + dy * sine),
-                anchor[1] + round_nm(dy * cosine - dx * sine),
+                anchor[0] + (dx * cosine + dy * sine),
+                anchor[1] + (dy * cosine - dx * sine),
             ),
             orientation=_field(fp, "orientation")
             + (-mapping["rotate"] if bottom else mapping["rotate"]),

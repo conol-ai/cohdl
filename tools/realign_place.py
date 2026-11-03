@@ -10,12 +10,18 @@ footprint block.  That block supplies the complete footprint name (PCB base
 names replace ``::`` with ``-``).  Missing/ambiguous matches are errors.  Never
 resolve a source target by refdes or supplier-map designator.
 
-Only single-line decimal-mm literal placements are changed.  Expressions,
-``for`` loops, subdesign declarations and reach-in paths are diagnosed as
-``file:line: reason``.  Translation uses the exact femto-mm fixed-point
-algorithm and checked-in sine table of ``src/trig.rs``.  Forward runs write an
-undo JSON containing original source bytes; ``--reverse`` restores those bytes
-exactly after checking that the files have not changed since the forward run.
+Only single-line decimal-mm literal placements inside the built design's own
+``design NAME { … }`` body are changed; comments are ignored.  Expressions,
+``for`` loops, subdesign declarations (generic ones included) and reach-in
+paths are diagnosed as ``file:line: reason``; a same-named placement in another
+design is left alone with a note.  Every rewritten placement must still equal
+the layout's: a source already realigned, or edited since the build, is
+refused, so a second forward run cannot compose the delta again.  Translation
+uses the exact femto-mm fixed-point algorithm and checked-in sine table of
+``src/trig.rs``.  Forward runs write an undo JSON containing original source
+bytes and never overwrite an existing one; ``--reverse`` restores those bytes
+exactly after checking that the project, the change table and the files are
+the ones the forward run recorded, then removes the undo log.
 """
 
 import argparse
@@ -70,6 +76,9 @@ def compiler_rotate(x, y, degrees):
     return product(x, cosine) - product(y, sine), product(x, sine) + product(y, cosine)
 
 
+CHANGE_KEYS = {"package", "footprint", "dx_mm", "dy_mm", "rotate", "r"}
+
+
 def read_changes(path):
     doc = json.loads(path.read_text(encoding="utf-8"))
     rows = doc.get("changes") if isinstance(doc, dict) else None
@@ -77,6 +86,14 @@ def read_changes(path):
         raise ValueError("change table must contain a changes array")
     changes = {}
     for i, row in enumerate(rows):
+        if not isinstance(row, dict):
+            raise ValueError("change row %d is not an object" % i)
+        unknown = sorted(set(row) - CHANGE_KEYS)
+        if unknown:
+            # A frame-data row spells its angle `rotate_deg`; silently dropping
+            # it would report success with no rotation applied.
+            raise ValueError("change row %d has unknown key(s): %s (expected %s)"
+                             % (i, ", ".join(unknown), ", ".join(sorted(CHANGE_KEYS))))
         fp = row.get("footprint", "")
         if not fp:
             raise ValueError("change row %d has no footprint" % i)
@@ -96,10 +113,18 @@ def code_only(source):
     return re.sub(r'//[^\n]*|"(?:\\.|[^"\\])*"', lambda m: "".join("\n" if c == "\n" else " " for c in m.group(0)), source)
 
 
-def regions(source, keyword):
+def regions(source, keyword, name=None):
     clean = code_only(source)
     found = []
-    pattern = r"\bfor\b" if keyword == "for" else r"(?m)^[ \t]*(?:pub[ \t]+)?subdesign[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]*\{"
+    if keyword == "for":
+        pattern = r"\bfor\b"
+    elif keyword == "subdesign":
+        # A declaration, generic or not; a use site (`subdesign x: S { … }`)
+        # has a colon after its name and never matches.
+        pattern = r"(?m)^[ \t]*(?:pub[ \t]+)?subdesign[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]*(?:<[^{}\n]*>)?[ \t]*\{"
+    else:
+        pattern = r"(?m)(?:^|(?<=[;}]))[ \t]*(?:pub[ \t]+)?design[ \t]+" + (
+            re.escape(name) if name else r"[A-Za-z_][A-Za-z0-9_]*") + r"[ \t]*\{"
     for match in re.finditer(pattern, clean):
         brace = clean.find("{", match.end())
         if brace < 0 or (keyword == "for" and "\n" in clean[match.end():brace]):
@@ -119,26 +144,39 @@ def inside(position, spans):
     return any(start < position < end for start, end in spans)
 
 
-def realign(source, changes, footprints, reverse=False):
+def realign(source, changes, footprints, reverse=False, design=None, placed=None, notes=None):
+    """Return (edits, errors, changed) for one source file.
+
+    With ``design``, only placements inside that design's body are rewritten.
+    With ``placed`` (target -> (x_femto, y_femto, rotate, bottom) from the
+    build's layout), a placement that no longer equals the layout is refused.
+    """
     errors, edits, changed = [], [], []
+    clean = code_only(source)
     loops, subdesigns = regions(source, "for"), regions(source, "subdesign")
+    body = regions(source, "design", design) if design else None
     seen = set()
-    for match in re.finditer(r"\bplace\s+([A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\])?)\s+at\b", source):
+    for match in re.finditer(r"\bplace\s+([A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\])?)\s+at\b", clean):
         target = match.group(1)
         fp = footprints.get(target.rsplit(".", 1)[-1])
         if fp is None or inside(match.start(), loops):
             continue
         line = source.count("\n", 0, match.start()) + 1
+        if body is not None and not inside(match.start(), body) and not inside(match.start(), subdesigns):
+            seen.add(line)
+            if notes is not None:
+                notes.append((line, "place %s is outside design %s and is not rewritten" % (target, design)))
+            continue
         if "." in target:
             seen.add(line)
             errors.append((line, "subdesign reach-in place is not rewritten"))
         elif inside(match.start(), subdesigns):
             seen.add(line)
             errors.append((line, "place inside subdesign is not rewritten"))
-        elif not any(m.start() <= match.start() < m.end() for m in PLACE.finditer(source)):
+        elif not any(m.start() <= match.start() < m.end() for m in PLACE.finditer(clean)):
             seen.add(line)
             errors.append((line, "only single-line literal place statements are rewritten"))
-    for match in PLACE.finditer(source):
+    for match in PLACE.finditer(clean):
         target, line = match.group("target"), source.count("\n", 0, match.start()) + 1
         fp = footprints.get(target)
         if fp is None or line in seen or inside(match.start(), loops) or inside(match.start(), subdesigns):
@@ -156,6 +194,10 @@ def realign(source, changes, footprints, reverse=False):
             if not 0 <= old_angle < 360:
                 raise ValueError("rotation must be integer 0..359")
             bottom = bool(re.search(r"\bside\s+bottom\b", tail))
+            if placed is not None and placed.get(target) != (x, y, old_angle, bottom):
+                raise ValueError(
+                    "place %s no longer matches the build's layout; rebuild from this source "
+                    "before realigning (a placement already realigned is never realigned twice)" % target)
             dx, dy, rotate = changes[fp]
             dx, dy = dx * FEMTO_PER_NM, dy * FEMTO_PER_NM
             if reverse:
@@ -181,7 +223,7 @@ def realign(source, changes, footprints, reverse=False):
         except (ValueError, sm.MapError) as exc:
             errors.append((line, str(exc)))
     for start, end in loops:
-        for match in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source[start:end]):
+        for match in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", clean[start:end]):
             if match.group(1) in footprints:
                 errors.append((source.count("\n", 0, start + match.start()) + 1, "place in a for loop is not rewritten"))
     return edits, sorted(set(errors)), changed
@@ -189,7 +231,7 @@ def realign(source, changes, footprints, reverse=False):
 
 def compiler_footprints(layout_path, board_path, targets, changes):
     from jlc_frame_board import board_sexpr, children
-    layout = json.loads(layout_path.read_text(encoding="utf-8"))
+    layout = json.loads(layout_path.read_text(encoding="utf-8"), parse_float=Decimal)
     board = board_sexpr(board_path.read_text(encoding="utf-8"))
     full_names = {name.replace("::", "-"): name for name in changes}
     rows = []
@@ -198,8 +240,9 @@ def compiler_footprints(layout_path, board_path, targets, changes):
         rows.append((full_names.get(node[1]), [Decimal(at[1]), Decimal(at[2])],
                      Decimal(at[3]) if len(at) > 3 else Decimal(0),
                      next(c for c in children(node, "layer"))[1] == "B.Cu"))
-    result, unmatched = {}, []
+    result, unmatched, placed, designs = {}, [], {}, set()
     for placement in layout.get("placements", []):
+        designs.add(placement["instance"].split("::", 1)[0])
         parts = placement["instance"].split("::", 1)[-1].split("::")
         # An element of `inst x: [D; N]` is laid out as x_0 but placed as x[0];
         # an ordinary instance may itself be named x_0.  A subdesign member
@@ -226,7 +269,11 @@ def compiler_footprints(layout_path, board_path, targets, changes):
             unmatched.append("%s uses moved footprint %s but %s" % (name, matches[0][0], where))
             continue
         result[target] = matches[0][0]
-    return result, unmatched
+        placed[target] = (literal_femto("%smm" % placement["at"][0]), literal_femto("%smm" % placement["at"][1]),
+                          placement.get("rotate", 0), bottom)
+    if len(designs) > 1:
+        raise ValueError("layout names more than one design: " + ", ".join(sorted(designs)))
+    return result, unmatched, placed, next(iter(designs), None)
 
 
 def main(argv=None):
@@ -240,28 +287,40 @@ def main(argv=None):
     args = ap.parse_args(argv)
     undo = args.undo_log or args.changes.with_suffix(args.changes.suffix + ".undo.json")
     try:
+        project = str(args.project.resolve())
         if args.reverse:
             doc = json.loads(undo.read_text(encoding="utf-8"))
+            if doc.get("project") != project:
+                raise ValueError("undo log %s belongs to project %s, not %s" % (undo, doc.get("project"), project))
+            if doc.get("changes_sha256") != hashlib.sha256(args.changes.read_bytes()).hexdigest():
+                raise ValueError("change table %s differs from the one the forward run used" % args.changes)
             for item in doc["files"]:
                 path = Path(item["path"])
                 if hashlib.sha256(path.read_bytes()).hexdigest() != item["after_sha256"]:
                     raise ValueError("refusing reverse after external edit: " + str(path))
             for item in doc["files"]:
                 Path(item["path"]).write_text(item["source"], encoding="utf-8")
+            undo.unlink()
             print("realigned %d placements" % doc["count"])
             return 0
         if not args.layout or not args.board:
             raise ValueError("forward realignment requires --layout and --board")
+        if undo.exists():
+            raise ValueError("undo log %s already exists from an earlier forward run; run --reverse first, "
+                             "or pass a new --undo-log once that run is known to be wanted" % undo)
         changes = read_changes(args.changes)
         paths = sorted((args.project / "src").glob("*.cohdl"))
         originals = {p: p.read_text(encoding="utf-8") for p in paths}
         targets = {m.group(1) for source in originals.values()
                    for m in re.finditer(r"\bplace\s+(" + TARGET + r")\s+at\b", source)}
-        footprints, unmatched = compiler_footprints(args.layout, args.board, targets, changes)
+        footprints, unmatched, placed, design = compiler_footprints(args.layout, args.board, targets, changes)
         rewritten, errors, undo_files = {}, ["%s: %s" % (args.project, item) for item in unmatched], []
         for path, source in originals.items():
-            edits, problems, _ = realign(source, changes, footprints)
+            notes = []
+            edits, problems, _ = realign(source, changes, footprints, design=design, placed=placed, notes=notes)
             errors.extend("%s:%d: %s" % (path, line, msg) for line, msg in problems)
+            for line, msg in notes:
+                print("%s:%d: note: %s" % (path, line, msg), file=sys.stderr)
             for start, end, replacement in reversed(edits):
                 source = source[:start] + replacement + source[end:]
             rewritten[path] = source
@@ -274,7 +333,9 @@ def main(argv=None):
         for path, source in rewritten.items():
             if source != originals[path]: path.write_text(source, encoding="utf-8")
         count = sum(item["count"] for item in undo_files)
-        undo.write_text(json.dumps({"count": count, "files": undo_files}, indent=2) + "\n", encoding="utf-8")
+        undo.write_text(json.dumps({"project": project, "count": count,
+                                    "changes_sha256": hashlib.sha256(args.changes.read_bytes()).hexdigest(),
+                                    "files": undo_files}, indent=2) + "\n", encoding="utf-8")
         print("realigned %d placements" % count)
         return 0
     except (ValueError, OSError, KeyError, json.JSONDecodeError, sm.MapError) as exc:

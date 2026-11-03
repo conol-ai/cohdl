@@ -21,6 +21,7 @@ import time
 # `python3 -I` does not put the script's directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from sourcing.http import FetchClient, RequestLimitError, RobotsError, RunStoppedError
+from sourcing.paths import repo_relative
 from sourcing.sitemap import SitemapResult, entries_from_mapping, filter_partdetail_urls, load_sitemaps
 
 
@@ -235,7 +236,8 @@ def run_catalog(
     catalog_hash = write_json(output_dir / "catalog.json", rows)
     unresolved_hash = write_json(output_dir / "unresolved.json", sorted(set(unresolved)))
     request_log = [{"url": record.url, "user_agent": record.user_agent,
-                    "snapshot_date": record.snapshot_date} for record in client.request_log]
+                    "snapshot_date": record.snapshot_date, "from_cache": record.from_cache}
+                   for record in client.request_log]
     log_hash = write_json(output_dir / "requests.json", request_log)
     not_fetched_hash = write_json(output_dir / "not_fetched.json", not_fetched)
     provenance = {
@@ -244,8 +246,10 @@ def run_catalog(
         "sources": source_metadata or {"origin": origin, "partdetail_paths": "filtered_jlcpcb_sitemap"},
         "counts": {"candidates": len(candidates), "catalog": len(rows),
                    "unresolved": len(set(unresolved)), "fetch_failures": len(failures),
-                   "requests": client.request_count, "partdetail_urls": len(urls)},
+                   "requests": client.request_count, "partdetail_urls": len(urls),
+                   "cache_hits": sum(record.from_cache for record in client.request_log)},
         "request_count": client.request_count,
+        "max_requests": client.max_requests,
         "elapsed_seconds": round(time.monotonic() - started, 6),
         "budget_exhausted": budget_exhausted,
         "run_stopped": run_stopped_reason is not None,
@@ -311,7 +315,7 @@ def main(argv=None) -> int:
         sitemap = SitemapResult(entries, {}, filter_partdetail_urls(
             (canonical_url(args.origin, entry.path) for entry in entries.values()),
             allowed_hosts=args.allowed_host))
-        sitemap_meta = {"sitemap_json": str(args.sitemap_json)}
+        sitemap_meta = {"sitemap_json": repo_relative(args.sitemap_json, ROOT)}
     elif args.dry_run:
         sitemap, sitemap_meta = load_sitemaps(OfflineClient(client), args.sitemap_index,
                                               sitemap_urls=args.sitemap,
@@ -322,12 +326,12 @@ def main(argv=None) -> int:
     output = args.output_dir or DEFAULT_OUTPUT / args.date
     source_metadata = {
         "origin": args.origin,
-        "candidates": str(args.candidates),
+        "candidates": repo_relative(args.candidates, ROOT),
         "candidates_sha256": sha256_file(args.candidates),
         "partdetail_paths": "filtered_jlcpcb_sitemap",
     }
     if args.sitemap_json:
-        source_metadata["sitemap_json"] = str(args.sitemap_json)
+        source_metadata["sitemap_json"] = repo_relative(args.sitemap_json, ROOT)
         source_metadata["sitemap_json_sha256"] = sha256_file(args.sitemap_json)
     else:
         source_metadata["sitemap"] = sitemap_meta

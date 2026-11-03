@@ -30,7 +30,7 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
 | Needs | For | Status |
 |---|---|---|
 | Geometry checks in `tests/library.rs` for every shipped package (today only `@contrib/` and `@sifli/`) | Any footprint change in W3/W4 | W0 |
-| RFC-034 phase 1: compiler clause, supplier outputs, registry tables, `cohdl suppliers` | Publishing bindings (W2/W4); registry display (W5) | Draft RFC |
+| RFC-034 phase 1: compiler clause, supplier outputs, registry tables, `cohdl suppliers` | Publishing bindings (W2/W4); registry display (W5) | Accepted 2026-10-30; PR #58 |
 | Nothing | Catalog snapshot (W1), frame evidence and alignment (W3) | Can start now |
 
 ## Workstreams
@@ -96,7 +96,7 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
 **Unit of evidence.** RFC-034 defines a mapping for the pair (our footprint, the supplier's footprint for one part number). So proving one reference part number on F says nothing by itself about another part number bound to F. Evidence, exceptions and CI are therefore keyed by **(footprint, package version, supplier, part number)**.
 
 - **Scope (recounted 2026-10-29):** all 304 declared footprints, 286 of them referenced by parts; the rest are mostly in footprint-only packages offered to third parties. Most belong to standard families: CHIP, SOT, SOD, SOIC/TSSOP, QFP, QFN, BGA.
-- **Evidence:** `tools/sourcing_data/jlc_frames.json`, machine-readable for CI, with a generated `docs/jlc-frames.md` view. One row per (footprint, package version, supplier, part number), holding:
+- **Evidence:** `tools/sourcing_data/jlc_frames.json`, machine-readable for CI (no generated view yet). One row per (footprint, package version, supplier, part number), holding:
   - the recorded mapping (target `(0, 0, 0°)`);
   - the mapping found before alignment;
   - the evidence: method, date and artifact (preview screenshot or test-board record);
@@ -191,4 +191,4 @@ Added to `tests/library.rs` as each workstream lands:
 | 2026-10-27 | Frame evidence, exceptions and CI checks are keyed by (footprint, package version, supplier, part number). Shared evidence needs a recorded reason and a direct sample. |
 | 2026-10-27 | jlcparts is re-admitted as a candidate source. Sitemap ingest is filtered and de-duplicated. Identity is always confirmed on `partdetail`. |
 | 2026-10-27 | The 2026-10-06 raw captures (baseline, 82% sample, 14-of-33 comparison) were not preserved. Each figure is re-measured, and its data is committed. |
-| pending | Connector placeholders: fix four; quarantine two, or keep them with `#[source_unspecified("mpn")]` (W0). |
+| 2026-10-29 | Connector placeholders: four fixed; `CONN_MIC_2P` and `CONN_SPK_2P` kept with `#[source_unspecified("mpn")]` and `mpn: ""` (A2). |

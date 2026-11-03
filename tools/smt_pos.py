@@ -122,7 +122,9 @@ def main():
     if args.neutral or args.map is not None:
         shapes = []
         for drawing in board.GetDrawings():
-            if drawing.GetLayer() != pcbnew.Edge_Cuts:
+            # Text, dimensions, images and targets on Edge.Cuts are not
+            # outline geometry; some lack the shape accessors entirely.
+            if drawing.GetLayer() != pcbnew.Edge_Cuts or drawing.Type() != pcbnew.PCB_SHAPE_T:
                 continue
             shape = drawing.GetShape()
             kinds = {

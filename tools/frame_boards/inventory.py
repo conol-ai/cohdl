@@ -19,18 +19,19 @@ def block(t, i):
     return t[i:]
 
 pkg_of = {}
-for toml in LIB.glob("*/cohdl.toml"):
+# Sorted throughout: a footprint's first user must not depend on the filesystem.
+for toml in sorted(LIB.glob("*/cohdl.toml")):
     m = re.search(r'^name\s*=\s*"([^"]+)"', toml.read_text(), re.M)
     v = re.search(r'^version\s*=\s*"([^"]+)"', toml.read_text(), re.M)
     pkg_of[toml.parent.name] = (m.group(1), v.group(1))
-for toml in LIB.glob("@*/*/cohdl.toml"):
+for toml in sorted(LIB.glob("@*/*/cohdl.toml")):
     m = re.search(r'^name\s*=\s*"([^"]+)"', toml.read_text(), re.M)
     v = re.search(r'^version\s*=\s*"([^"]+)"', toml.read_text(), re.M)
     pkg_of[str(toml.parent.relative_to(LIB))] = (m.group(1), v.group(1))
 
 devices, users, courts = {}, {}, {}
-for d, (pkg, ver) in pkg_of.items():
-    for f in (LIB / d / "src").rglob("*.cohdl"):
+for d, (pkg, ver) in sorted(pkg_of.items()):
+    for f in sorted((LIB / d / "src").rglob("*.cohdl")):
         t = strip(f.read_text())
         for m in re.finditer(r"\bdevice\s+(\w+)\s*(?:<[^>{]*>)?\s*\{", t):
             b = block(t, m.end() - 1)

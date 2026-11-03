@@ -205,7 +205,12 @@ describe("public supplier parts Worker route", () => {
 
   it("validates supplier IDs, methods, and unknown suppliers", async () => {
     expect((await fetchParts("/suppliers/INVALID/parts?pn=P-1")).response.status).toBe(404);
-    expect((await fetchParts("/suppliers/unknown/parts?pn=P-1")).response.status).toBe(404);
+    // The CLI reports a supplier as unlisted only on exactly this body
+    // (src/registry.rs), so the wording and shape are a cross-repo contract.
+    const unknown = await fetchParts("/suppliers/unknown/parts?pn=P-1");
+    expect(unknown.response.status).toBe(404);
+    expect(unknown.body).toEqual({ error: "supplier not found" });
+    expect(unknown.response.headers.get("Cache-Control")).toBe("no-store");
     const method = await fetchParts("/suppliers/acme/parts?pn=P-1", "POST");
     expect(method.response.status).toBe(405);
     expect(method.response.headers.get("Allow")).toBe("GET");
@@ -220,6 +225,17 @@ describe("public supplier parts Worker route", () => {
     const { response, body } = await fetchParts("/suppliers/acme/parts?pn=P-1");
     expect(response.status).toBe(200);
     expect(body).toEqual({ supplier: "acme", snapshot_date: null, parts: [{ pn: "P-1", catalog: "unknown" }] });
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=60");
+  });
+
+  it("serves an unclassified row of a supplier without a class vocabulary", async () => {
+    await supplierStore(d1).replaceSnapshot({ ...snapshot([catalogRow("P-plain", "M-plain", { class: "" })]),
+      class_vocabulary: [] });
+    const byPn = await fetchParts("/suppliers/acme/parts?pn=P-plain");
+    expect(byPn.response.status).toBe(200);
+    expect(byPn.body.parts[0].catalog).toMatchObject({ pn: "P-plain", class: "" });
+    const byMpn = await fetchParts("/suppliers/acme/parts?mpn=M-plain");
+    expect(byMpn.body.parts[0].catalog.map((row: any) => row.pn)).toEqual(["P-plain"]);
   });
 
   it("adds normalized MPN and alias-resolved manufacturer keys without changing catalog fields", async () => {
@@ -243,6 +259,7 @@ describe("public supplier parts Worker route", () => {
     const broken = { DB: { prepare() { throw new Error("secret D1 failure"); } }, ASSETS: env.ASSETS } as unknown as Env;
     const response = await worker.fetch(new Request("https://registry.cohdl.org/suppliers/acme/parts?pn=P-1"), broken);
     expect(response.status).toBe(500);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
     const text = await response.text();
     expect(JSON.parse(text)).toEqual({ error: "internal error" });
     expect(text).not.toContain("secret");
@@ -318,7 +335,9 @@ describe("public manufacturer normalization Worker route", () => {
     const accepted = await fetchNormalize(new URLSearchParams([["mfr", boundary]]));
     expect(accepted.response.status).toBe(200);
     expect(accepted.body.mfr[0]).toEqual({ value: boundary, key: boundary });
-    expect((await fetchNormalize(new URLSearchParams([["mfr", `${boundary}é`]]))).response.status).toBe(400);
+    const rejected = await fetchNormalize(new URLSearchParams([["mfr", `${boundary}é`]]));
+    expect(rejected.response.status).toBe(400);
+    expect(rejected.response.headers.get("Cache-Control")).toBe("no-store");
     for (const kind of ["mfr", "mpn"]) {
       const values = Array.from({ length: 100 }, () => [`${kind}`, "duplicate"] as [string, string]);
       expect((await fetchNormalize(new URLSearchParams(values))).response.status).toBe(200);

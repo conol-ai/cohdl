@@ -80,7 +80,7 @@ Rules:
 
 - **`SUPPLIER`** is an identifier: lowercase ASCII letter first, then lowercase letters, digits or `_`, at most 32 bytes. The set is **open**: the compiler attaches no meaning to any particular name. Names in conventional use are recorded in the registry's supplier table (§4), not in the compiler. `acme`, `globex` and their part numbers in this RFC are fictitious placeholders. The IDs `mpn` and `mfr` are reserved (E813): their upper-case forms would collide with the `MPN`/`MFR` fields of the KiCad netlist (§3.3).
 - **`PART_NUMBER`** is a string: non-empty after trimming, at most 128 UTF-8 bytes, no control characters. The compiler checks no supplier-specific format.
-- **`at (X, Y)`** is the mapping offset, two `Length` values (RFC-001; a bare number is the existing unit error). It may be negative. It defaults to `(0mm, 0mm)`.
+- **`at (X, Y)`** is the mapping offset, two `Length` values (RFC-001; a bare number is E813, below). It may be negative. It defaults to `(0mm, 0mm)`.
 - **`rotate ANGLE`** is the mapping rotation, a whole number of degrees in `0..=359`. This is the same range and diagnostic shape as `place … rotate` and pad rotation under the live arbitrary-angle deviation. It defaults to `0`.
 - **Syntax reuse.** `at (…)` and `rotate …` are the existing placement clauses, reused with the meaning defined in §2. `supplier` is recognized only at the start of an item inside an AVL entry, where it is followed by an identifier and a string, never by `:`. So it is a contextual word, not a new reserved keyword; an existing identifier named `supplier` keeps working everywhere else.
 - **Uniqueness:**
@@ -93,7 +93,7 @@ Rules:
 
 Diagnostics:
 - **Syntax** (a missing supplier identifier or part-number string, a stray token) is the parser's **E010**, like every other syntax error.
-- **E813** owns the clause's semantics, naming the part, the entry and the supplier: an empty, over-long or control-character part number, an over-long supplier identifier, a duplicate supplier, a conflicting part number, more than 16 clauses, an out-of-range angle, and a non-`Length` value in `at` (a bare number or another unit). Each construct already owns its own unit errors (E805/E806 for pads, E1007 for `place`); E813 does the same here.
+- **E813** owns the clause's semantics, naming the part, the entry and the supplier: a supplier identifier outside the grammar above or reserved, an empty, over-long or control-character part number, an over-long supplier identifier, a duplicate supplier, a conflicting part number, more than 16 clauses, an out-of-range angle, and a non-`Length` value in `at` (a bare number or another unit). Each construct already owns its own unit errors (E805/E806 for pads, E1007 for `place`); E813 does the same here.
 - Lexical unit errors (E101, E103, E104) apply as everywhere.
 - Unknown `name:` keys remain E802.
 
@@ -263,7 +263,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
 - It is replaced per supplier from a snapshot uploaded through an admin endpoint. The Worker does not fetch supplier sites.
 - What a snapshot contains and how it is gathered is outside this RFC.
 
-**Index.** `registry/src/worker/search.ts` reads the API-docs `suppliers` array into the part index next to `mfr`/`mpn`, bounded like the other projections (a new `MAX_SUPPLIERS_PER_AVL = 16`, beside `MAX_AVL_ENTRIES_PER_PART`). Part numbers also join the searchable text, so searching for a part number finds the part.
+**Index.** `registry/src/worker/search.ts` reads the API-docs `suppliers` array into the part index next to `mfr`/`mpn`, bounded like the other projections (a new `MAX_SUPPLIERS_PER_AVL = 16`, beside `MAX_AVL_ENTRIES_PER_PART`, and at most `MAX_SUPPLIER_BINDINGS_PER_PART = 32` distinct `(supplier, pn)` pairs per part, so one page of search results needs a bounded number of catalog lookups, sent as one D1 batch). Part numbers also join the searchable text, so searching for a part number finds the part.
 
 **Public surface** (additive; all read-only and login-free like `/search`):
 
@@ -282,7 +282,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
 
 ### 5. `cohdl suppliers`: online audit and suggestions
 
-`cohdl suppliers <dir> [--supplier ID]... [--json]` resolves the project offline exactly as `check` does, then queries the registry. A project that fails `check` exits 1 before any query, like `check`.
+`cohdl suppliers <dir> [--supplier ID]... [--json]` resolves the project offline exactly as `check` does and binds each instance to its part as `build` does, then queries the registry. A project that fails `check`, or has an instance bound to no part (E801, as at `build`), exits 1 before any query.
 
 - **For each binding** (optionally limited to the given suppliers), it reports one of:
   - `ok`
@@ -295,7 +295,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
   - The command never edits source. `--json` carries suggestions as structured data for a repair loop.
 - **Scope.** The audit covers every AVL entry, primary and alternates, of the parts the design instantiates, as E814 does. Without `--supplier` it audits every supplier ID those entries bind and reports no `unbound`.
 - **Comparison** uses the registry's keys (§4): the catalog row's `mpn_key`/`manufacturer_key` against the keys `/manufacturers/normalize` returns for the entry's `mpn` and `mfr`.
-- **Values the registry cannot be asked about.** A part number containing `,` or longer than 256 bytes is reported `unknown` with that reason, without a query. An `mpn` of that kind is reported `unbound` with no suggestions. An `mfr` or `mpn` over 256 bytes is not compared, like an empty one.
+- **Values the registry cannot be asked about.** A part number containing `,` or a control character, or longer than 256 bytes, is reported `unknown` with that reason, without a query. An `mpn` of that kind is reported `unbound` with no suggestions. An `mfr` or `mpn` over 256 bytes or containing a control character is not compared, like an empty one.
 - **Unlisted supplier.** When the registry has no catalog for a supplier ID (`404 supplier not found`), the report says so at supplier level and lists no per-binding status for it. This does not change the exit code, because §4 allows bindings to unlisted suppliers.
 - **Exit codes:**
   - 0 when every audited binding is `ok`
@@ -305,7 +305,7 @@ It is maintained by official accounts. A binding to an unlisted supplier is show
   - `out-of-stock` and `unbound` are reported without changing the exit code.
   - Exit code 3 is new to the CLI, which uses only 0/1/2 today. It is documented in `cohdl --help` and the CLI exit-code documentation, and no other command uses it.
 - **It never runs inside `check` or `build`.** Same sources and locks must give the same verdict and bytes, so a fact that changes daily cannot enter them. CI that wants this gate runs `cohdl suppliers` as its own step.
-- `--json` is a report shape of its own, like `cohdl search --json`, not RFC-010 diagnostics.
+- `--json` is a report shape of its own, like `cohdl search --json`, not RFC-010 diagnostics: `schema_version`, `design`, and `suppliers`, one object per audited supplier with `supplier`, `snapshot_date`, `catalog` (`listed` or `unlisted`), an optional `note`, and `entries`. Each entry has `part`, `entry` (`primary` or `alt[N]`, zero-based), `mfr`, `mpn`, `pn` (null when unbound), `status`, an optional `note`, `mismatches`, `catalog` (the matched row or null) and `suggestions` (each a `catalog` row and `manufacturer_match`, true, false or null). An unlisted supplier has an empty `entries`.
 
 ## Type-system-first test
 
@@ -331,7 +331,7 @@ Vocabulary:
   - `cohdl suppliers` (online, outside the verdict);
   - registry catalog status with an as-of date;
   - for official libraries, library CI and assembler previews under the library program.
-- **Netlist (Med):** `.net` bytes change only for instances whose primary carries a binding. The neutral CPL is a new file, written only for placed designs. Supplier outputs and `.enet` supplier properties appear only with `--supplier`. Every existing output file keeps its bytes.
+- **Netlist (Med):** `.net` bytes change only for instances whose primary carries a binding. The neutral CPL is a new file, written only for placed designs. Supplier outputs and `.enet` supplier properties appear only with `--supplier`. `.kicad_pcb` gains the auxiliary origin for outlined designs (Compatibility); every other existing output file keeps its bytes.
 - **Trust (Med):** part numbers and mappings are author statements, like MPNs today. Everything that changes daily stays in the registry, dated.
 
 ## Gradeability
@@ -377,13 +377,14 @@ There are two main risks, each with a mitigation:
   - BOM CSV: unchanged.
   - `.net`: changes only for primaries with bindings.
   - `.enet`: changes only with `--supplier`.
-  - `-cpl.csv`: new default output, written only by physical builds of designs that contain `place`; every existing output file keeps its bytes. `--logical-only` builds write exactly the files they write today.
+  - `-cpl.csv`: new default output, written only by physical builds of designs that contain `place`. `--logical-only` builds write exactly the files they write today.
+  - `.kicad_pcb`: a design with a resolved outline gains `(aux_axis_origin X Y)` at the CPL origin and `(useauxorigin yes)` in `(setup)` (§3.1), so KiCad's own position export agrees with the CPL. A design without an outline keeps its bytes.
   - `tools/smt_pos.py`: default output unchanged; `--neutral` and `--map` are new.
   - `build --json`: additive `cpl` and `suppliers` keys.
   - `-<ID>-bom.csv`, `-<ID>-map.json`, `-<ID>-cpl.csv`: new, only with `--supplier` (the CPL only in physical builds).
   - API docs: additive.
 - **Registry and CLI:** additive (`suppliers` on part rows, `supplier=`/`class=` filters, `/suppliers/{id}/parts`, `cohdl suppliers`).
-- **Libraries:** none required by this RFC.
+- **Libraries:** none required by this RFC. Aligning a library footprint to an assembler's frame is a breaking package change (Migration path).
 
 ## Tooling & operations
 
@@ -397,7 +398,7 @@ There are two main risks, each with a mitigation:
   - `tools/smt_pos.py` docs: `--neutral`, `--map`.
   - `cohdl --help` and the CLI exit-code documentation: exit code 3 of `cohdl suppliers`.
 - **`fmt`:** canonical item form `supplier ID "PN" at (Xmm, Ymm) rotate N`. Written `at`/`rotate` are kept and absent ones stay absent. Supplier clauses always come after every `name:` field and `footprint` (which keep today's source-span order), and in source order among themselves; `fmt` moves a clause written earlier in the entry.
-- **LSP:** offers `supplier` as an AVL item completion; hover shows the supplier's display name and link when the registry supplier table is cached.
+- **LSP:** offers `supplier` as an AVL item completion, and hover on a binding shows its supplier, part number and mapping. Hover with the supplier's display name and link, from a cached registry supplier table, is deferred (Decision, implementation status).
 - **`check --json` / `build --json`:** carry E813/E814/E815 as ordinary diagnostics; the RFC-010 schema is unchanged.
 - **Zero-dependency rule:** unaffected. Compiler changes are parsing, checking, string emission and fixed-point transforms; all fetching lives in the registry and `tools/`.
 
@@ -432,11 +433,19 @@ There are two main risks, each with a mitigation:
 
 ## Migration path
 
-None required. Designs adopt supplier output by adding clauses to their own parts, or by updating to library versions that carry them.
+The language needs none. Designs adopt supplier output by adding clauses to their own parts, or by updating to library versions that carry them.
+
+Library footprint alignment does need one. Moving a footprint onto an assembler's frame, so that its bindings need no mapping, turns or shifts the footprint's copper in its own frame, and ships as a breaking package version. A design that places that footprint still passes `check` and `build`, but its placed copper turns with the land, and `cohdl update` reports only the version change. So:
+
+- Each package that moves a footprint lists, in its README, every moved footprint and its delta, as a migration note.
+- `tools/realign_place.py` rewrites a project's literal `place` statements by the inverse delta before the update, so placed copper stays where it was. It diagnoses what it cannot rewrite (non-literal placements, subdesign layouts) instead of guessing.
+- A board routed outside CoHDL is compensated in its own tool before its footprints are re-exported.
 
 ## Decision
 
-**Accepted — 2026-10-30.** An AVL entry may carry `supplier ID "PART_NUMBER" [at (X, Y)] [rotate N]` clauses (§1). The supplier set is open and unknown to the compiler, and E813 rejects malformed or conflicting bindings. A binding's mapping places the supplier's footprint in the entry footprint's frame and composes with each instance's placement through the existing `compose_place` (§2). A physical build of a placed design writes a supplier-neutral CPL (§3.1, E815 for unplaced parts). `--supplier ID` adds a per-supplier BOM, map file and CPL with per-instance selection (§3.2, E814), and `--bottom-rotation ID=mirrored` states an assembler's bottom-side convention at export, never in the source. The registry indexes bindings and serves supplier catalogs (§4), and `cohdl suppliers` checks them online (§5). Purely additive: every existing source keeps its meaning and every existing output its bytes. A project-file default for `--bottom-rotation` was considered at acceptance and not adopted (Alternatives, 10). Recorded as DR-039 (see note 7); note 10 gains a "Supplier bindings and placement files" section. The RFC number, the DR number and E813–E815 stay provisional until central allocation.
+**Accepted — 2026-10-30.** An AVL entry may carry `supplier ID "PART_NUMBER" [at (X, Y)] [rotate N]` clauses (§1). The supplier set is open and unknown to the compiler, and E813 rejects malformed or conflicting bindings. A binding's mapping places the supplier's footprint in the entry footprint's frame and composes with each instance's placement through the existing `compose_place` (§2). A physical build of a placed design writes a supplier-neutral CPL (§3.1, E815 for unplaced parts). `--supplier ID` adds a per-supplier BOM, map file and CPL with per-instance selection (§3.2, E814), and `--bottom-rotation ID=mirrored` states an assembler's bottom-side convention at export, never in the source. The registry indexes bindings and serves supplier catalogs (§4), and `cohdl suppliers` checks them online (§5). Additive: every existing source keeps its meaning, and every existing output its bytes apart from the `.kicad_pcb` auxiliary origin (Compatibility). A project-file default for `--bottom-rotation` was considered at acceptance and not adopted (Alternatives, 10). Recorded as DR-039 (see note 7); note 10 gains a "Supplier bindings and placement files" section. The RFC number, the DR number and E813–E815 stay provisional until central allocation.
+
+Corrected 2026-11-03 after source review: the `.kicad_pcb` auxiliary origin is listed under Compatibility, library footprint alignment has a migration path, and §5 states the E801 gate, the control-character rule and the `--json` shape. The decision itself is unchanged.
 
 History: draft, 2026-10-23; revised 2026-10-27 and 2026-10-28 after four source reviews against `329af05` (the third defined the map's pad projection, the fourth its matching rule).
 

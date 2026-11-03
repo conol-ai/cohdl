@@ -41,6 +41,39 @@ export function parseClassInput(value: string): string[] | undefined {
   return classValues(value.split(","));
 }
 
+/// One catalogue form or control action. An omitted field keeps the current
+/// state; `null` clears a scalar and `class: []` clears the class filter.
+export interface CatalogueUpdate {
+  q?: string | null;
+  tier?: "all" | SearchRow["tier"];
+  sort?: CatalogueSort;
+  kind?: "part" | null;
+  supplier?: string | null;
+  class?: string[];
+}
+
+/// The next URL state. `typedQuery` is the not-yet-submitted search box,
+/// kept when an action (a filter or sort change) does not name `q`.
+export function nextCatalogueSearch(
+  current: CatalogueSearchState,
+  typedQuery: string,
+  next: CatalogueUpdate,
+): CatalogueSearchState {
+  const tier = next.tier ?? current.tier ?? "all";
+  const sort = next.sort ?? current.sort ?? "updated";
+  const supplier = next.supplier === null ? undefined : (next.supplier ?? current.supplier);
+  const classes = supplier ? (next.class ?? current.class ?? []) : [];
+  const kind = next.kind === null ? undefined : (next.kind ?? current.kind);
+  return {
+    q: next.q === null ? undefined : (next.q ?? (typedQuery.trim() || undefined)),
+    tier: tier === "all" ? undefined : tier,
+    sort: sort === "updated" ? undefined : sort,
+    kind: supplier || classes.length > 0 ? "part" : kind,
+    supplier,
+    class: classes.length > 0 ? classes : undefined,
+  };
+}
+
 /// TanStack's default encoder serializes arrays as JSON. The registry API and
 /// RFC-034 instead use repeatable `class` parameters, so encode this route
 /// explicitly while retaining its normal scalar state.
@@ -66,7 +99,9 @@ export function stringifyCatalogueSearch(search: object): string {
     }
     params.set(key, encoded);
   }
-  return params.size > 0 ? `?${params.toString()}` : "";
+  // Not `params.size`: Safari 16 and other baseline browsers lack it.
+  const encoded = params.toString();
+  return encoded ? `?${encoded}` : "";
 }
 
 /// qss coerces numeric-looking values. Restore raw class strings after the

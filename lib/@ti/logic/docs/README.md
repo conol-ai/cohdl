@@ -16,3 +16,12 @@ as downloaded.
   layout 4220208/A on PDF pages 30-31. The board layout specifies 24 lands,
   each 1.50 x 0.45 mm, at 0.65 mm pitch with 5.80 mm opposing row-centre
   spacing.
+
+## Footprint frame change in 0.2.0
+
+Version 0.2.0 follows soic 0.3.0, which turned `soic::TSSOP24P65_TI_PW0024A` by a quarter turn (270) onto the
+assembler's frame (library plan W3). Pad numbers and lands are unchanged, but
+a design that places a part on one of these lands sees its copper turn after
+`cohdl update`, with `check` and `build` still passing. Migrate the design's
+`place` statements first, as the land package's README describes, with
+`tools/realign_place.py`.

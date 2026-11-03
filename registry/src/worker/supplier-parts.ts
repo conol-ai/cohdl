@@ -2,7 +2,10 @@ import type { Env } from "./auth";
 import { manufacturerKeyStore, resolveManufacturerKeys } from "./manufacturers";
 import { normalizeMpn, type CatalogLink } from "./suppliers";
 
-const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "public, max-age=60" };
+const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+// Only a successful answer is cacheable; errors (including "supplier not
+// found" before a first snapshot) must not outlive their cause.
+const CACHEABLE = { "Cache-Control": "public, max-age=60" };
 const MAX_VALUES = 100;
 const MAX_VALUE_BYTES = 256;
 const QUERY_ROWS = 99; // supplier plus at most 99 lookup keys stays within D1's 100 bindings.
@@ -87,7 +90,7 @@ export async function handleSupplierParts(
       const rows = await deps.store.byPns(supplier, query.value.values);
       const byPn = new Map(rows.map((row) => [row.pn, row]));
       return json(200, { supplier, snapshot_date: metadata.snapshot_date,
-        parts: query.value.values.map((pn) => ({ pn, catalog: byPn.get(pn) ?? "unknown" })) });
+        parts: query.value.values.map((pn) => ({ pn, catalog: byPn.get(pn) ?? "unknown" })) }, CACHEABLE);
     }
     const keys = query.value.values.map(normalizeMpn);
     const rows = await deps.store.byMpnKeys(supplier, keys);
@@ -100,7 +103,7 @@ export async function handleSupplierParts(
         (classOrder.get(a.class) ?? Number.MAX_SAFE_INTEGER) - (classOrder.get(b.class) ?? Number.MAX_SAFE_INTEGER) ||
         Number(b.stock > 0) - Number(a.stock > 0) || b.stock - a.stock || a.pn.localeCompare(b.pn)),
     }));
-    return json(200, { supplier, snapshot_date: metadata.snapshot_date, parts });
+    return json(200, { supplier, snapshot_date: metadata.snapshot_date, parts }, CACHEABLE);
   } catch {
     return json(500, { error: "internal error" });
   }

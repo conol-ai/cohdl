@@ -1125,7 +1125,6 @@ def main() -> int:
         if args.import_sources:
             snapshot = import_snapshot(args.import_sources[0].resolve(), args.import_sources[1].resolve(),
                                        args.direct_cad_root.resolve())
-            encoded = snapshot_bytes(snapshot)
             apply_courtyard_repairs(snapshot)
             encoded = snapshot_bytes(snapshot); require_snapshot_hash(encoded)
             ok = write_or_check(SNAPSHOT, encoded, args.check)

@@ -1,7 +1,7 @@
 // Code-based TanStack Router route tree. The package route is a splat —
 // scoped names (`@sparkfun/power`) contain a `/`.
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Link,
   Outlet,
@@ -48,10 +48,11 @@ import {
   formatSize,
 } from "./components";
 import {
+  nextCatalogueSearch,
   parseCatalogueSearch,
   parseClassInput,
-  type CatalogueSearchState,
   type CatalogueSort,
+  type CatalogueUpdate,
 } from "./catalogue-model";
 import { Markdown } from "./markdown";
 import { recaptchaToken } from "./recaptcha";
@@ -482,8 +483,6 @@ const requestRoute = createRoute({
 
 // ---------------------------------------------------------------------------
 
-type TierFilter = "all" | SearchRow["tier"];
-
 function Catalogue() {
   const searchState = catalogRoute.useSearch();
   const navigate = useNavigate();
@@ -492,7 +491,10 @@ function Catalogue() {
   const sort = searchState.sort ?? "updated";
   const partMode = searchState.kind === "part" || !!searchState.supplier;
   const supplier = searchState.supplier ?? "";
-  const classes = searchState.class ?? [];
+  // Keyed by content: `searchState.class ?? []` is a new array on every
+  // render, which would re-run the sync effect and wipe the typed value.
+  const classKey = (searchState.class ?? []).join("\u0000");
+  const classes = useMemo(() => (classKey ? classKey.split("\u0000") : []), [classKey]);
   const [input, setInput] = useState(query);
   const [supplierInput, setSupplierInput] = useState(supplier);
   const [classInput, setClassInput] = useState(classes.join(", "));
@@ -507,31 +509,8 @@ function Catalogue() {
   const visible = packages.data?.results ?? [];
   const visibleParts = parts.data?.parts.results ?? [];
 
-  const updateSearch = (next: {
-    q?: string | null;
-    tier?: TierFilter;
-    sort?: CatalogueSort;
-    kind?: "part" | null;
-    supplier?: string | null;
-    class?: string[];
-  }) => {
-    const nextTier = next.tier ?? tier;
-    const nextSort = next.sort ?? sort;
-    const nextSupplier = next.supplier === null ? undefined : (next.supplier ?? searchState.supplier);
-    const nextClasses = nextSupplier ? (next.class ?? classes) : [];
-    const nextKind = next.kind === null ? undefined : (next.kind ?? searchState.kind);
-    return navigate({
-      to: "/packages",
-      search: {
-        q: next.q === null ? undefined : (next.q ?? (input.trim() || undefined)),
-        tier: nextTier === "all" ? undefined : nextTier,
-        sort: nextSort === "updated" ? undefined : nextSort,
-        kind: nextSupplier || nextClasses.length > 0 ? "part" : nextKind,
-        supplier: nextSupplier,
-        class: nextClasses.length > 0 ? nextClasses : undefined,
-      } satisfies CatalogueSearchState,
-    });
-  };
+  const updateSearch = (next: CatalogueUpdate) =>
+    navigate({ to: "/packages", search: nextCatalogueSearch(searchState, input, next) });
 
   return (
     <div className="catalogue-page">
@@ -561,7 +540,7 @@ function Catalogue() {
               q: input.trim() || null,
               kind: partMode ? "part" : null,
               supplier: nextSupplier,
-              class: partMode ? parseClassInput(classInput) : [],
+              class: partMode ? parseClassInput(classInput) ?? [] : [],
             });
           }}
         >
@@ -580,7 +559,7 @@ function Catalogue() {
                 setInput("");
                 setSupplierInput("");
                 setClassInput("");
-                updateSearch({ q: null });
+                updateSearch({ q: null, supplier: null, class: [] });
               }}
             >
               Clear
@@ -933,7 +912,7 @@ function PackagePage() {
   const selectedPart = search.item
     ? apiDocs.data?.items?.find((item) => item?.fq === search.item && item.kind === "part")
     : undefined;
-  const partSuppliers = useSuppliersForPart(name, selectedPart);
+  const partSuppliers = useSuppliersForPart(name, version?.version, selectedPart);
 
   useEffect(() => {
     if (

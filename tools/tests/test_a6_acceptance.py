@@ -1,6 +1,11 @@
-"""Real compiler acceptance; runs by default when target/debug/cohdl exists."""
+"""Real compiler acceptance; runs by default when target/debug/cohdl exists.
+
+With COHDL_REQUIRE_BINARY=1 (as CI sets it) a missing binary is a failure,
+never a silent skip.
+"""
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -81,8 +86,16 @@ def realign(project, name, changes, reverse=False):
     return int(match.group(1))
 
 
-@unittest.skipUnless(COHDL.exists(), "target/debug/cohdl is not built")
+REQUIRE_BINARY = os.environ.get("COHDL_REQUIRE_BINARY") == "1"
+
+
+@unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
 class CompilerAcceptance(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if not COHDL.exists():
+            raise AssertionError("COHDL_REQUIRE_BINARY=1 but target/debug/cohdl is not built")
+
     def test_three_examples_round_trip(self):
         cases = [
             ("joint-motor-controller", "connectors::headers::micro_fit_3::FP_Molex_43045_0212", 2),
@@ -125,7 +138,7 @@ class CompilerAcceptance(unittest.TestCase):
                     sources = {p: p.read_text(encoding="utf-8") for p in (project / "src").glob("*.cohdl")}
                     targets = {m.group(1) for s in sources.values()
                                for m in re.finditer(r"\bplace\s+(" + rp.TARGET + r")\s+at\b", s)}
-                    footprints, unmatched = rp.compiler_footprints(project / ("out/%s-layout.json" % name),
+                    footprints, unmatched, _, _ = rp.compiler_footprints(project / ("out/%s-layout.json" % name),
                                                                    project / ("out/%s.kicad_pcb" % name), targets, changes)
                     self.assertEqual(unmatched, [])
                     count = 0
@@ -176,16 +189,16 @@ class CompilerAcceptance(unittest.TestCase):
             run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
             board = project / "out/a6_rigid.kicad_pcb"
             before = pads(board, "a6_rigid::FP")
-            self.assertEqual(len(before), 6)
+            self.assertEqual(len(before), 8)
             source_path = project / "src/main.cohdl"
             source = source_path.read_text()
             start, end = source.index("pub footprint FP {"), source.index("\n}\n", source.index("pub footprint FP {")) + 3
             source_path.write_text(source[:start] + (project / "moved.inc").read_text() + source[end:])
             changes = change(Path(td), "rigid", "a6_rigid::FP")
-            self.assertEqual(realign(project, "a6_rigid", changes), 3)
+            self.assertEqual(realign(project, "a6_rigid", changes), 4)
             run([str(COHDL), "build", str(project), "--emit", "kicad_pcb"])
             assert_pads_equal(self, pads(board, "a6_rigid::FP"), before, tolerance_nm=1)
-            print("A6 rigid top/bottom/37: compared %d pads" % len(before))
+            print("A6 rigid top/bottom/37/bottom-37: compared %d pads" % len(before))
 
     def test_bottom_preview_generated_source_pads_and_cpl(self):
         with tempfile.TemporaryDirectory() as td:
@@ -213,7 +226,7 @@ class CompilerAcceptance(unittest.TestCase):
             source_path.write_text(source_path.read_text().replace("place top at (-20mm, 0mm)", "place top at (X, 0mm)"))
             result = subprocess.run(["python3", "-I", str(TOOLS / "realign_place.py"), str(project), str(changes), "--layout", str(project / "out/a6_rigid-layout.json"), "--board", str(project / "out/a6_rigid.kicad_pcb")], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             self.assertNotEqual(result.returncode, 0)
-            self.assertRegex(result.stdout, r"main\.cohdl:20:")
+            self.assertRegex(result.stdout, r"main\.cohdl:21:")
 
     def test_for_subdesign_and_reach_in_diagnostics(self):
         import realign_place as rp

@@ -32,11 +32,11 @@
   },
   "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb",
   "sources": {
-    "aliases": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/mfr_aliases.json",
+    "aliases": "tools/sourcing_data/mfr_aliases.json",
     "aliases_sha256": "86e89089cbe1592f07dc0cc319a8a2c97d349363dc7f13a3c0fca9f1c1d429c6",
-    "candidates": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates": "tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
     "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
-    "lib_dir": "/Users/zhangalex/Work/cohdl/cohdl/lib",
+    "lib_dir": "lib",
     "origin": "https://jlcpcb.com"
   }
 }

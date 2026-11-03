@@ -13,12 +13,14 @@ design Rigid {
     inst top: P0
     inst bottom: P0
     inst angle: P0
-    net A: top.A, bottom.A, angle.A
-    net B: top.B, bottom.B, angle.B
+    inst under: P0
+    net A: top.A, bottom.A, angle.A, under.A
+    net B: top.B, bottom.B, angle.B, under.B
     layout {
         board_outline: "mechanical/outline.dxf"
         place top at (-20mm, 0mm)
         place bottom at (0mm, 0mm) side bottom
         place angle at (20mm, 0mm) rotate 37
+        place under at (0mm, 10mm) rotate 37 side bottom
     }
 }

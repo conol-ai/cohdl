@@ -158,11 +158,7 @@ impl AuditReport {
                     "      \"note\": \"registry has no catalog for this supplier\","
                 );
             }
-            out.push_str(if supplier.unlisted {
-                "      \"bindings\": ["
-            } else {
-                "      \"entries\": ["
-            });
+            out.push_str("      \"entries\": [");
             if supplier.entries.is_empty() {
                 out.push_str("]\n    }");
             } else {
@@ -373,6 +369,22 @@ fn too_large(supplier: &str, what: &str) -> PackageDiag {
     ))
 }
 
+/// Why a source value cannot be sent to the registry, which takes values as
+/// a comma-separated list and refuses control characters and values over 256
+/// bytes. Such an entry is reported with this note instead of aborting the
+/// audit: the user may not be able to change a dependency's value.
+fn unqueryable(value: &str) -> Option<&'static str> {
+    if value.contains(',') {
+        Some("part number cannot be queried (contains ',')")
+    } else if value.len() > 256 {
+        Some("part number cannot be queried (too long)")
+    } else if value.chars().any(char::is_control) {
+        Some("part number cannot be queried (contains a control character)")
+    } else {
+        None
+    }
+}
+
 /// The one PN sent when an audit has nothing else to ask a supplier: its
 /// answer says only whether the supplier is listed, and its snapshot date.
 const SUPPLIER_PROBE_PN: &str = "cohdl-supplier-probe";
@@ -405,11 +417,10 @@ pub fn audit(
             .filter(|(_, entry)| entry.bindings.contains_key(&supplier))
             .map(|(index, _)| index)
             .collect();
-        let queryable_pn = |pn: &str| !pn.contains(',') && pn.len() <= 256;
         let pn_values: Vec<(usize, String)> = bound
             .iter()
             .map(|index| (*index, entries[*index].bindings[&supplier].clone()))
-            .filter(|(_, pn)| queryable_pn(pn))
+            .filter(|(_, pn)| unqueryable(pn).is_none())
             .collect();
         let mut catalogs = BTreeMap::new();
         let mut snapshot_seen = false;
@@ -474,7 +485,9 @@ pub fn audit(
         let suggestion_entries: Vec<usize> = unbound
             .iter()
             .copied()
-            .filter(|index| !entries[*index].mpn.is_empty() && queryable_pn(&entries[*index].mpn))
+            .filter(|index| {
+                !entries[*index].mpn.is_empty() && unqueryable(&entries[*index].mpn).is_none()
+            })
             .collect();
         let suggestion_values: Vec<(usize, String)> = suggestion_entries
             .iter()
@@ -504,7 +517,14 @@ pub fn audit(
                             std::slice::from_ref(value),
                         )? {
                             SupplierPartsResponse::Parts(parts) => each.push(parts),
-                            _ => return Err(too_large(&supplier, &format!("MPN `{value}`"))),
+                            SupplierPartsResponse::TooLarge => {
+                                return Err(too_large(&supplier, &format!("MPN `{value}`")))
+                            }
+                            SupplierPartsResponse::Unlisted => {
+                                return Err(registry::unreachable(format!(
+                                    "supplier `{supplier}` became unlisted during the audit"
+                                )))
+                            }
                         }
                     }
                     each
@@ -573,7 +593,10 @@ pub fn audit(
         // Keys do not depend on the supplier, so each distinct value is
         // normalized once per audit and shared by every supplier after it.
         let audited: BTreeSet<usize> = bound.iter().chain(&unbound).copied().collect();
-        let comparable = |value: &str| !value.is_empty() && value.len() <= 256;
+        // Normalization sends repeated parameters, so a comma is allowed here.
+        let comparable = |value: &str| {
+            !value.is_empty() && value.len() <= 256 && !value.chars().any(char::is_control)
+        };
         let mut mfr_values = BTreeSet::new();
         let mut mpn_values = BTreeSet::new();
         for index in &audited {
@@ -656,13 +679,7 @@ pub fn audit(
                         note: None,
                     });
                 } else {
-                    let pn_reason = if pn.contains(',') {
-                        Some("part number cannot be queried (contains ',')".to_string())
-                    } else if pn.len() > 256 {
-                        Some("part number cannot be queried (too long)".to_string())
-                    } else {
-                        None
-                    };
+                    let pn_reason = unqueryable(pn).map(str::to_string);
                     report_entries.push(AuditEntry {
                         part: entry.part.clone(),
                         entry: entry.entry.clone(),
@@ -702,13 +719,7 @@ pub fn audit(
                     mismatches: Vec::new(),
                     catalog: None,
                     suggestions: entry_suggestions,
-                    note: if entry.mpn.contains(',') {
-                        Some("part number cannot be queried (contains ',')".to_string())
-                    } else if entry.mpn.len() > 256 {
-                        Some("part number cannot be queried (too long)".to_string())
-                    } else {
-                        None
-                    },
+                    note: unqueryable(&entry.mpn).map(str::to_string),
                 });
             }
         }

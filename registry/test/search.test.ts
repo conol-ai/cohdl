@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { Env } from "../src/worker/auth";
 import worker from "../src/worker/index";
 import {
+  MAX_CATALOG_LOOKUP_KEYS,
   MAX_PART_SEARCH_INDEX_BYTES,
+  MAX_SUPPLIER_BINDINGS_PER_PART,
   MAX_PART_SEARCH_CHUNKS,
   PART_SEARCH_CHUNK_BYTES,
   extractPartSearchRows,
@@ -20,7 +22,7 @@ import {
 } from "../src/worker/search";
 
 interface BoundStatement { sql: string; values: unknown[] }
-function sqliteD1(db: DatabaseSync, statements: BoundStatement[] = []): D1Database {
+function sqliteD1(db: DatabaseSync, statements: BoundStatement[] = [], batches: number[] = []): D1Database {
   return {
     prepare(sql: string) {
       return { bind: (...values: unknown[]) => {
@@ -30,6 +32,10 @@ function sqliteD1(db: DatabaseSync, statements: BoundStatement[] = []): D1Databa
           async first() { return db.prepare(sql).get(...values as never[]) ?? null; },
         };
       } };
+    },
+    async batch(prepared: { all(): Promise<unknown> }[]) {
+      batches.push(prepared.length);
+      return Promise.all(prepared.map((statement) => statement.all()));
     },
   } as unknown as D1Database;
 }
@@ -49,7 +55,8 @@ function sqliteSearch(parts: IndexedPartSearchRow[] = []) {
         part.avl_json);
   }
   const statements: BoundStatement[] = [];
-  return { db, statements, d1: sqliteD1(db, statements) };
+  const batches: number[] = [];
+  return { db, statements, batches, d1: sqliteD1(db, statements, batches) };
 }
 
 function catalogInsert(db: DatabaseSync, supplier: string, pn: string, category: string, stock = 3) {
@@ -249,6 +256,46 @@ describe("supplier bindings in stable part search", () => {
     expect(avl[1].suppliers).toHaveLength(1);
   });
 
+  it("caps distinct supplier identities per part across its AVL entries", () => {
+    // One clause per supplier per entry, so each entry's 16 bindings use 16 IDs.
+    const binding = (i: number) => ({ supplier: `s${i % 16}`, pn: `PN-${i}`, at: ["0mm", "0mm"], rotate: 0 });
+    const row = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers: [binding(0)] },
+        alts: Array.from({ length: 255 }, (_, a) => ({ fields: [],
+          suppliers: Array.from({ length: 16 }, (_, i) => binding(1 + a * 16 + i)) })) } }] },
+      "p", "1.0.0")[0];
+    const avl = JSON.parse(row.avl_json);
+    const identities = new Set(avl.flatMap((entry: any) => entry.suppliers.map((b: any) => b.pn)));
+    expect(identities.size).toBe(MAX_SUPPLIER_BINDINGS_PER_PART);
+    expect(row.searchable).toContain(`PN-${MAX_SUPPLIER_BINDINGS_PER_PART - 1}`);
+    expect(row.searchable.split("\n")).not.toContain(`PN-${MAX_SUPPLIER_BINDINGS_PER_PART}`);
+    // A repeated identity on a later entry costs nothing and stays indexed.
+    const repeated = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers: [binding(0)] },
+        alts: [{ fields: [], suppliers: Array.from({ length: 16 }, (_, i) => binding(1 + i)) },
+          { fields: [], suppliers: Array.from({ length: 16 }, (_, i) => binding(17 + i)) },
+          { fields: [], suppliers: [binding(0), binding(97)] }] } }] }, "p", "1.0.0")[0];
+    expect(JSON.parse(repeated.avl_json)[3].suppliers.map((b: any) => b.pn)).toEqual(["PN-0"]);
+  });
+
+  it("bounds catalog lookups for a page of parts with many distinct PNs to one batch", async () => {
+    // Stored rows indexed before the per-part cap may carry up to 4,096 identities.
+    const rows = Array.from({ length: 50 }, (_, p) => ({ ...partRow(Array.from({ length: 256 }, (_, a) => ({
+      primary: a === 0, manufacturer: "M", mpn: `M-${a}`,
+      suppliers: Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}`, pn: `P${p}-${a}`, at: ["0mm", "0mm"], rotate: 0 })),
+    }))), fq: `p::P_${p}`, name: `P_${p}`, device: `p::resistor_${p}` }));
+    const { d1, statements, batches } = sqliteSearch(rows);
+    const { response, body } = await sqliteInvoke(d1, "/search?q=resistor&kind=part&limit=50");
+    expect(response.status).toBe(200);
+    expect(body.parts.results).toHaveLength(50);
+    for (const part of body.parts.results) {
+      expect(part.suppliers).toHaveLength(MAX_SUPPLIER_BINDINGS_PER_PART);
+    }
+    const lookups = statements.filter((s) => s.sql.includes("FROM supplier_catalog c"));
+    expect(lookups.flatMap((s) => s.values).length / 2).toBe(MAX_CATALOG_LOOKUP_KEYS);
+    expect(batches).toEqual([lookups.length]);
+  });
+
   it("retains the existing cumulative and per-part projection bounds with suppliers", () => {
     const suppliers = Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}`,
       pn: `PN-${i}-${"x".repeat(110)}`, at: ["0mm", "0mm"], rotate: 0 }));
@@ -314,21 +361,24 @@ describe("supplier bindings in stable part search", () => {
     expect(result.body.parts.results).toEqual([]);
   });
 
-  it("chunks tuple IN enrichment below 100 bindings without per-row lookups", async () => {
+  it("chunks tuple IN enrichment below 100 bindings in one batch without per-row lookups", async () => {
     const suppliers = Array.from({ length: 50 }, (_, i) => ({ supplier: "acme", pn: `PN-${i}`,
       at: ["0mm", "0mm"], rotate: 0 }));
-    const { db, d1, statements } = sqliteSearch([partRow(suppliers.map((binding, index) => ({
+    const rows = [0, 1].map((p) => ({ ...partRow(suppliers.slice(p * 25, p * 25 + 25).map((binding, index) => ({
       primary: index === 0, manufacturer: "M", mpn: `M-${index}`, suppliers: [binding],
-    })))]);
+    }))), fq: `p::P_${p}`, name: `P_${p}`, device: `p::resistor_${p}` }));
+    const { db, d1, statements, batches } = sqliteSearch(rows);
     for (const { pn } of suppliers) catalogInsert(db, "acme", pn, "resistor");
     const { response, body } = await sqliteInvoke(d1, "/search?q=resistor&kind=part");
     expect(response.status).toBe(200);
-    expect(body.parts.results[0].suppliers).toHaveLength(50);
-    expect(body.parts.results[0].suppliers.every((b: any) => b.catalog !== null)).toBe(true);
+    const returned = body.parts.results.flatMap((part: any) => part.suppliers);
+    expect(returned).toHaveLength(50);
+    expect(returned.every((b: any) => b.catalog !== null)).toBe(true);
     const lookups = statements.filter((s) => s.sql.includes("FROM supplier_catalog c"));
-    expect(lookups).toHaveLength(2);
     expect(lookups.map((s) => s.values.length)).toEqual([98, 2]);
-    expect(lookups.flatMap((s) => s.values)).toEqual(suppliers.flatMap((b) => [b.supplier, b.pn]));
+    expect(batches).toEqual([2]);
+    expect(new Set(lookups.flatMap((s) => s.values.filter((_, i) => i % 2 === 1))))
+      .toEqual(new Set(suppliers.map((b) => b.pn)));
   });
 
   it("keeps the package-only web route independent of part supplier metadata", async () => {

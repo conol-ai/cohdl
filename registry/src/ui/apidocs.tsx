@@ -993,17 +993,17 @@ function PartBody({
   const footprintFq = part.primary?.footprint;
   const footprintItem = footprintFq ? ctx.byFq.get(footprintFq) : undefined;
   const footprint = footprintItem?.kind === "footprint" ? footprintItem.footprint : undefined;
-  const supplierDocs = ctx.suppliers;
-  const localBindings = entries.flatMap(({ label, entry }) =>
-    asArray(entry?.suppliers).map((binding) => ({ ...binding, entry: label })),
-  );
-  const supplierBindings: SupplierBinding[] = supplierDocs
-    ? supplierDocs
-    : localBindings.map(({ entry: _entry, ...binding }) => ({
-        ...binding,
-        links: [],
-        catalog: null,
-      }));
+  // The viewed version's own sidecar decides which bindings exist and their
+  // mapping; the online row only adds links and catalog data, matched by
+  // (supplier, pn) and deduplicated as `/search` does.
+  const online = new Map(asArray(ctx.suppliers).map((binding) => [`${binding.supplier}\0${binding.pn}`, binding]));
+  const supplierBindings = [...new Map(entries.flatMap(({ entry }) => asArray(entry?.suppliers))
+    .map((binding) => [`${binding.supplier}\0${binding.pn}`, binding])).entries()]
+    .map(([key, binding]): SupplierBinding => ({
+      ...binding,
+      links: online.get(key)?.links ?? [],
+      catalog: online.get(key)?.catalog ?? null,
+    }));
 
   return (
     <>
@@ -1062,9 +1062,9 @@ function PartBody({
           </table>
         </div>
       </Section>
-      {(supplierDocs !== undefined || localBindings.length > 0) && (
+      {supplierBindings.length > 0 && (
         <Section title="Supplier availability" count={supplierBindings.length}>
-          {supplierDocs === undefined && (
+          {ctx.suppliers === undefined && (
             <p className="api-fact">
               Catalog links, snapshot dates, and stock are available in supplier search.
             </p>

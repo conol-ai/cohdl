@@ -34,7 +34,7 @@
     "total": 7297755
   },
   "sources": {
-    "candidates": "/Users/zhangalex/Work/cohdl/cohdl/tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
+    "candidates": "tools/sourcing_data/jlcparts/2026-10-27/basic_preferred.json",
     "candidates_sha256": "c0a9b92b1bcf56cdf9b4585489b8cbde2e9dd7e2cd9a700e55783a4a69448adf",
     "origin": "https://jlcpcb.com",
     "partdetail_paths": "filtered_jlcpcb_sitemap",

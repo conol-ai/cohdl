@@ -215,6 +215,35 @@ class BackfillTests(unittest.TestCase):
         self.assertIn("RunStoppedError", result["run_stopped_reason"])
         self.assertEqual(result["not_fetched"][0]["reason"], "not_fetched")
 
+    def test_failed_fetch_is_fetch_failed_and_counted(self):
+        avl = [AVLRow("x", "primary", "Acme", "X")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1"])
+        with LocalServer({"/partdetail/X/C1/C1": (503, "busy"),
+                          "/robots.txt": (200, "User-agent: *\nAllow: /\n")}) as server:
+            result = run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                                  client=make_client(self.root / "cache"), output_dir=self.root / "out",
+                                  aliases={}, snapshot_date="2026-10-30")
+        review = json.loads((self.root / "out/review.json").read_text())
+        self.assertEqual([row["reason"] for row in review["rows"]], ["fetch_failed"])
+        self.assertEqual(result["counts"]["fetch_failures"], 1)
+        self.assertEqual([row["mpn"] for row in result["fetch_failed"]], ["X"])
+        self.assertEqual(result["max_requests"], make_client(self.root / "cache2").max_requests)
+
+    def test_cache_hits_are_logged_in_requests_json(self):
+        avl = [AVLRow("x", "primary", "Acme", "X")]
+        sitemap = filter_partdetail_urls(["http://127.0.0.1/partdetail/X/C1/C1"])
+        with LocalServer({"/partdetail/X/C1/C1": (200, page("C1", "X")),
+                          "/robots.txt": (200, "User-agent: *\nAllow: /\n")}) as server:
+            for out in ("first", "second"):
+                result = run_backfill(avl, build_index(sitemap, []), origin=server.url(),
+                                      client=make_client(self.root / "cache"), output_dir=self.root / out,
+                                      aliases={}, snapshot_date="2026-10-30")
+        log = json.loads((self.root / "second/requests.json").read_text())
+        self.assertEqual([entry["from_cache"] for entry in log], [True])
+        self.assertTrue(log[0]["url"].endswith("/partdetail/X/C1/C1"))
+        self.assertEqual(result["counts"]["requests"], 0)
+        self.assertEqual(result["counts"]["cache_hits"], 1)
+
     def test_isolated_help(self):
         result = subprocess.run([sys.executable, "-I", str(TOOLS / "lcsc_backfill.py"), "--help"],
                                 capture_output=True, text=True)

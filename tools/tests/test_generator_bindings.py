@@ -19,6 +19,8 @@ ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
 from sourcing.bindings import Bindings  # noqa: E402
+import gen_esp32  # noqa: E402
+import gen_passive  # noqa: E402
 import gen_stm32  # noqa: E402
 
 
@@ -111,7 +113,7 @@ class GeneratorBindingTests(unittest.TestCase):
             if not line.startswith("  ")
         ]
         self.assertEqual(len([line for line in changes if line.startswith("- ")]), 1)
-        self.assertEqual(len([line for line in changes if line.startswith("+ ")]), 3)
+        self.assertEqual(len([line for line in changes if line.startswith("+ ")]), 2)
         self.assertEqual(after.count('supplier lcsc "C00000"'), 1)
         self.assertIn('supplier lcsc "C00000" at (0.1mm, -0.2mm) rotate 90', after)
         self.assertIn('pub part R_0R_J_0201:', after.split('supplier lcsc')[0].split("#[doc")[-1])
@@ -136,7 +138,7 @@ class GeneratorBindingTests(unittest.TestCase):
         declaration = declaration[:declaration.index("\n}\n")]
         self.assertIn(
             'alt { mfr: "Vishay", mpn: "CRCW02011R00FKED",\n'
-            '              supplier lcsc "C54321" at (0.1mm, -0.2mm) rotate 90 }',
+            '          supplier lcsc "C54321" at (0.1mm, -0.2mm) rotate 90 }',
             declaration,
         )
         self.assertNotIn("supplier lcsc", declaration.split("alt {", 1)[0])
@@ -207,6 +209,29 @@ class GeneratorBindingTests(unittest.TestCase):
                     expected,
                 )
 
+    def test_nested_scoped_and_hyphenated_owners_resolve_through_package_roots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for package in ("@espressif/esp32", "load-switch", "usb", "local"):
+                manifest = root / "lib" / package / "cohdl.toml"
+                manifest.parent.mkdir(parents=True)
+                manifest.write_text(f'[package]\nname = "{package}"\nversion = "1.0.0"\n')
+            bindings = Bindings(root)
+            bindings._by_identity[("M", "N")] = ["C1"]
+            zero = {"mapping": {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}, "exception": None}
+            local = root / "lib/local/cohdl.toml"
+            for reference, package in (
+                ("espressif_esp32::FP_E", "@espressif/esp32"),
+                ("load_switch::FP_L", "load-switch"),
+                ("usb::connectors::type_c::FP_C", "usb"),
+                ("modules::FP_M", "local"),
+                ("FP_B", "local"),
+            ):
+                with self.subTest(reference=reference):
+                    short = reference.rsplit("::", 1)[-1]
+                    bindings._frames = {(package, "1.0.0", short, "C1"): zero}
+                    self.assertEqual(bindings.clause(local, reference, "M", "N"), 'supplier lcsc "C1"')
+
     def test_stm32_overlay_allows_new_optional_keys(self):
         data = {
             "schema_version": gen_stm32.PARTS_SCHEMA,
@@ -228,6 +253,8 @@ class GeneratorBindingTests(unittest.TestCase):
     def test_generated_clause_compiles(self):
         compiler = ROOT / "target" / "debug" / "cohdl"
         if not compiler.is_file():
+            if os.environ.get("COHDL_REQUIRE_BINARY") == "1":
+                self.fail("target/debug/cohdl is not built")
             self.skipTest("target/debug/cohdl is not built")
         copy = PassiveCopy(self)
         mapping = map_row("C54321")
@@ -254,6 +281,54 @@ pub part R_0R_J_0201: ChipResistor_0ohm_5pct_R0201 {
                 text=True,
             )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_every_generated_entry_with_a_clause_is_in_fmt_canonical_form(self):
+        """Every AVL entry each generator can emit, with a binding, is fmt-clean.
+
+        A binding is forced onto every entry, in a short and a long form, so
+        the entries wrap at every position `cohdl fmt` can choose.
+        """
+        compiler = ROOT / "target" / "debug" / "cohdl"
+        if not compiler.is_file():
+            if os.environ.get("COHDL_REQUIRE_BINARY") == "1":
+                self.fail("target/debug/cohdl is not built")
+            self.skipTest("target/debug/cohdl is not built")
+
+        class Every:
+            def clause(self, manifest, footprint, mfr, mpn):
+                if sum(map(ord, mpn)) % 2:
+                    return f'supplier lcsc "C{len(mpn)}"'
+                return f'supplier lcsc "C{len(mpn) * 7919}" at (0.125mm, -0.25mm) rotate 270'
+
+        bindings = Every()
+        outputs = {}
+        verified = gen_passive.load_verified()
+        for size in gen_passive.R_POWER:
+            outputs[f"resistors_{size}"] = gen_passive.emit_resistors(size, verified, bindings)
+        available = gen_passive.load_mlcc()
+        samsung = gen_passive.load_samsung()
+        for size in sorted({key.split("|")[0] for key in available}):
+            outputs[f"capacitors_{size}"] = gen_passive.emit_capacitors(
+                size, available, gen_passive.VERIFIED_ALTERNATES, samsung, verified, bindings
+            )
+        selector = gen_esp32.load_snapshot(gen_esp32.SELECTOR_SNAPSHOT, gen_esp32.SELECTOR_SNAPSHOT_SHA256)
+        kicad = gen_esp32.load_snapshot(gen_esp32.SYMBOL_SNAPSHOT, gen_esp32.SYMBOL_SNAPSHOT_SHA256)
+        selected, _ = gen_esp32.classify(gen_esp32.validate_selector(selector), gen_esp32.symbol_map(kicad))
+        outputs["esp32"] = gen_esp32.render_parts(selected, bindings)
+        stm32 = gen_stm32.generated_sources(
+            gen_stm32.load_snapshot(), gen_stm32.load_kicad_part_catalog(), bindings
+        )
+        outputs.update((f"stm32_{Path(name).stem}", text) for name, text in stm32.items())
+        with tempfile.TemporaryDirectory() as directory:
+            for name, text in outputs.items():
+                Path(directory, f"{name}.cohdl").write_text(text)
+            result = subprocess.run(
+                [str(compiler), "fmt", directory, "--check"], capture_output=True, text=True
+            )
+        self.assertEqual(result.returncode, 0, result.stdout[:4000] + result.stderr)
+        joined = "".join(outputs.values())
+        self.assertGreater(joined.count("supplier lcsc"), 4000)
+        self.assertIn("\n          supplier lcsc", joined)
 
 
 if __name__ == "__main__":

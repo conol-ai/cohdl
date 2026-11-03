@@ -1139,7 +1139,7 @@ Placement files (physical builds only; --logical-only writes neither CPL):
 
 Rules:
 
-- Purely additive: every existing source keeps its meaning and every existing output its bytes.
+- Additive: every existing source keeps its meaning, and every existing output its bytes, except that .kicad_pcb gains the auxiliary origin (aux_axis_origin, useauxorigin yes) for an outlined design.
 - E813 (error) owns clause semantics; E814 and E815 are build warnings. Syntax errors in a clause are E010; unit lexing errors E101/E103/E104 apply unchanged.
 - No supplier knowledge in the compiler: no supplier list, no part-number formats, no catalog lookup during check or build. Online verification is cohdl suppliers against the registry (exit 3 on an unknown or mismatched part number).
 

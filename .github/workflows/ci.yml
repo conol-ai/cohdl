@@ -31,6 +31,16 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - name: Test
         run: cargo test
+      # RFC-034: the placement, realignment and sourcing tools carry their own
+      # stdlib-only suite (pcbnew is mocked). `cargo test` has just built
+      # target/debug/cohdl, which the acceptance tests drive; requiring it
+      # turns a missing binary into a failure rather than a silent skip.
+      - name: Build compiler for tool tests
+        run: cargo build
+      - name: Tool tests
+        env:
+          COHDL_REQUIRE_BINARY: "1"
+        run: python3 -I -m unittest discover -s tools/tests -t tools/tests
 
   # RFC-019: the VS Code extension is a separate packaging/grammar layer over
   # `cohdl lsp` — its own tooling CI (compile, grammar-coverage test, build the

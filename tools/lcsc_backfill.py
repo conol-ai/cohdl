@@ -35,6 +35,7 @@ from jlc_catalog import (
     write_json,
 )
 from sourcing.http import FetchClient, RequestLimitError, RobotsError, RunStoppedError
+from sourcing.paths import repo_relative
 from sourcing.sitemap import SitemapResult, entries_from_mapping, filter_partdetail_urls, load_sitemaps
 
 
@@ -167,6 +168,7 @@ def run_backfill(
     started = time.monotonic()
     confirmed: dict[str, dict] = {}
     fetched: set[str] = set()
+    failed: set[str] = set()
     failures = []
     exhausted = False
     run_stopped_reason = None
@@ -180,8 +182,10 @@ def run_backfill(
             run_stopped_reason = f"{type(error).__name__}: {error}"
             break
         except Exception as error:
+            # A failed fetch confirms nothing and is not "fetched": the
+            # identity is reported as fetch_failed, not as a missing match.
             failures.append({"url": url, "error": type(error).__name__})
-            fetched.add(url)
+            failed.add(url)
             continue
         fetched.add(url)
         try:
@@ -203,7 +207,8 @@ def run_backfill(
         candidates = index.get(normalize_mpn(mpn), [])
         matches, other_mfr = [], []
         candidate_urls = [canonical_url(origin, candidate.path) for candidate in candidates]
-        has_not_fetched = any(url not in fetched for url in candidate_urls)
+        has_failed = any(url in failed for url in candidate_urls)
+        has_not_fetched = any(url not in fetched and url not in failed for url in candidate_urls)
         for candidate in candidates:
             page = confirmed.get(canonical_url(origin, candidate.path))
             if page is None or confirmation_mpn(page["mpn"]) != confirmation_mpn(mpn):
@@ -222,6 +227,8 @@ def run_backfill(
                 reason = "no_candidate"
             elif has_not_fetched:
                 reason = "not_fetched"
+            elif has_failed:
+                reason = "fetch_failed"
             elif other_mfr:
                 # The MPN is confirmed but the manufacturer name differs: an
                 # alias for a human to review, never applied automatically.
@@ -256,7 +263,8 @@ def run_backfill(
         "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
         "rows": sorted(proposals.values(), key=lambda row: (-row["identities"], row["supplier"]))})
     requests_hash = write_json(output_dir / "requests.json", [
-        {"url": record.url, "user_agent": record.user_agent, "snapshot_date": record.snapshot_date}
+        {"url": record.url, "user_agent": record.user_agent, "snapshot_date": record.snapshot_date,
+         "from_cache": record.from_cache}
         for record in client.request_log])
     result = {
         "schema_version": 1, "date": snapshot_date, "snapshot_sha256": confirmed_hash,
@@ -264,12 +272,15 @@ def run_backfill(
         "counts": {"avl_entries": len(avl_rows), "unique_identities": len(unique),
                    "mapped_identities": len(rows), "review_identities": len(review),
                    "partdetail_urls": len(urls), "confirmed_pages": len(confirmed),
-                   "requests": client.request_count},
-        "request_count": client.request_count, "elapsed_seconds": round(time.monotonic() - started, 6),
+                   "requests": client.request_count, "fetch_failures": len(failures),
+                   "cache_hits": sum(record.from_cache for record in client.request_log)},
+        "request_count": client.request_count,
+        "max_requests": client.max_requests, "elapsed_seconds": round(time.monotonic() - started, 6),
         "budget_exhausted": exhausted,
         "run_stopped": run_stopped_reason is not None,
         "run_stopped_reason": run_stopped_reason,
         "not_fetched": [row for row in review if row["reason"] == "not_fetched"],
+        "fetch_failed": [row for row in review if row["reason"] == "fetch_failed"],
         "match_rate": {"method": "mapped_identities / unique_identities; unique key is exact (mfr, mpn) after selecting confirmed candidates",
                        "numerator": len(rows), "denominator": len(unique),
                        "value": len(rows) / len(unique) if unique else 0.0},
@@ -355,14 +366,14 @@ def main(argv=None) -> int:
         sitemap, sitemap_meta = load_sitemaps(client, args.sitemap_index, sitemap_urls=args.sitemap,
                                               allowed_hosts=args.allowed_host)
     source_metadata = {
-        "origin": args.origin, "lib_dir": str(args.lib_dir),
-        "candidates": str(args.candidates),
+        "origin": args.origin, "lib_dir": repo_relative(args.lib_dir, ROOT),
+        "candidates": repo_relative(args.candidates, ROOT),
         "candidates_sha256": hashlib.sha256(args.candidates.read_bytes()).hexdigest(),
-        "aliases": str(args.aliases),
+        "aliases": repo_relative(args.aliases, ROOT),
         "aliases_sha256": hashlib.sha256(args.aliases.read_bytes()).hexdigest(),
     }
     if args.sitemap_json:
-        source_metadata["sitemap_json"] = str(args.sitemap_json)
+        source_metadata["sitemap_json"] = repo_relative(args.sitemap_json, ROOT)
         source_metadata["sitemap_json_sha256"] = hashlib.sha256(args.sitemap_json.read_bytes()).hexdigest()
     result = run_backfill(avl_rows, build_index(sitemap, candidates), origin=args.origin,
                           client=client, output_dir=args.output_dir,

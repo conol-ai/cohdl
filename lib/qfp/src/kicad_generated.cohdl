@@ -931,6 +931,7 @@ pub footprint KICAD_LQFP_208_28X28MM_P0_5MM {
 // Source file SHA-256: d3a8db080529cbea610fd0d7edae6f7eaa790861e547ad583bf037edbe0f5214
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
 // Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
+#[doc("docs/README.md")]
 pub footprint KICAD_LQFP_32_7X7MM_P0_8MM {
     pad 1: P_KICAD_0011 at (-2.8mm, 4.175mm) rotate 90
     pad 2: P_KICAD_0011 at (-2mm, 4.175mm) rotate 90
@@ -975,6 +976,7 @@ pub footprint KICAD_LQFP_32_7X7MM_P0_8MM {
 // Source file SHA-256: 1ccc5ad4d95398a4c6eb4b4cd1c429865368d06b8373613c6fcb332b53106ee0
 // The stepped source courtyard is conservatively projected to its bounding rectangle.
 // Moved onto the assembler's frame by rotate 270 (library plan W3; tools/stm32_footprint_data/supplier_frames.json).
+#[doc("docs/README.md")]
 pub footprint KICAD_LQFP_48_7X7MM_P0_5MM {
     pad 1: P_KICAD_0009 at (-2.75mm, 4.1625mm) rotate 90
     pad 2: P_KICAD_0009 at (-2.25mm, 4.1625mm) rotate 90

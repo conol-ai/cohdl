@@ -275,11 +275,20 @@ def legacy_mm(value):
 
 
 def neutral_mm(value_nm):
-    """Format integer nm as four-place mm, with ties rounded away from zero."""
+    """Format nm as four-place mm, with ties rounded away from zero.
+
+    ``value_nm`` is integer nm, or a float for a mapped anchor whose supplier
+    offset is still unrounded; either way it is rounded exactly once.
+    """
     sign = "-" if value_nm < 0 else ""
-    places, remainder = divmod(abs(value_nm), 100)
-    if remainder >= 50:
-        places += 1
+    if isinstance(value_nm, float):
+        if not math.isfinite(value_nm):
+            raise ValueError("non-finite coordinate")
+        places = math.floor(abs(value_nm) / 100 + 0.5)
+    else:
+        places, remainder = divmod(abs(value_nm), 100)
+        if remainder >= 50:
+            places += 1
     if places == 0:
         sign = ""
     whole, fraction = divmod(places, 10000)

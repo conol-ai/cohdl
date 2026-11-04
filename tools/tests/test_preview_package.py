@@ -19,10 +19,19 @@ KICAD_CLI = KICAD / "MacOS/kicad-cli"
 KICAD_PYTHON = KICAD / "Frameworks/Python.framework/Versions/Current/bin/python3"
 
 MANIFEST = {"rows": [{"pn": "C1"}, {"pn": "C2"}]}
-BOM = 'Comment,Designator,Footprint,LCSC Part #\n"a","U1,U2","FP","C1"\n"b","U3","FP","C2"\n'
+# U3's BOM line is an alt (P-2TR) of its unbound primary P-2.
+BOM = 'Comment,Designator,Footprint,LCSC Part #\n"P-1","U1,U2","FP","C1"\n"P-2TR","U3","FP","C2"\n'
 NEUTRAL = ("Designator,Mid X,Mid Y,Layer,Rotation\n"
            "U1,0mm,0mm,Top,0\nU2,9mm,0mm,Bottom,180\nU3,0mm,9mm,Top,0\n")
-NET = '(comp (ref "U1") (field (name "LCSC") "C1"))\n(comp (ref "U3") (field (name "LCSC") "C2"))\n'
+COMP = '(comp (ref "%s") (value "x") (fields (field (name "MPN") "%s") (field (name "MFR") "M")%s))'
+
+
+def net(*comps):
+    return "(export (version \"E\") (components\n%s))\n" % "\n".join(
+        COMP % (ref, mpn, ' (field (name "LCSC") "%s")' % lcsc if lcsc else "") for ref, mpn, lcsc in comps)
+
+
+NET = net(("U1", "P-1", "C1"), ("U2", "P-1", "C1"), ("U3", "P-2", None))
 
 
 class PreviewPackageTests(unittest.TestCase):
@@ -55,6 +64,19 @@ class PreviewPackageTests(unittest.TestCase):
         summary = pp.audit_outputs(MANIFEST, 3, BOM, NEUTRAL, NEUTRAL, NET)
         self.assertEqual(summary, {"placements": 3, "top": 2, "bottom": 1,
                                    "part_numbers": ["C1", "C2"], "netlist_lcsc_fields": 2})
+        u3 = ("U3", "P-2", None)
+        for netlist, message in [
+            ("", "not a KiCad netlist"),
+            (net(), "netlist does not list each placement once"),
+            (net(("U1", "P-1", "C1"), u3), "netlist does not list each placement once"),
+            (net(("U1", "P-1", "C1"), ("U2", "P-1", "C1"), ("U2", "P-1", "C1"), u3), "each placement once"),
+            (net(("U1", "P-1", "C1"), ("U2", "P-1", "C9"), u3), "U2: the netlist's LCSC field is C9, but the supplier BOM selected P-1 C1"),
+            (net(("U1", "P-1", "C1"), ("U2", "P-1", None), u3), "U2: the netlist's LCSC field is absent"),
+            (net(("U1", "P-1", "C1"), ("U2", "P-1", "C1"), ("U3", "P-2", "C2")),
+             "U3: .* selected P-2TR C2 as an alt of the unbound primary P-2"),
+        ]:
+            with self.subTest(message=message), self.assertRaisesRegex(pp.PackageError, message):
+                pp.audit_outputs(MANIFEST, 3, BOM, NEUTRAL, NEUTRAL, netlist)
         cases = [
             ((BOM.replace("U1,U2", "U1"), NEUTRAL, NEUTRAL), "BOM does not list each placement once"),
             ((BOM.replace('"C2"', '"C9"'), NEUTRAL, NEUTRAL), "BOM names C1, C9, the manifest C1, C2"),
@@ -64,6 +86,20 @@ class PreviewPackageTests(unittest.TestCase):
         for (bom, neutral, supplier), message in cases:
             with self.subTest(message=message), self.assertRaisesRegex(pp.PackageError, message):
                 pp.audit_outputs(MANIFEST, 3, bom, neutral, supplier, NET)
+
+    def test_a_failed_write_keeps_the_previous_package_and_no_partial_file(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "pkg.zip"
+            out.write_bytes(b"previous")
+            with mock.patch.object(pp.os, "replace", side_effect=OSError("disk full")):
+                with self.assertRaisesRegex(OSError, "disk full"):
+                    pp.publish_zip(out, [("a.txt", b"new")])
+            self.assertEqual(out.read_bytes(), b"previous")
+            self.assertEqual(sorted(p.name for p in Path(td).iterdir()), ["pkg.zip"])
+            pp.publish_zip(out, [("a.txt", b"new")])
+            with zipfile.ZipFile(out) as archive:
+                self.assertEqual(archive.read("a.txt"), b"new")
+            self.assertEqual(sorted(p.name for p in Path(td).iterdir()), ["pkg.zip"])
 
     def test_a_stale_manifest_writes_no_package(self):
         with tempfile.TemporaryDirectory() as td:

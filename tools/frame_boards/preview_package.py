@@ -13,7 +13,9 @@ order, and stopping at the first failure:
    supplier BOM line lacks its part number, and plots Gerbers and drill files;
 4. ``check_cpl.py`` reads the board three ways against the compiler's CPLs;
 5. the BOM, both CPLs and the netlist are cross-checked: every placement once
-   in each CPL and in the BOM, and the BOM's part numbers are the manifest's.
+   in each CPL, in the BOM and in the netlist; the BOM's part numbers are the
+   manifest's; and the netlist's LCSC field is the BOM's part number where the
+   BOM selected the primary entry, and absent where it selected an ``alt``.
 
 Only when all pass is OUT.zip written.  It holds the three files the assembler
 takes (``<name>-gerbers.zip``, ``<name>-lcsc-bom.csv``, ``<name>-lcsc-cpl.csv``),
@@ -86,8 +88,42 @@ def write_zip(path, members):
             archive.writestr(info, data)
 
 
+def publish_zip(out_zip, members):
+    """Write OUT.zip whole or not at all; an existing OUT.zip survives a failure."""
+    out_zip.parent.mkdir(parents=True, exist_ok=True)
+    fd, partial = tempfile.mkstemp(dir=out_zip.parent, prefix=out_zip.name + ".", suffix=".partial")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            write_zip(handle, members)
+        os.replace(partial, out_zip)
+    finally:
+        if os.path.exists(partial):
+            os.unlink(partial)
+
+
+def netlist_parts(net_text):
+    """(ref, MPN field, LCSC field or None) for each component of a KiCad netlist."""
+    try:
+        root = jlc_frame_board.board_sexpr(net_text)
+    except (IndexError, jlc_frame_board.BoardError):
+        raise PackageError("the netlist is not a KiCad netlist")
+    parts = []
+    for components in jlc_frame_board.children(root, "components"):
+        for comp in jlc_frame_board.children(components, "comp"):
+            fields = {field[1][1]: field[2] for group in jlc_frame_board.children(comp, "fields")
+                      for field in jlc_frame_board.children(group, "field") if len(field) > 2}
+            parts.append((jlc_frame_board.children(comp, "ref")[0][1], fields.get("MPN"), fields.get("LCSC")))
+    return parts
+
+
 def audit_outputs(manifest, placements, bom_text, neutral_text, supplier_text, net_text):
-    """Cross-check the supplier BOM, both CPLs and the netlist; a summary."""
+    """Cross-check the supplier BOM, both CPLs and the netlist; a summary.
+
+    The netlist carries an LCSC field exactly where the primary entry is bound
+    (RFC-034 section 3.3).  So where the supplier BOM selected the primary, the
+    field must be the BOM's part number; where it selected an ``alt``, the
+    primary is unbound and the instance carries no field.
+    """
     neutral = list(csv.DictReader(io.StringIO(neutral_text)))
     supplier = list(csv.DictReader(io.StringIO(supplier_text)))
     refs = [r["Designator"] for r in neutral]
@@ -96,15 +132,28 @@ def audit_outputs(manifest, placements, bom_text, neutral_text, supplier_text, n
         problems.append("the neutral CPL has %d placements, the manifest %d" % (len(refs), placements))
     if sorted(refs) != sorted(r["Designator"] for r in supplier) or len(set(refs)) != len(refs):
         problems.append("the neutral and supplier CPLs do not list the same placements once each")
-    bom_refs, pns = [], set()
+    bom_refs, pns, selected = [], set(), {}
     for row in csv.DictReader(io.StringIO(bom_text)):
         bom_refs.extend(row["Designator"].split(","))
         pns.add(row["LCSC Part #"])
+        selected.update((ref, (row["Comment"], row["LCSC Part #"])) for ref in row["Designator"].split(","))
     if sorted(bom_refs) != sorted(refs):
         problems.append("the supplier BOM does not list each placement once")
     if pns != {row["pn"] for row in manifest["rows"]}:
         problems.append("the supplier BOM names %s, the manifest %s" %
                         (", ".join(sorted(pns)), ", ".join(sorted({r["pn"] for r in manifest["rows"]}))))
+    net = netlist_parts(net_text)
+    if sorted(ref for ref, _, _ in net) != sorted(refs) or len({ref for ref, _, _ in net}) != len(net):
+        problems.append("the netlist does not list each placement once")
+    for ref, mpn, lcsc in net:
+        if ref not in selected:
+            continue
+        chosen, pn = selected[ref]
+        expected = pn if mpn == chosen else None
+        if lcsc != expected:
+            problems.append("%s: the netlist's LCSC field is %s, but the supplier BOM selected %s %s%s" %
+                            (ref, lcsc or "absent", chosen, pn,
+                             "" if expected else " as an alt of the unbound primary " + str(mpn)))
     if problems:
         raise PackageError("; ".join(problems))
     return {
@@ -112,7 +161,7 @@ def audit_outputs(manifest, placements, bom_text, neutral_text, supplier_text, n
         "top": sum(r["Layer"] == "Top" for r in neutral),
         "bottom": sum(r["Layer"] == "Bottom" for r in neutral),
         "part_numbers": sorted(pns),
-        "netlist_lcsc_fields": len(re.findall(r'\(field \(name "LCSC"\)', net_text)),
+        "netlist_lcsc_fields": sum(lcsc is not None for _, _, lcsc in net),
     }
 
 
@@ -181,6 +230,7 @@ def build(board, out_zip, cohdl, kicad_cli, kicad_python, allow_dirty, workdir):
     # jlc_frame_board.py lays the board out at its default 5 mm spacing.
     placements = len(jlc_frame_board.expand(manifest["rows"], 5)[0])
     summary = audit_outputs(manifest, placements, read(bom), read(neutral), read(cpl), read(out / (name + ".net")))
+    checks["bom_cpl_netlist_cross_check"] = True
 
     gerbers = io.BytesIO()
     write_zip(gerbers, [(path.name, path.read_bytes()) for path in fabrication_files(project / "fabrication", name)])
@@ -211,10 +261,7 @@ def build(board, out_zip, cohdl, kicad_cli, kicad_python, allow_dirty, workdir):
     }
     members["SHA256SUMS"] = "".join("%s  %s\n" % (hashlib.sha256(data).hexdigest(), member)
                                     for member, data in sorted(members.items())).encode()
-    out_zip.parent.mkdir(parents=True, exist_ok=True)
-    partial = out_zip.with_name(out_zip.name + ".partial")
-    write_zip(partial, members.items())
-    os.replace(partial, out_zip)
+    publish_zip(out_zip, members.items())
     return verification
 
 

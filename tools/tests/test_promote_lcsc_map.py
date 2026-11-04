@@ -92,6 +92,41 @@ class PromoteTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("under rule exact", err)
 
+    def test_a_class_other_than_the_confirmed_record_is_refused(self):
+        # The reviewer's case: an Extended page promoted as Preferred.
+        def preferred(data):
+            data["rows"][0]["category"] = "preferred"
+        self.edit_run("lcsc_map.json", preferred)
+        code, _, err = self.promote()
+        self.assertEqual(code, 1)
+        self.assertIn("class preferred is not the confirmed record's", err)
+        self.assertEqual(json.loads(self.map.read_text()), EMPTY)
+
+    def test_a_preferred_record_needs_the_runs_candidate_list(self):
+        first = json.loads((RUN / "lcsc_map.json").read_text(encoding="utf-8"))["rows"][0]
+
+        def page(data):
+            next(row for row in data if row["c"] == first["pn"])["category"] = "preferred"
+
+        def row(data):
+            data["rows"][0]["category"] = "preferred"
+        self.edit_run("confirmed.json", page)
+        self.edit_run("lcsc_map.json", row)
+        # Re-point every row at the edited snapshot so only the class is wrong.
+        snapshot = json.loads((self.run_dir / "provenance.json").read_text())["sha256"]["confirmed.json"]
+        self.edit_run("lcsc_map.json", lambda data: [r.update(snapshot_sha256=snapshot) for r in data["rows"]])
+        code, _, err = self.promote()
+        self.assertEqual(code, 1)
+        self.assertIn("candidate list does not list it", err)
+
+        # A candidate list other than the one the run recorded is refused too.
+        provenance = json.loads((self.run_dir / "provenance.json").read_text())
+        provenance["sources"]["candidates_sha256"] = "0" * 64
+        (self.run_dir / "provenance.json").write_text(json.dumps(provenance))
+        code, _, err = self.promote()
+        self.assertEqual(code, 1)
+        self.assertIn("candidate list is missing or changed", err)
+
     def test_a_conflict_with_the_official_map_writes_nothing(self):
         first = json.loads((RUN / "lcsc_map.json").read_text(encoding="utf-8"))["rows"][0]
         for clash in (dict(first, pn="C999999999"), dict(first, mpn=first["mpn"] + "-OTHER")):

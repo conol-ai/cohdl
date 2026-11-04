@@ -28494,7 +28494,7 @@ pub part MCU_STM32H743VGT6: STM32H743VGTx {
 pub part MCU_STM32H743VIH6: STM32H743VIHx {
     primary { mfr: "STMicroelectronics", mpn: "STM32H743VIH6",
               footprint: bga::KICAD_TFBGA_100_8X8MM_LAYOUT10X10_P0_8MM }
-    alt { mfr: "STMicroelectronics", mpn: "STM32H743VIH6TR" }
+    alt { mfr: "STMicroelectronics", mpn: "STM32H743VIH6TR", supplier lcsc "C1857444" }
 }
 
 #[doc("docs/stm32-part-catalog.md")]

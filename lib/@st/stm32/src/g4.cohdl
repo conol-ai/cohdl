@@ -12200,7 +12200,7 @@ pub part MCU_STM32G431RBI3: STM32G431RBIx {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32G431RBI6: STM32G431RBIx {
     primary { mfr: "STMicroelectronics", mpn: "STM32G431RBI6",
-              footprint: bga::KICAD_UFBGA_64_5X5MM_LAYOUT8X8_P0_5MM }
+              footprint: bga::KICAD_UFBGA_64_5X5MM_LAYOUT8X8_P0_5MM, supplier lcsc "C730103" }
     alt { mfr: "STMicroelectronics", mpn: "STM32G431RBI6TR" }
 }
 

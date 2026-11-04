@@ -8,11 +8,11 @@ Roles: the **implementer** writes the change; the **reviewer** re-runs the check
 
 | Item | State |
 |---|---|
-| `supplier` bindings in the official library | 0 |
+| `supplier` bindings in the official library | 6, on branch `feat/lcsc-batch-1` (2026-11-04), all in `@st/stm32` 0.3.0: the only part numbers with both a confirmed identity and frame evidence. Three of them (LQFP100 ×2, LQFP208) carry `rotate 270`, because those lands are not yet moved |
 | AVL entries | 21,018 distinct MPNs (`passive` 17,431, the rest 3,587), matching the library plan |
 | Footprints | 304 declared, 286 referenced by parts (recounted 2026-10-29). The 18 unreferenced ones are mostly in footprint-only packages offered to third parties. W3 covers all 304 |
-| Part-number data | Only the 1,334 candidate pairs (350 Basic, 984 Preferred) in `tools/sourcing_data/jlcparts/2026-10-27/`, not yet confirmed one by one |
-| W1/W2/W3 tools | Did not exist on 2026-10-29. Since then `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` (still empty) and `jlc_frames.json` (37 rows on 2026-11-03) are on `feat/rfc-034` |
+| Part-number data | B1 snapshot of 2026-10-30: all 1,334 candidates (350 Basic, 984 Preferred) confirmed on their part pages (`jlc_catalog/2026-10-30/`). B2 sample of 2026-10-30: 108 of 200 identities mapped once the three reviewed aliases applied; those 108 rows are the official `lcsc_map.json`, promoted with `tools/promote_lcsc_map.py`. The other 92 stay in the run's `review.json`. None of the 108 part numbers is in the B1 snapshot |
+| W1/W2/W3 tools | Did not exist on 2026-10-29. Since then `jlc_catalog.py`, `lcsc_backfill.py`, `realign_place.py`, `lcsc_map.json` and `jlc_frames.json` (37 rows on 2026-11-03) are on `feat/rfc-034`; `promote_lcsc_map.py` and the first 108 map rows are on `feat/lcsc-batch-1` |
 | HTTP fetching | No shared client. Existing scripts call `curl` directly, with no User-Agent, rate limit or cache |
 | RFC-034 in the compiler | Implemented on the local branch `feat/rfc-034`, including the pcbnew projection tests (round trip and a hand flip in each direction). RFC-034 was Accepted on 2026-10-30. The branch is pushed and open for review as PR #58, not yet merged or released. The candidate data in `tools/sourcing_data/jlcparts/2026-10-27/` is committed on this branch with its provenance and hashes |
 | CPL position | The footprint origin, in the compiler and in `smt_pos.py --neutral`/`--map` alike (RFC-034 §3.1). Only `smt_pos.py`'s legacy default output keeps the pad centroid |
@@ -219,8 +219,8 @@ Flow:
   3. Drift-check, then publish the library versions this branch bumps, dependencies first (the W3 cascade: `transistor`, `soic`, `qfp`, then `can`, `flash`, `@ti/logic`, `@contrib/comparator`, `@contrib/level-shifter`, `@st/stm32`, `@wch/ch32`, `@gigadevice/gd32`, and the other bumped packages in dependency order). Until they are published, an installed cohdl building an example outside the repository fails with E1102/E1203.
   4. Compensate external designs that place a moved land before they run `cohdl update` (each moved package's README, Migration).
   5. Release the compiler, then run the `cohdl docs --publish` backfill for already-published versions.
-- **D1:** Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts. Each family's release carries its cascade list: the footprint package and every dependent that gets a new version. The registry is deployed with RFC-034 before the first package with bindings, because its search reads `suppliers` from the API docs; bindings published earlier would not be visible there.
-- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it reads a snapshot and sends it in one request of at most 10,000 rows. A request replaces the supplier's whole catalog, so the snapshot cannot be split across requests; the committed JLC catalog is 1,334 rows. It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
+- **D1:** The first batch is the six `@st/stm32` bindings above. Their part numbers, packages, entries (one is an `alt`) and mappings were checked, and a design using all six builds with `--supplier lcsc`; `smt_pos.py --map` on its board reproduces its supplier CPL byte for byte. Before release they still need a registry query (after D2) and the assembler's preview of that design. Release package by package, and only when the mapping is confirmed, the alignment evidence is complete and CI passes. Order follows the library plan: the 14 families first, then the common parts. Each family's release carries its cascade list: the footprint package and every dependent that gets a new version. The registry is deployed with RFC-034 before the first package with bindings, because its search reads `suppliers` from the API docs; bindings published earlier would not be visible there.
+- **D2:** Add the `lcsc` supplier row. Add `tools/upload_supplier_snapshot.py`: it sends the supplier's whole catalog in one request of at most 10,000 rows and 4 MiB, because a request replaces the catalog and cannot be split. The catalog is the B1 snapshot (1,334 rows) **plus every part number in `lcsc_map.json`**, read from the confirmed pages of the run that mapped it: none of the first 108 is in the snapshot, so uploading the snapshot alone would leave every binding unknown to `cohdl suppliers`. The tool merges and de-duplicates by part number (two different records for one part number are an error), converts to the endpoint's rows, and checks the row and byte limits before sending. It authenticates as an official account. Also upload the alias table. Every upload to the production registry needs explicit sign-off.
 
 ### Phase E: W4 new parts
 
@@ -243,7 +243,9 @@ Every new part arrives with its datasheet, land, alignment and binding, so phase
 | 2 | A1b–c, A2 | Review. Decide on MIC/SPK |
 | 3 (into 4) | A4, A5, A6 | Review. Approve and run B1 |
 | 4–5 | B2 sample; C2 boards 1–2 | Upload 2 boards. Decide whether to run B2 in full |
-| 5–6 | B2 full run (nights); finish C2; D1 first batch | RFC-034 merged and released; registry deployed. D2 upload signed off |
+| 5–6 (2026-11-04) | Official map: first 108 rows; D1 first batch: six `@st/stm32` bindings, checked offline | Review the branch. Approve migration 0005 and merge PR #58 |
+| 6–7 | `upload_supplier_snapshot.py` (D2); registry query of the first batch; its preview board | Upload one preview. D2 upload signed off. RFC-034 released; registry deployed |
+| 7–8 | B2 full run (nights), promoted after review; C2 board 3; the LQFP family move | Approve the B2 run. Upload board 3 |
 | Later | C3, phase E | 1–3 boards a week |
 
 Phase A takes about 2.5–3 weeks; the first draft's two weeks held 5.5–6.5 person-days each. After that the pace depends on how many previews a person can do and on when RFC-034 is released.

@@ -3,7 +3,7 @@
 [[package]]
 name = "@st/stm32"
 version = "0.3.0"
-hash = "sha256:3843338ea8ae1811bd8fa930f506c32bc957b93cff8e06f457d668d22bda43d7"
+hash = "sha256:37dbdd1d29d7374bd1bb5ccf6a588213a267bdb3543be2e5f5f903b590916cc8"
 
 [[package]]
 name = "bga"

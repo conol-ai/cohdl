@@ -18831,7 +18831,7 @@ pub part MCU_STM32F767BGT6: STM32F767BGTx {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32F767BIT6: STM32F767BITx {
     primary { mfr: "STMicroelectronics", mpn: "STM32F767BIT6",
-              footprint: qfp::KICAD_LQFP_208_28X28MM_P0_5MM }
+              footprint: qfp::KICAD_LQFP_208_28X28MM_P0_5MM, supplier lcsc "C129276" rotate 270 }
 }
 
 #[doc("docs/stm32-part-catalog.md")]

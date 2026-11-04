@@ -1,6 +1,7 @@
 import contextlib
 import hashlib
 import io
+import json
 import os
 import sys
 import tempfile
@@ -125,8 +126,9 @@ class PreviewPackageTests(unittest.TestCase):
             with zipfile.ZipFile(out) as archive:
                 members = {name: archive.read(name) for name in archive.namelist()}
         self.assertEqual(sorted(members), sorted([
-            "CHECKLIST.md", "README.txt", "SHA256SUMS", "cohdl.lock", "design.lock", "lcsc_batch_1-gerbers.zip",
-            "lcsc_batch_1-lcsc-bom.csv", "lcsc_batch_1-lcsc-cpl.csv", "manifest.json", "verification.json"]))
+            "CHECKLIST.md", "README.txt", "SHA256SUMS", "board.json", "cohdl.lock", "design.lock",
+            "lcsc_batch_1-gerbers.zip", "lcsc_batch_1-lcsc-bom.csv", "lcsc_batch_1-lcsc-cpl.csv", "manifest.json",
+            "verification.json"]))
         sums = dict(reversed(line.split("  ")) for line in members["SHA256SUMS"].decode().splitlines())
         for name, data in members.items():
             if name != "SHA256SUMS":
@@ -135,6 +137,10 @@ class PreviewPackageTests(unittest.TestCase):
         self.assertTrue(sums["lcsc_batch_1-lcsc-bom.csv"].startswith("dcfe8fae"))
         self.assertTrue(sums["lcsc_batch_1-lcsc-cpl.csv"].startswith("7a363758"))
         self.assertIn("24 placements, 6 part numbers, KiCad positions 24 of 24", log.getvalue())
+        # The preview script checks each export's pin 1 marks against these footprints.
+        footprints = json.loads(members["board.json"])["fps"]
+        self.assertEqual(sorted(fp["ref"] for fp in footprints), sorted("U%d" % i for i in range(1, 25)))
+        self.assertEqual(sum(fp["bottom"] for fp in footprints), 12)
 
 
 if __name__ == "__main__":

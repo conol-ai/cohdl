@@ -109,13 +109,22 @@ def dots(path, outline, bottom, pred=is_magenta, size=(6, None)):
     return found
 
 
+def outline(doc):
+    """The board outline's centre line, from a `board` document's bounding box."""
+    half = 0.05  # half the Edge.Cuts stroke
+    x0, y0, x1, y1 = doc["bbox"]
+    return (x0 + half, y0 + half, x1 - half, y1 - half)
+
+
+def reach(fp):
+    """How far from a footprint's origin its pin 1 mark can sit: its farthest pad, plus a margin."""
+    return max(math.hypot(p["x"] - fp["x"], p["y"] - fp["y"]) for p in fp["pads"] if p["num"]) + 1.2
+
+
 def measure(board_json, top_bmp, bottom_bmp, out):
     with open(board_json) as f:
         doc = json.load(f)
-    half = 0.05  # half the Edge.Cuts stroke
-    x0, y0, x1, y1 = doc["bbox"]
-    outline = (x0 + half, y0 + half, x1 - half, y1 - half)
-    found = {False: dots(top_bmp, outline, False), True: dots(bottom_bmp, outline, True)}
+    found = {False: dots(top_bmp, outline(doc), False), True: dots(bottom_bmp, outline(doc), True)}
 
     def angle(dx, dy):  # seen from the top, +y up, counter-clockwise
         return math.degrees(math.atan2(-dy, dx)) % 360
@@ -123,8 +132,7 @@ def measure(board_json, top_bmp, bottom_bmp, out):
     rows = []
     for fp in sorted(doc["fps"], key=lambda f: (f["ref"].rstrip("0123456789"), int(f["ref"].lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ") or 0))):
         pads = [p for p in fp["pads"] if p["num"]]
-        reach = max(math.hypot(p["x"] - fp["x"], p["y"] - fp["y"]) for p in pads) + 1.2
-        near = [d for d in found[fp["bottom"]] if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) <= reach]
+        near = [d for d in found[fp["bottom"]] if math.hypot(d[0] - fp["x"], d[1] - fp["y"]) <= reach(fp)]
         # Pin 1 is ball A1 on a BGA.
         pad1 = next((p for p in pads if p["num"] in ("1", "A1")), None)
         row = {"ref": fp["ref"], "side": "bottom" if fp["bottom"] else "top", "kicad_angle": fp["angle"],
@@ -144,10 +152,8 @@ def pegs(board_json, top_bmp, bottom_bmp, prefix):
     """Each footprint's peg dots and, from the other view, its holes."""
     with open(board_json) as f:
         doc = json.load(f)
-    x0, y0, x1, y1 = doc["bbox"]
-    outline = (x0 + 0.05, y0 + 0.05, x1 - 0.05, y1 - 0.05)
     hole = (10, lambda sx: int((0.9 * sx) ** 2))  # smaller than a 0.9 mm square
-    views = {bottom: (dots(path, outline, bottom), dots(path, outline, bottom, is_hole, hole))
+    views = {bottom: (dots(path, outline(doc), bottom), dots(path, outline(doc), bottom, is_hole, hole))
              for bottom, path in ((False, top_bmp), (True, bottom_bmp))}
     for fp in doc["fps"]:
         if not fp["ref"].startswith(prefix):

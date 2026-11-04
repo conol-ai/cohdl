@@ -1,20 +1,26 @@
 """Drive the assembler's placement preview for one preview package, in Arc.
 
-Usage: python3 -I tools/frame_boards/jlc_preview.py PACKAGE.zip [--run DIR] [--downloads DIR]
+Usage: python3 -I tools/frame_boards/jlc_preview.py PACKAGE.zip [--board BOARD.json] [--run DIR] [--downloads DIR]
 
 PACKAGE.zip is a ``preview_package.py`` output. Its SHA256SUMS is checked and it is
 unpacked into the run directory (default ``~/.cache/cohdl-preview/runs/<stem>``,
 outside the repository). Then, in the person's own Arc window, through Arc's
-AppleScript ``execute javascript`` on the ``cart.jlcpcb.com`` tab only:
+AppleScript ``execute javascript``:
 
-1. the Gerber archive goes into the quote page; the detected size is reported;
-2. PCB Assembly is switched on, with Both Sides when the package has bottom parts;
-3. NEXT twice, to the Bill of Materials step; the BOM and CPL go in, and
+1. the run opens its own quote tab and works in that tab only, found by its
+   window and tab ids; other tabs are never read or navigated, and if this one
+   is closed, moved or leaves ``cart.jlcpcb.com`` the run stops;
+2. the Gerber archive goes into the quote page; the detected size is reported;
+3. PCB Assembly is switched on, with Both Sides when the package has bottom parts;
+4. NEXT twice, to the Bill of Materials step; the BOM and CPL go in, and
    "Process BOM & CPL" runs;
-4. the BOM step must show the package's part numbers, every row selected, no
-   stock warning, and the package's top and bottom designators;
-5. NEXT to Component Placements; the 2D view; the preview's own whole-board
-   exports of the top and the bottom land in the run directory.
+5. the BOM step is read row by row: each designator must appear exactly once,
+   on its CPL side, in a selected row showing its BOM part number; the count of
+   parts detected and confirmed must match, with no stock warning;
+6. NEXT to Component Placements; the 2D view; the preview's own whole-board
+   exports of the top and the bottom land in the run directory. Each export must
+   show a pin 1 mark on every part of its side (``board.json``), or it is taken
+   again.
 
 It stops there. It never clicks anything that saves to the cart, quotes, orders or
 pays, and it never ticks the assembly terms on the person's behalf. It reads the
@@ -23,8 +29,11 @@ request of its own. A sign-in page, a captcha or anything it cannot place stops 
 with exit 2 and a message for the person. A check that fails exits 1: the preview is
 then unverified, never passed. Measuring pin 1 on the exports is a separate step
 (``measure_preview.py``).
+
+A package built before ``preview_package.py`` added ``board.json`` takes
+``--board``: ``measure_preview.py board`` of the package's ``.kicad_pcb``.
 """
-import argparse, base64, hashlib, json, re, shutil, subprocess, sys, time, zipfile
+import argparse, base64, csv, hashlib, json, math, re, shutil, subprocess, sys, time, zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,6 +44,8 @@ TAB_PREFIX = "https://cart.jlcpcb.com/"
 # Text the script must never click, whatever the element.
 FORBIDDEN = re.compile(r"cart|order|pay|checkout|quote now|place|submit", re.I)
 STOCK_WARNING = re.compile(r"insufficient|shortage|out of stock|not enough|unavailable|will not be assembled", re.I)
+# The run's own tab, (window id, tab id), from open_tab().
+TAB = None
 
 
 class Stop(Exception):
@@ -48,42 +59,72 @@ class Unverified(Exception):
 APPLESCRIPT = """on run argv
   with timeout of 20 seconds
     tell application id "company.thebrowser.Browser"
-      repeat with t in tabs of front window
-        if URL of t starts with "%s" then
-          return execute t javascript (item 1 of argv)
+      repeat with w in windows
+        if id of w is item 1 of argv then
+          repeat with t in tabs of w
+            if id of t is item 2 of argv then
+              if URL of t does not start with "%s" then return "__left__"
+              return execute t javascript (item 3 of argv)
+            end if
+          end repeat
         end if
       end repeat
-      return "__no_tab__"
+      return "__gone__"
     end tell
   end timeout
 end run""" % TAB_PREFIX
 
+# Arc's reference to a tab it has just made does not resolve, so the new tab is
+# found as the front window's one tab that was not there before.
+OPEN_TAB = """tell application id "company.thebrowser.Browser"
+  set known to id of every tab of front window
+  set w to id of front window
+  tell front window to make new tab with properties {URL:"%s"}
+  set made to {}
+  repeat with t in tabs of front window
+    if known does not contain (id of t) then set end of made to (id of t)
+  end repeat
+  if (count of made) is not 1 then return "__unclear__"
+  return w & linefeed & (item 1 of made)
+end tell""" % QUOTE
+
+AUTOMATION = "Allow this terminal to control Arc under System Settings > Privacy & Security > Automation"
+
+
+def open_tab():
+    """Open the run's own quote tab in Arc's front window; js() then works in it alone."""
+    global TAB
+    run = subprocess.run(["osascript", "-e", OPEN_TAB], text=True, capture_output=True)
+    ids = run.stdout.split()
+    if run.returncode or len(ids) != 2:
+        raise Stop("could not open a tab in Arc (%s). Open an Arc window. %s, then rerun."
+                   % (run.stderr.strip(), AUTOMATION))
+    TAB = tuple(ids)
+
 
 def js(code, attempts=4):
-    """Run JavaScript in the cart.jlcpcb.com tab; its string result.
+    """Run JavaScript in the run's own tab; its string result.
 
     A tab that is still loading does not answer, so a timeout is retried.
     """
+    if TAB is None:
+        raise AssertionError("no tab of the run's own; call open_tab() first")
     for _ in range(attempts):
-        run = subprocess.run(["osascript", "-e", APPLESCRIPT, code], text=True, capture_output=True)
+        run = subprocess.run(["osascript", "-e", APPLESCRIPT, *TAB, code], text=True, capture_output=True)
         if not (run.returncode and "-1712" in run.stderr):
             break
     else:
         raise Stop("Arc did not answer in time; check the tab for a dialog and rerun")
     if run.returncode:
-        raise Stop("Arc did not answer (%s). Allow this terminal to control Arc under "
-                   "System Settings > Privacy & Security > Automation, then rerun." % run.stderr.strip())
+        raise Stop("Arc did not answer (%s). %s, then rerun." % (run.stderr.strip(), AUTOMATION))
     out = run.stdout.strip()
     if len(out) >= 2 and out[0] == out[-1] == '"':
         out = json.loads(out)  # Arc returns a JavaScript string quoted and escaped
-    if out == "__no_tab__":
-        raise Stop("no %s tab in Arc's front window" % TAB_PREFIX)
+    if out == "__gone__":
+        raise Stop("the run's tab was closed or moved to another window; rerun")
+    if out == "__left__":
+        raise Stop("the run's tab left %s (a sign-in page?); sign in in another tab and rerun" % TAB_PREFIX)
     return out
-
-
-def open_quote_tab():
-    subprocess.run(["osascript", "-e", 'tell application id "company.thebrowser.Browser" to tell front window '
-                    'to make new tab with properties {URL:"%s"}' % QUOTE], check=True, capture_output=True)
 
 
 def wait(code, test, timeout=60, what="the page"):
@@ -152,48 +193,134 @@ def unpack(package, run):
     return upload, json.loads(members["verification.json"])
 
 
-def expected_sides(upload):
-    """{side: set of designators} from the package's supplier CPL."""
-    sides = {"Top": set(), "Bottom": set()}
-    cpl = next(upload.glob("*-cpl.csv"))
-    for line in cpl.read_text(encoding="utf-8").splitlines()[1:]:
+def natural(ref):
+    m = re.match(r"(\D*)(\d*)", ref)
+    return m.group(1), int(m.group(2) or 0), ref
+
+
+def expected_placements(upload):
+    """{designator: (part number, side)} from the package's supplier BOM and CPL."""
+    sides = {}
+    for line in next(upload.glob("*-cpl.csv")).read_text(encoding="utf-8").splitlines()[1:]:
         ref, _, _, layer, _ = line.split(",")
-        sides[layer].add(ref)
-    return sides
+        sides[ref] = layer
+    placements = {}
+    with open(next(upload.glob("*-bom.csv")), encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            for ref in row["Designator"].split(","):
+                placements[ref] = (row["LCSC Part #"], sides.get(ref))
+    if set(placements) != set(sides):
+        raise Unverified("the package's BOM and CPL list different designators")
+    return placements
 
 
-def check_bom_step(text, part_numbers, sides):
-    """The BOM step's text against the package; a list of problems."""
+def on_side(placements, side):
+    return {ref for ref, (_, s) in placements.items() if s == side}
+
+
+# The BOM step's table: its column names and, per row, each cell's text, with
+# the Select cell read as its checkbox's state.
+BOM_TABLE = """JSON.stringify((() => { const t = [...document.querySelectorAll(".el-table.ComponentList")].filter(e => e.offsetParent);
+    if (t.length !== 1) return {error: "the BOM step shows " + t.length + " part tables"};
+    const heads = [...t[0].querySelectorAll(".el-table__header-wrapper th.is-leaf")].map(th => th.innerText.trim());
+    const rows = [...t[0].querySelectorAll(".el-table__body-wrapper tbody tr.el-table__row")].map(tr => [...tr.cells].map(td => {
+        const c = td.querySelector(".el-checkbox"); return c ? (c.classList.contains("is-checked") ? "__checked__" : "__unchecked__")
+        : td.innerText; }));
+    return {heads, rows}; })())"""
+COLUMNS = ("Top Designator", "Bottom Designator", "Matched Part Detail", "Select")
+
+
+def check_bom_step(text, table, placements):
+    """The BOM step's text and table against the package; a list of problems.
+
+    Each designator must appear exactly once, in the column of its CPL side, in a
+    selected row whose matched part is the BOM's part number for it.
+    """
     problems = []
+    part_numbers = sorted({pn for pn, _ in placements.values()})
     m = re.search(r"(\d+)\s*parts detected\s*(\d+)\s*Parts confirmed", re.sub(r"\s+", " ", text))
     if not m or int(m.group(1)) != len(part_numbers) or int(m.group(2)) != len(part_numbers):
         problems.append("expected %d parts detected and confirmed, read %s" %
                         (len(part_numbers), m.group(0) if m else "no count"))
-    words = set(re.findall(r"\b[A-Z]+\d+\b", text))
-    missing = sorted(set(part_numbers) - words)
-    if missing:
-        problems.append("the BOM step does not list %s" % ", ".join(missing))
     for warning in STOCK_WARNING.findall(text):
         problems.append("stock warning: " + warning)
-    for side, refs in sides.items():
-        missing = refs - words
-        if missing:
-            problems.append("%s designators missing from the BOM step: %s" % (side, ", ".join(sorted(missing))))
+    if "error" in table:
+        return problems + [table["error"]]
+    heads = table["heads"]
+    if not all(name in heads for name in COLUMNS):
+        return problems + ["the BOM table's columns are %s" % ", ".join(heads)]
+    col = {name: heads.index(name) for name in COLUMNS}
+    if len(table["rows"]) != len(part_numbers):
+        problems.append("expected %d BOM rows, read %d" % (len(part_numbers), len(table["rows"])))
+    seen = {}
+    for number, cells in enumerate(table["rows"], 1):
+        if len(cells) != len(heads):
+            problems.append("BOM row %d has %d cells for %d columns" % (number, len(cells), len(heads)))
+            continue
+        matched = re.findall(r"^C\d+$", cells[col["Matched Part Detail"]], re.M)
+        pn = matched[0] if len(matched) == 1 else None
+        if pn is None:
+            problems.append("BOM row %d matches %s" % (number, ", ".join(matched) or "no part number"))
+        if cells[col["Select"]] != "__checked__":
+            problems.append("BOM row %d (%s) is not selected" % (number, pn))
+        for side in ("Top", "Bottom"):
+            for ref in re.split(r"[\s,]+", cells[col[side + " Designator"]].strip()):
+                if ref:
+                    seen.setdefault(ref, []).append((pn, side, number))
+    for ref in sorted(set(placements) | set(seen), key=natural):
+        rows = seen.get(ref, [])
+        if ref not in placements:
+            problems.append("%s is in the BOM step but not in the package" % ref)
+        elif not rows:
+            problems.append("%s is missing from the BOM step" % ref)
+        elif len(rows) > 1:
+            problems.append("%s appears %d times in the BOM step (rows %s)" %
+                            (ref, len(rows), ", ".join(str(r[2]) for r in rows)))
+        elif rows[0][:2] != placements[ref]:
+            problems.append("%s: the BOM step shows %s on the %s, the package %s on the %s" %
+                            ((ref,) + rows[0][:2] + placements[ref]))
     return problems
 
 
-def pin1_marks(png):
-    """How many magenta pin 1 marks an export shows (a BGA shows two)."""
+def load_board(upload, board, placements):
+    """The footprints of BOARD, or of the package's board.json; each CPL row must be one, on its side."""
+    path = board or upload / "board.json"
+    if not path.is_file():
+        raise Unverified("the package has no board.json; pass --board with `measure_preview.py board` of its .kicad_pcb")
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    sides = {fp["ref"]: "Bottom" if fp["bottom"] else "Top" for fp in doc["fps"]}
+    if {ref: sides.get(ref) for ref in placements} != {ref: side for ref, (_, side) in placements.items()}:
+        raise Unverified("%s does not hold the CPL's designators on the CPL's sides" % path)
+    return doc
+
+
+def pin1_marks(png, outline, bottom):
+    """The magenta pin 1 marks an export shows, in board millimetres (a BGA shows two)."""
     bmp = png.with_suffix(".bmp")
     subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
     try:
-        return len(measure_preview.dots(str(bmp), (0, 0, 1, 1), False))
+        return measure_preview.dots(str(bmp), outline, bottom)
     finally:
         bmp.unlink()
 
 
-def export_capture(side, downloads, out, parts, attempts=3, settle=15, timeout=60):
-    """The preview's own export of SIDE, once its models show a mark for each of PARTS.
+def unmarked(marks, fps):
+    """The designators in FPS that no mark falls on.
+
+    A mark counts once, for the nearest footprint within whose reach it lies, so
+    the second mark of a BGA cannot stand in for a part that was not drawn.
+    """
+    count = {fp["ref"]: 0 for fp in fps}
+    for x, y, _ in marks:
+        near = [(d, fp["ref"]) for fp in fps for d in [math.hypot(x - fp["x"], y - fp["y"])]
+                if d <= measure_preview.reach(fp)]
+        if near:
+            count[min(near)[1]] += 1
+    return sorted((ref for ref, n in count.items() if not n), key=natural)
+
+
+def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=180):
+    """The preview's own export of SIDE, once it shows a pin 1 mark on each of FPS.
 
     Right after a side switch the preview can draw the lands before the parts,
     and an export then shows no pin 1 marks; it is retried after a pause.
@@ -215,24 +342,23 @@ def export_capture(side, downloads, out, parts, attempts=3, settle=15, timeout=6
                 raise Stop("the %s export did not reach %s. If Arc asks to allow multiple downloads, allow it "
                            "and rerun" % (side.lower(), downloads))
             time.sleep(1)
-        marks = pin1_marks(out)
-        if marks >= parts:
+        missing = unmarked(pin1_marks(out, outline, side == "Bottom"), fps)
+        if not missing:
             return out
-        print("%s export shows %d pin 1 marks for %d parts; exporting again" % (side, marks, parts))
-    raise Unverified("the %s export never showed a pin 1 mark for each part" % side.lower())
+        print("%s export shows no pin 1 mark on %s; exporting again" % (side, ", ".join(missing)))
+    raise Unverified("the %s export never showed a pin 1 mark on %s" % (side.lower(), ", ".join(missing)))
 
 
-def run_preview(package, run, downloads):
+def run_preview(package, run, downloads, board=None):
     upload, verification = unpack(package, run)
     name = next(upload.glob("*-gerbers.zip")).name.removesuffix("-gerbers.zip")
-    sides = expected_sides(upload)
-    part_numbers = verification["part_numbers"]
+    placements = expected_placements(upload)
+    if sorted({pn for pn, _ in placements.values()}) != sorted(verification["part_numbers"]):
+        raise Unverified("the package's BOM and verification.json list different part numbers")
+    doc = load_board(upload, board, placements)
+    sides = {side: on_side(placements, side) for side in ("Top", "Bottom")}
 
-    try:
-        # Deferred: a navigation inside the call keeps Arc from answering it.
-        js("setTimeout(() => location.assign(%s), 100), 'ok'" % json.dumps(QUOTE))
-    except Stop:
-        open_quote_tab()
+    open_tab()
     wait("String(location.pathname.startsWith('/quote') && document.readyState === 'complete' && "
          "/Add gerber file|Sign In/.test(document.body.innerText))", lambda v: v == "true", 60, "a fresh quote page")
     require_signed_in()
@@ -267,17 +393,14 @@ def run_preview(package, run, downloads):
     inject(0, upload / (name + "-lcsc-bom.csv"), "text/csv")
     inject(1, upload / (name + "-lcsc-cpl.csv"), "text/csv")
     click_button("Process BOM & CPL")
-    text = wait("document.body.innerText", lambda v: "Parts confirmed" in v, 120, "the BOM match")
+    wait("document.body.innerText", lambda v: "Parts confirmed" in v, 120, "the BOM match")
     time.sleep(3)
-    text = body_text()
-    unchecked = js("""String([...document.querySelectorAll("table .el-checkbox")].filter(b => !b.classList.contains("is-checked")).length)""")
-    problems = check_bom_step(text, part_numbers, sides)
-    if unchecked != "0":
-        problems.append("%s BOM rows are not selected" % unchecked)
+    problems = check_bom_step(body_text(), json.loads(js(BOM_TABLE)), placements)
     if problems:
         raise Unverified("; ".join(problems))
-    print("BOM step: %d part numbers detected and confirmed, %d top and %d bottom placements, no stock warning"
-          % (len(part_numbers), len(sides["Top"]), len(sides["Bottom"])))
+    print("BOM step: %d part numbers detected and confirmed; each of %d top and %d bottom designators once, "
+          "on its side, with its part number, selected; no stock warning"
+          % (len(verification["part_numbers"]), len(sides["Top"]), len(sides["Bottom"])))
 
     click_button("NEXT")
     wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
@@ -287,7 +410,9 @@ def run_preview(package, run, downloads):
     preview.mkdir(exist_ok=True)
     for side_name in ("Top", "Bottom"):
         if sides[side_name]:
-            path = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), len(sides[side_name]))
+            fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
+            path = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), fps,
+                                  measure_preview.outline(doc))
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
     print("Stopped at Component Placements; nothing was added to the cart.")
 
@@ -295,12 +420,13 @@ def run_preview(package, run, downloads):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("package", type=Path)
+    ap.add_argument("--board", type=Path, help="board.json for a package that carries none")
     ap.add_argument("--run", type=Path)
     ap.add_argument("--downloads", type=Path, default=Path.home() / "Downloads")
     args = ap.parse_args(argv)
     run = args.run or Path.home() / ".cache/cohdl-preview/runs" / args.package.stem
     try:
-        run_preview(args.package, run, args.downloads)
+        run_preview(args.package, run, args.downloads, args.board)
     except Stop as stop:
         print("jlc_preview.py: a person has to take over: %s" % stop, file=sys.stderr)
         return 2

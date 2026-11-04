@@ -24,7 +24,13 @@ python3 -I tools/frame_boards/preview_package.py lcsc-batch-1 -o lcsc-batch-1-pr
   --kicad-python $K/Frameworks/Python.framework/Versions/Current/bin/python3
 ```
 
-The steps are: a clean tree; the committed manifest equals `lcsc_batch_1.py`'s output; the build with its binding check; `check_cpl.py`; and a cross-check of the BOM and CPLs. The ZIP holds `lcsc_batch_1-gerbers.zip` (copper, mask, paste, silkscreen, outline and drill), the supplier BOM and CPL, `CHECKLIST.md`, the manifest and lock files, `verification.json` and `SHA256SUMS`. KiCad stamps a creation date into each Gerber, so only the Gerber archive's hash changes between runs.
+The steps are: a clean tree; the committed manifest equals `lcsc_batch_1.py`'s output; the build with its binding check; `check_cpl.py`; and a cross-check of the BOM and CPLs. The ZIP holds:
+- `lcsc_batch_1-gerbers.zip` (copper, mask, paste, silkscreen, outline and drill);
+- the supplier BOM and CPL;
+- `CHECKLIST.md`;
+- the manifest and lock files;
+- `board.json`, each footprint and its pads, which the preview script and the measurement read;
+- `verification.json` and `SHA256SUMS`. KiCad stamps a creation date into each Gerber, so only the Gerber archive's hash changes between runs.
 
 ## Regenerate step by step
 

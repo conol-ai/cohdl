@@ -15,7 +15,8 @@ here, and it grants no rights in them.
   (<https://github.com/yaqwsx/jlcparts>), which compiles JLCPCB's public parts
   list. Its `provenance.json` records the snapshot and hashes. See that project
   for its terms.
-- **Assembly-preview captures** in `jlc_previews/*/` (`top.jpg`, `bottom.jpg`)
+- **Assembly-preview captures** in `jlc_previews/*/` (`top.jpg`, `bottom.jpg`, or
+  `top.png`, `bottom.png` as exported)
   are JLCPCB's renders of this project's own frame boards, with JLCPCB's
   watermark and part models. They are kept as the primary evidence for the
   footprint-frame rows in `jlc_frames.json`, which cite them. JLCPCB's names,

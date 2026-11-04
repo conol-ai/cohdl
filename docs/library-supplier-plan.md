@@ -17,6 +17,8 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
 
 - **No data fetched from EasyEDA by any tool.** (Unrelated to the compiler's `--emit easyeda` netlist emitter, which writes a file for EasyEDA/LCEDA Pro import and fetches nothing.) EasyEDA's Terms (effective 2026-09-21) restrict bulk or systematic automated access and limit derivative use of its content, subject to the licences that apply to individual content (open-source content keeps its own licence). This project's rule is stricter than the Terms: no tool fetches from EasyEDA at all. Its footprints are not an authority: land sizes differ from manufacturer lands by 0.1–0.35 mm, and SK6812MINI-E is drawn for normal mount. A person may look at a supplier's footprint by hand to settle a question; nothing is copied.
 - **No request to a path a site's robots.txt disallows.** For JLCPCB, that is `/api`.
+  - No tool requests or replays such a path directly, to fetch a catalog or anything else. That includes a browser script: it never issues an `/api` request of its own and never reads one's response.
+  - A person, or a browser script working the assembler's own web pages under a person's login (the placement preview), may let those pages make their own requests, `/api` included. That is ordinary use of the site, not fetching.
 - **Fetch policy for every tool, through one shared HTTP client:**
   - At most 1 request per 2 s per host, and a per-run request cap.
   - URL-keyed cache; outputs are dated snapshots.

@@ -91,3 +91,28 @@ a design that places a part on one of these lands sees its copper turn after
 `cohdl update`, with `check` and `build` still passing. Migrate the design's
 `place` statements first, as the land package's README describes, with
 `tools/realign_place.py`.
+
+## LCSC supplier bindings in 0.3.0
+
+Six entries carry a `supplier lcsc` binding (RFC-034). Each part number is
+confirmed on its JLCPCB part page (`tools/sourcing_data/lcsc_map.json`), and
+each frame was read on the assembler's preview of frame board 2 on 2026-11-02
+(`tools/sourcing_data/jlc_frames.json`).
+
+| Part | Entry | LCSC | Land | Binding |
+|---|---|---|---|---|
+| `MCU_STM32L412K8T6` | primary | C529436 | `qfp::KICAD_LQFP_32_7X7MM_P0_8MM` | `supplier lcsc "C529436"` |
+| `MCU_STM32F427VGT6` | primary | C117815 | `qfp::KICAD_LQFP_100_14X14MM_P0_5MM` | `supplier lcsc "C117815" rotate 270` |
+| `MCU_STM32L496VGT6` | primary | C717701 | `qfp::KICAD_LQFP_100_14X14MM_P0_5MM` | `supplier lcsc "C717701" rotate 270` |
+| `MCU_STM32F767BIT6` | primary | C129276 | `qfp::KICAD_LQFP_208_28X28MM_P0_5MM` | `supplier lcsc "C129276" rotate 270` |
+| `MCU_STM32H743VIH6` | alt `STM32H743VIH6TR` | C1857444 | `bga::KICAD_TFBGA_100_8X8MM_LAYOUT10X10_P0_8MM` | `supplier lcsc "C1857444"` |
+| `MCU_STM32G431RBI6` | primary | C730103 | `bga::KICAD_UFBGA_64_5X5MM_LAYOUT8X8_P0_5MM` | `supplier lcsc "C730103"` |
+
+The LQFP100 and LQFP208 lands are not yet on the assembler's frame, so their
+bindings carry the measured quarter turn. When qfp moves those lands, these
+bindings return to the default in the same release, and designs that place
+them migrate with `tools/realign_place.py`, as for the moves above.
+
+A bound entry changes nothing in `check`, `build`, the KiCad netlist or the
+neutral BOM and CPL. `cohdl build --supplier lcsc` adds the LCSC BOM, map and
+CPL; the H743 row selects the bound `STM32H743VIH6TR` alternate there.

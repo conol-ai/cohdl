@@ -15,6 +15,8 @@ here, and it grants no rights in them.
   (<https://github.com/yaqwsx/jlcparts>), which compiles JLCPCB's public parts
   list. Its `provenance.json` records the snapshot and hashes. See that project
   for its terms.
+- **Registry upload reports** in `registry_uploads/*/` restate counts, part
+  numbers and dates from the sources above; the catalog body itself is not kept.
 - **Assembly-preview captures** in `jlc_previews/*/` (`top.jpg`, `bottom.jpg`, or
   `top.png`, `bottom.png` as exported)
   are JLCPCB's renders of this project's own frame boards, with JLCPCB's

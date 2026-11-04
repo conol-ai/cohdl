@@ -30,29 +30,29 @@ The flow builds the preview package, works the assembler's web pages in the pers
    ```
    The script:
    - checks the package's sums;
+   - opens a quote tab of its own and works only in it, found by its window and tab ids. Other tabs, even other JLCPCB projects, are never read or navigated. If its tab is closed, moved or leaves `cart.jlcpcb.com`, the run stops;
    - uploads the Gerber, then switches on PCBA (Both Sides when there are bottom parts);
    - uploads the BOM and CPL;
-   - requires the package's part numbers, every row selected, no stock warning, and every top and bottom designator;
+   - reads the BOM step row by row. Each designator must appear exactly once, on its CPL side, in a selected row matched to its BOM part number. The counts of parts detected and confirmed must match, and no stock warning may show;
    - exports the 2D top and bottom views into `~/.cache/cohdl-preview/runs/<package>/preview/`.
 
-   Each export must show a pin 1 mark for every part on its side, or it is taken again.
+   Each export must show a pin 1 mark on every part of its side, or it is taken again. Each mark counts once, for the nearest footprint within its reach (`board.json`), so a BGA's second mark cannot cover for a part that was not drawn. A package from before `board.json` was added takes `--board`, the output of `measure_preview.py board` for the package's `.kicad_pcb`.
    - **Exit 2:** a person must take over (sign-in, captcha, a dialog, a page the script cannot place). Say what it printed, wait, then rerun.
    - **Exit 1:** a check failed. The preview is **unverified**; report it, and do not work around it.
 3. **Measure:**
    ```sh
    R=~/.cache/cohdl-preview/runs/<package>
-   $K/Frameworks/Python.framework/Versions/Current/bin/python3 -I tools/frame_boards/measure_preview.py board <board>/out/<name>.kicad_pcb $R/board.json
    (cd $R/preview && sips -s format bmp top.png --out top.bmp && sips -s format bmp bottom.png --out bottom.bmp)
-   python3 -I tools/frame_boards/measure_preview.py measure $R/board.json $R/preview/top.bmp $R/preview/bottom.bmp $R/measurements.json
+   python3 -I tools/frame_boards/measure_preview.py measure $R/upload/board.json $R/preview/top.bmp $R/preview/bottom.bmp $R/measurements.json
    ```
-   The `.kicad_pcb` comes from `jlc_frame_board.py <manifest> -o DIR --skip-kicad` at the package's commit. Its supplier CPL must hash as the package's.
+   `board.json` comes in the package. For an older package, use the file passed as `--board`.
 4. **Read the results.**
    - `delta_ccw_from_top` is the preview's pin 1, counter-clockwise from ours, seen from the top. The binding's `rotate` should leave it near 0; single readings scatter by up to about 10°.
-   - A BGA shows two marks near A1, and the script leaves its angle empty. Read it by hand from the mark nearest our ball A1, and check that no mark sits near another corner. Say in the record that it was read by hand.
+   - A BGA shows two marks near A1, and the script leaves its angle empty. Read it by hand from the mark nearest our ball A1, and check that no mark sits near another corner. Record it as manual review, and say so in the results table.
    - A part not placed (stock), a missing or ambiguous mark, or a failed measurement is **unverified**, never passed. Opening the preview is not a pass.
 5. **Record** in `tools/sourcing_data/jlc_previews/<date>-<board>/`. Follow `2026-11-04-lcsc-batch-1/`:
-   - `README.md`: what was uploaded, with hashes; the settings; the BOM step; the method; a results table; what it shows; and what is not verified;
-   - `top.jpg` and `bottom.jpg`, re-encoded from the exports;
+   - `README.md`: what was uploaded, with hashes; the settings; the BOM step; the method; a results table; what it shows; and a section headed "Manual review and limits";
+   - `top.png` and `bottom.png`, the exports as downloaded, with their SHA-256, so `measurements.json` can be reproduced value for value (a re-encoded JPEG shifts readings by about 0.1°);
    - `measurements.json`.
 
    Then update the frame rows or bindings the record supports, and say which.

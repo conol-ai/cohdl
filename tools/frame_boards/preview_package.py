@@ -19,8 +19,9 @@ order, and stopping at the first failure:
 
 Only when all pass is OUT.zip written.  It holds the three files the assembler
 takes (``<name>-gerbers.zip``, ``<name>-lcsc-bom.csv``, ``<name>-lcsc-cpl.csv``),
-the per-placement ``CHECKLIST.md``, the manifest and lock files,
-``verification.json`` and ``SHA256SUMS``.  Both ZIPs are written with fixed
+the per-placement ``CHECKLIST.md``, the manifest and lock files, ``board.json``
+(``measure_preview.py board``: each footprint and its pads, which the preview
+script and the measurement read), ``verification.json`` and ``SHA256SUMS``.  Both ZIPs are written with fixed
 timestamps; KiCad stamps a creation date into each Gerber, so the Gerber
 archive differs between runs while the BOM and CPLs do not.
 
@@ -232,6 +233,12 @@ def build(board, out_zip, cohdl, kicad_cli, kicad_python, allow_dirty, workdir):
     summary = audit_outputs(manifest, placements, read(bom), read(neutral), read(cpl), read(out / (name + ".net")))
     checks["bom_cpl_netlist_cross_check"] = True
 
+    board_json = workdir / "board.json"
+    run = subprocess.run([kicad_python, "-I", str(HERE / "measure_preview.py"), "board",
+                          str(out / (name + ".kicad_pcb")), str(board_json)], text=True, capture_output=True)
+    if run.returncode:
+        raise PackageError("measure_preview.py board failed\n" + run.stdout + run.stderr)
+
     gerbers = io.BytesIO()
     write_zip(gerbers, [(path.name, path.read_bytes()) for path in fabrication_files(project / "fabrication", name)])
     short = commit[:7] + ("-dirty" if dirty else "")
@@ -255,6 +262,7 @@ def build(board, out_zip, cohdl, kicad_cli, kicad_python, allow_dirty, workdir):
         "manifest.json": manifest_path.read_bytes(),
         "cohdl.lock": (project / "cohdl.lock").read_bytes(),
         "design.lock": (project / "design.lock").read_bytes(),
+        "board.json": board_json.read_bytes(),
         "verification.json": (json.dumps(verification, indent=2) + "\n").encode(),
         "README.txt": README.format(title=board, commit=short, name=name, count=len(summary["part_numbers"]),
                                     **summary).encode(),

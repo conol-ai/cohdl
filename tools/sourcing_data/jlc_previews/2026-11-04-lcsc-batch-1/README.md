@@ -16,11 +16,11 @@ The assembler read the board as 2 layers, 211.19 × 139.57 mm. The settings were
 
 ## Screenshots
 
-`top.jpg` is the top view, and `bottom.jpg` the view from below, mirrored left to right. Both are the preview's own 2D whole-board exports, at 2723 × 4096 px, re-encoded as JPEG. The PNG exports had SHA-256 `22ba37b2…` (top) and `f4d41d3d…` (bottom).
+`top.png` is the top view, and `bottom.png` the view from below, mirrored left to right. Both are the preview's own 2D whole-board exports, at 2723 × 4096 px, kept as exported: SHA-256 `22ba37b2034630bf33ad97d09667ca3752f81197df5045b179dcaa258f3ec994` (top) and `f4d41d3d741216f75206688535df8bc0aa71ce9e028c491b51b08ef6c806b1a5` (bottom). `measurements.json` is reproduced byte for byte from them (Method).
 
 ## Method
 
-`measurements.json` is the output of `tools/frame_boards/measure_preview.py measure`, as for boards 1 and 2. `delta_ccw_from_top` is how far the preview's pin 1 sits counter-clockwise from ours, seen from the top.
+`measurements.json` is the output of `tools/frame_boards/measure_preview.py measure`, as for boards 1 and 2, on the two PNGs converted to BMP with `sips`. `delta_ccw_from_top` is how far the preview's pin 1 sits counter-clockwise from ours, seen from the top.
 
 On the BGAs the script again finds two magenta marks near the A1 corner, so it leaves `delta_ccw_from_top` empty. Their angles were taken by hand from the same file, using the mark nearest our ball A1, as on board 2. That mark sits 0.10–0.15 mm from A1, and the other sits 0.5–0.9 mm outside the corner along the diagonal. No mark is within 3.5 mm of another corner, where a part turned by a quarter turn would put it.
 
@@ -34,8 +34,8 @@ With the bindings applied, every copy should read 0.
 | C717701 STM32L496VGT6 (LQFP100) | `rotate 270` | 2.4, 2.3 | 357.6, 357.6 | script |
 | C129276 STM32F767BIT6 (LQFP208) | `rotate 270` | 1.2, 1.0 | 358.9, 358.8 | script |
 | C529436 STM32L412K8T6 (LQFP32) | default | 3.4, 3.5 | 356.1, 356.2 | script |
-| C1857444 STM32H743VIH6TR (TFBGA100, alt) | default | 359.2, 358.9 | 0.7, 0.6 | hand, nearest mark |
-| C730103 STM32G431RBI6 (UFBGA64) | default | 2.4, 1.5 | 358.3, 358.5 | hand, nearest mark |
+| C1857444 STM32H743VIH6TR (TFBGA100, alt) | default | 359.2, 358.9 | 0.7, 0.6 | manual review, nearest mark |
+| C730103 STM32G431RBI6 (UFBGA64) | default | 2.4, 1.5 | 358.3, 358.5 | manual review, nearest mark |
 
 ## What it shows
 
@@ -44,6 +44,8 @@ With the bindings applied, every copy should read 0.
 - **Both sides and both angles agree.** Each bottom reading is the mirror image of its top reading, and each 37° copy reads like its 0° copy. That is what `--bottom-rotation lcsc=mirrored` requires.
 - **The library's own clauses reach the assembler.** The BOM and CPL came from the shipped `supplier lcsc` clauses, not from a board-local mapping.
 
-## Not verified
+## Manual review and limits
 
-The BGA rows rest on the hand reading above, because the script found two marks on each. The 16 QFP placements were read by the script.
+- **The 8 BGA copies passed manual review** (2026-11-04). The script finds two marks on each and leaves the angle to a person. Taking the mark nearest ball A1 settles it: that mark lies 0.096–0.150 mm from A1, and no mark lies near another corner. A reviewer re-measured all 24 rows from the archived exports and confirmed the reading. The 16 QFP copies were read by the script.
+- **Angles scatter between preview runs.** Each run makes a new project. A later run of the same package (with the updated `jlc_preview.py`) moved the marks by up to 0.34 mm, and the readings by up to 3°. Every copy still read near 0. The record keeps the first run's exports and readings.
+- **The preview is the assembler's render, not a placed board.** It shows where the assembler's models land and where their pin 1 marks fall. It does not show paste, reflow or a physical part.

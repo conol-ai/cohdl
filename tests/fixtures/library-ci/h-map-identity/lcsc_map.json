@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "supplier": "lcsc",
+  "rows": [
+    {
+      "mfr": "A Maker",
+      "mpn": "A-MPN",
+      "pn": "C_A_MAP",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    },
+    {
+      "mfr": "A Maker",
+      "mpn": "A-MPN-OTHER",
+      "pn": "C_A_MAP",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    },
+    {
+      "mfr": "B Maker",
+      "mpn": "B-MPN",
+      "pn": "C_H_ONE",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    },
+    {
+      "mfr": "B Maker",
+      "mpn": "B-MPN",
+      "pn": "C_H_TWO",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    }
+  ]
+}

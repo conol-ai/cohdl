@@ -23,7 +23,12 @@ Every row has:
 - `date`: a real calendar date in `YYYY-MM-DD` form.
 
 A binding's `(mfr, mpn, pn)` must match a row. Across all library packages,
-one `(supplier, pn)` must always identify the same `(mfr, mpn)`.
+one `(supplier, pn)` must always identify the same `(mfr, mpn)`. Within the
+file, an `(mfr, mpn)` names one `pn` and a `pn` names one `(mfr, mpn)`.
+
+Rows reach the file only through `tools/promote_lcsc_map.py RUN_DIR`, which
+re-checks a reviewed `lcsc_backfill.py` run against its provenance hashes, the
+current reviewed `mfr_aliases.json` and its confirmed pages before merging it.
 
 ### `jlc_frames.json`
 
@@ -75,7 +80,10 @@ all rows, including rows not currently selected by a binding.
 时记为 `preferred`）；
 `snapshot_sha256` 为 64 位小写十六进制；`date` 为真实的 `YYYY-MM-DD` 日期。
 绑定的 `(mfr, mpn, pn)` 必须匹配一行，且全库同一 `(supplier, pn)` 只能对应
-一个 `(mfr, mpn)`。
+一个 `(mfr, mpn)`。文件内一个 `(mfr, mpn)` 只对应一个 `pn`，一个 `pn` 也只对应
+一个 `(mfr, mpn)`。行只能经 `tools/promote_lcsc_map.py RUN_DIR` 写入：它按来源
+哈希、当前已审核的 `mfr_aliases.json` 和已确认零件页重新核对一次经过复核的
+`lcsc_backfill.py` 运行结果，然后才合并。
 
 `jlc_frames.json` 顶层为 `schema_version: 1` 和 `rows`。每行包含全文件唯一
 的非空 `id`、声明解析后 effective footprint 的完整 `package`（含 scope，

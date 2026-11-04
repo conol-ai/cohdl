@@ -241,6 +241,44 @@ fn load_map(path: &Path, errors: &mut Vec<String>) -> Vec<MapRow> {
             });
         }
     }
+    // The generators bind an identity only when it names one part number, and
+    // RFC-034 lets a part number name one identity: the map must agree.
+    let mut by_identity: BTreeMap<(&str, &str), BTreeSet<&str>> = BTreeMap::new();
+    let mut by_pn: BTreeMap<&str, BTreeSet<(&str, &str)>> = BTreeMap::new();
+    for row in &parsed {
+        by_identity
+            .entry((&row.mfr, &row.mpn))
+            .or_default()
+            .insert(&row.pn);
+        by_pn
+            .entry(&row.pn)
+            .or_default()
+            .insert((&row.mfr, &row.mpn));
+    }
+    for ((mfr, mpn), pns) in &by_identity {
+        if pns.len() > 1 {
+            let pns = pns.iter().copied().collect::<Vec<_>>().join(", ");
+            error(
+                "lcsc_map.json",
+                format!("`{mfr}` / `{mpn}` names more than one part number: {pns}"),
+                errors,
+            );
+        }
+    }
+    for (pn, identities) in &by_pn {
+        if identities.len() > 1 {
+            let identities = identities
+                .iter()
+                .map(|(mfr, mpn)| format!("`{mfr}` / `{mpn}`"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            error(
+                "lcsc_map.json",
+                format!("lcsc {pn} names more than one identity: {identities}"),
+                errors,
+            );
+        }
+    }
     parsed
 }
 
@@ -744,7 +782,7 @@ mod tests {
     }
 
     #[test]
-    fn shipped_library_matches_empty_sourcing_data() {
+    fn shipped_library_matches_its_sourcing_data() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
         let lib = root.join("lib");
         let mut dirs = Vec::new();
@@ -935,6 +973,17 @@ mod tests {
                 "package `ci_e2`",
                 "Maker One",
                 "Maker Two",
+            ],
+        );
+    }
+
+    #[test]
+    fn bad_h_map_identity_names_both_sides_of_each_conflict() {
+        assert_bad_fixture(
+            "h-map-identity",
+            &[
+                "lcsc C_A_MAP names more than one identity: `A Maker` / `A-MPN`, `A Maker` / `A-MPN-OTHER`",
+                "`B Maker` / `B-MPN` names more than one part number: C_H_ONE, C_H_TWO",
             ],
         );
     }

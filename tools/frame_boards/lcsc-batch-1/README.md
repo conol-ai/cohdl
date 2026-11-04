@@ -48,4 +48,8 @@ python3 -I tools/frame_boards/check_cpl.py BOARD \
 - The supplier BOM `dcfe8fae` lists the six LCSC numbers, with the H743 row on its bound `STM32H743VIH6TR` alternate. The supplier CPL is `7a363758`, the neutral CPL `89064e56` (SHA-256 prefixes).
 - On the top side, the LQFP100 and LQFP208 copies are at their authoring angle plus 270; the others at the authoring angle. The bottom copies follow `--bottom-rotation lcsc=mirrored`.
 
-Upload for preview only and record the result with the screenshots in `tools/sourcing_data/jlc_previews/`. Do not order.
+Upload for preview only and record the result with the screenshots in `tools/sourcing_data/jlc_previews/`. Do not order. `tools/frame_boards/jlc_preview.py` runs the upload in Arc and stops at Component Placements; the `jlc-preview` skill (`.claude/skills/jlc-preview/`) describes the whole flow.
+
+## Preview of 2026-11-04
+
+Recorded in `tools/sourcing_data/jlc_previews/2026-11-04-lcsc-batch-1/`. All 24 placements were made. Every copy reads 0 with the bindings applied, including the three `rotate 270` LQFP bindings. The 16 QFP readings were taken by `measure_preview.py`, and the 8 BGA readings by hand from the mark nearest ball A1.

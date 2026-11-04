@@ -113,6 +113,8 @@ bindings carry the measured quarter turn. When qfp moves those lands, these
 bindings return to the default in the same release, and designs that place
 them migrate with `tools/realign_place.py`, as for the moves above.
 
-A bound entry changes nothing in `check`, `build`, the KiCad netlist or the
-neutral BOM and CPL. `cohdl build --supplier lcsc` adds the LCSC BOM, map and
-CPL; the H743 row selects the bound `STM32H743VIH6TR` alternate there.
+A binding changes no connection, no geometry and no verdict. A plain `build`
+writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field
+for each instance whose primary entry is bound (five of the six; the H743
+binding is on an alternate). `cohdl build --supplier lcsc` adds the LCSC BOM,
+map and CPL, and selects the bound `STM32H743VIH6TR` alternate there.

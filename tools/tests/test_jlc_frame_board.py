@@ -1,5 +1,9 @@
+import csv
+import io
 import json
 import math
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -7,7 +11,13 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "frame_boards"))
+import check_cpl
 import jlc_frame_board as jb
+
+ROOT = Path(__file__).resolve().parents[2]
+COHDL = ROOT / "target/debug/cohdl"
+REQUIRE_BINARY = os.environ.get("COHDL_REQUIRE_BINARY") == "1"
 
 
 class FrameBoardTests(unittest.TestCase):
@@ -66,6 +76,71 @@ class FrameBoardTests(unittest.TestCase):
                 rows = json.loads(manifest.read_text(encoding="utf-8"))["rows"]
                 self.assertTrue(all(r.get("covers_rotation") is True for r in rows))
                 jb.expand(jb.load_manifest(manifest)["rows"], 5)
+
+    def test_a_library_row_places_the_library_part_and_its_binding(self):
+        doc = self.manifest()
+        doc["rows"][0]["library_part"] = "pkg::BOUND_U"
+        with tempfile.TemporaryDirectory() as td:
+            manifest = Path(td) / "in.json"
+            manifest.write_text(json.dumps(doc))
+            places = jb.emit_project(jb.load_manifest(manifest), Path(td) / "board", 3)
+            source = (Path(td) / "board/src/main.cohdl").read_text()
+        self.assertIn("inst u_0: pkg::BOUND_U", source)
+        self.assertNotIn("P_u", source)
+        self.assertIn('pub part P_r: pkg::r {\n    primary { mfr: "unknown", mpn: "r", footprint: pkg::R, supplier lcsc "C2" }', source)
+        # A board-local mapping would not be the library's binding.
+        doc["rows"][0]["mapping"] = {"rotate_deg": 90}
+        with tempfile.TemporaryDirectory() as td:
+            manifest = Path(td) / "in.json"
+            manifest.write_text(json.dumps(doc))
+            with self.assertRaisesRegex(jb.BoardError, "mapping is refused with library_part"):
+                jb.load_manifest(manifest)
+
+        # The supplier BOM must carry the row's part number for every copy.
+        with tempfile.TemporaryDirectory() as td:
+            lock, bom = Path(td) / "design.lock", Path(td) / "bom.csv"
+            lock.write_text('[designators]\n' + "".join(
+                '"FramePreview::u_%d" = "U%d"\n' % (i, i + 1) for i in range(3)) + '"FramePreview::r_0" = "R1"\n')
+            bom.write_text('Comment,Designator,Footprint,LCSC Part #\n"x","U1,U2,U3","FP","C1"\n"y","R1","R","C2"\n')
+            jb.require_library_bindings(bom, lock, "FramePreview", places)
+            bom.write_text('Comment,Designator,Footprint,LCSC Part #\n"x","U1,U2","FP","C1"\n"x","U3","FP","C9"\n')
+            with self.assertRaisesRegex(jb.BoardError, "U3 .u. is C9 in the supplier BOM, not C1"):
+                jb.require_library_bindings(bom, lock, "FramePreview", places)
+
+    @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
+    def test_lcsc_batch_1_board_uses_the_shipped_bindings(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "board"
+            subprocess.run(["python3", "-I", str(ROOT / "tools/jlc_frame_board.py"),
+                            str(ROOT / "tools/frame_boards/lcsc-batch-1/manifest.json"), "-o", str(out),
+                            "--cohdl", str(COHDL), "--skip-kicad"], check=True, capture_output=True)
+            neutral = list(csv.DictReader(io.StringIO((out / "out/lcsc_batch_1-cpl.csv").read_text())))
+            supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/lcsc_batch_1-lcsc-cpl.csv").read_text()))}
+            bom = (out / "out/lcsc_batch_1-lcsc-bom.csv").read_text()
+        self.assertEqual(len(neutral), 24)
+        self.assertIn('"STM32H743VIH6TR","U17,U18,U19,U20"', bom)
+        turned = {"U%d" % i for i in range(1, 13)}  # LQFP100 x2 and LQFP208: rotate 270
+        for row in neutral:
+            ref, angle = row["Designator"], float(row["Rotation"])
+            delta = 270 if ref in turned else 0
+            # Top: authoring angle plus the mapping. Bottom: the assembler's
+            # mirrored reading of the composed KiCad angle.
+            expected = (angle + delta) % 360 if row["Layer"] == "Top" else (180 - angle + delta) % 360
+            with self.subTest(ref=ref):
+                self.assertEqual(float(supplier[ref]["Rotation"]), expected)
+                self.assertEqual(supplier[ref]["Mid X"], row["Mid X"])
+
+    def test_cpl_check_compares_position_side_and_top_angle(self):
+        cpl = ("Designator,Mid X,Mid Y,Layer,Rotation\n"
+               "U1,1.0000mm,2.0000mm,Top,37\nU2,3.0000mm,4.0000mm,Bottom,217\n")
+        kicad = "Ref,Val,Package,PosX,PosY,Rot,Side\nU1,x,p,1.0,2.0,37.0,top\nU2,x,p,3.0,4.0,143.0,bottom\n"
+        self.assertEqual(check_cpl.compare_positions(kicad, cpl), [])
+        moved = kicad.replace("1.0,2.0,37.0", "1.001,2.0,38.0").replace("bottom", "top")
+        bad = check_cpl.compare_positions(moved + "U3,x,p,0,0,0,top\n", cpl)
+        self.assertEqual(bad, ["U1: position 1.0,2.0 against KiCad 1.001,2.0",
+                               "U1: angle 37 against KiCad 38.0",
+                               "U2: side Bottom against KiCad top",
+                               "U3: only in the KiCad export"])
 
     def test_mocked_toolchain_writes_project_and_fabrication(self):
         calls = []

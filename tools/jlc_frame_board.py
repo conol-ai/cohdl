@@ -5,8 +5,8 @@ The input is a JSON object with ``rows``.  Each row needs ``footprint`` (the
 CoHDL ``package::FOOTPRINT`` name) and ``pn`` (the LCSC part number).  Optional
 Top-level ``dependencies`` is the exact CoHDL package/version map required to
 resolve the rows' parts. Optional row fields are ``name``, ``part`` (a CoHDL
-part type), ``mfr``, ``mpn``, ``bottom``, ``width_mm``, ``height_mm``,
-``covers_rotation``, ``pins`` (the CoHDL pin names used to make two nets),
+part type), ``library_part``, ``mfr``, ``mpn``, ``bottom``, ``width_mm``,
+``height_mm``, ``covers_rotation``, ``pins`` (the CoHDL pin names used to make two nets),
 ``mapping`` (``dx_mm``, ``dy_mm`` and ``rotate_deg``), and ``placements`` (an
 explicit list of ``at_mm``, ``rotate`` and ``side`` objects).  ``bottom: true``
 adds bottom 0 and 37 degree copies; top 0 is always generated.  Explicit
@@ -17,7 +17,14 @@ the default grid spacing, the overlap check and the generated outline all use
 the turned box.  ``covers_rotation: true`` says the rectangle already holds the
 courtyard at every angle (the C2 board generators size it from the courtyard's
 reach about the origin), so it is not turned.  ``--spacing-mm`` controls the
-clearance between boxes.  Example::
+clearance between boxes.
+
+A row with ``library_part`` (a library ``pub part``, such as
+``st_stm32::MCU_STM32F427VGT6``) places that part as the library ships it,
+with the library's own supplier binding, instead of declaring a local part;
+``mapping`` is then refused.  After the build, the supplier BOM must give each
+such row's instances the row's ``pn``, or the board is refused: the preview
+checks the library's binding, not one written for the board.  Example::
 
   {"name":"frame_preview", "rows":[
     {"footprint":"demo::SOIC", "part":"demo::U", "pn":"C1",
@@ -33,7 +40,9 @@ preview before ordering.
 """
 
 import argparse
+import csv
 import hashlib
+import io
 import json
 import math
 import re
@@ -103,6 +112,14 @@ def load_manifest(path):
             raise BoardError(name + ".mapping must be an object")
         item["mapping"] = {k: number(mapping.get(k), name + ".mapping." + k, 0)
                            for k in ("dx_mm", "dy_mm", "rotate_deg")}
+        library_part = raw.get("library_part")
+        if library_part is not None:
+            if not isinstance(library_part, str) or not re.fullmatch(
+                    r"[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)+", library_part):
+                raise BoardError(name + ".library_part must be package::PART")
+            if "mapping" in raw:
+                raise BoardError(name + ".mapping is refused with library_part: the library's binding applies")
+        item["library_part"] = library_part
         if item["mapping"]["rotate_deg"] % 1:
             raise BoardError(name + ".mapping.rotate_deg must be integral")
         item["placements"] = raw.get("placements")
@@ -186,9 +203,10 @@ def emit_project(manifest, root, spacing, supplier="lcsc"):
         bind = 'supplier %s "%s"' % (supplier, r["pn"])
         if any(map_.values()):
             bind += " at (%smm, %smm) rotate %d" % (mm(map_["dx_mm"]), mm(map_["dy_mm"]), map_["rotate_deg"])
-        declarations.append('pub part %s: %s {\n    primary { mfr: "%s", mpn: "%s", footprint: %s, %s }\n}\n' %
-                            ("P_" + r["name"], r["part"], r["mfr"], r["mpn"], r["footprint"], bind) if p["index"] == 0 else "")
-        instances.append("    inst %s: P_%s" % (ref, r["name"]))
+        if r["library_part"] is None:
+            declarations.append('pub part %s: %s {\n    primary { mfr: "%s", mpn: "%s", footprint: %s, %s }\n}\n' %
+                                ("P_" + r["name"], r["part"], r["mfr"], r["mpn"], r["footprint"], bind) if p["index"] == 0 else "")
+        instances.append("    inst %s: %s" % (ref, r["library_part"] or "P_" + r["name"]))
         for n, pin in enumerate(r["pins"][:2]):
             nets[n].append("%s.%s" % (ref, pin))
         nc.extend("%s.%s" % (ref, pin) for pin in r["pins"][2:])
@@ -267,6 +285,24 @@ def require_place_origin(board_path):
         raise BoardError("%s has no drill/place origin; rebuild with a compiler that writes aux_axis_origin" % board_path)
 
 
+def require_library_bindings(bom_path, lock_path, design, placements):
+    """Refuse a board whose supplier BOM does not carry a library row's pn."""
+    if all(p["row"]["library_part"] is None for p in placements):
+        return
+    designators = tomllib.loads(lock_path.read_text(encoding="utf-8")).get("designators", {})
+    by_ref = {}
+    for row in csv.DictReader(io.StringIO(bom_path.read_text(encoding="utf-8"))):
+        for ref in row["Designator"].split(","):
+            by_ref[ref] = row["LCSC Part #"]
+    for p in placements:
+        if p["row"]["library_part"] is None:
+            continue
+        ref = designators.get("%s::%s_%d" % (design, p["row"]["name"], p["index"]))
+        if by_ref.get(ref) != p["row"]["pn"]:
+            raise BoardError("%s (%s) is %s in the supplier BOM, not %s: %s carries no matching binding" %
+                             (ref, p["row"]["name"], by_ref.get(ref) or "missing", p["row"]["pn"], p["row"]["library_part"]))
+
+
 def checklist(board_path, lock_path, design, placements, output):
     board = board_sexpr(board_path.read_text(encoding="utf-8"))
     # design.lock is the compiler's instance -> designator record; the prefix
@@ -308,6 +344,8 @@ def main(argv=None):
         out = args.output / "out"
         board = out / (name + ".kicad_pcb")
         require_place_origin(board)
+        require_library_bindings(out / (name + "-lcsc-bom.csv"), args.output / "design.lock",
+                                 manifest["design"], placements)
         checklist(board, args.output / "design.lock", manifest["design"], placements,
                   args.output / "CHECKLIST.md")
         if not args.skip_kicad:

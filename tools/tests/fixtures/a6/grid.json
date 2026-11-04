@@ -1,0 +1,8 @@
+{
+  "name": "a6_grid",
+  "dependencies": {"std":"0.3.0", "transistor":"0.2.0", "passive":"0.2.3"},
+  "rows": [
+    {"name":"Q_S8050", "part":"transistor::NPN_SOT23_BEC", "footprint":"transistor::FP_JSCJ_SOT23", "mfr":"Jiangsu Changjing Electronics Technology", "mpn":"S8050 J3Y(RANGE:200-350)", "pn":"C2146", "width_mm":3, "height_mm":3, "pins":["C","E","B"]},
+    {"name":"C_0603", "part":"passive::MLCC<27pF, 50V, 5%>[C0603]", "footprint":"passive::CHIP_0603", "mfr":"Yageo", "mpn":"CC0603JRNPO9BN270", "pn":"C107045", "bottom":true, "width_mm":2, "height_mm":2, "pins":["A","B"]}
+  ]
+}

@@ -1,0 +1,38 @@
+// U1's mapped x lands in the window where rounding the supplier offset to nm
+// first, then to 0.1 um, differs from the compiler's single rounding.
+pub trait U {
+    designator_prefix: "U"
+}
+pub pad P {
+    shape: rect
+    size: (0.8mm, 0.3mm)
+    layer: top_copper
+    plating: smd
+}
+pub footprint FP {
+    pad 1: P at (1mm, 2mm)
+    pad 2: P at (-1mm, -2mm)
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4mm, 6mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}
+pub device D {
+    pins {
+        required A: 1 [passive]
+        required B: 2 [passive]
+    }
+}
+impl U for D {}
+pub part P0: D {
+    primary { mfr: "M", mpn: "P", footprint: FP, supplier lcsc "C1" at (0.01mm, 0.09mm) }
+}
+design RoundOnce {
+    inst top: P0
+    inst under: P0
+    net A: top.A, under.A
+    net B: top.B, under.B
+    layout {
+        board_outline: "mechanical/outline.dxf"
+        place top at (10mm, 0mm) rotate 37
+        place under at (-10mm, 5mm) rotate 37 side bottom
+    }
+}

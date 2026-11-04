@@ -1,0 +1,53 @@
+pub trait Ref { designator_prefix: "U" }
+pub pad Land {
+    shape: rect, size: (1mm, 0.5mm), layer: top_copper, plating: smd
+}
+pub pad Ring {
+    shape: annulus, size: (1.625mm, 1.025mm), layer: top_copper, plating: smd,
+    paste: segmented_annulus(1.625mm, 1.125mm, 0.1mm)
+}
+pub pad RectPaste {
+    shape: rect, size: (0.6mm, 0.4mm), layer: top_copper, plating: smd,
+    paste: (0.5mm, 0.3mm)
+}
+pub pad CirclePaste {
+    shape: circle, size: (0.6mm), layer: top_copper, plating: smd,
+    paste: circle(0.5mm)
+}
+pub pad Through {
+    shape: circle, size: (1.7mm), layer: through_all,
+    plating: plated_through_hole, drill: 1mm
+}
+pub footprint FP_A {
+    pad 3: Ring at (1mm, 2mm) rotate 90
+    pad 2: RectPaste at (3mm, 4mm)
+    pad 1: CirclePaste at (-3mm, 2mm)
+    pad 1: Land at (-3mm, 5mm)
+    pad 4: Through at (6mm, 7mm)
+    mount_hole 1: plated at (1mm, 2mm) diameter 0.5mm
+    mount_hole 2: non_plated at (2mm, 3mm) shape: rect size: (1mm, 2mm)
+}
+pub device D4 { pins { A: 1 [passive], B: 2 [passive], C: 3 [passive], D: 4 [passive] } }
+impl Ref for D4 {}
+pub part MAPPED: D4 {
+    primary { mfr: "P", mpn: "MAPPED", footprint: FP_A }
+    alt { mfr: "A", mpn: "MAPPED-A", supplier acme "A-1" at (2mm, 1mm) rotate 90 }
+}
+pub part UNBOUND: D4 {
+    primary { mfr: "P", mpn: "UNBOUND", footprint: FP_A }
+}
+design Board {
+    #[designator("U1")] inst top90: MAPPED
+    #[designator("U2")] inst top37: MAPPED
+    #[designator("U3")] inst bottom0: MAPPED
+    #[designator("U4")] inst bottom37: MAPPED
+    #[designator("U5")] inst unbound: UNBOUND
+    net N: top90.A, top90.B, top90.C, top90.D, top37.A, top37.B, top37.C, top37.D, bottom0.A, bottom0.B, bottom0.C, bottom0.D, bottom37.A, bottom37.B, bottom37.C, bottom37.D, unbound.A, unbound.B, unbound.C, unbound.D
+    layout {
+        place top90 at (10mm, 20mm) rotate 90
+        place top37 at (35mm, 20mm) rotate 37
+        place bottom0 at (60mm, 20mm) side bottom
+        place bottom37 at (85mm, 20mm) rotate 37 side bottom
+        place unbound at (110mm, 20mm) rotate 37
+    }
+}

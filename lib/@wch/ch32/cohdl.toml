@@ -1,11 +1,11 @@
 [package]
 name = "@wch/ch32"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 description = "WCH CH32V003 and CH32V203 package-specific RISC-V MCU models and exact parts."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]
-qfp = "0.2.0"
-soic = "0.2.1"
+qfp = "0.3.0"
+soic = "0.3.0"
 std = "0.3.0"

@@ -237,30 +237,32 @@ fn missing_supply_or_boot_connections_are_rejected() {
 
 #[test]
 fn footprint_copper_and_orientation_match_documented_bindings() {
+    // All four lands sit in the assembler's frame (soic 0.3.0, qfp 0.3.0;
+    // library plan W3): pin 1 at the left end of the lower row.
     for (mcu, size, first, last) in [
         (
             &MCUS[0],
             ["1.475mm", "0.4mm"],
-            ["-2.8625mm", "-2.925mm"],
-            ["2.8625mm", "-2.925mm"],
+            ["-2.925mm", "2.8625mm"],
+            ["-2.925mm", "-2.8625mm"],
         ),
         (
             &MCUS[1],
             ["1.2mm", "0.3mm"],
-            ["-4.25mm", "-2.75mm"],
-            ["-2.75mm", "-4.25mm"],
+            ["-2.75mm", "4.25mm"],
+            ["-4.25mm", "2.75mm"],
         ),
         (
             &MCUS[2],
             ["1.475mm", "0.4mm"],
-            ["-2.8625mm", "-2.925mm"],
-            ["2.8625mm", "-2.925mm"],
+            ["-2.925mm", "2.8625mm"],
+            ["-2.925mm", "-2.8625mm"],
         ),
         (
             &MCUS[3],
             ["1.475mm", "0.3mm"],
-            ["-4.1625mm", "-2.75mm"],
-            ["-2.75mm", "-4.1625mm"],
+            ["-2.75mm", "4.1625mm"],
+            ["-4.1625mm", "2.75mm"],
         ),
     ] {
         let checked = check(mcu, None);

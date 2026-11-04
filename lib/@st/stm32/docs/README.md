@@ -82,3 +82,12 @@ on 2026-07-30 but timed out during binary retrieval. The stored file is the
 same ST-authored DS9826 Rev 6 production datasheet served by authorized
 distributor Mouser; its cover, document identity, pin tables, and LQFP-48
 recommended-land page were independently checked after download.
+
+## Footprint frame change in 0.3.0
+
+Version 0.3.0 follows qfp 0.3.0 and soic 0.3.0, which turned `qfp::QFP50P900X900X160_48N`, `qfp::KICAD_LQFP_32_7X7MM_P0_8MM`, `qfp::KICAD_LQFP_48_7X7MM_P0_5MM`, `soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM` and `soic::KICAD_TSSOP_20_4_4X6_5MM_P0_65MM` by a quarter turn (270) onto the
+assembler's frame (library plan W3). Pad numbers and lands are unchanged, but
+a design that places a part on one of these lands sees its copper turn after
+`cohdl update`, with `check` and `build` still passing. Migrate the design's
+`place` statements first, as the land package's README describes, with
+`tools/realign_place.py`.

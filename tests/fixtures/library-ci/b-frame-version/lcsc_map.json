@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "supplier": "lcsc",
+  "rows": [
+    {
+      "mfr": "B Maker",
+      "mpn": "B-MPN",
+      "pn": "C_B_FRAME",
+      "rule": "exact",
+      "category": "extended",
+      "snapshot_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "date": "2026-10-30"
+    }
+  ]
+}

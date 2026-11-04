@@ -194,8 +194,21 @@ npm run db:migrate                         # existing DB: additive column adds
 npm run db:migrate:0002                    # …and the api-docs column
 npm run db:migrate:0003                    # …and sidecar pointer + part-search FTS index
 npm run db:migrate:0004                    # …and the component-request review queue
+npm run db:migrate:0005                    # …and the RFC-034 supplier tables
 npm run deploy
 ```
+
+Migration 0005 creates `suppliers`, `supplier_catalog` and
+`manufacturer_aliases` (RFC-034). Apply it **before** a Worker that serves
+RFC-034 takes traffic: until it runs, `/suppliers/{id}/parts`,
+`/manufacturers/normalize` and supplier or class searches answer 500, and
+so does any search whose results include a part with a supplier binding.
+Cloudflare Workers Builds may deploy a merge to `main` on its own, so run
+the migration before merging such a change, not after.
+
+Deploy the registry before releasing a compiler that sends RFC-034
+requests. An older registry ignores `search --supplier`/`--class` and
+returns unfiltered results.
 
 `db:init` is idempotent (`CREATE TABLE IF NOT EXISTS`) and therefore does
 **not** add columns to a table that already exists — an already-deployed

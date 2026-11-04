@@ -1,0 +1,258 @@
+{
+  "rows": [
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F072RBT6TR",
+      "pn": "C2052868",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F302R8T6TR",
+      "pn": "C2055019",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F302VEH6",
+      "pn": "C1342143",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F427VGT6",
+      "pn": "C117815",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F437IIT7",
+      "pn": "C5269976",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F446RET7TR",
+      "pn": "C2056619",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F469BET6",
+      "pn": "C1342980",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F756ZGY6TR",
+      "pn": "C2054112",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F765BIT6",
+      "pn": "C1340076",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F767BIT6",
+      "pn": "C129276",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32F769BIT6",
+      "pn": "C93565",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G031C8T3TR",
+      "pn": "C6240919",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32G431RBI6",
+      "pn": "C730103",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H743AGI6",
+      "pn": "C730179",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32H743VIH6TR",
+      "pn": "C1857444",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L011D3P6TR",
+      "pn": "C2053101",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L041K6T7",
+      "pn": "C1341155",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L151V8T6A",
+      "pn": "C1338570",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L152RBH6A",
+      "pn": "C1342091",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L152VCH6",
+      "pn": "C1338995",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L412K8T6",
+      "pn": "C529436",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L422CBT6",
+      "pn": "C529442",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L443VCT6",
+      "pn": "C5269887",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L476RGT3",
+      "pn": "C1337443",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L496VGT6",
+      "pn": "C717701",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32L4S9ZIY6TR",
+      "pn": "C1340018",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U535VET6",
+      "pn": "C22457683",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    },
+    {
+      "category": "extended",
+      "date": "2026-10-30",
+      "mfr": "STMicroelectronics",
+      "mpn": "STM32U595AJH6",
+      "pn": "C24622621",
+      "rule": "exact",
+      "snapshot_sha256": "24343bdd57a07dc9aa32960520e697387ac021d8e06cfe5ffeb42986b8951abb"
+    }
+  ],
+  "schema_version": 1,
+  "supplier": "lcsc"
+}

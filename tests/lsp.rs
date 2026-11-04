@@ -230,6 +230,80 @@ fn initialize_advertises_completion_and_returns_keywords() {
     );
 }
 
+#[test]
+fn supplier_completion_is_avl_scoped_and_hover_is_offline() {
+    let src = "\
+pub footprint FP {}
+pub device D { pins { A: 1 [passive] } }
+pub part P: D {
+    primary {
+      mfr: \"M\", mpn: \"N\", footprint: FP,
+      supplier acme \"A-1\" at (1.0mm, -2mm) rotate 90
+    }
+    alt {
+      mfr: \"Alt\", mpn: \"N-A\",
+      supplier globex \"G-2\"
+    }
+}
+design B { inst p: P nc: p.A }
+";
+    let (_path, uri, text) = fixture("supplier-hover.cohdl", src);
+    let mut lsp = Lsp::start();
+    did_open(&mut lsp, &uri, &text);
+    let _ = lsp.await_diagnostics(&uri);
+    let complete = |lsp: &mut Lsp, line, character| {
+        lsp.request(
+            "textDocument/completion",
+            json!({ "textDocument": { "uri": uri }, "position": { "line": line, "character": character } }),
+        )
+    };
+    for (line, character) in [(3, 15), (7, 15)] {
+        let result = complete(&mut lsp, line, character);
+        assert!(
+            result["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|item| { item["label"].as_str() == Some("supplier") }),
+            "supplier must complete in the AVL entry: {result}"
+        );
+    }
+    for (line, character) in [(11, 20), (0, 3)] {
+        let result = complete(&mut lsp, line, character);
+        assert!(
+            !result["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|item| { item["label"].as_str() == Some("supplier") }),
+            "supplier must not leak outside AVL entries: {result}"
+        );
+    }
+
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 5, "character": 15 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**supplier** `acme`\n\n- part number: `A-1`\n- at: `(1mm, -2mm)`\n- rotate: `90°`")
+    );
+    assert_eq!(hover["range"]["start"]["line"].as_u64(), Some(5));
+    assert_eq!(hover["range"]["start"]["character"].as_u64(), Some(6));
+    assert_eq!(hover["range"]["end"]["line"].as_u64(), Some(5));
+    assert_eq!(hover["range"]["end"]["character"].as_u64(), Some(52));
+
+    let hover = lsp.request(
+        "textDocument/hover",
+        json!({ "textDocument": { "uri": uri }, "position": { "line": 9, "character": 15 } }),
+    );
+    assert_eq!(
+        hover["contents"]["value"].as_str(),
+        Some("**supplier** `globex`\n\n- part number: `G-2`\n- at: `(0mm, 0mm)` (default)\n- rotate: `0°` (default)")
+    );
+    lsp.shutdown();
+}
+
 fn is_empty_publish_for(msg: &Value, uri: &str) -> bool {
     msg.get("method").and_then(Value::as_str) == Some("textDocument/publishDiagnostics")
         && msg["params"]["uri"].as_str() == Some(uri)

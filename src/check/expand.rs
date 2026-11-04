@@ -14,6 +14,8 @@ use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::{
     DesignIr, IrInstance, IrNet, LayoutDiffPair, LayoutIr, LayoutLengthMatch, LayoutNetClass,
 };
+use crate::placement::length_value;
+use crate::placement::{compose_place, PlaceData};
 use crate::resolve::World;
 use crate::span::Span;
 use crate::units::UnitValue;
@@ -215,15 +217,6 @@ struct SubNode {
     children_insts: BTreeMap<String, String>,
     children_subs: BTreeMap<String, String>,
     children_arrays: BTreeMap<String, (i64, Span)>,
-}
-
-/// The data half of a `place` statement (target resolved separately).
-#[derive(Clone)]
-struct PlaceData {
-    at: (UnitValue, UnitValue),
-    rotate: u16,
-    side: PlacementSide,
-    span: Span,
 }
 
 /// What a resolved placement path targets.
@@ -3591,52 +3584,6 @@ fn default_placements(
             }
         })
         .collect()
-}
-
-/// RFC-032: transform a child placement, relative to a subdesign's origin,
-/// through the subdesign's own anchor placement — the identical geometric
-/// operation RFC-025/026 already define for a pad inside a placed footprint:
-/// rotate about the anchor; on the back side, mirror x BEFORE rotating, flip
-/// the side, and REVERSE the child's own rotation (a reflection).
-///
-/// The authoring frame is +y-down (KiCad's board frame); `trig::rotate` is
-/// counter-clockwise in the +y-up IPC frame, so the board-frame rotation is
-/// its inverse angle. Exact fixed-point arithmetic throughout — placement
-/// coordinates are byte-stability-critical (never `f64::sin`/`cos`).
-fn compose_place(parent: &PlaceData, child: &PlaceData) -> PlaceData {
-    use crate::ast::PlacementSide;
-    let bottom = parent.side == PlacementSide::Bottom;
-    let (dx, dy) = (child.at.0.femto, child.at.1.femto);
-    let dx = if bottom { -dx } else { dx };
-    let inv = ((360 - (parent.rotate as u32 % 360)) % 360) as u16;
-    let (rx, ry) = crate::trig::rotate(dx, dy, inv);
-    let x = parent.at.0.femto + rx;
-    let y = parent.at.1.femto + ry;
-    let rotate = if bottom {
-        ((parent.rotate as u32 + 360 - child.rotate as u32) % 360) as u16
-    } else {
-        ((parent.rotate as u32 + child.rotate as u32) % 360) as u16
-    };
-    let side = match (bottom, child.side) {
-        (false, s) => s,
-        (true, PlacementSide::Top) => PlacementSide::Bottom,
-        (true, PlacementSide::Bottom) => PlacementSide::Top,
-    };
-    PlaceData {
-        at: (length_value(x), length_value(y)),
-        rotate,
-        side,
-        span: child.span,
-    }
-}
-
-/// A computed `Length` value: exact femto-mm integer, canonical mm text.
-fn length_value(femto: i128) -> UnitValue {
-    UnitValue {
-        unit: crate::units::UnitType::Length,
-        femto,
-        text: format!("{}mm", crate::emit::geom::mm_femto(femto)),
-    }
 }
 
 /// The IR net name a source net name resolves to in `scope` — identical to the

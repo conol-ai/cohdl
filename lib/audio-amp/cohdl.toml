@@ -1,6 +1,6 @@
 [package]
 name = "audio-amp"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 description = "Audio power amplifiers with their verified land patterns."
 repository = "https://github.com/conol-ai/cohdl"

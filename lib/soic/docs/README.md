@@ -28,3 +28,39 @@ The generated subset is attributed to the KiCad project and contributors and
 is redistributed under CC-BY-SA-4.0 with the KiCad library exception; see
 `LICENSE.kicad.md`. Existing hand-authored declarations retain their original
 MIT terms. The package manifest records both licenses for the aggregate.
+
+## Assembler frame (library plan W3)
+
+Version 0.3.0 moves these footprints onto the assembler's frame, measured on the
+preview of 2026-10-30 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`).
+Each delta is the RFC-034 section 2 triple `(dx, dy, r)` from the old frame to the new one:
+
+| Footprint | Delta |
+|---|---|
+| `SOIC8P127X790X216N` | `(0mm, 0mm, 270)` |
+| `TI_D0008A_4214825C` | `(0mm, 0mm, 270)` |
+| `TSSOP24P65_TI_PW0024A` | `(0mm, 0mm, 270)` |
+| `KICAD_SOIC_8_3_9X4_9MM_P1_27MM` | `(0mm, 0mm, 270)` |
+| `KICAD_TSSOP_20_4_4X6_5MM_P0_65MM` | `(0mm, 0mm, 270)` |
+
+Pad numbers, pad symbols and land sizes are unchanged; pads, courtyard and
+silkscreen turn together. This is a breaking change: a design that `place`s
+one of these footprints keeps its copper only after each placement is composed
+with the delta, which `tools/realign_place.py` does. Earlier versions stay
+available unchanged.
+
+### Migrating a design
+
+`cohdl update` reports only the version change, and `check` and `build` stay
+green, so the turn is easy to miss. Before updating a design that places one of
+these footprints:
+
+1. Run `python3 tools/realign_place.py` on the project with the delta table,
+   before `cohdl update`. It rewrites each literal `place` of an instance on a
+   moved footprint by the inverse delta, keeps an undo log for `--reverse`,
+   refuses a second run over already-migrated placements, and reports what it
+   cannot rewrite (non-literal placements, subdesign layouts) instead of
+   guessing.
+2. Compensate a board routed outside CoHDL in its own tool before re-exporting
+   its footprints.
+3. Rebuild and compare the copper with the previous build.

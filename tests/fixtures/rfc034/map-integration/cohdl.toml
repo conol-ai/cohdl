@@ -1,0 +1,6 @@
+[package]
+name = "map_integration"
+version = "1.0.0"
+
+[design]
+top = "Board"

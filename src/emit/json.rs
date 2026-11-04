@@ -15,6 +15,7 @@
 use crate::diag::{Label, Severity};
 use crate::pipeline::Checked;
 use crate::span::{SourceMap, Span};
+use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
 /// Bumped only on a breaking change to this schema's *shape* — never for new
@@ -22,9 +23,20 @@ use std::fmt::Write as _;
 pub const SCHEMA_VERSION: u32 = 1;
 
 /// Emitted-artifact paths for `build --json`, present only on a passing build.
+pub struct SupplierBuildArtifacts {
+    pub bom: String,
+    pub map: String,
+    pub cpl: Option<String>,
+    pub bottom_rotation: String,
+}
+
 pub struct BuildArtifacts {
     pub netlist: String,
     pub bom: String,
+    /// Supplier ID to its successfully written supplier artifacts.
+    pub suppliers: BTreeMap<String, SupplierBuildArtifacts>,
+    /// RFC-034 neutral CPL path, present only for a physical placed design.
+    pub cpl: Option<String>,
     /// RFC-013 `layout.json` path, present only when the design emits one.
     pub layout: Option<String>,
     /// RFC-015 IPC-2581 document path, present only when `--emit ipc2581`
@@ -146,6 +158,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
         if let Some(path) = &b.layout {
             entries.push(("layout", path));
         }
+        if let Some(path) = &b.cpl {
+            entries.push(("cpl", path));
+        }
         if let Some(path) = &b.ipc2581 {
             entries.push(("ipc2581", path));
         }
@@ -157,8 +172,9 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
         }
         let has_mods = !b.kicad_mod.is_empty();
         let has_quilter = b.quilter.is_some();
+        let has_suppliers = !b.suppliers.is_empty();
         for (i, (key, path)) in entries.iter().enumerate() {
-            let comma = if i + 1 < entries.len() || has_mods || has_quilter {
+            let comma = if i + 1 < entries.len() || has_mods || has_quilter || has_suppliers {
                 ","
             } else {
                 ""
@@ -171,7 +187,7 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
                 let comma = if i + 1 < b.kicad_mod.len() { "," } else { "" };
                 let _ = writeln!(out, "      {}{}", json_str(p), comma);
             }
-            if has_quilter {
+            if has_quilter || has_suppliers {
                 out.push_str("    ],\n");
             } else {
                 out.push_str("    ]\n");
@@ -184,7 +200,39 @@ pub fn render(checked: &Checked, build: Option<&BuildArtifacts>) -> String {
                 let comma = if i + 1 < csvs.len() { "," } else { "" };
                 let _ = writeln!(out, "      {}{}", json_str(p), comma);
             }
-            out.push_str("    ]\n");
+            if has_suppliers {
+                out.push_str("    ],\n");
+            } else {
+                out.push_str("    ]\n");
+            }
+        }
+        if has_suppliers {
+            out.push_str("    \"suppliers\": {\n");
+            for (index, (supplier, artifacts)) in b.suppliers.iter().enumerate() {
+                let comma = if index + 1 < b.suppliers.len() {
+                    ","
+                } else {
+                    ""
+                };
+                let _ = writeln!(out, "      {}: {{", json_str(supplier));
+                let _ = writeln!(
+                    out,
+                    "        \"bottom_rotation\": {},",
+                    json_str(&artifacts.bottom_rotation)
+                );
+                let _ = writeln!(out, "        \"bom\": {},", json_str(&artifacts.bom));
+                let _ = writeln!(
+                    out,
+                    "        \"map\": {}{}",
+                    json_str(&artifacts.map),
+                    if artifacts.cpl.is_some() { "," } else { "" }
+                );
+                if let Some(path) = &artifacts.cpl {
+                    let _ = writeln!(out, "        \"cpl\": {}", json_str(path));
+                }
+                let _ = writeln!(out, "      }}{}", comma);
+            }
+            out.push_str("    }\n");
         }
         out.push_str("  }");
     }

@@ -1,0 +1,335 @@
+"""Offline regression tests for generator-side RFC-034 supplier bindings."""
+
+from __future__ import annotations
+
+import difflib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest import mock
+
+
+TOOLS = Path(__file__).resolve().parents[1]
+ROOT = TOOLS.parent
+sys.path.insert(0, str(TOOLS))
+
+from sourcing.bindings import Bindings  # noqa: E402
+import gen_esp32  # noqa: E402
+import gen_passive  # noqa: E402
+import gen_stm32  # noqa: E402
+
+
+MPN = "RC0201JR-070RL"
+
+
+def map_row(pn="C00000"):
+    return {
+        "mfr": "Yageo",
+        "mpn": MPN,
+        "pn": pn,
+        "rule": "exact",
+        "category": "basic",
+        "snapshot_sha256": "0" * 64,
+        "date": "2026-10-30",
+    }
+
+
+def frame_row(version="0.2.3"):
+    return {
+        "id": "chip-0201",
+        "package": "passive",
+        "package_version": version,
+        "footprint": "CHIP_0201",
+        "supplier": "lcsc",
+        "pn": "C00000",
+        "mapping": {"dx_mm": 0.1, "dy_mm": -0.2, "rotate_deg": 90},
+        "measured": None,
+        "exception": "supplier preview uses a different frame",
+        "evidence": {
+            "method": "preview",
+            "date": "2026-10-30",
+            "record": "evidence/preview.txt",
+        },
+        "evidence_ref": None,
+    }
+
+
+class PassiveCopy:
+    """Copy passive inputs and the mapping files, never its generated output."""
+
+    def __init__(self, test):
+        self.tempdir = tempfile.TemporaryDirectory()
+        test.addCleanup(self.tempdir.cleanup)
+        self.root = Path(self.tempdir.name)
+        shutil.copytree(
+            TOOLS,
+            self.root / "tools",
+            ignore=shutil.ignore_patterns("tests", "__pycache__", "*.pyc"),
+        )
+        package = self.root / "lib" / "passive"
+        (package / "src").mkdir(parents=True)
+        shutil.copy2(ROOT / "lib" / "passive" / "cohdl.toml", package / "cohdl.toml")
+        (self.root / "evidence").mkdir()
+        (self.root / "evidence" / "preview.txt").write_text("offline test evidence\n")
+        self.output = package / "src" / "resistors_0201.cohdl"
+        self.env = dict(os.environ, PYTHONPATH=str(self.root / "tools"))
+        self.run()
+
+    def write_tables(self, mappings, frames):
+        data = self.root / "tools" / "sourcing_data"
+        data.mkdir(exist_ok=True)
+        (data / "lcsc_map.json").write_text(
+            json.dumps({"schema_version": 1, "supplier": "lcsc", "rows": mappings})
+        )
+        (data / "jlc_frames.json").write_text(
+            json.dumps({"schema_version": 1, "rows": frames})
+        )
+
+    def run(self):
+        subprocess.run(
+            [sys.executable, "-B", str(self.root / "tools" / "gen_passive.py")],
+            env=self.env,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return self.output.read_text()
+
+
+class GeneratorBindingTests(unittest.TestCase):
+    def test_fake_tables_add_exactly_one_clause_with_nonzero_mapping(self):
+        copy = PassiveCopy(self)
+        before = copy.output.read_text()
+        copy.write_tables([map_row()], [frame_row()])
+        after = copy.run()
+        changes = [
+            line
+            for line in difflib.ndiff(before.splitlines(), after.splitlines())
+            if not line.startswith("  ")
+        ]
+        self.assertEqual(len([line for line in changes if line.startswith("- ")]), 1)
+        self.assertEqual(len([line for line in changes if line.startswith("+ ")]), 2)
+        self.assertEqual(after.count('supplier lcsc "C00000"'), 1)
+        self.assertIn('supplier lcsc "C00000" at (0.1mm, -0.2mm) rotate 90', after)
+        self.assertIn('pub part R_0R_J_0201:', after.split('supplier lcsc')[0].split("#[doc")[-1])
+        subprocess.run(
+            [sys.executable, "-B", str(copy.root / "tools" / "gen_passive.py"), "--check"],
+            env=copy.env,
+            check=True,
+            capture_output=True,
+        )
+
+    def test_alt_only_mapping_inherits_primary_footprint(self):
+        copy = PassiveCopy(self)
+        mapping = map_row("C54321")
+        mapping.update(mfr="Vishay", mpn="CRCW02011R00FKED")
+        frame = frame_row()
+        frame.update(pn="C54321")
+        copy.write_tables([mapping], [frame])
+        after = copy.run()
+        self.assertEqual(after.count('supplier lcsc "C54321"'), 1)
+        self.assertNotIn('supplier lcsc "C00000"', after)
+        declaration = after[after.index("pub part R_1R_F_0201:"):]
+        declaration = declaration[:declaration.index("\n}\n")]
+        self.assertIn(
+            'alt { mfr: "Vishay", mpn: "CRCW02011R00FKED",\n'
+            '          supplier lcsc "C54321" at (0.1mm, -0.2mm) rotate 90 }',
+            declaration,
+        )
+        self.assertNotIn("supplier lcsc", declaration.split("alt {", 1)[0])
+
+    def test_duplicate_pn_and_stale_frame_version_do_not_generate(self):
+        for duplicate, stale in ((True, False), (False, True)):
+            with self.subTest(duplicate=duplicate, stale=stale):
+                copy = PassiveCopy(self)
+                mappings = [map_row(), map_row("C00001")] if duplicate else [map_row()]
+                version = "0.0.1" if stale else "0.2.3"
+                copy.write_tables(mappings, [frame_row(version)])
+                self.assertNotIn("supplier lcsc", copy.run())
+
+    def test_missing_tables_and_invalid_evidence_are_silent(self):
+        copy = PassiveCopy(self)
+        self.assertNotIn("supplier lcsc", copy.output.read_text())
+        row = frame_row()
+        row["evidence"]["record"] = "missing.txt"
+        copy.write_tables([map_row()], [row])
+        self.assertNotIn("supplier lcsc", copy.run())
+
+    def test_integral_numeric_rotation_is_canonical_and_invalid_angles_are_silent(self):
+        for rotate in (90, 90.0):
+            with self.subTest(rotate=rotate, valid=True):
+                copy = PassiveCopy(self)
+                frame = frame_row()
+                frame["mapping"]["rotate_deg"] = rotate
+                copy.write_tables([map_row()], [frame])
+                self.assertIn('supplier lcsc "C00000" at (0.1mm, -0.2mm) rotate 90', copy.run())
+        for rotate in (90.5, -1, 360, float("inf"), float("nan"), True):
+            with self.subTest(rotate=rotate, valid=False):
+                copy = PassiveCopy(self)
+                frame = frame_row()
+                frame["mapping"]["rotate_deg"] = rotate
+                copy.write_tables([map_row()], [frame])
+                self.assertNotIn("supplier lcsc", copy.run())
+
+    def test_cross_package_footprint_uses_owner_package_and_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for package, version in (("@espressif/esp32", "0.3.1"), ("qfn", "0.2.1")):
+                manifest = root / "lib" / package / "cohdl.toml"
+                manifest.parent.mkdir(parents=True)
+                manifest.write_text(
+                    f'[package]\nname = "{package}"\nversion = "{version}"\n'
+                )
+            bindings = Bindings(root)
+            bindings._by_identity[("Espressif", "ESP32-D0WDQ6")] = ["C12345"]
+            for package, version, expected in (
+                ("qfn", "0.2.1", 'supplier lcsc "C12345"'),
+                ("@espressif/esp32", "0.3.1", ""),
+                ("qfn", "0.2.0", ""),
+            ):
+                key = (package, version, "ESPRESSIF_QFN48E_0P4_6", "C12345")
+                bindings._frames = {
+                    key: {
+                        "mapping": {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0},
+                        "exception": None,
+                    }
+                }
+                self.assertEqual(
+                    bindings.clause(
+                        root / "lib/@espressif/esp32/cohdl.toml",
+                        "qfn::ESPRESSIF_QFN48E_0P4_6",
+                        "Espressif",
+                        "ESP32-D0WDQ6",
+                    ),
+                    expected,
+                )
+
+    def test_nested_scoped_and_hyphenated_owners_resolve_through_package_roots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for package in ("@espressif/esp32", "load-switch", "usb", "local"):
+                manifest = root / "lib" / package / "cohdl.toml"
+                manifest.parent.mkdir(parents=True)
+                manifest.write_text(f'[package]\nname = "{package}"\nversion = "1.0.0"\n')
+            bindings = Bindings(root)
+            bindings._by_identity[("M", "N")] = ["C1"]
+            zero = {"mapping": {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}, "exception": None}
+            local = root / "lib/local/cohdl.toml"
+            for reference, package in (
+                ("espressif_esp32::FP_E", "@espressif/esp32"),
+                ("load_switch::FP_L", "load-switch"),
+                ("usb::connectors::type_c::FP_C", "usb"),
+                ("modules::FP_M", "local"),
+                ("FP_B", "local"),
+            ):
+                with self.subTest(reference=reference):
+                    short = reference.rsplit("::", 1)[-1]
+                    bindings._frames = {(package, "1.0.0", short, "C1"): zero}
+                    self.assertEqual(bindings.clause(local, reference, "M", "N"), 'supplier lcsc "C1"')
+
+    def test_stm32_overlay_allows_new_optional_keys(self):
+        data = {
+            "schema_version": gen_stm32.PARTS_SCHEMA,
+            "documents": [],
+            "package_variants": [],
+            "parts": [],
+            "future_optional": {"anything": True},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch.object(gen_stm32, "PARTS", Path(directory) / "parts.json"):
+                gen_stm32.PARTS.write_text(json.dumps(data))
+                with mock.patch.object(gen_stm32, "PARTS_SHA256", gen_stm32.hashlib.sha256(gen_stm32.PARTS.read_bytes()).hexdigest()):
+                    loaded = gen_stm32.load_audited_parts(
+                        {"models": [], "pinouts": []},
+                        {"rows": [], "by_identity": {}},
+                    )
+        self.assertEqual(loaded, [])
+
+    def test_generated_clause_compiles(self):
+        compiler = ROOT / "target" / "debug" / "cohdl"
+        if not compiler.is_file():
+            if os.environ.get("COHDL_REQUIRE_BINARY") == "1":
+                self.fail("target/debug/cohdl is not built")
+            self.skipTest("target/debug/cohdl is not built")
+        copy = PassiveCopy(self)
+        mapping = map_row("C54321")
+        mapping.update(mfr="Vishay", mpn="CRCW02011R00FKED")
+        frame = frame_row()
+        frame.update(pn="C54321")
+        copy.write_tables([mapping], [frame])
+        generated = copy.run()
+        declaration = generated[generated.index("#[doc", generated.index("pub part R_0R_J_0201") - 20):]
+        declaration = declaration[:declaration.index("\n}\n") + 3]
+        source = """
+pub footprint CHIP_0201 {}
+pub device ChipResistor_0ohm_5pct_R0201 { pins { A: 1 [passive], B: 2 [passive] } }
+pub part R_0R_J_0201: ChipResistor_0ohm_5pct_R0201 {
+""" + declaration[declaration.index("    primary"):]
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            (project / "src").mkdir()
+            (project / "cohdl.toml").write_text('[package]\nname = "binding_test"\nversion = "0.1.0"\n')
+            (project / "src" / "main.cohdl").write_text(source)
+            result = subprocess.run(
+                [str(compiler), "check", str(project), "--no-std"],
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_every_generated_entry_with_a_clause_is_in_fmt_canonical_form(self):
+        """Every AVL entry each generator can emit, with a binding, is fmt-clean.
+
+        A binding is forced onto every entry, in a short and a long form, so
+        the entries wrap at every position `cohdl fmt` can choose.
+        """
+        compiler = ROOT / "target" / "debug" / "cohdl"
+        if not compiler.is_file():
+            if os.environ.get("COHDL_REQUIRE_BINARY") == "1":
+                self.fail("target/debug/cohdl is not built")
+            self.skipTest("target/debug/cohdl is not built")
+
+        class Every:
+            def clause(self, manifest, footprint, mfr, mpn):
+                if sum(map(ord, mpn)) % 2:
+                    return f'supplier lcsc "C{len(mpn)}"'
+                return f'supplier lcsc "C{len(mpn) * 7919}" at (0.125mm, -0.25mm) rotate 270'
+
+        bindings = Every()
+        outputs = {}
+        verified = gen_passive.load_verified()
+        for size in gen_passive.R_POWER:
+            outputs[f"resistors_{size}"] = gen_passive.emit_resistors(size, verified, bindings)
+        available = gen_passive.load_mlcc()
+        samsung = gen_passive.load_samsung()
+        for size in sorted({key.split("|")[0] for key in available}):
+            outputs[f"capacitors_{size}"] = gen_passive.emit_capacitors(
+                size, available, gen_passive.VERIFIED_ALTERNATES, samsung, verified, bindings
+            )
+        selector = gen_esp32.load_snapshot(gen_esp32.SELECTOR_SNAPSHOT, gen_esp32.SELECTOR_SNAPSHOT_SHA256)
+        kicad = gen_esp32.load_snapshot(gen_esp32.SYMBOL_SNAPSHOT, gen_esp32.SYMBOL_SNAPSHOT_SHA256)
+        selected, _ = gen_esp32.classify(gen_esp32.validate_selector(selector), gen_esp32.symbol_map(kicad))
+        outputs["esp32"] = gen_esp32.render_parts(selected, bindings)
+        stm32 = gen_stm32.generated_sources(
+            gen_stm32.load_snapshot(), gen_stm32.load_kicad_part_catalog(), bindings
+        )
+        outputs.update((f"stm32_{Path(name).stem}", text) for name, text in stm32.items())
+        with tempfile.TemporaryDirectory() as directory:
+            for name, text in outputs.items():
+                Path(directory, f"{name}.cohdl").write_text(text)
+            result = subprocess.run(
+                [str(compiler), "fmt", directory, "--check"], capture_output=True, text=True
+            )
+        self.assertEqual(result.returncode, 0, result.stdout[:4000] + result.stderr)
+        joined = "".join(outputs.values())
+        self.assertGreater(joined.count("supplier lcsc"), 4000)
+        self.assertIn("\n          supplier lcsc", joined)
+
+
+if __name__ == "__main__":
+    unittest.main()

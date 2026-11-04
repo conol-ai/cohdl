@@ -1066,9 +1066,48 @@ Option 1 was rejected per Aden's own withdrawal rationale: a device-shaped insta
 
 If a genuine need for reach-in beyond placement (e.g. reading a spec value from an internal instance for a downstream calculation) is demonstrated with a concrete workload — that would need its own narrowly-scoped RFC, evaluated against the same "is this electrical/data access, or physical-layout access" distinction this RFC drew, not a silent widening of the placement exception. Also revisit if real usage reveals the default-layout/override precedence rule needs finer granularity (e.g. overriding a whole nested subdesign's layout rather than one leaf instance).
 
+# DR-039: Supplier bindings with placement mapping — an open supplier clause on AVL entries, a neutral CPL, export-time bottom-side convention
+
+DR number, RFC number and error codes E813–E815 provisional pending central allocation.
+
+## Context
+
+A design's BOM names a manufacturer and MPN, but an assembler orders by its own part number and places parts from a CPL measured in its own footprint frames. Confirmed against real source: before this RFC no AVL entry could carry a supplier part number, the compiler wrote no placement file at all (`tools/smt_pos.py` derived one from a laid-out board, with a pad-centroid position), and assembler previews showed the library's footprint frames differing from an assembler's models by a rotation per part (SOT-23 turned 90°, SOIC-8 270°) and, for connectors, by an origin offset. Two SOT-23-5 parts with the same pad numbering needed different corrections (180° and 270°), so the correction belongs to the supplier's part number, not to the package. A later preview showed one assembler reading bottom-side angles as `(180 − θ) mod 360`, which agrees with KiCad's convention only at 90° and 270°.
+
+## Options
+
+1. One flat key per supplier on the entry (`acme: "A-104411"`).
+2. A footprint-level default mapping.
+3. Bindings stored only in the registry.
+4. A per-package sidecar file.
+5. A closed, compiler-known supplier list with part-number format checks.
+6. A per-entry `supplier ID "PN" [at (X, Y)] [rotate N]` clause with an open supplier set, a rigid mapping composed through the existing `compose_place`, a supplier-neutral CPL from every placed physical build, per-supplier BOM/map/CPL behind `--supplier ID`, and the bottom-side convention as an export parameter (`--bottom-rotation ID=kicad|mirrored`) — chosen.
+7. The bottom-side convention as a supplier declaration in the language, or as a project-file (`cohdl.toml`) default.
+
+## Decision
+
+Option 6. An AVL entry, primary or alternate, carries zero to 16 supplier clauses; the supplier ID is an open identifier the compiler attaches no meaning to (`mpn`/`mfr` reserved), the part number an opaque string, and one supplier part number may order only one `(mfr, mpn)` across the compiled package set (E813). The mapping says where the supplier's footprint sits in the entry footprint's frame and defaults to identity. A physical build of a design with any `place` writes `out/<name>-cpl.csv` (footprint origins, outline lower-left origin, KiCad's bottom-side angles; E815 names unplaced machine-placed instances). `--supplier ID` selects per instance its primary if bound, else the first bound alternate sharing the primary's footprint (E814 for gaps), and writes a supplier BOM, a map file that pins each footprint's KiCad pad projection by hash, and a supplier CPL with the mapping applied. `--bottom-rotation ID=mirrored` changes only that supplier CPL's bottom-side angles and is recorded in the map. `tools/smt_pos.py --neutral` / `--map` reproduce both CPLs from a laid-out board and refuse a board whose footprint frames no longer match the map. The registry indexes bindings and serves supplier catalogs; `cohdl suppliers` checks bindings online (exit 3 on an unknown or mismatched part number). Purely additive.
+
+## Rationale
+
+Option 1 cannot carry a mapping and grows the compiler's key set per supplier. Option 2 was deferred because the measured corrections differ between parts on one land; a family default would silently apply where wrong. Option 3 breaks offline reproducibility and lets the registry override immutable package content. Option 4 is a second source of truth beside the AVL with no per-`alt` place and no compile-time check. Option 5 puts supplier knowledge into the language and needs a compiler release per supplier. Option 7 was rejected in both forms because the bottom-side convention describes an export target, not the design: as a declaration it adds syntax and diagnostics and makes a design's meaning depend on its package set; as a project default it makes the same source and command line write different CPLs depending on a configuration file (raised at acceptance and declined). The build output names the convention beside each supplier CPL and the map records it, so a forgotten flag is visible.
+
+## Consequences
+
+- One new contextual AVL item (`supplier` is not a reserved word) and one new diagnostic (E813); two new build warnings (E814, E815).
+- Every physical build of a placed design gains one default output, the neutral CPL; `--logical-only` writes none. Every existing output keeps its bytes.
+- `compose_place` moves to a shared module so CPL emission and subdesign composition share one implementation; all mapping arithmetic stays in `src/trig.rs`.
+- The library program can bind supplier part numbers only with frame evidence from an assembler preview; aligning a library footprint to an assembler's frame is a breaking footprint release, with consumers keeping their copper by composing their `place` statements with the same mapping.
+- `--emit kicad_pcb` writes the outline's lower-left corner as the board's drill/place origin, so Gerbers plotted from that board share the CPL's frame.
+- Acceptance was conditioned on the pcbnew projection checklist (19 cases on KiCad 10.0.7) and a repeat assembler preview with `--bottom-rotation` applied by the compiler (a four-part board on 2026-10-29 and a 30-part board on 2026-10-30); both were met.
+
+## Revisit when
+
+A real supplier footprint is the mirror image of ours (a mapping is rigid today), a footprint-family default mapping is shown to be safe across every part on a land, or forgetting `--bottom-rotation` causes a real misassembly despite the build output naming the convention — then a per-user default outside the project is the first thing to consider.
+
 # Pending decision records (to be written as RFCs land)
 
-(none — the backlog through RFC-032 is fully recorded above.)
+(none for Accepted RFCs — RFC-001 through RFC-032 and RFC-034 are recorded above; RFC-033 is still Proposed.)
 
 # DR-025: VS Code extension — a thin packaging + grammar layer over cohdl lsp
 

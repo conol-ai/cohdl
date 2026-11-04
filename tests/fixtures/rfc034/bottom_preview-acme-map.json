@@ -1,0 +1,193 @@
+{
+  "schema_version": 2,
+  "pad_projection": 1,
+  "bottom_rotation": "mirrored",
+  "footprints": {
+    "passive::CHIP_0603": {
+      "package": "passive",
+      "version": "0.2.3",
+      "pads": [["1","-0.825mm","0mm"],["2","0.825mm","0mm"]],
+      "frame": "f78dc07dbd6ef81a6c9f18dd526aaf05237e4fea44afb29c2358bcc474472de7"
+    },
+    "passive::CHIP_0805": {
+      "package": "passive",
+      "version": "0.2.3",
+      "pads": [["1","-0.9125mm","0mm"],["2","0.9125mm","0mm"]],
+      "frame": "4e8faa124848e10fecd284c27be58d1583814f3a8fde9e43d20084a5f55712e2"
+    },
+    "soic::SOIC8P127X790X216N": {
+      "package": "soic",
+      "version": "0.3.0",
+      "pads": [["1","-1.905mm","3.5875mm"],["2","-0.635mm","3.5875mm"],["3","0.635mm","3.5875mm"],["4","1.905mm","3.5875mm"],["5","1.905mm","-3.5875mm"],["6","0.635mm","-3.5875mm"],["7","-0.635mm","-3.5875mm"],["8","-1.905mm","-3.5875mm"]],
+      "frame": "1d482cd5b1fb1c1be5b475ec711de56f4bf6e449cb0cb2409d9888e55e9ae75e"
+    },
+    "transistor::FP_JSCJ_SOT23": {
+      "package": "transistor",
+      "version": "0.2.0",
+      "pads": [["1","1.01mm","0.95mm"],["2","1.01mm","-0.95mm"],["3","-1.01mm","0mm"]],
+      "frame": "e3a6a3737a478182b71a8edc681f26a773cb60562439bb1fad14163290557d1b"
+    }
+  },
+  "designators": {
+    "C1": {
+      "part": "bottom_preview::C_27P_0603",
+      "footprint": "passive::CHIP_0603",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0603JRNPO9BN270",
+      "pn": "A-107045",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C2": {
+      "part": "bottom_preview::C_27P_0603",
+      "footprint": "passive::CHIP_0603",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0603JRNPO9BN270",
+      "pn": "A-107045",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C3": {
+      "part": "bottom_preview::C_27P_0603",
+      "footprint": "passive::CHIP_0603",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0603JRNPO9BN270",
+      "pn": "A-107045",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C4": {
+      "part": "bottom_preview::C_27P_0603",
+      "footprint": "passive::CHIP_0603",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0603JRNPO9BN270",
+      "pn": "A-107045",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C5": {
+      "part": "bottom_preview::C_15P_0805",
+      "footprint": "passive::CHIP_0805",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN150",
+      "pn": "A-107110",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C6": {
+      "part": "bottom_preview::C_15P_0805",
+      "footprint": "passive::CHIP_0805",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN150",
+      "pn": "A-107110",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C7": {
+      "part": "bottom_preview::C_15P_0805",
+      "footprint": "passive::CHIP_0805",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN150",
+      "pn": "A-107110",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "C8": {
+      "part": "bottom_preview::C_15P_0805",
+      "footprint": "passive::CHIP_0805",
+      "entry": "primary",
+      "mfr": "Yageo",
+      "mpn": "CC0805JRNPO9BN150",
+      "pn": "A-107110",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "Q1": {
+      "part": "bottom_preview::Q_S8050",
+      "footprint": "transistor::FP_JSCJ_SOT23",
+      "entry": "primary",
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "S8050 J3Y(RANGE:200-350)",
+      "pn": "A-2146",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "Q2": {
+      "part": "bottom_preview::Q_S8050",
+      "footprint": "transistor::FP_JSCJ_SOT23",
+      "entry": "primary",
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "S8050 J3Y(RANGE:200-350)",
+      "pn": "A-2146",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "Q3": {
+      "part": "bottom_preview::Q_S8050",
+      "footprint": "transistor::FP_JSCJ_SOT23",
+      "entry": "primary",
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "S8050 J3Y(RANGE:200-350)",
+      "pn": "A-2146",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "Q4": {
+      "part": "bottom_preview::Q_S8050",
+      "footprint": "transistor::FP_JSCJ_SOT23",
+      "entry": "primary",
+      "mfr": "Jiangsu Changjing Electronics Technology",
+      "mpn": "S8050 J3Y(RANGE:200-350)",
+      "pn": "A-2146",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "U1": {
+      "part": "bottom_preview::U_W25Q128",
+      "footprint": "soic::SOIC8P127X790X216N",
+      "entry": "primary",
+      "mfr": "Winbond",
+      "mpn": "W25Q128JVSIQ",
+      "pn": "A-97521",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "U2": {
+      "part": "bottom_preview::U_W25Q128",
+      "footprint": "soic::SOIC8P127X790X216N",
+      "entry": "primary",
+      "mfr": "Winbond",
+      "mpn": "W25Q128JVSIQ",
+      "pn": "A-97521",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "U3": {
+      "part": "bottom_preview::U_W25Q128",
+      "footprint": "soic::SOIC8P127X790X216N",
+      "entry": "primary",
+      "mfr": "Winbond",
+      "mpn": "W25Q128JVSIQ",
+      "pn": "A-97521",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    },
+    "U4": {
+      "part": "bottom_preview::U_W25Q128",
+      "footprint": "soic::SOIC8P127X790X216N",
+      "entry": "primary",
+      "mfr": "Winbond",
+      "mpn": "W25Q128JVSIQ",
+      "pn": "A-97521",
+      "at": ["0mm", "0mm"],
+      "rotate": 0
+    }
+  }
+}

@@ -20,3 +20,12 @@ Downloaded from TI's canonical symlink URL on 2026-09-08. The pinout in
 3=VCC, 4=R, 5=Vref, 6=CANL, 7=CANH, 8=RS); the D package is the JEDEC
 MS-012 narrow SOIC-8, bound to the dependency-owned
 `soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM` land.
+
+## Footprint frame change in 0.2.0
+
+Version 0.2.0 follows soic 0.3.0, which turned `soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM` by a quarter turn (270) onto the
+assembler's frame (library plan W3). Pad numbers and lands are unchanged, but
+a design that places a part on one of these lands sees its copper turn after
+`cohdl update`, with `check` and `build` still passing. Migrate the design's
+`place` statements first, as the land package's README describes, with
+`tools/realign_place.py`.

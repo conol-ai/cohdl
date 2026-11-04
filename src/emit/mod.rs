@@ -4,6 +4,7 @@
 //! explicit sort; nothing iterates a hash map.
 
 pub mod bom;
+pub mod cpl;
 pub mod docsjson;
 pub mod easyeda;
 pub mod geom;
@@ -16,6 +17,8 @@ pub mod kicad_pcb;
 pub mod layout;
 pub mod quilter;
 pub mod silk;
+pub mod supplier_bom;
+pub mod supplier_map;
 
 use crate::diag::{Diagnostic, Diagnostics};
 use crate::ir::DesignIr;

@@ -12,13 +12,13 @@ hash = "sha256:e04af120c2e56ad844b42f1a8f9f1a380b858dd19ebf68a9ef532137616c15e3"
 
 [[package]]
 name = "qfp"
-version = "0.2.0"
-hash = "sha256:5fbbbd39a0bf07ee50fa24020267d701945f3546f1c4f856c77676e3700a8b48"
+version = "0.3.0"
+hash = "sha256:bef5c7b4389f4eb639b7a027db82596cf4a0c33029b805383232b1231fde3e02"
 
 [[package]]
 name = "soic"
-version = "0.2.1"
-hash = "sha256:f6d9e27f8b599b1a094b7de923fcff154f2135a54c71caf4f0dfdd36caeda40f"
+version = "0.3.0"
+hash = "sha256:faa12734be8c93a602b4a3d24a5e40f23d41ea6e030ae7fbe4008a8f5568c8db"
 
 [[package]]
 name = "std"

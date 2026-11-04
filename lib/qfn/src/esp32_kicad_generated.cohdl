@@ -487,7 +487,7 @@ pub footprint ESPRESSIF_QFN24_0P5_4_E2P8 {
 
 // Source: soc/ESP8685_Footprint.asc
 // Source file SHA-256: 57e8d1055f1ca3b60669c7b7c6be64e89e4e8091d82ae77f935f992e75f80941
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint ESPRESSIF_QFN28_0P4_4 {
     pad 1: P_ESP_QFN_0007 at (-1.95mm, -1.2mm)
     pad 2: P_ESP_QFN_0007 at (-1.95mm, -0.8mm)
@@ -533,7 +533,7 @@ pub footprint ESPRESSIF_QFN28_0P4_4 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 3.3mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5mm, 5mm) }
     silkscreen_ref { at: (0mm, -2.65mm) }
 }
 
@@ -867,7 +867,7 @@ pub footprint ESPRESSIF_QFN40_0P4_5_E3P3 {
 
 // Source: soc/ESP32-D0WD-V3_Footprint.asc
 // Source file SHA-256: a04e3e6e1da3dc5e98b57fbfef69ca121ec17c7688180c78e7f584eb068edcda
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint ESPRESSIF_QFN48EB_0P35_5 {
     pad 1: P_ESP_QFN_0013 at (-2.425mm, -2.275mm)
     pad 2: P_ESP_QFN_0013 at (-2.425mm, -1.925mm)
@@ -945,13 +945,13 @@ pub footprint ESPRESSIF_QFN48EB_0P35_5 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.2mm, 4.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (6mm, 6mm) }
     silkscreen_ref { at: (0mm, -3.1mm) }
 }
 
 // Source: soc/ESP32-D0WDQ6-V3_Footprint.asc
 // Source file SHA-256: 92fed76721724481494f8f6496b9386542417f429e4c7ebf9dd174177187f466
-// Courtyard is the conservative source bounding rectangle.
+// Courtyard is the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.
 pub footprint ESPRESSIF_QFN48E_0P4_6 {
     pad 1: P_ESP_QFN_0015 at (-2.925mm, -2.2mm)
     pad 2: P_ESP_QFN_0015 at (-2.925mm, -1.8mm)
@@ -1029,7 +1029,7 @@ pub footprint ESPRESSIF_QFN48E_0P4_6 {
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (5.1mm, 5.1mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7mm, 7mm) }
     silkscreen_ref { at: (0mm, -3.55mm) }
 }
 

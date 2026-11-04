@@ -35,9 +35,12 @@ import {
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
 import { metadataRejection, parsePackageManifest } from "./manifest";
+import { manufacturerNormalizeApi } from "./manufacturers";
 import { nameTier, publishRejection } from "./namespace";
 import { recaptchaOk } from "./recaptcha";
 import { searchApi } from "./search";
+import { supplierPartsApi } from "./supplier-parts";
+import { supplierAdminApi } from "./suppliers";
 import { readTar } from "./tar";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -181,6 +184,12 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
     if (pathname === "/search") {
       return await searchApi(env, request, url);
     }
+    if (pathname === "/manufacturers/normalize") {
+      return await manufacturerNormalizeApi(env, request, url);
+    }
+    if (pathname.startsWith("/suppliers/") && pathname.endsWith("/parts")) {
+      return await supplierPartsApi(env, request, url);
+    }
     if (pathname === "/api/component-requests") {
       return await componentRequestApi(env, request, url);
     }
@@ -189,6 +198,13 @@ async function route(env: Env, request: Request, url: URL): Promise<Response> {
       pathname.startsWith("/api/admin/component-requests/")
     ) {
       return await adminComponentRequestApi(env, request, url);
+    }
+    if (
+      (pathname.startsWith("/api/admin/suppliers/") &&
+        pathname.endsWith("/snapshot")) ||
+      pathname.startsWith("/api/admin/manufacturer-aliases/")
+    ) {
+      return await supplierAdminApi(env, request, url);
     }
     if (pathname === "/api/admin" || pathname.startsWith("/api/admin/")) {
       return await adminApi(env, request, url);

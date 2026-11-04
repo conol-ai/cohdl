@@ -1,0 +1,6 @@
+[package]
+name = "ci_other"
+version = "3.0.0"
+license = "MIT"
+description = "Footprint owner fixture."
+[dependencies]

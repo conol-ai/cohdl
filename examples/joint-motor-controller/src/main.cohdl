@@ -117,7 +117,7 @@ design JointMC {
         place mounting[1] at (22.5mm, -15mm)
         place mounting[2] at (22.5mm, 15mm)
         place mounting[3] at (-22.5mm, 15mm)
-        place mcu at (-4mm, 2mm)
+        place mcu at (-4mm, 2mm) rotate 270
         place xtal at (-4mm, -4mm)
         place c_xin at (-7.5mm, -4mm) rotate 90
         place c_xout at (-0.5mm, -4mm) rotate 270

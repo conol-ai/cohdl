@@ -337,14 +337,22 @@ when empty (the optional-keys convention); `nets` is always present.
   "variant": "C0402",
   "primary": { "fields": [ { "name": "mfr", "value": "Samsung" },
                             { "name": "mpn", "value": "CL05B104KO5NNNC" } ],
-               "footprint": "passive::footprints::CHIP_0402" },
-  "alts": [ { "fields": [ { "name": "mpn", "value": "GRM155R71C104KA88D" } ] } ]
+               "footprint": "passive::footprints::CHIP_0402", "suppliers": [] },
+  "alts": [ { "fields": [ { "name": "mpn", "value": "GRM155R71C104KA88D" } ],
+              "suppliers": [{"supplier": "acme", "pn": "A-1",
+                              "at": ["0mm", "0mm"], "rotate": 0}] } ]
 }
 ```
 
 `args`/`variant` only when the device reference carries them. `fields` in
 source order (the AVL entry's own name/value pairs — `mpn`, `mfr`, …);
 `footprint` (fq) only when the entry declares one.
+
+Every primary and alternate AVL entry has an additive `suppliers` array in
+declaration order (empty when unbound). Each binding always has `supplier`,
+`pn`, `at`, and `rotate`; `at` contains canonical millimetre strings, defaulting
+to `["0mm", "0mm"]`, and `rotate` is an integer in `0..=359`, defaulting to `0`.
+These bindings do not change the document's `schema_version`.
 
 #### `pad`
 

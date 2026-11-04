@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "e-uniqueness-primary",
+      "package": "ci_e1",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_E1",
+      "supplier": "lcsc",
+      "pn": "C_E_SHARED",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "e-uniqueness-second",
+      "package": "ci_e2",
+      "package_version": "1.2.3",
+      "footprint": "FP_CI_E2",
+      "supplier": "lcsc",
+      "pn": "C_E_SHARED",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "product_page",
+        "date": "2026-10-30",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    }
+  ]
+}

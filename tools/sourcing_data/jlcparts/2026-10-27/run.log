@@ -1,0 +1,12 @@
+0 1089 {'Basic': 0, 'Preferred': 0}
+100 1089 {'Basic': 95, 'Preferred': 48}
+200 1089 {'Basic': 98, 'Preferred': 249}
+300 1089 {'Basic': 104, 'Preferred': 250}
+400 1089 {'Basic': 118, 'Preferred': 747}
+500 1089 {'Basic': 124, 'Preferred': 758}
+600 1089 {'Basic': 127, 'Preferred': 767}
+700 1089 {'Basic': 136, 'Preferred': 775}
+800 1089 {'Basic': 147, 'Preferred': 788}
+900 1089 {'Basic': 332, 'Preferred': 898}
+1000 1089 {'Basic': 334, 'Preferred': 900}
+DONE {'Basic': 350, 'Preferred': 984} fails 0 created 2026-10-27T00:01:42+00:00

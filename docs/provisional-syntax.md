@@ -61,6 +61,11 @@ pub part MLCC_100nF_16V: MLCC<100nF, 16V, 10%> {
   RFC-017 (2026-07-14)** — is a SYMBOL reference to a `footprint`
   declaration (never a string), resolved via RFC-016's module rules; the
   original verbatim-KiCad-string form is now a targeted parse error.
+- Either entry may also carry `supplier ID "PART_NUMBER" [at (X, Y)]
+  [rotate N]` items — **graduated to RFC-034 (2026-10-30)** — binding the
+  entry to one supplier's part number and to that supplier's footprint frame.
+  The rules, the mapping and the CPL outputs are in note 10, "Supplier
+  bindings and placement files"; E813 owns the clause's errors.
 - An instance binds to a part in one of two ways:
   1. **By name:** `inst c1: MLCC_100nF_16V` — the part is used as the type.
   2. **By exact match:** `inst c1: MLCC<100nF, 16V, 10%>` — after

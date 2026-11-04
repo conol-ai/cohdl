@@ -13,7 +13,13 @@ use crate::deps::{PackageDiag, Version};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const MAX_SEARCH_RESPONSE: usize = 1024 * 1024;
+/// The largest default `/search` response the registry can send is about
+/// 12 MB (registry/test/search.test.ts, "largest default response").
+const MAX_SEARCH_RESPONSE: usize = 16 * 1024 * 1024;
+/// Audit responses carry whole catalog rows (up to 16 links of 2 KB each), so
+/// they get a larger bound; an MPN batch that exceeds it is re-asked one MPN
+/// at a time.
+const MAX_AUDIT_RESPONSE: usize = 16 * 1024 * 1024;
 /// Application-side API-doc upload ceiling. Kept byte-for-byte aligned with
 /// `registry/src/worker/apidocs.ts` and docs/apidocs.md.
 pub const API_DOCS_MAX_BYTES: usize = 200_000_000;
@@ -144,8 +150,12 @@ pub struct HttpResponse {
 }
 
 fn run_curl_with_timeout(args: &[String], max_time_seconds: u32) -> Result<HttpResponse, String> {
+    curl_response(curl_output(args, max_time_seconds)?)
+}
+
+fn curl_output(args: &[String], max_time_seconds: u32) -> Result<std::process::Output, String> {
     let max_time = max_time_seconds.to_string();
-    let out = Command::new("curl")
+    Command::new("curl")
         .args([
             "-sS",
             "-w",
@@ -155,9 +165,10 @@ fn run_curl_with_timeout(args: &[String], max_time_seconds: u32) -> Result<HttpR
         ])
         .args(args)
         .output()
-        .map_err(|e| {
-            format!("cannot run `curl`: {e} (the registry client uses the system curl)")
-        })?;
+        .map_err(|e| format!("cannot run `curl`: {e} (the registry client uses the system curl)"))
+}
+
+fn curl_response(out: std::process::Output) -> Result<HttpResponse, String> {
     if !out.status.success() {
         let detail = String::from_utf8_lossy(&out.stderr).trim().to_string();
         return Err(if detail.is_empty() {
@@ -193,18 +204,29 @@ pub fn http_get(url: &str) -> Result<HttpResponse, String> {
 /// GET with query parameters encoded by curl itself. Values are passed as
 /// argv entries, never through a shell; `--data-urlencode` is what keeps a
 /// search for spaces, `&`, Unicode, or `#` from changing the request's shape.
-fn http_get_query(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, String> {
+/// `Ok(None)` means the response was larger than `max_bytes`.
+fn http_get_query(
+    url: &str,
+    params: &[(&str, &str)],
+    max_bytes: usize,
+) -> Result<Option<HttpResponse>, String> {
     let mut args = vec![
         "-G".to_string(),
         "--max-filesize".to_string(),
-        MAX_SEARCH_RESPONSE.to_string(),
+        max_bytes.to_string(),
     ];
     for (key, value) in params {
         args.push("--data-urlencode".to_string());
         args.push(format!("{key}={value}"));
     }
     args.push(url.to_string());
-    run_curl(&args)
+    let out = curl_output(&args, 60)?;
+    // curl's exit 63: the transfer exceeded --max-filesize.
+    if out.status.code() == Some(63) {
+        return Ok(None);
+    }
+    let response = curl_response(out)?;
+    Ok((response.body.len() <= max_bytes).then_some(response))
 }
 
 /// GET following redirects, with a longer deadline (a repeated `--max-time`
@@ -399,6 +421,83 @@ pub struct PartSearchHit {
     pub manufacturer: Option<String>,
     pub mpn: Option<String>,
     pub primary: bool,
+    /// Additive in RFC-034. Absent means a pre-supplier registry response;
+    /// retain that distinction so legacy `--json` output stays unchanged.
+    pub suppliers: Option<Vec<PartSupplier>>,
+}
+
+/// One supplier binding on a public part search result (RFC-034 §4).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartSupplier {
+    pub supplier: String,
+    pub pn: String,
+    pub at: [String; 2],
+    pub rotate: u16,
+    pub links: Vec<SupplierLink>,
+    pub catalog: Option<SupplierCatalog>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierLink {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierCatalog {
+    pub class: String,
+    pub stock: u64,
+    pub snapshot_date: String,
+}
+
+/// One catalog row returned by `GET /suppliers/{id}/parts` (RFC-034 §5).
+/// Normalized keys are supplied by the registry: the CLI deliberately does
+/// not implement a second Unicode or manufacturer-alias normalizer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AuditCatalogRow {
+    pub pn: String,
+    pub mpn: String,
+    pub mpn_key: String,
+    pub manufacturer: String,
+    pub manufacturer_key: String,
+    pub package: String,
+    pub class: String,
+    pub stock: u64,
+    pub links: Vec<SupplierLink>,
+    pub fetched_at: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SupplierPartResult {
+    Known(AuditCatalogRow),
+    Unknown,
+    Suggestions(Vec<AuditCatalogRow>),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierPart {
+    pub requested: String,
+    pub result: SupplierPartResult,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SupplierParts {
+    pub snapshot_date: Option<String>,
+    pub parts: Vec<SupplierPart>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SupplierPartsResponse {
+    Parts(SupplierParts),
+    Unlisted,
+    /// The batch's response exceeded the audit bound; ask fewer values.
+    TooLarge,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NormalizedFields {
+    pub mfr: Vec<(String, String)>,
+    pub mpn: Vec<(String, String)>,
 }
 
 /// The complete, grouped search response. Package and part ordering is the
@@ -421,34 +520,77 @@ pub struct SearchResults {
 enum JsonValue {
     Null,
     Bool(bool),
-    Number,
+    Number(String),
     String(String),
     Array(Vec<JsonValue>),
     Object(Vec<(String, JsonValue)>),
+}
+
+/// Value and array-length bounds for one response. Object fields keep a fixed
+/// 256 bound: no response object has that many keys, and duplicate-key
+/// detection is quadratic in it.
+#[derive(Clone, Copy)]
+struct JsonLimits {
+    nodes: usize,
+    array_items: usize,
+}
+
+impl JsonLimits {
+    /// `/search` and the package endpoints. A default search response holds
+    /// at most about 16,000 values: 20 parts, each with 32 supplier bindings
+    /// of 4 links (registry/test/search.test.ts, "largest default response").
+    const SEARCH: Self = Self {
+        nodes: 32_768,
+        array_items: 256,
+    };
+    /// Supplier audit endpoints: up to 100 values per batch, each with an
+    /// unbounded number of catalog rows, within `MAX_AUDIT_RESPONSE`.
+    const AUDIT: Self = Self {
+        nodes: 1 << 20,
+        array_items: 1 << 16,
+    };
 }
 
 struct JsonParser<'a> {
     input: &'a [u8],
     pos: usize,
     nodes: usize,
+    limits: JsonLimits,
+    limit_exceeded: bool,
 }
 
 impl<'a> JsonParser<'a> {
     const MAX_DEPTH: usize = 128;
-    const MAX_NODES: usize = 4_096;
-    const MAX_CONTAINER_ITEMS: usize = 256;
+    const MAX_OBJECT_FIELDS: usize = 256;
     const MAX_STRING_BYTES: usize = 64 * 1024;
 
     fn new(input: &'a [u8]) -> Result<Self, String> {
+        Self::with_limits(input, JsonLimits::SEARCH)
+    }
+
+    fn with_limits(input: &'a [u8], limits: JsonLimits) -> Result<Self, String> {
         std::str::from_utf8(input).map_err(|_| "response is not valid UTF-8".to_string())?;
         Ok(Self {
             input,
             pos: 0,
             nodes: 0,
+            limits,
+            limit_exceeded: false,
         })
     }
 
     fn parse(mut self) -> Result<JsonValue, String> {
+        self.document()
+    }
+
+    /// Like `parse`, but tells a size bound apart from a malformed body: the
+    /// supplier audit answers the first by asking for less.
+    fn parse_bounded(mut self) -> Result<JsonValue, (bool, String)> {
+        self.document()
+            .map_err(|error| (self.limit_exceeded, error))
+    }
+
+    fn document(&mut self) -> Result<JsonValue, String> {
         let value = self.value(0)?;
         self.ws();
         if self.pos != self.input.len() {
@@ -472,8 +614,12 @@ impl<'a> JsonParser<'a> {
             return Err("JSON nesting exceeds 128 levels".to_string());
         }
         self.nodes += 1;
-        if self.nodes > Self::MAX_NODES {
-            return Err("JSON response exceeds 4096 values".to_string());
+        if self.nodes > self.limits.nodes {
+            self.limit_exceeded = true;
+            return Err(format!(
+                "JSON response exceeds {} values",
+                self.limits.nodes
+            ));
         }
         self.ws();
         match self.input.get(self.pos).copied() {
@@ -493,8 +639,13 @@ impl<'a> JsonParser<'a> {
             Some(b'[') => self.array(depth),
             Some(b'{') => self.object(depth),
             Some(b'-' | b'0'..=b'9') => {
+                let start = self.pos;
                 self.number()?;
-                Ok(JsonValue::Number)
+                Ok(JsonValue::Number(
+                    std::str::from_utf8(&self.input[start..self.pos])
+                        .expect("JSON was checked as UTF-8")
+                        .to_string(),
+                ))
             }
             Some(other) => Err(format!(
                 "unexpected byte 0x{other:02x} at byte {}",
@@ -522,8 +673,12 @@ impl<'a> JsonParser<'a> {
             return Ok(JsonValue::Array(values));
         }
         loop {
-            if values.len() >= Self::MAX_CONTAINER_ITEMS {
-                return Err("JSON array exceeds 256 items".to_string());
+            if values.len() >= self.limits.array_items {
+                self.limit_exceeded = true;
+                return Err(format!(
+                    "JSON array exceeds {} items",
+                    self.limits.array_items
+                ));
             }
             values.push(self.value(depth + 1)?);
             self.ws();
@@ -550,7 +705,7 @@ impl<'a> JsonParser<'a> {
             return Ok(JsonValue::Object(fields));
         }
         loop {
-            if fields.len() >= Self::MAX_CONTAINER_ITEMS {
+            if fields.len() >= Self::MAX_OBJECT_FIELDS {
                 return Err("JSON object exceeds 256 fields".to_string());
             }
             if self.input.get(self.pos) != Some(&b'"') {
@@ -757,11 +912,14 @@ fn json_object(value: &JsonValue) -> Result<&[(String, JsonValue)], String> {
 }
 
 fn json_field<'a>(fields: &'a [(String, JsonValue)], key: &str) -> Result<&'a JsonValue, String> {
+    json_field_opt(fields, key).ok_or_else(|| format!("missing `{key}`"))
+}
+
+fn json_field_opt<'a>(fields: &'a [(String, JsonValue)], key: &str) -> Option<&'a JsonValue> {
     fields
         .iter()
         .find(|(name, _)| name == key)
         .map(|(_, value)| value)
-        .ok_or_else(|| format!("missing `{key}`"))
 }
 
 fn required_string(fields: &[(String, JsonValue)], key: &str) -> Result<String, String> {
@@ -802,6 +960,228 @@ fn required_array<'a>(
         JsonValue::Array(values) => Ok(values),
         _ => Err(format!("`{key}` must be an array")),
     }
+}
+
+fn required_number<T>(fields: &[(String, JsonValue)], key: &str) -> Result<T, String>
+where
+    T: std::str::FromStr,
+{
+    match json_field(fields, key)? {
+        JsonValue::Number(value) => value
+            .parse()
+            .map_err(|_| format!("`{key}` must be a non-negative integer in range")),
+        _ => Err(format!("`{key}` must be a number")),
+    }
+}
+
+fn required_links(fields: &[(String, JsonValue)], path: &str) -> Result<Vec<SupplierLink>, String> {
+    required_array(fields, "links")?
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let path = format!("{path}.links[{index}]");
+            let fields = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+            Ok(SupplierLink {
+                label: required_string(fields, "label").map_err(|e| format!("{path}: {e}"))?,
+                url: required_string(fields, "url").map_err(|e| format!("{path}: {e}"))?,
+            })
+        })
+        .collect()
+}
+
+fn parse_audit_catalog(value: &JsonValue, path: &str) -> Result<AuditCatalogRow, String> {
+    let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+    let string = |key: &str| required_string(row, key).map_err(|e| format!("{path}: {e}"));
+    Ok(AuditCatalogRow {
+        pn: string("pn")?,
+        mpn: string("mpn")?,
+        mpn_key: string("mpn_key")?,
+        manufacturer: string("manufacturer")?,
+        manufacturer_key: string("manufacturer_key")?,
+        package: string("package")?,
+        class: string("class")?,
+        stock: required_number(row, "stock").map_err(|e| format!("{path}: {e}"))?,
+        links: required_links(row, path)?,
+        fetched_at: string("fetched_at")?,
+    })
+}
+
+fn parse_supplier_parts_response(
+    json: &JsonValue,
+    expected_supplier: &str,
+    kind: &str,
+    expected: &[String],
+) -> Result<SupplierParts, String> {
+    let root = json_object(json)?;
+    if required_string(root, "supplier")? != expected_supplier {
+        return Err("`supplier` does not match the request".to_string());
+    }
+    let snapshot_date = optional_string(root, "snapshot_date")?;
+    let parts = required_array(root, "parts")?;
+    if parts.len() != expected.len() {
+        return Err(format!(
+            "`parts` has {} rows, expected {}",
+            parts.len(),
+            expected.len()
+        ));
+    }
+    let mut result = Vec::with_capacity(parts.len());
+    for (index, (value, requested)) in parts.iter().zip(expected).enumerate() {
+        let path = format!("parts[{index}]");
+        let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+        if required_string(row, kind).map_err(|e| format!("{path}: {e}"))? != *requested {
+            return Err(format!("{path}: `{kind}` does not match the request order"));
+        }
+        let catalog_path = format!("{path}.catalog");
+        let catalog = json_field(row, "catalog").map_err(|e| format!("{path}: {e}"))?;
+        let result_value = match (kind, catalog) {
+            ("pn", JsonValue::String(value)) if value == "unknown" => SupplierPartResult::Unknown,
+            // The value is not echoed: it is registry-controlled text, and a
+            // diagnostic reaches the terminal unfiltered.
+            ("pn", JsonValue::String(_)) => {
+                return Err(format!("{catalog_path}: unknown catalog status"));
+            }
+            ("pn", value) => {
+                let row = parse_audit_catalog(value, &catalog_path)?;
+                if row.pn != *requested {
+                    return Err(format!("{catalog_path}: `pn` does not match the query"));
+                }
+                SupplierPartResult::Known(row)
+            }
+            ("mpn", JsonValue::Array(values)) => SupplierPartResult::Suggestions(
+                values
+                    .iter()
+                    .enumerate()
+                    .map(|(index, value)| {
+                        parse_audit_catalog(value, &format!("{catalog_path}[{index}]"))
+                    })
+                    .collect::<Result<Vec<_>, _>>()?,
+            ),
+            _ => {
+                return Err(format!(
+                    "{catalog_path}: invalid shape for a `{kind}` query"
+                ))
+            }
+        };
+        result.push(SupplierPart {
+            requested: requested.clone(),
+            result: result_value,
+        });
+    }
+    Ok(SupplierParts {
+        snapshot_date,
+        parts: result,
+    })
+}
+
+fn parse_normalize_response(
+    body: &[u8],
+    expected_mfr: &[String],
+    expected_mpn: &[String],
+) -> Result<NormalizedFields, String> {
+    fn side(
+        root: &[(String, JsonValue)],
+        key: &str,
+        expected: &[String],
+    ) -> Result<Vec<(String, String)>, String> {
+        let rows = required_array(root, key)?;
+        if rows.len() != expected.len() {
+            return Err(format!(
+                "`{key}` has {} rows, expected {}",
+                rows.len(),
+                expected.len()
+            ));
+        }
+        rows.iter()
+            .zip(expected)
+            .enumerate()
+            .map(|(index, (value, expected))| {
+                let path = format!("{key}[{index}]");
+                let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+                let original = required_string(row, "value").map_err(|e| format!("{path}: {e}"))?;
+                if original != *expected {
+                    return Err(format!("{path}: `value` does not match the request order"));
+                }
+                Ok((
+                    original,
+                    required_string(row, "key").map_err(|e| format!("{path}: {e}"))?,
+                ))
+            })
+            .collect()
+    }
+    let json = JsonParser::with_limits(body, JsonLimits::AUDIT)?.parse()?;
+    let root = json_object(&json)?;
+    Ok(NormalizedFields {
+        mfr: side(root, "mfr", expected_mfr)?,
+        mpn: side(root, "mpn", expected_mpn)?,
+    })
+}
+
+fn is_supplier_not_found(body: &[u8]) -> bool {
+    let Ok(json) = JsonParser::new(body).and_then(JsonParser::parse) else {
+        return false;
+    };
+    let Ok(root) = json_object(&json) else {
+        return false;
+    };
+    root.len() == 1
+        && matches!(json_field(root, "error"), Ok(JsonValue::String(message)) if message == "supplier not found")
+}
+
+fn parse_suppliers(value: &JsonValue, path: &str) -> Result<Vec<PartSupplier>, String> {
+    let JsonValue::Array(values) = value else {
+        return Err("must be an array".to_string());
+    };
+    values
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            let path = format!("{path}[{index}]");
+            let row = json_object(value).map_err(|e| format!("{path}: {e}"))?;
+            let field = |key: &str| required_string(row, key).map_err(|e| format!("{path}: {e}"));
+            let at = required_array(row, "at").map_err(|e| format!("{path}: {e}"))?;
+            let [x, y] = at else {
+                return Err(format!("{path}: `at` must contain exactly two strings"));
+            };
+            let (JsonValue::String(x), JsonValue::String(y)) = (x, y) else {
+                return Err(format!("{path}: `at` must contain exactly two strings"));
+            };
+            let link_values = required_array(row, "links").map_err(|e| format!("{path}: {e}"))?;
+            let mut links = Vec::new();
+            for (link_index, value) in link_values.iter().enumerate() {
+                let link_path = format!("{path}.links[{link_index}]");
+                let link = json_object(value).map_err(|e| format!("{link_path}: {e}"))?;
+                links.push(SupplierLink {
+                    label: required_string(link, "label")
+                        .map_err(|e| format!("{link_path}: {e}"))?,
+                    url: required_string(link, "url").map_err(|e| format!("{link_path}: {e}"))?,
+                });
+            }
+            let catalog_path = format!("{path}.catalog");
+            let catalog = match json_field(row, "catalog").map_err(|e| format!("{path}: {e}"))? {
+                JsonValue::Null => None,
+                value => {
+                    let catalog = json_object(value).map_err(|e| format!("{catalog_path}: {e}"))?;
+                    Some(SupplierCatalog {
+                        class: required_string(catalog, "class")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                        stock: required_number(catalog, "stock")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                        snapshot_date: required_string(catalog, "snapshot_date")
+                            .map_err(|e| format!("{catalog_path}: {e}"))?,
+                    })
+                }
+            };
+            Ok(PartSupplier {
+                supplier: field("supplier")?,
+                pn: field("pn")?,
+                at: [x.clone(), y.clone()],
+                rotate: required_number(row, "rotate").map_err(|e| format!("{path}: {e}"))?,
+                links,
+                catalog,
+            })
+        })
+        .collect()
 }
 
 fn parse_search_response(body: &[u8], expected_query: &str) -> Result<SearchResults, String> {
@@ -871,6 +1251,14 @@ fn parse_search_response(body: &[u8], expected_query: &str) -> Result<SearchResu
             mpn: optional_string(row, "mpn").map_err(|e| format!("parts.results[{index}]: {e}"))?,
             primary: required_bool(row, "primary")
                 .map_err(|e| format!("parts.results[{index}]: {e}"))?,
+            // A registry from before RFC-034 omits the field entirely.
+            suppliers: match json_field_opt(row, "suppliers") {
+                Some(value) => Some(
+                    parse_suppliers(value, &format!("parts.results[{index}].suppliers"))
+                        .map_err(|e| format!("parts.results[{index}]: {e}"))?,
+                ),
+                None => None,
+            },
         });
     }
     let parts_has_more =
@@ -1019,14 +1407,144 @@ fn search_e1204(detail: String) -> PackageDiag {
 
 /// Search the hosted registry's package metadata and indexed public parts.
 /// This is a read-only operation: it needs neither credentials nor a project.
-pub fn search(query: &str) -> Result<SearchResults, PackageDiag> {
+pub fn search(
+    query: &str,
+    supplier: Option<&str>,
+    classes: &[String],
+) -> Result<SearchResults, PackageDiag> {
     let url = format!("{}/search", registry_url().trim_end_matches('/'));
-    let resp = http_get_query(&url, &[("q", query)]).map_err(search_e1204)?;
+    let mut params = vec![("q", query)];
+    if let Some(supplier) = supplier {
+        params.push(("supplier", supplier));
+    }
+    params.extend(classes.iter().map(|class| ("class", class.as_str())));
+    let resp = http_get_query(&url, &params, MAX_SEARCH_RESPONSE)
+        .map_err(search_e1204)?
+        .ok_or_else(|| {
+            search_e1204(format!(
+                "response from GET {url} exceeds {MAX_SEARCH_RESPONSE} bytes"
+            ))
+        })?;
     if resp.status != 200 {
         return Err(search_e1204(format!("GET {url} returned {}", resp.status)));
     }
     parse_search_response(&resp.body, query)
         .map_err(|error| search_e1204(format!("malformed response from GET {url}: {error}")))
+}
+
+pub const SUPPLIER_AUDIT_BATCH: usize = 100;
+
+pub(crate) fn audit_e1204(detail: String) -> PackageDiag {
+    PackageDiag::error("E1204", &registry_url(), 0, detail).with_help(
+        "check the network and COHDL_REGISTRY setting, then retry the supplier audit".to_string(),
+    )
+}
+
+fn audit_get(url: &str, params: &[(&str, &str)]) -> Result<HttpResponse, PackageDiag> {
+    let response = http_get_query(url, params, MAX_AUDIT_RESPONSE)
+        .map_err(audit_e1204)?
+        .ok_or_else(|| {
+            audit_e1204(format!(
+                "response from GET {url} exceeds {MAX_AUDIT_RESPONSE} bytes"
+            ))
+        })?;
+    if response.status != 200 {
+        return Err(audit_e1204(format!(
+            "GET {url} returned {}",
+            response.status
+        )));
+    }
+    Ok(response)
+}
+
+enum PartsGet {
+    Body(HttpResponse),
+    Unlisted,
+    TooLarge,
+}
+
+fn audit_supplier_parts_get(url: &str, params: &[(&str, &str)]) -> Result<PartsGet, PackageDiag> {
+    let Some(response) = http_get_query(url, params, MAX_AUDIT_RESPONSE).map_err(audit_e1204)?
+    else {
+        return Ok(PartsGet::TooLarge);
+    };
+    if response.status == 404 && is_supplier_not_found(&response.body) {
+        return Ok(PartsGet::Unlisted);
+    }
+    if response.status != 200 {
+        return Err(audit_e1204(format!(
+            "GET {url} returned {}",
+            response.status
+        )));
+    }
+    Ok(PartsGet::Body(response))
+}
+
+/// Fetch one PN or MPN batch. Values remain comma-separated here because that
+/// is the supplier-parts contract; manufacturer normalization below instead
+/// uses repeated parameters because manufacturer names can contain commas.
+pub fn supplier_parts(
+    supplier: &str,
+    kind: &str,
+    values: &[String],
+) -> Result<SupplierPartsResponse, PackageDiag> {
+    assert!(matches!(kind, "pn" | "mpn"));
+    assert!(!values.is_empty() && values.len() <= SUPPLIER_AUDIT_BATCH);
+    let encoded_supplier = supplier
+        .as_bytes()
+        .iter()
+        .flat_map(|byte| match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~' => {
+                vec![char::from(*byte)]
+            }
+            _ => format!("%{byte:02X}").chars().collect(),
+        })
+        .collect::<String>();
+    let url = format!(
+        "{}/suppliers/{supplier}/parts",
+        registry_url().trim_end_matches('/'),
+        supplier = encoded_supplier
+    );
+    let response = match audit_supplier_parts_get(&url, &[(kind, &values.join(","))])? {
+        PartsGet::Body(response) => response,
+        PartsGet::Unlisted => return Ok(SupplierPartsResponse::Unlisted),
+        PartsGet::TooLarge => return Ok(SupplierPartsResponse::TooLarge),
+    };
+    let malformed =
+        |error: String| audit_e1204(format!("malformed response from GET {url}: {error}"));
+    // A body within the byte bound can still exceed the parser's value or
+    // array bound. Both mean the same thing to the caller: ask for less.
+    let json = match JsonParser::with_limits(&response.body, JsonLimits::AUDIT)
+        .map_err(&malformed)?
+        .parse_bounded()
+    {
+        Ok(json) => json,
+        Err((true, _)) => return Ok(SupplierPartsResponse::TooLarge),
+        Err((false, error)) => return Err(malformed(error)),
+    };
+    parse_supplier_parts_response(&json, supplier, kind, values)
+        .map(SupplierPartsResponse::Parts)
+        .map_err(malformed)
+}
+
+/// Normalize one nonempty batch on the registry. Empty source fields are
+/// filtered by the caller: sending them is a protocol error (HTTP 400).
+pub fn normalize_supplier_fields(
+    mfr: &[String],
+    mpn: &[String],
+) -> Result<NormalizedFields, PackageDiag> {
+    assert!(!mfr.is_empty() || !mpn.is_empty());
+    assert!(mfr.len() <= SUPPLIER_AUDIT_BATCH && mpn.len() <= SUPPLIER_AUDIT_BATCH);
+    let url = format!(
+        "{}/manufacturers/normalize",
+        registry_url().trim_end_matches('/')
+    );
+    let mut params = Vec::with_capacity(mfr.len() + mpn.len());
+    params.extend(mfr.iter().map(|value| ("mfr", value.as_str())));
+    params.extend(mpn.iter().map(|value| ("mpn", value.as_str())));
+    let response = audit_get(&url, &params)?;
+    parse_normalize_response(&response.body, mfr, mpn)
+        .map_err(|error| audit_e1204(format!("malformed response from GET {url}: {error}")))
 }
 
 /// Stable, byte-deterministic JSON for `cohdl search --json`. The registry is
@@ -1100,9 +1618,77 @@ pub fn render_search_json(search: &SearchResults) -> String {
             let _ = writeln!(out, "        \"mpn\": {},", nullable(&part.mpn));
             let _ = writeln!(
                 out,
-                "        \"primary\": {}",
-                if part.primary { "true" } else { "false" }
+                "        \"primary\": {}{}",
+                if part.primary { "true" } else { "false" },
+                if part.suppliers.is_some() { "," } else { "" }
             );
+            if let Some(suppliers) = &part.suppliers {
+                if suppliers.is_empty() {
+                    out.push_str("        \"suppliers\": []\n");
+                } else {
+                    out.push_str("        \"suppliers\": [\n");
+                    for (supplier_index, supplier) in suppliers.iter().enumerate() {
+                        out.push_str("          {\n");
+                        let _ = writeln!(
+                            out,
+                            "            \"supplier\": {},",
+                            string(&supplier.supplier)
+                        );
+                        let _ = writeln!(out, "            \"pn\": {},", string(&supplier.pn));
+                        let _ = writeln!(
+                            out,
+                            "            \"at\": [{}, {}],",
+                            string(&supplier.at[0]),
+                            string(&supplier.at[1])
+                        );
+                        let _ = writeln!(out, "            \"rotate\": {},", supplier.rotate);
+                        if supplier.links.is_empty() {
+                            out.push_str("            \"links\": [],\n");
+                        } else {
+                            out.push_str("            \"links\": [\n");
+                            for (link_index, link) in supplier.links.iter().enumerate() {
+                                out.push_str("              {\n");
+                                let _ = writeln!(
+                                    out,
+                                    "                \"label\": {},",
+                                    string(&link.label)
+                                );
+                                let _ =
+                                    writeln!(out, "                \"url\": {}", string(&link.url));
+                                out.push_str(if link_index + 1 < supplier.links.len() {
+                                    "              },\n"
+                                } else {
+                                    "              }\n"
+                                });
+                            }
+                            out.push_str("            ],\n");
+                        }
+                        if let Some(catalog) = &supplier.catalog {
+                            out.push_str("            \"catalog\": {\n");
+                            let _ = writeln!(
+                                out,
+                                "              \"class\": {},",
+                                string(&catalog.class)
+                            );
+                            let _ = writeln!(out, "              \"stock\": {},", catalog.stock);
+                            let _ = writeln!(
+                                out,
+                                "              \"snapshot_date\": {}",
+                                string(&catalog.snapshot_date)
+                            );
+                            out.push_str("            }\n");
+                        } else {
+                            out.push_str("            \"catalog\": null\n");
+                        }
+                        out.push_str(if supplier_index + 1 < suppliers.len() {
+                            "          },\n"
+                        } else {
+                            "          }\n"
+                        });
+                    }
+                    out.push_str("        ]\n");
+                }
+            }
             out.push_str(if index + 1 < search.parts.len() {
                 "      },\n"
             } else {

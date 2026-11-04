@@ -17,7 +17,7 @@ use serde_json::{Map, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
-const SNAPSHOT_SHA256: &str = "daa1efcda07bc722f2c97843b9744f151b999997770245baeb210d112e294942";
+const SNAPSHOT_SHA256: &str = "cfbe94649eab891b056d869e824d542df2b9d414d450c51a47584ec497605c1d";
 
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -661,6 +661,7 @@ fn esp32_generated_footprints_round_trip_every_normalized_pad() {
             "exact_rect" => exact_courtyards += 1,
             "conservative_axis_aligned_bounding_rect" => projected_courtyards += 1,
             "synthesized_pad_bounding_rect" => synthesized_courtyards += 1,
+            "pad_envelope_ipc7351b_nominal_0p25mm" => projected_courtyards += 1,
             other => panic!("{context}: unsupported courtyard projection {other}"),
         }
         let courtyard = footprint.courtyard.as_ref().expect("generated courtyard");
@@ -890,6 +891,7 @@ fn emitter_witness(world: &mut cohdl::resolve::World, footprint: &str, index: us
                         span,
                     },
                 ],
+                suppliers: Vec::new(),
                 footprint: Some(ident(footprint, span)),
                 span,
             },

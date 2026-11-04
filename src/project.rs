@@ -17,6 +17,9 @@ pub struct Project {
     /// Absolute on-disk path per entry in `files` (same order) — used by the
     /// LSP (RFC-014) for URI mapping and unsaved-buffer overlays.
     pub abs_paths: Vec<PathBuf>,
+    /// FQ root → declared package name, and package name → manifest version.
+    pub package_names: std::collections::BTreeMap<String, String>,
+    pub package_versions: std::collections::BTreeMap<String, String>,
 }
 
 /// Load a project from a directory (with `cohdl.toml`) or a single `.cohdl`
@@ -38,11 +41,19 @@ pub fn load_project(path: &Path, std_dir: Option<&Path>) -> Result<Project, Stri
 pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result<Project, String> {
     let mut files = Vec::new();
     let mut abs_paths = Vec::new();
+    let mut package_names = std::collections::BTreeMap::new();
+    let mut package_versions = std::collections::BTreeMap::new();
     for (name, dir) in deps {
         ensure_package_dir(dir, name)?;
         let src = dir.join("src");
         let content_dir = if src.is_dir() { src } else { dir.clone() };
         let before = files.len();
+        let version = peek_manifest(dir)
+            .ok()
+            .and_then(|(_, manifest)| manifest.version)
+            .unwrap_or_else(|| "0.0.0+unversioned".to_string());
+        package_names.insert(crate::pipeline::package_root(name), name.clone());
+        package_versions.insert(name.clone(), version);
         collect_cohdl_files(&content_dir, &content_dir, name, &mut files, &mut abs_paths)?;
         if files.len() == before {
             return Err(format!(
@@ -73,6 +84,8 @@ pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result
             top: None,
             files,
             abs_paths,
+            package_names,
+            package_versions,
         });
     }
 
@@ -90,6 +103,17 @@ pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result
     let manifest = parse_manifest(&manifest_text)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     reject_std_package(&manifest.name)?;
+    package_names.insert(
+        crate::pipeline::package_root(&manifest.name),
+        manifest.name.clone(),
+    );
+    package_versions.insert(
+        manifest.name.clone(),
+        manifest
+            .version
+            .clone()
+            .unwrap_or_else(|| "0.0.0+unversioned".to_string()),
+    );
     crate::registry::name_tier(&manifest.name)
         .map_err(|e| format!("{}: {}", manifest_path.display(), e))?;
     if let Some((dep, _)) = deps.iter().find(|(n, _)| *n == manifest.name) {
@@ -116,6 +140,8 @@ pub fn load_project_with_deps(path: &Path, deps: &[(String, PathBuf)]) -> Result
         top: manifest.top,
         files,
         abs_paths,
+        package_names,
+        package_versions,
     })
 }
 

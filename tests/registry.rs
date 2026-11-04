@@ -496,6 +496,283 @@ fn search_normalizes_unicode_whitespace_and_bom_before_the_request() {
 }
 
 #[test]
+fn search_encodes_one_supplier_and_repeated_classes() {
+    let tmp = tmp_dir("search_supplier_filters");
+    let body = r#"{"query":"resistor","packages":{"results":[],"has_more":false},"parts":{"results":[],"has_more":false}}"#;
+    let (url, request) = spawn_search_mock(200, body);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &[
+            "search",
+            "resistor",
+            "--supplier",
+            "acme",
+            "--class",
+            "resistor & ceramic",
+            "--class",
+            "高压/电源",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        request.recv().unwrap().to_ascii_lowercase(),
+        "/search?q=resistor&supplier=acme&class=resistor+%26+ceramic&class=%e9%ab%98%e5%8e%8b%2f%e7%94%b5%e6%ba%90"
+    );
+}
+
+#[test]
+fn search_rejects_class_without_supplier_and_repeated_supplier_locally() {
+    let tmp = tmp_dir("search_filter_usage");
+    let cases = [
+        (
+            vec!["search", "resistor", "--class", "resistor"],
+            "`--class` requires `--supplier ID`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--supplier",
+                "acme",
+            ],
+            "accepts at most one `--supplier ID`",
+        ),
+        (
+            vec!["search", "resistor", "--class"],
+            "--class needs a value",
+        ),
+        (
+            vec!["search", "resistor", "--supplier", "LCSC"],
+            "invalid supplier ID `LCSC`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--class",
+                " resistor",
+            ],
+            "invalid class ` resistor`",
+        ),
+        (
+            vec![
+                "search",
+                "resistor",
+                "--supplier",
+                "acme",
+                "--class",
+                "a\u{200B}b",
+            ],
+            "invalid class",
+        ),
+    ];
+    let many: Vec<String> = (0..97).map(|i| format!("c{i}")).collect();
+    let mut too_many = vec!["search", "resistor", "--supplier", "acme"];
+    for class in &many {
+        too_many.extend(["--class", class.as_str()]);
+    }
+    let cases = cases
+        .into_iter()
+        .chain([(too_many, "at most 96 `--class` values")]);
+    for (args, expected) in cases {
+        // Validation must win before a connection is attempted.
+        let out = run_output("http://127.0.0.1:9", &tmp.join("home"), &args);
+        assert_eq!(out.status.code(), Some(2), "{args:?}");
+        assert!(out.stdout.is_empty(), "{args:?}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(stderr.contains(expected), "{args:?}: {stderr}");
+    }
+}
+
+const SEARCH_WITH_SUPPLIERS: &str = r#"{
+  "query":"supplier parts",
+  "packages":{"results":[],"has_more":false},
+  "parts":{"results":[{
+    "package":"@contrib/parts","tier":"contrib","version":"1.0.0",
+    "fq":"parts::P","name":"P","device":"parts::D","intent":null,
+    "manufacturer":"M","mpn":"M-1","primary":true,
+    "suppliers":[{
+      "supplier":"acme","pn":"A-1","at":["1mm","-2mm"],"rotate":270,
+      "links":[
+        {"label":"Product","url":"https://example.com/A-1"},
+        {"label":"Datasheet","url":"https://example.com/A-1.pdf?x=1&y=2"}
+      ],
+      "catalog":{"class":"resistor","stock":7,"snapshot_date":"2026-10-28T01:02:03.000Z"}
+    },{
+      "supplier":"acme","pn":"A-2","at":["0mm","0mm"],"rotate":0,
+      "links":[],"catalog":null
+    }]
+  }],"has_more":false}
+}"#;
+
+#[test]
+fn search_human_prints_supplier_mappings_links_and_catalog_availability() {
+    let tmp = tmp_dir("search_supplier_human");
+    let (url, _) = spawn_search_mock(200, SEARCH_WITH_SUPPLIERS);
+    let out = run_output(&url, &tmp.join("home"), &["search", "supplier parts"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        concat!(
+            "Parts\n",
+            "  P — M · M-1 · primary\n",
+            "    @contrib/parts@1.0.0 [Community] · parts::P\n",
+            "    device parts::D\n",
+            "    supplier acme: A-1 · at (1mm, -2mm) · rotate 270\n",
+            "      catalog: resistor · stock 7 · snapshot 2026-10-28T01:02:03.000Z\n",
+            "      Product: https://example.com/A-1\n",
+            "      Datasheet: https://example.com/A-1.pdf?x=1&y=2\n",
+            "    supplier acme: A-2 · at (0mm, 0mm) · rotate 0\n",
+            "      catalog: unavailable\n",
+        )
+    );
+}
+
+#[test]
+fn search_json_passes_through_every_supplier_catalog_and_link_field_exactly() {
+    let tmp = tmp_dir("search_supplier_json");
+    let (url, _) = spawn_search_mock(200, SEARCH_WITH_SUPPLIERS);
+    let out = run_output(
+        &url,
+        &tmp.join("home"),
+        &["search", "supplier parts", "--json"],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        r#"{
+  "query": "supplier parts",
+  "packages": {
+    "results": [],
+    "has_more": false
+  },
+  "parts": {
+    "results": [
+      {
+        "package": "@contrib/parts",
+        "tier": "contrib",
+        "version": "1.0.0",
+        "fq": "parts::P",
+        "name": "P",
+        "device": "parts::D",
+        "intent": null,
+        "manufacturer": "M",
+        "mpn": "M-1",
+        "primary": true,
+        "suppliers": [
+          {
+            "supplier": "acme",
+            "pn": "A-1",
+            "at": ["1mm", "-2mm"],
+            "rotate": 270,
+            "links": [
+              {
+                "label": "Product",
+                "url": "https://example.com/A-1"
+              },
+              {
+                "label": "Datasheet",
+                "url": "https://example.com/A-1.pdf?x=1&y=2"
+              }
+            ],
+            "catalog": {
+              "class": "resistor",
+              "stock": 7,
+              "snapshot_date": "2026-10-28T01:02:03.000Z"
+            }
+          },
+          {
+            "supplier": "acme",
+            "pn": "A-2",
+            "at": ["0mm", "0mm"],
+            "rotate": 0,
+            "links": [],
+            "catalog": null
+          }
+        ]
+      }
+    ],
+    "has_more": false
+  }
+}
+"#
+    );
+}
+
+#[test]
+fn search_strictly_rejects_malformed_supplier_bindings() {
+    let tmp = tmp_dir("search_supplier_malformed");
+    let valid = r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":{"class":"resistor","stock":7,"snapshot_date":"today"}}]"#;
+    let cases = [
+        ("null", "must be an array"),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm"],"rotate":0,"links":[],"catalog":null}]"#,
+            "`at` must contain exactly two strings",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":-1,"links":[],"catalog":null}]"#,
+            "`rotate` must be a non-negative integer in range",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[{"label":"x"}],"catalog":null}]"#,
+            "missing `url`",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":[]}]"#,
+            "expected a JSON object",
+        ),
+        (
+            r#"[{"supplier":"acme","pn":"A-1","at":["0mm","0mm"],"rotate":0,"links":[],"catalog":{"class":"resistor","stock":"7","snapshot_date":"today"}}]"#,
+            "`stock` must be a number",
+        ),
+    ];
+    for (index, (suppliers, expected)) in cases.iter().enumerate() {
+        let body = format!(
+            r#"{{"query":"bad json","packages":{{"results":[],"has_more":false}},"parts":{{"results":[{{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"mpn":null,"primary":true,"suppliers":{suppliers}}}],"has_more":false}}}}"#
+        );
+        let (url, _) = spawn_search_mock(200, &body);
+        let out = run_output(
+            &url,
+            &tmp.join(format!("home{index}")),
+            &["search", "bad json"],
+        );
+        assert_eq!(out.status.code(), Some(1), "case {index}");
+        assert!(out.stdout.is_empty(), "case {index}");
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(stderr.contains("E1204"), "case {index}: {stderr}");
+        assert!(stderr.contains(expected), "case {index}: {stderr}");
+    }
+
+    let (url, _) = spawn_search_mock(
+        200,
+        &format!(
+            r#"{{"query":"bad json","packages":{{"results":[],"has_more":false}},"parts":{{"results":[{{"package":"parts","tier":"official","version":"1.0.0","fq":"parts::P","name":"P","device":"parts::D","intent":null,"manufacturer":null,"mpn":null,"primary":true,"suppliers":{valid}}}],"has_more":false}}}}"#
+        ),
+    );
+    let out = run_output(&url, &tmp.join("valid"), &["search", "bad json"]);
+    assert!(out.status.success(), "the malformed-case fixture is valid");
+}
+
+#[test]
 fn search_json_is_deterministic_and_preserves_nullable_fields() {
     let tmp = tmp_dir("search_json");
     let response = r#"{"parts":{"has_more":true,"results":[{"primary":false,"mpn":null,"manufacturer":"Acme","intent":null,"device":"parts::D","name":"P","fq":"parts::P","version":"2.0.0","tier":"contrib","package":"@contrib/parts"}]},"packages":{"has_more":false,"results":[{"updated":"now","description":"Rocket \ud83d\ude80","latest":"2.0.0","tier":"contrib","name":"@contrib/parts"}]},"query":"emoji parts"}"#;
@@ -665,11 +942,73 @@ fn search_decoder_enforces_default_result_and_transport_bounds() {
     assert_eq!(out.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&out.stderr).contains("exceeds the default limit of 20"));
 
-    let oversized = " ".repeat(1024 * 1024 + 1);
+    let oversized = " ".repeat(16 * 1024 * 1024 + 1);
     let (url, _) = spawn_search_mock(200, &oversized);
     let out = run_output(&url, &tmp.join("home2"), &["search", "too large"]);
     assert_eq!(out.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&out.stderr).contains("E1204"));
+}
+
+/// The registry's largest default response (registry/test/search.test.ts,
+/// "largest default response"): 20 packages and 20 parts, every part with 32
+/// supplier bindings of 4 links, every string at its bound and doubled by
+/// JSON escaping. The CLI must accept it.
+#[test]
+fn search_accepts_the_registrys_largest_default_response() {
+    let tmp = tmp_dir("search_largest_response");
+    let text = |bytes: usize| "\"".repeat(bytes);
+    let packages: Vec<serde_json::Value> = (0..20)
+        .map(|i| {
+            serde_json::json!({"name": format!("@contrib/p{i}"), "tier": "contrib",
+                "latest": "999999.999999.999999", "description": text(4096), "updated": "x".repeat(64)})
+        })
+        .collect();
+    let link_url = |n: usize| {
+        format!(
+            "https://example.com/{}{n}",
+            "\"".repeat(2048 - 20 - n.to_string().len())
+        )
+    };
+    let parts: Vec<serde_json::Value> = (0..20)
+        .map(|p| {
+            let suppliers: Vec<serde_json::Value> = (0..32)
+                .map(|i| {
+                    serde_json::json!({
+                        "supplier": format!("{:x<32}", format!("s{i}_")),
+                        "pn": format!("{p}-{i}-{}", "\"".repeat(120)),
+                        "at": [format!("-{}mm", "9".repeat(61)), format!("-{}mm", "9".repeat(61))],
+                        "rotate": 359,
+                        "links": (0..4).map(|l| serde_json::json!({
+                            "label": format!("L{l}{}", "\"".repeat(120)), "url": link_url(l)})).collect::<Vec<_>>(),
+                        "catalog": {"class": text(128), "stock": 9007199254740991_u64,
+                            "snapshot_date": "x".repeat(64)},
+                    })
+                })
+                .collect();
+            serde_json::json!({"package": "@contrib/p", "tier": "contrib",
+                "version": "999999.999999.999999", "fq": text(512), "name": text(512),
+                "device": text(512), "intent": text(2048), "manufacturer": text(512),
+                "mpn": text(512), "primary": true, "suppliers": suppliers})
+        })
+        .collect();
+    let body = serde_json::json!({"query": "largest",
+        "packages": {"results": packages, "has_more": true},
+        "parts": {"results": parts, "has_more": true}})
+    .to_string();
+    assert!(body.len() > 11_000_000, "{}", body.len());
+    let (url, _) = spawn_search_mock(200, &body);
+    let out = run_output(&url, &tmp.join("home"), &["search", "largest", "--json"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(json["parts"]["results"].as_array().unwrap().len(), 20);
+    assert_eq!(
+        json["parts"]["results"][19]["suppliers"][31]["links"][3]["url"],
+        link_url(3)
+    );
 }
 
 #[test]

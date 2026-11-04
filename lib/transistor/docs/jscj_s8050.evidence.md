@@ -12,3 +12,13 @@
 - Qualification boundary: this is an engineered selection for low-current reset, power-key and indicator sinks. Base drive, saturation voltage, thermal rise and assembly marking must be checked on the final board.
 
 The third-party PDF is not redistributed by this repository. Download it from the authorized source and verify the recorded SHA-256 before auditing the model.
+
+## Assembler frame (library plan W3)
+
+Version 0.2.0 turns `FP_JSCJ_SOT23` 90 degrees clockwise onto the assembler's
+frame, measured on the preview of 2026-10-30
+(`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`). The delta from the
+old frame to the new one is the RFC-034 section 2 triple `(0mm, 0mm, 90)`.
+Pads, courtyard and silkscreen turn together; pad numbers and lands are
+unchanged. A design that `place`s this footprint keeps its copper only after
+each placement is composed with the delta, which `tools/realign_place.py` does.

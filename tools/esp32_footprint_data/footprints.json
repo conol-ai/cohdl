@@ -15721,14 +15721,15 @@
     {
       "courtyard": {
         "at": [
-          "0.005",
+          "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "6.05",
-          "6.06"
-        ]
+          "7.9",
+          "7.9"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -19566,14 +19567,15 @@
     {
       "courtyard": {
         "at": [
-          "0.005",
+          "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "6.05",
-          "6.06"
-        ]
+          "7.9",
+          "7.9"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -20958,14 +20960,15 @@
     {
       "courtyard": {
         "at": [
-          "0.005",
+          "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "6.05",
-          "6.06"
-        ]
+          "7.9",
+          "7.9"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -48761,11 +48764,12 @@
           "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "3.3",
-          "3.3"
-        ]
+          "5",
+          "5"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -54872,11 +54876,12 @@
           "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "4.2",
-          "4.2"
-        ]
+          "6",
+          "6"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -56260,11 +56265,12 @@
           "0",
           "0"
         ],
-        "projection": "conservative_axis_aligned_bounding_rect",
+        "projection": "pad_envelope_ipc7351b_nominal_0p25mm",
         "size": [
-          "5.1",
-          "5.1"
-        ]
+          "7",
+          "7"
+        ],
+        "source_primitives": {}
       },
       "keepout_guides": [],
       "keepouts": [],
@@ -64085,7 +64091,7 @@
   "projection_contract": {
     "coordinates": "PADS integer coordinates use 1/1500000 mm units and are deterministically rounded half-up to CoHDL's 1e-15 mm literal grid (maximum projection error 0.5 fm).",
     "copper": "Shape, size, position, rotation, repeated number, chamfer, and plated thermal-via drill are exact normalized source facts.",
-    "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle.",
+    "courtyard": "Exact rectangles remain exact; segmented, polygonal, or PADS component keepouts become a conservative axis-aligned bounding rectangle. Six defective source courtyards are instead the pad envelope plus 0.25 mm IPC-7351B nominal-density clearance.",
     "mask": "Native pad mask is retained. PADS levels 121/128 are explicitly Solder Mask Top/Bottom; their arbitrary polygons are counted separately but not projected because CoHDL supports expansion, not independent mask polygons.",
     "paste": "Native module paste follows copper. Direct PADS level 123 (Paste Mask Top) polygons would be containment-proved same-number overlays; the pinned current sources contain none, so paste follows the exact copper islands or continuous EP.",
     "silkscreen": "Pin 1 is regenerated as the semantic marker. Antenna keepout outlines remain visible alongside enforced all-copper keepout rectangles; source body/fabrication graphics are omitted.",

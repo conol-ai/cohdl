@@ -12,7 +12,13 @@ downloaded; none was regenerated or optimized.
 > official V1.2 datasheet. It is now re-mapped to the datasheet's I2S ESOP8
 > pinout (§5 pin table): CTRL / LRCLK / BCLK / SDATA / VON / VDD / GND / VOP,
 > with footprint `FP_NS4168_ESOP8` (SOP-8, 1.27mm pitch, 5.0x4.0mm body,
-> 6.0mm lead-tip span, **no exposed pad** per the §11.1 package drawing).
+> 6.0mm lead-tip span).
+>
+> **Corrected 2026-10-30.** The §11.1 package drawing does show an exposed
+> pad (E2 2.313-2.513mm x D1 3.202-3.402mm); the earlier "no exposed pad"
+> reading was wrong. Pad 9 is its nominal 2.413 x 3.302mm land, centred, and
+> the device exposes it as `optional EP: 9 [passive]` because the §5 pin table
+> names no net for it.
 
 SHA-256 checksums:
 

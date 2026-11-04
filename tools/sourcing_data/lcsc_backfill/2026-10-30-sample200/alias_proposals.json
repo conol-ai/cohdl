@@ -1,0 +1,55 @@
+{
+  "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
+  "rows": [
+    {
+      "examples": [
+        {
+          "c": "C541229",
+          "mpn": "CC0201KRX7R7BB331"
+        },
+        {
+          "c": "C718246",
+          "mpn": "CC0201KRX7R9BB681"
+        },
+        {
+          "c": "C107011",
+          "mpn": "CC0402JRNPO9BN820"
+        }
+      ],
+      "identities": 64,
+      "official": "Yageo",
+      "supplier": "YAGEO"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2114977",
+          "mpn": "CRCW0201162KFKED"
+        },
+        {
+          "c": "C2114736",
+          "mpn": "CRCW0201261KFKED"
+        },
+        {
+          "c": "C4018219",
+          "mpn": "CRCW0201280KFKED"
+        }
+      ],
+      "identities": 15,
+      "official": "Vishay",
+      "supplier": "Vishay Intertech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C380785",
+          "mpn": "GD32E230F8P6TR"
+        }
+      ],
+      "identities": 1,
+      "official": "GigaDevice",
+      "supplier": "GigaDevice Semicon Beijing"
+    }
+  ],
+  "schema_version": 1
+}

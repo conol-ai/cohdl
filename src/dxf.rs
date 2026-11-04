@@ -48,6 +48,112 @@ pub enum Seg {
     },
 }
 
+impl Outline {
+    /// Exact centreline extent for placement origins, in femto-mm.
+    ///
+    /// Unlike `bbox`, this includes cardinal points reached by an arc. The
+    /// integer square root rounds the radius down to femto-mm, so a computed
+    /// cardinal is less than 1 femto-mm inside the mathematical extent. Arc
+    /// endpoints are retained exactly. Keep `bbox` unchanged: IPC-2581 uses
+    /// its endpoint-only approximation for stable component staging.
+    pub fn extent(&self) -> ((i128, i128), (i128, i128)) {
+        let mut extent = (self.start, self.start);
+        let mut start = self.start;
+        grow(&mut extent, start);
+        for seg in &self.segs {
+            let (to, center, clockwise) = match seg {
+                Seg::Line { to } => {
+                    grow(&mut extent, *to);
+                    start = *to;
+                    continue;
+                }
+                Seg::Arc {
+                    to,
+                    center,
+                    clockwise,
+                } => (*to, *center, *clockwise),
+            };
+            grow(&mut extent, to);
+            let radial = (start.0 - center.0, start.1 - center.1);
+            let radius =
+                integer_sqrt(radial.0.unsigned_abs().pow(2) + radial.1.unsigned_abs().pow(2))
+                    as i128;
+            for (direction, cardinal) in [
+                ((1, 0), (center.0 + radius, center.1)),
+                ((0, 1), (center.0, center.1 + radius)),
+                ((-1, 0), (center.0 - radius, center.1)),
+                ((0, -1), (center.0, center.1 - radius)),
+            ] {
+                if arc_reaches(
+                    radial,
+                    (to.0 - center.0, to.1 - center.1),
+                    direction,
+                    clockwise,
+                ) {
+                    grow(&mut extent, cardinal);
+                }
+            }
+            start = to;
+        }
+        extent
+    }
+}
+
+fn grow(bounds: &mut ((i128, i128), (i128, i128)), point: (i128, i128)) {
+    bounds.0 .0 = bounds.0 .0.min(point.0);
+    bounds.0 .1 = bounds.0 .1.min(point.1);
+    bounds.1 .0 = bounds.1 .0.max(point.0);
+    bounds.1 .1 = bounds.1 .1.max(point.1);
+}
+
+fn cross(a: (i128, i128), b: (i128, i128)) -> i128 {
+    a.0 * b.1 - a.1 * b.0
+}
+
+/// Does the directed arc pass this cardinal direction? Endpoints count as
+/// reached, including the zero-sweep limit of two nearly coincident vertices.
+fn arc_reaches(
+    start: (i128, i128),
+    end: (i128, i128),
+    cardinal: (i128, i128),
+    clockwise: bool,
+) -> bool {
+    // Reflect a clockwise arc into CCW; all angular comparisons then use one
+    // convention without angles or floating point.
+    let directed_cross = |a, b| if clockwise { -cross(a, b) } else { cross(a, b) };
+    if start == end {
+        return true; // DXF coincident endpoints denote a full circle.
+    }
+    let sweep = directed_cross(start, end);
+    let after_start = directed_cross(start, cardinal);
+    let before_end = directed_cross(cardinal, end);
+    if sweep > 0 {
+        // Less than 180 degrees: the cardinal must be inside both half-planes.
+        after_start >= 0 && before_end >= 0
+    } else if sweep < 0 {
+        // More than 180 degrees: exclude the short, untravelled end-to-start arc.
+        after_start >= 0 || before_end >= 0
+    } else if start.0 * end.0 + start.1 * end.1 < 0 {
+        after_start >= 0 // Exact semicircle.
+    } else {
+        after_start == 0 && start.0 * cardinal.0 + start.1 * cardinal.1 >= 0
+    }
+}
+
+fn integer_sqrt(n: u128) -> u128 {
+    let mut lo = 0u128;
+    let mut hi = n.min(u128::from(u64::MAX)) + 1;
+    while lo + 1 < hi {
+        let mid = lo + (hi - lo) / 2;
+        if mid <= n / mid {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    lo
+}
+
 /// Why an outline could not be extracted — each becomes a distinct E1006
 /// sub-case message (RFC-020 Gradeability).
 #[derive(Debug)]
@@ -121,12 +227,6 @@ pub fn extract_outline(text: &str, layer: &str) -> Result<Outline, DxfError> {
     let start = (poly.verts[0].0, poly.verts[0].1);
     let mut segs = Vec::new();
     let mut bbox = (start, start);
-    let grow = |b: &mut ((i128, i128), (i128, i128)), p: (i128, i128)| {
-        b.0 .0 = b.0 .0.min(p.0);
-        b.0 .1 = b.0 .1.min(p.1);
-        b.1 .0 = b.1 .0.max(p.0);
-        b.1 .1 = b.1 .1.max(p.1);
-    };
     // One segment per edge; edge i goes from vertex i to vertex i+1, using the
     // bulge stored ON vertex i (DXF convention). The closing edge (last->first)
     // uses the last vertex's bulge.
@@ -412,5 +512,54 @@ mod tests {
     #[test]
     fn garbage_is_unparseable() {
         assert!(extract_outline("not a dxf at all", "").is_err());
+    }
+
+    #[test]
+    fn integer_square_root_rounds_down() {
+        assert_eq!(integer_sqrt(0), 0);
+        assert_eq!(integer_sqrt(1), 1);
+        assert_eq!(integer_sqrt(99), 9);
+        assert_eq!(integer_sqrt(100), 10);
+        assert_eq!(integer_sqrt(u128::MAX), u128::from(u64::MAX));
+    }
+
+    #[test]
+    fn arc_cardinals_follow_direction_and_sweep() {
+        let east = (1, 0);
+        let north = (0, 1);
+        let west = (-1, 0);
+        let south = (0, -1);
+        for (start, end, clockwise, expected) in [
+            (east, north, false, &[east, north][..]),
+            (north, east, true, &[east, north][..]),
+            (north, east, false, &[east, north, west, south][..]),
+            (east, north, true, &[east, north, west, south][..]),
+            (east, east, false, &[east, north, west, south][..]),
+            (east, east, true, &[east, north, west, south][..]),
+        ] {
+            for cardinal in [east, north, west, south] {
+                assert_eq!(
+                    arc_reaches(start, end, cardinal, clockwise),
+                    expected.contains(&cardinal),
+                    "start={start:?}, end={end:?}, clockwise={clockwise}, cardinal={cardinal:?}"
+                );
+            }
+        }
+        // Short arcs between adjacent cardinals reach only their endpoints.
+        for clockwise in [false, true] {
+            let (start, end) = if clockwise {
+                (north, east)
+            } else {
+                (east, north)
+            };
+            for cardinal in [west, south] {
+                assert!(!arc_reaches(start, end, cardinal, clockwise));
+            }
+        }
+        // Exact semicircles include only the pair of cardinals on their side.
+        assert!(arc_reaches(east, west, north, false));
+        assert!(!arc_reaches(east, west, south, false));
+        assert!(arc_reaches(east, west, south, true));
+        assert!(!arc_reaches(east, west, north, true));
     }
 }

@@ -1,6 +1,13 @@
+import { readFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it, vi } from "vitest";
+import type { Env } from "../src/worker/auth";
+import worker from "../src/worker/index";
 import {
+  MAX_CATALOG_LOOKUP_KEYS,
   MAX_PART_SEARCH_INDEX_BYTES,
+  MAX_SEARCH_LINKS_PER_BINDING,
+  MAX_SUPPLIER_BINDINGS_PER_PART,
   MAX_PART_SEARCH_CHUNKS,
   PART_SEARCH_CHUNK_BYTES,
   extractPartSearchRows,
@@ -8,17 +15,68 @@ import {
   parseSearchParams,
   partSearchChunks,
   quoteFtsPhrase,
+  searchApi,
   type IndexedPartSearchRow,
   type PackageSearchRow,
   type SearchDependencies,
   type SearchStore,
 } from "../src/worker/search";
 
+interface BoundStatement { sql: string; values: unknown[] }
+function sqliteD1(db: DatabaseSync, statements: BoundStatement[] = [], batches: number[] = []): D1Database {
+  return {
+    prepare(sql: string) {
+      return { bind: (...values: unknown[]) => {
+        statements.push({ sql, values });
+        return {
+          async all() { return { results: db.prepare(sql).all(...values as never[]) }; },
+          async first() { return db.prepare(sql).get(...values as never[]) ?? null; },
+        };
+      } };
+    },
+    async batch(prepared: { all(): Promise<unknown> }[]) {
+      batches.push(prepared.length);
+      return Promise.all(prepared.map((statement) => statement.all()));
+    },
+  } as unknown as D1Database;
+}
+
+function sqliteSearch(parts: IndexedPartSearchRow[] = []) {
+  const db = new DatabaseSync(":memory:");
+  db.exec(readFileSync(new URL("../schema.sql", import.meta.url), "utf8"));
+  db.prepare("INSERT INTO accounts (email, password_hash, created_at) VALUES ('a@example.com', 'x', 'now')").run();
+  db.prepare("INSERT INTO packages (name, tier, owner_account, created_at) VALUES ('p', 'official', 1, 'now')").run();
+  db.prepare("INSERT INTO suppliers VALUES ('acme', 'Acme', 'https://example.com/products/{pn}', '[\"resistor\",\"capacitor\",\"connector\"]')").run();
+  db.prepare("INSERT INTO suppliers VALUES ('globex', 'Globex', 'https://example.net/{pn}', '[\"resistor\"]')").run();
+  for (const part of parts) {
+    db.prepare("INSERT INTO part_search (package_name, package_version, fq, name, device, intent, searchable, avl_json) VALUES ('p', ?, ?, ?, ?, ?, ?, ?)")
+      .run(part.version, part.fq, part.name, part.device, part.intent,
+        `${part.fq}\n${JSON.parse(part.avl_json).flatMap((entry: any) =>
+          [entry.manufacturer, entry.mpn, ...(entry.suppliers ?? []).map((b: any) => b.pn)]).join("\n")}`,
+        part.avl_json);
+  }
+  const statements: BoundStatement[] = [];
+  const batches: number[] = [];
+  return { db, statements, batches, d1: sqliteD1(db, statements, batches) };
+}
+
+function catalogInsert(db: DatabaseSync, supplier: string, pn: string, category: string, stock = 3) {
+  db.prepare("INSERT INTO supplier_catalog (supplier, pn, mpn, mpn_key, manufacturer_key, manufacturer, package, \"class\", stock, links, fetched_at) VALUES (?, ?, ?, ?, 'm', 'M', '0402', ?, ?, '[{\"label\":\"Datasheet\",\"url\":\"https://example.com/datasheet\"}]', '2026-10-28T01:02:03.000Z')")
+    .run(supplier, pn, `MPN-${pn}`, `mpn-${pn}`.toLowerCase(), category, stock);
+}
+
+async function sqliteInvoke(d1: D1Database, path: string) {
+  const req = request(path);
+  const response = await searchApi({ DB: d1 } as Env, req, new URL(req.url));
+  return { response, body: await response.json() as any };
+}
+
 interface Harness {
   deps: SearchDependencies;
   store: {
     searchPackages: ReturnType<typeof vi.fn<SearchStore["searchPackages"]>>;
     searchParts: ReturnType<typeof vi.fn<SearchStore["searchParts"]>>;
+    catalog: ReturnType<typeof vi.fn<SearchStore["catalog"]>>;
   };
   logs: Record<string, unknown>[];
 }
@@ -30,6 +88,7 @@ function harness(
   const store = {
     searchPackages: vi.fn<SearchStore["searchPackages"]>().mockResolvedValue(packages),
     searchParts: vi.fn<SearchStore["searchParts"]>().mockResolvedValue(parts),
+    catalog: vi.fn<SearchStore["catalog"]>().mockResolvedValue(new Map()),
   };
   const logs: Record<string, unknown>[] = [];
   return {
@@ -78,10 +137,24 @@ function partRow(
 }
 
 describe("stable search request parsing", () => {
+  it("validates supplier/class filters without changing package-only behavior", async () => {
+    expect(parseSearchParams(new URL("https://registry.cohdl.org/search?q=usb&supplier=acme&class=resistor&class=capacitor"))).toEqual({
+      ok: true, value: { query: "usb", kind: "all", limit: 20, offset: 0,
+        supplier: "acme", classes: ["resistor", "capacitor"] },
+    });
+    for (const path of [
+      "/search?q=usb&class=resistor", "/search?q=usb&supplier=ACME",
+      "/search?q=usb&supplier=acme&supplier=globex", "/search?q=usb&supplier=acme&class=",
+      `/search?q=usb&supplier=acme&${Array.from({ length: 97 }, (_, i) => `class=c${i}`).join("&")}`,
+    ]) expect(parseSearchParams(new URL(`https://registry.cohdl.org${path}`)).ok).toBe(false);
+    const h = harness([packageRow(0)]);
+    await invoke("/search?q=usb&kind=package&supplier=acme&class=resistor", h);
+    expect(h.store.searchParts).not.toHaveBeenCalled();
+  });
   it("trims the query and applies bounded defaults", () => {
     expect(parseSearchParams(new URL("https://registry.cohdl.org/search?q=%20stm32%20"))).toEqual({
       ok: true,
-      value: { query: "stm32", kind: "all", limit: 20, offset: 0 },
+      value: { query: "stm32", kind: "all", limit: 20, offset: 0, supplier: null, classes: [] },
     });
   });
 
@@ -93,7 +166,7 @@ describe("stable search request parsing", () => {
       ),
     ).toEqual({
       ok: true,
-      value: { query: "stm32", kind: "all", limit: 20, offset: 0 },
+      value: { query: "stm32", kind: "all", limit: 20, offset: 0, supplier: null, classes: [] },
     });
   });
 
@@ -104,7 +177,7 @@ describe("stable search request parsing", () => {
       ),
     ).toEqual({
       ok: true,
-      value: { query: "usb", kind: "part", limit: 1, offset: 10_000 },
+      value: { query: "usb", kind: "part", limit: 1, offset: 10_000, supplier: null, classes: [] },
     });
     expect(
       parseSearchParams(
@@ -158,6 +231,217 @@ describe("stable search request parsing", () => {
   });
 });
 
+describe("supplier bindings in stable part search", () => {
+  it("projects supplier bindings and makes their PN searchable", () => {
+    const row = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers: [
+        { supplier: "acme", pn: "SKU-needle-9", at: ["-1.2mm", "0mm"], rotate: 180 },
+      ] } } }] }, "p", "1.0.0")[0];
+    expect(row.searchable).toContain("SKU-needle-9");
+    expect(JSON.parse(row.avl_json)[0].suppliers).toEqual([
+      { supplier: "acme", pn: "SKU-needle-9", at: ["-1.2mm", "0mm"], rotate: 180 },
+    ]);
+  });
+
+  it("bounds bindings per AVL and drops malformed bindings without truncating fields", () => {
+    const suppliers = Array.from({ length: 18 }, (_, i) => ({ supplier: `s${i}`,
+      pn: `PN-${i}`, at: ["0mm", "0mm"], rotate: 0 }));
+    suppliers[3] = { ...suppliers[3], rotate: 360 };
+    const row = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers },
+        alts: [{ fields: [], suppliers: [{ supplier: "acme", pn: "ALT-1", at: ["0mm", "0mm"], rotate: 0 }] }] } }] },
+      "p", "1.0.0")[0];
+    const avl = JSON.parse(row.avl_json);
+    expect(avl[0].suppliers).toHaveLength(15);
+    expect(avl[0].suppliers.map((b: any) => b.supplier)).not.toContain("s3");
+    expect(avl[1].suppliers).toHaveLength(1);
+  });
+
+  it("caps distinct supplier identities per part across its AVL entries", () => {
+    // One clause per supplier per entry, so each entry's 16 bindings use 16 IDs.
+    const binding = (i: number) => ({ supplier: `s${i % 16}`, pn: `PN-${i}`, at: ["0mm", "0mm"], rotate: 0 });
+    const row = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers: [binding(0)] },
+        alts: Array.from({ length: 255 }, (_, a) => ({ fields: [],
+          suppliers: Array.from({ length: 16 }, (_, i) => binding(1 + a * 16 + i)) })) } }] },
+      "p", "1.0.0")[0];
+    const avl = JSON.parse(row.avl_json);
+    const identities = new Set(avl.flatMap((entry: any) => entry.suppliers.map((b: any) => b.pn)));
+    expect(identities.size).toBe(MAX_SUPPLIER_BINDINGS_PER_PART);
+    expect(row.searchable).toContain(`PN-${MAX_SUPPLIER_BINDINGS_PER_PART - 1}`);
+    expect(row.searchable.split("\n")).not.toContain(`PN-${MAX_SUPPLIER_BINDINGS_PER_PART}`);
+    // A repeated identity on a later entry costs nothing and stays indexed.
+    const repeated = extractPartSearchRows({ items: [{ fq: "p::P", name: "P", kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers: [binding(0)] },
+        alts: [{ fields: [], suppliers: Array.from({ length: 16 }, (_, i) => binding(1 + i)) },
+          { fields: [], suppliers: Array.from({ length: 16 }, (_, i) => binding(17 + i)) },
+          { fields: [], suppliers: [binding(0), binding(97)] }] } }] }, "p", "1.0.0")[0];
+    expect(JSON.parse(repeated.avl_json)[3].suppliers.map((b: any) => b.pn)).toEqual(["PN-0"]);
+  });
+
+  it("keeps the largest default response within the bounds `cohdl search` accepts", async () => {
+    // Mirrors src/registry.rs: MAX_SEARCH_RESPONSE and JsonLimits::SEARCH.
+    // tests/registry.rs parses a response of this same shape.
+    const CLI_MAX_BYTES = 16 * 1024 * 1024;
+    const CLI_MAX_NODES = 32_768;
+    const CLI_MAX_ARRAY_ITEMS = 256;
+    // Every string at its bound, and `"` doubles under JSON escaping.
+    const text = (bytes: number) => '"'.repeat(bytes);
+    const pn = (p: number, i: number) => `${p}-${i}-` + '"'.repeat(120);
+    const parts = Array.from({ length: 21 }, (_, p) => ({
+      package: text(64), tier: "contrib" as const, version: "999999.999999.999999",
+      fq: text(512), name: text(512), device: text(512), intent: text(2048),
+      avl_json: JSON.stringify(Array.from({ length: 2 }, (_, a) => ({
+        primary: a === 0, manufacturer: text(512), mpn: text(512),
+        suppliers: Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}_`.padEnd(32, "x"),
+          pn: pn(p, a * 16 + i), at: ["-" + "9".repeat(61) + "mm", "-" + "9".repeat(61) + "mm"], rotate: 359 })),
+      }))),
+    }));
+    const packages = Array.from({ length: 21 }, (_, i) => ({ ...packageRow(i), name: text(64),
+      description: text(4096) }));
+    const h = harness(packages, parts);
+    const url = (n: number) => "https://example.com/" + '"'.repeat(2048 - 20 - String(n).length) + n;
+    h.store.catalog.mockImplementation(async (keys) => new Map(keys.map((key) => [
+      JSON.stringify([key.supplier, key.pn]), { supplier: key.supplier, pn: key.pn, class: text(128),
+        stock: Number.MAX_SAFE_INTEGER, snapshot_date: "x".repeat(64), product_url_template: null,
+        links: Array.from({ length: 16 }, (_, i) => ({ label: `L${i}` + '"'.repeat(120), url: url(i) })) }])));
+    const req = request("/search?q=resistor");
+    const response = await handleSearch(req, new URL(req.url), h.deps);
+    const bytes = new Uint8Array(await response.clone().arrayBuffer()).length;
+    const body = await response.json() as any;
+    expect(body.parts.results).toHaveLength(20);
+    for (const part of body.parts.results) {
+      expect(part.suppliers).toHaveLength(MAX_SUPPLIER_BINDINGS_PER_PART);
+      for (const binding of part.suppliers) expect(binding.links).toHaveLength(MAX_SEARCH_LINKS_PER_BINDING);
+    }
+    let nodes = 0;
+    let widest = 0;
+    const walk = (value: unknown) => {
+      nodes += 1;
+      if (Array.isArray(value)) { widest = Math.max(widest, value.length); value.forEach(walk); }
+      else if (value !== null && typeof value === "object") Object.values(value).forEach(walk);
+    };
+    walk(body);
+    expect(bytes).toBeLessThanOrEqual(CLI_MAX_BYTES);
+    expect(nodes).toBeLessThanOrEqual(CLI_MAX_NODES);
+    expect(widest).toBeLessThanOrEqual(CLI_MAX_ARRAY_ITEMS);
+    // About 12.0 MB and 15,700 values at these bounds.
+    expect(bytes).toBeGreaterThan(11_000_000);
+  });
+
+  it("bounds catalog lookups for a page of parts with many distinct PNs to one batch", async () => {
+    // Stored rows indexed before the per-part cap may carry up to 4,096 identities.
+    const rows = Array.from({ length: 50 }, (_, p) => ({ ...partRow(Array.from({ length: 256 }, (_, a) => ({
+      primary: a === 0, manufacturer: "M", mpn: `M-${a}`,
+      suppliers: Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}`, pn: `P${p}-${a}`, at: ["0mm", "0mm"], rotate: 0 })),
+    }))), fq: `p::P_${p}`, name: `P_${p}`, device: `p::resistor_${p}` }));
+    const { d1, statements, batches } = sqliteSearch(rows);
+    const { response, body } = await sqliteInvoke(d1, "/search?q=resistor&kind=part&limit=50");
+    expect(response.status).toBe(200);
+    expect(body.parts.results).toHaveLength(50);
+    for (const part of body.parts.results) {
+      expect(part.suppliers).toHaveLength(MAX_SUPPLIER_BINDINGS_PER_PART);
+    }
+    const lookups = statements.filter((s) => s.sql.includes("FROM supplier_catalog c"));
+    expect(lookups.flatMap((s) => s.values).length / 2).toBe(MAX_CATALOG_LOOKUP_KEYS);
+    expect(batches).toEqual([lookups.length]);
+  });
+
+  it("retains the existing cumulative and per-part projection bounds with suppliers", () => {
+    const suppliers = Array.from({ length: 16 }, (_, i) => ({ supplier: `s${i}`,
+      pn: `PN-${i}-${"x".repeat(110)}`, at: ["0mm", "0mm"], rotate: 0 }));
+    const rows = extractPartSearchRows({ items: Array.from({ length: 40 }, (_, i) => ({
+      fq: `p::P_${i}`, name: `P_${i}`, kind: "part", pub: true,
+      part: { device: "p::D", primary: { fields: [], suppliers },
+        alts: Array.from({ length: 255 }, () => ({ fields: [], suppliers })) },
+    })) }, "p", "1.0.0");
+    expect(partSearchChunks(rows).flatMap((chunk) => JSON.parse(chunk))).toEqual(rows);
+    for (const row of rows) {
+      expect(new TextEncoder().encode(JSON.stringify(row)).length).toBeLessThanOrEqual(PART_SEARCH_CHUNK_BYTES - 2);
+      expect(JSON.parse(row.avl_json)).toHaveLength(256);
+    }
+    const bytes = rows.reduce((sum, row) => sum + new TextEncoder().encode(JSON.stringify(row)).length, 2);
+    expect(bytes).toBeLessThanOrEqual(MAX_PART_SEARCH_INDEX_BYTES);
+  });
+
+  it("enriches through real D1 and leaves missing catalogs as null", async () => {
+    const binding = { supplier: "acme", pn: "P / 1", at: ["1mm", "-2mm"], rotate: 90 };
+    const { db, d1, statements } = sqliteSearch([partRow([{ primary: true, manufacturer: "M", mpn: "M-1",
+      suppliers: [binding, { ...binding, supplier: "globex" }] }])]);
+    catalogInsert(db, "acme", "P / 1", "resistor", 7);
+    const { response, body } = await sqliteInvoke(d1, "/search?q=resistor&kind=part");
+    expect(response.status).toBe(200);
+    expect(body.parts.results[0].suppliers).toEqual([
+      { ...binding, links: [{ label: "Product", url: "https://example.com/products/P%20%2F%201" },
+        { label: "Datasheet", url: "https://example.com/datasheet" }],
+        catalog: { class: "resistor", stock: 7, snapshot_date: "2026-10-28T01:02:03.000Z" } },
+      { ...binding, supplier: "globex", links: [], catalog: null },
+    ]);
+    expect(statements.filter((s) => s.sql.includes("FROM supplier_catalog"))).toHaveLength(1);
+    expect(statements.at(-1)?.values).toEqual(["acme", "P / 1", "globex", "P / 1"]);
+  });
+
+  it("searches PN through real FTS and filters bindings and catalog before pagination", async () => {
+    const binding = (pn: string, supplier = "acme") => ({ supplier, pn, at: ["0mm", "0mm"], rotate: 0 });
+    const rows = [
+      partRow([{ primary: true, manufacturer: "M", mpn: "M-1", suppliers: [binding("WRONG-CLASS"), binding("GOOD-1", "globex")] }]),
+      partRow([{ primary: true, manufacturer: "M", mpn: "M-1", suppliers: [binding("NO-CATALOG")] }]),
+      partRow([{ primary: true, manufacturer: "M", mpn: "M-1", suppliers: [binding("GOOD-2"), binding("OTHER-CLASS")] }]),
+      partRow([{ primary: true, manufacturer: "M", mpn: "M-1", suppliers: [binding("GOOD-3")] }]),
+    ].map((row, i) => ({ ...row, fq: `p::P_${i}`, name: `P_${i}`, device: `p::resistor_${i}` }));
+    const { db, d1, statements } = sqliteSearch(rows);
+    for (const [pn, category] of [["WRONG-CLASS", "connector"], ["NO-CATALOG", "connector"],
+      ["GOOD-2", "resistor"], ["OTHER-CLASS", "capacitor"], ["GOOD-3", "capacitor"]]) {
+      catalogInsert(db, "acme", pn, category);
+    }
+    catalogInsert(db, "globex", "GOOD-1", "resistor");
+    let result = await sqliteInvoke(d1, "/search?q=resistor&kind=part&supplier=acme&class=resistor&class=capacitor&limit=1");
+    expect(result.body.parts.results.map((row: any) => row.fq)).toEqual(["p::P_3"]);
+    expect(result.body.parts.has_more).toBe(true);
+    result = await sqliteInvoke(d1, "/search?q=resistor&kind=part&supplier=acme&class=resistor&class=capacitor&limit=1&offset=1");
+    expect(result.body.parts.results.map((row: any) => row.fq)).toEqual(["p::P_2"]);
+    expect(result.body.parts.has_more).toBe(false);
+    expect(statements[0].sql.indexOf("json_each")).toBeLessThan(statements[0].sql.indexOf("LIMIT"));
+    result = await sqliteInvoke(d1, "/search?q=GOOD-3&kind=part&supplier=acme");
+    expect(result.body.parts.results.map((row: any) => row.fq)).toEqual(["p::P_3"]);
+    result = await sqliteInvoke(d1, "/search?q=resistor&kind=part&supplier=acme");
+    expect(result.body.parts.results.map((row: any) => row.fq)).toContain("p::P_0");
+    result = await sqliteInvoke(d1, "/search?q=NO-CATALOG&kind=part&supplier=acme");
+    expect(result.body.parts.results.map((row: any) => row.fq)).toEqual(["p::P_1"]);
+    result = await sqliteInvoke(d1, "/search?q=NO-CATALOG&kind=part&supplier=acme&class=resistor");
+    expect(result.body.parts.results).toEqual([]);
+  });
+
+  it("chunks tuple IN enrichment below 100 bindings in one batch without per-row lookups", async () => {
+    const suppliers = Array.from({ length: 50 }, (_, i) => ({ supplier: "acme", pn: `PN-${i}`,
+      at: ["0mm", "0mm"], rotate: 0 }));
+    const rows = [0, 1].map((p) => ({ ...partRow(suppliers.slice(p * 25, p * 25 + 25).map((binding, index) => ({
+      primary: index === 0, manufacturer: "M", mpn: `M-${index}`, suppliers: [binding],
+    }))), fq: `p::P_${p}`, name: `P_${p}`, device: `p::resistor_${p}` }));
+    const { db, d1, statements, batches } = sqliteSearch(rows);
+    for (const { pn } of suppliers) catalogInsert(db, "acme", pn, "resistor");
+    const { response, body } = await sqliteInvoke(d1, "/search?q=resistor&kind=part");
+    expect(response.status).toBe(200);
+    const returned = body.parts.results.flatMap((part: any) => part.suppliers);
+    expect(returned).toHaveLength(50);
+    expect(returned.every((b: any) => b.catalog !== null)).toBe(true);
+    const lookups = statements.filter((s) => s.sql.includes("FROM supplier_catalog c"));
+    expect(lookups.map((s) => s.values.length)).toEqual([98, 2]);
+    expect(batches).toEqual([2]);
+    expect(new Set(lookups.flatMap((s) => s.values.filter((_, i) => i % 2 === 1))))
+      .toEqual(new Set(suppliers.map((b) => b.pn)));
+  });
+
+  it("keeps the package-only web route independent of part supplier metadata", async () => {
+    const { d1, statements } = sqliteSearch();
+    const env = { DB: d1, ASSETS: { fetch: vi.fn() } } as unknown as Env;
+    const response = await worker.fetch(new Request("https://registry.cohdl.org/api/search?q=p&supplier=acme"), env);
+    expect(response.status).toBe(200);
+    expect(statements).toHaveLength(2);
+    expect(statements.every((s) => !s.sql.includes("part_search") && !s.sql.includes("supplier_catalog"))).toBe(true);
+  });
+});
+
 describe("stable search response", () => {
   it("rejects non-GET methods at the stable route", async () => {
     const h = harness();
@@ -175,7 +459,7 @@ describe("stable search response", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("public, max-age=30");
     expect(h.store.searchPackages).toHaveBeenCalledWith("needle", 21, 0);
-    expect(h.store.searchParts).toHaveBeenCalledWith('"needle"', 21, 0);
+    expect(h.store.searchParts).toHaveBeenCalledWith('"needle"', 21, 0, null, []);
     expect(body).toEqual({
       query: "needle",
       packages: { results: [packageRow(0)], has_more: false },
@@ -192,6 +476,7 @@ describe("stable search response", () => {
             manufacturer: "Vishay",
             mpn: "ALT-needle-42",
             primary: false,
+            suppliers: [],
           },
         ],
         has_more: false,
@@ -229,7 +514,7 @@ describe("stable search response", () => {
     );
     const { body } = await invoke("/search?q=resistor&limit=2&offset=7", h);
     expect(h.store.searchPackages).toHaveBeenCalledWith("resistor", 3, 7);
-    expect(h.store.searchParts).toHaveBeenCalledWith('"resistor"', 3, 7);
+    expect(h.store.searchParts).toHaveBeenCalledWith('"resistor"', 3, 7, null, []);
     expect(body.packages.results).toHaveLength(2);
     expect(body.packages.has_more).toBe(true);
     expect(body.parts.results).toHaveLength(2);
@@ -345,8 +630,8 @@ describe("API-doc part search extraction", () => {
       expect(rows[0].searchable).toContain(value);
     }
     expect(JSON.parse(rows[0].avl_json)).toEqual([
-      { primary: true, manufacturer: "Samsung", mpn: "CL05B104KO5NNNC" },
-      { primary: false, manufacturer: "Murata", mpn: "GRM155R71C104KA88D" },
+      { primary: true, manufacturer: "Samsung", mpn: "CL05B104KO5NNNC", suppliers: [] },
+      { primary: false, manufacturer: "Murata", mpn: "GRM155R71C104KA88D", suppliers: [] },
     ]);
   });
 
@@ -490,6 +775,7 @@ describe("API-doc part search extraction", () => {
       primary: true,
       manufacturer: null,
       mpn: null,
+      suppliers: [],
     });
   });
 

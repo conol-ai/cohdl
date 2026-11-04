@@ -10,7 +10,10 @@ fetched.  Before any row is written, the run is checked again:
   so no alias that was proposed but not accepted reaches the official map;
 - each row cites the run's confirmed snapshot, and its part number, MPN and
   class are what that snapshot read on the part's page, with the manufacturer
-  equal or related through the reviewed alias table as the row's rule says.
+  equal or related through the reviewed alias table as the row's rule says;
+- a confirmed ``preferred`` class is backed by the run's candidate list, whose
+  SHA-256 provenance records, since the page itself shows only Basic or
+  Extended.
 
 The merged map must still name one part number per (manufacturer, MPN) and
 one (manufacturer, MPN) per part number.  A row already present with the same
@@ -29,6 +32,7 @@ import sys
 
 # `python3 -I` does not put the script's directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from jlc_catalog import load_candidates
 from lcsc_backfill import confirmation_mpn, load_aliases, manufacturer_match
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,6 +73,13 @@ def run_rows(run: Path, aliases_path: Path = ALIASES) -> list[dict]:
     pages = {}
     for page in _json(run / "confirmed.json"):
         pages.setdefault(page["c"], []).append(page)
+    preferred = None
+    if any(page["category"] == "preferred" for group in pages.values() for page in group):
+        candidates = ROOT / sources.get("candidates", "")
+        if not sources.get("candidates") or not candidates.is_file() \
+                or _sha256(candidates) != sources.get("candidates_sha256"):
+            raise PromotionError(f"{run} records Preferred parts but its candidate list is missing or changed")
+        preferred = {row["c"] for row in load_candidates(candidates) if row["candidate_category"] == "preferred"}
     data = _json(run / "lcsc_map.json")
     if data.get("schema_version") != 1 or data.get("supplier") != "lcsc" or not isinstance(data.get("rows"), list):
         raise PromotionError(f"{run}/lcsc_map.json is not a schema 1 lcsc map")
@@ -87,9 +98,12 @@ def run_rows(run: Path, aliases_path: Path = ALIASES) -> list[dict]:
         if not matches:
             raise PromotionError(f"{label}: no confirmed page reads this part number, MPN and manufacturer "
                                  f"under rule {row['rule']}")
-        if row["category"] not in {page["category"] for page in matches} | (
-                {"preferred"} if any(page["category"] == "extended" for page in matches) else set()):
-            raise PromotionError(f"{label}: class {row['category']} is not what the page read")
+        # confirmed.json already holds the final class: lcsc_backfill.py turns
+        # an Extended page Preferred only when the candidate list says so.
+        if row["category"] not in {page["category"] for page in matches}:
+            raise PromotionError(f"{label}: class {row['category']} is not the confirmed record's")
+        if row["category"] == "preferred" and row["pn"] not in preferred:
+            raise PromotionError(f"{label}: Preferred, but the run's candidate list does not list it")
         rows.append({field: row[field] for field in FIELDS})
     return rows
 

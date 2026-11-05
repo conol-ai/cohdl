@@ -1,6 +1,6 @@
 # LCSC supplier catalog for the registry (plan D2), 2026-11-05
 
-Status: **checked, not uploaded.** The production upload needs two things first: sign-off on the snapshot SHA-256 below, and a completed alias review (`tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`).
+Status: **checked, not uploaded.** The production upload needs two things first: sign-off on the snapshot SHA-256 below, and the alias reviews in #62, #63 and #64 (evidence in `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`).
 
 `report.json` and `report.md` are the pre-upload report from `tools/upload_supplier_snapshot.py build`. The request body itself is not kept, because it rebuilds from the repository alone:
 

@@ -227,7 +227,7 @@ CPL 用 `--bottom-rotation lcsc=mirrored` 导出后，底面各份（包括 37°
   - 新增 `tools/upload_supplier_snapshot.py`：用一次请求发出供应商的整个目录，最多 10,000 行、4 MiB。一次请求替换整个目录，不能拆开。目录是 B1 快照（1,334 行）**加上 `lcsc_map.json` 里的每个料号**，这些料号的记录取自映射它的那次运行的已确认零件页：首批 108 个都不在快照里，只传快照的话，`cohdl suppliers` 会把每条绑定都报成未知。工具按料号合并去重（同一料号有两条不同记录即报错），转换成接口的行格式，发送前检查行数和字节数上限。用官方账号认证。
   - 上传别名表。
   - 每次上传到正式 registry，都要有人明确签字确认。
-  - 2026-11-05 进展：工具已完成，上传预检报告在 `tools/sourcing_data/registry_uploads/2026-11-05-lcsc/`：1,442 行、384,544 字节，库里的 6 个料号都在。registry 自己的解析器接受了这份请求体；在本地 registry 上完整跑通了上传，`cohdl suppliers` 把 6 条绑定都报为 `ok`。管理接口只认官方账号的网页登录会话，所以由签字的人用自己的会话执行上传。在此之前，三条别名要先在 `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md` 里完成复核：提交 `4da2f86` 写了已接受，但没有写明复核人，也没有附证据。
+  - 2026-11-05 进展：工具已完成，上传预检报告在 `tools/sourcing_data/registry_uploads/2026-11-05-lcsc/`：1,442 行、384,544 字节，库里的 6 个料号都在。registry 自己的解析器接受了这份请求体；在本地 registry 上完整跑通了上传，`cohdl suppliers` 把 6 条绑定都报为 `ok`。管理接口只认官方账号的网页登录会话，所以由签字的人用自己的会话执行上传。在此之前，三条别名要先各自在 issue 里完成复核（#62、#63、#64），证据见 `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`：提交 `4da2f86` 写了已接受，但没有写明复核人，也没有附证据。
 
 ### 阶段 E：W4 补料
 

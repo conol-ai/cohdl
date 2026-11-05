@@ -1,6 +1,10 @@
 # C2 frame board 3
 
-The third frame-alignment board of library plan phase C2. It holds 23 LCSC parts. Most are placed four times: top 0°, top 37°, bottom 0° and bottom 37°. The two BGAs are placed once, at top 0°. That makes 86 placements on a board of about 120 × 90 mm. No row carries a supplier mapping.
+The third frame-alignment board of library plan phase C2. It holds 62 LCSC parts:
+- 23 chosen for C2, below. Most are placed four times: top 0°, top 37°, bottom 0° and bottom 37°. The two BGAs are placed once, at top 0°.
+- The other 39 mapped passives of the batch 2 board (`tools/frame_boards/lcsc-batch-2-passive/`), one top copy at 0° each, so both boards go through one preview. The other 8 rows of that board are the chip-size rows below.
+
+That makes 125 placements on a board of about 120 × 105 mm. No row carries a supplier mapping.
 
 The 2026-10-06 list of 14 families was not kept, so this board takes up what boards 1 and 2 left open, and the most-used footprints that still have no row in `jlc_frames.json`. Every part number is a confirmed page: the W1 snapshot of 2026-10-30 (`jlc_catalog/2026-10-30/`), or the B2 sample's confirmations (`lcsc_backfill/2026-10-30-sample200/`).
 
@@ -76,6 +80,6 @@ The generator indexes the library itself, and `preview_package.py` refuses a man
 ## Checks before upload (2026-11-05)
 
 - The compiler CPL equals `smt_pos.py --neutral` and `--map` on the board, byte for byte.
-- With the drill/place origin, it also equals KiCad's own position export in position, side and top-side angle: 86 of 86 rows match.
+- With the drill/place origin, it also equals KiCad's own position export in position, side and top-side angle: 125 of 125 rows match.
 
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order. A part the assembler will not select is unverified, not a pass.

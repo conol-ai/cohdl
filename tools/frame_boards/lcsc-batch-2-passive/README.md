@@ -10,7 +10,7 @@ None of the 79 can be bound yet, because none has frame evidence that meets the 
 - **`same_supplier_footprint`.** This reason needs a supplier footprint identifier. The only candidate the part pages show is the package field (`0603` and so on), and it is not one: on C2 board 1, C7972 and C7722 both read `SOT-23-5` but needed rotate 180 and 270 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`). Two chip parts that read `0603` are therefore not shown to share a model. The sampling rule (at least 3 or 5% of a group) only applies once a group has a valid reason, so there is no group to sample.
 - **`same_preview_board`.** None of the 79 has been on a board.
 
-So each part number needs its own evidence, and this board provides it in one preview. Each row declares a local part with the supplier page's manufacturer and MPN, on the library entry's device type and footprint. The CPL carries no map, so the preview shows each footprint's raw frame. Chip resistors and MLCCs are not polarised, and C1 settled the bottom-side convention, so each part gets one top copy at 0°. That gives 47 placements on a board of about 100 × 20 mm.
+So each part number needs its own evidence, and this board provides it in one preview. The preview is shared with C2 board 3: `c2_board_3.py` adds every row of this manifest to that board, and the board goes up as one package (`tools/frame_boards/c2-board-3/`). The eight part numbers already on board 3 keep its four copies there. Each row declares a local part with the supplier page's manufacturer and MPN, on the library entry's device type and footprint. The CPL carries no map, so the preview shows each footprint's raw frame. Chip resistors and MLCCs are not polarised, and C1 settled the bottom-side convention, so each part gets one top copy at 0°. That gives 47 placements on a board of about 100 × 20 mm.
 
 | Footprint | Rows | LCSC |
 |---|---|---|
@@ -36,7 +36,7 @@ The other 32 part numbers read stock 0 on their pages (2026-10-30). The assemble
 - `CHIP_2010`: C877191, C877294
 - `CHIP_2512`: C877726, C877732, C877740, C877770, C877787, C877827, C878167, C878177, C6757826
 
-A few rows on the board have low stock: C2091530 3, C137787 3, C482832 5, C185267 1, C274074 2, C488841 4, C728389 5. Each needs one piece, but if any shows a stock warning at preview time, drop it and regenerate.
+A few rows on the board have low stock: C2091530 3, C137787 3, C482832 5, C185267 1, C274074 2, C488841 4, C728389 5. The assembler builds at least five boards, so each needs five pieces, and the rows under five may show a stock warning at preview time. Dropping a row and regenerating makes a new package, which needs its own authorization.
 
 ## After the preview
 

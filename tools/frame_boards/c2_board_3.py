@@ -18,6 +18,10 @@ frame row in jlc_frames.json:
   board 2's could not place for stock. Each BGA is placed once: the
   assembler builds five boards, so one copy needs five parts, not twenty.
 
+The board also carries the passive batch 2 rows (lcsc_batch_2_passive.py),
+so both go through one preview: each mapped passive not already above, as one
+top copy at 0 degrees.
+
 Every part number is a confirmed page: the W1 snapshot of 2026-10-30 or the
 B2 sample's confirmations (tools/sourcing_data/lcsc_backfill/2026-10-30-sample200).
 The script indexes the library itself (inventory.py), so preview_package.py
@@ -115,5 +119,27 @@ for name, fp, ptype, c, copies, note in sorted(SEL, key=lambda r: (-r[4], -reach
                  "mfr": part["mfr"], "mpn": part["mpn"], "pins": pins,
                  "width_mm": round(side, 3), "height_mm": round(side, 3), "covers_rotation": True, "placements": places,
                  "note": note, "jlc_package": part["package"], "category": part["category"]})
+# The batch 2 passives share this board's preview: one top copy each, in that
+# generator's order, after the rows above. The eight it shares with SEL keep
+# their four copies here.
+with tempfile.TemporaryDirectory() as td:
+    subprocess.run([sys.executable, "-I", str(HERE / "lcsc_batch_2_passive.py"), str(Path(td) / "p.json")],
+                   check=True, capture_output=True)
+    passives = json.load(open(Path(td) / "p.json"))
+have = {r["pn"] for r in rows}
+x, y, shelf = 0.0, y + shelf, 0.0
+for row in passives["rows"]:
+    if row["pn"] in have:
+        continue
+    side = row["width_mm"]
+    step = side + GAP
+    if x + step > WIDTH and x > 0:
+        x, y, shelf = 0.0, y + shelf, 0.0
+    row["placements"] = [{"at_mm": [round(x + side / 2 + GAP / 2, 3), round(y + side / 2 + GAP / 2, 3)],
+                          "rotate": 0, "side": "top"}]
+    x += step
+    shelf = max(shelf, step)
+    rows.append(row)
+deps.update(passives["dependencies"])
 json.dump({"name": "c2_frame_board_3", "dependencies": deps, "rows": rows}, open(sys.argv[1], "w"), indent=1, ensure_ascii=False)
 print(len(rows), "rows,", sum(len(r["placements"]) for r in rows), "placements, board ~", WIDTH, "x", round(y + shelf, 1), "mm")

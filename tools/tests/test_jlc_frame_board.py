@@ -142,6 +142,9 @@ class FrameBoardTests(unittest.TestCase):
         mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
         rows = json.loads(committed.read_text())["rows"]
         self.assertEqual(len({r["pn"] for r in rows}), len(rows))
+        # The passive batch 2 board shares this preview: all of its part numbers are here.
+        passives = json.loads((ROOT / "tools/frame_boards/lcsc-batch-2-passive/manifest.json").read_text())["rows"]
+        self.assertLessEqual({r["pn"] for r in passives}, {r["pn"] for r in rows})
         for row in rows:
             with self.subTest(row=row["name"]):
                 # Every part number is a confirmed page, with that page's identity.
@@ -164,8 +167,8 @@ class FrameBoardTests(unittest.TestCase):
             neutral = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-cpl.csv").read_text())))
             supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-cpl.csv").read_text()))}
             bom = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-bom.csv").read_text())))
-        self.assertEqual(len(neutral), 86)
-        self.assertEqual(len(bom), 23)
+        self.assertEqual(len(neutral), 125)
+        self.assertEqual(len(bom), 62)
         for row in neutral:
             angle = float(row["Rotation"])
             expected = angle if row["Layer"] == "Top" else (180 - angle) % 360

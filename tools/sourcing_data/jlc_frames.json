@@ -925,6 +925,1117 @@
         "record": "tools/sourcing_data/jlc_previews/2026-10-29-c1-bottom-preview/README.md"
       },
       "evidence_ref": null
+    },
+    {
+      "id": "c2b3-fpns4168esop8-c16581",
+      "package": "audio-amp",
+      "package_version": "0.2.0",
+      "footprint": "FP_NS4168_ESOP8",
+      "supplier": "lcsc",
+      "pn": "C16581",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's ESOP-8 model sits a quarter turn from this land; pin 1 read 86-87 deg (top) and 265-268 deg (bottom) on all four copies",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadufbga1007x7mmlayout12x12p05mm-c1338995",
+      "package": "bga",
+      "package_version": "0.2.0",
+      "footprint": "KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C1338995",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: on the single copy both of the preview's marks sit at the corner a quarter turn counter-clockwise from ball A1 (91 deg), none near A1; manual review",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "manual review of a BGA's two marks, one copy"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-fpsod3232p5x1p25mm-c2128",
+      "package": "@contrib/esd",
+      "package_version": "0.1.0",
+      "footprint": "FP_SOD323_2P5X1P25mm",
+      "supplier": "lcsc",
+      "pn": "C2128",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "polarity read by eye: the preview's minus sign sits on pad 1, beside the pin 1 dot, on all four copies"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-fpsod3232p5x1p25mm-c191023",
+      "package": "@contrib/esd",
+      "package_version": "0.1.0",
+      "footprint": "FP_SOD323_2P5X1P25mm",
+      "supplier": "lcsc",
+      "pn": "C191023",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "polarity read by eye: the preview's minus sign sits on pad 1, beside the pin 1 dot, on all four copies"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0201-c138161",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0201",
+      "supplier": "lcsc",
+      "pn": "C138161",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 4.1 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0201-c541229",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0201",
+      "supplier": "lcsc",
+      "pn": "C541229",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 3.0 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0201-c718246",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0201",
+      "supplier": "lcsc",
+      "pn": "C718246",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 3.2 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c93943",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C93943",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 2.3 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c106254",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C106254",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 7.9 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c107011",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C107011",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 5.9 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c114763",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C114763",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 1.5 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c137837",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C137837",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.9 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c137927",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C137927",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 4.3 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c477801",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C477801",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.7 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c482239",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C482239",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.2 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0402-c3009257",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0402",
+      "supplier": "lcsc",
+      "pn": "C3009257",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 7.1 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0603-c105575",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C105575",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.6 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0603-c163421",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C163421",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.8 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0603-c163429",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C163429",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.4 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0603-c482876",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0603",
+      "supplier": "lcsc",
+      "pn": "C482876",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.7 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c107108",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C107108",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 2.4 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c137422",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C137422",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.5 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c141703",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C141703",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.3 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c482966",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C482966",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.8 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c483001",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C483001",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 2.3 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c483188",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C483188",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.6 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c527206",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C527206",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 2.1 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c527232",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C527232",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 3.2 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip0805-c576985",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_0805",
+      "supplier": "lcsc",
+      "pn": "C576985",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 2.4 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip1206-c137203",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C137203",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.6 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip1206-c274047",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C274047",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.6 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip1206-c488876",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C488876",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.8 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip1206-c488985",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1206",
+      "supplier": "lcsc",
+      "pn": "C488985",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.2 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip1210-c309589",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_1210",
+      "supplier": "lcsc",
+      "pn": "C309589",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 3.3 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip2010-c137046",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_2010",
+      "supplier": "lcsc",
+      "pn": "C137046",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 1 of 1 copies (worst 0.9 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip2010-c877226",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_2010",
+      "supplier": "lcsc",
+      "pn": "C877226",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 1.2 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-chip2512-c878096",
+      "package": "passive",
+      "package_version": "0.2.3",
+      "footprint": "CHIP_2512",
+      "supplier": "lcsc",
+      "pn": "C878096",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
+        "note": "non-polar chip part: no pin 1 mark; the drawn body lies along its pads on 4 of 4 copies (worst 0.6 deg mod 180) and is centred on them, so the orientation is known mod 180 only"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-espressifqfn240p54e2p8-c24112",
+      "package": "qfn",
+      "package_version": "0.2.1",
+      "footprint": "ESPRESSIF_QFN24_0P5_4_E2P8",
+      "supplier": "lcsc",
+      "pn": "C24112",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's QFN-24 model sits a quarter turn from this land; pin 1 read 91 deg (top) and 266-267 deg (bottom) on all four copies",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadlqfp327x7mmp08mm-c14877",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_32_7X7MM_P0_8MM",
+      "supplier": "lcsc",
+      "pn": "C14877",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadlqfp487x7mmp05mm-c9861",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_48_7X7MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C9861",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadlqfp487x7mmp05mm-c23922",
+      "package": "qfp",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_LQFP_48_7X7MM_P0_5MM",
+      "supplier": "lcsc",
+      "pn": "C23922",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadsoic839x49mmp127mm-c8963",
+      "package": "soic",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+      "supplier": "lcsc",
+      "pn": "C8963",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "c2b3-kicadsoic839x49mmp127mm-c18229",
+      "package": "soic",
+      "package_version": "0.3.0",
+      "footprint": "KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+      "supplier": "lcsc",
+      "pn": "C18229",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-05",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
+      },
+      "evidence_ref": null
     }
   ]
 }

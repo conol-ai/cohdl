@@ -40,6 +40,8 @@ A few rows on the board have low stock: C2091530 3, C137787 3, C482832 5, C18526
 
 ## After the preview
 
+The shared preview of 2026-11-05 is recorded in `tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/`: 33 of these part numbers read 0 (mod 180) and have frame rows; C874860 and C878293 were not drawn and stay unverified. None is bound yet.
+
 Each part that reads rotate 0 gets its own `jlc_frames.json` row with that preview as evidence. The library then binds it:
 1. Bump `passive` to a new patch version. No footprint moves, so this is not breaking. Frame rows key on the version they name.
 2. Name that version in the frame rows.

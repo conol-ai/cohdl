@@ -91,3 +91,5 @@ The generator indexes the library itself, and `preview_package.py` refuses a man
 - With the drill/place origin, it also equals KiCad's own position export in position, side and top-side angle: 109 of 109 rows match.
 
 Upload for preview only and record the result in `jlc_frames.json` with the screenshots. Do not order. A part the assembler will not select is unverified, not a pass.
+
+The preview of 2026-11-05 (package `b332a01f…`) is recorded in `tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/`.

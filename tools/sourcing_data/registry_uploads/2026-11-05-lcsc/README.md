@@ -1,6 +1,6 @@
 # LCSC supplier catalog for the registry (plan D2), 2026-11-05
 
-Status: **checked, not uploaded.** The production upload needs two things first: sign-off on the snapshot SHA-256 below, and the alias reviews in #62, #63 and #64 (evidence in `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`).
+Status: **uploaded 2026-11-05 and verified** (see "Upload record" below). Alex signed off on the snapshot SHA-256 below, and Tony Huang accepted the three aliases in #62, #63 and #64 (evidence in `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`).
 
 `report.json` and `report.md` are the pre-upload report from `tools/upload_supplier_snapshot.py build`. The request body itself is not kept, because it rebuilds from the repository alone:
 
@@ -42,3 +42,17 @@ python3 -I tools/upload_supplier_snapshot.py verify OUT
 ```
 
 Then record here the time, the account, and the outputs of `upload` and `verify`.
+
+## Upload record (2026-11-05)
+
+- Account: Alex's registry account, official since 2026-11-05 (`/api/me` reports `official: true`).
+- Prerequisites: #62, #63 and #64 accepted and closed (03:53–03:54 UTC). Alex signed off on the snapshot SHA-256.
+- Body: rebuilt at `90974dd` with `build --dates`, which gave SHA-256 `dced4283…` and a `report.json` identical to this one.
+- Method: the same requests `upload` makes, in the same order, sent as same-origin `fetch` calls from Alex's signed-in registry tab. The browser attached its own session, so the session never left the browser. The page recomputed the body's SHA-256 before sending and would have refused a different one.
+- Results, about 05:39 UTC:
+  - `PUT /api/admin/manufacturer-aliases/GigaDevice%20Semicon%20Beijing`: 200, `alias_key` `gigadevice semicon beijing`.
+  - `PUT /api/admin/manufacturer-aliases/Vishay%20Intertech`: 200, `vishay intertech`.
+  - `PUT /api/admin/manufacturer-aliases/YAGEO`: 200, `yageo`.
+  - `PUT /api/admin/suppliers/lcsc/snapshot`: 200, `rows` 1442.
+- `verify` (05:40 UTC) exits 0. C117815, C129276, C529436, C717701, C730103 and C1857444 are all known, and each equals its snapshot row. The snapshot date is `2026-10-30T05:24:02Z`.
+- `cohdl suppliers --supplier lcsc` on the `lcsc-batch-1` board, against the production registry, reports `ok` for all six bindings, with no `unknown` or `mismatch`, and exits 0.

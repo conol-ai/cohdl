@@ -30,10 +30,12 @@ The alias applies to every part number from the supplier that shows that manufac
 
 Each alias is reviewed in its own issue, assigned to Tony Huang (`conol-tony`). The reviewer's comment there, accept or reject, is the review: it names the reviewer, the date and the decision.
 
-| Alias | Issue |
-|---|---|
-| `YAGEO` → `Yageo` | #62 |
-| `Vishay Intertech` → `Vishay` | #63 |
-| `GigaDevice Semicon Beijing` → `GigaDevice` | #64 |
+| Alias | Issue | Decision |
+|---|---|---|
+| `YAGEO` → `Yageo` | #62 | Accepted by Tony Huang, 2026-11-05 |
+| `Vishay Intertech` → `Vishay` | #63 | Accepted by Tony Huang, 2026-11-05 |
+| `GigaDevice Semicon Beijing` → `GigaDevice` | #64 | Accepted by Tony Huang, 2026-11-05 |
+
+Each acceptance cites the manufacturer's own sources and establishes manufacturer identity only. It does not make different MPNs equivalent or footprints compatible.
 
 An alias that is not accepted must be removed from `mfr_aliases.json`, and the map rows that rely on it re-promoted, before the aliases are uploaded to the registry.

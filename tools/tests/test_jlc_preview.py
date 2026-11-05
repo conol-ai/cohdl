@@ -213,17 +213,21 @@ class JlcPreviewTests(unittest.TestCase):
                 if "_download-icon_" in code:
                     (downloads / "Capture from JLCPCB.png").write_bytes(b"png")
                 return "true"
-            for shown, expect in (([([], drawn), (both, drawn)], {"U1": "mark", "U2": "mark"}),
-                                  ([(both[:1], drawn)] * 3, {"U1": "mark", "U2": "manual review"})):
-                with self.subTest(expect=expect), mock.patch.object(jp, "js", side_effect=js), \
+            # (exports as inspected, verdict, exports taken)
+            for shown, expect, taken in (
+                    ([([], drawn), (both, drawn)], {"U1": "mark", "U2": "mark"}, 2),
+                    # Two exports alike: a third would not differ.
+                    ([(both[:1], drawn)] * 3, {"U1": "mark", "U2": "manual review"}, 2),
+                    ([([], drawn), (both[:1], drawn), (both[:1], drawn)], {"U1": "mark", "U2": "manual review"}, 3)):
+                with self.subTest(expect=expect, taken=taken), mock.patch.object(jp, "js", side_effect=js), \
                         mock.patch.object(jp, "inspect", side_effect=shown) as found, \
                         mock.patch.object(sys, "stdout", io.StringIO()):
                     path, verdict = jp.export_capture("Top", downloads, out, fps, (0, 0, 50, 50), settle=0)
                     self.assertEqual(path, out)
                     self.assertEqual({ref: v[0] for ref, v in verdict.items()}, expect)
-                    self.assertEqual(found.call_count, len(shown))
+                    self.assertEqual(found.call_count, taken)
 
-    def test_a_lost_export_click_is_clicked_again(self):
+    def test_a_silent_export_is_clicked_once_more(self):
         fps = [fp("U1", 10, 10, 4)]
         shown = ([(6, 6, 9)], {"U1": {"drawn": True, "body": None}})
         with tempfile.TemporaryDirectory() as td:

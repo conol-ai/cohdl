@@ -367,7 +367,7 @@ def unmarked(marks, fps):
 EXPORT = '(() => { document.querySelector("[class*=_download-icon_]").click(); return "ok"; })()'
 
 
-def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=180, reclick=60):
+def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=480, reclick=240):
     """The preview's own export of SIDE, and the verdict on each of FPS (``verdicts``).
 
     Right after a side switch the preview can draw the lands before the parts,
@@ -378,6 +378,7 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
     """
     js("""(() => { const b = [...document.querySelectorAll("[class*=_nav-bar-item_]")].find(e => e.textContent.trim() === %s);
         b.click(); return "ok"; })()""" % json.dumps(side))
+    short = None
     for attempt in range(attempts):
         time.sleep(settle)
         wait("String(!/Rendering/.test(document.body.innerText))", lambda v: v == "true", 120, "the models")
@@ -398,19 +399,21 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
             if time.time() > end:
                 raise Stop("the %s export did not reach %s. If Arc asks to allow multiple downloads, allow it "
                            "and rerun" % (side.lower(), downloads))
-            # A click right after the view settles is sometimes lost; click once more.
-            if time.time() > again:
+            # A large board's export can take minutes to land; only a long silence earns one more click.
+            if again and time.time() > again:
                 js(EXPORT)
-                again = time.time() + reclick
+                again = None
             time.sleep(1)
         marks, readings = inspect(out, outline, side == "Bottom", fps)
         found = verdicts(marks, fps, readings)
-        short = sorted((ref for ref, (status, _) in found.items() if status not in PASS), key=natural)
+        last, short = short, sorted((ref for ref, (status, _) in found.items() if status not in PASS), key=natural)
         if not short:
             return out, found
+        if short == last:  # two exports alike: a model that is not drawn will not be drawn by a third
+            break
         if attempt + 1 < attempts:
             print("%s export shows no evidence yet on %s; exporting again" % (side, ", ".join(short)))
-    print("%s export: still no evidence on %s after %d exports" % (side, ", ".join(short), attempts))
+    print("%s export: still no evidence on %s after %d exports" % (side, ", ".join(short), attempt + 1))
     return out, found
 
 

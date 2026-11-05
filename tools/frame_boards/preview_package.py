@@ -42,7 +42,8 @@ import jlc_frame_board
 # Boards whose manifest a generator writes from the repository's data.  C2
 # frame boards 1 and 2 are records of their previews, pinned to the packages of
 # their day, so they are not regenerated.
-REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "c2-board-3": "c2_board_3.py"}
+REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_batch_2_passive.py",
+              "c2-board-3": "c2_board_3.py"}
 
 # The layers the assembler fabricates from; courtyard, fab and user layers stay out.
 GERBER_LAYERS = ("F_Cu", "B_Cu", "F_Mask", "B_Mask", "F_Paste", "B_Paste",

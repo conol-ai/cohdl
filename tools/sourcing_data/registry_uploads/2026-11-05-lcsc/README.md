@@ -28,7 +28,7 @@ The three aliases go up with the catalog, as `PUT /api/admin/manufacturer-aliase
   - the three aliases and the 1,442 rows are accepted;
   - `verify` finds all six part numbers known, each equal to its snapshot row;
   - `cohdl suppliers` on the `lcsc-batch-1` board reports `ok` for all six bindings, with no `unknown` or `mismatch`, and exits 0.
-- Against the production registry, the same audit reports today that the registry has no catalog for `lcsc`.
+- Before the first production upload, the same audit against the production registry reported no catalog for `lcsc`.
 
 ## Upload (after sign-off)
 
@@ -56,3 +56,47 @@ Then record here the time, the account, and the outputs of `upload` and `verify`
   - `PUT /api/admin/suppliers/lcsc/snapshot`: 200, `rows` 1442.
 - `verify` (05:40 UTC) exits 0. C117815, C129276, C529436, C717701, C730103 and C1857444 are all known, and each equals its snapshot row. The snapshot date is `2026-10-30T05:24:02Z`.
 - `cohdl suppliers --supplier lcsc` on the `lcsc-batch-1` board, against the production registry, reports `ok` for all six bindings, with no `unknown` or `mismatch`, and exits 0.
+
+### Subsequent upload (Tony, 06:52 UTC)
+
+Tony performed a subsequent re-upload of the same signed-off snapshot on 2026-11-05, after [Alex's approximately 05:39 UTC upload](https://github.com/conol-ai/cohdl/issues/65#issuecomment-6650736847). The [completed Tony operation record](https://github.com/conol-ai/cohdl/issues/65#issuecomment-6649303983) preserves the nonsecret results.
+
+- Source commit: `90974dd1b06f65387ed603179bc9cde2534fa118`.
+- Catalog: 1,442 rows (350 basic, 984 preferred, 108 extended), 384,544 bytes.
+- Catalog SHA-256: `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`.
+- Aliases SHA-256: `ad37b77d01aed64d73e4141dee9c86b9d8aeb50d3e7b021a588e6d075e2b5451`.
+- Sign-off provenance: Tony confirmed Alex's sign-off was obtained in the session authorizing this operation. Alias acceptances are recorded in [#62](https://github.com/conol-ai/cohdl/issues/62#issuecomment-6649220661), [#63](https://github.com/conol-ai/cohdl/issues/63#issuecomment-6649221972), and [#64](https://github.com/conol-ai/cohdl/issues/64#issuecomment-6649223181); all three are closed.
+- Method and provenance: Tony ran the reviewed browser-console uploader on his laptop using the registry page's own web session. The account, times and authenticated results below come from the successful browser result Tony supplied, not firsthand authenticated requests by the recording agent. `/api/me` returned `account: tony@conol.ai`, `official: true`. The script checked both exact payload hashes before writing, sent the three aliases in their pinned order and the unchanged snapshot body, and compared every signed-off field for all six PNs. All four PUTs returned HTTP 200; `productionVerified: true`.
+
+Browser-reported UTC times:
+
+| Event | UTC |
+|---|---|
+| Operation started | `2026-11-05T06:52:50.325Z` |
+| Upload started | `2026-11-05T06:52:50.924Z` |
+| Snapshot PUT started | `2026-11-05T06:52:51.534Z` |
+| Snapshot PUT ended | `2026-11-05T06:52:52.930Z` |
+| Verification ended | `2026-11-05T06:52:53.290Z` |
+
+Verbatim nonsecret upload output:
+
+```text
+alias GigaDevice Semicon Beijing -> GigaDevice: gigadevice semicon beijing
+alias Vishay Intertech -> Vishay: vishay intertech
+alias YAGEO -> Yageo: yageo
+snapshot: 1442 rows replaced the lcsc catalog
+```
+
+Verbatim nonsecret verification output:
+
+```text
+C117815: STM32F427VGT6 (STMicroelectronics, extended) known
+C129276: STM32F767BIT6 (STMicroelectronics, extended) known
+C529436: STM32L412K8T6 (STMicroelectronics, extended) known
+C717701: STM32L496VGT6 (STMicroelectronics, extended) known
+C730103: STM32G431RBI6 (STMicroelectronics, extended) known
+C1857444: STM32H743VIH6TR (STMicroelectronics, extended) known
+snapshot date: 2026-10-30T05:24:02Z
+```
+
+The coordinating agent independently ran `python3 -I tools/upload_supplier_snapshot.py verify OUT --registry https://registry.cohdl.org` from the pinned source on Linux. This read-only check exited 0, reproduced the verification output above, and found all six rows equal to the signed-off snapshot. A separate public GET to `/manufacturers/normalize` returned HTTP 200 and independently confirmed `GigaDevice Semicon Beijing` → `gigadevice`, `Vishay Intertech` → `vishay`, and `YAGEO` → `yageo`. Neither independent check made authenticated requests or production writes.

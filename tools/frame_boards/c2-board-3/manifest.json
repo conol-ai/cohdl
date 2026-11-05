@@ -12,7 +12,6 @@
   "qfn": "0.2.1",
   "ldo": "0.1.2",
   "esd": "0.1.1",
-  "osc": "0.1.1",
   "@contrib/esd": "0.1.0",
   "bga": "0.2.0"
  },
@@ -825,58 +824,6 @@
    "category": "preferred"
   },
   {
-   "name": "XTAL3215",
-   "footprint": "osc::FP_Crystal_SMD_3215_2Pin_ABS07",
-   "part": "osc::Crystal_2pad",
-   "pn": "C32346",
-   "mfr": "Seiko Epson",
-   "mpn": "Q13FC13500004",
-   "pins": [
-    "XIN",
-    "XOUT"
-   ],
-   "width_mm": 4.751,
-   "height_mm": 4.751,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      3.375,
-      78.96
-     ],
-     "rotate": 0,
-     "side": "top"
-    },
-    {
-     "at_mm": [
-      10.126,
-      78.96
-     ],
-     "rotate": 37,
-     "side": "top"
-    },
-    {
-     "at_mm": [
-      3.375,
-      85.71
-     ],
-     "rotate": 0,
-     "side": "bottom"
-    },
-    {
-     "at_mm": [
-      10.126,
-      85.71
-     ],
-     "rotate": 37,
-     "side": "bottom"
-    }
-   ],
-   "note": "board 1 retry",
-   "jlc_package": "SMD3215-2P",
-   "category": "basic"
-  },
-  {
    "name": "SOD323_1N4148",
    "footprint": "contrib_esd::FP_SOD323_2P5X1P25mm",
    "part": "contrib_esd::GBLC05C",
@@ -893,7 +840,7 @@
    "placements": [
     {
      "at_mm": [
-      16.517,
+      3.016,
       78.6
      ],
      "rotate": 0,
@@ -901,7 +848,7 @@
     },
     {
      "at_mm": [
-      22.548,
+      9.047,
       78.6
      ],
      "rotate": 37,
@@ -909,7 +856,7 @@
     },
     {
      "at_mm": [
-      16.517,
+      3.016,
       84.631
      ],
      "rotate": 0,
@@ -917,7 +864,7 @@
     },
     {
      "at_mm": [
-      22.548,
+      9.047,
       84.631
      ],
      "rotate": 37,
@@ -945,7 +892,7 @@
    "placements": [
     {
      "at_mm": [
-      28.579,
+      15.078,
       78.6
      ],
      "rotate": 0,
@@ -953,7 +900,7 @@
     },
     {
      "at_mm": [
-      34.611,
+      21.109,
       78.6
      ],
      "rotate": 37,
@@ -961,7 +908,7 @@
     },
     {
      "at_mm": [
-      28.579,
+      15.078,
       84.631
      ],
      "rotate": 0,
@@ -969,7 +916,7 @@
     },
     {
      "at_mm": [
-      34.611,
+      21.109,
       84.631
      ],
      "rotate": 37,
@@ -997,7 +944,7 @@
    "placements": [
     {
      "at_mm": [
-      39.409,
+      25.907,
       77.367
      ],
      "rotate": 0,
@@ -1005,7 +952,7 @@
     },
     {
      "at_mm": [
-      42.974,
+      29.472,
       77.367
      ],
      "rotate": 37,
@@ -1013,7 +960,7 @@
     },
     {
      "at_mm": [
-      39.409,
+      25.907,
       80.932
      ],
      "rotate": 0,
@@ -1021,7 +968,7 @@
     },
     {
      "at_mm": [
-      42.974,
+      29.472,
       80.932
      ],
      "rotate": 37,
@@ -1049,7 +996,7 @@
    "placements": [
     {
      "at_mm": [
-      46.539,
+      33.038,
       77.367
      ],
      "rotate": 0,
@@ -1057,7 +1004,7 @@
     },
     {
      "at_mm": [
-      50.104,
+      36.603,
       77.367
      ],
      "rotate": 37,
@@ -1065,7 +1012,7 @@
     },
     {
      "at_mm": [
-      46.539,
+      33.038,
       80.932
      ],
      "rotate": 0,
@@ -1073,7 +1020,7 @@
     },
     {
      "at_mm": [
-      50.104,
+      36.603,
       80.932
      ],
      "rotate": 37,
@@ -1101,7 +1048,7 @@
    "placements": [
     {
      "at_mm": [
-      53.67,
+      40.168,
       77.367
      ],
      "rotate": 0,
@@ -1109,7 +1056,7 @@
     },
     {
      "at_mm": [
-      57.235,
+      43.733,
       77.367
      ],
      "rotate": 37,
@@ -1117,7 +1064,7 @@
     },
     {
      "at_mm": [
-      53.67,
+      40.168,
       80.932
      ],
      "rotate": 0,
@@ -1125,7 +1072,7 @@
     },
     {
      "at_mm": [
-      57.235,
+      43.733,
       80.932
      ],
      "rotate": 37,
@@ -1159,7 +1106,7 @@
    "placements": [
     {
      "at_mm": [
-      66.382,
+      52.88,
       82.948
      ],
      "rotate": 0,
@@ -1194,7 +1141,7 @@
    "placements": [
     {
      "at_mm": [
-      81.109,
+      67.608,
       82.948
      ],
      "rotate": 0,
@@ -1203,62 +1150,6 @@
    ],
    "note": "board 2 retry; 10 in stock; ball A1",
    "jlc_package": "TFBGA-169",
-   "category": "extended"
-  },
-  {
-   "name": "R_82R_J_0201",
-   "footprint": "passive::CHIP_0201",
-   "part": "passive::ChipResistor<82ohm, 5%>[R0201]",
-   "pn": "C138084",
-   "mfr": "YAGEO",
-   "mpn": "RC0201JR-0782RL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 1.565,
-   "height_mm": 1.565,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      1.782,
-      92.095
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_82R_J_0201 primary; lcsc_map rule alias",
-   "jlc_package": "0201",
-   "category": "extended"
-  },
-  {
-   "name": "R_680K_F_0201",
-   "footprint": "passive::CHIP_0201",
-   "part": "passive::ChipResistor<680kohm, 1%>[R0201]",
-   "pn": "C273318",
-   "mfr": "YAGEO",
-   "mpn": "RC0201FR-07680KL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 1.565,
-   "height_mm": 1.565,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      5.348,
-      92.095
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_680K_F_0201 primary; lcsc_map rule alias",
-   "jlc_package": "0201",
    "category": "extended"
   },
   {
@@ -1278,7 +1169,7 @@
    "placements": [
     {
      "at_mm": [
-      9.172,
+      2.042,
       92.354
      ],
      "rotate": 0,
@@ -1306,7 +1197,7 @@
    "placements": [
     {
      "at_mm": [
-      13.256,
+      6.126,
       92.354
      ],
      "rotate": 0,
@@ -1334,7 +1225,7 @@
    "placements": [
     {
      "at_mm": [
-      17.34,
+      10.21,
       92.354
      ],
      "rotate": 0,
@@ -1362,7 +1253,7 @@
    "placements": [
     {
      "at_mm": [
-      21.424,
+      14.294,
       92.354
      ],
      "rotate": 0,
@@ -1390,7 +1281,7 @@
    "placements": [
     {
      "at_mm": [
-      25.508,
+      18.378,
       92.354
      ],
      "rotate": 0,
@@ -1418,7 +1309,7 @@
    "placements": [
     {
      "at_mm": [
-      29.592,
+      22.462,
       92.354
      ],
      "rotate": 0,
@@ -1446,7 +1337,7 @@
    "placements": [
     {
      "at_mm": [
-      33.676,
+      26.546,
       92.354
      ],
      "rotate": 0,
@@ -1474,7 +1365,7 @@
    "placements": [
     {
      "at_mm": [
-      37.76,
+      30.63,
       92.354
      ],
      "rotate": 0,
@@ -1482,34 +1373,6 @@
     }
    ],
    "note": "lib/passive R_820R_J_0402 alt; lcsc_map rule alias",
-   "jlc_package": "0402",
-   "category": "extended"
-  },
-  {
-   "name": "R_66K5_F_0402_ALT",
-   "footprint": "passive::CHIP_0402",
-   "part": "passive::ChipResistor<66.5kohm, 1%>[R0402]",
-   "pn": "C2091530",
-   "mfr": "Vishay Intertech",
-   "mpn": "CRCW040266K5FKED",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 2.084,
-   "height_mm": 2.084,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      41.844,
-      92.354
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_66K5_F_0402 alt; lcsc_map rule alias",
    "jlc_package": "0402",
    "category": "extended"
   },
@@ -1530,7 +1393,7 @@
    "placements": [
     {
      "at_mm": [
-      45.928,
+      34.714,
       92.354
      ],
      "rotate": 0,
@@ -1558,7 +1421,7 @@
    "placements": [
     {
      "at_mm": [
-      50.62,
+      39.406,
       92.962
      ],
      "rotate": 0,
@@ -1566,34 +1429,6 @@
     }
    ],
    "note": "lib/passive R_20K_F_0603 primary; lcsc_map rule alias",
-   "jlc_package": "0603",
-   "category": "extended"
-  },
-  {
-   "name": "R_16R_F_0603",
-   "footprint": "passive::CHIP_0603",
-   "part": "passive::ChipResistor<16ohm, 1%>[R0603]",
-   "pn": "C137787",
-   "mfr": "YAGEO",
-   "mpn": "RC0603FR-0716RL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.3,
-   "height_mm": 3.3,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      55.92,
-      92.962
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_16R_F_0603 primary; lcsc_map rule alias",
    "jlc_package": "0603",
    "category": "extended"
   },
@@ -1614,7 +1449,7 @@
    "placements": [
     {
      "at_mm": [
-      61.22,
+      44.706,
       92.962
      ],
      "rotate": 0,
@@ -1642,7 +1477,7 @@
    "placements": [
     {
      "at_mm": [
-      66.52,
+      50.006,
       92.962
      ],
      "rotate": 0,
@@ -1650,62 +1485,6 @@
     }
    ],
    "note": "lib/passive R_15R8_F_0603 primary; lcsc_map rule alias",
-   "jlc_package": "0603",
-   "category": "extended"
-  },
-  {
-   "name": "R_4R12_F_0603",
-   "footprint": "passive::CHIP_0603",
-   "part": "passive::ChipResistor<4.12ohm, 1%>[R0603]",
-   "pn": "C309563",
-   "mfr": "YAGEO",
-   "mpn": "RC0603FR-074R12L",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.3,
-   "height_mm": 3.3,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      71.82,
-      92.962
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_4R12_F_0603 primary; lcsc_map rule alias",
-   "jlc_package": "0603",
-   "category": "extended"
-  },
-  {
-   "name": "R_3R4_F_0603",
-   "footprint": "passive::CHIP_0603",
-   "part": "passive::ChipResistor<3.4ohm, 1%>[R0603]",
-   "pn": "C482832",
-   "mfr": "YAGEO",
-   "mpn": "RC0603FR-073R4L",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.3,
-   "height_mm": 3.3,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      77.12,
-      92.962
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_3R4_F_0603 primary; lcsc_map rule alias",
    "jlc_package": "0603",
    "category": "extended"
   },
@@ -1726,7 +1505,7 @@
    "placements": [
     {
      "at_mm": [
-      82.42,
+      55.306,
       92.962
      ],
      "rotate": 0,
@@ -1754,7 +1533,7 @@
    "placements": [
     {
      "at_mm": [
-      88.0,
+      60.886,
       93.242
      ],
      "rotate": 0,
@@ -1782,7 +1561,7 @@
    "placements": [
     {
      "at_mm": [
-      93.86,
+      66.746,
       93.242
      ],
      "rotate": 0,
@@ -1810,7 +1589,7 @@
    "placements": [
     {
      "at_mm": [
-      99.72,
+      72.606,
       93.242
      ],
      "rotate": 0,
@@ -1818,90 +1597,6 @@
     }
    ],
    "note": "lib/passive R_910K_F_0805 primary; lcsc_map rule alias",
-   "jlc_package": "0805",
-   "category": "extended"
-  },
-  {
-   "name": "R_137R_F_0805",
-   "footprint": "passive::CHIP_0805",
-   "part": "passive::ChipResistor<137ohm, 1%>[R0805]",
-   "pn": "C163411",
-   "mfr": "YAGEO",
-   "mpn": "RC0805FR-07137RL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.86,
-   "height_mm": 3.86,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      105.58,
-      93.242
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_137R_F_0805 primary; lcsc_map rule alias",
-   "jlc_package": "0805",
-   "category": "extended"
-  },
-  {
-   "name": "R_9K1_J_0805",
-   "footprint": "passive::CHIP_0805",
-   "part": "passive::ChipResistor<9.1kohm, 5%>[R0805]",
-   "pn": "C185267",
-   "mfr": "YAGEO",
-   "mpn": "RC0805JR-079K1L",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.86,
-   "height_mm": 3.86,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      111.44,
-      93.242
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_9K1_J_0805 primary; lcsc_map rule alias",
-   "jlc_package": "0805",
-   "category": "extended"
-  },
-  {
-   "name": "R_178K_F_0805",
-   "footprint": "passive::CHIP_0805",
-   "part": "passive::ChipResistor<178kohm, 1%>[R0805]",
-   "pn": "C273815",
-   "mfr": "YAGEO",
-   "mpn": "RC0805FR-07178KL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 3.86,
-   "height_mm": 3.86,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      2.93,
-      99.102
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_178K_F_0805 primary; lcsc_map rule alias",
    "jlc_package": "0805",
    "category": "extended"
   },
@@ -1922,8 +1617,8 @@
    "placements": [
     {
      "at_mm": [
-      8.79,
-      99.102
+      78.466,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -1950,8 +1645,8 @@
    "placements": [
     {
      "at_mm": [
-      14.65,
-      99.102
+      84.326,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -1978,8 +1673,8 @@
    "placements": [
     {
      "at_mm": [
-      20.51,
-      99.102
+      90.186,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -2006,8 +1701,8 @@
    "placements": [
     {
      "at_mm": [
-      26.37,
-      99.102
+      96.046,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -2034,8 +1729,8 @@
    "placements": [
     {
      "at_mm": [
-      32.23,
-      99.102
+      101.906,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -2062,8 +1757,8 @@
    "placements": [
     {
      "at_mm": [
-      38.09,
-      99.102
+      107.766,
+      93.242
      ],
      "rotate": 0,
      "side": "top"
@@ -2090,8 +1785,8 @@
    "placements": [
     {
      "at_mm": [
-      44.564,
-      99.717
+      114.24,
+      93.857
      ],
      "rotate": 0,
      "side": "top"
@@ -2118,70 +1813,14 @@
    "placements": [
     {
      "at_mm": [
-      51.653,
-      99.717
+      3.545,
+      100.946
      ],
      "rotate": 0,
      "side": "top"
     }
    ],
    "note": "lib/passive R_45R3_F_1206 primary; lcsc_map rule alias",
-   "jlc_package": "1206",
-   "category": "extended"
-  },
-  {
-   "name": "R_133R_F_1206",
-   "footprint": "passive::CHIP_1206",
-   "part": "passive::ChipResistor<133ohm, 1%>[R1206]",
-   "pn": "C274074",
-   "mfr": "YAGEO",
-   "mpn": "RC1206FR-07133RL",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 5.089,
-   "height_mm": 5.089,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      58.742,
-      99.717
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_133R_F_1206 primary; lcsc_map rule alias",
-   "jlc_package": "1206",
-   "category": "extended"
-  },
-  {
-   "name": "R_4M75_F_1206",
-   "footprint": "passive::CHIP_1206",
-   "part": "passive::ChipResistor<4.75Mohm, 1%>[R1206]",
-   "pn": "C488841",
-   "mfr": "YAGEO",
-   "mpn": "RC1206FR-074M75L",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 5.089,
-   "height_mm": 5.089,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      65.831,
-      99.717
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_4M75_F_1206 primary; lcsc_map rule alias",
    "jlc_package": "1206",
    "category": "extended"
   },
@@ -2202,8 +1841,8 @@
    "placements": [
     {
      "at_mm": [
-      72.92,
-      99.717
+      10.634,
+      100.946
      ],
      "rotate": 0,
      "side": "top"
@@ -2230,8 +1869,8 @@
    "placements": [
     {
      "at_mm": [
-      80.009,
-      99.717
+      17.723,
+      100.946
      ],
      "rotate": 0,
      "side": "top"
@@ -2239,34 +1878,6 @@
    ],
    "note": "lib/passive R_82K5_F_1206 primary; lcsc_map rule alias",
    "jlc_package": "1206",
-   "category": "extended"
-  },
-  {
-   "name": "R_5K1_F_1210",
-   "footprint": "passive::CHIP_1210",
-   "part": "passive::ChipResistor<5.1kohm, 1%>[R1210]",
-   "pn": "C728389",
-   "mfr": "YAGEO",
-   "mpn": "RC1210FR-075K1L",
-   "pins": [
-    "A",
-    "B"
-   ],
-   "width_mm": 5.548,
-   "height_mm": 5.548,
-   "covers_rotation": true,
-   "placements": [
-    {
-     "at_mm": [
-      87.328,
-      99.946
-     ],
-     "rotate": 0,
-     "side": "top"
-    }
-   ],
-   "note": "lib/passive R_5K1_F_1210 primary; lcsc_map rule alias",
-   "jlc_package": "1210",
    "category": "extended"
   },
   {
@@ -2286,8 +1897,8 @@
    "placements": [
     {
      "at_mm": [
-      95.653,
-      100.723
+      25.818,
+      101.952
      ],
      "rotate": 0,
      "side": "top"
@@ -2297,5 +1908,20 @@
    "jlc_package": "2010",
    "category": "extended"
   }
- ]
+ ],
+ "dropped": {
+  "C138084": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C137787": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C163411": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C185267": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C2091530": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C273318": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C273815": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C274074": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C309563": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C482832": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C488841": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C728389": "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)",
+  "C32346": "the assembler's BOM step matched its row to no part (2026-11-05), as board 1's preview did not place it"
+ }
 }

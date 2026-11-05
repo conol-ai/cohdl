@@ -140,11 +140,15 @@ class FrameBoardTests(unittest.TestCase):
         pages = {r["c"]: r for r in json.load(open(data / "jlc_catalog/2026-10-30/catalog.json"))}
         pages.update({r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-10-30-sample200/confirmed.json"))})
         mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
-        rows = json.loads(committed.read_text())["rows"]
+        manifest = json.loads(committed.read_text())
+        rows, dropped = manifest["rows"], manifest["dropped"]
         self.assertEqual(len({r["pn"] for r in rows}), len(rows))
-        # The passive batch 2 board shares this preview: all of its part numbers are here.
+        # The passive batch 2 board shares this preview: each of its part numbers is
+        # here, or listed as dropped with a reason.
         passives = json.loads((ROOT / "tools/frame_boards/lcsc-batch-2-passive/manifest.json").read_text())["rows"]
-        self.assertLessEqual({r["pn"] for r in passives}, {r["pn"] for r in rows})
+        self.assertLessEqual({r["pn"] for r in passives}, {r["pn"] for r in rows} | set(dropped))
+        self.assertFalse(set(dropped) & {r["pn"] for r in rows})
+        self.assertTrue(all(dropped.values()))
         for row in rows:
             with self.subTest(row=row["name"]):
                 # Every part number is a confirmed page, with that page's identity.
@@ -167,8 +171,8 @@ class FrameBoardTests(unittest.TestCase):
             neutral = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-cpl.csv").read_text())))
             supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-cpl.csv").read_text()))}
             bom = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-bom.csv").read_text())))
-        self.assertEqual(len(neutral), 125)
-        self.assertEqual(len(bom), 62)
+        self.assertEqual(len(neutral), 109)
+        self.assertEqual(len(bom), 49)
         for row in neutral:
             angle = float(row["Rotation"])
             expected = angle if row["Layer"] == "Top" else (180 - angle) % 360

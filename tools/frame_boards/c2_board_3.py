@@ -14,9 +14,13 @@ frame row in jlc_frames.json:
   correction depends on the model;
 - QFN, SOD-323, ESOP-8 and tactile-switch lands, each with a catalog part
   of the same package;
-- the 3215 crystal, which board 1's preview did not place, and two BGAs that
-  board 2's could not place for stock. Each BGA is placed once: the
-  assembler builds five boards, so one copy needs five parts, not twenty.
+- two BGAs that board 2's preview could not place for stock. Each BGA is
+  placed once: the assembler builds five boards, so one copy needs five
+  parts, not twenty.
+
+DROPPED leaves off the part numbers the first upload's BOM step (2026-11-05)
+did not select: twelve passives short of stock, and the 3215 crystal C32346,
+which it matched to no part. The manifest lists them with the reason.
 
 The board also carries the passive batch 2 rows (lcsc_batch_2_passive.py),
 so both go through one preview: each mapped passive not already above, as one
@@ -72,6 +76,13 @@ SEL = [
     ("UFBGA100", "bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM", "STM32L152VCHx", "C1338995", 1, "board 2 retry; 10 in stock; ball A1"),
     ("TFBGA169_ST", "bga::KICAD_ST_TFBGA_169_7X7MM_LAYOUT13X13_P0_5MM", "STM32U595AJHx", "C24622621", 1, "board 2 retry; 10 in stock; ball A1"),
 ]
+# Left off after the preview of 2026-11-05 stopped at the BOM step. They stay
+# without evidence, and the manifest lists them.
+SHORT = "the assembler's BOM step showed a stock shortage and did not select it (2026-11-05)"
+DROPPED = {pn: SHORT for pn in ("C138084", "C137787", "C163411", "C185267", "C2091530", "C273318",
+                                "C273815", "C274074", "C309563", "C482832", "C488841", "C728389")}
+DROPPED["C32346"] = "the assembler's BOM step matched its row to no part (2026-11-05), as board 1's preview did not place it"
+SEL = [r for r in SEL if r[3] not in DROPPED]
 GAP, WIDTH = 2.0, 120.0
 versions = {name: ver for name, ver in inv["pkgs"].values()}
 
@@ -129,7 +140,7 @@ with tempfile.TemporaryDirectory() as td:
 have = {r["pn"] for r in rows}
 x, y, shelf = 0.0, y + shelf, 0.0
 for row in passives["rows"]:
-    if row["pn"] in have:
+    if row["pn"] in have or row["pn"] in DROPPED:
         continue
     side = row["width_mm"]
     step = side + GAP
@@ -141,5 +152,5 @@ for row in passives["rows"]:
     shelf = max(shelf, step)
     rows.append(row)
 deps.update(passives["dependencies"])
-json.dump({"name": "c2_frame_board_3", "dependencies": deps, "rows": rows}, open(sys.argv[1], "w"), indent=1, ensure_ascii=False)
+json.dump({"name": "c2_frame_board_3", "dependencies": deps, "rows": rows, "dropped": DROPPED}, open(sys.argv[1], "w"), indent=1, ensure_ascii=False)
 print(len(rows), "rows,", sum(len(r["placements"]) for r in rows), "placements, board ~", WIDTH, "x", round(y + shelf, 1), "mm")

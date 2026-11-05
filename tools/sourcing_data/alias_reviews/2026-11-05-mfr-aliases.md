@@ -28,14 +28,12 @@ The alias applies to every part number from the supplier that shows that manufac
 
 ## Review
 
-To be completed by the reviewing person. An alias that is not accepted here must be removed from `mfr_aliases.json`, and the 80 map rows that rely on it re-promoted, before the aliases are uploaded to the registry.
+Each alias is reviewed in its own issue, assigned to Tony Huang (`conol-tony`). The reviewer's comment there, accept or reject, is the review: it names the reviewer, the date and the decision.
 
-| Alias | Decision (accept / reject) | Note |
-|---|---|---|
-| `YAGEO` → `Yageo` | | |
-| `Vishay Intertech` → `Vishay` | | |
-| `GigaDevice Semicon Beijing` → `GigaDevice` | | |
+| Alias | Issue |
+|---|---|
+| `YAGEO` → `Yageo` | #62 |
+| `Vishay Intertech` → `Vishay` | #63 |
+| `GigaDevice Semicon Beijing` → `GigaDevice` | #64 |
 
-- Reviewer:
-- Date:
-- Evidence checked (beyond the above, if any):
+An alias that is not accepted must be removed from `mfr_aliases.json`, and the map rows that rely on it re-promoted, before the aliases are uploaded to the registry.

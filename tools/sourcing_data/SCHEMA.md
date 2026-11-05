@@ -57,8 +57,10 @@ The top level contains `schema_version: 1` and `rows`. Every row has:
 - `exception`: a non-empty reason string exactly when `mapping` is non-zero;
   it must be `null` for an all-zero mapping.
 - `evidence` and `evidence_ref`: exactly one must be non-null. `evidence` has
-  `method` (`preview` or `product_page`), a real `YYYY-MM-DD` `date`, and a
-  `record` path to an existing file inside the repository. `evidence_ref` has
+  `method` (`preview` or `product_page`), a real `YYYY-MM-DD` `date`, a
+  `record` path to an existing file inside the repository, and optionally a
+  non-empty `note` on how the reading was made; it has no other field.
+  `evidence_ref` has
   `row`, `reason` (`same_supplier_footprint` or `same_preview_board`), and a
   non-empty `note`. The referenced row must exist and carry its own evidence;
   chained references are invalid.
@@ -96,7 +98,8 @@ all rows, including rows not currently selected by a binding.
 必须有非空 `exception` 理由，零映射的 `exception` 必须为 `null`。
 
 `evidence` 与 `evidence_ref` 恰好一个非空。前者含 `method`
-（`preview`/`product_page`）、真实日期和仓库内现存文件路径 `record`；后者
+（`preview`/`product_page`）、真实日期和仓库内现存文件路径 `record`，可选非空
+`note` 说明读数方式，不得有其他字段；后者
 含目标 `row`、枚举 `reason`（`same_supplier_footprint`/
 `same_preview_board`）及非空 `note`。目标行必须存在且自带证据，禁止链式
 引用。每个 LCSC 绑定必须精确匹配当前包版本的 `(package, package_version,

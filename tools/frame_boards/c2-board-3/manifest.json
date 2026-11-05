@@ -1,0 +1,1209 @@
+{
+ "name": "c2_frame_board_3",
+ "dependencies": {
+  "std": "0.3.0",
+  "@st/stm32": "0.3.0",
+  "qfp": "0.3.0",
+  "audio-amp": "0.2.0",
+  "soic": "0.3.0",
+  "passive": "0.2.3",
+  "switches": "0.1.2",
+  "@espressif/esp32": "0.3.1",
+  "qfn": "0.2.1",
+  "ldo": "0.1.2",
+  "esd": "0.1.1",
+  "osc": "0.1.1",
+  "@contrib/esd": "0.1.0",
+  "bga": "0.2.0"
+ },
+ "rows": [
+  {
+   "name": "TQFP32_M328",
+   "footprint": "qfp::KICAD_LQFP_32_7X7MM_P0_8MM",
+   "part": "st_stm32::STM32C031K4Tx",
+   "pn": "C14877",
+   "mfr": "Microchip Tech",
+   "mpn": "ATMEGA328P-AU",
+   "pins": [
+    "VDD_VDDA",
+    "VSS_VSSA"
+   ],
+   "width_mm": 14.651,
+   "height_mm": 14.651,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      8.326,
+      8.326
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      24.977,
+      8.326
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      8.326,
+      24.977
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      24.977,
+      24.977
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "third model; device supplies pins only",
+   "jlc_package": "TQFP-32(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP48_F030",
+   "footprint": "qfp::KICAD_LQFP_48_7X7MM_P0_5MM",
+   "part": "st_stm32::STM32F030C8Tx",
+   "pn": "C23922",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32F030C8T6",
+   "pins": [
+    "VDD",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "BOOT0"
+   ],
+   "width_mm": 14.566,
+   "height_mm": 14.566,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      41.586,
+      8.283
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      58.152,
+      8.283
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      41.586,
+      24.85
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      58.152,
+      24.85
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "second model",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "LQFP48_L151",
+   "footprint": "qfp::KICAD_LQFP_48_7X7MM_P0_5MM",
+   "part": "st_stm32::STM32L151C8Tx",
+   "pn": "C9861",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L151C8T6",
+   "pins": [
+    "VLCD",
+    "VSSA",
+    "VDDA",
+    "VSS",
+    "VDD",
+    "BOOT0"
+   ],
+   "width_mm": 14.566,
+   "height_mm": 14.566,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      74.719,
+      8.283
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      91.285,
+      8.283
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      74.719,
+      24.85
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      91.285,
+      24.85
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "third model",
+   "jlc_package": "LQFP-48(7x7)",
+   "category": "preferred"
+  },
+  {
+   "name": "ESOP8",
+   "footprint": "audio_amp::FP_NS4168_ESOP8",
+   "part": "audio_amp::NS4168",
+   "pn": "C16581",
+   "mfr": "TOPPOWER(Nanjing Extension Microelectronics)",
+   "mpn": "TP4056-42-ESOP8",
+   "pins": [
+    "CTRL",
+    "LRCLK",
+    "BCLK",
+    "SDATA",
+    "VON",
+    "VDD",
+    "GND",
+    "VOP"
+   ],
+   "width_mm": 9.93,
+   "height_mm": 9.93,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      5.965,
+      39.267
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      17.895,
+      39.267
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      5.965,
+      51.197
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      17.895,
+      51.197
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "exposed pad; device supplies pins only",
+   "jlc_package": "ESOP-8",
+   "category": "preferred"
+  },
+  {
+   "name": "SOIC8_LM2904",
+   "footprint": "soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+   "part": "st_stm32::STM32C011J4Mx",
+   "pn": "C18229",
+   "mfr": "onsemi",
+   "mpn": "LM2904DR2G",
+   "pins": [
+    "VDD_VDDA",
+    "VSS_VSSA"
+   ],
+   "width_mm": 9.161,
+   "height_mm": 9.161,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      29.44,
+      38.883
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.601,
+      38.883
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      29.44,
+      50.044
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      40.601,
+      50.044
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "second model; device supplies pins only",
+   "jlc_package": "SOIC-8",
+   "category": "preferred"
+  },
+  {
+   "name": "SOIC8_SP3485",
+   "footprint": "soic::KICAD_SOIC_8_3_9X4_9MM_P1_27MM",
+   "part": "st_stm32::STM32C011J4Mx",
+   "pn": "C8963",
+   "mfr": "MaxLinear",
+   "mpn": "SP3485EN-L/TR",
+   "pins": [
+    "VDD_VDDA",
+    "VSS_VSSA"
+   ],
+   "width_mm": 9.161,
+   "height_mm": 9.161,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      51.761,
+      38.883
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      62.922,
+      38.883
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      51.761,
+      50.044
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      62.922,
+      50.044
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "third model; device supplies pins only",
+   "jlc_package": "SOIC-8",
+   "category": "basic"
+  },
+  {
+   "name": "R2512_4M7",
+   "footprint": "passive::CHIP_2512",
+   "part": "passive::ChipResistor<4.7Mohm, 5%>[R2512]",
+   "pn": "C878293",
+   "mfr": "YAGEO",
+   "mpn": "RC2512JK-074M7L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 8.578,
+   "height_mm": 8.578,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      73.791,
+      38.591
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      84.369,
+      38.591
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      73.791,
+      49.169
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      84.369,
+      49.169
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "2512",
+   "category": "extended"
+  },
+  {
+   "name": "R2512_4R7",
+   "footprint": "passive::CHIP_2512",
+   "part": "passive::ChipResistor<4.7ohm, 1%>[R2512]",
+   "pn": "C878096",
+   "mfr": "YAGEO",
+   "mpn": "RC2512FK-074R7L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 8.578,
+   "height_mm": 8.578,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      94.947,
+      38.591
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      105.524,
+      38.591
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      94.947,
+      49.169
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      105.524,
+      49.169
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "2512",
+   "category": "extended"
+  },
+  {
+   "name": "SW_TS1088",
+   "footprint": "switches::FP_XUNPU_TS_1088R",
+   "part": "switches::TactileSwitchSPST",
+   "pn": "C720477",
+   "mfr": "XUNPU",
+   "mpn": "TS-1088-AR02016",
+   "pins": [
+    "P1",
+    "P2"
+   ],
+   "width_mm": 7.211,
+   "height_mm": 7.211,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      4.606,
+      61.768
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      13.817,
+      61.768
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      4.606,
+      70.979
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      13.817,
+      70.979
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "device supplies pins only",
+   "jlc_package": "SMD,4x3mm",
+   "category": "basic"
+  },
+  {
+   "name": "R2010",
+   "footprint": "passive::CHIP_2010",
+   "part": "passive::ChipResistor<200kohm, 1%>[R2010]",
+   "pn": "C877226",
+   "mfr": "YAGEO",
+   "mpn": "RC2010FK-07200KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 7.102,
+   "height_mm": 7.102,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      22.973,
+      61.713
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      32.075,
+      61.713
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      22.973,
+      70.815
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      32.075,
+      70.815
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "2010",
+   "category": "extended"
+  },
+  {
+   "name": "QFN24",
+   "footprint": "qfn::ESPRESSIF_QFN24_0P5_4_E2P8",
+   "part": "espressif_esp32::DEV_ESP8684",
+   "pn": "C24112",
+   "mfr": "TDK InvenSense",
+   "mpn": "MPU-6050",
+   "pins": [
+    "ANT",
+    "VDDA3P3",
+    "CHIP_EN",
+    "VDD3P3_RTC",
+    "VDD3P3_CPU",
+    "VDDA",
+    "XTAL_N",
+    "XTAL_P",
+    "GND"
+   ],
+   "width_mm": 6.511,
+   "height_mm": 6.511,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.881,
+      61.418
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      49.392,
+      61.418
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      40.881,
+      69.929
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      49.392,
+      69.929
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "device supplies pins only",
+   "jlc_package": "QFN-24-EP(4x4)",
+   "category": "preferred"
+  },
+  {
+   "name": "R1210_510R",
+   "footprint": "passive::CHIP_1210",
+   "part": "passive::ChipResistor<510ohm, 1%>[R1210]",
+   "pn": "C309589",
+   "mfr": "YAGEO",
+   "mpn": "RC1210FR-07510RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.548,
+   "height_mm": 5.548,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      57.422,
+      60.936
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      64.97,
+      60.936
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      57.422,
+      68.484
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      64.97,
+      68.484
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "1210",
+   "category": "extended"
+  },
+  {
+   "name": "R1210_25R5",
+   "footprint": "passive::CHIP_1210",
+   "part": "passive::ChipResistor<25.5ohm, 1%>[R1210]",
+   "pn": "C874860",
+   "mfr": "YAGEO",
+   "mpn": "RC1210FR-0725R5L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.548,
+   "height_mm": 5.548,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      72.518,
+      60.936
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      80.065,
+      60.936
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      72.518,
+      68.484
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      80.065,
+      68.484
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row; 30 in stock",
+   "jlc_package": "1210",
+   "category": "extended"
+  },
+  {
+   "name": "SOT235_TP4054",
+   "footprint": "ldo::SOT5P95X290X145N",
+   "part": "ldo::RT9193[TSOT235]",
+   "pn": "C32574",
+   "mfr": "TOPPOWER(Nanjing Extension Microelectronics)",
+   "mpn": "TP4054-42-SOT25R",
+   "pins": [
+    "IN",
+    "GND",
+    "EN",
+    "BP",
+    "OUT"
+   ],
+   "width_mm": 5.326,
+   "height_mm": 5.326,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.503,
+      60.825
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      94.829,
+      60.825
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      87.503,
+      68.152
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      94.829,
+      68.152
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "second model; device supplies pins only",
+   "jlc_package": "SOT-23-5",
+   "category": "preferred"
+  },
+  {
+   "name": "SOT236_SRV05",
+   "footprint": "esd::FP_SOT_23_6",
+   "part": "esd::USBLC6",
+   "pn": "C7420376",
+   "mfr": "hongjiacheng",
+   "mpn": "SRV05-4",
+   "pins": [
+    "IO1_A",
+    "GND",
+    "IO2_A",
+    "IO2_B",
+    "VBUS",
+    "IO1_B"
+   ],
+   "width_mm": 5.326,
+   "height_mm": 5.326,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      102.155,
+      60.825
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      109.482,
+      60.825
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      102.155,
+      68.152
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      109.482,
+      68.152
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "second model; device supplies pins only",
+   "jlc_package": "SOT-23-6L",
+   "category": "preferred"
+  },
+  {
+   "name": "XTAL3215",
+   "footprint": "osc::FP_Crystal_SMD_3215_2Pin_ABS07",
+   "part": "osc::Crystal_2pad",
+   "pn": "C32346",
+   "mfr": "Seiko Epson",
+   "mpn": "Q13FC13500004",
+   "pins": [
+    "XIN",
+    "XOUT"
+   ],
+   "width_mm": 4.751,
+   "height_mm": 4.751,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      3.375,
+      78.96
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      10.126,
+      78.96
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      3.375,
+      85.71
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      10.126,
+      85.71
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "board 1 retry",
+   "jlc_package": "SMD3215-2P",
+   "category": "basic"
+  },
+  {
+   "name": "SOD323_1N4148",
+   "footprint": "contrib_esd::FP_SOD323_2P5X1P25mm",
+   "part": "contrib_esd::GBLC05C",
+   "pn": "C2128",
+   "mfr": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "mpn": "1N4148WS",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 4.031,
+   "height_mm": 4.031,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      16.517,
+      78.6
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      22.548,
+      78.6
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      16.517,
+      84.631
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      22.548,
+      84.631
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "polarity; device supplies pins only",
+   "jlc_package": "SOD-323",
+   "category": "basic"
+  },
+  {
+   "name": "SOD323_1N5819",
+   "footprint": "contrib_esd::FP_SOD323_2P5X1P25mm",
+   "part": "contrib_esd::GBLC05C",
+   "pn": "C191023",
+   "mfr": "Guangdong Hottech",
+   "mpn": "1N5819WS",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 4.031,
+   "height_mm": 4.031,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      28.579,
+      78.6
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      34.611,
+      78.6
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      28.579,
+      84.631
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      34.611,
+      84.631
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "polarity; device supplies pins only",
+   "jlc_package": "SOD-323",
+   "category": "basic"
+  },
+  {
+   "name": "C0201_680P",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::MLCC<680pF, 50V, 10%>[C0201]",
+   "pn": "C718246",
+   "mfr": "YAGEO",
+   "mpn": "CC0201KRX7R9BB681",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      39.409,
+      77.367
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      42.974,
+      77.367
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      39.409,
+      80.932
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      42.974,
+      80.932
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "C0201_330P",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::MLCC<330pF, 16V, 10%>[C0201]",
+   "pn": "C541229",
+   "mfr": "YAGEO",
+   "mpn": "CC0201KRX7R7BB331",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      46.539,
+      77.367
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      50.104,
+      77.367
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      46.539,
+      80.932
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      50.104,
+      80.932
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "R0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::ChipResistor<221ohm, 1%>[R0201]",
+   "pn": "C138161",
+   "mfr": "YAGEO",
+   "mpn": "RC0201FR-07221RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      53.67,
+      77.367
+     ],
+     "rotate": 0,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      57.235,
+      77.367
+     ],
+     "rotate": 37,
+     "side": "top"
+    },
+    {
+     "at_mm": [
+      53.67,
+      80.932
+     ],
+     "rotate": 0,
+     "side": "bottom"
+    },
+    {
+     "at_mm": [
+      57.235,
+      80.932
+     ],
+     "rotate": 37,
+     "side": "bottom"
+    }
+   ],
+   "note": "map row",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "UFBGA100",
+   "footprint": "bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM",
+   "part": "st_stm32::STM32L152VCHx",
+   "pn": "C1338995",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32L152VCH6",
+   "pins": [
+    "BOOT0",
+    "VDD",
+    "VSS",
+    "VLCD",
+    "VSSA",
+    "VREFM",
+    "VREFP",
+    "VDDA"
+   ],
+   "width_mm": 12.728,
+   "height_mm": 12.728,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      66.382,
+      82.948
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "board 2 retry; 10 in stock; ball A1",
+   "jlc_package": "UFBGA-100",
+   "category": "extended"
+  },
+  {
+   "name": "TFBGA169_ST",
+   "footprint": "bga::KICAD_ST_TFBGA_169_7X7MM_LAYOUT13X13_P0_5MM",
+   "part": "st_stm32::STM32U595AJHx",
+   "pn": "C24622621",
+   "mfr": "STMicroelectronics",
+   "mpn": "STM32U595AJH6",
+   "pins": [
+    "VDD",
+    "VCAP",
+    "VDDIO2",
+    "VSS",
+    "VBAT",
+    "VDDUSB",
+    "VSSA",
+    "VREFP",
+    "VDDA"
+   ],
+   "width_mm": 12.728,
+   "height_mm": 12.728,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      81.109,
+      82.948
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "board 2 retry; 10 in stock; ball A1",
+   "jlc_package": "TFBGA-169",
+   "category": "extended"
+  }
+ ]
+}

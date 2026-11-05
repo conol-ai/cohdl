@@ -47,7 +47,7 @@ Then record here the time, the account, and the outputs of `upload` and `verify`
 
 - Account: Alex's registry account, official since 2026-11-05 (`/api/me` reports `official: true`).
 - Prerequisites: #62, #63 and #64 accepted and closed (03:53–03:54 UTC). Alex signed off on the snapshot SHA-256.
-- Body: rebuilt at `90974dd` with `build --dates`, which gave SHA-256 `dced4283…` and a `report.json` identical to this one.
+- Body: rebuilt at `90974dd` (on `main` as `d71bfe6`, the same tree, after #61's rebase merge) with `build --dates`, which gave SHA-256 `dced4283…` and a `report.json` identical to this one.
 - Method: the same requests `upload` makes, in the same order, sent as same-origin `fetch` calls from Alex's signed-in registry tab. The browser attached its own session, so the session never left the browser. The page recomputed the body's SHA-256 before sending and would have refused a different one.
 - Results, about 05:39 UTC:
   - `PUT /api/admin/manufacturer-aliases/GigaDevice%20Semicon%20Beijing`: 200, `alias_key` `gigadevice semicon beijing`.
@@ -61,7 +61,7 @@ Then record here the time, the account, and the outputs of `upload` and `verify`
 
 Tony performed a subsequent re-upload of the same signed-off snapshot on 2026-11-05, after [Alex's approximately 05:39 UTC upload](https://github.com/conol-ai/cohdl/issues/65#issuecomment-6650736847). The [completed Tony operation record](https://github.com/conol-ai/cohdl/issues/65#issuecomment-6649303983) preserves the nonsecret results.
 
-- Source commit: `90974dd1b06f65387ed603179bc9cde2534fa118`.
+- Source commit: `90974dd1b06f65387ed603179bc9cde2534fa118` (on `main` as `d71bfe6`, the same tree).
 - Catalog: 1,442 rows (350 basic, 984 preferred, 108 extended), 384,544 bytes.
 - Catalog SHA-256: `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`.
 - Aliases SHA-256: `ad37b77d01aed64d73e4141dee9c86b9d8aeb50d3e7b021a588e6d075e2b5451`.

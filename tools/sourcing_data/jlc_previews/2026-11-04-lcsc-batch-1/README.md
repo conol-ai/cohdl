@@ -1,6 +1,6 @@
 # LCSC batch 1: assembler preview, 2026-11-04
 
-This is the assembler's placement preview of the LCSC batch 1 acceptance board (`tools/frame_boards/lcsc-batch-1/`). The board's package was built by `tools/frame_boards/preview_package.py` at commit `150907f`; the package's SHA-256 is `8f148bfb6f67fdc9eaab0f29304f41be0bb6d9bc89d48dd4cbce9a8024967a31`. It was uploaded for the preview only, and the flow was stopped at Component Placements. No order was placed and nothing was added to the cart.
+This is the assembler's placement preview of the LCSC batch 1 acceptance board (`tools/frame_boards/lcsc-batch-1/`). The board's package was built by `tools/frame_boards/preview_package.py` at commit `150907f` (on `main` as `2f31371`, the same tree, after #61's rebase merge); the package's SHA-256 is `8f148bfb6f67fdc9eaab0f29304f41be0bb6d9bc89d48dd4cbce9a8024967a31`. It was uploaded for the preview only, and the flow was stopped at Component Placements. No order was placed and nothing was added to the cart.
 
 ## What was uploaded
 

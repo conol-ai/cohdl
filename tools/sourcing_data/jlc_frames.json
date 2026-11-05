@@ -4,7 +4,7 @@
     {
       "id": "c2b1-r0402-c25744",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C25744",
@@ -29,7 +29,7 @@
     {
       "id": "c2b1-c0402-c1525",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C1525",
@@ -54,7 +54,7 @@
     {
       "id": "c2b1-r0603-c25804",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C25804",
@@ -79,7 +79,7 @@
     {
       "id": "c2b1-c0603-c15849",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C15849",
@@ -104,7 +104,7 @@
     {
       "id": "c2b1-r0805-c17414",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C17414",
@@ -129,7 +129,7 @@
     {
       "id": "c2b1-c0805-c15850",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C15850",
@@ -154,7 +154,7 @@
     {
       "id": "c2b1-r1206-c17927",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C17927",
@@ -179,7 +179,7 @@
     {
       "id": "c2b1-c1206-c13585",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C13585",
@@ -879,7 +879,7 @@
     {
       "id": "c1-chip0603-c107045",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C107045",
@@ -904,7 +904,7 @@
     {
       "id": "c1-chip0805-c107110",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C107110",
@@ -948,32 +948,6 @@
         "method": "preview",
         "date": "2026-11-05",
         "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
-      },
-      "evidence_ref": null
-    },
-    {
-      "id": "c2b3-kicadufbga1007x7mmlayout12x12p05mm-c1338995",
-      "package": "bga",
-      "package_version": "0.2.0",
-      "footprint": "KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM",
-      "supplier": "lcsc",
-      "pn": "C1338995",
-      "mapping": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 270
-      },
-      "measured": {
-        "dx_mm": 0,
-        "dy_mm": 0,
-        "rotate_deg": 270
-      },
-      "exception": "Per-part mapping: on the single copy both of the preview's marks sit at the corner a quarter turn counter-clockwise from ball A1 (91 deg), none near A1; manual review",
-      "evidence": {
-        "method": "preview",
-        "date": "2026-11-05",
-        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
-        "note": "manual review of a BGA's two marks, one copy"
       },
       "evidence_ref": null
     },
@@ -1032,7 +1006,7 @@
     {
       "id": "c2b3-chip0201-c138161",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0201",
       "supplier": "lcsc",
       "pn": "C138161",
@@ -1058,7 +1032,7 @@
     {
       "id": "c2b3-chip0201-c541229",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0201",
       "supplier": "lcsc",
       "pn": "C541229",
@@ -1084,7 +1058,7 @@
     {
       "id": "c2b3-chip0201-c718246",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0201",
       "supplier": "lcsc",
       "pn": "C718246",
@@ -1110,7 +1084,7 @@
     {
       "id": "c2b3-chip0402-c93943",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C93943",
@@ -1136,7 +1110,7 @@
     {
       "id": "c2b3-chip0402-c106254",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C106254",
@@ -1162,7 +1136,7 @@
     {
       "id": "c2b3-chip0402-c107011",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C107011",
@@ -1188,7 +1162,7 @@
     {
       "id": "c2b3-chip0402-c114763",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C114763",
@@ -1214,7 +1188,7 @@
     {
       "id": "c2b3-chip0402-c137837",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C137837",
@@ -1240,7 +1214,7 @@
     {
       "id": "c2b3-chip0402-c137927",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C137927",
@@ -1266,7 +1240,7 @@
     {
       "id": "c2b3-chip0402-c477801",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C477801",
@@ -1292,7 +1266,7 @@
     {
       "id": "c2b3-chip0402-c482239",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C482239",
@@ -1318,7 +1292,7 @@
     {
       "id": "c2b3-chip0402-c3009257",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0402",
       "supplier": "lcsc",
       "pn": "C3009257",
@@ -1344,7 +1318,7 @@
     {
       "id": "c2b3-chip0603-c105575",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C105575",
@@ -1370,7 +1344,7 @@
     {
       "id": "c2b3-chip0603-c163421",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C163421",
@@ -1396,7 +1370,7 @@
     {
       "id": "c2b3-chip0603-c163429",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C163429",
@@ -1422,7 +1396,7 @@
     {
       "id": "c2b3-chip0603-c482876",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0603",
       "supplier": "lcsc",
       "pn": "C482876",
@@ -1448,7 +1422,7 @@
     {
       "id": "c2b3-chip0805-c107108",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C107108",
@@ -1474,7 +1448,7 @@
     {
       "id": "c2b3-chip0805-c137422",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C137422",
@@ -1500,7 +1474,7 @@
     {
       "id": "c2b3-chip0805-c141703",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C141703",
@@ -1526,7 +1500,7 @@
     {
       "id": "c2b3-chip0805-c482966",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C482966",
@@ -1552,7 +1526,7 @@
     {
       "id": "c2b3-chip0805-c483001",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C483001",
@@ -1578,7 +1552,7 @@
     {
       "id": "c2b3-chip0805-c483188",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C483188",
@@ -1604,7 +1578,7 @@
     {
       "id": "c2b3-chip0805-c527206",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C527206",
@@ -1630,7 +1604,7 @@
     {
       "id": "c2b3-chip0805-c527232",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C527232",
@@ -1656,7 +1630,7 @@
     {
       "id": "c2b3-chip0805-c576985",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_0805",
       "supplier": "lcsc",
       "pn": "C576985",
@@ -1682,7 +1656,7 @@
     {
       "id": "c2b3-chip1206-c137203",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C137203",
@@ -1708,7 +1682,7 @@
     {
       "id": "c2b3-chip1206-c274047",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C274047",
@@ -1734,7 +1708,7 @@
     {
       "id": "c2b3-chip1206-c488876",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C488876",
@@ -1760,7 +1734,7 @@
     {
       "id": "c2b3-chip1206-c488985",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1206",
       "supplier": "lcsc",
       "pn": "C488985",
@@ -1786,7 +1760,7 @@
     {
       "id": "c2b3-chip1210-c309589",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_1210",
       "supplier": "lcsc",
       "pn": "C309589",
@@ -1812,7 +1786,7 @@
     {
       "id": "c2b3-chip2010-c137046",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_2010",
       "supplier": "lcsc",
       "pn": "C137046",
@@ -1838,7 +1812,7 @@
     {
       "id": "c2b3-chip2010-c877226",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_2010",
       "supplier": "lcsc",
       "pn": "C877226",
@@ -1864,7 +1838,7 @@
     {
       "id": "c2b3-chip2512-c878096",
       "package": "passive",
-      "package_version": "0.2.3",
+      "package_version": "0.2.4",
       "footprint": "CHIP_2512",
       "supplier": "lcsc",
       "pn": "C878096",

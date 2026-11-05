@@ -2186,7 +2186,7 @@ pub part R_1K54_F_0402: ChipResistor<1.54kohm, 1%>[R0402] {
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_1K58_F_0402: ChipResistor<1.58kohm, 1%>[R0402] {
     primary { mfr: "Yageo", mpn: "RC0402FR-071K58L", footprint: CHIP_0402 }
-    alt { mfr: "Vishay", mpn: "CRCW04021K58FKED" }
+    alt { mfr: "Vishay", mpn: "CRCW04021K58FKED", supplier lcsc "C3009257" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
@@ -3205,7 +3205,7 @@ pub part R_46K4_F_0402: ChipResistor<46.4kohm, 1%>[R0402] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_47K_F_0402: ChipResistor<47kohm, 1%>[R0402] {
-    primary { mfr: "Yageo", mpn: "RC0402FR-0747KL", footprint: CHIP_0402 }
+    primary { mfr: "Yageo", mpn: "RC0402FR-0747KL", footprint: CHIP_0402, supplier lcsc "C93943" }
     alt { mfr: "Vishay", mpn: "CRCW040247K0FKED" }
 }
 
@@ -3625,7 +3625,7 @@ pub part R_196K_F_0402: ChipResistor<196kohm, 1%>[R0402] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_200K_F_0402: ChipResistor<200kohm, 1%>[R0402] {
-    primary { mfr: "Yageo", mpn: "RC0402FR-07200KL", footprint: CHIP_0402 }
+    primary { mfr: "Yageo", mpn: "RC0402FR-07200KL", footprint: CHIP_0402, supplier lcsc "C114763" }
     alt { mfr: "Vishay", mpn: "CRCW0402200KFKED" }
 }
 
@@ -4093,7 +4093,7 @@ pub part R_909K_F_0402: ChipResistor<909kohm, 1%>[R0402] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_910K_F_0402: ChipResistor<910kohm, 1%>[R0402] {
-    primary { mfr: "Yageo", mpn: "RC0402FR-07910KL", footprint: CHIP_0402 }
+    primary { mfr: "Yageo", mpn: "RC0402FR-07910KL", footprint: CHIP_0402, supplier lcsc "C137927" }
     alt { mfr: "Vishay", mpn: "CRCW0402910KFKED" }
 }
 
@@ -4759,7 +4759,7 @@ pub part R_8M45_F_0402: ChipResistor<8.45Mohm, 1%>[R0402] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_8M66_F_0402: ChipResistor<8.66Mohm, 1%>[R0402] {
-    primary { mfr: "Yageo", mpn: "RC0402FR-078M66L", footprint: CHIP_0402 }
+    primary { mfr: "Yageo", mpn: "RC0402FR-078M66L", footprint: CHIP_0402, supplier lcsc "C477801" }
     alt { mfr: "Vishay", mpn: "CRCW04028M66FKED" }
 }
 
@@ -5227,8 +5227,8 @@ pub part R_750R_J_0402: ChipResistor<750ohm, 5%>[R0402] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_820R_J_0402: ChipResistor<820ohm, 5%>[R0402] {
-    primary { mfr: "Yageo", mpn: "RC0402JR-07820RL", footprint: CHIP_0402 }
-    alt { mfr: "Vishay", mpn: "CRCW0402820RJNED" }
+    primary { mfr: "Yageo", mpn: "RC0402JR-07820RL", footprint: CHIP_0402, supplier lcsc "C137837" }
+    alt { mfr: "Vishay", mpn: "CRCW0402820RJNED", supplier lcsc "C482239" }
 }
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]

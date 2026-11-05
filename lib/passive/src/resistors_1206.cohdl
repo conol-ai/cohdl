@@ -517,7 +517,7 @@ pub part R_5R36_F_1206: ChipResistor<5.36ohm, 1%>[R1206] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_5R49_F_1206: ChipResistor<5.49ohm, 1%>[R1206] {
-    primary { mfr: "Yageo", mpn: "RC1206FR-075R49L", footprint: CHIP_1206 }
+    primary { mfr: "Yageo", mpn: "RC1206FR-075R49L", footprint: CHIP_1206, supplier lcsc "C488876" }
     alt { mfr: "Vishay", mpn: "CRCW12065R49FKED" }
 }
 
@@ -1141,7 +1141,7 @@ pub part R_44R2_F_1206: ChipResistor<44.2ohm, 1%>[R1206] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_45R3_F_1206: ChipResistor<45.3ohm, 1%>[R1206] {
-    primary { mfr: "Yageo", mpn: "RC1206FR-0745R3L", footprint: CHIP_1206 }
+    primary { mfr: "Yageo", mpn: "RC1206FR-0745R3L", footprint: CHIP_1206, supplier lcsc "C274047" }
     alt { mfr: "Vishay", mpn: "CRCW120645R3FKED" }
 }
 
@@ -3379,7 +3379,7 @@ pub part R_82K_F_1206: ChipResistor<82kohm, 1%>[R1206] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_82K5_F_1206: ChipResistor<82.5kohm, 1%>[R1206] {
-    primary { mfr: "Yageo", mpn: "RC1206FR-0782K5L", footprint: CHIP_1206 }
+    primary { mfr: "Yageo", mpn: "RC1206FR-0782K5L", footprint: CHIP_1206, supplier lcsc "C488985" }
     alt { mfr: "Vishay", mpn: "CRCW120682K5FKED" }
 }
 
@@ -5395,7 +5395,7 @@ pub part R_11K_J_1206: ChipResistor<11kohm, 5%>[R1206] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_12K_J_1206: ChipResistor<12kohm, 5%>[R1206] {
-    primary { mfr: "Yageo", mpn: "RC1206JR-0712KL", footprint: CHIP_1206 }
+    primary { mfr: "Yageo", mpn: "RC1206JR-0712KL", footprint: CHIP_1206, supplier lcsc "C137203" }
     alt { mfr: "Vishay", mpn: "CRCW120612K0JNED" }
 }
 

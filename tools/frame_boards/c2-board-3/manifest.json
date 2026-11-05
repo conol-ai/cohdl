@@ -6,7 +6,7 @@
   "qfp": "0.3.0",
   "audio-amp": "0.2.0",
   "soic": "0.3.0",
-  "passive": "0.2.3",
+  "passive": "0.2.4",
   "switches": "0.1.2",
   "@espressif/esp32": "0.3.1",
   "qfn": "0.2.1",
@@ -346,7 +346,7 @@
    "footprint": "passive::CHIP_2512",
    "part": "passive::ChipResistor<4.7Mohm, 5%>[R2512]",
    "pn": "C878293",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC2512JK-074M7L",
    "pins": [
     "A",
@@ -398,7 +398,7 @@
    "footprint": "passive::CHIP_2512",
    "part": "passive::ChipResistor<4.7ohm, 1%>[R2512]",
    "pn": "C878096",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC2512FK-074R7L",
    "pins": [
     "A",
@@ -502,7 +502,7 @@
    "footprint": "passive::CHIP_2010",
    "part": "passive::ChipResistor<200kohm, 1%>[R2010]",
    "pn": "C877226",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC2010FK-07200KL",
    "pins": [
     "A",
@@ -613,7 +613,7 @@
    "footprint": "passive::CHIP_1210",
    "part": "passive::ChipResistor<510ohm, 1%>[R1210]",
    "pn": "C309589",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1210FR-07510RL",
    "pins": [
     "A",
@@ -665,7 +665,7 @@
    "footprint": "passive::CHIP_1210",
    "part": "passive::ChipResistor<25.5ohm, 1%>[R1210]",
    "pn": "C874860",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1210FR-0725R5L",
    "pins": [
     "A",
@@ -932,7 +932,7 @@
    "footprint": "passive::CHIP_0201",
    "part": "passive::MLCC<680pF, 50V, 10%>[C0201]",
    "pn": "C718246",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0201KRX7R9BB681",
    "pins": [
     "A",
@@ -984,7 +984,7 @@
    "footprint": "passive::CHIP_0201",
    "part": "passive::MLCC<330pF, 16V, 10%>[C0201]",
    "pn": "C541229",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0201KRX7R7BB331",
    "pins": [
     "A",
@@ -1036,7 +1036,7 @@
    "footprint": "passive::CHIP_0201",
    "part": "passive::ChipResistor<221ohm, 1%>[R0201]",
    "pn": "C138161",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0201FR-07221RL",
    "pins": [
     "A",
@@ -1157,7 +1157,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<47kohm, 1%>[R0402]",
    "pn": "C93943",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0402FR-0747KL",
    "pins": [
     "A",
@@ -1185,7 +1185,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::MLCC<1uF, 10V, 10%>[C0402]",
    "pn": "C106254",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0402KRX5R6BB105",
    "pins": [
     "A",
@@ -1213,7 +1213,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::MLCC<82pF, 50V, 5%>[C0402]",
    "pn": "C107011",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0402JRNPO9BN820",
    "pins": [
     "A",
@@ -1241,7 +1241,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<200kohm, 1%>[R0402]",
    "pn": "C114763",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0402FR-07200KL",
    "pins": [
     "A",
@@ -1269,7 +1269,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<820ohm, 5%>[R0402]",
    "pn": "C137837",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0402JR-07820RL",
    "pins": [
     "A",
@@ -1297,7 +1297,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<910kohm, 1%>[R0402]",
    "pn": "C137927",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0402FR-07910KL",
    "pins": [
     "A",
@@ -1325,7 +1325,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<8.66Mohm, 1%>[R0402]",
    "pn": "C477801",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0402FR-078M66L",
    "pins": [
     "A",
@@ -1353,7 +1353,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<820ohm, 5%>[R0402]",
    "pn": "C482239",
-   "mfr": "Vishay Intertech",
+   "mfr": "Vishay",
    "mpn": "CRCW0402820RJNED",
    "pins": [
     "A",
@@ -1381,7 +1381,7 @@
    "footprint": "passive::CHIP_0402",
    "part": "passive::ChipResistor<1.58kohm, 1%>[R0402]",
    "pn": "C3009257",
-   "mfr": "Vishay Intertech",
+   "mfr": "Vishay",
    "mpn": "CRCW04021K58FKED",
    "pins": [
     "A",
@@ -1409,7 +1409,7 @@
    "footprint": "passive::CHIP_0603",
    "part": "passive::ChipResistor<20kohm, 1%>[R0603]",
    "pn": "C105575",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0603FR-0720KL",
    "pins": [
     "A",
@@ -1437,7 +1437,7 @@
    "footprint": "passive::CHIP_0603",
    "part": "passive::ChipResistor<6.49kohm, 1%>[R0603]",
    "pn": "C163421",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0603FR-076K49L",
    "pins": [
     "A",
@@ -1465,7 +1465,7 @@
    "footprint": "passive::CHIP_0603",
    "part": "passive::ChipResistor<15.8ohm, 1%>[R0603]",
    "pn": "C163429",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0603FR-0715R8L",
    "pins": [
     "A",
@@ -1493,7 +1493,7 @@
    "footprint": "passive::CHIP_0603",
    "part": "passive::ChipResistor<5.36Mohm, 1%>[R0603]",
    "pn": "C482876",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0603FR-075M36L",
    "pins": [
     "A",
@@ -1521,7 +1521,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::MLCC<12pF, 50V, 5%>[C0805]",
    "pn": "C107108",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0805JRNPO9BN120",
    "pins": [
     "A",
@@ -1549,7 +1549,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::ChipResistor<510kohm, 5%>[R0805]",
    "pn": "C137422",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0805JR-07510KL",
    "pins": [
     "A",
@@ -1577,7 +1577,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::ChipResistor<910kohm, 1%>[R0805]",
    "pn": "C141703",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0805FR-07910KL",
    "pins": [
     "A",
@@ -1605,7 +1605,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::ChipResistor<1.47ohm, 1%>[R0805]",
    "pn": "C482966",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0805FR-071R47L",
    "pins": [
     "A",
@@ -1633,7 +1633,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::ChipResistor<115ohm, 1%>[R0805]",
    "pn": "C483001",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0805FR-07115RL",
    "pins": [
     "A",
@@ -1661,7 +1661,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::ChipResistor<57.6ohm, 1%>[R0805]",
    "pn": "C483188",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC0805FR-0757R6L",
    "pins": [
     "A",
@@ -1689,7 +1689,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::MLCC<390pF, 100V, 5%>[C0805]",
    "pn": "C527206",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0805JRNPO0BN391",
    "pins": [
     "A",
@@ -1717,7 +1717,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::MLCC<3.3nF, 200V, 10%>[C0805]",
    "pn": "C527232",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0805KRX7RABB332",
    "pins": [
     "A",
@@ -1745,7 +1745,7 @@
    "footprint": "passive::CHIP_0805",
    "part": "passive::MLCC<220pF, 250V, 5%>[C0805]",
    "pn": "C576985",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "CC0805JRNPOYBN221",
    "pins": [
     "A",
@@ -1773,7 +1773,7 @@
    "footprint": "passive::CHIP_1206",
    "part": "passive::ChipResistor<12kohm, 5%>[R1206]",
    "pn": "C137203",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1206JR-0712KL",
    "pins": [
     "A",
@@ -1801,7 +1801,7 @@
    "footprint": "passive::CHIP_1206",
    "part": "passive::ChipResistor<45.3ohm, 1%>[R1206]",
    "pn": "C274047",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1206FR-0745R3L",
    "pins": [
     "A",
@@ -1829,7 +1829,7 @@
    "footprint": "passive::CHIP_1206",
    "part": "passive::ChipResistor<5.49ohm, 1%>[R1206]",
    "pn": "C488876",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1206FR-075R49L",
    "pins": [
     "A",
@@ -1857,7 +1857,7 @@
    "footprint": "passive::CHIP_1206",
    "part": "passive::ChipResistor<82.5kohm, 1%>[R1206]",
    "pn": "C488985",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC1206FR-0782K5L",
    "pins": [
     "A",
@@ -1885,7 +1885,7 @@
    "footprint": "passive::CHIP_2010",
    "part": "passive::ChipResistor<130ohm, 5%>[R2010]",
    "pn": "C137046",
-   "mfr": "YAGEO",
+   "mfr": "Yageo",
    "mpn": "RC2010JK-07130RL",
    "pins": [
     "A",

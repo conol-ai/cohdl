@@ -140,6 +140,7 @@ class FrameBoardTests(unittest.TestCase):
         pages = {r["c"]: r for r in json.load(open(data / "jlc_catalog/2026-10-30/catalog.json"))}
         pages.update({r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-10-30-sample200/confirmed.json"))})
         mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
+        aliases = json.load(open(data / "mfr_aliases.json"))["aliases"]
         manifest = json.loads(committed.read_text())
         rows, dropped = manifest["rows"], manifest["dropped"]
         self.assertEqual(len({r["pn"] for r in rows}), len(rows))
@@ -151,9 +152,15 @@ class FrameBoardTests(unittest.TestCase):
         self.assertTrue(all(dropped.values()))
         for row in rows:
             with self.subTest(row=row["name"]):
-                # Every part number is a confirmed page, with that page's identity.
+                # Every part number is a confirmed page, with that page's identity;
+                # a mapped one takes the map row's mfr, the page's after alias review.
                 page = pages[row["pn"]]
-                self.assertEqual((row["mfr"], row["mpn"], row["jlc_package"]), (page["mfr"], page["mpn"], page["package"]))
+                mfr = aliases.get(page["mfr"], page["mfr"])
+                if row["pn"] in mapped:
+                    self.assertEqual(mapped[row["pn"]]["mfr"], mfr)
+                else:
+                    mfr = page["mfr"]
+                self.assertEqual((row["mfr"], row["mpn"], row["jlc_package"]), (mfr, page["mpn"], page["package"]))
                 if row["note"].startswith("map row"):
                     self.assertEqual(mapped[row["pn"]]["mpn"], row["mpn"])
                 # Four copies, or one top copy where stock allows only five parts.

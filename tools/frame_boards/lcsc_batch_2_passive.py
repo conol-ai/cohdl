@@ -9,9 +9,11 @@ package field ("0603") is not a supplier footprint identifier: on frame board
 1, C7972 and C7722 both read "SOT-23-5" and needed rotate 180 and 270. So each
 part number needs its own evidence, and this board gives it in one preview.
 
-Each row declares a local part with the supplier page's mfr and mpn, on the
-library entry's device type and footprint, so the preview shows the raw frame
-with no map. Chip parts are not polarised, and the bottom-side convention is
+Each row declares a local part with the map row's reviewed identity (the
+library entry's mfr, which is the page's after alias review, and the page's
+mpn), on the library entry's device type and footprint, so the preview shows
+the raw frame with no map. A part number the library has since bound keeps
+one identity across the package set (E813). Chip parts are not polarised, and the bottom-side convention is
 settled (C1), so one top copy at 0 degrees is enough.
 
 A part whose page read stock 0 is left off: the assembler shows it with a
@@ -72,7 +74,7 @@ for row, part, kind, footprint in selected:
     x += cell
     shelf = max(shelf, cell)
     rows.append({"name": part + ("_ALT" if kind == "alt" else ""), "footprint": "passive::" + footprint,
-                 "part": "passive::" + t, "pn": row["pn"], "mfr": page["mfr"], "mpn": page["mpn"], "pins": pins,
+                 "part": "passive::" + t, "pn": row["pn"], "mfr": row["mfr"], "mpn": page["mpn"], "pins": pins,
                  "width_mm": round(side, 3), "height_mm": round(side, 3), "covers_rotation": True,
                  "placements": [{"at_mm": at, "rotate": 0, "side": "top"}],
                  "note": f"lib/passive {part} {kind}; lcsc_map rule {row['rule']}",

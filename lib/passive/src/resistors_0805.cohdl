@@ -115,7 +115,7 @@ pub part R_1R43_F_0805: ChipResistor<1.43ohm, 1%>[R0805] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_1R47_F_0805: ChipResistor<1.47ohm, 1%>[R0805] {
-    primary { mfr: "Yageo", mpn: "RC0805FR-071R47L", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "RC0805FR-071R47L", footprint: CHIP_0805, supplier lcsc "C482966" }
     alt { mfr: "Vishay", mpn: "CRCW08051R47FKED" }
 }
 
@@ -1219,7 +1219,7 @@ pub part R_56R2_F_0805: ChipResistor<56.2ohm, 1%>[R0805] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_57R6_F_0805: ChipResistor<57.6ohm, 1%>[R0805] {
-    primary { mfr: "Yageo", mpn: "RC0805FR-0757R6L", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "RC0805FR-0757R6L", footprint: CHIP_0805, supplier lcsc "C483188" }
     alt { mfr: "Vishay", mpn: "CRCW080557R6FKED" }
 }
 
@@ -1417,7 +1417,7 @@ pub part R_113R_F_0805: ChipResistor<113ohm, 1%>[R0805] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_115R_F_0805: ChipResistor<115ohm, 1%>[R0805] {
-    primary { mfr: "Yageo", mpn: "RC0805FR-07115RL", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "RC0805FR-07115RL", footprint: CHIP_0805, supplier lcsc "C483001" }
     alt { mfr: "Vishay", mpn: "CRCW0805115RFKED" }
 }
 
@@ -4093,7 +4093,7 @@ pub part R_909K_F_0805: ChipResistor<909kohm, 1%>[R0805] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_910K_F_0805: ChipResistor<910kohm, 1%>[R0805] {
-    primary { mfr: "Yageo", mpn: "RC0805FR-07910KL", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "RC0805FR-07910KL", footprint: CHIP_0805, supplier lcsc "C141703" }
     alt { mfr: "Vishay", mpn: "CRCW0805910KFKED" }
 }
 
@@ -5629,7 +5629,7 @@ pub part R_470K_J_0805: ChipResistor<470kohm, 5%>[R0805] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_510K_J_0805: ChipResistor<510kohm, 5%>[R0805] {
-    primary { mfr: "Yageo", mpn: "RC0805JR-07510KL", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "RC0805JR-07510KL", footprint: CHIP_0805, supplier lcsc "C137422" }
     alt { mfr: "Vishay", mpn: "CRCW0805510KJNED" }
 }
 

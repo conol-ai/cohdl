@@ -28,6 +28,8 @@ top copy at 0 degrees.
 
 Every part number is a confirmed page: the W1 snapshot of 2026-10-30 or the
 B2 sample's confirmations (tools/sourcing_data/lcsc_backfill/2026-10-30-sample200).
+A part number in lcsc_map.json takes that row's reviewed mfr, so a binding the
+library has since made keeps one identity across the package set (E813).
 The script indexes the library itself (inventory.py), so preview_package.py
 can check that the committed manifest is still its output.
 """
@@ -127,7 +129,7 @@ for name, fp, ptype, c, copies, note in sorted(SEL, key=lambda r: (-r[4], -reach
     fp_pkg, fp_name = fp.split("::", 1)
     deps[fp_pkg] = versions[fp_pkg]
     rows.append({"name": name, "footprint": ident(fp_pkg) + "::" + fp_name, "part": ident(pkg) + "::" + t, "pn": c,
-                 "mfr": part["mfr"], "mpn": part["mpn"], "pins": pins,
+                 "mfr": mapped[c]["mfr"] if c in mapped else part["mfr"], "mpn": part["mpn"], "pins": pins,
                  "width_mm": round(side, 3), "height_mm": round(side, 3), "covers_rotation": True, "placements": places,
                  "note": note, "jlc_package": part["package"], "category": part["category"]})
 # The batch 2 passives share this board's preview: one top copy each, in that

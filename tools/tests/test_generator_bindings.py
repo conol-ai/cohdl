@@ -18,13 +18,14 @@ TOOLS = Path(__file__).resolve().parents[1]
 ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
-from sourcing.bindings import Bindings  # noqa: E402
+from sourcing.bindings import Bindings, package_metadata  # noqa: E402
 import gen_esp32  # noqa: E402
 import gen_passive  # noqa: E402
 import gen_stm32  # noqa: E402
 
 
 MPN = "RC0201JR-070RL"
+PASSIVE_VERSION = package_metadata(ROOT / "lib" / "passive" / "cohdl.toml")[1]
 
 
 def map_row(pn="C00000"):
@@ -39,7 +40,7 @@ def map_row(pn="C00000"):
     }
 
 
-def frame_row(version="0.2.3"):
+def frame_row(version=PASSIVE_VERSION):
     return {
         "id": "chip-0201",
         "package": "passive",
@@ -60,7 +61,7 @@ def frame_row(version="0.2.3"):
 
 
 class PassiveCopy:
-    """Copy passive inputs and the mapping files, never its generated output."""
+    """Copy passive inputs, never its generated output; the tables start absent."""
 
     def __init__(self, test):
         self.tempdir = tempfile.TemporaryDirectory()
@@ -71,6 +72,9 @@ class PassiveCopy:
             self.root / "tools",
             ignore=shutil.ignore_patterns("tests", "__pycache__", "*.pyc"),
         )
+        # Start from no tables, so the real ones' bindings stay out of the baseline.
+        for table in ("lcsc_map.json", "jlc_frames.json"):
+            (self.root / "tools" / "sourcing_data" / table).unlink()
         package = self.root / "lib" / "passive"
         (package / "src").mkdir(parents=True)
         shutil.copy2(ROOT / "lib" / "passive" / "cohdl.toml", package / "cohdl.toml")
@@ -148,7 +152,7 @@ class GeneratorBindingTests(unittest.TestCase):
             with self.subTest(duplicate=duplicate, stale=stale):
                 copy = PassiveCopy(self)
                 mappings = [map_row(), map_row("C00001")] if duplicate else [map_row()]
-                version = "0.0.1" if stale else "0.2.3"
+                version = "0.0.1" if stale else PASSIVE_VERSION
                 copy.write_tables(mappings, [frame_row(version)])
                 self.assertNotIn("supplier lcsc", copy.run())
 
@@ -159,6 +163,19 @@ class GeneratorBindingTests(unittest.TestCase):
         row["evidence"]["record"] = "missing.txt"
         copy.write_tables([map_row()], [row])
         self.assertNotIn("supplier lcsc", copy.run())
+        for extra in ({"note": " "}, {"note": 1}, {"by": "someone"}):
+            with self.subTest(extra=extra):
+                row = frame_row()
+                row["evidence"].update(extra)
+                copy.write_tables([map_row()], [row])
+                self.assertNotIn("supplier lcsc", copy.run())
+
+    def test_an_evidence_note_is_accepted(self):
+        copy = PassiveCopy(self)
+        row = frame_row()
+        row["evidence"]["note"] = "non-polar chip part: orientation known mod 180 only"
+        copy.write_tables([map_row()], [row])
+        self.assertIn('supplier lcsc "C00000"', copy.run())
 
     def test_integral_numeric_rotation_is_canonical_and_invalid_angles_are_silent(self):
         for rotate in (90, 90.0):

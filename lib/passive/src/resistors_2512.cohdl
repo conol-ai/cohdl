@@ -469,7 +469,7 @@ pub part R_4R64_F_2512: ChipResistor<4.64ohm, 1%>[R2512] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_4R7_F_2512: ChipResistor<4.7ohm, 1%>[R2512] {
-    primary { mfr: "Yageo", mpn: "RC2512FK-074R7L", footprint: CHIP_2512 }
+    primary { mfr: "Yageo", mpn: "RC2512FK-074R7L", footprint: CHIP_2512, supplier lcsc "C878096" }
     alt { mfr: "Vishay", mpn: "CRCW25124R70FKED" }
 }
 

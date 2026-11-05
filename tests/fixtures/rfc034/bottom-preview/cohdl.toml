@@ -9,6 +9,6 @@ top = "BottomPreview"
 
 [dependencies]
 flash = "0.2.0"
-passive = "0.2.3"
+passive = "0.2.4"
 std = "0.3.0"
 transistor = "0.2.0"

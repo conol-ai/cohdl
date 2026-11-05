@@ -1,0 +1,547 @@
+{
+ "C1": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.1 deg mod 180; centred within 0.013 mm (limit 0.080)"
+ },
+ "C2": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.1 deg mod 180; centred within 0.008 mm (limit 0.080)"
+ },
+ "C3": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +0.4 deg mod 180; centred within 0.022 mm (limit 0.080)"
+ },
+ "C4": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -3.0 deg mod 180; centred within 0.028 mm (limit 0.080)"
+ },
+ "C5": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -3.2 deg mod 180; centred within 0.029 mm (limit 0.080)"
+ },
+ "C6": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -1.1 deg mod 180; centred within 0.016 mm (limit 0.080)"
+ },
+ "C7": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +0.7 deg mod 180; centred within 0.048 mm (limit 0.080)"
+ },
+ "C8": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +1.5 deg mod 180; centred within 0.035 mm (limit 0.080)"
+ },
+ "C9": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +2.4 deg mod 180; centred within 0.015 mm (limit 0.228)"
+ },
+ "C10": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -7.9 deg mod 180; centred within 0.075 mm (limit 0.128)"
+ },
+ "C11": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +2.4 deg mod 180; centred within 0.120 mm (limit 0.228)"
+ },
+ "C12": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +2.1 deg mod 180; centred within 0.091 mm (limit 0.228)"
+ },
+ "C13": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +3.2 deg mod 180; centred within 0.106 mm (limit 0.228)"
+ },
+ "C14": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -5.9 deg mod 180; centred within 0.067 mm (limit 0.128)"
+ },
+ "R1": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +1.2 deg mod 180; centred within 0.049 mm (limit 0.080)"
+ },
+ "R2": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.1 deg mod 180; centred within 0.047 mm (limit 0.080)"
+ },
+ "R3": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -4.1 deg mod 180; centred within 0.058 mm (limit 0.080)"
+ },
+ "R4": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -2.8 deg mod 180; centred within 0.070 mm (limit 0.080)"
+ },
+ "R5": {
+  "side": "top",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R6": {
+  "side": "top",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R7": {
+  "side": "bottom",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R8": {
+  "side": "bottom",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R9": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.2 deg mod 180; centred within 0.038 mm (limit 0.250)"
+ },
+ "R10": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -1.6 deg mod 180; centred within 0.046 mm (limit 0.250)"
+ },
+ "R11": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +1.3 deg mod 180; centred within 0.036 mm (limit 0.250)"
+ },
+ "R12": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +3.3 deg mod 180; centred within 0.057 mm (limit 0.250)"
+ },
+ "R13": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.1 deg mod 180; centred within 0.177 mm (limit 0.250)"
+ },
+ "R14": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +1.2 deg mod 180; centred within 0.189 mm (limit 0.250)"
+ },
+ "R15": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -1.2 deg mod 180; centred within 0.171 mm (limit 0.250)"
+ },
+ "R16": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -0.8 deg mod 180; centred within 0.206 mm (limit 0.250)"
+ },
+ "R17": {
+  "side": "top",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R18": {
+  "side": "top",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R19": {
+  "side": "bottom",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R20": {
+  "side": "bottom",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "R21": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.6 deg mod 180; centred within 0.150 mm (limit 0.250)"
+ },
+ "R22": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.5 deg mod 180; centred within 0.136 mm (limit 0.250)"
+ },
+ "R23": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, +0.1 deg mod 180; centred within 0.160 mm (limit 0.250)"
+ },
+ "R24": {
+  "side": "bottom",
+  "status": "body",
+  "detail": "along its pads, -0.4 deg mod 180; centred within 0.121 mm (limit 0.250)"
+ },
+ "R25": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +2.3 deg mod 180; centred within 0.042 mm (limit 0.228)"
+ },
+ "R26": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.6 deg mod 180; centred within 0.135 mm (limit 0.250)"
+ },
+ "R27": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.9 deg mod 180; centred within 0.134 mm (limit 0.250)"
+ },
+ "R28": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +3.4 deg mod 180; centred within 0.035 mm (limit 0.206)"
+ },
+ "R29": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +7.1 deg mod 180; centred within 0.066 mm (limit 0.127)"
+ },
+ "R30": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.8 deg mod 180; centred within 0.036 mm (limit 0.228)"
+ },
+ "R31": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +1.5 deg mod 180; centred within 0.055 mm (limit 0.127)"
+ },
+ "R32": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -3.6 deg mod 180; centred within 0.038 mm (limit 0.206)"
+ },
+ "R33": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.6 deg mod 180; centred within 0.112 mm (limit 0.250)"
+ },
+ "R34": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +2.3 deg mod 180; centred within 0.049 mm (limit 0.128)"
+ },
+ "R35": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.5 deg mod 180; centred within 0.029 mm (limit 0.228)"
+ },
+ "R36": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.6 deg mod 180; centred within 0.038 mm (limit 0.228)"
+ },
+ "R37": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.7 deg mod 180; centred within 0.016 mm (limit 0.206)"
+ },
+ "R38": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.8 deg mod 180; centred within 0.112 mm (limit 0.250)"
+ },
+ "R39": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, +0.8 deg mod 180; centred within 0.017 mm (limit 0.206)"
+ },
+ "R40": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -3.9 deg mod 180; centred within 0.003 mm (limit 0.128)"
+ },
+ "R41": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -3.2 deg mod 180; centred within 0.013 mm (limit 0.127)"
+ },
+ "R42": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.2 deg mod 180; centred within 0.125 mm (limit 0.250)"
+ },
+ "R43": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -3.7 deg mod 180; centred within 0.003 mm (limit 0.127)"
+ },
+ "R44": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -4.3 deg mod 180; centred within 0.014 mm (limit 0.127)"
+ },
+ "R45": {
+  "side": "top",
+  "status": "body",
+  "detail": "along its pads, -0.3 deg mod 180; centred within 0.034 mm (limit 0.228)"
+ },
+ "SW1": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "SW2": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "SW3": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "SW4": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U1": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U2": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U3": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U4": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U5": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U6": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U7": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U8": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U9": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U10": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U11": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U12": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U13": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U14": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U15": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U16": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U17": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U18": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U19": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U20": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U21": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U22": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U23": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U24": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U25": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U26": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U27": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U28": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U29": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U30": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U31": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U32": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U33": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U34": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U35": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U36": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U37": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U38": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U39": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U40": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U41": {
+  "side": "top",
+  "status": "unverified",
+  "detail": "no model drawn: bare pads and the centroid marker"
+ },
+ "U42": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U43": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U44": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U45": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U46": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ }
+}

@@ -83,7 +83,11 @@ def _evidence(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: 
     if (evidence is None) == (reference is None):
         return False
     if evidence is not None:
-        if not isinstance(evidence, dict) or set(evidence) != {"method", "date", "record"}:
+        if not isinstance(evidence, dict) or set(evidence) - {"note"} != {"method", "date", "record"}:
+            return False
+        if "note" in evidence and not (
+            isinstance(evidence["note"], str) and evidence["note"].strip()
+        ):
             return False
         if evidence["method"] not in {"preview", "product_page"} or not _date(evidence["date"]):
             return False

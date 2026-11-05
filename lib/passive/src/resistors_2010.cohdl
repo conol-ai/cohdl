@@ -3625,7 +3625,7 @@ pub part R_196K_F_2010: ChipResistor<196kohm, 1%>[R2010] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_200K_F_2010: ChipResistor<200kohm, 1%>[R2010] {
-    primary { mfr: "Yageo", mpn: "RC2010FK-07200KL", footprint: CHIP_2010 }
+    primary { mfr: "Yageo", mpn: "RC2010FK-07200KL", footprint: CHIP_2010, supplier lcsc "C877226" }
     alt { mfr: "Vishay", mpn: "CRCW2010200KFKED" }
 }
 
@@ -5095,7 +5095,7 @@ pub part R_120R_J_2010: ChipResistor<120ohm, 5%>[R2010] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_130R_J_2010: ChipResistor<130ohm, 5%>[R2010] {
-    primary { mfr: "Yageo", mpn: "RC2010JK-07130RL", footprint: CHIP_2010 }
+    primary { mfr: "Yageo", mpn: "RC2010JK-07130RL", footprint: CHIP_2010, supplier lcsc "C137046" }
     alt { mfr: "Vishay", mpn: "CRCW2010130RJNED" }
 }
 

@@ -18,7 +18,8 @@
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
-        "record": "evidence.txt"
+        "record": "evidence.txt",
+        "note": "Optional reading note: accepted when non-empty."
       },
       "evidence_ref": null
     },

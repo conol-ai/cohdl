@@ -130,6 +130,63 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertEqual(float(supplier[ref]["Rotation"]), expected)
                 self.assertEqual(supplier[ref]["Mid X"], row["Mid X"])
 
+    def test_c2_board_3_manifest_is_its_generators_output_with_confirmed_parts(self):
+        committed = ROOT / "tools/frame_boards/c2-board-3/manifest.json"
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run(["python3", "-I", str(ROOT / "tools/frame_boards/c2_board_3.py"), str(Path(td) / "m.json")],
+                           check=True, capture_output=True)
+            self.assertEqual((Path(td) / "m.json").read_bytes(), committed.read_bytes())
+        data = ROOT / "tools/sourcing_data"
+        pages = {r["c"]: r for r in json.load(open(data / "jlc_catalog/2026-10-30/catalog.json"))}
+        pages.update({r["c"]: r for r in json.load(open(data / "lcsc_backfill/2026-10-30-sample200/confirmed.json"))})
+        mapped = {r["pn"]: r for r in json.load(open(data / "lcsc_map.json"))["rows"]}
+        aliases = json.load(open(data / "mfr_aliases.json"))["aliases"]
+        manifest = json.loads(committed.read_text())
+        rows, dropped = manifest["rows"], manifest["dropped"]
+        self.assertEqual(len({r["pn"] for r in rows}), len(rows))
+        # The passive batch 2 board shares this preview: each of its part numbers is
+        # here, or listed as dropped with a reason.
+        passives = json.loads((ROOT / "tools/frame_boards/lcsc-batch-2-passive/manifest.json").read_text())["rows"]
+        self.assertLessEqual({r["pn"] for r in passives}, {r["pn"] for r in rows} | set(dropped))
+        self.assertFalse(set(dropped) & {r["pn"] for r in rows})
+        self.assertTrue(all(dropped.values()))
+        for row in rows:
+            with self.subTest(row=row["name"]):
+                # Every part number is a confirmed page, with that page's identity;
+                # a mapped one takes the map row's mfr, the page's after alias review.
+                page = pages[row["pn"]]
+                mfr = aliases.get(page["mfr"], page["mfr"])
+                if row["pn"] in mapped:
+                    self.assertEqual(mapped[row["pn"]]["mfr"], mfr)
+                else:
+                    mfr = page["mfr"]
+                self.assertEqual((row["mfr"], row["mpn"], row["jlc_package"]), (mfr, page["mpn"], page["package"]))
+                if row["note"].startswith("map row"):
+                    self.assertEqual(mapped[row["pn"]]["mpn"], row["mpn"])
+                # Four copies, or one top copy where stock allows only five parts.
+                sides = [(p["rotate"], p["side"]) for p in row["placements"]]
+                self.assertIn(sides, ([(0, "top"), (37, "top"), (0, "bottom"), (37, "bottom")], [(0, "top")]))
+                self.assertNotIn("mapping", row)
+
+    @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
+    def test_c2_board_3_board_carries_no_supplier_mapping(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "board"
+            subprocess.run(["python3", "-I", str(ROOT / "tools/jlc_frame_board.py"),
+                            str(ROOT / "tools/frame_boards/c2-board-3/manifest.json"), "-o", str(out),
+                            "--cohdl", str(COHDL), "--skip-kicad"], check=True, capture_output=True)
+            neutral = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-cpl.csv").read_text())))
+            supplier = {r["Designator"]: r for r in csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-cpl.csv").read_text()))}
+            bom = list(csv.DictReader(io.StringIO((out / "out/c2_frame_board_3-lcsc-bom.csv").read_text())))
+        self.assertEqual(len(neutral), 109)
+        self.assertEqual(len(bom), 49)
+        for row in neutral:
+            angle = float(row["Rotation"])
+            expected = angle if row["Layer"] == "Top" else (180 - angle) % 360
+            with self.subTest(ref=row["Designator"]):
+                self.assertEqual(float(supplier[row["Designator"]]["Rotation"]), expected)
+                self.assertEqual(supplier[row["Designator"]]["Mid X"], row["Mid X"])
+
     def test_cpl_check_compares_position_side_and_top_angle(self):
         cpl = ("Designator,Mid X,Mid Y,Layer,Rotation\n"
                "U1,1.0000mm,2.0000mm,Top,37\nU2,3.0000mm,4.0000mm,Bottom,217\n")

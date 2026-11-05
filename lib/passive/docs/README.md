@@ -102,3 +102,9 @@ x = ±0.485 mm. The exact 2.0 nH and 3.0 nH parts both exercise this footprint.
 ## RP2350 orientation-marked inductor (passive 0.2.3)
 
 `IND_3U3_AOTA_B201610S3R3_101_T` uses its own exact manufacturer land and named DOT/UNDOTTED pins. Read [the application note](abracon-aota-application.md) for source hashes, electrical-table caveats, the explicit pad-number convention and RP2350 reference orientation. Original Abracon and Raspberry Pi PDFs are bundled unchanged. Existing generated resistor/MLCC declarations and other inductor definitions are unchanged.
+
+## LCSC bindings (passive 0.2.4)
+
+33 entries carry a `supplier lcsc` binding: 25 resistors and 8 MLCCs, from 0201 to 2512 (31 Yageo primaries and two Vishay CRCW alternates). Each part number was placed on the assembler's preview of 2026-11-05 (`tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/`) and read along its land, so each binding has a zero map. A chip part is not polarised, so its frame is known mod 180 only; that makes no difference to the copper. `tools/gen_passive.py` writes the clauses from `tools/sourcing_data/lcsc_map.json` and `jlc_frames.json`, and an entry without both a confirmed identity and a frame row for this version gets none.
+
+A binding changes no connection, no geometry and no verdict, and no land changed from 0.2.3. A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is bound (31 of the 33; the two Vishay bindings are on alternates). `cohdl build DIR --supplier lcsc` adds the LCSC BOM, map and CPL, which carry these part numbers. There an instance takes its bound primary, else its first bound alternate: `R_1K58_F_0402` takes the Vishay C3009257, while `R_820R_J_0402` takes its Yageo primary C137837, so its Vishay C482239 is not selected.

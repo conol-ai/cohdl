@@ -409,7 +409,8 @@ pub part C_220p_16V_X7R_0201: MLCC<220pF, 16V, 10%>[C0201] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_330p_16V_X7R_0201: MLCC<330pF, 16V, 10%>[C0201] {
-    primary { mfr: "Yageo", mpn: "CC0201KRX7R7BB331", footprint: CHIP_0201 }
+    primary { mfr: "Yageo", mpn: "CC0201KRX7R7BB331", footprint: CHIP_0201,
+              supplier lcsc "C541229" }
 }
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
@@ -874,7 +875,8 @@ pub part C_470p_50V_X7R_0201: MLCC<470pF, 50V, 10%>[C0201] {
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_680p_50V_X7R_0201: MLCC<680pF, 50V, 10%>[C0201] {
-    primary { mfr: "Yageo", mpn: "CC0201KRX7R9BB681", footprint: CHIP_0201 }
+    primary { mfr: "Yageo", mpn: "CC0201KRX7R9BB681", footprint: CHIP_0201,
+              supplier lcsc "C718246" }
 }
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]

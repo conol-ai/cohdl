@@ -3,7 +3,7 @@
 Usage: python3 -I tools/frame_boards/preview_package.py BOARD -o OUT.zip \
          --cohdl COHDL --kicad-cli KICAD_CLI --kicad-python KICAD_PYTHON [--allow-dirty]
 
-BOARD names a directory under ``tools/frame_boards`` (``lcsc-batch-1``).  In
+BOARD names a directory under ``tools/frame_boards`` (``lcsc-batch-1``, ``c2-board-3``).  In
 order, and stopping at the first failure:
 
 1. the source tree is clean, unless ``--allow-dirty`` (the package then says so);
@@ -39,10 +39,11 @@ sys.path.insert(0, str(ROOT / "tools"))
 import check_cpl
 import jlc_frame_board
 
-# Boards whose manifest a generator writes from the repository's data.  The C2
-# frame boards are records of their previews, pinned to the packages of their
-# day, so they are not regenerated.
-REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py"}
+# Boards whose manifest a generator writes from the repository's data.  C2
+# frame boards 1 and 2 are records of their previews, pinned to the packages of
+# their day, so they are not regenerated.
+REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_batch_2_passive.py",
+              "c2-board-3": "c2_board_3.py"}
 
 # The layers the assembler fabricates from; courtyard, fab and user layers stay out.
 GERBER_LAYERS = ("F_Cu", "B_Cu", "F_Mask", "B_Mask", "F_Paste", "B_Paste",

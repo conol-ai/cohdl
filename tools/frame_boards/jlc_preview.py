@@ -18,17 +18,22 @@ AppleScript ``execute javascript``:
    on its CPL side, in a selected row showing its BOM part number; the count of
    parts detected and confirmed must match, with no stock warning;
 6. NEXT to Component Placements; the 2D view; the preview's own whole-board
-   exports of the top and the bottom land in the run directory. Each export must
-   show a pin 1 mark on every part of its side (``board.json``), or it is taken
-   again.
+   exports of the top and the bottom land in the run directory. Each instance of
+   the side (``board.json``) needs its own evidence: a pin 1 mark, or, for a
+   non-polar chip part (``measure_preview.is_chip``), its drawn body along its
+   pads, mod 180, and centred on them. While any instance lacks it, the export
+   is taken again. After the last attempt, an instance whose model is not drawn
+   is "unverified", and a drawn one without its evidence is for "manual review";
+   neither passes. ``preview/checks.json`` records each instance's verdict.
 
 It stops there. It never clicks anything that saves to the cart, quotes, orders or
 pays, and it never ticks the assembly terms on the person's behalf. It reads the
 page's DOM only, never a response of the site's own requests, and never issues a
 request of its own. A sign-in page, a captcha or anything it cannot place stops it
 with exit 2 and a message for the person. A check that fails exits 1: the preview is
-then unverified, never passed. Measuring pin 1 on the exports is a separate step
-(``measure_preview.py``).
+then unverified, never passed. Exit 3: both exports are taken, but some instances
+are unverified or for manual review. Measuring pin 1 on the exports is a separate
+step (``measure_preview.py``).
 
 A package built before ``preview_package.py`` added ``board.json`` takes
 ``--board``: ``measure_preview.py board`` of the package's ``.kicad_pcb``.
@@ -294,14 +299,54 @@ def load_board(upload, board, placements):
     return doc
 
 
-def pin1_marks(png, outline, bottom):
-    """The magenta pin 1 marks an export shows, in board millimetres (a BGA shows two)."""
+def inspect(png, outline, bottom, fps):
+    """What an export shows of each of FPS: the pin 1 marks, and per part whether
+    its model is drawn and, for a chip part, its body reading."""
     bmp = png.with_suffix(".bmp")
     subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)], check=True, capture_output=True)
     try:
-        return measure_preview.dots(str(bmp), outline, bottom)
+        view = measure_preview.View(str(bmp), outline, bottom)
+        readings = {}
+        for fp in fps:
+            shown = measure_preview.drawn(view, fp)
+            readings[fp["ref"]] = {"drawn": shown,
+                                   "body": measure_preview.body(view, fp) if shown and measure_preview.is_chip(fp) else None}
+        return measure_preview.dots(view, outline, bottom), readings
     finally:
         bmp.unlink()
+
+
+PASS = ("mark", "body")
+
+
+def verdicts(marks, fps, readings):
+    """Each instance of FPS on its own evidence: {ref: (status, detail)}.
+
+    - a chip part (``measure_preview.is_chip``) has no pin 1 mark; its drawn body
+      must lie along its pads, mod 180, and be centred on them: "body";
+    - every other part needs a mark of its own (``unmarked``): "mark";
+    - a part whose model is not drawn (bare pads and the centroid marker) is
+      "unverified", and a drawn part without its evidence goes to "manual review".
+    Neither of the last two passes, and no instance's evidence covers another's.
+    """
+    missing = set(unmarked(marks, fps))
+    out = {}
+    for fp in fps:
+        ref, reading = fp["ref"], readings[fp["ref"]]
+        if not reading["drawn"]:
+            out[ref] = ("unverified", "no model drawn: bare pads and the centroid marker")
+        elif measure_preview.is_chip(fp):
+            b = reading["body"]
+            if measure_preview.body_ok(b):
+                out[ref] = ("body", "along its pads, %+.1f deg mod 180; centred within %.3f mm (limit %.3f)"
+                            % (b["delta_mod_180"], b["offset_mm"], b["offset_limit_mm"]))
+            else:
+                out[ref] = ("manual review", "chip body not along or not centred on its pads: %s" % json.dumps(b, sort_keys=True))
+        elif ref in missing:
+            out[ref] = ("manual review", "drawn, with no pin 1 mark of its own")
+        else:
+            out[ref] = ("mark", "")
+    return out
 
 
 def unmarked(marks, fps):
@@ -320,10 +365,13 @@ def unmarked(marks, fps):
 
 
 def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=180):
-    """The preview's own export of SIDE, once it shows a pin 1 mark on each of FPS.
+    """The preview's own export of SIDE, and the verdict on each of FPS (``verdicts``).
 
     Right after a side switch the preview can draw the lands before the parts,
-    and an export then shows no pin 1 marks; it is retried after a pause.
+    and an export then shows no pin 1 marks; while any instance lacks its
+    evidence, the export is retried after a pause. After the last attempt the
+    export is kept with what it shows: the instances still without evidence are
+    "unverified" or for "manual review", never passed.
     """
     js("""(() => { const b = [...document.querySelectorAll("[class*=_nav-bar-item_]")].find(e => e.textContent.trim() === %s);
         b.click(); return "ok"; })()""" % json.dumps(side))
@@ -342,11 +390,15 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
                 raise Stop("the %s export did not reach %s. If Arc asks to allow multiple downloads, allow it "
                            "and rerun" % (side.lower(), downloads))
             time.sleep(1)
-        missing = unmarked(pin1_marks(out, outline, side == "Bottom"), fps)
-        if not missing:
-            return out
-        print("%s export shows no pin 1 mark on %s; exporting again" % (side, ", ".join(missing)))
-    raise Unverified("the %s export never showed a pin 1 mark on %s" % (side.lower(), ", ".join(missing)))
+        marks, readings = inspect(out, outline, side == "Bottom", fps)
+        found = verdicts(marks, fps, readings)
+        short = sorted((ref for ref, (status, _) in found.items() if status not in PASS), key=natural)
+        if not short:
+            return out, found
+        if attempt + 1 < attempts:
+            print("%s export shows no evidence yet on %s; exporting again" % (side, ", ".join(short)))
+    print("%s export: still no evidence on %s after %d exports" % (side, ", ".join(short), attempts))
+    return out, found
 
 
 def run_preview(package, run, downloads, board=None):
@@ -404,17 +456,36 @@ def run_preview(package, run, downloads, board=None):
 
     click_button("NEXT")
     wait("String(!!document.querySelector('[class*=_download-icon_]'))", lambda v: v == "true", 60, "Component Placements")
-    js('(() => { document.querySelector("[class*=_contentLeft_]").click(); return "ok"; })()')
-    wait('document.querySelector("[class*=_switchButton_]").textContent.trim()', lambda v: v == "2D", 20, "the 2D view")
+    # A large board can still be rendering in 3D when the switch is first clicked.
+    for attempt in range(3):
+        js('(() => { document.querySelector("[class*=_contentLeft_]").click(); return "ok"; })()')
+        try:
+            wait('document.querySelector("[class*=_switchButton_]").textContent.trim()', lambda v: v == "2D", 30,
+                 "the 2D view")
+            break
+        except Stop:
+            if attempt == 2:
+                raise
     preview = run / "preview"
     preview.mkdir(exist_ok=True)
+    checks = {}
     for side_name in ("Top", "Bottom"):
         if sides[side_name]:
             fps = [fp for fp in doc["fps"] if fp["ref"] in sides[side_name]]
-            path = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), fps,
-                                  measure_preview.outline(doc))
+            path, found = export_capture(side_name, downloads, preview / (side_name.lower() + ".png"), fps,
+                                         measure_preview.outline(doc))
+            checks.update({ref: {"side": side_name.lower(), "status": status, "detail": detail}
+                           for ref, (status, detail) in found.items()})
             print("%s export: %s (sha256 %s)" % (side_name, path, hashlib.sha256(path.read_bytes()).hexdigest()))
+    (preview / "checks.json").write_text(json.dumps(dict(sorted(checks.items(), key=lambda kv: natural(kv[0]))),
+                                                    indent=1) + "\n", encoding="utf-8")
+    count = {s: sorted((r for r, c in checks.items() if c["status"] == s), key=natural)
+             for s in ("mark", "body", "unverified", "manual review")}
+    print("Instances: %d with a pin 1 mark, %d chip bodies along their pads; unverified: %s; manual review: %s"
+          % (len(count["mark"]), len(count["body"]), ", ".join(count["unverified"]) or "none",
+             ", ".join(count["manual review"]) or "none"))
     print("Stopped at Component Placements; nothing was added to the cart.")
+    return checks
 
 
 def main(argv=None):
@@ -426,13 +497,18 @@ def main(argv=None):
     args = ap.parse_args(argv)
     run = args.run or Path.home() / ".cache/cohdl-preview/runs" / args.package.stem
     try:
-        run_preview(args.package, run, args.downloads, args.board)
+        checks = run_preview(args.package, run, args.downloads, args.board)
     except Stop as stop:
         print("jlc_preview.py: a person has to take over: %s" % stop, file=sys.stderr)
         return 2
     except Unverified as failure:
         print("jlc_preview.py: unverified: %s" % failure, file=sys.stderr)
         return 1
+    open_ = sorted((ref for ref, c in checks.items() if c["status"] not in PASS), key=natural)
+    if open_:
+        print("jlc_preview.py: exports complete; %d instances unverified or for manual review: %s (see %s)"
+              % (len(open_), ", ".join(open_), run / "preview/checks.json"), file=sys.stderr)
+        return 3
     return 0
 
 

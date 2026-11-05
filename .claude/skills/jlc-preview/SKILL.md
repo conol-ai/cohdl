@@ -36,9 +36,14 @@ The flow builds the preview package, works the assembler's web pages in the pers
    - reads the BOM step row by row. Each designator must appear exactly once, on its CPL side, in a selected row matched to its BOM part number. The counts of parts detected and confirmed must match, and no stock warning may show;
    - exports the 2D top and bottom views into `~/.cache/cohdl-preview/runs/<package>/preview/`.
 
-   Each export must show a pin 1 mark on every part of its side, or it is taken again. Each mark counts once, for the nearest footprint within its reach (`board.json`), so a BGA's second mark cannot cover for a part that was not drawn. A package from before `board.json` was added takes `--board`, the output of `measure_preview.py board` for the package's `.kicad_pcb`.
+   Each instance on the side (`board.json`) needs evidence of its own, or the export is taken again:
+   - **Non-polar chip parts** (`measure_preview.is_chip`: the library's `passive` `CHIP_*` lands, two pads) get no pin 1 mark from the preview. Their drawn body must lie along the pads' axis, mod 180 (within 10°), and be centred on its pads (within the lesser of 0.25 mm and a quarter of the pad half-spacing).
+   - **Every other part** needs a pin 1 mark. Each mark counts once, for the nearest footprint within its reach, so a BGA's second mark cannot cover for a part that was not drawn.
+
+   After the last retake the run goes on to the other side. An instance whose model is not drawn (bare pads and the checkered centroid marker) is **unverified**. A drawn instance without its evidence (no mark, or a chip body not along or not centred on its pads) goes to **manual review**. Neither passes. Each instance's verdict is in `preview/checks.json`. A package from before `board.json` was added takes `--board`, the output of `measure_preview.py board` for the package's `.kicad_pcb`.
    - **Exit 2:** a person must take over (sign-in, captcha, a dialog, a page the script cannot place). Say what it printed, wait, then rerun.
    - **Exit 1:** a check failed. The preview is **unverified**; report it, and do not work around it.
+   - **Exit 3:** both exports were taken, but some instances are unverified or for manual review. Measure and record the rest, and list those instances with their reasons.
 3. **Measure:**
    ```sh
    R=~/.cache/cohdl-preview/runs/<package>
@@ -49,7 +54,8 @@ The flow builds the preview package, works the assembler's web pages in the pers
 4. **Read the results.**
    - `delta_ccw_from_top` is the preview's pin 1, counter-clockwise from ours, seen from the top. The binding's `rotate` should leave it near 0; single readings scatter by up to about 10°.
    - A BGA shows two marks near A1, and the script leaves its angle empty. Read it by hand from the mark nearest our ball A1, and check that no mark sits near another corner. Record it as manual review, and say so in the results table.
-   - A part not placed (stock), a missing or ambiguous mark, or a failed measurement is **unverified**, never passed. Opening the preview is not a pass.
+   - A chip part's row carries `body`: `delta_mod_180` (the body's long axis against the pads', mod 180), `offset_mm` and `body_ok`. A non-polar part's orientation is only known mod 180, and its frame row says so.
+   - A part not placed (stock), a model not drawn (`"drawn": false`), a missing or ambiguous mark, or a failed measurement is **unverified**, never passed. Opening the preview is not a pass.
 5. **Record** in `tools/sourcing_data/jlc_previews/<date>-<board>/`. Follow `2026-11-04-lcsc-batch-1/`:
    - `README.md`: what was uploaded, with hashes; the settings; the BOM step; the method; a results table; what it shows; and a section headed "Manual review and limits";
    - `top.png` and `bottom.png`, the exports as downloaded, with their SHA-256, so `measurements.json` can be reproduced value for value (a re-encoded JPEG shifts readings by about 0.1°);

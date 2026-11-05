@@ -223,6 +223,26 @@ class JlcPreviewTests(unittest.TestCase):
                     self.assertEqual({ref: v[0] for ref, v in verdict.items()}, expect)
                     self.assertEqual(found.call_count, len(shown))
 
+    def test_a_lost_export_click_is_clicked_again(self):
+        fps = [fp("U1", 10, 10, 4)]
+        shown = ([(6, 6, 9)], {"U1": {"drawn": True, "body": None}})
+        with tempfile.TemporaryDirectory() as td:
+            downloads, out = Path(td) / "dl", Path(td) / "bottom.png"
+            downloads.mkdir()
+            clicks = []
+
+            def js(code):
+                if "_download-icon_" in code:
+                    clicks.append(code)
+                    if len(clicks) == 2:  # the first click is lost
+                        (downloads / "JLCPCB PCBA Capture.png").write_bytes(b"png")
+                return "true"
+            with mock.patch.object(jp, "js", side_effect=js), mock.patch.object(jp, "inspect", return_value=shown), \
+                    mock.patch.object(sys, "stdout", io.StringIO()):
+                path, verdict = jp.export_capture("Bottom", downloads, out, fps, (0, 0, 50, 50), settle=0, reclick=0)
+            self.assertEqual((path, verdict["U1"][0], len(clicks)), (out, "mark", 2))
+            self.assertEqual(list(downloads.iterdir()), [])
+
     def test_a_chip_part_is_the_libraries_two_pad_passive_chip_land(self):
         self.assertTrue(mp.is_chip(chip("R1", 0, 0)))
         self.assertTrue(mp.is_chip(chip("C1", 0, 0, fpid="passive-CHIP_2512")))

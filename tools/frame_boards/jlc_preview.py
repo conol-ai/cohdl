@@ -364,7 +364,10 @@ def unmarked(marks, fps):
     return sorted((ref for ref, n in count.items() if not n), key=natural)
 
 
-def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=180):
+EXPORT = '(() => { document.querySelector("[class*=_download-icon_]").click(); return "ok"; })()'
+
+
+def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, timeout=180, reclick=60):
     """The preview's own export of SIDE, and the verdict on each of FPS (``verdicts``).
 
     Right after a side switch the preview can draw the lands before the parts,
@@ -379,16 +382,26 @@ def export_capture(side, downloads, out, fps, outline, attempts=3, settle=15, ti
         time.sleep(settle)
         wait("String(!/Rendering/.test(document.body.innerText))", lambda v: v == "true", 120, "the models")
         before = time.time()
-        js('(() => { document.querySelector("[class*=_download-icon_]").click(); return "ok"; })()')
-        end = time.time() + timeout
+        js(EXPORT)
+        end, again = time.time() + timeout, time.time() + reclick
         while True:
-            fresh = [p for p in downloads.glob("*JLCPCB*.png") if p.stat().st_mtime >= before - 1]
+            fresh = sorted((p for p in downloads.glob("*JLCPCB*.png") if p.stat().st_mtime >= before - 1),
+                           key=lambda p: p.stat().st_mtime)
             if fresh:
-                shutil.move(str(max(fresh, key=lambda p: p.stat().st_mtime)), out)
+                time.sleep(2)  # a second click's file may still be landing
+                fresh = sorted((p for p in downloads.glob("*JLCPCB*.png") if p.stat().st_mtime >= before - 1),
+                               key=lambda p: p.stat().st_mtime)
+                shutil.move(str(fresh[-1]), out)
+                for k, extra in enumerate(fresh[:-1]):  # duplicates of this export, out of the person's Downloads
+                    shutil.move(str(extra), out.with_name("%s-extra%d.png" % (out.stem, k + 1)))
                 break
             if time.time() > end:
                 raise Stop("the %s export did not reach %s. If Arc asks to allow multiple downloads, allow it "
                            "and rerun" % (side.lower(), downloads))
+            # A click right after the view settles is sometimes lost; click once more.
+            if time.time() > again:
+                js(EXPORT)
+                again = time.time() + reclick
             time.sleep(1)
         marks, readings = inspect(out, outline, side == "Bottom", fps)
         found = verdicts(marks, fps, readings)

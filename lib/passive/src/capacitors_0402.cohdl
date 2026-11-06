@@ -729,7 +729,7 @@ pub part C_68n_16V_X7R_0402: MLCC<68nF, 16V, 10%>[C0402] {
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
 pub part C_100n_16V_X7R_0402: MLCC<100nF, 16V, 10%>[C0402] {
     primary { mfr: "Yageo", mpn: "CC0402KRX7R7BB104", footprint: CHIP_0402 }
-    alt { mfr: "Samsung", mpn: "CL05B104KO5NNNC" }
+    alt { mfr: "Samsung", mpn: "CL05B104KO5NNNC", supplier lcsc "C1525" }
     alt { mfr: "Murata", mpn: "GRM155R71C104KA88D" }
 }
 

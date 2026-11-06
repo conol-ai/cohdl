@@ -59,3 +59,5 @@ Upload for preview only and record the result with the screenshots in `tools/sou
 ## Preview of 2026-11-04
 
 Recorded in `tools/sourcing_data/jlc_previews/2026-11-04-lcsc-batch-1/`. All 24 placements were made. Every copy reads 0 with the bindings applied, including the three `rotate 270` LQFP bindings. The 16 QFP readings were taken by `measure_preview.py`, and the 8 BGA readings by hand from the mark nearest ball A1.
+
+Since 2026-11-06 the board builds against `@st/stm32` 0.3.1, which ships these six bindings unchanged and adds four others that this board does not place.

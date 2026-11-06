@@ -5273,7 +5273,7 @@ pub part MCU_STM32F030C6T6: STM32F030C6Tx {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32F030C8T6: STM32F030C8Tx {
     primary { mfr: "STMicroelectronics", mpn: "STM32F030C8T6",
-              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM }
+              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM, supplier lcsc "C23922" }
     alt { mfr: "STMicroelectronics", mpn: "STM32F030C8T6TR" }
 }
 

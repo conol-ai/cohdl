@@ -17,7 +17,9 @@ MPN, manufacturer, package and class, or the build fails. Each row's
 or, for a page the run read from its cache, from that cache's metadata
 (``--cache-dir``, the fetch cache outside the repository; its URL and body hash are
 checked). The report lists those dates, so ``--dates`` with an earlier report
-rebuilds the same body without the cache. A row with no such time fails the build. The body is then checked
+rebuilds the same body without the cache, and ``--map`` and ``--aliases`` name a map and alias
+table other than the repository's current ones (an upload record keeps the ones it was built from).
+A row with no such time fails the build. The body is then checked
 as the registry's ``parseSnapshot`` checks it, and against its limits: at most
 15,000 rows and 4 MiB, since one request replaces the whole catalog. Every
 ``supplier lcsc`` part number in ``lib/`` must be in it. The report records the
@@ -383,6 +385,8 @@ def main(argv=None) -> int:
     dated = b.add_mutually_exclusive_group()
     dated.add_argument("--cache-dir", type=Path)
     dated.add_argument("--dates", type=Path, help="an earlier report.json, for its cache dates")
+    b.add_argument("--map", type=Path, default=MAP)
+    b.add_argument("--aliases", type=Path, default=ALIASES)
     u = sub.add_parser("upload")
     u.add_argument("out", type=Path)
     u.add_argument("--expect-sha256", required=True)
@@ -393,7 +397,7 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "build":
-            report = build(args.out, args.cache_dir, args.dates)
+            report = build(args.out, args.cache_dir, args.dates, map_path=args.map, aliases_path=args.aliases)
             print(render(report))
             return 0
         if args.command == "upload":

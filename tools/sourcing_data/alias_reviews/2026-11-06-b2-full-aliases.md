@@ -100,6 +100,21 @@ The proposals are reviewed in one issue, assigned to Tony Huang (`conol-tony`), 
 
 | Rows | Issue | Decision |
 |---|---|---|
-| 1–40 | #73 | Pending |
+| 1–32, 38, 39 | #73 | Accepted by Tony Huang, 2026-11-06 ([comment](https://github.com/conol-ai/cohdl/issues/73#issuecomment-6677122174)) |
+| 33–37, 40 | #73 | Rejected, same comment |
 
 An accepted alias is added to `mfr_aliases.json`; the run is then repeated offline with it, and the new rows promoted through `promote_lcsc_map.py`. A rejected one stays out, and its identities stay in review.
+
+## Outcome
+
+The reviewer's reasons, from the comment:
+
+- **33–35** are not the same company. TECH PUBLIC sells its own parts under other makers' part numbers. Yongfukang is not NSIWAY. Johanson Dielectrics (capacitors) and Johanson Technology (RF) are separate companies.
+- **36** is fixed in the library instead. `@contrib/audio-amp` already writes plain `Analog Devices`, so the next `switches` version should write `Analog Devices` for `MAX16054AZT+T`, which then matches with no alias.
+- **37/38:** `Hirose Electric` is the canonical spelling. The next `connectors` version should rename its two `HRS` entries, after which their identities map through 38.
+- **39/40:** the official `audio-amp` package's `NSIWAY` is the canonical spelling. `@contrib/audio-amp` should move from `Nsiway` to it.
+- **19/20:** both accepted. The selection rule settles `CYPD6227-96BZXI` on C22453211.
+
+The 34 accepted aliases are in `mfr_aliases.json`, 37 with the three of #62–#64. The full run was then repeated offline with that table (`../lcsc_backfill/2026-11-06-full-aliases/`, no request), and its 12,280 rows were promoted into `lcsc_map.json`. That is 174 more than the first pass's 12,106, as estimated above. Still in review:
+- 5 `manufacturer_not_matched`: the identities of rows 33–37 and 40 that no accepted row covers (`MAX16054AZT+T`, the two `HRS` connectors, Johanson `2450AT18B100E`, Nsiway `NS4150B`). Four wait for the library fixes above; the Johanson antenna stays in review, since its page names Johanson Dielectrics.
+- 7 `tied_after_priority`: the 5 Espressif modules, and STM32C071C8T6 and STM32L475VGT6.

@@ -2,13 +2,14 @@
 
 Status: **uploaded 2026-11-05 and verified** (see "Upload record" below). Alex signed off on the snapshot SHA-256 below, and Tony Huang accepted the three aliases in #62, #63 and #64 (evidence in `tools/sourcing_data/alias_reviews/2026-11-05-mfr-aliases.md`).
 
-`report.json` and `report.md` are the pre-upload report from `tools/upload_supplier_snapshot.py build`. The request body itself is not kept, because it rebuilds from the repository alone:
+`report.json` and `report.md` are the pre-upload report from `tools/upload_supplier_snapshot.py build`. The request body itself is not kept, because it rebuilds from the repository alone. `lcsc_map.json` and `mfr_aliases.json` here are byte-for-byte copies of the map and alias table it was built from (their SHA-256 values are in the report), kept since 2026-11-06, when the B2 full run replaced both in `tools/sourcing_data/`:
 
 ```sh
-python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates tools/sourcing_data/registry_uploads/2026-11-05-lcsc/report.json
+R=tools/sourcing_data/registry_uploads/2026-11-05-lcsc
+python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json
 ```
 
-The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report. `tools/tests/test_upload_supplier_snapshot.py` checks both.
+The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report, apart from the `limits` field (the registry's row cap is now 15,000). `tools/tests/test_upload_supplier_snapshot.py` checks both. Before 2026-11-06, the command without `--map` and `--aliases` gave this rebuild.
 
 ## What it holds
 

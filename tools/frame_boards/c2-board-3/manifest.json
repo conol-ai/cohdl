@@ -2,11 +2,11 @@
  "name": "c2_frame_board_3",
  "dependencies": {
   "std": "0.3.0",
-  "@st/stm32": "0.3.0",
+  "@st/stm32": "0.3.1",
   "qfp": "0.3.0",
   "audio-amp": "0.2.0",
   "soic": "0.3.0",
-  "passive": "0.2.4",
+  "passive": "0.2.5",
   "switches": "0.1.2",
   "@espressif/esp32": "0.3.1",
   "qfn": "0.2.1",

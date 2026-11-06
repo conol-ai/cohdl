@@ -13,6 +13,9 @@ import promote_lcsc_map as pm
 
 ROOT = Path(__file__).resolve().parents[2]
 RUN = ROOT / "tools/sourcing_data/lcsc_backfill/2026-10-30-sample200-aliases"
+# The sample run was promoted under the alias table the 2026-11-05 upload kept.
+RECORD = ROOT / "tools/sourcing_data/registry_uploads/2026-11-05-lcsc"
+FULL = ROOT / "tools/sourcing_data/lcsc_backfill/2026-11-06-full-aliases"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -26,10 +29,12 @@ class PromoteTests(unittest.TestCase):
         self.map = self.root / "lcsc_map.json"
         self.map.write_text(json.dumps(EMPTY), encoding="utf-8")
 
-    def promote(self, *extra):
+    def promote(self, *extra, run=None):
+        if "--aliases" not in extra:
+            extra = (*extra, "--aliases", str(RECORD / "mfr_aliases.json"))
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            code = pm.main([str(self.run_dir), "--map", str(self.map), *extra])
+            code = pm.main([str(run or self.run_dir), "--map", str(self.map), *extra])
         return code, out.getvalue(), err.getvalue()
 
     def edit_run(self, name, change):
@@ -42,14 +47,27 @@ class PromoteTests(unittest.TestCase):
         provenance["sha256"][name] = hashlib.sha256(path.read_bytes()).hexdigest()
         (self.run_dir / "provenance.json").write_text(json.dumps(provenance), encoding="utf-8")
 
-    def test_the_committed_map_is_the_promoted_sample(self):
+    def test_the_2026_11_05_map_is_the_promoted_sample(self):
         code, out, _ = self.promote()
         self.assertEqual(code, 0)
         self.assertIn("108 rows, 108 changed", out)
-        self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
+        self.assertEqual(self.map.read_bytes(), (RECORD / "lcsc_map.json").read_bytes())
         # Promoting the same run again changes nothing.
         code, out, _ = self.promote()
         self.assertIn("108 rows, 0 changed", out)
+
+    def test_the_committed_map_is_the_full_run_promoted_over_it(self):
+        current = ROOT / "tools/sourcing_data/mfr_aliases.json"
+        shutil.copy(RECORD / "lcsc_map.json", self.map)
+        # The full run's first pass used the old table; only its offline rerun is promotable.
+        code, _, err = self.promote("--aliases", str(current), run=FULL.parent / "2026-11-06-full")
+        self.assertEqual(code, 1)
+        self.assertIn("different alias table", err)
+        code, out, _ = self.promote("--aliases", str(current), run=FULL)
+        self.assertEqual(code, 0)
+        # Each of the 108 rows is replaced by the full run's row for the same identity and part number.
+        self.assertIn("12280 rows, 12280 changed", out)
+        self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):
         before = self.map.read_bytes()

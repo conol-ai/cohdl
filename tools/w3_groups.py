@@ -2,7 +2,8 @@
 """Group the mapped chip resistors and MLCCs for the W3 sampled-inference proposal.
 
 ``python3 -I tools/w3_groups.py -o DIR [--check]`` writes DIR/groups.json and
-DIR/groups.md. Nothing is fetched, and no binding or frame row is written:
+DIR/groups.md. A committed report is a dated snapshot whose ``sources`` record
+what it was built from. Nothing is fetched, and no binding or frame row is written:
 this is the grouping report the proposal
 (``docs/library-supplier-w3-sampling.md``) asks for, not evidence.
 

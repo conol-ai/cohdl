@@ -31,8 +31,12 @@ the report records and the person signed off (HEX). The endpoints take an
 official account's web session, so the person passes theirs in the
 ``COHDL_ADMIN_SESSION`` environment variable; it is never printed or written.
 
-``verify DIR`` asks the public ``/suppliers/lcsc/parts`` for every library part
-number and compares each answer with the snapshot row. It is read-only.
+``verify DIR`` asks the public ``/suppliers/lcsc/parts`` for every row of DIR's
+snapshot, 100 part numbers per request, and compares each answer with its row.
+It also checks the registry's snapshot date and, through
+``/manufacturers/normalize``, every alias. It is read-only. Checking only the
+library's part numbers is not enough: they can all be in an older catalog. Both
+endpoints cache an answer for 60 seconds, so run it a minute after an upload.
 
 ``--registry`` (default https://registry.cohdl.org, or ``COHDL_REGISTRY``)
 applies to ``upload`` and ``verify``. Exit 0 on success, 1 on a failed check.
@@ -73,6 +77,8 @@ CLASSES = ["basic", "preferred", "extended"]
 # registry/src/worker/suppliers.ts
 MAX_ROWS = 15_000
 BODY_LIMIT = 4 * 1024 * 1024
+# registry/src/worker/supplier-parts.ts and manufacturers.ts: values per public lookup
+VERIFY_BATCH = 100
 USER_AGENT = "cohdl-upload-supplier-snapshot/1 (+https://github.com/conol-ai/cohdl)"
 
 
@@ -354,26 +360,89 @@ def upload(out: Path, expect: str, registry: str, session: str | None) -> list[s
     return []
 
 
+def manufacturer_key(value: str) -> str:
+    """The registry's ``normalizeManufacturer`` (registry/src/worker/suppliers.ts)."""
+    return " ".join(unicodedata.normalize("NFC", value).lower().split())
+
+
+def _summary(kind: str, pns: list[str]) -> str:
+    shown = ", ".join(pns[:5]) + (f" and {len(pns) - 5} more" if len(pns) > 5 else "")
+    return f"{len(pns)} part number{'s' if len(pns) != 1 else ''} {kind}: {shown}"
+
+
 def verify(out: Path, registry: str) -> list[str]:
+    """Check that the registry serves exactly DIR's catalog and aliases, through the public endpoints.
+
+    Every snapshot row is asked for, VERIFY_BATCH part numbers per request, and each
+    answer must hold exactly the part numbers asked, each once, equal to its row. The
+    registry's snapshot date (its newest ``fetched_at``) must be the snapshot's. Each
+    alias must normalize to its canonical name. The public API cannot list the
+    registry's rows, so a row the registry holds beyond the snapshot goes unseen,
+    and an alias that differs from its canonical name only in case or spacing
+    normalizes the same whether or not the registry holds it.
+    """
     report = _json(out / "report.json")
-    rows = {row["pn"]: row for row in json.loads((out / "snapshot.json").read_bytes())["parts"]}
-    pns = report["library_part_numbers"]
+    body, aliases = (out / "snapshot.json").read_bytes(), (out / "aliases.json").read_bytes()
+    if _sha256(body) != report["snapshot_sha256"] or _sha256(aliases) != report["aliases_sha256"]:
+        return [f"{out}'s snapshot.json or aliases.json no longer matches its report.json"]
+    rows = {row["pn"]: row for row in json.loads(body)["parts"]}
     origin = urllib.parse.urlsplit(registry)._replace(path="", query="", fragment="").geturl()
-    status, answer = request("GET", f"{origin}/suppliers/{SUPPLIER}/parts?pn={','.join(pns)}")
-    if status != 200:
-        return [f"/suppliers/{SUPPLIER}/parts: HTTP {status} {answer}"]
-    problems = []
-    for part in answer["parts"]:
-        got, want = part["catalog"], rows[part["pn"]]
-        if got == "unknown":
-            problems.append(f"{part['pn']}: unknown to the registry")
-            continue
-        diff = [k for k in ("mpn", "manufacturer", "package", "class", "stock", "links", "fetched_at") if got[k] != want[k]]
-        if diff:
-            problems.append(f"{part['pn']}: the registry's {', '.join(diff)} differ from the snapshot")
-        else:
-            print(f"{part['pn']}: {got['mpn']} ({got['manufacturer']}, {got['class']}) known")
-    print(f"snapshot date: {answer.get('snapshot_date')}")
+    pns, library = sorted(rows), set(report["library_part_numbers"])
+    unknown, differ, missing, repeated, extra, dates = [], [], [], [], [], set()
+    for start in range(0, len(pns), VERIFY_BATCH):
+        asked = pns[start:start + VERIFY_BATCH]
+        status, answer = request("GET", f"{origin}/suppliers/{SUPPLIER}/parts?pn={','.join(asked)}")
+        if status != 200 or not isinstance(answer, dict) or not isinstance(answer.get("parts"), list):
+            return [f"/suppliers/{SUPPLIER}/parts: HTTP {status} {answer}"]
+        dates.add(answer.get("snapshot_date"))
+        seen = set()
+        for part in answer["parts"]:
+            pn = part.get("pn")
+            if pn in seen:
+                repeated.append(pn)
+                continue
+            seen.add(pn)
+            if pn not in asked:
+                extra.append(str(pn))
+                continue
+            got, want = part.get("catalog"), rows[pn]
+            if got == "unknown":
+                unknown.append(pn)
+                continue
+            diff = [k for k in ("mpn", "manufacturer", "package", "class", "stock", "links", "fetched_at")
+                    if not isinstance(got, dict) or got.get(k) != want[k]]
+            if diff:
+                differ.append(f"{pn} ({', '.join(diff)})")
+            elif pn in library:
+                print(f"{pn}: {got['mpn']} ({got['manufacturer']}, {got['class']}) known")
+        missing += [pn for pn in asked if pn not in seen]
+    problems = [_summary(kind, found) for kind, found in (
+        ("unknown to the registry", unknown), ("differ from the snapshot", differ),
+        ("missing from the registry's answers", missing), ("answered more than once", repeated),
+        ("answered but not asked", extra)) if found]
+    newest = max(row["fetched_at"] for row in rows.values())
+    if dates != {newest}:
+        problems.append(f"the registry's snapshot date is {', '.join(sorted(map(str, dates)))}, "
+                        f"not the snapshot's newest fetched_at {newest}")
+    print(f"rows: {len(pns) - len(unknown) - len(differ) - len(missing)} of {len(pns)} known and equal; "
+          f"snapshot date: {', '.join(sorted(map(str, dates)))}")
+
+    expected = {alias: manufacturer_key(canonical) for alias, canonical in json.loads(aliases).items()}
+    names = sorted(expected)
+    for start in range(0, len(names), VERIFY_BATCH):
+        asked = names[start:start + VERIFY_BATCH]
+        query = urllib.parse.urlencode([("mfr", name) for name in asked])
+        status, answer = request("GET", f"{origin}/manufacturers/normalize?{query}")
+        if status != 200 or not isinstance(answer, dict) or not isinstance(answer.get("mfr"), list):
+            return problems + [f"/manufacturers/normalize: HTTP {status} {answer}"]
+        keys = {item.get("value"): item.get("key") for item in answer["mfr"] if isinstance(item, dict)}
+        for name in asked:
+            if keys.get(name) != expected[name]:
+                problems.append(f"alias {name}: the registry normalizes it to {keys.get(name)!r}, "
+                                f"not {expected[name]!r}")
+    same = sum(manufacturer_key(name) == key for name, key in expected.items())
+    print(f"aliases: {len(names)} checked; {same} differ from their canonical name only in case or "
+          "spacing, so their answer is the same whether or not the registry holds them")
     return problems
 
 

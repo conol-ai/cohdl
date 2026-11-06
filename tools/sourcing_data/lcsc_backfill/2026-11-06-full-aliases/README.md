@@ -34,3 +34,7 @@ Review reasons now:
 ## Promotion
 
 `python3 -I tools/promote_lcsc_map.py tools/sourcing_data/lcsc_backfill/2026-11-06-full-aliases` re-checked the run against the current `mfr_aliases.json` and its confirmed pages, then replaced the 108 rows of the sample (`../2026-10-30-sample200-aliases/`) and added the rest: 12,280 rows. Each of the 108 keeps its part number. The first pass (`../2026-11-06-full/`) cannot be promoted, because it used the old alias table, and `promote_lcsc_map.py` refuses it.
+
+## Since the run
+
+The library then took the spellings #73 settled for the four identities waiting on it, and the run was repeated offline again in `../2026-11-06-full-spellings/`. That run maps those four as well (12,284), and its rows were promoted over this one's.

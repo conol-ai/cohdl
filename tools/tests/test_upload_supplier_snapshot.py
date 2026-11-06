@@ -12,8 +12,8 @@ import upload_supplier_snapshot as us
 
 RECORD = us.DATA / "registry_uploads/2026-11-05-lcsc"
 # The catalog the repository builds now, for the next upload.
-CURRENT = {"rows": 13_600, "bytes": 3_582_752,
-           "snapshot_sha256": "73a0cdc8bb3c963ec24d9d2127a193e598d9f77ba75699d1f6eeb13a90f4e4c3",
+CURRENT = {"rows": 13_604, "bytes": 3_583_901,
+           "snapshot_sha256": "3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529",
            "aliases_sha256": "027d2a930f6016ad6a223fbbcc6fb4efce7e8c1458145a7dbb991edd014374e9"}
 
 
@@ -93,7 +93,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             report = us.build(Path(td), None, RECORD / "report.json")
             pns = {row["pn"] for row in json.loads((Path(td) / "snapshot.json").read_bytes())["parts"]}
         self.assertEqual({k: report[k] for k in CURRENT}, CURRENT)
-        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_280, "overlap": 14})
+        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_284, "overlap": 14})
         self.assertEqual(report["source_sha256"]["lcsc_map.json"],
                          hashlib.sha256(us.MAP.read_bytes()).hexdigest())
         self.assertEqual(report["aliases"], json.loads(us.ALIASES.read_text(encoding="utf-8"))["aliases"])

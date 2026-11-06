@@ -32,6 +32,15 @@
     {
       "category": "extended",
       "date": "2026-11-06",
+      "mfr": "Analog Devices",
+      "mpn": "MAX16054AZT+T",
+      "pn": "C79401",
+      "rule": "exact",
+      "snapshot_sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
+    },
+    {
+      "category": "extended",
+      "date": "2026-11-06",
       "mfr": "Awinic",
       "mpn": "AW21009QNR",
       "pn": "C5162564",
@@ -1185,6 +1194,24 @@
       "category": "extended",
       "date": "2026-11-06",
       "mfr": "Hirose Electric",
+      "mpn": "FH12-10S-0.5SH(55)",
+      "pn": "C506791",
+      "rule": "alias",
+      "snapshot_sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
+    },
+    {
+      "category": "extended",
+      "date": "2026-11-06",
+      "mfr": "Hirose Electric",
+      "mpn": "FH12-24S-0.5SH(55)",
+      "pn": "C202112",
+      "rule": "alias",
+      "snapshot_sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
+    },
+    {
+      "category": "extended",
+      "date": "2026-11-06",
+      "mfr": "Hirose Electric",
       "mpn": "FH12-26S-0.5SH(55)",
       "pn": "C202113",
       "rule": "alias",
@@ -1376,6 +1403,15 @@
       "mfr": "NATIONSTAR",
       "mpn": "NCD0402R1",
       "pn": "C130719",
+      "rule": "alias",
+      "snapshot_sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
+    },
+    {
+      "category": "extended",
+      "date": "2026-11-06",
+      "mfr": "NSIWAY",
+      "mpn": "NS4150B",
+      "pn": "C189961",
       "rule": "alias",
       "snapshot_sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
     },

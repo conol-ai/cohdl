@@ -16,6 +16,8 @@ RUN = ROOT / "tools/sourcing_data/lcsc_backfill/2026-10-30-sample200-aliases"
 # The sample run was promoted under the alias table the 2026-11-05 upload kept.
 RECORD = ROOT / "tools/sourcing_data/registry_uploads/2026-11-05-lcsc"
 FULL = ROOT / "tools/sourcing_data/lcsc_backfill/2026-11-06-full-aliases"
+# The same run again after the library's manufacturer spellings were fixed.
+SPELLINGS = FULL.parent / "2026-11-06-full-spellings"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -56,7 +58,7 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote()
         self.assertIn("108 rows, 0 changed", out)
 
-    def test_the_committed_map_is_the_full_run_promoted_over_it(self):
+    def test_the_committed_map_is_the_full_runs_promoted_over_it(self):
         current = ROOT / "tools/sourcing_data/mfr_aliases.json"
         shutil.copy(RECORD / "lcsc_map.json", self.map)
         # The full run's first pass used the old table; only its offline rerun is promotable.
@@ -67,6 +69,10 @@ class PromoteTests(unittest.TestCase):
         self.assertEqual(code, 0)
         # Each of the 108 rows is replaced by the full run's row for the same identity and part number.
         self.assertIn("12280 rows, 12280 changed", out)
+        # The spelling rerun adds the four identities whose library names it fixed.
+        code, out, _ = self.promote("--aliases", str(current), run=SPELLINGS)
+        self.assertEqual(code, 0)
+        self.assertIn("12284 rows, 4 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

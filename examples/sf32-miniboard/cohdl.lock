@@ -62,8 +62,8 @@ hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
 
 [[package]]
 name = "passive"
-version = "0.2.5"
-hash = "sha256:eb5b5a69a6e596f22d4c7afd88a99c9718fe03497d6977d7870f1bf6292b4518"
+version = "0.2.6"
+hash = "sha256:d1f973fb96681c1285c3080c46b607d957e5efbf894e3ca6f5a852743e6f832e"
 
 [[package]]
 name = "qfn"

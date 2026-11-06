@@ -2,7 +2,7 @@
  "name": "lcsc_batch_2_passive",
  "dependencies": {
   "std": "0.3.0",
-  "passive": "0.2.5"
+  "passive": "0.2.6"
  },
  "rows": [
   {

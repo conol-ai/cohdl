@@ -1,0 +1,347 @@
+{
+ "_provenance": {
+  "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages)",
+  "rules": "lib/passive/docs/samsung_mlcc_catalog_2025-12.pdf pp. 6-7 (part numbering)",
+  "meaning": "key is '<EIA size>|<rated volts>|<dielectric>|<farads>', as in samsung_cl.json; value is a Samsung part number JLCPCB stocks as Basic or Preferred for that exact combination, with the tolerance the library pairs with the dielectric",
+  "generator": "tools/samsung_b1_alternates.py"
+ },
+ "parts": {
+  "0402|10|X5R|4.7e-07": {
+   "mpn": "CL05A474KP5NNNC",
+   "pn": "C47339",
+   "category": "preferred"
+  },
+  "0402|16|X7R|1e-07": {
+   "mpn": "CL05B104KO5NNNC",
+   "pn": "C1525",
+   "category": "basic"
+  },
+  "0402|16|X7R|2.2e-07": {
+   "mpn": "CL05B224KO5NNNC",
+   "pn": "C16772",
+   "category": "basic"
+  },
+  "0402|25|X5R|1e-06": {
+   "mpn": "CL05A105KA5NQNC",
+   "pn": "C52923",
+   "category": "basic"
+  },
+  "0402|50|C0G|1e-11": {
+   "mpn": "CL05C100JB5NNNC",
+   "pn": "C32949",
+   "category": "basic"
+  },
+  "0402|50|C0G|3.3e-10": {
+   "mpn": "CL05C331JB5NNNC",
+   "pn": "C13533",
+   "category": "preferred"
+  },
+  "0402|50|C0G|6.8e-11": {
+   "mpn": "CL05C680JB5NNNC",
+   "pn": "C14441",
+   "category": "preferred"
+  },
+  "0402|50|X7R|1e-07": {
+   "mpn": "CL05B104KB54PNC",
+   "pn": "C307331",
+   "category": "basic"
+  },
+  "0402|50|X7R|1e-08": {
+   "mpn": "CL05B103KB5NNNC",
+   "pn": "C15195",
+   "category": "basic"
+  },
+  "0402|50|X7R|3.3e-09": {
+   "mpn": "CL05B332KB5NNNC",
+   "pn": "C26404",
+   "category": "preferred"
+  },
+  "0603|10|X5R|1e-05": {
+   "mpn": "CL10A106KP8NNNC",
+   "pn": "C19702",
+   "category": "basic"
+  },
+  "0603|16|X5R|2.2e-06": {
+   "mpn": "CL10A225KO8NNNC",
+   "pn": "C23630",
+   "category": "basic"
+  },
+  "0603|16|X5R|4.7e-06": {
+   "mpn": "CL10A475KO8NNNC",
+   "pn": "C19666",
+   "category": "basic"
+  },
+  "0603|25|X7R|2.2e-07": {
+   "mpn": "CL10B224KA8NNNC",
+   "pn": "C21120",
+   "category": "basic"
+  },
+  "0603|25|X7R|4.7e-07": {
+   "mpn": "CL10B474KA8NNNC",
+   "pn": "C1623",
+   "category": "basic"
+  },
+  "0603|50|C0G|1.2e-11": {
+   "mpn": "CL10C120JB8NNNC",
+   "pn": "C38523",
+   "category": "basic"
+  },
+  "0603|50|C0G|1.5e-11": {
+   "mpn": "CL10C150JB8NNNC",
+   "pn": "C1644",
+   "category": "basic"
+  },
+  "0603|50|C0G|1.8e-11": {
+   "mpn": "CL10C180JB8NNNC",
+   "pn": "C1647",
+   "category": "basic"
+  },
+  "0603|50|C0G|1e-10": {
+   "mpn": "CL10C101JB8NNNC",
+   "pn": "C14858",
+   "category": "basic"
+  },
+  "0603|50|C0G|1e-11": {
+   "mpn": "CL10C100JB8NNNC",
+   "pn": "C1634",
+   "category": "basic"
+  },
+  "0603|50|C0G|2.2e-11": {
+   "mpn": "CL10C220JB8NNNC",
+   "pn": "C1653",
+   "category": "basic"
+  },
+  "0603|50|C0G|3.3e-10": {
+   "mpn": "CL10C331JB8NNNC",
+   "pn": "C1664",
+   "category": "basic"
+  },
+  "0603|50|C0G|3.3e-11": {
+   "mpn": "CL10C330JB8NNNC",
+   "pn": "C1663",
+   "category": "basic"
+  },
+  "0603|50|C0G|4.7e-11": {
+   "mpn": "CL10C470JB8NNNC",
+   "pn": "C1671",
+   "category": "basic"
+  },
+  "0603|50|C0G|5.6e-11": {
+   "mpn": "CL10C560JB8NNNC",
+   "pn": "C39148",
+   "category": "preferred"
+  },
+  "0603|50|C0G|6.8e-11": {
+   "mpn": "CL10C680JB8NNNC",
+   "pn": "C28262",
+   "category": "preferred"
+  },
+  "0603|50|X7R|1e-09": {
+   "mpn": "CL10B102KB8NNNC",
+   "pn": "C1588",
+   "category": "basic"
+  },
+  "0603|50|X7R|2.2e-08": {
+   "mpn": "CL10B223KB8NNNC",
+   "pn": "C21122",
+   "category": "basic"
+  },
+  "0603|50|X7R|2.2e-10": {
+   "mpn": "CL10B221KB8NNNC",
+   "pn": "C1603",
+   "category": "basic"
+  },
+  "0603|50|X7R|3.3e-08": {
+   "mpn": "CL10B333KB8NNNC",
+   "pn": "C21117",
+   "category": "basic"
+  },
+  "0603|50|X7R|3.3e-09": {
+   "mpn": "CL10B332KB8NNNC",
+   "pn": "C1613",
+   "category": "basic"
+  },
+  "0603|50|X7R|4.7e-08": {
+   "mpn": "CL10B473KB8NNNC",
+   "pn": "C1622",
+   "category": "basic"
+  },
+  "0603|50|X7R|6.8e-08": {
+   "mpn": "CL10B683KB8NNNC",
+   "pn": "C31658",
+   "category": "preferred"
+  },
+  "0805|25|X5R|1e-05": {
+   "mpn": "CL21A106KAYNNNE",
+   "pn": "C15850",
+   "category": "basic"
+  },
+  "0805|50|C0G|1e-10": {
+   "mpn": "CL21C101JBANNNC",
+   "pn": "C1790",
+   "category": "basic"
+  },
+  "0805|50|C0G|2.2e-11": {
+   "mpn": "CL21C220JBANNNC",
+   "pn": "C1804",
+   "category": "basic"
+  },
+  "0805|50|C0G|4.7e-11": {
+   "mpn": "CL21C470JBANNNC",
+   "pn": "C14857",
+   "category": "basic"
+  },
+  "0805|50|X7R|2.2e-07": {
+   "mpn": "CL21B224KBFNNNE",
+   "pn": "C5378",
+   "category": "basic"
+  },
+  "0805|50|X7R|4.7e-08": {
+   "mpn": "CL21B473KBCNNNC",
+   "pn": "C53134",
+   "category": "basic"
+  }
+ },
+ "unmatched": [
+  {
+   "pn": "C1648",
+   "mpn": "CL10C200JB8NNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1710",
+   "mpn": "CL21B103KBANNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1729",
+   "mpn": "CL21B223KBANNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1779",
+   "mpn": "CL21A475KAQNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C1798",
+   "mpn": "CL21C200JBANNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C1848",
+   "mpn": "CL31B105KBHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C5672",
+   "mpn": "CL31A226KPHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C12530",
+   "mpn": "CL05A225MQ5NSNC",
+   "reason": "tolerance M, the library pairs K"
+  },
+  {
+   "pn": "C12891",
+   "mpn": "CL31A226KAHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C13585",
+   "mpn": "CL31A106KBHNNNE",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C13967",
+   "mpn": "CL21B474KBFNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C15008",
+   "mpn": "CL31A107MQHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C15525",
+   "mpn": "CL05A106MQ5NUNC",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C15849",
+   "mpn": "CL10A105KB8NNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C16780",
+   "mpn": "CL21A476MQYNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C23733",
+   "mpn": "CL05A475MP5NRNC",
+   "reason": "tolerance M, the library pairs K"
+  },
+  {
+   "pn": "C24497",
+   "mpn": "CL31B104KBCNNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C28233",
+   "mpn": "CL21B104KCFNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C28260",
+   "mpn": "CL21C222JBFNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C28323",
+   "mpn": "CL21B105KBFNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C35216",
+   "mpn": "CL31B102KGFNNNE",
+   "reason": "not decoded"
+  },
+  {
+   "pn": "C45783",
+   "mpn": "CL21A226MAQNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C46653",
+   "mpn": "CL21B102KBCNNNC",
+   "reason": "no library part"
+  },
+  {
+   "pn": "C50254",
+   "mpn": "CL31B225KBHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C59461",
+   "mpn": "CL10A226MQ8NRNC",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C96123",
+   "mpn": "CL31A476MPHNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  },
+  {
+   "pn": "C96446",
+   "mpn": "CL10A106MA8NRNC",
+   "reason": "tolerance M, the library pairs K"
+  },
+  {
+   "pn": "C377773",
+   "mpn": "CL21A225KBQNNNE",
+   "reason": "no library part: its Yageo primary is unconfirmed"
+  }
+ ]
+}

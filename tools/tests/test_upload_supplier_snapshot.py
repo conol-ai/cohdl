@@ -93,7 +93,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             report = us.build(Path(td), None, RECORD / "report.json")
             pns = {row["pn"] for row in json.loads((Path(td) / "snapshot.json").read_bytes())["parts"]}
         self.assertEqual({k: report[k] for k in CURRENT}, CURRENT)
-        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_284, "overlap": 14})
+        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_321, "overlap": 51})
         self.assertEqual(report["source_sha256"]["lcsc_map.json"],
                          hashlib.sha256(us.MAP.read_bytes()).hexdigest())
         self.assertEqual(report["aliases"], json.loads(us.ALIASES.read_text(encoding="utf-8"))["aliases"])

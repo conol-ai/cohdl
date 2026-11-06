@@ -9,7 +9,7 @@ R=tools/sourcing_data/registry_uploads/2026-11-05-lcsc
 python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json
 ```
 
-The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report, apart from the `limits` field (the registry's row cap is now 15,000). `tools/tests/test_upload_supplier_snapshot.py` checks both. Before 2026-11-06, the command without `--map` and `--aliases` gave this rebuild.
+The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report, apart from two fields: `limits` (the registry's row cap is now 15,000) and `library_part_numbers`, which lists the library's part numbers as they are now (46 since 2026-11-06, against the 6 of the upload). Every one of them is in the body. `tools/tests/test_upload_supplier_snapshot.py` checks both. Before 2026-11-06, the command without `--map` and `--aliases` gave this rebuild.
 
 ## What it holds
 

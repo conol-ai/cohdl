@@ -38,3 +38,7 @@ Review reasons:
 ## Alias proposals
 
 `alias_proposals.json` lists 40 (supplier name, library name) pairs over the 184 identities and their 211 candidate part numbers. Its `identities` field counts candidate part numbers, not identities: Espressif's 135 are 115 identities. They are proposals only. The review record is `../../alias_reviews/2026-11-06-b2-full-aliases.md`; an alias takes effect only when the review accepts it and it is added to `mfr_aliases.json`. This run used the old alias table (SHA-256 `86e89089…`), so its `lcsc_map.json` is not the result with new aliases: the run is repeated offline with the new table before any row is promoted.
+
+## Since the run
+
+#73 accepted 34 of the 40 proposals. The run was repeated offline with the new alias table in `../2026-11-06-full-aliases/`, which maps 12,280 identities, and that run's rows were promoted into `lcsc_map.json`.

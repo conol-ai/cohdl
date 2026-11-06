@@ -2,7 +2,7 @@
  "name": "lcsc_batch_1",
  "dependencies": {
   "std": "0.3.0",
-  "@st/stm32": "0.3.0",
+  "@st/stm32": "0.3.1",
   "qfp": "0.3.0",
   "bga": "0.2.0"
  },

@@ -11,6 +11,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import upload_supplier_snapshot as us
 
 RECORD = us.DATA / "registry_uploads/2026-11-05-lcsc"
+# The catalog the repository builds now, for the next upload.
+CURRENT = {"rows": 13_600, "bytes": 3_582_752,
+           "snapshot_sha256": "73a0cdc8bb3c963ec24d9d2127a193e598d9f77ba75699d1f6eeb13a90f4e4c3",
+           "aliases_sha256": "027d2a930f6016ad6a223fbbcc6fb4efce7e8c1458145a7dbb991edd014374e9"}
+
+
+def rebuild_recorded(out: Path) -> dict:
+    """Rebuild the 2026-11-05 upload from the map and alias table it was built from."""
+    return us.build(out, None, RECORD / "report.json",
+                    map_path=RECORD / "lcsc_map.json", aliases_path=RECORD / "mfr_aliases.json")
 
 
 def page(c, mpn="M", mfr="Acme", package="0603", category="basic", fetched_at="2026-10-30T04:00:00Z", stock=5):
@@ -22,7 +32,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
     def test_the_recorded_catalog_rebuilds_from_the_repository_alone(self):
         report = json.loads((RECORD / "report.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
-            rebuilt = us.build(Path(td), None, RECORD / "report.json")
+            rebuilt = rebuild_recorded(Path(td))
             # Bindings added since the upload grow the library's list; the
             # catalog itself must not change, and must still cover them all.
             current = rebuilt.pop("library_part_numbers")
@@ -78,6 +88,20 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
                 us.SnapshotError, f"10000 rows, {us.BODY_LIMIT + 1} bytes"):
             self.synthetic(Path(td), mpns)
 
+    def test_the_current_catalog_builds_from_the_repository_alone(self):
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
+            report = us.build(Path(td), None, RECORD / "report.json")
+            pns = {row["pn"] for row in json.loads((Path(td) / "snapshot.json").read_bytes())["parts"]}
+        self.assertEqual({k: report[k] for k in CURRENT}, CURRENT)
+        self.assertEqual(report["sources"], {"jlc_catalog/2026-10-30": 1334, "lcsc_map.json": 12_280, "overlap": 14})
+        self.assertEqual(report["source_sha256"]["lcsc_map.json"],
+                         hashlib.sha256(us.MAP.read_bytes()).hexdigest())
+        self.assertEqual(report["aliases"], json.loads(us.ALIASES.read_text(encoding="utf-8"))["aliases"])
+        self.assertEqual(report["library_part_numbers"], us.library_pns())
+        self.assertLessEqual(set(report["library_part_numbers"]), pns)
+        # Every part number the map names is in the catalog.
+        self.assertLessEqual({row["pn"] for row in json.loads(us.MAP.read_text())["rows"]}, pns)
+
     def test_the_limits_are_the_registrys(self):
         source = (us.ROOT / "registry/src/worker/suppliers.ts").read_text(encoding="utf-8")
         self.assertIn("export const MAX_CATALOG_ROWS = 15_000;", source)
@@ -112,7 +136,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
     def test_upload_sends_only_the_signed_off_body_with_the_session_unprinted(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             out = Path(td)
-            us.build(out, None, RECORD / "report.json")
+            rebuild_recorded(out)
             digest = json.loads((out / "report.json").read_text())["snapshot_sha256"]
             session = "ab" * 32
             calls = []
@@ -140,7 +164,7 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
     def test_verify_reports_unknown_and_differing_rows(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             out = Path(td)
-            us.build(out, None, RECORD / "report.json")
+            rebuild_recorded(out)
             rows = {row["pn"]: row for row in json.loads((out / "snapshot.json").read_bytes())["parts"]}
             pns = json.loads((out / "report.json").read_text())["library_part_numbers"]
             parts = [{"pn": pn, "catalog": dict(rows[pn])} for pn in pns]

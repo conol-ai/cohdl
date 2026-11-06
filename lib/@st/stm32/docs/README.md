@@ -118,3 +118,29 @@ writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field
 for each instance whose primary entry is bound (five of the six; the H743
 binding is on an alternate). `cohdl build --supplier lcsc` adds the LCSC BOM,
 map and CPL, and selects the bound `STM32H743VIH6TR` alternate there.
+
+## LCSC supplier bindings in 0.3.1
+
+0.3.1 keeps the six bindings of 0.3.0 and adds four. The first three part
+numbers entered `tools/sourcing_data/lcsc_map.json` when the B2 full run was
+promoted (`lcsc_backfill/2026-11-06-full-aliases/`), and each already had a
+frame row:
+
+| Part | Entry | LCSC | Land | Binding | Preview |
+|---|---|---|---|---|---|
+| `MCU_STM32F103C8T6` | primary | C8734 | `qfp::KICAD_LQFP_48_7X7MM_P0_5MM` | `supplier lcsc "C8734"` | frame board 2, 2026-11-02 |
+| `MCU_STM32L151C8T6` | primary | C9861 | `qfp::KICAD_LQFP_48_7X7MM_P0_5MM` | `supplier lcsc "C9861"` | frame board 3, 2026-11-05 |
+| `MCU_STM32F030C8T6` | primary | C23922 | `qfp::KICAD_LQFP_48_7X7MM_P0_5MM` | `supplier lcsc "C23922"` | frame board 3, 2026-11-05 |
+| `MCU_STM32L152VCH6` | primary | C1338995 | `bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM` | `supplier lcsc "C1338995" rotate 270` | frame board 3, 2026-11-05 |
+
+**C1338995 rests on weaker evidence than the others.** It was read by hand,
+on one top copy: both of the preview's marks sit at the corner a quarter turn
+counter-clockwise from ball A1, and none sits near A1. The three LQFP48
+bindings were read by the script on four copies each. C1338995 was held back
+from 0.3.0 for that reason and is to be reviewed on its own. If the review
+rejects it, removing its row from `jlc_frames.json` and regenerating drops only
+that clause.
+
+The land versions are those of the packages that own the lands (`qfp` 0.3.0,
+`bga` 0.2.0), not this package's. The KiCad netlist gains an `LCSC` field for
+the four instances' primaries.

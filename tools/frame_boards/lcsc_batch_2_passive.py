@@ -2,8 +2,8 @@
 
 Usage: python3 -I tools/frame_boards/lcsc_batch_2_passive.py OUT.json
 
-Every lcsc_map.json row whose (mfr, mpn) is a lib/passive entry gets a row:
-79 today, the 64 Yageo primaries and 15 Vishay alternates of the B2 sample.
+Every row of the B2 sample's map whose (mfr, mpn) is a lib/passive entry gets
+a row: 79, the sample's 64 Yageo primaries and 15 Vishay alternates.
 None of them can share another part's frame evidence yet. The part pages'
 package field ("0603") is not a supplier footprint identifier: on frame board
 1, C7972 and C7722 both read "SOT-23-5" and needed rotate 180 and 270. So each
@@ -28,8 +28,11 @@ with tempfile.TemporaryDirectory() as td:
     subprocess.run([sys.executable, "-I", str(ROOT / "tools/frame_boards/inventory.py"), td + "/inventory.json"],
                    check=True, capture_output=True)
     inv = json.load(open(td + "/inventory.json"))
-mapped = json.load(open(ROOT / "tools/sourcing_data/lcsc_map.json"))["rows"]
-pages = {r["c"]: r for r in json.load(open(ROOT / "tools/sourcing_data/lcsc_backfill/2026-10-30-sample200-aliases/confirmed.json"))}
+# The batch is the sample run's map, the 108 rows lcsc_map.json held until the B2
+# full run was promoted; the full run's rows are for later batches.
+SAMPLE = ROOT / "tools/sourcing_data/lcsc_backfill/2026-10-30-sample200-aliases"
+mapped = json.load(open(SAMPLE / "lcsc_map.json"))["rows"]
+pages = {r["c"]: r for r in json.load(open(SAMPLE / "confirmed.json"))}
 
 ENTRY = re.compile(r'(primary|alt) \{ mfr: "([^"]+)", mpn: "([^"]+)"')
 entries = {}

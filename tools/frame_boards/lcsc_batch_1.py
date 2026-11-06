@@ -6,9 +6,10 @@ Each row places the library part itself (``library_part``), so the preview
 checks the library's own `supplier lcsc` binding, including the three
 `rotate 270` exceptions. Pins, boxes and the four placements per part (top
 and bottom, 0 and 37 degrees) are copied from frame board 2, whose preview
-of 2026-11-02 is the evidence for these frames.
+of 2026-11-02 is the evidence for these frames. The board builds against the
+library's current @st/stm32, which still ships these six bindings unchanged.
 """
-import json, sys
+import json, re, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 board2 = json.load(open(ROOT / "tools/frame_boards/c2-board-2/manifest.json", encoding="utf-8"))
@@ -33,6 +34,7 @@ for name, part, mpn in SEL:
     row["note"] = "library binding as shipped in @st/stm32 0.3.0"
     out.append(row)
 deps = {k: v for k, v in board2["dependencies"].items() if k in ("std", "@st/stm32", "qfp", "bga")}
+deps["@st/stm32"] = re.search(r'^version = "([^"]+)"', (ROOT / "lib/@st/stm32/cohdl.toml").read_text(), re.M).group(1)
 json.dump({"name": "lcsc_batch_1", "dependencies": deps, "rows": out},
           open(sys.argv[1], "w", encoding="utf-8"), indent=1, ensure_ascii=False)
 print(len(out), "rows,", sum(len(r["placements"]) for r in out), "placements")

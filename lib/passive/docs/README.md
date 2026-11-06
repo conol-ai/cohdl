@@ -108,3 +108,15 @@ x = ±0.485 mm. The exact 2.0 nH and 3.0 nH parts both exercise this footprint.
 33 entries carry a `supplier lcsc` binding: 25 resistors and 8 MLCCs, from 0201 to 2512 (31 Yageo primaries and two Vishay CRCW alternates). Each part number was placed on the assembler's preview of 2026-11-05 (`tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/`) and read along its land, so each binding has a zero map. A chip part is not polarised, so its frame is known mod 180 only; that makes no difference to the copper. `tools/gen_passive.py` writes the clauses from `tools/sourcing_data/lcsc_map.json` and `jlc_frames.json`, and an entry without both a confirmed identity and a frame row for this version gets none.
 
 A binding changes no connection, no geometry and no verdict, and no land changed from 0.2.3. A plain `build` writes the same neutral BOM and CPL. The KiCad netlist gains an `LCSC` field for each instance whose primary entry is bound (31 of the 33; the two Vishay bindings are on alternates). `cohdl build DIR --supplier lcsc` adds the LCSC BOM, map and CPL, which carry these part numbers. There an instance takes its bound primary, else its first bound alternate: `R_1K58_F_0402` takes the Vishay C3009257, while `R_820R_J_0402` takes its Yageo primary C137837, so its Vishay C482239 is not selected.
+
+## LCSC bindings (passive 0.2.5)
+
+0.2.5 keeps the 33 bindings of 0.2.4 and adds three. Their part numbers entered `tools/sourcing_data/lcsc_map.json` when the B2 full run was promoted (`lcsc_backfill/2026-11-06-full-aliases/`), and each already had a frame row from an earlier preview:
+
+| Part | Entry | LCSC | Land | Preview |
+|---|---|---|---|---|
+| `C_100n_16V_X7R_0402` | alt Samsung `CL05B104KO5NNNC` | C1525 | `CHIP_0402` | C2 frame board 1, 2026-10-30 |
+| `C_27p_50V_C0G_0603` | primary Yageo `CC0603JRNPO9BN270` | C107045 | `CHIP_0603` | C1 bottom preview, 2026-10-29 |
+| `C_15p_50V_C0G_0805` | primary Yageo `CC0805JRNPO9BN150` | C107110 | `CHIP_0805` | C1 bottom preview, 2026-10-29 |
+
+All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, with 33 Yageo primaries, two Vishay alternates and one Samsung alternate. No land changed: `pads.cohdl` and `footprints.cohdl` are byte for byte those of 0.2.4, and every `passive` frame row now names 0.2.5. The KiCad netlist gains an `LCSC` field for two more instances' primaries (33 of the 36). With `--supplier lcsc`, `C_100n_16V_X7R_0402` takes the Samsung alternate C1525, since its Yageo primary is not bound.

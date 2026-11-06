@@ -9950,7 +9950,7 @@ pub part MCU_STM32F102RBT6: STM32F102RBTx {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32F103C8T6: STM32F103C8Tx {
     primary { mfr: "STMicroelectronics", mpn: "STM32F103C8T6",
-              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM }
+              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM, supplier lcsc "C8734" }
     alt { mfr: "STMicroelectronics", mpn: "STM32F103C8T6TR" }
 }
 

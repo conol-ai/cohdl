@@ -1,0 +1,54 @@
+{
+  "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
+  "rows": [
+    {
+      "examples": [
+        {
+          "c": "C506791",
+          "mpn": "FH12-10S-0.5SH(55)"
+        },
+        {
+          "c": "C202112",
+          "mpn": "FH12-24S-0.5SH(55)"
+        }
+      ],
+      "identities": 2,
+      "official": "HRS",
+      "supplier": "HRS(Hirose)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C79401",
+          "mpn": "MAX16054AZT+T"
+        }
+      ],
+      "identities": 1,
+      "official": "Analog Devices/Maxim Integrated",
+      "supplier": "Analog Devices"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2917717",
+          "mpn": "2450AT18B100E"
+        }
+      ],
+      "identities": 1,
+      "official": "Johanson Technology",
+      "supplier": "Johanson Dielectrics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C189961",
+          "mpn": "NS4150B"
+        }
+      ],
+      "identities": 1,
+      "official": "Nsiway",
+      "supplier": "Shenzhen Nsiway Tech"
+    }
+  ],
+  "schema_version": 1
+}

@@ -10137,7 +10137,7 @@ pub part MCU_STM32L151C6T6A: STM32L151C6TxA {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32L151C8T6: STM32L151C8Tx {
     primary { mfr: "STMicroelectronics", mpn: "STM32L151C8T6",
-              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM }
+              footprint: qfp::KICAD_LQFP_48_7X7MM_P0_5MM, supplier lcsc "C9861" }
     alt { mfr: "STMicroelectronics", mpn: "STM32L151C8T6TR" }
 }
 
@@ -10696,7 +10696,8 @@ pub part MCU_STM32L152VBT6A: STM32L152VBTxA {
 #[doc("docs/stm32-part-catalog.md")]
 pub part MCU_STM32L152VCH6: STM32L152VCHx {
     primary { mfr: "STMicroelectronics", mpn: "STM32L152VCH6",
-              footprint: bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM }
+              footprint: bga::KICAD_UFBGA_100_7X7MM_LAYOUT12X12_P0_5MM,
+              supplier lcsc "C1338995" rotate 270 }
 }
 
 #[doc("docs/stm32-part-catalog.md")]

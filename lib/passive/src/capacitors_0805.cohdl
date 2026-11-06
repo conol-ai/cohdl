@@ -917,7 +917,8 @@ pub part C_12p_50V_C0G_0805: MLCC<12pF, 50V, 5%>[C0805] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_15p_50V_C0G_0805: MLCC<15pF, 50V, 5%>[C0805] {
-    primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN150", footprint: CHIP_0805 }
+    primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN150", footprint: CHIP_0805,
+              supplier lcsc "C107110" }
     alt { mfr: "Samsung", mpn: "CL21C150JB61PN" }
 }
 

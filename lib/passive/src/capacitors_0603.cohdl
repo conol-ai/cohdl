@@ -1536,7 +1536,8 @@ pub part C_22p_50V_C0G_0603: MLCC<22pF, 50V, 5%>[C0603] {
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
 pub part C_27p_50V_C0G_0603: MLCC<27pF, 50V, 5%>[C0603] {
-    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN270", footprint: CHIP_0603 }
+    primary { mfr: "Yageo", mpn: "CC0603JRNPO9BN270", footprint: CHIP_0603,
+              supplier lcsc "C107045" }
     alt { mfr: "Samsung", mpn: "CL10C270JB81IN" }
 }
 

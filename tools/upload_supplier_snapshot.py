@@ -19,7 +19,7 @@ or, for a page the run read from its cache, from that cache's metadata
 checked). The report lists those dates, so ``--dates`` with an earlier report
 rebuilds the same body without the cache. A row with no such time fails the build. The body is then checked
 as the registry's ``parseSnapshot`` checks it, and against its limits: at most
-10,000 rows and 4 MiB, since one request replaces the whole catalog. Every
+15,000 rows and 4 MiB, since one request replaces the whole catalog. Every
 ``supplier lcsc`` part number in ``lib/`` must be in it. The report records the
 counts, sources, size and the body's SHA-256.
 
@@ -69,7 +69,7 @@ DISPLAY_NAME = "LCSC"
 PRODUCT_URL_TEMPLATE = "https://www.lcsc.com/product-detail/{pn}.html"
 CLASSES = ["basic", "preferred", "extended"]
 # registry/src/worker/suppliers.ts
-MAX_ROWS = 10_000
+MAX_ROWS = 15_000
 BODY_LIMIT = 4 * 1024 * 1024
 USER_AGENT = "cohdl-upload-supplier-snapshot/1 (+https://github.com/conol-ai/cohdl)"
 

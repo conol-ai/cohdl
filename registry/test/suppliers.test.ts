@@ -151,7 +151,8 @@ describe("snapshot parsing", () => {
     expect(parseSnapshot(snapshot(), "Bad-ID").ok).toBe(false);
   });
 
-  it("accepts 10000 minimal rows and rejects 10001 within the body limit", () => {
+  it("accepts 15000 minimal rows and rejects 15001 within the body limit", () => {
+    expect(MAX_CATALOG_ROWS).toBe(15_000);
     const minimal = { ...ROW, pn: "P", mpn: "M", manufacturer: "M", package: "P", class: "c", stock: 0, links: [] };
     const body = snapshot(Array.from({ length: MAX_CATALOG_ROWS }, (_, index) => ({ ...minimal, pn: String(index) })));
     body.classes = ["c"];
@@ -193,7 +194,7 @@ describe("D1 supplier store", () => {
     expect(batch).toHaveBeenCalledTimes(1);
     expect(statements).toHaveLength(2 + Math.ceil(MAX_CATALOG_ROWS / 9));
     expect(statements.slice(2).every(({ values }) => values.length <= 100)).toBe(true);
-    expect(statements.at(-1)?.values).toHaveLength(11);
+    expect(statements.at(-1)?.values).toHaveLength((MAX_CATALOG_ROWS % 9 || 9) * 11);
     statements.length = 0;
     batch.mockClear();
     const empty = parseSnapshot(snapshot([]), "acme");
@@ -202,6 +203,47 @@ describe("D1 supplier store", () => {
     await supplierStore(db).replaceSnapshot(empty.value);
     expect(batch).toHaveBeenCalledTimes(1);
     expect(statements).toHaveLength(2);
+  });
+});
+
+describe("D1 supplier store on SQLite", () => {
+  it("replaces one supplier's whole catalog at the row cap and leaves other suppliers alone", async () => {
+    const { supplierStore } = await import("../src/worker/suppliers");
+    const sqlite = new DatabaseSync(":memory:");
+    sqlite.exec(readFileSync(new URL("../schema.sql", import.meta.url), "utf8"));
+    let statements = 0;
+    // `db.batch()` is one transaction, as D1 runs it.
+    const db = {
+      prepare: (sql: string) => ({ bind: (...values: unknown[]) => ({ sql, values }) }),
+      async batch(list: { sql: string; values: (string | number)[] }[]) {
+        statements = list.length;
+        sqlite.exec("BEGIN");
+        try { for (const { sql, values } of list) sqlite.prepare(sql).run(...values); } catch (error) {
+          sqlite.exec("ROLLBACK"); throw error;
+        }
+        sqlite.exec("COMMIT");
+        return [];
+      },
+    } as unknown as D1Database;
+    const count = (supplier: string) =>
+      (sqlite.prepare("SELECT COUNT(*) AS n FROM supplier_catalog WHERE supplier = ?").get(supplier) as { n: number }).n;
+    const replace = async (supplier: string, length: number, prefix: string) => {
+      const parsed = parseSnapshot(snapshot(Array.from({ length }, (_, index) => ({ ...ROW, pn: `${prefix}${index}` }))), supplier);
+      expect(parsed.ok).toBe(true);
+      if (parsed.ok) await supplierStore(db).replaceSnapshot(parsed.value);
+    };
+    await replace("other", 3, "O-");
+    await replace("acme", 5, "OLD-");
+    await replace("acme", MAX_CATALOG_ROWS, "P-");
+    expect(statements).toBe(2 + Math.ceil(MAX_CATALOG_ROWS / 9));
+    expect(count("acme")).toBe(MAX_CATALOG_ROWS);
+    expect(sqlite.prepare("SELECT COUNT(*) AS n FROM supplier_catalog WHERE pn LIKE 'OLD-%'").get()).toEqual({ n: 0 });
+    expect(sqlite.prepare("SELECT mpn_key, links FROM supplier_catalog WHERE supplier = 'acme' AND pn = ?").get(`P-${MAX_CATALOG_ROWS - 1}`))
+      .toEqual({ mpn_key: "m-100", links: JSON.stringify(ROW.links) });
+    expect(count("other")).toBe(3);
+    await replace("acme", 1, "NEW-");
+    expect(count("acme")).toBe(1);
+    expect(count("other")).toBe(3);
   });
 });
 

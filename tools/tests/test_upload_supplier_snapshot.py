@@ -27,12 +27,15 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             # catalog itself must not change, and must still cover them all.
             current = rebuilt.pop("library_part_numbers")
             recorded = report.pop("library_part_numbers")
+            # The limits are the registry's at build time, not part of the catalog.
+            self.assertEqual(report.pop("limits"), {"rows": 10_000, "bytes": us.BODY_LIMIT})
+            self.assertEqual(rebuilt.pop("limits"), {"rows": us.MAX_ROWS, "bytes": us.BODY_LIMIT})
             self.assertEqual(rebuilt, report)
             self.assertLessEqual(set(recorded), set(current))
             body = json.loads((Path(td) / "snapshot.json").read_bytes())
             self.assertEqual(hashlib.sha256((Path(td) / "snapshot.json").read_bytes()).hexdigest(),
                              report["snapshot_sha256"])
-        self.assertLessEqual(report["rows"], us.MAX_ROWS)
+        self.assertLessEqual(report["rows"], 10_000)
         self.assertLessEqual(report["bytes"], us.BODY_LIMIT)
         self.assertEqual(sorted(body), ["classes", "display_name", "parts", "product_url_template"])
         pns = {row["pn"] for row in body["parts"]}
@@ -40,6 +43,46 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             self.assertIn(pn, pns)
         self.assertEqual(current, us.library_pns())
         self.assertLessEqual(set(current), pns)
+
+    def synthetic(self, root: Path, mpns: list[str]) -> dict:
+        """Build a catalog of one B1 page per MPN and nothing else."""
+        snapshot, runs, lib = root / "snapshot", root / "runs", root / "lib"
+        for d in (snapshot, runs, lib):
+            d.mkdir()
+        pages = [{"c": f"C{i + 1}", "category": "extended", "mfr": "Acme", "mpn": mpn, "package": "0603",
+                  "partdetail": f"/partdetail/x/C{i + 1}/C{i + 1}", "stock": 0} for i, mpn in enumerate(mpns)]
+        (snapshot / "catalog.json").write_text(json.dumps(pages), encoding="utf-8")
+        (snapshot / "requests.json").write_text(json.dumps(
+            [{"snapshot_date": "2026-10-30T04:00:00Z", "url": us.ORIGIN + p["partdetail"]} for p in pages]),
+            encoding="utf-8")
+        (snapshot / "provenance.json").write_text(json.dumps({"sha256": {"catalog.json": hashlib.sha256(
+            (snapshot / "catalog.json").read_bytes()).hexdigest()}}), encoding="utf-8")
+        (root / "map.json").write_text('{"rows": []}', encoding="utf-8")
+        with mock.patch.object(sys, "stdout", io.StringIO()):
+            return us.build(root / "out", None, snapshot=snapshot, map_path=root / "map.json", runs=runs, lib=lib)
+
+    def test_the_build_holds_the_registrys_row_and_byte_limits(self):
+        with tempfile.TemporaryDirectory() as td:
+            self.assertEqual(self.synthetic(Path(td), ["M"] * us.MAX_ROWS)["rows"], us.MAX_ROWS)
+        with tempfile.TemporaryDirectory() as td, self.assertRaisesRegex(us.SnapshotError, "15001 rows"):
+            self.synthetic(Path(td), ["M"] * (us.MAX_ROWS + 1))
+        # Fewer rows, longer MPNs: the body alone sets the limit, to the byte.
+        with tempfile.TemporaryDirectory() as td:
+            base = self.synthetic(Path(td), ["M"] * 10_000)["bytes"]
+        extra = us.BODY_LIMIT - base
+        mpns = ["M" * (1 + extra // 10_000 + (i < extra % 10_000)) for i in range(10_000)]
+        with tempfile.TemporaryDirectory() as td:
+            self.assertEqual(self.synthetic(Path(td), mpns)["bytes"], us.BODY_LIMIT)
+        mpns[0] += "M"
+        with tempfile.TemporaryDirectory() as td, self.assertRaisesRegex(
+                us.SnapshotError, f"10000 rows, {us.BODY_LIMIT + 1} bytes"):
+            self.synthetic(Path(td), mpns)
+
+    def test_the_limits_are_the_registrys(self):
+        source = (us.ROOT / "registry/src/worker/suppliers.ts").read_text(encoding="utf-8")
+        self.assertIn("export const MAX_CATALOG_ROWS = 15_000;", source)
+        self.assertIn("export const SUPPLIER_BODY_LIMIT = 4 * 1024 * 1024;", source)
+        self.assertEqual((us.MAX_ROWS, us.BODY_LIMIT), (15_000, 4 * 1024 * 1024))
 
     def test_a_page_without_a_fetch_time_fails_the_build(self):
         with tempfile.TemporaryDirectory() as td:

@@ -7,7 +7,11 @@ const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-
 export const SUPPLIER_BODY_LIMIT = 4 * 1024 * 1024;
 // One `db.batch()` counts as a single query against D1's per-invocation
 // limit, so the row cap is set by the 4 MiB body, not by statement count.
-export const MAX_CATALOG_ROWS = 10_000;
+// Both limits apply. LCSC rows average about 263 bytes, so 15,000 of them come
+// to about 3.95 MB: the body limit is nearly reached as well. A larger catalog
+// needs a staged upload that switches once at the end, since `replaceSnapshot`
+// deletes the supplier's rows before inserting and cannot be called in parts.
+export const MAX_CATALOG_ROWS = 15_000;
 // D1 permits 100 bound parameters per statement; catalog rows need 11 each.
 const CATALOG_INSERT_ROWS = Math.floor(100 / 11);
 

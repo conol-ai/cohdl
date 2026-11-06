@@ -124,7 +124,7 @@ impl Connector for SPK_2P {}
 
 #[doc("docs/hirose-fh12-24s-0.5sh.evidence.md")]
 pub part CONN_FPC24_0P5: FPC24_0P5 {
-    primary { mfr: "HRS", mpn: "FH12-24S-0.5SH(55)", footprint: FP_FPC24_0P5 }
+    primary { mfr: "Hirose Electric", mpn: "FH12-24S-0.5SH(55)", footprint: FP_FPC24_0P5 }
 }
 
 #[doc("docs/conmhf4-smd-g-t.evidence.md")]
@@ -150,7 +150,7 @@ pub part CONN_MIC_2P: MIC_CONN_2P {
 
 #[doc("docs/hirose-fh12-10s-0.5sh.evidence.md")]
 pub part CONN_DEBUG_10P: DEBUG_CONN_10P {
-    primary { mfr: "HRS", mpn: "FH12-10S-0.5SH(55)", footprint: FP_FPC10_0P5 }
+    primary { mfr: "Hirose Electric", mpn: "FH12-10S-0.5SH(55)", footprint: FP_FPC10_0P5 }
 }
 
 #[doc("docs/README.md")]

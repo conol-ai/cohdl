@@ -32,8 +32,8 @@ hash = "sha256:5dac963e482386ae07e9e6d9566562c61e973fde646c7cc07f0525193f248c6b"
 
 [[package]]
 name = "connectors"
-version = "0.2.0"
-hash = "sha256:0779f1150240e58c387746658f6aecb117a0ecb87294e91432ffaf138e51b621"
+version = "0.2.1"
+hash = "sha256:4f29c7ce375cc6af452145242813b4da0d4f38960b9b81486e51af693bbd1a4d"
 
 [[package]]
 name = "esd"

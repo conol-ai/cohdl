@@ -12,3 +12,7 @@ identifies the upstream manufacturer drawing, which is not redistributed here.
 The ordering suffix selects 2.0 mm height, 260 gf actuation and no locating
 post. The circuit drawing identifies a normally-open SPST contact. Copper is
 transcribed from the manufacturer PCB welding drawing.
+
+## Manufacturer name in 0.1.3
+
+`PUSHBUTTON_CTRL_MAX16054AZT_T` now names its manufacturer `Analog Devices`, not `Analog Devices/Maxim Integrated`. That is the spelling `@contrib/audio-amp` already uses for Analog Devices, and the one supplier pages use, so the part matches them without a manufacturer alias (#73, row 36). The part, its pins and its land are unchanged.

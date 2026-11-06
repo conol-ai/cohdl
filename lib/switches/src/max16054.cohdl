@@ -16,8 +16,7 @@ impl IC for MAX16054 {}
 
 #[doc("docs/max16054.evidence.md")]
 pub part PUSHBUTTON_CTRL_MAX16054AZT_T: MAX16054 {
-    primary { mfr: "Analog Devices/Maxim Integrated", mpn: "MAX16054AZT+T",
-              footprint: FP_MAX16054_THIN_SOT23_6 }
+    primary { mfr: "Analog Devices", mpn: "MAX16054AZT+T", footprint: FP_MAX16054_THIN_SOT23_6 }
 }
 
 pub pad P_MAX16054_SOT23_6_LEAD {

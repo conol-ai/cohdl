@@ -26,3 +26,7 @@ Additional footprint and exact-product evidence audited on 2026-08-05:
   eight-pin assignment and page 9 confirms the MSOP-8 dimensions.
 - `footprint-derivations.md` records the auditable IPC-7351 nominal-density
   derivation for `SOP8P65X490X110N`.
+
+## Manufacturer name in 0.1.1
+
+`AMP_NS4150B` now names its manufacturer `NSIWAY`, not `Nsiway`, the spelling of the official `audio-amp` package. One library name per company lets the reviewed supplier alias for Shenzhen Nsiway cover both packages (#73, rows 39 and 40). The part, its pins and its land are unchanged.

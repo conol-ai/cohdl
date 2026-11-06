@@ -94,3 +94,7 @@ separate 4-circuit derating point, so that allocation is a conservative design
 target to validate thermally, not a new manufacturer rating. Using 4 circuits
 for power and 6 circuits for actuator outputs also prevents the two harnesses
 from being physically interchanged.
+
+## Manufacturer name in 0.2.1
+
+`CONN_FPC24_0P5` (`FH12-24S-0.5SH(55)`) and `CONN_DEBUG_10P` (`FH12-10S-0.5SH(55)`) now name their manufacturer `Hirose Electric`, not `HRS`. The package's other Hirose parts already use that spelling, and one library name per company lets the reviewed supplier alias for Hirose cover all four (#73, rows 37 and 38). The parts, their pins and their lands are unchanged.

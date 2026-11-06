@@ -28,3 +28,19 @@ Part notes are short Markdown summaries of a library part's datasheet, written f
 | `passive/YAGEO_RC_SERIES.md` | Passive series | Yageo RC_L V.14 |
 
 The plan named STM32F103C8T6 as the MCU pilot. Its datasheet is not in the repository, so the pilot uses STM32F072CB, whose datasheet is.
+
+## First 5c batch: series behind the bound parts (2026-11-07)
+
+Every `passive` binding is on a Yageo RC, Yageo CC, Vishay CRCW or Samsung CL entry. These four series notes cover them:
+
+| Note | Covers | Sources |
+|---|---|---|
+| `passive/YAGEO_RC_SERIES.md` | 7,744 Yageo RC_L primaries | Yageo RC_L V.14 |
+| `passive/YAGEO_CC_SERIES.md` | 1,225 Yageo CC primaries (C0G, X5R, X7R) | Yageo NP0/C0G, X5R and X7R datasheets |
+| `passive/VISHAY_CRCW_SERIES.md` | 7,736 Vishay CRCW alternates | Vishay documents 20052 and 20035 |
+| `passive/SAMSUNG_CL_SERIES.md` | 716 Samsung CL alternates | Samsung CL catalog, December 2025 |
+
+Writing them turned up where the library's MPNs and the sources disagree. Each note records the details under "Not established by the sources":
+- 4,832 Vishay alternates (0805–2512) end in packaging code `ED`, which document 20035 lists only for 0402 and 0603.
+- Two C0G parts below 10 pF use ±5%, which Yageo does not list there.
+- Most Samsung numbers use design, product or control codes the catalog does not define.

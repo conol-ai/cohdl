@@ -39,7 +39,9 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTES = ROOT / "docs/part-notes"
 LIB = ROOT / "lib"
 CITED = ("Key parameters", "Absolute maximum ratings", "Recommended operating conditions", "Pins")
-PIN = re.compile(r"^\s*(?:required|optional)\s+(\w+)\s*:\s*([\d,\s]+)\[", re.M)
+# Pads are numbers (1, 14) or contact names (A1, B12, SH1).
+PIN = re.compile(r"^\s*(?:required|optional)\s+(\w+)\s*:\s*([A-Za-z0-9_,\s]+?)\s*\[", re.M)
+PAD = re.compile(r"\b(?:[A-Z]{0,3}\d+|EP)\b")
 
 
 def package_dirs() -> dict[str, Path]:
@@ -173,7 +175,7 @@ def check(path: Path, dirs: dict[str, Path], lcsc: dict[tuple[str, str], str]) -
     rows = table(body.get("Pins", ""))
     noted = {}
     for row in rows:
-        pads = re.findall(r"\d+|EP", row.get("Pad", ""))
+        pads = PAD.findall(row.get("Pad", ""))
         for pad in pads:
             if pad in noted:
                 problems.append(f"pad {pad} is listed twice")

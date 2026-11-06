@@ -21,7 +21,7 @@ impl BipolarTransistor for NPN_SOT23_BEC {}
 #[doc("docs/jscj_s8050.evidence.md")]
 pub part BJT_JSCJ_S8050_J3Y: NPN_SOT23_BEC {
     primary { mfr: "Jiangsu Changjing Electronics Technology", mpn: "S8050 J3Y(RANGE:200-350)",
-              footprint: FP_JSCJ_SOT23 }
+              footprint: FP_JSCJ_SOT23, supplier lcsc "C2146" }
 }
 
 // JSCJ S8050 suggested SOT-23 land: 0.6 x 0.8mm pads, 1.90mm

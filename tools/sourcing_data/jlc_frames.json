@@ -229,7 +229,7 @@
     {
       "id": "c2b1-sot23_s8050-c2146",
       "package": "transistor",
-      "package_version": "0.2.0",
+      "package_version": "0.2.1",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C2146",
@@ -254,7 +254,7 @@
     {
       "id": "c2b1-sot23_2n7002-c8545",
       "package": "transistor",
-      "package_version": "0.2.0",
+      "package_version": "0.2.1",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C8545",
@@ -279,7 +279,7 @@
     {
       "id": "c2b1-sot23_mmbt3904-c20526",
       "package": "transistor",
-      "package_version": "0.2.0",
+      "package_version": "0.2.1",
       "footprint": "FP_JSCJ_SOT23",
       "supplier": "lcsc",
       "pn": "C20526",
@@ -579,7 +579,7 @@
     {
       "id": "c2b1-sot236_esd-c85364",
       "package": "esd",
-      "package_version": "0.1.1",
+      "package_version": "0.1.2",
       "footprint": "FP_SOT_23_6",
       "supplier": "lcsc",
       "pn": "C85364",
@@ -629,7 +629,7 @@
     {
       "id": "c2b1-dfn1006-c7420372",
       "package": "esd",
-      "package_version": "0.1.1",
+      "package_version": "0.1.2",
       "footprint": "FP_Hongjiacheng_DFN1006_2L",
       "supplier": "lcsc",
       "pn": "C7420372",
@@ -854,7 +854,7 @@
     {
       "id": "usbc-origin-c165948",
       "package": "usb",
-      "package_version": "0.1.5",
+      "package_version": "0.1.6",
       "footprint": "FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12",
       "supplier": "lcsc",
       "pn": "C165948",

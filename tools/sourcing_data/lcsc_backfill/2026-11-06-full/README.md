@@ -7,7 +7,7 @@ This is the full run of library plan B2: every primary and alternate AVL entry u
 - **Tree:** `origin/main` at `455f6c7`, with the reviewed `mfr_aliases.json` (SHA-256 `86e89089…`, three aliases, issues #62–#64) and the candidate list `jlcparts/2026-10-27/basic_preferred.json`.
 - **Command:** `python3 -I tools/lcsc_backfill.py --allowed-host jlcpcb.com --cache-dir ~/.cache/cohdl-sourcing/jlc --output-dir … --date 2026-11-06 --max-requests 12400`.
 - **Fetching:** 2026-11-06, 02:38 to 09:35 (UTC+8), under the shared client's rules: an honest user agent, at least 2 s between requests, `robots.txt` obeyed, no `/api` path. 12,268 requests; 269 pages came from the cache of earlier runs. No 403 or 429 response, and the run was not stopped. Raw pages stay in the local cache; none is stored here.
-- **One failed page.** The overnight run had one fetch failure: the only candidate of Yageo `RC0805FR-07165KL`. It was fetched again at 09:45 (one request), and the outputs here were then written from the cache. That second pass is what `provenance.json` describes (`requests: 1`, `cache_hits: 12536`). A third pass with `--max-requests 0` reproduces all six files byte for byte.
+- **One failed page.** The overnight run had one fetch failure: the only candidate of Yageo `RC0805FR-07165KL`. It was fetched again at 09:45 (one request), and the outputs here were then written from the cache. That second pass is what `provenance.json` and `requests.json` describe (`requests: 1`, `cache_hits: 12536`); they are its real run record. A third pass with `--max-requests 0` reproduces `confirmed.json`, `lcsc_map.json`, `review.json` and `alias_proposals.json` byte for byte. Its `requests.json` and `provenance.json` differ, as a run record should: cache hits, the request count, the budget and the elapsed time.
 
 The snapshot dates in `requests.json` run from 2026-10-30 (pages cached by the sample) to 2026-11-06.
 
@@ -37,4 +37,4 @@ Review reasons:
 
 ## Alias proposals
 
-`alias_proposals.json` lists 40 (supplier name, library name) pairs over the 184 identities. They are proposals only. The review record is `../../alias_reviews/2026-11-06-b2-full-aliases.md`; an alias takes effect only when the review accepts it and it is added to `mfr_aliases.json`.
+`alias_proposals.json` lists 40 (supplier name, library name) pairs over the 184 identities and their 211 candidate part numbers. Its `identities` field counts candidate part numbers, not identities: Espressif's 135 are 115 identities. They are proposals only. The review record is `../../alias_reviews/2026-11-06-b2-full-aliases.md`; an alias takes effect only when the review accepts it and it is added to `mfr_aliases.json`. This run used the old alias table (SHA-256 `86e89089…`), so its `lcsc_map.json` is not the result with new aliases: the run is repeated offline with the new table before any row is promoted.

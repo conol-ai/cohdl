@@ -244,8 +244,8 @@ class FakeRegistry:
         self.aliases = {us.manufacturer_key(k): v for k, v in aliases.items()}
         self.status, self.edit = status, None
 
-    def __call__(self, method, url, body=None, session=None, origin=None):
-        assert method == "GET" and body is None and session is None
+    def __call__(self, method, url, body=None, credential=None, origin=None):
+        assert method == "GET" and body is None and credential is None
         if self.status != 200:
             return self.status, {"error": "supplier not found"}
         parsed = urllib.parse.urlsplit(url)

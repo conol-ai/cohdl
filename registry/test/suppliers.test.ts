@@ -34,7 +34,7 @@ function snapshot(parts: unknown[] = [ROW]) {
   };
 }
 
-function harness(actor: Account | null = OFFICIAL) {
+function harness(actor: Account | null = OFFICIAL, tokenActor: Account | null = null) {
   const store = {
     replaceSnapshot: vi.fn<SupplierAdminStore["replaceSnapshot"]>().mockResolvedValue(),
     putAlias: vi.fn<SupplierAdminStore["putAlias"]>().mockResolvedValue(),
@@ -42,6 +42,7 @@ function harness(actor: Account | null = OFFICIAL) {
   };
   const deps: SupplierAdminDependencies = {
     sessionAccount: vi.fn().mockResolvedValue(actor),
+    adminTokenAccount: vi.fn().mockResolvedValue(tokenActor),
     store,
     log: vi.fn(),
     now: () => "2026-10-28T01:00:00.000Z",
@@ -57,10 +58,12 @@ function request(
     actor?: Account | null;
     origin?: string | null;
     contentType?: string | null;
+    bearer?: string;
   } = {},
 ) {
   const method = options.method ?? "PUT";
   const headers = new Headers();
+  if (options.bearer !== undefined) headers.set("Authorization", `Bearer ${options.bearer}`);
   if (options.origin !== null) headers.set("Origin", options.origin ?? "https://registry.cohdl.org");
   if (options.contentType !== null) headers.set("Content-Type", options.contentType ?? "application/json");
   return new Request(`https://registry.cohdl.org${path}`, {
@@ -310,6 +313,42 @@ describe("official supplier administration", () => {
     expect(del.body).toEqual({ ok: true, deleted: true });
     expect(h.store.deleteAlias).toHaveBeenCalledWith("example semis");
     expect(normalizeManufacturer("  EXAMPLE\t Semiconductor  ")).toBe("example semiconductor");
+  });
+
+  it("accepts an official admin token without a session or an Origin, and logs the route", async () => {
+    const h = harness(null, OFFICIAL);
+    const req = request("/api/admin/suppliers/acme/snapshot", snapshot(), { bearer: "cohdl_admin_x", origin: null });
+    const { response, body } = await invoke(req, h);
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ ok: true, supplier: "acme", rows: 1 });
+    expect(h.deps.adminTokenAccount).toHaveBeenCalled();
+    expect(h.deps.sessionAccount).not.toHaveBeenCalled();
+    expect(h.deps.log).toHaveBeenCalledWith(expect.objectContaining({ event: "supplier_snapshot_replaced", via: "admin_token" }));
+    // A cross-origin header changes nothing for a token: there is no cookie to borrow.
+    const cross = request("/api/admin/manufacturer-aliases/acme", { canonical: "Acme" }, { bearer: "cohdl_admin_x", origin: "https://evil.example" });
+    expect((await invoke(cross, h)).response.status).toBe(200);
+  });
+
+  it("judges a bearer request by its token alone, never falling back to a session", async () => {
+    // The session would pass, but the token does not resolve: 401, no mutation.
+    const h = harness(OFFICIAL, null);
+    const { response, body } = await invoke(request("/api/admin/suppliers/acme/snapshot", snapshot(), { bearer: "cohdl_publish_or_expired" }), h);
+    expect(response.status).toBe(401);
+    expect(body.error).toBe("invalid or expired admin token");
+    expect(h.deps.sessionAccount).not.toHaveBeenCalled();
+    expect(h.store.replaceSnapshot).not.toHaveBeenCalled();
+    // An admin token of an account that is no longer official is refused.
+    const demoted = harness(null, MEMBER);
+    expect((await invoke(request("/api/admin/suppliers/acme/snapshot", snapshot(), { bearer: "t" }), demoted)).response.status).toBe(403);
+    expect(demoted.store.replaceSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("keeps the same-origin rule for the session route and logs it", async () => {
+    const h = harness();
+    expect((await invoke(request("/api/admin/suppliers/acme/snapshot", snapshot(), { origin: null }), h)).response.status).toBe(403);
+    expect((await invoke(request("/api/admin/suppliers/acme/snapshot"), h)).response.status).toBe(200);
+    expect(h.deps.adminTokenAccount).not.toHaveBeenCalled();
+    expect(h.deps.log).toHaveBeenCalledWith(expect.objectContaining({ event: "supplier_snapshot_replaced", via: "session" }));
   });
 
   it("rejects malformed aliases without a mutation", async () => {

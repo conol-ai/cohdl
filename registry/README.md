@@ -148,6 +148,32 @@ Cookie-authenticated admin writes require same-origin JSON requests in
 addition to the session cookie's `HttpOnly`, `Secure`, and `SameSite=Lax`
 attributes. Admin responses are never cached.
 
+### Token scopes
+
+Every CLI token holds exactly one scope (migration 0006, `tokens.scope`):
+
+- **`publish`** — `POST /login`, `POST /packages/…` and the API-docs `PUT`.
+  The account page's **Create CLI token** mints one (prefix `cohdl_`), with no
+  expiry. Every token minted before 0006 is a publish token.
+- **`admin`** — the official supplier-data writes only:
+  `PUT /api/admin/suppliers/{id}/snapshot` and
+  `PUT|DELETE /api/admin/manufacturer-aliases/{alias}`. Only an official
+  account can mint one (**Create admin token**, prefix `cohdl_admin_`), and it
+  expires 30 days after minting, because tokens cannot yet be revoked.
+
+A token never resolves outside its scope, so the publish token that lives on
+every publishing machine cannot replace supplier data, and an admin token
+cannot publish. `tools/upload_supplier_snapshot.py upload` sends an admin
+token as `Authorization: Bearer` (from `~/.cohdl/admin-token`, owner-only, or
+`COHDL_ADMIN_TOKEN`) and refuses a publish token before sending anything.
+
+On those two supplier routes, a request that carries a bearer token is
+judged by the token alone and never falls back to a cookie it may also
+carry. The same-origin check applies to the cookie route only: it guards a
+credential the browser attaches by itself, which a bearer token never is.
+Every write logs `via: "admin_token" | "session"`. The rest of the admin
+surface (`/admin`, brand claims, component requests) stays session-only.
+
 ## Missing component requests
 
 The catalogue exposes a public `/request` form for a component that is not
@@ -195,8 +221,16 @@ npm run db:migrate:0002                    # …and the api-docs column
 npm run db:migrate:0003                    # …and sidecar pointer + part-search FTS index
 npm run db:migrate:0004                    # …and the component-request review queue
 npm run db:migrate:0005                    # …and the RFC-034 supplier tables
+npm run db:migrate:0006                    # …and token scopes + expiry
 npm run deploy
 ```
+
+Migration 0006 adds `tokens.scope` and `tokens.expires_at`. Apply it
+**before** the Worker that reads them takes traffic: until it runs, every
+token lookup fails, which breaks `cohdl login` and `cohdl publish` for
+everyone. The old Worker ignores the new columns, so migrating first is safe.
+Workers Builds deploys a merge to `main` on its own, so migrate before
+merging.
 
 Migration 0005 creates `suppliers`, `supplier_catalog` and
 `manufacturer_aliases` (RFC-034). Apply it **before** a Worker that serves

@@ -1,0 +1,546 @@
+{
+  "note": "Proposals only; an alias takes effect after review in mfr_aliases.json.",
+  "rows": [
+    {
+      "examples": [
+        {
+          "c": "C2838500",
+          "mpn": "ESP32-C3"
+        },
+        {
+          "c": "C2934569",
+          "mpn": "ESP32-C3-MINI-1-H4"
+        },
+        {
+          "c": "C2935306",
+          "mpn": "ESP32-C3-MINI-1-H4"
+        }
+      ],
+      "identities": 135,
+      "official": "Espressif",
+      "supplier": "Espressif Systems"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2762288",
+          "mpn": "RS0104YQ"
+        },
+        {
+          "c": "C3515913",
+          "mpn": "RS0104YTQE12"
+        },
+        {
+          "c": "C5372421",
+          "mpn": "RS0104YTQF14"
+        }
+      ],
+      "identities": 6,
+      "official": "Run-IC",
+      "supplier": "Jiangsu RUNIC Tech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5151540",
+          "mpn": "PCF85063AT/AY"
+        },
+        {
+          "c": "C404360",
+          "mpn": "PCF85063ATL/1,118"
+        },
+        {
+          "c": "C165608",
+          "mpn": "PCF85063ATT/AJ"
+        }
+      ],
+      "identities": 6,
+      "official": "NXP",
+      "supplier": "NXP Semicon"
+    },
+    {
+      "examples": [
+        {
+          "c": "C190862",
+          "mpn": "W25Q128JVPIQ"
+        },
+        {
+          "c": "C2803379",
+          "mpn": "W25Q128JVPIQ"
+        },
+        {
+          "c": "C97521",
+          "mpn": "W25Q128JVSIQ"
+        }
+      ],
+      "identities": 6,
+      "official": "Winbond",
+      "supplier": "Winbond Elec"
+    },
+    {
+      "examples": [
+        {
+          "c": "C76891",
+          "mpn": "BLM15PD121SN1D"
+        },
+        {
+          "c": "C337893",
+          "mpn": "DFE201612E-2R2M=P2"
+        },
+        {
+          "c": "C76950",
+          "mpn": "GRM1555C1H150JA01D"
+        }
+      ],
+      "identities": 5,
+      "official": "Murata",
+      "supplier": "Murata Electronics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C53100",
+          "mpn": "ME6211C15M5G-N"
+        },
+        {
+          "c": "C487906",
+          "mpn": "ME6211C15M5G-N"
+        },
+        {
+          "c": "C236671",
+          "mpn": "ME6211C18M5G-N"
+        }
+      ],
+      "identities": 4,
+      "official": "Microne",
+      "supplier": "MICRONE(Nanjing Micro One Elec)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C3187669",
+          "mpn": "RT6150B-33GQW"
+        },
+        {
+          "c": "C841192",
+          "mpn": "RT9080-33GJ5"
+        },
+        {
+          "c": "C22378860",
+          "mpn": "RT9080-33GQZ"
+        }
+      ],
+      "identities": 4,
+      "official": "Richtek",
+      "supplier": "Richtek Tech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C14445",
+          "mpn": "CL05A105KP5NNNC"
+        },
+        {
+          "c": "C1525",
+          "mpn": "CL05B104KO5NNNC"
+        },
+        {
+          "c": "C19702",
+          "mpn": "CL10A106KP8NNNC"
+        }
+      ],
+      "identities": 4,
+      "official": "Samsung",
+      "supplier": "Samsung Electro-Mechanics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C20625731",
+          "mpn": "ABM8-272-T3"
+        },
+        {
+          "c": "C179635",
+          "mpn": "ABS07-32.768KHZ-9-T"
+        },
+        {
+          "c": "C42411119",
+          "mpn": "AOTA-B201610S3R3-101-T"
+        }
+      ],
+      "identities": 3,
+      "official": "Abracon",
+      "supplier": "Abracon LLC"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5162564",
+          "mpn": "AW21009QNR"
+        },
+        {
+          "c": "C5162563",
+          "mpn": "AW86224AFCR"
+        }
+      ],
+      "identities": 2,
+      "official": "Awinic",
+      "supplier": "AWINIC(Shanghai Awinic Tech)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C506791",
+          "mpn": "FH12-10S-0.5SH(55)"
+        },
+        {
+          "c": "C202112",
+          "mpn": "FH12-24S-0.5SH(55)"
+        }
+      ],
+      "identities": 2,
+      "official": "HRS",
+      "supplier": "HRS(Hirose)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C202113",
+          "mpn": "FH12-26S-0.5SH(55)"
+        },
+        {
+          "c": "C88373",
+          "mpn": "U.FL-R-SMT-1(10)"
+        }
+      ],
+      "identities": 2,
+      "official": "Hirose Electric",
+      "supplier": "HRS(Hirose)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5246451",
+          "mpn": "Air780E"
+        },
+        {
+          "c": "C5360889",
+          "mpn": "Air780EG"
+        }
+      ],
+      "identities": 2,
+      "official": "Luat (Hezhou)",
+      "supplier": "Luat"
+    },
+    {
+      "examples": [
+        {
+          "c": "C191341",
+          "mpn": "SX1262IMLTRT"
+        },
+        {
+          "c": "C125969",
+          "mpn": "SX1280IMLTRT"
+        }
+      ],
+      "identities": 2,
+      "official": "Semtech",
+      "supplier": "SEMTECH"
+    },
+    {
+      "examples": [
+        {
+          "c": "C3171773",
+          "mpn": "ICS-40300"
+        },
+        {
+          "c": "C3032242",
+          "mpn": "MMICT3902-00-012"
+        }
+      ],
+      "identities": 2,
+      "official": "TDK/InvenSense",
+      "supplier": "TDK InvenSense"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5187096",
+          "mpn": "CH32V003F4P6"
+        },
+        {
+          "c": "C3001172",
+          "mpn": "CH32V203C8T6"
+        }
+      ],
+      "identities": 2,
+      "official": "WCH",
+      "supplier": "WCH(Jiangsu Qin Heng)"
+    },
+    {
+      "examples": [
+        {
+          "c": "C79401",
+          "mpn": "MAX16054AZT+T"
+        }
+      ],
+      "identities": 1,
+      "official": "Analog Devices/Maxim Integrated",
+      "supplier": "Analog Devices"
+    },
+    {
+      "examples": [
+        {
+          "c": "C881838",
+          "mpn": "CW2015CHBD"
+        }
+      ],
+      "identities": 1,
+      "official": "CellWise Microelectronics",
+      "supplier": "Cellwise"
+    },
+    {
+      "examples": [
+        {
+          "c": "C83528",
+          "mpn": "1N4148W-7-F"
+        }
+      ],
+      "identities": 1,
+      "official": "Diodes Inc",
+      "supplier": "Diodes Incorporated"
+    },
+    {
+      "examples": [
+        {
+          "c": "C130719",
+          "mpn": "NCD0402R1"
+        }
+      ],
+      "identities": 1,
+      "official": "NATIONSTAR",
+      "supplier": "Foshan NationStar Optoelectronics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C3020560",
+          "mpn": "USB4105-GF-A"
+        }
+      ],
+      "identities": 1,
+      "official": "GCT",
+      "supplier": "Global Connector Technology"
+    },
+    {
+      "examples": [
+        {
+          "c": "C17495453",
+          "mpn": "CYPD6227-96BZXI"
+        }
+      ],
+      "identities": 1,
+      "official": "Infineon",
+      "supplier": "Infineon Technologies"
+    },
+    {
+      "examples": [
+        {
+          "c": "C22453211",
+          "mpn": "CYPD6227-96BZXI"
+        }
+      ],
+      "identities": 1,
+      "official": "Infineon",
+      "supplier": "Infineon/Cypress Semicon"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2146",
+          "mpn": "S8050 J3Y(RANGE:200-350)"
+        }
+      ],
+      "identities": 1,
+      "official": "Jiangsu Changjing Electronics Technology",
+      "supplier": "Jiangsu Changjing Electronics Technology Co., Ltd."
+    },
+    {
+      "examples": [
+        {
+          "c": "C2917717",
+          "mpn": "2450AT18B100E"
+        }
+      ],
+      "identities": 1,
+      "official": "Johanson Technology",
+      "supplier": "Johanson Dielectrics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C165948",
+          "mpn": "TYPE-C-31-M-12"
+        }
+      ],
+      "identities": 1,
+      "official": "HRO",
+      "supplier": "Korean Hroparts Elec"
+    },
+    {
+      "examples": [
+        {
+          "c": "C22466970",
+          "mpn": "SK6812MINI-E-012"
+        }
+      ],
+      "identities": 1,
+      "official": "Dongguan OPSCO Optoelectronics",
+      "supplier": "OPSCO Optoelectronics"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2162098",
+          "mpn": "6SVPC220M"
+        }
+      ],
+      "identities": 1,
+      "official": "Panasonic",
+      "supplier": "PANASONIC"
+    },
+    {
+      "examples": [
+        {
+          "c": "C85355",
+          "mpn": "GBLC05C-LF-T7"
+        }
+      ],
+      "identities": 1,
+      "official": "ProTek",
+      "supplier": "ProTek Devices"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5153801",
+          "mpn": "SGM41562BXG/TR"
+        }
+      ],
+      "identities": 1,
+      "official": "SG Micro",
+      "supplier": "SGMICRO"
+    },
+    {
+      "examples": [
+        {
+          "c": "C910588",
+          "mpn": "NS4168"
+        }
+      ],
+      "identities": 1,
+      "official": "NSIWAY",
+      "supplier": "Shenzhen Nsiway Tech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C189961",
+          "mpn": "NS4150B"
+        }
+      ],
+      "identities": 1,
+      "official": "Nsiway",
+      "supplier": "Shenzhen Nsiway Tech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C20617299",
+          "mpn": "RT9080-33GJ5"
+        }
+      ],
+      "identities": 1,
+      "official": "Richtek",
+      "supplier": "TECH PUBLIC"
+    },
+    {
+      "examples": [
+        {
+          "c": "C2831490",
+          "mpn": "XC6206P182MR-G"
+        }
+      ],
+      "identities": 1,
+      "official": "Torex Semiconductor",
+      "supplier": "Torex Semicon"
+    },
+    {
+      "examples": [
+        {
+          "c": "C6990279",
+          "mpn": "MIA-M10Q-00B"
+        }
+      ],
+      "identities": 1,
+      "official": "u-blox",
+      "supplier": "U-BLOX"
+    },
+    {
+      "examples": [
+        {
+          "c": "C42441843",
+          "mpn": "MT9700-N"
+        }
+      ],
+      "identities": 1,
+      "official": "Xi'an Aerosemi Tech",
+      "supplier": "XI'AN Aerosemi Tech"
+    },
+    {
+      "examples": [
+        {
+          "c": "C609791",
+          "mpn": "XL9555"
+        }
+      ],
+      "identities": 1,
+      "official": "Xinluda",
+      "supplier": "XINLUDA"
+    },
+    {
+      "examples": [
+        {
+          "c": "C5246378",
+          "mpn": "NS4168"
+        }
+      ],
+      "identities": 1,
+      "official": "NSIWAY",
+      "supplier": "Yongfukang"
+    },
+    {
+      "examples": [
+        {
+          "c": "C7465551",
+          "mpn": "ETA5060V330S8F"
+        }
+      ],
+      "identities": 1,
+      "official": "ETA Solutions",
+      "supplier": "etasolution"
+    },
+    {
+      "examples": [
+        {
+          "c": "C7420372",
+          "mpn": "H5VL10B"
+        }
+      ],
+      "identities": 1,
+      "official": "Zhuhai Hongjiacheng Technology",
+      "supplier": "hongjiacheng"
+    }
+  ],
+  "schema_version": 1
+}

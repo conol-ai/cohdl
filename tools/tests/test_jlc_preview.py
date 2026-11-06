@@ -1,6 +1,8 @@
 import hashlib
 import io
 import json
+import math
+import struct
 import subprocess
 import sys
 import tempfile
@@ -11,6 +13,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "frame_boards"))
 import jlc_preview as jp
+import measure_preview as mp
 
 CPL = "Designator,Mid X,Mid Y,Layer,Rotation\nU1,1mm,1mm,Top,270\nU2,2mm,1mm,Top,307\nU3,3mm,1mm,Bottom,90\n"
 BOM = 'Comment,Designator,Footprint,LCSC Part #\n"A","U1,U3","F","C117815"\n"B","U2","G","C730103"\n'
@@ -41,6 +44,52 @@ def fp(ref, x, y, half, bottom=False):
     """A footprint whose farthest pad sits HALF mm out on the diagonal."""
     return {"ref": ref, "bottom": bottom, "x": x, "y": y,
             "pads": [{"num": "1", "x": x - half, "y": y - half}, {"num": "2", "x": x + half, "y": y + half}]}
+
+
+def chip(ref, x, y, angle=0.0, half=0.8, bottom=False, fpid="passive-CHIP_0603"):
+    """A two-pad chip footprint, its pads HALF mm either side along ANGLE (degrees, board frame)."""
+    c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    return {"ref": ref, "fpid": fpid, "bottom": bottom, "x": x, "y": y, "angle": angle,
+            "pads": [{"num": "1", "x": x - half * c, "y": y - half * s}, {"num": "2", "x": x + half * c, "y": y + half * s}]}
+
+
+GREEN, COPPER, GREY = (32, 110, 20), (128, 128, 192), (70, 70, 70)  # BGR
+
+
+def export(path, parts, bottom=False, size=20.0, scale=10):
+    """A synthetic preview export of a SIZE mm square board at SCALE px/mm, as a 24-bit BMP.
+
+    PARTS: (footprint, body) where body is None (not drawn: bare pads and the
+    checkered centroid marker) or (length, width, angle, dx, dy) of a grey body.
+    """
+    n = int(size * scale)
+    stride = (n * 3 + 3) & ~3
+    rows = []
+    for py in range(n):
+        row = bytearray()
+        for px in range(n):
+            bx = ((n - (px + 0.5)) if bottom else (px + 0.5)) / scale
+            by = (py + 0.5) / scale
+            colour = GREEN
+            for f, b in parts:
+                for p in f["pads"]:
+                    if abs(bx - p["x"]) <= 0.25 and abs(by - p["y"]) <= 0.25:
+                        colour = COPPER
+                if b is None:
+                    if abs(bx - f["x"]) <= 0.3 and abs(by - f["y"]) <= 0.3:
+                        colour = (0, 0, 0) if (bx > f["x"]) == (by > f["y"]) else (255, 255, 255)
+                    continue
+                length, width, angle, dx, dy = b
+                c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+                u, v = bx - f["x"] - dx, by - f["y"] - dy
+                if abs(u * c + v * s) <= length / 2 and abs(-u * s + v * c) <= width / 2:
+                    colour = GREY
+            row += bytes(colour)
+        rows.append(bytes(row) + b"\0" * (stride - n * 3))
+    pixels = b"".join(reversed(rows))
+    header = struct.pack("<2sIHHI", b"BM", 54 + len(pixels), 0, 0, 54)
+    info = struct.pack("<IiiHHIIiiII", 40, n, n, 1, 24, 0, len(pixels), 2835, 2835, 0, 0)
+    Path(path).write_bytes(header + info + pixels)
 
 
 class JlcPreviewTests(unittest.TestCase):
@@ -152,9 +201,10 @@ class JlcPreviewTests(unittest.TestCase):
             with self.assertRaisesRegex(jp.Unverified, "pass --board"):
                 jp.load_board(Path(td) / "none", None, PLACEMENTS)
 
-    def test_an_export_without_a_mark_on_each_part_is_taken_again(self):
+    def test_an_export_without_evidence_on_each_part_is_taken_again(self):
         fps = [fp("U1", 10, 10, 4), fp("U2", 40, 10, 4)]
         both = [(6, 6, 9), (36, 6, 9)]
+        drawn = {"U1": {"drawn": True, "body": None}, "U2": {"drawn": True, "body": None}}
         with tempfile.TemporaryDirectory() as td:
             downloads, out = Path(td) / "dl", Path(td) / "top.png"
             downloads.mkdir()
@@ -163,16 +213,88 @@ class JlcPreviewTests(unittest.TestCase):
                 if "_download-icon_" in code:
                     (downloads / "Capture from JLCPCB.png").write_bytes(b"png")
                 return "true"
-            for marks, expect in (([[], both], "ok"), ([both[:1]] * 3, "never showed a pin 1 mark on U2")):
-                with self.subTest(expect=expect), mock.patch.object(jp, "js", side_effect=js), \
-                        mock.patch.object(jp, "pin1_marks", side_effect=marks) as found, \
+            # (exports as inspected, verdict, exports taken)
+            for shown, expect, taken in (
+                    ([([], drawn), (both, drawn)], {"U1": "mark", "U2": "mark"}, 2),
+                    # Two exports alike: a third would not differ.
+                    ([(both[:1], drawn)] * 3, {"U1": "mark", "U2": "manual review"}, 2),
+                    ([([], drawn), (both[:1], drawn), (both[:1], drawn)], {"U1": "mark", "U2": "manual review"}, 3)):
+                with self.subTest(expect=expect, taken=taken), mock.patch.object(jp, "js", side_effect=js), \
+                        mock.patch.object(jp, "inspect", side_effect=shown) as found, \
                         mock.patch.object(sys, "stdout", io.StringIO()):
-                    if expect == "ok":
-                        self.assertEqual(jp.export_capture("Top", downloads, out, fps, (0, 0, 50, 50), settle=0), out)
-                    else:
-                        with self.assertRaisesRegex(jp.Unverified, expect):
-                            jp.export_capture("Top", downloads, out, fps, (0, 0, 50, 50), settle=0)
-                    self.assertEqual(found.call_count, len(marks))
+                    path, verdict = jp.export_capture("Top", downloads, out, fps, (0, 0, 50, 50), settle=0)
+                    self.assertEqual(path, out)
+                    self.assertEqual({ref: v[0] for ref, v in verdict.items()}, expect)
+                    self.assertEqual(found.call_count, taken)
+
+    def test_a_silent_export_is_clicked_once_more(self):
+        fps = [fp("U1", 10, 10, 4)]
+        shown = ([(6, 6, 9)], {"U1": {"drawn": True, "body": None}})
+        with tempfile.TemporaryDirectory() as td:
+            downloads, out = Path(td) / "dl", Path(td) / "bottom.png"
+            downloads.mkdir()
+            clicks = []
+
+            def js(code):
+                if "_download-icon_" in code:
+                    clicks.append(code)
+                    if len(clicks) == 2:  # the first click is lost
+                        (downloads / "JLCPCB PCBA Capture.png").write_bytes(b"png")
+                return "true"
+            with mock.patch.object(jp, "js", side_effect=js), mock.patch.object(jp, "inspect", return_value=shown), \
+                    mock.patch.object(sys, "stdout", io.StringIO()):
+                path, verdict = jp.export_capture("Bottom", downloads, out, fps, (0, 0, 50, 50), settle=0, reclick=0)
+            self.assertEqual((path, verdict["U1"][0], len(clicks)), (out, "mark", 2))
+            self.assertEqual(list(downloads.iterdir()), [])
+
+    def test_a_chip_part_is_the_libraries_two_pad_passive_chip_land(self):
+        self.assertTrue(mp.is_chip(chip("R1", 0, 0)))
+        self.assertTrue(mp.is_chip(chip("C1", 0, 0, fpid="passive-CHIP_2512")))
+        # A polarised two-pad land, a land without its library id, and a chip land with a third pad are not.
+        self.assertFalse(mp.is_chip(chip("D1", 0, 0, fpid="contrib_esd-FP_SOD323_2P5X1P25mm")))
+        self.assertFalse(mp.is_chip({k: v for k, v in chip("R1", 0, 0).items() if k != "fpid"}))
+        three = chip("R1", 0, 0)
+        three["pads"].append({"num": "3", "x": 0, "y": 0.5})
+        self.assertFalse(mp.is_chip(three))
+
+    def test_a_chip_body_must_lie_along_its_pads_and_be_centred(self):
+        cases = [
+            # (footprint, body, bottom, drawn, passes)
+            (chip("R1", 6, 6), (1.6, 0.8, 0, 0, 0), False, True, True),
+            (chip("R1", 6, 6, angle=37), (1.6, 0.8, 37 + 180, 0, 0), False, True, True),
+            (chip("R1", 6, 6, angle=37, bottom=True), (1.6, 0.8, 37, 0, 0), True, True, True),
+            (chip("R1", 6, 6), (1.6, 0.8, 90, 0, 0), False, True, False),  # a quarter turn
+            (chip("R1", 6, 6), (1.6, 0.8, 0, 0.5, 0), False, True, False),  # off its pads
+            (chip("R1", 6, 6), None, False, False, False),  # not drawn
+        ]
+        with tempfile.TemporaryDirectory() as td:
+            for f, b, bottom, shown, passes in cases:
+                with self.subTest(body=b, bottom=bottom):
+                    export(Path(td) / "x.bmp", [(f, b)], bottom)
+                    view = mp.View(str(Path(td) / "x.bmp"), (0, 0, 20, 20), bottom)
+                    self.assertEqual(mp.drawn(view, f), shown)
+                    if shown:
+                        reading = mp.body(view, f)
+                        self.assertEqual(mp.body_ok(reading), passes, reading)
+                        if passes:
+                            self.assertLess(abs(reading["delta_mod_180"]), 2)
+                        elif b[2] == 90:
+                            self.assertGreater(abs(reading["delta_mod_180"]), 80)
+
+    def test_each_instance_stands_on_its_own_evidence(self):
+        ok = {"delta_mod_180": 0.5, "offset_mm": 0.02, "offset_limit_mm": 0.2, "elongation": 1.8, "fill": 1.0}
+        turned = dict(ok, delta_mod_180=88.0)
+        qfp, sw, bga = fp("U1", 20, 20, 4), fp("SW1", 40, 20, 3), fp("U2", 60, 20, 3)
+        r1, r2, r3 = chip("R1", 10, 40), chip("R2", 20, 40), chip("R3", 30, 40)
+        fps = [qfp, sw, bga, r1, r2, r3]
+        readings = {"U1": {"drawn": True, "body": None}, "SW1": {"drawn": True, "body": None},
+                    "U2": {"drawn": False, "body": None}, "R1": {"drawn": True, "body": ok},
+                    "R2": {"drawn": True, "body": turned}, "R3": {"drawn": False, "body": None}}
+        # One mark on U1; a stray mark near R1 is R1's nearest, so it covers neither SW1 nor U2.
+        marks = [(16, 16, 9), (10.3, 40, 9)]
+        got = {ref: v[0] for ref, v in jp.verdicts(marks, fps, readings).items()}
+        self.assertEqual(got, {"U1": "mark", "SW1": "manual review", "U2": "unverified",
+                               "R1": "body", "R2": "manual review", "R3": "unverified"})
 
     def test_main_reports_a_stop_as_exit_2_and_a_failed_check_as_exit_1(self):
         err = io.StringIO()
@@ -180,6 +302,14 @@ class JlcPreviewTests(unittest.TestCase):
             self.assertEqual(jp.main(["p.zip"]), 2)
         with mock.patch.object(jp, "run_preview", side_effect=jp.Unverified("stock warning")), mock.patch.object(sys, "stderr", err):
             self.assertEqual(jp.main(["p.zip"]), 1)
+        # Both exports taken: every instance with its evidence is exit 0; any left open is exit 3.
+        done = {"U1": {"status": "mark"}, "R1": {"status": "body"}}
+        with mock.patch.object(jp, "run_preview", return_value=done), mock.patch.object(sys, "stderr", err):
+            self.assertEqual(jp.main(["p.zip"]), 0)
+        with mock.patch.object(jp, "run_preview", return_value=dict(done, U2={"status": "unverified"})), \
+                mock.patch.object(sys, "stderr", err):
+            self.assertEqual(jp.main(["p.zip"]), 3)
+        self.assertIn("1 instances unverified or for manual review: U2", err.getvalue())
         self.assertIn("a person has to take over: not signed in", err.getvalue())
         self.assertIn("unverified: stock warning", err.getvalue())
 

@@ -496,6 +496,18 @@ fn load_frames(path: &Path, repo_root: &Path, errors: &mut Vec<String>) -> Vec<F
                 if let Some(record) = string_field(evidence, "record", &context, errors) {
                     audit_evidence_record(repo_root, record, &context, errors);
                 }
+                if evidence.contains_key("note") {
+                    string_field(evidence, "note", &context, errors);
+                }
+                for key in evidence.keys() {
+                    if !matches!(key.as_str(), "method" | "date" | "record" | "note") {
+                        error(
+                            &context,
+                            format!("evidence has unknown field `{key}`"),
+                            errors,
+                        );
+                    }
+                }
             }
             Some(Value::Null) => {}
             Some(_) => error(&context, "`evidence` must be an object or null", errors),
@@ -894,6 +906,8 @@ mod tests {
                 "evidence_ref `reason` must be same_supplier_footprint or same_preview_board",
             ),
             ("d-empty-note", "`note` must be a non-empty string"),
+            ("d-evidence-note", "`note` must be a non-empty string"),
+            ("d-evidence-key", "evidence has unknown field `by`"),
             (
                 "d-missing-exception",
                 "non-zero mapping requires a non-empty `exception`; null is forbidden",

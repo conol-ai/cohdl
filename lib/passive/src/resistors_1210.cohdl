@@ -1861,7 +1861,7 @@ pub part R_499R_F_1210: ChipResistor<499ohm, 1%>[R1210] {
 
 #[doc("docs/yageo_rc_series_datasheet_en.pdf")]
 pub part R_510R_F_1210: ChipResistor<510ohm, 1%>[R1210] {
-    primary { mfr: "Yageo", mpn: "RC1210FR-07510RL", footprint: CHIP_1210 }
+    primary { mfr: "Yageo", mpn: "RC1210FR-07510RL", footprint: CHIP_1210, supplier lcsc "C309589" }
     alt { mfr: "Vishay", mpn: "CRCW1210510RFKED" }
 }
 

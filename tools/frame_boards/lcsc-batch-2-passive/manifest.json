@@ -1,0 +1,1325 @@
+{
+ "name": "lcsc_batch_2_passive",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.4"
+ },
+ "rows": [
+  {
+   "name": "R_82R_J_0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::ChipResistor<82ohm, 5%>[R0201]",
+   "pn": "C138084",
+   "mfr": "Yageo",
+   "mpn": "RC0201JR-0782RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      1.783,
+      1.783
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_82R_J_0201 primary; lcsc_map rule alias",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "R_221R_F_0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::ChipResistor<221ohm, 1%>[R0201]",
+   "pn": "C138161",
+   "mfr": "Yageo",
+   "mpn": "RC0201FR-07221RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      5.348,
+      1.783
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_221R_F_0201 primary; lcsc_map rule alias",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "R_680K_F_0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::ChipResistor<680kohm, 1%>[R0201]",
+   "pn": "C273318",
+   "mfr": "Yageo",
+   "mpn": "RC0201FR-07680KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      8.913,
+      1.783
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_680K_F_0201 primary; lcsc_map rule alias",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "C_330p_16V_X7R_0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::MLCC<330pF, 16V, 10%>[C0201]",
+   "pn": "C541229",
+   "mfr": "Yageo",
+   "mpn": "CC0201KRX7R7BB331",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      12.478,
+      1.783
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_330p_16V_X7R_0201 primary; lcsc_map rule alias",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "C_680p_50V_X7R_0201",
+   "footprint": "passive::CHIP_0201",
+   "part": "passive::MLCC<680pF, 50V, 10%>[C0201]",
+   "pn": "C718246",
+   "mfr": "Yageo",
+   "mpn": "CC0201KRX7R9BB681",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 1.565,
+   "height_mm": 1.565,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      16.044,
+      1.783
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_680p_50V_X7R_0201 primary; lcsc_map rule alias",
+   "jlc_package": "0201",
+   "category": "extended"
+  },
+  {
+   "name": "R_47K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<47kohm, 1%>[R0402]",
+   "pn": "C93943",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0747KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      19.868,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_47K_F_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_1u_10V_X5R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1uF, 10V, 10%>[C0402]",
+   "pn": "C106254",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX5R6BB105",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      23.952,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_1u_10V_X5R_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_82p_50V_C0G_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<82pF, 50V, 5%>[C0402]",
+   "pn": "C107011",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO9BN820",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      28.036,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_82p_50V_C0G_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_200K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<200kohm, 1%>[R0402]",
+   "pn": "C114763",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07200KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      32.12,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_200K_F_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_820R_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<820ohm, 5%>[R0402]",
+   "pn": "C137837",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-07820RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      36.204,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_820R_J_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_910K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<910kohm, 1%>[R0402]",
+   "pn": "C137927",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07910KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      40.288,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_910K_F_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_8M66_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<8.66Mohm, 1%>[R0402]",
+   "pn": "C477801",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-078M66L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      44.372,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_8M66_F_0402 primary; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_820R_J_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<820ohm, 5%>[R0402]",
+   "pn": "C482239",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402820RJNED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      48.456,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_820R_J_0402 alt; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_66K5_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<66.5kohm, 1%>[R0402]",
+   "pn": "C2091530",
+   "mfr": "Vishay",
+   "mpn": "CRCW040266K5FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      52.541,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_66K5_F_0402 alt; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1K58_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.58kohm, 1%>[R0402]",
+   "pn": "C3009257",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021K58FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      56.625,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_1K58_F_0402 alt; lcsc_map rule alias",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_20K_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<20kohm, 1%>[R0603]",
+   "pn": "C105575",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-0720KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      61.317,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_20K_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_16R_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<16ohm, 1%>[R0603]",
+   "pn": "C137787",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-0716RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      66.617,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_16R_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_6K49_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<6.49kohm, 1%>[R0603]",
+   "pn": "C163421",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-076K49L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      71.918,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_6K49_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_15R8_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<15.8ohm, 1%>[R0603]",
+   "pn": "C163429",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-0715R8L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      77.218,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_15R8_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_4R12_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<4.12ohm, 1%>[R0603]",
+   "pn": "C309563",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-074R12L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      82.519,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_4R12_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_3R4_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<3.4ohm, 1%>[R0603]",
+   "pn": "C482832",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-073R4L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.819,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_3R4_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "R_5M36_F_0603",
+   "footprint": "passive::CHIP_0603",
+   "part": "passive::ChipResistor<5.36Mohm, 1%>[R0603]",
+   "pn": "C482876",
+   "mfr": "Yageo",
+   "mpn": "RC0603FR-075M36L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.3,
+   "height_mm": 3.3,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      93.12,
+      2.65
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_5M36_F_0603 primary; lcsc_map rule alias",
+   "jlc_package": "0603",
+   "category": "extended"
+  },
+  {
+   "name": "C_12p_50V_C0G_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::MLCC<12pF, 50V, 5%>[C0805]",
+   "pn": "C107108",
+   "mfr": "Yageo",
+   "mpn": "CC0805JRNPO9BN120",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.93,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_12p_50V_C0G_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_510K_J_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<510kohm, 5%>[R0805]",
+   "pn": "C137422",
+   "mfr": "Yageo",
+   "mpn": "RC0805JR-07510KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      8.79,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_510K_J_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_910K_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<910kohm, 1%>[R0805]",
+   "pn": "C141703",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-07910KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      14.65,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_910K_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_137R_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<137ohm, 1%>[R0805]",
+   "pn": "C163411",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-07137RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      20.51,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_137R_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_9K1_J_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<9.1kohm, 5%>[R0805]",
+   "pn": "C185267",
+   "mfr": "Yageo",
+   "mpn": "RC0805JR-079K1L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      26.37,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_9K1_J_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_178K_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<178kohm, 1%>[R0805]",
+   "pn": "C273815",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-07178KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      32.23,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_178K_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_1R47_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<1.47ohm, 1%>[R0805]",
+   "pn": "C482966",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-071R47L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      38.09,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_1R47_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_115R_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<115ohm, 1%>[R0805]",
+   "pn": "C483001",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-07115RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      43.95,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_115R_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_57R6_F_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::ChipResistor<57.6ohm, 1%>[R0805]",
+   "pn": "C483188",
+   "mfr": "Yageo",
+   "mpn": "RC0805FR-0757R6L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      49.81,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_57R6_F_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "C_390p_100V_C0G_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::MLCC<390pF, 100V, 5%>[C0805]",
+   "pn": "C527206",
+   "mfr": "Yageo",
+   "mpn": "CC0805JRNPO0BN391",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      55.67,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_390p_100V_C0G_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "C_3n3_200V_X7R_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::MLCC<3.3nF, 200V, 10%>[C0805]",
+   "pn": "C527232",
+   "mfr": "Yageo",
+   "mpn": "CC0805KRX7RABB332",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      61.53,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_3n3_200V_X7R_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "C_220p_250V_C0G_0805",
+   "footprint": "passive::CHIP_0805",
+   "part": "passive::MLCC<220pF, 250V, 5%>[C0805]",
+   "pn": "C576985",
+   "mfr": "Yageo",
+   "mpn": "CC0805JRNPOYBN221",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 3.86,
+   "height_mm": 3.86,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      67.39,
+      8.23
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive C_220p_250V_C0G_0805 primary; lcsc_map rule alias",
+   "jlc_package": "0805",
+   "category": "extended"
+  },
+  {
+   "name": "R_12K_J_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<12kohm, 5%>[R1206]",
+   "pn": "C137203",
+   "mfr": "Yageo",
+   "mpn": "RC1206JR-0712KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      73.865,
+      8.845
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_12K_J_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_45R3_F_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<45.3ohm, 1%>[R1206]",
+   "pn": "C274047",
+   "mfr": "Yageo",
+   "mpn": "RC1206FR-0745R3L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      80.954,
+      8.845
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_45R3_F_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_133R_F_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<133ohm, 1%>[R1206]",
+   "pn": "C274074",
+   "mfr": "Yageo",
+   "mpn": "RC1206FR-07133RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      88.043,
+      8.845
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_133R_F_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_4M75_F_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<4.75Mohm, 1%>[R1206]",
+   "pn": "C488841",
+   "mfr": "Yageo",
+   "mpn": "RC1206FR-074M75L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      95.133,
+      8.845
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_4M75_F_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_5R49_F_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<5.49ohm, 1%>[R1206]",
+   "pn": "C488876",
+   "mfr": "Yageo",
+   "mpn": "RC1206FR-075R49L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      3.545,
+      15.934
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_5R49_F_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_82K5_F_1206",
+   "footprint": "passive::CHIP_1206",
+   "part": "passive::ChipResistor<82.5kohm, 1%>[R1206]",
+   "pn": "C488985",
+   "mfr": "Yageo",
+   "mpn": "RC1206FR-0782K5L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.089,
+   "height_mm": 5.089,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.634,
+      15.934
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_82K5_F_1206 primary; lcsc_map rule alias",
+   "jlc_package": "1206",
+   "category": "extended"
+  },
+  {
+   "name": "R_510R_F_1210",
+   "footprint": "passive::CHIP_1210",
+   "part": "passive::ChipResistor<510ohm, 1%>[R1210]",
+   "pn": "C309589",
+   "mfr": "Yageo",
+   "mpn": "RC1210FR-07510RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.548,
+   "height_mm": 5.548,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      17.953,
+      16.164
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_510R_F_1210 primary; lcsc_map rule alias",
+   "jlc_package": "1210",
+   "category": "extended"
+  },
+  {
+   "name": "R_5K1_F_1210",
+   "footprint": "passive::CHIP_1210",
+   "part": "passive::ChipResistor<5.1kohm, 1%>[R1210]",
+   "pn": "C728389",
+   "mfr": "Yageo",
+   "mpn": "RC1210FR-075K1L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.548,
+   "height_mm": 5.548,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      25.5,
+      16.164
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_5K1_F_1210 primary; lcsc_map rule alias",
+   "jlc_package": "1210",
+   "category": "extended"
+  },
+  {
+   "name": "R_25R5_F_1210",
+   "footprint": "passive::CHIP_1210",
+   "part": "passive::ChipResistor<25.5ohm, 1%>[R1210]",
+   "pn": "C874860",
+   "mfr": "Yageo",
+   "mpn": "RC1210FR-0725R5L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 5.548,
+   "height_mm": 5.548,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      33.048,
+      16.164
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_25R5_F_1210 primary; lcsc_map rule alias",
+   "jlc_package": "1210",
+   "category": "extended"
+  },
+  {
+   "name": "R_130R_J_2010",
+   "footprint": "passive::CHIP_2010",
+   "part": "passive::ChipResistor<130ohm, 5%>[R2010]",
+   "pn": "C137046",
+   "mfr": "Yageo",
+   "mpn": "RC2010JK-07130RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 7.102,
+   "height_mm": 7.102,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      41.373,
+      16.941
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_130R_J_2010 primary; lcsc_map rule alias",
+   "jlc_package": "2010",
+   "category": "extended"
+  },
+  {
+   "name": "R_200K_F_2010",
+   "footprint": "passive::CHIP_2010",
+   "part": "passive::ChipResistor<200kohm, 1%>[R2010]",
+   "pn": "C877226",
+   "mfr": "Yageo",
+   "mpn": "RC2010FK-07200KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 7.102,
+   "height_mm": 7.102,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      50.475,
+      16.941
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_200K_F_2010 primary; lcsc_map rule alias",
+   "jlc_package": "2010",
+   "category": "extended"
+  },
+  {
+   "name": "R_4R7_F_2512",
+   "footprint": "passive::CHIP_2512",
+   "part": "passive::ChipResistor<4.7ohm, 1%>[R2512]",
+   "pn": "C878096",
+   "mfr": "Yageo",
+   "mpn": "RC2512FK-074R7L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 8.578,
+   "height_mm": 8.578,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      60.315,
+      17.679
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_4R7_F_2512 primary; lcsc_map rule alias",
+   "jlc_package": "2512",
+   "category": "extended"
+  },
+  {
+   "name": "R_4M7_J_2512",
+   "footprint": "passive::CHIP_2512",
+   "part": "passive::ChipResistor<4.7Mohm, 5%>[R2512]",
+   "pn": "C878293",
+   "mfr": "Yageo",
+   "mpn": "RC2512JK-074M7L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 8.578,
+   "height_mm": 8.578,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      70.892,
+      17.679
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "lib/passive R_4M7_J_2512 primary; lcsc_map rule alias",
+   "jlc_package": "2512",
+   "category": "extended"
+  }
+ ]
+}

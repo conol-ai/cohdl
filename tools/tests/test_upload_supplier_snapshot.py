@@ -23,7 +23,12 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         report = json.loads((RECORD / "report.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             rebuilt = us.build(Path(td), None, RECORD / "report.json")
+            # Bindings added since the upload grow the library's list; the
+            # catalog itself must not change, and must still cover them all.
+            current = rebuilt.pop("library_part_numbers")
+            recorded = report.pop("library_part_numbers")
             self.assertEqual(rebuilt, report)
+            self.assertLessEqual(set(recorded), set(current))
             body = json.loads((Path(td) / "snapshot.json").read_bytes())
             self.assertEqual(hashlib.sha256((Path(td) / "snapshot.json").read_bytes()).hexdigest(),
                              report["snapshot_sha256"])
@@ -33,7 +38,8 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         pns = {row["pn"] for row in body["parts"]}
         for pn in ("C117815", "C129276", "C1857444", "C529436", "C717701", "C730103"):
             self.assertIn(pn, pns)
-        self.assertEqual(report["library_part_numbers"], us.library_pns())
+        self.assertEqual(current, us.library_pns())
+        self.assertLessEqual(set(current), pns)
 
     def test_a_page_without_a_fetch_time_fails_the_build(self):
         with tempfile.TemporaryDirectory() as td:

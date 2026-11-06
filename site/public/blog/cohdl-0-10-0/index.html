@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b11" />
+    <title>CoHDL 0.10.0: Supplier Part Bindings</title>
+    <meta
+      name="description"
+      content="A library part can name its assembler's part number. CoHDL 0.10.0 writes a placement file for every placed board, and per-supplier BOM, CPL and map files with --supplier."
+    />
+    <link
+      rel="canonical"
+      href="https://cohdl.org/blog/cohdl-0-10-0/"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CoHDL" />
+    <meta
+      property="og:title"
+      content="CoHDL 0.10.0: Supplier Part Bindings"
+    />
+    <meta
+      property="og:description"
+      content="A library part can name its assembler's part number. CoHDL 0.10.0 writes a placement file for every placed board, and per-supplier BOM, CPL and map files with --supplier."
+    />
+    <meta property="og:url" content="https://cohdl.org/blog/cohdl-0-10-0/" />
+    <meta property="og:image" content="https://cohdl.org/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="article:published_time" content="2026-11-06T00:00:00Z" />
+    <meta property="article:modified_time" content="2026-11-06T00:00:00Z" />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/prose.css" />
+    <link rel="alternate" type="application/atom+xml" title="CoHDL blog" href="/blog/feed.xml" />
+
+    <!-- Google tag (gtag.js) — bootstrap lives in /js/analytics.js so the CSP
+         needs no inline-script allowance. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R73M37GXP7"></script>
+    <script src="/js/analytics.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-word">CoHDL</span>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a class="site-nav-link" href="/docs/">Docs</a>
+          <a class="site-nav-link" href="/blog/" aria-current="page">Blog</a>
+          <a class="site-nav-link" href="/use-cases/">Use cases</a>
+          <a class="site-nav-link" href="https://registry.cohdl.org">Registry</a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <div class="page-head">
+          <ol class="crumbs">
+            <li><a href="/blog/">Blog</a></li>
+            <li aria-current="page">CoHDL 0.10.0</li>
+          </ol>
+          <h1 class="page-title">CoHDL 0.10.0: Supplier<br /><em>Part Bindings</em></h1>
+          <p class="page-lede">A library part can now name the part number its assembler stocks, and say how the assembler's footprint sits on its land. The compiler turns that into a placement file and per-supplier BOM and CPL files.</p>
+          <p class="post-meta">
+            Tony Huang <span class="sep">·</span>
+            Published <time datetime="2026-11-06">November 6, 2026</time>
+          </p>
+        </div>
+
+        <article class="prose">
+          <p>
+            Compiler <a href="https://github.com/conol-ai/cohdl/releases/tag/v0.10.0">v0.10.0</a>
+            was released on <time datetime="2026-11-06">November 6, 2026</time>.
+            It is available for all five supported platforms. It implements
+            <a href="https://github.com/conol-ai/cohdl/blob/main/docs/design/rfc-034-supplier-binding.md">RFC-034</a>,
+            supplier part bindings, accepted on October 30.
+          </p>
+          <p>
+            A design names parts by manufacturer and part number. An assembly
+            house works from its own stock numbers, and from its own idea of
+            where each footprint's origin and pin 1 are. That gap was filled by
+            hand after export: a spreadsheet column of stock numbers, and a
+            rotation fix for every part the assembler's preview showed turned.
+            CoHDL 0.10.0 lets the library record both, once, next to the part.
+          </p>
+
+          <h2>A binding lives on the part</h2>
+          <p>
+            An approved-vendor entry can carry a <code>supplier</code> clause
+            with the supplier's part number. This chip resistor binds its Vishay
+            alternate to an LCSC number:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">passive 0.2.4, resistors_0402.cohdl</figcaption>
+            <pre><code><span class="c-kw">pub part</span> R_1K58_F_0402: <span class="c-ty">ChipResistor</span>&lt;<span class="c-unit">1.58kohm</span>, <span class="c-unit">1%</span>&gt;[R0402] {
+    primary { mfr: <span class="c-str">"Yageo"</span>, mpn: <span class="c-str">"RC0402FR-071K58L"</span>, footprint: CHIP_0402 }
+    alt { mfr: <span class="c-str">"Vishay"</span>, mpn: <span class="c-str">"CRCW04021K58FKED"</span>, supplier lcsc <span class="c-str">"C3009257"</span> }
+}</code></pre>
+          </figure>
+          <p>
+            When the assembler's footprint does not sit on the library's land
+            the same way, the binding records the difference as an offset and
+            a turn. The compiler composes it with every placement, so the
+            design's own <code>place</code> statements never change:
+          </p>
+          <figure class="code-figure">
+            <figcaption class="code-caption">@st/stm32 0.3.0, f4.cohdl</figcaption>
+            <pre><code>primary { mfr: <span class="c-str">"STMicroelectronics"</span>, mpn: <span class="c-str">"STM32F427VGT6"</span>,
+          footprint: qfp::KICAD_LQFP_100_14X14MM_P0_5MM, supplier lcsc <span class="c-str">"C117815"</span> <span class="c-kw">rotate</span> 270 }</code></pre>
+          </figure>
+          <p>
+            Supplier IDs are an open set. The compiler gives <code>lcsc</code>
+            no special meaning; it checks that a part number names one
+            manufacturer part across everything the design compiles
+            (E813). A binding changes no connection, no geometry and no
+            verdict.
+          </p>
+
+          <h2>What a build writes</h2>
+          <p>
+            Every physical build of a placed design now writes a
+            supplier-neutral placement file, <code>&lt;name&gt;-cpl.csv</code>,
+            using KiCad's bottom-side angle convention. An outlined
+            <code>.kicad_pcb</code> carries the same origin as its auxiliary
+            axis, so positions exported from KiCad are measured from the same
+            point.
+            Machine-placed parts without a placement are named (E815).
+          </p>
+          <p>
+            <code>--supplier ID</code> adds that supplier's BOM, its
+            placement file, and a map recording which entry each instance
+            took. For each instance the compiler takes the primary entry if it
+            is bound, otherwise the first bound alternate on the same
+            footprint. A design whose parts carry no binding for that supplier
+            gets a warning (E814). Here is a two-resistor divider, with the
+            second resistor on the bottom side:
+          </p>
+          <pre><code>$ cohdl build ./divider --supplier lcsc
+$ cat out/divider-lcsc-bom.csv
+Comment,Designator,Footprint,LCSC Part #
+"CRCW04021K58FKED","R1","CHIP_0402","C3009257"
+"RC0402FR-0747KL","R2","CHIP_0402","C93943"
+$ cat out/divider-lcsc-cpl.csv
+Designator,Mid X,Mid Y,Layer,Rotation
+R1,10.0000mm,-14.0000mm,Bottom,270
+R2,10.0000mm,-10.0000mm,Top,90</code></pre>
+          <p>
+            R1 took its bound Vishay alternate; R2 kept its bound Yageo
+            primary. Assemblers disagree about bottom-side angles, so the
+            convention is chosen when you export, never in source:
+            <code>--bottom-rotation lcsc=mirrored</code> switches it for one
+            supplier. The KiCad netlist also carries the part number of each
+            bound primary entry; R2's <code>LCSC</code> field reads
+            <code>C93943</code>.
+          </p>
+
+          <h2>Check bindings against the catalog</h2>
+          <p>
+            <code>cohdl suppliers</code> compares a design's bindings with the
+            registry's supplier catalog: it reports whether each part number is
+            known and whether it names the same manufacturer part. It is the
+            only online step; <code>check</code> and <code>build</code> stay
+            offline.
+          </p>
+          <pre><code>$ cohdl suppliers ./divider
+lcsc passive::R_1K58_F_0402 alt[0] ok pn=C3009257 mfr="Vishay" mpn="CRCW04021K58FKED"
+lcsc passive::R_47K_F_0402 primary ok pn=C93943 mfr="Yageo" mpn="RC0402FR-0747KL"</code></pre>
+          <p>
+            It exits 3 when a binding is unknown to the catalog or disagrees
+            with it. <code>cohdl search</code> gains <code>--supplier</code>
+            and <code>--class</code> filters for part results.
+          </p>
+
+          <h2>The first bound parts</h2>
+          <p>
+            Thirty-nine library parts ship with an LCSC binding. Each part
+            number was confirmed on its supplier page, and each footprint's
+            orientation was read on JLCPCB's placement preview of a test board.
+            The MCUs were placed on both sides, at 0° and at 37°; the passives
+            once each:
+          </p>
+          <ul>
+            <li>
+              <a href="https://registry.cohdl.org/package/passive?version=0.2.4"><code>passive@0.2.4</code></a>:
+              33 chip resistors and MLCCs, 0201 to 2512.
+            </li>
+            <li>
+              <a href="https://registry.cohdl.org/package/@st/stm32?version=0.3.0"><code>@st/stm32@0.3.0</code></a>:
+              six MCUs in LQFP32, LQFP100, LQFP208, TFBGA100 and UFBGA64.
+            </li>
+          </ul>
+          <p>
+            The registry's LCSC catalog holds 1,442 parts. Unbound parts stay
+            usable as before; they simply have an empty part-number column in a
+            supplier BOM.
+          </p>
+
+          <h2>Footprints that turned</h2>
+          <p>
+            The first preview showed some footprints a quarter turn off the
+            assembler's models. Rather than carry a correction on every
+            binding, the land packages moved those footprints onto the
+            assembler's frame in new versions:
+            <code>soic@0.3.0</code>, <code>qfp@0.3.0</code> and
+            <code>transistor@0.2.0</code>, with every dependent package bumped
+            to match. Pad numbers and land sizes are unchanged, but pads,
+            courtyard and silkscreen turn together.
+          </p>
+          <p>
+            This is a breaking change that <code>check</code> and
+            <code>build</code> will not flag. Before running <code>cohdl
+            update</code> on a design that places one of these footprints, run
+            <a href="https://github.com/conol-ai/cohdl/blob/main/tools/realign_place.py"><code>tools/realign_place.py</code></a>
+            from the repository, which rewrites each <code>place</code> by the
+            inverse turn and keeps an undo log. Each package's README lists
+            the footprints that moved. Earlier versions stay available
+            unchanged.
+          </p>
+
+          <h2>Get the update</h2>
+          <p>
+            Compiler 0.9.0 cannot parse <code>supplier</code> clauses, so
+            <code>passive@0.2.4</code> and <code>@st/stm32@0.3.0</code> need
+            0.10.0. Update the compiler first, then the packages, after
+            migrating any placements of the footprints above:
+          </p>
+          <pre><code>cohdl self-update
+cohdl update ./board
+cohdl build ./board --supplier lcsc</code></pre>
+          <p>
+            For a new installation, follow the <a href="/docs/getting-started/">getting-started guide</a>.
+            The <a href="https://github.com/conol-ai/cohdl/releases/tag/v0.10.0">v0.10.0 release page</a>
+            has this version's platform archives and checksums; the
+            <a href="https://github.com/conol-ai/cohdl/compare/v0.9.0...v0.10.0">full comparison</a>
+            records the source changes.
+          </p>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <p class="footer-line">
+          <span class="footer-brand">CoHDL</span>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/docs/">Docs</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/blog/">Blog</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="/use-cases/">Use cases</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a href="https://registry.cohdl.org">Package registry</a>
+          <span class="footer-sep" aria-hidden="true">·</span>
+          <a
+            href="https://discord.gg/x7DXPvK66"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Join on Discord (opens in a new tab)"
+          >Join on Discord <span aria-hidden="true">↗</span></a>
+        </p>
+        <p class="footer-fine">A project by Conol.</p>
+      </footer>
+    </div>
+  </body>
+</html>

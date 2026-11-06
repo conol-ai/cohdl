@@ -236,6 +236,7 @@
       (fields
         (field (name "MPN") "TYPE-C-31-M-12")
         (field (name "MFR") "HRO")
+        (field (name "LCSC") "C165948")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000017")

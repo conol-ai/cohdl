@@ -366,6 +366,7 @@
       (fields
         (field (name "MPN") "TYPE-C-31-M-12")
         (field (name "MFR") "HRO")
+        (field (name "LCSC") "C165948")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000024")
@@ -596,6 +597,7 @@
       (fields
         (field (name "MPN") "W25Q128JVSIQ")
         (field (name "MFR") "Winbond")
+        (field (name "LCSC") "C97521")
       )
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "0000003B")

@@ -26,7 +26,8 @@ impl Connector for USB_C_Receptacle_2_0 {}
 
 #[doc("docs/hro-type-c-31-m-12-family-drawing.pdf")]
 pub part USB_C_HRO_TYPE_C_31_M_12: USB_C_Receptacle_2_0 {
-    primary { mfr: "HRO", mpn: "TYPE-C-31-M-12", footprint: FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12 }
+    primary { mfr: "HRO", mpn: "TYPE-C-31-M-12", footprint: FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12,
+              supplier lcsc "C165948" at (0mm, -1.55mm) }
 }
 
 // USB Type-C (HRO TYPE-C-31-M-12) power/ground contact land — the 0.6mm-wide

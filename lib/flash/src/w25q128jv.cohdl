@@ -32,7 +32,8 @@ impl IC for W25Q128JV {}
 
 #[doc("docs/w25q128jv.pdf")]
 pub part FLASH_W25Q128JVSIQ: W25Q128JV[SOIC8] {
-    primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N }
+    primary { mfr: "Winbond", mpn: "W25Q128JVSIQ", footprint: soic::SOIC8P127X790X216N,
+              supplier lcsc "C97521" }
 }
 
 #[doc("docs/w25q128jv.pdf")]

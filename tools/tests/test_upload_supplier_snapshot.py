@@ -19,8 +19,9 @@ CURRENT = {"rows": 13_604, "bytes": 3_583_901,
 
 def rebuild_recorded(out: Path) -> dict:
     """Rebuild the 2026-11-05 upload from the map and alias table it was built from."""
-    return us.build(out, None, RECORD / "report.json",
-                    map_path=RECORD / "lcsc_map.json", aliases_path=RECORD / "mfr_aliases.json")
+    recorded = json.loads((RECORD / "report.json").read_text(encoding="utf-8"))["library_part_numbers"]
+    return us.build(out, None, RECORD / "report.json", map_path=RECORD / "lcsc_map.json",
+                    aliases_path=RECORD / "mfr_aliases.json", library=recorded)
 
 
 def page(c, mpn="M", mfr="Acme", package="0603", category="basic", fetched_at="2026-10-30T04:00:00Z", stock=5):
@@ -33,15 +34,10 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         report = json.loads((RECORD / "report.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             rebuilt = rebuild_recorded(Path(td))
-            # Bindings added since the upload grow the library's list; the
-            # catalog itself must not change, and must still cover them all.
-            current = rebuilt.pop("library_part_numbers")
-            recorded = report.pop("library_part_numbers")
             # The limits are the registry's at build time, not part of the catalog.
             self.assertEqual(report.pop("limits"), {"rows": 10_000, "bytes": us.BODY_LIMIT})
             self.assertEqual(rebuilt.pop("limits"), {"rows": us.MAX_ROWS, "bytes": us.BODY_LIMIT})
             self.assertEqual(rebuilt, report)
-            self.assertLessEqual(set(recorded), set(current))
             body = json.loads((Path(td) / "snapshot.json").read_bytes())
             self.assertEqual(hashlib.sha256((Path(td) / "snapshot.json").read_bytes()).hexdigest(),
                              report["snapshot_sha256"])
@@ -51,8 +47,13 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         pns = {row["pn"] for row in body["parts"]}
         for pn in ("C117815", "C129276", "C1857444", "C529436", "C717701", "C730103"):
             self.assertIn(pn, pns)
-        self.assertEqual(current, us.library_pns())
-        self.assertLessEqual(set(current), pns)
+        # The library has since bound part numbers this catalog lacks (C165948 in usb 0.1.6),
+        # so the record rebuilds against its own list, and the current library refuses it.
+        self.assertTrue(set(us.library_pns()) - pns)
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
+            with self.assertRaisesRegex(us.SnapshotError, "library part numbers missing from the catalog"):
+                us.build(Path(td), None, RECORD / "report.json", map_path=RECORD / "lcsc_map.json",
+                         aliases_path=RECORD / "mfr_aliases.json")
 
     def synthetic(self, root: Path, mpns: list[str]) -> dict:
         """Build a catalog of one B1 page per MPN and nothing else."""

@@ -48,3 +48,7 @@ redistributed here.
 - TDSEMIC's `H5VL10B-TD` (LCSC C51901858) is a different order code from a
   different vendor and is NOT this part; the accepted exact identity is the
   exact string `H5VL10B`.
+
+## LCSC binding (esd 0.1.2)
+
+`ESD_H5VL10B` binds its primary to LCSC C7420372 with a zero map: `supplier lcsc "C7420372"`. The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run, and its frame row `c2b1-dfn1006-c7420372` cites C2 frame board 1 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`), where all four copies sat centred on their pads. That preview shows no polarity mark for this part. The H5VL10B is symmetric and bidirectional (`h5vl10b.evidence.md`), so the two pads are interchangeable and a half turn would not matter. No land changed from 0.1.1. Both `esd` frame rows now name 0.1.2. C85364's row keeps its per-part `rotate 180`, but no `esd` part lists that part number, so it binds nothing.

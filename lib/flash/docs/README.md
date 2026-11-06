@@ -70,3 +70,7 @@ a design that places a part on one of these lands sees its copper turn after
 `cohdl update`, with `check` and `build` still passing. Migrate the design's
 `place` statements first, as the land package's README describes, with
 `tools/realign_place.py`.
+
+## LCSC binding (flash 0.2.1)
+
+`FLASH_W25Q128JVSIQ` binds its primary to LCSC C97521 with a zero map: `supplier lcsc "C97521"`. The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run. Its land belongs to `soic` (`soic::SOIC8P127X790X216N`), so its frame row `c2b1-soic8_208-c97521` names `soic` 0.3.0, the version that moved that land onto the assembler's frame (see "Footprint frame change in 0.2.0" above), and it is unchanged. The row cites C2 frame board 1 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`). Nothing else changed from 0.2.0.

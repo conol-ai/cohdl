@@ -16,7 +16,7 @@ impl ESD_Protector for H5VL10B {}
 #[doc("docs/h5vl10b.evidence.md")]
 pub part ESD_H5VL10B: H5VL10B {
     primary { mfr: "Zhuhai Hongjiacheng Technology", mpn: "H5VL10B",
-              footprint: FP_Hongjiacheng_DFN1006_2L }
+              footprint: FP_Hongjiacheng_DFN1006_2L, supplier lcsc "C7420372" }
 }
 
 // Manufacturer-suggested pad layout, datasheet Rev 2.0 p3: each land is

@@ -92,6 +92,6 @@ The proposals are reviewed in one issue, assigned to Tony Huang (`conol-tony`), 
 
 | Rows | Issue | Decision |
 |---|---|---|
-| 1–40 | (to be opened) | Pending |
+| 1–40 | #73 | Pending |
 
 An accepted alias is added to `mfr_aliases.json`, and its rows are promoted through `promote_lcsc_map.py`. A rejected one stays out, and its identities stay in review.

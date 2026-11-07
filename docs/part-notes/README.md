@@ -142,3 +142,44 @@ The library-vs-source disagreements that need a decision, most serious first:
 - **TPS59650 thermal pad is analog ground**, not to be tied straight to PGND (pp. 12, 40, 43). The library calls it `EP` and gives no warning.
 - **RS0104's QFN2x1.7-12 land** (used by `examples/sf32-miniboard`) leaves 0.05 mm between end and side lands (p. 28).
 - **Open-drain outputs typed `output` again**: PCF85063A INT, XL9555 INT, TMUX1072 FLT_N, TLV9022 OUT, TPS59650 and TPS25982 status pins.
+
+## Fifth 5c batch (2026-11-07)
+
+21 notes for `@contrib` packages and two RF modules:
+- `@contrib/charger/CHARGER_SGM41562B.md`;
+- `@contrib/led-driver/LEDDRV_AW21009.md`;
+- `@contrib/haptic/HAPTIC_AW86224.md`, `HAPTIC_DRV2605.md`;
+- `@contrib/ir-emitter/IR_VSMY14940.md`;
+- `@contrib/keyscan/KEYSCAN_TCA8418.md`;
+- `@contrib/lora/SX1262.md`, `SX1280.md`;
+- `@contrib/gnss/L76K.md`, `MIA_M10Q.md`;
+- `@contrib/nfc/ST25R3916.md`;
+- `@contrib/env/BME280.md`;
+- `@contrib/imu/BHI260AP.md`;
+- `@contrib/esd/ESD_GBLC05C.md`, `ESD_ULC0511C.md`;
+- `@contrib/audio-amp/AMP_MAX98357A.md`, `AMP_NS4150B.md`;
+- `@contrib/mic/MMICT3902_00_012.md`;
+- `@contrib/sd-card/CONN_MICROSD.md`;
+- `antenna/ANT_2450AT18B100E.md`;
+- `cellular/CELL_AIR780E.md`.
+
+**Devices with a shipped datasheet but no part.** The checker requires a note to cover a part, so these have no note yet: AXP2101, CO5300, CST9220, H0216F002AM, CH343P and HPD16A. Their pin maps were compared with their datasheets and match, except that CO5300 was not checked (226 pages).
+
+The library-vs-source disagreements that need a decision, most serious first:
+- **`cellular` Air780E footprint is mirrored top to bottom.** `FP_Luat_AIR780E_LGA109_177x158mm` copies the PADS decal's +y-up coordinates into CoHDL's +y-down frame.
+  - The library has pin 1 at the lower left, with pin 2 above it. The manual's pin view has pin 1 at the top left, with pin 2 below it (p. 13).
+  - Inner pad 99 is mirrored the same way.
+  - No rotation of the module fits.
+  - `CELL_AIR780EG` uses the same footprint.
+  - Some pad shapes are also wrong: pads 89–94 should be square, and several rows are turned 90° (p. 20).
+- **`@contrib/charger` SGM41562B does not charge without a host.** The library comment says it "runs on standalone defaults without a host". The power-on default is CEB = 1, battery discharge mode (p. 17).
+- **`@contrib/audio-amp` MAX98357A `SD_MODE` is `optional`.** Its internal pull-down makes an open pin shutdown (pp. 7, 17).
+- **`@contrib/nfc` ST25R3916 land (`QFN32N50P500X500_1EP345X345`).** The leads reach 0.15 mm further in than ST's 0.60 mm lands at ±2.35 mm (p. 153). The agent read this from Figure 39 rendered at 400 dpi.
+- **`@contrib/imu` BHI260AP land (`LGA44P40_360X410`), to be reviewed by a person.** The library's 0.45 × 0.35 mm copper may be Bosch's copper plus its 50 µm mask frame. The agent reads Bosch's copper as 0.35 × 0.20 mm (Figure 37, p. 162), but the figure's dimensions are ambiguous. `examples/sf32-miniboard` uses it.
+- **`@contrib/haptic` AW86224 and DRV2605 cannot share an I2C bus.** DRV2605 also answers 0x58 (drv2605 p. 23; aw86224 p. 20).
+- **NS4150B's shipped PDF is the NS4150 V1.0 manual**, not an NS4150B document.
+- **Pins typed `required` that the source lets float, or `optional` that it requires.**
+  - ST25R3916: VDD_TX and VDD_DR are `optional` but required.
+  - TCA8418: unused ROW/COL pins need pull-ups.
+  - MIA-M10Q: RTC_O must go to GND if unused.
+- **Open-drain or configurable outputs typed `output`.** This is a recurring library limitation.

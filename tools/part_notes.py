@@ -39,7 +39,10 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTES = ROOT / "docs/part-notes"
 LIB = ROOT / "lib"
 CITED = ("Key parameters", "Absolute maximum ratings", "Recommended operating conditions", "Pins")
-PIN = re.compile(r"^\s*(?:required|optional)\s+(\w+)\s*:\s*([\d,\s]+)\[", re.M)
+# Pads are numbers (1, 14), contact names (A1, B12, SH1), an exposed pad (EP)
+# or a connector's mechanical pads (MP).
+PIN = re.compile(r"^\s*(?:required|optional)\s+(\w+)\s*:\s*([A-Za-z0-9_,\s]+?)\s*\[", re.M)
+PAD = re.compile(r"\b(?:[A-Z]{0,3}\d+|EP|MP)\b")
 
 
 def package_dirs() -> dict[str, Path]:
@@ -58,8 +61,10 @@ def declarations(root: Path) -> tuple[dict[str, str], dict[str, tuple[str, str]]
         text = _strip_comments(path.read_text(encoding="utf-8"))
         for match in re.finditer(r"\bpub\s+device\s+(\w+)[^{]*\{", text):
             devices[match.group(1)] = _balanced_block(text, match.end() - 1)[0]
-        for match in re.finditer(r"\bpub\s+part\s+(\w+)\s*:\s*(\w+)[^{]*\{", text):
-            parts[match.group(1)] = (match.group(2), _balanced_block(text, match.end() - 1)[0])
+        # A part may name its device by path (`espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1`).
+        for match in re.finditer(r"\bpub\s+part\s+(\w+)\s*:\s*((?:\w+::)*\w+)[^{]*\{", text):
+            device = match.group(2).rpartition("::")[2]
+            parts[match.group(1)] = (device, _balanced_block(text, match.end() - 1)[0])
     return devices, parts
 
 
@@ -173,7 +178,7 @@ def check(path: Path, dirs: dict[str, Path], lcsc: dict[tuple[str, str], str]) -
     rows = table(body.get("Pins", ""))
     noted = {}
     for row in rows:
-        pads = re.findall(r"\d+|EP", row.get("Pad", ""))
+        pads = PAD.findall(row.get("Pad", ""))
         for pad in pads:
             if pad in noted:
                 problems.append(f"pad {pad} is listed twice")

@@ -84,6 +84,27 @@ class PartNotesTests(unittest.TestCase):
         series["identities"] = [{"mfr": "Yageo", "mpn_pattern": "XX.*"}]
         self.assertEqual(self.check(note(series, pins=[("1", "A"), ("2", "B")])), ["no Yageo entry matches XX.*"])
 
+    def test_contact_named_pads_are_compared(self):
+        usb = {"schema": "part-note/1", "device": "usb::USB_C_Receptacle_2_0",
+               "parts": ["usb::USB_C_HRO_TYPE_C_31_M_12"],
+               "identities": [{"mfr": "HRO", "mpn": "TYPE-C-31-M-12", "lcsc": "C165948"}],
+               "sources": IDENTITY["sources"], "status": "draft"}
+        pins = [(p, "GND") for p in ("A1", "A12", "B1", "B12")] + [(p, "VBUS") for p in ("A4", "A9", "B4", "B9")] + [
+            ("A5", "CC1"), ("B5", "CC2"), ("A6", "DP"), ("B6", "DP"), ("A7", "DN"), ("B7", "DN"),
+            ("A8", "SBU1"), ("B8", "SBU2")] + [(f"SH{i}", "SHIELD") for i in range(1, 5)]
+        self.assertEqual(self.check(note(usb, pins=pins)), [])
+        swapped = [(p, {"CC1": "CC2", "CC2": "CC1"}.get(n, n)) for p, n in pins]
+        self.assertEqual(self.check(note(usb, pins=swapped)),
+                         ["pad A5 is CC1 in the library, CC2 in the note", "pad B5 is CC2 in the library, CC1 in the note"])
+
+    def test_mechanical_pads_are_read(self):
+        self.assertEqual(pn.PAD.findall("1, 2, MP, EP, SH4"), ["1", "2", "MP", "EP", "SH4"])
+
+    def test_a_part_may_name_its_device_by_path(self):
+        _, parts = pn.declarations(self.dirs["@espressif/esp32"])
+        self.assertEqual(parts["ESP32_S3_WROOM_1U_N4"][0], "ESP32_S3_WROOM_1")
+        self.assertEqual(parts["ESP32_S3_WROOM_1_N8"][0], "ESP32_S3_WROOM_1")
+
     def test_the_committed_notes_pass(self):
         with mock.patch.object(sys, "stderr", io.StringIO()) as stderr, mock.patch.object(sys, "stdout", io.StringIO()):
             self.assertEqual(pn.main(["check"]), 0, stderr.getvalue())

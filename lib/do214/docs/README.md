@@ -1,7 +1,7 @@
 # `do214`: DO-214 molded-body diode land patterns
 
-Reusable DO-214 land patterns for new parts (library plan W4, item 3c,
-waves 1 and 2). This package ships lands only: no device, no part and no
+Reusable DO-214 land patterns, and the flat-lead SMAF outline, for new parts
+(library plan W4, item 3c, waves 1 to 3). This package ships lands only: no device, no part and no
 supplier binding. Bindings come after the JLCPCB frame preview boards. One
 land per standard outline is taken from one primary document and
 cross-checked against one tier-1 manufacturer document; when the primary
@@ -15,10 +15,10 @@ CoHDL board frame: +x right, **+y down**, top view, origin at the package
 centre. **Pad 1 is the cathode (band end) at -x**; pad 2 is the anode at +x,
 the same frame as `sod`. The silkscreen carries
 `polarity_marker cathode_pin 1 shape band` (RFC-031) outboard of pad 1 and
-the two long body edges. No DO-214 part has been read on a preview board yet:
-this orientation is the one the assembler reads as 0 degrees for SOD parts,
-and the frame boards must confirm it for SMA, SMB and SMC before the first
-publish.
+the two long body edges. No DO-214 or SMAF part has been read on a preview
+board yet: this orientation is the one the assembler reads as 0 degrees for
+SOD parts, and the frame boards must confirm it for SMA, SMB, SMC and SMAF
+before the first publish.
 Bidirectional TVS parts (`...CA`) carry no band but reuse this land.
 
 ## Lands
@@ -28,8 +28,9 @@ Bidirectional TVS parts (`...CA`) carry no band but reuse this land.
 | `do214::DIOM5026X241N` | SMA / DO-214AC | 2.10 x 1.70 mm | +/-2.20 mm (4.40 mm) | 6.50 mm | 7.0 x 3.4 mm | 5.30 x 2.85 mm (G x C max) |
 | `do214::DIOM5336X265N` | SMB / DO-214AA | 2.10 x 2.26 mm | +/-2.42 mm (4.84 mm) | 6.94 mm | 7.5 x 4.5 mm | 5.59 x 3.94 mm (G x C max) |
 | `do214::DIOM7959X261N` | SMC / DO-214AB | 2.50 x 3.30 mm | +/-3.45 mm (6.90 mm) | 9.40 mm | 9.9 x 6.8 mm | 8.13 x 6.22 mm (G x C max) |
+| `do214::FP_DO221AC_SMAF` | SMAF (flat-lead SMA) | 1.60 x 1.80 mm | +/-1.90 mm (3.80 mm) | 5.40 mm | 5.9 x 3.3 mm | 4.90 x 2.70 mm (D x C max) |
 
-Wave 1 added SMA; wave 2 added SMB and SMC. The SMC land comes from the
+Wave 1 added SMA; wave 2 added SMB and SMC; wave 3 added SMAF. The SMC land comes from the
 Diodes cross-check because the Hongjiacheng primary has no land (see below).
 Each courtyard contains the copper and the maximum component envelope with at
 least 0.25 mm on every side (checked by `tests/library/geometry.rs`).
@@ -50,6 +51,8 @@ served by LCSC; the maintainer approved that fallback for these lands.
 | `diodes-smb.evidence.md` | SMB cross-check | Diodes SMB Package Information Rev. 2019-08-30, p1 | `10a17932644b9b3c6034ca13b0962ab239c1391460795e5c52b6e5541eec711d` |
 | `hongjiacheng-smcj36ca.evidence.md` | SMC primary (outline only) | Hongjiacheng SMCJ series Rev 2.2, p2 (LCSC C19077609) | `5cbe7c34174b49058f9e13aa94ae9d17b521feea2d4537cc46876c764fc3cefe` |
 | `diodes-smc.evidence.md` | SMC land source and cross-check | Diodes SMC Package Information Rev. 2017-03-14, p1 | `b4bd36debe2405dbc75c3d20799afd771c7008cac2ae48900fb1e2970abf4287` |
+| `hongjiacheng-ss24f.evidence.md` | SMAF primary | Hongjiacheng SS22F-SS220F Rev 2.0, p3 (LCSC C18199202) | `21831b8b07a50f1201f8812f858b89348285f1d62444fcb5d7de4f2b331acf5b` |
+| `diodes-smaf.evidence.md` | SMAF cross-check | Diodes SMAF Package Information Rev. 2019-06-27, p1 | `60be78ccf2d43e2704629ba08fd5d49d89b6d483a0f318139de445232367a73c` |
 
 ## Primary versus cross-check
 
@@ -114,9 +117,44 @@ stays outboard of the 2.20 mm inner land edge, and the 3.27 mm maximum lead
 width leaves only 0.015 mm per side on the 3.30 mm land (Diodes' own 3.18 mm
 maximum leaves 0.06 mm).
 
+**SMAF.** The SS22F-SS220F sheet gives one-sided limits (M >= 1.80,
+J >= 1.60, K <= 2.2 mm), used as the values, as for SMA and SMB. Diodes
+gives X 2.50, Y 1.70, C 4.00, G 1.50, X1 6.50 mm, identical to its SMA land.
+
+| | SS24F (this land) | Diodes package file |
+|---|---|---|
+| Land length (x) | 1.60 | 2.50 |
+| Land width (y) | 1.80 | 1.70 |
+| Centre spacing | 3.80 | 4.00 |
+| Gap | 2.20 | 1.50 |
+| Outer span | 5.40 | 6.50 |
+
+The two documents describe different-sized flat-lead bodies under the same
+name:
+
+| Outline (mm) | Hongjiacheng SS22F-SS220F (primary) | Diodes SMAF |
+|---|---|---|
+| Overall length | 4.40-4.90 (D) | 4.80-5.60 (HE) |
+| Body length | 3.30-3.70 (B) | 3.95-4.60 (E) |
+| Body width | 2.40-2.70 (C) | 2.25-2.95 (D) |
+| Lead width | 1.30-1.60 (A) | 1.25-1.65 (b) |
+| Lead foot | 0.80-1.20 (F) | 0.50-1.50 (L) |
+| Height | 0.90-1.20 (E) | 0.90-1.10 (A) |
+
+The Diodes SMAF is 0.4-0.7 mm longer, which is why its land is 1.10 mm wider
+overall. On the Hongjiacheng outline this land puts the lead tips 0.25-0.50
+mm inside its 2.70 mm outer edge; with the longest foot and shortest overall
+length up to 0.10 mm of each heel sits over the 2.20 mm gap (as on SMB,
+open question 4). A Diodes-length part (HE up to 5.60 mm, tips at 2.80 mm)
+would overhang this land's outer edge by up to 0.10 mm, so a non-Hongjiacheng
+SMAF series must be checked against this land when it is bound.
+
+Neither document names a JEDEC outline. The 3c plan's `DO-221AC` label is
+kept in the free name `FP_DO221AC_SMAF`; see open question 7.
+
 ## Existing lands for the same outlines
 
-None in the library for SMA, SMB or SMC.
+None in the library for SMA, SMB, SMC or SMAF.
 
 ## Open questions (for the maintainers)
 
@@ -164,3 +202,18 @@ None in the library for SMA, SMB or SMC.
 6. **Final names (wave 2).** `DIOM5336X265N` and `DIOM7959X261N` follow
    question 2's rule; the 3c plan's JEDEC-based placeholders were
    `DIOM5436X240N` and `DIOM7959X250N`. Settle them with question 2.
+7. **SMAF name and outline.** IPC-7351B has no family for a flat-lead
+   molded diode, so the land takes the 3c plan's free name
+   `FP_DO221AC_SMAF`. Neither the Hongjiacheng nor the Diodes document
+   prints "DO-221AC", and the two describe bodies 0.4-0.7 mm apart in
+   length. *Recommendation:* before the first publish, either confirm the
+   Hongjiacheng outline against the JEDEC DO-221AC registration, or drop the
+   JEDEC label and name the land after the source outline (for example
+   `FP_SMAF_4P7X2P6` or an IPC-style `DIOM4726X120N`). Bind other vendors'
+   SMAF series only after checking their overall length against the
+   2.70 mm outer land edge.
+8. **SMAF one-sided limits.** As for SMA and SMB, the SMAF land uses the
+   limits themselves. The 2.2 mm gap leaves up to 0.10 mm of heel
+   uncovered at the extreme of the tolerances. *Recommendation:* decide with
+   questions 1 and 4; a conservative alternative is J = 1.70 mm at the same
+   2.70 mm outer edge (2.00 mm gap), which still meets every SS24F limit.

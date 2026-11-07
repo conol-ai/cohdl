@@ -1,44 +1,56 @@
-// SGMICRO SGM2554: 1.1A load switch with enable, 1.0-5.5V in (SGMICRO
-// SGM2554 datasheet). SOT-23-5. Used to gate the ESP32-S3 VDD3P3 rail
-// (EN driven by SF32 GPIO PA11).
+// SGMICRO SGM2554A: 1.1A power distribution switch with active-high enable,
+// 2.2-5.5V in (SGMICRO SGM2554 datasheet, April 2022, REV. A.4, vendored as
+// docs/sgm2554.pdf; input range p1 and p4). SOT-23-5.
+// Pin configuration p3 (SGM2554A, top view): 1 VOUT, 2 GND, 3 VIN, 4 EN,
+// 5 VOUT. This device models the A model only. The SGM2554B
+// (SGM2554BYN5G/TR) has no enable and puts a second VIN on pin 4 (p3), so
+// it is not a drop-in substitute for this part.
 
 #[doc("docs/sgm2554.md")]
 pub device SGM2554 {
     pins {
-        required IN: 1 [power_in] // supply input 1.0-5.5V
-        required GND: 2 [power_in] // ground
-        required EN: 3 [input] // enable, active high (SGM2554): EN high = switch on
-        optional NC: 4 [passive] // no connect
-        required OUT: 5 [power_out] // switched output
+        // Switch output; pins 1 and 5 are both VOUT (p3).
+        required VOUT: 1, 5 [power_out]
+        required GND: 2 [power_in] // ground (p3)
+        required VIN: 3 [power_in] // switch input, 2.2-5.5V (p3, p4)
+        // Chip enable: logic high enables the device (p3); VIH >= 1.5V,
+        // VIL <= 0.4V at 25C (p4); -0.3V to 6V absolute (p2).
+        required EN: 4 [input]
     }
 }
 
 impl IC for SGM2554 {}
 
+// Ordering code for the A (enable) model, SOT-23-5, tape and reel 3000
+// (package/ordering information, p2).
 #[doc("docs/sgm2554.md")]
 pub part LOADSW_SGM2554: SGM2554 {
-    primary { mfr: "SGMICRO", mpn: "SGM2554", footprint: FP_SGM2554_SOT235 }
+    primary { mfr: "SGMICRO", mpn: "SGM2554AYN5G/TR", footprint: FP_SGM2554_SOT235 }
 }
 
-// SOT-23-5 land: body 2.9 x 2.8, pitch 0.95, e1 2.6. 5 gull-wing leads.
-// Same geometry as SOT5P95X290X145N (lib/@contrib/ldo/src/rt9080.cohdl);
-// declared locally because footprints are not visible across packages.
+// SOT-23-5 recommended land pattern (datasheet p11): 0.69 x 0.99mm pads,
+// 0.95mm pitch, 1.90mm between the outer pads of a row, 2.59mm between
+// pad-row centres. Package body (p11): D 2.750-3.050 (along the pin rows),
+// E 1.450-1.750, E1 (over leads) 2.600-3.000, e 0.950 BSC, e1 1.900 BSC.
+// Pad numbering follows the p3 top view: 1-3 down one side, 4 and 5 back up
+// the other. The courtyard holds the pads plus 0.25mm (x) and the D max
+// body plus 0.25mm (y).
 pub pad P_SGM2554_SOT235_LEAD {
     shape: rect
-    size: (1.0mm, 0.6mm)
+    size: (0.99mm, 0.69mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint FP_SGM2554_SOT235 {
-    pad 1: P_SGM2554_SOT235_LEAD at (-1.3mm, -0.95mm)
-    pad 2: P_SGM2554_SOT235_LEAD at (-1.3mm, 0mm)
-    pad 3: P_SGM2554_SOT235_LEAD at (-1.3mm, 0.95mm)
-    pad 4: P_SGM2554_SOT235_LEAD at (1.3mm, 0.95mm)
-    pad 5: P_SGM2554_SOT235_LEAD at (1.3mm, -0.95mm)
+    pad 1: P_SGM2554_SOT235_LEAD at (-1.295mm, -0.95mm)
+    pad 2: P_SGM2554_SOT235_LEAD at (-1.295mm, 0mm)
+    pad 3: P_SGM2554_SOT235_LEAD at (-1.295mm, 0.95mm)
+    pad 4: P_SGM2554_SOT235_LEAD at (1.295mm, 0.95mm)
+    pad 5: P_SGM2554_SOT235_LEAD at (1.295mm, -0.95mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.0mm) }
-    silkscreen_ref { at: (0mm, -2.2mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 3.6mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
 }

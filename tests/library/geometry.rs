@@ -320,6 +320,34 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
         2.85,
         "Hongjiacheng SS34 Rev 2.0 p3, G x C max",
     ),
+    (
+        "do214",
+        "DIOM5336X265N",
+        5.59,
+        3.94,
+        "Hongjiacheng SMBJ Rev 1.1 p2, G x C max",
+    ),
+    (
+        "sod",
+        "SODFL3818X120N",
+        3.90,
+        1.90,
+        "Hongjiacheng SMF Rev 2.2 p2, D x C max",
+    ),
+    (
+        "do214",
+        "DIOM7959X261N",
+        8.13,
+        6.22,
+        "Hongjiacheng SMCJ Rev 2.2 p2, G x C max",
+    ),
+    (
+        "sod",
+        "SOD1608X70N",
+        1.70,
+        0.90,
+        "Hongjiacheng 1N4148WT Rev 2.0 p3, C x E max",
+    ),
 ];
 
 const COURTYARD_CLEARANCE_MM: f64 = 0.25;
@@ -890,35 +918,54 @@ mod tests {
         );
     }
 
+    /// Audit the shipped `do214` source with one footprint's courtyard
+    /// redrawn round its pads alone. The fixture is the shipped package with
+    /// one textual change, so every other `do214` entry in
+    /// `COURTYARD_BODIES` still names a declared footprint.
+    fn do214_pads_only_courtyard_message(courtyard: &str, pads_only: &str) -> String {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let shipped = std::fs::read_to_string(root.join("lib/do214/src/footprints.cohdl")).unwrap();
+        audit_package("do214", "0.1.0", &world_in("do214", &shipped));
+        assert_eq!(
+            shipped.matches(courtyard).count(),
+            1,
+            "`{courtyard}` must match the shipped do214 source exactly once"
+        );
+        let pads_only = world_in("do214", &shipped.replacen(courtyard, pads_only, 1));
+        let message = std::panic::catch_unwind(|| audit_package("do214", "0.1.0", &pads_only))
+            .expect_err("a courtyard drawn round the pads alone passed");
+        message
+            .downcast_ref::<String>()
+            .cloned()
+            .unwrap_or_default()
+    }
+
     #[test]
     fn w4_land_courtyard_must_contain_the_body_not_only_the_pads() {
         // The SMA copper is 6.50 x 1.70 mm, but the 5.30 x 2.85 mm component
         // envelope needs a 3.35 mm courtyard height: a courtyard drawn round
         // the pads alone passes the pad check and must still fail.
-        let source = |height: &str| {
-            format!(
-                r#"
-                pub pad LEAD {{ shape: rect size: (2.1mm, 1.7mm) layer: top_copper plating: smd }}
-                pub footprint DIOM5026X241N {{
-                    pad 1: LEAD at (-2.2mm, 0mm)
-                    pad 2: LEAD at (2.2mm, 0mm)
-                    courtyard {{ shape: rect, at: (0mm, 0mm), size: (7mm, {height}) }}
-                }}
-                "#
-            )
-        };
-        audit_package("do214", "0.1.0", &world_in("do214", &source("3.4mm")));
-        let pads_only = world_in("do214", &source("2.2mm"));
-        let message = std::panic::catch_unwind(|| audit_package("do214", "0.1.0", &pads_only))
-            .expect_err("a courtyard drawn round the pads alone passed");
-        let message = message
-            .downcast_ref::<String>()
-            .cloned()
-            .unwrap_or_default();
+        let message = do214_pads_only_courtyard_message("size: (7mm, 3.4mm)", "size: (7mm, 2.2mm)");
         assert!(
             message.contains("DIOM5026X241N")
                 && message.contains("5.3 x 2.85 mm body")
                 && message.contains("short by 0.575 mm")
+                && !message.contains("courtyard overflow"),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn w4_wave2_smc_courtyard_must_contain_the_body_not_only_the_pads() {
+        // The SMC copper is 9.40 x 3.30 mm, but the 8.13 x 6.22 mm component
+        // envelope needs a 6.72 mm courtyard height: a courtyard drawn round
+        // the pads alone passes the pad check and must still fail.
+        let message =
+            do214_pads_only_courtyard_message("size: (9.9mm, 6.8mm)", "size: (9.9mm, 3.8mm)");
+        assert!(
+            message.contains("DIOM7959X261N")
+                && message.contains("8.13 x 6.22 mm body")
+                && message.contains("short by 1.460 mm")
                 && !message.contains("courtyard overflow"),
             "{message}"
         );

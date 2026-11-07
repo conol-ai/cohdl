@@ -398,12 +398,12 @@
    "category": "extended"
   },
   {
-   "name": "R_2K74_F_0402",
+   "name": "R_2K67_F_0402",
    "footprint": "passive::CHIP_0402",
-   "part": "passive::ChipResistor<2.74kohm, 1%>[R0402]",
-   "pn": "C185430",
+   "part": "passive::ChipResistor<2.67kohm, 1%>[R0402]",
+   "pn": "C138018",
    "mfr": "Yageo",
-   "mpn": "RC0402FR-072K74L",
+   "mpn": "RC0402FR-072K67L",
    "pins": [
     "A",
     "B"
@@ -421,7 +421,7 @@
      "side": "top"
     }
    ],
-   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_2K74_F_0402 primary",
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_2K67_F_0402 primary",
    "jlc_package": "0402",
    "category": "extended"
   },
@@ -622,12 +622,12 @@
    "category": "extended"
   },
   {
-   "name": "R_442R_F_0402",
+   "name": "R_442K_F_0402",
    "footprint": "passive::CHIP_0402",
-   "part": "passive::ChipResistor<442ohm, 1%>[R0402]",
-   "pn": "C185414",
+   "part": "passive::ChipResistor<442kohm, 1%>[R0402]",
+   "pn": "C273339",
    "mfr": "Yageo",
-   "mpn": "RC0402FR-07442RL",
+   "mpn": "RC0402FR-07442KL",
    "pins": [
     "A",
     "B"
@@ -645,7 +645,7 @@
      "side": "top"
     }
    ],
-   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_442R_F_0402 primary",
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_442K_F_0402 primary",
    "jlc_package": "0402",
    "category": "extended"
   },

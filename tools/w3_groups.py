@@ -51,6 +51,14 @@ FRACTION = 0.05
 # samples whose confirmed page read fewer than 20 pieces (5 to 19), and confirmed
 # every one with 21 or more. 30 leaves room for stock sold since the page was read.
 MIN_STOCK = 30
+# Samples the assembler's BOM step reported short at a preview, although their
+# page read MIN_STOCK or more: the stock was sold after the page was read. Each
+# is replaced by the nearest eligible member, so the other samples, which that
+# preview confirmed in stock, stay as they are.
+SHORT_AT_PREVIEW = {
+    "C185414": "2026-11-07 w3-pilot-0402 (page read 39)",
+    "C185430": "2026-11-07 w3-pilot-0402 (page read 100)",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -97,6 +105,23 @@ def spread(items: list, count: int) -> list:
     if count == 1:
         return [items[0]]
     return [items[round(i * (len(items) - 1) / (count - 1))] for i in range(count)]
+
+
+def choose(items: list, count: int, short) -> list:
+    """spread(ITEMS, COUNT), with each item in SHORT replaced by the nearest item, by
+    position, that is neither chosen nor short (the lower one first on a tie)."""
+    chosen = spread(items, count)
+    taken = {id(item) for item in chosen}
+    for n, item in enumerate(chosen):
+        if not short(item):
+            continue
+        at = next(i for i, other in enumerate(items) if other is item)
+        nearest = sorted(range(len(items)), key=lambda i: (abs(i - at), i))
+        free = [i for i in nearest if id(items[i]) not in taken and not short(items[i])]
+        if free:
+            chosen[n] = items[free[0]]
+            taken.add(id(chosen[n]))
+    return [item for item in chosen if not short(item)]
 
 
 def confirmed_pages(snapshot: str) -> tuple[Path, dict[str, dict]]:
@@ -156,12 +181,13 @@ def build() -> dict:
             "more_needed": need,
             "status": "paused" if anomalies else ("sampled" if need == 0 else "needs_samples"),
             "anomalies": anomalies,
-            "sample": [m[0] for m in spread(eligible, need)],
+            "sample": [m[0] for m in choose(eligible, need, lambda m: m[0] in SHORT_AT_PREVIEW)],
             "member_rows": [m[:6] for m in members],
         })
     return {
         "schema_version": 1,
-        "rule": {"min_sample": MIN_SAMPLE, "fraction": FRACTION, "min_stock": MIN_STOCK},
+        "rule": {"min_sample": MIN_SAMPLE, "fraction": FRACTION, "min_stock": MIN_STOCK,
+                 "short_at_preview": SHORT_AT_PREVIEW},
         "sources": {
             "lib/passive": version,
             "lcsc_map.json": _sha256(DATA / "lcsc_map.json"),

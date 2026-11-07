@@ -48,6 +48,7 @@ class W3GroupsTests(unittest.TestCase):
                 # Never a part without stock, never one already checked.
                 self.assertGreaterEqual(rows[pn][5], wg.MIN_STOCK)
                 self.assertNotIn(pn, direct)
+                self.assertNotIn(pn, wg.SHORT_AT_PREVIEW)
             self.assertEqual(g["zero_stock"], sum(row[5] <= 0 for row in rows.values()))
 
     def test_a_direct_reading_off_zero_pauses_its_group(self):
@@ -70,6 +71,13 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual(wg.spread(list(range(10)), 3), [0, 4, 9])
         self.assertEqual(wg.spread(list(range(3)), 5), [0, 1, 2])
         self.assertEqual(wg.spread(list(range(10)), 0), [])
+
+    def test_a_sample_short_at_preview_is_replaced_by_its_nearest_neighbour(self):
+        self.assertEqual(wg.choose(list(range(10)), 3, lambda i: i == 4), [0, 3, 9])
+        self.assertEqual(wg.choose(list(range(10)), 3, lambda i: i in (3, 4)), [0, 5, 9])
+        # Ends: 0 is short, 1 is free; 9 is short and 8 is taken by nothing.
+        self.assertEqual(wg.choose(list(range(10)), 3, lambda i: i in (0, 9)), [1, 4, 8])
+        self.assertEqual(wg.choose(list(range(3)), 3, lambda i: i == 1), [0, 2])
 
 
 if __name__ == "__main__":

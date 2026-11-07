@@ -1,6 +1,6 @@
 [package]
 name = "@raspberrypi/mcu"
-version = "0.1.4"
+version = "0.1.5"
 license = "MIT"
 description = "Raspberry Pi microcontrollers, parts, and package land patterns."
 repository = "https://github.com/conol-ai/cohdl"

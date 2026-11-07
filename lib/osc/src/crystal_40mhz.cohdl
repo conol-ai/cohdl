@@ -1,9 +1,27 @@
-// 40MHz main crystal for the ESP32-S3 (and other 40MHz MCUs). 3225 4-pad
-// package, 10pF load class per the ESP32-S3 hardware design guidelines
-// (C1=C4 10pF load caps + 24nH series inductor on XTAL_N, trimmed by
-// measurement). MPN follows the Hosonic E1SB naming scheme used by the
-// 48MHz part in this package (E1SB40E001G00E); confirm the exact vendor
-// stock part against the distributor list before fitting.
+// 40MHz crystal intended as the ESP32-S3 main crystal (and for other 40MHz
+// MCUs). Hosonic E1SB series: 2.0 x 1.6mm seam-sealed four-terminal package
+// (hosonic-e1sb.pdf p. 1), on FP_Crystal_SMD_2016_4Pin_E1SB, the sheet's
+// recommended land (crystal_48mhz.cohdl). Pins 1 and 3 are the crystal
+// electrodes; pins 2 and 4 are connected to the lid.
+//
+// MPN UNVERIFIED: E1SB40E001G00E is patterned on the 48MHz part's
+// E1SB48E001G00E. The E1SB sheet is a series sheet with no ordering-code
+// key, so it does not establish that this MPN exists, nor its load
+// capacitance, tolerance or stability. Series limits at 40MHz: CL 6-16pF
+// "or specify", +/-10ppm at 25C, +/-15ppm over temperature, ESR <= 60ohm.
+// Confirm the exact part with Hosonic or a distributor before fitting.
+//
+// Load capacitors: the "10pF load class" and "C1=C4 10pF + 24nH series
+// inductor on XTAL_N, trimmed by measurement" guidance previously given
+// here comes from Espressif's ESP32-S3 hardware design guidelines, which
+// are not pinned in this repo, so it is not source-checked. The E1SB sheet
+// gives no external-component values; size the caps from the confirmed
+// part's CL.
+//
+// Orientation: the sheet defines no index mark. Its drawings show the pin-2
+// terminal (a ground) with a cut inner corner; the footprint's pin-1 dot
+// marks pad 1, not that corner. A 90 degree rotation puts the crystal
+// electrodes on the ground pads (180 degrees is harmless).
 
 #[doc("docs/hosonic-e1sb.pdf")]
 pub device Crystal40MHz {
@@ -17,5 +35,5 @@ impl Crystal for Crystal40MHz {}
 
 #[doc("docs/hosonic-e1sb.pdf")]
 pub part XTAL_40MHZ: Crystal40MHz {
-    primary { mfr: "Hosonic", mpn: "E1SB40E001G00E", footprint: FP_Crystal_3225 }
+    primary { mfr: "Hosonic", mpn: "E1SB40E001G00E", footprint: FP_Crystal_SMD_2016_4Pin_E1SB }
 }

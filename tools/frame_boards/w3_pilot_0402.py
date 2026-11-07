@@ -12,7 +12,7 @@ manufacturers on one land:
 
 The part numbers are the report's `sample` for each group
 (tools/sourcing_data/w3_sampling/2026-11-07/groups.json), chosen there among
-members with at least five pieces in stock. Each row declares a local part
+members with at least the report's `min_stock` (30) pieces in stock. Each row declares a local part
 with the map row's identity on the library entry's device type and footprint,
 so the preview shows the raw frame with no map, as on lcsc_batch_2_passive.py.
 Chip parts are not polarised, and the bottom-side convention is settled (C1),
@@ -63,8 +63,8 @@ for key in GROUPS:
         hits = by_identity.get((row["mfr"], row["mpn"]), [])
         if len(hits) != 1:
             raise SystemExit(f"{pn}: {len(hits)} lib/passive entries")
-        if pages[pn]["stock"] < 5:
-            raise SystemExit(f"{pn}: stock {pages[pn]['stock']} on its confirmed page")
+        if pages[pn]["stock"] < report["rule"]["min_stock"]:
+            raise SystemExit(f"{pn}: stock {pages[pn]['stock']} on its confirmed page, below the report's minimum")
         selected.append((key, row, *hits[0]))
 
 GAP, WIDTH = 2.0, 100.0

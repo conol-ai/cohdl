@@ -64,7 +64,7 @@ A frame row borrows a group's samples through its own kind, never through `same_
 
 The draft rule is the plan's: at least 3, or 5% of the members, whichever is larger. It is a sampling policy under review, not proof that a group shares one model.
 - Samples are chosen deterministically and spread through the group's members, sorted by MPN, so the values, tolerances, dielectrics and voltages the MPN encodes are all drawn on.
-- Only members with at least 5 pieces in stock are chosen (the assembler builds at least five boards).
+- Only members with at least 30 pieces in stock are chosen. The assembler builds at least five boards and adds attrition: on 2026-11-07 the pilot's BOM step confirmed no sample whose page read fewer than 20 pieces, and every one with 21 or more. 30 leaves room for stock sold since the page was read.
 - Members with own evidence count toward the sample.
 - A group whose in-stock members cannot make up its sample cannot be inferred, and its members need their own evidence. Today there are three: Samsung `CL` 0402 and Murata `GRM` 0402, with 2 members each, and Vishay `CRCW` 0603, whose 15 members all read no stock.
 

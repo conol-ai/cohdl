@@ -232,7 +232,8 @@ BOM_TABLE = """JSON.stringify((() => { const t = [...document.querySelectorAll("
         const c = td.querySelector(".el-checkbox"); return c ? (c.classList.contains("is-checked") ? "__checked__" : "__unchecked__")
         : td.innerText; }));
     return {heads, rows}; })())"""
-COLUMNS = ("Top Designator", "Bottom Designator", "Matched Part Detail", "Select")
+# A board with no bottom parts gets no Bottom Designator column (2026-11-07).
+COLUMNS = ("Top Designator", "Matched Part Detail", "Select")
 
 
 def check_bom_step(text, table, placements):
@@ -252,9 +253,11 @@ def check_bom_step(text, table, placements):
     if "error" in table:
         return problems + [table["error"]]
     heads = table["heads"]
-    if not all(name in heads for name in COLUMNS):
+    sides = ("Top", "Bottom") if "Bottom Designator" in heads else ("Top",)
+    needed = COLUMNS + (("Bottom Designator",) if any(side == "Bottom" for _, side in placements.values()) else ())
+    if not all(name in heads for name in needed):
         return problems + ["the BOM table's columns are %s" % ", ".join(heads)]
-    col = {name: heads.index(name) for name in COLUMNS}
+    col = {name: heads.index(name) for name in COLUMNS + tuple(s + " Designator" for s in sides)}
     if len(table["rows"]) != len(part_numbers):
         problems.append("expected %d BOM rows, read %d" % (len(part_numbers), len(table["rows"])))
     seen = {}
@@ -268,7 +271,7 @@ def check_bom_step(text, table, placements):
             problems.append("BOM row %d matches %s" % (number, ", ".join(matched) or "no part number"))
         if cells[col["Select"]] != "__checked__":
             problems.append("BOM row %d (%s) is not selected" % (number, pn))
-        for side in ("Top", "Bottom"):
+        for side in sides:
             for ref in re.split(r"[\s,]+", cells[col[side + " Designator"]].strip()):
                 if ref:
                     seen.setdefault(ref, []).append((pn, side, number))

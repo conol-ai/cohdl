@@ -9,7 +9,8 @@ This board is the pilot of the sampled-inference proposal (`docs/library-supplie
 | `CHIP_0402` MLCC Yageo `CC` | 199 | 2 | 8 |
 
 That makes 99 part numbers, one top copy each at 0°, on a board of about 100 × 20 mm.
-- **Stock.** Every part had at least 5 pieces in stock on its confirmed page (B2 run, 2026-11-05/06). Stock may have changed since. `jlc_preview.py` stops on any stock warning. A sample that has run out is then taken off and replaced by hand from the group's eligible members, and the regenerated package needs its own approval.
+- **Stock.** Every part had at least 30 pieces in stock on its confirmed page (B2 run, 2026-11-05/06), the report's `min_stock`. Stock may have changed since. `jlc_preview.py` stops on any stock warning, and the preview is then unverified. A new package with other samples needs its own approval.
+- **First run (2026-11-07), unverified.** The first package (SHA-256 `8f056fde04c64fb2632675a91bdd2eafb5a3214f6a3af517e5e1325c446dab0f`) drew its samples from members with at least 5 pieces. Its BOM step read "99 parts detected, 88 Parts confirmed" with a shortage warning. Exactly 11 of its samples had read fewer than 20 pieces (5 to 19), and none of the others fewer than 21. The script did not list the unconfirmed rows, because a top-only board's BOM step has no Bottom Designator column and the check stopped at the columns. Both are fixed: `min_stock` is now 30, and `jlc_preview.py` no longer needs that column on a board with no bottom parts. Nothing was measured or recorded from that run.
 - **No map.** As on `lcsc-batch-2-passive`, each row declares the map row's identity on the library entry's device type and footprint. The CPL carries no map, so the preview shows each footprint's raw frame.
 
 ## What to expect, and what counts

@@ -144,6 +144,18 @@ class JlcPreviewTests(unittest.TestCase):
                 problems = jp.check_bom_step(text, table, PLACEMENTS)
                 self.assertTrue(any(message in p for p in problems), problems)
 
+    def test_a_top_only_board_has_no_bottom_designator_column(self):
+        # The 2026-11-07 W3 pilot: a top-only board's BOM step shows no Bottom Designator.
+        top = {ref: placed for ref, placed in PLACEMENTS.items() if placed[1] == "Top"}
+        heads = [h for h in HEADS if h != "Bottom Designator"]
+        table = {"heads": heads, "rows": [[c for i, c in enumerate(row("U1", "", "C117815")) if i != 1],
+                                          [c for i, c in enumerate(row("U2", "", "C730103")) if i != 1]]}
+        self.assertEqual(jp.check_bom_step(BOM_TEXT, table, top), [])
+        unmatched = {"heads": heads, "rows": [table["rows"][0], table["rows"][1][:3] + [""] + table["rows"][1][4:]]}
+        self.assertIn("BOM row 2 matches no part number", jp.check_bom_step(BOM_TEXT, unmatched, top))
+        # A board with bottom parts still needs the column.
+        self.assertTrue(any("columns are" in p for p in jp.check_bom_step(BOM_TEXT, table, PLACEMENTS)))
+
     def test_the_run_works_in_its_own_tab_and_stops_when_it_is_gone(self):
         with mock.patch.object(jp, "TAB", None), self.assertRaisesRegex(AssertionError, "open_tab"):
             jp.js("1")

@@ -46,9 +46,11 @@ TYPES = ("ChipResistor", "MLCC")
 # The draft sampling rule under review; see the proposal.
 MIN_SAMPLE = 3
 FRACTION = 0.05
-# The assembler builds at least five boards, so a part with fewer pieces shows
-# a stock warning and is not placed (tools/frame_boards/lcsc-batch-2-passive).
-MIN_STOCK = 5
+# The assembler builds at least five boards and adds attrition. On 2026-11-07 the
+# W3 pilot's BOM step left unconfirmed, with a shortage warning, exactly the 11
+# samples whose confirmed page read fewer than 20 pieces (5 to 19), and confirmed
+# every one with 21 or more. 30 leaves room for stock sold since the page was read.
+MIN_STOCK = 30
 
 
 def _sha256(path: Path) -> str:

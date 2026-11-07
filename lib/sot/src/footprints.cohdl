@@ -1,0 +1,56 @@
+// SOT land patterns (library plan W4, item 3c wave 1).
+//
+// Frame convention: CoHDL's board frame (+x right, +y DOWN, top view),
+// origin at the package centre. SOT-23-3 lands are authored on the frame of
+// transistor::FP_JSCJ_SOT23 0.2.0, which the assembler measured on the
+// 2026-10-30 preview board: the datasheet top view (pins 1 and 2 on the
+// lower edge, pin 3 on the upper edge) turned 90 degrees so that pins 1 and 2
+// form the +x column, pin 1 at +y (lower right), pin 2 at -y and pin 3 alone
+// at -x. Numbering stays counter-clockwise 1-2-3 seen from the top; the
+// mirrored arrangement (pin 1 at -y) would swap pins 1 and 2 on the board.
+//
+// Names follow RFC-021's checked template SOT{pins}P{pitch}X{bodyX}X{bodyY}N.
+// The checker reads the pitch as the closest distance between distinct pad
+// numbers, which on SOT-23-3 is pins 1-2 at 1.90mm (not the 0.95mm lead
+// pitch), so the name reads P190 (E809).
+
+// SOT-23-3 (TO-236AB). Primary source: Zhuhai Hongjiacheng MMBT5551
+// datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-mmbt5551.evidence.md): J (land width along the row)
+// 0.75-0.85mm, K (land length across the row) 0.85-0.95mm, M (row centre
+// spacing) 1.95-2.05mm, N (pin 1 to pin 2 centre spacing) 1.85-1.95mm. The
+// land uses the midpoints: 0.80 x 0.90mm lands, 1.90mm pin 1-2 spacing and
+// 2.00mm row spacing.
+//
+// Cross-check: Diodes Incorporated SOT23 package information, Rev.
+// 2017-01-30, page 1 (docs/diodes-sot23.evidence.md): X = 0.8mm, Y = 0.9mm,
+// C = 2.0mm, X1 = 1.35mm (centre line to the outer edge of pin 2, i.e.
+// 0.95mm + 0.40mm), Y1 = 2.9mm. Identical to the primary midpoints.
+// transistor::FP_JSCJ_SOT23 (JSCJ S8050, 0.6 x 0.8mm lands, 2.02mm rows) is
+// compared in docs/README.md.
+//
+// The pad is declared in the datasheet's top-view orientation (0.80mm along
+// the row, 0.90mm across it) and placed `rotate 270`, as FP_JSCJ_SOT23 does.
+pub pad P_SOT3P190X290X130N_LEAD {
+    shape: rect
+    size: (0.8mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: D (body length) 2.80-3.00mm,
+// nominal 2.90; E (body width) 1.20-1.40mm, nominal 1.30.
+#[doc("docs/README.md")]
+pub footprint SOT3P190X290X130N {
+    pad 1: P_SOT3P190X290X130N_LEAD at (1mm, 0.95mm) rotate 270
+    pad 2: P_SOT3P190X290X130N_LEAD at (1mm, -0.95mm) rotate 270
+    pad 3: P_SOT3P190X290X130N_LEAD at (-1mm, 0mm) rotate 270
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the 2.90 x 2.70mm copper and the 2.55 x 3.00mm maximum
+    // component envelope (E1 lead span x D body length) with at least 0.25mm
+    // excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3.6mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}

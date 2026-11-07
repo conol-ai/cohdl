@@ -11,6 +11,7 @@ use cohdl::span::SourceMap;
 
 mod library {
     pub mod geometry;
+    pub mod package_families;
     pub mod supplier;
 }
 

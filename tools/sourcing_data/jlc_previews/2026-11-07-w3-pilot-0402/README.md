@@ -44,11 +44,19 @@ The export was taken twice, because the first left instances without evidence; t
 
 Over the 88 bodies that pass, the angle runs from −7.3° to +9.9° mod 180 (mean −0.2°, standard deviation 3.4°). The largest centre offset is 0.121 mm, against limits of about 0.127 mm.
 
-Each of the 88 gets its own frame row in `jlc_frames.json` with `rotate 0`. Its evidence note says the orientation is known mod 180 only. These rows are each part's own evidence, as on the C2 boards. They are not inference.
+Each of the 88 has its own frame row with `rotate 0`, in this record's `frames.json` (same row format as `jlc_frames.json`). Its evidence note says the orientation is known mod 180 only. These rows are each part's own evidence, as on the C2 boards. They are not inference.
+
+## Status: archived evidence, not bindings
+
+The 88 rows are archived here, not in `tools/sourcing_data/jlc_frames.json`. No generator reads `frames.json`: `tools/sourcing/bindings.py` reads only `jlc_frames.json`. They were first added to `jlc_frames.json` (commit `21c4ca5`), but every row names `passive` 0.2.5, so the generator bound them at once: `gen_passive.py --check` reported `lib/passive/src/resistors_0402.cohdl` and `capacitors_0402.cohdl` stale, and regenerating would have rewritten sources published as `passive` 0.2.5, which must not change. So the rows were moved here, and this PR stays a proposal.
+
+`tools/tests/test_generator_bindings.py` checks that the committed sources of `gen_passive.py`, `gen_esp32.py` and `gen_stm32.py` match the real tables, and that no row of an archived `frames.json` is in `jlc_frames.json`.
+
+Adopting the rows as bindings needs a new `passive` version: the rows' `package_version` moves to it, they go into `jlc_frames.json`, and the passive sources are regenerated. That has to be coordinated with PR #83, and it is Tony's decision.
 
 ## Manual review and limits
 
-- **C113781 (C7)** reads 10.5° mod 180, just over the 10° limit. It is centred (0.053 mm) and its body is drawn. In the export the body looks square to its pads, and the red designator printed on it may have skewed the reading. It needs a person's reading. Until then it has no frame row.
+- **C113781 (C7)** reads 10.5° mod 180, just over the 10° limit. It is centred (0.053 mm) and its body is drawn. In the export the body looks square to its pads, and the red designator printed on it may have skewed the reading. It needs a person's reading. Until then it has no row in `frames.json`.
 - **Not drawn.** Ten models were not drawn: bare pads and the checkered centroid marker, on both exports. They are unverified, not failed. Nine of the 47 Vishay samples are among them, so the preview may simply have no model for part of that series.
 - **The pilot rule.** `tools/frame_boards/w3-pilot-0402/README.md` says that a sample outside the limits, or not drawn, pauses its group. By that rule:
   - Yageo `RC` 0402 passed: 44 of 44.

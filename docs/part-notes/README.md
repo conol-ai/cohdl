@@ -216,3 +216,31 @@ The library-vs-source disagreements that need a decision, most serious first:
   - The magnetic 4-pin's P1 may sit next to the N magnet rather than S (p. 3). It should be checked on a physical part.
   - On the FH12, contact 1 rests on an unlabelled ▽ mark (p. 4).
 - **No 5 V-tolerance marking on any MCU GPIO.** This is a library limitation.
+
+## STM32 batch (2026-11-07)
+
+These are notes for the ten bound `@st/stm32` MCUs: F030C8T6, F103C8T6, L151C8T6, L152VCH6, F427VGT6, F767BIT6, H743VIH6, G431RBI6, L412K8T6 and L496VGT6.
+
+Their sources are ST's own datasheets, which are not shipped: `@st/stm32` deliberately keeps only a URL catalog. st.com's robots.txt was unavailable to the policy-bound client on 2026-11-07, so each file was retrieved from LCSC (`datasheet.lcsc.com`). Each note gives:
+- the official ST URL;
+- the `retrieved_from` LCSC URL;
+- the SHA-256;
+- the document ID and revision.
+
+Every file is ST-authored. The G431 file's metadata title says STM32G474, but its body is DS12589.
+
+Every pad and ball of all ten devices was compared by script with ST's pin table for the exact package, and none is wrong.
+
+The library-vs-source disagreements that need a decision:
+- **QFP lands are KiCad's, not ST's recommended footprints.** This covers LQFP32, LQFP48 (F030, F103, L151), LQFP100 (F427, L496) and LQFP208 (F767).
+  - Pitch, pad width and pin 1 agree.
+  - The pads are longer and reach 0.2–0.3 mm further in than ST's, for example 0.30 × 1.475 mm at LQFP48 against ST's 1.20 mm.
+  - The UFBGA64, UFBGA100 and TFBGA100 lands match ST.
+- **Strap pins typed `optional`.**
+  - PDR_ON (F767, H743) is a strap to VDD or VSS, with no internal pull.
+  - BOOT0 shares a GPIO name on G431 (`PB8`), L412 and L496 (`PH3`), and so does NRST on G431 (`PG10`).
+- **Sources.**
+  - The only F030 source is DocID024849 Rev 1, a 2013 target specification.
+  - The F427 file is ST's Chinese edition.
+  - H743 Rev 8 still marks the TFBGA100 "under development" and specifies silicon revisions Y and V separately.
+- **NRST is typed `input`; it is a bidirectional reset pin.** VLCD on L151 must be tied to VDD.

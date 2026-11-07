@@ -12,8 +12,8 @@ hash = "sha256:87cb83f09c1550f8ed0d13ebf3856deb2349dd7f4d0a3f20617ebc8b072b0705"
 
 [[package]]
 name = "connectors"
-version = "0.2.1"
-hash = "sha256:4f29c7ce375cc6af452145242813b4da0d4f38960b9b81486e51af693bbd1a4d"
+version = "0.3.0"
+hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
 
 [[package]]
 name = "diode"

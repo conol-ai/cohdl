@@ -102,3 +102,43 @@ The library-vs-source disagreements that need a decision, most serious first:
 - **`lib/usb/docs/stusb1602-application.md` misstates the default mode.** The factory default is dual role with accessory support, CC_POWER_MODE 011b (Table 14, pp. 20–21), not source mode.
 - **STUSB4500's application note cites Rev 8**, which is not in the repository.
 - **Pin types the library cannot express.** Open-drain outputs are typed `output` or `bidirectional`, and decoupling-only regulator pins are typed `power_out`. This affects the ST, TI, NXP, onsemi and Infineon parts.
+
+## Fourth 5c batch (2026-11-07)
+
+| Note | Covers | Source |
+|---|---|---|
+| `dcdc/DCDC_JW5033S.md`, `DCDC_SGM6029C.md` | JW5033S (TSOT23-6), SGM6029C | Joulwatt Rev 0.88, SG Micro Rev A.1 |
+| `@richtek/dcdc/BUCKBOOST_RT6150B.md` | RT6150B | Richtek DS6150A/B-06 and its footprint drawing |
+| `@ti/dcdc/CTRL_TPS59650.md` | TPS59650 | TI SLUSAV7 |
+| `@ti/power-switch/EFUSE_TPS259823ONRGET.md` | TPS259823ONRGET | TI SLVSEI3D |
+| `@contrib/rtc/PCF85063A.md` | The three PCF85063A parts | NXP Rev. 7.3 |
+| `@contrib/level-shifter/RS0104.md` | The four RS0104 parts | Run-IC REV A.5 |
+| `@contrib/analog-switch/RS2257.md`, `SW_TMUX1072DGSR.md`, `SW_TMUX1072RUTR.md` | RS2257, TMUX1072 | Run-IC RevC.1, TI SCDS382C |
+| `@contrib/comparator/COMP_TLV9022DR.md`, `COMP_TLV9032DR.md` | TLV9022, TLV9032 | TI SNOSDA3H |
+| `@contrib/io-expander/IOEXP_XL9555.md` | XL9555 | Xinluda Rev 2.4 |
+| `diode/SCHOTTKY_PMEG6010.md` | PMEG6010ELR | Nexperia v.5 |
+| `mic/MIC_ICS43434.md` | ICS-43434 | InvenSense DS-000069 Rev 1.2 |
+| `motor-driver/MOTOR_DRV8231A.md` | DRV8231A | TI SLVSFZ8A |
+| `audio-amp/AMP_NS4168.md` | NS4168 | Nsiway V1.2 |
+| `esim/ESIM_MFF2_TRUPHONE.md` | SIM-S-IO3-MFF2-2 | Truphone, Oct 2020 |
+
+The library-vs-source disagreements that need a decision, most serious first:
+- **`esim::ESIM_MFF2_TRUPHONE` pin map is wrong.**
+  - The library has 1 VCC, 2 RST, 3 CLK, 4 IO, 5 GND.
+  - The source's Figure 1 has 1 GND, 2 SWIO, 3 I/O, 4 NC, 5 NC, 6 CLK, 7 RESET, 8 VCC (PDF p. 5).
+  - The footprint numbers both rows left to right, where the source puts pin 8 opposite pin 1.
+  - No placement of the part works.
+- **`@contrib/level-shifter` RS0104 QFN3.5x3.5-14 land: pads 1, 7, 8 and 14 sit where the package has no leads.**
+  - The library has them at ±0.25 mm. E1 = 1.500 mm is the centre distance of leads 1 and 14, so they belong at ±0.75 mm (p. 25).
+  - VCCA, VCCB, GND and OE would be open.
+- **`qfn::QFN48N40P600X600_1EP405X360` (TPS59650) thermal land is turned 90°.** TI's 4.05 mm side runs parallel to pins 1–12 (p. 51); the library's runs across them. The agent also reads a 0.225 mm offset from the drawing.
+- **`examples/joint-motor-controller` drives DRV8231A IPROPI above its limit.**
+  - IPROPI is limited to 3 mA peak (p. 4).
+  - The example's 3.7 A peak at 1500 µA/A is 5.55 mA.
+- **JW5033S.**
+  - The MPN does not fix the package, and the SOT563 version has another pinout (pp. 2, 5).
+  - The output range is 0.8 V to VIN − 3 V (p. 2), so the example's 3.3 V rail needs 6.3 V in.
+- **TPS25982 thermal vias** are 0.075 mm off TI's grid (p. 56).
+- **TPS59650 thermal pad is analog ground**, not to be tied straight to PGND (pp. 12, 40, 43). The library calls it `EP` and gives no warning.
+- **RS0104's QFN2x1.7-12 land** (used by `examples/sf32-miniboard`) leaves 0.05 mm between end and side lands (p. 28).
+- **Open-drain outputs typed `output` again**: PCF85063A INT, XL9555 INT, TMUX1072 FLT_N, TLV9022 OUT, TPS59650 and TPS25982 status pins.

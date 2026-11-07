@@ -43,3 +43,12 @@ The 37 aliases go up with the catalog, as `PUT /api/admin/manufacturer-aliases/{
   - C2838500 (`ESP32-C3`, mapped through the `Espressif Systems` alias) and C79401 (`MAX16054AZT+T`, unlocked by #76), both `unknown` before this upload, now resolve.
   - `/manufacturers/normalize?mfr=Espressif%20Systems` gives key `espressif`; `HRS(Hirose)` gives `hirose electric` (#73 row 38).
   - `cohdl suppliers examples/joint-motor-controller` (cohdl 0.10.0) reports its binding `ok` (C1525, through the new Samsung Electro-Mechanics alias) and exits 0.
+
+## Full check (2026-11-07)
+
+`verify.txt` above is the check `main` had at the upload: the library's 46 part numbers. The old catalog holds all 46, so that check alone cannot tell the two catalogs apart (`../2026-11-05-lcsc/README.md`, "Full check"). The full check of #78 was run read-only against production at about 03:30 UTC, from `tools/verify-full-catalog` at `690d421`, on the body rebuilt with this record's own files (`build --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json`, SHA-256 `3307b6b8…`, `report.json` byte-identical):
+
+- **This catalog: exit 0.** It asked for all 13,604 rows, 100 per request: 13,604 of 13,604 known and equal, no row missing from the answers or answered twice. The registry's snapshot date, `2026-11-06T01:45:04Z`, is the body's newest `fetched_at`. All 37 aliases were checked; 31 normalize to their canonical key, and 6 differ from their canonical name only in case or spacing, so the public lookup answers the same whether or not the registry holds them. `verify-full.txt` is its output, verbatim.
+- **The 2026-11-05 catalog (`dced4283…`): exit 1.** Its 1,442 rows are all still served and equal, because the new catalog keeps them. What refuses it is the date: the registry's `2026-11-06T01:45:04Z` against that body's newest `fetched_at`, `2026-10-30T05:24:02Z`.
+
+The public API cannot list rows, so a row the registry holds beyond the body would go unseen. The registry returning the stored body's SHA-256 and row count would close that.

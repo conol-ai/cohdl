@@ -41,7 +41,7 @@ footprints live in focused packages:
 | `cellular` | `cellular::CELL_AIR780E`, `cellular::CELL_AIR780EG` | 4G/LTE cellular module devices with verified 109-pin LGA land patterns |
 | `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
 | `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N` | power-distribution load switches with verified land patterns |
-| `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
+| `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers and the TI-specific land patterns they use (`ti_dcdc::TI_RSL_S_PVQFN_N48`) |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
 | `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
 | `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::MCU_STM32F103C8T6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus source-joined exact parts with attributed dependency-owned fabrication geometry |

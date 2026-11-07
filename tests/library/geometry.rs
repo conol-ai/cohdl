@@ -235,11 +235,14 @@ fn courtyard_excess(courtyard: &Courtyard, shape: Geometry) -> Option<f64> {
 const QUARANTINE: &[(&str, &str, &str, &str)] = &[];
 
 /// `(package, footprint, body width, body height, source)` in millimetres:
-/// courtyards that A1b/A1c redrew from the pad envelope. Each must also
-/// contain the package body, centred on the footprint origin, plus the
-/// 0.25 mm IPC-7351B nominal-density clearance. Body sizes are maxima where
-/// the source gives a tolerance.
-const REPAIRED_COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
+/// courtyards that must also contain the package body, centred on the
+/// footprint origin, plus the 0.25 mm IPC-7351B nominal-density clearance.
+/// Two groups use it: courtyards that A1b/A1c redrew from the pad envelope,
+/// and the W4 package-family lands (`sod`, `sot`, `do214`), whose bodies are
+/// the maximum component envelope (lead tip to lead tip by body width) in
+/// the footprint's own frame. Body sizes are maxima where the source gives a
+/// tolerance.
+const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     (
         "qfn",
         "ESPRESSIF_QFN28_0P4_4",
@@ -288,6 +291,34 @@ const REPAIRED_COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
         4.0,
         5.1,
         "NS4168 V1.2 §11.1, E and D max",
+    ),
+    (
+        "sod",
+        "SOD3716X135N",
+        3.85,
+        1.80,
+        "Hongjiacheng BZT52 Rev 2.1 p4, A x C max",
+    ),
+    (
+        "sod",
+        "SOD2613X110N",
+        2.80,
+        1.40,
+        "Hongjiacheng B5819WS Rev 2.0 p3, C x E max",
+    ),
+    (
+        "sot",
+        "SOT3P190X290X130N",
+        2.55,
+        3.00,
+        "Hongjiacheng MMBT5551 Rev 2.0 p3, E1 x D max, turned onto the assembler frame",
+    ),
+    (
+        "do214",
+        "DIOM5026X241N",
+        5.30,
+        2.85,
+        "Hongjiacheng SS34 Rev 2.0 p3, G x C max",
     ),
 ];
 
@@ -377,14 +408,14 @@ pub fn audit_package(package: &str, version: &str, world: &World) {
     let declared: BTreeSet<_> = own_declarations(world, package)
         .map(|(name, _)| name.rsplit("::").next().unwrap_or(name))
         .collect();
-    let stale: Vec<_> = REPAIRED_COURTYARD_BODIES
+    let stale: Vec<_> = COURTYARD_BODIES
         .iter()
         .filter(|(p, f, ..)| *p == package && !declared.contains(f))
         .map(|(_, f, ..)| *f)
         .collect();
     assert!(
         stale.is_empty(),
-        "repaired-courtyard entries for `{package}` name no footprint: {stale:?}"
+        "courtyard-body entries for `{package}` name no footprint: {stale:?}"
     );
     let mut unexpected = Vec::new();
     let mut used = BTreeSet::new();
@@ -406,12 +437,12 @@ pub fn audit_package(package: &str, version: &str, world: &World) {
             }
         }
         let short = name.rsplit("::").next().unwrap_or(name);
-        for (_, _, width, height, source) in REPAIRED_COURTYARD_BODIES
+        for (_, _, width, height, source) in COURTYARD_BODIES
             .iter()
             .filter(|(p, f, ..)| *p == package && *f == short)
         {
             if footprint.courtyard.is_none() {
-                failures.push(format!("repaired courtyard missing ({source})"));
+                failures.push(format!("courtyard missing ({source})"));
             } else if let Some(excess) = body_excess(footprint, *width, *height) {
                 failures.push(format!(
                     "courtyard does not contain the {width} x {height} mm body ({source}) plus {COURTYARD_CLEARANCE_MM} mm: short by {:.3} mm",
@@ -829,7 +860,7 @@ mod tests {
     }
 
     #[test]
-    fn repaired_courtyard_must_contain_the_body() {
+    fn listed_courtyard_must_contain_the_body() {
         let source = |height: &str| {
             format!(
                 r#"
@@ -855,6 +886,40 @@ mod tests {
             message.contains("FP_NS4168_ESOP8")
                 && message.contains("4 x 5.1 mm body")
                 && message.contains("short by 0.370 mm"),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn w4_land_courtyard_must_contain_the_body_not_only_the_pads() {
+        // The SMA copper is 6.50 x 1.70 mm, but the 5.30 x 2.85 mm component
+        // envelope needs a 3.35 mm courtyard height: a courtyard drawn round
+        // the pads alone passes the pad check and must still fail.
+        let source = |height: &str| {
+            format!(
+                r#"
+                pub pad LEAD {{ shape: rect size: (2.1mm, 1.7mm) layer: top_copper plating: smd }}
+                pub footprint DIOM5026X241N {{
+                    pad 1: LEAD at (-2.2mm, 0mm)
+                    pad 2: LEAD at (2.2mm, 0mm)
+                    courtyard {{ shape: rect, at: (0mm, 0mm), size: (7mm, {height}) }}
+                }}
+                "#
+            )
+        };
+        audit_package("do214", "0.1.0", &world_in("do214", &source("3.4mm")));
+        let pads_only = world_in("do214", &source("2.2mm"));
+        let message = std::panic::catch_unwind(|| audit_package("do214", "0.1.0", &pads_only))
+            .expect_err("a courtyard drawn round the pads alone passed");
+        let message = message
+            .downcast_ref::<String>()
+            .cloned()
+            .unwrap_or_default();
+        assert!(
+            message.contains("DIOM5026X241N")
+                && message.contains("5.3 x 2.85 mm body")
+                && message.contains("short by 0.575 mm")
+                && !message.contains("courtyard overflow"),
             "{message}"
         );
     }

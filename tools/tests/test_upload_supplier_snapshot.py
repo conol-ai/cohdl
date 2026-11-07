@@ -18,6 +18,17 @@ CURRENT = {"rows": 13_604, "bytes": 3_583_901,
            "aliases_sha256": "027d2a930f6016ad6a223fbbcc6fb4efce7e8c1458145a7dbb991edd014374e9"}
 
 
+# The library's part numbers on 2026-11-06, when the counterexample was found. Parts
+# bound later (C165948 in usb 0.1.6) are not in the old catalog, so the live library
+# no longer shows it.
+LIBRARY_2026_11_06 = set("""
+    C1525 C8734 C9861 C23922 C93943 C105575 C106254 C107011 C107045 C107108 C107110 C114763
+    C117815 C129276 C137046 C137203 C137422 C137837 C137927 C138161 C141703 C163421 C163429
+    C274047 C309589 C477801 C482239 C482876 C482966 C483001 C483188 C488876 C488985 C527206
+    C527232 C529436 C541229 C576985 C717701 C718246 C730103 C877226 C878096 C1338995 C1857444
+    C3009257""".split())
+
+
 def rebuild_recorded(out: Path) -> dict:
     """Rebuild the 2026-11-05 upload from the map and alias table it was built from."""
     return us.build(out, None, RECORD / "report.json",
@@ -229,9 +240,9 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             old, new = Path(td) / "old", Path(td) / "new"
             rebuild_recorded(old)
-            report = us.build(new, None, RECORD / "report.json")
+            us.build(new, None, RECORD / "report.json")
             registry = FakeRegistry(old)
-            self.assertLessEqual(set(report["library_part_numbers"]), set(registry.rows))
+            self.assertLessEqual(LIBRARY_2026_11_06, set(registry.rows))
             with mock.patch.object(us, "request", side_effect=registry):
                 problems = us.verify(new, "https://r.test")
         self.assertTrue(problems[0].startswith("12162 part numbers unknown to the registry: "), problems[0])

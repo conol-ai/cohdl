@@ -168,6 +168,24 @@ class FrameBoardTests(unittest.TestCase):
                 self.assertIn(sides, ([(0, "top"), (37, "top"), (0, "bottom"), (37, "bottom")], [(0, "top")]))
                 self.assertNotIn("mapping", row)
 
+    def test_w3_pilot_manifest_is_its_generators_output_from_the_report_samples(self):
+        committed = ROOT / "tools/frame_boards/w3-pilot-0402/manifest.json"
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run(["python3", "-I", str(ROOT / "tools/frame_boards/w3_pilot_0402.py"), str(Path(td) / "m.json")],
+                           check=True, capture_output=True)
+            self.assertEqual((Path(td) / "m.json").read_bytes(), committed.read_bytes())
+        report = json.load(open(ROOT / "tools/sourcing_data/w3_sampling/2026-11-07/groups.json"))
+        samples = {pn for g in report["groups"] if g["footprint"] == "CHIP_0402" and (g["mfr"], g["series"]) in
+                   {("Yageo", "RC"), ("Vishay", "CRCW"), ("Yageo", "CC")} for pn in g["sample"]}
+        rows = json.loads(committed.read_text())["rows"]
+        self.assertEqual({r["pn"] for r in rows}, samples)
+        self.assertEqual(len(rows), 99)
+        for row in rows:
+            with self.subTest(pn=row["pn"]):
+                self.assertEqual(row["footprint"], "passive::CHIP_0402")
+                self.assertEqual(row["placements"], [{"at_mm": row["placements"][0]["at_mm"], "rotate": 0, "side": "top"}])
+                self.assertNotIn("mapping", row)
+
     @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
     def test_c2_board_3_board_carries_no_supplier_mapping(self):
         with tempfile.TemporaryDirectory() as td:

@@ -28,8 +28,17 @@ counts, sources, size and the body's SHA-256.
 ``upload DIR --expect-sha256 HEX`` sends DIR's aliases, then the snapshot, to
 the registry's admin endpoints, only if snapshot.json still has the SHA-256
 the report records and the person signed off (HEX). The endpoints take an
-official account's web session, so the person passes theirs in the
-``COHDL_ADMIN_SESSION`` environment variable; it is never printed or written.
+official account's credential, either of:
+
+- an **admin token** (preferred): created on the registry account page with
+  "Create admin token", saved to ``~/.cohdl/admin-token`` (``--token-file``) or
+  passed in ``COHDL_ADMIN_TOKEN``. It can only maintain supplier data, never
+  publish, and it expires after 30 days. The file must be readable by its owner
+  alone. The ``cohdl login`` publish token is refused before anything is sent;
+- the account's web session in ``COHDL_ADMIN_SESSION``, used only when no
+  admin token is given.
+
+Neither is ever printed or written.
 
 ``verify DIR`` asks the public ``/suppliers/lcsc/parts`` for every row of DIR's
 snapshot, 100 part numbers per request, and compares each answer with its row.
@@ -51,6 +60,7 @@ import os
 from pathlib import Path
 import re
 import sys
+from typing import NamedTuple
 import unicodedata
 import urllib.error
 import urllib.parse
@@ -319,12 +329,55 @@ def render(report: dict) -> str:
     return "\n".join(lines)
 
 
-def request(method: str, url: str, body: bytes | None = None, session: str | None = None, origin: str | None = None):
+class Credential(NamedTuple):
+    """An official account's credential for the admin endpoints: ``token`` or ``session``."""
+    kind: str
+    value: str
+
+    def __repr__(self) -> str:  # never let the secret reach a traceback or a log
+        return f"Credential({self.kind!r}, <redacted>)"
+
+
+ADMIN_TOKEN = re.compile(r"cohdl_admin_[a-f0-9]{48}")
+TOKEN_FILE = Path.home() / ".cohdl" / "admin-token"
+
+
+def admin_credential(env, token_file: Path = TOKEN_FILE) -> Credential | str:
+    """The credential to upload with, or why there is none.
+
+    ``COHDL_ADMIN_TOKEN``, then the token file, then ``COHDL_ADMIN_SESSION``.
+    """
+    token, source = env.get("COHDL_ADMIN_TOKEN"), "COHDL_ADMIN_TOKEN"
+    if not token and token_file.exists():
+        info = token_file.stat()
+        if info.st_mode & 0o077 or (hasattr(os, "getuid") and info.st_uid != os.getuid()):
+            return f"{token_file} must belong to you and be readable by you alone (chmod 600 {token_file})"
+        token, source = token_file.read_text(encoding="utf-8").strip(), str(token_file)
+    if token:
+        if ADMIN_TOKEN.fullmatch(token):
+            return Credential("token", token)
+        if token.startswith("cohdl_"):
+            return (f"{source} holds a publish token (the `cohdl login` kind), which cannot upload; "
+                    "create an admin token on your registry account page")
+        return f"{source} is not an admin token (cohdl_admin_ followed by 48 hex digits)"
+    session = env.get("COHDL_ADMIN_SESSION")
+    if session:
+        if re.fullmatch(r"[a-f0-9]{64}", session):
+            return Credential("session", session)
+        return "COHDL_ADMIN_SESSION must hold an official account's 64-hex web session"
+    return (f"no admin credential: save an admin token to {token_file}, or set COHDL_ADMIN_TOKEN "
+            "(or COHDL_ADMIN_SESSION)")
+
+
+def request(method: str, url: str, body: bytes | None = None, credential: Credential | None = None,
+            origin: str | None = None):
     headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
     if body is not None:
         headers["Content-Type"] = "application/json"
-    if session is not None:
-        headers["Cookie"] = f"__Host-session={session}"
+    if credential is not None and credential.kind == "token":
+        headers["Authorization"] = f"Bearer {credential.value}"
+    elif credential is not None:
+        headers["Cookie"] = f"__Host-session={credential.value}"
         headers["Origin"] = origin
     req = urllib.request.Request(url, data=body, method=method, headers=headers)
     try:
@@ -337,23 +390,23 @@ def request(method: str, url: str, body: bytes | None = None, session: str | Non
             return error.code, None
 
 
-def upload(out: Path, expect: str, registry: str, session: str | None) -> list[str]:
+def upload(out: Path, expect: str, registry: str, credential: Credential | str) -> list[str]:
     report = _json(out / "report.json")
     body, aliases = (out / "snapshot.json").read_bytes(), (out / "aliases.json").read_bytes()
     if _sha256(body) != report["snapshot_sha256"] or _sha256(aliases) != report["aliases_sha256"]:
         return [f"{out}'s snapshot.json or aliases.json no longer matches its report.json"]
     if expect != report["snapshot_sha256"]:
         return [f"--expect-sha256 {expect} is not the reported snapshot {report['snapshot_sha256']}"]
-    if not session or not re.fullmatch(r"[a-f0-9]{64}", session):
-        return ["COHDL_ADMIN_SESSION must hold an official account's 64-hex web session"]
+    if not isinstance(credential, Credential):
+        return [credential]
     origin = urllib.parse.urlsplit(registry)._replace(path="", query="", fragment="").geturl()
     for alias, canonical in json.loads(aliases).items():
         status, answer = request("PUT", f"{origin}/api/admin/manufacturer-aliases/{urllib.parse.quote(alias, safe='')}",
-                                 encode({"canonical": canonical}), session, origin)
+                                 encode({"canonical": canonical}), credential, origin)
         if status != 200:
             return [f"alias {alias!r}: HTTP {status} {answer}"]
         print(f"alias {alias} -> {canonical}: {answer.get('alias_key')}")
-    status, answer = request("PUT", f"{origin}/api/admin/suppliers/{SUPPLIER}/snapshot", body, session, origin)
+    status, answer = request("PUT", f"{origin}/api/admin/suppliers/{SUPPLIER}/snapshot", body, credential, origin)
     if status != 200 or answer.get("rows") != report["rows"]:
         return [f"snapshot: HTTP {status} {answer}"]
     print(f"snapshot: {answer['rows']} rows replaced the {SUPPLIER} catalog")
@@ -459,6 +512,8 @@ def main(argv=None) -> int:
     u = sub.add_parser("upload")
     u.add_argument("out", type=Path)
     u.add_argument("--expect-sha256", required=True)
+    u.add_argument("--token-file", type=Path, default=TOKEN_FILE,
+                   help="the admin token file (default ~/.cohdl/admin-token)")
     v = sub.add_parser("verify")
     v.add_argument("out", type=Path)
     for p in (u, v):
@@ -470,7 +525,8 @@ def main(argv=None) -> int:
             print(render(report))
             return 0
         if args.command == "upload":
-            problems = upload(args.out, args.expect_sha256, args.registry, os.environ.get("COHDL_ADMIN_SESSION"))
+            problems = upload(args.out, args.expect_sha256, args.registry,
+                              admin_credential(os.environ, args.token_file))
         else:
             problems = verify(args.out, args.registry)
     except SnapshotError as error:

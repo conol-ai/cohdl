@@ -139,15 +139,16 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
             out = Path(td)
             rebuild_recorded(out)
             digest = json.loads((out / "report.json").read_text())["snapshot_sha256"]
-            session = "ab" * 32
+            session = us.Credential("session", "ab" * 32)
             calls = []
 
-            def request(method, url, body=None, session=None, origin=None):
-                calls.append((method, url, body, session, origin))
+            def request(method, url, body=None, credential=None, origin=None):
+                calls.append((method, url, body, credential, origin))
                 return 200, ({"rows": 1442} if url.endswith("/snapshot") else {"alias_key": "k"})
             with mock.patch.object(us, "request", side_effect=request):
                 self.assertIn("is not the reported snapshot", us.upload(out, "0" * 64, "https://r.test", session)[0])
-                self.assertIn("COHDL_ADMIN_SESSION", us.upload(out, digest, "https://r.test", "")[0])
+                missing = us.admin_credential({}, Path(td) / "no-token")
+                self.assertIn("no admin credential", us.upload(out, digest, "https://r.test", missing)[0])
                 self.assertEqual(calls, [])
                 self.assertEqual(us.upload(out, digest, "https://r.test/x", session), [])
             self.assertEqual([c[1] for c in calls], [
@@ -157,10 +158,58 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
                 "https://r.test/api/admin/suppliers/lcsc/snapshot"])
             self.assertEqual(calls[-1][2], (out / "snapshot.json").read_bytes())
             self.assertTrue(all(c[0] == "PUT" and c[3] == session and c[4] == "https://r.test" for c in calls))
-            self.assertNotIn(session, sys.stdout.getvalue())
+            self.assertNotIn(session.value, sys.stdout.getvalue())
 
             (out / "snapshot.json").write_bytes(b"{}")
             self.assertIn("no longer matches", us.upload(out, digest, "https://r.test", session)[0])
+
+    def test_admin_credential_prefers_an_admin_token_and_refuses_the_wrong_kind(self):
+        token = "cohdl_admin_" + "0f" * 24
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "admin-token"
+            # The environment's token wins over the file and the session.
+            got = us.admin_credential({"COHDL_ADMIN_TOKEN": token, "COHDL_ADMIN_SESSION": "ab" * 32}, path)
+            self.assertEqual(got, us.Credential("token", token))
+            # The `cohdl login` publish token is refused by name, before any request.
+            publish = us.admin_credential({"COHDL_ADMIN_TOKEN": "cohdl_" + "0f" * 24}, path)
+            self.assertIn("publish token", publish)
+            self.assertIn("not an admin token", us.admin_credential({"COHDL_ADMIN_TOKEN": "nope"}, path))
+            # A token file readable by others is refused; an owner-only one is used.
+            path.write_text(token + "\n")
+            path.chmod(0o644)
+            self.assertIn("readable by you alone", us.admin_credential({}, path))
+            path.chmod(0o600)
+            self.assertEqual(us.admin_credential({}, path), us.Credential("token", token))
+            # With no token anywhere, the web session still works.
+            self.assertEqual(us.admin_credential({"COHDL_ADMIN_SESSION": "ab" * 32}, Path(td) / "none"),
+                             us.Credential("session", "ab" * 32))
+            self.assertIn("64-hex", us.admin_credential({"COHDL_ADMIN_SESSION": "x"}, Path(td) / "none"))
+            self.assertIn("no admin credential", us.admin_credential({}, Path(td) / "none"))
+            # The secret never appears in a repr, so never in a traceback.
+            self.assertNotIn(token, repr(us.Credential("token", token)))
+
+    def test_request_sends_a_token_as_bearer_and_a_session_as_same_origin_cookie(self):
+        sent = []
+
+        class Response:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *exc): return False
+            def read(self): return b"{}"
+
+        def urlopen(req, timeout):
+            sent.append({k.lower(): v for k, v in req.header_items()})
+            return Response()
+        token = "cohdl_admin_" + "0f" * 24
+        with mock.patch.object(us.urllib.request, "urlopen", side_effect=urlopen):
+            us.request("PUT", "https://r.test/api/admin/x", b"{}", us.Credential("token", token), "https://r.test")
+            us.request("PUT", "https://r.test/api/admin/x", b"{}", us.Credential("session", "ab" * 32), "https://r.test")
+        self.assertEqual(sent[0]["authorization"], f"Bearer {token}")
+        self.assertNotIn("cookie", sent[0])
+        self.assertNotIn("origin", sent[0])
+        self.assertEqual(sent[1]["cookie"], "__Host-session=" + "ab" * 32)
+        self.assertEqual(sent[1]["origin"], "https://r.test")
+        self.assertNotIn("authorization", sent[1])
 
     def test_verify_passes_only_when_the_registry_serves_the_whole_catalog(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()) as stdout:

@@ -2,7 +2,7 @@
 name = "do214"
 version = "0.1.0"
 license = "MIT"
-description = "Audited DO-214 (SMA) molded-body diode land patterns, authored on the assembler's frame."
+description = "Audited DO-214 (SMA, SMB, SMC) molded-body diode land patterns, authored on the assembler's frame."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

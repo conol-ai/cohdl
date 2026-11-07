@@ -7,24 +7,31 @@ pub device ST25R3916 {
     pins {
         required VDD_IO: 1 [power_in] // peripheral comm supply (p20)
         optional CSO: 2 [output] // capacitor sensor output / test out 2 (p20)
-        optional VDD_D: 3 [power_out] // digital supply regulator output (p20)
+        // Regulator outputs each take 2.2 uF || 10 nF to ground (p40; Figure 1
+        // p13); VDD_AM requires 2.2 uF + 1 nF (p41).
+        required VDD_D: 3 [power_out] // digital supply regulator output (p20)
         optional XTO: 4 [output] // crystal oscillator output (p20)
         optional XTI: 5 [input] // crystal oscillator input (p20)
         required GND_D: 6 [power_in] // digital ground (p20)
-        optional VDD_A: 7 [power_out] // analog supply regulator output (p20)
+        required VDD_A: 7 [power_out] // analog supply regulator output (p20)
         required VDD: 8 [power_in] // external positive supply (p20)
-        optional VDD_RF: 9 [power_out] // regulated driver supply (p20)
-        optional VDD_TX: 10 [power_in] // external supply for TX (p20)
-        optional VDD_AM: 11 [power_out] // regulated supply for AM mod (p20)
+        required VDD_RF: 9 [power_out] // regulated driver supply (p20)
+        // VDD_TX must share VDD's supply (p39), within 0.2 V of VDD (p137).
+        required VDD_TX: 10 [power_in] // external supply for TX (p20)
+        required VDD_AM: 11 [power_out] // regulated supply for AM mod (p20)
         required GND_DR1: 12 [power_in] // antenna driver ground (p20)
         optional RFO1: 13 [output] // antenna driver output (p20)
-        optional VDD_DR: 14 [power_in] // antenna driver supply (p21)
+        // VDD_DR is the driver supply input: tie to VDD_RF (Figure 1 p13), or
+        // VDD_RF and VDD_DR to VDD_TX above 350 mArms (p41).
+        required VDD_DR: 14 [power_in] // antenna driver supply (p21)
         optional RFO2: 15 [output] // antenna driver output (p21)
         required GND_DR2: 16 [power_in] // antenna driver ground (p21)
         optional EXT_LM: 17 [output] // external load mod MOS gate driver (p21)
         optional AAT_A: 18 [output] // AAT tune voltage A (p21)
         optional AAT_B: 19 [output] // AAT tune voltage B (p21)
-        optional I2C_EN: 20 [input] // I2C enable (p21)
+        // I2C_EN selects the host interface: GND for SPI, VDD_D for I2C (p48,
+        // p49, p55, Figure 1 p13); 3 V domain, 3.6 V max (p137).
+        required I2C_EN: 20 [input] // I2C enable, VDD_D level (p21)
         required VSS: 21 [power_in] // ground, die substrate (p21)
         optional RFI1: 22 [input] // receiver input (p21)
         optional RFI2: 23 [input] // receiver input (p21)
@@ -49,19 +56,23 @@ pub part NFC_ST25R3916: ST25R3916 {
               footprint: QFN32N50P500X500_1EP345X345 }
 }
 
-// DS12484 Figure 39 UFQFPN32 footprint example: 5.30 mm outside span,
-// 3.80 mm inside span, 0.50 mm pitch, 0.75 x 0.30 mm lands, and a
-// 3.45 mm square exposed land.
+// DS12484 Figure 39 (p153) UFQFPN32 footprint example: 5.30 mm outside
+// span, 0.60 x 0.30 mm lands at 0.50 mm pitch, 3.80 mm row length (outer
+// edge of pad 32 to outer edge of pad 25), and a 3.45 mm square exposed
+// land. The figure's 0.75 is (5.30 - 3.80) / 2, the step from a row's end
+// to the outer edge, not a land length. Land centres sit at
+// 5.30 / 2 - 0.60 / 2 = 2.35 mm; inner edges at 2.05 mm leave 0.325 mm to
+// the exposed land.
 pub pad P_ST25R3916_UFQFPN_LEAD_H {
     shape: rect
-    size: (0.75mm, 0.3mm)
+    size: (0.6mm, 0.3mm)
     layer: top_copper
     plating: smd
 }
 
 pub pad P_ST25R3916_UFQFPN_LEAD_V {
     shape: rect
-    size: (0.3mm, 0.75mm)
+    size: (0.3mm, 0.6mm)
     layer: top_copper
     plating: smd
 }
@@ -74,38 +85,38 @@ pub pad P_ST25R3916_UFQFPN_EP345 {
 }
 
 pub footprint QFN32N50P500X500_1EP345X345 {
-    pad 1: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -1.75mm)
-    pad 2: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -1.25mm)
-    pad 3: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -0.75mm)
-    pad 4: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, -0.25mm)
-    pad 5: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 0.25mm)
-    pad 6: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 0.75mm)
-    pad 7: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 1.25mm)
-    pad 8: P_ST25R3916_UFQFPN_LEAD_H at (-2.275mm, 1.75mm)
-    pad 9: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, 2.275mm)
-    pad 10: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, 2.275mm)
-    pad 11: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, 2.275mm)
-    pad 12: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, 2.275mm)
-    pad 13: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, 2.275mm)
-    pad 14: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, 2.275mm)
-    pad 15: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, 2.275mm)
-    pad 16: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, 2.275mm)
-    pad 17: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 1.75mm)
-    pad 18: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 1.25mm)
-    pad 19: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 0.75mm)
-    pad 20: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, 0.25mm)
-    pad 21: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -0.25mm)
-    pad 22: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -0.75mm)
-    pad 23: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -1.25mm)
-    pad 24: P_ST25R3916_UFQFPN_LEAD_H at (2.275mm, -1.75mm)
-    pad 25: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, -2.275mm)
-    pad 26: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, -2.275mm)
-    pad 27: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, -2.275mm)
-    pad 28: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, -2.275mm)
-    pad 29: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, -2.275mm)
-    pad 30: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, -2.275mm)
-    pad 31: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, -2.275mm)
-    pad 32: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, -2.275mm)
+    pad 1: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, -1.75mm)
+    pad 2: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, -1.25mm)
+    pad 3: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, -0.75mm)
+    pad 4: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, -0.25mm)
+    pad 5: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, 0.25mm)
+    pad 6: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, 0.75mm)
+    pad 7: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, 1.25mm)
+    pad 8: P_ST25R3916_UFQFPN_LEAD_H at (-2.35mm, 1.75mm)
+    pad 9: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, 2.35mm)
+    pad 10: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, 2.35mm)
+    pad 11: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, 2.35mm)
+    pad 12: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, 2.35mm)
+    pad 13: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, 2.35mm)
+    pad 14: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, 2.35mm)
+    pad 15: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, 2.35mm)
+    pad 16: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, 2.35mm)
+    pad 17: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, 1.75mm)
+    pad 18: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, 1.25mm)
+    pad 19: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, 0.75mm)
+    pad 20: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, 0.25mm)
+    pad 21: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, -0.25mm)
+    pad 22: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, -0.75mm)
+    pad 23: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, -1.25mm)
+    pad 24: P_ST25R3916_UFQFPN_LEAD_H at (2.35mm, -1.75mm)
+    pad 25: P_ST25R3916_UFQFPN_LEAD_V at (1.75mm, -2.35mm)
+    pad 26: P_ST25R3916_UFQFPN_LEAD_V at (1.25mm, -2.35mm)
+    pad 27: P_ST25R3916_UFQFPN_LEAD_V at (0.75mm, -2.35mm)
+    pad 28: P_ST25R3916_UFQFPN_LEAD_V at (0.25mm, -2.35mm)
+    pad 29: P_ST25R3916_UFQFPN_LEAD_V at (-0.25mm, -2.35mm)
+    pad 30: P_ST25R3916_UFQFPN_LEAD_V at (-0.75mm, -2.35mm)
+    pad 31: P_ST25R3916_UFQFPN_LEAD_V at (-1.25mm, -2.35mm)
+    pad 32: P_ST25R3916_UFQFPN_LEAD_V at (-1.75mm, -2.35mm)
     pad 33: P_ST25R3916_UFQFPN_EP345 at (0mm, 0mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot

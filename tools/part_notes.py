@@ -60,8 +60,10 @@ def declarations(root: Path) -> tuple[dict[str, str], dict[str, tuple[str, str]]
         text = _strip_comments(path.read_text(encoding="utf-8"))
         for match in re.finditer(r"\bpub\s+device\s+(\w+)[^{]*\{", text):
             devices[match.group(1)] = _balanced_block(text, match.end() - 1)[0]
-        for match in re.finditer(r"\bpub\s+part\s+(\w+)\s*:\s*(\w+)[^{]*\{", text):
-            parts[match.group(1)] = (match.group(2), _balanced_block(text, match.end() - 1)[0])
+        # A part may name its device by path (`espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1`).
+        for match in re.finditer(r"\bpub\s+part\s+(\w+)\s*:\s*((?:\w+::)*\w+)[^{]*\{", text):
+            device = match.group(2).rpartition("::")[2]
+            parts[match.group(1)] = (device, _balanced_block(text, match.end() - 1)[0])
     return devices, parts
 
 

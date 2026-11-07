@@ -44,3 +44,30 @@ Writing them turned up where the library's MPNs and the sources disagree. Each n
 - 4,832 Vishay alternates (0805–2512) end in packaging code `ED`, which document 20035 lists only for 0402 and 0603.
 - Two C0G parts below 10 pF use ±5%, which Yageo does not list there.
 - Most Samsung numbers use design, product or control codes the catalog does not define.
+
+## Second 5c batch: hand-written packages with a shipped datasheet (2026-11-07)
+
+| Note | Covers | Source |
+|---|---|---|
+| `@espressif/esp32/ESP32_S3_WROOM_1_SERIES.md` | 13 ESP32-S3-WROOM-1 and -1U modules | Espressif WROOM-1/1U datasheet v1.8 |
+| `@espressif/esp32/ESP32_S3.md`, `ESP32_S3R8.md` | The bare ESP32-S3 and ESP32-S3R8 | Espressif ESP32-S3 series datasheet v2.2 |
+| `esd/ESD_USBLC6.md` | USBLC6-2SC6 | ST DS4260 Rev 7 |
+| `@contrib/ldo/LDO_XC6206P182MR.md`, `RT9080.md` | XC6206P182MR, RT9080-33 (TSOT-23-5 and ZQFN) | Torex ETR0305_004b, Richtek DS9080-09 |
+| `led/LED_RED_0603.md`, `LED_GREEN.md`, `RGB_SK6812.md` | Lite-On LTST-C193KRKT-5A, Würth 150060GS75000, SK6812MINI-E | Their manufacturer datasheets |
+| `flash/FLASH_W25Q32.md` | W25Q32RVXHJQ | Winbond W25Q32RV Rev. E |
+| `can/XCVR_SN65HVD230.md` | SN65HVD230 | TI SLOS346O |
+
+The checker now accepts a part that names its device by path (`espressif_esp32::modules::wroom_s3::ESP32_S3_WROOM_1`). It still compares one pin table with every listed variant, so RT9080's ZQFN pad map, which differs from the TSOT one, is in its own section and was checked by hand.
+
+Each note lists, under "Not established by the sources", where the library and its source disagree. The ones that need a decision:
+- **`flash::FLASH_W25Q32` land.** The library uses KiCad's generic DFN-8 2x3, `qfn::QFN8N50P200X300_1EP61X220`, but the W25Q32RV XH package differs (Winbond p. 78):
+  - Its terminals sit about ±1.275 mm from centre; the library's pad rows are at ±0.94 mm.
+  - Its centre metal is 0.20 × 1.60 mm; the library's is 0.61 × 2.2 mm.
+  - `examples/rpi-pico2` uses this part. It has no supplier binding.
+- **`esp32` WROOM-1U footprint.** `FP_ESP32_S3_WROOM_1U` has no thermal vias, although Espressif draws them for the -1U as for the -1 (pp. 45–46).
+- **`led::RGB_SK6812` land.** It is the mirror image of the source's recommended land (pp. 4–5). It is correct only for die-down mounting, which the source does not state.
+- **`can` alternate SN65HVD230D.** TI lists it as Obsolete; only DR, DR.A and DRG4 are Active (p. 36).
+- **Comments that go beyond the sources:**
+  - XC6206: "250mA, 1.5V dropout" (p. 1 gives 200 mA, 250 mV).
+  - RT9080 TSOT: "EP must solder"; the TSOT package has no EP.
+  - `load-switch/src/sgm2554.cohdl` names a footprint that does not exist.

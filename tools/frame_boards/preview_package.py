@@ -41,7 +41,8 @@ import jlc_frame_board
 
 # Boards whose manifest a generator writes from the repository's data.  C2
 # frame boards 1 and 2 are records of their previews, pinned to the packages of
-# their day, so they are not regenerated.
+# their day, so they are not regenerated.  The W3 pilot is regenerated from its
+# frozen inputs (w3-pilot-0402/inputs.json), so a later passive version leaves it as previewed.
 REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_batch_2_passive.py",
               "c2-board-3": "c2_board_3.py", "w3-pilot-0402": "w3_pilot_0402.py"}
 

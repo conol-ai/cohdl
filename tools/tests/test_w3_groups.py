@@ -1,6 +1,7 @@
 import json
 import math
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -16,12 +17,56 @@ class W3GroupsTests(unittest.TestCase):
     def setUpClass(cls):
         cls.report = wg.build()
 
-    def test_the_committed_report_records_its_sources(self):
-        # A dated snapshot: later library or frame changes make it older, not wrong.
+    def test_the_committed_report_is_consistent_with_its_recorded_sources(self):
+        # Historical record: a dated snapshot, checked only against what it records.
+        # Later library, map or frame changes make it older, not wrong, so nothing
+        # here compares it with a fresh build.
         committed = json.loads((REPORT / "groups.json").read_text(encoding="utf-8"))
-        self.assertEqual(committed["rule"], self.report["rule"])
-        self.assertEqual(set(committed["sources"]), set(self.report["sources"]))
         self.assertEqual((REPORT / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        sources = committed["sources"]
+        self.assertEqual(sources["lib/passive"], "0.2.5")
+        pages_paths = [name for name in sources if name.startswith("lcsc_backfill/")]
+        self.assertEqual(set(sources), {"lib/passive", "lcsc_map.json", "jlc_frames.json", *pages_paths})
+        self.assertEqual(pages_paths, ["lcsc_backfill/2026-11-06-full/confirmed.json"])
+        # The confirmed pages are a run's record, kept as they were: the hash must still hold.
+        self.assertEqual(wg._sha256(wg.DATA / pages_paths[0]), sources[pages_paths[0]])
+        pages = {p["c"]: p for p in json.loads((wg.DATA / pages_paths[0]).read_text(encoding="utf-8"))}
+        rule = committed["rule"]
+        for g in committed["groups"]:
+            with self.subTest(group=(g["footprint"], g["type"], g["mfr"], g["series"])):
+                self.assertEqual(g["package_version"], sources["lib/passive"])
+                rows = {row[0]: row for row in g["member_rows"]}
+                self.assertEqual(len(rows), g["members"])
+                # Each member's stock is its recorded page's.
+                self.assertTrue(all(row[5] == pages[pn]["stock"] for pn, row in rows.items()))
+                direct = {d["pn"] for d in g["direct"]}
+                self.assertEqual(g["required"], max(rule["min_sample"], math.ceil(rule["fraction"] * g["members"])))
+                self.assertEqual(g["more_needed"], max(0, g["required"] - len(direct)))
+                self.assertLessEqual(len(g["sample"]), g["more_needed"])
+                for pn in g["sample"]:
+                    self.assertGreaterEqual(rows[pn][5], rule["min_stock"])
+                    self.assertNotIn(pn, direct)
+                    self.assertNotIn(pn, rule["short_at_preview"])
+
+    def test_a_fresh_report_matches_what_the_current_tree_builds(self):
+        # Current generator: built from the current tree and compared with a fresh
+        # build, never with the dated report.
+        name, version = wg.package_metadata(wg.PASSIVE / "cohdl.toml")
+        snapshot = {row["snapshot_sha256"] for row in
+                    json.loads((wg.DATA / "lcsc_map.json").read_text(encoding="utf-8"))["rows"]}
+        pages_path, _ = wg.confirmed_pages(snapshot.pop())
+        self.assertEqual(self.report["sources"], {
+            "lib/passive": version,
+            "lcsc_map.json": wg._sha256(wg.DATA / "lcsc_map.json"),
+            "jlc_frames.json": wg._sha256(wg.DATA / "jlc_frames.json"),
+            str(pages_path.relative_to(wg.DATA)): wg._sha256(pages_path),
+        })
+        self.assertEqual(self.report["rule"]["min_stock"], wg.MIN_STOCK)
+        with tempfile.TemporaryDirectory() as td:
+            with mock.patch("sys.stdout"):
+                self.assertEqual(wg.main(["-o", td]), 0)
+            self.assertEqual(wg.main(["-o", td, "--check"]), 0)
+            self.assertEqual(json.loads(Path(td, "groups.json").read_text(encoding="utf-8")), self.report)
 
     def test_groups_split_by_version_type_manufacturer_and_series(self):
         groups = self.report["groups"]

@@ -71,3 +71,34 @@ Each note lists, under "Not established by the sources", where the library and i
   - XC6206: "250mA, 1.5V dropout" (p. 1 gives 200 mA, 250 mV).
   - RT9080 TSOT: "EP must solder"; the TSOT package has no EP.
   - `load-switch/src/sgm2554.cohdl` names a footprint that does not exist.
+
+## Third 5c batch (2026-11-07)
+
+| Note | Covers | Source |
+|---|---|---|
+| `usb/STUSB4500_QFN24.md`, `STUSB1602A_QFN24.md` | STUSB4500QTR, STUSB1602AQTR | ST DS12499 Rev 7, DS11254 Rev 5 |
+| `usb/TUSB422_YFP9.md` | TUSB422IYFPR and -IYFPT | TI SLLSEW6C |
+| `usb/PTN5110_HX2QFN16.md` | the six PTN5110 parts | NXP PTN5110 Rev. 1.6 |
+| `usb/FUSB307B_QFN16.md` | FUSB307BMPX and BVMPX | onsemi FUSB307B/D Rev. 7 |
+| `usb/CCG6DF.md` | CYPD6227-96BZXI | Infineon 002-27161 Rev. *K |
+| `osc/XTAL_8M.md`, `CRYSTAL_4PAD.md`, `XTAL_32K768.md`, `XTAL_40MHZ.md` | The four crystal devices | Abracon ABM8, ABM8-272-T3 and ABS07; Hosonic E1SB |
+| `mosfet/FET_DMG1012T.md` | DMG1012T-7 and -13 | Diodes DMG1012T |
+| `load-switch/LOADSW_SGM2554.md` | SGM2554 | SG Micro SGM2554 |
+| `logic/BUFFER_SN74AHCT1G125.md` | SN74AHCT1G125 | TI Rev. P |
+
+The library-vs-source disagreements that need a decision, most serious first:
+- **`load-switch::LOADSW_SGM2554` pins are wrong on three of five pads.**
+  - The library has 1 IN, 2 GND, 3 EN, 4 NC, 5 OUT.
+  - SGM2554A is 1 VOUT, 2 GND, 3 VIN, 4 EN, 5 VOUT; SGM2554B has VIN on pad 4 too (p. 3).
+  - A board built from the library puts the supply on an output pad and leaves EN floating.
+  - The MPN `SGM2554` names no model; only the A model has EN.
+  - The comments give the input range as 1.0–5.5 V, where the source says 2.2–5.5 V.
+  - No example uses the part.
+- **`osc::XTAL_40MHZ` footprint.** It uses the 3.2 × 2.5 mm ABM8 land, but its MPN is a Hosonic E1SB part, which is 2.0 × 1.6 mm (p. 1). The MPN itself is unverified.
+- **FUSB307B is not available.** onsemi's document is discontinued and marked "THIS DEVICE IS NOT AVAILABLE". Both parts are still mapped to LCSC part numbers, though neither is bound.
+- **CCG6DF is rated only to 55 °C ambient** (pp. 40–41). Also:
+  - every pin is `required`, although Infineon leaves many open (p. 22);
+  - its oval pad length is not given by the source (pp. 24–25).
+- **`lib/usb/docs/stusb1602-application.md` misstates the default mode.** The factory default is dual role with accessory support, CC_POWER_MODE 011b (Table 14, pp. 20–21), not source mode.
+- **STUSB4500's application note cites Rev 8**, which is not in the repository.
+- **Pin types the library cannot express.** Open-drain outputs are typed `output` or `bidirectional`, and decoupling-only regulator pins are typed `power_out`. This affects the ST, TI, NXP, onsemi and Infineon parts.

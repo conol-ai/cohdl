@@ -23,7 +23,9 @@
     "db:migrate:0004": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0004-component-requests.sql",
     "db:migrate:0004:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0004-component-requests.sql",
     "db:migrate:0005": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0005-suppliers.sql",
-    "db:migrate:0005:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0005-suppliers.sql"
+    "db:migrate:0005:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0005-suppliers.sql",
+    "db:migrate:0006": "wrangler d1 execute cohdl-registry --remote --file=./migrations/0006-token-scopes.sql",
+    "db:migrate:0006:local": "wrangler d1 execute cohdl-registry --local --file=./migrations/0006-token-scopes.sql"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",

@@ -14,7 +14,11 @@ CREATE TABLE IF NOT EXISTS brands (
 CREATE TABLE IF NOT EXISTS tokens (
   token_hash TEXT PRIMARY KEY, -- sha256 hex of the bearer token
   account_id INTEGER NOT NULL REFERENCES accounts(id),
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  -- `publish`: package publishing and API docs. `admin`: official supplier
+  -- catalog and alias maintenance. A token holds exactly one (migration 0006).
+  scope TEXT NOT NULL DEFAULT 'publish' CHECK (scope IN ('publish', 'admin')),
+  expires_at TEXT -- ISO 8601 UTC; NULL = no expiry (publish tokens)
 );
 CREATE TABLE IF NOT EXISTS packages (
   name TEXT PRIMARY KEY,

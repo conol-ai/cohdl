@@ -650,9 +650,9 @@
       (sheetpath (names "/") (tstamps "/"))
       (tstamp "00000040")
     )
-    (comp (ref "U12") (value "SGM2554A_CORRECT")
+    (comp (ref "U12") (value "SGM2554")
       (footprint "load_switch::FP_SGM2554_SOT235")
-      (libsource (lib "cohdl") (part "SGM2554A_CORRECT") (description ""))
+      (libsource (lib "cohdl") (part "SGM2554") (description ""))
       (fields
         (field (name "MPN") "SGM2554AYN5G/TR")
         (field (name "MFR") "SGMICRO")

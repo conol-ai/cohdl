@@ -7,10 +7,10 @@ Status: **uploaded 2026-11-07 and verified** (see "Upload record" below). This u
 ```sh
 R=tools/sourcing_data/registry_uploads/2026-11-07-lcsc
 python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates tools/sourcing_data/registry_uploads/2026-11-05-lcsc/report.json \
-  --map $R/lcsc_map.json --aliases $R/mfr_aliases.json
+  --map $R/lcsc_map.json --aliases $R/mfr_aliases.json --library-from $R/report.json
 ```
 
-This gives `snapshot.json` with SHA-256 `3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529` and this `report.json`.
+This gives `snapshot.json` with SHA-256 `3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529` and this `report.json`, byte-identical. `--library-from` (#80) takes the library part numbers the report covers, the 46 of 2026-11-07, from this `report.json` instead of the current `lib/`. Without it the body is the same, but once `lib/` gains bindings (#80, #83) `report.json` lists the current part numbers (51 after both) and no longer matches. At the upload, `main` had no `--library-from` and `lib/` held these 46, so the command then had no such flag (see "Upload record").
 
 ## What it holds
 
@@ -46,7 +46,7 @@ The 37 aliases go up with the catalog, as `PUT /api/admin/manufacturer-aliases/{
 
 ## Full check (2026-11-07)
 
-`verify.txt` above is the check `main` had at the upload: the library's 46 part numbers. The old catalog holds all 46, so that check alone cannot tell the two catalogs apart (`../2026-11-05-lcsc/README.md`, "Full check"). The full check of #78 was run read-only against production at about 03:30 UTC, from `tools/verify-full-catalog` at `690d421`, on the body rebuilt with this record's own files (`build --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json`, SHA-256 `3307b6b8…`, `report.json` byte-identical):
+`verify.txt` above is the check `main` had at the upload: the library's 46 part numbers. The old catalog holds all 46, so that check alone cannot tell the two catalogs apart (`../2026-11-05-lcsc/README.md`, "Full check"). The full check of #78 was run read-only against production at about 03:30 UTC, from `tools/verify-full-catalog` at `690d421`, on the body rebuilt with this record's own files (`build --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json`, SHA-256 `3307b6b8…`, `report.json` byte-identical while `lib/` still held the 46; rebuild it today with `--library-from $R/report.json` as above):
 
 - **This catalog: exit 0.** It asked for all 13,604 rows, 100 per request: 13,604 of 13,604 known and equal, no row missing from the answers or answered twice. The registry's snapshot date, `2026-11-06T01:45:04Z`, is the body's newest `fetched_at`. All 37 aliases were checked; 31 normalize to their canonical key, and 6 differ from their canonical name only in case or spacing, so the public lookup answers the same whether or not the registry holds them. `verify-full.txt` is its output, verbatim.
 - **The 2026-11-05 catalog (`dced4283…`): exit 1.** Its 1,442 rows are all still served and equal, because the new catalog keeps them. What refuses it is the date: the registry's `2026-11-06T01:45:04Z` against that body's newest `fetched_at`, `2026-10-30T05:24:02Z`.

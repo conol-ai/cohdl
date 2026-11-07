@@ -28,4 +28,4 @@ Manufacturer,Comment,Designator,Footprint
 "XKB","TP-1221U-K9K5325","SW1","FP_SW_SPST_TP1221U"
 "HRO","TYPE-C-31-M-12","J4","FP_USB_C_Receptacle_HRO_TYPE_C_31_M_12"
 "STMicroelectronics","USBLC6-2SC6","U5","FP_SOT_23_6"
-"Winbond","W25Q32RVXHJQ","U1","QFN8N50P200X300_1EP61X220"
+"Winbond","W25Q32RVXHJQ","U1","FP_W25Q32RV_XSON8_2X3"

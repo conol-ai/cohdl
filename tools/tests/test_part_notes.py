@@ -97,6 +97,9 @@ class PartNotesTests(unittest.TestCase):
         self.assertEqual(self.check(note(usb, pins=swapped)),
                          ["pad A5 is CC1 in the library, CC2 in the note", "pad B5 is CC2 in the library, CC1 in the note"])
 
+    def test_mechanical_pads_are_read(self):
+        self.assertEqual(pn.PAD.findall("1, 2, MP, EP, SH4"), ["1", "2", "MP", "EP", "SH4"])
+
     def test_a_part_may_name_its_device_by_path(self):
         _, parts = pn.declarations(self.dirs["@espressif/esp32"])
         self.assertEqual(parts["ESP32_S3_WROOM_1U_N4"][0], "ESP32_S3_WROOM_1")

@@ -183,3 +183,36 @@ The library-vs-source disagreements that need a decision, most serious first:
   - TCA8418: unused ROW/COL pins need pull-ups.
   - MIA-M10Q: RTC_O must go to GND if unused.
 - **Open-drain or configurable outputs typed `output`.** This is a recurring library limitation.
+
+## Sixth 5c batch (2026-11-07)
+
+17 notes for the MCU and connector packages:
+- `@raspberrypi/mcu/RP2350A_QFN60.md`;
+- `@sifli/sf32/SF32LB52X_SERIES.md`;
+- `@gigadevice/gd32/MCU_GD32E230F8P6TR.md`, `MCU_GD32F303CBT6.md`;
+- `@wch/ch32/MCU_CH32V003F4P6.md`, `MCU_CH32V203C8T6.md`;
+- `connectors/` (11 notes): JST XH battery, Molex 43045 ×3, Samtec SSW, Hirose FH12 ×3, I-PEX MHF4, a magnetic 4-pin, and the Pico SWD header.
+
+Every MCU pad was compared with its package's pinout, and none is wrong. The checker now reads a connector's mechanical pads (`MP`).
+
+The library-vs-source disagreements that need a decision, most serious first:
+- **`connectors::CONN_BAT_2P` cannot take its part.**
+  - `FP_BAT_2P_2P5` is two SMD pads with no holes.
+  - The part, S2B-XH-A, is a through-hole header with φ0.9 mm holes at 2.5 mm (pp. 2, 5). JST makes no 2-circuit SMT XH (p. 6).
+  - No example uses it.
+- **RP2350 `RUN` is `optional`, and its comment says it "need not be routed".** The datasheet says to tie it high if unused (p. 498).
+- **RP2350 `XIN`/`XOUT` are `optional`**, but BOOTSEL needs a crystal or a clock (p. 376).
+- **`MCU_SF32LB52GUC6` has no source in the repository.** It is not in DS0052's ordering table (p. 60). Its basis, DS5202, is not shipped.
+- **Lands not from the vendor:**
+  - The SF32 land is 0.25 mm wide against a 0.20 mm maximum lead width (p. 58).
+  - The GD32E230 uses KiCad's generic TSSOP-20 instead of GigaDevice's land (p. 90).
+- **The CH32V203 datasheet's page 1 says "VDD 2.4~6V".** The absolute maximum is 4.0 V and the operating range 2.4–3.6 V (pp. 38–39). The library is right; the note warns agents.
+- **The package application notes overstate their sources:**
+  - CH32V203: with USB, VDD must be 3.0–3.6 V.
+  - GD32F303: tying VBAT to VDD is not in the datasheet.
+  - CH32V003: NRST behaviour.
+- **`connectors` README gives the Pico SWD order as SWCLK/SWDIO/GND.** The Pico schematic has SWCLK, GND, SWDIO (p. 26). The library and `examples/rpi-pico2` are right.
+- **Contact 1 is a library convention on two connectors.**
+  - The magnetic 4-pin's P1 may sit next to the N magnet rather than S (p. 3). It should be checked on a physical part.
+  - On the FH12, contact 1 rests on an unlabelled ▽ mark (p. 4).
+- **No 5 V-tolerance marking on any MCU GPIO.** This is a library limitation.

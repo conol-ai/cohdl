@@ -39,9 +39,10 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTES = ROOT / "docs/part-notes"
 LIB = ROOT / "lib"
 CITED = ("Key parameters", "Absolute maximum ratings", "Recommended operating conditions", "Pins")
-# Pads are numbers (1, 14) or contact names (A1, B12, SH1).
+# Pads are numbers (1, 14), contact names (A1, B12, SH1), an exposed pad (EP)
+# or a connector's mechanical pads (MP).
 PIN = re.compile(r"^\s*(?:required|optional)\s+(\w+)\s*:\s*([A-Za-z0-9_,\s]+?)\s*\[", re.M)
-PAD = re.compile(r"\b(?:[A-Z]{0,3}\d+|EP)\b")
+PAD = re.compile(r"\b(?:[A-Z]{0,3}\d+|EP|MP)\b")
 
 
 def package_dirs() -> dict[str, Path]:

@@ -135,20 +135,25 @@ and 7 are IO2/IO3 and /HOLD, /RESET are unavailable (ds p. 16, p. 81). XH is a s
 
 ## Not established by the sources
 
-- **Footprint does not match the XH drawing.** In the Winbond package the terminals sit on the
+- **flash ≤0.2.x: footprint does not match the XH drawing; fixed in flash 0.3.0 (PR #93).** In the Winbond package the terminals sit on the
   2 mm edges and the two terminal rows are 3 mm apart: E/2 = E2/2 + K + L = 0.10 + 0.95 + 0.45 =
-  1.50 mm, so terminal centres are ±1.275 mm from the centre line (ds p. 78). The library land
+  1.50 mm, so terminal centres are ±1.275 mm from the centre line (ds p. 78). The flash ≤0.2.x land
   `qfn::QFN8N50P200X300_1EP61X220` is KiCad's generic DFN-8 2 x 3 mm, whose pad rows are at
   ±0.94 mm (0.87 x 0.25 mm pads spanning 0.505–1.375 mm). Each 1.05–1.50 mm terminal overlaps
-  its land by only 0.325 mm and overhangs its outer end by 0.125 mm. The library 0.61 x 2.2 mm
+  its land by only 0.325 mm and overhangs its outer end by 0.125 mm. The ≤0.2.x 0.61 x 2.2 mm
   centre land is longer than the 2.0 mm body edge it runs along, against a 0.20 x 1.60 mm
-  centre metal. The README and footprint comments flag the land as generic, but not that the
-  row spacing differs. This needs a footprint review before fabrication.
+  centre metal. The ≤0.2.x README and footprint comments flag the land as generic, but not that
+  the row spacing differs. flash 0.3.0 moves the part to a package-local land,
+  `flash::FP_W25Q32RV_XSON8_2X3`: 0.85 x 0.25 mm lands at x = ±1.375 mm (0.95–1.80 mm from
+  centre), a 0.20 x 1.60 mm pad 9, pin 1 top-left and pad numbers unchanged. Winbond gives no
+  land pattern, so its heel and toe margins are the library's choice and still need assembly
+  validation.
 - Pin 1 location: Figure 1b (ds p. 6) is a shared top view for XSON, WSON and USON; the XH drawing
   marks a "PIN 1 INDENT" on top and on the centre strip (ds p. 78) but numbers no terminals.
-- Footprint citation: the footprint comment in `lib/qfn/src/footprints.cohdl` cites
+- Footprint citation (flash ≤0.2.x): the footprint comment in `lib/qfn/src/footprints.cohdl` cites
   `w25q32rv rev.e 05152024 plus.pdf`, while the package README and this PDF are Revision E of
-  2025-11-13 (ds p. 1, p. 83). The revision history lists no 2024-05-15 release (ds p. 83).
+  2025-11-13 (ds p. 1, p. 83). The revision history lists no 2024-05-15 release (ds p. 83). The
+  flash 0.3.0 footprint comment cites Revision E of 2025-11-13.
 - Hardware /RESET on 8-pin parts: the feature list says a hardware /RESET pin exists only on SOP-16
   and TFBGA (ds p. 5), but p. 7 and p. 17 describe IO3 as /HOLD or /RESET on 8-pin packages when
   QE = 0, and p. 10 names "WSON-8 and TFBGA". Irrelevant for -JQ (QE = 1), but contradictory.

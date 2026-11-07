@@ -129,7 +129,7 @@ TQFN top view (ds p. 15): pins 1–4 along the bottom left to right, 5–8 up th
 
 ## Pitfalls
 
-- **SD_MODE left open means shutdown.** SD_MODE has an internal 100 kΩ pull-down (ds p. 7) and below B0 the part is shut down (Table 5, ds p. 17). The library declares `SD_MODE` optional, so a design can leave it open and get no sound.
+- **SD_MODE left open means shutdown.** SD_MODE has an internal 100 kΩ pull-down (ds p. 7) and below B0 the part is shut down (Table 5, ds p. 17). Always drive or bias it. @contrib/audio-amp ≤0.1.x declares `SD_MODE` `optional`, so a design can leave it open and get no sound; fixed in 0.2.0 (PR #96), which declares it `required`.
 - GAIN_SLOT open is a valid setting (9 dB), but its trip band is 0.4–0.6 × VDD (ds p. 7); leakage or noise on a long open trace can shift it.
 - The left channel is LRCLK low on MAX98357A (Table 3, ds p. 16). Do not swap in MAX98357B, which uses left-justified data and LRCLK high for left (ds p. 16).
 - Do not remove LRCLK while BCLK runs: the output can show a large DC voltage (ds p. 16).
@@ -137,7 +137,7 @@ TQFN top view (ds p. 15): pins 1–4 along the bottom left to right, 5–8 up th
 
 ## Not established by the sources
 
-- **SD_MODE optionality:** see Pitfalls. The library comment "shutdown + channel select" is correct, but `optional` lets the pin float, which the source defines as shutdown (ds p. 7, p. 17).
+- **@contrib/audio-amp ≤0.1.x: SD_MODE optionality; fixed in 0.2.0 (PR #96).** See Pitfalls. The ≤0.1.x comment "shutdown + channel select" is correct, but `optional` lets the pin float, which the source defines as shutdown (ds p. 7, p. 17). 0.2.0 makes the pin `required` and gives the Table 5/6 channel select in its comment.
 - **Land pattern:** the shipped datasheet points to 90-0031 for the land (ds p. 35) but does not reproduce it. The library's 0.80 × 0.30 mm leads, 2.85 mm row pitch and 1.23 mm centre land are taken from 90-0031, which is not in the repository; only their consistency with the outline (ds p. 37) is checked here.
 - **Operating temperature placement:** −40 to +85 °C is listed among the absolute maximum ratings (ds p. 4); the source has no separate recommended-conditions table.
 - **Thermal vias** in the exposed pad: not specified.

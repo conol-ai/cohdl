@@ -144,7 +144,7 @@ The library mostly uses the AT names; LuatOS names are given after the slash. Pa
 | 106 | GPIO25 | GPIO25 (AT: float) | bidirectional | GPIO25, AON | hw p. 18 |
 | 107 | GPIO21 | GPIO21 (AT: float) | bidirectional | GPIO21, AON or interrupt input | hw p. 18 |
 
-Pin view (hw p. 13 AT, hw p. 16 LuatOS; "管脚透视图", seen from the top through the module): pin 1 at the top-left next to the chamfered corner; pins 1–13 down the left side, 14–22 along the bottom left to right (95 at the bottom-left corner, 96 at the bottom-right), 23–35 up the right side (35 = LTE_ANT at the top-right), 36–44 along the top right to left (97 top-right, 98 top-left). **The library footprint is the mirror image of this; see "Not established".** The pad-to-pin assignments in the device agree with hw pp. 13–18.
+Pin view (hw p. 13 AT, hw p. 16 LuatOS; "管脚透视图", seen from the top through the module): pin 1 at the top-left next to the chamfered corner; pins 1–13 down the left side, 14–22 along the bottom left to right (95 at the bottom-left corner, 96 at the bottom-right), 23–35 up the right side (35 = LTE_ANT at the top-right), 36–44 along the top right to left (97 top-right, 98 top-left). **In cellular ≤0.1.x the library footprint is the mirror image of this; fixed in cellular 0.2.0 (PR #88). See "Not established".** The pad-to-pin assignments in the device agree with hw pp. 13–18.
 
 ## Typical application
 
@@ -171,7 +171,7 @@ Recommended PCB footprint (hw p. 20, top view, mm), confirmed by the PADS decal:
 
 ## Pitfalls
 
-- **Do not use `FP_Luat_AIR780E_LGA109_177x158mm` as it is.** It is mirrored top to bottom (see "Not established"); the module cannot be placed on it in any rotation.
+- **Do not use `FP_Luat_AIR780E_LGA109_177x158mm` from cellular ≤0.1.x.** That version is mirrored top to bottom (see "Not established"); the module cannot be placed on it in any rotation. Use cellular 0.2.0 or later (PR #88), which keeps the footprint name and pin numbers, so a design moving from 0.1.x still checks and builds but must re-route the module.
 - Pads 28/51 and 29/53 are the same two signals on two pads each (UART2 RX/TX and SPI MISO/CLK); use only one pad of each pair (hw p. 17, p. 18).
 - GPIO4/5/6 (pads 80, 81, 55) are tied inside to the SIM2 pins with pull-ups; prefer other GPIOs (gpio p. 2, note 16).
 - Normal GPIOs lose power in sleep and pulse high when the module wakes briefly for the network (gpio p. 1, note 9). Only AON GPIOs hold their level in low-power and PSM+ modes (hw p. 8; gpio p. 1, note 1).
@@ -182,16 +182,16 @@ Recommended PCB footprint (hw p. 20, top view, mm), confirmed by the PADS decal:
 
 ## Not established by the sources
 
-- **The library land is mirrored (most serious).** `FP_Luat_AIR780E_LGA109_177x158mm` copies all 109 PADS decal coordinates unchanged (checked pad by pad: decal x, y ÷ 1.5 × 10⁶ equals the library x, y for every pad). The decal is in PADS's +y-up frame: pin 1 at (−7.25, +6.6) mm next to the outline chamfer at the +y, −x corner. CoHDL's footprint frame is +y down (`docs/kicad_pcb.md`, "Coordinate frame and placement"). So the library puts pin 1 at the lower-left, numbers the pins clockwise seen from the top, puts 107–109 and the ±3.5 mm inner row in the top half, and puts 99 at the bottom of the left inner column. The manual's pin view (hw p. 13, p. 16) and its recommended footprint (hw p. 20, "正视图", top view) both show pin 1 at the top-left by the chamfer, counter-clockwise numbering, 107–109 and the ±3.5 mm row in the bottom half, and 99 at the top of the left inner column. Negating every library y coordinate would match hw p. 20. `CELL_AIR780EG` uses the same footprint and so has the same fault. No example in the repository uses either part.
-- **Pad shapes differ from the decal and from hw p. 20:**
-  - Pads 89–94: the library uses 1.3 mm circles and its comment reads the decal's `S` as round; in PADS `S` is square, and hw p. 20 draws 1.30 mm squares.
-  - Pads 54–58, 68–72, 101, 102 and 105–109: the decal stack is 0.7 × 1.0 mm rotated 90° (long axis along y), and hw p. 20 draws them upright; the library uses 1.0 (x) × 0.7 (y) mm, turned 90°.
-  - Pads 95–98: the decal stack is 0.6 × 1.3 mm at 90°, like the rest of the short-side rows, and hw p. 20 draws them the same; the library uses the 1.0 × 0.7 mm inner pad.
-- **The README's padstack warning is wrong in detail.** It says the decal uses "per-pin padstack lengths of ~1.1-2.1 mm"; the decal's copper (layer −2) is 1.3, 1.0 and 1.3 mm, and the 1.5–2.1 mm figures are on its mask and paste layers 121 and 123 (decal p. 1).
+- **cellular ≤0.1.x: the library land is mirrored (most serious); fixed in cellular 0.2.0 (PR #88).** In ≤0.1.x, `FP_Luat_AIR780E_LGA109_177x158mm` copies all 109 PADS decal coordinates unchanged (checked pad by pad: decal x, y ÷ 1.5 × 10⁶ equals the library x, y for every pad). The decal is in PADS's +y-up frame: pin 1 at (−7.25, +6.6) mm next to the outline chamfer at the +y, −x corner. CoHDL's footprint frame is +y down (`docs/kicad_pcb.md`, "Coordinate frame and placement"). So the library puts pin 1 at the lower-left, numbers the pins clockwise seen from the top, puts 107–109 and the ±3.5 mm inner row in the top half, and puts 99 at the bottom of the left inner column. The manual's pin view (hw p. 13, p. 16) and its recommended footprint (hw p. 20, "正视图", top view) both show pin 1 at the top-left by the chamfer, counter-clockwise numbering, 107–109 and the ±3.5 mm row in the bottom half, and 99 at the top of the left inner column. Negating every library y coordinate would match hw p. 20. `CELL_AIR780EG` uses the same footprint and so has the same fault. No example in the repository uses either part. cellular 0.2.0 regenerates every pad from the decal with y negated.
+- **cellular ≤0.1.x: pad shapes differ from the decal and from hw p. 20; fixed in cellular 0.2.0 (PR #88), which uses the decal's top-copper stacks:**
+  - Pads 89–94: ≤0.1.x uses 1.3 mm circles and its comment reads the decal's `S` as round; in PADS `S` is square, and hw p. 20 draws 1.30 mm squares.
+  - Pads 54–58, 68–72, 101, 102 and 105–109: the decal stack is 0.7 × 1.0 mm rotated 90° (long axis along y), and hw p. 20 draws them upright; ≤0.1.x uses 1.0 (x) × 0.7 (y) mm, turned 90°.
+  - Pads 95–98: the decal stack is 0.6 × 1.3 mm at 90°, like the rest of the short-side rows, and hw p. 20 draws them the same; ≤0.1.x uses the 1.0 × 0.7 mm inner pad.
+- **cellular ≤0.1.x: the README's padstack warning is wrong in detail; rewritten in cellular 0.2.0 (PR #88).** The ≤0.1.x README says the decal uses "per-pin padstack lengths of ~1.1-2.1 mm"; the decal's copper (layer −2) is 1.3, 1.0 and 1.3 mm, and the 1.5–2.1 mm figures are on its mask and paste layers 121 and 123 (decal p. 1).
 - **Supply design is not in the pinned sources.** No peak or burst current, no VBAT capacitance, no ripple or drop limit for VBAT, no PWRKEY circuit or timing beyond "low for 1.5 s" (hw p. 14), and no power-off sequence. All are delegated to web pages (hw p. 15, p. 19). The README's VBAT 100 µF polymer-tantalum requirement ("design note §13.2") and the `t520.cohdl` comments cite a design note that is not in the repository. The 1.5 A peak quoted in `air780eg-hw.evidence.md` is for Air780EG, not Air780E.
 - **Whether PWRKEY may be held low permanently for auto power-on**, and whether it has an internal pull-up, is not stated (hw p. 14, p. 17).
 - **Antenna matching and RF layout** for LTE_ANT are not in the pinned sources (hw p. 15, p. 19).
-- **Library comment on GPIO7 (pad 56):** "internally tied to SIM2, has pull-up". The GPIO table's note 16 names only pads 80, 81 and 55 (gpio p. 2).
+- **cellular ≤0.1.x: library comment on GPIO7 (pad 56)** reads "internally tied to SIM2, has pull-up". The GPIO table's note 16 names only pads 80, 81 and 55 (gpio p. 2). cellular 0.2.0 (PR #88) drops the claim.
 - **GPIO numbers in the source collide:** the GPIO table gives GPIO19 for both MAIN_TXD (pad 18) and an alternate of I2S_MCLK (pad 26), and GPIO18 for both MAIN_RXD (pad 17) and an alternate of I2S_DOUT (pad 33) (gpio p. 1). The library repeats these in comments on `PWM0` and `PWM4` without comment.
 - **Temperature range:** "-40°C ~ +85°C" is given without saying whether it is operating or storage (hw p. 5).
 - **Absolute maximum ratings, ESD ratings and RF conducted power limits** are not given.

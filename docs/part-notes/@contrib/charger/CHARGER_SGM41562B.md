@@ -145,9 +145,9 @@ Checked by hand against the rendered Pin Configuration (ds p. 3): each library b
 
 Disagreements between the library and the source:
 
-- **"Standalone defaults" comment.** The device comment on SDA/SCL says "Optional: the charger runs on standalone defaults without a host (p1 feature set)". The source says the power-on default is CEB = 1, charge disabled, and that the battery is not charged after a reset (ds p. 17, p. 20). The p. 1 feature "Fully Autonomous Charger" does not override this. SDA and SCL are marked `optional`, so a design without I²C passes the library's checks but never charges the battery.
+- **@contrib/charger ≤0.1.x: "standalone defaults" comment; fixed in 0.2.0 (PR #97).** The ≤0.1.x device comment on SDA/SCL says "Optional: the charger runs on standalone defaults without a host (p1 feature set)". The source says the power-on default is CEB = 1, charge disabled, and that the battery is not charged after a reset (ds p. 17, p. 20). The p. 1 feature "Fully Autonomous Charger" does not override this. SDA and SCL are marked `optional` in ≤0.1.x, so a design without I²C passes the library's checks but never charges the battery. 0.2.0 marks both `required` and its comment states the CEB = 1 default and the watchdog behaviour.
 - **nINT output type.** The source types nINT as DIO and does not say whether the output is open-drain or push-pull, or whether it needs a pull-up (ds p. 3, p. 18). Figure 13 shows no pull-up (ds p. 31). The library types it `bidirectional`, which is consistent but does not settle the question.
-- **VDD capacitor.** The library comment cites the 0.1 µF minimum (ds p. 3); the application circuit and BOM use 1 µF (ds p. 1, p. 31).
+- **VDD capacitor.** The @contrib/charger ≤0.1.x comment cites only the 0.1 µF minimum (ds p. 3); the application circuit and BOM use 1 µF (ds p. 1, p. 31). 0.2.0 (PR #97) gives both.
 - **Land diameter.** The library uses a 0.26 mm midpoint of the 0.250–0.275 mm range; the source gives no nominal (ds p. 32). The comment's "vector-measured drawn pads: 0.267 mm" is not a value the source states.
 - **Courtyard.** The 2.0 mm square courtyard is the library's choice; the source prints none.
 

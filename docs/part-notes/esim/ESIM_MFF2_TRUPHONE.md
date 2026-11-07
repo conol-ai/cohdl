@@ -22,7 +22,7 @@ Page numbers are 1-based PDF page indices. The printed footer number is one less
 
 **No manufacturer URL.** The URL is LCSC's mirror, from `lib/esim/docs/README.md`. Neither the README nor the PDF gives a Truphone document URL. The document is marked "Confidential" (ds p. 2).
 
-**Warning: the library's pin numbers disagree with the source on every pad, and the footprint's pad order matches no orientation of the part.** However the part is turned on the footprint, the eUICC's I/O pin is not on the library's `IO` net, so the SIM cannot work. In one orientation the eUICC also gets no supply and its I/O is shorted to ground. See "Pins", "Placement as drawn" and the first items under "Not established by the sources". Do not use `ESIM_MFF2_TRUPHONE` on a board until the device and footprint are fixed.
+**Library history: esim ≤0.1.x had the wrong pin map and footprint numbering; fixed in esim 0.2.0 (PR #87).** In 0.1.x the device's pin numbers disagreed with the source on every pad and no orientation of the part fitted the footprint, so the eUICC's I/O never reached the library's `IO` net. 0.2.0 declares the source's pin map and numbers the footprint as the source's top view. This note describes 0.2.0. A board built with esim 0.1.x does not work; see "Library history".
 
 ## Summary
 
@@ -60,40 +60,26 @@ The source is a product sheet; it gives no electrical characteristics table with
 
 ## Pins
 
-The "Library pin" column is what `esim::ESIM_MFF2` declares for each pad number. The "Datasheet name" column is what Figure 1 (VFDFPN8 pinout, top view) and Table 1 assign to that pin number (ds p. 5). **No pad agrees.**
+The "Library pin" column is what `esim::ESIM_MFF2` (esim 0.2.0) declares for each pad number. The "Datasheet name" column is what Figure 1 (VFDFPN8 pinout, top view) and Table 1 assign to that pin number (ds p. 5).
 
 | Pad | Library pin | Datasheet name | Direction | Function | Source |
 |---|---|---|---|---|---|
-| 1 | VCC | GND | Ground | Ground supply | ds p. 5 |
-| 2 | RST | SWIO | Input, pull-up | Not used | ds p. 5 |
-| 3 | CLK | I/O | Bidirectional | Data; pull-down, then pull-up after card activation | ds p. 5 |
-| 4 | IO | NC | — | Not connected internally | ds p. 5 |
-| 5 | GND | NC | — | Not connected internally | ds p. 5 |
-| 6 | NC6 | CLK | Input, pull-down | External clock | ds p. 5 |
-| 7 | NC7 | RESET (active low) | Input, pull-down | External reset | ds p. 5 |
-| 8 | NC8 | VCC | Power | Power supply | ds p. 5 |
+| 1 | GND | GND | Ground | Ground supply | ds p. 5 |
+| 2 | SWIO | SWIO | Input, pull-up | Not used | ds p. 5 |
+| 3 | IO | I/O | Bidirectional | Data; pull-down, then pull-up after card activation | ds p. 5 |
+| 4 | NC4 | NC | — | Not connected internally | ds p. 5 |
+| 5 | NC5 | NC | — | Not connected internally | ds p. 5 |
+| 6 | CLK | CLK | Input, pull-down | External clock | ds p. 5 |
+| 7 | RST | RESET (active low) | Input, pull-down | External reset | ds p. 5 |
+| 8 | VCC | VCC | Power | Power supply | ds p. 5 |
 
-Pad positions do not follow the source either. Figure 1 numbers the contacts 1–4 down the left side and 5–8 up the right side, so pin 8 is opposite pin 1 and pin 5 opposite pin 4 (ds p. 5). `FP_ESIM_MFF2_5x6mm` puts pads 1–4 left to right in one row and pads 5–8 left to right in the other, so pad 5 is opposite pad 1. No rotation or mirror of the source's top view gives that order.
+Figure 1 numbers the contacts 1–4 down the left side and 5–8 up the right side, so pin 8 is opposite pin 1 and pin 5 opposite pin 4 (ds p. 5). `FP_ESIM_MFF2_5x6mm` in 0.2.0 follows that top view: pad 1 at the top left with the pin-1 dot, pads 1–4 down the left column, pads 5–8 up the right column. `SWIO`, `NC4` and `NC5` are optional pins.
 
-## Placement as drawn
+## Library history
 
-What a board built from the library connects. The contact rows run along the footprint's x axis, so the part's two columns of four (Figure 1, ds p. 5) must lie along the rows. Turning the source's top view a quarter turn gives only two such placements, and neither puts pin 1 at the footprint's pin-1 dot (pad 1):
+esim ≤0.1.x declared `VCC: 1`, `RST: 2`, `CLK: 3`, `IO: 4`, `GND: 5`, `NC6: 6`, `NC7: 7`, `NC8: 8`, which matched no pad of the source's map. Its `FP_ESIM_MFF2_5x6mm` put pads 1–4 left to right in one row and pads 5–8 left to right in the other, so pad 5 was opposite pad 1, and no rotation or mirror of the source's top view gave that order (ds p. 5). In the closest placement (part pin 8 on pad 1) VCC, RST, CLK and GND reached the right part pins, but the library's `IO` (pad 4) reached a no-connect pin and the part's I/O sat on pad 7, which 0.1.x called `NC7`. In the other placement the eUICC got no supply and the modem's data line was shorted to its ground. Either way the SIM did not work.
 
-- **A:** part pins 8, 7, 6, 5 on pads 1–4 and pins 1, 2, 3, 4 on pads 5–8 (pin 1 on pad 5).
-- **B:** part pins 4, 3, 2, 1 on pads 1–4 and pins 5, 6, 7, 8 on pads 5–8 (pin 1 on pad 4).
-
-| Library pad and net | Placement A: part pin reached | Placement B: part pin reached |
-|---|---|---|
-| 1 VCC | 8 VCC | 4 NC: no supply to the eUICC |
-| 2 RST | 7 RESET | 3 I/O: reset line drives data |
-| 3 CLK | 6 CLK | 2 SWIO (unused) |
-| 4 IO | 5 NC: modem data line goes nowhere | 1 GND: modem data line shorted to the eUICC's ground |
-| 5 GND | 1 GND | 5 NC: eUICC ground open |
-| 6 NC6 | 2 SWIO (unused) | 6 CLK: clock floating |
-| 7 NC7 | 3 I/O: the eUICC's data pin is left open | 7 RESET: floating (internal pull-down) |
-| 8 NC8 | 4 NC | 8 VCC: supply pin open |
-
-Placement A gets supply, ground, reset and clock right; only I/O is wrong (library `IO` on pad 4, the part's I/O on pad 7). It also puts the part's pin 1 on pad 5, away from the silkscreen dot, so an assembler following the dot cannot reach it. Placement B is wrong on every functional pin.
+Fixed in esim 0.2.0 (PR #87): the pin map in "Pins", counter-clockwise pad numbering, the land turned a quarter turn (columns along y, courtyard 5.6 × 6.6 mm), `#[doc]` pointing at the PDF, and the supply comment listing class A 5 V. A design on 0.1.x must update to 0.2.0, re-check its `place` rotation for the turned land, and regenerate the board.
 
 ## Typical application
 
@@ -105,27 +91,20 @@ Placement A gets supply, ground, reset and clock right; only I/O is wrong (libra
 ## Layout notes
 
 - The source gives only the package size (5 × 6 × 1.27 mm, ds p. 2), the pinout (ds p. 5), and that the package is compatible with the MFF2 package of ETSI 102 671 release 12 (ds p. 5). It calls the package VFDFPN8 (ds p. 5) and DFN8 (MFF2) (ds p. 3).
-- It gives no contact size, pitch, row spacing, land pattern, exposed pad or paste data. The library's 0.8 × 0.8 mm pads, 1.3 mm pitch and 3.2 mm row spacing come from elsewhere.
+- It gives no contact size, pitch, row spacing, land pattern, exposed pad or paste data. The library's 0.8 × 0.8 mm pads, 1.3 mm pitch and 3.2 mm column spacing come from elsewhere; esim 0.2.0 carried them over from 0.1.x unchanged and its README says so.
 
 ## Pitfalls
 
-- Do not wire to the library pin names; see the warning and "Pins". Wire from Figure 1 and Table 1 (ds p. 5).
+- Use esim 0.2.0 or later. With esim ≤0.1.x the library pin names do not match the part; see "Library history".
 - RESET is active low (overbar in Figure 1 and Table 1, ds p. 5). Its internal pull-down holds the card in reset if left open.
 - The plain SKU has "Low Power Support: No" (ds p. 2). If the design relies on PSM/eDRX power saving at the SIM, check whether the -LP SKU is needed. The source lists "Power saving features (PSM, eDRX)" among its software features without saying which SKUs have them (ds p. 1, p. 4).
 - The extended range −40 °C to +105 °C is stated for MFF2 (ds p. 3). The 4FF formats are −25 °C to +85 °C (ds p. 3).
 
 ## Not established by the sources
 
-Disagreements between the library and the source, most serious first:
+Open points between the library (esim 0.2.0) and the source:
 
-- **Pin map.** The device declares `VCC: 1`, `RST: 2`, `CLK: 3`, `IO: 4`, `GND: 5`, `NC6: 6`, `NC7: 7`, `NC8: 8`. The source gives 1 GND, 2 SWIO, 3 I/O, 4 NC, 5 NC, 6 CLK, 7 RESET (active low), 8 VCC (ds p. 5). By number, no pad matches.
-- **Footprint pad numbering.** `FP_ESIM_MFF2_5x6mm` numbers the second row 5–8 in the same direction as the first, so pad 5 is opposite pad 1. The source's top view puts pin 8 opposite pin 1 (ds p. 5). No orientation of the part matches the footprint's numbering, and the pin-1 dot cannot coincide with the part's pin 1 (see "Placement as drawn").
-- **I/O on the wrong pad in every placement.** In the closest placement (A), VCC, RST, CLK and GND reach the right part pins, but the library's `IO` (pad 4) reaches a no-connect pin and the part's I/O sits on pad 7, which the library calls `NC7`. In placement B the eUICC gets no supply and the data line is shorted to its ground. Either way the SIM does not work. Fixing the names alone is not enough; the footprint numbering and the pin-1 marker must change with them.
-- **The README and part comment say the source cannot settle the pinout.** `docs/README.md` says "pin numbers above are this library's logical map; verify contact assignment against the bound eUICC's datasheet", and that the Truphone document "describes the SIM product..., not a mechanical MFF2 package drawing". The shipped PDF has a full pinout and pin table on its last page (ds p. 5).
-- **Documentation link.** Both `#[doc]` attributes point at `docs/README.md`, not the PDF.
-- **Land pattern.** Contact size (0.8 × 0.8 mm), pitch (1.3 mm), row spacing (3.2 mm) and the absence of a centre pad are not in the source (ds pp. 1–5). Which body side (5 mm or 6 mm) the contact rows run along is not in the source either.
-- **Supply comment.** The library says "supply 1.8/3.0V". The source also lists class A, 5 V (ds p. 3).
-- **Pin types.** `RST` is typed `input` and `IO` `bidirectional`, which fit the source's RESET and I/O, but on the wrong pads. SWIO has no library pin at all.
+- **Land pattern.** Contact size (0.8 × 0.8 mm), pitch (1.3 mm), column spacing (3.2 mm) and the absence of a centre pad are not in the source (ds pp. 1–5). Which body side (5 mm or 6 mm) the contact columns run along is not in the source either; 0.2.0 runs them along the 6 mm side. The library README says the land must be checked against the ETSI TS 102 671 MFF2 drawing or ST's VFDFPN8 drawing before fabrication.
 - **Figure 2's part name.** Figure 2 is titled "ST4SIM-200M PCB integration recommendations", an ST part name, not the Truphone SKU (ds p. 5). Its pin names match Figure 1.
 
 Not stated by the source:

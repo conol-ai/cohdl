@@ -239,8 +239,9 @@ const QUARANTINE: &[(&str, &str, &str, &str)] = &[];
 /// footprint origin, plus the 0.25 mm IPC-7351B nominal-density clearance.
 /// Two groups use it: courtyards that A1b/A1c redrew from the pad envelope,
 /// and the W4 package-family lands (`sod`, `sot`, `do214`), whose bodies are
-/// the maximum component envelope (lead tip to lead tip by body width) in
-/// the footprint's own frame. Body sizes are maxima where the source gives a
+/// the maximum component envelope (lead tip to lead tip by body width; for
+/// SOT-89 and SOT-223, tab tip to lead tip by body length) in the
+/// footprint's own frame. Body sizes are maxima where the source gives a
 /// tolerance.
 const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     (
@@ -347,6 +348,34 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
         1.70,
         0.90,
         "Hongjiacheng 1N4148WT Rev 2.0 p3, C x E max",
+    ),
+    (
+        "do214",
+        "FP_DO221AC_SMAF",
+        4.90,
+        2.70,
+        "Hongjiacheng SS22F-SS220F Rev 2.0 p3, D x C max",
+    ),
+    (
+        "sot",
+        "SOT3P150X450X250N",
+        4.10,
+        4.60,
+        "Hongjiacheng D882 Rev 2.0 p3, C x A max, turned onto the assembler frame",
+    ),
+    (
+        "sot",
+        "SOT3P130X200X125N",
+        2.45,
+        2.20,
+        "Hongjiacheng 2N7002W Rev 2.0 p5, E1 x D max, turned onto the assembler frame",
+    ),
+    (
+        "sot",
+        "SOT4P230X651X351N",
+        7.29,
+        6.71,
+        "AMS1117 p7, tab tip to lead tip x body length max, turned onto the assembler frame",
     ),
 ];
 
@@ -918,21 +947,23 @@ mod tests {
         );
     }
 
-    /// Audit the shipped `do214` source with one footprint's courtyard
+    /// Audit one shipped W4 package's source with one footprint's courtyard
     /// redrawn round its pads alone. The fixture is the shipped package with
-    /// one textual change, so every other `do214` entry in
+    /// one textual change, so every other entry for that package in
     /// `COURTYARD_BODIES` still names a declared footprint.
-    fn do214_pads_only_courtyard_message(courtyard: &str, pads_only: &str) -> String {
+    fn pads_only_courtyard_message(package: &str, courtyard: &str, pads_only: &str) -> String {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-        let shipped = std::fs::read_to_string(root.join("lib/do214/src/footprints.cohdl")).unwrap();
-        audit_package("do214", "0.1.0", &world_in("do214", &shipped));
+        let shipped =
+            std::fs::read_to_string(root.join("lib").join(package).join("src/footprints.cohdl"))
+                .unwrap();
+        audit_package(package, "0.1.0", &world_in(package, &shipped));
         assert_eq!(
             shipped.matches(courtyard).count(),
             1,
-            "`{courtyard}` must match the shipped do214 source exactly once"
+            "`{courtyard}` must match the shipped {package} source exactly once"
         );
-        let pads_only = world_in("do214", &shipped.replacen(courtyard, pads_only, 1));
-        let message = std::panic::catch_unwind(|| audit_package("do214", "0.1.0", &pads_only))
+        let pads_only = world_in(package, &shipped.replacen(courtyard, pads_only, 1));
+        let message = std::panic::catch_unwind(|| audit_package(package, "0.1.0", &pads_only))
             .expect_err("a courtyard drawn round the pads alone passed");
         message
             .downcast_ref::<String>()
@@ -945,7 +976,8 @@ mod tests {
         // The SMA copper is 6.50 x 1.70 mm, but the 5.30 x 2.85 mm component
         // envelope needs a 3.35 mm courtyard height: a courtyard drawn round
         // the pads alone passes the pad check and must still fail.
-        let message = do214_pads_only_courtyard_message("size: (7mm, 3.4mm)", "size: (7mm, 2.2mm)");
+        let message =
+            pads_only_courtyard_message("do214", "size: (7mm, 3.4mm)", "size: (7mm, 2.2mm)");
         assert!(
             message.contains("DIOM5026X241N")
                 && message.contains("5.3 x 2.85 mm body")
@@ -961,11 +993,28 @@ mod tests {
         // envelope needs a 6.72 mm courtyard height: a courtyard drawn round
         // the pads alone passes the pad check and must still fail.
         let message =
-            do214_pads_only_courtyard_message("size: (9.9mm, 6.8mm)", "size: (9.9mm, 3.8mm)");
+            pads_only_courtyard_message("do214", "size: (9.9mm, 6.8mm)", "size: (9.9mm, 3.8mm)");
         assert!(
             message.contains("DIOM7959X261N")
                 && message.contains("8.13 x 6.22 mm body")
                 && message.contains("short by 1.460 mm")
+                && !message.contains("courtyard overflow"),
+            "{message}"
+        );
+    }
+
+    #[test]
+    fn w4_wave3_sot89_courtyard_must_contain_the_body_not_only_the_pads() {
+        // The SOT-89 copper is 4.53 x 3.58 mm, but the 4.60 mm body length
+        // runs along y and needs a 5.10 mm courtyard height: a courtyard
+        // drawn round the pads alone passes the pad check and must still
+        // fail.
+        let message =
+            pads_only_courtyard_message("sot", "size: (5.1mm, 5.2mm)", "size: (5.1mm, 4.1mm)");
+        assert!(
+            message.contains("SOT3P150X450X250N")
+                && message.contains("4.1 x 4.6 mm body")
+                && message.contains("short by 0.500 mm")
                 && !message.contains("courtyard overflow"),
             "{message}"
         );

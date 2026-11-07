@@ -1,4 +1,4 @@
-// SOT land patterns (library plan W4, item 3c wave 1).
+// SOT land patterns (library plan W4, item 3c, waves 1 and 3).
 //
 // Frame convention: CoHDL's board frame (+x right, +y DOWN, top view),
 // origin at the package centre. SOT-23-3 lands are authored on the frame of
@@ -9,10 +9,25 @@
 // at -x. Numbering stays counter-clockwise 1-2-3 seen from the top; the
 // mirrored arrangement (pin 1 at -y) would swap pins 1 and 2 on the board.
 //
+// Every SOT land here uses that same turn of the datasheet top view: a
+// datasheet point (x, y) is placed at (y, -x). The edge that carries pin 1
+// (the lead row of SOT-89 and SOT-223, pins 1 and 2 of SOT-323) faces +x with
+// pin 1 at +y, and the opposite edge (pin 3 of SOT-323, the tab of SOT-89
+// and SOT-223) faces -x. Pads are declared in the datasheet's top-view
+// orientation and placed `rotate 270`.
+//
+// Tab numbering: a tab that is one piece of metal with a lead takes that
+// lead's number; a tab that is a separate terminal takes the next number.
+// The SOT-89 tab is the centre lead's own frame (pin 2), so its land is a
+// second placement of pad 2; the SOT-223 tab is a fourth terminal on the
+// opposite edge, so it is pad 4 and a device maps it explicitly (for
+// example AMS1117's `VOUT: 2, 4`). See docs/README.md.
+//
 // Names follow RFC-021's checked template SOT{pins}P{pitch}X{bodyX}X{bodyY}N.
-// The checker reads the pitch as the closest distance between distinct pad
-// numbers, which on SOT-23-3 is pins 1-2 at 1.90mm (not the 0.95mm lead
-// pitch), so the name reads P190 (E809).
+// The checker reads the pins as the distinct pad numbers and the pitch as
+// the closest distance between distinct pad numbers, which on SOT-23-3 is
+// pins 1-2 at 1.90mm (not the 0.95mm lead pitch), so the name reads P190
+// (E809).
 
 // SOT-23-3 (TO-236AB). Primary source: Zhuhai Hongjiacheng MMBT5551
 // datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
@@ -53,4 +68,147 @@ pub footprint SOT3P190X290X130N {
     // excess on every side.
     courtyard { shape: rect, at: (0mm, 0mm), size: (3.4mm, 3.6mm) }
     silkscreen_ref { at: (0mm, -2.5mm) }
+}
+
+// SOT-89-3 (TO-243AA). Primary source: Zhuhai Hongjiacheng D882 datasheet
+// Rev 2.0, page 3 (evidence record docs/hongjiacheng-d882.evidence.md). Its
+// "Suggested Pad Layout" cannot be placed on its own outline: lead lands
+// d (1.30-1.50mm long) and an octagonal tab land Y (4.30-4.50mm) separated
+// by a gap J (1.80-2.00mm) stack to at least 7.4mm against the 3.90-4.10mm
+// package (C), leaving no copper joining lead 2 to the tab. The land is
+// therefore DERIVED from the cross-check document: Diodes Incorporated
+// SOT89 package information, Rev. 2026-01-16, page 1, "Suggested Pad
+// Layout" (docs/diodes-sot89.evidence.md): X = 0.580 x Y = 1.630mm outer
+// lands at C = 1.500mm; a T-shaped centre land of X2 = 1.933 x Y1 = 3.030mm
+// (tab) over X1 = 0.760 x Y2 = 1.500mm (lead 2); Y4 = 4.530mm overall,
+// Y3 = 0.635mm from the centre line to the outer lands' inner ends.
+//
+// Pad 2 is placed twice: the lead-2 land is declared 1.63mm long, the outer
+// lands' length, so its centre lines up with pads 1 and 3 (E809 measures
+// centre spacing); the extra 0.13mm lies inside the tab land, so the copper
+// is exactly Diodes' T. Datasheet top view (leads down, tab up) turned onto
+// the SOT frame above: the lead row is the +x column (pin 1 at +y), the tab
+// faces -x.
+pub pad P_SOT3P150X450X250N_LEAD {
+    shape: rect
+    size: (0.58mm, 1.63mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SOT3P150X450X250N_STEM {
+    shape: rect
+    size: (0.76mm, 1.63mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SOT3P150X450X250N_TAB {
+    shape: rect
+    size: (1.933mm, 3.03mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: A (body length) 4.40-4.60mm,
+// nominal 4.50; D (body width) 2.40-2.60mm, nominal 2.50.
+#[doc("docs/README.md")]
+pub footprint SOT3P150X450X250N {
+    pad 1: P_SOT3P150X450X250N_LEAD at (1.45mm, 1.5mm) rotate 270
+    pad 2: P_SOT3P150X450X250N_STEM at (1.45mm, 0mm) rotate 270
+    pad 2: P_SOT3P150X450X250N_TAB at (-0.75mm, 0mm) rotate 270
+    pad 3: P_SOT3P150X450X250N_LEAD at (1.45mm, -1.5mm) rotate 270
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the 4.53 x 3.58mm copper and the 4.10 x 4.60mm maximum
+    // component envelope (C tab tip to lead tip x A body length) with at
+    // least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.1mm, 5.2mm) }
+    silkscreen_ref { at: (0mm, -3.3mm) }
+}
+
+// SOT-323 / SC-70-3. Primary source: Zhuhai Hongjiacheng 2N7002W datasheet
+// Rev 2.0, page 5, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-2n7002w.evidence.md): J (land width along the row)
+// 0.65-0.75mm, K (land length across the row) 0.85-0.95mm, M (row centre
+// spacing) 1.85-1.95mm, N (pin 1 to pin 2 centre spacing) 1.25-1.35mm. The
+// land uses the midpoints: 0.70 x 0.90mm lands, 1.30mm pin 1-2 spacing and
+// 1.90mm row spacing, on the SOT-23-3 frame.
+//
+// Cross-check: Diodes Incorporated SOT323 package information, Rev.
+// 2017-03-20, page 1 (docs/diodes-sot323.evidence.md): X = 0.470mm,
+// Y = 0.600mm, C = 0.650mm (centre line to each lower land), G = 1.300mm
+// (gap between rows), Y1 = 2.500mm. Same centres (1.30mm, and G + Y =
+// 1.90mm rows); the Diodes lands are 0.23mm narrower and 0.30mm shorter.
+pub pad P_SOT3P130X200X125N_LEAD {
+    shape: rect
+    size: (0.7mm, 0.9mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-5 outline: D (body length) 1.80-2.20mm,
+// nominal 2.00; E (body width) 1.15-1.35mm, nominal 1.25.
+#[doc("docs/README.md")]
+pub footprint SOT3P130X200X125N {
+    pad 1: P_SOT3P130X200X125N_LEAD at (0.95mm, 0.65mm) rotate 270
+    pad 2: P_SOT3P130X200X125N_LEAD at (0.95mm, -0.65mm) rotate 270
+    pad 3: P_SOT3P130X200X125N_LEAD at (-0.95mm, 0mm) rotate 270
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the 2.80 x 2.00mm copper and the 2.45 x 2.20mm maximum
+    // component envelope (E1 lead span x D body length) with at least
+    // 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.3mm, 2.8mm) }
+    silkscreen_ref { at: (0mm, -2.1mm) }
+}
+
+// SOT-223 (TO-261AA). Primary source: Advanced Monolithic Systems AMS1117
+// datasheet, page 7, "3 LEAD SOT-223 PLASTIC PACKAGE" (evidence record
+// docs/ams-ams1117.evidence.md). That sheet gives the outline only and no
+// land, so the land is DERIVED from the cross-check document: Diodes
+// Incorporated SOT223 package information, Rev. 2017-03-06, page 1,
+// "Suggested Pad Layout" (docs/diodes-sot223.evidence.md): X = 1.20 x
+// Y = 1.60mm lead lands at C = 2.30mm; X1 = 3.30 x Y1 = 1.60mm tab land;
+// C1 = 6.40mm between the lead-row and tab centres; Y2 = 8.00mm overall.
+//
+// Fit to the primary outline: the 6.71-7.29mm tab-tip to lead-tip length
+// puts the lead tips 0.36-0.65mm inside the land's outer edge; the
+// 2.95-3.15mm tab fits the 3.30mm tab land; AMS's 2.29mm (0.090in) nominal
+// pitch is Diodes' 2.30mm. The tab is pad 4 (see the tab-numbering rule at
+// the top of this file); AMS labels it "TAB IS OUTPUT" without a number.
+pub pad P_SOT4P230X651X351N_LEAD {
+    shape: rect
+    size: (1.2mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_SOT4P230X651X351N_TAB {
+    shape: rect
+    size: (3.3mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-7 outline (millimetre values): body
+// length 6.30-6.71mm, nominal 6.505, rounded half up to 6.51; body width
+// 3.30-3.71mm, nominal 3.505, rounded half up to 3.51. Four distinct pad
+// numbers (the tab is pad 4); pitch 2.30mm between pads 1-2 and 2-3.
+#[doc("docs/README.md")]
+pub footprint SOT4P230X651X351N {
+    pad 1: P_SOT4P230X651X351N_LEAD at (3.2mm, 2.3mm) rotate 270
+    pad 2: P_SOT4P230X651X351N_LEAD at (3.2mm, 0mm) rotate 270
+    pad 3: P_SOT4P230X651X351N_LEAD at (3.2mm, -2.3mm) rotate 270
+    pad 4: P_SOT4P230X651X351N_TAB at (-3.2mm, 0mm) rotate 270
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    // Contains the 8.00 x 5.80mm copper and the 7.29 x 6.71mm maximum
+    // component envelope (tab tip to lead tip x body length) with at least
+    // 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (8.5mm, 7.3mm) }
+    silkscreen_ref { at: (0mm, -4.4mm) }
 }

@@ -11,26 +11,40 @@ for the agent-facing part notes (plan 5b/5c).
 
 An identity is one ``primary`` or ``alt`` entry of a ``pub part`` in ``lib/``.
 Its documents are the ``#[doc]`` files on the part and on the device it
-instantiates (same package). For each document, official links come from:
+instantiates (same package). The candidate links of a document are the URLs on
+the lines of the document itself, when it is a text record, and on the lines
+of the package's ``docs/README.md`` that name the document's file (with the
+SHA-256 recorded there).
 
-- the document itself, when it is a text record: the lines that name the
-  identity's MPN; or, for a record with at most MAX_RECORD_URLS links, all of
-  them (an evidence record covers one part family);
-- the package's ``docs/README.md``: the lines that name the document's file,
-  with the SHA-256 recorded on them.
+A candidate link is attached to an identity only when its identity justifies
+it, and each attached link records why (its ``match``):
 
-A document-level link counts for an identity only if its line names the MPN
-or the identity's manufacturer, so a Vishay alternate does not inherit the
-Yageo primary's datasheet. Links to LCSC or JLCPCB are distributor links, not
-official ones. The LCSC datasheet link comes from the confirmed part page
-behind the identity's ``lcsc_map.json`` row.
+- ``mpn``: the link's line names the identity's MPN (a missing reel suffix is
+  allowed, as in ``STM32C011D6Y6TR``). An empty MPN never matches.
+- ``manufacturer``: the URL's host belongs to the identity's manufacturer
+  (``MANUFACTURER_DOMAINS``), and the line is not a record line naming
+  another library part's MPN (a catalog row for a sibling part).
+
+Nothing else attaches a link. A shared record (a package README listing JST,
+Molex and Samtec drawings) gives a JST part only its JST links and the lines
+naming its MPN, and a Vishay alternate does not inherit the Yageo primary's
+datasheet.
+
+Each attached link is also labelled by its host (its ``label``): ``official``
+only on a domain of the identity's own manufacturer; ``mirror`` on a known
+distributor, aggregator, archive or code host (``MIRRORS``: LCSC, JLCPCB,
+DigiKey, Mouser, GitHub and the like); ``unverified`` on any other host,
+including another manufacturer's. The manufacturer→domain map is explicit
+and deliberately small: a domain not in it is never official. The LCSC
+datasheet link comes from the confirmed part page behind the identity's
+``lcsc_map.json`` row.
 
 Each identity is classed ``official_mpn`` (an official link on a line naming
-its MPN), ``official_document`` (only document-level links for its
-manufacturer, such as a series datasheet), ``lcsc_only``, ``local_only`` (a
-document in the repository but no recorded link) or ``none``. Links and
-documents are stored once and referenced by index; LCSC datasheet links are
-keyed by part number.
+its MPN), ``official_document`` (only official links that do not name its MPN,
+such as a series datasheet), ``unverified`` (links naming its MPN, none on its
+manufacturer's domain), ``lcsc_only``, ``local_only`` (a document in the
+repository but no recorded link) or ``none``. Links and documents are stored
+once and referenced by index; LCSC datasheet links are keyed by part number.
 """
 
 from __future__ import annotations
@@ -50,26 +64,94 @@ from sourcing.bindings import package_metadata
 ROOT = Path(__file__).resolve().parents[1]
 LIB = ROOT / "lib"
 DATA = ROOT / "tools/sourcing_data"
-MAX_RECORD_URLS = 20
 URL = re.compile(r"https?://[^\s<>()\[\]`|\"']+")
 SHA256 = re.compile(r"\b[0-9a-f]{64}\b")
-DISTRIBUTORS = ("lcsc.com", "jlcpcb.com")
+# Hosts that carry other companies' documents: distributors, aggregators,
+# archives and code hosts. A link here is never official, even when it names the MPN.
+MIRRORS = ("lcsc.com", "szlcsc.com", "jlcpcb.com", "digikey.com", "digikey.cn", "mouser.com", "mouser.cn",
+           "arrow.com", "farnell.com", "element14.com", "octopart.com", "alldatasheet.com", "alldatasheet.net",
+           "datasheetspdf.com", "datasheet4u.com", "datasheetarchive.com", "datasheets.com", "archive.org",
+           "github.com", "githubusercontent.com", "github.io", "gitlab.com")
+# The domains each library manufacturer (as spelled in lib/) publishes its own documents on.
+# Explicit and small on purpose: a host not listed here is never official.
+MANUFACTURER_DOMAINS = {
+    "Abracon": ("abracon.com",),
+    "Analog Devices": ("analog.com",),
+    "Awinic": ("awinic.com",),
+    "Bosch Sensortec": ("bosch-sensortec.com",),
+    "C&K": ("ckswitches.com",),
+    "Coilcraft": ("coilcraft.com",),
+    "Diodes Inc": ("diodes.com",),
+    "Diodes Incorporated": ("diodes.com",),
+    "Dongguan OPSCO Optoelectronics": ("opscoled.com",),
+    "Espressif": ("espressif.com",),
+    "GCT": ("gct.co",),
+    "GigaDevice": ("gigadevice.com", "gd32mcu.com"),
+    "HRO": ("krhro.com",),
+    "Hirose Electric": ("hirose.com",),
+    "Hosonic": ("hosonic.com",),
+    "Infineon": ("infineon.com",),
+    "JST": ("jst-mfg.com",),
+    "Johanson Technology": ("johansontechnology.com",),
+    "KEMET": ("kemet.com",),
+    "Lite-On": ("liteon.com",),
+    "Luat (Hezhou)": ("openluat.com",),
+    "MEMSIC": ("memsic.com",),
+    "Molex": ("molex.com",),
+    "Murata": ("murata.com",),
+    "NSIWAY": ("nsiway.com.cn",),
+    "NXP": ("nxp.com",),
+    "Nexperia": ("nexperia.com",),
+    "Panasonic": ("panasonic.com",),
+    "Quectel": ("quectel.com",),
+    "Raspberry Pi": ("raspberrypi.com",),
+    "Richtek": ("richtek.com",),
+    "Run-IC": ("run-ic.com",),
+    "SG Micro": ("sg-micro.com",),
+    "SGMICRO": ("sg-micro.com",),
+    "STMicroelectronics": ("st.com",),
+    "Samsung": ("samsungsem.com",),
+    "Samtec": ("samtec.com",),
+    "Semtech": ("semtech.com",),
+    "SiFli Technologies": ("sifli.com",),
+    "Sunlord": ("sunlordinc.com",),
+    "TDK InvenSense": ("invensense.com", "invensense.tdk.com"),
+    "TDK/InvenSense": ("invensense.com", "invensense.tdk.com"),
+    "Texas Instruments": ("ti.com",),
+    "Torex Semiconductor": ("torexsemi.com",),
+    "Vishay": ("vishay.com",),
+    "WCH": ("wch.cn", "wch-ic.com"),
+    "Winbond": ("winbond.com",),
+    "Wurth Elektronik": ("we-online.com",),
+    "Xi'an Aerosemi Tech": ("aerosemi.com",),
+    "Xinluda": ("xinluda.com",),
+    "Yageo": ("yageogroup.com", "yageo.com"),
+    "onsemi": ("onsemi.com",),
+    "u-blox": ("u-blox.com",),
+}
 DOC = re.compile(r'#\[doc\("([^"]+)"\)\]')
 ITEM = re.compile(r"\b(?:pub\s+)?(part|device)\s+(\w+)")
-CLASSES = ("official_mpn", "official_document", "lcsc_only", "local_only", "none")
+CLASSES = ("official_mpn", "official_document", "unverified", "lcsc_only", "local_only", "none")
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _official(url: str) -> bool:
-    host = url.split("/")[2].lower()
-    return not any(host == d or host.endswith("." + d) for d in DISTRIBUTORS)
+def _host(url: str) -> str:
+    return url.split("/")[2].split("@")[-1].split(":")[0].lower()
 
 
-def _mfr_token(mfr: str) -> str:
-    return re.split(r"[\s(,]", mfr.strip())[0].lower()
+def _on(host: str, domains) -> bool:
+    return any(host == d or host.endswith("." + d) for d in domains)
+
+
+def label(url: str, mfr: str) -> str:
+    """``official`` on a domain of ``mfr`` itself, ``mirror`` on a known mirror, else ``unverified``."""
+    host = _host(url)
+    if _on(host, MIRRORS):
+        return "mirror"
+    return "official" if _on(host, MANUFACTURER_DOMAINS.get(mfr, ())) else "unverified"
 
 
 def packages() -> list[tuple[str, str, Path]]:
@@ -148,31 +230,69 @@ def document(root: Path, doc: str, readme_lines: list[str]) -> dict:
 
 
 def mpn_forms(mpn: str) -> list[str]:
-    """The MPN, and the MPN without a tape-and-reel suffix, which catalogs often leave off."""
+    """The MPN, and the MPN without a tape-and-reel suffix, which catalogs often leave off.
+
+    An empty MPN has no forms: it names no part, so it can never match a line."""
+    mpn = (mpn or "").strip()
+    if not mpn:
+        return []
     bare = re.sub(r"[-/]?(TR|T&R|RL)$", "", mpn)
     return [mpn] + ([bare] if bare != mpn and len(bare) >= 6 else [])
 
 
-def links_for(identity: dict, documents: dict) -> list[dict]:
-    forms, token = mpn_forms(identity["mpn"]), _mfr_token(identity["mfr"])
+def part_namer(identities: list[dict]):
+    """A test for a line naming any of these identities' MPNs (cached per line)."""
+    forms = sorted({form for i in identities for form in mpn_forms(i["mpn"])}, key=len, reverse=True)
+    pattern = re.compile("|".join(map(re.escape, forms))) if forms else None
+    cache: dict[str, bool] = {}
+
+    def names_a_part(line: str) -> bool:
+        if line not in cache:
+            cache[line] = bool(pattern and pattern.search(line))
+        return cache[line]
+    return names_a_part
+
+
+def links_for(identity: dict, documents: dict, names_a_part=None) -> list[dict]:
+    """The links its identity justifies: on a line naming the MPN, or on the manufacturer's own domain.
+
+    ``names_a_part(line)`` tells whether a line names some library MPN of the package. A manufacturer-domain
+    link on a record line naming another part's MPN (a catalog row) belongs to that part, not to this
+    identity. A README line naming the cited document's file is about that document, whatever else it names."""
+    forms, mfr = mpn_forms(identity["mpn"]), identity["mfr"]
     found: dict[str, dict] = {}
     for doc in identity["docs"]:
         record = documents[(identity["package"], doc)]
-        lines = [(line, "record") for line in record["record_lines"]]
-        small = sum(len(URL.findall(line)) for line, _ in lines) <= MAX_RECORD_URLS
-        lines += [(line, "readme") for line in record["readme_lines"]]
-        for line, source in lines:
+        # Record lines can be about anything the record covers; a README line names the cited file itself.
+        lines = [(line, None, True) for line in record["record_lines"]]
+        lines += [(line, record["sha256"], False) for line in record["readme_lines"]]
+        for line, sha256, in_record in lines:
             names_mpn = any(form in line for form in forms)
-            if not (names_mpn or (source == "record" and small) or token in line.lower()):
-                continue
-            if source == "readme" and not (names_mpn or token in line.lower()):
-                continue
+            names_other = in_record and not names_mpn and names_a_part is not None and names_a_part(line)
             for url in URL.findall(line):
                 url = url.rstrip(".,;")
-                if _official(url) and url not in found:
-                    found[url] = {"url": url, "doc": doc, "match": "mpn" if names_mpn else "document",
-                                  "sha256": record["sha256"] if source == "readme" else None}
+                kind = label(url, mfr)
+                match = "mpn" if names_mpn else "manufacturer" if kind == "official" and not names_other else None
+                if match is None:
+                    continue
+                link = {"url": url, "doc": doc, "match": match, "label": kind, "sha256": sha256}
+                if url not in found or _rank(link) < _rank(found[url]):
+                    found[url] = link
     return list(found.values())
+
+
+def _rank(link: dict) -> tuple[int, int]:
+    return (link["match"] != "mpn", link["sha256"] is None)
+
+
+def classify(links: list[dict], datasheet: str | None, local: bool) -> str:
+    """The identity's class (CLASSES) from its attached links, its LCSC datasheet and its local documents."""
+    official = [link for link in links if link["label"] == "official"]
+    if any(link["match"] == "mpn" for link in official):
+        return "official_mpn"
+    if official:
+        return "official_document"
+    return "unverified" if links else "lcsc_only" if datasheet else "local_only" if local else "none"
 
 
 def build() -> dict:
@@ -189,22 +309,21 @@ def build() -> dict:
     lcsc.update({pn: page.get("datasheet") for pn, page in pages.items()})
 
     rows, counts, link_index, doc_index, datasheets = [], {}, {}, {}, {}
+    namers = {package: part_namer([i for i in identities if i["package"] == package])
+              for package in {i["package"] for i in identities}}
     for identity in identities:
-        links = links_for(identity, documents)
+        links = links_for(identity, documents, namers[identity["package"]])
         pn = by_identity.get((identity["mfr"], identity["mpn"]))
         datasheet = lcsc.get(pn) if pn else None
         local = any(documents[(identity["package"], d)]["local"] and not d.endswith((".md", ".txt"))
                     for d in identity["docs"])
-        status = "official" if links else "lcsc_only" if datasheet else "local_only" if local else "none"
-        if status == "official" and any(l["match"] == "mpn" for l in links):
-            status = "official_mpn"
-        elif status == "official":
-            status = "official_document"
+        status = classify(links, datasheet, local)
         counts.setdefault(identity["package"], dict.fromkeys(CLASSES, 0))[status] += 1
         if datasheet:
             datasheets[pn] = datasheet
         rows.append([identity["package"], identity["part"], identity["entry"], identity["mfr"], identity["mpn"], status,
-                     [[link_index.setdefault((l["url"], l["sha256"]), len(link_index)), l["match"]] for l in links],
+                     [[link_index.setdefault((l["url"], l["sha256"]), len(link_index)), l["match"], l["label"],
+                       doc_index.setdefault((identity["package"], l["doc"]), len(doc_index))] for l in links],
                      [doc_index.setdefault((identity["package"], d), len(doc_index)) for d in identity["docs"]], pn])
     library_pns = {pn for pn in by_identity.values()}
     for page in catalog:
@@ -213,14 +332,17 @@ def build() -> dict:
     snapshot_rows = [[page["c"], page["mfr"], page["mpn"], page["category"], page["c"] in library_pns]
                      for page in sorted(catalog, key=lambda p: int(p["c"][1:]))]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "sources": {"lcsc_map.json": _sha256(DATA / "lcsc_map.json"),
                     str(pages_path.relative_to(DATA)): _sha256(pages_path),
                     str(catalog_path.relative_to(DATA)): _sha256(catalog_path)},
         "links": [[url, sha] for (url, sha) in link_index],
         "docs": [list(key) for key in doc_index],
         "identity_columns": ["package", "part", "entry", "mfr", "mpn", "status",
-                             "official [index into links, match]", "docs (index into docs)", "lcsc_pn"],
+                             "links [index into links, match (mpn|manufacturer), label (official|mirror|unverified), "
+                             "index into docs of the document it came from]", "docs (index into docs)", "lcsc_pn"],
+        "manufacturer_domains": MANUFACTURER_DOMAINS,
+        "mirrors": list(MIRRORS),
         "identities": rows,
         "snapshot_columns": ["pn", "mfr", "mpn", "category", "mapped_by_library"],
         "snapshot": snapshot_rows,
@@ -238,20 +360,30 @@ def render(report: dict) -> str:
         "",
         "Generated by `tools/datasheet_links.py`; do not edit. Links only: nothing was downloaded.",
         "",
+        "A link is attached to an identity only when its line names the identity's MPN or its host is a domain "
+        "of the identity's manufacturer (and the line is not a catalog row for another part). It is official "
+        "only on the manufacturer's own domain; links on "
+        "distributors, aggregators, archives or code hosts are mirrors, and any other host is unverified.",
+        "",
         f"- Library identities: {sum(total.values()):,}. Official link on a line naming the MPN: "
-        f"{total['official_mpn']:,}; official document link for the manufacturer: {total['official_document']:,}; "
-        f"LCSC datasheet only: "
+        f"{total['official_mpn']:,}; official link on the manufacturer's domain, not naming the MPN: "
+        f"{total['official_document']:,}; links naming the MPN on a mirror or unverified host only: "
+        f"{total['unverified']:,}; LCSC datasheet only: "
         f"{total['lcsc_only']:,}; a document in the repository but no recorded link: {total['local_only']:,}; "
         f"nothing: {total['none']:,}.",
         f"- B1 snapshot parts: {len(snap):,}, of which {sum(1 for r in snap if r[0] in report['lcsc_datasheets']):,} "
         f"have an LCSC datasheet link and {sum(1 for r in snap if r[4]):,} are mapped by a library entry.",
         "",
-        "| Package | Official (MPN) | Official (document) | LCSC only | Local only | None |",
-        "|---|---:|---:|---:|---:|---:|",
+        "| Package | Official (MPN) | Official (document) | Unverified | LCSC only | Local only | None |",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for package, c in counts.items():
-        lines.append(f"| `{package}` | {c['official_mpn']:,} | {c['official_document']:,} | {c['lcsc_only']:,} | "
-                     f"{c['local_only']:,} | {c['none']:,} |")
+        lines.append(f"| `{package}` | {c['official_mpn']:,} | {c['official_document']:,} | {c['unverified']:,} | "
+                     f"{c['lcsc_only']:,} | {c['local_only']:,} | {c['none']:,} |")
+    unverified = [r for r in report["identities"] if r[5] == "unverified"]
+    lines += ["", f"## Links naming the MPN, none official ({len(unverified):,})", ""]
+    lines += [f"- `{r[0]}` `{r[1]}` ({r[2]}): {r[3]} `{r[4]}`: "
+              + ", ".join(f"{report['links'][i][0]} ({kind})" for i, _, kind, _ in r[6]) for r in unverified]
     gaps = [r for r in report["identities"] if r[5] == "none"]
     lines += ["", f"## No link at all ({len(gaps):,})", ""]
     lines += [f"- `{r[0]}` `{r[1]}` ({r[2]}): {r[3]} `{r[4]}`" for r in gaps]

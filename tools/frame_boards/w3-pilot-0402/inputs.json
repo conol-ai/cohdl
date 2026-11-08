@@ -12,6 +12,16 @@
   "std": "0.3.0",
   "passive": "0.2.5"
  },
+ "packages": {
+  "std": {
+   "version": "0.3.0",
+   "tree": "c912e0eca24542b85fc850e34010de6b2f1cf2fd"
+  },
+  "passive": {
+   "version": "0.2.5",
+   "tree": "af099d47491e497d079f02d2c32299274795c8e2"
+  }
+ },
  "courtyards": {
   "passive::CHIP_0402": [
    "0",

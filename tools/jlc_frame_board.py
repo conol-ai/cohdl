@@ -37,6 +37,14 @@ Run ``python3 -I tools/jlc_frame_board.py manifest.json -o BOARD
 corner as the drill/place origin.  No pcbnew module is imported; tests can mock
 both command runners.  ``CHECKLIST.md`` must be checked against the assembler
 preview before ordering.
+
+A board that records a past preview resolves the packages of its day, not the
+current ``lib/``.  ``--packages INPUTS.json --lock cohdl.lock`` does that:
+INPUTS.json's ``packages`` gives each dependency's version and the git tree it
+was built from, and each is written from git into the project's ``deps/``,
+which the compiler searches first.  The lock is copied into the project, so the
+compiler refuses any package whose content hash differs from the recorded one
+(E1103).  Neither needs a registry or a package cache.
 """
 
 import argparse
@@ -49,6 +57,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tomllib
 from pathlib import Path
 
@@ -243,6 +252,37 @@ def emit_project(manifest, root, spacing, supplier="lcsc"):
     return placements
 
 
+def vendor_packages(manifest, packages_path, lock_path, root):
+    """Write the pinned packages into ROOT/deps from git and copy their lock."""
+    packages = json.loads(packages_path.read_text(encoding="utf-8")).get("packages")
+    if not isinstance(packages, dict):
+        raise BoardError("%s has no packages map" % packages_path)
+    if {k: v["version"] for k, v in packages.items()} != manifest["dependencies"]:
+        raise BoardError("%s pins %s, the manifest depends on %s" %
+                         (packages_path, {k: v["version"] for k, v in packages.items()}, manifest["dependencies"]))
+    locked = {p["name"]: p["version"] for p in tomllib.loads(lock_path.read_text(encoding="utf-8")).get("package", [])}
+    if locked != manifest["dependencies"]:
+        raise BoardError("%s locks %s, the manifest depends on %s" % (lock_path, locked, manifest["dependencies"]))
+    repo = Path(__file__).resolve().parents[1]
+    for name, package in sorted(packages.items()):
+        dest = root / "deps" / name
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        archive = subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", package["tree"]],
+                                 capture_output=True)
+        if archive.returncode:
+            raise BoardError("git cannot read tree %s for %s %s: %s" %
+                             (package["tree"], name, package["version"], archive.stderr.decode().strip()))
+        with tarfile.open(fileobj=io.BytesIO(archive.stdout)) as tar:
+            tar.extractall(dest, filter="data")
+        declared = tomllib.loads((dest / "cohdl.toml").read_text(encoding="utf-8")).get("package", {})
+        if (declared.get("name"), declared.get("version")) != (name, package["version"]):
+            raise BoardError("tree %s is %s %s, not %s %s" % (package["tree"], declared.get("name"),
+                             declared.get("version"), name, package["version"]))
+    shutil.copyfile(lock_path, root / "cohdl.lock")
+
+
 def run(argv):
     result = subprocess.run(argv, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if result.returncode:
@@ -333,12 +373,18 @@ def main(argv=None):
     ap.add_argument("--cohdl", default="cohdl")
     ap.add_argument("--kicad-cli", default="kicad-cli")
     ap.add_argument("--skip-kicad", action="store_true")
+    ap.add_argument("--packages", type=Path, help="JSON whose packages map pins each dependency to a git tree")
+    ap.add_argument("--lock", type=Path, help="the cohdl.lock those packages were built with")
     args = ap.parse_args(argv)
     if args.spacing_mm <= 0:
         ap.error("--spacing-mm must be positive")
+    if (args.packages is None) != (args.lock is None):
+        ap.error("--packages and --lock go together")
     try:
         manifest = load_manifest(args.manifest)
         placements = emit_project(manifest, args.output, args.spacing_mm)
+        if args.packages:
+            vendor_packages(manifest, args.packages, args.lock, args.output)
         name = manifest["name"]
         run([args.cohdl, "build", str(args.output), "--supplier", "lcsc", "--bottom-rotation", "lcsc=mirrored", "--emit", "kicad_pcb"])
         out = args.output / "out"

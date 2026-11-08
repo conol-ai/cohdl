@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -202,6 +203,7 @@ class FrameBoardTests(unittest.TestCase):
         self.assertEqual(report["sources"][str(pages)], inputs["pages"]["sha256"])
         self.assertEqual(inputs["dependencies"], {"std": "0.3.0", "passive": report["sources"]["lib/passive"]})
         self.assertEqual(report["sources"]["lib/passive"], "0.2.5")
+        self.assertEqual({k: v["version"] for k, v in inputs["packages"].items()}, inputs["dependencies"])
         with tempfile.TemporaryDirectory() as td:
             subprocess.run([sys.executable, "-I", str(self.W3_PILOT), str(Path(td) / "m.json")],
                            check=True, capture_output=True)
@@ -216,7 +218,8 @@ class FrameBoardTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             for change in ({"report": dict(inputs["report"], sha256="0" * 64)},
                            {"samples": inputs["samples"][1:]},
-                           {"dependencies": {"std": "0.3.0", "passive": "0.2.6"}}):
+                           {"dependencies": {"std": "0.3.0", "passive": "0.2.6"}},
+                           {"packages": dict(inputs["packages"], passive=dict(inputs["packages"]["passive"], version="0.2.6"))}):
                 with self.subTest(change=sorted(change)):
                     (Path(td) / "i.json").write_text(json.dumps(dict(inputs, **change)))
                     run = subprocess.run([sys.executable, "-I", str(self.W3_PILOT), str(Path(td) / "m.json"),
@@ -250,6 +253,60 @@ class FrameBoardTests(unittest.TestCase):
             else:
                 self.assertNotEqual(run.returncode, 0)
                 self.assertIn(f"the report is for passive 0.2.5, the library is {version}", run.stderr)
+
+    @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
+    def test_w3_pilot_record_builds_from_its_pinned_packages_alone(self):
+        # The record must build where neither lib/ nor a package cache offers
+        # passive 0.2.5: the compiler is copied out of the repository, so it
+        # finds no library root, and COHDL_HOME is empty.  Unpinned, the same
+        # build cannot resolve it; pinned, it builds all 99 against the lock
+        # of the previewed package, and a package that differs from the lock
+        # is refused.
+        board = ROOT / "tools/frame_boards/w3-pilot-0402"
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            (td / "bin").mkdir()
+            (td / "home").mkdir()
+            cohdl = td / "bin/cohdl"
+            shutil.copy2(COHDL, cohdl)
+            env = dict(os.environ, COHDL_HOME=str(td / "home"), COHDL_REGISTRY="http://127.0.0.1:9")
+            build = lambda out, *extra: subprocess.run(
+                [sys.executable, "-I", str(ROOT / "tools/jlc_frame_board.py"), str(board / "manifest.json"),
+                 "-o", str(td / out), "--cohdl", str(cohdl), "--skip-kicad", *extra],
+                cwd=td, env=env, capture_output=True, text=True)
+            bare = build("bare")
+            self.assertNotEqual(bare.returncode, 0)
+            self.assertIn('E1102', bare.stderr)
+            self.assertIn('passive = "0.2.5"', bare.stderr)
+
+            pinned = build("pinned", "--packages", str(board / "inputs.json"), "--lock", str(board / "cohdl.lock"))
+            self.assertEqual(pinned.returncode, 0, pinned.stderr)
+            self.assertIn("generated 99 placements", pinned.stdout)
+            self.assertEqual((td / "pinned/cohdl.lock").read_bytes(), (board / "cohdl.lock").read_bytes())
+            with open(td / "pinned/out/w3_pilot_0402-lcsc-cpl.csv", newline="") as f:
+                self.assertEqual(len(list(csv.DictReader(f))), 99)
+
+            lock = (board / "cohdl.lock").read_text()
+            (td / "other.lock").write_text(re.sub(r'(name = "passive"\nversion = "0.2.5"\nhash = "sha256:)\w+',
+                                                  r"\g<1>" + "0" * 64, lock))
+            other = build("other", "--packages", str(board / "inputs.json"), "--lock", str(td / "other.lock"))
+            self.assertNotEqual(other.returncode, 0)
+            self.assertIn("E1103", other.stderr)
+
+    def test_pinned_packages_must_be_the_manifests_versions_and_trees(self):
+        board = ROOT / "tools/frame_boards/w3-pilot-0402"
+        manifest = jb.load_manifest(board / "manifest.json")
+        inputs = json.loads((board / "inputs.json").read_text())
+        packages = inputs["packages"]
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            for name, change in (("version", dict(packages, passive=dict(packages["passive"], version="0.2.6"))),
+                                 ("tree", dict(packages, passive=dict(packages["passive"], tree=packages["std"]["tree"]))),
+                                 ("missing", {"std": packages["std"]})):
+                with self.subTest(name):
+                    (td / "p.json").write_text(json.dumps({"packages": change}))
+                    with self.assertRaises(jb.BoardError):
+                        jb.vendor_packages(manifest, td / "p.json", board / "cohdl.lock", td / name)
 
     @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
     def test_c2_board_3_board_carries_no_supplier_mapping(self):

@@ -34,19 +34,20 @@ python3 -I tools/frame_boards/preview_package.py w3-pilot-0402 -o w3-pilot-0402-
   --kicad-python $K/Frameworks/Python.framework/Versions/Current/bin/python3
 ```
 
-`preview_package.py` regenerates `manifest.json` with `w3_pilot_0402.py` from `inputs.json` and refuses a manifest that differs.
+`preview_package.py` regenerates `manifest.json` with `w3_pilot_0402.py` from `inputs.json` and refuses a manifest that differs. It then builds the board from the packages `inputs.json` pins (below), against `cohdl.lock`, so it needs no registry, no package cache and no particular `lib/`. It reads those packages from git, so a shallow clone must fetch their history first (`git fetch --unshallow`).
 
 ## Frozen inputs
 
 The board was previewed on 2026-11-07 from `passive` 0.2.5, so `manifest.json` is a record and must keep rebuilding as it was, whatever the current library is. `w3_pilot_0402.py` therefore builds it from `inputs.json` alone, with the report and confirmed pages that file names:
 
 - `report` and `pages`: `tools/sourcing_data/w3_sampling/2026-11-07/groups.json` and `lcsc_backfill/2026-11-06-full/confirmed.json`, each with its SHA-256. The build stops if either has changed, and it reads the samples and stock from them.
-- `dependencies`: `std` 0.3.0 and `passive` 0.2.5, the versions the board pins. `jlc_frame_board.py` resolves these published versions, not `lib/`.
+- `dependencies`: `std` 0.3.0 and `passive` 0.2.5, the versions the board pins.
+- `packages`: for each dependency, its version and the git tree of `lib/std` or `lib/passive` it was built from. `jlc_frame_board.py --packages inputs.json --lock cohdl.lock` writes each tree into the generated project's `deps/`, which the compiler searches before `lib/` and the package cache, and copies `cohdl.lock` beside it. The compiler then refuses a package whose content hash is not the lock's (E1103). `cohdl.lock` is the lock of the previewed package `7f49d085…`, byte for byte, and these trees are also `lib/std` and `lib/passive` on `main` at `e1f6ca1`.
 - `samples`: for each of the 99, in the report's order, its group, the map row's `mfr` and `mpn`, and the `lib/passive` 0.2.5 part, entry, device type and pins.
 - `courtyards`: the `CHIP_0402` courtyard of `passive` 0.2.5.
 
 `inputs.json` was written by `w3_pilot_0402.py --freeze` at commit `97e66e9`, whose `lib/passive` and `lcsc_map.json` are those of `e6ba33d`, the commit the previewed package was built from (the map's SHA-256 is the one the report records). The manifest built from it is byte for byte the committed one. `--freeze` refuses a library whose `passive` version is not the report's, so a later version needs a new report and a new board, not a changed record.
 
-The tests keep the two apart. `test_w3_pilot_record_rebuilds_from_its_frozen_inputs` checks the record against its recorded inputs and hashes. `test_w3_pilot_generator_follows_a_fresh_report_on_the_current_library` builds a report from the current tree, freezes it and builds a board from it, and never compares that with the record.
+The tests keep the two apart. `test_w3_pilot_record_rebuilds_from_its_frozen_inputs` checks the record against its recorded inputs and hashes. `test_w3_pilot_record_builds_from_its_pinned_packages_alone` builds the board with a compiler that sees no `lib/` and an empty `COHDL_HOME`: unpinned it cannot resolve `passive` 0.2.5, pinned it builds all 99 against the lock, and a lock with another hash is refused. `test_w3_pilot_generator_follows_a_fresh_report_on_the_current_library` builds a report from the current tree, freezes it and builds a board from it, and never compares that with the record.
 
 **Uploading the package to the assembler's preview needs Alex's approval**, like every preview. Preview runs stop at Component Placements: no order, no cart, no terms ticked.

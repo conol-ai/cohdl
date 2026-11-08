@@ -26,12 +26,18 @@ The board was previewed on 2026-11-07, so its manifest is a record pinned to
 - `--freeze` reads a report, `lib/passive`, `lcsc_map.json` and the library
   inventory of the current tree and writes the inputs the board needs: each
   sample's map identity, library part, entry, device type and pins, and the
-  land's courtyard. It refuses a report for another `passive` version. The
-  2026-11-07 inputs are committed as w3-pilot-0402/inputs.json.
+  land's courtyard. It also records the git tree of each dependency's package,
+  `lib/std` and `lib/passive` as committed, which must have no uncommitted
+  change. It refuses a report for another `passive` version. The 2026-11-07
+  inputs are committed as w3-pilot-0402/inputs.json.
 - The default mode builds the manifest from frozen inputs alone (the committed
   ones unless `--inputs`), plus the report and confirmed pages they name, each
   checked against the SHA-256 the inputs record. It does not read `lib/`, so
   a later `passive` version does not change or break it.
+
+The board itself is built from those packages too: preview_package.py passes
+inputs.json and w3-pilot-0402/cohdl.lock to jlc_frame_board.py, which writes
+each recorded tree into the project's `deps/` and builds against the lock.
 
 The board is evidence for the pilot only. A sample that reads (0, 0, 0) gets
 its own frame row; the group's other members get nothing from it until the
@@ -113,11 +119,27 @@ def freeze(report_path):
                             "kind": kind, "footprint": footprint, "type": t, "pins": pins})
     footprints = {"passive::" + fp: inv["footprints"]["passive::" + fp]["courtyard"]
                   for fp in sorted({s["footprint"] for s in samples})}
+    packages = committed_packages(("std", "passive"))
+    if packages["passive"]["version"] != version:
+        raise SystemExit(f"lib/passive is {packages['passive']['version']}, the inventory {version}")
     return {"schema_version": 1,
             "report": {"path": repo_path(report_path), "sha256": sha256(report_path)},
             "pages": {"path": repo_path(pages_path), "sha256": sha256(pages_path)},
-            "dependencies": {"std": "0.3.0", "passive": version},
+            "dependencies": {k: v["version"] for k, v in packages.items()}, "packages": packages,
             "courtyards": footprints, "samples": samples}
+
+
+def committed_packages(names):
+    """Each lib/ package's version and its git tree at HEAD, which must have no uncommitted change."""
+    def git(*argv):
+        return subprocess.run(["git", "-C", str(ROOT), *argv], check=True, capture_output=True, text=True).stdout.strip()
+    packages = {}
+    for name in names:
+        if git("status", "--porcelain", "--", f"lib/{name}"):
+            raise SystemExit(f"lib/{name} has uncommitted changes; commit them before freezing")
+        version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / f"lib/{name}/cohdl.toml").read_text(), re.M).group(1)
+        packages[name] = {"version": version, "tree": git("rev-parse", f"HEAD:lib/{name}")}
+    return packages
 
 
 def build(inputs):
@@ -130,6 +152,8 @@ def build(inputs):
     if report_pages(report).resolve() != pages_path.resolve():
         raise SystemExit(f"{pages_path}: not the confirmed pages the report cites")
     pages = {r["c"]: r for r in json.load(open(pages_path))}
+    if {k: v["version"] for k, v in inputs["packages"].items()} != inputs["dependencies"]:
+        raise SystemExit("the inputs' packages are not their dependencies")
     version = inputs["dependencies"]["passive"]
     expected = []
     for key in GROUPS:

@@ -145,6 +145,60 @@ class DatasheetLinksTests(unittest.TestCase):
                          [("https://products.espressif.com/api", "manufacturer"),
                           ("https://www.espressif.com/esp32-c3_datasheet_en.pdf", "mpn")])
 
+    def test_a_chip_is_not_named_by_its_modules_part_number(self):
+        # In the repository: the bare chips do not take their modules' datasheets from the catalog.
+        for mpn, module_docs in (("ESP32-C3", ("esp32-c3-mini-1_datasheet_en.pdf", "esp32-c3-wroom-02_datasheet_en.pdf")),
+                                 ("ESP32-C6", ("esp32-c6-mini-1_datasheet_en.pdf",
+                                               "esp32-c6-wroom-1_wroom-1u_datasheet_en.pdf"))):
+            row = self.rows[("@espressif/esp32", mpn.replace("-", "_"), "primary", mpn)]
+            names = [url.rsplit("/", 1)[1] for url in self.links(row)]
+            self.assertIn(f"{mpn.lower()}_datasheet_en.pdf", names)
+            for module_doc in module_docs:
+                self.assertNotIn(module_doc, names, mpn)
+        # The reviewer's minimal case: a record whose only line is the module's catalog row.
+        chip, module = identity("Espressif", "ESP32-C3"), identity("Espressif", "ESP32-C3-MINI-1-H4")
+        row = ("| `ESP32-C3-MINI-1-H4` | Module / ESP32-C3-MINI-1 | "
+               "[source](https://www.espressif.com/sites/default/files/documentation/esp32-c3-mini-1_datasheet_en.pdf) |")
+        docs = {("connectors", "docs/README.md"): {"local": True, "sha256": None, "readme_lines": [],
+                                                   "record_lines": [row]}}
+        named = dl.part_namer([chip, module])
+        self.assertEqual(dl.links_for(chip, docs, named), [])
+        self.assertEqual([(l["match"], l["label"]) for l in dl.links_for(module, docs, named)], [("mpn", "official")])
+        for line in ("ESP32-C3-WROOM-02-N4", "ESP32-C3-MINI-1_datasheet.pdf", "esp32-c3-mini-1_datasheet_en.pdf",
+                     "ESP32-C3/C6", "XESP32-C3", "ESP32-C3(FH4)", "ESP32-C3.1"):
+            self.assertEqual(dl.part_namer([chip])(line), frozenset(), line)
+        for line in ("| `ESP32-C3` |", "ESP32-C3.", "(ESP32-C3)", "ESP32-C3, ESP32-C6"):
+            self.assertEqual(dl.part_namer([chip])(line), {"ESP32-C3"}, line)
+
+    def test_a_sibling_series_member_is_not_named(self):
+        # STM32L100R8T6 and STM32L100R8T6A are both library parts with their own catalog rows and datasheets.
+        row = self.rows[("@st/stm32", "MCU_STM32L100R8T6", "primary", "STM32L100R8T6")]
+        names = [url.rsplit("/", 1)[1] for url in self.links(row)]
+        self.assertIn("stm32l100r8.pdf", names)
+        self.assertNotIn("stm32l100r8-a.pdf", names)
+        sibling = self.rows[("@st/stm32", "MCU_STM32L100R8T6A", "primary", "STM32L100R8T6A")]
+        self.assertIn("stm32l100r8-a.pdf", [url.rsplit("/", 1)[1] for url in self.links(sibling)])
+        st = lambda mpn: dict(identity("STMicroelectronics", mpn), package="@st/stm32")
+        self.assertEqual(dl.part_namer([st("STM32C071C8T6")])("| `STM32C071C8T6N` |"), frozenset())
+        self.assertEqual(dl.part_namer([st("STM32F072C8T6")])("| `STM32F072CBT6` |"), frozenset())
+
+    def test_only_a_listed_packaging_suffix_may_be_missing(self):
+        # ST's catalog leaves off the tape-and-reel "TR": the reel alternate still finds the part's row.
+        reel = self.rows[("@st/stm32", "MCU_STM32L100R8T6", "alt", "STM32L100R8T6TR")]
+        names = [url.rsplit("/", 1)[1] for url in self.links(reel)]
+        self.assertIn("stm32l100r8.pdf", names)
+        self.assertNotIn("stm32l100r8-a.pdf", names)
+        self.assertEqual(dl.mpn_forms("STM32L100R8T6TR", "STMicroelectronics"), ["STM32L100R8T6TR", "STM32L100R8T6"])
+        # No open-ended prefix: other manufacturers' suffixes are not stripped, and a shorter MPN never
+        # names a longer one.
+        self.assertEqual(dl.mpn_forms("TMUX1072DGSR", "Texas Instruments"), ["TMUX1072DGSR"])
+        self.assertEqual(dl.mpn_forms("RC0201FR-071RL", "Yageo"), ["RC0201FR-071RL"])
+        self.assertEqual(dl.part_namer([identity("Yageo", "RC0201FR-071")])("RC0201FR-071RL"), frozenset())
+        # A file name that is exactly the MPN names it.
+        abracon = dl.part_namer([identity("Abracon", "AOTA-B201610S3R3-101-T")])
+        self.assertEqual(abracon("https://abracon.com/datasheets/AOTA-B201610S3R3-101-T.pdf"),
+                         {"AOTA-B201610S3R3-101-T"})
+
     def test_snapshot_parts_carry_their_lcsc_datasheets(self):
         snapshot = self.report["snapshot"]
         self.assertEqual(len(snapshot), 1334)

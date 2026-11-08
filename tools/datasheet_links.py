@@ -19,8 +19,12 @@ SHA-256 recorded there).
 A candidate link is attached to an identity only when its identity justifies
 it, and each attached link records why (its ``match``):
 
-- ``mpn``: the link's line names the identity's MPN (a missing reel suffix is
-  allowed, as in ``STM32C011D6Y6TR``). An empty MPN never matches.
+- ``mpn``: the link's line names the identity's MPN as a whole part number,
+  not as the prefix of a longer one (ESP32-C3 is not named by
+  ESP32-C3-MINI-1-H4, nor STM32C071C8T6 by STM32C071C8T6N), and no longer
+  library MPN covers it. A packaging suffix may be missing only where
+  ``PACKAGING_SUFFIXES`` lists it for the manufacturer (ST's ``TR``, as in
+  ``STM32C011D6Y6TR``). An empty MPN never matches.
 - ``manufacturer``: the URL's host belongs to the identity's manufacturer
   (``MANUFACTURER_DOMAINS``), and the line is not a record line naming
   another library part's MPN (a catalog row for a sibling part).
@@ -229,37 +233,56 @@ def document(root: Path, doc: str, readme_lines: list[str]) -> dict:
     return record
 
 
-def mpn_forms(mpn: str) -> list[str]:
-    """The MPN, and the MPN without a tape-and-reel suffix, which catalogs often leave off.
+# Packaging suffixes a manufacturer appends to an orderable MPN, which its own catalogs leave off
+# (ST's tape-and-reel "TR": STM32C011D6Y6TR is listed as STM32C011D6Y6). Explicit per manufacturer:
+# a library MPN is never matched by an open-ended prefix of itself.
+PACKAGING_SUFFIXES = {"STMicroelectronics": ("TR",)}
+# A part number continues through letters and digits, an adjacent "(" (an option code, as in
+# U.FL-R-SMT-1(10)), and "-", "/", ".", "+" or "#" followed by a letter or digit ("-", ".", "+" or "#"
+# behind one). A "/" before it is a path or list separator, and a "." that starts a document extension
+# ends it, so ".../datasheets/AOTA-B201610S3R3-101-T.pdf" names AOTA-B201610S3R3-101-T.
+_BEFORE = r"(?<![A-Za-z0-9])(?<![A-Za-z0-9][-.+#])"
+_AFTER = r"(?![A-Za-z0-9(])(?![-/+#][A-Za-z0-9])(?!\.(?!(?:pdf|html?|zip|md|txt)\b)[A-Za-z0-9])"
+
+
+def mpn_forms(mpn: str, mfr: str = "") -> list[str]:
+    """The MPN, and the MPN without one of its manufacturer's packaging suffixes (PACKAGING_SUFFIXES).
 
     An empty MPN has no forms: it names no part, so it can never match a line."""
     mpn = (mpn or "").strip()
     if not mpn:
         return []
-    bare = re.sub(r"[-/]?(TR|T&R|RL)$", "", mpn)
-    return [mpn] + ([bare] if bare != mpn and len(bare) >= 6 else [])
+    bare = [mpn[:-len(suffix)] for suffix in PACKAGING_SUFFIXES.get(mfr, ()) if mpn.endswith(suffix)]
+    return [mpn] + [form for form in bare if len(form) >= 6]
 
 
 def part_namer(identities: list[dict]):
-    """A test for a line naming any of these identities' MPNs (cached per line)."""
-    forms = sorted({form for i in identities for form in mpn_forms(i["mpn"])}, key=len, reverse=True)
-    pattern = re.compile("|".join(map(re.escape, forms))) if forms else None
-    cache: dict[str, bool] = {}
+    """``named(line)``: the MPN forms of these identities that the line names as whole part numbers.
 
-    def names_a_part(line: str) -> bool:
+    A form must stand alone as a part number (no letter, digit or part-number punctuation continuing it
+    on either side), and where forms overlap the longest wins: a line naming ESP32-C3-MINI-1-H4 names
+    that module, not the ESP32-C3 chip. Cached per line."""
+    forms = sorted({f for i in identities for f in mpn_forms(i["mpn"], i["mfr"])}, key=lambda f: (-len(f), f))
+    pattern = re.compile(_BEFORE + "(?:" + "|".join(map(re.escape, forms)) + ")" + _AFTER) if forms else None
+    cache: dict[str, frozenset[str]] = {}
+
+    def named(line: str) -> frozenset[str]:
         if line not in cache:
-            cache[line] = bool(pattern and pattern.search(line))
+            cache[line] = frozenset(m.group(0) for m in pattern.finditer(line)) if pattern else frozenset()
         return cache[line]
-    return names_a_part
+    return named
 
 
-def links_for(identity: dict, documents: dict, names_a_part=None) -> list[dict]:
+def links_for(identity: dict, documents: dict, named=None) -> list[dict]:
     """The links its identity justifies: on a line naming the MPN, or on the manufacturer's own domain.
 
-    ``names_a_part(line)`` tells whether a line names some library MPN of the package. A manufacturer-domain
-    link on a record line naming another part's MPN (a catalog row) belongs to that part, not to this
-    identity. A README line naming the cited document's file is about that document, whatever else it names."""
-    forms, mfr = mpn_forms(identity["mpn"]), identity["mfr"]
+    ``named`` is the package's ``part_namer``; without it, only this identity's MPN is looked for. A line
+    names the MPN only when the MPN stands alone there as a whole part number and no longer part number
+    covers it. A manufacturer-domain link on a record line naming another part's MPN (a catalog row)
+    belongs to that part, not to this identity. A README line naming the cited document's file is about
+    that document, whatever else it names."""
+    forms, mfr = set(mpn_forms(identity["mpn"], identity["mfr"])), identity["mfr"]
+    named = named or part_namer([identity])
     found: dict[str, dict] = {}
     for doc in identity["docs"]:
         record = documents[(identity["package"], doc)]
@@ -267,8 +290,9 @@ def links_for(identity: dict, documents: dict, names_a_part=None) -> list[dict]:
         lines = [(line, None, True) for line in record["record_lines"]]
         lines += [(line, record["sha256"], False) for line in record["readme_lines"]]
         for line, sha256, in_record in lines:
-            names_mpn = any(form in line for form in forms)
-            names_other = in_record and not names_mpn and names_a_part is not None and names_a_part(line)
+            parts = named(line)
+            names_mpn = bool(parts & forms)
+            names_other = in_record and not names_mpn and bool(parts - forms)
             for url in URL.findall(line):
                 url = url.rstrip(".,;")
                 kind = label(url, mfr)

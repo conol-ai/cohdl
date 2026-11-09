@@ -1,0 +1,114 @@
+// Texas Instruments RSL (S-PVQFN-N48) land pattern for TPS59650RSLR.
+// Source: TPS59650 datasheet SLUSAV7, local copy docs/tps59650-datasheet.pdf:
+// https://www.ti.com/lit/ds/symlink/tps59650.pdf
+//   - PDF p. 51, drawing 4209046-2/O "Example Board Layout" (top view);
+//   - PDF p. 50, drawing 4207841-3/P "Exposed Thermal Pad Dimensions"
+//     (bottom view), used as an independent check of the pad position.
+//
+// Lands: 48 perimeter lands at 0.40mm pitch, 0.85x0.20mm, 5.10mm inner and
+// 6.80mm outer land span, so each land centre sits 2.975mm from the origin.
+//
+// Thermal land: 4.05 x 3.60mm. In both drawings the 4.05mm side runs
+// parallel to the row of pins 1-12, and the land is not centred:
+//   - p. 51: 0.30mm from the land to the inner ends of the pins 37-48
+//     lands, 0.75mm to the pins 13-24 lands, and 0.75mm to both the pins
+//     1-12 and pins 25-36 lands;
+//   - p. 50: the pad edge sits 1.20mm NOM. from the pins 13-24 edge of the
+//     body (6.00mm nominal, 5.85-6.15mm on p. 49, drawing 4207548/B), i.e.
+//     0.75mm from the pins 37-48 edge.
+// Both put the land centre 0.225mm from the package centre toward pins 37-48,
+// and centred in the other axis.
+//
+// Coordinate conversion: drawing 4209046 has pin 1 at the left of the bottom
+// row with pins 1-12 running left to right. This footprint uses the CoHDL
+// (KiCad, +Y down) top-view frame with pin 1 top-left and pins 1-12 down the
+// left column (counter-clockwise numbering from the top). Hence the thermal
+// land is 3.60mm along X and 4.05mm along Y (parallel to the pin 1-12 column),
+// shifted 0.225mm toward the pins 37-48 side (-Y): Y spans -2.25..+1.80mm.
+//
+// CoHDL emits one exposed copper pad. The official sixteen 0.2mm-via array
+// (p. 51, 4 x 4 at 1.0mm pitch) and the segmented 71% paste stencil are
+// layout actions. The pad is the analog ground (AGND), not PGND; see the
+// TPS59650 EP pin comment.
+//
+// qfn::QFN48N40P600X600_1EP405X360 (qfn 0.2.1) carried this package with the
+// thermal land centred and turned 90 degrees (4.05mm along X). It is not used
+// by this package any more; fixing or removing it waits for the next breaking
+// qfn release.
+pub pad P_TI_RSL48_LEAD_H {
+    shape: rect
+    size: (0.85mm, 0.2mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_TI_RSL48_LEAD_V {
+    shape: rect
+    size: (0.2mm, 0.85mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_TI_RSL48_EP360X405 {
+    shape: rect
+    size: (3.6mm, 4.05mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint TI_RSL_S_PVQFN_N48 {
+    pad 1: P_TI_RSL48_LEAD_H at (-2.975mm, -2.2mm)
+    pad 2: P_TI_RSL48_LEAD_H at (-2.975mm, -1.8mm)
+    pad 3: P_TI_RSL48_LEAD_H at (-2.975mm, -1.4mm)
+    pad 4: P_TI_RSL48_LEAD_H at (-2.975mm, -1mm)
+    pad 5: P_TI_RSL48_LEAD_H at (-2.975mm, -0.6mm)
+    pad 6: P_TI_RSL48_LEAD_H at (-2.975mm, -0.2mm)
+    pad 7: P_TI_RSL48_LEAD_H at (-2.975mm, 0.2mm)
+    pad 8: P_TI_RSL48_LEAD_H at (-2.975mm, 0.6mm)
+    pad 9: P_TI_RSL48_LEAD_H at (-2.975mm, 1mm)
+    pad 10: P_TI_RSL48_LEAD_H at (-2.975mm, 1.4mm)
+    pad 11: P_TI_RSL48_LEAD_H at (-2.975mm, 1.8mm)
+    pad 12: P_TI_RSL48_LEAD_H at (-2.975mm, 2.2mm)
+    pad 13: P_TI_RSL48_LEAD_V at (-2.2mm, 2.975mm)
+    pad 14: P_TI_RSL48_LEAD_V at (-1.8mm, 2.975mm)
+    pad 15: P_TI_RSL48_LEAD_V at (-1.4mm, 2.975mm)
+    pad 16: P_TI_RSL48_LEAD_V at (-1mm, 2.975mm)
+    pad 17: P_TI_RSL48_LEAD_V at (-0.6mm, 2.975mm)
+    pad 18: P_TI_RSL48_LEAD_V at (-0.2mm, 2.975mm)
+    pad 19: P_TI_RSL48_LEAD_V at (0.2mm, 2.975mm)
+    pad 20: P_TI_RSL48_LEAD_V at (0.6mm, 2.975mm)
+    pad 21: P_TI_RSL48_LEAD_V at (1mm, 2.975mm)
+    pad 22: P_TI_RSL48_LEAD_V at (1.4mm, 2.975mm)
+    pad 23: P_TI_RSL48_LEAD_V at (1.8mm, 2.975mm)
+    pad 24: P_TI_RSL48_LEAD_V at (2.2mm, 2.975mm)
+    pad 25: P_TI_RSL48_LEAD_H at (2.975mm, 2.2mm)
+    pad 26: P_TI_RSL48_LEAD_H at (2.975mm, 1.8mm)
+    pad 27: P_TI_RSL48_LEAD_H at (2.975mm, 1.4mm)
+    pad 28: P_TI_RSL48_LEAD_H at (2.975mm, 1mm)
+    pad 29: P_TI_RSL48_LEAD_H at (2.975mm, 0.6mm)
+    pad 30: P_TI_RSL48_LEAD_H at (2.975mm, 0.2mm)
+    pad 31: P_TI_RSL48_LEAD_H at (2.975mm, -0.2mm)
+    pad 32: P_TI_RSL48_LEAD_H at (2.975mm, -0.6mm)
+    pad 33: P_TI_RSL48_LEAD_H at (2.975mm, -1mm)
+    pad 34: P_TI_RSL48_LEAD_H at (2.975mm, -1.4mm)
+    pad 35: P_TI_RSL48_LEAD_H at (2.975mm, -1.8mm)
+    pad 36: P_TI_RSL48_LEAD_H at (2.975mm, -2.2mm)
+    pad 37: P_TI_RSL48_LEAD_V at (2.2mm, -2.975mm)
+    pad 38: P_TI_RSL48_LEAD_V at (1.8mm, -2.975mm)
+    pad 39: P_TI_RSL48_LEAD_V at (1.4mm, -2.975mm)
+    pad 40: P_TI_RSL48_LEAD_V at (1mm, -2.975mm)
+    pad 41: P_TI_RSL48_LEAD_V at (0.6mm, -2.975mm)
+    pad 42: P_TI_RSL48_LEAD_V at (0.2mm, -2.975mm)
+    pad 43: P_TI_RSL48_LEAD_V at (-0.2mm, -2.975mm)
+    pad 44: P_TI_RSL48_LEAD_V at (-0.6mm, -2.975mm)
+    pad 45: P_TI_RSL48_LEAD_V at (-1mm, -2.975mm)
+    pad 46: P_TI_RSL48_LEAD_V at (-1.4mm, -2.975mm)
+    pad 47: P_TI_RSL48_LEAD_V at (-1.8mm, -2.975mm)
+    pad 48: P_TI_RSL48_LEAD_V at (-2.2mm, -2.975mm)
+    pad 49: P_TI_RSL48_EP360X405 at (0mm, -0.225mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.3mm, 7.3mm) }
+    silkscreen_ref { at: (0mm, -4mm) }
+}

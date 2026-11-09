@@ -101,3 +101,12 @@ snapshot date: 2026-10-30T05:24:02Z
 ```
 
 The coordinating agent independently ran `python3 -I tools/upload_supplier_snapshot.py verify OUT --registry https://registry.cohdl.org` from the pinned source on Linux. This read-only check exited 0, reproduced the verification output above, and found all six rows equal to the signed-off snapshot. A separate public GET to `/manufacturers/normalize` returned HTTP 200 and independently confirmed `GigaDevice Semicon Beijing` → `gigadevice`, `Vishay Intertech` → `vishay`, and `YAGEO` → `yageo`. Neither independent check made authenticated requests or production writes.
+
+### Full check (2026-11-07)
+
+The `verify` above asked only for the library's part numbers. On 2026-11-06 the library had 46, and all 46 are in this catalog too, so that check also passed against the next catalog (`3307b6b8…`, 13,604 rows) although it had not been uploaded. Since 2026-11-07 `verify` asks for every row of the snapshot, 100 per request, and checks the registry's snapshot date and every alias. Run read-only against production on 2026-11-07:
+
+- this catalog, rebuilt as above: exit 0, 1,442 of 1,442 rows known and equal, snapshot date `2026-10-30T05:24:02Z`, 3 aliases;
+- the `3307b6b8…` catalog: exit 1, 12,162 part numbers unknown, snapshot date `2026-10-30T05:24:02Z` against its newest `fetched_at` `2026-11-06T01:45:04Z`, 29 aliases not held. The other 5 new aliases differ from their canonical name only in case, so the public lookup cannot tell whether they are held.
+
+So production still serves this catalog. The public API cannot list rows, so a row beyond the snapshot would go unseen.

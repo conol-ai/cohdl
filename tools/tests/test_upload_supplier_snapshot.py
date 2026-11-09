@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import unittest
+import urllib.parse
 from pathlib import Path
 from unittest import mock
 
@@ -15,6 +16,17 @@ RECORD = us.DATA / "registry_uploads/2026-11-05-lcsc"
 CURRENT = {"rows": 13_604, "bytes": 3_583_901,
            "snapshot_sha256": "3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529",
            "aliases_sha256": "027d2a930f6016ad6a223fbbcc6fb4efce7e8c1458145a7dbb991edd014374e9"}
+
+
+# The library's part numbers on 2026-11-06, when the counterexample was found. Parts
+# bound later (C165948 in usb 0.1.6) are not in the old catalog, so the live library
+# no longer shows it.
+LIBRARY_2026_11_06 = set("""
+    C1525 C8734 C9861 C23922 C93943 C105575 C106254 C107011 C107045 C107108 C107110 C114763
+    C117815 C129276 C137046 C137203 C137422 C137837 C137927 C138161 C141703 C163421 C163429
+    C274047 C309589 C477801 C482239 C482876 C482966 C483001 C483188 C488876 C488985 C527206
+    C527232 C529436 C541229 C576985 C717701 C718246 C730103 C877226 C878096 C1338995 C1857444
+    C3009257""".split())
 
 
 def rebuild_recorded(out: Path) -> dict:
@@ -210,23 +222,107 @@ class UploadSupplierSnapshotTests(unittest.TestCase):
         self.assertEqual(sent[1]["origin"], "https://r.test")
         self.assertNotIn("authorization", sent[1])
 
-    def test_verify_reports_unknown_and_differing_rows(self):
+    def test_verify_passes_only_when_the_registry_serves_the_whole_catalog(self):
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()) as stdout:
+            out = Path(td)
+            rebuild_recorded(out)
+            with mock.patch.object(us, "request", side_effect=FakeRegistry(out)) as request:
+                self.assertEqual(us.verify(out, "https://r.test"), [])
+            # 1,442 rows in batches of 100, then the three aliases in one request.
+            self.assertEqual(request.call_count, 15 + 1)
+            self.assertIn("C1857444: STM32H743VIH6TR (STMicroelectronics, extended) known", stdout.getvalue())
+            self.assertIn("rows: 1442 of 1442 known and equal", stdout.getvalue())
+
+    def test_verify_refuses_an_older_catalog_that_holds_every_library_part_number(self):
+        """The 2026-11-06 counterexample: the 2026-11-05 catalog holds all 46 library
+        part numbers, so a check of those alone passed although the new catalog was
+        never uploaded."""
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
+            old, new = Path(td) / "old", Path(td) / "new"
+            rebuild_recorded(old)
+            us.build(new, None, RECORD / "report.json")
+            registry = FakeRegistry(old)
+            self.assertLessEqual(LIBRARY_2026_11_06, set(registry.rows))
+            with mock.patch.object(us, "request", side_effect=registry):
+                problems = us.verify(new, "https://r.test")
+        self.assertTrue(problems[0].startswith("12162 part numbers unknown to the registry: "), problems[0])
+        self.assertIn("the registry's snapshot date is 2026-10-30T05:24:02Z, "
+                      "not the snapshot's newest fetched_at 2026-11-06T01:45:04Z", problems)
+        # 34 aliases went up after the old catalog. Five of them (PANASONIC, SEMTECH,
+        # U-BLOX, XI'AN Aerosemi Tech, XINLUDA) differ from their canonical name only in
+        # case, so the public lookup answers the same with or without them.
+        self.assertEqual(sum(p.startswith("alias ") for p in problems), 29)
+
+    def test_verify_reports_bad_answers(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(sys, "stdout", io.StringIO()):
             out = Path(td)
             rebuild_recorded(out)
-            rows = {row["pn"]: row for row in json.loads((out / "snapshot.json").read_bytes())["parts"]}
-            pns = json.loads((out / "report.json").read_text())["library_part_numbers"]
-            parts = [{"pn": pn, "catalog": dict(rows[pn])} for pn in pns]
-            with mock.patch.object(us, "request", return_value=(200, {"parts": parts, "snapshot_date": "x"})):
-                self.assertEqual(us.verify(out, "https://r.test"), [])
-            parts[0]["catalog"] = "unknown"
-            parts[1]["catalog"]["mpn"] = "OTHER"
-            with mock.patch.object(us, "request", return_value=(200, {"parts": parts})):
-                self.assertEqual(us.verify(out, "https://r.test"), [
-                    f"{pns[0]}: unknown to the registry", f"{pns[1]}: the registry's mpn differ from the snapshot"])
-            with mock.patch.object(us, "request", return_value=(404, {"error": "supplier not found"})):
-                self.assertIn("HTTP 404", us.verify(out, "https://r.test")[0])
+            pns = sorted(json.loads((out / "report.json").read_text())["library_part_numbers"])
 
+            def check(edit, **kw):
+                registry = FakeRegistry(out, **kw)
+                registry.edit = edit
+                with mock.patch.object(us, "request", side_effect=registry):
+                    return us.verify(out, "https://r.test")
+
+            def unknown(parts):
+                for part in parts:
+                    if part["pn"] == pns[0]:
+                        part["catalog"] = "unknown"
+            self.assertEqual(check(unknown), [f"1 part number unknown to the registry: {pns[0]}"])
+
+            def other_mpn(parts):
+                for part in parts:
+                    if part["pn"] == pns[1]:
+                        part["catalog"]["mpn"] = "OTHER"
+            self.assertEqual(check(other_mpn), [f"1 part number differ from the snapshot: {pns[1]} (mpn)"])
+
+            def drop_and_repeat(parts):
+                if any(part["pn"] == pns[2] for part in parts):
+                    kept = [part for part in parts if part["pn"] != pns[2]]
+                    parts[:] = kept + [dict(kept[0]), {"pn": "C0", "catalog": "unknown"}]
+            problems = check(drop_and_repeat)
+            self.assertIn(f"1 part number missing from the registry's answers: {pns[2]}", problems)
+            self.assertTrue(any(p.startswith("1 part number answered more than once: ") for p in problems))
+            self.assertIn("1 part number answered but not asked: C0", problems)
+
+            self.assertEqual(check(None, aliases={"GigaDevice Semicon Beijing": "GigaDevice", "YAGEO": "Yageo"}),
+                             ["alias Vishay Intertech: the registry normalizes it to 'vishay intertech', not 'vishay'"])
+            self.assertIn("HTTP 404", check(None, status=404)[0])
+
+            (out / "aliases.json").write_bytes(b"{}")
+            self.assertIn("no longer matches", check(None)[0])
+
+
+class FakeRegistry:
+    """The public lookups of registry/src/worker/supplier-parts.ts and manufacturers.ts,
+    serving the catalog and aliases of a build directory."""
+
+    def __init__(self, out: Path, aliases=None, status=200):
+        self.rows = {row["pn"]: row for row in json.loads((out / "snapshot.json").read_bytes())["parts"]}
+        aliases = json.loads((out / "aliases.json").read_bytes()) if aliases is None else aliases
+        self.aliases = {us.manufacturer_key(k): v for k, v in aliases.items()}
+        self.status, self.edit = status, None
+
+    def __call__(self, method, url, body=None, credential=None, origin=None):
+        assert method == "GET" and body is None and credential is None
+        if self.status != 200:
+            return self.status, {"error": "supplier not found"}
+        parsed = urllib.parse.urlsplit(url)
+        query = urllib.parse.parse_qs(parsed.query)
+        if parsed.path == "/manufacturers/normalize":
+            assert len(query["mfr"]) <= 100
+            return 200, {"mfr": [{"value": v, "key": us.manufacturer_key(self.aliases.get(us.manufacturer_key(v), v))}
+                                 for v in query["mfr"]], "mpn": []}
+        assert parsed.path == "/suppliers/lcsc/parts"
+        pns = query["pn"][0].split(",")
+        assert len(pns) <= 100
+        parts = [{"pn": pn, "catalog": json.loads(json.dumps(self.rows[pn])) if pn in self.rows else "unknown"}
+                 for pn in pns]
+        if self.edit:
+            self.edit(parts)
+        return 200, {"supplier": "lcsc", "snapshot_date": max(r["fetched_at"] for r in self.rows.values()),
+                     "parts": parts}
 
 if __name__ == "__main__":
     unittest.main()

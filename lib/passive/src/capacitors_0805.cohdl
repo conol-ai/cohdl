@@ -854,6 +854,7 @@ pub part C_680n_25V_X5R_0805: MLCC<680nF, 25V, 10%>[C0805] {
 pub part C_10u_25V_X5R_0805: MLCC<10uF, 25V, 10%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805KRX5R8BB106", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21A106KACLRN" }
+    alt { mfr: "Samsung", mpn: "CL21A106KAYNNNE", supplier lcsc "C15850" }
 }
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
@@ -931,6 +932,7 @@ pub part C_18p_50V_C0G_0805: MLCC<18pF, 50V, 5%>[C0805] {
 pub part C_22p_50V_C0G_0805: MLCC<22pF, 50V, 5%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN220", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21C220JB61PN" }
+    alt { mfr: "Samsung", mpn: "CL21C220JBANNNC" }
 }
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
@@ -955,6 +957,7 @@ pub part C_39p_50V_C0G_0805: MLCC<39pF, 50V, 5%>[C0805] {
 pub part C_47p_50V_C0G_0805: MLCC<47pF, 50V, 5%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN470", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21C470JB61PN" }
+    alt { mfr: "Samsung", mpn: "CL21C470JBANNNC" }
 }
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
@@ -979,6 +982,7 @@ pub part C_82p_50V_C0G_0805: MLCC<82pF, 50V, 5%>[C0805] {
 pub part C_100p_50V_C0G_0805: MLCC<100pF, 50V, 5%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805JRNPO9BN101", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21C101JB61PN" }
+    alt { mfr: "Samsung", mpn: "CL21C101JBANNNC" }
 }
 
 #[doc("docs/yageo_cc_series_datasheet_en.pdf")]
@@ -1086,6 +1090,7 @@ pub part C_33n_50V_X7R_0805: MLCC<33nF, 50V, 10%>[C0805] {
 pub part C_47n_50V_X7R_0805: MLCC<47nF, 50V, 10%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805KRX7R9BB473", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21B473KBCNFN" }
+    alt { mfr: "Samsung", mpn: "CL21B473KBCNNNC" }
 }
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]
@@ -1110,6 +1115,7 @@ pub part C_150n_50V_X7R_0805: MLCC<150nF, 50V, 10%>[C0805] {
 pub part C_220n_50V_X7R_0805: MLCC<220nF, 50V, 10%>[C0805] {
     primary { mfr: "Yageo", mpn: "CC0805KRX7R9BB224", footprint: CHIP_0805 }
     alt { mfr: "Samsung", mpn: "CL21B224KBF6PJ" }
+    alt { mfr: "Samsung", mpn: "CL21B224KBFNNNE" }
 }
 
 #[doc("docs/yageo_x7r_6v3_to_250v_datasheet_en.pdf")]

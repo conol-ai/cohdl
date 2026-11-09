@@ -49,3 +49,16 @@ with the QFN-60 pinout, supply/current tables and GPIO erratum. References use
 reference examples, typical measurements and application-level obligations.
 It does not certify a PCB, substitute part, firmware implementation or
 passive USB PD analyzer design.
+
+## RUN and crystal guidance in 0.1.5
+
+Re-audited on 2026-11-07. The device comment said RUN "need not be routed";
+datasheet section 7.3.3 (PDF p. 498) says "If RUN is not used, it should be
+tied high". RUN keeps its internal pull-up at reset (Table 1430, PDF p. 1338)
+and stays `optional`, as NRST does in the STM32, GD32 and CH32 packages; its
+comment and the application note now say to tie it high or drive it from a
+reset circuit. The XIN/XOUT comment now records that BOOTSEL mode, both USB
+and UART boot, needs a crystal or an XIN clock (section 5.2.8.1, PDF p. 376),
+and the QSPI_SS comment records its BOOTSEL input role (PDF pp. 375-376).
+The application note also quotes the DVDD decoupling rule of PDF p. 442.
+No pin, pin number, type, connection obligation, part or land changed.

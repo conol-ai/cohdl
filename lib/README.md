@@ -39,7 +39,7 @@ footprints live in focused packages:
 | `antenna` | `antenna::ANT_2450AT18B100E` | RF antennas with verified terminal lands and layout guidance |
 | `misc` | `misc::TEST_POINT_ROUND_1MM`, `misc::MOUNTING_HOLE_M2_NPTH`, `misc::MOUNTING_HOLE_M2_PTH` | reusable PCB fabrication primitives with explicit electrical semantics |
 | `cellular` | `cellular::CELL_AIR780E`, `cellular::CELL_AIR780EG` | 4G/LTE cellular module devices with verified 109-pin LGA land patterns |
-| `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
+| `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with datasheet-verified pin maps |
 | `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N` | power-distribution load switches with verified land patterns |
 | `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |

@@ -1,8 +1,8 @@
 [package]
 name = "esim"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
-description = "eUICC (eSIM) devices with their verified land patterns."
+description = "eUICC (eSIM) devices with datasheet-verified pin maps."
 repository = "https://github.com/conol-ai/cohdl"
 
 [dependencies]

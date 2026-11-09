@@ -19,7 +19,7 @@ subdesign DisplayPower {
     }
 
     inst disp_reg: DISPLAY_RAIL_RT6150B_ADJ
-    inst disp_logic_sw: DISPLAY_LOGIC_SWITCH
+    inst disp_logic_sw: load_switch::LOADSW_SGM2554
     inst l_disp: passive::IND_2U2
     inst r_disp_fb_top: passive::R_604K_F_0402
     inst r_disp_fb_bottom: passive::R_86K6_F_0402
@@ -30,18 +30,18 @@ subdesign DisplayPower {
     inst c_disp_reg_out_a: C_10U_16V_X7R_1206
     #[bypass(disp_reg.VOUT, 10uF)]
     inst c_disp_reg_out_b: C_10U_16V_X7R_1206
-    #[bypass(disp_logic_sw.IN, 1uF)]
+    #[bypass(disp_logic_sw.VIN, 1uF)]
     inst c_disp_logic_in: passive::C_1u_10V_X5R_0603
 
     net _: VIN_5V, disp_reg.VIN, c_disp_reg_in.A
-    net _: VIN_3V3, disp_logic_sw.IN, c_disp_logic_in.A
+    net _: VIN_3V3, disp_logic_sw.VIN, c_disp_logic_in.A
     net DISP_LX1: disp_reg.LX1, l_disp.A
     net DISP_LX2: disp_reg.LX2, l_disp.B
     #[intent("RT6150BGQW adjustable rail: 0.5V * (1 + 604k/86.6k) = 3.987V")]
     net _: VPANEL, disp_reg.VOUT, r_disp_fb_top.A, c_disp_reg_out_a.A, c_disp_reg_out_b.A
     net DISP_FB: disp_reg.FB, r_disp_fb_top.B, r_disp_fb_bottom.A
     net _: EN, disp_reg.EN, disp_logic_sw.EN, r_disp_en_pd.A
-    net _: VLOGIC, disp_logic_sw.OUT
+    net _: VLOGIC, disp_logic_sw.VOUT
     net _: GND, disp_reg.GND, disp_reg.PS, disp_logic_sw.GND, r_disp_fb_bottom.B, r_disp_en_pd.B,
            c_disp_reg_in.B, c_disp_reg_out_a.B, c_disp_reg_out_b.B, c_disp_logic_in.B
 

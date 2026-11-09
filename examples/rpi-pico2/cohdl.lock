@@ -2,8 +2,8 @@
 
 [[package]]
 name = "@raspberrypi/mcu"
-version = "0.1.4"
-hash = "sha256:b476f5c8bad88dfc4e8cd526d5f40fabb689b4934fe86b006cef9ff7d7588f96"
+version = "0.1.5"
+hash = "sha256:086f0270ca08c0559b5bce6cc72fda0cee915afc0d58d1bd7b7bde634520c530"
 
 [[package]]
 name = "@richtek/dcdc"
@@ -12,8 +12,8 @@ hash = "sha256:87cb83f09c1550f8ed0d13ebf3856deb2349dd7f4d0a3f20617ebc8b072b0705"
 
 [[package]]
 name = "connectors"
-version = "0.2.1"
-hash = "sha256:4f29c7ce375cc6af452145242813b4da0d4f38960b9b81486e51af693bbd1a4d"
+version = "0.3.0"
+hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
 
 [[package]]
 name = "diode"
@@ -42,8 +42,8 @@ hash = "sha256:e80116ea1519f36bd39364e713017fc09e14e378de817a9ac0cd69edd9a474ba"
 
 [[package]]
 name = "osc"
-version = "0.1.1"
-hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
+version = "0.2.0"
+hash = "sha256:4e981974b3df2f29478e12113746541f1efe6797534b3c16dd17e36a128f63de"
 
 [[package]]
 name = "passive"

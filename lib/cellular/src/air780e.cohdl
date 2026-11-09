@@ -82,7 +82,7 @@ pub device AIR780E {
         optional SPI_CLK: 53 [bidirectional] // SPI CLK; shared with pin 29 (GPIO11)
         optional GPIO3: 54 [bidirectional] // GPIO3 (CAM_MCLK)
         optional GPIO6: 55 [bidirectional] // GPIO6 (CAM_SPI_D0); internally tied to SIM2, has pull-up
-        optional GPIO7: 56 [bidirectional] // GPIO7 (CAM_SPI_D1); internally tied to SIM2, has pull-up
+        optional GPIO7: 56 [bidirectional] // GPIO7 (CAM_SPI_D1)
         optional GPIO13: 57 [bidirectional] // GPIO13 (CAM_I2C_SCL)
         optional GPIO12: 58 [bidirectional] // GPIO12 (CAM_I2C_SDA)
         optional I2C_SDA: 66 [bidirectional] // I2C data (GPIO15)
@@ -108,17 +108,22 @@ pub part CELL_AIR780E: AIR780E {
     primary { mfr: "Luat (Hezhou)", mpn: "Air780E", footprint: FP_Luat_AIR780E_LGA109_177x158mm }
 }
 
-// LGA-109 land pattern, 17.7 x 15.8 mm body. Pad positions and per-pin sizes
-// are taken from the official PADS decal (docs/Air780E_AT_PADS_Decal_V20241030.zip,
-// Air780E_AT.asc terminal records; decal nm values / 1.5 = mm, origin at body
-// centre, x along the 15.8 mm side, y along the 17.7 mm side, pin 1 upper-left
-// next to the chamfered corner). Perimeter pads 1-44: 0.6 x 1.3 mm (radial x
-// tangential); thermal pads 89-94: 1.3 mm round; all remaining inner pads and
-// pins without an explicit decal stack (45-53/59-67/73-88/99-100/103-104):
-// 0.7 x 1.0 mm per the decal default stack.
-// Perimeter pads: long axis (1.3mm) radial to the module edge, 0.6mm along
-// the edge (per official PADS decal
-// TOP stacks, Air780E_AT.asc: size 0.600mm finlength 1.300mm).
+// LGA-109 land pattern, 15.8 (x) x 17.7 (y) mm body, top view. Generated from
+// the official PADS decal (docs/Air780E_AT_PADS_Decal_V20241030.zip,
+// Air780E_AT.asc, decal AIR780E; the LuatOS decal has identical terminals and
+// stacks). Decal coordinates are PADS basic units, 1.5e6 per mm, origin at the
+// body centre, +y up. CoHDL authors in KiCad's board frame (+y down), so every
+// y below is the decal y negated: pin 1 sits top-left beside the chamfered
+// corner, pin 2 below it, and the pins run counter-clockwise seen from the top,
+// as in the manual's pin view (docs/air780e-hw.pdf p. 13, p. 16) and its
+// recommended PCB land (p. 20, top view). Copper sizes and shapes are the
+// decal's top-copper (layer -2) stacks. The decal's solder-mask layer (121) is
+// 0.05 mm per side larger than copper on every pad, and its paste layer (123)
+// opens the perimeter pads at 0.7 x 1.4 mm; neither is modelled here.
+
+// Perimeter pads on the left and right sides (1-13, 23-35): 1.3 mm
+// radial (x) by 0.6 mm along the edge (y). Decal stacks 1-13/23-35, layer -2:
+// `900000 RF 0.000 1950000` = width 0.6 mm, finger length 1.3 mm at 0 deg.
 pub pad P_AIR780E_PAD_V {
     shape: rect
     size: (1.3mm, 0.6mm)
@@ -126,7 +131,9 @@ pub pad P_AIR780E_PAD_V {
     plating: smd
 }
 
-// Perimeter pads on top/bottom rows: same 0.6 x 1.3 mm, rotated 90 deg.
+// Perimeter pads on the top and bottom rows (14-22, 36-44 and the corner
+// pads 95-98): 0.6 mm along the edge (x) by 1.3 mm radial (y). Decal stacks,
+// layer -2: `900000 RF 90.000 1950000`.
 pub pad P_AIR780E_PAD_H {
     shape: rect
     size: (0.6mm, 1.3mm)
@@ -134,132 +141,144 @@ pub pad P_AIR780E_PAD_H {
     plating: smd
 }
 
-// Inner pads + default (pins without explicit decal stack): 0.7 x 1.0 mm.
+// Inner columns (45-53, 59-67, 73-88, 99, 100, 103, 104): 1.0 mm (x) by
+// 0.7 mm (y). These pins have no stack of their own; the decal default
+// stack (PAD 0), layer -2: `1050000 RF 0.000 1500000`.
 pub pad P_AIR780E_PAD_IN {
     shape: rect
-    size: (1.0mm, 0.7mm)
+    size: (1mm, 0.7mm)
     layer: top_copper
     plating: smd
 }
 
-// Thermal pads 89-94: 1.3 mm round (decal shape=S size=1.300mm).
-pub pad P_AIR780E_PAD_ROUND {
-    shape: circle
-    size: (1.3mm)
+// Inner rows (54-58, 68-72, 101, 102, 105-109): 0.7 mm (x) by 1.0 mm (y).
+// Decal stacks, layer -2: `1050000 RF 90.000 1500000`.
+pub pad P_AIR780E_PAD_IN_H {
+    shape: rect
+    size: (0.7mm, 1mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Centre ground pads 89-94: 1.3 mm squares. Decal stacks, layer -2:
+// `1950000 S` (PADS shape S = square).
+pub pad P_AIR780E_PAD_GND {
+    shape: rect
+    size: (1.3mm, 1.3mm)
     layer: top_copper
     plating: smd
 }
 
 pub footprint FP_Luat_AIR780E_LGA109_177x158mm {
-    pad 1: P_AIR780E_PAD_V at (-7.25mm, 6.6mm)
-    pad 2: P_AIR780E_PAD_V at (-7.25mm, 5.5mm)
-    pad 3: P_AIR780E_PAD_V at (-7.25mm, 4.4mm)
-    pad 4: P_AIR780E_PAD_V at (-7.25mm, 3.3mm)
-    pad 5: P_AIR780E_PAD_V at (-7.25mm, 2.2mm)
-    pad 6: P_AIR780E_PAD_V at (-7.25mm, 1.1mm)
+    pad 1: P_AIR780E_PAD_V at (-7.25mm, -6.6mm)
+    pad 2: P_AIR780E_PAD_V at (-7.25mm, -5.5mm)
+    pad 3: P_AIR780E_PAD_V at (-7.25mm, -4.4mm)
+    pad 4: P_AIR780E_PAD_V at (-7.25mm, -3.3mm)
+    pad 5: P_AIR780E_PAD_V at (-7.25mm, -2.2mm)
+    pad 6: P_AIR780E_PAD_V at (-7.25mm, -1.1mm)
     pad 7: P_AIR780E_PAD_V at (-7.25mm, 0mm)
-    pad 8: P_AIR780E_PAD_V at (-7.25mm, -1.1mm)
-    pad 9: P_AIR780E_PAD_V at (-7.25mm, -2.2mm)
-    pad 10: P_AIR780E_PAD_V at (-7.25mm, -3.3mm)
-    pad 11: P_AIR780E_PAD_V at (-7.25mm, -4.4mm)
-    pad 12: P_AIR780E_PAD_V at (-7.25mm, -5.5mm)
-    pad 13: P_AIR780E_PAD_V at (-7.25mm, -6.6mm)
-    pad 23: P_AIR780E_PAD_V at (7.25mm, -6.6mm)
-    pad 24: P_AIR780E_PAD_V at (7.25mm, -5.5mm)
-    pad 25: P_AIR780E_PAD_V at (7.25mm, -4.4mm)
-    pad 26: P_AIR780E_PAD_V at (7.25mm, -3.3mm)
-    pad 27: P_AIR780E_PAD_V at (7.25mm, -2.2mm)
-    pad 28: P_AIR780E_PAD_V at (7.25mm, -1.1mm)
+    pad 8: P_AIR780E_PAD_V at (-7.25mm, 1.1mm)
+    pad 9: P_AIR780E_PAD_V at (-7.25mm, 2.2mm)
+    pad 10: P_AIR780E_PAD_V at (-7.25mm, 3.3mm)
+    pad 11: P_AIR780E_PAD_V at (-7.25mm, 4.4mm)
+    pad 12: P_AIR780E_PAD_V at (-7.25mm, 5.5mm)
+    pad 13: P_AIR780E_PAD_V at (-7.25mm, 6.6mm)
+    pad 14: P_AIR780E_PAD_H at (-4.4mm, 8.2mm)
+    pad 15: P_AIR780E_PAD_H at (-3.3mm, 8.2mm)
+    pad 16: P_AIR780E_PAD_H at (-2.2mm, 8.2mm)
+    pad 17: P_AIR780E_PAD_H at (-1.1mm, 8.2mm)
+    pad 18: P_AIR780E_PAD_H at (0mm, 8.2mm)
+    pad 19: P_AIR780E_PAD_H at (1.1mm, 8.2mm)
+    pad 20: P_AIR780E_PAD_H at (2.2mm, 8.2mm)
+    pad 21: P_AIR780E_PAD_H at (3.3mm, 8.2mm)
+    pad 22: P_AIR780E_PAD_H at (4.4mm, 8.2mm)
+    pad 23: P_AIR780E_PAD_V at (7.25mm, 6.6mm)
+    pad 24: P_AIR780E_PAD_V at (7.25mm, 5.5mm)
+    pad 25: P_AIR780E_PAD_V at (7.25mm, 4.4mm)
+    pad 26: P_AIR780E_PAD_V at (7.25mm, 3.3mm)
+    pad 27: P_AIR780E_PAD_V at (7.25mm, 2.2mm)
+    pad 28: P_AIR780E_PAD_V at (7.25mm, 1.1mm)
     pad 29: P_AIR780E_PAD_V at (7.25mm, 0mm)
-    pad 30: P_AIR780E_PAD_V at (7.25mm, 1.1mm)
-    pad 31: P_AIR780E_PAD_V at (7.25mm, 2.2mm)
-    pad 32: P_AIR780E_PAD_V at (7.25mm, 3.3mm)
-    pad 33: P_AIR780E_PAD_V at (7.25mm, 4.4mm)
-    pad 34: P_AIR780E_PAD_V at (7.25mm, 5.5mm)
-    pad 35: P_AIR780E_PAD_V at (7.25mm, 6.6mm)
-    pad 45: P_AIR780E_PAD_IN at (-5mm, 4.8mm)
-    pad 46: P_AIR780E_PAD_IN at (-5mm, 3.6mm)
-    pad 47: P_AIR780E_PAD_IN at (-5mm, 2.4mm)
-    pad 48: P_AIR780E_PAD_IN at (-5mm, 1.2mm)
+    pad 30: P_AIR780E_PAD_V at (7.25mm, -1.1mm)
+    pad 31: P_AIR780E_PAD_V at (7.25mm, -2.2mm)
+    pad 32: P_AIR780E_PAD_V at (7.25mm, -3.3mm)
+    pad 33: P_AIR780E_PAD_V at (7.25mm, -4.4mm)
+    pad 34: P_AIR780E_PAD_V at (7.25mm, -5.5mm)
+    pad 35: P_AIR780E_PAD_V at (7.25mm, -6.6mm)
+    pad 36: P_AIR780E_PAD_H at (4.4mm, -8.2mm)
+    pad 37: P_AIR780E_PAD_H at (3.3mm, -8.2mm)
+    pad 38: P_AIR780E_PAD_H at (2.2mm, -8.2mm)
+    pad 39: P_AIR780E_PAD_H at (1.1mm, -8.2mm)
+    pad 40: P_AIR780E_PAD_H at (0mm, -8.2mm)
+    pad 41: P_AIR780E_PAD_H at (-1.1mm, -8.2mm)
+    pad 42: P_AIR780E_PAD_H at (-2.2mm, -8.2mm)
+    pad 43: P_AIR780E_PAD_H at (-3.3mm, -8.2mm)
+    pad 44: P_AIR780E_PAD_H at (-4.4mm, -8.2mm)
+    pad 45: P_AIR780E_PAD_IN at (-5mm, -4.8mm)
+    pad 46: P_AIR780E_PAD_IN at (-5mm, -3.6mm)
+    pad 47: P_AIR780E_PAD_IN at (-5mm, -2.4mm)
+    pad 48: P_AIR780E_PAD_IN at (-5mm, -1.2mm)
     pad 49: P_AIR780E_PAD_IN at (-5mm, 0mm)
-    pad 50: P_AIR780E_PAD_IN at (-5mm, -1.2mm)
-    pad 51: P_AIR780E_PAD_IN at (-5mm, -2.4mm)
-    pad 52: P_AIR780E_PAD_IN at (-5mm, -3.6mm)
-    pad 53: P_AIR780E_PAD_IN at (-5mm, -4.8mm)
-    pad 59: P_AIR780E_PAD_IN at (5mm, -4.8mm)
-    pad 60: P_AIR780E_PAD_IN at (5mm, -3.6mm)
-    pad 61: P_AIR780E_PAD_IN at (5mm, -2.4mm)
-    pad 62: P_AIR780E_PAD_IN at (5mm, -1.2mm)
+    pad 50: P_AIR780E_PAD_IN at (-5mm, 1.2mm)
+    pad 51: P_AIR780E_PAD_IN at (-5mm, 2.4mm)
+    pad 52: P_AIR780E_PAD_IN at (-5mm, 3.6mm)
+    pad 53: P_AIR780E_PAD_IN at (-5mm, 4.8mm)
+    pad 54: P_AIR780E_PAD_IN_H at (-2.4mm, 5.95mm)
+    pad 55: P_AIR780E_PAD_IN_H at (-1.2mm, 5.95mm)
+    pad 56: P_AIR780E_PAD_IN_H at (0mm, 5.95mm)
+    pad 57: P_AIR780E_PAD_IN_H at (1.2mm, 5.95mm)
+    pad 58: P_AIR780E_PAD_IN_H at (2.4mm, 5.95mm)
+    pad 59: P_AIR780E_PAD_IN at (5mm, 4.8mm)
+    pad 60: P_AIR780E_PAD_IN at (5mm, 3.6mm)
+    pad 61: P_AIR780E_PAD_IN at (5mm, 2.4mm)
+    pad 62: P_AIR780E_PAD_IN at (5mm, 1.2mm)
     pad 63: P_AIR780E_PAD_IN at (5mm, 0mm)
-    pad 64: P_AIR780E_PAD_IN at (5mm, 1.2mm)
-    pad 65: P_AIR780E_PAD_IN at (5mm, 2.4mm)
-    pad 66: P_AIR780E_PAD_IN at (5mm, 3.6mm)
-    pad 67: P_AIR780E_PAD_IN at (5mm, 4.8mm)
-    pad 73: P_AIR780E_PAD_IN at (-3.2mm, 4.2mm)
-    pad 74: P_AIR780E_PAD_IN at (-3.2mm, 3mm)
-    pad 75: P_AIR780E_PAD_IN at (-3.2mm, 1.8mm)
-    pad 76: P_AIR780E_PAD_IN at (-3.2mm, 0.6mm)
-    pad 77: P_AIR780E_PAD_IN at (-3.2mm, -0.6mm)
-    pad 78: P_AIR780E_PAD_IN at (-3.2mm, -1.8mm)
-    pad 79: P_AIR780E_PAD_IN at (-3.2mm, -3mm)
-    pad 80: P_AIR780E_PAD_IN at (-3.2mm, -4.2mm)
-    pad 81: P_AIR780E_PAD_IN at (3.2mm, -4.2mm)
-    pad 82: P_AIR780E_PAD_IN at (3.2mm, -3mm)
-    pad 83: P_AIR780E_PAD_IN at (3.2mm, -1.8mm)
-    pad 84: P_AIR780E_PAD_IN at (3.2mm, -0.6mm)
-    pad 85: P_AIR780E_PAD_IN at (3.2mm, 0.6mm)
-    pad 86: P_AIR780E_PAD_IN at (3.2mm, 1.8mm)
-    pad 87: P_AIR780E_PAD_IN at (3.2mm, 3mm)
-    pad 88: P_AIR780E_PAD_IN at (3.2mm, 4.2mm)
-    pad 89: P_AIR780E_PAD_ROUND at (-0.9mm, 1.8mm)
-    pad 90: P_AIR780E_PAD_ROUND at (-0.9mm, 0mm)
-    pad 91: P_AIR780E_PAD_ROUND at (-0.9mm, -1.8mm)
-    pad 92: P_AIR780E_PAD_ROUND at (0.9mm, -1.8mm)
-    pad 93: P_AIR780E_PAD_ROUND at (0.9mm, 0mm)
-    pad 94: P_AIR780E_PAD_ROUND at (0.9mm, 1.8mm)
-    pad 99: P_AIR780E_PAD_IN at (-5mm, 6mm)
-    pad 100: P_AIR780E_PAD_IN at (-5mm, -6mm)
-    pad 103: P_AIR780E_PAD_IN at (5mm, -6mm)
-    pad 104: P_AIR780E_PAD_IN at (5mm, 6mm)
-    pad 14: P_AIR780E_PAD_H at (-4.4mm, -8.2mm)
-    pad 15: P_AIR780E_PAD_H at (-3.3mm, -8.2mm)
-    pad 16: P_AIR780E_PAD_H at (-2.2mm, -8.2mm)
-    pad 17: P_AIR780E_PAD_H at (-1.1mm, -8.2mm)
-    pad 18: P_AIR780E_PAD_H at (0mm, -8.2mm)
-    pad 19: P_AIR780E_PAD_H at (1.1mm, -8.2mm)
-    pad 20: P_AIR780E_PAD_H at (2.2mm, -8.2mm)
-    pad 21: P_AIR780E_PAD_H at (3.3mm, -8.2mm)
-    pad 22: P_AIR780E_PAD_H at (4.4mm, -8.2mm)
-    pad 36: P_AIR780E_PAD_H at (4.4mm, 8.2mm)
-    pad 37: P_AIR780E_PAD_H at (3.3mm, 8.2mm)
-    pad 38: P_AIR780E_PAD_H at (2.2mm, 8.2mm)
-    pad 39: P_AIR780E_PAD_H at (1.1mm, 8.2mm)
-    pad 40: P_AIR780E_PAD_H at (0mm, 8.2mm)
-    pad 41: P_AIR780E_PAD_H at (-1.1mm, 8.2mm)
-    pad 42: P_AIR780E_PAD_H at (-2.2mm, 8.2mm)
-    pad 43: P_AIR780E_PAD_H at (-3.3mm, 8.2mm)
-    pad 44: P_AIR780E_PAD_H at (-4.4mm, 8.2mm)
-    pad 54: P_AIR780E_PAD_IN at (-2.4mm, -5.95mm)
-    pad 55: P_AIR780E_PAD_IN at (-1.2mm, -5.95mm)
-    pad 56: P_AIR780E_PAD_IN at (0mm, -5.95mm)
-    pad 57: P_AIR780E_PAD_IN at (1.2mm, -5.95mm)
-    pad 58: P_AIR780E_PAD_IN at (2.4mm, -5.95mm)
-    pad 68: P_AIR780E_PAD_IN at (2.4mm, 5.95mm)
-    pad 69: P_AIR780E_PAD_IN at (1.2mm, 5.95mm)
-    pad 70: P_AIR780E_PAD_IN at (0mm, 5.95mm)
-    pad 71: P_AIR780E_PAD_IN at (-1.2mm, 5.95mm)
-    pad 72: P_AIR780E_PAD_IN at (-2.4mm, 5.95mm)
-    pad 95: P_AIR780E_PAD_IN at (-5.5mm, -8.2mm)
-    pad 96: P_AIR780E_PAD_IN at (5.5mm, -8.2mm)
-    pad 97: P_AIR780E_PAD_IN at (5.5mm, 8.2mm)
-    pad 98: P_AIR780E_PAD_IN at (-5.5mm, 8.2mm)
-    pad 101: P_AIR780E_PAD_IN at (-3.5mm, -5.95mm)
-    pad 102: P_AIR780E_PAD_IN at (3.5mm, -5.95mm)
-    pad 105: P_AIR780E_PAD_IN at (3.6mm, 5.95mm)
-    pad 106: P_AIR780E_PAD_IN at (-3.6mm, 5.95mm)
-    pad 107: P_AIR780E_PAD_IN at (-1.2mm, -4.15mm)
-    pad 108: P_AIR780E_PAD_IN at (0mm, -4.15mm)
-    pad 109: P_AIR780E_PAD_IN at (1.2mm, -4.15mm)
+    pad 64: P_AIR780E_PAD_IN at (5mm, -1.2mm)
+    pad 65: P_AIR780E_PAD_IN at (5mm, -2.4mm)
+    pad 66: P_AIR780E_PAD_IN at (5mm, -3.6mm)
+    pad 67: P_AIR780E_PAD_IN at (5mm, -4.8mm)
+    pad 68: P_AIR780E_PAD_IN_H at (2.4mm, -5.95mm)
+    pad 69: P_AIR780E_PAD_IN_H at (1.2mm, -5.95mm)
+    pad 70: P_AIR780E_PAD_IN_H at (0mm, -5.95mm)
+    pad 71: P_AIR780E_PAD_IN_H at (-1.2mm, -5.95mm)
+    pad 72: P_AIR780E_PAD_IN_H at (-2.4mm, -5.95mm)
+    pad 73: P_AIR780E_PAD_IN at (-3.2mm, -4.2mm)
+    pad 74: P_AIR780E_PAD_IN at (-3.2mm, -3mm)
+    pad 75: P_AIR780E_PAD_IN at (-3.2mm, -1.8mm)
+    pad 76: P_AIR780E_PAD_IN at (-3.2mm, -0.6mm)
+    pad 77: P_AIR780E_PAD_IN at (-3.2mm, 0.6mm)
+    pad 78: P_AIR780E_PAD_IN at (-3.2mm, 1.8mm)
+    pad 79: P_AIR780E_PAD_IN at (-3.2mm, 3mm)
+    pad 80: P_AIR780E_PAD_IN at (-3.2mm, 4.2mm)
+    pad 81: P_AIR780E_PAD_IN at (3.2mm, 4.2mm)
+    pad 82: P_AIR780E_PAD_IN at (3.2mm, 3mm)
+    pad 83: P_AIR780E_PAD_IN at (3.2mm, 1.8mm)
+    pad 84: P_AIR780E_PAD_IN at (3.2mm, 0.6mm)
+    pad 85: P_AIR780E_PAD_IN at (3.2mm, -0.6mm)
+    pad 86: P_AIR780E_PAD_IN at (3.2mm, -1.8mm)
+    pad 87: P_AIR780E_PAD_IN at (3.2mm, -3mm)
+    pad 88: P_AIR780E_PAD_IN at (3.2mm, -4.2mm)
+    pad 89: P_AIR780E_PAD_GND at (-0.9mm, -1.8mm)
+    pad 90: P_AIR780E_PAD_GND at (-0.9mm, 0mm)
+    pad 91: P_AIR780E_PAD_GND at (-0.9mm, 1.8mm)
+    pad 92: P_AIR780E_PAD_GND at (0.9mm, 1.8mm)
+    pad 93: P_AIR780E_PAD_GND at (0.9mm, 0mm)
+    pad 94: P_AIR780E_PAD_GND at (0.9mm, -1.8mm)
+    pad 95: P_AIR780E_PAD_H at (-5.5mm, 8.2mm)
+    pad 96: P_AIR780E_PAD_H at (5.5mm, 8.2mm)
+    pad 97: P_AIR780E_PAD_H at (5.5mm, -8.2mm)
+    pad 98: P_AIR780E_PAD_H at (-5.5mm, -8.2mm)
+    pad 99: P_AIR780E_PAD_IN at (-5mm, -6mm)
+    pad 100: P_AIR780E_PAD_IN at (-5mm, 6mm)
+    pad 101: P_AIR780E_PAD_IN_H at (-3.5mm, 5.95mm)
+    pad 102: P_AIR780E_PAD_IN_H at (3.5mm, 5.95mm)
+    pad 103: P_AIR780E_PAD_IN at (5mm, 6mm)
+    pad 104: P_AIR780E_PAD_IN at (5mm, -6mm)
+    pad 105: P_AIR780E_PAD_IN_H at (3.6mm, -5.95mm)
+    pad 106: P_AIR780E_PAD_IN_H at (-3.6mm, -5.95mm)
+    pad 107: P_AIR780E_PAD_IN_H at (-1.2mm, 4.15mm)
+    pad 108: P_AIR780E_PAD_IN_H at (0mm, 4.15mm)
+    pad 109: P_AIR780E_PAD_IN_H at (1.2mm, 4.15mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }

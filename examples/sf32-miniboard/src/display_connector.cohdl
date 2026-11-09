@@ -13,23 +13,6 @@ pub part C_10U_16V_X7R_1206: passive::MLCC<10uF, 16V, 10%>[C1206] {
     primary { mfr: "TDK", mpn: "C3216X7R1C106K160AC", footprint: passive::CHIP_1206 }
 }
 
-// SGM2554A pinout from the manufacturer sheet: OUT is pins 1+5, GND is 2,
-// VIN is 3, and EN is 4. This corrected local device uses the shared land.
-pub device SGM2554A_CORRECT {
-    pins {
-        required OUT: 1, 5 [power_out]
-        required GND: 2 [power_in]
-        required IN: 3 [power_in]
-        required EN: 4 [input]
-    }
-}
-
-impl IC for SGM2554A_CORRECT {}
-
-pub part DISPLAY_LOGIC_SWITCH: SGM2554A_CORRECT {
-    primary { mfr: "SGMICRO", mpn: "SGM2554AYN5G/TR", footprint: load_switch::FP_SGM2554_SOT235 }
-}
-
 // OCN OK-F302-31115 receptacle. Pin names and roles model the attached
 // H0216F002AM module. TP_VCC is an output from the module; MTP_PWR and the
 // MIPI-DSI lane pins must remain open during normal QSPI operation.

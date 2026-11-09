@@ -18,6 +18,7 @@ RECORD = ROOT / "tools/sourcing_data/registry_uploads/2026-11-05-lcsc"
 FULL = ROOT / "tools/sourcing_data/lcsc_backfill/2026-11-06-full-aliases"
 # The same run again after the library's manufacturer spellings were fixed.
 SPELLINGS = FULL.parent / "2026-11-06-full-spellings"
+SAMSUNG = FULL.parent / "2026-11-07-samsung-b1"
 EMPTY = {"schema_version": 1, "supplier": "lcsc", "rows": []}
 
 
@@ -73,6 +74,10 @@ class PromoteTests(unittest.TestCase):
         code, out, _ = self.promote("--aliases", str(current), run=SPELLINGS)
         self.assertEqual(code, 0)
         self.assertIn("12284 rows, 4 changed", out)
+        # passive 0.2.6's run adds the 37 stocked Samsung alternates and re-dates every row.
+        code, out, _ = self.promote("--aliases", str(current), run=SAMSUNG)
+        self.assertEqual(code, 0)
+        self.assertIn("12321 rows, 12321 changed", out)
         self.assertEqual(self.map.read_bytes(), (ROOT / "tools/sourcing_data/lcsc_map.json").read_bytes())
 
     def test_check_writes_nothing(self):

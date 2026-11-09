@@ -26,7 +26,12 @@
 // Second Hongjiacheng view: the SMAJ series datasheet Rev 2.2, page 2
 // (docs/hongjiacheng-smaj5v0a.evidence.md), lists M >= 2.26mm, J >= 2.10mm,
 // K <= 2.74mm for the same outline. This land meets its J and K limits but
-// not its M limit (1.70 < 2.26mm); see the open question in docs/README.md.
+// not its M limit (1.70 < 2.26mm). That is a deliberate waiver, agreed in
+// the #101 review: the SMAJ rows are table-only (no land drawing on any
+// page) and numerically identical to the SMBJ sheet's SMB rows, so they look
+// carried over from SMB, while SS34 and Diodes both give 1.70mm and the SMA
+// lead is at most 1.65mm wide. SMAJ parts bind to this 1.70mm land; see
+// docs/README.md.
 //
 // Cross-check: Diodes Incorporated SMA package information, Rev. 2017-03-14,
 // page 1 (docs/diodes-sma.evidence.md): X = 2.50mm, Y = 1.70mm, C = 4.00mm,

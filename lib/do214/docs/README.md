@@ -163,23 +163,21 @@ None in the library for SMA, SMB, SMC or SMAF.
 
 ## Open questions (for the maintainers)
 
-1. **SMAJ land width.** The SMAJ sheet asks for lands at least 2.26 mm wide;
-   this land (from the designated primary, SS34) is 1.70 mm. SMAJ is 31 of
-   the 109 SMA snapshot parts, so their binding-time check will fail on width.
-   *Recommendation:* before the first publish, widen the land to 2.10 x
-   2.26 mm with the 2.30 mm gap. That satisfies both Hongjiacheng sheets
-   (SS34 M >= 1.70, K <= 2.30; SMAJ M >= 2.26, K <= 2.74) and still fits the
-   7.0 x 3.4 mm courtyard. This change keeps the primary's land, as the
-   maintainer's rule requires, and leaves the decision open.
-   *Wave-2 evidence (land unchanged):* the SMBJ sheet's land rows are
-   numerically identical to the SMAJ sheet's (M >= 2.26, J >= 2.10,
-   K <= 2.74 mm). On SMB, M = 2.26 mm just covers the 2.21 mm maximum lead
-   width; on SMA the leads are at most 1.65 mm wide, and SS34 and Diodes both
-   use 1.70 mm. The SMAJ rows therefore look carried over from the SMB sheet
-   rather than drawn for SMA. The SMCJ sheet has no land rows at all, so it
-   gives no family convention. Reviewers may prefer to keep 1.70 mm and treat
-   the SMAJ M row as a probable copy (asking Hongjiacheng to confirm), rather
-   than widen the SMA land.
+1. **SMAJ land width.** *Settled in the #101 review: keep 1.70 mm, a
+   deliberate waiver of the SMAJ sheet's M >= 2.26 mm.* The SMAJ sheet asks
+   for lands at least 2.26 mm wide; this land (from the designated primary,
+   SS34) is 1.70 mm. The SMAJ land rows are table-only (no land drawing on
+   any of its five pages) and numerically identical to the SMBJ sheet's SMB
+   rows (M >= 2.26, J >= 2.10, K <= 2.74 mm), where M = 2.26 mm just covers
+   SMB's 2.21 mm maximum lead width. SMA leads are at most 1.65 mm wide, and
+   SS34 and the Diodes SMA file both use 1.70 mm, so the SMAJ rows are
+   treated as carried over from SMB. The SMCJ sheet has no land rows at
+   all, so it gives no family convention. SMAJ is 31 of the 109 SMA
+   snapshot parts; their binding-time check records this waiver instead of
+   failing on width. The alternative considered was 2.10 x 2.26 mm lands
+   with the 2.30 mm gap, which meets both Hongjiacheng sheets and still fits
+   the 7.0 x 3.4 mm courtyard; asking Hongjiacheng to confirm the SMAJ rows
+   remains worthwhile.
 2. **Final name.** DIOM is outside RFC-021's closed set, so no check covers
    the name. It is IPC-7351B-style: DIOM + overall length + body width (tenths
    of a millimetre, midpoint of the primary tolerance) + X + maximum height

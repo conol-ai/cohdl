@@ -1,0 +1,38 @@
+alias AWINIC(Shanghai Awinic Tech) -> Awinic: awinic(shanghai awinic tech)
+alias Abracon LLC -> Abracon: abracon llc
+alias Cellwise -> CellWise Microelectronics: cellwise
+alias Diodes Incorporated -> Diodes Inc: diodes incorporated
+alias Espressif Systems -> Espressif: espressif systems
+alias Foshan NationStar Optoelectronics -> NATIONSTAR: foshan nationstar optoelectronics
+alias GigaDevice Semicon Beijing -> GigaDevice: gigadevice semicon beijing
+alias Global Connector Technology -> GCT: global connector technology
+alias HRS(Hirose) -> Hirose Electric: hrs(hirose)
+alias Infineon Technologies -> Infineon: infineon technologies
+alias Infineon/Cypress Semicon -> Infineon: infineon/cypress semicon
+alias Jiangsu Changjing Electronics Technology Co., Ltd. -> Jiangsu Changjing Electronics Technology: jiangsu changjing electronics technology co., ltd.
+alias Jiangsu RUNIC Tech -> Run-IC: jiangsu runic tech
+alias Korean Hroparts Elec -> HRO: korean hroparts elec
+alias Luat -> Luat (Hezhou): luat
+alias MICRONE(Nanjing Micro One Elec) -> Microne: microne(nanjing micro one elec)
+alias Murata Electronics -> Murata: murata electronics
+alias NXP Semicon -> NXP: nxp semicon
+alias OPSCO Optoelectronics -> Dongguan OPSCO Optoelectronics: opsco optoelectronics
+alias PANASONIC -> Panasonic: panasonic
+alias ProTek Devices -> ProTek: protek devices
+alias Richtek Tech -> Richtek: richtek tech
+alias SEMTECH -> Semtech: semtech
+alias SGMICRO -> SG Micro: sgmicro
+alias Samsung Electro-Mechanics -> Samsung: samsung electro-mechanics
+alias Shenzhen Nsiway Tech -> NSIWAY: shenzhen nsiway tech
+alias TDK InvenSense -> TDK/InvenSense: tdk invensense
+alias Torex Semicon -> Torex Semiconductor: torex semicon
+alias U-BLOX -> u-blox: u-blox
+alias Vishay Intertech -> Vishay: vishay intertech
+alias WCH(Jiangsu Qin Heng) -> WCH: wch(jiangsu qin heng)
+alias Winbond Elec -> Winbond: winbond elec
+alias XI'AN Aerosemi Tech -> Xi'an Aerosemi Tech: xi'an aerosemi tech
+alias XINLUDA -> Xinluda: xinluda
+alias YAGEO -> Yageo: yageo
+alias etasolution -> ETA Solutions: etasolution
+alias hongjiacheng -> Zhuhai Hongjiacheng Technology: hongjiacheng
+snapshot: 13604 rows replaced the lcsc catalog

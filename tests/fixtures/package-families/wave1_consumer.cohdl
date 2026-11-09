@@ -1,0 +1,46 @@
+// Test-fixture consumer for the W4 package-family lands, wave 1 (library
+// plan item 3c). The devices and parts below are fixtures, not library
+// parts: they bind every new land so the pad-consistency check and the
+// KiCad emission in `tests/library.rs` cannot pass vacuously. They carry no
+// supplier binding and are never published.
+
+device FixtureDiode {
+    pins {
+        required K: 1 [passive]
+        required A: 2 [passive]
+    }
+}
+
+device FixtureSot3 {
+    pins {
+        required P1: 1 [passive]
+        required P2: 2 [passive]
+        required P3: 3 [passive]
+    }
+}
+
+part FIXTURE_SOD123: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOD123", footprint: sod::SOD3716X135N }
+}
+
+part FIXTURE_SOD323: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOD323", footprint: sod::SOD2613X110N }
+}
+
+part FIXTURE_SMA: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SMA", footprint: do214::DIOM5026X241N }
+}
+
+part FIXTURE_SOT23: FixtureSot3 {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT23", footprint: sot::SOT3P190X290X130N }
+}
+
+design PackageFamiliesWave1 {
+    inst d_sod123: FIXTURE_SOD123
+    inst d_sod323: FIXTURE_SOD323
+    inst d_sma: FIXTURE_SMA
+    inst q_sot23: FIXTURE_SOT23
+    net CATHODES: d_sod123.K, d_sod323.K, d_sma.K, q_sot23.P3
+    net ANODES: d_sod123.A, d_sod323.A, d_sma.A, q_sot23.P1
+    nc: q_sot23.P2
+}

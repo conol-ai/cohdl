@@ -1,0 +1,57 @@
+// DO-214 molded-body diode land patterns (library plan W4, item 3c wave 1).
+//
+// Frame convention, shared by every footprint in this package: CoHDL's
+// board frame (+x right, +y DOWN, top view), origin at the package centre.
+// Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
+// at +x, the same frame as the `sod` package. The assembler has not yet read
+// a DO-214 part on a preview board; this orientation is the one it reads as
+// 0 degrees for SOD parts, and the wave-1 frame board must confirm it before
+// the first publish.
+//
+// Names are IPC-7351B-style (DIOM + overall length + body width X height,
+// length and width in tenths of a millimetre, height in hundredths) but
+// DIOM is outside RFC-021's closed family set, so no name check (E808/E809)
+// runs on them. The final names are an open question in docs/README.md.
+
+// SMA / DO-214AC. Primary source: Zhuhai Hongjiacheng SS32 THRU SS320
+// datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-ss34.evidence.md). The table gives one-sided limits only:
+// M (land width) >= 1.70mm, J (land length) >= 2.10mm, K (gap between lands)
+// <= 2.30mm. The land uses those limits as its values: 2.10 x 1.70mm lands,
+// centres at +/-(K/2 + J/2) = +/-2.20mm, 6.50mm outer copper span.
+//
+// Second Hongjiacheng view: the SMAJ series datasheet Rev 2.2, page 2
+// (docs/hongjiacheng-smaj5v0a.evidence.md), lists M >= 2.26mm, J >= 2.10mm,
+// K <= 2.74mm for the same outline. This land meets its J and K limits but
+// not its M limit (1.70 < 2.26mm); see the open question in docs/README.md.
+//
+// Cross-check: Diodes Incorporated SMA package information, Rev. 2017-03-14,
+// page 1 (docs/diodes-sma.evidence.md): X = 2.50mm, Y = 1.70mm, C = 4.00mm,
+// G = 1.50mm, X1 = 6.50mm. Same width and outer span; the Diodes lands are
+// 0.40mm longer inward (0.80mm smaller gap).
+pub pad P_DIOM5026X241N_LEAD {
+    shape: rect
+    size: (2.1mm, 1.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: G (overall length) 4.70-
+// 5.30mm, nominal 5.00; C (body width) 2.35-2.85mm, nominal 2.60; D (height)
+// 2.41mm maximum.
+#[doc("docs/README.md")]
+pub footprint DIOM5026X241N {
+    pad 1: P_DIOM5026X241N_LEAD at (-2.2mm, 0mm)
+    pad 2: P_DIOM5026X241N_LEAD at (2.2mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 2.85mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-2.2mm, -1.49mm) to (2.2mm, -1.49mm) width 0.12mm
+        line from (-2.2mm, 1.49mm) to (2.2mm, 1.49mm) width 0.12mm
+    }
+    // Contains the 6.50 x 1.70mm copper and the 5.30 x 2.85mm maximum
+    // component envelope (G x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}

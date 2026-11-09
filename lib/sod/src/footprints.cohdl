@@ -170,11 +170,15 @@ pub footprint SOD1608X70N {
     pad 1: P_SOD1608X70N_LEAD at (-0.71mm, 0mm)
     pad 2: P_SOD1608X70N_LEAD at (0.71mm, 0mm)
     // Silkscreen: the cathode band outboard of pad 1, and the body long
-    // edges just outside the 0.90mm maximum body width.
+    // edges just outside the 0.90mm maximum body width, drawn only between
+    // the lands (as SODFL3818X120N does): over the 0.70mm-wide lands they
+    // would pass 0.10mm from the copper and be clipped. The line ends at
+    // +/-0.20mm keep 0.15mm from the 0.41mm inner land edge, counting the
+    // 0.06mm half-width of the stroke, the band's clearance to pad 1.
     silkscreen {
         polarity_marker cathode_pin 1 shape band
-        line from (-0.6mm, -0.51mm) to (0.6mm, -0.51mm) width 0.12mm
-        line from (-0.6mm, 0.51mm) to (0.6mm, 0.51mm) width 0.12mm
+        line from (-0.2mm, -0.51mm) to (0.2mm, -0.51mm) width 0.12mm
+        line from (-0.2mm, 0.51mm) to (0.2mm, 0.51mm) width 0.12mm
     }
     // Contains the 2.02 x 0.70mm copper and the 1.70 x 0.90mm maximum
     // component envelope (C x E) with at least 0.25mm excess on every side.

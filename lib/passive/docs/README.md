@@ -120,3 +120,16 @@ A binding changes no connection, no geometry and no verdict, and no land changed
 | `C_15p_50V_C0G_0805` | primary Yageo `CC0805JRNPO9BN150` | C107110 | `CHIP_0805` | C1 bottom preview, 2026-10-29 |
 
 All three have a zero map. That makes 36 bindings: 25 resistors and 11 MLCCs, with 33 Yageo primaries, two Vishay alternates and one Samsung alternate. No land changed: `pads.cohdl` and `footprints.cohdl` are byte for byte those of 0.2.4, and every `passive` frame row now names 0.2.5. The KiCad netlist gains an `LCSC` field for two more instances' primaries (33 of the 36). With `--supplier lcsc`, `C_100n_16V_X7R_0402` takes the Samsung alternate C1525, since its Yageo primary is not bound.
+
+## Stocked Samsung alternates (passive 0.2.6)
+
+0.2.6 adds 37 Samsung CL alternates to existing MLCC parts: 9 on 0402 parts, 22 on 0603 and 6 on 0805. Each is a part number JLCPCB stocks as Basic or Preferred in the B1 snapshot (`tools/sourcing_data/jlc_catalog/2026-10-30/`).
+- **How they were chosen.** `tools/samsung_b1_alternates.py` decodes every Samsung CL number in that snapshot with the part-numbering rules of `samsung_mlcc_catalog_2025-12.pdf` (pp. 6–7), and writes `tools/passive_data/samsung_b1.json`. That table holds 39 numbers: 32 Basic, 7 Preferred. A number is kept only when it decodes to a part this package emits, with the tolerance the package pairs with its dielectric: C0G ±5%, X7R and X5R ±10%. Two of the 39 were already alternates: `CL05B104KO5NNNC` (C1525) and `CL10A106KP8NNNC` (C19702).
+- **How they are added.** `gen_passive.py` appends each one after the part's existing alternates. Most of these parts already carry a Samsung alternate from `samsung_cl.json`, so the stocked number is a second Samsung entry for the same combination.
+- **The 28 not added.** The table lists them with the reason:
+  - 16 match a combination whose Yageo primary Yageo will not confirm, so the package emits no part;
+  - 8 decode to a combination the package does not offer;
+  - 3 have ±20% tolerance;
+  - 1 has a rated-voltage code this package has no voltage for.
+- **One new binding.** `C_10u_25V_X5R_0805` binds its new alternate `CL21A106KAYNNNE` to C15850, with a zero map. That part number already had a frame row (`c2b1-c0805-c15850`, C2 frame board 1). That makes 37 bindings.
+- **What else changed.** Nothing: no land and no part. The other new alternates have no frame evidence yet, so they are not bound. Their identities are in `lcsc_map.json` (12,321 rows), from the run `lcsc_backfill/2026-11-07-samsung-b1/`. Every `passive` frame row now names 0.2.6.

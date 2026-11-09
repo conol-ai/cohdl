@@ -1,5 +1,5 @@
 // Official-account maintenance for supplier catalog snapshots and aliases.
-import { accountForSession, type Account, type Env } from "./auth";
+import { accountForSession, accountForToken, bearerToken, type Account, type Env } from "./auth";
 import { hasJsonContentType, validWriteOrigin } from "./admin";
 import { readBoundedJson } from "./component-requests";
 
@@ -34,6 +34,8 @@ export interface SupplierAdminStore {
 }
 export interface SupplierAdminDependencies {
   sessionAccount(request: Request): Promise<Account | null>;
+  /// The account of an unexpired `admin`-scope bearer token, or null.
+  adminTokenAccount(request: Request): Promise<Account | null>;
   store: SupplierAdminStore;
   log(entry: Record<string, unknown>): void;
   now(): string;
@@ -147,9 +149,15 @@ export async function handleSupplierAdmin(
   request: Request, url: URL, deps: SupplierAdminDependencies,
 ): Promise<Response> {
   let actor: Account | null = null;
+  // Two ways in. A request that carries a bearer token is judged by that
+  // token alone (an `admin`-scope token, unexpired); it never falls back to a
+  // cookie it may also carry. Any other request needs the web session.
+  const via = bearerToken(request) ? "admin_token" : "session";
   try {
-    actor = await deps.sessionAccount(request);
-    if (!actor) return json(401, { error: "not signed in" });
+    actor = via === "admin_token" ? await deps.adminTokenAccount(request) : await deps.sessionAccount(request);
+    if (!actor) {
+      return json(401, { error: via === "admin_token" ? "invalid or expired admin token" : "not signed in" });
+    }
     if (actor.is_official !== 1) return json(403, { error: "official account required" });
     const path = route(url.pathname);
     if (!path) return json(404, { error: "not found" });
@@ -157,7 +165,10 @@ export async function handleSupplierAdmin(
     if ("alias" in path && request.method !== "PUT" && request.method !== "DELETE") {
       return json(405, { error: "method not allowed" }, { Allow: "PUT, DELETE" });
     }
-    if (!validWriteOrigin(request, url)) return json(403, { error: "same-origin request required" });
+    // The same-origin check guards the cookie, which a browser attaches to a
+    // cross-site request on its own. A bearer token is never attached by the
+    // browser, so a token request carries nothing for another site to borrow.
+    if (via === "session" && !validWriteOrigin(request, url)) return json(403, { error: "same-origin request required" });
     if (!hasJsonContentType(request)) return json(415, { error: "Content-Type application/json required" });
     const decoded = await readBoundedJson(request, SUPPLIER_BODY_LIMIT);
     if (!decoded.ok) return decoded.reason === "too_large"
@@ -166,7 +177,7 @@ export async function handleSupplierAdmin(
       const parsed = parseSnapshot(decoded.value, path.supplier);
       if (!parsed.ok) return json(400, { error: parsed.error });
       await deps.store.replaceSnapshot(parsed.value);
-      deps.log({ event: "supplier_snapshot_replaced", supplier: path.supplier, rows: parsed.value.rows.length, actor_account_id: actor.id, at: deps.now() });
+      deps.log({ event: "supplier_snapshot_replaced", supplier: path.supplier, rows: parsed.value.rows.length, actor_account_id: actor.id, via, at: deps.now() });
       return json(200, { ok: true, supplier: path.supplier, rows: parsed.value.rows.length });
     }
     if (request.method === "PUT") {
@@ -176,13 +187,13 @@ export async function handleSupplierAdmin(
       const aliasKey = normalizeManufacturer(path.alias);
       if (!aliasKey) return json(400, { error: "alias is empty after normalization" });
       await deps.store.putAlias(aliasKey, path.alias, decoded.value.canonical);
-      deps.log({ event: "manufacturer_alias_put", alias_key: aliasKey, actor_account_id: actor.id, at: deps.now() });
+      deps.log({ event: "manufacturer_alias_put", alias_key: aliasKey, actor_account_id: actor.id, via, at: deps.now() });
       return json(200, { ok: true, alias_key: aliasKey });
     }
     if (!exact(decoded.value, [])) return json(400, { error: "body must be exactly {}" });
     const deleted = await deps.store.deleteAlias(normalizeManufacturer(path.alias));
     if (!deleted) return json(404, { error: "manufacturer alias not found" });
-    deps.log({ event: "manufacturer_alias_deleted", alias_key: normalizeManufacturer(path.alias), actor_account_id: actor.id, at: deps.now() });
+    deps.log({ event: "manufacturer_alias_deleted", alias_key: normalizeManufacturer(path.alias), actor_account_id: actor.id, via, at: deps.now() });
     return json(200, { ok: true, deleted: true });
   } catch (error) {
     try { deps.log({ event: "supplier_admin_error", actor_account_id: actor?.id ?? null, error: error instanceof Error ? error.name : "UnknownError", at: deps.now() }); } catch { /* ignored */ }
@@ -225,7 +236,9 @@ export function supplierStore(db: D1Database): SupplierAdminStore {
 }
 export async function supplierAdminApi(env: Env, request: Request, url: URL): Promise<Response> {
   return handleSupplierAdmin(request, url, {
-    sessionAccount: (req) => accountForSession(env, req), store: supplierStore(env.DB),
+    sessionAccount: (req) => accountForSession(env, req),
+    adminTokenAccount: (req) => accountForToken(env, req, "admin"),
+    store: supplierStore(env.DB),
     log: (entry) => console.log(JSON.stringify(entry)), now: () => new Date().toISOString(),
   });
 }

@@ -1,0 +1,183 @@
+// SOD two-terminal diode land patterns (library plan W4, item 3c, waves 1
+// and 2).
+//
+// Frame convention, shared by every footprint in this package: CoHDL's
+// board frame (+x right, +y DOWN, top view), origin at the package centre.
+// Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
+// at +x. The assembler has read this orientation as 0 degrees for SOD-123
+// and SOD-323 parts on earlier preview boards (library plan section 4), so
+// the lands are authored on that frame from the start. No SOD-123FL or
+// SOD-523 part has been read yet; those lands use the same frame.
+//
+// These names are IPC-7351B-style (SOD + lead span + body width X height,
+// spans and widths in tenths of a millimetre, height in hundredths) but SOD
+// is outside RFC-021's closed family set, so no name check (E808/E809) runs
+// on them. The final names are an open question in docs/README.md.
+
+// SOD-123. Primary source: Zhuhai Hongjiacheng BZT52C2V0 THRU BZT52C75
+// datasheet Rev 2.1, page 4, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-bzt52c5v6.evidence.md). The table gives one-sided
+// limits only: J (land length) >= 0.91mm, K (gap between lands) <= 2.36mm,
+// M (land width) >= 1.22mm. The land uses those limits as its values:
+// 0.91 x 1.22mm lands, centres at +/-(K/2 + J/2) = +/-1.635mm, 4.18mm
+// outer copper span.
+//
+// Cross-check: Diodes Incorporated SOD123 package information, Rev.
+// 2017-03-16, page 1 (docs/diodes-sod123.evidence.md): X = 0.90mm,
+// Y = 0.95mm, X1 = 4.05mm, i.e. 3.15mm centres. That is the same land as
+// diode::FP_D_SOD_123 (Diodes DS30086). This land is 0.27mm wider, 0.01mm
+// longer and its centres are 0.12mm further apart; see docs/README.md.
+pub pad P_SOD3716X135N_LEAD {
+    shape: rect
+    size: (0.91mm, 1.22mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-4 outline: A (lead span) 3.55-3.85mm,
+// nominal 3.70; C (body width) 1.40-1.80mm, nominal 1.60; D (height)
+// 1.35mm maximum.
+#[doc("docs/README.md")]
+pub footprint SOD3716X135N {
+    pad 1: P_SOD3716X135N_LEAD at (-1.635mm, 0mm)
+    pad 2: P_SOD3716X135N_LEAD at (1.635mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 1.80mm maximum body width, clear of the
+    // 1.22mm-wide lands.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-1.35mm, -0.96mm) to (1.35mm, -0.96mm) width 0.12mm
+        line from (-1.35mm, 0.96mm) to (1.35mm, 0.96mm) width 0.12mm
+    }
+    // Contains the 4.18 x 1.22mm copper and the 3.85 x 1.80mm maximum
+    // component envelope (A x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.7mm, 2.4mm) }
+    silkscreen_ref { at: (0mm, -1.9mm) }
+}
+
+// SOD-323. Primary source: Zhuhai Hongjiacheng B5817WS THRU B5819WS
+// datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-b5819ws.evidence.md): X (land length) 0.65-0.75mm,
+// Y (land width) 0.65-0.75mm, Z (land centre to land centre) 2.10-2.20mm.
+// The land uses the midpoints: 0.70 x 0.70mm lands on 2.15mm centres
+// (+/-1.075mm), 2.85mm outer copper span.
+//
+// Cross-check: Diodes Incorporated SOD323 package information, Rev.
+// 2017-03-16, page 1 (docs/diodes-sod323.evidence.md): X = 0.59mm,
+// Y = 0.45mm, X1 = 2.70mm, i.e. 2.11mm centres. The Hongjiacheng land is
+// 0.11mm longer, 0.25mm wider and 0.04mm further apart. The @contrib
+// ProTek-range land contrib_esd::FP_SOD323_2P5X1P25mm (0.80mm lands,
+// 2.20mm centres) is compared in docs/README.md.
+pub pad P_SOD2613X110N_LEAD {
+    shape: rect
+    size: (0.7mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: C (lead span) 2.30-2.80mm,
+// nominal 2.55, rounded half up to 2.6; E (body width) 1.20-1.40mm, nominal
+// 1.30; D (height) 1.10mm maximum.
+#[doc("docs/README.md")]
+pub footprint SOD2613X110N {
+    pad 1: P_SOD2613X110N_LEAD at (-1.075mm, 0mm)
+    pad 2: P_SOD2613X110N_LEAD at (1.075mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 1.40mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-0.85mm, -0.76mm) to (0.85mm, -0.76mm) width 0.12mm
+        line from (-0.85mm, 0.76mm) to (0.85mm, 0.76mm) width 0.12mm
+    }
+    // Contains the 2.85 x 0.70mm copper and the 2.80 x 1.40mm maximum
+    // component envelope (C x E) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (3.4mm, 2mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
+}
+
+// SOD-123FL / SOD-123F. Primary source: Zhuhai Hongjiacheng SMF series
+// datasheet Rev 2.2, page 2, "Package Outline Dimensions (SOD-123FL)"
+// (evidence record docs/hongjiacheng-smf15ca.evidence.md). That sheet gives
+// the outline only and no land, so the land is DERIVED from the cross-check
+// document: Diodes Incorporated SOD123F package information, Rev.
+// 2026-04-08, page 1, "Suggested Pad Layout" (docs/diodes-sod123f.evidence.md):
+// X = 1.34mm (land length), Y = 1.80mm (land width), C = 2.86mm (centres),
+// G = 1.52mm (gap), X1 = 4.20mm (outer span). 1.34 x 1.80mm lands at
+// +/-1.43mm.
+//
+// Fit to the primary outline: D (lead tip to lead tip) 3.60-3.90mm puts the
+// lead tips 0.15-0.30mm inside the land's outer edge; the inner end of each
+// lead foot (D/2 - F, F 0.40-0.90mm) lies 0.90-1.55mm from the centre,
+// outboard of the 0.76mm inner land edge; the 1.10mm maximum lead width (A)
+// fits the 1.80mm land width. Hongjiacheng's SOD-123FL lead span is longer
+// than Diodes' SOD123F (He 3.30-3.70mm); see docs/README.md.
+//
+// Not diode::FP_D_SOD_123W: that is Nexperia's CFP3 (SOD123W) outline and
+// its own reflow footprint (1.20 x 1.20mm lands on 2.80mm centres, 4.00mm
+// outer copper), a different body and a different land.
+pub pad P_SODFL3818X120N_LEAD {
+    shape: rect
+    size: (1.34mm, 1.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-2 outline: D (lead span) 3.60-3.90mm,
+// nominal 3.75, rounded half up to 3.8; C (body width) 1.60-1.90mm, nominal
+// 1.75, rounded half up to 1.8; E (height) 1.20mm maximum. SODFL is the
+// IPC-7351B flat-lead SOD prefix.
+#[doc("docs/README.md")]
+pub footprint SODFL3818X120N {
+    pad 1: P_SODFL3818X120N_LEAD at (-1.43mm, 0mm)
+    pad 2: P_SODFL3818X120N_LEAD at (1.43mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 1.90mm maximum body width, drawn only between
+    // the lands because the 1.80mm-wide lands come within 0.05mm of them.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-0.6mm, -1.01mm) to (0.6mm, -1.01mm) width 0.12mm
+        line from (-0.6mm, 1.01mm) to (0.6mm, 1.01mm) width 0.12mm
+    }
+    // Contains the 4.20 x 1.80mm copper and the 3.90 x 1.90mm maximum
+    // component envelope (D x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.7mm, 2.5mm) }
+    silkscreen_ref { at: (0mm, -2mm) }
+}
+
+// SOD-523. Primary source: Zhuhai Hongjiacheng 1N4148WT datasheet Rev 2.0,
+// page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-1n4148wt.evidence.md): X (land length) 0.55-0.65mm,
+// Y (land width) 0.65-0.75mm, Z (land centre to land centre) 1.37-1.47mm.
+// The land uses the midpoints, as the SOD-323 land does: 0.60 x 0.70mm
+// lands on 1.42mm centres (+/-0.71mm), 2.02mm outer copper span.
+//
+// Cross-check: Diodes Incorporated SOD523 package outline and suggested pad
+// layout, 2016-04-11, page 1 (docs/diodes-sod523.evidence.md): X = 0.60mm,
+// Y = 0.70mm, G = 0.80mm, X1 = 2.00mm, i.e. 1.40mm centres. Same lands; the
+// Hongjiacheng centres are 0.02mm further apart.
+pub pad P_SOD1608X70N_LEAD {
+    shape: rect
+    size: (0.6mm, 0.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: C (lead span) 1.50-1.70mm,
+// nominal 1.60; E (body width) 0.70-0.90mm, nominal 0.80; D (height) 0.70mm
+// maximum.
+#[doc("docs/README.md")]
+pub footprint SOD1608X70N {
+    pad 1: P_SOD1608X70N_LEAD at (-0.71mm, 0mm)
+    pad 2: P_SOD1608X70N_LEAD at (0.71mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 0.90mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-0.6mm, -0.51mm) to (0.6mm, -0.51mm) width 0.12mm
+        line from (-0.6mm, 0.51mm) to (0.6mm, 0.51mm) width 0.12mm
+    }
+    // Contains the 2.02 x 0.70mm copper and the 1.70 x 0.90mm maximum
+    // component envelope (C x E) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (2.6mm, 1.5mm) }
+    silkscreen_ref { at: (0mm, -1.5mm) }
+}

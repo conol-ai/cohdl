@@ -1,0 +1,59 @@
+// Test-fixture consumer for the W4 package-family lands, wave 3 (library
+// plan item 3c). The devices and parts below are fixtures, not library
+// parts: they bind every wave-3 land so the pad-consistency check and the
+// KiCad emission in `tests/library.rs` cannot pass vacuously. They carry no
+// supplier binding and are never published.
+//
+// The pin maps exercise the tab numbering: the SOT-89 tab is a second
+// placement of pad 2, so the transistor's collector is pin 2 alone; the
+// SOT-223 tab is pad 4, so the regulator maps it explicitly (VOUT: 2, 4).
+
+device FixtureDiode {
+    pins {
+        required K: 1 [passive]
+        required A: 2 [passive]
+    }
+}
+
+device FixtureTransistor {
+    pins {
+        required B: 1 [passive]
+        required C: 2 [passive]
+        required E: 3 [passive]
+    }
+}
+
+device FixtureRegulator {
+    pins {
+        required GND: 1 [power_in]
+        required VOUT: 2, 4 [power_out]
+        required VIN: 3 [power_in]
+    }
+}
+
+part FIXTURE_SMAF: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SMAF", footprint: do214::FP_DO221AC_SMAF }
+}
+
+part FIXTURE_SOT89: FixtureTransistor {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT89", footprint: sot::SOT3P150X450X250N }
+}
+
+part FIXTURE_SOT323: FixtureTransistor {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT323", footprint: sot::SOT3P130X200X125N }
+}
+
+part FIXTURE_SOT223: FixtureRegulator {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT223", footprint: sot::SOT4P230X651X351N }
+}
+
+design PackageFamiliesWave3 {
+    inst d_smaf: FIXTURE_SMAF
+    inst q_sot89: FIXTURE_SOT89
+    inst q_sot323: FIXTURE_SOT323
+    inst u_sot223: FIXTURE_SOT223
+    net VIN: u_sot223.VIN, d_smaf.A
+    net VOUT: u_sot223.VOUT, d_smaf.K, q_sot89.C, q_sot323.C
+    net GND: u_sot223.GND, q_sot89.E, q_sot323.E
+    net BASE: q_sot89.B, q_sot323.B
+}

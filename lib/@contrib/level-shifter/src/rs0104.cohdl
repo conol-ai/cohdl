@@ -97,8 +97,20 @@ pub part LS_RS0104_QFN12_2X1P7: RS0104[QFN12_2X1P7] {
 // the different packages cannot silently share a generic QFN approximation.
 
 // QFN3.5x3.5-14L p25: body 3.35..3.65, b 0.18..0.30, L 0.30..0.50,
-// pitch 0.50, EP 2.0 x 1.5mm. The radial land spans 1.125..1.900mm:
-// 0.075mm toe beyond max body and 0.050mm heel inside min lead root.
+// pitch 0.50. The bottom view puts leads 2-6 and 9-13 on opposite sides
+// (D1 = 2.00 TYP spans 2..6) and two leads on each remaining side: 1/14
+// between leads 2 and 13, 7/8 between 6 and 9, E1 = 1.50 TYP apart.
+// In this top-view frame (2-6 left, 1 at the top-left) pads 1/14 sit at
+// x = -/+0.75mm on the top row and 7/8 at x = -/+0.75mm on the bottom row.
+// The radial land spans 1.125..1.900mm: 0.075mm toe beyond max body and
+// 0.050mm heel inside min lead root.
+//
+// p25 draws the thermal pad but gives it no dimension (D1 x E1 are lead
+// spans, not the EP). The 2.0 x 1.5mm EP land is a library choice, not
+// from the source: it lies inside the outline drawn on p25 (about 2.05mm
+// square, measured at the pitch scale) and clears the side lands by
+// 0.125mm and the top/bottom-row lands by 0.375mm. Corner lands 1/2, 6/7,
+// 8/9 and 13/14 are 0.175mm apart.
 pub pad P_RS0104_QFN14_SIDE {
     shape: rect
     size: (0.775mm, 0.4mm)
@@ -121,20 +133,20 @@ pub pad P_RS0104_QFN14_EP {
 }
 
 pub footprint QFN14N50P350X350_1EP200X150 {
-    pad 1: P_RS0104_QFN14_TOP_BOTTOM at (-0.25mm, -1.5125mm)
+    pad 1: P_RS0104_QFN14_TOP_BOTTOM at (-0.75mm, -1.5125mm)
     pad 2: P_RS0104_QFN14_SIDE at (-1.5125mm, -1mm)
     pad 3: P_RS0104_QFN14_SIDE at (-1.5125mm, -0.5mm)
     pad 4: P_RS0104_QFN14_SIDE at (-1.5125mm, 0mm)
     pad 5: P_RS0104_QFN14_SIDE at (-1.5125mm, 0.5mm)
     pad 6: P_RS0104_QFN14_SIDE at (-1.5125mm, 1mm)
-    pad 7: P_RS0104_QFN14_TOP_BOTTOM at (-0.25mm, 1.5125mm)
-    pad 8: P_RS0104_QFN14_TOP_BOTTOM at (0.25mm, 1.5125mm)
+    pad 7: P_RS0104_QFN14_TOP_BOTTOM at (-0.75mm, 1.5125mm)
+    pad 8: P_RS0104_QFN14_TOP_BOTTOM at (0.75mm, 1.5125mm)
     pad 9: P_RS0104_QFN14_SIDE at (1.5125mm, 1mm)
     pad 10: P_RS0104_QFN14_SIDE at (1.5125mm, 0.5mm)
     pad 11: P_RS0104_QFN14_SIDE at (1.5125mm, 0mm)
     pad 12: P_RS0104_QFN14_SIDE at (1.5125mm, -0.5mm)
     pad 13: P_RS0104_QFN14_SIDE at (1.5125mm, -1mm)
-    pad 14: P_RS0104_QFN14_TOP_BOTTOM at (0.25mm, -1.5125mm)
+    pad 14: P_RS0104_QFN14_TOP_BOTTOM at (0.75mm, -1.5125mm)
     pad EP: P_RS0104_QFN14_EP at (0mm, 0mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot

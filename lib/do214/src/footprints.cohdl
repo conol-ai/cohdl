@@ -1,0 +1,184 @@
+// DO-214 molded-body diode land patterns, and the flat-lead SMAF outline
+// (library plan W4, item 3c, waves 1 to 3).
+//
+// Frame convention, shared by every footprint in this package: CoHDL's
+// board frame (+x right, +y DOWN, top view), origin at the package centre.
+// Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
+// at +x, the same frame as the `sod` package. The assembler has not yet read
+// a DO-214 part on a preview board; this orientation is the one it reads as
+// 0 degrees for SOD parts, and a frame board must confirm it for every land
+// here before the first publish.
+//
+// Names are IPC-7351B-style (DIOM + overall length + body width X height,
+// length and width in tenths of a millimetre, height in hundredths) but
+// DIOM is outside RFC-021's closed family set, so no name check (E808/E809)
+// runs on them. SMAF has no IPC-7351B family and takes the free name
+// FP_DO221AC_SMAF from the 3c plan. The final names are an open question in
+// docs/README.md.
+
+// SMA / DO-214AC. Primary source: Zhuhai Hongjiacheng SS32 THRU SS320
+// datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-ss34.evidence.md). The table gives one-sided limits only:
+// M (land width) >= 1.70mm, J (land length) >= 2.10mm, K (gap between lands)
+// <= 2.30mm. The land uses those limits as its values: 2.10 x 1.70mm lands,
+// centres at +/-(K/2 + J/2) = +/-2.20mm, 6.50mm outer copper span.
+//
+// Second Hongjiacheng view: the SMAJ series datasheet Rev 2.2, page 2
+// (docs/hongjiacheng-smaj5v0a.evidence.md), lists M >= 2.26mm, J >= 2.10mm,
+// K <= 2.74mm for the same outline. This land meets its J and K limits but
+// not its M limit (1.70 < 2.26mm); see the open question in docs/README.md.
+//
+// Cross-check: Diodes Incorporated SMA package information, Rev. 2017-03-14,
+// page 1 (docs/diodes-sma.evidence.md): X = 2.50mm, Y = 1.70mm, C = 4.00mm,
+// G = 1.50mm, X1 = 6.50mm. Same width and outer span; the Diodes lands are
+// 0.40mm longer inward (0.80mm smaller gap).
+pub pad P_DIOM5026X241N_LEAD {
+    shape: rect
+    size: (2.1mm, 1.7mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-3 outline: G (overall length) 4.70-
+// 5.30mm, nominal 5.00; C (body width) 2.35-2.85mm, nominal 2.60; D (height)
+// 2.41mm maximum.
+#[doc("docs/README.md")]
+pub footprint DIOM5026X241N {
+    pad 1: P_DIOM5026X241N_LEAD at (-2.2mm, 0mm)
+    pad 2: P_DIOM5026X241N_LEAD at (2.2mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 2.85mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-2.2mm, -1.49mm) to (2.2mm, -1.49mm) width 0.12mm
+        line from (-2.2mm, 1.49mm) to (2.2mm, 1.49mm) width 0.12mm
+    }
+    // Contains the 6.50 x 1.70mm copper and the 5.30 x 2.85mm maximum
+    // component envelope (G x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7mm, 3.4mm) }
+    silkscreen_ref { at: (0mm, -2.5mm) }
+}
+
+// SMB / DO-214AA. Primary source: Zhuhai Hongjiacheng SMBJ series datasheet
+// Rev 1.1, page 2, "Package Outline Dimensions (SMB/DO-214AA)" (evidence
+// record docs/hongjiacheng-smbj6v0ca.evidence.md). The table's land rows,
+// drawn under the outline as J-K-J by M, give one-sided limits only:
+// M (land width) >= 2.26mm, J (land length) >= 2.10mm, K (gap between
+// lands) <= 2.74mm. The land uses those limits as its values, as the SMA
+// land does: 2.10 x 2.26mm lands, centres at +/-(K/2 + J/2) = +/-2.42mm,
+// 6.94mm outer copper span.
+//
+// Cross-check: Diodes Incorporated SMB package information, Rev. 2019-08-30,
+// page 1 (docs/diodes-smb.evidence.md): X = 2.50mm, Y = 2.30mm, C = 4.30mm,
+// G = 1.80mm, X1 = 6.80mm. The Diodes lands are 0.04mm wider and 0.40mm
+// longer, reach 0.47mm further inward (0.94mm smaller gap) and stop 0.07mm
+// short of this land's outer edge; see docs/README.md.
+pub pad P_DIOM5336X265N_LEAD {
+    shape: rect
+    size: (2.1mm, 2.26mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-2 outline: G (overall length) 5.08-
+// 5.59mm, nominal 5.335, rounded to 5.3; C (body width) 3.30-3.94mm, nominal
+// 3.62, rounded to 3.6; D (height) 2.65mm maximum.
+#[doc("docs/README.md")]
+pub footprint DIOM5336X265N {
+    pad 1: P_DIOM5336X265N_LEAD at (-2.42mm, 0mm)
+    pad 2: P_DIOM5336X265N_LEAD at (2.42mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 3.94mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-2.4mm, -2.03mm) to (2.4mm, -2.03mm) width 0.12mm
+        line from (-2.4mm, 2.03mm) to (2.4mm, 2.03mm) width 0.12mm
+    }
+    // Contains the 6.94 x 2.26mm copper and the 5.59 x 3.94mm maximum
+    // component envelope (G x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (7.5mm, 4.5mm) }
+    silkscreen_ref { at: (0mm, -3mm) }
+}
+
+// SMC / DO-214AB. Primary source: Zhuhai Hongjiacheng SMCJ series datasheet
+// Rev 2.2, page 2, "Package Outline Dimensions (SMC/DO-214AB)" (evidence
+// record docs/hongjiacheng-smcj36ca.evidence.md). That sheet gives the
+// outline only and no land, so the land is DERIVED from the cross-check
+// document: Diodes Incorporated SMC package information, Rev. 2017-03-14,
+// page 1, "Suggested Pad Layout" (docs/diodes-smc.evidence.md): X = 2.50mm
+// (land length), Y = 3.30mm (land width), C = 6.90mm (centres), G = 4.40mm
+// (gap), X1 = 9.40mm (outer span). 2.50 x 3.30mm lands at +/-3.45mm.
+//
+// Fit to the primary outline: G (overall length) 7.75-8.13mm puts the lead
+// tips 0.64-0.83mm inside the land's outer edge; the inner end of each lead
+// foot (G/2 - E, E 0.76-1.52mm) lies 2.36-3.31mm from the centre, outboard
+// of the 2.20mm inner land edge; the 3.27mm maximum lead width (A) fits the
+// 3.30mm land width with 0.015mm to spare per side. The two outlines agree
+// within 0.11mm (see docs/README.md).
+pub pad P_DIOM7959X261N_LEAD {
+    shape: rect
+    size: (2.5mm, 3.3mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Name digits from the primary page-2 outline: G (overall length) 7.75-
+// 8.13mm, nominal 7.94, rounded to 7.9; C (body width) 5.59-6.22mm, nominal
+// 5.905, rounded to 5.9; D (height) 2.61mm maximum.
+#[doc("docs/README.md")]
+pub footprint DIOM7959X261N {
+    pad 1: P_DIOM7959X261N_LEAD at (-3.45mm, 0mm)
+    pad 2: P_DIOM7959X261N_LEAD at (3.45mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 6.22mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-3.5mm, -3.17mm) to (3.5mm, -3.17mm) width 0.12mm
+        line from (-3.5mm, 3.17mm) to (3.5mm, 3.17mm) width 0.12mm
+    }
+    // Contains the 9.40 x 3.30mm copper and the 8.13 x 6.22mm maximum
+    // component envelope (G x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (9.9mm, 6.8mm) }
+    silkscreen_ref { at: (0mm, -4.2mm) }
+}
+
+// SMAF (flat-lead SMA; DO-221AC in the 3c plan, a designation neither source
+// prints). Primary source: Zhuhai Hongjiacheng SS22F THRU SS220F datasheet
+// Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// docs/hongjiacheng-ss24f.evidence.md). The table gives one-sided limits
+// only: M (land width) >= 1.80mm, J (land length) >= 1.60mm, K (gap between
+// lands) <= 2.2mm. The land uses those limits as its values, as the SMA and
+// SMB lands do: 1.60 x 1.80mm lands, centres at +/-(K/2 + J/2) = +/-1.90mm,
+// 5.40mm outer copper span.
+//
+// Cross-check: Diodes Incorporated SMAF package information, Rev.
+// 2019-06-27, page 1 (docs/diodes-smaf.evidence.md): X = 2.50mm,
+// Y = 1.70mm, C = 4.00mm, G = 1.50mm, X1 = 6.50mm, the same values as its
+// SMA land, for a longer outline (HE 4.80-5.60mm against Hongjiacheng's
+// D 4.40-4.90mm); see docs/README.md.
+pub pad P_DO221AC_SMAF_LEAD {
+    shape: rect
+    size: (1.6mm, 1.8mm)
+    layer: top_copper
+    plating: smd
+}
+
+// Primary page-3 outline: D (overall length) 4.40-4.90mm, C (body width)
+// 2.40-2.70mm, E (height) 0.90-1.20mm, A (lead width) 1.30-1.60mm,
+// F (lead foot) 0.80-1.20mm.
+#[doc("docs/README.md")]
+pub footprint FP_DO221AC_SMAF {
+    pad 1: P_DO221AC_SMAF_LEAD at (-1.9mm, 0mm)
+    pad 2: P_DO221AC_SMAF_LEAD at (1.9mm, 0mm)
+    // Silkscreen: the cathode band outboard of pad 1, and the body long
+    // edges just outside the 2.70mm maximum body width.
+    silkscreen {
+        polarity_marker cathode_pin 1 shape band
+        line from (-1.9mm, -1.41mm) to (1.9mm, -1.41mm) width 0.12mm
+        line from (-1.9mm, 1.41mm) to (1.9mm, 1.41mm) width 0.12mm
+    }
+    // Contains the 5.40 x 1.80mm copper and the 4.90 x 2.70mm maximum
+    // component envelope (D x C) with at least 0.25mm excess on every side.
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.9mm, 3.3mm) }
+    silkscreen_ref { at: (0mm, -2.4mm) }
+}

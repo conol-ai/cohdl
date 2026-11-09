@@ -1361,6 +1361,19 @@ const packageRoute = createRoute({
 
 // ---------------------------------------------------------------------------
 
+interface MintedToken {
+  token: string;
+  scope: "publish" | "admin";
+  expires_at: string | null;
+}
+
+/// Where `tools/upload_supplier_snapshot.py` reads the admin token. `read -s`
+/// keeps it out of the terminal and shell history, and the subshell's
+/// `umask 077` creates the file owner-only from the start (the tool refuses
+/// it otherwise); the variable dies with the subshell.
+const ADMIN_TOKEN_SAVE_COMMAND =
+  "(umask 077 && mkdir -p ~/.cohdl && read -rs t && printf %s \"$t\" > ~/.cohdl/admin-token)";
+
 function Account() {
   const me = useMe();
   const config = useConfig();
@@ -1369,7 +1382,7 @@ function Account() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<MintedToken | null>(null);
   usePageTitle(me.data ? "Account" : mode === "signup" ? "Create account" : "Sign in");
 
   const auth = useMutation({
@@ -1388,9 +1401,9 @@ function Account() {
     },
   });
   const mintToken = useMutation({
-    mutationFn: () => post<{ token: string }>("/api/tokens", {}),
+    mutationFn: (scope: "publish" | "admin") => post<MintedToken>("/api/tokens", { scope }),
     onMutate: () => setToken(null),
-    onSuccess: (d) => setToken(d.token),
+    onSuccess: (d) => setToken(d),
   });
   const logout = useMutation({
     mutationFn: () => del<{ signed_out: boolean }>("/api/session", {}),
@@ -1489,15 +1502,32 @@ function Account() {
               Create a separate credential for <code>cohdl publish</code>. The raw token is shown
               once; the registry stores only its hash.
             </p>
+            {me.data.official && (
+              <p>
+                An <strong>admin token</strong> uploads supplier catalogs and manufacturer aliases with{" "}
+                <code>tools/upload_supplier_snapshot.py</code>. It cannot publish packages, and it
+                expires after 30 days.
+              </p>
+            )}
             <div className="token-actions">
               <button
                 className="button button-primary"
                 type="button"
-                onClick={() => mintToken.mutate()}
+                onClick={() => mintToken.mutate("publish")}
                 disabled={mintToken.isPending}
               >
                 {mintToken.isPending ? "Creating token…" : "Create CLI token"}
               </button>
+              {me.data.official && (
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  onClick={() => mintToken.mutate("admin")}
+                  disabled={mintToken.isPending}
+                >
+                  Create admin token
+                </button>
+              )}
             </div>
             {mintToken.isError && (
               <StatePanel tone="error" title="Could not create a token">
@@ -1510,8 +1540,21 @@ function Account() {
                   <Icon name="shield" size={18} />
                   <span>Copy this token now. It cannot be shown again.</span>
                 </div>
-                <CommandBox command={token} label="New CLI token" />
-                <CommandBox command="cohdl login" label="Then authenticate the CLI" compact />
+                {token.scope === "admin" ? (
+                  <>
+                    <CommandBox command={token.token} label="New admin token" />
+                    <CommandBox
+                      command={ADMIN_TOKEN_SAVE_COMMAND}
+                      label={`Then save it (paste at the silent prompt). Expires ${token.expires_at ?? ""}`}
+                      compact
+                    />
+                  </>
+                ) : (
+                  <>
+                    <CommandBox command={token.token} label="New CLI token" />
+                    <CommandBox command="cohdl login" label="Then authenticate the CLI" compact />
+                  </>
+                )}
               </div>
             )}
           </section>

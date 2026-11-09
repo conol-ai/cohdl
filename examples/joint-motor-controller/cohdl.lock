@@ -17,8 +17,8 @@ hash = "sha256:dadb01a153ae34eefc29cbfe9cee661bc1354bfa5da8b0a00d017faab11de598"
 
 [[package]]
 name = "connectors"
-version = "0.2.1"
-hash = "sha256:4f29c7ce375cc6af452145242813b4da0d4f38960b9b81486e51af693bbd1a4d"
+version = "0.3.0"
+hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
 
 [[package]]
 name = "csp"
@@ -47,13 +47,13 @@ hash = "sha256:da15516c197fa7da074eb4e451babc020e544f7c50abcd50ef283732ac368595"
 
 [[package]]
 name = "osc"
-version = "0.1.1"
-hash = "sha256:596e4f097d5f1d96875a21216d31dda4ea7773486e2a03ea82b13a1fd9d55584"
+version = "0.2.0"
+hash = "sha256:4e981974b3df2f29478e12113746541f1efe6797534b3c16dd17e36a128f63de"
 
 [[package]]
 name = "passive"
-version = "0.2.5"
-hash = "sha256:eb5b5a69a6e596f22d4c7afd88a99c9718fe03497d6977d7870f1bf6292b4518"
+version = "0.2.6"
+hash = "sha256:d1f973fb96681c1285c3080c46b607d957e5efbf894e3ca6f5a852743e6f832e"
 
 [[package]]
 name = "qfp"

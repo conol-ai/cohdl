@@ -7,10 +7,10 @@ Status: **uploaded 2026-11-07 and verified** (see "Upload record" below). This u
 ```sh
 R=tools/sourcing_data/registry_uploads/2026-11-07-lcsc
 python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates tools/sourcing_data/registry_uploads/2026-11-05-lcsc/report.json \
-  --map $R/lcsc_map.json --aliases $R/mfr_aliases.json
+  --map $R/lcsc_map.json --aliases $R/mfr_aliases.json --library-from $R/report.json
 ```
 
-This gives `snapshot.json` with SHA-256 `3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529` and this `report.json`.
+This gives `snapshot.json` with SHA-256 `3307b6b8d811445eb6070a56c04534b9dc4eea5fdcb4d536e136d95dded84529` and this `report.json`, byte-identical. `--library-from` (#80) takes the library part numbers the report covers, the 46 of 2026-11-07, from this `report.json` instead of the current `lib/`. Without it the body is the same, but once `lib/` gains bindings (#80, #83) `report.json` lists the current part numbers (51 after both) and no longer matches. At the upload, `main` had no `--library-from` and `lib/` held these 46, so the command then had no such flag (see "Upload record").
 
 ## What it holds
 
@@ -43,3 +43,12 @@ The 37 aliases go up with the catalog, as `PUT /api/admin/manufacturer-aliases/{
   - C2838500 (`ESP32-C3`, mapped through the `Espressif Systems` alias) and C79401 (`MAX16054AZT+T`, unlocked by #76), both `unknown` before this upload, now resolve.
   - `/manufacturers/normalize?mfr=Espressif%20Systems` gives key `espressif`; `HRS(Hirose)` gives `hirose electric` (#73 row 38).
   - `cohdl suppliers examples/joint-motor-controller` (cohdl 0.10.0) reports its binding `ok` (C1525, through the new Samsung Electro-Mechanics alias) and exits 0.
+
+## Full check (2026-11-07)
+
+`verify.txt` above is the check `main` had at the upload: the library's 46 part numbers. The old catalog holds all 46, so that check alone cannot tell the two catalogs apart (`../2026-11-05-lcsc/README.md`, "Full check"). The full check of #78 was run read-only against production at about 03:30 UTC, from `tools/verify-full-catalog` at `690d421`, on the body rebuilt with this record's own files (`build --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json`, SHA-256 `3307b6b8…`, `report.json` byte-identical while `lib/` still held the 46; rebuild it today with `--library-from $R/report.json` as above):
+
+- **This catalog: exit 0.** It asked for all 13,604 rows, 100 per request: 13,604 of 13,604 known and equal, no row missing from the answers or answered twice. The registry's snapshot date, `2026-11-06T01:45:04Z`, is the body's newest `fetched_at`. All 37 aliases were checked; 31 normalize to their canonical key, and 6 differ from their canonical name only in case or spacing, so the public lookup answers the same whether or not the registry holds them. `verify-full.txt` is its output, verbatim.
+- **The 2026-11-05 catalog (`dced4283…`): exit 1.** Its 1,442 rows are all still served and equal, because the new catalog keeps them. What refuses it is the date: the registry's `2026-11-06T01:45:04Z` against that body's newest `fetched_at`, `2026-10-30T05:24:02Z`.
+
+The public API cannot list rows, so a row the registry holds beyond the body would go unseen. The registry returning the stored body's SHA-256 and row count would close that.

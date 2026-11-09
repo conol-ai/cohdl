@@ -143,6 +143,9 @@ These lands are not moved or changed; both owners now exist side by side:
 
 - `diode::FP_D_SOD_123` (Diodes DS30086 land, bound by `diode::D_1N4148W`)
   remains for existing users. `sod::SOD3716X135N` is the land for new parts.
+  Both are kept (settled in the #101 review), and each source file names the
+  other with the copper difference: 0.90 x 0.95 mm at +/-1.575 mm against
+  0.91 x 1.22 mm at +/-1.635 mm (diode 0.1.1 adds the note on its side).
 - `contrib_esd::FP_SOD323_2P5X1P25mm` stays with its @contrib package.
   Official packages do not depend on @contrib, so `sod::SOD2613X110N` is the
   official owner of SOD-323 for new parts.

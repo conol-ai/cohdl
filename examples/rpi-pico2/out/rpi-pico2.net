@@ -471,7 +471,7 @@
       (tstamp "0000002E")
     )
     (comp (ref "U1") (value "W25Q32")
-      (footprint "qfn::QFN8N50P200X300_1EP61X220")
+      (footprint "flash::FP_W25Q32RV_XSON8_2X3")
       (libsource (lib "cohdl") (part "W25Q32") (description ""))
       (fields
         (field (name "MPN") "W25Q32RVXHJQ")

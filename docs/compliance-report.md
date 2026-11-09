@@ -1686,6 +1686,14 @@ overlapping pad-pairs. Footprints without an exact datasheet drawing (the switch
 land, the flash EP, the WDFN EP orientation) are noted demo-grade for a human to
 confirm — same status as the KiCad pcbnew checkpoint.
 
+**U1 land correction (2026-11-07).** The generic KiCad DFN-8 2×3 land puts
+its terminal rows on the 3mm edges; Winbond's XH drawing (Rev. E, PDF p. 78)
+puts them on the 2mm edges, 3mm apart, with terminal centres at ±1.275mm and a
+0.20×1.60mm centre metal. `flash@0.3.0` moves `FLASH_W25Q32` to the
+package-local `flash::FP_W25Q32RV_XSON8_2X3` (lands 0.85×0.25mm at ±1.375mm,
+centre land 0.20×1.60mm; margins are local, Winbond gives no land pattern).
+`qfn::QFN8N50P200X300_1EP61X220` is unchanged and no longer used.
+
 ## RFC-022 (mechanical locating holes — `mount_hole`) implementation notes (2026-07-17)
 
 RFC-022 (DR-028) adds a third footprint-body construct alongside `pad`,

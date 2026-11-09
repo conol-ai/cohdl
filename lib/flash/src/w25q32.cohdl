@@ -21,5 +21,66 @@ impl IC for W25Q32 {}
 
 #[doc("docs/w25q32rv-datasheet.pdf")]
 pub part FLASH_W25Q32: W25Q32 {
-    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: qfn::QFN8N50P200X300_1EP61X220 }
+    primary { mfr: "Winbond", mpn: "W25Q32RVXHJQ", footprint: FP_W25Q32RV_XSON8_2X3 }
+}
+
+// Winbond W25Q32RV datasheet Revision E, 2025-11-13 (docs/w25q32rv-datasheet.pdf):
+// https://www.winbond.com/resource-files/W25Q32RV_SPI_QPI%20RevE%2011132025%20Plus.pdf
+// Section 10.3 "8-Pad XSON 2x3x0.4-mm (Package Code XH)", PDF page 78
+// (printed page 77); pad assignment Figure 1b, PDF page 6.
+//
+// Package (mm, min/nom/max): D 1.90/2.00/2.10, E 2.90/3.00/3.10,
+// b 0.20/0.25/0.30, e 0.50, L 0.40/0.45/0.50, K 0.95 Ref,
+// D2 1.55/1.60/1.65, E2 0.15/0.20/0.25.
+//
+// Axes: in the top view the D (2.00) edge is vertical and the E (3.00) edge
+// horizontal, with the pin-1 indent top-left. The bottom view puts the two
+// four-terminal rows along the two D edges (pitch e along D), so the rows are
+// E = 3.00 apart, and runs the center metal D2 along D and E2 across it; its
+// chamfered corner sits on the pin-1 side. Chain check across E:
+// E/2 = E2/2 + K + L = 0.10 + 0.95 + 0.45 = 1.50. Each terminal spans
+// x = 1.05..1.50 from center (nominal), so its center is at 1.275.
+// Figure 1b numbers pads 1-4 down the left row and 5-8 up the right row in
+// the top view. CoHDL +Y is down, so pin 1 is at negative X and negative Y.
+//
+// Winbond publishes no recommended PCB land pattern for XH (section 10.3
+// and the rest of the datasheet give terminal dimensions only). The
+// perimeter lands below are a local choice, not Winbond's: 0.85 x 0.25mm,
+// spanning x = 0.95..1.80 from center. That is a 0.10mm heel inside the
+// nominal terminal inner end (still covering the worst-case inner end
+// E/2 min - L max = 1.45 - 0.50 = 0.95) and a 0.30mm toe beyond the nominal
+// body edge (0.25mm beyond E/2 max). Land width equals nominal b, leaving
+// 0.25mm copper gaps at 0.50mm pitch. Pad 9 is the nominal 0.20 x 1.60mm
+// center metal (non-connected; optional pin EP). Winbond: avoid exposed PCB
+// vias under it. The courtyard is 0.25mm outside the land toes along X and
+// the nominal body edge along Y. Requires assembly validation.
+pub pad P_W25Q32RV_XSON8_LEAD {
+    shape: rect
+    size: (0.85mm, 0.25mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub pad P_W25Q32RV_XSON8_CENTER {
+    shape: rect
+    size: (0.2mm, 1.6mm)
+    layer: top_copper
+    plating: smd
+}
+
+pub footprint FP_W25Q32RV_XSON8_2X3 {
+    pad 1: P_W25Q32RV_XSON8_LEAD at (-1.375mm, -0.75mm)
+    pad 2: P_W25Q32RV_XSON8_LEAD at (-1.375mm, -0.25mm)
+    pad 3: P_W25Q32RV_XSON8_LEAD at (-1.375mm, 0.25mm)
+    pad 4: P_W25Q32RV_XSON8_LEAD at (-1.375mm, 0.75mm)
+    pad 5: P_W25Q32RV_XSON8_LEAD at (1.375mm, 0.75mm)
+    pad 6: P_W25Q32RV_XSON8_LEAD at (1.375mm, 0.25mm)
+    pad 7: P_W25Q32RV_XSON8_LEAD at (1.375mm, -0.25mm)
+    pad 8: P_W25Q32RV_XSON8_LEAD at (1.375mm, -0.75mm)
+    pad 9: P_W25Q32RV_XSON8_CENTER at (0mm, 0mm)
+    silkscreen {
+        pin_1_marker near pad 1 shape dot
+    }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (4.1mm, 2.5mm) }
+    silkscreen_ref { at: (0mm, -1.7mm) }
 }

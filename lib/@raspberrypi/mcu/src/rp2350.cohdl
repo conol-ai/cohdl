@@ -25,11 +25,21 @@ pub device RP2350A {
         optional USB_DP: 52 [bidirectional]
         optional USB_DM: 51 [bidirectional]
 
-        // Optional 12 MHz crystal oscillator.
+        // Crystal oscillator (XOSC). Optional only because the chip can run from
+        // its internal oscillator (hardware design guide, PDF p. 14). BOOTSEL
+        // mode, i.e. USB and UART boot, requires a crystal across XIN/XOUT or
+        // an external clock driven into XIN (datasheet Section 5.2.8.1, PDF
+        // p. 376): a board that leaves XIN open has neither bootloader. The
+        // bootrom assumes 12 MHz. With a square-wave clock on XIN, XOUT is
+        // left floating (Table 1439, PDF p. 1343).
         optional XIN: 21 [input]
         optional XOUT: 22 [output]
 
-        // QSPI to the XIP program flash.
+        // QSPI to the XIP program flash. QSPI_SS is also the BOOTSEL input: the
+        // bootrom samples it after reset and enters BOOTSEL if it is driven low
+        // externally, through a resistor (Section 5.2.8, PDF pp. 375-376). The
+        // [output] type does not express that boot-time input role. At BOOTSEL,
+        // SD1 high selects UART boot on SD2 (TX) / SD3 (RX) (PDF p. 376).
         required QSPI_SS: 60 [output]
         required QSPI_SCLK: 56 [output]
         required QSPI_SD0: 57 [bidirectional]
@@ -37,10 +47,16 @@ pub device RP2350A {
         required QSPI_SD2: 58 [bidirectional]
         required QSPI_SD3: 55 [bidirectional]
 
-        // ARM SWD debug + RUN (reset, active low); all have defined on-chip
-        // reset behaviour and need not be routed in every design.
+        // ARM SWD debug; internal pull-ups at reset (Table 1430, PDF p. 1338),
+        // so they need not be routed in every design.
         optional SWCLK: 24 [input]
         optional SWDIO: 25 [bidirectional]
+        // RUN: chip enable / reset, active low, internal pull-up at reset
+        // (Table 1430, PDF p. 1338). "If RUN is not used, it should be tied
+        // high" (Section 7.3.3, PDF p. 498): tie it to IOVDD, its power domain,
+        // or drive it from a reset circuit rather than leave it open. Kept
+        // optional like the library's other pulled-up reset inputs (STM32,
+        // GD32 and CH32 NRST).
         optional RUN: 26 [input]
 
         // General-purpose I/O. Their direction and board function are selected

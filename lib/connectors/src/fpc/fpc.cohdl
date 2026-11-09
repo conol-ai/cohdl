@@ -47,12 +47,17 @@ pub device IPEX_MHF4 {
 
 impl Connector for IPEX_MHF4 {}
 
-// 2-pin battery spring clip.
-#[doc("docs/README.md")]
+// 2-circuit shrouded wire-to-board header, 2.5mm pitch, side entry
+// (JST XH, jst-xh.pdf pp.1, 5), used here for a battery lead. Series ratings
+// (p.1): 3A AC/DC with AWG #22 wire, 250V AC/DC, -25 to +85C including the
+// temperature rise from the applied current. JST assigns no function to the
+// circuits: battery positive/negative is this library's assignment, and the
+// mating harness must put the positive lead on circuit 1.
+#[doc("docs/jst-xh.pdf")]
 pub device BAT_CONN_2P {
     pins {
-        required P1: 1 [power_in] // battery positive
-        required P2: 2 [power_in] // battery negative
+        required P1: 1 [power_in] // circuit 1; library: battery positive
+        required P2: 2 [power_in] // circuit 2; library: battery negative
     }
 }
 
@@ -132,7 +137,7 @@ pub part CONN_IPEX_MHF4: IPEX_MHF4 {
     primary { mfr: "Linx", mpn: "CONMHF4-SMD-G-T", footprint: FP_IPEX_MHF4 }
 }
 
-#[doc("docs/README.md")]
+#[doc("docs/jst-xh.pdf")]
 pub part CONN_BAT_2P: BAT_CONN_2P {
     primary { mfr: "JST", mpn: "S2B-XH-A(LF)(SN)", footprint: FP_BAT_2P_2P5 }
 }
@@ -226,11 +231,18 @@ pub pad P_MAG_4P_PAD {
     drill: 0.8mm
 }
 
+// JST XH side-entry PC board layout (jst-xh.pdf p.2): holes of 0.9 +0.1/-0mm
+// for the 0.64mm square posts (p.5). JST calls the hole sizes reference values
+// and asks for a larger hole on glass-cloth board (p.2 note 4), so the drill is
+// the top of the stated range, 1.0mm, which also clears the 0.905mm post
+// diagonal. JST gives no copper size: the 1.7mm land leaves a 0.35mm annulus
+// and a 0.8mm copper gap at 2.5mm pitch.
 pub pad P_BAT_2P_PAD {
-    shape: rect
-    size: (1.2mm, 1.6mm)
-    layer: top_copper
-    plating: smd
+    shape: circle
+    size: (1.7mm)
+    layer: through_all
+    plating: plated_through_hole
+    drill: 1.0mm
 }
 
 // MEMS mic module land: rectangular SMD pad.
@@ -312,15 +324,28 @@ pub footprint FP_IPEX_MHF4 {
     silkscreen_ref { at: (0mm, -2.0mm) }
 }
 
-// Two lands at 2.5mm pitch.
+// JST S2B-XH-A side-entry through-hole land: two plated holes at 2.5mm pitch
+// (jst-xh.pdf p.2). JST's layout is viewed from the mounting surface with the
+// body above the hole row and No. 1 circuit on the right; it is rotated 180
+// degrees into these coordinates without reflection, so the body extends
+// towards +y and pad 1 is on the left. Body plan for S2B-XH-A (p.5): B = 7.4mm
+// wide, centred on the holes; C = 9.2mm from the hole row to the mating edge;
+// 7 + 4.5 = 11.5mm deep at the board, so 2.3mm behind the hole row. The
+// silkscreen outlines that body 0.11mm outside it; the courtyard is the body
+// plus 0.5mm. The mated XHP housing reaches about 2.8mm past the mating edge
+// ((14.3) on p.2) and its wires leave that way: keep that side clear.
 pub footprint FP_BAT_2P_2P5 {
     pad 1: P_BAT_2P_PAD at (-1.25mm, 0mm)
     pad 2: P_BAT_2P_PAD at (1.25mm, 0mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
+        line from (-3.81mm, -2.41mm) to (3.81mm, -2.41mm) width 0.12mm
+        line from (3.81mm, -2.41mm) to (3.81mm, 9.31mm) width 0.12mm
+        line from (3.81mm, 9.31mm) to (-3.81mm, 9.31mm) width 0.12mm
+        line from (-3.81mm, 9.31mm) to (-3.81mm, -2.41mm) width 0.12mm
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (3.9mm, 3.0mm) }
-    silkscreen_ref { at: (0mm, -2.2mm) }
+    courtyard { shape: rect, at: (0mm, 3.45mm), size: (8.4mm, 12.5mm) }
+    silkscreen_ref { at: (0mm, -3.4mm) }
 }
 
 // Xinyangze YZP0048-20048-04025-03 recommended PCB layout (drawing A.1):

@@ -30,3 +30,18 @@ Additional footprint and exact-product evidence audited on 2026-08-05:
 ## Manufacturer name in 0.1.1
 
 `AMP_NS4150B` now names its manufacturer `NSIWAY`, not `Nsiway`, the spelling of the official `audio-amp` package. One library name per company lets the reviewed supplier alias for Shenzhen Nsiway cover both packages (#73, rows 39 and 40). The part, its pins and its land are unchanged.
+
+## MAX98357A SD_MODE obligation in 0.2.0
+
+Re-audited pages 7, 15 and 17 of `max98357a.pdf` on 2026-11-07. `SD_MODE`
+(pin 4) has an internal 100 kΩ pull-down (RPD 92–108 kΩ, p. 7), and Table 5
+(p. 17) defines a level below the B0 trip point as shutdown, so an open pin
+gives a silent amplifier. Earlier versions declared `SD_MODE` `optional`;
+0.2.0 declares it `required`, and its comment now records the Table 5
+channel select: high selects left, a pull-up through RSMALL selects right and
+one through RLARGE selects (left + right)/2, with Table 6 values of
+69.8 kΩ/300 kΩ at 1.8 V and 210.2 kΩ/634 kΩ at 3.3 V. This is breaking: a
+design that left `SD_MODE` unconnected now fails `cohdl check` after
+`cohdl update`; wire it to the logic level or pull-up for the channel it
+needs. The pin number, name and role, the part identity and the land are
+unchanged.

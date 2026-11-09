@@ -16,11 +16,14 @@
 // Everything else falls through to Workers Assets (the SPA).
 
 import {
+  ADMIN_TOKEN_TTL_MS,
   Env,
+  TOKEN_PREFIX,
   accountForSession,
   accountForToken,
   createSession,
   hashPassword,
+  parseTokenRequest,
   sessionIdForRequest,
   sha256Hex,
   verifiedBrands,
@@ -31,6 +34,7 @@ import { apidocsKey, apidocsPut } from "./apidocs";
 import {
   adminComponentRequestApi,
   componentRequestApi,
+  readBoundedJson,
 } from "./component-requests";
 import { docContentType, docPaths, validDocPath } from "./docs";
 import { packageContentHash } from "./hash";
@@ -518,17 +522,28 @@ async function api(env: Env, request: Request, url: URL): Promise<Response> {
     if (rejection) return rejection;
     const account = await accountForSession(env, request);
     if (!account) return json(401, { error: "not signed in" });
+    const body = await readBoundedJson(request, 1024);
+    if (!body.ok) return json(400, { error: "request body must be valid JSON" });
+    const parsed = parseTokenRequest(body.value, account);
+    if (!parsed.ok) return json(parsed.status, { error: parsed.error });
     const raw = [...crypto.getRandomValues(new Uint8Array(24))]
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-    const token = `cohdl_${raw}`;
+    const token = `${TOKEN_PREFIX[parsed.scope]}${raw}`;
+    const now = new Date();
+    const expiresAt =
+      parsed.scope === "admin" ? new Date(now.getTime() + ADMIN_TOKEN_TTL_MS).toISOString() : null;
     await env.DB.prepare(
-      "INSERT INTO tokens (token_hash, account_id, created_at) VALUES (?, ?, ?)",
+      "INSERT INTO tokens (token_hash, account_id, created_at, scope, expires_at) VALUES (?, ?, ?, ?, ?)",
     )
-      .bind(await sha256Hex(token), account.id, new Date().toISOString())
+      .bind(await sha256Hex(token), account.id, now.toISOString(), parsed.scope, expiresAt)
       .run();
     // Shown exactly once; only the hash is stored.
-    return json(200, { token }, { "Cache-Control": "no-store" });
+    return json(
+      200,
+      { token, scope: parsed.scope, expires_at: expiresAt },
+      { "Cache-Control": "no-store" },
+    );
   }
 
   if (path === "/api/search" && request.method === "GET") {

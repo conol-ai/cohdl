@@ -12,12 +12,44 @@ redistributed here.
 | `Air780E_LuaOS_PADS_Decal_V20241030.zip` | `Air780E` PADS decal (LuaOS variant) | Luat (Hezhou) official PADS library, 109 pads | https://docs.openluat.com/air780e/ | 2026-07-29 | `291a308036c1afc6de19d61ddd1e1006d6044f1537496005e65b416896fd6dc9` |
 | `air780eg-hw.evidence.md` | `Air780EG` | Luat (Hezhou) hardware design manual V1.1.2, 109-pin pinout and recommended PCB land drawing | https://docs.openluat.com/air780eg/product/ | 2026-09-03 | `0af5b7b7c1066ae74cc8edfa85e06db7a6650497b8af3a2c1fe0aa71b60f41f9` |
 
-FULL 109-pin device (`Air780E_SOC`): all 109 pads placed from the official
-PADS decal pad coordinates. Known approximation: padstack sizes are unified
-to 1.2×0.6 / 0.6×1.2 mm; the official PADS decal uses per-pin padstack
-lengths of ~1.1-2.1 mm. **Re-verify each padstack against the official decal
-before board fabrication.** The 109-pin pinout authority table lives in
+FULL 109-pin device (`AIR780E`): all 109 pads of
+`FP_Luat_AIR780E_LGA109_177x158mm` are generated from the official PADS decal
+(`Air780E_AT.asc`, decal `AIR780E`; the LuatOS decal is identical) with y
+negated into CoHDL's +y-down board frame, so pin 1 is top-left by the chamfer
+as in the manual's pin view (pp. 13, 16) and recommended land (p. 20). Copper
+sizes are the decal's top-copper (layer −2) stacks: 1.3 × 0.6 mm perimeter
+pads, 1.0 × 0.7 mm inner pads (0.7 × 1.0 mm in the inner rows) and 1.3 mm
+square centre ground pads. The decal's larger figures are not copper: its
+solder-mask layer (121) is 0.05 mm per side larger on every pad (up to
+1.4 mm), and its paste layer (123) opens the perimeter pads at
+0.7 × 1.4 mm. Neither mask nor paste is modelled. The 109-pin pinout
+authority table lives in
 `/Users/adan/adan-ws/cohdl-doc/evidence/conol-watch/air780e-pinout.md`.
+
+## Air780E footprint correction in 0.2.0 — 2026-11-07
+
+`FP_Luat_AIR780E_LGA109_177x158mm`, used by `CELL_AIR780E` and
+`CELL_AIR780EG`, was mirrored top to bottom in 0.1.x. It copied the PADS
+decal's +y-up coordinates unchanged into CoHDL's +y-down frame, which put
+pin 1 at the lower left, numbered the pins clockwise seen from the top, and
+put pad 99 at the bottom of the left inner column. No rotation of that land
+matches the module, so a board built on it cannot be assembled. Version 0.2.0
+regenerates every pad from the decal with y negated, checked pad by pad
+against the decal and against the manual's top view (pp. 13, 16, 20). It also
+corrects pad shapes to the decal's copper stacks:
+
+- pads 89–94 are 1.3 mm squares (decal shape `S`), not circles;
+- pads 54–58, 68–72, 101, 102 and 105–109 are 0.7 × 1.0 mm (long axis along
+  y), not 1.0 × 0.7 mm;
+- the corner pads 95–98 are 0.6 × 1.3 mm like the rest of their rows, not
+  1.0 × 0.7 mm.
+
+Pad symbol `P_AIR780E_PAD_ROUND` is removed; `P_AIR780E_PAD_IN_H` and
+`P_AIR780E_PAD_GND` are new. Pin numbers, the device pin maps and the
+footprint name are unchanged, but every pad off the horizontal centre line
+moves: a design that used 0.1.x must re-route the module after
+`cohdl update`. `check` and `build` keep passing, so the change will not show
+up as an error.
 
 ## T520 polymer tantalum (VBAT bulk)
 

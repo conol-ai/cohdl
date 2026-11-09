@@ -11,6 +11,7 @@ with the footprint's own pad 1:
     sips -s format bmp top.jpg --out top.bmp
     # 3. measure, with any Python
     python3 -I measure_preview.py measure board.json top.bmp bottom.bmp out.json
+    #    (bottom.bmp may be - on a board with no bottom parts)
     # 4. a connector's locating pegs against the board's own holes
     python3 -I measure_preview.py pegs board.json top.bmp bottom.bmp REF_PREFIX
 
@@ -250,7 +251,11 @@ def body_ok(reading):
 def measure(board_json, top_bmp, bottom_bmp, out):
     with open(board_json) as f:
         doc = json.load(f)
-    views = {False: View(top_bmp, outline(doc), False), True: View(bottom_bmp, outline(doc), True)}
+    # A board with no bottom parts may pass "-" for the bottom view, which it does not export.
+    shots = {False: top_bmp, True: bottom_bmp}
+    if bottom_bmp == "-" and any(fp["bottom"] for fp in doc["fps"]):
+        sys.exit("measure_preview.py: the board has bottom parts, so it needs the bottom view")
+    views = {bottom: View(path, outline(doc), bottom) for bottom, path in shots.items() if path != "-"}
     found = {bottom: dots(view, outline(doc), bottom) for bottom, view in views.items()}
 
     def angle(dx, dy):  # seen from the top, +y up, counter-clockwise

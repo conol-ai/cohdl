@@ -69,16 +69,68 @@ export function sessionIdForRequest(request: Request): string | null {
   return cookie.match(/(?:^|;\s*)__Host-session=([a-f0-9]{64})(?:;|$)/)?.[1] ?? null;
 }
 
-/// Resolve a `Bearer <token>` header to its account, or null.
-export async function accountForToken(env: Env, request: Request): Promise<Account | null> {
+/// What a CLI token may do. A token holds exactly one scope: `publish`
+/// (packages and their API docs, every pre-0006 token) or `admin` (official
+/// supplier catalog and alias maintenance). Keeping them apart means the
+/// everyday publish token, which lives on every machine that publishes,
+/// cannot replace supplier data, and an admin token cannot publish.
+export type TokenScope = "publish" | "admin";
+
+/// Admin tokens expire: the registry has no token revocation yet, so a
+/// leaked admin token must stop working on its own.
+export const ADMIN_TOKEN_TTL_MS = 30 * 24 * 3600 * 1000;
+
+/// Minted tokens are recognisable by prefix: `cohdl_` for publish (as
+/// before 0006), `cohdl_admin_` for admin, so a client can refuse to send the
+/// wrong one before it leaves the machine.
+export const TOKEN_PREFIX: Record<TokenScope, string> = { publish: "cohdl_", admin: "cohdl_admin_" };
+
+/// The body of `POST /api/tokens`: `{}` or `{scope: "publish"}` mints a
+/// publish token, `{scope: "admin"}` an admin token, which only an official
+/// account may hold. Anything else is refused.
+export function parseTokenRequest(
+  body: unknown,
+  account: Account,
+): { ok: true; scope: TokenScope } | { ok: false; status: 400 | 403; error: string } {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return { ok: false, status: 400, error: "body must be {} or {scope: \"publish\" | \"admin\"}" };
+  }
+  const keys = Object.keys(body);
+  if (keys.some((key) => key !== "scope")) {
+    return { ok: false, status: 400, error: "body must be {} or {scope: \"publish\" | \"admin\"}" };
+  }
+  const scope = (body as { scope?: unknown }).scope ?? "publish";
+  if (scope !== "publish" && scope !== "admin") {
+    return { ok: false, status: 400, error: "scope must be \"publish\" or \"admin\"" };
+  }
+  if (scope === "admin" && account.is_official !== 1) {
+    return { ok: false, status: 403, error: "an admin token requires an official account" };
+  }
+  return { ok: true, scope };
+}
+
+/// The bearer token a request carries, or "" when it carries none.
+export function bearerToken(request: Request): string {
   const auth = request.headers.get("Authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  return auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+}
+
+/// Resolve a `Bearer <token>` header to its account, or null. Only a token of
+/// `scope` that has not expired at `now` resolves.
+export async function accountForToken(
+  env: Env,
+  request: Request,
+  scope: TokenScope = "publish",
+  now: Date = new Date(),
+): Promise<Account | null> {
+  const token = bearerToken(request);
   if (!token) return null;
   const tokenHash = await sha256Hex(token);
   return env.DB.prepare(
-    "SELECT a.id, a.email, a.is_official FROM tokens t JOIN accounts a ON a.id = t.account_id WHERE t.token_hash = ?",
+    `SELECT a.id, a.email, a.is_official FROM tokens t JOIN accounts a ON a.id = t.account_id
+      WHERE t.token_hash = ? AND t.scope = ? AND (t.expires_at IS NULL OR t.expires_at > ?)`,
   )
-    .bind(tokenHash)
+    .bind(tokenHash, scope, now.toISOString())
     .first<Account>();
 }
 

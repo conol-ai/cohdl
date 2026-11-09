@@ -1,36 +1,42 @@
-// MFF2 eUICC (eSIM): 8-contact molded SMD package, 5 x 6 mm (JEDEC MFF2 /
-// GSMA SGP.22, ETSI TS 102 671). 4-wire USIM interface (VCC, RST, CLK, IO)
-// plus GND and three reserved no-connect contacts; connects to the modem's
-// USIM port, e.g. Air780E USIM_VDD/DAT/CLK/RST. 8 bottom contacts arranged
-// in two rows of four, 1.3 mm pitch, 3.2 mm row spacing.
+// MFF2 eUICC (eSIM): 8-contact VFDFPN8 / DFN8 package, 5 x 6 x 1.27 mm,
+// "compatible with the MFF2 package defined by ETSI 102 671 release 12"
+// (Truphone datasheet, PDF pp. 2, 3, 5). Five contacts carry the SIM
+// interface (VCC, GND, RST, CLK, IO) to the modem's SIM port, e.g. Air780E
+// USIM_VDD/RST/CLK/DAT; SWIO is not used and two contacts are not connected.
+// Pin numbers follow Figure 1 / Table 1 (VFDFPN8 pinout, top view, PDF p. 5):
+// 1-4 down the left side, 5-8 up the right side, pin 8 opposite pin 1.
+// Another vendor's MFF2 part must be checked against this map before it
+// binds this device.
 
-#[doc("docs/README.md")]
+#[doc("docs/truphone-sim-s-io3-mff2-2.pdf")]
 pub device ESIM_MFF2 {
     pins {
-        required VCC: 1 [power_in] // supply 1.8/3.0V (USIM_VDD)
-        required RST: 2 [input] // reset, active low (USIM_RST)
-        required CLK: 3 [input] // clock (USIM_CLK)
-        required IO: 4 [bidirectional] // data (USIM_DAT)
-        required GND: 5 [power_in] // ground
-        optional NC6: 6 [passive] // reserved contact, no connect
-        optional NC7: 7 [passive] // reserved contact, no connect
-        optional NC8: 8 [passive] // reserved contact, no connect
+        required GND: 1 [power_in] // ground supply (PDF p. 5)
+        optional SWIO: 2 [input] // not used, internal pull-up; leave open (PDF p. 5)
+        required IO: 3 [bidirectional] // data, I/O (USIM_DAT) (PDF p. 5)
+        optional NC4: 4 [passive] // not connected internally (PDF p. 5)
+        optional NC5: 5 [passive] // not connected internally (PDF p. 5)
+        required CLK: 6 [input] // external clock, internal pull-down (USIM_CLK) (PDF p. 5)
+        required RST: 7 [input] // RESET, active low, internal pull-down (USIM_RST) (PDF p. 5)
+        required VCC: 8 [power_in] // supply class A 5 V / B 3 V / C 1.8 V, set by the modem (USIM_VDD) (PDF p. 3)
     }
 }
 
 impl IC for ESIM_MFF2 {}
 
-#[doc("docs/README.md")]
+#[doc("docs/truphone-sim-s-io3-mff2-2.pdf")]
 pub part ESIM_MFF2_TRUPHONE: ESIM_MFF2 {
-    // Truphone SIM-S-IO3-MFF2-2 (LCSC C5122390): in-stock MFF2 eUICC.
-    // NOTE: pin numbers are this library's logical map (VCC 1, RST 2, CLK 3,
-    // IO 4, GND 5, NC 6-8); verify contact assignment against the bound
-    // eUICC's datasheet before fabrication.
+    // Truphone SIM-S-IO3-MFF2-2 (LCSC C5122390): MFF2 eUICC on an ST33G1M2
+    // secure element; -40 to +105 C (PDF pp. 2-3). The pin map above is the
+    // datasheet's Figure 1 / Table 1 (PDF p. 5).
     primary { mfr: "Truphone", mpn: "SIM-S-IO3-MFF2-2", footprint: FP_ESIM_MFF2_5x6mm }
 }
 
-// MFF2 land pattern: 8 bottom contacts in two rows of four, 0.8 x 0.8 mm,
-// 1.3 mm pitch, 3.2 mm row spacing. Body 5 x 6 mm.
+// MFF2 land pattern: 8 contacts in two columns of four, 0.8 x 0.8 mm,
+// 1.3 mm pitch, 3.2 mm column spacing. These land dimensions, the absence of
+// a centre pad, and which body side (5 or 6 mm) the columns run along are NOT
+// in the Truphone datasheet (it gives only the 5 x 6 x 1.27 mm body and the
+// pinout); see docs/README.md.
 pub pad P_ESIM_MFF2_PAD {
     shape: rect
     size: (0.8mm, 0.8mm)
@@ -38,18 +44,21 @@ pub pad P_ESIM_MFF2_PAD {
     plating: smd
 }
 
+// Top view in CoHDL's +y-down board frame, as Figure 1 (PDF p. 5): pads 1-4
+// down the left column, 5-8 up the right column (counter-clockwise), so
+// pad 8 is opposite pad 1 and pad 5 opposite pad 4.
 pub footprint FP_ESIM_MFF2_5x6mm {
-    pad 1: P_ESIM_MFF2_PAD at (-1.95mm, -1.6mm)
-    pad 2: P_ESIM_MFF2_PAD at (-0.65mm, -1.6mm)
-    pad 3: P_ESIM_MFF2_PAD at (0.65mm, -1.6mm)
-    pad 4: P_ESIM_MFF2_PAD at (1.95mm, -1.6mm)
-    pad 5: P_ESIM_MFF2_PAD at (-1.95mm, 1.6mm)
-    pad 6: P_ESIM_MFF2_PAD at (-0.65mm, 1.6mm)
-    pad 7: P_ESIM_MFF2_PAD at (0.65mm, 1.6mm)
-    pad 8: P_ESIM_MFF2_PAD at (1.95mm, 1.6mm)
+    pad 1: P_ESIM_MFF2_PAD at (-1.6mm, -1.95mm)
+    pad 2: P_ESIM_MFF2_PAD at (-1.6mm, -0.65mm)
+    pad 3: P_ESIM_MFF2_PAD at (-1.6mm, 0.65mm)
+    pad 4: P_ESIM_MFF2_PAD at (-1.6mm, 1.95mm)
+    pad 5: P_ESIM_MFF2_PAD at (1.6mm, 1.95mm)
+    pad 6: P_ESIM_MFF2_PAD at (1.6mm, 0.65mm)
+    pad 7: P_ESIM_MFF2_PAD at (1.6mm, -0.65mm)
+    pad 8: P_ESIM_MFF2_PAD at (1.6mm, -1.95mm)
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }
-    courtyard { shape: rect, at: (0mm, 0mm), size: (6.6mm, 5.6mm) }
-    silkscreen_ref { at: (0mm, -3.6mm) }
+    courtyard { shape: rect, at: (0mm, 0mm), size: (5.6mm, 6.6mm) }
+    silkscreen_ref { at: (0mm, -4.1mm) }
 }

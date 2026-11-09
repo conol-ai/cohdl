@@ -19,7 +19,7 @@ manufacturer documents stored.
 | --- | --- | --- | --- | --- |
 | `FPC24_0P5` | `CONN_FPC24_0P5` | HRS FH12-24S-0.5SH(55) | 24-pin FPC socket, 0.5mm pitch, bottom contact | Hirose FH12 series datasheet (`fh12-series.pdf`) |
 | `IPEX_MHF4` | `CONN_IPEX_MHF4` | Linx CONMHF4-SMD-G-T | 1-pin RF coax jack, MHF4 class | Linx/TE datasheet (`conmhf4-smd-g-t.pdf`) |
-| `BAT_CONN_2P` | `CONN_BAT_2P` | JST S2B-XH-A(LF)(SN) | 2-pin 2.5mm pitch SMD wire-to-board (battery) | JST XH series datasheet (`jst-xh.pdf`) |
+| `BAT_CONN_2P` | `CONN_BAT_2P` | JST S2B-XH-A(LF)(SN) | 2-circuit 2.5mm pitch side-entry through-hole shrouded header (battery) | JST XH series datasheet (`jst-xh.pdf`) |
 | `MAG_CONN_4P` | `CONN_MAG_4P` | Xinyangze YZP0048-20048-04025-03 | 4-pin magnetic pogo charge connector | Xinyangze spec (`yzp0048-20048-04025-03.pdf`) |
 
 Footprints are generic land patterns sized for the stated pitches; verify

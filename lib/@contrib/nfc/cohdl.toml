@@ -1,6 +1,6 @@
 [package]
 name = "@contrib/nfc"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT"
 description = "Community-contributed NFC reader/IC devices and purchasable parts."
 repository = "https://github.com/conol-ai/cohdl"

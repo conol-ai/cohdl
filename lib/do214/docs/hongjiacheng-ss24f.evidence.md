@@ -1,6 +1,6 @@
 # Hongjiacheng SS24F evidence record (SMAF primary source)
 
-- Library coverage: primary source of `do214::FP_DO221AC_SMAF`. No part
+- Library coverage: primary source of `do214::DIOM4726X120N`. No part
   binds it in this change.
 - Document identity: Zhuhai Hongjiacheng Technology Co., Ltd, "SS22F THRU
   SS220F Surface Mount Schottky Barrier Rectifier", Rev 2.0, 3 pages (PDF

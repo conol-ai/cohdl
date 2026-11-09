@@ -1,6 +1,6 @@
 # Diodes Incorporated SMAF package file evidence record (SMAF cross-check)
 
-- Library coverage: independent cross-check of `do214::FP_DO221AC_SMAF`.
+- Library coverage: independent cross-check of `do214::DIOM4726X120N`.
 - Document identity: Diodes Incorporated, "SMAF Package Information",
   Rev. 2019-06-27 (June 2019), 5 pages.
 - Official source: <https://www.diodes.com/assets/Package-Files/SMAF.pdf>,

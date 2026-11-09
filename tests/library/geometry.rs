@@ -351,7 +351,7 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     ),
     (
         "do214",
-        "FP_DO221AC_SMAF",
+        "DIOM4726X120N",
         4.90,
         2.70,
         "Hongjiacheng SS22F-SS220F Rev 2.0 p3, D x C max",

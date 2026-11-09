@@ -181,8 +181,8 @@ const WAVE3: [Land; 4] = [
     Land {
         package: "do214",
         source: "src/footprints.cohdl",
-        footprint: "FP_DO221AC_SMAF",
-        pad: "P_DO221AC_SMAF_LEAD",
+        footprint: "DIOM4726X120N",
+        pad: "P_DIOM4726X120N_LEAD",
         size_um: (1600, 1800),
         rotate: 0,
         extra: &[],
@@ -838,7 +838,7 @@ fn wave3_fixture_consumer_binds_and_emits_every_land() {
         &WAVE3,
         &[
             (
-                "do214::FP_DO221AC_SMAF",
+                "do214::DIOM4726X120N",
                 &[
                     "(pad \"1\" smd rect (at -1.9 0) (size 1.6 1.8)",
                     "(pad \"2\" smd rect (at 1.9 0) (size 1.6 1.8)",

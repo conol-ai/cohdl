@@ -56,7 +56,12 @@ the output capacitor, not the LX trace. [D] also recommends an additional
 4.7 uF on DVDD near pin 23, away from LX and the primary output capacitor.
 These requirements must be preserved in the eventual PCB layout.
 
-Place 100 nF close to each supply pin, including each DVDD pin. The example
+Place 100 nF close to each supply pin. For DVDD with the on-chip regulator,
+[D] section 6.1.3, p.442, asks for 100 nF at the two DVDD pins closest to the
+regulator and **4.7 uF** at the DVDD pin furthest from it; [D] p.456 names
+pin 23 as the bottom-edge DVDD pin for the extra 4.7 uF. [H] p.9 instead
+recommends 100 nF per power pin and does not repeat the 4.7 uF rule; the
+sources do not reconcile the two. The example
 in [H] section 2.2.1, pp.9-10, shares one 100 nF between adjacent pins 53/54
 because of space; this is a specific placement compromise, not permission
 to omit core decoupling. Connect and decouple the analog and USB/OTP supplies
@@ -85,18 +90,29 @@ actual pinout and voltage, short traces, and its local supply decoupling.
 the supported boot-read commands. Different flash parts require their own
 startup and command-compatibility checks.
 
-Provide BOOTSEL access from QSPI_SS through **1 kohm** to a switch/test
-connection to ground, sampled during boot. Keep that resistor: it allows
+QSPI_SS is also the BOOTSEL input: the bootrom samples it shortly after
+reset and enters BOOTSEL (USB or UART boot) when it is driven low externally
+([D] section 5.2.8, pp.375-376). Provide BOOTSEL access from QSPI_SS
+through **1 kohm** to a switch/test connection to ground, sampled during boot. Keep that resistor: it allows
 the MCU to drive SS after boot. Figure 8's optional 10 kohm SS pull-up is
 DNF for the reference flash; decide whether to populate it using the actual
 flash's power-up requirements. Do not assume all flash devices behave alike.
 
-RUN pin 26 is active-low reset. Expose RUN and ground for reset access, and
+RUN pin 26 is active-low chip enable / reset with an internal pull-up at
+reset ([D] Table 1430, p.1338). [D] section 7.3.3, p.498: "If RUN is not
+used, it should be tied high", so tie it to IOVDD or drive it from a reset
+circuit rather than leave it open. Expose RUN and ground for reset access, and
 SWCLK=24, SWDIO=25 plus ground for debugging. Buttons are one implementation;
 accessible pads or a header can provide the same required access in a draft.
 See [H] sections 5.3-5.4, pp.18-19. Determine connector geometry separately.
 
 ## Crystal and USB data interface
+
+BOOTSEL mode, both USB and UART boot, requires a crystal across XIN and
+XOUT or an external clock driven into XIN ([D] section 5.2.8.1, p.376); the
+bootrom assumes 12 MHz. The chip can otherwise run from its internal
+oscillator ([H] p.14), so the library leaves XIN/XOUT `optional`, but a board
+without an XOSC source has no USB or UART bootloader.
 
 [H] Figure 10, p.14, uses **Abracon ABM8-272-T3, 12 MHz** (existing library
 part `osc::XTAL_12MHZ`). XIN=21 connects to one crystal terminal; XOUT=22

@@ -11,6 +11,7 @@ use cohdl::span::SourceMap;
 
 mod library {
     pub mod geometry;
+    pub mod package_families;
     pub mod supplier;
 }
 
@@ -1017,10 +1018,10 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/analog-switch::SW_RS2257XH|Run-IC|RS2257XH|contrib_analog_switch::SOT6P95X290X160N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
         "@contrib/analog-switch::SW_TMUX1072DGSR|Texas Instruments|TMUX1072DGSR|contrib_analog_switch::FP_TI_DGS0010A|contrib_analog_switch::TMUX1072_DGS[-]|36909901abb1c1d55001dc64b0c1e64aed2d95d04ea4a58576a2c7aec0b0618d",
         "@contrib/analog-switch::SW_TMUX1072RUTR|Texas Instruments|TMUX1072RUTR|contrib_analog_switch::FP_TI_RUT0012A|contrib_analog_switch::TMUX1072_RUT[-]|0340306b1e7029adbd82166f543ce7744c680e2c829204dd709fc9389f350e3c",
-        "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|a235edfeb77483f6ce49859d1508a02037c924c3165314e2168b59421b4b7aa0",
+        "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|f2d1827ec1480638c33dd82b5b65330399de58aa29adf1e75cf7d00014d21b37",
         "@contrib/audio-amp::AMP_NS4150B|NSIWAY|NS4150B|contrib_audio_amp::SOP8P65X490X110N|contrib_audio_amp::NS4150B[-]|68c467ea216f68d6c7f2fe1439b14bed81dae3b5cbec8a04b5b45bafc4dc6f19",
         "@contrib/charger::CHARGER_BQ25185DLHR|Texas Instruments|BQ25185DLHR|contrib_charger::FP_TI_DLH0010A|contrib_charger::BQ25185[-]|cf11afa6d86f56bdf247261f4d68b09632916cae85d2e0c82b51e74553a1ea28",
-        "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|2fc6771cc0150a98f6ca02490534f5cfc8f529cef28651d676ddd39ac8e69d79",
+        "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|98a207c6f02ce31553021b30c5116651488fd13f871b01880ef1fba57a355b94",
         "@contrib/comparator::COMP_TLV9022DR|Texas Instruments|TLV9022DR|soic::TI_D0008A_4214825C|contrib_comparator::TLV9022_D8[-]|796a472f7c757827ca60a2ec89997f2cc6727bbabd0ec0920fd0b5efdd3417fe",
         "@contrib/comparator::COMP_TLV9032DR|Texas Instruments|TLV9032DR|soic::TI_D0008A_4214825C|contrib_comparator::TLV9032_D8[-]|796a472f7c757827ca60a2ec89997f2cc6727bbabd0ec0920fd0b5efdd3417fe",
         "@contrib/env::ENV_BME280|Bosch Sensortec|BME280|contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm|contrib_env::BME280[-]|3383b88fba1dfc37e0ab29f9c06b5ea75ef23e02ffb0c151c33c7e0fd4a532cc",
@@ -1052,7 +1053,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/lora::LORA_SX1262|Semtech|SX1262IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1262[-]|0283921c57536ef05472323278e94728e22d738f6ff31b8937a11f8df12a734c",
         "@contrib/lora::LORA_SX1280|Semtech|SX1280IMLTRT|contrib_lora::QFN24N50P400X400_1EP270X270|contrib_lora::SX1280[-]|57f667bbeac1ea0682f2b5ef0b09d53da8e0b4d9d7d644a9348b5721dc9da567",
         "@contrib/mic::MMICT3902_00_012|TDK/InvenSense|MMICT3902-00-012|contrib_mic::FP_TDK_T3902|contrib_mic::T3902[-]|1060ef92c73635da819e96b7b7262a8f818a578028575cd21022352e09ebe22d",
-        "@contrib/nfc::NFC_ST25R3916|STMicroelectronics|ST25R3916-AQET|contrib_nfc::QFN32N50P500X500_1EP345X345|contrib_nfc::ST25R3916[-]|aa52ed734bb60338e6a1457e28efbfae87a0f33826c43894528c3aa4c6f3cb22",
+        "@contrib/nfc::NFC_ST25R3916|STMicroelectronics|ST25R3916-AQET|contrib_nfc::QFN32N50P500X500_1EP345X345|contrib_nfc::ST25R3916[-]|d94bbdadbedec1c004bcd8ad5c3aa19ad3a73157ec144dc562734e6e6a6e88ef",
         "@contrib/rtc::RTC_PCF85063AT|NXP|PCF85063AT/AY|contrib_rtc::SOIC8P127X600X175N|contrib_rtc::PCF85063A[SO8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",
         "@contrib/rtc::RTC_PCF85063ATL|NXP|PCF85063ATL/1,118|contrib_rtc::FP_NXP_DFN2626_10_SOT1197_1|contrib_rtc::PCF85063A[DFN10]|0adb4e66d4b7917d6471953d8775cc5a085ed22aa53452b53826f8f1ad495abc",
         "@contrib/rtc::RTC_PCF85063ATT|NXP|PCF85063ATT/AJ|contrib_rtc::SOP8P65X490X110N|contrib_rtc::PCF85063A[TSSOP8]|e946e95965556a8151ea8372d6a59363ea770ea1929c31bbae73e95b81fdb759",

@@ -1017,7 +1017,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/analog-switch::SW_RS2257XH|Run-IC|RS2257XH|contrib_analog_switch::SOT6P95X290X160N|contrib_analog_switch::RS2257[-]|5a20578cdfedc3394e46c840590d006c69d6be1878605375403e9cfc2c9a46f4",
         "@contrib/analog-switch::SW_TMUX1072DGSR|Texas Instruments|TMUX1072DGSR|contrib_analog_switch::FP_TI_DGS0010A|contrib_analog_switch::TMUX1072_DGS[-]|36909901abb1c1d55001dc64b0c1e64aed2d95d04ea4a58576a2c7aec0b0618d",
         "@contrib/analog-switch::SW_TMUX1072RUTR|Texas Instruments|TMUX1072RUTR|contrib_analog_switch::FP_TI_RUT0012A|contrib_analog_switch::TMUX1072_RUT[-]|0340306b1e7029adbd82166f543ce7744c680e2c829204dd709fc9389f350e3c",
-        "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|a235edfeb77483f6ce49859d1508a02037c924c3165314e2168b59421b4b7aa0",
+        "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|f2d1827ec1480638c33dd82b5b65330399de58aa29adf1e75cf7d00014d21b37",
         "@contrib/audio-amp::AMP_NS4150B|NSIWAY|NS4150B|contrib_audio_amp::SOP8P65X490X110N|contrib_audio_amp::NS4150B[-]|68c467ea216f68d6c7f2fe1439b14bed81dae3b5cbec8a04b5b45bafc4dc6f19",
         "@contrib/charger::CHARGER_BQ25185DLHR|Texas Instruments|BQ25185DLHR|contrib_charger::FP_TI_DLH0010A|contrib_charger::BQ25185[-]|cf11afa6d86f56bdf247261f4d68b09632916cae85d2e0c82b51e74553a1ea28",
         "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|98a207c6f02ce31553021b30c5116651488fd13f871b01880ef1fba57a355b94",

@@ -1,0 +1,48 @@
+C105575: RC0603FR-0720KL (YAGEO, extended) known
+C106254: CC0402KRX5R6BB105 (YAGEO, extended) known
+C107011: CC0402JRNPO9BN820 (YAGEO, extended) known
+C107045: CC0603JRNPO9BN270 (YAGEO, preferred) known
+C107108: CC0805JRNPO9BN120 (YAGEO, extended) known
+C107110: CC0805JRNPO9BN150 (YAGEO, preferred) known
+C114763: RC0402FR-07200KL (YAGEO, extended) known
+C117815: STM32F427VGT6 (STMicroelectronics, extended) known
+C129276: STM32F767BIT6 (STMicroelectronics, extended) known
+C1338995: STM32L152VCH6 (STMicroelectronics, extended) known
+C137046: RC2010JK-07130RL (YAGEO, extended) known
+C137203: RC1206JR-0712KL (YAGEO, extended) known
+C137422: RC0805JR-07510KL (YAGEO, extended) known
+C137837: RC0402JR-07820RL (YAGEO, extended) known
+C137927: RC0402FR-07910KL (YAGEO, extended) known
+C138161: RC0201FR-07221RL (YAGEO, extended) known
+C141703: RC0805FR-07910KL (YAGEO, extended) known
+C1525: CL05B104KO5NNNC (Samsung Electro-Mechanics, basic) known
+C163421: RC0603FR-076K49L (YAGEO, extended) known
+C163429: RC0603FR-0715R8L (YAGEO, extended) known
+C1857444: STM32H743VIH6TR (STMicroelectronics, extended) known
+C23922: STM32F030C8T6 (STMicroelectronics, preferred) known
+C274047: RC1206FR-0745R3L (YAGEO, extended) known
+C3009257: CRCW04021K58FKED (Vishay Intertech, extended) known
+C309589: RC1210FR-07510RL (YAGEO, extended) known
+C477801: RC0402FR-078M66L (YAGEO, extended) known
+C482239: CRCW0402820RJNED (Vishay Intertech, extended) known
+C482876: RC0603FR-075M36L (YAGEO, extended) known
+C482966: RC0805FR-071R47L (YAGEO, extended) known
+C483001: RC0805FR-07115RL (YAGEO, extended) known
+C483188: RC0805FR-0757R6L (YAGEO, extended) known
+C488876: RC1206FR-075R49L (YAGEO, extended) known
+C488985: RC1206FR-0782K5L (YAGEO, extended) known
+C527206: CC0805JRNPO0BN391 (YAGEO, extended) known
+C527232: CC0805KRX7RABB332 (YAGEO, extended) known
+C529436: STM32L412K8T6 (STMicroelectronics, extended) known
+C541229: CC0201KRX7R7BB331 (YAGEO, extended) known
+C576985: CC0805JRNPOYBN221 (YAGEO, extended) known
+C717701: STM32L496VGT6 (STMicroelectronics, extended) known
+C718246: CC0201KRX7R9BB681 (YAGEO, extended) known
+C730103: STM32G431RBI6 (STMicroelectronics, extended) known
+C8734: STM32F103C8T6 (STMicroelectronics, preferred) known
+C877226: RC2010FK-07200KL (YAGEO, extended) known
+C878096: RC2512FK-074R7L (YAGEO, extended) known
+C93943: RC0402FR-0747KL (YAGEO, extended) known
+C9861: STM32L151C8T6 (STMicroelectronics, preferred) known
+rows: 13604 of 13604 known and equal; snapshot date: 2026-11-06T01:45:04Z
+aliases: 37 checked; 6 differ from their canonical name only in case or spacing, so their answer is the same whether or not the registry holds them

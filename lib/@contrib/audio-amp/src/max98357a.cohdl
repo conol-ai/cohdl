@@ -8,7 +8,14 @@ pub device MAX98357A {
         optional DIN: 1 [input] // digital data input (p15)
         optional GAIN_SLOT: 2 [input] // gain + channel select (p15)
         required GND3: 3 [power_in] // ground (p15)
-        optional SD_MODE: 4 [input] // shutdown + channel select (p15)
+        // Shutdown and channel select (p15). An internal 100 kOhm pull-down
+        // (RPD 92-108 kOhm, p7) holds an open pin below the B0 trip point,
+        // which Table 5 (p17) defines as shutdown, so it must be driven or
+        // biased: high (above B2) = left; pulled up through RSMALL = right;
+        // through RLARGE = (left + right)/2. RSMALL = 94.0 x VDDIO - 100 and
+        // RLARGE = 222.2 x VDDIO - 100 (kOhm), e.g. 210.2k/634k at 3.3 V
+        // (Table 6, p17). Driving it above VDD needs ~2 kOhm in series (p17).
+        required SD_MODE: 4 [input]
         optional NC5: 5 [passive] // no connection (p15)
         optional NC6: 6 [passive]
         required VDD: 7, 8 [power_in] // supply 2.5-5.5V (p15)
@@ -20,7 +27,7 @@ pub device MAX98357A {
         optional BCLK: 16 [input] // bit clock (p15)
         required GND11: 11 [power_in]
         optional OUTN: 10 [output] // negative speaker output (p15)
-        required EP: EP [passive] // internally NC, but must join solid ground for thermal relief (p15)
+        required EP: EP [passive] // not internally connected; connect to a solid ground plane for thermal dissipation (p15)
     }
 }
 

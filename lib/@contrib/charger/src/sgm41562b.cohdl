@@ -15,8 +15,10 @@ pub device SGM41562B {
         // sinks charge current when charging — power flows both ways.
         required BAT: A3 [bidirectional]
         required GND: C3 [power_in] // device ground (p3)
-        // Internal supply output; the 0.1uF decoupling cap is mandatory
-        // ("Connect a minimum 0.1uF", p3), external load <= 1mA.
+        // Internal supply output; decoupling cap to GND is mandatory. p3 sets
+        // a 0.1uF minimum ("Connect a minimum 0.1uF"); the typical
+        // application and its BOM use 1uF (C3, Figure 1 p1, Figure 13 and
+        // Table 16 p31). External load <= 1mA (p3).
         required VDD: B3 [power_out]
 
         // Battery temperature sense (datasheet type AIO; functionally a
@@ -26,11 +28,21 @@ pub device SGM41562B {
         // reset control input (pull low > tRST_DGL, p3) — genuinely
         // bidirectional.
         optional NINT: B2 [bidirectional]
-        // I2C control interface. Optional: the charger runs on standalone
-        // defaults without a host (p1 feature set); 10kohm pull-ups required
-        // when used (p3).
-        optional SDA: C1 [bidirectional]
-        optional SCL: C2 [input]
+        // I2C control interface, slave address 03H (p20; REG0A ADDR[2:0] is
+        // read-only, 011 = 03H, p25). Required: the device does not charge
+        // without a host. After power-on reset it is in default mode with
+        // all registers at default, including CEB = 1 (charge disabled):
+        // "by default the battery will not be charged after a reset" (p17;
+        // REG01 D[3] PORV 1, p20). A host must write CEB = 0 to charge.
+        // Watchdog: when a valid input is detected WATCHDOG[1:0] is set to
+        // 01 (40s, p22); with no I2C write before it expires, SYS power is
+        // recycled (Qbypass/Qswitch off for tRST_DUR) and the device returns
+        // to default mode (p13, p17; Figure 9 p27). In host mode the host
+        // must reset the watchdog (WD_RST, REG02) within its period or set
+        // WATCHDOG[1:0] = 00 (p17, p22); every expiry restores CEB = 1.
+        // A 10kohm pull-up to the logic-high rail on each line (p3).
+        required SDA: C1 [bidirectional]
+        required SCL: C2 [input]
     }
 }
 

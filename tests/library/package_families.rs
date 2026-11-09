@@ -239,14 +239,14 @@ const WAVE3: [Land; 4] = [
     Land {
         package: "sot",
         source: "src/footprints.cohdl",
-        footprint: "SOT4P230X651X351N",
-        pad: "P_SOT4P230X651X351N_LEAD",
+        footprint: "SOT4P230X650X350N",
+        pad: "P_SOT4P230X650X350N_LEAD",
         size_um: (1200, 1600),
         rotate: 270,
         pads: &[("1", 3200, 2300), ("2", 3200, 0), ("3", 3200, -2300)],
         extra: &[Extra {
             number: "4",
-            pad: "P_SOT4P230X651X351N_TAB",
+            pad: "P_SOT4P230X650X350N_TAB",
             size_um: (3300, 1600),
             x: -3200,
             y: 0,
@@ -534,7 +534,7 @@ fn mirrored_wave3_sot_lands_are_rejected() {
         [
             "SOT3P150X450X250N",
             "SOT3P130X200X125N",
-            "SOT4P230X651X351N"
+            "SOT4P230X650X350N"
         ]
     );
     for land in sot_lands {
@@ -568,7 +568,7 @@ fn sot_tabs_numbered_against_the_convention_are_rejected() {
     let sot223 = &WAVE3[3];
     assert_eq!(
         (sot89.footprint, sot223.footprint),
-        ("SOT3P150X450X250N", "SOT4P230X651X351N")
+        ("SOT3P150X450X250N", "SOT4P230X650X350N")
     );
     // SOT-89 tab as a separate pad 4: four pad numbers under a 3-pin name.
     let message = renumbered_tab_diagnostics(
@@ -584,12 +584,12 @@ fn sot_tabs_numbered_against_the_convention_are_rejected() {
     // SOT-223 tab folded into pad 2: three pad numbers under a 4-pin name.
     let message = renumbered_tab_diagnostics(
         sot223,
-        "pad 4: P_SOT4P230X651X351N_TAB",
-        "pad 2: P_SOT4P230X651X351N_TAB",
+        "pad 4: P_SOT4P230X650X350N_TAB",
+        "pad 2: P_SOT4P230X650X350N_TAB",
     );
     assert!(
         message.contains("E809")
-            && message.contains("`SOT4P230X651X351N` names 4 pins, but declares 3"),
+            && message.contains("`SOT4P230X650X350N` names 4 pins, but declares 3"),
         "{message}"
     );
 }
@@ -871,7 +871,7 @@ fn wave3_fixture_consumer_binds_and_emits_every_land() {
                 ][..],
             ),
             (
-                "sot::SOT4P230X651X351N",
+                "sot::SOT4P230X650X350N",
                 &[
                     "(pad \"1\" smd rect (at 3.2 2.3 270) (size 1.2 1.6)",
                     "(pad \"2\" smd rect (at 3.2 0 270) (size 1.2 1.6)",

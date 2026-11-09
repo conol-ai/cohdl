@@ -23,7 +23,7 @@ footprints live in focused packages:
 | `bga` | `bga::BGA64C50P8X8_500X500X60N` | audited BGA package land patterns with exact populated-ball maps |
 | `csp` | `csp::KICAD_ST_WLCSP_49_DIE448` | attributed chip-scale package lands with exact populated-ball maps |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
-| `sot` | `sot::SOT3P190X290X130N`, `sot::SOT3P150X450X250N`, `sot::SOT3P130X200X125N`, `sot::SOT4P230X651X351N` | reusable SOT-23/SOT-89/SOT-323/SOT-223 land patterns for new parts, on the assembler's frame (W4); the SOT-89 tab is pad 2, the SOT-223 tab is pad 4; `transistor::FP_JSCJ_SOT23` remains for existing users |
+| `sot` | `sot::SOT3P190X290X130N`, `sot::SOT3P150X450X250N`, `sot::SOT3P130X200X125N`, `sot::SOT4P230X650X350N` | reusable SOT-23/SOT-89/SOT-323/SOT-223 land patterns for new parts, on the assembler's frame (W4); the SOT-89 tab is pad 2, the SOT-223 tab is pad 4; `transistor::FP_JSCJ_SOT23` remains for existing users |
 | `sod` | `sod::SOD3716X135N`, `sod::SOD2613X110N`, `sod::SODFL3818X120N`, `sod::SOD1608X70N` | reusable SOD-123/SOD-323/SOD-123FL/SOD-523 land patterns for new parts, cathode = pad 1 at -x (W4); `diode::FP_D_SOD_123` remains for existing users, and `diode::FP_D_SOD_123W` (Nexperia CFP3) is a different body |
 | `do214` | `do214::DIOM5026X241N`, `do214::DIOM5336X265N`, `do214::DIOM7959X261N`, `do214::DIOM4726X120N` | reusable DO-214 (SMA/SMB/SMC) and SMAF land patterns for new parts, cathode = pad 1 at -x (W4) |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |

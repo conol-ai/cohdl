@@ -1,6 +1,6 @@
 # Diodes Incorporated SOT223 package file evidence record (SOT-223 land source and cross-check)
 
-- Library coverage: land source of `sot::SOT4P230X651X351N` (the AMS primary
+- Library coverage: land source of `sot::SOT4P230X650X350N` (the AMS primary
   gives no land) and independent cross-check of its outline.
 - Document identity: Diodes Incorporated, "SOT223 Package Information",
   Rev. 2017-03-06 (March 2017), 5 pages.
@@ -21,8 +21,10 @@
   centre to tab centre), X = 1.20 and Y = 1.60 (lead lands), X1 = 3.30 and
   Y1 = 1.60 (tab land), Y2 = 8.00 (overall) mm. Centred on the overall
   span: lead lands at (-2.30, 3.20), (0, 3.20), (2.30, 3.20) and the tab
-  land at (0, -3.20) in that orientation; `SOT4P230X651X351N` turns them
+  land at (0, -3.20) in that orientation; `SOT4P230X650X350N` turns them
   onto the SOT frame (datasheet (x, y) at (y, -x)).
+- Name digits: the midpoints of D (6.50) and E (3.50) give the `650X350`
+  body field of `SOT4P230X650X350N`.
 
 The PDF is not redistributed by this repository. Download it from the
 official source and verify the recorded SHA-256 before auditing the land.

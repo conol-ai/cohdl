@@ -179,30 +179,33 @@ pub footprint SOT3P130X200X125N {
 // 2.95-3.15mm tab fits the 3.30mm tab land; AMS's 2.29mm (0.090in) nominal
 // pitch is Diodes' 2.30mm. The tab is pad 4 (see the tab-numbering rule at
 // the top of this file); AMS labels it "TAB IS OUTPUT" without a number.
-pub pad P_SOT4P230X651X351N_LEAD {
+pub pad P_SOT4P230X650X350N_LEAD {
     shape: rect
     size: (1.2mm, 1.6mm)
     layer: top_copper
     plating: smd
 }
 
-pub pad P_SOT4P230X651X351N_TAB {
+pub pad P_SOT4P230X650X350N_TAB {
     shape: rect
     size: (3.3mm, 1.6mm)
     layer: top_copper
     plating: smd
 }
 
-// Name digits from the primary page-7 outline (millimetre values): body
-// length 6.30-6.71mm, nominal 6.505, rounded half up to 6.51; body width
-// 3.30-3.71mm, nominal 3.505, rounded half up to 3.51. Four distinct pad
+// Name digits: the typical body of the land's source outline, Diodes D
+// (body length) 6.45-6.55mm and E (body width) 3.45-3.55mm, midpoints 6.50
+// and 3.50mm, the SOT-223 / TO-261AA nominal (settled in the #101 review).
+// AMS's page-7 millimetre midpoints (6.505 and 3.505mm, from 0.248-0.264 and
+// 0.130-0.146in) would round to 6.51 and 3.51; those digits describe AMS's
+// wide 2009 inch tolerances, not a different body. Four distinct pad
 // numbers (the tab is pad 4); pitch 2.30mm between pads 1-2 and 2-3.
 #[doc("docs/README.md")]
-pub footprint SOT4P230X651X351N {
-    pad 1: P_SOT4P230X651X351N_LEAD at (3.2mm, 2.3mm) rotate 270
-    pad 2: P_SOT4P230X651X351N_LEAD at (3.2mm, 0mm) rotate 270
-    pad 3: P_SOT4P230X651X351N_LEAD at (3.2mm, -2.3mm) rotate 270
-    pad 4: P_SOT4P230X651X351N_TAB at (-3.2mm, 0mm) rotate 270
+pub footprint SOT4P230X650X350N {
+    pad 1: P_SOT4P230X650X350N_LEAD at (3.2mm, 2.3mm) rotate 270
+    pad 2: P_SOT4P230X650X350N_LEAD at (3.2mm, 0mm) rotate 270
+    pad 3: P_SOT4P230X650X350N_LEAD at (3.2mm, -2.3mm) rotate 270
+    pad 4: P_SOT4P230X650X350N_TAB at (-3.2mm, 0mm) rotate 270
     silkscreen {
         pin_1_marker near pad 1 shape dot
     }

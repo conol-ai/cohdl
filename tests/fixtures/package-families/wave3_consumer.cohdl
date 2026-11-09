@@ -44,7 +44,7 @@ part FIXTURE_SOT323: FixtureTransistor {
 }
 
 part FIXTURE_SOT223: FixtureRegulator {
-    primary { mfr: "fixture", mpn: "FIXTURE-SOT223", footprint: sot::SOT4P230X651X351N }
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT223", footprint: sot::SOT4P230X650X350N }
 }
 
 design PackageFamiliesWave3 {

@@ -372,7 +372,7 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     ),
     (
         "sot",
-        "SOT4P230X651X351N",
+        "SOT4P230X650X350N",
         7.29,
         6.71,
         "AMS1117 p7, tab tip to lead tip x body length max, turned onto the assembler frame",

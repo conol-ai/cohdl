@@ -23,6 +23,9 @@ footprints live in focused packages:
 | `bga` | `bga::BGA64C50P8X8_500X500X60N` | audited BGA package land patterns with exact populated-ball maps |
 | `csp` | `csp::KICAD_ST_WLCSP_49_DIE448` | attributed chip-scale package lands with exact populated-ball maps |
 | `soic` | `soic::SOIC8P127X790X216N` | audited SOIC and TSSOP package land patterns |
+| `sot` | `sot::SOT3P190X290X130N` | reusable SOT land patterns for new parts, on the assembler's frame (W4); `transistor::FP_JSCJ_SOT23` remains for existing users |
+| `sod` | `sod::SOD3716X135N`, `sod::SOD2613X110N` | reusable SOD-123/SOD-323 land patterns for new parts, cathode = pad 1 at -x (W4); `diode::FP_D_SOD_123` remains for existing users |
+| `do214` | `do214::DIOM5026X241N` | reusable DO-214 (SMA) land patterns for new parts, cathode = pad 1 at -x (W4) |
 | `connectors` | `connectors::headers::micro_fit_3::MOLEX_43045_0612` | general-purpose board connectors, keyed power/actuator harnesses, and headers |
 | `usb` | `usb::connectors::type_c::USB_C_HRO_TYPE_C_31_M_12` | USB connectors, including Type-C and Micro-B, and controllers |
 | `esd` | `esd::ESD_USBLC6`, `esd::ESD_H5VL10B` | ESD protection devices |
@@ -39,9 +42,9 @@ footprints live in focused packages:
 | `antenna` | `antenna::ANT_2450AT18B100E` | RF antennas with verified terminal lands and layout guidance |
 | `misc` | `misc::TEST_POINT_ROUND_1MM`, `misc::MOUNTING_HOLE_M2_NPTH`, `misc::MOUNTING_HOLE_M2_PTH` | reusable PCB fabrication primitives with explicit electrical semantics |
 | `cellular` | `cellular::CELL_AIR780E`, `cellular::CELL_AIR780EG` | 4G/LTE cellular module devices with verified 109-pin LGA land patterns |
-| `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with verified land patterns |
+| `esim` | `esim::ESIM_MFF2_TRUPHONE` | eUICC (eSIM) devices with datasheet-verified pin maps |
 | `load-switch` | `load_switch::LOADSW_SGM2554`, `load_switch::LOADSW_TPS22918DBVR`, `load_switch::LOADSW_MT9700N` | power-distribution load switches with verified land patterns |
-| `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers |
+| `@ti/dcdc` | `ti_dcdc::controllers::multiphase::CTRL_TPS59650` | TI DC/DC controllers and the TI-specific land patterns they use (`ti_dcdc::TI_RSL_S_PVQFN_N48`) |
 | `@ti/logic` | `ti_logic::LS_SN74LVC8T245PWR` | TI logic and dual-supply level translators |
 | `@ti/power-switch` | `ti_power_switch::EFUSE_TPS259823ONRGET` | TI protected power paths and eFuses |
 | `@st/stm32` | `st_stm32::STM32F103C8Tx`, `st_stm32::MCU_STM32F103C8T6`, `st_stm32::MCU_STM32F072CBT6` | Generated ST-source-backed STM32 device catalog plus source-joined exact parts with attributed dependency-owned fabrication geometry |

@@ -6,7 +6,7 @@
   "qfp": "0.3.0",
   "audio-amp": "0.2.0",
   "soic": "0.3.0",
-  "passive": "0.2.5",
+  "passive": "0.2.6",
   "switches": "0.1.3",
   "@espressif/esp32": "0.3.1",
   "qfn": "0.2.1",

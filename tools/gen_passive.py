@@ -166,6 +166,17 @@ def load_samsung():
     return json.loads(path.read_text())["parts"]
 
 
+def load_samsung_b1():
+    """(size, volts, dielectric, farads) -> the Samsung CL part number JLCPCB stocks
+    as Basic or Preferred, decoded from the B1 snapshot by samsung_b1_alternates.py."""
+    import json
+
+    path = pathlib.Path(__file__).resolve().parent / "passive_data" / "samsung_b1.json"
+    if not path.is_file():
+        return {}
+    return {key: row["mpn"] for key, row in json.loads(path.read_text())["parts"].items()}
+
+
 VERIFIED_ALTERNATES = {
     "C_100n_16V_X7R_0402": [
         ("Samsung", "CL05B104KO5NNNC"),
@@ -482,7 +493,7 @@ def load_mlcc():
     return json.loads(path.read_text())["available"]
 
 
-def emit_capacitors(size, available, alternates, samsung, verified, bindings):
+def emit_capacitors(size, available, alternates, samsung, verified, bindings, stocked=None):
     variant = f"C{size}"
     rows, count = [], 0
     for key in sorted(available):
@@ -503,9 +514,15 @@ def emit_capacitors(size, available, alternates, samsung, verified, bindings):
             token = farad_token(farads)
             part = f"C_{token}_{volt_token(volts)}_{diel}_{size}"
             entries = list(alternates.get(part, []))
-            samsung_mpn = samsung.get(f"{size}|{volts:g}|{diel}|{farads:.6g}")
+            key = f"{size}|{volts:g}|{diel}|{farads:.6g}"
+            samsung_mpn = samsung.get(key)
             if samsung_mpn and not any(m == "Samsung" for m, _ in entries):
                 entries.append(("Samsung", samsung_mpn))
+            # The part number JLCPCB stocks as Basic or Preferred, when it is
+            # another Samsung number for the same combination.
+            stocked_mpn = (stocked or {}).get(key)
+            if stocked_mpn and ("Samsung", stocked_mpn) not in entries:
+                entries.append(("Samsung", stocked_mpn))
             alts = "".join(
                 alternate_entry(mfr, mpn, f"CHIP_{size}", bindings)
                 for mfr, mpn in entries
@@ -543,11 +560,12 @@ def main():
         outputs[OUT / f"resistors_{size}.cohdl"] = emit_resistors(size, verified, bindings)
     available = load_mlcc()
     samsung = load_samsung()
+    stocked = load_samsung_b1()
     cap_sizes = sorted({k.split("|")[0] for k in available})
     outputs[OUT / "devices.cohdl"] = emit_devices(cap_sizes)
     for size in cap_sizes:
         outputs[OUT / f"capacitors_{size}.cohdl"] = emit_capacitors(
-            size, available, VERIFIED_ALTERNATES, samsung, verified, bindings
+            size, available, VERIFIED_ALTERNATES, samsung, verified, bindings, stocked
         )
     stale = [path for path, content in outputs.items() if not path.is_file() or path.read_text() != content]
     if args.check:

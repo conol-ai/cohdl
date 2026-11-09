@@ -95,3 +95,7 @@ copper after `cohdl update`, and the footprint name in its netlist and BOM
 changes. The part has no `supplier lcsc` binding and no assembler frame
 evidence yet. `flash` no longer depends on `qfn`;
 `qfn::QFN8N50P200X300_1EP61X220` itself is unchanged.
+
+## LCSC binding (flash 0.3.0)
+
+`FLASH_W25Q128JVSIQ` binds its primary to LCSC C97521 with a zero map: `supplier lcsc "C97521"`. The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run. Its land belongs to `soic` (`soic::SOIC8P127X790X216N`), so its frame row `c2b1-soic8_208-c97521` names `soic` 0.3.0, the version that moved that land onto the assembler's frame (see "Footprint frame change in 0.2.0" above), and it is unchanged. The row cites C2 frame board 1 (`tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/`). The binding is added in 0.3.0 together with the W25Q32 land correction above; it changes no land.

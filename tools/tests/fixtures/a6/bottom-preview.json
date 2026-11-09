@@ -8,7 +8,7 @@
   "outline": "tests/fixtures/rfc034/bottom-preview/mechanical/outline.dxf",
   "dependencies": {
     "std": "0.3.0",
-    "transistor": "0.2.0",
+    "transistor": "0.2.1",
     "passive": "0.2.6",
     "flash": "0.3.0"
   },

@@ -254,7 +254,10 @@ def encode(value) -> bytes:
 
 
 def build(out: Path, cache_dir: Path | None, dates: Path | None = None, snapshot: Path = SNAPSHOT,
-          map_path: Path = MAP, runs: Path = RUNS, aliases_path: Path = ALIASES, lib: Path = ROOT / "lib") -> dict:
+          map_path: Path = MAP, runs: Path = RUNS, aliases_path: Path = ALIASES, lib: Path = ROOT / "lib",
+          library: list[str] | None = None) -> dict:
+    """LIBRARY, when given, is the part-number list the catalog must cover (an
+    earlier report's, to rebuild that upload); otherwise the library's own."""
     b1, from_cache = snapshot_rows(snapshot, cache_dir, dates and _json(dates)["fetched_at_from_cache"])
     mapped = map_rows(map_path, runs, aliases_path)
     rows = merge(b1 + mapped)
@@ -267,7 +270,7 @@ def build(out: Path, cache_dir: Path | None, dates: Path | None = None, snapshot
         raise SnapshotError(f"{len(rows)} rows, {len(body)} bytes: over the registry's "
                             f"{MAX_ROWS} rows or {BODY_LIMIT} bytes")
     pns = {row["pn"] for row in rows}
-    bound = library_pns(lib)
+    bound = library_pns(lib) if library is None else library
     missing = [pn for pn in bound if pn not in pns]
     if missing:
         raise SnapshotError("library part numbers missing from the catalog: " + ", ".join(missing))
@@ -509,6 +512,7 @@ def main(argv=None) -> int:
     dated.add_argument("--dates", type=Path, help="an earlier report.json, for its cache dates")
     b.add_argument("--map", type=Path, default=MAP)
     b.add_argument("--aliases", type=Path, default=ALIASES)
+    b.add_argument("--library-from", type=Path, help="an earlier report.json, for the library part numbers it covered")
     u = sub.add_parser("upload")
     u.add_argument("out", type=Path)
     u.add_argument("--expect-sha256", required=True)
@@ -521,7 +525,9 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "build":
-            report = build(args.out, args.cache_dir, args.dates, map_path=args.map, aliases_path=args.aliases)
+            library = _json(args.library_from)["library_part_numbers"] if args.library_from else None
+            report = build(args.out, args.cache_dir, args.dates, map_path=args.map, aliases_path=args.aliases,
+                           library=library)
             print(render(report))
             return 0
         if args.command == "upload":

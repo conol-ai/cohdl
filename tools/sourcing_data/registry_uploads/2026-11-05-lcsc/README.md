@@ -6,10 +6,10 @@ Status: **uploaded 2026-11-05 and verified** (see "Upload record" below). Alex s
 
 ```sh
 R=tools/sourcing_data/registry_uploads/2026-11-05-lcsc
-python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json
+python3 -I tools/upload_supplier_snapshot.py build -o OUT --dates $R/report.json --map $R/lcsc_map.json --aliases $R/mfr_aliases.json --library-from $R/report.json
 ```
 
-The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report, apart from two fields: `limits` (the registry's row cap is now 15,000) and `library_part_numbers`, which lists the library's part numbers as they are now (46 since 2026-11-06, against the 6 of the upload). Every one of them is in the body. `tools/tests/test_upload_supplier_snapshot.py` checks both. Before 2026-11-06, the command without `--map` and `--aliases` gave this rebuild.
+The rebuild gives the same `snapshot.json`, SHA-256 `dced42839f77895ec7324e8c2207218b17352b51426ec213083fd40439066982`, and the same report, apart from `limits` (the registry's row cap is now 15,000). `--library-from` makes the build check the six part numbers this upload covered. Without it, the build checks the library as it is now, and since 2026-11-07 that is refused: `usb` 0.1.6 binds C165948, which this catalog does not hold. `tools/tests/test_upload_supplier_snapshot.py` checks both. Before 2026-11-06, the command without `--map` and `--aliases` gave this rebuild.
 
 ## What it holds
 

@@ -58,3 +58,12 @@ These are controller definitions, not passive-sniffer reference designs. Searcha
 | onsemi FUSB307B | FUSB307BMPX, FUSB307BVMPX | [Legacy/discontinued TCPC, address straps, LDO/dead-battery behavior and automatic replies](fusb307b-application.md) |
 
 Each part, device and footprint links its application note and unmodified manufacturer PDF through `#[doc]`. The notes record exact source URLs, versions, hashes and page references. New definitions were checked against both pin tables and rendered land drawings. TUSB422's YFP land has nine 0.23 mm copper circles at 0.4 mm pitch; FUSB307B uses the 510BS land and a grounded exposed pad. These are controller models, not qualified passive-sniffer circuits. FUSB307B is explicitly marked for legacy use because its current manufacturer document is discontinued.
+
+## LCSC binding (usb 0.1.6)
+
+`USB_C_HRO_TYPE_C_31_M_12` binds its primary to LCSC C165948 with a map: `supplier lcsc "C165948" at (0mm, -1.55mm)`. The supplier's model origin sits about 1.5 mm from ours along the mating axis. That is an RFC-034 §3.1 origin difference, not a misplaced land, so the land stays where it is and the binding carries the offset.
+- **Evidence.** The frame row `usbc-origin-c165948` cites the USB-C origin preview (`tools/sourcing_data/jlc_previews/2026-10-30-usbc-origin/`). With this map applied, every peg sat within 0.2 mm of our holes on all four copies.
+- **Map.** The part number is in `tools/sourcing_data/lcsc_map.json` since the B2 full run.
+- **What changes in output.** No land changed from 0.1.5. A plain `build` writes the same BOM and CPL. `--supplier lcsc` writes the offset into the LCSC CPL.
+
+The `usb` frame row now names 0.1.6.

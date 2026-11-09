@@ -37,13 +37,13 @@ hash = "sha256:0d6c8f2cb8f0b26c8d482a303de223483e0e7e2cd886bccf889e7f26419f836e"
 
 [[package]]
 name = "esd"
-version = "0.1.1"
-hash = "sha256:de50721f0ac5aa8d5e0dc5e7c18df047e56542bf93398015f7931bbd296fe130"
+version = "0.1.2"
+hash = "sha256:6195444ed69f363bdc42663e34b9e9c97f0335034ea0dd763573422a4c2595f6"
 
 [[package]]
 name = "flash"
 version = "0.3.0"
-hash = "sha256:db726ea6e88bfca60b264c656a78735c93c8d856273076d4571e21fc7414ea76"
+hash = "sha256:7883811053fe1440f0f338c63ea65f6916c5cfaeb421b6309cab15051f6f4c0c"
 
 [[package]]
 name = "load-switch"
@@ -82,5 +82,5 @@ hash = "sha256:5b5fc2d184722d4a4fd32f531656c32f2de2f0920c94d7a8e5f2d2203527fbca"
 
 [[package]]
 name = "usb"
-version = "0.1.5"
-hash = "sha256:dc0e5b5d2e1a5b4e97ad0ad754fc8b68e5022a72cceb5f2c87d1789cb0ecb482"
+version = "0.1.6"
+hash = "sha256:59694ccc2c20e12c8258971818852ab1b0889b4f774eb7ea3dc173a30e63ca41"

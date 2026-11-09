@@ -1,6 +1,8 @@
-# Proposal: sampled inference for chip resistors and MLCCs (W3)
+# Sampled inference for chip resistors and MLCCs (W3)
 
-Status: **draft, for review by Tony.** It changes nothing yet. `docs/library-supplier-plan.md` §W3 stays as written until this is accepted. No binding is generated from it, and `bindings.py` and `tests/library/supplier.rs` accept no new evidence type. [中文](library-supplier-w3-sampling.zh-CN.md)
+Status: **accepted 2026-11-09 by Tony, for the non-polar chip resistors and MLCCs of `lib/passive` only** ([decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188)). It does not apply to polar or multi-pin parts. Group bindings come from the generator under this rule, through normal PRs. The decision set the scope; the numbers in §5 (sample limits, members with no stock, rechecks) are proposed and **await Tony's confirmation**. [中文](library-supplier-w3-sampling.zh-CN.md)
+
+The rule is `tools/sourcing/w3_rule.py`; `tests/library/supplier.rs` holds the same numbers and rejects a group record that carries any other rule. Sections 1–4 are the proposal as reviewed, with §3 updated to what was built.
 
 ## 1. Why
 
@@ -40,32 +42,28 @@ A group is (footprint-owning package, its version, footprint, part type, manufac
 - Two series are not merged. A future merge needs a written basis, for example the manufacturer's statement that both series share one body and termination drawing, and its own review.
 - A footprint move (new package version) starts new groups.
 
-`tools/w3_groups.py` builds the groups. Its report is `tools/sourcing_data/w3_sampling/2026-11-07/`: 19 groups, from 2 members (Samsung `CL` 0402) to 969 (Yageo `RC` 0402, 0603, 0805).
+`tools/w3_groups.py` builds the groups. The proposal's report is `tools/sourcing_data/w3_sampling/2026-11-07/` (`passive` 0.2.5, before the pilot): 19 groups, from 2 members (Samsung `CL` 0402) to 969 (Yageo `RC` 0402, 0603, 0805). The current one is `2026-11-10/` (`passive` 0.2.6, the rule of §5 and the pilot's readings): 20 groups.
+- A group's land is pinned by the SHA-256 of the files that define it (`lib/passive/src/footprints.cohdl` and `pads.cohdl`). A version that changes no land keeps its readings; any change to those files lapses every reading taken on them.
 
 ### 3.3 A new evidence kind: `sampled`
 
 A frame row borrows a group's samples through its own kind, never through `same_supplier_footprint`. Proposed schema change, for review:
 
-- `jlc_frames.json` rows gain a third evidence field, `sampled`. Exactly one of `evidence`, `evidence_ref` or `sampled` is non-null.
-- `sampled` is `{group, record, note}`. `record` is a committed group record holding:
-  - the group key and every member part number;
-  - the rule version, and the sampling method with its seed or ordering;
-  - the sample part numbers, each with its own frame row id;
-  - the status (`active` or `paused`).
-- CI checks that:
-  - the row's part number is a member;
-  - every sample has its own `evidence` row on the same (package, version, footprint) with mapping (0, 0, 0);
-  - the sample count meets the rule;
-  - the group is `active`;
-  - the row's mapping is (0, 0, 0). An inferred row never carries an exception.
+- `jlc_frames.json` rows gain a third evidence field, `sampled`, optional: a row without it reads as `sampled: null`. Exactly one of `evidence`, `evidence_ref` or `sampled` is non-null.
+- `sampled` is `{group, record, note}`. `record` is a committed group record (`schema_version` 1) holding `rule`, the whole rule it was made under, and `groups`, each with:
+  - `id`, the key (`package`, `package_version`, `footprint`, `type`, `mfr`, `series`) and `status` (`active` or `paused`);
+  - `land`, the land files and their SHA-256;
+  - `members`, every member part number, and `zero_stock`, those with no stock on the confirmed page the record names;
+  - `samples`, each `{pn, row, angle_deg, offset_mm, offset_limit_mm}`: its own frame row id and its reading under the rule.
+- Both checkers enforce it, `tests/library/supplier.rs` in CI and `tools/sourcing/bindings.py`, which generates no binding from a row that fails: the record's rule is the accepted one; the group is `active`, in scope and keyed on the row's own (package, version, footprint); its land files still hash as recorded; the row's part number is a member, not a sample and (under §5) not out of stock; there are enough distinct samples; every sample is a member with its own `evidence` row under the same key with mapping (0, 0, 0) and a reading within the sample limits; and the row's mapping is (0, 0, 0). An inferred row never carries an exception. `tests/fixtures/library-ci/s-sampled/` has a passing record and one counterexample per check.
 - A sampled row is never described as previewed. The package README and the generated docs list sampled bindings apart from previewed ones.
 
 ### 3.4 Sampling
 
-The draft rule is the plan's: at least 3, or 5% of the members, whichever is larger. It is a sampling policy under review, not proof that a group shares one model.
+The rule is the plan's: at least 3, or 5% of the members, whichever is larger. It is a sampling policy, not proof that a group shares one model.
 - Samples are chosen deterministically and spread through the group's members, sorted by MPN, so the values, tolerances, dielectrics and voltages the MPN encodes are all drawn on.
 - Only members with at least 30 pieces in stock are chosen. The assembler builds at least five boards and adds attrition: on 2026-11-07 the pilot's BOM step confirmed no sample whose page read fewer than 20 pieces, and every one with 21 or more. 30 leaves room for stock sold since the page was read.
-- Members with own evidence count toward the sample.
+- Members with own evidence count toward the sample once a preview record judges them under the rule (§5). Three frame rows sit on records that cannot be judged yet (the C1 bottom preview and C2 board 1 kept no `board.json`), so they do not count.
 - A group whose in-stock members cannot make up its sample cannot be inferred, and its members need their own evidence. Today there are three: Samsung `CL` 0402 and Murata `GRM` 0402, with 2 members each, and Vishay `CRCW` 0603, whose 15 members all read no stock.
 
 ### 3.5 When a sample fails
@@ -79,7 +77,7 @@ A body that is not drawn or that fails to measure is a failure, not a skip.
 
 ### 3.6 Members with no stock
 
-A member with no stock can be in a group and can be inferred once the group is `active`. It is never chosen as a sample, and the group record lists it under `zero_stock`. Whether such a binding should ship at all is an open question (§5).
+A member with no stock can be in a group. It is never chosen as a sample, and the group record lists it under `zero_stock`. Under the proposed §5 it is not inferred: it gets a binding once it has stock and is inferred from a later record, or its own preview.
 
 ## 4. Pilot
 
@@ -99,9 +97,28 @@ That makes 99 placements, top side at 0°, built and previewed like C2 board 3. 
 
 Until Tony accepts the proposal, no `sampled` row is written and no binding is generated from a group.
 
-## 5. Open questions for review
+## 5. Decisions and proposed numbers
 
-1. Is the 3-or-5% policy acceptable, or should large groups use a fixed count with a stated confidence?
-2. Should a member with no stock be bound by inference, or only once it has stock and its own preview?
-3. When do groups get rechecked? Proposed: one fresh sample per group with each quarterly snapshot refresh, and at once if a production assembly shows an offset.
-4. Should the chip limits used for samples be tighter than those for parts with their own evidence?
+Tony's two comments on #79: the [review](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6731830774) and the [decision](https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188). The decision accepts the rule for chip R/C and says the statistical concerns of the review do not block it there. It gives no numbers for questions 2–4. The numbers below are proposed for his confirmation; `tools/sourcing/w3_rule.py` holds them.
+
+| Question | Status | Rule `w3-2026-11-10` |
+|---|---|---|
+| 1. Sample size | Decided: the concerns do not block chip R/C | at least 3 or 5% |
+| 2. Members with no stock | Proposed, as the review recommended | not inferred |
+| 3. Rechecks | Proposed | one fresh sample per group at each quarterly snapshot refresh; at once if a production assembly shows an offset |
+| 4. Tighter sample limits | Proposed: the review said yes, the decision gave no number | angle 10° mod 180 as before; offset within half the per-part limit, after the view's median offset is taken off |
+| Not drawn | Decided in the review: a group failure | pauses the group (§3.5) |
+
+**Why the offset is judged against the view's median.** The pilot export draws every body about 0.077 mm low (median of 88 drawn bodies; Yageo `CC` 0.061, Yageo `RC` 0.079, Vishay `CRCW` 0.067), with 0.01–0.03 mm spread about it. A shift shared by two makers and both part types is the export's, not a model's. Judged raw, 15 of the 44 RC samples would fail a limit three quarters of the old one; judged against the median, every pilot sample is within 0.063 mm, half the old limit. The re-measure is `remeasure-2026-11-10.json` in each record, `measure_preview.py` run again on the committed exports: identical to the original readings apart from the added `offset_xy_mm`.
+
+**Why the angle limit stays.** A chip model is wrong by a quarter turn, not by a few degrees, and single readings scatter with a standard deviation of 3.4°. At 7.5° two RC samples would fail on scatter alone (C138033 at 9.9°, C185445 at 8.1°), and the group would pause without a fault.
+
+**What the rule gives today** (`w3_sampling/2026-11-10/`):
+- `CHIP_0402` Yageo `RC` is the only sampled group: 49 of 49 required samples pass (44 from the pilot and 5 from C2 board 3).
+- 7 groups are paused:
+  - Vishay `CRCW` 0402: 9 bodies not drawn.
+  - Yageo `CC` 0402: 1 body not drawn, and C113781 left for manual review.
+  - On C2 board 3, a body not drawn pauses Yageo `RC` 1210 and 2512.
+  - Offsets above half the limit pause Yageo `RC` 0201 (C138161), 2010 (C877226) and 2512 (C878096), and Yageo `CC` 0805 (C527232, C576985).
+- The board 3 offsets show the median is a coarse correction. Bodies of one land shift alike across makers: about 0.07 mm on 0402, 0.12–0.17 mm on 2010 and 2512, and about 0.1 mm along the pads on the 0805 `CC` models. Taking the median per land and view instead would clear those groups, but a series that fills a land on its board would then hide its own shift. Tony should choose; until then, the stricter board median stands.
+- These parts keep their own bindings: a paused group only stops inference.

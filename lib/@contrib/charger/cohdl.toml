@@ -1,6 +1,6 @@
 [package]
 name = "@contrib/charger"
-version = "0.1.1"
+version = "0.2.0"
 license = "MIT"
 description = "Community-contributed battery charger / power-path management devices and purchasable parts."
 repository = "https://github.com/conol-ai/cohdl"

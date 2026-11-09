@@ -1020,7 +1020,7 @@ fn every_shipped_component_library_has_consistent_part_footprints() {
         "@contrib/audio-amp::AMP_MAX98357A|Analog Devices|MAX98357AETE+|contrib_audio_amp::QFN16N50P300X300_1EP123X123|contrib_audio_amp::MAX98357A[-]|f2d1827ec1480638c33dd82b5b65330399de58aa29adf1e75cf7d00014d21b37",
         "@contrib/audio-amp::AMP_NS4150B|NSIWAY|NS4150B|contrib_audio_amp::SOP8P65X490X110N|contrib_audio_amp::NS4150B[-]|68c467ea216f68d6c7f2fe1439b14bed81dae3b5cbec8a04b5b45bafc4dc6f19",
         "@contrib/charger::CHARGER_BQ25185DLHR|Texas Instruments|BQ25185DLHR|contrib_charger::FP_TI_DLH0010A|contrib_charger::BQ25185[-]|cf11afa6d86f56bdf247261f4d68b09632916cae85d2e0c82b51e74553a1ea28",
-        "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|2fc6771cc0150a98f6ca02490534f5cfc8f529cef28651d676ddd39ac8e69d79",
+        "@contrib/charger::CHARGER_SGM41562B|SG Micro|SGM41562BXG/TR|contrib_charger::BGA9C50P3X3_152X152X60N|contrib_charger::SGM41562B[-]|98a207c6f02ce31553021b30c5116651488fd13f871b01880ef1fba57a355b94",
         "@contrib/comparator::COMP_TLV9022DR|Texas Instruments|TLV9022DR|soic::TI_D0008A_4214825C|contrib_comparator::TLV9022_D8[-]|796a472f7c757827ca60a2ec89997f2cc6727bbabd0ec0920fd0b5efdd3417fe",
         "@contrib/comparator::COMP_TLV9032DR|Texas Instruments|TLV9032DR|soic::TI_D0008A_4214825C|contrib_comparator::TLV9032_D8[-]|796a472f7c757827ca60a2ec89997f2cc6727bbabd0ec0920fd0b5efdd3417fe",
         "@contrib/env::ENV_BME280|Bosch Sensortec|BME280|contrib_env::FP_Bosch_BME280_LGA8_2_5x2_5mm|contrib_env::BME280[-]|3383b88fba1dfc37e0ab29f9c06b5ea75ef23e02ffb0c151c33c7e0fd4a532cc",

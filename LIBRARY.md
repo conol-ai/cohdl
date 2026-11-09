@@ -263,6 +263,28 @@ Use the IPC-style identifier when one is available, such as
 whose source name begins with a closed IPC family token, such as
 `ESPRESSIF_QFN56_0P4_7B`, so it is not mistaken for an IPC-7351 declaration.
 
+Number package tabs by one rule: **a tab that is one piece of metal with a
+lead takes that lead's number; an isolated tab takes the next number.** A tab
+joined to a lead is a second placement of that lead's pad number, so a device
+cannot give it a different net. An isolated tab is its own pad number, so
+every device that uses the land must map it (E807 rejects a device that
+omits it). Decide which case applies from the package's bottom view or
+lead-frame drawing, not from a vendor's pin table, and record that evidence
+beside the land. The two shipped cases:
+
+- SOT-89-3 (`sot::SOT3P150X450X250N`): the tab is one piece with the centre
+  lead on the Diodes SOT89 bottom view, so it is a second placement of pad 2.
+- SOT-223 (`sot::SOT4P230X650X350N`): the tab is a separate fourth terminal,
+  so it is pad 4; AMS1117 binds it as `VOUT: 2, 4`.
+
+New tabbed lands (DPAK / TO-252, SOT-89-5 and the like) follow the same rule;
+`contrib_ldo::FP_ETA_SOT89_5` already numbers its merged centre land `2`.
+For RFC-021's checked families the rule is guarded only through the footprint
+name: E809 compares the name's pin count with the distinct pad numbers, so a
+tab numbered against the rule fails only while the name states the right pin
+count (`tests/library/package_families.rs` pins the SOT-89 and SOT-223
+cases). Choose the name's pin count from the rule, not from the copper.
+
 When CoHDL cannot express a manufacturing detail, preserve electrical
 correctness and document the required layout action prominently. Current
 examples are:

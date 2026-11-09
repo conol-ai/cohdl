@@ -43,7 +43,9 @@ is rejected by `tests/library/package_families.rs` for every SOT land here.
 ## Tab numbering
 
 Rule: **a tab that is one piece of metal with a lead takes that lead's
-number; a tab that is a separate terminal takes the next number.**
+number; a tab that is a separate terminal takes the next number.** The rule
+was agreed in the #101 review and is written in `LIBRARY.md` section 4, so
+later tabbed lands (DPAK, SOT-89-5) follow it.
 
 - **SOT-89-3: the tab is a second placement of pad 2.** The Diodes bottom
   view and the Hongjiacheng outline both show the tab and the centre lead as
@@ -63,7 +65,10 @@ number; a tab that is a separate terminal takes the next number.**
 
 `tests/library/package_families.rs` checks that renumbering either tab
 against this rule fails RFC-021's pin-count check (E809), and the wave-3
-fixture consumer binds a regulator with `VOUT: 2, 4`. This is open question 4.
+fixture consumer binds a regulator with `VOUT: 2, 4`. That guard works
+through the footprint *name*: E809 compares the name's pin count (`SOT3`,
+`SOT4`) with the distinct pad numbers, so renaming a footprint (or changing
+its pin count together with the tab) removes it. See open question 4.
 
 ## Lands
 
@@ -243,10 +248,12 @@ For SOT-23-3 these lands are not moved or changed:
    whole family, and let the wave-3 frame board (C9634 JSCJ D882, C20069128,
    C7420322, C6186/C6187 AMS1117) read it; rotate a land before the first
    publish only if every model reads the same non-zero angle.
-4. **Tab numbering.** SOT-89 tab = second placement of pad 2; SOT-223 tab =
-   pad 4 (rule above). This fixes the pin maps the discretes and ICs
+4. **Tab numbering.** *Settled in the #101 review: the rule is adopted and
+   written into `LIBRARY.md` section 4.* SOT-89 tab = second placement of
+   pad 2 (verified on the Diodes bottom view); SOT-223 tab = pad 4 (rule
+   above). This fixes the pin maps the discretes and ICs
    batches write: D882 and HT75xx/78L05 bind their centre pin as `2` only,
-   AMS1117 binds `VOUT: 2, 4`. *Recommendation:* adopt the rule. The
+   AMS1117 binds `VOUT: 2, 4`. The
    alternative for SOT-223 (tab as a second pad 2, KiCad's `TabPin2` style)
    would make the land `SOT3` and silently tie the tab to pin 2 for every
    vendor, including any whose tab is not pin 2; numbering it 4 keeps that

@@ -21,7 +21,8 @@
 // The SOT-89 tab is the centre lead's own frame (pin 2), so its land is a
 // second placement of pad 2; the SOT-223 tab is a fourth terminal on the
 // opposite edge, so it is pad 4 and a device maps it explicitly (for
-// example AMS1117's `VOUT: 2, 4`). See docs/README.md.
+// example AMS1117's `VOUT: 2, 4`). The rule is LIBRARY.md's (section 4);
+// see docs/README.md.
 //
 // Names follow RFC-021's checked template SOT{pins}P{pitch}X{bodyX}X{bodyY}N.
 // The checker reads the pins as the distinct pad numbers and the pitch as

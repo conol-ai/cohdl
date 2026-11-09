@@ -98,3 +98,14 @@ from being physically interchanged.
 ## Manufacturer name in 0.2.1
 
 `CONN_FPC24_0P5` (`FH12-24S-0.5SH(55)`) and `CONN_DEBUG_10P` (`FH12-10S-0.5SH(55)`) now name their manufacturer `Hirose Electric`, not `HRS`. The package's other Hirose parts already use that spelling, and one library name per company lets the reviewed supplier alias for Hirose cover all four (#73, rows 37 and 38). The parts, their pins and their lands are unchanged.
+
+## JST XH through-hole land in 0.3.0 (2026-11-07)
+
+`CONN_BAT_2P` (`S2B-XH-A(LF)(SN)`) is a side-entry, through-hole XH header with 0.64 mm square posts (`jst-xh.pdf` p. 5). Up to 0.2.1 its land `FP_BAT_2P_2P5` was two 1.2 x 1.6 mm SMD pads at +/-1.25 mm with no holes, and a 3.9 x 3.0 mm courtyard. The header could not be mounted on that land. JST makes no 2-circuit SMT XH header (p. 6). This is a breaking change, so the package takes a minor bump.
+
+- **Land.** Two plated holes at 2.5 mm pitch, from JST's side-entry PC board layout (p. 2). JST gives the holes as 0.9 +0.1/-0 mm reference values and asks for a larger hole on glass-cloth board (note 4). The drill is 1.0 mm, the top of that range. JST gives no copper size; the 1.7 mm round land is the library's choice.
+- **Pin 1.** JST's layout is viewed from the mounting surface with the body above the holes and No. 1 circuit on the right. It is rotated 180 degrees without reflection, so pad 1 is at -x and the body extends towards +y.
+- **Body.** For S2B-XH-A, B = 7.4 mm and C = 9.2 mm (p. 5), and the body is 7 + 4.5 = 11.5 mm deep at the board. The silkscreen outlines it. The courtyard is that body plus 0.5 mm: 8.4 x 12.5 mm, centred 3.45 mm towards the body side of the hole row. It does not include the mated XHP housing, which reaches about 2.8 mm past the mating edge (p. 2).
+- **Device text.** `BAT_CONN_2P` is described as the shrouded header it is, not a "battery spring clip", and carries the series ratings from p. 1. Battery positive/negative is the library's assignment; JST assigns no function to the circuits.
+
+The part, footprint and pad names and the pins are unchanged. A board laid out with 0.2.1 has no holes for this part and must be re-laid out.

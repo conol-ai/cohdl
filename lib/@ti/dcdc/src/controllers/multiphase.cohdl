@@ -1,8 +1,9 @@
 // Texas Instruments TPS59650 — Intel IMVP-7 (SVID) D-CAP+ dual-channel
 // multiphase step-down controller (3-phase CPU Vcore + 2-phase GPU Vcore) with
 // two integrated CPU gate drivers; the headline controller of TI reference
-// design TIDA-00021. 48-pin VQFN (6x6mm, 0.4mm pitch) + exposed thermal PowerPAD
-// (pin 49 = EP, tie to GND plane). Pinout from the TPS51650/TPS59650 datasheet.
+// design TIDA-00021. 48-pin VQFN (6x6mm, 0.4mm pitch) + exposed thermal pad
+// (pin 49 = EP, the analog ground; see the EP pin comment). Pinout from the
+// TPS51650/TPS59650 datasheet.
 #[doc("docs/tps59650-datasheet.pdf")]
 pub device TPS59650 {
     pins {
@@ -54,7 +55,12 @@ pub device TPS59650 {
         required CBST1: 46 [input]
         required CDH1: 47 [output]
         required V5: 48 [power_in]
-        required EP: 49 [passive] // exposed thermal PowerPAD -> GND
+        // Exposed thermal pad, TI "PAD (GND)": the analog ground and analog
+        // circuit reference (ds pp. 12, 40, 43). Do NOT connect it directly
+        // to PGND (pin 42, the gate-driver ground). Tie it to an analog ground
+        // island with at least 4 small vias or one large via, and join that
+        // island to a quiet spot of system ground at a single point.
+        required EP: 49 [passive]
     }
 }
 
@@ -62,6 +68,5 @@ impl IC for TPS59650 {}
 
 #[doc("docs/tps59650-datasheet.pdf")]
 pub part CTRL_TPS59650: TPS59650 {
-    primary { mfr: "Texas Instruments", mpn: "TPS59650RSLR",
-              footprint: qfn::QFN48N40P600X600_1EP405X360 }
+    primary { mfr: "Texas Instruments", mpn: "TPS59650RSLR", footprint: TI_RSL_S_PVQFN_N48 }
 }

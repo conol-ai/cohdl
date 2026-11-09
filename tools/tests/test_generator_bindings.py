@@ -18,7 +18,7 @@ TOOLS = Path(__file__).resolve().parents[1]
 ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
-from sourcing.bindings import Bindings, package_metadata  # noqa: E402
+from sourcing.bindings import FRAME_FIELDS, Bindings, package_metadata  # noqa: E402
 import gen_esp32  # noqa: E402
 import gen_passive  # noqa: E402
 import gen_stm32  # noqa: E402
@@ -346,6 +346,45 @@ pub part R_0R_J_0201: ChipResistor_0ohm_5pct_R0201 {
         joined = "".join(outputs.values())
         self.assertGreater(joined.count("supplier lcsc"), 4000)
         self.assertIn("\n          supplier lcsc", joined)
+
+
+class CommittedTablesTests(unittest.TestCase):
+    """The real tables against the committed, published library sources."""
+
+    DATA = TOOLS / "sourcing_data"
+
+    def test_committed_generated_sources_match_the_real_tables(self):
+        # A row added to jlc_frames.json for a published package version binds at
+        # once and rewrites that version's sources (the W3 pilot rows did, in 21c4ca5).
+        for generator in ("gen_passive.py", "gen_esp32.py", "gen_stm32.py"):
+            with self.subTest(generator=generator):
+                result = subprocess.run(
+                    [sys.executable, "-I", "-B", str(TOOLS / generator), "--check"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
+    def test_archived_preview_rows_stay_out_of_the_bound_table(self):
+        frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
+        bound_ids = {row["id"] for row in frames}
+        cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
+        archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
+        # Not vacuous: the W3 pilot record keeps its 88 rows archived.
+        pilot = self.DATA / "jlc_previews" / "2026-11-07-w3-pilot-0402" / "frames.json"
+        self.assertIn(pilot, archives)
+        for archive in archives:
+            with self.subTest(archive=str(archive.relative_to(ROOT))):
+                rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+                if archive == pilot:
+                    self.assertEqual(len(rows), 88)
+                record = str((archive.parent / "README.md").relative_to(ROOT))
+                for row in rows:
+                    self.assertEqual(set(row), FRAME_FIELDS, row["id"])
+                    self.assertEqual(row["evidence"]["record"], record, row["id"])
+                self.assertEqual(bound_ids & {row["id"] for row in rows}, set())
+                self.assertNotIn(record, cited)
 
 
 if __name__ == "__main__":

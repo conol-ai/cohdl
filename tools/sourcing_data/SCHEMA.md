@@ -69,6 +69,12 @@ Each LCSC binding needs a frame row exactly matching `(package,
 package_version, footprint, supplier, pn)` and its mapping. Validation covers
 all rows, including rows not currently selected by a binding.
 
+A preview record may keep rows in the same format in its own
+`jlc_previews/*/frames.json`. Those are archived evidence, not bindings: no
+generator or check reads them, and none of them may also be in
+`jlc_frames.json`. Moving one in for a published package version would
+rewrite that version's sources, so it waits for a new version.
+
 ## 中文
 
 这两个文件由 sourcing 数据维护者和封装验证工具写入；库生成器读取它们以
@@ -105,3 +111,7 @@ all rows, including rows not currently selected by a binding.
 引用。每个 LCSC 绑定必须精确匹配当前包版本的 `(package, package_version,
 footprint, supplier, pn)` 及映射；所有行（包括未使用行）都接受格式与证据
 检查。
+
+预览记录目录可在自己的 `jlc_previews/*/frames.json` 中以相同格式保留行。
+这些是存档证据，不是绑定：没有生成器或检查读取它们，也不得同时出现在
+`jlc_frames.json` 中。为已发布的包版本移入会改写该版本的源文件，所以须等新版本。

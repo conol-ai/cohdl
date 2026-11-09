@@ -1,0 +1,1916 @@
+{
+ "schema_version": 1,
+ "report": {
+  "path": "tools/sourcing_data/w3_sampling/2026-11-07/groups.json",
+  "sha256": "378c43143f425491974bca8ac4f471d84bd78b3c9f5533cdcb6be1067100cb89"
+ },
+ "pages": {
+  "path": "tools/sourcing_data/lcsc_backfill/2026-11-06-full/confirmed.json",
+  "sha256": "861ff2ba056b9e02509fe7848da49c2024484aa11a9eb0741b45db8c538edb3b"
+ },
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.5"
+ },
+ "packages": {
+  "std": {
+   "version": "0.3.0",
+   "tree": "c912e0eca24542b85fc850e34010de6b2f1cf2fd"
+  },
+  "passive": {
+   "version": "0.2.5",
+   "tree": "af099d47491e497d079f02d2c32299274795c8e2"
+  }
+ },
+ "courtyards": {
+  "passive::CHIP_0402": [
+   "0",
+   "0",
+   "1.86",
+   "0.94"
+  ]
+ },
+ "samples": [
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C60491",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07100KL",
+   "part": "R_100K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<100kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C189473",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0711K3L",
+   "part": "R_11K3_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<11.3kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477607",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0712R4L",
+   "part": "R_12R4_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<12.4ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C163489",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07147KL",
+   "part": "R_147K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<147kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C138051",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07169RL",
+   "part": "R_169R_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<169ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C327365",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07182KL",
+   "part": "R_182K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<182kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477204",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071K37L",
+   "part": "R_1K37_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.37kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477189",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071M13L",
+   "part": "R_1M13_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.13Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C138033",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071ML",
+   "part": "R_1M_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477218",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071R58L",
+   "part": "R_1R58_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.58ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C185445",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0720K5L",
+   "part": "R_20K5_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<20.5kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C163478",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0722K1L",
+   "part": "R_22K1_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<22.1kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C185437",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07261KL",
+   "part": "R_261K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<261kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C327357",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07294KL",
+   "part": "R_294K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<294kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C138018",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-072K67L",
+   "part": "R_2K67_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<2.67kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C138014",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-072ML",
+   "part": "R_2M_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<2Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C171693",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07301KL",
+   "part": "R_301K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<301kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C138005",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07332KL",
+   "part": "R_332K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<332kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477716",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0736R5L",
+   "part": "R_36R5_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<36.5ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137992",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-073K3L",
+   "part": "R_3K3_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<3.3kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C327243",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-073M9L",
+   "part": "R_3M9_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<3.9Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137983",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0740K2L",
+   "part": "R_40K2_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<40.2kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C273339",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07442KL",
+   "part": "R_442K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<442kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C327341",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07487RL",
+   "part": "R_487R_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<487ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C276272",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-074K87L",
+   "part": "R_4K87_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<4.87kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137962",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-074R7L",
+   "part": "R_4R7_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<4.7ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137958",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07560KL",
+   "part": "R_560K_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<560kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C273691",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-075K9L",
+   "part": "R_5K9_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<5.9kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137951",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07620RL",
+   "part": "R_620R_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<620ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C185402",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0769K8L",
+   "part": "R_69K8_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<69.8kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C477772",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-076R49L",
+   "part": "R_6R49_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<6.49ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C327327",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0776R8L",
+   "part": "R_76R8_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<76.8ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137933",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07820RL",
+   "part": "R_820R_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<820ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C155696",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-078K87L",
+   "part": "R_8K87_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<8.87kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C163449",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-079K76L",
+   "part": "R_9K76_F_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<9.76kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137920",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-07130KL",
+   "part": "R_130K_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<130kohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C105637",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-071KL",
+   "part": "R_1K_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1kohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137901",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0720RL",
+   "part": "R_20R_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<20ohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137887",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-072KL",
+   "part": "R_2K_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<2kohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137880",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0733RL",
+   "part": "R_33R_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<33ohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137868",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-07430RL",
+   "part": "R_430R_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<430ohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C163438",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0756KL",
+   "part": "R_56K_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<56kohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137847",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-076K8L",
+   "part": "R_6K8_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<6.8kohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Yageo",
+    "RC"
+   ],
+   "pn": "C137820",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-079R1L",
+   "part": "R_9R1_J_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<9.1ohm, 5%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C481918",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402100KFKED",
+   "part": "R_100K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<100kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C481923",
+   "mfr": "Vishay",
+   "mpn": "CRCW040210K2FKED",
+   "part": "R_10K2_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<10.2kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C843890",
+   "mfr": "Vishay",
+   "mpn": "CRCW040211K5FKED",
+   "part": "R_11K5_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<11.5kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C481939",
+   "mfr": "Vishay",
+   "mpn": "CRCW040212K1FKED",
+   "part": "R_12K1_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<12.1kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C3008838",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402140KFKED",
+   "part": "R_140K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<140kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C481953",
+   "mfr": "Vishay",
+   "mpn": "CRCW040215K4FKED",
+   "part": "R_15K4_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<15.4kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C481958",
+   "mfr": "Vishay",
+   "mpn": "CRCW040216K0FKED",
+   "part": "R_16K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<16kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482064",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402182KFKED",
+   "part": "R_182K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<182kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4231651",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402196RFKED",
+   "part": "R_196R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<196ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482072",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021K20FKED",
+   "part": "R_1K2_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.2kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076615",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021K65FKED",
+   "part": "R_1K65_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.65kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4156475",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021M05FKED",
+   "part": "R_1M05_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.05Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2085730",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021M62FKED",
+   "part": "R_1M62_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<1.62Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482097",
+   "mfr": "Vishay",
+   "mpn": "CRCW040220R0FKED",
+   "part": "R_20R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<20ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2080002",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402226RFKED",
+   "part": "R_226R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<226ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2085463",
+   "mfr": "Vishay",
+   "mpn": "CRCW040223K7FKED",
+   "part": "R_23K7_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<23.7kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4308344",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402255KFKED",
+   "part": "R_255K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<255kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076814",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402274KFKED",
+   "part": "R_274K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<274kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2091853",
+   "mfr": "Vishay",
+   "mpn": "CRCW040228K7FKED",
+   "part": "R_28K7_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<28.7kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C844505",
+   "mfr": "Vishay",
+   "mpn": "CRCW04022K21FKED",
+   "part": "R_2K21_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<2.21kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C3009191",
+   "mfr": "Vishay",
+   "mpn": "CRCW04022M10FKED",
+   "part": "R_2M1_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<2.1Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482142",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402300RFKED",
+   "part": "R_300R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<300ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2085710",
+   "mfr": "Vishay",
+   "mpn": "CRCW040230R9FKED",
+   "part": "R_30R9_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<30.9ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2094717",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402332RFKED",
+   "part": "R_332R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<332ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2085358",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402357KFKED",
+   "part": "R_357K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<357kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C844108",
+   "mfr": "Vishay",
+   "mpn": "CRCW040237K4FKED",
+   "part": "R_37K4_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<37.4kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C843902",
+   "mfr": "Vishay",
+   "mpn": "CRCW040239K2FKED",
+   "part": "R_39K2_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<39.2kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2085341",
+   "mfr": "Vishay",
+   "mpn": "CRCW04023K40FKED",
+   "part": "R_3K4_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<3.4kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076988",
+   "mfr": "Vishay",
+   "mpn": "CRCW04023M32FKED",
+   "part": "R_3M32_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<3.32Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076975",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402422RFKED",
+   "part": "R_422R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<422ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482180",
+   "mfr": "Vishay",
+   "mpn": "CRCW040245R3FKED",
+   "part": "R_45R3_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<45.3ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482185",
+   "mfr": "Vishay",
+   "mpn": "CRCW040247R0FKED",
+   "part": "R_47R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<47ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482191",
+   "mfr": "Vishay",
+   "mpn": "CRCW04024K30FKED",
+   "part": "R_4K3_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<4.3kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482196",
+   "mfr": "Vishay",
+   "mpn": "CRCW04024M70FKED",
+   "part": "R_4M7_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<4.7Mohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482203",
+   "mfr": "Vishay",
+   "mpn": "CRCW040251R0FKED",
+   "part": "R_51R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<51ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076633",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402562RFKED",
+   "part": "R_562R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<562ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2091561",
+   "mfr": "Vishay",
+   "mpn": "CRCW04025K11FKED",
+   "part": "R_5K11_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<5.11kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2092127",
+   "mfr": "Vishay",
+   "mpn": "CRCW04025R11FKED",
+   "part": "R_5R11_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<5.11ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C482217",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402620KFKED",
+   "part": "R_620K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<620kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C3009270",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402665RFKED",
+   "part": "R_665R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<665ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4351510",
+   "mfr": "Vishay",
+   "mpn": "CRCW040269K8FKED",
+   "part": "R_69K8_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<69.8kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4100928",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402715KFKED",
+   "part": "R_715K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<715kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2076789",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402768RFKED",
+   "part": "R_768R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<768ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C843839",
+   "mfr": "Vishay",
+   "mpn": "CRCW040280R6FKED",
+   "part": "R_80R6_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<80.6ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4267913",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402887KFKED",
+   "part": "R_887K_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<887kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C4071412",
+   "mfr": "Vishay",
+   "mpn": "CRCW040291R0FKED",
+   "part": "R_91R_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<91ohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "ChipResistor",
+    "Vishay",
+    "CRCW"
+   ],
+   "pn": "C2091938",
+   "mfr": "Vishay",
+   "mpn": "CRCW04029K53FKED",
+   "part": "R_9K53_F_0402",
+   "kind": "alt",
+   "footprint": "CHIP_0402",
+   "type": "ChipResistor<9.53kohm, 1%>[R0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C277518",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO0BN100",
+   "part": "C_10p_100V_C0G_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<10pF, 100V, 5%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C541369",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO8BN471",
+   "part": "C_470p_25V_C0G_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<470pF, 25V, 5%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C113781",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO9BN681",
+   "part": "C_680p_50V_C0G_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<680pF, 50V, 5%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C325464",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX5R7BB105",
+   "part": "C_1u_16V_X5R_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<1uF, 16V, 10%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C576731",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R0BB222",
+   "part": "C_2n2_100V_X7R_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<2.2nF, 100V, 10%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C327000",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R7BB221",
+   "part": "C_220p_16V_X7R_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<220pF, 16V, 10%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C541387",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R8BB471",
+   "part": "C_470p_25V_X7R_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<470pF, 25V, 10%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "group": [
+    "CHIP_0402",
+    "MLCC",
+    "Yageo",
+    "CC"
+   ],
+   "pn": "C354977",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R9BB683",
+   "part": "C_68n_50V_X7R_0402",
+   "kind": "primary",
+   "footprint": "CHIP_0402",
+   "type": "MLCC<68nF, 50V, 10%>[C0402]",
+   "pins": [
+    "A",
+    "B"
+   ]
+  }
+ ]
+}

@@ -10,7 +10,9 @@ order, and stopping at the first failure:
 2. a board whose manifest is generated (``REGENERATE``) regenerates it, and the
    committed manifest must be the generator's output byte for byte;
 3. ``jlc_frame_board.py`` builds the board, refuses a library row whose
-   supplier BOM line lacks its part number, and plots Gerbers and drill files;
+   supplier BOM line lacks its part number, and plots Gerbers and drill files.
+   A board directory with a ``cohdl.lock`` is a record: its packages are those
+   of its ``inputs.json``, written from git, and the build must match the lock;
 4. ``check_cpl.py`` reads the board three ways against the compiler's CPLs;
 5. the BOM, both CPLs and the netlist are cross-checked: every placement once
    in each CPL, in the BOM and in the netlist; the BOM's part numbers are the
@@ -41,9 +43,10 @@ import jlc_frame_board
 
 # Boards whose manifest a generator writes from the repository's data.  C2
 # frame boards 1 and 2 are records of their previews, pinned to the packages of
-# their day, so they are not regenerated.
+# their day, so they are not regenerated.  The W3 pilot is regenerated from its
+# frozen inputs (w3-pilot-0402/inputs.json), so a later passive version leaves it as previewed.
 REGENERATE = {"lcsc-batch-1": "lcsc_batch_1.py", "lcsc-batch-2-passive": "lcsc_batch_2_passive.py",
-              "c2-board-3": "c2_board_3.py"}
+              "c2-board-3": "c2_board_3.py", "w3-pilot-0402": "w3_pilot_0402.py"}
 
 # The layers the assembler fabricates from; courtyard, fab and user layers stay out.
 GERBER_LAYERS = ("F_Cu", "B_Cu", "F_Mask", "B_Mask", "F_Paste", "B_Paste",
@@ -211,8 +214,12 @@ def build(board, out_zip, cohdl, kicad_cli, kicad_python, allow_dirty, workdir):
     name = manifest["name"]
 
     project = workdir / "board"
+    pinned = []
+    if (directory / "cohdl.lock").is_file():
+        pinned = ["--packages", str(directory / "inputs.json"), "--lock", str(directory / "cohdl.lock")]
+        checks["packages_pinned"] = "inputs.json, cohdl.lock"
     ok, log = call(jlc_frame_board.main, [str(manifest_path), "-o", str(project),
-                                          "--cohdl", cohdl, "--kicad-cli", kicad_cli])
+                                          "--cohdl", cohdl, "--kicad-cli", kicad_cli, *pinned])
     if not ok:
         raise PackageError("jlc_frame_board.py failed\n" + log)
     checks["library_bindings_in_supplier_bom"] = True

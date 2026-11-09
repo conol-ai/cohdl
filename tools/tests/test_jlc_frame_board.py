@@ -1,8 +1,11 @@
 import csv
+import hashlib
 import io
 import json
 import math
 import os
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -167,6 +170,143 @@ class FrameBoardTests(unittest.TestCase):
                 sides = [(p["rotate"], p["side"]) for p in row["placements"]]
                 self.assertIn(sides, ([(0, "top"), (37, "top"), (0, "bottom"), (37, "bottom")], [(0, "top")]))
                 self.assertNotIn("mapping", row)
+
+    W3_PILOT = ROOT / "tools/frame_boards/w3_pilot_0402.py"
+    W3_GROUPS = (("Yageo", "RC"), ("Vishay", "CRCW"), ("Yageo", "CC"))
+
+    def w3_samples(self, report):
+        return [pn for mfr, series in self.W3_GROUPS for g in report["groups"]
+                if g["footprint"] == "CHIP_0402" and (g["mfr"], g["series"]) == (mfr, series) for pn in g["sample"]]
+
+    def assert_w3_pilot_rows(self, rows, samples):
+        self.assertEqual([r["pn"] for r in rows], samples)
+        for row in rows:
+            with self.subTest(pn=row["pn"]):
+                self.assertEqual(row["footprint"], "passive::CHIP_0402")
+                self.assertEqual(row["placements"], [{"at_mm": row["placements"][0]["at_mm"], "rotate": 0, "side": "top"}])
+                self.assertNotIn("mapping", row)
+        jb.expand(rows, 3)  # no two parts overlap
+
+    def test_w3_pilot_record_rebuilds_from_its_frozen_inputs(self):
+        # Historical record: the 2026-11-07 preview was uploaded from this manifest,
+        # so it rebuilds from the frozen inputs and the report and pages they hash,
+        # whatever the current lib/passive is.
+        board = ROOT / "tools/frame_boards/w3-pilot-0402"
+        inputs = json.loads((board / "inputs.json").read_text())
+        report_path = ROOT / inputs["report"]["path"]
+        self.assertEqual(report_path, ROOT / "tools/sourcing_data/w3_sampling/2026-11-07/groups.json")
+        report = json.loads(report_path.read_text())
+        for name in ("report", "pages"):
+            self.assertEqual(hashlib.sha256((ROOT / inputs[name]["path"]).read_bytes()).hexdigest(),
+                             inputs[name]["sha256"])
+        pages = Path(inputs["pages"]["path"]).relative_to("tools/sourcing_data")
+        self.assertEqual(report["sources"][str(pages)], inputs["pages"]["sha256"])
+        self.assertEqual(inputs["dependencies"], {"std": "0.3.0", "passive": report["sources"]["lib/passive"]})
+        self.assertEqual(report["sources"]["lib/passive"], "0.2.5")
+        self.assertEqual({k: v["version"] for k, v in inputs["packages"].items()}, inputs["dependencies"])
+        with tempfile.TemporaryDirectory() as td:
+            subprocess.run([sys.executable, "-I", str(self.W3_PILOT), str(Path(td) / "m.json")],
+                           check=True, capture_output=True)
+            self.assertEqual((Path(td) / "m.json").read_bytes(), (board / "manifest.json").read_bytes())
+        manifest = json.loads((board / "manifest.json").read_text())
+        self.assertEqual(manifest["dependencies"], inputs["dependencies"])
+        self.assertEqual(len(manifest["rows"]), 99)
+        self.assert_w3_pilot_rows(manifest["rows"], self.w3_samples(report))
+
+    def test_w3_pilot_frozen_inputs_tampered_are_refused(self):
+        inputs = json.loads((ROOT / "tools/frame_boards/w3-pilot-0402/inputs.json").read_text())
+        with tempfile.TemporaryDirectory() as td:
+            for change in ({"report": dict(inputs["report"], sha256="0" * 64)},
+                           {"samples": inputs["samples"][1:]},
+                           {"dependencies": {"std": "0.3.0", "passive": "0.2.6"}},
+                           {"packages": dict(inputs["packages"], passive=dict(inputs["packages"]["passive"], version="0.2.6"))}):
+                with self.subTest(change=sorted(change)):
+                    (Path(td) / "i.json").write_text(json.dumps(dict(inputs, **change)))
+                    run = subprocess.run([sys.executable, "-I", str(self.W3_PILOT), str(Path(td) / "m.json"),
+                                          "--inputs", str(Path(td) / "i.json")], capture_output=True, text=True)
+                    self.assertNotEqual(run.returncode, 0)
+
+    def test_w3_pilot_generator_follows_a_fresh_report_on_the_current_library(self):
+        # Current generator: a report built now from the current tree, frozen
+        # against the current library, gives a board of exactly its samples.
+        version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / "lib/passive/cohdl.toml").read_text(), re.M).group(1)
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            subprocess.run([sys.executable, "-I", str(ROOT / "tools/w3_groups.py"), "-o", str(td / "report")],
+                           check=True, capture_output=True)
+            subprocess.run([sys.executable, "-I", str(self.W3_PILOT), "--freeze", str(td / "inputs.json"),
+                            "--report", str(td / "report/groups.json")], check=True, capture_output=True)
+            subprocess.run([sys.executable, "-I", str(self.W3_PILOT), str(td / "m.json"),
+                            "--inputs", str(td / "inputs.json")], check=True, capture_output=True)
+            report = json.loads((td / "report/groups.json").read_text())
+            manifest = json.loads((td / "m.json").read_text())
+            self.assertEqual(manifest["dependencies"], {"std": "0.3.0", "passive": version})
+            self.assertEqual(report["sources"]["lib/passive"], version)
+            self.assert_w3_pilot_rows(manifest["rows"], self.w3_samples(report))
+            # The dated report freezes to the committed inputs only on the library it names.
+            run = subprocess.run([sys.executable, "-I", str(self.W3_PILOT), "--freeze", str(td / "dated.json")],
+                                 capture_output=True, text=True)
+            if version == "0.2.5":
+                self.assertEqual(run.returncode, 0, run.stderr)
+                self.assertEqual((td / "dated.json").read_bytes(),
+                                 (ROOT / "tools/frame_boards/w3-pilot-0402/inputs.json").read_bytes())
+            else:
+                self.assertNotEqual(run.returncode, 0)
+                self.assertIn(f"the report is for passive 0.2.5, the library is {version}", run.stderr)
+
+    @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
+    def test_w3_pilot_record_builds_from_its_pinned_packages_alone(self):
+        # The record must build where neither lib/ nor a package cache offers
+        # passive 0.2.5: the compiler is copied out of the repository, so it
+        # finds no library root, and COHDL_HOME is empty.  Unpinned, the same
+        # build cannot resolve it; pinned, it builds all 99 against the lock
+        # of the previewed package, and a package that differs from the lock
+        # is refused.
+        board = ROOT / "tools/frame_boards/w3-pilot-0402"
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            (td / "bin").mkdir()
+            (td / "home").mkdir()
+            cohdl = td / "bin/cohdl"
+            shutil.copy2(COHDL, cohdl)
+            env = dict(os.environ, COHDL_HOME=str(td / "home"), COHDL_REGISTRY="http://127.0.0.1:9")
+            build = lambda out, *extra: subprocess.run(
+                [sys.executable, "-I", str(ROOT / "tools/jlc_frame_board.py"), str(board / "manifest.json"),
+                 "-o", str(td / out), "--cohdl", str(cohdl), "--skip-kicad", *extra],
+                cwd=td, env=env, capture_output=True, text=True)
+            bare = build("bare")
+            self.assertNotEqual(bare.returncode, 0)
+            self.assertIn('E1102', bare.stderr)
+            self.assertIn('passive = "0.2.5"', bare.stderr)
+
+            pinned = build("pinned", "--packages", str(board / "inputs.json"), "--lock", str(board / "cohdl.lock"))
+            self.assertEqual(pinned.returncode, 0, pinned.stderr)
+            self.assertIn("generated 99 placements", pinned.stdout)
+            self.assertEqual((td / "pinned/cohdl.lock").read_bytes(), (board / "cohdl.lock").read_bytes())
+            with open(td / "pinned/out/w3_pilot_0402-lcsc-cpl.csv", newline="") as f:
+                self.assertEqual(len(list(csv.DictReader(f))), 99)
+
+            lock = (board / "cohdl.lock").read_text()
+            (td / "other.lock").write_text(re.sub(r'(name = "passive"\nversion = "0.2.5"\nhash = "sha256:)\w+',
+                                                  r"\g<1>" + "0" * 64, lock))
+            other = build("other", "--packages", str(board / "inputs.json"), "--lock", str(td / "other.lock"))
+            self.assertNotEqual(other.returncode, 0)
+            self.assertIn("E1103", other.stderr)
+
+    def test_pinned_packages_must_be_the_manifests_versions_and_trees(self):
+        board = ROOT / "tools/frame_boards/w3-pilot-0402"
+        manifest = jb.load_manifest(board / "manifest.json")
+        inputs = json.loads((board / "inputs.json").read_text())
+        packages = inputs["packages"]
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            for name, change in (("version", dict(packages, passive=dict(packages["passive"], version="0.2.6"))),
+                                 ("tree", dict(packages, passive=dict(packages["passive"], tree=packages["std"]["tree"]))),
+                                 ("missing", {"std": packages["std"]})):
+                with self.subTest(name):
+                    (td / "p.json").write_text(json.dumps({"packages": change}))
+                    with self.assertRaises(jb.BoardError):
+                        jb.vendor_packages(manifest, td / "p.json", board / "cohdl.lock", td / name)
 
     @unittest.skipUnless(COHDL.exists() or REQUIRE_BINARY, "target/debug/cohdl is not built")
     def test_c2_board_3_board_carries_no_supplier_mapping(self):

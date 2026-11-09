@@ -144,6 +144,18 @@ class JlcPreviewTests(unittest.TestCase):
                 problems = jp.check_bom_step(text, table, PLACEMENTS)
                 self.assertTrue(any(message in p for p in problems), problems)
 
+    def test_a_top_only_board_has_no_bottom_designator_column(self):
+        # The 2026-11-07 W3 pilot: a top-only board's BOM step shows no Bottom Designator.
+        top = {ref: placed for ref, placed in PLACEMENTS.items() if placed[1] == "Top"}
+        heads = [h for h in HEADS if h != "Bottom Designator"]
+        table = {"heads": heads, "rows": [[c for i, c in enumerate(row("U1", "", "C117815")) if i != 1],
+                                          [c for i, c in enumerate(row("U2", "", "C730103")) if i != 1]]}
+        self.assertEqual(jp.check_bom_step(BOM_TEXT, table, top), [])
+        unmatched = {"heads": heads, "rows": [table["rows"][0], table["rows"][1][:3] + [""] + table["rows"][1][4:]]}
+        self.assertIn("BOM row 2 matches no part number", jp.check_bom_step(BOM_TEXT, unmatched, top))
+        # A board with bottom parts still needs the column.
+        self.assertTrue(any("columns are" in p for p in jp.check_bom_step(BOM_TEXT, table, PLACEMENTS)))
+
     def test_the_run_works_in_its_own_tab_and_stops_when_it_is_gone(self):
         with mock.patch.object(jp, "TAB", None), self.assertRaisesRegex(AssertionError, "open_tab"):
             jp.js("1")
@@ -280,6 +292,21 @@ class JlcPreviewTests(unittest.TestCase):
                             self.assertLess(abs(reading["delta_mod_180"]), 2)
                         elif b[2] == 90:
                             self.assertGreater(abs(reading["delta_mod_180"]), 80)
+
+    def test_a_top_only_board_is_measured_without_a_bottom_view(self):
+        # The 2026-11-07 W3 pilot: a top-only board exports no bottom view.
+        r1 = chip("R1", 6, 6)
+        doc = {"bbox": [-0.05, -0.05, 20.05, 20.05], "fps": [r1]}
+        with tempfile.TemporaryDirectory() as td:
+            export(Path(td) / "top.bmp", [(r1, (1.6, 0.8, 0, 0, 0))])
+            (Path(td) / "board.json").write_text(json.dumps(doc))
+            mp.measure(str(Path(td) / "board.json"), str(Path(td) / "top.bmp"), "-", str(Path(td) / "out.json"))
+            rows = json.loads((Path(td) / "out.json").read_text())
+            self.assertEqual([(r["ref"], r["body_ok"]) for r in rows], [("R1", True)])
+            doc["fps"].append(chip("R2", 12, 6, bottom=True))
+            (Path(td) / "board.json").write_text(json.dumps(doc))
+            with self.assertRaisesRegex(SystemExit, "needs the bottom view"):
+                mp.measure(str(Path(td) / "board.json"), str(Path(td) / "top.bmp"), "-", str(Path(td) / "out.json"))
 
     def test_each_instance_stands_on_its_own_evidence(self):
         ok = {"delta_mod_180": 0.5, "offset_mm": 0.02, "offset_limit_mm": 0.2, "elongation": 1.8, "fill": 1.0}

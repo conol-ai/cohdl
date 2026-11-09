@@ -1,0 +1,2781 @@
+{
+ "name": "w3_pilot_0402",
+ "dependencies": {
+  "std": "0.3.0",
+  "passive": "0.2.5"
+ },
+ "rows": [
+  {
+   "name": "R_100K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<100kohm, 1%>[R0402]",
+   "pn": "C60491",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07100KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_100K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_11K3_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<11.3kohm, 1%>[R0402]",
+   "pn": "C189473",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0711K3L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      6.126,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_11K3_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_12R4_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<12.4ohm, 1%>[R0402]",
+   "pn": "C477607",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0712R4L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_12R4_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_147K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<147kohm, 1%>[R0402]",
+   "pn": "C163489",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07147KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      14.294,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_147K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_169R_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<169ohm, 1%>[R0402]",
+   "pn": "C138051",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07169RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      18.378,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_169R_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_182K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<182kohm, 1%>[R0402]",
+   "pn": "C327365",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07182KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      22.462,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_182K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1K37_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.37kohm, 1%>[R0402]",
+   "pn": "C477204",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071K37L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      26.546,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_1K37_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1M13_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.13Mohm, 1%>[R0402]",
+   "pn": "C477189",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071M13L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.63,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_1M13_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1M_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1Mohm, 1%>[R0402]",
+   "pn": "C138033",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071ML",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      34.714,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_1M_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1R58_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.58ohm, 1%>[R0402]",
+   "pn": "C477218",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-071R58L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      38.798,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_1R58_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_20K5_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<20.5kohm, 1%>[R0402]",
+   "pn": "C185445",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0720K5L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      42.882,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_20K5_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_22K1_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<22.1kohm, 1%>[R0402]",
+   "pn": "C163478",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0722K1L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      46.966,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_22K1_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_261K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<261kohm, 1%>[R0402]",
+   "pn": "C185437",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07261KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      51.05,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_261K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_294K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<294kohm, 1%>[R0402]",
+   "pn": "C327357",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07294KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      55.134,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_294K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_2K67_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<2.67kohm, 1%>[R0402]",
+   "pn": "C138018",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-072K67L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      59.219,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_2K67_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_2M_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<2Mohm, 1%>[R0402]",
+   "pn": "C138014",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-072ML",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      63.303,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_2M_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_301K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<301kohm, 1%>[R0402]",
+   "pn": "C171693",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07301KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      67.387,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_301K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_332K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<332kohm, 1%>[R0402]",
+   "pn": "C138005",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07332KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      71.471,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_332K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_36R5_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<36.5ohm, 1%>[R0402]",
+   "pn": "C477716",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0736R5L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      75.555,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_36R5_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_3K3_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<3.3kohm, 1%>[R0402]",
+   "pn": "C137992",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-073K3L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      79.639,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_3K3_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_3M9_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<3.9Mohm, 1%>[R0402]",
+   "pn": "C327243",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-073M9L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      83.723,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_3M9_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_40K2_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<40.2kohm, 1%>[R0402]",
+   "pn": "C137983",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0740K2L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.807,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_40K2_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_442K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<442kohm, 1%>[R0402]",
+   "pn": "C273339",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07442KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      91.891,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_442K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_487R_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<487ohm, 1%>[R0402]",
+   "pn": "C327341",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07487RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      95.975,
+      2.042
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_487R_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_4K87_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<4.87kohm, 1%>[R0402]",
+   "pn": "C276272",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-074K87L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_4K87_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_4R7_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<4.7ohm, 1%>[R0402]",
+   "pn": "C137962",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-074R7L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      6.126,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_4R7_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_560K_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<560kohm, 1%>[R0402]",
+   "pn": "C137958",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07560KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_560K_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_5K9_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<5.9kohm, 1%>[R0402]",
+   "pn": "C273691",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-075K9L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      14.294,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_5K9_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_620R_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<620ohm, 1%>[R0402]",
+   "pn": "C137951",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07620RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      18.378,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_620R_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_69K8_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<69.8kohm, 1%>[R0402]",
+   "pn": "C185402",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0769K8L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      22.462,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_69K8_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_6R49_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<6.49ohm, 1%>[R0402]",
+   "pn": "C477772",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-076R49L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      26.546,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_6R49_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_76R8_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<76.8ohm, 1%>[R0402]",
+   "pn": "C327327",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-0776R8L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.63,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_76R8_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_820R_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<820ohm, 1%>[R0402]",
+   "pn": "C137933",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-07820RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      34.714,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_820R_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_8K87_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<8.87kohm, 1%>[R0402]",
+   "pn": "C155696",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-078K87L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      38.798,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_8K87_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_9K76_F_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<9.76kohm, 1%>[R0402]",
+   "pn": "C163449",
+   "mfr": "Yageo",
+   "mpn": "RC0402FR-079K76L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      42.882,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_9K76_F_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_130K_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<130kohm, 5%>[R0402]",
+   "pn": "C137920",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-07130KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      46.966,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_130K_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1K_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1kohm, 5%>[R0402]",
+   "pn": "C105637",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-071KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      51.05,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_1K_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_20R_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<20ohm, 5%>[R0402]",
+   "pn": "C137901",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0720RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      55.134,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_20R_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_2K_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<2kohm, 5%>[R0402]",
+   "pn": "C137887",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-072KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      59.219,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_2K_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_33R_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<33ohm, 5%>[R0402]",
+   "pn": "C137880",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0733RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      63.303,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_33R_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_430R_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<430ohm, 5%>[R0402]",
+   "pn": "C137868",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-07430RL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      67.387,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_430R_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_56K_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<56kohm, 5%>[R0402]",
+   "pn": "C163438",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-0756KL",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      71.471,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_56K_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_6K8_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<6.8kohm, 5%>[R0402]",
+   "pn": "C137847",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-076K8L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      75.555,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_6K8_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_9R1_J_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<9.1ohm, 5%>[R0402]",
+   "pn": "C137820",
+   "mfr": "Yageo",
+   "mpn": "RC0402JR-079R1L",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      79.639,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Yageo RC; lib/passive R_9R1_J_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_100K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<100kohm, 1%>[R0402]",
+   "pn": "C481918",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402100KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      83.723,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_100K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_10K2_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<10.2kohm, 1%>[R0402]",
+   "pn": "C481923",
+   "mfr": "Vishay",
+   "mpn": "CRCW040210K2FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.807,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_10K2_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_11K5_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<11.5kohm, 1%>[R0402]",
+   "pn": "C843890",
+   "mfr": "Vishay",
+   "mpn": "CRCW040211K5FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      91.891,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_11K5_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_12K1_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<12.1kohm, 1%>[R0402]",
+   "pn": "C481939",
+   "mfr": "Vishay",
+   "mpn": "CRCW040212K1FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      95.975,
+      6.126
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_12K1_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_140K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<140kohm, 1%>[R0402]",
+   "pn": "C3008838",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402140KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_140K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_15K4_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<15.4kohm, 1%>[R0402]",
+   "pn": "C481953",
+   "mfr": "Vishay",
+   "mpn": "CRCW040215K4FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      6.126,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_15K4_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_16K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<16kohm, 1%>[R0402]",
+   "pn": "C481958",
+   "mfr": "Vishay",
+   "mpn": "CRCW040216K0FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_16K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_182K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<182kohm, 1%>[R0402]",
+   "pn": "C482064",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402182KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      14.294,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_182K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_196R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<196ohm, 1%>[R0402]",
+   "pn": "C4231651",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402196RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      18.378,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_196R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1K2_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.2kohm, 1%>[R0402]",
+   "pn": "C482072",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021K20FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      22.462,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_1K2_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1K65_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.65kohm, 1%>[R0402]",
+   "pn": "C2076615",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021K65FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      26.546,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_1K65_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1M05_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.05Mohm, 1%>[R0402]",
+   "pn": "C4156475",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021M05FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.63,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_1M05_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_1M62_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<1.62Mohm, 1%>[R0402]",
+   "pn": "C2085730",
+   "mfr": "Vishay",
+   "mpn": "CRCW04021M62FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      34.714,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_1M62_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_20R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<20ohm, 1%>[R0402]",
+   "pn": "C482097",
+   "mfr": "Vishay",
+   "mpn": "CRCW040220R0FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      38.798,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_20R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_226R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<226ohm, 1%>[R0402]",
+   "pn": "C2080002",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402226RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      42.882,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_226R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_23K7_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<23.7kohm, 1%>[R0402]",
+   "pn": "C2085463",
+   "mfr": "Vishay",
+   "mpn": "CRCW040223K7FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      46.966,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_23K7_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_255K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<255kohm, 1%>[R0402]",
+   "pn": "C4308344",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402255KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      51.05,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_255K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_274K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<274kohm, 1%>[R0402]",
+   "pn": "C2076814",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402274KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      55.134,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_274K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_28K7_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<28.7kohm, 1%>[R0402]",
+   "pn": "C2091853",
+   "mfr": "Vishay",
+   "mpn": "CRCW040228K7FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      59.219,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_28K7_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_2K21_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<2.21kohm, 1%>[R0402]",
+   "pn": "C844505",
+   "mfr": "Vishay",
+   "mpn": "CRCW04022K21FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      63.303,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_2K21_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_2M1_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<2.1Mohm, 1%>[R0402]",
+   "pn": "C3009191",
+   "mfr": "Vishay",
+   "mpn": "CRCW04022M10FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      67.387,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_2M1_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_300R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<300ohm, 1%>[R0402]",
+   "pn": "C482142",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402300RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      71.471,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_300R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_30R9_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<30.9ohm, 1%>[R0402]",
+   "pn": "C2085710",
+   "mfr": "Vishay",
+   "mpn": "CRCW040230R9FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      75.555,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_30R9_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_332R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<332ohm, 1%>[R0402]",
+   "pn": "C2094717",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402332RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      79.639,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_332R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_357K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<357kohm, 1%>[R0402]",
+   "pn": "C2085358",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402357KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      83.723,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_357K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_37K4_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<37.4kohm, 1%>[R0402]",
+   "pn": "C844108",
+   "mfr": "Vishay",
+   "mpn": "CRCW040237K4FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.807,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_37K4_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_39K2_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<39.2kohm, 1%>[R0402]",
+   "pn": "C843902",
+   "mfr": "Vishay",
+   "mpn": "CRCW040239K2FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      91.891,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_39K2_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_3K4_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<3.4kohm, 1%>[R0402]",
+   "pn": "C2085341",
+   "mfr": "Vishay",
+   "mpn": "CRCW04023K40FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      95.975,
+      10.21
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_3K4_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_3M32_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<3.32Mohm, 1%>[R0402]",
+   "pn": "C2076988",
+   "mfr": "Vishay",
+   "mpn": "CRCW04023M32FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_3M32_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_422R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<422ohm, 1%>[R0402]",
+   "pn": "C2076975",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402422RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      6.126,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_422R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_45R3_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<45.3ohm, 1%>[R0402]",
+   "pn": "C482180",
+   "mfr": "Vishay",
+   "mpn": "CRCW040245R3FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_45R3_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_47R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<47ohm, 1%>[R0402]",
+   "pn": "C482185",
+   "mfr": "Vishay",
+   "mpn": "CRCW040247R0FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      14.294,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_47R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_4K3_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<4.3kohm, 1%>[R0402]",
+   "pn": "C482191",
+   "mfr": "Vishay",
+   "mpn": "CRCW04024K30FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      18.378,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_4K3_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_4M7_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<4.7Mohm, 1%>[R0402]",
+   "pn": "C482196",
+   "mfr": "Vishay",
+   "mpn": "CRCW04024M70FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      22.462,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_4M7_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_51R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<51ohm, 1%>[R0402]",
+   "pn": "C482203",
+   "mfr": "Vishay",
+   "mpn": "CRCW040251R0FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      26.546,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_51R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_562R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<562ohm, 1%>[R0402]",
+   "pn": "C2076633",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402562RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      30.63,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_562R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_5K11_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<5.11kohm, 1%>[R0402]",
+   "pn": "C2091561",
+   "mfr": "Vishay",
+   "mpn": "CRCW04025K11FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      34.714,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_5K11_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_5R11_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<5.11ohm, 1%>[R0402]",
+   "pn": "C2092127",
+   "mfr": "Vishay",
+   "mpn": "CRCW04025R11FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      38.798,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_5R11_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_620K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<620kohm, 1%>[R0402]",
+   "pn": "C482217",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402620KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      42.882,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_620K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_665R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<665ohm, 1%>[R0402]",
+   "pn": "C3009270",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402665RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      46.966,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_665R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_69K8_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<69.8kohm, 1%>[R0402]",
+   "pn": "C4351510",
+   "mfr": "Vishay",
+   "mpn": "CRCW040269K8FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      51.05,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_69K8_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_715K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<715kohm, 1%>[R0402]",
+   "pn": "C4100928",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402715KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      55.134,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_715K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_768R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<768ohm, 1%>[R0402]",
+   "pn": "C2076789",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402768RFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      59.219,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_768R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_80R6_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<80.6ohm, 1%>[R0402]",
+   "pn": "C843839",
+   "mfr": "Vishay",
+   "mpn": "CRCW040280R6FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      63.303,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_80R6_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_887K_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<887kohm, 1%>[R0402]",
+   "pn": "C4267913",
+   "mfr": "Vishay",
+   "mpn": "CRCW0402887KFKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      67.387,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_887K_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_91R_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<91ohm, 1%>[R0402]",
+   "pn": "C4071412",
+   "mfr": "Vishay",
+   "mpn": "CRCW040291R0FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      71.471,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_91R_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "R_9K53_F_0402_ALT",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::ChipResistor<9.53kohm, 1%>[R0402]",
+   "pn": "C2091938",
+   "mfr": "Vishay",
+   "mpn": "CRCW04029K53FKED",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      75.555,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 ChipResistor Vishay CRCW; lib/passive R_9K53_F_0402 alt",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_10p_100V_C0G_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<10pF, 100V, 5%>[C0402]",
+   "pn": "C277518",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO0BN100",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      79.639,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_10p_100V_C0G_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_470p_25V_C0G_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<470pF, 25V, 5%>[C0402]",
+   "pn": "C541369",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO8BN471",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      83.723,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_470p_25V_C0G_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_680p_50V_C0G_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<680pF, 50V, 5%>[C0402]",
+   "pn": "C113781",
+   "mfr": "Yageo",
+   "mpn": "CC0402JRNPO9BN681",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      87.807,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_680p_50V_C0G_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_1u_16V_X5R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<1uF, 16V, 10%>[C0402]",
+   "pn": "C325464",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX5R7BB105",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      91.891,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_1u_16V_X5R_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_2n2_100V_X7R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<2.2nF, 100V, 10%>[C0402]",
+   "pn": "C576731",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R0BB222",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      95.975,
+      14.294
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_2n2_100V_X7R_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_220p_16V_X7R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<220pF, 16V, 10%>[C0402]",
+   "pn": "C327000",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R7BB221",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      2.042,
+      18.378
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_220p_16V_X7R_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_470p_25V_X7R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<470pF, 25V, 10%>[C0402]",
+   "pn": "C541387",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R8BB471",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      6.126,
+      18.378
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_470p_25V_X7R_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  },
+  {
+   "name": "C_68n_50V_X7R_0402",
+   "footprint": "passive::CHIP_0402",
+   "part": "passive::MLCC<68nF, 50V, 10%>[C0402]",
+   "pn": "C354977",
+   "mfr": "Yageo",
+   "mpn": "CC0402KRX7R9BB683",
+   "pins": [
+    "A",
+    "B"
+   ],
+   "width_mm": 2.084,
+   "height_mm": 2.084,
+   "covers_rotation": true,
+   "placements": [
+    {
+     "at_mm": [
+      10.21,
+      18.378
+     ],
+     "rotate": 0,
+     "side": "top"
+    }
+   ],
+   "note": "W3 pilot sample, group CHIP_0402 MLCC Yageo CC; lib/passive C_68n_50V_X7R_0402 primary",
+   "jlc_package": "0402",
+   "category": "extended"
+  }
+ ]
+}

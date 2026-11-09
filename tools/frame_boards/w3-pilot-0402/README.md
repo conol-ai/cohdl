@@ -1,0 +1,53 @@
+# W3 sampling pilot board: three 0402 groups
+
+This board is the pilot of the sampled-inference proposal (`docs/library-supplier-w3-sampling.md`, §4). It carries the samples that the grouping report (`tools/sourcing_data/w3_sampling/2026-11-07/`) chose for three `passive` 0.2.5 groups on the same land:
+
+| Group | Members | Own evidence | Samples here |
+|---|---:|---:|---:|
+| `CHIP_0402` ChipResistor Yageo `RC` | 969 | 5 | 44 |
+| `CHIP_0402` ChipResistor Vishay `CRCW` | 968 | 2 | 47 |
+| `CHIP_0402` MLCC Yageo `CC` | 199 | 2 | 8 |
+
+That makes 99 part numbers, one top copy each at 0°, on a board of about 100 × 20 mm.
+- **Stock.** Every part had at least 30 pieces in stock on its confirmed page (B2 run, 2026-11-05/06), the report's `min_stock`. Stock may have changed since. `jlc_preview.py` stops on any stock warning, and the preview is then unverified. A new package with other samples needs its own approval.
+- **First run (2026-11-07), unverified.** The first package (SHA-256 `8f056fde04c64fb2632675a91bdd2eafb5a3214f6a3af517e5e1325c446dab0f`) drew its samples from members with at least 5 pieces. Its BOM step read "99 parts detected, 88 Parts confirmed" with a shortage warning. Exactly 11 of its samples had read fewer than 20 pieces (5 to 19), and none of the others fewer than 21. The script did not list the unconfirmed rows, because a top-only board's BOM step has no Bottom Designator column and the check stopped at the columns. Both are fixed: `min_stock` is now 30, and `jlc_preview.py` no longer needs that column on a board with no bottom parts. Nothing was measured or recorded from that run.
+- **Second run (2026-11-07), unverified.** The second package (SHA-256 `85e55a26ed141e42e04d540000f650f72f2431cb6cf61fee5fab71f44fb1adfb`) read "99 parts detected, 97 Parts confirmed" with a shortage warning, and named the two rows: C185430 (its page read 100) and C185414 (39). Others with less on their page, down to 33, were confirmed, so these two had sold since. `tools/w3_groups.py` lists them under `SHORT_AT_PREVIEW` and replaces each with the nearest eligible member of its group (C138018 and C273339), so the other 97 samples stay as that preview confirmed them. Nothing was measured or recorded from that run either.
+- **Third run (2026-11-07), measured.** Package `7f49d085…` (commit `e6ba33d`) passed the BOM step with all 99 confirmed and was measured. The results are in `tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/`:
+  - 88 bodies lie along and are centred on their pads. Each has its own frame row, archived in that record's `frames.json` and not bound: `jlc_frames.json` is unchanged, so `passive` 0.2.5 stays as published.
+  - 10 models were not drawn, and C113781 needs manual review.
+  - Yageo `RC` passed (44 of 44). Vishay `CRCW` (9 not drawn) and Yageo `CC` (1 not drawn, 1 manual review) are paused under the rule below.
+- **No map.** As on `lcsc-batch-2-passive`, each row declares the map row's identity on the library entry's device type and footprint. The CPL carries no map, so the preview shows each footprint's raw frame.
+
+## What to expect, and what counts
+
+Every part should sit centred on its land, along the land's long axis: rotate 0 (mod 180). `measure_preview.py` applies the chip limits: the long axis within 10° of the land's axis, the centre within `min(0.25, 0.25 × half pitch)` mm, and a drawn, elongated body.
+
+- **Pass:** all 99 within the limits. Each gets its own `jlc_frames.json` row with this preview as evidence. The group records are then written for review. No other member is bound until Tony accepts the proposal.
+- **Fail:** any sample outside the limits, or not drawn, pauses its group. The readings are recorded here, and the proposal is revised before any other group is sampled.
+
+## Preview package
+
+```sh
+K=/Applications/KiCad/KiCad.app/Contents
+python3 -I tools/frame_boards/preview_package.py w3-pilot-0402 -o w3-pilot-0402-preview.zip \
+  --cohdl target/debug/cohdl --kicad-cli $K/MacOS/kicad-cli \
+  --kicad-python $K/Frameworks/Python.framework/Versions/Current/bin/python3
+```
+
+`preview_package.py` regenerates `manifest.json` with `w3_pilot_0402.py` from `inputs.json` and refuses a manifest that differs. It then builds the board from the packages `inputs.json` pins (below), against `cohdl.lock`, so it needs no registry, no package cache and no particular `lib/`. It reads those packages from git, so a shallow clone must fetch their history first (`git fetch --unshallow`).
+
+## Frozen inputs
+
+The board was previewed on 2026-11-07 from `passive` 0.2.5, so `manifest.json` is a record and must keep rebuilding as it was, whatever the current library is. `w3_pilot_0402.py` therefore builds it from `inputs.json` alone, with the report and confirmed pages that file names:
+
+- `report` and `pages`: `tools/sourcing_data/w3_sampling/2026-11-07/groups.json` and `lcsc_backfill/2026-11-06-full/confirmed.json`, each with its SHA-256. The build stops if either has changed, and it reads the samples and stock from them.
+- `dependencies`: `std` 0.3.0 and `passive` 0.2.5, the versions the board pins.
+- `packages`: for each dependency, its version and the git tree of `lib/std` or `lib/passive` it was built from. `jlc_frame_board.py --packages inputs.json --lock cohdl.lock` writes each tree into the generated project's `deps/`, which the compiler searches before `lib/` and the package cache, and copies `cohdl.lock` beside it. The compiler then refuses a package whose content hash is not the lock's (E1103). `cohdl.lock` is the lock of the previewed package `7f49d085…`, byte for byte, and these trees are also `lib/std` and `lib/passive` on `main` at `e1f6ca1`.
+- `samples`: for each of the 99, in the report's order, its group, the map row's `mfr` and `mpn`, and the `lib/passive` 0.2.5 part, entry, device type and pins.
+- `courtyards`: the `CHIP_0402` courtyard of `passive` 0.2.5.
+
+`inputs.json` was written by `w3_pilot_0402.py --freeze` at commit `97e66e9`, whose `lib/passive` and `lcsc_map.json` are those of `e6ba33d`, the commit the previewed package was built from (the map's SHA-256 is the one the report records). The manifest built from it is byte for byte the committed one. `--freeze` refuses a library whose `passive` version is not the report's, so a later version needs a new report and a new board, not a changed record.
+
+The tests keep the two apart. `test_w3_pilot_record_rebuilds_from_its_frozen_inputs` checks the record against its recorded inputs and hashes. `test_w3_pilot_record_builds_from_its_pinned_packages_alone` builds the board with a compiler that sees no `lib/` and an empty `COHDL_HOME`: unpinned it cannot resolve `passive` 0.2.5, pinned it builds all 99 against the lock, and a lock with another hash is refused. `test_w3_pilot_generator_follows_a_fresh_report_on_the_current_library` builds a report from the current tree, freezes it and builds a board from it, and never compares that with the record.
+
+**Uploading the package to the assembler's preview needs Alex's approval**, like every preview. Preview runs stop at Component Placements: no order, no cart, no terms ticked.

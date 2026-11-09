@@ -9,7 +9,7 @@
   "dependencies": {
     "std": "0.3.0",
     "transistor": "0.2.1",
-    "passive": "0.2.6",
+    "passive": "0.2.7",
     "flash": "0.3.0"
   },
   "rows": [

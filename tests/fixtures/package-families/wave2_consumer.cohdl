@@ -1,0 +1,37 @@
+// Test-fixture consumer for the W4 package-family lands, wave 2 (library
+// plan item 3c). The device and parts below are fixtures, not library
+// parts: they bind every wave-2 land so the pad-consistency check and the
+// KiCad emission in `tests/library.rs` cannot pass vacuously. They carry no
+// supplier binding and are never published.
+
+device FixtureDiode {
+    pins {
+        required K: 1 [passive]
+        required A: 2 [passive]
+    }
+}
+
+part FIXTURE_SMB: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SMB", footprint: do214::DIOM5336X265N }
+}
+
+part FIXTURE_SOD123FL: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOD123FL", footprint: sod::SODFL3818X120N }
+}
+
+part FIXTURE_SMC: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SMC", footprint: do214::DIOM7959X261N }
+}
+
+part FIXTURE_SOD523: FixtureDiode {
+    primary { mfr: "fixture", mpn: "FIXTURE-SOD523", footprint: sod::SOD1608X70N }
+}
+
+design PackageFamiliesWave2 {
+    inst d_smb: FIXTURE_SMB
+    inst d_sod123fl: FIXTURE_SOD123FL
+    inst d_smc: FIXTURE_SMC
+    inst d_sod523: FIXTURE_SOD523
+    net CATHODES: d_smb.K, d_sod123fl.K, d_smc.K, d_sod523.K
+    net ANODES: d_smb.A, d_sod123fl.A, d_smc.A, d_sod523.A
+}

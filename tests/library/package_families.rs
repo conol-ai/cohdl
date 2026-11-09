@@ -1,5 +1,5 @@
-//! W4 package-family lands, wave 1 (library plan item 3c): `sod`, `sot` and
-//! `do214`.
+//! W4 package-family lands, waves 1 and 2 (library plan item 3c): `sod`,
+//! `sot` and `do214`.
 //!
 //! Each land is pinned exactly against its source table (see each package's
 //! `docs/README.md`): pad numbers, centres, sizes, rotation, courtyard and the
@@ -41,7 +41,8 @@ struct Land {
     mark: Mark,
 }
 
-const LANDS: [Land; 4] = [
+/// Wave 1: SOD-123, SOD-323, SOT-23-3 and SMA.
+const WAVE1: [Land; 4] = [
     // Hongjiacheng BZT52 Rev 2.1 p4: J 0.91, K 2.36, M 1.22 (one-sided limits).
     Land {
         package: "sod",
@@ -92,6 +93,65 @@ const LANDS: [Land; 4] = [
         mark: Mark::CathodeBand("1"),
     },
 ];
+
+/// Wave 2: SMB, SOD-123FL, SMC and SOD-523.
+const WAVE2: [Land; 4] = [
+    // Hongjiacheng SMBJ Rev 1.1 p2: M 2.26, J 2.10, K 2.74 (one-sided limits).
+    Land {
+        package: "do214",
+        source: "src/footprints.cohdl",
+        footprint: "DIOM5336X265N",
+        pad: "P_DIOM5336X265N_LEAD",
+        size_um: (2100, 2260),
+        rotate: 0,
+        pads: &[("1", -2420, 0), ("2", 2420, 0)],
+        courtyard_um: (7500, 4500),
+        mark: Mark::CathodeBand("1"),
+    },
+    // Hongjiacheng SMF Rev 2.2 p2 has no land: Diodes SOD123F Rev. 2026-04-08
+    // p1, X 1.34, Y 1.80, C 2.86.
+    Land {
+        package: "sod",
+        source: "src/footprints.cohdl",
+        footprint: "SODFL3818X120N",
+        pad: "P_SODFL3818X120N_LEAD",
+        size_um: (1340, 1800),
+        rotate: 0,
+        pads: &[("1", -1430, 0), ("2", 1430, 0)],
+        courtyard_um: (4700, 2500),
+        mark: Mark::CathodeBand("1"),
+    },
+    // Hongjiacheng SMCJ Rev 2.2 p2 has no land: Diodes SMC Rev. 2017-03-14 p1,
+    // X 2.50, Y 3.30, C 6.90.
+    Land {
+        package: "do214",
+        source: "src/footprints.cohdl",
+        footprint: "DIOM7959X261N",
+        pad: "P_DIOM7959X261N_LEAD",
+        size_um: (2500, 3300),
+        rotate: 0,
+        pads: &[("1", -3450, 0), ("2", 3450, 0)],
+        courtyard_um: (9900, 6800),
+        mark: Mark::CathodeBand("1"),
+    },
+    // Hongjiacheng 1N4148WT Rev 2.0 p3: X 0.60, Y 0.70, Z 1.42 (midpoints).
+    Land {
+        package: "sod",
+        source: "src/footprints.cohdl",
+        footprint: "SOD1608X70N",
+        pad: "P_SOD1608X70N_LEAD",
+        size_um: (600, 700),
+        rotate: 0,
+        pads: &[("1", -710, 0), ("2", 710, 0)],
+        courtyard_um: (2600, 1500),
+        mark: Mark::CathodeBand("1"),
+    },
+];
+
+/// Every W4 land, both waves.
+fn all_lands() -> impl Iterator<Item = &'static Land> {
+    WAVE1.iter().chain(WAVE2.iter())
+}
 
 fn um(femto: i128) -> String {
     format!("{}um", femto as f64 / UM as f64)
@@ -252,9 +312,8 @@ fn derive(source: &str, edits: &[(&str, &str)]) -> String {
     out
 }
 
-#[test]
-fn w4_wave1_lands_match_their_source_tables() {
-    for land in &LANDS {
+fn assert_lands_match(lands: &[Land]) {
+    for land in lands {
         let world = world_of(land.package, &shipped_source(land));
         let found = mismatches(&world, land);
         assert!(found.is_empty(), "{}", found.join("\n"));
@@ -262,8 +321,18 @@ fn w4_wave1_lands_match_their_source_tables() {
 }
 
 #[test]
+fn w4_wave1_lands_match_their_source_tables() {
+    assert_lands_match(&WAVE1);
+}
+
+#[test]
+fn w4_wave2_lands_match_their_source_tables() {
+    assert_lands_match(&WAVE2);
+}
+
+#[test]
 fn mirrored_sot23_is_rejected() {
-    let land = &LANDS[2];
+    let land = &WAVE1[2];
     assert_eq!(land.footprint, "SOT3P190X290X130N");
     // Pins 1 and 2 swap places: the land the #48 mirror defect produced.
     let mirrored = derive(
@@ -291,10 +360,12 @@ fn mirrored_sot23_is_rejected() {
 
 #[test]
 fn diode_lands_with_the_cathode_on_pad_2_are_rejected() {
-    for land in LANDS
-        .iter()
+    let diode_lands: Vec<&Land> = all_lands()
         .filter(|land| matches!(land.mark, Mark::CathodeBand(_)))
-    {
+        .collect();
+    // Seven diode lands: wave 1's three and all four of wave 2's.
+    assert_eq!(diode_lands.len(), 7);
+    for land in diode_lands {
         let source = shipped_source(land);
         let (x1, x2) = (land.pads[0].1, land.pads[1].1);
         assert!(
@@ -352,11 +423,11 @@ fn derive_band(land: &Land, source: &str) -> String {
     format!("{}{}{}", &source[..start], edited, &source[end..])
 }
 
-/// The fixture consumer binds every wave-1 land through the packages'
-/// qualified paths, so pad consistency and KiCad emission are exercised on
-/// real parts rather than passing vacuously.
-#[test]
-fn wave1_fixture_consumer_binds_and_emits_every_land() {
+/// Check a fixture consumer under `tests/fixtures/package-families/`,
+/// confirm every land in `lands` still matches its source table in the
+/// consumer's world, emit the design to KiCad, and require each land to be
+/// emitted (so bound) with every `expected` line in its module.
+fn assert_consumer_binds_and_emits(fixture: &str, lands: &[Land], expected: &[(&str, &[&str])]) {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let deps: Vec<(String, std::path::PathBuf)> = ["std", "sod", "sot", "do214"]
         .iter()
@@ -364,7 +435,7 @@ fn wave1_fixture_consumer_binds_and_emits_every_land() {
         .collect();
     let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
     let project = cohdl::project::load_project_with_deps(
-        &root.join("tests/fixtures/package-families/wave1_consumer.cohdl"),
+        &root.join("tests/fixtures/package-families").join(fixture),
         &deps,
     )
     .unwrap();
@@ -380,7 +451,7 @@ fn wave1_fixture_consumer_binds_and_emits_every_land() {
     let mut pad_diags = cohdl::diag::Diagnostics::new();
     cohdl::check::footprints::check_pad_consistency(&checked.world, &mut pad_diags);
     assert!(!pad_diags.has_errors(), "{}", pad_diags.render(&checked.sm));
-    for land in &LANDS {
+    for land in lands {
         let found = mismatches(&checked.world, land);
         assert!(found.is_empty(), "{}", found.join("\n"));
     }
@@ -399,7 +470,35 @@ fn wave1_fixture_consumer_binds_and_emits_every_land() {
                 )
             })
     };
-    for (name, lines) in [
+    // Every land of the wave is emitted: none is left unbound by the fixture.
+    for land in lands {
+        let name = format!(
+            "{}::{}",
+            cohdl::pipeline::package_root(land.package),
+            land.footprint
+        );
+        assert!(
+            expected.iter().any(|(fq, _)| *fq == name),
+            "{name} has no expected emission lines"
+        );
+    }
+    for (name, lines) in expected {
+        let text = module(name);
+        for line in lines.iter() {
+            assert!(text.contains(line), "{name} is missing `{line}`:\n{text}");
+        }
+    }
+}
+
+/// The fixture consumer binds every wave-1 land through the packages'
+/// qualified paths, so pad consistency and KiCad emission are exercised on
+/// real parts rather than passing vacuously.
+#[test]
+fn wave1_fixture_consumer_binds_and_emits_every_land() {
+    assert_consumer_binds_and_emits(
+        "wave1_consumer.cohdl",
+        &WAVE1,
+        &[
         (
             "sod::SOD3716X135N",
             &[
@@ -439,10 +538,55 @@ fn wave1_fixture_consumer_binds_and_emits_every_land() {
                 "(fp_rect (start -1.7 -1.8) (end 1.7 1.8) (layer \"F.CrtYd\")",
             ][..],
         ),
-    ] {
-        let text = module(name);
-        for line in lines {
-            assert!(text.contains(line), "{name} is missing `{line}`:\n{text}");
-        }
-    }
+        ],
+    );
+}
+
+/// The wave-2 fixture consumer does the same for SMB, SOD-123FL, SMC and
+/// SOD-523.
+#[test]
+fn wave2_fixture_consumer_binds_and_emits_every_land() {
+    assert_consumer_binds_and_emits(
+        "wave2_consumer.cohdl",
+        &WAVE2,
+        &[
+            (
+                "do214::DIOM5336X265N",
+                &[
+                    "(pad \"1\" smd rect (at -2.42 0) (size 2.1 2.26)",
+                    "(pad \"2\" smd rect (at 2.42 0) (size 2.1 2.26)",
+                    // Cathode band outboard of pad 1.
+                    "(fp_line (start -3.77 -1.13) (end -3.77 1.13) (layer \"F.SilkS\") (stroke (width 0.3)",
+                    "(fp_rect (start -3.75 -2.25) (end 3.75 2.25) (layer \"F.CrtYd\")",
+                ][..],
+            ),
+            (
+                "sod::SODFL3818X120N",
+                &[
+                    "(pad \"1\" smd rect (at -1.43 0) (size 1.34 1.8)",
+                    "(pad \"2\" smd rect (at 1.43 0) (size 1.34 1.8)",
+                    "(fp_line (start -2.4 -0.9) (end -2.4 0.9) (layer \"F.SilkS\") (stroke (width 0.3)",
+                    "(fp_rect (start -2.35 -1.25) (end 2.35 1.25) (layer \"F.CrtYd\")",
+                ][..],
+            ),
+            (
+                "do214::DIOM7959X261N",
+                &[
+                    "(pad \"1\" smd rect (at -3.45 0) (size 2.5 3.3)",
+                    "(pad \"2\" smd rect (at 3.45 0) (size 2.5 3.3)",
+                    "(fp_line (start -5 -1.65) (end -5 1.65) (layer \"F.SilkS\") (stroke (width 0.3)",
+                    "(fp_rect (start -4.95 -3.4) (end 4.95 3.4) (layer \"F.CrtYd\")",
+                ][..],
+            ),
+            (
+                "sod::SOD1608X70N",
+                &[
+                    "(pad \"1\" smd rect (at -0.71 0) (size 0.6 0.7)",
+                    "(pad \"2\" smd rect (at 0.71 0) (size 0.6 0.7)",
+                    "(fp_line (start -1.31 -0.35) (end -1.31 0.35) (layer \"F.SilkS\") (stroke (width 0.3)",
+                    "(fp_rect (start -1.3 -0.75) (end 1.3 0.75) (layer \"F.CrtYd\")",
+                ][..],
+            ),
+        ],
+    );
 }

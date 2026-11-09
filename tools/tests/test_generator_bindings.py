@@ -6,6 +6,7 @@ import difflib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,7 +19,8 @@ TOOLS = Path(__file__).resolve().parents[1]
 ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
-from sourcing.bindings import FRAME_FIELDS, Bindings, package_metadata  # noqa: E402
+from sourcing.bindings import FRAME_FIELDS, Bindings, _evidence, package_metadata  # noqa: E402
+from sourcing.w3_rule import RULE as W3_RULE  # noqa: E402
 import gen_esp32  # noqa: E402
 import gen_passive  # noqa: E402
 import gen_stm32  # noqa: E402
@@ -385,6 +387,49 @@ class CommittedTablesTests(unittest.TestCase):
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
                 self.assertEqual(bound_ids & {row["id"] for row in rows}, set())
                 self.assertNotIn(record, cited)
+
+
+class SampledEvidenceTests(unittest.TestCase):
+    """The generator accepts a W3 inferred row only when every check of its group
+    record holds: the same counterexamples ``tests/library/supplier.rs`` rejects."""
+
+    FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
+    CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
+             "own-evidence", "reading", "offset", "mapping", "two-kinds", "field")
+
+    def inferred(self, frames: str) -> bool:
+        rows = json.loads((self.FIXTURE / frames).read_text(encoding="utf-8"))["rows"]
+        by_id = {row["id"]: row for row in rows}
+        return _evidence(by_id["inferred"], by_id, self.FIXTURE)
+
+    def test_the_fixture_record_carries_the_rule_both_checkers_hold(self):
+        # supplier.rs accepts this record only if its rule equals its own copy,
+        # so the Rust and Python rules cannot drift apart unnoticed.
+        record = json.loads((self.FIXTURE / "w3_record.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["rule"], W3_RULE)
+
+    def test_a_valid_inferred_row_is_accepted(self):
+        self.assertTrue(self.inferred("jlc_frames.json"))
+
+    def test_every_counterexample_is_rejected(self):
+        for case in self.CASES:
+            with self.subTest(case=case):
+                self.assertFalse(self.inferred(f"jlc_frames.{case}.json"))
+
+    def test_the_rust_audit_names_the_same_counterexamples(self):
+        source = (ROOT / "tests" / "library" / "supplier.rs").read_text(encoding="utf-8")
+        files = {path.name for path in self.FIXTURE.glob("jlc_frames.*.json")}
+        self.assertEqual(files, {f"jlc_frames.{case}.json" for case in self.CASES})
+        cases = source.split("fn every_w3_sampled_rule_has_an_independent_counterexample")[1]
+        cases = cases.split("];")[0]
+        self.assertEqual(re.findall(r'\(\s*"([a-z-]+)",', cases), list(self.CASES))
+
+    def test_a_sample_row_cannot_be_inferred_itself(self):
+        rows = json.loads((self.FIXTURE / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
+        by_id = {row["id"]: row for row in rows}
+        self.assertTrue(_evidence(by_id["s1"], by_id, self.FIXTURE))
+        row = dict(by_id["s1"], evidence=None, sampled=by_id["inferred"]["sampled"])
+        self.assertFalse(_evidence(row, dict(by_id, s1=row), self.FIXTURE))
 
 
 if __name__ == "__main__":

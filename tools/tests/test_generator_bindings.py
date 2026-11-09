@@ -385,8 +385,32 @@ class CommittedTablesTests(unittest.TestCase):
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
-                self.assertEqual(bound_ids & {row["id"] for row in rows}, set())
-                self.assertNotIn(record, cited)
+                # A row leaves the archive only as a W3 group record's sample, and
+                # unchanged apart from the package version it is bound at.
+                adopted = bound_ids & {row["id"] for row in rows}
+                samples = {s["row"] for path in (self.DATA / "w3_records").glob("*.json")
+                           for g in json.loads(path.read_text(encoding="utf-8"))["groups"] for s in g["samples"]}
+                self.assertLessEqual(adopted, samples)
+                by_id = {row["id"]: row for row in frames}
+                for row in rows:
+                    if row["id"] in adopted:
+                        bound = by_id[row["id"]]
+                        self.assertEqual(dict(bound, package_version=row["package_version"]), row, row["id"])
+                        self.assertEqual(bound["package_version"], PASSIVE_VERSION, row["id"])
+                if not adopted:
+                    self.assertNotIn(record, cited)
+
+    def test_committed_w3_records_are_what_the_tool_builds(self):
+        records = sorted((self.DATA / "w3_records").glob("*.json"))
+        self.assertTrue(records)  # not vacuous: 0402 Yageo RC
+        for path in records:
+            g = json.loads(path.read_text(encoding="utf-8"))["groups"][0]
+            with self.subTest(record=path.name):
+                result = subprocess.run(
+                    [sys.executable, "-I", str(TOOLS / "w3_record.py"), str(path.relative_to(ROOT)),
+                     "--group", ",".join([g["footprint"], g["type"], g["mfr"], g["series"]]), "--check"],
+                    capture_output=True, text=True, cwd=ROOT)
+                self.assertEqual(result.returncode, 0, result.stderr)
 
 
 class SampledEvidenceTests(unittest.TestCase):

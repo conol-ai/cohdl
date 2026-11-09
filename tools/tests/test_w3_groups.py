@@ -10,6 +10,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import w3_groups as wg
 
 REPORT = wg.DATA / "w3_sampling/2026-11-07"
+CURRENT = wg.DATA / "w3_sampling/2026-11-10"
+PILOT = wg.PREVIEWS / "2026-11-07-w3-pilot-0402"
+
+
+def group(report, footprint, kind, mfr, series):
+    return next(g for g in report["groups"]
+                if (g["footprint"], g["type"], g["mfr"], g["series"]) == (footprint, kind, mfr, series))
 
 
 class W3GroupsTests(unittest.TestCase):
@@ -55,12 +62,18 @@ class W3GroupsTests(unittest.TestCase):
         snapshot = {row["snapshot_sha256"] for row in
                     json.loads((wg.DATA / "lcsc_map.json").read_text(encoding="utf-8"))["rows"]}
         pages_path, _ = wg.confirmed_pages(snapshot.pop())
+        inputs = {str((record / name).relative_to(wg.DATA)): wg._sha256(record / name)
+                  for record, meta in wg.preview_inputs().items()
+                  for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])}
         self.assertEqual(self.report["sources"], {
             "lib/passive": version,
             "lcsc_map.json": wg._sha256(wg.DATA / "lcsc_map.json"),
             "jlc_frames.json": wg._sha256(wg.DATA / "jlc_frames.json"),
             str(pages_path.relative_to(wg.DATA)): wg._sha256(pages_path),
+            **inputs,
         })
+        self.assertEqual({k: v for k, v in self.report["rule"].items() if k != "short_at_preview"},
+                         wg.w3_rule.RULE)
         self.assertEqual(self.report["rule"]["min_stock"], wg.MIN_STOCK)
         with tempfile.TemporaryDirectory() as td:
             with mock.patch("sys.stdout"):
@@ -80,19 +93,36 @@ class W3GroupsTests(unittest.TestCase):
         self.assertTrue(all("0402" in g["page_package_text"] for g in chip_0402))
         self.assertGreater(len(chip_0402), 1)
 
-    def test_samples_follow_the_draft_rule(self):
+    def test_the_current_dated_report_is_consistent_with_its_recorded_sources(self):
+        # The 2026-11-10 report under rule w3-2026-11-10: like the 2026-11-07 one, a
+        # dated snapshot, checked against what it records rather than a fresh build.
+        committed = json.loads((CURRENT / "groups.json").read_text(encoding="utf-8"))
+        self.assertEqual((CURRENT / "groups.md").read_text(encoding="utf-8"), wg.render(committed))
+        self.assertEqual(committed["schema_version"], 2)
+        self.assertEqual(committed["rule"]["version"], "w3-2026-11-10")
+        for name, digest in committed["sources"].items():
+            if name.startswith("jlc_previews/") or name.startswith("lcsc_backfill/"):
+                self.assertEqual(wg._sha256(wg.DATA / name), digest, name)
+
+    def test_samples_follow_the_rule(self):
         for g in self.report["groups"]:
             rows = {row[0]: row for row in g["member_rows"]}
             direct = {d["pn"] for d in g["direct"]}
+            passed = {p["pn"] for p in g["passed"]}
+            failed = {f["pn"] for f in g["failed"]}
             self.assertEqual(g["required"], max(3, math.ceil(0.05 * g["members"])))
-            self.assertEqual(g["more_needed"], max(0, g["required"] - len(direct)))
+            self.assertEqual(g["more_needed"], max(0, g["required"] - len(passed)))
             self.assertLessEqual(len(g["sample"]), g["more_needed"])
-            eligible = [pn for pn, row in rows.items() if pn not in direct and row[5] >= wg.MIN_STOCK]
+            self.assertEqual(g["status"] == "paused", bool(g["failed"] or g["anomalies"]))
+            for p in g["passed"]:
+                self.assertTrue(wg.w3_rule.sample_ok(p))
+            tried = direct | passed | failed
+            eligible = [pn for pn, row in rows.items() if pn not in tried and row[5] >= wg.MIN_STOCK]
             self.assertEqual(len(g["sample"]), min(g["more_needed"], len(eligible)))
             for pn in g["sample"]:
                 # Never a part without stock, never one already checked.
                 self.assertGreaterEqual(rows[pn][5], wg.MIN_STOCK)
-                self.assertNotIn(pn, direct)
+                self.assertNotIn(pn, tried)
                 self.assertNotIn(pn, wg.SHORT_AT_PREVIEW)
             self.assertEqual(g["zero_stock"], sum(row[5] <= 0 for row in rows.values()))
 
@@ -106,11 +136,51 @@ class W3GroupsTests(unittest.TestCase):
             if path == wg.DATA / "jlc_frames.json":
                 return json.dumps(frames)
             return real(path, *args, **kwargs)
+        self.assertEqual(group(self.report, "CHIP_0402", "MLCC", "Samsung", "CL")["status"], "needs_samples")
         with mock.patch.object(Path, "read_text", read_text):
             report = wg.build()
-        paused = [g for g in report["groups"] if g["status"] == "paused"]
-        self.assertEqual([(g["footprint"], g["mfr"], g["series"], g["anomalies"]) for g in paused],
-                         [("CHIP_0402", "Samsung", "CL", ["C1525"])])
+        changed = [(g["footprint"], g["mfr"], g["series"], g["anomalies"]) for g in report["groups"]
+                   if g["status"] != group(self.report, g["footprint"], g["type"], g["mfr"], g["series"])["status"]]
+        self.assertEqual(changed, [("CHIP_0402", "Samsung", "CL", ["C1525"])])
+
+    def test_the_pilot_samples_the_0402_yageo_rc_group_and_pauses_the_others(self):
+        rc = group(self.report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual((rc["status"], len(rc["passed"]), rc["required"]), ("sampled", 49, 49))
+        crcw = group(self.report, "CHIP_0402", "ChipResistor", "Vishay", "CRCW")
+        self.assertEqual(crcw["status"], "paused")
+        self.assertEqual(len(crcw["failed"]), 9)
+        self.assertTrue(all(c["status"] == "unverified" for f in crcw["failed"] for c in f["outcomes"]))
+        cc = group(self.report, "CHIP_0402", "MLCC", "Yageo", "CC")
+        self.assertEqual(sorted(f["pn"] for f in cc["failed"]), ["C113781", "C576731"])
+
+    def test_readings_lapse_when_a_land_file_changes(self):
+        real = wg._sha256
+
+        def sha256(path):
+            return "0" * 64 if path == wg.ROOT / "lib/passive/src/footprints.cohdl" else real(path)
+        with mock.patch.object(wg, "_sha256", sha256):
+            self.assertEqual(wg.judged_members(), {})
+
+    def test_a_reading_outside_the_sample_limits_fails_its_member(self):
+        meta = json.loads((PILOT / "w3.json").read_text(encoding="utf-8"))
+        readings = json.loads((PILOT / meta["measurements"]).read_text(encoding="utf-8"))
+        target = next(m for m in readings if m.get("body", {}).get("delta_mod_180") == 9.9)
+        target["body"]["delta_mod_180"] = 10.5
+        real = Path.read_text
+
+        def read_text(path, *args, **kwargs):
+            if path == PILOT / meta["measurements"]:
+                return json.dumps(readings)
+            return real(path, *args, **kwargs)
+        with mock.patch.object(Path, "read_text", read_text):
+            report = wg.build()
+        rc = group(report, "CHIP_0402", "ChipResistor", "Yageo", "RC")
+        self.assertEqual(rc["status"], "paused")
+        self.assertEqual([f["pn"] for f in rc["failed"]], ["C138033"])
+
+    def test_short_at_preview_lives_in_the_dated_record(self):
+        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430"})
+        self.assertNotIn("C185414", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
 
     def test_spread_is_deterministic_and_covers_both_ends(self):
         self.assertEqual(wg.spread(list(range(10)), 3), [0, 4, 9])

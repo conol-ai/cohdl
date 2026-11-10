@@ -2035,6 +2035,136 @@
         "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
       },
       "evidence_ref": null
+    },
+    {
+      "id": "rv2-qfn14n50p350x3501ep200x150-c5372421",
+      "package": "@contrib/level-shifter",
+      "package_version": "0.2.1",
+      "footprint": "QFN14N50P350X350_1EP200X150",
+      "supplier": "lcsc",
+      "pn": "C5372421",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's QFN-14 model for C5372421 sits a quarter turn from this land; the 2026-11-08 probe read pin 1 at 86.1-86.2 deg (top) and 273.5-273.8 deg (bottom)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-09",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/README.md",
+        "note": "with rotate 270 applied, pin 1 mark read 357.2 and 356.7 deg (top 0/37) and 3.2 and 3.1 deg (bottom 0/37), 0.27-0.29 mm from pad 1 (pad 2 1.08-1.10 mm); with no reference text, 13 of 14 model leads show on our pads in the top view (5 left, 5 right, 2 bottom, 1 top) and the 14th lies under the pin 1 mark on pad 1; body (body.json) 3.42-3.47 mm square, edges within 0.6 deg of the land, centred within 0.03 mm. The 2026-11-08 re-verify board read 357.5, 356.7, 2.7 and 2.6 deg"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "rv2-fpw25q32rvxson82x3-c32246052",
+      "package": "flash",
+      "package_version": "0.3.1",
+      "footprint": "FP_W25Q32RV_XSON8_2X3",
+      "supplier": "lcsc",
+      "pn": "C32246052",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "exception": "Per-part mapping: the supplier's XSON-8 model for C32246052 is drawn 2.0 mm wide and 3.0 mm tall with pin 1 at our pad 4 corner, a quarter turn from the datasheet's top view and this land (3.0 x 2.0 mm, pin 1 top-left)",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-09",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-09-reverify-2/README.md",
+        "note": "read from the body, not a mark angle: with rotate 270 applied the drawn body is 2.97-3.00 x 1.96-1.98 mm, its long axis within 0.4 deg of the pad 1 to pad 8 axis, centred within 0.042 mm, and its pin 1 dimple 0.28-0.29 mm from pad 1 (pad 2 0.42-0.44 mm) on all four copies, top and bottom, 0 and 37 deg (body.json). The pin 1 mark's ray reading of 353.0-6.5 deg comes from the mark sitting outside the body corner. XSON is leadless, so the model's terminals are not seen"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "rv1-sod2613x110n-c7420331",
+      "package": "sod",
+      "package_version": "0.1.0",
+      "footprint": "SOD2613X110N",
+      "supplier": "lcsc",
+      "pn": "C7420331",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOD-323 model for C7420331 has its cathode at +x, a half turn from this land's pad 1; other SOD-323 parts (C2128, C191023) read 0 on @contrib/esd's land",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.3 deg of the pad axis mod 180, centred within 0.059 mm. No library part lists this part number yet, so this row binds nothing"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "rv1-diom5026x241n-c7420365",
+      "package": "do214",
+      "package_version": "0.1.0",
+      "footprint": "DIOM5026X241N",
+      "supplier": "lcsc",
+      "pn": "C7420365",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SMA model for C7420365 has its cathode at +x, a half turn from this land's pad 1",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 0.6 deg of the pad axis mod 180, centred within 0.078 mm. No library part lists this part number yet, so this row binds nothing. The preview labels the model SMAJ12A, probably a reused SMA body; this row shows the polarity of C7420365 in this preview only, not the part's identity"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "rv1-sod1608x70n-c7420320",
+      "package": "sod",
+      "package_version": "0.1.0",
+      "footprint": "SOD1608X70N",
+      "supplier": "lcsc",
+      "pn": "C7420320",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "measured": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "exception": "Per-part mapping: the supplier's SOD-523 model for C7420320 has its cathode at +x, a half turn from this land's pad 1",
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-08",
+        "record": "tools/sourcing_data/jlc_previews/2026-11-08-reverify/README.md",
+        "note": "polarity read by eye with rotate 180 applied: the preview's minus sign and lighter cathode band sit at our cathode silk bar (pad 1) on all four copies, top and bottom, 0 and 37 deg; measurements.json gives no angle because the model carries two marks. Body (body.json): long axis within 3.8 deg of the pad axis mod 180, centred within 0.060 mm. No library part lists this part number yet, so this row binds nothing"
+      },
+      "evidence_ref": null
     }
   ]
 }

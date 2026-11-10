@@ -1,0 +1,8 @@
+#!/bin/sh
+# kicad-cli, except that Gerber exports leave the reference designators out of the silkscreen.
+K=/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli
+if [ "$1" = pcb ] && [ "$2" = export ] && [ "$3" = gerbers ]; then
+  shift 3
+  exec "$K" pcb export gerbers --exclude-refdes "$@"
+fi
+exec "$K" "$@"

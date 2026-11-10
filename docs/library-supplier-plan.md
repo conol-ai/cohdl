@@ -113,6 +113,10 @@ Pad numbers, land geometry and pin maps stay authored from manufacturer document
   - Manual inspection of the JLCPCB part page is the fallback for a single part.
 - **Change:** a rigid rotation and translation of the whole footprint: pads, courtyard and silkscreen together. Pad numbers and land dimensions never change.
 - **Pin 1 and polarity:** after alignment, pin 1 or the polarity mark must sit where JLCPCB's preview expects it. If it does not, check the manufacturer document: either we are wrong (fix it, as in #48) or the part is an exception.
+- **Bidirectional TVS: judged by the body only** (Tony's decision, recorded 2026-11-10). A bidirectional TVS (`…CA`) has no polarity, and the assembler's model for one carries no cathode band or pin 1 mark, so its frame is read from the drawn body alone. Every copy of the part number on the frame board (top and bottom, 0° and 37°) must show the body's long axis along the pad axis within 10° (mod 180) and its centre within the chip offset limit (the lesser of 0.25 mm and a quarter of the pad half-spacing). A model that is not drawn is unverified, not passed. The row's evidence note says the orientation is known mod 180 only.
+  - This is **per-part evidence**: each part number needs its own readings on its own preview, and its row may not borrow another TVS's evidence through this rule.
+  - It is **not an extension of W3 sampled inference**, which stays limited to plain chip resistors and MLCCs (`library-supplier-w3-sampling.md` §3.1).
+  - `measure_preview.py` reads a body only on `passive` CHIP lands, so a TVS row needs body readings recorded with its preview (for example `body.json` beside the 2026-11-09 re-verify record). A "no pin 1 mark" result alone is not a reading.
 - **Exceptions:** part numbers whose supplier footprint legitimately differs from ours keep a non-zero mapping. An exception is recorded per (footprint, version, supplier, part number) with its reason, because two part numbers on one footprint can differ. Known case: SK6812MINI-E, a reverse-mount part validated in production.
 - **Versioning:** every package with a moved footprint gets a new version, with no compatibility layer.
   - **Why it is breaking.** Moving a footprint's frame silently moves the copper of every consumer that places it with `place … at … rotate …`. No diagnostic fires, because the design still checks.
@@ -194,3 +198,4 @@ Added to `tests/library.rs` as each workstream lands:
 | 2026-10-27 | jlcparts is re-admitted as a candidate source. Sitemap ingest is filtered and de-duplicated. Identity is always confirmed on `partdetail`. |
 | 2026-10-27 | The 2026-10-06 raw captures (baseline, 82% sample, 14-of-33 comparison) were not preserved. Each figure is re-measured, and its data is committed. |
 | 2026-10-29 | Connector placeholders: four fixed; `CONN_MIC_2P` and `CONN_SPK_2P` kept with `#[source_unspecified("mpn")]` and `mpn: ""` (A2). |
+| 2026-11-10 | Bidirectional TVS parts are judged by the body only (axis and centring on every copy), as per-part evidence. This does not extend W3 sampled inference, which stays chip R/C only (§W3). |

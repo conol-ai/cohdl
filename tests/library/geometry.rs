@@ -351,7 +351,7 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     ),
     (
         "do214",
-        "DIOM4726X120N",
+        "FP_DO221AC_SMAF",
         4.90,
         2.70,
         "Hongjiacheng SS22F-SS220F Rev 2.0 p3, D x C max",
@@ -372,7 +372,7 @@ const COURTYARD_BODIES: &[(&str, &str, f64, f64, &str)] = &[
     ),
     (
         "sot",
-        "SOT4P230X650X350N",
+        "SOT4P230X651X351N",
         7.29,
         6.71,
         "AMS1117 p7, tab tip to lead tip x body length max, turned onto the assembler frame",

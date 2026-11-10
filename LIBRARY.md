@@ -274,7 +274,7 @@ beside the land. The two shipped cases:
 
 - SOT-89-3 (`sot::SOT3P150X450X250N`): the tab is one piece with the centre
   lead on the Diodes SOT89 bottom view, so it is a second placement of pad 2.
-- SOT-223 (`sot::SOT4P230X650X350N`): the tab is a separate fourth terminal,
+- SOT-223 (`sot::SOT4P230X651X351N`): the tab is a separate fourth terminal,
   so it is pad 4; AMS1117 binds it as `VOUT: 2, 4`.
 
 New tabbed lands (DPAK / TO-252, SOT-89-5 and the like) follow the same rule;

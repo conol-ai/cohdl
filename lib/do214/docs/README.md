@@ -28,7 +28,7 @@ Bidirectional TVS parts (`...CA`) carry no band but reuse this land.
 | `do214::DIOM5026X241N` | SMA / DO-214AC | 2.10 x 1.70 mm | +/-2.20 mm (4.40 mm) | 6.50 mm | 7.0 x 3.4 mm | 5.30 x 2.85 mm (G x C max) |
 | `do214::DIOM5336X265N` | SMB / DO-214AA | 2.10 x 2.26 mm | +/-2.42 mm (4.84 mm) | 6.94 mm | 7.5 x 4.5 mm | 5.59 x 3.94 mm (G x C max) |
 | `do214::DIOM7959X261N` | SMC / DO-214AB | 2.50 x 3.30 mm | +/-3.45 mm (6.90 mm) | 9.40 mm | 9.9 x 6.8 mm | 8.13 x 6.22 mm (G x C max) |
-| `do214::DIOM4726X120N` | SMAF (flat-lead SMA) | 1.60 x 1.80 mm | +/-1.90 mm (3.80 mm) | 5.40 mm | 5.9 x 3.3 mm | 4.90 x 2.70 mm (D x C max) |
+| `do214::FP_DO221AC_SMAF` | SMAF (flat-lead SMA) | 1.60 x 1.80 mm | +/-1.90 mm (3.80 mm) | 5.40 mm | 5.9 x 3.3 mm | 4.90 x 2.70 mm (D x C max) |
 
 Wave 1 added SMA; wave 2 added SMB and SMC; wave 3 added SMAF. The SMC land comes from the
 Diodes cross-check because the Hongjiacheng primary has no land (see below).
@@ -149,13 +149,17 @@ open question 4). A Diodes-length part (HE up to 5.60 mm, tips at 2.80 mm)
 would overhang this land's outer edge by up to 0.10 mm, so a non-Hongjiacheng
 SMAF series must be checked against this land when it is bound.
 
-Neither document names a JEDEC outline, so the land carries no JEDEC label
-(the 3c plan's `DO-221AC` is not printed by either source). It is named after
-the primary outline by the same IPC-7351B-style rule as SMA, SMB and SMC:
-overall length D 4.40-4.90 mm (nominal 4.65, rounded half up to 4.7), body
-width C 2.40-2.70 mm (nominal 2.55, rounded half up to 2.6), maximum height
-E 1.20 mm, giving `DIOM4726X120N`. **This land fits Hongjiacheng-length SMAF
-bodies** (overall length up to 4.90 mm); see open question 7.
+**Fit: Hongjiacheng-length bodies only.** `do214::FP_DO221AC_SMAF` fits
+SMAF bodies of the Hongjiacheng length (overall length D 4.40-4.90 mm). A
+Diodes "SMAF" (HE 4.80-5.60 mm) can overhang the 2.70 mm outer land edge by
+up to 0.10 mm, so bind another vendor's SMAF series only after checking its
+overall length against that edge.
+
+**Name.** Neither document names a JEDEC outline: neither the Hongjiacheng
+nor the Diodes source prints "DO-221AC". The 3c plan's `DO-221AC` label is
+kept in the free name `FP_DO221AC_SMAF`, which was published in do214 0.1.0
+and is now permanent; read it as a label for this SMAF land, not as a
+JEDEC registration. See open question 7.
 
 ## Existing lands for the same outlines
 
@@ -182,8 +186,8 @@ None in the library for SMA, SMB, SMC or SMAF.
    the name. It is IPC-7351B-style: DIOM + overall length + body width (tenths
    of a millimetre, midpoint of the primary tolerance) + X + maximum height
    (hundredths), giving `DIOM5026X241N` where JEDEC-fed calculators give
-   about `DIOM5226X244N`. *Recommendation:* keep IPC-7351B-style names and fix
-   them before the first publish (as for `sod`).
+   about `DIOM5226X244N`. *Settled by publication:* do214 0.1.0 was
+   published with this name, so it is permanent.
 3. **Frame confirmation.** The -x cathode frame is not yet measured for any
    DO-214 part; the wave-1 and wave-2 frame boards must read SMA, SMB and SMC
    before the first publish (Tony's sign-off).
@@ -204,16 +208,20 @@ None in the library for SMA, SMB, SMC or SMAF.
    bound.
 6. **Final names (wave 2).** `DIOM5336X265N` and `DIOM7959X261N` follow
    question 2's rule; the 3c plan's JEDEC-based placeholders were
-   `DIOM5436X240N` and `DIOM7959X250N`. Settle them with question 2.
-7. **SMAF name and outline.** *Settled in the #101 review (before the
-   first publish):* IPC-7351B has no family for a flat-lead molded diode,
-   neither the Hongjiacheng nor the Diodes document prints "DO-221AC", and
-   the two describe bodies 0.4-0.7 mm apart in length, so the land is named
-   after its source outline, `DIOM4726X120N` (it was `FP_DO221AC_SMAF`
-   before the first publish; same geometry). It fits Hongjiacheng-length
-   bodies. A Diodes-length part (HE up to 5.60 mm) overhangs the 2.70 mm
-   outer land edge by up to 0.10 mm, so bind another vendor's SMAF series
-   only after checking its overall length against that edge.
+   `DIOM5436X240N` and `DIOM7959X250N`. *Settled by publication* with
+   question 2: both names are in do214 0.1.0 and are permanent.
+7. **SMAF name and outline.** *Settled: the published name stays.*
+   IPC-7351B has no family for a flat-lead molded diode, so the land took
+   the 3c plan's free name `FP_DO221AC_SMAF`. Neither the Hongjiacheng nor
+   the Diodes document prints "DO-221AC", and the two describe bodies
+   0.4-0.7 mm apart in length. The #101 review recommended renaming the land
+   after its source outline (for example `DIOM4726X120N`), but do214 0.1.0
+   was published to registry.cohdl.org as `FP_DO221AC_SMAF`, and a published
+   footprint path is permanent, so the name is fixed. What the name cannot
+   say is recorded here instead: the land fits Hongjiacheng-length bodies
+   (D 4.40-4.90 mm) only; a Diodes "SMAF" (HE 4.80-5.60 mm) can overhang the
+   2.70 mm outer land edge by up to 0.10 mm, so bind another vendor's SMAF
+   series only after checking its overall length against that edge.
 8. **SMAF one-sided limits.** As for SMA and SMB, the SMAF land uses the
    limits themselves. The 2.2 mm gap leaves up to 0.10 mm of heel
    uncovered at the extreme of the tolerances. *Recommendation:* decide with

@@ -164,7 +164,9 @@ These lands are not moved or changed; both owners now exist side by side:
    first publish (a rename after it is a breaking path change). Either accept
    the primary-source digits, or decide that SOD names use JEDEC nominal
    values so they do not depend on one vendor's tolerances. A follow-up RFC
-   could add SOD/DIOM to the checked set.
+   could add SOD/DIOM to the checked set. *Settled by publication:* sod 0.1.0
+   was published with the primary-source digits, so these names are
+   permanent.
 2. **Duplicates.** SOD-123 now has two official owners whose copper differs
    (see above). *Recommendation:* keep both (option (a) in the 3c plan) until
    CoHDL has re-exports; then point `diode::FP_D_SOD_123` users at the `sod`
@@ -186,4 +188,5 @@ These lands are not moved or changed; both owners now exist side by side:
    outlines; the digits follow question 1's rule (3.75 and 1.75 mm nominal
    rounded half up), giving `SODFL3818X120N` where the 3c plan's JEDEC-based
    placeholder was `SODFL3717X110N`. SOD-523's `SOD1608X70N` matches the
-   plan's placeholder. *Recommendation:* settle together with question 1.
+   plan's placeholder. *Settled by publication* with question 1: both
+   names are in sod 0.1.0 and are permanent.

@@ -77,7 +77,7 @@ its pin count together with the tab) removes it. See open question 4.
 | `sot::SOT3P190X290X130N` | SOT-23-3 (TO-236AB) | 0.80 x 0.90 mm declared, placed `rotate 270` (0.90 in x, 0.80 in y) | 1 (1.00, 0.95), 2 (1.00, -0.95), 3 (-1.00, 0) mm | 3.4 x 3.6 mm | 2.55 x 3.00 mm (E1 x D max, in this frame) |
 | `sot::SOT3P150X450X250N` | SOT-89-3 (TO-243AA) | leads 0.58 x 1.63 mm; lead-2 stem 0.76 x 1.63 mm; tab 1.933 x 3.03 mm; all declared in datasheet orientation and placed `rotate 270` | 1 (1.45, 1.50), 2 stem (1.45, 0), 2 tab (-0.75, 0), 3 (1.45, -1.50) mm | 5.1 x 5.2 mm | 4.10 x 4.60 mm (C x A max, in this frame) |
 | `sot::SOT3P130X200X125N` | SOT-323 / SC-70-3 | 0.70 x 0.90 mm declared, placed `rotate 270` | 1 (0.95, 0.65), 2 (0.95, -0.65), 3 (-0.95, 0) mm | 3.3 x 2.8 mm | 2.45 x 2.20 mm (E1 x D max, in this frame) |
-| `sot::SOT4P230X650X350N` | SOT-223 (TO-261AA) | leads 1.20 x 1.60 mm; tab 3.30 x 1.60 mm; declared in datasheet orientation, placed `rotate 270` | 1 (3.20, 2.30), 2 (3.20, 0), 3 (3.20, -2.30), 4 tab (-3.20, 0) mm | 8.5 x 7.3 mm | 7.29 x 6.71 mm (tab tip to lead tip x body length max, in this frame) |
+| `sot::SOT4P230X651X351N` | SOT-223 (TO-261AA) | leads 1.20 x 1.60 mm; tab 3.30 x 1.60 mm; declared in datasheet orientation, placed `rotate 270` | 1 (3.20, 2.30), 2 (3.20, 0), 3 (3.20, -2.30), 4 tab (-3.20, 0) mm | 8.5 x 7.3 mm | 7.29 x 6.71 mm (tab tip to lead tip x body length max, in this frame) |
 
 Wave 1 added SOT-23-3; wave 3 added SOT-89-3, SOT-323 and SOT-223. The SOT-89
 and SOT-223 lands come from the Diodes cross-checks (see below). Each
@@ -102,10 +102,14 @@ centre spacing between distinct pad numbers:
 - SOT-323: pins 1-2 at 1.30 mm, so `P130`. Body digits: Hongjiacheng D
   1.80-2.20 and E 1.15-1.35, nominal 2.00 and 1.25.
 - SOT-223: pins 1-2 at 2.30 mm, so `P230`; four pad numbers, so `SOT4`. Body
-  digits: the typical body of the Diodes outline the land comes from, D
-  6.45-6.55 and E 3.45-3.55 mm, midpoints 6.50 and 3.50 mm (the SOT-223 /
-  TO-261AA nominal), not AMS's 6.505 and 3.505 mm midpoints (open
-  question 5).
+  digits: AMS body length 6.30-6.71 and width 3.30-3.71 mm, nominal 6.505
+  and 3.505, rounded half up to 6.51 and 3.51 (open question 5). **Where
+  651/351 come from:** AMS draws the outline in inches (0.248-0.264 x
+  0.130-0.146 in) and prints millimetre conversions beside them, so 651/351
+  are a rounding artefact of AMS's inch midpoints, not a different body.
+  The JEDEC / typical nominal, Diodes' typical D 6.50 x E 3.50 mm, would
+  give `650X350`. The name was published as `sot::SOT4P230X651X351N` in
+  sot 0.1.0 and is now permanent; the geometry does not depend on it.
 
 ## Sources
 
@@ -258,15 +262,17 @@ For SOT-23-3 these lands are not moved or changed:
    would make the land `SOT3` and silently tie the tab to pin 2 for every
    vendor, including any whose tab is not pin 2; numbering it 4 keeps that
    decision in each device's pin map, where E807 enforces it.
-5. **SOT-223 name digits.** *Settled in the #101 review (before the first
-   publish):* `SOT4P230X650X350N`. The wave-1/2 rule (primary midpoint,
-   rounded half up) gave `SOT4P230X651X351N` (the name before the first
-   publish; same geometry), from AMS's millimetre column 6.30-6.71 x
-   3.30-3.71 mm. Those digits are an artefact of AMS's wide inch tolerances
-   (0.248-0.264 x 0.130-0.146 in; even the inch midpoints give 6.50 x
-   3.51 mm), not a different body: the family land carries the typical
-   nominal, which is Diodes' D 6.50 x E 3.50 mm (midpoints of 6.45-6.55 and
-   3.45-3.55 mm) and the 3c plan's placeholder.
+5. **SOT-223 name digits.** *Settled: the published name stays.* The
+   wave-1/2 rule (primary midpoint, rounded half up) gives
+   `SOT4P230X651X351N` from AMS's millimetre column 6.30-6.71 x
+   3.30-3.71 mm. Those digits are an artefact of rounding AMS's wide inch
+   tolerances (0.248-0.264 x 0.130-0.146 in), not a different body; the
+   JEDEC / typical nominal (Diodes' D 6.50 x E 3.50 mm, the midpoints of
+   6.45-6.55 and 3.45-3.55 mm, and the 3c plan's placeholder) would give
+   `SOT4P230X650X350N`. The #101 review recommended that name, but sot
+   0.1.0 was published to registry.cohdl.org as `SOT4P230X651X351N`, and a
+   published footprint path is permanent, so the name is fixed. Read the
+   `651X351` digits as the AMS-derived name of a standard SOT-223 land.
 6. **SOT-89 primary land.** The Hongjiacheng D882 land cannot be placed on
    its outline, so the Diodes land is used. *Recommendation:* accept the
    Diodes land; when D882 and the other SOT-89 series are bound, check the

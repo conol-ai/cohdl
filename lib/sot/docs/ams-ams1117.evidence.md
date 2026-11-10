@@ -1,6 +1,6 @@
 # Advanced Monolithic Systems AMS1117 evidence record (SOT-223 primary source)
 
-- Library coverage: primary outline source of `sot::SOT4P230X650X350N`. The
+- Library coverage: primary outline source of `sot::SOT4P230X651X351N`. The
   sheet gives no land; the land comes from the cross-check
   (`diodes-sot223.evidence.md`). No part binds it in this change; AMS1117
   is bound in the ICs batch.

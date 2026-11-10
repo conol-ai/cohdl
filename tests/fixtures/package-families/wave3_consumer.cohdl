@@ -32,7 +32,7 @@ device FixtureRegulator {
 }
 
 part FIXTURE_SMAF: FixtureDiode {
-    primary { mfr: "fixture", mpn: "FIXTURE-SMAF", footprint: do214::DIOM4726X120N }
+    primary { mfr: "fixture", mpn: "FIXTURE-SMAF", footprint: do214::FP_DO221AC_SMAF }
 }
 
 part FIXTURE_SOT89: FixtureTransistor {
@@ -44,7 +44,7 @@ part FIXTURE_SOT323: FixtureTransistor {
 }
 
 part FIXTURE_SOT223: FixtureRegulator {
-    primary { mfr: "fixture", mpn: "FIXTURE-SOT223", footprint: sot::SOT4P230X650X350N }
+    primary { mfr: "fixture", mpn: "FIXTURE-SOT223", footprint: sot::SOT4P230X651X351N }
 }
 
 design PackageFamiliesWave3 {

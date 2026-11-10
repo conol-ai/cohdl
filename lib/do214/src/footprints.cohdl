@@ -12,9 +12,10 @@
 // Names are IPC-7351B-style (DIOM + overall length + body width X height,
 // length and width in tenths of a millimetre, height in hundredths) but
 // DIOM is outside RFC-021's closed family set, so no name check (E808/E809)
-// runs on them. SMAF follows the same rule on its own source outline
-// (DIOM4726X120N); it carries no JEDEC label because neither source prints
-// one. The SMA/SMB/SMC names are an open question in docs/README.md.
+// runs on them. SMAF has no IPC-7351B family and takes the free name
+// FP_DO221AC_SMAF from the 3c plan, although neither source prints
+// "DO-221AC". Every name here was published in do214 0.1.0 and is
+// permanent; see docs/README.md.
 
 // SMA / DO-214AC. Primary source: Zhuhai Hongjiacheng SS32 THRU SS320
 // datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
@@ -147,10 +148,11 @@ pub footprint DIOM7959X261N {
     silkscreen_ref { at: (0mm, -4.2mm) }
 }
 
-// SMAF (flat-lead SMA). The 3c plan called it DO-221AC, a designation
-// neither source prints, so the land is named after its source outline
-// instead. Primary source: Zhuhai Hongjiacheng SS22F THRU SS220F datasheet
-// Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// SMAF (flat-lead SMA; DO-221AC in the 3c plan, a designation neither source
+// prints). The name FP_DO221AC_SMAF was published in do214 0.1.0 and is
+// permanent; the "DO221AC" in it is a label, not a claim that either source
+// registers the outline. Primary source: Zhuhai Hongjiacheng SS22F THRU
+// SS220F datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
 // docs/hongjiacheng-ss24f.evidence.md). The table gives one-sided limits
 // only: M (land width) >= 1.80mm, J (land length) >= 1.60mm, K (gap between
 // lands) <= 2.2mm. The land uses those limits as its values, as the SMA and
@@ -163,27 +165,25 @@ pub footprint DIOM7959X261N {
 // SMA land, for a longer outline (HE 4.80-5.60mm against Hongjiacheng's
 // D 4.40-4.90mm); see docs/README.md.
 //
-// This land fits Hongjiacheng-length SMAF bodies (overall length up to
-// 4.90mm: lead tips 0.25-0.50mm inside the 2.70mm outer land edge). A
-// Diodes-length body (HE up to 5.60mm, tips at up to 2.80mm) overhangs that
+// This land fits Hongjiacheng-length SMAF bodies only (overall length D
+// 4.40-4.90mm: lead tips 0.25-0.50mm inside the 2.70mm outer land edge). A
+// Diodes "SMAF" (HE 4.80-5.60mm, tips at up to 2.80mm) can overhang that
 // edge by up to 0.10mm, so another vendor's SMAF series is bound only after
 // its overall length is checked against the 2.70mm edge.
-pub pad P_DIOM4726X120N_LEAD {
+pub pad P_DO221AC_SMAF_LEAD {
     shape: rect
     size: (1.6mm, 1.8mm)
     layer: top_copper
     plating: smd
 }
 
-// Name digits from the primary page-3 outline: D (overall length) 4.40-
-// 4.90mm, nominal 4.65, rounded half up to 4.7; C (body width) 2.40-2.70mm,
-// nominal 2.55, rounded half up to 2.6; E (height) 0.90-1.20mm, 1.20mm
-// maximum. Also on that outline: A (lead width) 1.30-1.60mm, F (lead foot)
-// 0.80-1.20mm.
+// Primary page-3 outline: D (overall length) 4.40-4.90mm, C (body width)
+// 2.40-2.70mm, E (height) 0.90-1.20mm, A (lead width) 1.30-1.60mm,
+// F (lead foot) 0.80-1.20mm.
 #[doc("docs/README.md")]
-pub footprint DIOM4726X120N {
-    pad 1: P_DIOM4726X120N_LEAD at (-1.9mm, 0mm)
-    pad 2: P_DIOM4726X120N_LEAD at (1.9mm, 0mm)
+pub footprint FP_DO221AC_SMAF {
+    pad 1: P_DO221AC_SMAF_LEAD at (-1.9mm, 0mm)
+    pad 2: P_DO221AC_SMAF_LEAD at (1.9mm, 0mm)
     // Silkscreen: the cathode band outboard of pad 1, and the body long
     // edges just outside the 2.70mm maximum body width.
     silkscreen {

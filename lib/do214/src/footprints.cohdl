@@ -6,8 +6,10 @@
 // Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
 // at +x, the same frame as the `sod` package. The assembler has not yet read
 // a DO-214 part on a preview board; this orientation is the one it reads as
-// 0 degrees for SOD parts, and a frame board must confirm it for every land
-// here before the first publish.
+// 0 degrees for SOD parts. do214 0.1.0 was published (2026-11-09) with it,
+// so it remains unconfirmed by a frame board for every land here; a change
+// to pad numbering or rotation would be a breaking change needing a new
+// minor version.
 //
 // Names are IPC-7351B-style (DIOM + overall length + body width X height,
 // length and width in tenths of a millimetre, height in hundredths) but

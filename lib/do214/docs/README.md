@@ -17,8 +17,9 @@ the same frame as `sod`. The silkscreen carries
 `polarity_marker cathode_pin 1 shape band` (RFC-031) outboard of pad 1 and
 the two long body edges. No DO-214 or SMAF part has been read on a preview
 board yet: this orientation is the one the assembler reads as 0 degrees for
-SOD parts, and the frame boards must confirm it for SMA, SMB, SMC and SMAF
-before the first publish.
+SOD parts. do214 0.1.0 was published (2026-11-09) with it, so it remains
+unconfirmed by a frame board for SMA, SMB, SMC and SMAF; a change to pad
+numbering or rotation would be a breaking change needing a new minor version.
 Bidirectional TVS parts (`...CA`) carry no band but reuse this land.
 
 ## Lands
@@ -189,8 +190,11 @@ None in the library for SMA, SMB, SMC or SMAF.
    about `DIOM5226X244N`. *Settled by publication:* do214 0.1.0 was
    published with this name, so it is permanent.
 3. **Frame confirmation.** The -x cathode frame is not yet measured for any
-   DO-214 part; the wave-1 and wave-2 frame boards must read SMA, SMB and SMC
-   before the first publish (Tony's sign-off).
+   DO-214 part. do214 0.1.0 was published (2026-11-09) without that reading,
+   so this is an open item on a published package: the frame remains
+   unconfirmed until the wave-1 and wave-2 frame boards read SMA, SMB and
+   SMC. A change to pad numbering or rotation would be a breaking change
+   needing a new minor version.
 4. **SMB heel coverage.** `DIOM5336X265N` takes the SMBJ gap at its 2.74 mm
    maximum, as the SMA land does with its K limit. With Hongjiacheng's
    longest feet and shortest overall length, up to 0.35 mm of each heel sits

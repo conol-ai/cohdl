@@ -244,14 +244,18 @@ For SOT-23-3 these lands are not moved or changed:
    `@contrib/ldo`). *Recommendation:* keep them (3c plan option (a)) until
    re-exports exist; bind new SOT-23-3 parts to `sot::SOT3P190X290X130N`.
 3. **Frame confirmation.** The frame is copied from `FP_JSCJ_SOT23`'s
-   measured frame, not measured on this footprint. The wave-1 frame board
-   must read it before the first publish (Tony's sign-off). The SOT-89,
+   measured frame, not measured on this footprint. sot 0.1.0 was published
+   (2026-11-09) without that reading, so this is an open item on a published
+   package: the frame remains unconfirmed until the wave-1 frame board reads
+   it. The SOT-89,
    SOT-323 and SOT-223 frames apply the same turn by analogy (lead row at
    +x, tab at -x); the 3c plan suggested authoring SOT-89 and SOT-223 in the
    datasheet's own top view instead. *Recommendation:* keep one rule for the
    whole family, and let the wave-3 frame board (C9634 JSCJ D882, C20069128,
-   C7420322, C6186/C6187 AMS1117) read it; rotate a land before the first
-   publish only if every model reads the same non-zero angle.
+   C7420322, C6186/C6187 AMS1117) read it; rotate a land only if every
+   model reads the same non-zero angle. Those frames are unconfirmed too,
+   and a change to pad numbering or rotation would be a breaking change
+   needing a new minor version.
 4. **Tab numbering.** *Settled in the #101 review: the rule is adopted and
    written into `LIBRARY.md` section 4.* SOT-89 tab = second placement of
    pad 2 (verified on the Diodes bottom view); SOT-223 tab = pad 4 (rule

@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "rule": {
-  "version": "w3-2026-11-10",
+  "version": "w3-2026-11-10b",
   "package": "passive",
   "types": [
    "ChipResistor",
@@ -11,9 +11,11 @@
   "fraction": 0.05,
   "min_stock": 30,
   "angle_limit_deg": 10.0,
-  "offset_fraction": 0.5,
+  "offset_raw_fraction": 1.0,
+  "offset_residual_fraction": 0.5,
   "offset_bias": "board_median",
-  "infer_zero_stock": false
+  "infer_zero_stock": false,
+  "infer_not_drawn": false
  },
  "built_by": "tools/w3_record.py",
  "stock_source": {
@@ -1129,349 +1131,791 @@
     "C477817",
     "C477820"
    ],
+   "not_drawn": [],
    "samples": [
     {
      "pn": "C105637",
      "row": "w3p-chip0402-c105637",
      "angle_deg": 4.2,
-     "offset_mm": 0.037,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.003,
+      -0.114
+     ],
+     "raw_offset_mm": 0.114,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.037
     },
     {
      "pn": "C114763",
      "row": "c2b3-chip0402-c114763",
      "angle_deg": 1.5,
-     "offset_mm": 0.027,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.018,
+      -0.051
+     ],
+     "raw_offset_mm": 0.054,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.027
     },
     {
      "pn": "C137820",
      "row": "w3p-chip0402-c137820",
      "angle_deg": 0.7,
-     "offset_mm": 0.013,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.014,
+      -0.067
+     ],
+     "raw_offset_mm": 0.068,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.013
     },
     {
      "pn": "C137837",
      "row": "c2b3-chip0402-c137837",
      "angle_deg": -3.9,
-     "offset_mm": 0.03,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      0.002
+     ],
+     "raw_offset_mm": 0.003,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.03
     },
     {
      "pn": "C137847",
      "row": "w3p-chip0402-c137847",
      "angle_deg": -0.6,
-     "offset_mm": 0.045,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.009,
+      -0.034
+     ],
+     "raw_offset_mm": 0.035,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045
     },
     {
      "pn": "C137868",
      "row": "w3p-chip0402-c137868",
      "angle_deg": -0.2,
-     "offset_mm": 0.009,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.086
+     ],
+     "raw_offset_mm": 0.086,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.009
     },
     {
      "pn": "C137880",
      "row": "w3p-chip0402-c137880",
      "angle_deg": -3.8,
-     "offset_mm": 0.059,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.019,
+      -0.02
+     ],
+     "raw_offset_mm": 0.028,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.059
     },
     {
      "pn": "C137887",
      "row": "w3p-chip0402-c137887",
      "angle_deg": 3.2,
-     "offset_mm": 0.01,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.087
+     ],
+     "raw_offset_mm": 0.087,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.01
     },
     {
      "pn": "C137901",
      "row": "w3p-chip0402-c137901",
      "angle_deg": 2.6,
-     "offset_mm": 0.036,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.009,
+      -0.11
+     ],
+     "raw_offset_mm": 0.11,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.036
     },
     {
      "pn": "C137920",
      "row": "w3p-chip0402-c137920",
      "angle_deg": 0.3,
-     "offset_mm": 0.042,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.039
+     ],
+     "raw_offset_mm": 0.041,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.042
     },
     {
      "pn": "C137927",
      "row": "c2b3-chip0402-c137927",
      "angle_deg": -4.3,
-     "offset_mm": 0.033,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.011,
+      0.008
+     ],
+     "raw_offset_mm": 0.014,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.033
     },
     {
      "pn": "C137933",
      "row": "w3p-chip0402-c137933",
      "angle_deg": 1.3,
-     "offset_mm": 0.012,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.086
+     ],
+     "raw_offset_mm": 0.087,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.012
     },
     {
      "pn": "C137951",
      "row": "w3p-chip0402-c137951",
      "angle_deg": 2.4,
-     "offset_mm": 0.041,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.005,
+      -0.037
+     ],
+     "raw_offset_mm": 0.037,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.041
     },
     {
      "pn": "C137958",
      "row": "w3p-chip0402-c137958",
      "angle_deg": -1.1,
-     "offset_mm": 0.018,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.012,
+      -0.084
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018
     },
     {
      "pn": "C137962",
      "row": "w3p-chip0402-c137962",
      "angle_deg": -1.1,
-     "offset_mm": 0.011,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.002,
+      -0.085
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.011
     },
     {
      "pn": "C137983",
      "row": "w3p-chip0402-c137983",
      "angle_deg": 2.4,
-     "offset_mm": 0.021,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.098
+     ],
+     "raw_offset_mm": 0.098,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.021
     },
     {
      "pn": "C137992",
      "row": "w3p-chip0402-c137992",
      "angle_deg": -2.0,
-     "offset_mm": 0.022,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.098
+     ],
+     "raw_offset_mm": 0.099,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.022
     },
     {
      "pn": "C138005",
      "row": "w3p-chip0402-c138005",
      "angle_deg": -1.7,
-     "offset_mm": 0.042,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.032,
+      -0.045
+     ],
+     "raw_offset_mm": 0.055,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.042
     },
     {
      "pn": "C138014",
      "row": "w3p-chip0402-c138014",
      "angle_deg": -4.9,
-     "offset_mm": 0.045,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.025,
+      -0.037
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045
     },
     {
      "pn": "C138018",
      "row": "w3p-chip0402-c138018",
      "angle_deg": -0.0,
-     "offset_mm": 0.018,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.094
+     ],
+     "raw_offset_mm": 0.094,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018
     },
     {
      "pn": "C138033",
      "row": "w3p-chip0402-c138033",
      "angle_deg": 9.9,
-     "offset_mm": 0.04,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.117
+     ],
+     "raw_offset_mm": 0.117,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04
     },
     {
      "pn": "C138051",
      "row": "w3p-chip0402-c138051",
      "angle_deg": -6.6,
-     "offset_mm": 0.036,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.112
+     ],
+     "raw_offset_mm": 0.112,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.036
     },
     {
      "pn": "C155696",
      "row": "w3p-chip0402-c155696",
      "angle_deg": -3.5,
-     "offset_mm": 0.008,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.078
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.008
     },
     {
      "pn": "C163438",
      "row": "w3p-chip0402-c163438",
      "angle_deg": 2.5,
-     "offset_mm": 0.04,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.039
+     ],
+     "raw_offset_mm": 0.043,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04
     },
     {
      "pn": "C163449",
      "row": "w3p-chip0402-c163449",
      "angle_deg": -1.7,
-     "offset_mm": 0.008,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.07
+     ],
+     "raw_offset_mm": 0.07,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.008
     },
     {
      "pn": "C163478",
      "row": "w3p-chip0402-c163478",
      "angle_deg": 0.7,
-     "offset_mm": 0.02,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.001,
+      -0.097
+     ],
+     "raw_offset_mm": 0.097,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.02
     },
     {
      "pn": "C163489",
      "row": "w3p-chip0402-c163489",
      "angle_deg": 0.1,
-     "offset_mm": 0.04,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.002,
+      -0.116
+     ],
+     "raw_offset_mm": 0.116,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04
     },
     {
      "pn": "C171693",
      "row": "w3p-chip0402-c171693",
      "angle_deg": -4.4,
-     "offset_mm": 0.037,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.042
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.037
     },
     {
      "pn": "C185402",
      "row": "w3p-chip0402-c185402",
      "angle_deg": 3.1,
-     "offset_mm": 0.045,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.012,
+      -0.033
+     ],
+     "raw_offset_mm": 0.035,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045
     },
     {
      "pn": "C185437",
      "row": "w3p-chip0402-c185437",
      "angle_deg": 4.6,
-     "offset_mm": 0.03,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.107
+     ],
+     "raw_offset_mm": 0.107,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.03
     },
     {
      "pn": "C185445",
      "row": "w3p-chip0402-c185445",
      "angle_deg": 8.1,
-     "offset_mm": 0.044,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.121
+     ],
+     "raw_offset_mm": 0.121,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.044
     },
     {
      "pn": "C189473",
      "row": "w3p-chip0402-c189473",
      "angle_deg": 5.0,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.016,
+      -0.045
+     ],
+     "raw_offset_mm": 0.048,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C273339",
      "row": "w3p-chip0402-c273339",
      "angle_deg": -4.3,
-     "offset_mm": 0.02,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.004,
+      -0.095
+     ],
+     "raw_offset_mm": 0.095,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.02
     },
     {
      "pn": "C273691",
      "row": "w3p-chip0402-c273691",
      "angle_deg": 2.4,
-     "offset_mm": 0.04,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.005,
+      -0.038
+     ],
+     "raw_offset_mm": 0.038,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04
     },
     {
      "pn": "C276272",
      "row": "w3p-chip0402-c276272",
      "angle_deg": -2.1,
-     "offset_mm": 0.002,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.079
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.002
     },
     {
      "pn": "C327243",
      "row": "w3p-chip0402-c327243",
      "angle_deg": -2.0,
-     "offset_mm": 0.015,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.092
+     ],
+     "raw_offset_mm": 0.092,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.015
     },
     {
      "pn": "C327327",
      "row": "w3p-chip0402-c327327",
      "angle_deg": -1.9,
-     "offset_mm": 0.006,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.077
+     ],
+     "raw_offset_mm": 0.077,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.006
     },
     {
      "pn": "C327341",
      "row": "w3p-chip0402-c327341",
      "angle_deg": -2.2,
-     "offset_mm": 0.016,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.088
+     ],
+     "raw_offset_mm": 0.09,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.016
     },
     {
      "pn": "C327357",
      "row": "w3p-chip0402-c327357",
      "angle_deg": -2.7,
-     "offset_mm": 0.031,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.011,
+      -0.103
+     ],
+     "raw_offset_mm": 0.104,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.031
     },
     {
      "pn": "C327365",
      "row": "w3p-chip0402-c327365",
      "angle_deg": -6.6,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.012,
+      -0.114
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C477189",
      "row": "w3p-chip0402-c477189",
      "angle_deg": 4.7,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.003,
+      -0.114
+     ],
+     "raw_offset_mm": 0.114,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C477204",
      "row": "w3p-chip0402-c477204",
      "angle_deg": -1.8,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.006,
+      -0.115
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C477218",
      "row": "w3p-chip0402-c477218",
      "angle_deg": 5.2,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.114
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C477607",
      "row": "w3p-chip0402-c477607",
      "angle_deg": 4.1,
-     "offset_mm": 0.035,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.01,
+      -0.045
+     ],
+     "raw_offset_mm": 0.046,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.035
     },
     {
      "pn": "C477716",
      "row": "w3p-chip0402-c477716",
      "angle_deg": -4.0,
-     "offset_mm": 0.038,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.011,
+      -0.039
+     ],
+     "raw_offset_mm": 0.041,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038
     },
     {
      "pn": "C477772",
      "row": "w3p-chip0402-c477772",
      "angle_deg": 1.2,
-     "offset_mm": 0.004,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.081
+     ],
+     "raw_offset_mm": 0.081,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.004
     },
     {
      "pn": "C477801",
      "row": "c2b3-chip0402-c477801",
      "angle_deg": -3.7,
-     "offset_mm": 0.03,
-     "offset_limit_mm": 0.127
+     "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.0,
+      0.003
+     ],
+     "raw_offset_mm": 0.003,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.03
     },
     {
      "pn": "C60491",
      "row": "w3p-chip0402-c60491",
      "angle_deg": -3.0,
-     "offset_mm": 0.016,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.018,
+      -0.068
+     ],
+     "raw_offset_mm": 0.07,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.016
     },
     {
      "pn": "C93943",
      "row": "c2b3-chip0402-c93943",
      "angle_deg": 2.3,
-     "offset_mm": 0.022,
-     "offset_limit_mm": 0.128
+     "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.014,
+      -0.047
+     ],
+     "raw_offset_mm": 0.049,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.022
     }
    ]
   }

@@ -11,7 +11,8 @@ tree, under the rule in ``sourcing/w3_rule.py``. The tool then:
   evidence unchanged;
 - writes RECORD, a group record (``docs/library-supplier-w3-sampling.md`` §3.3);
 - writes one ``sampled`` row for every other member with stock on its
-  confirmed page and no row of its own under the group's key.
+  confirmed page, not listed as not drawn on a preview, and with no row of
+  its own under the group's key.
 
 With ``--check`` it changes nothing and fails if RECORD or ``jlc_frames.json``
 differs from what it would write. Nothing is fetched.
@@ -31,6 +32,9 @@ from sourcing import w3_rule  # noqa: E402
 ROOT = w3_groups.ROOT
 FRAMES = w3_groups.DATA / "jlc_frames.json"
 LAND = ("lib/passive/src/footprints.cohdl", "lib/passive/src/pads.cohdl")
+# A sample's reading as the group record carries it (``w3_rule.sample_reading``).
+READING = ("angle_deg", "offset_limit_mm", "raw_offset_xy_mm", "raw_offset_mm", "bias_xy_mm",
+           "residual_offset_mm")
 
 
 def group_id(g: dict) -> str:
@@ -77,11 +81,11 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
                 raise SystemExit(f"w3_record.py: archived row for {pn} cannot be adopted")
             rows.append(row)
             own[k], ids = row, ids | {row["id"]}
-        samples.append({"pn": pn, "row": row["id"], "angle_deg": passed["angle_deg"],
-                        "offset_mm": passed["offset_mm"], "offset_limit_mm": passed["offset_limit_mm"]})
+        samples.append({"pn": pn, "row": row["id"], **{field: passed[field] for field in READING}})
 
     members = sorted(m[0] for m in g["member_rows"])
     zero_stock = sorted(m[0] for m in g["member_rows"] if m[5] <= 0)
+    not_drawn = sorted(n["pn"] for n in g["not_drawn"])
     pages = next(name for name in report["sources"] if name.startswith("lcsc_backfill/"))
     record = {
         "schema_version": 1,
@@ -93,7 +97,7 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
             "footprint": g["footprint"], "type": g["type"], "mfr": g["mfr"], "series": g["series"],
             "status": "active",
             "land": {path: w3_groups._sha256(ROOT / path) for path in LAND},
-            "members": members, "zero_stock": zero_stock,
+            "members": members, "zero_stock": zero_stock, "not_drawn": not_drawn,
             "samples": sorted(samples, key=lambda s: s["pn"]),
         }],
     }
@@ -102,7 +106,8 @@ def build(record_path: str, key: tuple[str, str, str, str]) -> tuple[dict, dict]
     stock = {m[0]: m[5] for m in g["member_rows"]}
     for pn in members:
         k = (g["package"], g["package_version"], g["footprint"], pn)
-        if pn in sample_pns or k in own or (stock[pn] <= 0 and not w3_rule.RULE["infer_zero_stock"]):
+        if (pn in sample_pns or k in own or (stock[pn] <= 0 and not w3_rule.RULE["infer_zero_stock"])
+                or (pn in not_drawn and not w3_rule.RULE["infer_not_drawn"])):
             continue
         rows.append({
             "id": f"w3-{g['footprint'].lower().replace('_', '')}-{g['series'].lower()}-{pn.lower()}",
@@ -137,7 +142,7 @@ def main(argv=None) -> int:
     g = record["groups"][0]
     inferred = sum(1 for r in frames["rows"] if (r.get("sampled") or {}).get("group") == g["id"])
     print(f"{g['id']}: {len(g['members'])} members, {len(g['samples'])} samples, "
-          f"{len(g['zero_stock'])} with no stock, {inferred} inferred rows")
+          f"{len(g['zero_stock'])} with no stock, {len(g['not_drawn'])} not drawn, {inferred} inferred rows")
     return 0
 
 

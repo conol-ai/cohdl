@@ -2,7 +2,7 @@
 
 This is the assembler's placement preview of the first board built to re-verify the candidate supplier rotations found on the 2026-11-08 probe preview of PRs #78–#101. It carries four part numbers, each placed four times: top 0° and 37°, bottom 0° and 37°.
 
-The package is `pr78-101-reverify.zip`, SHA-256 `24cafbedab411621ebd8038ba47e7ca5108ea6ce526560e9f1e74f7a2d5ecaac`. It was built by `tools/frame_boards/preview_package.py` from a local merge of #101 `59c646d` and #95 `bf3a5eb` (package commit `6a68c88`), through `build_reprev.py` here. Alex approved this upload for the preview only. `jlc_preview.py` and `measure_preview.py` came from #79 (blob `dd56fb46b2`), run from a scratch copy. The flow stopped at Component Placements: nothing was added to the cart and no order was placed.
+The package is `pr78-101-reverify.zip`, SHA-256 `24cafbedab411621ebd8038ba47e7ca5108ea6ce526560e9f1e74f7a2d5ecaac`. It was built by `tools/frame_boards/preview_package.py` from a local merge of #101 `59c646d` and #95 `bf3a5eb` (package commit `6a68c88`, a local merge that was never pushed: it is on no GitHub branch and not on `main`; `59c646d` and `bf3a5eb` are on `main`), through `build_reprev.py` here. Alex approved this upload for the preview only. `jlc_preview.py` and `measure_preview.py` came from #79 (blob `dd56fb46b2`), run from a scratch copy. The flow stopped at Component Placements: nothing was added to the cart and no order was placed.
 
 ## Files
 
@@ -66,7 +66,7 @@ The body lengths in `body.json` vary between copies because the reference text a
 - **RS0104 pin distribution.** On the top view of U1 the model shows 5 leads on the left edge, 5 on the right and 2 on the bottom. The top edge is covered by the reference text and the pin 1 dot, which sits on our pad 1 (top edge, left of centre). The model's own pin 1 dimple is in the same corner. From below, the body hides the leads. This fits 5/5/2/2 but does not show the top edge, so this board supports the pin 1 direction only. The second board (`../2026-11-09-reverify-2/`) leaves the reference text off and shows the top edge.
 - **Diodes.** Each diode model shows a "+" and a "−", so `measure_preview.py` gives no angle for them; that is correct and is not to be turned into an automatic pass. They were read by hand from crops of `top.png` and `bottom.png`: on every placement the "−" and the lighter cathode band are at the end next to our cathode silk bar, and the "+" at the other end.
 - **SS34's model** is labelled "SMAJ12A" in the preview, probably a reused SMA body model. This record shows only the polarity of the chosen C number in this preview. It does not check the real part's identity from the model's text.
-- Left out of this board: W25Q32 (its model's pin numbering was checked first; it is on the second board), 2N7002W and AMS1117 (manual review), and the bidirectional TVS parts (their release rule was Tony's to make).
+- Left out of this board: W25Q32 (its model's pin numbering was checked first; it is on the second board), 2N7002W and AMS1117 (manual review), and the bidirectional TVS parts (their release rule was Tony's to make; it is now in `docs/library-supplier-plan.md`, and their body readings, taken from the probe preview itself, are in `../2026-11-08-probe/`).
 
 ## Since the preview (2026-11-10)
 
@@ -77,7 +77,7 @@ PRs #78–#101 merged on 2026-11-09. On `main`, `lib/sod`, `lib/do214` and `lib/
 
 ## Status of the diode rows: archived candidates, not bindings
 
-The three rows were first added to `tools/sourcing_data/jlc_frames.json` (commit `2becd34`). `sod` and `do214` ship lands only and no library source lists C7420331, C7420365 or C7420320, so the rows bound nothing. A row in the bound table with no binding is not evidence in use, so they were moved here unchanged, as the W3 pilot's rows were (`../2026-11-07-w3-pilot-0402/frames.json`). No generator reads `frames.json`: `tools/sourcing/bindings.py` reads only `jlc_frames.json`. `tools/tests/test_generator_bindings.py` checks that these rows stay out of `jlc_frames.json` and that no library source lists their part numbers while they are archived.
+The three rows were first added to `tools/sourcing_data/jlc_frames.json`, in an earlier commit of PR #108. `sod` and `do214` ship lands only and no library source lists C7420331, C7420365 or C7420320, so the rows bound nothing. A row in the bound table with no binding is not evidence in use, so they were moved here unchanged, as the W3 pilot's rows were (`../2026-11-07-w3-pilot-0402/frames.json`). No generator reads `frames.json`: `tools/sourcing/bindings.py` reads only `jlc_frames.json`. `tools/tests/test_generator_bindings.py` checks that these rows stay out of `jlc_frames.json` and that no library source lists their part numbers while they are archived.
 
 Adopting a row is W4 discretes work: add a library part for the MPN (B5819WS, SS34 or 1N4148WT) on the same land, with `supplier lcsc "<C number>" rotate 180`, and move the row into `jlc_frames.json`.
 

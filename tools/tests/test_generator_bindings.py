@@ -370,6 +370,11 @@ class CommittedTablesTests(unittest.TestCase):
     # A new archive has to be listed here, so its rows are checked, not just found.
     ARCHIVED = {
         "2026-11-07-w3-pilot-0402": None,  # 88 w3p- rows, checked by count and prefix
+        "2026-11-08-probe": [
+            "probe-diom5336x265n-c19077561",
+            "probe-diom7959x261n-c19077609",
+            "probe-sodfl3818x120n-c19077510",
+        ],
         "2026-11-08-reverify": [
             "rv1-sod2613x110n-c7420331",
             "rv1-diom5026x241n-c7420365",
@@ -396,6 +401,39 @@ class CommittedTablesTests(unittest.TestCase):
         for row in rows:
             self.assertEqual(row["mapping"]["rotate_deg"], 180, row["id"])
             self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [], row["id"])
+
+    def test_archived_probe_tvs_rows_have_no_library_part(self):
+        # The 2026-11-08 probe's bidirectional TVS rows are archived for the same
+        # reason: no library source lists their part numbers. They were read by the
+        # body only, on a board built with zero correction, so each row is rotate 0
+        # with no offset. When a part is added (W4), this fails: adopt the row then,
+        # re-keyed to the package version the part ships in.
+        archive = self.DATA / "jlc_previews" / "2026-11-08-probe" / "frames.json"
+        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+        self.assertEqual(
+            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            [
+                ("do214", "DIOM5336X265N", "C19077561"),
+                ("do214", "DIOM7959X261N", "C19077609"),
+                ("sod", "SODFL3818X120N", "C19077510"),
+            ],
+        )
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        zero = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
+        for row in rows:
+            self.assertEqual(row["mapping"], zero, row["id"])
+            self.assertEqual(row["measured"], zero, row["id"])
+            self.assertIsNone(row["exception"], row["id"])
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            self.assertIn("body only", row["evidence"]["note"], row["id"])
             needle = f'"{row["pn"]}"'
             listed = [
                 str(source.relative_to(ROOT))

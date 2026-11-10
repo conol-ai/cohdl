@@ -1,0 +1,282 @@
+{
+ "U1": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U2": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U3": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U4": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U5": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U6": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U7": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U8": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U9": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U10": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U11": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U12": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U13": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U14": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U15": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U16": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U17": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U18": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U19": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U20": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U21": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U22": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U23": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U24": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U25": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U26": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U27": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U28": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U29": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U30": {
+  "side": "top",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U31": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U32": {
+  "side": "bottom",
+  "status": "manual review",
+  "detail": "drawn, with no pin 1 mark of its own"
+ },
+ "U33": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U34": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U35": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U36": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U37": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U38": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U39": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U40": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U41": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U42": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U43": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U44": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U45": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U46": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U47": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U48": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U49": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U50": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U51": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U52": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U53": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U54": {
+  "side": "top",
+  "status": "mark",
+  "detail": ""
+ },
+ "U55": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ },
+ "U56": {
+  "side": "bottom",
+  "status": "mark",
+  "detail": ""
+ }
+}

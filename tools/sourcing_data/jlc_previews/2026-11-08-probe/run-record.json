@@ -1,0 +1,42 @@
+{
+  "package": "pr78-101-frame-preview.zip",
+  "sha256": "1a5d25174b39e91880b5a89eca5af0b345b2ac25990a295e3fa676718e556335",
+  "authorization": "User explicitly replied 允许 to package-specific confirmation.",
+  "recorded_at": "2026-11-08T06:45:38.252390+00:00",
+  "scope": "Upload Gerber/BOM/CPL using Arc; stop at Component Placements; export and measure; no cart/order/payment/terms acceptance.",
+  "bom_check": {
+    "part_numbers": 14,
+    "top_placements": 28,
+    "bottom_placements": 28,
+    "matched_selected_once_correct_side": true,
+    "stock_warning": false
+  },
+  "detected_board": "2 layers, 145 x 145 mm",
+  "status": "exports_complete_with_unverified_instances",
+  "script_exit_code": 3,
+  "coverage_counts": {
+    "manual review": 12,
+    "mark": 44
+  },
+  "measurement_counts": {
+    "manual_review_no_mark": 12,
+    "unverified_ambiguous_marks": 20,
+    "rotation_correction_required": 8,
+    "within_10_deg": 10,
+    "unverified_over_10_deg": 6
+  },
+  "source_changes": false,
+  "formal_bindings_added": false,
+  "stopped_at": "Component Placements",
+  "new_preview_projects": 1,
+  "artifacts_sha256": {
+    "preview/top.png": "be079f19c59f17b788fc47ee0ea2572a60c3da8caf727ba1a9467571f770ae06",
+    "preview/bottom.png": "632ce33f17c5683239fcf31739355a42e651a006144ad85b4a5e8c2d5464ac42",
+    "preview/checks.json": "e79b3227171489e596b7791ce4c19c7706c8a944e86d6dab8cacca9f77efd44e",
+    "measurements.json": "37546fec9e2a23f5c5afa4e0b064bf90135ba94c5d9dc173329e3657d08f15f1",
+    "assessment.json": "3d93d6b71db3d44297b84587796895679a16e3cf424d4b9a09193e50b18adb91"
+  },
+  "interpretation_correction": "manual-review-correction.txt",
+  "assessment_is_provisional": true,
+  "w25q32_rotation_recommendation_withdrawn": true
+}

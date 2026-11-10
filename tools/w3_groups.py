@@ -27,9 +27,14 @@ preview record judges it: a ``jlc_previews/*/w3.json`` names the record's BOM,
 checks and measurements (with the body offset as a vector), and the land files
 the preview was made with. Its readings hold only while those files still hash
 the same. A judged member passes when every copy's body is drawn and within the
-rule's sample limits, its offset taken against its view's median (board_bias).
-A group is ``paused`` when any member fails that way (not drawn, left for manual
-review, or outside the limits) or a direct reading is not (0, 0, 0).
+rule's sample limits: its angle, its raw offset, and its offset once its view's
+median is taken off (board_bias).
+
+A member whose model a preview did not draw (and that no copy fails otherwise)
+is ``not_drawn``: it is not a passed sample and is never inferred, but it does
+not pause its group. A group is ``paused`` when any member fails otherwise (left
+for manual review, outside the limits, or unverified for another reason) or a
+direct reading is not (0, 0, 0).
 """
 
 from __future__ import annotations
@@ -61,6 +66,8 @@ FRACTION = w3_rule.RULE["fraction"]
 # samples whose confirmed page read fewer than 20 pieces (5 to 19), and confirmed
 # every one with 21 or more. 30 leaves room for stock sold since the page was read.
 MIN_STOCK = w3_rule.RULE["min_stock"]
+# The detail ``frame_boards/jlc_preview.py`` gives a part whose model is not drawn.
+NOT_DRAWN = "no model drawn"
 
 
 def preview_inputs() -> dict[Path, dict]:
@@ -87,9 +94,10 @@ def judged_members() -> dict[tuple[str, str], list[dict]]:
     """Each (footprint, pn) a preview record judges, with one outcome per copy.
 
     Only records whose land files still hash as recorded count. Each outcome is
-    {record, ref, status, reading, ok}: ``status`` is the preview check's,
-    ``reading`` the rule's (angle, offset from the view's median, limit) for a
-    drawn body.
+    {record, ref, status, not_drawn, reading, ok}: ``status`` is the preview
+    check's, ``not_drawn`` whether it found bare pads where the model should be,
+    and ``reading`` the rule's (angle; raw offset, the view's bias and the
+    residual; limit) for a drawn body.
     """
     judged: dict[tuple[str, str], list[dict]] = {}
     for record, meta in preview_inputs().items():
@@ -113,7 +121,9 @@ def judged_members() -> dict[tuple[str, str], list[dict]]:
             check, m = checks.get(ref), readings.get(ref)
             if check is None or m is None:
                 continue
-            outcome = {"record": name, "ref": ref, "status": check["status"], "reading": None, "ok": False}
+            outcome = {"record": name, "ref": ref, "status": check["status"],
+                       "not_drawn": check["status"] == "unverified" and check["detail"].startswith(NOT_DRAWN),
+                       "reading": None, "ok": False}
             body = m.get("body", {})
             if check["status"] in ("body", "manual review") and "offset_xy_mm" in body:
                 outcome["reading"] = w3_rule.sample_reading(
@@ -231,7 +241,10 @@ def build() -> dict:
         anomalies = [d["pn"] for d in group["direct"] if any(group_value != 0 for group_value in d["mapping"].values())]
         outcomes = {m[0]: judged[(key[2], m[0])] for m in members if (key[2], m[0]) in judged}
         passed = sorted(pn for pn, copies in outcomes.items() if all(c["ok"] for c in copies))
-        failed = sorted(pn for pn, copies in outcomes.items() if not all(c["ok"] for c in copies))
+        # Not drawn on some copy, and no copy failing otherwise: neither passed nor a failure.
+        not_drawn = sorted(pn for pn, copies in outcomes.items()
+                           if any(c["not_drawn"] for c in copies) and all(c["ok"] or c["not_drawn"] for c in copies))
+        failed = sorted(set(outcomes) - set(passed) - set(not_drawn))
         tried = set(outcomes) | {d["pn"] for d in group["direct"]}
         need = max(0, required(len(members)) - len(passed))
         eligible = [m for m in members if m[0] not in tried and m[5] >= MIN_STOCK]
@@ -251,12 +264,13 @@ def build() -> dict:
             "passed": [{"pn": pn, **outcomes[pn][0]["reading"],
                         "records": sorted({c["record"] for c in outcomes[pn]})} for pn in passed],
             "failed": [{"pn": pn, "outcomes": outcomes[pn]} for pn in failed],
+            "not_drawn": [{"pn": pn, "outcomes": outcomes[pn]} for pn in not_drawn],
             "direct_not_judged": sorted({d["pn"] for d in group["direct"]} - set(outcomes)),
             "sample": [m[0] for m in choose(eligible, need, lambda m: m[0] in SHORT_AT_PREVIEW)],
             "member_rows": [m[:6] for m in members],
         })
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "rule": {**w3_rule.RULE, "short_at_preview": SHORT_AT_PREVIEW},
         "sources": {
             "lib/passive": version,
@@ -290,9 +304,13 @@ def render(report: dict) -> str:
         f"- Rule `{rule['version']}` (`tools/sourcing/w3_rule.py`): at least {rule['min_sample']} or "
         f"{rule['fraction']:.0%} of a group's members, whichever is larger, judged on a preview. A sample "
         f"passes when its body is drawn, lies along its pads within {rule['angle_limit_deg']:g} deg mod 180, "
-        f"and is centred within {rule['offset_fraction']:g} of its per-part limit after its view's median "
-        f"offset is taken off. Samples are chosen only among members with at least {rule['min_stock']} in "
+        f"is centred within {rule['offset_raw_fraction']:g} of its per-part limit as measured (raw), and "
+        f"within {rule['offset_residual_fraction']:g} of it once its view's median offset is taken off "
+        f"(residual). Samples are chosen only among members with at least {rule['min_stock']} in "
         f"stock. Members with no stock are {'inferred' if rule['infer_zero_stock'] else 'not inferred'}.",
+        f"- A sample whose model is not drawn is not a passed sample and does not pause its group; that part "
+        f"number is {'inferred' if rule['infer_not_drawn'] else 'not inferred'}. A sample left for manual "
+        "review, outside the limits, or unverified for another reason pauses its group.",
         f"- Groups: {sum(g['status'] == 'sampled' for g in groups)} sampled, "
         f"{sum(g['status'] == 'needs_samples' for g in groups)} need samples, "
         f"{sum(g['status'] == 'paused' for g in groups)} paused.",
@@ -305,30 +323,58 @@ def render(report: dict) -> str:
         "- Direct rows not judged: frame rows with their own evidence on a preview record that has no "
         "`w3.json`, so the rule cannot judge them. They do not count as samples.",
         "",
-        "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Required | More needed | Chosen | Status |",
-        "|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|",
+        "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Not drawn | Required | More needed | Chosen | Status |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for g in groups:
         lines.append(f"| `{g['footprint']}` | {g['type']} | {g['mfr']} | {g['series']} | {g['members']:,} | "
-                     f"{g['zero_stock']:,} | {len(g['passed'])} | {len(g['failed'])} | {g['required']} | "
-                     f"{g['more_needed']} | {len(g['sample'])} | {g['status']} |")
+                     f"{g['zero_stock']:,} | {len(g['passed'])} | {len(g['failed'])} | {len(g['not_drawn'])} | "
+                     f"{g['required']} | {g['more_needed']} | {len(g['sample'])} | {g['status']} |")
     lines += ["", "## Why groups are paused", ""]
     for g in groups:
         if g["status"] != "paused":
             continue
         reasons = [f"direct reading off zero: {', '.join(g['anomalies'])}"] if g["anomalies"] else []
         for f in g["failed"]:
-            why = "; ".join(f"{c['ref']} {c['status']}" + (
-                f" ({c['reading']['angle_deg']:+.1f} deg, {c['reading']['offset_mm']:.3f} of "
-                f"{rule['offset_fraction'] * c['reading']['offset_limit_mm']:.4f} mm)" if c["reading"] else "")
-                for c in f["outcomes"])
+            why = "; ".join(f"{c['ref']} {c['status']}" + (f" ({_reading(c['reading'], rule)})" if c["reading"] else "")
+                            for c in f["outcomes"])
             reasons.append(f"{f['pn']}: {why}")
         lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: " + " | ".join(reasons))
+    lines += ["", "## Not drawn", "",
+              "Not passed samples and not inferred; they do not pause their group by themselves.", ""]
+    for g in groups:
+        if g["not_drawn"]:
+            lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']} ({g['status']}): "
+                         + ", ".join(f"{n['pn']} ({', '.join(c['ref'] for c in n['outcomes'])})"
+                                     for n in g["not_drawn"]))
+    lines += ["", "## Offsets of passed samples", "",
+              "Per group: the bias taken off in each view, and the largest raw offset and residual among its "
+              "passed samples, each as a share of that sample's per-part limit.", ""]
+    for g in groups:
+        if not g["passed"]:
+            continue
+        biases = sorted({tuple(p["bias_xy_mm"]) for p in g["passed"]})
+        raw = max(g["passed"], key=lambda p: (p["raw_offset_mm"] / p["offset_limit_mm"], p["pn"]))
+        residual = max(g["passed"], key=lambda p: (p["residual_offset_mm"] / p["offset_limit_mm"], p["pn"]))
+        lines.append(
+            f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: {len(g['passed'])} passed; bias "
+            + ", ".join(f"({x:+.4f}, {y:+.4f}) mm" for x, y in biases)
+            + f"; largest raw {raw['pn']} {raw['raw_offset_mm']:.3f} of {raw['offset_limit_mm']:.3f} mm "
+            f"({raw['raw_offset_mm'] / raw['offset_limit_mm']:.0%}); largest residual {residual['pn']} "
+            f"{residual['residual_offset_mm']:.3f} of {residual['offset_limit_mm']:.3f} mm "
+            f"({residual['residual_offset_mm'] / residual['offset_limit_mm']:.0%})")
     lines += ["", "## Samples chosen", ""]
     for g in groups:
         if g["sample"] and g["status"] != "paused":
             lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: {', '.join(g['sample'])}")
     return "\n".join(lines) + "\n"
+
+
+def _reading(reading: dict, rule: dict) -> str:
+    limit = reading["offset_limit_mm"]
+    return (f"{reading['angle_deg']:+.1f} deg; raw {reading['raw_offset_mm']:.3f} of "
+            f"{rule['offset_raw_fraction'] * limit:.4f} mm; residual {reading['residual_offset_mm']:.3f} of "
+            f"{rule['offset_residual_fraction'] * limit:.4f} mm")
 
 
 def _render_v1(report: dict) -> str:

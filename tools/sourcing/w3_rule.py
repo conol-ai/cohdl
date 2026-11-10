@@ -1,9 +1,11 @@
 """The W3 sampled-inference rule for chip resistors and MLCCs.
 
 Tony accepted the rule on 2026-11-09 for the non-polar chip resistors and MLCCs of
-``lib/passive`` only (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188).
-The numbers below are the ones proposed in ``docs/library-supplier-w3-sampling.md``
-§5; the sample limits and the zero-stock rule await his confirmation there.
+``lib/passive`` only (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188),
+and decided on 2026-11-10 that a sample whose model is not drawn does not block its
+group. The numbers below are the ones proposed in ``docs/library-supplier-w3-sampling.md``
+§5; the sample limits, the zero-stock rule and the not-drawn rule await his
+confirmation there.
 
 ``tests/library/supplier.rs`` holds the same numbers and rejects a group record
 whose ``rule`` differs from ``RULE``, so a record cannot loosen its own rule.
@@ -15,7 +17,7 @@ import math
 import statistics
 
 RULE = {
-    "version": "w3-2026-11-10",
+    "version": "w3-2026-11-10b",
     "package": "passive",
     "types": ["ChipResistor", "MLCC"],
     # At least MIN_SAMPLE members or FRACTION of them, whichever is larger.
@@ -25,13 +27,21 @@ RULE = {
     "min_stock": 30,
     # A sample's body must lie along its pads within this, mod 180.
     "angle_limit_deg": 10.0,
-    # ... and be centred within this fraction of the per-part limit, after the board's
-    # median body offset is taken off (see board_bias).
-    "offset_fraction": 0.5,
+    # ... and be centred within this fraction of the per-part limit as measured, with
+    # nothing taken off: the absolute check (the pilot's per-part pass line) ...
+    "offset_raw_fraction": 1.0,
+    # ... and within this fraction of it once the view's median body offset is taken
+    # off (board_bias): the consistency check. Both must hold.
+    "offset_residual_fraction": 0.5,
     "offset_bias": "board_median",
     # A member with no stock on its confirmed page is not bound by inference.
     "infer_zero_stock": False,
+    # A member whose model a preview did not draw is not bound by inference.
+    "infer_not_drawn": False,
 }
+
+# A record's offsets are rounded to the micrometre; its arithmetic must hold within this.
+ROUNDING_MM = 0.001
 
 
 def required(members: int) -> int:
@@ -41,25 +51,47 @@ def required(members: int) -> int:
 def board_bias(offsets: list[tuple[float, float]]) -> tuple[float, float]:
     """The median body-centre offset over every drawn chip body of one preview view.
 
-    On the 2026-11-07 pilot all three groups, two makers and both part types sat
-    about 0.077 mm low in the export (Yageo CC 0.061, Yageo RC 0.079, Vishay CRCW
-    0.067), with a spread of 0.01-0.03 mm about it: a property of the export, not
-    of any one model. Judging samples against the board's own median leaves the
-    spread, which is what tells one model from another.
+    Hypothesis, not established: that this shift belongs to the export rather than
+    to the models. For it: on the 2026-11-07 pilot the three groups, two makers and
+    both part types sat about 0.077 mm off along board -y (Yageo CC 0.061, Yageo RC
+    0.079, Vishay CRCW 0.067), with a spread of 0.01-0.03 mm about it. Against it,
+    or at least not for it: every pilot body was placed at 0 deg on one land, so a
+    land-level offset that every maker's model shares on CHIP_0402 would look the
+    same; and on C2 board 3, the one record with chip parts at two rotations, the
+    large CHIP_2010 offset turns with the part, as a model's would, and not with the
+    board (``docs/library-supplier-w3-sampling.md`` §5).
+
+    So taking the median off proves only that a sample agrees with the other bodies
+    of its view, not that it is centred. The rule therefore also bounds the raw
+    offset (``offset_raw_fraction``): a view whose bodies all sit off by the same
+    amount passes only while that amount is within the per-part limit itself.
     """
     if not offsets:
         raise ValueError("no drawn chip bodies to take a bias from")
-    return (statistics.median(x for x, _ in offsets), statistics.median(y for _, y in offsets))
+    return (round(statistics.median(x for x, _ in offsets), 4),
+            round(statistics.median(y for _, y in offsets), 4))
 
 
 def sample_reading(angle_deg: float, offset_xy_mm: tuple[float, float], offset_limit_mm: float,
                    bias: tuple[float, float]) -> dict:
-    """The record entry for one sample: its angle and its offset from the board's bias."""
-    offset = math.hypot(offset_xy_mm[0] - bias[0], offset_xy_mm[1] - bias[1])
-    return {"angle_deg": round(angle_deg, 1), "offset_mm": round(offset, 3),
-            "offset_limit_mm": round(offset_limit_mm, 3)}
+    """The record entry for one sample: its angle, its raw offset (vector and size),
+    the view's bias taken off it, and what is left (the residual)."""
+    raw = (round(offset_xy_mm[0], 3), round(offset_xy_mm[1], 3))
+    return {"angle_deg": round(angle_deg, 1),
+            "offset_limit_mm": round(offset_limit_mm, 3),
+            "raw_offset_xy_mm": list(raw),
+            "raw_offset_mm": round(math.hypot(*raw), 3),
+            "bias_xy_mm": [bias[0], bias[1]],
+            "residual_offset_mm": round(math.hypot(raw[0] - bias[0], raw[1] - bias[1]), 3)}
 
 
 def sample_ok(reading: dict) -> bool:
+    """A reading within the rule: the angle, the raw offset and the residual each
+    within their limits, and the raw size and the residual what its vectors give."""
+    limit = reading["offset_limit_mm"]
+    (rx, ry), (bx, by) = reading["raw_offset_xy_mm"], reading["bias_xy_mm"]
     return (abs(reading["angle_deg"]) <= RULE["angle_limit_deg"]
-            and reading["offset_mm"] <= RULE["offset_fraction"] * reading["offset_limit_mm"])
+            and abs(reading["raw_offset_mm"] - math.hypot(rx, ry)) <= ROUNDING_MM
+            and abs(reading["residual_offset_mm"] - math.hypot(rx - bx, ry - by)) <= ROUNDING_MM
+            and reading["raw_offset_mm"] <= RULE["offset_raw_fraction"] * limit
+            and reading["residual_offset_mm"] <= RULE["offset_residual_fraction"] * limit)

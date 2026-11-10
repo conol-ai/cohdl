@@ -82,3 +82,20 @@ PRs #78–#101 merged on 2026-11-09. On `main`, `lib/@contrib/level-shifter` is 
 - **W25Q32RVXHJQ C32246052** is bound in `flash` 0.3.1: `supplier lcsc "C32246052" rotate 270`, frame row `rv2-fpw25q32rvxson82x3-c32246052`.
 
 Both rows cite this README; their evidence notes give the numbers above. Neither version changes a land.
+
+## Why `flash` 0.3.0 has two hashes in the archived locks
+
+`package/cohdl.lock` of the 2026-11-08 probe and of the 2026-11-09 re-verify board 2 both pin `flash` 0.3.0, with different hashes. Each lock is the one the uploaded package was built with and is kept as it was; neither is replaced by the hash of the published 0.3.0.
+
+| Record | Package commit (local merge, never pushed) | `flash` 0.3.0 hash in its lock |
+|---|---|---|
+| `2026-11-08-probe` | `7200cf2c89a58468dffb9421f8a8c35298ba23a9` | `sha256:7ed37ac57bafde9b63b2a1272bebfcd6b63a8b6d5e82c9aad5c62ca79e0902c8` |
+| `2026-11-09-reverify-2` | `38b8434383849e95d24f16349cd6b4f5520c1a32` | `sha256:db726ea6e88bfca60b264c656a78735c93c8d856273076d4571e21fc7414ea76` |
+
+The two `lib/flash` trees differ in two files only (`git diff 7200cf2 38b8434 -- lib/flash`, where both commits are available):
+- `src/w25q128jv.cohdl`: the probe's tree binds `FLASH_W25Q128JVSIQ` to LCSC C97521 (PR #80's binding, in that local merge); board 2's tree does not.
+- `docs/README.md`: the four lines describing that binding.
+
+Both hashes were reproduced by a reviewer on 2026-11-11 by taking the package out of each commit and running the compiler offline with an isolated cache. `main` at `a0c5d11` differs from each tree again (it carries the C97521 binding and its README section as merged), so the published `flash` 0.3.0 has a third hash.
+
+**This does not touch the W25Q32 evidence.** `src/w25q32.cohdl` is the same blob (`5dd19dc4…`) in both commits and on `main` at `a0c5d11`: the part definition and the land `FP_W25Q32RV_XSON8_2X3` that the previews read are identical. PR #108 changes that file only by adding `supplier lcsc "C32246052" rotate 270` to the primary.

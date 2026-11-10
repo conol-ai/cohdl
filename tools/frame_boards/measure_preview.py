@@ -236,9 +236,9 @@ def body(view, fp):
     short = max(sxx + syy - long_, 1e-12)
     axis = math.degrees(0.5 * math.atan2(2 * sxy, sxx - syy))
     delta = (axis - math.degrees(math.atan2(by - ay, bx - ax)) + 90) % 180 - 90
-    # offset_xy_mm is the same offset as a board-frame vector: an export can shift
-    # every body the same way, and W3 judges samples against that shared shift
-    # (tools/sourcing/w3_rule.py, board_bias).
+    # offset_xy_mm is the same offset as a board-frame vector. W3 bounds it raw and
+    # also after taking off the view's median, on the hypothesis that a shift every
+    # body shares may be the export's (tools/sourcing/w3_rule.py, board_bias).
     return {"delta_mod_180": round(delta, 1), "offset_mm": round(math.hypot(mx, my), 3),
             "offset_xy_mm": [round(mx, 3), round(my, 3)],
             "offset_limit_mm": round(chip_offset_limit(half), 3),

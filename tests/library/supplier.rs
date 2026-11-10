@@ -64,22 +64,25 @@ struct SampledRow {
 }
 
 /// The W3 rule Tony accepted on 2026-11-09 for `passive` chip resistors and MLCCs
-/// (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188), with the
+/// (https://github.com/conol-ai/cohdl/pull/79#issuecomment-6734040188), with his
+/// 2026-11-10 decision that a sample not drawn does not block its group and the
 /// numbers proposed in `docs/library-supplier-w3-sampling.md` §5. It must equal
 /// `RULE` in `tools/sourcing/w3_rule.py`; a group record carrying any other rule
 /// is rejected, so a record cannot loosen its own rule.
 fn w3_rule() -> Value {
     serde_json::json!({
-        "version": "w3-2026-11-10",
+        "version": "w3-2026-11-10b",
         "package": "passive",
         "types": ["ChipResistor", "MLCC"],
         "min_sample": 3,
         "fraction": 0.05,
         "min_stock": 30,
         "angle_limit_deg": 10.0,
-        "offset_fraction": 0.5,
+        "offset_raw_fraction": 1.0,
+        "offset_residual_fraction": 0.5,
         "offset_bias": "board_median",
-        "infer_zero_stock": false
+        "infer_zero_stock": false,
+        "infer_not_drawn": false
     })
 }
 
@@ -685,8 +688,11 @@ fn json_strings(value: &Value, field: &str) -> Option<Vec<String>> {
 /// carries the accepted rule; its group is active, in scope and keyed on the
 /// row's own (package, version, footprint); the land files it names still hash
 /// as recorded; the row's part number is a member, not a sample and, unless the
-/// rule allows it, not out of stock; and every sample is a member with its own
-/// zero-mapping evidence row under the same key and a reading within the rule.
+/// rule allows it, neither out of stock nor left undrawn on a preview; and every
+/// sample is a member with its own zero-mapping evidence row under the same key
+/// and a reading within the rule: its angle, its raw offset and its residual once
+/// the view's bias is taken off each within their limits, and the raw size and
+/// residual what its vectors give.
 fn audit_sampled(
     repo_root: &Path,
     rows: &[SampledRow],
@@ -696,8 +702,13 @@ fn audit_sampled(
     let rule = w3_rule();
     let number = |field: &str| rule[field].as_f64().unwrap();
     let (min_sample, fraction) = (number("min_sample") as usize, number("fraction"));
-    let (angle_limit, offset_fraction) = (number("angle_limit_deg"), number("offset_fraction"));
+    let angle_limit = number("angle_limit_deg");
+    let (raw_fraction, residual_fraction) = (
+        number("offset_raw_fraction"),
+        number("offset_residual_fraction"),
+    );
     let infer_zero_stock = rule["infer_zero_stock"].as_bool().unwrap();
+    let infer_not_drawn = rule["infer_not_drawn"].as_bool().unwrap();
     let mut records: BTreeMap<String, Option<Value>> = BTreeMap::new();
     for row in rows {
         let context = &row.context;
@@ -817,6 +828,15 @@ fn audit_sampled(
             );
         }
         let zero_stock = json_strings(group, "zero_stock").unwrap_or_default();
+        let not_drawn = json_strings(group, "not_drawn");
+        if not_drawn.is_none() {
+            error(
+                context,
+                format!("W3 group `{}` must list its members not drawn", row.group),
+                errors,
+            );
+        }
+        let not_drawn = not_drawn.unwrap_or_default();
         let samples = group
             .get("samples")
             .and_then(Value::as_array)
@@ -847,6 +867,15 @@ fn audit_sampled(
             error(
                 context,
                 format!("lcsc {pn} has no stock, and the rule infers no zero-stock member"),
+                errors,
+            );
+        }
+        if !infer_not_drawn && not_drawn.contains(pn) {
+            error(
+                context,
+                format!(
+                    "lcsc {pn} was not drawn on a preview, and the rule infers no member not drawn"
+                ),
                 errors,
             );
         }
@@ -894,22 +923,70 @@ fn audit_sampled(
                     errors,
                 );
             }
-            let angle = sample.get("angle_deg").and_then(Value::as_f64);
-            let offset = sample.get("offset_mm").and_then(Value::as_f64);
-            let limit = sample.get("offset_limit_mm").and_then(Value::as_f64);
-            let within = matches!((angle, offset, limit), (Some(angle), Some(offset), Some(limit))
-                if angle.abs() <= angle_limit && offset <= offset_fraction * limit);
-            if !within {
+            for message in
+                sample_reading_errors(sample, angle_limit, raw_fraction, residual_fraction)
+            {
                 error(
                     context,
-                    format!(
-                        "W3 sample lcsc {sample_pn} reading is outside the rule ({angle_limit} deg, {offset_fraction} of the offset limit)"
-                    ),
+                    format!("W3 sample lcsc {sample_pn} {message}"),
                     errors,
                 );
             }
         }
     }
+}
+
+/// What is wrong with one sample's reading under the rule, if anything (the
+/// checks of `sample_ok` in `tools/sourcing/w3_rule.py`).
+fn sample_reading_errors(
+    sample: &Value,
+    angle_limit: f64,
+    raw_fraction: f64,
+    residual_fraction: f64,
+) -> Vec<String> {
+    // A record's offsets are rounded to the micrometre.
+    const ROUNDING_MM: f64 = 0.001;
+    let number = |field: &str| sample.get(field).and_then(Value::as_f64);
+    let vector = |field: &str| match sample.get(field).and_then(Value::as_array) {
+        Some(items) if items.len() == 2 => items[0].as_f64().zip(items[1].as_f64()),
+        _ => None,
+    };
+    let (Some(angle), Some(limit), Some(raw), Some(raw_xy), Some(bias_xy), Some(residual)) = (
+        number("angle_deg"),
+        number("offset_limit_mm"),
+        number("raw_offset_mm"),
+        vector("raw_offset_xy_mm"),
+        vector("bias_xy_mm"),
+        number("residual_offset_mm"),
+    ) else {
+        return vec![
+            "reading must give angle_deg, offset_limit_mm, raw_offset_xy_mm, raw_offset_mm, bias_xy_mm and residual_offset_mm".to_string(),
+        ];
+    };
+    let mut problems = Vec::new();
+    if angle.abs() > angle_limit {
+        problems.push(format!(
+            "angle {angle} deg is outside the rule's {angle_limit} deg"
+        ));
+    }
+    let measured = raw_xy.0.hypot(raw_xy.1);
+    let left = (raw_xy.0 - bias_xy.0).hypot(raw_xy.1 - bias_xy.1);
+    if (raw - measured).abs() > ROUNDING_MM || (residual - left).abs() > ROUNDING_MM {
+        problems.push(format!(
+            "offsets do not add up: raw {raw} mm and residual {residual} mm, but its vectors give {measured:.3} and {left:.3}"
+        ));
+    }
+    if raw > raw_fraction * limit {
+        problems.push(format!(
+            "raw offset {raw} mm is above {raw_fraction} of its {limit} mm limit"
+        ));
+    }
+    if residual > residual_fraction * limit {
+        problems.push(format!(
+            "residual offset {residual} mm is above {residual_fraction} of its {limit} mm limit"
+        ));
+    }
+    problems
 }
 
 fn entries(part: &PartDef) -> impl Iterator<Item = &AvlEntry> {
@@ -1309,14 +1386,26 @@ mod tests {
             ("sample", "lcsc C_S1 is a sample of W3 group `g1`"),
             (
                 "few",
-                "has 2 distinct samples; the rule requires 3 of 5 members",
+                "has 2 distinct samples; the rule requires 3 of 6 members",
             ),
             (
                 "own-evidence",
                 "W3 sample lcsc C_S3 must be a member with its own zero-mapping evidence row `s3`",
             ),
-            ("reading", "W3 sample lcsc C_S2 reading is outside the rule"),
-            ("offset", "W3 sample lcsc C_S2 reading is outside the rule"),
+            (
+                "reading",
+                "W3 sample lcsc C_S2 angle 12 deg is outside the rule's 10 deg",
+            ),
+            (
+                "offset",
+                "W3 sample lcsc C_S2 residual offset 0.07 mm is above 0.5 of its 0.127 mm limit",
+            ),
+            (
+                "raw",
+                "W3 sample lcsc C_S1 raw offset 0.13 mm is above 1 of its 0.127 mm limit",
+            ),
+            ("arithmetic", "W3 sample lcsc C_S2 offsets do not add up"),
+            ("not-drawn", "lcsc C_S_UNDRAWN was not drawn on a preview"),
             ("mapping", "a W3 inferred row must have a zero mapping"),
             (
                 "two-kinds",

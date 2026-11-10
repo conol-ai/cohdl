@@ -1,7 +1,7 @@
 {
- "schema_version": 2,
+ "schema_version": 3,
  "rule": {
-  "version": "w3-2026-11-10",
+  "version": "w3-2026-11-10b",
   "package": "passive",
   "types": [
    "ChipResistor",
@@ -11,9 +11,11 @@
   "fraction": 0.05,
   "min_stock": 30,
   "angle_limit_deg": 10.0,
-  "offset_fraction": 0.5,
+  "offset_raw_fraction": 1.0,
+  "offset_residual_fraction": 0.5,
   "offset_bias": "board_median",
   "infer_zero_stock": false,
+  "infer_not_drawn": false,
   "short_at_preview": {
    "C185414": "2026-11-07 w3-pilot-0402 second package 85e55a26 (page read 39)",
    "C185430": "2026-11-07 w3-pilot-0402 second package 85e55a26 (page read 100)"
@@ -63,6 +65,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C843835",
@@ -5123,10 +5126,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R1",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 1.2,
-        "offset_mm": 0.064,
-        "offset_limit_mm": 0.08
+        "offset_limit_mm": 0.08,
+        "raw_offset_xy_mm": [
+         -0.038,
+         0.032
+        ],
+        "raw_offset_mm": 0.05,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.064
        },
        "ok": false
       },
@@ -5134,10 +5147,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R2",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -0.1,
-        "offset_mm": 0.06,
-        "offset_limit_mm": 0.08
+        "offset_limit_mm": 0.08,
+        "raw_offset_xy_mm": [
+         -0.037,
+         0.029
+        ],
+        "raw_offset_mm": 0.047,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.06
        },
        "ok": false
       },
@@ -5145,10 +5168,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R3",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -4.1,
-        "offset_mm": 0.046,
-        "offset_limit_mm": 0.08
+        "offset_limit_mm": 0.08,
+        "raw_offset_xy_mm": [
+         -0.046,
+         0.035
+        ],
+        "raw_offset_mm": 0.058,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.046
        },
        "ok": false
       },
@@ -5156,16 +5189,27 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R4",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -2.8,
-        "offset_mm": 0.058,
-        "offset_limit_mm": 0.08
+        "offset_limit_mm": 0.08,
+        "raw_offset_xy_mm": [
+         -0.054,
+         0.045
+        ],
+        "raw_offset_mm": 0.07,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.058
        },
        "ok": false
       }
      ]
     }
    ],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C106224",
@@ -11181,8 +11225,17 @@
     {
      "pn": "C541229",
      "angle_deg": 0.1,
-     "offset_mm": 0.034,
      "offset_limit_mm": 0.08,
+     "raw_offset_xy_mm": [
+      -0.01,
+      0.009
+     ],
+     "raw_offset_mm": 0.013,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.034,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -11190,14 +11243,24 @@
     {
      "pn": "C718246",
      "angle_deg": -3.2,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.08,
+     "raw_offset_xy_mm": [
+      -0.027,
+      0.011
+     ],
+     "raw_offset_mm": 0.029,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C541202",
@@ -12182,14 +12245,23 @@
    ],
    "required": 49,
    "more_needed": 9,
-   "status": "paused",
+   "status": "needs_samples",
    "anomalies": [],
    "passed": [
     {
      "pn": "C2076615",
      "angle_deg": -1.2,
-     "offset_mm": 0.023,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.006,
+      -0.1
+     ],
+     "raw_offset_mm": 0.1,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.023,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12197,8 +12269,17 @@
     {
      "pn": "C2076633",
      "angle_deg": -1.3,
-     "offset_mm": 0.004,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.074
+     ],
+     "raw_offset_mm": 0.074,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.004,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12206,8 +12287,17 @@
     {
      "pn": "C2076814",
      "angle_deg": -1.0,
-     "offset_mm": 0.018,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.078
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12215,8 +12305,17 @@
     {
      "pn": "C2076975",
      "angle_deg": 1.5,
-     "offset_mm": 0.019,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.084
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.019,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12224,8 +12323,17 @@
     {
      "pn": "C2085341",
      "angle_deg": -1.8,
-     "offset_mm": 0.001,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.006,
+      -0.077
+     ],
+     "raw_offset_mm": 0.077,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.001,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12233,8 +12341,17 @@
     {
      "pn": "C2085358",
      "angle_deg": -4.6,
-     "offset_mm": 0.056,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.021
+     ],
+     "raw_offset_mm": 0.022,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.056,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12242,8 +12359,17 @@
     {
      "pn": "C2091561",
      "angle_deg": 1.6,
-     "offset_mm": 0.045,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.032
+     ],
+     "raw_offset_mm": 0.033,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12251,8 +12377,17 @@
     {
      "pn": "C2092127",
      "angle_deg": 1.2,
-     "offset_mm": 0.047,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.015,
+      -0.031
+     ],
+     "raw_offset_mm": 0.034,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.047,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12260,8 +12395,17 @@
     {
      "pn": "C2094717",
      "angle_deg": -4.9,
-     "offset_mm": 0.052,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.015,
+      -0.026
+     ],
+     "raw_offset_mm": 0.03,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.052,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12269,8 +12413,17 @@
     {
      "pn": "C3008838",
      "angle_deg": 0.9,
-     "offset_mm": 0.042,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.023,
+      -0.039
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.042,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12278,8 +12431,17 @@
     {
      "pn": "C3009191",
      "angle_deg": -3.7,
-     "offset_mm": 0.056,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.015,
+      -0.022
+     ],
+     "raw_offset_mm": 0.027,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.056,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12287,8 +12449,17 @@
     {
      "pn": "C3009257",
      "angle_deg": 7.1,
-     "offset_mm": 0.041,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.008,
+      -0.066
+     ],
+     "raw_offset_mm": 0.066,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.041,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -12296,8 +12467,17 @@
     {
      "pn": "C3009270",
      "angle_deg": 1.5,
-     "offset_mm": 0.044,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.001,
+      -0.033
+     ],
+     "raw_offset_mm": 0.033,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.044,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12305,8 +12485,17 @@
     {
      "pn": "C4071412",
      "angle_deg": -1.2,
-     "offset_mm": 0.016,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.021,
+      -0.08
+     ],
+     "raw_offset_mm": 0.083,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.016,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12314,8 +12503,17 @@
     {
      "pn": "C4156475",
      "angle_deg": 2.5,
-     "offset_mm": 0.026,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.008,
+      -0.1
+     ],
+     "raw_offset_mm": 0.1,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.026,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12323,8 +12521,17 @@
     {
      "pn": "C4231651",
      "angle_deg": -3.4,
-     "offset_mm": 0.024,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.005,
+      -0.099
+     ],
+     "raw_offset_mm": 0.099,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.024,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12332,8 +12539,17 @@
     {
      "pn": "C4267913",
      "angle_deg": -0.7,
-     "offset_mm": 0.005,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.01,
+      -0.076
+     ],
+     "raw_offset_mm": 0.077,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.005,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12341,8 +12557,17 @@
     {
      "pn": "C4308344",
      "angle_deg": 2.8,
-     "offset_mm": 0.002,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.079
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.002,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12350,8 +12575,17 @@
     {
      "pn": "C4351510",
      "angle_deg": 0.5,
-     "offset_mm": 0.044,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.033
+     ],
+     "raw_offset_mm": 0.034,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.044,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12359,8 +12593,17 @@
     {
      "pn": "C481918",
      "angle_deg": -7.3,
-     "offset_mm": 0.011,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.068
+     ],
+     "raw_offset_mm": 0.068,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.011,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12368,8 +12611,17 @@
     {
      "pn": "C481923",
      "angle_deg": -4.1,
-     "offset_mm": 0.026,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.024,
+      -0.059
+     ],
+     "raw_offset_mm": 0.064,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.026,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12377,8 +12629,17 @@
     {
      "pn": "C481939",
      "angle_deg": 1.9,
-     "offset_mm": 0.037,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.009,
+      -0.04
+     ],
+     "raw_offset_mm": 0.041,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.037,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12386,8 +12647,17 @@
     {
      "pn": "C481953",
      "angle_deg": -4.7,
-     "offset_mm": 0.02,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.004,
+      -0.095
+     ],
+     "raw_offset_mm": 0.095,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.02,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12395,8 +12665,17 @@
     {
      "pn": "C481958",
      "angle_deg": -5.2,
-     "offset_mm": 0.023,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.1
+     ],
+     "raw_offset_mm": 0.1,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.023,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12404,8 +12683,17 @@
     {
      "pn": "C482064",
      "angle_deg": -4.3,
-     "offset_mm": 0.019,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.003,
+      -0.096
+     ],
+     "raw_offset_mm": 0.096,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.019,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12413,8 +12701,17 @@
     {
      "pn": "C482072",
      "angle_deg": -3.3,
-     "offset_mm": 0.023,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.011,
+      -0.099
+     ],
+     "raw_offset_mm": 0.1,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.023,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12422,8 +12719,17 @@
     {
      "pn": "C482097",
      "angle_deg": 7.5,
-     "offset_mm": 0.023,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.1
+     ],
+     "raw_offset_mm": 0.1,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.023,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12431,8 +12737,17 @@
     {
      "pn": "C482142",
      "angle_deg": -3.4,
-     "offset_mm": 0.063,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.032,
+      -0.02
+     ],
+     "raw_offset_mm": 0.038,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.063,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12440,8 +12755,17 @@
     {
      "pn": "C482180",
      "angle_deg": -2.1,
-     "offset_mm": 0.004,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.003,
+      -0.073
+     ],
+     "raw_offset_mm": 0.073,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.004,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12449,8 +12773,17 @@
     {
      "pn": "C482185",
      "angle_deg": 0.6,
-     "offset_mm": 0.009,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.004,
+      -0.08
+     ],
+     "raw_offset_mm": 0.08,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.009,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12458,8 +12791,17 @@
     {
      "pn": "C482191",
      "angle_deg": -0.6,
-     "offset_mm": 0.006,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.01,
+      -0.08
+     ],
+     "raw_offset_mm": 0.081,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.006,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12467,8 +12809,17 @@
     {
      "pn": "C482196",
      "angle_deg": 0.3,
-     "offset_mm": 0.005,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.01,
+      -0.075
+     ],
+     "raw_offset_mm": 0.076,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.005,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12476,8 +12827,17 @@
     {
      "pn": "C482203",
      "angle_deg": -3.5,
-     "offset_mm": 0.005,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.01,
+      -0.077
+     ],
+     "raw_offset_mm": 0.078,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.005,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12485,8 +12845,17 @@
     {
      "pn": "C482217",
      "angle_deg": 1.0,
-     "offset_mm": 0.046,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.0,
+      -0.031
+     ],
+     "raw_offset_mm": 0.031,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.046,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12494,8 +12863,17 @@
     {
      "pn": "C482239",
      "angle_deg": -3.2,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.012,
+      0.006
+     ],
+     "raw_offset_mm": 0.013,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -12503,8 +12881,17 @@
     {
      "pn": "C843839",
      "angle_deg": -2.0,
-     "offset_mm": 0.004,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.075
+     ],
+     "raw_offset_mm": 0.075,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.004,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12512,8 +12899,17 @@
     {
      "pn": "C843890",
      "angle_deg": -3.0,
-     "offset_mm": 0.032,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.004,
+      -0.045
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.032,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12521,8 +12917,17 @@
     {
      "pn": "C843902",
      "angle_deg": -0.6,
-     "offset_mm": 0.006,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.076
+     ],
+     "raw_offset_mm": 0.076,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.006,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12530,8 +12935,17 @@
     {
      "pn": "C844108",
      "angle_deg": 1.4,
-     "offset_mm": 0.013,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.018,
+      -0.08
+     ],
+     "raw_offset_mm": 0.082,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.013,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -12539,14 +12953,24 @@
     {
      "pn": "C844505",
      "angle_deg": 4.3,
-     "offset_mm": 0.008,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.006,
+      -0.085
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.008,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
     }
    ],
-   "failed": [
+   "failed": [],
+   "not_drawn": [
     {
      "pn": "C2076789",
      "outcomes": [
@@ -12554,6 +12978,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R82",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12566,6 +12991,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R54",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12578,6 +13004,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R29",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12590,6 +13017,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R31",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12602,6 +13030,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R44",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12614,6 +13043,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R23",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12626,6 +13056,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R35",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12638,6 +13069,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R89",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -12650,6 +13082,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "R81",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -20488,8 +20921,17 @@
     {
      "pn": "C105637",
      "angle_deg": 4.2,
-     "offset_mm": 0.037,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.003,
+      -0.114
+     ],
+     "raw_offset_mm": 0.114,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.037,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20497,8 +20939,17 @@
     {
      "pn": "C114763",
      "angle_deg": 1.5,
-     "offset_mm": 0.027,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.018,
+      -0.051
+     ],
+     "raw_offset_mm": 0.054,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.027,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -20506,8 +20957,17 @@
     {
      "pn": "C137820",
      "angle_deg": 0.7,
-     "offset_mm": 0.013,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.014,
+      -0.067
+     ],
+     "raw_offset_mm": 0.068,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.013,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20515,8 +20975,17 @@
     {
      "pn": "C137837",
      "angle_deg": -3.9,
-     "offset_mm": 0.03,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      0.002
+     ],
+     "raw_offset_mm": 0.003,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.03,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -20524,8 +20993,17 @@
     {
      "pn": "C137847",
      "angle_deg": -0.6,
-     "offset_mm": 0.045,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.009,
+      -0.034
+     ],
+     "raw_offset_mm": 0.035,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20533,8 +21011,17 @@
     {
      "pn": "C137868",
      "angle_deg": -0.2,
-     "offset_mm": 0.009,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.086
+     ],
+     "raw_offset_mm": 0.086,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.009,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20542,8 +21029,17 @@
     {
      "pn": "C137880",
      "angle_deg": -3.8,
-     "offset_mm": 0.059,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.019,
+      -0.02
+     ],
+     "raw_offset_mm": 0.028,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.059,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20551,8 +21047,17 @@
     {
      "pn": "C137887",
      "angle_deg": 3.2,
-     "offset_mm": 0.01,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.087
+     ],
+     "raw_offset_mm": 0.087,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.01,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20560,8 +21065,17 @@
     {
      "pn": "C137901",
      "angle_deg": 2.6,
-     "offset_mm": 0.036,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.009,
+      -0.11
+     ],
+     "raw_offset_mm": 0.11,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.036,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20569,8 +21083,17 @@
     {
      "pn": "C137920",
      "angle_deg": 0.3,
-     "offset_mm": 0.042,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.039
+     ],
+     "raw_offset_mm": 0.041,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.042,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20578,8 +21101,17 @@
     {
      "pn": "C137927",
      "angle_deg": -4.3,
-     "offset_mm": 0.033,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.011,
+      0.008
+     ],
+     "raw_offset_mm": 0.014,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.033,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -20587,8 +21119,17 @@
     {
      "pn": "C137933",
      "angle_deg": 1.3,
-     "offset_mm": 0.012,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.086
+     ],
+     "raw_offset_mm": 0.087,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.012,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20596,8 +21137,17 @@
     {
      "pn": "C137951",
      "angle_deg": 2.4,
-     "offset_mm": 0.041,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.005,
+      -0.037
+     ],
+     "raw_offset_mm": 0.037,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.041,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20605,8 +21155,17 @@
     {
      "pn": "C137958",
      "angle_deg": -1.1,
-     "offset_mm": 0.018,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.012,
+      -0.084
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20614,8 +21173,17 @@
     {
      "pn": "C137962",
      "angle_deg": -1.1,
-     "offset_mm": 0.011,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.002,
+      -0.085
+     ],
+     "raw_offset_mm": 0.085,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.011,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20623,8 +21191,17 @@
     {
      "pn": "C137983",
      "angle_deg": 2.4,
-     "offset_mm": 0.021,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.008,
+      -0.098
+     ],
+     "raw_offset_mm": 0.098,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.021,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20632,8 +21209,17 @@
     {
      "pn": "C137992",
      "angle_deg": -2.0,
-     "offset_mm": 0.022,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.098
+     ],
+     "raw_offset_mm": 0.099,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.022,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20641,8 +21227,17 @@
     {
      "pn": "C138005",
      "angle_deg": -1.7,
-     "offset_mm": 0.042,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.032,
+      -0.045
+     ],
+     "raw_offset_mm": 0.055,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.042,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20650,8 +21245,17 @@
     {
      "pn": "C138014",
      "angle_deg": -4.9,
-     "offset_mm": 0.045,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.025,
+      -0.037
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20659,8 +21263,17 @@
     {
      "pn": "C138018",
      "angle_deg": -0.0,
-     "offset_mm": 0.018,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.094
+     ],
+     "raw_offset_mm": 0.094,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20668,8 +21281,17 @@
     {
      "pn": "C138033",
      "angle_deg": 9.9,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.117
+     ],
+     "raw_offset_mm": 0.117,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20677,8 +21299,17 @@
     {
      "pn": "C138051",
      "angle_deg": -6.6,
-     "offset_mm": 0.036,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.112
+     ],
+     "raw_offset_mm": 0.112,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.036,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20686,8 +21317,17 @@
     {
      "pn": "C155696",
      "angle_deg": -3.5,
-     "offset_mm": 0.008,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.078
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.008,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20695,8 +21335,17 @@
     {
      "pn": "C163438",
      "angle_deg": 2.5,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.039
+     ],
+     "raw_offset_mm": 0.043,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20704,8 +21353,17 @@
     {
      "pn": "C163449",
      "angle_deg": -1.7,
-     "offset_mm": 0.008,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.07
+     ],
+     "raw_offset_mm": 0.07,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.008,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20713,8 +21371,17 @@
     {
      "pn": "C163478",
      "angle_deg": 0.7,
-     "offset_mm": 0.02,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.001,
+      -0.097
+     ],
+     "raw_offset_mm": 0.097,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.02,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20722,8 +21389,17 @@
     {
      "pn": "C163489",
      "angle_deg": 0.1,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.002,
+      -0.116
+     ],
+     "raw_offset_mm": 0.116,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20731,8 +21407,17 @@
     {
      "pn": "C171693",
      "angle_deg": -4.4,
-     "offset_mm": 0.037,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.042
+     ],
+     "raw_offset_mm": 0.045,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.037,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20740,8 +21425,17 @@
     {
      "pn": "C185402",
      "angle_deg": 3.1,
-     "offset_mm": 0.045,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.012,
+      -0.033
+     ],
+     "raw_offset_mm": 0.035,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.045,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20749,8 +21443,17 @@
     {
      "pn": "C185437",
      "angle_deg": 4.6,
-     "offset_mm": 0.03,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.002,
+      -0.107
+     ],
+     "raw_offset_mm": 0.107,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.03,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20758,8 +21461,17 @@
     {
      "pn": "C185445",
      "angle_deg": 8.1,
-     "offset_mm": 0.044,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.121
+     ],
+     "raw_offset_mm": 0.121,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.044,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20767,8 +21479,17 @@
     {
      "pn": "C189473",
      "angle_deg": 5.0,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.016,
+      -0.045
+     ],
+     "raw_offset_mm": 0.048,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20776,8 +21497,17 @@
     {
      "pn": "C273339",
      "angle_deg": -4.3,
-     "offset_mm": 0.02,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.004,
+      -0.095
+     ],
+     "raw_offset_mm": 0.095,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.02,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20785,8 +21515,17 @@
     {
      "pn": "C273691",
      "angle_deg": 2.4,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.005,
+      -0.038
+     ],
+     "raw_offset_mm": 0.038,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20794,8 +21533,17 @@
     {
      "pn": "C276272",
      "angle_deg": -2.1,
-     "offset_mm": 0.002,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.079
+     ],
+     "raw_offset_mm": 0.079,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.002,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20803,8 +21551,17 @@
     {
      "pn": "C327243",
      "angle_deg": -2.0,
-     "offset_mm": 0.015,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.005,
+      -0.092
+     ],
+     "raw_offset_mm": 0.092,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.015,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20812,8 +21569,17 @@
     {
      "pn": "C327327",
      "angle_deg": -1.9,
-     "offset_mm": 0.006,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.077
+     ],
+     "raw_offset_mm": 0.077,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.006,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20821,8 +21587,17 @@
     {
      "pn": "C327341",
      "angle_deg": -2.2,
-     "offset_mm": 0.016,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.017,
+      -0.088
+     ],
+     "raw_offset_mm": 0.09,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.016,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20830,8 +21605,17 @@
     {
      "pn": "C327357",
      "angle_deg": -2.7,
-     "offset_mm": 0.031,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.011,
+      -0.103
+     ],
+     "raw_offset_mm": 0.104,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.031,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20839,8 +21623,17 @@
     {
      "pn": "C327365",
      "angle_deg": -6.6,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.012,
+      -0.114
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20848,8 +21641,17 @@
     {
      "pn": "C477189",
      "angle_deg": 4.7,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.003,
+      -0.114
+     ],
+     "raw_offset_mm": 0.114,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20857,8 +21659,17 @@
     {
      "pn": "C477204",
      "angle_deg": -1.8,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.006,
+      -0.115
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20866,8 +21677,17 @@
     {
      "pn": "C477218",
      "angle_deg": 5.2,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.013,
+      -0.114
+     ],
+     "raw_offset_mm": 0.115,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20875,8 +21695,17 @@
     {
      "pn": "C477607",
      "angle_deg": 4.1,
-     "offset_mm": 0.035,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.01,
+      -0.045
+     ],
+     "raw_offset_mm": 0.046,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.035,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20884,8 +21713,17 @@
     {
      "pn": "C477716",
      "angle_deg": -4.0,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.011,
+      -0.039
+     ],
+     "raw_offset_mm": 0.041,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20893,8 +21731,17 @@
     {
      "pn": "C477772",
      "angle_deg": 1.2,
-     "offset_mm": 0.004,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.081
+     ],
+     "raw_offset_mm": 0.081,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.004,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20902,8 +21749,17 @@
     {
      "pn": "C477801",
      "angle_deg": -3.7,
-     "offset_mm": 0.03,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.0,
+      0.003
+     ],
+     "raw_offset_mm": 0.003,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.03,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -20911,8 +21767,17 @@
     {
      "pn": "C60491",
      "angle_deg": -3.0,
-     "offset_mm": 0.016,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.018,
+      -0.068
+     ],
+     "raw_offset_mm": 0.07,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.016,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -20920,14 +21785,24 @@
     {
      "pn": "C93943",
      "angle_deg": 2.3,
-     "offset_mm": 0.022,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.014,
+      -0.047
+     ],
+     "raw_offset_mm": 0.049,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.022,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [],
    "member_rows": [
@@ -28705,6 +29580,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C76950",
@@ -28760,6 +29636,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [
     "C1525"
    ],
@@ -28903,8 +29780,17 @@
     {
      "pn": "C106254",
      "angle_deg": -7.9,
-     "offset_mm": 0.048,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.023,
+      -0.071
+     ],
+     "raw_offset_mm": 0.075,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.048,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -28912,8 +29798,17 @@
     {
      "pn": "C107011",
      "angle_deg": -5.9,
-     "offset_mm": 0.041,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.012,
+      -0.066
+     ],
+     "raw_offset_mm": 0.067,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.041,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -28921,8 +29816,17 @@
     {
      "pn": "C277518",
      "angle_deg": 4.6,
-     "offset_mm": 0.007,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      -0.001,
+      -0.074
+     ],
+     "raw_offset_mm": 0.074,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.007,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28930,8 +29834,17 @@
     {
      "pn": "C325464",
      "angle_deg": -0.3,
-     "offset_mm": 0.006,
      "offset_limit_mm": 0.127,
+     "raw_offset_xy_mm": [
+      0.01,
+      -0.081
+     ],
+     "raw_offset_mm": 0.082,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.006,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28939,8 +29852,17 @@
     {
      "pn": "C327000",
      "angle_deg": 0.5,
-     "offset_mm": 0.017,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      0.015,
+      -0.063
+     ],
+     "raw_offset_mm": 0.065,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.017,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28948,8 +29870,17 @@
     {
      "pn": "C354977",
      "angle_deg": 3.4,
-     "offset_mm": 0.039,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.042
+     ],
+     "raw_offset_mm": 0.044,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.039,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28957,8 +29888,17 @@
     {
      "pn": "C541369",
      "angle_deg": 3.2,
-     "offset_mm": 0.018,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.006,
+      -0.063
+     ],
+     "raw_offset_mm": 0.063,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.018,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28966,8 +29906,17 @@
     {
      "pn": "C541387",
      "angle_deg": 4.8,
-     "offset_mm": 0.036,
      "offset_limit_mm": 0.128,
+     "raw_offset_xy_mm": [
+      -0.014,
+      -0.046
+     ],
+     "raw_offset_mm": 0.048,
+     "bias_xy_mm": [
+      0.005,
+      -0.077
+     ],
+     "residual_offset_mm": 0.036,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md"
      ]
@@ -28981,15 +29930,27 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "C7",
        "status": "manual review",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 10.5,
-        "offset_mm": 0.027,
-        "offset_limit_mm": 0.127
+        "offset_limit_mm": 0.127,
+        "raw_offset_xy_mm": [
+         -0.008,
+         -0.053
+        ],
+        "raw_offset_mm": 0.054,
+        "bias_xy_mm": [
+         0.005,
+         -0.077
+        ],
+        "residual_offset_mm": 0.027
        },
        "ok": false
       }
      ]
-    },
+    }
+   ],
+   "not_drawn": [
     {
      "pn": "C576731",
      "outcomes": [
@@ -28997,6 +29958,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-07-w3-pilot-0402/README.md",
        "ref": "C4",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -30624,6 +31586,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [],
    "member_rows": [
@@ -30812,8 +31775,17 @@
     {
      "pn": "C105575",
      "angle_deg": -3.6,
-     "offset_mm": 0.017,
      "offset_limit_mm": 0.206,
+     "raw_offset_xy_mm": [
+      -0.027,
+      -0.027
+     ],
+     "raw_offset_mm": 0.038,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.017,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -30821,8 +31793,17 @@
     {
      "pn": "C163421",
      "angle_deg": 0.8,
-     "offset_mm": 0.013,
      "offset_limit_mm": 0.206,
+     "raw_offset_xy_mm": [
+      -0.013,
+      -0.012
+     ],
+     "raw_offset_mm": 0.018,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.013,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -30830,8 +31811,17 @@
     {
      "pn": "C163429",
      "angle_deg": 3.4,
-     "offset_mm": 0.011,
      "offset_limit_mm": 0.206,
+     "raw_offset_xy_mm": [
+      -0.021,
+      -0.028
+     ],
+     "raw_offset_mm": 0.035,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.011,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -30839,14 +31829,24 @@
     {
      "pn": "C482876",
      "angle_deg": 0.7,
-     "offset_mm": 0.02,
      "offset_limit_mm": 0.206,
+     "raw_offset_xy_mm": [
+      0.007,
+      -0.014
+     ],
+     "raw_offset_mm": 0.016,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.02,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C14675",
@@ -38670,6 +39670,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C19702",
@@ -38903,6 +39904,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [
     "C107045"
    ],
@@ -41182,8 +42184,17 @@
     {
      "pn": "C137422",
      "angle_deg": 0.5,
-     "offset_mm": 0.024,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.014,
+      -0.025
+     ],
+     "raw_offset_mm": 0.029,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.024,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -41191,8 +42202,17 @@
     {
      "pn": "C141703",
      "angle_deg": -0.3,
-     "offset_mm": 0.052,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.034,
+      0.003
+     ],
+     "raw_offset_mm": 0.034,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.052,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -41200,8 +42220,17 @@
     {
      "pn": "C482966",
      "angle_deg": 0.8,
-     "offset_mm": 0.039,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.029,
+      -0.022
+     ],
+     "raw_offset_mm": 0.036,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.039,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -41209,8 +42238,17 @@
     {
      "pn": "C483001",
      "angle_deg": 2.3,
-     "offset_mm": 0.038,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.027,
+      -0.032
+     ],
+     "raw_offset_mm": 0.042,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.038,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -41218,14 +42256,24 @@
     {
      "pn": "C483188",
      "angle_deg": 0.6,
-     "offset_mm": 0.04,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.03,
+      -0.024
+     ],
+     "raw_offset_mm": 0.038,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.04,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C96346",
@@ -49059,6 +50107,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [
     "C15850"
    ],
@@ -49191,8 +50240,17 @@
     {
      "pn": "C107108",
      "angle_deg": 2.4,
-     "offset_mm": 0.042,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.004,
+      0.015
+     ],
+     "raw_offset_mm": 0.016,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.042,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -49200,8 +50258,17 @@
     {
      "pn": "C527206",
      "angle_deg": 2.1,
-     "offset_mm": 0.11,
      "offset_limit_mm": 0.228,
+     "raw_offset_xy_mm": [
+      0.089,
+      0.022
+     ],
+     "raw_offset_mm": 0.092,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.11,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -49215,10 +50282,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "C13",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 3.2,
-        "offset_mm": 0.124,
-        "offset_limit_mm": 0.228
+        "offset_limit_mm": 0.228,
+        "raw_offset_xy_mm": [
+         0.104,
+         0.023
+        ],
+        "raw_offset_mm": 0.107,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.124
        },
        "ok": false
       }
@@ -49231,16 +50308,27 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "C11",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 2.4,
-        "offset_mm": 0.136,
-        "offset_limit_mm": 0.228
+        "offset_limit_mm": 0.228,
+        "raw_offset_xy_mm": [
+         0.117,
+         0.024
+        ],
+        "raw_offset_mm": 0.119,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.136
        },
        "ok": false
       }
      ]
     }
    ],
+   "not_drawn": [],
    "direct_not_judged": [
     "C107110"
    ],
@@ -50454,8 +51542,17 @@
     {
      "pn": "C137203",
      "angle_deg": 0.6,
-     "offset_mm": 0.121,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      0.07,
+      -0.116
+     ],
+     "raw_offset_mm": 0.135,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.121,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -50463,8 +51560,17 @@
     {
      "pn": "C274047",
      "angle_deg": 0.6,
-     "offset_mm": 0.085,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.059,
+      -0.095
+     ],
+     "raw_offset_mm": 0.112,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.085,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -50472,8 +51578,17 @@
     {
      "pn": "C488876",
      "angle_deg": -0.8,
-     "offset_mm": 0.084,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.037,
+      -0.105
+     ],
+     "raw_offset_mm": 0.111,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.084,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -50481,14 +51596,24 @@
     {
      "pn": "C488985",
      "angle_deg": -0.2,
-     "offset_mm": 0.1,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.009,
+      -0.125
+     ],
+     "raw_offset_mm": 0.125,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.1,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C137393",
@@ -58296,6 +59421,7 @@
    "anomalies": [],
    "passed": [],
    "failed": [],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C309499",
@@ -59110,20 +60236,30 @@
    ],
    "required": 43,
    "more_needed": 42,
-   "status": "paused",
+   "status": "needs_samples",
    "anomalies": [],
    "passed": [
     {
      "pn": "C309589",
      "angle_deg": -1.6,
-     "offset_mm": 0.02,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.015,
+      -0.044
+     ],
+     "raw_offset_mm": 0.046,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.02,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
     }
    ],
-   "failed": [
+   "failed": [],
+   "not_drawn": [
     {
      "pn": "C874860",
      "outcomes": [
@@ -59131,6 +60267,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R5",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -59138,6 +60275,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R6",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -59145,6 +60283,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R7",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -59152,6 +60291,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R8",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }
@@ -66017,8 +67157,17 @@
     {
      "pn": "C137046",
      "angle_deg": 0.9,
-     "offset_mm": 0.107,
      "offset_limit_mm": 0.25,
+     "raw_offset_xy_mm": [
+      -0.056,
+      -0.122
+     ],
+     "raw_offset_mm": 0.134,
+     "bias_xy_mm": [
+      -0.01,
+      -0.025
+     ],
+     "residual_offset_mm": 0.107,
      "records": [
       "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md"
      ]
@@ -66032,10 +67181,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R13",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -0.1,
-        "offset_mm": 0.15,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.036,
+         -0.173
+        ],
+        "raw_offset_mm": 0.177,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.15
        },
        "ok": false
       },
@@ -66043,10 +67202,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R14",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 1.2,
-        "offset_mm": 0.166,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.142,
+         -0.125
+        ],
+        "raw_offset_mm": 0.189,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.166
        },
        "ok": false
       },
@@ -66054,10 +67223,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R15",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -1.2,
-        "offset_mm": 0.153,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.053,
+         -0.163
+        ],
+        "raw_offset_mm": 0.171,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.153
        },
        "ok": false
       },
@@ -66065,16 +67244,27 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R16",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -0.8,
-        "offset_mm": 0.171,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.155,
+         -0.136
+        ],
+        "raw_offset_mm": 0.206,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.171
        },
        "ok": false
       }
      ]
     }
    ],
+   "not_drawn": [],
    "direct_not_judged": [],
    "sample": [
     "C877055",
@@ -73082,10 +74272,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R21",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 0.6,
-        "offset_mm": 0.128,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         0.023,
+         -0.149
+        ],
+        "raw_offset_mm": 0.151,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.128
        },
        "ok": false
       },
@@ -73093,10 +74293,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R22",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 0.5,
-        "offset_mm": 0.11,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.016,
+         -0.135
+        ],
+        "raw_offset_mm": 0.136,
+        "bias_xy_mm": [
+         -0.01,
+         -0.025
+        ],
+        "residual_offset_mm": 0.11
        },
        "ok": true
       },
@@ -73104,10 +74314,20 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R23",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": 0.1,
-        "offset_mm": 0.169,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         0.059,
+         -0.149
+        ],
+        "raw_offset_mm": 0.16,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.169
        },
        "ok": false
       },
@@ -73115,15 +74335,27 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R24",
        "status": "body",
+       "not_drawn": false,
        "reading": {
         "angle_deg": -0.4,
-        "offset_mm": 0.108,
-        "offset_limit_mm": 0.25
+        "offset_limit_mm": 0.25,
+        "raw_offset_xy_mm": [
+         -0.026,
+         -0.118
+        ],
+        "raw_offset_mm": 0.121,
+        "bias_xy_mm": [
+         -0.0385,
+         -0.0105
+        ],
+        "residual_offset_mm": 0.108
        },
        "ok": true
       }
      ]
-    },
+    }
+   ],
+   "not_drawn": [
     {
      "pn": "C878293",
      "outcomes": [
@@ -73131,6 +74363,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R17",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -73138,6 +74371,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R18",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -73145,6 +74379,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R19",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       },
@@ -73152,6 +74387,7 @@
        "record": "tools/sourcing_data/jlc_previews/2026-11-05-c2-board-3/README.md",
        "ref": "R20",
        "status": "unverified",
+       "not_drawn": true,
        "reading": null,
        "ok": false
       }

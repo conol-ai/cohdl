@@ -134,12 +134,13 @@ def _sampled(row: dict[str, Any], rows_by_id: dict[str, dict[str, Any]], root: P
         ):
             return False
         members = set(group["members"])
-        if len(members) != len(group["members"]):
+        if len(members) != len(group["members"]) or not isinstance(group["not_drawn"], list):
             return False
         samples = group["samples"]
         sample_pns = {s["pn"] for s in samples}
         if (row["pn"] not in members or row["pn"] in sample_pns
-                or (not W3_RULE["infer_zero_stock"] and row["pn"] in group["zero_stock"])):
+                or (not W3_RULE["infer_zero_stock"] and row["pn"] in group["zero_stock"])
+                or (not W3_RULE["infer_not_drawn"] and row["pn"] in group["not_drawn"])):
             return False
         if len(sample_pns) != len(samples) or len(samples) < w3_required(len(members)):
             return False

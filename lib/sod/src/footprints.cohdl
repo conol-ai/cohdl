@@ -12,7 +12,8 @@
 // These names are IPC-7351B-style (SOD + lead span + body width X height,
 // spans and widths in tenths of a millimetre, height in hundredths) but SOD
 // is outside RFC-021's closed family set, so no name check (E808/E809) runs
-// on them. The final names are an open question in docs/README.md.
+// on them. The names were published in sod 0.1.0 and are permanent; see
+// docs/README.md.
 
 // SOD-123. Primary source: Zhuhai Hongjiacheng BZT52C2V0 THRU BZT52C75
 // datasheet Rev 2.1, page 4, "Suggested Pad Layout" (evidence record
@@ -170,11 +171,15 @@ pub footprint SOD1608X70N {
     pad 1: P_SOD1608X70N_LEAD at (-0.71mm, 0mm)
     pad 2: P_SOD1608X70N_LEAD at (0.71mm, 0mm)
     // Silkscreen: the cathode band outboard of pad 1, and the body long
-    // edges just outside the 0.90mm maximum body width.
+    // edges just outside the 0.90mm maximum body width, drawn only between
+    // the lands (as SODFL3818X120N does): over the 0.70mm-wide lands they
+    // would pass 0.10mm from the copper and be clipped. The line ends at
+    // +/-0.20mm keep 0.15mm from the 0.41mm inner land edge, counting the
+    // 0.06mm half-width of the stroke, the band's clearance to pad 1.
     silkscreen {
         polarity_marker cathode_pin 1 shape band
-        line from (-0.6mm, -0.51mm) to (0.6mm, -0.51mm) width 0.12mm
-        line from (-0.6mm, 0.51mm) to (0.6mm, 0.51mm) width 0.12mm
+        line from (-0.2mm, -0.51mm) to (0.2mm, -0.51mm) width 0.12mm
+        line from (-0.2mm, 0.51mm) to (0.2mm, 0.51mm) width 0.12mm
     }
     // Contains the 2.02 x 0.70mm copper and the 1.70 x 0.90mm maximum
     // component envelope (C x E) with at least 0.25mm excess on every side.

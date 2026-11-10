@@ -377,41 +377,6 @@ class CommittedTablesTests(unittest.TestCase):
         ],
     }
 
-    def test_archived_preview_rows_stay_out_of_the_bound_table(self):
-        frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
-        bound_ids = {row["id"] for row in frames}
-        bound_keys = {
-            (row["package"], row["footprint"], row["supplier"], row["pn"]) for row in frames
-        }
-        cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
-        archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
-        # Not vacuous: exactly the known archives exist, each with its expected rows.
-        self.assertEqual([archive.parent.name for archive in archives], sorted(self.ARCHIVED))
-        for archive in archives:
-            with self.subTest(archive=str(archive.relative_to(ROOT))):
-                document = json.loads(archive.read_text(encoding="utf-8"))
-                self.assertEqual(set(document), {"schema_version", "status", "note", "rows"})
-                self.assertEqual(document["status"], "archived")
-                rows = document["rows"]
-                ids = [row["id"] for row in rows]
-                expected = self.ARCHIVED[archive.parent.name]
-                if expected is None:
-                    self.assertEqual(len(rows), 88)
-                    self.assertTrue(all(row_id.startswith("w3p-") for row_id in ids))
-                else:
-                    self.assertEqual(ids, expected)
-                self.assertEqual(len(set(ids)), len(ids))
-                record = str((archive.parent / "README.md").relative_to(ROOT))
-                for row in rows:
-                    self.assertEqual(set(row), FRAME_FIELDS, row["id"])
-                    self.assertEqual(row["evidence"]["record"], record, row["id"])
-                    # Neither the id nor the (package, footprint, supplier, pn) the row
-                    # is about may be in the bound table, at any package version.
-                    key = (row["package"], row["footprint"], row["supplier"], row["pn"])
-                    self.assertNotIn(key, bound_keys, row["id"])
-                self.assertEqual(bound_ids & set(ids), set())
-                self.assertNotIn(record, cited)
-
     def test_archived_reverify_diode_rows_have_no_library_part(self):
         # The 2026-11-08 diode rows are archived because no library source lists their
         # part numbers. When a part is added (W4), this fails: adopt the row then,
@@ -438,6 +403,34 @@ class CommittedTablesTests(unittest.TestCase):
                 if needle in source.read_text(encoding="utf-8")
             ]
             self.assertEqual(listed, [], row["id"])
+
+    def test_archived_preview_rows_stay_out_of_the_bound_table(self):
+        frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
+        bound_ids = {row["id"] for row in frames}
+        cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
+        archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
+        # Not vacuous: exactly the known archives exist, each with its expected rows.
+        self.assertEqual([archive.parent.name for archive in archives], sorted(self.ARCHIVED))
+        for archive in archives:
+            with self.subTest(archive=str(archive.relative_to(ROOT))):
+                document = json.loads(archive.read_text(encoding="utf-8"))
+                self.assertEqual(set(document), {"schema_version", "status", "note", "rows"})
+                self.assertEqual(document["status"], "archived")
+                rows = document["rows"]
+                ids = [row["id"] for row in rows]
+                expected = self.ARCHIVED[archive.parent.name]
+                if expected is None:
+                    self.assertEqual(len(rows), 88)
+                    self.assertTrue(all(row_id.startswith("w3p-") for row_id in ids))
+                else:
+                    self.assertEqual(ids, expected)
+                self.assertEqual(len(set(ids)), len(ids))
+                record = str((archive.parent / "README.md").relative_to(ROOT))
+                for row in rows:
+                    self.assertEqual(set(row), FRAME_FIELDS, row["id"])
+                    self.assertEqual(row["evidence"]["record"], record, row["id"])
+                self.assertEqual(bound_ids & {row["id"] for row in rows}, set())
+                self.assertNotIn(record, cited)
 
 
 if __name__ == "__main__":

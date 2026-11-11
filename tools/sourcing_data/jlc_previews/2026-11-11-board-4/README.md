@@ -18,6 +18,7 @@ It is the board's second package. The first (SHA-256 `1cd1883d3d51001af779ffc51c
 | `body_model.py`, `body-model.json` | A record-local body tool and its output for the 204 drawn chip bodies and 8 inductors: the drawn model alone, without the silkscreen text that `measure_preview.py`'s window also takes in (see "Why 75 instances were left for manual review"). `python3 -I body_model.py tools/frame_boards package/board.json top.bmp bottom.bmp body-model.json`, on the same BMPs. Its docstring defines each field. |
 | `fit.json`, `fit-model.json` | `tools/frame_boards/calibration_fit.py package/board.json READINGS package/preview_board_4-lcsc-bom.csv OUT`, with `measurements.json` and with `body-model.json`. |
 | `w3.json` | What `tools/w3_groups.py` reads from this record, and the first package's `short_at_preview`. |
+| `remeasure-2026-11-11-method-2.json`, `w3-readings.json` | Added after the record was made (see "Addendum" at the end): `measure_preview.py measure --method 2` on the same BMPs, and the index that names it for `tools/w3_groups.py`. `measurements.json` is unchanged. |
 | `crops/` | 420 × 420 px JPEG crops cut from the exports for the manual review: `U1`–`U16`, `L1`–`L8`, and five chip examples (`C17`, `R17`, `R68`, `R32` with their silkscreen text; `R88` not drawn; `R93` a drawn 1210). |
 | `package/` | Every file of the uploaded package, unpacked and unchanged: Gerber archive, LCSC BOM and CPL as uploaded, manifest, `board.json`, both lock files, `verification.json`, the checklist and `README.txt`. `shasum -a 256 -c SHA256SUMS` passes for all of them. `verification.json` says `supplier_preview: not uploaded` because it was written before the upload. |
 
@@ -250,3 +251,13 @@ So on this board the 1210 group gets 28 passed samples toward 43, and a third of
 - The two inductors and every chip part left for manual review: read here by a record-local tool and by eye, not passed by `jlc_preview.py`.
 - The E part numbers have no map row or library entry.
 - `body_model.py` itself: one board, one resolution, a synthetic test.
+
+## Addendum, 2026-11-11: read again with `measure_preview.py` method 2
+
+Everything above is the record as it was made, and stays as written: where it says "the tool" or "`measure_preview.py`" it means the reading the tool had then, now called method 1. This section was added with the change that gives `measure_preview.py` a second method, the drawn model alone (`body_model`), which is what `body_model.py` here did by hand. That change is a proposal for Tony (`docs/library-supplier-w3-sampling.md` §6); nothing is bound from it.
+
+- `remeasure-2026-11-11-method-2.json` (SHA-256 `963ac558c9e2589efa5fe0a17e9ed71df7b1147c1c5b1133abac7405e0a509fc`) is `measure_preview.py measure --method 2 package/board.json top.bmp bottom.bmp`, on the same BMPs. Its rows are those of `measurements.json` apart from each chip body's `body` and `body_ok`. `measurements.json` still reproduces with `measure --method 1`.
+- All 204 drawn chip bodies pass the body check: largest angle 6.3° (C32), largest offset 0.053 mm (R46, 0.41 of its limit), smallest elongation 1.23. View medians: top (+0.004, −0.011) mm, bottom (−0.010, −0.009) mm.
+- Method 2 is not `body_model.py` unchanged. It also keeps thin runs of copper colour inside a model (the export's blend where the red designator meets a white terminal, which had cut R68's terminals off: 0.42 mm long here, 0.55 mm by method 2, offset 0.049 → 0.017 mm), leaves out a pad's bare copper only where it is at least 3 px across, and joins the model through paths at least 3 px wide, so text that grazes a model is cut off. Its readings differ from `body-model.json` by up to 0.045 mm and 6.9°; `body-model.json`, `fit-model.json` and `body_model.py` stay as the record's own, and the tests still pin them.
+- `jlc_preview.py`'s check, run on these exports as it is now: 204 `body`, 16 `mark`, 15 `unverified`, 8 `manual review` (L1–L8, which have no check). All 67 chip instances left for manual review above pass.
+- Under the proposed rule (`w3-2026-11-11-m2`, the accepted limits with the reading method named), this record fails no chip sample and pauses no group: `tools/sourcing_data/w3_sampling/2026-11-11-method-2/`. Section D's table above is the rule on main.

@@ -186,13 +186,12 @@ These lands are not moved or changed; both owners now exist side by side:
    rounded half up) + X + maximum height (hundredths). SOD-323 therefore reads
    `SOD2613X110N` from Hongjiacheng's 2.30-2.80 mm span and 1.10 mm height,
    where an IPC calculator fed JEDEC values gives `SOD2513X100N`.
-   *Recommendation:* keep IPC-7351B-style names, and fix them before the
-   first publish (a rename after it is a breaking path change). Either accept
-   the primary-source digits, or decide that SOD names use JEDEC nominal
-   values so they do not depend on one vendor's tolerances. A follow-up RFC
-   could add SOD/DIOM to the checked set. *Settled by publication:* sod 0.1.0
-   was published with the primary-source digits, so these names are
-   permanent.
+   The choice before publication was between the primary-source digits and
+   JEDEC nominal values (which would not depend on one vendor's
+   tolerances). *Settled by publication:* sod 0.1.0 was published with the
+   IPC-7351B-style names and the primary-source digits, and a rename after
+   publication is a breaking path change, so these names are permanent. A
+   follow-up RFC could still add SOD/DIOM to the checked set.
 2. **Duplicates.** SOD-123 now has two official owners whose copper differs
    (see above). *Recommendation:* keep both (option (a) in the 3c plan) until
    CoHDL has re-exports; then point `diode::FP_D_SOD_123` users at the `sod`

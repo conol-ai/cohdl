@@ -32,8 +32,8 @@ hash = "sha256:5dac963e482386ae07e9e6d9566562c61e973fde646c7cc07f0525193f248c6b"
 
 [[package]]
 name = "connectors"
-version = "0.3.1"
-hash = "sha256:9e34b82cb21c16072962243eb392e088e3d354c6dc61f6ae7ea874e06c6f7d4f"
+version = "0.3.2"
+hash = "sha256:3526c39b3a6f4c96225411a4178d72b41e74d9759073a5fc26aacb09c9601724"
 
 [[package]]
 name = "do214"

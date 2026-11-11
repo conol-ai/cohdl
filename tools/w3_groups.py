@@ -16,17 +16,31 @@ Vishay ``CRCW``, Samsung ``CL``). Different series never share a group, and
 the page's package text (``0402``) is not part of the key.
 
 For each group the report gives its members, the members' frame rows with
-their own evidence (``jlc_frames.json``), the sample the draft rule asks for
-(at least MIN_SAMPLE or FRACTION of the members, whichever is larger), how
-many more direct checks that needs, and a deterministic choice of them among
-members with at least MIN_STOCK on their confirmed page. A group with a direct
-reading that is not (0, 0, 0) is marked ``paused``. Members with no stock can
-belong to a group but are never chosen as samples.
+their own evidence (``jlc_frames.json``), the sample the rule asks for (at least
+MIN_SAMPLE or FRACTION of the members, whichever is larger), how many more
+direct checks that needs, and a deterministic choice of them among members with
+at least MIN_STOCK on their confirmed page. Members with no stock can belong to
+a group but are never chosen as samples.
+
+The rule is ``sourcing/w3_rule.py``. A member counts as a sample only when a
+preview record judges it: a ``jlc_previews/*/w3.json`` names the record's BOM,
+checks and measurements (with the body offset as a vector), and the land files
+the preview was made with. Its readings hold only while those files still hash
+the same. A judged member passes when every copy's body is drawn and within the
+rule's sample limits: its angle, its raw offset, and its offset once its view's
+median is taken off (board_bias).
+
+A member whose model a preview did not draw (and that no copy fails otherwise)
+is ``not_drawn``: it is not a passed sample and is never inferred, but it does
+not pause its group. A group is ``paused`` when any member fails otherwise (left
+for manual review, outside the limits, or unverified for another reason) or a
+direct reading is not (0, 0, 0).
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -38,27 +52,85 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lcsc_backfill import _balanced_block, _string_fields, _strip_comments
 from sourcing.bindings import package_metadata
+from sourcing import w3_rule
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "tools/sourcing_data"
 PASSIVE = ROOT / "lib/passive"
-TYPES = ("ChipResistor", "MLCC")
-# The draft sampling rule under review; see the proposal.
-MIN_SAMPLE = 3
-FRACTION = 0.05
+PREVIEWS = DATA / "jlc_previews"
+TYPES = tuple(w3_rule.RULE["types"])
+MIN_SAMPLE = w3_rule.RULE["min_sample"]
+FRACTION = w3_rule.RULE["fraction"]
 # The assembler builds at least five boards and adds attrition. On 2026-11-07 the
 # W3 pilot's BOM step left unconfirmed, with a shortage warning, exactly the 11
 # samples whose confirmed page read fewer than 20 pieces (5 to 19), and confirmed
 # every one with 21 or more. 30 leaves room for stock sold since the page was read.
-MIN_STOCK = 30
-# Samples the assembler's BOM step reported short at a preview, although their
-# page read MIN_STOCK or more: the stock was sold after the page was read. Each
-# is replaced by the nearest eligible member, so the other samples, which that
-# preview confirmed in stock, stay as they are.
-SHORT_AT_PREVIEW = {
-    "C185414": "2026-11-07 w3-pilot-0402 (page read 39)",
-    "C185430": "2026-11-07 w3-pilot-0402 (page read 100)",
-}
+MIN_STOCK = w3_rule.RULE["min_stock"]
+# The detail ``frame_boards/jlc_preview.py`` gives a part whose model is not drawn.
+NOT_DRAWN = "no model drawn"
+
+
+def preview_inputs() -> dict[Path, dict]:
+    """Every preview record's ``w3.json``, by record directory."""
+    return {path.parent: json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(PREVIEWS.glob("*/w3.json"))}
+
+
+def short_at_preview() -> dict[str, str]:
+    """Samples a preview's BOM step reported short although their page read MIN_STOCK
+    or more: the stock sold after the page was read. Each record keeps its own list.
+    Each is replaced by the nearest eligible member, so the other samples, which that
+    preview confirmed in stock, stay as they are."""
+    short = {}
+    for meta in preview_inputs().values():
+        short.update(meta["short_at_preview"])
+    return short
+
+
+SHORT_AT_PREVIEW = short_at_preview()
+
+
+def judged_members() -> dict[tuple[str, str], list[dict]]:
+    """Each (footprint, pn) a preview record judges, with one outcome per copy.
+
+    Only records whose land files still hash as recorded count. Each outcome is
+    {record, ref, status, not_drawn, reading, ok}: ``status`` is the preview
+    check's, ``not_drawn`` whether it found bare pads where the model should be,
+    and ``reading`` the rule's (angle; raw offset, the view's bias and the
+    residual; limit) for a drawn body.
+    """
+    judged: dict[tuple[str, str], list[dict]] = {}
+    for record, meta in preview_inputs().items():
+        if meta["package"] != w3_rule.RULE["package"] or any(
+                _sha256(ROOT / path) != digest for path, digest in meta["land"].items()):
+            continue
+        with (record / meta["bom"]).open(encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        refs = {ref.strip(): (row["Footprint"], row["LCSC Part #"])
+                for row in rows for ref in row["Designator"].split(",")}
+        checks = json.loads((record / meta["checks"]).read_text(encoding="utf-8"))
+        readings = {m["ref"]: m for m in json.loads((record / meta["measurements"]).read_text(encoding="utf-8"))}
+        bias = {}
+        for side in {m["side"] for m in readings.values()}:
+            offsets = [m["body"]["offset_xy_mm"] for m in readings.values()
+                       if m["side"] == side and "offset_xy_mm" in m.get("body", {})]
+            if offsets:
+                bias[side] = w3_rule.board_bias([tuple(o) for o in offsets])
+        name = str((record / "README.md").relative_to(ROOT))
+        for ref, (footprint, pn) in sorted(refs.items()):
+            check, m = checks.get(ref), readings.get(ref)
+            if check is None or m is None:
+                continue
+            outcome = {"record": name, "ref": ref, "status": check["status"],
+                       "not_drawn": check["status"] == "unverified" and check["detail"].startswith(NOT_DRAWN),
+                       "reading": None, "ok": False}
+            body = m.get("body", {})
+            if check["status"] in ("body", "manual review") and "offset_xy_mm" in body:
+                outcome["reading"] = w3_rule.sample_reading(
+                    body["delta_mod_180"], body["offset_xy_mm"], body["offset_limit_mm"], bias[m["side"]])
+                outcome["ok"] = check["status"] == "body" and w3_rule.sample_ok(outcome["reading"])
+            judged.setdefault((footprint, pn), []).append(outcome)
+    return judged
 
 
 def _sha256(path: Path) -> str:
@@ -95,7 +167,7 @@ def series(mpn: str) -> str:
 
 
 def required(members: int) -> int:
-    return max(MIN_SAMPLE, math.ceil(FRACTION * members))
+    return w3_rule.required(members)
 
 
 def spread(items: list, count: int) -> list:
@@ -143,6 +215,7 @@ def build() -> dict:
     frames = json.loads((DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
     direct = {(row["package"], row["package_version"], row["footprint"], row["pn"]): row
               for row in frames if row["supplier"] == "lcsc" and row["evidence"] is not None}
+    judged = judged_members()
 
     groups: dict[tuple, dict] = {}
     unmapped = 0
@@ -165,10 +238,17 @@ def build() -> dict:
     for key in sorted(groups):
         group = groups[key]
         members = sorted(group["members"], key=lambda m: m[1])
-        checked = {d["pn"] for d in group["direct"]}
         anomalies = [d["pn"] for d in group["direct"] if any(group_value != 0 for group_value in d["mapping"].values())]
-        need = max(0, required(len(members)) - len(checked))
-        eligible = [m for m in members if m[0] not in checked and m[5] >= MIN_STOCK]
+        outcomes = {m[0]: judged[(key[2], m[0])] for m in members if (key[2], m[0]) in judged}
+        passed = sorted(pn for pn, copies in outcomes.items() if all(c["ok"] for c in copies))
+        # Not drawn on some copy, and no copy failing otherwise: neither passed nor a failure.
+        not_drawn = sorted(pn for pn, copies in outcomes.items()
+                           if any(c["not_drawn"] for c in copies) and all(c["ok"] or c["not_drawn"] for c in copies))
+        failed = sorted(set(outcomes) - set(passed) - set(not_drawn))
+        tried = set(outcomes) | {d["pn"] for d in group["direct"]}
+        need = max(0, required(len(members)) - len(passed))
+        eligible = [m for m in members if m[0] not in tried and m[5] >= MIN_STOCK]
+        paused = bool(anomalies or failed)
         report.append({
             "package": key[0], "package_version": key[1], "footprint": key[2], "type": key[3],
             "mfr": key[4], "series": key[5],
@@ -179,20 +259,27 @@ def build() -> dict:
             "direct": sorted(group["direct"], key=lambda d: d["pn"]),
             "required": required(len(members)),
             "more_needed": need,
-            "status": "paused" if anomalies else ("sampled" if need == 0 else "needs_samples"),
+            "status": "paused" if paused else ("sampled" if need == 0 else "needs_samples"),
             "anomalies": anomalies,
+            "passed": [{"pn": pn, **outcomes[pn][0]["reading"],
+                        "records": sorted({c["record"] for c in outcomes[pn]})} for pn in passed],
+            "failed": [{"pn": pn, "outcomes": outcomes[pn]} for pn in failed],
+            "not_drawn": [{"pn": pn, "outcomes": outcomes[pn]} for pn in not_drawn],
+            "direct_not_judged": sorted({d["pn"] for d in group["direct"]} - set(outcomes)),
             "sample": [m[0] for m in choose(eligible, need, lambda m: m[0] in SHORT_AT_PREVIEW)],
             "member_rows": [m[:6] for m in members],
         })
     return {
-        "schema_version": 1,
-        "rule": {"min_sample": MIN_SAMPLE, "fraction": FRACTION, "min_stock": MIN_STOCK,
-                 "short_at_preview": SHORT_AT_PREVIEW},
+        "schema_version": 3,
+        "rule": {**w3_rule.RULE, "short_at_preview": SHORT_AT_PREVIEW},
         "sources": {
             "lib/passive": version,
             "lcsc_map.json": _sha256(DATA / "lcsc_map.json"),
             "jlc_frames.json": _sha256(DATA / "jlc_frames.json"),
             str(pages_path.relative_to(DATA)): _sha256(pages_path),
+            **{str((record / name).relative_to(DATA)): _sha256(record / name)
+               for record, meta in preview_inputs().items()
+               for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])},
         },
         "unmapped_entries": unmapped,
         "member_columns": ["pn", "mpn", "part", "entry", "category", "stock"],
@@ -201,6 +288,97 @@ def build() -> dict:
 
 
 def render(report: dict) -> str:
+    if report["schema_version"] == 1:
+        return _render_v1(report)
+    groups = report["groups"]
+    rule = report["rule"]
+    total = sum(g["members"] for g in groups)
+    lines = [
+        "# W3 sampling groups: chip resistors and MLCCs",
+        "",
+        "Generated by `tools/w3_groups.py`; do not edit. This is a grouping report, not evidence: "
+        "a binding inferred from a group cites a group record, never this report.",
+        "",
+        f"- `lib/passive` {report['sources']['lib/passive']}; {total:,} mapped entries in {len(groups)} groups "
+        f"({report['unmapped_entries']:,} entries are not mapped).",
+        f"- Rule `{rule['version']}` (`tools/sourcing/w3_rule.py`): at least {rule['min_sample']} or "
+        f"{rule['fraction']:.0%} of a group's members, whichever is larger, judged on a preview. A sample "
+        f"passes when its body is drawn, lies along its pads within {rule['angle_limit_deg']:g} deg mod 180, "
+        f"is centred within {rule['offset_raw_fraction']:g} of its per-part limit as measured (raw), and "
+        f"within {rule['offset_residual_fraction']:g} of it once its view's median offset is taken off "
+        f"(residual). Samples are chosen only among members with at least {rule['min_stock']} in "
+        f"stock. Members with no stock are {'inferred' if rule['infer_zero_stock'] else 'not inferred'}.",
+        f"- A sample whose model is not drawn is not a passed sample and does not pause its group; that part "
+        f"number is {'inferred' if rule['infer_not_drawn'] else 'not inferred'}. A sample left for manual "
+        "review, outside the limits, or unverified for another reason pauses its group.",
+        f"- Groups: {sum(g['status'] == 'sampled' for g in groups)} sampled, "
+        f"{sum(g['status'] == 'needs_samples' for g in groups)} need samples, "
+        f"{sum(g['status'] == 'paused' for g in groups)} paused.",
+        f"- Samples passed: {sum(len(g['passed']) for g in groups)}. Still needed outside paused groups: "
+        f"{sum(g['more_needed'] for g in groups if g['status'] != 'paused')}. "
+        f"Chosen: {sum(len(g['sample']) for g in groups if g['status'] != 'paused')}.",
+        f"- Members with no stock: {sum(g['zero_stock'] for g in groups):,}.",
+        "- A group whose members with stock cannot make up its sample (Chosen below More needed) "
+        "cannot be inferred: its members need their own evidence.",
+        "- Direct rows not judged: frame rows with their own evidence on a preview record that has no "
+        "`w3.json`, so the rule cannot judge them. They do not count as samples.",
+        "",
+        "| Footprint | Type | Manufacturer | Series | Members | No stock | Passed | Failed | Not drawn | Required | More needed | Chosen | Status |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+    ]
+    for g in groups:
+        lines.append(f"| `{g['footprint']}` | {g['type']} | {g['mfr']} | {g['series']} | {g['members']:,} | "
+                     f"{g['zero_stock']:,} | {len(g['passed'])} | {len(g['failed'])} | {len(g['not_drawn'])} | "
+                     f"{g['required']} | {g['more_needed']} | {len(g['sample'])} | {g['status']} |")
+    lines += ["", "## Why groups are paused", ""]
+    for g in groups:
+        if g["status"] != "paused":
+            continue
+        reasons = [f"direct reading off zero: {', '.join(g['anomalies'])}"] if g["anomalies"] else []
+        for f in g["failed"]:
+            why = "; ".join(f"{c['ref']} {c['status']}" + (f" ({_reading(c['reading'], rule)})" if c["reading"] else "")
+                            for c in f["outcomes"])
+            reasons.append(f"{f['pn']}: {why}")
+        lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: " + " | ".join(reasons))
+    lines += ["", "## Not drawn", "",
+              "Not passed samples and not inferred; they do not pause their group by themselves.", ""]
+    for g in groups:
+        if g["not_drawn"]:
+            lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']} ({g['status']}): "
+                         + ", ".join(f"{n['pn']} ({', '.join(c['ref'] for c in n['outcomes'])})"
+                                     for n in g["not_drawn"]))
+    lines += ["", "## Offsets of passed samples", "",
+              "Per group: the bias taken off in each view, and the largest raw offset and residual among its "
+              "passed samples, each as a share of that sample's per-part limit.", ""]
+    for g in groups:
+        if not g["passed"]:
+            continue
+        biases = sorted({tuple(p["bias_xy_mm"]) for p in g["passed"]})
+        raw = max(g["passed"], key=lambda p: (p["raw_offset_mm"] / p["offset_limit_mm"], p["pn"]))
+        residual = max(g["passed"], key=lambda p: (p["residual_offset_mm"] / p["offset_limit_mm"], p["pn"]))
+        lines.append(
+            f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: {len(g['passed'])} passed; bias "
+            + ", ".join(f"({x:+.4f}, {y:+.4f}) mm" for x, y in biases)
+            + f"; largest raw {raw['pn']} {raw['raw_offset_mm']:.3f} of {raw['offset_limit_mm']:.3f} mm "
+            f"({raw['raw_offset_mm'] / raw['offset_limit_mm']:.0%}); largest residual {residual['pn']} "
+            f"{residual['residual_offset_mm']:.3f} of {residual['offset_limit_mm']:.3f} mm "
+            f"({residual['residual_offset_mm'] / residual['offset_limit_mm']:.0%})")
+    lines += ["", "## Samples chosen", ""]
+    for g in groups:
+        if g["sample"] and g["status"] != "paused":
+            lines.append(f"- `{g['footprint']}` {g['type']} {g['mfr']} {g['series']}: {', '.join(g['sample'])}")
+    return "\n".join(lines) + "\n"
+
+
+def _reading(reading: dict, rule: dict) -> str:
+    limit = reading["offset_limit_mm"]
+    return (f"{reading['angle_deg']:+.1f} deg; raw {reading['raw_offset_mm']:.3f} of "
+            f"{rule['offset_raw_fraction'] * limit:.4f} mm; residual {reading['residual_offset_mm']:.3f} of "
+            f"{rule['offset_residual_fraction'] * limit:.4f} mm")
+
+
+def _render_v1(report: dict) -> str:
+    """The 2026-11-07 report, as it was rendered."""
     groups = report["groups"]
     rule = report["rule"]
     total = sum(g["members"] for g in groups)

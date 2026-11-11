@@ -65,3 +65,10 @@ Adopting the rows as bindings needs a new `passive` version: the rows' `package_
 
   No sample read outside the limits. Whether a sample that is not drawn should pause its group, or only fail to count towards its sample, is a question for the proposal's review.
 - **The 9.9° reading** on a Yageo RC sample is within the limit. It is the edge of the scatter between single readings on these boards, which runs to about 10°.
+
+## Added 2026-11-10: inputs for the W3 rule
+
+The rule was accepted on 2026-11-09 (`docs/library-supplier-w3-sampling.md`). It judges a sample's offset against the median offset of its view, so the readings need the body offset as a vector, which `measurements.json` does not keep. Nothing above is changed. Added:
+- `board.json` and `w3_pilot_0402-lcsc-bom.csv`: the uploaded package's own files, byte for byte (SHA-256 `4968a7ee…` and `d2d9cd65…`, as in the package's `SHA256SUMS` and the table above).
+- `remeasure-2026-11-10.json`: `measure_preview.py measure board.json top.bmp - …` run again on `top.png`. It equals `measurements.json` row for row, apart from each body's added `offset_xy_mm`.
+- `w3.json`: what `tools/w3_groups.py` reads from this record. It holds the files above, `checks.json`, the SHA-256 of the land files the preview used, and the two samples short at the second package's BOM step. The land files are byte for byte those at the package's commit `e6ba33d`. That list was `SHORT_AT_PREVIEW` in `tools/w3_groups.py`; it is kept here, with the run it came from.

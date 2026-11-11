@@ -147,7 +147,8 @@
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md",
+        "note": "read by eye: the body sits centred on its pads on all four copies (README); measurements.json has no reading for C9 to C12 (\"dots\": []), so this zero map is not a measured body offset"
       },
       "evidence_ref": null
     },
@@ -647,7 +648,8 @@
       "evidence": {
         "method": "preview",
         "date": "2026-10-30",
-        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md"
+        "record": "tools/sourcing_data/jlc_previews/2026-10-30-c2-board-1/README.md",
+        "note": "read by eye: the body sits centred on its pads on all four copies and the preview shows no polarity mark (README); measurements.json has no reading for D1 to D4 (\"dots\": []), so this zero map is not a measured one and the polarity is not confirmed"
       },
       "evidence_ref": null
     },

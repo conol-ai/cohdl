@@ -1,0 +1,17 @@
+{
+ "schema_version": 1,
+ "note": "Inputs tools/w3_groups.py reads from this record. board.json and the BOM are the uploaded package's own files (SHA-256 in its SHA256SUMS and in README.md); remeasure-2026-11-10.json is measure_preview.py run again on top.png with them, identical to measurements.json apart from the added offset_xy_mm.",
+ "package": "passive",
+ "package_version": "0.2.5",
+ "land": {
+  "lib/passive/src/footprints.cohdl": "e1bb40b6077130cc37f7c1d9962f9d57a15e45cbf17689d183f5f74e51e37f96",
+  "lib/passive/src/pads.cohdl": "6e9f4bdd4345a52e14a05ac241c441dd44c9a1ee8f545bcd83a890f40db9ceff"
+ },
+ "bom": "w3_pilot_0402-lcsc-bom.csv",
+ "checks": "checks.json",
+ "measurements": "remeasure-2026-11-10.json",
+ "short_at_preview": {
+  "C185414": "2026-11-07 w3-pilot-0402 second package 85e55a26 (page read 39)",
+  "C185430": "2026-11-07 w3-pilot-0402 second package 85e55a26 (page read 100)"
+ }
+}

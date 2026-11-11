@@ -2,10 +2,13 @@
 """Index datasheet links for every library part identity and every B1 snapshot part.
 
 ``python3 -I tools/datasheet_links.py -o DIR [--check]`` writes
-DIR/datasheet_links.json and DIR/datasheet_links.md. Committed indexes are
-dated snapshots (``tools/sourcing_data/datasheet_links/YYYY-MM-DD/``) whose
-``sources`` record what they were built from; a later library change does not
-make them wrong, only older. Nothing is fetched or downloaded:
+DIR/datasheet_links.json and DIR/datasheet_links.md. The committed index is
+one dated directory (``tools/sourcing_data/datasheet_links/YYYY-MM-DD/``, the
+day it was built) whose ``sources`` record what it was built from. The tool
+tests require it to equal a fresh build, so a change to the library's
+identities or documents, to ``lcsc_map.json`` or to the catalog rebuilds it;
+the rebuild goes in a directory named for its own day, replacing the older
+one, which stays in git history. Nothing is fetched or downloaded:
 the index only collects links the repository already records. It is the input
 for the agent-facing part notes (plan 5b/5c).
 
@@ -38,7 +41,10 @@ Each attached link is also labelled by its host (its ``label``): ``official``
 only on a domain of the identity's own manufacturer; ``mirror`` on a known
 distributor, aggregator, archive or code host (``MIRRORS``: LCSC, JLCPCB,
 DigiKey, Mouser, GitHub and the like); ``unverified`` on any other host,
-including another manufacturer's. The manufacturer→domain map is explicit
+including another manufacturer's. A link on the manufacturer's own domain
+with no path (its home page, such as ``https://www.run-ic.com``) is labelled
+``homepage``, not ``official``: it names the vendor but is not a document.
+The manufacturer→domain map is explicit
 and deliberately small: a domain not in it is never official. The LCSC
 datasheet link comes from the confirmed part page behind the identity's
 ``lcsc_map.json`` row.
@@ -46,7 +52,8 @@ datasheet link comes from the confirmed part page behind the identity's
 Each identity is classed ``official_mpn`` (an official link on a line naming
 its MPN), ``official_document`` (only official links that do not name its MPN,
 such as a series datasheet), ``unverified`` (links naming its MPN, none on its
-manufacturer's domain), ``lcsc_only``, ``local_only`` (a document in the
+manufacturer's domain), ``homepage`` (no document link: the manufacturer's
+home page only), ``lcsc_only``, ``local_only`` (a document in the
 repository but no recorded link) or ``none``. Links and documents are stored
 once and referenced by index; LCSC datasheet links are keyed by part number.
 """
@@ -59,6 +66,7 @@ import json
 from pathlib import Path
 import re
 import sys
+from urllib.parse import urlsplit
 
 # `python3 -I` does not put the script's directory on sys.path.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -135,7 +143,7 @@ MANUFACTURER_DOMAINS = {
 }
 DOC = re.compile(r'#\[doc\("([^"]+)"\)\]')
 ITEM = re.compile(r"\b(?:pub\s+)?(part|device)\s+(\w+)")
-CLASSES = ("official_mpn", "official_document", "unverified", "lcsc_only", "local_only", "none")
+CLASSES = ("official_mpn", "official_document", "unverified", "homepage", "lcsc_only", "local_only", "none")
 
 
 def _sha256(path: Path) -> str:
@@ -150,12 +158,21 @@ def _on(host: str, domains) -> bool:
     return any(host == d or host.endswith("." + d) for d in domains)
 
 
+def _is_homepage(url: str) -> bool:
+    """No path beyond the root, no query and no fragment: a site's home page, not a document."""
+    parts = urlsplit(url)
+    return parts.path in ("", "/") and not parts.query and not parts.fragment
+
+
 def label(url: str, mfr: str) -> str:
-    """``official`` on a domain of ``mfr`` itself, ``mirror`` on a known mirror, else ``unverified``."""
+    """``official`` on a domain of ``mfr`` itself (``homepage`` for its bare root), ``mirror`` on a known
+    mirror, else ``unverified``."""
     host = _host(url)
     if _on(host, MIRRORS):
         return "mirror"
-    return "official" if _on(host, MANUFACTURER_DOMAINS.get(mfr, ())) else "unverified"
+    if not _on(host, MANUFACTURER_DOMAINS.get(mfr, ())):
+        return "unverified"
+    return "homepage" if _is_homepage(url) else "official"
 
 
 def packages() -> list[tuple[str, str, Path]]:
@@ -296,7 +313,8 @@ def links_for(identity: dict, documents: dict, named=None) -> list[dict]:
             for url in URL.findall(line):
                 url = url.rstrip(".,;")
                 kind = label(url, mfr)
-                match = "mpn" if names_mpn else "manufacturer" if kind == "official" and not names_other else None
+                on_own_domain = kind in ("official", "homepage")
+                match = "mpn" if names_mpn else "manufacturer" if on_own_domain and not names_other else None
                 if match is None:
                     continue
                 link = {"url": url, "doc": doc, "match": match, "label": kind, "sha256": sha256}
@@ -316,7 +334,9 @@ def classify(links: list[dict], datasheet: str | None, local: bool) -> str:
         return "official_mpn"
     if official:
         return "official_document"
-    return "unverified" if links else "lcsc_only" if datasheet else "local_only" if local else "none"
+    if any(link["label"] != "homepage" for link in links):
+        return "unverified"
+    return "homepage" if links else "lcsc_only" if datasheet else "local_only" if local else "none"
 
 
 def build() -> dict:
@@ -356,14 +376,14 @@ def build() -> dict:
     snapshot_rows = [[page["c"], page["mfr"], page["mpn"], page["category"], page["c"] in library_pns]
                      for page in sorted(catalog, key=lambda p: int(p["c"][1:]))]
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "sources": {"lcsc_map.json": _sha256(DATA / "lcsc_map.json"),
                     str(pages_path.relative_to(DATA)): _sha256(pages_path),
                     str(catalog_path.relative_to(DATA)): _sha256(catalog_path)},
         "links": [[url, sha] for (url, sha) in link_index],
         "docs": [list(key) for key in doc_index],
         "identity_columns": ["package", "part", "entry", "mfr", "mpn", "status",
-                             "links [index into links, match (mpn|manufacturer), label (official|mirror|unverified), "
+                             "links [index into links, match (mpn|manufacturer), label (official|homepage|mirror|unverified), "
                              "index into docs of the document it came from]", "docs (index into docs)", "lcsc_pn"],
         "manufacturer_domains": MANUFACTURER_DOMAINS,
         "mirrors": list(MIRRORS),
@@ -386,28 +406,35 @@ def render(report: dict) -> str:
         "",
         "A link is attached to an identity only when its line names the identity's MPN or its host is a domain "
         "of the identity's manufacturer (and the line is not a catalog row for another part). It is official "
-        "only on the manufacturer's own domain; links on "
+        "only on the manufacturer's own domain, and only with a path: the domain's bare home page is labelled "
+        "homepage, since it is not a document. Links on "
         "distributors, aggregators, archives or code hosts are mirrors, and any other host is unverified.",
         "",
         f"- Library identities: {sum(total.values()):,}. Official link on a line naming the MPN: "
         f"{total['official_mpn']:,}; official link on the manufacturer's domain, not naming the MPN: "
         f"{total['official_document']:,}; links naming the MPN on a mirror or unverified host only: "
-        f"{total['unverified']:,}; LCSC datasheet only: "
+        f"{total['unverified']:,}; the manufacturer's home page only, no document link: {total['homepage']:,}; "
+        f"LCSC datasheet only: "
         f"{total['lcsc_only']:,}; a document in the repository but no recorded link: {total['local_only']:,}; "
         f"nothing: {total['none']:,}.",
         f"- B1 snapshot parts: {len(snap):,}, of which {sum(1 for r in snap if r[0] in report['lcsc_datasheets']):,} "
         f"have an LCSC datasheet link and {sum(1 for r in snap if r[4]):,} are mapped by a library entry.",
         "",
-        "| Package | Official (MPN) | Official (document) | Unverified | LCSC only | Local only | None |",
-        "|---|---:|---:|---:|---:|---:|---:|",
+        "| Package | Official (MPN) | Official (document) | Unverified | Homepage only | LCSC only | Local only | None |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for package, c in counts.items():
         lines.append(f"| `{package}` | {c['official_mpn']:,} | {c['official_document']:,} | {c['unverified']:,} | "
-                     f"{c['lcsc_only']:,} | {c['local_only']:,} | {c['none']:,} |")
+                     f"{c['homepage']:,} | {c['lcsc_only']:,} | {c['local_only']:,} | {c['none']:,} |")
     unverified = [r for r in report["identities"] if r[5] == "unverified"]
     lines += ["", f"## Links naming the MPN, none official ({len(unverified):,})", ""]
     lines += [f"- `{r[0]}` `{r[1]}` ({r[2]}): {r[3]} `{r[4]}`: "
               + ", ".join(f"{report['links'][i][0]} ({kind})" for i, _, kind, _ in r[6]) for r in unverified]
+    homepages = [r for r in report["identities"] if r[5] == "homepage"]
+    lines += ["", f"## The manufacturer's home page only ({len(homepages):,})", ""]
+    lines += [f"- `{r[0]}` `{r[1]}` ({r[2]}): {r[3]} `{r[4]}`: "
+              + ", ".join(report["links"][i][0] for i, *_ in r[6])
+              + (f"; LCSC datasheet for {r[8]}" if r[8] in report["lcsc_datasheets"] else "") for r in homepages]
     gaps = [r for r in report["identities"] if r[5] == "none"]
     lines += ["", f"## No link at all ({len(gaps):,})", ""]
     lines += [f"- `{r[0]}` `{r[1]}` ({r[2]}): {r[3]} `{r[4]}`" for r in gaps]

@@ -6,6 +6,7 @@ import difflib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,7 +19,8 @@ TOOLS = Path(__file__).resolve().parents[1]
 ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
-from sourcing.bindings import FRAME_FIELDS, Bindings, package_metadata  # noqa: E402
+from sourcing.bindings import FRAME_FIELDS, Bindings, _evidence, package_metadata  # noqa: E402
+from sourcing.w3_rule import RULE as W3_RULE  # noqa: E402
 import gen_esp32  # noqa: E402
 import gen_passive  # noqa: E402
 import gen_stm32  # noqa: E402
@@ -366,25 +368,153 @@ class CommittedTablesTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
+    # Every archive under jlc_previews/*/frames.json, with the row ids it must hold.
+    # A new archive has to be listed here, so its rows are checked, not just found.
+    ARCHIVED = {
+        "2026-11-07-w3-pilot-0402": None,  # 88 w3p- rows, checked by count and prefix
+        "2026-11-08-probe": [
+            "probe-diom5336x265n-c19077561",
+            "probe-diom7959x261n-c19077609",
+            "probe-sodfl3818x120n-c19077510",
+        ],
+        "2026-11-08-reverify": [
+            "rv1-sod2613x110n-c7420331",
+            "rv1-diom5026x241n-c7420365",
+            "rv1-sod1608x70n-c7420320",
+        ],
+    }
+
+    def test_archived_reverify_diode_rows_have_no_library_part(self):
+        # The 2026-11-08 diode rows are archived because no library source lists their
+        # part numbers. When a part is added (W4), this fails: adopt the row then,
+        # re-keyed to the package version the part ships in.
+        archive = self.DATA / "jlc_previews" / "2026-11-08-reverify" / "frames.json"
+        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+        self.assertEqual(
+            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            [
+                ("do214", "DIOM5026X241N", "C7420365"),
+                ("sod", "SOD1608X70N", "C7420320"),
+                ("sod", "SOD2613X110N", "C7420331"),
+            ],
+        )
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        for row in rows:
+            self.assertEqual(row["mapping"]["rotate_deg"], 180, row["id"])
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [], row["id"])
+
+    def test_archived_probe_tvs_rows_have_no_library_part(self):
+        # The 2026-11-08 probe's bidirectional TVS rows are archived for the same
+        # reason: no library source lists their part numbers. They were read by the
+        # body only, on a board built with zero correction, so each row is rotate 0
+        # with no offset. When a part is added (W4), this fails: adopt the row then,
+        # re-keyed to the package version the part ships in.
+        archive = self.DATA / "jlc_previews" / "2026-11-08-probe" / "frames.json"
+        rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
+        self.assertEqual(
+            sorted((row["package"], row["footprint"], row["pn"]) for row in rows),
+            [
+                ("do214", "DIOM5336X265N", "C19077561"),
+                ("do214", "DIOM7959X261N", "C19077609"),
+                ("sod", "SODFL3818X120N", "C19077510"),
+            ],
+        )
+        sources = sorted((ROOT / "lib").rglob("*.cohdl"))
+        self.assertGreater(len(sources), 100)
+        zero = {"dx_mm": 0, "dy_mm": 0, "rotate_deg": 0}
+        for row in rows:
+            self.assertEqual(row["mapping"], zero, row["id"])
+            self.assertEqual(row["measured"], zero, row["id"])
+            self.assertIsNone(row["exception"], row["id"])
+            self.assertEqual(row["package_version"], "0.1.0", row["id"])
+            self.assertIn("body only", row["evidence"]["note"], row["id"])
+            needle = f'"{row["pn"]}"'
+            listed = [
+                str(source.relative_to(ROOT))
+                for source in sources
+                if needle in source.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(listed, [], row["id"])
+
     def test_archived_preview_rows_stay_out_of_the_bound_table(self):
         frames = json.loads((self.DATA / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
         bound_ids = {row["id"] for row in frames}
         cited = {row["evidence"]["record"] for row in frames if row["evidence"] is not None}
         archives = sorted((self.DATA / "jlc_previews").glob("*/frames.json"))
-        # Not vacuous: the W3 pilot record keeps its 88 rows archived.
-        pilot = self.DATA / "jlc_previews" / "2026-11-07-w3-pilot-0402" / "frames.json"
-        self.assertIn(pilot, archives)
+        # Not vacuous: exactly the known archives exist, each with its expected rows.
+        self.assertEqual([archive.parent.name for archive in archives], sorted(self.ARCHIVED))
         for archive in archives:
             with self.subTest(archive=str(archive.relative_to(ROOT))):
-                rows = json.loads(archive.read_text(encoding="utf-8"))["rows"]
-                if archive == pilot:
+                document = json.loads(archive.read_text(encoding="utf-8"))
+                self.assertEqual(set(document), {"schema_version", "status", "note", "rows"})
+                self.assertEqual(document["status"], "archived")
+                rows = document["rows"]
+                ids = [row["id"] for row in rows]
+                expected = self.ARCHIVED[archive.parent.name]
+                if expected is None:
                     self.assertEqual(len(rows), 88)
+                    self.assertTrue(all(row_id.startswith("w3p-") for row_id in ids))
+                else:
+                    self.assertEqual(ids, expected)
+                self.assertEqual(len(set(ids)), len(ids))
                 record = str((archive.parent / "README.md").relative_to(ROOT))
                 for row in rows:
                     self.assertEqual(set(row), FRAME_FIELDS, row["id"])
                     self.assertEqual(row["evidence"]["record"], record, row["id"])
                 self.assertEqual(bound_ids & {row["id"] for row in rows}, set())
                 self.assertNotIn(record, cited)
+
+
+class SampledEvidenceTests(unittest.TestCase):
+    """The generator accepts a W3 inferred row only when every check of its group
+    record holds: the same counterexamples ``tests/library/supplier.rs`` rejects."""
+
+    FIXTURE = ROOT / "tests" / "fixtures" / "library-ci" / "s-sampled"
+    CASES = ("rule", "paused", "scope", "key", "land", "member", "zero-stock", "sample", "few",
+             "own-evidence", "reading", "offset", "raw", "arithmetic", "not-drawn", "mapping",
+             "two-kinds", "field")
+
+    def inferred(self, frames: str) -> bool:
+        rows = json.loads((self.FIXTURE / frames).read_text(encoding="utf-8"))["rows"]
+        by_id = {row["id"]: row for row in rows}
+        return _evidence(by_id["inferred"], by_id, self.FIXTURE)
+
+    def test_the_fixture_record_carries_the_rule_both_checkers_hold(self):
+        # supplier.rs accepts this record only if its rule equals its own copy,
+        # so the Rust and Python rules cannot drift apart unnoticed.
+        record = json.loads((self.FIXTURE / "w3_record.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["rule"], W3_RULE)
+
+    def test_a_valid_inferred_row_is_accepted(self):
+        self.assertTrue(self.inferred("jlc_frames.json"))
+
+    def test_every_counterexample_is_rejected(self):
+        for case in self.CASES:
+            with self.subTest(case=case):
+                self.assertFalse(self.inferred(f"jlc_frames.{case}.json"))
+
+    def test_the_rust_audit_names_the_same_counterexamples(self):
+        source = (ROOT / "tests" / "library" / "supplier.rs").read_text(encoding="utf-8")
+        files = {path.name for path in self.FIXTURE.glob("jlc_frames.*.json")}
+        self.assertEqual(files, {f"jlc_frames.{case}.json" for case in self.CASES})
+        cases = source.split("fn every_w3_sampled_rule_has_an_independent_counterexample")[1]
+        cases = cases.split("];")[0]
+        self.assertEqual(re.findall(r'\(\s*"([a-z-]+)",', cases), list(self.CASES))
+
+    def test_a_sample_row_cannot_be_inferred_itself(self):
+        rows = json.loads((self.FIXTURE / "jlc_frames.json").read_text(encoding="utf-8"))["rows"]
+        by_id = {row["id"]: row for row in rows}
+        self.assertTrue(_evidence(by_id["s1"], by_id, self.FIXTURE))
+        row = dict(by_id["s1"], evidence=None, sampled=by_id["inferred"]["sampled"])
+        self.assertFalse(_evidence(row, dict(by_id, s1=row), self.FIXTURE))
 
 
 if __name__ == "__main__":

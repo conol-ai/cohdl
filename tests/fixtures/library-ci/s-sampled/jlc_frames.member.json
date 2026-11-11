@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "id": "s1",
+      "package": "passive",
+      "package_version": "9.9.9",
+      "footprint": "CHIP_T",
+      "supplier": "lcsc",
+      "pn": "C_S1",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-07",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "s2",
+      "package": "passive",
+      "package_version": "9.9.9",
+      "footprint": "CHIP_T",
+      "supplier": "lcsc",
+      "pn": "C_S2",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-07",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "s3",
+      "package": "passive",
+      "package_version": "9.9.9",
+      "footprint": "CHIP_T",
+      "supplier": "lcsc",
+      "pn": "C_S3",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": {
+        "method": "preview",
+        "date": "2026-11-07",
+        "record": "evidence.txt"
+      },
+      "evidence_ref": null
+    },
+    {
+      "id": "inferred",
+      "package": "passive",
+      "package_version": "9.9.9",
+      "footprint": "CHIP_T",
+      "supplier": "lcsc",
+      "pn": "C_S_OTHER",
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 0
+      },
+      "measured": null,
+      "exception": null,
+      "evidence": null,
+      "evidence_ref": null,
+      "sampled": {
+        "group": "g1",
+        "record": "w3_record.json",
+        "note": "inferred from the g1 samples"
+      }
+    }
+  ]
+}

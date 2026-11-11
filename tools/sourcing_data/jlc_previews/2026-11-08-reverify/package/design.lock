@@ -1,0 +1,19 @@
+[designators]
+"FramePreview::Cand_1_0" = "U1"
+"FramePreview::Cand_1_1" = "U2"
+"FramePreview::Cand_1_2" = "U3"
+"FramePreview::Cand_1_3" = "U4"
+"FramePreview::Cand_2_0" = "U5"
+"FramePreview::Cand_2_1" = "U6"
+"FramePreview::Cand_2_2" = "U7"
+"FramePreview::Cand_2_3" = "U8"
+"FramePreview::Cand_3_0" = "U9"
+"FramePreview::Cand_3_1" = "U10"
+"FramePreview::Cand_3_2" = "U11"
+"FramePreview::Cand_3_3" = "U12"
+"FramePreview::Cand_4_0" = "U13"
+"FramePreview::Cand_4_1" = "U14"
+"FramePreview::Cand_4_2" = "U15"
+"FramePreview::Cand_4_3" = "U16"
+
+[tombstones]

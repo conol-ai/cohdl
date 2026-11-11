@@ -1,0 +1,244 @@
+{
+  "name": "pr78_101_reverify",
+  "dependencies": {
+    "std": "0.3.0",
+    "@contrib/level-shifter": "0.2.0",
+    "sod": "0.1.0",
+    "do214": "0.1.0"
+  },
+  "rows": [
+    {
+      "name": "Cand_1",
+      "footprint": "contrib_level_shifter::QFN14N50P350X350_1EP200X150",
+      "part": "contrib_level_shifter::RS0104[QFN14]",
+      "pn": "C5372421",
+      "mfr": "Run-IC",
+      "mpn": "RS0104YTQF14",
+      "pins": [
+        "GND",
+        "VCCA",
+        "VCCB",
+        "OE",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "NC6",
+        "NC9",
+        "EPAD"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            10,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            26,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            10,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            26,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 270
+      },
+      "note": "Candidate supplier rotation 270 for re-verification; not a binding."
+    },
+    {
+      "name": "Cand_2",
+      "footprint": "sod::SOD2613X110N",
+      "part": "ReviewDiode",
+      "pn": "C7420331",
+      "mfr": "hongjiacheng",
+      "mpn": "B5819WS",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            45,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            61,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            45,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            61,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "note": "Candidate supplier rotation 180 for re-verification; not a binding."
+    },
+    {
+      "name": "Cand_3",
+      "footprint": "do214::DIOM5026X241N",
+      "part": "ReviewDiode",
+      "pn": "C7420365",
+      "mfr": "hongjiacheng",
+      "mpn": "SS34",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            80,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            96,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            80,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            96,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "note": "Candidate supplier rotation 180 for re-verification; not a binding."
+    },
+    {
+      "name": "Cand_4",
+      "footprint": "sod::SOD1608X70N",
+      "part": "ReviewDiode",
+      "pn": "C7420320",
+      "mfr": "hongjiacheng",
+      "mpn": "1N4148WT",
+      "pins": [
+        "P1",
+        "P2"
+      ],
+      "width_mm": 14,
+      "height_mm": 14,
+      "covers_rotation": true,
+      "placements": [
+        {
+          "at_mm": [
+            115,
+            10
+          ],
+          "rotate": 0,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            131,
+            10
+          ],
+          "rotate": 37,
+          "side": "top"
+        },
+        {
+          "at_mm": [
+            115,
+            26
+          ],
+          "rotate": 0,
+          "side": "bottom"
+        },
+        {
+          "at_mm": [
+            131,
+            26
+          ],
+          "rotate": 37,
+          "side": "bottom"
+        }
+      ],
+      "mapping": {
+        "dx_mm": 0,
+        "dy_mm": 0,
+        "rotate_deg": 180
+      },
+      "note": "Candidate supplier rotation 180 for re-verification; not a binding."
+    }
+  ]
+}

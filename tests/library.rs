@@ -92,7 +92,7 @@ fn regenerate_passives(root: &std::path::Path) -> GeneratedPassives {
         fixture.root.join("tools/gen_passive.py"),
     )
     .unwrap();
-    for file in ["__init__.py", "bindings.py"] {
+    for file in ["__init__.py", "bindings.py", "w3_rule.py"] {
         std::fs::copy(
             root.join("tools/sourcing").join(file),
             fixture.root.join("tools/sourcing").join(file),
@@ -150,13 +150,30 @@ fn frame_evidence_records(root: &std::path::Path) -> Vec<String> {
         return Vec::new();
     };
     let frames: serde_json::Value = serde_json::from_str(&text).unwrap();
-    let mut records: Vec<String> = frames["rows"]
-        .as_array()
-        .into_iter()
-        .flatten()
+    let rows = frames["rows"].as_array().into_iter().flatten();
+    let mut records: Vec<String> = rows
+        .clone()
         .filter_map(|row| row["evidence"]["record"].as_str())
         .map(str::to_string)
         .collect();
+    // A W3 inferred row needs its group record and the land files the record
+    // pins by SHA-256; without them the generator drops the row's binding.
+    for record in rows.filter_map(|row| row["sampled"]["record"].as_str()) {
+        records.push(record.to_string());
+        let Ok(text) = std::fs::read_to_string(root.join(record)) else {
+            continue;
+        };
+        let record: serde_json::Value = serde_json::from_str(&text).unwrap();
+        for group in record["groups"].as_array().into_iter().flatten() {
+            records.extend(
+                group["land"]
+                    .as_object()
+                    .into_iter()
+                    .flatten()
+                    .map(|(file, _)| file.clone()),
+            );
+        }
+    }
     records.sort();
     records.dedup();
     records
@@ -1558,6 +1575,76 @@ fn esp32_s3_wroom_uses_exact_segmented_ep_and_distinct_memory_parts() {
     assert!(
         !c5_pin_names.contains("GPIO15"),
         "upstream no-connect die aliases must not become connectable-looking GPIO APIs"
+    );
+}
+
+/// qfn 0.3.0 removed `QFN48N40P600X600_1EP405X360`. It was drawn for the TI
+/// TPS59650 RSL package with its thermal land turned 90 degrees and centred,
+/// and lost its only user in @ti/dcdc 0.2.0 (PR #94). Removal keeps it from
+/// being reused by accident. This test fails if it, or one of its pads, comes
+/// back, or if any shipped source names it outside a comment.
+#[test]
+fn qfn_no_longer_ships_the_turned_tps59650_land() {
+    const REMOVED: &str = "QFN48N40P600X600";
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![("std".to_string(), root.join("lib/std"))];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project = cohdl::project::load_project_with_deps(&root.join("lib/qfn"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    // Not vacuous: the package's other lands are still loaded.
+    assert!(checked
+        .world
+        .footprints
+        .keys()
+        .any(|name| name.ends_with("::QFN60N40P700X700_1EP340X340")));
+    let leftovers: Vec<&String> = checked
+        .world
+        .footprints
+        .keys()
+        .chain(checked.world.pads.keys())
+        .filter(|name| name.contains(REMOVED))
+        .collect();
+    assert!(leftovers.is_empty(), "qfn still declares {leftovers:?}");
+
+    fn cohdl_sources(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                cohdl_sources(&path, out);
+            } else if path.extension().is_some_and(|ext| ext == "cohdl") {
+                out.push(path);
+            }
+        }
+    }
+    let mut sources = Vec::new();
+    for dir in ["lib", "examples", "tests/fixtures"] {
+        cohdl_sources(&root.join(dir), &mut sources);
+    }
+    assert!(sources.len() > 100, "found only {} sources", sources.len());
+    let mut users = Vec::new();
+    for path in &sources {
+        let text = std::fs::read_to_string(path).unwrap();
+        for (index, line) in text.lines().enumerate() {
+            let code = line.split("//").next().unwrap_or("");
+            if code.contains(REMOVED) {
+                users.push(format!(
+                    "{}:{}",
+                    path.strip_prefix(root).unwrap().display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    assert!(
+        users.is_empty(),
+        "sources still name the removed land: {users:?}"
     );
 }
 

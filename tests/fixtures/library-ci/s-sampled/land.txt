@@ -1,0 +1,1 @@
+Fixture land: stands in for a footprint source whose SHA-256 a W3 group record pins.

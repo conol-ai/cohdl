@@ -10,9 +10,11 @@ resistor as a part the library already has, and which would be new values.
 
 The B1 snapshot (tools/sourcing_data/jlc_catalog/2026-10-30/) holds the JLCPCB
 Basic and Preferred parts. Its UNI-ROYAL part numbers are decoded with
-``gen_passive.uniroyal_decode``. That rule is INFERRED from the snapshot's own
-part numbers: UNI-ROYAL's part-numbering document is not in this repository
-(see the comment above the rule in gen_passive.py).
+``gen_passive.uniroyal_decode``. That rule is transcribed from UNI-ROYAL's
+datasheet (tools/passive_data/uniroyal_chip_series.evidence.md), except the
+zero-ohm jumper's spelling, which the datasheet does not give and which is
+still inferred from the snapshot (see the comment above the rule in
+gen_passive.py).
 
 Each row lands in one list:
 
@@ -20,7 +22,8 @@ Each row lands in one list:
   emitted library part, whose rated power is also the same.
 - ``zero_ohm``: the zero-ohm jumper. The library part is ``R_0R_J_<size>``
   (declared 5%), the UNI-ROYAL number carries the letter F. A person decides
-  whether that is the same part.
+  whether that is the same part; ``jumper_ratings`` restates what the
+  datasheet says about the jumper of each size.
 - ``new_values``: decodes, but the library emits no such part.
 - ``not_decoded``: the rule refuses the part number.
 
@@ -51,6 +54,20 @@ ORIGIN = "https://jlcpcb.com"
 # the library name for this manufacturer is not decided (mfr_aliases.json has
 # no entry, and adding one needs a review record under alias_reviews/).
 CATALOG_MFR = "UNI-ROYAL(Uniroyal Elec)"
+
+# The jumper of each size as the datasheet rates it (p.5 §7 "Ratings": Resistance
+# Value of Jumper, Rated Current of Jumper, Max. Overload Current of Jumper).
+# The datasheet gives the jumper no tolerance and no part number.
+UNIROYAL_JUMPER = {
+    "0201": ("<50mΩ", "0.5A", "1A"),
+    "0402": ("<50mΩ", "1A", "2A"),
+    "0603": ("<50mΩ", "1A", "2A"),
+    "0805": ("<50mΩ", "2A", "5A"),
+    "1206": ("<50mΩ", "2A", "10A"),
+    "1210": ("<50mΩ", "2A", "10A"),
+    "2010": ("<50mΩ", "2A", "10A"),
+    "2512": ("<50mΩ", "2A", "10A"),
+}
 
 # The OpenWalkieTalkie Rev B order package places these ten numbers on 43
 # resistor positions (order-package inventory of 2026-11; that inventory is
@@ -96,11 +113,11 @@ def classify(mpn: str, verified: dict) -> dict:
     decoded = gen_passive.uniroyal_decode(mpn)
     if decoded is None:
         return {"list": "not_decoded", "reason": "not decoded"}
-    if gen_passive.UNIROYAL_SIZE[decoded["size"]][1] != gen_passive.R_POWER[decoded["size"]]:
+    if decoded["power"] != gen_passive.R_POWER[decoded["size"]]:
         return {"list": "not_decoded", "reason": "rated power differs from the library's for this size"}
     part, where = library_part(decoded, verified)
     fields = {"size": decoded["size"], "ohms": ohms_text(decoded["ohms"]),
-              "tolerance": gen_passive.UNIROYAL_TOLERANCE[decoded["tolerance"]]}
+              "tolerance": gen_passive.UNIROYAL_TOLERANCE[decoded["tolerance"]][0]}
     if part is None:
         return {"list": "new_values", **fields, "reason": where}
     return {"list": where, "part": part, **fields}
@@ -157,15 +174,21 @@ def build() -> dict:
             "status": "dry run: gen_passive.py does not read this file; no alternate is emitted and nothing is bound",
             "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), "
                       f"rows whose manufacturer reads '{CATALOG_MFR}'",
-            "rules": "inferred from the snapshot's part numbers and checked against JLCPCB's pages; UNI-ROYAL's "
-                     "part-numbering document is not in the repository (tools/gen_passive.py, UNI-ROYAL section)",
+            "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 "
+                     "(tools/passive_data/uniroyal_chip_series.evidence.md) and checked against JLCPCB's pages; "
+                     "the zero-ohm jumper's part number is not in that datasheet and is still inferred from "
+                     "the snapshot (tools/gen_passive.py, UNI-ROYAL section)",
             "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named "
-                       "library part; 'zero_ohm' are jumpers lettered F against the library's 5% R_0R_J part; "
+                       "library part; 'zero_ohm' are jumpers lettered F against the library's 5% R_0R_J part, and "
+                       "'jumper_ratings' is the datasheet's p.5 rating of each size's jumper (it states no "
+                       "tolerance for a jumper); "
                        "'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",
             "generator": "tools/uniroyal_alternates.py",
         },
         "counts": counts,
         "openwalkietalkie_rev_b": highlighted,
+        "jumper_ratings": {size: {"resistance": r, "rated_current": rated, "max_overload_current": overload}
+                           for size, (r, rated, overload) in UNIROYAL_JUMPER.items()},
         **lists,
     }
 
@@ -216,6 +239,13 @@ def page_attributes(html: str, c: str, mpn: str) -> dict | None:
         return None
 
 
+def milliwatts(power: str) -> Decimal:
+    """`62.5mW` or `1W`, the two spellings of gen_passive.R_POWER, in milliwatts."""
+    if power.endswith("mW"):
+        return Decimal(power.removesuffix("mW"))
+    return Decimal(power.removesuffix("W")).scaleb(3)
+
+
 def cached_page(cache_dir: Path, url: str) -> str | None:
     """The cached body for `url`, under the same checks as the fetch client's cache read."""
     digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
@@ -248,8 +278,9 @@ def validate_pages(cache_dir: Path, rows: list[dict] | None = None) -> dict:
             continue
         differs = [name for name, ours, theirs in (
             ("resistance", decoded["ohms"], stated["ohms"]),
-            ("tolerance", Decimal(gen_passive.UNIROYAL_TOLERANCE[decoded["tolerance"]].rstrip("%")), stated["tolerance"]),
-            ("power", Decimal(decoded["power"].removesuffix("mW")), stated["milliwatts"]),
+            ("tolerance", Decimal(gen_passive.UNIROYAL_TOLERANCE[decoded["tolerance"]][0].rstrip("%")),
+             stated["tolerance"]),
+            ("power", milliwatts(decoded["power"]), stated["milliwatts"]),
         ) if ours != theirs]
         if decoded["size"] != page["package"]:
             differs.append("package")

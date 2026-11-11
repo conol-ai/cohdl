@@ -89,28 +89,99 @@ class DecodeTests(unittest.TestCase):
             with self.subTest(mpn=mpn):
                 self.assertIsNone(gen_passive.uniroyal_decode(mpn))
 
-    def test_codes_the_snapshot_does_not_show_are_refused(self):
+    def test_the_datasheets_own_example(self):
+        # p.2 §3: "(Example: 0805 1/8W ±5% 10KΩ T/R-5000)" spelled 0805 W8 J 0103 T 5 E.
+        decoded = gen_passive.uniroyal_decode("0805W8J0103T5E")
+        self.assertEqual(decoded, {"size": "0805", "tolerance": "J", "power": "125mW", "ohms": Decimal(10000),
+                                   "mantissa": 100, "decade": 4})
+        self.assertEqual(gen_passive.UNIROYAL_TOLERANCE["J"][0], "5%")
+        self.assertEqual(reencode("0805W8J0103T5E"), "0805W8J0103T5E")
+        result = ur.classify("0805W8J0103T5E", gen_passive.load_verified())
+        self.assertEqual((result["list"], result["part"], result["ohms"], result["tolerance"]),
+                         ("alternates", "R_10K_J_0805", "10000", "5%"))
+
+    def test_each_size_takes_the_datasheets_power_and_reel_codes(self):
+        # p.2 §2.2 (wattage codes) and §3 (packing quantity per size); p.5 §6 (rating per size).
+        for mpn, size, power in (
+            ("0201WMF1002TEE", "0201", "50mW"),     # WM = 1/20 W, E = 15,000
+            ("0402WGF1002TCE", "0402", "62.5mW"),   # WG = 1/16 W, C = 10,000
+            ("0603WAF1002T5E", "0603", "100mW"),    # WA = 1/10 W, 5 = 5,000
+            ("0805W8F1002T5E", "0805", "125mW"),    # W8 = 1/8 W
+            ("1206W4F1002T5E", "1206", "250mW"),    # W4 = 1/4 W
+            ("1210W2F1002T5E", "1210", "500mW"),    # W2 = 1/2 W
+            ("201007F1002T4E", "2010", "750mW"),    # 07 = 3/4 W, 4 = 4,000
+            ("25121WF1002T4E", "2512", "1W"),       # 1W = 1 W
+        ):
+            with self.subTest(mpn=mpn):
+                decoded = gen_passive.uniroyal_decode(mpn)
+                self.assertEqual((decoded["size"], decoded["power"], decoded["ohms"]), (size, power, Decimal(10000)))
+                self.assertEqual(reencode(mpn), mpn)
+        self.assertEqual(set(gen_passive.UNIROYAL_SIZE), set(gen_passive.R_POWER))
+
+    def test_value_forms_follow_the_tolerance(self):
+        # p.2 §3: at 5% a 0 then two significant digits; at 1% three significant digits.
+        for mpn, ohms, mantissa, decade in (
+            ("0402WGJ0103TCE", "10000", 100, 4),
+            ("0402WGJ0472TCE", "4700", 470, 3),
+            ("0402WGJ0100TCE", "10", 100, 1),
+            ("0402WGJ091JTCE", "9.1", 910, 0),
+            ("0402WGJ010JTCE", "1", 100, 0),
+            ("0402WGJ0106TCE", "10000000", 100, 7),
+            ("0402WGF1005TCE", "10000000", 100, 7),
+            ("0402WGF4991TCE", "4990", 499, 3),
+        ):
+            with self.subTest(mpn=mpn):
+                decoded = gen_passive.uniroyal_decode(mpn)
+                self.assertEqual((ur.ohms_text(decoded["ohms"]), decoded["mantissa"], decoded["decade"]),
+                                 (ohms, mantissa, decade))
+                self.assertEqual(reencode(mpn), mpn)
+        for mpn in ("0402WGJ1002TCE", "0402WGF0103TCE", "0402WGJ0010TCE", "0402WGJ1000TCE"):
+            with self.subTest(mpn=mpn):
+                self.assertIsNone(gen_passive.uniroyal_decode(mpn))
+
+    def test_the_resistance_range_of_each_size_bounds_the_value(self):
+        # p.5 §6, the ±1% and ±5% columns at the rating decoded for the size.
+        for mpn, inside in (
+            ("0201WMF100KTEE", True), ("0201WMF999JTEE", True), ("0201WMF100LTEE", False),   # from 1 ohm
+            ("0402WGF100LTCE", True), ("0402WGF999MTCE", False),                             # from 0.1 ohm
+            ("0603WAF100MT5E", True), ("0603WAF999NT5E", False),                             # from 0.01 ohm
+            ("0805W8F100LT5E", True), ("0805W8F500MT5E", False),                             # from 0.1 ohm at 1/8 W
+            ("1206W4F100LT5E", True), ("1206W4F500MT5E", False),
+            ("25121WF100MT4E", True), ("25121WF100NT4E", False),
+            ("0402WGF1005TCE", True), ("0402WGF1015TCE", False), ("0402WGF1006TCE", False),  # to 10 Mohm
+            ("0402WGJ0106TCE", True), ("0402WGJ0116TCE", False),
+        ):
+            with self.subTest(mpn=mpn):
+                self.assertEqual(gen_passive.uniroyal_decode(mpn) is not None, inside)
+
+    def test_codes_outside_the_datasheet_or_the_library_are_refused(self):
         for mpn, why in (
-            ("0402WGJ1002TCE", "tolerance letter J"),
-            ("0402WGD1002TCE", "tolerance letter D"),
-            ("0201WMF1002TCE", "size 0201"),
-            ("1210W2F1002T5E", "size 1210"),
-            ("2512W1F1002T4E", "size 2512"),
+            ("0402WGD1002TCE", "D (0.5%) is in the datasheet, not a library grade"),
+            ("0402WGG0103TCE", "G (2%) is in the datasheet, not a library grade"),
+            ("0402WGG1002TCE", "G (2%) is in the datasheet, not a library grade"),
+            ("0402WGK1002TCE", "tolerance letter the datasheet does not define"),
+            ("0105WHF1002TDE", "size 01005 is in the datasheet, not a library size"),
+            ("181207F1002T4E", "size 1812 is in the datasheet, not a library size"),
+            ("1218W4F1002T5E", "size the datasheet does not list"),
+            ("0805W4F500MT5E", "0805 at 1/4 W is the low-resistance rating, not the library's"),
+            ("1206W3F500MT5E", "1206 at 1/3 W is the low-resistance rating, not the library's"),
+            ("2512W1F1002T4E", "1 W is spelled 1W"),
+            ("2010W7F1002T4E", "3/4 W is spelled 07"),
+            ("0201WMF1002TCE", "reel code of another size"),
             ("0402WAF1002TCE", "power code of another size"),
             ("0603WGF1002T5E", "power code of another size"),
-            ("0402XGF1002TCE", "second field is not W"),
-            ("0402WGF1002T5E", "packing tail of another size"),
-            ("0603WAF1002TCE", "packing tail of another size"),
-            ("0402WGF1002RCE", "packing tail"),
-            ("0402WGF1002TCX", "packing tail"),
-            ("0402WGF1006TCE", "exponent 6"),
-            ("0402WGF1009TCE", "exponent 9"),
-            ("0402WGF100MTCE", "exponent letter M"),
-            ("0402WGF100RTCE", "exponent letter R"),
+            ("0402XGF1002TCE", "fifth code is not W"),
+            ("0402WGF1002T5E", "reel code of another size"),
+            ("0603WAF1002TCE", "reel code of another size"),
+            ("0402WGF1002TDE", "reel code of another size"),
+            ("0402WGF1002RCE", "packaging type other than T"),
+            ("0402WGF1002TCX", "special feature other than E"),
+            ("0402WGF1009TCE", "power of ten 9"),
+            ("0402WGF100RTCE", "power-of-ten letter R"),
             ("0402WGF10R0TCE", "R as a decimal point"),
-            ("0402WGF0103TCE", "leading zero (a two-digit value form)"),
             ("0402WGF000JTCE", "zero with a submultiple letter"),
-            ("0402WGF0001TCE", "zero digits with an exponent"),
+            ("0402WGF0001TCE", "zero digits with a power of ten"),
+            ("0402WGJ0000TCE", "the jumper lettered J: not in the datasheet and not seen in the catalog"),
             ("4D03WGJ0472T5E", "resistor array"),
             ("4D02WGJ0103TCE", "resistor array"),
         ):
@@ -118,16 +189,29 @@ class DecodeTests(unittest.TestCase):
                 self.assertIsNone(gen_passive.uniroyal_decode(mpn))
 
     def test_encoding_refuses_what_decoding_refuses(self):
-        for args in (("0402", "J", 100, 4), ("0402", "F", 99, 4), ("0402", "F", 1000, 4),
-                     ("0402", "F", 100, 8), ("0402", "F", 100, -2)):
+        for args in (("0402", "D", 100, 4), ("0402", "F", 99, 4), ("0402", "F", 1000, 4),
+                     ("0402", "F", 100, 9), ("0402", "F", 100, -2), ("0402", "F", 101, 7),
+                     ("0402", "J", 102, 4), ("0402", "J", 110, 7), ("0402", "J", None, None)):
             with self.subTest(args=args), self.assertRaises(ValueError):
                 gen_passive.uniroyal_mpn(*args)
         with self.assertRaises(KeyError):
-            gen_passive.uniroyal_mpn("0201", "F", 100, 4)
+            gen_passive.uniroyal_mpn("1812", "F", 100, 4)
 
     def test_decoded_power_is_the_librarys_for_every_size(self):
-        for size, (_, power, _) in gen_passive.UNIROYAL_SIZE.items():
+        for size, (_, power, _, _) in gen_passive.UNIROYAL_SIZE.items():
             self.assertEqual(power, gen_passive.R_POWER[size])
+            self.assertEqual(ur.milliwatts(power) > 0, True)
+        self.assertEqual((ur.milliwatts("62.5mW"), ur.milliwatts("1W")), (Decimal("62.5"), Decimal(1000)))
+
+    def test_every_library_resistor_value_has_one_spelling(self):
+        # Each grid point of each grade encodes, and decodes back to itself, in every size whose range holds it.
+        for size in gen_passive.UNIROYAL_SIZE:
+            for tol in gen_passive.TOLERANCES:
+                for mantissa, decade in gen_passive.resistor_values(tol):
+                    mpn = gen_passive.uniroyal_mpn(size, tol, mantissa, decade)
+                    decoded = gen_passive.uniroyal_decode(mpn)
+                    self.assertEqual((decoded["size"], decoded["tolerance"], decoded["mantissa"], decoded["decade"]),
+                                     (size, tol, mantissa, decade), mpn)
 
 
 class DryRunTests(unittest.TestCase):
@@ -173,6 +257,18 @@ class DryRunTests(unittest.TestCase):
             with self.subTest(mpn=row["mpn"]):
                 self.assertEqual(row["part"], f"R_0R_J_{row['size']}")
                 self.assertIn(f"pub part {row['part']}: ChipResistor<0ohm, 5%>[R{row['size']}] {{", self.text[row["size"]])
+
+    def test_jumper_ratings_are_the_datasheets_table(self):
+        # p.5 §7. The library's jumper part states 0 ohm and 5%; the datasheet states neither a tolerance
+        # nor a part number for a jumper, so the zero_ohm rows stay apart for a person to decide.
+        ratings = self.report["jumper_ratings"]
+        self.assertEqual(set(ratings), set(gen_passive.R_POWER))
+        self.assertEqual(ratings["0402"], {"resistance": "<50mΩ", "rated_current": "1A", "max_overload_current": "2A"})
+        self.assertEqual({size: r["rated_current"] for size, r in ratings.items()},
+                         {"0201": "0.5A", "0402": "1A", "0603": "1A", "0805": "2A", "1206": "2A",
+                          "1210": "2A", "2010": "2A", "2512": "2A"})
+        self.assertEqual({r["resistance"] for r in ratings.values()}, {"<50mΩ"})
+        self.assertEqual({row["size"] for row in self.report["zero_ohm"]}, {"0402", "0603", "0805", "1206"})
 
     def test_new_values_have_no_library_part(self):
         self.assertEqual([(row["mpn"], row["ohms"]) for row in self.report["new_values"]], [("1206W4F100LT5E", "0.1")])

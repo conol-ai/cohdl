@@ -420,44 +420,95 @@ def emit_resistors(size, verified, bindings):
 # NOT EMITTED. Nothing in main() calls this section, so the generated library
 # is unchanged; tools/uniroyal_alternates.py uses it for a dry-run report.
 #
-# THE RULE IS INFERRED, NOT TRANSCRIBED. UNI-ROYAL's part-numbering document
-# is not in this repository. The rule below was read off the 295 UNI-ROYAL
-# rows of the B1 snapshot (tools/sourcing_data/jlc_catalog/2026-10-30/) and
-# checked against what JLCPCB's own page for each row states (resistance,
-# tolerance, rated power, package): 289 of the 289 rows it decodes agree on
-# all four, and the other 6 rows are refused (5 resistor arrays, 1 part
-# number with a suffix). `uniroyal_alternates.py --validate-pages` repeats
-# that check from the fetch cache.
+# The rule is transcribed from UNI-ROYAL's datasheet "Thick Film Chip
+# Resistors", Chip Series, file SMD-SP-001, V.11 of Mar.17,2026 (12 pages).
+# tools/passive_data/uniroyal_chip_series.evidence.md records its URL and
+# SHA-256 and quotes the passages; the PDF is not in this repository. Page
+# numbers below are that document's.
 #
-#   <size> W <power> <tolerance> <value> T <reel> E     0402WGF1002TCE
-#   size       0402, 0603, 0805, 1206
-#   power      G = 62.5 mW, A = 100 mW, 8 = 125 mW, 4 = 250 mW; each size was
-#              seen with one code only, and it is that size's R_POWER
-#   tolerance  F = +/-1% (the only letter seen on a chip resistor)
-#   value      three significant digits, then a digit n for x10^n ohms
-#              (1002 = 10 kohm, 1005 = 10 Mohm) or a letter for a submultiple:
-#              J = x0.1, K = x0.01, L = x0.001 (220J = 22 ohm, 100K = 1 ohm,
-#              100L = 0.1 ohm); 0000 is the zero-ohm jumper
-#   T <reel> E seen only as TCE on 0402 and T5E on the other sizes. The pages
-#              give a reel of 10,000 for C and 5,000 for 5; T and E are
-#              matched as written and not interpreted.
+#   <size> <power> <tolerance> <value> T <reel> E       0402WGF1002TCE
+#   "Part No. includes 14 codes" (p.2 §2); the document's own example is
+#   0805W8J0103T5E = 0805, 1/8 W, +/-5%, 10 kohm, tape/reel of 5,000 (p.2 §3).
 #
-# Fail closed: a size, code, value form or tail the snapshot does not show
-# is not decoded — including the J tolerance letter, the 4D0x arrays, and
-# any size whose power code or tail differs from the one seen.
+#   size       codes 1-4 (p.2 §2.1). Decoded: the sizes the library has.
+#   power      codes 5-6 (p.2 §2.2): WM = 1/20 W, WG = 1/16 W, WA = 1/10 W,
+#              W8 = 1/8 W, W4 = 1/4 W, W2 = 1/2 W, 07 = 3/4 W, 1W = 1 W.
+#              W is "Normal Size"; at 1 W or less the 6th code is the
+#              divisor ("1~G" = "1~16"). Decoded per size: the one rating
+#              the resistance-range table gives the size (p.5 §6) where it
+#              equals R_POWER. 0805 at 1/4 W and 1206 at 1/3 W (0.01 ohm to
+#              under 0.1 ohm only) are other ratings and are not decoded.
+#   tolerance  code 7 (p.2 §2.2 [sic], §3): D = +/-0.5%, F = +/-1%,
+#              G = +/-2%, J = +/-5%. Decoded: F and J, the library's grades.
+#   value      codes 8-11 (p.2 §2.4, §3). The 11th is the power of ten:
+#              0..6, J = 10^-1, K = 10^-2, L = 10^-3, M = 10^-4, N = 10^-5,
+#              P = 10^-6 (§2.4.3).
+#              "<=1% (E-96 series)": three significant digits, then the
+#              power of ten (§3; 1002 = 10 kohm, 220J = 22 ohm).
+#              "5% (E-24 series)": a 0, two significant digits, then the
+#              power of ten (§3; 0103 = 10 kohm).
+#              §2.4.1 words the split by value series, not tolerance ("if
+#              value belongs to standard value of E-24 series, the 8th code
+#              is zero"), which read alone would put a 1% E-24 value in the
+#              zero-led form. §3 and all 289 catalog rows (1%, E-24 values
+#              included, e.g. 1002) use three digits at 1%, so F takes the
+#              three-digit form only, J the zero-led form only, and the
+#              other pairing is refused.
+#              The value must lie in the size's range at that rating and
+#              tolerance (p.5 §6): never above 10 Mohm, and from 1 ohm
+#              (0201), 0.1 ohm (0402, 0805, 1206) or 0.01 ohm (the others).
+#   T          code 12 (p.2 §2.5.1): T = Tape/Reel, the only code defined.
+#   reel       code 13 (p.2 §2.5.2, §3; p.11 §12.3): the quantity for the
+#              size. E = 15,000 (0201), C = 10,000 (0402), 5 = 5,000 (0603,
+#              0805, 1206, 1210), 4 = 4,000 (2010, 2512).
+#   E          code 14 (p.2 §2.5.3): "Special features. E = standard".
+#
+# STILL INFERRED: the zero-ohm jumper's part number. The document rates the
+# jumper (p.5 §7: under 50 mohm, a rated and a maximum overload current per
+# size) but gives no part number, value code or tolerance letter for it.
+# `0000` after F is what the four jumper rows of the B1 snapshot
+# (tools/sourcing_data/jlc_catalog/2026-10-30/) carry and what JLCPCB's pages
+# for them state; only that spelling is decoded.
+#
+# The catalog check stands beside the document: of the snapshot's 295
+# UNI-ROYAL rows the rule decodes 289, and all 289 agree with JLCPCB's own
+# page on resistance, tolerance, rated power and package
+# (`uniroyal_alternates.py --validate-pages`). The other 6 are refused: 5
+# resistor arrays (4D02/4D03; the document does not cover arrays) and 1 part
+# number with a suffix. Sizes 0201, 1210, 2010 and 2512 and the J letter
+# rest on the document alone: the snapshot has no such row.
+#
+# Fail closed: only what the document defines AND the library has a resistor
+# kind for is decoded. Refused: sizes 01005 and 1812, D and G, the
+# low-resistance ratings, any other packing, and every value outside the
+# stated range.
 # --------------------------------------------------------------------------
 
-# size -> (power code, rated power on JLCPCB's pages, packing tail)
+# size -> (power code, rated power, reel code, lowest resistance in ohms)
 UNIROYAL_SIZE = {
-    "0402": ("G", "62.5mW", "TCE"),
-    "0603": ("A", "100mW", "T5E"),
-    "0805": ("8", "125mW", "T5E"),
-    "1206": ("4", "250mW", "T5E"),
+    "0201": ("WM", "50mW", "E", "1"),
+    "0402": ("WG", "62.5mW", "C", "0.1"),
+    "0603": ("WA", "100mW", "5", "0.01"),
+    "0805": ("W8", "125mW", "5", "0.1"),
+    "1206": ("W4", "250mW", "5", "0.1"),
+    "1210": ("W2", "500mW", "5", "0.01"),
+    "2010": ("07", "750mW", "4", "0.01"),
+    "2512": ("1W", "1W", "4", "0.01"),
 }
-UNIROYAL_TOLERANCE = {"F": "1%"}
-# Value-code exponent character -> power of ten applied to the three digits.
-UNIROYAL_EXPONENT = {"L": -3, "K": -2, "J": -1, "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5}
-UNIROYAL_ZERO = "0000"
+UNIROYAL_MAX_OHMS = 10_000_000
+# tolerance letter -> (percent, significant digits in the value code)
+UNIROYAL_TOLERANCE = {"F": ("1%", 3), "J": ("5%", 2)}
+# The 11th code -> power of ten applied to the significant digits.
+UNIROYAL_EXPONENT = {"P": -6, "N": -5, "M": -4, "L": -3, "K": -2, "J": -1,
+                     "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6}
+# Inferred from the catalog, not in the document: the jumper, seen after F only.
+UNIROYAL_ZERO = ("F", "0000")
+
+
+def _uniroyal_in_range(size, ohms):
+    from decimal import Decimal
+
+    return Decimal(UNIROYAL_SIZE[size][3]) <= ohms <= UNIROYAL_MAX_OHMS
 
 
 def uniroyal_decode(mpn):
@@ -471,32 +522,45 @@ def uniroyal_decode(mpn):
 
     if not isinstance(mpn, str) or len(mpn) != 14 or not mpn.isascii():
         return None
-    size, w, power, tol, code, tail = mpn[:4], mpn[4], mpn[5], mpn[6], mpn[7:11], mpn[11:]
+    size, power, tol, code, tail = mpn[:4], mpn[4:6], mpn[6], mpn[7:11], mpn[11:]
     known = UNIROYAL_SIZE.get(size)
-    if known is None or w != "W" or (power, tail) != (known[0], known[2]) or tol not in UNIROYAL_TOLERANCE:
+    if known is None or power != known[0] or tail != f"T{known[2]}E" or tol not in UNIROYAL_TOLERANCE:
         return None
     fields = {"size": size, "tolerance": tol, "power": known[1]}
-    if code == UNIROYAL_ZERO:
+    if (tol, code) == UNIROYAL_ZERO:
         return {**fields, "ohms": Decimal(0), "mantissa": None, "decade": None}
-    digits3, exponent = code[:3], UNIROYAL_EXPONENT.get(code[3])
-    # Three significant digits: a leading zero is another value form, not seen here.
-    if exponent is None or digits3[0] not in "123456789" or not digits3.isdigit():
+    figures = UNIROYAL_TOLERANCE[tol][1]
+    lead, digits, exponent = code[: 3 - figures], code[3 - figures:3], UNIROYAL_EXPONENT.get(code[3])
+    # The significant digits start with a non-zero digit; the 5% form has one 0 before them.
+    if exponent is None or lead != "0" * (3 - figures) or digits[0] not in "123456789" or not digits.isdigit():
         return None
-    mantissa = int(digits3)
-    return {**fields, "ohms": Decimal(mantissa).scaleb(exponent), "mantissa": mantissa, "decade": exponent + 2}
+    ohms = Decimal(int(digits)).scaleb(exponent)
+    if not _uniroyal_in_range(size, ohms):
+        return None
+    # The library's mantissa has three digits whatever the part number spells.
+    return {**fields, "ohms": ohms, "mantissa": int(digits) * 10 ** (3 - figures), "decade": exponent + figures - 1}
 
 
 def uniroyal_mpn(size, tol, mantissa, decade):
     """The part number `uniroyal_decode` reads back; `mantissa` None is zero ohms."""
-    power, _, tail = UNIROYAL_SIZE[size]
+    from decimal import Decimal
+
+    power, _, reel, _ = UNIROYAL_SIZE[size]
     if tol not in UNIROYAL_TOLERANCE:
         raise ValueError(tol)
     if mantissa is None:
-        return f"{size}W{power}{tol}{UNIROYAL_ZERO}{tail}"
+        if tol != UNIROYAL_ZERO[0]:
+            raise ValueError(tol)
+        return f"{size}{power}{tol}{UNIROYAL_ZERO[1]}T{reel}E"
+    figures = UNIROYAL_TOLERANCE[tol][1]
     codes = {exponent: char for char, exponent in UNIROYAL_EXPONENT.items()}
-    if not 100 <= mantissa <= 999 or decade - 2 not in codes:
+    digits, rest = divmod(mantissa, 10 ** (3 - figures))
+    exponent = decade - figures + 1
+    if not 100 <= mantissa <= 999 or rest or exponent not in codes:
         raise ValueError((mantissa, decade))
-    return f"{size}W{power}{tol}{mantissa:03d}{codes[decade - 2]}{tail}"
+    if not _uniroyal_in_range(size, Decimal(digits).scaleb(exponent)):
+        raise ValueError((size, mantissa, decade))
+    return f"{size}{power}{tol}{'0' * (3 - figures)}{digits:0{figures}d}{codes[exponent]}T{reel}E"
 
 
 # --------------------------------------------------------------------------

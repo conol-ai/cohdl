@@ -2,8 +2,8 @@
  "_provenance": {
   "status": "dry run: gen_passive.py does not read this file; no alternate is emitted and nothing is bound",
   "source": "B1 snapshot tools/sourcing_data/jlc_catalog/2026-10-30/catalog.json (confirmed JLCPCB pages), rows whose manufacturer reads 'UNI-ROYAL(Uniroyal Elec)'",
-  "rules": "inferred from the snapshot's part numbers and checked against JLCPCB's pages; UNI-ROYAL's part-numbering document is not in the repository (tools/gen_passive.py, UNI-ROYAL section)",
-  "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named library part; 'zero_ohm' are jumpers lettered F against the library's 5% R_0R_J part; 'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",
+  "rules": "transcribed from UNI-ROYAL's datasheet 'Thick Film Chip Resistors' SMD-SP-001 V.11 (tools/passive_data/uniroyal_chip_series.evidence.md) and checked against JLCPCB's pages; the zero-ohm jumper's part number is not in that datasheet and is still inferred from the snapshot (tools/gen_passive.py, UNI-ROYAL section)",
+  "meaning": "'alternates' decode to the resistance, tolerance, case size and rated power of the named library part; 'zero_ohm' are jumpers lettered F against the library's 5% R_0R_J part, and 'jumper_ratings' is the datasheet's p.5 rating of each size's jumper (it states no tolerance for a jumper); 'new_values' decode but the library emits no such part; 'not_decoded' are refused by the rule",
   "generator": "tools/uniroyal_alternates.py"
  },
  "counts": {
@@ -31,10 +31,14 @@
    }
   },
   "alternates_by_size": {
+   "0201": 0,
    "0402": 57,
    "0603": 115,
    "0805": 96,
-   "1206": 16
+   "1206": 16,
+   "1210": 0,
+   "2010": 0,
+   "2512": 0
   },
   "openwalkietalkie_rev_b": {
    "numbers": 10,
@@ -155,6 +159,48 @@
    "in_snapshot": false
   }
  ],
+ "jumper_ratings": {
+  "0201": {
+   "resistance": "<50mΩ",
+   "rated_current": "0.5A",
+   "max_overload_current": "1A"
+  },
+  "0402": {
+   "resistance": "<50mΩ",
+   "rated_current": "1A",
+   "max_overload_current": "2A"
+  },
+  "0603": {
+   "resistance": "<50mΩ",
+   "rated_current": "1A",
+   "max_overload_current": "2A"
+  },
+  "0805": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "5A"
+  },
+  "1206": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "1210": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "2010": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  },
+  "2512": {
+   "resistance": "<50mΩ",
+   "rated_current": "2A",
+   "max_overload_current": "10A"
+  }
+ },
  "alternates": [
   {
    "pn": "C4109",

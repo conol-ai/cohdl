@@ -2155,12 +2155,12 @@
    "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
-   "name": "D_R_1M_F_1210_C470029",
+   "name": "D_R_1M6_F_1210_C7276637",
    "footprint": "passive::CHIP_1210",
-   "part": "passive::ChipResistor<1Mohm, 1%>[R1210]",
-   "pn": "C470029",
+   "part": "passive::ChipResistor<1.6Mohm, 1%>[R1210]",
+   "pn": "C7276637",
    "mfr": "Yageo",
-   "mpn": "RC1210FR-071ML",
+   "mpn": "RC1210FR-071M6L",
    "pins": [
     "A",
     "B"
@@ -2179,11 +2179,12 @@
     }
    ],
    "purpose": "D",
-   "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1M_F_1210 primary; lcsc_map rule alias",
+   "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_1M6_F_1210 primary; lcsc_map rule alias; replaces C470029, short at the BOM step: 2026-11-11 preview-board-4 first package 1cd1883d (page read 1014)",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1014,
-   "group": "CHIP_1210 ChipResistor Yageo RC"
+   "stock": 4560,
+   "group": "CHIP_1210 ChipResistor Yageo RC",
+   "replaces": "C470029"
   },
   {
    "name": "D_R_200R_F_1210_C728367",
@@ -2682,12 +2683,12 @@
    "group": "CHIP_1210 ChipResistor Yageo RC"
   },
   {
-   "name": "D_R_68K_F_1210_C875102",
+   "name": "D_R_681R_F_1210_C728392",
    "footprint": "passive::CHIP_1210",
-   "part": "passive::ChipResistor<68kohm, 1%>[R1210]",
-   "pn": "C875102",
+   "part": "passive::ChipResistor<681ohm, 1%>[R1210]",
+   "pn": "C728392",
    "mfr": "Yageo",
-   "mpn": "RC1210FR-0768KL",
+   "mpn": "RC1210FR-07681RL",
    "pins": [
     "A",
     "B"
@@ -2706,11 +2707,12 @@
     }
    ],
    "purpose": "D",
-   "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_68K_F_1210 primary; lcsc_map rule alias",
+   "note": "W3 sample 2026-11-10, group CHIP_1210 ChipResistor Yageo RC; lib passive::R_681R_F_1210 primary; lcsc_map rule alias; replaces C875102, short at the BOM step: 2026-11-11 preview-board-4 first package 1cd1883d (page read 1200)",
    "jlc_package": "1210",
    "category": "extended",
-   "stock": 1200,
-   "group": "CHIP_1210 ChipResistor Yageo RC"
+   "stock": 5038,
+   "group": "CHIP_1210 ChipResistor Yageo RC",
+   "replaces": "C875102"
   },
   {
    "name": "D_R_71R5_F_1210_C875123",

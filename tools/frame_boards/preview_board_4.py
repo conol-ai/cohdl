@@ -39,8 +39,20 @@ The D samples are read from the committed W3 report
 (tools/sourcing_data/w3_sampling/2026-11-10/groups.json): the `sample` of each
 group in W3_GROUPS, in the report's order. The report's SHA-256 is checked
 first, so a regenerated report does not change this board silently. Each
-sample is still checked against the map, the pages and the library. The
-calibration choices are this board's own and stay written out; each must be a
+sample is still checked against the map, the pages and the library.
+
+A sample the assembler's BOM step found short is not placed again. Such a run
+takes no placement preview, so it has no record under jlc_previews; the dated
+fact is kept in this board's preview-board-4/w3.json (`short_at_preview`),
+which tools/w3_groups.py reads with the preview records' lists. The generator
+does not pick the replacement: it rebuilds the group's eligible members from
+the report (in stock on the cached pages, not yet tried, in MPN order), checks
+that w3_groups.choose gives the report's own sample from them, and then takes
+choose's answer with the board's list added: each short sample gives way to
+its nearest eligible neighbour and every other sample stays. The first package
+(2026-11-11) had C470029 and C875102 short; their rows carry `replaces`.
+
+The calibration choices are this board's own and stay written out; each must be a
 member of a group in the report.
 
 The W3 rule takes a view's median over every drawn chip body, and that median
@@ -54,6 +66,8 @@ import hashlib, json, math, re, subprocess, sys, tempfile
 from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+sys.path.insert(0, str(ROOT / "tools"))  # `python3 -I` leaves it off
+import w3_groups
 DATA = ROOT / "tools/sourcing_data"
 with tempfile.TemporaryDirectory() as td:
     subprocess.run([sys.executable, "-I", str(HERE / "inventory.py"), str(Path(td) / "inv.json")],
@@ -73,8 +87,9 @@ def group_name(group):
     return " ".join(group[k] for k in ("footprint", "type", "mfr", "series"))
 
 
-w3_groups = {group_name(g): g for g in json.loads(W3_REPORT.read_text(encoding="utf-8"))["groups"]}
-group_of = {member[0]: name for name, g in w3_groups.items() for member in g["member_rows"]}
+report = json.loads(W3_REPORT.read_text(encoding="utf-8"))
+report_groups = {group_name(g): g for g in report["groups"]}
+group_of = {member[0]: name for name, g in report_groups.items() for member in g["member_rows"]}
 
 # (part number, library part as package::PART, purpose, note). The library part
 # is the entry's own part for A, B, C and D; for E it only supplies the pins.
@@ -119,12 +134,23 @@ CAL = [
 CAL_ANGLES = (0, 90, 180, 270, 37)
 # The W3 report's groups this board samples whole: the report's `sample` of each.
 W3_GROUPS = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
-W3 = []
+# Samples a BOM step found short since the report: this board's own list and the records'.
+SHORT = w3_groups.SHORT_AT_PREVIEW
+W3, REPLACES = [], {}
 for name in W3_GROUPS:
-    g = w3_groups[name]
+    g = report_groups[name]
     if g["status"] != "needs_samples" or len(g["sample"]) != g["more_needed"] or len(set(g["sample"])) != len(g["sample"]):
         raise SystemExit(f"{name}: the report does not list the samples this group still needs")
-    W3.append((name, g["sample"]))
+    # The members the report chose among, as w3_groups.build() takes them.
+    tried = {x["pn"] for key in ("passed", "failed", "not_drawn", "direct") for x in g[key]}
+    eligible = [m[0] for m in g["member_rows"] if m[0] not in tried and m[5] >= report["rule"]["min_stock"]]
+    if w3_groups.choose(eligible, g["more_needed"], lambda pn: pn in report["rule"]["short_at_preview"]) != g["sample"]:
+        raise SystemExit(f"{name}: the report's sample is not what w3_groups.choose gives from its members")
+    sample = w3_groups.choose(eligible, g["more_needed"], lambda pn: pn in SHORT)
+    if len(sample) != len(g["sample"]):
+        raise SystemExit(f"{name}: no eligible member is left to replace a short sample")
+    REPLACES.update({new: old for old, new in zip(g["sample"], sample) if new != old})
+    W3.append((name, sample))
 # Order numbers that would qualify but are not placed.
 LEFT_OFF = {
     "C2799946": "OWT SW3, SW4 (C&K PTS636, in lcsc_map): its page read stock 0 on 2026-11-06, and the assembler does not place such a part",
@@ -239,6 +265,9 @@ for group, pns in W3:
         item = row(pn, from_map(pn), "D", "W3 sample 2026-11-10, group " + group, [("top", 0)])
         if item["group"] != group:
             raise SystemExit(f"{pn}: not a {group} part")
+        if pn in REPLACES:
+            item["replaces"] = REPLACES[pn]
+            item["note"] += "; replaces %s, short at the BOM step: %s" % (REPLACES[pn], SHORT[REPLACES[pn]])
         samples.append((item, 1, 1))
 
 # Bands down the board. The calibration set is split between the first and the
@@ -275,4 +304,6 @@ view_groups = {side: dict(sorted(view_groups[side].items())) for side in ("top",
 json.dump({"name": "preview_board_4", "dependencies": deps, "rows": rows, "left_off": LEFT_OFF,
            "view_groups": view_groups},
           open(sys.argv[1], "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-print(len(rows), "rows,", sum(len(r["placements"]) for r in rows), "placements, board ~", WIDTH, "x", round(y + shelf, 1), "mm")
+# The outline is not this area: jlc_frame_board.py draws it 5 mm (its spacing) outside the boxes.
+print(len(rows), "rows,", sum(len(r["placements"]) for r in rows), "placements, placement area ~", WIDTH, "x", round(y + shelf, 1),
+      "mm inside the outline's margin")

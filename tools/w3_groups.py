@@ -58,6 +58,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "tools/sourcing_data"
 PASSIVE = ROOT / "lib/passive"
 PREVIEWS = DATA / "jlc_previews"
+BOARDS = ROOT / "tools/frame_boards"
 TYPES = tuple(w3_rule.RULE["types"])
 MIN_SAMPLE = w3_rule.RULE["min_sample"]
 FRACTION = w3_rule.RULE["fraction"]
@@ -76,13 +77,25 @@ def preview_inputs() -> dict[Path, dict]:
             for path in sorted(PREVIEWS.glob("*/w3.json"))}
 
 
+def board_inputs() -> dict[Path, dict]:
+    """Each frame board's own ``w3.json``, by path: the samples a run of that board
+    found short at the BOM step before any preview of it was recorded. Such a run
+    took no placement preview, so it has no record under ``jlc_previews`` and gives
+    no reading; the board's directory keeps the dated fact until a record does."""
+    return {path: json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(BOARDS.glob("*/w3.json"))}
+
+
 def short_at_preview() -> dict[str, str]:
     """Samples a preview's BOM step reported short although their page read MIN_STOCK
-    or more: the stock sold after the page was read. Each record keeps its own list.
+    or more: the stock sold after the page was read. Each record keeps its own list,
+    and so does a board whose run stopped there with no record (``board_inputs``).
     Each is replaced by the nearest eligible member, so the other samples, which that
     preview confirmed in stock, stay as they are."""
     short = {}
-    for meta in preview_inputs().values():
+    for meta in (*preview_inputs().values(), *board_inputs().values()):
+        if set(short) & set(meta["short_at_preview"]):
+            raise SystemExit("w3_groups.py: a sample is listed short at preview twice")
         short.update(meta["short_at_preview"])
     return short
 
@@ -280,6 +293,7 @@ def build() -> dict:
             **{str((record / name).relative_to(DATA)): _sha256(record / name)
                for record, meta in preview_inputs().items()
                for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])},
+            **{str(path.relative_to(ROOT / "tools")): _sha256(path) for path in board_inputs()},
         },
         "unmapped_entries": unmapped,
         "member_columns": ["pn", "mpn", "part", "entry", "category", "stock"],

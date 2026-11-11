@@ -2,9 +2,12 @@
 
 This frame board is driven by a real order. The inventory of the OpenWalkieTalkie Rev B and r6 assembly packages (plan item 5a, 2026-11-11) found that the library binds about 5% of that order's placements, although it has most of the parts. The board carries the part numbers that inventory names, as far as they can be placed from data already in the repository, plus the calibration set and two W3 sample sets.
 
-It holds 84 part numbers in 243 placements (147 top, 96 bottom) on a board of about 120 × 112 mm. No row carries a supplier mapping; the one bound part is placed as the library ships it.
+It holds 84 part numbers in 243 placements (147 top, 96 bottom) on a board of 127.78 × 120.37 mm (x × y). The assembler reads the same outline and prints it as "120.37x127.78mm". The generator's 120 × 112 mm is the area the part boxes are laid out in, not the board: `jlc_frame_board.py` draws the outline 5 mm outside the outermost boxes, and an earlier version of this page gave that inner area as the board's size. No row carries a supplier mapping; the one bound part is placed as the library ships it.
 
-**Not previewed.** The package builds and passes the local checks. Uploading it to the assembler's preview needs Alex's approval, like every preview. A preview run stops at Component Placements: no cart, no quote, no order, no terms ticked.
+**Not previewed yet.** The package builds and passes the local checks. Uploading it to the assembler's preview needs Alex's approval, like every preview, and each new package needs its own. A preview run stops at Component Placements: no cart, no quote, no order, no terms ticked.
+
+- **First run (2026-11-11), unverified.** The first package (SHA-256 `1cd1883d3d51001af779ffc51cd685f393daa21cf7284e42ec341ba84ae30cd2`, commit `f62f3be`) was uploaded with Alex's approval. The assembler read a 2 layer board of 120.37 × 127.78 mm. Its BOM step read "84 parts detected, 82 Parts confirmed" with a shortage warning and left two rows unselected: C470029 (`RC1210FR-071ML`, its page read 1,014) and C875102 (`RC1210FR-0768KL`, 1,200), both W3 samples of Yageo `RC` 1210. `jlc_preview.py` stopped there. No placement preview was taken, and nothing was measured or recorded from that run.
+- **This package.** The two are replaced by their group's nearest eligible members, C7276637 (`RC1210FR-071M6L`, page 4,560) and C728392 (`RC1210FR-07681RL`, page 5,038), at the same two positions. The other 82 rows and all 243 positions are as the first run's BOM step confirmed them (see D and Stock below).
 
 ## What it carries
 
@@ -85,6 +88,10 @@ So the top view has ten groups and the bottom nine. The two sampled groups are j
 
 **D: W3 samples.** The report of 2026-11-10 (`tools/sourcing_data/w3_sampling/2026-11-10/groups.json`) lists the `sample` it chose for each group that needs samples. This board takes two groups whole: Vishay `CRCW` 0402 (9 samples, to replace the nine the pilot did not draw) and Yageo `RC` 1210 (42). The generator reads the part numbers from the report, in its order, after checking the report's SHA-256 (`5b0f77f2be21eb8cde5b15171d382338ef23f9e26cf6e7cdb35abc5f31929a2c`), and still checks each against the map, the pages and the library. A regenerated report therefore stops the generator until this board is looked at again.
 
+*Short at the BOM step.* The repository's convention (the pilot, `tools/w3_groups.py`) is that a sample the assembler finds short, although its page read 30 or more, is recorded as a dated fact and replaced by the nearest eligible member of its group, so the samples the same run confirmed stay. The pilot's two are in its preview record's `w3.json`. This board has no preview record, because the run that found C470029 and C875102 short took no preview, and a record directory without a preview would be an invented one. So the fact is in this board's own `w3.json` (`short_at_preview`, with the date, the package and what each page read), next to the manifest it changes. `w3_groups.py` reads it together with the records' lists, so its next report passes over both numbers too; when this board's preview is recorded, the list moves into that record's `w3.json`.
+
+The generator does not pick the replacements. It rebuilds the group's eligible members from the report (at least 30 in stock on the cached page, not yet tried, in MPN order), checks that `w3_groups.choose` gives the report's own sample from them, and takes `choose`'s answer with the board's list added. Nothing is fetched. The two new rows carry `replaces` and the reason in their note; the other 40 samples of the group and the 9 `CRCW` samples are unchanged, and the group still gets 42 samples from this board (it needs 43 passed in all and has 1).
+
 ## Left off
 
 The manifest lists these under `left_off`.
@@ -96,7 +103,9 @@ Order numbers with no page in the repository are not on the board. They need a f
 
 ## Stock
 
-Every page read at least five pieces per placement, and at least 30. Three rows are close: C138161 read 75 (needs 50), C878096 read 252 (needs 50), and eight of the 1210 samples read 30 to 55 (each needs 5; C728395 and C723577 read exactly 30). Pages are from 2026-10-30 to 2026-11-07, and stock has moved before between a page and a preview. `jlc_preview.py` stops on any stock warning, and the preview is then unverified. Dropping a row makes a new package, which needs its own approval.
+Every page read at least five pieces per placement, and at least 30. Pages are from 2026-10-30 to 2026-11-07, and stock has moved before between a page and a preview. `jlc_preview.py` stops on any stock warning, and the preview is then unverified. Changing a row makes a new package, which needs its own approval.
+
+A page's number did not predict the first run. The two rows it found short had read 1,014 and 1,200. The rows with the least on their pages were all among the 82 the BOM step confirmed on 2026-11-11, so they stay: the 1210 samples C728395 and C723577 (each read exactly 30), C275640 (35), C875123 (35), C728375 (39), C875234 (44), C875093 (49) and C728367 (55), each needing 5; and the calibration parts C138161 (read 75, needs 50) and C878096 (252, needs 50). That they passed is a fact of that day only; the next run can find any row short.
 
 ## What to expect
 

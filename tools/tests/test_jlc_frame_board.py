@@ -380,11 +380,25 @@ class FrameBoardTests(unittest.TestCase):
         member = {m[0]: name for name, g in groups.items() for m in g["member_rows"]}
         manifest = json.loads(self.BOARD_4.read_text())
         rows = manifest["rows"]
-        # D is the report's own sample of the two groups, whole and in its order.
+        # D is the report's own sample of the two groups, whole and in its order, but for
+        # the two the first package's BOM step found short on 2026-11-11 (the board's w3.json).
         sampled = ["CHIP_0402 ChipResistor Vishay CRCW", "CHIP_1210 ChipResistor Yageo RC"]
+        short = json.loads((self.BOARD_4.parent / "w3.json").read_text())["short_at_preview"]
+        self.assertEqual(set(short), {"C470029", "C875102"})
+        replaced = {"C470029": "C7276637", "C875102": "C728392"}
         self.assertEqual([r["pn"] for r in rows if r["purpose"] == "D"],
-                         [pn for name in sampled for pn in groups[name]["sample"]])
+                         [replaced.get(pn, pn) for name in sampled for pn in groups[name]["sample"]])
         self.assertEqual([len(groups[name]["sample"]) for name in sampled], [9, 42])
+        self.assertFalse(set(short) & {r["pn"] for r in rows})
+        self.assertEqual({r["pn"]: r["replaces"] for r in rows if "replaces" in r}, {new: old for old, new in replaced.items()})
+        # Each replacement is the short sample's neighbour among the group's eligible
+        # members in MPN order (in stock, not yet tried), and not short itself.
+        g = groups["CHIP_1210 ChipResistor Yageo RC"]
+        tried = {x["pn"] for key in ("passed", "failed", "not_drawn", "direct") for x in g[key]}
+        eligible = [m[0] for m in g["member_rows"] if m[0] not in tried and m[5] >= 30]
+        for old, new in replaced.items():
+            self.assertEqual(abs(eligible.index(old) - eligible.index(new)), 1)
+            self.assertIn(short[old], next(r["note"] for r in rows if r["pn"] == new))
         # A chip row names its report group; a part number no group has says null.
         counted = {"top": {}, "bottom": {}}
         for row in rows:

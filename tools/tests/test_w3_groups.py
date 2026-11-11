@@ -65,6 +65,8 @@ class W3GroupsTests(unittest.TestCase):
         inputs = {str((record / name).relative_to(wg.DATA)): wg._sha256(record / name)
                   for record, meta in wg.preview_inputs().items()
                   for name in ("w3.json", meta["bom"], meta["checks"], meta["measurements"])}
+        inputs.update({str(path.relative_to(wg.ROOT / "tools")): wg._sha256(path) for path in wg.board_inputs()})
+        self.assertIn("frame_boards/preview-board-4/w3.json", inputs)
         self.assertEqual(self.report["sources"], {
             "lib/passive": version,
             "lcsc_map.json": wg._sha256(wg.DATA / "lcsc_map.json"),
@@ -235,8 +237,31 @@ class W3GroupsTests(unittest.TestCase):
         self.assertEqual([f["pn"] for f in rc["failed"]], ["C138033"])
 
     def test_short_at_preview_lives_in_the_dated_record(self):
-        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430"})
+        records = {pn for meta in wg.preview_inputs().values() for pn in meta["short_at_preview"]}
+        self.assertEqual(records, {"C185414", "C185430"})
         self.assertNotIn("C185414", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
+
+    def test_a_board_short_at_its_bom_step_keeps_the_fact_until_it_has_a_record(self):
+        # Board 4's first package (2026-11-11) stopped at the BOM step: no preview was
+        # taken, so no record exists, and the board's own w3.json carries the two numbers.
+        board = wg.BOARDS / "preview-board-4/w3.json"
+        self.assertEqual(list(wg.board_inputs()), [board])
+        short = wg.board_inputs()[board]["short_at_preview"]
+        self.assertEqual(set(short), {"C470029", "C875102"})
+        self.assertTrue(all(why.startswith("2026-11-11 preview-board-4 ") for why in short.values()))
+        self.assertFalse(list(wg.PREVIEWS.glob("*preview-board-4*")), "the record now holds the list; remove the board's")
+        self.assertEqual(set(wg.SHORT_AT_PREVIEW), {"C185414", "C185430", "C470029", "C875102"})
+        self.assertNotIn("C470029", (wg.ROOT / "tools/w3_groups.py").read_text(encoding="utf-8"))
+        # A fresh report passes over both and takes each one's nearest eligible neighbour;
+        # the committed 2026-11-10 report, a dated snapshot, still names them.
+        fresh = group(self.report, "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"]
+        dated = group(json.loads((CURRENT / "groups.json").read_text(encoding="utf-8")),
+                      "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"]
+        self.assertEqual([(old, new) for old, new in zip(dated, fresh) if old != new],
+                         [("C470029", "C7276637"), ("C875102", "C728392")])
+        # Without the board's list the same tree chooses the dated sample.
+        with mock.patch.object(wg, "SHORT_AT_PREVIEW", {pn: wg.SHORT_AT_PREVIEW[pn] for pn in ("C185414", "C185430")}):
+            self.assertEqual(group(wg.build(), "CHIP_1210", "ChipResistor", "Yageo", "RC")["sample"], dated)
 
     def test_spread_is_deterministic_and_covers_both_ends(self):
         self.assertEqual(wg.spread(list(range(10)), 3), [0, 4, 9])

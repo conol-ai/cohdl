@@ -1561,6 +1561,76 @@ fn esp32_s3_wroom_uses_exact_segmented_ep_and_distinct_memory_parts() {
     );
 }
 
+/// qfn 0.3.0 removed `QFN48N40P600X600_1EP405X360`. It was drawn for the TI
+/// TPS59650 RSL package with its thermal land turned 90 degrees and centred,
+/// and lost its only user in @ti/dcdc 0.2.0 (PR #94). Removal keeps it from
+/// being reused by accident. This test fails if it, or one of its pads, comes
+/// back, or if any shipped source names it outside a comment.
+#[test]
+fn qfn_no_longer_ships_the_turned_tps59650_land() {
+    const REMOVED: &str = "QFN48N40P600X600";
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let deps = vec![("std".to_string(), root.join("lib/std"))];
+    let dep_names: Vec<String> = deps.iter().map(|(name, _)| name.clone()).collect();
+    let project = cohdl::project::load_project_with_deps(&root.join("lib/qfn"), &deps).unwrap();
+    let checked =
+        cohdl::pipeline::check_files_in_with_deps(&project.name, &dep_names, &project.files, None)
+            .unwrap();
+    assert!(
+        !checked.diags.has_errors(),
+        "{}",
+        checked.diags.render(&checked.sm)
+    );
+    // Not vacuous: the package's other lands are still loaded.
+    assert!(checked
+        .world
+        .footprints
+        .keys()
+        .any(|name| name.ends_with("::QFN60N40P700X700_1EP340X340")));
+    let leftovers: Vec<&String> = checked
+        .world
+        .footprints
+        .keys()
+        .chain(checked.world.pads.keys())
+        .filter(|name| name.contains(REMOVED))
+        .collect();
+    assert!(leftovers.is_empty(), "qfn still declares {leftovers:?}");
+
+    fn cohdl_sources(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                cohdl_sources(&path, out);
+            } else if path.extension().is_some_and(|ext| ext == "cohdl") {
+                out.push(path);
+            }
+        }
+    }
+    let mut sources = Vec::new();
+    for dir in ["lib", "examples", "tests/fixtures"] {
+        cohdl_sources(&root.join(dir), &mut sources);
+    }
+    assert!(sources.len() > 100, "found only {} sources", sources.len());
+    let mut users = Vec::new();
+    for path in &sources {
+        let text = std::fs::read_to_string(path).unwrap();
+        for (index, line) in text.lines().enumerate() {
+            let code = line.split("//").next().unwrap_or("");
+            if code.contains(REMOVED) {
+                users.push(format!(
+                    "{}:{}",
+                    path.strip_prefix(root).unwrap().display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    assert!(
+        users.is_empty(),
+        "sources still name the removed land: {users:?}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // footprint: a resolvable declaration kind.
 

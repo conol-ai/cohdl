@@ -2,8 +2,8 @@
 
 [[package]]
 name = "qfn"
-version = "0.2.1"
-hash = "sha256:78b2d9d64ae67be3ff506db3b0416939534f8f09110ab6e4bde77c491d10464f"
+version = "0.3.0"
+hash = "sha256:602a7a2ada6975f4056d9b250a0a6b692b1a7e236257cc5e27f542e8eb82ec9f"
 
 [[package]]
 name = "std"

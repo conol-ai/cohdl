@@ -415,6 +415,91 @@ def emit_resistors(size, verified, bindings):
 
 
 # --------------------------------------------------------------------------
+# Resistors — UNI-ROYAL (UniOhm) thick-film chip resistors: decode only
+#
+# NOT EMITTED. Nothing in main() calls this section, so the generated library
+# is unchanged; tools/uniroyal_alternates.py uses it for a dry-run report.
+#
+# THE RULE IS INFERRED, NOT TRANSCRIBED. UNI-ROYAL's part-numbering document
+# is not in this repository. The rule below was read off the 295 UNI-ROYAL
+# rows of the B1 snapshot (tools/sourcing_data/jlc_catalog/2026-10-30/) and
+# checked against what JLCPCB's own page for each row states (resistance,
+# tolerance, rated power, package): 289 of the 289 rows it decodes agree on
+# all four, and the other 6 rows are refused (5 resistor arrays, 1 part
+# number with a suffix). `uniroyal_alternates.py --validate-pages` repeats
+# that check from the fetch cache.
+#
+#   <size> W <power> <tolerance> <value> T <reel> E     0402WGF1002TCE
+#   size       0402, 0603, 0805, 1206
+#   power      G = 62.5 mW, A = 100 mW, 8 = 125 mW, 4 = 250 mW; each size was
+#              seen with one code only, and it is that size's R_POWER
+#   tolerance  F = +/-1% (the only letter seen on a chip resistor)
+#   value      three significant digits, then a digit n for x10^n ohms
+#              (1002 = 10 kohm, 1005 = 10 Mohm) or a letter for a submultiple:
+#              J = x0.1, K = x0.01, L = x0.001 (220J = 22 ohm, 100K = 1 ohm,
+#              100L = 0.1 ohm); 0000 is the zero-ohm jumper
+#   T <reel> E seen only as TCE on 0402 and T5E on the other sizes. The pages
+#              give a reel of 10,000 for C and 5,000 for 5; T and E are
+#              matched as written and not interpreted.
+#
+# Fail closed: a size, code, value form or tail the snapshot does not show
+# is not decoded — including the J tolerance letter, the 4D0x arrays, and
+# any size whose power code or tail differs from the one seen.
+# --------------------------------------------------------------------------
+
+# size -> (power code, rated power on JLCPCB's pages, packing tail)
+UNIROYAL_SIZE = {
+    "0402": ("G", "62.5mW", "TCE"),
+    "0603": ("A", "100mW", "T5E"),
+    "0805": ("8", "125mW", "T5E"),
+    "1206": ("4", "250mW", "T5E"),
+}
+UNIROYAL_TOLERANCE = {"F": "1%"}
+# Value-code exponent character -> power of ten applied to the three digits.
+UNIROYAL_EXPONENT = {"L": -3, "K": -2, "J": -1, "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5}
+UNIROYAL_ZERO = "0000"
+
+
+def uniroyal_decode(mpn):
+    """A UNI-ROYAL chip-resistor part number's fields, or None when unsure.
+
+    Returns `size`, `tolerance` (the letter), `power` (rated power), `ohms`
+    (a Decimal) and the library's own `mantissa` and `decade` (ohms =
+    mantissa / 100 * 10**decade; both None for the zero-ohm jumper).
+    """
+    from decimal import Decimal
+
+    if not isinstance(mpn, str) or len(mpn) != 14 or not mpn.isascii():
+        return None
+    size, w, power, tol, code, tail = mpn[:4], mpn[4], mpn[5], mpn[6], mpn[7:11], mpn[11:]
+    known = UNIROYAL_SIZE.get(size)
+    if known is None or w != "W" or (power, tail) != (known[0], known[2]) or tol not in UNIROYAL_TOLERANCE:
+        return None
+    fields = {"size": size, "tolerance": tol, "power": known[1]}
+    if code == UNIROYAL_ZERO:
+        return {**fields, "ohms": Decimal(0), "mantissa": None, "decade": None}
+    digits3, exponent = code[:3], UNIROYAL_EXPONENT.get(code[3])
+    # Three significant digits: a leading zero is another value form, not seen here.
+    if exponent is None or digits3[0] not in "123456789" or not digits3.isdigit():
+        return None
+    mantissa = int(digits3)
+    return {**fields, "ohms": Decimal(mantissa).scaleb(exponent), "mantissa": mantissa, "decade": exponent + 2}
+
+
+def uniroyal_mpn(size, tol, mantissa, decade):
+    """The part number `uniroyal_decode` reads back; `mantissa` None is zero ohms."""
+    power, _, tail = UNIROYAL_SIZE[size]
+    if tol not in UNIROYAL_TOLERANCE:
+        raise ValueError(tol)
+    if mantissa is None:
+        return f"{size}W{power}{tol}{UNIROYAL_ZERO}{tail}"
+    codes = {exponent: char for char, exponent in UNIROYAL_EXPONENT.items()}
+    if not 100 <= mantissa <= 999 or decade - 2 not in codes:
+        raise ValueError((mantissa, decade))
+    return f"{size}W{power}{tol}{mantissa:03d}{codes[decade - 2]}{tail}"
+
+
+# --------------------------------------------------------------------------
 # Capacitors — Yageo CC series
 #
 # CC <size> <tolerance> <packing> <dielectric> <voltage> <process> <value>

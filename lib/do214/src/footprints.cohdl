@@ -6,15 +6,18 @@
 // Pad 1 is the CATHODE (the band end) and sits at -x; pad 2 is the anode
 // at +x, the same frame as the `sod` package. The assembler has not yet read
 // a DO-214 part on a preview board; this orientation is the one it reads as
-// 0 degrees for SOD parts, and a frame board must confirm it for every land
-// here before the first publish.
+// 0 degrees for SOD parts. do214 0.1.0 was published (2026-11-09) with it,
+// so it remains unconfirmed by a frame board for every land here; a change
+// to pad numbering or rotation would be a breaking change needing a new
+// minor version.
 //
 // Names are IPC-7351B-style (DIOM + overall length + body width X height,
 // length and width in tenths of a millimetre, height in hundredths) but
 // DIOM is outside RFC-021's closed family set, so no name check (E808/E809)
 // runs on them. SMAF has no IPC-7351B family and takes the free name
-// FP_DO221AC_SMAF from the 3c plan. The final names are an open question in
-// docs/README.md.
+// FP_DO221AC_SMAF from the 3c plan, although neither source prints
+// "DO-221AC". Every name here was published in do214 0.1.0 and is
+// permanent; see docs/README.md.
 
 // SMA / DO-214AC. Primary source: Zhuhai Hongjiacheng SS32 THRU SS320
 // datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
@@ -26,7 +29,12 @@
 // Second Hongjiacheng view: the SMAJ series datasheet Rev 2.2, page 2
 // (docs/hongjiacheng-smaj5v0a.evidence.md), lists M >= 2.26mm, J >= 2.10mm,
 // K <= 2.74mm for the same outline. This land meets its J and K limits but
-// not its M limit (1.70 < 2.26mm); see the open question in docs/README.md.
+// not its M limit (1.70 < 2.26mm). That is a deliberate waiver, agreed in
+// the #101 review: the SMAJ rows are table-only (no land drawing on any
+// page) and numerically identical to the SMBJ sheet's SMB rows, so they look
+// carried over from SMB, while SS34 and Diodes both give 1.70mm and the SMA
+// lead is at most 1.65mm wide. SMAJ parts bind to this 1.70mm land; see
+// docs/README.md.
 //
 // Cross-check: Diodes Incorporated SMA package information, Rev. 2017-03-14,
 // page 1 (docs/diodes-sma.evidence.md): X = 2.50mm, Y = 1.70mm, C = 4.00mm,
@@ -143,8 +151,10 @@ pub footprint DIOM7959X261N {
 }
 
 // SMAF (flat-lead SMA; DO-221AC in the 3c plan, a designation neither source
-// prints). Primary source: Zhuhai Hongjiacheng SS22F THRU SS220F datasheet
-// Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
+// prints). The name FP_DO221AC_SMAF was published in do214 0.1.0 and is
+// permanent; the "DO221AC" in it is a label, not a claim that either source
+// registers the outline. Primary source: Zhuhai Hongjiacheng SS22F THRU
+// SS220F datasheet Rev 2.0, page 3, "Suggested Pad Layout" (evidence record
 // docs/hongjiacheng-ss24f.evidence.md). The table gives one-sided limits
 // only: M (land width) >= 1.80mm, J (land length) >= 1.60mm, K (gap between
 // lands) <= 2.2mm. The land uses those limits as its values, as the SMA and
@@ -156,6 +166,12 @@ pub footprint DIOM7959X261N {
 // Y = 1.70mm, C = 4.00mm, G = 1.50mm, X1 = 6.50mm, the same values as its
 // SMA land, for a longer outline (HE 4.80-5.60mm against Hongjiacheng's
 // D 4.40-4.90mm); see docs/README.md.
+//
+// This land fits Hongjiacheng-length SMAF bodies only (overall length D
+// 4.40-4.90mm: lead tips 0.25-0.50mm inside the 2.70mm outer land edge). A
+// Diodes "SMAF" (HE 4.80-5.60mm, tips at up to 2.80mm) can overhang that
+// edge by up to 0.10mm, so another vendor's SMAF series is bound only after
+// its overall length is checked against the 2.70mm edge.
 pub pad P_DO221AC_SMAF_LEAD {
     shape: rect
     size: (1.6mm, 1.8mm)

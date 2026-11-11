@@ -143,6 +143,9 @@ These lands are not moved or changed; both owners now exist side by side:
 
 - `diode::FP_D_SOD_123` (Diodes DS30086 land, bound by `diode::D_1N4148W`)
   remains for existing users. `sod::SOD3716X135N` is the land for new parts.
+  Both are kept (settled in the #101 review), and each source file names the
+  other with the copper difference: 0.90 x 0.95 mm at +/-1.575 mm against
+  0.91 x 1.22 mm at +/-1.635 mm (diode 0.1.1 adds the note on its side).
 - `contrib_esd::FP_SOD323_2P5X1P25mm` stays with its @contrib package.
   Official packages do not depend on @contrib, so `sod::SOD2613X110N` is the
   official owner of SOD-323 for new parts.
@@ -161,7 +164,9 @@ These lands are not moved or changed; both owners now exist side by side:
    first publish (a rename after it is a breaking path change). Either accept
    the primary-source digits, or decide that SOD names use JEDEC nominal
    values so they do not depend on one vendor's tolerances. A follow-up RFC
-   could add SOD/DIOM to the checked set.
+   could add SOD/DIOM to the checked set. *Settled by publication:* sod 0.1.0
+   was published with the primary-source digits, so these names are
+   permanent.
 2. **Duplicates.** SOD-123 now has two official owners whose copper differs
    (see above). *Recommendation:* keep both (option (a) in the 3c plan) until
    CoHDL has re-exports; then point `diode::FP_D_SOD_123` users at the `sod`
@@ -169,18 +174,24 @@ These lands are not moved or changed; both owners now exist side by side:
    promoted, bind GBLC05C to `sod::SOD2613X110N` only if ProTek's span range
    is met (it is not today by 0.02 mm), otherwise keep its own land.
 3. **Frame confirmation.** The -x cathode frame is inferred from other SOD
-   footprints' preview readings, not measured on these. The wave-1 and wave-2
-   frame boards must read them before the first publish (Tony's sign-off).
+   footprints' preview readings, not measured on these. sod 0.1.0 was
+   published (2026-11-09) without that reading, so this is an open item on a
+   published package: the frame remains unconfirmed until the wave-1 and
+   wave-2 frame boards read these lands. A change to pad numbering or
+   rotation would be a breaking change needing a new minor version.
 4. **SOD-123FL land source and lead span.** The Hongjiacheng primary has no
    land, so `SODFL3818X120N` uses the Diodes SOD123F land, which Diodes drew
    for a 3.30-3.70 mm lead span; Hongjiacheng's SOD-123FL reaches 3.90 mm,
    leaving 0.15 mm of toe at the maximum. *Recommendation:* accept it (the
    toe is positive and the heel is covered), and check a second SOD-123FL
    land (onsemi case 498 or the MDD SM4007PL datasheet, the Basic part on
-   the frame-board list) before the first publish; widen the outer edge only
-   if that document asks for more toe.
+   the frame-board list). sod 0.1.0 was published (2026-11-09) without that
+   second check, so it is still open; widen the outer edge only if that
+   document asks for more toe, which would be a copper change to a published
+   land.
 5. **SOD-123FL name.** IPC-7351B uses the `SODFL` prefix for flat-lead SOD
    outlines; the digits follow question 1's rule (3.75 and 1.75 mm nominal
    rounded half up), giving `SODFL3818X120N` where the 3c plan's JEDEC-based
    placeholder was `SODFL3717X110N`. SOD-523's `SOD1608X70N` matches the
-   plan's placeholder. *Recommendation:* settle together with question 1.
+   plan's placeholder. *Settled by publication* with question 1: both
+   names are in sod 0.1.0 and are permanent.
